@@ -1,0 +1,36 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm create:*)",
+      "Bash(command -v node npm bun)",
+      "Bash(/usr/local/bin/node --version)",
+      "Bash(/opt/homebrew/bin/node --version)",
+      "Read(//Users/darraghguy/.nvm/versions/**)",
+      "Bash(echo $PATH)",
+      "Read(//opt/homebrew/**)",
+      "Bash(env)",
+      "Bash(grep -v \"^\\\\.$\")",
+      "Bash(grep -v \"^\\\\.\\\\.$\")",
+      "Bash(npm install:*)",
+      "Bash(/usr/local/bin/npm install:*)",
+      "Read(//usr/bin/**)",
+      "Read(//opt/local/bin/**)",
+      "Bash(command -v node)",
+      "Bash(source ~/.zshrc)",
+      "Bash(source ~/.zprofile)",
+      "Bash(echo \"PATH: $PATH\")",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(lsof -ti:5173)",
+      "Bash(xargs kill:*)",
+      "Bash(lsof -ti:5174)",
+      "WebFetch(domain:storied-klepon-f70251.netlify.app)",
+      "Bash(npm run:*)",
+      "Bash(git init:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git branch:*)",
+      "Bash(git remote:*)",
+      "Bash(git push:*)"
+    ]
+  }
+}
