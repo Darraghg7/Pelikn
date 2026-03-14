@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { NavLink, useLocation } from 'react-router-dom'
+import { NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { useSession } from '../../contexts/SessionContext'
 import { supabase } from '../../lib/supabase'
 import NotificationBell from '../notifications/NotificationBell'
@@ -40,20 +40,17 @@ function usePendingSwaps() {
 }
 
 export default function AppShell({ children }) {
-  const { session, isManager } = useSession()
+  const { session, isManager, signOut } = useSession()
   const location     = useLocation()
+  const navigate     = useNavigate()
   const overdueCount = useOverdueCleaning()
   const pendingSwaps = usePendingSwaps()
 
   const name = session?.staffName ?? ''
 
   const handleSignOut = () => {
-    const token = session?.token
-    if (token) {
-      supabase.rpc('invalidate_staff_session', { p_token: token }).catch(() => {})
-    }
-    localStorage.clear()
-    window.location.replace('/')
+    signOut()
+    navigate('/', { replace: true })
   }
 
   // ── Nav links ────────────────────────────────────────────────────────────
