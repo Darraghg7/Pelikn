@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom'
 import { format } from 'date-fns'
 import { supabase } from '../../lib/supabase'
 import { useSession } from '../../contexts/SessionContext'
-import { useTasksForRole } from '../../hooks/useTasks'
 import { formatMinutes } from '../../lib/utils'
 import ClockPanel from '../../components/ClockPanel'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
@@ -18,7 +17,6 @@ export default function StaffDashboardPage() {
   const [weekMins, setWeekMins]     = useState(0)
   const [loading, setLoading]       = useState(true)
 
-  const { templates, oneOffs, completions } = useTasksForRole(session?.jobRole ?? 'kitchen')
   const today = format(new Date(), 'yyyy-MM-dd')
 
   useEffect(() => {
@@ -59,10 +57,6 @@ export default function StaffDashboardPage() {
 
   const greeting = new Date().getHours() < 12 ? 'morning' : new Date().getHours() < 17 ? 'afternoon' : 'evening'
   const firstName = session.staffName?.split(' ')[0] ?? ''
-  const myTasks   = [...templates, ...oneOffs]
-  const myDone    = completions.filter(c =>
-    templates.some(t => t.id === c.task_template_id) || oneOffs.some(o => o.id === c.task_one_off_id)
-  ).length
 
   return (
     <div className="flex flex-col gap-6">
@@ -85,28 +79,6 @@ export default function StaffDashboardPage() {
           <ClockPanel staffId={session.staffId} hasShift={!!todayShift} />
         </div>
         <Link to="/rota" className="text-center text-xs text-charcoal/40 hover:text-charcoal transition-colors">View Rota →</Link>
-      </div>
-
-      <div className="bg-white rounded-xl border border-charcoal/10 p-5">
-        <div className="flex items-center justify-between mb-3">
-          <SectionLabel>Today's Tasks</SectionLabel>
-          <Link to="/tasks" className="text-[10px] tracking-widest uppercase text-charcoal/40 hover:text-charcoal transition-colors">See All</Link>
-        </div>
-        <div className="h-1.5 bg-charcoal/8 rounded-full mb-4 overflow-hidden">
-          <div className="h-full bg-success rounded-full transition-all" style={{ width: myTasks.length > 0 ? `${(myDone/myTasks.length)*100}%` : '0%' }} />
-        </div>
-        <div className="flex flex-col gap-2">
-          {myTasks.slice(0,5).map(t => {
-            const comp = completions.find(c => (c.task_template_id && c.task_template_id === t.id) || (c.task_one_off_id && c.task_one_off_id === t.id))
-            return (
-              <div key={t.id} className="flex items-center gap-3">
-                <span className={`w-4 h-4 rounded border shrink-0 flex items-center justify-center text-[10px] ${comp ? 'bg-success border-success text-white' : 'border-charcoal/20'}`}>{comp ? '✓' : ''}</span>
-                <p className={`text-sm ${comp ? 'line-through text-charcoal/30' : 'text-charcoal'}`}>{t.title}</p>
-              </div>
-            )
-          })}
-          {myTasks.length === 0 && <p className="text-sm text-charcoal/35 italic">No tasks assigned today.</p>}
-        </div>
       </div>
 
       <div className="bg-white rounded-xl border border-charcoal/10 p-5">

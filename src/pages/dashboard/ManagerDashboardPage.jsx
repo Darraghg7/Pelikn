@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { format } from 'date-fns'
 import { supabase } from '../../lib/supabase'
-import { useTasksForRole } from '../../hooks/useTasks'
 import { useCleaningTasks } from '../../hooks/useCleaningTasks'
 
 function StatCard({ label, value, sub, alert, to }) {
@@ -24,42 +23,9 @@ function StatCard({ label, value, sub, alert, to }) {
   return <div className="bg-white rounded-xl border border-charcoal/10 p-5">{inner}</div>
 }
 
-function RoleTaskCard({ title, tasks, completions }) {
-  const done = completions.filter(c => tasks.some(t => t.id === c.task_template_id)).length
-  return (
-    <Link to="/tasks" className="bg-white rounded-xl border border-charcoal/10 p-5 hover:border-charcoal/25 hover:shadow-sm transition-all block">
-      <div className="flex items-center justify-between mb-3">
-        <p className="font-semibold text-charcoal">{title}</p>
-        <p className="text-xs text-charcoal/40">{done}/{tasks.length} done</p>
-      </div>
-      <div className="h-1.5 bg-charcoal/8 rounded-full mb-4 overflow-hidden">
-        <div
-          className="h-full bg-success rounded-full transition-all"
-          style={{ width: tasks.length > 0 ? `${(done / tasks.length) * 100}%` : '0%' }}
-        />
-      </div>
-      <div className="flex flex-col gap-1.5">
-        {tasks.slice(0, 5).map(t => {
-          const comp = completions.find(c => c.task_template_id === t.id)
-          return (
-            <div key={t.id} className="flex items-center justify-between">
-              <p className={`text-sm ${comp ? 'line-through text-charcoal/30' : 'text-charcoal'}`}>{t.title}</p>
-              {comp && <span className="text-xs text-charcoal/30">{comp.completed_by_name}</span>}
-            </div>
-          )
-        })}
-        {tasks.length === 0 && <p className="text-xs text-charcoal/30 italic">No tasks set up yet.</p>}
-      </div>
-      <p className="text-[10px] tracking-widest uppercase text-charcoal/25 mt-4">Manage Tasks →</p>
-    </Link>
-  )
-}
-
 export default function ManagerDashboardPage() {
   const [tempCount, setTempCount] = useState({ total: 0, fail: 0 })
   const { overdueCount } = useCleaningTasks()
-  const { templates: kitchenTasks, completions: kitchenComp } = useTasksForRole('kitchen')
-  const { templates: fohTasks,     completions: fohComp }     = useTasksForRole('foh')
 
   useEffect(() => {
     const today = format(new Date(), 'yyyy-MM-dd')
@@ -81,9 +47,9 @@ export default function ManagerDashboardPage() {
         <h1 className="font-serif text-3xl text-charcoal">Manager Dashboard</h1>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 gap-4">
         <StatCard
-          label="Temp Checks"
+          label="Temp Checks Today"
           value={tempCount.total}
           sub={`${tempCount.total - tempCount.fail} pass · ${tempCount.fail} fail`}
           alert={tempCount.fail > 0}
@@ -96,23 +62,6 @@ export default function ManagerDashboardPage() {
           alert={overdueCount > 0}
           to="/cleaning"
         />
-        <StatCard
-          label="Kitchen Tasks"
-          value={`${kitchenComp.filter(c => kitchenTasks.some(t => t.id === c.task_template_id)).length}/${kitchenTasks.length}`}
-          sub="completed today"
-          to="/tasks"
-        />
-        <StatCard
-          label="FOH Tasks"
-          value={`${fohComp.filter(c => fohTasks.some(t => t.id === c.task_template_id)).length}/${fohTasks.length}`}
-          sub="completed today"
-          to="/tasks"
-        />
-      </div>
-
-      <div className="grid md:grid-cols-2 gap-4">
-        <RoleTaskCard title="Kitchen"        tasks={kitchenTasks} completions={kitchenComp} />
-        <RoleTaskCard title="Front of House" tasks={fohTasks}     completions={fohComp}     />
       </div>
     </div>
   )
