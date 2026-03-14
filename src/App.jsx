@@ -24,8 +24,7 @@ import AllergenRegistryPage from './pages/allergens/AllergenRegistryPage'
 import FoodItemFormPage     from './pages/allergens/FoodItemFormPage'
 import FoodItemDetailPage   from './pages/allergens/FoodItemDetailPage'
 
-// Tasks + Cleaning
-import TasksPage    from './pages/tasks/TasksPage'
+// Cleaning
 import CleaningPage from './pages/cleaning/CleaningPage'
 
 // Rota + Timesheet
@@ -83,7 +82,6 @@ function AppRoutes() {
       <Route path="/fridge/history"    element={wrap(FridgeHistoryPage)} />
       <Route path="/allergens"         element={wrap(AllergenRegistryPage)} />
       <Route path="/allergens/:id"     element={wrap(FoodItemDetailPage)} />
-      <Route path="/tasks"             element={wrap(TasksPage)} />
       <Route path="/cleaning"          element={wrap(CleaningPage)} />
       <Route path="/rota"              element={wrap(RotaPage)} />
 

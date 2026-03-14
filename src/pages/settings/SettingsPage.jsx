@@ -17,13 +17,17 @@ function SectionLabel({ children }) {
 }
 
 function useVenueSettings() {
-  const [settings, setSettings] = useState({ venue_name: '', manager_email: '' })
+  const [settings, setSettings] = useState({ venue_name: '', manager_email: '', logo_url: '' })
   const [loading, setLoading]   = useState(true)
   const load = async () => {
     const { data } = await supabase.from('app_settings').select('*')
     if (data) {
       const map = Object.fromEntries(data.map(r => [r.key, r.value]))
-      setSettings({ venue_name: map.venue_name ?? '', manager_email: map.manager_email ?? '' })
+      setSettings({
+        venue_name:    map.venue_name    ?? '',
+        manager_email: map.manager_email ?? '',
+        logo_url:      map.logo_url      ?? '',
+      })
     }
     setLoading(false)
   }
@@ -214,6 +218,8 @@ export default function SettingsPage() {
   // Venue form
   const [venueForm, setVenueForm]   = useState({ venue_name: '', manager_email: '' })
   const [savingVenue, setSavingVenue] = useState(false)
+  const [logoFile, setLogoFile]     = useState(null)
+  const [uploadingLogo, setUploadingLogo] = useState(false)
   useEffect(() => {
     if (!sLoading) setVenueForm({ venue_name: settings.venue_name, manager_email: settings.manager_email })
   }, [sLoading, settings])
@@ -227,6 +233,25 @@ export default function SettingsPage() {
     setSavingVenue(false)
     if (results.some(r => r.error)) { toast('Failed to save venue settings', 'error'); return }
     toast('Venue settings saved')
+    reloadSettings()
+  }
+
+  const uploadLogo = async (file) => {
+    if (!file) return
+    setUploadingLogo(true)
+    const ext  = file.name.split('.').pop()
+    const path = `logo/venue-logo.${ext}`
+    const { error: upErr } = await supabase.storage
+      .from('app-assets')
+      .upload(path, file, { upsert: true })
+    if (upErr) { toast('Logo upload failed: ' + upErr.message, 'error'); setUploadingLogo(false); return }
+    const { data: urlData } = supabase.storage.from('app-assets').getPublicUrl(path)
+    const { error: dbErr } = await supabase.from('app_settings')
+      .upsert({ key: 'logo_url', value: urlData.publicUrl + '?t=' + Date.now() })
+    setUploadingLogo(false)
+    if (dbErr) { toast('Failed to save logo URL', 'error'); return }
+    toast('Logo uploaded')
+    setLogoFile(null)
     reloadSettings()
   }
 
@@ -345,6 +370,38 @@ export default function SettingsPage() {
           >
             {savingVenue ? 'Saving…' : 'Save Changes →'}
           </button>
+
+          {/* Logo upload */}
+          <div className="border-t border-charcoal/10 pt-4 mt-2">
+            <label className="text-[10px] tracking-widest uppercase text-charcoal/40 block mb-3">Venue Logo</label>
+            <div className="flex items-center gap-4 flex-wrap">
+              {settings.logo_url && (
+                <img
+                  src={settings.logo_url}
+                  alt="Venue logo"
+                  className="h-12 w-12 rounded-lg object-contain border border-charcoal/10 bg-cream/50 p-1"
+                />
+              )}
+              <div className="flex flex-col gap-2">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={e => setLogoFile(e.target.files[0] ?? null)}
+                  className="text-sm text-charcoal/60 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border file:border-charcoal/15 file:text-xs file:bg-cream/50 file:text-charcoal/60 hover:file:bg-cream"
+                />
+                {logoFile && (
+                  <button
+                    onClick={() => uploadLogo(logoFile)}
+                    disabled={uploadingLogo}
+                    className="self-start bg-charcoal text-cream px-4 py-2 rounded-lg text-xs font-medium disabled:opacity-40 hover:bg-charcoal/90 transition-colors"
+                  >
+                    {uploadingLogo ? 'Uploading…' : 'Upload Logo →'}
+                  </button>
+                )}
+                <p className="text-[11px] text-charcoal/35">Displayed in the app header after login. PNG or SVG recommended.</p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 

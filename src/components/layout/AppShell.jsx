@@ -39,12 +39,22 @@ function usePendingSwaps() {
   return count
 }
 
+function useVenueLogo() {
+  const [logoUrl, setLogoUrl] = useState('')
+  useEffect(() => {
+    supabase.from('app_settings').select('value').eq('key', 'logo_url').single()
+      .then(({ data }) => { if (data?.value) setLogoUrl(data.value) })
+  }, [])
+  return logoUrl
+}
+
 export default function AppShell({ children }) {
   const { session, isManager, signOut } = useSession()
   const location     = useLocation()
   const navigate     = useNavigate()
   const overdueCount = useOverdueCleaning()
   const pendingSwaps = usePendingSwaps()
+  const logoUrl      = useVenueLogo()
 
   const name = session?.staffName ?? ''
 
@@ -59,7 +69,6 @@ export default function AppShell({ children }) {
     { to: '/fridge',    label: 'TEMP LOGS' },
     { to: '/allergens', label: 'ALLERGENS' },
     { to: '/cleaning',  label: overdueCount > 0 ? `CLEANING (${overdueCount})` : 'CLEANING', alert: overdueCount > 0 },
-    { to: '/tasks',     label: 'TASKS' },
     { to: '/timesheet', label: 'HOURS' },
     { to: '/rota',      label: pendingSwaps > 0 ? `ROTA (${pendingSwaps})` : 'ROTA', alert: pendingSwaps > 0 },
     { to: '/settings',  label: 'SETTINGS' },
@@ -67,7 +76,7 @@ export default function AppShell({ children }) {
 
   const staffLinks = [
     { to: '/dashboard', label: 'MY SHIFT' },
-    { to: '/tasks',     label: 'TASKS' },
+    { to: '/cleaning',  label: 'CLEANING' },
     ...(session?.showTempLogs  ? [{ to: '/fridge',    label: 'TEMP LOGS' }] : []),
     ...(session?.showAllergens ? [{ to: '/allergens', label: 'ALLERGENS' }] : []),
     { to: '/rota',      label: 'ROTA' },
@@ -90,7 +99,7 @@ export default function AppShell({ children }) {
               {session?.staffRole === 'owner' ? 'OWNER' : isManager ? 'MANAGER' : 'STAFF'}
             </span>
           </div>
-          {/* Right: bell + name (hidden on small) + sign out */}
+          {/* Right: bell + name (hidden on small) + sign out + logo */}
           <div className="flex items-center gap-2 shrink-0">
             <NotificationBell />
             <span className="hidden sm:block text-xs text-cream/60 font-medium max-w-[120px] truncate">{name}</span>
@@ -100,6 +109,13 @@ export default function AppShell({ children }) {
             >
               Sign Out
             </button>
+            {logoUrl && (
+              <img
+                src={logoUrl}
+                alt="Venue logo"
+                className="h-8 w-8 rounded-md object-contain bg-white/10 p-0.5 shrink-0"
+              />
+            )}
           </div>
         </div>
       </header>
