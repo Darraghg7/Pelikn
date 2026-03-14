@@ -27,6 +27,9 @@ import FoodItemDetailPage   from './pages/allergens/FoodItemDetailPage'
 // Cleaning
 import CleaningPage from './pages/cleaning/CleaningPage'
 
+// Opening / Closing
+import OpeningClosingPage from './pages/opening/OpeningClosingPage'
+
 // Rota + Timesheet
 import RotaPage     from './pages/rota/RotaPage'
 import TimesheetPage from './pages/clockin/TimesheetPage'
@@ -83,6 +86,7 @@ function AppRoutes() {
       <Route path="/allergens"         element={wrap(AllergenRegistryPage)} />
       <Route path="/allergens/:id"     element={wrap(FoodItemDetailPage)} />
       <Route path="/cleaning"          element={wrap(CleaningPage)} />
+      <Route path="/opening-closing"   element={wrap(OpeningClosingPage)} />
       <Route path="/rota"              element={wrap(RotaPage)} />
 
       {/* Manager only */}

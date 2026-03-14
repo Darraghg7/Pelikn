@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { format } from 'date-fns'
 import { supabase } from '../../lib/supabase'
 import { useFridges, useFridgeDashboard } from '../../hooks/useFridgeLogs'
 import { useSession } from '../../contexts/SessionContext'
@@ -12,47 +13,82 @@ function SectionLabel({ children }) {
   return <p className="text-[10px] tracking-widest uppercase text-charcoal/40 mb-3">{children}</p>
 }
 
+function nowLocal() {
+  const d = new Date()
+  return format(d, "yyyy-MM-dd'T'HH:mm")
+}
+
 export default function FridgeDashboardPage() {
   const toast = useToast()
-  const { fridges, loading: fridgesLoading } = useFridges()
-  const { data: dashData, loading: dashLoading, reload } = useFridgeDashboard()
-  const { session } = useSession()
+  const { fridges, loading: fridgesLoading, reload: reloadFridges } = useFridges()
+  const { data: dashData, loading: dashLoading, reload: reloadDash } = useFridgeDashboard()
+  const { session, isManager } = useSession()
 
+  // ── Log a reading ────────────────────────────────────────────────────────
   const [activeFridgeId, setActiveFridgeId] = useState('')
-  const [temp, setTemp]                     = useState('')
-  const [comment, setComment]               = useState('')
-  const [submitting, setSubmitting]         = useState(false)
-  const [showExport, setShowExport]         = useState(false)
+  const [temp, setTemp]       = useState('')
+  const [comment, setComment] = useState('')
+  const [loggedAt, setLoggedAt] = useState(nowLocal())
+  const [submitting, setSubmitting] = useState(false)
+  const [showExport, setShowExport] = useState(false)
 
   const selectedFridge = fridges.find((f) => f.id === activeFridgeId)
   const outOfRange = selectedFridge && temp !== ''
     ? isTempOutOfRange(temp, selectedFridge.min_temp, selectedFridge.max_temp)
     : false
-
-  // When OOR, comment is required (min 5 chars)
-  const commentRequired = outOfRange
-  const canSubmit = activeFridgeId && temp !== '' && (!commentRequired || comment.trim().length >= 5)
+  const canSubmit = activeFridgeId && temp !== '' && (!outOfRange || comment.trim().length >= 5)
 
   const handleLog = async (e) => {
     e.preventDefault()
     if (!canSubmit) return
     setSubmitting(true)
-    const staffId   = session?.staffId
-    const staffName = session?.staffName ?? 'Unknown'
     const { error } = await supabase.from('fridge_temperature_logs').insert({
       fridge_id:      activeFridgeId,
       fridge_name:    selectedFridge?.name ?? '',
       temperature:    parseFloat(temp),
-      logged_by:      staffId,
-      logged_by_name: staffName,
+      logged_by:      session?.staffId,
+      logged_by_name: session?.staffName ?? 'Unknown',
       notes:          comment.trim() || null,
+      logged_at:      new Date(loggedAt).toISOString(),
     })
     setSubmitting(false)
     if (error) { toast(error.message, 'error'); return }
     toast('Temperature logged')
     setTemp('')
     setComment('')
-    reload()
+    setLoggedAt(nowLocal())
+    reloadDash()
+  }
+
+  // ── Manage fridges (manager only) ────────────────────────────────────────
+  const [showManage, setShowManage] = useState(false)
+  const [fridgeForm, setFridgeForm] = useState({ name: '', min_temp: '', max_temp: '' })
+  const [savingFridge, setSavingFridge] = useState(false)
+
+  const addFridge = async () => {
+    if (!fridgeForm.name.trim()) { toast('Name is required', 'error'); return }
+    const min = parseFloat(fridgeForm.min_temp)
+    const max = parseFloat(fridgeForm.max_temp)
+    if (isNaN(min) || isNaN(max)) { toast('Enter valid temperature ranges', 'error'); return }
+    if (min >= max) { toast('Min must be less than max', 'error'); return }
+    setSavingFridge(true)
+    const { error } = await supabase.from('fridges').insert({
+      name: fridgeForm.name.trim(), min_temp: min, max_temp: max,
+    })
+    setSavingFridge(false)
+    if (error) { toast(error.message, 'error'); return }
+    toast(`${fridgeForm.name.trim()} added`)
+    setFridgeForm({ name: '', min_temp: '', max_temp: '' })
+    reloadFridges()
+    reloadDash()
+  }
+
+  const removeFridge = async (id, name) => {
+    const { error } = await supabase.from('fridges').update({ is_active: false }).eq('id', id)
+    if (error) { toast(error.message, 'error'); return }
+    toast(`${name} removed`)
+    reloadFridges()
+    reloadDash()
   }
 
   if (fridgesLoading || dashLoading) {
@@ -62,10 +98,18 @@ export default function FridgeDashboardPage() {
   return (
     <div className="flex flex-col gap-6">
 
-      {/* Page title */}
+      {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="font-serif text-3xl text-charcoal">Temperature Logs</h1>
         <div className="flex items-center gap-3">
+          {isManager && (
+            <button
+              onClick={() => setShowManage(v => !v)}
+              className="text-[11px] tracking-widest uppercase text-charcoal/40 hover:text-charcoal transition-colors border-b border-charcoal/20"
+            >
+              {showManage ? 'Done' : 'Manage Fridges'}
+            </button>
+          )}
           <button
             onClick={() => setShowExport(true)}
             className="text-[11px] tracking-widest uppercase text-charcoal/40 hover:text-charcoal transition-colors border-b border-charcoal/20"
@@ -83,12 +127,73 @@ export default function FridgeDashboardPage() {
 
       <FridgeExportModal open={showExport} onClose={() => setShowExport(false)} />
 
+      {/* Manage Fridges panel */}
+      {showManage && isManager && (
+        <div className="bg-white rounded-xl border border-charcoal/10 p-5 flex flex-col gap-5">
+          <SectionLabel>Manage Fridges &amp; Freezers</SectionLabel>
+
+          {/* Add new */}
+          <div className="flex flex-col gap-3">
+            <p className="text-xs font-medium text-charcoal/60">Add new</p>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              <input
+                value={fridgeForm.name}
+                onChange={e => setFridgeForm(f => ({ ...f, name: e.target.value }))}
+                placeholder="Name (e.g. Walk-in Fridge)"
+                className="px-3 py-2.5 rounded-lg border border-charcoal/15 bg-cream/30 text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+              />
+              <input
+                type="number" step="0.5"
+                value={fridgeForm.min_temp}
+                onChange={e => setFridgeForm(f => ({ ...f, min_temp: e.target.value }))}
+                placeholder="Min °C"
+                className="px-3 py-2.5 rounded-lg border border-charcoal/15 bg-cream/30 text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+              />
+              <input
+                type="number" step="0.5"
+                value={fridgeForm.max_temp}
+                onChange={e => setFridgeForm(f => ({ ...f, max_temp: e.target.value }))}
+                placeholder="Max °C"
+                className="px-3 py-2.5 rounded-lg border border-charcoal/15 bg-cream/30 text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+              />
+            </div>
+            <button
+              onClick={addFridge}
+              disabled={savingFridge}
+              className="self-start bg-charcoal text-cream px-4 py-2 rounded-lg text-sm font-medium hover:bg-charcoal/90 transition-colors disabled:opacity-40"
+            >
+              {savingFridge ? 'Adding…' : '+ Add Fridge / Freezer'}
+            </button>
+          </div>
+
+          {/* Existing list */}
+          {fridges.length > 0 && (
+            <div className="border-t border-charcoal/8 pt-4 flex flex-col divide-y divide-charcoal/6">
+              {fridges.map(f => (
+                <div key={f.id} className="flex items-center justify-between py-2.5">
+                  <div>
+                    <p className="text-sm font-medium text-charcoal">{f.name}</p>
+                    <p className="text-xs text-charcoal/40">Safe range: {f.min_temp}°C to {f.max_temp}°C</p>
+                  </div>
+                  <button
+                    onClick={() => removeFridge(f.id, f.name)}
+                    className="text-xs text-charcoal/25 hover:text-danger transition-colors px-2 py-1"
+                  >
+                    Remove
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Log a Reading */}
       {fridges.length > 0 && (
         <div className="bg-white rounded-xl border border-charcoal/10 p-5">
           <SectionLabel>Log a Reading</SectionLabel>
 
-          {/* Fridge selector tabs */}
+          {/* Fridge selector */}
           <div className="flex flex-wrap gap-2 mb-4">
             {fridges.map((f) => (
               <button
@@ -102,76 +207,68 @@ export default function FridgeDashboardPage() {
                 ].join(' ')}
               >
                 {f.name}{' '}
-                <span className="text-xs opacity-60">
-                  ({f.min_temp}° to {f.max_temp}°)
-                </span>
+                <span className="text-xs opacity-60">({f.min_temp}° to {f.max_temp}°)</span>
               </button>
             ))}
           </div>
 
-          {/* Temp input + log button */}
           <form onSubmit={handleLog} className="flex flex-col gap-3">
-            <div>
-              <p className="text-[10px] tracking-widest uppercase text-charcoal/40 mb-2">
-                Temperature (°C)
-              </p>
-              <div className="flex gap-2">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <p className="text-[10px] tracking-widest uppercase text-charcoal/40 mb-2">Temperature (°C)</p>
                 <input
-                  type="number"
-                  step="0.1"
-                  min="-30"
-                  max="60"
+                  type="number" step="0.1" min="-30" max="60"
                   value={temp}
                   onChange={(e) => setTemp(e.target.value)}
                   placeholder="e.g. 2"
                   disabled={!activeFridgeId}
                   className={[
-                    'flex-1 px-4 py-2.5 rounded-lg border bg-cream/30 focus:outline-none focus:ring-2 focus:ring-charcoal/20 text-charcoal placeholder-charcoal/25 text-sm transition-colors',
+                    'w-full px-4 py-2.5 rounded-lg border bg-cream/30 focus:outline-none focus:ring-2 focus:ring-charcoal/20 text-charcoal placeholder-charcoal/25 text-sm transition-colors',
                     outOfRange ? 'border-danger/60 bg-danger/5' : 'border-charcoal/15',
                     !activeFridgeId ? 'opacity-40 cursor-not-allowed' : '',
                   ].join(' ')}
                 />
-                <button
-                  type="submit"
-                  disabled={!canSubmit || submitting}
-                  className="bg-charcoal text-cream px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-charcoal/90 transition-colors disabled:opacity-30 disabled:cursor-not-allowed whitespace-nowrap"
-                >
-                  {submitting ? '…' : 'Log →'}
-                </button>
+              </div>
+              <div>
+                <p className="text-[10px] tracking-widest uppercase text-charcoal/40 mb-2">Time of Check</p>
+                <input
+                  type="datetime-local"
+                  value={loggedAt}
+                  onChange={e => setLoggedAt(e.target.value)}
+                  max={nowLocal()}
+                  className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 bg-cream/30 focus:outline-none focus:ring-2 focus:ring-charcoal/20 text-sm text-charcoal"
+                />
               </div>
             </div>
 
-            {/* OOR warning + mandatory corrective action comment */}
             {outOfRange && (
               <div className="rounded-lg border border-danger/30 bg-danger/5 p-4 flex flex-col gap-3">
                 <div className="flex items-start gap-2">
-                  <span className="text-danger mt-0.5">⚠</span>
+                  <span className="text-danger">⚠</span>
                   <div>
                     <p className="text-sm font-semibold text-danger">
-                      Reading outside safe range ({selectedFridge.min_temp}–{selectedFridge.max_temp}°C)
+                      Outside safe range ({selectedFridge.min_temp}–{selectedFridge.max_temp}°C)
                     </p>
-                    <p className="text-xs text-danger/70 mt-0.5">
-                      You must enter a corrective action comment before saving.
-                    </p>
+                    <p className="text-xs text-danger/70 mt-0.5">A corrective action comment is required.</p>
                   </div>
                 </div>
-                <div>
-                  <label className="text-[10px] tracking-widest uppercase text-charcoal/40 block mb-1.5">
-                    Corrective Action <span className="text-danger">*</span>
-                  </label>
-                  <textarea
-                    value={comment}
-                    onChange={(e) => setComment(e.target.value)}
-                    placeholder="e.g. Fridge door was left open — closed and will re-check in 30 minutes"
-                    rows={3}
-                    className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 bg-white focus:outline-none focus:ring-2 focus:ring-charcoal/20 text-charcoal placeholder-charcoal/25 text-sm resize-none"
-                  />
-                  {comment.trim().length > 0 && comment.trim().length < 5 && (
-                    <p className="text-xs text-danger/70 mt-1">Please provide more detail (min 5 characters)</p>
-                  )}
-                </div>
+                <textarea
+                  value={comment}
+                  onChange={(e) => setComment(e.target.value)}
+                  placeholder="e.g. Fridge door was left open — closed and will re-check in 30 minutes"
+                  rows={3}
+                  className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 bg-white focus:outline-none focus:ring-2 focus:ring-charcoal/20 text-sm resize-none"
+                />
               </div>
             )}
+
+            <button
+              type="submit"
+              disabled={!canSubmit || submitting}
+              className="bg-charcoal text-cream px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-charcoal/90 transition-colors disabled:opacity-30 disabled:cursor-not-allowed self-start"
+            >
+              {submitting ? '…' : 'Log Reading →'}
+            </button>
           </form>
         </div>
       )}
@@ -187,12 +284,10 @@ export default function FridgeDashboardPage() {
               return (
                 <div key={fridge.id} className="py-3 first:pt-0 last:pb-0 flex items-center justify-between gap-4">
                   <div className="flex items-center gap-3">
-                    <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${oor ? 'bg-danger' : 'bg-success'}`} />
+                    <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${log ? (oor ? 'bg-danger' : 'bg-success') : 'bg-charcoal/20'}`} />
                     <div>
                       <p className="text-sm font-medium text-charcoal">{fridge.name}</p>
-                      <p className="text-xs text-charcoal/40">
-                        Safe: {fridge.min_temp}–{fridge.max_temp}°C
-                      </p>
+                      <p className="text-xs text-charcoal/40">Safe: {fridge.min_temp}–{fridge.max_temp}°C</p>
                     </div>
                   </div>
                   <div className="text-right">
@@ -214,10 +309,17 @@ export default function FridgeDashboardPage() {
         </div>
       )}
 
-      {fridges.length === 0 && (
+      {fridges.length === 0 && !showManage && (
         <div className="bg-white rounded-xl border border-charcoal/10 p-8 text-center">
           <p className="text-charcoal/40 text-sm">No fridges set up yet.</p>
-          <p className="text-charcoal/30 text-xs mt-1">Ask your manager to add fridges in Settings.</p>
+          {isManager && (
+            <button
+              onClick={() => setShowManage(true)}
+              className="mt-3 text-xs text-charcoal/50 hover:text-charcoal underline underline-offset-2 transition-colors"
+            >
+              Add your first fridge →
+            </button>
+          )}
         </div>
       )}
     </div>

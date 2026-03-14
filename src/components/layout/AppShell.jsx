@@ -65,21 +65,23 @@ export default function AppShell({ children }) {
 
   // ── Nav links ────────────────────────────────────────────────────────────
   const managerLinks = [
-    { to: '/dashboard', label: 'DASHBOARD' },
-    { to: '/fridge',    label: 'TEMP LOGS' },
-    { to: '/allergens', label: 'ALLERGENS' },
-    { to: '/cleaning',  label: overdueCount > 0 ? `CLEANING (${overdueCount})` : 'CLEANING', alert: overdueCount > 0 },
-    { to: '/timesheet', label: 'HOURS' },
-    { to: '/rota',      label: pendingSwaps > 0 ? `ROTA (${pendingSwaps})` : 'ROTA', alert: pendingSwaps > 0 },
-    { to: '/settings',  label: 'SETTINGS' },
+    { to: '/dashboard',       label: 'DASHBOARD' },
+    { to: '/fridge',          label: 'TEMP LOGS' },
+    { to: '/opening-closing', label: 'CHECKS' },
+    { to: '/allergens',       label: 'ALLERGENS' },
+    { to: '/cleaning',        label: overdueCount > 0 ? `CLEANING (${overdueCount})` : 'CLEANING', alert: overdueCount > 0 },
+    { to: '/timesheet',       label: 'HOURS' },
+    { to: '/rota',            label: pendingSwaps > 0 ? `ROTA (${pendingSwaps})` : 'ROTA', alert: pendingSwaps > 0 },
+    { to: '/settings',        label: 'SETTINGS' },
   ]
 
   const staffLinks = [
-    { to: '/dashboard', label: 'MY SHIFT' },
-    { to: '/cleaning',  label: 'CLEANING' },
+    { to: '/dashboard',       label: 'MY SHIFT' },
+    { to: '/opening-closing', label: 'CHECKS' },
+    { to: '/cleaning',        label: 'CLEANING' },
     ...(session?.showTempLogs  ? [{ to: '/fridge',    label: 'TEMP LOGS' }] : []),
     ...(session?.showAllergens ? [{ to: '/allergens', label: 'ALLERGENS' }] : []),
-    { to: '/rota',      label: 'ROTA' },
+    { to: '/rota',            label: 'ROTA' },
   ]
 
   const links    = isManager ? managerLinks : staffLinks
