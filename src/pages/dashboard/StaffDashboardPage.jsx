@@ -7,6 +7,15 @@ import { formatMinutes } from '../../lib/utils'
 import ClockPanel from '../../components/ClockPanel'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
 
+function useVenueName() {
+  const [name, setName] = useState('')
+  useEffect(() => {
+    supabase.from('app_settings').select('value').eq('key', 'venue_name').single()
+      .then(({ data }) => { if (data?.value) setName(data.value) })
+  }, [])
+  return name
+}
+
 function SectionLabel({ children }) {
   return <p className="text-[10px] tracking-widest uppercase text-charcoal/40 mb-3">{children}</p>
 }
@@ -57,10 +66,14 @@ export default function StaffDashboardPage() {
 
   const greeting = new Date().getHours() < 12 ? 'morning' : new Date().getHours() < 17 ? 'afternoon' : 'evening'
   const firstName = session.staffName?.split(' ')[0] ?? ''
+  const venueName = useVenueName()
 
   return (
     <div className="flex flex-col gap-6">
       <div>
+        {venueName && (
+          <p className="font-serif text-lg text-charcoal/50 mb-0.5">{venueName}</p>
+        )}
         <p className="text-xs uppercase tracking-widest text-charcoal/40 mb-1">{format(new Date(), 'EEEE, d MMMM')}</p>
         <h1 className="font-serif text-3xl text-charcoal">Good {greeting}, {firstName}</h1>
       </div>

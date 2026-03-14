@@ -4,6 +4,15 @@ import { format } from 'date-fns'
 import { supabase } from '../../lib/supabase'
 import { useCleaningTasks } from '../../hooks/useCleaningTasks'
 
+function useVenueName() {
+  const [name, setName] = useState('')
+  useEffect(() => {
+    supabase.from('app_settings').select('value').eq('key', 'venue_name').single()
+      .then(({ data }) => { if (data?.value) setName(data.value) })
+  }, [])
+  return name
+}
+
 function StatCard({ label, value, sub, alert, to }) {
   const inner = (
     <>
@@ -49,6 +58,7 @@ export default function ManagerDashboardPage() {
   const [tempCount, setTempCount] = useState({ total: 0, fail: 0 })
   const { overdueCount } = useCleaningTasks()
   const { shifts, loading: shiftsLoading } = useTodaysShifts()
+  const venueName = useVenueName()
 
   useEffect(() => {
     const today = format(new Date(), 'yyyy-MM-dd')
@@ -68,6 +78,9 @@ export default function ManagerDashboardPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
+        {venueName && (
+          <p className="font-serif text-lg text-charcoal/50 mb-0.5">{venueName}</p>
+        )}
         <p className="text-xs uppercase tracking-widest text-charcoal/40 mb-1">{format(new Date(), 'EEEE, d MMMM')}</p>
         <h1 className="font-serif text-3xl text-charcoal">Manager Dashboard</h1>
       </div>
