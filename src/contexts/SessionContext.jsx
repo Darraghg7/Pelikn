@@ -130,23 +130,3 @@ export function SessionProvider({ children }) {
 }
 
 export const useSession = () => useContext(SessionContext)
-
-// ── Back-compat shim ─────────────────────────────────────────────────────────
-// Files that still import useStaffSession will work until they're updated.
-export const useStaffSession = () => {
-  const { session, loading, signIn, signOut } = useSession()
-  return {
-    staffSession: session
-      ? {
-          token:       session.token,
-          staffId:     session.staffId,
-          staffName:   session.staffName,
-          staffRole:   session.staffRole,
-          jobRole:     session.jobRole,
-        }
-      : null,
-    loading,
-    signIn,
-    signOut,
-  }
-}

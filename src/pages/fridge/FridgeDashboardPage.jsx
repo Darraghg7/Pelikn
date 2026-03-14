@@ -6,6 +6,7 @@ import { useSession } from '../../contexts/SessionContext'
 import { isTempOutOfRange, formatTemp, timeAgo } from '../../lib/utils'
 import { useToast } from '../../components/ui/Toast'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
+import FridgeExportModal from './FridgeExportModal'
 
 function SectionLabel({ children }) {
   return <p className="text-[10px] tracking-widest uppercase text-charcoal/40 mb-3">{children}</p>
@@ -21,6 +22,7 @@ export default function FridgeDashboardPage() {
   const [temp, setTemp]                     = useState('')
   const [comment, setComment]               = useState('')
   const [submitting, setSubmitting]         = useState(false)
+  const [showExport, setShowExport]         = useState(false)
 
   const selectedFridge = fridges.find((f) => f.id === activeFridgeId)
   const outOfRange = selectedFridge && temp !== ''
@@ -63,13 +65,23 @@ export default function FridgeDashboardPage() {
       {/* Page title */}
       <div className="flex items-center justify-between">
         <h1 className="font-serif text-3xl text-charcoal">Temperature Logs</h1>
-        <Link
-          to="/fridge/history"
-          className="text-[11px] tracking-widest uppercase text-charcoal/40 hover:text-charcoal transition-colors border-b border-charcoal/20"
-        >
-          View History
-        </Link>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setShowExport(true)}
+            className="text-[11px] tracking-widest uppercase text-charcoal/40 hover:text-charcoal transition-colors border-b border-charcoal/20"
+          >
+            Export PDF
+          </button>
+          <Link
+            to="/fridge/history"
+            className="text-[11px] tracking-widest uppercase text-charcoal/40 hover:text-charcoal transition-colors border-b border-charcoal/20"
+          >
+            View History
+          </Link>
+        </div>
       </div>
+
+      <FridgeExportModal open={showExport} onClose={() => setShowExport(false)} />
 
       {/* Log a Reading */}
       {fridges.length > 0 && (

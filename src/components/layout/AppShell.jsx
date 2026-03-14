@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 import { useSession } from '../../contexts/SessionContext'
 import { supabase } from '../../lib/supabase'
+import NotificationBell from '../notifications/NotificationBell'
 
 function useOverdueCleaning() {
   const [count, setCount] = useState(0)
@@ -84,18 +85,21 @@ export default function AppShell({ children }) {
 
       {/* Header */}
       <header className="bg-charcoal shrink-0">
-        <div className={`${maxW} mx-auto px-5 sm:px-8 h-12 flex items-center justify-between`}>
-          <div className="flex items-center gap-3">
-            <span className="font-serif text-cream text-lg tracking-tight">SafeServ</span>
-            <span className="text-[10px] uppercase tracking-widest text-cream/40 border border-cream/20 px-1.5 py-0.5 rounded">
+        <div className={`${maxW} mx-auto px-4 sm:px-8 h-12 flex items-center justify-between gap-2`}>
+          {/* Left: logo + role badge */}
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="font-serif text-cream text-lg tracking-tight shrink-0">SafeServ</span>
+            <span className="hidden xs:inline-block text-[10px] uppercase tracking-widest text-cream/40 border border-cream/20 px-1.5 py-0.5 rounded shrink-0">
               {session?.staffRole === 'owner' ? 'OWNER' : isManager ? 'MANAGER' : 'STAFF'}
             </span>
           </div>
-          <div className="flex items-center gap-3">
-            <span className="text-xs text-cream/70 font-medium">{name}</span>
+          {/* Right: bell + name (hidden on small) + sign out */}
+          <div className="flex items-center gap-2 shrink-0">
+            <NotificationBell />
+            <span className="hidden sm:block text-xs text-cream/60 font-medium max-w-[120px] truncate">{name}</span>
             <button
               onClick={handleSignOut}
-              className="text-[11px] tracking-widest uppercase text-cream/50 border border-cream/20 px-2.5 py-1 rounded hover:text-cream hover:border-cream/50 transition-colors"
+              className="text-[11px] tracking-widest uppercase text-cream/50 border border-cream/20 px-2 py-1 rounded hover:text-cream hover:border-cream/50 transition-colors whitespace-nowrap"
             >
               Sign Out
             </button>
