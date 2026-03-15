@@ -22,6 +22,7 @@ function SectionLabel({ children }) {
 
 export default function StaffDashboardPage() {
   const { session } = useSession()
+  const venueName = useVenueName()
   const [todayShift, setTodayShift] = useState(null)
   const [weekMins, setWeekMins]     = useState(0)
   const [loading, setLoading]       = useState(true)
@@ -66,7 +67,6 @@ export default function StaffDashboardPage() {
 
   const greeting = new Date().getHours() < 12 ? 'morning' : new Date().getHours() < 17 ? 'afternoon' : 'evening'
   const firstName = session.staffName?.split(' ')[0] ?? ''
-  const venueName = useVenueName()
 
   return (
     <div className="flex flex-col gap-6">
