@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react'
 import { format, subDays, subMonths } from 'date-fns'
 import { supabase } from '../../lib/supabase'
+import { useToast } from '../../components/ui/Toast'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
+import { exportTempLogs, exportCleaningRecords, exportDeliveryChecks, exportCorrectiveActions, exportProbeCalibrations, exportTrainingRecords, exportFullReport } from '../../lib/exportData'
 
 const RANGE_OPTIONS = [
   { label: '7 days',   days: 7 },
@@ -249,6 +251,35 @@ export default function EHOAuditPage() {
               <StatRow label="Valid certificates" value={data.validCerts} />
               <StatRow label="Expired certificates" value={data.expiredCerts} warn={data.expiredCerts > 0} />
             </SectionCard>
+          </div>
+
+          {/* Data Export */}
+          <div className="rounded-xl bg-white border border-charcoal/10 px-5 py-4">
+            <p className="text-[10px] tracking-widest uppercase text-charcoal/40 mb-3">Export Records (CSV)</p>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              {[
+                { label: 'Temp Logs', fn: () => exportTempLogs(range) },
+                { label: 'Cleaning', fn: () => exportCleaningRecords(range) },
+                { label: 'Deliveries', fn: () => exportDeliveryChecks(range) },
+                { label: 'Actions', fn: () => exportCorrectiveActions(range) },
+                { label: 'Probe Cal.', fn: () => exportProbeCalibrations(range) },
+                { label: 'Training', fn: () => exportTrainingRecords() },
+              ].map(btn => (
+                <button
+                  key={btn.label}
+                  onClick={btn.fn}
+                  className="px-3 py-2 rounded-lg border border-charcoal/15 text-xs font-medium text-charcoal/60 hover:text-charcoal hover:border-charcoal/30 transition-colors"
+                >
+                  {btn.label}
+                </button>
+              ))}
+            </div>
+            <button
+              onClick={() => exportFullReport(range)}
+              className="w-full mt-3 px-4 py-2.5 rounded-lg bg-charcoal text-cream text-xs font-medium hover:bg-charcoal/90 transition-colors"
+            >
+              Download All Reports
+            </button>
           </div>
 
           {/* Guidance note */}

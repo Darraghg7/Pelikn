@@ -43,6 +43,9 @@ import EHOAuditPage          from './pages/audit/EHOAuditPage'
 // Training
 import TrainingPage from './pages/training/TrainingPage'
 
+// Time Off
+import TimeOffPage from './pages/timeoff/TimeOffPage'
+
 // Settings
 import SettingsPage from './pages/settings/SettingsPage'
 
@@ -97,6 +100,7 @@ function AppRoutes() {
       <Route path="/cleaning"          element={wrap(CleaningPage)} />
       <Route path="/opening-closing"   element={wrap(OpeningClosingPage)} />
       <Route path="/rota"              element={wrap(RotaPage)} />
+      <Route path="/time-off"          element={wrap(TimeOffPage)} />
 
       {/* Manager only */}
       <Route path="/allergens/new"      element={wrap(FoodItemFormPage,       RequireManager)} />

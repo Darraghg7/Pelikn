@@ -3,6 +3,7 @@ import { NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { useSession } from '../../contexts/SessionContext'
 import { supabase } from '../../lib/supabase'
 import NotificationBell from '../notifications/NotificationBell'
+import OfflineBanner from '../ui/OfflineBanner'
 
 function useOverdueCleaning() {
   const [count, setCount] = useState(0)
@@ -177,6 +178,7 @@ export default function AppShell({ children }) {
     { to: '/rota',       label: pendingSwaps > 0 ? `ROTA (${pendingSwaps})` : 'ROTA', alert: pendingSwaps > 0 },
     { to: '/timesheet',  label: 'HOURS' },
     { to: '/training',   label: 'TRAINING' },
+    { to: '/time-off',   label: 'TIME OFF' },
   ]
   const hasTeamAlert = pendingSwaps > 0
 
@@ -188,6 +190,7 @@ export default function AppShell({ children }) {
     ...(session?.showTempLogs  ? [{ to: '/fridge',    label: 'TEMP LOGS' }] : []),
     ...(session?.showAllergens ? [{ to: '/allergens', label: 'ALLERGENS' }] : []),
     { to: '/rota',            label: 'ROTA' },
+    { to: '/time-off',        label: 'TIME OFF' },
   ]
 
   const bgClass = isManager ? 'bg-cream'   : 'bg-staffbg'
@@ -221,6 +224,9 @@ export default function AppShell({ children }) {
           </div>
         </div>
       </header>
+
+      {/* Offline banner */}
+      <OfflineBanner />
 
       {/* Nav tabs */}
       <nav className="bg-white border-b border-charcoal/10 shrink-0 relative">

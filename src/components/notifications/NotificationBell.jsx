@@ -4,10 +4,19 @@ import { useNotifications } from '../../hooks/useNotifications'
 import { useSession } from '../../contexts/SessionContext'
 
 const TYPE_ICON = {
-  swap_request:     '🔄',
-  late_clock_in:    '⏰',
-  incomplete_tasks: '✗',
-  repeat_offender:  '⚠',
+  swap_request:       '🔄',
+  late_clock_in:      '⏰',
+  incomplete_tasks:   '✗',
+  repeat_offender:    '⚠',
+  fridge_alert:       '🌡',
+  fridge_unchecked:   '❄',
+  training_expired:   '📋',
+  training_expiring:  '📋',
+  cleaning_overdue:   '🧹',
+  critical_action:    '🚨',
+  major_action:       '⚠',
+  probe_overdue:      '🔬',
+  time_off_pending:   '🏖',
 }
 
 export default function NotificationBell() {
