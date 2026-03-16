@@ -16,6 +16,8 @@ export default function RotaWeekView({
   onCellClick,
   currentStaffId = null,
   isManager = true,
+  unavailability = {},
+  availabilityMode = false,
 }) {
   const days = getWeekDays(weekStart)
 
@@ -78,10 +80,17 @@ export default function RotaWeekView({
                   </div>
                 </td>
                 {days.map((d, di) => {
-                  const dateStr  = format(d, 'yyyy-MM-dd')
-                  const today    = isToday(d)
+                  const dateStr   = format(d, 'yyyy-MM-dd')
+                  const today     = isToday(d)
                   const dayShifts = shifts.filter((sh) => sh.staff_id === s.id && sh.shift_date === dateStr)
-                  const canClick  = isManager || (isOwnStaff && dayShifts.length > 0)
+                  const unavail   = unavailability[`${s.id}:${dateStr}`]
+                  const isTimeOff = unavail?.type === 'time_off'
+                  const isManualOff = unavail?.type === 'manual'
+
+                  // In availability mode, all cells clickable for managers
+                  const canClick = availabilityMode
+                    ? (isManager && !isTimeOff)
+                    : (isManager || (isOwnStaff && dayShifts.length > 0))
 
                   return (
                     <td
@@ -90,15 +99,31 @@ export default function RotaWeekView({
                       className={[
                         'border-b border-charcoal/5 px-2 py-2 align-top transition-colors min-w-[96px]',
                         canClick ? 'cursor-pointer' : 'cursor-default',
-                        today ? 'bg-accent/5' : '',
-                        canClick && today  ? 'hover:bg-accent/10'  : '',
-                        canClick && !today ? 'hover:bg-charcoal/5' : '',
+                        // Unavailability background colours
+                        isTimeOff && dayShifts.length === 0
+                          ? 'bg-success/6'
+                          : isManualOff && dayShifts.length === 0
+                            ? 'bg-charcoal/4'
+                            : today ? 'bg-accent/5' : '',
+                        canClick && !unavail && today  ? 'hover:bg-accent/10'  : '',
+                        canClick && !unavail && !today ? 'hover:bg-charcoal/5' : '',
+                        canClick && isManualOff ? 'hover:bg-charcoal/8' : '',
+                        availabilityMode && canClick ? 'ring-1 ring-inset ring-charcoal/10' : '',
                       ].join(' ')}
                     >
                       {dayShifts.length === 0 ? (
-                        isManager ? (
+                        // ── Empty cell: show unavailability or normal empty ──
+                        isTimeOff ? (
+                          <div className="h-10 flex items-center justify-center rounded border border-success/20">
+                            <span className="text-[9px] tracking-widest uppercase text-success/60 font-medium">Time Off</span>
+                          </div>
+                        ) : isManualOff ? (
+                          <div className="h-10 flex items-center justify-center rounded border border-charcoal/15">
+                            <span className="text-[9px] tracking-widest uppercase text-charcoal/30 font-medium">Unavail</span>
+                          </div>
+                        ) : isManager ? (
                           <div className="h-10 flex items-center justify-center text-charcoal/20 text-xs rounded border border-dashed border-charcoal/12 hover:border-charcoal/25 transition-colors">
-                            +
+                            {availabilityMode ? '✓' : '+'}
                           </div>
                         ) : isOwnStaff ? (
                           <div className="h-10 flex items-center justify-center text-charcoal/15 text-xs rounded border border-dashed border-charcoal/8">
@@ -108,6 +133,7 @@ export default function RotaWeekView({
                           <div className="h-10" />
                         )
                       ) : (
+                        // ── Has shifts ──
                         <div className="flex flex-col gap-1">
                           {dayShifts.map((sh) => (
                             <div
@@ -117,6 +143,8 @@ export default function RotaWeekView({
                                 isOwnStaff && !isManager
                                   ? 'ring-2 ring-accent ring-offset-1'
                                   : '',
+                                // Warning if shift assigned to unavailable staff
+                                unavail ? 'ring-2 ring-warning ring-offset-1' : '',
                               ].join(' ')}
                             >
                               <p className="font-medium">{sh.start_time.slice(0,5)}&ndash;{sh.end_time.slice(0,5)}</p>
@@ -124,6 +152,11 @@ export default function RotaWeekView({
                               {isOwnStaff && !isManager && (
                                 <span className="absolute -top-1 -right-1 bg-accent text-white text-[8px] rounded-full w-3.5 h-3.5 flex items-center justify-center font-bold leading-none">
                                   ↔
+                                </span>
+                              )}
+                              {unavail && (
+                                <span className="absolute -top-1 -left-1 bg-warning text-white text-[7px] rounded-full w-3.5 h-3.5 flex items-center justify-center font-bold leading-none">
+                                  !
                                 </span>
                               )}
                             </div>

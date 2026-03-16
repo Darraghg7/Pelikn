@@ -47,6 +47,24 @@ export const SESSION_SHOW_ALLERGENS  = 'safeserv_show_allergens'
 // VAPID public key for Web Push — private key stored in Supabase secrets as VAPID_PRIVATE_KEY
 export const VAPID_PUBLIC_KEY = 'BBDUCYpy030Ejbra3lzqTxIo663ciiqK_H-qCDmMQZ1wNwt9icOCYvjqhcyYAIyTIKorp4gpsS81MOp5InvjJDc'
 
+// Rota role options with colour coding
+export const ROLE_OPTIONS = [
+  { label: 'Chef',            color: 'bg-orange-100 text-orange-800' },
+  { label: 'Sous Chef',       color: 'bg-amber-100 text-amber-800' },
+  { label: 'Kitchen Porter',  color: 'bg-yellow-100 text-yellow-800' },
+  { label: 'Front of House',  color: 'bg-blue-100 text-blue-800' },
+  { label: 'Bartender',       color: 'bg-purple-100 text-purple-800' },
+  { label: 'Barista',         color: 'bg-teal-100 text-teal-800' },
+  { label: 'Supervisor',      color: 'bg-indigo-100 text-indigo-800' },
+  { label: 'Manager',         color: 'bg-rose-100 text-rose-800' },
+]
+
+// Quick shift time presets
+export const SHIFT_PRESETS = [
+  { label: 'Morning', start: '07:00', end: '12:00' },
+  { label: 'Day',     start: '08:00', end: '15:00' },
+]
+
 // Legacy aliases — kept so old code doesn't break during migration
 export const STAFF_SESSION_KEY  = SESSION_TOKEN_KEY
 export const STAFF_ID_KEY       = SESSION_ID_KEY
