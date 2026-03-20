@@ -1,7 +1,7 @@
 /**
  * VenueContext — resolves venue from URL slug and provides venueId to the app.
  */
-import React, { createContext, useContext, useEffect, useState } from 'react'
+import React, { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { FullPageLoader } from '../components/ui/LoadingSpinner'
@@ -44,8 +44,12 @@ export function VenueProvider({ children }) {
     )
   }
 
+  const value = useMemo(() => ({
+    venueId: venue.id, venueSlug: venue.slug, venueName: venue.name
+  }), [venue.id, venue.slug, venue.name])
+
   return (
-    <VenueContext.Provider value={{ venueId: venue.id, venueSlug: venue.slug, venueName: venue.name }}>
+    <VenueContext.Provider value={value}>
       {children}
     </VenueContext.Provider>
   )

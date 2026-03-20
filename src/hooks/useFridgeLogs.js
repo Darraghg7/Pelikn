@@ -30,26 +30,28 @@ export function useFridgeDashboard() {
 
   const load = useCallback(async () => {
     if (!venueId) { setLoading(false); return }
-    const { data: fridges } = await supabase
-      .from('fridges')
-      .select('*')
-      .eq('venue_id', venueId)
-      .eq('is_active', true)
-      .order('name')
+
+    // Fetch fridges and all recent logs in just 2 queries (not N+1)
+    const [{ data: fridges }, { data: logs }] = await Promise.all([
+      supabase.from('fridges').select('*').eq('venue_id', venueId).eq('is_active', true).order('name'),
+      supabase.from('fridge_temperature_logs').select('fridge_id, temperature, logged_at, logged_by_name')
+        .eq('venue_id', venueId)
+        .order('logged_at', { ascending: false }),
+    ])
 
     if (!fridges) { setLoading(false); return }
 
-    const enriched = await Promise.all(
-      fridges.map(async (f) => {
-        const { data: logs } = await supabase
-          .from('fridge_temperature_logs')
-          .select('temperature, logged_at, logged_by_name')
-          .eq('fridge_id', f.id)
-          .order('logged_at', { ascending: false })
-          .limit(1)
-        return { ...f, lastLog: logs?.[0] ?? null }
-      })
-    )
+    // Match latest log per fridge client-side
+    const seen = new Set()
+    const latestByFridge = {}
+    for (const log of (logs ?? [])) {
+      if (!seen.has(log.fridge_id)) {
+        seen.add(log.fridge_id)
+        latestByFridge[log.fridge_id] = log
+      }
+    }
+
+    const enriched = fridges.map(f => ({ ...f, lastLog: latestByFridge[f.id] ?? null }))
     setData(enriched)
     setLoading(false)
   }, [venueId])

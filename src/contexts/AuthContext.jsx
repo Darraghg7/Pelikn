@@ -5,7 +5,7 @@
  * email + password, the device stays locked to their venue until they
  * explicitly sign out. Staff then authenticate within that venue via PIN.
  */
-import React, { createContext, useContext, useEffect, useState } from 'react'
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { supabase } from '../lib/supabase'
 
 const AuthContext = createContext(null)
@@ -77,7 +77,7 @@ export function AuthProvider({ children }) {
   }, [])
 
   // ── Sign in with email + password ─────────────────────────────────────
-  const signInWithEmail = async (email, password) => {
+  const signInWithEmail = useCallback(async (email, password) => {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) return { error }
 
@@ -92,17 +92,21 @@ export function AuthProvider({ children }) {
     setUser(data.user)
     setVenueSlug(slug)
     return { error: null, slug }
-  }
+  }, [])
 
   // ── Sign out of venue (clears Supabase Auth) ─────────────────────────
-  const signOutVenue = async () => {
+  const signOutVenue = useCallback(async () => {
     await supabase.auth.signOut()
     setUser(null)
     setVenueSlug(null)
-  }
+  }, [])
+
+  const value = useMemo(() => ({
+    user, venueSlug, authLoading, signInWithEmail, signOutVenue
+  }), [user, venueSlug, authLoading, signInWithEmail, signOutVenue])
 
   return (
-    <AuthContext.Provider value={{ user, venueSlug, authLoading, signInWithEmail, signOutVenue }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   )

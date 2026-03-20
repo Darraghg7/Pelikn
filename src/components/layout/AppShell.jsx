@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { useSession } from '../../contexts/SessionContext'
 import { useVenue } from '../../contexts/VenueContext'
@@ -7,10 +7,15 @@ import NotificationBell from '../notifications/NotificationBell'
 import OfflineBanner from '../ui/OfflineBanner'
 import MobileNav from './MobileNav'
 
+// Simple per-venue cache to avoid refetching on every page navigation
+const _cache = { cleaning: {}, swaps: {}, logo: {} }
+
 function useOverdueCleaning(venueId) {
-  const [count, setCount] = useState(0)
+  const [count, setCount] = useState(() => _cache.cleaning[venueId] ?? 0)
   useEffect(() => {
     if (!venueId) return
+    // Skip fetch if cached within last 60s
+    if (_cache.cleaning[venueId + '_ts'] && Date.now() - _cache.cleaning[venueId + '_ts'] < 60000) return
     const load = async () => {
       const { data: tasks } = await supabase
         .from('cleaning_tasks').select('id, frequency').eq('venue_id', venueId).eq('is_active', true)
@@ -27,6 +32,8 @@ function useOverdueCleaning(venueId) {
         if (!last) { overdue++; continue }
         if ((now - new Date(last.completed_at)) / 86400000 > freqDays[t.frequency]) overdue++
       }
+      _cache.cleaning[venueId] = overdue
+      _cache.cleaning[venueId + '_ts'] = Date.now()
       setCount(overdue)
     }
     load()
@@ -35,23 +42,34 @@ function useOverdueCleaning(venueId) {
 }
 
 function usePendingSwaps(venueId) {
-  const [count, setCount] = useState(0)
+  const [count, setCount] = useState(() => _cache.swaps[venueId] ?? 0)
   useEffect(() => {
     if (!venueId) return
+    if (_cache.swaps[venueId + '_ts'] && Date.now() - _cache.swaps[venueId + '_ts'] < 60000) return
     supabase.from('shift_swaps').select('id', { count: 'exact', head: true })
       .eq('venue_id', venueId)
       .eq('status', 'pending')
-      .then(({ count: c }) => setCount(c ?? 0))
+      .then(({ count: c }) => {
+        _cache.swaps[venueId] = c ?? 0
+        _cache.swaps[venueId + '_ts'] = Date.now()
+        setCount(c ?? 0)
+      })
   }, [venueId])
   return count
 }
 
 function useVenueLogo(venueId) {
-  const [logoUrl, setLogoUrl] = useState('')
+  const [logoUrl, setLogoUrl] = useState(() => _cache.logo[venueId] ?? '')
   useEffect(() => {
     if (!venueId) return
+    if (_cache.logo[venueId + '_ts']) return  // Logo rarely changes, cache indefinitely
     supabase.from('app_settings').select('value').eq('venue_id', venueId).eq('key', 'logo_url').single()
-      .then(({ data }) => { if (data?.value) setLogoUrl(data.value) })
+      .then(({ data }) => {
+        const url = data?.value ?? ''
+        _cache.logo[venueId] = url
+        _cache.logo[venueId + '_ts'] = Date.now()
+        if (url) setLogoUrl(url)
+      })
   }, [venueId])
   return logoUrl
 }

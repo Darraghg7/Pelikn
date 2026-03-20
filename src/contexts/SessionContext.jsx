@@ -5,7 +5,7 @@
  * determines what they can see: 'manager'/'owner' → manager dashboard,
  * 'staff' → My Shift staff view.
  */
-import React, { createContext, useContext, useEffect, useState } from 'react'
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import {
   SESSION_TOKEN_KEY,
@@ -72,7 +72,7 @@ export function SessionProvider({ children }) {
   }, [])
 
   // ── Sign in ──────────────────────────────────────────────────────────────
-  const signIn = async (staffId, pin, venueId, venueSlug) => {
+  const signIn = useCallback(async (staffId, pin, venueId, venueSlug) => {
     const { data: token, error: tokenErr } = await supabase.rpc(
       'verify_staff_pin_and_create_session',
       { p_staff_id: staffId, p_pin: pin, p_venue_id: venueId }
@@ -115,25 +115,29 @@ export function SessionProvider({ children }) {
 
     setSession(newSession)
     return { error: null }
-  }
+  }, [])
 
   // ── Sign out ─────────────────────────────────────────────────────────────
-  const signOut = () => {
+  const signOut = useCallback(() => {
     const token = session?.token ?? localStorage.getItem(SESSION_TOKEN_KEY)
     clearStorage()
     setSession(null)
     if (token) {
       supabase.rpc('invalidate_staff_session', { p_token: token }).catch(() => {})
     }
-  }
+  }, [session?.token])
 
   // ── Helpers ──────────────────────────────────────────────────────────────
   const clearStorage = () => LS_KEYS.forEach(k => localStorage.removeItem(k))
 
   const isManager = session?.staffRole === 'manager' || session?.staffRole === 'owner'
 
+  const value = useMemo(() => ({
+    session, loading, isManager, signIn, signOut
+  }), [session, loading, isManager, signIn, signOut])
+
   return (
-    <SessionContext.Provider value={{ session, loading, isManager, signIn, signOut }}>
+    <SessionContext.Provider value={value}>
       {children}
     </SessionContext.Provider>
   )
