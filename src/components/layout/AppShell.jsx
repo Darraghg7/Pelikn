@@ -150,14 +150,14 @@ function SideItem({ to, icon: Ico, label, badge, alert, isActive }) {
       className={[
         'flex items-center gap-3 px-4 py-2.5 mx-2 rounded-lg transition-all duration-150 text-[13px] font-medium border-l-2',
         isActive
-          ? 'border-accent bg-white/10 text-white'
+          ? 'border-accent bg-charcoal/8 dark:bg-white/10 text-charcoal dark:text-white'
           : alert
-            ? 'border-transparent text-warning/70 hover:text-warning hover:bg-white/5'
-            : 'border-transparent text-white/40 hover:text-white/75 hover:bg-white/5',
+            ? 'border-transparent text-warning/70 hover:text-warning hover:bg-charcoal/5 dark:hover:bg-white/5'
+            : 'border-transparent text-charcoal/50 dark:text-white/40 hover:text-charcoal/80 dark:hover:text-white/75 hover:bg-charcoal/5 dark:hover:bg-white/5',
       ].join(' ')}
     >
       {Ico && (
-        <span className={`shrink-0 ${isActive ? 'text-accent' : alert ? 'text-warning/60' : 'text-white/30'}`}>
+        <span className={`shrink-0 ${isActive ? 'text-accent' : alert ? 'text-warning/60' : 'text-charcoal/30 dark:text-white/30'}`}>
           <Ico />
         </span>
       )}
@@ -179,13 +179,13 @@ function SubItem({ to, label, badge, alert, isActive }) {
       className={[
         'flex items-center gap-2 pl-10 pr-4 py-2 mx-2 rounded-lg transition-all duration-150 text-[12.5px]',
         isActive
-          ? 'text-white bg-white/8'
+          ? 'text-charcoal dark:text-white bg-charcoal/8 dark:bg-white/8'
           : alert
-            ? 'text-warning/65 hover:text-warning hover:bg-white/5'
-            : 'text-white/35 hover:text-white/65 hover:bg-white/5',
+            ? 'text-warning/65 hover:text-warning hover:bg-charcoal/5 dark:hover:bg-white/5'
+            : 'text-charcoal/40 dark:text-white/35 hover:text-charcoal/70 dark:hover:text-white/65 hover:bg-charcoal/5 dark:hover:bg-white/5',
       ].join(' ')}
     >
-      <span className={`w-1 h-1 rounded-full shrink-0 ${isActive ? 'bg-accent' : 'bg-white/20'}`} />
+      <span className={`w-1 h-1 rounded-full shrink-0 ${isActive ? 'bg-accent' : 'bg-charcoal/20 dark:bg-white/20'}`} />
       <span className="flex-1 truncate">{label}</span>
       {badge > 0 && (
         <span className={`min-w-[16px] h-4 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1 shrink-0 ${alert ? 'bg-warning' : 'bg-accent'}`}>
@@ -199,7 +199,7 @@ function SubItem({ to, label, badge, alert, isActive }) {
 /* ── Section divider ────────────────────────────────────────────────────────── */
 function SideSection({ label }) {
   return (
-    <p className="px-6 pt-5 pb-1.5 text-[9.5px] font-semibold tracking-[0.14em] uppercase text-white/22 select-none">
+    <p className="px-6 pt-5 pb-1.5 text-[9.5px] font-semibold tracking-[0.14em] uppercase text-charcoal/35 dark:text-white/22 select-none">
       {label}
     </p>
   )
@@ -245,20 +245,20 @@ export default function AppShell({ children }) {
 
       {/* ── Desktop sidebar ───────────────────────────────────────────────── */}
       <aside
-        className="hidden sm:flex flex-col w-[220px] fixed inset-y-0 left-0 z-30 bg-[#1a1a18] overflow-y-auto overflow-x-hidden"
+        className="hidden sm:flex flex-col w-[220px] fixed inset-y-0 left-0 z-30 bg-white dark:bg-[#1a1a18] border-r border-charcoal/10 dark:border-white/8 overflow-y-auto overflow-x-hidden"
         style={{ paddingTop: 'env(safe-area-inset-top)' }}
         aria-label="Sidebar navigation"
       >
         {/* Logo + venue name */}
-        <div className="px-5 pt-5 pb-4 border-b border-white/8 shrink-0">
+        <div className="px-5 pt-5 pb-4 border-b border-charcoal/10 dark:border-white/8 shrink-0">
           <div className="flex items-center gap-2.5">
             {logoUrl ? (
-              <img src={logoUrl} alt="Venue logo" className="h-7 w-7 rounded-md object-contain bg-white/10 p-0.5 shrink-0" />
+              <img src={logoUrl} alt="Venue logo" className="h-7 w-7 rounded-md object-contain bg-charcoal/8 dark:bg-white/10 p-0.5 shrink-0" />
             ) : null}
             <div className="min-w-0">
-              <span className="font-serif text-cream text-lg leading-none tracking-tight block">SafeServ</span>
+              <span className="font-serif text-charcoal dark:text-cream text-lg leading-none tracking-tight block">SafeServ</span>
               {venueName && (
-                <p className="text-[11px] text-white/35 mt-0.5 truncate">{venueName}</p>
+                <p className="text-[11px] text-charcoal/45 dark:text-white/35 mt-0.5 truncate">{venueName}</p>
               )}
             </div>
           </div>
@@ -275,12 +275,14 @@ export default function AppShell({ children }) {
 
               <SideSection label="Compliance" />
               <div className="space-y-0.5">
-                <SubItem to={vp('/fridge')}     label="Temp Logs"   isActive={isUnder('/fridge')} />
-                <SubItem to={vp('/deliveries')} label="Deliveries"  isActive={isUnder('/deliveries')} />
-                <SubItem to={vp('/probe')}      label="Probe Cal."  isActive={isUnder('/probe')} />
-                <SubItem to={vp('/allergens')}  label="Allergens"   isActive={isUnder('/allergens')} />
-                <SubItem to={vp('/cleaning')}   label="Cleaning"    badge={overdueCount} alert={overdueCount > 0} isActive={isUnder('/cleaning')} />
-                <SubItem to={vp('/corrective')} label="Actions"     isActive={isUnder('/corrective')} />
+                <SubItem to={vp('/fridge')}         label="Fridge Temps"   isActive={isUnder('/fridge')} />
+                <SubItem to={vp('/cooking-temps')}  label="Cooking Temps"  isActive={isUnder('/cooking-temps')} />
+                <SubItem to={vp('/hot-holding')}    label="Hot Holding"    isActive={isUnder('/hot-holding')} />
+                <SubItem to={vp('/deliveries')}     label="Deliveries"     isActive={isUnder('/deliveries')} />
+                <SubItem to={vp('/probe')}          label="Probe Cal."     isActive={isUnder('/probe')} />
+                <SubItem to={vp('/allergens')}      label="Allergens"      isActive={isUnder('/allergens')} />
+                <SubItem to={vp('/cleaning')}       label="Cleaning"       badge={overdueCount} alert={overdueCount > 0} isActive={isUnder('/cleaning')} />
+                <SubItem to={vp('/corrective')}     label="Actions"        isActive={isUnder('/corrective')} />
               </div>
 
               <SideSection label="Team" />
@@ -312,14 +314,14 @@ export default function AppShell({ children }) {
         </nav>
 
         {/* Bottom: notifications + user + signout */}
-        <div className="shrink-0 border-t border-white/8 px-4 py-4 space-y-3">
+        <div className="shrink-0 border-t border-charcoal/10 dark:border-white/8 px-4 py-4 space-y-3">
           <div className="flex items-center justify-between">
             <NotificationBell />
-            <span className="text-[12px] text-white/40 truncate ml-2 flex-1 text-right">{name}</span>
+            <span className="text-[12px] text-charcoal/50 dark:text-white/40 truncate ml-2 flex-1 text-right">{name}</span>
           </div>
           <button
             onClick={handleSignOut}
-            className="w-full text-[11px] tracking-widest uppercase text-white/30 border border-white/12 rounded-lg py-2 hover:text-white/60 hover:border-white/30 transition-colors"
+            className="w-full text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/30 border border-charcoal/12 dark:border-white/12 rounded-lg py-2 hover:text-charcoal dark:hover:text-white/60 hover:border-charcoal/30 dark:hover:border-white/30 transition-colors"
           >
             Sign Out
           </button>
@@ -359,7 +361,7 @@ export default function AppShell({ children }) {
         <main
           id="main-content"
           role="main"
-          className={`flex-1 ${maxW} mx-auto w-full px-4 sm:px-8 py-6 sm:py-8 pb-20 sm:pb-8`}
+          className={`flex-1 ${maxW} mx-auto w-full px-4 sm:px-8 py-6 sm:py-8 pb-[max(5rem,calc(4rem+env(safe-area-inset-bottom)))] sm:pb-8`}
         >
           {children}
         </main>

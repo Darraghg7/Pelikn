@@ -702,15 +702,15 @@ export default function DeliveryChecksPage() {
       </div>
 
       {/* Summary */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-3 gap-2 sm:gap-3">
         {[
           { label: 'Total', value: checks.length, color: 'text-charcoal' },
           { label: 'Passed', value: passCount, color: 'text-success' },
           { label: 'Failed', value: failCount, color: 'text-danger' },
         ].map(s => (
-          <div key={s.label} className="bg-white rounded-xl border border-charcoal/10 p-4 text-center">
-            <p className="text-[10px] tracking-widest uppercase text-charcoal/40">{s.label}</p>
-            <p className={`text-2xl font-bold ${s.color}`}>{s.value}</p>
+          <div key={s.label} className="bg-white rounded-xl border border-charcoal/10 p-3 sm:p-4 text-center">
+            <p className="text-[9px] sm:text-[10px] tracking-widest uppercase text-charcoal/40">{s.label}</p>
+            <p className={`text-xl sm:text-2xl font-bold ${s.color}`}>{s.value}</p>
           </div>
         ))}
       </div>

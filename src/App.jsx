@@ -44,6 +44,8 @@ import DeliveryChecksPage    from './pages/deliveries/DeliveryChecksPage'
 import ProbeCalibrationPage  from './pages/probe/ProbeCalibrationPage'
 import CorrectiveActionsPage from './pages/corrective/CorrectiveActionsPage'
 import EHOAuditPage          from './pages/audit/EHOAuditPage'
+import CookingTempsPage      from './pages/cooking/CookingTempsPage'
+import HotHoldingPage        from './pages/hotholding/HotHoldingPage'
 
 // Training
 import TrainingPage from './pages/training/TrainingPage'
@@ -143,6 +145,8 @@ function VenueRoutes() {
             <Route path="time-off"          element={wrap(TimeOffPage)} />
 
             {/* Manager only */}
+            <Route path="cooking-temps"      element={wrap(CookingTempsPage,       RequireManager)} />
+            <Route path="hot-holding"        element={wrap(HotHoldingPage,         RequireManager)} />
             <Route path="allergens/new"      element={wrap(FoodItemFormPage,       RequireManager)} />
             <Route path="allergens/:id/edit" element={wrap(FoodItemFormPage,       RequireManager)} />
             <Route path="timesheet"          element={wrap(TimesheetPage,          RequireManager)} />

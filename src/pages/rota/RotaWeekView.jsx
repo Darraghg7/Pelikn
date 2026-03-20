@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { format, isToday } from 'date-fns'
 import { getWeekDays } from '../../lib/utils'
 import { shiftDurationHours } from '../../hooks/useShifts'
@@ -9,33 +9,149 @@ function fmtGBP(amount) {
   return `£${Number(amount).toFixed(2)}`
 }
 
-export default function RotaWeekView({
-  weekStart,
-  shifts,
-  staff,
-  onCellClick,
-  onToggleAvailability,
-  currentStaffId = null,
-  isManager = true,
-  unavailability = {},
-  closedDays = [],
-}) {
-  const days = getWeekDays(weekStart)
+/* ── Mobile Day View ─────────────────────────────────────────────────────── */
+function MobileDayView({ days, shifts, staff, onCellClick, currentStaffId, isManager, unavailability, closedDays }) {
+  // Default to today's index within the week (0–6), or 0 if today isn't in this week
+  const todayIdx = days.findIndex(d => isToday(d))
+  const [selectedDay, setSelectedDay] = useState(todayIdx >= 0 ? todayIdx : 0)
 
-  if (staff.length === 0) {
-    return (
-      <div className="px-5 py-10 text-center text-sm text-charcoal/35 italic">
-        No staff members found. Add staff in Settings.
+  // When week changes, reset to today if in week
+  useEffect(() => {
+    const idx = days.findIndex(d => isToday(d))
+    setSelectedDay(idx >= 0 ? idx : 0)
+  }, [days[0]?.toISOString()])
+
+  const day      = days[selectedDay]
+  const dateStr  = format(day, 'yyyy-MM-dd')
+  const isClosed = closedDays.includes(selectedDay)
+
+  // All shifts for this day across all staff
+  const dayShifts = shifts.filter(sh => sh.shift_date === dateStr)
+
+  return (
+    <div className="flex flex-col gap-3">
+      {/* Day selector scrollable pills */}
+      <div className="overflow-x-auto -mx-0 scrollbar-hide">
+        <div className="flex gap-2 pb-1">
+          {days.map((d, i) => {
+            const today   = isToday(d)
+            const closed  = closedDays.includes(i)
+            const active  = i === selectedDay
+            const hasShifts = shifts.some(sh => sh.shift_date === format(d, 'yyyy-MM-dd'))
+            return (
+              <button
+                key={i}
+                onClick={() => setSelectedDay(i)}
+                className={[
+                  'flex flex-col items-center px-3 py-2 rounded-xl shrink-0 border transition-all min-w-[54px]',
+                  active
+                    ? 'bg-charcoal text-cream border-charcoal'
+                    : today
+                      ? 'bg-accent/8 text-accent border-accent/25'
+                      : closed
+                        ? 'bg-charcoal/4 text-charcoal/25 border-charcoal/8'
+                        : 'bg-white text-charcoal/70 border-charcoal/12 hover:border-charcoal/25',
+                ].join(' ')}
+              >
+                <span className="text-[9px] font-semibold tracking-widest uppercase">{DAY_LABELS[i]}</span>
+                <span className="text-sm font-semibold mt-0.5">{format(d, 'd')}</span>
+                {hasShifts && !closed && (
+                  <span className={`w-1.5 h-1.5 rounded-full mt-1 ${active ? 'bg-cream/50' : 'bg-accent'}`} />
+                )}
+              </button>
+            )
+          })}
+        </div>
       </div>
-    )
-  }
 
-  const weeklyTotal = staff.reduce((total, s) => {
-    const staffShifts = shifts.filter((sh) => sh.staff_id === s.id)
-    const hrs = staffShifts.reduce((acc, sh) => acc + shiftDurationHours(sh.start_time, sh.end_time), 0)
-    return total + hrs * (s.hourly_rate ?? 0)
-  }, 0)
+      {/* Selected day header */}
+      <div className="flex items-center justify-between">
+        <h3 className="font-semibold text-charcoal text-sm">
+          {format(day, 'EEEE, d MMMM')}
+          {isToday(day) && (
+            <span className="ml-2 text-[10px] tracking-widest uppercase bg-accent/12 text-accent px-2 py-0.5 rounded-full font-medium">Today</span>
+          )}
+        </h3>
+        {isClosed && (
+          <span className="text-[10px] tracking-widest uppercase text-charcoal/35 font-semibold">Closed</span>
+        )}
+      </div>
 
+      {isClosed ? (
+        <div className="py-8 text-center text-sm text-charcoal/30 italic">Venue closed this day.</div>
+      ) : dayShifts.length === 0 ? (
+        <div className="py-8 text-center">
+          <p className="text-sm text-charcoal/35 italic mb-3">No shifts scheduled for this day.</p>
+          {isManager && (
+            <p className="text-xs text-charcoal/30">Tap a staff member to add a shift.</p>
+          )}
+        </div>
+      ) : null}
+
+      {/* Staff list for this day */}
+      <div className="flex flex-col gap-2">
+        {staff.map(s => {
+          const staffDayShifts = shifts.filter(sh => sh.staff_id === s.id && sh.shift_date === dateStr)
+          const unavail        = unavailability[`${s.id}:${dateStr}`]
+          const isOwnStaff     = !isManager && currentStaffId === s.id
+          const isTimeOff      = unavail?.type === 'time_off'
+          const canClick       = isManager || (isOwnStaff && staffDayShifts.length > 0)
+
+          if (staffDayShifts.length === 0 && !isManager) return null  // staff only see their own
+
+          return (
+            <div
+              key={s.id}
+              onClick={canClick ? () => onCellClick?.(s, day, staffDayShifts) : undefined}
+              className={[
+                'flex items-center gap-3 px-4 py-3 rounded-xl border transition-all',
+                canClick ? 'cursor-pointer active:scale-[0.98]' : '',
+                isOwnStaff && !isManager ? 'border-accent/30 bg-accent/4' : 'border-charcoal/10 bg-white',
+                isTimeOff && staffDayShifts.length === 0 ? 'bg-danger/5 border-danger/20' : '',
+              ].join(' ')}
+            >
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-medium text-charcoal truncate">{s.name}</p>
+                  {isOwnStaff && (
+                    <span className="text-[9px] tracking-widest uppercase bg-accent/15 text-accent px-1.5 py-0.5 rounded-full font-medium shrink-0">You</span>
+                  )}
+                </div>
+                <p className="text-[10px] tracking-widest uppercase text-charcoal/35 mt-0.5">{s.job_role ?? s.role}</p>
+              </div>
+
+              <div className="shrink-0 flex flex-col items-end gap-1">
+                {staffDayShifts.length === 0 ? (
+                  isTimeOff ? (
+                    <span className="text-[10px] font-semibold text-danger tracking-wide">Time Off</span>
+                  ) : isManager ? (
+                    <span className="text-[11px] text-charcoal/25 border border-dashed border-charcoal/15 rounded-lg px-2.5 py-1">+ Add shift</span>
+                  ) : (
+                    <span className="text-[11px] text-charcoal/25">No shift</span>
+                  )
+                ) : (
+                  staffDayShifts.map(sh => (
+                    <div key={sh.id} className="flex flex-col items-end">
+                      <span className="font-mono text-sm font-semibold text-charcoal">
+                        {sh.start_time.slice(0,5)}–{sh.end_time.slice(0,5)}
+                      </span>
+                      {sh.role_label && (
+                        <span className="text-[10px] text-charcoal/40 tracking-wide">{sh.role_label}</span>
+                      )}
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+/* ── Desktop Week Table ───────────────────────────────────────────────────── */
+function DesktopWeekTable({ days, shifts, staff, onCellClick, onToggleAvailability, currentStaffId, isManager, unavailability, closedDays, weeklyTotal }) {
   return (
     <div className="overflow-x-auto">
       <table className="min-w-full text-sm border-separate border-spacing-0">
@@ -103,7 +219,6 @@ export default function RotaWeekView({
                   const isManualOff = unavail?.type === 'manual' && unavail?.subtype !== 'break_cover'
                   const isBreakCover = unavail?.type === 'manual' && unavail?.subtype === 'break_cover'
 
-                  // Closed days are not clickable
                   if (isClosed) {
                     return (
                       <td key={di} className="border-b border-charcoal/5 px-2 py-2 align-top bg-charcoal/4 min-w-[96px]">
@@ -119,7 +234,6 @@ export default function RotaWeekView({
                       key={di}
                       className={[
                         'border-b border-charcoal/5 px-2 py-2 align-top transition-colors min-w-[96px]',
-                        // Cell background
                         isTimeOff && dayShifts.length === 0
                           ? 'bg-danger/8'
                           : isBreakCover && dayShifts.length === 0
@@ -130,7 +244,6 @@ export default function RotaWeekView({
                       ].join(' ')}
                     >
                       {dayShifts.length === 0 ? (
-                        // ── Empty cell: availability state + add shift ──
                         isTimeOff ? (
                           <div className="h-10 flex items-center justify-center rounded bg-danger/10 border border-danger/20">
                             <span className="text-[9px] tracking-widest uppercase text-danger/70 font-semibold">Time Off</span>
@@ -186,7 +299,6 @@ export default function RotaWeekView({
                           <div className="h-10" />
                         )
                       ) : (
-                        // ── Has shifts ──
                         <div className="flex flex-col gap-1">
                           {dayShifts.map((sh) => (
                             <div
@@ -195,28 +307,20 @@ export default function RotaWeekView({
                               className={[
                                 'rounded px-2 py-1.5 text-xs relative bg-charcoal text-cream',
                                 canClick ? 'cursor-pointer' : '',
-                                isOwnStaff && !isManager
-                                  ? 'ring-2 ring-accent ring-offset-1'
-                                  : '',
-                                // Warning if shift assigned to unavailable staff
+                                isOwnStaff && !isManager ? 'ring-2 ring-accent ring-offset-1' : '',
                                 unavail ? 'ring-2 ring-warning ring-offset-1' : '',
                               ].join(' ')}
                             >
                               <p className="font-medium">{sh.start_time.slice(0,5)}&ndash;{sh.end_time.slice(0,5)}</p>
                               <p className="opacity-50 truncate text-[10px]">{sh.role_label}</p>
                               {isOwnStaff && !isManager && (
-                                <span className="absolute -top-1 -right-1 bg-accent text-white text-[8px] rounded-full w-3.5 h-3.5 flex items-center justify-center font-bold leading-none">
-                                  ↔
-                                </span>
+                                <span className="absolute -top-1 -right-1 bg-accent text-white text-[8px] rounded-full w-3.5 h-3.5 flex items-center justify-center font-bold leading-none">↔</span>
                               )}
                               {unavail && (
-                                <span className="absolute -top-1 -left-1 bg-warning text-white text-[7px] rounded-full w-3.5 h-3.5 flex items-center justify-center font-bold leading-none">
-                                  !
-                                </span>
+                                <span className="absolute -top-1 -left-1 bg-warning text-white text-[7px] rounded-full w-3.5 h-3.5 flex items-center justify-center font-bold leading-none">!</span>
                               )}
                             </div>
                           ))}
-                          {/* Inline availability toggle below shifts */}
                           {isManager && !isTimeOff && (
                             <button
                               onClick={(e) => { e.stopPropagation(); onToggleAvailability?.(s.id, d) }}
@@ -260,5 +364,50 @@ export default function RotaWeekView({
         )}
       </table>
     </div>
+  )
+}
+
+/* ── Exported component — responsive wrapper ─────────────────────────────── */
+export default function RotaWeekView({
+  weekStart,
+  shifts,
+  staff,
+  onCellClick,
+  onToggleAvailability,
+  currentStaffId = null,
+  isManager = true,
+  unavailability = {},
+  closedDays = [],
+}) {
+  const days = getWeekDays(weekStart)
+
+  if (staff.length === 0) {
+    return (
+      <div className="px-5 py-10 text-center text-sm text-charcoal/35 italic">
+        No staff members found. Add staff in Settings.
+      </div>
+    )
+  }
+
+  const weeklyTotal = staff.reduce((total, s) => {
+    const staffShifts = shifts.filter((sh) => sh.staff_id === s.id)
+    const hrs = staffShifts.reduce((acc, sh) => acc + shiftDurationHours(sh.start_time, sh.end_time), 0)
+    return total + hrs * (s.hourly_rate ?? 0)
+  }, 0)
+
+  const sharedProps = { days, shifts, staff, onCellClick, onToggleAvailability, currentStaffId, isManager, unavailability, closedDays }
+
+  return (
+    <>
+      {/* Mobile: single-day card list */}
+      <div className="sm:hidden px-1">
+        <MobileDayView {...sharedProps} />
+      </div>
+
+      {/* Desktop: full week table */}
+      <div className="hidden sm:block">
+        <DesktopWeekTable {...sharedProps} weeklyTotal={weeklyTotal} />
+      </div>
+    </>
   )
 }

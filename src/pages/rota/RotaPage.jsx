@@ -8,6 +8,7 @@ import { useAvailability } from '../../hooks/useAvailability'
 import { useSession } from '../../contexts/SessionContext'
 import { getWeekStart, getWeekDays } from '../../lib/utils'
 import { useToast } from '../../components/ui/Toast'
+import TimeSelect from '../../components/ui/TimeSelect'
 import { ROLE_OPTIONS, SHIFT_PRESETS } from '../../lib/constants'
 import { useAppSettings } from '../../hooks/useSettings'
 import RotaWeekView from './RotaWeekView'
@@ -576,20 +577,16 @@ export default function RotaPage() {
                 <div className="grid grid-cols-2 gap-3">
                   <div className="flex flex-col gap-1.5">
                     <label className="text-[10px] tracking-widest uppercase text-charcoal/40">Start</label>
-                    <input
-                      type="time"
+                    <TimeSelect
                       value={form.startTime}
-                      onChange={(e) => setForm((f) => ({ ...f, startTime: e.target.value }))}
-                      className="px-3 py-3 rounded-xl border border-charcoal/15 bg-cream/40 focus:outline-none focus:ring-2 focus:ring-charcoal/20 text-sm font-mono text-center"
+                      onChange={(v) => setForm((f) => ({ ...f, startTime: v }))}
                     />
                   </div>
                   <div className="flex flex-col gap-1.5">
                     <label className="text-[10px] tracking-widest uppercase text-charcoal/40">End</label>
-                    <input
-                      type="time"
+                    <TimeSelect
                       value={form.endTime}
-                      onChange={(e) => setForm((f) => ({ ...f, endTime: e.target.value }))}
-                      className="px-3 py-3 rounded-xl border border-charcoal/15 bg-cream/40 focus:outline-none focus:ring-2 focus:ring-charcoal/20 text-sm font-mono text-center"
+                      onChange={(v) => setForm((f) => ({ ...f, endTime: v }))}
                     />
                   </div>
                 </div>

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { useFridges, useFridgeHistory } from '../../hooks/useFridgeLogs'
 import { isTempOutOfRange, formatTemp, formatDateTime } from '../../lib/utils'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
+import DateRangePresets, { presetToDates } from '../../components/ui/DateRangePresets'
 
 function SectionLabel({ children }) {
   return <p className="text-[10px] tracking-widest uppercase text-charcoal/40 mb-3">{children}</p>
@@ -11,8 +12,15 @@ function SectionLabel({ children }) {
 export default function FridgeHistoryPage() {
   const { fridges } = useFridges()
   const [fridgeId, setFridgeId] = useState('')
-  const [dateFrom, setDateFrom] = useState('')
-  const [dateTo,   setDateTo]   = useState('')
+
+  // Date range presets
+  const [preset, setPreset]         = useState('today')
+  const [customFrom, setCustomFrom] = useState('')
+  const [customTo, setCustomTo]     = useState('')
+
+  const { dateFrom, dateTo } = preset === 'custom'
+    ? { dateFrom: customFrom, dateTo: customTo }
+    : presetToDates(preset)
 
   const { logs, loading } = useFridgeHistory(fridgeId || null, dateFrom || null, dateTo || null)
 
@@ -25,9 +33,9 @@ export default function FridgeHistoryPage() {
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-xl border border-charcoal/10 p-5">
-        <SectionLabel>Filters</SectionLabel>
-        <div className="flex flex-wrap gap-3">
+      <div className="bg-white rounded-xl border border-charcoal/10 p-5 flex flex-wrap gap-4 items-end">
+        <div>
+          <SectionLabel>Fridge</SectionLabel>
           <select
             value={fridgeId}
             onChange={(e) => setFridgeId(e.target.value)}
@@ -36,17 +44,16 @@ export default function FridgeHistoryPage() {
             <option value="">All fridges</option>
             {fridges.map((f) => <option key={f.id} value={f.id}>{f.name}</option>)}
           </select>
-          <input
-            type="date"
-            value={dateFrom}
-            onChange={(e) => setDateFrom(e.target.value)}
-            className="px-3 py-2 rounded-lg border border-charcoal/15 bg-cream/30 text-sm text-charcoal focus:outline-none focus:ring-2 focus:ring-charcoal/20"
-          />
-          <input
-            type="date"
-            value={dateTo}
-            onChange={(e) => setDateTo(e.target.value)}
-            className="px-3 py-2 rounded-lg border border-charcoal/15 bg-cream/30 text-sm text-charcoal focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+        </div>
+
+        <div>
+          <SectionLabel>Date Range</SectionLabel>
+          <DateRangePresets
+            preset={preset}
+            onPreset={setPreset}
+            dateFrom={customFrom}
+            dateTo={customTo}
+            onDateChange={({ dateFrom: df, dateTo: dt }) => { setCustomFrom(df); setCustomTo(dt) }}
           />
         </div>
       </div>
