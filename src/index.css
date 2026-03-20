@@ -19,3 +19,181 @@ input, select, textarea, button { font-family: inherit; font-size: inherit; -web
 table { border-spacing: 0; }
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 .scrollbar-hide { scrollbar-width: none; }
+
+/* ── Dark mode global overrides ─────────────────────────────────────────── */
+html.dark body {
+  background: #111111;
+}
+html.dark ::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.2);
+}
+
+/* Card / panel backgrounds */
+html.dark .bg-white {
+  background-color: #1e1e1e !important;
+}
+html.dark .bg-cream {
+  background-color: #111111 !important;
+}
+html.dark .bg-staffbg {
+  background-color: #111111 !important;
+}
+html.dark .bg-parchment {
+  background-color: #161616 !important;
+}
+
+/* Subtle cream tints → dark equivalents */
+html.dark .bg-cream\/30,
+html.dark .bg-cream\/40,
+html.dark .bg-cream\/50 {
+  background-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+/* Text: charcoal → light */
+html.dark .text-charcoal {
+  color: #e8e4dc !important;
+}
+html.dark .text-charcoal\/70 {
+  color: rgba(232, 228, 220, 0.7) !important;
+}
+html.dark .text-charcoal\/60 {
+  color: rgba(232, 228, 220, 0.6) !important;
+}
+html.dark .text-charcoal\/50 {
+  color: rgba(232, 228, 220, 0.5) !important;
+}
+html.dark .text-charcoal\/40 {
+  color: rgba(232, 228, 220, 0.4) !important;
+}
+html.dark .text-charcoal\/35 {
+  color: rgba(232, 228, 220, 0.35) !important;
+}
+html.dark .text-charcoal\/30 {
+  color: rgba(232, 228, 220, 0.3) !important;
+}
+html.dark .text-charcoal\/25 {
+  color: rgba(232, 228, 220, 0.25) !important;
+}
+html.dark .text-charcoal\/20 {
+  color: rgba(232, 228, 220, 0.2) !important;
+}
+html.dark .text-charcoal\/15 {
+  color: rgba(232, 228, 220, 0.15) !important;
+}
+
+/* Borders */
+html.dark .border-charcoal\/5,
+html.dark .border-charcoal\/6,
+html.dark .border-charcoal\/8,
+html.dark .border-charcoal\/10,
+html.dark .border-charcoal\/12,
+html.dark .border-charcoal\/15,
+html.dark .border-charcoal\/20,
+html.dark .border-charcoal\/25,
+html.dark .border-charcoal\/30 {
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Backgrounds with charcoal tints */
+html.dark .bg-charcoal\/3,
+html.dark .bg-charcoal\/4,
+html.dark .bg-charcoal\/5,
+html.dark .bg-charcoal\/6,
+html.dark .bg-charcoal\/8 {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+}
+html.dark .bg-charcoal\/10,
+html.dark .bg-charcoal\/12,
+html.dark .bg-charcoal\/15 {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* Hover states */
+html.dark .hover\:bg-charcoal\/5:hover,
+html.dark .hover\:bg-charcoal\/8:hover,
+html.dark .hover\:bg-charcoal\/10:hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Inputs: ensure readable in dark mode */
+html.dark input,
+html.dark select,
+html.dark textarea {
+  color: #e8e4dc;
+}
+html.dark input::placeholder,
+html.dark textarea::placeholder {
+  color: rgba(232, 228, 220, 0.3);
+}
+
+/* Dividers */
+html.dark .divide-charcoal\/6 > :not([hidden]) ~ :not([hidden]) {
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+/* Ring colours in dark mode */
+html.dark .ring-charcoal\/10,
+html.dark .ring-charcoal\/20,
+html.dark .ring-charcoal\/30 {
+  --tw-ring-color: rgba(255, 255, 255, 0.15);
+}
+
+/* Focus rings */
+html.dark .focus\:ring-charcoal\/20:focus {
+  --tw-ring-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Nav gradients */
+html.dark .from-white {
+  --tw-gradient-from: #1e1e1e !important;
+}
+html.dark .to-transparent {
+  --tw-gradient-to: transparent !important;
+}
+
+/* Dropdown menus */
+html.dark .shadow-xl {
+  --tw-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+}
+
+/* Sticky table cells inherit dark bg */
+html.dark td.bg-white,
+html.dark th.bg-white,
+html.dark .sticky.bg-white {
+  background-color: #1e1e1e !important;
+}
+
+/* Accent tints in dark mode — slightly brighter for readability */
+html.dark .bg-accent\/5,
+html.dark .bg-accent\/8 {
+  background-color: rgba(201, 79, 42, 0.12) !important;
+}
+
+/* Success / warning / danger tints */
+html.dark .bg-success\/8,
+html.dark .bg-success\/10 {
+  background-color: rgba(22, 163, 74, 0.15) !important;
+}
+html.dark .bg-warning\/8 {
+  background-color: rgba(217, 119, 6, 0.15) !important;
+}
+html.dark .bg-danger\/8 {
+  background-color: rgba(220, 38, 38, 0.15) !important;
+}
+
+/* ── Focus-visible styles (a11y) ───────────────────────────────────────── */
+*:focus-visible {
+  outline: 2px solid var(--color-accent, #c94f2a);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ── Reduced motion ────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

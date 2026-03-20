@@ -1,10 +1,11 @@
 /**
- * ClockPanel — inline clock-in/out/break widget for a single staff member.
- * Used on the My Shift dashboard.
+ * ClockPanel — inline clock-in/out/break widget with live elapsed timer.
+ * Persists across logouts: timer is derived from DB timestamps, not local state.
  */
 import React, { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useClockStatus } from '../hooks/useClockEvents'
+import { useVenue } from '../contexts/VenueContext'
 import { useToast } from './ui/Toast'
 import LoadingSpinner from './ui/LoadingSpinner'
 
@@ -14,9 +15,57 @@ const STATUS_CONFIG = {
   on_break:    { label: 'On Break',        color: 'text-warning',     dot: 'bg-warning'     },
 }
 
+function formatElapsed(ms) {
+  if (ms < 0) ms = 0
+  const totalSec = Math.floor(ms / 1000)
+  const h = Math.floor(totalSec / 3600)
+  const m = Math.floor((totalSec % 3600) / 60)
+  const s = totalSec % 60
+  const pad = (n) => String(n).padStart(2, '0')
+  return `${pad(h)}:${pad(m)}:${pad(s)}`
+}
+
+function ElapsedTimer({ clockInAt, breakStartAt, totalBreakMs, status }) {
+  const [now, setNow] = useState(Date.now())
+
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 1000)
+    return () => clearInterval(id)
+  }, [])
+
+  if (!clockInAt) return null
+
+  // Total shift time = now - clockIn - completedBreaks - (currentBreakIfAny)
+  const currentBreakMs = status === 'on_break' && breakStartAt
+    ? now - breakStartAt.getTime()
+    : 0
+  const workingMs = now - clockInAt.getTime() - totalBreakMs - currentBreakMs
+
+  return (
+    <div className="flex items-baseline gap-3">
+      <div>
+        <p className="text-[10px] tracking-widest uppercase text-charcoal/40">Shift</p>
+        <p className="font-mono text-2xl text-charcoal tabular-nums">{formatElapsed(workingMs)}</p>
+      </div>
+      {status === 'on_break' && breakStartAt && (
+        <div>
+          <p className="text-[10px] tracking-widest uppercase text-warning/60">Break</p>
+          <p className="font-mono text-lg text-warning tabular-nums">{formatElapsed(currentBreakMs)}</p>
+        </div>
+      )}
+      {totalBreakMs > 0 && status !== 'on_break' && (
+        <p className="text-[10px] text-charcoal/30">
+          {formatElapsed(totalBreakMs)} on breaks
+        </p>
+      )}
+    </div>
+  )
+}
+
 export default function ClockPanel({ staffId, hasShift = true }) {
+  const { venueId } = useVenue()
   const toast = useToast()
-  const { status, loading, reload } = useClockStatus(staffId)
+  const { status, clockInAt, breakStartAt, totalBreakMs, loading, reload } = useClockStatus(staffId)
   const [submitting, setSubmitting] = useState(false)
 
   const record = async (eventType) => {
@@ -24,10 +73,11 @@ export default function ClockPanel({ staffId, hasShift = true }) {
     const { error } = await supabase.rpc('record_clock_event', {
       p_staff_id:   staffId,
       p_event_type: eventType,
+      p_venue_id:   venueId,
     })
     setSubmitting(false)
     if (error) { toast(error.message, 'error'); return }
-    toast({ clock_in: 'Clocked in ✓', clock_out: 'Clocked out', break_start: 'Break started', break_end: 'Break ended ✓' }[eventType])
+    toast({ clock_in: 'Clocked in', clock_out: 'Clocked out', break_start: 'Break started', break_end: 'Break ended' }[eventType])
     reload()
   }
 
@@ -45,6 +95,16 @@ export default function ClockPanel({ staffId, hasShift = true }) {
         <span className={`text-sm font-medium ${cfg.color}`}>{cfg.label}</span>
       </div>
 
+      {/* Elapsed timer */}
+      {status !== 'clocked_out' && (
+        <ElapsedTimer
+          clockInAt={clockInAt}
+          breakStartAt={breakStartAt}
+          totalBreakMs={totalBreakMs}
+          status={status}
+        />
+      )}
+
       {/* Action buttons */}
       {status === 'clocked_out' && (
         hasShift ? (
@@ -53,7 +113,7 @@ export default function ClockPanel({ staffId, hasShift = true }) {
             disabled={submitting}
             className="w-full bg-charcoal text-cream py-3 rounded-xl text-sm font-semibold hover:bg-charcoal/90 transition-colors disabled:opacity-40"
           >
-            {submitting ? '…' : '▶ Clock In'}
+            {submitting ? '…' : 'Clock In'}
           </button>
         ) : (
           <p className="text-xs text-charcoal/35 italic text-center py-2">No shift scheduled — clock in not available</p>
@@ -67,14 +127,14 @@ export default function ClockPanel({ staffId, hasShift = true }) {
             disabled={submitting}
             className="flex-1 bg-warning/15 text-warning py-3 rounded-xl text-sm font-semibold hover:bg-warning/25 transition-colors disabled:opacity-40"
           >
-            {submitting ? '…' : '☕ Break'}
+            {submitting ? '…' : 'Start Break'}
           </button>
           <button
             onClick={() => record('clock_out')}
             disabled={submitting}
             className="flex-1 bg-charcoal text-cream py-3 rounded-xl text-sm font-semibold hover:bg-charcoal/90 transition-colors disabled:opacity-40"
           >
-            {submitting ? '…' : '✓ Clock Out'}
+            {submitting ? '…' : 'Clock Out'}
           </button>
         </div>
       )}
@@ -85,7 +145,7 @@ export default function ClockPanel({ staffId, hasShift = true }) {
           disabled={submitting}
           className="w-full bg-charcoal text-cream py-3 rounded-xl text-sm font-semibold hover:bg-charcoal/90 transition-colors disabled:opacity-40"
         >
-          {submitting ? '…' : '▶ End Break'}
+          {submitting ? '…' : 'End Break'}
         </button>
       )}
     </div>

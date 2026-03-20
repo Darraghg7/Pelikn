@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { format } from 'date-fns'
 import { supabase } from '../../lib/supabase'
+import { useVenue } from '../../contexts/VenueContext'
 import { useSession } from '../../contexts/SessionContext'
 import { useSuppliers, useSupplierOrders } from '../../hooks/useSupplierOrders'
 import { useToast } from '../../components/ui/Toast'
@@ -31,6 +32,7 @@ function SectionLabel({ children }) {
 
 export default function SupplierOrdersPage() {
   const toast = useToast()
+  const { venueId } = useVenue()
   const { session, isManager } = useSession()
   const { suppliers, loading: suppLoading, reload: reloadSuppliers } = useSuppliers()
   const { orders, loading: ordersLoading, reload: reloadOrders }     = useSupplierOrders()
@@ -76,6 +78,7 @@ export default function SupplierOrdersPage() {
         notes:          orderForm.notes.trim() || null,
         raised_by:      session?.staffId,
         raised_by_name: session?.staffName ?? 'Unknown',
+        venue_id:       venueId,
       })
       .select()
       .single()
@@ -90,6 +93,7 @@ export default function SupplierOrdersPage() {
         quantity:  it.quantity.trim(),
         unit:      it.unit.trim() || null,
         notes:     it.notes.trim() || null,
+        venue_id:  venueId,
       })))
 
     setSubmittingOrder(false)
@@ -120,6 +124,7 @@ export default function SupplierOrdersPage() {
       contact_name: supplierForm.contact_name.trim() || null,
       email:        supplierForm.email.trim() || null,
       phone:        supplierForm.phone.trim() || null,
+      venue_id:     venueId,
     })
     setSavingSupplier(false)
     if (error) { toast(error.message, 'error'); return }

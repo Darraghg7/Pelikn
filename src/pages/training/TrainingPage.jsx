@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { format, isPast, parseISO, differenceInDays } from 'date-fns'
 import { supabase } from '../../lib/supabase'
+import { useVenue } from '../../contexts/VenueContext'
 import { useToast } from '../../components/ui/Toast'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
 import PageHeader from '../../components/layout/PageHeader'
@@ -47,44 +48,49 @@ function StatusBadge({ status }) {
   )
 }
 
-function useAllTraining() {
+function useAllTraining(venueId) {
   const [records, setRecords]   = useState([])
   const [loading, setLoading]   = useState(true)
 
   const load = useCallback(async () => {
+    if (!venueId) return
     setLoading(true)
     const { data } = await supabase
       .from('staff_training')
       .select('*, staff:staff_id(id, name, job_role, photo_url)')
+      .eq('venue_id', venueId)
       .order('created_at', { ascending: false })
     setRecords(data ?? [])
     setLoading(false)
-  }, [])
+  }, [venueId])
 
   useEffect(() => { load() }, [load])
   return { records, loading, reload: load }
 }
 
-function useActiveStaff() {
+function useActiveStaff(venueId) {
   const [staff, setStaff]     = useState([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    if (!venueId) return
     supabase
       .from('staff')
       .select('id, name, job_role, photo_url')
+      .eq('venue_id', venueId)
       .eq('is_active', true)
       .order('name')
       .then(({ data }) => { setStaff(data ?? []); setLoading(false) })
-  }, [])
+  }, [venueId])
 
   return { staff, loading }
 }
 
 export default function TrainingPage() {
   const toast = useToast()
-  const { records, loading, reload } = useAllTraining()
-  const { staff, loading: staffLoading } = useActiveStaff()
+  const { venueId } = useVenue()
+  const { records, loading, reload } = useAllTraining(venueId)
+  const { staff, loading: staffLoading } = useActiveStaff(venueId)
 
   const [showForm, setShowForm]   = useState(false)
   const [form, setForm]           = useState(EMPTY_FORM)
@@ -104,7 +110,7 @@ export default function TrainingPage() {
 
     if (file) {
       const ext  = file.name.split('.').pop()
-      const path = `${form.staff_id}/${Date.now()}.${ext}`
+      const path = `${venueId}/${form.staff_id}/${Date.now()}.${ext}`
       const { error: uploadErr } = await supabase.storage
         .from('training-files')
         .upload(path, file, { upsert: false })
@@ -127,6 +133,7 @@ export default function TrainingPage() {
       notes:       form.notes.trim() || null,
       file_url,
       file_name,
+      venue_id:    venueId,
     })
 
     setSaving(false)
@@ -139,7 +146,7 @@ export default function TrainingPage() {
   }
 
   const handleDelete = async (id) => {
-    const { error } = await supabase.from('staff_training').delete().eq('id', id)
+    const { error } = await supabase.from('staff_training').delete().eq('id', id).eq('venue_id', venueId)
     if (error) { toast(error.message, 'error'); return }
     toast('Record deleted')
     reload()

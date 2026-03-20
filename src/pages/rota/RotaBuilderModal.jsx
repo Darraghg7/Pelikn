@@ -2,7 +2,6 @@ import React, { useState } from 'react'
 import { format } from 'date-fns'
 import Modal from '../../components/ui/Modal'
 import { buildRota } from '../../lib/rotaBuilder'
-import { ROLE_OPTIONS } from '../../lib/constants'
 
 function SectionLabel({ children }) {
   return <p className="text-[10px] tracking-widest uppercase text-charcoal/40 mb-2">{children}</p>
@@ -17,20 +16,27 @@ export default function RotaBuilderModal({
   shifts,
   unavailability,
   onSave,
+  customRoles = [],
+  closedDays = [],
 }) {
   const [mode, setMode] = useState('fill_gaps')
   const [minStaff, setMinStaff] = useState(2)
   const [maxStaff, setMaxStaff] = useState(staff.length || 10)
-  const [targetHours, setTargetHours] = useState(35)
   const [defaultStart, setDefaultStart] = useState('09:00')
   const [defaultEnd, setDefaultEnd] = useState('17:00')
   const [requiredRoles, setRequiredRoles] = useState(
-    ROLE_OPTIONS.map(r => ({ role: r.label, min: 0 }))
+    customRoles.map(r => ({ role: r.label, min: 0 }))
   )
 
   // Preview state
   const [result, setResult] = useState(null)
   const [saving, setSaving] = useState(false)
+
+  // Sync roles when customRoles change (e.g. on first load)
+  const syncedRoles = customRoles.map(r => {
+    const existing = requiredRoles.find(rr => rr.role === r.label)
+    return { role: r.label, min: existing?.min ?? 0 }
+  })
 
   const updateRoleMin = (role, val) => {
     setRequiredRoles(prev =>
@@ -49,10 +55,11 @@ export default function RotaBuilderModal({
         mode,
         minStaffPerDay: minStaff,
         maxStaffPerDay: maxStaff,
-        requiredRoles: requiredRoles.filter(r => r.min > 0),
+        requiredRoles: syncedRoles.filter(r => r.min > 0),
+        requiredSkills: [],
         defaultStart,
         defaultEnd,
-        targetHours,
+        closedDays,
       },
     })
     setResult(output)
@@ -80,6 +87,8 @@ export default function RotaBuilderModal({
     setResult(null)
     onClose()
   }
+
+  const closedDayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
   return (
     <Modal open={open} onClose={handleClose} title="Auto-Fill Rota">
@@ -114,6 +123,20 @@ export default function RotaBuilderModal({
               </div>
             </div>
 
+            {/* Closed days info */}
+            {closedDays.length > 0 && (
+              <div className="rounded-lg bg-charcoal/4 border border-charcoal/10 px-3 py-2">
+                <p className="text-[10px] tracking-widest uppercase text-charcoal/35 mb-1">Closed Days (skipped)</p>
+                <div className="flex gap-1.5 flex-wrap">
+                  {closedDays.sort((a, b) => a - b).map(d => (
+                    <span key={d} className="text-xs text-charcoal/40 bg-charcoal/8 px-2 py-0.5 rounded line-through">
+                      {closedDayNames[d]}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Staffing */}
             <div>
               <SectionLabel>Staffing per Day</SectionLabel>
@@ -143,22 +166,6 @@ export default function RotaBuilderModal({
               </div>
             </div>
 
-            {/* Target Hours */}
-            <div>
-              <SectionLabel>Target Weekly Hours per Staff</SectionLabel>
-              <input
-                type="number"
-                min={0}
-                max={60}
-                value={targetHours}
-                onChange={e => setTargetHours(parseInt(e.target.value) || 0)}
-                className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 bg-cream/30 text-sm text-center focus:outline-none focus:ring-2 focus:ring-charcoal/20"
-              />
-              <p className="text-[10px] text-charcoal/30 mt-1">
-                Staff with contracted hours set in Settings will use their own target instead.
-              </p>
-            </div>
-
             {/* Default Shift Times */}
             <div>
               <SectionLabel>Default Shift Times</SectionLabel>
@@ -184,31 +191,35 @@ export default function RotaBuilderModal({
               </div>
             </div>
 
-            {/* Required Roles */}
+            {/* Required Roles per Day */}
             <div>
               <SectionLabel>Required Roles per Day</SectionLabel>
               <p className="text-[10px] text-charcoal/30 mb-2">
                 Set minimum count for each role needed daily. Leave 0 to skip.
               </p>
-              <div className="grid grid-cols-2 gap-2">
-                {requiredRoles.map(r => {
-                  const opt = ROLE_OPTIONS.find(o => o.label === r.role)
-                  return (
-                    <div key={r.role} className="flex items-center gap-2 rounded-lg border border-charcoal/10 px-3 py-2">
-                      <span className={`w-2 h-2 rounded-full ${opt?.color?.split(' ')[0] ?? 'bg-charcoal/20'}`} />
-                      <span className="text-xs text-charcoal/70 flex-1 truncate">{r.role}</span>
-                      <input
-                        type="number"
-                        min={0}
-                        max={staff.length}
-                        value={r.min}
-                        onChange={e => updateRoleMin(r.role, e.target.value)}
-                        className="w-12 px-1 py-1 rounded border border-charcoal/15 text-xs text-center focus:outline-none focus:ring-1 focus:ring-charcoal/20"
-                      />
-                    </div>
-                  )
-                })}
-              </div>
+              {customRoles.length === 0 ? (
+                <p className="text-xs text-charcoal/30 italic">No roles configured. Add roles in Settings.</p>
+              ) : (
+                <div className="grid grid-cols-2 gap-2">
+                  {customRoles.map(r => {
+                    const current = syncedRoles.find(sr => sr.role === r.label)
+                    return (
+                      <div key={r.value} className="flex items-center gap-2 rounded-lg border border-charcoal/10 px-3 py-2">
+                        <span className={`w-2 h-2 rounded-full ${r.color.split(' ')[0] ?? 'bg-charcoal/20'}`} />
+                        <span className="text-xs text-charcoal/70 flex-1 truncate">{r.label}</span>
+                        <input
+                          type="number"
+                          min={0}
+                          max={staff.length}
+                          value={current?.min ?? 0}
+                          onChange={e => updateRoleMin(r.label, e.target.value)}
+                          className="w-12 px-1 py-1 rounded border border-charcoal/15 text-xs text-center focus:outline-none focus:ring-1 focus:ring-charcoal/20"
+                        />
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
             </div>
 
             {/* Generate */}

@@ -1,9 +1,9 @@
 /**
  * SessionContext — single auth source for all users (staff + managers).
  *
- * Everyone authenticates via PIN. The `staffRole` field on the session
- * determines what they can see:  'manager' → manager dashboard,
- * anything else → My Shift staff view.
+ * Everyone authenticates via PIN scoped to a venue. The `staffRole` field
+ * determines what they can see: 'manager'/'owner' → manager dashboard,
+ * 'staff' → My Shift staff view.
  */
 import React, { createContext, useContext, useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
@@ -15,6 +15,8 @@ import {
   SESSION_JOB_ROLE_KEY,
   SESSION_SHOW_TEMP_LOGS,
   SESSION_SHOW_ALLERGENS,
+  SESSION_VENUE_ID_KEY,
+  SESSION_VENUE_SLUG_KEY,
 } from '../lib/constants'
 
 const SessionContext = createContext(null)
@@ -28,6 +30,8 @@ const LS_KEYS = [
   SESSION_JOB_ROLE_KEY,
   SESSION_SHOW_TEMP_LOGS,
   SESSION_SHOW_ALLERGENS,
+  SESSION_VENUE_ID_KEY,
+  SESSION_VENUE_SLUG_KEY,
 ]
 
 export function SessionProvider({ children }) {
@@ -46,8 +50,9 @@ export function SessionProvider({ children }) {
 
     supabase
       .rpc('validate_staff_session', { p_token: token })
-      .then(({ data: valid, error }) => {
-        if (!error && valid) {
+      .then(({ data: venueId, error }) => {
+        // validate_staff_session now returns venue_id (text) or null
+        if (!error && venueId) {
           setSession({
             token,
             staffId:      id,
@@ -56,6 +61,8 @@ export function SessionProvider({ children }) {
             jobRole:      localStorage.getItem(SESSION_JOB_ROLE_KEY) ?? 'kitchen',
             showTempLogs: localStorage.getItem(SESSION_SHOW_TEMP_LOGS) === 'true',
             showAllergens: localStorage.getItem(SESSION_SHOW_ALLERGENS) === 'true',
+            venueId:      localStorage.getItem(SESSION_VENUE_ID_KEY) ?? venueId,
+            venueSlug:    localStorage.getItem(SESSION_VENUE_SLUG_KEY) ?? '',
           })
         } else {
           clearStorage()
@@ -65,16 +72,16 @@ export function SessionProvider({ children }) {
   }, [])
 
   // ── Sign in ──────────────────────────────────────────────────────────────
-  const signIn = async (staffId, pin) => {
+  const signIn = async (staffId, pin, venueId, venueSlug) => {
     const { data: token, error: tokenErr } = await supabase.rpc(
       'verify_staff_pin_and_create_session',
-      { p_staff_id: staffId, p_pin: pin }
+      { p_staff_id: staffId, p_pin: pin, p_venue_id: venueId }
     )
     if (tokenErr || !token) {
       return { error: tokenErr || new Error('Incorrect PIN') }
     }
 
-    // Fetch full staff row so we have all fields including new tab settings
+    // Fetch full staff row
     const { data: row, error: rowErr } = await supabase
       .from('staff')
       .select('name, role, job_role, show_temp_logs, show_allergens')
@@ -91,6 +98,8 @@ export function SessionProvider({ children }) {
       jobRole:      row.job_role   ?? 'kitchen',
       showTempLogs: row.show_temp_logs  ?? false,
       showAllergens: row.show_allergens ?? false,
+      venueId,
+      venueSlug:    venueSlug ?? '',
     }
 
     // Persist to localStorage
@@ -101,6 +110,8 @@ export function SessionProvider({ children }) {
     localStorage.setItem(SESSION_JOB_ROLE_KEY,   newSession.jobRole)
     localStorage.setItem(SESSION_SHOW_TEMP_LOGS, String(newSession.showTempLogs))
     localStorage.setItem(SESSION_SHOW_ALLERGENS, String(newSession.showAllergens))
+    localStorage.setItem(SESSION_VENUE_ID_KEY,   venueId)
+    localStorage.setItem(SESSION_VENUE_SLUG_KEY, venueSlug ?? '')
 
     setSession(newSession)
     return { error: null }
@@ -108,7 +119,6 @@ export function SessionProvider({ children }) {
 
   // ── Sign out ─────────────────────────────────────────────────────────────
   const signOut = () => {
-    // Capture token BEFORE clearing storage, then fire-and-forget DB invalidation
     const token = session?.token ?? localStorage.getItem(SESSION_TOKEN_KEY)
     clearStorage()
     setSession(null)

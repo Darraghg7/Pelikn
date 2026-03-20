@@ -6,6 +6,7 @@ import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { format, subDays } from 'date-fns'
 import { supabase } from '../../lib/supabase'
+import { useVenue } from '../../contexts/VenueContext'
 import { useCleaningTasks } from '../../hooks/useCleaningTasks'
 import { useSession } from '../../contexts/SessionContext'
 import LoadingSpinner from '../ui/LoadingSpinner'
@@ -56,17 +57,19 @@ function MiniRow({ label, value, warn }) {
 
 /* 1. Compliance Score */
 function ComplianceScoreWidget() {
+  const { venueId } = useVenue()
   const [data, setData] = useState(null)
 
   useEffect(() => {
+    if (!venueId) return
     const load = async () => {
       const since = subDays(new Date(), 30).toISOString()
       const [temps, deliveries, calibrations, actions, training] = await Promise.all([
-        supabase.from('fridge_temperature_logs').select('id, temperature, fridge:fridge_id(min_temp, max_temp)').gte('logged_at', since),
-        supabase.from('delivery_checks').select('id, overall_pass').gte('checked_at', since),
-        supabase.from('probe_calibrations').select('id, pass').gte('calibrated_at', since),
-        supabase.from('corrective_actions').select('id, status, severity'),
-        supabase.from('staff_training').select('id, expiry_date'),
+        supabase.from('fridge_temperature_logs').select('id, temperature, fridge:fridge_id(min_temp, max_temp)').eq('venue_id', venueId).gte('logged_at', since),
+        supabase.from('delivery_checks').select('id, overall_pass').eq('venue_id', venueId).gte('checked_at', since),
+        supabase.from('probe_calibrations').select('id, pass').eq('venue_id', venueId).gte('calibrated_at', since),
+        supabase.from('corrective_actions').select('id, status, severity').eq('venue_id', venueId),
+        supabase.from('staff_training').select('id, expiry_date').eq('venue_id', venueId),
       ])
 
       const t = temps.data ?? []
@@ -102,7 +105,7 @@ function ComplianceScoreWidget() {
       setData({ score, status })
     }
     load()
-  }, [])
+  }, [venueId])
 
   if (!data) return <WidgetShell title="Compliance Score" to="/audit"><div className="flex justify-center py-4"><LoadingSpinner /></div></WidgetShell>
 
@@ -121,14 +124,17 @@ function ComplianceScoreWidget() {
 
 /* 2. Fridge Alerts */
 function FridgeAlertsWidget() {
+  const { venueId } = useVenue()
   const [data, setData] = useState(null)
 
   useEffect(() => {
+    if (!venueId) return
     const load = async () => {
       const today = format(new Date(), 'yyyy-MM-dd')
       const { data: logs } = await supabase
         .from('fridge_temperature_logs')
         .select('id, temperature, fridge:fridge_id(name, min_temp, max_temp)')
+        .eq('venue_id', venueId)
         .gte('logged_at', today)
         .order('logged_at', { ascending: false })
 
@@ -137,7 +143,7 @@ function FridgeAlertsWidget() {
         l.fridge && (l.temperature < l.fridge.min_temp || l.temperature > l.fridge.max_temp)
       )
       const total = items.length
-      const { data: fridges } = await supabase.from('fridges').select('id, name').eq('is_active', true)
+      const { data: fridges } = await supabase.from('fridges').select('id, name').eq('venue_id', venueId).eq('is_active', true)
       const fridgeCount = fridges?.length ?? 0
       const checkedFridgeIds = new Set(items.map(l => l.fridge?.name).filter(Boolean))
       const unchecked = fridgeCount - checkedFridgeIds.size
@@ -145,7 +151,7 @@ function FridgeAlertsWidget() {
       setData({ total, alerts: outOfRange.length, unchecked, fridgeCount })
     }
     load()
-  }, [])
+  }, [venueId])
 
   if (!data) return <WidgetShell title="Fridge Status" to="/fridge"><div className="flex justify-center py-4"><LoadingSpinner /></div></WidgetShell>
 
@@ -161,34 +167,88 @@ function FridgeAlertsWidget() {
 }
 
 /* 3. Cleaning Overdue */
+const CLEANING_PAGE_SIZE = 3
+const FREQ_DAYS = { daily: 1, weekly: 7, fortnightly: 14, monthly: 30, quarterly: 90 }
+
 function CleaningOverdueWidget() {
-  const { overdueCount } = useCleaningTasks()
+  const { tasks, overdueCount } = useCleaningTasks()
+  const [page, setPage] = useState(0)
   const status = overdueCount > 3 ? 'bad' : overdueCount > 0 ? 'warning' : 'good'
+
+  const overdueTasks = tasks.filter(t => t.status === 'overdue')
+  const totalPages = Math.ceil(overdueTasks.length / CLEANING_PAGE_SIZE)
+  const pageItems = overdueTasks.slice(page * CLEANING_PAGE_SIZE, (page + 1) * CLEANING_PAGE_SIZE)
+
+  // Reset page if tasks change
+  useEffect(() => { setPage(0) }, [overdueTasks.length])
+
+  if (overdueCount === 0) {
+    return (
+      <WidgetShell title="Cleaning" to="/cleaning" status={status}>
+        <BigNumber value={0} label="All on track" alert={false} />
+      </WidgetShell>
+    )
+  }
 
   return (
     <WidgetShell title="Cleaning" to="/cleaning" status={status}>
-      <BigNumber
-        value={overdueCount}
-        label={overdueCount === 0 ? 'All on track' : `task${overdueCount !== 1 ? 's' : ''} overdue`}
-        alert={overdueCount > 0}
-      />
+      <p className="text-xs font-semibold text-danger mb-2">{overdueCount} task{overdueCount !== 1 ? 's' : ''} overdue</p>
+      <div className="flex flex-col gap-1">
+        {pageItems.map(t => {
+          const days = t.lastCompletion
+            ? Math.floor((Date.now() - new Date(t.lastCompletion.completed_at)) / 86400000)
+            : null
+          const threshold = FREQ_DAYS[t.frequency] ?? 1
+          const overBy = days !== null ? days - threshold : null
+          return (
+            <div key={t.id} className="flex items-center justify-between gap-2 py-1 border-b border-charcoal/6 last:border-0">
+              <p className="text-xs text-charcoal truncate flex-1">{t.title}</p>
+              <span className="text-[10px] text-danger/70 whitespace-nowrap shrink-0">
+                {overBy !== null ? `${overBy}d overdue` : 'Never done'}
+              </span>
+            </div>
+          )
+        })}
+      </div>
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-3 mt-2 pt-1 border-t border-charcoal/6">
+          <button
+            onClick={() => setPage(p => Math.max(0, p - 1))}
+            disabled={page === 0}
+            className="text-[10px] text-charcoal/40 hover:text-charcoal disabled:opacity-20"
+          >
+            ‹
+          </button>
+          <span className="text-[10px] text-charcoal/30">{page + 1}/{totalPages}</span>
+          <button
+            onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+            disabled={page >= totalPages - 1}
+            className="text-[10px] text-charcoal/40 hover:text-charcoal disabled:opacity-20"
+          >
+            ›
+          </button>
+        </div>
+      )}
     </WidgetShell>
   )
 }
 
 /* 4. Staff On Shift */
 function StaffOnShiftWidget() {
+  const { venueId } = useVenue()
   const [shifts, setShifts] = useState([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    if (!venueId) return
     const today = format(new Date(), 'yyyy-MM-dd')
     supabase.from('shifts')
       .select('id, start_time, end_time, role_label, staff:staff_id(name, job_role)')
+      .eq('venue_id', venueId)
       .eq('shift_date', today)
       .order('start_time')
       .then(({ data }) => { setShifts(data ?? []); setLoading(false) })
-  }, [])
+  }, [venueId])
 
   const now = format(new Date(), 'HH:mm')
 
@@ -226,11 +286,14 @@ function StaffOnShiftWidget() {
 
 /* 5. Open Corrective Actions */
 function OpenActionsWidget() {
+  const { venueId } = useVenue()
   const [data, setData] = useState(null)
 
   useEffect(() => {
+    if (!venueId) return
     supabase.from('corrective_actions')
       .select('id, severity, status')
+      .eq('venue_id', venueId)
       .eq('status', 'open')
       .then(({ data: actions }) => {
         const items = actions ?? []
@@ -238,7 +301,7 @@ function OpenActionsWidget() {
         const major = items.filter(a => a.severity === 'major').length
         setData({ total: items.length, critical, major })
       })
-  }, [])
+  }, [venueId])
 
   if (!data) return <WidgetShell title="Open Actions" to="/corrective"><div className="flex justify-center py-4"><LoadingSpinner /></div></WidgetShell>
 
@@ -259,11 +322,14 @@ function OpenActionsWidget() {
 
 /* 6. Expiring Training */
 function ExpiringTrainingWidget() {
+  const { venueId } = useVenue()
   const [data, setData] = useState(null)
 
   useEffect(() => {
+    if (!venueId) return
     supabase.from('staff_training')
       .select('id, title, expiry_date, staff:staff_id(name)')
+      .eq('venue_id', venueId)
       .not('expiry_date', 'is', null)
       .order('expiry_date')
       .then(({ data: certs }) => {
@@ -277,7 +343,7 @@ function ExpiringTrainingWidget() {
         })
         setData({ expired: expired.length, expiring: expiring.length, items: [...expired, ...expiring].slice(0, 4) })
       })
-  }, [])
+  }, [venueId])
 
   if (!data) return <WidgetShell title="Training Expiry" to="/training"><div className="flex justify-center py-4"><LoadingSpinner /></div></WidgetShell>
 
@@ -302,13 +368,16 @@ function ExpiringTrainingWidget() {
 
 /* 7. Today's Deliveries */
 function TodaysDeliveriesWidget() {
+  const { venueId } = useVenue()
   const [data, setData] = useState(null)
 
   useEffect(() => {
+    if (!venueId) return
     const today = new Date()
     today.setHours(0, 0, 0, 0)
     supabase.from('delivery_checks')
       .select('id, supplier_name, overall_pass, checked_at')
+      .eq('venue_id', venueId)
       .gte('checked_at', today.toISOString())
       .order('checked_at', { ascending: false })
       .limit(5)
@@ -317,7 +386,7 @@ function TodaysDeliveriesWidget() {
         const fails = items.filter(c => !c.overall_pass).length
         setData({ total: items.length, fails, items })
       })
-  }, [])
+  }, [venueId])
 
   if (!data) return <WidgetShell title="Today's Deliveries" to="/deliveries"><div className="flex justify-center py-4"><LoadingSpinner /></div></WidgetShell>
 
@@ -349,9 +418,11 @@ function TodaysDeliveriesWidget() {
 
 /* 8. Weekly Labour Cost */
 function WeeklyLabourWidget() {
+  const { venueId } = useVenue()
   const [data, setData] = useState(null)
 
   useEffect(() => {
+    if (!venueId) return
     const load = async () => {
       const now = new Date()
       const day = now.getDay()
@@ -362,6 +433,7 @@ function WeeklyLabourWidget() {
       const { data: shifts } = await supabase
         .from('shifts')
         .select('start_time, end_time, staff:staff_id(hourly_rate)')
+        .eq('venue_id', venueId)
         .eq('week_start', weekStart)
 
       const items = shifts ?? []
@@ -378,7 +450,7 @@ function WeeklyLabourWidget() {
       setData({ shifts: items.length, hours: totalHrs.toFixed(1), cost: totalCost.toFixed(2) })
     }
     load()
-  }, [])
+  }, [venueId])
 
   if (!data) return <WidgetShell title="Weekly Labour" to="/rota"><div className="flex justify-center py-4"><LoadingSpinner /></div></WidgetShell>
 
@@ -394,15 +466,18 @@ function WeeklyLabourWidget() {
 
 /* 9. Pending Swap Requests */
 function PendingSwapsWidget() {
+  const { venueId } = useVenue()
   const [data, setData] = useState(null)
 
   useEffect(() => {
+    if (!venueId) return
     supabase.from('shift_swaps')
       .select('id, requester_name, target_staff_name, status')
+      .eq('venue_id', venueId)
       .eq('status', 'pending')
       .limit(5)
       .then(({ data: swaps }) => setData({ items: swaps ?? [], count: swaps?.length ?? 0 }))
-  }, [])
+  }, [venueId])
 
   if (!data) return <WidgetShell title="Swap Requests" to="/rota"><div className="flex justify-center py-4"><LoadingSpinner /></div></WidgetShell>
 
@@ -428,11 +503,14 @@ function PendingSwapsWidget() {
 
 /* 10. Probe Calibration Due */
 function ProbeCalDueWidget() {
+  const { venueId } = useVenue()
   const [data, setData] = useState(null)
 
   useEffect(() => {
+    if (!venueId) return
     supabase.from('probe_calibrations')
       .select('id, probe_name, pass, calibrated_at')
+      .eq('venue_id', venueId)
       .order('calibrated_at', { ascending: false })
       .limit(10)
       .then(({ data: records }) => {
@@ -444,7 +522,7 @@ function ProbeCalDueWidget() {
         const recentFails = items.filter(r => !r.pass).length
         setData({ daysSince, recentFails, lastDate: last ? format(new Date(last.calibrated_at), 'd MMM') : 'Never' })
       })
-  }, [])
+  }, [venueId])
 
   if (!data) return <WidgetShell title="Probe Calibration" to="/probe"><div className="flex justify-center py-4"><LoadingSpinner /></div></WidgetShell>
 

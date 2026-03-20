@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate, useParams, Link } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
+import { useVenue } from '../../contexts/VenueContext'
 import { useFoodItem } from '../../hooks/useFoodItems'
 import { EU_ALLERGENS } from '../../lib/constants'
 import { useToast } from '../../components/ui/Toast'
@@ -15,6 +16,7 @@ export default function FoodItemFormPage() {
   const isEdit   = Boolean(id)
   const navigate = useNavigate()
   const toast    = useToast()
+  const { venueId } = useVenue()
 
   const { item, loading } = useFoodItem(id)
 
@@ -49,7 +51,7 @@ export default function FoodItemFormPage() {
       await supabase.from('food_allergens').delete().eq('food_item_id', id)
       if (allergens.length > 0) {
         await supabase.from('food_allergens').insert(
-          allergens.map((a) => ({ food_item_id: id, allergen: a }))
+          allergens.map((a) => ({ food_item_id: id, allergen: a, venue_id: venueId }))
         )
       }
       toast('Item updated')
@@ -57,13 +59,13 @@ export default function FoodItemFormPage() {
     } else {
       const { data: newItem, error: itemErr } = await supabase
         .from('food_items')
-        .insert({ name, description: description || null })
+        .insert({ name, description: description || null, venue_id: venueId })
         .select()
         .single()
       if (itemErr) { toast(itemErr.message, 'error'); setSubmitting(false); return }
       if (allergens.length > 0) {
         await supabase.from('food_allergens').insert(
-          allergens.map((a) => ({ food_item_id: newItem.id, allergen: a }))
+          allergens.map((a) => ({ food_item_id: newItem.id, allergen: a, venue_id: venueId }))
         )
       }
       toast('Item added')

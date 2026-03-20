@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { format, subDays, subMonths } from 'date-fns'
 import { supabase } from '../../lib/supabase'
+import { useVenue } from '../../contexts/VenueContext'
 import { useToast } from '../../components/ui/Toast'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
 import { exportTempLogs, exportCleaningRecords, exportDeliveryChecks, exportCorrectiveActions, exportProbeCalibrations, exportTrainingRecords, exportFullReport } from '../../lib/exportData'
@@ -44,11 +45,13 @@ function StatRow({ label, value, sub, warn }) {
 }
 
 export default function EHOAuditPage() {
+  const { venueId } = useVenue()
   const [range, setRange] = useState(90)
   const [loading, setLoading] = useState(true)
   const [data, setData] = useState(null)
 
   useEffect(() => {
+    if (!venueId) return
     const load = async () => {
       setLoading(true)
       const since = format(subDays(new Date(), range), 'yyyy-MM-dd')
@@ -65,14 +68,14 @@ export default function EHOAuditPage() {
         training,
         staff,
       ] = await Promise.all([
-        supabase.from('fridge_temperature_logs').select('id, temperature, logged_at, fridge:fridge_id(min_temp, max_temp)').gte('logged_at', sinceTs),
-        supabase.from('cleaning_tasks').select('id, title, frequency').eq('is_active', true),
-        supabase.from('cleaning_completions').select('id, cleaning_task_id, completed_at').gte('completed_at', sinceTs),
-        supabase.from('delivery_checks').select('id, overall_pass, checked_at').gte('checked_at', sinceTs),
-        supabase.from('probe_calibrations').select('id, pass, calibrated_at').gte('calibrated_at', sinceTs),
-        supabase.from('corrective_actions').select('id, status, severity, reported_at').gte('reported_at', sinceTs),
-        supabase.from('staff_training').select('id, expiry_date, title'),
-        supabase.from('staff').select('id, name').eq('is_active', true),
+        supabase.from('fridge_temperature_logs').select('id, temperature, logged_at, fridge:fridge_id(min_temp, max_temp)').eq('venue_id', venueId).gte('logged_at', sinceTs),
+        supabase.from('cleaning_tasks').select('id, title, frequency').eq('venue_id', venueId).eq('is_active', true),
+        supabase.from('cleaning_completions').select('id, cleaning_task_id, completed_at').eq('venue_id', venueId).gte('completed_at', sinceTs),
+        supabase.from('delivery_checks').select('id, overall_pass, checked_at').eq('venue_id', venueId).gte('checked_at', sinceTs),
+        supabase.from('probe_calibrations').select('id, pass, calibrated_at').eq('venue_id', venueId).gte('calibrated_at', sinceTs),
+        supabase.from('corrective_actions').select('id, status, severity, reported_at').eq('venue_id', venueId).gte('reported_at', sinceTs),
+        supabase.from('staff_training').select('id, expiry_date, title').eq('venue_id', venueId),
+        supabase.from('staff').select('id, name').eq('venue_id', venueId).eq('is_active', true),
       ])
 
       const temps = tempLogs.data ?? []
@@ -125,7 +128,7 @@ export default function EHOAuditPage() {
       setLoading(false)
     }
     load()
-  }, [range])
+  }, [range, venueId])
 
   // Overall score
   const getOverallStatus = () => {
@@ -258,12 +261,12 @@ export default function EHOAuditPage() {
             <p className="text-[10px] tracking-widest uppercase text-charcoal/40 mb-3">Export Records (CSV)</p>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               {[
-                { label: 'Temp Logs', fn: () => exportTempLogs(range) },
-                { label: 'Cleaning', fn: () => exportCleaningRecords(range) },
-                { label: 'Deliveries', fn: () => exportDeliveryChecks(range) },
-                { label: 'Actions', fn: () => exportCorrectiveActions(range) },
-                { label: 'Probe Cal.', fn: () => exportProbeCalibrations(range) },
-                { label: 'Training', fn: () => exportTrainingRecords() },
+                { label: 'Temp Logs', fn: () => exportTempLogs(venueId, range) },
+                { label: 'Cleaning', fn: () => exportCleaningRecords(venueId, range) },
+                { label: 'Deliveries', fn: () => exportDeliveryChecks(venueId, range) },
+                { label: 'Actions', fn: () => exportCorrectiveActions(venueId, range) },
+                { label: 'Probe Cal.', fn: () => exportProbeCalibrations(venueId, range) },
+                { label: 'Training', fn: () => exportTrainingRecords(venueId) },
               ].map(btn => (
                 <button
                   key={btn.label}
@@ -275,7 +278,7 @@ export default function EHOAuditPage() {
               ))}
             </div>
             <button
-              onClick={() => exportFullReport(range)}
+              onClick={() => exportFullReport(venueId, range)}
               className="w-full mt-3 px-4 py-2.5 rounded-lg bg-charcoal text-cream text-xs font-medium hover:bg-charcoal/90 transition-colors"
             >
               Download All Reports

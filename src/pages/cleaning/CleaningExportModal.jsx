@@ -1,11 +1,13 @@
 import React, { useState } from 'react'
 import { format, subDays } from 'date-fns'
 import { supabase } from '../../lib/supabase'
+import { useVenue } from '../../contexts/VenueContext'
 import Modal from '../../components/ui/Modal'
 import { useToast } from '../../components/ui/Toast'
 import { buildPdfReport } from '../../lib/pdfUtils'
 
 export default function CleaningExportModal({ open, onClose }) {
+  const { venueId } = useVenue()
   const toast = useToast()
   const [dateFrom, setDateFrom] = useState(format(subDays(new Date(), 30), 'yyyy-MM-dd'))
   const [dateTo,   setDateTo]   = useState(format(new Date(), 'yyyy-MM-dd'))
@@ -18,6 +20,7 @@ export default function CleaningExportModal({ open, onClose }) {
     const { data: tasks } = await supabase
       .from('cleaning_tasks')
       .select('id, title, frequency, assigned_role')
+      .eq('venue_id', venueId)
       .eq('is_active', true)
       .order('title')
 
@@ -25,6 +28,7 @@ export default function CleaningExportModal({ open, onClose }) {
     const { data: completions, error } = await supabase
       .from('cleaning_completions')
       .select('cleaning_task_id, completed_by_name, completed_at, notes')
+      .eq('venue_id', venueId)
       .gte('completed_at', dateFrom)
       .lte('completed_at', dateTo + 'T23:59:59')
       .order('completed_at')

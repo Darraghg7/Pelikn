@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
+import { useVenue } from '../../contexts/VenueContext'
 import { useFoodItems } from '../../hooks/useFoodItems'
 import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../../components/ui/Toast'
@@ -18,6 +19,7 @@ function SectionLabel({ children, action }) {
 export default function AllergenRegistryPage() {
   const [search, setSearch] = useState('')
   const { items, loading, reload } = useFoodItems(search)
+  const { venueId }   = useVenue()
   const { isManager } = useSession()
   const toast         = useToast()
   const navigate     = useNavigate()
@@ -26,7 +28,7 @@ export default function AllergenRegistryPage() {
   const handleDelete = async (id) => {
     if (!window.confirm('Delete this item?')) return
     setDeleting(id)
-    const { error } = await supabase.from('food_items').update({ is_active: false }).eq('id', id)
+    const { error } = await supabase.from('food_items').update({ is_active: false }).eq('id', id).eq('venue_id', venueId)
     setDeleting(null)
     if (error) { toast(error.message, 'error'); return }
     toast('Item removed')

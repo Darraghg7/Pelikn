@@ -4,10 +4,12 @@ import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
 import { supabase } from '../../lib/supabase'
 import { useFridges } from '../../hooks/useFridgeLogs'
+import { useVenue } from '../../contexts/VenueContext'
 import Modal from '../../components/ui/Modal'
 import { useToast } from '../../components/ui/Toast'
 
 export default function FridgeExportModal({ open, onClose }) {
+  const { venueId } = useVenue()
   const toast = useToast()
   const { fridges } = useFridges()
   const [dateFrom, setDateFrom] = useState(format(subDays(new Date(), 7), 'yyyy-MM-dd'))
@@ -19,7 +21,8 @@ export default function FridgeExportModal({ open, onClose }) {
     setLoading(true)
     let query = supabase
       .from('fridge_temperature_logs')
-      .select('temperature, logged_at, logged_by_name, notes, fridge:fridge_id(name, min_temp, max_temp)')
+      .select('temperature, logged_at, logged_by_name, notes, check_period, fridge:fridge_id(name, min_temp, max_temp)')
+      .eq('venue_id', venueId)
       .gte('logged_at', dateFrom)
       .lte('logged_at', dateTo + 'T23:59:59')
       .order('logged_at')
@@ -53,7 +56,7 @@ export default function FridgeExportModal({ open, onClose }) {
     // Table
     autoTable(doc, {
       startY: fridgeId ? 43 : 37,
-      head: [['Date', 'Time', 'Fridge', 'Temp (°C)', 'Status', 'Staff', 'Notes']],
+      head: [['Date', 'Time', 'AM/PM', 'Fridge', 'Temp (°C)', 'Status', 'Staff', 'Notes']],
       body: data.map(row => {
         const oor = row.fridge
           ? (row.temperature < row.fridge.min_temp || row.temperature > row.fridge.max_temp)
@@ -61,6 +64,7 @@ export default function FridgeExportModal({ open, onClose }) {
         return [
           format(new Date(row.logged_at), 'dd/MM/yyyy'),
           format(new Date(row.logged_at), 'HH:mm'),
+          row.check_period?.toUpperCase() ?? '—',
           row.fridge?.name ?? '—',
           row.temperature.toFixed(1),
           oor ? 'OUT OF RANGE' : 'OK',
@@ -70,9 +74,9 @@ export default function FridgeExportModal({ open, onClose }) {
       }),
       headStyles: { fillColor: [40, 40, 40], textColor: 255, fontSize: 9 },
       bodyStyles: { fontSize: 8 },
-      columnStyles: { 4: { fontStyle: 'bold' } },
+      columnStyles: { 5: { fontStyle: 'bold' } },
       didParseCell(hookData) {
-        if (hookData.section === 'body' && hookData.column.index === 4 && hookData.cell.raw === 'OUT OF RANGE') {
+        if (hookData.section === 'body' && hookData.column.index === 5 && hookData.cell.raw === 'OUT OF RANGE') {
           hookData.cell.styles.textColor = [180, 30, 30]
         }
       },

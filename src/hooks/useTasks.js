@@ -1,9 +1,11 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
+import { useVenue } from '../contexts/VenueContext'
 import { format } from 'date-fns'
 
 /** Fetch all active task templates + today's completions for a given role. */
 export function useTasksForRole(jobRole) {
+  const { venueId } = useVenue()
   const [templates, setTemplates]   = useState([])
   const [oneOffs, setOneOffs]       = useState([])
   const [completions, setCompletions] = useState([])
@@ -12,24 +14,27 @@ export function useTasksForRole(jobRole) {
   const today = format(new Date(), 'yyyy-MM-dd')
 
   const load = useCallback(async () => {
+    if (!venueId) { setLoading(false); return }
     setLoading(true)
 
-    // Templates visible to this role (matching role or 'all')
     const tQuery = supabase
       .from('task_templates')
       .select('*')
+      .eq('venue_id', venueId)
       .eq('is_active', true)
       .order('created_at')
 
     const oQuery = supabase
       .from('task_one_offs')
       .select('*')
+      .eq('venue_id', venueId)
       .eq('due_date', today)
       .order('created_at')
 
     const cQuery = supabase
       .from('task_completions')
       .select('*')
+      .eq('venue_id', venueId)
       .eq('completion_date', today)
 
     const [{ data: tData }, { data: oData }, { data: cData }] = await Promise.all([tQuery, oQuery, cQuery])
@@ -45,7 +50,7 @@ export function useTasksForRole(jobRole) {
     setOneOffs(allOneOffs)
     setCompletions(cData ?? [])
     setLoading(false)
-  }, [jobRole, today])
+  }, [venueId, jobRole, today])
 
   useEffect(() => { load() }, [load])
 
@@ -54,6 +59,7 @@ export function useTasksForRole(jobRole) {
 
 /** Fetch ALL templates + one-offs for manager view. */
 export function useAllTasks(selectedDate) {
+  const { venueId } = useVenue()
   const [templates, setTemplates]   = useState([])
   const [oneOffs, setOneOffs]       = useState([])
   const [completions, setCompletions] = useState([])
@@ -62,17 +68,18 @@ export function useAllTasks(selectedDate) {
   const dateStr = selectedDate ? format(selectedDate, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd')
 
   const load = useCallback(async () => {
+    if (!venueId) { setLoading(false); return }
     setLoading(true)
     const [{ data: tData }, { data: oData }, { data: cData }] = await Promise.all([
-      supabase.from('task_templates').select('*').eq('is_active', true).order('job_role').order('created_at'),
-      supabase.from('task_one_offs').select('*').eq('due_date', dateStr).order('created_at'),
-      supabase.from('task_completions').select('*').eq('completion_date', dateStr),
+      supabase.from('task_templates').select('*').eq('venue_id', venueId).eq('is_active', true).order('job_role').order('created_at'),
+      supabase.from('task_one_offs').select('*').eq('venue_id', venueId).eq('due_date', dateStr).order('created_at'),
+      supabase.from('task_completions').select('*').eq('venue_id', venueId).eq('completion_date', dateStr),
     ])
     setTemplates(tData ?? [])
     setOneOffs(oData ?? [])
     setCompletions(cData ?? [])
     setLoading(false)
-  }, [dateStr])
+  }, [venueId, dateStr])
 
   useEffect(() => { load() }, [load])
 

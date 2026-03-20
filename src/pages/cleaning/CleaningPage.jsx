@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { format, formatDistanceToNow } from 'date-fns'
 import { supabase } from '../../lib/supabase'
+import { useVenue } from '../../contexts/VenueContext'
 import { useSession } from '../../contexts/SessionContext'
 import { useCleaningTasks } from '../../hooks/useCleaningTasks'
 import { useToast } from '../../components/ui/Toast'
@@ -25,6 +26,7 @@ function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1) }
 
 export default function CleaningPage() {
   const toast = useToast()
+  const { venueId } = useVenue()
   const { session, isManager } = useSession()
   const jobRole = isManager ? null : (session?.jobRole ?? 'kitchen')
 
@@ -46,6 +48,7 @@ export default function CleaningPage() {
       title: form.title.trim(),
       frequency: form.frequency,
       assigned_role: form.assigned_role,
+      venue_id: venueId,
     })
     setSaving(false)
     if (error) { toast(error.message, 'error'); return }

@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
+import { useVenue } from '../../contexts/VenueContext'
 import { useFridges } from '../../hooks/useFridgeLogs'
 import { useSession } from '../../contexts/SessionContext'
 import { isTempOutOfRange } from '../../lib/utils'
@@ -14,6 +15,7 @@ function SectionLabel({ children }) {
 export default function FridgeLogFormPage() {
   const navigate = useNavigate()
   const toast    = useToast()
+  const { venueId } = useVenue()
   const { fridges, loading } = useFridges()
   const { session }          = useSession()
 
@@ -44,6 +46,7 @@ export default function FridgeLogFormPage() {
       logged_by:      staffId,
       logged_by_name: staffName,
       notes:          comment.trim() || null,
+      venue_id:       venueId,
     })
     setSubmitting(false)
     if (error) { toast(error.message, 'error'); return }

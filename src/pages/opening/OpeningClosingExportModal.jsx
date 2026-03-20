@@ -1,11 +1,13 @@
 import React, { useState } from 'react'
 import { format, subDays } from 'date-fns'
 import { supabase } from '../../lib/supabase'
+import { useVenue } from '../../contexts/VenueContext'
 import Modal from '../../components/ui/Modal'
 import { useToast } from '../../components/ui/Toast'
 import { buildPdfReport } from '../../lib/pdfUtils'
 
 export default function OpeningClosingExportModal({ open, onClose }) {
+  const { venueId } = useVenue()
   const toast = useToast()
   const [dateFrom, setDateFrom] = useState(format(subDays(new Date(), 7), 'yyyy-MM-dd'))
   const [dateTo,   setDateTo]   = useState(format(new Date(), 'yyyy-MM-dd'))
@@ -17,11 +19,13 @@ export default function OpeningClosingExportModal({ open, onClose }) {
     const { data: checks } = await supabase
       .from('opening_closing_checks')
       .select('id, title, type')
+      .eq('venue_id', venueId)
       .eq('is_active', true)
 
     const { data: completions, error } = await supabase
       .from('opening_closing_completions')
       .select('check_id, session_date, session_type, staff_name, completed_at, notes')
+      .eq('venue_id', venueId)
       .gte('session_date', dateFrom)
       .lte('session_date', dateTo)
       .order('session_date')

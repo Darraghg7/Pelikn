@@ -1,24 +1,27 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { format } from 'date-fns'
 import { supabase } from '../../lib/supabase'
+import { useVenue } from '../../contexts/VenueContext'
 import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../../components/ui/Toast'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
 import Modal from '../../components/ui/Modal'
 
-function useCalibrations() {
+function useCalibrations(venueId) {
   const [records, setRecords] = useState([])
   const [loading, setLoading] = useState(true)
   const load = useCallback(async () => {
+    if (!venueId) return
     setLoading(true)
     const { data } = await supabase
       .from('probe_calibrations')
       .select('*, calibrator:staff!calibrated_by(name)')
+      .eq('venue_id', venueId)
       .order('calibrated_at', { ascending: false })
       .limit(100)
     setRecords(data ?? [])
     setLoading(false)
-  }, [])
+  }, [venueId])
   useEffect(() => { load() }, [load])
   return { records, loading, reload: load }
 }
@@ -38,8 +41,9 @@ const EMPTY_FORM = {
 
 export default function ProbeCalibrationPage() {
   const toast = useToast()
+  const { venueId } = useVenue()
   const { session } = useSession()
-  const { records, loading, reload } = useCalibrations()
+  const { records, loading, reload } = useCalibrations(venueId)
 
   const [showForm, setShowForm] = useState(false)
   const [form, setForm] = useState(EMPTY_FORM)
@@ -63,6 +67,7 @@ export default function ProbeCalibrationPage() {
       tolerance,
       calibrated_by: session?.staffId,
       notes: form.notes.trim() || null,
+      venue_id: venueId,
     })
     setSaving(false)
     if (error) { toast(error.message, 'error'); return }

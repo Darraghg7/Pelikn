@@ -1,30 +1,43 @@
 import React, { useEffect, useState, useCallback } from 'react'
 import { format } from 'date-fns'
 import { supabase } from '../../lib/supabase'
+import { useVenue } from '../../contexts/VenueContext'
 import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../../components/ui/Toast'
 import { WIDGET_REGISTRY, DEFAULT_WIDGETS, ALL_WIDGET_IDS } from '../../components/widgets/WidgetRegistry'
+import ClockPanel from '../../components/ClockPanel'
 import Modal from '../../components/ui/Modal'
 
-function useVenueName() {
-  const [name, setName] = useState('')
+function useVenueBranding(venueId) {
+  const [venueName, setVenueName] = useState('')
+  const [logoUrl, setLogoUrl] = useState('')
   useEffect(() => {
-    supabase.from('app_settings').select('value').eq('key', 'venue_name').single()
-      .then(({ data }) => { if (data?.value) setName(data.value) })
-  }, [])
-  return name
+    if (!venueId) return
+    supabase.from('app_settings').select('key, value')
+      .eq('venue_id', venueId)
+      .in('key', ['venue_name', 'logo_url'])
+      .then(({ data }) => {
+        if (data) {
+          const map = Object.fromEntries(data.map(r => [r.key, r.value]))
+          setVenueName(map.venue_name ?? '')
+          setLogoUrl(map.logo_url ?? '')
+        }
+      })
+  }, [venueId])
+  return { venueName, logoUrl }
 }
 
 /* ── Widget preferences hook ─────────────────────────────────────────────── */
-function useWidgetPreferences(staffId) {
+function useWidgetPreferences(staffId, venueId) {
   const [widgetIds, setWidgetIds] = useState(null) // null = loading
   const [loading, setLoading] = useState(true)
 
   const load = useCallback(async () => {
-    if (!staffId) return
+    if (!staffId || !venueId) return
     const { data } = await supabase
       .from('dashboard_widgets')
       .select('widget_id, position')
+      .eq('venue_id', venueId)
       .eq('staff_id', staffId)
       .order('position')
 
@@ -40,16 +53,16 @@ function useWidgetPreferences(staffId) {
   useEffect(() => { load() }, [load])
 
   const save = useCallback(async (newIds) => {
-    if (!staffId) return
+    if (!staffId || !venueId) return
     setWidgetIds(newIds)
 
     // Delete existing, insert new
-    await supabase.from('dashboard_widgets').delete().eq('staff_id', staffId)
+    await supabase.from('dashboard_widgets').delete().eq('staff_id', staffId).eq('venue_id', venueId)
     if (newIds.length > 0) {
-      const rows = newIds.map((id, i) => ({ staff_id: staffId, widget_id: id, position: i }))
+      const rows = newIds.map((id, i) => ({ staff_id: staffId, widget_id: id, position: i, venue_id: venueId }))
       await supabase.from('dashboard_widgets').insert(rows)
     }
-  }, [staffId])
+  }, [staffId, venueId])
 
   return { widgetIds: widgetIds ?? DEFAULT_WIDGETS, loading, save }
 }
@@ -194,10 +207,11 @@ function WidgetPicker({ open, onClose, activeIds, onSave }) {
    ═══════════════════════════════════════════════════════════════════════════ */
 
 export default function ManagerDashboardPage() {
+  const { venueId } = useVenue()
   const { session } = useSession()
   const toast = useToast()
-  const venueName = useVenueName()
-  const { widgetIds, loading, save } = useWidgetPreferences(session?.staffId)
+  const { venueName, logoUrl } = useVenueBranding(venueId)
+  const { widgetIds, loading, save } = useWidgetPreferences(session?.staffId, venueId)
   const [showPicker, setShowPicker] = useState(false)
 
   const handleSave = (newIds) => {
@@ -208,12 +222,21 @@ export default function ManagerDashboardPage() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-start justify-between">
-        <div>
-          {venueName && (
-            <p className="font-serif text-lg text-charcoal/50 mb-0.5">{venueName}</p>
+        <div className="flex items-center gap-4">
+          {logoUrl && (
+            <img
+              src={logoUrl}
+              alt="Venue logo"
+              className="h-14 w-14 sm:h-16 sm:w-16 rounded-xl object-contain bg-white border border-charcoal/10 p-1 shrink-0"
+            />
           )}
-          <p className="text-xs uppercase tracking-widest text-charcoal/40 mb-1">{format(new Date(), 'EEEE, d MMMM')}</p>
-          <h1 className="font-serif text-3xl text-charcoal">Manager Dashboard</h1>
+          <div>
+            {venueName && (
+              <p className="font-serif text-2xl sm:text-3xl text-charcoal font-semibold">{venueName}</p>
+            )}
+            <p className="text-xs uppercase tracking-widest text-charcoal/40 mt-0.5">{format(new Date(), 'EEEE, d MMMM')}</p>
+            <p className="text-sm text-charcoal/40 mt-0.5">Manager Dashboard</p>
+          </div>
         </div>
         <button
           onClick={() => setShowPicker(true)}
@@ -221,6 +244,12 @@ export default function ManagerDashboardPage() {
         >
           Customise
         </button>
+      </div>
+
+      {/* Clock in/out */}
+      <div className="bg-white rounded-xl border border-charcoal/10 p-5">
+        <p className="text-[10px] tracking-widest uppercase text-charcoal/40 mb-3">My Clock</p>
+        <ClockPanel staffId={session?.staffId} hasShift />
       </div>
 
       {/* Widget grid */}

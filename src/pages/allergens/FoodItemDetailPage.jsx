@@ -1,6 +1,7 @@
 import React from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
+import { useVenue } from '../../contexts/VenueContext'
 import { useFoodItem } from '../../hooks/useFoodItems'
 import { useSession } from '../../contexts/SessionContext'
 import { EU_ALLERGENS } from '../../lib/constants'

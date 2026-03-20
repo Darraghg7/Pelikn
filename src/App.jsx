@@ -1,8 +1,10 @@
 import React from 'react'
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, useParams } from 'react-router-dom'
 
 import { isConfigured }        from './lib/supabase'
+import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { SessionProvider, useSession } from './contexts/SessionContext'
+import { VenueProvider }       from './contexts/VenueContext'
 import { ToastProvider }       from './components/ui/Toast'
 import SetupPage               from './pages/SetupPage'
 import AppShell                from './components/layout/AppShell'
@@ -10,6 +12,9 @@ import { FullPageLoader }      from './components/ui/LoadingSpinner'
 
 // Auth
 import LoginPage from './pages/LoginPage'
+
+// Landing (login)
+import LandingPage from './pages/LandingPage'
 
 // Dashboard (role-aware)
 import DashboardPage from './pages/DashboardPage'
@@ -43,6 +48,12 @@ import EHOAuditPage          from './pages/audit/EHOAuditPage'
 // Training
 import TrainingPage from './pages/training/TrainingPage'
 
+// Waste
+import WasteLogPage from './pages/waste/WasteLogPage'
+
+// Suppliers
+import SupplierOrdersPage from './pages/orders/SupplierOrdersPage'
+
 // Time Off
 import TimeOffPage from './pages/timeoff/TimeOffPage'
 
@@ -53,20 +64,30 @@ import NotFoundPage from './pages/NotFoundPage'
 
 // ── Guards ───────────────────────────────────────────────────────────────────
 
-/** Any authenticated user. */
+/** Require Supabase Auth session to access venue routes. */
+function RequireVenueAuth({ children }) {
+  const { user, authLoading } = useAuth()
+  if (authLoading) return <FullPageLoader />
+  if (!user) return <Navigate to="/" replace />
+  return children
+}
+
+/** Any authenticated staff (PIN session). */
 function RequireAuth({ children }) {
   const { session, loading } = useSession()
+  const { venueSlug } = useParams()
   if (loading) return <FullPageLoader />
-  if (!session) return <Navigate to="/" replace />
+  if (!session) return <Navigate to={`/v/${venueSlug}`} replace />
   return children
 }
 
 /** Manager-only pages. */
 function RequireManager({ children }) {
   const { session, loading, isManager } = useSession()
+  const { venueSlug } = useParams()
   if (loading) return <FullPageLoader />
-  if (!session) return <Navigate to="/" replace />
-  if (!isManager) return <Navigate to="/dashboard" replace />
+  if (!session) return <Navigate to={`/v/${venueSlug}`} replace />
+  if (!isManager) return <Navigate to={`/v/${venueSlug}/dashboard`} replace />
   return children
 }
 
@@ -82,39 +103,63 @@ function wrap(Component, Guard = RequireAuth) {
   )
 }
 
-// ── Routes ───────────────────────────────────────────────────────────────────
+// ── Landing route — redirect if already authenticated ────────────────────────
 
-function AppRoutes() {
+function LandingRoute() {
+  const { user, venueSlug, authLoading } = useAuth()
+  if (authLoading) return <FullPageLoader />
+  if (user && venueSlug) return <Navigate to={`/v/${venueSlug}`} replace />
+  return <LandingPage />
+}
+
+// ── Legacy redirect: old paths → /v/default/... ─────────────────────────────
+
+function LegacyRedirect() {
+  const path = window.location.pathname
+  return <Navigate to={`/v/default${path}`} replace />
+}
+
+// ── Venue-scoped routes ─────────────────────────────────────────────────────
+
+function VenueRoutes() {
   return (
-    <Routes>
-      {/* Public — login (staff picker) */}
-      <Route path="/" element={<LoginPage />} />
+    <VenueProvider>
+      <SessionProvider>
+        <ToastProvider>
+          <Routes>
+            {/* Login page for this venue */}
+            <Route index element={<LoginPage />} />
 
-      {/* Any authenticated user */}
-      <Route path="/dashboard"         element={wrap(DashboardPage)} />
-      <Route path="/fridge"            element={wrap(FridgeDashboardPage)} />
-      <Route path="/fridge/log"        element={wrap(FridgeLogFormPage)} />
-      <Route path="/fridge/history"    element={wrap(FridgeHistoryPage)} />
-      <Route path="/allergens"         element={wrap(AllergenRegistryPage)} />
-      <Route path="/allergens/:id"     element={wrap(FoodItemDetailPage)} />
-      <Route path="/cleaning"          element={wrap(CleaningPage)} />
-      <Route path="/opening-closing"   element={wrap(OpeningClosingPage)} />
-      <Route path="/rota"              element={wrap(RotaPage)} />
-      <Route path="/time-off"          element={wrap(TimeOffPage)} />
+            {/* Any authenticated user */}
+            <Route path="dashboard"         element={wrap(DashboardPage)} />
+            <Route path="fridge"            element={wrap(FridgeDashboardPage)} />
+            <Route path="fridge/log"        element={wrap(FridgeLogFormPage)} />
+            <Route path="fridge/history"    element={wrap(FridgeHistoryPage)} />
+            <Route path="allergens"         element={wrap(AllergenRegistryPage)} />
+            <Route path="allergens/:id"     element={wrap(FoodItemDetailPage)} />
+            <Route path="cleaning"          element={wrap(CleaningPage)} />
+            <Route path="opening-closing"   element={wrap(OpeningClosingPage)} />
+            <Route path="rota"              element={wrap(RotaPage)} />
+            <Route path="time-off"          element={wrap(TimeOffPage)} />
 
-      {/* Manager only */}
-      <Route path="/allergens/new"      element={wrap(FoodItemFormPage,       RequireManager)} />
-      <Route path="/allergens/:id/edit" element={wrap(FoodItemFormPage,       RequireManager)} />
-      <Route path="/timesheet"          element={wrap(TimesheetPage,          RequireManager)} />
-      <Route path="/deliveries"         element={wrap(DeliveryChecksPage,     RequireManager)} />
-      <Route path="/probe"              element={wrap(ProbeCalibrationPage,   RequireManager)} />
-      <Route path="/corrective"         element={wrap(CorrectiveActionsPage,  RequireManager)} />
-      <Route path="/audit"              element={wrap(EHOAuditPage,           RequireManager)} />
-      <Route path="/training"           element={wrap(TrainingPage,           RequireManager)} />
-      <Route path="/settings"           element={wrap(SettingsPage,           RequireManager)} />
+            {/* Manager only */}
+            <Route path="allergens/new"      element={wrap(FoodItemFormPage,       RequireManager)} />
+            <Route path="allergens/:id/edit" element={wrap(FoodItemFormPage,       RequireManager)} />
+            <Route path="timesheet"          element={wrap(TimesheetPage,          RequireManager)} />
+            <Route path="deliveries"         element={wrap(DeliveryChecksPage,     RequireManager)} />
+            <Route path="probe"              element={wrap(ProbeCalibrationPage,   RequireManager)} />
+            <Route path="corrective"         element={wrap(CorrectiveActionsPage,  RequireManager)} />
+            <Route path="audit"              element={wrap(EHOAuditPage,           RequireManager)} />
+            <Route path="training"           element={wrap(TrainingPage,           RequireManager)} />
+            <Route path="waste"              element={wrap(WasteLogPage,           RequireManager)} />
+            <Route path="orders"             element={wrap(SupplierOrdersPage,     RequireManager)} />
+            <Route path="settings"           element={wrap(SettingsPage,           RequireManager)} />
 
-      <Route path="*" element={<NotFoundPage />} />
-    </Routes>
+            <Route path="*" element={<NotFoundPage />} />
+          </Routes>
+        </ToastProvider>
+      </SessionProvider>
+    </VenueProvider>
   )
 }
 
@@ -125,11 +170,41 @@ export default function App() {
 
   return (
     <BrowserRouter>
-      <SessionProvider>
-        <ToastProvider>
-          <AppRoutes />
-        </ToastProvider>
-      </SessionProvider>
+      <AuthProvider>
+        <Routes>
+          {/* Public: login page */}
+          <Route path="/" element={<LandingRoute />} />
+
+          {/* Venue-scoped app — requires Supabase Auth */}
+          <Route path="/v/:venueSlug/*" element={
+            <RequireVenueAuth>
+              <VenueRoutes />
+            </RequireVenueAuth>
+          } />
+
+          {/* Legacy redirects for old bookmarks */}
+          <Route path="/dashboard"       element={<LegacyRedirect />} />
+          <Route path="/fridge"          element={<LegacyRedirect />} />
+          <Route path="/fridge/*"        element={<LegacyRedirect />} />
+          <Route path="/allergens"       element={<LegacyRedirect />} />
+          <Route path="/allergens/*"     element={<LegacyRedirect />} />
+          <Route path="/cleaning"        element={<LegacyRedirect />} />
+          <Route path="/opening-closing" element={<LegacyRedirect />} />
+          <Route path="/rota"            element={<LegacyRedirect />} />
+          <Route path="/time-off"        element={<LegacyRedirect />} />
+          <Route path="/timesheet"       element={<LegacyRedirect />} />
+          <Route path="/deliveries"      element={<LegacyRedirect />} />
+          <Route path="/probe"           element={<LegacyRedirect />} />
+          <Route path="/corrective"      element={<LegacyRedirect />} />
+          <Route path="/audit"           element={<LegacyRedirect />} />
+          <Route path="/training"        element={<LegacyRedirect />} />
+          <Route path="/waste"           element={<LegacyRedirect />} />
+          <Route path="/orders"          element={<LegacyRedirect />} />
+          <Route path="/settings"        element={<LegacyRedirect />} />
+
+          <Route path="*" element={<NotFoundPage />} />
+        </Routes>
+      </AuthProvider>
     </BrowserRouter>
   )
 }

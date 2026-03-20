@@ -2,7 +2,8 @@ import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { format } from 'date-fns'
 import { supabase } from '../../lib/supabase'
-import { useFridges, useFridgeDashboard } from '../../hooks/useFridgeLogs'
+import { useVenue } from '../../contexts/VenueContext'
+import { useFridges, useTodayCheckStatus } from '../../hooks/useFridgeLogs'
 import { useSession } from '../../contexts/SessionContext'
 import { isTempOutOfRange, formatTemp, timeAgo } from '../../lib/utils'
 import { useToast } from '../../components/ui/Toast'
@@ -20,8 +21,9 @@ function nowLocal() {
 
 export default function FridgeDashboardPage() {
   const toast = useToast()
+  const { venueId } = useVenue()
   const { fridges, loading: fridgesLoading, reload: reloadFridges } = useFridges()
-  const { data: dashData, loading: dashLoading, reload: reloadDash } = useFridgeDashboard()
+  const { status: checkStatus, loading: dashLoading, reload: reloadDash } = useTodayCheckStatus()
   const { session, isManager } = useSession()
 
   // ── Log a reading ────────────────────────────────────────────────────────
@@ -29,6 +31,7 @@ export default function FridgeDashboardPage() {
   const [temp, setTemp]       = useState('')
   const [comment, setComment] = useState('')
   const [loggedAt, setLoggedAt] = useState(nowLocal())
+  const [checkPeriod, setCheckPeriod] = useState(() => new Date().getHours() < 12 ? 'am' : 'pm')
   const [submitting, setSubmitting] = useState(false)
   const [showExport, setShowExport] = useState(false)
 
@@ -50,6 +53,8 @@ export default function FridgeDashboardPage() {
       logged_by_name: session?.staffName ?? 'Unknown',
       notes:          comment.trim() || null,
       logged_at:      new Date(loggedAt).toISOString(),
+      check_period:   checkPeriod,
+      venue_id:       venueId,
     })
     setSubmitting(false)
     if (error) { toast(error.message, 'error'); return }
@@ -73,7 +78,7 @@ export default function FridgeDashboardPage() {
     if (min >= max) { toast('Min must be less than max', 'error'); return }
     setSavingFridge(true)
     const { error } = await supabase.from('fridges').insert({
-      name: fridgeForm.name.trim(), min_temp: min, max_temp: max,
+      name: fridgeForm.name.trim(), min_temp: min, max_temp: max, venue_id: venueId,
     })
     setSavingFridge(false)
     if (error) { toast(error.message, 'error'); return }
@@ -213,7 +218,7 @@ export default function FridgeDashboardPage() {
           </div>
 
           <form onSubmit={handleLog} className="flex flex-col gap-3">
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-3 gap-3">
               <div>
                 <p className="text-[10px] tracking-widest uppercase text-charcoal/40 mb-2">Temperature (°C)</p>
                 <input
@@ -234,10 +239,43 @@ export default function FridgeDashboardPage() {
                 <input
                   type="datetime-local"
                   value={loggedAt}
-                  onChange={e => setLoggedAt(e.target.value)}
+                  onChange={e => {
+                    setLoggedAt(e.target.value)
+                    const h = new Date(e.target.value).getHours()
+                    setCheckPeriod(h < 12 ? 'am' : 'pm')
+                  }}
                   max={nowLocal()}
                   className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 bg-cream/30 focus:outline-none focus:ring-2 focus:ring-charcoal/20 text-sm text-charcoal"
                 />
+              </div>
+              <div>
+                <p className="text-[10px] tracking-widest uppercase text-charcoal/40 mb-2">Check Period</p>
+                <div className="flex rounded-lg border border-charcoal/15 overflow-hidden h-[42px]">
+                  <button
+                    type="button"
+                    onClick={() => setCheckPeriod('am')}
+                    className={[
+                      'flex-1 text-sm font-semibold transition-colors',
+                      checkPeriod === 'am'
+                        ? 'bg-charcoal text-cream'
+                        : 'bg-cream/30 text-charcoal/40 hover:text-charcoal/60',
+                    ].join(' ')}
+                  >
+                    AM
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCheckPeriod('pm')}
+                    className={[
+                      'flex-1 text-sm font-semibold transition-colors',
+                      checkPeriod === 'pm'
+                        ? 'bg-charcoal text-cream'
+                        : 'bg-cream/30 text-charcoal/40 hover:text-charcoal/60',
+                    ].join(' ')}
+                  >
+                    PM
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -273,39 +311,59 @@ export default function FridgeDashboardPage() {
         </div>
       )}
 
-      {/* Current Readings */}
-      {dashData.length > 0 && (
+      {/* Today's Checks — AM/PM Status Grid */}
+      {checkStatus.length > 0 && (
         <div className="bg-white rounded-xl border border-charcoal/10 p-5">
-          <SectionLabel>Current Readings</SectionLabel>
-          <div className="flex flex-col divide-y divide-charcoal/6">
-            {dashData.map((fridge) => {
-              const log = fridge.lastLog
-              const oor = log ? isTempOutOfRange(log.temperature, fridge.min_temp, fridge.max_temp) : false
-              return (
-                <div key={fridge.id} className="py-3 first:pt-0 last:pb-0 flex items-center justify-between gap-4">
-                  <div className="flex items-center gap-3">
-                    <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${log ? (oor ? 'bg-danger' : 'bg-success') : 'bg-charcoal/20'}`} />
-                    <div>
-                      <p className="text-sm font-medium text-charcoal">{fridge.name}</p>
-                      <p className="text-xs text-charcoal/40">Safe: {fridge.min_temp}–{fridge.max_temp}°C</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    {log ? (
-                      <>
-                        <p className={`font-mono font-semibold text-lg ${oor ? 'text-danger' : 'text-charcoal'}`}>
-                          {formatTemp(log.temperature)}
-                        </p>
-                        <p className="text-xs text-charcoal/40">{timeAgo(log.logged_at)}</p>
-                      </>
-                    ) : (
-                      <p className="text-xs text-charcoal/35 italic">No readings yet</p>
-                    )}
-                  </div>
-                </div>
-              )
-            })}
+          <SectionLabel>Today's Checks</SectionLabel>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-[10px] tracking-widest uppercase text-charcoal/40">
+                  <th className="text-left pb-3 font-medium">Fridge / Freezer</th>
+                  <th className="text-center pb-3 font-medium w-24">AM</th>
+                  <th className="text-center pb-3 font-medium w-24">PM</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-charcoal/6">
+                {checkStatus.map(f => {
+                  const renderCell = (log) => {
+                    if (!log) return <span className="text-charcoal/25">—</span>
+                    const oor = isTempOutOfRange(log.temperature, f.min_temp, f.max_temp)
+                    return (
+                      <span className={`font-mono font-semibold ${oor ? 'text-danger' : 'text-success'}`}>
+                        {formatTemp(log.temperature)}
+                      </span>
+                    )
+                  }
+                  const amDone = !!f.am
+                  const pmDone = !!f.pm
+                  return (
+                    <tr key={f.id}>
+                      <td className="py-3">
+                        <p className="font-medium text-charcoal">{f.name}</p>
+                        <p className="text-[10px] text-charcoal/35">{f.min_temp}–{f.max_temp}°C</p>
+                      </td>
+                      <td className={`text-center py-3 ${amDone ? '' : 'bg-warning/5'}`}>
+                        {renderCell(f.am)}
+                      </td>
+                      <td className={`text-center py-3 ${pmDone ? '' : 'bg-warning/5'}`}>
+                        {renderCell(f.pm)}
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
           </div>
+          {(() => {
+            const total = checkStatus.length * 2
+            const done = checkStatus.filter(f => f.am).length + checkStatus.filter(f => f.pm).length
+            return (
+              <p className="text-[10px] text-charcoal/35 mt-3 pt-2 border-t border-charcoal/6">
+                {done}/{total} checks completed today
+              </p>
+            )
+          })()}
         </div>
       )}
 

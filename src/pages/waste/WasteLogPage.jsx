@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { format, subDays } from 'date-fns'
 import { supabase } from '../../lib/supabase'
+import { useVenue } from '../../contexts/VenueContext'
 import { useSession } from '../../contexts/SessionContext'
 import { useWasteLogs } from '../../hooks/useWasteLogs'
 import { useToast } from '../../components/ui/Toast'
@@ -35,6 +36,7 @@ function groupByDate(logs) {
 
 export default function WasteLogPage() {
   const toast = useToast()
+  const { venueId } = useVenue()
   const { session, isManager } = useSession()
 
   const today   = format(new Date(), 'yyyy-MM-dd')
@@ -69,6 +71,7 @@ export default function WasteLogPage() {
       recorded_by:      session?.staffId,
       recorded_by_name: session?.staffName ?? 'Unknown',
       recorded_at:      new Date(form.recorded_at).toISOString(),
+      venue_id:         venueId,
     })
     setSubmitting(false)
     if (error) { toast(error.message, 'error'); return }
@@ -82,6 +85,7 @@ export default function WasteLogPage() {
     const { data, error } = await supabase
       .from('waste_logs')
       .select('*')
+      .eq('venue_id', venueId)
       .gte('recorded_at', exportFrom)
       .lte('recorded_at', exportTo + 'T23:59:59')
       .order('recorded_at')

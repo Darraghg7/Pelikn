@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { format } from 'date-fns'
 import { supabase } from '../../lib/supabase'
+import { useVenue } from '../../contexts/VenueContext'
 import { useSession } from '../../contexts/SessionContext'
 import { useAllTasks, useTasksForRole } from '../../hooks/useTasks'
 import { useToast } from '../../components/ui/Toast'
@@ -30,6 +31,7 @@ function RoleBadge({ role }) {
 // ── Manager View ──────────────────────────────────────────
 function ManagerTasksView() {
   const toast = useToast()
+  const { venueId } = useVenue()
   const today = new Date()
   const { templates, oneOffs, completions, loading, reload } = useAllTasks(today)
 
@@ -53,7 +55,7 @@ function ManagerTasksView() {
     if (!tForm.title.trim()) return
     setSaving(true)
     const { error } = await supabase.from('task_templates').insert({
-      title: tForm.title.trim(), job_role: tForm.job_role,
+      title: tForm.title.trim(), job_role: tForm.job_role, venue_id: venueId,
     })
     setSaving(false)
     if (error) { toast(error.message, 'error'); return }
@@ -67,7 +69,7 @@ function ManagerTasksView() {
     if (!oForm.title.trim()) return
     setSaving(true)
     const { error } = await supabase.from('task_one_offs').insert({
-      title: oForm.title.trim(), job_role: oForm.job_role, due_date: oForm.due_date,
+      title: oForm.title.trim(), job_role: oForm.job_role, due_date: oForm.due_date, venue_id: venueId,
     })
     setSaving(false)
     if (error) { toast(error.message, 'error'); return }

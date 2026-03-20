@@ -2,10 +2,13 @@ import React, { useState, useEffect } from 'react'
 import { format, isPast, parseISO } from 'date-fns'
 import { supabase } from '../../lib/supabase'
 import { useSession } from '../../contexts/SessionContext'
+import { useVenue } from '../../contexts/VenueContext'
 import { useToast } from '../../components/ui/Toast'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
 import { useStaffTraining } from '../../hooks/useTraining'
 import { usePushNotifications } from '../../hooks/usePushNotifications'
+import { useAppSettings } from '../../hooks/useSettings'
+import { useTheme } from '../../contexts/ThemeContext'
 
 const PERMISSION_ROLES  = ['staff', 'manager', 'owner']
 const PERMISSION_LABELS = { staff: 'Staff', manager: 'Manager', owner: 'Owner' }
@@ -18,10 +21,12 @@ function SectionLabel({ children }) {
 }
 
 function useVenueSettings() {
+  const { venueId } = useVenue()
   const [settings, setSettings] = useState({ venue_name: '', manager_email: '', logo_url: '' })
   const [loading, setLoading]   = useState(true)
   const load = async () => {
-    const { data } = await supabase.from('app_settings').select('*')
+    if (!venueId) { setLoading(false); return }
+    const { data } = await supabase.from('app_settings').select('*').eq('venue_id', venueId)
     if (data) {
       const map = Object.fromEntries(data.map(r => [r.key, r.value]))
       setSettings({
@@ -32,34 +37,38 @@ function useVenueSettings() {
     }
     setLoading(false)
   }
-  useEffect(() => { load() }, [])
+  useEffect(() => { load() }, [venueId])
   return { settings, loading, reload: load }
 }
 
 function useStaffManagement() {
+  const { venueId } = useVenue()
   const [staff, setStaff]     = useState([])
   const [loading, setLoading] = useState(true)
   const load = async () => {
+    if (!venueId) { setLoading(false); return }
     setLoading(true)
     const { data } = await supabase
       .from('staff')
-      .select('id, name, email, job_role, role, hourly_rate, is_active, show_temp_logs, show_allergens, photo_url')
+      .select('id, name, email, job_role, role, hourly_rate, is_active, show_temp_logs, show_allergens, photo_url, skills')
+      .eq('venue_id', venueId)
       .order('name')
     setStaff(data ?? [])
     setLoading(false)
   }
-  useEffect(() => { load() }, [])
+  useEffect(() => { load() }, [venueId])
   return { staff, loading, reload: load }
 }
 
 const EMPTY_FORM = {
   name: '', role: 'staff', job_role: 'kitchen', pin: '', email: '', hourly_rate: '',
-  show_temp_logs: false, show_allergens: false,
+  show_temp_logs: false, show_allergens: false, skills: [],
 }
 
 const EMPTY_TRAINING = { title: '', issued_date: '', expiry_date: '', notes: '' }
 
 function TrainingSection({ staffId }) {
+  const { venueId } = useVenue()
   const toast = useToast()
   const { records, loading, reload } = useStaffTraining(staffId)
   const [showForm, setShowForm] = useState(false)
@@ -76,7 +85,7 @@ function TrainingSection({ staffId }) {
 
     if (file) {
       const ext  = file.name.split('.').pop()
-      const path = `${staffId}/${Date.now()}.${ext}`
+      const path = `${venueId}/${staffId}/${Date.now()}.${ext}`
       const { error: uploadErr } = await supabase.storage
         .from('training-files')
         .upload(path, file, { upsert: false })
@@ -87,6 +96,7 @@ function TrainingSection({ staffId }) {
     }
 
     const { error } = await supabase.from('staff_training').insert({
+      venue_id:    venueId,
       staff_id:    staffId,
       title:       form.title.trim(),
       issued_date: form.issued_date || null,
@@ -106,7 +116,7 @@ function TrainingSection({ staffId }) {
   }
 
   const handleDelete = async (id) => {
-    const { error } = await supabase.from('staff_training').delete().eq('id', id)
+    const { error } = await supabase.from('staff_training').delete().eq('id', id).eq('venue_id', venueId)
     if (error) { toast(error.message, 'error'); return }
     toast('Record deleted')
     reload()
@@ -279,8 +289,11 @@ function NotificationsPanel({ session, toast, settings }) {
 export default function SettingsPage() {
   const toast = useToast()
   const { session } = useSession()
+  const { venueId } = useVenue()
   const { settings, loading: sLoading, reload: reloadSettings } = useVenueSettings()
   const { staff, loading: staffLoading, reload: reloadStaff }   = useStaffManagement()
+  const { customRoles, closedDays, saveCustomRoles, saveClosedDays, nextColor } = useAppSettings()
+  const { dark, toggle: toggleDark } = useTheme()
 
   // Venue form
   const [venueForm, setVenueForm]   = useState({ venue_name: '', manager_email: '' })
@@ -294,8 +307,8 @@ export default function SettingsPage() {
   const saveVenue = async () => {
     setSavingVenue(true)
     const results = await Promise.all([
-      supabase.from('app_settings').upsert({ key: 'venue_name',    value: venueForm.venue_name }),
-      supabase.from('app_settings').upsert({ key: 'manager_email', value: venueForm.manager_email }),
+      supabase.from('app_settings').upsert({ venue_id: venueId, key: 'venue_name',    value: venueForm.venue_name }),
+      supabase.from('app_settings').upsert({ venue_id: venueId, key: 'manager_email', value: venueForm.manager_email }),
     ])
     setSavingVenue(false)
     if (results.some(r => r.error)) { toast('Failed to save venue settings', 'error'); return }
@@ -307,19 +320,48 @@ export default function SettingsPage() {
     if (!file) return
     setUploadingLogo(true)
     const ext  = file.name.split('.').pop()
-    const path = `logo/venue-logo.${ext}`
+    const path = `${venueId}/logo/venue-logo.${ext}`
     const { error: upErr } = await supabase.storage
       .from('app-assets')
       .upload(path, file, { upsert: true })
     if (upErr) { toast('Logo upload failed: ' + upErr.message, 'error'); setUploadingLogo(false); return }
     const { data: urlData } = supabase.storage.from('app-assets').getPublicUrl(path)
     const { error: dbErr } = await supabase.from('app_settings')
-      .upsert({ key: 'logo_url', value: urlData.publicUrl + '?t=' + Date.now() })
+      .upsert({ venue_id: venueId, key: 'logo_url', value: urlData.publicUrl + '?t=' + Date.now() })
     setUploadingLogo(false)
     if (dbErr) { toast('Failed to save logo URL', 'error'); return }
     toast('Logo uploaded')
     setLogoFile(null)
     reloadSettings()
+  }
+
+  // Roles management
+  const [newRoleName, setNewRoleName] = useState('')
+
+  const addRole = async () => {
+    const label = newRoleName.trim()
+    if (!label) return
+    const value = label.toLowerCase().replace(/\s+/g, '_')
+    if (customRoles.some(r => r.value === value)) { toast('Role already exists', 'error'); return }
+    const color = nextColor()
+    await saveCustomRoles([...customRoles, { value, label, color }])
+    setNewRoleName('')
+    toast('Role added')
+  }
+
+  const removeRole = async (value) => {
+    await saveCustomRoles(customRoles.filter(r => r.value !== value))
+    toast('Role removed')
+  }
+
+  // Opening days
+  const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+
+  const toggleClosedDay = async (dayIndex) => {
+    const next = closedDays.includes(dayIndex)
+      ? closedDays.filter(d => d !== dayIndex)
+      : [...closedDays, dayIndex]
+    await saveClosedDays(next)
   }
 
   // Staff form
@@ -334,7 +376,7 @@ export default function SettingsPage() {
     if (!file || !staffId) return
     setUploadingPhoto(true)
     const ext  = file.name.split('.').pop()
-    const path = `${staffId}.${ext}`
+    const path = `${venueId}/${staffId}.${ext}`
     const { error: upErr } = await supabase.storage
       .from('staff-photos')
       .upload(path, file, { upsert: true })
@@ -361,6 +403,7 @@ export default function SettingsPage() {
       hourly_rate:    s.hourly_rate?.toString() ?? '',
       show_temp_logs: s.show_temp_logs ?? false,
       show_allergens: s.show_allergens ?? false,
+      skills:         s.skills ?? [],
     })
     setEditingId(s.id)
     setShowForm(true)
@@ -387,6 +430,7 @@ export default function SettingsPage() {
         p_new_pin:        staffForm.pin || null,
         p_show_temp_logs: staffForm.show_temp_logs,
         p_show_allergens: staffForm.show_allergens,
+        p_skills:         staffForm.skills || [],
       })
       error = e
     } else {
@@ -398,6 +442,7 @@ export default function SettingsPage() {
         p_role:          staffForm.role,
         p_email:         staffForm.email.trim() || null,
         p_hourly_rate:   parseFloat(staffForm.hourly_rate) || 0,
+        p_skills:        staffForm.skills || [],
       })
       error = e
     }
@@ -492,6 +537,102 @@ export default function SettingsPage() {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Appearance */}
+      <div className="bg-white rounded-xl border border-charcoal/10 p-6">
+        <SectionLabel>Appearance</SectionLabel>
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm font-medium text-charcoal">Dark Mode</p>
+            <p className="text-xs text-charcoal/40 mt-0.5">
+              {dark ? 'Dark theme is active.' : 'Switch to a darker colour scheme.'}
+            </p>
+          </div>
+          <button
+            onClick={toggleDark}
+            className={[
+              'relative w-12 h-7 rounded-full transition-colors duration-200 shrink-0',
+              dark ? 'bg-accent' : 'bg-charcoal/15',
+            ].join(' ')}
+          >
+            <span
+              className={[
+                'absolute top-0.5 w-6 h-6 rounded-full bg-white shadow transition-transform duration-200 flex items-center justify-center text-sm',
+                dark ? 'translate-x-5' : 'translate-x-0.5',
+              ].join(' ')}
+            >
+              {dark ? '🌙' : '☀️'}
+            </span>
+          </button>
+        </div>
+      </div>
+
+      {/* Roles */}
+      <div className="bg-white rounded-xl border border-charcoal/10 p-6">
+        <SectionLabel>Roles</SectionLabel>
+        <p className="text-xs text-charcoal/40 mb-4">
+          Manage the roles available for shift assignment and the rota builder.
+        </p>
+        <div className="flex flex-wrap gap-2 mb-4">
+          {customRoles.map(r => (
+            <div key={r.value} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium ${r.color}`}>
+              <span>{r.label}</span>
+              <button
+                onClick={() => removeRole(r.value)}
+                className="opacity-40 hover:opacity-100 transition-opacity ml-0.5"
+              >✕</button>
+            </div>
+          ))}
+        </div>
+        <div className="flex gap-2">
+          <input
+            value={newRoleName}
+            onChange={e => setNewRoleName(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && addRole()}
+            placeholder="New role name…"
+            className="flex-1 px-4 py-2.5 rounded-lg border border-charcoal/15 bg-cream/30 text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+          />
+          <button
+            onClick={addRole}
+            disabled={!newRoleName.trim()}
+            className="bg-charcoal text-cream px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-charcoal/90 transition-colors disabled:opacity-40"
+          >
+            Add →
+          </button>
+        </div>
+      </div>
+
+      {/* Opening Days */}
+      <div className="bg-white rounded-xl border border-charcoal/10 p-6">
+        <SectionLabel>Opening Days</SectionLabel>
+        <p className="text-xs text-charcoal/40 mb-4">
+          Mark days the café is closed. Closed days are skipped by the rota builder and greyed out in the schedule.
+        </p>
+        <div className="flex gap-2 flex-wrap">
+          {DAY_NAMES.map((day, i) => {
+            const isClosed = closedDays.includes(i)
+            return (
+              <button
+                key={i}
+                onClick={() => toggleClosedDay(i)}
+                className={[
+                  'px-4 py-2.5 rounded-lg text-sm font-medium border transition-all min-w-[64px]',
+                  isClosed
+                    ? 'bg-charcoal/8 text-charcoal/35 border-charcoal/15 line-through'
+                    : 'bg-success/10 text-success border-success/20',
+                ].join(' ')}
+              >
+                {day}
+              </button>
+            )
+          })}
+        </div>
+        <p className="text-[11px] text-charcoal/35 mt-3">
+          {closedDays.length === 0
+            ? 'All days open.'
+            : `Closed: ${closedDays.sort((a, b) => a - b).map(d => DAY_NAMES[d]).join(', ')}`}
+        </p>
       </div>
 
       {/* Notifications & Reports */}
@@ -634,6 +775,37 @@ export default function SettingsPage() {
               </div>
             </div>
 
+            {/* Skills (checkboxes from custom roles) */}
+            <div>
+              <label className="text-[10px] tracking-widest uppercase text-charcoal/40 block mb-2">Skills</label>
+              <div className="flex gap-3 flex-wrap">
+                {customRoles.map(role => {
+                  const checked = staffForm.skills?.includes(role.value)
+                  return (
+                    <label key={role.value} className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={e => {
+                          setStaffForm(f => ({
+                            ...f,
+                            skills: e.target.checked
+                              ? [...(f.skills || []), role.value]
+                              : (f.skills || []).filter(s => s !== role.value),
+                          }))
+                        }}
+                        className="w-4 h-4 rounded accent-charcoal"
+                      />
+                      <span className={`text-sm px-2 py-0.5 rounded ${role.color}`}>{role.label}</span>
+                    </label>
+                  )
+                })}
+              </div>
+              <p className="text-[11px] text-charcoal/35 mt-1.5">
+                Skills are used by the AI rota builder for shift assignment.
+              </p>
+            </div>
+
             {/* Tab access toggles */}
             <div>
               <label className="text-[10px] tracking-widest uppercase text-charcoal/40 block mb-2">App Tab Access</label>
@@ -696,6 +868,12 @@ export default function SettingsPage() {
                   </span>
                   {s.show_temp_logs  && <span className="text-[10px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded">Temp Logs</span>}
                   {s.show_allergens  && <span className="text-[10px] bg-amber-50 text-amber-600 px-1.5 py-0.5 rounded">Allergens</span>}
+                  {(s.skills ?? []).map(sk => {
+                    const roleDef = customRoles.find(r => r.value === sk)
+                    return roleDef ? (
+                      <span key={sk} className={`text-[10px] px-1.5 py-0.5 rounded ${roleDef.color}`}>{roleDef.label}</span>
+                    ) : null
+                  })}
                   {!s.is_active      && <span className="text-[10px] tracking-widest uppercase text-charcoal/30 italic">inactive</span>}
                 </div>
                 <div className="flex items-center gap-3 mt-0.5">

@@ -2,6 +2,8 @@ import React, { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useSession } from '../contexts/SessionContext'
+import { useVenue } from '../contexts/VenueContext'
+import { useAuth } from '../contexts/AuthContext'
 
 const ROLE_LABEL = {
   owner:   'Owner',
@@ -11,6 +13,8 @@ const ROLE_LABEL = {
 
 export default function LoginPage() {
   const { signIn, session, loading } = useSession()
+  const { venueId, venueSlug, venueName } = useVenue()
+  const { signOutVenue } = useAuth()
   const navigate = useNavigate()
 
   const [staff, setStaff]           = useState([])
@@ -22,18 +26,20 @@ export default function LoginPage() {
 
   // Redirect if already logged in
   useEffect(() => {
-    if (!loading && session) navigate('/dashboard', { replace: true })
-  }, [loading, session, navigate])
+    if (!loading && session) navigate(`/v/${venueSlug}/dashboard`, { replace: true })
+  }, [loading, session, navigate, venueSlug])
 
-  // Fetch all active staff on mount
+  // Fetch all active staff for this venue on mount
   useEffect(() => {
+    if (!venueId) return
     supabase
       .from('staff')
       .select('id, name, role, photo_url')
+      .eq('venue_id', venueId)
       .eq('is_active', true)
       .order('name')
       .then(({ data }) => setStaff(data ?? []))
-  }, [])
+  }, [venueId])
 
   const selectStaff = (member) => {
     setSelected(member)
@@ -47,14 +53,14 @@ export default function LoginPage() {
     if (!selected || pin.length < 4) return
     setSubmitting(true)
     setError('')
-    const { error: err } = await signIn(selected.id, pin)
+    const { error: err } = await signIn(selected.id, pin, venueId, venueSlug)
     if (err) {
       setError('Incorrect PIN — try again')
       setPin('')
       setSubmitting(false)
       pinRef.current?.focus()
     }
-    // On success SessionContext sets session → useEffect above redirects
+    // On success SessionContext sets session -> useEffect above redirects
   }
 
   if (loading) return null
@@ -65,6 +71,9 @@ export default function LoginPage() {
       {/* Logo */}
       <div className="mb-10 text-center">
         <h1 className="font-serif text-charcoal text-4xl tracking-tight">SafeServ</h1>
+        {venueName && (
+          <p className="text-sm font-medium text-charcoal/60 mt-1">{venueName}</p>
+        )}
         <p className="text-xs tracking-widest text-charcoal/40 uppercase mt-1">Food Safety &amp; Operations</p>
       </div>
 
@@ -76,6 +85,9 @@ export default function LoginPage() {
             Select Staff Member
           </p>
           <div className="flex flex-col gap-2">
+            {staff.length === 0 && (
+              <p className="text-sm text-charcoal/40 text-center py-4">No staff members found for this venue.</p>
+            )}
             {staff.map((s) => (
               <button
                 key={s.id}
@@ -137,11 +149,22 @@ export default function LoginPage() {
               disabled={pin.length < 4 || submitting}
               className="w-full bg-charcoal text-cream py-3 rounded-xl text-sm font-semibold tracking-wide hover:bg-charcoal/85 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             >
-              {submitting ? 'Signing in…' : 'Sign In →'}
+              {submitting ? 'Signing in...' : 'Sign In'}
             </button>
           </form>
         )}
       </div>
+
+      {/* Sign out of venue — returns device to landing page */}
+      <button
+        onClick={async () => {
+          await signOutVenue()
+          navigate('/', { replace: true })
+        }}
+        className="mt-6 text-xs text-charcoal/30 hover:text-charcoal/60 transition-colors"
+      >
+        Sign out of venue
+      </button>
     </div>
   )
 }

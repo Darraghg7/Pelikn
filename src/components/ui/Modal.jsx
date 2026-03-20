@@ -18,7 +18,7 @@ export default function Modal({ open, onClose, title, children }) {
         onClick={onClose}
       />
       {/* Panel */}
-      <div className="relative bg-cream w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl shadow-xl p-6 pb-8 sm:pb-6 z-10 max-h-[90dvh] overflow-y-auto" style={{ paddingBottom: 'max(2rem, env(safe-area-inset-bottom))' }}>
+      <div className="relative bg-cream dark:bg-[#1e1e1e] w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl shadow-xl p-6 pb-8 sm:pb-6 z-10 max-h-[90dvh] overflow-y-auto" style={{ paddingBottom: 'max(2rem, env(safe-area-inset-bottom))' }}>
         <div className="flex items-center justify-between mb-5">
           <h2 className="font-serif text-xl text-charcoal">{title}</h2>
           <button

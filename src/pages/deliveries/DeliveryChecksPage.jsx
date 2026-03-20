@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { format } from 'date-fns'
 import { supabase } from '../../lib/supabase'
+import { useVenue } from '../../contexts/VenueContext'
 import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../../components/ui/Toast'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
@@ -11,35 +12,39 @@ import { createWorker } from 'tesseract.js'
    HOOKS
    ═══════════════════════════════════════════════════════════════════════════ */
 
-function useDeliveryChecks() {
+function useDeliveryChecks(venueId) {
   const [checks, setChecks] = useState([])
   const [loading, setLoading] = useState(true)
   const load = useCallback(async () => {
+    if (!venueId) return
     setLoading(true)
     const { data } = await supabase
       .from('delivery_checks')
       .select('*, checker:staff!checked_by(name), supplier:suppliers(name)')
+      .eq('venue_id', venueId)
       .order('checked_at', { ascending: false })
       .limit(100)
     setChecks(data ?? [])
     setLoading(false)
-  }, [])
+  }, [venueId])
   useEffect(() => { load() }, [load])
   return { checks, loading, reload: load }
 }
 
-function useSuppliers() {
+function useDeliverySuppliers(venueId) {
   const [suppliers, setSuppliers] = useState([])
   const [loading, setLoading] = useState(true)
   const load = useCallback(async () => {
+    if (!venueId) return
     const { data } = await supabase
       .from('suppliers')
       .select('*')
+      .eq('venue_id', venueId)
       .eq('is_active', true)
       .order('name')
     setSuppliers(data ?? [])
     setLoading(false)
-  }, [])
+  }, [venueId])
   useEffect(() => { load() }, [load])
   return { suppliers, loading, reload: load }
 }
@@ -123,7 +128,7 @@ function PassFailChip({ pass }) {
 }
 
 /* ── Supplier setup modal ────────────────────────────────────────────────── */
-function AddSupplierModal({ open, onClose, onAdded }) {
+function AddSupplierModal({ open, onClose, onAdded, venueId }) {
   const toast = useToast()
   const [name, setName] = useState('')
   const [saving, setSaving] = useState(false)
@@ -131,7 +136,7 @@ function AddSupplierModal({ open, onClose, onAdded }) {
   const save = async () => {
     if (!name.trim()) return
     setSaving(true)
-    const { data, error } = await supabase.from('suppliers').insert({ name: name.trim() }).select().single()
+    const { data, error } = await supabase.from('suppliers').insert({ name: name.trim(), venue_id: venueId }).select().single()
     setSaving(false)
     if (error) { toast(error.message, 'error'); return }
     toast('Supplier added')
@@ -208,7 +213,7 @@ function ItemCategoryPicker({ itemName, onSave, onSkip }) {
    SMART DELIVERY CHECK MODAL
    ═══════════════════════════════════════════════════════════════════════════ */
 
-function DeliveryCheckModal({ open, onClose, suppliers, onSupplierAdded, onComplete }) {
+function DeliveryCheckModal({ open, onClose, suppliers, onSupplierAdded, onComplete, venueId }) {
   const toast = useToast()
   const { session } = useSession()
 
@@ -314,6 +319,7 @@ function DeliveryCheckModal({ open, onClose, suppliers, onSupplierAdded, onCompl
       temp_required: tempRequired,
       min_temp: cat.minTemp,
       max_temp: cat.maxTemp,
+      venue_id: venueId,
     }).select().single()
 
     if (error) { toast(error.message, 'error'); return }
@@ -382,7 +388,7 @@ function DeliveryCheckModal({ open, onClose, suppliers, onSupplierAdded, onCompl
     if (!file) return
     setUploading(true)
     const ext = file.name.split('.').pop()
-    const path = `delivery-photos/${Date.now()}.${ext}`
+    const path = `${venueId}/delivery-photos/${Date.now()}.${ext}`
     const { error } = await supabase.storage.from('training-files').upload(path, file)
     if (error) { toast('Upload failed', 'error'); setUploading(false); return }
     const { data: { publicUrl } } = supabase.storage.from('training-files').getPublicUrl(path)
@@ -420,6 +426,7 @@ function DeliveryCheckModal({ open, onClose, suppliers, onSupplierAdded, onCompl
       notes: overallNotes.trim() || null,
       items_desc: itemEntries.map(([, v]) => v.itemName).join(', ').slice(0, 200),
       checked_by: session?.staffId,
+      venue_id: venueId,
     }).select().single()
 
     if (error) { toast(error.message, 'error'); setSaving(false); return }
@@ -433,6 +440,7 @@ function DeliveryCheckModal({ open, onClose, suppliers, onSupplierAdded, onCompl
         received: v.received,
         temp_reading: v.tempReading ? parseFloat(v.tempReading) : null,
         temp_pass: v.tempPass,
+        venue_id: venueId,
       }))
       await supabase.from('delivery_check_items').insert(lineItems)
     }
@@ -651,6 +659,7 @@ function DeliveryCheckModal({ open, onClose, suppliers, onSupplierAdded, onCompl
       <AddSupplierModal
         open={showAddSupplier}
         onClose={() => setShowAddSupplier(false)}
+        venueId={venueId}
         onAdded={(supplier) => {
           onSupplierAdded()
           selectSupplier(supplier)
@@ -665,8 +674,9 @@ function DeliveryCheckModal({ open, onClose, suppliers, onSupplierAdded, onCompl
    ═══════════════════════════════════════════════════════════════════════════ */
 
 export default function DeliveryChecksPage() {
-  const { checks, loading, reload } = useDeliveryChecks()
-  const { suppliers, reload: reloadSuppliers } = useSuppliers()
+  const { venueId } = useVenue()
+  const { checks, loading, reload } = useDeliveryChecks(venueId)
+  const { suppliers, reload: reloadSuppliers } = useDeliverySuppliers(venueId)
   const [showCheck, setShowCheck] = useState(false)
   const [filter, setFilter] = useState('all')
 
@@ -760,6 +770,7 @@ export default function DeliveryChecksPage() {
         suppliers={suppliers}
         onSupplierAdded={reloadSuppliers}
         onComplete={reload}
+        venueId={venueId}
       />
     </div>
   )

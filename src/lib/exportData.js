@@ -19,11 +19,12 @@ function buildCsv(headers, rows) {
 }
 
 /** Export temperature logs */
-export async function exportTempLogs(days = 90) {
+export async function exportTempLogs(venueId, days = 90) {
   const since = subDays(new Date(), days).toISOString()
   const { data } = await supabase
     .from('fridge_temperature_logs')
     .select('temperature, logged_at, notes, fridge:fridge_id(name, min_temp, max_temp), logged_by_name')
+    .eq('venue_id', venueId)
     .gte('logged_at', since)
     .order('logged_at', { ascending: false })
 
@@ -46,11 +47,12 @@ export async function exportTempLogs(days = 90) {
 }
 
 /** Export cleaning records */
-export async function exportCleaningRecords(days = 90) {
+export async function exportCleaningRecords(venueId, days = 90) {
   const since = subDays(new Date(), days).toISOString()
   const { data } = await supabase
     .from('cleaning_completions')
     .select('completed_at, notes, task:cleaning_task_id(title, frequency), completer:completed_by(name)')
+    .eq('venue_id', venueId)
     .gte('completed_at', since)
     .order('completed_at', { ascending: false })
 
@@ -69,11 +71,12 @@ export async function exportCleaningRecords(days = 90) {
 }
 
 /** Export delivery checks */
-export async function exportDeliveryChecks(days = 90) {
+export async function exportDeliveryChecks(venueId, days = 90) {
   const since = subDays(new Date(), days).toISOString()
   const { data } = await supabase
     .from('delivery_checks')
     .select('supplier_name, items_desc, temp_reading, temp_pass, packaging_ok, use_by_ok, overall_pass, notes, checked_at, checker:staff!checked_by(name)')
+    .eq('venue_id', venueId)
     .gte('checked_at', since)
     .order('checked_at', { ascending: false })
 
@@ -97,11 +100,12 @@ export async function exportDeliveryChecks(days = 90) {
 }
 
 /** Export corrective actions */
-export async function exportCorrectiveActions(days = 90) {
+export async function exportCorrectiveActions(venueId, days = 90) {
   const since = subDays(new Date(), days).toISOString()
   const { data } = await supabase
     .from('corrective_actions')
     .select('title, category, severity, status, description, action_taken, reported_at, resolved_at, reporter:staff!reported_by(name), resolver:staff!resolved_by(name)')
+    .eq('venue_id', venueId)
     .gte('reported_at', since)
     .order('reported_at', { ascending: false })
 
@@ -124,11 +128,12 @@ export async function exportCorrectiveActions(days = 90) {
 }
 
 /** Export probe calibrations */
-export async function exportProbeCalibrations(days = 90) {
+export async function exportProbeCalibrations(venueId, days = 90) {
   const since = subDays(new Date(), days).toISOString()
   const { data } = await supabase
     .from('probe_calibrations')
     .select('probe_name, method, expected_temp, actual_reading, tolerance, pass, calibrated_at, notes, calibrator:staff!calibrated_by(name)')
+    .eq('venue_id', venueId)
     .gte('calibrated_at', since)
     .order('calibrated_at', { ascending: false })
 
@@ -150,10 +155,11 @@ export async function exportProbeCalibrations(days = 90) {
 }
 
 /** Export training records */
-export async function exportTrainingRecords() {
+export async function exportTrainingRecords(venueId) {
   const { data } = await supabase
     .from('staff_training')
     .select('title, category, issued_date, expiry_date, notes, staff:staff_id(name)')
+    .eq('venue_id', venueId)
     .order('expiry_date')
 
   const csv = buildCsv(
@@ -177,13 +183,13 @@ export async function exportTrainingRecords() {
 }
 
 /** Export all compliance data as a combined report */
-export async function exportFullReport(days = 90) {
+export async function exportFullReport(venueId, days = 90) {
   await Promise.all([
-    exportTempLogs(days),
-    exportCleaningRecords(days),
-    exportDeliveryChecks(days),
-    exportCorrectiveActions(days),
-    exportProbeCalibrations(days),
-    exportTrainingRecords(),
+    exportTempLogs(venueId, days),
+    exportCleaningRecords(venueId, days),
+    exportDeliveryChecks(venueId, days),
+    exportCorrectiveActions(venueId, days),
+    exportProbeCalibrations(venueId, days),
+    exportTrainingRecords(venueId),
   ])
 }

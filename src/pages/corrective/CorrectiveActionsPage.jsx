@@ -1,24 +1,27 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { format, formatDistanceToNow } from 'date-fns'
 import { supabase } from '../../lib/supabase'
+import { useVenue } from '../../contexts/VenueContext'
 import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../../components/ui/Toast'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
 import Modal from '../../components/ui/Modal'
 
-function useCorrectiveActions() {
+function useCorrectiveActions(venueId) {
   const [records, setRecords] = useState([])
   const [loading, setLoading] = useState(true)
   const load = useCallback(async () => {
+    if (!venueId) return
     setLoading(true)
     const { data } = await supabase
       .from('corrective_actions')
       .select('*, reporter:staff!reported_by(name), resolver:staff!resolved_by(name)')
+      .eq('venue_id', venueId)
       .order('reported_at', { ascending: false })
       .limit(200)
     setRecords(data ?? [])
     setLoading(false)
-  }, [])
+  }, [venueId])
   useEffect(() => { load() }, [load])
   return { records, loading, reload: load }
 }
@@ -50,8 +53,9 @@ const EMPTY_FORM = {
 
 export default function CorrectiveActionsPage() {
   const toast = useToast()
+  const { venueId } = useVenue()
   const { session, isManager } = useSession()
-  const { records, loading, reload } = useCorrectiveActions()
+  const { records, loading, reload } = useCorrectiveActions(venueId)
 
   const [showForm, setShowForm] = useState(false)
   const [form, setForm] = useState(EMPTY_FORM)
@@ -71,6 +75,7 @@ export default function CorrectiveActionsPage() {
       action_taken: form.action_taken.trim(),
       severity: form.severity,
       reported_by: session?.staffId,
+      venue_id: venueId,
     })
     setSaving(false)
     if (error) { toast(error.message, 'error'); return }

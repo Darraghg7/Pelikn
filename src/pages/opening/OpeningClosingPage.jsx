@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { format } from 'date-fns'
 import { supabase } from '../../lib/supabase'
+import { useVenue } from '../../contexts/VenueContext'
 import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../../components/ui/Toast'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
@@ -12,32 +13,36 @@ function SectionLabel({ children }) {
 
 // ── Hooks ────────────────────────────────────────────────────────────────────
 
-function useChecks() {
+function useChecks(venueId) {
   const [checks, setChecks] = useState([])
   const [loading, setLoading] = useState(true)
   const load = useCallback(async () => {
+    if (!venueId) return
     const { data } = await supabase
       .from('opening_closing_checks')
       .select('*')
+      .eq('venue_id', venueId)
       .eq('is_active', true)
       .order('sort_order')
       .order('created_at')
     setChecks(data ?? [])
     setLoading(false)
-  }, [])
+  }, [venueId])
   useEffect(() => { load() }, [load])
   return { checks, loading, reload: load }
 }
 
-function useTodayCompletions(sessionDate) {
+function useTodayCompletions(sessionDate, venueId) {
   const [completions, setCompletions] = useState([])
   const load = useCallback(async () => {
+    if (!venueId) return
     const { data } = await supabase
       .from('opening_closing_completions')
       .select('*')
+      .eq('venue_id', venueId)
       .eq('session_date', sessionDate)
     setCompletions(data ?? [])
-  }, [sessionDate])
+  }, [sessionDate, venueId])
   useEffect(() => { load() }, [load])
   return { completions, reload: load }
 }
@@ -74,7 +79,7 @@ function CheckItem({ check, completion, onMark }) {
   )
 }
 
-function CheckList({ type, label, checks, completions, onMark, isManager, onAddCheck, onRemoveCheck }) {
+function CheckList({ type, label, checks, completions, onMark, isManager, onAddCheck, onRemoveCheck, venueId }) {
   const toast = useToast()
   const typeChecks = checks.filter(c => c.type === type)
   const typeCompletions = completions.filter(c => c.session_type === type)
@@ -92,6 +97,7 @@ function CheckList({ type, label, checks, completions, onMark, isManager, onAddC
       title: newTitle.trim(),
       type,
       sort_order: typeChecks.length,
+      venue_id: venueId,
     })
     setSaving(false)
     if (error) { toast(error.message, 'error'); return }
@@ -189,11 +195,12 @@ function CheckList({ type, label, checks, completions, onMark, isManager, onAddC
 
 export default function OpeningClosingPage() {
   const toast = useToast()
+  const { venueId } = useVenue()
   const { session, isManager } = useSession()
   const today = format(new Date(), 'yyyy-MM-dd')
 
-  const { checks, loading: checksLoading, reload: reloadChecks } = useChecks()
-  const { completions, reload: reloadCompletions } = useTodayCompletions(today)
+  const { checks, loading: checksLoading, reload: reloadChecks } = useChecks(venueId)
+  const { completions, reload: reloadCompletions } = useTodayCompletions(today, venueId)
 
   const [showExport, setShowExport] = useState(false)
 
@@ -217,6 +224,7 @@ export default function OpeningClosingPage() {
       staff_id:     session?.staffId,
       staff_name:   session?.staffName ?? 'Unknown',
       notes:        notes.trim() || null,
+      venue_id:     venueId,
     })
     setCompleting(false)
     if (error) { toast(error.message, 'error'); return }
@@ -262,6 +270,7 @@ export default function OpeningClosingPage() {
           isManager={isManager}
           onAddCheck={reloadChecks}
           onRemoveCheck={removeCheck}
+          venueId={venueId}
         />
         <CheckList
           type="closing"
@@ -272,6 +281,7 @@ export default function OpeningClosingPage() {
           isManager={isManager}
           onAddCheck={reloadChecks}
           onRemoveCheck={removeCheck}
+          venueId={venueId}
         />
       </div>
 

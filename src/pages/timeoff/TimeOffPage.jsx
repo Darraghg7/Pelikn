@@ -4,34 +4,38 @@ import {
   isSameDay, isWithinInterval, isBefore, parseISO,
 } from 'date-fns'
 import { supabase } from '../../lib/supabase'
+import { useVenue } from '../../contexts/VenueContext'
 import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../../components/ui/Toast'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
 import Modal from '../../components/ui/Modal'
 
 /* ── Hook ──────────────────────────────────────────────────────────────── */
-function useTimeOffRequests() {
+function useTimeOffRequests(venueId) {
   const [requests, setRequests] = useState([])
   const [loading, setLoading] = useState(true)
   const load = useCallback(async () => {
+    if (!venueId) return
     setLoading(true)
     const { data } = await supabase
       .from('time_off_requests')
       .select('*, staff:staff_id(name), reviewer:reviewed_by(name)')
+      .eq('venue_id', venueId)
       .order('start_date', { ascending: true })
     setRequests(data ?? [])
     setLoading(false)
-  }, [])
+  }, [venueId])
   useEffect(() => { load() }, [load])
   return { requests, loading, reload: load }
 }
 
-function useActiveStaff() {
+function useActiveStaff(venueId) {
   const [staff, setStaff] = useState([])
   useEffect(() => {
-    supabase.from('staff').select('id, name').eq('is_active', true).order('name')
+    if (!venueId) return
+    supabase.from('staff').select('id, name').eq('venue_id', venueId).eq('is_active', true).order('name')
       .then(({ data }) => setStaff(data ?? []))
-  }, [])
+  }, [venueId])
   return staff
 }
 
@@ -121,9 +125,10 @@ function CalendarView({ month, requests, onDayClick }) {
 /* ── Main Page ─────────────────────────────────────────────────────────── */
 export default function TimeOffPage() {
   const toast = useToast()
+  const { venueId } = useVenue()
   const { session, isManager } = useSession()
-  const { requests, loading, reload } = useTimeOffRequests()
-  const staff = useActiveStaff()
+  const { requests, loading, reload } = useTimeOffRequests(venueId)
+  const staff = useActiveStaff(venueId)
 
   const [month, setMonth] = useState(new Date())
   const [showRequest, setShowRequest] = useState(false)
@@ -148,6 +153,7 @@ export default function TimeOffPage() {
       start_date: form.startDate,
       end_date: form.endDate,
       reason: form.reason.trim() || null,
+      venue_id: venueId,
     })
     setSaving(false)
     if (error) { toast(error.message, 'error'); return }

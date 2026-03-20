@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
+import { useVenue } from '../contexts/VenueContext'
 
 const FREQ_DAYS = { daily: 1, weekly: 7, fortnightly: 14, monthly: 30, quarterly: 90 }
 
@@ -13,17 +14,20 @@ export function cleaningStatus(task, lastCompletion) {
 }
 
 export function useCleaningTasks(jobRole = null) {
+  const { venueId } = useVenue()
   const [tasks, setTasks]             = useState([])
   const [completions, setCompletions] = useState([])
   const [loading, setLoading]         = useState(true)
 
   const load = useCallback(async () => {
+    if (!venueId) { setLoading(false); return }
     setLoading(true)
     const [{ data: tData }, { data: cData }] = await Promise.all([
-      supabase.from('cleaning_tasks').select('*').eq('is_active', true).order('title'),
+      supabase.from('cleaning_tasks').select('*').eq('venue_id', venueId).eq('is_active', true).order('title'),
       supabase
         .from('cleaning_completions')
         .select('*')
+        .eq('venue_id', venueId)
         .order('completed_at', { ascending: false }),
     ])
 
@@ -35,7 +39,7 @@ export function useCleaningTasks(jobRole = null) {
     setTasks(filtered)
     setCompletions(cData ?? [])
     setLoading(false)
-  }, [jobRole])
+  }, [venueId, jobRole])
 
   useEffect(() => { load() }, [load])
 

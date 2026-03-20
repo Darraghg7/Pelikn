@@ -1,47 +1,40 @@
 import { useState, useEffect } from 'react'
 import { format, subDays, parseISO } from 'date-fns'
 import { supabase } from '../lib/supabase'
+import { useVenue } from '../contexts/VenueContext'
 
 /**
- * Computes manager notifications:
- * - Pending swap requests
- * - Late clock-ins today
- * - Incomplete tasks from yesterday
- * - Repeat offenders (3+ late clock-ins in 30 days)
- * - Fridge temp alerts (out of range today)
- * - Expiring training certificates (within 30 days)
- * - Overdue cleaning tasks
- * - Open critical corrective actions
- * - Probe calibration overdue (>30 days)
+ * Computes manager notifications scoped to a venue.
  */
 export function useNotifications(isManager) {
+  const { venueId } = useVenue()
   const [notifications, setNotifications] = useState([])
   const [loading, setLoading]             = useState(true)
 
   useEffect(() => {
-    if (!isManager) { setLoading(false); return }
-    load().then(setNotifications).finally(() => setLoading(false))
-  }, [isManager])
+    if (!isManager || !venueId) { setLoading(false); return }
+    load(venueId).then(setNotifications).finally(() => setLoading(false))
+  }, [isManager, venueId])
 
   return { notifications, count: notifications.length, loading }
 }
 
-async function load() {
+async function load(vid) {
   const items = []
   const today = format(new Date(), 'yyyy-MM-dd')
   const yesterday = format(subDays(new Date(), 1), 'yyyy-MM-dd')
 
   await Promise.all([
-    checkSwapRequests(items),
-    checkLateClockIns(items, today),
-    checkIncompleteTasks(items, yesterday),
-    checkRepeatOffenders(items),
-    checkFridgeAlerts(items, today),
-    checkExpiringTraining(items),
-    checkOverdueCleaning(items),
-    checkCriticalActions(items),
-    checkProbeCalibration(items),
-    checkTimeOffRequests(items),
+    checkSwapRequests(items, vid),
+    checkLateClockIns(items, today, vid),
+    checkIncompleteTasks(items, yesterday, vid),
+    checkRepeatOffenders(items, vid),
+    checkFridgeAlerts(items, today, vid),
+    checkExpiringTraining(items, vid),
+    checkOverdueCleaning(items, vid),
+    checkCriticalActions(items, vid),
+    checkProbeCalibration(items, vid),
+    checkTimeOffRequests(items, vid),
   ])
 
   const sevOrder = { critical: 0, warning: 1, info: 2 }
@@ -49,15 +42,15 @@ async function load() {
   return items
 }
 
-async function checkSwapRequests(items) {
-  const { count } = await supabase.from('shift_swaps').select('id', { count: 'exact', head: true }).eq('status', 'pending')
+async function checkSwapRequests(items, vid) {
+  const { count } = await supabase.from('shift_swaps').select('id', { count: 'exact', head: true }).eq('venue_id', vid).eq('status', 'pending')
   if (count > 0) items.push({ id: 'swaps', type: 'swap_request', message: `${count} shift swap request${count > 1 ? 's' : ''} pending`, link: '/rota', severity: 'warning' })
 }
 
-async function checkLateClockIns(items, today) {
+async function checkLateClockIns(items, today, vid) {
   const [{ data: shifts }, { data: clockIns }] = await Promise.all([
-    supabase.from('shifts').select('staff_id, start_time, staff:staff_id(name)').eq('shift_date', today),
-    supabase.from('clock_events').select('staff_id, occurred_at, staff:staff_id(name)').eq('event_type', 'clock_in').gte('occurred_at', today + 'T00:00:00').lte('occurred_at', today + 'T23:59:59'),
+    supabase.from('shifts').select('staff_id, start_time, staff:staff_id(name)').eq('venue_id', vid).eq('shift_date', today),
+    supabase.from('clock_events').select('staff_id, occurred_at, staff:staff_id(name)').eq('venue_id', vid).eq('event_type', 'clock_in').gte('occurred_at', today + 'T00:00:00').lte('occurred_at', today + 'T23:59:59'),
   ])
   if (!shifts?.length || !clockIns?.length) return
   const lateOnes = []
@@ -71,10 +64,10 @@ async function checkLateClockIns(items, today) {
   if (lateOnes.length > 0) items.push({ id: 'late-today', type: 'late_clock_in', message: `Late clock-in today: ${lateOnes.join(', ')}`, link: '/timesheet', severity: 'warning' })
 }
 
-async function checkIncompleteTasks(items, yesterday) {
+async function checkIncompleteTasks(items, yesterday, vid) {
   const [{ data: templates }, { data: completions }] = await Promise.all([
-    supabase.from('task_templates').select('id, title').eq('is_active', true),
-    supabase.from('task_completions').select('task_template_id').eq('completion_date', yesterday),
+    supabase.from('task_templates').select('id, title').eq('venue_id', vid).eq('is_active', true),
+    supabase.from('task_completions').select('task_template_id').eq('venue_id', vid).eq('completion_date', yesterday),
   ])
   if (!templates?.length) return
   const completedIds = new Set((completions ?? []).map(c => c.task_template_id))
@@ -82,12 +75,12 @@ async function checkIncompleteTasks(items, yesterday) {
   if (missed.length > 0) items.push({ id: 'incomplete-yesterday', type: 'incomplete_tasks', message: `${missed.length} task${missed.length > 1 ? 's' : ''} not completed yesterday`, link: '/opening-closing', severity: 'warning' })
 }
 
-async function checkRepeatOffenders(items) {
+async function checkRepeatOffenders(items, vid) {
   const since = format(subDays(new Date(), 30), 'yyyy-MM-dd')
   const today = format(new Date(), 'yyyy-MM-dd')
   const [{ data: shifts }, { data: clockIns }] = await Promise.all([
-    supabase.from('shifts').select('staff_id, shift_date, start_time, staff:staff_id(name)').gte('shift_date', since).lte('shift_date', today),
-    supabase.from('clock_events').select('staff_id, occurred_at').eq('event_type', 'clock_in').gte('occurred_at', since + 'T00:00:00'),
+    supabase.from('shifts').select('staff_id, shift_date, start_time, staff:staff_id(name)').eq('venue_id', vid).gte('shift_date', since).lte('shift_date', today),
+    supabase.from('clock_events').select('staff_id, occurred_at').eq('venue_id', vid).eq('event_type', 'clock_in').gte('occurred_at', since + 'T00:00:00'),
   ])
   if (!shifts?.length || !clockIns?.length) return
   const lateCounts = {}, staffNames = {}
@@ -104,15 +97,15 @@ async function checkRepeatOffenders(items) {
   if (offenders.length > 0) items.push({ id: 'repeat-offenders', type: 'repeat_offender', message: `Repeat late clock-ins (30 days): ${offenders.join(', ')}`, link: '/timesheet', severity: 'warning' })
 }
 
-async function checkFridgeAlerts(items, today) {
-  const { data: logs } = await supabase.from('fridge_temperature_logs').select('id, temperature, fridge:fridge_id(name, min_temp, max_temp)').gte('logged_at', today + 'T00:00:00')
+async function checkFridgeAlerts(items, today, vid) {
+  const { data: logs } = await supabase.from('fridge_temperature_logs').select('id, temperature, fridge:fridge_id(name, min_temp, max_temp)').eq('venue_id', vid).gte('logged_at', today + 'T00:00:00')
   const readings = logs ?? []
   const outOfRange = readings.filter(l => l.fridge && (l.temperature < l.fridge.min_temp || l.temperature > l.fridge.max_temp))
   if (outOfRange.length > 0) {
     const fridgeNames = [...new Set(outOfRange.map(l => l.fridge?.name).filter(Boolean))]
     items.push({ id: 'fridge-alerts', type: 'fridge_alert', message: `${outOfRange.length} temp reading${outOfRange.length > 1 ? 's' : ''} out of range: ${fridgeNames.join(', ')}`, link: '/fridge', severity: 'critical' })
   }
-  const { data: fridges } = await supabase.from('fridges').select('id, name').eq('is_active', true)
+  const { data: fridges } = await supabase.from('fridges').select('id, name').eq('venue_id', vid).eq('is_active', true)
   if (fridges?.length > 0) {
     const checkedIds = new Set(readings.map(l => l.fridge?.name).filter(Boolean))
     const unchecked = fridges.filter(f => !checkedIds.has(f.name))
@@ -122,10 +115,10 @@ async function checkFridgeAlerts(items, today) {
   }
 }
 
-async function checkExpiringTraining(items) {
+async function checkExpiringTraining(items, vid) {
   const now = new Date()
   const thirtyDays = new Date(now.getTime() + 30 * 86400000)
-  const { data: certs } = await supabase.from('staff_training').select('id, title, expiry_date, staff:staff_id(name)').not('expiry_date', 'is', null).lte('expiry_date', format(thirtyDays, 'yyyy-MM-dd')).order('expiry_date')
+  const { data: certs } = await supabase.from('staff_training').select('id, title, expiry_date, staff:staff_id(name)').eq('venue_id', vid).not('expiry_date', 'is', null).lte('expiry_date', format(thirtyDays, 'yyyy-MM-dd')).order('expiry_date')
   const records = certs ?? []
   const expired = records.filter(c => new Date(c.expiry_date) < now)
   const expiring = records.filter(c => { const d = new Date(c.expiry_date); return d >= now && d <= thirtyDays })
@@ -133,10 +126,10 @@ async function checkExpiringTraining(items) {
   if (expiring.length > 0) items.push({ id: 'training-expiring', type: 'training_expiring', message: `${expiring.length} cert${expiring.length > 1 ? 's' : ''} expiring within 30 days`, link: '/training', severity: 'warning' })
 }
 
-async function checkOverdueCleaning(items) {
-  const { data: tasks } = await supabase.from('cleaning_tasks').select('id, title, frequency').eq('is_active', true)
+async function checkOverdueCleaning(items, vid) {
+  const { data: tasks } = await supabase.from('cleaning_tasks').select('id, title, frequency').eq('venue_id', vid).eq('is_active', true)
   if (!tasks?.length) return
-  const { data: completions } = await supabase.from('cleaning_completions').select('cleaning_task_id, completed_at').order('completed_at', { ascending: false })
+  const { data: completions } = await supabase.from('cleaning_completions').select('cleaning_task_id, completed_at').eq('venue_id', vid).order('completed_at', { ascending: false })
   const freqDays = { daily: 1, weekly: 7, fortnightly: 14, monthly: 30, quarterly: 90 }
   const now = new Date()
   const overdue = []
@@ -148,8 +141,8 @@ async function checkOverdueCleaning(items) {
   if (overdue.length > 0) items.push({ id: 'cleaning-overdue', type: 'cleaning_overdue', message: `${overdue.length} cleaning task${overdue.length > 1 ? 's' : ''} overdue: ${overdue.slice(0, 3).join(', ')}${overdue.length > 3 ? '...' : ''}`, link: '/cleaning', severity: overdue.length > 3 ? 'critical' : 'warning' })
 }
 
-async function checkCriticalActions(items) {
-  const { data: actions } = await supabase.from('corrective_actions').select('id, title, severity').eq('status', 'open')
+async function checkCriticalActions(items, vid) {
+  const { data: actions } = await supabase.from('corrective_actions').select('id, title, severity').eq('venue_id', vid).eq('status', 'open')
   const records = actions ?? []
   const critical = records.filter(a => a.severity === 'critical')
   const major = records.filter(a => a.severity === 'major')
@@ -157,15 +150,15 @@ async function checkCriticalActions(items) {
   if (major.length > 0) items.push({ id: 'major-actions', type: 'major_action', message: `${major.length} major action${major.length > 1 ? 's' : ''} open`, link: '/corrective', severity: 'warning' })
 }
 
-async function checkProbeCalibration(items) {
-  const { data: records } = await supabase.from('probe_calibrations').select('id, calibrated_at').order('calibrated_at', { ascending: false }).limit(1)
+async function checkProbeCalibration(items, vid) {
+  const { data: records } = await supabase.from('probe_calibrations').select('id, calibrated_at').eq('venue_id', vid).order('calibrated_at', { ascending: false }).limit(1)
   const last = records?.[0]
-  if (!last) { items.push({ id: 'probe-never', type: 'probe_overdue', message: 'No probe calibrations on record — calibrate your probes', link: '/probe', severity: 'warning' }); return }
+  if (!last) { items.push({ id: 'probe-never', type: 'probe_overdue', message: 'No probe calibrations on record -- calibrate your probes', link: '/probe', severity: 'warning' }); return }
   const daysSince = Math.floor((new Date() - new Date(last.calibrated_at)) / 86400000)
-  if (daysSince > 30) items.push({ id: 'probe-overdue', type: 'probe_overdue', message: `Probe calibration overdue — last done ${daysSince} days ago`, link: '/probe', severity: 'warning' })
+  if (daysSince > 30) items.push({ id: 'probe-overdue', type: 'probe_overdue', message: `Probe calibration overdue -- last done ${daysSince} days ago`, link: '/probe', severity: 'warning' })
 }
 
-async function checkTimeOffRequests(items) {
-  const { count } = await supabase.from('time_off_requests').select('id', { count: 'exact', head: true }).eq('status', 'pending')
+async function checkTimeOffRequests(items, vid) {
+  const { count } = await supabase.from('time_off_requests').select('id', { count: 'exact', head: true }).eq('venue_id', vid).eq('status', 'pending')
   if (count > 0) items.push({ id: 'time-off-pending', type: 'time_off_pending', message: `${count} time-off request${count > 1 ? 's' : ''} awaiting approval`, link: '/time-off', severity: 'warning' })
 }

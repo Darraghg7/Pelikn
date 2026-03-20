@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { format, addWeeks } from 'date-fns'
 import { supabase } from '../../lib/supabase'
+import { useVenue } from '../../contexts/VenueContext'
 import { useShifts, useStaffList, shiftDurationHours } from '../../hooks/useShifts'
 import { useShiftSwaps } from '../../hooks/useShiftSwaps'
 import { useAvailability } from '../../hooks/useAvailability'
@@ -8,6 +9,7 @@ import { useSession } from '../../contexts/SessionContext'
 import { getWeekStart, getWeekDays } from '../../lib/utils'
 import { useToast } from '../../components/ui/Toast'
 import { ROLE_OPTIONS, SHIFT_PRESETS } from '../../lib/constants'
+import { useAppSettings } from '../../hooks/useSettings'
 import RotaWeekView from './RotaWeekView'
 import RotaBuilderModal from './RotaBuilderModal'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
@@ -29,6 +31,7 @@ function fmtGBP(n) { return `£${Number(n).toFixed(2)}` }
 
 export default function RotaPage() {
   const toast = useToast()
+  const { venueId } = useVenue()
   const { session, isManager } = useSession()
 
   const [weekStart, setWeekStart] = useState(() => getWeekStart())
@@ -37,9 +40,8 @@ export default function RotaPage() {
   const { staff, loading: staffLoading } = useStaffList()
   const { swaps, loading: swapsLoading, reload: reloadSwaps, pendingCount } = useShiftSwaps()
   const { unavailability, toggleAvailability, reload: reloadAvail } = useAvailability(weekStart, numWeeks)
+  const { customRoles, closedDays } = useAppSettings()
 
-  // Availability mode + builder
-  const [availabilityMode, setAvailabilityMode] = useState(false)
   const [showBuilder, setShowBuilder]           = useState(false)
 
   // Manager shift modal state
@@ -72,17 +74,16 @@ export default function RotaPage() {
 
   // ── Staff: cell click → open swap request if they have a shift ──
   const openStaffCell = (staffMember, date, dayShifts) => {
-    // Availability mode: toggle availability instead of opening modal
-    if (availabilityMode && isManager) {
-      toggleAvailability(staffMember.id, date)
-      return
-    }
     if (isManager) return openCell(staffMember, date, dayShifts)
     // Staff: only allow interaction on their own shifts
     if (staffMember.id !== session?.staffId) return
     if (dayShifts.length === 0) return
     setSwapModal({ staffMember, date, shift: dayShifts[0] })
     setSwapForm({ targetStaffId: '', message: '' })
+  }
+
+  const onToggleAvailability = (staffId, date) => {
+    toggleAvailability(staffId, date)
   }
 
   const openEdit = (sh) => {
@@ -108,6 +109,7 @@ export default function RotaPage() {
       start_time: form.startTime,
       end_time:   form.endTime,
       role_label: form.roleLabel,
+      venue_id:   venueId,
     }
     const { error } = editShift
       ? await supabase.from('shifts').update(payload).eq('id', editShift.id)
@@ -226,7 +228,7 @@ export default function RotaPage() {
 
       <div className="flex items-center justify-between">
         <h1 className="font-serif text-3xl text-charcoal">
-          {isManager ? (availabilityMode ? 'Edit Availability' : 'Rota Manager') : 'Rota'}
+          {isManager ? 'Rota Manager' : 'Rota'}
         </h1>
         {isManager && (
           <div className="flex items-center gap-3">
@@ -235,17 +237,6 @@ export default function RotaPage() {
               className="text-[11px] tracking-widest uppercase text-accent/70 hover:text-accent transition-colors border-b border-accent/30 hover:border-accent/50"
             >
               ✨ Auto-Fill
-            </button>
-            <button
-              onClick={() => setAvailabilityMode(v => !v)}
-              className={[
-                'text-[11px] tracking-widest uppercase transition-colors border-b',
-                availabilityMode
-                  ? 'text-accent font-medium border-accent'
-                  : 'text-charcoal/40 hover:text-charcoal border-charcoal/20',
-              ].join(' ')}
-            >
-              {availabilityMode ? '✓ Done' : '📅 Availability'}
             </button>
             <button
               onClick={emailRota}
@@ -258,25 +249,28 @@ export default function RotaPage() {
         )}
       </div>
 
-      {/* Availability mode banner + legend */}
-      {availabilityMode && isManager && (
-        <div className="rounded-xl bg-charcoal/4 border border-charcoal/10 px-4 py-3 flex flex-col gap-2">
-          <p className="text-xs text-charcoal/60">
-            Tap any cell to toggle availability. Time-off entries are managed from the Time Off page.
-          </p>
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-1.5">
-              <span className="w-3 h-3 rounded bg-success/30 border border-success/30" />
-              <span className="text-[10px] tracking-wider uppercase text-charcoal/40">Available</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <span className="w-3 h-3 rounded bg-charcoal/15 border border-charcoal/20" />
-              <span className="text-[10px] tracking-wider uppercase text-charcoal/40">Unavailable</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <span className="w-3 h-3 rounded bg-danger/20 border border-danger/25" />
-              <span className="text-[10px] tracking-wider uppercase text-charcoal/40">Time Off</span>
-            </div>
+      {/* Availability legend (always visible for managers) */}
+      {isManager && (
+        <div className="flex items-center gap-4 flex-wrap px-1">
+          <div className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded bg-success/30 border border-success/30" />
+            <span className="text-[10px] tracking-wider uppercase text-charcoal/30">Available</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded bg-charcoal/15 border border-charcoal/20" />
+            <span className="text-[10px] tracking-wider uppercase text-charcoal/30">Unavailable</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded bg-amber-200 border border-amber-300" />
+            <span className="text-[10px] tracking-wider uppercase text-charcoal/30">Break Cover</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded bg-danger/20 border border-danger/25" />
+            <span className="text-[10px] tracking-wider uppercase text-charcoal/30">Time Off</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded bg-charcoal/8 border border-charcoal/15" />
+            <span className="text-[10px] tracking-wider uppercase text-charcoal/30">Closed</span>
           </div>
         </div>
       )}
@@ -499,10 +493,11 @@ export default function RotaPage() {
                 shifts={thisWeekShifts}
                 staff={staff}
                 onCellClick={openStaffCell}
+                onToggleAvailability={onToggleAvailability}
                 currentStaffId={session?.staffId ?? null}
                 isManager={isManager}
                 unavailability={unavailability}
-                availabilityMode={availabilityMode}
+                closedDays={closedDays}
               />
             )}
           </div>
@@ -688,6 +683,8 @@ export default function RotaPage() {
           shifts={shifts.filter(sh => sh.week_start === format(weekStart, 'yyyy-MM-dd'))}
           unavailability={unavailability}
           onSave={batchSaveShifts}
+          customRoles={customRoles}
+          closedDays={closedDays}
         />
       )}
 

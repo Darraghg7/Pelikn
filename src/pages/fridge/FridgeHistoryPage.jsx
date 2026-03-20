@@ -69,6 +69,7 @@ export default function FridgeHistoryPage() {
                 <tr className="border-t border-charcoal/8">
                   <th className="text-left px-5 py-2.5 text-[10px] tracking-widest uppercase text-charcoal/40 font-medium">Fridge</th>
                   <th className="text-left px-5 py-2.5 text-[10px] tracking-widest uppercase text-charcoal/40 font-medium">Temp</th>
+                  <th className="text-center px-3 py-2.5 text-[10px] tracking-widest uppercase text-charcoal/40 font-medium">AM/PM</th>
                   <th className="text-left px-5 py-2.5 text-[10px] tracking-widest uppercase text-charcoal/40 font-medium hidden sm:table-cell">Logged by</th>
                   <th className="text-left px-5 py-2.5 text-[10px] tracking-widest uppercase text-charcoal/40 font-medium">Date / Time</th>
                 </tr>
@@ -83,6 +84,11 @@ export default function FridgeHistoryPage() {
                       <td className="px-5 py-3 text-charcoal">{log.fridge_name}</td>
                       <td className={`px-5 py-3 font-mono font-semibold ${oor ? 'text-danger' : 'text-charcoal'}`}>
                         {formatTemp(log.temperature)}
+                      </td>
+                      <td className="text-center px-3 py-3">
+                        <span className="text-[10px] font-semibold tracking-wider uppercase text-charcoal/50">
+                          {log.check_period?.toUpperCase() ?? '—'}
+                        </span>
                       </td>
                       <td className="px-5 py-3 text-charcoal/60 hidden sm:table-cell">{log.logged_by_name ?? '—'}</td>
                       <td className="px-5 py-3 text-charcoal/50 whitespace-nowrap">{formatDateTime(log.logged_at)}</td>

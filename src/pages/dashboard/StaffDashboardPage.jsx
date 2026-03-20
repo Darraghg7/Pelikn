@@ -2,18 +2,29 @@ import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { format } from 'date-fns'
 import { supabase } from '../../lib/supabase'
+import { useVenue } from '../../contexts/VenueContext'
 import { useSession } from '../../contexts/SessionContext'
 import { formatMinutes } from '../../lib/utils'
 import ClockPanel from '../../components/ClockPanel'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
 
-function useVenueName() {
-  const [name, setName] = useState('')
+function useVenueBranding(venueId) {
+  const [venueName, setVenueName] = useState('')
+  const [logoUrl, setLogoUrl] = useState('')
   useEffect(() => {
-    supabase.from('app_settings').select('value').eq('key', 'venue_name').single()
-      .then(({ data }) => { if (data?.value) setName(data.value) })
-  }, [])
-  return name
+    if (!venueId) return
+    supabase.from('app_settings').select('key, value')
+      .eq('venue_id', venueId)
+      .in('key', ['venue_name', 'logo_url'])
+      .then(({ data }) => {
+        if (data) {
+          const map = Object.fromEntries(data.map(r => [r.key, r.value]))
+          setVenueName(map.venue_name ?? '')
+          setLogoUrl(map.logo_url ?? '')
+        }
+      })
+  }, [venueId])
+  return { venueName, logoUrl }
 }
 
 function SectionLabel({ children }) {
@@ -21,8 +32,9 @@ function SectionLabel({ children }) {
 }
 
 export default function StaffDashboardPage() {
+  const { venueId } = useVenue()
   const { session } = useSession()
-  const venueName = useVenueName()
+  const { venueName, logoUrl } = useVenueBranding(venueId)
   const [todayShift, setTodayShift] = useState(null)
   const [weekMins, setWeekMins]     = useState(0)
   const [loading, setLoading]       = useState(true)
@@ -30,7 +42,7 @@ export default function StaffDashboardPage() {
   const today = format(new Date(), 'yyyy-MM-dd')
 
   useEffect(() => {
-    if (!session?.staffId) return
+    if (!session?.staffId || !venueId) return
     const load = async () => {
       setLoading(true)
       const weekStart = format(
@@ -39,10 +51,10 @@ export default function StaffDashboardPage() {
       )
       const [shiftRes, weekRes] = await Promise.all([
         supabase.from('shifts').select('*')
-          .eq('staff_id', session.staffId).eq('shift_date', today)
+          .eq('venue_id', venueId).eq('staff_id', session.staffId).eq('shift_date', today)
           .order('start_time').limit(1),
         supabase.from('clock_events').select('*')
-          .eq('staff_id', session.staffId).gte('occurred_at', weekStart),
+          .eq('venue_id', venueId).eq('staff_id', session.staffId).gte('occurred_at', weekStart),
       ])
       setTodayShift(shiftRes.data?.[0] ?? null)
       const events = [...(weekRes.data ?? [])].sort(
@@ -60,7 +72,7 @@ export default function StaffDashboardPage() {
       setLoading(false)
     }
     load()
-  }, [session?.staffId, today])
+  }, [session?.staffId, today, venueId])
 
   if (!session) return null
   if (loading) return <div className="flex justify-center pt-20"><LoadingSpinner size="lg" /></div>
@@ -70,12 +82,21 @@ export default function StaffDashboardPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        {venueName && (
-          <p className="font-serif text-lg text-charcoal/50 mb-0.5">{venueName}</p>
+      <div className="flex items-center gap-4">
+        {logoUrl && (
+          <img
+            src={logoUrl}
+            alt="Venue logo"
+            className="h-14 w-14 sm:h-16 sm:w-16 rounded-xl object-contain bg-white border border-charcoal/10 p-1 shrink-0"
+          />
         )}
-        <p className="text-xs uppercase tracking-widest text-charcoal/40 mb-1">{format(new Date(), 'EEEE, d MMMM')}</p>
-        <h1 className="font-serif text-3xl text-charcoal">Good {greeting}, {firstName}</h1>
+        <div>
+          {venueName && (
+            <p className="font-serif text-2xl sm:text-3xl text-charcoal font-semibold">{venueName}</p>
+          )}
+          <p className="text-xs uppercase tracking-widest text-charcoal/40 mt-0.5">{format(new Date(), 'EEEE, d MMMM')}</p>
+          <h1 className="font-serif text-xl text-charcoal/70 mt-0.5">Good {greeting}, {firstName}</h1>
+        </div>
       </div>
 
       <div className="bg-white rounded-xl border border-charcoal/10 p-5 flex flex-col gap-4">

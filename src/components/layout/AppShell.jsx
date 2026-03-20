@@ -1,19 +1,23 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { useSession } from '../../contexts/SessionContext'
+import { useVenue } from '../../contexts/VenueContext'
 import { supabase } from '../../lib/supabase'
 import NotificationBell from '../notifications/NotificationBell'
 import OfflineBanner from '../ui/OfflineBanner'
+import MobileNav from './MobileNav'
 
-function useOverdueCleaning() {
+function useOverdueCleaning(venueId) {
   const [count, setCount] = useState(0)
   useEffect(() => {
+    if (!venueId) return
     const load = async () => {
       const { data: tasks } = await supabase
-        .from('cleaning_tasks').select('id, frequency').eq('is_active', true)
+        .from('cleaning_tasks').select('id, frequency').eq('venue_id', venueId).eq('is_active', true)
       if (!tasks?.length) return
       const { data: completions } = await supabase
         .from('cleaning_completions').select('cleaning_task_id, completed_at')
+        .eq('venue_id', venueId)
         .order('completed_at', { ascending: false })
       const freqDays = { daily: 1, weekly: 7, fortnightly: 14, monthly: 30, quarterly: 90 }
       const now = new Date()
@@ -26,26 +30,29 @@ function useOverdueCleaning() {
       setCount(overdue)
     }
     load()
-  }, [])
+  }, [venueId])
   return count
 }
 
-function usePendingSwaps() {
+function usePendingSwaps(venueId) {
   const [count, setCount] = useState(0)
   useEffect(() => {
+    if (!venueId) return
     supabase.from('shift_swaps').select('id', { count: 'exact', head: true })
+      .eq('venue_id', venueId)
       .eq('status', 'pending')
       .then(({ count: c }) => setCount(c ?? 0))
-  }, [])
+  }, [venueId])
   return count
 }
 
-function useVenueLogo() {
+function useVenueLogo(venueId) {
   const [logoUrl, setLogoUrl] = useState('')
   useEffect(() => {
-    supabase.from('app_settings').select('value').eq('key', 'logo_url').single()
+    if (!venueId) return
+    supabase.from('app_settings').select('value').eq('venue_id', venueId).eq('key', 'logo_url').single()
       .then(({ data }) => { if (data?.value) setLogoUrl(data.value) })
-  }, [])
+  }, [venueId])
   return logoUrl
 }
 
@@ -54,9 +61,9 @@ function NavDropdown({ label, items, alert, currentPath }) {
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
 
-  // Is any child route active?
+  // Is any child route active? (items already have full venue-prefixed paths)
   const isGroupActive = items.some(
-    item => currentPath === item.to || (item.to !== '/dashboard' && currentPath.startsWith(item.to))
+    item => currentPath === item.to || currentPath.startsWith(item.to + '/')
   )
 
   // Close on outside click
@@ -90,9 +97,9 @@ function NavDropdown({ label, items, alert, currentPath }) {
       </button>
 
       {open && (
-        <div className="absolute top-full left-0 mt-px bg-white rounded-xl shadow-xl border border-charcoal/10 py-1.5 z-50 min-w-[180px]">
+        <div className="absolute top-full left-0 mt-px bg-white dark:bg-[#252525] rounded-xl shadow-xl border border-charcoal/10 py-1.5 z-50 min-w-[180px]">
           {items.map(item => {
-            const isActive = currentPath === item.to || (item.to !== '/dashboard' && currentPath.startsWith(item.to))
+            const isActive = currentPath === item.to || currentPath.startsWith(item.to + '/')
             return (
               <NavLink
                 key={item.to}
@@ -119,20 +126,30 @@ function NavDropdown({ label, items, alert, currentPath }) {
 /* ── Main AppShell ───────────────────────────────────────────────────────── */
 export default function AppShell({ children }) {
   const { session, isManager, signOut } = useSession()
+  const { venueId, venueSlug } = useVenue()
   const location     = useLocation()
   const navigate     = useNavigate()
-  const overdueCount = useOverdueCleaning()
-  const pendingSwaps = usePendingSwaps()
-  const logoUrl      = useVenueLogo()
+  const overdueCount = useOverdueCleaning(venueId)
+  const pendingSwaps = usePendingSwaps(venueId)
+  const logoUrl      = useVenueLogo(venueId)
   const navRef       = useRef(null)
   const [canScrollLeft, setCanScrollLeft]   = useState(false)
   const [canScrollRight, setCanScrollRight] = useState(false)
 
   const name = session?.staffName ?? ''
 
+  /** Prefix a local path with the venue base, e.g. '/dashboard' → '/v/my-venue/dashboard' */
+  const vp = (p) => `/v/${venueSlug}${p}`
+
+  /** Strip venue prefix from current pathname for matching, e.g. '/v/my-venue/dashboard' → '/dashboard' */
+  const base = `/v/${venueSlug}`
+  const localPath = location.pathname.startsWith(base)
+    ? (location.pathname.slice(base.length) || '/')
+    : location.pathname
+
   const handleSignOut = () => {
     signOut()
-    navigate('/', { replace: true })
+    navigate(`/v/${venueSlug}`, { replace: true })
   }
 
   // ── Nav scroll state ───────────────────────────────────────────────────
@@ -165,42 +182,47 @@ export default function AppShell({ children }) {
 
   // ── Manager nav: grouped with dropdowns ──────────────────────────────
   const complianceItems = [
-    { to: '/fridge',       label: 'TEMP LOGS' },
-    { to: '/deliveries',   label: 'DELIVERIES' },
-    { to: '/probe',        label: 'PROBE CAL.' },
-    { to: '/allergens',    label: 'ALLERGENS' },
-    { to: '/cleaning',     label: overdueCount > 0 ? `CLEANING (${overdueCount})` : 'CLEANING', alert: overdueCount > 0 },
-    { to: '/corrective',   label: 'ACTIONS' },
+    { to: vp('/fridge'),       label: 'TEMP LOGS' },
+    { to: vp('/deliveries'),   label: 'DELIVERIES' },
+    { to: vp('/probe'),        label: 'PROBE CAL.' },
+    { to: vp('/allergens'),    label: 'ALLERGENS' },
+    { to: vp('/cleaning'),     label: overdueCount > 0 ? `CLEANING (${overdueCount})` : 'CLEANING', alert: overdueCount > 0 },
+    { to: vp('/corrective'),   label: 'ACTIONS' },
   ]
   const hasComplianceAlert = overdueCount > 0
 
   const teamItems = [
-    { to: '/rota',       label: pendingSwaps > 0 ? `ROTA (${pendingSwaps})` : 'ROTA', alert: pendingSwaps > 0 },
-    { to: '/timesheet',  label: 'HOURS' },
-    { to: '/training',   label: 'TRAINING' },
-    { to: '/time-off',   label: 'TIME OFF' },
+    { to: vp('/rota'),       label: pendingSwaps > 0 ? `ROTA (${pendingSwaps})` : 'ROTA', alert: pendingSwaps > 0 },
+    { to: vp('/timesheet'),  label: 'HOURS' },
+    { to: vp('/training'),   label: 'TRAINING' },
+    { to: vp('/time-off'),   label: 'TIME OFF' },
   ]
   const hasTeamAlert = pendingSwaps > 0
 
   // Staff nav: flat (fewer items, no dropdowns needed)
   const staffLinks = [
-    { to: '/dashboard',       label: 'MY SHIFT' },
-    { to: '/opening-closing', label: 'CHECKS' },
-    { to: '/cleaning',        label: 'CLEANING' },
-    ...(session?.showTempLogs  ? [{ to: '/fridge',    label: 'TEMP LOGS' }] : []),
-    ...(session?.showAllergens ? [{ to: '/allergens', label: 'ALLERGENS' }] : []),
-    { to: '/rota',            label: 'ROTA' },
-    { to: '/time-off',        label: 'TIME OFF' },
+    { to: vp('/dashboard'),       label: 'MY SHIFT' },
+    { to: vp('/opening-closing'), label: 'CHECKS' },
+    { to: vp('/cleaning'),        label: 'CLEANING' },
+    ...(session?.showTempLogs  ? [{ to: vp('/fridge'),    label: 'TEMP LOGS' }] : []),
+    { to: vp('/allergens'), label: 'ALLERGENS' },
+    { to: vp('/rota'),            label: 'ROTA' },
+    { to: vp('/time-off'),        label: 'TIME OFF' },
   ]
 
-  const bgClass = isManager ? 'bg-cream'   : 'bg-staffbg'
+  const bgClass = isManager ? 'bg-cream dark:bg-[#111111]' : 'bg-staffbg dark:bg-[#111111]'
   const maxW    = isManager ? 'max-w-[900px]' : 'max-w-[560px]'
 
   return (
     <div className={`min-h-dvh ${bgClass} font-sans flex flex-col`} style={{ paddingLeft: 'env(safe-area-inset-left)', paddingRight: 'env(safe-area-inset-right)' }}>
 
+      {/* Skip to content — a11y */}
+      <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:z-[100] focus:top-2 focus:left-2 focus:bg-accent focus:text-white focus:px-4 focus:py-2 focus:rounded-lg focus:text-sm focus:font-semibold">
+        Skip to content
+      </a>
+
       {/* Header */}
-      <header className="bg-charcoal shrink-0" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
+      <header className="bg-charcoal dark:bg-[#0a0a0a] shrink-0" role="banner" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
         <div className={`${maxW} mx-auto px-3 sm:px-8 h-12 flex items-center justify-between gap-1.5`}>
           {/* Left: logo */}
           <span className="font-serif text-cream text-lg tracking-tight shrink-0">SafeServ</span>
@@ -210,6 +232,7 @@ export default function AppShell({ children }) {
             <span className="hidden sm:block text-xs text-cream/60 font-medium max-w-[120px] truncate">{name}</span>
             <button
               onClick={handleSignOut}
+              aria-label="Sign out"
               className="text-[10px] sm:text-[11px] tracking-wider sm:tracking-widest uppercase text-cream/50 border border-cream/20 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded hover:text-cream hover:border-cream/50 transition-colors whitespace-nowrap"
             >
               Sign Out
@@ -228,8 +251,8 @@ export default function AppShell({ children }) {
       {/* Offline banner */}
       <OfflineBanner />
 
-      {/* Nav tabs */}
-      <nav className="bg-white border-b border-charcoal/10 shrink-0 relative">
+      {/* Desktop nav tabs — hidden on mobile where MobileNav takes over */}
+      <nav className="hidden sm:block bg-white dark:bg-[#1a1a1a] border-b border-charcoal/10 shrink-0 relative" aria-label="Main navigation">
         {canScrollLeft && (
           <div className="absolute left-0 top-0 bottom-0 w-6 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none" />
         )}
@@ -242,11 +265,12 @@ export default function AppShell({ children }) {
             <>
               {/* Dashboard — direct link */}
               <NavLink
-                to="/dashboard"
-                data-active={location.pathname === '/dashboard'}
+                to={vp('/dashboard')}
+                data-active={localPath === '/dashboard'}
+                aria-current={localPath === '/dashboard' ? 'page' : undefined}
                 className={[
                   'px-3 sm:px-4 py-3 sm:py-3.5 text-[10px] sm:text-[11px] tracking-widest font-semibold whitespace-nowrap transition-colors border-b-2 -mb-px shrink-0',
-                  location.pathname === '/dashboard'
+                  localPath === '/dashboard'
                     ? 'text-charcoal border-accent'
                     : 'text-charcoal/35 border-transparent hover:text-charcoal/60',
                 ].join(' ')}
@@ -256,11 +280,12 @@ export default function AppShell({ children }) {
 
               {/* Checks — direct link */}
               <NavLink
-                to="/opening-closing"
-                data-active={location.pathname.startsWith('/opening-closing')}
+                to={vp('/opening-closing')}
+                data-active={localPath.startsWith('/opening-closing')}
+                aria-current={localPath.startsWith('/opening-closing') ? 'page' : undefined}
                 className={[
                   'px-3 sm:px-4 py-3 sm:py-3.5 text-[10px] sm:text-[11px] tracking-widest font-semibold whitespace-nowrap transition-colors border-b-2 -mb-px shrink-0',
-                  location.pathname.startsWith('/opening-closing')
+                  localPath.startsWith('/opening-closing')
                     ? 'text-charcoal border-accent'
                     : 'text-charcoal/35 border-transparent hover:text-charcoal/60',
                 ].join(' ')}
@@ -286,11 +311,12 @@ export default function AppShell({ children }) {
 
               {/* EHO Audit — direct link */}
               <NavLink
-                to="/audit"
-                data-active={location.pathname === '/audit'}
+                to={vp('/audit')}
+                data-active={localPath === '/audit'}
+                aria-current={localPath === '/audit' ? 'page' : undefined}
                 className={[
                   'px-3 sm:px-4 py-3 sm:py-3.5 text-[10px] sm:text-[11px] tracking-widest font-semibold whitespace-nowrap transition-colors border-b-2 -mb-px shrink-0',
-                  location.pathname === '/audit'
+                  localPath === '/audit'
                     ? 'text-charcoal border-accent'
                     : 'text-charcoal/35 border-transparent hover:text-charcoal/60',
                 ].join(' ')}
@@ -300,11 +326,12 @@ export default function AppShell({ children }) {
 
               {/* Settings — direct link */}
               <NavLink
-                to="/settings"
-                data-active={location.pathname.startsWith('/settings')}
+                to={vp('/settings')}
+                data-active={localPath.startsWith('/settings')}
+                aria-current={localPath.startsWith('/settings') ? 'page' : undefined}
                 className={[
                   'px-3 sm:px-4 py-3 sm:py-3.5 text-[10px] sm:text-[11px] tracking-widest font-semibold whitespace-nowrap transition-colors border-b-2 -mb-px shrink-0',
-                  location.pathname.startsWith('/settings')
+                  localPath.startsWith('/settings')
                     ? 'text-charcoal border-accent'
                     : 'text-charcoal/35 border-transparent hover:text-charcoal/60',
                 ].join(' ')}
@@ -315,11 +342,13 @@ export default function AppShell({ children }) {
           ) : (
             // Staff: flat nav (fewer items)
             staffLinks.map(l => {
-              const isActive = location.pathname === l.to || (l.to !== '/dashboard' && location.pathname.startsWith(l.to))
+              const lLocal = l.to.slice(base.length)
+              const isActive = localPath === lLocal || (lLocal !== '/dashboard' && localPath.startsWith(lLocal))
               return (
                 <NavLink
                   key={l.to} to={l.to}
                   data-active={isActive}
+                  aria-current={isActive ? 'page' : undefined}
                   className={[
                     'px-3 sm:px-4 py-3 sm:py-3.5 text-[10px] sm:text-[11px] tracking-widest font-semibold whitespace-nowrap transition-colors border-b-2 -mb-px',
                     isActive
@@ -338,8 +367,11 @@ export default function AppShell({ children }) {
         )}
       </nav>
 
+      {/* Mobile sub-nav (rendered by MobileNav) + page content */}
+      <MobileNav />
+
       {/* Page content */}
-      <main className={`flex-1 ${maxW} mx-auto w-full px-4 sm:px-8 py-6 sm:py-8`}>
+      <main id="main-content" role="main" className={`flex-1 ${maxW} mx-auto w-full px-4 sm:px-8 py-6 sm:py-8 pb-20 sm:pb-8`}>
         {children}
       </main>
     </div>
