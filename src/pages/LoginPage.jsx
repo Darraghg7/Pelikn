@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase'
 import { useSession } from '../contexts/SessionContext'
 import { useVenue } from '../contexts/VenueContext'
 import { useAuth } from '../contexts/AuthContext'
+import { FullPageLoader } from '../components/ui/LoadingSpinner'
 
 const ROLE_LABEL = {
   owner:   'Owner',
@@ -63,7 +64,7 @@ export default function LoginPage() {
     // On success SessionContext sets session -> useEffect above redirects
   }
 
-  if (loading) return null
+  if (loading) return <FullPageLoader />
 
   return (
     <div className="min-h-dvh bg-cream flex flex-col items-center justify-center px-5 py-10 font-sans">

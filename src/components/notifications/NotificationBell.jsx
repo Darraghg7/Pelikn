@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useNotifications } from '../../hooks/useNotifications'
 import { useSession } from '../../contexts/SessionContext'
+import { useVenue } from '../../contexts/VenueContext'
 
 const TYPE_ICON = {
   swap_request:       '🔄',
@@ -21,6 +22,7 @@ const TYPE_ICON = {
 
 export default function NotificationBell() {
   const { isManager } = useSession()
+  const { venueSlug } = useVenue()
   const { notifications, count } = useNotifications(isManager)
   const [open, setOpen] = useState(false)
   const [dismissed, setDismissed] = useState(false)
@@ -81,7 +83,7 @@ export default function NotificationBell() {
               {notifications.map(n => (
                 <li key={n.id}>
                   <Link
-                    to={n.link}
+                    to={`/v/${venueSlug}${n.link}`}
                     onClick={() => setOpen(false)}
                     className="flex items-start gap-3 px-4 py-3 hover:bg-charcoal/3 transition-colors"
                   >
