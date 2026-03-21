@@ -281,18 +281,20 @@ export default function AppShell({ children }) {
         style={{ paddingTop: 'env(safe-area-inset-top)' }}
         aria-label="Sidebar navigation"
       >
-        {/* Logo + venue name */}
-        <div className="px-5 pt-5 pb-4 border-b border-charcoal/10 dark:border-white/8 shrink-0">
-          <div className="flex items-center gap-2.5">
+        {/* Logo + venue name + notification bell */}
+        <div className="px-4 pt-5 pb-4 border-b border-charcoal/10 dark:border-white/8 shrink-0">
+          <div className="flex items-center gap-2">
             {logoUrl ? (
               <img src={logoUrl} alt="Venue logo" className="h-7 w-7 rounded-md object-contain bg-charcoal/8 dark:bg-white/10 p-0.5 shrink-0" />
             ) : null}
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1">
               <span className="font-serif text-charcoal dark:text-cream text-lg leading-none tracking-tight block">SafeServ</span>
               {venueName && (
                 <p className="text-[11px] text-charcoal/45 dark:text-white/35 mt-0.5 truncate">{venueName}</p>
               )}
             </div>
+            {/* Bell lives here — top of sidebar, always visible */}
+            <NotificationBell variant="dark" />
           </div>
         </div>
 
@@ -347,12 +349,11 @@ export default function AppShell({ children }) {
           )}
         </nav>
 
-        {/* Bottom: notifications + user + signout */}
+        {/* Bottom: user name + signout */}
         <div className="shrink-0 border-t border-charcoal/10 dark:border-white/8 px-4 py-4 space-y-3">
-          <div className="flex items-center justify-between">
-            <NotificationBell />
-            <span className="text-[12px] text-charcoal/50 dark:text-white/40 truncate ml-2 flex-1 text-right">{name}</span>
-          </div>
+          {name && (
+            <p className="text-[12px] text-charcoal/45 dark:text-white/35 truncate text-center">{name}</p>
+          )}
           <button
             onClick={handleSignOut}
             className="w-full text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/30 border border-charcoal/12 dark:border-white/12 rounded-lg py-2 hover:text-charcoal dark:hover:text-white/60 hover:border-charcoal/30 dark:hover:border-white/30 transition-colors"
