@@ -18,10 +18,35 @@ const PERMISSION_LABELS = { staff: 'Staff', manager: 'Manager', owner: 'Owner' }
 const JOB_ROLES  = ['kitchen', 'foh']
 const JOB_LABELS = { kitchen: 'Kitchen', foh: 'Front of House' }
 
-function SectionLabel({ children }) {
-  return <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-3">{children}</p>
+/* ── Collapsible settings section ──────────────────────────────────────────── */
+function SettingsSection({ title, subtitle, children, defaultOpen = false }) {
+  const [open, setOpen] = useState(defaultOpen)
+  return (
+    <div className="bg-white dark:bg-white/5 rounded-xl border border-charcoal/10 dark:border-white/10 overflow-hidden">
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        className="w-full flex items-center justify-between px-6 py-4 text-left hover:bg-charcoal/[0.02] dark:hover:bg-white/[0.02] transition-colors"
+      >
+        <div className="flex-1 min-w-0 mr-3">
+          <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">{title}</p>
+          {subtitle && <p className="text-xs text-charcoal/30 dark:text-white/25 mt-0.5 truncate">{subtitle}</p>}
+        </div>
+        <span
+          className="text-charcoal/25 dark:text-white/20 text-sm shrink-0 inline-block transition-transform duration-200"
+          style={{ transform: open ? 'rotate(180deg)' : 'rotate(0deg)' }}
+        >▾</span>
+      </button>
+      {open && (
+        <div className="px-6 pb-6 pt-5 border-t border-charcoal/8 dark:border-white/8">
+          {children}
+        </div>
+      )}
+    </div>
+  )
 }
 
+/* ── Data hooks ─────────────────────────────────────────────────────────────── */
 function useVenueSettings() {
   const { venueId } = useVenue()
   const [settings, setSettings] = useState({ venue_name: '', manager_email: '', logo_url: '' })
@@ -69,6 +94,7 @@ const EMPTY_FORM = {
 
 const EMPTY_TRAINING = { title: '', issued_date: '', expiry_date: '', notes: '' }
 
+/* ── Training section ───────────────────────────────────────────────────────── */
 function TrainingSection({ staffId }) {
   const { venueId } = useVenue()
   const toast = useToast()
@@ -222,6 +248,7 @@ function TrainingSection({ staffId }) {
   )
 }
 
+/* ── Notifications panel ────────────────────────────────────────────────────── */
 function NotificationsPanel({ session, toast, settings }) {
   const { supported, permission, subscribed, subscribing, subscribe, unsubscribe } =
     usePushNotifications(session?.staffId)
@@ -238,56 +265,55 @@ function NotificationsPanel({ session, toast, settings }) {
   }
 
   return (
-    <div className="bg-white rounded-xl border border-charcoal/10 p-6">
-      <SectionLabel>Notifications &amp; Reports</SectionLabel>
-      <div className="flex flex-col gap-5">
-
-        {/* Push notifications */}
-        <div>
-          <p className="text-sm font-medium text-charcoal mb-1">Push Notifications</p>
-          <p className="text-xs text-charcoal/40 mb-3">
-            Receive alerts on your phone for late clock-ins and overdue tasks — even when the app is in the background.
-          </p>
-          {!supported ? (
-            <p className="text-xs text-charcoal/35 italic">Push notifications are not supported in this browser. Install the app on your phone to enable them.</p>
-          ) : permission === 'denied' ? (
-            <p className="text-xs text-danger/70">Notifications blocked. Please enable them in your browser/phone settings.</p>
-          ) : subscribed ? (
-            <div className="flex items-center gap-3">
-              <span className="text-xs text-success font-medium">● Notifications enabled</span>
-              <button onClick={unsubscribe}
-                className="text-xs text-charcoal/40 hover:text-danger transition-colors underline underline-offset-2">
-                Disable
-              </button>
-            </div>
-          ) : (
-            <button onClick={subscribe} disabled={subscribing}
-              className="bg-charcoal text-cream px-4 py-2 rounded-lg text-sm font-medium hover:bg-charcoal/90 transition-colors disabled:opacity-40">
-              {subscribing ? 'Enabling…' : 'Enable Notifications →'}
+    <div className="flex flex-col gap-5">
+      {/* Push notifications */}
+      <div>
+        <p className="text-sm font-medium text-charcoal mb-1">Push Notifications</p>
+        <p className="text-xs text-charcoal/40 mb-3">
+          Receive alerts on your phone for late clock-ins and overdue tasks — even when the app is in the background.
+        </p>
+        {!supported ? (
+          <p className="text-xs text-charcoal/35 italic">Push notifications are not supported in this browser. Install the app on your phone to enable them.</p>
+        ) : permission === 'denied' ? (
+          <p className="text-xs text-danger/70">Notifications blocked. Please enable them in your browser/phone settings.</p>
+        ) : subscribed ? (
+          <div className="flex items-center gap-3">
+            <span className="text-xs text-success font-medium">● Notifications enabled</span>
+            <button onClick={unsubscribe}
+              className="text-xs text-charcoal/40 hover:text-danger transition-colors underline underline-offset-2">
+              Disable
             </button>
-          )}
-        </div>
+          </div>
+        ) : (
+          <button onClick={subscribe} disabled={subscribing}
+            className="bg-charcoal text-cream px-4 py-2 rounded-lg text-sm font-medium hover:bg-charcoal/90 transition-colors disabled:opacity-40">
+            {subscribing ? 'Enabling…' : 'Enable Notifications →'}
+          </button>
+        )}
+      </div>
 
-        {/* Weekly email report */}
-        <div className="border-t border-charcoal/8 pt-4">
-          <p className="text-sm font-medium text-charcoal mb-1">Weekly Report</p>
-          <p className="text-xs text-charcoal/40 mb-3">
-            Send a summary report to <span className="font-medium text-charcoal/60">{settings.manager_email || 'your manager email'}</span> covering hours, temp checks, cleaning and waste for the past 7 days.
-          </p>
-          {!settings.manager_email ? (
-            <p className="text-xs text-charcoal/35 italic">Set your manager email in Venue Details to enable reports.</p>
-          ) : (
-            <button onClick={sendWeeklyReport} disabled={sendingReport}
-              className="bg-charcoal text-cream px-4 py-2 rounded-lg text-sm font-medium hover:bg-charcoal/90 transition-colors disabled:opacity-40">
-              {sendingReport ? 'Sending…' : 'Send Weekly Report →'}
-            </button>
-          )}
-        </div>
+      {/* Weekly email report */}
+      <div className="border-t border-charcoal/8 pt-4">
+        <p className="text-sm font-medium text-charcoal mb-1">Weekly Report</p>
+        <p className="text-xs text-charcoal/40 mb-3">
+          Send a summary report to <span className="font-medium text-charcoal/60">{settings.manager_email || 'your manager email'}</span> covering hours, temp checks, cleaning and waste for the past 7 days.
+        </p>
+        {!settings.manager_email ? (
+          <p className="text-xs text-charcoal/35 italic">Set your manager email in Venue Details to enable reports.</p>
+        ) : (
+          <button onClick={sendWeeklyReport} disabled={sendingReport}
+            className="bg-charcoal text-cream px-4 py-2 rounded-lg text-sm font-medium hover:bg-charcoal/90 transition-colors disabled:opacity-40">
+            {sendingReport ? 'Sending…' : 'Send Weekly Report →'}
+          </button>
+        )}
       </div>
     </div>
   )
 }
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   SETTINGS PAGE
+   ═══════════════════════════════════════════════════════════════════════════ */
 export default function SettingsPage() {
   const toast = useToast()
   const { session } = useSession()
@@ -492,13 +518,14 @@ export default function SettingsPage() {
     return <div className="flex justify-center pt-20"><LoadingSpinner size="lg" /></div>
   }
 
-  return (
-    <div className="flex flex-col gap-8">
-      <h1 className="font-serif text-3xl text-charcoal">Settings</h1>
+  const activeStaffCount = staff.filter(s => s.is_active).length
 
-      {/* Venue */}
-      <div className="bg-white rounded-xl border border-charcoal/10 p-6">
-        <SectionLabel>Venue Details</SectionLabel>
+  return (
+    <div className="flex flex-col gap-4">
+      <h1 className="font-serif text-3xl text-charcoal dark:text-white">Settings</h1>
+
+      {/* ── Venue Details ──────────────────────────────────────────────────── */}
+      <SettingsSection title="Venue Details" defaultOpen>
         <div className="flex flex-col gap-4">
           <div>
             <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-2">Venue Name</label>
@@ -559,30 +586,29 @@ export default function SettingsPage() {
             </div>
           </div>
         </div>
-      </div>
+      </SettingsSection>
 
-      {/* Appearance */}
-      <div className="bg-white rounded-xl border border-charcoal/10 p-6">
-        <SectionLabel>Appearance</SectionLabel>
+      {/* ── Appearance ─────────────────────────────────────────────────────── */}
+      <SettingsSection title="Appearance" subtitle="Dark mode · Theme">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm font-medium text-charcoal">Dark Mode</p>
-            <p className="text-xs text-charcoal/40 mt-0.5">
+            <p className="text-sm font-medium text-charcoal dark:text-white">Dark Mode</p>
+            <p className="text-xs text-charcoal/40 dark:text-white/40 mt-0.5">
               {dark ? 'Dark theme is active.' : 'Switch to a darker colour scheme.'}
             </p>
           </div>
-          <button
-            onClick={toggleDark}
-            className="flex items-center gap-1.5"
-          >
+          <button onClick={toggleDark} className="flex items-center gap-1.5">
             <span className="text-base">{dark ? '🌙' : '☀️'}</span>
             <Toggle checked={dark} onChange={toggleDark} />
+          </button>
         </div>
-      </div>
+      </SettingsSection>
 
-      {/* Features & Modules */}
-      <div className="bg-white dark:bg-white/5 rounded-xl border border-charcoal/10 dark:border-white/10 p-6">
-        <SectionLabel>Features &amp; Modules</SectionLabel>
+      {/* ── Features & Modules ─────────────────────────────────────────────── */}
+      <SettingsSection
+        title="Features & Modules"
+        subtitle={featuresConfig.mode === 'all' ? 'All features enabled' : `Custom — ${featuresConfig.enabled?.length ?? 0} enabled`}
+      >
         <p className="text-xs text-charcoal/40 dark:text-white/40 mb-5">
           Choose which features are available in this venue. Disabled features are hidden from the navigation.
         </p>
@@ -609,10 +635,9 @@ export default function SettingsPage() {
 
         {/* Feature groups — only shown in custom mode */}
         {featuresConfig.mode === 'custom' && (
-          <div className="space-y-6">
+          <div className="space-y-4">
             {FEATURE_GROUPS.map(group => {
-              const allOn  = group.features.every(f => featuresConfig.enabled?.includes(f.id))
-              const someOn = group.features.some(f => featuresConfig.enabled?.includes(f.id))
+              const allOn = group.features.every(f => featuresConfig.enabled?.includes(f.id))
 
               const toggleGroup = () => {
                 const next = allOn
@@ -631,17 +656,13 @@ export default function SettingsPage() {
 
               return (
                 <div key={group.id} className="rounded-xl border border-charcoal/10 dark:border-white/10 overflow-hidden">
-                  {/* Group header */}
                   <div className="flex items-center justify-between px-4 py-3 bg-charcoal/3 dark:bg-white/4 border-b border-charcoal/8 dark:border-white/8">
                     <div>
                       <p className="text-sm font-semibold text-charcoal dark:text-white">{group.label}</p>
                       <p className="text-[11px] text-charcoal/40 dark:text-white/35 mt-0.5">{group.description}</p>
                     </div>
-                    {/* Group toggle */}
                     <Toggle checked={allOn} onChange={toggleGroup} />
                   </div>
-
-                  {/* Individual features */}
                   <div className="divide-y divide-charcoal/6 dark:divide-white/6">
                     {group.features.map(feature => {
                       const on = featuresConfig.enabled?.includes(feature.id) ?? true
@@ -669,11 +690,10 @@ export default function SettingsPage() {
             All {ALL_FEATURE_IDS.length} features are enabled. Switch to Custom to hide modules that don't apply to your business.
           </p>
         )}
-      </div>
+      </SettingsSection>
 
-      {/* Roles */}
-      <div className="bg-white rounded-xl border border-charcoal/10 p-6">
-        <SectionLabel>Roles</SectionLabel>
+      {/* ── Roles ──────────────────────────────────────────────────────────── */}
+      <SettingsSection title="Roles" subtitle={`${customRoles.length} roles configured`}>
         <p className="text-xs text-charcoal/40 mb-4">
           Manage the roles available for shift assignment and the rota builder.
         </p>
@@ -704,13 +724,15 @@ export default function SettingsPage() {
             Add →
           </button>
         </div>
-      </div>
+      </SettingsSection>
 
-      {/* Opening Days */}
-      <div className="bg-white rounded-xl border border-charcoal/10 p-6">
-        <SectionLabel>Opening Days</SectionLabel>
+      {/* ── Opening Days ───────────────────────────────────────────────────── */}
+      <SettingsSection
+        title="Opening Days"
+        subtitle={closedDays.length === 0 ? 'All 7 days open' : `Closed: ${closedDays.sort((a,b)=>a-b).map(d=>DAY_NAMES[d]).join(', ')}`}
+      >
         <p className="text-xs text-charcoal/40 mb-4">
-          Mark days the café is closed. Closed days are skipped by the rota builder and greyed out in the schedule.
+          Mark days the venue is closed. Closed days are skipped by the rota builder and greyed out in the schedule.
         </p>
         <div className="flex gap-2 flex-wrap">
           {DAY_NAMES.map((day, i) => {
@@ -731,25 +753,19 @@ export default function SettingsPage() {
             )
           })}
         </div>
-        <p className="text-[11px] text-charcoal/35 mt-3">
-          {closedDays.length === 0
-            ? 'All days open.'
-            : `Closed: ${closedDays.sort((a, b) => a - b).map(d => DAY_NAMES[d]).join(', ')}`}
-        </p>
-      </div>
+      </SettingsSection>
 
-      {/* Break Duration */}
-      <div className="bg-white rounded-xl border border-charcoal/10 p-6">
-        <SectionLabel>Rota &amp; Pay</SectionLabel>
+      {/* ── Rota & Pay ─────────────────────────────────────────────────────── */}
+      <SettingsSection title="Rota & Pay" subtitle={`Adult break: ${breakDurationMins} min · Under-18: 30 min`}>
         <p className="text-sm text-charcoal/50 mb-5">
           Set the unpaid break deducted from paid hours for adult staff (18+) working more than 6 hours. UK law requires a minimum of 20 minutes. Under-18 staff always get 30 minutes as required by law.
         </p>
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-wrap gap-3">
           <div>
             <p className="text-sm font-medium text-charcoal">Break duration (adults, shifts &gt;6h)</p>
             <p className="text-xs text-charcoal/40 mt-0.5">Deducted from paid hours and wage cost</p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             {[15, 20, 30, 45, 60].map(mins => (
               <button
                 key={mins}
@@ -766,30 +782,33 @@ export default function SettingsPage() {
             ))}
           </div>
         </div>
-        <p className="text-xs text-charcoal/35 mt-3">
-          Currently set to <span className="font-semibold text-charcoal">{breakDurationMins} minutes</span>.
-          {breakDurationMins < 20 && (
-            <span className="text-warning ml-2">Note: UK minimum is 20 minutes.</span>
-          )}
-        </p>
-      </div>
+        {breakDurationMins < 20 && (
+          <p className="text-xs text-warning mt-3">Note: UK minimum break is 20 minutes.</p>
+        )}
+      </SettingsSection>
 
-      {/* Notifications & Reports */}
-      <NotificationsPanel session={session} toast={toast} settings={settings} />
+      {/* ── Notifications & Reports ────────────────────────────────────────── */}
+      <SettingsSection title="Notifications & Reports" subtitle="Push alerts · Weekly email">
+        <NotificationsPanel session={session} toast={toast} settings={settings} />
+      </SettingsSection>
 
-      {/* Staff */}
-      <div className="bg-white rounded-xl border border-charcoal/10 p-6">
-        <div className="flex items-center justify-between mb-4">
-          <SectionLabel>Staff Members</SectionLabel>
-          {!showForm && (
+      {/* ── Staff Members ──────────────────────────────────────────────────── */}
+      <SettingsSection
+        title="Staff Members"
+        subtitle={`${activeStaffCount} active member${activeStaffCount !== 1 ? 's' : ''}`}
+        defaultOpen
+      >
+        {/* Add staff button */}
+        {!showForm && (
+          <div className="flex justify-end mb-4">
             <button
               onClick={openAdd}
               className="text-[11px] tracking-widest uppercase text-charcoal/40 hover:text-charcoal transition-colors border-b border-charcoal/20"
             >
               + Add Staff
             </button>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Add / Edit form */}
         {showForm && (
@@ -1019,13 +1038,14 @@ export default function SettingsPage() {
                   </span>
                   {s.show_temp_logs  && <span className="text-[11px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded">Temp Logs</span>}
                   {s.show_allergens  && <span className="text-[11px] bg-amber-50 text-amber-600 px-1.5 py-0.5 rounded">Allergens</span>}
+                  {s.is_under_18     && <span className="text-[11px] bg-teal-50 text-teal-600 px-1.5 py-0.5 rounded">Under 18</span>}
                   {(s.skills ?? []).map(sk => {
                     const roleDef = customRoles.find(r => r.value === sk)
                     return roleDef ? (
                       <span key={sk} className={`text-[11px] px-1.5 py-0.5 rounded ${roleDef.color}`}>{roleDef.label}</span>
                     ) : null
                   })}
-                  {!s.is_active      && <span className="text-[11px] tracking-widest uppercase text-charcoal/30 italic">inactive</span>}
+                  {!s.is_active && <span className="text-[11px] tracking-widest uppercase text-charcoal/30 italic">inactive</span>}
                 </div>
                 <div className="flex items-center gap-3 mt-0.5">
                   {s.email && <p className="text-xs text-charcoal/40">{s.email}</p>}
@@ -1051,7 +1071,7 @@ export default function SettingsPage() {
           ))}
           {staff.length === 0 && <p className="text-sm text-charcoal/35 italic py-4">No staff members yet.</p>}
         </div>
-      </div>
+      </SettingsSection>
     </div>
   )
 }

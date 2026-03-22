@@ -2,6 +2,20 @@ import React, { useEffect, useState, useCallback } from 'react'
 import { format } from 'date-fns'
 import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
+
+const PLAN_CONFIG = {
+  starter: { label: 'Starter',     bg: 'bg-teal-50',    text: 'text-teal-700',   border: 'border-teal-200' },
+  pro:     { label: 'Pro',         bg: 'bg-accent/10',  text: 'text-accent',     border: 'border-accent/25' },
+  multi:   { label: 'Multi-Venue', bg: 'bg-purple-50',  text: 'text-purple-700', border: 'border-purple-200' },
+}
+function PlanBadge({ plan }) {
+  const cfg = PLAN_CONFIG[plan] ?? PLAN_CONFIG.starter
+  return (
+    <span className={`text-[10px] tracking-widest uppercase font-semibold px-2 py-0.5 rounded border ${cfg.bg} ${cfg.text} ${cfg.border}`}>
+      {cfg.label}
+    </span>
+  )
+}
 import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../../components/ui/Toast'
 import { WIDGET_REGISTRY, DEFAULT_WIDGETS, ALL_WIDGET_IDS } from '../../components/widgets/WidgetRegistry'
@@ -207,7 +221,7 @@ function WidgetPicker({ open, onClose, activeIds, onSave }) {
    ═══════════════════════════════════════════════════════════════════════════ */
 
 export default function ManagerDashboardPage() {
-  const { venueId } = useVenue()
+  const { venueId, venuePlan } = useVenue()
   const { session } = useSession()
   const toast = useToast()
   const { venueName, logoUrl } = useVenueBranding(venueId)
@@ -235,7 +249,10 @@ export default function ManagerDashboardPage() {
               <p className="font-serif text-2xl sm:text-3xl text-charcoal font-semibold">{venueName}</p>
             )}
             <p className="text-xs uppercase tracking-widest text-charcoal/40 mt-0.5">{format(new Date(), 'EEEE, d MMMM')}</p>
-            <p className="text-sm text-charcoal/40 mt-0.5">Manager Dashboard</p>
+            <div className="flex items-center gap-2 mt-0.5">
+              <p className="text-sm text-charcoal/40">Manager Dashboard</p>
+              <PlanBadge plan={venuePlan} />
+            </div>
           </div>
         </div>
         <button

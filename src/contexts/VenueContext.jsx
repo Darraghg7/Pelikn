@@ -10,7 +10,7 @@ const VenueContext = createContext(null)
 
 export function VenueProvider({ children }) {
   const { venueSlug } = useParams()
-  const [venue, setVenue] = useState(null)    // { id, name, slug }
+  const [venue, setVenue] = useState(null)    // { id, name, slug, plan }
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
 
@@ -19,7 +19,7 @@ export function VenueProvider({ children }) {
 
     supabase
       .from('venues')
-      .select('id, name, slug')
+      .select('id, name, slug, plan')
       .eq('slug', venueSlug.toLowerCase())
       .single()
       .then(({ data, error: err }) => {
@@ -34,7 +34,7 @@ export function VenueProvider({ children }) {
 
   // useMemo must be called unconditionally (Rules of Hooks) — before any early returns
   const value = useMemo(() => !venue ? null : {
-    venueId: venue.id, venueSlug: venue.slug, venueName: venue.name
+    venueId: venue.id, venueSlug: venue.slug, venueName: venue.name, venuePlan: venue.plan ?? 'starter'
   }, [venue])
 
   if (loading) return <FullPageLoader />
@@ -60,7 +60,7 @@ export function useVenue() {
   const ctx = useContext(VenueContext)
   if (!ctx) {
     // Fallback for components rendered outside VenueProvider (shouldn't happen in normal flow)
-    return { venueId: null, venueSlug: null, venueName: null }
+    return { venueId: null, venueSlug: null, venueName: null, venuePlan: 'starter' }
   }
   return ctx
 }
