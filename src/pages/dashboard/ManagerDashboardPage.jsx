@@ -3,10 +3,10 @@ import { format } from 'date-fns'
 import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
 
+// Multi-venue is just Pro × number of venues — no separate tier in the app
 const PLAN_CONFIG = {
-  starter: { label: 'Starter',     bg: 'bg-teal-50',    text: 'text-teal-700',   border: 'border-teal-200' },
-  pro:     { label: 'Pro',         bg: 'bg-accent/10',  text: 'text-accent',     border: 'border-accent/25' },
-  multi:   { label: 'Multi-Venue', bg: 'bg-purple-50',  text: 'text-purple-700', border: 'border-purple-200' },
+  starter: { label: 'Starter', bg: 'bg-teal-50',   text: 'text-teal-700', border: 'border-teal-200'  },
+  pro:     { label: 'Pro',     bg: 'bg-accent/10', text: 'text-accent',   border: 'border-accent/25' },
 }
 function PlanBadge({ plan }) {
   const cfg = PLAN_CONFIG[plan] ?? PLAN_CONFIG.starter
