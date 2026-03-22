@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { format, addWeeks } from 'date-fns'
 import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
-import { useShifts, useStaffList, shiftDurationHours } from '../../hooks/useShifts'
+import { useShifts, useStaffList, shiftDurationHours, paidShiftHours, unpaidBreakMins } from '../../hooks/useShifts'
 import { useShiftSwaps } from '../../hooks/useShiftSwaps'
 import { useAvailability } from '../../hooks/useAvailability'
 import { useSession } from '../../contexts/SessionContext'
@@ -211,9 +211,13 @@ export default function RotaPage() {
   // Derived data
   const duration = fmtDuration(form.startTime, form.endTime)
   const staffMemberForModal = modal ? staff.find((s) => s.id === modal?.staffMember?.id) : null
-  const hourlyRate = staffMemberForModal?.hourly_rate ?? 0
-  const shiftWage  = hourlyRate > 0 && duration
-    ? fmtGBP(shiftDurationHours(form.startTime, form.endTime) * hourlyRate)
+  const hourlyRate  = staffMemberForModal?.hourly_rate ?? 0
+  const isUnder18   = staffMemberForModal?.is_under_18 ?? false
+  const rawHrs      = shiftDurationHours(form.startTime, form.endTime)
+  const breakMins   = duration ? unpaidBreakMins(rawHrs, isUnder18) : 0
+  const paidHrs     = duration ? paidShiftHours(form.startTime, form.endTime, isUnder18) : 0
+  const shiftWage   = hourlyRate > 0 && duration
+    ? fmtGBP(paidHrs * hourlyRate)
     : null
 
   const selectedRole = ROLE_OPTIONS.find((r) => r.label === form.roleLabel)
@@ -511,37 +515,38 @@ export default function RotaPage() {
         <Modal
           open={!!modal}
           onClose={() => setModal(null)}
-          title={modal ? `${modal.staffMember?.name} — ${format(modal.date ?? new Date(), 'EEE d MMM')}` : ''}
+          title={modal ? `${modal.staffMember?.name} · ${format(modal.date ?? new Date(), 'EEE d MMM')}` : ''}
         >
           {modal && (
             <div className="flex flex-col gap-5">
 
               {/* Existing shifts for this day */}
               {modal.dayShifts?.length > 0 && (
-                <div className="flex flex-col gap-2">
-                  <SectionLabel>Existing Shifts</SectionLabel>
+                <div className="rounded-xl border border-warning/30 bg-warning/6 p-3 flex flex-col gap-2">
+                  <p className="text-[10px] tracking-widest uppercase text-warning/80 font-semibold flex items-center gap-1.5">
+                    <span>⚠</span> Already scheduled this day
+                  </p>
                   {modal.dayShifts.map((sh) => (
-                    <div key={sh.id} className="flex items-center justify-between bg-charcoal/4 rounded-xl px-4 py-3 border border-charcoal/8">
+                    <div key={sh.id} className="flex items-center justify-between bg-white rounded-lg px-3 py-2.5 border border-charcoal/8">
                       <div>
                         <p className="font-semibold text-charcoal text-sm font-mono">
                           {sh.start_time.slice(0,5)} – {sh.end_time.slice(0,5)}
                           <span className="font-sans font-normal text-charcoal/40 text-xs ml-2">
-                            · {fmtDuration(sh.start_time, sh.end_time)}
+                            {fmtDuration(sh.start_time, sh.end_time)}
                           </span>
                         </p>
                         <p className="text-xs text-charcoal/50 mt-0.5">{sh.role_label}</p>
                       </div>
-                      <div className="flex gap-2">
-                        <button onClick={() => openEdit(sh)} className="text-xs px-3 py-1.5 rounded-lg border border-charcoal/15 text-charcoal/60 hover:text-charcoal hover:border-charcoal/30 transition-colors">Edit</button>
-                        <button onClick={() => deleteShift(sh.id)} className="text-xs px-3 py-1.5 rounded-lg border border-danger/20 text-danger/60 hover:text-danger hover:border-danger/40 transition-colors">Remove</button>
+                      <div className="flex gap-1.5">
+                        <button onClick={() => openEdit(sh)} className="text-xs px-2.5 py-1.5 rounded-lg border border-charcoal/15 text-charcoal/60 hover:text-charcoal hover:border-charcoal/30 transition-colors">Edit</button>
+                        <button onClick={() => deleteShift(sh.id)} className="text-xs px-2.5 py-1.5 rounded-lg border border-danger/20 text-danger/60 hover:text-danger hover:border-danger/40 transition-colors">Remove</button>
                       </div>
                     </div>
                   ))}
-                  <div className="border-t border-charcoal/8 pt-1" />
                 </div>
               )}
 
-              <SectionLabel>{editShift ? 'Edit Shift' : 'Add a Shift'}</SectionLabel>
+              <SectionLabel>{editShift ? 'Edit Shift' : modal.dayShifts?.length > 0 ? 'Add Another Shift' : 'Add a Shift'}</SectionLabel>
 
               {/* Quick presets */}
               <div>
@@ -593,19 +598,26 @@ export default function RotaPage() {
 
                 {/* Duration + wage preview */}
                 {duration && (
-                  <div className="mt-3 flex items-center justify-between rounded-xl bg-charcoal/4 px-4 py-3">
-                    <div className="flex items-center gap-2">
-                      <span className="text-lg">⏱</span>
-                      <div>
-                        <p className="text-xs text-charcoal/50">Shift duration</p>
-                        <p className="font-semibold text-charcoal">{duration}</p>
+                  <div className="mt-3 rounded-xl bg-charcoal/4 px-4 py-3 flex flex-col gap-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">⏱</span>
+                        <div>
+                          <p className="text-xs text-charcoal/50">Shift duration</p>
+                          <p className="font-semibold text-charcoal">{duration}</p>
+                        </div>
                       </div>
+                      {shiftWage && (
+                        <div className="text-right">
+                          <p className="text-xs text-charcoal/50">Est. cost (paid hrs)</p>
+                          <p className="font-semibold text-charcoal font-mono">{shiftWage}</p>
+                        </div>
+                      )}
                     </div>
-                    {shiftWage && (
-                      <div className="text-right">
-                        <p className="text-xs text-charcoal/50">Est. cost</p>
-                        <p className="font-semibold text-charcoal font-mono">{shiftWage}</p>
-                      </div>
+                    {breakMins > 0 && (
+                      <p className="text-[11px] text-charcoal/40 border-t border-charcoal/8 pt-2">
+                        Includes {breakMins} min unpaid {isUnder18 ? 'break (under-18 rule)' : 'break'} — {paidHrs.toFixed(2)}h paid
+                      </p>
                     )}
                   </div>
                 )}

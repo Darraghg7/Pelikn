@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { format, isToday } from 'date-fns'
 import { getWeekDays } from '../../lib/utils'
-import { shiftDurationHours } from '../../hooks/useShifts'
+import { shiftDurationHours, paidShiftHours, unpaidBreakMins } from '../../hooks/useShifts'
 
 const DAY_LABELS = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN']
 
@@ -192,7 +192,9 @@ function DesktopWeekTable({ days, shifts, staff, onCellClick, onToggleAvailabili
         <tbody>
           {staff.map((s) => {
             const staffShifts = shifts.filter((sh) => sh.staff_id === s.id)
-            const totalHrs    = staffShifts.reduce((acc, sh) => acc + shiftDurationHours(sh.start_time, sh.end_time), 0)
+            const isUnder18   = s.is_under_18 ?? false
+            const totalHrs    = staffShifts.reduce((acc, sh) => acc + paidShiftHours(sh.start_time, sh.end_time, isUnder18), 0)
+            const rawHrs      = staffShifts.reduce((acc, sh) => acc + shiftDurationHours(sh.start_time, sh.end_time), 0)
             const wageCost    = totalHrs * (s.hourly_rate ?? 0)
             const isOwnStaff  = !isManager && currentStaffId === s.id
 
@@ -339,10 +341,13 @@ function DesktopWeekTable({ days, shifts, staff, onCellClick, onToggleAvailabili
                     {wageCost > 0 ? (
                       <div>
                         <p className="font-mono text-sm font-semibold text-charcoal">{fmtGBP(wageCost)}</p>
-                        <p className="text-[10px] text-charcoal/35">{totalHrs.toFixed(1)}h</p>
+                        <p className="text-[10px] text-charcoal/35">{totalHrs.toFixed(1)}h paid</p>
+                        {rawHrs !== totalHrs && (
+                          <p className="text-[9px] text-charcoal/25">{isUnder18 ? '30m' : '20m'} break</p>
+                        )}
                       </div>
                     ) : (
-                      <p className="text-charcoal/20 text-xs">—</p>
+                      <p className="text-charcoal/20 text-xs">-</p>
                     )}
                   </td>
                 )}
@@ -391,7 +396,8 @@ export default function RotaWeekView({
 
   const weeklyTotal = staff.reduce((total, s) => {
     const staffShifts = shifts.filter((sh) => sh.staff_id === s.id)
-    const hrs = staffShifts.reduce((acc, sh) => acc + shiftDurationHours(sh.start_time, sh.end_time), 0)
+    const isUnder18 = s.is_under_18 ?? false
+    const hrs = staffShifts.reduce((acc, sh) => acc + paidShiftHours(sh.start_time, sh.end_time, isUnder18), 0)
     return total + hrs * (s.hourly_rate ?? 0)
   }, 0)
 

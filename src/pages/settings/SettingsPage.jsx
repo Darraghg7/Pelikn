@@ -10,6 +10,7 @@ import { usePushNotifications } from '../../hooks/usePushNotifications'
 import { useAppSettings } from '../../hooks/useSettings'
 import { useTheme } from '../../contexts/ThemeContext'
 import { useVenueFeatures, FEATURE_GROUPS, ALL_FEATURE_IDS } from '../../hooks/useVenueFeatures'
+import Toggle from '../../components/ui/Toggle'
 
 const PERMISSION_ROLES  = ['staff', 'manager', 'owner']
 const PERMISSION_LABELS = { staff: 'Staff', manager: 'Manager', owner: 'Owner' }
@@ -51,7 +52,7 @@ function useStaffManagement() {
     setLoading(true)
     const { data } = await supabase
       .from('staff')
-      .select('id, name, email, job_role, role, hourly_rate, is_active, show_temp_logs, show_allergens, photo_url, skills')
+      .select('id, name, email, job_role, role, hourly_rate, is_active, show_temp_logs, show_allergens, photo_url, skills, is_under_18')
       .eq('venue_id', venueId)
       .order('name')
     setStaff(data ?? [])
@@ -63,7 +64,7 @@ function useStaffManagement() {
 
 const EMPTY_FORM = {
   name: '', role: 'staff', job_role: 'kitchen', pin: '', email: '', hourly_rate: '',
-  show_temp_logs: false, show_allergens: false, skills: [],
+  show_temp_logs: false, show_allergens: false, skills: [], is_under_18: false,
 }
 
 const EMPTY_TRAINING = { title: '', issued_date: '', expiry_date: '', notes: '' }
@@ -406,6 +407,7 @@ export default function SettingsPage() {
       show_temp_logs: s.show_temp_logs ?? false,
       show_allergens: s.show_allergens ?? false,
       skills:         s.skills ?? [],
+      is_under_18:    s.is_under_18 ?? false,
     })
     setEditingId(s.id)
     setShowForm(true)
@@ -451,6 +453,24 @@ export default function SettingsPage() {
 
     setSavingStaff(false)
     if (error) { toast(error.message, 'error'); return }
+
+    // Persist is_under_18 directly (not in RPC)
+    if (editingId) {
+      await supabase.from('staff').update({ is_under_18: staffForm.is_under_18 }).eq('id', editingId)
+    } else {
+      // Find the newly created staff member by name + venue
+      const { data: newRow } = await supabase
+        .from('staff')
+        .select('id')
+        .eq('venue_id', venueId)
+        .eq('name', staffForm.name.trim())
+        .order('created_at', { ascending: false })
+        .limit(1)
+      if (newRow?.[0]?.id && staffForm.is_under_18) {
+        await supabase.from('staff').update({ is_under_18: true }).eq('id', newRow[0].id)
+      }
+    }
+
     toast(editingId ? 'Staff member updated' : 'Staff member added')
     setShowForm(false)
     setEditingId(null)
@@ -553,20 +573,10 @@ export default function SettingsPage() {
           </div>
           <button
             onClick={toggleDark}
-            className={[
-              'relative w-12 h-7 rounded-full transition-colors duration-200 shrink-0',
-              dark ? 'bg-accent' : 'bg-charcoal/15',
-            ].join(' ')}
+            className="flex items-center gap-1.5"
           >
-            <span
-              className={[
-                'absolute top-0.5 w-6 h-6 rounded-full bg-white shadow transition-transform duration-200 flex items-center justify-center text-sm',
-                dark ? 'translate-x-5' : 'translate-x-0.5',
-              ].join(' ')}
-            >
-              {dark ? '🌙' : '☀️'}
-            </span>
-          </button>
+            <span className="text-base">{dark ? '🌙' : '☀️'}</span>
+            <Toggle checked={dark} onChange={toggleDark} />
         </div>
       </div>
 
@@ -628,16 +638,7 @@ export default function SettingsPage() {
                       <p className="text-[11px] text-charcoal/40 dark:text-white/35 mt-0.5">{group.description}</p>
                     </div>
                     {/* Group toggle */}
-                    <button
-                      onClick={toggleGroup}
-                      className={`relative w-10 h-6 rounded-full transition-colors duration-200 shrink-0 ${
-                        allOn ? 'bg-accent' : someOn ? 'bg-accent/40' : 'bg-charcoal/15 dark:bg-white/15'
-                      }`}
-                    >
-                      <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform duration-200 ${
-                        allOn ? 'translate-x-4' : 'translate-x-0.5'
-                      }`} />
-                    </button>
+                    <Toggle checked={allOn} onChange={toggleGroup} />
                   </div>
 
                   {/* Individual features */}
@@ -652,16 +653,7 @@ export default function SettingsPage() {
                             </p>
                             <p className="text-[11px] text-charcoal/40 dark:text-white/35 mt-0.5 truncate">{feature.description}</p>
                           </div>
-                          <button
-                            onClick={() => toggleFeature(feature.id)}
-                            className={`relative w-10 h-6 rounded-full transition-colors duration-200 shrink-0 ${
-                              on ? 'bg-accent' : 'bg-charcoal/15 dark:bg-white/15'
-                            }`}
-                          >
-                            <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform duration-200 ${
-                              on ? 'translate-x-4' : 'translate-x-0.5'
-                            }`} />
-                          </button>
+                          <Toggle checked={on} onChange={() => toggleFeature(feature.id)} />
                         </div>
                       )
                     })}
@@ -917,28 +909,40 @@ export default function SettingsPage() {
               </p>
             </div>
 
+            {/* Under-18 toggle */}
+            <div className="flex items-center justify-between rounded-xl border border-charcoal/10 px-4 py-3 bg-charcoal/2">
+              <div>
+                <p className="text-sm font-medium text-charcoal">Under 18</p>
+                <p className="text-[11px] text-charcoal/45 mt-0.5">
+                  Applies 30-min unpaid break for shifts over 4.5h (UK law)
+                </p>
+              </div>
+              <Toggle
+                checked={staffForm.is_under_18}
+                onChange={v => setStaffForm(f => ({ ...f, is_under_18: v }))}
+              />
+            </div>
+
             {/* Tab access toggles */}
             <div>
               <label className="text-[10px] tracking-widest uppercase text-charcoal/40 block mb-2">App Tab Access</label>
-              <div className="flex gap-4">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={staffForm.show_temp_logs}
-                    onChange={e => setStaffForm(f => ({ ...f, show_temp_logs: e.target.checked }))}
-                    className="w-4 h-4 rounded accent-charcoal"
-                  />
+              <div className="flex flex-col gap-2.5">
+                <div className="flex items-center justify-between">
                   <span className="text-sm text-charcoal">Temp Logs</span>
-                </label>
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={staffForm.show_allergens}
-                    onChange={e => setStaffForm(f => ({ ...f, show_allergens: e.target.checked }))}
-                    className="w-4 h-4 rounded accent-charcoal"
+                  <Toggle
+                    checked={staffForm.show_temp_logs}
+                    onChange={v => setStaffForm(f => ({ ...f, show_temp_logs: v }))}
+                    size="sm"
                   />
+                </div>
+                <div className="flex items-center justify-between">
                   <span className="text-sm text-charcoal">Allergens</span>
-                </label>
+                  <Toggle
+                    checked={staffForm.show_allergens}
+                    onChange={v => setStaffForm(f => ({ ...f, show_allergens: v }))}
+                    size="sm"
+                  />
+                </div>
               </div>
             </div>
 
