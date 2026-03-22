@@ -178,7 +178,6 @@ function getManagerTabs(vp) {
 function getStaffTabs(session, vp) {
   const taskChildren = [
     { to: vp('/opening-closing'), label: 'Checks' },
-    { to: vp('/fitness'),         label: 'Fitness' },
     { to: vp('/cleaning'),        label: 'Cleaning' },
     ...(session?.showTempLogs  ? [{ to: vp('/fridge'),    label: 'Temp Logs' }] : []),
     { to: vp('/allergens'), label: 'Allergens' },
@@ -197,7 +196,7 @@ function getStaffTabs(session, vp) {
       label: 'Tasks',
       to: vp('/opening-closing'),
       icon: TasksIcon,
-      match: ['/opening-closing', '/fitness', '/cleaning', '/fridge', '/allergens'],
+      match: ['/opening-closing', '/cleaning', '/fridge', '/allergens'],
       children: taskChildren.length > 1 ? taskChildren : undefined,
     },
     {

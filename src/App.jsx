@@ -146,11 +146,11 @@ function VenueRoutes() {
             <Route path="allergens/:id"     element={wrap(FoodItemDetailPage)} />
             <Route path="cleaning"          element={wrap(CleaningPage)} />
             <Route path="opening-closing"   element={wrap(OpeningClosingPage)} />
-            <Route path="fitness"           element={wrap(FitnessPage)} />
             <Route path="rota"              element={wrap(RotaPage)} />
             <Route path="time-off"          element={wrap(TimeOffPage)} />
 
             {/* Manager only */}
+            <Route path="fitness"            element={wrap(FitnessPage,            RequireManager)} />
             <Route path="cooking-temps"      element={wrap(CookingTempsPage,       RequireManager)} />
             <Route path="hot-holding"        element={wrap(HotHoldingPage,         RequireManager)} />
             <Route path="cooling-logs"       element={wrap(CoolingLogsPage,        RequireManager)} />
