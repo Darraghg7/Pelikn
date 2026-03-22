@@ -64,6 +64,9 @@ import TimeOffPage from './pages/timeoff/TimeOffPage'
 // Settings
 import SettingsPage from './pages/settings/SettingsPage'
 
+// Fitness to Work (SC7)
+import FitnessPage from './pages/fitness/FitnessPage'
+
 import NotFoundPage from './pages/NotFoundPage'
 
 // ── Guards ───────────────────────────────────────────────────────────────────
@@ -143,6 +146,7 @@ function VenueRoutes() {
             <Route path="allergens/:id"     element={wrap(FoodItemDetailPage)} />
             <Route path="cleaning"          element={wrap(CleaningPage)} />
             <Route path="opening-closing"   element={wrap(OpeningClosingPage)} />
+            <Route path="fitness"           element={wrap(FitnessPage)} />
             <Route path="rota"              element={wrap(RotaPage)} />
             <Route path="time-off"          element={wrap(TimeOffPage)} />
 

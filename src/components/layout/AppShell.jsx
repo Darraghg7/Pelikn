@@ -305,6 +305,7 @@ export default function AppShell({ children }) {
               <div className="space-y-0.5 px-0 pt-2">
                 <SideItem to={vp('/dashboard')}      icon={IcoDashboard} label="Dashboard"   isActive={isAt('/dashboard')} />
                 {isEnabled('opening_closing') && <SideItem to={vp('/opening-closing')} icon={IcoChecks} label="Checks" isActive={isUnder('/opening-closing')} />}
+                <SideItem to={vp('/fitness')} icon={IcoUser} label="Fitness to Work" isActive={isUnder('/fitness')} />
               </div>
 
               <SideSection label="Compliance" />
@@ -338,6 +339,7 @@ export default function AppShell({ children }) {
             <div className="space-y-0.5 pt-2">
               <SideItem to={vp('/dashboard')}       icon={IcoUser}       label="My Shift"  isActive={isAt('/dashboard')} />
               {isEnabled('opening_closing') && <SideItem to={vp('/opening-closing')} icon={IcoChecks}     label="Checks"    isActive={isUnder('/opening-closing')} />}
+              <SideItem to={vp('/fitness')} icon={IcoUser} label="Fitness to Work" isActive={isUnder('/fitness')} />
               {isEnabled('cleaning')        && <SideItem to={vp('/cleaning')}        icon={IcoCompliance} label="Cleaning"  isActive={isUnder('/cleaning')} />}
               {isEnabled('fridge') && session?.showTempLogs && (
                 <SideItem to={vp('/fridge')} icon={IcoCompliance} label="Temp Logs" isActive={isUnder('/fridge')} />

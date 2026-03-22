@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { format } from 'date-fns'
 import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
@@ -28,19 +28,45 @@ function RoleBadge({ role }) {
   )
 }
 
+// ── Staff picker hook ──────────────────────────────────────────────────────────
+
+function useStaffList() {
+  const { venueId } = useVenue()
+  const [staff, setStaff] = useState([])
+  const load = useCallback(async () => {
+    if (!venueId) return
+    const { data } = await supabase
+      .from('staff')
+      .select('id, name, job_role')
+      .eq('venue_id', venueId)
+      .eq('is_active', true)
+      .order('name')
+    setStaff(data ?? [])
+  }, [venueId])
+  useEffect(() => { load() }, [load])
+  return staff
+}
+
 // ── Manager View ──────────────────────────────────────────
 function ManagerTasksView() {
   const toast = useToast()
   const { venueId } = useVenue()
   const today = new Date()
   const { templates, oneOffs, completions, loading, reload } = useAllTasks(today)
+  const staffList = useStaffList()
 
   const [activeRoleTab, setActiveRoleTab] = useState('all')
   const [showAddTemplate, setShowAddTemplate] = useState(false)
   const [showAddOneOff, setShowAddOneOff]     = useState(false)
   const [tForm, setTForm]   = useState({ title: '', job_role: 'kitchen' })
-  const [oForm, setOForm]   = useState({ title: '', job_role: 'kitchen', due_date: format(today, 'yyyy-MM-dd') })
-  const [saving, setSaving] = useState(false)
+  const [oForm, setOForm]   = useState({
+    title: '',
+    job_role: 'all',
+    due_date: format(today, 'yyyy-MM-dd'),
+    assigned_to_staff_id: '',
+    assigned_to_name: '',
+  })
+  const [saving, setSaving]   = useState(false)
   const [deleting, setDeleting] = useState(null)
 
   const filteredTemplates = activeRoleTab === 'all'
@@ -49,7 +75,7 @@ function ManagerTasksView() {
 
   const filteredOneOffs = activeRoleTab === 'all'
     ? oneOffs
-    : oneOffs.filter((o) => o.job_role === activeRoleTab)
+    : oneOffs.filter((o) => o.job_role === activeRoleTab || o.assigned_to_name)
 
   const saveTemplate = async () => {
     if (!tForm.title.trim()) return
@@ -68,13 +94,23 @@ function ManagerTasksView() {
   const saveOneOff = async () => {
     if (!oForm.title.trim()) return
     setSaving(true)
+
+    const assignee = oForm.assigned_to_staff_id
+      ? staffList.find(s => s.id === oForm.assigned_to_staff_id)
+      : null
+
     const { error } = await supabase.from('task_one_offs').insert({
-      title: oForm.title.trim(), job_role: oForm.job_role, due_date: oForm.due_date, venue_id: venueId,
+      title:                 oForm.title.trim(),
+      job_role:              assignee ? assignee.job_role : oForm.job_role,
+      due_date:              oForm.due_date,
+      venue_id:              venueId,
+      assigned_to_staff_id:  assignee?.id  ?? null,
+      assigned_to_name:      assignee?.name ?? null,
     })
     setSaving(false)
     if (error) { toast(error.message, 'error'); return }
     toast('One-off task added')
-    setOForm({ title: '', job_role: 'kitchen', due_date: format(today, 'yyyy-MM-dd') })
+    setOForm({ title: '', job_role: 'all', due_date: format(today, 'yyyy-MM-dd'), assigned_to_staff_id: '', assigned_to_name: '' })
     setShowAddOneOff(false)
     reload()
   }
@@ -208,7 +244,7 @@ function ManagerTasksView() {
             onClick={() => setShowAddOneOff((v) => !v)}
             className="text-[11px] tracking-widest uppercase text-charcoal/40 hover:text-charcoal transition-colors border-b border-charcoal/20"
           >
-            + Add One-Off
+            + Assign Task
           </button>
         </div>
 
@@ -217,37 +253,65 @@ function ManagerTasksView() {
             <input
               value={oForm.title}
               onChange={(e) => setOForm((f) => ({ ...f, title: e.target.value }))}
-              placeholder="One-off task e.g. Check delivery from supplier"
+              placeholder="Task description e.g. Check delivery from supplier"
               className="px-4 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
             />
-            <div className="flex gap-2 items-center flex-wrap">
+
+            {/* Due date */}
+            <div className="flex items-center gap-2 flex-wrap">
+              <label className="text-[11px] text-charcoal/50 whitespace-nowrap">Due date:</label>
               <input
                 type="date"
                 value={oForm.due_date}
                 onChange={(e) => setOForm((f) => ({ ...f, due_date: e.target.value }))}
                 className="px-3 py-2 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
               />
-              {JOB_ROLES.map((r) => (
-                <button
-                  key={r}
-                  type="button"
-                  onClick={() => setOForm((f) => ({ ...f, job_role: r }))}
-                  className={[
-                    'px-3 py-1.5 rounded-full text-xs font-medium border transition-all',
-                    oForm.job_role === r ? 'bg-charcoal text-cream border-charcoal' : 'bg-white text-charcoal/50 border-charcoal/15',
-                  ].join(' ')}
-                >
-                  {ROLE_LABELS[r]}
-                </button>
-              ))}
             </div>
+
+            {/* Assign to specific person OR role */}
+            <div>
+              <p className="text-[11px] text-charcoal/50 mb-2">Assign to:</p>
+              <div className="flex flex-col gap-2">
+                {/* Staff picker */}
+                <select
+                  value={oForm.assigned_to_staff_id}
+                  onChange={(e) => setOForm((f) => ({ ...f, assigned_to_staff_id: e.target.value }))}
+                  className="px-3 py-2 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+                >
+                  <option value="">— Specific person (optional) —</option>
+                  {staffList.map((s) => (
+                    <option key={s.id} value={s.id}>{s.name} ({ROLE_LABELS[s.job_role] ?? s.job_role})</option>
+                  ))}
+                </select>
+
+                {/* Role picker (shown when no specific person selected) */}
+                {!oForm.assigned_to_staff_id && (
+                  <div className="flex gap-2 flex-wrap">
+                    {JOB_ROLES.map((r) => (
+                      <button
+                        key={r}
+                        type="button"
+                        onClick={() => setOForm((f) => ({ ...f, job_role: r }))}
+                        className={[
+                          'px-3 py-1.5 rounded-full text-xs font-medium border transition-all',
+                          oForm.job_role === r ? 'bg-charcoal text-cream border-charcoal' : 'bg-white text-charcoal/50 border-charcoal/15',
+                        ].join(' ')}
+                      >
+                        {ROLE_LABELS[r]}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
             <div className="flex gap-2">
               <button
                 onClick={saveOneOff}
                 disabled={saving || !oForm.title.trim()}
                 className="flex-1 bg-charcoal text-cream py-2 rounded-lg text-sm font-medium disabled:opacity-40"
               >
-                {saving ? 'Saving…' : 'Add Task →'}
+                {saving ? 'Saving…' : 'Assign Task →'}
               </button>
               <button onClick={() => setShowAddOneOff(false)} className="px-4 py-2 rounded-lg border border-charcoal/15 text-sm text-charcoal/50">
                 Cancel
@@ -267,11 +331,16 @@ function ManagerTasksView() {
                   </span>
                   <div>
                     <p className={`text-sm ${comp ? 'line-through text-charcoal/30' : 'text-charcoal'}`}>{o.title}</p>
-                    {comp && <p className="text-xs text-charcoal/30">{comp.completed_by_name}</p>}
+                    <div className="flex items-center gap-2 mt-0.5">
+                      {o.assigned_to_name ? (
+                        <span className="text-[11px] text-accent font-medium">→ {o.assigned_to_name}</span>
+                      ) : null}
+                      {comp && <p className="text-xs text-charcoal/30">Done by {comp.completed_by_name}</p>}
+                    </div>
                   </div>
                 </div>
                 <div className="flex items-center gap-3 shrink-0">
-                  <RoleBadge role={o.job_role} />
+                  {!o.assigned_to_name && <RoleBadge role={o.job_role} />}
                   <button
                     onClick={() => deleteOneOff(o.id)}
                     disabled={deleting === o.id}
@@ -296,7 +365,7 @@ function ManagerTasksView() {
 function StaffTasksView({ session }) {
   const toast = useToast()
   const jobRole = session?.jobRole ?? 'kitchen'
-  const { templates, oneOffs, completions, loading, reload } = useTasksForRole(jobRole)
+  const { templates, oneOffs, completions, loading, reload } = useTasksForRole(jobRole, session?.staffId)
   const [completing, setCompleting] = useState(null)
 
   const completeTask = async (templateId, oneOffId) => {
@@ -354,6 +423,7 @@ function StaffTasksView({ session }) {
               (!isTemplate && c.task_one_off_id === t.id)
             )
             const key = t.id
+            const isPersonal = !isTemplate && t.assigned_to_staff_id === session?.staffId
             return (
               <button
                 key={key}
@@ -376,14 +446,18 @@ function StaffTasksView({ session }) {
                   <p className={`text-sm font-medium ${comp ? 'line-through text-charcoal/30' : 'text-charcoal'}`}>
                     {t.title}
                   </p>
-                  {!isTemplate && (
-                    <p className="text-xs text-charcoal/30 mt-0.5">One-off task</p>
-                  )}
-                  {comp && (
-                    <p className="text-xs text-charcoal/30 mt-0.5">
-                      Done by {comp.completed_by_name} · {format(new Date(comp.completed_at), 'HH:mm')}
-                    </p>
-                  )}
+                  <div className="flex items-center gap-2 mt-0.5">
+                    {isPersonal && (
+                      <span className="text-[10px] bg-accent/10 text-accent px-2 py-0.5 rounded font-medium">
+                        Assigned to you
+                      </span>
+                    )}
+                    {comp && (
+                      <p className="text-xs text-charcoal/30">
+                        Done · {format(new Date(comp.completed_at), 'HH:mm')}
+                      </p>
+                    )}
+                  </div>
                 </div>
               </button>
             )
