@@ -17,10 +17,21 @@ export function AuthProvider({ children }) {
   const [authLoading, setAuthLoading] = useState(true)
 
   // ── Resolve which venue this user owns ────────────────────────────────
-  const resolveVenue = async (email) => {
-    if (!email) return null
+  // Strategy 1: owner_id on venues (set by create_venue_with_owner RPC — all new accounts)
+  // Strategy 2: manager_email in app_settings (legacy fallback for pre-RPC venues)
+  const resolveVenue = async (email, userId) => {
+    // Strategy 1 — owner_id (most reliable)
+    if (userId) {
+      const { data: owned } = await supabase
+        .from('venues')
+        .select('slug')
+        .eq('owner_id', userId)
+        .maybeSingle()
+      if (owned?.slug) return owned.slug
+    }
 
-    // Look up venue via app_settings manager_email
+    // Strategy 2 — manager_email fallback (legacy)
+    if (!email) return null
     const { data } = await supabase
       .from('app_settings')
       .select('venue_id')
@@ -31,7 +42,6 @@ export function AuthProvider({ children }) {
 
     if (!data?.venue_id) return null
 
-    // Get the venue slug
     const { data: venue } = await supabase
       .from('venues')
       .select('slug')
@@ -60,7 +70,7 @@ export function AuthProvider({ children }) {
         if (session?.user) {
           setUser(session.user)
           try {
-            const slug = await resolveVenue(session.user.email)
+            const slug = await resolveVenue(session.user.email, session.user.id)
             if (!cancelled) setVenueSlug(slug)
           } catch (err) {
             console.warn('[AuthContext] resolveVenue failed:', err)
@@ -82,7 +92,7 @@ export function AuthProvider({ children }) {
             setUser(session.user)
             // Only re-resolve venue on actual sign-in, not every token refresh
             if (event === 'SIGNED_IN') {
-              const slug = await resolveVenue(session.user.email)
+              const slug = await resolveVenue(session.user.email, session.user.id)
               setVenueSlug(slug)
             }
           }
@@ -105,7 +115,7 @@ export function AuthProvider({ children }) {
     if (error) return { error }
 
     // Resolve venue for this user
-    const slug = await resolveVenue(email)
+    const slug = await resolveVenue(email, data.user.id)
     if (!slug) {
       // No venue found — sign out and return error
       await supabase.auth.signOut()
