@@ -47,6 +47,83 @@ function useStaffList() {
   return staff
 }
 
+// ── Shared task row used in manager columns ─────────────────────────────────
+function ManagerTaskRow({ item, isTemplate, completions, onDelete, deleting }) {
+  const comp = completions.find((c) =>
+    isTemplate ? c.task_template_id === item.id : c.task_one_off_id === item.id
+  )
+  return (
+    <div className="py-2.5 first:pt-0 last:pb-0 flex items-center justify-between gap-2">
+      <div className="flex items-center gap-2.5 min-w-0">
+        <span className={`w-3.5 h-3.5 rounded border shrink-0 flex items-center justify-center text-[10px] ${comp ? 'bg-success border-success text-white' : 'border-charcoal/20'}`}>
+          {comp ? '✓' : ''}
+        </span>
+        <div className="min-w-0">
+          <p className={`text-sm truncate ${comp ? 'line-through text-charcoal/30' : 'text-charcoal'}`}>{item.title}</p>
+          <div className="flex items-center gap-1.5 flex-wrap">
+            {!isTemplate && item.assigned_to_name && (
+              <span className="text-[11px] text-accent font-medium">→ {item.assigned_to_name}</span>
+            )}
+            {comp && <p className="text-[11px] text-charcoal/30">{comp.completed_by_name}</p>}
+          </div>
+        </div>
+      </div>
+      <button
+        onClick={() => onDelete(item.id)}
+        disabled={deleting === item.id}
+        className="text-xs text-charcoal/20 hover:text-danger transition-colors shrink-0"
+      >×</button>
+    </div>
+  )
+}
+
+// ── Department column ─────────────────────────────────────────────────────────
+function DeptColumn({ role, label, color, templates, oneOffs, completions, onDeleteTemplate, onDeleteOneOff, deleting }) {
+  const deptTemplates = templates.filter(t => t.job_role === role)
+  const deptOneOffs   = oneOffs.filter(o => o.job_role === role)
+  const deptDone = completions.filter(c =>
+    deptTemplates.some(t => t.id === c.task_template_id) ||
+    deptOneOffs.some(o => o.id === c.task_one_off_id)
+  ).length
+  const deptTotal = deptTemplates.length + deptOneOffs.length
+
+  return (
+    <div className="flex-1 min-w-0 bg-white rounded-xl border border-charcoal/10 overflow-hidden">
+      {/* Column header */}
+      <div className={`px-4 py-3 border-b border-charcoal/8 flex items-center justify-between ${color}`}>
+        <p className="text-sm font-semibold">{label}</p>
+        <span className="text-xs font-medium opacity-70">{deptDone}/{deptTotal}</span>
+      </div>
+
+      <div className="p-4 flex flex-col gap-0 divide-y divide-charcoal/6">
+        {/* Recurring */}
+        {deptTemplates.length > 0 && (
+          <div className="pb-3">
+            <p className="text-[10px] tracking-widest uppercase text-charcoal/30 mb-2">Recurring</p>
+            {deptTemplates.map(t => (
+              <ManagerTaskRow key={t.id} item={t} isTemplate completions={completions} onDelete={onDeleteTemplate} deleting={deleting} />
+            ))}
+          </div>
+        )}
+
+        {/* One-offs */}
+        {deptOneOffs.length > 0 && (
+          <div className={deptTemplates.length > 0 ? 'pt-3' : ''}>
+            <p className="text-[10px] tracking-widest uppercase text-charcoal/30 mb-2">One-off</p>
+            {deptOneOffs.map(o => (
+              <ManagerTaskRow key={o.id} item={o} isTemplate={false} completions={completions} onDelete={onDeleteOneOff} deleting={deleting} />
+            ))}
+          </div>
+        )}
+
+        {deptTotal === 0 && (
+          <p className="text-xs text-charcoal/30 italic py-2">No tasks</p>
+        )}
+      </div>
+    </div>
+  )
+}
+
 // ── Manager View ──────────────────────────────────────────
 function ManagerTasksView() {
   const toast = useToast()
@@ -55,7 +132,6 @@ function ManagerTasksView() {
   const { templates, oneOffs, completions, loading, reload } = useAllTasks(today)
   const staffList = useStaffList()
 
-  const [activeRoleTab, setActiveRoleTab] = useState('all')
   const [showAddTemplate, setShowAddTemplate] = useState(false)
   const [showAddOneOff, setShowAddOneOff]     = useState(false)
   const [tForm, setTForm]   = useState({ title: '', job_role: 'kitchen' })
@@ -64,18 +140,13 @@ function ManagerTasksView() {
     job_role: 'all',
     due_date: format(today, 'yyyy-MM-dd'),
     assigned_to_staff_id: '',
-    assigned_to_name: '',
   })
   const [saving, setSaving]   = useState(false)
   const [deleting, setDeleting] = useState(null)
 
-  const filteredTemplates = activeRoleTab === 'all'
-    ? templates
-    : templates.filter((t) => t.job_role === activeRoleTab)
-
-  const filteredOneOffs = activeRoleTab === 'all'
-    ? oneOffs
-    : oneOffs.filter((o) => o.job_role === activeRoleTab || o.assigned_to_name)
+  // "All roles" items (templates tagged 'all', one-offs with no role assignment)
+  const allRolesTemplates = templates.filter(t => t.job_role === 'all' || t.job_role === 'bar')
+  const allRolesOneOffs   = oneOffs.filter(o => o.job_role === 'all' || o.job_role === 'bar')
 
   const saveTemplate = async () => {
     if (!tForm.title.trim()) return
@@ -94,23 +165,21 @@ function ManagerTasksView() {
   const saveOneOff = async () => {
     if (!oForm.title.trim()) return
     setSaving(true)
-
     const assignee = oForm.assigned_to_staff_id
       ? staffList.find(s => s.id === oForm.assigned_to_staff_id)
       : null
-
     const { error } = await supabase.from('task_one_offs').insert({
-      title:                 oForm.title.trim(),
-      job_role:              assignee ? assignee.job_role : oForm.job_role,
-      due_date:              oForm.due_date,
-      venue_id:              venueId,
-      assigned_to_staff_id:  assignee?.id  ?? null,
-      assigned_to_name:      assignee?.name ?? null,
+      title:                oForm.title.trim(),
+      job_role:             assignee ? assignee.job_role : oForm.job_role,
+      due_date:             oForm.due_date,
+      venue_id:             venueId,
+      assigned_to_staff_id: assignee?.id   ?? null,
+      assigned_to_name:     assignee?.name ?? null,
     })
     setSaving(false)
     if (error) { toast(error.message, 'error'); return }
     toast('One-off task added')
-    setOForm({ title: '', job_role: 'all', due_date: format(today, 'yyyy-MM-dd'), assigned_to_staff_id: '', assigned_to_name: '' })
+    setOForm({ title: '', job_role: 'all', due_date: format(today, 'yyyy-MM-dd'), assigned_to_staff_id: '' })
     setShowAddOneOff(false)
     reload()
   }
@@ -135,228 +204,157 @@ function ManagerTasksView() {
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Role filter tabs */}
-      <div className="flex gap-2 flex-wrap">
-        {['all', 'kitchen', 'foh', 'bar'].map((r) => (
-          <button
-            key={r}
-            onClick={() => setActiveRoleTab(r)}
-            className={[
-              'px-4 py-1.5 rounded-full text-xs font-medium border transition-all',
-              activeRoleTab === r
-                ? 'bg-charcoal text-cream border-charcoal'
-                : 'bg-white text-charcoal/50 border-charcoal/15 hover:border-charcoal/30',
-            ].join(' ')}
-          >
-            {ROLE_LABELS[r]}
-          </button>
-        ))}
+
+      {/* ── Add forms ─────────────────────────────────────────────────────── */}
+      <div className="flex gap-2">
+        <button
+          onClick={() => { setShowAddTemplate(v => !v); setShowAddOneOff(false) }}
+          className="text-[11px] tracking-widest uppercase text-charcoal/50 hover:text-charcoal transition-colors border-b border-charcoal/20"
+        >
+          + Recurring Task
+        </button>
+        <span className="text-charcoal/20 text-xs self-end pb-0.5">·</span>
+        <button
+          onClick={() => { setShowAddOneOff(v => !v); setShowAddTemplate(false) }}
+          className="text-[11px] tracking-widest uppercase text-charcoal/50 hover:text-charcoal transition-colors border-b border-charcoal/20"
+        >
+          + One-Off Task
+        </button>
       </div>
 
-      {/* Recurring task templates */}
-      <div className="bg-white rounded-xl border border-charcoal/10 p-5">
-        <div className="flex items-center justify-between mb-4">
-          <SectionLabel>Recurring Daily Tasks</SectionLabel>
-          <button
-            onClick={() => setShowAddTemplate((v) => !v)}
-            className="text-[11px] tracking-widest uppercase text-charcoal/40 hover:text-charcoal transition-colors border-b border-charcoal/20"
-          >
-            + Add Template
-          </button>
-        </div>
-
-        {showAddTemplate && (
-          <div className="mb-4 p-4 rounded-xl bg-cream/50 border border-charcoal/10 flex flex-col gap-3">
-            <input
-              value={tForm.title}
-              onChange={(e) => setTForm((f) => ({ ...f, title: e.target.value }))}
-              placeholder="Task title e.g. Clean prep surfaces"
-              className="px-4 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
-            />
-            <div className="flex gap-2 flex-wrap">
-              {JOB_ROLES.map((r) => (
-                <button
-                  key={r}
-                  type="button"
-                  onClick={() => setTForm((f) => ({ ...f, job_role: r }))}
-                  className={[
-                    'px-3 py-1.5 rounded-full text-xs font-medium border transition-all',
-                    tForm.job_role === r ? 'bg-charcoal text-cream border-charcoal' : 'bg-white text-charcoal/50 border-charcoal/15',
-                  ].join(' ')}
-                >
-                  {ROLE_LABELS[r]}
-                </button>
-              ))}
-            </div>
-            <div className="flex gap-2">
-              <button
-                onClick={saveTemplate}
-                disabled={saving || !tForm.title.trim()}
-                className="flex-1 bg-charcoal text-cream py-2 rounded-lg text-sm font-medium disabled:opacity-40"
-              >
-                {saving ? 'Saving…' : 'Save Template →'}
+      {showAddTemplate && (
+        <div className="p-4 rounded-xl bg-cream/50 border border-charcoal/10 flex flex-col gap-3">
+          <p className="text-[11px] tracking-widest uppercase text-charcoal/40">New Recurring Task</p>
+          <input
+            value={tForm.title}
+            onChange={(e) => setTForm((f) => ({ ...f, title: e.target.value }))}
+            placeholder="e.g. Clean prep surfaces"
+            className="px-4 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+          />
+          <div className="flex gap-2 flex-wrap">
+            {JOB_ROLES.map((r) => (
+              <button key={r} type="button" onClick={() => setTForm(f => ({ ...f, job_role: r }))}
+                className={['px-3 py-1.5 rounded-full text-xs font-medium border transition-all',
+                  tForm.job_role === r ? 'bg-charcoal text-cream border-charcoal' : 'bg-white text-charcoal/50 border-charcoal/15',
+                ].join(' ')}>
+                {ROLE_LABELS[r]}
               </button>
-              <button onClick={() => setShowAddTemplate(false)} className="px-4 py-2 rounded-lg border border-charcoal/15 text-sm text-charcoal/50">
-                Cancel
-              </button>
-            </div>
+            ))}
           </div>
-        )}
-
-        <div className="flex flex-col divide-y divide-charcoal/6">
-          {filteredTemplates.map((t) => {
-            const comp = completions.find((c) => c.task_template_id === t.id)
-            return (
-              <div key={t.id} className="py-3 first:pt-0 last:pb-0 flex items-center justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  <span className={`w-4 h-4 rounded border shrink-0 flex items-center justify-center text-[11px] ${comp ? 'bg-success border-success text-white' : 'border-charcoal/20'}`}>
-                    {comp ? '✓' : ''}
-                  </span>
-                  <div>
-                    <p className={`text-sm ${comp ? 'line-through text-charcoal/30' : 'text-charcoal'}`}>{t.title}</p>
-                    {comp && <p className="text-xs text-charcoal/30">{comp.completed_by_name}</p>}
-                  </div>
-                </div>
-                <div className="flex items-center gap-3 shrink-0">
-                  <RoleBadge role={t.job_role} />
-                  <button
-                    onClick={() => deleteTemplate(t.id)}
-                    disabled={deleting === t.id}
-                    className="text-xs text-charcoal/25 hover:text-danger transition-colors"
-                  >
-                    ×
-                  </button>
-                </div>
-              </div>
-            )
-          })}
-          {filteredTemplates.length === 0 && (
-            <p className="text-sm text-charcoal/35 italic py-3">No recurring tasks for this role.</p>
-          )}
+          <div className="flex gap-2">
+            <button onClick={saveTemplate} disabled={saving || !tForm.title.trim()}
+              className="flex-1 bg-charcoal text-cream py-2 rounded-lg text-sm font-medium disabled:opacity-40">
+              {saving ? 'Saving…' : 'Save Template →'}
+            </button>
+            <button onClick={() => setShowAddTemplate(false)} className="px-4 py-2 rounded-lg border border-charcoal/15 text-sm text-charcoal/50">
+              Cancel
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* One-off tasks for today */}
-      <div className="bg-white rounded-xl border border-charcoal/10 p-5">
-        <div className="flex items-center justify-between mb-4">
-          <SectionLabel>One-Off Tasks — Today</SectionLabel>
-          <button
-            onClick={() => setShowAddOneOff((v) => !v)}
-            className="text-[11px] tracking-widest uppercase text-charcoal/40 hover:text-charcoal transition-colors border-b border-charcoal/20"
-          >
-            + Assign Task
-          </button>
-        </div>
-
-        {showAddOneOff && (
-          <div className="mb-4 p-4 rounded-xl bg-cream/50 border border-charcoal/10 flex flex-col gap-3">
-            <input
-              value={oForm.title}
-              onChange={(e) => setOForm((f) => ({ ...f, title: e.target.value }))}
-              placeholder="Task description e.g. Check delivery from supplier"
-              className="px-4 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+      {showAddOneOff && (
+        <div className="p-4 rounded-xl bg-cream/50 border border-charcoal/10 flex flex-col gap-3">
+          <p className="text-[11px] tracking-widest uppercase text-charcoal/40">New One-Off Task</p>
+          <input
+            value={oForm.title}
+            onChange={(e) => setOForm((f) => ({ ...f, title: e.target.value }))}
+            placeholder="e.g. Check delivery from supplier"
+            className="px-4 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+          />
+          <div className="flex items-center gap-2 flex-wrap">
+            <label className="text-[11px] text-charcoal/50 whitespace-nowrap">Due date:</label>
+            <input type="date" value={oForm.due_date}
+              onChange={(e) => setOForm(f => ({ ...f, due_date: e.target.value }))}
+              className="px-3 py-2 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
             />
-
-            {/* Due date */}
-            <div className="flex items-center gap-2 flex-wrap">
-              <label className="text-[11px] text-charcoal/50 whitespace-nowrap">Due date:</label>
-              <input
-                type="date"
-                value={oForm.due_date}
-                onChange={(e) => setOForm((f) => ({ ...f, due_date: e.target.value }))}
-                className="px-3 py-2 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
-              />
-            </div>
-
-            {/* Assign to specific person OR role */}
-            <div>
-              <p className="text-[11px] text-charcoal/50 mb-2">Assign to:</p>
-              <div className="flex flex-col gap-2">
-                {/* Staff picker */}
-                <select
-                  value={oForm.assigned_to_staff_id}
-                  onChange={(e) => setOForm((f) => ({ ...f, assigned_to_staff_id: e.target.value }))}
-                  className="px-3 py-2 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
-                >
-                  <option value="">— Specific person (optional) —</option>
-                  {staffList.map((s) => (
-                    <option key={s.id} value={s.id}>{s.name} ({ROLE_LABELS[s.job_role] ?? s.job_role})</option>
+          </div>
+          <div>
+            <p className="text-[11px] text-charcoal/50 mb-2">Assign to:</p>
+            <div className="flex flex-col gap-2">
+              <select value={oForm.assigned_to_staff_id}
+                onChange={(e) => setOForm(f => ({ ...f, assigned_to_staff_id: e.target.value }))}
+                className="px-3 py-2 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20">
+                <option value="">— Specific person (optional) —</option>
+                {staffList.map((s) => (
+                  <option key={s.id} value={s.id}>{s.name} ({ROLE_LABELS[s.job_role] ?? s.job_role})</option>
+                ))}
+              </select>
+              {!oForm.assigned_to_staff_id && (
+                <div className="flex gap-2 flex-wrap">
+                  {JOB_ROLES.map((r) => (
+                    <button key={r} type="button" onClick={() => setOForm(f => ({ ...f, job_role: r }))}
+                      className={['px-3 py-1.5 rounded-full text-xs font-medium border transition-all',
+                        oForm.job_role === r ? 'bg-charcoal text-cream border-charcoal' : 'bg-white text-charcoal/50 border-charcoal/15',
+                      ].join(' ')}>
+                      {ROLE_LABELS[r]}
+                    </button>
                   ))}
-                </select>
-
-                {/* Role picker (shown when no specific person selected) */}
-                {!oForm.assigned_to_staff_id && (
-                  <div className="flex gap-2 flex-wrap">
-                    {JOB_ROLES.map((r) => (
-                      <button
-                        key={r}
-                        type="button"
-                        onClick={() => setOForm((f) => ({ ...f, job_role: r }))}
-                        className={[
-                          'px-3 py-1.5 rounded-full text-xs font-medium border transition-all',
-                          oForm.job_role === r ? 'bg-charcoal text-cream border-charcoal' : 'bg-white text-charcoal/50 border-charcoal/15',
-                        ].join(' ')}
-                      >
-                        {ROLE_LABELS[r]}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="flex gap-2">
-              <button
-                onClick={saveOneOff}
-                disabled={saving || !oForm.title.trim()}
-                className="flex-1 bg-charcoal text-cream py-2 rounded-lg text-sm font-medium disabled:opacity-40"
-              >
-                {saving ? 'Saving…' : 'Assign Task →'}
-              </button>
-              <button onClick={() => setShowAddOneOff(false)} className="px-4 py-2 rounded-lg border border-charcoal/15 text-sm text-charcoal/50">
-                Cancel
-              </button>
+                </div>
+              )}
             </div>
           </div>
-        )}
-
-        <div className="flex flex-col divide-y divide-charcoal/6">
-          {filteredOneOffs.map((o) => {
-            const comp = completions.find((c) => c.task_one_off_id === o.id)
-            return (
-              <div key={o.id} className="py-3 first:pt-0 last:pb-0 flex items-center justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  <span className={`w-4 h-4 rounded border shrink-0 flex items-center justify-center text-[11px] ${comp ? 'bg-success border-success text-white' : 'border-charcoal/20'}`}>
-                    {comp ? '✓' : ''}
-                  </span>
-                  <div>
-                    <p className={`text-sm ${comp ? 'line-through text-charcoal/30' : 'text-charcoal'}`}>{o.title}</p>
-                    <div className="flex items-center gap-2 mt-0.5">
-                      {o.assigned_to_name ? (
-                        <span className="text-[11px] text-accent font-medium">→ {o.assigned_to_name}</span>
-                      ) : null}
-                      {comp && <p className="text-xs text-charcoal/30">Done by {comp.completed_by_name}</p>}
-                    </div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3 shrink-0">
-                  {!o.assigned_to_name && <RoleBadge role={o.job_role} />}
-                  <button
-                    onClick={() => deleteOneOff(o.id)}
-                    disabled={deleting === o.id}
-                    className="text-xs text-charcoal/25 hover:text-danger transition-colors"
-                  >
-                    ×
-                  </button>
-                </div>
-              </div>
-            )
-          })}
-          {filteredOneOffs.length === 0 && (
-            <p className="text-sm text-charcoal/35 italic py-3">No one-off tasks for today.</p>
-          )}
+          <div className="flex gap-2">
+            <button onClick={saveOneOff} disabled={saving || !oForm.title.trim()}
+              className="flex-1 bg-charcoal text-cream py-2 rounded-lg text-sm font-medium disabled:opacity-40">
+              {saving ? 'Saving…' : 'Assign Task →'}
+            </button>
+            <button onClick={() => setShowAddOneOff(false)} className="px-4 py-2 rounded-lg border border-charcoal/15 text-sm text-charcoal/50">
+              Cancel
+            </button>
+          </div>
         </div>
+      )}
+
+      {/* ── Department columns ─────────────────────────────────────────────── */}
+      <div className="flex gap-3 items-start">
+        <DeptColumn
+          role="kitchen"
+          label="Kitchen"
+          color="bg-orange-50 text-orange-800"
+          templates={templates}
+          oneOffs={oneOffs}
+          completions={completions}
+          onDeleteTemplate={deleteTemplate}
+          onDeleteOneOff={deleteOneOff}
+          deleting={deleting}
+        />
+        <DeptColumn
+          role="foh"
+          label="Front of House"
+          color="bg-blue-50 text-blue-800"
+          templates={templates}
+          oneOffs={oneOffs}
+          completions={completions}
+          onDeleteTemplate={deleteTemplate}
+          onDeleteOneOff={deleteOneOff}
+          deleting={deleting}
+        />
       </div>
+
+      {/* ── All-roles tasks (bar / all) ────────────────────────────────────── */}
+      {(allRolesTemplates.length > 0 || allRolesOneOffs.length > 0) && (
+        <div className="bg-white rounded-xl border border-charcoal/10 overflow-hidden">
+          <div className="px-4 py-3 border-b border-charcoal/8 bg-charcoal/3">
+            <p className="text-sm font-semibold text-charcoal">All Roles</p>
+          </div>
+          <div className="p-4 flex flex-col divide-y divide-charcoal/6">
+            {[...allRolesTemplates, ...allRolesOneOffs].map((item) => {
+              const isTemplate = !('due_date' in item)
+              return (
+                <ManagerTaskRow
+                  key={item.id}
+                  item={item}
+                  isTemplate={isTemplate}
+                  completions={completions}
+                  onDelete={isTemplate ? deleteTemplate : deleteOneOff}
+                  deleting={deleting}
+                />
+              )
+            })}
+          </div>
+        </div>
+      )}
     </div>
   )
 }

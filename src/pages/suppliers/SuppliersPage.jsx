@@ -5,14 +5,23 @@ import { useToast } from '../../components/ui/Toast'
 import Button from '../../components/ui/Button'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
 
-const CATEGORIES = ['meat', 'fish', 'dairy', 'produce', 'dry goods', 'other']
+const CATEGORIES = ['meat', 'fish', 'dairy', 'produce', 'dry_goods', 'other']
+
+const CATEGORY_LABELS = {
+  meat:      'Meat',
+  fish:      'Fish',
+  dairy:     'Dairy',
+  produce:   'Produce',
+  dry_goods: 'Dry Goods',
+  other:     'Other',
+}
 
 const CATEGORY_STYLES = {
   meat:      'bg-red-50    text-red-700    border-red-200',
   fish:      'bg-blue-50   text-blue-700   border-blue-200',
   dairy:     'bg-yellow-50 text-yellow-700 border-yellow-200',
   produce:   'bg-green-50  text-green-700  border-green-200',
-  'dry goods': 'bg-amber-50  text-amber-700  border-amber-200',
+  dry_goods: 'bg-amber-50  text-amber-700  border-amber-200',
   other:     'bg-charcoal/5 text-charcoal/60 border-charcoal/15',
 }
 
@@ -20,7 +29,7 @@ function CategoryBadge({ category }) {
   const cls = CATEGORY_STYLES[category] ?? CATEGORY_STYLES.other
   return (
     <span className={`text-[10px] tracking-widest uppercase font-semibold px-2 py-0.5 rounded border ${cls}`}>
-      {category}
+      {CATEGORY_LABELS[category] ?? category}
     </span>
   )
 }
@@ -47,7 +56,7 @@ function useSuppliers(venueId) {
 }
 
 const EMPTY_FORM = {
-  name: '', category: 'other', contact_name: '', phone: '', email: '', notes: '',
+  name: '', category: 'dry_goods', contact_name: '', phone: '', email: '', notes: '',
 }
 
 function SupplierModal({ supplier, venueId, onSaved, onClose }) {
@@ -114,13 +123,13 @@ function SupplierModal({ supplier, venueId, onSaved, onClose }) {
                   type="button"
                   onClick={() => set('category', cat)}
                   className={[
-                    'px-3 py-1.5 rounded-full text-xs font-medium border transition-all capitalize',
+                    'px-3 py-1.5 rounded-full text-xs font-medium border transition-all',
                     form.category === cat
                       ? 'bg-charcoal text-cream border-charcoal'
                       : 'bg-white text-charcoal/50 border-charcoal/15 hover:border-charcoal/30',
                   ].join(' ')}
                 >
-                  {cat}
+                  {CATEGORY_LABELS[cat] ?? cat}
                 </button>
               ))}
             </div>
@@ -302,13 +311,13 @@ export default function SuppliersPage() {
               key={cat}
               onClick={() => setFilterCat(cat)}
               className={[
-                'px-3 py-1.5 rounded-full text-xs font-medium border transition-all capitalize',
+                'px-3 py-1.5 rounded-full text-xs font-medium border transition-all',
                 filterCat === cat
                   ? 'bg-charcoal text-cream border-charcoal'
                   : 'bg-white text-charcoal/50 border-charcoal/15 hover:border-charcoal/30',
               ].join(' ')}
             >
-              {cat}
+              {CATEGORY_LABELS[cat] ?? cat}
             </button>
           ))}
         </div>
