@@ -14,6 +14,7 @@ export default {
         charcoal: '#1a1a18',
         muted:    '#7a7060',
         accent:   '#c94f2a',
+        brand:    '#1a3c2e',   // deep bottle green — rich, premium, clearly green
         danger:   { DEFAULT: '#dc2626', light: '#fee2e2' },
         warning:  { DEFAULT: '#d97706', light: '#fef3c7' },
         success:  { DEFAULT: '#16a34a', light: '#dcfce7' },

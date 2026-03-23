@@ -24,7 +24,7 @@ export default function LandingPage() {
     setLoading(true)
     setError('')
 
-    const { error: err } = await signInWithEmail(email.trim(), password)
+    const { error: err, slug } = await signInWithEmail(email.trim(), password)
 
     if (err) {
       setError(err.message === 'Invalid login credentials'
@@ -34,8 +34,9 @@ export default function LandingPage() {
       return
     }
 
-    // Navigation is handled by the useEffect above once user + venueSlug
-    // are committed to state — avoids RequireVenueAuth seeing stale null user.
+    // Navigate directly — more reliable than waiting for useEffect to fire
+    // (avoids grey-button-stuck issue if React batches the state update)
+    navigate(`/v/${slug}`, { replace: true })
   }
 
   if (authLoading) {
@@ -51,7 +52,7 @@ export default function LandingPage() {
 
       {/* Branding */}
       <div className="mb-12 text-center">
-        <h1 className="font-serif text-charcoal text-5xl tracking-tight">SafeServ</h1>
+        <h1 className="font-serif text-brand text-5xl tracking-tight">SafeServ</h1>
         <p className="text-xs tracking-[0.25em] text-charcoal/40 uppercase mt-3">
           Food Safety &amp; Operations
         </p>
@@ -78,7 +79,7 @@ export default function LandingPage() {
                   value={email}
                   onChange={(e) => { setEmail(e.target.value); setError('') }}
                   placeholder="you@example.com"
-                  className="w-full px-4 py-3 rounded-xl border border-charcoal/15 bg-white text-sm text-charcoal placeholder:text-charcoal/25 outline-none focus:border-charcoal/40 transition-colors"
+                  className="w-full px-4 py-3 rounded-xl border border-charcoal/15 bg-white text-sm text-charcoal placeholder:text-charcoal/25 outline-none focus:border-brand dark:focus:border-charcoal/40 transition-colors"
                 />
               </div>
 
@@ -93,7 +94,7 @@ export default function LandingPage() {
                   value={password}
                   onChange={(e) => { setPassword(e.target.value); setError('') }}
                   placeholder="••••••••"
-                  className="w-full px-4 py-3 rounded-xl border border-charcoal/15 bg-white text-sm text-charcoal placeholder:text-charcoal/25 outline-none focus:border-charcoal/40 transition-colors"
+                  className="w-full px-4 py-3 rounded-xl border border-charcoal/15 bg-white text-sm text-charcoal placeholder:text-charcoal/25 outline-none focus:border-brand dark:focus:border-charcoal/40 transition-colors"
                 />
               </div>
             </div>
@@ -105,7 +106,7 @@ export default function LandingPage() {
             <button
               type="submit"
               disabled={loading || !email.trim() || !password}
-              className="w-full bg-charcoal text-cream py-3.5 rounded-xl text-sm font-semibold tracking-wide hover:bg-charcoal/85 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              className="w-full bg-brand text-cream py-3.5 rounded-xl text-sm font-semibold tracking-wide hover:bg-brand/90 dark:bg-charcoal dark:hover:bg-charcoal/85 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             >
               {loading ? 'Signing in…' : 'Sign In'}
             </button>

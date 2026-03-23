@@ -1,7 +1,7 @@
 import React from 'react'
 
 const variants = {
-  primary:   'bg-charcoal text-cream hover:bg-charcoal/90 active:scale-[0.98]',
+  primary:   'bg-brand text-cream hover:bg-brand/90 dark:bg-charcoal dark:hover:bg-charcoal/90 active:scale-[0.98]',
   secondary: 'bg-cream text-charcoal border border-charcoal/20 hover:bg-charcoal/5 active:scale-[0.98]',
   danger:    'bg-danger text-white hover:bg-red-700 active:scale-[0.98]',
   ghost:     'text-charcoal hover:bg-charcoal/5 active:scale-[0.98]',

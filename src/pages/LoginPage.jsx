@@ -71,7 +71,7 @@ export default function LoginPage() {
 
       {/* Logo */}
       <div className="mb-10 text-center">
-        <h1 className="font-serif text-charcoal text-4xl tracking-tight">SafeServ</h1>
+        <h1 className="font-serif text-brand text-4xl tracking-tight">SafeServ</h1>
         {venueName && (
           <p className="text-sm font-medium text-charcoal/60 mt-1">{venueName}</p>
         )}
@@ -137,7 +137,7 @@ export default function LoginPage() {
                 placeholder="Enter PIN"
                 className={[
                   'w-full px-4 py-3 rounded-xl border bg-white text-charcoal text-sm font-mono tracking-[0.4em] placeholder:tracking-normal placeholder:font-sans placeholder:text-charcoal/30 outline-none transition-colors',
-                  error ? 'border-red-400 focus:border-red-400' : 'border-charcoal/15 focus:border-accent',
+                  error ? 'border-red-400 focus:border-red-400' : 'border-charcoal/15 focus:border-brand dark:focus:border-accent',
                 ].join(' ')}
               />
               {error && (
@@ -148,7 +148,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={pin.length < 4 || submitting}
-              className="w-full bg-charcoal text-cream py-3 rounded-xl text-sm font-semibold tracking-wide hover:bg-charcoal/85 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              className="w-full bg-brand text-cream py-3 rounded-xl text-sm font-semibold tracking-wide hover:bg-brand/90 dark:bg-charcoal dark:hover:bg-charcoal/85 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             >
               {submitting ? 'Signing in...' : 'Sign In'}
             </button>
@@ -160,7 +160,7 @@ export default function LoginPage() {
       <button
         onClick={async () => {
           await signOutVenue()
-          navigate('/', { replace: true })
+          navigate('/login', { replace: true })
         }}
         className="mt-6 text-xs text-charcoal/30 hover:text-charcoal/60 transition-colors"
       >

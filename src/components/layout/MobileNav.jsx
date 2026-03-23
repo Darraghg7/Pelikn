@@ -106,7 +106,7 @@ function SubNav({ items, currentPath }) {
             className={[
               'px-3 py-1.5 rounded-full text-[11px] font-semibold tracking-wide whitespace-nowrap transition-all shrink-0',
               isActive
-                ? 'bg-charcoal text-cream dark:bg-cream dark:text-charcoal'
+                ? 'bg-brand text-cream dark:bg-cream dark:text-charcoal'
                 : 'bg-charcoal/6 text-charcoal/50 hover:bg-charcoal/10 hover:text-charcoal/70',
             ].join(' ')}
           >
@@ -262,14 +262,14 @@ export default function MobileNav() {
                 aria-label={tab.label}
                 className={[
                   'flex flex-col items-center justify-center flex-1 gap-0.5 transition-colors relative',
-                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-inset',
-                  isActive ? 'text-accent' : 'text-charcoal/35 active:text-charcoal/50',
+                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand dark:focus-visible:ring-accent focus-visible:ring-inset',
+                  isActive ? 'text-brand dark:text-accent' : 'text-charcoal/35 active:text-charcoal/50',
                 ].join(' ')}
               >
                 <Icon active={isActive} />
                 <span className={[
                   'text-[11px] leading-none font-semibold tracking-wide',
-                  isActive ? 'text-accent' : '',
+                  isActive ? 'text-brand dark:text-accent' : '',
                 ].join(' ')}>
                   {tab.label}
                 </span>

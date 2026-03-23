@@ -16,6 +16,9 @@ import LoginPage from './pages/LoginPage'
 // Landing (login)
 import LandingPage from './pages/LandingPage'
 
+// Marketing page
+import MarketingPage from './pages/marketing/MarketingPage'
+
 // Dashboard (role-aware)
 import DashboardPage from './pages/DashboardPage'
 
@@ -75,7 +78,7 @@ import NotFoundPage from './pages/NotFoundPage'
 function RequireVenueAuth({ children }) {
   const { user, authLoading } = useAuth()
   if (authLoading) return <FullPageLoader />
-  if (!user) return <Navigate to="/" replace />
+  if (!user) return <Navigate to="/login" replace />
   return children
 }
 
@@ -184,8 +187,11 @@ export default function App() {
     <BrowserRouter>
       <AuthProvider>
         <Routes>
-          {/* Public: login page */}
-          <Route path="/" element={<LandingRoute />} />
+          {/* Public: marketing homepage */}
+          <Route path="/" element={<MarketingPage />} />
+
+          {/* Login — redirects to venue if already authenticated */}
+          <Route path="/login" element={<LandingRoute />} />
 
           {/* Venue-scoped app — requires Supabase Auth */}
           <Route path="/v/:venueSlug/*" element={

@@ -180,14 +180,14 @@ function SideItem({ to, icon: Ico, label, badge, alert, isActive }) {
       className={[
         'flex items-center gap-3 px-4 py-2.5 mx-2 rounded-lg transition-all duration-150 text-[13px] font-medium border-l-2',
         isActive
-          ? 'border-accent bg-charcoal/8 dark:bg-white/10 text-charcoal dark:text-white'
+          ? 'border-brand dark:border-accent bg-brand/6 dark:bg-white/10 text-charcoal dark:text-white'
           : alert
             ? 'border-transparent text-warning/70 hover:text-warning hover:bg-charcoal/5 dark:hover:bg-white/5'
             : 'border-transparent text-charcoal/50 dark:text-white/40 hover:text-charcoal/80 dark:hover:text-white/75 hover:bg-charcoal/5 dark:hover:bg-white/5',
       ].join(' ')}
     >
       {Ico && (
-        <span className={`shrink-0 ${isActive ? 'text-accent' : alert ? 'text-warning/60' : 'text-charcoal/30 dark:text-white/30'}`}>
+        <span className={`shrink-0 ${isActive ? 'text-brand dark:text-accent' : alert ? 'text-warning/60' : 'text-charcoal/30 dark:text-white/30'}`}>
           <Ico />
         </span>
       )}
@@ -215,7 +215,7 @@ function SubItem({ to, label, badge, alert, isActive }) {
             : 'text-charcoal/40 dark:text-white/35 hover:text-charcoal/70 dark:hover:text-white/65 hover:bg-charcoal/5 dark:hover:bg-white/5',
       ].join(' ')}
     >
-      <span className={`w-1 h-1 rounded-full shrink-0 ${isActive ? 'bg-accent' : 'bg-charcoal/20 dark:bg-white/20'}`} />
+      <span className={`w-1 h-1 rounded-full shrink-0 ${isActive ? 'bg-brand dark:bg-accent' : 'bg-charcoal/20 dark:bg-white/20'}`} />
       <span className="flex-1 truncate">{label}</span>
       {badge > 0 && (
         <span className={`min-w-[16px] h-4 text-white text-[11px] font-bold rounded-full flex items-center justify-center px-1 shrink-0 ${alert ? 'bg-warning' : 'bg-accent'}`}>
@@ -288,7 +288,7 @@ export default function AppShell({ children }) {
               <img src={logoUrl} alt="Venue logo" className="h-7 w-7 rounded-md object-contain bg-charcoal/8 dark:bg-white/10 p-0.5 shrink-0" />
             ) : null}
             <div className="min-w-0 flex-1">
-              <span className="font-serif text-charcoal dark:text-cream text-lg leading-none tracking-tight block">SafeServ</span>
+              <span className="font-serif text-brand text-lg leading-none tracking-tight block">SafeServ</span>
               {venueName && (
                 <p className="text-[11px] text-charcoal/45 dark:text-white/35 mt-0.5 truncate">{venueName}</p>
               )}
@@ -369,7 +369,7 @@ export default function AppShell({ children }) {
 
         {/* Mobile-only header (shown below lg breakpoint) */}
         <header
-          className="lg:hidden bg-charcoal dark:bg-[#0a0a0a] shrink-0"
+          className="lg:hidden bg-brand shrink-0"
           role="banner"
           style={{ paddingTop: 'env(safe-area-inset-top)' }}
         >
