@@ -85,6 +85,9 @@ import SuppliersPage from './pages/suppliers/SuppliersPage'
 // EHO Mock Inspection
 import EHOMockPage from './pages/eho/EHOMockPage'
 
+// Tasks (daily recurring + one-off)
+import TasksPage from './pages/tasks/TasksPage'
+
 import NotFoundPage from './pages/NotFoundPage'
 
 // ── Guards ───────────────────────────────────────────────────────────────────
@@ -157,6 +160,7 @@ function VenueRoutes() {
 
             {/* Any authenticated user */}
             <Route path="dashboard"         element={wrap(DashboardPage)} />
+            <Route path="tasks"             element={wrap(TasksPage)} />
             <Route path="clock-in"          element={wrap(ClockInPage)} />
             <Route path="noticeboard"       element={wrap(NoticeBoardPage)} />
             <Route path="fridge"            element={wrap(FridgeDashboardPage)} />

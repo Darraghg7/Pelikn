@@ -186,6 +186,14 @@ function IcoTimeOff() {
     </svg>
   )
 }
+function IcoTasks() {
+  return (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/>
+      <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
+    </svg>
+  )
+}
 
 /* ── Sidebar link component ─────────────────────────────────────────────────── */
 function SideItem({ to, icon: Ico, label, badge, alert, isActive }) {
@@ -320,7 +328,8 @@ export default function AppShell({ children }) {
               <div className="space-y-0.5 px-0 pt-2">
                 <SideItem to={vp('/dashboard')}      icon={IcoDashboard} label="Dashboard"   isActive={isAt('/dashboard')} />
                 {isEnabled('opening_closing') && <SideItem to={vp('/opening-closing')} icon={IcoChecks} label="Checks" isActive={isUnder('/opening-closing')} />}
-                <SideItem to={vp('/fitness')} icon={IcoUser} label="Fitness to Work" isActive={isUnder('/fitness')} />
+                <SideItem to={vp('/tasks')}    icon={IcoTasks}     label="Tasks"          isActive={isUnder('/tasks')} />
+                <SideItem to={vp('/fitness')}  icon={IcoUser}      label="Fitness to Work" isActive={isUnder('/fitness')} />
               </div>
 
               <SideSection label="Compliance" />
@@ -358,6 +367,7 @@ export default function AppShell({ children }) {
           ) : (
             <div className="space-y-0.5 pt-2">
               <SideItem to={vp('/dashboard')}       icon={IcoUser}       label="My Shift"      isActive={isAt('/dashboard')} />
+              <SideItem to={vp('/tasks')}           icon={IcoTasks}      label="Tasks"         isActive={isUnder('/tasks')} />
               <SideItem to={vp('/clock-in')}        icon={IcoClock}      label="Clock In / Out" isActive={isUnder('/clock-in')} />
               <SideItem to={vp('/noticeboard')}     icon={IcoBoard}      label="Noticeboard"   isActive={isUnder('/noticeboard')} />
               {isEnabled('opening_closing') && <SideItem to={vp('/opening-closing')} icon={IcoChecks}     label="Checks"    isActive={isUnder('/opening-closing')} />}
