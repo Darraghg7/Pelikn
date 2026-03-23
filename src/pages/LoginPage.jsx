@@ -76,6 +76,7 @@ export default function LoginPage() {
           <p className="text-sm font-medium text-charcoal/60 mt-1">{venueName}</p>
         )}
         <p className="text-xs tracking-widest text-charcoal/40 uppercase mt-1">Food Safety, Simplified</p>
+        <p className="text-[10px] tracking-widest text-charcoal/25 uppercase mt-0.5">Food Safety &amp; Operations</p>
       </div>
 
       <div className="w-full max-w-sm bg-white rounded-2xl shadow-sm border border-charcoal/8 p-6 flex flex-col gap-6">

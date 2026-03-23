@@ -56,6 +56,9 @@ export default function LandingPage() {
         <p className="text-xs tracking-[0.25em] text-charcoal/40 uppercase mt-3">
           Food Safety, Simplified
         </p>
+        <p className="text-[10px] tracking-[0.2em] text-charcoal/25 uppercase mt-1">
+          Food Safety &amp; Operations
+        </p>
       </div>
 
       {/* Login card */}
