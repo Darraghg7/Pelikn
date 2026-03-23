@@ -53,12 +53,18 @@ $$;
 
 -- Backfill owner_id for Nomad Bakes from the existing auth user whose email
 -- matches the stored manager_email (safe to re-run — no-op if already set).
-UPDATE venues v
-SET owner_id = au.id
-FROM auth.users au
-JOIN app_settings s
-  ON s.key = 'manager_email'
-  AND s.venue_id = v.id
-  AND lower(s.value) = lower(au.email)
-WHERE v.id = '00000000-0000-0000-0000-000000000001'
-  AND v.owner_id IS NULL;
+UPDATE venues
+SET owner_id = (
+  SELECT au.id
+  FROM auth.users au
+  WHERE lower(au.email) = (
+    SELECT lower(value)
+    FROM app_settings
+    WHERE key = 'manager_email'
+      AND venue_id = '00000000-0000-0000-0000-000000000001'
+    LIMIT 1
+  )
+  LIMIT 1
+)
+WHERE id = '00000000-0000-0000-0000-000000000001'
+  AND owner_id IS NULL;
