@@ -54,7 +54,7 @@ export default function LandingPage() {
       <div className="mb-12 text-center">
         <h1 className="font-serif text-brand text-5xl tracking-tight">SafeServ</h1>
         <p className="text-xs tracking-[0.25em] text-charcoal/40 uppercase mt-3">
-          Food Safety &amp; Operations
+          Food Safety, Simplified
         </p>
       </div>
 

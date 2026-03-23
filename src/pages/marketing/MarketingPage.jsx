@@ -198,7 +198,7 @@ export default function MarketingPage() {
       <section className="bg-brand text-cream">
         <div className="max-w-5xl mx-auto px-5 sm:px-8 py-20 sm:py-28 text-center">
           <p className="text-[11px] tracking-[0.3em] uppercase text-cream/50 mb-5">
-            Food Safety &amp; Operations
+            Food Safety, Simplified
           </p>
           <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl text-cream leading-tight mb-6">
             Run a tighter kitchen.<br />Save hours every week.
