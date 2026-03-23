@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import { format, parseISO, isToday, isYesterday, isFuture, subDays } from 'date-fns'
+import { format, parseISO, isToday, isYesterday, subDays } from 'date-fns'
 import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
 import { useSession } from '../../contexts/SessionContext'
@@ -362,8 +362,8 @@ export default function OpeningClosingPage() {
   const { checks, loading: checksLoading, reload: reloadChecks } = useChecks(venueId)
   const { completions, reload: reloadCompletions } = useCompletionsForDate(selectedDate, venueId)
 
-  // Is the selected date in the future? (shouldn't be reachable but guard anyway)
-  const readOnly = isFuture(parseISO(selectedDate + 'T23:59:59'))
+  // Is the selected date strictly in the future? (tomorrow or later = read-only)
+  const readOnly = selectedDate > todayStr()
   const isPast   = !isToday(parseISO(selectedDate))
 
   // ── Pending action state ──────────────────────────────────────────────────

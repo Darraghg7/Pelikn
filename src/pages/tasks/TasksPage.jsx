@@ -71,8 +71,9 @@ function ManagerTaskRow({ item, isTemplate, completions, onDelete, deleting }) {
       <button
         onClick={() => onDelete(item.id)}
         disabled={deleting === item.id}
-        className="text-xs text-charcoal/20 hover:text-danger transition-colors shrink-0"
-      >×</button>
+        className="text-xs text-charcoal/35 hover:text-danger transition-colors shrink-0 px-1 py-0.5 rounded"
+        title="Remove task"
+      >{deleting === item.id ? '…' : '×'}</button>
     </div>
   )
 }
@@ -186,18 +187,20 @@ function ManagerTasksView() {
 
   const deleteTemplate = async (id) => {
     setDeleting(id)
-    await supabase.from('task_templates').update({ is_active: false }).eq('id', id)
+    const { error } = await supabase.from('task_templates').update({ is_active: false }).eq('id', id)
     setDeleting(null)
-    reload()
+    if (error) { toast(error.message, 'error'); return }
     toast('Task removed')
+    reload()
   }
 
   const deleteOneOff = async (id) => {
     setDeleting(id)
-    await supabase.from('task_one_offs').delete().eq('id', id)
+    const { error } = await supabase.from('task_one_offs').delete().eq('id', id)
     setDeleting(null)
-    reload()
+    if (error) { toast(error.message, 'error'); return }
     toast('Task removed')
+    reload()
   }
 
   if (loading) return <div className="flex justify-center py-10"><LoadingSpinner /></div>
