@@ -121,7 +121,7 @@ export default function WasteLogPage() {
 
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h1 className="font-serif text-3xl text-charcoal">Waste Log</h1>
+        <h1 className="font-serif text-3xl text-brand">Waste Log</h1>
         {isManager && (
           <button
             onClick={() => setShowExport(true)}

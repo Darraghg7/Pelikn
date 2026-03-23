@@ -39,7 +39,7 @@ export default function AllergenRegistryPage() {
     <div className="flex flex-col gap-6">
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="font-serif text-3xl text-charcoal">Allergen Checklists</h1>
+        <h1 className="font-serif text-3xl text-brand">Allergen Checklists</h1>
         <input
           type="search"
           placeholder="Search…"

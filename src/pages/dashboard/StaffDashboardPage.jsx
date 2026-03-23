@@ -95,7 +95,7 @@ export default function StaffDashboardPage() {
             <p className="font-serif text-2xl sm:text-3xl text-charcoal font-semibold">{venueName}</p>
           )}
           <p className="text-xs uppercase tracking-widest text-charcoal/40 mt-0.5">{format(new Date(), 'EEEE, d MMMM')}</p>
-          <h1 className="font-serif text-xl text-charcoal/70 mt-0.5">Good {greeting}, {firstName}</h1>
+          <h1 className="font-serif text-xl text-brand/70 mt-0.5">Good {greeting}, {firstName}</h1>
         </div>
       </div>
 

@@ -219,7 +219,7 @@ export default function TimeOffPage() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
-        <h1 className="font-serif text-3xl text-charcoal">Time Off</h1>
+        <h1 className="font-serif text-3xl text-brand">Time Off</h1>
         <button
           onClick={() => setShowRequest(true)}
           className="bg-charcoal text-cream px-4 py-2 rounded-lg text-sm font-medium hover:bg-charcoal/90 transition-colors"

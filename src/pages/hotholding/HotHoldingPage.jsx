@@ -142,7 +142,7 @@ export default function HotHoldingPage() {
 
       {/* Page header */}
       <div>
-        <h1 className="font-serif text-3xl text-charcoal">Hot Holding</h1>
+        <h1 className="font-serif text-3xl text-brand">Hot Holding</h1>
         <p className="text-sm text-charcoal/45 mt-1">
           Check food held hot for service twice daily. UK minimum: <strong>≥{HOT_HOLDING_MIN_TEMP}°C</strong>.
         </p>

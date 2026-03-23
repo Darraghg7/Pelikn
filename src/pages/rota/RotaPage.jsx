@@ -258,7 +258,7 @@ export default function RotaPage() {
     <div className="flex flex-col gap-6">
 
       <div className="flex items-center justify-between">
-        <h1 className="font-serif text-3xl text-charcoal">
+        <h1 className="font-serif text-3xl text-brand">
           {isManager ? 'Rota Manager' : 'Rota'}
         </h1>
         {isManager && (

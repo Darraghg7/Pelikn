@@ -522,7 +522,7 @@ export default function SettingsPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <h1 className="font-serif text-3xl text-charcoal dark:text-white">Settings</h1>
+      <h1 className="font-serif text-3xl text-brand dark:text-white">Settings</h1>
 
       {/* ── Venue Details ──────────────────────────────────────────────────── */}
       <SettingsSection title="Venue Details" defaultOpen>

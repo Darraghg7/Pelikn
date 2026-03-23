@@ -2,6 +2,16 @@ import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 
+export const LAST_VENUE_KEY = 'safeserv_last_venue'
+
+/** True when running as an installed PWA (added to home screen). */
+function isPWA() {
+  return (
+    window.navigator.standalone === true ||   // iOS Safari
+    window.matchMedia('(display-mode: standalone)').matches
+  )
+}
+
 export default function LandingPage() {
   const navigate = useNavigate()
   const { user, venueSlug, authLoading, signInWithEmail } = useAuth()
@@ -11,7 +21,20 @@ export default function LandingPage() {
   const [error, setError]       = useState('')
   const [loading, setLoading]   = useState(false)
 
-  // If already authenticated + venue resolved → redirect
+  // PWA saved-state: if opened from home screen and a venue slug is stored,
+  // jump straight to that venue's PIN login screen instead of showing this page.
+  useEffect(() => {
+    if (authLoading) return
+    if (isPWA()) {
+      const savedSlug = localStorage.getItem(LAST_VENUE_KEY)
+      if (savedSlug) {
+        navigate(`/v/${savedSlug}`, { replace: true })
+        return
+      }
+    }
+  }, [authLoading, navigate])
+
+  // If already authenticated + venue resolved → redirect into the app
   useEffect(() => {
     if (!authLoading && user && venueSlug) {
       navigate(`/v/${venueSlug}`, { replace: true })
@@ -33,6 +56,9 @@ export default function LandingPage() {
       setLoading(false)
       return
     }
+
+    // Store the venue slug so the PWA knows where to go on next launch
+    try { localStorage.setItem(LAST_VENUE_KEY, slug) } catch {}
 
     // Hard redirect — Supabase session is now in localStorage, so the app
     // boots fresh and reads it cleanly. Eliminates all React state race conditions.

@@ -86,7 +86,7 @@ export default function FoodItemFormPage() {
         >
           ←
         </Link>
-        <h1 className="font-serif text-3xl text-charcoal">
+        <h1 className="font-serif text-3xl text-brand">
           {isEdit ? 'Edit Dish' : 'Add New Dish'}
         </h1>
       </div>

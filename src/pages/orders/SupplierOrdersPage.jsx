@@ -150,7 +150,7 @@ export default function SupplierOrdersPage() {
 
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h1 className="font-serif text-3xl text-charcoal">Orders</h1>
+        <h1 className="font-serif text-3xl text-brand">Orders</h1>
         <div className="flex items-center gap-3">
           {isManager && (
             <button

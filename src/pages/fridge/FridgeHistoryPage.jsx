@@ -29,7 +29,7 @@ export default function FridgeHistoryPage() {
 
       <div className="flex items-center gap-4">
         <Link to="/fridge" className="text-charcoal/40 hover:text-charcoal transition-colors text-lg">←</Link>
-        <h1 className="font-serif text-3xl text-charcoal">Temperature History</h1>
+        <h1 className="font-serif text-3xl text-brand">Temperature History</h1>
       </div>
 
       {/* Filters */}

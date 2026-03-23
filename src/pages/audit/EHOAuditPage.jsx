@@ -149,7 +149,7 @@ export default function EHOAuditPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="font-serif text-3xl text-charcoal">EHO Audit Trail</h1>
+        <h1 className="font-serif text-3xl text-brand">EHO Audit Trail</h1>
         <p className="text-sm text-charcoal/40 mt-1">
           Everything an Environmental Health Officer needs to see — in one place.
         </p>

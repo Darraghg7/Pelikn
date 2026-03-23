@@ -88,7 +88,7 @@ function HACCPDocument({ data, hazardPoints }) {
     <div id="haccp-print-doc" className="font-sans text-sm text-charcoal leading-relaxed">
       {/* Header */}
       <div className="border-b-2 border-charcoal pb-4 mb-6">
-        <h1 className="font-serif text-2xl text-charcoal font-bold">HACCP Summary Report</h1>
+        <h1 className="font-serif text-2xl text-brand font-bold">HACCP Summary Report</h1>
         <p className="text-charcoal/60 mt-1">{data.venueName || 'Venue'}</p>
         <p className="text-charcoal/50 text-xs mt-0.5">
           Generated: {format(data.generatedAt, 'd MMMM yyyy, HH:mm')} &nbsp;·&nbsp;
@@ -202,7 +202,7 @@ export default function HACCPPage() {
       <div className="no-print flex flex-col gap-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="font-serif text-3xl text-charcoal">HACCP Generator</h1>
+            <h1 className="font-serif text-3xl text-brand">HACCP Generator</h1>
             <p className="text-sm text-charcoal/40 mt-1">
               Generate a printable HACCP summary for your venue
             </p>

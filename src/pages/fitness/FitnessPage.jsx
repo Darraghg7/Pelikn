@@ -93,7 +93,7 @@ function StaffDeclarationForm({ session, venueId, onSaved }) {
       {/* Header */}
       <div className="px-6 pt-6 pb-4 border-b border-charcoal/8">
         <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-1">SC7 — Shift Start</p>
-        <h2 className="font-serif text-2xl text-charcoal">Fitness to Work</h2>
+        <h2 className="font-serif text-2xl text-brand">Fitness to Work</h2>
         <p className="text-sm text-charcoal/50 mt-1">
           Complete before starting your shift. This declaration is recorded for food safety compliance.
         </p>
@@ -426,7 +426,7 @@ export default function FitnessPage() {
           <p className="text-xs uppercase tracking-widest text-charcoal/40 mb-1">
             {format(new Date(), 'EEEE, d MMMM')}
           </p>
-          <h1 className="font-serif text-3xl text-charcoal">Fitness to Work</h1>
+          <h1 className="font-serif text-3xl text-brand">Fitness to Work</h1>
         </div>
         <span className="text-[11px] tracking-widest uppercase text-charcoal/30 border border-charcoal/15 rounded px-2 py-1">SC7</span>
       </div>

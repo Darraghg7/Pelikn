@@ -447,7 +447,7 @@ export default function OpeningClosingPage() {
       <div className="flex items-end justify-between">
         <div>
           <p className="text-xs uppercase tracking-widest text-charcoal/40 mb-1">{dateLabel}</p>
-          <h1 className="font-serif text-3xl text-charcoal">Opening &amp; Closing</h1>
+          <h1 className="font-serif text-3xl text-brand">Opening &amp; Closing</h1>
         </div>
         {isManager && (
           <button

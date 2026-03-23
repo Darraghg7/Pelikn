@@ -183,7 +183,7 @@ export default function NoticeBoardPage() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
-        <h1 className="font-serif text-3xl text-charcoal">Noticeboard</h1>
+        <h1 className="font-serif text-3xl text-brand">Noticeboard</h1>
         {isManager && !showForm && (
           <Button variant="primary" onClick={() => setShowForm(true)}>
             + Post Notice

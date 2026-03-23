@@ -476,7 +476,7 @@ export default function TasksPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="font-serif text-3xl text-charcoal">
+      <h1 className="font-serif text-3xl text-brand">
         {isManager ? 'Task Manager' : "Today's Tasks"}
       </h1>
       {isManager

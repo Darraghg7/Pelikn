@@ -88,7 +88,7 @@ export default function TimesheetPage() {
     <div className="flex flex-col gap-6">
 
       <div className="flex items-center justify-between">
-        <h1 className="font-serif text-3xl text-charcoal">Timesheets</h1>
+        <h1 className="font-serif text-3xl text-brand">Timesheets</h1>
         <button
           onClick={exportCsv}
           className="text-[11px] tracking-widest uppercase text-charcoal/40 hover:text-charcoal transition-colors border-b border-charcoal/20"

@@ -118,7 +118,7 @@ export default function EHOMockPage() {
       <div className="flex flex-col gap-6">
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="font-serif text-3xl text-charcoal">EHO Mock Inspection</h1>
+            <h1 className="font-serif text-3xl text-brand">EHO Mock Inspection</h1>
             <p className="text-sm text-charcoal/40 mt-1">
               Food Standards Agency-style self-assessment checklist
             </p>

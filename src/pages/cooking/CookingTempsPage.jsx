@@ -251,7 +251,7 @@ export default function CookingTempsPage() {
 
       {/* Page header */}
       <div>
-        <h1 className="font-serif text-3xl text-charcoal">Cooking Temperatures</h1>
+        <h1 className="font-serif text-3xl text-brand">Cooking Temperatures</h1>
         <p className="text-sm text-charcoal/45 mt-1">
           Log core temperatures for cooking and reheating. UK minimum: <strong>≥{COOKING_TARGET_TEMP}°C</strong>.
         </p>

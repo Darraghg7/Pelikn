@@ -30,3 +30,8 @@ SET value = (
 WHERE venue_id = '00000000-0000-0000-0000-000000000001'
   AND key = 'manager_email'
   AND (value = '' OR value IS NULL);
+
+-- Upgrade Nomad Bakes to the Pro plan
+UPDATE venues
+SET plan = 'pro'
+WHERE id = '00000000-0000-0000-0000-000000000001';

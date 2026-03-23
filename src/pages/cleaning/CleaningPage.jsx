@@ -101,7 +101,7 @@ export default function CleaningPage() {
       <CleaningExportModal open={showExport} onClose={() => setShowExport(false)} />
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="font-serif text-3xl text-charcoal">Cleaning Schedule</h1>
+        <h1 className="font-serif text-3xl text-brand">Cleaning Schedule</h1>
         <div className="flex items-center gap-3">
           {isManager && (
             <button

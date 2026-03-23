@@ -122,7 +122,7 @@ export default function CoolingLogsPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="font-serif text-2xl text-charcoal dark:text-white tracking-tight">Cooling Logs</h1>
+        <h1 className="font-serif text-2xl text-brand dark:text-white tracking-tight">Cooling Logs</h1>
         <p className="text-sm text-charcoal/50 dark:text-white/40 mt-1">
           Record food cooling temperatures — target ≤8°C (UK food safety regs)
         </p>

@@ -46,7 +46,7 @@ export default function SetupPage() {
       <div className="w-full max-w-lg">
         {/* Header */}
         <div className="mb-8 text-center">
-          <h1 className="font-serif text-4xl text-charcoal mb-1">SafeServ</h1>
+          <h1 className="font-serif text-4xl text-brand mb-1">SafeServ</h1>
           <p className="text-charcoal/50 text-sm">Setup required</p>
         </div>
 

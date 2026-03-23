@@ -61,7 +61,7 @@ export default function FridgeLogFormPage() {
 
       <div className="flex items-center gap-4">
         <Link to="/fridge" className="text-charcoal/40 hover:text-charcoal transition-colors text-lg">←</Link>
-        <h1 className="font-serif text-3xl text-charcoal">Log Temperature</h1>
+        <h1 className="font-serif text-3xl text-brand">Log Temperature</h1>
       </div>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-5">

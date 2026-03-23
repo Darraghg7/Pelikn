@@ -277,7 +277,7 @@ export default function SuppliersPage() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
-        <h1 className="font-serif text-3xl text-charcoal">Suppliers</h1>
+        <h1 className="font-serif text-3xl text-brand">Suppliers</h1>
         <Button variant="primary" onClick={() => setModalSupplier(null)}>
           + Add Supplier
         </Button>

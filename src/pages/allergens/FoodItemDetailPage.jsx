@@ -56,7 +56,7 @@ export default function FoodItemDetailPage() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Link to="/allergens" className="text-charcoal/40 hover:text-charcoal transition-colors text-lg">←</Link>
-          <h1 className="font-serif text-3xl text-charcoal">{item.name}</h1>
+          <h1 className="font-serif text-3xl text-brand">{item.name}</h1>
         </div>
         {isManager && (
           <div className="flex gap-2">
