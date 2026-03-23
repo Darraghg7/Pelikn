@@ -137,7 +137,7 @@ const FAQS = [
   },
   {
     q: 'What counts as "multi-venue"?',
-    a: "Each venue is managed separately and billed individually. The first venue on Pro is £35/month; each additional venue you add is £15/month. There's no separate multi-venue tier — you just add venues as you grow.",
+    a: "Each venue is managed separately and billed individually. The first venue on Pro is £45/month; each additional venue you add is £15/month. There's no separate multi-venue tier — you just add venues as you grow.",
   },
   {
     q: 'Is my data secure?',
@@ -201,10 +201,10 @@ export default function MarketingPage() {
             Food Safety &amp; Operations
           </p>
           <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl text-cream leading-tight mb-6">
-            Food Safety,<br />Simplified.
+            Run a tighter kitchen.<br />Save hours every week.
           </h1>
           <p className="text-cream/65 text-base sm:text-lg max-w-xl mx-auto leading-relaxed mb-10">
-            Digital compliance records for UK hospitality. Replace paper log sheets with a clean, fast app your whole team will actually use.
+            SafeServ replaces paper log books, rota spreadsheets and WhatsApp chaos with one affordable app built for independent hospitality. Stay EHO-ready without the admin.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
             <Link
@@ -245,10 +245,10 @@ export default function MarketingPage() {
       <section className="max-w-5xl mx-auto px-5 sm:px-8 py-16">
         <p className="text-[11px] tracking-widest uppercase text-charcoal/35 text-center mb-3">Built for</p>
         <h2 className="font-serif text-3xl sm:text-4xl text-charcoal text-center mb-4">
-          Any kitchen that needs to be compliant
+          Small businesses that can't afford to waste time
         </h2>
         <p className="text-charcoal/50 text-center max-w-lg mx-auto text-sm leading-relaxed mb-12">
-          Whether you're a single café or a growing group of pubs, SafeServ keeps your food safety records clean, your team aligned, and your EHO inspector happy.
+          Most compliance tools are built for big chains with big budgets. SafeServ is built for independent operators — straightforward to set up, simple enough for every member of staff, and priced so it actually makes sense.
         </p>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -352,7 +352,7 @@ export default function MarketingPage() {
                   'Probe calibration',
                   'Opening & closing checklists',
                   'EHO audit-ready reports',
-                  'Up to 5 staff · 1 venue',
+                  'Up to 10 staff · 1 venue',
                 ].map(f => (
                   <li key={f} className="flex items-start gap-2.5 text-xs text-charcoal/60">
                     <span className="text-teal-500 mt-0.5 shrink-0"><IconCheck /></span>
@@ -378,7 +378,7 @@ export default function MarketingPage() {
               <div className="mb-5">
                 <p className="text-[11px] tracking-widest uppercase text-accent font-semibold mb-1">Pro</p>
                 <div className="flex items-baseline gap-1.5">
-                  <span className="font-serif text-4xl text-charcoal">£35</span>
+                  <span className="font-serif text-4xl text-charcoal">£45</span>
                   <span className="text-charcoal/40 text-sm">/month</span>
                 </div>
                 <p className="text-xs text-charcoal/40 mt-1">first venue · £15/month each additional</p>
@@ -392,11 +392,11 @@ export default function MarketingPage() {
                 <p className="text-[10px] tracking-widest uppercase text-charcoal/30 mb-3">Price as you grow</p>
                 <div className="flex flex-col gap-1.5">
                   {[
-                    ['1 venue', '£35/mo'],
-                    ['2 venues', '£50/mo'],
-                    ['3 venues', '£65/mo'],
-                    ['5 venues', '£95/mo'],
-                    ['10 venues', '£170/mo'],
+                    ['1 venue', '£45/mo'],
+                    ['2 venues', '£60/mo'],
+                    ['3 venues', '£75/mo'],
+                    ['5 venues', '£105/mo'],
+                    ['10 venues', '£180/mo'],
                   ].map(([venues, price]) => (
                     <div key={venues} className="flex items-center justify-between">
                       <span className="text-xs text-charcoal/50">{venues}</span>

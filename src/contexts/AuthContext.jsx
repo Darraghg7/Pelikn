@@ -6,6 +6,7 @@
  * explicitly sign out. Staff then authenticate within that venue via PIN.
  */
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import { flushSync } from 'react-dom'
 import { supabase } from '../lib/supabase'
 
 const AuthContext = createContext(null)
@@ -111,8 +112,12 @@ export function AuthProvider({ children }) {
       return { error: new Error('No venue found for this account') }
     }
 
-    setUser(data.user)
-    setVenueSlug(slug)
+    // flushSync forces React to commit state before this function returns,
+    // so RequireVenueAuth sees user immediately when navigate() is called
+    flushSync(() => {
+      setUser(data.user)
+      setVenueSlug(slug)
+    })
     return { error: null, slug }
   }, [])
 
