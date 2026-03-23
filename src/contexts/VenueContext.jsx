@@ -17,18 +17,31 @@ export function VenueProvider({ children }) {
   useEffect(() => {
     if (!venueSlug) { setLoading(false); setError(true); return }
 
+    const slug = venueSlug.toLowerCase()
+
+    // Try with plan column first; fall back to base columns if plan doesn't exist yet
     supabase
       .from('venues')
       .select('id, name, slug, plan')
-      .eq('slug', venueSlug.toLowerCase())
+      .eq('slug', slug)
       .single()
       .then(({ data, error: err }) => {
-        if (err || !data) {
-          setError(true)
-        } else {
+        if (!err && data) {
           setVenue(data)
+          setLoading(false)
+          return
         }
-        setLoading(false)
+        // Retry without plan column (migration 022 may not have run yet)
+        supabase
+          .from('venues')
+          .select('id, name, slug')
+          .eq('slug', slug)
+          .single()
+          .then(({ data: d2, error: err2 }) => {
+            if (err2 || !d2) setError(true)
+            else setVenue({ ...d2, plan: 'starter' })
+            setLoading(false)
+          })
       })
   }, [venueSlug])
 
