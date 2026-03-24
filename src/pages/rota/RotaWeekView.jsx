@@ -10,7 +10,7 @@ function fmtGBP(amount) {
 }
 
 /* ── Mobile Day View ─────────────────────────────────────────────────────── */
-function MobileDayView({ days, shifts, staff, onCellClick, currentStaffId, isManager, unavailability, closedDays }) {
+function MobileDayView({ days, shifts, staff, onCellClick, currentStaffId, isManager, unavailability, closedDays, closedDates, closureMode, onToggleClosure }) {
   // Default to today's index within the week (0–6), or 0 if today isn't in this week
   const todayIdx = days.findIndex(d => isToday(d))
   const [selectedDay, setSelectedDay] = useState(todayIdx >= 0 ? todayIdx : 0)
@@ -23,7 +23,8 @@ function MobileDayView({ days, shifts, staff, onCellClick, currentStaffId, isMan
 
   const day      = days[selectedDay]
   const dateStr  = format(day, 'yyyy-MM-dd')
-  const isClosed = closedDays.includes(selectedDay)
+  const isClosed = closedDays.includes(selectedDay) || closedDates.has(dateStr)
+  const isDbClosed = closedDates.has(dateStr)
 
   // All shifts for this day across all staff
   const dayShifts = shifts.filter(sh => sh.shift_date === dateStr)
@@ -35,15 +36,18 @@ function MobileDayView({ days, shifts, staff, onCellClick, currentStaffId, isMan
         <div className="flex gap-2 pb-1">
           {days.map((d, i) => {
             const today   = isToday(d)
-            const closed  = closedDays.includes(i)
+            const dStr    = format(d, 'yyyy-MM-dd')
+            const closed  = closedDays.includes(i) || closedDates.has(dStr)
+            const dbClosed = closedDates.has(dStr)
             const active  = i === selectedDay
-            const hasShifts = shifts.some(sh => sh.shift_date === format(d, 'yyyy-MM-dd'))
+            const hasShifts = shifts.some(sh => sh.shift_date === dStr)
             return (
               <button
                 key={i}
-                onClick={() => setSelectedDay(i)}
+                onClick={() => closureMode ? onToggleClosure?.(dStr) : setSelectedDay(i)}
                 className={[
                   'flex flex-col items-center px-3 py-2 rounded-xl shrink-0 border transition-all min-w-[54px]',
+                  closureMode && dbClosed ? 'bg-danger/10 border-danger/30 text-danger' :
                   active
                     ? 'bg-charcoal text-cream border-charcoal'
                     : today
@@ -55,8 +59,13 @@ function MobileDayView({ days, shifts, staff, onCellClick, currentStaffId, isMan
               >
                 <span className="text-[9px] font-semibold tracking-widest uppercase">{DAY_LABELS[i]}</span>
                 <span className="text-sm font-semibold mt-0.5">{format(d, 'd')}</span>
-                {hasShifts && !closed && (
+                {hasShifts && !closed && !closureMode && (
                   <span className={`w-1.5 h-1.5 rounded-full mt-1 ${active ? 'bg-cream/50' : 'bg-accent'}`} />
+                )}
+                {closureMode && (
+                  <span className={`text-[7px] tracking-widest uppercase mt-0.5 font-bold ${dbClosed ? 'text-danger/60' : 'text-charcoal/20'}`}>
+                    {dbClosed ? 'Closed' : '+close'}
+                  </span>
                 )}
               </button>
             )
@@ -72,14 +81,22 @@ function MobileDayView({ days, shifts, staff, onCellClick, currentStaffId, isMan
             <span className="ml-2 text-[11px] tracking-widest uppercase bg-accent/12 text-accent px-2 py-0.5 rounded-full font-medium">Today</span>
           )}
         </h3>
-        {isClosed && (
+        {isClosed && !closureMode && (
           <span className="text-[11px] tracking-widest uppercase text-charcoal/35 font-semibold">Closed</span>
+        )}
+        {closureMode && isDbClosed && (
+          <button
+            onClick={() => onToggleClosure?.(dateStr)}
+            className="text-[11px] tracking-widest uppercase text-danger/60 hover:text-danger font-semibold transition-colors"
+          >
+            Tap to unmark ×
+          </button>
         )}
       </div>
 
-      {isClosed ? (
+      {isClosed && !closureMode ? (
         <div className="py-8 text-center text-sm text-charcoal/30 italic">Venue closed this day.</div>
-      ) : dayShifts.length === 0 ? (
+      ) : dayShifts.length === 0 && !closureMode ? (
         <div className="py-8 text-center">
           <p className="text-sm text-charcoal/35 italic mb-3">No shifts scheduled for this day.</p>
           {isManager && (
@@ -151,7 +168,7 @@ function MobileDayView({ days, shifts, staff, onCellClick, currentStaffId, isMan
 }
 
 /* ── Desktop Week Table ───────────────────────────────────────────────────── */
-function DesktopWeekTable({ days, shifts, staff, onCellClick, onToggleAvailability, currentStaffId, isManager, unavailability, closedDays, weeklyTotal, breakDurationMins }) {
+function DesktopWeekTable({ days, shifts, staff, onCellClick, onToggleAvailability, currentStaffId, isManager, unavailability, closedDays, closedDates, closureMode, onToggleClosure, weeklyTotal, breakDurationMins }) {
   return (
     <div className="overflow-x-auto">
       <table className="min-w-full text-sm border-separate border-spacing-0">
@@ -161,13 +178,20 @@ function DesktopWeekTable({ days, shifts, staff, onCellClick, onToggleAvailabili
               Staff
             </th>
             {days.map((d, i) => {
-              const today = isToday(d)
-              const isClosed = closedDays.includes(i)
+              const today    = isToday(d)
+              const dateStr  = format(d, 'yyyy-MM-dd')
+              const isClosed = closedDays.includes(i) || closedDates.has(dateStr)
+              const isDbClosed = closedDates.has(dateStr)
               return (
-                <th key={i} className={[
-                  'px-3 py-3 border-b border-charcoal/8 text-center min-w-[96px]',
-                  isClosed ? 'bg-charcoal/5' : today ? 'bg-accent/5' : '',
-                ].join(' ')}>
+                <th
+                  key={i}
+                  onClick={closureMode ? () => onToggleClosure(dateStr) : undefined}
+                  className={[
+                    'px-3 py-3 border-b border-charcoal/8 text-center min-w-[96px] transition-colors',
+                    closureMode ? 'cursor-pointer hover:bg-danger/10' : '',
+                    isClosed    ? 'bg-charcoal/5' : today ? 'bg-accent/5' : '',
+                    closureMode && isDbClosed ? 'bg-danger/8 ring-1 ring-danger/20' : '',
+                  ].join(' ')}>
                   <p className={[
                     'text-[11px] tracking-widest font-medium',
                     isClosed ? 'text-charcoal/25' : today ? 'text-accent' : 'text-charcoal/35',
@@ -176,8 +200,13 @@ function DesktopWeekTable({ days, shifts, staff, onCellClick, onToggleAvailabili
                     'text-sm font-medium',
                     isClosed ? 'text-charcoal/25' : today ? 'text-accent' : 'text-charcoal',
                   ].join(' ')}>{format(d, 'd MMM')}</p>
-                  {isClosed && (
+                  {isClosed && !closureMode && (
                     <p className="text-[8px] tracking-widest uppercase text-charcoal/20 font-semibold mt-0.5">Closed</p>
+                  )}
+                  {closureMode && (
+                    <p className={`text-[8px] tracking-widest uppercase font-semibold mt-0.5 ${isDbClosed ? 'text-danger/60' : 'text-charcoal/20'}`}>
+                      {isDbClosed ? 'Tap to unmark' : 'Tap to close'}
+                    </p>
                   )}
                 </th>
               )
@@ -214,7 +243,7 @@ function DesktopWeekTable({ days, shifts, staff, onCellClick, onToggleAvailabili
                 {days.map((d, di) => {
                   const dateStr   = format(d, 'yyyy-MM-dd')
                   const today     = isToday(d)
-                  const isClosed  = closedDays.includes(di)
+                  const isClosed  = closedDays.includes(di) || closedDates.has(dateStr)
                   const dayShifts = shifts.filter((sh) => sh.staff_id === s.id && sh.shift_date === dateStr)
                   const unavail   = unavailability[`${s.id}:${dateStr}`]
                   const isTimeOff = unavail?.type === 'time_off'
@@ -383,6 +412,9 @@ export default function RotaWeekView({
   isManager = true,
   unavailability = {},
   closedDays = [],
+  closedDates = new Set(),
+  closureMode = false,
+  onToggleClosure = null,
   breakDurationMins = 30,
 }) {
   const days = getWeekDays(weekStart)
@@ -402,7 +434,7 @@ export default function RotaWeekView({
     return total + hrs * (s.hourly_rate ?? 0)
   }, 0)
 
-  const sharedProps = { days, shifts, staff, onCellClick, onToggleAvailability, currentStaffId, isManager, unavailability, closedDays, breakDurationMins }
+  const sharedProps = { days, shifts, staff, onCellClick, onToggleAvailability, currentStaffId, isManager, unavailability, closedDays, closedDates, closureMode, onToggleClosure, breakDurationMins }
 
   return (
     <>

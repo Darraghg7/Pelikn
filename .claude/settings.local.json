@@ -108,7 +108,15 @@
       "Bash(grep -h \"^CREATE TABLE\" /Users/darraghguy/Desktop/Safeserv/supabase/migrations/*.sql)",
       "Bash(grep -h \"noticeboard\\\\|haccp_log\\\\|^CREATE TABLE.*orders\\\\b\\\\|temp_log\\\\b\" /Users/darraghguy/Desktop/Safeserv/supabase/migrations/*.sql)",
       "Bash(grep -h \"ALTER TABLE.*ADD COLUMN venue_id\\\\|CREATE TABLE.*task_completions\\\\|noticeboard_posts.*venue_id\\\\|venue_id.*noticeboard\" /Users/darraghguy/Desktop/Safeserv/supabase/migrations/*.sql)",
-      "Bash(grep -h \"ALTER TABLE.*ADD COLUMN venue_id\" /Users/darraghguy/Desktop/Safeserv/supabase/migrations/*.sql)"
+      "Bash(grep -h \"ALTER TABLE.*ADD COLUMN venue_id\" /Users/darraghguy/Desktop/Safeserv/supabase/migrations/*.sql)",
+      "Bash(convert --version)",
+      "Bash(rsvg-convert --version)",
+      "Bash(node -e \"require\\(''sharp''\\)\")",
+      "Bash(node -e \"require\\(''canvas''\\)\")",
+      "Bash(npx --yes sharp-cli --version)",
+      "Bash(node -e \"require\\(''puppeteer''\\)\")",
+      "Bash(node -e \"require\\(''puppeteer-core''\\)\")",
+      "Bash(npx sharp-cli:*)"
     ]
   }
 }

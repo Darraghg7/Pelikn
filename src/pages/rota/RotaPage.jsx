@@ -1,5 +1,5 @@
-import React, { useState } from 'react'
-import { format, addWeeks, addDays } from 'date-fns'
+import React, { useState, useEffect, useCallback } from 'react'
+import { format, addWeeks, addDays, eachDayOfInterval, parseISO } from 'date-fns'
 import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
 import { useShifts, useStaffList, shiftDurationHours, paidShiftHours, unpaidBreakMins } from '../../hooks/useShifts'
@@ -43,6 +43,49 @@ export default function RotaPage() {
   const { unavailability, toggleAvailability, reload: reloadAvail } = useAvailability(weekStart, numWeeks)
   const { customRoles, closedDays, breakDurationMins } = useAppSettings()
 
+  // ── Venue closures ──
+  const [closures, setClosures] = useState([])
+  const loadClosures = useCallback(async () => {
+    if (!venueId) return
+    const { data } = await supabase
+      .from('venue_closures')
+      .select('id, start_date, end_date')
+      .eq('venue_id', venueId)
+    setClosures(data ?? [])
+  }, [venueId])
+  useEffect(() => { loadClosures() }, [loadClosures])
+
+  // Expand all closure ranges into a Set of 'yyyy-MM-dd' strings
+  const closedDates = React.useMemo(() => {
+    const set = new Set()
+    for (const c of closures) {
+      try {
+        const days = eachDayOfInterval({ start: parseISO(c.start_date), end: parseISO(c.end_date) })
+        days.forEach(d => set.add(format(d, 'yyyy-MM-dd')))
+      } catch { /* skip invalid ranges */ }
+    }
+    return set
+  }, [closures])
+
+  const [closureMode, setClosureMode] = useState(false)
+  const [togglingClosure, setTogglingClosure] = useState(false)
+
+  const toggleDateClosure = async (dateStr) => {
+    if (togglingClosure) return
+    setTogglingClosure(true)
+    // Find if there's already a single-day closure for this exact date
+    const existing = closures.find(c => c.start_date === dateStr && c.end_date === dateStr)
+    if (existing) {
+      await supabase.from('venue_closures').delete().eq('id', existing.id)
+    } else {
+      await supabase.from('venue_closures').insert({
+        venue_id: venueId, start_date: dateStr, end_date: dateStr,
+      })
+    }
+    setTogglingClosure(false)
+    loadClosures()
+  }
+
   const [showBuilder, setShowBuilder]           = useState(false)
 
   // Manager shift modal state
@@ -68,6 +111,9 @@ export default function RotaPage() {
   // ── Manager: shift cell click ──
   const openCell = (staffMember, date, dayShifts) => {
     if (!isManager) return // staff handled separately via RotaWeekView callback
+    if (closureMode) return // in closure mode, day header handles clicks
+    const dateStr = format(date, 'yyyy-MM-dd')
+    if (closedDates.has(dateStr)) return // can't add shifts on closed days
     setModal({ staffMember, date, dayShifts })
     setForm({ staffId: staffMember.id, startTime: '09:00', endTime: '17:00', roleLabel: 'Chef' })
     setEditShift(null)
@@ -263,29 +309,61 @@ export default function RotaPage() {
         </h1>
         {isManager && (
           <div className="flex items-center gap-3">
-            <button
-              onClick={() => setShowBuilder(true)}
-              className="text-[11px] tracking-widest uppercase text-accent/70 hover:text-accent transition-colors border-b border-accent/30 hover:border-accent/50"
-            >
-              ✨ Auto-Fill
-            </button>
-            <button
-              onClick={emailRota}
-              disabled={emailing || shifts.length === 0}
-              className="text-[11px] tracking-widest uppercase text-charcoal/40 hover:text-charcoal transition-colors border-b border-charcoal/20 disabled:opacity-30 disabled:cursor-not-allowed"
-            >
-              {emailing ? 'Sending…' : '✉ Email'}
-            </button>
-            <button
-              onClick={shareViaWhatsApp}
-              disabled={shifts.length === 0}
-              className="text-[11px] tracking-widest uppercase text-green-600/70 hover:text-green-600 transition-colors border-b border-green-500/30 disabled:opacity-30 disabled:cursor-not-allowed"
-            >
-              WhatsApp
-            </button>
+            {!closureMode && (
+              <>
+                <button
+                  onClick={() => setShowBuilder(true)}
+                  className="text-[11px] tracking-widest uppercase text-accent/70 hover:text-accent transition-colors border-b border-accent/30 hover:border-accent/50"
+                >
+                  ✨ Auto-Fill
+                </button>
+                <button
+                  onClick={emailRota}
+                  disabled={emailing || shifts.length === 0}
+                  className="text-[11px] tracking-widest uppercase text-charcoal/40 hover:text-charcoal transition-colors border-b border-charcoal/20 disabled:opacity-30 disabled:cursor-not-allowed"
+                >
+                  {emailing ? 'Sending…' : '✉ Email'}
+                </button>
+                <button
+                  onClick={shareViaWhatsApp}
+                  disabled={shifts.length === 0}
+                  className="text-[11px] tracking-widest uppercase text-green-600/70 hover:text-green-600 transition-colors border-b border-green-500/30 disabled:opacity-30 disabled:cursor-not-allowed"
+                >
+                  WhatsApp
+                </button>
+                <button
+                  onClick={() => setClosureMode(true)}
+                  className="text-[11px] tracking-widest uppercase text-danger/60 hover:text-danger transition-colors border-b border-danger/25 hover:border-danger/40"
+                >
+                  Mark Closed
+                </button>
+              </>
+            )}
+            {closureMode && (
+              <button
+                onClick={() => setClosureMode(false)}
+                className="text-[11px] tracking-widest uppercase bg-danger/10 text-danger border border-danger/25 px-3 py-1.5 rounded-lg hover:bg-danger/15 transition-colors font-medium"
+              >
+                Done ✓
+              </button>
+            )}
           </div>
         )}
       </div>
+
+      {/* ── Closure mode banner ── */}
+      {closureMode && (
+        <div className="rounded-xl border border-danger/25 bg-danger/5 px-5 py-4 flex items-start gap-3">
+          <span className="text-lg shrink-0 mt-0.5">🔒</span>
+          <div>
+            <p className="text-sm font-semibold text-danger">Marking closed days</p>
+            <p className="text-xs text-danger/70 mt-0.5">
+              Tap any day in the calendar below to mark it as closed. Tap again to unmark.
+              No shifts can be added on closed days. Tap <strong>Done</strong> when finished.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Availability legend (always visible for managers) */}
       {isManager && (
@@ -536,6 +614,9 @@ export default function RotaPage() {
                 isManager={isManager}
                 unavailability={unavailability}
                 closedDays={closedDays}
+                closedDates={closedDates}
+                closureMode={closureMode}
+                onToggleClosure={toggleDateClosure}
                 breakDurationMins={breakDurationMins}
               />
             )}
