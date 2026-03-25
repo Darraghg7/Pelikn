@@ -4,7 +4,6 @@ import { BrowserRouter, Routes, Route, Navigate, useParams } from 'react-router-
 import { isConfigured }        from './lib/supabase'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { SessionProvider, useSession } from './contexts/SessionContext'
-import { SESSION_VENUE_SLUG_KEY } from './lib/constants'
 import { VenueProvider }       from './contexts/VenueContext'
 import { ToastProvider }       from './components/ui/Toast'
 import SetupPage               from './pages/SetupPage'
@@ -151,11 +150,10 @@ function wrapPro(Component, Guard = RequireAuth, feature) {
 function LandingRoute() {
   const { user, venueSlug, authLoading } = useAuth()
   if (authLoading) return <FullPageLoader />
-  // Supabase-authenticated manager
+  // Supabase-authenticated manager — jump straight into the app
   if (user && venueSlug) return <Navigate to={`/v/${venueSlug}`} replace />
-  // PIN-session staff reopening the app (e.g. after force-close on iPhone)
-  const storedSlug = localStorage.getItem(SESSION_VENUE_SLUG_KEY)
-  if (storedSlug) return <Navigate to={`/v/${storedSlug}`} replace />
+  // Everyone else (new user, logged-out user) sees the login form.
+  // LandingPage itself handles the PWA relaunch redirect for PIN-session staff.
   return <LandingPage />
 }
 
