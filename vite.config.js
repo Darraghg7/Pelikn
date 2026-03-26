@@ -11,35 +11,28 @@ export default defineConfig({
       filename: 'sw.js',
       registerType: 'prompt',
       includeAssets: ['icons/*.png', 'icons/*.svg'],
-      manifest: {
-        name: 'SafeServ',
-        short_name: 'SafeServ',
-        description: 'Food safety & operations management',
-        theme_color: '#1a1a18',
-        background_color: '#f5f0e8',
-        display: 'standalone',
-        orientation: 'portrait',
-        scope: '/',
-        start_url: '/',
-        icons: [
-          {
-            src: '/icons/icon-192.png',
-            sizes: '192x192',
-            type: 'image/png',
-          },
-          {
-            src: '/icons/icon-512.png',
-            sizes: '512x512',
-            type: 'image/png',
-          },
-          {
-            src: '/icons/icon-512.png',
-            sizes: '512x512',
-            type: 'image/png',
-            purpose: 'any maskable',
-          },
-        ],
-      },
+      // Disable auto-generated manifest — we use public/manifest.json instead.
+      // Having two manifests confuses Android Chrome and can cause PWA install failures.
+      manifest: false,
     }),
   ],
+
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // Core React runtime — tiny, cached forever after first load
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          // Supabase client — large but rarely changes
+          'supabase-vendor': ['@supabase/supabase-js'],
+          // Date utilities
+          'date-vendor': ['date-fns'],
+          // PDF / canvas export — only needed on demand
+          'pdf-vendor': ['jspdf', 'html2canvas'],
+        },
+      },
+    },
+    // Raise threshold now we've intentionally split chunks
+    chunkSizeWarningLimit: 600,
+  },
 })
