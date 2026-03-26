@@ -13,6 +13,8 @@ import { ROLE_OPTIONS, SHIFT_PRESETS } from '../../lib/constants'
 import { useAppSettings } from '../../hooks/useSettings'
 import RotaWeekView from './RotaWeekView'
 import RotaBuilderModal from './RotaBuilderModal'
+import RotaAIModal from './RotaAIModal'
+import RotaConfigModal from './RotaConfigModal'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
 import Modal from '../../components/ui/Modal'
 
@@ -127,7 +129,9 @@ export default function RotaPage() {
   // The dates used for display/blocking: pending state while in mode, saved state otherwise
   const effectiveClosedDates = closureMode && pendingClosed != null ? pendingClosed : closedDates
 
-  const [showBuilder, setShowBuilder]           = useState(false)
+  const [showBuilder, setShowBuilder]   = useState(false)
+  const [showAI, setShowAI]             = useState(false)
+  const [showConfig, setShowConfig]     = useState(false)
 
   // Manager shift modal state
   const [modal, setModal]         = useState(null)
@@ -353,7 +357,13 @@ export default function RotaPage() {
             {!closureMode && (
               <>
                 <button
-                  onClick={() => setShowBuilder(true)}
+                  onClick={() => setShowConfig(true)}
+                  className="text-[11px] tracking-widest uppercase text-charcoal/40 hover:text-charcoal transition-colors border-b border-charcoal/20 hover:border-charcoal/40"
+                >
+                  ⚙ Configure
+                </button>
+                <button
+                  onClick={() => setShowAI(true)}
                   className="text-[11px] tracking-widest uppercase text-accent/70 hover:text-accent transition-colors border-b border-accent/30 hover:border-accent/50"
                 >
                   ✨ Auto-Fill
@@ -861,6 +871,21 @@ export default function RotaPage() {
           closedDays={closedDays}
         />
       )}
+
+      {/* ── AI auto-fill modal ── */}
+      <RotaAIModal
+        open={showAI}
+        onClose={() => setShowAI(false)}
+        weekStart={weekStart}
+        onSave={batchSaveShifts}
+      />
+
+      {/* ── Rota config modal ── */}
+      <RotaConfigModal
+        open={showConfig}
+        onClose={() => setShowConfig(false)}
+        closedDayIndices={closedDays}
+      />
 
       {/* ── Staff: swap request modal ── */}
       {!isManager && swapModal && (
