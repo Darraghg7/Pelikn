@@ -50,15 +50,16 @@ export default function UpdateBanner() {
   if (!updateReady) return null
 
   return (
-    <div className="fixed top-0 inset-x-0 z-[200] flex items-center justify-between gap-3 bg-brand text-cream px-4 py-2.5">
-      <span className="text-xs tracking-wide opacity-90">
-        A new version is available.
-      </span>
+    <div className="fixed top-0 inset-x-0 z-[200] flex items-center justify-between gap-3 bg-warning text-white px-4 py-2.5">
+      <div className="flex items-center gap-2">
+        <span className="text-sm">⬆️</span>
+        <span className="text-xs font-medium">Update available — tap to get the latest version</span>
+      </div>
       <button
         onClick={applyUpdate}
-        className="shrink-0 text-xs font-semibold bg-cream/15 hover:bg-cream/25 transition-colors px-3 py-1.5 rounded-lg"
+        className="shrink-0 text-xs font-bold bg-white/25 hover:bg-white/35 transition-colors px-3 py-1.5 rounded-lg whitespace-nowrap"
       >
-        Update now
+        Update
       </button>
     </div>
   )
