@@ -18,11 +18,12 @@ export default function LoginPage() {
   const { signOutVenue } = useAuth()
   const navigate = useNavigate()
 
-  const [staff, setStaff]           = useState([])
-  const [selected, setSelected]     = useState(null)   // staff row
-  const [pin, setPin]               = useState('')
-  const [error, setError]           = useState('')
-  const [submitting, setSubmitting] = useState(false)
+  const [staff, setStaff]             = useState([])
+  const [staffLoading, setStaffLoading] = useState(true)
+  const [selected, setSelected]       = useState(null)   // staff row
+  const [pin, setPin]                 = useState('')
+  const [error, setError]             = useState('')
+  const [submitting, setSubmitting]   = useState(false)
   const pinRef = useRef(null)
 
   // Redirect if already logged in
@@ -30,9 +31,11 @@ export default function LoginPage() {
     if (!loading && session) navigate(`/v/${venueSlug}/dashboard`, { replace: true })
   }, [loading, session, navigate, venueSlug])
 
-  // Fetch all active staff for this venue on mount
+  // Fetch all active staff for this venue — guard against unmount + missing venueId
   useEffect(() => {
-    if (!venueId) return
+    if (!venueId) { setStaffLoading(false); return }
+    let cancelled = false
+    setStaffLoading(true)
     supabase
       .from('staff')
       .select('id, name, role, photo_url')
@@ -40,7 +43,17 @@ export default function LoginPage() {
       .eq('is_active', true)
       .order('sort_order')
       .order('name')
-      .then(({ data }) => setStaff(data ?? []))
+      .then(({ data }) => {
+        if (cancelled) return
+        setStaff(data ?? [])
+      })
+      .catch(() => {
+        if (!cancelled) setStaff([])
+      })
+      .finally(() => {
+        if (!cancelled) setStaffLoading(false)
+      })
+    return () => { cancelled = true }
   }, [venueId])
 
   const selectStaff = (member) => {
@@ -88,7 +101,12 @@ export default function LoginPage() {
             Select Staff Member
           </p>
           <div className="flex flex-col gap-2">
-            {staff.length === 0 && (
+            {staffLoading && (
+              <div className="flex justify-center py-6">
+                <div className="w-5 h-5 rounded-full border-2 border-charcoal/15 border-t-brand animate-spin" />
+              </div>
+            )}
+            {!staffLoading && staff.length === 0 && (
               <p className="text-sm text-charcoal/40 text-center py-4">No staff members found for this venue.</p>
             )}
             {staff.map((s) => (

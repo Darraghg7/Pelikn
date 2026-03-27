@@ -13,16 +13,18 @@ function useVenueBranding(venueId) {
   const [logoUrl, setLogoUrl] = useState('')
   useEffect(() => {
     if (!venueId) return
+    let cancelled = false
     supabase.from('app_settings').select('key, value')
       .eq('venue_id', venueId)
       .in('key', ['venue_name', 'logo_url'])
       .then(({ data }) => {
-        if (data) {
-          const map = Object.fromEntries(data.map(r => [r.key, r.value]))
-          setVenueName(map.venue_name ?? '')
-          setLogoUrl(map.logo_url ?? '')
-        }
+        if (cancelled || !data) return
+        const map = Object.fromEntries(data.map(r => [r.key, r.value]))
+        setVenueName(map.venue_name ?? '')
+        setLogoUrl(map.logo_url ?? '')
       })
+      .catch(() => {})
+    return () => { cancelled = true }
   }, [venueId])
   return { venueName, logoUrl }
 }
@@ -43,35 +45,40 @@ export default function StaffDashboardPage() {
 
   useEffect(() => {
     if (!session?.staffId || !venueId) return
+    let cancelled = false
     const load = async () => {
       setLoading(true)
       const weekStart = format(
         new Date(new Date().setDate(new Date().getDate() - new Date().getDay() + 1)),
         'yyyy-MM-dd'
       )
-      const [shiftRes, weekRes] = await Promise.all([
-        supabase.from('shifts').select('*')
-          .eq('venue_id', venueId).eq('staff_id', session.staffId).eq('shift_date', today)
-          .order('start_time').limit(1),
-        supabase.from('clock_events').select('*')
-          .eq('venue_id', venueId).eq('staff_id', session.staffId).gte('occurred_at', weekStart),
-      ])
-      setTodayShift(shiftRes.data?.[0] ?? null)
-      const events = [...(weekRes.data ?? [])].sort(
-        (a, b) => new Date(a.occurred_at) - new Date(b.occurred_at)
-      )
-      let mins = 0, lastIn = null
-      for (const e of events) {
-        if (e.event_type === 'clock_in') lastIn = new Date(e.occurred_at)
-        if (e.event_type === 'clock_out' && lastIn) {
-          mins += (new Date(e.occurred_at) - lastIn) / 60000
-          lastIn = null
+      try {
+        const [shiftRes, weekRes] = await Promise.all([
+          supabase.from('shifts').select('*')
+            .eq('venue_id', venueId).eq('staff_id', session.staffId).eq('shift_date', today)
+            .order('start_time').limit(1),
+          supabase.from('clock_events').select('*')
+            .eq('venue_id', venueId).eq('staff_id', session.staffId).gte('occurred_at', weekStart),
+        ])
+        if (cancelled) return
+        setTodayShift(shiftRes.data?.[0] ?? null)
+        const events = [...(weekRes.data ?? [])].sort(
+          (a, b) => new Date(a.occurred_at) - new Date(b.occurred_at)
+        )
+        let mins = 0, lastIn = null
+        for (const e of events) {
+          if (e.event_type === 'clock_in') lastIn = new Date(e.occurred_at)
+          if (e.event_type === 'clock_out' && lastIn) {
+            mins += (new Date(e.occurred_at) - lastIn) / 60000
+            lastIn = null
+          }
         }
-      }
-      setWeekMins(Math.round(mins))
-      setLoading(false)
+        setWeekMins(Math.round(mins))
+      } catch { /* network error — leave defaults */ }
+      finally { if (!cancelled) setLoading(false) }
     }
     load()
+    return () => { cancelled = true }
   }, [session?.staffId, today, venueId])
 
   if (!session) return null

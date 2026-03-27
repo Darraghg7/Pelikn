@@ -13,7 +13,12 @@ export function useNotifications(isManager) {
 
   useEffect(() => {
     if (!isManager || !venueId) { setLoading(false); return }
-    load(venueId).then(setNotifications).finally(() => setLoading(false))
+    let cancelled = false
+    load(venueId)
+      .then(items  => { if (!cancelled) setNotifications(items) })
+      .catch(()    => { if (!cancelled) setNotifications([]) })
+      .finally(()  => { if (!cancelled) setLoading(false) })
+    return () => { cancelled = true }
   }, [isManager, venueId])
 
   return { notifications, count: notifications.length, loading }
