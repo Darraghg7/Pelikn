@@ -21,7 +21,7 @@ function WidgetShell({ title, to, children, status }) {
   }
   const href = to && venueSlug ? `/v/${venueSlug}${to}` : to
   return (
-    <div className={`bg-white rounded-xl border border-charcoal/10 overflow-hidden ${status ? `border-l-4 ${statusBorder[status] ?? ''}` : ''}`}>
+    <div className={`bg-white rounded-xl overflow-hidden ${status ? `border-l-4 ${statusBorder[status] ?? ''}` : ''}`}>
       <div className="flex items-center justify-between px-5 pt-4 pb-2">
         <p className="text-[11px] tracking-widest uppercase text-charcoal/40 font-medium">{title}</p>
         {href && (
@@ -59,74 +59,52 @@ function MiniRow({ label, value, warn }) {
 
 /* 1. Compliance Score */
 const SCORE_TIERS = [
-  { min: 90, label: 'Excellent',        color: '#15803d', status: 'good'    },
-  { min: 75, label: 'Good',             color: '#22c55e', status: 'good'    },
-  { min: 60, label: 'Needs Improvement',color: '#f59e0b', status: 'warning' },
-  { min: 0,  label: 'Poor',             color: '#ef4444', status: 'bad'     },
+  { min: 90, label: 'Excellent',         color: '#15803d', status: 'good'    },
+  { min: 75, label: 'Good',              color: '#16a34a', status: 'good'    },
+  { min: 60, label: 'Needs Improvement', color: '#d97706', status: 'warning' },
+  { min: 0,  label: 'Poor',              color: '#dc2626', status: 'bad'     },
 ]
 
 function getScoreTier(score) {
   return SCORE_TIERS.find(t => score >= t.min) ?? SCORE_TIERS[SCORE_TIERS.length - 1]
 }
 
+/** SVG ring gauge — score number centred, no text labels inside */
 function ComplianceGauge({ score }) {
-  const tier = getScoreTier(score)
-  const r = 48
-  const cx = 60
-  const cy = 60
-  const circumference = 2 * Math.PI * r
-  const filled = circumference * (score / 100)
-  const offset = circumference - filled
+  const tier   = getScoreTier(score)
+  const r      = 44
+  const cx     = 56
+  const cy     = 56
+  const circ   = 2 * Math.PI * r
+  const offset = circ - (circ * score / 100)
 
   return (
-    <div className="flex flex-col items-center py-2">
-      <svg width="120" height="120" viewBox="0 0 120 120">
-        {/* Track */}
-        <circle
-          cx={cx} cy={cy} r={r}
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="10"
-          className="text-charcoal/8"
-        />
-        {/* Progress arc — starts from 12 o'clock */}
-        <circle
-          cx={cx} cy={cy} r={r}
-          fill="none"
-          stroke={tier.color}
-          strokeWidth="10"
-          strokeLinecap="round"
-          strokeDasharray={circumference}
-          strokeDashoffset={offset}
-          transform={`rotate(-90 ${cx} ${cy})`}
-          style={{ transition: 'stroke-dashoffset 0.6s ease' }}
-        />
-        {/* Score text */}
-        <text
-          x={cx} y={cy - 4}
-          textAnchor="middle"
-          dominantBaseline="middle"
-          fontSize="22"
-          fontWeight="700"
-          fontFamily="serif"
-          fill={tier.color}
-        >
-          {score}%
-        </text>
-        {/* Label text */}
-        <text
-          x={cx} y={cy + 16}
-          textAnchor="middle"
-          dominantBaseline="middle"
-          fontSize="9"
-          fontWeight="600"
-          fill={tier.color}
-          letterSpacing="0.5"
-        >
-          {tier.label.toUpperCase()}
-        </text>
-      </svg>
-    </div>
+    <svg width="112" height="112" viewBox="0 0 112 112" style={{ flexShrink: 0 }}>
+      {/* Track */}
+      <circle cx={cx} cy={cy} r={r} fill="none" stroke="rgba(26,26,24,0.07)" strokeWidth="11" />
+      {/* Progress arc */}
+      <circle
+        cx={cx} cy={cy} r={r}
+        fill="none"
+        stroke={tier.color}
+        strokeWidth="11"
+        strokeLinecap="round"
+        strokeDasharray={circ}
+        strokeDashoffset={offset}
+        transform={`rotate(-90 ${cx} ${cy})`}
+        style={{ transition: 'stroke-dashoffset 0.7s ease' }}
+      />
+      {/* Score number */}
+      <text x={cx} y={cy - 2} textAnchor="middle" dominantBaseline="middle"
+        fontSize="24" fontWeight="700" fontFamily="DM Sans,sans-serif" fill={tier.color}>
+        {score}
+      </text>
+      {/* /100 sub-label */}
+      <text x={cx} y={cy + 17} textAnchor="middle" dominantBaseline="middle"
+        fontSize="10" fill="rgba(26,26,24,0.35)" fontFamily="DM Sans,sans-serif">
+        /100
+      </text>
+    </svg>
   )
 }
 
@@ -160,7 +138,7 @@ function ComplianceScoreWidget() {
 
       const a = actions.data ?? []
       const openCritical = a.filter(x => x.status === 'open' && x.severity === 'critical').length
-      const openActions = a.filter(x => x.status === 'open').length
+      const openActions  = a.filter(x => x.status === 'open').length
 
       const tr = training.data ?? []
       const expired = tr.filter(x => x.expiry_date && new Date(x.expiry_date) < new Date()).length
@@ -173,30 +151,47 @@ function ComplianceScoreWidget() {
       const openMedPest  = pi.filter(x => x.severity === 'medium').length
 
       let score = 100
-      if (tempRate < 95) score -= 20
-      else if (tempRate < 100) score -= 5
-      if (deliveryFails > 0) score -= 10
-      if (probeFails > 0) score -= 10
-      if (openCritical > 0) score -= 25
-      else if (openActions > 3) score -= 10
-      if (expired > 0) score -= 10
-      if (c.length === 0) score -= 5
-      if (d.length === 0) score -= 5
-      if (coolingFails > 0) score -= 10
-      if (openHighPest > 0) score -= 15
-      else if (openMedPest > 0) score -= 5
+      let issues = 0
+      if (tempRate < 95)       { score -= 20; issues++ } else if (tempRate < 100) { score -= 5; issues++ }
+      if (deliveryFails > 0)   { score -= 10; issues++ }
+      if (probeFails > 0)      { score -= 10; issues++ }
+      if (openCritical > 0)    { score -= 25; issues++ } else if (openActions > 3) { score -= 10; issues++ }
+      if (expired > 0)         { score -= 10; issues++ }
+      if (c.length === 0)      { score -= 5 }
+      if (d.length === 0)      { score -= 5 }
+      if (coolingFails > 0)    { score -= 10; issues++ }
+      if (openHighPest > 0)    { score -= 15; issues++ } else if (openMedPest > 0) { score -= 5; issues++ }
       score = Math.max(0, score)
 
-      setData({ score, status: getScoreTier(score).status })
+      setData({ score, issues, status: getScoreTier(score).status })
     }
     load()
   }, [venueId])
 
-  if (!data) return <WidgetShell title="Compliance Score" to="/audit"><div className="flex justify-center py-4"><LoadingSpinner /></div></WidgetShell>
+  if (!data) return (
+    <WidgetShell title="Compliance Score" to="/audit">
+      <div className="flex justify-center py-4"><LoadingSpinner /></div>
+    </WidgetShell>
+  )
+
+  const tier = getScoreTier(data.score)
 
   return (
     <WidgetShell title="Compliance Score" to="/audit" status={data.status}>
-      <ComplianceGauge score={data.score} />
+      <div className="flex items-center gap-4 py-2">
+        <ComplianceGauge score={data.score} />
+        <div className="flex-1 min-w-0">
+          <p className="text-lg font-bold leading-tight" style={{ color: tier.color }}>{tier.label}</p>
+          <p className="text-[11px] text-charcoal/40 mt-1 uppercase tracking-wide">30-day average</p>
+          <div className="mt-3">
+            {data.issues > 0 ? (
+              <p className="text-xs font-medium text-danger">{data.issues} item{data.issues !== 1 ? 's' : ''} need attention</p>
+            ) : (
+              <p className="text-xs font-medium text-success">All checks on track</p>
+            )}
+          </div>
+        </div>
+      </div>
     </WidgetShell>
   )
 }

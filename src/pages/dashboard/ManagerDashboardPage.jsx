@@ -297,7 +297,7 @@ function TodaySummaryCard({ venueId }) {
   const urgencyText = { warn: 'text-warning', danger: 'text-danger', info: 'text-accent' }
 
   return (
-    <div className="bg-white rounded-xl border border-charcoal/10 overflow-hidden">
+    <div className="bg-white rounded-xl overflow-hidden">
       <div className="px-5 pt-4 pb-3">
         <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-4">Today</p>
         {loading || !summary ? (
@@ -407,6 +407,10 @@ export default function ManagerDashboardPage() {
     toast('Dashboard updated')
   }
 
+  const hour = new Date().getHours()
+  const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening'
+  const firstName = session?.staffName?.split(' ')[0] ?? ''
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-start justify-between">
@@ -415,23 +419,25 @@ export default function ManagerDashboardPage() {
             <img
               src={logoUrl}
               alt="Venue logo"
-              className="h-14 w-14 sm:h-16 sm:w-16 rounded-xl object-contain bg-white border border-charcoal/10 p-1 shrink-0"
+              className="h-14 w-14 sm:h-16 sm:w-16 rounded-xl object-contain bg-white p-1 shrink-0"
             />
           )}
           <div>
-            {venueName && (
-              <p className="font-serif text-2xl sm:text-3xl text-charcoal font-semibold">{venueName}</p>
-            )}
+            <h1 className="font-serif text-2xl sm:text-3xl text-brand leading-tight">
+              {greeting}{firstName ? `, ${firstName}` : ''}
+            </h1>
             <p className="text-xs uppercase tracking-widest text-charcoal/40 mt-0.5">{format(new Date(), 'EEEE, d MMMM')}</p>
-            <div className="flex items-center gap-2 mt-0.5">
-              <p className="text-sm text-charcoal/40">Manager Dashboard</p>
-              <PlanBadge plan={venuePlan} />
-            </div>
+            {venueName && (
+              <div className="flex items-center gap-2 mt-1">
+                <p className="text-sm text-charcoal/50">{venueName}</p>
+                <PlanBadge plan={venuePlan} />
+              </div>
+            )}
           </div>
         </div>
         <button
           onClick={() => setShowPicker(true)}
-          className="text-[11px] sm:text-[11px] tracking-widest uppercase text-charcoal/30 hover:text-charcoal/60 border border-charcoal/15 hover:border-charcoal/30 px-2.5 py-1.5 rounded-lg transition-colors mt-1"
+          className="text-[11px] tracking-widest uppercase text-charcoal/30 hover:text-charcoal/60 border border-charcoal/15 hover:border-charcoal/30 px-2.5 py-1.5 rounded-lg transition-colors mt-1"
         >
           Customise
         </button>
@@ -444,7 +450,7 @@ export default function ManagerDashboardPage() {
       <TodaySummaryCard venueId={venueId} />
 
       {/* Clock in/out */}
-      <div className="bg-white rounded-xl border border-charcoal/10 p-5">
+      <div className="bg-white rounded-xl p-5">
         <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-3">My Clock</p>
         <ClockPanel staffId={session?.staffId} hasShift />
       </div>
