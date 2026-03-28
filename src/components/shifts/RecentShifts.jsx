@@ -242,14 +242,14 @@ function AddShiftForm({ staffId, onSave, onCancel }) {
 }
 
 /* ── Main exported component ─────────────────────────────────────────── */
-export default function RecentShifts({ staffId, isManagerEdit = false }) {
+export default function RecentShifts({ staffId, isManagerEdit = false, inline = false }) {
   const { sessions, loading, reload } = useClockSessions(staffId)
   const [adding, setAdding] = useState(false)
 
-  return (
-    <div className="bg-white rounded-xl p-5">
+  const body = (
+    <>
       <div className="flex items-center justify-between mb-1">
-        <p className="text-[11px] tracking-widest uppercase text-charcoal/40">Recent Shifts</p>
+        {!inline && <p className="text-[11px] tracking-widest uppercase text-charcoal/40">Recent Shifts</p>}
         {!adding && (
           <button
             onClick={() => setAdding(true)}
@@ -280,6 +280,9 @@ export default function RecentShifts({ staffId, isManagerEdit = false }) {
           ))}
         </div>
       )}
-    </div>
+    </>
   )
+
+  if (inline) return body
+  return <div className="bg-white rounded-xl p-5">{body}</div>
 }

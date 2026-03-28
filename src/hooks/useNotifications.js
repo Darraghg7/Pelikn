@@ -103,10 +103,17 @@ async function checkRepeatOffenders(items, vid) {
   if (offenders.length > 0) items.push({ id: 'repeat-offenders', type: 'repeat_offender', message: `Repeat late clock-ins (30 days): ${offenders.join(', ')}`, link: '/timesheet', severity: 'warning' })
 }
 
+const EXPLAINED_REASONS = ['delivery', 'defrost', 'service_access']
+
 async function checkFridgeAlerts(items, today, vid) {
-  const { data: logs } = await supabase.from('fridge_temperature_logs').select('id, fridge_id, temperature, fridge:fridge_id(name, min_temp, max_temp)').eq('venue_id', vid).gte('logged_at', today + 'T00:00:00')
+  const { data: logs } = await supabase.from('fridge_temperature_logs').select('id, fridge_id, temperature, exceedance_reason, is_resolved, fridge:fridge_id(name, min_temp, max_temp)').eq('venue_id', vid).gte('logged_at', today + 'T00:00:00')
   const readings = logs ?? []
-  const outOfRange = readings.filter(l => l.fridge && (l.temperature < l.fridge.min_temp || l.temperature > l.fridge.max_temp))
+  const outOfRange = readings.filter(l =>
+    l.fridge &&
+    (l.temperature < l.fridge.min_temp || l.temperature > l.fridge.max_temp) &&
+    !l.is_resolved &&
+    !EXPLAINED_REASONS.includes(l.exceedance_reason)
+  )
   if (outOfRange.length > 0) {
     const fridgeNames = [...new Set(outOfRange.map(l => l.fridge?.name).filter(Boolean))]
     items.push({ id: 'fridge-alerts', type: 'fridge_alert', message: `${outOfRange.length} temp reading${outOfRange.length > 1 ? 's' : ''} out of range: ${fridgeNames.join(', ')}`, link: '/fridge', severity: 'critical' })

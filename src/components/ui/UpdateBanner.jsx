@@ -7,12 +7,10 @@ function useUpdateReady() {
   useEffect(() => {
     if (!('serviceWorker' in navigator)) return
 
-    // Check immediately — SW may already be waiting when page loads
     navigator.serviceWorker.getRegistration().then(reg => {
       if (reg?.waiting) setWaitingSW(reg.waiting)
     })
 
-    // Listen for a new SW finishing installation
     navigator.serviceWorker.getRegistration().then(reg => {
       if (!reg) return
       reg.addEventListener('updatefound', () => {
@@ -25,7 +23,6 @@ function useUpdateReady() {
       })
     })
 
-    // When the new SW takes control, reload to use the fresh assets
     navigator.serviceWorker.addEventListener('controllerchange', () => {
       window.location.reload()
     })
@@ -40,35 +37,34 @@ function useUpdateReady() {
 }
 
 /**
- * Full-screen blocking update modal — prevents all app interaction until the
- * user installs the update. Mounted at the app root so it covers every page.
+ * Non-blocking update banner — sits at the bottom of the screen.
+ * Does not prevent app usage.
  */
 export default function UpdateBanner() {
   const { updateReady, applyUpdate } = useUpdateReady()
+  const [dismissed, setDismissed] = useState(false)
 
-  // Lock body scroll while the modal is showing
-  useEffect(() => {
-    if (!updateReady) return
-    document.body.style.overflow = 'hidden'
-    return () => { document.body.style.overflow = '' }
-  }, [updateReady])
-
-  if (!updateReady) return null
+  if (!updateReady || dismissed) return null
 
   return (
-    /* Full-screen backdrop — blocks all touches beneath it */
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm px-6">
-      <div className="w-full max-w-sm bg-white rounded-2xl shadow-2xl px-6 py-7 flex flex-col items-center text-center gap-4">
-        <span className="text-4xl">⬆️</span>
-        <div>
-          <h2 className="text-charcoal text-lg font-bold">Update available</h2>
-          <p className="text-charcoal/50 text-sm mt-1">Bug fixes and improvements — tap below to update and continue.</p>
+    <div className="fixed bottom-20 lg:bottom-4 left-1/2 -translate-x-1/2 z-[9999] w-[calc(100%-2rem)] max-w-sm">
+      <div className="bg-charcoal text-cream rounded-2xl shadow-2xl px-4 py-3 flex items-center gap-3">
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-semibold">Update available</p>
+          <p className="text-xs text-cream/50 mt-0.5">Tap to get the latest version</p>
         </div>
         <button
           onClick={applyUpdate}
-          className="w-full bg-warning text-white font-bold text-sm py-3.5 rounded-xl active:scale-95 transition-transform"
+          className="bg-cream text-charcoal font-bold text-xs px-3 py-1.5 rounded-xl shrink-0 hover:bg-cream/90 transition-colors active:scale-95"
         >
-          Update Now
+          Update
+        </button>
+        <button
+          onClick={() => setDismissed(true)}
+          className="text-cream/40 hover:text-cream/70 transition-colors text-lg leading-none shrink-0"
+          aria-label="Dismiss"
+        >
+          ×
         </button>
       </div>
     </div>

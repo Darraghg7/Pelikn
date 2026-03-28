@@ -396,7 +396,7 @@ export default function FridgeDashboardPage() {
 
       {/* Fridge cards */}
       {fridges.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {fridges.map(fridge => (
             <FridgeCard key={fridge.id} fridge={fridge} session={session} venueId={venueId} onSaved={reloadDash} />
           ))}

@@ -7,6 +7,7 @@ ALTER TABLE hour_edit_log ENABLE ROW LEVEL SECURITY;
 
 -- Allow SELECT so managers can read notifications for their venue.
 -- The app uses the anon key (same pattern as all other tables in this project).
+DROP POLICY IF EXISTS "hour_edit_log_select" ON hour_edit_log;
 CREATE POLICY "hour_edit_log_select" ON hour_edit_log
   FOR SELECT USING (true);
 

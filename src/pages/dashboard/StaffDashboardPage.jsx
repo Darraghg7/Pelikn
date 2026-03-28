@@ -8,6 +8,7 @@ import { formatMinutes } from '../../lib/utils'
 import ClockPanel from '../../components/ClockPanel'
 import RecentShifts from '../../components/shifts/RecentShifts'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
+import { useClockSessions } from '../../hooks/useClockSessions'
 
 function useVenueBranding(venueId) {
   const [venueName, setVenueName] = useState('')
@@ -32,6 +33,35 @@ function useVenueBranding(venueId) {
 
 function SectionLabel({ children }) {
   return <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-3">{children}</p>
+}
+
+function HoursThisWeekCard({ staffId, weekMins }) {
+  const { sessions, loading } = useClockSessions(staffId)
+  const [open, setOpen] = useState(false)
+
+  return (
+    <div className="bg-white rounded-xl border border-charcoal/10 p-5">
+      <div className="flex items-center justify-between mb-1">
+        <SectionLabel>Hours This Week</SectionLabel>
+        <button
+          onClick={() => setOpen(v => !v)}
+          className="text-xs font-medium text-brand/70 hover:text-brand transition-colors px-2 py-1 rounded-lg hover:bg-brand/8 -mt-1"
+        >
+          {open ? 'Close' : 'Edit Hours'}
+        </button>
+      </div>
+      <p className="font-serif text-3xl text-charcoal">{formatMinutes(weekMins)}</p>
+      <p className="text-xs text-charcoal/40 mt-1">
+        {weekMins > 0 ? `${(weekMins / 60).toFixed(1)} hours logged` : 'No hours logged yet this week'}
+      </p>
+
+      {open && !loading && (
+        <div className="mt-4 pt-4 border-t border-charcoal/8">
+          <RecentShifts staffId={staffId} isManagerEdit={false} inline />
+        </div>
+      )}
+    </div>
+  )
 }
 
 export default function StaffDashboardPage() {
@@ -129,11 +159,7 @@ export default function StaffDashboardPage() {
             <Link to={`/v/${venueSlug}/rota`} className="text-center text-xs text-charcoal/40 hover:text-charcoal transition-colors">View Rota →</Link>
           </div>
 
-          <div className="bg-white rounded-xl border border-charcoal/10 p-5">
-            <SectionLabel>Hours This Week</SectionLabel>
-            <p className="font-serif text-3xl text-charcoal">{formatMinutes(weekMins)}</p>
-            <p className="text-xs text-charcoal/40 mt-1">{weekMins > 0 ? `${(weekMins/60).toFixed(1)} hours logged` : 'No hours logged yet this week'}</p>
-          </div>
+          <HoursThisWeekCard staffId={session.staffId} weekMins={weekMins} />
         </div>
 
         {/* Right: recent shifts with editing */}
