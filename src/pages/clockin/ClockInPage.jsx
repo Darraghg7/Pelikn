@@ -8,7 +8,7 @@ import { useClockStatus } from '../../hooks/useClockEvents'
 import { useClockSessions } from '../../hooks/useClockSessions'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
 import { useToast } from '../../components/ui/Toast'
-import { format, isToday, isYesterday } from 'date-fns'
+import { format, isToday, isYesterday, subDays } from 'date-fns'
 
 function formatElapsed(ms) {
   if (!ms || ms < 0) ms = 0
@@ -200,30 +200,136 @@ function SessionRow({ session, onReload, isManagerEdit = false }) {
   )
 }
 
+/* ── Add shift manually form ─────────────────────────────────────── */
+function AddShiftForm({ staffId, onSave, onCancel }) {
+  const toast    = useToast()
+  const { venueId } = useVenue()
+  const BREAK_OPTIONS = [0, 5, 10, 15, 20, 30, 45, 60, 90]
+
+  // Build last-7-days date options
+  const dateOptions = Array.from({ length: 7 }, (_, i) => {
+    const d = subDays(new Date(), i)
+    return { value: format(d, 'yyyy-MM-dd'), label: i === 0 ? 'Today' : i === 1 ? 'Yesterday' : format(d, 'EEE, d MMM') }
+  })
+
+  const [date,     setDate]     = useState(dateOptions[0].value)
+  const [clockIn,  setClockIn]  = useState('09:00')
+  const [clockOut, setClockOut] = useState('17:00')
+  const [breakMin, setBreakMin] = useState('0')
+  const [saving,   setSaving]   = useState(false)
+
+  const handleAdd = async () => {
+    const newClockIn  = new Date(`${date}T${clockIn}:00`)
+    const newClockOut = new Date(`${date}T${clockOut}:00`)
+    if (newClockOut <= newClockIn) { toast('Clock out must be after clock in', 'error'); return }
+
+    setSaving(true)
+    // Insert clock_in event then use edit_clock_session to add clock_out + break
+    const { data: ciData, error: ciErr } = await supabase
+      .from('clock_events')
+      .insert({ staff_id: staffId, venue_id: venueId, event_type: 'clock_in', occurred_at: newClockIn.toISOString() })
+      .select('id')
+      .single()
+    if (ciErr) { toast(ciErr.message ?? 'Failed to save', 'error'); setSaving(false); return }
+
+    const { error: editErr } = await offlineRpc('edit_clock_session', {
+      p_clock_in_id:    ciData.id,
+      p_clock_in_time:  newClockIn.toISOString(),
+      p_clock_out_id:   null,
+      p_clock_out_time: newClockOut.toISOString(),
+      p_break_minutes:  parseInt(breakMin, 10) || 0,
+    })
+    setSaving(false)
+    if (editErr) { toast(editErr.message ?? 'Failed to save', 'error'); return }
+    toast('Shift added')
+    onSave()
+  }
+
+  return (
+    <div className="mt-3 pt-3 border-t border-charcoal/8 flex flex-col gap-3">
+      {/* Date */}
+      <div className="flex flex-col gap-1">
+        <label className="text-[11px] tracking-widest uppercase text-charcoal/40">Date</label>
+        <select
+          value={date}
+          onChange={(e) => setDate(e.target.value)}
+          className="bg-charcoal/4 rounded-lg px-3 py-2 text-sm text-charcoal focus:outline-none focus:ring-2 focus:ring-brand/30"
+        >
+          {dateOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+        </select>
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div className="flex flex-col gap-1">
+          <label className="text-[11px] tracking-widest uppercase text-charcoal/40">Clock In</label>
+          <input type="time" value={clockIn} onChange={(e) => setClockIn(e.target.value)}
+            className="bg-charcoal/4 rounded-lg px-3 py-2 text-sm text-charcoal focus:outline-none focus:ring-2 focus:ring-brand/30" />
+        </div>
+        <div className="flex flex-col gap-1">
+          <label className="text-[11px] tracking-widest uppercase text-charcoal/40">Clock Out</label>
+          <input type="time" value={clockOut} onChange={(e) => setClockOut(e.target.value)}
+            className="bg-charcoal/4 rounded-lg px-3 py-2 text-sm text-charcoal focus:outline-none focus:ring-2 focus:ring-brand/30" />
+        </div>
+      </div>
+      <div className="flex flex-col gap-1">
+        <label className="text-[11px] tracking-widest uppercase text-charcoal/40">Break</label>
+        <select value={breakMin} onChange={(e) => setBreakMin(e.target.value)}
+          className="bg-charcoal/4 rounded-lg px-3 py-2 text-sm text-charcoal focus:outline-none focus:ring-2 focus:ring-brand/30">
+          {BREAK_OPTIONS.map((m) => <option key={m} value={String(m)}>{m === 0 ? 'No break' : `${m} min`}</option>)}
+        </select>
+      </div>
+      <div className="flex gap-2 pt-1">
+        <button onClick={onCancel} disabled={saving}
+          className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-charcoal/60 bg-charcoal/6 hover:bg-charcoal/10 transition-colors disabled:opacity-40">
+          Cancel
+        </button>
+        <button onClick={handleAdd} disabled={saving}
+          className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white bg-brand hover:bg-brand/90 transition-colors disabled:opacity-40">
+          {saving ? 'Saving…' : 'Add Shift'}
+        </button>
+      </div>
+    </div>
+  )
+}
+
 /* ── Recent shifts list ──────────────────────────────────────────── */
 function RecentShifts({ staffId, isManagerEdit = false }) {
   const { sessions, loading, reload } = useClockSessions(staffId)
-
-  if (loading) {
-    return (
-      <div className="bg-white rounded-xl p-5">
-        <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-3">Recent Shifts</p>
-        <div className="flex justify-center py-4"><LoadingSpinner /></div>
-      </div>
-    )
-  }
-
-  if (sessions.length === 0) return null
+  const [adding, setAdding] = useState(false)
 
   return (
     <div className="bg-white rounded-xl p-5">
-      <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-1">Recent Shifts</p>
-      <p className="text-xs text-charcoal/30 mb-3">Tap Edit to correct a clock-in, clock-out or break time.</p>
-      <div className="flex flex-col">
-        {sessions.map((s) => (
-          <SessionRow key={s.clockInId} session={s} onReload={reload} isManagerEdit={isManagerEdit} />
-        ))}
+      <div className="flex items-center justify-between mb-1">
+        <p className="text-[11px] tracking-widest uppercase text-charcoal/40">Recent Shifts</p>
+        {!adding && (
+          <button
+            onClick={() => setAdding(true)}
+            className="text-xs font-medium text-brand/70 hover:text-brand transition-colors px-2 py-1 rounded-lg hover:bg-brand/8"
+          >
+            + Add shift
+          </button>
+        )}
       </div>
+      <p className="text-xs text-charcoal/30 mb-3">Tap Edit to correct a clock-in, clock-out or break time.</p>
+
+      {adding && (
+        <AddShiftForm
+          staffId={staffId}
+          onSave={() => { setAdding(false); reload() }}
+          onCancel={() => setAdding(false)}
+        />
+      )}
+
+      {loading ? (
+        <div className="flex justify-center py-4"><LoadingSpinner /></div>
+      ) : sessions.length === 0 && !adding ? (
+        <p className="text-sm text-charcoal/35 italic py-2">No shifts recorded in the last 7 days.</p>
+      ) : (
+        <div className="flex flex-col">
+          {sessions.map((s) => (
+            <SessionRow key={s.clockInId} session={s} onReload={reload} isManagerEdit={isManagerEdit} />
+          ))}
+        </div>
+      )}
     </div>
   )
 }
