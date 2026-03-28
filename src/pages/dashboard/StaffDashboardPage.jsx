@@ -6,6 +6,7 @@ import { useVenue } from '../../contexts/VenueContext'
 import { useSession } from '../../contexts/SessionContext'
 import { formatMinutes } from '../../lib/utils'
 import ClockPanel from '../../components/ClockPanel'
+import RecentShifts from '../../components/shifts/RecentShifts'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
 
 function useVenueBranding(venueId) {
@@ -89,6 +90,7 @@ export default function StaffDashboardPage() {
 
   return (
     <div className="flex flex-col gap-6">
+      {/* Header */}
       <div className="flex items-center gap-4">
         {logoUrl && (
           <img
@@ -106,26 +108,37 @@ export default function StaffDashboardPage() {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-charcoal/10 p-5 flex flex-col gap-4">
-        <SectionLabel>Today's Shift</SectionLabel>
-        {todayShift ? (
-          <div>
-            <p className="font-serif text-2xl text-charcoal">{todayShift.start_time.slice(0,5)}–{todayShift.end_time.slice(0,5)}</p>
-            <p className="text-sm text-charcoal/50 mt-0.5">{todayShift.role_label}</p>
-          </div>
-        ) : (
-          <p className="text-sm text-charcoal/40 italic">No shift scheduled today</p>
-        )}
-        <div className="border-t border-charcoal/8 pt-4">
-          <ClockPanel staffId={session.staffId} hasShift={!!todayShift} />
-        </div>
-        <Link to={`/v/${venueSlug}/rota`} className="text-center text-xs text-charcoal/40 hover:text-charcoal transition-colors">View Rota →</Link>
-      </div>
+      {/* Desktop: two columns — shift/clock left, recent shifts right */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
 
-      <div className="bg-white rounded-xl border border-charcoal/10 p-5">
-        <SectionLabel>Hours This Week</SectionLabel>
-        <p className="font-serif text-3xl text-charcoal">{formatMinutes(weekMins)}</p>
-        <p className="text-xs text-charcoal/40 mt-1">{weekMins > 0 ? `${(weekMins/60).toFixed(1)} hours logged` : 'No hours logged yet this week'}</p>
+        {/* Left: today's shift + clock + hours */}
+        <div className="flex flex-col gap-6">
+          <div className="bg-white rounded-xl border border-charcoal/10 p-5 flex flex-col gap-4">
+            <SectionLabel>Today's Shift</SectionLabel>
+            {todayShift ? (
+              <div>
+                <p className="font-serif text-2xl text-charcoal">{todayShift.start_time.slice(0,5)}–{todayShift.end_time.slice(0,5)}</p>
+                <p className="text-sm text-charcoal/50 mt-0.5">{todayShift.role_label}</p>
+              </div>
+            ) : (
+              <p className="text-sm text-charcoal/40 italic">No shift scheduled today</p>
+            )}
+            <div className="border-t border-charcoal/8 pt-4">
+              <ClockPanel staffId={session.staffId} hasShift={!!todayShift} />
+            </div>
+            <Link to={`/v/${venueSlug}/rota`} className="text-center text-xs text-charcoal/40 hover:text-charcoal transition-colors">View Rota →</Link>
+          </div>
+
+          <div className="bg-white rounded-xl border border-charcoal/10 p-5">
+            <SectionLabel>Hours This Week</SectionLabel>
+            <p className="font-serif text-3xl text-charcoal">{formatMinutes(weekMins)}</p>
+            <p className="text-xs text-charcoal/40 mt-1">{weekMins > 0 ? `${(weekMins/60).toFixed(1)} hours logged` : 'No hours logged yet this week'}</p>
+          </div>
+        </div>
+
+        {/* Right: recent shifts with editing */}
+        <RecentShifts staffId={session.staffId} isManagerEdit={false} />
+
       </div>
     </div>
   )

@@ -446,17 +446,17 @@ export default function ManagerDashboardPage() {
       {/* Push notification opt-in banner */}
       <PushBanner staffId={session?.staffId} />
 
-      {/* Today at a glance */}
-      <TodaySummaryCard venueId={venueId} />
-
-      {/* Clock in/out */}
-      <div className="bg-white rounded-xl p-5">
-        <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-3">My Clock</p>
-        <ClockPanel staffId={session?.staffId} hasShift />
+      {/* Desktop: today summary + clock side by side */}
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-4 items-start">
+        <TodaySummaryCard venueId={venueId} />
+        <div className="bg-white rounded-xl p-5">
+          <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-3">My Clock</p>
+          <ClockPanel staffId={session?.staffId} hasShift />
+        </div>
       </div>
 
-      {/* Widget grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      {/* Widget grid — 1 col mobile, 2 col tablet, 3 col desktop */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {widgetIds.map(id => {
           const widget = WIDGET_REGISTRY[id]
           if (!widget) return null

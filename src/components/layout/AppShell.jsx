@@ -299,7 +299,7 @@ export default function AppShell({ children }) {
   const isUnder = (p) => localPath.startsWith(p)
 
   const bgClass = isManager ? 'bg-cream dark:bg-[#111111]' : 'bg-staffbg dark:bg-[#111111]'
-  const maxW    = isManager ? 'max-w-[900px]' : 'max-w-[560px]'
+  const maxW    = isManager ? 'max-w-[1280px]' : 'max-w-[860px]'
 
   return (
     <div className="min-h-dvh flex font-sans" style={{ paddingLeft: 'env(safe-area-inset-left)', paddingRight: 'env(safe-area-inset-right)' }}>
