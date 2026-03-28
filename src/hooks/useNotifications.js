@@ -40,6 +40,7 @@ async function load(vid) {
     checkCriticalActions(items, vid),
     checkProbeCalibration(items, vid),
     checkTimeOffRequests(items, vid),
+    checkHourEdits(items, vid),
   ])
 
   const sevOrder = { critical: 0, warning: 1, info: 2 }
@@ -166,4 +167,25 @@ async function checkProbeCalibration(items, vid) {
 async function checkTimeOffRequests(items, vid) {
   const { count } = await supabase.from('time_off_requests').select('id', { count: 'exact', head: true }).eq('venue_id', vid).eq('status', 'pending')
   if (count > 0) items.push({ id: 'time-off-pending', type: 'time_off_pending', message: `${count} time-off request${count > 1 ? 's' : ''} awaiting approval`, link: '/time-off', severity: 'warning' })
+}
+
+async function checkHourEdits(items, vid) {
+  const since = format(subDays(new Date(), 7), 'yyyy-MM-dd')
+  const { data } = await supabase
+    .from('hour_edit_log')
+    .select('staff_name, shift_date, created_at')
+    .eq('venue_id', vid)
+    .gte('created_at', since + 'T00:00:00')
+    .order('created_at', { ascending: false })
+    .limit(20)
+  if (!data?.length) return
+  const count = data.length
+  const names = [...new Set(data.map((r) => r.staff_name).filter(Boolean))]
+  items.push({
+    id: 'hour-edits',
+    type: 'hour_edit',
+    message: `${count} manual hour edit${count > 1 ? 's' : ''} in the last 7 days: ${names.slice(0, 3).join(', ')}`,
+    link: '/timesheet',
+    severity: 'info',
+  })
 }

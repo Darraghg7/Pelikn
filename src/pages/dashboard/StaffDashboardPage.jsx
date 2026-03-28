@@ -34,7 +34,7 @@ function SectionLabel({ children }) {
 }
 
 export default function StaffDashboardPage() {
-  const { venueId } = useVenue()
+  const { venueId, venueSlug } = useVenue()
   const { session } = useSession()
   const { venueName, logoUrl } = useVenueBranding(venueId)
   const [todayShift, setTodayShift] = useState(null)
@@ -119,7 +119,7 @@ export default function StaffDashboardPage() {
         <div className="border-t border-charcoal/8 pt-4">
           <ClockPanel staffId={session.staffId} hasShift={!!todayShift} />
         </div>
-        <Link to="/rota" className="text-center text-xs text-charcoal/40 hover:text-charcoal transition-colors">View Rota →</Link>
+        <Link to={`/v/${venueSlug}/rota`} className="text-center text-xs text-charcoal/40 hover:text-charcoal transition-colors">View Rota →</Link>
       </div>
 
       <div className="bg-white rounded-xl border border-charcoal/10 p-5">

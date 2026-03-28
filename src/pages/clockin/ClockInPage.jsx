@@ -28,7 +28,7 @@ function sessionDateLabel(date) {
 }
 
 /* ── Inline edit form for a single session ───────────────────────── */
-function EditSessionForm({ session, onSave, onCancel }) {
+function EditSessionForm({ session, onSave, onCancel, isManagerEdit = false }) {
   const toast = useToast()
   const [clockIn,  setClockIn]  = useState(format(session.clockInAt,  'HH:mm'))
   const [clockOut, setClockOut] = useState(session.clockOutAt ? format(session.clockOutAt, 'HH:mm') : '')
@@ -68,6 +68,12 @@ function EditSessionForm({ session, onSave, onCancel }) {
     setSaving(false)
 
     if (error) { toast(error.message ?? 'Failed to save', 'error'); return }
+
+    // If a staff member (not a manager) edited their hours, log it so the manager is notified
+    if (!isManagerEdit) {
+      supabase.rpc('log_hour_edit', { p_clock_in_id: session.clockInId }).catch(() => {})
+    }
+
     toast('Shift updated')
     onSave()
   }
@@ -137,7 +143,7 @@ function EditSessionForm({ session, onSave, onCancel }) {
 }
 
 /* ── Single session row ──────────────────────────────────────────── */
-function SessionRow({ session, onReload }) {
+function SessionRow({ session, onReload, isManagerEdit = false }) {
   const [editing, setEditing] = useState(false)
 
   const durationMs = session.clockOutAt
@@ -187,6 +193,7 @@ function SessionRow({ session, onReload }) {
           session={session}
           onSave={handleSave}
           onCancel={() => setEditing(false)}
+          isManagerEdit={isManagerEdit}
         />
       )}
     </div>
@@ -194,7 +201,7 @@ function SessionRow({ session, onReload }) {
 }
 
 /* ── Recent shifts list ──────────────────────────────────────────── */
-function RecentShifts({ staffId }) {
+function RecentShifts({ staffId, isManagerEdit = false }) {
   const { sessions, loading, reload } = useClockSessions(staffId)
 
   if (loading) {
@@ -214,7 +221,7 @@ function RecentShifts({ staffId }) {
       <p className="text-xs text-charcoal/30 mb-3">Tap Edit to correct a clock-in, clock-out or break time.</p>
       <div className="flex flex-col">
         {sessions.map((s) => (
-          <SessionRow key={s.clockInId} session={s} onReload={reload} />
+          <SessionRow key={s.clockInId} session={s} onReload={reload} isManagerEdit={isManagerEdit} />
         ))}
       </div>
     </div>
@@ -276,6 +283,7 @@ function StaffClockRow({ staffMember }) {
 
 /* ── Manager view: who is currently clocked in ───────────────────── */
 function ManagerView({ venueId }) {
+  const { session } = useSession()
   const [staff, setStaff] = useState([])
   const [loading, setLoading] = useState(true)
 
@@ -300,6 +308,11 @@ function ManagerView({ venueId }) {
         <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-3">My Clock</p>
         <ManagerOwnClock venueId={venueId} />
       </div>
+
+      {/* Manager's own recent shifts — editable */}
+      {session?.staffId && (
+        <RecentShifts staffId={session.staffId} isManagerEdit={true} />
+      )}
 
       {/* Team status */}
       <div className="bg-white rounded-xl p-5">
