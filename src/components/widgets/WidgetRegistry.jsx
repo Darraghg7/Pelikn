@@ -118,7 +118,7 @@ function ComplianceScoreWidget() {
     const load = async () => {
       const since = subDays(new Date(), 30).toISOString()
       const [temps, deliveries, calibrations, actions, training, coolingLogs, pestIssues] = await Promise.all([
-        supabase.from('fridge_temperature_logs').select('id, temperature, exceedance_reason, fridge:fridge_id(min_temp, max_temp)').eq('venue_id', venueId).gte('logged_at', since),
+        supabase.from('fridge_temperature_logs').select('id, temperature, exceedance_reason, is_resolved, fridge:fridge_id(min_temp, max_temp)').eq('venue_id', venueId).gte('logged_at', since),
         supabase.from('delivery_checks').select('id, overall_pass').eq('venue_id', venueId).gte('checked_at', since),
         supabase.from('probe_calibrations').select('id, pass').eq('venue_id', venueId).gte('calibrated_at', since),
         supabase.from('corrective_actions').select('id, status, severity').eq('venue_id', venueId),
@@ -132,7 +132,8 @@ function ComplianceScoreWidget() {
       const tempFails = t.filter(x =>
         x.fridge &&
         (x.temperature < x.fridge.min_temp || x.temperature > x.fridge.max_temp) &&
-        !EXPLAINED_REASONS.includes(x.exceedance_reason)
+        !EXPLAINED_REASONS.includes(x.exceedance_reason) &&
+        !x.is_resolved
       ).length
       const tempRate = t.length > 0 ? Math.round(((t.length - tempFails) / t.length) * 100) : 100
 
@@ -242,14 +243,18 @@ function FridgeAlertsWidget() {
       const today = format(new Date(), 'yyyy-MM-dd')
       const { data: logs } = await supabase
         .from('fridge_temperature_logs')
-        .select('id, temperature, fridge:fridge_id(name, min_temp, max_temp)')
+        .select('id, temperature, exceedance_reason, is_resolved, fridge:fridge_id(name, min_temp, max_temp)')
         .eq('venue_id', venueId)
         .gte('logged_at', today)
         .order('logged_at', { ascending: false })
 
+      const EXPLAINED_W = ['delivery', 'defrost', 'service_access']
       const items = logs ?? []
       const outOfRange = items.filter(l =>
-        l.fridge && (l.temperature < l.fridge.min_temp || l.temperature > l.fridge.max_temp)
+        l.fridge &&
+        (l.temperature < l.fridge.min_temp || l.temperature > l.fridge.max_temp) &&
+        !EXPLAINED_W.includes(l.exceedance_reason) &&
+        !l.is_resolved
       )
       const total = items.length
       const { data: fridges } = await supabase.from('fridges').select('id, name').eq('venue_id', venueId).eq('is_active', true)

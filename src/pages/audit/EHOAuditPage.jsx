@@ -25,6 +25,7 @@ function StatRow({ label, value, sub, warn }) {
 }
 
 function DrillTable({ headers, rows }) {
+  const hasAction = rows.some(r => r.action)
   if (!rows.length) return <p className="text-xs text-charcoal/40 italic py-2">No records to display.</p>
   return (
     <div className="overflow-x-auto -mx-5 px-5">
@@ -34,6 +35,7 @@ function DrillTable({ headers, rows }) {
             {headers.map(h => (
               <th key={h} className="text-left text-[10px] tracking-widest uppercase text-charcoal/40 font-medium pb-2 pr-3 border-b border-charcoal/8">{h}</th>
             ))}
+            {hasAction && <th className="border-b border-charcoal/8 pb-2" />}
           </tr>
         </thead>
         <tbody>
@@ -44,6 +46,19 @@ function DrillTable({ headers, rows }) {
                   {cell.text}
                 </td>
               ))}
+              {hasAction && (
+                <td className="py-2 pl-1 text-right">
+                  {row.action && (
+                    <button
+                      onClick={row.action.fn}
+                      disabled={row.action.loading}
+                      className="text-[11px] font-medium px-2 py-1 rounded-lg bg-success/10 text-success hover:bg-success/20 transition-colors disabled:opacity-40 whitespace-nowrap"
+                    >
+                      {row.action.loading ? '…' : '✓ Resolved'}
+                    </button>
+                  )}
+                </td>
+              )}
             </tr>
           ))}
         </tbody>
@@ -92,10 +107,12 @@ function SectionCard({ title, status, children, sectionId, openSection, onToggle
 
 export default function EHOAuditPage() {
   const { venueId } = useVenue()
+  const toast = useToast()
   const [range, setRange] = useState(90)
   const [loading, setLoading] = useState(true)
   const [data, setData] = useState(null)
   const [openSection, setOpenSection] = useState(null)
+  const [resolving, setResolving] = useState(null) // id of reading being resolved
 
   // Auto-open section from URL hash (e.g. /audit#temps)
   useEffect(() => {
@@ -106,6 +123,31 @@ export default function EHOAuditPage() {
   const toggleSection = useCallback((id) => {
     setOpenSection(prev => prev === id ? null : id)
   }, [])
+
+  // Mark an out-of-range reading as resolved — removes it from the drill-down immediately
+  const resolveAlert = useCallback(async (id) => {
+    setResolving(id)
+    const { error } = await supabase
+      .from('fridge_temperature_logs')
+      .update({ is_resolved: true, resolved_at: new Date().toISOString() })
+      .eq('id', id)
+    setResolving(null)
+    if (error) { toast(error.message ?? 'Failed to resolve', 'error'); return }
+    toast('Marked as resolved')
+    // Optimistically remove from local state so the row disappears instantly
+    setData(prev => {
+      if (!prev) return prev
+      const newFailed = prev.failedTemps.filter(t => t.id !== id)
+      return {
+        ...prev,
+        failedTemps: newFailed,
+        tempFails: newFailed.length,
+        tempPassRate: prev.tempTotal > 0
+          ? Math.round(((prev.tempTotal - newFailed.length) / prev.tempTotal) * 100)
+          : 100,
+      }
+    })
+  }, [toast])
 
   useEffect(() => {
     if (!venueId) return
@@ -124,7 +166,7 @@ export default function EHOAuditPage() {
         staff,
       ] = await Promise.all([
         supabase.from('fridge_temperature_logs')
-          .select('id, temperature, logged_at, exceedance_reason, logged_by_name, fridge:fridge_id(name, min_temp, max_temp)')
+          .select('id, temperature, logged_at, exceedance_reason, logged_by_name, is_resolved, fridge:fridge_id(name, min_temp, max_temp)')
           .eq('venue_id', venueId).gte('logged_at', sinceTs).order('logged_at', { ascending: false }),
         supabase.from('cleaning_tasks')
           .select('id, title, frequency').eq('venue_id', venueId).eq('is_active', true),
@@ -161,7 +203,8 @@ export default function EHOAuditPage() {
       const failedTemps = temps.filter(t =>
         t.fridge &&
         (t.temperature < t.fridge.min_temp || t.temperature > t.fridge.max_temp) &&
-        !EXPLAINED.includes(t.exceedance_reason)
+        !EXPLAINED.includes(t.exceedance_reason) &&
+        !t.is_resolved
       )
       const tempFails = failedTemps.length
       const tempPassRate = tempTotal > 0 ? Math.round(((tempTotal - tempFails) / tempTotal) * 100) : 100
@@ -284,6 +327,7 @@ export default function EHOAuditPage() {
               <StatRow label="Failed readings" value={data.tempFails} warn={data.tempFails > 0} />
               {openSection === 'temps' && data.failedTemps.length > 0 && (
                 <div className="mt-3 pt-3 border-t border-charcoal/10">
+                  <p className="text-[11px] text-charcoal/40 mb-2">These readings are out of range with no accepted explanation. Mark as resolved once actioned.</p>
                   <DrillTable
                     headers={['Date', 'Time', 'Fridge', 'Temp', 'Reason', 'Recorded By']}
                     rows={data.failedTemps.map(t => ({
@@ -292,12 +336,20 @@ export default function EHOAuditPage() {
                         { text: format(new Date(t.logged_at), 'HH:mm') },
                         { text: t.fridge?.name ?? '—' },
                         { text: `${Number(t.temperature).toFixed(1)} °C`, color: 'text-danger', bold: true },
-                        { text: t.exceedance_reason ? (REASON_LABELS[t.exceedance_reason] ?? t.exceedance_reason) : '—' },
+                        { text: t.exceedance_reason ? (REASON_LABELS[t.exceedance_reason] ?? t.exceedance_reason) : 'No reason given' },
                         { text: t.logged_by_name ?? '—' },
-                      ]
+                      ],
+                      action: {
+                        label: '✓ Resolved',
+                        loading: resolving === t.id,
+                        fn: () => resolveAlert(t.id),
+                      },
                     }))}
                   />
                 </div>
+              )}
+              {openSection === 'temps' && data.failedTemps.length === 0 && (
+                <p className="mt-3 pt-3 border-t border-charcoal/10 text-xs text-success font-medium">All temperature alerts resolved ✓</p>
               )}
             </SectionCard>
 
