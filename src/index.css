@@ -9,7 +9,7 @@ html {
   /* Do NOT set overflow-x:hidden on <html> — it breaks vertical scroll on iOS Safari */
 }
 body {
-  background: #f5f0e8;
+  background: #F4F6FA;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overscroll-behavior-y: none;
@@ -30,6 +30,22 @@ input, select, textarea, button { font-family: inherit; font-size: inherit; -web
 table { border-spacing: 0; }
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 .scrollbar-hide { scrollbar-width: none; }
+
+/* ── Card elevation ─────────────────────────────────────────────────────── */
+/* Rounded white div cards get a soft shadow against the grey page background,
+   replacing the visual weight previously carried by charcoal/10 borders.    */
+div.bg-white.rounded-xl,
+div.bg-white.rounded-2xl,
+div.bg-white.rounded-lg,
+div.bg-white.rounded-3xl {
+  box-shadow: 0 1px 3px rgba(26,26,24,0.05), 0 4px 14px rgba(26,26,24,0.05);
+}
+html.dark div.bg-white.rounded-xl,
+html.dark div.bg-white.rounded-2xl,
+html.dark div.bg-white.rounded-lg,
+html.dark div.bg-white.rounded-3xl {
+  box-shadow: 0 1px 3px rgba(0,0,0,0.25), 0 4px 14px rgba(0,0,0,0.18);
+}
 
 /* ── Dark mode global overrides ─────────────────────────────────────────── */
 html.dark body {

@@ -201,12 +201,12 @@ function SideItem({ to, icon: Ico, label, badge, alert, isActive }) {
     <NavLink
       to={to}
       className={[
-        'flex items-center gap-3 px-4 py-2.5 mx-2 rounded-lg transition-all duration-150 text-[13px] font-medium border-l-2',
+        'flex items-center gap-3 px-3.5 py-2 mx-2 rounded-lg transition-all duration-150 text-[13px] font-medium',
         isActive
-          ? 'border-brand dark:border-accent bg-brand/6 dark:bg-white/10 text-charcoal dark:text-white'
+          ? 'bg-brand/8 dark:bg-white/10 text-brand dark:text-white font-semibold'
           : alert
-            ? 'border-transparent text-warning/70 hover:text-warning hover:bg-charcoal/5 dark:hover:bg-white/5'
-            : 'border-transparent text-charcoal/50 dark:text-white/40 hover:text-charcoal/80 dark:hover:text-white/75 hover:bg-charcoal/5 dark:hover:bg-white/5',
+            ? 'text-warning/70 hover:text-warning hover:bg-charcoal/5 dark:hover:bg-white/5'
+            : 'text-charcoal/50 dark:text-white/40 hover:text-charcoal/75 dark:hover:text-white/75 hover:bg-charcoal/4 dark:hover:bg-white/5',
       ].join(' ')}
     >
       {Ico && (
@@ -232,7 +232,7 @@ function SubItem({ to, label, badge, alert, isActive }) {
       className={[
         'flex items-center gap-2 pl-10 pr-4 py-2 mx-2 rounded-lg transition-all duration-150 text-[12.5px]',
         isActive
-          ? 'text-charcoal dark:text-white bg-charcoal/8 dark:bg-white/8'
+          ? 'text-brand dark:text-accent font-medium bg-brand/6 dark:bg-white/8'
           : alert
             ? 'text-warning/65 hover:text-warning hover:bg-charcoal/5 dark:hover:bg-white/5'
             : 'text-charcoal/40 dark:text-white/35 hover:text-charcoal/70 dark:hover:text-white/65 hover:bg-charcoal/5 dark:hover:bg-white/5',
@@ -311,12 +311,12 @@ export default function AppShell({ children }) {
 
       {/* ── Desktop sidebar (hidden on everything below 1024px — lg breakpoint) ─ */}
       <aside
-        className="hidden lg:flex flex-col w-[220px] fixed inset-y-0 left-0 z-30 bg-white dark:bg-[#1a1a18] border-r border-charcoal/10 dark:border-white/8"
+        className="hidden lg:flex flex-col w-[220px] fixed inset-y-0 left-0 z-30 bg-white dark:bg-[#1a1a18] shadow-[1px_0_0_0_rgba(26,26,24,0.06)] dark:shadow-[1px_0_0_0_rgba(255,255,255,0.06)]"
         style={{ paddingTop: 'env(safe-area-inset-top)' }}
         aria-label="Sidebar navigation"
       >
         {/* Logo + venue name + notification bell */}
-        <div className="px-4 pt-5 pb-4 border-b border-charcoal/10 dark:border-white/8 shrink-0">
+        <div className="px-4 pt-5 pb-4 border-b border-charcoal/6 dark:border-white/6 shrink-0">
           <div className="flex items-center gap-2">
             {logoUrl ? (
               <img src={logoUrl} alt="Venue logo" className="h-7 w-7 rounded-md object-contain bg-charcoal/8 dark:bg-white/10 p-0.5 shrink-0" />
@@ -398,7 +398,7 @@ export default function AppShell({ children }) {
         </nav>
 
         {/* Bottom: user name + signout */}
-        <div className="shrink-0 border-t border-charcoal/10 dark:border-white/8 px-4 py-4 space-y-3">
+        <div className="shrink-0 border-t border-charcoal/6 dark:border-white/6 px-4 py-4 space-y-3">
           {name && (
             <p className="text-[12px] text-charcoal/45 dark:text-white/35 truncate text-center">{name}</p>
           )}

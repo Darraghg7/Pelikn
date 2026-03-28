@@ -8,9 +8,9 @@ export default {
   theme: {
     extend: {
       colors: {
-        cream:    '#f5f0e8',
-        parchment:'#fffdf8',
-        staffbg:  '#f3f4f6',
+        cream:    '#F4F6FA',
+        parchment:'#F9FAFB',
+        staffbg:  '#F4F6FA',
         charcoal: '#1a1a18',
         muted:    '#7a7060',
         accent:   '#c94f2a',
