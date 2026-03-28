@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react'
 import { format, endOfWeek, addWeeks } from 'date-fns'
 import { supabase } from '../../lib/supabase'
 import { useTimesheetData } from '../../hooks/useClockEvents'
-import { formatMinutes, getWeekStart, downloadCsv } from '../../lib/utils'
+import { formatMinutes, getWeekStart } from '../../lib/utils'
+import { buildPdfReport } from '../../lib/pdfUtils'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
 
 function SectionLabel({ children }) {
@@ -73,15 +74,37 @@ export default function TimesheetPage() {
   const prevWeek = () => setWeekStart((w) => addWeeks(w, -1))
   const nextWeek = () => setWeekStart((w) => addWeeks(w, 1))
 
-  const exportCsv = () => {
-    const header = 'Name,Total Hours,Hourly Rate (£),Estimated Pay (£)'
-    const lines  = timesheets.map((t) => {
-      const hrs  = (t.totalMinutes / 60).toFixed(2)
+  const exportPdf = () => {
+    const rows = timesheets.map((t) => {
+      const hrs = (t.totalMinutes / 60).toFixed(2)
       const rate = Number(t.hourlyRate).toFixed(2)
-      const pay  = ((t.totalMinutes / 60) * t.hourlyRate).toFixed(2)
-      return `"${t.name}",${hrs},${rate},${pay}`
+      const pay = ((t.totalMinutes / 60) * t.hourlyRate).toFixed(2)
+      return [t.name, `${hrs} hrs`, rate > 0 ? `£${rate}/hr` : '—', pay > 0 ? `£${pay}` : '—']
     })
-    downloadCsv([header, ...lines].join('\n'), `timesheet-${format(weekStart, 'yyyy-MM-dd')}.csv`)
+
+    // Totals row
+    rows.push([
+      'TOTAL',
+      `${(totalMins / 60).toFixed(2)} hrs`,
+      '',
+      totalWage > 0 ? `£${totalWage.toFixed(2)}` : '—',
+    ])
+
+    buildPdfReport({
+      title: 'SafeServ',
+      subtitle: 'Timesheet Report',
+      periodLabel: `${format(weekStart, 'd MMM yyyy')} – ${format(weekEnd, 'd MMM yyyy')}`,
+      columns: ['Staff Member', 'Hours Worked', 'Hourly Rate', 'Est. Pay'],
+      rows,
+      didParseCell(hookData) {
+        // Bold the totals row
+        if (hookData.section === 'body' && hookData.row.index === rows.length - 1) {
+          hookData.cell.styles.fontStyle = 'bold'
+          hookData.cell.styles.fillColor = [240, 240, 240]
+        }
+      },
+      filename: `timesheet-${format(weekStart, 'yyyy-MM-dd')}.pdf`,
+    })
   }
 
   return (
@@ -90,10 +113,10 @@ export default function TimesheetPage() {
       <div className="flex items-center justify-between">
         <h1 className="font-serif text-3xl text-brand">Timesheets</h1>
         <button
-          onClick={exportCsv}
+          onClick={exportPdf}
           className="text-[11px] tracking-widest uppercase text-charcoal/40 hover:text-charcoal transition-colors border-b border-charcoal/20"
         >
-          Export CSV
+          ↓ Export PDF
         </button>
       </div>
 

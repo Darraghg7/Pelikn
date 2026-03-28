@@ -258,7 +258,7 @@ export default function EHOAuditPage() {
 
           {/* Data Export */}
           <div className="rounded-xl bg-white border border-charcoal/10 px-5 py-4">
-            <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-3">Export Records (CSV)</p>
+            <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-3">Export Records (PDF)</p>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               {[
                 { label: 'Temp Logs', fn: () => exportTempLogs(venueId, range) },
@@ -273,7 +273,7 @@ export default function EHOAuditPage() {
                   onClick={btn.fn}
                   className="px-3 py-2 rounded-lg border border-charcoal/15 text-xs font-medium text-charcoal/60 hover:text-charcoal hover:border-charcoal/30 transition-colors"
                 >
-                  {btn.label}
+                  ↓ {btn.label}
                 </button>
               ))}
             </div>
@@ -281,7 +281,7 @@ export default function EHOAuditPage() {
               onClick={() => exportFullReport(venueId, range)}
               className="w-full mt-3 px-4 py-2.5 rounded-lg bg-charcoal text-cream text-xs font-medium hover:bg-charcoal/90 transition-colors"
             >
-              Download All Reports
+              ↓ Download All Reports (PDF)
             </button>
           </div>
 
