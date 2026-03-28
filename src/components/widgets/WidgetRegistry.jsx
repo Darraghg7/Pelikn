@@ -9,6 +9,7 @@ import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
 import { useCleaningTasks } from '../../hooks/useCleaningTasks'
 import { useSession } from '../../contexts/SessionContext'
+import { useToast } from '../ui/Toast'
 import LoadingSpinner from '../ui/LoadingSpinner'
 
 /* ── Shared components ─────────────────────────────────────────────────── */
@@ -109,7 +110,7 @@ function ComplianceGauge({ score }) {
 }
 
 function ComplianceScoreWidget() {
-  const { venueId } = useVenue()
+  const { venueId, venueSlug } = useVenue()
   const [data, setData] = useState(null)
 
   useEffect(() => {
@@ -168,7 +169,17 @@ function ComplianceScoreWidget() {
       if (openHighPest > 0)    { score -= 15; issues++ } else if (openMedPest > 0) { score -= 5; issues++ }
       score = Math.max(0, score)
 
-      setData({ score, issues, status: getScoreTier(score).status })
+      const issueList = []
+      if (tempFails > 0) issueList.push({ label: 'Temperature logs', detail: `${tempFails} out-of-range`, section: 'temps', severity: tempRate < 95 ? 'bad' : 'warning' })
+      if (deliveryFails > 0) issueList.push({ label: 'Delivery checks', detail: `${deliveryFails} failed`, section: 'deliveries', severity: 'warning' })
+      if (probeFails > 0) issueList.push({ label: 'Probe calibration', detail: `${probeFails} failed`, section: 'probes', severity: 'warning' })
+      if (openCritical > 0) issueList.push({ label: 'Corrective actions', detail: `${openCritical} critical open`, section: 'actions', severity: 'bad' })
+      else if (openActions > 3) issueList.push({ label: 'Corrective actions', detail: `${openActions} open`, section: 'actions', severity: 'warning' })
+      if (expired > 0) issueList.push({ label: 'Staff training', detail: `${expired} expired cert${expired !== 1 ? 's' : ''}`, section: 'training', severity: 'warning' })
+      if (coolingFails > 0) issueList.push({ label: 'Cooling logs', detail: `${coolingFails} exceeded target`, section: null, severity: 'warning' })
+      if (openHighPest > 0) issueList.push({ label: 'Pest control', detail: `${openHighPest} high-severity open`, section: null, severity: 'bad' })
+
+      setData({ score, issues, status: getScoreTier(score).status, issueList })
     }
     load()
   }, [venueId])
@@ -197,13 +208,32 @@ function ComplianceScoreWidget() {
           </div>
         </div>
       </div>
+      {data.issueList?.length > 0 && (
+        <div className="mt-3 pt-3 border-t border-charcoal/8 flex flex-col gap-0.5">
+          {data.issueList.map(issue => {
+            const content = (
+              <div className="flex items-center justify-between py-1.5 px-2 rounded-lg hover:bg-charcoal/4 transition-colors cursor-pointer">
+                <span className="text-xs text-charcoal/70">{issue.label}</span>
+                <span className={`text-xs font-semibold ${issue.severity === 'bad' ? 'text-danger' : 'text-warning'}`}>
+                  {issue.detail} →
+                </span>
+              </div>
+            )
+            return issue.section ? (
+              <Link key={issue.section} to={`/v/${venueSlug}/audit#${issue.section}`}>{content}</Link>
+            ) : (
+              <div key={issue.label}>{content}</div>
+            )
+          })}
+        </div>
+      )}
     </WidgetShell>
   )
 }
 
 /* 2. Fridge Alerts */
 function FridgeAlertsWidget() {
-  const { venueId } = useVenue()
+  const { venueId, venueSlug } = useVenue()
   const [data, setData] = useState(null)
 
   useEffect(() => {
@@ -227,7 +257,7 @@ function FridgeAlertsWidget() {
       const checkedFridgeIds = new Set(items.map(l => l.fridge?.name).filter(Boolean))
       const unchecked = fridgeCount - checkedFridgeIds.size
 
-      setData({ total, alerts: outOfRange.length, unchecked, fridgeCount })
+      setData({ total, alerts: outOfRange.length, unchecked, fridgeCount, alertItems: outOfRange.slice(0, 4) })
     }
     load()
   }, [venueId])
@@ -241,6 +271,16 @@ function FridgeAlertsWidget() {
       <MiniRow label="Readings today" value={data.total} />
       <MiniRow label="Out of range" value={data.alerts} warn={data.alerts > 0} />
       <MiniRow label="Not yet checked" value={data.unchecked} warn={data.unchecked > 0} />
+      {data.alerts > 0 && data.alertItems?.map((l, i) => (
+        <Link
+          key={l.id}
+          to={`/v/${venueSlug}/fridge/history`}
+          className="flex items-center justify-between py-1 border-t border-charcoal/5 group"
+        >
+          <span className="text-xs text-charcoal/60 truncate group-hover:text-charcoal transition-colors">{l.fridge?.name ?? 'Unknown'}</span>
+          <span className="text-xs font-semibold text-danger">{Number(l.temperature).toFixed(1)} °C</span>
+        </Link>
+      ))}
     </WidgetShell>
   )
 }
@@ -250,9 +290,25 @@ const CLEANING_PAGE_SIZE = 3
 const FREQ_DAYS = { daily: 1, weekly: 7, fortnightly: 14, monthly: 30, quarterly: 90 }
 
 function CleaningOverdueWidget() {
-  const { tasks, overdueCount } = useCleaningTasks()
+  const { tasks, overdueCount, reload } = useCleaningTasks()
+  const { session } = useSession()
+  const toast = useToast()
   const [page, setPage] = useState(0)
+  const [completing, setCompleting] = useState(null)
   const status = overdueCount > 3 ? 'bad' : overdueCount > 0 ? 'warning' : 'good'
+
+  const completeTask = async (taskId) => {
+    setCompleting(taskId)
+    const { error } = await supabase.rpc('complete_cleaning_task', {
+      p_token: session?.token,
+      p_cleaning_task_id: taskId,
+      p_notes: null,
+    })
+    setCompleting(null)
+    if (error) { toast(error.message, 'error'); return }
+    toast('Task completed ✓')
+    reload()
+  }
 
   const overdueTasks = tasks.filter(t => t.status === 'overdue')
   const totalPages = Math.ceil(overdueTasks.length / CLEANING_PAGE_SIZE)
@@ -281,6 +337,14 @@ function CleaningOverdueWidget() {
           const overBy = days !== null ? days - threshold : null
           return (
             <div key={t.id} className="flex items-center justify-between gap-2 py-1 border-b border-charcoal/6 last:border-0">
+              <button
+                onClick={(e) => { e.preventDefault(); completeTask(t.id) }}
+                disabled={completing === t.id}
+                className="shrink-0 w-6 h-6 rounded-full border-2 border-charcoal/20 flex items-center justify-center hover:border-success hover:bg-success/10 transition-colors disabled:opacity-40 text-success text-xs"
+                title="Mark complete"
+              >
+                {completing === t.id ? '…' : '✓'}
+              </button>
               <p className="text-xs text-charcoal truncate flex-1">{t.title}</p>
               <span className="text-[11px] text-danger/70 whitespace-nowrap shrink-0">
                 {overBy !== null ? `${overBy}d overdue` : 'Never done'}
@@ -365,20 +429,21 @@ function StaffOnShiftWidget() {
 
 /* 5. Open Corrective Actions */
 function OpenActionsWidget() {
-  const { venueId } = useVenue()
+  const { venueId, venueSlug } = useVenue()
   const [data, setData] = useState(null)
 
   useEffect(() => {
     if (!venueId) return
     supabase.from('corrective_actions')
-      .select('id, severity, status')
+      .select('id, severity, status, title, reported_at')
       .eq('venue_id', venueId)
       .eq('status', 'open')
+      .order('severity')
       .then(({ data: actions }) => {
         const items = actions ?? []
         const critical = items.filter(a => a.severity === 'critical').length
         const major = items.filter(a => a.severity === 'major').length
-        setData({ total: items.length, critical, major })
+        setData({ total: items.length, critical, major, items })
       })
   }, [venueId])
 
@@ -395,13 +460,26 @@ function OpenActionsWidget() {
           {data.major > 0 && <span className="text-[11px] text-orange-600 font-medium">{data.major} major</span>}
         </div>
       )}
+      {data.total > 0 && data.items.slice(0, 4).map(a => (
+        <Link
+          key={a.id}
+          to={`/v/${venueSlug}/corrective`}
+          className="flex items-center justify-between py-1.5 border-t border-charcoal/5 group"
+        >
+          <span className="text-xs text-charcoal/70 truncate flex-1 group-hover:text-charcoal transition-colors">{a.title ?? 'Untitled'}</span>
+          <span className={`text-[11px] font-semibold shrink-0 ml-2 ${
+            a.severity === 'critical' ? 'text-danger' :
+            a.severity === 'major' ? 'text-warning' : 'text-charcoal/40'
+          }`}>{a.severity?.toUpperCase()}</span>
+        </Link>
+      ))}
     </WidgetShell>
   )
 }
 
 /* 6. Expiring Training */
 function ExpiringTrainingWidget() {
-  const { venueId } = useVenue()
+  const { venueId, venueSlug } = useVenue()
   const [data, setData] = useState(null)
 
   useEffect(() => {
@@ -435,9 +513,12 @@ function ExpiringTrainingWidget() {
       {data.items.length > 0 && (
         <div className="mt-2 border-t border-charcoal/6 pt-2">
           {data.items.map(c => (
-            <p key={c.id} className="text-xs text-charcoal/50 py-0.5 truncate">
-              {c.staff?.name} — {c.title} <span className="text-charcoal/30">({format(new Date(c.expiry_date), 'd MMM yy')})</span>
-            </p>
+            <Link key={c.id} to={`/v/${venueSlug}/training`} className="flex items-center justify-between py-0.5 hover:text-charcoal transition-colors group">
+              <span className="text-xs text-charcoal/50 truncate group-hover:text-charcoal">{c.staff?.name} — {c.title}</span>
+              <span className={`text-[11px] font-semibold ml-2 shrink-0 ${new Date(c.expiry_date) < new Date() ? 'text-danger' : 'text-warning'}`}>
+                {format(new Date(c.expiry_date), 'd MMM yy')}
+              </span>
+            </Link>
           ))}
         </div>
       )}
