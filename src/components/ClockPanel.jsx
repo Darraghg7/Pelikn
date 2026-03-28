@@ -3,8 +3,8 @@
  * Persists across logouts: timer is derived from DB timestamps, not local state.
  */
 import React, { useEffect, useState } from 'react'
-import { supabase } from '../lib/supabase'
-import { useClockStatus } from '../hooks/useClockEvents'
+import { offlineRpc } from '../lib/offlineSupabase'
+import { useClockStatus, saveClockStatusCache } from '../hooks/useClockEvents'
 import { useVenue } from '../contexts/VenueContext'
 import { useToast } from './ui/Toast'
 import LoadingSpinner from './ui/LoadingSpinner'
@@ -70,14 +70,28 @@ export default function ClockPanel({ staffId, hasShift = true }) {
 
   const record = async (eventType) => {
     setSubmitting(true)
-    const { error } = await supabase.rpc('record_clock_event', {
+    const { error, queued } = await offlineRpc('record_clock_event', {
       p_staff_id:   staffId,
       p_event_type: eventType,
       p_venue_id:   venueId,
     })
     setSubmitting(false)
     if (error) { toast(error.message, 'error'); return }
-    toast({ clock_in: 'Clocked in', clock_out: 'Clocked out', break_start: 'Break started', break_end: 'Break ended' }[eventType])
+
+    const labels = { clock_in: 'Clocked in', clock_out: 'Clocked out', break_start: 'Break started', break_end: 'Break ended' }
+    toast(queued ? `${labels[eventType]} (saved offline)` : labels[eventType])
+
+    if (queued) {
+      // Offline — update the localStorage cache so reload() returns the correct state
+      const now = new Date()
+      let newStatus = status, newClockInAt = clockInAt, newBreakStartAt = breakStartAt, newTotalBreakMs = totalBreakMs
+      if (eventType === 'clock_in')     { newStatus = 'clocked_in';  newClockInAt = now }
+      if (eventType === 'clock_out')    { newStatus = 'clocked_out'; newClockInAt = null; newBreakStartAt = null; newTotalBreakMs = 0 }
+      if (eventType === 'break_start')  { newStatus = 'on_break';    newBreakStartAt = now }
+      if (eventType === 'break_end')    { newStatus = 'clocked_in';  newTotalBreakMs += breakStartAt ? now - breakStartAt : 0; newBreakStartAt = null }
+      saveClockStatusCache(staffId, { status: newStatus, clockInAt: newClockInAt, breakStartAt: newBreakStartAt, totalBreakMs: newTotalBreakMs })
+    }
+
     reload()
   }
 

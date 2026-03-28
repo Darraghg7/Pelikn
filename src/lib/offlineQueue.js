@@ -15,14 +15,28 @@ function saveQueue(queue) {
   localStorage.setItem(QUEUE_KEY, JSON.stringify(queue))
 }
 
-/** Add a failed operation to the queue */
+/** Add a failed table operation to the queue */
 export function enqueue(table, operation, payload) {
   const queue = getQueue()
   queue.push({
     id: Date.now() + '-' + Math.random().toString(36).slice(2),
+    type: 'table',
     table,
     operation, // 'insert' | 'update' | 'upsert'
     payload,
+    timestamp: new Date().toISOString(),
+  })
+  saveQueue(queue)
+}
+
+/** Add a failed RPC call to the queue */
+export function enqueueRpc(fnName, args) {
+  const queue = getQueue()
+  queue.push({
+    id: Date.now() + '-' + Math.random().toString(36).slice(2),
+    type: 'rpc',
+    fnName,
+    args,
     timestamp: new Date().toISOString(),
   })
   saveQueue(queue)

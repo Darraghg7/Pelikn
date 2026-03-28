@@ -4,7 +4,7 @@
  * it queues the operation for later sync.
  */
 import { supabase } from './supabase'
-import { enqueue, getQueue, dequeue } from './offlineQueue'
+import { enqueue, enqueueRpc, getQueue, dequeue } from './offlineQueue'
 
 function isNetworkError(error) {
   if (!error) return false
@@ -36,6 +36,24 @@ export async function offlineInsert(table, payload) {
   }
 }
 
+/** RPC call with offline fallback */
+export async function offlineRpc(fnName, args) {
+  try {
+    const result = await supabase.rpc(fnName, args)
+    if (result.error && isNetworkError(result.error)) {
+      enqueueRpc(fnName, args)
+      return { data: null, error: null, queued: true }
+    }
+    return result
+  } catch (err) {
+    if (isNetworkError(err)) {
+      enqueueRpc(fnName, args)
+      return { data: null, error: null, queued: true }
+    }
+    throw err
+  }
+}
+
 /** Retry all queued operations */
 export async function syncQueue() {
   const queue = getQueue()
@@ -47,7 +65,9 @@ export async function syncQueue() {
   for (const item of queue) {
     try {
       let result
-      if (item.operation === 'insert') {
+      if (item.type === 'rpc') {
+        result = await supabase.rpc(item.fnName, item.args)
+      } else if (item.operation === 'insert') {
         result = await supabase.from(item.table).insert(item.payload)
       } else if (item.operation === 'update') {
         result = await supabase.from(item.table).update(item.payload)
@@ -59,11 +79,10 @@ export async function syncQueue() {
         dequeue(item.id)
         synced++
       } else if (!isNetworkError(result.error)) {
-        // Permanent error (e.g. validation) — remove from queue
         dequeue(item.id)
         failed++
       }
-      // If still a network error, leave in queue
+      // Still a network error — leave in queue
     } catch (err) {
       if (!isNetworkError(err)) {
         dequeue(item.id)
