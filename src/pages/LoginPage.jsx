@@ -31,11 +31,22 @@ export default function LoginPage() {
     if (!loading && session) navigate(`/v/${venueSlug}/dashboard`, { replace: true })
   }, [loading, session, navigate, venueSlug])
 
-  // Fetch all active staff for this venue — guard against unmount + missing venueId
+  // Fetch staff — load from cache immediately, fetch fresh in background
   useEffect(() => {
     if (!venueId) { setStaffLoading(false); return }
+
+    const cacheKey = `safeserv_staff_${venueId}`
+
+    // Show cached list immediately (works offline)
+    try {
+      const cached = localStorage.getItem(cacheKey)
+      if (cached) {
+        setStaff(JSON.parse(cached))
+        setStaffLoading(false)
+      }
+    } catch { /* corrupt cache — ignore */ }
+
     let cancelled = false
-    setStaffLoading(true)
     supabase
       .from('staff')
       .select('id, name, role, photo_url')
@@ -44,15 +55,12 @@ export default function LoginPage() {
       .order('sort_order')
       .order('name')
       .then(({ data }) => {
-        if (cancelled) return
-        setStaff(data ?? [])
+        if (cancelled || !data) return
+        localStorage.setItem(cacheKey, JSON.stringify(data))
+        setStaff(data)
       })
-      .catch(() => {
-        if (!cancelled) setStaff([])
-      })
-      .finally(() => {
-        if (!cancelled) setStaffLoading(false)
-      })
+      .catch(() => { /* offline — already showing cached list */ })
+      .finally(() => { if (!cancelled) setStaffLoading(false) })
     return () => { cancelled = true }
   }, [venueId])
 

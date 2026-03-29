@@ -1,5 +1,6 @@
 /**
  * VenueContext — resolves venue from URL slug and provides venueId to the app.
+ * Caches venue data in localStorage so the app works offline after first load.
  */
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
@@ -8,9 +9,11 @@ import { FullPageLoader } from '../components/ui/LoadingSpinner'
 
 const VenueContext = createContext(null)
 
+const venueKey = (slug) => `safeserv_venue_${slug}`
+
 export function VenueProvider({ children }) {
   const { venueSlug } = useParams()
-  const [venue, setVenue] = useState(null)    // { id, name, slug, plan }
+  const [venue, setVenue] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
 
@@ -19,38 +22,65 @@ export function VenueProvider({ children }) {
 
     const slug = venueSlug.toLowerCase()
 
-    // 8-second hard timeout — if Supabase hangs, show error instead of spinner forever
-    const timeoutId = setTimeout(() => { setError(true); setLoading(false) }, 8000)
+    // ── Load from cache immediately so offline app renders without delay ──
+    try {
+      const cached = localStorage.getItem(venueKey(slug))
+      if (cached) {
+        setVenue(JSON.parse(cached))
+        setLoading(false)
+        // Still fetch in background to refresh cache — don't block render
+      }
+    } catch { /* corrupt cache — ignore, fetch fresh below */ }
 
-    // Try with plan column first; fall back to base columns if plan doesn't exist yet
+    // ── Fetch from Supabase (refreshes cache when online) ──
+    const timeoutId = setTimeout(() => {
+      // Only show error if we have no cached data
+      setLoading(prev => {
+        if (prev) setError(true)
+        return false
+      })
+    }, 8000)
+
     supabase
       .from('venues')
       .select('id, name, slug, plan')
       .eq('slug', slug)
       .single()
       .then(({ data, error: err }) => {
+        clearTimeout(timeoutId)
         if (!err && data) {
-          clearTimeout(timeoutId)
+          localStorage.setItem(venueKey(slug), JSON.stringify(data))
           setVenue(data)
           setLoading(false)
           return
         }
-        // Retry without plan column (migration 022 may not have run yet)
-        supabase
+        // Retry without plan column
+        return supabase
           .from('venues')
           .select('id, name, slug')
           .eq('slug', slug)
           .single()
           .then(({ data: d2, error: err2 }) => {
             clearTimeout(timeoutId)
-            if (err2 || !d2) setError(true)
-            else setVenue({ ...d2, plan: 'starter' })
+            if (!err2 && d2) {
+              const v = { ...d2, plan: 'starter' }
+              localStorage.setItem(venueKey(slug), JSON.stringify(v))
+              setVenue(v)
+            } else if (!venue) {
+              // No cache AND no network data
+              setError(true)
+            }
             setLoading(false)
           })
       })
-  }, [venueSlug])
+      .catch(() => {
+        clearTimeout(timeoutId)
+        // Network error — if we have cached data, stay silent
+        setLoading(false)
+        if (!venue) setError(true)
+      })
+  }, [venueSlug]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // useMemo must be called unconditionally (Rules of Hooks) — before any early returns
   const value = useMemo(() => !venue ? null : {
     venueId: venue.id, venueSlug: venue.slug, venueName: venue.name, venuePlan: venue.plan ?? 'starter'
   }, [venue])
@@ -76,9 +106,6 @@ export function VenueProvider({ children }) {
 
 export function useVenue() {
   const ctx = useContext(VenueContext)
-  if (!ctx) {
-    // Fallback for components rendered outside VenueProvider (shouldn't happen in normal flow)
-    return { venueId: null, venueSlug: null, venueName: null, venuePlan: 'starter' }
-  }
+  if (!ctx) return { venueId: null, venueSlug: null, venueName: null, venuePlan: 'starter' }
   return ctx
 }
