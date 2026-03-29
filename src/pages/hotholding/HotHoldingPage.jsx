@@ -29,6 +29,12 @@ import {
 } from '../../hooks/useHotHolding'
 import { formatTemp, formatDateTime } from '../../lib/utils'
 
+function nowDatetimeLocal() {
+  const d = new Date()
+  d.setSeconds(0, 0)
+  return d.toISOString().slice(0, 16)
+}
+
 function SectionLabel({ children }) {
   return <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-3">{children}</p>
 }
@@ -61,6 +67,7 @@ export default function HotHoldingPage() {
   const [readings, setReadings] = useState({})
   const [comments, setComments] = useState({})
   const [submitting, setSubmitting] = useState(false)
+  const [loggedAt, setLoggedAt] = useState(nowDatetimeLocal)
 
   // Reset readings when period changes
   useEffect(() => { setReadings({}); setComments({}) }, [period])
@@ -122,7 +129,7 @@ export default function HotHoldingPage() {
       check_period:   period,
       logged_by:      session?.staffId ?? null,
       logged_by_name: session?.staffName ?? 'Unknown',
-      logged_at:      new Date().toISOString(),
+      logged_at:      new Date(loggedAt).toISOString(),
       notes:          comments[item.id]?.trim() || null,
     }))
 
@@ -133,6 +140,7 @@ export default function HotHoldingPage() {
     setReadings({})
     setComments({})
     reloadStatus()
+    setLoggedAt(nowDatetimeLocal())
   }
 
   const periodDone = period === 'am' ? status.am : status.pm
@@ -282,6 +290,17 @@ export default function HotHoldingPage() {
                     </div>
                   )
                 })}
+              </div>
+
+              <div className="mt-4">
+                <label className="text-xs text-charcoal/50 mb-1 block">Check Date &amp; Time</label>
+                <input
+                  type="datetime-local"
+                  value={loggedAt}
+                  max={nowDatetimeLocal()}
+                  onChange={e => setLoggedAt(e.target.value)}
+                  className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 bg-cream/20 text-sm text-charcoal focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+                />
               </div>
 
               <button

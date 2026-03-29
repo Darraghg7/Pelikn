@@ -48,7 +48,7 @@ export default function FridgeLogFormPage() {
   const selectedReason  = EXCEEDANCE_REASONS.find(r => r.id === reason)
   const isExplained     = selectedReason?.explained ?? false
   const needsNote       = reason !== null && !isExplained
-  const isPastEntry     = isManager && loggedAt < nowDatetimeLocal().slice(0, 16)
+  const isPastEntry     = loggedAt < nowDatetimeLocal().slice(0, 16)
 
   const canSubmit = fridgeId && temp !== '' && (
     !outOfRange ||
@@ -95,9 +95,7 @@ export default function FridgeLogFormPage() {
         <Link to="/fridge" className="text-charcoal/40 hover:text-charcoal transition-colors text-lg">←</Link>
         <div>
           <h1 className="font-serif text-3xl text-brand">Log Temperature</h1>
-          {isManager && (
-            <p className="text-xs text-charcoal/40 mt-0.5">Managers can backdate entries to enter historical records</p>
-          )}
+          <p className="text-xs text-charcoal/40 mt-0.5">You can backdate entries if the check was done earlier</p>
         </div>
       </div>
 
@@ -125,24 +123,22 @@ export default function FridgeLogFormPage() {
           </div>
         </div>
 
-        {/* Date / time — managers only, defaults to now */}
-        {isManager && (
-          <div className="bg-white rounded-xl border border-charcoal/10 p-5">
-            <SectionLabel>Date &amp; Time</SectionLabel>
-            <input
-              type="datetime-local"
-              value={loggedAt}
-              max={nowDatetimeLocal()}
-              onChange={(e) => setLoggedAt(e.target.value)}
-              className="px-3 py-2.5 rounded-lg border border-charcoal/15 bg-cream/30 text-sm text-charcoal focus:outline-none focus:ring-2 focus:ring-charcoal/20"
-            />
-            {isPastEntry && (
-              <p className="text-xs text-charcoal/40 mt-2">
-                📅 This will be logged as a past entry for {format(new Date(loggedAt), 'd MMM yyyy, HH:mm')}
-              </p>
-            )}
-          </div>
-        )}
+        {/* Date / time — all users, defaults to now */}
+        <div className="bg-white rounded-xl border border-charcoal/10 p-5">
+          <SectionLabel>Date &amp; Time</SectionLabel>
+          <input
+            type="datetime-local"
+            value={loggedAt}
+            max={nowDatetimeLocal()}
+            onChange={(e) => setLoggedAt(e.target.value)}
+            className="px-3 py-2.5 rounded-lg border border-charcoal/15 bg-cream/30 text-sm text-charcoal focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+          />
+          {isPastEntry && (
+            <p className="text-xs text-charcoal/40 mt-2">
+              📅 This will be logged as a past entry for {format(new Date(loggedAt), 'd MMM yyyy, HH:mm')}
+            </p>
+          )}
+        </div>
 
         {/* Temperature + reason */}
         <div className="bg-white rounded-xl border border-charcoal/10 p-5 flex flex-col gap-4">

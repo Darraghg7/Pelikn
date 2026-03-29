@@ -4,7 +4,6 @@ import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
 import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../../components/ui/Toast'
-import TimeSelect from '../../components/ui/TimeSelect'
 import DateRangePresets, { presetToDates } from '../../components/ui/DateRangePresets'
 import {
   useCoolingLogs,
@@ -14,6 +13,12 @@ import {
   COOLING_METHODS,
 } from '../../hooks/useCoolingLogs'
 
+function nowDatetimeLocal() {
+  const d = new Date()
+  d.setSeconds(0, 0)
+  return d.toISOString().slice(0, 16)
+}
+
 const TABS = ['log', 'history']
 
 const EMPTY_FORM = {
@@ -21,7 +26,7 @@ const EMPTY_FORM = {
   startTemp: '',
   endTemp: '',
   coolingMethod: 'ambient',
-  startTime: format(new Date(), 'HH:mm'),
+  startedAt: '',  // will be set to nowDatetimeLocal() on mount
   notes: '',
 }
 
@@ -70,7 +75,7 @@ export default function CoolingLogsPage() {
   const { addToast } = useToast()
 
   const [tab, setTab] = useState('log')
-  const [form, setForm] = useState(EMPTY_FORM)
+  const [form, setForm] = useState(() => ({ ...EMPTY_FORM, startedAt: nowDatetimeLocal() }))
   const [submitting, setSubmitting] = useState(false)
 
   const [preset, setPreset] = useState('today')
@@ -95,8 +100,7 @@ export default function CoolingLogsPage() {
     if (endFail && !form.notes.trim()) { addToast('Add a corrective action note for failed cooling', 'error'); return }
 
     setSubmitting(true)
-    const today = format(new Date(), 'yyyy-MM-dd')
-    const startedAt = new Date(`${today}T${form.startTime}:00`).toISOString()
+    const startedAt = form.startedAt ? new Date(form.startedAt).toISOString() : new Date().toISOString()
 
     const { error } = await supabase.from('cooling_logs').insert({
       venue_id:       venueId,
@@ -114,7 +118,7 @@ export default function CoolingLogsPage() {
     setSubmitting(false)
     if (error) { addToast(error.message, 'error'); return }
     addToast('Cooling log saved', 'success')
-    setForm(EMPTY_FORM)
+    setForm({ ...EMPTY_FORM, startedAt: nowDatetimeLocal() })
     reloadToday()
   }
 
@@ -207,8 +211,14 @@ export default function CoolingLogsPage() {
                 </select>
               </div>
               <div>
-                <label className="text-xs text-charcoal/60 dark:text-white/50 mb-1 block">Cooling Started At</label>
-                <TimeSelect value={form.startTime} onChange={v => set('startTime', v)} />
+                <label className="text-xs text-charcoal/60 dark:text-white/50 mb-1 block">Date &amp; Time Started</label>
+                <input
+                  type="datetime-local"
+                  value={form.startedAt}
+                  max={nowDatetimeLocal()}
+                  onChange={e => set('startedAt', e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-white/8 text-sm text-charcoal dark:text-white outline-none focus:border-accent"
+                />
               </div>
             </div>
 

@@ -7,6 +7,12 @@ import { useToast } from '../../components/ui/Toast'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
 import Modal from '../../components/ui/Modal'
 
+function nowDatetimeLocal() {
+  const d = new Date()
+  d.setSeconds(0, 0)
+  return d.toISOString().slice(0, 16)
+}
+
 function useCalibrations(venueId) {
   const [records, setRecords] = useState([])
   const [loading, setLoading] = useState(true)
@@ -37,6 +43,7 @@ const EMPTY_FORM = {
   actual_reading: '',
   tolerance: '1.0',
   notes: '',
+  calibrated_at: '',  // set dynamically
 }
 
 export default function ProbeCalibrationPage() {
@@ -46,7 +53,7 @@ export default function ProbeCalibrationPage() {
   const { records, loading, reload } = useCalibrations(venueId)
 
   const [showForm, setShowForm] = useState(false)
-  const [form, setForm] = useState(EMPTY_FORM)
+  const [form, setForm] = useState(() => ({ ...EMPTY_FORM, calibrated_at: nowDatetimeLocal() }))
   const [saving, setSaving] = useState(false)
 
   const method = METHODS.find(m => m.value === form.method)
@@ -67,12 +74,13 @@ export default function ProbeCalibrationPage() {
       tolerance,
       calibrated_by: session?.staffId,
       notes: form.notes.trim() || null,
+      calibrated_at: new Date(form.calibrated_at || Date.now()).toISOString(),
       venue_id: venueId,
     })
     setSaving(false)
     if (error) { toast(error.message, 'error'); return }
     toast(wouldPass ? 'Calibration recorded - PASS' : 'Calibration recorded - FAIL')
-    setForm(EMPTY_FORM)
+    setForm({ ...EMPTY_FORM, calibrated_at: nowDatetimeLocal() })
     setShowForm(false)
     reload()
   }
@@ -235,6 +243,17 @@ export default function ProbeCalibrationPage() {
               </p>
             </div>
           )}
+
+          <div>
+            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1">Date &amp; Time</label>
+            <input
+              type="datetime-local"
+              value={form.calibrated_at}
+              max={nowDatetimeLocal()}
+              onChange={e => setForm(f => ({ ...f, calibrated_at: e.target.value }))}
+              className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 bg-cream/30 text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+            />
+          </div>
 
           <div>
             <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1">Notes</label>

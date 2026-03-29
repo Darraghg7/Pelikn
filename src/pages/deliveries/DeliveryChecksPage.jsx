@@ -8,6 +8,12 @@ import LoadingSpinner from '../../components/ui/LoadingSpinner'
 import Modal from '../../components/ui/Modal'
 // tesseract.js is ~7 MB — dynamically imported only when OCR is actually used
 
+function nowDatetimeLocal() {
+  const d = new Date()
+  d.setSeconds(0, 0)
+  return d.toISOString().slice(0, 16)
+}
+
 /* ═══════════════════════════════════════════════════════════════════════════
    HOOKS
    ═══════════════════════════════════════════════════════════════════════════ */
@@ -241,6 +247,7 @@ function DeliveryCheckModal({ open, onClose, suppliers, onSupplierAdded, onCompl
   // Photo upload
   const [photoUrl, setPhotoUrl] = useState('')
   const [uploading, setUploading] = useState(false)
+  const [checkedAt, setCheckedAt] = useState(nowDatetimeLocal)
 
   // Reset on open
   useEffect(() => {
@@ -427,6 +434,7 @@ function DeliveryCheckModal({ open, onClose, suppliers, onSupplierAdded, onCompl
       notes: overallNotes.trim() || null,
       items_desc: itemEntries.map(([, v]) => v.itemName).join(', ').slice(0, 200),
       checked_by: session?.staffId,
+      checked_at: new Date(checkedAt).toISOString(),
       venue_id: venueId,
     }).select().single()
 
@@ -450,6 +458,7 @@ function DeliveryCheckModal({ open, onClose, suppliers, onSupplierAdded, onCompl
     toast(overallPass ? 'Delivery check passed' : 'Delivery check recorded (issues flagged)')
     onComplete()
     onClose()
+    setCheckedAt(nowDatetimeLocal())
   }
 
   const itemEntries = Object.entries(checklist)
@@ -642,6 +651,18 @@ function DeliveryCheckModal({ open, onClose, suppliers, onSupplierAdded, onCompl
                 rows={2}
                 placeholder="Any issues or observations..."
                 className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 bg-cream/30 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+              />
+            </div>
+
+            {/* Delivery date/time */}
+            <div>
+              <label className="text-xs text-charcoal/50 mb-1 block">Delivery Date &amp; Time</label>
+              <input
+                type="datetime-local"
+                value={checkedAt}
+                max={nowDatetimeLocal()}
+                onChange={e => setCheckedAt(e.target.value)}
+                className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 bg-white text-sm text-charcoal focus:outline-none focus:ring-2 focus:ring-charcoal/20"
               />
             </div>
 
