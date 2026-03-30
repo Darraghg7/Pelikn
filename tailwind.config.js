@@ -8,9 +8,9 @@ export default {
   theme: {
     extend: {
       colors: {
-        cream:    '#F4F6FA',
-        parchment:'#F9FAFB',
-        staffbg:  '#F4F6FA',
+        cream:    '#f5f4f1',
+        parchment:'#f0ede8',
+        staffbg:  '#f5f4f1',
         charcoal: '#1a1a18',
         muted:    '#7a7060',
         accent:   '#c94f2a',
@@ -20,9 +20,9 @@ export default {
         success:  { DEFAULT: '#16a34a', light: '#dcfce7' },
       },
       fontFamily: {
-        sans: ['DM Sans', 'sans-serif'],
+        sans: ['Plus Jakarta Sans', 'sans-serif'],
         mono: ['DM Mono', 'monospace'],
-        serif: ['DM Serif Display', 'serif'],
+        serif: ['Plus Jakarta Sans', 'sans-serif'],
       },
     },
   },

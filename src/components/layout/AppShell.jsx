@@ -203,14 +203,14 @@ function SideItem({ to, icon: Ico, label, badge, alert, isActive }) {
       className={[
         'flex items-center gap-3 px-3.5 py-2 mx-2 rounded-lg transition-all duration-150 text-[13px] font-medium',
         isActive
-          ? 'bg-brand/8 dark:bg-white/10 text-brand dark:text-white font-semibold'
+          ? 'bg-white/14 text-white font-semibold'
           : alert
-            ? 'text-warning/70 hover:text-warning hover:bg-charcoal/5 dark:hover:bg-white/5'
-            : 'text-charcoal/50 dark:text-white/40 hover:text-charcoal/75 dark:hover:text-white/75 hover:bg-charcoal/4 dark:hover:bg-white/5',
+            ? 'text-warning/80 hover:text-warning hover:bg-white/8'
+            : 'text-white/55 hover:text-white/85 hover:bg-white/8',
       ].join(' ')}
     >
       {Ico && (
-        <span className={`shrink-0 ${isActive ? 'text-brand dark:text-accent' : alert ? 'text-warning/60' : 'text-charcoal/30 dark:text-white/30'}`}>
+        <span className={`shrink-0 ${isActive ? 'text-white' : alert ? 'text-warning/70' : 'text-white/35'}`}>
           <Ico />
         </span>
       )}
@@ -232,13 +232,13 @@ function SubItem({ to, label, badge, alert, isActive }) {
       className={[
         'flex items-center gap-2 pl-10 pr-4 py-2 mx-2 rounded-lg transition-all duration-150 text-[12.5px]',
         isActive
-          ? 'text-brand dark:text-accent font-medium bg-brand/6 dark:bg-white/8'
+          ? 'text-white font-medium bg-white/12'
           : alert
-            ? 'text-warning/65 hover:text-warning hover:bg-charcoal/5 dark:hover:bg-white/5'
-            : 'text-charcoal/40 dark:text-white/35 hover:text-charcoal/70 dark:hover:text-white/65 hover:bg-charcoal/5 dark:hover:bg-white/5',
+            ? 'text-warning/75 hover:text-warning hover:bg-white/8'
+            : 'text-white/50 hover:text-white/80 hover:bg-white/8',
       ].join(' ')}
     >
-      <span className={`w-1 h-1 rounded-full shrink-0 ${isActive ? 'bg-brand dark:bg-accent' : 'bg-charcoal/20 dark:bg-white/20'}`} />
+      <span className={`w-1 h-1 rounded-full shrink-0 ${isActive ? 'bg-white' : 'bg-white/25'}`} />
       <span className="flex-1 truncate">{label}</span>
       {badge > 0 && (
         <span className={`min-w-[16px] h-4 text-white text-[11px] font-bold rounded-full flex items-center justify-center px-1 shrink-0 ${alert ? 'bg-warning' : 'bg-accent'}`}>
@@ -252,8 +252,8 @@ function SubItem({ to, label, badge, alert, isActive }) {
 /* ── Pro-locked nav item (shown to starter users as an upsell hint) ─────────── */
 function LockedSubItem({ label }) {
   return (
-    <div className="flex items-center gap-2 pl-10 pr-4 py-2 mx-2 rounded-lg text-[12.5px] text-charcoal/25 dark:text-white/20 cursor-default select-none">
-      <span className="w-1 h-1 rounded-full shrink-0 bg-charcoal/15 dark:bg-white/12" />
+    <div className="flex items-center gap-2 pl-10 pr-4 py-2 mx-2 rounded-lg text-[12.5px] text-white/25 cursor-default select-none">
+      <span className="w-1 h-1 rounded-full shrink-0 bg-white/15" />
       <span className="flex-1 truncate">{label}</span>
       <span className="text-[9px] tracking-widest uppercase font-bold text-accent bg-accent/10 px-1.5 py-0.5 rounded shrink-0">Pro</span>
     </div>
@@ -263,7 +263,7 @@ function LockedSubItem({ label }) {
 /* ── Section divider ────────────────────────────────────────────────────────── */
 function SideSection({ label }) {
   return (
-    <p className="px-6 pt-5 pb-1.5 text-[9.5px] font-semibold tracking-[0.14em] uppercase text-charcoal/35 dark:text-white/22 select-none">
+    <p className="px-6 pt-5 pb-1.5 text-[9.5px] font-semibold tracking-[0.14em] uppercase text-white/35 select-none">
       {label}
     </p>
   )
@@ -311,21 +311,21 @@ export default function AppShell({ children }) {
 
       {/* ── Desktop sidebar (hidden on everything below 1024px — lg breakpoint) ─ */}
       <aside
-        className="hidden lg:flex flex-col w-[220px] fixed inset-y-0 left-0 z-30 bg-white dark:bg-[#1a1a18] shadow-[1px_0_0_0_rgba(26,26,24,0.06)] dark:shadow-[1px_0_0_0_rgba(255,255,255,0.06)]"
+        className="hidden lg:flex flex-col w-[220px] fixed inset-y-0 left-0 z-30 bg-brand shadow-[1px_0_0_0_rgba(0,0,0,0.15)]"
         style={{ paddingTop: 'env(safe-area-inset-top)' }}
         aria-label="Sidebar navigation"
       >
         {/* Logo + venue name + notification bell */}
-        <div className="px-4 pt-5 pb-4 border-b border-charcoal/6 dark:border-white/6 shrink-0">
+        <div className="px-4 pt-5 pb-4 border-b border-white/8 shrink-0">
           <div className="flex items-center gap-2">
             {logoUrl ? (
-              <img src={logoUrl} alt="Venue logo" className="h-7 w-7 rounded-md object-contain bg-charcoal/8 dark:bg-white/10 p-0.5 shrink-0" />
+              <img src={logoUrl} alt="Venue logo" className="h-7 w-7 rounded-md object-contain bg-white/10 p-0.5 shrink-0" />
             ) : null}
             <div className="min-w-0 flex-1">
-              <span className="font-serif text-brand text-lg leading-none tracking-tight block">SafeServ</span>
-              {venueName && (
-                <p className="text-[11px] text-charcoal/45 dark:text-white/35 mt-0.5 truncate">{venueName}</p>
-              )}
+              <span className="font-bold text-white text-xl leading-none tracking-tight block truncate">{venueName || 'SafeServ'}</span>
+              <span className="mt-2 inline-flex items-center gap-1 bg-white/10 text-white/50 text-[9px] tracking-[0.15em] uppercase font-semibold px-2 py-0.5 rounded-full">
+                ⚡ Powered by SafeServ
+              </span>
             </div>
             {/* Bell lives here — top of sidebar, always visible */}
             <NotificationBell variant="dark" />
@@ -398,13 +398,13 @@ export default function AppShell({ children }) {
         </nav>
 
         {/* Bottom: user name + signout */}
-        <div className="shrink-0 border-t border-charcoal/6 dark:border-white/6 px-4 py-4 space-y-3">
+        <div className="shrink-0 border-t border-white/10 px-4 py-4 space-y-3">
           {name && (
-            <p className="text-[12px] text-charcoal/45 dark:text-white/35 truncate text-center">{name}</p>
+            <p className="text-[12px] text-white/45 truncate text-center">{name}</p>
           )}
           <button
             onClick={handleSignOut}
-            className="w-full text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/30 border border-charcoal/12 dark:border-white/12 rounded-lg py-2 hover:text-charcoal dark:hover:text-white/60 hover:border-charcoal/30 dark:hover:border-white/30 transition-colors"
+            className="w-full text-[11px] tracking-widest uppercase text-white/40 border border-white/15 rounded-lg py-2 hover:text-white/70 hover:border-white/30 transition-colors"
           >
             Sign Out
           </button>
@@ -421,7 +421,7 @@ export default function AppShell({ children }) {
           style={{ paddingTop: 'env(safe-area-inset-top)' }}
         >
           <div className="px-3 h-12 flex items-center justify-between gap-1.5">
-            <span className="font-serif text-cream text-lg tracking-tight shrink-0">SafeServ</span>
+            <span className="font-bold text-white text-base tracking-tight shrink-0 truncate max-w-[180px]">{venueName || 'SafeServ'}</span>
             <div className="flex items-center gap-1.5 shrink-0">
               <NotificationBell />
               <button

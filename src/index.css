@@ -9,7 +9,7 @@ html {
   /* Do NOT set overflow-x:hidden on <html> — it breaks vertical scroll on iOS Safari */
 }
 body {
-  background: #F4F6FA;
+  background: #f5f4f1;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overscroll-behavior-y: none;
@@ -65,6 +65,11 @@ html.dark div.bg-white.rounded-3xl {
 /* ── Dark mode global overrides ─────────────────────────────────────────── */
 html.dark body {
   background: #111111;
+}
+
+/* Green sidebar always stays green — never get overridden by dark mode */
+html.dark aside.bg-brand {
+  background-color: #1a3c2e !important;
 }
 html.dark ::-webkit-scrollbar-thumb {
   background: rgba(255,255,255,0.2);
