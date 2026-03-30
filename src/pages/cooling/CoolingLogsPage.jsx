@@ -72,7 +72,7 @@ function LogRow({ log }) {
 export default function CoolingLogsPage() {
   const { venueId } = useVenue()
   const { session } = useSession()
-  const { addToast } = useToast()
+  const toast = useToast()
 
   const [tab, setTab] = useState('log')
   const [form, setForm] = useState(() => ({ ...EMPTY_FORM, startedAt: nowDatetimeLocal() }))
@@ -94,10 +94,10 @@ export default function CoolingLogsPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if (!form.foodItem.trim()) { addToast('Enter the food item name', 'error'); return }
-    if (form.startTemp === '' || isNaN(Number(form.startTemp))) { addToast('Enter a valid start temperature', 'error'); return }
-    if (form.endTemp   === '' || isNaN(Number(form.endTemp)))   { addToast('Enter a valid end temperature', 'error'); return }
-    if (endFail && !form.notes.trim()) { addToast('Add a corrective action note for failed cooling', 'error'); return }
+    if (!form.foodItem.trim()) { toast('Enter the food item name', 'error'); return }
+    if (form.startTemp === '' || isNaN(Number(form.startTemp))) { toast('Enter a valid start temperature', 'error'); return }
+    if (form.endTemp   === '' || isNaN(Number(form.endTemp)))   { toast('Enter a valid end temperature', 'error'); return }
+    if (endFail && !form.notes.trim()) { toast('Add a corrective action note for failed cooling', 'error'); return }
 
     setSubmitting(true)
     const startedAt = form.startedAt ? new Date(form.startedAt).toISOString() : new Date().toISOString()
@@ -116,8 +116,8 @@ export default function CoolingLogsPage() {
     })
 
     setSubmitting(false)
-    if (error) { addToast(error.message, 'error'); return }
-    addToast('Cooling log saved', 'success')
+    if (error) { toast(error.message, 'error'); return }
+    toast('Cooling log saved', 'success')
     setForm({ ...EMPTY_FORM, startedAt: nowDatetimeLocal() })
     reloadToday()
   }

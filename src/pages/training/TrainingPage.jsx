@@ -618,7 +618,7 @@ function CertificatesTab({ venueId }) {
               </select>
             </div>
             <div>
-              <label className="text-[11px] tracking-widests uppercase text-charcoal/40 block mb-1">Category</label>
+              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1">Category</label>
               <select value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))}
                 className="w-full px-3 py-2 rounded-lg border border-charcoal/15 bg-cream/30 text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20">
                 <option value="">— Select —</option>
@@ -627,25 +627,25 @@ function CertificatesTab({ venueId }) {
             </div>
           </div>
           <div>
-            <label className="text-[11px] tracking-widests uppercase text-charcoal/40 block mb-1">Title *</label>
+            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1">Title *</label>
             <input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
               placeholder="e.g. Food Hygiene Level 2"
               className="w-full px-3 py-2 rounded-lg border border-charcoal/15 bg-cream/30 text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20" />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-[11px] tracking-widests uppercase text-charcoal/40 block mb-1">Issued Date</label>
+              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1">Issued Date</label>
               <input type="date" value={form.issued_date} onChange={e => setForm(f => ({ ...f, issued_date: e.target.value }))}
                 className="w-full px-3 py-2 rounded-lg border border-charcoal/15 bg-cream/30 text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20" />
             </div>
             <div>
-              <label className="text-[11px] tracking-widests uppercase text-charcoal/40 block mb-1">Expiry Date</label>
+              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1">Expiry Date</label>
               <input type="date" value={form.expiry_date} onChange={e => setForm(f => ({ ...f, expiry_date: e.target.value }))}
                 className="w-full px-3 py-2 rounded-lg border border-charcoal/15 bg-cream/30 text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20" />
             </div>
           </div>
           <div>
-            <label className="text-[11px] tracking-widests uppercase text-charcoal/40 block mb-1">Certificate / Document</label>
+            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1">Certificate / Document</label>
             <input type="file" accept="image/*,.pdf,.doc,.docx"
               onChange={e => setFile(e.target.files[0] ?? null)}
               className="w-full text-sm text-charcoal/60 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border file:border-charcoal/15 file:text-xs file:bg-cream/50 file:text-charcoal/60 hover:file:bg-cream" />
@@ -672,7 +672,7 @@ function CertificatesTab({ venueId }) {
               </div>
               <div>
                 <p className="text-sm font-semibold text-charcoal">{name}</p>
-                <p className="text-[11px] tracking-widests uppercase text-charcoal/40">{recs.length} record{recs.length !== 1 ? 's' : ''}</p>
+                <p className="text-[11px] tracking-widest uppercase text-charcoal/40">{recs.length} record{recs.length !== 1 ? 's' : ''}</p>
               </div>
             </div>
             <ul className="divide-y divide-charcoal/6">
@@ -685,7 +685,7 @@ function CertificatesTab({ venueId }) {
                         <p className="text-sm font-medium text-charcoal">{r.title}</p>
                         <StatusBadge status={status} />
                         {r.category && (
-                          <span className="text-[11px] tracking-widests uppercase text-charcoal/30 border border-charcoal/10 px-1.5 py-0.5 rounded">{r.category}</span>
+                          <span className="text-[11px] tracking-widest uppercase text-charcoal/30 border border-charcoal/10 px-1.5 py-0.5 rounded">{r.category}</span>
                         )}
                       </div>
                       <div className="flex items-center gap-3 mt-1 flex-wrap">

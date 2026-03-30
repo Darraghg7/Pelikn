@@ -67,7 +67,7 @@ export default function HotHoldingPage() {
   const [readings, setReadings] = useState({})
   const [comments, setComments] = useState({})
   const [submitting, setSubmitting] = useState(false)
-  const [loggedAt, setLoggedAt] = useState(nowDatetimeLocal)
+  const [loggedAt, setLoggedAt] = useState(nowDatetimeLocal())
 
   // Reset readings when period changes
   useEffect(() => { setReadings({}); setComments({}) }, [period])

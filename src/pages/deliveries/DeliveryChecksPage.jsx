@@ -247,7 +247,7 @@ function DeliveryCheckModal({ open, onClose, suppliers, onSupplierAdded, onCompl
   // Photo upload
   const [photoUrl, setPhotoUrl] = useState('')
   const [uploading, setUploading] = useState(false)
-  const [checkedAt, setCheckedAt] = useState(nowDatetimeLocal)
+  const [checkedAt, setCheckedAt] = useState(nowDatetimeLocal())
 
   // Reset on open
   useEffect(() => {

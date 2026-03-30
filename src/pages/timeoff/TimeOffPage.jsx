@@ -320,7 +320,7 @@ export default function TimeOffPage() {
                 <div className="flex gap-2">
                   <button
                     onClick={() => approve(r.id)}
-                    disabled={reviewing === r.id && reviewing === null}
+                    disabled={reviewing === r.id}
                     className="flex-1 py-2 rounded-lg bg-success text-white text-xs font-medium hover:bg-success/90 transition-colors"
                   >
                     Approve

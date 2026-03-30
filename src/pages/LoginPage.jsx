@@ -13,7 +13,7 @@ const ROLE_LABEL = {
 }
 
 export default function LoginPage() {
-  const { signIn, session, loading } = useSession()
+  const { signIn, signOut, session, loading } = useSession()
   const { venueId, venueSlug, venueName } = useVenue()
   const { signOutVenue } = useAuth()
   const navigate = useNavigate()
@@ -187,6 +187,7 @@ export default function LoginPage() {
       {/* Sign out of venue — returns device to landing page */}
       <button
         onClick={async () => {
+          signOut()
           await signOutVenue()
           navigate('/login', { replace: true })
         }}

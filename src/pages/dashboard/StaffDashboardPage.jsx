@@ -104,6 +104,8 @@ export default function StaffDashboardPage() {
             lastIn = null
           }
         }
+        // Count time for an active (unclosed) session up to now
+        if (lastIn) mins += (Date.now() - lastIn) / 60000
         setWeekMins(Math.round(mins))
       } catch { /* network error — leave defaults */ }
       finally { if (!cancelled) setLoading(false) }

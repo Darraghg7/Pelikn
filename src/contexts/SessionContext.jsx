@@ -193,9 +193,8 @@ export function SessionProvider({ children }) {
     localStorage.setItem(SESSION_VENUE_SLUG_KEY, venueSlug ?? '')
 
     // Cache PIN hash + session data for offline use
-    hashPin(staffId, pin).then(hash => {
-      if (hash) localStorage.setItem(pinHashKey(staffId), hash)
-    })
+    const hash = await hashPin(staffId, pin)
+    if (hash) localStorage.setItem(pinHashKey(staffId), hash)
     localStorage.setItem(sessDataKey(staffId), JSON.stringify(newSession))
 
     setSession(newSession)

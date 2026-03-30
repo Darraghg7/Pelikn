@@ -37,7 +37,7 @@ export default function FridgeLogFormPage() {
   const [temp, setTemp]             = useState('')
   const [reason, setReason]         = useState(null)
   const [comment, setComment]       = useState('')
-  const [loggedAt, setLoggedAt]     = useState(nowDatetimeLocal)
+  const [loggedAt, setLoggedAt]     = useState(nowDatetimeLocal())
   const [submitting, setSubmitting] = useState(false)
 
   const selectedFridge  = fridges.find((f) => f.id === fridgeId)
