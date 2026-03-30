@@ -23,11 +23,13 @@ export function VenueProvider({ children }) {
     const slug = venueSlug.toLowerCase()
 
     // ── Load from cache immediately so offline app renders without delay ──
+    let hasCache = false
     try {
       const cached = localStorage.getItem(venueKey(slug))
       if (cached) {
         setVenue(JSON.parse(cached))
         setLoading(false)
+        hasCache = true
         // Still fetch in background to refresh cache — don't block render
       }
     } catch { /* corrupt cache — ignore, fetch fresh below */ }
@@ -66,7 +68,7 @@ export function VenueProvider({ children }) {
               const v = { ...d2, plan: 'starter' }
               localStorage.setItem(venueKey(slug), JSON.stringify(v))
               setVenue(v)
-            } else if (!venue) {
+            } else if (!hasCache) {
               // No cache AND no network data
               setError(true)
             }
@@ -75,9 +77,9 @@ export function VenueProvider({ children }) {
       })
       .catch(() => {
         clearTimeout(timeoutId)
-        // Network error — if we have cached data, stay silent
+        // Network error — only show error if we have no cached data
         setLoading(false)
-        if (!venue) setError(true)
+        if (!hasCache) setError(true)
       })
   }, [venueSlug]) // eslint-disable-line react-hooks/exhaustive-deps
 
