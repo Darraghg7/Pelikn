@@ -227,7 +227,7 @@ function StaffRolesAssignment({ staffId }) {
   if (roles.length === 0) {
     return (
       <p className="text-xs text-charcoal/35 italic">
-        No roles configured. Add roles above in the Rota Roles section first.
+        No roles configured yet. Add roles in the Roles &amp; Skills section first.
       </p>
     )
   }
@@ -484,6 +484,7 @@ export default function SettingsPage() {
   const { staff, loading: staffLoading, reload: reloadStaff }   = useStaffManagement()
   const { closures, reload: reloadClosures } = useVenueClosures()
   const { customRoles, closedDays, breakDurationMins, saveCustomRoles, saveClosedDays, saveBreakDuration, nextColor } = useAppSettings()
+  const { roles: venueRoles } = useVenueRoles()
   const { dark, toggle: toggleDark } = useTheme()
   const { config: featuresConfig, save: saveFeatures, venuePlan } = useVenueFeatures()
 
@@ -573,6 +574,28 @@ export default function SettingsPage() {
     await saveCustomRoles(customRoles.filter(r => r.value !== value))
     toast('Role removed')
   }
+
+  // Staff role map: staffId → role name[]  (used in staff list)
+  const [staffRoleMap, setStaffRoleMap] = useState({})
+  useEffect(() => {
+    if (!staff.length || !venueRoles.length) { setStaffRoleMap({}); return }
+    const staffIds = staff.map(s => s.id)
+    supabase
+      .from('staff_role_assignments')
+      .select('staff_id, role_id')
+      .in('staff_id', staffIds)
+      .then(({ data }) => {
+        if (!data) return
+        const map = {}
+        for (const a of data) {
+          const role = venueRoles.find(r => r.id === a.role_id)
+          if (!role) continue
+          if (!map[a.staff_id]) map[a.staff_id] = []
+          map[a.staff_id].push(role.name)
+        }
+        setStaffRoleMap(map)
+      })
+  }, [staff, venueRoles])
 
   // Opening days
   const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
@@ -920,40 +943,6 @@ export default function SettingsPage() {
         )}
       </SettingsSection>
 
-      {/* ── Roles ──────────────────────────────────────────────────────────── */}
-      <SettingsSection title="Roles" subtitle={`${customRoles.length} roles configured`}>
-        <p className="text-xs text-charcoal/40 mb-4">
-          Manage the roles available for shift assignment and the rota builder.
-        </p>
-        <div className="flex flex-wrap gap-2 mb-4">
-          {customRoles.map(r => (
-            <div key={r.value} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium ${r.color}`}>
-              <span>{r.label}</span>
-              <button
-                onClick={() => removeRole(r.value)}
-                className="opacity-40 hover:opacity-100 transition-opacity ml-0.5"
-              >✕</button>
-            </div>
-          ))}
-        </div>
-        <div className="flex gap-2">
-          <input
-            value={newRoleName}
-            onChange={e => setNewRoleName(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && addRole()}
-            placeholder="New role name…"
-            className="flex-1 px-4 py-2.5 rounded-lg border border-charcoal/15 bg-cream/30 text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
-          />
-          <button
-            onClick={addRole}
-            disabled={!newRoleName.trim()}
-            className="bg-charcoal text-cream px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-charcoal/90 transition-colors disabled:opacity-40"
-          >
-            Add →
-          </button>
-        </div>
-      </SettingsSection>
-
       {/* ── Opening Days ───────────────────────────────────────────────────── */}
       <SettingsSection
         title="Opening Days"
@@ -1097,10 +1086,10 @@ export default function SettingsPage() {
         <NotificationsPanel session={session} toast={toast} settings={settings} />
       </SettingsSection>
 
-      {/* ── Rota Roles ─────────────────────────────────────────────────────── */}
+      {/* ── Roles & Skills ─────────────────────────────────────────────────── */}
       <SettingsSection
-        title="Rota Roles"
-        subtitle="Define roles for your business — used by the AI rota builder"
+        title="Roles & Skills"
+        subtitle="Define the roles in your business — assign them to staff and use them in the rota builder"
       >
         <RolesSection />
       </SettingsSection>
@@ -1246,16 +1235,16 @@ export default function SettingsPage() {
               </div>
             </div>
 
-            {/* Rota roles (for AI auto-fill) */}
+            {/* Skills / role assignment */}
             <div>
-              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-2">Rota Roles</label>
+              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-2">Skills</label>
               {editingId ? (
                 <StaffRolesAssignment staffId={editingId} />
               ) : (
-                <p className="text-xs text-charcoal/35 italic">Save this staff member first, then assign their roles.</p>
+                <p className="text-xs text-charcoal/35 italic">Save this staff member first, then assign their skills.</p>
               )}
               <p className="text-[11px] text-charcoal/35 mt-2">
-                Roles tell the AI rota builder which shifts this person can cover.
+                Skills tell the AI rota builder which shifts this person can cover.
               </p>
             </div>
 
@@ -1396,12 +1385,9 @@ export default function SettingsPage() {
                       {(s.working_days ?? []).map(d => DOW_LABELS[d - 1]).join('/')}
                     </span>
                   )}
-                  {(s.skills ?? []).map(sk => {
-                    const roleDef = customRoles.find(r => r.value === sk)
-                    return roleDef ? (
-                      <span key={sk} className={`text-[11px] px-1.5 py-0.5 rounded ${roleDef.color}`}>{roleDef.label}</span>
-                    ) : null
-                  })}
+                  {(staffRoleMap[s.id] ?? []).map(name => (
+                    <span key={name} className="text-[11px] bg-brand/8 text-brand px-1.5 py-0.5 rounded">{name}</span>
+                  ))}
                   {!s.is_active && <span className="text-[11px] tracking-widest uppercase text-charcoal/30 italic">inactive</span>}
                 </div>
                 <div className="flex items-center gap-3 mt-0.5">
