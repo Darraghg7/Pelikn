@@ -195,19 +195,20 @@ function ComplianceScoreWidget() {
 
   return (
     <WidgetShell title="Compliance Score" to="/audit" status={data.status}>
-      <div className="flex items-center gap-4 py-2">
-        <ComplianceGauge score={data.score} />
-        <div className="flex-1 min-w-0">
-          <p className="text-lg font-bold leading-tight" style={{ color: tier.color }}>{tier.label}</p>
-          <p className="text-[11px] text-charcoal/40 mt-1 uppercase tracking-wide">30-day average</p>
-          <div className="mt-3">
-            {data.issues > 0 ? (
-              <p className="text-xs font-medium text-danger">{data.issues} item{data.issues !== 1 ? 's' : ''} need attention</p>
-            ) : (
-              <p className="text-xs font-medium text-success">All checks on track</p>
-            )}
-          </div>
+      <div className="py-1">
+        <p className="text-5xl font-bold leading-none" style={{ color: tier.color }}>{data.score}%</p>
+        <div className="mt-3">
+          {data.issues > 0 ? (
+            <span className="inline-flex items-center gap-1 bg-danger/10 text-danger text-xs font-semibold px-2.5 py-1 rounded-full">
+              ↓ {data.issues} item{data.issues !== 1 ? 's' : ''} need attention
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1 bg-success/10 text-success text-xs font-semibold px-2.5 py-1 rounded-full">
+              ✓ All checks on track
+            </span>
+          )}
         </div>
+        <p className="text-[11px] text-charcoal/35 mt-2 uppercase tracking-wide">30-day average</p>
       </div>
       {data.issueList?.length > 0 && (
         <div className="mt-3 pt-3 border-t border-charcoal/8 flex flex-col gap-0.5">

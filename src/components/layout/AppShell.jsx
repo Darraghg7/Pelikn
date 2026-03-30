@@ -311,7 +311,7 @@ export default function AppShell({ children }) {
 
       {/* ── Desktop sidebar (hidden on everything below 1024px — lg breakpoint) ─ */}
       <aside
-        className="hidden lg:flex flex-col w-[220px] fixed inset-y-0 left-0 z-30 bg-brand shadow-[1px_0_0_0_rgba(0,0,0,0.15)]"
+        className="hidden lg:flex flex-col w-[220px] fixed top-3 bottom-3 left-3 z-30 bg-brand rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.18)]"
         style={{ paddingTop: 'env(safe-area-inset-top)' }}
         aria-label="Sidebar navigation"
       >
@@ -412,7 +412,7 @@ export default function AppShell({ children }) {
       </aside>
 
       {/* ── Content area (offset by sidebar on desktop) ───────────────────── */}
-      <div className={`flex-1 lg:ml-[220px] flex flex-col min-h-dvh ${bgClass}`}>
+      <div className={`flex-1 lg:ml-[236px] flex flex-col min-h-dvh ${bgClass}`}>
 
         {/* Mobile-only header (shown below lg breakpoint) */}
         <header
