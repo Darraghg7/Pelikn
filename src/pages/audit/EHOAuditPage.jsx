@@ -4,7 +4,7 @@ import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
 import { useToast } from '../../components/ui/Toast'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
-import { exportTempLogs, exportCleaningRecords, exportDeliveryChecks, exportCorrectiveActions, exportProbeCalibrations, exportTrainingRecords, exportFullReport } from '../../lib/exportData'
+import { exportTempLogs, exportCleaningRecords, exportDeliveryChecks, exportCorrectiveActions, exportProbeCalibrations, exportTrainingRecords, exportFullReport, exportEHOReport } from '../../lib/exportData'
 
 const RANGE_OPTIONS = [
   { label: '7 days',   days: 7 },
@@ -106,7 +106,7 @@ function SectionCard({ title, status, children, sectionId, openSection, onToggle
 }
 
 export default function EHOAuditPage() {
-  const { venueId } = useVenue()
+  const { venueId, venueName } = useVenue()
   const toast = useToast()
   const [range, setRange] = useState(90)
   const [loading, setLoading] = useState(true)
@@ -525,6 +525,18 @@ export default function EHOAuditPage() {
                 <p className="mt-3 pt-3 border-t border-charcoal/10 text-xs text-success font-medium">All certificates up to date ✓</p>
               )}
             </SectionCard>
+          </div>
+
+          {/* EHO Inspection Report */}
+          <div className="rounded-xl bg-brand/5 border border-brand/15 px-5 py-4">
+            <p className="text-[11px] tracking-widest uppercase text-brand/60 mb-1">EHO Inspection Report</p>
+            <p className="text-xs text-charcoal/50 mb-3">One comprehensive PDF covering all compliance areas — ready to show an EHO inspector.</p>
+            <button
+              onClick={() => exportEHOReport(venueId, venueName, range)}
+              className="w-full px-4 py-2.5 rounded-lg bg-brand text-cream text-xs font-medium hover:bg-brand/90 transition-colors"
+            >
+              ↓ Download EHO Inspection Report
+            </button>
           </div>
 
           {/* Data Export */}

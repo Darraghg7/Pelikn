@@ -33,6 +33,7 @@ import FridgeHistoryPage   from './pages/fridge/FridgeHistoryPage'
 import AllergenRegistryPage from './pages/allergens/AllergenRegistryPage'
 import FoodItemFormPage     from './pages/allergens/FoodItemFormPage'
 import FoodItemDetailPage   from './pages/allergens/FoodItemDetailPage'
+import AllergenPublicPage   from './pages/allergens/AllergenPublicPage'
 
 // Cleaning
 import CleaningPage from './pages/cleaning/CleaningPage'
@@ -232,6 +233,9 @@ export default function App() {
         <Routes>
           {/* Public: marketing homepage */}
           <Route path="/" element={<MarketingPage />} />
+
+          {/* Public: allergen matrix (no auth required, accessible via QR code) */}
+          <Route path="/allergens/:venueSlug" element={<AllergenPublicPage />} />
 
           {/* Login — redirects to venue if already authenticated */}
           <Route path="/login" element={<LandingRoute />} />

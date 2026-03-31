@@ -42,6 +42,7 @@ serve(async (req) => {
     const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE)
 
     // ── Fetch all data in parallel ─────────────────────────────────────────
+    const fourWeeksAgo = addDays(weekStart, -28)
     const [
       { data: requirements },
       { data: staffList },
@@ -51,6 +52,7 @@ serve(async (req) => {
       { data: unavailRows },
       { data: closureRows },
       { data: existingShifts },
+      { data: historicalShifts },
     ] = await Promise.all([
       admin.from('rota_requirements')
         .select('day_of_week, role_name, staff_count, start_time, end_time, label')
@@ -82,6 +84,13 @@ serve(async (req) => {
       admin.from('shifts')
         .select('staff_id, shift_date')
         .eq('venue_id', venueId).eq('week_start', weekStart),
+
+      // Last 4 weeks of shifts for pattern learning
+      admin.from('shifts')
+        .select('staff_id, shift_date, role_label')
+        .eq('venue_id', venueId)
+        .gte('shift_date', fourWeeksAgo)
+        .lt('shift_date', weekStart),
     ])
 
     if (!requirements?.length) return err('No rota requirements configured. Set them up via Configure → Auto-Fill.', 400)
@@ -167,6 +176,33 @@ serve(async (req) => {
 
     if (!slots.length) return err('No open days with requirements found for this week.', 400)
 
+    // ── Compute historical patterns ───────────────────────────────────────
+    const hist = historicalShifts ?? []
+    type PatternEntry = { shiftsWorked: number; roles: Record<string, number>; dayOfWeek: Record<number, number> }
+    const patterns: Record<string, PatternEntry> = {}
+
+    for (const s of (staffList ?? [])) {
+      patterns[s.id] = { shiftsWorked: 0, roles: {}, dayOfWeek: {} }
+    }
+    for (const sh of hist) {
+      if (!patterns[sh.staff_id]) continue
+      const p = patterns[sh.staff_id]
+      p.shiftsWorked++
+      if (sh.role_label) p.roles[sh.role_label] = (p.roles[sh.role_label] ?? 0) + 1
+      const dow = new Date(sh.shift_date + 'T00:00:00Z').getUTCDay() // 0=Sun
+      const dowMon = dow === 0 ? 7 : dow // convert to 1=Mon…7=Sun
+      p.dayOfWeek[dowMon] = (p.dayOfWeek[dowMon] ?? 0) + 1
+    }
+
+    const patternLines = (staffList ?? []).map(s => {
+      const p = patterns[s.id]
+      if (!p || p.shiftsWorked === 0) return null
+      const topRoles  = Object.entries(p.roles).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([r]) => r)
+      const usualDays = Object.entries(p.dayOfWeek).sort((a, b) => b[1] - a[1]).slice(0, 4)
+        .map(([d]) => DAY_NAMES[Number(d) - 1])
+      return `  - ${s.name}: usually works ${usualDays.join('/')} | top roles: ${topRoles.join(', ')} | ${p.shiftsWorked} shifts in past 4 weeks`
+    }).filter(Boolean)
+
     // ── Build Claude prompt ───────────────────────────────────────────────
     const staffLines = (staffList ?? []).map(s => {
       const roles = staffRoleMap[s.id]?.join(', ') || 'No roles assigned'
@@ -196,6 +232,8 @@ Rules you must follow:
 4. Each slot must be filled by exactly one staff member
 5. A staff member CAN work multiple slots on the same day if needed (e.g. different times)
 6. If you cannot fill a slot because no qualified, available staff exists, mark it as a gap
+7. Use the HISTORICAL PATTERNS as soft guidance — prefer assigning staff to roles and days they usually work, but availability and role qualifications always take priority
+8. If a staff member has no shifts in the past 4 weeks, treat them as having no preference bias
 
 Return ONLY a valid JSON object in this exact structure — no markdown, no explanation:
 {
@@ -226,6 +264,7 @@ Return ONLY a valid JSON object in this exact structure — no markdown, no expl
 STAFF:
 ${staffLines}
 
+${patternLines.length ? `HISTORICAL PATTERNS (last 4 weeks — use as soft guidance):\n${patternLines.join('\n')}\n` : ''}
 ${unavailLines.length ? `UNAVAILABILITY:\n${unavailLines.join('\n')}\n` : 'No unavailability this week.\n'}
 SLOTS TO FILL (${slots.length} total):
 ${slotLines}

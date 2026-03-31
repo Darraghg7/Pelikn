@@ -122,7 +122,7 @@ const PRO_FEATURES = [
   { icon: <IconCalendar />, title: 'Rota & Shift Management', desc: 'Build weekly rotas, publish to staff, track actual hours against scheduled.' },
   { icon: <IconShield />, title: 'Staff Cost Tracking', desc: 'See projected wage costs per rota week. Spot overspend before payroll.' },
   { icon: <IconUsers />, title: 'Unlimited Staff', desc: 'No cap on team size. Add as many staff as you need across any number of venues.' },
-  { icon: <IconClipboard />, title: 'Multi-Venue Management', desc: 'Manage multiple venues from a single account. Each venue billed at just £15/month extra.' },
+  { icon: <IconClipboard />, title: 'Multi-Venue Management', desc: 'Manage multiple venues from a single account. Each venue billed at just £14.99/month extra.' },
 ]
 
 /* ── FAQ data ───────────────────────────────────────────────────────────────── */
@@ -137,7 +137,7 @@ const FAQS = [
   },
   {
     q: 'What counts as "multi-venue"?',
-    a: "Each venue is managed separately and billed individually. The first venue on Pro is £45/month; each additional venue you add is £15/month. There's no separate multi-venue tier — you just add venues as you grow.",
+    a: "Each venue is managed separately and billed individually. The first venue on Pro is £25.99/month; each additional venue you add is £14.99/month. There's no separate multi-venue tier — you just add venues as you grow.",
   },
   {
     q: 'Is my data secure?',
@@ -339,7 +339,7 @@ export default function MarketingPage() {
               <div className="mb-5">
                 <p className="text-[11px] tracking-widest uppercase text-brand font-semibold mb-1">Starter</p>
                 <div className="flex items-baseline gap-1.5">
-                  <span className="font-serif text-4xl text-brand">£15</span>
+                  <span className="font-serif text-4xl text-brand">£5.99</span>
                   <span className="text-charcoal/40 text-sm">/month</span>
                 </div>
                 <p className="text-xs text-charcoal/40 mt-1">per venue</p>
@@ -382,10 +382,10 @@ export default function MarketingPage() {
               <div className="mb-5">
                 <p className="text-[11px] tracking-widest uppercase text-accent font-semibold mb-1">Pro</p>
                 <div className="flex items-baseline gap-1.5">
-                  <span className="font-serif text-4xl text-accent">£45</span>
+                  <span className="font-serif text-4xl text-accent">£25.99</span>
                   <span className="text-charcoal/40 text-sm">/month</span>
                 </div>
-                <p className="text-xs text-charcoal/40 mt-1">first venue · £15/month each additional</p>
+                <p className="text-xs text-charcoal/40 mt-1">first venue · £14.99/month each additional</p>
               </div>
               <p className="text-xs text-charcoal/50 mb-5 leading-relaxed">
                 For restaurants, pubs and growing operations that need full rota management alongside compliance.
@@ -396,11 +396,11 @@ export default function MarketingPage() {
                 <p className="text-[10px] tracking-widest uppercase text-charcoal/30 mb-3">Price as you grow</p>
                 <div className="flex flex-col gap-1.5">
                   {[
-                    ['1 venue', '£45/mo'],
-                    ['2 venues', '£60/mo'],
-                    ['3 venues', '£75/mo'],
-                    ['5 venues', '£105/mo'],
-                    ['10 venues', '£180/mo'],
+                    ['1 venue', '£25.99/mo'],
+                    ['2 venues', '£40.98/mo'],
+                    ['3 venues', '£55.97/mo'],
+                    ['5 venues', '£85.95/mo'],
+                    ['10 venues', '£160.90/mo'],
                   ].map(([venues, price]) => (
                     <div key={venues} className="flex items-center justify-between">
                       <span className="text-xs text-charcoal/50">{venues}</span>

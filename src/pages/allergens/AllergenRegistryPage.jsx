@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { QRCodeSVG } from 'qrcode.react'
 import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
 import { useFoodItems } from '../../hooks/useFoodItems'
@@ -19,11 +20,14 @@ function SectionLabel({ children, action }) {
 export default function AllergenRegistryPage() {
   const [search, setSearch] = useState('')
   const { items, loading, reload } = useFoodItems(search)
-  const { venueId }   = useVenue()
+  const { venueId, venueSlug } = useVenue()
   const { isManager } = useSession()
   const toast         = useToast()
-  const navigate     = useNavigate()
-  const [deleting, setDeleting] = useState(null)
+  const navigate      = useNavigate()
+  const [deleting, setDeleting]   = useState(null)
+  const [showQR, setShowQR]       = useState(false)
+
+  const publicUrl = `${window.location.origin}/allergens/${venueSlug}`
 
   const handleDelete = async (id) => {
     if (!window.confirm('Delete this item?')) return
@@ -48,6 +52,42 @@ export default function AllergenRegistryPage() {
           className="px-3 py-2 rounded-lg border border-charcoal/15 bg-cream/30 text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 w-full sm:w-48"
         />
       </div>
+
+      {/* QR code panel — manager only */}
+      {isManager && venueSlug && (
+        <div className="bg-white rounded-xl border border-charcoal/10 px-5 py-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-[11px] tracking-widest uppercase text-charcoal/40">Customer Allergen QR Code</p>
+              <p className="text-xs text-charcoal/45 mt-0.5">Customers can scan this to see your live allergen matrix — no login required.</p>
+            </div>
+            <button
+              onClick={() => setShowQR(v => !v)}
+              className="text-xs px-3 py-1.5 rounded-lg border border-charcoal/15 text-charcoal/55 hover:text-charcoal hover:border-charcoal/30 transition-colors shrink-0 ml-4"
+            >
+              {showQR ? 'Hide QR' : 'Show QR'}
+            </button>
+          </div>
+          {showQR && (
+            <div className="mt-4 flex flex-col sm:flex-row items-start gap-5">
+              <div className="p-3 bg-white rounded-xl border border-charcoal/10 shadow-sm">
+                <QRCodeSVG value={publicUrl} size={140} />
+              </div>
+              <div className="flex flex-col gap-2 min-w-0">
+                <p className="text-[11px] tracking-widest uppercase text-charcoal/35">Public URL</p>
+                <p className="text-xs font-mono text-charcoal/60 break-all bg-charcoal/4 px-3 py-2 rounded-lg">{publicUrl}</p>
+                <button
+                  onClick={() => { navigator.clipboard.writeText(publicUrl); toast('URL copied') }}
+                  className="self-start text-xs px-3 py-1.5 rounded-lg border border-charcoal/15 text-charcoal/55 hover:text-charcoal hover:border-charcoal/30 transition-colors"
+                >
+                  Copy URL
+                </button>
+                <p className="text-[11px] text-charcoal/35 mt-1">Print or display the QR code at your counter or on menus. It updates automatically when you edit allergen information.</p>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="bg-white rounded-xl border border-charcoal/10 overflow-hidden">
         <div className="px-5 pt-5">
