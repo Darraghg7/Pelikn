@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react'
-import { format, endOfWeek, addWeeks, startOfMonth, endOfMonth, subMonths, parseISO } from 'date-fns'
+import { format, endOfWeek, addWeeks, addDays, startOfMonth, endOfMonth, subMonths, parseISO } from 'date-fns'
 import { supabase } from '../../lib/supabase'
 import { useTimesheetData } from '../../hooks/useClockEvents'
-import { formatMinutes, getWeekStart, downloadCsv } from '../../lib/utils'
+import { formatMinutes, getWeekStart, getWeekDays, downloadCsv } from '../../lib/utils'
 import { buildPdfReport } from '../../lib/pdfUtils'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
 
@@ -43,6 +43,40 @@ function buildTimesheets(events, staffRates) {
     }
   }
   return Object.values(results).sort((a, b) => a.name.localeCompare(b.name))
+}
+
+/**
+ * Groups clock events into per-staff, per-day minute totals.
+ * Returns sorted array of { name, days: { 'yyyy-MM-dd': minutes } }.
+ */
+function buildDailyGrid(events) {
+  const grid = {}
+  for (const e of events) {
+    const sid = e.staff_id
+    if (!grid[sid]) grid[sid] = { name: e.staff?.name ?? 'Unknown', sessions: [] }
+    const r = grid[sid]
+    if (e.event_type === 'clock_in')
+      r.sessions.push({ in: e.occurred_at, out: null, breaks: [], date: e.occurred_at.slice(0, 10) })
+    if (e.event_type === 'clock_out'   && r.sessions.length) r.sessions.at(-1).out = e.occurred_at
+    if (e.event_type === 'break_start' && r.sessions.length) r.sessions.at(-1).breaks.push({ start: e.occurred_at, end: null })
+    if (e.event_type === 'break_end'   && r.sessions.length) {
+      const br = r.sessions.at(-1).breaks
+      if (br.length && !br.at(-1).end) br.at(-1).end = e.occurred_at
+    }
+  }
+  const result = {}
+  for (const [sid, r] of Object.entries(grid)) {
+    result[sid] = { name: r.name, days: {} }
+    for (const s of r.sessions) {
+      if (!s.in || !s.out) continue
+      const worked = (new Date(s.out) - new Date(s.in)) / 60000
+      const brk = s.breaks.reduce((acc, b) =>
+        (!b.start || !b.end) ? acc : acc + (new Date(b.end) - new Date(b.start)) / 60000, 0)
+      const mins = Math.max(0, worked - brk)
+      result[sid].days[s.date] = (result[sid].days[s.date] ?? 0) + mins
+    }
+  }
+  return Object.values(result).sort((a, b) => a.name.localeCompare(b.name))
 }
 
 const PERIODS = [
@@ -109,10 +143,19 @@ export default function TimesheetPage() {
   const [customFrom, setCustomFrom] = useState('')
   const [customTo,   setCustomTo]   = useState('')
   const [staffRates, setStaffRates] = useState({})
+  const [weekOffset, setWeekOffset] = useState(0)
 
   const { dateFrom, dateTo, label: periodLabel } = periodToDates(period, customFrom, customTo)
 
   const { rows, loading, reload } = useTimesheetData(dateFrom, dateTo)
+
+  // Weekly grid — independent week navigation
+  const gridWeekStart = addWeeks(getWeekStart(new Date()), weekOffset)
+  const gridWeekEnd   = addDays(gridWeekStart, 6)
+  const gridDays      = getWeekDays(gridWeekStart)
+  const gridDateFrom  = gridWeekStart.toISOString()
+  const gridDateTo    = new Date(gridWeekEnd.getTime() + 86399999).toISOString()
+  const { rows: gridRows, loading: gridLoading, reload: gridReload } = useTimesheetData(gridDateFrom, gridDateTo)
 
   useEffect(() => {
     supabase
@@ -124,8 +167,10 @@ export default function TimesheetPage() {
   }, [])
 
   useEffect(() => { reload() }, [reload])
+  useEffect(() => { gridReload() }, [gridReload])
 
   const timesheets = buildTimesheets(rows, staffRates)
+  const dailyGrid  = buildDailyGrid(gridRows)
   const totalMins  = timesheets.reduce((a, t) => a + t.totalMinutes, 0)
   const totalWage  = timesheets.reduce((a, t) => a + (t.totalMinutes / 60) * t.hourlyRate, 0)
 
@@ -297,6 +342,90 @@ export default function TimesheetPage() {
               })}
             </div>
           </>
+        )}
+      </div>
+
+      {/* ── Weekly Hours Grid ────────────────────────────────────── */}
+      <div className="bg-white rounded-xl border border-charcoal/10 p-5">
+
+        {/* Header + week navigation */}
+        <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
+          <SectionLabel>Hours by Day</SectionLabel>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setWeekOffset(w => w - 1)}
+              className="w-7 h-7 rounded-lg border border-charcoal/15 flex items-center justify-center text-charcoal/50 hover:border-charcoal/30 hover:text-charcoal transition-colors text-sm"
+            >
+              ←
+            </button>
+            <span className="text-xs font-medium text-charcoal min-w-[150px] text-center">
+              {format(gridWeekStart, 'd MMM')} – {format(gridWeekEnd, 'd MMM yyyy')}
+            </span>
+            <button
+              onClick={() => setWeekOffset(w => w + 1)}
+              disabled={weekOffset >= 0}
+              className="w-7 h-7 rounded-lg border border-charcoal/15 flex items-center justify-center text-charcoal/50 hover:border-charcoal/30 hover:text-charcoal transition-colors text-sm disabled:opacity-25 disabled:cursor-not-allowed"
+            >
+              →
+            </button>
+          </div>
+        </div>
+
+        {gridLoading ? (
+          <div className="flex justify-center py-6"><LoadingSpinner /></div>
+        ) : dailyGrid.length === 0 ? (
+          <p className="text-sm text-charcoal/35 italic py-4">No clock events recorded this week.</p>
+        ) : (
+          <div className="overflow-x-auto -mx-5 px-5">
+            <table className="w-full min-w-[540px]">
+              <thead>
+                <tr>
+                  <th className="text-left pb-3 pr-4 text-[11px] tracking-widest uppercase text-charcoal/40 font-semibold whitespace-nowrap">
+                    Staff
+                  </th>
+                  {gridDays.map(d => (
+                    <th key={d.toISOString()} className="pb-3 px-2 text-center min-w-[60px]">
+                      <span className="block text-[11px] tracking-widest uppercase text-charcoal/40 font-semibold">
+                        {format(d, 'EEE')}
+                      </span>
+                      <span className="block text-xs text-charcoal/30 font-normal">{format(d, 'd')}</span>
+                    </th>
+                  ))}
+                  <th className="pb-3 pl-4 text-right text-[11px] tracking-widest uppercase text-charcoal/40 font-semibold whitespace-nowrap">
+                    Total
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {dailyGrid.map(person => {
+                  const total = Object.values(person.days).reduce((a, m) => a + m, 0)
+                  return (
+                    <tr key={person.name} className="border-t border-charcoal/5">
+                      <td className="py-3 pr-4 text-sm font-medium text-charcoal whitespace-nowrap">{person.name}</td>
+                      {gridDays.map(d => {
+                        const dateStr = format(d, 'yyyy-MM-dd')
+                        const mins = person.days[dateStr] ?? 0
+                        return (
+                          <td key={dateStr} className="py-3 px-2 text-center">
+                            {mins > 0 ? (
+                              <span className="text-xs font-mono font-semibold text-charcoal">
+                                {formatMinutes(Math.round(mins))}
+                              </span>
+                            ) : (
+                              <span className="text-charcoal/15 text-sm">—</span>
+                            )}
+                          </td>
+                        )
+                      })}
+                      <td className="py-3 pl-4 text-right font-mono text-sm font-semibold text-charcoal whitespace-nowrap">
+                        {total > 0 ? formatMinutes(Math.round(total)) : <span className="text-charcoal/25">—</span>}
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
     </div>
