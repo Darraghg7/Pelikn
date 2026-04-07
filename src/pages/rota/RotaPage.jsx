@@ -3,6 +3,7 @@ import { format, addWeeks, addDays, eachDayOfInterval, parseISO } from 'date-fns
 import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
 import { useShifts, useStaffList, shiftDurationHours, paidShiftHours, unpaidBreakMins } from '../../hooks/useShifts'
+import { useCrossVenueShifts } from '../../hooks/useCrossVenueShifts'
 import { useShiftSwaps } from '../../hooks/useShiftSwaps'
 import { useAvailability } from '../../hooks/useAvailability'
 import { useSession } from '../../contexts/SessionContext'
@@ -42,6 +43,7 @@ export default function RotaPage() {
   const [numWeeks, setNumWeeks]   = useState(1)
   const { shifts, loading, reload } = useShifts(weekStart, numWeeks)
   const { staff, loading: staffLoading } = useStaffList()
+  const crossShifts = useCrossVenueShifts(staff, weekStart, numWeeks, venueId)
   const { swaps, loading: swapsLoading, reload: reloadSwaps, pendingCount } = useShiftSwaps()
   const { unavailability, toggleAvailability, reload: reloadAvail } = useAvailability(weekStart, numWeeks)
   const { customRoles, closedDays, breakDurationMins } = useAppSettings()
@@ -676,6 +678,7 @@ export default function RotaPage() {
                 closureMode={closureMode}
                 onToggleClosure={togglePendingClosure}
                 breakDurationMins={breakDurationMins}
+                crossShifts={crossShifts}
               />
             )}
           </div>

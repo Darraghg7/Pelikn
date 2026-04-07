@@ -1,9 +1,9 @@
 /**
  * AuthContext — Supabase Auth session for venue owners.
  *
- * This provides device-level authentication. Once an owner logs in with
- * email + password, the device stays locked to their venue until they
- * explicitly sign out. Staff then authenticate within that venue via PIN.
+ * Supports multi-venue: one Supabase Auth account can own N venues.
+ * `venues` is the full list; `venueSlug` is the currently-active one.
+ * Single-venue owners see no behavioural difference.
  */
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { supabase } from '../lib/supabase'
@@ -11,36 +11,23 @@ import { supabase } from '../lib/supabase'
 const AuthContext = createContext(null)
 
 export function AuthProvider({ children }) {
-  const [user, setUser]             = useState(null)
-  const [venueSlug, setVenueSlug]   = useState(null)
+  const [user, setUser]               = useState(null)
+  const [venues, setVenues]           = useState([])   // all owned venues
+  const [venueSlug, setVenueSlug]     = useState(null) // currently active slug
   const [authLoading, setAuthLoading] = useState(true)
 
-  // ── Timeout-safe venue resolver ────────────────────────────────────────
-  // Wraps resolveVenue in a race so it NEVER blocks the spinner indefinitely.
-  // Resolves null on timeout — caller will just show the login form.
-  const resolveVenueSafe = (email, userId, ms = 5000) =>
-    Promise.race([
-      resolveVenue(email, userId),
-      new Promise(resolve => setTimeout(() => resolve(null), ms)),
-    ])
-
-  // ── Resolve which venue this user owns ────────────────────────────────
-  // Strategy 1: owner_id on venues (set by create_venue_with_owner RPC — all new accounts)
-  // Strategy 2: manager_email in app_settings (legacy fallback for pre-RPC venues)
-  const resolveVenue = async (email, userId) => {
-    // Strategy 1 — owner_id (most reliable)
+  // ── Resolve all venues this user owns ─────────────────────────────────
+  // Strategy 1: get_owner_venues() RPC — all new accounts
+  // Strategy 2: manager_email in app_settings — legacy single-venue fallback
+  const resolveVenues = async (email, userId) => {
     if (userId) {
-      const { data: owned } = await supabase
-        .from('venues')
-        .select('slug')
-        .eq('owner_id', userId)
-        .maybeSingle()
-      if (owned?.slug) return owned.slug
+      const { data: owned } = await supabase.rpc('get_owner_venues')
+      if (owned?.length) return owned
     }
 
-    // Strategy 2 — manager_email fallback (legacy)
-    if (!email) return null
-    const { data } = await supabase
+    // Legacy fallback — manager_email in app_settings (returns at most 1 venue)
+    if (!email) return []
+    const { data: setting } = await supabase
       .from('app_settings')
       .select('venue_id')
       .eq('key', 'manager_email')
@@ -48,23 +35,51 @@ export function AuthProvider({ children }) {
       .limit(1)
       .maybeSingle()
 
-    if (!data?.venue_id) return null
+    if (!setting?.venue_id) return []
 
     const { data: venue } = await supabase
       .from('venues')
-      .select('slug')
-      .eq('id', data.venue_id)
+      .select('id, name, slug, plan, qr_addon, additional_venues')
+      .eq('id', setting.venue_id)
       .single()
 
-    return venue?.slug ?? null
+    return venue ? [venue] : []
   }
+
+  const resolveVenuesSafe = (email, userId, ms = 5000) =>
+    Promise.race([
+      resolveVenues(email, userId),
+      new Promise(resolve => setTimeout(() => resolve([]), ms)),
+    ])
+
+  // ── Pick the best slug from a list ────────────────────────────────────
+  // Prefer the one stored in localStorage (last visited), else first in list
+  const pickSlug = (venueList) => {
+    if (!venueList?.length) return null
+    try {
+      const last = localStorage.getItem('safeserv_last_venue')
+      if (last && venueList.some(v => v.slug === last)) return last
+    } catch {}
+    return venueList[0].slug
+  }
+
+  // ── Refresh venue list (called after adding a venue in Settings) ───────
+  const refreshVenues = useCallback(async () => {
+    const list = await resolveVenuesSafe(user?.email, user?.id, 8000)
+    setVenues(list)
+    // Don't change the active slug — user is already in a venue
+  }, [user])
+
+  // ── Select a venue (called by venue switcher / picker) ─────────────────
+  const selectVenue = useCallback((slug) => {
+    setVenueSlug(slug)
+    try { localStorage.setItem('safeserv_last_venue', slug) } catch {}
+  }, [])
 
   // ── Listen for auth state changes ─────────────────────────────────────
   useEffect(() => {
     let cancelled = false
 
-    // Check existing session on mount — with 8s timeout so a slow/offline
-    // Supabase never leaves the app hanging on a white loading screen.
     const sessionCheck = Promise.race([
       supabase.auth.getSession(),
       new Promise((_, reject) =>
@@ -78,34 +93,35 @@ export function AuthProvider({ children }) {
         if (session?.user) {
           setUser(session.user)
           try {
-            const slug = await resolveVenueSafe(session.user.email, session.user.id)
-            if (!cancelled) setVenueSlug(slug)
+            const list = await resolveVenuesSafe(session.user.email, session.user.id)
+            if (!cancelled) {
+              setVenues(list)
+              setVenueSlug(pickSlug(list))
+            }
           } catch (err) {
-            console.warn('[AuthContext] resolveVenue failed:', err)
+            console.warn('[AuthContext] resolveVenues failed:', err)
           }
         }
         if (!cancelled) setAuthLoading(false)
       })
       .catch(() => {
-        // getSession timed out or failed — clear loading so the app shows the
-        // login form instead of an infinite spinner
         if (!cancelled) setAuthLoading(false)
       })
 
-    // Subscribe to future changes (login, logout, token refresh)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
           if (session?.user) {
             setUser(session.user)
-            // Only re-resolve venue on actual sign-in, not every token refresh
             if (event === 'SIGNED_IN') {
-              const slug = await resolveVenueSafe(session.user.email, session.user.id)
-              setVenueSlug(slug)
+              const list = await resolveVenuesSafe(session.user.email, session.user.id)
+              setVenues(list)
+              setVenueSlug(pickSlug(list))
             }
           }
         } else if (event === 'SIGNED_OUT') {
           setUser(null)
+          setVenues([])
           setVenueSlug(null)
         }
       }
@@ -118,32 +134,42 @@ export function AuthProvider({ children }) {
   }, [])
 
   // ── Sign in with email + password ─────────────────────────────────────
+  // Returns { error, slug, venues }
+  // - Single venue:  slug is set, caller does window.location.replace
+  // - Multi-venue:   slug is null, caller shows venue picker
   const signInWithEmail = useCallback(async (email, password) => {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password })
-    if (error) return { error }
+    if (error) return { error, slug: null, venues: [] }
 
-    // Resolve venue for this user (10s timeout for login flow — give it more time)
-    const slug = await resolveVenueSafe(email, data.user.id, 10000)
-    if (!slug) {
+    const list = await resolveVenuesSafe(email, data.user.id, 10000)
+    if (!list.length) {
       await supabase.auth.signOut()
-      return { error: new Error('No venue found for this account. Contact support.') }
+      return { error: new Error('No venue found for this account. Contact support.'), slug: null, venues: [] }
     }
 
-    // Return slug — caller uses window.location.replace() for a clean boot.
-    // This avoids all React state race conditions (flushSync + onAuthStateChange conflict).
-    return { error: null, slug }
-  }, [])
+    if (list.length === 1) {
+      const slug = list[0].slug
+      selectVenue(slug)
+      return { error: null, slug, venues: list }
+    }
 
-  // ── Sign out of venue (clears Supabase Auth) ─────────────────────────
+    // Multi-venue — return list, let caller show picker
+    setVenues(list)
+    return { error: null, slug: null, venues: list }
+  }, [selectVenue])
+
+  // ── Sign out ───────────────────────────────────────────────────────────
   const signOutVenue = useCallback(async () => {
     await supabase.auth.signOut()
     setUser(null)
+    setVenues([])
     setVenueSlug(null)
   }, [])
 
   const value = useMemo(() => ({
-    user, venueSlug, authLoading, signInWithEmail, signOutVenue
-  }), [user, venueSlug, authLoading, signInWithEmail, signOutVenue])
+    user, venues, venueSlug, authLoading,
+    signInWithEmail, signOutVenue, selectVenue, refreshVenues,
+  }), [user, venues, venueSlug, authLoading, signInWithEmail, signOutVenue, selectVenue, refreshVenues])
 
   return (
     <AuthContext.Provider value={value}>

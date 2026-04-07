@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { useSession } from '../../contexts/SessionContext'
 import { useVenue } from '../../contexts/VenueContext'
+import { useAuth } from '../../contexts/AuthContext'
 import { supabase } from '../../lib/supabase'
 import NotificationBell from '../notifications/NotificationBell'
 import OfflineBanner from '../ui/OfflineBanner'
@@ -248,10 +249,61 @@ function SideSection({ label }) {
   )
 }
 
+/* ── Venue switcher dropdown (manager only, multi-venue) ─────────────────────── */
+function VenueSwitcher({ venues, currentSlug, onSelect }) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef(null)
+
+  useEffect(() => {
+    if (!open) return
+    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false) }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [open])
+
+  if (!venues || venues.length <= 1) return null
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        onClick={() => setOpen(v => !v)}
+        className="flex items-center gap-1 text-white/50 hover:text-white/80 transition-colors"
+        aria-label="Switch venue"
+        title="Switch venue"
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M8 9l4-4 4 4M16 15l-4 4-4-4"/>
+        </svg>
+      </button>
+      {open && (
+        <div className="absolute top-full left-0 mt-2 w-52 bg-[#1a3c2e] rounded-xl shadow-2xl border border-white/10 overflow-hidden z-50">
+          <p className="px-3 pt-2.5 pb-1.5 text-[9px] tracking-[0.15em] uppercase text-white/35 font-semibold">Your venues</p>
+          {venues.map(v => (
+            <button
+              key={v.id}
+              onClick={() => { setOpen(false); onSelect(v.slug) }}
+              className={[
+                'w-full text-left px-3 py-2.5 text-[13px] flex items-center justify-between transition-colors',
+                v.slug === currentSlug
+                  ? 'text-white bg-white/12'
+                  : 'text-white/60 hover:text-white hover:bg-white/8',
+              ].join(' ')}
+            >
+              <span className="truncate">{v.name}</span>
+              {v.slug === currentSlug && <span className="text-white/40 text-[10px]">✓</span>}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 /* ── Main AppShell ───────────────────────────────────────────────────────────── */
 export default function AppShell({ children }) {
   const { session, isManager, signOut } = useSession()
   const { venueId, venueSlug, venueName } = useVenue()
+  const { venues, selectVenue } = useAuth()
   const location     = useLocation()
   const navigate     = useNavigate()
   const overdueCount = useOverdueCleaning(venueId)
@@ -301,7 +353,16 @@ export default function AppShell({ children }) {
               <img src={logoUrl} alt="Venue logo" className="h-7 w-7 rounded-md object-contain bg-white/10 p-0.5 shrink-0" />
             ) : null}
             <div className="min-w-0 flex-1">
-              <span className="font-bold text-white text-xl leading-none tracking-tight block truncate">{venueName || 'SafeServ'}</span>
+              <div className="flex items-center gap-1.5">
+                <span className="font-bold text-white text-xl leading-none tracking-tight truncate">{venueName || 'SafeServ'}</span>
+                {isManager && (
+                  <VenueSwitcher
+                    venues={venues}
+                    currentSlug={venueSlug}
+                    onSelect={(slug) => { selectVenue(slug); window.location.replace(`/v/${slug}/dashboard`) }}
+                  />
+                )}
+              </div>
               <span className="mt-2 inline-flex items-center gap-1 bg-white/10 text-white/50 text-[9px] tracking-[0.15em] uppercase font-semibold px-2 py-0.5 rounded-full">
                 ⚡ Powered by SafeServ
               </span>
@@ -402,7 +463,16 @@ export default function AppShell({ children }) {
           style={{ paddingTop: 'env(safe-area-inset-top)' }}
         >
           <div className="px-3 h-12 flex items-center justify-between gap-1.5">
-            <span className="font-bold text-white text-base tracking-tight shrink-0 truncate max-w-[180px]">{venueName || 'SafeServ'}</span>
+            <div className="flex items-center gap-1.5 min-w-0 flex-1">
+              <span className="font-bold text-white text-base tracking-tight truncate max-w-[160px]">{venueName || 'SafeServ'}</span>
+              {isManager && (
+                <VenueSwitcher
+                  venues={venues}
+                  currentSlug={venueSlug}
+                  onSelect={(slug) => { selectVenue(slug); window.location.replace(`/v/${slug}/dashboard`) }}
+                />
+              )}
+            </div>
             <div className="flex items-center gap-1.5 shrink-0">
               <NotificationBell />
               <button

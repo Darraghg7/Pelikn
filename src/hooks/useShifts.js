@@ -48,16 +48,31 @@ export function useStaffList() {
 
   useEffect(() => {
     if (!venueId) return
-    supabase
-      .from('staff')
-      .select('id, name, email, role, job_role, hourly_rate, skills, is_under_18')
-      .eq('venue_id', venueId)
-      .eq('is_active', true)
-      .order('name')
-      .then(({ data }) => {
-        setStaff(data ?? [])
-        setLoading(false)
-      })
+    let cancelled = false
+
+    async function load() {
+      // Home staff at this venue
+      const { data: homeStaff } = await supabase
+        .from('staff')
+        .select('id, name, email, role, job_role, hourly_rate, skills, is_under_18, colour')
+        .eq('venue_id', venueId)
+        .eq('is_active', true)
+        .order('name')
+
+      // Cross-venue staff linked to this venue
+      const { data: links } = await supabase
+        .from('staff_venue_links')
+        .select('staff_id, role, staff(id, name, email, job_role, hourly_rate, skills, is_under_18, colour)')
+        .eq('venue_id', venueId)
+
+      if (cancelled) return
+      const linkedStaff = (links ?? []).map(l => ({ ...l.staff, role: l.role, _crossVenue: true }))
+      setStaff([...(homeStaff ?? []), ...linkedStaff])
+      setLoading(false)
+    }
+
+    load()
+    return () => { cancelled = true }
   }, [venueId])
 
   return { staff, loading }

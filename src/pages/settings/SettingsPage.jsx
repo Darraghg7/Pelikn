@@ -16,6 +16,7 @@ import SettingsSection from './SettingsSection'
 import RolesSection from './RolesSection'
 import NotificationsPanel from './NotificationsPanel'
 import StaffMembersSection from './StaffMembersSection'
+import VenuesSection from './VenuesSection'
 
 /* ═══════════════════════════════════════════════════════════════════════════
    SETTINGS PAGE
@@ -446,6 +447,9 @@ export default function SettingsPage() {
 
       {/* ── Staff Members ──────────────────────────────────────────────────── */}
       <StaffMembersSection />
+
+      {/* ── Venues (multi-venue, Pro only) ─────────────────────────────────── */}
+      <VenuesSection />
     </div>
   )
 }

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useSession } from '../../contexts/SessionContext'
 import { useVenue } from '../../contexts/VenueContext'
+import { useAuth } from '../../contexts/AuthContext'
 import { useToast } from '../../components/ui/Toast'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
 import { useVenueFeatures } from '../../hooks/useVenueFeatures'
@@ -14,6 +15,12 @@ import TrainingSection from './TrainingSection'
 import ConfirmDialog from '../../components/ui/ConfirmDialog'
 import { PLANS } from '../../lib/constants'
 
+// Rota colour palette — 10 distinct colours
+const COLOUR_PALETTE = [
+  '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6',
+  '#06b6d4', '#f97316', '#84cc16', '#ec4899', '#14b8a6',
+]
+
 const PERMISSION_ROLES  = ['staff', 'manager', 'owner']
 const PERMISSION_LABELS = { staff: 'Staff', manager: 'Manager', owner: 'Owner' }
 const JOB_ROLES  = ['kitchen', 'foh']
@@ -21,7 +28,7 @@ const JOB_LABELS = { kitchen: 'Kitchen', foh: 'Front of House' }
 const EMPTY_FORM = {
   name: '', role: 'staff', job_role: 'kitchen', pin: '', email: '', hourly_rate: '',
   show_temp_logs: false, show_allergens: false, skills: [], is_under_18: false,
-  working_days: [],
+  working_days: [], colour: '',
 }
 const DOW_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
@@ -32,7 +39,12 @@ export default function StaffMembersSection() {
   const { session } = useSession()
   const [deleteTarget, setDeleteTarget] = useState(null)
   const { venueId } = useVenue()
+  const { venues } = useAuth()
   const toast = useToast()
+
+  // Cross-venue links: { staffId -> [venueId, ...] }
+  const [venueLinks, setVenueLinks] = useState({})
+  const [savingLinks, setSavingLinks] = useState(false)
 
   const [showForm, setShowForm]             = useState(false)
   const [editingId, setEditingId]           = useState(null)
@@ -41,6 +53,25 @@ export default function StaffMembersSection() {
   const [photoFile, setPhotoFile]           = useState(null)
   const [uploadingPhoto, setUploadingPhoto] = useState(false)
   const [staffRoleMap, setStaffRoleMap]     = useState({})
+
+  // Load cross-venue links for all staff (only relevant for multi-venue owners)
+  useEffect(() => {
+    if (!staff.length || venues.length <= 1) { setVenueLinks({}); return }
+    const staffIds = staff.map(s => s.id)
+    supabase
+      .from('staff_venue_links')
+      .select('staff_id, venue_id')
+      .in('staff_id', staffIds)
+      .then(({ data }) => {
+        if (!data) return
+        const map = {}
+        for (const row of data) {
+          if (!map[row.staff_id]) map[row.staff_id] = []
+          map[row.staff_id].push(row.venue_id)
+        }
+        setVenueLinks(map)
+      })
+  }, [staff, venues])
 
   useEffect(() => {
     if (!staff.length || !venueRoles.length) { setStaffRoleMap({}); return }
@@ -96,11 +127,44 @@ export default function StaffMembersSection() {
       skills:         s.skills ?? [],
       is_under_18:    s.is_under_18 ?? false,
       working_days:   s.working_days ?? [],
+      colour:         s.colour ?? '',
     })
     setEditingId(s.id)
     setShowForm(true)
   }
   const cancelEdit = () => { setShowForm(false); setEditingId(null) }
+
+  // Toggle a staff member's link to another owned venue
+  const toggleVenueLink = async (staffId, targetVenueId, currentlyLinked) => {
+    setSavingLinks(true)
+    if (currentlyLinked) {
+      await supabase.rpc('unlink_staff_from_venue', {
+        p_session_token:   session.token,
+        p_staff_id:        staffId,
+        p_target_venue_id: targetVenueId,
+      })
+    } else {
+      await supabase.rpc('link_staff_to_venue', {
+        p_session_token:   session.token,
+        p_staff_id:        staffId,
+        p_target_venue_id: targetVenueId,
+      })
+    }
+    setSavingLinks(false)
+    // Refresh links
+    const { data } = await supabase
+      .from('staff_venue_links')
+      .select('staff_id, venue_id')
+      .in('staff_id', staff.map(s => s.id))
+    if (data) {
+      const map = {}
+      for (const row of data) {
+        if (!map[row.staff_id]) map[row.staff_id] = []
+        map[row.staff_id].push(row.venue_id)
+      }
+      setVenueLinks(map)
+    }
+  }
 
   const saveStaff = async () => {
     if (!staffForm.name.trim())           { toast('Name is required', 'error'); return }
@@ -123,6 +187,7 @@ export default function StaffMembersSection() {
         p_show_temp_logs: staffForm.show_temp_logs,
         p_show_allergens: staffForm.show_allergens,
         p_skills:         staffForm.skills || [],
+        p_colour:         staffForm.colour || null,
       })
       error = e
     } else {
@@ -441,6 +506,69 @@ export default function StaffMembersSection() {
               </div>
             </div>
           </div>
+
+          {/* Rota colour picker */}
+          <div>
+            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-2">Rota Colour</label>
+            <div className="flex items-center gap-2 flex-wrap">
+              {COLOUR_PALETTE.map(hex => (
+                <button
+                  key={hex}
+                  type="button"
+                  onClick={() => setStaffForm(f => ({ ...f, colour: f.colour === hex ? '' : hex }))}
+                  style={{ backgroundColor: hex }}
+                  className={[
+                    'w-7 h-7 rounded-full border-2 transition-all',
+                    staffForm.colour === hex ? 'border-charcoal scale-110 shadow-sm' : 'border-transparent opacity-80 hover:opacity-100 hover:scale-105',
+                  ].join(' ')}
+                  title={hex}
+                />
+              ))}
+              {staffForm.colour && (
+                <button
+                  type="button"
+                  onClick={() => setStaffForm(f => ({ ...f, colour: '' }))}
+                  className="text-[10px] text-charcoal/40 hover:text-charcoal transition-colors border border-charcoal/15 rounded-full px-2 py-0.5"
+                >
+                  Auto
+                </button>
+              )}
+            </div>
+            <p className="text-[11px] text-charcoal/35 mt-1">
+              Colour used to identify this person on the rota. Leave unset for automatic assignment.
+            </p>
+          </div>
+
+          {/* Venue assignment — only shown to multi-venue owners, edit mode only */}
+          {editingId && venues.length > 1 && (
+            <div>
+              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-2">Works At</label>
+              <div className="flex gap-2 flex-wrap">
+                {venues.map(v => {
+                  const isHome   = v.id === venueId
+                  const isLinked = isHome || (venueLinks[editingId] ?? []).includes(v.id)
+                  return (
+                    <button
+                      key={v.id}
+                      type="button"
+                      disabled={isHome || savingLinks}
+                      onClick={() => !isHome && toggleVenueLink(editingId, v.id, (venueLinks[editingId] ?? []).includes(v.id))}
+                      className={[
+                        'px-3 py-1.5 rounded-full text-xs font-medium border transition-all',
+                        isLinked ? 'bg-brand text-cream border-brand' : 'bg-white text-charcoal/50 border-charcoal/15',
+                        isHome ? 'opacity-60 cursor-default' : 'hover:border-brand/40',
+                      ].join(' ')}
+                    >
+                      {isLinked ? '✓ ' : ''}{v.name}{isHome ? ' (home)' : ''}
+                    </button>
+                  )
+                })}
+              </div>
+              <p className="text-[11px] text-charcoal/35 mt-1.5">
+                Toggling a venue on makes this staff member visible in that venue's rota.
+              </p>
+            </div>
+          )}
 
           <div className="flex gap-2 pt-1">
             <button

@@ -466,8 +466,96 @@ function StepDetails({ plan, extraVenues, qrAddon, onBack, onSubmit, loading, er
   )
 }
 
+/* ── Step 2b: Additional Venue Names (only when extraVenues > 0) ──────────── */
+function StepExtraVenues({ count, onBack, onSubmit, loading, error }) {
+  const [venues, setVenues] = useState(() =>
+    Array.from({ length: count }, () => ({ name: '', slug: '', slugEdited: false }))
+  )
+
+  const updateVenue = (i, field, value) => {
+    setVenues(prev => prev.map((v, idx) => {
+      if (idx !== i) return v
+      if (field === 'name') {
+        return { ...v, name: value, slug: v.slugEdited ? v.slug : slugify(value) }
+      }
+      if (field === 'slug') {
+        return { ...v, slug: value.toLowerCase().replace(/[^a-z0-9-]/g, ''), slugEdited: true }
+      }
+      return v
+    }))
+  }
+
+  const allFilled = venues.every(v => v.name.trim() && v.slug.trim())
+
+  return (
+    <div className="flex flex-col gap-6 w-full max-w-xl mx-auto">
+      <button onClick={onBack} className="flex items-center gap-1.5 text-xs text-charcoal/40 hover:text-charcoal transition-colors group w-fit">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="group-hover:-translate-x-0.5 transition-transform">
+          <line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" />
+        </svg>
+        Back
+      </button>
+
+      <div>
+        <h2 className="font-serif text-2xl sm:text-3xl text-brand mb-1">Name your venues</h2>
+        <p className="text-sm text-charcoal/50">Set a name and URL for each additional venue.</p>
+      </div>
+
+      <div className="flex flex-col gap-5">
+        {venues.map((v, i) => (
+          <div key={i} className="p-4 rounded-xl bg-white border border-charcoal/10 flex flex-col gap-3">
+            <p className="text-xs font-semibold text-charcoal/60 tracking-widest uppercase">Venue {i + 2}</p>
+            <div>
+              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1.5">Venue Name *</label>
+              <input
+                value={v.name}
+                onChange={e => updateVenue(i, 'name', e.target.value)}
+                placeholder="e.g. Nomad City Centre"
+                className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-brand/20"
+              />
+            </div>
+            <div>
+              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1.5">URL Slug *</label>
+              <div className="flex items-center rounded-lg border border-charcoal/15 bg-white overflow-hidden focus-within:ring-2 focus-within:ring-brand/20">
+                <span className="pl-3 text-xs text-charcoal/30 whitespace-nowrap font-mono">/v/</span>
+                <input
+                  value={v.slug}
+                  onChange={e => updateVenue(i, 'slug', e.target.value)}
+                  placeholder="nomad-city-centre"
+                  className="flex-1 px-2 py-2.5 text-sm bg-transparent focus:outline-none font-mono"
+                />
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3">
+          <p className="text-red-600 text-xs">{error}</p>
+        </div>
+      )}
+
+      <button
+        onClick={() => onSubmit(venues)}
+        disabled={loading || !allFilled}
+        className="w-full bg-accent text-cream py-3.5 rounded-xl text-sm font-semibold hover:bg-accent/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+      >
+        {loading ? (
+          <>
+            <span className="w-4 h-4 border-2 border-cream/30 border-t-cream rounded-full animate-spin" />
+            Creating venues…
+          </>
+        ) : (
+          <>Create All Venues →</>
+        )}
+      </button>
+    </div>
+  )
+}
+
 /* ── Step 3: Success ──────────────────────────────────────────────────────── */
-function StepSuccess({ venueName, venueSlug, plan }) {
+function StepSuccess({ venueName, venueSlug, plan, allVenues = [] }) {
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -489,8 +577,11 @@ function StepSuccess({ venueName, venueSlug, plan }) {
       <div>
         <h1 className="font-serif text-3xl text-brand mb-2">You're all set!</h1>
         <p className="text-sm text-charcoal/50 leading-relaxed">
-          <strong className="text-charcoal">{venueName}</strong> is ready on SafeServ.
-          Your 7-day free trial has started — no payment needed yet.
+          {allVenues.length > 1
+            ? `${allVenues.length} venues are ready on SafeServ.`
+            : <><strong className="text-charcoal">{venueName}</strong> is ready on SafeServ.</>
+          }
+          {' '}Your 7-day free trial has started — no payment needed yet.
         </p>
       </div>
 
@@ -504,11 +595,23 @@ function StepSuccess({ venueName, venueSlug, plan }) {
         {plan === 'pro' ? 'Pro Plan' : 'Starter Plan'} · 7-day free trial
       </div>
 
-      {/* Venue URL */}
-      <div className="w-full bg-charcoal/4 rounded-xl px-4 py-3">
-        <p className="text-[11px] text-charcoal/40 tracking-widest uppercase mb-1">Your staff login URL</p>
-        <p className="text-xs font-mono text-charcoal/60">safeserv.app/v/{venueSlug}</p>
-      </div>
+      {/* Venue URL(s) */}
+      {allVenues.length > 1 ? (
+        <div className="w-full bg-charcoal/4 rounded-xl px-4 py-3 flex flex-col gap-2">
+          <p className="text-[11px] text-charcoal/40 tracking-widest uppercase mb-1">Your staff login URLs</p>
+          {allVenues.map(v => (
+            <div key={v.slug} className="flex items-center justify-between gap-2">
+              <p className="text-xs font-medium text-charcoal/70 truncate">{v.name}</p>
+              <p className="text-xs font-mono text-charcoal/50 shrink-0">safeserv.app/v/{v.slug}</p>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="w-full bg-charcoal/4 rounded-xl px-4 py-3">
+          <p className="text-[11px] text-charcoal/40 tracking-widest uppercase mb-1">Your staff login URL</p>
+          <p className="text-xs font-mono text-charcoal/60">safeserv.app/v/{venueSlug}</p>
+        </div>
+      )}
 
       <div className="flex flex-col gap-2 w-full">
         <button
@@ -525,13 +628,19 @@ function StepSuccess({ venueName, venueSlug, plan }) {
 }
 
 /* ── Progress indicator ───────────────────────────────────────────────────── */
-function ProgressBar({ step }) {
-  const steps = ['Choose plan', 'Your details', 'All done']
+function ProgressBar({ step, hasExtraVenues }) {
+  const steps = hasExtraVenues
+    ? ['Choose plan', 'Your details', 'Name venues', 'All done']
+    : ['Choose plan', 'Your details', 'All done']
+  // Map UI step to progress bar index
+  // 0=plan, 1=details, 2=extraVenues (if applicable), 3=success
+  // Without extra venues: 0=plan, 1=details, 2=success → map step 2→2
+  const barStep = hasExtraVenues ? step : step
   return (
-    <div className="flex items-center gap-0 max-w-xs mx-auto mb-10">
+    <div className="flex items-center gap-0 max-w-sm mx-auto mb-10">
       {steps.map((label, i) => {
-        const active = i === step
-        const done = i < step
+        const active = i === barStep
+        const done = i < barStep
         return (
           <React.Fragment key={label}>
             <div className="flex flex-col items-center gap-1.5 flex-1">
@@ -557,23 +666,27 @@ function ProgressBar({ step }) {
 }
 
 /* ── Main page ────────────────────────────────────────────────────────────── */
+// steps: 0=plan, 1=details, 2=extraVenues (only if extraVenues>0), 3=success
 export default function SignupFlowPage() {
   const [searchParams] = useSearchParams()
-  const [step, setStep] = useState(0)          // 0=plan, 1=details, 2=success
+  const [step, setStep] = useState(0)
   const [plan, setPlan] = useState(searchParams.get('plan') === 'starter' ? 'starter' : 'pro')
-  const [extraVenues, setExtraVenues] = useState(0)  // additional venues beyond the first
+  const [extraVenues, setExtraVenues] = useState(0)
   const [qrAddon, setQrAddon] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [createdSlug, setCreatedSlug] = useState('')
   const [createdName, setCreatedName] = useState('')
+  const [allVenues, setAllVenues] = useState([])
 
-  // Reset extra venues when switching away from Pro
+  const SUCCESS_STEP = extraVenues > 0 ? 3 : 2
+
   const handleSelectPlan = (p) => {
     setPlan(p)
     if (p !== 'pro') setExtraVenues(0)
   }
 
+  // Step 1 submit: create account + primary venue, defer sign-out if extra venues needed
   const handleSubmit = async ({ venueName, ownerName, email, password, pin, slug }) => {
     if (pin.length < 4) { setError('PIN must be at least 4 digits'); return }
     if (!slug.trim()) { setError('Venue URL is required'); return }
@@ -586,7 +699,7 @@ export default function SignupFlowPage() {
       const { error: authErr } = await supabase.auth.signUp({ email, password })
       if (authErr) throw new Error(authErr.message)
 
-      // 2. Create venue with owner (uses the new auth session)
+      // 2. Create primary venue with owner
       const { data: venueId, error: venueErr } = await supabase.rpc('create_venue_with_owner', {
         p_venue_name: venueName,
         p_slug: slug,
@@ -595,28 +708,59 @@ export default function SignupFlowPage() {
       })
       if (venueErr) throw new Error(venueErr.message)
 
-      // 3. Set plan, QR add-on, and additional venue count on the new venue
+      // 3. Set plan, QR add-on, extra venue count
       const { error: planErr } = await supabase
         .from('venues')
         .update({ plan, qr_addon: qrAddon, additional_venues: extraVenues })
         .eq('id', venueId)
-      if (planErr) {
-        // Non-critical — venue was created, just plan defaulted to starter
-        console.warn('Could not set plan:', planErr.message)
-      }
-
-      // 4. Sign out of Supabase Auth (staff use PIN auth)
-      await supabase.auth.signOut()
+      if (planErr) console.warn('Could not set plan:', planErr.message)
 
       setCreatedSlug(slug)
       setCreatedName(venueName)
-      setStep(2)
+      setAllVenues([{ name: venueName, slug }])
+
+      if (extraVenues > 0) {
+        // Advance to extra-venues naming step (stay authenticated)
+        setStep(2)
+      } else {
+        // No extra venues — sign out and go to success
+        await supabase.auth.signOut()
+        setStep(SUCCESS_STEP)
+      }
     } catch (err) {
       setError(err.message)
     } finally {
       setLoading(false)
     }
   }
+
+  // Step 2 submit: create each additional venue, then sign out
+  const handleExtraVenues = async (venueList) => {
+    setLoading(true)
+    setError('')
+
+    try {
+      const created = [{ name: createdName, slug: createdSlug }]
+      for (const v of venueList) {
+        const { error: err } = await supabase.rpc('create_additional_venue', {
+          p_name: v.name.trim(),
+          p_slug: v.slug.trim(),
+        })
+        if (err) throw new Error(`"${v.name}": ${err.message}`)
+        created.push({ name: v.name, slug: v.slug })
+      }
+
+      await supabase.auth.signOut()
+      setAllVenues(created)
+      setStep(3)
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const isSuccess = step === SUCCESS_STEP || step === 3
 
   return (
     <div className="min-h-dvh bg-cream font-sans">
@@ -635,7 +779,7 @@ export default function SignupFlowPage() {
 
       {/* Body */}
       <div className="max-w-5xl mx-auto px-5 sm:px-8 py-10 sm:py-16">
-        {step < 2 && <ProgressBar step={step} />}
+        {!isSuccess && <ProgressBar step={step} hasExtraVenues={extraVenues > 0} />}
 
         {step === 0 && (
           <StepPlan
@@ -659,11 +803,21 @@ export default function SignupFlowPage() {
             error={error}
           />
         )}
-        {step === 2 && (
+        {step === 2 && extraVenues > 0 && (
+          <StepExtraVenues
+            count={extraVenues}
+            onBack={() => setStep(1)}
+            onSubmit={handleExtraVenues}
+            loading={loading}
+            error={error}
+          />
+        )}
+        {isSuccess && (
           <StepSuccess
             venueName={createdName}
             venueSlug={createdSlug}
             plan={plan}
+            allVenues={allVenues}
           />
         )}
       </div>

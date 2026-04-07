@@ -7,22 +7,53 @@ export const LAST_VENUE_KEY = 'safeserv_last_venue'
 /** True when running as an installed PWA (added to home screen). */
 function isPWA() {
   return (
-    window.navigator.standalone === true ||   // iOS Safari
+    window.navigator.standalone === true ||
     window.matchMedia('(display-mode: standalone)').matches
+  )
+}
+
+/** Venue picker shown to owners with multiple venues after login. */
+function VenuePicker({ venues, onSelect }) {
+  return (
+    <div className="flex flex-col gap-4">
+      <div>
+        <h2 className="font-serif text-charcoal text-xl">Select a venue</h2>
+        <p className="text-xs text-charcoal/40 mt-1">
+          Your account has {venues.length} venues — choose one to continue
+        </p>
+      </div>
+      <div className="flex flex-col gap-2">
+        {venues.map(v => (
+          <button
+            key={v.id}
+            onClick={() => onSelect(v.slug)}
+            className="flex items-center justify-between w-full px-4 py-3.5 rounded-xl border border-charcoal/12 bg-cream/40 hover:bg-cream hover:border-brand/30 transition-all text-left group"
+          >
+            <div>
+              <p className="text-sm font-semibold text-charcoal group-hover:text-brand transition-colors">
+                {v.name}
+              </p>
+              <p className="text-[11px] text-charcoal/40 mt-0.5">safeserv.app/v/{v.slug}</p>
+            </div>
+            <span className="text-charcoal/25 group-hover:text-brand transition-colors text-lg leading-none">→</span>
+          </button>
+        ))}
+      </div>
+    </div>
   )
 }
 
 export default function LandingPage() {
   const navigate = useNavigate()
-  const { user, venueSlug, authLoading, signInWithEmail } = useAuth()
+  const { user, venues, venueSlug, authLoading, signInWithEmail, selectVenue } = useAuth()
 
-  const [email, setEmail]       = useState('')
-  const [password, setPassword] = useState('')
-  const [error, setError]       = useState('')
-  const [loading, setLoading]   = useState(false)
+  const [email, setEmail]               = useState('')
+  const [password, setPassword]         = useState('')
+  const [error, setError]               = useState('')
+  const [loading, setLoading]           = useState(false)
+  const [pendingVenues, setPendingVenues] = useState(null) // non-null = show picker
 
-  // PWA saved-state: if opened from home screen and a venue slug is stored,
-  // jump straight to that venue's PIN login screen instead of showing this page.
+  // PWA saved-state: jump straight to last venue
   useEffect(() => {
     if (authLoading) return
     if (isPWA()) {
@@ -34,7 +65,7 @@ export default function LandingPage() {
     }
   }, [authLoading, navigate])
 
-  // If already authenticated + venue resolved → redirect into the app
+  // Already authenticated + venue resolved → redirect
   useEffect(() => {
     if (!authLoading && user && venueSlug) {
       navigate(`/v/${venueSlug}`, { replace: true })
@@ -47,7 +78,7 @@ export default function LandingPage() {
     setLoading(true)
     setError('')
 
-    const { error: err, slug } = await signInWithEmail(email.trim(), password)
+    const { error: err, slug, venues: list } = await signInWithEmail(email.trim(), password)
 
     if (err) {
       setError(err.message === 'Invalid login credentials'
@@ -57,11 +88,19 @@ export default function LandingPage() {
       return
     }
 
-    // Store the venue slug so the PWA knows where to go on next launch
-    try { localStorage.setItem(LAST_VENUE_KEY, slug) } catch {}
+    if (slug) {
+      // Single venue — redirect immediately
+      window.location.replace(`/v/${slug}`)
+      return
+    }
 
-    // Hard redirect — Supabase session is now in localStorage, so the app
-    // boots fresh and reads it cleanly. Eliminates all React state race conditions.
+    // Multi-venue — show picker
+    setLoading(false)
+    setPendingVenues(list)
+  }
+
+  const handlePickVenue = (slug) => {
+    selectVenue(slug)
     window.location.replace(`/v/${slug}`)
   }
 
@@ -88,62 +127,67 @@ export default function LandingPage() {
         </p>
       </div>
 
-      {/* Login card */}
+      {/* Login / picker card */}
       <div className="w-full max-w-sm">
         <div className="bg-white rounded-2xl shadow-sm border border-charcoal/8 p-7 flex flex-col gap-6">
-          <div>
-            <h2 className="font-serif text-charcoal text-xl">Welcome back</h2>
-            <p className="text-xs text-charcoal/40 mt-1">Sign in to access your venue</p>
-          </div>
 
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            <div className="flex flex-col gap-3">
+          {pendingVenues ? (
+            <VenuePicker venues={pendingVenues} onSelect={handlePickVenue} />
+          ) : (
+            <>
               <div>
-                <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1.5">
-                  Email
-                </label>
-                <input
-                  type="email"
-                  required
-                  autoComplete="email"
-                  value={email}
-                  onChange={(e) => { setEmail(e.target.value); setError('') }}
-                  placeholder="you@example.com"
-                  className="w-full px-4 py-3 rounded-xl border border-charcoal/15 bg-white text-sm text-charcoal placeholder:text-charcoal/25 outline-none focus:border-brand dark:focus:border-charcoal/40 transition-colors"
-                />
+                <h2 className="font-serif text-charcoal text-xl">Welcome back</h2>
+                <p className="text-xs text-charcoal/40 mt-1">Sign in to access your venue</p>
               </div>
 
-              <div>
-                <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1.5">
-                  Password
-                </label>
-                <input
-                  type="password"
-                  required
-                  autoComplete="current-password"
-                  value={password}
-                  onChange={(e) => { setPassword(e.target.value); setError('') }}
-                  placeholder="••••••••"
-                  className="w-full px-4 py-3 rounded-xl border border-charcoal/15 bg-white text-sm text-charcoal placeholder:text-charcoal/25 outline-none focus:border-brand dark:focus:border-charcoal/40 transition-colors"
-                />
-              </div>
-            </div>
+              <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+                <div className="flex flex-col gap-3">
+                  <div>
+                    <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1.5">
+                      Email
+                    </label>
+                    <input
+                      type="email"
+                      required
+                      autoComplete="email"
+                      value={email}
+                      onChange={(e) => { setEmail(e.target.value); setError('') }}
+                      placeholder="you@example.com"
+                      className="w-full px-4 py-3 rounded-xl border border-charcoal/15 bg-white text-sm text-charcoal placeholder:text-charcoal/25 outline-none focus:border-brand transition-colors"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1.5">
+                      Password
+                    </label>
+                    <input
+                      type="password"
+                      required
+                      autoComplete="current-password"
+                      value={password}
+                      onChange={(e) => { setPassword(e.target.value); setError('') }}
+                      placeholder="••••••••"
+                      className="w-full px-4 py-3 rounded-xl border border-charcoal/15 bg-white text-sm text-charcoal placeholder:text-charcoal/25 outline-none focus:border-brand transition-colors"
+                    />
+                  </div>
+                </div>
 
-            {error && (
-              <p className="text-red-500 text-xs -mt-1">{error}</p>
-            )}
+                {error && (
+                  <p className="text-red-500 text-xs -mt-1">{error}</p>
+                )}
 
-            <button
-              type="submit"
-              disabled={loading || !email.trim() || !password}
-              className="w-full bg-brand text-cream py-3.5 rounded-xl text-sm font-semibold tracking-wide hover:bg-brand/90 dark:bg-charcoal dark:hover:bg-charcoal/85 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-            >
-              {loading ? 'Signing in…' : 'Sign In'}
-            </button>
-          </form>
+                <button
+                  type="submit"
+                  disabled={loading || !email.trim() || !password}
+                  className="w-full bg-brand text-cream py-3.5 rounded-xl text-sm font-semibold tracking-wide hover:bg-brand/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  {loading ? 'Signing in…' : 'Sign In'}
+                </button>
+              </form>
+            </>
+          )}
         </div>
 
-        {/* Footer */}
         <p className="text-center text-[11px] text-charcoal/25 mt-6 tracking-wide">
           Powered by SafeServ · Food safety made simple
         </p>
