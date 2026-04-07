@@ -1,4 +1,5 @@
 import { format, formatDistanceToNow, startOfWeek, addDays } from 'date-fns'
+import { STAFF_COLOUR_PALETTE } from './constants'
 
 export const formatTemp = (t) => `${Number(t).toFixed(1)}°C`
 
@@ -38,4 +39,28 @@ export const formatMinutes = (totalMinutes) => {
   const h = Math.floor(totalMinutes / 60)
   const m = totalMinutes % 60
   return h > 0 ? `${h}h ${m}m` : `${m}m`
+}
+
+/**
+ * Convert a venue name into a URL-safe slug.
+ * e.g. "Nomad City Centre" → "nomad-city-centre"
+ */
+export const slugify = (str) =>
+  str
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .slice(0, 50)
+
+/**
+ * Returns the rota display colour for a staff member.
+ * Uses their saved hex if set, otherwise deterministically picks from the
+ * palette based on their UUID — same staff always gets the same colour.
+ */
+export const staffColour = (s) => {
+  if (s.colour) return s.colour
+  const hex = (s.id ?? '').replace(/-/g, '').slice(0, 8)
+  return STAFF_COLOUR_PALETTE[parseInt(hex, 16) % STAFF_COLOUR_PALETTE.length]
 }

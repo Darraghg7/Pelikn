@@ -5,11 +5,7 @@ import {
   STARTER_PRICE, PRO_PRICE, EXTRA_VENUE_PRICE, QR_ADDON_PRICE,
   STARTER_PRICE_NUM, PRO_PRICE_NUM, EXTRA_VENUE_PRICE_NUM, QR_ADDON_PRICE_NUM,
 } from '../../lib/pricing'
-
-/* ── Helpers ──────────────────────────────────────────────────────────────── */
-function slugify(text) {
-  return text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '').slice(0, 40)
-}
+import { slugify } from '../../lib/utils'
 
 /* ── Icons ────────────────────────────────────────────────────────────────── */
 function IconCheck({ size = 16, color = 'currentColor' }) {

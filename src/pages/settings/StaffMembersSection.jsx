@@ -13,13 +13,7 @@ import SettingsSection from './SettingsSection'
 import { StaffRolesAssignment } from './RolesSection'
 import TrainingSection from './TrainingSection'
 import ConfirmDialog from '../../components/ui/ConfirmDialog'
-import { PLANS } from '../../lib/constants'
-
-// Rota colour palette — 10 distinct colours
-const COLOUR_PALETTE = [
-  '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6',
-  '#06b6d4', '#f97316', '#84cc16', '#ec4899', '#14b8a6',
-]
+import { PLANS, STAFF_COLOUR_PALETTE } from '../../lib/constants'
 
 const PERMISSION_ROLES  = ['staff', 'manager', 'owner']
 const PERMISSION_LABELS = { staff: 'Staff', manager: 'Manager', owner: 'Owner' }
@@ -54,24 +48,28 @@ export default function StaffMembersSection() {
   const [uploadingPhoto, setUploadingPhoto] = useState(false)
   const [staffRoleMap, setStaffRoleMap]     = useState({})
 
-  // Load cross-venue links for all staff (only relevant for multi-venue owners)
-  useEffect(() => {
+  // Build { staffId -> [venueId, ...] } map from raw rows
+  const buildLinkMap = (rows) => {
+    const map = {}
+    for (const row of rows) {
+      if (!map[row.staff_id]) map[row.staff_id] = []
+      map[row.staff_id].push(row.venue_id)
+    }
+    return map
+  }
+
+  // Reload cross-venue links for all current staff
+  const refreshVenueLinks = async () => {
     if (!staff.length || venues.length <= 1) { setVenueLinks({}); return }
-    const staffIds = staff.map(s => s.id)
-    supabase
+    const { data, error } = await supabase
       .from('staff_venue_links')
       .select('staff_id, venue_id')
-      .in('staff_id', staffIds)
-      .then(({ data }) => {
-        if (!data) return
-        const map = {}
-        for (const row of data) {
-          if (!map[row.staff_id]) map[row.staff_id] = []
-          map[row.staff_id].push(row.venue_id)
-        }
-        setVenueLinks(map)
-      })
-  }, [staff, venues])
+      .in('staff_id', staff.map(s => s.id))
+    if (!error && data) setVenueLinks(buildLinkMap(data))
+  }
+
+  // Load cross-venue links on mount / when staff or venues change
+  useEffect(() => { refreshVenueLinks() }, [staff, venues])
 
   useEffect(() => {
     if (!staff.length || !venueRoles.length) { setStaffRoleMap({}); return }
@@ -137,33 +135,15 @@ export default function StaffMembersSection() {
   // Toggle a staff member's link to another owned venue
   const toggleVenueLink = async (staffId, targetVenueId, currentlyLinked) => {
     setSavingLinks(true)
-    if (currentlyLinked) {
-      await supabase.rpc('unlink_staff_from_venue', {
-        p_session_token:   session.token,
-        p_staff_id:        staffId,
-        p_target_venue_id: targetVenueId,
-      })
-    } else {
-      await supabase.rpc('link_staff_to_venue', {
-        p_session_token:   session.token,
-        p_staff_id:        staffId,
-        p_target_venue_id: targetVenueId,
-      })
-    }
+    const rpc = currentlyLinked ? 'unlink_staff_from_venue' : 'link_staff_to_venue'
+    const { error } = await supabase.rpc(rpc, {
+      p_session_token:   session.token,
+      p_staff_id:        staffId,
+      p_target_venue_id: targetVenueId,
+    })
+    if (error) { toast(error.message, 'error'); setSavingLinks(false); return }
+    await refreshVenueLinks()
     setSavingLinks(false)
-    // Refresh links
-    const { data } = await supabase
-      .from('staff_venue_links')
-      .select('staff_id, venue_id')
-      .in('staff_id', staff.map(s => s.id))
-    if (data) {
-      const map = {}
-      for (const row of data) {
-        if (!map[row.staff_id]) map[row.staff_id] = []
-        map[row.staff_id].push(row.venue_id)
-      }
-      setVenueLinks(map)
-    }
   }
 
   const saveStaff = async () => {
@@ -511,7 +491,7 @@ export default function StaffMembersSection() {
           <div>
             <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-2">Rota Colour</label>
             <div className="flex items-center gap-2 flex-wrap">
-              {COLOUR_PALETTE.map(hex => (
+              {STAFF_COLOUR_PALETTE.map(hex => (
                 <button
                   key={hex}
                   type="button"

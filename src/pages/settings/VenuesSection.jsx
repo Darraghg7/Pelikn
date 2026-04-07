@@ -7,16 +7,7 @@ import SettingsSection from './SettingsSection'
 import { useVenueFeatures } from '../../hooks/useVenueFeatures'
 import { PLANS } from '../../lib/constants'
 import { EXTRA_VENUE_PRICE } from '../../lib/pricing'
-
-function slugify(str) {
-  return str
-    .toLowerCase()
-    .replace(/[^a-z0-9\s-]/g, '')
-    .trim()
-    .replace(/\s+/g, '-')
-    .replace(/-+/g, '-')
-    .slice(0, 50)
-}
+import { slugify } from '../../lib/utils'
 
 export default function VenuesSection() {
   const { venues, refreshVenues, selectVenue } = useAuth()

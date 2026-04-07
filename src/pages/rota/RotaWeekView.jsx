@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { format, isToday } from 'date-fns'
-import { getWeekDays } from '../../lib/utils'
+import { getWeekDays, staffColour } from '../../lib/utils'
 import { shiftDurationHours, paidShiftHours, unpaidBreakMins } from '../../hooks/useShifts'
 
 const DAY_LABELS = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN']
@@ -9,17 +9,9 @@ function fmtGBP(amount) {
   return `£${Number(amount).toFixed(2)}`
 }
 
-/* ── Staff colour helpers ─────────────────────────────────────────────────── */
-const STAFF_PALETTE = ['#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6','#06b6d4','#f97316','#84cc16','#ec4899','#14b8a6']
-function staffColour(s) {
-  if (s.colour) return s.colour
-  // Deterministic colour from UUID
-  const hex = (s.id ?? '').replace(/-/g, '').slice(0, 8)
-  return STAFF_PALETTE[parseInt(hex, 16) % STAFF_PALETTE.length]
-}
 
 /* ── Mobile Day View ─────────────────────────────────────────────────────── */
-function MobileDayView({ days, shifts, staff, onCellClick, currentStaffId, isManager, unavailability, closedDays, closedDates, closureMode, onToggleClosure, crossShifts = [] }) {
+function MobileDayView({ days, shifts, shiftIndex, staff, onCellClick, currentStaffId, isManager, unavailability, closedDays, closedDates, closureMode, onToggleClosure, crossShifts = [] }) {
   // Default to today's index within the week (0–6), or 0 if today isn't in this week
   const todayIdx = days.findIndex(d => isToday(d))
   const [selectedDay, setSelectedDay] = useState(todayIdx >= 0 ? todayIdx : 0)
@@ -36,7 +28,7 @@ function MobileDayView({ days, shifts, staff, onCellClick, currentStaffId, isMan
   const isDbClosed = closedDates.has(dateStr)
 
   // All shifts for this day across all staff
-  const dayShifts = shifts.filter(sh => sh.shift_date === dateStr)
+  const dayShifts = shifts.filter(sh => sh.shift_date === dateStr)  // used for "has shifts" dot only
 
   return (
     <div className="flex flex-col gap-3">
@@ -118,7 +110,7 @@ function MobileDayView({ days, shifts, staff, onCellClick, currentStaffId, isMan
       {!isClosed && (
       <div className="flex flex-col gap-2">
         {staff.map(s => {
-          const staffDayShifts = shifts.filter(sh => sh.staff_id === s.id && sh.shift_date === dateStr)
+          const staffDayShifts = shiftIndex[`${s.id}:${dateStr}`] ?? []
           const unavail        = unavailability[`${s.id}:${dateStr}`]
           const isOwnStaff     = !isManager && currentStaffId === s.id
           const isTimeOff      = unavail?.type === 'time_off'
@@ -192,7 +184,7 @@ function MobileDayView({ days, shifts, staff, onCellClick, currentStaffId, isMan
 }
 
 /* ── Desktop Week Table ───────────────────────────────────────────────────── */
-function DesktopWeekTable({ days, shifts, staff, onCellClick, onToggleAvailability, currentStaffId, isManager, unavailability, closedDays, closedDates, closureMode, onToggleClosure, weeklyTotal, breakDurationMins, crossShifts = [] }) {
+function DesktopWeekTable({ days, shifts, shiftIndex, staff, onCellClick, onToggleAvailability, currentStaffId, isManager, unavailability, closedDays, closedDates, closureMode, onToggleClosure, weeklyTotal, breakDurationMins, crossShifts = [] }) {
   return (
     <div className="overflow-x-auto">
       <table className="min-w-full text-sm border-separate border-spacing-0">
@@ -244,7 +236,8 @@ function DesktopWeekTable({ days, shifts, staff, onCellClick, onToggleAvailabili
         </thead>
         <tbody>
           {staff.map((s) => {
-            const staffShifts = shifts.filter((sh) => sh.staff_id === s.id)
+            // Gather all shifts for this staff member across all rendered days
+            const staffShifts = days.flatMap(d => shiftIndex[`${s.id}:${format(d, 'yyyy-MM-dd')}`] ?? [])
             const isUnder18   = s.is_under_18 ?? false
             const totalHrs    = staffShifts.reduce((acc, sh) => acc + paidShiftHours(sh.start_time, sh.end_time, isUnder18, breakDurationMins), 0)
             const rawHrs      = staffShifts.reduce((acc, sh) => acc + shiftDurationHours(sh.start_time, sh.end_time), 0)
@@ -277,7 +270,7 @@ function DesktopWeekTable({ days, shifts, staff, onCellClick, onToggleAvailabili
                   const dateStr   = format(d, 'yyyy-MM-dd')
                   const today     = isToday(d)
                   const isClosed  = closedDays.includes(di) || closedDates.has(dateStr)
-                  const dayShifts = shifts.filter((sh) => sh.staff_id === s.id && sh.shift_date === dateStr)
+                  const dayShifts = shiftIndex[`${s.id}:${dateStr}`] ?? []
                   const unavail   = unavailability[`${s.id}:${dateStr}`]
                   const isTimeOff = unavail?.type === 'time_off'
                   const isManualOff = unavail?.type === 'manual'
@@ -450,6 +443,17 @@ export default function RotaWeekView({
 }) {
   const days = getWeekDays(weekStart)
 
+  // Pre-index shifts by "staffId:date" for O(1) lookup in cell rendering
+  const shiftIndex = useMemo(() => {
+    const idx = {}
+    for (const sh of shifts) {
+      const key = `${sh.staff_id}:${sh.shift_date}`
+      if (!idx[key]) idx[key] = []
+      idx[key].push(sh)
+    }
+    return idx
+  }, [shifts])
+
   if (staff.length === 0) {
     return (
       <div className="px-5 py-10 text-center text-sm text-charcoal/35 italic">
@@ -465,7 +469,7 @@ export default function RotaWeekView({
     return total + hrs * (s.hourly_rate ?? 0)
   }, 0)
 
-  const sharedProps = { days, shifts, staff, onCellClick, onToggleAvailability, currentStaffId, isManager, unavailability, closedDays, closedDates, closureMode, onToggleClosure, breakDurationMins, crossShifts }
+  const sharedProps = { days, shifts, shiftIndex, staff, onCellClick, onToggleAvailability, currentStaffId, isManager, unavailability, closedDays, closedDates, closureMode, onToggleClosure, breakDurationMins, crossShifts }
 
   return (
     <>

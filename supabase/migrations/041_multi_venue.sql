@@ -29,8 +29,27 @@ CREATE INDEX IF NOT EXISTS idx_svl_staff ON staff_venue_links(staff_id);
 CREATE INDEX IF NOT EXISTS idx_svl_venue ON staff_venue_links(venue_id);
 
 ALTER TABLE staff_venue_links ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "svl_public"
-  ON staff_venue_links FOR ALL USING (true) WITH CHECK (true);
+
+-- Owners can see and manage links for venues they own on either side of the link
+CREATE POLICY "svl_owner_access"
+  ON staff_venue_links FOR ALL
+  USING (
+    EXISTS (
+      SELECT 1 FROM venues
+      WHERE id = staff_venue_links.venue_id
+        AND owner_id = auth.uid()
+    )
+  )
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM venues
+      WHERE id = staff_venue_links.venue_id
+        AND owner_id = auth.uid()
+    )
+  );
+
+-- The SECURITY DEFINER RPCs (link_staff_to_venue, unlink_staff_from_venue,
+-- get_staff_cross_venue_shifts) bypass RLS when they need cross-venue reads.
 
 -- Prevent linking staff to their own home venue
 CREATE OR REPLACE FUNCTION check_svl_not_home_venue()
