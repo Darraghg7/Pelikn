@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
-import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../../components/ui/Toast'
 import { supabase } from '../../lib/supabase'
 import SettingsSection from './SettingsSection'
@@ -12,7 +11,6 @@ import { slugify } from '../../lib/utils'
 export default function VenuesSection() {
   const { venues, refreshVenues, selectVenue } = useAuth()
   const { venuePlan } = useVenueFeatures()
-  const { session } = useSession()
   const toast = useToast()
 
   const [showForm, setShowForm] = useState(false)
