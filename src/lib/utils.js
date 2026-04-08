@@ -33,6 +33,9 @@ export const downloadCsv = (csvString, filename) => {
   URL.revokeObjectURL(url)
 }
 
+/** Capitalise the first character of a string. */
+export const capitalize = (s) => s ? s.charAt(0).toUpperCase() + s.slice(1) : ''
+
 /** Convert minutes to "Xh Ym" string. */
 export const formatMinutes = (totalMinutes) => {
   if (!totalMinutes || totalMinutes <= 0) return '0m'

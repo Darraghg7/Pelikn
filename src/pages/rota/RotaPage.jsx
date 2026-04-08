@@ -641,7 +641,7 @@ export default function RotaPage() {
           (sh) => sh.week_start === format(thisWeekStart, 'yyyy-MM-dd')
         )
         return (
-          <div key={wi} className="bg-white rounded-xl border border-charcoal/10 overflow-hidden">
+          <div key={format(thisWeekStart, 'yyyy-MM-dd')} className="bg-white rounded-xl border border-charcoal/10 overflow-hidden">
             {/* Week nav header (only on first week) */}
             {wi === 0 && (
               <div className="flex items-center justify-between px-5 py-4 border-b border-charcoal/8">

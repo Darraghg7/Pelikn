@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import {
   format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, addMonths, subMonths,
   isSameDay, isWithinInterval, isBefore, parseISO,
@@ -10,23 +10,34 @@ import { useToast } from '../../components/ui/Toast'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
 import Modal from '../../components/ui/Modal'
 
+/* ── Shared helper ─────────────────────────────────────────────────────── */
+function getRequestsForDay(requests, day) {
+  if (!day) return []
+  return requests.filter(r =>
+    isWithinInterval(day, { start: parseISO(r.start_date), end: parseISO(r.end_date) })
+  )
+}
+
 /* ── Hook ──────────────────────────────────────────────────────────────── */
 function useTimeOffRequests(venueId) {
   const [requests, setRequests] = useState([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
   const load = useCallback(async () => {
     if (!venueId) return
     setLoading(true)
-    const { data } = await supabase
+    setError(null)
+    const { data, error: err } = await supabase
       .from('time_off_requests')
       .select('*, staff:staff_id(name), reviewer:reviewed_by(name)')
       .eq('venue_id', venueId)
       .order('start_date', { ascending: true })
+    if (err) { setError(err.message); setLoading(false); return }
     setRequests(data ?? [])
     setLoading(false)
   }, [venueId])
   useEffect(() => { load() }, [load])
-  return { requests, loading, reload: load }
+  return { requests, loading, error, reload: load }
 }
 
 function useActiveStaff(venueId) {
@@ -58,15 +69,6 @@ function CalendarView({ month, requests, onDayClick }) {
 
   const today = new Date()
 
-  function getRequestsForDay(day) {
-    if (!day) return []
-    return requests.filter(r => {
-      const s = parseISO(r.start_date)
-      const e = parseISO(r.end_date)
-      return isWithinInterval(day, { start: s, end: e })
-    })
-  }
-
   return (
     <div className="overflow-x-auto -mx-0">
       <div style={{ minWidth: '320px' }}>
@@ -81,7 +83,7 @@ function CalendarView({ month, requests, onDayClick }) {
         {allCells.map((day, i) => {
           if (!day) return <div key={`pad-${i}`} className="bg-charcoal/3 min-h-[60px] sm:min-h-[72px]" />
 
-          const dayRequests = getRequestsForDay(day)
+          const dayRequests = getRequestsForDay(requests, day)
           const isToday = isSameDay(day, today)
           const isPast = isBefore(day, today) && !isToday
 
@@ -129,7 +131,7 @@ export default function TimeOffPage() {
   const toast = useToast()
   const { venueId } = useVenue()
   const { session, isManager } = useSession()
-  const { requests, loading, reload } = useTimeOffRequests(venueId)
+  const { requests, loading, error, reload } = useTimeOffRequests(venueId)
   const staff = useActiveStaff(venueId)
 
   const [month, setMonth] = useState(new Date())
@@ -220,18 +222,9 @@ export default function TimeOffPage() {
     reload()
   }
 
-  // My requests (for staff view)
-  const myRequests = requests.filter(r => r.staff_id === session?.staffId)
-  const pendingRequests = requests.filter(r => r.status === 'pending')
-
-  // Day detail
-  const dayDetailRequests = showDayDetail
-    ? requests.filter(r => {
-      const s = parseISO(r.start_date)
-      const e = parseISO(r.end_date)
-      return isWithinInterval(showDayDetail, { start: s, end: e })
-    })
-    : []
+  const myRequests      = useMemo(() => requests.filter(r => r.staff_id === session?.staffId), [requests, session?.staffId])
+  const pendingRequests = useMemo(() => requests.filter(r => r.status === 'pending'), [requests])
+  const dayDetailRequests = useMemo(() => getRequestsForDay(requests, showDayDetail), [requests, showDayDetail])
 
   const statusColors = {
     pending: 'bg-warning/10 text-warning border-warning/20',
@@ -277,6 +270,8 @@ export default function TimeOffPage() {
 
         {loading ? (
           <div className="flex justify-center py-10"><LoadingSpinner /></div>
+        ) : error ? (
+          <p className="text-center text-sm text-danger/70 py-10">{error}</p>
         ) : (
           <CalendarView
             month={month}

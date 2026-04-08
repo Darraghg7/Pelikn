@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { format, subDays } from 'date-fns'
 import { supabase } from '../../lib/supabase'
+import { capitalize } from '../../lib/utils'
 import { useVenue } from '../../contexts/VenueContext'
 import Modal from '../../components/ui/Modal'
 import { useToast } from '../../components/ui/Toast'
@@ -107,4 +108,3 @@ export default function CleaningExportModal({ open, onClose }) {
   )
 }
 
-function capitalize(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : '' }

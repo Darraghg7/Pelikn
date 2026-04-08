@@ -58,27 +58,24 @@ function useWidgetPreferences(staffId, venueId) {
   const [widgetIds, setWidgetIds] = useState(null) // null = loading
   const [loading, setLoading] = useState(true)
 
-  const load = useCallback(async () => {
+  useEffect(() => {
     if (!staffId || !venueId) return
     let cancelled = false
-    const { data } = await supabase
+
+    supabase
       .from('dashboard_widgets')
       .select('widget_id, position')
       .eq('venue_id', venueId)
       .eq('staff_id', staffId)
       .order('position')
+      .then(({ data }) => {
+        if (cancelled) return
+        setWidgetIds(data?.length > 0 ? data.map(d => d.widget_id) : DEFAULT_WIDGETS)
+        setLoading(false)
+      })
 
-    if (cancelled) return
-    if (data && data.length > 0) {
-      setWidgetIds(data.map(d => d.widget_id))
-    } else {
-      setWidgetIds(DEFAULT_WIDGETS)
-    }
-    setLoading(false)
     return () => { cancelled = true }
   }, [staffId, venueId])
-
-  useEffect(() => { load() }, [load])
 
   const save = useCallback(async (newIds) => {
     if (!staffId || !venueId) return

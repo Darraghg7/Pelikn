@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { format, formatDistanceToNow } from 'date-fns'
 import { supabase } from '../../lib/supabase'
+import { capitalize } from '../../lib/utils'
 import { useVenue } from '../../contexts/VenueContext'
 import { useSession } from '../../contexts/SessionContext'
 import { useCleaningTasks } from '../../hooks/useCleaningTasks'
@@ -21,8 +22,6 @@ const STATUS_CONFIG = {
 function SectionLabel({ children }) {
   return <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-3">{children}</p>
 }
-
-function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1) }
 
 export default function CleaningPage() {
   const toast = useToast()
@@ -59,9 +58,10 @@ export default function CleaningPage() {
   }
 
   const deactivateTask = async (id) => {
-    await supabase.from('cleaning_tasks').update({ is_active: false }).eq('id', id)
-    reload()
+    const { error } = await supabase.from('cleaning_tasks').update({ is_active: false }).eq('id', id)
+    if (error) { toast(error.message, 'error'); return }
     toast('Task removed')
+    reload()
   }
 
   const openComplete = (task) => {
@@ -78,12 +78,11 @@ export default function CleaningPage() {
       p_cleaning_task_id: completeModal.id,
       p_notes:            notes.trim() || null,
     })
-    if (error) { toast(error.message, 'error') }
-
     setCompleting(null)
     setCompleteModal(null)
-    reload()
+    if (error) { toast(error.message, 'error'); return }
     toast('Cleaning task marked complete ✓')
+    reload()
   }
 
   const filtered = filterStatus === 'all'

@@ -21,6 +21,7 @@ export function VenueProvider({ children }) {
     if (!venueSlug) { setLoading(false); setError(true); return }
 
     const slug = venueSlug.toLowerCase()
+    let cancelled = false
 
     // ── Load from cache immediately so offline app renders without delay ──
     let hasCache = false
@@ -36,7 +37,7 @@ export function VenueProvider({ children }) {
 
     // ── Fetch from Supabase (refreshes cache when online) ──
     const timeoutId = setTimeout(() => {
-      // Only show error if we have no cached data
+      if (cancelled) return
       setLoading(prev => {
         if (prev) setError(true)
         return false
@@ -49,6 +50,7 @@ export function VenueProvider({ children }) {
       .eq('slug', slug)
       .single()
       .then(({ data, error: err }) => {
+        if (cancelled) { clearTimeout(timeoutId); return }
         clearTimeout(timeoutId)
         if (!err && data) {
           localStorage.setItem(venueKey(slug), JSON.stringify(data))
@@ -56,32 +58,33 @@ export function VenueProvider({ children }) {
           setLoading(false)
           return
         }
-        // Retry without plan column
+        // Retry without plan column (older DB schemas)
         return supabase
           .from('venues')
           .select('id, name, slug')
           .eq('slug', slug)
           .single()
           .then(({ data: d2, error: err2 }) => {
-            clearTimeout(timeoutId)
+            if (cancelled) return
             if (!err2 && d2) {
               const v = { ...d2, plan: 'starter' }
               localStorage.setItem(venueKey(slug), JSON.stringify(v))
               setVenue(v)
             } else if (!hasCache) {
-              // No cache AND no network data
               setError(true)
             }
             setLoading(false)
           })
       })
       .catch(() => {
+        if (cancelled) return
         clearTimeout(timeoutId)
-        // Network error — only show error if we have no cached data
         setLoading(false)
         if (!hasCache) setError(true)
       })
-  }, [venueSlug]) // eslint-disable-line react-hooks/exhaustive-deps
+
+    return () => { cancelled = true; clearTimeout(timeoutId) }
+  }, [venueSlug])
 
   const value = useMemo(() => !venue ? null : {
     venueId: venue.id, venueSlug: venue.slug, venueName: venue.name, venuePlan: venue.plan ?? 'starter'
