@@ -175,6 +175,15 @@ function IcoTasks() {
   )
 }
 
+function IcoVenues() {
+  return (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+      <polyline points="9 22 9 12 15 12 15 22"/>
+    </svg>
+  )
+}
+
 /* ── Sidebar link component ─────────────────────────────────────────────────── */
 function SideItem({ to, icon: Ico, label, badge, alert, isActive }) {
   return (
@@ -301,7 +310,7 @@ function VenueSwitcher({ venues, currentSlug, onSelect }) {
 
 /* ── Main AppShell ───────────────────────────────────────────────────────────── */
 export default function AppShell({ children }) {
-  const { session, isManager, signOut } = useSession()
+  const { session, isManager, signOut, hasMultiVenueAccess } = useSession()
   const { venueId, venueSlug, venueName } = useVenue()
   const { venues, selectVenue } = useAuth()
   const location     = useLocation()
@@ -377,6 +386,9 @@ export default function AppShell({ children }) {
           {isManager ? (
             <>
               <div className="space-y-0.5 px-0 pt-2">
+                {hasMultiVenueAccess && (
+                  <SideItem to={vp('/overview')} icon={IcoVenues} label="All Venues" isActive={isAt('/overview')} />
+                )}
                 <SideItem to={vp('/dashboard')}      icon={IcoDashboard} label="Dashboard"   isActive={isAt('/dashboard')} />
                 {isEnabled('opening_closing') && <SideItem to={vp('/opening-closing')} icon={IcoChecks} label="Checks" isActive={isUnder('/opening-closing')} />}
                 <SideItem to={vp('/tasks')}    icon={IcoTasks}     label="Tasks"          isActive={isUnder('/tasks')} />

@@ -28,6 +28,7 @@ import {
   SESSION_SHOW_ALLERGENS,
   SESSION_VENUE_ID_KEY,
   SESSION_VENUE_SLUG_KEY,
+  SESSION_LINKED_VENUES,
 } from '../lib/constants'
 
 const SessionContext = createContext(null)
@@ -53,6 +54,7 @@ const LS_KEYS = [
   SESSION_SHOW_ALLERGENS,
   SESSION_VENUE_ID_KEY,
   SESSION_VENUE_SLUG_KEY,
+  SESSION_LINKED_VENUES,
 ]
 
 const clearStorage = () => LS_KEYS.forEach(k => localStorage.removeItem(k))
@@ -89,8 +91,14 @@ const pinHashKey  = (id) => `safeserv_pin_${id}`
 const sessDataKey = (id) => `safeserv_sess_${id}`
 
 export function SessionProvider({ children }) {
-  const [session, setSession]   = useState(null)
-  const [loading, setLoading]   = useState(true)
+  const [session,       setSession]       = useState(null)
+  const [loading,       setLoading]       = useState(true)
+  const [linkedVenues,  setLinkedVenues]  = useState(() => {
+    try {
+      const raw = localStorage.getItem(SESSION_LINKED_VENUES)
+      return raw ? JSON.parse(raw) : []
+    } catch { return [] }
+  })
 
   // ── Restore session from localStorage on mount ──────────────────────────
   useEffect(() => {
@@ -109,6 +117,11 @@ export function SessionProvider({ children }) {
       .then(({ data: venueId, error }) => {
         if (!error && venueId) {
           setSession(sessionFromStorage(token))
+          // Restore linked venues from cache
+          try {
+            const raw = localStorage.getItem(SESSION_LINKED_VENUES)
+            if (raw) setLinkedVenues(JSON.parse(raw))
+          } catch { /* corrupt cache */ }
           // Opportunistically extend the session while we have a confirmed
           // valid token — fire-and-forget, failure is non-critical
           supabase.rpc('refresh_staff_session', { p_token: token }).catch(() => {})
@@ -123,8 +136,13 @@ export function SessionProvider({ children }) {
         // Network offline or timeout — restore from localStorage rather than
         // clearing, so staff aren't logged out just because WiFi is down.
         const restored = sessionFromStorage(token)
-        if (restored) setSession(restored)
-        else clearStorage()
+        if (restored) {
+          setSession(restored)
+          try {
+            const raw = localStorage.getItem(SESSION_LINKED_VENUES)
+            if (raw) setLinkedVenues(JSON.parse(raw))
+          } catch { /* corrupt cache */ }
+        } else clearStorage()
         setLoading(false)
       })
   }, [])
@@ -221,6 +239,17 @@ export function SessionProvider({ children }) {
     if (hash) localStorage.setItem(pinHashKey(staffId), hash)
     localStorage.setItem(sessDataKey(staffId), JSON.stringify(newSession))
 
+    // Load linked venues (for overview dashboard — managers with cross-venue access)
+    const { data: links } = await supabase.rpc('get_staff_venue_links', { p_session_token: token })
+    const venues = (links ?? []).map(l => ({
+      id:   l.venue_id,
+      name: l.venue_name,
+      slug: l.venue_slug,
+      plan: l.venue_plan,
+    }))
+    localStorage.setItem(SESSION_LINKED_VENUES, JSON.stringify(venues))
+    setLinkedVenues(venues)
+
     setSession(newSession)
     return { error: null }
   }, [])
@@ -236,10 +265,11 @@ export function SessionProvider({ children }) {
   }, [session?.token])
 
   const isManager = session?.staffRole === 'manager' || session?.staffRole === 'owner'
+  const hasMultiVenueAccess = linkedVenues.length > 0
 
   const value = useMemo(() => ({
-    session, loading, isManager, signIn, signOut
-  }), [session, loading, isManager, signIn, signOut])
+    session, loading, isManager, signIn, signOut, linkedVenues, hasMultiVenueAccess,
+  }), [session, loading, isManager, signIn, signOut, linkedVenues, hasMultiVenueAccess])
 
   return (
     <SessionContext.Provider value={value}>

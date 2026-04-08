@@ -94,6 +94,9 @@ const EHOMockPage = lazy(() => import('./pages/eho/EHOMockPage'))
 // Tasks (daily recurring + one-off)
 const TasksPage = lazy(() => import('./pages/tasks/TasksPage'))
 
+// Multi-venue overview dashboard
+const OverviewPage = lazy(() => import('./pages/overview/OverviewPage'))
+
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
 
 // ── Guards ───────────────────────────────────────────────────────────────────
@@ -179,6 +182,9 @@ function VenueRoutes() {
           <Routes>
             {/* Login page for this venue */}
             <Route index element={<LoginPage />} />
+
+            {/* Multi-venue overview — manager only, requires cross-venue access */}
+            <Route path="overview"          element={wrap(OverviewPage, RequireManager)} />
 
             {/* Any authenticated user */}
             <Route path="dashboard"         element={wrap(DashboardPage)} />

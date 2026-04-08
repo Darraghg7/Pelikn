@@ -520,35 +520,42 @@ export default function StaffMembersSection() {
           </div>
 
           {/* Venue assignment — only shown to multi-venue owners, edit mode only */}
-          {editingId && venues.length > 1 && (
-            <div>
-              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-2">Works At</label>
-              <div className="flex gap-2 flex-wrap">
-                {venues.map(v => {
-                  const isHome   = v.id === venueId
-                  const isLinked = isHome || (venueLinks[editingId] ?? []).includes(v.id)
-                  return (
-                    <button
-                      key={v.id}
-                      type="button"
-                      disabled={isHome || savingLinks}
-                      onClick={() => !isHome && toggleVenueLink(editingId, v.id, (venueLinks[editingId] ?? []).includes(v.id))}
-                      className={[
-                        'px-3 py-1.5 rounded-full text-xs font-medium border transition-all',
-                        isLinked ? 'bg-brand text-cream border-brand' : 'bg-white text-charcoal/50 border-charcoal/15',
-                        isHome ? 'opacity-60 cursor-default' : 'hover:border-brand/40',
-                      ].join(' ')}
-                    >
-                      {isLinked ? '✓ ' : ''}{v.name}{isHome ? ' (home)' : ''}
-                    </button>
-                  )
-                })}
+          {editingId && venues.length > 1 && (() => {
+            const isManager = staffForm.role === 'manager' || staffForm.role === 'owner'
+            return (
+              <div>
+                <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1.5">
+                  {isManager ? 'Venue Access' : 'Works At'}
+                </label>
+                <p className="text-[11px] text-charcoal/35 mb-2">
+                  {isManager
+                    ? 'Controls which venues this manager sees in their All Venues overview dashboard. Also determines which venues they can be rostered at.'
+                    : 'Toggling a venue on makes this staff member visible in that venue\'s rota.'}
+                </p>
+                <div className="flex gap-2 flex-wrap">
+                  {venues.map(v => {
+                    const isHome   = v.id === venueId
+                    const isLinked = isHome || (venueLinks[editingId] ?? []).includes(v.id)
+                    return (
+                      <button
+                        key={v.id}
+                        type="button"
+                        disabled={isHome || savingLinks}
+                        onClick={() => !isHome && toggleVenueLink(editingId, v.id, (venueLinks[editingId] ?? []).includes(v.id))}
+                        className={[
+                          'px-3 py-1.5 rounded-full text-xs font-medium border transition-all',
+                          isLinked ? 'bg-brand text-cream border-brand' : 'bg-white text-charcoal/50 border-charcoal/15',
+                          isHome ? 'opacity-60 cursor-default' : 'hover:border-brand/40',
+                        ].join(' ')}
+                      >
+                        {isLinked ? '✓ ' : ''}{v.name}{isHome ? ' (home)' : ''}
+                      </button>
+                    )
+                  })}
+                </div>
               </div>
-              <p className="text-[11px] text-charcoal/35 mt-1.5">
-                Toggling a venue on makes this staff member visible in that venue's rota.
-              </p>
-            </div>
-          )}
+            )
+          })()}
 
           <div className="flex gap-2 pt-1">
             <button
