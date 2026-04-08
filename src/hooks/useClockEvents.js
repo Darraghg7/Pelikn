@@ -152,7 +152,7 @@ export function useTimesheetData(dateFrom, dateTo) {
     setLoading(true)
     let q = supabase
       .from('clock_events')
-      .select('staff_id, event_type, occurred_at, staff(name)')
+      .select('id, staff_id, event_type, occurred_at, staff(name)')
       .gte('occurred_at', dateFrom)
       .lte('occurred_at', dateTo)
       .order('staff_id')
