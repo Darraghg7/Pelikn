@@ -8,11 +8,12 @@ function useUpdateReady() {
     if (!('serviceWorker' in navigator)) return
 
     navigator.serviceWorker.getRegistration().then(reg => {
-      if (reg?.waiting) setWaitingSW(reg.waiting)
-    })
-
-    navigator.serviceWorker.getRegistration().then(reg => {
       if (!reg) return
+
+      // Already waiting — show banner immediately
+      if (reg.waiting) setWaitingSW(reg.waiting)
+
+      // Watch for new service workers
       reg.addEventListener('updatefound', () => {
         const newSW = reg.installing
         newSW?.addEventListener('statechange', (e) => {
@@ -21,11 +22,28 @@ function useUpdateReady() {
           }
         })
       })
+
+      // Proactively check for updates on page load and every 30 minutes
+      reg.update().catch(() => {})
+      const interval = setInterval(() => reg.update().catch(() => {}), 30 * 60 * 1000)
+      return () => clearInterval(interval)
     })
+
+    // Also check for updates when the app comes back to the foreground
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        navigator.serviceWorker.getRegistration().then(reg => {
+          reg?.update().catch(() => {})
+        })
+      }
+    }
+    document.addEventListener('visibilitychange', onVisibilityChange)
 
     navigator.serviceWorker.addEventListener('controllerchange', () => {
       window.location.reload()
     })
+
+    return () => document.removeEventListener('visibilitychange', onVisibilityChange)
   }, [])
 
   const applyUpdate = () => {
