@@ -184,6 +184,7 @@ export default function TimeOffPage() {
   // Manager: approve
   const approve = async (id) => {
     setReviewing(id)
+    const req = requests.find(r => r.id === id)
     const { error } = await supabase.from('time_off_requests').update({
       status: 'approved',
       reviewed_by: session?.staffId,
@@ -194,12 +195,25 @@ export default function TimeOffPage() {
     setManagerNote('')
     if (error) { toast(error.message, 'error'); return }
     toast('Time off approved')
+    // Notify the staff member
+    if (req?.staff_id) {
+      supabase.functions.invoke('send-push', {
+        body: {
+          venueId,
+          title: 'Time Off Approved',
+          body:  `Your time off request (${req.start_date} – ${req.end_date}) has been approved.`,
+          url:   '/time-off',
+          staffIds: [req.staff_id],
+        },
+      }).catch(() => {})
+    }
     reload()
   }
 
   // Manager: reject
   const reject = async (id) => {
     setReviewing(id)
+    const req = requests.find(r => r.id === id)
     const { error } = await supabase.from('time_off_requests').update({
       status: 'rejected',
       reviewed_by: session?.staffId,
@@ -210,6 +224,18 @@ export default function TimeOffPage() {
     setManagerNote('')
     if (error) { toast(error.message, 'error'); return }
     toast('Time off rejected')
+    // Notify the staff member
+    if (req?.staff_id) {
+      supabase.functions.invoke('send-push', {
+        body: {
+          venueId,
+          title: 'Time Off Rejected',
+          body:  `Your time off request (${req.start_date} – ${req.end_date}) was not approved.${managerNote.trim() ? ' Note: ' + managerNote.trim() : ''}`,
+          url:   '/time-off',
+          staffIds: [req.staff_id],
+        },
+      }).catch(() => {})
+    }
     reload()
   }
 

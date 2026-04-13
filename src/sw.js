@@ -62,16 +62,26 @@ self.addEventListener('push', event => {
 
 self.addEventListener('notificationclick', event => {
   event.notification.close()
-  const url = event.notification.data?.url ?? '/dashboard'
+  const targetPath = event.notification.data?.url ?? '/dashboard'
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clientList => {
       for (const client of clientList) {
         if (client.url.includes(self.registration.scope) && 'focus' in client) {
-          client.navigate(url)
+          // Resolve the target path relative to the venue the user is already in.
+          // e.g. if client is at /v/nomad/dashboard and targetPath is /time-off,
+          // navigate to /v/nomad/time-off instead of bare /time-off
+          let resolvedUrl = targetPath
+          try {
+            const match = new URL(client.url).pathname.match(/^\/v\/([^/]+)/)
+            if (match && !targetPath.startsWith('/v/')) {
+              resolvedUrl = `/v/${match[1]}${targetPath.startsWith('/') ? targetPath : '/' + targetPath}`
+            }
+          } catch { /* use targetPath as-is */ }
+          client.navigate(resolvedUrl)
           return client.focus()
         }
       }
-      if (clients.openWindow) return clients.openWindow(url)
+      if (clients.openWindow) return clients.openWindow(targetPath)
     })
   )
 })

@@ -379,13 +379,13 @@ function TodaySummaryCard({ venueId }) {
 /* ── Push notification opt-in banner ─────────────────────────────────────── */
 const PUSH_DISMISS_KEY = 'safeserv_push_dismissed'
 
-function PushBanner({ staffId }) {
-  const { permission, subscribe, supported } = usePushNotifications(staffId)
+function PushBanner({ staffId, venueId }) {
+  const { permission, subscribe, supported, subscribed } = usePushNotifications(staffId, venueId)
   const [dismissed, setDismissed] = useState(
     () => localStorage.getItem(PUSH_DISMISS_KEY) === '1'
   )
 
-  if (!supported || permission !== 'default' || dismissed) return null
+  if (!supported || permission === 'denied' || subscribed || dismissed) return null
 
   return (
     <div className="flex items-center justify-between gap-4 rounded-xl border border-brand/25 bg-brand/5 px-5 py-3">
@@ -527,7 +527,7 @@ export default function ManagerDashboardPage() {
       </div>
 
       {/* Push notification opt-in banner */}
-      <PushBanner staffId={session?.staffId} />
+      <PushBanner staffId={session?.staffId} venueId={venueId} />
       <GettingStartedCard venueId={venueId} venueSlug={venueSlug} />
 
       {/* Desktop: today summary + clock side by side */}

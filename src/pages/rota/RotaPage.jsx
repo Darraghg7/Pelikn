@@ -296,6 +296,19 @@ export default function RotaPage() {
     setResolving(null)
     if (error) { toast(error.message, 'error'); return }
     toast('Swap approved — shift reassigned ✓')
+    // Notify both staff involved
+    const staffIds = [swap.requester_id, swap.target_staff_id].filter(Boolean)
+    if (staffIds.length) {
+      supabase.functions.invoke('send-push', {
+        body: {
+          venueId,
+          title: 'Shift Swap Approved',
+          body:  'Your shift swap request has been approved. Check the rota for updates.',
+          url:   '/rota',
+          staffIds,
+        },
+      }).catch(() => {})
+    }
     reloadSwaps()
     reload()
   }
@@ -314,6 +327,18 @@ export default function RotaPage() {
     setResolving(null)
     if (error) { toast(error.message, 'error'); return }
     toast('Swap request rejected')
+    // Notify requester
+    if (swap.requester_id) {
+      supabase.functions.invoke('send-push', {
+        body: {
+          venueId,
+          title: 'Shift Swap Rejected',
+          body:  `Your shift swap request was not approved.${rejectNote[swap.id]?.trim() ? ' Note: ' + rejectNote[swap.id].trim() : ''}`,
+          url:   '/rota',
+          staffIds: [swap.requester_id],
+        },
+      }).catch(() => {})
+    }
     reloadSwaps()
   }
 

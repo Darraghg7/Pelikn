@@ -47,34 +47,39 @@ function HoursThisWeekCard({ staffId, weekMins }) {
   )
 }
 
-function PushNotificationCard({ staffId, venueId }) {
-  const { supported, permission, subscribed, subscribing, subscribe, unsubscribe } =
+function PushNotificationBanner({ staffId, venueId }) {
+  const { supported, permission, subscribed, subscribing, subscribe } =
     usePushNotifications(staffId, venueId)
+  const [dismissed, setDismissed] = useState(() =>
+    localStorage.getItem('safeserv_push_dismissed') === 'true'
+  )
 
-  if (!supported) return null
-  // Don't nag if permission was explicitly denied
-  if (permission === 'denied') return null
+  if (!supported || permission === 'denied' || subscribed || dismissed) return null
+
+  const dismiss = () => {
+    localStorage.setItem('safeserv_push_dismissed', 'true')
+    setDismissed(true)
+  }
 
   return (
-    <div className="bg-white rounded-xl border border-charcoal/10 p-5">
-      <SectionLabel>Notifications</SectionLabel>
-      <p className="text-xs text-charcoal/40 mb-3">
-        Get notified about rota changes, shift swaps, and time-off decisions.
-      </p>
-      {subscribed ? (
-        <div className="flex items-center gap-3">
-          <span className="text-xs text-green-600 font-medium">● Notifications enabled</span>
-          <button onClick={unsubscribe}
-            className="text-xs text-charcoal/40 hover:text-danger transition-colors underline underline-offset-2">
-            Disable
-          </button>
-        </div>
-      ) : (
+    <div className="bg-brand/5 border border-brand/20 rounded-xl p-4 flex items-center gap-4">
+      <span className="text-2xl shrink-0">🔔</span>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-medium text-charcoal">Stay in the loop</p>
+        <p className="text-xs text-charcoal/50 mt-0.5">
+          Get notified about rota changes, shift swaps, time-off decisions, and more.
+        </p>
+      </div>
+      <div className="flex items-center gap-2 shrink-0">
         <button onClick={subscribe} disabled={subscribing}
-          className="bg-brand text-cream px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-brand/90 transition-colors disabled:opacity-40 w-full">
-          {subscribing ? 'Enabling…' : 'Enable Notifications'}
+          className="bg-brand text-cream px-4 py-2 rounded-xl text-xs font-medium hover:bg-brand/90 transition-colors disabled:opacity-40">
+          {subscribing ? 'Enabling…' : 'Enable'}
         </button>
-      )}
+        <button onClick={dismiss}
+          className="text-charcoal/30 hover:text-charcoal/60 transition-colors p-1">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
     </div>
   )
 }
@@ -284,6 +289,9 @@ export default function StaffDashboardPage() {
         </div>
       </div>
 
+      {/* Push notification prompt — shown prominently until enabled or dismissed */}
+      <PushNotificationBanner staffId={session.staffId} venueId={venueId} />
+
       {/* Quick actions */}
       <QuickActions venueSlug={venueSlug} hasPermission={hasPermission} isEnabled={isEnabled} hasShift={!!todayShift} />
 
@@ -312,8 +320,6 @@ export default function StaffDashboardPage() {
           </div>
 
           <HoursThisWeekCard staffId={session.staffId} weekMins={weekMins} />
-
-          <PushNotificationCard staffId={session.staffId} venueId={venueId} />
         </div>
 
         {/* Right: recent shifts with editing */}
