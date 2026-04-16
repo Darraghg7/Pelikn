@@ -72,7 +72,7 @@ export function useTodayCheckStatus() {
     const today = new Date().toISOString().slice(0, 10)
     const [{ data: fridges }, { data: logs }] = await Promise.all([
       supabase.from('fridges').select('id, name, is_active, min_temp, max_temp, venue_id').eq('venue_id', venueId).eq('is_active', true).order('name'),
-      supabase.from('fridge_temperature_logs').select('id, fridge_id, temperature, logged_at, check_period, exceedance_reason, is_resolved, staff_id, venue_id')
+      supabase.from('fridge_temperature_logs').select('id, fridge_id, temperature, logged_at, check_period, exceedance_reason, is_resolved, logged_by, logged_by_name, venue_id')
         .eq('venue_id', venueId)
         .gte('logged_at', `${today}T00:00:00`)
         .lte('logged_at', `${today}T23:59:59`)
@@ -92,6 +92,61 @@ export function useTodayCheckStatus() {
 
   useEffect(() => { load() }, [load])
   return { status, loading, reload: load }
+}
+
+/**
+ * Fetches all fridge temperature logs for the venue across a date range and
+ * returns them grouped by fridge → ISO date → period (am/pm). Used by the
+ * matrix view so a manager can see at a glance which checks are missing.
+ *
+ * @param {string} dateFrom — yyyy-MM-dd inclusive (start of day)
+ * @param {string} dateTo   — yyyy-MM-dd inclusive (end of day)
+ */
+export function useFridgeMatrix(dateFrom, dateTo) {
+  const { venueId } = useVenue()
+  const [fridges, setFridges] = useState([])
+  const [matrix, setMatrix]   = useState({}) // { [fridgeId]: { [yyyy-MM-dd]: { am, pm } } }
+  const [loading, setLoading] = useState(true)
+
+  const load = useCallback(async () => {
+    if (!venueId || !dateFrom || !dateTo) { setLoading(false); return }
+    setLoading(true)
+
+    const [{ data: fridgeRows }, { data: logRows }] = await Promise.all([
+      supabase
+        .from('fridges')
+        .select('id, name, is_active, min_temp, max_temp, venue_id')
+        .eq('venue_id', venueId)
+        .eq('is_active', true)
+        .order('name'),
+      supabase
+        .from('fridge_temperature_logs')
+        .select('id, fridge_id, temperature, logged_at, check_period, exceedance_reason, logged_by_name, notes')
+        .eq('venue_id', venueId)
+        .gte('logged_at', `${dateFrom}T00:00:00`)
+        .lte('logged_at', `${dateTo}T23:59:59`)
+        .order('logged_at', { ascending: false }),
+    ])
+
+    const grouped = {}
+    for (const log of (logRows ?? [])) {
+      const day = log.logged_at.slice(0, 10) // yyyy-MM-dd from ISO
+      const period = log.check_period === 'pm' ? 'pm' : 'am'
+      grouped[log.fridge_id] ??= {}
+      grouped[log.fridge_id][day] ??= {}
+      // Only keep the latest reading per fridge/day/period (logs ordered desc)
+      if (!grouped[log.fridge_id][day][period]) {
+        grouped[log.fridge_id][day][period] = log
+      }
+    }
+
+    setFridges(fridgeRows ?? [])
+    setMatrix(grouped)
+    setLoading(false)
+  }, [venueId, dateFrom, dateTo])
+
+  useEffect(() => { load() }, [load])
+  return { fridges, matrix, loading, reload: load }
 }
 
 export function useFridgeHistory(fridgeId, dateFrom, dateTo) {

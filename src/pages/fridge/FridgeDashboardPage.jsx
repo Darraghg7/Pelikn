@@ -8,6 +8,7 @@ import { isTempOutOfRange, formatTemp } from '../../lib/utils'
 import { useToast } from '../../components/ui/Toast'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
 import FridgeExportModal from './FridgeExportModal'
+import FridgeMatrixModal from './FridgeMatrixModal'
 
 function SectionLabel({ children }) {
   return <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-3">{children}</p>
@@ -304,6 +305,7 @@ export default function FridgeDashboardPage() {
   const [fridgeForm, setFridgeForm] = useState({ name: '', min_temp: '', max_temp: '' })
   const [savingFridge, setSavingFridge] = useState(false)
   const [showExport, setShowExport] = useState(false)
+  const [showMatrix, setShowMatrix] = useState(false)
 
   const addFridge = async () => {
     if (!fridgeForm.name.trim()) { toast('Name is required', 'error'); return }
@@ -346,6 +348,12 @@ export default function FridgeDashboardPage() {
               {showManage ? 'Done' : 'Manage Fridges'}
             </button>
           )}
+          {isManager && (
+            <button onClick={() => setShowMatrix(true)}
+              className="text-[11px] tracking-widest uppercase text-charcoal/40 hover:text-charcoal transition-colors border-b border-charcoal/20">
+              View History
+            </button>
+          )}
           <button onClick={() => setShowExport(true)}
             className="text-[11px] tracking-widest uppercase text-charcoal/40 hover:text-charcoal transition-colors border-b border-charcoal/20">
             Export PDF
@@ -354,6 +362,7 @@ export default function FridgeDashboardPage() {
       </div>
 
       <FridgeExportModal open={showExport} onClose={() => setShowExport(false)} />
+      <FridgeMatrixModal open={showMatrix} onClose={() => { setShowMatrix(false); reloadDash() }} />
 
       {/* Manage Fridges panel */}
       {showManage && isManager && (
