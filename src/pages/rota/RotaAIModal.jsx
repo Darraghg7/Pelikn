@@ -30,19 +30,28 @@ export default function RotaAIModal({ open, onClose, weekStart, onSave }) {
   const handleGenerate = async () => {
     setStage(STAGES.LOADING)
     try {
-      const { data, error } = await supabase.functions.invoke('generate-rota', {
-        body: { session_token: session?.token, venueId, weekStart: format(weekStart, 'yyyy-MM-dd') },
+      // Call the edge function directly via fetch so we can read the real
+      // error body. supabase.functions.invoke consumes the response stream
+      // internally, making the server's error message impossible to recover.
+      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-rota`
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type':  'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          'apikey':        import.meta.env.VITE_SUPABASE_ANON_KEY,
+        },
+        body: JSON.stringify({
+          session_token: session?.token,
+          venueId,
+          weekStart:     format(weekStart, 'yyyy-MM-dd'),
+        }),
       })
-      if (error) {
-        // Supabase swallows the response body by default — extract it ourselves
-        let detail = error.message
-        try {
-          if (error.context && typeof error.context.json === 'function') {
-            const body = await error.context.json()
-            if (body?.error) detail = body.error
-          }
-        } catch { /* keep generic message */ }
-        throw new Error(detail)
+      const rawText = await res.text()
+      let data
+      try { data = JSON.parse(rawText) } catch { data = null }
+      if (!res.ok) {
+        throw new Error(data?.error || `HTTP ${res.status}: ${rawText.slice(0, 200)}`)
       }
       if (data?.error) throw new Error(data.error)
       setResult(data)
