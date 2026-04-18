@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 
@@ -68,25 +68,6 @@ export default function LandingPage() {
   const [loading, setLoading]           = useState(false)
   const [pendingVenues, setPendingVenues] = useState(null)
   const [view, setView]                 = useState('welcome') // 'welcome' | 'signin' | 'picker'
-
-  // PWA saved-state: jump straight to last venue
-  useEffect(() => {
-    if (authLoading) return
-    if (isPWA()) {
-      const savedSlug = localStorage.getItem(LAST_VENUE_KEY)
-      if (savedSlug) {
-        navigate(`/v/${savedSlug}`, { replace: true })
-        return
-      }
-    }
-  }, [authLoading, navigate])
-
-  // Already authenticated + venue resolved → redirect
-  useEffect(() => {
-    if (!authLoading && user && venueSlug) {
-      navigate(`/v/${venueSlug}`, { replace: true })
-    }
-  }, [authLoading, user, venueSlug, navigate])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
