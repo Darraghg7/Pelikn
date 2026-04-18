@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useFridges, useFridgeHistory } from '../../hooks/useFridgeLogs'
 import { useSession } from '../../contexts/SessionContext'
+import { useVenue } from '../../contexts/VenueContext'
 import { isTempOutOfRange, formatTemp, formatDateTime } from '../../lib/utils'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
 import DateRangePresets, { presetToDates } from '../../components/ui/DateRangePresets'
@@ -31,6 +32,7 @@ const REASON_LABELS = {
 export default function FridgeHistoryPage() {
   const toast = useToast()
   const { isManager } = useSession()
+  const { venueSlug } = useVenue()
   const { fridges } = useFridges()
   const [fridgeId, setFridgeId] = useState('')
 
@@ -65,7 +67,7 @@ export default function FridgeHistoryPage() {
     <div className="flex flex-col gap-6">
 
       <div className="flex items-center gap-4">
-        <Link to="/fridge" className="text-charcoal/40 hover:text-charcoal transition-colors text-lg">←</Link>
+        <Link to={`/v/${venueSlug}/fridge`} className="text-charcoal/40 hover:text-charcoal transition-colors text-lg">←</Link>
         <h1 className="font-serif text-3xl text-brand">Temperature History</h1>
       </div>
 

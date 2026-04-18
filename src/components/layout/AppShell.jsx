@@ -393,7 +393,7 @@ const STORAGE_KEY = 'safeserv_sidebar_sections'
 function useSidebarSections(venueId, localPath) {
   // Determine which section the current path belongs to
   const compliancePaths = ['/fridge', '/cooking-temps', '/hot-holding', '/cooling-logs', '/deliveries', '/probe', '/allergens', '/pest-control', '/cleaning', '/corrective', '/suppliers', '/haccp', '/eho-mock']
-  const teamPaths = ['/rota', '/timesheet', '/training', '/time-off', '/clock-in', '/noticeboard']
+  const teamPaths = ['/rota', '/timesheet', '/training', '/time-off', '/clock-in', '/noticeboard', '/staff']
 
   const activeSection = compliancePaths.some(p => localPath.startsWith(p))
     ? 'compliance'
@@ -575,6 +575,7 @@ export default function AppShell({ children }) {
                   : <SubItem to={vp('/clock-in')}    icon={IcoClock}   label="Clock In / Out"  isActive={isUnder('/clock-in')} />}
                 {isPlanLocked('noticeboard') ? <LockedSubItem label="Noticeboard" />
                   : <SubItem to={vp('/noticeboard')} icon={IcoBoard}   label="Noticeboard"     isActive={isUnder('/noticeboard')} />}
+                <SubItem to={vp('/staff')} icon={IcoTeam} label="Staff" isActive={isUnder('/staff')} />
               </CollapsibleSection>
 
               {/* Bottom fixed items */}

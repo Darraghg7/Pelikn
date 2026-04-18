@@ -44,7 +44,12 @@ serve(async (req) => {
       .order('start_time')
 
     if (shiftsErr) return errorResponse(shiftsErr.message, 500)
-    if (!shifts || shifts.length === 0) return errorResponse('No shifts for this week', 400)
+    if (!shifts || shifts.length === 0) {
+      return new Response(
+        JSON.stringify({ sent: 0, message: 'No shifts for this week — skipped' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
 
     // 4. Group shifts by staff member
     const byStaff: Record<string, { name: string; email: string; shifts: typeof shifts }> = {}
@@ -58,7 +63,12 @@ serve(async (req) => {
     }
 
     const entries = Object.values(byStaff)
-    if (entries.length === 0) return errorResponse('No staff with email addresses found', 400)
+    if (entries.length === 0) {
+      return new Response(
+        JSON.stringify({ sent: 0, message: 'No staff with email addresses — skipped' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
 
     // 5. Format dates
     const [y, m, d] = weekStart.split('-').map(Number)

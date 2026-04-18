@@ -33,6 +33,7 @@ export default function FoodItemDetailPage() {
   const { id }     = useParams()
   const { item, loading } = useFoodItem(id)
   const { isManager }     = useSession()
+  const { venueSlug }     = useVenue()
   const toast             = useToast()
   const navigate          = useNavigate()
 
@@ -44,7 +45,7 @@ export default function FoodItemDetailPage() {
     const { error } = await supabase.from('food_items').update({ is_active: false }).eq('id', id)
     if (error) { toast(error.message, 'error'); return }
     toast('Item removed')
-    navigate('/allergens')
+    navigate(`/v/${venueSlug}/allergens`)
   }
 
   if (loading) return <div className="flex justify-center pt-20"><LoadingSpinner size="lg" /></div>
@@ -55,13 +56,13 @@ export default function FoodItemDetailPage() {
 
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Link to="/allergens" className="text-charcoal/40 hover:text-charcoal transition-colors text-lg">←</Link>
+          <Link to={`/v/${venueSlug}/allergens`} className="text-charcoal/40 hover:text-charcoal transition-colors text-lg">←</Link>
           <h1 className="font-serif text-3xl text-brand">{item.name}</h1>
         </div>
         {isManager && (
           <div className="flex gap-2">
             <Link
-              to={`/allergens/${id}/edit`}
+              to={`/v/${venueSlug}/allergens/${id}/edit`}
               className="text-xs text-charcoal/50 hover:text-charcoal border border-charcoal/15 px-3 py-1.5 rounded-lg hover:border-charcoal/30 transition-colors"
             >
               Edit

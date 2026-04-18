@@ -16,7 +16,6 @@ import { PLANS, VENUE_PRESETS } from '../../lib/constants'
 import SettingsSection from './SettingsSection'
 import RolesSection from './RolesSection'
 import NotificationsPanel from './NotificationsPanel'
-import StaffMembersSection from './StaffMembersSection'
 import VenuesSection from './VenuesSection'
 
 const VENUE_TYPE_ICONS = { cafe: '\u2615', pub: '\uD83C\uDF7A', restaurant: '\uD83C\uDF7D\uFE0F', hotel: '\uD83C\uDFE8' }
@@ -354,9 +353,6 @@ export default function SettingsPage() {
           </div>
         </div>
       </SettingsSection>
-
-      {/* ── Staff Members ──────────────────────────────────────────────────── */}
-      <StaffMembersSection />
 
       {/* ── Roles & Skills ─────────────────────────────────────────────────── */}
       <SettingsSection

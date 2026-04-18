@@ -136,6 +136,15 @@ export default function OnboardingPage() {
     navigate(`/v/${venueSlug}/dashboard`)
   }
 
+  const skipSetup = async () => {
+    await supabase.from('app_settings').upsert({
+      venue_id: venueId,
+      key: 'onboarding_complete',
+      value: 'true',
+    })
+    navigate(`/v/${venueSlug}/dashboard`, { replace: true })
+  }
+
   const canAdvance = () => {
     if (step === 0) return !!selectedPreset
     return true
@@ -332,6 +341,18 @@ export default function OnboardingPage() {
             {step === 3 ? (saving ? 'Setting up...' : 'Go to Dashboard') : 'Continue'}
           </button>
         </div>
+
+        {/* Skip setup entirely — for existing venues that don't need onboarding */}
+        {step < 3 && (
+          <div className="text-center mt-4">
+            <button
+              onClick={skipSetup}
+              className="text-xs text-charcoal/35 hover:text-charcoal/60 transition-colors"
+            >
+              Already set up? Skip this →
+            </button>
+          </div>
+        )}
       </div>
     </div>
   )

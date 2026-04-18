@@ -27,6 +27,9 @@ const SignupFlowPage = lazy(() => import('./pages/signup/SignupFlowPage'))
 // Onboarding
 const OnboardingPage = lazy(() => import('./pages/onboarding/OnboardingPage'))
 
+// Staff management
+const StaffPage = lazy(() => import('./pages/staff/StaffPage'))
+
 // Dashboard (role-aware)
 const DashboardPage = lazy(() => import('./pages/DashboardPage'))
 
@@ -244,6 +247,7 @@ function VenueRoutes() {
             <Route path="waste"              element={wrapPerm(WasteLogPage,       'log_waste', 'waste')} />
             <Route path="orders"             element={wrapPerm(SupplierOrdersPage, 'log_deliveries', 'orders')} />
             <Route path="settings"           element={wrap(SettingsPage,           RequireManager)} />
+            <Route path="staff"             element={wrap(StaffPage,              RequireManager)} />
 
             <Route path="*" element={<NotFoundPage />} />
           </Routes>

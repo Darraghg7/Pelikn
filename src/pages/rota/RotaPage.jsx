@@ -230,26 +230,36 @@ export default function RotaPage() {
   const emailRota = async () => {
     setEmailing(true)
     const weekStartStr = format(weekStart, 'yyyy-MM-dd')
-    const { error } = await supabase.functions.invoke('send-rota-email', {
-      body: { weekStart: weekStartStr },
-    })
-    setEmailing(false)
-    if (error) { toast('Failed to send: ' + error.message, 'error'); return }
-    toast('Rota published ✓')
 
-    // Push notification to all staff on this week's rota
+    // 1. Save published state — this is the authoritative "publish" action
+    const { error: saveErr } = await supabase.from('app_settings').upsert({
+      venue_id: venueId,
+      key: `rota_published_${weekStartStr}`,
+      value: new Date().toISOString(),
+    })
+    if (saveErr) { toast('Failed to publish: ' + saveErr.message, 'error'); setEmailing(false); return }
+
+    // 2. Push notification to all staff on this week's rota (fire-and-forget, not blocking)
     const staffIds = [...new Set(shifts.map(s => s.staff_id).filter(Boolean))]
     if (staffIds.length) {
       supabase.functions.invoke('send-push', {
         body: {
           venueId,
           title: 'Rota Published',
-          body:  `Your rota for the week of ${weekStartStr} is now available.`,
-          url:   '/rota',
+          body: `Your rota for the week of ${weekStartStr} is now available.`,
+          url: '/rota',
           staffIds,
         },
       }).catch(() => {})
     }
+
+    // 3. Email best-effort — doesn't block or fail the publish
+    supabase.functions.invoke('send-rota-email', {
+      body: { weekStart: weekStartStr },
+    }).catch(() => {})
+
+    setEmailing(false)
+    toast('Rota published ✓')
   }
 
   // ── Staff: submit swap request ──

@@ -16,7 +16,7 @@ export default function FoodItemFormPage() {
   const isEdit   = Boolean(id)
   const navigate = useNavigate()
   const toast    = useToast()
-  const { venueId } = useVenue()
+  const { venueId, venueSlug } = useVenue()
 
   const { item, loading } = useFoodItem(id)
 
@@ -55,7 +55,7 @@ export default function FoodItemFormPage() {
         )
       }
       toast('Item updated')
-      navigate(`/allergens/${id}`)
+      navigate(`/v/${venueSlug}/allergens/${id}`)
     } else {
       const { data: newItem, error: itemErr } = await supabase
         .from('food_items')
@@ -69,7 +69,7 @@ export default function FoodItemFormPage() {
         )
       }
       toast('Item added')
-      navigate('/allergens')
+      navigate(`/v/${venueSlug}/allergens`)
     }
     setSubmitting(false)
   }
@@ -81,7 +81,7 @@ export default function FoodItemFormPage() {
 
       <div className="flex items-center gap-4">
         <Link
-          to={isEdit ? `/allergens/${id}` : '/allergens'}
+          to={isEdit ? `/v/${venueSlug}/allergens/${id}` : `/v/${venueSlug}/allergens`}
           className="text-charcoal/40 hover:text-charcoal transition-colors text-lg"
         >
           ←

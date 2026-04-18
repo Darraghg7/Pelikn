@@ -158,7 +158,7 @@ export default function AllergenRegistryPage() {
             action={
               isManager && (
                 <Link
-                  to="/allergens/new"
+                  to={`/v/${venueSlug}/allergens/new`}
                   className="bg-charcoal text-cream px-4 py-1.5 rounded-lg text-xs font-medium hover:bg-charcoal/90 transition-colors"
                 >
                   + Add Dish
@@ -201,7 +201,7 @@ export default function AllergenRegistryPage() {
 
                   <div className="flex items-center gap-2 shrink-0">
                     <Link
-                      to={`/allergens/${item.id}`}
+                      to={`/v/${venueSlug}/allergens/${item.id}`}
                       className="text-xs text-charcoal/50 hover:text-charcoal border border-charcoal/15 px-2.5 py-1 rounded-md hover:border-charcoal/30 transition-colors"
                     >
                       View
@@ -209,7 +209,7 @@ export default function AllergenRegistryPage() {
                     {isManager && (
                       <>
                         <Link
-                          to={`/allergens/${item.id}/edit`}
+                          to={`/v/${venueSlug}/allergens/${item.id}/edit`}
                           className="text-xs text-charcoal/50 hover:text-charcoal border border-charcoal/15 px-2.5 py-1 rounded-md hover:border-charcoal/30 transition-colors"
                         >
                           Edit

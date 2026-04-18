@@ -29,7 +29,7 @@ function nowDatetimeLocal() {
 export default function FridgeLogFormPage() {
   const navigate = useNavigate()
   const toast    = useToast()
-  const { venueId }         = useVenue()
+  const { venueId, venueSlug } = useVenue()
   const { fridges, loading } = useFridges()
   const { session, isManager } = useSession()
 
@@ -83,7 +83,7 @@ export default function FridgeLogFormPage() {
     setSubmitting(false)
     if (error) { toast(error.message, 'error'); return }
     toast(isPastEntry ? 'Past reading logged ✓' : 'Temperature logged ✓')
-    navigate('/fridge/history')
+    navigate(`/v/${venueSlug}/fridge`)
   }
 
   if (loading) return <div className="flex justify-center pt-20"><LoadingSpinner size="lg" /></div>
@@ -92,7 +92,7 @@ export default function FridgeLogFormPage() {
     <div className="flex flex-col gap-6 max-w-xl">
 
       <div className="flex items-center gap-4">
-        <Link to="/fridge" className="text-charcoal/40 hover:text-charcoal transition-colors text-lg">←</Link>
+        <Link to={`/v/${venueSlug}/fridge`} className="text-charcoal/40 hover:text-charcoal transition-colors text-lg">←</Link>
         <div>
           <h1 className="font-serif text-3xl text-brand">Log Temperature</h1>
           <p className="text-xs text-charcoal/40 mt-0.5">You can backdate entries if the check was done earlier</p>
