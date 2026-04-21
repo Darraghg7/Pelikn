@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import { format, addWeeks, addDays, eachDayOfInterval, parseISO } from 'date-fns'
+import { format, addWeeks, eachDayOfInterval, parseISO } from 'date-fns'
 import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
 import { useShifts, useStaffList, shiftDurationHours, paidShiftHours, unpaidBreakMins } from '../../hooks/useShifts'
@@ -14,6 +14,7 @@ import { SHIFT_PRESETS } from '../../lib/constants'
 import { useAppSettings } from '../../hooks/useSettings'
 import { useVenueRoles } from '../../hooks/useVenueRoles'
 import RotaWeekView from './RotaWeekView'
+import { shareRotaImage } from '../../lib/rotaImageExport'
 import RotaBuilderModal from './RotaBuilderModal'
 import RotaAIModal from './RotaAIModal'
 import RotaConfigModal from './RotaConfigModal'
@@ -36,7 +37,7 @@ function fmtGBP(n) { return `£${Number(n).toFixed(2)}` }
 
 export default function RotaPage() {
   const toast = useToast()
-  const { venueId } = useVenue()
+  const { venueId, venueName } = useVenue()
   const { session, isManager } = useSession()
 
   const [weekStart, setWeekStart] = useState(() => getWeekStart())
@@ -143,6 +144,7 @@ export default function RotaPage() {
   const [form, setForm]           = useState({ staffId: '', startTime: '09:00', endTime: '17:00', roleLabel: 'Chef' })
   const [saving, setSaving]       = useState(false)
   const [emailing, setEmailing]   = useState(false)
+  const [sharing, setSharing]     = useState(false)
 
   // Staff swap request modal state
   const [swapModal, setSwapModal]   = useState(null) // { staffMember, date, shift }
@@ -187,8 +189,8 @@ export default function RotaPage() {
     setEditShift(sh)
     setForm({
       staffId:   sh.staff_id,
-      startTime: sh.start_time.slice(0, 5),
-      endTime:   sh.end_time.slice(0, 5),
+      startTime: sh.start_time?.slice(0, 5) ?? '09:00',
+      endTime:   sh.end_time?.slice(0, 5) ?? '17:00',
       roleLabel: sh.role_label,
     })
   }
@@ -347,30 +349,32 @@ export default function RotaPage() {
     reloadSwaps()
   }
 
-  // ── WhatsApp rota share ──
-  const shareViaWhatsApp = () => {
-    const currentShifts = shifts.filter(
-      (sh) => sh.week_start === format(weekStart, 'yyyy-MM-dd')
-    )
-    const lines = [`SafeServ Rota — Week of ${format(weekStart, 'EEE d MMM')}\n`]
-    for (let d = 0; d < 7; d++) {
-      const date    = addDays(weekStart, d)
-      const dateStr = format(date, 'yyyy-MM-dd')
-      const dayShifts = currentShifts.filter((sh) => sh.shift_date === dateStr)
-      if (dayShifts.length === 0) continue
-      lines.push(`${format(date, 'EEEE d MMM')}`)
-      for (const sh of dayShifts) {
-        const staffMember = staff.find((s) => s.id === sh.staff_id)
-        const name  = staffMember?.name ?? 'Unknown'
-        const start = sh.start_time?.slice(0, 5) ?? ''
-        const end   = sh.end_time?.slice(0, 5) ?? ''
-        const role  = sh.role_label ? ` (${sh.role_label})` : ''
-        lines.push(`• ${name} — ${start}–${end}${role}`)
+  // ── WhatsApp rota share — exports an image of the rota ──
+  const shareViaWhatsApp = async () => {
+    if (sharing) return
+    setSharing(true)
+    try {
+      const days = getWeekDays(weekStart)
+      const currentShifts = shifts.filter(
+        (sh) => sh.week_start === format(weekStart, 'yyyy-MM-dd')
+      )
+      const result = await shareRotaImage({
+        venueName,
+        weekStart,
+        days,
+        shifts: currentShifts,
+        staff,
+        closedDays,
+        closedDates,
+      })
+      if (result === 'downloaded') {
+        toast('Rota image saved — share it on WhatsApp from your downloads')
       }
-      lines.push('')
+    } catch {
+      toast('Could not export rota image', 'error')
+    } finally {
+      setSharing(false)
     }
-    const text = lines.join('\n')
-    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank', 'noopener,noreferrer')
   }
 
   // ── Builder: batch save ──
@@ -437,10 +441,10 @@ export default function RotaPage() {
                 </button>
                 <button
                   onClick={shareViaWhatsApp}
-                  disabled={shifts.length === 0}
+                  disabled={shifts.length === 0 || sharing}
                   className="text-[11px] tracking-widest uppercase text-green-600/70 hover:text-green-600 transition-colors border-b border-green-500/30 disabled:opacity-30 disabled:cursor-not-allowed"
                 >
-                  WhatsApp
+                  {sharing ? 'Exporting…' : '↗ Share'}
                 </button>
                 <button
                   onClick={enterClosureMode}
@@ -762,7 +766,7 @@ export default function RotaPage() {
                     <div key={sh.id} className="flex items-center justify-between bg-white rounded-lg px-3 py-2.5 border border-charcoal/8">
                       <div>
                         <p className="font-semibold text-charcoal text-sm font-mono">
-                          {sh.start_time.slice(0,5)} – {sh.end_time.slice(0,5)}
+                          {sh.start_time?.slice(0,5) ?? ''} – {sh.end_time?.slice(0,5) ?? ''}
                           <span className="font-sans font-normal text-charcoal/40 text-xs ml-2">
                             {fmtDuration(sh.start_time, sh.end_time)}
                           </span>
@@ -890,6 +894,13 @@ export default function RotaPage() {
                 )}
               </div>
 
+              {/* Validation message */}
+              {!duration && (
+                <p className="text-xs text-danger/70 -mt-2">
+                  End time must be after start time to save this shift.
+                </p>
+              )}
+
               {/* Action buttons */}
               <div className="flex items-center justify-between pt-1 border-t border-charcoal/8">
                 {editShift ? (
@@ -970,7 +981,7 @@ export default function RotaPage() {
             <div>
               <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-1">Request Shift Swap</p>
               <h3 className="font-semibold text-charcoal text-lg">
-                {swapModal.shift.start_time.slice(0,5)} – {swapModal.shift.end_time.slice(0,5)}
+                {swapModal.shift.start_time?.slice(0,5) ?? ''} – {swapModal.shift.end_time?.slice(0,5) ?? ''}
               </h3>
               <p className="text-sm text-charcoal/50 mt-0.5">
                 {format(swapModal.date, 'EEEE d MMMM')} · {swapModal.shift.role_label}
