@@ -18,7 +18,7 @@ const NAME_W   = 152
 const DAY_W    = 104
 const HDR_H    = 72
 const DAY_HDR_H = 50
-const CHIP_H   = 22
+const CHIP_H   = 18
 const CHIP_GAP = 4
 const CHIP_PAD = 10
 const FOOTER_H = 32
@@ -230,13 +230,6 @@ export function buildRotaCanvas({ venueName, weekStart, days, shifts, staff, clo
         ctx.font = `600 11px system-ui,-apple-system,sans-serif`
         ctx.textAlign = 'center'
         ctx.fillText(timeStr, chipX + chipW / 2, chipY + 14)
-
-        if (sh.role_label) {
-          ctx.fillStyle = 'rgba(255,255,255,0.6)'
-          ctx.font = `400 9px system-ui,-apple-system,sans-serif`
-          const rl = sh.role_label.length > 14 ? sh.role_label.slice(0, 13) + '…' : sh.role_label
-          ctx.fillText(rl, chipX + chipW / 2, chipY + CHIP_H - 4)
-        }
 
         ctx.textAlign = 'left'
       })
