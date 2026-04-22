@@ -183,8 +183,11 @@ function LandingRoute() {
   if (authLoading) return <FullPageLoader />
   // Supabase-authenticated manager — jump straight into the app
   if (user && venueSlug) return <Navigate to={`/v/${venueSlug}`} replace />
-  // Everyone else (new user, logged-out user) sees the login form.
-  // LandingPage itself handles the PWA relaunch redirect for PIN-session staff.
+  // Staff with a saved PIN session — skip the landing page and go straight to
+  // their venue's PIN login screen (SessionContext will restore their session)
+  const staffToken = localStorage.getItem('safeserv_staff_token')
+  const staffSlug  = localStorage.getItem('safeserv_venue_slug')
+  if (staffToken && staffSlug) return <Navigate to={`/v/${staffSlug}`} replace />
   return <LandingPage />
 }
 
@@ -203,7 +206,8 @@ function VenueRoutes() {
       <SessionProvider>
         <ToastProvider>
           <Routes>
-            {/* Login page for this venue */}
+            {/* Staff PIN login — publicly accessible, no Supabase Auth needed.
+                venues + staff tables have public_read RLS policies. */}
             <Route index element={<LoginPage />} />
 
             {/* Onboarding wizard — shown once after signup */}
@@ -280,12 +284,8 @@ export default function App() {
           {/* Login — redirects to venue if already authenticated */}
           <Route path="/login" element={<LandingRoute />} />
 
-          {/* Venue-scoped app — requires Supabase Auth */}
-          <Route path="/v/:venueSlug/*" element={
-            <RequireVenueAuth>
-              <VenueRoutes />
-            </RequireVenueAuth>
-          } />
+          {/* Venue-scoped app — PIN login is public; inner routes need RequireAuth */}
+          <Route path="/v/:venueSlug/*" element={<VenueRoutes />} />
 
           {/* Legacy redirects for old bookmarks */}
           <Route path="/dashboard"       element={<LegacyRedirect />} />

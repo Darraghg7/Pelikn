@@ -6,6 +6,38 @@ import { useVenue } from '../contexts/VenueContext'
 import { useAuth } from '../contexts/AuthContext'
 import { FullPageLoader } from '../components/ui/LoadingSpinner'
 
+function VenuePicker({ venues, currentSlug, onSelect }) {
+  return (
+    <div className="flex flex-col gap-4">
+      <div>
+        <p className="text-[11px] tracking-widest font-semibold text-charcoal/40 uppercase mb-1">
+          Where are you working today?
+        </p>
+      </div>
+      <div className="flex flex-col gap-2">
+        {venues.map(v => (
+          <button
+            key={v.id}
+            type="button"
+            onClick={() => onSelect(v)}
+            className={[
+              'w-full flex items-center justify-between px-4 py-3 rounded-xl border text-left transition-all',
+              v.slug === currentSlug
+                ? 'border-accent bg-accent/5 ring-1 ring-accent'
+                : 'border-charcoal/10 hover:border-charcoal/25 bg-white',
+            ].join(' ')}
+          >
+            <span className="font-semibold text-charcoal text-sm">{v.name}</span>
+            {v.slug === currentSlug && (
+              <span className="text-[11px] uppercase tracking-widest font-medium text-accent">Here</span>
+            )}
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 const ROLE_LABEL = {
   owner:   'Owner',
   manager: 'Manager',
@@ -13,23 +45,27 @@ const ROLE_LABEL = {
 }
 
 export default function LoginPage() {
-  const { signIn, signOut, session, loading } = useSession()
+  const { signIn, signOut, switchVenue, session, loading } = useSession()
   const { venueId, venueSlug, venueName } = useVenue()
   const { signOutVenue } = useAuth()
   const navigate = useNavigate()
 
   const [staff, setStaff]             = useState([])
   const [staffLoading, setStaffLoading] = useState(true)
-  const [selected, setSelected]       = useState(null)   // staff row
+  const [selected, setSelected]       = useState(null)
   const [pin, setPin]                 = useState('')
   const [error, setError]             = useState('')
   const [submitting, setSubmitting]   = useState(false)
+  const [pickerVenues, setPickerVenues] = useState(null) // null = no picker
+  const [switching, setSwitching]     = useState(false)
   const pinRef = useRef(null)
 
-  // Redirect if already logged in
+  // Redirect if session was restored on app load (not a fresh login)
   useEffect(() => {
-    if (!loading && session) navigate(`/v/${venueSlug}/dashboard`, { replace: true })
-  }, [loading, session, navigate, venueSlug])
+    if (!loading && session && !pickerVenues) {
+      navigate(`/v/${venueSlug}/dashboard`, { replace: true })
+    }
+  }, [loading, session, navigate, venueSlug, pickerVenues])
 
   // Fetch staff — load from cache immediately, fetch fresh in background
   useEffect(() => {
@@ -76,14 +112,35 @@ export default function LoginPage() {
     if (!selected || pin.length < 4) return
     setSubmitting(true)
     setError('')
-    const { error: err } = await signIn(selected.id, pin, venueId, venueSlug)
+    const { error: err, linkedVenues } = await signIn(selected.id, pin, venueId, venueSlug)
     if (err) {
       setError('Incorrect PIN — try again')
       setPin('')
       setSubmitting(false)
       pinRef.current?.focus()
+      return
     }
-    // On success SessionContext sets session -> useEffect above redirects
+    // linkedVenues now includes primary + all linked venues (migration 054)
+    if ((linkedVenues ?? []).length > 1) {
+      setPickerVenues(linkedVenues)
+      setSubmitting(false)
+      return
+    }
+    // Single venue — redirect immediately (session is set, useEffect fires)
+  }
+
+  const handlePickVenue = async (venue) => {
+    if (venue.slug === venueSlug) {
+      navigate(`/v/${venueSlug}/dashboard`, { replace: true })
+      return
+    }
+    setSwitching(true)
+    const { error: err } = await switchVenue(venue.id, venue.slug)
+    if (err) {
+      setSwitching(false)
+      return
+    }
+    window.location.replace(`/v/${venue.slug}/dashboard`)
   }
 
   if (loading) return <FullPageLoader />
@@ -103,8 +160,23 @@ export default function LoginPage() {
 
       <div className="w-full max-w-sm bg-white rounded-2xl shadow-sm border border-charcoal/8 p-6 flex flex-col gap-6">
 
-        {/* Staff picker */}
-        <div>
+        {/* Venue picker — shown after login when staff work at multiple venues */}
+        {pickerVenues && (
+          <VenuePicker
+            venues={pickerVenues}
+            currentSlug={venueSlug}
+            onSelect={handlePickVenue}
+          />
+        )}
+
+        {switching && (
+          <div className="flex justify-center py-4">
+            <div className="w-5 h-5 rounded-full border-2 border-charcoal/15 border-t-brand animate-spin" />
+          </div>
+        )}
+
+        {/* Staff picker + PIN — hidden while showing venue picker */}
+        {!pickerVenues && !switching && <div>
           <p className="text-[11px] tracking-widest font-semibold text-charcoal/40 uppercase mb-3">
             Select Staff Member
           </p>
@@ -148,40 +220,40 @@ export default function LoginPage() {
               </button>
             ))}
           </div>
-        </div>
 
-        {/* PIN entry — shown once a staff member is selected */}
-        {selected && (
-          <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-            <div>
-              <p className="text-[11px] tracking-widest font-semibold text-charcoal/40 uppercase mb-2">PIN</p>
-              <input
-                ref={pinRef}
-                type="password"
-                inputMode="numeric"
-                maxLength={6}
-                value={pin}
-                onChange={(e) => { setPin(e.target.value.replace(/\D/g, '')); setError('') }}
-                placeholder="Enter PIN"
-                className={[
-                  'w-full px-4 py-3 rounded-xl border bg-white text-charcoal text-sm font-mono tracking-[0.4em] placeholder:tracking-normal placeholder:font-sans placeholder:text-charcoal/30 outline-none transition-colors',
-                  error ? 'border-red-400 focus:border-red-400' : 'border-charcoal/15 focus:border-brand dark:focus:border-accent',
-                ].join(' ')}
-              />
-              {error && (
-                <p className="text-red-500 text-xs mt-1.5">{error}</p>
-              )}
-            </div>
+          {/* PIN entry — shown once a staff member is selected */}
+          {selected && (
+            <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+              <div>
+                <p className="text-[11px] tracking-widest font-semibold text-charcoal/40 uppercase mb-2">PIN</p>
+                <input
+                  ref={pinRef}
+                  type="password"
+                  inputMode="numeric"
+                  maxLength={6}
+                  value={pin}
+                  onChange={(e) => { setPin(e.target.value.replace(/\D/g, '')); setError('') }}
+                  placeholder="Enter PIN"
+                  className={[
+                    'w-full px-4 py-3 rounded-xl border bg-white text-charcoal text-sm font-mono tracking-[0.4em] placeholder:tracking-normal placeholder:font-sans placeholder:text-charcoal/30 outline-none transition-colors',
+                    error ? 'border-red-400 focus:border-red-400' : 'border-charcoal/15 focus:border-brand dark:focus:border-accent',
+                  ].join(' ')}
+                />
+                {error && (
+                  <p className="text-red-500 text-xs mt-1.5">{error}</p>
+                )}
+              </div>
 
-            <button
-              type="submit"
-              disabled={pin.length < 4 || submitting}
-              className="w-full bg-brand text-cream py-3 rounded-xl text-sm font-semibold tracking-wide hover:bg-brand/90 dark:bg-charcoal dark:hover:bg-charcoal/85 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-            >
-              {submitting ? 'Signing in...' : 'Sign In'}
-            </button>
-          </form>
-        )}
+              <button
+                type="submit"
+                disabled={pin.length < 4 || submitting}
+                className="w-full bg-brand text-cream py-3 rounded-xl text-sm font-semibold tracking-wide hover:bg-brand/90 dark:bg-charcoal dark:hover:bg-charcoal/85 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                {submitting ? 'Signing in...' : 'Sign In'}
+              </button>
+            </form>
+          )}
+        </div>}
       </div>
 
       {/* Sign out of venue — returns device to landing page */}

@@ -429,13 +429,17 @@ function TodaySummaryCard({ venueId }) {
 }
 
 /* ── Push notification opt-in banner ─────────────────────────────────────── */
-const PUSH_DISMISS_KEY = 'safeserv_push_dismissed'
+function pushDismissKey(staffId) { return `safeserv_push_dismissed_${staffId ?? 'anon'}` }
 
 function PushBanner({ staffId, venueId }) {
   const { permission, subscribe, supported, subscribed } = usePushNotifications(staffId, venueId)
-  const [dismissed, setDismissed] = useState(
-    () => localStorage.getItem(PUSH_DISMISS_KEY) === '1'
-  )
+  const [dismissed, setDismissed] = useState(false)
+
+  // Re-read when staffId resolves (it may be null on first render)
+  useEffect(() => {
+    if (!staffId) return
+    setDismissed(localStorage.getItem(pushDismissKey(staffId)) === '1')
+  }, [staffId])
 
   if (!supported || permission === 'denied' || subscribed || dismissed) return null
 
@@ -455,7 +459,7 @@ function PushBanner({ staffId, venueId }) {
           Enable
         </button>
         <button
-          onClick={() => { localStorage.setItem(PUSH_DISMISS_KEY, '1'); setDismissed(true) }}
+          onClick={() => { localStorage.setItem(pushDismissKey(staffId), '1'); setDismissed(true) }}
           className="text-xs text-charcoal/30 hover:text-charcoal transition-colors"
         >
           Dismiss
@@ -465,12 +469,12 @@ function PushBanner({ staffId, venueId }) {
   )
 }
 
-const SETUP_DISMISS_KEY = 'safeserv_setup_dismissed'
+function setupDismissKey(venueId) { return `safeserv_setup_dismissed_v_${venueId ?? 'unknown'}` }
 
-function GettingStartedCard({ venueId, venueSlug }) {
+function GettingStartedCard({ venueId, venueSlug, staffId }) {
   const [checklist, setChecklist] = useState(null)
   const [dismissed, setDismissed] = useState(() =>
-    localStorage.getItem(SETUP_DISMISS_KEY) === '1'
+    localStorage.getItem(`safeserv_setup_dismissed_v_${venueId ?? 'unknown'}`) === '1'
   )
   const { isEnabled } = useVenueFeatures()
 
@@ -486,12 +490,12 @@ function GettingStartedCard({ venueId, venueSlug }) {
   // Listen for reopen event from settings page
   useEffect(() => {
     const handler = () => {
-      localStorage.removeItem(SETUP_DISMISS_KEY)
+      localStorage.removeItem(setupDismissKey(venueId))
       setDismissed(false)
     }
     window.addEventListener('safeserv:reopen-setup', handler)
     return () => window.removeEventListener('safeserv:reopen-setup', handler)
-  }, [])
+  }, [venueId])
 
   if (checklist === null || dismissed) return null
 
@@ -515,7 +519,7 @@ function GettingStartedCard({ venueId, venueSlug }) {
           <p className="text-sm font-semibold text-charcoal">Getting Started</p>
           <p className="text-[11px] text-charcoal/40 mt-0.5">{completed} of {items.length} complete</p>
         </div>
-        <button onClick={() => { localStorage.setItem(SETUP_DISMISS_KEY, '1'); setDismissed(true) }} className="text-charcoal/25 hover:text-charcoal/50 transition-colors text-lg">&times;</button>
+        <button onClick={() => { localStorage.setItem(setupDismissKey(venueId), '1'); setDismissed(true) }} className="text-charcoal/25 hover:text-charcoal/50 transition-colors text-lg">&times;</button>
       </div>
       <div className="h-1 bg-charcoal/8 rounded-full mb-4 overflow-hidden">
         <div className="h-full bg-brand rounded-full transition-all" style={{ width: `${(completed / items.length) * 100}%` }} />
@@ -594,7 +598,7 @@ export default function ManagerDashboardPage() {
 
       {/* Push notification opt-in banner */}
       <PushBanner staffId={session?.staffId} venueId={venueId} />
-      <GettingStartedCard venueId={venueId} venueSlug={venueSlug} />
+      <GettingStartedCard venueId={venueId} venueSlug={venueSlug} staffId={session?.staffId} />
 
       {/* Desktop: today summary + clock side by side */}
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-4 items-start">

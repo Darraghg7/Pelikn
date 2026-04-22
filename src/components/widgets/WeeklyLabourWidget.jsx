@@ -28,6 +28,7 @@ function WeeklyLabourWidget() {
       let totalHrs = 0
       let totalCost = 0
       for (const s of items) {
+        if (!s.start_time || !s.end_time) continue
         const [sh, sm] = s.start_time.split(':').map(Number)
         const [eh, em] = s.end_time.split(':').map(Number)
         const hrs = Math.max(0, ((eh * 60 + em) - (sh * 60 + sm)) / 60)

@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
+import { supabase } from '../lib/supabase'
 
 export const LAST_VENUE_KEY = 'safeserv_last_venue'
 
@@ -67,7 +68,11 @@ export default function LandingPage() {
   const [error, setError]               = useState('')
   const [loading, setLoading]           = useState(false)
   const [pendingVenues, setPendingVenues] = useState(null)
-  const [view, setView]                 = useState('welcome') // 'welcome' | 'signin' | 'picker'
+  const [view, setView]                 = useState('welcome') // 'welcome' | 'signin' | 'join' | 'picker'
+
+  const [joinCode, setJoinCode]         = useState('')
+  const [joinError, setJoinError]       = useState('')
+  const [joinLoading, setJoinLoading]   = useState(false)
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -101,8 +106,24 @@ export default function LandingPage() {
     window.location.replace(`/v/${slug}`)
   }
 
+  const handleJoin = async (e) => {
+    e.preventDefault()
+    const code = joinCode.trim().toUpperCase()
+    if (!code) return
+    setJoinLoading(true)
+    setJoinError('')
+    const { data, error: err } = await supabase.rpc('get_venue_by_code', { p_code: code })
+    setJoinLoading(false)
+    if (err || !data?.length) {
+      setJoinError('Code not found — check with your manager')
+      return
+    }
+    navigate(`/v/${data[0].slug}`)
+  }
+
   const openSignIn = () => { setView('signin'); setError('') }
-  const closeSheet = () => { setView('welcome'); setError('') }
+  const openJoin   = () => { setView('join'); setJoinCode(''); setJoinError('') }
+  const closeSheet = () => { setView('welcome'); setError(''); setJoinError('') }
 
   if (authLoading) {
     return (
@@ -112,7 +133,7 @@ export default function LandingPage() {
     )
   }
 
-  const isSheetOpen = view === 'signin' || view === 'picker'
+  const isSheetOpen = view === 'signin' || view === 'join' || view === 'picker'
 
   return (
     <div className="min-h-dvh bg-brand font-sans flex flex-col">
@@ -152,6 +173,12 @@ export default function LandingPage() {
           >
             Sign In
           </button>
+          <button
+            onClick={openJoin}
+            className="w-full text-white/50 text-sm font-medium py-2 hover:text-white/80 transition-colors"
+          >
+            Join with venue code
+          </button>
         </div>
       </div>
 
@@ -185,6 +212,12 @@ export default function LandingPage() {
                 className="w-full border border-charcoal/15 text-charcoal rounded-xl py-3.5 text-sm font-semibold hover:border-charcoal/30 transition-colors"
               >
                 Sign In
+              </button>
+              <button
+                onClick={openJoin}
+                className="w-full text-charcoal/40 text-sm font-medium py-1.5 hover:text-charcoal/70 transition-colors"
+              >
+                Join with venue code
               </button>
             </div>
           )}
@@ -239,6 +272,44 @@ export default function LandingPage() {
             </>
           )}
 
+          {view === 'join' && (
+            <>
+              <div>
+                <h2 className="font-serif text-charcoal text-xl">Join a venue</h2>
+                <p className="text-xs text-charcoal/40 mt-1">Enter the code your manager shared with you</p>
+              </div>
+              <form onSubmit={handleJoin} className="flex flex-col gap-4">
+                <div>
+                  <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1.5">Venue Code</label>
+                  <input
+                    type="text"
+                    autoComplete="off"
+                    autoCapitalize="characters"
+                    maxLength={6}
+                    value={joinCode}
+                    onChange={(e) => { setJoinCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '')); setJoinError('') }}
+                    placeholder="e.g. NOMAD23"
+                    className="w-full px-4 py-3 rounded-xl border border-charcoal/15 bg-white text-sm text-charcoal font-mono tracking-widest placeholder:tracking-normal placeholder:font-sans placeholder:text-charcoal/25 outline-none focus:border-brand transition-colors uppercase"
+                  />
+                  {joinError && <p className="text-red-500 text-xs mt-1.5">{joinError}</p>}
+                </div>
+                <button
+                  type="submit"
+                  disabled={joinLoading || joinCode.length < 4}
+                  className="w-full bg-brand text-cream py-3.5 rounded-xl text-sm font-semibold tracking-wide hover:bg-brand/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  {joinLoading ? 'Looking up…' : 'Continue →'}
+                </button>
+              </form>
+              <div className="text-center">
+                <button type="button" onClick={closeSheet}
+                  className="text-xs text-charcoal/35 hover:text-charcoal/60 transition-colors">
+                  ← Back
+                </button>
+              </div>
+            </>
+          )}
+
           {view === 'picker' && pendingVenues && (
             <VenuePicker venues={pendingVenues} onSelect={handlePickVenue} />
           )}
@@ -268,6 +339,43 @@ export default function LandingPage() {
         <div className="px-6 pt-4 pb-6 flex flex-col gap-5">
           {view === 'picker' && pendingVenues ? (
             <VenuePicker venues={pendingVenues} onSelect={handlePickVenue} />
+          ) : view === 'join' ? (
+            <>
+              <div>
+                <h2 className="font-serif text-charcoal text-xl">Join a venue</h2>
+                <p className="text-xs text-charcoal/40 mt-1">Enter the code your manager shared with you</p>
+              </div>
+              <form onSubmit={handleJoin} className="flex flex-col gap-4">
+                <div>
+                  <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1.5">Venue Code</label>
+                  <input
+                    type="text"
+                    autoComplete="off"
+                    autoCapitalize="characters"
+                    autoFocus
+                    maxLength={6}
+                    value={joinCode}
+                    onChange={(e) => { setJoinCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '')); setJoinError('') }}
+                    placeholder="e.g. NOMAD23"
+                    className="w-full px-4 py-3 rounded-xl border border-charcoal/15 bg-white text-sm text-charcoal font-mono tracking-widest placeholder:tracking-normal placeholder:font-sans placeholder:text-charcoal/25 outline-none focus:border-brand transition-colors uppercase"
+                  />
+                  {joinError && <p className="text-red-500 text-xs mt-1.5">{joinError}</p>}
+                </div>
+                <button
+                  type="submit"
+                  disabled={joinLoading || joinCode.length < 4}
+                  className="w-full bg-brand text-cream py-3.5 rounded-xl text-sm font-semibold tracking-wide hover:bg-brand/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  {joinLoading ? 'Looking up…' : 'Continue →'}
+                </button>
+              </form>
+              <div className="text-center">
+                <button type="button" onClick={closeSheet}
+                  className="text-xs text-charcoal/35 hover:text-charcoal/60 transition-colors">
+                  ← Back
+                </button>
+              </div>
+            </>
           ) : (
             <>
               <div>

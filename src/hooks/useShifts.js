@@ -80,6 +80,7 @@ export function useStaffList() {
 
 /** Compute shift duration in decimal hours from HH:mm strings. */
 export function shiftDurationHours(startTime, endTime) {
+  if (!startTime || !endTime) return 0
   const [sh, sm] = startTime.split(':').map(Number)
   const [eh, em] = endTime.split(':').map(Number)
   const startMins = sh * 60 + sm

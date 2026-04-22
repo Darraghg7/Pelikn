@@ -281,12 +281,86 @@ function AddSessionModal({ open, onClose, staffList, initialStaffId, initialDate
   )
 }
 
+// ── EditSessionModal ──────────────────────────────────────────────────────────
+
+function EditSessionModal({ open, onClose, session, venueId, onSaved }) {
+  const toast = useToast()
+  const [form, setForm] = useState({ clockIn: '', clockOut: '' })
+  const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    if (open && session) {
+      setForm({
+        clockIn:  session.in  ? format(parseISO(session.in),  'HH:mm') : '',
+        clockOut: session.out ? format(parseISO(session.out), 'HH:mm') : '',
+      })
+    }
+  }, [open, session])
+
+  const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
+
+  const save = async () => {
+    const { clockIn, clockOut } = form
+    if (!clockIn || !clockOut) { toast('Both clock in and clock out are required', 'error'); return }
+    if (clockOut <= clockIn)   { toast('Clock out must be after clock in', 'error'); return }
+
+    const date    = session.in.slice(0, 10)
+    const toISO   = (t) => new Date(`${date}T${t}:00`).toISOString()
+    const updates = []
+    if (session.inId)  updates.push(supabase.from('clock_events').update({ occurred_at: toISO(clockIn)  }).eq('id', session.inId))
+    if (session.outId) updates.push(supabase.from('clock_events').update({ occurred_at: toISO(clockOut) }).eq('id', session.outId))
+
+    setSaving(true)
+    const results = await Promise.all(updates)
+    setSaving(false)
+    const err = results.find(r => r.error)?.error
+    if (err) { toast(err.message, 'error'); return }
+    toast('Session updated')
+    onSaved()
+  }
+
+  return (
+    <Modal open={open} onClose={onClose} title="Edit Session">
+      <div className="flex flex-col gap-4">
+        <p className="text-xs text-charcoal/40">Editing clock-in and clock-out times. Break times are unchanged.</p>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1">Clock In</label>
+            <input
+              type="time"
+              value={form.clockIn}
+              onChange={e => set('clockIn', e.target.value)}
+              className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 bg-cream/30 text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+            />
+          </div>
+          <div>
+            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1">Clock Out</label>
+            <input
+              type="time"
+              value={form.clockOut}
+              onChange={e => set('clockOut', e.target.value)}
+              className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 bg-cream/30 text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+            />
+          </div>
+        </div>
+        <button
+          onClick={save}
+          disabled={saving}
+          className="bg-charcoal text-cream py-3 rounded-xl text-sm font-medium hover:bg-charcoal/90 transition-colors disabled:opacity-40 mt-1"
+        >
+          {saving ? 'Saving…' : 'Save Changes →'}
+        </button>
+      </div>
+    </Modal>
+  )
+}
+
 // ── DrillDownPanel ────────────────────────────────────────────────────────────
 
 const DrillDownPanel = memo(function DrillDownPanel({
   person, gridDays, shiftsForPerson, cleanupMinutes,
   breakDurationMins, isUnder18,
-  adminMode, onDeleteSession, onAddForPerson,
+  adminMode, onDeleteSession, onAddForPerson, onEditSession,
 }) {
   const shiftsByDate = useMemo(() => {
     const map = {}
@@ -404,13 +478,22 @@ const DrillDownPanel = memo(function DrillDownPanel({
                   })()}
 
                   {adminMode && (
-                    <button
-                      onClick={() => onDeleteSession(eventIds)}
-                      className="ml-1 text-danger/50 hover:text-danger text-[11px] border border-danger/20 hover:border-danger/50 rounded px-1.5 py-0.5 transition-colors leading-none shrink-0"
-                      title="Remove this session"
-                    >
-                      Remove
-                    </button>
+                    <>
+                      <button
+                        onClick={() => onEditSession(s)}
+                        className="ml-1 text-charcoal/45 hover:text-charcoal text-[11px] border border-charcoal/15 hover:border-charcoal/35 rounded px-1.5 py-0.5 transition-colors leading-none shrink-0"
+                        title="Edit this session"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => onDeleteSession(eventIds)}
+                        className="ml-1 text-danger/50 hover:text-danger text-[11px] border border-danger/20 hover:border-danger/50 rounded px-1.5 py-0.5 transition-colors leading-none shrink-0"
+                        title="Remove this session"
+                      >
+                        Remove
+                      </button>
+                    </>
                   )}
                 </div>
               )
@@ -510,6 +593,7 @@ export default function TimesheetPage() {
   const [expandedStaff, setExpandedStaff] = useState(null)
   const [adminMode,     setAdminMode]     = useState(false)
   const [addTarget,     setAddTarget]     = useState(null) // { staffId, date } | null
+  const [editTarget,    setEditTarget]    = useState(null) // session object | null
 
   const { venueId }      = useVenue()
   const { isManager }    = useSession()
@@ -657,6 +741,12 @@ export default function TimesheetPage() {
 
   const handleAdminSaved = useCallback(() => {
     setAddTarget(null)
+    gridReload()
+    reload()
+  }, [gridReload, reload])
+
+  const handleEditSaved = useCallback(() => {
+    setEditTarget(null)
     gridReload()
     reload()
   }, [gridReload, reload])
@@ -910,7 +1000,7 @@ export default function TimesheetPage() {
           <span className="flex items-center gap-1"><span className="text-red-500 font-bold">✗</span> Absent / significant shortfall</span>
           <span className="flex items-center gap-1"><span className="text-amber-600">⚠</span> Missing break</span>
           {!adminMode && <span className="italic">Click a name to drill down</span>}
-          {adminMode  && <span className="text-amber-600 font-medium">Click a name to expand · use Remove to delete sessions · + Add Session to insert new ones</span>}
+          {adminMode  && <span className="text-amber-600 font-medium">Click a name to expand · Edit or Remove sessions · + Add Session to insert new ones</span>}
         </div>
 
         {gridLoading ? (
@@ -1046,6 +1136,7 @@ export default function TimesheetPage() {
                               adminMode={adminMode}
                               onDeleteSession={deleteSession}
                               onAddForPerson={openAddModal}
+                              onEditSession={setEditTarget}
                             />
                           </td>
                         </tr>
@@ -1103,6 +1194,15 @@ export default function TimesheetPage() {
         initialDate={addTarget?.date ?? ''}
         venueId={venueId}
         onSaved={handleAdminSaved}
+      />
+
+      {/* Edit Session Modal */}
+      <EditSessionModal
+        open={!!editTarget}
+        onClose={() => setEditTarget(null)}
+        session={editTarget}
+        venueId={venueId}
+        onSaved={handleEditSaved}
       />
 
     </div>

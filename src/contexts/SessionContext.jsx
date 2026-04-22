@@ -122,8 +122,8 @@ export function SessionProvider({ children }) {
       supabase.rpc('validate_staff_session', { p_token: token }),
       8000
     )
-      .then(({ data: venueId, error }) => {
-        if (!error && venueId) {
+      .then(({ data: isValid, error }) => {
+        if (!error && isValid === true) {
           setSession(sessionFromStorage(token))
           // Restore linked venues from cache
           try {
@@ -166,6 +166,22 @@ export function SessionProvider({ children }) {
     }, TWELVE_HOURS)
 
     return () => clearInterval(id)
+  }, [session?.token])
+
+  // ── Foreground refresh — extend session when device wakes up ─────────────
+  // The 12h interval won't fire while the screen is off overnight. When the
+  // device comes back to foreground, refresh immediately so the token never
+  // lapses between the sleep period and the next scheduled refresh.
+  useEffect(() => {
+    if (!session?.token) return
+    const token = session.token
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        supabase.rpc('refresh_staff_session', { p_token: token }).catch(() => {})
+      }
+    }
+    document.addEventListener('visibilitychange', handleVisibility)
+    return () => document.removeEventListener('visibilitychange', handleVisibility)
   }, [session?.token])
 
   // ── Sign in ──────────────────────────────────────────────────────────────
@@ -272,8 +288,28 @@ export function SessionProvider({ children }) {
     setLinkedVenues(venues)
 
     setSession(newSession)
-    return { error: null }
+    return { error: null, linkedVenues: venues }
   }, [])
+
+  // ── Switch venue (multi-venue staff) ─────────────────────────────────────
+  // Creates a new session for the target venue using the current valid token
+  // as proof of identity — no PIN re-entry needed. Updates localStorage so
+  // the next page load (after a hard navigate) restores the right venue.
+  const switchVenue = useCallback(async (targetVenueId, targetVenueSlug) => {
+    const token = session?.token
+    if (!token) return { error: new Error('No active session') }
+
+    const { data: newToken, error } = await supabase.rpc('switch_staff_venue', {
+      p_token:    token,
+      p_venue_id: targetVenueId,
+    })
+    if (error || !newToken) return { error: error ?? new Error('Switch failed') }
+
+    localStorage.setItem(SESSION_TOKEN_KEY,      newToken)
+    localStorage.setItem(SESSION_VENUE_ID_KEY,   targetVenueId)
+    localStorage.setItem(SESSION_VENUE_SLUG_KEY, targetVenueSlug)
+    return { error: null }
+  }, [session?.token])
 
   // ── Sign out ─────────────────────────────────────────────────────────────
   const signOut = useCallback(() => {
@@ -294,8 +330,8 @@ export function SessionProvider({ children }) {
   }, [isManager, session?.permissions])
 
   const value = useMemo(() => ({
-    session, loading, isManager, signIn, signOut, linkedVenues, hasMultiVenueAccess, hasPermission,
-  }), [session, loading, isManager, signIn, signOut, linkedVenues, hasMultiVenueAccess, hasPermission])
+    session, loading, isManager, signIn, signOut, switchVenue, linkedVenues, hasMultiVenueAccess, hasPermission,
+  }), [session, loading, isManager, signIn, signOut, switchVenue, linkedVenues, hasMultiVenueAccess, hasPermission])
 
   return (
     <SessionContext.Provider value={value}>

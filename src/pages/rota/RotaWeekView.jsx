@@ -165,7 +165,7 @@ function MobileDayView({ days, shifts, shiftIndex, staff, onCellClick, currentSt
                   staffDayShifts.map(sh => (
                     <div key={sh.id} className="flex flex-col items-end">
                       <span className="font-mono text-sm font-semibold text-charcoal">
-                        {sh.start_time.slice(0,5)}–{sh.end_time.slice(0,5)}
+                        {sh.start_time?.slice(0,5) ?? ''}–{sh.end_time?.slice(0,5) ?? ''}
                       </span>
                       {sh.role_label && (
                         <span className="text-[11px] text-charcoal/40 tracking-wide">{sh.role_label}</span>
@@ -371,7 +371,7 @@ function DesktopWeekTable({ days, shifts, shiftIndex, staff, onCellClick, onTogg
                               ].join(' ')}
                               style={{ backgroundColor: staffColour(s) }}
                             >
-                              <p className="font-medium">{sh.start_time.slice(0,5)}&ndash;{sh.end_time.slice(0,5)}</p>
+                              <p className="font-medium">{sh.start_time?.slice(0,5) ?? ''}&ndash;{sh.end_time?.slice(0,5) ?? ''}</p>
                               <p className="opacity-60 truncate text-[11px]">{sh.role_label}</p>
                               {isOwnStaff && !isManager && (
                                 <span className="absolute -top-1 -right-1 bg-accent text-white text-[8px] rounded-full w-3.5 h-3.5 flex items-center justify-center font-bold leading-none">↔</span>

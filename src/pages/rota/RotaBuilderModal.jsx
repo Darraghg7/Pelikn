@@ -198,7 +198,7 @@ export default function RotaBuilderModal({
                     const current = syncedRoles.find(sr => sr.role === r.label)
                     return (
                       <div key={r.value} className="flex items-center gap-2 rounded-lg border border-charcoal/10 px-3 py-2">
-                        <span className={`w-2 h-2 rounded-full ${r.color.split(' ')[0] ?? 'bg-charcoal/20'}`} />
+                        <span className={`w-2 h-2 rounded-full ${r.color?.split(' ')[0] ?? 'bg-charcoal/20'}`} />
                         <span className="text-xs text-charcoal/70 flex-1 truncate">{r.label}</span>
                         <input
                           type="number"

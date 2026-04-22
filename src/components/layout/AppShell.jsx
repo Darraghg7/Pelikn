@@ -438,7 +438,7 @@ function useSidebarSections(venueId, localPath) {
 
 /* ── Main AppShell ───────────────────────────────────────────────────────────── */
 export default function AppShell({ children }) {
-  const { session, isManager, signOut, hasMultiVenueAccess, hasPermission } = useSession()
+  const { session, isManager, signOut, switchVenue, linkedVenues, hasMultiVenueAccess, hasPermission } = useSession()
   const { venueId, venueSlug, venueName } = useVenue()
   const { venues, selectVenue } = useAuth()
   const location     = useLocation()
@@ -463,6 +463,23 @@ export default function AppShell({ children }) {
     signOut()
     navigate(`/v/${venueSlug}`, { replace: true })
   }
+
+  // Venue switching: managers use Supabase Auth selectVenue; staff use PIN switchVenue
+  const handleSwitchVenue = async (slug) => {
+    if (isManager) {
+      selectVenue(slug)
+      window.location.replace(`/v/${slug}/dashboard`)
+      return
+    }
+    const target = linkedVenues.find(v => v.slug === slug)
+    if (!target) return
+    const { error } = await switchVenue(target.id, target.slug)
+    if (!error) window.location.replace(`/v/${slug}/dashboard`)
+  }
+
+  // All venues the current user can switch to.
+  // For staff: linkedVenues now includes primary + linked (migration 054), so use it directly.
+  const allSwitchableVenues = isManager ? venues : linkedVenues
 
   const isAt = (p) => localPath === p
   const isUnder = (p) => localPath.startsWith(p)
@@ -502,11 +519,11 @@ export default function AppShell({ children }) {
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
                 <span className="font-extrabold text-white text-lg leading-tight tracking-tight truncate">{venueName || 'SafeServ'}</span>
-                {isManager && (
+                {allSwitchableVenues.length > 1 && (
                   <VenueSwitcher
-                    venues={venues}
+                    venues={allSwitchableVenues}
                     currentSlug={venueSlug}
-                    onSelect={(slug) => { selectVenue(slug); window.location.replace(`/v/${slug}/dashboard`) }}
+                    onSelect={handleSwitchVenue}
                   />
                 )}
               </div>
@@ -642,11 +659,11 @@ export default function AppShell({ children }) {
           <div className="px-3 h-12 flex items-center justify-between gap-1.5">
             <div className="flex items-center gap-1.5 min-w-0 flex-1">
               <span className="font-bold text-white text-base tracking-tight truncate max-w-[160px]">{venueName || 'SafeServ'}</span>
-              {isManager && (
+              {allSwitchableVenues.length > 1 && (
                 <VenueSwitcher
-                  venues={venues}
+                  venues={allSwitchableVenues}
                   currentSlug={venueSlug}
-                  onSelect={(slug) => { selectVenue(slug); window.location.replace(`/v/${slug}/dashboard`) }}
+                  onSelect={handleSwitchVenue}
                 />
               )}
             </div>

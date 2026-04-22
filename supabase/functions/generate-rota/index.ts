@@ -243,7 +243,7 @@ Rules you must follow:
 2. Never schedule a staff member on a day they are unavailable or already scheduled
 3. Try to distribute hours fairly across the team where possible
 4. Each slot must be filled by exactly one staff member
-5. A staff member CAN work multiple slots on the same day if needed (e.g. different times)
+5. A staff member CAN work multiple NON-OVERLAPPING slots on the same day (e.g. a morning shift 09:00–13:00 AND an evening shift 18:00–22:00). However, you must NEVER assign the same person to two roles whose time windows overlap — they can only fill one role at a time.
 6. If you cannot fill a slot because no qualified, available staff exists, mark it as a gap
 7. Use the HISTORICAL PATTERNS as soft guidance — prefer assigning staff to roles and days they usually work, but availability and role qualifications always take priority
 8. If a staff member has no shifts in the past 4 weeks, treat them as having no preference bias
@@ -317,14 +317,41 @@ Assign staff to fill every slot, following the rules. Return the JSON object.`
       return err(`AI returned invalid JSON: ${rawText.slice(0, 200)}`, 500)
     }
 
+    // Deduplicate: one role per overlapping time window per person per day
+    type ShiftRow = { staff_id: string; staff_name: string; shift_date: string; start_time: string; end_time: string; role_label: string }
+    const assignedWindows: Record<string, { start: string; end: string }[]> = {}
+    const dedupedShifts: ShiftRow[] = []
+    const extraGaps: unknown[] = []
+
+    for (const sh of (parsed.shifts ?? []) as ShiftRow[]) {
+      const key = `${sh.staff_id}:${sh.shift_date}`
+      if (!assignedWindows[key]) assignedWindows[key] = []
+      const overlap = assignedWindows[key].some(w => timesOverlap(sh.start_time, sh.end_time, w.start, w.end))
+      if (overlap) {
+        extraGaps.push({
+          shift_date: sh.shift_date,
+          day_name: '',
+          start_time: sh.start_time,
+          end_time: sh.end_time,
+          role_label: sh.role_label,
+          reason: `${sh.staff_name} already assigned to an overlapping shift on this day`,
+        })
+      } else {
+        assignedWindows[key].push({ start: sh.start_time, end: sh.end_time })
+        dedupedShifts.push(sh)
+      }
+    }
+
+    const allGaps = [...(parsed.gaps ?? []), ...extraGaps]
+
     return new Response(
       JSON.stringify({
-        shifts: parsed.shifts ?? [],
-        gaps:   parsed.gaps   ?? [],
+        shifts: dedupedShifts,
+        gaps:   allGaps,
         meta: {
           slotsRequested: slots.length,
-          shiftsFilled:   (parsed.shifts ?? []).length,
-          gapCount:       (parsed.gaps   ?? []).length,
+          shiftsFilled:   dedupedShifts.length,
+          gapCount:       allGaps.length,
         },
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -334,6 +361,10 @@ Assign staff to fill every slot, following the rules. Return the JSON object.`
     return err(String(e), 500)
   }
 })
+
+function timesOverlap(s1: string, e1: string, s2: string, e2: string): boolean {
+  return s1 < e2 && s2 < e1
+}
 
 function err(message: string, status: number) {
   return new Response(
