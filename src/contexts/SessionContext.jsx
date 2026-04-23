@@ -305,6 +305,9 @@ export function SessionProvider({ children }) {
     })
     if (error || !newToken) return { error: error ?? new Error('Switch failed') }
 
+    // Invalidate the old token now that a new one is active — fire-and-forget
+    supabase.rpc('invalidate_staff_session', { p_token: token }).catch(() => {})
+
     localStorage.setItem(SESSION_TOKEN_KEY,      newToken)
     localStorage.setItem(SESSION_VENUE_ID_KEY,   targetVenueId)
     localStorage.setItem(SESSION_VENUE_SLUG_KEY, targetVenueSlug)

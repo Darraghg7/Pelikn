@@ -20,10 +20,7 @@ const VAPID_PRIVATE_KEY = Deno.env.get('VAPID_PRIVATE_KEY') ?? ''
 const SUPABASE_URL      = Deno.env.get('SUPABASE_URL') ?? ''
 const SUPABASE_SERVICE  = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin':  '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
+const ALLOWED_ORIGINS = ['https://safeserv.app', 'http://localhost:5173', 'capacitor://localhost', 'ionic://localhost']
 
 webpush.setVapidDetails(
   'mailto:nomad.bakes1@gmail.com',
@@ -32,6 +29,11 @@ webpush.setVapidDetails(
 )
 
 Deno.serve(async (req) => {
+  const origin = req.headers.get('origin') ?? ''
+  const corsHeaders = {
+    'Access-Control-Allow-Origin':  ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0],
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  }
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }

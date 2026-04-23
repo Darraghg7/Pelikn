@@ -145,7 +145,12 @@ function HACCPDocument({ data, hazardPoints }) {
               suppressContentEditableWarning
               className="border border-charcoal/15 rounded-lg p-3 min-h-[80px] text-sm text-charcoal/80 leading-relaxed outline-none focus:ring-2 focus:ring-charcoal/20"
               style={{ whiteSpace: 'pre-wrap' }}
-              dangerouslySetInnerHTML={{ __html: hazardPoints[pt.id] || pt.default }}
+              ref={(el) => {
+                if (el && !el.dataset.initialized) {
+                  el.textContent = hazardPoints[pt.id] || pt.default
+                  el.dataset.initialized = '1'
+                }
+              }}
             />
           </div>
         ))}

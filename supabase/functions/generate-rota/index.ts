@@ -5,10 +5,7 @@ const ANTHROPIC_API_KEY    = Deno.env.get('ANTHROPIC_API_KEY')!
 const SUPABASE_URL         = Deno.env.get('SUPABASE_URL')!
 const SUPABASE_SERVICE_ROLE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin':  '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
+const ALLOWED_ORIGINS = ['https://safeserv.app', 'http://localhost:5173', 'capacitor://localhost', 'ionic://localhost']
 
 const DAY_NAMES = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 
@@ -22,6 +19,11 @@ function addDays(dateStr: string, n: number): string {
 function dowIndex(dow: number) { return dow - 1 }
 
 serve(async (req) => {
+  const origin = req.headers.get('origin') ?? ''
+  const corsHeaders = {
+    'Access-Control-Allow-Origin':  ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0],
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  }
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
 
   try {

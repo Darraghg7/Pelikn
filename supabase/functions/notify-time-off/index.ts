@@ -16,11 +16,15 @@ import { serve } from 'https://deno.land/std@0.177.0/http/server.ts'
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY') ?? ''
 const FROM_EMAIL     = 'SafeServ <onboarding@resend.dev>'
 
+const ALLOWED_ORIGINS = ['https://safeserv.app', 'http://localhost:5173', 'capacitor://localhost', 'ionic://localhost']
+
 serve(async (req) => {
+  const origin = req.headers.get('origin') ?? ''
+  const allowedOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0]
   if (req.method === 'OPTIONS') {
     return new Response('ok', {
       headers: {
-        'Access-Control-Allow-Origin':  '*',
+        'Access-Control-Allow-Origin':  allowedOrigin,
         'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
       },
     })
@@ -88,7 +92,7 @@ serve(async (req) => {
     }
 
     return new Response(JSON.stringify({ ok: true }), {
-      headers: { 'Access-Control-Allow-Origin': '*' },
+      headers: { 'Access-Control-Allow-Origin': allowedOrigin },
     })
   } catch (err) {
     console.error(err)
