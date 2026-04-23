@@ -469,35 +469,39 @@ function PushBanner({ staffId, venueId }) {
   )
 }
 
-function setupDismissKey(venueId) { return `safeserv_setup_dismissed_v_${venueId ?? 'unknown'}` }
-
-function GettingStartedCard({ venueId, venueSlug, staffId }) {
+function GettingStartedCard({ venueId, venueSlug }) {
   const [checklist, setChecklist] = useState(null)
-  const [dismissed, setDismissed] = useState(() =>
-    localStorage.getItem(`safeserv_setup_dismissed_v_${venueId ?? 'unknown'}`) === '1'
-  )
+  const [dismissed, setDismissed] = useState(null) // null = loading
   const { isEnabled } = useVenueFeatures()
 
   useEffect(() => {
     if (!venueId) return
-    supabase.from('app_settings').select('value').eq('venue_id', venueId).eq('key', 'setup_checklist').maybeSingle()
+    supabase.from('app_settings')
+      .select('key, value')
+      .eq('venue_id', venueId)
+      .in('key', ['setup_checklist', 'setup_dismissed'])
       .then(({ data }) => {
-        try { setChecklist(data?.value ? JSON.parse(data.value) : {}) }
+        const rows = data ?? []
+        const cl = rows.find(r => r.key === 'setup_checklist')
+        const dm = rows.find(r => r.key === 'setup_dismissed')
+        try { setChecklist(cl?.value ? JSON.parse(cl.value) : {}) }
         catch { setChecklist({}) }
+        setDismissed(dm?.value === 'true')
       })
   }, [venueId])
 
   // Listen for reopen event from settings page
   useEffect(() => {
     const handler = () => {
-      localStorage.removeItem(setupDismissKey(venueId))
+      supabase.from('app_settings').delete().eq('venue_id', venueId).eq('key', 'setup_dismissed').then(() => {})
       setDismissed(false)
     }
     window.addEventListener('safeserv:reopen-setup', handler)
     return () => window.removeEventListener('safeserv:reopen-setup', handler)
   }, [venueId])
 
-  if (checklist === null || dismissed) return null
+  // Still loading (null = not yet fetched)
+  if (checklist === null || dismissed === null || dismissed) return null
 
   const items = [
     { id: 'venue_type', label: 'Choose your venue type', link: `/v/${venueSlug}/setup`, done: !!checklist.venue_type },
@@ -519,7 +523,7 @@ function GettingStartedCard({ venueId, venueSlug, staffId }) {
           <p className="text-sm font-semibold text-charcoal">Getting Started</p>
           <p className="text-[11px] text-charcoal/40 mt-0.5">{completed} of {items.length} complete</p>
         </div>
-        <button onClick={() => { localStorage.setItem(setupDismissKey(venueId), '1'); setDismissed(true) }} className="text-charcoal/25 hover:text-charcoal/50 transition-colors text-lg">&times;</button>
+        <button onClick={() => { supabase.from('app_settings').upsert({ venue_id: venueId, key: 'setup_dismissed', value: 'true' }).then(() => {}); setDismissed(true) }} className="text-charcoal/25 hover:text-charcoal/50 transition-colors text-lg">&times;</button>
       </div>
       <div className="h-1 bg-charcoal/8 rounded-full mb-4 overflow-hidden">
         <div className="h-full bg-brand rounded-full transition-all" style={{ width: `${(completed / items.length) * 100}%` }} />
@@ -598,7 +602,7 @@ export default function ManagerDashboardPage() {
 
       {/* Push notification opt-in banner */}
       <PushBanner staffId={session?.staffId} venueId={venueId} />
-      <GettingStartedCard venueId={venueId} venueSlug={venueSlug} staffId={session?.staffId} />
+      <GettingStartedCard venueId={venueId} venueSlug={venueSlug} />
 
       {/* Desktop: today summary + clock side by side */}
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-4 items-start">
