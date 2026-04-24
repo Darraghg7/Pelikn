@@ -72,22 +72,16 @@ export function useStaffPermissions(staffId, staffRole) {
 
 /**
  * Save permissions for a staff member — replaces all existing permissions.
+ * Goes through the save_staff_permissions SECURITY DEFINER RPC so the anon
+ * role never writes directly to staff_permissions.
  * Dispatches an event so other hook instances refresh.
  */
-export async function saveStaffPermissions(staffId, venueId, permissionIds) {
-  // Delete existing
-  await supabase
-    .from('staff_permissions')
-    .delete()
-    .eq('staff_id', staffId)
-    .eq('venue_id', venueId)
-
-  // Insert new
-  if (permissionIds.length > 0) {
-    await supabase
-      .from('staff_permissions')
-      .insert(permissionIds.map(p => ({ staff_id: staffId, venue_id: venueId, permission: p })))
-  }
+export async function saveStaffPermissions(staffId, venueId, permissionIds, sessionToken) {
+  await supabase.rpc('save_staff_permissions', {
+    p_session_token: sessionToken,
+    p_staff_id:      staffId,
+    p_permissions:   permissionIds,
+  })
 
   // Bust cache
   const key = `${staffId}:${venueId}`

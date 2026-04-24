@@ -260,7 +260,7 @@ export default function StaffMembersSection() {
         return newRow?.[0]?.id
       })()
       if (targetId) {
-        await saveStaffPermissions(targetId, venueId, [...permForm])
+        await saveStaffPermissions(targetId, venueId, [...permForm], session.token)
       }
     }
 

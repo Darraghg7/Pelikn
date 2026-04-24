@@ -56,6 +56,22 @@ serve(async (req) => {
       return err(`AI rota builder requires manager access (you are: ${staffInfo.role})`, 403)
     }
 
+    // ── Rate limiting: max 20 AI rota generations per venue per hour ──────────
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString()
+    const { count: recentCount } = await admin
+      .from('ai_usage_log')
+      .select('id', { count: 'exact', head: true })
+      .eq('venue_id', venueId)
+      .eq('function_name', 'generate-rota')
+      .gte('created_at', oneHourAgo)
+
+    if ((recentCount ?? 0) >= 20) {
+      return err('Rate limit exceeded — maximum 20 AI rota generations per hour. Please try again later.', 429)
+    }
+
+    // Log this request before calling Claude (non-blocking — failure is non-critical)
+    admin.from('ai_usage_log').insert({ venue_id: venueId, function_name: 'generate-rota' }).then(() => {}).catch(() => {})
+
     // ── Fetch all data in parallel ─────────────────────────────────────────
     const fourWeeksAgo = addDays(weekStart, -28)
     const [
