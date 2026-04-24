@@ -114,7 +114,14 @@ export default function LoginPage() {
     setError('')
     const { error: err, linkedVenues } = await signIn(selected.id, pin, venueId, venueSlug)
     if (err) {
-      setError('Incorrect PIN — try again')
+      const msg = err.message ?? ''
+      if (/too many failed/i.test(msg)) {
+        setError(msg.replace('Too many failed attempts — try again after', 'Account locked — try again at'))
+      } else if (/inactive/i.test(msg)) {
+        setError('This account has been deactivated — contact your manager.')
+      } else {
+        setError('Incorrect PIN — try again')
+      }
       setPin('')
       setSubmitting(false)
       pinRef.current?.focus()

@@ -714,6 +714,9 @@ export default function StaffMembersSection() {
                   <span key={name} className="text-[11px] bg-brand/8 text-brand px-1.5 py-0.5 rounded">{name}</span>
                 ))}
                 {!s.is_active && <span className="text-[11px] tracking-widest uppercase text-charcoal/30 italic">inactive</span>}
+                {s.pin_locked_until && new Date(s.pin_locked_until) > new Date() && (
+                  <span className="text-[11px] tracking-widest uppercase bg-danger/10 text-danger px-1.5 py-0.5 rounded font-semibold">🔒 Locked</span>
+                )}
               </div>
               <div className="flex items-center gap-3 mt-0.5">
                 {s.email && <p className="text-xs text-charcoal/40">{s.email}</p>}
@@ -721,6 +724,19 @@ export default function StaffMembersSection() {
               </div>
             </div>
             <div className="flex gap-2 shrink-0 flex-wrap justify-end">
+              {s.pin_locked_until && new Date(s.pin_locked_until) > new Date() && (
+                <button
+                  onClick={async () => {
+                    await supabase.rpc('reset_staff_pin_lock', {
+                      p_session_token: session.token,
+                      p_staff_id: s.id,
+                    })
+                    toast(`${s.name}'s PIN unlocked`)
+                    reloadStaff()
+                  }}
+                  className="text-xs px-3 py-1.5 rounded-lg border border-danger/20 text-danger/60 hover:text-danger hover:border-danger/40 transition-colors"
+                >Unlock</button>
+              )}
               <button
                 onClick={() => openEdit(s)}
                 className="text-xs px-3 py-1.5 rounded-lg border border-charcoal/15 text-charcoal/60 hover:text-charcoal hover:border-charcoal/30 transition-colors"
