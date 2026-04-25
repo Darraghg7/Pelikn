@@ -8,7 +8,7 @@
  *   - AM / PM period selector (auto-defaults based on time of day)
  *   - Grid of hot holding items with temp inputs + pass/fail indicators
  *   - "Complete Check" submits all readings in one go
- *   - Today's AM ✓ / PM ✓ status grid
+ *   - Today's AM / PM status grid
  *   - Manager: add/remove hot holding items
  *   - History with date range presets
  */
@@ -47,7 +47,7 @@ function PassBadge({ pass }) {
 
 function PeriodBadge({ done }) {
   return done
-    ? <span className="text-[11px] font-semibold tracking-wider uppercase bg-success/10 text-success px-2.5 py-1 rounded-full">✓ Done</span>
+    ? <span className="text-[11px] font-semibold tracking-wider uppercase bg-success/10 text-success px-2.5 py-1 rounded-full inline-flex items-center gap-1"><svg className="w-3 h-3" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg> Done</span>
     : <span className="text-[11px] font-semibold tracking-wider uppercase bg-charcoal/8 text-charcoal/45 px-2.5 py-1 rounded-full">Pending</span>
 }
 
@@ -150,7 +150,7 @@ export default function HotHoldingPage() {
 
       {/* Page header */}
       <div>
-        <h1 className="font-serif text-3xl text-brand">Hot Holding</h1>
+        <h1 className="text-2xl font-bold text-charcoal">Hot Holding</h1>
         <p className="text-sm text-charcoal/45 mt-1">
           Check food held hot for service twice daily. UK minimum: <strong>≥{HOT_HOLDING_MIN_TEMP}°C</strong>.
         </p>
@@ -176,14 +176,14 @@ export default function HotHoldingPage() {
         <>
           {/* Today's status */}
           {!statusLoading && (
-            <div className="bg-white rounded-xl border border-charcoal/10 p-5">
+            <div className="bg-white rounded-2xl border-charcoal/10 p-5">
               <SectionLabel>Today's Status</SectionLabel>
               <div className="grid grid-cols-2 gap-3">
                 {[['am', 'AM Check'], ['pm', 'PM Check']].map(([p, label]) => (
                   <div key={p} className={`rounded-xl border p-4 flex items-center justify-between ${
                     (p === 'am' ? status.am : status.pm)
                       ? 'border-success/25 bg-success/5'
-                      : 'border-charcoal/10 bg-cream/30'
+                      : 'border-charcoal/10 bg-white'
                   }`}>
                     <div>
                       <p className="text-sm font-semibold text-charcoal">{label}</p>
@@ -199,7 +199,7 @@ export default function HotHoldingPage() {
           )}
 
           {/* Period selector */}
-          <div className="bg-white rounded-xl border border-charcoal/10 p-5">
+          <div className="bg-white rounded-2xl border-charcoal/10 p-5">
             <SectionLabel>Check Period</SectionLabel>
             <div className="flex gap-2">
               {[['am', 'AM'], ['pm', 'PM']].map(([p, label]) => (
@@ -220,7 +220,7 @@ export default function HotHoldingPage() {
             {periodDone && (
               <div className="mt-3 px-4 py-3 rounded-xl bg-success/8 border border-success/20">
                 <p className="text-sm text-success font-medium">
-                  ✓ {period.toUpperCase()} check already completed today. You can log additional readings if needed.
+                  <span className="inline-flex items-center gap-1"><svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg> {period.toUpperCase()} check already completed today. You can log additional readings if needed.</span>
                 </p>
               </div>
             )}
@@ -230,14 +230,14 @@ export default function HotHoldingPage() {
           {itemsLoading ? (
             <div className="flex justify-center py-10"><LoadingSpinner /></div>
           ) : items.length === 0 ? (
-            <div className="bg-white rounded-xl border border-charcoal/10 p-8 text-center">
+            <div className="bg-white rounded-2xl border-charcoal/10 p-8 text-center">
               <p className="text-sm text-charcoal/45 italic">
                 No hot holding items configured yet.
                 {isManager ? ' Add items below to get started.' : ' Ask your manager to add items.'}
               </p>
             </div>
           ) : (
-            <div className="bg-white rounded-xl border border-charcoal/10 p-5">
+            <div className="bg-white rounded-2xl border-charcoal/10 p-5">
               <SectionLabel>{period.toUpperCase()} Readings</SectionLabel>
               <div className="flex flex-col gap-3">
                 {items.map(item => {
@@ -250,14 +250,14 @@ export default function HotHoldingPage() {
                         ? fail
                           ? 'border-danger/30 bg-danger/4'
                           : 'border-success/25 bg-success/5'
-                        : 'border-charcoal/10 bg-cream/20'
+                        : 'border-charcoal/10 bg-white'
                     }`}>
                       <div className="flex items-center gap-3">
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium text-charcoal">{item.name}</p>
                           {hasTemp && (
                             <p className={`text-[11px] mt-0.5 font-medium ${fail ? 'text-danger' : 'text-success'}`}>
-                              {fail ? `↓ Below ${HOT_HOLDING_MIN_TEMP}°C — corrective action required` : `✓ Pass`}
+                              {fail ? `↓ Below ${HOT_HOLDING_MIN_TEMP}°C — corrective action required` : <span className="inline-flex items-center gap-0.5"><svg className="w-3 h-3" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg> Pass</span>}
                             </p>
                           )}
                         </div>
@@ -299,7 +299,7 @@ export default function HotHoldingPage() {
                   value={loggedAt}
                   max={nowDatetimeLocal()}
                   onChange={e => setLoggedAt(e.target.value)}
-                  className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 bg-cream/20 text-sm text-charcoal focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+                  className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 bg-white text-sm text-charcoal focus:outline-none focus:ring-2 focus:ring-charcoal/20"
                 />
               </div>
 
@@ -315,7 +315,7 @@ export default function HotHoldingPage() {
 
           {/* Manager: add/remove items */}
           {isManager && (
-            <div className="bg-white rounded-xl border border-charcoal/10 p-5">
+            <div className="bg-white rounded-2xl border-charcoal/10 p-5">
               <SectionLabel>Manage Items</SectionLabel>
               <div className="flex gap-2 mb-4">
                 <input
@@ -324,7 +324,7 @@ export default function HotHoldingPage() {
                   onChange={e => setNewItemName(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && handleAddItem()}
                   placeholder="Add item (e.g. Soup, Gravy, Lasagne)…"
-                  className="flex-1 px-4 py-2.5 rounded-xl border border-charcoal/15 bg-cream/40 text-sm text-charcoal placeholder-charcoal/30 focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+                  className="flex-1 px-4 py-2.5 rounded-xl border border-charcoal/15 bg-white text-sm text-charcoal placeholder-charcoal/30 focus:outline-none focus:ring-2 focus:ring-charcoal/20"
                 />
                 <button
                   onClick={handleAddItem}
@@ -337,7 +337,7 @@ export default function HotHoldingPage() {
               {items.length > 0 && (
                 <div className="flex flex-col gap-1.5">
                   {items.map(item => (
-                    <div key={item.id} className="flex items-center justify-between px-4 py-2.5 rounded-xl border border-charcoal/8 bg-cream/20">
+                    <div key={item.id} className="flex items-center justify-between px-4 py-2.5 rounded-xl border border-charcoal/8 bg-white">
                       <span className="text-sm text-charcoal">{item.name}</span>
                       <button
                         onClick={() => handleRemoveItem(item.id)}
@@ -355,7 +355,7 @@ export default function HotHoldingPage() {
       )}
 
       {tab === 'history' && (
-        <div className="bg-white rounded-xl border border-charcoal/10 p-5">
+        <div className="bg-white rounded-2xl border-charcoal/10 p-5">
           <div className="flex flex-wrap items-start justify-between gap-3 mb-5">
             <SectionLabel>All Readings</SectionLabel>
             <DateRangePresets

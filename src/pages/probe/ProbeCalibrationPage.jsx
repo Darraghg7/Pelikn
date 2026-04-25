@@ -96,7 +96,7 @@ export default function ProbeCalibrationPage() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
-        <h1 className="font-serif text-3xl text-brand">Probe Calibration</h1>
+        <h1 className="text-2xl font-bold text-charcoal">Probe Calibration</h1>
         <button
           onClick={() => setShowForm(true)}
           className="bg-charcoal text-cream px-4 py-2 rounded-lg text-sm font-medium hover:bg-charcoal/90 transition-colors"
@@ -107,17 +107,17 @@ export default function ProbeCalibrationPage() {
 
       {/* Summary */}
       <div className="grid grid-cols-3 gap-2 sm:gap-3">
-        <div className="bg-white rounded-xl border border-charcoal/10 p-3 sm:p-4 text-center">
+        <div className="bg-white rounded-2xl border-charcoal/10 p-3 sm:p-4 text-center">
           <p className="text-[9px] sm:text-[11px] tracking-wide uppercase text-charcoal/40 truncate">Last Cal.</p>
           <p className="text-sm font-semibold text-charcoal mt-1">
             {lastCalibration ? format(new Date(lastCalibration.calibrated_at), 'd MMM') : '--'}
           </p>
         </div>
-        <div className="bg-white rounded-xl border border-charcoal/10 p-3 sm:p-4 text-center">
+        <div className="bg-white rounded-2xl border-charcoal/10 p-3 sm:p-4 text-center">
           <p className="text-[9px] sm:text-[11px] tracking-wide uppercase text-charcoal/40">Passed</p>
           <p className="text-2xl font-bold text-success">{passCount}</p>
         </div>
-        <div className="bg-white rounded-xl border border-charcoal/10 p-3 sm:p-4 text-center">
+        <div className="bg-white rounded-2xl border-charcoal/10 p-3 sm:p-4 text-center">
           <p className="text-[9px] sm:text-[11px] tracking-wide uppercase text-charcoal/40">Failed</p>
           <p className="text-2xl font-bold text-danger">{failCount}</p>
         </div>
@@ -137,13 +137,13 @@ export default function ProbeCalibrationPage() {
       {loading ? (
         <div className="flex justify-center py-10"><LoadingSpinner /></div>
       ) : records.length === 0 ? (
-        <div className="bg-white rounded-xl border border-charcoal/10 p-10 text-center">
+        <div className="bg-white rounded-2xl border-charcoal/10 p-10 text-center">
           <p className="text-charcoal/30 text-sm">No calibration records yet.</p>
         </div>
       ) : (
         <div className="flex flex-col gap-3">
           {records.map(r => (
-            <div key={r.id} className={`bg-white rounded-xl border p-4 ${r.pass ? 'border-charcoal/10' : 'border-danger/25 bg-danger/3'}`}>
+            <div key={r.id} className={`bg-white rounded-2xl p-4 ${r.pass ? 'border-charcoal/10' : 'border-danger/25 bg-danger/3'}`}>
               <div className="flex items-center justify-between">
                 <div>
                   <div className="flex items-center gap-2">
@@ -181,7 +181,7 @@ export default function ProbeCalibrationPage() {
               value={form.probe_name}
               onChange={e => setForm(f => ({ ...f, probe_name: e.target.value }))}
               placeholder="e.g. Probe 1, Kitchen probe"
-              className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 bg-cream/30 text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+              className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
             />
           </div>
 
@@ -218,7 +218,7 @@ export default function ProbeCalibrationPage() {
               value={form.actual_reading}
               onChange={e => setForm(f => ({ ...f, actual_reading: e.target.value }))}
               placeholder={`Expected: ${expectedTemp}C`}
-              className="w-full px-4 py-3 rounded-xl border border-charcoal/15 bg-cream/30 text-lg font-mono text-center focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+              className="w-full px-4 py-3 rounded-xl border border-charcoal/15 bg-white text-lg font-mono text-center focus:outline-none focus:ring-2 focus:ring-charcoal/20"
             />
           </div>
 
@@ -229,7 +229,7 @@ export default function ProbeCalibrationPage() {
               step="0.1"
               value={form.tolerance}
               onChange={e => setForm(f => ({ ...f, tolerance: e.target.value }))}
-              className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 bg-cream/30 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+              className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 bg-white text-sm font-mono focus:outline-none focus:ring-2 focus:ring-charcoal/20"
             />
           </div>
 
@@ -251,7 +251,7 @@ export default function ProbeCalibrationPage() {
               value={form.calibrated_at}
               max={nowDatetimeLocal()}
               onChange={e => setForm(f => ({ ...f, calibrated_at: e.target.value }))}
-              className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 bg-cream/30 text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+              className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
             />
           </div>
 
@@ -262,7 +262,7 @@ export default function ProbeCalibrationPage() {
               onChange={e => setForm(f => ({ ...f, notes: e.target.value }))}
               rows={2}
               placeholder="Optional notes..."
-              className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 bg-cream/30 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+              className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 bg-white text-sm resize-none focus:outline-none focus:ring-2 focus:ring-charcoal/20"
             />
           </div>
 

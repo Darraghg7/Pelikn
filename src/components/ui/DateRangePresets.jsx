@@ -44,7 +44,7 @@ export function presetToDates(key) {
 
 const inputCls = [
   'px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/10',
-  'bg-cream/30 dark:bg-white/5',
+  'bg-white dark:bg-white/5',
   'text-sm text-charcoal dark:text-white/80',
   'focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20',
 ].join(' ')

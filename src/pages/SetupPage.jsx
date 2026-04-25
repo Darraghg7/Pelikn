@@ -42,11 +42,11 @@ const steps = [
 
 export default function SetupPage() {
   return (
-    <div className="min-h-dvh bg-cream flex flex-col items-center justify-center p-6 font-sans">
+    <div className="min-h-dvh bg-surface flex flex-col items-center justify-center p-6 font-sans">
       <div className="w-full max-w-lg">
         {/* Header */}
         <div className="mb-8 text-center">
-          <h1 className="font-serif text-4xl text-brand mb-1">SafeServ</h1>
+          <h1 className="text-3xl font-bold text-charcoal mb-1">SafeServ</h1>
           <p className="text-charcoal/50 text-sm">Setup required</p>
         </div>
 

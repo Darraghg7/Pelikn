@@ -29,6 +29,11 @@ export default {
           900: '#0f2419',
         },
 
+        // New design tokens
+        surface:  '#F0F0EF',   // page background (neutral light gray)
+        navpill:  '#E4EFE9',   // active bottom-nav pill background
+        midgreen: '#4A7C5F',   // scores, rates, positive indicators
+
         danger:   { DEFAULT: '#dc2626', light: '#fee2e2' },
         warning:  { DEFAULT: '#d97706', light: '#fef3c7' },
         success:  { DEFAULT: '#16a34a', light: '#dcfce7' },

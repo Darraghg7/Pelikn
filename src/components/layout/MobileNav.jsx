@@ -144,7 +144,7 @@ function getManagerTabs(vp, isEnabled) {
     },
     {
       key: 'compliance',
-      label: 'Compliance',
+      label: 'Checks',
       to: complianceChildren[0]?.to ?? vp('/opening-closing'),
       icon: ClipboardIcon,
       match: ['/opening-closing', '/fitness', '/fridge', '/deliveries', '/probe', '/allergens', '/cleaning', '/corrective'],
@@ -245,7 +245,7 @@ export default function MobileNav() {
         aria-label="Main navigation"
         role="tablist"
       >
-        <div className="flex items-stretch justify-around h-14 max-w-lg mx-auto">
+        <div className="flex items-center justify-around h-14 max-w-lg mx-auto px-1">
           {tabs.map(tab => {
             const isActive = tab.match.some(m => localPath === m || (m !== '/dashboard' && localPath.startsWith(m)))
             const Icon = tab.icon
@@ -257,14 +257,18 @@ export default function MobileNav() {
                 aria-selected={isActive}
                 aria-label={tab.label}
                 className={[
-                  'flex flex-col items-center justify-center flex-1 gap-0.5 transition-colors relative',
-                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand dark:focus-visible:ring-accent focus-visible:ring-inset',
-                  isActive ? 'text-brand dark:text-accent' : 'text-charcoal/35 active:text-charcoal/50',
+                  'flex flex-col items-center justify-center flex-1 gap-0.5 transition-colors relative focus-visible:outline-none',
+                  isActive ? 'text-brand dark:text-accent' : 'text-charcoal/40 active:text-charcoal/60',
                 ].join(' ')}
               >
-                <Icon active={isActive} />
-                <span className="text-[10px] leading-none font-medium tracking-wide">
-                  {tab.label}
+                <span className={[
+                  'flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-all',
+                  isActive ? 'bg-navpill dark:bg-brand/30' : '',
+                ].join(' ')}>
+                  <Icon active={isActive} />
+                  <span className={['text-[10px] leading-none tracking-wide', isActive ? 'font-semibold' : 'font-medium'].join(' ')}>
+                    {tab.label}
+                  </span>
                 </span>
               </NavLink>
             )

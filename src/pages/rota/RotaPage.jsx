@@ -413,7 +413,7 @@ export default function RotaPage() {
     <div className="flex flex-col gap-6">
 
       <div className="flex flex-wrap items-start justify-between gap-y-3">
-        <h1 className="font-serif text-3xl text-brand">
+        <h1 className="text-2xl font-bold text-charcoal">
           {isManager ? 'Rota Manager' : 'Rota'}
         </h1>
         {isManager && (
@@ -424,25 +424,25 @@ export default function RotaPage() {
                   onClick={() => setShowConfig(true)}
                   className="text-[11px] tracking-widest uppercase text-charcoal/40 hover:text-charcoal transition-colors border-b border-charcoal/20 hover:border-charcoal/40"
                 >
-                  ⚙ Configure
+                  <span className="inline-flex items-center gap-1"><svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg> Configure</span>
                 </button>
                 <button
                   onClick={() => setShowAI(true)}
                   className="text-[11px] tracking-widest uppercase text-accent/70 hover:text-accent transition-colors border-b border-accent/30 hover:border-accent/50"
                 >
-                  ✨ Auto-Fill
+                  <span className="inline-flex items-center gap-1"><svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg> Auto-Fill</span>
                 </button>
                 <button
                   onClick={emailRota}
                   disabled={emailing || shifts.length === 0}
                   className="text-[11px] tracking-widest uppercase text-charcoal/40 hover:text-charcoal transition-colors border-b border-charcoal/20 disabled:opacity-30 disabled:cursor-not-allowed"
                 >
-                  {emailing ? 'Publishing…' : '✉ Publish'}
+                  {emailing ? 'Publishing…' : <span className="inline-flex items-center gap-1"><svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> Publish</span>}
                 </button>
                 <button
                   onClick={shareViaWhatsApp}
                   disabled={shifts.length === 0 || sharing}
-                  className="text-[11px] tracking-widest uppercase text-green-600/70 hover:text-green-600 transition-colors border-b border-green-500/30 disabled:opacity-30 disabled:cursor-not-allowed"
+                  className="text-[11px] tracking-widest uppercase text-success/70 hover:text-success transition-colors border-b border-success/30 disabled:opacity-30 disabled:cursor-not-allowed"
                 >
                   {sharing ? 'Exporting…' : '↗ Share'}
                 </button>
@@ -467,7 +467,7 @@ export default function RotaPage() {
                   disabled={savingClosures}
                   className="text-[11px] tracking-widest uppercase bg-brand text-cream border border-brand/80 px-3 py-1.5 rounded-lg hover:bg-brand/90 transition-colors font-medium disabled:opacity-50"
                 >
-                  {savingClosures ? 'Saving…' : 'Save ✓'}
+                  {savingClosures ? 'Saving…' : 'Save'}
                 </button>
               </div>
             )}
@@ -477,13 +477,13 @@ export default function RotaPage() {
 
       {/* ── Closure mode banner ── */}
       {closureMode && (
-        <div className="rounded-xl border border-danger/25 bg-danger/5 px-5 py-4 flex items-start gap-3">
-          <span className="text-lg shrink-0 mt-0.5">🔒</span>
+        <div className="rounded-2xl border border-danger/25 bg-danger/5 px-5 py-4 flex items-start gap-3">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="text-danger shrink-0 mt-0.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
           <div>
             <p className="text-sm font-semibold text-danger">Marking closed days</p>
             <p className="text-xs text-danger/70 mt-0.5">
               Tap any number of days to mark them closed — tap again to unmark.
-              No shifts can be added on closed days. Hit <strong>Save ✓</strong> when done, or <strong>Cancel</strong> to discard changes.
+              No shifts can be added on closed days. Hit <strong>Save</strong> when done, or <strong>Cancel</strong> to discard changes.
             </p>
           </div>
         </div>
@@ -515,10 +515,10 @@ export default function RotaPage() {
       {isManager && pendingCount > 0 && (
         <button
           onClick={() => setShowSwaps((v) => !v)}
-          className="w-full text-left rounded-xl border border-warning/30 bg-warning/8 px-5 py-4 flex items-center justify-between hover:bg-warning/12 transition-colors"
+          className="w-full text-left rounded-2xl border border-warning/30 bg-warning/8 px-5 py-4 flex items-center justify-between hover:bg-warning/12 transition-colors"
         >
           <div className="flex items-center gap-3">
-            <span className="text-xl">🔄</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="text-warning shrink-0"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
             <div>
               <p className="text-sm font-semibold text-warning">
                 {pendingCount} shift swap request{pendingCount !== 1 ? 's' : ''} pending
@@ -534,7 +534,7 @@ export default function RotaPage() {
 
       {/* ── Manager: swap requests panel ── */}
       {isManager && showSwaps && (
-        <div className="bg-white rounded-xl border border-charcoal/10 overflow-hidden">
+        <div className="bg-white rounded-2xl border-charcoal/10 overflow-hidden">
           <div className="px-5 py-4 border-b border-charcoal/8 flex items-center justify-between">
             <p className="text-[11px] tracking-widest uppercase text-charcoal/40">Shift Swap Requests</p>
             <button
@@ -580,7 +580,7 @@ export default function RotaPage() {
                       placeholder="Optional note for rejection…"
                       value={rejectNote[swap.id] ?? ''}
                       onChange={(e) => setRejectNote((n) => ({ ...n, [swap.id]: e.target.value }))}
-                      className="w-full px-3 py-2 rounded-lg border border-charcoal/15 bg-cream/30 text-xs focus:outline-none focus:ring-2 focus:ring-charcoal/20 placeholder-charcoal/25"
+                      className="w-full px-3 py-2 rounded-lg border border-charcoal/15 bg-white text-xs focus:outline-none focus:ring-2 focus:ring-charcoal/20 placeholder-charcoal/25"
                     />
                     <div className="flex gap-2">
                       <button
@@ -588,14 +588,14 @@ export default function RotaPage() {
                         disabled={resolving === swap.id}
                         className="flex-1 py-2 rounded-lg bg-success text-white text-xs font-medium hover:bg-success/90 transition-colors disabled:opacity-40"
                       >
-                        {resolving === swap.id ? '…' : '✓ Approve'}
+                        {resolving === swap.id ? '…' : <span className="inline-flex items-center gap-1"><svg className="w-3 h-3" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg> Approve</span>}
                       </button>
                       <button
                         onClick={() => rejectSwap(swap)}
                         disabled={resolving === swap.id}
                         className="flex-1 py-2 rounded-lg border border-danger/25 text-danger text-xs font-medium hover:bg-danger/5 transition-colors disabled:opacity-40"
                       >
-                        {resolving === swap.id ? '…' : '✗ Reject'}
+                        {resolving === swap.id ? '…' : <span className="inline-flex items-center gap-1"><svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Reject</span>}
                       </button>
                     </div>
                   </div>
@@ -640,7 +640,7 @@ export default function RotaPage() {
         if (mySwaps.length === 0) return null
         const myPending = mySwaps.filter((s) => s.status === 'pending')
         return (
-          <div className={`rounded-xl border px-5 py-4 ${myPending.length > 0 ? 'bg-warning/5 border-warning/20' : 'bg-charcoal/4 border-charcoal/10'}`}>
+          <div className={`rounded-2xl border px-5 py-4 ${myPending.length > 0 ? 'bg-warning/5 border-warning/20' : 'bg-charcoal/4 border-charcoal/10'}`}>
             <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-2">My Swap Requests</p>
             <div className="flex flex-col gap-2">
               {mySwaps.slice(0, 3).map((swap) => (
@@ -665,8 +665,8 @@ export default function RotaPage() {
 
       {/* ── Staff: hint banner ── */}
       {!isManager && (
-        <div className="rounded-xl bg-charcoal/4 px-4 py-3 flex items-center gap-2">
-          <span className="text-lg">💡</span>
+        <div className="rounded-2xl bg-charcoal/4 px-4 py-3 flex items-center gap-2">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="text-charcoal/30 shrink-0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
           <p className="text-xs text-charcoal/50">
             Tap one of your shifts in the rota below to request a shift swap with a colleague.
           </p>
@@ -701,7 +701,7 @@ export default function RotaPage() {
           (sh) => sh.week_start === format(thisWeekStart, 'yyyy-MM-dd')
         )
         return (
-          <div key={format(thisWeekStart, 'yyyy-MM-dd')} className="bg-white rounded-xl border border-charcoal/10 overflow-hidden">
+          <div key={format(thisWeekStart, 'yyyy-MM-dd')} className="bg-white rounded-2xl border-charcoal/10 overflow-hidden">
             {/* Week nav header (only on first week) */}
             {wi === 0 && (
               <div className="flex items-center justify-between px-5 py-4 border-b border-charcoal/8">
@@ -760,7 +760,7 @@ export default function RotaPage() {
               {modal.dayShifts?.length > 0 && (
                 <div className="rounded-xl border border-warning/30 bg-warning/6 p-3 flex flex-col gap-2">
                   <p className="text-[11px] tracking-widest uppercase text-warning/80 font-semibold flex items-center gap-1.5">
-                    <span>⚠</span> Already scheduled this day
+                    <span className="text-warning"><svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span> Already scheduled this day
                   </p>
                   {modal.dayShifts.map((sh) => (
                     <div key={sh.id} className="flex items-center justify-between bg-white rounded-lg px-3 py-2.5 border border-charcoal/8">
@@ -1024,7 +1024,7 @@ export default function RotaPage() {
                 onChange={(e) => setSwapForm((f) => ({ ...f, message: e.target.value }))}
                 placeholder="e.g. I have a dentist appointment that morning…"
                 rows={3}
-                className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 bg-cream/30 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+                className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm resize-none focus:outline-none focus:ring-2 focus:ring-charcoal/20"
               />
             </div>
 

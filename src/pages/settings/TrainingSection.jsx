@@ -85,31 +85,31 @@ export default function TrainingSection({ staffId }) {
             <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1">Title *</label>
             <input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
               placeholder="e.g. Food Hygiene Level 2"
-              className="w-full px-3 py-2 rounded-lg border border-charcoal/15 bg-cream/30 text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20" />
+              className="w-full px-3 py-2 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20" />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1">Issued Date</label>
               <input type="date" value={form.issued_date} onChange={e => setForm(f => ({ ...f, issued_date: e.target.value }))}
-                className="w-full px-3 py-2 rounded-lg border border-charcoal/15 bg-cream/30 text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20" />
+                className="w-full px-3 py-2 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20" />
             </div>
             <div>
               <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1">Expiry Date</label>
               <input type="date" value={form.expiry_date} onChange={e => setForm(f => ({ ...f, expiry_date: e.target.value }))}
-                className="w-full px-3 py-2 rounded-lg border border-charcoal/15 bg-cream/30 text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20" />
+                className="w-full px-3 py-2 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20" />
             </div>
           </div>
           <div>
             <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1">Notes</label>
             <textarea value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))}
               rows={2} placeholder="Optional notes"
-              className="w-full px-3 py-2 rounded-lg border border-charcoal/15 bg-cream/30 text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 resize-none" />
+              className="w-full px-3 py-2 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 resize-none" />
           </div>
           <div>
             <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1">Certificate / File</label>
             <input type="file" accept="image/*,.pdf"
               onChange={e => setFile(e.target.files[0] ?? null)}
-              className="w-full text-sm text-charcoal/60 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border file:border-charcoal/15 file:text-xs file:bg-cream/50 file:text-charcoal/60 hover:file:bg-cream" />
+              className="w-full text-sm text-charcoal/60 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border file:border-charcoal/15 file:text-xs file:bg-white file:text-charcoal/60 hover:file:bg-cream" />
           </div>
           <button onClick={handleAdd} disabled={saving}
             className="bg-charcoal text-cream py-2 rounded-lg text-sm font-medium disabled:opacity-40 hover:bg-charcoal/90 transition-colors">
@@ -127,7 +127,7 @@ export default function TrainingSection({ staffId }) {
           {records.map(r => {
             const expired = r.expiry_date && isPast(parseISO(r.expiry_date))
             return (
-              <li key={r.id} className="flex items-start justify-between gap-3 rounded-lg border border-charcoal/8 bg-cream/20 px-4 py-3">
+              <li key={r.id} className="flex items-start justify-between gap-3 rounded-lg border border-charcoal/8 bg-white px-4 py-3">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <p className="text-sm font-medium text-charcoal">{r.title}</p>
@@ -152,7 +152,7 @@ export default function TrainingSection({ staffId }) {
                   {r.notes && <p className="text-xs text-charcoal/40 mt-1 italic">{r.notes}</p>}
                 </div>
                 <button onClick={() => handleDelete(r.id)}
-                  className="text-xs text-charcoal/25 hover:text-danger transition-colors shrink-0 mt-0.5">✕</button>
+                  className="text-charcoal/25 hover:text-danger transition-colors shrink-0 mt-0.5"><svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
               </li>
             )
           })}

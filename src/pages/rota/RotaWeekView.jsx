@@ -61,7 +61,7 @@ function MobileDayView({ days, shifts, shiftIndex, staff, onCellClick, currentSt
                 <span className="text-[9px] font-semibold tracking-widest uppercase">{DAY_LABELS[i]}</span>
                 <span className="text-sm font-semibold mt-0.5">{format(d, 'd')}</span>
                 {hasShifts && !closed && !closureMode && (
-                  <span className={`w-1.5 h-1.5 rounded-full mt-1 ${active ? 'bg-cream/50' : 'bg-accent'}`} />
+                  <span className={`w-1.5 h-1.5 rounded-full mt-1 ${active ? 'bg-white' : 'bg-accent'}`} />
                 )}
                 {closureMode && (
                   <span className={`text-[7px] tracking-widest uppercase mt-0.5 font-bold ${dbClosed ? 'text-danger/60' : 'text-charcoal/20'}`}>

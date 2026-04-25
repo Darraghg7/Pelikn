@@ -92,7 +92,7 @@ export default function RotaAIModal({ open, onClose, weekStart, onSave }) {
   }
 
   return (
-    <Modal open={open} onClose={handleClose} title="✨ AI Rota Builder">
+    <Modal open={open} onClose={handleClose} title="AI Rota Builder">
       <div className="flex flex-col gap-5 max-h-[80vh] overflow-y-auto">
 
         {/* ── Stage: Confirm ── */}
@@ -104,7 +104,7 @@ export default function RotaAIModal({ open, onClose, weekStart, onSave }) {
                 <p className="text-xs text-charcoal/40 animate-pulse">Loading requirements…</p>
               ) : requirements.length === 0 ? (
                 <div className="flex items-start gap-2 mt-1">
-                  <span className="text-warning shrink-0">⚠</span>
+                  <span className="text-warning shrink-0"><svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
                   <p className="text-xs text-charcoal/60">
                     No requirements configured. Use <strong>Configure</strong> to tell the AI what staff you need each day.
                   </p>
@@ -168,7 +168,7 @@ export default function RotaAIModal({ open, onClose, weekStart, onSave }) {
               disabled={reqLoading || requirements.length === 0}
               className="bg-brand text-cream py-3.5 rounded-xl text-sm font-semibold hover:bg-brand/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
-              <span>✨</span> Generate with AI
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg> Generate with AI
             </button>
 
             <p className="text-[11px] text-charcoal/30 text-center -mt-2">
@@ -199,7 +199,7 @@ export default function RotaAIModal({ open, onClose, weekStart, onSave }) {
                 { label: 'Gaps',           value: result.gaps?.length ?? 0, warn: (result.gaps?.length ?? 0) > 0 },
               ].map(s => (
                 <div key={s.label} className={`rounded-xl border p-3 text-center ${s.warn ? 'border-warning/30 bg-warning/6' : 'border-charcoal/10 bg-charcoal/2'}`}>
-                  <p className={`font-serif text-2xl ${s.warn ? 'text-warning' : 'text-charcoal'}`}>{s.value}</p>
+                  <p className={`text-xl font-bold ${s.warn ? 'text-warning' : 'text-charcoal'}`}>{s.value}</p>
                   <p className="text-[10px] tracking-wider uppercase text-charcoal/35 mt-0.5">{s.label}</p>
                 </div>
               ))}
@@ -209,7 +209,7 @@ export default function RotaAIModal({ open, onClose, weekStart, onSave }) {
             {result.gaps?.length > 0 && (
               <div className="rounded-xl border border-warning/30 bg-warning/6 px-4 py-3 flex flex-col gap-1.5">
                 <p className="text-xs font-semibold text-charcoal">
-                  ⚠ {result.gaps.length} slot{result.gaps.length !== 1 ? 's' : ''} couldn't be filled
+                  <span className="inline-flex items-center gap-1"><svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> {result.gaps.length} slot{result.gaps.length !== 1 ? 's' : ''} couldn't be filled</span>
                 </p>
                 {result.gaps.map((g, i) => (
                   <p key={i} className="text-[11px] text-charcoal/60">
@@ -238,7 +238,7 @@ export default function RotaAIModal({ open, onClose, weekStart, onSave }) {
                         onClick={() => removeShift(i)}
                         className="text-danger/40 hover:text-danger text-xs transition-colors px-2 py-1"
                       >
-                        ✕
+                        <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                       </button>
                     </div>
                   ))

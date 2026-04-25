@@ -84,7 +84,7 @@ function IssueModal({ check, onConfirm, onCancel, saving }) {
             placeholder="e.g. Back door lock was stiff — reported to maintenance and used side entrance for closing."
             rows={4}
             autoFocus
-            className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 bg-cream/30 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+            className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm resize-none focus:outline-none focus:ring-2 focus:ring-charcoal/20"
           />
         </div>
         <div className="flex gap-2">
@@ -114,76 +114,63 @@ function CheckRow({ check, completion, onOK, onIssue, readOnly, isManager, onRem
   const hasIssue = completion?.has_issue ?? false
 
   return (
-    <div className={`flex items-start gap-3 px-5 py-4 group ${done ? 'opacity-75' : ''}`}>
-      {/* Status indicator */}
-      <div className="shrink-0 mt-0.5">
-        {done ? (
-          <span
-            className={`inline-flex items-center justify-center w-7 h-7 rounded-full text-[11px] font-bold ${
-              hasIssue
-                ? 'bg-warning/15 text-warning'
-                : 'bg-success/15 text-success'
-            }`}
+    <div className={`flex items-center gap-3 px-5 py-3.5 group ${done ? 'opacity-70' : ''}`}>
+      {/* Radio circle */}
+      <div className="shrink-0">
+        <span className={`inline-flex items-center justify-center w-5 h-5 rounded-full border-2 ${
+          done
+            ? hasIssue ? 'border-warning bg-warning/10' : 'border-success bg-success/10'
+            : 'border-charcoal/20 bg-transparent'
+        }`}>
+          {done && !hasIssue && <svg className="w-2.5 h-2.5 text-success" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>}
+          {done && hasIssue && <svg className="w-2.5 h-2.5 text-warning" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" /></svg>}
+        </span>
+      </div>
+
+      {/* Title */}
+      <p className={`flex-1 text-sm ${done ? 'text-charcoal/50' : 'text-charcoal font-medium'}`}>
+        {check.title}
+        {done && completion.staff_name && (
+          <span className="block text-[10px] text-charcoal/35 font-normal mt-0.5">
+            {completion.staff_name} · {format(new Date(completion.completed_at), 'HH:mm')}
+          </span>
+        )}
+        {done && hasIssue && completion.corrective_action && (
+          <span className="block text-[10px] text-warning/70 italic font-normal mt-0.5">
+            "{completion.corrective_action}"
+          </span>
+        )}
+      </p>
+
+      {/* Action badges */}
+      {!done && !readOnly ? (
+        <div className="flex items-center gap-1.5 shrink-0">
+          <button
+            onClick={() => onOK(check)}
+            className="flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-success/12 text-success text-[11px] font-bold hover:bg-success/20 transition-colors"
           >
-            {hasIssue ? '!' : '✓'}
-          </span>
-        ) : (
-          <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-charcoal/5 text-charcoal/30 text-[11px]">
-            ○
-          </span>
-        )}
-      </div>
-
-      {/* Content */}
-      <div className="flex-1 min-w-0">
-        <p className={`text-sm font-medium ${done ? 'text-charcoal/50' : 'text-charcoal'}`}>
-          {check.title}
-        </p>
-
-        {done ? (
-          <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5">
-            <span className="inline-flex items-center gap-1 text-[11px] text-charcoal/40">
-              <span className="font-semibold text-charcoal/60">{initials(completion.staff_name)}</span>
-              · {format(new Date(completion.completed_at), 'HH:mm')}
-              {completion.staff_name && (
-                <span className="text-charcoal/30">({completion.staff_name})</span>
-              )}
-            </span>
-            {hasIssue && completion.corrective_action && (
-              <span className="text-[11px] text-warning/80 italic">
-                "{completion.corrective_action}"
-              </span>
-            )}
-          </div>
-        ) : !readOnly ? (
-          <div className="flex items-center gap-2 mt-2">
+            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
+            OK
+          </button>
+          <button
+            onClick={() => onIssue(check)}
+            className="flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-warning/12 text-warning text-[11px] font-bold hover:bg-warning/20 transition-colors"
+          >
+            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" /></svg>
+            Issue
+          </button>
+          {isManager && (
             <button
-              onClick={() => onOK(check)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-success/10 text-success text-xs font-medium hover:bg-success/20 transition-colors"
+              onClick={() => onRemove(check.id)}
+              className="opacity-0 group-hover:opacity-100 transition-opacity text-charcoal/25 hover:text-danger text-base leading-none ml-1"
             >
-              <span>✓</span> OK
+              ×
             </button>
-            <button
-              onClick={() => onIssue(check)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-warning/10 text-warning text-xs font-medium hover:bg-warning/20 transition-colors"
-            >
-              <span>⚠</span> Issue
-            </button>
-          </div>
-        ) : (
-          <p className="text-[11px] text-charcoal/30 mt-1 italic">Not recorded</p>
-        )}
-      </div>
-
-      {/* Manager remove */}
-      {isManager && !done && !readOnly && (
-        <button
-          onClick={() => onRemove(check.id)}
-          className="opacity-0 group-hover:opacity-100 transition-opacity text-xs text-charcoal/25 hover:text-danger shrink-0 px-1 pt-0.5"
-        >
-          ×
-        </button>
-      )}
+          )}
+        </div>
+      ) : readOnly && !done ? (
+        <span className="text-[11px] text-charcoal/30 italic shrink-0">Not recorded</span>
+      ) : null}
     </div>
   )
 }
@@ -219,44 +206,44 @@ function CheckSection({ type, label, checks, completions, onOK, onIssue, isManag
   }
 
   return (
-    <div className="bg-white rounded-xl border border-charcoal/10 overflow-hidden flex flex-col">
+    <div className="bg-white rounded-2xl overflow-hidden flex flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between px-5 py-4 border-b border-charcoal/8">
+      <div className="flex items-center justify-between px-5 pt-4 pb-3">
         <div>
-          <p className="font-semibold text-charcoal">{label}</p>
+          <p className="text-[11px] font-bold tracking-widest uppercase text-charcoal/50">{label}</p>
           <p className="text-xs text-charcoal/40 mt-0.5">
             {doneCount}/{typeChecks.length} recorded
             {issueCount > 0 && (
-              <span className="ml-2 text-warning font-medium">· {issueCount} issue{issueCount > 1 ? 's' : ''}</span>
+              <span className="ml-2 text-warning font-semibold">· {issueCount} issue{issueCount > 1 ? 's' : ''}</span>
             )}
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           {allDone && issueCount === 0 && (
-            <span className="text-[11px] tracking-widest uppercase font-medium text-success bg-success/10 px-2.5 py-1 rounded-full">
-              All Clear ✓
+            <span className="text-[10px] font-bold tracking-widest uppercase text-success bg-success/10 px-2.5 py-1 rounded-full">
+              <span className="inline-flex items-center gap-1">All Clear <svg className="w-3 h-3" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg></span>
             </span>
           )}
           {allDone && issueCount > 0 && (
-            <span className="text-[11px] tracking-widest uppercase font-medium text-warning bg-warning/10 px-2.5 py-1 rounded-full">
-              Complete ⚠
+            <span className="text-[10px] font-bold tracking-widest uppercase text-warning bg-warning/10 px-2.5 py-1 rounded-full">
+              <span className="inline-flex items-center gap-1">Complete <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
             </span>
           )}
           {isManager && !readOnly && (
             <button
               onClick={() => setShowAdd(v => !v)}
-              className="text-[11px] tracking-widest uppercase text-charcoal/40 hover:text-charcoal transition-colors border-b border-charcoal/20"
+              className="text-[11px] font-semibold text-charcoal/40 hover:text-charcoal transition-colors"
             >
-              {showAdd ? 'Cancel' : '+ Add Check'}
+              {showAdd ? 'Cancel' : '+ Add'}
             </button>
           )}
         </div>
       </div>
 
       {/* Progress bar */}
-      <div className="h-1 bg-charcoal/8">
+      <div className="h-0.5 bg-charcoal/6 mx-5 rounded-full">
         <div
-          className={`h-full transition-all duration-300 ${issueCount > 0 ? 'bg-warning' : 'bg-success'}`}
+          className={`h-full rounded-full transition-all duration-300 ${issueCount > 0 ? 'bg-warning' : 'bg-success'}`}
           style={{ width: typeChecks.length > 0 ? `${(doneCount / typeChecks.length) * 100}%` : '0%' }}
         />
       </div>
@@ -270,7 +257,7 @@ function CheckSection({ type, label, checks, completions, onOK, onIssue, isManag
             onKeyDown={e => e.key === 'Enter' && handleAdd()}
             placeholder="e.g. Check all fridges are at temperature"
             autoFocus
-            className="flex-1 px-3 py-2 rounded-lg border border-charcoal/15 bg-cream/30 text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+            className="flex-1 px-3 py-2 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
           />
           <button
             onClick={handleAdd}
@@ -315,36 +302,52 @@ function CheckSection({ type, label, checks, completions, onOK, onIssue, isManag
 function DateSelector({ value, onChange }) {
   const today     = todayStr()
   const yesterday = format(subDays(new Date(), 1), 'yyyy-MM-dd')
-  const dayBefore = format(subDays(new Date(), 2), 'yyyy-MM-dd')
+  const prevDay   = format(subDays(parseISO(value), 1), 'yyyy-MM-dd')
+  const nextDay   = format(subDays(parseISO(value), -1), 'yyyy-MM-dd')
+  const isToday   = value === today
 
-  const presets = [
-    { label: 'Today',     value: today },
-    { label: 'Yesterday', value: yesterday },
-    { label: format(parseISO(dayBefore), 'EEE d MMM'), value: dayBefore },
-  ]
+  const labelFor = (d) => {
+    if (d === today) return 'Today'
+    if (d === yesterday) return 'Yesterday'
+    return format(parseISO(d), 'EEE, d MMM')
+  }
 
   return (
-    <div className="flex items-center gap-2 flex-wrap">
-      {presets.map(p => (
-        <button
-          key={p.value}
-          onClick={() => onChange(p.value)}
-          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-            value === p.value
-              ? 'bg-charcoal text-cream'
-              : 'bg-charcoal/8 text-charcoal/60 hover:bg-charcoal/12'
-          }`}
-        >
-          {p.label}
-        </button>
-      ))}
-      <input
-        type="date"
-        value={value}
-        max={today}
-        onChange={e => e.target.value && onChange(e.target.value)}
-        className="px-3 py-1.5 rounded-lg border border-charcoal/15 text-xs text-charcoal/60 bg-white focus:outline-none focus:ring-2 focus:ring-charcoal/20"
-      />
+    <div className="bg-white rounded-2xl p-1 flex items-center gap-1">
+      <button
+        onClick={() => onChange(prevDay)}
+        className="p-2 rounded-xl text-charcoal/40 hover:text-charcoal hover:bg-charcoal/5 transition-colors"
+      >
+        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
+      </button>
+
+      <div className="flex-1 flex items-center justify-center gap-1">
+        {[prevDay, value, nextDay].map((d) => (
+          <button
+            key={d}
+            onClick={() => onChange(d)}
+            disabled={d > today}
+            className={[
+              'flex-1 py-2 px-2 rounded-xl text-[12px] font-semibold transition-colors text-center truncate',
+              d === value
+                ? 'bg-brand text-white'
+                : d > today
+                ? 'text-charcoal/20 cursor-default'
+                : 'text-charcoal/50 hover:bg-charcoal/5',
+            ].join(' ')}
+          >
+            {labelFor(d)}
+          </button>
+        ))}
+      </div>
+
+      <button
+        onClick={() => onChange(nextDay)}
+        disabled={nextDay > today}
+        className="p-2 rounded-xl text-charcoal/40 hover:text-charcoal hover:bg-charcoal/5 transition-colors disabled:opacity-25 disabled:cursor-default"
+      >
+        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
+      </button>
     </div>
   )
 }
@@ -430,7 +433,7 @@ export default function OpeningClosingPage() {
     : format(parseISO(selectedDate), 'EEEE, d MMMM yyyy')
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       <OpeningClosingExportModal open={showExport} onClose={() => setShowExport(false)} />
 
       {/* Issue modal (shown when staff taps "Issue") */}
@@ -444,34 +447,34 @@ export default function OpeningClosingPage() {
       )}
 
       {/* Page header */}
-      <div className="flex items-end justify-between">
+      <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-xs uppercase tracking-widest text-charcoal/40 mb-1">{dateLabel}</p>
-          <h1 className="font-serif text-3xl text-brand">Opening &amp; Closing</h1>
+          <p className="text-[11px] font-medium tracking-widest uppercase text-charcoal/40">{dateLabel}</p>
+          <h1 className="text-2xl font-bold text-charcoal mt-0.5">Opening &amp; Closing</h1>
         </div>
         {isManager && (
           <button
             onClick={() => setShowExport(true)}
-            className="text-[11px] tracking-widest uppercase text-charcoal/40 hover:text-charcoal transition-colors border-b border-charcoal/20"
+            className="flex items-center gap-1.5 bg-brand text-white text-[11px] font-bold tracking-wide px-3 py-2 rounded-xl hover:bg-brand/90 transition-colors shrink-0"
           >
-            Export PDF
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0-3-3m3 3 3-3m2 8H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5.586a1 1 0 0 1 .707.293l5.414 5.414a1 1 0 0 1 .293.707V19a2 2 0 0 1-2 2z" /></svg>
+            PDF
           </button>
         )}
       </div>
 
       {/* Date selector */}
       <div className="flex flex-col gap-2">
-        <p className="text-[11px] tracking-widest uppercase text-charcoal/35">Viewing checks for</p>
         <DateSelector value={selectedDate} onChange={setSelectedDate} />
         {isPast && (
-          <p className="text-[11px] text-charcoal/40 italic">
-            Retroactive entry — checks recorded here will be timestamped with the current time but logged against {format(parseISO(selectedDate), 'd MMM yyyy')}.
+          <p className="text-[11px] text-charcoal/40 italic px-1">
+            Retroactive entry — checks will be logged against {format(parseISO(selectedDate), 'd MMM yyyy')}.
           </p>
         )}
       </div>
 
       {/* Check sections */}
-      <div className="grid md:grid-cols-2 gap-6">
+      <div className="grid md:grid-cols-2 gap-4">
         <CheckSection
           type="opening"
           label="Opening Checks"

@@ -14,19 +14,27 @@ function SectionLabel({ children }) {
 }
 
 const EXCEEDANCE_REASONS = [
-  { id: 'delivery',       label: 'Delivery / restocking',  icon: '📦', explained: true  },
-  { id: 'defrost',        label: 'Defrost cycle',           icon: '🔄', explained: true  },
-  { id: 'service_access', label: 'Busy service access',     icon: '👨‍🍳', explained: true  },
-  { id: 'equipment',      label: 'Equipment concern',       icon: '🔧', explained: false },
-  { id: 'other',          label: 'Other reason',            icon: '✏️', explained: false },
+  { id: 'delivery',       label: 'Delivery / restocking',  explained: true  },
+  { id: 'defrost',        label: 'Defrost cycle',           explained: true  },
+  { id: 'service_access', label: 'Busy service access',     explained: true  },
+  { id: 'equipment',      label: 'Equipment concern',       explained: false },
+  { id: 'other',          label: 'Other reason',            explained: false },
 ]
 
 const REASON_LABELS = {
-  delivery:       '📦 Delivery',
-  defrost:        '🔄 Defrost',
-  service_access: '👨‍🍳 Service access',
-  equipment:      '🔧 Equipment',
-  other:          '✏️ Other',
+  delivery:       'Delivery',
+  defrost:        'Defrost',
+  service_access: 'Service access',
+  equipment:      'Equipment',
+  other:          'Other',
+}
+
+const EXCEEDANCE_ICONS = {
+  delivery:       <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>,
+  defrost:        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>,
+  service_access: <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>,
+  equipment:      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14"/></svg>,
+  other:          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>,
 }
 
 export default function FridgeHistoryPage() {
@@ -68,17 +76,17 @@ export default function FridgeHistoryPage() {
 
       <div className="flex items-center gap-4">
         <Link to={`/v/${venueSlug}/fridge`} className="text-charcoal/40 hover:text-charcoal transition-colors text-lg">←</Link>
-        <h1 className="font-serif text-3xl text-brand">Temperature History</h1>
+        <h1 className="text-2xl font-bold text-charcoal">Temperature History</h1>
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-xl border border-charcoal/10 p-5 flex flex-wrap gap-4 items-end">
+      <div className="bg-white rounded-2xl border-charcoal/10 p-5 flex flex-wrap gap-4 items-end">
         <div>
           <SectionLabel>Fridge</SectionLabel>
           <select
             value={fridgeId}
             onChange={(e) => setFridgeId(e.target.value)}
-            className="px-3 py-2 rounded-lg border border-charcoal/15 bg-cream/30 text-sm text-charcoal focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+            className="px-3 py-2 rounded-lg border border-charcoal/15 bg-white text-sm text-charcoal focus:outline-none focus:ring-2 focus:ring-charcoal/20"
           >
             <option value="">All fridges</option>
             {fridges.map((f) => <option key={f.id} value={f.id}>{f.name}</option>)}
@@ -95,7 +103,7 @@ export default function FridgeHistoryPage() {
       </div>
 
       {/* Results */}
-      <div className="bg-white rounded-xl border border-charcoal/10 overflow-hidden">
+      <div className="bg-white rounded-2xl border-charcoal/10 overflow-hidden">
         <div className="px-5 pt-5 flex items-center justify-between">
           <SectionLabel>Readings</SectionLabel>
           {isManager && (
@@ -153,7 +161,7 @@ export default function FridgeHistoryPage() {
                               <span className={`text-[10px] font-semibold tracking-wide px-1.5 py-0.5 rounded-full ${
                                 explained ? 'bg-warning/15 text-warning' : 'bg-danger/12 text-danger'
                               }`}>
-                                {log.exceedance_reason ? REASON_LABELS[log.exceedance_reason] : '⚠ No reason'}
+                                {log.exceedance_reason ? REASON_LABELS[log.exceedance_reason] : <span className="flex items-center gap-0.5"><svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> No reason</span>}
                               </span>
                             )}
                             {isManager && oor && !isEditing && (
@@ -206,7 +214,7 @@ export default function FridgeHistoryPage() {
                                       isSaving ? 'opacity-40 cursor-not-allowed' : '',
                                     ].join(' ')}
                                   >
-                                    <span>{r.icon}</span>
+                                    <span className="shrink-0 text-charcoal/50">{EXCEEDANCE_ICONS[r.id]}</span>
                                     <span>{r.label}</span>
                                     {r.explained && <span className="text-[9px] text-success font-bold">NO PENALTY</span>}
                                   </button>

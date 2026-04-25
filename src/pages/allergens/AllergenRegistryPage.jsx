@@ -89,19 +89,19 @@ export default function AllergenRegistryPage() {
     <div className="flex flex-col gap-6">
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="font-serif text-3xl text-brand">Allergen Checklists</h1>
+        <h1 className="text-2xl font-bold text-charcoal">Allergen Checklists</h1>
         <input
           type="search"
           placeholder="Search…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="px-3 py-2 rounded-lg border border-charcoal/15 bg-cream/30 text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 w-full sm:w-48"
+          className="px-3 py-2 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 w-full sm:w-48"
         />
       </div>
 
       {/* QR code panel — manager only */}
       {isManager && venueSlug && (
-        <div className="bg-white rounded-xl border border-charcoal/10 px-5 py-4">
+        <div className="bg-white rounded-2xl border-charcoal/10 px-5 py-4">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-[11px] tracking-widest uppercase text-charcoal/40">Customer Allergen QR Code</p>
@@ -116,7 +116,7 @@ export default function AllergenRegistryPage() {
           </div>
           {showQR && (
             <div className="mt-4 flex flex-col sm:flex-row items-start gap-5">
-              <div ref={qrRef} className="p-3 bg-white rounded-xl border border-charcoal/10 shadow-sm shrink-0">
+              <div ref={qrRef} className="p-3 bg-white rounded-2xl border-charcoal/10 shadow-sm shrink-0">
                 <QRCodeCanvas value={publicUrl} size={140} />
               </div>
               <div className="flex flex-col gap-2 min-w-0 flex-1">
@@ -152,7 +152,7 @@ export default function AllergenRegistryPage() {
         </div>
       )}
 
-      <div className="bg-white rounded-xl border border-charcoal/10 overflow-hidden">
+      <div className="bg-white rounded-2xl border-charcoal/10 overflow-hidden">
         <div className="px-5 pt-5">
           <SectionLabel
             action={
@@ -183,11 +183,11 @@ export default function AllergenRegistryPage() {
               return (
                 <div
                   key={item.id}
-                  className="flex items-center gap-4 px-5 py-3.5 border-t border-charcoal/6 hover:bg-cream/30 transition-colors"
+                  className="flex items-center gap-4 px-5 py-3.5 border-t border-charcoal/6 hover:bg-white transition-colors"
                 >
                   {/* Icon placeholder */}
-                  <div className="w-7 h-7 rounded-md bg-charcoal/8 flex items-center justify-center text-sm shrink-0">
-                    🍽
+                  <div className="w-7 h-7 rounded-md bg-charcoal/8 flex items-center justify-center shrink-0 text-charcoal/40">
+                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 002-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 00-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"/></svg>
                   </div>
 
                   <div className="flex-1 min-w-0">

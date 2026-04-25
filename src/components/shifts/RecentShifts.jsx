@@ -284,5 +284,5 @@ export default function RecentShifts({ staffId, isManagerEdit = false, inline = 
   )
 
   if (inline) return body
-  return <div className="bg-white rounded-xl p-5">{body}</div>
+  return <div className="bg-white rounded-2xl p-5">{body}</div>
 }

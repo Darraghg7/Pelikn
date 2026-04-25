@@ -9,7 +9,7 @@ html {
   /* Do NOT set overflow-x:hidden on <html> — it breaks vertical scroll on iOS Safari */
 }
 body {
-  background: #f5f4f1;
+  background: #F0F0EF;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overscroll-behavior-y: none;

@@ -93,7 +93,7 @@ function StaffDeclarationForm({ session, venueId, onSaved }) {
       {/* Header */}
       <div className="px-6 pt-6 pb-4 border-b border-charcoal/8">
         <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-1">SC7 — Shift Start</p>
-        <h2 className="font-serif text-2xl text-brand">Fitness to Work</h2>
+        <h2 className="text-xl font-bold text-charcoal">Fitness to Work</h2>
         <p className="text-sm text-charcoal/50 mt-1">
           Complete before starting your shift. This declaration is recorded for food safety compliance.
         </p>
@@ -127,13 +127,13 @@ function StaffDeclarationForm({ session, venueId, onSaved }) {
                 onClick={() => handleFitnessAnswer(true)}
                 className="flex-1 py-4 rounded-xl bg-success/10 border-2 border-success/20 hover:bg-success/15 transition-all text-success font-semibold text-lg"
               >
-                ✓ Yes
+                <span className="inline-flex items-center gap-1.5"><svg className="w-4 h-4" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg> Yes</span>
               </button>
               <button
                 onClick={() => handleFitnessAnswer(false)}
                 className="flex-1 py-4 rounded-xl bg-danger/8 border-2 border-danger/15 hover:bg-danger/12 transition-all text-danger font-semibold text-lg"
               >
-                ✗ No
+                <span className="inline-flex items-center gap-1.5"><svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> No</span>
               </button>
             </div>
           </div>
@@ -178,7 +178,7 @@ function StaffDeclarationForm({ session, venueId, onSaved }) {
                 onChange={e => setIllness(e.target.value)}
                 placeholder="Describe symptoms or any other relevant information"
                 rows={3}
-                className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 bg-cream/30 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+                className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm resize-none focus:outline-none focus:ring-2 focus:ring-charcoal/20"
               />
             </div>
 
@@ -253,7 +253,12 @@ function DeclarationSummary({ declaration }) {
   return (
     <div className={`rounded-2xl border-2 p-6 max-w-lg w-full mx-auto ${isFit ? 'bg-success/5 border-success/20' : 'bg-danger/5 border-danger/20'}`}>
       <div className="flex items-center gap-3 mb-3">
-        <span className={`text-3xl`}>{isFit ? '✅' : '⚠️'}</span>
+        <span className={isFit ? 'text-success' : 'text-warning'}>
+          {isFit
+            ? <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="9 12 11 14 15 10"/></svg>
+            : <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          }
+        </span>
         <div>
           <p className={`font-semibold text-lg ${isFit ? 'text-success' : 'text-danger'}`}>
             {isFit ? 'Fit to Work' : 'Not Fit to Work'}
@@ -275,9 +280,9 @@ function DeclarationSummary({ declaration }) {
 
       {isFit && (
         <div className="mt-2 text-xs text-charcoal/40 space-y-0.5">
-          {declaration.confirm_handwashing   && <p>✓ Hands washed</p>}
-          {declaration.confirm_clean_uniform && <p>✓ Clean uniform</p>}
-          {declaration.confirm_no_jewellery  && <p>✓ No jewellery</p>}
+          {declaration.confirm_handwashing   && <p className="flex items-center gap-1"><svg className="w-3 h-3 text-success shrink-0" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg> Hands washed</p>}
+          {declaration.confirm_clean_uniform && <p className="flex items-center gap-1"><svg className="w-3 h-3 text-success shrink-0" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg> Clean uniform</p>}
+          {declaration.confirm_no_jewellery  && <p className="flex items-center gap-1"><svg className="w-3 h-3 text-success shrink-0" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg> No jewellery</p>}
         </div>
       )}
 
@@ -327,22 +332,22 @@ function ManagerDeclarationsView({ venueId }) {
 
       {/* Stats */}
       <div className="grid grid-cols-3 gap-3">
-        <div className="bg-white rounded-xl border border-charcoal/10 p-4 text-center">
-          <p className="font-serif text-2xl text-charcoal">{declarations.length}</p>
+        <div className="bg-white rounded-2xl border-charcoal/10 p-4 text-center">
+          <p className="text-xl font-bold text-charcoal">{declarations.length}</p>
           <p className="text-[11px] text-charcoal/40 mt-0.5">Declared</p>
         </div>
         <div className="bg-success/5 rounded-xl border border-success/15 p-4 text-center">
-          <p className="font-serif text-2xl text-success">{fitCount}</p>
+          <p className="text-xl font-bold text-success">{fitCount}</p>
           <p className="text-[11px] text-success/60 mt-0.5">Fit to work</p>
         </div>
         <div className={`rounded-xl border p-4 text-center ${unfitCount > 0 ? 'bg-danger/8 border-danger/20' : 'bg-charcoal/4 border-charcoal/10'}`}>
-          <p className={`font-serif text-2xl ${unfitCount > 0 ? 'text-danger' : 'text-charcoal/30'}`}>{unfitCount}</p>
+          <p className={`text-xl font-bold ${unfitCount > 0 ? 'text-danger' : 'text-charcoal/30'}`}>{unfitCount}</p>
           <p className={`text-[11px] mt-0.5 ${unfitCount > 0 ? 'text-danger/60' : 'text-charcoal/30'}`}>Unfit</p>
         </div>
       </div>
 
       {/* Declaration list */}
-      <div className="bg-white rounded-xl border border-charcoal/10 overflow-hidden">
+      <div className="bg-white rounded-2xl border-charcoal/10 overflow-hidden">
         {loading ? (
           <div className="flex justify-center py-8"><LoadingSpinner /></div>
         ) : declarations.length === 0 ? (
@@ -351,7 +356,12 @@ function ManagerDeclarationsView({ venueId }) {
           <div className="divide-y divide-charcoal/6">
             {declarations.map(d => (
               <div key={d.id} className="flex items-start gap-4 px-5 py-4">
-                <span className={`text-lg shrink-0 mt-0.5`}>{d.is_fit ? '✅' : '⚠️'}</span>
+                <span className={`shrink-0 mt-0.5 ${d.is_fit ? 'text-success' : 'text-warning'}`}>
+                  {d.is_fit
+                    ? <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="9 12 11 14 15 10"/></svg>
+                    : <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                  }
+                </span>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <p className="text-sm font-medium text-charcoal">{d.staff_name}</p>
@@ -426,7 +436,7 @@ export default function FitnessPage() {
           <p className="text-xs uppercase tracking-widest text-charcoal/40 mb-1">
             {format(new Date(), 'EEEE, d MMMM')}
           </p>
-          <h1 className="font-serif text-3xl text-brand">Fitness to Work</h1>
+          <h1 className="text-2xl font-bold text-charcoal">Fitness to Work</h1>
         </div>
         <span className="text-[11px] tracking-widest uppercase text-charcoal/30 border border-charcoal/15 rounded px-2 py-1">SC7</span>
       </div>

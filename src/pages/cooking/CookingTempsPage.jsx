@@ -88,7 +88,7 @@ function LogForm({ checkType, onLogged }) {
           value={foodItem}
           onChange={e => setFoodItem(e.target.value)}
           placeholder={checkType === 'cooking' ? 'e.g. Chicken breast, Beef burger…' : 'e.g. Lasagne, Soup, Curry…'}
-          className="w-full px-4 py-3 rounded-xl border border-charcoal/15 bg-cream/40 text-sm text-charcoal placeholder-charcoal/30 focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+          className="w-full px-4 py-3 rounded-xl border border-charcoal/15 bg-white text-sm text-charcoal placeholder-charcoal/30 focus:outline-none focus:ring-2 focus:ring-charcoal/20"
           required
         />
       </div>
@@ -110,7 +110,7 @@ function LogForm({ checkType, onLogged }) {
                   ? isFail
                     ? 'border-danger/40 bg-danger/4 text-danger focus:ring-danger/20'
                     : 'border-success/40 bg-success/5 text-success focus:ring-success/20'
-                  : 'border-charcoal/15 bg-cream/40 text-charcoal focus:ring-charcoal/20',
+                  : 'border-charcoal/15 bg-white text-charcoal focus:ring-charcoal/20',
               ].join(' ')}
             />
           </div>
@@ -118,7 +118,7 @@ function LogForm({ checkType, onLogged }) {
             <p className={`text-[11px] mt-1.5 font-medium ${isFail ? 'text-danger' : 'text-success'}`}>
               {isFail
                 ? `↓ Below ${COOKING_TARGET_TEMP}°C minimum — corrective action required`
-                : `✓ Above ${COOKING_TARGET_TEMP}°C — pass`}
+                : <span className="inline-flex items-center gap-0.5"><svg className="w-3 h-3 shrink-0" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg> Above {COOKING_TARGET_TEMP}°C — pass</span>}
             </p>
           )}
         </div>
@@ -128,7 +128,7 @@ function LogForm({ checkType, onLogged }) {
             type="datetime-local"
             value={loggedAt}
             onChange={e => setLoggedAt(e.target.value)}
-            className="w-full px-3 py-3 rounded-xl border border-charcoal/15 bg-cream/40 text-sm text-charcoal focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+            className="w-full px-3 py-3 rounded-xl border border-charcoal/15 bg-white text-sm text-charcoal focus:outline-none focus:ring-2 focus:ring-charcoal/20"
           />
         </div>
       </div>
@@ -156,7 +156,7 @@ function LogForm({ checkType, onLogged }) {
             value={comment}
             onChange={e => setComment(e.target.value)}
             placeholder="Any additional notes…"
-            className="w-full px-4 py-3 rounded-xl border border-charcoal/15 bg-cream/40 text-sm text-charcoal placeholder-charcoal/30 focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+            className="w-full px-4 py-3 rounded-xl border border-charcoal/15 bg-white text-sm text-charcoal placeholder-charcoal/30 focus:outline-none focus:ring-2 focus:ring-charcoal/20"
           />
         </div>
       )}
@@ -251,7 +251,7 @@ export default function CookingTempsPage() {
 
       {/* Page header */}
       <div>
-        <h1 className="font-serif text-3xl text-brand">Cooking Temperatures</h1>
+        <h1 className="text-2xl font-bold text-charcoal">Cooking Temperatures</h1>
         <p className="text-sm text-charcoal/45 mt-1">
           Log core temperatures for cooking and reheating. UK minimum: <strong>≥{COOKING_TARGET_TEMP}°C</strong>.
         </p>
@@ -276,7 +276,7 @@ export default function CookingTempsPage() {
       {tab === 'log' && (
         <>
           {/* Check type selector */}
-          <div className="bg-white rounded-xl border border-charcoal/10 p-5">
+          <div className="bg-white rounded-2xl border-charcoal/10 p-5">
             <SectionLabel>Check Type</SectionLabel>
             <div className="flex gap-2">
               {[['cooking', 'Cooking'], ['reheating', 'Reheating']].map(([key, label]) => (
@@ -302,7 +302,7 @@ export default function CookingTempsPage() {
           </div>
 
           {/* Log form */}
-          <div className="bg-white rounded-xl border border-charcoal/10 p-5">
+          <div className="bg-white rounded-2xl border-charcoal/10 p-5">
             <SectionLabel>New Reading</SectionLabel>
             <LogForm
               key={`${checkType}-${logKey}`}
@@ -312,7 +312,7 @@ export default function CookingTempsPage() {
           </div>
 
           {/* Today's readings */}
-          <div className="bg-white rounded-xl border border-charcoal/10 p-5">
+          <div className="bg-white rounded-2xl border-charcoal/10 p-5">
             <SectionLabel>Today's Readings</SectionLabel>
             {todayLoading ? (
               <div className="flex justify-center py-6"><LoadingSpinner /></div>
@@ -323,7 +323,7 @@ export default function CookingTempsPage() {
                 {todayLogs.map(log => {
                   const fail = isCookingTempFail(log.temperature, log.target_temp ?? COOKING_TARGET_TEMP)
                   return (
-                    <div key={log.id} className={`flex items-center gap-3 px-4 py-3 rounded-xl border ${fail ? 'border-danger/25 bg-danger/4' : 'border-charcoal/8 bg-cream/30'}`}>
+                    <div key={log.id} className={`flex items-center gap-3 px-4 py-3 rounded-xl border ${fail ? 'border-danger/25 bg-danger/4' : 'border-charcoal/8 bg-white'}`}>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-charcoal truncate">{log.food_item}</p>
                         <p className="text-[11px] text-charcoal/45 mt-0.5">
@@ -346,7 +346,7 @@ export default function CookingTempsPage() {
       )}
 
       {tab === 'history' && (
-        <div className="bg-white rounded-xl border border-charcoal/10 p-5">
+        <div className="bg-white rounded-2xl border-charcoal/10 p-5">
           <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
             <SectionLabel>All Readings</SectionLabel>
             <DateRangePresets

@@ -14,7 +14,7 @@ import { useVenueFeatures } from '../../hooks/useVenueFeatures'
 
 // Multi-venue is just Pro × number of venues — no separate tier in the app
 const PLAN_CONFIG = {
-  starter: { label: 'Starter', bg: 'bg-teal-50',   text: 'text-teal-700', border: 'border-teal-200'  },
+  starter: { label: 'Starter', bg: 'bg-success/8',   text: 'text-brand', border: 'border-success/30'  },
   pro:     { label: 'Pro',     bg: 'bg-accent/10', text: 'text-accent',   border: 'border-accent/25' },
 }
 function PlanBadge({ plan }) {
@@ -335,34 +335,29 @@ function TodaySummaryCard({ venueId }) {
     summary.pendingLeave > 0 && { label: `${summary.pendingLeave} leave request${summary.pendingLeave > 1 ? 's' : ''} pending`, to: vp('/time-off'), urgency: 'info' },
   ].filter(Boolean) : []
 
-  const urgencyDot = { warn: 'bg-warning', danger: 'bg-danger', info: 'bg-accent' }
+  const urgencyBorder = { warn: 'border-warning', danger: 'border-danger', info: 'border-accent' }
   const urgencyText = { warn: 'text-warning', danger: 'text-danger', info: 'text-accent' }
 
   if (!loading && closedToday) {
     return (
-      <div className="bg-white rounded-xl overflow-hidden">
+      <div className="bg-white rounded-2xl overflow-hidden">
         <div className="px-5 py-6 text-center">
-          <span className="text-4xl mb-3 block">&#9749;</span>
-          <p className="font-serif text-xl text-charcoal">Venue closed today</p>
+          <span className="text-charcoal/25 mb-3 flex justify-center"><svg className="w-10 h-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg></span>
+          <p className="text-xl font-bold text-charcoal">Venue closed today</p>
           <p className="text-sm text-charcoal/45 mt-1">
             {typeof closedToday === 'string' ? closedToday : 'Enjoy the break!'}
           </p>
         </div>
-        {/* Still show leave requests and critical actions */}
         {summary && (summary.pendingLeave > 0 || summary.criticalActions > 0) && (
           <div className="border-t border-charcoal/6 divide-y divide-charcoal/6">
             {summary.pendingLeave > 0 && (
-              <Link to={vp('/time-off')} className="flex items-center gap-3 px-5 py-3 hover:bg-charcoal/3 transition-colors group">
-                <span className="w-2 h-2 rounded-full shrink-0 bg-accent" />
+              <Link to={vp('/time-off')} className="flex items-center border-l-[3px] border-accent pl-4 pr-5 py-3.5 hover:bg-charcoal/3 transition-colors">
                 <p className="text-sm flex-1 font-medium text-accent">{summary.pendingLeave} leave request{summary.pendingLeave > 1 ? 's' : ''} pending</p>
-                <span className="text-charcoal/20 group-hover:text-charcoal/40 transition-colors text-sm">&rarr;</span>
               </Link>
             )}
             {summary.criticalActions > 0 && (
-              <Link to={vp('/corrective')} className="flex items-center gap-3 px-5 py-3 hover:bg-charcoal/3 transition-colors group">
-                <span className="w-2 h-2 rounded-full shrink-0 bg-danger" />
+              <Link to={vp('/corrective')} className="flex items-center border-l-[3px] border-danger pl-4 pr-5 py-3.5 hover:bg-charcoal/3 transition-colors">
                 <p className="text-sm flex-1 font-medium text-danger">{summary.criticalActions} critical action{summary.criticalActions > 1 ? 's' : ''} open</p>
-                <span className="text-charcoal/20 group-hover:text-charcoal/40 transition-colors text-sm">&rarr;</span>
               </Link>
             )}
           </div>
@@ -372,34 +367,34 @@ function TodaySummaryCard({ venueId }) {
   }
 
   return (
-    <div className="bg-white rounded-xl overflow-hidden">
-      <div className="px-5 pt-4 pb-3">
-        <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-4">Today</p>
+    <div className="bg-white rounded-2xl overflow-hidden">
+      <div className="px-4 pt-4 pb-3">
+        <p className="text-[11px] tracking-widest uppercase font-semibold text-charcoal/40 mb-3">Today</p>
         {loading || !summary ? (
-          <div className="flex gap-4">
+          <div className="flex gap-3">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="flex-1 h-14 rounded-lg bg-charcoal/5 animate-pulse" />
+              <div key={i} className="flex-1 h-16 rounded-xl bg-charcoal/5 animate-pulse" />
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-3 gap-3">
-            <div className="flex flex-col gap-0.5">
-              <p className={`font-serif text-3xl font-semibold ${summary.onShiftToday > 0 ? 'text-charcoal' : 'text-charcoal/30'}`}>
+          <div className="grid grid-cols-3 gap-2">
+            <div className="flex flex-col items-center gap-0.5 border border-charcoal/10 rounded-xl py-3 px-2">
+              <p className={`text-2xl font-bold ${summary.onShiftToday > 0 ? 'text-charcoal' : 'text-charcoal/30'}`}>
                 {summary.onShiftToday}
               </p>
-              <p className="text-[11px] text-charcoal/40 leading-tight">On shift</p>
+              <p className="text-[10px] text-charcoal/45 leading-tight text-center">On shift</p>
             </div>
-            <div className="flex flex-col gap-0.5">
-              <p className={`font-serif text-3xl font-semibold ${summary.checksToday > 0 ? 'text-success' : 'text-charcoal/30'}`}>
+            <div className="flex flex-col items-center gap-0.5 border border-charcoal/10 rounded-xl py-3 px-2">
+              <p className={`text-2xl font-bold ${summary.checksToday > 0 ? 'text-charcoal' : 'text-charcoal/30'}`}>
                 {summary.checksToday}
               </p>
-              <p className="text-[11px] text-charcoal/40 leading-tight">Checks done</p>
+              <p className="text-[10px] text-charcoal/45 leading-tight text-center">Checks done</p>
             </div>
-            <div className="flex flex-col gap-0.5">
-              <p className={`font-serif text-3xl font-semibold ${summary.overdueClean > 0 ? 'text-danger' : 'text-success'}`}>
+            <div className="flex flex-col items-center gap-0.5 border border-charcoal/10 rounded-xl py-3 px-2">
+              <p className={`text-2xl font-bold ${summary.overdueClean > 0 ? 'text-danger' : 'text-charcoal/30'}`}>
                 {summary.overdueClean}
               </p>
-              <p className="text-[11px] text-charcoal/40 leading-tight">Overdue cleans</p>
+              <p className="text-[10px] text-charcoal/45 leading-tight text-center">Overdue cleans</p>
             </div>
           </div>
         )}
@@ -408,17 +403,15 @@ function TodaySummaryCard({ venueId }) {
       {/* Action items */}
       {!loading && summary && (
         actions.length === 0 ? (
-          <div className="border-t border-charcoal/6 px-5 py-3 flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-success shrink-0" />
-            <p className="text-sm text-charcoal/50">All checks on track</p>
+          <div className="border-t border-charcoal/6 px-5 py-3.5 flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-success shrink-0" />
+            <p className="text-sm font-medium text-charcoal/50">All checks on track</p>
           </div>
         ) : (
           <div className="border-t border-charcoal/6 divide-y divide-charcoal/6">
             {actions.map((a) => (
-              <Link key={a.to} to={a.to} className="flex items-center gap-3 px-5 py-3 hover:bg-charcoal/3 transition-colors group">
-                <span className={`w-2 h-2 rounded-full shrink-0 ${urgencyDot[a.urgency]}`} />
+              <Link key={a.to} to={a.to} className={`flex items-center border-l-[3px] ${urgencyBorder[a.urgency]} pl-4 pr-5 py-3.5 hover:bg-charcoal/3 transition-colors`}>
                 <p className={`text-sm flex-1 font-medium ${urgencyText[a.urgency]}`}>{a.label}</p>
-                <span className="text-charcoal/20 group-hover:text-charcoal/40 transition-colors text-sm">→</span>
               </Link>
             ))}
           </div>
@@ -444,25 +437,25 @@ function PushBanner({ staffId, venueId }) {
   if (!supported || permission === 'denied' || subscribed || dismissed) return null
 
   return (
-    <div className="flex items-center justify-between gap-4 rounded-xl border border-brand/25 bg-brand/5 px-5 py-3">
-      <div className="flex items-center gap-3">
-        <span className="text-lg shrink-0">🔔</span>
-        <p className="text-sm text-charcoal/70">
-          Enable notifications to get alerts for overdue checks
-        </p>
-      </div>
+    <div className="flex items-center gap-3 rounded-2xl border border-warning/25 bg-warning/8 px-4 py-3.5">
+      <span className="shrink-0 w-8 h-8 rounded-full bg-warning/15 flex items-center justify-center">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-warning"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      </span>
+      <p className="text-sm text-charcoal/70 flex-1 leading-snug">
+        Enable notifications to get alerts for overdue checks
+      </p>
       <div className="flex items-center gap-2 shrink-0">
         <button
           onClick={subscribe}
-          className="text-xs font-semibold text-brand hover:text-brand/80 transition-colors border-b border-brand/30"
+          className="text-[11px] font-bold tracking-wide bg-brand text-white px-3 py-1.5 rounded-lg hover:bg-brand/90 transition-colors"
         >
           Enable
         </button>
         <button
           onClick={() => { localStorage.setItem(pushDismissKey(staffId), '1'); setDismissed(true) }}
-          className="text-xs text-charcoal/30 hover:text-charcoal transition-colors"
+          className="text-charcoal/30 hover:text-charcoal/60 transition-colors p-1"
         >
-          Dismiss
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
         </button>
       </div>
     </div>
@@ -517,13 +510,13 @@ function GettingStartedCard({ venueId, venueSlug }) {
   const completed = items.filter(i => i.done).length
 
   return (
-    <div className="bg-white rounded-xl border border-charcoal/10 p-5">
+    <div className="bg-white rounded-2xl p-5">
       <div className="flex items-center justify-between mb-3">
         <div>
-          <p className="text-sm font-semibold text-charcoal">Getting Started</p>
+          <p className="text-sm font-bold text-charcoal">Getting Started</p>
           <p className="text-[11px] text-charcoal/40 mt-0.5">{completed} of {items.length} complete</p>
         </div>
-        <button onClick={() => { supabase.from('app_settings').upsert({ venue_id: venueId, key: 'setup_dismissed', value: 'true' }).then(() => {}); setDismissed(true) }} className="text-charcoal/25 hover:text-charcoal/50 transition-colors text-lg">&times;</button>
+        <button onClick={() => { supabase.from('app_settings').upsert({ venue_id: venueId, key: 'setup_dismissed', value: 'true' }).then(() => {}); setDismissed(true) }} className="text-charcoal/30 hover:text-charcoal/60 transition-colors text-xl leading-none">&times;</button>
       </div>
       <div className="h-1 bg-charcoal/8 rounded-full mb-4 overflow-hidden">
         <div className="h-full bg-brand rounded-full transition-all" style={{ width: `${(completed / items.length) * 100}%` }} />
@@ -535,7 +528,7 @@ function GettingStartedCard({ venueId, venueSlug }) {
             to={item.link}
             className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${item.done ? 'bg-success/5' : 'hover:bg-charcoal/3'}`}
           >
-            <span className={`text-sm ${item.done ? 'text-success' : 'text-charcoal/25'}`}>{item.done ? '\u2713' : '\u25CB'}</span>
+            <span className={`${item.done ? 'text-success' : 'text-charcoal/20'}`}>{item.done ? <svg className="w-3.5 h-3.5" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg> : <svg className="w-3.5 h-3.5" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="6" cy="6" r="4"/></svg>}</span>
             <span className={`text-sm ${item.done ? 'text-charcoal/40 line-through' : 'text-charcoal'}`}>{item.label}</span>
           </Link>
         ))}
@@ -566,34 +559,25 @@ export default function ManagerDashboardPage() {
   const firstName = session?.staffName?.split(' ')[0] ?? ''
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex items-start justify-between">
-        <div className="flex items-center gap-4">
-          {logoUrl && (
-            <img
-              src={logoUrl}
-              alt="Venue logo"
-              className="h-14 w-14 sm:h-16 sm:w-16 rounded-xl object-contain bg-white p-1 shrink-0"
-            />
+    <div className="flex flex-col gap-4">
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0">
+          <p className="text-[11px] font-medium tracking-widest uppercase text-charcoal/40">{format(new Date(), 'EEEE, d MMMM')}</p>
+          <h1 className="text-2xl font-bold text-charcoal leading-tight mt-0.5">
+            {greeting}{firstName ? `, ${firstName}` : ''}
+          </h1>
+          {venueName && (
+            <div className="flex items-center gap-2 mt-1">
+              <p className="text-sm font-medium text-charcoal/50">{venueName}</p>
+              <PlanBadge plan={venuePlan} />
+            </div>
           )}
-          <div>
-            <h1 className="font-serif text-2xl sm:text-3xl text-brand leading-tight">
-              {greeting}{firstName ? `, ${firstName}` : ''}
-            </h1>
-            <p className="text-xs uppercase tracking-widest text-charcoal/40 mt-0.5">{format(new Date(), 'EEEE, d MMMM')}</p>
-            {venueName && (
-              <div className="flex items-center gap-2 mt-1">
-                <p className="text-sm text-charcoal/50">{venueName}</p>
-                <PlanBadge plan={venuePlan} />
-              </div>
-            )}
-          </div>
         </div>
-        <div className="flex flex-col items-end gap-2">
+        <div className="flex flex-col items-end gap-2 shrink-0">
           {venuePlan === 'starter' && <UpgradeButton />}
           <button
             onClick={() => setShowPicker(true)}
-            className="text-[11px] tracking-widest uppercase text-charcoal/30 hover:text-charcoal/60 border border-charcoal/15 hover:border-charcoal/30 px-2.5 py-1.5 rounded-lg transition-colors"
+            className="text-[11px] font-semibold tracking-wider uppercase text-charcoal/40 hover:text-charcoal/70 border border-charcoal/15 hover:border-charcoal/30 px-3 py-1.5 rounded-lg transition-colors"
           >
             Customise
           </button>
@@ -607,8 +591,8 @@ export default function ManagerDashboardPage() {
       {/* Desktop: today summary + clock side by side */}
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-4 items-start">
         <TodaySummaryCard venueId={venueId} />
-        <div className="bg-white rounded-xl p-5">
-          <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-3">My Clock</p>
+        <div className="bg-white rounded-2xl p-5">
+          <p className="text-[11px] tracking-widest uppercase font-semibold text-charcoal/40 mb-3">My Clock</p>
           <ClockPanel staffId={session?.staffId} hasShift />
         </div>
       </div>
@@ -624,11 +608,11 @@ export default function ManagerDashboardPage() {
       </div>
 
       {widgetIds.length === 0 && (
-        <div className="bg-white rounded-xl border border-dashed border-charcoal/20 p-10 text-center">
+        <div className="bg-white rounded-2xl border border-dashed border-charcoal/20 p-10 text-center">
           <p className="text-charcoal/30 text-sm mb-3">No widgets on your dashboard</p>
           <button
             onClick={() => setShowPicker(true)}
-            className="bg-charcoal text-cream px-4 py-2 rounded-lg text-sm font-medium hover:bg-charcoal/90 transition-colors"
+            className="bg-charcoal text-cream px-4 py-2 rounded-xl text-sm font-semibold hover:bg-charcoal/90 transition-colors"
           >
             + Add Widgets
           </button>

@@ -3,9 +3,9 @@ import React from 'react'
 const variants = {
   primary:   'bg-brand text-cream hover:bg-brand/90 hover:shadow-md hover:shadow-brand/20 dark:bg-charcoal dark:hover:bg-charcoal/90 active:scale-[0.98]',
   secondary: 'bg-cream text-charcoal border border-charcoal/20 hover:bg-charcoal/5 hover:shadow-sm active:scale-[0.98]',
-  danger:    'bg-danger text-white hover:bg-red-700 hover:shadow-md hover:shadow-danger/20 active:scale-[0.98]',
+  danger:    'bg-danger text-white hover:bg-danger/80 hover:shadow-md hover:shadow-danger/20 active:scale-[0.98]',
   ghost:     'text-charcoal hover:bg-charcoal/5 active:scale-[0.98]',
-  success:   'bg-success text-white hover:bg-green-700 hover:shadow-md hover:shadow-success/20 active:scale-[0.98]',
+  success:   'bg-success text-white hover:bg-success/80 hover:shadow-md hover:shadow-success/20 active:scale-[0.98]',
   warning:   'bg-warning text-white hover:bg-amber-700 active:scale-[0.98]',
 }
 

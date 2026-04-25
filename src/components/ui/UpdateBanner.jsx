@@ -71,14 +71,16 @@ export default function UpdateBanner() {
   return (
     <div className="fixed bottom-20 lg:bottom-4 left-1/2 -translate-x-1/2 z-[9999] w-[calc(100%-2rem)] max-w-sm animate-slide-up">
       <div className="bg-charcoal text-cream rounded-2xl shadow-2xl px-5 py-4 flex items-center gap-3">
-        <div className="text-xl shrink-0">🔄</div>
+        <div className="shrink-0 text-cream/60">
+          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+        </div>
         <div className="flex-1 min-w-0">
           <p className="text-sm font-semibold">New version available</p>
           <p className="text-xs text-cream/50 mt-0.5">Tap Update to get the latest features</p>
         </div>
         <button
           onClick={applyUpdate}
-          className="bg-cream text-charcoal font-bold text-xs px-3 py-1.5 rounded-xl shrink-0 hover:bg-cream/90 transition-colors active:scale-95"
+          className="bg-surface text-charcoal font-bold text-xs px-3 py-1.5 rounded-xl shrink-0 hover:bg-cream/90 transition-colors active:scale-95"
         >
           Update
         </button>

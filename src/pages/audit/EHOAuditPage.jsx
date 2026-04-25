@@ -54,7 +54,7 @@ function DrillTable({ headers, rows }) {
                       disabled={row.action.loading}
                       className="text-[11px] font-medium px-2 py-1 rounded-lg bg-success/10 text-success hover:bg-success/20 transition-colors disabled:opacity-40 whitespace-nowrap"
                     >
-                      {row.action.loading ? '…' : '✓ Resolved'}
+                      {row.action.loading ? '…' : <span className="inline-flex items-center gap-1"><svg className="w-3 h-3" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg> Resolved</span>}
                     </button>
                   )}
                 </td>
@@ -69,30 +69,24 @@ function DrillTable({ headers, rows }) {
 
 function SectionCard({ title, status, children, sectionId, openSection, onToggle, failCount, failLabel }) {
   const isOpen = openSection === sectionId
-  const statusColors = {
-    good:    'border-success/30 bg-success/3',
-    warning: 'border-warning/30 bg-warning/3',
-    bad:     'border-danger/30 bg-danger/3',
-    neutral: 'border-charcoal/10',
-  }
   const dotColors = { good: 'bg-success', warning: 'bg-warning', bad: 'bg-danger', neutral: 'bg-charcoal/20' }
 
   return (
-    <div id={sectionId} className={`rounded-xl border ${statusColors[status] ?? statusColors.neutral}`}>
+    <div id={sectionId} className="bg-white rounded-2xl overflow-hidden">
       <div className="p-5">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <span className={`w-2 h-2 rounded-full ${dotColors[status]}`} />
-            <h3 className="text-[11px] tracking-widest uppercase text-charcoal/50 font-medium">{title}</h3>
+            <span className={`w-2 h-2 rounded-full shrink-0 ${dotColors[status] ?? dotColors.neutral}`} />
+            <h3 className="text-[11px] font-bold tracking-widest uppercase text-charcoal/50">{title}</h3>
           </div>
           {failCount > 0 && sectionId && (
             <button
               onClick={() => onToggle(sectionId)}
-              className={`text-[11px] font-medium px-2 py-1 rounded-lg transition-colors ${
+              className={`text-[11px] font-semibold px-2.5 py-1 rounded-full transition-colors ${
                 isOpen
-                  ? 'text-charcoal/60 bg-charcoal/8'
-                  : status === 'bad' ? 'text-danger/80 bg-danger/8 hover:bg-danger/15'
-                  : 'text-warning/80 bg-warning/8 hover:bg-warning/15'
+                  ? 'text-charcoal/50 bg-charcoal/8'
+                  : status === 'bad' ? 'text-danger bg-danger/10 hover:bg-danger/15'
+                  : 'text-warning bg-warning/10 hover:bg-warning/15'
               }`}
             >
               {isOpen ? 'Hide ▲' : `${failLabel ?? `${failCount} failed`} ▼`}
@@ -279,13 +273,22 @@ export default function EHOAuditPage() {
     service_access: 'Busy service', equipment: 'Equipment concern', other: 'Other',
   }
 
+  // Compute an overall compliance score (0–100) across categories
+  const overallScore = data ? (() => {
+    let pts = 0, max = 0
+    max += 30; pts += data.tempTotal > 0 ? (data.tempPassRate / 100) * 30 : (data.tempTotal === 0 ? 25 : 0)
+    max += 20; pts += data.deliveryTotal > 0 ? (data.deliveryFails === 0 ? 20 : Math.max(0, 20 - data.deliveryFails * 4)) : 15
+    max += 20; pts += data.caCritical === 0 && data.caOpen === 0 ? 20 : data.caCritical > 0 ? 5 : Math.max(0, 20 - data.caOpen * 3)
+    max += 15; pts += data.expiredCerts === 0 ? 15 : Math.max(0, 15 - data.expiredCerts * 3)
+    max += 15; pts += data.probeTotal > 0 ? (data.probeFails === 0 ? 15 : Math.max(0, 15 - data.probeFails * 4)) : 10
+    return Math.round((pts / max) * 100)
+  })() : 0
+
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       <div>
-        <h1 className="font-serif text-3xl text-brand">EHO Audit Trail</h1>
-        <p className="text-sm text-charcoal/40 mt-1">
-          Everything an Environmental Health Officer needs to see — in one place.
-        </p>
+        <h1 className="text-2xl font-bold text-charcoal">EHO Audit Trail</h1>
+        <p className="text-sm text-charcoal/45 mt-0.5">Environmental Health Officer inspection readiness</p>
       </div>
 
       {/* Range selector */}
@@ -294,9 +297,9 @@ export default function EHOAuditPage() {
           <button
             key={r.days}
             onClick={() => setRange(r.days)}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
+            className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all ${
               range === r.days
-                ? 'bg-charcoal text-cream border-charcoal'
+                ? 'bg-brand text-white border-brand'
                 : 'bg-white text-charcoal/50 border-charcoal/15 hover:border-charcoal/30'
             }`}
           >
@@ -309,21 +312,59 @@ export default function EHOAuditPage() {
         <div className="flex justify-center py-16"><LoadingSpinner /></div>
       ) : !data ? null : (
         <>
-          {/* Overall banner */}
-          <div className={`rounded-xl border-2 p-5 text-center ${
-            overall === 'good' ? 'border-success bg-success/5' :
-            overall === 'warning' ? 'border-warning bg-warning/5' :
-            'border-danger bg-danger/5'
+          {/* Overall status banner */}
+          <div className={`rounded-2xl border px-4 py-3.5 flex items-center gap-3 ${
+            overall === 'good' ? 'border-success/25 bg-success/8' :
+            overall === 'warning' ? 'border-warning/25 bg-warning/8' :
+            'border-danger/25 bg-danger/8'
           }`}>
-            <p className={`text-lg font-serif font-semibold ${
-              overall === 'good' ? 'text-success' : overall === 'warning' ? 'text-warning' : 'text-danger'
-            }`}>
-              {overallLabels[overall]}
-            </p>
-            <p className="text-xs text-charcoal/40 mt-1">Based on the last {range} days of records</p>
+            <span className={`shrink-0 ${overall === 'good' ? 'text-success' : overall === 'warning' ? 'text-warning' : 'text-danger'}`}>
+              {overall === 'good' ? (
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" /></svg>
+              ) : (
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126z" /></svg>
+              )}
+            </span>
+            <div className="flex-1 min-w-0">
+              <p className={`font-bold text-sm ${overall === 'good' ? 'text-success' : overall === 'warning' ? 'text-warning' : 'text-danger'}`}>
+                {overall === 'good' ? 'Exemplary — ready for inspection' : overallLabels[overall]}
+              </p>
+              <p className="text-[11px] text-charcoal/40 mt-0.5">Score calculated at {format(new Date(), 'dd/MM/yy HH:mm')}</p>
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* Overall score card */}
+          <div className="bg-white rounded-2xl p-5">
+            <p className="text-[11px] font-bold tracking-widest uppercase text-charcoal/40 mb-3">Overall Score</p>
+            <div className="flex items-baseline gap-2 mb-3">
+              <span className="text-4xl font-bold text-midgreen">{overallScore}%</span>
+              {overallScore >= 80 && (
+                <svg className="w-5 h-5 text-midgreen" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18 9 11.25l4.306 4.306a11.95 11.95 0 0 1 5.814-5.518l2.74-1.22m0 0-5.94-2.281m5.94 2.28-2.28 5.941" /></svg>
+              )}
+            </div>
+            <div className="w-full h-2 bg-charcoal/8 rounded-full overflow-hidden mb-4">
+              <div
+                className="h-full bg-charcoal rounded-full transition-all duration-500"
+                style={{ width: `${overallScore}%` }}
+              />
+            </div>
+            <div className="grid grid-cols-3 gap-3 pt-3 border-t border-charcoal/6">
+              <div className="text-center">
+                <p className="text-[10px] tracking-widest uppercase text-charcoal/40 mb-0.5">Points</p>
+                <p className="font-bold text-charcoal text-base">{Math.round(overallScore)}</p>
+              </div>
+              <div className="text-center">
+                <p className="text-[10px] tracking-widest uppercase text-charcoal/40 mb-0.5">Max</p>
+                <p className="font-bold text-charcoal text-base">100</p>
+              </div>
+              <div className="text-center">
+                <p className="text-[10px] tracking-widest uppercase text-charcoal/40 mb-0.5">Rate</p>
+                <p className="font-bold text-midgreen text-base">{overallScore}%</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {/* Temperature Monitoring */}
             <SectionCard
               title="Temperature Monitoring"
@@ -352,7 +393,7 @@ export default function EHOAuditPage() {
                         { text: t.logged_by_name ?? '—' },
                       ],
                       action: {
-                        label: '✓ Resolved',
+                        label: 'Resolved',
                         loading: resolving === t.id,
                         fn: () => resolveRecord('fridge_temperature_logs', t.id, 'failedTemps', 'tempFails'),
                       },
@@ -361,7 +402,7 @@ export default function EHOAuditPage() {
                 </div>
               )}
               {openSection === 'temps' && data.failedTemps.length === 0 && (
-                <p className="mt-3 pt-3 border-t border-charcoal/10 text-xs text-success font-medium">All temperature alerts resolved ✓</p>
+                <p className="mt-3 pt-3 border-t border-charcoal/10 text-xs text-success font-medium">All temperature alerts resolved</p>
               )}
             </SectionCard>
 
@@ -396,7 +437,7 @@ export default function EHOAuditPage() {
               {openSection === 'deliveries' && data.failedDeliveries.length > 0 && (
                 <div className="mt-3 pt-3 border-t border-charcoal/10">
                   <DrillTable
-                    headers={['Date', 'Supplier', 'Temp', 'Temp ✓', 'Pack ✓', 'Use-By ✓', 'Notes']}
+                    headers={['Date', 'Supplier', 'Temp', 'Temp OK', 'Pack OK', 'Use-By OK', 'Notes']}
                     rows={data.failedDeliveries.map(d => ({
                       cells: [
                         { text: format(new Date(d.checked_at), 'dd/MM/yy HH:mm') },
@@ -407,13 +448,13 @@ export default function EHOAuditPage() {
                         { text: d.use_by_ok ? 'PASS' : 'FAIL', color: d.use_by_ok ? 'text-success' : 'text-danger', bold: true },
                         { text: d.notes ?? '—' },
                       ],
-                      action: { label: '✓ Resolved', loading: resolving === d.id, fn: () => resolveRecord('delivery_checks', d.id, 'failedDeliveries', 'deliveryFails') },
+                      action: { label: 'Resolved', loading: resolving === d.id, fn: () => resolveRecord('delivery_checks', d.id, 'failedDeliveries', 'deliveryFails') },
                     }))}
                   />
                 </div>
               )}
               {openSection === 'deliveries' && data.failedDeliveries.length === 0 && data.deliveryTotal > 0 && (
-                <p className="mt-3 pt-3 border-t border-charcoal/10 text-xs text-success font-medium">All delivery failures resolved ✓</p>
+                <p className="mt-3 pt-3 border-t border-charcoal/10 text-xs text-success font-medium">All delivery failures resolved</p>
               )}
             </SectionCard>
 
@@ -445,13 +486,13 @@ export default function EHOAuditPage() {
                         { text: p.actual_reading != null ? `${p.actual_reading} °C` : '—' },
                         { text: 'FAIL', color: 'text-danger', bold: true },
                       ],
-                      action: { label: '✓ Resolved', loading: resolving === p.id, fn: () => resolveRecord('probe_calibrations', p.id, 'failedProbes', 'probeFails') },
+                      action: { label: 'Resolved', loading: resolving === p.id, fn: () => resolveRecord('probe_calibrations', p.id, 'failedProbes', 'probeFails') },
                     }))}
                   />
                 </div>
               )}
               {openSection === 'probes' && data.failedProbes.length === 0 && data.probeTotal > 0 && (
-                <p className="mt-3 pt-3 border-t border-charcoal/10 text-xs text-success font-medium">All probe failures resolved ✓</p>
+                <p className="mt-3 pt-3 border-t border-charcoal/10 text-xs text-success font-medium">All probe failures resolved</p>
               )}
             </SectionCard>
 
@@ -483,13 +524,13 @@ export default function EHOAuditPage() {
                         },
                         { text: a.description ?? '—' },
                       ],
-                      action: { label: '✓ Resolved', loading: resolving === a.id, fn: () => resolveAction(a.id) },
+                      action: { label: 'Resolved', loading: resolving === a.id, fn: () => resolveAction(a.id) },
                     }))}
                   />
                 </div>
               )}
               {openSection === 'actions' && data.openActions.length === 0 && data.caTotal > 0 && (
-                <p className="mt-3 pt-3 border-t border-charcoal/10 text-xs text-success font-medium">All corrective actions resolved ✓</p>
+                <p className="mt-3 pt-3 border-t border-charcoal/10 text-xs text-success font-medium">All corrective actions resolved</p>
               )}
             </SectionCard>
 
@@ -516,32 +557,32 @@ export default function EHOAuditPage() {
                         { text: c.title ?? '—' },
                         { text: format(new Date(c.expiry_date), 'dd/MM/yyyy'), color: 'text-danger', bold: true },
                       ],
-                      action: { label: '✓ Renewed', loading: resolving === c.id, fn: () => resolveRecord('staff_training', c.id, 'expiredCertsList', 'expiredCerts') },
+                      action: { label: 'Renewed', loading: resolving === c.id, fn: () => resolveRecord('staff_training', c.id, 'expiredCertsList', 'expiredCerts') },
                     }))}
                   />
                 </div>
               )}
               {openSection === 'training' && data.expiredCertsList.length === 0 && (
-                <p className="mt-3 pt-3 border-t border-charcoal/10 text-xs text-success font-medium">All certificates up to date ✓</p>
+                <p className="mt-3 pt-3 border-t border-charcoal/10 text-xs text-success font-medium">All certificates up to date</p>
               )}
             </SectionCard>
           </div>
 
           {/* EHO Inspection Report */}
-          <div className="rounded-xl bg-brand/5 border border-brand/15 px-5 py-4">
-            <p className="text-[11px] tracking-widest uppercase text-brand/60 mb-1">EHO Inspection Report</p>
-            <p className="text-xs text-charcoal/50 mb-3">One comprehensive PDF covering all compliance areas — ready to show an EHO inspector.</p>
+          <div className="bg-white rounded-2xl px-5 py-4">
+            <p className="text-[11px] font-bold tracking-widest uppercase text-charcoal/40 mb-1">EHO Inspection Report</p>
+            <p className="text-xs text-charcoal/45 mb-3">One comprehensive PDF covering all compliance areas — ready to show an EHO inspector.</p>
             <button
               onClick={() => exportEHOReport(venueId, venueName, range)}
-              className="w-full px-4 py-2.5 rounded-lg bg-brand text-cream text-xs font-medium hover:bg-brand/90 transition-colors"
+              className="w-full px-4 py-3 rounded-xl bg-brand text-white text-xs font-bold hover:bg-brand/90 transition-colors"
             >
               ↓ Download EHO Inspection Report
             </button>
           </div>
 
           {/* Data Export */}
-          <div className="rounded-xl bg-white border border-charcoal/10 px-5 py-4">
-            <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-3">Export Records (PDF)</p>
+          <div className="bg-white rounded-2xl px-5 py-4">
+            <p className="text-[11px] font-bold tracking-widest uppercase text-charcoal/40 mb-3">Export Records (PDF)</p>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               {[
                 { label: 'Temp Logs',  fn: () => exportTempLogs(venueId, range) },
@@ -552,20 +593,20 @@ export default function EHOAuditPage() {
                 { label: 'Training',   fn: () => exportTrainingRecords(venueId) },
               ].map(btn => (
                 <button key={btn.label} onClick={btn.fn}
-                  className="px-3 py-2 rounded-lg border border-charcoal/15 text-xs font-medium text-charcoal/60 hover:text-charcoal hover:border-charcoal/30 transition-colors">
+                  className="px-3 py-2 rounded-xl border border-charcoal/15 text-xs font-semibold text-charcoal/60 hover:text-charcoal hover:border-charcoal/30 transition-colors">
                   ↓ {btn.label}
                 </button>
               ))}
             </div>
             <button onClick={() => exportFullReport(venueId, range)}
-              className="w-full mt-3 px-4 py-2.5 rounded-lg bg-charcoal text-cream text-xs font-medium hover:bg-charcoal/90 transition-colors">
+              className="w-full mt-3 px-4 py-2.5 rounded-xl bg-charcoal text-white text-xs font-bold hover:bg-charcoal/90 transition-colors">
               ↓ Download All Reports (PDF)
             </button>
           </div>
 
           {/* Guidance note */}
-          <div className="rounded-xl bg-charcoal/4 px-5 py-4">
-            <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-2">EHO Inspection Tips</p>
+          <div className="bg-white rounded-2xl px-5 py-4">
+            <p className="text-[11px] font-bold tracking-widest uppercase text-charcoal/40 mb-2">EHO Inspection Tips</p>
             <ul className="text-xs text-charcoal/50 space-y-1.5 list-disc list-inside">
               <li>Ensure all fridge temps are logged at least twice daily (opening and closing)</li>
               <li>Every delivery should have a temperature check recorded</li>

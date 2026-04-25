@@ -46,7 +46,7 @@ function WeeklyLabourWidget() {
   return (
     <WidgetShell title="Weekly Labour" to="/rota">
       <div className="text-center py-1">
-        <p className="font-serif text-3xl font-bold text-charcoal font-mono">&pound;{data.cost}</p>
+        <p className="text-2xl font-bold font-bold text-charcoal font-mono">&pound;{data.cost}</p>
         <p className="text-xs text-charcoal/40 mt-0.5">{data.hours}h across {data.shifts} shifts</p>
       </div>
     </WidgetShell>

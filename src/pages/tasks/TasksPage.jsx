@@ -72,7 +72,7 @@ function ManagerTaskRow({ item, isTemplate, completions, onDelete, deleting }) {
     <div className="py-2.5 first:pt-0 last:pb-0 flex items-center justify-between gap-2">
       <div className="flex items-center gap-2.5 min-w-0">
         <span className={`w-3.5 h-3.5 rounded border shrink-0 flex items-center justify-center text-[10px] ${comp ? 'bg-success border-success text-white' : 'border-charcoal/20'}`}>
-          {comp ? '✓' : ''}
+          {comp ? <svg className="w-2.5 h-2.5" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg> : ''}
         </span>
         <div className="min-w-0">
           <p className={`text-sm truncate ${comp ? 'line-through text-charcoal/30' : 'text-charcoal'}`}>{item.title}</p>
@@ -105,7 +105,7 @@ function DeptColumn({ role, label, color, templates, oneOffs, completions, onDel
   const deptTotal = deptTemplates.length + deptOneOffs.length
 
   return (
-    <div className="flex-1 min-w-0 bg-white rounded-xl border border-charcoal/10 overflow-hidden">
+    <div className="flex-1 min-w-0 bg-white rounded-2xl border-charcoal/10 overflow-hidden">
       {/* Column header */}
       <div className={`px-4 py-3 border-b border-charcoal/8 flex items-center justify-between ${color}`}>
         <p className="text-sm font-semibold">{label}</p>
@@ -242,7 +242,7 @@ function ManagerTasksView() {
       </div>
 
       {showAddTemplate && (
-        <div className="p-4 rounded-xl bg-cream/50 border border-charcoal/10 flex flex-col gap-3">
+        <div className="p-4 rounded-2xl bg-white border border-charcoal/10 flex flex-col gap-3">
           <p className="text-[11px] tracking-widest uppercase text-charcoal/40">New Recurring Task</p>
           <input
             value={tForm.title}
@@ -273,7 +273,7 @@ function ManagerTasksView() {
       )}
 
       {showAddOneOff && (
-        <div className="p-4 rounded-xl bg-cream/50 border border-charcoal/10 flex flex-col gap-3">
+        <div className="p-4 rounded-2xl bg-white border border-charcoal/10 flex flex-col gap-3">
           <p className="text-[11px] tracking-widest uppercase text-charcoal/40">New One-Off Task</p>
           <input
             value={oForm.title}
@@ -353,7 +353,7 @@ function ManagerTasksView() {
 
       {/* ── All-roles tasks (bar / all) ────────────────────────────────────── */}
       {(allRolesTemplates.length > 0 || allRolesOneOffs.length > 0) && (
-        <div className="bg-white rounded-xl border border-charcoal/10 overflow-hidden">
+        <div className="bg-white rounded-2xl border-charcoal/10 overflow-hidden">
           <div className="px-4 py-3 border-b border-charcoal/8 bg-charcoal/3">
             <p className="text-sm font-semibold text-charcoal">All Roles</p>
           </div>
@@ -416,7 +416,7 @@ function StaffTasksView({ session }) {
       {pendingSignOffs > 0 && (
         <Link
           to={`/v/${venueSlug}/training`}
-          className="block bg-accent/10 border border-accent/20 rounded-xl px-5 py-4"
+          className="block bg-accent/10 border border-accent/20 rounded-2xl px-5 py-4"
         >
           <div className="flex items-center justify-between gap-4">
             <div>
@@ -433,14 +433,16 @@ function StaffTasksView({ session }) {
       )}
 
       {/* Progress summary */}
-      <div className="bg-white rounded-xl border border-charcoal/10 p-5">
+      <div className="bg-white rounded-2xl border-charcoal/10 p-5">
         <div className="flex items-center justify-between mb-3">
           <div>
             <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-1">Today's Progress</p>
-            <p className="font-serif text-2xl text-charcoal">{done} / {allTasks.length} tasks done</p>
+            <p className="text-xl font-bold text-charcoal">{done} / {allTasks.length} tasks done</p>
           </div>
           {done === allTasks.length && allTasks.length > 0 && (
-            <span className="text-2xl">🎉</span>
+            <span className="text-success">
+              <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="9 12 11 14 15 10"/></svg>
+            </span>
           )}
         </div>
         <div className="h-2 bg-charcoal/8 rounded-full overflow-hidden">
@@ -452,7 +454,7 @@ function StaffTasksView({ session }) {
       </div>
 
       {/* Task checklist */}
-      <div className="bg-white rounded-xl border border-charcoal/10 p-5">
+      <div className="bg-white rounded-2xl border-charcoal/10 p-5">
         <SectionLabel>Your Tasks — {format(new Date(), 'd MMMM')}</SectionLabel>
         <div className="flex flex-col gap-2">
           {allTasks.map((t) => {
@@ -479,7 +481,7 @@ function StaffTasksView({ session }) {
                   'w-5 h-5 rounded border flex items-center justify-center text-xs shrink-0 transition-all',
                   comp ? 'bg-success border-success text-white' : 'border-charcoal/20',
                 ].join(' ')}>
-                  {comp ? '✓' : completing === key ? '…' : ''}
+                  {comp ? <svg className="w-3 h-3" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg> : completing === key ? '…' : ''}
                 </span>
                 <div className="flex-1">
                   <p className={`text-sm font-medium ${comp ? 'line-through text-charcoal/30' : 'text-charcoal'}`}>
@@ -515,7 +517,7 @@ export default function TasksPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="font-serif text-3xl text-brand">
+      <h1 className="text-2xl font-bold text-charcoal">
         {isManager ? 'Task Manager' : "Today's Tasks"}
       </h1>
       {isManager

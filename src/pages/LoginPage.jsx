@@ -153,11 +153,11 @@ export default function LoginPage() {
   if (loading) return <FullPageLoader />
 
   return (
-    <div className="min-h-dvh bg-cream flex flex-col items-center justify-center px-5 py-10 font-sans">
+    <div className="min-h-dvh bg-surface flex flex-col items-center justify-center px-5 py-10 font-sans">
 
       {/* Logo */}
       <div className="mb-10 text-center">
-        <h1 className="font-serif text-brand text-4xl tracking-tight">SafeServ</h1>
+        <h1 className="font-bold text-brand text-4xl tracking-tight">SafeServ</h1>
         {venueName && (
           <p className="text-sm font-medium text-charcoal/60 mt-1">{venueName}</p>
         )}
@@ -243,11 +243,11 @@ export default function LoginPage() {
                   placeholder="Enter PIN"
                   className={[
                     'w-full px-4 py-3 rounded-xl border bg-white text-charcoal text-sm font-mono tracking-[0.4em] placeholder:tracking-normal placeholder:font-sans placeholder:text-charcoal/30 outline-none transition-colors',
-                    error ? 'border-red-400 focus:border-red-400' : 'border-charcoal/15 focus:border-brand dark:focus:border-accent',
+                    error ? 'border-danger focus:border-danger' : 'border-charcoal/15 focus:border-brand dark:focus:border-accent',
                   ].join(' ')}
                 />
                 {error && (
-                  <p className="text-red-500 text-xs mt-1.5">{error}</p>
+                  <p className="text-danger text-xs mt-1.5">{error}</p>
                 )}
               </div>
 

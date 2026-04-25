@@ -86,13 +86,13 @@ export default function FoodItemFormPage() {
         >
           ←
         </Link>
-        <h1 className="font-serif text-3xl text-brand">
+        <h1 className="text-2xl font-bold text-charcoal">
           {isEdit ? 'Edit Dish' : 'Add New Dish'}
         </h1>
       </div>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-        <div className="bg-white rounded-xl border border-charcoal/10 p-5 flex flex-col gap-4">
+        <div className="bg-white rounded-2xl border-charcoal/10 p-5 flex flex-col gap-4">
           <SectionLabel>Dish Details</SectionLabel>
           <div className="flex flex-col gap-1.5">
             <label className="text-[11px] tracking-widest uppercase text-charcoal/40">Name</label>
@@ -101,7 +101,7 @@ export default function FoodItemFormPage() {
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g. Caesar Salad"
               required
-              className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 bg-cream/30 text-charcoal placeholder-charcoal/25 text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+              className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 bg-white text-charcoal placeholder-charcoal/25 text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
             />
           </div>
           <div className="flex flex-col gap-1.5">
@@ -111,12 +111,12 @@ export default function FoodItemFormPage() {
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Brief description…"
               rows={2}
-              className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 bg-cream/30 text-charcoal placeholder-charcoal/25 text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 resize-none"
+              className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 bg-white text-charcoal placeholder-charcoal/25 text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 resize-none"
             />
           </div>
         </div>
 
-        <div className="bg-white rounded-xl border border-charcoal/10 p-5">
+        <div className="bg-white rounded-2xl border-charcoal/10 p-5">
           <SectionLabel>Allergens (select all that apply)</SectionLabel>
           <div className="grid grid-cols-2 gap-2">
             {EU_ALLERGENS.map((a) => (
@@ -126,7 +126,7 @@ export default function FoodItemFormPage() {
                   'flex items-center gap-3 px-4 py-2.5 rounded-lg border cursor-pointer transition-all text-sm',
                   allergens.includes(a)
                     ? 'bg-charcoal text-cream border-charcoal'
-                    : 'bg-cream/30 text-charcoal border-charcoal/12 hover:border-charcoal/30',
+                    : 'bg-white text-charcoal border-charcoal/12 hover:border-charcoal/30',
                 ].join(' ')}
               >
                 <input

@@ -152,7 +152,7 @@ export default function RotaBuilderModal({
                     max={staff.length}
                     value={minStaff}
                     onChange={e => setMinStaff(parseInt(e.target.value) || 1)}
-                    className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 bg-cream/30 text-sm text-center focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+                    className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 bg-white text-sm text-center focus:outline-none focus:ring-2 focus:ring-charcoal/20"
                   />
                 </div>
                 <div>
@@ -163,7 +163,7 @@ export default function RotaBuilderModal({
                     max={staff.length}
                     value={maxStaff}
                     onChange={e => setMaxStaff(parseInt(e.target.value) || staff.length)}
-                    className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 bg-cream/30 text-sm text-center focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+                    className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 bg-white text-sm text-center focus:outline-none focus:ring-2 focus:ring-charcoal/20"
                   />
                 </div>
               </div>
@@ -220,7 +220,7 @@ export default function RotaBuilderModal({
               onClick={generate}
               className="bg-charcoal text-cream py-3 rounded-xl text-sm font-medium hover:bg-charcoal/90 transition-colors flex items-center justify-center gap-2"
             >
-              <span>✨</span>
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg>
               Generate Rota
             </button>
           </>
@@ -232,15 +232,15 @@ export default function RotaBuilderModal({
               <p className="text-[11px] tracking-widest uppercase text-accent/60 mb-2">Generation Summary</p>
               <div className="grid grid-cols-3 gap-3 text-center">
                 <div>
-                  <p className="font-serif text-2xl text-charcoal">{result.stats.totalShiftsCreated}</p>
+                  <p className="text-xl font-bold text-charcoal">{result.stats.totalShiftsCreated}</p>
                   <p className="text-[11px] text-charcoal/40">Shifts</p>
                 </div>
                 <div>
-                  <p className="font-serif text-2xl text-charcoal">{result.stats.totalHours.toFixed(0)}h</p>
+                  <p className="text-xl font-bold text-charcoal">{result.stats.totalHours.toFixed(0)}h</p>
                   <p className="text-[11px] text-charcoal/40">Paid Hours</p>
                 </div>
                 <div>
-                  <p className="font-serif text-2xl text-charcoal">£{result.stats.estimatedCost.toFixed(0)}</p>
+                  <p className="text-xl font-bold text-charcoal">£{result.stats.estimatedCost.toFixed(0)}</p>
                   <p className="text-[11px] text-charcoal/40">Est. Cost</p>
                 </div>
               </div>
@@ -273,7 +273,7 @@ export default function RotaBuilderModal({
                 <div className="flex flex-col gap-1">
                   {result.warnings.map((w, i) => (
                     <div key={i} className="flex items-start gap-2 text-xs px-3 py-2 rounded-lg bg-warning/8 border border-warning/15">
-                      <span className="text-warning mt-0.5">⚠</span>
+                      <span className="text-warning mt-0.5"><svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
                       <span className="text-charcoal/70">{w.message}</span>
                     </div>
                   ))}
@@ -302,7 +302,7 @@ export default function RotaBuilderModal({
                         onClick={() => removeShift(i)}
                         className="text-danger/40 hover:text-danger text-xs transition-colors px-2"
                       >
-                        ✕
+                        <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                       </button>
                     </div>
                   ))}

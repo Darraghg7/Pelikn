@@ -16,12 +16,20 @@ function SectionLabel({ children }) {
 
 // Reasons that are "explained" — reading is recorded honestly but no compliance penalty
 const EXCEEDANCE_REASONS = [
-  { id: 'delivery',       label: 'Delivery / restocking',  icon: '📦', explained: true  },
-  { id: 'defrost',        label: 'Defrost cycle',           icon: '🔄', explained: true  },
-  { id: 'service_access', label: 'Busy service access',     icon: '👨‍🍳', explained: true  },
-  { id: 'equipment',      label: 'Equipment concern',       icon: '🔧', explained: false },
-  { id: 'other',          label: 'Other reason',            icon: '✏️', explained: false },
+  { id: 'delivery',       label: 'Delivery / restocking',  explained: true  },
+  { id: 'defrost',        label: 'Defrost cycle',           explained: true  },
+  { id: 'service_access', label: 'Busy service access',     explained: true  },
+  { id: 'equipment',      label: 'Equipment concern',       explained: false },
+  { id: 'other',          label: 'Other reason',            explained: false },
 ]
+
+const EXCEEDANCE_ICONS = {
+  delivery:       <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>,
+  defrost:        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>,
+  service_access: <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>,
+  equipment:      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14"/></svg>,
+  other:          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>,
+}
 
 /* ── Per-fridge inline card ───────────────────────────────────────────────── */
 function FridgeCard({ fridge, session, venueId, onSaved }) {
@@ -120,7 +128,7 @@ function FridgeCard({ fridge, session, venueId, onSaved }) {
 
   return (
     <div className={[
-      'bg-white rounded-xl border p-5 flex flex-col gap-3 transition-colors',
+      'bg-white rounded-2xl p-5 flex flex-col gap-3 transition-colors',
       savedLog
         ? savedLog.outOfRange && !savedLog.isExplained ? 'border-danger/25 bg-danger/2'
           : savedLog.outOfRange ? 'border-warning/30 bg-warning/3'
@@ -141,9 +149,12 @@ function FridgeCard({ fridge, session, venueId, onSaved }) {
             savedLog.outOfRange && !savedLog.isExplained ? 'text-danger' :
             savedLog.outOfRange ? 'text-warning' : 'text-success'
           }`}>
-            {savedLog.outOfRange && !savedLog.isExplained ? '⚠ Action required'
-              : savedLog.outOfRange ? '✓ Explained'
-              : '✓ Saved'}
+            {savedLog.outOfRange && !savedLog.isExplained
+              ? <span className="flex items-center gap-1"><svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Action required</span>
+              : savedLog.outOfRange
+              ? <span className="flex items-center gap-1"><svg className="w-3.5 h-3.5" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg> Explained</span>
+              : <span className="flex items-center gap-1"><svg className="w-3.5 h-3.5" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg> Saved</span>
+          }
           </span>
         )}
       </div>
@@ -151,7 +162,9 @@ function FridgeCard({ fridge, session, venueId, onSaved }) {
       {/* Follow-up reminder */}
       {followUp && (
         <div className="rounded-lg border border-warning/35 bg-warning/8 px-3 py-2.5 flex items-start gap-2">
-          <span className="text-base shrink-0 mt-0.5">⏱</span>
+          <span className="shrink-0 mt-0.5 text-warning">
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </span>
           <div className="flex-1 min-w-0">
             <p className="text-xs font-semibold text-charcoal">
               Follow-up check due {format(new Date(followUp.dueAt), 'HH:mm')}
@@ -204,7 +217,7 @@ function FridgeCard({ fridge, session, venueId, onSaved }) {
               autoComplete="off"
               inputMode="decimal"
               className={[
-                'w-full px-4 py-3 rounded-lg border bg-cream/30 focus:outline-none focus:ring-2',
+                'w-full px-4 py-3 rounded-lg border bg-white focus:outline-none focus:ring-2',
                 'text-2xl font-mono text-charcoal placeholder-charcoal/20 transition-colors',
                 outOfRange ? 'border-warning/50 bg-warning/5 focus:ring-warning/20' : 'border-charcoal/15 focus:ring-charcoal/20',
                 saving ? 'opacity-50' : '',
@@ -216,7 +229,9 @@ function FridgeCard({ fridge, session, venueId, onSaved }) {
           {outOfRange && (
             <div className="rounded-lg border border-warning/30 bg-warning/5 p-3 flex flex-col gap-3">
               <div className="flex items-center gap-1.5">
-                <span className="text-warning">⚠</span>
+                <span className="text-warning">
+                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                </span>
                 <p className="text-xs font-semibold text-charcoal">Above safe range — what's the reason?</p>
               </div>
 
@@ -235,7 +250,7 @@ function FridgeCard({ fridge, session, venueId, onSaved }) {
                         : 'bg-white border-charcoal/12 text-charcoal/60 hover:border-charcoal/25 hover:text-charcoal',
                     ].join(' ')}
                   >
-                    <span className="text-base leading-none">{r.icon}</span>
+                    <span className="shrink-0 text-charcoal/50">{EXCEEDANCE_ICONS[r.id]}</span>
                     <span className="flex-1">{r.label}</span>
                     {r.explained && (
                       <span className="text-[10px] tracking-wide text-success font-semibold">No penalty</span>
@@ -247,7 +262,9 @@ function FridgeCard({ fridge, session, venueId, onSaved }) {
               {/* Explained: green confirmation */}
               {reason && isExplained && (
                 <div className="rounded-lg bg-success/8 border border-success/20 px-3 py-2.5 flex items-start gap-2">
-                  <span className="text-success shrink-0 mt-0.5">✓</span>
+                  <span className="text-success shrink-0 mt-0.5">
+                    <svg className="w-3.5 h-3.5" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg>
+                  </span>
                   <div>
                     <p className="text-xs font-medium text-charcoal">Explained exceedance — no compliance penalty</p>
                     <p className="text-[11px] text-charcoal/50 mt-0.5">
@@ -340,7 +357,7 @@ export default function FridgeDashboardPage() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
-        <h1 className="font-serif text-3xl text-brand">Temperature Logs</h1>
+        <h1 className="text-2xl font-bold text-charcoal">Temperature Logs</h1>
         <div className="flex items-center gap-3">
           {isManager && (
             <button onClick={() => setShowManage(v => !v)}
@@ -366,20 +383,20 @@ export default function FridgeDashboardPage() {
 
       {/* Manage Fridges panel */}
       {showManage && isManager && (
-        <div className="bg-white rounded-xl border border-charcoal/10 p-5 flex flex-col gap-5">
+        <div className="bg-white rounded-2xl border-charcoal/10 p-5 flex flex-col gap-5">
           <SectionLabel>Manage Fridges &amp; Freezers</SectionLabel>
           <div className="flex flex-col gap-3">
             <p className="text-xs font-medium text-charcoal/60">Add new</p>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
               <input value={fridgeForm.name} onChange={e => setFridgeForm(f => ({ ...f, name: e.target.value }))}
                 placeholder="Name (e.g. Walk-in Fridge)"
-                className="px-3 py-2.5 rounded-lg border border-charcoal/15 bg-cream/30 text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20" />
+                className="px-3 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20" />
               <input type="number" step="0.5" value={fridgeForm.min_temp} onChange={e => setFridgeForm(f => ({ ...f, min_temp: e.target.value }))}
                 placeholder="Min °C"
-                className="px-3 py-2.5 rounded-lg border border-charcoal/15 bg-cream/30 text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20" />
+                className="px-3 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20" />
               <input type="number" step="0.5" value={fridgeForm.max_temp} onChange={e => setFridgeForm(f => ({ ...f, max_temp: e.target.value }))}
                 placeholder="Max °C"
-                className="px-3 py-2.5 rounded-lg border border-charcoal/15 bg-cream/30 text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20" />
+                className="px-3 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20" />
             </div>
             <button onClick={addFridge} disabled={savingFridge}
               className="self-start bg-charcoal text-cream px-4 py-2 rounded-lg text-sm font-medium hover:bg-charcoal/90 transition-colors disabled:opacity-40">
@@ -411,7 +428,7 @@ export default function FridgeDashboardPage() {
           ))}
         </div>
       ) : !showManage && (
-        <div className="bg-white rounded-xl border border-charcoal/10 p-8 text-center">
+        <div className="bg-white rounded-2xl border-charcoal/10 p-8 text-center">
           <p className="text-charcoal/40 text-sm">No fridges set up yet.</p>
           {isManager && (
             <button onClick={() => setShowManage(true)}
@@ -424,7 +441,7 @@ export default function FridgeDashboardPage() {
 
       {/* Today's AM/PM status */}
       {checkStatus.length > 0 && (
-        <div className="bg-white rounded-xl border border-charcoal/10 p-5">
+        <div className="bg-white rounded-2xl border-charcoal/10 p-5">
           <SectionLabel>Today's Checks</SectionLabel>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">

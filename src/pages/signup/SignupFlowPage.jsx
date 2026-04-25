@@ -71,7 +71,7 @@ function StepPlan({ selected, onSelect, extraVenues, onExtraVenues, qrAddon, onQ
   return (
     <div className="flex flex-col gap-8 w-full max-w-3xl mx-auto">
       <div className="text-center">
-        <h1 className="font-serif text-3xl sm:text-4xl text-brand mb-2">Choose your plan</h1>
+        <h1 className="text-2xl font-bold sm:text-4xl text-brand mb-2">Choose your plan</h1>
         <p className="text-sm text-charcoal/50">Start with a 7-day free trial. No card required.</p>
       </div>
 
@@ -93,7 +93,7 @@ function StepPlan({ selected, onSelect, extraVenues, onExtraVenues, qrAddon, onQ
           )}
           <p className="text-[10px] tracking-widest uppercase font-semibold text-brand mb-2">Starter</p>
           <div className="flex items-baseline gap-1 mb-1">
-            <span className="font-serif text-3xl text-brand">{STARTER_PRICE}</span>
+            <span className="text-2xl font-bold text-charcoal">{STARTER_PRICE}</span>
             <span className="text-charcoal/40 text-sm">/month</span>
           </div>
           <p className="text-[11px] text-charcoal/40 mb-4">per venue</p>
@@ -103,7 +103,7 @@ function StepPlan({ selected, onSelect, extraVenues, onExtraVenues, qrAddon, onQ
           <ul className="flex flex-col gap-2">
             {STARTER_FEATURES.map(f => (
               <li key={f} className="flex items-start gap-2 text-xs text-charcoal/55">
-                <span className="text-teal-500 mt-0.5 shrink-0"><IconCheck size={13} /></span>
+                <span className="text-success mt-0.5 shrink-0"><IconCheck size={13} /></span>
                 {f}
               </li>
             ))}
@@ -135,7 +135,7 @@ function StepPlan({ selected, onSelect, extraVenues, onExtraVenues, qrAddon, onQ
 
           <p className="text-[10px] tracking-widest uppercase font-semibold text-accent mb-2 mt-2">Pro</p>
           <div className="flex items-baseline gap-1 mb-1">
-            <span className="font-serif text-3xl text-accent">{PRO_PRICE}</span>
+            <span className="text-2xl font-bold text-accent">{PRO_PRICE}</span>
             <span className="text-charcoal/40 text-sm">/month</span>
           </div>
           <p className="text-[11px] text-charcoal/40 mb-4">first venue · {EXTRA_VENUE_PRICE}/mo each additional</p>
@@ -274,7 +274,7 @@ function StepDetails({ plan, extraVenues, qrAddon, onBack, onSubmit, loading, er
           Change plan
         </button>
 
-        <h2 className="font-serif text-2xl sm:text-3xl text-brand mb-6">Your details</h2>
+        <h2 className="text-xl font-bold sm:text-3xl text-brand mb-6">Your details</h2>
 
         <form
           onSubmit={e => { e.preventDefault(); onSubmit({ ...form, slug: slug.toLowerCase() }) }}
@@ -364,8 +364,8 @@ function StepDetails({ plan, extraVenues, qrAddon, onBack, onSubmit, loading, er
           </div>
 
           {error && (
-            <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3">
-              <p className="text-red-600 text-xs">{error}</p>
+            <div className="bg-danger/5 border border-danger/20 rounded-xl px-4 py-3">
+              <p className="text-danger text-xs">{error}</p>
             </div>
           )}
 
@@ -435,16 +435,16 @@ function StepDetails({ plan, extraVenues, qrAddon, onBack, onSubmit, loading, er
           </div>
 
           {/* Trial badge */}
-          <div className="bg-teal-50 border border-teal-100 rounded-xl px-4 py-3 mb-3">
-            <p className="text-xs text-teal-700 font-medium">✓ 7-day free trial</p>
-            <p className="text-[11px] text-teal-600/70 mt-0.5">No card required today. You'll only be charged after your trial ends.</p>
+          <div className="bg-success/8 border border-success/20 rounded-xl px-4 py-3 mb-3">
+            <p className="text-xs text-brand font-medium inline-flex items-center gap-1"><svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg> 7-day free trial</p>
+            <p className="text-[11px] text-brand/60 mt-0.5">No card required today. You'll only be charged after your trial ends.</p>
           </div>
 
           {/* Feature highlights */}
           <div className="flex flex-col gap-1.5 mt-3">
             {(plan === 'pro' ? PRO_FEATURES : STARTER_FEATURES).slice(0, 4).map(f => (
               <div key={f} className="flex items-start gap-2 text-[11px] text-charcoal/50">
-                <span className={`mt-0.5 shrink-0 ${plan === 'pro' ? 'text-accent' : 'text-teal-500'}`}>
+                <span className={`mt-0.5 shrink-0 ${plan === 'pro' ? 'text-accent' : 'text-success'}`}>
                   <IconCheck size={12} />
                 </span>
                 {f}
@@ -493,13 +493,13 @@ function StepExtraVenues({ count, onBack, onSubmit, loading, error }) {
       </button>
 
       <div>
-        <h2 className="font-serif text-2xl sm:text-3xl text-brand mb-1">Name your venues</h2>
+        <h2 className="text-xl font-bold sm:text-3xl text-brand mb-1">Name your venues</h2>
         <p className="text-sm text-charcoal/50">Set a name and URL for each additional venue.</p>
       </div>
 
       <div className="flex flex-col gap-5">
         {venues.map((v, i) => (
-          <div key={i} className="p-4 rounded-xl bg-white border border-charcoal/10 flex flex-col gap-3">
+          <div key={i} className="p-4 rounded-2xl bg-white border border-charcoal/10 flex flex-col gap-3">
             <p className="text-xs font-semibold text-charcoal/60 tracking-widest uppercase">Venue {i + 2}</p>
             <div>
               <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1.5">Venue Name *</label>
@@ -527,8 +527,8 @@ function StepExtraVenues({ count, onBack, onSubmit, loading, error }) {
       </div>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3">
-          <p className="text-red-600 text-xs">{error}</p>
+        <div className="bg-danger/5 border border-danger/20 rounded-xl px-4 py-3">
+          <p className="text-danger text-xs">{error}</p>
         </div>
       )}
 
@@ -564,14 +564,14 @@ function StepSuccess({ venueName, venueSlug, plan, allVenues = [] }) {
   return (
     <div className="flex flex-col items-center text-center max-w-sm mx-auto gap-6">
       {/* Success icon */}
-      <div className="w-20 h-20 rounded-full bg-teal-50 border-4 border-teal-100 flex items-center justify-center">
+      <div className="w-20 h-20 rounded-full bg-success/8 border-4 border-success/20 flex items-center justify-center">
         <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#14b8a6" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
           <polyline points="20 6 9 17 4 12" />
         </svg>
       </div>
 
       <div>
-        <h1 className="font-serif text-3xl text-brand mb-2">You're all set!</h1>
+        <h1 className="text-2xl font-bold text-charcoal mb-2">You're all set!</h1>
         <p className="text-sm text-charcoal/50 leading-relaxed">
           {allVenues.length > 1
             ? `${allVenues.length} venues are ready on SafeServ.`
@@ -585,7 +585,7 @@ function StepSuccess({ venueName, venueSlug, plan, allVenues = [] }) {
       <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold border ${
         plan === 'pro'
           ? 'bg-accent/10 text-accent border-accent/20'
-          : 'bg-teal-50 text-teal-700 border-teal-200'
+          : 'bg-success/8 text-brand border-success/30'
       }`}>
         <IconSpark />
         {plan === 'pro' ? 'Pro Plan' : 'Starter Plan'} · 7-day free trial
@@ -759,11 +759,11 @@ export default function SignupFlowPage() {
   const isSuccess = step === SUCCESS_STEP || step === 3
 
   return (
-    <div className="min-h-dvh bg-cream font-sans">
+    <div className="min-h-dvh bg-surface font-sans">
       {/* Header */}
       <div className="border-b border-charcoal/8 bg-white">
         <div className="max-w-5xl mx-auto px-5 sm:px-8 h-14 flex items-center justify-between">
-          <Link to="/" className="font-serif text-brand text-lg tracking-tight hover:opacity-80 transition-opacity">
+          <Link to="/" className="font-bold text-brand text-lg tracking-tight hover:opacity-80 transition-opacity">
             SafeServ
           </Link>
           <div className="flex items-center gap-1.5 text-[11px] text-charcoal/35">

@@ -110,7 +110,7 @@ function SupplierModal({ supplier, venueId, onSaved, onClose }) {
               value={form.name}
               onChange={(e) => set('name', e.target.value)}
               placeholder="e.g. Fresh Fields Ltd"
-              className="w-full px-3 py-2.5 rounded-lg border border-charcoal/15 bg-cream/30 text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+              className="w-full px-3 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
             />
           </div>
 
@@ -142,7 +142,7 @@ function SupplierModal({ supplier, venueId, onSaved, onClose }) {
               value={form.contact_name}
               onChange={(e) => set('contact_name', e.target.value)}
               placeholder="e.g. James Brown"
-              className="w-full px-3 py-2.5 rounded-lg border border-charcoal/15 bg-cream/30 text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+              className="w-full px-3 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
             />
           </div>
 
@@ -154,7 +154,7 @@ function SupplierModal({ supplier, venueId, onSaved, onClose }) {
                 value={form.phone}
                 onChange={(e) => set('phone', e.target.value)}
                 placeholder="07700 900000"
-                className="w-full px-3 py-2.5 rounded-lg border border-charcoal/15 bg-cream/30 text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+                className="w-full px-3 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
               />
             </div>
             <div className="flex flex-col gap-1.5">
@@ -164,7 +164,7 @@ function SupplierModal({ supplier, venueId, onSaved, onClose }) {
                 value={form.email}
                 onChange={(e) => set('email', e.target.value)}
                 placeholder="orders@supplier.co.uk"
-                className="w-full px-3 py-2.5 rounded-lg border border-charcoal/15 bg-cream/30 text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+                className="w-full px-3 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
               />
             </div>
           </div>
@@ -176,7 +176,7 @@ function SupplierModal({ supplier, venueId, onSaved, onClose }) {
               onChange={(e) => set('notes', e.target.value)}
               placeholder="Delivery days, minimum order, etc."
               rows={3}
-              className="w-full px-3 py-2.5 rounded-lg border border-charcoal/15 bg-cream/30 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+              className="w-full px-3 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm resize-none focus:outline-none focus:ring-2 focus:ring-charcoal/20"
             />
           </div>
 
@@ -198,7 +198,7 @@ function SupplierCard({ supplier, onEdit, onArchive }) {
   const [confirming, setConfirming] = useState(false)
 
   return (
-    <div className="bg-white rounded-xl border border-charcoal/10 p-5 flex flex-col gap-3">
+    <div className="bg-white rounded-2xl border-charcoal/10 p-5 flex flex-col gap-3">
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-2 flex-wrap">
           <h3 className="font-semibold text-charcoal">{supplier.name}</h3>
@@ -286,7 +286,7 @@ export default function SuppliersPage() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
-        <h1 className="font-serif text-3xl text-brand">Suppliers</h1>
+        <h1 className="text-2xl font-bold text-charcoal">Suppliers</h1>
         <Button variant="primary" onClick={() => setModalSupplier(null)}>
           + Add Supplier
         </Button>
@@ -326,7 +326,7 @@ export default function SuppliersPage() {
       {loading ? (
         <div className="flex justify-center py-10"><LoadingSpinner /></div>
       ) : grouped.length === 0 ? (
-        <div className="bg-white rounded-xl border border-dashed border-charcoal/20 p-10 text-center">
+        <div className="bg-white rounded-2xl border-dashed border-charcoal/20 p-10 text-center">
           <p className="text-charcoal/30 text-sm">
             {suppliers.length === 0 ? 'No approved suppliers yet.' : 'No suppliers in this category.'}
           </p>

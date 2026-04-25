@@ -43,7 +43,7 @@ export default function PlanGate({ feature, children }) {
         Pro Plan
       </span>
 
-      <h2 className="font-serif text-2xl text-brand mb-2">{label}</h2>
+      <h2 className="text-xl font-bold text-charcoal mb-2">{label}</h2>
       <p className="text-sm text-charcoal/50 max-w-sm leading-relaxed mb-8">
         This feature is included in SafeServ Pro. Upgrade to unlock rota management,
         timesheets, training records, HACCP tools, and more.

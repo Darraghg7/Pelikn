@@ -38,7 +38,7 @@ function certStatus(record) {
 }
 
 function StatusBadge({ status }) {
-  const styles = { expired: 'bg-red-50 text-red-600', expiring: 'bg-amber-50 text-amber-600', valid: 'bg-emerald-50 text-emerald-600' }
+  const styles = { expired: 'bg-danger/8 text-danger', expiring: 'bg-warning/8 text-warning', valid: 'bg-success/8 text-success' }
   const labels = { expired: 'Expired', expiring: 'Expiring Soon', valid: 'Valid' }
   return (
     <span className={`text-[11px] tracking-widest uppercase font-medium px-1.5 py-0.5 rounded ${styles[status]}`}>
@@ -164,7 +164,7 @@ function CreateSignOffModal({ staff, venueId, managerName, onSaved, onClose }) {
               <select
                 value={form.staff_id}
                 onChange={e => setForm(f => ({ ...f, staff_id: e.target.value }))}
-                className="w-full px-3 py-2 rounded-lg border border-charcoal/15 bg-cream/30 text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+                className="w-full px-3 py-2 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
               >
                 <option value="">— Select —</option>
                 {staff.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
@@ -176,7 +176,7 @@ function CreateSignOffModal({ staff, venueId, managerName, onSaved, onClose }) {
                 type="date"
                 value={form.training_date}
                 onChange={e => setForm(f => ({ ...f, training_date: e.target.value }))}
-                className="w-full px-3 py-2 rounded-lg border border-charcoal/15 bg-cream/30 text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+                className="w-full px-3 py-2 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
               />
             </div>
           </div>
@@ -188,7 +188,7 @@ function CreateSignOffModal({ staff, venueId, managerName, onSaved, onClose }) {
               value={form.trainer_name}
               onChange={e => setForm(f => ({ ...f, trainer_name: e.target.value }))}
               placeholder="Name of person delivering the training"
-              className="w-full px-3 py-2 rounded-lg border border-charcoal/15 bg-cream/30 text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+              className="w-full px-3 py-2 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
             />
           </div>
 
@@ -209,7 +209,7 @@ function CreateSignOffModal({ staff, venueId, managerName, onSaved, onClose }) {
                         : 'border-charcoal/25 group-hover:border-charcoal/50'
                     }`}
                   >
-                    {form.topics.includes(t) ? '✓' : ''}
+                    {form.topics.includes(t) ? <svg className="w-3 h-3" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg> : ''}
                   </span>
                   <span
                     onClick={() => toggleTopic(t)}
@@ -230,7 +230,7 @@ function CreateSignOffModal({ staff, venueId, managerName, onSaved, onClose }) {
               onChange={e => setForm(f => ({ ...f, notes: e.target.value }))}
               rows={2}
               placeholder="Any additional context about this training session"
-              className="w-full px-3 py-2 rounded-lg border border-charcoal/15 bg-cream/30 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+              className="w-full px-3 py-2 rounded-lg border border-charcoal/15 bg-white text-sm resize-none focus:outline-none focus:ring-2 focus:ring-charcoal/20"
             />
           </div>
 
@@ -298,7 +298,7 @@ function AcknowledgeModal({ record, staffName, onSaved, onClose }) {
             <ul className="flex flex-col gap-1.5">
               {record.topics.map(t => (
                 <li key={t} className="flex items-start gap-2 text-sm text-charcoal">
-                  <span className="text-success mt-0.5 shrink-0">✓</span>
+                  <span className="text-success mt-0.5 shrink-0"><svg className="w-3.5 h-3.5" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg></span>
                   {t}
                 </li>
               ))}
@@ -306,7 +306,7 @@ function AcknowledgeModal({ record, staffName, onSaved, onClose }) {
           </div>
 
           {record.notes && (
-            <div className="bg-cream/50 rounded-lg px-4 py-3">
+            <div className="bg-white rounded-lg px-4 py-3">
               <p className="text-[11px] text-charcoal/40 uppercase tracking-widest mb-1">Notes</p>
               <p className="text-sm text-charcoal/70 italic">{record.notes}</p>
             </div>
@@ -367,14 +367,14 @@ function SignOffDetailModal({ record, onClose }) {
             <ul className="flex flex-col gap-1.5">
               {record.topics.map(t => (
                 <li key={t} className="flex items-start gap-2 text-sm text-charcoal/70">
-                  <span className="text-success mt-0.5 shrink-0">✓</span>{t}
+                  <span className="text-success mt-0.5 shrink-0"><svg className="w-3.5 h-3.5" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg></span>{t}
                 </li>
               ))}
             </ul>
           </div>
 
           {record.notes && (
-            <div className="bg-cream/50 rounded-lg px-4 py-3">
+            <div className="bg-white rounded-lg px-4 py-3">
               <p className="text-[11px] text-charcoal/40 uppercase tracking-widest mb-1">Notes</p>
               <p className="text-sm text-charcoal/70 italic">{record.notes}</p>
             </div>
@@ -399,9 +399,9 @@ function SignOffDetailModal({ record, onClose }) {
           )}
 
           {!record.staff_acknowledged && (
-            <div className="bg-amber-50 border border-amber-200 rounded-lg px-4 py-3">
-              <p className="text-sm text-amber-700 font-medium">Awaiting employee signature</p>
-              <p className="text-xs text-amber-600 mt-0.5">
+            <div className="bg-warning/8 border border-warning/25 rounded-lg px-4 py-3">
+              <p className="text-sm text-warning font-medium">Awaiting employee signature</p>
+              <p className="text-xs text-warning/70 mt-0.5">
                 {record.staff?.name} needs to sign this record from their account.
               </p>
             </div>
@@ -469,7 +469,7 @@ function InductionTab({ venueId, isManager, session }) {
 
       {/* Records list */}
       {(isManager ? records : myRecords).length === 0 ? (
-        <div className="bg-white rounded-xl border border-charcoal/10 p-8 text-center">
+        <div className="bg-white rounded-2xl border-charcoal/10 p-8 text-center">
           <p className="text-sm text-charcoal/40">
             {isManager ? 'No training records yet. Create the first one.' : 'No training records on your account yet.'}
           </p>
@@ -480,7 +480,7 @@ function InductionTab({ venueId, isManager, session }) {
             <button
               key={r.id}
               onClick={() => isManager ? setViewRecord(r) : (r.staff_acknowledged ? setViewRecord(r) : setAckRecord(r))}
-              className="bg-white rounded-xl border border-charcoal/10 px-5 py-4 flex items-center gap-4 text-left hover:border-charcoal/25 transition-colors w-full"
+              className="bg-white rounded-2xl border-charcoal/10 px-5 py-4 flex items-center gap-4 text-left hover:border-charcoal/25 transition-colors w-full"
             >
               {/* Avatar */}
               <div className="w-9 h-9 rounded-full bg-charcoal/10 flex items-center justify-center shrink-0">
@@ -493,11 +493,11 @@ function InductionTab({ venueId, isManager, session }) {
                 <div className="flex items-center gap-2 flex-wrap">
                   <p className="text-sm font-medium text-charcoal">{r.staff?.name ?? 'Unknown'}</p>
                   {r.staff_acknowledged ? (
-                    <span className="text-[11px] tracking-widest uppercase font-medium px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-600">
-                      Signed ✓
+                    <span className="text-[11px] tracking-widest uppercase font-medium px-1.5 py-0.5 rounded bg-success/8 text-success">
+                      <span className="inline-flex items-center gap-0.5">Signed <svg className="w-3 h-3" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg></span>
                     </span>
                   ) : (
-                    <span className="text-[11px] tracking-widest uppercase font-medium px-1.5 py-0.5 rounded bg-amber-50 text-amber-600">
+                    <span className="text-[11px] tracking-widest uppercase font-medium px-1.5 py-0.5 rounded bg-warning/8 text-warning">
                       Awaiting Signature
                     </span>
                   )}
@@ -606,13 +606,13 @@ function CertificatesTab({ venueId }) {
       </div>
 
       {showForm && (
-        <div className="bg-white rounded-xl border border-charcoal/10 p-6 flex flex-col gap-4">
+        <div className="bg-white rounded-2xl border-charcoal/10 p-6 flex flex-col gap-4">
           <p className="text-sm font-semibold text-charcoal">New Training Certificate</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1">Staff Member *</label>
               <select value={form.staff_id} onChange={e => setForm(f => ({ ...f, staff_id: e.target.value }))}
-                className="w-full px-3 py-2 rounded-lg border border-charcoal/15 bg-cream/30 text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20">
+                className="w-full px-3 py-2 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20">
                 <option value="">— Select —</option>
                 {staff.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
               </select>
@@ -620,7 +620,7 @@ function CertificatesTab({ venueId }) {
             <div>
               <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1">Category</label>
               <select value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))}
-                className="w-full px-3 py-2 rounded-lg border border-charcoal/15 bg-cream/30 text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20">
+                className="w-full px-3 py-2 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20">
                 <option value="">— Select —</option>
                 {CERT_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
@@ -630,25 +630,25 @@ function CertificatesTab({ venueId }) {
             <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1">Title *</label>
             <input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
               placeholder="e.g. Food Hygiene Level 2"
-              className="w-full px-3 py-2 rounded-lg border border-charcoal/15 bg-cream/30 text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20" />
+              className="w-full px-3 py-2 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20" />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1">Issued Date</label>
               <input type="date" value={form.issued_date} onChange={e => setForm(f => ({ ...f, issued_date: e.target.value }))}
-                className="w-full px-3 py-2 rounded-lg border border-charcoal/15 bg-cream/30 text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20" />
+                className="w-full px-3 py-2 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20" />
             </div>
             <div>
               <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1">Expiry Date</label>
               <input type="date" value={form.expiry_date} onChange={e => setForm(f => ({ ...f, expiry_date: e.target.value }))}
-                className="w-full px-3 py-2 rounded-lg border border-charcoal/15 bg-cream/30 text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20" />
+                className="w-full px-3 py-2 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20" />
             </div>
           </div>
           <div>
             <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1">Certificate / Document</label>
             <input type="file" accept="image/*,.pdf,.doc,.docx"
               onChange={e => setFile(e.target.files[0] ?? null)}
-              className="w-full text-sm text-charcoal/60 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border file:border-charcoal/15 file:text-xs file:bg-cream/50 file:text-charcoal/60 hover:file:bg-cream" />
+              className="w-full text-sm text-charcoal/60 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border file:border-charcoal/15 file:text-xs file:bg-white file:text-charcoal/60 hover:file:bg-cream" />
           </div>
           <button onClick={handleAdd} disabled={saving}
             className="bg-charcoal text-cream py-2.5 rounded-lg text-sm font-medium disabled:opacity-40 hover:bg-charcoal/90 transition-colors">
@@ -658,13 +658,13 @@ function CertificatesTab({ venueId }) {
       )}
 
       {Object.keys(byStaff).length === 0 ? (
-        <div className="bg-white rounded-xl border border-charcoal/10 p-8 text-center">
+        <div className="bg-white rounded-2xl border-charcoal/10 p-8 text-center">
           <p className="text-sm text-charcoal/40">No certificates yet. Add the first one above.</p>
         </div>
       ) : (
         Object.entries(byStaff).map(([name, recs]) => (
-          <div key={name} className="bg-white rounded-xl border border-charcoal/10 overflow-hidden">
-            <div className="px-5 py-3 bg-cream/40 border-b border-charcoal/8 flex items-center gap-3">
+          <div key={name} className="bg-white rounded-2xl border-charcoal/10 overflow-hidden">
+            <div className="px-5 py-3 bg-white border-b border-charcoal/8 flex items-center gap-3">
               <div className="w-8 h-8 rounded-full bg-charcoal/10 flex items-center justify-center">
                 {recs[0]?.staff?.photo_url
                   ? <img src={recs[0].staff.photo_url} alt={name} className="w-8 h-8 rounded-full object-cover" />
@@ -691,7 +691,7 @@ function CertificatesTab({ venueId }) {
                       <div className="flex items-center gap-3 mt-1 flex-wrap">
                         {r.issued_date && <p className="text-xs text-charcoal/40">Issued: {format(parseISO(r.issued_date), 'dd MMM yyyy')}</p>}
                         {r.expiry_date && (
-                          <p className={`text-xs ${status === 'expired' ? 'text-red-500' : status === 'expiring' ? 'text-amber-500' : 'text-charcoal/40'}`}>
+                          <p className={`text-xs ${status === 'expired' ? 'text-danger' : status === 'expiring' ? 'text-warning' : 'text-charcoal/40'}`}>
                             Expires: {format(parseISO(r.expiry_date), 'dd MMM yyyy')}
                           </p>
                         )}
@@ -705,7 +705,7 @@ function CertificatesTab({ venueId }) {
                       {r.notes && <p className="text-xs text-charcoal/40 mt-1 italic">{r.notes}</p>}
                     </div>
                     <button onClick={() => handleDelete(r.id)}
-                      className="text-xs text-charcoal/25 hover:text-red-500 transition-colors shrink-0 mt-0.5">✕</button>
+                      className="text-charcoal/25 hover:text-danger transition-colors shrink-0 mt-0.5"><svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
                   </li>
                 )
               })}
@@ -727,7 +727,7 @@ export default function TrainingPage() {
     <div className="flex flex-col gap-6">
       <div className="flex items-end justify-between">
         <div>
-          <h1 className="font-serif text-3xl text-brand">Staff Training</h1>
+          <h1 className="text-2xl font-bold text-charcoal">Staff Training</h1>
           <p className="text-sm text-charcoal/40 mt-1">SC6 induction records &amp; certificates</p>
         </div>
       </div>

@@ -123,7 +123,7 @@ export default function EHOMockPage() {
       <div className="flex flex-col gap-6">
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="font-serif text-3xl text-brand">EHO Mock Inspection</h1>
+            <h1 className="text-2xl font-bold text-charcoal">EHO Mock Inspection</h1>
             <p className="text-sm text-charcoal/40 mt-1">
               Food Standards Agency-style self-assessment checklist
             </p>
@@ -139,7 +139,7 @@ export default function EHOMockPage() {
         </div>
 
         {/* Live score bar */}
-        <div className={`rounded-xl border p-5 ${submitted ? scoreBg(pct) : 'bg-white border-charcoal/10'}`}>
+        <div className={`rounded-2xl border p-5 ${submitted ? scoreBg(pct) : 'bg-white border-charcoal/10'}`}>
           <div className="flex items-center justify-between mb-2">
             <p className="text-[11px] tracking-widest uppercase text-charcoal/40">
               {submitted
@@ -147,7 +147,7 @@ export default function EHOMockPage() {
               : `Progress · ${answeredCount}/${allQuestions.length} answered${naCount > 0 ? ` · ${naCount} N/A` : ''}`
             }
             </p>
-            <p className={`font-serif text-2xl font-semibold ${submitted ? scoreColor : 'text-charcoal'}`}>
+            <p className={`text-xl font-bold font-semibold ${submitted ? scoreColor : 'text-charcoal'}`}>
               {submitted ? `${pct}/100` : `${pct}%`}
             </p>
           </div>
@@ -164,7 +164,7 @@ export default function EHOMockPage() {
 
         {/* Sections */}
         {SECTIONS.map((section) => (
-          <div key={section.id} className="bg-white rounded-xl border border-charcoal/10 overflow-hidden">
+          <div key={section.id} className="bg-white rounded-2xl border-charcoal/10 overflow-hidden">
             <div className="px-5 py-4 border-b border-charcoal/8 bg-charcoal/2">
               <p className="text-[11px] tracking-widest uppercase text-charcoal/40">{section.label}</p>
             </div>
@@ -215,7 +215,7 @@ export default function EHOMockPage() {
             {/* Final result card */}
             <div className={`rounded-xl border p-6 text-center ${scoreBg(pct)}`}>
               <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-2">Your Mock Inspection Score</p>
-              <p className={`font-serif text-5xl font-semibold ${scoreColor}`}>{pct}<span className="text-2xl">/100</span></p>
+              <p className={`text-4xl font-bold font-semibold ${scoreColor}`}>{pct}<span className="text-2xl">/100</span></p>
               <p className={`text-base font-semibold mt-2 ${scoreColor}`}>{scoreLabel_}</p>
               <p className="text-xs text-charcoal/40 mt-1">
                 {pct >= 80 ? 'Your food safety management appears to be in good order.' :
@@ -226,7 +226,7 @@ export default function EHOMockPage() {
 
             {/* Areas to improve */}
             {failedQuestions.length > 0 && (
-              <div className="bg-white rounded-xl border border-charcoal/10 overflow-hidden">
+              <div className="bg-white rounded-2xl border-charcoal/10 overflow-hidden">
                 <div className="px-5 py-4 border-b border-charcoal/8">
                   <p className="text-[11px] tracking-widest uppercase text-charcoal/40">Areas to Improve</p>
                 </div>
@@ -236,7 +236,7 @@ export default function EHOMockPage() {
                     return (
                       <div key={q.id} className="px-5 py-3 flex items-start gap-3">
                         <span className={`text-xs font-semibold mt-0.5 shrink-0 ${ans === 'partial' ? 'text-warning' : 'text-danger'}`}>
-                          {ans === 'partial' ? '~' : '✗'}
+                          {ans === 'partial' ? '~' : <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>}
                         </span>
                         <p className="text-sm text-charcoal/70">{q.text}</p>
                         <span className={`text-[10px] tracking-widest uppercase shrink-0 ${ans === 'partial' ? 'text-warning' : 'text-danger'}`}>

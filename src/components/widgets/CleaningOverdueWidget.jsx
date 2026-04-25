@@ -62,7 +62,7 @@ function CleaningOverdueWidget() {
                 className="shrink-0 w-6 h-6 rounded-full border-2 border-charcoal/20 flex items-center justify-center hover:border-success hover:bg-success/10 transition-colors disabled:opacity-40 text-success text-xs"
                 title="Mark complete"
               >
-                {completing === t.id ? '…' : '✓'}
+                {completing === t.id ? '…' : <svg className="w-3 h-3" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg>}
               </button>
               <p className="text-xs text-charcoal truncate flex-1">{t.title}</p>
               <span className="text-[11px] text-danger/70 whitespace-nowrap shrink-0">

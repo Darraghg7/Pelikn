@@ -252,7 +252,7 @@ export default function TimeOffPage() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
-        <h1 className="font-serif text-3xl text-brand">Time Off</h1>
+        <h1 className="text-2xl font-bold text-charcoal">Time Off</h1>
         <button
           onClick={() => setShowRequest(true)}
           className="bg-charcoal text-cream px-4 py-2 rounded-lg text-sm font-medium hover:bg-charcoal/90 transition-colors"
@@ -278,7 +278,7 @@ export default function TimeOffPage() {
       </div>
 
       {/* Calendar nav */}
-      <div className="bg-white rounded-xl border border-charcoal/10 overflow-hidden">
+      <div className="bg-white rounded-2xl border-charcoal/10 overflow-hidden">
         <div className="flex items-center justify-between px-5 py-4 border-b border-charcoal/8">
           <button onClick={prevMonth} className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-charcoal/8 text-charcoal/50 hover:text-charcoal transition-colors text-sm">‹</button>
           <span className="text-sm font-medium text-charcoal">{format(month, 'MMMM yyyy')}</span>
@@ -300,7 +300,7 @@ export default function TimeOffPage() {
 
       {/* Manager: pending requests */}
       {isManager && pendingRequests.length > 0 && (
-        <div className="bg-white rounded-xl border border-warning/20 overflow-hidden">
+        <div className="bg-white rounded-2xl border-warning/20 overflow-hidden">
           <div className="px-5 py-3 border-b border-warning/10 bg-warning/5">
             <p className="text-[11px] tracking-widest uppercase text-warning font-medium">
               {pendingRequests.length} Pending Request{pendingRequests.length !== 1 ? 's' : ''}
@@ -327,7 +327,7 @@ export default function TimeOffPage() {
                   value={reviewing === r.id ? managerNote : ''}
                   onFocus={() => setReviewing(r.id)}
                   onChange={e => setManagerNote(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg border border-charcoal/15 bg-cream/30 text-xs focus:outline-none focus:ring-2 focus:ring-charcoal/20 placeholder-charcoal/25"
+                  className="w-full px-3 py-2 rounded-lg border border-charcoal/15 bg-white text-xs focus:outline-none focus:ring-2 focus:ring-charcoal/20 placeholder-charcoal/25"
                 />
                 <div className="flex gap-2">
                   <button
@@ -356,7 +356,7 @@ export default function TimeOffPage() {
           <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-2">My Requests</p>
           <div className="flex flex-col gap-2">
             {myRequests.map(r => (
-              <div key={r.id} className={`rounded-xl border px-4 py-3 ${statusColors[r.status]}`}>
+              <div key={r.id} className={`rounded-2xl border px-4 py-3 ${statusColors[r.status]}`}>
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium">
@@ -385,7 +385,7 @@ export default function TimeOffPage() {
                 type="date"
                 value={form.startDate}
                 onChange={e => setForm(f => ({ ...f, startDate: e.target.value, endDate: f.endDate || e.target.value }))}
-                className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 bg-cream/30 text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+                className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
               />
             </div>
             <div>
@@ -395,7 +395,7 @@ export default function TimeOffPage() {
                 value={form.endDate}
                 min={form.startDate}
                 onChange={e => setForm(f => ({ ...f, endDate: e.target.value }))}
-                className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 bg-cream/30 text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+                className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
               />
             </div>
           </div>
@@ -407,7 +407,7 @@ export default function TimeOffPage() {
               onChange={e => setForm(f => ({ ...f, reason: e.target.value }))}
               rows={2}
               placeholder="e.g. Holiday, family event, appointment..."
-              className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 bg-cream/30 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+              className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 bg-white text-sm resize-none focus:outline-none focus:ring-2 focus:ring-charcoal/20"
             />
           </div>
 
@@ -432,7 +432,7 @@ export default function TimeOffPage() {
         ) : (
           <div className="flex flex-col gap-3">
             {dayDetailRequests.map(r => (
-              <div key={r.id} className={`rounded-xl border px-4 py-3 ${statusColors[r.status]}`}>
+              <div key={r.id} className={`rounded-2xl border px-4 py-3 ${statusColors[r.status]}`}>
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-semibold text-sm">{r.staff?.name}</p>

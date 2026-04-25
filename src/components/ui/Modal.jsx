@@ -37,7 +37,7 @@ export default function Modal({ open, onClose, title, children }) {
       {/* Panel */}
       <div
         ref={panelRef}
-        className={`relative bg-cream dark:bg-[#1e1e1e] w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl shadow-modal p-6 pb-8 sm:pb-6 z-10 max-h-[90dvh] overflow-y-auto transition-all duration-[250ms] ease-out ${
+        className={`relative bg-surface dark:bg-[#1e1e1e] w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl shadow-modal p-6 pb-8 sm:pb-6 z-10 max-h-[90dvh] overflow-y-auto transition-all duration-[250ms] ease-out ${
           animating
             ? 'opacity-100 translate-y-0 scale-100'
             : 'opacity-0 translate-y-4 sm:translate-y-2 sm:scale-[0.97]'
@@ -45,12 +45,12 @@ export default function Modal({ open, onClose, title, children }) {
         style={{ paddingBottom: 'max(2rem, env(safe-area-inset-bottom))' }}
       >
         <div className="flex items-center justify-between mb-5">
-          <h2 className="font-serif text-xl text-charcoal">{title}</h2>
+          <h2 className="text-lg font-bold text-charcoal">{title}</h2>
           <button
             onClick={onClose}
             className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-charcoal/10 text-charcoal/60 text-lg"
           >
-            ✕
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </button>
         </div>
         {children}

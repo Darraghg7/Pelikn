@@ -18,7 +18,12 @@ import RolesSection from './RolesSection'
 import NotificationsPanel from './NotificationsPanel'
 import VenuesSection from './VenuesSection'
 
-const VENUE_TYPE_ICONS = { cafe: '\u2615', pub: '\uD83C\uDF7A', restaurant: '\uD83C\uDF7D\uFE0F', hotel: '\uD83C\uDFE8' }
+const VENUE_TYPE_ICONS = {
+  cafe:       <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>,
+  pub:        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="M17 11h1a3 3 0 0 1 0 6h-1"/><path d="M3 11h14v8a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/><path d="M7 11V7"/><path d="M11 11V7"/><path d="M5 7h10l-1-4H6z"/></svg>,
+  restaurant: <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"/></svg>,
+  hotel:      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>,
+}
 
 function VenueTypeIndicator({ venueId, venueSlug }) {
   const [venueType, setVenueType] = useState(null)
@@ -266,7 +271,7 @@ export default function SettingsPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <h1 className="font-serif text-3xl text-brand dark:text-white">Settings</h1>
+      <h1 className="text-2xl font-bold text-charcoal dark:text-white">Settings</h1>
 
       {/* ── Venue ──────────────────────────────────────────────────────────── */}
       <SettingsSection title="Venue" defaultOpen>
@@ -277,7 +282,7 @@ export default function SettingsPage() {
               value={venueForm.venue_name}
               onChange={e => setVenueForm(f => ({ ...f, venue_name: e.target.value }))}
               placeholder="e.g. The Crown Bar & Kitchen"
-              className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 bg-cream/30 text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+              className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
             />
           </div>
           <div>
@@ -287,7 +292,7 @@ export default function SettingsPage() {
               value={venueForm.manager_email}
               onChange={e => setVenueForm(f => ({ ...f, manager_email: e.target.value }))}
               placeholder="manager@yoursite.com"
-              className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 bg-cream/30 text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+              className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
             />
           </div>
           <button
@@ -306,7 +311,7 @@ export default function SettingsPage() {
                 <img
                   src={settings.logo_url}
                   alt="Venue logo"
-                  className="h-12 w-12 rounded-lg object-contain border border-charcoal/10 bg-cream/50 p-1"
+                  className="h-12 w-12 rounded-lg object-contain border border-charcoal/10 bg-white p-1"
                 />
               )}
               <div className="flex flex-col gap-2">
@@ -314,7 +319,7 @@ export default function SettingsPage() {
                   type="file"
                   accept="image/*"
                   onChange={e => setLogoFile(e.target.files[0] ?? null)}
-                  className="text-sm text-charcoal/60 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border file:border-charcoal/15 file:text-xs file:bg-cream/50 file:text-charcoal/60 hover:file:bg-cream"
+                  className="text-sm text-charcoal/60 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border file:border-charcoal/15 file:text-xs file:bg-white file:text-charcoal/60 hover:file:bg-cream"
                 />
                 {logoFile && (
                   <button
@@ -339,7 +344,7 @@ export default function SettingsPage() {
               </p>
             </div>
             <div className="flex items-center gap-1.5">
-              <span className="text-base">{dark ? '🌙' : '☀️'}</span>
+              <span className="text-charcoal/50">{dark ? <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg> : <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>}</span>
               <Toggle checked={dark} onChange={toggleDark} />
             </div>
           </div>
@@ -391,7 +396,7 @@ export default function SettingsPage() {
               {closures.map(c => {
                 const past = c.end_date < format(new Date(), 'yyyy-MM-dd')
                 return (
-                  <div key={c.id} className={`flex items-center justify-between gap-3 px-4 py-3 rounded-xl border ${past ? 'bg-charcoal/2 border-charcoal/8 opacity-50' : 'bg-cream/40 border-charcoal/10'}`}>
+                  <div key={c.id} className={`flex items-center justify-between gap-3 px-4 py-3 rounded-xl border ${past ? 'bg-charcoal/2 border-charcoal/8 opacity-50' : 'bg-white border-charcoal/10'}`}>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-charcoal">
                         {format(parseISO(c.start_date), 'd MMM yyyy')}
@@ -410,7 +415,7 @@ export default function SettingsPage() {
             </div>
           )}
 
-          <div className="flex flex-col gap-3 p-4 rounded-xl bg-cream/40 border border-charcoal/10">
+          <div className="flex flex-col gap-3 p-4 rounded-2xl bg-white border border-charcoal/10">
             <p className="text-[11px] tracking-widest uppercase text-charcoal/40">Add Closed Period</p>
             <div className="grid grid-cols-2 gap-3">
               <div>

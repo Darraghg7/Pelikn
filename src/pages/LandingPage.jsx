@@ -18,7 +18,7 @@ function VenuePicker({ venues, onSelect }) {
   return (
     <div className="flex flex-col gap-4">
       <div>
-        <h2 className="font-serif text-charcoal text-xl">Select a venue</h2>
+        <h2 className="font-bold text-charcoal text-xl">Select a venue</h2>
         <p className="text-xs text-charcoal/40 mt-1">
           Your account has {venues.length} venues — choose one to continue
         </p>
@@ -28,7 +28,7 @@ function VenuePicker({ venues, onSelect }) {
           <button
             key={v.id}
             onClick={() => onSelect(v.slug)}
-            className="flex items-center justify-between w-full px-4 py-3.5 rounded-xl border border-charcoal/12 bg-cream/40 hover:bg-cream hover:border-brand/30 transition-all text-left group"
+            className="flex items-center justify-between w-full px-4 py-3.5 rounded-xl border border-charcoal/12 bg-white hover:bg-cream hover:border-brand/30 transition-all text-left group"
           >
             <div>
               <p className="text-sm font-semibold text-charcoal group-hover:text-brand transition-colors">
@@ -145,7 +145,7 @@ export default function LandingPage() {
         {/* Branding */}
         <div className="flex-1 flex flex-col items-center justify-center px-8 text-center">
           <AppIcon size={36} />
-          <h1 className="font-serif text-white text-4xl tracking-tight mt-6">SafeServ</h1>
+          <h1 className="font-bold text-white text-4xl tracking-tight mt-6">SafeServ</h1>
           <p className="text-white/50 tracking-widest uppercase text-xs mt-3">
             Food Safety, Simplified
           </p>
@@ -163,7 +163,7 @@ export default function LandingPage() {
              style={{ paddingBottom: 'max(2.5rem, env(safe-area-inset-bottom))' }}>
           <button
             onClick={() => navigate('/signup')}
-            className="w-full bg-cream text-brand rounded-2xl py-4 text-sm font-bold tracking-wide hover:bg-cream/90 transition-colors"
+            className="w-full bg-surface text-brand rounded-2xl py-4 text-sm font-bold tracking-wide hover:bg-cream/90 transition-colors"
           >
             Get Started
           </button>
@@ -193,7 +193,7 @@ export default function LandingPage() {
               bgClass="bg-brand/10"
               strokeColor="white"
             />
-            <h1 className="font-serif text-brand text-3xl tracking-tight mt-4">SafeServ</h1>
+            <h1 className="font-bold text-brand text-3xl tracking-tight mt-4">SafeServ</h1>
             <p className="text-xs tracking-widest uppercase text-charcoal/40 mt-1.5">
               Food Safety, Simplified
             </p>
@@ -225,7 +225,7 @@ export default function LandingPage() {
           {view === 'signin' && (
             <>
               <div>
-                <h2 className="font-serif text-charcoal text-xl">Welcome back</h2>
+                <h2 className="font-bold text-charcoal text-xl">Welcome back</h2>
                 <p className="text-xs text-charcoal/40 mt-1">Sign in to access your venue</p>
               </div>
               <form onSubmit={handleSubmit} className="flex flex-col gap-4">
@@ -251,7 +251,7 @@ export default function LandingPage() {
                     />
                   </div>
                 </div>
-                {error && <p className="text-red-500 text-xs -mt-1">{error}</p>}
+                {error && <p className="text-danger text-xs -mt-1">{error}</p>}
                 <button
                   type="submit"
                   disabled={loading || !email.trim() || !password}
@@ -275,7 +275,7 @@ export default function LandingPage() {
           {view === 'join' && (
             <>
               <div>
-                <h2 className="font-serif text-charcoal text-xl">Join a venue</h2>
+                <h2 className="font-bold text-charcoal text-xl">Join a venue</h2>
                 <p className="text-xs text-charcoal/40 mt-1">Enter the code your manager shared with you</p>
               </div>
               <form onSubmit={handleJoin} className="flex flex-col gap-4">
@@ -291,7 +291,7 @@ export default function LandingPage() {
                     placeholder="e.g. NOMAD23"
                     className="w-full px-4 py-3 rounded-xl border border-charcoal/15 bg-white text-sm text-charcoal font-mono tracking-widest placeholder:tracking-normal placeholder:font-sans placeholder:text-charcoal/25 outline-none focus:border-brand transition-colors uppercase"
                   />
-                  {joinError && <p className="text-red-500 text-xs mt-1.5">{joinError}</p>}
+                  {joinError && <p className="text-danger text-xs mt-1.5">{joinError}</p>}
                 </div>
                 <button
                   type="submit"
@@ -342,7 +342,7 @@ export default function LandingPage() {
           ) : view === 'join' ? (
             <>
               <div>
-                <h2 className="font-serif text-charcoal text-xl">Join a venue</h2>
+                <h2 className="font-bold text-charcoal text-xl">Join a venue</h2>
                 <p className="text-xs text-charcoal/40 mt-1">Enter the code your manager shared with you</p>
               </div>
               <form onSubmit={handleJoin} className="flex flex-col gap-4">
@@ -359,7 +359,7 @@ export default function LandingPage() {
                     placeholder="e.g. NOMAD23"
                     className="w-full px-4 py-3 rounded-xl border border-charcoal/15 bg-white text-sm text-charcoal font-mono tracking-widest placeholder:tracking-normal placeholder:font-sans placeholder:text-charcoal/25 outline-none focus:border-brand transition-colors uppercase"
                   />
-                  {joinError && <p className="text-red-500 text-xs mt-1.5">{joinError}</p>}
+                  {joinError && <p className="text-danger text-xs mt-1.5">{joinError}</p>}
                 </div>
                 <button
                   type="submit"
@@ -379,7 +379,7 @@ export default function LandingPage() {
           ) : (
             <>
               <div>
-                <h2 className="font-serif text-charcoal text-xl">Welcome back</h2>
+                <h2 className="font-bold text-charcoal text-xl">Welcome back</h2>
                 <p className="text-xs text-charcoal/40 mt-1">Sign in to access your venue</p>
               </div>
               <form onSubmit={handleSubmit} className="flex flex-col gap-4">
@@ -405,7 +405,7 @@ export default function LandingPage() {
                     />
                   </div>
                 </div>
-                {error && <p className="text-red-500 text-xs -mt-1">{error}</p>}
+                {error && <p className="text-danger text-xs -mt-1">{error}</p>}
                 <button
                   type="submit"
                   disabled={loading || !email.trim() || !password}

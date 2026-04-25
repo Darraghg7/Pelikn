@@ -4,19 +4,18 @@ import { useVenue } from '../../contexts/VenueContext'
 
 export function WidgetShell({ title, to, children, status }) {
   const { venueSlug } = useVenue()
-  const statusBorder = {
-    good: 'border-l-success',
-    warning: 'border-l-warning',
-    bad: 'border-l-danger',
-  }
+  const statusDot = { good: 'bg-success', warning: 'bg-warning', bad: 'bg-danger' }
   const href = to && venueSlug ? `/v/${venueSlug}${to}` : to
   return (
-    <div className={`bg-white rounded-xl overflow-hidden ${status ? `border-l-4 ${statusBorder[status] ?? ''}` : ''}`}>
+    <div className="bg-white rounded-2xl overflow-hidden">
       <div className="flex items-center justify-between px-5 pt-4 pb-2">
-        <p className="text-[11px] tracking-widest uppercase text-charcoal/40 font-medium">{title}</p>
+        <div className="flex items-center gap-2">
+          {status && <span className={`w-2 h-2 rounded-full shrink-0 ${statusDot[status] ?? 'bg-charcoal/20'}`} />}
+          <p className="text-[11px] font-bold tracking-widest uppercase text-charcoal/50">{title}</p>
+        </div>
         {href && (
-          <Link to={href} className="text-[11px] tracking-widest uppercase text-charcoal/25 hover:text-charcoal/50 transition-colors">
-            View →
+          <Link to={href} className="text-[11px] font-bold tracking-wide text-brand/60 hover:text-brand transition-colors">
+            VIEW &rsaquo;
           </Link>
         )}
       </div>
@@ -27,8 +26,8 @@ export function WidgetShell({ title, to, children, status }) {
 
 export function BigNumber({ value, label, alert }) {
   return (
-    <div className="text-center py-1">
-      <p className={`font-serif text-3xl font-bold ${alert ? 'text-danger' : 'text-charcoal'}`}>{value}</p>
+    <div className="py-1">
+      <p className={`text-3xl font-bold ${alert ? 'text-danger' : 'text-charcoal'}`}>{value}</p>
       {label && <p className="text-xs text-charcoal/40 mt-0.5">{label}</p>}
     </div>
   )

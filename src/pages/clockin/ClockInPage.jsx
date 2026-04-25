@@ -95,7 +95,7 @@ function ManagerView({ venueId }) {
   return (
     <div className="flex flex-col gap-6">
       {/* Manager's own clock */}
-      <div className="bg-white rounded-xl p-5">
+      <div className="bg-white rounded-2xl p-5">
         <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-3">My Clock</p>
         <ManagerOwnClock venueId={venueId} />
       </div>
@@ -106,7 +106,7 @@ function ManagerView({ venueId }) {
       )}
 
       {/* Team status */}
-      <div className="bg-white rounded-xl p-5">
+      <div className="bg-white rounded-2xl p-5">
         <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-3">Team Status</p>
         {loading ? (
           <div className="flex justify-center py-6"><LoadingSpinner /></div>
@@ -126,7 +126,7 @@ function ManagerView({ venueId }) {
 function StaffView({ staffId, staffName }) {
   return (
     <div className="flex flex-col gap-6">
-      <div className="bg-white rounded-xl p-6">
+      <div className="bg-white rounded-2xl p-6">
         {staffName && (
           <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-1">
             Hi, {staffName}
@@ -150,7 +150,7 @@ export default function ClockInPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="font-serif text-3xl text-brand">Clock In / Out</h1>
+      <h1 className="text-2xl font-bold text-charcoal">Clock In / Out</h1>
       {isManager
         ? <ManagerView venueId={venueId} />
         : <StaffView staffId={session?.staffId} staffName={session?.staffName} />

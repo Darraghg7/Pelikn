@@ -33,11 +33,13 @@ function PostCard({ notice, isManager, onDelete }) {
   const [deleting, setDeleting] = useState(false)
 
   return (
-    <div className={`bg-white rounded-xl border p-5 flex flex-col gap-3 ${notice.pinned ? 'border-accent/30' : 'border-charcoal/10'}`}>
+    <div className={`bg-white rounded-2xl p-5 flex flex-col gap-3 ${notice.pinned ? 'border-accent/30' : 'border-charcoal/10'}`}>
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-2 flex-wrap">
           {notice.pinned && (
-            <span className="text-sm" title="Pinned">📌</span>
+            <span title="Pinned" className="text-accent shrink-0">
+              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14v-1.76a2 2 0 00-1.11-1.79l-1.78-.9A2 2 0 0115 10.76V6h1a2 2 0 000-4H8a2 2 0 000 4h1v4.76a2 2 0 01-1.11 1.79l-1.78.9A2 2 0 005 15.24V17z"/></svg>
+            </span>
           )}
           <h3 className="font-semibold text-charcoal text-base leading-snug">{notice.title}</h3>
         </div>
@@ -119,7 +121,7 @@ function NewPostForm({ venueId, staffName, onPosted, onCancel }) {
   }
 
   return (
-    <form onSubmit={submit} className="bg-white rounded-xl border border-charcoal/10 p-5 flex flex-col gap-4">
+    <form onSubmit={submit} className="bg-white rounded-2xl border-charcoal/10 p-5 flex flex-col gap-4">
       <p className="text-[11px] tracking-widest uppercase text-charcoal/40">New Notice</p>
 
       <div className="flex flex-col gap-1.5">
@@ -129,7 +131,7 @@ function NewPostForm({ venueId, staffName, onPosted, onCancel }) {
           value={form.title}
           onChange={(e) => set('title', e.target.value)}
           placeholder="e.g. Staff meeting this Friday"
-          className="w-full px-3 py-2.5 rounded-lg border border-charcoal/15 bg-cream/30 text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 placeholder-charcoal/25"
+          className="w-full px-3 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 placeholder-charcoal/25"
         />
       </div>
 
@@ -140,7 +142,7 @@ function NewPostForm({ venueId, staffName, onPosted, onCancel }) {
           onChange={(e) => set('body', e.target.value)}
           placeholder="Add more detail here…"
           rows={4}
-          className="w-full px-3 py-2.5 rounded-lg border border-charcoal/15 bg-cream/30 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-charcoal/20 placeholder-charcoal/25"
+          className="w-full px-3 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm resize-none focus:outline-none focus:ring-2 focus:ring-charcoal/20 placeholder-charcoal/25"
         />
       </div>
 
@@ -183,7 +185,7 @@ export default function NoticeBoardPage() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
-        <h1 className="font-serif text-3xl text-brand">Noticeboard</h1>
+        <h1 className="text-2xl font-bold text-charcoal">Noticeboard</h1>
         {isManager && !showForm && (
           <Button variant="primary" onClick={() => setShowForm(true)}>
             + Post Notice
@@ -203,7 +205,7 @@ export default function NoticeBoardPage() {
       {loading ? (
         <div className="flex justify-center py-10"><LoadingSpinner /></div>
       ) : notices.length === 0 ? (
-        <div className="bg-white rounded-xl border border-dashed border-charcoal/20 p-10 text-center">
+        <div className="bg-white rounded-2xl border-dashed border-charcoal/20 p-10 text-center">
           <p className="text-charcoal/30 text-sm">No notices yet.</p>
           {isManager && (
             <p className="text-xs text-charcoal/25 mt-1">Post the first notice above.</p>

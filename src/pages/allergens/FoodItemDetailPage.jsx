@@ -57,7 +57,7 @@ export default function FoodItemDetailPage() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Link to={`/v/${venueSlug}/allergens`} className="text-charcoal/40 hover:text-charcoal transition-colors text-lg">←</Link>
-          <h1 className="font-serif text-3xl text-brand">{item.name}</h1>
+          <h1 className="text-2xl font-bold text-charcoal">{item.name}</h1>
         </div>
         {isManager && (
           <div className="flex gap-2">
@@ -82,7 +82,7 @@ export default function FoodItemDetailPage() {
       )}
 
       {/* Contains */}
-      <div className="bg-white rounded-xl border border-charcoal/10 p-5">
+      <div className="bg-white rounded-2xl border-charcoal/10 p-5">
         <SectionLabel>Contains</SectionLabel>
         {allergens.length === 0 ? (
           <p className="text-sm text-charcoal/35 italic">No allergens declared.</p>
@@ -101,7 +101,7 @@ export default function FoodItemDetailPage() {
       </div>
 
       {/* Does not contain */}
-      <div className="bg-white rounded-xl border border-charcoal/10 p-5">
+      <div className="bg-white rounded-2xl border-charcoal/10 p-5">
         <SectionLabel>Does not contain</SectionLabel>
         <div className="flex flex-wrap gap-2">
           {absent.map((a) => (

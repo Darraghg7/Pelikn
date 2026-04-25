@@ -125,7 +125,7 @@ function AddSupplierModal({ open, onClose, onAdded, venueId }) {
           value={name}
           onChange={e => setName(e.target.value)}
           placeholder="e.g. Henderson's, Brakes, Musgrave"
-          className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 bg-cream/30 text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+          className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
           autoFocus
         />
         <button
@@ -512,7 +512,7 @@ function DeliveryCheckModal({ open, onClose, suppliers, onSupplierAdded, onCompl
                             item.received ? 'bg-success border-success text-white' : 'border-charcoal/20'
                           }`}
                         >
-                          {item.received && <span className="text-xs">✓</span>}
+                          {item.received && <svg className="w-3 h-3" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg>}
                         </button>
                         <span className="text-sm font-medium text-charcoal flex-1 truncate">{item.itemName}</span>
                         <span className="text-[11px] tracking-wider uppercase text-charcoal/30">{item.category}</span>
@@ -525,7 +525,7 @@ function DeliveryCheckModal({ open, onClose, suppliers, onSupplierAdded, onCompl
                             value={item.tempReading}
                             onChange={e => checkTemp(id, e.target.value)}
                             placeholder={`${item.minTemp ?? '?'}C to ${item.maxTemp ?? '?'}C`}
-                            className="flex-1 px-3 py-1.5 rounded-lg border border-charcoal/15 bg-cream/30 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+                            className="flex-1 px-3 py-1.5 rounded-lg border border-charcoal/15 bg-white text-sm font-mono focus:outline-none focus:ring-2 focus:ring-charcoal/20"
                           />
                           <span className="text-xs">°C</span>
                           {item.tempReading && (
@@ -554,7 +554,7 @@ function DeliveryCheckModal({ open, onClose, suppliers, onSupplierAdded, onCompl
                           item.received ? 'bg-success border-success text-white' : 'border-charcoal/20'
                         }`}
                       >
-                        {item.received && <span className="text-xs">✓</span>}
+                        {item.received && <svg className="w-3 h-3" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg>}
                       </button>
                       <span className={`text-sm flex-1 truncate ${item.received ? 'text-charcoal' : 'text-charcoal/40 line-through'}`}>
                         {item.itemName}
@@ -615,7 +615,7 @@ function DeliveryCheckModal({ open, onClose, suppliers, onSupplierAdded, onCompl
                 onChange={e => setOverallNotes(e.target.value)}
                 rows={2}
                 placeholder="Any issues or observations..."
-                className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 bg-cream/30 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+                className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 bg-white text-sm resize-none focus:outline-none focus:ring-2 focus:ring-charcoal/20"
               />
             </div>
 
@@ -679,7 +679,7 @@ export default function DeliveryChecksPage() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
-        <h1 className="font-serif text-3xl text-brand">Delivery Checks</h1>
+        <h1 className="text-2xl font-bold text-charcoal">Delivery Checks</h1>
         <button
           onClick={() => setShowCheck(true)}
           className="bg-charcoal text-cream px-4 py-2 rounded-lg text-sm font-medium hover:bg-charcoal/90 transition-colors"
@@ -695,7 +695,7 @@ export default function DeliveryChecksPage() {
           { label: 'Passed', value: passCount, color: 'text-success' },
           { label: 'Failed', value: failCount, color: 'text-danger' },
         ].map(s => (
-          <div key={s.label} className="bg-white rounded-xl border border-charcoal/10 p-3 sm:p-4 text-center">
+          <div key={s.label} className="bg-white rounded-2xl border-charcoal/10 p-3 sm:p-4 text-center">
             <p className="text-[9px] sm:text-[11px] tracking-widest uppercase text-charcoal/40">{s.label}</p>
             <p className={`text-xl sm:text-2xl font-bold ${s.color}`}>{s.value}</p>
           </div>
@@ -723,14 +723,14 @@ export default function DeliveryChecksPage() {
       {loading ? (
         <div className="flex justify-center py-10"><LoadingSpinner /></div>
       ) : filtered.length === 0 ? (
-        <div className="bg-white rounded-xl border border-charcoal/10 p-10 text-center">
+        <div className="bg-white rounded-2xl border-charcoal/10 p-10 text-center">
           <p className="text-charcoal/30 text-sm">No delivery checks recorded yet.</p>
           <p className="text-charcoal/20 text-xs mt-1">Tap "+ Check Delivery" to log your first one.</p>
         </div>
       ) : (
         <div className="flex flex-col gap-3">
           {filtered.map(c => (
-            <div key={c.id} className={`bg-white rounded-xl border p-4 ${c.overall_pass ? 'border-charcoal/10' : 'border-danger/25 bg-danger/3'}`}>
+            <div key={c.id} className={`bg-white rounded-2xl p-4 ${c.overall_pass ? 'border-charcoal/10' : 'border-danger/25 bg-danger/3'}`}>
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">

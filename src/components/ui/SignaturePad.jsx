@@ -77,7 +77,7 @@ export default function SignaturePad({ onChange, disabled = false, value = null 
 
   return (
     <div className="flex flex-col gap-1.5">
-      <div className={`relative border rounded-lg overflow-hidden ${disabled ? 'bg-cream/30 border-charcoal/10' : 'bg-white border-charcoal/20'}`}>
+      <div className={`relative border rounded-lg overflow-hidden ${disabled ? 'bg-white border-charcoal/10' : 'bg-white border-charcoal/20'}`}>
         <canvas
           ref={canvasRef}
           width={600}

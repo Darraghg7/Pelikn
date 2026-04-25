@@ -96,7 +96,7 @@ export default function VenuesSection() {
 
       {/* Add venue form */}
       {showForm ? (
-        <div className="p-4 rounded-xl bg-cream/50 border border-charcoal/10 flex flex-col gap-3.5">
+        <div className="p-4 rounded-2xl bg-white border border-charcoal/10 flex flex-col gap-3.5">
           <p className="text-sm font-semibold text-charcoal">Add New Venue</p>
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -123,8 +123,10 @@ export default function VenuesSection() {
             </div>
           </div>
 
-          <div className="flex items-start gap-2 text-xs text-charcoal/50 bg-amber-50 rounded-lg px-3 py-2.5">
-            <span className="text-amber-500 shrink-0">💳</span>
+          <div className="flex items-start gap-2 text-xs text-charcoal/50 bg-warning/8 rounded-lg px-3 py-2.5">
+            <span className="text-warning shrink-0">
+              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+            </span>
             <span>
               Adding a venue costs <strong>{EXTRA_VENUE_PRICE}/mo</strong> and will be reflected on your next billing cycle.
             </span>

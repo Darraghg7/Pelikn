@@ -327,7 +327,7 @@ export default function StaffMembersSection() {
 
       {/* Add / Edit form */}
       {showForm && (
-        <div className="mb-6 p-5 rounded-xl bg-cream/50 border border-charcoal/10 flex flex-col gap-4">
+        <div className="mb-6 p-5 rounded-2xl bg-white border border-charcoal/10 flex flex-col gap-4">
           <p className="text-sm font-semibold text-charcoal">{editingId ? 'Edit Staff Member' : 'New Staff Member'}</p>
 
           {/* Photo upload (edit only) */}
@@ -347,7 +347,7 @@ export default function StaffMembersSection() {
                   <label className="text-[11px] tracking-widest uppercase text-charcoal/40">Photo</label>
                   <input type="file" accept="image/*"
                     onChange={e => setPhotoFile(e.target.files[0] ?? null)}
-                    className="text-xs text-charcoal/60 file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border file:border-charcoal/15 file:text-xs file:bg-cream/50 file:text-charcoal/60 hover:file:bg-cream" />
+                    className="text-xs text-charcoal/60 file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border file:border-charcoal/15 file:text-xs file:bg-white file:text-charcoal/60 hover:file:bg-cream" />
                   {photoFile && (
                     <button type="button"
                       onClick={() => uploadStaffPhoto(editingId, photoFile)}
@@ -641,7 +641,7 @@ export default function StaffMembersSection() {
                           isHome ? 'opacity-60 cursor-default' : 'hover:border-brand/40',
                         ].join(' ')}
                       >
-                        {isLinked ? '✓ ' : ''}{v.name}{isHome ? ' (home)' : ''}
+                        {isLinked && <svg className="w-3 h-3 inline mr-1" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg>}{v.name}{isHome ? ' (home)' : ''}
                       </button>
                     )
                   })}
@@ -668,95 +668,85 @@ export default function StaffMembersSection() {
       )}
 
       {/* Staff list */}
-      <div className="flex flex-col divide-y divide-charcoal/6">
-        {staff.map((s, idx) => (
-          <div key={s.id} className={`py-4 first:pt-0 last:pb-0 flex items-center gap-3 ${!s.is_active ? 'opacity-40' : ''}`}>
-            {/* Reorder arrows */}
-            <div className="flex flex-col gap-0.5 shrink-0">
-              <button
-                onClick={() => moveStaff(s.id, 'up')}
-                disabled={idx === 0}
-                className="w-6 h-5 flex items-center justify-center rounded text-charcoal/25 hover:text-charcoal hover:bg-charcoal/6 transition-colors disabled:opacity-0 text-[10px]"
-              >▲</button>
-              <button
-                onClick={() => moveStaff(s.id, 'down')}
-                disabled={idx === staff.length - 1}
-                className="w-6 h-5 flex items-center justify-center rounded text-charcoal/25 hover:text-charcoal hover:bg-charcoal/6 transition-colors disabled:opacity-0 text-[10px]"
-              >▼</button>
-            </div>
+      <div className="flex flex-col gap-3">
+        {staff.map((s, idx) => {
+          const initial = (s.name || '?').charAt(0).toUpperCase()
+          const roleLabel = (staffRoleMap[s.id] ?? [])[0] ?? (JOB_LABELS[s.job_role] ?? s.job_role)
+          const isLocked = s.pin_locked_until && new Date(s.pin_locked_until) > new Date()
+          return (
+            <div key={s.id} className={`bg-white rounded-2xl p-4 ${!s.is_active ? 'opacity-50' : ''}`}>
+              {/* Top row: avatar + name/role + reorder */}
+              <div className="flex items-center gap-3 mb-3">
+                {s.photo_url ? (
+                  <img src={s.photo_url} alt={s.name} className="w-10 h-10 rounded-full object-cover shrink-0" />
+                ) : (
+                  <div
+                    className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm shrink-0"
+                    style={{ backgroundColor: s.colour || '#1a3c2e' }}
+                  >
+                    {initial}
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <p className="font-bold text-charcoal text-sm leading-tight">{s.name}</p>
+                    {isLocked && <span className="inline-flex items-center gap-1 text-[10px] bg-danger/10 text-danger px-1.5 py-0.5 rounded-full font-bold"><svg className="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Locked</span>}
+                    {!s.is_active && <span className="text-[10px] text-charcoal/30 italic">inactive</span>}
+                  </div>
+                  <p className="text-xs text-charcoal/45 mt-0.5">{roleLabel}</p>
+                </div>
+                {/* Reorder */}
+                <div className="flex flex-col gap-0.5 shrink-0">
+                  <button onClick={() => moveStaff(s.id, 'up')} disabled={idx === 0} className="w-5 h-4 flex items-center justify-center text-charcoal/20 hover:text-charcoal disabled:opacity-0 text-[9px]">▲</button>
+                  <button onClick={() => moveStaff(s.id, 'down')} disabled={idx === staff.length - 1} className="w-5 h-4 flex items-center justify-center text-charcoal/20 hover:text-charcoal disabled:opacity-0 text-[9px]">▼</button>
+                </div>
+              </div>
 
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <p className="font-medium text-charcoal text-sm">{s.name}</p>
-                <span className={[
-                  'text-[11px] tracking-widest uppercase font-medium px-1.5 py-0.5 rounded',
-                  s.role === 'owner'   ? 'bg-purple-50 text-purple-600' :
-                  s.role === 'manager' ? 'bg-amber-50 text-amber-600' :
-                                        'bg-charcoal/5 text-charcoal/50',
-                ].join(' ')}>
-                  {PERMISSION_LABELS[s.role] ?? s.role}
-                </span>
-                <span className="text-[11px] tracking-widest uppercase text-charcoal/40 border border-charcoal/15 px-1.5 py-0.5 rounded">
-                  {JOB_LABELS[s.job_role] ?? s.job_role}
-                </span>
-                {s.role === 'staff' && (permCounts[s.id] ?? 0) > 0 && (
-                  <span className="text-[11px] bg-brand/8 text-brand px-1.5 py-0.5 rounded">
-                    {permCounts[s.id]} permission{permCounts[s.id] !== 1 ? 's' : ''}
-                  </span>
-                )}
-                {s.is_under_18     && <span className="text-[11px] bg-teal-50 text-teal-600 px-1.5 py-0.5 rounded">Under 18</span>}
-                {(s.working_days ?? []).length > 0 && (s.working_days ?? []).length < 7 && (
-                  <span className="text-[11px] bg-brand/8 text-brand px-1.5 py-0.5 rounded">
-                    {(s.working_days ?? []).map(d => DOW_LABELS[d - 1]).join('/')}
-                  </span>
-                )}
-                {(staffRoleMap[s.id] ?? []).map(name => (
-                  <span key={name} className="text-[11px] bg-brand/8 text-brand px-1.5 py-0.5 rounded">{name}</span>
-                ))}
-                {!s.is_active && <span className="text-[11px] tracking-widest uppercase text-charcoal/30 italic">inactive</span>}
-                {s.pin_locked_until && new Date(s.pin_locked_until) > new Date() && (
-                  <span className="text-[11px] tracking-widest uppercase bg-danger/10 text-danger px-1.5 py-0.5 rounded font-semibold">🔒 Locked</span>
-                )}
-              </div>
-              <div className="flex items-center gap-3 mt-0.5">
-                {s.email && <p className="text-xs text-charcoal/40">{s.email}</p>}
-                {s.hourly_rate > 0 && <p className="text-xs text-charcoal/40 font-mono">£{Number(s.hourly_rate).toFixed(2)}/hr</p>}
-              </div>
-            </div>
-            <div className="flex gap-2 shrink-0 flex-wrap justify-end">
-              {s.pin_locked_until && new Date(s.pin_locked_until) > new Date() && (
-                <button
-                  onClick={async () => {
-                    await supabase.rpc('reset_staff_pin_lock', {
-                      p_session_token: session.token,
-                      p_staff_id: s.id,
-                    })
-                    toast(`${s.name}'s PIN unlocked`)
-                    reloadStaff()
-                  }}
-                  className="text-xs px-3 py-1.5 rounded-lg border border-danger/20 text-danger/60 hover:text-danger hover:border-danger/40 transition-colors"
-                >Unlock</button>
+              {/* Contact icons row */}
+              {(s.email) && (
+                <div className="flex items-center gap-2 mb-3">
+                  {s.email && (
+                    <a href={`mailto:${s.email}`} className="w-8 h-8 rounded-full border border-charcoal/15 flex items-center justify-center text-charcoal/40 hover:text-charcoal hover:border-charcoal/30 transition-colors">
+                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" /></svg>
+                    </a>
+                  )}
+                </div>
               )}
-              <button
-                onClick={() => openEdit(s)}
-                className="text-xs px-3 py-1.5 rounded-lg border border-charcoal/15 text-charcoal/60 hover:text-charcoal hover:border-charcoal/30 transition-colors"
-              >Edit</button>
-              <button
-                onClick={() => toggleActive(s)}
-                className={['text-xs px-3 py-1.5 rounded-lg border transition-colors',
-                  s.is_active ? 'border-danger/20 text-danger/60 hover:text-danger hover:border-danger/40'
-                              : 'border-success/20 text-success/60 hover:text-success hover:border-success/40',
-                ].join(' ')}
-              >
-                {s.is_active ? 'Deactivate' : 'Reactivate'}
-              </button>
-              <button
-                onClick={() => setDeleteTarget({ id: s.id, name: s.name })}
-                className="text-xs px-3 py-1.5 rounded-lg border border-danger/15 text-danger/40 hover:text-danger hover:border-danger/35 transition-colors"
-              >Delete</button>
+
+              {/* Action buttons */}
+              <div className="flex gap-2">
+                <button
+                  onClick={() => openEdit(s)}
+                  className="flex-1 py-2 rounded-xl border border-charcoal/15 text-xs font-semibold text-charcoal/60 hover:text-charcoal hover:border-charcoal/30 transition-colors"
+                >
+                  View Details
+                </button>
+                {isLocked && (
+                  <button
+                    onClick={async () => {
+                      await supabase.rpc('reset_staff_pin_lock', { p_session_token: session.token, p_staff_id: s.id })
+                      toast(`${s.name}'s PIN unlocked`)
+                      reloadStaff()
+                    }}
+                    className="flex-1 py-2 rounded-xl border border-danger/20 text-xs font-semibold text-danger/60 hover:text-danger hover:border-danger/40 transition-colors"
+                  >
+                    Unlock PIN
+                  </button>
+                )}
+                <button
+                  onClick={() => toggleActive(s)}
+                  className={['flex-1 py-2 rounded-xl border text-xs font-semibold transition-colors',
+                    s.is_active
+                      ? 'border-charcoal/12 text-charcoal/40 hover:border-danger/30 hover:text-danger'
+                      : 'border-success/20 text-success/60 hover:text-success hover:border-success/40',
+                  ].join(' ')}
+                >
+                  {s.is_active ? 'Deactivate' : 'Reactivate'}
+                </button>
+              </div>
             </div>
-          </div>
-        ))}
+          )
+        })}
         {staff.length === 0 && <p className="text-sm text-charcoal/35 italic py-4">No staff members yet.</p>}
       </div>
 

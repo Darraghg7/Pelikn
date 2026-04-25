@@ -100,7 +100,7 @@ export default function CleaningPage() {
       <CleaningExportModal open={showExport} onClose={() => setShowExport(false)} />
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="font-serif text-3xl text-brand">Cleaning Schedule</h1>
+        <h1 className="text-2xl font-bold text-charcoal">Cleaning Schedule</h1>
         <div className="flex items-center gap-3">
           {isManager && (
             <button
@@ -123,8 +123,8 @@ export default function CleaningPage() {
 
       {/* Summary banner */}
       {(overdueCount > 0 || dueSoonCount > 0) && (
-        <div className={`rounded-xl border p-4 flex items-center gap-3 ${overdueCount > 0 ? 'bg-danger/5 border-danger/20' : 'bg-warning/5 border-warning/20'}`}>
-          <span className="text-xl">{overdueCount > 0 ? '🔴' : '🟡'}</span>
+        <div className={`rounded-2xl border p-4 flex items-center gap-3 ${overdueCount > 0 ? 'bg-danger/5 border-danger/20' : 'bg-warning/5 border-warning/20'}`}>
+          <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${overdueCount > 0 ? 'bg-danger' : 'bg-warning'}`} />
           <div>
             {overdueCount > 0 && <p className="text-sm font-semibold text-danger">{overdueCount} task{overdueCount !== 1 ? 's' : ''} overdue</p>}
             {dueSoonCount > 0 && <p className="text-sm text-warning">{dueSoonCount} task{dueSoonCount !== 1 ? 's' : ''} due soon</p>}
@@ -134,13 +134,13 @@ export default function CleaningPage() {
 
       {/* Add task form (isManager only) */}
       {showAdd && isManager && (
-        <div className="bg-white rounded-xl border border-charcoal/10 p-5 flex flex-col gap-4">
+        <div className="bg-white rounded-2xl border-charcoal/10 p-5 flex flex-col gap-4">
           <SectionLabel>New Cleaning Task</SectionLabel>
           <input
             value={form.title}
             onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
             placeholder="Task title e.g. Deep clean walk-in cooler"
-            className="px-4 py-2.5 rounded-lg border border-charcoal/15 bg-cream/30 text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+            className="px-4 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
           />
           <div className="grid grid-cols-2 gap-3">
             <div>
@@ -215,7 +215,7 @@ export default function CleaningPage() {
       </div>
 
       {/* Task list */}
-      <div className="bg-white rounded-xl border border-charcoal/10 overflow-hidden">
+      <div className="bg-white rounded-2xl border-charcoal/10 overflow-hidden">
         <div className="flex flex-col divide-y divide-charcoal/6">
           {filtered.map((t) => {
             const cfg = STATUS_CONFIG[t.status]
@@ -289,7 +289,7 @@ export default function CleaningPage() {
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="Any notes about this cleaning task…"
                 rows={3}
-                className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 bg-cream/30 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+                className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm resize-none focus:outline-none focus:ring-2 focus:ring-charcoal/20"
               />
             </div>
             <div className="flex gap-2">

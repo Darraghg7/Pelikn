@@ -63,9 +63,9 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="min-h-dvh bg-cream flex flex-col items-center justify-center px-5 py-10 font-sans">
+    <div className="min-h-dvh bg-surface flex flex-col items-center justify-center px-5 py-10 font-sans">
       <div className="mb-8 text-center">
-        <h1 className="font-serif text-brand text-3xl tracking-tight">Create Your Venue</h1>
+        <h1 className="font-bold text-brand text-3xl tracking-tight">Create Your Venue</h1>
         <p className="text-xs text-charcoal/40 mt-1">Set up SafeServ for your business</p>
       </div>
 
@@ -113,7 +113,7 @@ export default function SignupPage() {
           </div>
         </div>
 
-        {error && <p className="text-red-500 text-xs">{error}</p>}
+        {error && <p className="text-danger text-xs">{error}</p>}
 
         <button type="submit" disabled={loading}
           className="w-full bg-charcoal text-cream py-3 rounded-xl text-sm font-semibold tracking-wide hover:bg-charcoal/85 transition-colors disabled:opacity-40">

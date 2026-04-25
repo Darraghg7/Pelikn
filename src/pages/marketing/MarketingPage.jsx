@@ -185,12 +185,12 @@ function FaqItem({ q, a }) {
 
 export default function MarketingPage() {
   return (
-    <div className="min-h-dvh bg-cream font-sans text-charcoal">
+    <div className="min-h-dvh bg-surface font-sans text-charcoal">
 
       {/* ── Nav ────────────────────────────────────────────────────────────── */}
       <nav className="sticky top-0 z-50 bg-cream/90 backdrop-blur-sm border-b border-charcoal/8">
         <div className="max-w-5xl mx-auto px-5 sm:px-8 h-14 flex items-center justify-between">
-          <span className="font-serif text-xl tracking-tight text-brand">SafeServ</span>
+          <span className="text-lg font-bold tracking-tight text-brand">SafeServ</span>
           <div className="flex items-center gap-2">
             <Link
               to="/login"
@@ -211,14 +211,14 @@ export default function MarketingPage() {
       {/* ── Hero ───────────────────────────────────────────────────────────── */}
       <section className="bg-brand text-cream">
         <div className="max-w-5xl mx-auto px-5 sm:px-8 py-20 sm:py-28 text-center">
-          <p className="font-serif text-3xl sm:text-4xl tracking-tight text-cream mb-2">SafeServ</p>
+          <p className="text-2xl font-bold sm:text-4xl tracking-tight text-cream mb-2">SafeServ</p>
           <p className="text-[11px] tracking-[0.3em] uppercase text-cream/50 mb-1">
             Food Safety, Simplified
           </p>
           <p className="text-[10px] tracking-[0.2em] uppercase text-cream/30 mb-8">
             Food Safety &amp; Operations
           </p>
-          <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl text-cream leading-tight mb-6">
+          <h1 className="text-3xl font-bold sm:text-5xl lg:text-6xl text-cream leading-tight mb-6">
             Ditch the clipboard.<br />Keep the compliance.
           </h1>
           <p className="text-cream/65 text-base sm:text-lg max-w-xl mx-auto leading-relaxed mb-10">
@@ -262,7 +262,7 @@ export default function MarketingPage() {
       {/* ── Who it's for ───────────────────────────────────────────────────── */}
       <section className="max-w-5xl mx-auto px-5 sm:px-8 py-16">
         <p className="text-[11px] tracking-widest uppercase text-charcoal/35 text-center mb-3">Built for</p>
-        <h2 className="font-serif text-3xl sm:text-4xl text-brand text-center mb-4">
+        <h2 className="text-2xl font-bold sm:text-4xl text-brand text-center mb-4">
           Built for every hospitality business
         </h2>
         <p className="text-charcoal/50 text-center max-w-lg mx-auto text-sm leading-relaxed mb-12">
@@ -271,13 +271,13 @@ export default function MarketingPage() {
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           {[
-            { emoji: '☕', label: 'Cafés & Coffee Shops' },
-            { emoji: '🍽️', label: 'Restaurants & Takeaways' },
-            { emoji: '🍺', label: 'Pubs & Bars' },
-            { emoji: '🏨', label: 'Hotels & Catering' },
-          ].map(({ emoji, label }) => (
+            { icon: <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8h1a4 4 0 010 8h-1"/><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>, label: 'Cafés & Coffee Shops' },
+            { icon: <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 002-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 00-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"/></svg>, label: 'Restaurants & Takeaways' },
+            { icon: <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 11H3a2 2 0 000 4h5v3H6v2h12v-2h-2v-3h5a2 2 0 000-4h-4z"/><path d="M9.5 9A2.5 2.5 0 0112 6.5V3"/><path d="M14.5 9A2.5 2.5 0 0012 6.5"/></svg>, label: 'Pubs & Bars' },
+            { icon: <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>, label: 'Hotels & Catering' },
+          ].map(({ icon, label }) => (
             <div key={label} className="bg-white rounded-2xl border border-charcoal/8 p-5 text-center hover:border-brand/20 transition-colors">
-              <div className="text-3xl mb-3">{emoji}</div>
+              <div className="flex justify-center mb-3 text-brand/40">{icon}</div>
               <p className="text-sm font-medium text-brand/70 leading-snug">{label}</p>
             </div>
           ))}
@@ -285,10 +285,10 @@ export default function MarketingPage() {
       </section>
 
       {/* ── Compliance Features ─────────────────────────────────────────────── */}
-      <section className="bg-parchment border-y border-charcoal/8">
+      <section className="bg-white border-y border-charcoal/8">
         <div className="max-w-5xl mx-auto px-5 sm:px-8 py-16">
           <p className="text-[11px] tracking-widest uppercase text-charcoal/35 text-center mb-3">Compliance tools</p>
-          <h2 className="font-serif text-3xl sm:text-4xl text-brand text-center mb-4">
+          <h2 className="text-2xl font-bold sm:text-4xl text-brand text-center mb-4">
             Everything the EHO expects to see
           </h2>
           <p className="text-charcoal/50 text-center max-w-lg mx-auto text-sm leading-relaxed mb-12">
@@ -315,7 +315,7 @@ export default function MarketingPage() {
           <p className="text-[11px] tracking-widest uppercase text-charcoal/35">Pro plan</p>
           <span className="text-[10px] tracking-widest uppercase font-semibold px-2 py-0.5 rounded border bg-accent/10 text-accent border-accent/25">Pro</span>
         </div>
-        <h2 className="font-serif text-3xl sm:text-4xl text-brand text-center mb-4">
+        <h2 className="text-2xl font-bold sm:text-4xl text-brand text-center mb-4">
           Run your team. Stay compliant.
         </h2>
         <p className="text-charcoal/50 text-center max-w-lg mx-auto text-sm leading-relaxed mb-12">
@@ -336,10 +336,10 @@ export default function MarketingPage() {
       </section>
 
       {/* ── Pricing ─────────────────────────────────────────────────────────── */}
-      <section id="pricing" className="bg-parchment border-y border-charcoal/8">
+      <section id="pricing" className="bg-white border-y border-charcoal/8">
         <div className="max-w-5xl mx-auto px-5 sm:px-8 py-16">
           <p className="text-[11px] tracking-widest uppercase text-charcoal/35 text-center mb-3">Pricing</p>
-          <h2 className="font-serif text-3xl sm:text-4xl text-brand text-center mb-4">
+          <h2 className="text-2xl font-bold sm:text-4xl text-brand text-center mb-4">
             Simple, honest pricing
           </h2>
           <p className="text-charcoal/50 text-center max-w-md mx-auto text-sm leading-relaxed mb-12">
@@ -353,7 +353,7 @@ export default function MarketingPage() {
               <div className="mb-5">
                 <p className="text-[11px] tracking-widest uppercase text-brand font-semibold mb-1">Starter</p>
                 <div className="flex items-baseline gap-1.5">
-                  <span className="font-serif text-4xl text-brand">{STARTER_PRICE}</span>
+                  <span className="text-3xl font-bold text-charcoal">{STARTER_PRICE}</span>
                   <span className="text-charcoal/40 text-sm">/month</span>
                 </div>
                 <p className="text-xs text-charcoal/40 mt-1">per venue</p>
@@ -374,7 +374,7 @@ export default function MarketingPage() {
                   'EHO audit-ready compliance reports',
                 ].map(f => (
                   <li key={f} className="flex items-start gap-2.5 text-xs text-charcoal/60">
-                    <span className="text-teal-500 mt-0.5 shrink-0"><IconCheck /></span>
+                    <span className="text-success mt-0.5 shrink-0"><IconCheck /></span>
                     {f}
                   </li>
                 ))}
@@ -400,7 +400,7 @@ export default function MarketingPage() {
               <div className="mb-5">
                 <p className="text-[11px] tracking-widest uppercase text-accent font-semibold mb-1">Pro</p>
                 <div className="flex items-baseline gap-1.5">
-                  <span className="font-serif text-4xl text-accent">{PRO_PRICE}</span>
+                  <span className="text-3xl font-bold text-accent">{PRO_PRICE}</span>
                   <span className="text-charcoal/40 text-sm">/month</span>
                 </div>
                 <p className="text-xs text-charcoal/40 mt-1">first venue · {EXTRA_VENUE_PRICE}/month each additional</p>
@@ -410,7 +410,7 @@ export default function MarketingPage() {
               </p>
 
               {/* Price ladder — computed from pricing constants */}
-              <div className="bg-white rounded-xl border border-charcoal/8 p-4 mb-6">
+              <div className="bg-white rounded-2xl border-charcoal/8 p-4 mb-6">
                 <p className="text-[10px] tracking-widest uppercase text-charcoal/30 mb-3">Price as you grow</p>
                 <div className="flex flex-col gap-1.5">
                   {[1, 2, 3, 5, 10].map(n => {
@@ -460,7 +460,7 @@ export default function MarketingPage() {
       {/* ── How to Install ──────────────────────────────────────────────────── */}
       <section className="max-w-5xl mx-auto px-5 sm:px-8 py-16">
         <p className="text-[11px] tracking-widest uppercase text-charcoal/35 text-center mb-3">No App Store needed</p>
-        <h2 className="font-serif text-3xl sm:text-4xl text-brand text-center mb-4">
+        <h2 className="text-2xl font-bold sm:text-4xl text-brand text-center mb-4">
           Up and running in 3 steps
         </h2>
         <p className="text-charcoal/50 text-center max-w-lg mx-auto text-sm leading-relaxed mb-12">
@@ -501,10 +501,10 @@ export default function MarketingPage() {
       </section>
 
       {/* ── FAQ ─────────────────────────────────────────────────────────────── */}
-      <section className="bg-parchment border-y border-charcoal/8">
+      <section className="bg-white border-y border-charcoal/8">
         <div className="max-w-2xl mx-auto px-5 sm:px-8 py-16">
           <p className="text-[11px] tracking-widest uppercase text-charcoal/35 text-center mb-3">Questions</p>
-          <h2 className="font-serif text-3xl sm:text-4xl text-brand text-center mb-10">
+          <h2 className="text-2xl font-bold sm:text-4xl text-brand text-center mb-10">
             Frequently asked
           </h2>
           <div className="bg-white rounded-2xl border border-charcoal/6 px-6">
@@ -516,7 +516,7 @@ export default function MarketingPage() {
       {/* ── Final CTA ───────────────────────────────────────────────────────── */}
       <section className="bg-brand text-cream">
         <div className="max-w-5xl mx-auto px-5 sm:px-8 py-20 text-center">
-          <h2 className="font-serif text-3xl sm:text-4xl text-cream mb-4">
+          <h2 className="text-2xl font-bold sm:text-4xl text-cream mb-4">
             Ready to ditch the paper logs?
           </h2>
           <p className="text-cream/50 max-w-md mx-auto text-sm leading-relaxed mb-8">
@@ -532,10 +532,10 @@ export default function MarketingPage() {
       </section>
 
       {/* ── Footer ──────────────────────────────────────────────────────────── */}
-      <footer className="border-t border-charcoal/8 bg-cream">
+      <footer className="border-t border-charcoal/8 bg-surface">
         <div className="max-w-5xl mx-auto px-5 sm:px-8 py-8 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-6">
-            <span className="font-serif text-lg text-brand">SafeServ</span>
+            <span className="text-base font-bold text-brand">SafeServ</span>
             <span className="text-charcoal/20 hidden sm:block">·</span>
             <a href="mailto:hello@safeserv.co.uk" className="text-xs text-charcoal/40 hover:text-charcoal transition-colors">
               hello@safeserv.co.uk

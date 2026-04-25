@@ -320,7 +320,7 @@ function CollapsibleSection({ label, badge, isOpen, onToggle, children }) {
           {label}
         </span>
         {badge > 0 && (
-          <span className="min-w-[18px] h-[18px] text-[10px] font-bold rounded-full flex items-center justify-center px-1 shrink-0 bg-amber-400/15 text-amber-400">
+          <span className="min-w-[18px] h-[18px] text-[10px] font-bold rounded-full flex items-center justify-center px-1 shrink-0 bg-warning/15 text-warning">
             {badge}
           </span>
         )}
@@ -378,7 +378,7 @@ function VenueSwitcher({ venues, currentSlug, onSelect }) {
               ].join(' ')}
             >
               <span className="truncate">{v.name}</span>
-              {v.slug === currentSlug && <span className="text-white/40 text-[10px]">✓</span>}
+              {v.slug === currentSlug && <span className="text-white/40"><svg className="w-3 h-3" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg></span>}
             </button>
           ))}
         </div>
@@ -489,7 +489,7 @@ export default function AppShell({ children }) {
   const complianceBadge = overdueCount
   const teamBadge = pendingSwaps
 
-  const bgClass = isManager ? 'bg-cream dark:bg-[#111111]' : 'bg-staffbg dark:bg-[#111111]'
+  const bgClass = 'bg-surface dark:bg-[#111111]'
   const maxW    = isManager ? 'max-w-[1280px]' : 'max-w-[860px]'
 
   return (
@@ -507,18 +507,18 @@ export default function AppShell({ children }) {
         aria-label="Sidebar navigation"
       >
         {/* Logo + venue name */}
-        <div className="px-5 pt-6 pb-5 border-b border-white/[0.07] shrink-0">
+        <div className="px-5 pt-5 pb-4 border-b border-white/[0.07] shrink-0">
           <div className="flex items-center gap-3">
             {logoUrl ? (
-              <img src={logoUrl} alt="Venue logo" className="h-9 w-9 rounded-lg object-contain bg-white/10 p-0.5 shrink-0" />
+              <img src={logoUrl} alt="Venue logo" className="h-11 w-11 rounded-full object-contain bg-white p-1 shrink-0" />
             ) : (
-              <div className="h-9 w-9 rounded-lg bg-white/10 flex items-center justify-center text-[15px] font-extrabold text-white/70 shrink-0">
+              <div className="h-11 w-11 rounded-full bg-white/15 flex items-center justify-center text-[17px] font-extrabold text-white shrink-0">
                 {(venueName || 'S')[0]}
               </div>
             )}
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
-                <span className="font-extrabold text-white text-lg leading-tight tracking-tight truncate">{venueName || 'SafeServ'}</span>
+                <span className="font-bold text-white text-[15px] leading-tight truncate">{venueName || 'SafeServ'}</span>
                 {allSwitchableVenues.length > 1 && (
                   <VenueSwitcher
                     venues={allSwitchableVenues}
@@ -527,13 +527,11 @@ export default function AppShell({ children }) {
                   />
                 )}
               </div>
+              <p className="text-[11px] text-white/30 mt-0.5">SafeServ</p>
             </div>
             {/* Bell lives here — top of sidebar, always visible */}
             <NotificationBell variant="dark" />
           </div>
-          <span className="mt-3 inline-flex items-center gap-1 bg-white/[0.05] border border-white/[0.05] text-white/25 text-[10px] tracking-[0.1em] uppercase font-semibold px-2.5 py-1 rounded-full">
-            Powered by SafeServ
-          </span>
         </div>
 
         {/* Nav */}
@@ -627,23 +625,20 @@ export default function AppShell({ children }) {
           )}
         </nav>
 
-        {/* Bottom: avatar + user name + signout */}
-        <div className="shrink-0 border-t border-white/[0.07] px-4 py-4 flex items-center gap-3">
-          {initials && (
-            <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-[12px] font-bold text-white/60 shrink-0">
-              {initials}
-            </div>
-          )}
-          <div className="flex-1 min-w-0">
-            {name && <p className="text-[13px] font-semibold text-white/70 truncate">{name}</p>}
-            <p className="text-[10.5px] text-white/30">{isManager ? 'Manager' : 'Staff'}</p>
+        {/* Bottom: user info + signout */}
+        <div className="shrink-0 border-t border-white/[0.07] px-5 py-4">
+          <p className="text-[10px] tracking-widest uppercase text-white/25 font-semibold mb-1">
+            Logged in as {isManager ? 'Manager' : 'Staff'}
+          </p>
+          <div className="flex items-center justify-between gap-2">
+            {name && <p className="text-[13px] font-semibold text-white truncate flex-1">{name}</p>}
+            <button
+              onClick={handleSignOut}
+              className="text-[11px] font-semibold text-white/25 border border-white/[0.08] rounded-lg px-3 py-1.5 hover:text-white/55 hover:border-white/20 hover:bg-white/[0.04] shrink-0"
+            >
+              Sign out
+            </button>
           </div>
-          <button
-            onClick={handleSignOut}
-            className="text-[11px] font-semibold text-white/25 border border-white/[0.08] rounded-lg px-3 py-1.5 hover:text-white/55 hover:border-white/20 hover:bg-white/[0.04]"
-          >
-            Sign out
-          </button>
         </div>
       </aside>
 
@@ -656,9 +651,9 @@ export default function AppShell({ children }) {
           role="banner"
           style={{ paddingTop: 'env(safe-area-inset-top)' }}
         >
-          <div className="px-3 h-12 flex items-center justify-between gap-1.5">
-            <div className="flex items-center gap-1.5 min-w-0 flex-1">
-              <span className="font-bold text-white text-base tracking-tight truncate max-w-[160px]">{venueName || 'SafeServ'}</span>
+          <div className="px-4 h-14 flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 min-w-0 flex-1">
+              <span className="font-bold text-white text-[15px] tracking-wider uppercase truncate max-w-[160px]">{venueName || 'SafeServ'}</span>
               {allSwitchableVenues.length > 1 && (
                 <VenueSwitcher
                   venues={allSwitchableVenues}
@@ -667,11 +662,11 @@ export default function AppShell({ children }) {
                 />
               )}
             </div>
-            <div className="flex items-center gap-1.5 shrink-0">
+            <div className="flex items-center gap-2 shrink-0">
               <NotificationBell />
               <button
                 onClick={handleSignOut}
-                className="text-[11px] tracking-wider uppercase text-cream/50 border border-cream/20 px-1.5 py-0.5 rounded hover:text-cream hover:border-cream/50 whitespace-nowrap"
+                className="text-[11px] font-semibold tracking-wider uppercase text-white border border-white/30 rounded-lg px-3 py-1.5 hover:bg-white/10 whitespace-nowrap transition-colors"
               >
                 Sign Out
               </button>

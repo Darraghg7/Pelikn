@@ -159,7 +159,7 @@ export default function OnboardingPage() {
   }
 
   return (
-    <div className="min-h-dvh bg-cream flex flex-col items-center px-5 py-8 font-sans">
+    <div className="min-h-dvh bg-surface flex flex-col items-center px-5 py-8 font-sans">
       {/* Progress bar */}
       <div className="w-full max-w-lg mb-8">
         <div className="flex justify-between mb-2">
@@ -181,7 +181,7 @@ export default function OnboardingPage() {
         {/* Step 0: Venue Type */}
         {step === 0 && (
           <div>
-            <h1 className="font-serif text-2xl text-charcoal mb-1">What kind of venue are you?</h1>
+            <h1 className="text-xl font-bold text-charcoal mb-1">What kind of venue are you?</h1>
             <p className="text-sm text-charcoal/50 mb-6">
               We'll set up the right modules for your business. You can change this anytime.
             </p>
@@ -209,14 +209,14 @@ export default function OnboardingPage() {
         {/* Step 1: Modules */}
         {step === 1 && (
           <div>
-            <h1 className="font-serif text-2xl text-charcoal mb-1">Choose your modules</h1>
+            <h1 className="text-xl font-bold text-charcoal mb-1">Choose your modules</h1>
             <p className="text-sm text-charcoal/50 mb-6">
               We've pre-selected modules based on your venue type. Toggle what you need.
             </p>
             {FEATURE_GROUPS.map(group => (
               <div key={group.id} className="mb-5">
                 <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-2">{group.label}</p>
-                <div className="bg-white rounded-xl border border-charcoal/10 divide-y divide-charcoal/6">
+                <div className="bg-white rounded-2xl border-charcoal/10 divide-y divide-charcoal/6">
                   {group.features.map(feature => {
                     const locked = PRO_ONLY_FEATURE_IDS.includes(feature.id) && !isPro
                     return (
@@ -248,13 +248,13 @@ export default function OnboardingPage() {
         {/* Step 2: Add Team */}
         {step === 2 && (
           <div>
-            <h1 className="font-serif text-2xl text-charcoal mb-1">Add your team</h1>
+            <h1 className="text-xl font-bold text-charcoal mb-1">Add your team</h1>
             <p className="text-sm text-charcoal/50 mb-6">
               Add a few staff members to get started. You can add more later in Settings.
             </p>
             <div className="flex flex-col gap-3">
               {staffEntries.map((entry, idx) => (
-                <div key={idx} className="bg-white rounded-xl border border-charcoal/10 p-4 flex gap-3 items-start">
+                <div key={idx} className="bg-white rounded-2xl border-charcoal/10 p-4 flex gap-3 items-start">
                   <div className="flex-1 grid grid-cols-2 gap-2">
                     <input
                       value={entry.name}
@@ -295,7 +295,7 @@ export default function OnboardingPage() {
         {step === 3 && (
           <div className="text-center py-8">
             <div className="text-5xl mb-4">&#9989;</div>
-            <h1 className="font-serif text-2xl text-charcoal mb-2">You're all set!</h1>
+            <h1 className="text-xl font-bold text-charcoal mb-2">You're all set!</h1>
             <p className="text-sm text-charcoal/50 mb-4 max-w-sm mx-auto">
               Your venue is configured and ready to go. You can adjust everything in Settings at any time.
             </p>
@@ -305,7 +305,7 @@ export default function OnboardingPage() {
                 <span className="text-sm font-medium text-brand">{selectedPreset.label}</span>
               </div>
             )}
-            <div className="text-left bg-white rounded-xl border border-charcoal/10 p-5 max-w-sm mx-auto">
+            <div className="text-left bg-white rounded-2xl border-charcoal/10 p-5 max-w-sm mx-auto">
               <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-3">Summary</p>
               <div className="flex flex-col gap-2 text-sm text-charcoal/60">
                 <p>{enabledFeatures.size} modules enabled</p>

@@ -39,16 +39,6 @@ function discrepancyStatus(actualMins, expectedMins, cleanupMins) {
   return 'significant'
 }
 
-/**
- * Returns required break minutes for a session, or 0 if no entitlement.
- * UK law: under-18 → 30min for >4.5h, adults → configurable for >6h.
- */
-function breakEntitlement(workedMinutes, isUnder18, breakDurationMins) {
-  if (isUnder18 && workedMinutes > 270) return 30
-  if (!isUnder18 && workedMinutes > 360) return breakDurationMins
-  return 0
-}
-
 // ── buildTimesheets ───────────────────────────────────────────────────────────
 
 function buildTimesheets(events, staffRates) {
@@ -194,7 +184,7 @@ function AddSessionModal({ open, onClose, staffList, initialStaffId, initialDate
           <select
             value={form.staffId}
             onChange={e => set('staffId', e.target.value)}
-            className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 bg-cream/30 text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+            className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
           >
             <option value="">Select staff…</option>
             {staffList.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
@@ -208,7 +198,7 @@ function AddSessionModal({ open, onClose, staffList, initialStaffId, initialDate
             type="date"
             value={form.date}
             onChange={e => set('date', e.target.value)}
-            className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 bg-cream/30 text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+            className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
           />
         </div>
 
@@ -220,7 +210,7 @@ function AddSessionModal({ open, onClose, staffList, initialStaffId, initialDate
               type="time"
               value={form.clockIn}
               onChange={e => set('clockIn', e.target.value)}
-              className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 bg-cream/30 text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+              className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
             />
           </div>
           <div>
@@ -229,7 +219,7 @@ function AddSessionModal({ open, onClose, staffList, initialStaffId, initialDate
               type="time"
               value={form.clockOut}
               onChange={e => set('clockOut', e.target.value)}
-              className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 bg-cream/30 text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+              className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
             />
           </div>
         </div>
@@ -254,7 +244,7 @@ function AddSessionModal({ open, onClose, staffList, initialStaffId, initialDate
                 type="time"
                 value={form.breakStart}
                 onChange={e => set('breakStart', e.target.value)}
-                className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 bg-cream/30 text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+                className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
               />
             </div>
             <div>
@@ -263,7 +253,7 @@ function AddSessionModal({ open, onClose, staffList, initialStaffId, initialDate
                 type="time"
                 value={form.breakEnd}
                 onChange={e => set('breakEnd', e.target.value)}
-                className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 bg-cream/30 text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+                className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
               />
             </div>
           </div>
@@ -330,7 +320,7 @@ function EditSessionModal({ open, onClose, session, venueId, onSaved }) {
               type="time"
               value={form.clockIn}
               onChange={e => set('clockIn', e.target.value)}
-              className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 bg-cream/30 text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+              className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
             />
           </div>
           <div>
@@ -339,7 +329,7 @@ function EditSessionModal({ open, onClose, session, venueId, onSaved }) {
               type="time"
               value={form.clockOut}
               onChange={e => set('clockOut', e.target.value)}
-              className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 bg-cream/30 text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+              className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
             />
           </div>
         </div>
@@ -393,7 +383,7 @@ const DrillDownPanel = memo(function DrillDownPanel({
   }
 
   return (
-    <div className="mx-4 mb-2 rounded-xl border border-charcoal/8 bg-cream/40 overflow-hidden">
+    <div className="mx-4 mb-2 rounded-2xl border border-charcoal/8 bg-white overflow-hidden">
       {activeDays.map((d, i) => {
         const dateStr   = format(d, 'yyyy-MM-dd')
         const dayData   = person.days[dateStr]
@@ -402,7 +392,8 @@ const DrillDownPanel = memo(function DrillDownPanel({
         const expected  = dayShifts.reduce((acc, sh) => {
           const [sh_h, sh_m] = sh.start_time.split(':').map(Number)
           const [eh, em]     = sh.end_time.split(':').map(Number)
-          return acc + (eh * 60 + em) - (sh_h * 60 + sh_m)
+          const rawMins = (eh * 60 + em) - (sh_h * 60 + sh_m)
+          return acc + rawMins - unpaidBreakMins(rawMins / 60, isUnder18, breakDurationMins)
         }, 0)
         const status = discrepancyStatus(actual, expected || undefined, cleanupMinutes)
 
@@ -415,8 +406,8 @@ const DrillDownPanel = memo(function DrillDownPanel({
 
             {/* Absent */}
             {status === 'absent' && (
-              <p className="text-xs text-red-500 font-medium">
-                ✗ Absent
+              <p className="text-xs text-danger font-medium">
+                <span className="inline-flex items-center gap-1"><svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Absent</span>
                 {dayShifts.length > 0 && (
                   <span className="text-charcoal/40 font-normal ml-1">
                     — scheduled {dayShifts.map(sh => `${sh.start_time.slice(0,5)}–${sh.end_time.slice(0,5)}`).join(', ')}
@@ -462,20 +453,6 @@ const DrillDownPanel = memo(function DrillDownPanel({
                     </>
                   )}
 
-                  {/* Break entitlement flag */}
-                  {sessionWorked !== null && (() => {
-                    const rawWorked = s.out ? (new Date(s.out) - new Date(s.in)) / 60000 : 0
-                    const entitled = breakEntitlement(rawWorked, isUnder18, breakDurationMins)
-                    if (entitled <= 0) return null
-                    const breakTaken = s.breaks.reduce((acc, b) =>
-                      (!b.start || !b.end) ? acc : acc + (new Date(b.end) - new Date(b.start)) / 60000, 0)
-                    if (breakTaken >= entitled) return null
-                    return (
-                      <span className="text-amber-600 text-[11px] font-medium bg-amber-50 px-1.5 py-0.5 rounded">
-                        ⚠ {breakTaken === 0 ? 'No break' : `${Math.round(breakTaken)}min break`} — {entitled}min entitled
-                      </span>
-                    )
-                  })()}
 
                   {adminMode && (
                     <>
@@ -508,9 +485,9 @@ const DrillDownPanel = memo(function DrillDownPanel({
                   {' '}({formatMinutes(expected)})
                 </span>
                 <span className="text-charcoal/30">·</span>
-                {status === 'ok'          && <span className="text-green-600 font-medium">✓ On time</span>}
-                {status === 'minor'       && <span className="text-amber-500 font-medium">⚠ {formatMinutes(Math.round(expected - actual))} short</span>}
-                {status === 'significant' && <span className="text-red-500   font-medium">✗ {formatMinutes(Math.round(expected - actual))} short</span>}
+                {status === 'ok'          && <span className="text-success font-medium inline-flex items-center gap-0.5"><svg className="w-3.5 h-3.5" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg> On time</span>}
+                {status === 'minor'       && <span className="text-warning font-medium inline-flex items-center gap-0.5"><svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> {formatMinutes(Math.round(expected - actual))} short</span>}
+                {status === 'significant' && <span className="text-danger font-medium inline-flex items-center gap-0.5"><svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> {formatMinutes(Math.round(expected - actual))} short</span>}
               </div>
             )}
 
@@ -625,12 +602,14 @@ export default function TimesheetPage() {
     for (const sh of shifts) {
       const [sh_h, sh_m] = sh.start_time.split(':').map(Number)
       const [eh, em]     = sh.end_time.split(':').map(Number)
-      const mins = (eh * 60 + em) - (sh_h * 60 + sh_m)
+      const rawMins = (eh * 60 + em) - (sh_h * 60 + sh_m)
+      const isU18   = sh.staff?.is_under_18 ?? false
+      const paid    = rawMins - unpaidBreakMins(rawMins / 60, isU18, breakDurationMins)
       if (!map[sh.staff_id]) map[sh.staff_id] = {}
-      map[sh.staff_id][sh.shift_date] = (map[sh.staff_id][sh.shift_date] ?? 0) + mins
+      map[sh.staff_id][sh.shift_date] = (map[sh.staff_id][sh.shift_date] ?? 0) + paid
     }
     return map
-  }, [shifts])
+  }, [shifts, breakDurationMins])
 
   // Under-18 lookup from shifts data
   const staffIsUnder18 = useMemo(() => {
@@ -799,7 +778,7 @@ export default function TimesheetPage() {
     <div className="flex flex-col gap-6">
 
       <div className="flex items-center justify-between">
-        <h1 className="font-serif text-3xl text-brand">Timesheets</h1>
+        <h1 className="text-2xl font-bold text-charcoal">Timesheets</h1>
         <div className="flex items-center gap-4">
           <button
             onClick={exportCsv}
@@ -817,7 +796,7 @@ export default function TimesheetPage() {
       </div>
 
       {/* ── Pay Period Summary ───────────────────────────────────────── */}
-      <div className="bg-white rounded-xl border border-charcoal/10 p-5">
+      <div className="bg-white rounded-2xl border-charcoal/10 p-5">
         <SectionLabel>Pay Period Summary</SectionLabel>
 
         <div className="flex flex-wrap gap-2 mb-4">
@@ -869,29 +848,29 @@ export default function TimesheetPage() {
             <div className="mb-4 pb-4 border-b border-charcoal/8 grid grid-cols-2 sm:grid-cols-4 gap-4">
               <div>
                 <p className="text-xs text-charcoal/40 mb-0.5">Actual hours · {timesheets.length} staff</p>
-                <p className="font-serif text-3xl text-charcoal">{formatMinutes(Math.round(totalMins))}</p>
+                <p className="text-2xl font-bold text-charcoal">{formatMinutes(Math.round(totalMins))}</p>
               </div>
               {periodScheduled.totalMins > 0 && (
                 <div>
                   <p className="text-xs text-charcoal/40 mb-0.5">Scheduled hours</p>
-                  <p className="font-serif text-3xl text-charcoal/60">{formatMinutes(Math.round(periodScheduled.totalMins))}</p>
+                  <p className="text-2xl font-bold text-charcoal/60">{formatMinutes(Math.round(periodScheduled.totalMins))}</p>
                 </div>
               )}
               {totalWage > 0 && (
                 <div>
                   <p className="text-xs text-charcoal/40 mb-0.5">Actual wage bill</p>
-                  <p className="font-serif text-3xl text-charcoal font-mono">{fmtGBP(totalWage)}</p>
+                  <p className="text-2xl font-bold text-charcoal font-mono">{fmtGBP(totalWage)}</p>
                 </div>
               )}
               {periodScheduled.totalCost > 0 && (
                 <div>
                   <p className="text-xs text-charcoal/40 mb-0.5">Scheduled cost</p>
-                  <p className="font-serif text-3xl text-charcoal/60 font-mono">{fmtGBP(periodScheduled.totalCost)}</p>
+                  <p className="text-2xl font-bold text-charcoal/60 font-mono">{fmtGBP(periodScheduled.totalCost)}</p>
                   {totalWage > 0 && (() => {
                     const diff = totalWage - periodScheduled.totalCost
                     if (Math.abs(diff) < 1) return null
                     return (
-                      <span className={`text-xs font-medium ${diff > 0 ? 'text-red-500' : 'text-green-600'}`}>
+                      <span className={`text-xs font-medium ${diff > 0 ? 'text-danger' : 'text-success'}`}>
                         {diff > 0 ? '+' : ''}{fmtGBP(diff)} {diff > 0 ? 'over' : 'under'}
                       </span>
                     )
@@ -939,13 +918,13 @@ export default function TimesheetPage() {
       </div>
 
       {/* ── Weekly Hours Grid ────────────────────────────────────────── */}
-      <div className={['bg-white rounded-xl border p-5 transition-colors', adminMode ? 'border-amber-300 ring-1 ring-amber-200' : 'border-charcoal/10'].join(' ')}>
+      <div className={['bg-white rounded-2xl p-5 transition-colors', adminMode ? 'border-warning/30 ring-1 ring-warning/15' : 'border-charcoal/10'].join(' ')}>
 
         <div className="flex items-center justify-between mb-1 flex-wrap gap-3">
           <div className="flex items-center gap-3">
             <SectionLabel>Hours by Day</SectionLabel>
             {adminMode && (
-              <span className="text-[10px] tracking-widest uppercase font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 border border-amber-200 -mt-3">
+              <span className="text-[10px] tracking-widest uppercase font-semibold px-2 py-0.5 rounded-full bg-warning/8 text-warning border border-warning/25 -mt-3">
                 Edit Mode
               </span>
             )}
@@ -972,7 +951,7 @@ export default function TimesheetPage() {
                 className="ml-2 text-[11px] tracking-widest uppercase text-charcoal/35 hover:text-charcoal border border-charcoal/15 hover:border-charcoal/30 px-2.5 py-1.5 rounded-lg transition-colors"
                 title="Edit sessions"
               >
-                ✏ Edit
+                <span className="inline-flex items-center gap-1"><svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg> Edit</span>
               </button>
             )}
             {adminMode && (
@@ -996,11 +975,10 @@ export default function TimesheetPage() {
 
         {/* Legend */}
         <div className="flex items-center gap-4 mb-4 text-[11px] text-charcoal/35 flex-wrap">
-          <span className="flex items-center gap-1"><span className="text-amber-500">~</span> Minor shortfall</span>
-          <span className="flex items-center gap-1"><span className="text-red-500 font-bold">✗</span> Absent / significant shortfall</span>
-          <span className="flex items-center gap-1"><span className="text-amber-600">⚠</span> Missing break</span>
+          <span className="flex items-center gap-1"><span className="text-warning">~</span> Minor shortfall</span>
+          <span className="flex items-center gap-1"><span className="text-danger font-bold"><svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span> Absent / significant shortfall</span>
           {!adminMode && <span className="italic">Click a name to drill down</span>}
-          {adminMode  && <span className="text-amber-600 font-medium">Click a name to expand · Edit or Remove sessions · + Add Session to insert new ones</span>}
+          {adminMode  && <span className="text-warning font-medium">Click a name to expand · Edit or Remove sessions · + Add Session to insert new ones</span>}
         </div>
 
         {gridLoading ? (
@@ -1065,17 +1043,6 @@ export default function TimesheetPage() {
                           const actual   = dayData?.minutes ?? 0
                           const expected = expectedMap[person.staffId]?.[dateStr]
                           const status   = discrepancyStatus(actual, expected, cleanupMinutes)
-                          // Break flag: check if any session that day was long enough to require a break but didn't get one
-                          const isU18 = staffIsUnder18[person.staffId] ?? false
-                          const dayNeedsBreakFlag = actual > 0 && dayData?.sessions?.some(s => {
-                            if (!s.in || !s.out) return false
-                            const worked = (new Date(s.out) - new Date(s.in)) / 60000
-                            const entitled = breakEntitlement(worked, isU18, breakDurationMins)
-                            if (entitled <= 0) return false
-                            const breakTaken = s.breaks.reduce((acc, b) =>
-                              (!b.start || !b.end) ? acc : acc + (new Date(b.end) - new Date(b.start)) / 60000, 0)
-                            return breakTaken < entitled
-                          })
 
                           return (
                             <td key={dateStr} className="py-3 px-2 text-center align-top">
@@ -1085,21 +1052,18 @@ export default function TimesheetPage() {
                                     {formatMinutes(Math.round(actual))}
                                   </span>
                                   {status === 'minor' && (
-                                    <span className="block text-[10px] text-amber-500 leading-tight whitespace-nowrap">
+                                    <span className="block text-[10px] text-warning leading-tight whitespace-nowrap">
                                       ~{formatMinutes(Math.round(expected - actual))} short
                                     </span>
                                   )}
                                   {status === 'significant' && (
-                                    <span className="block text-[10px] text-red-500 leading-tight whitespace-nowrap">
+                                    <span className="block text-[10px] text-danger leading-tight whitespace-nowrap">
                                       -{formatMinutes(Math.round(expected - actual))}
                                     </span>
                                   )}
-                                  {dayNeedsBreakFlag && (
-                                    <span className="block text-[10px] text-amber-600 leading-tight" title="No break taken">⚠ break</span>
-                                  )}
                                 </>
                               ) : status === 'absent' ? (
-                                <span className="text-red-500 font-bold text-sm">✗</span>
+                                <span className="text-danger font-bold"><svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
                               ) : (
                                 <span className="text-charcoal/15 text-sm">—</span>
                               )}
@@ -1170,7 +1134,7 @@ export default function TimesheetPage() {
                         <div className="flex flex-col items-end gap-0.5">
                           <span className="font-mono text-xs font-semibold text-charcoal">{fmtGBP(actualCost)}</span>
                           {gridScheduled.totalCost > 0 && Math.abs(diff) >= 1 && (
-                            <span className={`text-[10px] font-medium ${diff > 0 ? 'text-red-500' : 'text-green-600'}`}>
+                            <span className={`text-[10px] font-medium ${diff > 0 ? 'text-danger' : 'text-success'}`}>
                               {diff > 0 ? '+' : ''}{fmtGBP(diff)}
                             </span>
                           )}
