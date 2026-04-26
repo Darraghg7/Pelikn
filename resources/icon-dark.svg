@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- Background: dark forest green -->
+  <rect width="512" height="512" fill="#1E3A2F"/>
+
+  <!-- Mortar rim -->
+  <line
+    x1="82"  y1="272"
+    x2="322" y2="272"
+    stroke="#FFFFFF"
+    stroke-width="26"
+    stroke-linecap="round"
+  />
+
+  <!-- Mortar bowl -->
+  <path
+    d="M 110 272
+       C 103 316 101 364 202 368
+       C 303 364 301 316 294 272"
+    fill="none"
+    stroke="#FFFFFF"
+    stroke-width="26"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+
+  <!-- Pestle shaft + curl -->
+  <path
+    d="M 180 338
+       L 287 222
+       C 299 207 317 190 336 173
+       C 357 154 374 128 370 104
+       C 366 79  342 68  318 78
+       C 296 87  284 110 288 133
+       C 292 156 303 174 301 191"
+    fill="none"
+    stroke="#FFFFFF"
+    stroke-width="26"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+</svg>

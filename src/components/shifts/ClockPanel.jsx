@@ -10,6 +10,7 @@ import { useVenue } from '../../contexts/VenueContext'
 import { useToast } from '../ui/Toast'
 import LoadingSpinner from '../ui/LoadingSpinner'
 import { supabase } from '../../lib/supabase'
+import { sendPush } from '../../lib/sendPush'
 
 const STATUS_CONFIG = {
   clocked_out: { label: 'Not Clocked In', color: 'text-charcoal/50', dot: 'bg-charcoal/25' },
@@ -89,7 +90,7 @@ export default function ClockPanel({ staffId, hasShift = true }) {
       const today = format(now, 'yyyy-MM-dd')
       supabase
         .from('shifts')
-        .select('start_time, staff:staff_id(name)')
+        .select('start_time, end_time, staff:staff_id(name)')
         .eq('venue_id', venueId)
         .eq('staff_id', staffId)
         .eq('shift_date', today)
@@ -99,14 +100,39 @@ export default function ClockPanel({ staffId, hasShift = true }) {
           const shiftStart = new Date(today + 'T' + shift.start_time)
           const minsLate = Math.round((now - shiftStart) / 60000)
           if (minsLate > 5) {
-            supabase.functions.invoke('send-push', {
-              body: {
-                venueId,
-                title: 'Late Clock-In',
-                body:  `${shift.staff?.name ?? 'A staff member'} clocked in ${minsLate} min late`,
-                url:   '/timesheet',
-                roles: ['manager', 'owner'],
-              },
+            sendPush({
+              venueId,
+              title: 'Late Clock-In',
+              body:  `${shift.staff?.name ?? 'A staff member'} clocked in ${minsLate} min late`,
+              url:   '/timesheet',
+              roles: ['manager', 'owner'],
+            }).catch(() => {})
+          }
+        })
+    }
+
+    // If clocking out, check if leaving early vs scheduled shift end
+    if (eventType === 'clock_out' && !queued) {
+      const now = new Date()
+      const today = format(now, 'yyyy-MM-dd')
+      supabase
+        .from('shifts')
+        .select('end_time, staff:staff_id(name)')
+        .eq('venue_id', venueId)
+        .eq('staff_id', staffId)
+        .eq('shift_date', today)
+        .maybeSingle()
+        .then(({ data: shift }) => {
+          if (!shift) return
+          const shiftEnd = new Date(today + 'T' + shift.end_time)
+          const minsEarly = Math.round((shiftEnd - now) / 60000)
+          if (minsEarly > 15) {
+            sendPush({
+              venueId,
+              title: 'Early Clock-Out',
+              body:  `${shift.staff?.name ?? 'A staff member'} clocked out ${minsEarly} min early`,
+              url:   '/timesheet',
+              roles: ['manager', 'owner'],
             }).catch(() => {})
           }
         })

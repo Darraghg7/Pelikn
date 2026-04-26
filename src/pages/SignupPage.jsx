@@ -66,7 +66,7 @@ export default function SignupPage() {
     <div className="min-h-dvh bg-surface flex flex-col items-center justify-center px-5 py-10 font-sans">
       <div className="mb-8 text-center">
         <h1 className="font-bold text-brand text-3xl tracking-tight">Create Your Venue</h1>
-        <p className="text-xs text-charcoal/40 mt-1">Set up SafeServ for your business</p>
+        <p className="text-xs text-charcoal/40 mt-1">Set up Pelikn for your business</p>
       </div>
 
       <form onSubmit={handleSubmit} className="w-full max-w-sm bg-white rounded-2xl shadow-sm border border-charcoal/8 p-6 flex flex-col gap-5">

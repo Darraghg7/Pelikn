@@ -1,5 +1,5 @@
 /**
- * Canonical pricing constants for SafeServ.
+ * Canonical pricing constants for Pelikn.
  * Update here and it propagates everywhere — PlanGate, marketing page, signup, etc.
  */
 

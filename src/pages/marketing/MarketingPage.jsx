@@ -135,11 +135,11 @@ const PRO_FEATURES = [
 const FAQS = [
   {
     q: 'Is this on the App Store?',
-    a: 'SafeServ is a Progressive Web App (PWA) — no App Store needed. You install it directly from your browser, and it works offline too. We cover how to install it below.',
+    a: 'Pelikn is a Progressive Web App (PWA) — no App Store needed. You install it directly from your browser, and it works offline too. We cover how to install it below.',
   },
   {
     q: 'Does it work on iPad and Android?',
-    a: 'Yes. SafeServ works on any modern browser — iPhone, iPad, Android, or desktop. Install it to your home screen for the full app experience without visiting a browser each time.',
+    a: 'Yes. Pelikn works on any modern browser — iPhone, iPad, Android, or desktop. Install it to your home screen for the full app experience without visiting a browser each time.',
   },
   {
     q: 'What counts as "multi-venue"?',
@@ -190,7 +190,7 @@ export default function MarketingPage() {
       {/* ── Nav ────────────────────────────────────────────────────────────── */}
       <nav className="sticky top-0 z-50 bg-cream/90 backdrop-blur-sm border-b border-charcoal/8">
         <div className="max-w-5xl mx-auto px-5 sm:px-8 h-14 flex items-center justify-between">
-          <span className="text-lg font-bold tracking-tight text-brand">SafeServ</span>
+          <span className="text-lg font-bold tracking-tight text-brand">Pelikn</span>
           <div className="flex items-center gap-2">
             <Link
               to="/login"
@@ -211,7 +211,7 @@ export default function MarketingPage() {
       {/* ── Hero ───────────────────────────────────────────────────────────── */}
       <section className="bg-brand text-cream">
         <div className="max-w-5xl mx-auto px-5 sm:px-8 py-20 sm:py-28 text-center">
-          <p className="text-2xl font-bold sm:text-4xl tracking-tight text-cream mb-2">SafeServ</p>
+          <p className="text-2xl font-bold sm:text-4xl tracking-tight text-cream mb-2">Pelikn</p>
           <p className="text-[11px] tracking-[0.3em] uppercase text-cream/50 mb-1">
             Food Safety, Simplified
           </p>
@@ -222,7 +222,7 @@ export default function MarketingPage() {
             Ditch the clipboard.<br />Keep the compliance.
           </h1>
           <p className="text-cream/65 text-base sm:text-lg max-w-xl mx-auto leading-relaxed mb-10">
-            SafeServ replaces paper log books, rota spreadsheets and WhatsApp chaos with one affordable app built for independent hospitality. Stay EHO-ready without the admin.
+            Pelikn replaces paper log books, rota spreadsheets and WhatsApp chaos with one affordable app built for independent hospitality. Stay EHO-ready without the admin.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
             <Link
@@ -266,7 +266,7 @@ export default function MarketingPage() {
           Built for every hospitality business
         </h2>
         <p className="text-charcoal/50 text-center max-w-lg mx-auto text-sm leading-relaxed mb-12">
-          Most compliance tools are built for big chains with big budgets. SafeServ is built for independent operators — easy to set up, simple enough for every member of staff, and priced so it actually makes sense.
+          Most compliance tools are built for big chains with big budgets. Pelikn is built for independent operators — easy to set up, simple enough for every member of staff, and priced so it actually makes sense.
         </p>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -464,7 +464,7 @@ export default function MarketingPage() {
           Up and running in 3 steps
         </h2>
         <p className="text-charcoal/50 text-center max-w-lg mx-auto text-sm leading-relaxed mb-12">
-          SafeServ is a Progressive Web App. No download required — it installs directly from your browser and works just like a native app, even offline.
+          Pelikn is a Progressive Web App. No download required — it installs directly from your browser and works just like a native app, even offline.
         </p>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-3xl mx-auto">
@@ -485,7 +485,7 @@ export default function MarketingPage() {
               step: '3',
               icon: <IconDownload />,
               title: 'Open like any app',
-              desc: 'SafeServ appears on your home screen. Tap it to open — no browser bar, no App Store.',
+              desc: 'Pelikn appears on your home screen. Tap it to open — no browser bar, no App Store.',
             },
           ].map(({ step, icon, title, desc }) => (
             <div key={step} className="text-center">
@@ -535,7 +535,7 @@ export default function MarketingPage() {
       <footer className="border-t border-charcoal/8 bg-surface">
         <div className="max-w-5xl mx-auto px-5 sm:px-8 py-8 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-6">
-            <span className="text-base font-bold text-brand">SafeServ</span>
+            <span className="text-base font-bold text-brand">Pelikn</span>
             <span className="text-charcoal/20 hidden sm:block">·</span>
             <a href="mailto:hello@safeserv.co.uk" className="text-xs text-charcoal/40 hover:text-charcoal transition-colors">
               hello@safeserv.co.uk
@@ -555,7 +555,7 @@ export default function MarketingPage() {
         </div>
         <div className="border-t border-charcoal/5 py-3 text-center">
           <p className="text-[11px] text-charcoal/25">
-            © {new Date().getFullYear()} SafeServ · Registered with ICO · UK GDPR compliant
+            © {new Date().getFullYear()} Pelikn · Registered with ICO · UK GDPR compliant
           </p>
         </div>
       </footer>

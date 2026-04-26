@@ -62,7 +62,7 @@ export default function CleaningExportModal({ open, onClose }) {
     }
 
     buildPdfReport({
-      title: 'SafeServ',
+      title: 'Pelikn',
       subtitle: 'Cleaning Records Report',
       periodLabel: `${dateFrom} – ${dateTo}`,
       columns: ['Task', 'Frequency', 'Role', 'Completed By', 'Date & Time', 'Notes'],

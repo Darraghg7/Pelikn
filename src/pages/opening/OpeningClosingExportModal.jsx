@@ -51,7 +51,7 @@ export default function OpeningClosingExportModal({ open, onClose }) {
       : [['No checks completed in this period', '', '', '', '', '']]
 
     buildPdfReport({
-      title: 'SafeServ',
+      title: 'Pelikn',
       subtitle: 'Opening & Closing Checks Report',
       periodLabel: `${dateFrom} – ${dateTo}`,
       columns: ['Date', 'Check', 'Type', 'Completed By', 'Time', 'Notes'],

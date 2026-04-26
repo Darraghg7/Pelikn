@@ -68,7 +68,7 @@ export default function AllergenRegistryPage() {
         <div class="sub">Allergen Information</div>
         <div class="qr"><img src="${qrDataUrl}" width="180" height="180" /></div>
         <div class="cta"><strong>Scan to view allergens</strong>Updated in real-time. Ask staff if you have any dietary requirements.</div>
-        <div class="badge">Powered by SafeServ</div>
+        <div class="badge">Powered by Pelikn</div>
       </div>
       <script>window.onload=()=>{window.print()}<\/script>
       </body></html>`)

@@ -1,6 +1,6 @@
 {
   "appId": "app.safeserv",
-  "appName": "SafeServ",
+  "appName": "Pelikn",
   "webDir": "dist",
   "bundledWebRuntime": false,
   "server": {

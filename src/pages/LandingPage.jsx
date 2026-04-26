@@ -145,7 +145,7 @@ export default function LandingPage() {
         {/* Branding */}
         <div className="flex-1 flex flex-col items-center justify-center px-8 text-center">
           <AppIcon size={36} />
-          <h1 className="font-bold text-white text-4xl tracking-tight mt-6">SafeServ</h1>
+          <h1 className="font-bold text-white text-4xl tracking-tight mt-6">Pelikn</h1>
           <p className="text-white/50 tracking-widest uppercase text-xs mt-3">
             Food Safety, Simplified
           </p>
@@ -193,7 +193,7 @@ export default function LandingPage() {
               bgClass="bg-brand/10"
               strokeColor="white"
             />
-            <h1 className="font-bold text-brand text-3xl tracking-tight mt-4">SafeServ</h1>
+            <h1 className="font-bold text-brand text-3xl tracking-tight mt-4">Pelikn</h1>
             <p className="text-xs tracking-widest uppercase text-charcoal/40 mt-1.5">
               Food Safety, Simplified
             </p>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { format, formatDistanceToNow } from 'date-fns'
 import { supabase } from '../../lib/supabase'
+import { sendPush } from '../../lib/sendPush'
 import { useVenue } from '../../contexts/VenueContext'
 import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../../components/ui/Toast'
@@ -80,6 +81,17 @@ export default function CorrectiveActionsPage() {
     setSaving(false)
     if (error) { toast(error.message, 'error'); return }
     toast('Corrective action logged')
+
+    // Notify managers of the new corrective action
+    const catLabel = CATEGORIES.find(c => c.value === form.category)?.label ?? form.category
+    sendPush({
+      venueId,
+      title: 'Corrective Action Logged',
+      body: `${catLabel}: ${form.title.trim()}`,
+      url: '/corrective',
+      roles: ['manager', 'owner'],
+    }).catch(() => {})
+
     setForm(EMPTY_FORM)
     setShowForm(false)
     reload()

@@ -97,7 +97,7 @@ export function VenueProvider({ children }) {
       <div className="min-h-dvh bg-surface flex flex-col items-center justify-center px-5 font-sans">
         <h1 className="font-bold text-charcoal text-3xl mb-2">Venue not found</h1>
         <p className="text-charcoal/50 text-sm mb-6">The venue "{venueSlug}" doesn't exist.</p>
-        <a href="/" className="text-sm text-accent hover:underline">Go to SafeServ home</a>
+        <a href="/" className="text-sm text-accent hover:underline">Go to Pelikn home</a>
       </div>
     )
   }

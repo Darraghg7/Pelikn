@@ -741,7 +741,7 @@ export default function TimesheetPage() {
     })
     pdfRows.push(['TOTAL', `${(totalMins / 60).toFixed(2)} hrs`, '', totalWage > 0 ? `£${totalWage.toFixed(2)}` : '—'])
     buildPdfReport({
-      title: 'SafeServ',
+      title: 'Pelikn',
       subtitle: 'Timesheet Report',
       periodLabel,
       columns: ['Staff Member', 'Hours Worked', 'Hourly Rate', 'Est. Pay'],

@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- Background: white -->
+  <rect width="512" height="512" fill="#FFFFFF"/>
+
+  <!--
+    Pelikn — Mortar & Pestle icon
+    Line-art style, continuous stroke, rounded caps & joins.
+
+    Mortar: flat rim line extending wider than the bowl,
+            rounded U-bowl below.
+    Pestle: diagonal shaft rising from inside the bowl
+            through the rim, terminating in a large
+            backward-C spiral curl at the upper-right.
+  -->
+
+  <!-- Mortar rim: flat horizontal line, wider than the bowl -->
+  <line
+    x1="82"  y1="272"
+    x2="322" y2="272"
+    stroke="#1E3A2F"
+    stroke-width="26"
+    stroke-linecap="round"
+  />
+
+  <!-- Mortar bowl: smooth U-arc from rim to rounded bottom and back -->
+  <path
+    d="M 110 272
+       C 103 316 101 364 202 368
+       C 303 364 301 316 294 272"
+    fill="none"
+    stroke="#1E3A2F"
+    stroke-width="26"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+
+  <!--
+    Pestle:
+      - Diagonal shaft from inside the bowl (lower-left)
+        rising to upper-right, crossing the rim line
+      - At the shaft tip the line continues its angle
+        then sweeps into a large clockwise backward-C curl:
+        goes right → arcs upward → arcs left over the top
+        → descends on the left side of the curl,
+        finishing with the open end pointing back
+        toward the shaft (lower-left gap)
+  -->
+  <path
+    d="M 180 338
+       L 287 222
+       C 299 207 317 190 336 173
+       C 357 154 374 128 370 104
+       C 366 79  342 68  318 78
+       C 296 87  284 110 288 133
+       C 292 156 303 174 301 191"
+    fill="none"
+    stroke="#1E3A2F"
+    stroke-width="26"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+</svg>

@@ -63,7 +63,7 @@ export async function exportTempLogs(venueId, days = 90) {
   })
 
   buildPdfReport({
-    title: 'SafeServ',
+    title: 'Pelikn',
     subtitle: 'Temperature Log Report',
     periodLabel: `Last ${days} days`,
     columns: ['Date', 'Time', 'AM/PM', 'Fridge', 'Temp', 'Status', 'Reason', 'Recorded By', 'Notes'],
@@ -105,7 +105,7 @@ export async function exportCleaningRecords(venueId, days = 90) {
   ])
 
   buildPdfReport({
-    title: 'SafeServ',
+    title: 'Pelikn',
     subtitle: 'Cleaning Records Report',
     periodLabel: `Last ${days} days`,
     columns: ['Date', 'Time', 'Task', 'Frequency', 'Completed By', 'Notes'],
@@ -142,7 +142,7 @@ export async function exportDeliveryChecks(venueId, days = 90) {
 
   // Colour-code columns 5-8 (Temp, Packaging, Use-By, Overall)
   buildPdfReport({
-    title: 'SafeServ',
+    title: 'Pelikn',
     subtitle: 'Delivery Checks Report',
     periodLabel: `Last ${days} days`,
     columns: ['Date', 'Time', 'Supplier', 'Items', 'Temp', 'Temp ✓', 'Pack ✓', 'Use-By ✓', 'Overall', 'Checked By', 'Notes'],
@@ -180,7 +180,7 @@ export async function exportCorrectiveActions(venueId, days = 90) {
   ])
 
   buildPdfReport({
-    title: 'SafeServ',
+    title: 'Pelikn',
     subtitle: 'Corrective Actions Report',
     periodLabel: `Last ${days} days`,
     columns: ['Date', 'Title', 'Category', 'Severity', 'Status', 'Description', 'Action Taken', 'Reported By', 'Resolved By', 'Resolved'],
@@ -235,7 +235,7 @@ export async function exportProbeCalibrations(venueId, days = 90) {
   ])
 
   buildPdfReport({
-    title: 'SafeServ',
+    title: 'Pelikn',
     subtitle: 'Probe Calibration Report',
     periodLabel: `Last ${days} days`,
     columns: ['Date', 'Probe', 'Method', 'Expected', 'Actual', 'Tolerance', 'Result', 'Calibrated By', 'Notes'],
@@ -269,7 +269,7 @@ export async function exportTrainingRecords(venueId) {
   })
 
   buildPdfReport({
-    title: 'SafeServ',
+    title: 'Pelikn',
     subtitle: 'Staff Training Records',
     periodLabel: `All records as of ${format(now, 'dd/MM/yyyy')}`,
     columns: ['Staff', 'Certificate', 'Category', 'Issued', 'Expiry', 'Status', 'Notes'],
@@ -660,7 +660,7 @@ export async function exportEHOReport(venueId, venueName = '', days = 90) {
     doc.setPage(i)
     doc.setFontSize(7); doc.setTextColor(150)
     doc.text(
-      `${venueName || 'SafeServ'} · EHO Compliance Report · Generated ${format(now, 'dd/MM/yyyy HH:mm')} · Page ${i} of ${pageCount}`,
+      `${venueName || 'Pelikn'} · EHO Compliance Report · Generated ${format(now, 'dd/MM/yyyy HH:mm')} · Page ${i} of ${pageCount}`,
       pageW / 2,
       doc.internal.pageSize.getHeight() - 8,
       { align: 'center' }

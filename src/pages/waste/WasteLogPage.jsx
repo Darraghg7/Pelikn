@@ -93,7 +93,7 @@ export default function WasteLogPage() {
     if (error) { toast(error.message, 'error'); return }
     if (!data?.length) { toast('No waste records in this period', 'error'); return }
     buildPdfReport({
-      title: 'SafeServ',
+      title: 'Pelikn',
       subtitle: 'Waste Log Report',
       periodLabel: `${exportFrom} – ${exportTo}`,
       columns: ['Date & Time', 'Item', 'Qty', 'Unit', 'Reason', 'Logged By', 'Notes'],

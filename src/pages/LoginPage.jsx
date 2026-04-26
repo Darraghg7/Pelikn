@@ -157,7 +157,7 @@ export default function LoginPage() {
 
       {/* Logo */}
       <div className="mb-10 text-center">
-        <h1 className="font-bold text-brand text-4xl tracking-tight">SafeServ</h1>
+        <h1 className="font-bold text-brand text-4xl tracking-tight">Pelikn</h1>
         {venueName && (
           <p className="text-sm font-medium text-charcoal/60 mt-1">{venueName}</p>
         )}

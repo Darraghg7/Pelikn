@@ -159,7 +159,7 @@ export default function AllergenPublicPage() {
           <p className="text-[11px] text-charcoal/30">
             Allergen information is updated regularly. Always inform staff of any allergies before ordering.
           </p>
-          <p className="text-[11px] text-charcoal/20 mt-1">Powered by SafeServ</p>
+          <p className="text-[11px] text-charcoal/20 mt-1">Powered by Pelikn</p>
         </div>
       </div>
     </div>

@@ -7,7 +7,7 @@ export const isConfigured = !!(supabaseUrl && supabaseAnonKey)
 
 if (!isConfigured) {
   console.warn(
-    '[SafeServ] Missing Supabase environment variables.\n' +
+    '[Pelikn] Missing Supabase environment variables.\n' +
     'Copy .env.example to .env, fill in your project URL and anon key, then restart the dev server.'
   )
 }

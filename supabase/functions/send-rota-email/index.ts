@@ -105,7 +105,7 @@ serve(async (req) => {
         <body style="font-family:'DM Sans',Arial,sans-serif;background:#f5f0e8;padding:24px;margin:0;">
           <div style="max-width:540px;margin:0 auto;background:#fff;border-radius:16px;overflow:hidden;">
             <div style="background:#1a1a18;padding:24px 32px;">
-              <h1 style="color:#f5f0e8;margin:0;font-size:22px;">SafeServ</h1>
+              <h1 style="color:#f5f0e8;margin:0;font-size:22px;">Pelikn</h1>
               <p style="color:rgba(245,240,232,0.6);margin:4px 0 0;font-size:14px;">Your rota for the week of ${weekLabel}</p>
             </div>
             <div style="padding:24px 32px;">
@@ -123,7 +123,7 @@ serve(async (req) => {
               </table>
             </div>
             <div style="padding:16px 32px;background:#f5f0e8;">
-              <p style="color:#999;font-size:12px;margin:0;">Sent via SafeServ. Please do not reply to this email.</p>
+              <p style="color:#999;font-size:12px;margin:0;">Sent via Pelikn. Please do not reply to this email.</p>
             </div>
           </div>
         </body>

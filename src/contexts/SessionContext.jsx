@@ -288,6 +288,12 @@ export function SessionProvider({ children }) {
     setLinkedVenues(venues)
 
     setSession(newSession)
+
+    // Register for native iOS push notifications (no-op on web)
+    import('../hooks/useNativePush').then(({ registerNativePush }) => {
+      registerNativePush(newSession.staffId, newSession.venueId)
+    }).catch(() => {})
+
     return { error: null, linkedVenues: venues }
   }, [])
 

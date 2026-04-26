@@ -45,7 +45,7 @@ export default function PlanGate({ feature, children }) {
 
       <h2 className="text-xl font-bold text-charcoal mb-2">{label}</h2>
       <p className="text-sm text-charcoal/50 max-w-sm leading-relaxed mb-8">
-        This feature is included in SafeServ Pro. Upgrade to unlock rota management,
+        This feature is included in Pelikn Pro. Upgrade to unlock rota management,
         timesheets, training records, HACCP tools, and more.
       </p>
 

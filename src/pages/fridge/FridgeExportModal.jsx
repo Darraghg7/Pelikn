@@ -41,7 +41,7 @@ export default function FridgeExportModal({ open, onClose }) {
     // Header
     doc.setFont('helvetica', 'bold')
     doc.setFontSize(18)
-    doc.text('SafeServ', 14, 18)
+    doc.text('Pelikn', 14, 18)
     doc.setFont('helvetica', 'normal')
     doc.setFontSize(10)
     doc.setTextColor(100)

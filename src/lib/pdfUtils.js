@@ -6,7 +6,7 @@ import { format } from 'date-fns'
  * buildPdfReport — shared PDF generation utility
  *
  * @param {object} opts
- * @param {string} opts.title        — bold title e.g. "SafeServ"
+ * @param {string} opts.title        — bold title e.g. "Pelikn"
  * @param {string} opts.subtitle     — report name e.g. "Cleaning Records Report"
  * @param {string} [opts.venueLabel] — optional venue name shown in header
  * @param {string} opts.periodLabel  — e.g. "01/01/2025 – 31/01/2025"

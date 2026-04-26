@@ -4,6 +4,7 @@ import {
   isSameDay, isWithinInterval, isBefore, parseISO,
 } from 'date-fns'
 import { supabase } from '../../lib/supabase'
+import { sendPush } from '../../lib/sendPush'
 import { useVenue } from '../../contexts/VenueContext'
 import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../../components/ui/Toast'
@@ -166,14 +167,12 @@ export default function TimeOffPage() {
     // Fire-and-forget: push notification to manager
     const staffName = session?.staffName ?? 'A staff member'
     const dateRange = `${form.startDate} – ${form.endDate}`
-    supabase.functions.invoke('send-push', {
-      body: {
-        venueId,
-        title: 'New Leave Request',
-        body:  `${staffName} requested time off: ${dateRange}`,
-        url:   '/timeoff',
-        roles: ['manager', 'owner'],
-      },
+    sendPush({
+      venueId,
+      title: 'New Leave Request',
+      body:  `${staffName} requested time off: ${dateRange}`,
+      url:   '/timeoff',
+      roles: ['manager', 'owner'],
     }).catch(() => {})
 
     setForm({ startDate: '', endDate: '', reason: '' })
@@ -197,14 +196,12 @@ export default function TimeOffPage() {
     toast('Time off approved')
     // Notify the staff member
     if (req?.staff_id) {
-      supabase.functions.invoke('send-push', {
-        body: {
-          venueId,
-          title: 'Time Off Approved',
-          body:  `Your time off request (${req.start_date} – ${req.end_date}) has been approved.`,
-          url:   '/time-off',
-          staffIds: [req.staff_id],
-        },
+      sendPush({
+        venueId,
+        title: 'Time Off Approved',
+        body:  `Your time off request (${req.start_date} – ${req.end_date}) has been approved.`,
+        url:   '/time-off',
+        staffIds: [req.staff_id],
       }).catch(() => {})
     }
     reload()
@@ -226,14 +223,12 @@ export default function TimeOffPage() {
     toast('Time off rejected')
     // Notify the staff member
     if (req?.staff_id) {
-      supabase.functions.invoke('send-push', {
-        body: {
-          venueId,
-          title: 'Time Off Rejected',
-          body:  `Your time off request (${req.start_date} – ${req.end_date}) was not approved.${managerNote.trim() ? ' Note: ' + managerNote.trim() : ''}`,
-          url:   '/time-off',
-          staffIds: [req.staff_id],
-        },
+      sendPush({
+        venueId,
+        title: 'Time Off Rejected',
+        body:  `Your time off request (${req.start_date} – ${req.end_date}) was not approved.${managerNote.trim() ? ' Note: ' + managerNote.trim() : ''}`,
+        url:   '/time-off',
+        staffIds: [req.staff_id],
       }).catch(() => {})
     }
     reload()

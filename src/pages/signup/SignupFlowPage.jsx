@@ -574,8 +574,8 @@ function StepSuccess({ venueName, venueSlug, plan, allVenues = [] }) {
         <h1 className="text-2xl font-bold text-charcoal mb-2">You're all set!</h1>
         <p className="text-sm text-charcoal/50 leading-relaxed">
           {allVenues.length > 1
-            ? `${allVenues.length} venues are ready on SafeServ.`
-            : <><strong className="text-charcoal">{venueName}</strong> is ready on SafeServ.</>
+            ? `${allVenues.length} venues are ready on Pelikn.`
+            : <><strong className="text-charcoal">{venueName}</strong> is ready on Pelikn.</>
           }
           {' '}Your 7-day free trial has started — no payment needed yet.
         </p>
@@ -764,7 +764,7 @@ export default function SignupFlowPage() {
       <div className="border-b border-charcoal/8 bg-white">
         <div className="max-w-5xl mx-auto px-5 sm:px-8 h-14 flex items-center justify-between">
           <Link to="/" className="font-bold text-brand text-lg tracking-tight hover:opacity-80 transition-opacity">
-            SafeServ
+            Pelikn
           </Link>
           <div className="flex items-center gap-1.5 text-[11px] text-charcoal/35">
             <IconLock />

@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { format } from 'date-fns'
 import { supabase } from '../../lib/supabase'
+import { sendPush } from '../../lib/sendPush'
 import { useVenue } from '../../contexts/VenueContext'
 import { useFridges } from '../../hooks/useFridgeLogs'
 import { useSession } from '../../contexts/SessionContext'
@@ -91,6 +92,18 @@ export default function FridgeLogFormPage() {
     setSubmitting(false)
     if (error) { toast(error.message, 'error'); return }
     toast(isPastEntry ? 'Past reading logged ✓' : 'Temperature logged ✓')
+
+    // Push managers if temperature is out of range (and not a past/backdated entry)
+    if (outOfRange && !isPastEntry) {
+      sendPush({
+        venueId,
+        title: 'Temperature Alert',
+        body: `${selectedFridge?.name ?? 'Fridge'} at ${parseFloat(temp)}°C — outside safe range (${selectedFridge?.min_temp}–${selectedFridge?.max_temp}°C)`,
+        url: '/fridge',
+        roles: ['manager', 'owner'],
+      }).catch(() => {})
+    }
+
     navigate(`/v/${venueSlug}/fridge`)
   }
 

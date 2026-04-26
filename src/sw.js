@@ -49,7 +49,7 @@ registerRoute(
 // ── Push notifications ────────────────────────────────────────────────────
 
 self.addEventListener('push', event => {
-  let data = { title: 'SafeServ', body: 'You have a new alert', url: '/dashboard' }
+  let data = { title: 'Pelikn', body: 'You have a new alert', url: '/dashboard' }
   try {
     if (event.data) data = { ...data, ...event.data.json() }
   } catch (e) {

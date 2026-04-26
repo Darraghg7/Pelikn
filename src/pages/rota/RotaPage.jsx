@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { format, addWeeks, eachDayOfInterval, parseISO } from 'date-fns'
 import { supabase } from '../../lib/supabase'
+import { sendPush } from '../../lib/sendPush'
 import { useVenue } from '../../contexts/VenueContext'
 import { useShifts, useStaffList, shiftDurationHours, paidShiftHours, unpaidBreakMins } from '../../hooks/useShifts'
 import { useCrossVenueShifts } from '../../hooks/useCrossVenueShifts'
@@ -244,14 +245,12 @@ export default function RotaPage() {
     // 2. Push notification to all staff on this week's rota (fire-and-forget, not blocking)
     const staffIds = [...new Set(shifts.map(s => s.staff_id).filter(Boolean))]
     if (staffIds.length) {
-      supabase.functions.invoke('send-push', {
-        body: {
-          venueId,
-          title: 'Rota Published',
-          body: `Your rota for the week of ${weekStartStr} is now available.`,
-          url: '/rota',
-          staffIds,
-        },
+      sendPush({
+        venueId,
+        title: 'Rota Published',
+        body: `Your rota for the week of ${weekStartStr} is now available.`,
+        url: '/rota',
+        staffIds,
       }).catch(() => {})
     }
 
@@ -277,14 +276,12 @@ export default function RotaPage() {
     reloadSwaps()
 
     // Push notification to managers
-    supabase.functions.invoke('send-push', {
-      body: {
-        venueId,
-        title: 'Shift Swap Request',
-        body:  `${session?.staffName ?? 'A staff member'} has requested a shift swap`,
-        url:   '/rota',
-        roles: ['manager', 'owner'],
-      },
+    sendPush({
+      venueId,
+      title: 'Shift Swap Request',
+      body:  `${session?.staffName ?? 'A staff member'} has requested a shift swap`,
+      url:   '/rota',
+      roles: ['manager', 'owner'],
     }).catch(() => {})
   }
 
@@ -306,14 +303,12 @@ export default function RotaPage() {
     // Notify both staff involved
     const staffIds = [swap.requester_id, swap.target_staff_id].filter(Boolean)
     if (staffIds.length) {
-      supabase.functions.invoke('send-push', {
-        body: {
-          venueId,
-          title: 'Shift Swap Approved',
-          body:  'Your shift swap request has been approved. Check the rota for updates.',
-          url:   '/rota',
-          staffIds,
-        },
+      sendPush({
+        venueId,
+        title: 'Shift Swap Approved',
+        body:  'Your shift swap request has been approved. Check the rota for updates.',
+        url:   '/rota',
+        staffIds,
       }).catch(() => {})
     }
     reloadSwaps()
@@ -336,14 +331,12 @@ export default function RotaPage() {
     toast('Swap request rejected')
     // Notify requester
     if (swap.requester_id) {
-      supabase.functions.invoke('send-push', {
-        body: {
-          venueId,
-          title: 'Shift Swap Rejected',
-          body:  `Your shift swap request was not approved.${rejectNote[swap.id]?.trim() ? ' Note: ' + rejectNote[swap.id].trim() : ''}`,
-          url:   '/rota',
-          staffIds: [swap.requester_id],
-        },
+      sendPush({
+        venueId,
+        title: 'Shift Swap Rejected',
+        body:  `Your shift swap request was not approved.${rejectNote[swap.id]?.trim() ? ' Note: ' + rejectNote[swap.id].trim() : ''}`,
+        url:   '/rota',
+        staffIds: [swap.requester_id],
       }).catch(() => {})
     }
     reloadSwaps()
