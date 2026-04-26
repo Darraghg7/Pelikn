@@ -280,9 +280,16 @@ export default function CoolingLogsPage() {
       {tab === 'history' && (
         <div className="space-y-4">
           <DateRangePresets
-            preset={preset} onPreset={setPreset}
+            preset={preset} onPreset={(key) => {
+              setPreset(key)
+              if (key !== 'custom') {
+                const { dateFrom: df, dateTo: dt } = presetToDates(key)
+                setDateFrom(df)
+                setDateTo(dt)
+              }
+            }}
             dateFrom={dateFrom} dateTo={dateTo}
-            onDateChange={(k, v) => { if (k === 'dateFrom') setDateFrom(v); else setDateTo(v) }}
+            onDateChange={({ dateFrom: df, dateTo: dt }) => { setDateFrom(df); setDateTo(dt) }}
           />
           {historyLoading ? (
             <p className="text-sm text-charcoal/40 dark:text-white/35">Loading…</p>

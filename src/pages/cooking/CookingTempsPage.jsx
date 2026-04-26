@@ -276,7 +276,7 @@ export default function CookingTempsPage() {
       {tab === 'log' && (
         <>
           {/* Check type selector */}
-          <div className="bg-white rounded-2xl border-charcoal/10 p-5">
+          <div className="bg-white rounded-2xl border border-charcoal/10 p-5">
             <SectionLabel>Check Type</SectionLabel>
             <div className="flex gap-2">
               {[['cooking', 'Cooking'], ['reheating', 'Reheating']].map(([key, label]) => (
@@ -302,7 +302,7 @@ export default function CookingTempsPage() {
           </div>
 
           {/* Log form */}
-          <div className="bg-white rounded-2xl border-charcoal/10 p-5">
+          <div className="bg-white rounded-2xl border border-charcoal/10 p-5">
             <SectionLabel>New Reading</SectionLabel>
             <LogForm
               key={`${checkType}-${logKey}`}
@@ -312,7 +312,7 @@ export default function CookingTempsPage() {
           </div>
 
           {/* Today's readings */}
-          <div className="bg-white rounded-2xl border-charcoal/10 p-5">
+          <div className="bg-white rounded-2xl border border-charcoal/10 p-5">
             <SectionLabel>Today's Readings</SectionLabel>
             {todayLoading ? (
               <div className="flex justify-center py-6"><LoadingSpinner /></div>
@@ -346,7 +346,7 @@ export default function CookingTempsPage() {
       )}
 
       {tab === 'history' && (
-        <div className="bg-white rounded-2xl border-charcoal/10 p-5">
+        <div className="bg-white rounded-2xl border border-charcoal/10 p-5">
           <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
             <SectionLabel>All Readings</SectionLabel>
             <DateRangePresets

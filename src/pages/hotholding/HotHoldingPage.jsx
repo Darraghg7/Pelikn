@@ -176,7 +176,7 @@ export default function HotHoldingPage() {
         <>
           {/* Today's status */}
           {!statusLoading && (
-            <div className="bg-white rounded-2xl border-charcoal/10 p-5">
+            <div className="bg-white rounded-2xl border border-charcoal/10 p-5">
               <SectionLabel>Today's Status</SectionLabel>
               <div className="grid grid-cols-2 gap-3">
                 {[['am', 'AM Check'], ['pm', 'PM Check']].map(([p, label]) => (
@@ -199,7 +199,7 @@ export default function HotHoldingPage() {
           )}
 
           {/* Period selector */}
-          <div className="bg-white rounded-2xl border-charcoal/10 p-5">
+          <div className="bg-white rounded-2xl border border-charcoal/10 p-5">
             <SectionLabel>Check Period</SectionLabel>
             <div className="flex gap-2">
               {[['am', 'AM'], ['pm', 'PM']].map(([p, label]) => (
@@ -230,14 +230,14 @@ export default function HotHoldingPage() {
           {itemsLoading ? (
             <div className="flex justify-center py-10"><LoadingSpinner /></div>
           ) : items.length === 0 ? (
-            <div className="bg-white rounded-2xl border-charcoal/10 p-8 text-center">
+            <div className="bg-white rounded-2xl border border-charcoal/10 p-8 text-center">
               <p className="text-sm text-charcoal/45 italic">
                 No hot holding items configured yet.
                 {isManager ? ' Add items below to get started.' : ' Ask your manager to add items.'}
               </p>
             </div>
           ) : (
-            <div className="bg-white rounded-2xl border-charcoal/10 p-5">
+            <div className="bg-white rounded-2xl border border-charcoal/10 p-5">
               <SectionLabel>{period.toUpperCase()} Readings</SectionLabel>
               <div className="flex flex-col gap-3">
                 {items.map(item => {
@@ -315,7 +315,7 @@ export default function HotHoldingPage() {
 
           {/* Manager: add/remove items */}
           {isManager && (
-            <div className="bg-white rounded-2xl border-charcoal/10 p-5">
+            <div className="bg-white rounded-2xl border border-charcoal/10 p-5">
               <SectionLabel>Manage Items</SectionLabel>
               <div className="flex gap-2 mb-4">
                 <input
@@ -355,7 +355,7 @@ export default function HotHoldingPage() {
       )}
 
       {tab === 'history' && (
-        <div className="bg-white rounded-2xl border-charcoal/10 p-5">
+        <div className="bg-white rounded-2xl border border-charcoal/10 p-5">
           <div className="flex flex-wrap items-start justify-between gap-3 mb-5">
             <SectionLabel>All Readings</SectionLabel>
             <DateRangePresets

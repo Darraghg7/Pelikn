@@ -117,14 +117,17 @@ function SubNav({ items, currentPath }) {
 /* ── Tab configurations ─────────────────────────────────────────────────── */
 function getManagerTabs(vp, isEnabled) {
   const complianceChildren = [
-    { to: vp('/opening-closing'), label: 'Checks',     feature: 'opening_closing' },
-    { to: vp('/fitness'),         label: 'Fitness',    feature: null },
-    { to: vp('/fridge'),          label: 'Temp Logs',  feature: 'fridge' },
-    { to: vp('/deliveries'),      label: 'Deliveries', feature: 'deliveries' },
-    { to: vp('/probe'),           label: 'Probe Cal.', feature: 'probe' },
-    { to: vp('/allergens'),       label: 'Allergens',  feature: 'allergens' },
-    { to: vp('/cleaning'),        label: 'Cleaning',   feature: 'cleaning' },
-    { to: vp('/corrective'),      label: 'Actions',    feature: 'corrective' },
+    { to: vp('/opening-closing'), label: 'Checks',       feature: 'opening_closing' },
+    { to: vp('/fitness'),         label: 'Fitness',       feature: null },
+    { to: vp('/fridge'),          label: 'Fridge Temps',  feature: 'fridge' },
+    { to: vp('/cooking-temps'),   label: 'Cooking Temps', feature: null },
+    { to: vp('/hot-holding'),     label: 'Hot Holding',   feature: null },
+    { to: vp('/cooling-logs'),    label: 'Cooling Logs',  feature: null },
+    { to: vp('/deliveries'),      label: 'Deliveries',    feature: 'deliveries' },
+    { to: vp('/probe'),           label: 'Probe Cal.',    feature: 'probe' },
+    { to: vp('/allergens'),       label: 'Allergens',     feature: 'allergens' },
+    { to: vp('/cleaning'),        label: 'Cleaning',      feature: 'cleaning' },
+    { to: vp('/corrective'),      label: 'Actions',       feature: 'corrective' },
   ].filter(c => c.feature === null || isEnabled(c.feature))
 
   const teamChildren = [
@@ -147,7 +150,7 @@ function getManagerTabs(vp, isEnabled) {
       label: 'Checks',
       to: complianceChildren[0]?.to ?? vp('/opening-closing'),
       icon: ClipboardIcon,
-      match: ['/opening-closing', '/fitness', '/fridge', '/deliveries', '/probe', '/allergens', '/cleaning', '/corrective'],
+      match: ['/opening-closing', '/fitness', '/fridge', '/cooking-temps', '/hot-holding', '/cooling-logs', '/deliveries', '/probe', '/allergens', '/cleaning', '/corrective'],
       children: complianceChildren,
     },
     {
@@ -179,7 +182,12 @@ function getStaffTabs(session, vp, isEnabled) {
   const taskChildren = [
     ...(isEnabled('opening_closing') ? [{ to: vp('/opening-closing'), label: 'Checks' }] : []),
     ...(isEnabled('cleaning')        ? [{ to: vp('/cleaning'),        label: 'Cleaning' }] : []),
-    ...(isEnabled('fridge') && session?.showTempLogs ? [{ to: vp('/fridge'), label: 'Temp Logs' }] : []),
+    ...(isEnabled('fridge') && session?.showTempLogs ? [
+      { to: vp('/fridge'),        label: 'Fridge Temps' },
+      { to: vp('/cooking-temps'), label: 'Cooking Temps' },
+      { to: vp('/hot-holding'),   label: 'Hot Holding' },
+      { to: vp('/cooling-logs'),  label: 'Cooling Logs' },
+    ] : []),
     ...(isEnabled('allergens')       ? [{ to: vp('/allergens'),       label: 'Allergens' }] : []),
   ]
 
@@ -196,7 +204,7 @@ function getStaffTabs(session, vp, isEnabled) {
       label: 'Tasks',
       to: taskChildren[0]?.to ?? vp('/opening-closing'),
       icon: TasksIcon,
-      match: ['/opening-closing', '/cleaning', '/fridge', '/allergens'],
+      match: ['/opening-closing', '/cleaning', '/fridge', '/cooking-temps', '/hot-holding', '/cooling-logs', '/allergens'],
       children: taskChildren.length > 1 ? taskChildren : undefined,
     },
     ...(isEnabled('rota') ? [{
