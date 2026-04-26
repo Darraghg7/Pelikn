@@ -9,7 +9,7 @@ import { FullPageLoader } from '../components/ui/LoadingSpinner'
 
 const VenueContext = createContext(null)
 
-const venueKey = (slug) => `safeserv_venue_${slug}`
+const venueKey = (slug) => `pelikn_venue_${slug}`
 
 export function VenueProvider({ children }) {
   const { venueSlug } = useParams()

@@ -87,7 +87,7 @@ function sessionFromStorage(token) {
 /** SHA-256 hash of staffId + pin — used for offline PIN validation. */
 async function hashPin(staffId, pin) {
   try {
-    const data = new TextEncoder().encode(`${staffId}:${pin}:safeserv_offline_v1`)
+    const data = new TextEncoder().encode(`${staffId}:${pin}:pelikn_offline_v1`)
     const buf  = await crypto.subtle.digest('SHA-256', data)
     return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('')
   } catch {
@@ -95,8 +95,8 @@ async function hashPin(staffId, pin) {
   }
 }
 
-const pinHashKey  = (id) => `safeserv_pin_${id}`
-const sessDataKey = (id) => `safeserv_sess_${id}`
+const pinHashKey  = (id) => `pelikn_pin_${id}`
+const sessDataKey = (id) => `pelikn_sess_${id}`
 
 export function SessionProvider({ children }) {
   const [session,       setSession]       = useState(null)

@@ -388,7 +388,7 @@ function VenueSwitcher({ venues, currentSlug, onSelect }) {
 }
 
 /* ── Sidebar section open/close persistence ────────────────────────────────── */
-const STORAGE_KEY = 'safeserv_sidebar_sections'
+const STORAGE_KEY = 'pelikn_sidebar_sections'
 
 function useSidebarSections(venueId, localPath) {
   // Determine which section the current path belongs to

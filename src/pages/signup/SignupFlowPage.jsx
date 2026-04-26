@@ -294,7 +294,7 @@ function StepDetails({ plan, extraVenues, qrAddon, onBack, onSubmit, loading, er
               />
               <div>
                 <div className="flex items-center rounded-xl border border-charcoal/15 bg-white overflow-hidden focus-within:border-brand/40 focus-within:ring-2 focus-within:ring-brand/10 transition-all">
-                  <span className="px-3 text-xs text-charcoal/35 font-mono border-r border-charcoal/10 py-3 bg-charcoal/3 shrink-0">safeserv.app/v/</span>
+                  <span className="px-3 text-xs text-charcoal/35 font-mono border-r border-charcoal/10 py-3 bg-charcoal/3 shrink-0">pelikn.app/v/</span>
                   <input
                     type="text"
                     required
@@ -598,14 +598,14 @@ function StepSuccess({ venueName, venueSlug, plan, allVenues = [] }) {
           {allVenues.map(v => (
             <div key={v.slug} className="flex items-center justify-between gap-2">
               <p className="text-xs font-medium text-charcoal/70 truncate">{v.name}</p>
-              <p className="text-xs font-mono text-charcoal/50 shrink-0">safeserv.app/v/{v.slug}</p>
+              <p className="text-xs font-mono text-charcoal/50 shrink-0">pelikn.app/v/{v.slug}</p>
             </div>
           ))}
         </div>
       ) : (
         <div className="w-full bg-charcoal/4 rounded-xl px-4 py-3">
           <p className="text-[11px] text-charcoal/40 tracking-widest uppercase mb-1">Your staff login URL</p>
-          <p className="text-xs font-mono text-charcoal/60">safeserv.app/v/{venueSlug}</p>
+          <p className="text-xs font-mono text-charcoal/60">pelikn.app/v/{venueSlug}</p>
         </div>
       )}
 

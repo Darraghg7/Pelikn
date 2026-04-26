@@ -473,7 +473,7 @@ export default function MarketingPage() {
               step: '1',
               icon: <IconPhone />,
               title: 'Open the link',
-              desc: 'Open app.safeserv.co.uk in Safari (iPhone/iPad) or Chrome (Android/desktop).',
+              desc: 'Open app.pelikn.app in Safari (iPhone/iPad) or Chrome (Android/desktop).',
             },
             {
               step: '2',
@@ -537,8 +537,8 @@ export default function MarketingPage() {
           <div className="flex items-center gap-6">
             <span className="text-base font-bold text-brand">Pelikn</span>
             <span className="text-charcoal/20 hidden sm:block">·</span>
-            <a href="mailto:hello@safeserv.co.uk" className="text-xs text-charcoal/40 hover:text-charcoal transition-colors">
-              hello@safeserv.co.uk
+            <a href="mailto:hello@pelikn.app" className="text-xs text-charcoal/40 hover:text-charcoal transition-colors">
+              hello@pelikn.app
             </a>
           </div>
           <div className="flex items-center gap-5">

@@ -1,4 +1,4 @@
--- SafeServ initial schema
+-- Pelikn initial schema
 -- Safe to run multiple times — drops everything and recreates from scratch.
 -- Paste the entire file into the Supabase SQL Editor and click Run.
 

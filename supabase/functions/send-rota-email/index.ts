@@ -4,9 +4,9 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 const RESEND_API_KEY          = Deno.env.get('RESEND_API_KEY')!
 const SUPABASE_URL            = Deno.env.get('SUPABASE_URL')!
 const SUPABASE_SERVICE_ROLE   = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-const FROM_EMAIL              = Deno.env.get('FROM_EMAIL') ?? 'rota@safeserv.app'
+const FROM_EMAIL              = Deno.env.get('FROM_EMAIL') ?? 'rota@pelikn.app'
 
-const ALLOWED_ORIGINS = ['https://safeserv.app', 'http://localhost:5173', 'capacitor://localhost', 'ionic://localhost']
+const ALLOWED_ORIGINS = ['https://pelikn.app', 'http://localhost:5173', 'capacitor://localhost', 'ionic://localhost']
 
 serve(async (req) => {
   const origin = req.headers.get('origin') ?? ''

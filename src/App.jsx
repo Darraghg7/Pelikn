@@ -185,8 +185,8 @@ function LandingRoute() {
   if (user && venueSlug) return <Navigate to={`/v/${venueSlug}`} replace />
   // Staff with a saved PIN session — skip the landing page and go straight to
   // their venue's PIN login screen (SessionContext will restore their session)
-  const staffToken = localStorage.getItem('safeserv_staff_token')
-  const staffSlug  = localStorage.getItem('safeserv_venue_slug')
+  const staffToken = localStorage.getItem('pelikn_staff_token')
+  const staffSlug  = localStorage.getItem('pelikn_venue_slug')
   if (staffToken && staffSlug) return <Navigate to={`/v/${staffSlug}`} replace />
   return <LandingPage />
 }

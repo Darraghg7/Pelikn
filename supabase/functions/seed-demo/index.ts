@@ -6,7 +6,7 @@ const SUPABASE_URL    = Deno.env.get('SUPABASE_URL')    ?? ''
 const SUPABASE_ANON   = Deno.env.get('SUPABASE_ANON_KEY') ?? ''
 const SUPABASE_SERVICE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
 
-const ALLOWED_ORIGINS = ['https://safeserv.app', 'http://localhost:5173', 'capacitor://localhost', 'ionic://localhost']
+const ALLOWED_ORIGINS = ['https://pelikn.app', 'http://localhost:5173', 'capacitor://localhost', 'ionic://localhost']
 
 serve(async (req) => {
   const origin = req.headers.get('origin') ?? ''

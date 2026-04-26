@@ -31,7 +31,7 @@ const TYPE_ICON = {
 }
 
 // ── Dismissal persistence ─────────────────────────────────────────────────────
-const STORAGE_KEY = 'safeserv_dismissed_notifs'
+const STORAGE_KEY = 'pelikn_dismissed_notifs'
 const today = () => format(new Date(), 'yyyy-MM-dd')
 
 function loadDismissed() {

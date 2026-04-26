@@ -82,7 +82,7 @@ export default function VenuesSection() {
                   </span>
                 )}
               </div>
-              <p className="text-xs text-charcoal/40 mt-0.5">safeserv.app/v/{v.slug}</p>
+              <p className="text-xs text-charcoal/40 mt-0.5">pelikn.app/v/{v.slug}</p>
             </div>
             <button
               onClick={() => handleOpenVenue(v.slug)}

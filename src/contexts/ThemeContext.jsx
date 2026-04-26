@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useLayoutEffect } from 'rea
 
 const ThemeContext = createContext({ dark: false, toggle: () => {} })
 
-const STORAGE_KEY = 'safeserv_dark_mode'
+const STORAGE_KEY = 'pelikn_dark_mode'
 
 export function ThemeProvider({ children }) {
   const [dark, setDark] = useState(() => {

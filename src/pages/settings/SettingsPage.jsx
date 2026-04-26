@@ -134,8 +134,8 @@ function VenueTypeIndicator({ venueId, venueSlug }) {
   }, [venueId])
 
   const reopenSetup = useCallback(() => {
-    localStorage.removeItem('safeserv_setup_dismissed')
-    window.dispatchEvent(new Event('safeserv:reopen-setup'))
+    localStorage.removeItem('pelikn_setup_dismissed')
+    window.dispatchEvent(new Event('pelikn:reopen-setup'))
     navigate(`/v/${venueSlug}/setup`)
   }, [venueSlug, navigate])
 

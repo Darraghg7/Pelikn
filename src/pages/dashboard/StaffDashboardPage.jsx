@@ -146,13 +146,13 @@ function PushNotificationBanner({ staffId, venueId }) {
   const { supported, permission, subscribed, subscribing, subscribe } =
     usePushNotifications(staffId, venueId)
   const [dismissed, setDismissed] = useState(() =>
-    localStorage.getItem('safeserv_push_dismissed') === 'true'
+    localStorage.getItem('pelikn_push_dismissed') === 'true'
   )
 
   if (!supported || permission === 'denied' || subscribed || dismissed) return null
 
   const dismiss = () => {
-    localStorage.setItem('safeserv_push_dismissed', 'true')
+    localStorage.setItem('pelikn_push_dismissed', 'true')
     setDismissed(true)
   }
 

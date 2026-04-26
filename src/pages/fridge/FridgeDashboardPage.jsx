@@ -42,7 +42,7 @@ function FridgeCard({ fridge, session, venueId, onSaved }) {
   const commentRef              = useRef(null)
 
   // Follow-up reminder — persisted to localStorage so it survives page reloads
-  const FOLLOWUP_KEY = `safeserv_followup_${fridge.id}`
+  const FOLLOWUP_KEY = `pelikn_followup_${fridge.id}`
   const [followUp, setFollowUp] = useState(() => {
     try {
       const stored = localStorage.getItem(FOLLOWUP_KEY)

@@ -29,7 +29,7 @@ function PlanBadge({ plan }) {
 function UpgradeButton() {
   return (
     <a
-      href="mailto:hello@safeserv.app?subject=Upgrade to Pro"
+      href="mailto:hello@pelikn.app?subject=Upgrade to Pro"
       className="relative inline-flex items-center gap-2 overflow-hidden rounded-xl px-4 py-2 text-xs font-semibold text-white shadow-md shadow-accent/30 transition-all hover:shadow-lg hover:shadow-accent/40 hover:scale-[1.02] active:scale-[0.98]"
       style={{
         background: 'linear-gradient(135deg, #c94f2a 0%, #e06535 50%, #c94f2a 100%)',
@@ -422,7 +422,7 @@ function TodaySummaryCard({ venueId }) {
 }
 
 /* ── Push notification opt-in banner ─────────────────────────────────────── */
-function pushDismissKey(staffId) { return `safeserv_push_dismissed_${staffId ?? 'anon'}` }
+function pushDismissKey(staffId) { return `pelikn_push_dismissed_${staffId ?? 'anon'}` }
 
 function PushBanner({ staffId, venueId }) {
   const { permission, subscribe, supported, subscribed } = usePushNotifications(staffId, venueId)
@@ -489,8 +489,8 @@ function GettingStartedCard({ venueId, venueSlug }) {
       supabase.from('app_settings').delete().eq('venue_id', venueId).eq('key', 'setup_dismissed').then(() => {})
       setDismissed(false)
     }
-    window.addEventListener('safeserv:reopen-setup', handler)
-    return () => window.removeEventListener('safeserv:reopen-setup', handler)
+    window.addEventListener('pelikn:reopen-setup', handler)
+    return () => window.removeEventListener('pelikn:reopen-setup', handler)
   }, [venueId])
 
   // Still loading (null = not yet fetched)

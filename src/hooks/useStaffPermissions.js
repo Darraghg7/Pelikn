@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { useVenue } from '../contexts/VenueContext'
 
-const PERMISSIONS_UPDATED_EVENT = 'safeserv:permissions-updated'
+const PERMISSIONS_UPDATED_EVENT = 'pelikn:permissions-updated'
 
 // Module-level cache per staffId:venueId
 const _cache = {}

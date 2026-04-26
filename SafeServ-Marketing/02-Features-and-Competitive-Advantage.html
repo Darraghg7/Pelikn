@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Pelikn — Features & Competitive Advantage</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Serif+Display&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --brand: #1a3c2e;
+    --brand-mid: #2d6b4f;
+    --cream: #faf8f4;
+    --charcoal: #18181b;
+    --teal: #0d9488;
+    --teal-light: #14b8a6;
+    --orange: #e07b39;
+    --blue: #2563eb;
+    --purple: #7c3aed;
+    --rose: #e11d48;
+    --green: #16a34a;
+    --muted: #71717a;
+    --subtle: #a1a1aa;
+    --surface: #f4f4f5;
+    --border: #e4e4e7;
+  }
+
+  body {
+    font-family: 'DM Sans', -apple-system, system-ui, sans-serif;
+    background: #fff;
+    color: var(--charcoal);
+    font-size: 15px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .page {
+    width: 100%;
+    min-height: 100vh;
+    padding: 72px 80px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+    page-break-after: always;
+    overflow: hidden;
+  }
+
+  .page-num {
+    position: absolute;
+    bottom: 36px;
+    right: 80px;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--subtle);
+    letter-spacing: 1px;
+  }
+
+  .page-logo {
+    position: absolute;
+    bottom: 36px;
+    left: 80px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: var(--subtle);
+  }
+
+  /* ── Cover ────────────────────────────────────────── */
+  .cover {
+    background: var(--brand);
+    color: #fff;
+    justify-content: flex-end;
+    padding-bottom: 100px;
+  }
+
+  .cover::before {
+    content: '';
+    position: absolute;
+    top: -10%;
+    right: -5%;
+    width: 50vw;
+    height: 50vw;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(13,148,136,0.15) 0%, transparent 70%);
+  }
+
+  .cover h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 64px;
+    font-weight: 400;
+    letter-spacing: -2px;
+    line-height: 1.05;
+    margin-bottom: 20px;
+    position: relative;
+    z-index: 2;
+  }
+
+  .cover p {
+    font-size: 19px;
+    color: rgba(255,255,255,0.5);
+    max-width: 540px;
+    line-height: 1.55;
+    position: relative;
+    z-index: 2;
+  }
+
+  /* ── Dark page ────────────────────────────────────── */
+  .page--dark { background: var(--charcoal); color: #fff; }
+  .page--dark .subtitle { color: rgba(255,255,255,0.45); }
+  .page--dark .page-num, .page--dark .page-logo { color: rgba(255,255,255,0.2); }
+
+  .page--cream { background: var(--cream); }
+
+  /* ── Typography ───────────────────────────────────── */
+  .eyebrow {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+    display: block;
+  }
+
+  .ey-teal { color: var(--teal); }
+  .ey-orange { color: var(--orange); }
+  .ey-blue { color: var(--blue); }
+  .ey-purple { color: var(--purple); }
+  .ey-rose { color: var(--rose); }
+  .ey-green { color: var(--green); }
+
+  .title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 48px;
+    font-weight: 400;
+    letter-spacing: -1.5px;
+    line-height: 1.08;
+    margin-bottom: 14px;
+  }
+
+  .subtitle {
+    font-size: 16px;
+    color: var(--muted);
+    max-width: 560px;
+    line-height: 1.6;
+    margin-bottom: 44px;
+  }
+
+  /* ── Grid ──────────────────────────────────────────── */
+  .g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .g3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 18px; }
+
+  /* ── Feature Card ──────────────────────────────────── */
+  .fc {
+    border-radius: 16px;
+    padding: 28px;
+    background: var(--surface);
+  }
+
+  .fc--white { background: #fff; border: 1px solid var(--border); }
+  .fc--glass { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); }
+  .fc--tint { background: rgba(13,148,136,0.05); border: 1px solid rgba(13,148,136,0.1); }
+
+  .fc-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 17px;
+    margin-bottom: 14px;
+  }
+
+  .fc h3 { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+  .fc p { font-size: 13px; color: var(--muted); line-height: 1.55; margin: 0; }
+  .fc--glass h3 { color: #fff; }
+  .fc--glass p { color: rgba(255,255,255,0.45); }
+
+  .fc-bullets {
+    list-style: none;
+    margin-top: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .fc-bullets li {
+    font-size: 12px;
+    color: var(--charcoal);
+    padding-left: 18px;
+    position: relative;
+    line-height: 1.5;
+  }
+
+  .fc-bullets li::before {
+    content: '→';
+    position: absolute;
+    left: 0;
+    color: var(--teal);
+    font-weight: 700;
+  }
+
+  .fc--glass .fc-bullets li { color: rgba(255,255,255,0.6); }
+  .fc--glass .fc-bullets li::before { color: var(--teal-light); }
+
+  /* ── Compare Table ─────────────────────────────────── */
+  .ct { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .ct th { text-align: center; padding: 11px 12px; font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); border-bottom: 2px solid var(--charcoal); }
+  .ct th:first-child { text-align: left; }
+  .ct td { padding: 10px 12px; border-bottom: 1px solid var(--border); text-align: center; }
+  .ct td:first-child { text-align: left; font-weight: 500; }
+  .ct .hl { background: rgba(13,148,136,0.04); }
+  .y { color: var(--teal); font-weight: 700; }
+  .n { color: #d4d4d8; }
+  .p { color: var(--orange); font-size: 11px; }
+  .ct tfoot td { font-weight: 700; border-top: 2px solid var(--charcoal); }
+
+  /* ── Why Cards ──────────────────────────────────────── */
+  .why-card {
+    text-align: center;
+    padding: 28px 20px;
+    border-radius: 16px;
+    background: var(--surface);
+  }
+
+  .why-num {
+    font-family: 'DM Serif Display', serif;
+    font-size: 40px;
+    color: var(--teal);
+    margin-bottom: 8px;
+    line-height: 1;
+  }
+
+  .why-card h4 { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+  .why-card p { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+  /* ── CTA ────────────────────────────────────────────── */
+  .cta-page {
+    background: var(--brand);
+    color: #fff;
+    text-align: center;
+    justify-content: center;
+    align-items: center;
+  }
+
+  @media print {
+    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .page { page-break-after: always; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══ COVER ═══════════════════════════════════════════ -->
+<div class="page cover">
+  <div style="font-size:10px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,0.3);margin-bottom:32px;">Features &amp; Competitive Advantage</div>
+  <h1>Everything your<br/>venue needs.<br/>Nothing it doesn&rsquo;t.</h1>
+  <p>Pelikn replaces five separate tools with one platform designed for the realities of independent hospitality.</p>
+  <div class="page-logo" style="color:rgba(255,255,255,0.15);">PELIKN</div>
+</div>
+
+<!-- ═══ PAGE 2 — COMPLIANCE FEATURES ════════════════════ -->
+<div class="page">
+  <span class="eyebrow ey-teal">Food Safety &amp; Compliance</span>
+  <h2 class="title">Inspection-ready. Always.</h2>
+  <p class="subtitle">Every check timestamped. Every corrective action logged. Every fridge monitored. No more scrambling before inspections.</p>
+
+  <div class="g2">
+    <div class="fc fc--tint">
+      <div class="fc-icon" style="background:rgba(13,148,136,0.1);">🌡</div>
+      <h3>Fridge Temperature Logging</h3>
+      <p>Staff log fridge temps from their phone. Out-of-range readings trigger corrective action workflows.</p>
+      <ul class="fc-bullets">
+        <li>Multi-fridge dashboard with live status</li>
+        <li>Historical logs with date range filtering</li>
+        <li>Colour-coded safe/warning/danger</li>
+        <li>Auto-triggered corrective actions</li>
+      </ul>
+    </div>
+    <div class="fc">
+      <div class="fc-icon" style="background:rgba(224,123,57,0.1);">🍳</div>
+      <h3>Cooking &amp; Hot Holding Temps</h3>
+      <p>Record cooking temperatures, hot holding checks and cooling logs. Full HACCP traceability.</p>
+      <ul class="fc-bullets">
+        <li>Cooking temp records by food item</li>
+        <li>Hot holding at configurable intervals</li>
+        <li>Cooling log: cook to storage</li>
+        <li>Probe calibration records</li>
+      </ul>
+    </div>
+    <div class="fc">
+      <div class="fc-icon" style="background:rgba(22,163,74,0.1);">🧹</div>
+      <h3>Cleaning Schedules</h3>
+      <p>Daily, weekly and monthly cleaning tasks. Staff mark completion. Managers see what&rsquo;s done and overdue.</p>
+      <ul class="fc-bullets">
+        <li>Configurable frequencies</li>
+        <li>Assignable to staff or roles</li>
+        <li>Photo evidence capture</li>
+        <li>Overdue task alerts</li>
+      </ul>
+    </div>
+    <div class="fc">
+      <div class="fc-icon" style="background:rgba(225,29,72,0.1);">⚠</div>
+      <h3>Corrective Actions (HACCP)</h3>
+      <p>Captures what happened, what was done to fix it, and who signed off &mdash; the exact trail EHOs want.</p>
+      <ul class="fc-bullets">
+        <li>Auto-triggered from out-of-range readings</li>
+        <li>Manager sign-off workflow</li>
+        <li>Full audit trail with timestamps</li>
+      </ul>
+    </div>
+    <div class="fc">
+      <div class="fc-icon" style="background:rgba(124,58,237,0.1);">🍽</div>
+      <h3>Allergen Management + QR</h3>
+      <p>Register menu items with 14 EU allergens. Generate QR codes for customers to self-check before ordering.</p>
+      <ul class="fc-bullets">
+        <li>All 14 EU allergens with visual icons</li>
+        <li>Searchable food item registry</li>
+        <li>Customer-facing QR code pages</li>
+      </ul>
+    </div>
+    <div class="fc">
+      <div class="fc-icon" style="background:rgba(37,99,235,0.1);">🚚</div>
+      <h3>Delivery Checks</h3>
+      <p>Log delivery temperatures, check supplier details, flag issues at point of receipt.</p>
+      <ul class="fc-bullets">
+        <li>Temperature checks at delivery</li>
+        <li>Supplier and product tracking</li>
+        <li>Reject/accept with reasons logged</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="page-logo">PELIKN</div>
+  <div class="page-num">02</div>
+</div>
+
+<!-- ═══ PAGE 3 — WORKFORCE ══════════════════════════════ -->
+<div class="page page--cream">
+  <span class="eyebrow ey-blue">Workforce Management</span>
+  <h2 class="title">Build rotas in minutes,<br/>not hours.</h2>
+  <p class="subtitle">Smart scheduling, real-time attendance tracking, and labour cost visibility.</p>
+
+  <div class="g2" style="gap:28px;margin-bottom:24px;">
+    <div class="fc fc--white" style="padding:32px;">
+      <div class="fc-icon" style="background:rgba(37,99,235,0.1);">📅</div>
+      <h3 style="font-size:18px;">AI-Assisted Rota Builder</h3>
+      <p style="margin-bottom:14px;">Set constraints &mdash; minimum staff, required roles, closed days &mdash; and let Pelikn generate an optimised rota that respects availability and budget.</p>
+      <ul class="fc-bullets">
+        <li>Fill gaps mode or full rebuild mode</li>
+        <li>Respects time-off &amp; unavailability</li>
+        <li>Role-based staffing requirements per day</li>
+        <li>Break cover scheduling for lunch periods</li>
+        <li>Preview with cost estimate before saving</li>
+        <li>Remove shifts from preview before applying</li>
+        <li>Fair hour distribution across team</li>
+        <li>Real-time labour cost calculation</li>
+      </ul>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:16px;">
+      <div class="fc fc--white">
+        <div class="fc-icon" style="background:rgba(22,163,74,0.1);">⏱</div>
+        <h3>PIN Clock In/Out</h3>
+        <p>No hardware needed. Break tracking built in. Late arrival detection with configurable thresholds.</p>
+      </div>
+      <div class="fc fc--white">
+        <div class="fc-icon" style="background:rgba(224,123,57,0.1);">📊</div>
+        <h3>Timesheets &amp; Labour Costs</h3>
+        <p>Real-time paid hours with break deductions. Per-staff breakdowns. CSV export for payroll.</p>
+      </div>
+      <div class="fc fc--white">
+        <div class="fc-icon" style="background:rgba(124,58,237,0.1);">🔄</div>
+        <h3>Shift Swaps &amp; Time Off</h3>
+        <p>Staff request from the app. Managers approve with a tap. Push notifications keep everyone informed.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="page-logo">PELIKN</div>
+  <div class="page-num">03</div>
+</div>
+
+<!-- ═══ PAGE 4 — DAILY OPS + PLATFORM ═══════════════════ -->
+<div class="page">
+  <span class="eyebrow ey-orange">Daily Operations &amp; Platform</span>
+  <h2 class="title">Run your venue, not your admin.</h2>
+  <p class="subtitle">Checklists, tasks, training, waste logging &mdash; and a platform that adapts to your venue type.</p>
+
+  <div class="g3" style="margin-bottom:28px;">
+    <div class="fc"><div class="fc-icon" style="background:rgba(224,123,57,0.1);">☀</div><h3>Opening &amp; Closing Checklists</h3><p>Configurable checklists staff complete at open and close. Never miss a step.</p></div>
+    <div class="fc"><div class="fc-icon" style="background:rgba(37,99,235,0.1);">✅</div><h3>Task Management</h3><p>Create and assign tasks. Track completion. Flag overdue. Keep the team accountable.</p></div>
+    <div class="fc"><div class="fc-icon" style="background:rgba(225,29,72,0.1);">🗑</div><h3>Waste Logging</h3><p>Record waste by category, quantity and reason. Identify patterns and reduce cost.</p></div>
+  </div>
+
+  <div class="g2" style="gap:24px;">
+    <div class="fc" style="background:var(--charcoal);color:#fff;padding:32px;">
+      <h3 style="font-size:18px;margin-bottom:12px;color:#fff;">Venue Type Presets</h3>
+      <p style="color:rgba(255,255,255,0.5);margin-bottom:16px;">New venues pick their type during onboarding and get pre-configured features. A coffee shop doesn&rsquo;t need hot holding logs. A restaurant doesn&rsquo;t need cellar temps.</p>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(255,255,255,0.05);border-radius:8px;font-size:13px;">
+          <span style="font-size:20px;">☕</span><div><strong>Cafe</strong><span style="color:rgba(255,255,255,0.35);"> &mdash; Fridges, cleaning, allergens</span></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(255,255,255,0.05);border-radius:8px;font-size:13px;">
+          <span style="font-size:20px;">🍺</span><div><strong>Pub</strong><span style="color:rgba(255,255,255,0.35);"> &mdash; Cellar temps, rota, deliveries</span></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(255,255,255,0.05);border-radius:8px;font-size:13px;">
+          <span style="font-size:20px;">🍽</span><div><strong>Restaurant</strong><span style="color:rgba(255,255,255,0.35);"> &mdash; Full HACCP, team management</span></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(255,255,255,0.05);border-radius:8px;font-size:13px;">
+          <span style="font-size:20px;">🏨</span><div><strong>Hotel</strong><span style="color:rgba(255,255,255,0.35);"> &mdash; All features, multi-department</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="fc" style="background:var(--charcoal);color:#fff;padding:32px;">
+      <h3 style="font-size:18px;margin-bottom:12px;color:#fff;">Granular Staff Permissions</h3>
+      <p style="color:rgba(255,255,255,0.5);margin-bottom:16px;">13 individual permissions across 3 categories. Give your head barista shift-swap approval without full manager access.</p>
+      <div style="display:flex;flex-direction:column;gap:6px;">
+        <div style="font-size:10px;font-weight:600;letter-spacing:2px;color:rgba(255,255,255,0.25);text-transform:uppercase;">Compliance</div>
+        <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px;">
+          <span style="font-size:11px;padding:4px 10px;background:rgba(13,148,136,0.15);border-radius:5px;">Log temps</span>
+          <span style="font-size:11px;padding:4px 10px;background:rgba(13,148,136,0.15);border-radius:5px;">View logs</span>
+          <span style="font-size:11px;padding:4px 10px;background:rgba(13,148,136,0.15);border-radius:5px;">Cleaning</span>
+          <span style="font-size:11px;padding:4px 10px;background:rgba(13,148,136,0.15);border-radius:5px;">Allergens</span>
+          <span style="font-size:11px;padding:4px 10px;background:rgba(13,148,136,0.15);border-radius:5px;">Deliveries</span>
+        </div>
+        <div style="font-size:10px;font-weight:600;letter-spacing:2px;color:rgba(255,255,255,0.25);text-transform:uppercase;">Operations</div>
+        <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px;">
+          <span style="font-size:11px;padding:4px 10px;background:rgba(37,99,235,0.15);border-radius:5px;">Tasks</span>
+          <span style="font-size:11px;padding:4px 10px;background:rgba(37,99,235,0.15);border-radius:5px;">Open/Close</span>
+          <span style="font-size:11px;padding:4px 10px;background:rgba(37,99,235,0.15);border-radius:5px;">Waste</span>
+        </div>
+        <div style="font-size:10px;font-weight:600;letter-spacing:2px;color:rgba(255,255,255,0.25);text-transform:uppercase;">Team</div>
+        <div style="display:flex;flex-wrap:wrap;gap:4px;">
+          <span style="font-size:11px;padding:4px 10px;background:rgba(124,58,237,0.15);border-radius:5px;">Swaps</span>
+          <span style="font-size:11px;padding:4px 10px;background:rgba(124,58,237,0.15);border-radius:5px;">Rota</span>
+          <span style="font-size:11px;padding:4px 10px;background:rgba(124,58,237,0.15);border-radius:5px;">Timesheets</span>
+          <span style="font-size:11px;padding:4px 10px;background:rgba(124,58,237,0.15);border-radius:5px;">Training</span>
+          <span style="font-size:11px;padding:4px 10px;background:rgba(124,58,237,0.15);border-radius:5px;">Time off</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="page-logo">PELIKN</div>
+  <div class="page-num">04</div>
+</div>
+
+<!-- ═══ PAGE 5 — COMPARISON TABLE ═══════════════════════ -->
+<div class="page">
+  <span class="eyebrow ey-rose">Competitive Comparison</span>
+  <h2 class="title">One platform vs five point solutions</h2>
+  <p class="subtitle">Pelikn is the only platform combining food safety compliance and workforce management at indie-friendly pricing.</p>
+
+  <div style="overflow-x:auto;margin-bottom:32px;">
+    <table class="ct">
+      <thead>
+        <tr>
+          <th style="text-align:left;width:210px;"></th>
+          <th class="hl" style="color:var(--teal);">Pelikn</th>
+          <th>Trail</th>
+          <th>Navitas</th>
+          <th>SFBB+</th>
+          <th>Deputy</th>
+          <th>RotaCloud</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Fridge &amp; Cooking Temps</td><td class="hl"><span class="y">&#10003;</span></td><td><span class="y">&#10003;</span></td><td><span class="y">&#10003;</span></td><td><span class="y">&#10003;</span></td><td><span class="n">&mdash;</span></td><td><span class="n">&mdash;</span></td></tr>
+        <tr><td>Cleaning Schedules</td><td class="hl"><span class="y">&#10003;</span></td><td><span class="y">&#10003;</span></td><td><span class="y">&#10003;</span></td><td><span class="p">Basic</span></td><td><span class="n">&mdash;</span></td><td><span class="n">&mdash;</span></td></tr>
+        <tr><td>Allergen Management + QR</td><td class="hl"><span class="y">&#10003;</span></td><td><span class="y">&#10003;</span></td><td><span class="p">Partial</span></td><td><span class="n">&mdash;</span></td><td><span class="n">&mdash;</span></td><td><span class="n">&mdash;</span></td></tr>
+        <tr><td>Customer QR Allergen Menu</td><td class="hl"><span class="y">&#10003;</span></td><td><span class="n">&mdash;</span></td><td><span class="n">&mdash;</span></td><td><span class="n">&mdash;</span></td><td><span class="n">&mdash;</span></td><td><span class="n">&mdash;</span></td></tr>
+        <tr><td>Rota / Scheduling (AI)</td><td class="hl"><span class="y">&#10003; AI</span></td><td><span class="n">&mdash;</span></td><td><span class="n">&mdash;</span></td><td><span class="n">&mdash;</span></td><td><span class="y">&#10003;</span></td><td><span class="y">&#10003;</span></td></tr>
+        <tr><td>Time &amp; Attendance</td><td class="hl"><span class="y">&#10003;</span></td><td><span class="n">&mdash;</span></td><td><span class="n">&mdash;</span></td><td><span class="n">&mdash;</span></td><td><span class="y">&#10003;</span></td><td><span class="y">&#10003;</span></td></tr>
+        <tr><td>Push Notifications</td><td class="hl"><span class="y">&#10003;</span></td><td><span class="n">&mdash;</span></td><td><span class="p">Email</span></td><td><span class="n">&mdash;</span></td><td><span class="y">&#10003;</span></td><td><span class="y">&#10003;</span></td></tr>
+        <tr><td>Offline Support (PWA)</td><td class="hl"><span class="y">&#10003;</span></td><td><span class="n">&mdash;</span></td><td><span class="n">&mdash;</span></td><td><span class="n">&mdash;</span></td><td><span class="p">Partial</span></td><td><span class="n">&mdash;</span></td></tr>
+        <tr><td>Corrective Actions (HACCP)</td><td class="hl"><span class="y">&#10003;</span></td><td><span class="y">&#10003;</span></td><td><span class="y">&#10003;</span></td><td><span class="n">&mdash;</span></td><td><span class="n">&mdash;</span></td><td><span class="n">&mdash;</span></td></tr>
+        <tr><td>Staff Training Records</td><td class="hl"><span class="y">&#10003;</span></td><td><span class="y">&#10003;</span></td><td><span class="n">&mdash;</span></td><td><span class="n">&mdash;</span></td><td><span class="n">&mdash;</span></td><td><span class="n">&mdash;</span></td></tr>
+        <tr><td>Granular Permissions</td><td class="hl"><span class="y">13 types</span></td><td><span class="p">Basic</span></td><td><span class="p">Basic</span></td><td><span class="n">&mdash;</span></td><td><span class="y">&#10003;</span></td><td><span class="p">Basic</span></td></tr>
+        <tr><td>No Hardware Required</td><td class="hl"><span class="y">&#10003;</span></td><td><span class="p">Sensors $$</span></td><td><span class="p">Sensors $$</span></td><td><span class="y">&#10003;</span></td><td><span class="y">&#10003;</span></td><td><span class="y">&#10003;</span></td></tr>
+      </tbody>
+      <tfoot>
+        <tr><td>Starting Price</td><td class="hl" style="color:var(--teal);">&pound;5/mo</td><td>~&pound;30/mo</td><td>~&pound;20/mo</td><td>&pound;4.99/mo</td><td>&pound;3.50/user</td><td>&pound;3/user</td></tr>
+      </tfoot>
+    </table>
+  </div>
+
+  <div class="page-logo">PELIKN</div>
+  <div class="page-num">05</div>
+</div>
+
+<!-- ═══ PAGE 6 — WHY PELIKN ═══════════════════════════ -->
+<div class="page page--cream">
+  <span class="eyebrow ey-teal">Why Pelikn Wins</span>
+  <h2 class="title">Six reasons we&rsquo;re the obvious choice</h2>
+  <p class="subtitle">Built from the ground up for independent venues, not enterprise chains.</p>
+
+  <div class="g3">
+    <div class="why-card"><div class="why-num">1</div><h4>All-in-one</h4><p>Compliance + workforce in one platform. No more paying for Trail AND Deputy AND RotaCloud.</p></div>
+    <div class="why-card"><div class="why-num">2</div><h4>Indie-friendly pricing</h4><p>&pound;5/mo is impulse-buy territory. Pro at &pound;25 replaces &pound;75+ in combined tools.</p></div>
+    <div class="why-card"><div class="why-num">3</div><h4>No hardware lock-in</h4><p>Runs on any phone or tablet. Zero upfront cost. No Bluetooth probes required to get started.</p></div>
+    <div class="why-card"><div class="why-num">4</div><h4>Actually works offline</h4><p>Kitchens have poor signal. Basements have none. Pelikn caches data and syncs when connected.</p></div>
+    <div class="why-card"><div class="why-num">5</div><h4>10-minute setup</h4><p>Onboarding wizard auto-configures by venue type. Staff added with name + PIN. No training needed.</p></div>
+    <div class="why-card"><div class="why-num">6</div><h4>Staff actually use it</h4><p>PIN login, permission-aware dashboards, quick actions. Staff see only what they need.</p></div>
+  </div>
+
+  <div class="page-logo">PELIKN</div>
+  <div class="page-num">06</div>
+</div>
+
+<!-- ═══ CTA ═════════════════════════════════════════════ -->
+<div class="page cta-page">
+  <h2 style="font-family:'DM Serif Display',serif;font-size:48px;font-weight:400;letter-spacing:-1.5px;margin-bottom:16px;">Ready to see Pelikn<br/>in action?</h2>
+  <p style="font-size:17px;color:rgba(255,255,255,0.45);max-width:420px;margin-bottom:32px;">Book a 15-minute demo and we&rsquo;ll show you how it works for your venue.</p>
+  <div style="font-size:18px;font-weight:600;">darraghguy@yahoo.com</div>
+  <div class="page-logo" style="color:rgba(255,255,255,0.15);">PELIKN</div>
+</div>
+
+</body>
+</html>

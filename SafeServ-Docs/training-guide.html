@@ -1,0 +1,1520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Pelikn · Manager Training Guide</title>
+<style>
+  /* ── Reset & Base ─────────────────────────────────────────── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --brand:   #1a3c2e;
+    --brand-mid: #2d6b4f;
+    --cream:   #faf8f4;
+    --charcoal:#2d2d2d;
+    --orange:  #e07b39;
+    --blue:    #2563eb;
+    --teal:    #0d9488;
+    --purple:  #7c3aed;
+    --rose:    #e11d48;
+    --amber:   #d97706;
+    --green:   #16a34a;
+    --gray:    #64748b;
+
+    --cat-daily:    #0d9488;
+    --cat-food:     #16a34a;
+    --cat-team:     #2563eb;
+    --cat-audit:    #7c3aed;
+    --cat-settings: #64748b;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    background: var(--cream);
+    color: var(--charcoal);
+    font-size: 15px;
+    line-height: 1.6;
+  }
+
+  /* ── Typography ───────────────────────────────────────────── */
+  h1, h2, h3, h4 { line-height: 1.2; }
+  p { margin-bottom: 0; }
+
+  /* ── Layout ───────────────────────────────────────────────── */
+  .page { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+
+  /* ── COVER ────────────────────────────────────────────────── */
+  .cover {
+    background: var(--brand);
+    color: white;
+    padding: 80px 24px 72px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .cover::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 60% at 20% 50%, rgba(255,255,255,0.04) 0%, transparent 70%),
+      radial-gradient(ellipse 40% 40% at 80% 20%, rgba(224,123,57,0.15) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  .cover-logo {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 72px; height: 72px;
+    border-radius: 20px;
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.15);
+    margin-bottom: 24px;
+  }
+  .cover h1 {
+    font-size: 52px;
+    font-weight: 300;
+    letter-spacing: -1px;
+    font-family: Georgia, 'Times New Roman', serif;
+    margin-bottom: 8px;
+  }
+  .cover-sub {
+    font-size: 13px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.45);
+    margin-bottom: 32px;
+  }
+  .cover-tagline {
+    font-size: 22px;
+    font-weight: 300;
+    color: rgba(255,255,255,0.85);
+    max-width: 520px;
+    margin: 0 auto 40px;
+  }
+  .cover-badges {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 100px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+  }
+  .badge-outline { border: 1px solid rgba(255,255,255,0.2); color: rgba(255,255,255,0.7); }
+  .badge-orange  { background: var(--orange); color: white; }
+
+  /* ── TOC ──────────────────────────────────────────────────── */
+  .toc {
+    background: white;
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  }
+  .toc-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 24px;
+    display: flex;
+    gap: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .toc-inner::-webkit-scrollbar { display: none; }
+  .toc-link {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 14px 18px;
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    border-bottom: 2px solid transparent;
+    color: #94a3b8;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .toc-link:hover { color: var(--charcoal); }
+  .toc-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  /* ── SECTIONS ─────────────────────────────────────────────── */
+  .section { padding: 64px 0 16px; }
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 32px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid;
+  }
+  .section-icon {
+    width: 48px; height: 48px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+  .section-title { font-size: 28px; font-weight: 700; }
+  .section-desc { font-size: 14px; color: #64748b; margin-top: 2px; }
+
+  /* Category colours */
+  .cat-daily    { --c: var(--cat-daily);    --cl: #ccfbf1; }
+  .cat-food     { --c: var(--cat-food);     --cl: #dcfce7; }
+  .cat-team     { --c: var(--cat-team);     --cl: #dbeafe; }
+  .cat-audit    { --c: var(--cat-audit);    --cl: #ede9fe; }
+  .cat-settings { --c: var(--cat-settings); --cl: #f1f5f9; }
+  .cat-start    { --c: var(--brand);        --cl: #d1fae5; }
+
+  .section-header { border-color: var(--c); }
+  .section-icon   { background: var(--cl); color: var(--c); }
+  .section-title  { color: var(--c); }
+
+  /* ── FEATURE GRID ─────────────────────────────────────────── */
+  .feature-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+    margin-bottom: 48px;
+  }
+  .feature-card {
+    background: white;
+    border-radius: 16px;
+    border: 1px solid rgba(0,0,0,0.07);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    transition: box-shadow 0.15s;
+  }
+  .feature-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+
+  .feature-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+  }
+  .feature-icon {
+    width: 44px; height: 44px;
+    border-radius: 12px;
+    background: var(--cl);
+    color: var(--c);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+  .feature-name {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--charcoal);
+    margin-bottom: 3px;
+  }
+  .feature-summary {
+    font-size: 13px;
+    color: #64748b;
+    line-height: 1.5;
+  }
+  .feature-body { display: flex; flex-direction: column; gap: 10px; }
+
+  /* Role pills */
+  .roles { display: flex; gap: 6px; flex-wrap: wrap; }
+  .role-pill {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 3px 9px;
+    border-radius: 100px;
+    border: 1px solid;
+  }
+  .role-staff   { color: #0d9488; border-color: #0d9488; background: #f0fdfa; }
+  .role-manager { color: #2563eb; border-color: #2563eb; background: #eff6ff; }
+  .role-owner   { color: #7c3aed; border-color: #7c3aed; background: #f5f3ff; }
+  .role-public  { color: #d97706; border-color: #d97706; background: #fffbeb; }
+  .role-pro     { color: white; border-color: var(--orange); background: var(--orange); }
+
+  /* Actions list */
+  .actions-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #94a3b8;
+    margin-bottom: 4px;
+  }
+  .actions-list { display: flex; flex-direction: column; gap: 4px; }
+  .action-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--charcoal);
+  }
+  .action-item::before {
+    content: '→';
+    color: var(--c);
+    font-size: 11px;
+    margin-top: 2px;
+    flex-shrink: 0;
+    font-weight: 700;
+  }
+
+  /* ── TIP BOXES ────────────────────────────────────────────── */
+  .tip-box {
+    border-radius: 12px;
+    padding: 16px 20px;
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    margin-bottom: 20px;
+    font-size: 13.5px;
+    line-height: 1.6;
+  }
+  .tip-icon { font-size: 20px; flex-shrink: 0; margin-top: 1px; }
+  .tip-title { font-weight: 700; margin-bottom: 2px; font-size: 13px; }
+  .tip-manager { background: #eff6ff; border-left: 3px solid #2563eb; }
+  .tip-manager .tip-title { color: #2563eb; }
+  .tip-warning { background: #fffbeb; border-left: 3px solid #d97706; }
+  .tip-warning .tip-title { color: #d97706; }
+  .tip-success { background: #f0fdf4; border-left: 3px solid #16a34a; }
+  .tip-success .tip-title { color: #16a34a; }
+
+  /* ── QUICK REF TABLE ──────────────────────────────────────── */
+  .ref-table { width: 100%; border-collapse: collapse; margin-bottom: 40px; font-size: 13px; }
+  .ref-table th {
+    text-align: left;
+    padding: 10px 14px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #64748b;
+    border-bottom: 2px solid #e2e8f0;
+    background: #f8fafc;
+  }
+  .ref-table td {
+    padding: 12px 14px;
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: top;
+  }
+  .ref-table tr:last-child td { border-bottom: none; }
+  .ref-table tr:hover td { background: #f8fafc; }
+  .temp-pass { color: #16a34a; font-weight: 700; }
+  .temp-fail { color: #dc2626; font-weight: 700; }
+
+  /* ── CHECKLIST ────────────────────────────────────────────── */
+  .checklist { display: flex; flex-direction: column; gap: 8px; margin-bottom: 28px; }
+  .check-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    background: white;
+    border-radius: 10px;
+    border: 1px solid rgba(0,0,0,0.07);
+    font-size: 14px;
+  }
+  .check-box {
+    width: 20px; height: 20px;
+    border-radius: 6px;
+    border: 2px solid #e2e8f0;
+    flex-shrink: 0;
+    background: white;
+  }
+
+  /* ── FLOW DIAGRAM ─────────────────────────────────────────── */
+  .flow {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    flex-wrap: wrap;
+    margin-bottom: 28px;
+  }
+  .flow-step {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: white;
+    border: 1px solid rgba(0,0,0,0.08);
+    border-radius: 10px;
+    padding: 10px 16px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .flow-num {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: var(--c);
+    color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .flow-arrow { color: #cbd5e1; font-size: 18px; padding: 0 6px; flex-shrink: 0; }
+
+  /* ── FULL-WIDTH CARD ──────────────────────────────────────── */
+  .wide-card {
+    background: white;
+    border-radius: 16px;
+    border: 1px solid rgba(0,0,0,0.07);
+    padding: 28px 32px;
+    margin-bottom: 20px;
+  }
+  .wide-card h4 {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--charcoal);
+    margin-bottom: 12px;
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  /* ── PLAN COMPARISON ──────────────────────────────────────── */
+  .plan-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 40px;
+  }
+  .plan-card {
+    border-radius: 16px;
+    padding: 28px;
+    border: 2px solid;
+  }
+  .plan-starter { border-color: #e2e8f0; background: white; }
+  .plan-pro     { border-color: var(--orange); background: #fff7ed; }
+  .plan-name    { font-size: 20px; font-weight: 800; margin-bottom: 4px; }
+  .plan-price   { font-size: 28px; font-weight: 800; margin-bottom: 16px; }
+  .plan-price span { font-size: 14px; font-weight: 400; color: #64748b; }
+  .plan-feature {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 13px; margin-bottom: 8px;
+  }
+  .plan-feature .check { color: #16a34a; font-weight: 700; font-size: 15px; }
+  .plan-feature .cross { color: #94a3b8; font-size: 15px; }
+
+  /* ── FOOTER ───────────────────────────────────────────────── */
+  .footer {
+    background: var(--brand);
+    color: rgba(255,255,255,0.6);
+    text-align: center;
+    padding: 48px 24px;
+    margin-top: 80px;
+    font-size: 13px;
+  }
+  .footer strong { color: white; }
+
+  /* ── DIVIDER ──────────────────────────────────────────────── */
+  .divider { border: none; border-top: 1px solid #e2e8f0; margin: 40px 0; }
+
+  /* ── PRINT ────────────────────────────────────────────────── */
+  @media print {
+    .toc { display: none; }
+    .cover { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .feature-card, .wide-card, .tip-box { break-inside: avoid; }
+    .section { page-break-before: always; }
+  }
+
+  @media (max-width: 640px) {
+    .plan-grid { grid-template-columns: 1fr; }
+    .cover h1 { font-size: 36px; }
+    .feature-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════
+     COVER
+════════════════════════════════════════════════════════════ -->
+<div class="cover">
+  <div class="cover-logo">
+    <svg width="32" height="32" viewBox="0 0 36 36" fill="none">
+      <path d="M18 4L6 9v8c0 7.5 5.1 14.5 12 16.5C25 31.5 30 24.5 30 17V9L18 4z" fill="white" fill-opacity="0.9"/>
+      <path d="M13 18l3.5 3.5L23 15" stroke="#1a3c2e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+  <h1>Pelikn</h1>
+  <p class="cover-sub">Manager Training Guide · 2025</p>
+  <p class="cover-tagline">Everything you need to run a compliant, efficient venue — from daily food safety logs to staff rotas and payroll exports.</p>
+  <div class="cover-badges">
+    <span class="badge badge-outline">🇬🇧 UK Food Safety Act 1990</span>
+    <span class="badge badge-outline">📋 EHO Ready</span>
+    <span class="badge badge-outline">🌐 FSA Guidelines</span>
+    <span class="badge badge-orange">★ Manager Edition</span>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     STICKY NAV
+════════════════════════════════════════════════════════════ -->
+<nav class="toc">
+  <div class="toc-inner">
+    <a href="#getting-started" class="toc-link"><span class="toc-dot" style="background:#1a3c2e"></span>Getting Started</a>
+    <a href="#daily-ops"       class="toc-link"><span class="toc-dot" style="background:var(--cat-daily)"></span>Daily Ops</a>
+    <a href="#food-safety"     class="toc-link"><span class="toc-dot" style="background:var(--cat-food)"></span>Food Safety</a>
+    <a href="#team"            class="toc-link"><span class="toc-dot" style="background:var(--cat-team)"></span>Team</a>
+    <a href="#audit"           class="toc-link"><span class="toc-dot" style="background:var(--cat-audit)"></span>Audit &amp; Compliance</a>
+    <a href="#settings"        class="toc-link"><span class="toc-dot" style="background:var(--cat-settings)"></span>Settings</a>
+    <a href="#plans"           class="toc-link"><span class="toc-dot" style="background:var(--orange)"></span>Plans</a>
+  </div>
+</nav>
+
+<div class="page">
+
+<!-- ═══════════════════════════════════════════════════════════
+     1. GETTING STARTED
+════════════════════════════════════════════════════════════ -->
+<section id="getting-started" class="section cat-start">
+  <div class="section-header">
+    <div class="section-icon">🚀</div>
+    <div>
+      <div class="section-title">Getting Started</div>
+      <div class="section-desc">Login, dashboard, and your first 15 minutes in Pelikn</div>
+    </div>
+  </div>
+
+  <div class="tip-box tip-success">
+    <div class="tip-icon">💡</div>
+    <div>
+      <div class="tip-title">How to access Pelikn</div>
+      Your venue has a unique URL: <strong>pelikn.app/v/your-venue-name</strong>. Staff log in with a PIN shown on the login screen. Managers log in at <strong>pelikn.app/login</strong> with email + password. Add Pelikn to your phone's home screen for app-like access — it works offline too.
+    </div>
+  </div>
+
+  <div class="wide-card">
+    <h4>🏠 The Dashboard — your command centre</h4>
+    <p style="font-size:13.5px;color:#475569;margin-bottom:16px;">The dashboard gives you an instant snapshot of what's happening across your venue right now.</p>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;">
+      <div style="background:#f8fafc;border-radius:10px;padding:14px 16px;border:1px solid #e2e8f0;">
+        <div style="font-size:18px;margin-bottom:6px;">📊</div>
+        <div style="font-weight:700;font-size:13px;margin-bottom:4px;">Activity Feed</div>
+        <div style="font-size:12px;color:#64748b;">Recent logs across all compliance areas — see what's been recorded today at a glance.</div>
+      </div>
+      <div style="background:#f8fafc;border-radius:10px;padding:14px 16px;border:1px solid #e2e8f0;">
+        <div style="font-size:18px;margin-bottom:6px;">🌡️</div>
+        <div style="font-weight:700;font-size:13px;margin-bottom:4px;">Temperature Alerts</div>
+        <div style="font-size:12px;color:#64748b;">Out-of-range fridge or cooking temps surface here immediately so nothing slips through.</div>
+      </div>
+      <div style="background:#f8fafc;border-radius:10px;padding:14px 16px;border:1px solid #e2e8f0;">
+        <div style="font-size:18px;margin-bottom:6px;">✅</div>
+        <div style="font-weight:700;font-size:13px;margin-bottom:4px;">Overdue Tasks</div>
+        <div style="font-size:12px;color:#64748b;">Cleaning, checklists, and hot holding checks flagged red if overdue — so you can follow up.</div>
+      </div>
+      <div style="background:#f8fafc;border-radius:10px;padding:14px 16px;border:1px solid #e2e8f0;">
+        <div style="font-size:18px;margin-bottom:6px;">👥</div>
+        <div style="font-weight:700;font-size:13px;margin-bottom:4px;">Team Status</div>
+        <div style="font-size:12px;color:#64748b;">See who's clocked in right now, who's on break, and who's not started yet.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="wide-card">
+    <h4>🔐 Two types of login</h4>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+      <div>
+        <div style="font-weight:700;font-size:13px;color:#1a3c2e;margin-bottom:8px;">📱 Staff PIN Login</div>
+        <div style="font-size:13px;color:#475569;line-height:1.6;">Staff tap their name on the venue login screen, enter their 4–6 digit PIN, and they're in. No email needed. PINs are set up by the manager in Settings → Staff.</div>
+      </div>
+      <div>
+        <div style="font-weight:700;font-size:13px;color:#2563eb;margin-bottom:8px;">🔑 Manager Email Login</div>
+        <div style="font-size:13px;color:#475569;line-height:1.6;">Owners and managers sign in at pelikn.app/login with email + password. This gives access to all management features, exports, and settings — not available on staff accounts.</div>
+      </div>
+    </div>
+  </div>
+
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     2. DAILY OPERATIONS
+════════════════════════════════════════════════════════════ -->
+<section id="daily-ops" class="section cat-daily">
+  <div class="section-header">
+    <div class="section-icon">⚡</div>
+    <div>
+      <div class="section-title">Daily Operations</div>
+      <div class="section-desc">The tools your team uses every single shift</div>
+    </div>
+  </div>
+
+  <div class="feature-grid">
+
+    <!-- Clock In / Out -->
+    <div class="feature-card">
+      <div class="feature-header">
+        <div class="feature-icon">⏱️</div>
+        <div>
+          <div class="feature-name">Clock In / Out</div>
+          <div class="feature-summary">Staff tap to clock in and out of shifts. Live elapsed timer tracks working hours. Breaks are logged separately so paid time is accurate.</div>
+        </div>
+      </div>
+      <div class="feature-body">
+        <div class="roles">
+          <span class="role-pill role-staff">Staff</span>
+          <span class="role-pill role-manager">Manager</span>
+        </div>
+        <div>
+          <div class="actions-label">Key Actions</div>
+          <div class="actions-list">
+            <div class="action-item">Clock In → Start Break → End Break → Clock Out</div>
+            <div class="action-item">Manager sees full team clock status in real-time</div>
+            <div class="action-item">Missed punch? Add/edit sessions retrospectively</div>
+            <div class="action-item">Live timer shows exact time worked, excluding breaks</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tasks -->
+    <div class="feature-card">
+      <div class="feature-header">
+        <div class="feature-icon">📋</div>
+        <div>
+          <div class="feature-name">Tasks</div>
+          <div class="feature-summary">Create recurring or one-off tasks and assign them by job role. Staff see only what's relevant to them and mark tasks done during their shift.</div>
+        </div>
+      </div>
+      <div class="feature-body">
+        <div class="roles">
+          <span class="role-pill role-staff">Staff</span>
+          <span class="role-pill role-manager">Manager</span>
+        </div>
+        <div>
+          <div class="actions-label">Key Actions</div>
+          <div class="actions-list">
+            <div class="action-item">Assign tasks by role: Kitchen, FOH, Bar, All</div>
+            <div class="action-item">Mark complete with optional notes</div>
+            <div class="action-item">Set daily recurring or one-off tasks</div>
+            <div class="action-item">View pending sign-off items from training</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Noticeboard -->
+    <div class="feature-card">
+      <div class="feature-header">
+        <div class="feature-icon">📣</div>
+        <div>
+          <div class="feature-name">Noticeboard</div>
+          <div class="feature-summary">Post announcements that all staff see when they open the app. Pin critical messages so they stay at the top until you remove them.</div>
+        </div>
+      </div>
+      <div class="feature-body">
+        <div class="roles">
+          <span class="role-pill role-staff">Staff</span>
+          <span class="role-pill role-manager">Manager</span>
+          <span class="role-pill role-pro">Pro</span>
+        </div>
+        <div>
+          <div class="actions-label">Key Actions</div>
+          <div class="actions-list">
+            <div class="action-item">Post new notice (manager only)</div>
+            <div class="action-item">Pin important messages to top</div>
+            <div class="action-item">All staff see notices on their dashboard</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Opening / Closing Checklists -->
+    <div class="feature-card">
+      <div class="feature-header">
+        <div class="feature-icon">🔓</div>
+        <div>
+          <div class="feature-name">Opening &amp; Closing Checklists</div>
+          <div class="feature-summary">Custom checklists for opening and closing procedures. Each item is ticked off with a timestamp and name, giving you a clear audit trail per day.</div>
+        </div>
+      </div>
+      <div class="feature-body">
+        <div class="roles">
+          <span class="role-pill role-staff">Staff</span>
+          <span class="role-pill role-manager">Manager</span>
+        </div>
+        <div>
+          <div class="actions-label">Key Actions</div>
+          <div class="actions-list">
+            <div class="action-item">Add custom checklist items in Settings</div>
+            <div class="action-item">Log issues directly on a failed check</div>
+            <div class="action-item">View historical completions by date</div>
+            <div class="action-item">Export to PDF for EHO files</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="tip-box tip-manager">
+    <div class="tip-icon">👔</div>
+    <div>
+      <div class="tip-title">Manager tip — set up Tasks and Checklists before opening day</div>
+      Go to the Tasks section and build your role-based task list once. After that, staff see exactly what to do each shift without you needing to brief them individually. Do the same for Opening and Closing checklists in Settings — these become your daily record for the EHO.
+    </div>
+  </div>
+
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     3. FOOD SAFETY & COMPLIANCE
+════════════════════════════════════════════════════════════ -->
+<section id="food-safety" class="section cat-food">
+  <div class="section-header">
+    <div class="section-icon">🌡️</div>
+    <div>
+      <div class="section-title">Food Safety &amp; Compliance</div>
+      <div class="section-desc">8 digital log books replacing paper — all EHO-ready</div>
+    </div>
+  </div>
+
+  <!-- Quick reference temperatures -->
+  <div class="wide-card">
+    <h4>🌡️ UK Temperature Quick Reference</h4>
+    <table class="ref-table">
+      <thead>
+        <tr>
+          <th>Check Type</th>
+          <th>Safe Range</th>
+          <th>Frequency</th>
+          <th>Action if Failed</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Fridge / Chilled</strong></td>
+          <td><span class="temp-pass">0°C – 5°C</span></td>
+          <td>AM &amp; PM daily</td>
+          <td>Log reason, monitor, escalate if persistent</td>
+        </tr>
+        <tr>
+          <td><strong>Freezer</strong></td>
+          <td><span class="temp-pass">−18°C or below</span></td>
+          <td>AM &amp; PM daily</td>
+          <td>Check seals, transfer product if needed</td>
+        </tr>
+        <tr>
+          <td><strong>Cooking / Reheating</strong></td>
+          <td><span class="temp-pass">75°C or above</span></td>
+          <td>Every batch</td>
+          <td>Return to heat, do not serve until passed</td>
+        </tr>
+        <tr>
+          <td><strong>Hot Holding</strong></td>
+          <td><span class="temp-pass">63°C or above</span></td>
+          <td>AM &amp; PM service</td>
+          <td>Reheat or discard within 2 hours</td>
+        </tr>
+        <tr>
+          <td><strong>Delivery — Chilled</strong></td>
+          <td><span class="temp-pass">0°C – 5°C</span></td>
+          <td>Every delivery</td>
+          <td>Reject delivery, notify supplier</td>
+        </tr>
+        <tr>
+          <td><strong>Delivery — Frozen</strong></td>
+          <td><span class="temp-pass">−25°C – −18°C</span></td>
+          <td>Every delivery</td>
+          <td>Reject delivery, notify supplier</td>
+        </tr>
+        <tr>
+          <td><strong>Cooling (start)</strong></td>
+          <td>From 70°C → ≤8°C</td>
+          <td>Every batch cooled</td>
+          <td>Must reach ≤8°C within 90 minutes</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="feature-grid">
+
+    <!-- Fridge Temps -->
+    <div class="feature-card">
+      <div class="feature-header">
+        <div class="feature-icon">❄️</div>
+        <div>
+          <div class="feature-name">Fridge Temperature Logs</div>
+          <div class="feature-summary">Log AM &amp; PM fridge and freezer temperatures. Out-of-range readings are flagged and require an explanation before you can proceed.</div>
+        </div>
+      </div>
+      <div class="feature-body">
+        <div class="roles">
+          <span class="role-pill role-staff">Staff</span>
+          <span class="role-pill role-manager">Manager</span>
+        </div>
+        <div>
+          <div class="actions-label">Key Actions</div>
+          <div class="actions-list">
+            <div class="action-item">Log AM and PM readings for each fridge</div>
+            <div class="action-item">Set custom temp ranges per fridge in Settings</div>
+            <div class="action-item">Explain exceedances (delivery, defrost, fault)</div>
+            <div class="action-item">View history and export for audits</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cooking Temps -->
+    <div class="feature-card">
+      <div class="feature-header">
+        <div class="feature-icon">🍳</div>
+        <div>
+          <div class="feature-name">Cooking Temperature Logs</div>
+          <div class="feature-summary">Record core temperatures for cooked and reheated food. Automatic pass/fail against the 75°C standard. Failed logs prompt a notes field for corrective action.</div>
+        </div>
+      </div>
+      <div class="feature-body">
+        <div class="roles">
+          <span class="role-pill role-staff">Staff</span>
+          <span class="role-pill role-manager">Manager</span>
+        </div>
+        <div>
+          <div class="actions-label">Key Actions</div>
+          <div class="actions-list">
+            <div class="action-item">Log food item, temp, and cook time</div>
+            <div class="action-item">Automatic ✓ Pass / ✗ Fail indicator</div>
+            <div class="action-item">Add notes on any failures</div>
+            <div class="action-item">View today's logs and full history</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hot Holding -->
+    <div class="feature-card">
+      <div class="feature-header">
+        <div class="feature-icon">🔥</div>
+        <div>
+          <div class="feature-name">Hot Holding Checks</div>
+          <div class="feature-summary">Check that food held hot during service stays at or above 63°C. Submit AM and PM checks as a batch — one tap completes the entire check.</div>
+        </div>
+      </div>
+      <div class="feature-body">
+        <div class="roles">
+          <span class="role-pill role-staff">Staff</span>
+          <span class="role-pill role-manager">Manager</span>
+        </div>
+        <div>
+          <div class="actions-label">Key Actions</div>
+          <div class="actions-list">
+            <div class="action-item">Complete AM and PM checks with one submission</div>
+            <div class="action-item">Add/remove hot-holding items in Settings</div>
+            <div class="action-item">Dashboard shows ✓ Done / Pending status</div>
+            <div class="action-item">History with date range presets</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cooling Logs -->
+    <div class="feature-card">
+      <div class="feature-header">
+        <div class="feature-icon">🧊</div>
+        <div>
+          <div class="feature-name">Cooling Logs</div>
+          <div class="feature-summary">Track the cooling process from 70°C down to 8°C. Records cooling method and auto-fails any batch that didn't reach safe temperature within 90 minutes.</div>
+        </div>
+      </div>
+      <div class="feature-body">
+        <div class="roles">
+          <span class="role-pill role-staff">Staff</span>
+          <span class="role-pill role-manager">Manager</span>
+        </div>
+        <div>
+          <div class="actions-label">Key Actions</div>
+          <div class="actions-list">
+            <div class="action-item">Log start temp, end temp, and method used</div>
+            <div class="action-item">Methods: ambient, ice bath, blast chiller, etc.</div>
+            <div class="action-item">Auto-fail if end temp &gt; 8°C</div>
+            <div class="action-item">Full history with date range presets</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Deliveries -->
+    <div class="feature-card">
+      <div class="feature-header">
+        <div class="feature-icon">🚚</div>
+        <div>
+          <div class="feature-name">Delivery Checks</div>
+          <div class="feature-summary">Log every incoming delivery with supplier, product category, and temperature. Temperature rules are applied automatically based on category — chilled, frozen, or ambient.</div>
+        </div>
+      </div>
+      <div class="feature-body">
+        <div class="roles">
+          <span class="role-pill role-staff">Staff</span>
+          <span class="role-pill role-manager">Manager</span>
+        </div>
+        <div>
+          <div class="actions-label">Key Actions</div>
+          <div class="actions-list">
+            <div class="action-item">Select supplier, log temp and condition</div>
+            <div class="action-item">Accept or reject with one tap</div>
+            <div class="action-item">OCR scan to read delivery label automatically</div>
+            <div class="action-item">Rejected deliveries are logged for the EHO</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cleaning -->
+    <div class="feature-card">
+      <div class="feature-header">
+        <div class="feature-icon">🧹</div>
+        <div>
+          <div class="feature-name">Cleaning Schedule</div>
+          <div class="feature-summary">Set cleaning tasks with frequencies (daily, weekly, monthly) and assign by job role. Overdue tasks are flagged in red on the dashboard so nothing gets forgotten.</div>
+        </div>
+      </div>
+      <div class="feature-body">
+        <div class="roles">
+          <span class="role-pill role-staff">Staff</span>
+          <span class="role-pill role-manager">Manager</span>
+        </div>
+        <div>
+          <div class="actions-label">Key Actions</div>
+          <div class="actions-list">
+            <div class="action-item">Complete task with optional notes</div>
+            <div class="action-item">Frequencies: daily, weekly, fortnightly, monthly, quarterly</div>
+            <div class="action-item">Assign to role: All, Kitchen, FOH, Bar</div>
+            <div class="action-item">Status badges: Done / Due Soon / Overdue</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Allergens -->
+    <div class="feature-card">
+      <div class="feature-header">
+        <div class="feature-icon">⚠️</div>
+        <div>
+          <div class="feature-name">Allergen Registry</div>
+          <div class="feature-summary">Maintain a digital allergen matrix for your menu. Generate a QR code customers can scan at the table to view the full allergen information — no printing needed.</div>
+        </div>
+      </div>
+      <div class="feature-body">
+        <div class="roles">
+          <span class="role-pill role-staff">Staff</span>
+          <span class="role-pill role-manager">Manager</span>
+          <span class="role-pill role-public">Customers</span>
+        </div>
+        <div>
+          <div class="actions-label">Key Actions</div>
+          <div class="actions-list">
+            <div class="action-item">Add menu items and tick applicable allergens</div>
+            <div class="action-item">All 14 EU/UK notifiable allergens covered</div>
+            <div class="action-item">Generate QR code → download or print card</div>
+            <div class="action-item">Public shareable link — no login needed</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pest Control -->
+    <div class="feature-card">
+      <div class="feature-header">
+        <div class="feature-icon">🐀</div>
+        <div>
+          <div class="feature-name">Pest Control Log</div>
+          <div class="feature-summary">Log pest sightings, inspections, and treatments. Track contractor visits and mark issues resolved. EHO inspectors frequently check for documented pest control records.</div>
+        </div>
+      </div>
+      <div class="feature-body">
+        <div class="roles">
+          <span class="role-pill role-staff">Staff</span>
+          <span class="role-pill role-manager">Manager</span>
+        </div>
+        <div>
+          <div class="actions-label">Key Actions</div>
+          <div class="actions-list">
+            <div class="action-item">Log sighting with pest type, location, severity</div>
+            <div class="action-item">Record contractor details and treatment</div>
+            <div class="action-item">Mark as Open → Resolved with follow-up notes</div>
+            <div class="action-item">History with date range filtering</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Probe Calibration -->
+    <div class="feature-card">
+      <div class="feature-header">
+        <div class="feature-icon">🔬</div>
+        <div>
+          <div class="feature-name">Probe Calibration</div>
+          <div class="feature-summary">Record thermometer calibration checks. Use the ice water (0°C) or boiling water (100°C) method to verify probe accuracy, with tolerance tracking against the expected reading.</div>
+        </div>
+      </div>
+      <div class="feature-body">
+        <div class="roles">
+          <span class="role-pill role-manager">Manager</span>
+        </div>
+        <div>
+          <div class="actions-label">Key Actions</div>
+          <div class="actions-list">
+            <div class="action-item">Select calibration method (ice / boiling)</div>
+            <div class="action-item">Record expected vs. actual temperature</div>
+            <div class="action-item">Log calibrator name and timestamp</div>
+            <div class="action-item">History of last 100 calibrations</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Corrective Actions -->
+    <div class="feature-card">
+      <div class="feature-header">
+        <div class="feature-icon">🔧</div>
+        <div>
+          <div class="feature-name">Corrective Actions</div>
+          <div class="feature-summary">When something goes wrong — a failed temperature, a pest sighting, a delivery reject — log the issue and the corrective action taken. Essential for HACCP compliance.</div>
+        </div>
+      </div>
+      <div class="feature-body">
+        <div class="roles">
+          <span class="role-pill role-staff">Staff</span>
+          <span class="role-pill role-manager">Manager</span>
+        </div>
+        <div>
+          <div class="actions-label">Key Actions</div>
+          <div class="actions-list">
+            <div class="action-item">Categories: Temperature, Cleaning, Delivery, Pest, Equipment, Food Safety, Staff</div>
+            <div class="action-item">Severity: Minor / Major / Critical</div>
+            <div class="action-item">Mark resolved with resolver name and notes</div>
+            <div class="action-item">Searchable history for audits</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Waste Logs -->
+    <div class="feature-card">
+      <div class="feature-header">
+        <div class="feature-icon">🗑️</div>
+        <div>
+          <div class="feature-name">Waste Log</div>
+          <div class="feature-summary">Record food waste with item, quantity, and reason. Track waste patterns over time to reduce costs. Export to PDF for management reporting.</div>
+        </div>
+      </div>
+      <div class="feature-body">
+        <div class="roles">
+          <span class="role-pill role-staff">Staff</span>
+          <span class="role-pill role-manager">Manager</span>
+          <span class="role-pill role-pro">Pro</span>
+        </div>
+        <div>
+          <div class="actions-label">Key Actions</div>
+          <div class="actions-list">
+            <div class="action-item">Log item, quantity, and unit (kg, portions, litres)</div>
+            <div class="action-item">Reasons: Expired, Spoiled, Over-production, Prep, Other</div>
+            <div class="action-item">7-day rolling view on dashboard</div>
+            <div class="action-item">Export to PDF for management review</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Fitness to Work -->
+    <div class="feature-card">
+      <div class="feature-header">
+        <div class="feature-icon">💚</div>
+        <div>
+          <div class="feature-name">Fitness to Work (SC7)</div>
+          <div class="feature-summary">Staff complete a digital health declaration at the start of each shift. Flags illness (vomiting, skin conditions) and confirms hygiene practices. Required for EHO compliance.</div>
+        </div>
+      </div>
+      <div class="feature-body">
+        <div class="roles">
+          <span class="role-pill role-staff">Staff</span>
+          <span class="role-pill role-manager">Manager</span>
+        </div>
+        <div>
+          <div class="actions-label">Key Actions</div>
+          <div class="actions-list">
+            <div class="action-item">Staff self-declare fitness before each shift</div>
+            <div class="action-item">Two-step: Health check → Hygiene confirmation</div>
+            <div class="action-item">Manager sees all declarations with illness flags highlighted</div>
+            <div class="action-item">Automatic record-keeping for EHO visits</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="tip-box tip-warning">
+    <div class="tip-icon">⚠️</div>
+    <div>
+      <div class="tip-title">Critical — never skip temperature logs</div>
+      EHO inspectors look specifically for continuous temperature records. A gap of more than a day in your fridge or cooking logs is a red flag. Pelikn's dashboard highlights any overdue checks so your team can never accidentally miss them.
+    </div>
+  </div>
+
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     4. TEAM MANAGEMENT
+════════════════════════════════════════════════════════════ -->
+<section id="team" class="section cat-team">
+  <div class="section-header">
+    <div class="section-icon">👥</div>
+    <div>
+      <div class="section-title">Team Management</div>
+      <div class="section-desc">Rotas, timesheets, training records, and time off — all in one place</div>
+    </div>
+  </div>
+
+  <div class="feature-grid">
+
+    <!-- Rota -->
+    <div class="feature-card">
+      <div class="feature-header">
+        <div class="feature-icon">📅</div>
+        <div>
+          <div class="feature-name">Rota &amp; Shift Scheduling</div>
+          <div class="feature-summary">Build weekly rotas with a visual drag-and-drop scheduler. An AI assistant can draft a rota from your requirements in seconds. Staff see their shifts and can request swaps.</div>
+        </div>
+      </div>
+      <div class="feature-body">
+        <div class="roles">
+          <span class="role-pill role-staff">Staff</span>
+          <span class="role-pill role-manager">Manager</span>
+          <span class="role-pill role-pro">Pro</span>
+        </div>
+        <div>
+          <div class="actions-label">Key Actions</div>
+          <div class="actions-list">
+            <div class="action-item">Create shifts with start/end times and role labels</div>
+            <div class="action-item">Use AI rota builder for quick weekly draft</div>
+            <div class="action-item">Staff request shift swaps — manager approves</div>
+            <div class="action-item">View labour cost and total hours per week</div>
+            <div class="action-item">Set venue closures to block out holidays</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Timesheets -->
+    <div class="feature-card">
+      <div class="feature-header">
+        <div class="feature-icon">💰</div>
+        <div>
+          <div class="feature-name">Timesheets &amp; Payroll</div>
+          <div class="feature-summary">All clock-in/out data automatically builds into timesheets. View a weekly calendar grid showing each person's hours per day, or export the full period for payroll processing.</div>
+        </div>
+      </div>
+      <div class="feature-body">
+        <div class="roles">
+          <span class="role-pill role-manager">Manager</span>
+          <span class="role-pill role-pro">Pro</span>
+        </div>
+        <div>
+          <div class="actions-label">Key Actions</div>
+          <div class="actions-list">
+            <div class="action-item">View hours per person per day in calendar grid</div>
+            <div class="action-item">Navigate back through any previous week</div>
+            <div class="action-item">Set hourly rates per staff member in Settings</div>
+            <div class="action-item">Export to CSV (payroll) or PDF (records)</div>
+            <div class="action-item">Filter by this week, last week, this month, custom</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Training -->
+    <div class="feature-card">
+      <div class="feature-header">
+        <div class="feature-icon">🎓</div>
+        <div>
+          <div class="feature-name">Training Records</div>
+          <div class="feature-summary">Digital SC6 induction sign-offs and certificate tracking. Know at a glance which staff have valid food safety training and who needs a renewal.</div>
+        </div>
+      </div>
+      <div class="feature-body">
+        <div class="roles">
+          <span class="role-pill role-staff">Staff</span>
+          <span class="role-pill role-manager">Manager</span>
+          <span class="role-pill role-pro">Pro</span>
+        </div>
+        <div>
+          <div class="actions-label">Key Actions</div>
+          <div class="actions-list">
+            <div class="action-item">Sign off SC6 induction (12 standard topics)</div>
+            <div class="action-item">Upload certificates with expiry dates</div>
+            <div class="action-item">Status: Valid / Expiring Soon / Expired</div>
+            <div class="action-item">Certificate types: Food Safety, HACCP, Fire Safety, First Aid, Allergen, Manual Handling</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Time Off -->
+    <div class="feature-card">
+      <div class="feature-header">
+        <div class="feature-icon">🏖️</div>
+        <div>
+          <div class="feature-name">Time Off &amp; Leave</div>
+          <div class="feature-summary">Staff submit time-off requests through the app. You approve or reject them with a reason. A calendar view shows who's off when — essential for rota planning.</div>
+        </div>
+      </div>
+      <div class="feature-body">
+        <div class="roles">
+          <span class="role-pill role-staff">Staff</span>
+          <span class="role-pill role-manager">Manager</span>
+          <span class="role-pill role-pro">Pro</span>
+        </div>
+        <div>
+          <div class="actions-label">Key Actions</div>
+          <div class="actions-list">
+            <div class="action-item">Staff request holiday from their dashboard</div>
+            <div class="action-item">Manager approves or rejects with reason</div>
+            <div class="action-item">Calendar view — see the whole team's leave at once</div>
+            <div class="action-item">Approved leave integrates with the rota</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Rota workflow -->
+  <div class="wide-card">
+    <h4>📅 Typical Rota Workflow</h4>
+    <div class="flow">
+      <div class="flow-step"><div class="flow-num">1</div>Check approved leave calendar</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><div class="flow-num">2</div>Open Rota → select week</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><div class="flow-num">3</div>Use AI builder or add shifts manually</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><div class="flow-num">4</div>Review cost &amp; hours</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><div class="flow-num">5</div>Staff see their shifts immediately</div>
+    </div>
+  </div>
+
+  <div class="tip-box tip-manager">
+    <div class="tip-icon">💡</div>
+    <div>
+      <div class="tip-title">Manager tip — set hourly rates for accurate payroll</div>
+      Go to Settings → Staff and set each person's hourly rate. Once set, the Timesheets page automatically calculates their estimated pay for the period. Export to CSV and send straight to your payroll provider.
+    </div>
+  </div>
+
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     5. AUDIT & COMPLIANCE
+════════════════════════════════════════════════════════════ -->
+<section id="audit" class="section cat-audit">
+  <div class="section-header">
+    <div class="section-icon">🏛️</div>
+    <div>
+      <div class="section-title">Audit &amp; Compliance</div>
+      <div class="section-desc">Be EHO-ready every day — not just when an inspection is booked</div>
+    </div>
+  </div>
+
+  <div class="feature-grid">
+
+    <!-- HACCP -->
+    <div class="feature-card">
+      <div class="feature-header">
+        <div class="feature-icon">📊</div>
+        <div>
+          <div class="feature-name">HACCP System</div>
+          <div class="feature-summary">Pre-built HACCP documentation covering all 5 critical control points. A live 30-day compliance dashboard shows exactly how well your team is keeping up with each area.</div>
+        </div>
+      </div>
+      <div class="feature-body">
+        <div class="roles">
+          <span class="role-pill role-manager">Manager</span>
+        </div>
+        <div>
+          <div class="actions-label">5 Critical Control Points</div>
+          <div class="actions-list">
+            <div class="action-item">Receiving (deliveries)</div>
+            <div class="action-item">Storage (fridge temps)</div>
+            <div class="action-item">Cooking (cooking logs)</div>
+            <div class="action-item">Cooling (cooling logs)</div>
+            <div class="action-item">Service (hot holding, allergens)</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EHO Mock Inspection -->
+    <div class="feature-card">
+      <div class="feature-header">
+        <div class="feature-icon">🔍</div>
+        <div>
+          <div class="feature-name">EHO Mock Inspection</div>
+          <div class="feature-summary">Run a simulated Environmental Health Officer inspection on your own venue. Identify gaps before the real inspector arrives. Covers all the key compliance areas they check.</div>
+        </div>
+      </div>
+      <div class="feature-body">
+        <div class="roles">
+          <span class="role-pill role-manager">Manager</span>
+          <span class="role-pill role-pro">Pro</span>
+        </div>
+        <div>
+          <div class="actions-label">Key Actions</div>
+          <div class="actions-list">
+            <div class="action-item">Work through the EHO checklist section by section</div>
+            <div class="action-item">Self-assess compliance for each area</div>
+            <div class="action-item">Identify and action any gaps found</div>
+            <div class="action-item">Re-run as often as needed</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Suppliers -->
+    <div class="feature-card">
+      <div class="feature-header">
+        <div class="feature-icon">🏭</div>
+        <div>
+          <div class="feature-name">Approved Supplier List</div>
+          <div class="feature-summary">Maintain your documented list of approved suppliers — a legal requirement under UK food law. Store contact details, categories, and supplier items for use in delivery checks and orders.</div>
+        </div>
+      </div>
+      <div class="feature-body">
+        <div class="roles">
+          <span class="role-pill role-manager">Manager</span>
+        </div>
+        <div>
+          <div class="actions-label">Key Actions</div>
+          <div class="actions-list">
+            <div class="action-item">Add suppliers with contact details and category</div>
+            <div class="action-item">Categories: Meat, Fish, Dairy, Produce, Dry Goods</div>
+            <div class="action-item">Add supplier items (pre-populates delivery checks)</div>
+            <div class="action-item">Active / Inactive status management</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Supplier Orders -->
+    <div class="feature-card">
+      <div class="feature-header">
+        <div class="feature-icon">📦</div>
+        <div>
+          <div class="feature-name">Supplier Orders</div>
+          <div class="feature-summary">Create and track purchase orders from drafting to receipt. Status flows from Draft → Submitted → Ordered → Received, giving you a complete ordering audit trail.</div>
+        </div>
+      </div>
+      <div class="feature-body">
+        <div class="roles">
+          <span class="role-pill role-manager">Manager</span>
+          <span class="role-pill role-pro">Pro</span>
+        </div>
+        <div>
+          <div class="actions-label">Key Actions</div>
+          <div class="actions-list">
+            <div class="action-item">Create order with line items and quantities</div>
+            <div class="action-item">Status: Draft → Submitted → Ordered → Received</div>
+            <div class="action-item">Add notes per order</div>
+            <div class="action-item">Full order history for accounts / audits</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- EHO Ready checklist -->
+  <div class="wide-card">
+    <h4>✅ Are you EHO-Ready? — Daily checklist for managers</h4>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+      <div class="checklist">
+        <div class="check-item"><div class="check-box"></div>Fridge AM &amp; PM temps logged today</div>
+        <div class="check-item"><div class="check-box"></div>Opening checklist completed</div>
+        <div class="check-item"><div class="check-box"></div>Cooking temps recorded for every batch</div>
+        <div class="check-item"><div class="check-box"></div>Hot holding AM check done</div>
+        <div class="check-item"><div class="check-box"></div>All deliveries logged and accepted/rejected</div>
+      </div>
+      <div class="checklist">
+        <div class="check-item"><div class="check-box"></div>Fitness to work declared by all staff</div>
+        <div class="check-item"><div class="check-box"></div>No overdue cleaning tasks</div>
+        <div class="check-item"><div class="check-box"></div>Allergen info up to date</div>
+        <div class="check-item"><div class="check-box"></div>Corrective actions logged for any issues</div>
+        <div class="check-item"><div class="check-box"></div>Closing checklist completed at end of day</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tip-box tip-success">
+    <div class="tip-icon">🏆</div>
+    <div>
+      <div class="tip-title">EHO inspections — what they look for</div>
+      Inspectors want to see <strong>consistent, dated records over time</strong> — not perfect scores. A venue with 6 months of continuous, properly-explained logs (even with some flagged readings) will always score better than one with gaps. Pelikn's continuous log books are exactly what they want to see.
+    </div>
+  </div>
+
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     6. SETTINGS
+════════════════════════════════════════════════════════════ -->
+<section id="settings" class="section cat-settings">
+  <div class="section-header">
+    <div class="section-icon">⚙️</div>
+    <div>
+      <div class="section-title">Settings &amp; Configuration</div>
+      <div class="section-desc">Configure Pelikn for your venue — takes about 20 minutes to set up fully</div>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px;margin-bottom:40px;">
+
+    <div class="wide-card" style="margin-bottom:0">
+      <h4>👤 Staff Management</h4>
+      <div class="actions-list" style="margin-top:8px;">
+        <div class="action-item" style="--c:var(--cat-settings)">Add staff members with name, role, PIN, and job title</div>
+        <div class="action-item" style="--c:var(--cat-settings)">Set hourly rates for payroll calculation</div>
+        <div class="action-item" style="--c:var(--cat-settings)">Assign roles: Owner, Manager, Staff</div>
+        <div class="action-item" style="--c:var(--cat-settings)">Mark staff inactive (preserves history)</div>
+        <div class="action-item" style="--c:var(--cat-settings)">Upload profile photos</div>
+        <div class="action-item" style="--c:var(--cat-settings)">Multi-venue: link staff to additional venues</div>
+      </div>
+    </div>
+
+    <div class="wide-card" style="margin-bottom:0">
+      <h4>🏢 Venue Settings</h4>
+      <div class="actions-list" style="margin-top:8px;">
+        <div class="action-item" style="--c:var(--cat-settings)">Set venue name and branding</div>
+        <div class="action-item" style="--c:var(--cat-settings)">Configure fridge units with custom temp ranges</div>
+        <div class="action-item" style="--c:var(--cat-settings)">Add hot holding items</div>
+        <div class="action-item" style="--c:var(--cat-settings)">Set break duration policy (minutes)</div>
+        <div class="action-item" style="--c:var(--cat-settings)">Add venue closures / holidays</div>
+        <div class="action-item" style="--c:var(--cat-settings)">Toggle features on/off for your venue</div>
+      </div>
+    </div>
+
+    <div class="wide-card" style="margin-bottom:0">
+      <h4>🔔 Notifications &amp; Preferences</h4>
+      <div class="actions-list" style="margin-top:8px;">
+        <div class="action-item" style="--c:var(--cat-settings)">Enable push notifications (requires PWA install)</div>
+        <div class="action-item" style="--c:var(--cat-settings)">Choose which events trigger a notification</div>
+        <div class="action-item" style="--c:var(--cat-settings)">Dark / Light mode toggle</div>
+        <div class="action-item" style="--c:var(--cat-settings)">Multi-venue: add and switch between venues</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="tip-box tip-manager">
+    <div class="tip-icon">🛠️</div>
+    <div>
+      <div class="tip-title">First-time setup checklist</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:8px;">
+        <div class="action-item" style="--c:#2563eb;font-size:13px;">Add all staff with PINs and hourly rates</div>
+        <div class="action-item" style="--c:#2563eb;font-size:13px;">Create your fridge units with temp ranges</div>
+        <div class="action-item" style="--c:#2563eb;font-size:13px;">Add hot holding items</div>
+        <div class="action-item" style="--c:#2563eb;font-size:13px;">Build your cleaning schedule</div>
+        <div class="action-item" style="--c:#2563eb;font-size:13px;">Set up opening &amp; closing checklist items</div>
+        <div class="action-item" style="--c:#2563eb;font-size:13px;">Add your approved suppliers</div>
+        <div class="action-item" style="--c:#2563eb;font-size:13px;">Enter your menu items in the allergen registry</div>
+        <div class="action-item" style="--c:#2563eb;font-size:13px;">Run a mock EHO inspection</div>
+      </div>
+    </div>
+  </div>
+
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     7. PLANS
+════════════════════════════════════════════════════════════ -->
+<section id="plans" class="section" style="--c:var(--orange);--cl:#fff7ed;">
+  <div class="section-header" style="border-color:var(--orange);">
+    <div class="section-icon" style="background:#fff7ed;color:var(--orange);">💳</div>
+    <div>
+      <div class="section-title" style="color:var(--orange);">Plans &amp; Features</div>
+      <div class="section-desc">Everything included in Starter and Pro</div>
+    </div>
+  </div>
+
+  <div class="plan-grid">
+    <div class="plan-card plan-starter">
+      <div class="plan-name" style="color:var(--charcoal);">Starter</div>
+      <div class="plan-price" style="color:var(--charcoal);">£5<span>/month</span></div>
+      <div class="plan-feature"><span class="check">✓</span> Dashboard &amp; tasks</div>
+      <div class="plan-feature"><span class="check">✓</span> Clock In / Out</div>
+      <div class="plan-feature"><span class="check">✓</span> Fridge temperature logs</div>
+      <div class="plan-feature"><span class="check">✓</span> Cooking temperature logs</div>
+      <div class="plan-feature"><span class="check">✓</span> Hot holding checks</div>
+      <div class="plan-feature"><span class="check">✓</span> Cooling logs</div>
+      <div class="plan-feature"><span class="check">✓</span> Delivery checks</div>
+      <div class="plan-feature"><span class="check">✓</span> Opening &amp; closing checklists</div>
+      <div class="plan-feature"><span class="check">✓</span> Cleaning schedule</div>
+      <div class="plan-feature"><span class="check">✓</span> Allergen registry &amp; QR code</div>
+      <div class="plan-feature"><span class="check">✓</span> Pest control log</div>
+      <div class="plan-feature"><span class="check">✓</span> Probe calibration</div>
+      <div class="plan-feature"><span class="check">✓</span> Corrective actions</div>
+      <div class="plan-feature"><span class="check">✓</span> Suppliers</div>
+      <div class="plan-feature"><span class="check">✓</span> Fitness to work (SC7)</div>
+      <div class="plan-feature"><span class="check">✓</span> HACCP documentation</div>
+      <div class="plan-feature"><span class="cross">○</span> <span style="color:#94a3b8">Rota builder</span></div>
+      <div class="plan-feature"><span class="cross">○</span> <span style="color:#94a3b8">Timesheets &amp; payroll export</span></div>
+      <div class="plan-feature"><span class="cross">○</span> <span style="color:#94a3b8">Training records</span></div>
+      <div class="plan-feature"><span class="cross">○</span> <span style="color:#94a3b8">Time off management</span></div>
+    </div>
+    <div class="plan-card plan-pro">
+      <div class="plan-name" style="color:var(--orange);">Pro</div>
+      <div class="plan-price" style="color:var(--charcoal);">£25<span>/month</span></div>
+      <div class="plan-feature"><span class="check">✓</span> Everything in Starter</div>
+      <div class="plan-feature"><span class="check">✓</span> <strong>Rota builder</strong> + AI assistant</div>
+      <div class="plan-feature"><span class="check">✓</span> <strong>Timesheets</strong> + payroll CSV/PDF export</div>
+      <div class="plan-feature"><span class="check">✓</span> <strong>Training records</strong> (SC6 sign-offs + certificates)</div>
+      <div class="plan-feature"><span class="check">✓</span> <strong>Time off</strong> + leave calendar</div>
+      <div class="plan-feature"><span class="check">✓</span> <strong>Waste logs</strong> + PDF export</div>
+      <div class="plan-feature"><span class="check">✓</span> <strong>Supplier orders</strong> + tracking</div>
+      <div class="plan-feature"><span class="check">✓</span> <strong>Noticeboard</strong></div>
+      <div class="plan-feature"><span class="check">✓</span> <strong>EHO Mock Inspection</strong></div>
+      <div class="plan-feature"><span class="check">✓</span> <strong>Multi-venue</strong> support</div>
+      <div class="plan-feature"><span class="check">✓</span> Shift swap management</div>
+      <div class="plan-feature"><span class="check">✓</span> Venue closure management</div>
+      <div style="margin-top:16px;padding:12px 14px;background:rgba(224,123,57,0.12);border-radius:10px;font-size:12.5px;color:#92400e;">
+        <strong>Multi-venue add-on:</strong> additional venues at £15/mo each · QR code allergen add-on £1/mo
+      </div>
+    </div>
+  </div>
+
+</section>
+
+</div><!-- /page -->
+
+<!-- ═══════════════════════════════════════════════════════════
+     FOOTER
+════════════════════════════════════════════════════════════ -->
+<div class="footer">
+  <div style="font-size:20px;font-family:Georgia,serif;color:white;margin-bottom:8px;">Pelikn</div>
+  <div style="margin-bottom:4px;">Food Safety &amp; Operations · <strong>pelikn.app</strong></div>
+  <div>UK Food Safety Act 1990 · FSA Guidelines · EHO-Ready Records · GDPR Compliant</div>
+  <div style="margin-top:20px;font-size:11px;opacity:0.5;">This document is confidential and intended for Pelikn customers and their teams. © 2025 Pelikn.</div>
+</div>
+
+</body>
+</html>

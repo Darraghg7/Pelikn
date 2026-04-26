@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Pelikn — Go-To-Market Plan</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Serif+Display&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --brand: #1a3c2e;
+    --charcoal: #18181b;
+    --teal: #0d9488;
+    --teal-light: #14b8a6;
+    --orange: #e07b39;
+    --blue: #2563eb;
+    --purple: #7c3aed;
+    --rose: #e11d48;
+    --green: #16a34a;
+    --muted: #71717a;
+    --subtle: #a1a1aa;
+    --surface: #f4f4f5;
+    --border: #e4e4e7;
+    --cream: #faf8f4;
+  }
+
+  body {
+    font-family: 'DM Sans', -apple-system, system-ui, sans-serif;
+    background: #fff;
+    color: var(--charcoal);
+    font-size: 15px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .page {
+    width: 100%;
+    min-height: 100vh;
+    padding: 72px 80px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+    page-break-after: always;
+    overflow: hidden;
+  }
+
+  .page-num { position: absolute; bottom: 36px; right: 80px; font-size: 11px; font-weight: 500; color: var(--subtle); letter-spacing: 1px; }
+  .page-logo { position: absolute; bottom: 36px; left: 80px; font-size: 12px; font-weight: 700; letter-spacing: 1px; color: var(--subtle); }
+
+  .page--dark { background: var(--charcoal); color: #fff; }
+  .page--dark .page-num, .page--dark .page-logo { color: rgba(255,255,255,0.2); }
+  .page--cream { background: var(--cream); }
+
+  .cover {
+    background: var(--brand);
+    color: #fff;
+    justify-content: flex-end;
+    padding-bottom: 100px;
+  }
+
+  .cover::before {
+    content: '';
+    position: absolute;
+    top: -10%;
+    right: -5%;
+    width: 50vw;
+    height: 50vw;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(13,148,136,0.15) 0%, transparent 70%);
+  }
+
+  .cover h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 64px;
+    font-weight: 400;
+    letter-spacing: -2px;
+    line-height: 1.05;
+    margin-bottom: 20px;
+    position: relative;
+    z-index: 2;
+  }
+
+  .eyebrow { font-size: 10px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 14px; display: block; }
+  .ey-teal { color: var(--teal); }
+  .ey-orange { color: var(--orange); }
+  .ey-blue { color: var(--blue); }
+  .ey-purple { color: var(--purple); }
+  .ey-rose { color: var(--rose); }
+  .ey-green { color: var(--green); }
+
+  .title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 48px;
+    font-weight: 400;
+    letter-spacing: -1.5px;
+    line-height: 1.08;
+    margin-bottom: 14px;
+  }
+
+  .subtitle {
+    font-size: 16px;
+    color: var(--muted);
+    max-width: 560px;
+    line-height: 1.6;
+    margin-bottom: 44px;
+  }
+
+  .page--dark .subtitle { color: rgba(255,255,255,0.45); }
+
+  h3 { font-size: 18px; font-weight: 700; margin: 28px 0 10px; }
+
+  .g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .g3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 18px; }
+  .g4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 16px; }
+
+  /* ── Cards ──────────────────────────────────────── */
+  .card { border-radius: 14px; padding: 24px; }
+  .card--s { background: var(--surface); }
+  .card--w { background: #fff; border: 1px solid var(--border); }
+  .card--g { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); }
+  .card--t { background: rgba(13,148,136,0.05); border: 1px solid rgba(13,148,136,0.1); }
+
+  .card h4 { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+  .card p { font-size: 13px; color: var(--muted); line-height: 1.55; margin: 0; }
+  .card--g h4 { color: #fff; }
+  .card--g p { color: rgba(255,255,255,0.45); }
+
+  /* ── Stat ──────────────────────────────────────── */
+  .stat-num { font-family: 'DM Serif Display', serif; font-size: 40px; font-weight: 400; line-height: 1; margin-bottom: 4px; }
+  .stat-label { font-size: 11px; font-weight: 500; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; }
+
+  /* ── Callout ────────────────────────────────────── */
+  .callout {
+    border-radius: 14px;
+    padding: 24px 28px;
+    margin: 20px 0;
+  }
+
+  .callout--teal { background: rgba(13,148,136,0.06); border-left: 3px solid var(--teal); }
+  .callout--orange { background: rgba(224,123,57,0.06); border-left: 3px solid var(--orange); }
+  .callout--blue { background: rgba(37,99,235,0.06); border-left: 3px solid var(--blue); }
+  .callout--dark { background: var(--charcoal); color: #fff; border-left: 3px solid var(--teal); }
+  .callout--dark p { color: rgba(255,255,255,0.6); }
+
+  .callout h4 { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+  .callout p { font-size: 13px; color: var(--muted); line-height: 1.6; margin: 0; }
+
+  /* ── Table ──────────────────────────────────────── */
+  .ch-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .ch-table th { text-align: left; padding: 10px 14px; font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); border-bottom: 2px solid var(--charcoal); }
+  .ch-table td { padding: 12px 14px; border-bottom: 1px solid var(--border); vertical-align: top; font-size: 13px; }
+
+  .tag { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 4px; letter-spacing: 0.5px; }
+  .tag--hi { background: rgba(13,148,136,0.1); color: var(--teal); }
+  .tag--md { background: rgba(37,99,235,0.1); color: var(--blue); }
+  .tag--lo { background: rgba(100,116,139,0.1); color: var(--muted); }
+
+  /* ── Funnel ─────────────────────────────────────── */
+  .funnel { display: flex; flex-direction: column; align-items: center; gap: 6px; margin: 28px 0; }
+  .funnel-stage { display: flex; align-items: center; justify-content: center; padding: 14px; border-radius: 10px; font-size: 13px; font-weight: 600; color: #fff; }
+  .funnel-arrow { font-size: 16px; color: var(--border); }
+
+  /* ── Timeline ───────────────────────────────────── */
+  .phase-tl { position: relative; padding-left: 36px; margin: 24px 0; }
+  .phase-tl::before { content: ''; position: absolute; left: 13px; top: 0; bottom: 0; width: 2px; background: linear-gradient(180deg, var(--teal), var(--blue), var(--purple), var(--orange)); }
+
+  .ph-item { position: relative; padding: 16px 0 16px 20px; border-bottom: 1px solid rgba(0,0,0,0.03); }
+  .ph-item:last-child { border-bottom: none; }
+  .ph-item::before { content: ''; position: absolute; left: -30px; top: 22px; width: 12px; height: 12px; border-radius: 50%; background: #fff; border: 3px solid var(--teal); }
+  .ph-item:nth-child(2)::before { border-color: var(--blue); }
+  .ph-item:nth-child(3)::before { border-color: var(--purple); }
+  .ph-item:nth-child(4)::before { border-color: var(--orange); }
+
+  .ph-date { font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--teal); margin-bottom: 2px; }
+  .ph-item:nth-child(2) .ph-date { color: var(--blue); }
+  .ph-item:nth-child(3) .ph-date { color: var(--purple); }
+  .ph-item:nth-child(4) .ph-date { color: var(--orange); }
+
+  .ph-item h4 { font-size: 16px; font-weight: 700; margin: 0 0 4px; }
+  .ph-item p { font-size: 12px; color: var(--muted); line-height: 1.55; margin: 0; }
+
+  /* ── Risks ──────────────────────────────────────── */
+  .risk-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; padding: 20px; background: var(--surface); border-radius: 12px; margin-bottom: 12px; }
+  .risk-row h4 { font-size: 14px; margin-bottom: 4px; }
+  .risk-row p { font-size: 12px; color: var(--muted); line-height: 1.55; margin: 0; }
+
+  .cta-page {
+    background: var(--brand);
+    color: #fff;
+    text-align: center;
+    justify-content: center;
+    align-items: center;
+  }
+
+  @media print {
+    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .page { page-break-after: always; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══ COVER ═══════════════════════════════════════════ -->
+<div class="page cover">
+  <div style="font-size:10px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,0.3);margin-bottom:32px;">Go-To-Market Strategy</div>
+  <h1>From one venue<br/>to one thousand.</h1>
+  <p style="font-size:19px;color:rgba(255,255,255,0.5);max-width:540px;line-height:1.55;position:relative;z-index:2;">A phased plan to capture the UK independent hospitality market through content-led growth, strategic partnerships and community-driven expansion.</p>
+  <div style="margin-top:32px;font-size:12px;color:rgba(255,255,255,0.25);">April 2026 &middot; Confidential</div>
+  <div class="page-logo" style="color:rgba(255,255,255,0.15);">PELIKN</div>
+</div>
+
+<!-- ═══ PAGE 2 — EXECUTIVE SUMMARY ═════════════════════ -->
+<div class="page">
+  <span class="eyebrow ey-teal">01 &mdash; Executive Summary</span>
+  <h2 class="title">The opportunity</h2>
+  <p class="subtitle">Pelikn combines food safety compliance and workforce management for independent hospitality. 180,000+ UK venues need this &mdash; most still use paper.</p>
+
+  <div class="g4" style="margin-bottom:32px;">
+    <div class="card card--t" style="text-align:center;"><div class="stat-num" style="color:var(--teal);">300</div><div class="stat-label">Venues Y1</div></div>
+    <div class="card card--t" style="text-align:center;"><div class="stat-num" style="color:var(--teal);">1,500</div><div class="stat-label">Venues Y2</div></div>
+    <div class="card card--t" style="text-align:center;"><div class="stat-num" style="color:var(--teal);">&pound;100k</div><div class="stat-label">ARR Target Y1</div></div>
+    <div class="card card--t" style="text-align:center;"><div class="stat-num" style="color:var(--teal);">&pound;400k</div><div class="stat-label">ARR Target Y2</div></div>
+  </div>
+
+  <div class="callout callout--teal">
+    <h4>Strategy in one line</h4>
+    <p>Start local (Northern Ireland), prove the model, expand to UK cities through content marketing + EHO partnerships + referrals, and scale nationally with product-led growth.</p>
+  </div>
+
+  <div class="page-logo">PELIKN</div>
+  <div class="page-num">02</div>
+</div>
+
+<!-- ═══ PAGE 3 — TARGET CUSTOMER ═══════════════════════ -->
+<div class="page page--cream">
+  <span class="eyebrow ey-blue">02 &mdash; Target Customer</span>
+  <h2 class="title">Who we&rsquo;re building for</h2>
+  <p class="subtitle">Independent food businesses with 3&ndash;30 staff, &pound;100k&ndash;&pound;2M revenue, still using paper or basic free tools.</p>
+
+  <div class="g2" style="margin-bottom:24px;">
+    <div class="card card--w">
+      <h4>Primary: The Owner-Manager</h4>
+      <p>Runs 1&ndash;2 venues. 5&ndash;15 staff. Does the rota themselves. Worries about EHO inspections. Needs something that works out of the box.</p>
+    </div>
+    <div class="card card--w">
+      <h4>Secondary: The Multi-Site Operator</h4>
+      <p>3&ndash;8 venues. Wants centralised compliance. Needs consistent processes across sites. Willing to pay more for consistency.</p>
+    </div>
+  </div>
+
+  <div class="g4">
+    <div class="card card--s" style="text-align:center;">
+      <div style="font-size:24px;margin-bottom:8px;">☕</div>
+      <h4 style="font-size:14px;">Cafes</h4>
+      <p style="font-size:12px;">60k+ in UK<br/>Entry: Starter &pound;5</p>
+    </div>
+    <div class="card card--s" style="text-align:center;">
+      <div style="font-size:24px;margin-bottom:8px;">🍺</div>
+      <h4 style="font-size:14px;">Pubs</h4>
+      <p style="font-size:12px;">47k+ in UK<br/>Entry: Pro &pound;25</p>
+    </div>
+    <div class="card card--s" style="text-align:center;">
+      <div style="font-size:24px;margin-bottom:8px;">🍽</div>
+      <h4 style="font-size:14px;">Restaurants</h4>
+      <p style="font-size:12px;">40k+ in UK<br/>Entry: Pro &pound;25</p>
+    </div>
+    <div class="card card--s" style="text-align:center;">
+      <div style="font-size:24px;margin-bottom:8px;">🏨</div>
+      <h4 style="font-size:14px;">Hotels</h4>
+      <p style="font-size:12px;">30k+ in UK<br/>Entry: Pro + Multi</p>
+    </div>
+  </div>
+
+  <div class="page-logo">PELIKN</div>
+  <div class="page-num">03</div>
+</div>
+
+<!-- ═══ PAGE 4 — POSITIONING ═══════════════════════════ -->
+<div class="page">
+  <span class="eyebrow ey-orange">03 &mdash; Positioning &amp; Messaging</span>
+  <h2 class="title">How we talk about Pelikn</h2>
+  <p class="subtitle">Clear, consistent messaging that resonates with time-poor venue owners.</p>
+
+  <div class="callout callout--dark">
+    <h4 style="color:#fff;">Positioning Statement</h4>
+    <p>For independent hospitality venues who struggle with fragmented compliance and operations tools, Pelikn is the all-in-one platform that replaces paper logs, spreadsheet rotas and WhatsApp coordination with a single, mobile-first app &mdash; at a price that makes sense for a 10-person cafe.</p>
+  </div>
+
+  <div class="g3" style="margin:24px 0;">
+    <div class="card card--s" style="text-align:center;padding:28px 18px;">
+      <div style="font-size:28px;margin-bottom:10px;">🎯</div>
+      <h4 style="font-size:14px;">All-in-one</h4>
+      <p style="font-size:12px;">&ldquo;Stop paying for 5 apps. Pelikn does compliance AND workforce in one platform.&rdquo;</p>
+    </div>
+    <div class="card card--s" style="text-align:center;padding:28px 18px;">
+      <div style="font-size:28px;margin-bottom:10px;">⚡</div>
+      <h4 style="font-size:14px;">Built for independents</h4>
+      <p style="font-size:12px;">&ldquo;Enterprise software doesn&rsquo;t work for a cafe with 6 staff. Pelikn was built for venues like yours.&rdquo;</p>
+    </div>
+    <div class="card card--s" style="text-align:center;padding:28px 18px;">
+      <div style="font-size:28px;margin-bottom:10px;">💰</div>
+      <h4 style="font-size:14px;">Affordable</h4>
+      <p style="font-size:12px;">&ldquo;From &pound;5/mo. Less than one failed EHO fine. Less than one hour of your manager&rsquo;s time.&rdquo;</p>
+    </div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:6px;">
+    <div style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Key Proof Points</div>
+    <div style="display:flex;align-items:baseline;gap:10px;font-size:13px;padding:6px 0;border-bottom:1px solid var(--border);"><span style="color:var(--teal);font-weight:700;flex-shrink:0;">→</span><span><strong>Save 5+ hours/week</strong> on rota, timesheets, and compliance admin</span></div>
+    <div style="display:flex;align-items:baseline;gap:10px;font-size:13px;padding:6px 0;border-bottom:1px solid var(--border);"><span style="color:var(--teal);font-weight:700;flex-shrink:0;">→</span><span><strong>Setup in under 10 minutes</strong> &mdash; wizard configures features by venue type</span></div>
+    <div style="display:flex;align-items:baseline;gap:10px;font-size:13px;padding:6px 0;border-bottom:1px solid var(--border);"><span style="color:var(--teal);font-weight:700;flex-shrink:0;">→</span><span><strong>No hardware needed</strong> &mdash; runs on any phone, tablet or laptop</span></div>
+    <div style="display:flex;align-items:baseline;gap:10px;font-size:13px;padding:6px 0;border-bottom:1px solid var(--border);"><span style="color:var(--teal);font-weight:700;flex-shrink:0;">→</span><span><strong>Staff actually use it</strong> &mdash; PIN login, 30 seconds to train</span></div>
+    <div style="display:flex;align-items:baseline;gap:10px;font-size:13px;padding:6px 0;"><span style="color:var(--teal);font-weight:700;flex-shrink:0;">→</span><span><strong>Always inspection-ready</strong> &mdash; every check timestamped and audit-ready</span></div>
+  </div>
+
+  <div class="page-logo">PELIKN</div>
+  <div class="page-num">04</div>
+</div>
+
+<!-- ═══ PAGE 5 — CHANNELS ══════════════════════════════ -->
+<div class="page">
+  <span class="eyebrow ey-purple">04 &mdash; Acquisition Channels</span>
+  <h2 class="title">How we find customers</h2>
+  <p class="subtitle">Prioritise low-cost, high-trust channels first. Scale paid acquisition once unit economics are proven.</p>
+
+  <table class="ch-table">
+    <thead><tr><th>Channel</th><th>Strategy</th><th>Priority</th><th>CAC</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Content / SEO</strong></td><td>Blog targeting &ldquo;HACCP checklist&rdquo;, &ldquo;fridge log template&rdquo;, &ldquo;pub rota template&rdquo; &mdash; capture search intent, convert to paid.</td><td><span class="tag tag--hi">High</span></td><td>&pound;15&ndash;25</td></tr>
+      <tr><td><strong>EHO Partnerships</strong></td><td>Partner with Environmental Health Officers who recommend Pelikn to venues needing to improve their food safety rating.</td><td><span class="tag tag--hi">High</span></td><td>&pound;10&ndash;20</td></tr>
+      <tr><td><strong>Referral Programme</strong></td><td>Free month for every venue referred. Hospitality owners know other owners &mdash; word of mouth is powerful.</td><td><span class="tag tag--hi">High</span></td><td>&pound;5&ndash;15</td></tr>
+      <tr><td><strong>Social Media</strong></td><td>TikTok/Reels: EHO horror stories, before/after paper vs digital, quick food safety tips.</td><td><span class="tag tag--md">Medium</span></td><td>&pound;10&ndash;20</td></tr>
+      <tr><td><strong>Local Events</strong></td><td>Attend hospitality networking events, food festivals. Demo on tablet, sign up on the spot.</td><td><span class="tag tag--md">Medium</span></td><td>&pound;30&ndash;50</td></tr>
+      <tr><td><strong>Cold Outbound</strong></td><td>Target venues with 3-star or lower food hygiene ratings (public data). Personal email or visit.</td><td><span class="tag tag--md">Medium</span></td><td>&pound;40&ndash;60</td></tr>
+      <tr><td><strong>Google Ads</strong></td><td>High-intent keywords from Q3 once organic content provides landing pages.</td><td><span class="tag tag--lo">Later</span></td><td>&pound;50&ndash;80</td></tr>
+      <tr><td><strong>Supplier Partners</strong></td><td>Partner with food wholesalers and POS providers. Bundle or referral model.</td><td><span class="tag tag--lo">Later</span></td><td>&pound;20&ndash;40</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout callout--orange" style="margin-top:20px;">
+    <h4>Channel priority logic</h4>
+    <p>High-priority channels combine low CAC with high trust. Blog readers are pre-educated. EHO recommendations carry professional authority. Owner referrals carry social proof.</p>
+  </div>
+
+  <div class="page-logo">PELIKN</div>
+  <div class="page-num">05</div>
+</div>
+
+<!-- ═══ PAGE 6 — FUNNEL ════════════════════════════════ -->
+<div class="page page--cream">
+  <span class="eyebrow ey-green">05 &mdash; Sales Funnel</span>
+  <h2 class="title">From awareness to revenue</h2>
+  <p class="subtitle">Product-led growth with a free trial. The onboarding wizard is the key activation moment.</p>
+
+  <div class="funnel">
+    <div class="funnel-stage" style="width:88%;background:linear-gradient(90deg, var(--teal), var(--teal-light));">Awareness &mdash; Content, social, EHO referrals, events</div>
+    <div class="funnel-arrow">&#9660;</div>
+    <div class="funnel-stage" style="width:72%;background:linear-gradient(90deg, var(--blue), #3b82f6);">Interest &mdash; Free trial (14 days, no card)</div>
+    <div class="funnel-arrow">&#9660;</div>
+    <div class="funnel-stage" style="width:56%;background:linear-gradient(90deg, var(--purple), #8b5cf6);">Activation &mdash; Onboarding wizard + first fridge check</div>
+    <div class="funnel-arrow">&#9660;</div>
+    <div class="funnel-stage" style="width:42%;background:linear-gradient(90deg, var(--orange), #f59e0b);">Conversion &mdash; Paid subscription</div>
+    <div class="funnel-arrow">&#9660;</div>
+    <div class="funnel-stage" style="width:32%;background:linear-gradient(90deg, var(--brand), #2d6b4f);">Expansion &mdash; Upsell, add venues, referrals</div>
+  </div>
+
+  <div class="g3" style="margin-top:28px;">
+    <div class="card card--w" style="text-align:center;">
+      <div class="stat-num" style="font-size:36px;color:var(--teal);">40%</div>
+      <div class="stat-label">Trial → Activated</div>
+      <p style="font-size:11px;color:var(--muted);margin-top:4px;">Complete onboarding wizard</p>
+    </div>
+    <div class="card card--w" style="text-align:center;">
+      <div class="stat-num" style="font-size:36px;color:var(--blue);">25%</div>
+      <div class="stat-label">Activated → Paid</div>
+      <p style="font-size:11px;color:var(--muted);margin-top:4px;">Convert within 30 days</p>
+    </div>
+    <div class="card card--w" style="text-align:center;">
+      <div class="stat-num" style="font-size:36px;color:var(--purple);">15%</div>
+      <div class="stat-label">Paid → Expanded</div>
+      <p style="font-size:11px;color:var(--muted);margin-top:4px;">Upsell within 6 months</p>
+    </div>
+  </div>
+
+  <div class="callout callout--blue" style="margin-top:20px;">
+    <h4>Activation is the key metric</h4>
+    <p>Users who complete onboarding and log their first fridge check within 24 hours convert at 3x the rate. The wizard and &ldquo;Getting Started&rdquo; dashboard checklist drive this moment.</p>
+  </div>
+
+  <div class="page-logo">PELIKN</div>
+  <div class="page-num">06</div>
+</div>
+
+<!-- ═══ PAGE 7 — PHASED ROLLOUT ════════════════════════ -->
+<div class="page">
+  <span class="eyebrow ey-rose">06 &mdash; Phased Rollout</span>
+  <h2 class="title">Four phases to 1,500 venues</h2>
+  <p class="subtitle">Start local. Prove the model. Expand with content and partnerships.</p>
+
+  <div class="phase-tl">
+    <div class="ph-item">
+      <div class="ph-date">Phase 1 &mdash; Q2 2026</div>
+      <h4>Local Launch &mdash; Northern Ireland</h4>
+      <p><strong>Goal:</strong> 20 paying venues. <strong>Channels:</strong> Direct outreach, local events, personal network, 1&ndash;2 EHO partnerships. <strong>Budget:</strong> &pound;5k.</p>
+    </div>
+    <div class="ph-item">
+      <div class="ph-date">Phase 2 &mdash; Q3 2026</div>
+      <h4>Regional Expansion &mdash; UK Cities</h4>
+      <p><strong>Goal:</strong> 100 paying venues. <strong>Channels:</strong> Content/SEO, referral programme, social media, regional EHO partnerships. <strong>Budget:</strong> &pound;15k.</p>
+    </div>
+    <div class="ph-item">
+      <div class="ph-date">Phase 3 &mdash; Q4 2026&ndash;Q1 2027</div>
+      <h4>National Scale &mdash; Full UK</h4>
+      <p><strong>Goal:</strong> 300 paying venues. <strong>Channels:</strong> Google Ads, trade shows, supplier partnerships. First CS hire. <strong>Budget:</strong> &pound;30k.</p>
+    </div>
+    <div class="ph-item">
+      <div class="ph-date">Phase 4 &mdash; H2 2027</div>
+      <h4>Market Leadership &mdash; UK + Ireland</h4>
+      <p><strong>Goal:</strong> 1,500 paying venues. <strong>Channels:</strong> Partner channel mature, referrals driving 30%+ signups. API integrations, Bluetooth probes. <strong>Budget:</strong> &pound;50k.</p>
+    </div>
+  </div>
+
+  <div class="page-logo">PELIKN</div>
+  <div class="page-num">07</div>
+</div>
+
+<!-- ═══ PAGE 8 — CONTENT + PRICING ═════════════════════ -->
+<div class="page">
+  <span class="eyebrow ey-teal">07 &mdash; Content &amp; Pricing Strategy</span>
+  <h2 class="title">Own the conversation.<br/>Price for adoption.</h2>
+  <p class="subtitle">Content marketing is the primary acquisition engine. Pricing is designed to minimise friction.</p>
+
+  <div class="g2" style="gap:28px;">
+    <div>
+      <div style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:12px;">Content Pillars</div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div class="card card--s" style="padding:14px 18px;"><h4 style="font-size:13px;margin:0;">🌡 Food Safety Compliance</h4><p style="font-size:11px;">&ldquo;HACCP checklist template&rdquo;, &ldquo;How to pass an EHO inspection&rdquo;</p></div>
+        <div class="card card--s" style="padding:14px 18px;"><h4 style="font-size:13px;margin:0;">📅 Hospitality Operations</h4><p style="font-size:11px;">&ldquo;Free pub rota template&rdquo;, &ldquo;How to reduce labour costs&rdquo;</p></div>
+        <div class="card card--s" style="padding:14px 18px;"><h4 style="font-size:13px;margin:0;">📊 Business Advice</h4><p style="font-size:11px;">&ldquo;Calculate food cost %&rdquo;, &ldquo;Staff retention strategies&rdquo;</p></div>
+        <div class="card card--s" style="padding:14px 18px;"><h4 style="font-size:13px;margin:0;">📱 Product Content</h4><p style="font-size:11px;">Comparisons, walkthroughs, customer stories</p></div>
+      </div>
+
+      <div style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin:20px 0 8px;">Monthly Cadence</div>
+      <div style="display:flex;flex-direction:column;gap:4px;font-size:12px;">
+        <div style="display:flex;gap:8px;padding:5px 0;border-bottom:1px solid var(--border);"><strong style="width:60px;color:var(--teal);flex-shrink:0;">Wk 1</strong>Long-form SEO article (2k+ words)</div>
+        <div style="display:flex;gap:8px;padding:5px 0;border-bottom:1px solid var(--border);"><strong style="width:60px;color:var(--teal);flex-shrink:0;">Wk 2</strong>Free downloadable template (lead magnet)</div>
+        <div style="display:flex;gap:8px;padding:5px 0;border-bottom:1px solid var(--border);"><strong style="width:60px;color:var(--teal);flex-shrink:0;">Wk 3</strong>Video/Reel: quick tip or day-in-the-life</div>
+        <div style="display:flex;gap:8px;padding:5px 0;"><strong style="width:60px;color:var(--teal);flex-shrink:0;">Wk 4</strong>Comparison or case study article</div>
+      </div>
+    </div>
+
+    <div>
+      <div style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:12px;">Pricing Strategy</div>
+      <div class="callout callout--teal" style="margin:0 0 16px;">
+        <h4>Land &amp; expand</h4>
+        <p>Starter at &pound;5 is an impulse buy. Get venues on the platform with compliance, then upsell to Pro (&pound;25) when they need rota and time tracking. Multi-venue at &pound;15/extra scales with growth.</p>
+      </div>
+
+      <div style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">Expansion Triggers</div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div class="card card--s" style="padding:14px 18px;"><h4 style="font-size:13px;margin:0;">Starter → Pro</h4><p style="font-size:11px;">Venue adds 8+ staff or spends 2+ hrs on rota</p></div>
+        <div class="card card--s" style="padding:14px 18px;"><h4 style="font-size:13px;margin:0;">Single → Multi</h4><p style="font-size:11px;">Owner opens second location</p></div>
+        <div class="card card--s" style="padding:14px 18px;"><h4 style="font-size:13px;margin:0;">Monthly → Annual</h4><p style="font-size:11px;">2 months free after 3 months active use</p></div>
+      </div>
+
+      <div style="display:flex;justify-content:space-around;padding:16px;background:var(--surface);border-radius:10px;margin-top:16px;text-align:center;">
+        <div><div class="stat-num" style="font-size:24px;color:var(--teal);">60%</div><div class="stat-label" style="font-size:10px;">Starter Y1</div></div>
+        <div><div class="stat-num" style="font-size:24px;color:var(--teal);">35%</div><div class="stat-label" style="font-size:10px;">Pro Y1</div></div>
+        <div><div class="stat-num" style="font-size:24px;color:var(--teal);">5%</div><div class="stat-label" style="font-size:10px;">Multi Y1</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="page-logo">PELIKN</div>
+  <div class="page-num">08</div>
+</div>
+
+<!-- ═══ PAGE 9 — METRICS + RISKS ═══════════════════════ -->
+<div class="page">
+  <span class="eyebrow ey-purple">08 &mdash; Metrics &amp; Risks</span>
+  <h2 class="title">What we measure.<br/>What could go wrong.</h2>
+
+  <div class="g2" style="gap:28px;margin-bottom:28px;">
+    <div>
+      <div style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;">Growth KPIs</div>
+      <div style="display:flex;flex-direction:column;gap:4px;font-size:13px;">
+        <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);"><span>New trials/month</span><strong>40&ndash;60 by M6</strong></div>
+        <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);"><span>Trial → Paid</span><strong>10%+</strong></div>
+        <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);"><span>MRR growth</span><strong>15&ndash;20%/mo</strong></div>
+        <div style="display:flex;justify-content:space-between;padding:8px 0;"><span>Referral %</span><strong>20%+ of signups</strong></div>
+      </div>
+    </div>
+    <div>
+      <div style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;">Retention KPIs</div>
+      <div style="display:flex;flex-direction:column;gap:4px;font-size:13px;">
+        <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);"><span>Monthly churn</span><strong>&lt;5%</strong></div>
+        <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);"><span>Net Revenue Retention</span><strong>110%+</strong></div>
+        <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);"><span>Daily active staff</span><strong>60%+</strong></div>
+        <div style="display:flex;justify-content:space-between;padding:8px 0;"><span>Features per venue</span><strong>4+ modules</strong></div>
+      </div>
+    </div>
+  </div>
+
+  <div style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;">Key Risks &amp; Mitigations</div>
+
+  <div class="risk-row">
+    <div><h4 style="color:var(--rose);">Low staff adoption</h4><p>Staff resist new tools. Paper feels easier.</p></div>
+    <div><h4 style="color:var(--teal);">Mitigation</h4><p>PIN login (no email). Permission-aware dashboards. Quick actions faster than paper.</p></div>
+  </div>
+  <div class="risk-row">
+    <div><h4 style="color:var(--rose);">Enterprise moves downmarket</h4><p>Trail or Navitas launch a &ldquo;Lite&rdquo; tier.</p></div>
+    <div><h4 style="color:var(--teal);">Mitigation</h4><p>Enterprise DNA is hard to shed. Their UX is built for compliance managers, not baristas.</p></div>
+  </div>
+  <div class="risk-row">
+    <div><h4 style="color:var(--rose);">High hospitality churn</h4><p>Venues close. Budgets get cut.</p></div>
+    <div><h4 style="color:var(--teal);">Mitigation</h4><p>Starter at &pound;5 resists cuts. Compliance becomes must-have for inspections. Annual billing reduces churn.</p></div>
+  </div>
+
+  <div class="page-logo">PELIKN</div>
+  <div class="page-num">09</div>
+</div>
+
+<!-- ═══ CTA ═════════════════════════════════════════════ -->
+<div class="page cta-page">
+  <h2 style="font-family:'DM Serif Display',serif;font-size:48px;font-weight:400;letter-spacing:-1.5px;margin-bottom:16px;">The market is ready.<br/>The product is built.</h2>
+  <p style="font-size:17px;color:rgba(255,255,255,0.45);max-width:440px;margin-bottom:32px;">Pelikn is looking for partners and investors who believe independent hospitality deserves better tools.</p>
+  <div style="font-size:18px;font-weight:600;">darraghguy@yahoo.com</div>
+  <div class="page-logo" style="color:rgba(255,255,255,0.15);">PELIKN</div>
+</div>
+
+</body>
+</html>

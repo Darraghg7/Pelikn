@@ -11,12 +11,12 @@
  *   APNS_KEY_ID    — 10-char Key ID from Apple Developer portal
  *   APNS_TEAM_ID   — 10-char Team ID from Apple Developer portal
  *   APNS_PRIVATE_KEY — Full contents of your AuthKey_XXXXXXXXXX.p8 file
- *   APNS_BUNDLE_ID — e.g. app.safeserv
+ *   APNS_BUNDLE_ID — e.g. app.pelikn
  *
  * To set secrets:
  *   supabase secrets set APNS_KEY_ID=XXXXXXXXXX
  *   supabase secrets set APNS_TEAM_ID=XXXXXXXXXX
- *   supabase secrets set APNS_BUNDLE_ID=app.safeserv
+ *   supabase secrets set APNS_BUNDLE_ID=app.pelikn
  *   supabase secrets set APNS_PRIVATE_KEY="$(cat AuthKey_XXXXXXXXXX.p8)"
  *
  * Deploy:
@@ -28,12 +28,12 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 const APNS_KEY_ID     = Deno.env.get('APNS_KEY_ID')     ?? ''
 const APNS_TEAM_ID    = Deno.env.get('APNS_TEAM_ID')    ?? ''
 const APNS_PRIVATE_KEY = Deno.env.get('APNS_PRIVATE_KEY') ?? ''
-const APNS_BUNDLE_ID  = Deno.env.get('APNS_BUNDLE_ID')  ?? 'app.safeserv'
+const APNS_BUNDLE_ID  = Deno.env.get('APNS_BUNDLE_ID')  ?? 'app.pelikn'
 const SUPABASE_URL    = Deno.env.get('SUPABASE_URL')    ?? ''
 const SUPABASE_SERVICE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
 
 const ALLOWED_ORIGINS = [
-  'https://safeserv.app',
+  'https://pelikn.app',
   'https://pelikn.app',
   'http://localhost:5173',
   'capacitor://localhost',

@@ -57,7 +57,7 @@ export function AuthProvider({ children }) {
   const pickSlug = (venueList) => {
     if (!venueList?.length) return null
     try {
-      const last = localStorage.getItem('safeserv_last_venue')
+      const last = localStorage.getItem('pelikn_last_venue')
       if (last && venueList.some(v => v.slug === last)) return last
     } catch {}
     return venueList[0].slug
@@ -73,7 +73,7 @@ export function AuthProvider({ children }) {
   // ── Select a venue (called by venue switcher / picker) ─────────────────
   const selectVenue = useCallback((slug) => {
     setVenueSlug(slug)
-    try { localStorage.setItem('safeserv_last_venue', slug) } catch {}
+    try { localStorage.setItem('pelikn_last_venue', slug) } catch {}
   }, [])
 
   // ── Listen for auth state changes ─────────────────────────────────────

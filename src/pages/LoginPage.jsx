@@ -71,7 +71,7 @@ export default function LoginPage() {
   useEffect(() => {
     if (!venueId) { setStaffLoading(false); return }
 
-    const cacheKey = `safeserv_staff_${venueId}`
+    const cacheKey = `pelikn_staff_${venueId}`
 
     // Show cached list immediately (works offline)
     try {

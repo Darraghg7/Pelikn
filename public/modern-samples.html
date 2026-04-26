@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Pelikn — Modernisation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: #0a0a0a;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+  padding: 56px 40px 100px;
+}
+
+.page-header {
+  text-align: center;
+  margin-bottom: 60px;
+}
+.page-header .eyebrow {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.16em;
+  text-transform: uppercase; color: rgba(255,255,255,0.2); margin-bottom: 12px;
+}
+.page-header h1 {
+  font-size: 30px; font-weight: 800; color: #fff;
+  letter-spacing: -0.04em; line-height: 1.1;
+}
+.page-header h1 span { color: rgba(255,255,255,0.25); }
+
+/* ── Three screens ── */
+.frames {
+  display: flex; gap: 36px; justify-content: center;
+  align-items: flex-start; flex-wrap: wrap;
+}
+.frame-wrap {
+  display: flex; flex-direction: column; align-items: center; gap: 22px;
+}
+.frame-label { text-align: center; }
+.frame-label h2 {
+  font-size: 13px; font-weight: 700;
+  color: rgba(255,255,255,0.6); letter-spacing: -0.01em; margin-bottom: 4px;
+}
+.frame-label p {
+  font-size: 11.5px; color: rgba(255,255,255,0.25);
+  max-width: 200px; line-height: 1.5;
+}
+
+/* ── Phone shell ── */
+.phone {
+  width: 375px;
+  border-radius: 48px;
+  overflow: hidden;
+  background: #f7f5f2;
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.07),
+    0 24px 60px rgba(0,0,0,0.55),
+    0 8px 20px rgba(0,0,0,0.3);
+  font-size: 14px;
+  color: #1a1a18;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ════════════════════════════════════
+   HERO HEADER
+   ════════════════════════════════════ */
+.hero {
+  background: #162f24;
+  padding: 54px 24px 28px;
+  position: relative;
+  overflow: hidden;
+}
+.hero::before {
+  content: '';
+  position: absolute;
+  top: -80px; right: -60px;
+  width: 260px; height: 260px;
+  background: radial-gradient(circle, rgba(61,154,111,0.18) 0%, transparent 65%);
+  pointer-events: none;
+}
+.hero::after {
+  content: '';
+  position: absolute;
+  bottom: -40px; left: -40px;
+  width: 180px; height: 180px;
+  background: radial-gradient(circle, rgba(107,184,147,0.1) 0%, transparent 65%);
+  pointer-events: none;
+}
+
+.hero-top {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 26px;
+}
+.hero-venue { display: flex; align-items: center; gap: 10px; }
+.hero-monogram {
+  width: 34px; height: 34px; border-radius: 10px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.1);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 800;
+  color: rgba(255,255,255,0.65);
+}
+.hero-vname { font-size: 13.5px; font-weight: 600; color: rgba(255,255,255,0.6); }
+
+.hero-actions { display: flex; gap: 8px; }
+.hero-pill {
+  height: 28px; padding: 0 10px;
+  border-radius: 20px;
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.1);
+  display: flex; align-items: center; gap: 5px;
+  font-size: 11.5px; font-weight: 600;
+  color: rgba(255,255,255,0.45); cursor: pointer;
+}
+.hero-pill .pip {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: #e8694a;
+  box-shadow: 0 0 6px rgba(232,105,74,0.6);
+}
+
+.hero-body { display: flex; align-items: flex-end; justify-content: space-between; }
+.hero-text { flex: 1; }
+.hero-greeting {
+  font-size: 11px; font-weight: 600; letter-spacing: 0.08em;
+  text-transform: uppercase; color: rgba(255,255,255,0.3); margin-bottom: 8px;
+}
+.hero-name {
+  font-size: 30px; font-weight: 800; color: #fff;
+  letter-spacing: -0.04em; line-height: 1.05; margin-bottom: 6px;
+}
+.hero-sub {
+  font-size: 12px; font-weight: 500; color: rgba(255,255,255,0.35);
+}
+
+.hero-score {
+  flex-shrink: 0; text-align: center;
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 18px; padding: 14px 18px;
+  margin-left: 16px;
+}
+.hero-score-val {
+  font-size: 34px; font-weight: 800; color: #fff;
+  letter-spacing: -0.05em; line-height: 1;
+}
+.hero-score-label {
+  font-size: 9.5px; font-weight: 700; letter-spacing: 0.08em;
+  text-transform: uppercase; color: rgba(255,255,255,0.3);
+  margin-top: 5px;
+}
+.hero-score-delta {
+  font-size: 10px; font-weight: 700; margin-top: 6px;
+  background: rgba(74,222,128,0.15);
+  color: #86efac; padding: 2px 7px; border-radius: 20px;
+  display: inline-block;
+}
+
+/* ════════════════════════════════════
+   CONTENT AREA
+   ════════════════════════════════════ */
+.content { background: #f7f5f2; }
+
+.alert-bar {
+  display: flex; align-items: center; gap: 11px;
+  padding: 14px 22px;
+  background: #fff;
+  border-bottom: 1px solid #eeecea;
+}
+.alert-icon-wrap {
+  width: 32px; height: 32px; border-radius: 9px;
+  background: #fee2e2; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+.alert-bar-text { flex: 1; }
+.alert-bar-title { font-size: 13px; font-weight: 700; color: #b91c1c; margin-bottom: 1px; }
+.alert-bar-sub { font-size: 11.5px; color: #f87171; font-weight: 500; }
+.alert-bar-cta {
+  font-size: 11.5px; font-weight: 700; color: #b91c1c;
+  white-space: nowrap; flex-shrink: 0;
+}
+
+.sect { padding: 22px 22px 0; }
+.sect-hdr {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 14px;
+}
+.sect-title {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.12em;
+  text-transform: uppercase; color: #b5b0a8;
+}
+.sect-link { font-size: 12px; font-weight: 700; color: #2a7c56; }
+.sect-count {
+  font-size: 10.5px; font-weight: 700;
+  background: #fee2e2; color: #b91c1c;
+  padding: 2px 9px; border-radius: 20px;
+}
+
+/* Check cards */
+.check-cards { display: flex; flex-direction: column; gap: 8px; }
+.check-card {
+  background: #fff;
+  border-radius: 14px;
+  border: 1px solid #eeecea;
+  padding: 14px 16px;
+  display: flex; align-items: center; gap: 13px;
+  box-shadow: 0 1px 3px rgba(26,26,24,0.04);
+}
+.cc-icon {
+  width: 38px; height: 38px; border-radius: 11px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+.cc-icon.fail { background: #fef2f2; }
+.cc-icon.ok   { background: #f0fdf4; }
+.cc-icon.todo { background: #f5f4f1; }
+.cc-icon svg  { width: 17px; height: 17px; }
+
+.cc-body { flex: 1; min-width: 0; }
+.cc-name { font-size: 13.5px; font-weight: 700; color: #1a1a18; margin-bottom: 2px; }
+.cc-sub  { font-size: 12px; font-weight: 500; color: #b5b0a8; }
+
+.cc-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+.cc-time { font-size: 11px; font-weight: 600; color: #b5b0a8; font-family: 'DM Mono', monospace; }
+.cc-time.red { color: #dc2626; }
+.cc-badge {
+  font-size: 10.5px; font-weight: 700; padding: 3px 9px; border-radius: 20px;
+}
+.cc-badge.fail    { background: #fee2e2; color: #dc2626; }
+.cc-badge.ok      { background: #dcfce7; color: #15803d; }
+.cc-badge.pending { background: #fef9c3; color: #a16207; }
+
+.gap { height: 10px; }
+
+/* Metrics strip */
+.metrics {
+  display: flex; gap: 8px; padding: 16px 22px 22px;
+  background: #f7f5f2;
+}
+.metric {
+  flex: 1; background: #fff; border-radius: 13px;
+  padding: 13px 14px 12px;
+  border: 1px solid #eeecea;
+  box-shadow: 0 1px 3px rgba(26,26,24,0.04);
+}
+.metric-label {
+  font-size: 9.5px; font-weight: 700; letter-spacing: 0.1em;
+  text-transform: uppercase; color: #b5b0a8; margin-bottom: 8px;
+}
+.metric-val {
+  font-size: 26px; font-weight: 800; letter-spacing: -0.04em;
+  color: #1a1a18; line-height: 1; margin-bottom: 6px;
+}
+.metric-val.red { color: #dc2626; }
+.metric-val.amber { color: #d97706; }
+.metric-sub { font-size: 11px; font-weight: 600; color: #b5b0a8; }
+
+/* Rota section */
+.rota-sect { padding: 0 22px 24px; }
+.rota-cards { display: flex; flex-direction: column; gap: 7px; }
+.rota-card {
+  background: #fff; border-radius: 13px; border: 1px solid #eeecea;
+  padding: 11px 14px; display: flex; align-items: center; gap: 12px;
+  box-shadow: 0 1px 3px rgba(26,26,24,0.04);
+}
+.rota-av {
+  width: 32px; height: 32px; border-radius: 9px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 800;
+}
+.rota-av.a { background: #e4ede9; color: #1a4a33; }
+.rota-av.b { background: #ede9f0; color: #4a1a6b; }
+.rota-av.c { background: #f0ece5; color: #6b3d1a; }
+.rota-av.d { background: #e5eaf0; color: #1a3d6b; }
+
+.rota-info { flex: 1; min-width: 0; }
+.rota-name { font-size: 13px; font-weight: 700; color: #1a1a18; }
+.rota-role { font-size: 11.5px; font-weight: 500; color: #b5b0a8; margin-top: 1px; }
+.rota-time { font-size: 12px; font-weight: 700; color: #5a5650; font-family: 'DM Mono', monospace; }
+
+.clocked { background: #f0fdf4; border-radius: 20px; padding: 3px 9px; }
+.clocked span { font-size: 10.5px; font-weight: 700; color: #15803d; }
+.not-clocked { background: #fafaf8; border-radius: 20px; padding: 3px 9px; border: 1px solid #eeecea; }
+.not-clocked span { font-size: 10.5px; font-weight: 600; color: #b5b0a8; }
+
+/* ════════════════════════════════════
+   FRIDGE SCREEN
+   ════════════════════════════════════ */
+.fridge-hero { background: #162f24; padding: 54px 24px 22px; position: relative; overflow: hidden; }
+.fridge-hero::before {
+  content: '';
+  position: absolute; top: -60px; right: -40px;
+  width: 220px; height: 220px;
+  background: radial-gradient(circle, rgba(61,154,111,0.15) 0%, transparent 65%);
+  pointer-events: none;
+}
+.back-row {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 22px;
+}
+.back-btn {
+  width: 32px; height: 32px; border-radius: 9px;
+  background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1);
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
+}
+.screen-title { font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.5); }
+.fridge-title { font-size: 28px; font-weight: 800; color: #fff; letter-spacing: -0.04em; line-height: 1.05; }
+.fridge-sub   { font-size: 12px; font-weight: 500; color: rgba(255,255,255,0.35); margin-top: 5px; }
+
+.fridge-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 10px; padding: 20px 22px;
+}
+.fridge-card {
+  background: #fff; border-radius: 16px;
+  border: 1.5px solid #eeecea;
+  padding: 16px 16px 14px;
+  box-shadow: 0 2px 8px rgba(26,26,24,0.06);
+  cursor: pointer;
+}
+.fridge-card.alert-card {
+  background: #fff7f7; border-color: #fecaca;
+  box-shadow: 0 2px 12px rgba(220,38,38,0.1);
+}
+.fridge-card.warn-card {
+  background: #fffdf7; border-color: #fde68a;
+}
+.fc-top {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  margin-bottom: 12px;
+}
+.fc-name { font-size: 12px; font-weight: 700; color: #1a1a18; line-height: 1.3; }
+.fc-status {
+  width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 3px;
+}
+.fc-status.ok    { background: #16a34a; box-shadow: 0 0 0 3px rgba(22,163,74,0.12); }
+.fc-status.alert { background: #dc2626; box-shadow: 0 0 0 3px rgba(220,38,38,0.15); }
+.fc-status.warn  { background: #d97706; box-shadow: 0 0 0 3px rgba(217,119,6,0.15); }
+
+.fc-temp {
+  font-size: 32px; font-weight: 800; letter-spacing: -0.05em;
+  line-height: 1; margin-bottom: 4px;
+}
+.fc-temp.ok    { color: #1a1a18; }
+.fc-temp.alert { color: #dc2626; }
+.fc-temp.warn  { color: #d97706; }
+.fc-range { font-size: 11px; font-weight: 600; color: #b5b0a8; margin-bottom: 8px; }
+.fc-time  { font-size: 10.5px; font-weight: 600; color: #c8c4bd; font-family: 'DM Mono', monospace; }
+
+.range-bar {
+  height: 3px; background: #f0ede8; border-radius: 2px;
+  margin-bottom: 10px; overflow: hidden;
+}
+.range-fill { height: 100%; border-radius: 2px; }
+.range-fill.ok     { background: #16a34a; width: 35%; }
+.range-fill.alert  { background: #dc2626; width: 88%; }
+.range-fill.warn   { background: #d97706; width: 70%; }
+.range-fill.freeze { background: #2563eb; width: 22%; }
+
+/* ════════════════════════════════════
+   ROTA WEEK VIEW
+   ════════════════════════════════════ */
+.rota-hero { background: #162f24; padding: 54px 24px 20px; position: relative; overflow: hidden; }
+.rota-hero::before {
+  content: '';
+  position: absolute; top: -50px; right: -50px;
+  width: 200px; height: 200px;
+  background: radial-gradient(circle, rgba(61,154,111,0.15) 0%, transparent 65%);
+  pointer-events: none;
+}
+
+.day-strip {
+  display: flex; gap: 6px; padding: 14px 20px;
+  background: #fff; border-bottom: 1px solid #eeecea;
+  overflow-x: auto;
+}
+.day-strip::-webkit-scrollbar { display: none; }
+.day-pill {
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  padding: 8px 12px; border-radius: 12px; cursor: pointer; flex-shrink: 0;
+}
+.day-pill.active { background: #162f24; }
+.day-abbr { font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #b5b0a8; }
+.day-pill.active .day-abbr { color: rgba(255,255,255,0.5); }
+.day-num { font-size: 16px; font-weight: 800; color: #1a1a18; letter-spacing: -0.02em; }
+.day-pill.active .day-num { color: #fff; }
+.day-dot { width: 4px; height: 4px; border-radius: 50%; background: #2a7c56; }
+.day-pill.active .day-dot { background: rgba(255,255,255,0.4); }
+
+.rota-staff-list { padding: 16px 22px 24px; background: #f7f5f2; }
+.rota-staff-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid #eeecea;
+}
+.rota-staff-row:last-child { border-bottom: none; }
+.rs-av {
+  width: 34px; height: 34px; border-radius: 10px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11.5px; font-weight: 800;
+}
+.rs-av.a { background: #e4ede9; color: #1a4a33; }
+.rs-av.b { background: #ede9f0; color: #4a1a6b; }
+.rs-av.c { background: #f0ece5; color: #6b3d1a; }
+.rs-av.d { background: #e5eaf0; color: #1a3d6b; }
+.rs-av.e { background: #f0ede5; color: #5c4a1a; }
+
+.rs-info { flex: 1; min-width: 0; }
+.rs-name { font-size: 13.5px; font-weight: 700; color: #1a1a18; margin-bottom: 2px; }
+.rs-shifts { display: flex; gap: 5px; flex-wrap: wrap; }
+.shift-chip {
+  font-size: 11px; font-weight: 700; padding: 3px 10px;
+  border-radius: 7px; white-space: nowrap;
+}
+.shift-chip.morning   { background: #e4ede9; color: #1a4a33; }
+.shift-chip.afternoon { background: #f0ece5; color: #6b3d1a; }
+.shift-chip.evening   { background: #ede9f0; color: #4a1a6b; }
+
+.rs-time { font-size: 11.5px; font-weight: 700; color: #7a7570; font-family: 'DM Mono', monospace; white-space: nowrap; }
+
+.rota-staff-row.empty { opacity: 0.45; }
+.add-shift-btn {
+  font-size: 11.5px; font-weight: 700; color: #2a7c56;
+  background: #f0f7f4; border-radius: 7px; padding: 3px 10px;
+  border: 1.5px dashed #a3d1b7;
+}
+
+/* ════════════════════════════
+   BOTTOM NAV — shared
+   ════════════════════════════ */
+.bottom-nav {
+  background: rgba(247,245,242,0.97);
+  backdrop-filter: blur(14px);
+  border-top: 1px solid #eeecea;
+  display: flex; padding: 8px 4px 30px;
+}
+.nav-item {
+  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 5px 0; cursor: pointer; position: relative;
+}
+.nav-icon {
+  font-size: 20px; line-height: 1;
+  filter: grayscale(1) opacity(0.28);
+}
+.nav-item.active .nav-icon { filter: grayscale(0.2) opacity(0.9); }
+.nav-label {
+  font-size: 9.5px; font-weight: 600; color: #c8c4bd; letter-spacing: 0.02em;
+}
+.nav-item.active .nav-label { color: #2a7c56; font-weight: 700; }
+.nav-indicator {
+  position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+  width: 18px; height: 3px; border-radius: 0 0 3px 3px;
+  background: #2a7c56; opacity: 0;
+}
+.nav-item.active .nav-indicator { opacity: 1; }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <div class="eyebrow">Pelikn · UI Direction</div>
+  <h1>Three screens, <span>one system</span></h1>
+</div>
+
+<div class="frames">
+
+  <!-- ══ SCREEN 1: Dashboard ══ -->
+  <div class="frame-wrap">
+    <div class="frame-label">
+      <h2>Manager Dashboard</h2>
+      <p>Daily overview with compliance score, live alerts, today's team.</p>
+    </div>
+    <div class="phone">
+
+      <div class="hero">
+        <div class="hero-top">
+          <div class="hero-venue">
+            <div class="hero-monogram">N</div>
+            <div class="hero-vname">Nomad Coffee & Kitchen</div>
+          </div>
+          <div class="hero-actions">
+            <div class="hero-pill">
+              <div class="pip"></div>
+              2 alerts
+            </div>
+          </div>
+        </div>
+        <div class="hero-body">
+          <div class="hero-text">
+            <div class="hero-greeting">Good morning</div>
+            <div class="hero-name">Sarah</div>
+            <div class="hero-sub">Mon 21 Apr · 3 tasks need attention</div>
+          </div>
+          <div class="hero-score">
+            <div class="hero-score-val">94%</div>
+            <div class="hero-score-label">Compliance</div>
+            <div class="hero-score-delta">↑ 2% wk</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="alert-bar">
+          <div class="alert-icon-wrap">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/>
+            </svg>
+          </div>
+          <div class="alert-bar-text">
+            <div class="alert-bar-title">Fridge 2 out of range</div>
+            <div class="alert-bar-sub">8.4°C · Safe range 1–5°C · Logged 06:42</div>
+          </div>
+          <div class="alert-bar-cta">Review →</div>
+        </div>
+
+        <div class="sect">
+          <div class="sect-hdr">
+            <div class="sect-title">Today's Checks</div>
+            <div class="sect-count">2 issues</div>
+          </div>
+          <div class="check-cards">
+            <div class="check-card">
+              <div class="cc-icon fail">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/>
+                </svg>
+              </div>
+              <div class="cc-body">
+                <div class="cc-name">Fridge 2 — Back Prep</div>
+                <div class="cc-sub">8.4°C · Above safe range</div>
+              </div>
+              <div class="cc-right">
+                <div class="cc-badge fail">Alert</div>
+              </div>
+            </div>
+            <div class="check-card">
+              <div class="cc-icon ok">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+              </div>
+              <div class="cc-body">
+                <div class="cc-name">Opening Checks</div>
+                <div class="cc-sub">All 12 items passed</div>
+              </div>
+              <div class="cc-right">
+                <div class="cc-badge ok">Done</div>
+                <div class="cc-time">08:15</div>
+              </div>
+            </div>
+            <div class="check-card">
+              <div class="cc-icon todo">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#c8c4bd" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/>
+                </svg>
+              </div>
+              <div class="cc-body">
+                <div class="cc-name">Deep Clean — Kitchen</div>
+                <div class="cc-sub">Not started</div>
+              </div>
+              <div class="cc-right">
+                <div class="cc-time red">by 22:00</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="gap"></div>
+        <div class="metrics">
+          <div class="metric">
+            <div class="metric-label">On Shift</div>
+            <div class="metric-val">4</div>
+            <div class="metric-sub">Today</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Open Tasks</div>
+            <div class="metric-val amber">3</div>
+            <div class="metric-sub">2 overdue</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Checks Done</div>
+            <div class="metric-val">8<span style="font-size:14px;font-weight:600;color:#b5b0a8">/11</span></div>
+            <div class="metric-sub">Today</div>
+          </div>
+        </div>
+
+        <div class="rota-sect">
+          <div class="sect-hdr" style="padding-top:4px">
+            <div class="sect-title">On Shift Today</div>
+            <div class="sect-link">Full rota →</div>
+          </div>
+          <div class="rota-cards">
+            <div class="rota-card">
+              <div class="rota-av a">SC</div>
+              <div class="rota-info"><div class="rota-name">Sarah C.</div><div class="rota-role">Manager</div></div>
+              <div class="rota-time">09:00–17:00</div>
+              <div class="clocked"><span>In</span></div>
+            </div>
+            <div class="rota-card">
+              <div class="rota-av b">JM</div>
+              <div class="rota-info"><div class="rota-name">Jamie M.</div><div class="rota-role">Kitchen</div></div>
+              <div class="rota-time">10:00–18:00</div>
+              <div class="clocked"><span>In</span></div>
+            </div>
+            <div class="rota-card">
+              <div class="rota-av c">RP</div>
+              <div class="rota-info"><div class="rota-name">Rosa P.</div><div class="rota-role">FOH</div></div>
+              <div class="rota-time">11:00–19:00</div>
+              <div class="not-clocked"><span>Not in</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bottom-nav">
+        <div class="nav-item active"><div class="nav-indicator"></div><div class="nav-icon">🏠</div><div class="nav-label">Home</div></div>
+        <div class="nav-item"><div class="nav-indicator"></div><div class="nav-icon">✅</div><div class="nav-label">Checks</div></div>
+        <div class="nav-item"><div class="nav-indicator"></div><div class="nav-icon">📅</div><div class="nav-label">Rota</div></div>
+        <div class="nav-item"><div class="nav-indicator"></div><div class="nav-icon">👥</div><div class="nav-label">Team</div></div>
+        <div class="nav-item"><div class="nav-indicator"></div><div class="nav-icon">⚙️</div><div class="nav-label">More</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SCREEN 2: Fridge Matrix ══ -->
+  <div class="frame-wrap">
+    <div class="frame-label">
+      <h2>Fridge Temperature</h2>
+      <p>Status-at-a-glance grid — one card per unit, clear pass/alert/warn states.</p>
+    </div>
+    <div class="phone">
+
+      <div class="fridge-hero">
+        <div class="back-row">
+          <div class="back-btn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="15 18 9 12 15 6"/>
+            </svg>
+          </div>
+          <div class="screen-title">Temperatures</div>
+          <div style="width:32px"></div>
+        </div>
+        <div class="fridge-title">Fridge &<br>Freezer Log</div>
+        <div class="fridge-sub">Mon 21 Apr · Last checked 08:30</div>
+      </div>
+
+      <div style="background:#f7f5f2;padding:8px 0">
+        <div style="padding:16px 20px 8px;display:flex;align-items:center;justify-content:space-between">
+          <div style="font-size:10px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#b5b0a8">All Units</div>
+          <div style="font-size:11.5px;font-weight:700;color:#2a7c56">Log All →</div>
+        </div>
+        <div class="fridge-grid">
+
+          <div class="fridge-card alert-card">
+            <div class="fc-top"><div class="fc-name">Fridge 2<br>Back Prep</div><div class="fc-status alert"></div></div>
+            <div class="range-bar"><div class="range-fill alert"></div></div>
+            <div class="fc-temp alert">8.4°</div>
+            <div class="fc-range">Safe 1–5°C</div>
+            <div class="fc-time">06:42 today</div>
+          </div>
+
+          <div class="fridge-card">
+            <div class="fc-top"><div class="fc-name">Fridge 1<br>Walk-in</div><div class="fc-status ok"></div></div>
+            <div class="range-bar"><div class="range-fill ok"></div></div>
+            <div class="fc-temp ok">3.1°</div>
+            <div class="fc-range">Safe 1–5°C</div>
+            <div class="fc-time">08:30 today</div>
+          </div>
+
+          <div class="fridge-card warn-card">
+            <div class="fc-top"><div class="fc-name">Display<br>Fridge</div><div class="fc-status warn"></div></div>
+            <div class="range-bar"><div class="range-fill warn"></div></div>
+            <div class="fc-temp warn">6.2°</div>
+            <div class="fc-range">Safe 1–5°C</div>
+            <div class="fc-time">08:30 today</div>
+          </div>
+
+          <div class="fridge-card">
+            <div class="fc-top"><div class="fc-name">Freezer<br>Unit</div><div class="fc-status ok"></div></div>
+            <div class="range-bar"><div class="range-fill freeze"></div></div>
+            <div class="fc-temp ok" style="font-size:27px">−19°</div>
+            <div class="fc-range">Safe −18 to −22°C</div>
+            <div class="fc-time">08:30 today</div>
+          </div>
+
+          <div class="fridge-card">
+            <div class="fc-top"><div class="fc-name">Fridge 3<br>Dairy</div><div class="fc-status ok"></div></div>
+            <div class="range-bar"><div class="range-fill ok" style="width:28%"></div></div>
+            <div class="fc-temp ok">2.8°</div>
+            <div class="fc-range">Safe 1–5°C</div>
+            <div class="fc-time">08:30 today</div>
+          </div>
+
+          <div style="background:#fff;border-radius:16px;border:2px dashed #dedad4;padding:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;cursor:pointer;min-height:130px">
+            <div style="width:28px;height:28px;border-radius:8px;background:#f0f7f4;display:flex;align-items:center;justify-content:center">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2a7c56" stroke-width="2.5" stroke-linecap="round">
+                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+            </div>
+            <div style="font-size:12px;font-weight:700;color:#b5b0a8">Add unit</div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="bottom-nav">
+        <div class="nav-item"><div class="nav-indicator"></div><div class="nav-icon">🏠</div><div class="nav-label">Home</div></div>
+        <div class="nav-item active"><div class="nav-indicator"></div><div class="nav-icon">✅</div><div class="nav-label">Checks</div></div>
+        <div class="nav-item"><div class="nav-indicator"></div><div class="nav-icon">📅</div><div class="nav-label">Rota</div></div>
+        <div class="nav-item"><div class="nav-indicator"></div><div class="nav-icon">👥</div><div class="nav-label">Team</div></div>
+        <div class="nav-item"><div class="nav-indicator"></div><div class="nav-icon">⚙️</div><div class="nav-label">More</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SCREEN 3: Rota Week View ══ -->
+  <div class="frame-wrap">
+    <div class="frame-label">
+      <h2>Rota — Week View</h2>
+      <p>Day-by-day staff assignments with shift chips and clock-in status.</p>
+    </div>
+    <div class="phone">
+
+      <div class="rota-hero">
+        <div class="back-row" style="margin-bottom:20px">
+          <div style="font-size:13px;font-weight:700;color:rgba(255,255,255,0.5)">Week of 21 Apr</div>
+          <div class="hero-pill" style="font-size:11px">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg>
+            AI Fill
+          </div>
+        </div>
+        <div class="fridge-title" style="font-size:26px">Rota</div>
+        <div class="fridge-sub" style="margin-bottom:0">6 staff · 4 shifts today</div>
+      </div>
+
+      <div class="day-strip">
+        <div class="day-pill"><div class="day-abbr">Mon</div><div class="day-num">21</div><div class="day-dot"></div></div>
+        <div class="day-pill active"><div class="day-abbr">Tue</div><div class="day-num">22</div><div class="day-dot"></div></div>
+        <div class="day-pill"><div class="day-abbr">Wed</div><div class="day-num">23</div><div class="day-dot"></div></div>
+        <div class="day-pill"><div class="day-abbr">Thu</div><div class="day-num">24</div><div class="day-dot"></div></div>
+        <div class="day-pill"><div class="day-abbr">Fri</div><div class="day-num">25</div><div class="day-dot"></div></div>
+        <div class="day-pill"><div class="day-abbr">Sat</div><div class="day-num">26</div><div class="day-dot"></div></div>
+        <div class="day-pill" style="opacity:0.4"><div class="day-abbr">Sun</div><div class="day-num">27</div></div>
+      </div>
+
+      <div class="rota-staff-list">
+        <div style="font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#b5b0a8;margin-bottom:12px">Tuesday 22 Apr · 5 shifts</div>
+
+        <div class="rota-staff-row">
+          <div class="rs-av a">SC</div>
+          <div class="rs-info"><div class="rs-name">Sarah C.</div><div class="rs-shifts"><div class="shift-chip morning">Manager</div></div></div>
+          <div class="rs-time">09–17</div>
+        </div>
+        <div class="rota-staff-row">
+          <div class="rs-av b">JM</div>
+          <div class="rs-info"><div class="rs-name">Jamie M.</div><div class="rs-shifts"><div class="shift-chip morning">Kitchen</div></div></div>
+          <div class="rs-time">10–18</div>
+        </div>
+        <div class="rota-staff-row">
+          <div class="rs-av c">RP</div>
+          <div class="rs-info"><div class="rs-name">Rosa P.</div><div class="rs-shifts"><div class="shift-chip afternoon">FOH</div></div></div>
+          <div class="rs-time">11–19</div>
+        </div>
+        <div class="rota-staff-row">
+          <div class="rs-av d">DK</div>
+          <div class="rs-info"><div class="rs-name">Dan K.</div><div class="rs-shifts"><div class="shift-chip morning">Barista</div><div class="shift-chip evening">Evening</div></div></div>
+          <div class="rs-time">07–22</div>
+        </div>
+        <div class="rota-staff-row">
+          <div class="rs-av e">AL</div>
+          <div class="rs-info"><div class="rs-name">Amy L.</div><div class="rs-shifts"><div class="shift-chip afternoon">Break Cover</div></div></div>
+          <div class="rs-time">11–14</div>
+        </div>
+        <div class="rota-staff-row empty">
+          <div class="rs-av" style="background:#f0ede8;border:2px dashed #dedad4"></div>
+          <div class="rs-info"><div class="rs-name" style="color:#b5b0a8">Unfilled slot</div><div class="rs-shifts"><div class="shift-chip" style="background:#f0ede8;color:#b5b0a8;border:1.5px dashed #dedad4">Kitchen · 18–22</div></div></div>
+          <div class="add-shift-btn">Assign</div>
+        </div>
+      </div>
+
+      <div style="padding:14px 22px 16px;background:#fff;border-top:1px solid #eeecea;display:flex;align-items:center;gap:10px">
+        <div style="flex:1">
+          <div style="font-size:12px;font-weight:700;color:#1a1a18;margin-bottom:2px">1 slot unfilled</div>
+          <div style="font-size:11.5px;font-weight:500;color:#b5b0a8">Publish once all slots are assigned</div>
+        </div>
+        <div style="background:#162f24;border-radius:12px;padding:11px 18px;cursor:pointer;box-shadow:0 4px 14px rgba(22,47,36,0.25)">
+          <div style="font-size:13px;font-weight:700;color:#fff">Publish</div>
+        </div>
+      </div>
+
+      <div class="bottom-nav">
+        <div class="nav-item"><div class="nav-indicator"></div><div class="nav-icon">🏠</div><div class="nav-label">Home</div></div>
+        <div class="nav-item"><div class="nav-indicator"></div><div class="nav-icon">✅</div><div class="nav-label">Checks</div></div>
+        <div class="nav-item active"><div class="nav-indicator"></div><div class="nav-icon">📅</div><div class="nav-label">Rota</div></div>
+        <div class="nav-item"><div class="nav-indicator"></div><div class="nav-icon">👥</div><div class="nav-label">Team</div></div>
+        <div class="nav-item"><div class="nav-indicator"></div><div class="nav-icon">⚙️</div><div class="nav-label">More</div></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

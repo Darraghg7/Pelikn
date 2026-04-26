@@ -3,7 +3,7 @@
  * and retries them when back online.
  */
 
-const QUEUE_KEY = 'safeserv_offline_queue'
+const QUEUE_KEY = 'pelikn_offline_queue'
 
 export function getQueue() {
   try {

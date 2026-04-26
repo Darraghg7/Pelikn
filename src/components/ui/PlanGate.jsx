@@ -51,7 +51,7 @@ export default function PlanGate({ feature, children }) {
 
       <div className="flex flex-col sm:flex-row gap-3 w-full max-w-xs">
         <a
-          href="mailto:hello@safeserv.app?subject=Upgrade to Pro"
+          href="mailto:hello@pelikn.app?subject=Upgrade to Pro"
           className="flex-1 bg-accent text-cream py-3 rounded-xl text-sm font-semibold text-center hover:bg-accent/90 transition-colors"
         >
           Upgrade to Pro — {PRO_PRICE}/mo

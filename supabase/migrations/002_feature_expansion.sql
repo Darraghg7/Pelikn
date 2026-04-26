@@ -1,4 +1,4 @@
--- SafeServ migration 002 — Feature Expansion
+-- Pelikn migration 002 — Feature Expansion
 -- Safe to run multiple times.
 -- Run this in the Supabase SQL Editor AFTER 001_initial_schema.sql has been applied.
 

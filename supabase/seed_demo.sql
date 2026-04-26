@@ -1,5 +1,5 @@
 -- ============================================================================
--- SafeServ Demo Seed Data
+-- Pelikn Demo Seed Data
 -- ============================================================================
 -- Run this on a FRESH Supabase instance to create a demo environment.
 -- DO NOT run on a production database — it will conflict with existing data.

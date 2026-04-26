@@ -25,7 +25,7 @@ export const supabase = createClient(
       autoRefreshToken: true,
       persistSession:   true,
       detectSessionInUrl: true,
-      storageKey: 'safeserv-auth-token',
+      storageKey: 'pelikn-auth-token',
     },
     global: {
       // Abort any hanging fetch after 15 seconds to prevent indefinite hangs

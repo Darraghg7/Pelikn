@@ -94,7 +94,7 @@ export default function SignupPage() {
               <input type="text" required placeholder="venue-slug" value={form.slug}
                 onChange={e => { set('slug', e.target.value.replace(/[^a-z0-9-]/g, '')); setSlugEdited(true) }}
                 className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 bg-white text-sm text-charcoal font-mono placeholder:text-charcoal/30 outline-none focus:border-charcoal/40" />
-              <p className="text-[11px] text-charcoal/30 mt-1">Your URL will be safeserv.app/v/{form.slug || 'your-venue'}</p>
+              <p className="text-[11px] text-charcoal/30 mt-1">Your URL will be pelikn.app/v/{form.slug || 'your-venue'}</p>
             </div>
           </div>
         </div>

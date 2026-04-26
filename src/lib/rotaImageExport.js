@@ -90,7 +90,7 @@ export function buildRotaCanvas({ venueName, weekStart, days, shifts, staff, clo
   // "Pelikn" label
   ctx.fillStyle = C.accent
   ctx.font = `700 11px system-ui,-apple-system,sans-serif`
-  ctx.fillText('SAFESERV', PAD + 4, PAD + 16)
+  ctx.fillText('PELIKN', PAD + 4, PAD + 16)
 
   // Venue name
   ctx.fillStyle = C.cream

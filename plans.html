@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pelikn — Starter vs Pro</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --brand:    #1a2e2a;
+      --accent:   #c94f2a;
+      --teal:     #2a7c6f;
+      --cream:    #f8f4ef;
+      --parchment:#f0ebe3;
+      --surface:  #ffffff;
+      --charcoal: #1a1a18;
+      --mid:      rgba(26,26,24,.5);
+      --line:     rgba(26,26,24,.08);
+    }
+
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: var(--cream);
+      color: var(--charcoal);
+      -webkit-font-smoothing: antialiased;
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    /* ── Utilities ── */
+    .wrap { max-width: 880px; margin: 0 auto; padding: 0 28px; }
+    .eyebrow {
+      font-size: 10px; font-weight: 600; letter-spacing: .22em;
+      text-transform: uppercase; color: var(--mid);
+    }
+
+    /* ── Nav ── */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(248,244,239,.9);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--line);
+    }
+    .nav-inner {
+      display: flex; align-items: center; justify-content: space-between;
+      height: 52px;
+    }
+    .nav-logo {
+      font-size: .95rem; font-weight: 700; letter-spacing: -.02em;
+      color: var(--brand);
+    }
+    .nav-prices { display: flex; gap: 8px; }
+    .tag {
+      font-size: 10px; font-weight: 600; letter-spacing: .1em;
+      text-transform: uppercase; padding: 4px 12px; border-radius: 100px;
+    }
+    .tag-s { background: rgba(42,124,111,.1); color: var(--teal); }
+    .tag-p { background: rgba(201,79,42,.1);  color: var(--accent); }
+
+    /* ── Hero ── */
+    .hero {
+      background: var(--brand);
+      padding: 100px 28px 92px;
+      text-align: center;
+      position: relative; overflow: hidden;
+    }
+    .hero::after {
+      content: ''; position: absolute; inset: 0;
+      background: radial-gradient(ellipse 65% 55% at 50% -10%, rgba(42,124,111,.22) 0%, transparent 65%);
+      pointer-events: none;
+    }
+    .hero-label {
+      display: inline-block;
+      font-size: 10px; font-weight: 500; letter-spacing: .2em; text-transform: uppercase;
+      color: rgba(248,244,239,.3);
+      border: 1px solid rgba(248,244,239,.1);
+      padding: 5px 16px; border-radius: 100px; margin-bottom: 36px;
+    }
+    .hero h1 {
+      font-size: clamp(2.8rem, 6vw, 4.6rem);
+      font-weight: 700; letter-spacing: -.03em; line-height: 1.07;
+      color: #f8f4ef; margin-bottom: 20px;
+    }
+    .hero h1 span { color: rgba(248,244,239,.35); font-weight: 300; font-style: italic; }
+    .hero-sub {
+      font-size: .88rem; font-weight: 400;
+      color: rgba(248,244,239,.4); max-width: 380px;
+      margin: 0 auto 52px; line-height: 1.85;
+    }
+    .hero-chips { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+    .hero-chip {
+      font-size: 10px; font-weight: 500; letter-spacing: .06em;
+      border: 1px solid rgba(248,244,239,.1);
+      color: rgba(248,244,239,.3);
+      padding: 5px 14px; border-radius: 100px;
+    }
+
+    /* ── Sections ── */
+    .section { padding: 88px 28px; }
+    .section-alt { background: var(--parchment); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+    .section-dark { background: var(--brand); }
+
+    .sec-head { text-align: center; margin-bottom: 56px; }
+    .sec-head .eyebrow { display: block; margin-bottom: 12px; }
+    .sec-head h2 {
+      font-size: clamp(1.8rem, 3.2vw, 2.5rem);
+      font-weight: 700; letter-spacing: -.03em; line-height: 1.15;
+      color: var(--brand); margin-bottom: 12px;
+    }
+    .sec-head p { font-size: .82rem; color: var(--mid); max-width: 420px; margin: 0 auto; line-height: 1.8; }
+
+    /* ── Plan duo ── */
+    .plan-duo {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+      max-width: 680px; margin: 0 auto;
+    }
+    @media (max-width: 560px) { .plan-duo { grid-template-columns: 1fr; } }
+
+    .plan-card {
+      border-radius: 24px; padding: 40px 34px;
+      display: flex; flex-direction: column; gap: 0;
+    }
+    .plan-s {
+      background: var(--surface);
+      box-shadow: 0 2px 8px rgba(0,0,0,.04), 0 14px 44px rgba(0,0,0,.07);
+    }
+    .plan-p {
+      background: var(--brand);
+      box-shadow: 0 2px 12px rgba(26,46,42,.2), 0 18px 56px rgba(26,46,42,.3);
+      position: relative; overflow: hidden;
+    }
+    .plan-p::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(248,244,239,.18), transparent);
+    }
+
+    .plan-tier {
+      font-size: 9px; font-weight: 700; letter-spacing: .22em; text-transform: uppercase;
+      margin-bottom: 24px;
+    }
+    .plan-s .plan-tier { color: var(--teal); }
+    .plan-p .plan-tier { color: rgba(248,244,239,.35); }
+
+    .plan-price {
+      font-size: 4rem; font-weight: 700; letter-spacing: -.04em;
+      line-height: 1; margin-bottom: 6px;
+    }
+    .plan-price sup {
+      font-size: 1.4rem; vertical-align: super; font-weight: 500;
+      margin-right: 1px; letter-spacing: 0;
+    }
+    .plan-s .plan-price { color: var(--brand); }
+    .plan-p .plan-price { color: #f8f4ef; }
+
+    .plan-cadence {
+      font-size: .72rem; font-weight: 400; margin-bottom: 32px;
+      color: var(--mid);
+    }
+    .plan-p .plan-cadence { color: rgba(248,244,239,.3); }
+
+    .plan-rule { height: 1px; margin-bottom: 28px; }
+    .plan-s .plan-rule { background: var(--line); }
+    .plan-p .plan-rule { background: rgba(248,244,239,.1); }
+
+    .plan-tagline {
+      font-size: 1.05rem; font-weight: 600; letter-spacing: -.02em;
+      line-height: 1.4; margin-bottom: 14px;
+    }
+    .plan-s .plan-tagline { color: var(--brand); }
+    .plan-p .plan-tagline { color: rgba(248,244,239,.85); }
+
+    .plan-desc { font-size: .78rem; line-height: 1.8; }
+    .plan-s .plan-desc { color: var(--mid); }
+    .plan-p .plan-desc { color: rgba(248,244,239,.4); }
+
+    /* ── Feature table ── */
+    .compare-card {
+      background: var(--surface); border-radius: 24px; overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,.04), 0 14px 44px rgba(0,0,0,.07);
+      max-width: 740px; margin: 0 auto;
+    }
+    .compare-head {
+      display: grid; grid-template-columns: 1fr 100px 100px;
+      padding: 20px 28px 16px;
+      border-bottom: 1px solid var(--line);
+    }
+    .ch-label { font-size: 10px; font-weight: 600; letter-spacing: .15em; text-transform: uppercase; color: rgba(26,26,24,.25); }
+    .ch-s { font-size: 10px; font-weight: 700; letter-spacing: .15em; text-transform: uppercase; color: var(--teal); text-align: center; }
+    .ch-p { font-size: 10px; font-weight: 700; letter-spacing: .15em; text-transform: uppercase; color: var(--accent); text-align: center; }
+
+    .cg {
+      padding: 14px 28px 6px;
+      font-size: 9px; font-weight: 700; letter-spacing: .2em; text-transform: uppercase;
+      color: rgba(26,26,24,.25);
+      border-top: 1px solid var(--line);
+    }
+    .cr {
+      display: grid; grid-template-columns: 1fr 100px 100px;
+      align-items: center; padding: 11px 28px;
+      transition: background .12s;
+    }
+    .cr:hover { background: rgba(26,26,24,.018); }
+    .cr-label { font-size: .8rem; color: rgba(26,26,24,.65); }
+    .cr-val { text-align: center; font-size: .95rem; }
+    .y  { color: var(--teal);  font-weight: 600; }
+    .a  { color: var(--accent); font-weight: 600; }
+    .n  { color: rgba(26,26,24,.15); font-size: 1rem; }
+    .cr-addon { font-size: .68rem; color: rgba(26,26,24,.35); text-align: center; line-height: 1.4; }
+
+    /* Pro block in table */
+    .cr-pro-block {
+      grid-column: 3;
+      display: flex; flex-direction: column; gap: 5px; padding: 14px 0;
+    }
+    .cr-all {
+      display: grid; grid-template-columns: 1fr 100px 100px;
+      align-items: start; padding: 16px 28px 18px;
+      border-top: 1px solid rgba(201,79,42,.12);
+      background: rgba(201,79,42,.025);
+    }
+    .cr-all-label { font-size: .78rem; font-weight: 600; color: var(--accent); }
+    .cr-all-items {
+      grid-column: 1 / -1; margin-top: 12px;
+      display: flex; flex-direction: column; gap: 6px;
+    }
+    .cr-all-item {
+      font-size: .78rem; color: rgba(26,26,24,.55);
+      display: flex; align-items: baseline; gap: 8px;
+    }
+    .cr-all-item::before { content: '+'; color: var(--accent); font-weight: 600; flex-shrink: 0; }
+    .cr-all-s { font-size: .78rem; color: rgba(26,26,24,.55); display: flex; align-items: center; gap: 8px; }
+    .cr-all-s::before { content: '✓'; color: var(--teal); font-weight: 700; flex-shrink: 0; }
+    .cr-last { padding-bottom: 22px; }
+
+    /* ── Value ── */
+    .value-trio {
+      display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px;
+      max-width: 740px; margin: 0 auto;
+    }
+    @media (max-width: 620px) { .value-trio { grid-template-columns: 1fr; } }
+
+    .val-card {
+      background: var(--surface); border-radius: 20px; padding: 28px 22px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.03), 0 6px 20px rgba(0,0,0,.05);
+    }
+    .val-dark {
+      background: var(--brand);
+      box-shadow: 0 2px 8px rgba(26,46,42,.15), 0 12px 40px rgba(26,46,42,.25);
+    }
+    .val-label {
+      font-size: 9px; font-weight: 700; letter-spacing: .2em; text-transform: uppercase;
+      margin-bottom: 10px; color: var(--mid);
+    }
+    .val-dark .val-label { color: rgba(248,244,239,.3); }
+    .val-price {
+      font-size: 2.2rem; font-weight: 700; letter-spacing: -.03em;
+      line-height: 1; margin-bottom: 6px; color: var(--charcoal);
+    }
+    .val-price sup { font-size: .85rem; vertical-align: super; font-weight: 500; }
+    .val-dark .val-price { color: #f8f4ef; }
+    .val-sub { font-size: .72rem; color: var(--mid); line-height: 1.5; }
+    .val-dark .val-sub { color: rgba(248,244,239,.35); }
+    .val-note {
+      text-align: center; font-size: .78rem; color: var(--mid);
+      max-width: 480px; margin: 28px auto 0; line-height: 1.85;
+    }
+
+    /* ── Personas ── */
+    .persona-duo {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+      max-width: 740px; margin: 0 auto;
+    }
+    @media (max-width: 560px) { .persona-duo { grid-template-columns: 1fr; } }
+
+    .pers-card { border-radius: 24px; padding: 36px 30px; }
+    .pers-s {
+      background: var(--surface);
+      box-shadow: 0 2px 8px rgba(0,0,0,.04), 0 14px 44px rgba(0,0,0,.07);
+    }
+    .pers-p { background: rgba(201,79,42,.04); border: 1px solid rgba(201,79,42,.13); }
+
+    .pers-tag {
+      font-size: 9px; font-weight: 700; letter-spacing: .22em; text-transform: uppercase;
+      display: block; margin-bottom: 16px;
+    }
+    .pers-s .pers-tag { color: var(--teal); }
+    .pers-p .pers-tag { color: var(--accent); }
+
+    .pers-name {
+      font-size: 1.15rem; font-weight: 700; letter-spacing: -.02em;
+      margin-bottom: 20px; line-height: 1.3;
+    }
+    .pers-s .pers-name { color: var(--brand); }
+    .pers-p .pers-name { color: var(--accent); }
+
+    .pers-list { list-style: none; display: flex; flex-direction: column; gap: 9px; }
+    .pers-list li {
+      font-size: .78rem; color: var(--mid); line-height: 1.6;
+      display: flex; gap: 10px; align-items: baseline;
+    }
+    .pers-list li::before {
+      content: ''; display: block; width: 3px; height: 3px;
+      border-radius: 50%; background: currentColor; opacity: .4;
+      flex-shrink: 0; margin-top: 8px;
+    }
+
+    /* ── Tagline ── */
+    .tagline-block {
+      background: var(--brand); text-align: center;
+      padding: 100px 28px; position: relative; overflow: hidden;
+    }
+    .tagline-block::after {
+      content: ''; position: absolute; inset: 0;
+      background: radial-gradient(ellipse 55% 45% at 50% 110%, rgba(42,124,111,.15) 0%, transparent 65%);
+      pointer-events: none;
+    }
+    .tagline-block .eyebrow { color: rgba(248,244,239,.25); margin-bottom: 24px; display: block; }
+    .tagline-block h2 {
+      font-size: clamp(2rem, 4.5vw, 3.2rem);
+      font-weight: 700; letter-spacing: -.03em; line-height: 1.15;
+      color: #f8f4ef; max-width: 540px; margin: 0 auto 16px;
+    }
+    .tagline-block h2 span { color: rgba(248,244,239,.35); font-weight: 300; }
+    .tagline-rule { width: 24px; height: 1px; background: rgba(248,244,239,.15); margin: 24px auto; }
+    .tagline-sub { font-size: .8rem; color: rgba(248,244,239,.3); max-width: 320px; margin: 0 auto; line-height: 1.9; }
+
+    /* ── Footer ── */
+    footer {
+      border-top: 1px solid var(--line);
+      padding: 24px 28px;
+      display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;
+    }
+    .f-logo { font-size: .9rem; font-weight: 700; letter-spacing: -.02em; color: var(--brand); opacity: .5; }
+    footer p { font-size: .7rem; color: var(--mid); letter-spacing: .02em; }
+
+    @media print { nav { display: none; } .section { padding: 40px 24px; } .hero { padding: 52px 24px; } }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="wrap nav-inner">
+    <span class="nav-logo">Pelikn</span>
+    <div class="nav-prices">
+      <span class="tag tag-s">Starter · £5</span>
+      <span class="tag tag-p">Pro · £25</span>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="wrap">
+    <div class="hero-label">Plan overview · 2026</div>
+    <h1>Two plans.<br/><span>One clear difference.</span></h1>
+    <p class="hero-sub">
+      Starter keeps the EHO happy.<br/>
+      Pro keeps your whole operation running.
+    </p>
+    <div class="hero-chips">
+      <span class="hero-chip">Food Safety Act 1990</span>
+      <span class="hero-chip">Natasha's Law</span>
+      <span class="hero-chip">HACCP</span>
+      <span class="hero-chip">UK GDPR</span>
+    </div>
+  </div>
+</div>
+
+<!-- PLAN CARDS -->
+<section class="section">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow">The difference</span>
+      <h2>What each plan is for</h2>
+      <p>Not just more features — two different products for two different buyers.</p>
+    </div>
+
+    <div class="plan-duo">
+      <div class="plan-card plan-s">
+        <div class="plan-tier">Starter</div>
+        <div class="plan-price"><sup>£</sup>5</div>
+        <div class="plan-cadence">per venue / month</div>
+        <div class="plan-rule"></div>
+        <div class="plan-tagline">Pass your EHO inspection. Ditch the paper.</div>
+        <div class="plan-desc" style="margin-top:10px">
+          Pure food safety compliance. Every log, checklist and record an EHO expects to see — captured digitally, exportable on demand. No staff management, no rota. Just compliance.
+        </div>
+      </div>
+
+      <div class="plan-card plan-p">
+        <div class="plan-tier">Pro</div>
+        <div class="plan-price"><sup>£</sup>25</div>
+        <div class="plan-cadence">first venue + £15/mo each additional</div>
+        <div class="plan-rule"></div>
+        <div class="plan-tagline">Run your team AND stay compliant.</div>
+        <div class="plan-desc" style="margin-top:10px">
+          Everything in Starter, plus the full operations layer. Replaces your rota tool, timesheet app, and training tracker in one product — for less than £1 a day.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURE TABLE -->
+<section class="section section-alt">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow">Feature breakdown</span>
+      <h2>What's included</h2>
+      <p>Every feature, clearly assigned.</p>
+    </div>
+
+    <div class="compare-card">
+      <div class="compare-head">
+        <div class="ch-label">Feature</div>
+        <div class="ch-s">Starter</div>
+        <div class="ch-p">Pro</div>
+      </div>
+
+      <!-- Food Safety -->
+      <div class="cg" style="border-top:none;padding-top:20px">Food Safety & Temperatures</div>
+      <div class="cr"><div class="cr-label">Fridge &amp; freezer temperature logs</div><div class="cr-val y">✓</div><div class="cr-val a">✓</div></div>
+      <div class="cr"><div class="cr-label">Cooking &amp; reheating temperature logs</div><div class="cr-val y">✓</div><div class="cr-val a">✓</div></div>
+      <div class="cr"><div class="cr-label">Hot holding checks</div><div class="cr-val y">✓</div><div class="cr-val a">✓</div></div>
+      <div class="cr"><div class="cr-label">Cooling logs</div><div class="cr-val y">✓</div><div class="cr-val a">✓</div></div>
+      <div class="cr"><div class="cr-label">Delivery checks</div><div class="cr-val y">✓</div><div class="cr-val a">✓</div></div>
+      <div class="cr"><div class="cr-label">Probe calibration records</div><div class="cr-val y">✓</div><div class="cr-val a">✓</div></div>
+
+      <!-- Compliance -->
+      <div class="cg">Compliance & Operations</div>
+      <div class="cr"><div class="cr-label">Allergen registry — all 14 (Natasha's Law)</div><div class="cr-val y">✓</div><div class="cr-val a">✓</div></div>
+      <div class="cr"><div class="cr-label">Public allergen QR code</div><div class="cr-val"><div class="cr-addon">+£1/mo</div></div><div class="cr-val"><div class="cr-addon">+£1/mo</div></div></div>
+      <div class="cr"><div class="cr-label">Pest control logs</div><div class="cr-val y">✓</div><div class="cr-val a">✓</div></div>
+      <div class="cr"><div class="cr-label">Opening &amp; closing checklists</div><div class="cr-val y">✓</div><div class="cr-val a">✓</div></div>
+      <div class="cr"><div class="cr-label">Cleaning schedules &amp; records</div><div class="cr-val y">✓</div><div class="cr-val a">✓</div></div>
+      <div class="cr"><div class="cr-label">Corrective actions</div><div class="cr-val y">✓</div><div class="cr-val a">✓</div></div>
+      <div class="cr"><div class="cr-label">EHO-ready compliance reports (30/60/90 day)</div><div class="cr-val y">✓</div><div class="cr-val a">✓</div></div>
+      <div class="cr"><div class="cr-label">Compliance score dashboard</div><div class="cr-val y">✓</div><div class="cr-val a">✓</div></div>
+
+      <!-- Pro additions -->
+      <div class="cg">Pro — all of Starter, plus</div>
+      <div class="cr-all">
+        <div class="cr-all-items">
+          <div class="cr-all-item">Rota &amp; shift scheduling with AI Builder</div>
+          <div class="cr-all-item">Timesheets, clock in/out &amp; payroll CSV export</div>
+          <div class="cr-all-item">Staff training records &amp; expiry alerts</div>
+          <div class="cr-all-item">Time off requests &amp; shift swap approvals</div>
+          <div class="cr-all-item">HACCP generator &amp; EHO Mock Inspection tool</div>
+          <div class="cr-all-item">Supplier management, orders &amp; waste logging</div>
+          <div class="cr-all-item" style="padding-bottom:6px">Multi-venue support · +£15/mo per additional venue</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- VALUE -->
+<section class="section">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow">Why £25 makes sense</span>
+      <h2>What Pro replaces</h2>
+      <p>A venue already using a rota tool and timesheet app pays more than £25/month for those alone.</p>
+    </div>
+
+    <div class="value-trio">
+      <div class="val-card">
+        <div class="val-label">Rota tool</div>
+        <div class="val-price"><sup>£</sup>30–50</div>
+        <div class="val-sub">per month<br/>Rotacloud, Deputy (10 staff)</div>
+      </div>
+      <div class="val-card">
+        <div class="val-label">Timesheet app</div>
+        <div class="val-price"><sup>£</sup>10–20</div>
+        <div class="val-sub">per month<br/>Clockify, Buddy Punch</div>
+      </div>
+      <div class="val-card val-dark">
+        <div class="val-label">Pelikn Pro</div>
+        <div class="val-price"><sup>£</sup>25</div>
+        <div class="val-sub">per month<br/>Rota · Timesheets · Full Compliance</div>
+      </div>
+    </div>
+
+    <p class="val-note">Pro pays for itself the moment a venue was already paying for a rota tool. The entire compliance stack comes at no extra cost.</p>
+  </div>
+</section>
+
+<!-- PERSONAS -->
+<section class="section section-alt">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow">Who buys each plan</span>
+      <h2>Target buyer</h2>
+      <p>Two distinct problems. Two distinct decisions.</p>
+    </div>
+
+    <div class="persona-duo">
+      <div class="pers-card pers-s">
+        <span class="pers-tag">Starter — £5/month</span>
+        <div class="pers-name">The owner-operator</div>
+        <ul class="pers-list">
+          <li>Solo or small team — café, takeaway, small restaurant</li>
+          <li>Handles compliance themselves</li>
+          <li>Just had or is due an EHO inspection</li>
+          <li>Wants to ditch paper records without overpaying</li>
+          <li>Shifts are simple — no rota tool needed</li>
+          <li>£5/mo is an easy, low-risk yes</li>
+        </ul>
+      </div>
+      <div class="pers-card pers-p">
+        <span class="pers-tag">Pro — £25/month</span>
+        <div class="pers-name">The managing operator</div>
+        <ul class="pers-list">
+          <li>Restaurant, bar, pub or multi-site group</li>
+          <li>Team of 5–30+ with shift patterns to manage</li>
+          <li>Currently using Rotacloud, Deputy or a spreadsheet</li>
+          <li>Needs payroll-accurate timesheets each pay period</li>
+          <li>Responsible for training certs staying current</li>
+          <li>Pro replaces 2–3 tools they're already paying for</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TAGLINE -->
+<div class="tagline-block">
+  <div class="wrap">
+    <span class="eyebrow">The one-line pitch</span>
+    <h2>Starter keeps the EHO happy.<br/><span>Pro keeps your whole operation running.</span></h2>
+    <div class="tagline-rule"></div>
+    <p class="tagline-sub">Two plans. Clear value. No overlap. No confusion.</p>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer class="wrap">
+  <span class="f-logo">Pelikn</span>
+  <p>hello@pelikn.co.uk · pelikn.co.uk · © 2026</p>
+</footer>
+
+</body>
+</html>

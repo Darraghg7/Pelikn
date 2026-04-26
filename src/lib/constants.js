@@ -36,16 +36,16 @@ export const ALLERGEN_COLORS = {
 export const FRIDGE_SAFE_MIN = 0   // °C
 export const FRIDGE_SAFE_MAX = 5   // °C
 
-export const SESSION_TOKEN_KEY       = 'safeserv_staff_token'
-export const SESSION_ID_KEY          = 'safeserv_staff_id'
-export const SESSION_NAME_KEY        = 'safeserv_staff_name'
-export const SESSION_ROLE_KEY        = 'safeserv_staff_role'
-export const SESSION_JOB_ROLE_KEY    = 'safeserv_staff_job_role'
-export const SESSION_SHOW_TEMP_LOGS  = 'safeserv_show_temp_logs'
-export const SESSION_SHOW_ALLERGENS  = 'safeserv_show_allergens'
-export const SESSION_VENUE_ID_KEY    = 'safeserv_venue_id'
-export const SESSION_VENUE_SLUG_KEY  = 'safeserv_venue_slug'
-export const SESSION_LINKED_VENUES   = 'safeserv_linked_venues'
+export const SESSION_TOKEN_KEY       = 'pelikn_staff_token'
+export const SESSION_ID_KEY          = 'pelikn_staff_id'
+export const SESSION_NAME_KEY        = 'pelikn_staff_name'
+export const SESSION_ROLE_KEY        = 'pelikn_staff_role'
+export const SESSION_JOB_ROLE_KEY    = 'pelikn_staff_job_role'
+export const SESSION_SHOW_TEMP_LOGS  = 'pelikn_show_temp_logs'
+export const SESSION_SHOW_ALLERGENS  = 'pelikn_show_allergens'
+export const SESSION_VENUE_ID_KEY    = 'pelikn_venue_id'
+export const SESSION_VENUE_SLUG_KEY  = 'pelikn_venue_slug'
+export const SESSION_LINKED_VENUES   = 'pelikn_linked_venues'
 
 // VAPID public key for Web Push — private key stored in Supabase secrets as VAPID_PRIVATE_KEY
 export const VAPID_PUBLIC_KEY = 'BBDUCYpy030Ejbra3lzqTxIo663ciiqK_H-qCDmMQZ1wNwt9icOCYvjqhcyYAIyTIKorp4gpsS81MOp5InvjJDc'
@@ -158,7 +158,7 @@ export const VENUE_PRESETS = [
   },
 ]
 
-export const SESSION_PERMISSIONS_KEY = 'safeserv_staff_permissions'
+export const SESSION_PERMISSIONS_KEY = 'pelikn_staff_permissions'
 
 // Legacy aliases — kept so old code doesn't break during migration
 export const STAFF_SESSION_KEY  = SESSION_TOKEN_KEY

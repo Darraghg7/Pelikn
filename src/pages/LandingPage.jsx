@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { supabase } from '../lib/supabase'
 
-export const LAST_VENUE_KEY = 'safeserv_last_venue'
+export const LAST_VENUE_KEY = 'pelikn_last_venue'
 
 /** True when running as an installed PWA (added to home screen). */
 function isPWA() {
@@ -34,7 +34,7 @@ function VenuePicker({ venues, onSelect }) {
               <p className="text-sm font-semibold text-charcoal group-hover:text-brand transition-colors">
                 {v.name}
               </p>
-              <p className="text-[11px] text-charcoal/40 mt-0.5">safeserv.app/v/{v.slug}</p>
+              <p className="text-[11px] text-charcoal/40 mt-0.5">pelikn.app/v/{v.slug}</p>
             </div>
             <span className="text-charcoal/25 group-hover:text-brand transition-colors text-lg leading-none">→</span>
           </button>

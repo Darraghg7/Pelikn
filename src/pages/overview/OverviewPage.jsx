@@ -65,7 +65,7 @@ function VenueCard({ venue, isHome }) {
           <div className="min-w-0">
             <p className="font-semibold text-charcoal text-sm truncate">{venue.name}</p>
             <p className="text-[11px] text-charcoal/35 mt-0.5">
-              safeserv.app/v/{venue.slug}
+              pelikn.app/v/{venue.slug}
               {isHome && <span className="ml-2 px-1.5 py-0.5 rounded bg-brand/8 text-brand text-[9px] tracking-widest uppercase font-semibold">Home</span>}
             </p>
           </div>

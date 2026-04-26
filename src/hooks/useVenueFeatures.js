@@ -3,7 +3,7 @@ import { supabase } from '../lib/supabase'
 import { useVenue } from '../contexts/VenueContext'
 import { PLANS } from '../lib/constants'
 
-const FEATURES_UPDATED_EVENT = 'safeserv:features-updated'
+const FEATURES_UPDATED_EVENT = 'pelikn:features-updated'
 
 /* ── Feature catalogue ───────────────────────────────────────────────────────
    Each feature has an id that maps directly to nav/route identifiers.
