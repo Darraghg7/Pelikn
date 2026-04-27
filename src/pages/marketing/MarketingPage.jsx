@@ -131,146 +131,159 @@ function SectionLabel({ children, center = true, light = false }) {
   )
 }
 
-/* ── iPhone mockup ──────────────────────────────────────────────────────────── */
-function PhoneFrame({ children, tilt = 0, label }) {
+/* ── App screenshot components ───────────────────────────────────────────────── */
+
+const NavI = ({ d }) => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">{d}</svg>
+)
+
+function ScreenNav({ active = 'home' }) {
+  const tabs = [
+    { key: 'home',   label: 'Home',   d: <><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></> },
+    { key: 'checks', label: 'Checks', d: <><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="m9 12 2 2 4-4"/></> },
+    { key: 'rota',   label: 'Rota',   d: <><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="M8 14h.01M12 14h.01M16 14h.01"/></> },
+    { key: 'team',   label: 'Team',   d: <><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></> },
+    { key: 'clock',  label: 'Clock',  d: <><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></> },
+  ]
   return (
-    <div className="flex flex-col items-center gap-4" style={{ transform: `rotate(${tilt}deg)` }}>
-      <div className="relative" style={{ width: 168 }}>
-        {/* Frame */}
-        <div className="bg-[#18181b] rounded-[38px] p-[3.5px] shadow-[0_32px_64px_rgba(0,0,0,0.35)]">
-          {/* Screen */}
-          <div className="bg-[#F0F0EF] rounded-[35px] overflow-hidden" style={{ minHeight: 364 }}>
-            {/* Status bar */}
-            <div className="flex items-center justify-between px-5 pt-3 pb-0">
-              <span className="text-[10px] font-bold text-[#1a1a18]">9:41</span>
-              <div className="w-[72px] h-[18px] bg-[#18181b] rounded-full" />
-              <div className="flex items-center gap-[3px]">
-                <div className="flex gap-[2px] items-end">
-                  {[3,5,7,9].map(h => <div key={h} className="w-[2px] bg-[#1a1a18] rounded-sm" style={{ height: h }} />)}
+    <div className="flex items-center border-t border-charcoal/8 bg-white">
+      {tabs.map(({ key, label, d }) => {
+        const on = key === active
+        return (
+          <div key={key} className="flex-1 flex flex-col items-center justify-center py-2 gap-0.5">
+            <div className={`flex items-center justify-center rounded-xl px-2.5 py-1 ${on ? 'bg-[#E4EFE9]' : ''}`}>
+              <span className={on ? 'text-brand' : 'text-charcoal/35'}><NavI d={d} /></span>
+            </div>
+            <span className={`text-[10px] leading-none tracking-wide ${on ? 'font-semibold text-brand' : 'font-medium text-charcoal/40'}`}>{label}</span>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+function AppScreen({ children }) {
+  return (
+    <div className="bg-[#F0F0EF] rounded-2xl overflow-hidden ring-1 ring-charcoal/8 shadow-[0_16px_48px_rgba(0,0,0,0.14)]">
+      {children}
+    </div>
+  )
+}
+
+function DashboardScreen() {
+  const actions = [
+    { label: 'Cleaning',        sub: '1 task overdue — Kitchen deep clean', type: 'warning' },
+    { label: 'Fridge temps',    sub: 'All 3 checked ✓',                     type: 'success' },
+    { label: 'Opening checks',  sub: 'Complete  09:07',                     type: 'success' },
+  ]
+  return (
+    <AppScreen>
+      <div className="bg-brand px-5 py-4 flex items-center justify-between">
+        <div>
+          <p className="text-[10px] tracking-widest uppercase text-cream/45 mb-0.5">The Canteen · Shoreditch</p>
+          <p className="text-base font-semibold text-cream">Good morning, Sarah</p>
+        </div>
+        <img src="/icons/icon.svg" className="w-9 h-9 rounded-xl" alt="" />
+      </div>
+      <div className="p-4">
+        <div className="bg-white rounded-2xl overflow-hidden">
+          <div className="px-4 pt-4 pb-3">
+            <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-3">Today at a glance</p>
+            <div className="grid grid-cols-3 gap-2 mb-1">
+              {[
+                { n: '4', label: 'On shift' },
+                { n: '6', label: 'Checks done' },
+                { n: '1', label: 'Overdue', warn: true },
+              ].map(({ n, label, warn }) => (
+                <div key={label} className="flex flex-col items-center gap-0.5 border border-charcoal/10 rounded-xl py-3">
+                  <p className={`text-2xl font-bold ${warn ? 'text-warning' : 'text-charcoal'}`}>{n}</p>
+                  <p className="text-[10px] text-charcoal/45 leading-tight text-center">{label}</p>
                 </div>
-                <svg width="13" height="10" viewBox="0 0 13 10" fill="#1a1a18"><path d="M6.5 2C8.5 2 10.3 2.7 11.6 3.9L13 2.4C11.3.9 9 0 6.5 0S1.7.9 0 2.4L1.4 3.9C2.7 2.7 4.5 2 6.5 2z"/><path d="M6.5 5c1.2 0 2.3.4 3.1 1.1l1.4-1.5C9.7 3.6 8.2 3 6.5 3S3.3 3.6 2 4.6l1.4 1.5C4.2 5.4 5.3 5 6.5 5z"/><circle cx="6.5" cy="8.5" r="1.5"/></svg>
-                <svg width="22" height="10" viewBox="0 0 22 10" fill="none"><rect x=".5" y=".5" width="18" height="9" rx="2.5" stroke="#1a1a18" strokeOpacity=".35"/><rect x="19" y="3" width="2.5" height="4" rx="1" fill="#1a1a18" fillOpacity=".4"/><rect x="1.5" y="1.5" width="14" height="7" rx="1.5" fill="#1a1a18"/></svg>
+              ))}
+            </div>
+          </div>
+          <div className="border-t border-charcoal/6 divide-y divide-charcoal/6">
+            {actions.map(({ label, sub, type }) => (
+              <div key={label} className={`flex items-center border-l-[3px] pl-4 pr-5 py-3.5 ${type === 'warning' ? 'border-l-warning bg-warning/[0.025]' : 'border-l-success'}`}>
+                <div>
+                  <p className="text-sm font-medium text-charcoal">{label}</p>
+                  <p className="text-xs text-charcoal/45">{sub}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+      <ScreenNav active="home" />
+    </AppScreen>
+  )
+}
+
+function FridgeScreen() {
+  const logs = [
+    { fridge: 'Walk-in Fridge',   temp: '2°C', time: '09:15', staff: 'S. Murphy' },
+    { fridge: 'Sandwich Fridge',  temp: '4°C', time: '09:18', staff: 'S. Murphy' },
+    { fridge: 'Display Fridge',   temp: '3°C', time: '13:02', staff: 'T. Walsh'  },
+  ]
+  return (
+    <AppScreen>
+      <div className="bg-brand px-4 py-3.5 flex items-center gap-2.5">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-cream/50"><polyline points="15 18 9 12 15 6"/></svg>
+        <p className="text-sm font-semibold text-cream">Fridge Checks</p>
+      </div>
+      <div className="p-4">
+        <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-3">Today · 28 Apr</p>
+        <div className="flex flex-col gap-2.5 mb-4">
+          {logs.map(({ fridge, temp, time, staff }) => (
+            <div key={fridge} className="bg-white rounded-2xl border border-charcoal/8 px-4 py-3 flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-charcoal mb-0.5">{fridge}</p>
+                <p className="text-xs text-charcoal/40">{time} · {staff}</p>
+              </div>
+              <div className="flex items-center gap-2.5">
+                <p className="text-lg font-bold text-brand font-mono">{temp}</p>
+                <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-[#dcfce7] text-[#16a34a]">PASS</span>
               </div>
             </div>
-            {/* Content */}
-            <div className="pb-3">
-              {children}
-            </div>
-            {/* Home indicator */}
-            <div className="flex justify-center py-2">
-              <div className="w-20 h-[4px] bg-[#1a1a18]/15 rounded-full" />
-            </div>
-          </div>
+          ))}
         </div>
+        <button className="w-full bg-brand text-cream py-3 rounded-xl text-sm font-semibold">+ Log Temperature</button>
       </div>
-      {label && (
-        <p className="text-[11px] tracking-widest uppercase text-charcoal/40 font-medium">{label}</p>
-      )}
-    </div>
-  )
-}
-
-/* ── Phone screens ──────────────────────────────────────────────────────────── */
-function TodayScreen() {
-  const items = [
-    { label: 'Opening checks', value: 'Complete', time: '09:07', ok: true },
-    { label: 'Fridge temps', value: 'All clear', time: '3/3', ok: true },
-    { label: 'Cleaning', value: '2 tasks due', time: 'Today', ok: false },
-    { label: 'Staff on shift', value: '4 clocked in', time: 'Now', ok: true },
-  ]
-  return (
-    <div className="px-3 pt-2">
-      <div className="bg-[#1a3c2e] rounded-2xl p-3 mb-3 flex items-center gap-2">
-        <img src="/icons/icon.svg" className="w-7 h-7 rounded-lg" alt="" />
-        <div>
-          <p className="text-[9px] text-white/50 leading-none mb-0.5 tracking-wide uppercase">The Canteen</p>
-          <p className="text-[10px] text-white font-semibold leading-none">Mon 28 Apr</p>
-        </div>
-      </div>
-      <p className="text-[9px] tracking-widest uppercase text-[#1a1a18]/35 mb-2 font-medium">Today's checks</p>
-      <div className="flex flex-col gap-1.5">
-        {items.map(({ label, value, time, ok }) => (
-          <div key={label} className="bg-white rounded-xl border border-[#1a1a18]/8 px-2.5 py-2 flex items-center gap-2">
-            <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${ok ? 'bg-[#16a34a]' : 'bg-[#d97706]'}`} />
-            <div className="flex-1 min-w-0">
-              <p className="text-[8.5px] uppercase tracking-wider text-[#1a1a18]/40 leading-none mb-0.5">{label}</p>
-              <p className="text-[10px] font-semibold text-[#1a1a18] leading-none">{value}</p>
-            </div>
-            <span className="text-[8.5px] text-[#1a1a18]/30">{time}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-function TempScreen() {
-  const logs = [
-    { fridge: 'Walk-in Fridge', temp: '2°C', time: '09:15', staff: 'S. Murphy', ok: true },
-    { fridge: 'Sandwich Fridge', temp: '4°C', time: '09:18', staff: 'S. Murphy', ok: true },
-    { fridge: 'Display Fridge', temp: '3°C', time: '13:02', staff: 'T. Walsh', ok: true },
-  ]
-  return (
-    <div className="px-3 pt-2">
-      <div className="flex items-center gap-1.5 mb-3">
-        <span className="text-[#1a1a18]/35">{icons.back}</span>
-        <p className="text-[11px] font-semibold text-[#1a1a18]">Fridge Checks</p>
-      </div>
-      <p className="text-[9px] tracking-widest uppercase text-[#1a1a18]/35 mb-2 font-medium">Today · 28 Apr</p>
-      <div className="flex flex-col gap-2 mb-3">
-        {logs.map(({ fridge, temp, time, staff, ok }) => (
-          <div key={fridge} className="bg-white rounded-xl border border-[#1a1a18]/8 p-2.5">
-            <div className="flex items-start justify-between mb-1">
-              <p className="text-[9.5px] font-semibold text-[#1a1a18] leading-tight">{fridge}</p>
-              <span className={`text-[8px] font-semibold px-1.5 py-0.5 rounded-full ${ok ? 'bg-[#dcfce7] text-[#16a34a]' : 'bg-[#fef3c7] text-[#d97706]'}`}>
-                {ok ? 'PASS' : 'FAIL'}
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-[11px] font-bold text-[#1a3c2e]">{temp}</span>
-              <span className="text-[8px] text-[#1a1a18]/35">{time} · {staff}</span>
-            </div>
-          </div>
-        ))}
-      </div>
-      <button className="w-full bg-[#1a3c2e] text-white rounded-xl py-2 text-[9.5px] font-semibold tracking-wide">
-        + Log Temperature
-      </button>
-    </div>
+      <ScreenNav active="checks" />
+    </AppScreen>
   )
 }
 
 function RotaScreen() {
   const days = [
-    { day: 'Mon', date: '28', shifts: ['Sarah  8–4', 'Tom  11–7'] },
-    { day: 'Tue', date: '29', shifts: ['Sarah  8–4', 'Priya  10–6'] },
-    { day: 'Wed', date: '30', shifts: ['Tom  8–4', 'Jamie  12–8'] },
-    { day: 'Thu', date: '1',  shifts: ['Sarah  8–4', 'Tom  11–7'] },
-    { day: 'Fri', date: '2',  shifts: ['Jamie  8–2', 'Priya  12–8'] },
+    { day: 'Mon', date: '28', shifts: 'Sarah 8–4 · Tom 11–7' },
+    { day: 'Tue', date: '29', shifts: 'Sarah 8–4 · Priya 10–6' },
+    { day: 'Wed', date: '30', shifts: 'Tom 8–4 · Jamie 12–8' },
+    { day: 'Thu', date: '1',  shifts: 'Sarah 8–4 · Tom 11–7' },
+    { day: 'Fri', date: '2',  shifts: 'Jamie 8–2 · Priya 12–8' },
   ]
   return (
-    <div className="px-3 pt-2">
-      <div className="flex items-center gap-1.5 mb-2">
-        <span className="text-[#1a1a18]/35">{icons.back}</span>
-        <p className="text-[11px] font-semibold text-[#1a1a18]">Rota</p>
+    <AppScreen>
+      <div className="bg-brand px-4 py-3.5 flex items-center gap-2.5">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-cream/50"><polyline points="15 18 9 12 15 6"/></svg>
+        <p className="text-sm font-semibold text-cream">Rota</p>
       </div>
-      <p className="text-[9px] tracking-widest uppercase text-[#1a1a18]/35 mb-2.5 font-medium">28 Apr – 4 May</p>
-      <div className="flex flex-col gap-1.5">
-        {days.map(({ day, date, shifts }) => (
-          <div key={day} className="bg-white rounded-xl border border-[#1a1a18]/8 px-2.5 py-2 flex gap-2.5 items-start">
-            <div className="shrink-0 text-center w-7">
-              <p className="text-[7.5px] uppercase tracking-widest text-[#1a1a18]/35 leading-none">{day}</p>
-              <p className="text-[13px] font-bold text-[#1a3c2e] leading-tight">{date}</p>
+      <div className="p-4">
+        <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-3">28 Apr – 4 May</p>
+        <div className="bg-white rounded-2xl border border-charcoal/8 overflow-hidden divide-y divide-charcoal/6">
+          {days.map(({ day, date, shifts }) => (
+            <div key={day} className="flex items-center gap-4 px-4 py-3">
+              <div className="w-9 shrink-0">
+                <p className="text-[10px] uppercase tracking-widest text-charcoal/35 leading-none">{day}</p>
+                <p className="text-base font-bold text-brand leading-tight">{date}</p>
+              </div>
+              <p className="text-sm text-charcoal/65 font-mono">{shifts}</p>
             </div>
-            <div className="flex flex-col gap-0.5 flex-1 min-w-0 pt-0.5">
-              {shifts.map(s => (
-                <p key={s} className="text-[9px] text-[#1a1a18]/60 font-mono leading-none">{s}</p>
-              ))}
-            </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
-    </div>
+      <ScreenNav active="rota" />
+    </AppScreen>
   )
 }
 
@@ -313,7 +326,7 @@ export default function MarketingPage() {
             Let nothing slip.
           </h1>
           <p className="text-cream/60 text-sm sm:text-base max-w-xl mx-auto leading-relaxed mb-8">
-            Pelikn scoops up your compliance records, rota, timesheets and team comms — so nothing gets missed, and every EHO visit is a formality.
+            Pelikn scoops up every compliance record, rota and timesheet — so your team stays on top, and every EHO visit is a formality.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-5">
             <Link
@@ -333,27 +346,23 @@ export default function MarketingPage() {
         </div>
       </section>
 
-      {/* ── Phone mockups ────────────────────────────────────────────────────── */}
-      <section className="bg-brand border-t border-cream/8 overflow-hidden">
-        <div className="max-w-5xl mx-auto px-5 sm:px-8 pb-0 pt-4">
-          <div className="flex items-end justify-center gap-6 sm:gap-10">
-            {/* Left phone — slightly behind */}
-            <div className="hidden sm:block opacity-90" style={{ marginBottom: -32 }}>
-              <PhoneFrame tilt={-4} label="Fridge temps">
-                <TempScreen />
-              </PhoneFrame>
+      {/* ── App screenshots ──────────────────────────────────────────────────── */}
+      <section className="bg-white border-y border-charcoal/8">
+        <div className="max-w-5xl mx-auto px-5 sm:px-8 py-16">
+          <SectionLabel>See it in action</SectionLabel>
+          <h2 className="text-2xl font-bold sm:text-4xl text-brand text-center mb-4 tracking-tight">
+            Designed for how your team actually works
+          </h2>
+          <p className="text-charcoal/50 text-center max-w-lg mx-auto text-sm leading-relaxed mb-12">
+            Every screen your staff sees every day — on any device, no training required.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-5 sm:gap-6 items-start">
+            <div className="w-full sm:flex-[3]">
+              <DashboardScreen />
             </div>
-            {/* Centre phone — prominent */}
-            <div style={{ marginBottom: 0 }}>
-              <PhoneFrame label="Today dashboard">
-                <TodayScreen />
-              </PhoneFrame>
-            </div>
-            {/* Right phone — slightly behind */}
-            <div className="hidden sm:block opacity-90" style={{ marginBottom: -32 }}>
-              <PhoneFrame tilt={4} label="Weekly rota">
-                <RotaScreen />
-              </PhoneFrame>
+            <div className="w-full sm:flex-[2] flex flex-col gap-5 sm:gap-6">
+              <FridgeScreen />
+              <RotaScreen />
             </div>
           </div>
         </div>
