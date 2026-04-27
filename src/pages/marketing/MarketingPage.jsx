@@ -311,7 +311,7 @@ export default function MarketingPage() {
             Let nothing slip.
           </h1>
           <p className="text-cream/60 text-sm sm:text-base max-w-xl mx-auto leading-relaxed mb-8">
-            Pelikn scoops up every compliance record, rota and timesheet — so your team stays on top, and every EHO visit is a formality.
+            Every compliance record, rota and timesheet — captured automatically, stored securely, ready when you need it. Your next EHO visit? Already handled.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-5">
             <Link to="/signup" className="w-full sm:w-auto bg-accent text-cream px-7 py-3.5 rounded-xl text-sm font-semibold hover:bg-accent/90 active:scale-[0.98] transition-all text-center">
