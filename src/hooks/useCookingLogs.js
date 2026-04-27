@@ -29,7 +29,7 @@ export function useCookingLogs(checkType = null, dateFrom = null, dateTo = null)
     setLoading(true)
     let q = supabase
       .from('cooking_temp_logs')
-      .select('id, food_item, temperature, check_type, pass, corrective_action, logged_at, logged_by_name, venue_id')
+      .select('id, food_item, temperature, target_temp, check_type, notes, logged_at, logged_by_name, venue_id')
       .eq('venue_id', venueId)
       .order('logged_at', { ascending: false })
       .limit(200)
@@ -63,7 +63,7 @@ export function useTodayCookingLogs() {
     const today = new Date().toISOString().slice(0, 10)
     const { data } = await supabase
       .from('cooking_temp_logs')
-      .select('id, food_item, temperature, check_type, pass, corrective_action, logged_at, logged_by_name, venue_id')
+      .select('id, food_item, temperature, target_temp, check_type, notes, logged_at, logged_by_name, venue_id')
       .eq('venue_id', venueId)
       .gte('logged_at', `${today}T00:00:00`)
       .lte('logged_at', `${today}T23:59:59`)

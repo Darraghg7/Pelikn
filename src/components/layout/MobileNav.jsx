@@ -3,6 +3,7 @@ import { NavLink, useLocation } from 'react-router-dom'
 import { useSession } from '../../contexts/SessionContext'
 import { useVenue } from '../../contexts/VenueContext'
 import { useVenueFeatures } from '../../hooks/useVenueFeatures'
+import { useAppSettings } from '../../hooks/useSettings'
 
 /* ── SVG Icon components — thin outline, Revolut/Linear style ─────────────
    Active state: slightly bolder stroke + brand colour (via parent text-brand)
@@ -115,20 +116,30 @@ function SubNav({ items, currentPath }) {
 }
 
 /* ── Tab configurations ─────────────────────────────────────────────────── */
-function getManagerTabs(vp, isEnabled) {
+function getManagerTabs(vp, isEnabled, complianceNavOrder = []) {
   const complianceChildren = [
-    { to: vp('/opening-closing'), label: 'Checks',       feature: 'opening_closing' },
-    { to: vp('/fitness'),         label: 'Fitness',       feature: null },
-    { to: vp('/fridge'),          label: 'Fridge Temps',  feature: 'fridge' },
-    { to: vp('/cooking-temps'),   label: 'Cooking Temps', feature: null },
-    { to: vp('/hot-holding'),     label: 'Hot Holding',   feature: null },
-    { to: vp('/cooling-logs'),    label: 'Cooling Logs',  feature: null },
-    { to: vp('/deliveries'),      label: 'Deliveries',    feature: 'deliveries' },
-    { to: vp('/probe'),           label: 'Probe Cal.',    feature: 'probe' },
-    { to: vp('/allergens'),       label: 'Allergens',     feature: 'allergens' },
-    { to: vp('/cleaning'),        label: 'Cleaning',      feature: 'cleaning' },
-    { to: vp('/corrective'),      label: 'Actions',       feature: 'corrective' },
-  ].filter(c => c.feature === null || isEnabled(c.feature))
+    { key: 'opening-closing', to: vp('/opening-closing'), label: 'Checks',       feature: 'opening_closing' },
+    { key: 'fitness',         to: vp('/fitness'),         label: 'Fitness',       feature: null },
+    { key: 'fridge',          to: vp('/fridge'),          label: 'Fridge Temps',  feature: 'fridge' },
+    { key: 'cooking-temps',   to: vp('/cooking-temps'),   label: 'Cooking Temps', feature: null },
+    { key: 'hot-holding',     to: vp('/hot-holding'),     label: 'Hot Holding',   feature: null },
+    { key: 'cooling-logs',    to: vp('/cooling-logs'),    label: 'Cooling Logs',  feature: null },
+    { key: 'deliveries',      to: vp('/deliveries'),      label: 'Deliveries',    feature: 'deliveries' },
+    { key: 'probe',           to: vp('/probe'),           label: 'Probe Cal.',    feature: 'probe' },
+    { key: 'allergens',       to: vp('/allergens'),       label: 'Allergens',     feature: 'allergens' },
+    { key: 'cleaning',        to: vp('/cleaning'),        label: 'Cleaning',      feature: 'cleaning' },
+    { key: 'corrective',      to: vp('/corrective'),      label: 'Actions',       feature: 'corrective' },
+  ]
+    .filter(c => c.feature === null || isEnabled(c.feature))
+    .sort((a, b) => {
+      if (!complianceNavOrder.length) return 0
+      const ai = complianceNavOrder.indexOf(a.key)
+      const bi = complianceNavOrder.indexOf(b.key)
+      if (ai === -1 && bi === -1) return 0
+      if (ai === -1) return 1
+      if (bi === -1) return -1
+      return ai - bi
+    })
 
   const teamChildren = [
     { to: vp('/rota'),      label: 'Rota',     feature: 'rota' },
@@ -230,6 +241,7 @@ export default function MobileNav() {
   const { venueSlug } = useVenue()
   const { pathname } = useLocation()
   const { isEnabled } = useVenueFeatures()
+  const { complianceNavOrder } = useAppSettings()
 
   const vp = (p) => `/v/${venueSlug}${p}`
 
@@ -238,7 +250,7 @@ export default function MobileNav() {
     ? (pathname.slice(base.length) || '/')
     : pathname
 
-  const tabs = isManager ? getManagerTabs(vp, isEnabled) : getStaffTabs(session, vp, isEnabled)
+  const tabs = isManager ? getManagerTabs(vp, isEnabled, complianceNavOrder) : getStaffTabs(session, vp, isEnabled)
 
   const activeTab = tabs.find(t => t.match.some(m => localPath === m || (m !== '/dashboard' && localPath.startsWith(m))))
   const showSubNav = activeTab?.children && activeTab.children.length > 1

@@ -10,6 +10,7 @@ import { useAppSettings } from '../../hooks/useSettings'
 import { useTheme } from '../../contexts/ThemeContext'
 import { useVenueFeatures, FEATURE_GROUPS, ALL_FEATURE_IDS, PRO_ONLY_FEATURE_IDS } from '../../hooks/useVenueFeatures'
 import Toggle from '../../components/ui/Toggle'
+import TimeSelect from '../../components/ui/TimeSelect'
 import useVenueSettings from '../../hooks/useVenueSettings'
 import useVenueClosures from '../../hooks/useVenueClosures'
 import { PLANS, VENUE_PRESETS } from '../../lib/constants'
@@ -266,7 +267,7 @@ export default function SettingsPage() {
   const { venueId, venueSlug } = useVenue()
   const { settings, loading: sLoading, reload: reloadSettings } = useVenueSettings()
   const { closures, reload: reloadClosures } = useVenueClosures()
-  const { closedDays, breakDurationMins, cleanupMinutes, fridgeCheckTime, saveClosedDays, saveBreakDuration, saveCleanupMinutes, saveFridgeCheckTime } = useAppSettings()
+  const { closedDays, breakDurationMins, cleanupMinutes, fridgeCheckTime, openTime, closeTime, complianceNavOrder, saveClosedDays, saveBreakDuration, saveCleanupMinutes, saveFridgeCheckTime, saveOpenTime, saveCloseTime, saveComplianceNavOrder } = useAppSettings()
   const { dark, toggle: toggleDark } = useTheme()
   const { config: featuresConfig, save: saveFeatures, venuePlan } = useVenueFeatures()
 
@@ -484,6 +485,22 @@ export default function SettingsPage() {
               </button>
             )
           })}
+        </div>
+
+        {/* Trading hours */}
+        <div className="border-t border-charcoal/10 pt-6 mb-6">
+          <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-1">Trading Hours</p>
+          <p className="text-xs text-charcoal/40 mb-4">Set the hours your venue is open. Used to contextualise records and reports.</p>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-2">Opens</label>
+              <TimeSelect value={openTime} onChange={saveOpenTime} />
+            </div>
+            <div>
+              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-2">Closes</label>
+              <TimeSelect value={closeTime} onChange={saveCloseTime} />
+            </div>
+          </div>
         </div>
 
         {/* Closed periods */}
@@ -725,7 +742,89 @@ export default function SettingsPage() {
       </SettingsSection>
 
       {/* ── Venues (multi-venue, Pro only) ─────────────────────────────────── */}
+      {/* ── Navigation Order ──────────────────────────────────────────────── */}
+      <NavOrderSection
+        isEnabled={isEnabled}
+        venuePlan={venuePlan}
+        complianceNavOrder={complianceNavOrder}
+        saveComplianceNavOrder={saveComplianceNavOrder}
+      />
+
       <VenuesSection />
     </div>
+  )
+}
+
+/* ── Compliance navigation order ────────────────────────────────────────── */
+
+const COMPLIANCE_NAV_ITEMS = [
+  { key: 'opening-closing', label: 'Opening & Closing Checks', feature: 'opening_closing' },
+  { key: 'fitness',         label: 'Fitness to Work',          feature: null },
+  { key: 'fridge',          label: 'Fridge Temps',             feature: 'fridge' },
+  { key: 'cooking-temps',   label: 'Cooking Temps',            feature: null },
+  { key: 'hot-holding',     label: 'Hot Holding',              feature: null },
+  { key: 'cooling-logs',    label: 'Cooling Logs',             feature: null },
+  { key: 'deliveries',      label: 'Deliveries',               feature: 'deliveries' },
+  { key: 'probe',           label: 'Probe Calibration',        feature: 'probe' },
+  { key: 'allergens',       label: 'Allergens',                feature: 'allergens' },
+  { key: 'cleaning',        label: 'Cleaning',                 feature: 'cleaning' },
+  { key: 'corrective',      label: 'Corrective Actions',       feature: 'corrective' },
+]
+
+function NavOrderSection({ isEnabled, venuePlan, complianceNavOrder, saveComplianceNavOrder }) {
+  const activeItems = COMPLIANCE_NAV_ITEMS.filter(i => i.feature === null || isEnabled(i.feature))
+
+  const orderedItems = complianceNavOrder.length
+    ? [...activeItems].sort((a, b) => {
+        const ai = complianceNavOrder.indexOf(a.key)
+        const bi = complianceNavOrder.indexOf(b.key)
+        if (ai === -1 && bi === -1) return 0
+        if (ai === -1) return 1
+        if (bi === -1) return -1
+        return ai - bi
+      })
+    : activeItems
+
+  const move = (index, direction) => {
+    const next = [...orderedItems]
+    const swapIndex = index + direction
+    if (swapIndex < 0 || swapIndex >= next.length) return
+    ;[next[index], next[swapIndex]] = [next[swapIndex], next[index]]
+    saveComplianceNavOrder(next.map(i => i.key))
+  }
+
+  const subtitle = `${activeItems.length} item${activeItems.length !== 1 ? 's' : ''}`
+
+  return (
+    <SettingsSection title="Navigation Order" subtitle={subtitle} locked={venuePlan !== PLANS.PRO}>
+      <p className="text-xs text-charcoal/40 mb-4">
+        Reorder the items in the Checks navigation to suit your workflow.
+      </p>
+      <div className="flex flex-col gap-1.5">
+        {orderedItems.map((item, i) => (
+          <div key={item.key} className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-charcoal/3 border border-charcoal/8">
+            <span className="flex-1 text-sm font-medium text-charcoal">{item.label}</span>
+            <div className="flex flex-col gap-0.5">
+              <button
+                onClick={() => move(i, -1)}
+                disabled={i === 0}
+                className="p-0.5 text-charcoal/30 hover:text-charcoal disabled:opacity-20 transition-colors"
+                aria-label="Move up"
+              >
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m18 15-6-6-6 6"/></svg>
+              </button>
+              <button
+                onClick={() => move(i, 1)}
+                disabled={i === orderedItems.length - 1}
+                className="p-0.5 text-charcoal/30 hover:text-charcoal disabled:opacity-20 transition-colors"
+                aria-label="Move down"
+              >
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </SettingsSection>
   )
 }

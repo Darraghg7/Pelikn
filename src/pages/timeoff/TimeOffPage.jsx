@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import {
   format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, addMonths, subMonths,
-  isSameDay, isWithinInterval, isBefore, parseISO,
+  isSameDay, isWithinInterval, isBefore, parseISO, startOfDay,
 } from 'date-fns'
 import { supabase } from '../../lib/supabase'
 import { sendPush } from '../../lib/sendPush'
@@ -443,6 +443,19 @@ export default function TimeOffPage() {
               </div>
             ))}
           </div>
+        )}
+        {showDayDetail && !isBefore(showDayDetail, startOfDay(new Date())) && (
+          <button
+            onClick={() => {
+              const dateStr = format(showDayDetail, 'yyyy-MM-dd')
+              setForm(f => ({ ...f, startDate: dateStr, endDate: dateStr }))
+              setShowDayDetail(null)
+              setShowRequest(true)
+            }}
+            className="mt-4 w-full bg-charcoal text-cream py-2.5 rounded-xl text-sm font-medium hover:bg-charcoal/90 transition-colors"
+          >
+            + Request this day off
+          </button>
         )}
       </Modal>
     </div>

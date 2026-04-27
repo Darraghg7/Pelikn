@@ -44,6 +44,9 @@ export function useAppSettings() {
   const [breakDurationMins, setBreakDurationMins] = useState(30) // unpaid break for adults >6h
   const [cleanupMinutes, setCleanupMinutes]     = useState(0)   // grace period after shift end
   const [fridgeCheckTime, setFridgeCheckTime]   = useState('10:00') // time to send fridge reminder
+  const [openTime, setOpenTime]                 = useState('08:00')
+  const [closeTime, setCloseTime]               = useState('17:00')
+  const [complianceNavOrder, setComplianceNavOrder] = useState([])
   const [loading, setLoading]                   = useState(true)
 
   const load = useCallback(async () => {
@@ -56,13 +59,16 @@ export function useAppSettings() {
     setBreakDurationMins(30)
     setCleanupMinutes(0)
     setFridgeCheckTime('10:00')
+    setOpenTime('08:00')
+    setCloseTime('17:00')
+    setComplianceNavOrder([])
     setLoading(true)
 
     const { data } = await supabase
       .from('app_settings')
       .select('key, value')
       .eq('venue_id', venueId)
-      .in('key', ['custom_roles', 'closed_days', 'break_duration_mins', 'cleanup_minutes', 'fridge_check_time'])
+      .in('key', ['custom_roles', 'closed_days', 'break_duration_mins', 'cleanup_minutes', 'fridge_check_time', 'open_time', 'close_time', 'compliance_nav_order'])
 
     if (data) {
       for (const row of data) {
@@ -82,6 +88,15 @@ export function useAppSettings() {
           }
           if (row.key === 'fridge_check_time' && typeof parsed === 'string') {
             setFridgeCheckTime(parsed)
+          }
+          if (row.key === 'open_time' && typeof parsed === 'string') {
+            setOpenTime(parsed)
+          }
+          if (row.key === 'close_time' && typeof parsed === 'string') {
+            setCloseTime(parsed)
+          }
+          if (row.key === 'compliance_nav_order' && Array.isArray(parsed)) {
+            setComplianceNavOrder(parsed)
           }
         } catch { /* ignore corrupt JSON — leave defaults */ }
       }
@@ -131,6 +146,30 @@ export function useAppSettings() {
       .upsert({ venue_id: venueId, key: 'fridge_check_time', value: JSON.stringify(time) })
   }, [venueId])
 
+  const saveOpenTime = useCallback(async (time) => {
+    if (!venueId) return
+    setOpenTime(time)
+    await supabase
+      .from('app_settings')
+      .upsert({ venue_id: venueId, key: 'open_time', value: JSON.stringify(time) })
+  }, [venueId])
+
+  const saveCloseTime = useCallback(async (time) => {
+    if (!venueId) return
+    setCloseTime(time)
+    await supabase
+      .from('app_settings')
+      .upsert({ venue_id: venueId, key: 'close_time', value: JSON.stringify(time) })
+  }, [venueId])
+
+  const saveComplianceNavOrder = useCallback(async (order) => {
+    if (!venueId) return
+    setComplianceNavOrder(order)
+    await supabase
+      .from('app_settings')
+      .upsert({ venue_id: venueId, key: 'compliance_nav_order', value: JSON.stringify(order) })
+  }, [venueId])
+
   /** Pick the next unused colour from the palette. Falls back to the least-used colour. */
   const nextColor = useCallback(() => {
     const used = new Set(customRoles.map(r => r.color))
@@ -144,6 +183,9 @@ export function useAppSettings() {
 
   return {
     customRoles, closedDays, breakDurationMins, cleanupMinutes, fridgeCheckTime,
-    loading, saveCustomRoles, saveClosedDays, saveBreakDuration, saveCleanupMinutes, saveFridgeCheckTime, nextColor, reload: load,
+    openTime, closeTime, complianceNavOrder,
+    loading, saveCustomRoles, saveClosedDays, saveBreakDuration, saveCleanupMinutes, saveFridgeCheckTime,
+    saveOpenTime, saveCloseTime, saveComplianceNavOrder,
+    nextColor, reload: load,
   }
 }

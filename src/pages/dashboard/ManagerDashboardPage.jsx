@@ -11,6 +11,7 @@ import ClockPanel from '../../components/shifts/ClockPanel'
 import Modal from '../../components/ui/Modal'
 import { useVenueBranding } from '../../hooks/useVenueBranding'
 import { useVenueFeatures } from '../../hooks/useVenueFeatures'
+import { useAppSettings } from '../../hooks/useSettings'
 
 // Multi-venue is just Pro × number of venues — no separate tier in the app
 const PLAN_CONFIG = {
@@ -229,7 +230,7 @@ function WidgetPicker({ open, onClose, activeIds, onSave }) {
 }
 
 /* ── Today at a Glance ───────────────────────────────────────────────────── */
-function useTodaySummary(venueId) {
+function useTodaySummary(venueId, closedDays = []) {
   const [summary, setSummary] = useState(null)
   const [loading, setLoading] = useState(true)
   const [closedToday, setClosedToday] = useState(false)
@@ -245,7 +246,18 @@ function useTodaySummary(venueId) {
     const fetchAll = async () => {
       setLoading(true)
 
-      // Check if venue is closed today
+      // Check day-of-week closed setting (Mon=0…Sun=6)
+      const todayDow = (today.getDay() + 6) % 7
+      if (closedDays.includes(todayDow)) {
+        if (!cancelled) {
+          setClosedToday(true)
+          setSummary({ overdueClean: 0, onShiftToday: 0, checksToday: 0, uncheckedFridges: 0, pendingLeave: 0, criticalActions: 0 })
+          setLoading(false)
+        }
+        return
+      }
+
+      // Check if venue is closed today via a specific closure period
       const { data: closureRows } = await supabase
         .from('venue_closures')
         .select('id, reason')
@@ -322,9 +334,9 @@ function useTodaySummary(venueId) {
   return { summary, loading, closedToday }
 }
 
-function TodaySummaryCard({ venueId }) {
+function TodaySummaryCard({ venueId, closedDays }) {
   const { venueSlug } = useVenue()
-  const { summary, loading, closedToday } = useTodaySummary(venueId)
+  const { summary, loading, closedToday } = useTodaySummary(venueId, closedDays)
   const vp = (p) => `/v/${venueSlug}${p}`
 
   const actions = summary ? [
@@ -547,6 +559,7 @@ export default function ManagerDashboardPage() {
   const toast = useToast()
   const { venueName, logoUrl } = useVenueBranding(venueId)
   const { widgetIds, loading, save } = useWidgetPreferences(session?.staffId, venueId)
+  const { closedDays } = useAppSettings()
   const [showPicker, setShowPicker] = useState(false)
 
   const handleSave = (newIds) => {
@@ -590,7 +603,7 @@ export default function ManagerDashboardPage() {
 
       {/* Desktop: today summary + clock side by side */}
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-4 items-start">
-        <TodaySummaryCard venueId={venueId} />
+        <TodaySummaryCard venueId={venueId} closedDays={closedDays} />
         <div className="bg-white rounded-2xl p-5">
           <p className="text-[11px] tracking-widest uppercase font-semibold text-charcoal/40 mb-3">My Clock</p>
           <ClockPanel staffId={session?.staffId} hasShift />

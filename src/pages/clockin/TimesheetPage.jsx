@@ -273,9 +273,18 @@ function AddSessionModal({ open, onClose, staffList, initialStaffId, initialDate
 
 // ── EditSessionModal ──────────────────────────────────────────────────────────
 
+const BREAK_OPTIONS = [0, 5, 10, 15, 20, 30, 45, 60, 90]
+
+function snapToBreakOption(mins) {
+  return BREAK_OPTIONS.reduce((prev, curr) =>
+    Math.abs(curr - mins) < Math.abs(prev - mins) ? curr : prev
+  )
+}
+
 function EditSessionModal({ open, onClose, session, venueId, onSaved }) {
   const toast = useToast()
   const [form, setForm] = useState({ clockIn: '', clockOut: '' })
+  const [breakMin, setBreakMin] = useState('0')
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
@@ -284,6 +293,11 @@ function EditSessionModal({ open, onClose, session, venueId, onSaved }) {
         clockIn:  session.in  ? format(parseISO(session.in),  'HH:mm') : '',
         clockOut: session.out ? format(parseISO(session.out), 'HH:mm') : '',
       })
+      const existingBreakMins = (session.breaks ?? []).reduce((acc, b) => {
+        if (!b.start || !b.end) return acc
+        return acc + Math.round((new Date(b.end) - new Date(b.start)) / 60000)
+      }, 0)
+      setBreakMin(String(snapToBreakOption(existingBreakMins)))
     }
   }, [open, session])
 
@@ -294,17 +308,19 @@ function EditSessionModal({ open, onClose, session, venueId, onSaved }) {
     if (!clockIn || !clockOut) { toast('Both clock in and clock out are required', 'error'); return }
     if (clockOut <= clockIn)   { toast('Clock out must be after clock in', 'error'); return }
 
-    const date    = session.in.slice(0, 10)
-    const toISO   = (t) => new Date(`${date}T${t}:00`).toISOString()
-    const updates = []
-    if (session.inId)  updates.push(supabase.from('clock_events').update({ occurred_at: toISO(clockIn)  }).eq('id', session.inId))
-    if (session.outId) updates.push(supabase.from('clock_events').update({ occurred_at: toISO(clockOut) }).eq('id', session.outId))
+    const date  = session.in.slice(0, 10)
+    const toISO = (t) => new Date(`${date}T${t}:00`).toISOString()
 
     setSaving(true)
-    const results = await Promise.all(updates)
+    const { error } = await supabase.rpc('edit_clock_session', {
+      p_clock_in_id:    session.inId,
+      p_clock_in_time:  toISO(clockIn),
+      p_clock_out_id:   session.outId ?? null,
+      p_clock_out_time: toISO(clockOut),
+      p_break_minutes:  parseInt(breakMin, 10) || 0,
+    })
     setSaving(false)
-    const err = results.find(r => r.error)?.error
-    if (err) { toast(err.message, 'error'); return }
+    if (error) { toast(error.message, 'error'); return }
     toast('Session updated')
     onSaved()
   }
@@ -312,7 +328,6 @@ function EditSessionModal({ open, onClose, session, venueId, onSaved }) {
   return (
     <Modal open={open} onClose={onClose} title="Edit Session">
       <div className="flex flex-col gap-4">
-        <p className="text-xs text-charcoal/40">Editing clock-in and clock-out times. Break times are unchanged.</p>
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1">Clock In</label>
@@ -332,6 +347,18 @@ function EditSessionModal({ open, onClose, session, venueId, onSaved }) {
               className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
             />
           </div>
+        </div>
+        <div>
+          <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1">Break</label>
+          <select
+            value={breakMin}
+            onChange={e => setBreakMin(e.target.value)}
+            className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 bg-white text-sm text-charcoal focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+          >
+            {BREAK_OPTIONS.map(m => (
+              <option key={m} value={String(m)}>{m === 0 ? 'No break' : `${m} min`}</option>
+            ))}
+          </select>
         </div>
         <button
           onClick={save}

@@ -12,6 +12,7 @@ import RecentShifts from '../../components/shifts/RecentShifts'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
 import { useClockSessions } from '../../hooks/useClockSessions'
 import { usePushNotifications } from '../../hooks/usePushNotifications'
+import { useAppSettings } from '../../hooks/useSettings'
 
 
 function SectionLabel({ children }) {
@@ -232,7 +233,7 @@ function QuickActions({ venueSlug, hasPermission, isEnabled, hasShift }) {
   )
 }
 
-function TodaySummary({ staffId, venueId, venueSlug, hasPermission, isEnabled }) {
+function TodaySummary({ staffId, venueId, venueSlug, hasPermission, isEnabled, closedDays = [] }) {
   const [tasks, setTasks] = useState({ pending: 0, cleaning: 0, fridges: 0 })
   const [loaded, setLoaded] = useState(false)
   const [closedToday, setClosedToday] = useState(false)
@@ -242,7 +243,15 @@ function TodaySummary({ staffId, venueId, venueSlug, hasPermission, isEnabled })
     let cancelled = false
     const today = format(new Date(), 'yyyy-MM-dd')
 
-    // Check if venue is closed today
+    // Check day-of-week closed setting (Mon=0…Sun=6)
+    const todayDow = (new Date().getDay() + 6) % 7
+    if (closedDays.includes(todayDow)) {
+      setClosedToday(true)
+      setLoaded(true)
+      return
+    }
+
+    // Check if venue is closed today via a specific closure period
     supabase
       .from('venue_closures')
       .select('id, reason')
@@ -372,6 +381,7 @@ export default function StaffDashboardPage() {
   const { session, hasPermission } = useSession()
   const { isEnabled } = useVenueFeatures()
   const { venueName, logoUrl } = useVenueBranding(venueId)
+  const { closedDays } = useAppSettings()
   const [todayShift, setTodayShift] = useState(null)
   const [weekShifts, setWeekShifts] = useState([])
   const [hourlyRate, setHourlyRate] = useState(0)
@@ -451,7 +461,7 @@ export default function StaffDashboardPage() {
       <QuickActions venueSlug={venueSlug} hasPermission={hasPermission} isEnabled={isEnabled} hasShift={!!todayShift} />
 
       {/* Today summary */}
-      <TodaySummary staffId={session.staffId} venueId={venueId} venueSlug={venueSlug} hasPermission={hasPermission} isEnabled={isEnabled} />
+      <TodaySummary staffId={session.staffId} venueId={venueId} venueSlug={venueSlug} hasPermission={hasPermission} isEnabled={isEnabled} closedDays={closedDays} />
 
       {/* Desktop: two columns */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
