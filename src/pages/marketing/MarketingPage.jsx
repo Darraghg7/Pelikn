@@ -28,9 +28,7 @@ const icons = {
   allergen:    <Icon><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></Icon>,
   truck:       <Icon><rect x="1" y="3" width="15" height="13" rx="1"/><path d="M16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></Icon>,
   probe:       <Icon><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></Icon>,
-  shield:      <Icon><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></Icon>,
   pdf:         <Icon><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M9 15h6M9 11h3"/></Icon>,
-  calendar:    <Icon><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></Icon>,
   timesheet:   <Icon><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></Icon>,
   training:    <Icon><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></Icon>,
   clockin:     <Icon><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></Icon>,
@@ -41,9 +39,7 @@ const icons = {
   phone:       <Icon><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12" y2="18.01"/></Icon>,
   share:       <Icon><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></Icon>,
   download:    <Icon><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></Icon>,
-  bell:        <Icon><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></Icon>,
   rota:        <Icon><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="M8 14h.01M12 14h.01M16 14h.01"/></Icon>,
-  back:        <Icon><polyline points="15 18 9 12 15 6"/></Icon>,
 }
 
 /* ── Data ───────────────────────────────────────────────────────────────────── */
@@ -75,7 +71,7 @@ const FAQS = [
   { q: 'How long does setup take?', a: "Most venues are up and running in under 15 minutes. The setup wizard walks you through your venue type, features and first staff invites. No training required." },
 ]
 
-/* ── FAQ item ───────────────────────────────────────────────────────────────── */
+/* ── Shared components ──────────────────────────────────────────────────────── */
 function FaqItem({ q, a }) {
   const [open, setOpen] = useState(false)
   return (
@@ -85,33 +81,31 @@ function FaqItem({ q, a }) {
         className="w-full flex items-center justify-between py-4 text-left gap-4"
       >
         <span className="text-sm font-medium text-charcoal/80">{q}</span>
-        <span
-          className="text-charcoal/30 shrink-0 transition-transform duration-200"
-          style={{ transform: open ? 'rotate(180deg)' : 'rotate(0deg)' }}
-        >
+        <span className="text-charcoal/30 shrink-0 transition-transform duration-200" style={{ transform: open ? 'rotate(180deg)' : 'rotate(0deg)' }}>
           {icons.chevron}
         </span>
       </button>
-      {open && (
-        <p className="text-sm text-charcoal/55 pb-4 leading-relaxed">{a}</p>
-      )}
+      {open && <p className="text-sm text-charcoal/55 pb-4 leading-relaxed">{a}</p>}
     </div>
   )
 }
 
-/* ── Feature card ───────────────────────────────────────────────────────────── */
-function FeatureCard({ icon, title, desc, accent = false }) {
+function FeatureCard({ icon, title, desc, accent = false, dark = false }) {
+  if (dark) return (
+    <div className="rounded-2xl border border-cream/10 bg-cream/5 hover:bg-cream/8 transition-colors p-5 flex flex-col gap-3">
+      <div className="w-9 h-9 rounded-xl bg-cream/10 text-cream/65 flex items-center justify-center">{icon}</div>
+      <div>
+        <p className="text-sm font-semibold mb-1 text-cream/80">{title}</p>
+        <p className="text-xs text-cream/45 leading-relaxed">{desc}</p>
+      </div>
+    </div>
+  )
   return (
     <div className={[
       'rounded-2xl border p-5 flex flex-col gap-3',
-      accent
-        ? 'border-accent/20 bg-accent/[0.025]'
-        : 'bg-white border-charcoal/8 hover:border-brand/20 transition-colors',
+      accent ? 'border-accent/20 bg-accent/[0.025]' : 'bg-white border-charcoal/8 hover:border-brand/20 transition-colors',
     ].join(' ')}>
-      <div className={[
-        'w-9 h-9 rounded-xl flex items-center justify-center',
-        accent ? 'bg-accent/10 text-accent' : 'bg-brand/8 text-brand',
-      ].join(' ')}>
+      <div className={['w-9 h-9 rounded-xl flex items-center justify-center', accent ? 'bg-accent/10 text-accent' : 'bg-brand/8 text-brand'].join(' ')}>
         {icon}
       </div>
       <div>
@@ -122,7 +116,6 @@ function FeatureCard({ icon, title, desc, accent = false }) {
   )
 }
 
-/* ── Section label ──────────────────────────────────────────────────────────── */
 function SectionLabel({ children, center = true, light = false }) {
   return (
     <p className={`text-[11px] tracking-widest uppercase font-medium mb-3 ${center ? 'text-center' : ''} ${light ? 'text-cream/40' : 'text-charcoal/35'}`}>
@@ -131,8 +124,7 @@ function SectionLabel({ children, center = true, light = false }) {
   )
 }
 
-/* ── App screenshot components ───────────────────────────────────────────────── */
-
+/* ── App screenshot components ──────────────────────────────────────────────── */
 const NavI = ({ d }) => (
   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">{d}</svg>
 )
@@ -162,9 +154,9 @@ function ScreenNav({ active = 'home' }) {
   )
 }
 
-function AppScreen({ children }) {
+function AppScreen({ children, maxH = 440 }) {
   return (
-    <div className="bg-[#F0F0EF] rounded-2xl overflow-hidden ring-1 ring-charcoal/8 shadow-[0_16px_48px_rgba(0,0,0,0.14)]">
+    <div className="rounded-2xl overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.35)] ring-1 ring-white/10" style={{ maxHeight: maxH }}>
       {children}
     </div>
   )
@@ -172,84 +164,84 @@ function AppScreen({ children }) {
 
 function DashboardScreen() {
   const actions = [
-    { label: 'Cleaning',        sub: '1 task overdue — Kitchen deep clean', type: 'warning' },
-    { label: 'Fridge temps',    sub: 'All 3 checked ✓',                     type: 'success' },
-    { label: 'Opening checks',  sub: 'Complete  09:07',                     type: 'success' },
+    { label: 'Cleaning',       sub: '1 task overdue — Kitchen deep clean', type: 'warning' },
+    { label: 'Fridge temps',   sub: 'All 3 checked ✓',                     type: 'success' },
+    { label: 'Opening checks', sub: 'Complete  09:07',                     type: 'success' },
   ]
   return (
     <AppScreen>
-      <div className="bg-brand px-5 py-4 flex items-center justify-between">
-        <div>
-          <p className="text-[10px] tracking-widest uppercase text-cream/45 mb-0.5">The Canteen · Shoreditch</p>
-          <p className="text-base font-semibold text-cream">Good morning, Sarah</p>
+      <div className="bg-[#F0F0EF]">
+        <div className="bg-brand px-5 py-4 flex items-center justify-between">
+          <div>
+            <p className="text-[10px] tracking-widest uppercase text-cream/45 mb-0.5">The Canteen · Shoreditch</p>
+            <p className="text-base font-semibold text-cream">Good morning, Sarah</p>
+          </div>
+          <img src="/icons/icon.svg" className="w-9 h-9 rounded-xl" alt="" />
         </div>
-        <img src="/icons/icon.svg" className="w-9 h-9 rounded-xl" alt="" />
-      </div>
-      <div className="p-4">
-        <div className="bg-white rounded-2xl overflow-hidden">
-          <div className="px-4 pt-4 pb-3">
-            <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-3">Today at a glance</p>
-            <div className="grid grid-cols-3 gap-2 mb-1">
-              {[
-                { n: '4', label: 'On shift' },
-                { n: '6', label: 'Checks done' },
-                { n: '1', label: 'Overdue', warn: true },
-              ].map(({ n, label, warn }) => (
-                <div key={label} className="flex flex-col items-center gap-0.5 border border-charcoal/10 rounded-xl py-3">
-                  <p className={`text-2xl font-bold ${warn ? 'text-warning' : 'text-charcoal'}`}>{n}</p>
-                  <p className="text-[10px] text-charcoal/45 leading-tight text-center">{label}</p>
+        <div className="p-4">
+          <div className="bg-white rounded-2xl overflow-hidden">
+            <div className="px-4 pt-4 pb-3">
+              <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-3">Today at a glance</p>
+              <div className="grid grid-cols-3 gap-2 mb-1">
+                {[{ n: '4', label: 'On shift' }, { n: '6', label: 'Checks done' }, { n: '1', label: 'Overdue', warn: true }].map(({ n, label, warn }) => (
+                  <div key={label} className="flex flex-col items-center gap-0.5 border border-charcoal/10 rounded-xl py-3">
+                    <p className={`text-2xl font-bold ${warn ? 'text-warning' : 'text-charcoal'}`}>{n}</p>
+                    <p className="text-[10px] text-charcoal/45 leading-tight text-center">{label}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="border-t border-charcoal/6 divide-y divide-charcoal/6">
+              {actions.map(({ label, sub, type }) => (
+                <div key={label} className={`flex items-center border-l-[3px] pl-4 pr-5 py-3.5 ${type === 'warning' ? 'border-l-warning bg-warning/[0.025]' : 'border-l-success'}`}>
+                  <div>
+                    <p className="text-sm font-medium text-charcoal">{label}</p>
+                    <p className="text-xs text-charcoal/45">{sub}</p>
+                  </div>
                 </div>
               ))}
             </div>
           </div>
-          <div className="border-t border-charcoal/6 divide-y divide-charcoal/6">
-            {actions.map(({ label, sub, type }) => (
-              <div key={label} className={`flex items-center border-l-[3px] pl-4 pr-5 py-3.5 ${type === 'warning' ? 'border-l-warning bg-warning/[0.025]' : 'border-l-success'}`}>
-                <div>
-                  <p className="text-sm font-medium text-charcoal">{label}</p>
-                  <p className="text-xs text-charcoal/45">{sub}</p>
-                </div>
-              </div>
-            ))}
-          </div>
         </div>
+        <ScreenNav active="home" />
       </div>
-      <ScreenNav active="home" />
     </AppScreen>
   )
 }
 
 function FridgeScreen() {
   const logs = [
-    { fridge: 'Walk-in Fridge',   temp: '2°C', time: '09:15', staff: 'S. Murphy' },
-    { fridge: 'Sandwich Fridge',  temp: '4°C', time: '09:18', staff: 'S. Murphy' },
-    { fridge: 'Display Fridge',   temp: '3°C', time: '13:02', staff: 'T. Walsh'  },
+    { fridge: 'Walk-in Fridge',  temp: '2°C', time: '09:15', staff: 'S. Murphy' },
+    { fridge: 'Sandwich Fridge', temp: '4°C', time: '09:18', staff: 'S. Murphy' },
+    { fridge: 'Display Fridge',  temp: '3°C', time: '13:02', staff: 'T. Walsh'  },
   ]
   return (
     <AppScreen>
-      <div className="bg-brand px-4 py-3.5 flex items-center gap-2.5">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-cream/50"><polyline points="15 18 9 12 15 6"/></svg>
-        <p className="text-sm font-semibold text-cream">Fridge Checks</p>
-      </div>
-      <div className="p-4">
-        <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-3">Today · 28 Apr</p>
-        <div className="flex flex-col gap-2.5 mb-4">
-          {logs.map(({ fridge, temp, time, staff }) => (
-            <div key={fridge} className="bg-white rounded-2xl border border-charcoal/8 px-4 py-3 flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-charcoal mb-0.5">{fridge}</p>
-                <p className="text-xs text-charcoal/40">{time} · {staff}</p>
-              </div>
-              <div className="flex items-center gap-2.5">
-                <p className="text-lg font-bold text-brand font-mono">{temp}</p>
-                <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-[#dcfce7] text-[#16a34a]">PASS</span>
-              </div>
-            </div>
-          ))}
+      <div className="bg-[#F0F0EF]">
+        <div className="bg-brand px-4 py-3.5 flex items-center gap-2.5">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-cream/50"><polyline points="15 18 9 12 15 6"/></svg>
+          <p className="text-sm font-semibold text-cream">Fridge Checks</p>
         </div>
-        <button className="w-full bg-brand text-cream py-3 rounded-xl text-sm font-semibold">+ Log Temperature</button>
+        <div className="p-4">
+          <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-3">Today · 28 Apr</p>
+          <div className="flex flex-col gap-2.5 mb-4">
+            {logs.map(({ fridge, temp, time, staff }) => (
+              <div key={fridge} className="bg-white rounded-2xl border border-charcoal/8 px-4 py-3 flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-charcoal mb-0.5">{fridge}</p>
+                  <p className="text-xs text-charcoal/40">{time} · {staff}</p>
+                </div>
+                <div className="flex items-center gap-2.5">
+                  <p className="text-lg font-bold text-brand font-mono">{temp}</p>
+                  <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-[#dcfce7] text-[#16a34a]">PASS</span>
+                </div>
+              </div>
+            ))}
+          </div>
+          <button className="w-full bg-brand text-cream py-3 rounded-xl text-sm font-semibold">+ Log Temperature</button>
+        </div>
+        <ScreenNav active="checks" />
       </div>
-      <ScreenNav active="checks" />
     </AppScreen>
   )
 }
@@ -264,25 +256,27 @@ function RotaScreen() {
   ]
   return (
     <AppScreen>
-      <div className="bg-brand px-4 py-3.5 flex items-center gap-2.5">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-cream/50"><polyline points="15 18 9 12 15 6"/></svg>
-        <p className="text-sm font-semibold text-cream">Rota</p>
-      </div>
-      <div className="p-4">
-        <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-3">28 Apr – 4 May</p>
-        <div className="bg-white rounded-2xl border border-charcoal/8 overflow-hidden divide-y divide-charcoal/6">
-          {days.map(({ day, date, shifts }) => (
-            <div key={day} className="flex items-center gap-4 px-4 py-3">
-              <div className="w-9 shrink-0">
-                <p className="text-[10px] uppercase tracking-widest text-charcoal/35 leading-none">{day}</p>
-                <p className="text-base font-bold text-brand leading-tight">{date}</p>
-              </div>
-              <p className="text-sm text-charcoal/65 font-mono">{shifts}</p>
-            </div>
-          ))}
+      <div className="bg-[#F0F0EF]">
+        <div className="bg-brand px-4 py-3.5 flex items-center gap-2.5">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-cream/50"><polyline points="15 18 9 12 15 6"/></svg>
+          <p className="text-sm font-semibold text-cream">Rota</p>
         </div>
+        <div className="p-4">
+          <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-3">28 Apr – 4 May</p>
+          <div className="bg-white rounded-2xl border border-charcoal/8 overflow-hidden divide-y divide-charcoal/6">
+            {days.map(({ day, date, shifts }) => (
+              <div key={day} className="flex items-center gap-4 px-4 py-3">
+                <div className="w-9 shrink-0">
+                  <p className="text-[10px] uppercase tracking-widest text-charcoal/35 leading-none">{day}</p>
+                  <p className="text-base font-bold text-brand leading-tight">{date}</p>
+                </div>
+                <p className="text-sm text-charcoal/65 font-mono">{shifts}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+        <ScreenNav active="rota" />
       </div>
-      <ScreenNav active="rota" />
     </AppScreen>
   )
 }
@@ -299,25 +293,16 @@ export default function MarketingPage() {
         <div className="max-w-5xl mx-auto px-5 sm:px-8 h-14 flex items-center justify-between">
           <PeliknLogo iconSize="w-7 h-7" textSize="text-sm" />
           <div className="flex items-center gap-1.5">
-            <Link
-              to="/login"
-              className="text-sm font-medium text-charcoal/55 hover:text-charcoal transition-colors px-3.5 py-2 rounded-lg"
-            >
-              Sign In
-            </Link>
-            <Link
-              to="/signup"
-              className="text-sm font-semibold text-cream bg-brand hover:bg-brand/90 transition-colors px-4 py-2 rounded-xl"
-            >
-              Start Free Trial
-            </Link>
+            <Link to="/login" className="text-sm font-medium text-charcoal/55 hover:text-charcoal transition-colors px-3.5 py-2 rounded-lg">Sign In</Link>
+            <Link to="/signup" className="text-sm font-semibold text-cream bg-brand hover:bg-brand/90 transition-colors px-4 py-2 rounded-xl">Start Free Trial</Link>
           </div>
         </div>
       </nav>
 
-      {/* ── Hero ─────────────────────────────────────────────────────────────── */}
-      <section className="bg-brand text-cream relative overflow-hidden">
-        <div className="max-w-5xl mx-auto px-5 sm:px-8 pt-20 pb-12 sm:pt-28 sm:pb-16 text-center relative z-10">
+      {/* ── Hero + Screenshots ────────────────────────────────────────────────── */}
+      <section className="bg-brand text-cream">
+        {/* Headline + CTA */}
+        <div className="max-w-5xl mx-auto px-5 sm:px-8 pt-20 pb-12 sm:pt-28 sm:pb-14 text-center">
           <div className="inline-flex items-center gap-2 bg-cream/10 border border-cream/15 rounded-full px-3.5 py-1.5 mb-6">
             <span className="w-1.5 h-1.5 rounded-full bg-success shrink-0" />
             <span className="text-[11px] tracking-widest uppercase text-cream/70 font-medium">Food Safety &amp; Team Operations</span>
@@ -329,42 +314,37 @@ export default function MarketingPage() {
             Pelikn scoops up every compliance record, rota and timesheet — so your team stays on top, and every EHO visit is a formality.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-5">
-            <Link
-              to="/signup"
-              className="w-full sm:w-auto bg-accent text-cream px-7 py-3.5 rounded-xl text-sm font-semibold hover:bg-accent/90 active:scale-[0.98] transition-all text-center"
-            >
+            <Link to="/signup" className="w-full sm:w-auto bg-accent text-cream px-7 py-3.5 rounded-xl text-sm font-semibold hover:bg-accent/90 active:scale-[0.98] transition-all text-center">
               Start Free Trial
             </Link>
-            <a
-              href="#pricing"
-              className="w-full sm:w-auto border border-cream/20 text-cream/70 hover:text-cream hover:border-cream/40 px-7 py-3.5 rounded-xl text-sm font-medium transition-colors text-center"
-            >
+            <a href="#pricing" className="w-full sm:w-auto border border-cream/20 text-cream/70 hover:text-cream hover:border-cream/40 px-7 py-3.5 rounded-xl text-sm font-medium transition-colors text-center">
               See Pricing
             </a>
           </div>
           <p className="text-cream/30 text-xs tracking-wide">7-day free trial · No card required</p>
         </div>
-      </section>
 
-      {/* ── App screenshots ──────────────────────────────────────────────────── */}
-      <section className="bg-white border-y border-charcoal/8">
-        <div className="max-w-5xl mx-auto px-5 sm:px-8 py-16">
-          <SectionLabel>See it in action</SectionLabel>
-          <h2 className="text-2xl font-bold sm:text-4xl text-brand text-center mb-4 tracking-tight">
-            Designed for how your team actually works
-          </h2>
-          <p className="text-charcoal/50 text-center max-w-lg mx-auto text-sm leading-relaxed mb-12">
-            Every screen your staff sees every day — on any device, no training required.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-5 sm:gap-6 items-start">
-            <div className="w-full sm:flex-[3]">
-              <DashboardScreen />
-            </div>
-            <div className="w-full sm:flex-[2] flex flex-col gap-5 sm:gap-6">
-              <FridgeScreen />
-              <RotaScreen />
+        {/* App screenshots — same dark section, no break */}
+        <div className="border-t border-cream/10 pb-0">
+          <p className="text-[11px] tracking-widest uppercase text-cream/35 text-center pt-8 pb-6 font-medium">See it in action</p>
+          <div className="max-w-5xl mx-auto px-5 sm:px-8">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-5 items-start">
+              <div className="flex flex-col gap-2">
+                <DashboardScreen />
+                <p className="text-[10px] tracking-widest uppercase text-cream/35 text-center font-medium">Today dashboard</p>
+              </div>
+              <div className="flex flex-col gap-2">
+                <FridgeScreen />
+                <p className="text-[10px] tracking-widest uppercase text-cream/35 text-center font-medium">Fridge checks</p>
+              </div>
+              <div className="flex flex-col gap-2">
+                <RotaScreen />
+                <p className="text-[10px] tracking-widest uppercase text-cream/35 text-center font-medium">Weekly rota</p>
+              </div>
             </div>
           </div>
+          {/* bleed edge — screens sit at the bottom of the dark section with no bottom padding */}
+          <div className="h-10" />
         </div>
       </section>
 
@@ -383,51 +363,24 @@ export default function MarketingPage() {
         </div>
       </div>
 
-      {/* ── Who it's for ─────────────────────────────────────────────────────── */}
-      <section className="max-w-5xl mx-auto px-5 sm:px-8 py-16">
-        <SectionLabel>Built for</SectionLabel>
-        <h2 className="text-2xl font-bold sm:text-4xl text-brand text-center mb-4 tracking-tight">
-          Every independent hospitality business
-        </h2>
-        <p className="text-charcoal/50 text-center max-w-lg mx-auto text-sm leading-relaxed mb-12">
-          Most compliance tools are built for big chains with big budgets. Pelikn is built for independent operators — quick to set up, simple for every member of staff.
-        </p>
-
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          {[
-            { icon: <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8h1a4 4 0 010 8h-1"/><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>, label: 'Cafés & Coffee Shops' },
-            { icon: <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 002-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 00-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"/></svg>, label: 'Restaurants & Takeaways' },
-            { icon: <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 11h1a3 3 0 010 6h-1"/><path d="M3 11h14v8a1 1 0 01-1 1H4a1 1 0 01-1-1z"/><path d="M7 11V7"/><path d="M11 11V7"/><path d="M5 7h10l-1-4H6z"/></svg>, label: 'Pubs & Bars' },
-            { icon: <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>, label: 'Hotels & Catering' },
-          ].map(({ icon, label }) => (
-            <div key={label} className="bg-white rounded-2xl border border-charcoal/8 p-5 flex flex-col items-center gap-3 text-center hover:border-brand/20 transition-colors">
-              <div className="text-brand/40">{icon}</div>
-              <p className="text-xs font-medium text-charcoal/60 leading-snug">{label}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ── Compliance features ───────────────────────────────────────────────── */}
-      <section className="bg-white border-y border-charcoal/8">
-        <div className="max-w-5xl mx-auto px-5 sm:px-8 py-16">
-          <SectionLabel>Compliance tools</SectionLabel>
-          <h2 className="text-2xl font-bold sm:text-4xl text-brand text-center mb-4 tracking-tight">
+      {/* ── Compliance features — dark brand ─────────────────────────────────── */}
+      <section className="bg-brand">
+        <div className="max-w-5xl mx-auto px-5 sm:px-8 py-14">
+          <SectionLabel light>Compliance tools</SectionLabel>
+          <h2 className="text-2xl font-bold sm:text-4xl text-cream text-center mb-4 tracking-tight">
             Everything the EHO expects to see
           </h2>
-          <p className="text-charcoal/50 text-center max-w-lg mx-auto text-sm leading-relaxed mb-12">
+          <p className="text-cream/50 text-center max-w-lg mx-auto text-sm leading-relaxed mb-10">
             All the logs, checklists and records you legally need — captured on-device, stored securely, exportable in seconds.
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {COMPLIANCE_FEATURES.map(f => (
-              <FeatureCard key={f.title} {...f} />
-            ))}
+            {COMPLIANCE_FEATURES.map(f => <FeatureCard key={f.title} {...f} dark />)}
           </div>
         </div>
       </section>
 
-      {/* ── Pro features ─────────────────────────────────────────────────────── */}
-      <section className="max-w-5xl mx-auto px-5 sm:px-8 py-16">
+      {/* ── Pro features — light ─────────────────────────────────────────────── */}
+      <section className="max-w-5xl mx-auto px-5 sm:px-8 py-14">
         <div className="flex items-center gap-2.5 justify-center mb-3">
           <SectionLabel center={false}>Pro plan</SectionLabel>
           <span className="text-[10px] tracking-widest uppercase font-semibold px-2 py-0.5 rounded-full border bg-accent/10 text-accent border-accent/25 -mt-3">Pro</span>
@@ -435,29 +388,26 @@ export default function MarketingPage() {
         <h2 className="text-2xl font-bold sm:text-4xl text-brand text-center mb-4 tracking-tight">
           Run your team. Stay compliant.
         </h2>
-        <p className="text-charcoal/50 text-center max-w-lg mx-auto text-sm leading-relaxed mb-12">
+        <p className="text-charcoal/50 text-center max-w-lg mx-auto text-sm leading-relaxed mb-10">
           Managing even a small team? Pro replaces your rota tool, timesheet app and training tracker for less than £1 a day per venue.
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {PRO_FEATURES.map(f => (
-            <FeatureCard key={f.title} accent {...f} />
-          ))}
+          {PRO_FEATURES.map(f => <FeatureCard key={f.title} accent {...f} />)}
         </div>
       </section>
 
       {/* ── Pricing ──────────────────────────────────────────────────────────── */}
       <section id="pricing" className="bg-white border-y border-charcoal/8">
-        <div className="max-w-5xl mx-auto px-5 sm:px-8 py-16">
+        <div className="max-w-5xl mx-auto px-5 sm:px-8 py-14">
           <SectionLabel>Pricing</SectionLabel>
           <h2 className="text-2xl font-bold sm:text-4xl text-brand text-center mb-4 tracking-tight">
             Simple, honest pricing
           </h2>
-          <p className="text-charcoal/50 text-center max-w-md mx-auto text-sm leading-relaxed mb-12">
+          <p className="text-charcoal/50 text-center max-w-md mx-auto text-sm leading-relaxed mb-10">
             No hidden fees. No per-user charges. Just a flat monthly rate per venue.
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 max-w-2xl mx-auto">
-
             {/* Starter */}
             <div className="rounded-2xl border border-charcoal/10 bg-white p-6 flex flex-col">
               <p className="text-[11px] tracking-widest uppercase text-brand font-semibold mb-4">Starter</p>
@@ -486,24 +436,18 @@ export default function MarketingPage() {
                   </li>
                 ))}
               </ul>
-              <Link
-                to="/signup?plan=starter"
-                className="block text-center border border-brand/25 text-brand py-3 rounded-xl text-sm font-semibold hover:bg-brand/5 transition-colors"
-              >
+              <Link to="/signup?plan=starter" className="block text-center border border-brand/25 text-brand py-3 rounded-xl text-sm font-semibold hover:bg-brand/5 transition-colors">
                 Start Free Trial
               </Link>
               <p className="text-[11px] text-charcoal/30 text-center mt-3">
-                Need rotas?{' '}
-                <Link to="/signup?plan=pro" className="text-accent font-medium hover:underline">Upgrade to Pro →</Link>
+                Need rotas? <Link to="/signup?plan=pro" className="text-accent font-medium hover:underline">Upgrade to Pro →</Link>
               </p>
             </div>
 
             {/* Pro */}
             <div className="rounded-2xl border-2 border-accent/30 bg-accent/[0.02] p-6 flex flex-col relative">
               <div className="absolute -top-3.5 inset-x-0 flex justify-center">
-                <span className="bg-accent text-cream text-[10px] tracking-widest uppercase font-semibold px-3 py-1 rounded-full">
-                  Most Popular
-                </span>
+                <span className="bg-accent text-cream text-[10px] tracking-widest uppercase font-semibold px-3 py-1 rounded-full">Most Popular</span>
               </div>
               <p className="text-[11px] tracking-widest uppercase text-accent font-semibold mb-4">Pro</p>
               <div className="flex items-baseline gap-1.5 mb-1">
@@ -514,8 +458,6 @@ export default function MarketingPage() {
               <p className="text-xs text-charcoal/50 leading-relaxed mb-4">
                 For any business that manages a team — replaces your rota tool, timesheet app and training tracker in one place.
               </p>
-
-              {/* Price ladder */}
               <div className="bg-white rounded-xl border border-charcoal/8 p-4 mb-6">
                 <p className="text-[10px] tracking-widest uppercase text-charcoal/30 mb-3">Price as you grow</p>
                 <div className="flex flex-col gap-1.5">
@@ -530,7 +472,6 @@ export default function MarketingPage() {
                   })}
                 </div>
               </div>
-
               <ul className="flex flex-col gap-2.5 mb-7 flex-1">
                 {[
                   ['Everything in Starter', true],
@@ -548,41 +489,32 @@ export default function MarketingPage() {
                   </li>
                 ))}
               </ul>
-              <Link
-                to="/signup?plan=pro"
-                className="block text-center bg-accent text-cream py-3 rounded-xl text-sm font-semibold hover:bg-accent/90 active:scale-[0.98] transition-all"
-              >
+              <Link to="/signup?plan=pro" className="block text-center bg-accent text-cream py-3 rounded-xl text-sm font-semibold hover:bg-accent/90 active:scale-[0.98] transition-all">
                 Start Free Trial
               </Link>
             </div>
           </div>
-
-          <p className="text-center text-xs text-charcoal/30 mt-6">
-            All plans include a 7-day free trial. No card required.
-          </p>
+          <p className="text-center text-xs text-charcoal/30 mt-6">All plans include a 7-day free trial. No card required.</p>
         </div>
       </section>
 
       {/* ── How to install ────────────────────────────────────────────────────── */}
-      <section className="max-w-5xl mx-auto px-5 sm:px-8 py-16">
+      <section className="max-w-5xl mx-auto px-5 sm:px-8 py-14">
         <SectionLabel>No App Store needed</SectionLabel>
         <h2 className="text-2xl font-bold sm:text-4xl text-brand text-center mb-4 tracking-tight">
           Up and running in 3 steps
         </h2>
-        <p className="text-charcoal/50 text-center max-w-lg mx-auto text-sm leading-relaxed mb-12">
+        <p className="text-charcoal/50 text-center max-w-lg mx-auto text-sm leading-relaxed mb-10">
           Pelikn is a Progressive Web App. Install it directly from your browser — works just like a native app, even offline.
         </p>
-
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 max-w-3xl mx-auto">
           {[
-            { step: '1', icon: icons.phone,    title: 'Open the link',       desc: 'Visit app.pelikn.app in Safari (iPhone/iPad) or Chrome (Android / desktop).' },
-            { step: '2', icon: icons.share,    title: 'Add to home screen',  desc: "Tap Share then 'Add to Home Screen' on iOS, or the menu then 'Install App' on Chrome." },
-            { step: '3', icon: icons.download, title: 'Open like any app',   desc: "Pelikn appears on your home screen. Tap to open — no browser bar, no App Store." },
+            { step: '1', icon: icons.phone,    title: 'Open the link',      desc: 'Visit app.pelikn.app in Safari (iPhone/iPad) or Chrome (Android / desktop).' },
+            { step: '2', icon: icons.share,    title: 'Add to home screen', desc: "Tap Share then 'Add to Home Screen' on iOS, or the menu then 'Install App' on Chrome." },
+            { step: '3', icon: icons.download, title: 'Open like any app',  desc: "Pelikn appears on your home screen. Tap to open — no browser bar, no App Store." },
           ].map(({ step, icon, title, desc }) => (
             <div key={step} className="bg-white rounded-2xl border border-charcoal/8 p-6 text-center">
-              <div className="w-11 h-11 rounded-2xl bg-brand text-cream flex items-center justify-center mx-auto mb-4">
-                {icon}
-              </div>
+              <div className="w-11 h-11 rounded-2xl bg-brand text-cream flex items-center justify-center mx-auto mb-4">{icon}</div>
               <p className="text-[10px] tracking-widest uppercase text-charcoal/30 mb-1.5">Step {step}</p>
               <p className="text-sm font-semibold text-charcoal mb-2">{title}</p>
               <p className="text-xs text-charcoal/45 leading-relaxed">{desc}</p>
@@ -593,11 +525,9 @@ export default function MarketingPage() {
 
       {/* ── FAQ ──────────────────────────────────────────────────────────────── */}
       <section className="bg-white border-y border-charcoal/8">
-        <div className="max-w-2xl mx-auto px-5 sm:px-8 py-16">
+        <div className="max-w-2xl mx-auto px-5 sm:px-8 py-14">
           <SectionLabel>Questions</SectionLabel>
-          <h2 className="text-2xl font-bold sm:text-4xl text-brand text-center mb-10 tracking-tight">
-            Frequently asked
-          </h2>
+          <h2 className="text-2xl font-bold sm:text-4xl text-brand text-center mb-8 tracking-tight">Frequently asked</h2>
           <div className="rounded-2xl border border-charcoal/8 px-5 sm:px-6 bg-white">
             {FAQS.map(({ q, a }) => <FaqItem key={q} q={q} a={a} />)}
           </div>
@@ -612,16 +542,11 @@ export default function MarketingPage() {
               <img src="/icons/icon.svg" className="w-16 h-16" alt="Pelikn" />
             </div>
           </div>
-          <h2 className="text-2xl font-bold sm:text-4xl text-cream mb-4 tracking-tight">
-            Let nothing slip.
-          </h2>
+          <h2 className="text-2xl font-bold sm:text-4xl text-cream mb-4 tracking-tight">Let nothing slip.</h2>
           <p className="text-cream/50 max-w-md mx-auto text-sm leading-relaxed mb-8">
             Start your free 7-day trial today. No credit card, no commitment — better food safety records from day one.
           </p>
-          <Link
-            to="/signup"
-            className="inline-block bg-accent text-cream px-8 py-4 rounded-xl text-sm font-semibold hover:bg-accent/90 active:scale-[0.98] transition-all"
-          >
+          <Link to="/signup" className="inline-block bg-accent text-cream px-8 py-4 rounded-xl text-sm font-semibold hover:bg-accent/90 active:scale-[0.98] transition-all">
             Start Free Trial — No Card Required
           </Link>
         </div>
@@ -631,9 +556,7 @@ export default function MarketingPage() {
       <footer className="border-t border-charcoal/8 bg-surface">
         <div className="max-w-5xl mx-auto px-5 sm:px-8 py-8 flex flex-col sm:flex-row items-center justify-between gap-4">
           <PeliknLogo iconSize="w-6 h-6" textSize="text-xs" />
-          <a href="mailto:hello@pelikn.app" className="text-xs text-charcoal/40 hover:text-charcoal transition-colors hidden sm:block">
-            hello@pelikn.app
-          </a>
+          <a href="mailto:hello@pelikn.app" className="text-xs text-charcoal/40 hover:text-charcoal transition-colors hidden sm:block">hello@pelikn.app</a>
           <div className="flex items-center gap-5">
             <Link to="/privacy" className="text-xs text-charcoal/35 hover:text-charcoal transition-colors">Privacy</Link>
             <Link to="/terms"   className="text-xs text-charcoal/35 hover:text-charcoal transition-colors">Terms</Link>
@@ -641,9 +564,7 @@ export default function MarketingPage() {
           </div>
         </div>
         <div className="border-t border-charcoal/5 py-3 text-center">
-          <p className="text-[11px] text-charcoal/20">
-            © {new Date().getFullYear()} Pelikn · Registered with ICO · UK GDPR compliant
-          </p>
+          <p className="text-[11px] text-charcoal/20">© {new Date().getFullYear()} Pelikn · Registered with ICO · UK GDPR compliant</p>
         </div>
       </footer>
 
