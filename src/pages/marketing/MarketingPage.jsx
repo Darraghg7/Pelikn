@@ -363,18 +363,18 @@ export default function MarketingPage() {
         </div>
       </div>
 
-      {/* ── Compliance features — dark brand ─────────────────────────────────── */}
-      <section className="bg-brand">
+      {/* ── Compliance features — light ──────────────────────────────────────── */}
+      <section className="bg-white border-b border-charcoal/8">
         <div className="max-w-5xl mx-auto px-5 sm:px-8 py-14">
-          <SectionLabel light>Compliance tools</SectionLabel>
-          <h2 className="text-2xl font-bold sm:text-4xl text-cream text-center mb-4 tracking-tight">
+          <SectionLabel>Compliance tools</SectionLabel>
+          <h2 className="text-2xl font-bold sm:text-4xl text-brand text-center mb-4 tracking-tight">
             Everything the EHO expects to see
           </h2>
-          <p className="text-cream/50 text-center max-w-lg mx-auto text-sm leading-relaxed mb-10">
+          <p className="text-charcoal/50 text-center max-w-lg mx-auto text-sm leading-relaxed mb-10">
             All the logs, checklists and records you legally need — captured on-device, stored securely, exportable in seconds.
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {COMPLIANCE_FEATURES.map(f => <FeatureCard key={f.title} {...f} dark />)}
+            {COMPLIANCE_FEATURES.map(f => <FeatureCard key={f.title} {...f} />)}
           </div>
         </div>
       </section>
