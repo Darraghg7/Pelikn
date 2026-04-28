@@ -159,7 +159,7 @@ function AppScreen({ children, maxH = 420 }) {
 /* Staff mobile screen — simplified personal view */
 function StaffMobileScreen() {
   return (
-    <AppScreen>
+    <AppScreen maxH={310}>
       <div className="bg-[#F0F0EF]">
         <div className="bg-brand px-4 py-3.5">
           <p className="text-[10px] tracking-widest uppercase text-cream/45 mb-0.5">The Canteen · Shoreditch</p>
@@ -207,7 +207,7 @@ function FridgeScreen() {
     { fridge: 'Display Fridge',  temp: '3°C', time: '13:02', staff: 'T. Walsh'  },
   ]
   return (
-    <AppScreen>
+    <AppScreen maxH={310}>
       <div className="bg-[#F0F0EF]">
         <div className="bg-brand px-4 py-3.5 flex items-center gap-2">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-cream/50"><polyline points="15 18 9 12 15 6"/></svg>
@@ -246,7 +246,7 @@ function DesktopScreen() {
     </div>
   )
   return (
-    <AppScreen maxH={430}>
+    <AppScreen maxH={560}>
       <div className="flex h-full">
         {/* Sidebar */}
         <div className="w-40 shrink-0 bg-brand flex flex-col">
@@ -289,7 +289,7 @@ function DesktopScreen() {
           </div>
 
           {/* Widgets */}
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-2 gap-2 mb-2">
             <div className="bg-white rounded-xl border border-charcoal/8 p-3">
               <p className="text-[10px] tracking-widest uppercase text-charcoal/35 mb-2">Fridge Temps</p>
               {[
@@ -319,6 +319,24 @@ function DesktopScreen() {
                 </div>
               ))}
             </div>
+          </div>
+
+          {/* Action items */}
+          <div className="bg-white rounded-xl border border-charcoal/8 overflow-hidden divide-y divide-charcoal/5">
+            <p className="text-[10px] tracking-widest uppercase text-charcoal/35 px-3 pt-2.5 pb-1.5">Today's tasks</p>
+            {[
+              { label: 'Kitchen deep clean',  sub: 'Overdue · Tom W.',        type: 'warning' },
+              { label: 'Opening checks',      sub: 'Complete · 09:07 · Sarah', type: 'success' },
+              { label: 'Delivery check',      sub: 'Complete · 08:45 · Sarah', type: 'success' },
+              { label: 'Cooking temp log',    sub: 'Complete · 12:30 · Priya', type: 'success' },
+            ].map(({ label, sub, type }) => (
+              <div key={label} className={`flex items-center border-l-[3px] pl-3 pr-4 py-2 ${type === 'warning' ? 'border-l-warning bg-warning/[0.02]' : 'border-l-success'}`}>
+                <div>
+                  <p className="text-[11px] font-medium text-charcoal">{label}</p>
+                  <p className="text-[10px] text-charcoal/40">{sub}</p>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
@@ -383,8 +401,8 @@ export default function MarketingPage() {
           <p className="text-charcoal/45 text-center max-w-lg mx-auto text-sm leading-relaxed mb-10">
             Manager dashboard, staff view and compliance records, all on one platform, any device.
           </p>
-          <div className="flex flex-col sm:flex-row gap-5 items-end">
-            <div className="sm:w-[155px] shrink-0">
+          <div className="flex flex-col sm:flex-row gap-5 items-start">
+            <div className="sm:w-[195px] shrink-0">
               <StaffMobileScreen />
               <ScreenCaption>Staff view</ScreenCaption>
             </div>
@@ -392,7 +410,7 @@ export default function MarketingPage() {
               <DesktopScreen />
               <ScreenCaption>Manager dashboard</ScreenCaption>
             </div>
-            <div className="sm:w-[155px] shrink-0">
+            <div className="sm:w-[195px] shrink-0">
               <FridgeScreen />
               <ScreenCaption>Fridge checks</ScreenCaption>
             </div>
