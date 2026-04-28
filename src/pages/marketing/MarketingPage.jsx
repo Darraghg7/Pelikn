@@ -40,6 +40,9 @@ const icons = {
   share:       <Icon><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></Icon>,
   download:    <Icon><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></Icon>,
   rota:        <Icon><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="M8 14h.01M12 14h.01M16 14h.01"/></Icon>,
+  home:        <Icon><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></Icon>,
+  team:        <Icon><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></Icon>,
+  clock:       <Icon><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></Icon>,
 }
 
 /* ── Data ───────────────────────────────────────────────────────────────────── */
@@ -90,16 +93,7 @@ function FaqItem({ q, a }) {
   )
 }
 
-function FeatureCard({ icon, title, desc, accent = false, dark = false }) {
-  if (dark) return (
-    <div className="rounded-2xl border border-cream/10 bg-cream/5 hover:bg-cream/8 transition-colors p-5 flex flex-col gap-3">
-      <div className="w-9 h-9 rounded-xl bg-cream/10 text-cream/65 flex items-center justify-center">{icon}</div>
-      <div>
-        <p className="text-sm font-semibold mb-1 text-cream/80">{title}</p>
-        <p className="text-xs text-cream/45 leading-relaxed">{desc}</p>
-      </div>
-    </div>
-  )
+function FeatureCard({ icon, title, desc, accent = false }) {
   return (
     <div className={[
       'rounded-2xl border p-5 flex flex-col gap-3',
@@ -126,7 +120,7 @@ function SectionLabel({ children, center = true, light = false }) {
 
 /* ── App screenshot components ──────────────────────────────────────────────── */
 const NavI = ({ d }) => (
-  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">{d}</svg>
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">{d}</svg>
 )
 
 function ScreenNav({ active = 'home' }) {
@@ -143,10 +137,10 @@ function ScreenNav({ active = 'home' }) {
         const on = key === active
         return (
           <div key={key} className="flex-1 flex flex-col items-center justify-center py-2 gap-0.5">
-            <div className={`flex items-center justify-center rounded-xl px-2.5 py-1 ${on ? 'bg-[#E4EFE9]' : ''}`}>
+            <div className={`flex items-center justify-center rounded-xl px-2 py-1 ${on ? 'bg-[#E4EFE9]' : ''}`}>
               <span className={on ? 'text-brand' : 'text-charcoal/35'}><NavI d={d} /></span>
             </div>
-            <span className={`text-[10px] leading-none tracking-wide ${on ? 'font-semibold text-brand' : 'font-medium text-charcoal/40'}`}>{label}</span>
+            <span className={`text-[9px] leading-none tracking-wide ${on ? 'font-semibold text-brand' : 'font-medium text-charcoal/40'}`}>{label}</span>
           </div>
         )
       })}
@@ -154,52 +148,48 @@ function ScreenNav({ active = 'home' }) {
   )
 }
 
-function AppScreen({ children, maxH = 440 }) {
+function AppScreen({ children, maxH = 420 }) {
   return (
-    <div className="rounded-2xl overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.35)] ring-1 ring-white/10" style={{ maxHeight: maxH }}>
+    <div className="rounded-2xl overflow-hidden shadow-[0_16px_48px_rgba(0,0,0,0.14)] ring-1 ring-charcoal/8" style={{ maxHeight: maxH }}>
       {children}
     </div>
   )
 }
 
-function DashboardScreen() {
-  const actions = [
-    { label: 'Cleaning',       sub: '1 task overdue — Kitchen deep clean', type: 'warning' },
-    { label: 'Fridge temps',   sub: 'All 3 checked ✓',                     type: 'success' },
-    { label: 'Opening checks', sub: 'Complete  09:07',                     type: 'success' },
-  ]
+/* Staff mobile screen — simplified personal view */
+function StaffMobileScreen() {
   return (
     <AppScreen>
       <div className="bg-[#F0F0EF]">
-        <div className="bg-brand px-5 py-4 flex items-center justify-between">
-          <div>
-            <p className="text-[10px] tracking-widest uppercase text-cream/45 mb-0.5">The Canteen · Shoreditch</p>
-            <p className="text-base font-semibold text-cream">Good morning, Sarah</p>
-          </div>
-          <img src="/icons/icon.svg" className="w-9 h-9 rounded-xl" alt="" />
+        <div className="bg-brand px-4 py-3.5">
+          <p className="text-[10px] tracking-widest uppercase text-cream/45 mb-0.5">The Canteen · Shoreditch</p>
+          <p className="text-sm font-semibold text-cream">Good morning, Sarah</p>
         </div>
-        <div className="p-4">
-          <div className="bg-white rounded-2xl overflow-hidden">
-            <div className="px-4 pt-4 pb-3">
-              <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-3">Today at a glance</p>
-              <div className="grid grid-cols-3 gap-2 mb-1">
-                {[{ n: '4', label: 'On shift' }, { n: '6', label: 'Checks done' }, { n: '1', label: 'Overdue', warn: true }].map(({ n, label, warn }) => (
-                  <div key={label} className="flex flex-col items-center gap-0.5 border border-charcoal/10 rounded-xl py-3">
-                    <p className={`text-2xl font-bold ${warn ? 'text-warning' : 'text-charcoal'}`}>{n}</p>
-                    <p className="text-[10px] text-charcoal/45 leading-tight text-center">{label}</p>
-                  </div>
-                ))}
+        <div className="p-3">
+          <p className="text-[10px] tracking-widest uppercase text-charcoal/40 mb-2">Quick actions</p>
+          <div className="grid grid-cols-3 gap-1.5 mb-3">
+            {[
+              { icon: icons.clock,     label: 'Clock In'    },
+              { icon: icons.thermometer, label: 'Fridge Temp' },
+              { icon: icons.clipboard, label: 'Cleaning'    },
+            ].map(({ icon, label }) => (
+              <div key={label} className="bg-white rounded-xl border border-charcoal/8 p-2.5 flex flex-col items-center gap-1">
+                <span className="text-brand">{icon}</span>
+                <p className="text-[9px] text-charcoal/55 text-center leading-tight">{label}</p>
               </div>
+            ))}
+          </div>
+          <div className="bg-white rounded-xl border border-charcoal/8 px-3 py-2.5 mb-2">
+            <p className="text-[10px] tracking-widest uppercase text-charcoal/35 mb-1">Today's shift</p>
+            <p className="text-sm font-semibold text-charcoal">08:00 – 16:00</p>
+            <p className="text-[11px] text-charcoal/45">Kitchen · 8 hours</p>
+          </div>
+          <div className="bg-white rounded-xl border border-charcoal/8 overflow-hidden divide-y divide-charcoal/6">
+            <div className="flex items-center border-l-[3px] border-l-success pl-3 pr-3 py-2">
+              <p className="text-[11px] text-charcoal/65">Opening checks complete</p>
             </div>
-            <div className="border-t border-charcoal/6 divide-y divide-charcoal/6">
-              {actions.map(({ label, sub, type }) => (
-                <div key={label} className={`flex items-center border-l-[3px] pl-4 pr-5 py-3.5 ${type === 'warning' ? 'border-l-warning bg-warning/[0.025]' : 'border-l-success'}`}>
-                  <div>
-                    <p className="text-sm font-medium text-charcoal">{label}</p>
-                    <p className="text-xs text-charcoal/45">{sub}</p>
-                  </div>
-                </div>
-              ))}
+            <div className="flex items-center border-l-[3px] border-l-warning bg-warning/[0.025] pl-3 pr-3 py-2">
+              <p className="text-[11px] text-charcoal/65">Kitchen deep clean due</p>
             </div>
           </div>
         </div>
@@ -209,6 +199,7 @@ function DashboardScreen() {
   )
 }
 
+/* Fridge check mobile screen */
 function FridgeScreen() {
   const logs = [
     { fridge: 'Walk-in Fridge',  temp: '2°C', time: '09:15', staff: 'S. Murphy' },
@@ -218,27 +209,27 @@ function FridgeScreen() {
   return (
     <AppScreen>
       <div className="bg-[#F0F0EF]">
-        <div className="bg-brand px-4 py-3.5 flex items-center gap-2.5">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-cream/50"><polyline points="15 18 9 12 15 6"/></svg>
+        <div className="bg-brand px-4 py-3.5 flex items-center gap-2">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-cream/50"><polyline points="15 18 9 12 15 6"/></svg>
           <p className="text-sm font-semibold text-cream">Fridge Checks</p>
         </div>
-        <div className="p-4">
-          <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-3">Today · 28 Apr</p>
-          <div className="flex flex-col gap-2.5 mb-4">
+        <div className="p-3">
+          <p className="text-[10px] tracking-widest uppercase text-charcoal/40 mb-2.5">Today · 28 Apr</p>
+          <div className="flex flex-col gap-2 mb-3">
             {logs.map(({ fridge, temp, time, staff }) => (
-              <div key={fridge} className="bg-white rounded-2xl border border-charcoal/8 px-4 py-3 flex items-center justify-between">
+              <div key={fridge} className="bg-white rounded-xl border border-charcoal/8 px-3 py-2.5 flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-charcoal mb-0.5">{fridge}</p>
-                  <p className="text-xs text-charcoal/40">{time} · {staff}</p>
+                  <p className="text-xs font-medium text-charcoal mb-0.5">{fridge}</p>
+                  <p className="text-[10px] text-charcoal/40">{time} · {staff}</p>
                 </div>
-                <div className="flex items-center gap-2.5">
-                  <p className="text-lg font-bold text-brand font-mono">{temp}</p>
-                  <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-[#dcfce7] text-[#16a34a]">PASS</span>
+                <div className="flex items-center gap-2">
+                  <p className="text-base font-bold text-brand font-mono">{temp}</p>
+                  <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-[#dcfce7] text-[#16a34a]">PASS</span>
                 </div>
               </div>
             ))}
           </div>
-          <button className="w-full bg-brand text-cream py-3 rounded-xl text-sm font-semibold">+ Log Temperature</button>
+          <button className="w-full bg-brand text-cream py-2.5 rounded-xl text-xs font-semibold">+ Log Temperature</button>
         </div>
         <ScreenNav active="checks" />
       </div>
@@ -246,40 +237,98 @@ function FridgeScreen() {
   )
 }
 
-function RotaScreen() {
-  const days = [
-    { day: 'Mon', date: '28', shifts: 'Sarah 8–4 · Tom 11–7' },
-    { day: 'Tue', date: '29', shifts: 'Sarah 8–4 · Priya 10–6' },
-    { day: 'Wed', date: '30', shifts: 'Tom 8–4 · Jamie 12–8' },
-    { day: 'Thu', date: '1',  shifts: 'Sarah 8–4 · Tom 11–7' },
-    { day: 'Fri', date: '2',  shifts: 'Jamie 8–2 · Priya 12–8' },
-  ]
+/* Desktop manager dashboard — sidebar + content */
+function DesktopScreen() {
+  const SideItem = ({ label, icon, active = false }) => (
+    <div className={`flex items-center gap-2 px-3 py-1.5 mx-1.5 rounded-xl ${active ? 'bg-cream/10' : ''}`}>
+      <span className={active ? 'text-cream' : 'text-cream/40'}><NavI d={icon} /></span>
+      <span className={`text-[11px] font-medium ${active ? 'text-cream' : 'text-cream/45'}`}>{label}</span>
+    </div>
+  )
   return (
-    <AppScreen>
-      <div className="bg-[#F0F0EF]">
-        <div className="bg-brand px-4 py-3.5 flex items-center gap-2.5">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-cream/50"><polyline points="15 18 9 12 15 6"/></svg>
-          <p className="text-sm font-semibold text-cream">Rota</p>
+    <AppScreen maxH={380}>
+      <div className="flex h-full">
+        {/* Sidebar */}
+        <div className="w-40 shrink-0 bg-brand flex flex-col">
+          <div className="px-3 pt-3 pb-2.5 border-b border-cream/10">
+            <PeliknLogo iconSize="w-5 h-5" textSize="text-[11px]" textClass="text-cream" />
+            <p className="text-[10px] text-cream/35 mt-1.5 pl-0.5 truncate">The Canteen</p>
+          </div>
+          <div className="py-2 flex flex-col gap-0.5">
+            <SideItem label="Dashboard" active icon={<><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></>} />
+            <SideItem label="Checks"    icon={<><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="m9 12 2 2 4-4"/></>} />
+            <SideItem label="Rota"      icon={<><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="M8 14h.01M12 14h.01M16 14h.01"/></>} />
+            <SideItem label="Team"      icon={<><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></>} />
+          </div>
         </div>
-        <div className="p-4">
-          <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-3">28 Apr – 4 May</p>
-          <div className="bg-white rounded-2xl border border-charcoal/8 overflow-hidden divide-y divide-charcoal/6">
-            {days.map(({ day, date, shifts }) => (
-              <div key={day} className="flex items-center gap-4 px-4 py-3">
-                <div className="w-9 shrink-0">
-                  <p className="text-[10px] uppercase tracking-widest text-charcoal/35 leading-none">{day}</p>
-                  <p className="text-base font-bold text-brand leading-tight">{date}</p>
-                </div>
-                <p className="text-sm text-charcoal/65 font-mono">{shifts}</p>
+
+        {/* Main content */}
+        <div className="flex-1 bg-[#F0F0EF] overflow-hidden p-4">
+          {/* Header */}
+          <div className="mb-3">
+            <p className="text-[10px] tracking-widest uppercase text-charcoal/35">Mon 28 Apr 2026</p>
+            <p className="text-lg font-bold text-charcoal leading-tight">Good morning, James</p>
+            <div className="flex items-center gap-2 mt-0.5">
+              <p className="text-[11px] text-charcoal/40">The Canteen</p>
+              <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-accent/10 text-accent border border-accent/20">PRO</span>
+            </div>
+          </div>
+
+          {/* Stats row */}
+          <div className="grid grid-cols-3 gap-2 mb-3">
+            {[
+              { n: '92%', label: 'Compliance', cls: 'text-success' },
+              { n: '4',   label: 'On shift',   cls: 'text-charcoal' },
+              { n: '1',   label: 'Overdue',    cls: 'text-warning' },
+            ].map(({ n, label, cls }) => (
+              <div key={label} className="bg-white rounded-xl border border-charcoal/8 py-2.5 text-center">
+                <p className={`text-xl font-bold leading-none ${cls}`}>{n}</p>
+                <p className="text-[10px] text-charcoal/40 mt-0.5">{label}</p>
               </div>
             ))}
           </div>
+
+          {/* Widgets */}
+          <div className="grid grid-cols-2 gap-2">
+            <div className="bg-white rounded-xl border border-charcoal/8 p-3">
+              <p className="text-[10px] tracking-widest uppercase text-charcoal/35 mb-2">Fridge Temps</p>
+              {[
+                { name: 'Walk-in',   temp: '2°C' },
+                { name: 'Sandwich',  temp: '4°C' },
+                { name: 'Display',   temp: '3°C' },
+              ].map(({ name, temp }) => (
+                <div key={name} className="flex items-center justify-between py-1 border-b border-charcoal/5 last:border-0">
+                  <p className="text-[11px] text-charcoal/55">{name}</p>
+                  <div className="flex items-center gap-1.5">
+                    <p className="text-[11px] font-bold text-brand font-mono">{temp}</p>
+                    <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-[#dcfce7] text-[#16a34a]">✓</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="bg-white rounded-xl border border-charcoal/8 p-3">
+              <p className="text-[10px] tracking-widest uppercase text-charcoal/35 mb-2">On Shift Today</p>
+              {[
+                { name: 'Sarah M.',  hours: '8–4'  },
+                { name: 'Tom W.',    hours: '11–7' },
+                { name: 'Priya K.', hours: '10–6' },
+              ].map(({ name, hours }) => (
+                <div key={name} className="flex items-center justify-between py-1 border-b border-charcoal/5 last:border-0">
+                  <p className="text-[11px] text-charcoal/55">{name}</p>
+                  <p className="text-[11px] text-charcoal/35 font-mono">{hours}</p>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
-        <ScreenNav active="rota" />
       </div>
     </AppScreen>
   )
 }
+
+const ScreenCaption = ({ children }) => (
+  <p className="text-[10px] tracking-widest uppercase text-charcoal/35 text-center font-medium mt-2">{children}</p>
+)
 
 /* ═══════════════════════════════════════════════════════════════════════════════
    MARKETING PAGE
@@ -299,10 +348,9 @@ export default function MarketingPage() {
         </div>
       </nav>
 
-      {/* ── Hero + Screenshots ────────────────────────────────────────────────── */}
+      {/* ── Hero ─────────────────────────────────────────────────────────────── */}
       <section className="bg-brand text-cream">
-        {/* Headline + CTA */}
-        <div className="max-w-5xl mx-auto px-5 sm:px-8 pt-20 pb-12 sm:pt-28 sm:pb-14 text-center">
+        <div className="max-w-5xl mx-auto px-5 sm:px-8 pt-20 pb-16 sm:pt-28 sm:pb-20 text-center">
           <div className="inline-flex items-center gap-2 bg-cream/10 border border-cream/15 rounded-full px-3.5 py-1.5 mb-6">
             <span className="w-1.5 h-1.5 rounded-full bg-success shrink-0" />
             <span className="text-[11px] tracking-widest uppercase text-cream/70 font-medium">Food Safety &amp; Team Operations</span>
@@ -323,28 +371,32 @@ export default function MarketingPage() {
           </div>
           <p className="text-cream/30 text-xs tracking-wide">7-day free trial · No card required</p>
         </div>
+      </section>
 
-        {/* App screenshots — same dark section, no break */}
-        <div className="border-t border-cream/10 pb-0">
-          <p className="text-[11px] tracking-widest uppercase text-cream/35 text-center pt-8 pb-6 font-medium">See it in action</p>
-          <div className="max-w-5xl mx-auto px-5 sm:px-8">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-5 items-start">
-              <div className="flex flex-col gap-2">
-                <DashboardScreen />
-                <p className="text-[10px] tracking-widest uppercase text-cream/35 text-center font-medium">Today dashboard</p>
-              </div>
-              <div className="flex flex-col gap-2">
-                <FridgeScreen />
-                <p className="text-[10px] tracking-widest uppercase text-cream/35 text-center font-medium">Fridge checks</p>
-              </div>
-              <div className="flex flex-col gap-2">
-                <RotaScreen />
-                <p className="text-[10px] tracking-widest uppercase text-cream/35 text-center font-medium">Weekly rota</p>
-              </div>
+      {/* ── App screenshots ───────────────────────────────────────────────────── */}
+      <section className="bg-[#F5F4F1] border-b border-charcoal/8">
+        <div className="max-w-5xl mx-auto px-5 sm:px-8 py-14">
+          <SectionLabel>See it in action</SectionLabel>
+          <h2 className="text-2xl font-bold sm:text-3xl text-brand text-center mb-3 tracking-tight">
+            Built for every screen your team uses
+          </h2>
+          <p className="text-charcoal/45 text-center max-w-lg mx-auto text-sm leading-relaxed mb-10">
+            Manager dashboard, staff view and compliance records — all on one platform, any device.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-5 items-end">
+            <div className="sm:w-[210px] shrink-0">
+              <StaffMobileScreen />
+              <ScreenCaption>Staff view</ScreenCaption>
+            </div>
+            <div className="flex-1 min-w-0">
+              <DesktopScreen />
+              <ScreenCaption>Manager dashboard</ScreenCaption>
+            </div>
+            <div className="sm:w-[210px] shrink-0">
+              <FridgeScreen />
+              <ScreenCaption>Fridge checks</ScreenCaption>
             </div>
           </div>
-          {/* bleed edge — screens sit at the bottom of the dark section with no bottom padding */}
-          <div className="h-10" />
         </div>
       </section>
 
@@ -363,7 +415,7 @@ export default function MarketingPage() {
         </div>
       </div>
 
-      {/* ── Compliance features — light ──────────────────────────────────────── */}
+      {/* ── Compliance features ───────────────────────────────────────────────── */}
       <section className="bg-white border-b border-charcoal/8">
         <div className="max-w-5xl mx-auto px-5 sm:px-8 py-14">
           <SectionLabel>Compliance tools</SectionLabel>
@@ -379,7 +431,7 @@ export default function MarketingPage() {
         </div>
       </section>
 
-      {/* ── Pro features — light ─────────────────────────────────────────────── */}
+      {/* ── Pro features ─────────────────────────────────────────────────────── */}
       <section className="max-w-5xl mx-auto px-5 sm:px-8 py-14">
         <div className="flex items-center gap-2.5 justify-center mb-3">
           <SectionLabel center={false}>Pro plan</SectionLabel>
