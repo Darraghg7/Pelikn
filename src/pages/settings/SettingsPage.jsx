@@ -269,7 +269,7 @@ export default function SettingsPage() {
   const { closures, reload: reloadClosures } = useVenueClosures()
   const { closedDays, breakDurationMins, cleanupMinutes, fridgeCheckTime, openTime, closeTime, complianceNavOrder, saveClosedDays, saveBreakDuration, saveCleanupMinutes, saveFridgeCheckTime, saveOpenTime, saveCloseTime, saveComplianceNavOrder } = useAppSettings()
   const { dark, toggle: toggleDark } = useTheme()
-  const { config: featuresConfig, save: saveFeatures, venuePlan } = useVenueFeatures()
+  const { config: featuresConfig, save: saveFeatures, venuePlan, isEnabled } = useVenueFeatures()
 
   // Closed periods form
   const [closureForm, setClosureForm] = useState({ start_date: '', end_date: '', reason: '' })

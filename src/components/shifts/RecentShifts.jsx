@@ -161,7 +161,7 @@ function SessionRow({ session, onReload, isManagerEdit = false }) {
 }
 
 /* ── Add shift form ──────────────────────────────────────────────────── */
-function AddShiftForm({ staffId, onSave, onCancel }) {
+function AddShiftForm({ staffId, onSave, onCancel, isManagerEdit = false }) {
   const toast = useToast()
   const { venueId } = useVenue()
 
@@ -186,7 +186,7 @@ function AddShiftForm({ staffId, onSave, onCancel }) {
 
     setSaving(true)
     // Use SECURITY DEFINER RPC — safer than a direct anon-key insert
-    const { error } = await supabase.rpc('add_clock_session', {
+    const { data, error } = await supabase.rpc('add_clock_session', {
       p_staff_id:       staffId,
       p_venue_id:       venueId,
       p_clock_in_time:  newClockIn.toISOString(),
@@ -195,6 +195,12 @@ function AddShiftForm({ staffId, onSave, onCancel }) {
     })
     setSaving(false)
     if (error) { toast(error.message ?? 'Failed to save', 'error'); return }
+
+    // Notify manager if a staff member (non-manager) adds a missed shift
+    if (!isManagerEdit && data) {
+      supabase.rpc('log_hour_edit', { p_clock_in_id: data }).catch(() => {})
+    }
+
     toast('Shift added')
     onSave()
   }
@@ -264,6 +270,7 @@ export default function RecentShifts({ staffId, isManagerEdit = false, inline = 
       {adding && (
         <AddShiftForm
           staffId={staffId}
+          isManagerEdit={isManagerEdit}
           onSave={() => { setAdding(false); reload() }}
           onCancel={() => setAdding(false)}
         />

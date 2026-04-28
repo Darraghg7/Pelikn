@@ -32,21 +32,25 @@ const TYPE_ICON = {
 
 // ── Dismissal persistence ─────────────────────────────────────────────────────
 const STORAGE_KEY = 'pelikn_dismissed_notifs'
-const today = () => format(new Date(), 'yyyy-MM-dd')
 
+function hashStr(s) {
+  let h = 0
+  for (let i = 0; i < s.length; i++) h = (Math.imul(31, h) + s.charCodeAt(i)) | 0
+  return String(h)
+}
 function loadDismissed() {
   try { return JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '{}') } catch { return {} }
 }
 function saveDismissed(map) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(map))
 }
-/** Returns true if this notification was dismissed today. */
-function isDismissed(map, id) {
-  return map[id] === today()
+/** Returns true if this notification was dismissed and its content hasn't changed. */
+function isDismissed(map, id, message) {
+  return map[id] === hashStr(message)
 }
-/** Mark a notification dismissed for today. */
-function dismiss(map, id) {
-  const next = { ...map, [id]: today() }
+/** Mark a notification dismissed, keyed to its current message content. */
+function dismiss(map, id, message) {
+  const next = { ...map, [id]: hashStr(message) }
   saveDismissed(next)
   return next
 }
@@ -133,6 +137,7 @@ export default function NotificationBell({ variant = 'light' }) {
   const { notifications: staffNotifs }   = useStaffNotifications(session?.staffId)
 
   const [open, setOpen]           = useState(false)
+  const [popupPos, setPopupPos]   = useState(null)
   const [dismissedMap, setDismissedMap] = useState(loadDismissed)
   const ref = useRef(null)
 
@@ -144,21 +149,31 @@ export default function NotificationBell({ variant = 'light' }) {
   }, [])
 
   const allNotifs   = useMemo(() => [...managerNotifs, ...staffNotifs], [managerNotifs, staffNotifs])
-  const visible     = useMemo(() => allNotifs.filter(n => !isDismissed(dismissedMap, n.id)), [allNotifs, dismissedMap])
+  const visible     = useMemo(() => allNotifs.filter(n => !isDismissed(dismissedMap, n.id, n.message)), [allNotifs, dismissedMap])
   const count       = visible.length
 
-  const dismissOne = useCallback((id) => {
-    setDismissedMap(prev => dismiss(prev, id))
+  const dismissOne = useCallback((id, message) => {
+    setDismissedMap(prev => dismiss(prev, id, message))
   }, [])
 
   const dismissAll = useCallback(() => {
     setDismissedMap(prev => {
       let next = { ...prev }
-      for (const n of allNotifs) next = dismiss(next, n.id)
+      for (const n of allNotifs) next = dismiss(next, n.id, n.message)
       return next
     })
     setOpen(false)
   }, [allNotifs])
+
+  const handleBellClick = useCallback(() => {
+    if (!open && ref.current) {
+      const rect = ref.current.getBoundingClientRect()
+      const spaceRight = window.innerWidth - rect.left
+      const left = spaceRight >= 320 ? rect.left : rect.right - 320
+      setPopupPos({ top: rect.bottom + 8, left: Math.max(8, left) })
+    }
+    setOpen(o => !o)
+  }, [open])
 
   const iconColor  = variant === 'dark' ? 'text-charcoal/60 dark:text-white/60' : 'text-cream/70'
   const hoverColor = variant === 'dark' ? 'hover:bg-charcoal/8 dark:hover:bg-white/10' : 'hover:bg-cream/10'
@@ -166,7 +181,7 @@ export default function NotificationBell({ variant = 'light' }) {
   return (
     <div className="relative" ref={ref}>
       <button
-        onClick={() => setOpen(o => !o)}
+        onClick={handleBellClick}
         className={`relative flex items-center justify-center w-9 h-9 rounded-lg transition-colors ${hoverColor}`}
         aria-label={`Notifications${count > 0 ? ` (${count} unread)` : ''}`}
       >
@@ -181,8 +196,8 @@ export default function NotificationBell({ variant = 'light' }) {
         )}
       </button>
 
-      {open && (
-        <div className={`absolute top-11 w-80 bg-white rounded-2xl shadow-lg border border-charcoal/10 z-50 overflow-hidden ${variant === 'dark' ? 'left-0' : 'right-0'}`}>
+      {open && popupPos && (
+        <div className="fixed w-80 bg-white rounded-2xl shadow-lg border border-charcoal/10 z-[200] overflow-hidden" style={{ top: popupPos.top, left: popupPos.left }}>
           <div className="flex items-center justify-between px-4 py-3 border-b border-charcoal/8">
             <p className="text-xs font-semibold tracking-widest uppercase text-charcoal/50">
               Notifications
@@ -209,13 +224,13 @@ export default function NotificationBell({ variant = 'light' }) {
                     key={n.id}
                     n={n}
                     venueSlug={venueSlug}
-                    onDismiss={() => dismissOne(n.id)}
+                    onDismiss={() => dismissOne(n.id, n.message)}
                     onNavigate={() => setOpen(false)}
                   />
                 ))}
               </ul>
               <p className="text-[10px] text-charcoal/25 text-center py-2 border-t border-charcoal/6">
-                Swipe left to dismiss · Resets daily
+                Swipe left to dismiss · Resets when new activity occurs
               </p>
             </>
           )}
