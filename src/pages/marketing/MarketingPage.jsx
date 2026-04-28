@@ -53,7 +53,7 @@ const COMPLIANCE_FEATURES = [
   { icon: icons.allergen,    title: 'Allergen Registry',        desc: 'Track all 14 major allergens across every dish. EHO-ready with a full ingredient audit trail.' },
   { icon: icons.truck,       title: 'Delivery Checks',          desc: 'Log deliveries with temp readings, condition notes and photo evidence in seconds.' },
   { icon: icons.probe,       title: 'Probe Calibration',        desc: 'Scheduled calibration records with pass/fail results. Never fail an EHO visit for missing probe logs.' },
-  { icon: icons.pdf,         title: 'Compliance Reports',       desc: 'Export a full audit-ready PDF in one tap — structured exactly how an EHO expects.' },
+  { icon: icons.pdf,         title: 'Compliance Reports',       desc: 'Export a full audit-ready PDF in one tap, structured exactly how an EHO expects.' },
 ]
 
 const PRO_FEATURES = [
@@ -66,11 +66,11 @@ const PRO_FEATURES = [
 ]
 
 const FAQS = [
-  { q: 'Is this on the App Store?', a: 'Pelikn is a Progressive Web App — no App Store needed. Install it directly from your browser in seconds. It works offline too and sits on your home screen just like a native app.' },
+  { q: 'Is this on the App Store?', a: 'Pelikn is a Progressive Web App, no App Store needed. Install it directly from your browser in seconds. It works offline too and sits on your home screen just like a native app.' },
   { q: 'Does it work on iPhone, iPad and Android?', a: 'Yes. Pelikn works on any modern browser. Install to your home screen on iOS via Safari, or on Android via Chrome, for the full app experience without the browser bar.' },
-  { q: 'What counts as a "venue"?', a: "Each venue is managed separately and billed individually. The first venue on Pro is £25/month; each additional one is £15/month. Starter is £5/month per venue. There's no separate multi-venue tier — just add venues as you grow." },
+  { q: 'What counts as a "venue"?', a: "Each venue is managed separately and billed individually. The first venue on Pro is £25/month; each additional one is £15/month. Starter is £5/month per venue. There's no separate multi-venue tier, just add venues as you grow." },
   { q: 'Is my data secure?', a: "All data is stored in a UK-based Supabase database with row-level security. Staff can only see their own venue's data. We're registered with the ICO under UK GDPR." },
-  { q: 'Can I cancel anytime?', a: 'Yes — no contracts, no cancellation fees. Cancel from your account settings and your subscription ends at the end of the current billing period.' },
+  { q: 'Can I cancel anytime?', a: 'Yes, no contracts, no cancellation fees. Cancel from your account settings and your subscription ends at the end of the current billing period.' },
   { q: 'How long does setup take?', a: "Most venues are up and running in under 15 minutes. The setup wizard walks you through your venue type, features and first staff invites. No training required." },
 ]
 
@@ -246,7 +246,7 @@ function DesktopScreen() {
     </div>
   )
   return (
-    <AppScreen maxH={380}>
+    <AppScreen maxH={430}>
       <div className="flex h-full">
         {/* Sidebar */}
         <div className="w-40 shrink-0 bg-brand flex flex-col">
@@ -359,7 +359,7 @@ export default function MarketingPage() {
             Let nothing slip.
           </h1>
           <p className="text-cream/60 text-sm sm:text-base max-w-xl mx-auto leading-relaxed mb-8">
-            Every compliance record, rota and timesheet — captured automatically, stored securely, ready when you need it. Your next EHO visit? Already handled.
+            Every compliance record, rota and timesheet, captured automatically, stored securely, ready when you need it. Your next EHO visit? Already handled.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-5">
             <Link to="/signup" className="w-full sm:w-auto bg-accent text-cream px-7 py-3.5 rounded-xl text-sm font-semibold hover:bg-accent/90 active:scale-[0.98] transition-all text-center">
@@ -381,10 +381,10 @@ export default function MarketingPage() {
             Built for every screen your team uses
           </h2>
           <p className="text-charcoal/45 text-center max-w-lg mx-auto text-sm leading-relaxed mb-10">
-            Manager dashboard, staff view and compliance records — all on one platform, any device.
+            Manager dashboard, staff view and compliance records, all on one platform, any device.
           </p>
           <div className="flex flex-col sm:flex-row gap-5 items-end">
-            <div className="sm:w-[210px] shrink-0">
+            <div className="sm:w-[155px] shrink-0">
               <StaffMobileScreen />
               <ScreenCaption>Staff view</ScreenCaption>
             </div>
@@ -392,7 +392,7 @@ export default function MarketingPage() {
               <DesktopScreen />
               <ScreenCaption>Manager dashboard</ScreenCaption>
             </div>
-            <div className="sm:w-[210px] shrink-0">
+            <div className="sm:w-[155px] shrink-0">
               <FridgeScreen />
               <ScreenCaption>Fridge checks</ScreenCaption>
             </div>
@@ -423,7 +423,7 @@ export default function MarketingPage() {
             Everything the EHO expects to see
           </h2>
           <p className="text-charcoal/50 text-center max-w-lg mx-auto text-sm leading-relaxed mb-10">
-            All the logs, checklists and records you legally need — captured on-device, stored securely, exportable in seconds.
+            All the logs, checklists and records you legally need, captured on-device, stored securely, exportable in seconds.
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {COMPLIANCE_FEATURES.map(f => <FeatureCard key={f.title} {...f} />)}
@@ -508,7 +508,7 @@ export default function MarketingPage() {
               </div>
               <p className="text-xs text-charcoal/35 mb-5">first venue · {EXTRA_VENUE_PRICE}/month each additional</p>
               <p className="text-xs text-charcoal/50 leading-relaxed mb-4">
-                For any business that manages a team — replaces your rota tool, timesheet app and training tracker in one place.
+                For any business that manages a team, it replaces your rota tool, timesheet app and training tracker - all in one place.
               </p>
               <div className="bg-white rounded-xl border border-charcoal/8 p-4 mb-6">
                 <p className="text-[10px] tracking-widest uppercase text-charcoal/30 mb-3">Price as you grow</p>
@@ -533,7 +533,7 @@ export default function MarketingPage() {
                   ['Clock in / out & break tracking', false],
                   ['Time off requests & shift swaps', false],
                   ['Labour cost tracking', false],
-                  ['Multi-venue — unlimited staff', false],
+                  ['Multi-venue, unlimited staff', false],
                 ].map(([f, bold]) => (
                   <li key={f} className="flex items-start gap-2 text-xs text-charcoal/60">
                     <span className="text-accent mt-0.5 shrink-0">{icons.check}</span>
@@ -557,13 +557,13 @@ export default function MarketingPage() {
           Up and running in 3 steps
         </h2>
         <p className="text-charcoal/50 text-center max-w-lg mx-auto text-sm leading-relaxed mb-10">
-          Pelikn is a Progressive Web App. Install it directly from your browser — works just like a native app, even offline.
+          Pelikn is a Progressive Web App. Install it directly from your browser, works just like a native app - even offline.
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 max-w-3xl mx-auto">
           {[
             { step: '1', icon: icons.phone,    title: 'Open the link',      desc: 'Visit app.pelikn.app in Safari (iPhone/iPad) or Chrome (Android / desktop).' },
             { step: '2', icon: icons.share,    title: 'Add to home screen', desc: "Tap Share then 'Add to Home Screen' on iOS, or the menu then 'Install App' on Chrome." },
-            { step: '3', icon: icons.download, title: 'Open like any app',  desc: "Pelikn appears on your home screen. Tap to open — no browser bar, no App Store." },
+            { step: '3', icon: icons.download, title: 'Open like any app',  desc: "Pelikn appears on your home screen. Tap to open, no browser bar, no App Store." },
           ].map(({ step, icon, title, desc }) => (
             <div key={step} className="bg-white rounded-2xl border border-charcoal/8 p-6 text-center">
               <div className="w-11 h-11 rounded-2xl bg-brand text-cream flex items-center justify-center mx-auto mb-4">{icon}</div>
@@ -596,10 +596,10 @@ export default function MarketingPage() {
           </div>
           <h2 className="text-2xl font-bold sm:text-4xl text-cream mb-4 tracking-tight">Let nothing slip.</h2>
           <p className="text-cream/50 max-w-md mx-auto text-sm leading-relaxed mb-8">
-            Start your free 7-day trial today. No credit card, no commitment — better food safety records from day one.
+            Start your free 7-day trial today. No credit card, no commitment. Better food safety records from day one.
           </p>
           <Link to="/signup" className="inline-block bg-accent text-cream px-8 py-4 rounded-xl text-sm font-semibold hover:bg-accent/90 active:scale-[0.98] transition-all">
-            Start Free Trial — No Card Required
+            Start Free Trial - No Card Required
           </Link>
         </div>
       </section>
