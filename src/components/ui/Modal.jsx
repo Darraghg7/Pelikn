@@ -34,7 +34,11 @@ export default function Modal({ open, onClose, title, children, size = 'md' }) {
   if (!visible) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center" role="dialog" aria-modal="true">
+    <div
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center"
+      role={open ? 'dialog' : undefined}
+      aria-modal={open ? 'true' : undefined}
+    >
       {/* Backdrop */}
       <div
         className={`absolute inset-0 bg-charcoal/40 backdrop-blur-sm transition-opacity duration-200 ${animating ? 'opacity-100' : 'opacity-0'}`}
