@@ -47,6 +47,22 @@ function jsonResponse(body: unknown, status: number, headers: Record<string, str
   })
 }
 
+async function applyNotificationPreferences(db: any, staffIds: string[], venueId: string, notificationType?: string) {
+  if (!notificationType || !staffIds.length) return staffIds
+
+  const { data, error } = await db
+    .from('staff_notification_preferences')
+    .select('staff_id, enabled')
+    .eq('venue_id', venueId)
+    .eq('notification_type', notificationType)
+    .in('staff_id', staffIds)
+
+  if (error) throw error
+
+  const disabled = new Set((data ?? []).filter((row: any) => row.enabled === false).map((row: any) => row.staff_id))
+  return staffIds.filter(id => !disabled.has(id))
+}
+
 // ── APNs JWT helpers ──────────────────────────────────────────────────────────
 
 function base64url(buf: ArrayBuffer | Uint8Array): string {
@@ -151,7 +167,7 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
 
   try {
-    const { venueId, title, body, url = '/', roles, staffIds, sessionToken } = await req.json()
+    const { venueId, title, body, url = '/', roles, staffIds, sessionToken, notificationType } = await req.json()
 
     if (!venueId || !title || !body) {
       return jsonResponse({ error: 'venueId, title and body are required' }, 400, corsHeaders)
@@ -197,8 +213,10 @@ Deno.serve(async (req) => {
       targetStaffIds = (staffAtVenue ?? []).map((s: any) => s.id)
     }
 
+    targetStaffIds = await applyNotificationPreferences(db, targetStaffIds, venueId, notificationType)
+
     if (!targetStaffIds.length) {
-      return jsonResponse({ sent: 0, message: 'No matching staff' }, 200, corsHeaders)
+      return jsonResponse({ sent: 0, message: 'No matching staff or all matching staff disabled this notification type' }, 200, corsHeaders)
     }
 
     // ── Look up APNs tokens ───────────────────────────────────────────────────

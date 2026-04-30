@@ -86,6 +86,7 @@ export default function CorrectiveActionsPage() {
     const catLabel = CATEGORIES.find(c => c.value === form.category)?.label ?? form.category
     sendPush({
       venueId,
+      notificationType: 'corrective_action_logged',
       title: 'Corrective Action Logged',
       body: `${catLabel}: ${form.title.trim()}`,
       url: '/corrective',

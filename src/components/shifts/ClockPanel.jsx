@@ -102,6 +102,7 @@ export default function ClockPanel({ staffId, hasShift = true }) {
           if (minsLate > 5) {
             sendPush({
               venueId,
+              notificationType: 'late_clock_in',
               title: 'Late Clock-In',
               body:  `${shift.staff?.name ?? 'A staff member'} clocked in ${minsLate} min late`,
               url:   '/timesheet',
@@ -129,6 +130,7 @@ export default function ClockPanel({ staffId, hasShift = true }) {
           if (minsEarly > 15) {
             sendPush({
               venueId,
+              notificationType: 'early_clock_out',
               title: 'Early Clock-Out',
               body:  `${shift.staff?.name ?? 'A staff member'} clocked out ${minsEarly} min early`,
               url:   '/timesheet',

@@ -247,6 +247,7 @@ export default function RotaPage() {
     if (staffIds.length) {
       sendPush({
         venueId,
+        notificationType: 'rota_published',
         title: 'Rota Published',
         body: `Your rota for the week of ${weekStartStr} is now available.`,
         url: '/rota',
@@ -278,6 +279,7 @@ export default function RotaPage() {
     // Push notification to managers
     sendPush({
       venueId,
+      notificationType: 'shift_swap_request',
       title: 'Shift Swap Request',
       body:  `${session?.staffName ?? 'A staff member'} has requested a shift swap`,
       url:   '/rota',
@@ -305,6 +307,7 @@ export default function RotaPage() {
     if (staffIds.length) {
       sendPush({
         venueId,
+        notificationType: 'shift_swap_decision',
         title: 'Shift Swap Approved',
         body:  'Your shift swap request has been approved. Check the rota for updates.',
         url:   '/rota',
@@ -333,6 +336,7 @@ export default function RotaPage() {
     if (swap.requester_id) {
       sendPush({
         venueId,
+        notificationType: 'shift_swap_decision',
         title: 'Shift Swap Rejected',
         body:  `Your shift swap request was not approved.${rejectNote[swap.id]?.trim() ? ' Note: ' + rejectNote[swap.id].trim() : ''}`,
         url:   '/rota',

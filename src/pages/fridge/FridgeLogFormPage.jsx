@@ -97,6 +97,7 @@ export default function FridgeLogFormPage() {
     if (outOfRange && !isPastEntry) {
       sendPush({
         venueId,
+        notificationType: 'temperature_alert',
         title: 'Temperature Alert',
         body: `${selectedFridge?.name ?? 'Fridge'} at ${parseFloat(temp)}°C — outside safe range (${selectedFridge?.min_temp}–${selectedFridge?.max_temp}°C)`,
         url: '/fridge',

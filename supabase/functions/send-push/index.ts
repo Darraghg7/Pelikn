@@ -35,6 +35,22 @@ function jsonResponse(body: unknown, status: number, headers: Record<string, str
   })
 }
 
+async function applyNotificationPreferences(db: any, staffIds: string[], venueId: string, notificationType?: string) {
+  if (!notificationType || !staffIds.length) return staffIds
+
+  const { data, error } = await db
+    .from('staff_notification_preferences')
+    .select('staff_id, enabled')
+    .eq('venue_id', venueId)
+    .eq('notification_type', notificationType)
+    .in('staff_id', staffIds)
+
+  if (error) throw error
+
+  const disabled = new Set((data ?? []).filter((row: any) => row.enabled === false).map((row: any) => row.staff_id))
+  return staffIds.filter(id => !disabled.has(id))
+}
+
 Deno.serve(async (req) => {
   const origin = req.headers.get('origin') ?? ''
   const corsHeaders = {
@@ -46,7 +62,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { venueId, title, body, url = '/', roles, staffIds, sessionToken } = await req.json()
+    const { venueId, title, body, url = '/', roles, staffIds, sessionToken, notificationType } = await req.json()
 
     if (!venueId || !title || !body) {
       return jsonResponse({ error: 'venueId, title and body are required' }, 400, corsHeaders)
@@ -81,7 +97,12 @@ Deno.serve(async (req) => {
         return jsonResponse({ sent: 0, message: 'No matching staff with push subscriptions' }, 200, corsHeaders)
       }
 
-      query = query.in('staff_id', staffAtVenue.map(s => s.id))
+      const targetIds = await applyNotificationPreferences(db, staffAtVenue.map(s => s.id), venueId, notificationType)
+      if (!targetIds.length) {
+        return jsonResponse({ sent: 0, message: 'All matching staff disabled this notification type' }, 200, corsHeaders)
+      }
+
+      query = query.in('staff_id', targetIds)
     } else {
       // Filter to the target venue and roles
       const targetRoles = roles ?? ['manager', 'owner']
@@ -95,7 +116,12 @@ Deno.serve(async (req) => {
         return jsonResponse({ sent: 0, message: 'No matching staff with push subscriptions' }, 200, corsHeaders)
       }
 
-      query = query.in('staff_id', staffAtVenue.map(s => s.id))
+      const targetIds = await applyNotificationPreferences(db, staffAtVenue.map(s => s.id), venueId, notificationType)
+      if (!targetIds.length) {
+        return jsonResponse({ sent: 0, message: 'All matching staff disabled this notification type' }, 200, corsHeaders)
+      }
+
+      query = query.in('staff_id', targetIds)
     }
 
     const { data: subscriptions, error: subErr } = await query
@@ -104,7 +130,7 @@ Deno.serve(async (req) => {
       return jsonResponse({ sent: 0, message: 'No push subscriptions found' }, 200, corsHeaders)
     }
 
-    const payload = JSON.stringify({ title, body, url })
+    const payload = JSON.stringify({ title, body, url, notificationType })
     const expiredIds: string[] = []
     let sent = 0
 

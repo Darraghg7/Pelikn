@@ -169,6 +169,7 @@ export default function TimeOffPage() {
     const dateRange = `${form.startDate} – ${form.endDate}`
     sendPush({
       venueId,
+      notificationType: 'time_off_request',
       title: 'New Leave Request',
       body:  `${staffName} requested time off: ${dateRange}`,
       url:   '/timeoff',
@@ -198,6 +199,7 @@ export default function TimeOffPage() {
     if (req?.staff_id) {
       sendPush({
         venueId,
+        notificationType: 'time_off_decision',
         title: 'Time Off Approved',
         body:  `Your time off request (${req.start_date} – ${req.end_date}) has been approved.`,
         url:   '/time-off',
@@ -225,6 +227,7 @@ export default function TimeOffPage() {
     if (req?.staff_id) {
       sendPush({
         venueId,
+        notificationType: 'time_off_decision',
         title: 'Time Off Rejected',
         body:  `Your time off request (${req.start_date} – ${req.end_date}) was not approved.${managerNote.trim() ? ' Note: ' + managerNote.trim() : ''}`,
         url:   '/time-off',

@@ -6,14 +6,14 @@
  *
  * Usage:
  *   import { sendPush } from '../lib/sendPush'
- *   await sendPush({ venueId, title, body, url, roles })           // to role(s)
- *   await sendPush({ venueId, title, body, url, staffIds: [id] })  // to specific staff
+ *   await sendPush({ venueId, notificationType, title, body, url, roles })
+ *   await sendPush({ venueId, notificationType, title, body, url, staffIds: [id] })
  */
 
 import { supabase } from './supabase'
 import { SESSION_TOKEN_KEY } from './constants'
 
-export async function sendPush({ venueId, title, body, url = '/', roles, staffIds } = {}) {
+export async function sendPush({ venueId, notificationType, title, body, url = '/', roles, staffIds } = {}) {
   if (!venueId || !title || !body) return
 
   const sessionToken = localStorage.getItem(SESSION_TOKEN_KEY)
@@ -23,6 +23,7 @@ export async function sendPush({ venueId, title, body, url = '/', roles, staffId
     body,
     url,
     sessionToken,
+    notificationType,
     ...(staffIds ? { staffIds } : { roles }),
   }
 
