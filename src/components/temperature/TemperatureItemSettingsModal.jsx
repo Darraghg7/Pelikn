@@ -13,6 +13,7 @@ export default function TemperatureItemSettingsModal({
   item,
   title,
   maxRequired = true,
+  suggestedRange = null,
   onClose,
   onSave,
 }) {
@@ -37,6 +38,20 @@ export default function TemperatureItemSettingsModal({
   }, [item, open])
 
   if (!item) return null
+
+  const suggestions = suggestedRange ?? (
+    maxRequired
+      ? {
+          min: '0',
+          max: '5',
+          note: 'Suggested chilled range: 0-5°C. Freezers are usually -18°C or colder.',
+        }
+      : {
+          min: '63',
+          max: 'Optional',
+          note: 'Suggested hot holding minimum: 63°C. Leave max blank unless your process needs one.',
+        }
+  )
 
   const toggleDay = (day) => {
     setForm(current => {
@@ -106,7 +121,8 @@ export default function TemperatureItemSettingsModal({
               step="0.1"
               value={form.min_temp}
               onChange={e => setForm(f => ({ ...f, min_temp: e.target.value }))}
-              className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 bg-white text-sm text-charcoal focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+              placeholder={suggestions.min}
+              className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 bg-white text-sm text-charcoal placeholder-charcoal/25 focus:outline-none focus:ring-2 focus:ring-charcoal/20"
             />
           </label>
           <label>
@@ -116,10 +132,13 @@ export default function TemperatureItemSettingsModal({
               step="0.1"
               value={form.max_temp ?? ''}
               onChange={e => setForm(f => ({ ...f, max_temp: e.target.value }))}
-              placeholder={maxRequired ? '' : 'Optional'}
+              placeholder={suggestions.max}
               className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 bg-white text-sm text-charcoal placeholder-charcoal/25 focus:outline-none focus:ring-2 focus:ring-charcoal/20"
             />
           </label>
+          <p className="sm:col-span-3 text-[11px] text-charcoal/35 -mt-1">
+            {suggestions.note}
+          </p>
         </div>
 
         <div>

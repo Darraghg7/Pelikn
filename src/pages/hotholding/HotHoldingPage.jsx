@@ -205,6 +205,11 @@ export default function HotHoldingPage() {
         item={settingsItem}
         title="Hot holding settings"
         maxRequired={false}
+        suggestedRange={{
+          min: '63',
+          max: 'Optional',
+          note: 'Suggested hot holding minimum is 63°C. Leave max blank unless your process has an upper limit.',
+        }}
         onClose={() => setSettingsItem(null)}
         onSave={handleSaveItemSettings}
       />

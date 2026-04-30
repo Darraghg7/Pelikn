@@ -429,6 +429,11 @@ export default function FridgeDashboardPage() {
         open={Boolean(settingsFridge)}
         item={settingsFridge}
         title="Fridge settings"
+        suggestedRange={{
+          min: '0',
+          max: '5',
+          note: 'Suggested chilled range: 0-5°C. For freezers, set the safe max to -18°C or colder.',
+        }}
         onClose={() => setSettingsFridge(null)}
         onSave={saveFridgeSettings}
       />
@@ -444,12 +449,15 @@ export default function FridgeDashboardPage() {
                 placeholder="Name (e.g. Walk-in Fridge)"
                 className="px-3 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20" />
               <input type="number" step="0.5" value={fridgeForm.min_temp} onChange={e => setFridgeForm(f => ({ ...f, min_temp: e.target.value }))}
-                placeholder="Min °C"
-                className="px-3 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20" />
+                placeholder="Suggested: 0°C"
+                className="px-3 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm placeholder-charcoal/25 focus:outline-none focus:ring-2 focus:ring-charcoal/20" />
               <input type="number" step="0.5" value={fridgeForm.max_temp} onChange={e => setFridgeForm(f => ({ ...f, max_temp: e.target.value }))}
-                placeholder="Max °C"
-                className="px-3 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20" />
+                placeholder="Suggested: 5°C"
+                className="px-3 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm placeholder-charcoal/25 focus:outline-none focus:ring-2 focus:ring-charcoal/20" />
             </div>
+            <p className="text-[11px] text-charcoal/35">
+              Suggested chilled range is 0-5°C. For a freezer, use a safe max of -18°C or colder.
+            </p>
             <button onClick={addFridge} disabled={savingFridge}
               className="self-start bg-charcoal text-cream px-4 py-2 rounded-lg text-sm font-medium hover:bg-charcoal/90 transition-colors disabled:opacity-40">
               {savingFridge ? 'Adding…' : '+ Add Fridge / Freezer'}
