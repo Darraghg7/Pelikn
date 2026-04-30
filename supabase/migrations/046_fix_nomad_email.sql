@@ -9,7 +9,7 @@ WHERE venue_id = '00000000-0000-0000-0000-000000000001'
 
 -- Demo venues (brew-and-bloom, the-corner-cup) — update if they exist
 UPDATE app_settings
-SET value = '"demo@safeserv.com"'
+SET value = '"demo@pelikn.app"'
 WHERE venue_id IN (
   SELECT id FROM venues WHERE slug IN ('brew-and-bloom', 'the-corner-cup')
 )

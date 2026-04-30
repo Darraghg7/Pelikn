@@ -24,7 +24,7 @@ INSERT INTO app_settings (key, value) VALUES
 ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value;
 
 INSERT INTO app_settings (key, value) VALUES
-  ('manager_email', 'demo@safeserv.app')
+  ('manager_email', 'demo@pelikn.app')
 ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value;
 
 INSERT INTO app_settings (key, value) VALUES

@@ -581,5 +581,5 @@ WHERE key = 'manager_email'
 -- Seed Sandbox settings
 INSERT INTO app_settings (venue_id, key, value) VALUES
   ('00000000-0000-0000-0000-000000000002', 'venue_name', 'Sandbox'),
-  ('00000000-0000-0000-0000-000000000002', 'manager_email', 'sandbox@safeserv.app')
+  ('00000000-0000-0000-0000-000000000002', 'manager_email', 'sandbox@pelikn.app')
 ON CONFLICT (venue_id, key) DO UPDATE SET value = EXCLUDED.value;

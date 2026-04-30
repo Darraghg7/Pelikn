@@ -1,6 +1,6 @@
 -- ============================================================================
 -- RUN THIS IN YOUR SUPABASE SQL EDITOR
--- Migration 017: Multi-tenancy setup for SafeServ
+-- Migration 017: Multi-tenancy setup for Pelikn
 --
 -- This script is idempotent and handles missing tables gracefully.
 -- ============================================================================
@@ -898,7 +898,7 @@ ON CONFLICT (venue_id, key) DO UPDATE SET value = EXCLUDED.value;
 -- Sandbox settings
 INSERT INTO app_settings (venue_id, key, value) VALUES
   ('00000000-0000-0000-0000-000000000002', 'venue_name', 'Sandbox'),
-  ('00000000-0000-0000-0000-000000000002', 'manager_email', 'sandbox@safeserv.app')
+  ('00000000-0000-0000-0000-000000000002', 'manager_email', 'sandbox@pelikn.app')
 ON CONFLICT (venue_id, key) DO UPDATE SET value = EXCLUDED.value;
 
 -- ============================================================================
@@ -907,6 +907,6 @@ ON CONFLICT (venue_id, key) DO UPDATE SET value = EXCLUDED.value;
 -- Next steps:
 -- 1. Go to Supabase Dashboard → Authentication → Users
 -- 2. Verify nomad.bakes1@gmail.com exists (it should)
--- 3. Create user: sandbox@safeserv.app / Dearbhala31! (Auto Confirm)
+-- 3. Create user: sandbox@pelikn.app / Dearbhala31! (Auto Confirm)
 -- 4. Test login at your app URL
 -- ============================================================================

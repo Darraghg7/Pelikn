@@ -1,4 +1,4 @@
-# SafeServ
+# Pelikn
 
 Food safety and operations management PWA for hospitality venues. Built with React + Vite, styled with Tailwind CSS, and powered by Supabase.
 
@@ -23,8 +23,8 @@ Food safety and operations management PWA for hospitality venues. Built with Rea
 ### 1. Clone and install
 
 ```bash
-git clone https://github.com/<org>/safeserv.git
-cd safeserv
+git clone https://github.com/<org>/pelikn.git
+cd pelikn
 npm install
 ```
 
@@ -135,7 +135,7 @@ Migrations are numbered sequentially (`001_`, `002_`, …). Always apply them in
 
 ## Authentication Model
 
-SafeServ uses a **two-tier auth model**:
+Pelikn uses a **two-tier auth model**:
 
 ### Tier 1 — Venue owner (Supabase Auth)
 - Used only at signup (`/signup`) to create a Supabase Auth account and provision the venue

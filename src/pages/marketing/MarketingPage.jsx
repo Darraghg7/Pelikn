@@ -159,19 +159,19 @@ function AppScreen({ children, maxH = 420 }) {
 /* Staff mobile screen — simplified personal view */
 function StaffMobileScreen() {
   return (
-    <AppScreen maxH={310}>
-      <div className="bg-[#F0F0EF]">
-        <div className="bg-brand px-4 py-3.5">
-          <p className="text-[10px] tracking-widest uppercase text-cream/45 mb-0.5">The Canteen · Shoreditch</p>
+    <div className="rounded-2xl overflow-hidden shadow-[0_16px_48px_rgba(0,0,0,0.14)] ring-1 ring-charcoal/8" style={{ height: 420 }}>
+      <div className="bg-[#F0F0EF] h-full flex flex-col">
+        <div className="bg-brand px-4 py-3.5 shrink-0">
+          <p className="text-[10px] tracking-widest uppercase text-cream/45 mb-0.5">The Canteen</p>
           <p className="text-sm font-semibold text-cream">Good morning, Sarah</p>
         </div>
-        <div className="p-3">
+        <div className="flex-1 overflow-hidden p-3">
           <p className="text-[10px] tracking-widest uppercase text-charcoal/40 mb-2">Quick actions</p>
           <div className="grid grid-cols-3 gap-1.5 mb-3">
             {[
-              { icon: icons.clock,     label: 'Clock In'    },
+              { icon: icons.clock,       label: 'Clock In'   },
               { icon: icons.thermometer, label: 'Fridge Temp' },
-              { icon: icons.clipboard, label: 'Cleaning'    },
+              { icon: icons.clipboard,   label: 'Cleaning'   },
             ].map(({ icon, label }) => (
               <div key={label} className="bg-white rounded-xl border border-charcoal/8 p-2.5 flex flex-col items-center gap-1">
                 <span className="text-brand">{icon}</span>
@@ -193,9 +193,9 @@ function StaffMobileScreen() {
             </div>
           </div>
         </div>
-        <ScreenNav active="home" />
+        <div className="shrink-0"><ScreenNav active="home" /></div>
       </div>
-    </AppScreen>
+    </div>
   )
 }
 
@@ -401,7 +401,7 @@ export default function MarketingPage() {
           <p className="text-charcoal/45 text-center max-w-lg mx-auto text-sm leading-relaxed mb-10">
             Manager dashboard, staff view and compliance records, all on one platform, any device.
           </p>
-          <div className="flex flex-col sm:flex-row gap-5 items-start">
+          <div className="flex flex-col sm:flex-row gap-5 items-end">
             <div className="sm:w-[195px] shrink-0">
               <StaffMobileScreen />
               <ScreenCaption>Staff view</ScreenCaption>

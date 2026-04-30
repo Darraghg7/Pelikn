@@ -1,11 +1,13 @@
 -- ============================================================================
--- 044: Fix seed_demo_data — scope delete to demo venue slugs only
--- Prevents any risk of wiping real venues (e.g. Nomad Café)
+-- 051: Fix seed_demo_data to match current venue_roles / staff_role_assignments
+--      / rota_requirements schemas introduced in migration 031.
+--
+-- Changes:
+--   venue_roles:           job_role → name, colour → color, drop is_active
+--   staff_role_assignments: (staff_id, job_role, venue_id) → (staff_id, role_id)
+--   rota_requirements:     job_role/positions_required → role_id/role_name/
+--                          staff_count/start_time/end_time
 -- ============================================================================
-
--- Full redeploy of seed_demo_data with the corrected delete statement.
--- Only change from 043: line 1 of the function body now scopes the DELETE
--- to slug IN ('brew-and-bloom', 'the-corner-cup') instead of all venues.
 
 DROP FUNCTION IF EXISTS seed_demo_data(uuid);
 
@@ -15,6 +17,9 @@ DECLARE
   v1  uuid; v2  uuid;
   s1  uuid; s2  uuid; s3  uuid; s4  uuid;
   s5  uuid; s6  uuid; s7  uuid; s8  uuid;
+  -- venue role IDs (needed for staff_role_assignments FK)
+  vr1_kitchen uuid; vr1_foh uuid; vr1_bar uuid;
+  vr2_kitchen uuid; vr2_foh uuid; vr2_bar uuid;
   f1a uuid; f1b uuid; f1c uuid;
   f2a uuid; f2b uuid;
   sup1a uuid; sup1b uuid; sup1c uuid;
@@ -34,8 +39,51 @@ DECLARE
   t   date := current_date;
 BEGIN
 
-  -- ── 1. Delete only the demo venues (leaves Nomad and all other venues safe)
-  DELETE FROM venues WHERE owner_id = p_owner_id AND slug IN ('brew-and-bloom', 'the-corner-cup');
+  -- ── 1. Clean up any previous demo data (correct dependency order) ────────
+  -- Collect demo venue IDs into a temp variable set
+  CREATE TEMP TABLE IF NOT EXISTS _demo_venue_ids AS
+    SELECT id FROM venues WHERE owner_id = p_owner_id AND slug IN ('brew-and-bloom', 'the-corner-cup');
+
+  -- Delete leaf tables (reference staff or venues, no children)
+  DELETE FROM fridge_temperature_logs  WHERE venue_id IN (SELECT id FROM _demo_venue_ids);
+  DELETE FROM cleaning_completions     WHERE venue_id IN (SELECT id FROM _demo_venue_ids);
+  DELETE FROM opening_closing_completions WHERE venue_id IN (SELECT id FROM _demo_venue_ids);
+  DELETE FROM task_completions         WHERE venue_id IN (SELECT id FROM _demo_venue_ids);
+  DELETE FROM clock_events             WHERE venue_id IN (SELECT id FROM _demo_venue_ids);
+  DELETE FROM hot_holding_logs         WHERE venue_id IN (SELECT id FROM _demo_venue_ids);
+  DELETE FROM cooking_temp_logs        WHERE venue_id IN (SELECT id FROM _demo_venue_ids);
+  DELETE FROM cooling_logs             WHERE venue_id IN (SELECT id FROM _demo_venue_ids);
+  DELETE FROM waste_logs               WHERE venue_id IN (SELECT id FROM _demo_venue_ids);
+  DELETE FROM delivery_checks          WHERE venue_id IN (SELECT id FROM _demo_venue_ids);
+  DELETE FROM corrective_actions       WHERE venue_id IN (SELECT id FROM _demo_venue_ids);
+  DELETE FROM pest_control_logs        WHERE venue_id IN (SELECT id FROM _demo_venue_ids);
+  DELETE FROM staff_training           WHERE venue_id IN (SELECT id FROM _demo_venue_ids);
+  DELETE FROM training_sign_offs       WHERE venue_id IN (SELECT id FROM _demo_venue_ids);
+  DELETE FROM probe_calibrations       WHERE venue_id IN (SELECT id FROM _demo_venue_ids);
+  DELETE FROM shift_swaps              WHERE venue_id IN (SELECT id FROM _demo_venue_ids);
+  DELETE FROM time_off_requests        WHERE venue_id IN (SELECT id FROM _demo_venue_ids);
+  DELETE FROM hour_edit_log            WHERE venue_id IN (SELECT id FROM _demo_venue_ids);
+  DELETE FROM supplier_order_items     WHERE order_id IN (SELECT id FROM supplier_orders WHERE venue_id IN (SELECT id FROM _demo_venue_ids));
+  DELETE FROM supplier_orders          WHERE venue_id IN (SELECT id FROM _demo_venue_ids);
+  DELETE FROM supplier_items           WHERE venue_id IN (SELECT id FROM _demo_venue_ids);
+  DELETE FROM food_allergens           WHERE venue_id IN (SELECT id FROM _demo_venue_ids);
+  DELETE FROM food_items               WHERE venue_id IN (SELECT id FROM _demo_venue_ids);
+  DELETE FROM hot_holding_items        WHERE venue_id IN (SELECT id FROM _demo_venue_ids);
+  DELETE FROM shifts                   WHERE venue_id IN (SELECT id FROM _demo_venue_ids);
+  DELETE FROM rota_requirements        WHERE venue_id IN (SELECT id FROM _demo_venue_ids);
+  DELETE FROM opening_closing_checks   WHERE venue_id IN (SELECT id FROM _demo_venue_ids);
+  DELETE FROM cleaning_tasks           WHERE venue_id IN (SELECT id FROM _demo_venue_ids);
+  DELETE FROM task_templates           WHERE venue_id IN (SELECT id FROM _demo_venue_ids);
+  DELETE FROM fridges                  WHERE venue_id IN (SELECT id FROM _demo_venue_ids);
+  DELETE FROM suppliers                WHERE venue_id IN (SELECT id FROM _demo_venue_ids);
+  DELETE FROM app_settings             WHERE venue_id IN (SELECT id FROM _demo_venue_ids);
+  DELETE FROM staff_role_assignments   WHERE staff_id IN (SELECT id FROM staff WHERE venue_id IN (SELECT id FROM _demo_venue_ids));
+  DELETE FROM staff_venue_links        WHERE venue_id IN (SELECT id FROM _demo_venue_ids);
+  DELETE FROM venue_roles              WHERE venue_id IN (SELECT id FROM _demo_venue_ids);
+  DELETE FROM staff                    WHERE venue_id IN (SELECT id FROM _demo_venue_ids);
+  DELETE FROM venues                   WHERE id       IN (SELECT id FROM _demo_venue_ids);
+
+  DROP TABLE _demo_venue_ids;
 
   -- ── 2. Create venues ──────────────────────────────────────────────────────
   INSERT INTO venues (name, slug, owner_id, plan, additional_venues)
@@ -61,21 +109,31 @@ BEGIN
     (v2, 'closed_days',         '[6]'),
     (v2, 'custom_roles',        '["Kitchen","Front of House","Bar"]');
 
-  -- ── 4. Venue roles ────────────────────────────────────────────────────────
-  INSERT INTO venue_roles (venue_id, job_role, colour, is_active) VALUES
-    (v1, 'kitchen', '#f59e0b', true),
-    (v1, 'foh',     '#3b82f6', true),
-    (v1, 'bar',     '#10b981', true),
-    (v2, 'kitchen', '#ef4444', true),
-    (v2, 'foh',     '#8b5cf6', true),
-    (v2, 'bar',     '#06b6d4', true);
+  -- ── 4. Venue roles (name + color — no job_role / is_active columns) ───────
+  INSERT INTO venue_roles (venue_id, name, color, sort_order)
+  VALUES (v1, 'Kitchen',       '#f59e0b', 1) RETURNING id INTO vr1_kitchen;
+  INSERT INTO venue_roles (venue_id, name, color, sort_order)
+  VALUES (v1, 'Front of House','#3b82f6', 2) RETURNING id INTO vr1_foh;
+  INSERT INTO venue_roles (venue_id, name, color, sort_order)
+  VALUES (v1, 'Bar',           '#10b981', 3) RETURNING id INTO vr1_bar;
 
-  -- ── 5. Rota requirements ──────────────────────────────────────────────────
-  INSERT INTO rota_requirements (venue_id, day_of_week, job_role, positions_required)
-  SELECT v, d, r, 2
-  FROM (VALUES (v1),(v2)) venues(v)
-  CROSS JOIN (VALUES (1),(2),(3),(4),(5),(6)) days(d)
-  CROSS JOIN (VALUES ('kitchen'),('foh')) roles(r);
+  INSERT INTO venue_roles (venue_id, name, color, sort_order)
+  VALUES (v2, 'Kitchen',       '#ef4444', 1) RETURNING id INTO vr2_kitchen;
+  INSERT INTO venue_roles (venue_id, name, color, sort_order)
+  VALUES (v2, 'Front of House','#8b5cf6', 2) RETURNING id INTO vr2_foh;
+  INSERT INTO venue_roles (venue_id, name, color, sort_order)
+  VALUES (v2, 'Bar',           '#06b6d4', 3) RETURNING id INTO vr2_bar;
+
+  -- ── 5. Rota requirements (role_id FK + role_name + staff_count + times) ───
+  INSERT INTO rota_requirements (venue_id, day_of_week, role_id, role_name, staff_count, start_time, end_time)
+  SELECT v1, d, r.role_id, r.role_name, 2, TIME '08:00', TIME '16:00'
+  FROM (VALUES (1),(2),(3),(4),(5),(6)) days(d)
+  CROSS JOIN (VALUES (vr1_kitchen,'Kitchen'),(vr1_foh,'Front of House')) r(role_id, role_name);
+
+  INSERT INTO rota_requirements (venue_id, day_of_week, role_id, role_name, staff_count, start_time, end_time)
+  SELECT v2, d, r.role_id, r.role_name, 2, TIME '08:00', TIME '16:00'
+  FROM (VALUES (1),(2),(3),(4),(5),(6)) days(d)
+  CROSS JOIN (VALUES (vr2_kitchen,'Kitchen'),(vr2_foh,'Front of House')) r(role_id, role_name);
 
   -- ── 6. Staff ──────────────────────────────────────────────────────────────
   INSERT INTO staff (name, email, pin_hash, role, job_role, is_active, venue_id, colour, contracted_hours, hourly_rate)
@@ -116,16 +174,16 @@ BEGIN
     (s5, v2, 'staff'),
     (s8, v1, 'staff');
 
-  -- ── 8. Staff role assignments ─────────────────────────────────────────────
-  INSERT INTO staff_role_assignments (staff_id, job_role, venue_id) VALUES
-    (s1, 'kitchen', v1), (s1, 'foh', v1),
-    (s2, 'foh',     v1), (s2, 'bar', v1),
-    (s3, 'kitchen', v2), (s3, 'foh', v2),
-    (s4, 'kitchen', v1),
-    (s5, 'foh',     v1), (s5, 'foh', v2),
-    (s6, 'kitchen', v2),
-    (s7, 'foh',     v1),
-    (s8, 'kitchen', v2), (s8, 'kitchen', v1);
+  -- ── 8. Staff role assignments (staff_id + role_id FK — no job_role column) ─
+  INSERT INTO staff_role_assignments (staff_id, role_id) VALUES
+    (s1, vr1_kitchen), (s1, vr1_foh),
+    (s2, vr1_foh),     (s2, vr1_bar),
+    (s3, vr2_kitchen), (s3, vr2_foh),
+    (s4, vr1_kitchen),
+    (s5, vr1_foh),
+    (s6, vr2_kitchen),
+    (s7, vr1_foh),
+    (s8, vr2_kitchen);
 
   -- ── 9. Shifts (Mon–Sat, 3 weeks back + current + 2 weeks ahead) ──────────
   INSERT INTO shifts (venue_id, staff_id, shift_date, week_start, start_time, end_time, role_label)
@@ -162,7 +220,7 @@ BEGIN
   ) sched(staff_id, s, e, lbl)
   WHERE extract(dow from d) BETWEEN 1 AND 6;
 
-  -- ── 10. Clock events (past shifts only) ───────────────────────────────────
+  -- ── 10. Clock events ──────────────────────────────────────────────────────
   INSERT INTO clock_events (venue_id, staff_id, event_type, occurred_at)
   SELECT v1, ce.staff_id, ce.event_type,
     (d::date + ce.offset_)::timestamptz
@@ -231,11 +289,12 @@ BEGIN
   INSERT INTO fridges (venue_id, name, min_temp, max_temp, is_active)
   VALUES (v2, 'Display Fridge', 1.0, 5.0, true) RETURNING id INTO f2b;
 
-  INSERT INTO fridge_temperature_logs (venue_id, fridge_id, fridge_name, temperature, logged_by, logged_by_name, logged_at)
+  INSERT INTO fridge_temperature_logs (venue_id, fridge_id, fridge_name, temperature, check_period, logged_by, logged_by_name, logged_at)
   SELECT fr.vid, fr.fid, fr.fname,
     fr.base + ((row_number() OVER () % 5) * 0.3)::numeric(3,1),
+    p.period,
     fr.lby, fr.lbname,
-    (t - (day_offset || ' days')::interval + period_offset)::timestamptz
+    (t - (day_offset || ' days')::interval + p.offset_)::timestamptz
   FROM (VALUES
     (v1, f1a, 'Main Display Fridge', 3.2, s1, 'Sarah Mitchell'),
     (v1, f1b, 'Prep Fridge',          2.1, s4, 'Tom Clarke'),
@@ -244,10 +303,10 @@ BEGIN
     (v2, f2b, 'Display Fridge',       3.0, s6, 'Ryan Murphy')
   ) fr(vid, fid, fname, base, lby, lbname)
   CROSS JOIN generate_series(1, 7) day_offset
-  CROSS JOIN (VALUES (INTERVAL '8 hours'),(INTERVAL '15 hours')) p(period_offset);
+  CROSS JOIN (VALUES ('am', INTERVAL '8 hours'), ('pm', INTERVAL '15 hours')) p(period, offset_);
 
-  INSERT INTO fridge_temperature_logs (venue_id, fridge_id, fridge_name, temperature, logged_by, logged_by_name, logged_at)
-  VALUES (v1, f1b, 'Prep Fridge', 6.8, s4, 'Tom Clarke', (t - interval '2 days' + interval '8 hours')::timestamptz);
+  INSERT INTO fridge_temperature_logs (venue_id, fridge_id, fridge_name, temperature, check_period, logged_by, logged_by_name, logged_at)
+  VALUES (v1, f1b, 'Prep Fridge', 6.8, 'am', s4, 'Tom Clarke', (t - interval '2 days' + interval '8 hours')::timestamptz);
 
   -- ── 12. Cleaning tasks ────────────────────────────────────────────────────
   INSERT INTO cleaning_tasks (venue_id, title, frequency, assigned_role, is_active, created_by)
@@ -397,7 +456,7 @@ BEGIN
   ) tasks(task_id, comp_by, comp_name)
   CROSS JOIN generate_series(1, 6) day_offset;
 
-  -- ── 15. Suppliers ────────────────────────────────────────────────────────
+  -- ── 15. Suppliers ─────────────────────────────────────────────────────────
   INSERT INTO suppliers (venue_id, name, is_active) VALUES (v1, 'Fresh Direct UK',      true) RETURNING id INTO sup1a;
   INSERT INTO suppliers (venue_id, name, is_active) VALUES (v1, 'Brewer''s Collective', true) RETURNING id INTO sup1b;
   INSERT INTO suppliers (venue_id, name, is_active) VALUES (v1, 'Metro Wholesale',      true) RETURNING id INTO sup1c;
@@ -459,16 +518,16 @@ BEGIN
     (v2, 'Matcha Latte',           'Ceremonial matcha, oat milk',            true) RETURNING id INTO fi8;
 
   INSERT INTO food_allergens (venue_id, food_item_id, allergen) VALUES
-    (v1, fi1, 'eggs'), (v1, fi1, 'gluten'), (v1, fi1, 'milk'), (v1, fi1, 'mustard'),
-    (v1, fi2, 'fish'), (v1, fi2, 'gluten'), (v1, fi2, 'milk'),
-    (v1, fi3, 'gluten'),
-    (v1, fi4, 'gluten'), (v1, fi4, 'milk'), (v1, fi4, 'nuts'),
-    (v2, fi5, 'milk'),
-    (v2, fi6, 'gluten'), (v2, fi6, 'nuts'), (v2, fi6, 'eggs'), (v2, fi6, 'milk'),
-    (v2, fi7, 'gluten'),
-    (v2, fi8, 'milk');
+    (v1, fi1, 'Eggs'), (v1, fi1, 'Gluten'), (v1, fi1, 'Milk'), (v1, fi1, 'Mustard'),
+    (v1, fi2, 'Fish'), (v1, fi2, 'Gluten'), (v1, fi2, 'Milk'),
+    (v1, fi3, 'Gluten'),
+    (v1, fi4, 'Gluten'), (v1, fi4, 'Milk'), (v1, fi4, 'Tree Nuts'),
+    (v2, fi5, 'Milk'),
+    (v2, fi6, 'Gluten'), (v2, fi6, 'Tree Nuts'), (v2, fi6, 'Eggs'), (v2, fi6, 'Milk'),
+    (v2, fi7, 'Gluten'),
+    (v2, fi8, 'Milk');
 
-  -- ── 17. Hot holding items + logs ─────────────────────────────────────────
+  -- ── 17. Hot holding ───────────────────────────────────────────────────────
   INSERT INTO hot_holding_items (venue_id, name, is_active) VALUES (v1, 'Soup of the Day',    true) RETURNING id INTO hi1;
   INSERT INTO hot_holding_items (venue_id, name, is_active) VALUES (v1, 'Breakfast Burritos', true) RETURNING id INTO hi2;
   INSERT INTO hot_holding_items (venue_id, name, is_active) VALUES (v2, 'Toasted Sandwiches', true) RETURNING id INTO hi3;
@@ -488,24 +547,24 @@ BEGIN
   CROSS JOIN generate_series(1, 3) day_offset
   CROSS JOIN (VALUES ('am'), ('pm')) periods(period);
 
-  -- ── 18. Cooking temp logs ────────────────────────────────────────────────
+  -- ── 18. Cooking temp logs ─────────────────────────────────────────────────
   INSERT INTO cooking_temp_logs (venue_id, check_type, food_item, temperature, target_temp, logged_by, logged_by_name, logged_at)
   VALUES
-    (v1, 'cooking',   'Eggs Benedict — hollandaise', 74.0, 70.0, s4, 'Tom Clarke',    (t - interval '1 day' + interval '8 hours')::timestamptz),
-    (v1, 'cooking',   'Soup of the Day',             83.0, 75.0, s4, 'Tom Clarke',    (t - interval '1 day' + interval '11 hours')::timestamptz),
-    (v1, 'reheating', 'Breakfast Burritos',          71.0, 70.0, s4, 'Tom Clarke',    (t - interval '2 days' + interval '8 hours')::timestamptz),
-    (v2, 'cooking',   'Quiche (fresh batch)',         78.0, 75.0, s8, 'Conor Hayes',  (t - interval '1 day' + interval '9 hours')::timestamptz),
-    (v2, 'cooking',   'Focaccia bake',                90.0, 85.0, s8, 'Conor Hayes',  (t - interval '2 days' + interval '9 hours')::timestamptz),
-    (v2, 'reheating', 'Toasted Sandwich filling',    72.0, 70.0, s3, 'Emma Walsh',   (t - interval '1 day' + interval '12 hours')::timestamptz);
+    (v1, 'cooking',   'Eggs Benedict — hollandaise', 74.0, 70.0, s4, 'Tom Clarke',   (t - interval '1 day' + interval '8 hours')::timestamptz),
+    (v1, 'cooking',   'Soup of the Day',             83.0, 75.0, s4, 'Tom Clarke',   (t - interval '1 day' + interval '11 hours')::timestamptz),
+    (v1, 'reheating', 'Breakfast Burritos',          71.0, 70.0, s4, 'Tom Clarke',   (t - interval '2 days' + interval '8 hours')::timestamptz),
+    (v2, 'cooking',   'Quiche (fresh batch)',         78.0, 75.0, s8, 'Conor Hayes', (t - interval '1 day' + interval '9 hours')::timestamptz),
+    (v2, 'cooking',   'Focaccia bake',                90.0, 85.0, s8, 'Conor Hayes', (t - interval '2 days' + interval '9 hours')::timestamptz),
+    (v2, 'reheating', 'Toasted Sandwich filling',    72.0, 70.0, s3, 'Emma Walsh',  (t - interval '1 day' + interval '12 hours')::timestamptz);
 
-  -- ── 19. Cooling logs ─────────────────────────────────────────────────────
+  -- ── 19. Cooling logs ──────────────────────────────────────────────────────
   INSERT INTO cooling_logs (venue_id, food_item, start_temp, end_temp, target_temp, cooling_method, started_at, logged_by, logged_by_name, logged_at)
   VALUES
-    (v1, 'Soup — leftover batch',    78.0, 4.0, 5.0, 'ice_bath',   (t - interval '2 days' + interval '15 hours')::timestamptz, s4, 'Tom Clarke',      (t - interval '2 days' + interval '17 hours')::timestamptz),
-    (v2, 'Quiche — overnight batch', 75.0, 3.0, 5.0, 'ambient',    (t - interval '1 day'  + interval '16 hours')::timestamptz, s8, 'Conor Hayes',     (t - interval '1 day'  + interval '18 hours')::timestamptz),
-    (v1, 'Hollandaise — end of day', 60.0, 4.0, 5.0, 'cold_water', (t - interval '3 days' + interval '14 hours')::timestamptz, s1, 'Sarah Mitchell',  (t - interval '3 days' + interval '16 hours')::timestamptz);
+    (v1, 'Soup — leftover batch',    78.0, 4.0, 5.0, 'ice_bath',   (t - interval '2 days' + interval '15 hours')::timestamptz, s4, 'Tom Clarke',     (t - interval '2 days' + interval '17 hours')::timestamptz),
+    (v2, 'Quiche — overnight batch', 75.0, 3.0, 5.0, 'ambient',    (t - interval '1 day'  + interval '16 hours')::timestamptz, s8, 'Conor Hayes',    (t - interval '1 day'  + interval '18 hours')::timestamptz),
+    (v1, 'Hollandaise — end of day', 60.0, 4.0, 5.0, 'cold_water', (t - interval '3 days' + interval '14 hours')::timestamptz, s1, 'Sarah Mitchell', (t - interval '3 days' + interval '16 hours')::timestamptz);
 
-  -- ── 20. Waste logs ───────────────────────────────────────────────────────
+  -- ── 20. Waste logs ────────────────────────────────────────────────────────
   INSERT INTO waste_logs (venue_id, item_name, quantity, unit, reason, recorded_by, recorded_by_name, recorded_at)
   SELECT vid, iname, qty, unit_, reason_, rby, rbname,
     (t - (day_offset || ' days')::interval + interval '16 hours')::timestamptz
@@ -518,35 +577,35 @@ BEGIN
   ) wl(vid, iname, qty, unit_, reason_, rby, rbname)
   CROSS JOIN generate_series(1, 7) day_offset;
 
-  -- ── 21. Corrective actions ───────────────────────────────────────────────
+  -- ── 21. Corrective actions ────────────────────────────────────────────────
   INSERT INTO corrective_actions (venue_id, category, title, description, action_taken, severity, status, reported_by, reported_at)
   VALUES
     (v1, 'temperature', 'Prep Fridge temperature exceeded 5°C',
      'Prep fridge recorded 6.8°C on morning check. All chilled stock quarantined.',
      'Fridge thermostat adjusted. Engineer booked for service.',
-     'critical', 'open', 'Tom Clarke', (t - interval '2 days')::timestamptz),
+     'critical', 'open', s4, (t - interval '2 days')::timestamptz),
     (v1, 'cleaning', 'Monthly fridge deep clean overdue',
      'Deep clean not completed within the 30-day schedule.',
      'Scheduled for this Saturday.',
-     'major', 'open', 'Sarah Mitchell', (t - interval '1 day')::timestamptz),
+     'major', 'open', s1, (t - interval '1 day')::timestamptz),
     (v2, 'delivery', 'Chilled delivery arrived at 5.1°C',
      'Milk delivery from Meadow Fresh Dairy arrived above 5°C. Batch rejected.',
      'Supplier contacted. Replacement arranged.',
-     'major', 'resolved', 'Emma Walsh', (t - interval '1 day')::timestamptz),
+     'major', 'resolved', s3, (t - interval '1 day')::timestamptz),
     (v1, 'pest', 'Mouse droppings found near dry store',
      'Single sighting near flour bins.',
      'Pest contractor attended same day. Traps placed.',
-     'critical', 'resolved', 'Sarah Mitchell', (t - interval '8 days')::timestamptz);
+     'critical', 'resolved', s1, (t - interval '8 days')::timestamptz);
 
-  UPDATE corrective_actions SET status = 'resolved', resolved_by = 'Emma Walsh',
+  UPDATE corrective_actions SET status = 'resolved', resolved_by = s3,
     resolved_at = (t - interval '12 hours')::timestamptz
   WHERE title = 'Chilled delivery arrived at 5.1°C' AND venue_id = v2;
 
-  UPDATE corrective_actions SET status = 'resolved', resolved_by = 'Sarah Mitchell',
+  UPDATE corrective_actions SET status = 'resolved', resolved_by = s1,
     resolved_at = (t - interval '6 days')::timestamptz
   WHERE title = 'Mouse droppings found near dry store' AND venue_id = v1;
 
-  -- ── 22. Pest control ─────────────────────────────────────────────────────
+  -- ── 22. Pest control ──────────────────────────────────────────────────────
   INSERT INTO pest_control_logs (venue_id, log_type, pest_type, location, description, action_taken, severity, status, logged_by, logged_by_name, logged_at)
   VALUES
     (v1, 'inspection', 'rodent', 'Kitchen & dry store',
@@ -562,21 +621,21 @@ BEGIN
      'Bins relocated. UV trap installed.', 'low', 'resolved',
      s3, 'Emma Walsh',      (t - interval '10 days')::timestamptz);
 
-  -- ── 23. Staff training ───────────────────────────────────────────────────
+  -- ── 23. Staff training ────────────────────────────────────────────────────
   INSERT INTO staff_training (venue_id, staff_id, title, issued_date, expiry_date, notes) VALUES
-    (v1, s1, 'Level 3 Award in Food Safety',  (t - interval '2 years')::date,    (t + interval '1 year')::date,    'Highfield qualification'),
-    (v1, s1, 'COSHH Awareness',                (t - interval '1 year')::date,     (t + interval '20 days')::date,   'Due for renewal'),
-    (v1, s2, 'Level 2 Award in Food Safety',  (t - interval '18 months')::date,  (t + interval '6 months')::date,  null),
-    (v1, s2, 'Emergency First Aid at Work',    (t - interval '3 years')::date,    (t - interval '5 days')::date,    'Expired — renewal needed'),
-    (v2, s3, 'Level 3 Award in Food Safety',  (t - interval '1 year')::date,     (t + interval '2 years')::date,   null),
-    (v2, s3, 'Allergen Awareness Level 2',     (t - interval '6 months')::date,   (t + interval '18 months')::date, null),
-    (v1, s4, 'Level 2 Award in Food Safety',  (t - interval '1 year')::date,     (t + interval '2 years')::date,   null),
-    (v1, s5, 'Level 2 Award in Food Safety',  (t - interval '2 years')::date,    (t + interval '8 months')::date,  null),
-    (v1, s5, 'Allergen Awareness',             (t - interval '1 year')::date,     (t + interval '25 days')::date,   'Booked for refresh'),
-    (v2, s6, 'Level 2 Award in Food Safety',  (t - interval '8 months')::date,   (t + interval '16 months')::date, null),
-    (v1, s7, 'Level 2 Award in Food Safety',  (t - interval '6 months')::date,   (t + interval '18 months')::date, null),
-    (v1, s7, 'Allergen Awareness Level 2',     (t - interval '3 months')::date,   (t + interval '21 months')::date, null),
-    (v2, s8, 'Level 2 Award in Food Safety',  (t - interval '1 year')::date,     (t + interval '2 years')::date,   null);
+    (v1, s1, 'Level 3 Award in Food Safety',  (t - interval '2 years')::date,   (t + interval '1 year')::date,    'Highfield qualification'),
+    (v1, s1, 'COSHH Awareness',                (t - interval '1 year')::date,    (t + interval '20 days')::date,   'Due for renewal'),
+    (v1, s2, 'Level 2 Award in Food Safety',  (t - interval '18 months')::date, (t + interval '6 months')::date,  null),
+    (v1, s2, 'Emergency First Aid at Work',    (t - interval '3 years')::date,   (t - interval '5 days')::date,    'Expired — renewal needed'),
+    (v2, s3, 'Level 3 Award in Food Safety',  (t - interval '1 year')::date,    (t + interval '2 years')::date,   null),
+    (v2, s3, 'Allergen Awareness Level 2',     (t - interval '6 months')::date,  (t + interval '18 months')::date, null),
+    (v1, s4, 'Level 2 Award in Food Safety',  (t - interval '1 year')::date,    (t + interval '2 years')::date,   null),
+    (v1, s5, 'Level 2 Award in Food Safety',  (t - interval '2 years')::date,   (t + interval '8 months')::date,  null),
+    (v1, s5, 'Allergen Awareness',             (t - interval '1 year')::date,    (t + interval '25 days')::date,   'Booked for refresh'),
+    (v2, s6, 'Level 2 Award in Food Safety',  (t - interval '8 months')::date,  (t + interval '16 months')::date, null),
+    (v1, s7, 'Level 2 Award in Food Safety',  (t - interval '6 months')::date,  (t + interval '18 months')::date, null),
+    (v1, s7, 'Allergen Awareness Level 2',     (t - interval '3 months')::date,  (t + interval '21 months')::date, null),
+    (v2, s8, 'Level 2 Award in Food Safety',  (t - interval '1 year')::date,    (t + interval '2 years')::date,   null);
 
   INSERT INTO training_sign_offs (venue_id, staff_id, training_date, trainer_name, topics, notes, manager_name, staff_acknowledged, staff_acknowledged_at)
   VALUES
@@ -587,13 +646,13 @@ BEGIN
      ARRAY['Allergen awareness','COSHH','Personal hygiene'],
      'Monthly training session.', 'Emma Walsh', true, (t - interval '13 days')::timestamptz);
 
-  -- ── 24. Probe calibrations ───────────────────────────────────────────────
+  -- ── 24. Probe calibrations ────────────────────────────────────────────────
   INSERT INTO probe_calibrations (venue_id, probe_name, method, expected_temp, actual_reading, calibrated_by, calibrated_at, notes)
   VALUES
-    (v1, 'Probe A (kitchen)', 'ice_water', 0.0, 0.3, 'Sarah Mitchell', (t - interval '10 days')::timestamptz, 'Within tolerance. OK.'),
-    (v2, 'Probe A (kitchen)', 'ice_water', 0.0, 0.5, 'Emma Walsh',     (t - interval '35 days')::timestamptz, 'Calibration overdue — schedule check');
+    (v1, 'Probe A (kitchen)', 'ice_water', 0.0, 0.3, s1, (t - interval '10 days')::timestamptz, 'Within tolerance. OK.'),
+    (v2, 'Probe A (kitchen)', 'ice_water', 0.0, 0.5, s3, (t - interval '35 days')::timestamptz, 'Calibration overdue — schedule check');
 
-  -- ── 25. Shift swaps ──────────────────────────────────────────────────────
+  -- ── 25. Shift swaps ───────────────────────────────────────────────────────
   INSERT INTO shift_swaps (venue_id, shift_id, requester_id, requester_name, target_staff_id, target_staff_name, status, message)
   SELECT v1,
     (SELECT id FROM shifts WHERE venue_id = v1 AND staff_id = s5 AND shift_date = (t + interval '3 days')::date LIMIT 1),
@@ -614,11 +673,9 @@ BEGIN
     (v1, s7, (t + interval '7 days')::date, (t + interval '7 days')::date,
      'Attending a wedding', 'approved');
 
-  -- ── 27. Hour edit log ────────────────────────────────────────────────────
-  INSERT INTO hour_edit_log (venue_id, staff_id, staff_name, shift_date, edit_type, hours_before, hours_after, notes)
-  VALUES
-    (v1, s2, 'James O''Brien', (t - interval '3 days')::date, 'manual_override', 7.0, 8.0,
-     'Forgot to clock out — confirmed with staff');
+  -- ── 27. Hour edit log ─────────────────────────────────────────────────────
+  INSERT INTO hour_edit_log (venue_id, staff_id, staff_name, shift_date)
+  VALUES (v1, s2, 'James O''Brien', (t - interval '3 days')::date);
 
 END;
 $$;

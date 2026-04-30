@@ -1,7 +1,7 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
-const DEMO_EMAIL      = 'demo@safeserv.com'
+const DEMO_EMAIL      = 'demo@pelikn.app'
 const SUPABASE_URL    = Deno.env.get('SUPABASE_URL')    ?? ''
 const SUPABASE_ANON   = Deno.env.get('SUPABASE_ANON_KEY') ?? ''
 const SUPABASE_SERVICE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''

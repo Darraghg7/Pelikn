@@ -1,4 +1,4 @@
-# SafeServ — Feature Roadmap
+# Pelikn — Feature Roadmap
 
 Potential features for future development, in no particular priority order.
 

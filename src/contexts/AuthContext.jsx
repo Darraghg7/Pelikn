@@ -141,7 +141,7 @@ export function AuthProvider({ children }) {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) return { error, slug: null, venues: [] }
 
-    if (data.user?.email === 'demo@safeserv.com') {
+    if (data.user?.email === 'demo@pelikn.app') {
       await supabase.functions.invoke('seed-demo')
     }
 

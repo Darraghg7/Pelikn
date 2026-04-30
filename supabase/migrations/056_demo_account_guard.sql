@@ -1,18 +1,18 @@
 -- ============================================================================
 -- 056: guard seed_demo_data to only run for the demo account
 --
--- The demo auth account (demo@safeserv.com) already exists and already owns
+-- The demo auth account (demo@pelikn.app) already exists and already owns
 -- both demo venues (brew-and-bloom, the-corner-cup). This migration wraps the
 -- existing seed function with a guard so it raises an exception if called with
 -- any owner_id other than the demo account's UUID.
 --
--- Demo account: demo@safeserv.com
+-- Demo account: demo@pelikn.app
 -- Demo owner_id: 33e56f5b-5034-4c8b-8cc6-edccfc696afe
 -- ============================================================================
 
 -- 1. Fix app_settings manager_email that was seeded with the real account email
 UPDATE app_settings
-SET value = '"demo@safeserv.com"'
+SET value = '"demo@pelikn.app"'
 WHERE key = 'manager_email'
   AND venue_id IN (
     SELECT id FROM venues
@@ -32,7 +32,7 @@ SET search_path = public
 AS $$
 BEGIN
   IF p_owner_id <> '33e56f5b-5034-4c8b-8cc6-edccfc696afe'::uuid THEN
-    RAISE EXCEPTION 'seed_demo_data may only be called for the demo account (demo@safeserv.com)';
+    RAISE EXCEPTION 'seed_demo_data may only be called for the demo account (demo@pelikn.app)';
   END IF;
 
   PERFORM _seed_demo_data_impl(p_owner_id);
