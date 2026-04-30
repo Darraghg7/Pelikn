@@ -117,6 +117,23 @@ GRANT EXECUTE ON FUNCTION validate_manager_session_for_venue(uuid, uuid) TO anon
 GRANT EXECUTE ON FUNCTION validate_staff_session_for_venue(uuid, uuid) TO anon, authenticated;
 GRANT EXECUTE ON FUNCTION replace_food_item_allergens(uuid, uuid, uuid, text, text, text[]) TO anon, authenticated;
 
+-- Some deployed databases may not have 061_apns_tokens.sql applied yet.
+-- Make this migration self-contained so applying 062 never depends on that
+-- optional mobile-push table already existing.
+CREATE TABLE IF NOT EXISTS apns_tokens (
+  id          uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
+  staff_id    uuid        NOT NULL REFERENCES staff(id)  ON DELETE CASCADE,
+  venue_id    uuid        NOT NULL REFERENCES venues(id) ON DELETE CASCADE,
+  token       text        NOT NULL,
+  created_at  timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (staff_id, token)
+);
+
+ALTER TABLE apns_tokens ENABLE ROW LEVEL SECURITY;
+
+CREATE INDEX IF NOT EXISTS apns_tokens_staff_id_idx ON apns_tokens (staff_id);
+CREATE INDEX IF NOT EXISTS apns_tokens_venue_id_idx ON apns_tokens (venue_id);
+
 CREATE OR REPLACE FUNCTION register_apns_token(
   p_session_token uuid,
   p_staff_id      uuid,
