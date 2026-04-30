@@ -18,6 +18,100 @@ const PLAN_CONFIG = {
   starter: { label: 'Starter', bg: 'bg-success/8',   text: 'text-brand', border: 'border-success/30'  },
   pro:     { label: 'Pro',     bg: 'bg-accent/10', text: 'text-accent',   border: 'border-accent/25' },
 }
+
+const DEFAULT_TODAY_ITEMS = ['on_shift', 'opening_checks', 'fridge_checks', 'cleaning_tasks', 'critical_actions', 'pending_leave']
+
+const TODAY_ITEM_REGISTRY = {
+  on_shift: {
+    id: 'on_shift',
+    label: 'Staff on shift',
+    description: 'How many staff are rotaed today',
+    feature: 'rota',
+    metric: summary => summary.onShiftToday,
+    metricLabel: 'On shift',
+  },
+  opening_checks: {
+    id: 'opening_checks',
+    label: 'Opening / closing checks',
+    description: 'Daily opening and closing completion',
+    feature: 'opening_closing',
+    metric: summary => summary.checksToday,
+    metricLabel: 'Checks done',
+    action: (summary, vp) => summary.checksToday === 0 && { label: 'Opening checks not done', to: vp('/opening-closing'), urgency: 'warn' },
+  },
+  fridge_checks: {
+    id: 'fridge_checks',
+    label: 'Fridge / freezer checks',
+    description: 'Fridges that still need a reading today',
+    feature: 'fridge',
+    metric: summary => summary.uncheckedFridges,
+    metricLabel: 'Fridges due',
+    dangerWhenPositive: true,
+    action: (summary, vp) => summary.uncheckedFridges > 0 && { label: `${summary.uncheckedFridges} fridge${summary.uncheckedFridges > 1 ? 's' : ''} not logged today`, to: vp('/fridge'), urgency: 'warn' },
+  },
+  cooking_temps: {
+    id: 'cooking_temps',
+    label: 'Cooking temps',
+    description: 'Whether cooking temperatures have been recorded today',
+    feature: 'cooking_temps',
+    metric: summary => summary.cookingTempsToday,
+    metricLabel: 'Cooking logs',
+    action: (summary, vp) => summary.cookingTempsToday === 0 && { label: 'Cooking temps not recorded today', to: vp('/cooking-temps'), urgency: 'warn' },
+  },
+  hot_holding: {
+    id: 'hot_holding',
+    label: 'Hot holding',
+    description: 'Whether hot holding checks have been recorded today',
+    feature: 'hot_holding',
+    metric: summary => summary.hotHoldingToday,
+    metricLabel: 'Hot hold logs',
+    action: (summary, vp) => summary.hotHoldingToday === 0 && { label: 'Hot holding not recorded today', to: vp('/hot-holding'), urgency: 'warn' },
+  },
+  cooling_logs: {
+    id: 'cooling_logs',
+    label: 'Cooling logs',
+    description: 'Whether cooling logs have been recorded today',
+    feature: 'cooling_logs',
+    metric: summary => summary.coolingLogsToday,
+    metricLabel: 'Cooling logs',
+    action: (summary, vp) => summary.coolingLogsToday === 0 && { label: 'Cooling logs not recorded today', to: vp('/cooling-logs'), urgency: 'warn' },
+  },
+  cleaning_tasks: {
+    id: 'cleaning_tasks',
+    label: 'Cleaning tasks',
+    description: 'Cleaning tasks that are overdue',
+    feature: 'cleaning',
+    metric: summary => summary.overdueClean,
+    metricLabel: 'Overdue cleans',
+    dangerWhenPositive: true,
+    action: (summary, vp) => summary.overdueClean > 0 && { label: `${summary.overdueClean} cleaning task${summary.overdueClean > 1 ? 's' : ''} overdue`, to: vp('/cleaning'), urgency: 'danger' },
+  },
+  critical_actions: {
+    id: 'critical_actions',
+    label: 'Critical actions',
+    description: 'Open critical corrective actions',
+    feature: 'corrective',
+    metric: summary => summary.criticalActions,
+    metricLabel: 'Critical',
+    dangerWhenPositive: true,
+    action: (summary, vp) => summary.criticalActions > 0 && { label: `${summary.criticalActions} critical action${summary.criticalActions > 1 ? 's' : ''} open`, to: vp('/corrective'), urgency: 'danger' },
+  },
+  pending_leave: {
+    id: 'pending_leave',
+    label: 'Time off requests',
+    description: 'Pending leave requests that need review',
+    feature: 'time_off',
+    metric: summary => summary.pendingLeave,
+    metricLabel: 'Leave',
+    action: (summary, vp) => summary.pendingLeave > 0 && { label: `${summary.pendingLeave} leave request${summary.pendingLeave > 1 ? 's' : ''} pending`, to: vp('/time-off'), urgency: 'info' },
+  },
+}
+
+const ALL_TODAY_ITEM_IDS = Object.keys(TODAY_ITEM_REGISTRY)
+
+function todayPrefsKey(staffId, venueId) {
+  return `pelikn_today_items_${venueId ?? 'venue'}_${staffId ?? 'staff'}`
+}
 function PlanBadge({ plan }) {
   const cfg = PLAN_CONFIG[plan] ?? PLAN_CONFIG.starter
   return (
@@ -94,20 +188,106 @@ function useWidgetPreferences(staffId, venueId) {
   return { widgetIds: widgetIds ?? DEFAULT_WIDGETS, loading, save }
 }
 
+function useTodayPreferences(staffId, venueId) {
+  const [itemIds, setItemIds] = useState(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    if (!staffId || !venueId) return
+    let cancelled = false
+
+    supabase
+      .from('staff_dashboard_today_items')
+      .select('item_id, position')
+      .eq('venue_id', venueId)
+      .eq('staff_id', staffId)
+      .order('position')
+      .then(({ data, error }) => {
+        if (cancelled) return
+        if (error) {
+          try {
+            const stored = JSON.parse(localStorage.getItem(todayPrefsKey(staffId, venueId)) || 'null')
+            setItemIds(Array.isArray(stored) && stored.length > 0 ? stored : DEFAULT_TODAY_ITEMS)
+          } catch {
+            setItemIds(DEFAULT_TODAY_ITEMS)
+          }
+        } else {
+          setItemIds(data?.length > 0 ? data.map(d => d.item_id) : DEFAULT_TODAY_ITEMS)
+        }
+        setLoading(false)
+      })
+
+    return () => { cancelled = true }
+  }, [staffId, venueId])
+
+  const save = useCallback(async (newIds) => {
+    if (!staffId || !venueId) return
+    setItemIds(newIds)
+    localStorage.setItem(todayPrefsKey(staffId, venueId), JSON.stringify(newIds))
+
+    const { error: deleteError } = await supabase
+      .from('staff_dashboard_today_items')
+      .delete()
+      .eq('staff_id', staffId)
+      .eq('venue_id', venueId)
+    if (deleteError) return
+
+    if (newIds.length > 0) {
+      const rows = newIds.map((id, i) => ({ staff_id: staffId, item_id: id, position: i, venue_id: venueId }))
+      await supabase.from('staff_dashboard_today_items').insert(rows)
+    }
+  }, [staffId, venueId])
+
+  return { todayItemIds: itemIds ?? DEFAULT_TODAY_ITEMS, loading, save }
+}
+
 /* ── Widget Picker Modal ─────────────────────────────────────────────────── */
-function WidgetPicker({ open, onClose, activeIds, onSave }) {
+function WidgetPicker({ open, onClose, activeIds, todayIds, onSave, onSaveToday }) {
   const [selected, setSelected] = useState([])
+  const [selectedToday, setSelectedToday] = useState([])
 
   useEffect(() => {
     if (open) setSelected([...activeIds])
   }, [open, activeIds])
 
-  const toggle = (id) => {
+  useEffect(() => {
+    if (open) setSelectedToday([...todayIds])
+  }, [open, todayIds])
+
+  const toggleWidget = (id) => {
     setSelected(prev =>
       prev.includes(id)
         ? prev.filter(x => x !== id)
         : [...prev, id]
     )
+  }
+
+  const toggleToday = (id) => {
+    setSelectedToday(prev =>
+      prev.includes(id)
+        ? prev.filter(x => x !== id)
+        : [...prev, id]
+    )
+  }
+
+  const moveTodayUp = (id) => {
+    setSelectedToday(prev => {
+      const idx = prev.indexOf(id)
+      if (idx <= 0) return prev
+      const next = [...prev]
+      ;[next[idx - 1], next[idx]] = [next[idx], next[idx - 1]]
+      return next
+    })
+  }
+
+  const moveTodayDown = (id) => {
+    setSelectedToday(prev => {
+      const idx = prev.indexOf(id)
+      if (idx < 0 || idx >= prev.length - 1) return prev
+      const next = [...prev]
+      ;[next[idx], next[idx + 1]] = [next[idx + 1], next[idx]]
+      return next
+    })
   }
 
   const moveUp = (id) => {
@@ -134,8 +314,68 @@ function WidgetPicker({ open, onClose, activeIds, onSave }) {
     <Modal open={open} onClose={onClose} title="Customise Dashboard">
       <div className="flex flex-col gap-4">
         <p className="text-xs text-charcoal/50">
-          Select and reorder the widgets you want on your dashboard.
+          Choose what appears in your personal Today view and dashboard widgets.
         </p>
+
+        <div>
+          <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-2">Today view</p>
+          <div className="flex flex-col gap-1.5">
+            {selectedToday.map((id, idx) => {
+              const item = TODAY_ITEM_REGISTRY[id]
+              if (!item) return null
+              return (
+                <div key={id} className="flex items-center gap-2 bg-charcoal/4 rounded-xl px-3 py-2.5">
+                  <div className="flex flex-col gap-0.5">
+                    <button
+                      onClick={() => moveTodayUp(id)}
+                      disabled={idx === 0}
+                      className="text-charcoal/30 hover:text-charcoal disabled:opacity-20 text-[11px] leading-none"
+                    >
+                      ▲
+                    </button>
+                    <button
+                      onClick={() => moveTodayDown(id)}
+                      disabled={idx === selectedToday.length - 1}
+                      className="text-charcoal/30 hover:text-charcoal disabled:opacity-20 text-[11px] leading-none"
+                    >
+                      ▼
+                    </button>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-charcoal truncate">{item.label}</p>
+                    <p className="text-[11px] text-charcoal/40 truncate">{item.description}</p>
+                  </div>
+                  <button
+                    onClick={() => toggleToday(id)}
+                    className="text-danger/50 hover:text-danger text-xs px-2 py-1 shrink-0"
+                  >
+                    Remove
+                  </button>
+                </div>
+              )
+            })}
+          </div>
+          {ALL_TODAY_ITEM_IDS.filter(id => !selectedToday.includes(id)).length > 0 && (
+            <div className="flex flex-col gap-1.5 mt-2">
+              {ALL_TODAY_ITEM_IDS.filter(id => !selectedToday.includes(id)).map(id => {
+                const item = TODAY_ITEM_REGISTRY[id]
+                return (
+                  <button
+                    key={id}
+                    onClick={() => toggleToday(id)}
+                    className="flex items-center gap-3 rounded-xl border border-dashed border-charcoal/15 px-3 py-2.5 hover:border-charcoal/30 hover:bg-charcoal/3 transition-all text-left"
+                  >
+                    <span className="text-charcoal/20 text-lg shrink-0">+</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-charcoal/60 truncate">{item.label}</p>
+                      <p className="text-[11px] text-charcoal/35 truncate">{item.description}</p>
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
+          )}
+        </div>
 
         {/* Active widgets — reorderable */}
         {selected.length > 0 && (
@@ -168,7 +408,7 @@ function WidgetPicker({ open, onClose, activeIds, onSave }) {
                       <p className="text-[11px] text-charcoal/40 truncate">{w.description}</p>
                     </div>
                     <button
-                      onClick={() => toggle(id)}
+                      onClick={() => toggleWidget(id)}
                       className="text-danger/50 hover:text-danger text-xs px-2 py-1 shrink-0"
                     >
                       Remove
@@ -193,7 +433,7 @@ function WidgetPicker({ open, onClose, activeIds, onSave }) {
                   return (
                     <button
                       key={id}
-                      onClick={() => toggle(id)}
+                      onClick={() => toggleWidget(id)}
                       className="flex items-center gap-3 rounded-xl border border-dashed border-charcoal/15 px-3 py-2.5 hover:border-charcoal/30 hover:bg-charcoal/3 transition-all text-left"
                     >
                       <span className="text-charcoal/20 text-lg shrink-0">+</span>
@@ -212,10 +452,10 @@ function WidgetPicker({ open, onClose, activeIds, onSave }) {
         {/* Save */}
         <div className="flex gap-2 pt-2 border-t border-charcoal/8">
           <button
-            onClick={() => { onSave(selected); onClose() }}
+            onClick={() => { onSave(selected); onSaveToday(selectedToday); onClose() }}
             className="flex-1 bg-charcoal text-cream py-2.5 rounded-xl text-sm font-medium hover:bg-charcoal/90 transition-colors"
           >
-            Save Layout
+            Save Customisation
           </button>
           <button
             onClick={onClose}
@@ -230,6 +470,20 @@ function WidgetPicker({ open, onClose, activeIds, onSave }) {
 }
 
 /* ── Today at a Glance ───────────────────────────────────────────────────── */
+function emptySummary() {
+  return {
+    overdueClean: 0,
+    onShiftToday: 0,
+    checksToday: 0,
+    uncheckedFridges: 0,
+    pendingLeave: 0,
+    criticalActions: 0,
+    cookingTempsToday: 0,
+    hotHoldingToday: 0,
+    coolingLogsToday: 0,
+  }
+}
+
 function useTodaySummary(venueId, closedDays = []) {
   const [summary, setSummary] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -251,7 +505,7 @@ function useTodaySummary(venueId, closedDays = []) {
       if (closedDays.includes(todayDow)) {
         if (!cancelled) {
           setClosedToday(true)
-          setSummary({ overdueClean: 0, onShiftToday: 0, checksToday: 0, uncheckedFridges: 0, pendingLeave: 0, criticalActions: 0 })
+          setSummary(emptySummary())
           setLoading(false)
         }
         return
@@ -268,13 +522,13 @@ function useTodaySummary(venueId, closedDays = []) {
       if (cancelled) return
       if (closureRows?.length) {
         setClosedToday(closureRows[0].reason || true)
-        setSummary({ overdueClean: 0, onShiftToday: 0, checksToday: 0, uncheckedFridges: 0, pendingLeave: 0, criticalActions: 0 })
+        setSummary(emptySummary())
         setLoading(false)
         return
       }
       setClosedToday(false)
 
-      const [cleaning, rota, opening, fridges, fridgeLogs, leaveReqs, critActions] = await Promise.all([
+      const [cleaning, rota, opening, fridges, fridgeLogs, leaveReqs, critActions, cookingTemps, hotHoldingLogs, coolingLogs] = await Promise.all([
         supabase.from('cleaning_tasks').select('id, frequency').eq('venue_id', venueId).eq('is_active', true),
         supabase.from('shifts').select('id', { count: 'exact', head: true }).eq('venue_id', venueId).eq('shift_date', todayStr),
         supabase.from('opening_closing_completions')
@@ -284,6 +538,9 @@ function useTodaySummary(venueId, closedDays = []) {
         supabase.from('fridge_temperature_logs').select('fridge_id').eq('venue_id', venueId).gte('logged_at', dayStart).lte('logged_at', dayEnd),
         supabase.from('time_off_requests').select('id', { count: 'exact', head: true }).eq('venue_id', venueId).eq('status', 'pending'),
         supabase.from('corrective_actions').select('id', { count: 'exact', head: true }).eq('venue_id', venueId).eq('status', 'open').eq('severity', 'critical'),
+        supabase.from('cooking_temp_logs').select('id', { count: 'exact', head: true }).eq('venue_id', venueId).gte('logged_at', dayStart).lte('logged_at', dayEnd),
+        supabase.from('hot_holding_logs').select('id', { count: 'exact', head: true }).eq('venue_id', venueId).gte('logged_at', dayStart).lte('logged_at', dayEnd),
+        supabase.from('cooling_logs').select('id', { count: 'exact', head: true }).eq('venue_id', venueId).gte('logged_at', dayStart).lte('logged_at', dayEnd),
       ])
 
       if (cancelled) return
@@ -324,28 +581,32 @@ function useTodaySummary(venueId, closedDays = []) {
         uncheckedFridges: uncheckedFridges,
         pendingLeave:     leaveReqs.count ?? 0,
         criticalActions:  critActions.count ?? 0,
+        cookingTempsToday: cookingTemps.count ?? 0,
+        hotHoldingToday:   hotHoldingLogs.count ?? 0,
+        coolingLogsToday:  coolingLogs.count ?? 0,
       })
       setLoading(false)
     }
     fetchAll()
     return () => { cancelled = true }
-  }, [venueId])
+  }, [venueId, closedDays])
 
   return { summary, loading, closedToday }
 }
 
-function TodaySummaryCard({ venueId, closedDays }) {
+function TodaySummaryCard({ venueId, closedDays, itemIds }) {
   const { venueSlug } = useVenue()
+  const { isEnabled } = useVenueFeatures()
   const { summary, loading, closedToday } = useTodaySummary(venueId, closedDays)
   const vp = (p) => `/v/${venueSlug}${p}`
 
-  const actions = summary ? [
-    summary.checksToday === 0 && { label: 'Opening checks not done', to: vp('/opening-closing'), urgency: 'warn' },
-    summary.uncheckedFridges > 0 && { label: `${summary.uncheckedFridges} fridge${summary.uncheckedFridges > 1 ? 's' : ''} not logged today`, to: vp('/fridge'), urgency: 'warn' },
-    summary.overdueClean > 0 && { label: `${summary.overdueClean} cleaning task${summary.overdueClean > 1 ? 's' : ''} overdue`, to: vp('/cleaning'), urgency: 'danger' },
-    summary.criticalActions > 0 && { label: `${summary.criticalActions} critical action${summary.criticalActions > 1 ? 's' : ''} open`, to: vp('/corrective'), urgency: 'danger' },
-    summary.pendingLeave > 0 && { label: `${summary.pendingLeave} leave request${summary.pendingLeave > 1 ? 's' : ''} pending`, to: vp('/time-off'), urgency: 'info' },
-  ].filter(Boolean) : []
+  const activeItems = (itemIds?.length ? itemIds : DEFAULT_TODAY_ITEMS)
+    .map(id => TODAY_ITEM_REGISTRY[id])
+    .filter(item => item && (!item.feature || isEnabled(item.feature)))
+
+  const actions = summary
+    ? activeItems.map(item => item.action?.(summary, vp)).filter(Boolean)
+    : []
 
   const urgencyBorder = { warn: 'border-warning', danger: 'border-danger', info: 'border-accent' }
   const urgencyText = { warn: 'text-warning', danger: 'text-danger', info: 'text-accent' }
@@ -360,18 +621,13 @@ function TodaySummaryCard({ venueId, closedDays }) {
             {typeof closedToday === 'string' ? closedToday : 'Enjoy the break!'}
           </p>
         </div>
-        {summary && (summary.pendingLeave > 0 || summary.criticalActions > 0) && (
+        {summary && actions.length > 0 && (
           <div className="border-t border-charcoal/6 divide-y divide-charcoal/6">
-            {summary.pendingLeave > 0 && (
-              <Link to={vp('/time-off')} className="flex items-center border-l-[3px] border-accent pl-4 pr-5 py-3.5 hover:bg-charcoal/3 transition-colors">
-                <p className="text-sm flex-1 font-medium text-accent">{summary.pendingLeave} leave request{summary.pendingLeave > 1 ? 's' : ''} pending</p>
+            {actions.map((a) => (
+              <Link key={a.to} to={a.to} className={`flex items-center border-l-[3px] ${urgencyBorder[a.urgency]} pl-4 pr-5 py-3.5 hover:bg-charcoal/3 transition-colors`}>
+                <p className={`text-sm flex-1 font-medium ${urgencyText[a.urgency]}`}>{a.label}</p>
               </Link>
-            )}
-            {summary.criticalActions > 0 && (
-              <Link to={vp('/corrective')} className="flex items-center border-l-[3px] border-danger pl-4 pr-5 py-3.5 hover:bg-charcoal/3 transition-colors">
-                <p className="text-sm flex-1 font-medium text-danger">{summary.criticalActions} critical action{summary.criticalActions > 1 ? 's' : ''} open</p>
-              </Link>
-            )}
+            ))}
           </div>
         )}
       </div>
@@ -389,25 +645,25 @@ function TodaySummaryCard({ venueId, closedDays }) {
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-3 gap-2">
-            <div className="flex flex-col items-center gap-0.5 border border-charcoal/10 rounded-xl py-3 px-2">
-              <p className={`text-2xl font-bold ${summary.onShiftToday > 0 ? 'text-charcoal' : 'text-charcoal/30'}`}>
-                {summary.onShiftToday}
-              </p>
-              <p className="text-[10px] text-charcoal/45 leading-tight text-center">On shift</p>
-            </div>
-            <div className="flex flex-col items-center gap-0.5 border border-charcoal/10 rounded-xl py-3 px-2">
-              <p className={`text-2xl font-bold ${summary.checksToday > 0 ? 'text-charcoal' : 'text-charcoal/30'}`}>
-                {summary.checksToday}
-              </p>
-              <p className="text-[10px] text-charcoal/45 leading-tight text-center">Checks done</p>
-            </div>
-            <div className="flex flex-col items-center gap-0.5 border border-charcoal/10 rounded-xl py-3 px-2">
-              <p className={`text-2xl font-bold ${summary.overdueClean > 0 ? 'text-danger' : 'text-charcoal/30'}`}>
-                {summary.overdueClean}
-              </p>
-              <p className="text-[10px] text-charcoal/45 leading-tight text-center">Overdue cleans</p>
-            </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            {activeItems.length === 0 ? (
+              <div className="col-span-full rounded-xl border border-dashed border-charcoal/15 py-6 px-3 text-center">
+                <p className="text-sm text-charcoal/35">No Today items selected</p>
+              </div>
+            ) : activeItems.map(item => {
+              const value = item.metric(summary) ?? 0
+              const strong = item.dangerWhenPositive
+                ? value > 0
+                : value > 0
+              return (
+                <div key={item.id} className="flex flex-col items-center gap-0.5 border border-charcoal/10 rounded-xl py-3 px-2">
+                  <p className={`text-2xl font-bold ${item.dangerWhenPositive && value > 0 ? 'text-danger' : strong ? 'text-charcoal' : 'text-charcoal/30'}`}>
+                    {value}
+                  </p>
+                  <p className="text-[10px] text-charcoal/45 leading-tight text-center">{item.metricLabel}</p>
+                </div>
+              )
+            })}
           </div>
         )}
       </div>
@@ -559,12 +815,17 @@ export default function ManagerDashboardPage() {
   const toast = useToast()
   const { venueName, logoUrl } = useVenueBranding(venueId)
   const { widgetIds, loading, save } = useWidgetPreferences(session?.staffId, venueId)
+  const { todayItemIds, save: saveToday } = useTodayPreferences(session?.staffId, venueId)
   const { closedDays } = useAppSettings()
   const [showPicker, setShowPicker] = useState(false)
 
   const handleSave = (newIds) => {
     save(newIds)
     toast('Dashboard updated')
+  }
+
+  const handleSaveToday = (newIds) => {
+    saveToday(newIds)
   }
 
   const hour = new Date().getHours()
@@ -603,7 +864,7 @@ export default function ManagerDashboardPage() {
 
       {/* Desktop: today summary + clock side by side */}
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-4 items-start">
-        <TodaySummaryCard venueId={venueId} closedDays={closedDays} />
+        <TodaySummaryCard venueId={venueId} closedDays={closedDays} itemIds={todayItemIds} />
         <div className="bg-white rounded-2xl p-5">
           <p className="text-[11px] tracking-widest uppercase font-semibold text-charcoal/40 mb-3">My Clock</p>
           <ClockPanel staffId={session?.staffId} hasShift />
@@ -637,7 +898,9 @@ export default function ManagerDashboardPage() {
         open={showPicker}
         onClose={() => setShowPicker(false)}
         activeIds={widgetIds}
+        todayIds={todayItemIds}
         onSave={handleSave}
+        onSaveToday={handleSaveToday}
       />
     </div>
   )
