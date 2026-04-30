@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useNavigate, useParams, Link } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
+import { useSession } from '../../contexts/SessionContext'
 import { useFoodItem } from '../../hooks/useFoodItems'
 import { EU_ALLERGENS } from '../../lib/constants'
 import { useToast } from '../../components/ui/Toast'
@@ -17,6 +18,7 @@ export default function FoodItemFormPage() {
   const navigate = useNavigate()
   const toast    = useToast()
   const { venueId, venueSlug } = useVenue()
+  const { session } = useSession()
 
   const { item, loading } = useFoodItem(id)
 
@@ -43,17 +45,15 @@ export default function FoodItemFormPage() {
     setSubmitting(true)
 
     if (isEdit) {
-      const { error: itemErr } = await supabase
-        .from('food_items')
-        .update({ name, description: description || null, updated_at: new Date().toISOString() })
-        .eq('id', id)
+      const { error: itemErr } = await supabase.rpc('replace_food_item_allergens', {
+        p_session_token: session?.token,
+        p_food_item_id:  id,
+        p_venue_id:      venueId,
+        p_name:          name,
+        p_description:   description || null,
+        p_allergens:     allergens,
+      })
       if (itemErr) { toast(itemErr.message, 'error'); setSubmitting(false); return }
-      await supabase.from('food_allergens').delete().eq('food_item_id', id)
-      if (allergens.length > 0) {
-        await supabase.from('food_allergens').insert(
-          allergens.map((a) => ({ food_item_id: id, allergen: a, venue_id: venueId }))
-        )
-      }
       toast('Item updated')
       navigate(`/v/${venueSlug}/allergens/${id}`)
     } else {

@@ -33,7 +33,7 @@ export default function FoodItemDetailPage() {
   const { id }     = useParams()
   const { item, loading } = useFoodItem(id)
   const { isManager }     = useSession()
-  const { venueSlug }     = useVenue()
+  const { venueId, venueSlug } = useVenue()
   const toast             = useToast()
   const navigate          = useNavigate()
 
@@ -42,7 +42,11 @@ export default function FoodItemDetailPage() {
 
   const handleDelete = async () => {
     if (!confirm(`Delete "${item.name}"?`)) return
-    const { error } = await supabase.from('food_items').update({ is_active: false }).eq('id', id)
+    const { error } = await supabase
+      .from('food_items')
+      .update({ is_active: false })
+      .eq('id', id)
+      .eq('venue_id', venueId)
     if (error) { toast(error.message, 'error'); return }
     toast('Item removed')
     navigate(`/v/${venueSlug}/allergens`)

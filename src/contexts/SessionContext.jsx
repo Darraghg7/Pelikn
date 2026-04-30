@@ -62,7 +62,7 @@ const LS_KEYS = [
 const clearStorage = () => LS_KEYS.forEach(k => localStorage.removeItem(k))
 
 /** Build a session object from localStorage keys. */
-function sessionFromStorage(token) {
+function sessionFromStorage(token, verified = false) {
   const id = localStorage.getItem(SESSION_ID_KEY)
   if (!token || !id) return null
   let permissions = []
@@ -81,6 +81,7 @@ function sessionFromStorage(token) {
     permissions,
     venueId:       localStorage.getItem(SESSION_VENUE_ID_KEY) ?? '',
     venueSlug:     localStorage.getItem(SESSION_VENUE_SLUG_KEY) ?? '',
+    verified,
   }
 }
 
@@ -124,7 +125,7 @@ export function SessionProvider({ children }) {
     )
       .then(({ data: isValid, error }) => {
         if (!error && isValid === true) {
-          setSession(sessionFromStorage(token))
+          setSession(sessionFromStorage(token, true))
           // Restore linked venues from cache
           try {
             const raw = localStorage.getItem(SESSION_LINKED_VENUES)
@@ -143,7 +144,7 @@ export function SessionProvider({ children }) {
       .catch(() => {
         // Network offline or timeout — restore from localStorage rather than
         // clearing, so staff aren't logged out just because WiFi is down.
-        const restored = sessionFromStorage(token)
+        const restored = sessionFromStorage(token, navigator.onLine)
         if (restored) {
           setSession(restored)
           try {
@@ -201,6 +202,7 @@ export function SessionProvider({ children }) {
         const cached = localStorage.getItem(sessDataKey(staffId))
         if (cached) {
           const sess = JSON.parse(cached)
+          const restoredSession = { ...sess, verified: false }
           // Refresh active localStorage keys so sessionFromStorage works correctly
           localStorage.setItem(SESSION_TOKEN_KEY,      sess.token ?? '')
           localStorage.setItem(SESSION_ID_KEY,         sess.staffId)
@@ -211,7 +213,7 @@ export function SessionProvider({ children }) {
           localStorage.setItem(SESSION_SHOW_ALLERGENS, String(sess.showAllergens))
           localStorage.setItem(SESSION_VENUE_ID_KEY,   sess.venueId)
           localStorage.setItem(SESSION_VENUE_SLUG_KEY, sess.venueSlug ?? venueSlug ?? '')
-          setSession(sess)
+          setSession(restoredSession)
           return { error: null }
         }
       } catch { /* corrupt cache */ }
@@ -257,6 +259,7 @@ export function SessionProvider({ children }) {
       permissions,
       venueId,
       venueSlug:     venueSlug ?? '',
+      verified:      true,
     }
 
     // Persist to localStorage
@@ -330,7 +333,7 @@ export function SessionProvider({ children }) {
     }
   }, [session])
 
-  const isManager = session?.staffRole === 'manager' || session?.staffRole === 'owner'
+  const isManager = session?.verified !== false && (session?.staffRole === 'manager' || session?.staffRole === 'owner')
   const hasMultiVenueAccess = linkedVenues.length > 0
 
   const hasPermission = useCallback((permissionId) => {

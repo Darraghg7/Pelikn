@@ -375,7 +375,11 @@ export default function RotaPage() {
     if (isRebuild) {
       // Delete existing shifts for this week
       const wsStr = format(weekStart, 'yyyy-MM-dd')
-      const { error: delErr } = await supabase.from('shifts').delete().eq('week_start', wsStr)
+      const { error: delErr } = await supabase
+        .from('shifts')
+        .delete()
+        .eq('venue_id', venueId)
+        .eq('week_start', wsStr)
       if (delErr) { toast(delErr.message, 'error'); return }
     }
     const { error } = await supabase.from('shifts').insert(newShifts)

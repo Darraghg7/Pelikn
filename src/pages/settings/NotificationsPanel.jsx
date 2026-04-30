@@ -13,7 +13,7 @@ export default function NotificationsPanel({ session, toast, settings }) {
   const sendWeeklyReport = async () => {
     setSendingReport(true)
     const { error } = await supabase.functions.invoke('send-weekly-report', {
-      body: { to: settings.manager_email },
+      body: { to: settings.manager_email, venueId, sessionToken: session?.token },
     })
     setSendingReport(false)
     if (error) { toast('Failed to send report: ' + error.message, 'error'); return }

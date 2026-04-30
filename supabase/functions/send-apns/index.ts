@@ -40,6 +40,13 @@ const ALLOWED_ORIGINS = [
   'ionic://localhost',
 ]
 
+function jsonResponse(body: unknown, status: number, headers: Record<string, string>) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...headers, 'Content-Type': 'application/json' },
+  })
+}
+
 // ── APNs JWT helpers ──────────────────────────────────────────────────────────
 
 function base64url(buf: ArrayBuffer | Uint8Array): string {
@@ -144,27 +151,41 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
 
   try {
-    const { venueId, title, body, url = '/', roles, staffIds } = await req.json()
+    const { venueId, title, body, url = '/', roles, staffIds, sessionToken } = await req.json()
 
     if (!venueId || !title || !body) {
-      return new Response(JSON.stringify({ error: 'venueId, title and body are required' }), {
-        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      })
+      return jsonResponse({ error: 'venueId, title and body are required' }, 400, corsHeaders)
     }
-
-    if (!APNS_KEY_ID || !APNS_TEAM_ID || !APNS_PRIVATE_KEY) {
-      console.warn('APNs credentials not configured — skipping native push')
-      return new Response(JSON.stringify({ sent: 0, message: 'APNs not configured' }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      })
+    if (!sessionToken) {
+      return jsonResponse({ error: 'Missing session token' }, 401, corsHeaders)
     }
 
     const db = createClient(SUPABASE_URL, SUPABASE_SERVICE)
+    const { data: allowed, error: authErr } = await db.rpc('validate_staff_session_for_venue', {
+      p_session_token: sessionToken,
+      p_venue_id:      venueId,
+    })
+    if (authErr) throw authErr
+    if (!allowed) return jsonResponse({ error: 'Unauthorized' }, 403, corsHeaders)
+
+    if (!APNS_KEY_ID || !APNS_TEAM_ID || !APNS_PRIVATE_KEY) {
+      console.warn('APNs credentials not configured — skipping native push')
+      return jsonResponse({ sent: 0, message: 'APNs not configured' }, 200, corsHeaders)
+    }
 
     // ── Resolve which staff to notify ─────────────────────────────────────────
     let targetStaffIds: string[] = staffIds ?? []
 
-    if (!targetStaffIds.length) {
+    if (targetStaffIds.length) {
+      const { data: staffAtVenue } = await db
+        .from('staff')
+        .select('id')
+        .eq('venue_id', venueId)
+        .in('id', targetStaffIds)
+        .eq('is_active', true)
+
+      targetStaffIds = (staffAtVenue ?? []).map((s: any) => s.id)
+    } else {
       const targetRoles = roles ?? ['manager', 'owner']
       const { data: staffAtVenue } = await db
         .from('staff')
@@ -177,9 +198,7 @@ Deno.serve(async (req) => {
     }
 
     if (!targetStaffIds.length) {
-      return new Response(JSON.stringify({ sent: 0, message: 'No matching staff' }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      })
+      return jsonResponse({ sent: 0, message: 'No matching staff' }, 200, corsHeaders)
     }
 
     // ── Look up APNs tokens ───────────────────────────────────────────────────
@@ -190,9 +209,7 @@ Deno.serve(async (req) => {
 
     if (tokenErr) throw tokenErr
     if (!tokenRows?.length) {
-      return new Response(JSON.stringify({ sent: 0, message: 'No APNs tokens registered' }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      })
+      return jsonResponse({ sent: 0, message: 'No APNs tokens registered' }, 200, corsHeaders)
     }
 
     // ── Build JWT once and reuse for all sends ────────────────────────────────
@@ -212,13 +229,9 @@ Deno.serve(async (req) => {
       await db.from('apns_tokens').delete().in('id', expiredIds)
     }
 
-    return new Response(JSON.stringify({ sent, expired: expiredIds.length }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    })
+    return jsonResponse({ sent, expired: expiredIds.length }, 200, corsHeaders)
   } catch (err) {
     console.error('send-apns error:', err)
-    return new Response(JSON.stringify({ error: String(err) }), {
-      status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    })
+    return jsonResponse({ error: String(err) }, 500, corsHeaders)
   }
 })

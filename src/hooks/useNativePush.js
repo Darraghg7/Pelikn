@@ -13,6 +13,7 @@
 
 import { Capacitor } from '@capacitor/core'
 import { supabase } from '../lib/supabase'
+import { SESSION_TOKEN_KEY } from '../lib/constants'
 
 let listenersRegistered = false
 
@@ -41,10 +42,12 @@ export async function registerNativePush(staffId, venueId, navigate) {
       await PushNotifications.addListener('registration', async ({ value: token }) => {
         if (!token) return
         try {
-          await supabase.from('apns_tokens').upsert(
-            { staff_id: staffId, venue_id: venueId, token },
-            { onConflict: 'staff_id,token' },
-          )
+          await supabase.rpc('register_apns_token', {
+            p_session_token: localStorage.getItem(SESSION_TOKEN_KEY),
+            p_staff_id:      staffId,
+            p_venue_id:      venueId,
+            p_token:         token,
+          })
           console.info('[push] APNs token registered')
         } catch (err) {
           console.warn('[push] failed to store token:', err)
@@ -81,6 +84,10 @@ export async function unregisterNativePush(staffId) {
   try {
     const { PushNotifications } = await import('@capacitor/push-notifications')
     const result = await PushNotifications.getDeliveredNotifications()
+    await supabase.rpc('unregister_apns_tokens', {
+      p_session_token: localStorage.getItem(SESSION_TOKEN_KEY),
+      p_staff_id:      staffId,
+    })
     // Remove all delivered notifications from the notification centre
     await PushNotifications.removeAllDeliveredNotifications()
     listenersRegistered = false

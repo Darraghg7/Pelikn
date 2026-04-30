@@ -29,21 +29,23 @@ export function useFoodItems(search = '') {
 }
 
 export function useFoodItem(id) {
+  const { venueId } = useVenue()
   const [item, setItem] = useState(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (!id) return
+    if (!id || !venueId) { setLoading(false); return }
     supabase
       .from('food_items')
       .select('*, food_allergens(allergen)')
       .eq('id', id)
+      .eq('venue_id', venueId)
       .single()
       .then(({ data }) => {
         setItem(data)
         setLoading(false)
       })
-  }, [id])
+  }, [id, venueId])
 
   return { item, loading }
 }

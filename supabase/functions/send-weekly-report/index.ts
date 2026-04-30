@@ -4,17 +4,54 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 const RESEND_API_KEY   = Deno.env.get('RESEND_API_KEY') ?? ''
 const SUPABASE_URL     = Deno.env.get('SUPABASE_URL') ?? ''
 const SUPABASE_SERVICE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+const ALLOWED_ORIGINS = ['https://pelikn.app', 'http://localhost:5173', 'capacitor://localhost', 'ionic://localhost']
 
 function fmt(d: Date) {
   return d.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })
 }
 
+function jsonResponse(body: unknown, status: number, headers: Record<string, string>) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...headers, 'Content-Type': 'application/json' },
+  })
+}
+
+function escapeHtml(value: unknown) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
+
+function settingValue(value: unknown) {
+  if (typeof value !== 'string') return value
+  try { return JSON.parse(value) } catch { return value }
+}
+
 serve(async (req) => {
+  const origin = req.headers.get('origin') ?? ''
+  const corsHeaders = {
+    'Access-Control-Allow-Origin':  ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0],
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  }
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
+
   try {
-    const { to } = await req.json().catch(() => ({}))
-    if (!to) return new Response(JSON.stringify({ error: 'No recipient' }), { status: 400 })
+    const { to, venueId, sessionToken } = await req.json().catch(() => ({}))
+    if (!to) return jsonResponse({ error: 'No recipient' }, 400, corsHeaders)
+    if (!venueId) return jsonResponse({ error: 'No venueId' }, 400, corsHeaders)
+    if (!sessionToken) return jsonResponse({ error: 'Missing session token' }, 401, corsHeaders)
 
     const db = createClient(SUPABASE_URL, SUPABASE_SERVICE)
+    const { data: allowed, error: authErr } = await db.rpc('validate_manager_session_for_venue', {
+      p_session_token: sessionToken,
+      p_venue_id:      venueId,
+    })
+    if (authErr) throw authErr
+    if (!allowed) return jsonResponse({ error: 'Unauthorized' }, 403, corsHeaders)
 
     const now       = new Date()
     const weekAgo   = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
@@ -32,20 +69,21 @@ serve(async (req) => {
       checkCompRes,
       wasteRes,
     ] = await Promise.all([
-      db.from('app_settings').select('key,value'),
-      db.from('clock_events').select('*').gte('occurred_at', weekStart),
+      db.from('app_settings').select('key,value').eq('venue_id', venueId),
+      db.from('clock_events').select('*').eq('venue_id', venueId).gte('occurred_at', weekStart),
       db.from('fridge_temperature_logs')
         .select('temperature, fridge:fridge_id(min_temp,max_temp)')
+        .eq('venue_id', venueId)
         .gte('logged_at', weekStart),
-      db.from('cleaning_tasks').select('id').eq('is_active', true),
-      db.from('cleaning_completions').select('cleaning_task_id').gte('completed_at', weekStart),
-      db.from('opening_closing_checks').select('id').eq('is_active', true),
-      db.from('opening_closing_completions').select('check_id').gte('completed_at', weekStart),
-      db.from('waste_logs').select('item_name,quantity,unit,reason').gte('recorded_at', weekStart),
+      db.from('cleaning_tasks').select('id').eq('venue_id', venueId).eq('is_active', true),
+      db.from('cleaning_completions').select('cleaning_task_id').eq('venue_id', venueId).gte('completed_at', weekStart),
+      db.from('opening_closing_checks').select('id').eq('venue_id', venueId).eq('is_active', true),
+      db.from('opening_closing_completions').select('check_id').eq('venue_id', venueId).gte('completed_at', weekStart),
+      db.from('waste_logs').select('item_name,quantity,unit,reason').eq('venue_id', venueId).gte('recorded_at', weekStart),
     ])
 
-    const settings = Object.fromEntries((venueRes.data ?? []).map((r: any) => [r.key, r.value]))
-    const venueName = settings.venue_name ?? 'Pelikn'
+    const settings = Object.fromEntries((venueRes.data ?? []).map((r: any) => [r.key, settingValue(r.value)]))
+    const venueName = escapeHtml(settings.venue_name ?? 'Pelikn')
 
     // Hours calculation
     const events = (clockRes.data ?? []).sort((a: any, b: any) =>
@@ -88,7 +126,7 @@ serve(async (req) => {
     }
 
     const wasteRows = Object.entries(wasteByReason)
-      .map(([reason, count]) => `<tr><td style="padding:6px 12px;border-bottom:1px solid #eee;">${reason}</td><td style="padding:6px 12px;border-bottom:1px solid #eee;text-align:right;">${count} entries</td></tr>`)
+      .map(([reason, count]) => `<tr><td style="padding:6px 12px;border-bottom:1px solid #eee;">${escapeHtml(reason)}</td><td style="padding:6px 12px;border-bottom:1px solid #eee;text-align:right;">${count} entries</td></tr>`)
       .join('')
 
     const html = `
@@ -159,13 +197,11 @@ serve(async (req) => {
 
     if (!res.ok) {
       const errBody = await res.text()
-      return new Response(JSON.stringify({ error: errBody }), { status: 500 })
+      return jsonResponse({ error: errBody }, 500, corsHeaders)
     }
 
-    return new Response(JSON.stringify({ ok: true }), {
-      headers: { 'Content-Type': 'application/json' },
-    })
+    return jsonResponse({ ok: true }, 200, corsHeaders)
   } catch (err) {
-    return new Response(JSON.stringify({ error: String(err) }), { status: 500 })
+    return jsonResponse({ error: String(err) }, 500, corsHeaders)
   }
 })

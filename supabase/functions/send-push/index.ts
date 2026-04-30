@@ -28,6 +28,13 @@ webpush.setVapidDetails(
   VAPID_PRIVATE_KEY,
 )
 
+function jsonResponse(body: unknown, status: number, headers: Record<string, string>) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...headers, 'Content-Type': 'application/json' },
+  })
+}
+
 Deno.serve(async (req) => {
   const origin = req.headers.get('origin') ?? ''
   const corsHeaders = {
@@ -39,15 +46,23 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { venueId, title, body, url = '/', roles, staffIds } = await req.json()
+    const { venueId, title, body, url = '/', roles, staffIds, sessionToken } = await req.json()
 
     if (!venueId || !title || !body) {
-      return new Response(JSON.stringify({ error: 'venueId, title and body are required' }), {
-        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      })
+      return jsonResponse({ error: 'venueId, title and body are required' }, 400, corsHeaders)
+    }
+    if (!sessionToken) {
+      return jsonResponse({ error: 'Missing session token' }, 401, corsHeaders)
     }
 
     const db = createClient(SUPABASE_URL, SUPABASE_SERVICE)
+
+    const { data: allowed, error: authErr } = await db.rpc('validate_staff_session_for_venue', {
+      p_session_token: sessionToken,
+      p_venue_id:      venueId,
+    })
+    if (authErr) throw authErr
+    if (!allowed) return jsonResponse({ error: 'Unauthorized' }, 403, corsHeaders)
 
     // Look up push subscriptions — either for specific staff or by role
     let query = db
@@ -55,7 +70,18 @@ Deno.serve(async (req) => {
       .select('id, endpoint, p256dh, auth_key, staff_id, staff:staff_id(role, venue_id)')
 
     if (staffIds?.length) {
-      query = query.in('staff_id', staffIds)
+      const { data: staffAtVenue } = await db
+        .from('staff')
+        .select('id')
+        .eq('venue_id', venueId)
+        .in('id', staffIds)
+        .eq('is_active', true)
+
+      if (!staffAtVenue?.length) {
+        return jsonResponse({ sent: 0, message: 'No matching staff with push subscriptions' }, 200, corsHeaders)
+      }
+
+      query = query.in('staff_id', staffAtVenue.map(s => s.id))
     } else {
       // Filter to the target venue and roles
       const targetRoles = roles ?? ['manager', 'owner']
@@ -66,9 +92,7 @@ Deno.serve(async (req) => {
         .in('role', targetRoles)
 
       if (!staffAtVenue?.length) {
-        return new Response(JSON.stringify({ sent: 0, message: 'No matching staff with push subscriptions' }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        })
+        return jsonResponse({ sent: 0, message: 'No matching staff with push subscriptions' }, 200, corsHeaders)
       }
 
       query = query.in('staff_id', staffAtVenue.map(s => s.id))
@@ -77,9 +101,7 @@ Deno.serve(async (req) => {
     const { data: subscriptions, error: subErr } = await query
     if (subErr) throw subErr
     if (!subscriptions?.length) {
-      return new Response(JSON.stringify({ sent: 0, message: 'No push subscriptions found' }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      })
+      return jsonResponse({ sent: 0, message: 'No push subscriptions found' }, 200, corsHeaders)
     }
 
     const payload = JSON.stringify({ title, body, url })
@@ -108,13 +130,9 @@ Deno.serve(async (req) => {
       await db.from('push_subscriptions').delete().in('id', expiredIds)
     }
 
-    return new Response(JSON.stringify({ sent, expired: expiredIds.length }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    })
+    return jsonResponse({ sent, expired: expiredIds.length }, 200, corsHeaders)
   } catch (err) {
     console.error('send-push error:', err)
-    return new Response(JSON.stringify({ error: String(err) }), {
-      status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    })
+    return jsonResponse({ error: String(err) }, 500, corsHeaders)
   }
 })

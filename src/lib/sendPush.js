@@ -11,11 +11,20 @@
  */
 
 import { supabase } from './supabase'
+import { SESSION_TOKEN_KEY } from './constants'
 
 export async function sendPush({ venueId, title, body, url = '/', roles, staffIds } = {}) {
   if (!venueId || !title || !body) return
 
-  const payload = { venueId, title, body, url, ...(staffIds ? { staffIds } : { roles }) }
+  const sessionToken = localStorage.getItem(SESSION_TOKEN_KEY)
+  const payload = {
+    venueId,
+    title,
+    body,
+    url,
+    sessionToken,
+    ...(staffIds ? { staffIds } : { roles }),
+  }
 
   await Promise.allSettled([
     supabase.functions.invoke('send-push', { body: payload }),
