@@ -16,6 +16,7 @@ import useVenueClosures from '../../hooks/useVenueClosures'
 import { PLANS, VENUE_PRESETS } from '../../lib/constants'
 import SettingsSection from './SettingsSection'
 import RolesSection from './RolesSection'
+import DutiesSection from './DutiesSection'
 import NotificationsPanel from './NotificationsPanel'
 import VenuesSection from './VenuesSection'
 
@@ -584,6 +585,14 @@ export default function SettingsPage() {
         locked={venuePlan !== PLANS.PRO}
       >
         <RolesSection />
+      </SettingsSection>
+
+      {/* ── Duties ─────────────────────────────────────────────────────────── */}
+      <SettingsSection
+        title="Duties"
+        subtitle="Named task bundles assigned to staff per shift"
+      >
+        <DutiesSection />
       </SettingsSection>
 
       {/* ── Shifts & Breaks ────────────────────────────────────────────────── */}

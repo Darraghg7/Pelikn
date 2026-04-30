@@ -21,6 +21,8 @@ import RotaAIModal from './RotaAIModal'
 import RotaConfigModal from './RotaConfigModal'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
 import Modal from '../../components/ui/Modal'
+import Toggle from '../../components/ui/Toggle'
+import { useDutyTemplates } from '../../hooks/useDuties'
 
 function SectionLabel({ children }) {
   return <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-1">{children}</p>
@@ -144,6 +146,11 @@ export default function RotaPage() {
   const [editShift, setEditShift] = useState(null)
   const [form, setForm]           = useState({ staffId: '', startTime: '09:00', endTime: '17:00', roleLabel: 'Chef' })
   const [saving, setSaving]       = useState(false)
+
+  // Duty assignment state
+  const { templates: dutyTemplates } = useDutyTemplates()
+  const [assignDuty, setAssignDuty]         = useState(false)
+  const [selectedDutyId, setSelectedDutyId] = useState(null)
   const [emailing, setEmailing]   = useState(false)
   const [sharing, setSharing]     = useState(false)
 
@@ -170,6 +177,8 @@ export default function RotaPage() {
     const lastRole = localStorage.getItem(`mise_last_role_${staffMember.id}`) || venueRoles[0]?.name || ''
     setForm({ staffId: staffMember.id, startTime: '09:00', endTime: '17:00', roleLabel: lastRole })
     setEditShift(null)
+    setAssignDuty(false)
+    setSelectedDutyId(null)
   }
 
   // ── Staff: cell click → open swap request if they have a shift ──
@@ -186,7 +195,7 @@ export default function RotaPage() {
     toggleAvailability(staffId, date)
   }
 
-  const openEdit = (sh) => {
+  const openEdit = async (sh) => {
     setEditShift(sh)
     setForm({
       staffId:   sh.staff_id,
@@ -194,6 +203,19 @@ export default function RotaPage() {
       endTime:   sh.end_time?.slice(0, 5) ?? '17:00',
       roleLabel: sh.role_label,
     })
+    // Pre-populate duty assignment if one exists for this shift
+    const { data } = await supabase
+      .from('duty_assignments')
+      .select('duty_template_id')
+      .eq('shift_id', sh.id)
+      .maybeSingle()
+    if (data) {
+      setAssignDuty(true)
+      setSelectedDutyId(data.duty_template_id)
+    } else {
+      setAssignDuty(false)
+      setSelectedDutyId(null)
+    }
   }
 
   const applyPreset = (preset) => {
@@ -211,11 +233,31 @@ export default function RotaPage() {
       role_label: form.roleLabel,
       venue_id:   venueId,
     }
-    const { error } = editShift
-      ? await supabase.from('shifts').update(payload).eq('id', editShift.id)
-      : await supabase.from('shifts').insert(payload)
+
+    let shiftId = editShift?.id
+    if (editShift) {
+      const { error } = await supabase.from('shifts').update(payload).eq('id', editShift.id)
+      if (error) { toast(error.message, 'error'); setSaving(false); return }
+    } else {
+      const { data, error } = await supabase.from('shifts').insert(payload).select('id').single()
+      if (error) { toast(error.message, 'error'); setSaving(false); return }
+      shiftId = data.id
+    }
+
+    // Save or clear duty assignment
+    if (shiftId) {
+      await supabase.from('duty_assignments').delete().eq('shift_id', shiftId)
+      if (assignDuty && selectedDutyId) {
+        await supabase.from('duty_assignments').insert({
+          venue_id:            venueId,
+          shift_id:            shiftId,
+          duty_template_id:    selectedDutyId,
+          assigned_by_staff_id: session?.staffId ?? null,
+        })
+      }
+    }
+
     setSaving(false)
-    if (error) { toast(error.message, 'error'); return }
     if (form.roleLabel) localStorage.setItem(`mise_last_role_${form.staffId}`, form.roleLabel)
     toast(editShift ? 'Shift updated' : 'Shift added')
     setModal(null)
@@ -895,6 +937,44 @@ export default function RotaPage() {
                 )}
               </div>
 
+              {/* Duty assignment */}
+              {dutyTemplates.length > 0 && (
+                <div className="border-t border-charcoal/8 pt-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <div>
+                      <p className="text-sm font-medium text-charcoal">Assign duty?</p>
+                      <p className="text-[11px] text-charcoal/40 mt-0.5">Optional task checklist for this shift</p>
+                    </div>
+                    <Toggle
+                      checked={assignDuty}
+                      onChange={() => { setAssignDuty(v => !v); setSelectedDutyId(null) }}
+                    />
+                  </div>
+                  {assignDuty && (
+                    <div className="flex flex-col gap-2">
+                      {dutyTemplates.map(t => (
+                        <button
+                          key={t.id}
+                          type="button"
+                          onClick={() => setSelectedDutyId(t.id)}
+                          className={[
+                            'text-left px-3 py-2.5 rounded-xl border text-sm transition-all',
+                            selectedDutyId === t.id
+                              ? 'border-brand bg-brand/5 text-brand font-medium'
+                              : 'border-charcoal/12 text-charcoal hover:border-charcoal/30',
+                          ].join(' ')}
+                        >
+                          {t.title}
+                          <span className="text-[11px] text-charcoal/35 font-normal ml-2">
+                            {t.items.length} task{t.items.length !== 1 ? 's' : ''}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* Validation message */}
               {!duration && (
                 <p className="text-xs text-danger/70 -mt-2">
@@ -923,6 +1003,13 @@ export default function RotaPage() {
                         setForm({ staffId: modal.staffMember.id, startTime: '09:00', endTime: '17:00', roleLabel: lastRole })
                       }}
                       className="px-4 py-2.5 rounded-lg border border-charcoal/15 text-sm text-charcoal/60 hover:text-charcoal hover:border-charcoal/30 transition-colors"
+                      onClick={() => {
+                        const lastRole = localStorage.getItem(`mise_last_role_${modal.staffMember.id}`) || venueRoles[0]?.name || ''
+                        setEditShift(null)
+                        setForm({ staffId: modal.staffMember.id, startTime: '09:00', endTime: '17:00', roleLabel: lastRole })
+                        setAssignDuty(false)
+                        setSelectedDutyId(null)
+                      }}
                     >
                       Cancel Edit
                     </button>

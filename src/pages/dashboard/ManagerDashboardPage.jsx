@@ -12,6 +12,7 @@ import Modal from '../../components/ui/Modal'
 import { useVenueBranding } from '../../hooks/useVenueBranding'
 import { useVenueFeatures } from '../../hooks/useVenueFeatures'
 import { useAppSettings } from '../../hooks/useSettings'
+import { useAllTodayDuties } from '../../hooks/useDuties'
 
 // Multi-venue is just Pro × number of venues — no separate tier in the app
 const PLAN_CONFIG = {
@@ -104,6 +105,18 @@ const TODAY_ITEM_REGISTRY = {
     metric: summary => summary.pendingLeave,
     metricLabel: 'Leave',
     action: (summary, vp) => summary.pendingLeave > 0 && { label: `${summary.pendingLeave} leave request${summary.pendingLeave > 1 ? 's' : ''} pending`, to: vp('/time-off'), urgency: 'info' },
+  },
+  duties: {
+    id: 'duties',
+    label: 'Duties',
+    description: 'Shift duties assigned and completed today',
+    feature: null,
+    metric: summary => summary.dutiesAssigned,
+    metricLabel: 'Assigned',
+    action: (summary) => summary.dutiesAssigned > 0 && summary.dutiesCompleted < summary.dutiesAssigned && {
+      label: `${summary.dutiesAssigned - summary.dutiesCompleted} of ${summary.dutiesAssigned} duties in progress`,
+      urgency: 'info',
+    },
   },
 }
 
@@ -481,6 +494,8 @@ function emptySummary() {
     cookingTempsToday: 0,
     hotHoldingToday: 0,
     coolingLogsToday: 0,
+    dutiesAssigned: 0,
+    dutiesCompleted: 0,
   }
 }
 
@@ -528,7 +543,7 @@ function useTodaySummary(venueId, closedDays = []) {
       }
       setClosedToday(false)
 
-      const [cleaning, rota, opening, fridges, fridgeLogs, leaveReqs, critActions, cookingTemps, hotHoldingLogs, coolingLogs] = await Promise.all([
+      const [cleaning, rota, opening, fridges, fridgeLogs, leaveReqs, critActions, cookingTemps, hotHoldingLogs, coolingLogs, dutyShifts] = await Promise.all([
         supabase.from('cleaning_tasks').select('id, frequency').eq('venue_id', venueId).eq('is_active', true),
         supabase.from('shifts').select('id', { count: 'exact', head: true }).eq('venue_id', venueId).eq('shift_date', todayStr),
         supabase.from('opening_closing_completions')
@@ -541,6 +556,7 @@ function useTodaySummary(venueId, closedDays = []) {
         supabase.from('cooking_temp_logs').select('id', { count: 'exact', head: true }).eq('venue_id', venueId).gte('logged_at', dayStart).lte('logged_at', dayEnd),
         supabase.from('hot_holding_logs').select('id', { count: 'exact', head: true }).eq('venue_id', venueId).gte('logged_at', dayStart).lte('logged_at', dayEnd),
         supabase.from('cooling_logs').select('id', { count: 'exact', head: true }).eq('venue_id', venueId).gte('logged_at', dayStart).lte('logged_at', dayEnd),
+        supabase.from('shifts').select('id').eq('venue_id', venueId).eq('shift_date', todayStr),
       ])
 
       if (cancelled) return
@@ -574,6 +590,32 @@ function useTodaySummary(venueId, closedDays = []) {
       const checkedIds = new Set((fridgeLogs.data ?? []).map(l => l.fridge_id))
       const uncheckedFridges = (fridges.data ?? []).filter(f => !checkedIds.has(f.id)).length
 
+      // Duties assigned today + fully completed count
+      let dutiesAssigned = 0, dutiesCompleted = 0
+      if (dutyShifts.data?.length) {
+        const todayShiftIds = dutyShifts.data.map(s => s.id)
+        const { data: dutyAssignments } = await supabase
+          .from('duty_assignments')
+          .select('id, duty_template_id, duty_template_items!duty_template_id ( id )')
+          .in('shift_id', todayShiftIds)
+        if (!cancelled && dutyAssignments?.length) {
+          dutiesAssigned = dutyAssignments.length
+          const assignmentIds = dutyAssignments.map(a => a.id)
+          const { data: completions } = await supabase
+            .from('duty_item_completions')
+            .select('duty_assignment_id, duty_template_item_id')
+            .in('duty_assignment_id', assignmentIds)
+          const completedByAssignment = (completions ?? []).reduce((acc, c) => {
+            acc[c.duty_assignment_id] = (acc[c.duty_assignment_id] ?? 0) + 1
+            return acc
+          }, {})
+          dutiesCompleted = dutyAssignments.filter(a => {
+            const total = a.duty_template_items?.length ?? 0
+            return total > 0 && (completedByAssignment[a.id] ?? 0) >= total
+          }).length
+        }
+      }
+
       setSummary({
         overdueClean:     overdueCount,
         onShiftToday:     rota.count ?? 0,
@@ -584,6 +626,8 @@ function useTodaySummary(venueId, closedDays = []) {
         cookingTempsToday: cookingTemps.count ?? 0,
         hotHoldingToday:   hotHoldingLogs.count ?? 0,
         coolingLogsToday:  coolingLogs.count ?? 0,
+        dutiesAssigned,
+        dutiesCompleted,
       })
       setLoading(false)
     }

@@ -13,6 +13,7 @@ import LoadingSpinner from '../../components/ui/LoadingSpinner'
 import { useClockSessions } from '../../hooks/useClockSessions'
 import { usePushNotifications } from '../../hooks/usePushNotifications'
 import { useAppSettings } from '../../hooks/useSettings'
+import { useTodayDuties } from '../../hooks/useDuties'
 
 
 function SectionLabel({ children }) {
@@ -376,6 +377,85 @@ function TodaySummary({ staffId, venueId, venueSlug, hasPermission, isEnabled, c
   )
 }
 
+/* ── Today's Duties ─────────────────────────────────────────────────────── */
+function DutyItemRow({ item, assignmentId, toggleItem }) {
+  const [busy, setBusy] = useState(false)
+  const handleToggle = async () => {
+    setBusy(true)
+    await toggleItem(assignmentId, item.id, item.completed)
+    setBusy(false)
+  }
+  return (
+    <button
+      onClick={handleToggle}
+      disabled={busy}
+      className="flex items-center gap-3 w-full text-left py-1.5 group disabled:opacity-50"
+    >
+      <span className={[
+        'w-5 h-5 rounded border-2 shrink-0 flex items-center justify-center transition-all',
+        item.completed
+          ? 'bg-success border-success'
+          : 'border-charcoal/25 group-hover:border-charcoal/50',
+      ].join(' ')}>
+        {item.completed && (
+          <svg className="w-3 h-3 text-white" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="2,6 5,9 10,3"/>
+          </svg>
+        )}
+      </span>
+      <span className={`text-sm ${item.completed ? 'line-through text-charcoal/35' : 'text-charcoal'}`}>
+        {item.title}
+      </span>
+    </button>
+  )
+}
+
+function DutyCard({ duty, toggleItem }) {
+  const done  = duty.items.filter(i => i.completed).length
+  const total = duty.items.length
+  const pct   = total > 0 ? Math.round((done / total) * 100) : 0
+  const allDone = done === total && total > 0
+
+  return (
+    <div className={`rounded-2xl border p-4 flex flex-col gap-3 ${allDone ? 'border-success/25 bg-success/4' : 'border-charcoal/10 bg-white'}`}>
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-sm font-semibold text-charcoal">{duty.title}</p>
+        <span className={`text-[11px] font-semibold shrink-0 ${allDone ? 'text-success' : 'text-charcoal/40'}`}>
+          {done}/{total}
+        </span>
+      </div>
+
+      {total > 0 && (
+        <div className="h-1 rounded-full bg-charcoal/8 overflow-hidden">
+          <div
+            className={`h-full rounded-full transition-all ${allDone ? 'bg-success' : 'bg-brand'}`}
+            style={{ width: `${pct}%` }}
+          />
+        </div>
+      )}
+
+      <div className="flex flex-col divide-y divide-charcoal/6">
+        {duty.items.map(item => (
+          <DutyItemRow key={item.id} item={item} assignmentId={duty.assignmentId} toggleItem={toggleItem} />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function TodayDuties({ staffId }) {
+  const { duties, loading, toggleItem } = useTodayDuties(staffId)
+  if (loading || !duties.length) return null
+  return (
+    <div className="flex flex-col gap-3">
+      <SectionLabel>Your duties today</SectionLabel>
+      {duties.map(d => (
+        <DutyCard key={d.assignmentId} duty={d} toggleItem={toggleItem} />
+      ))}
+    </div>
+  )
+}
+
 export default function StaffDashboardPage() {
   const { venueId, venueSlug } = useVenue()
   const { session, hasPermission } = useSession()
@@ -462,6 +542,9 @@ export default function StaffDashboardPage() {
 
       {/* Today summary */}
       <TodaySummary staffId={session.staffId} venueId={venueId} venueSlug={venueSlug} hasPermission={hasPermission} isEnabled={isEnabled} closedDays={closedDays} />
+
+      {/* Duties assigned for today's shift */}
+      <TodayDuties staffId={session.staffId} />
 
       {/* Desktop: two columns */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
