@@ -6,12 +6,48 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { useVenue } from '../contexts/VenueContext'
+import { isCheckRequired } from '../lib/temperatureChecks'
 
 export const HOT_HOLDING_MIN_TEMP = 63  // °C — UK Food Safety (Temperature Control) Regs 1995
+const HOT_HOLDING_ITEM_COLUMNS = 'id, name, is_active, venue_id, min_temp, max_temp, check_days, required_periods'
+const LEGACY_HOT_HOLDING_ITEM_COLUMNS = 'id, name, is_active, venue_id'
+
+function withHotHoldingDefaults(item) {
+  return {
+    ...item,
+    min_temp: item.min_temp ?? HOT_HOLDING_MIN_TEMP,
+    max_temp: item.max_temp ?? null,
+    check_days: item.check_days ?? [0, 1, 2, 3, 4, 5, 6],
+    required_periods: item.required_periods ?? ['am', 'pm'],
+  }
+}
+
+async function fetchActiveHotHoldingItems(venueId) {
+  const { data, error } = await supabase
+    .from('hot_holding_items')
+    .select(HOT_HOLDING_ITEM_COLUMNS)
+    .eq('venue_id', venueId)
+    .eq('is_active', true)
+    .order('name')
+
+  if (!error) return (data ?? []).map(withHotHoldingDefaults)
+
+  const { data: legacyData } = await supabase
+    .from('hot_holding_items')
+    .select(LEGACY_HOT_HOLDING_ITEM_COLUMNS)
+    .eq('venue_id', venueId)
+    .eq('is_active', true)
+    .order('name')
+
+  return (legacyData ?? []).map(withHotHoldingDefaults)
+}
 
 /** Returns true when a hot holding temp is a fail. */
-export function isHotHoldingFail(temperature) {
-  return parseFloat(temperature) < HOT_HOLDING_MIN_TEMP
+export function isHotHoldingFail(temperature, item = null) {
+  const value = parseFloat(temperature)
+  const min = item?.min_temp ?? HOT_HOLDING_MIN_TEMP
+  const max = item?.max_temp ?? null
+  return value < min || (max !== null && max !== undefined && value > max)
 }
 
 /**
@@ -26,13 +62,8 @@ export function useHotHoldingItems() {
   const load = useCallback(async () => {
     if (!venueId) return
     setLoading(true)
-    const { data } = await supabase
-      .from('hot_holding_items')
-      .select('id, name, is_active, venue_id')
-      .eq('venue_id', venueId)
-      .eq('is_active', true)
-      .order('name')
-    setItems(data ?? [])
+    const data = await fetchActiveHotHoldingItems(venueId)
+    setItems(data)
     setLoading(false)
   }, [venueId])
 
@@ -54,18 +85,37 @@ export function useHotHoldingTodayStatus() {
     if (!venueId) return
     setLoading(true)
     const today = new Date().toISOString().slice(0, 10)
-    const { data } = await supabase
-      .from('hot_holding_logs')
-      .select('id, item_id, temperature, check_period, pass, corrective_action, logged_at, logged_by_name, venue_id')
-      .eq('venue_id', venueId)
-      .gte('logged_at', `${today}T00:00:00`)
-      .lte('logged_at', `${today}T23:59:59`)
-      .order('logged_at', { ascending: false })
+    const [items, { data }] = await Promise.all([
+      fetchActiveHotHoldingItems(venueId),
+      supabase
+        .from('hot_holding_logs')
+        .select('id, item_id, temperature, check_period, logged_at, logged_by_name, venue_id')
+        .eq('venue_id', venueId)
+        .gte('logged_at', `${today}T00:00:00`)
+        .lte('logged_at', `${today}T23:59:59`)
+        .order('logged_at', { ascending: false }),
+    ])
 
     const logs = data ?? []
     const amLogs = logs.filter(l => l.check_period === 'am')
     const pmLogs = logs.filter(l => l.check_period === 'pm')
-    setStatus({ am: amLogs.length > 0, pm: pmLogs.length > 0, amLogs, pmLogs })
+    const todayItems = items ?? []
+    const requiredAmItems = todayItems.filter(item => isCheckRequired(item, new Date(), 'am'))
+    const requiredPmItems = todayItems.filter(item => isCheckRequired(item, new Date(), 'pm'))
+    const amLoggedItems = new Set(amLogs.map(log => log.item_id))
+    const pmLoggedItems = new Set(pmLogs.map(log => log.item_id))
+    const amMissing = requiredAmItems.filter(item => !amLoggedItems.has(item.id))
+    const pmMissing = requiredPmItems.filter(item => !pmLoggedItems.has(item.id))
+    setStatus({
+      am: requiredAmItems.length > 0 && amMissing.length === 0,
+      pm: requiredPmItems.length > 0 && pmMissing.length === 0,
+      amRequired: requiredAmItems.length > 0,
+      pmRequired: requiredPmItems.length > 0,
+      amLogs,
+      pmLogs,
+      amMissing,
+      pmMissing,
+    })
     setLoading(false)
   }, [venueId])
 
@@ -89,7 +139,7 @@ export function useHotHoldingLogs(dateFrom = null, dateTo = null) {
     setLoading(true)
     let q = supabase
       .from('hot_holding_logs')
-      .select('id, item_id, temperature, check_period, pass, corrective_action, logged_at, logged_by_name, venue_id')
+      .select('id, item_id, item_name, temperature, check_period, logged_at, logged_by_name, venue_id, hot_holding_items(min_temp, max_temp)')
       .eq('venue_id', venueId)
       .order('logged_at', { ascending: false })
       .limit(300)
@@ -98,7 +148,22 @@ export function useHotHoldingLogs(dateFrom = null, dateTo = null) {
     if (dateTo)   q = q.lte('logged_at', `${dateTo}T23:59:59`)
 
     const { data, error } = await q
-    if (!error) setLogs(data ?? [])
+    if (!error) {
+      setLogs(data ?? [])
+    } else {
+      let fallback = supabase
+        .from('hot_holding_logs')
+        .select('id, item_id, item_name, temperature, check_period, logged_at, logged_by_name, venue_id')
+        .eq('venue_id', venueId)
+        .order('logged_at', { ascending: false })
+        .limit(300)
+
+      if (dateFrom) fallback = fallback.gte('logged_at', `${dateFrom}T00:00:00`)
+      if (dateTo)   fallback = fallback.lte('logged_at', `${dateTo}T23:59:59`)
+
+      const { data: fallbackData } = await fallback
+      setLogs(fallbackData ?? [])
+    }
     setLoading(false)
   }, [venueId, dateFrom, dateTo])
 

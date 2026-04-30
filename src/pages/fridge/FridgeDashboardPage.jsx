@@ -9,9 +9,28 @@ import { useToast } from '../../components/ui/Toast'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
 import FridgeExportModal from './FridgeExportModal'
 import FridgeMatrixModal from './FridgeMatrixModal'
+import TemperatureItemSettingsModal from '../../components/temperature/TemperatureItemSettingsModal'
+import { formatCheckDays, formatRequiredPeriods, isCheckRequired } from '../../lib/temperatureChecks'
 
 function SectionLabel({ children }) {
   return <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-3">{children}</p>
+}
+
+function SettingsButton({ onClick }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label="Edit settings"
+      title="Edit settings"
+      className="w-8 h-8 rounded-full border border-charcoal/10 text-charcoal/35 hover:text-charcoal hover:border-charcoal/25 hover:bg-charcoal/5 transition-colors inline-flex items-center justify-center"
+    >
+      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="3" />
+        <path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .6 1.7 1.7 0 0 0-.4 1.1V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-.4-1.1 1.7 1.7 0 0 0-1-.6 1.7 1.7 0 0 0-1.88.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-.6-1 1.7 1.7 0 0 0-1.1-.4H3a2 2 0 1 1 0-4h.09a1.7 1.7 0 0 0 1.1-.4 1.7 1.7 0 0 0 .6-1 1.7 1.7 0 0 0-.34-1.88l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-.6 1.7 1.7 0 0 0 .4-1.1V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 .4 1.1 1.7 1.7 0 0 0 1 .6 1.7 1.7 0 0 0 1.88-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.7 1.7 0 0 0 19.4 9c.38.17.73.38 1 .6.3.27.6.66.6 1V11a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.1.4c-.27.22-.47.57-.6.95Z" />
+      </svg>
+    </button>
+  )
 }
 
 // Reasons that are "explained" — reading is recorded honestly but no compliance penalty
@@ -32,7 +51,7 @@ const EXCEEDANCE_ICONS = {
 }
 
 /* ── Per-fridge inline card ───────────────────────────────────────────────── */
-function FridgeCard({ fridge, session, venueId, onSaved }) {
+function FridgeCard({ fridge, session, venueId, isManager, onSaved, onSettings }) {
   const toast = useToast()
   const [temp, setTemp]         = useState('')
   const [reason, setReason]     = useState(null)
@@ -58,6 +77,8 @@ function FridgeCard({ fridge, session, venueId, onSaved }) {
   })
 
   const outOfRange     = temp !== '' && isTempOutOfRange(temp, fridge.min_temp, fridge.max_temp)
+  const currentPeriod  = new Date().getHours() < 12 ? 'am' : 'pm'
+  const requiredNow    = isCheckRequired(fridge, new Date(), currentPeriod)
   const selectedReason = EXCEEDANCE_REASONS.find(r => r.id === reason)
   const isExplained    = selectedReason?.explained ?? false
   const needsNote      = reason !== null && !isExplained
@@ -142,7 +163,11 @@ function FridgeCard({ fridge, session, venueId, onSaved }) {
         <div>
           <p className="font-semibold text-charcoal text-sm">{fridge.name}</p>
           <p className="text-[11px] text-charcoal/35 mt-0.5">Safe: {fridge.min_temp}–{fridge.max_temp}°C</p>
+          <p className="text-[11px] text-charcoal/35 mt-0.5">
+            Checks: {formatCheckDays(fridge.check_days)} · {formatRequiredPeriods(fridge.required_periods)}
+          </p>
         </div>
+        {isManager && <SettingsButton onClick={onSettings} />}
         {saving && <span className="text-[11px] text-charcoal/30 animate-pulse">Saving…</span>}
         {savedLog && !saving && (
           <span className={`text-[11px] font-semibold ${
@@ -206,6 +231,11 @@ function FridgeCard({ fridge, session, venueId, onSaved }) {
             <p className="text-[11px] tracking-widest uppercase text-charcoal/35 mb-1.5">
               Temperature (°C){!outOfRange && ' — press Enter to save'}
             </p>
+            {!requiredNow && (
+              <p className="text-[11px] text-charcoal/35 mb-2">
+                Not required for this {currentPeriod.toUpperCase()} check, but you can still log a reading.
+              </p>
+            )}
             <input
               type="number" step="0.1" min="-30" max="60"
               value={temp}
@@ -323,6 +353,7 @@ export default function FridgeDashboardPage() {
   const [savingFridge, setSavingFridge] = useState(false)
   const [showExport, setShowExport] = useState(false)
   const [showMatrix, setShowMatrix] = useState(false)
+  const [settingsFridge, setSettingsFridge] = useState(null)
 
   const addFridge = async () => {
     if (!fridgeForm.name.trim()) { toast('Name is required', 'error'); return }
@@ -346,6 +377,20 @@ export default function FridgeDashboardPage() {
     const { error } = await supabase.from('fridges').update({ is_active: false }).eq('id', id)
     if (error) { toast(error.message, 'error'); return }
     toast(`${name} removed`)
+    reloadFridges()
+    reloadDash()
+  }
+
+  const saveFridgeSettings = async (values) => {
+    if (!settingsFridge) return
+    const { error } = await supabase
+      .from('fridges')
+      .update(values)
+      .eq('venue_id', venueId)
+      .eq('id', settingsFridge.id)
+    if (error) { toast(error.message, 'error'); return }
+    toast(`${values.name} settings saved`)
+    setSettingsFridge(null)
     reloadFridges()
     reloadDash()
   }
@@ -380,6 +425,13 @@ export default function FridgeDashboardPage() {
 
       <FridgeExportModal open={showExport} onClose={() => setShowExport(false)} />
       <FridgeMatrixModal open={showMatrix} onClose={() => { setShowMatrix(false); reloadDash() }} />
+      <TemperatureItemSettingsModal
+        open={Boolean(settingsFridge)}
+        item={settingsFridge}
+        title="Fridge settings"
+        onClose={() => setSettingsFridge(null)}
+        onSave={saveFridgeSettings}
+      />
 
       {/* Manage Fridges panel */}
       {showManage && isManager && (
@@ -410,6 +462,7 @@ export default function FridgeDashboardPage() {
                   <div>
                     <p className="text-sm font-medium text-charcoal">{f.name}</p>
                     <p className="text-xs text-charcoal/40">Safe range: {f.min_temp}°C to {f.max_temp}°C</p>
+                    <p className="text-xs text-charcoal/35">Checks: {formatCheckDays(f.check_days)} · {formatRequiredPeriods(f.required_periods)}</p>
                   </div>
                   <button onClick={() => removeFridge(f.id, f.name)}
                     className="text-xs text-charcoal/25 hover:text-danger transition-colors px-2 py-1">Remove</button>
@@ -424,7 +477,15 @@ export default function FridgeDashboardPage() {
       {fridges.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {fridges.map(fridge => (
-            <FridgeCard key={fridge.id} fridge={fridge} session={session} venueId={venueId} onSaved={reloadDash} />
+            <FridgeCard
+              key={fridge.id}
+              fridge={fridge}
+              session={session}
+              venueId={venueId}
+              isManager={isManager}
+              onSettings={() => setSettingsFridge(fridge)}
+              onSaved={reloadDash}
+            />
           ))}
         </div>
       ) : !showManage && (
@@ -454,7 +515,8 @@ export default function FridgeDashboardPage() {
               </thead>
               <tbody className="divide-y divide-charcoal/6">
                 {checkStatus.map(f => {
-                  const renderCell = (log) => {
+                  const renderCell = (log, required) => {
+                    if (!required) return <span className="text-[11px] text-charcoal/30">Not required</span>
                     if (!log) return <span className="text-charcoal/25">—</span>
                     const oor      = isTempOutOfRange(log.temperature, f.min_temp, f.max_temp)
                     const explained = log.exceedance_reason &&
@@ -476,8 +538,8 @@ export default function FridgeDashboardPage() {
                         <p className="font-medium text-charcoal">{f.name}</p>
                         <p className="text-[11px] text-charcoal/35">{f.min_temp}–{f.max_temp}°C</p>
                       </td>
-                      <td className={`text-center py-3 ${f.am ? '' : 'bg-warning/5'}`}>{renderCell(f.am)}</td>
-                      <td className={`text-center py-3 ${f.pm ? '' : 'bg-warning/5'}`}>{renderCell(f.pm)}</td>
+                      <td className={`text-center py-3 ${f.am || !f.amRequired ? '' : 'bg-warning/5'}`}>{renderCell(f.am, f.amRequired)}</td>
+                      <td className={`text-center py-3 ${f.pm || !f.pmRequired ? '' : 'bg-warning/5'}`}>{renderCell(f.pm, f.pmRequired)}</td>
                     </tr>
                   )
                 })}
@@ -485,8 +547,8 @@ export default function FridgeDashboardPage() {
             </table>
           </div>
           {(() => {
-            const total = checkStatus.length * 2
-            const done  = checkStatus.filter(f => f.am).length + checkStatus.filter(f => f.pm).length
+            const total = checkStatus.filter(f => f.amRequired).length + checkStatus.filter(f => f.pmRequired).length
+            const done  = checkStatus.filter(f => f.amRequired && f.am).length + checkStatus.filter(f => f.pmRequired && f.pm).length
             return (
               <p className="text-[11px] text-charcoal/35 mt-3 pt-2 border-t border-charcoal/6">
                 {done}/{total} checks completed today

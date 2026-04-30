@@ -9,6 +9,7 @@ import useVenueClosures from '../../hooks/useVenueClosures'
 import { useFridgeMatrix } from '../../hooks/useFridgeLogs'
 import { isTempOutOfRange, formatTemp } from '../../lib/utils'
 import Modal from '../../components/ui/Modal'
+import { isCheckRequired } from '../../lib/temperatureChecks'
 
 const RANGE_OPTIONS = [
   { id: 7,  label: '7 days'  },
@@ -236,14 +237,14 @@ export default function FridgeMatrixModal({ open, onClose }) {
   const todayStr = format(new Date(), 'yyyy-MM-dd')
 
   const renderCell = (fridge, dateStr, period) => {
-    const isClosed = closedSet.has(dateStr)
     const log      = matrix[fridge.id]?.[dateStr]?.[period] ?? null
     const isFuture = dateStr > todayStr
+    const required = isCheckRequired(fridge, parseISO(dateStr), period)
 
-    if (isClosed) {
+    if (!log && !required) {
       return (
         <td className="text-center px-2 py-4 bg-charcoal/4 border-r border-charcoal/6 last:border-r-0">
-          <span className="text-[10px] tracking-widest uppercase text-charcoal/25 font-medium">Closed</span>
+          <span className="text-[10px] tracking-widest uppercase text-charcoal/25 font-medium">Not req.</span>
         </td>
       )
     }
@@ -298,7 +299,7 @@ export default function FridgeMatrixModal({ open, onClose }) {
           {/* Controls row */}
           <div className="flex items-center justify-between gap-4">
             <p className="text-sm text-charcoal/50">
-              Click any missed reading to backfill. Closed days are greyed out.
+              Click any missed reading to backfill. Days not required by the item settings are greyed out.
             </p>
             <div className="flex items-center gap-1 bg-charcoal/6 rounded-full p-1 shrink-0">
               {RANGE_OPTIONS.map(o => (

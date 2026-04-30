@@ -1,6 +1,38 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { useVenue } from '../contexts/VenueContext'
+import { isCheckRequired } from '../lib/temperatureChecks'
+
+const FRIDGE_COLUMNS = 'id, name, is_active, min_temp, max_temp, check_days, required_periods, venue_id'
+const LEGACY_FRIDGE_COLUMNS = 'id, name, is_active, min_temp, max_temp, venue_id'
+
+function withFridgeDefaults(fridge) {
+  return {
+    ...fridge,
+    check_days: fridge.check_days ?? [0, 1, 2, 3, 4, 5, 6],
+    required_periods: fridge.required_periods ?? ['am', 'pm'],
+  }
+}
+
+async function fetchActiveFridges(venueId) {
+  const { data, error } = await supabase
+    .from('fridges')
+    .select(FRIDGE_COLUMNS)
+    .eq('venue_id', venueId)
+    .eq('is_active', true)
+    .order('name')
+
+  if (!error) return data ?? []
+
+  const { data: legacyData } = await supabase
+    .from('fridges')
+    .select(LEGACY_FRIDGE_COLUMNS)
+    .eq('venue_id', venueId)
+    .eq('is_active', true)
+    .order('name')
+
+  return (legacyData ?? []).map(withFridgeDefaults)
+}
 
 export function useFridges() {
   const { venueId } = useVenue()
@@ -9,13 +41,8 @@ export function useFridges() {
 
   const load = useCallback(async () => {
     if (!venueId) { setLoading(false); return }
-    const { data } = await supabase
-      .from('fridges')
-      .select('id, name, is_active, min_temp, max_temp, venue_id')
-      .eq('venue_id', venueId)
-      .eq('is_active', true)
-      .order('name')
-    setFridges(data ?? [])
+    const data = await fetchActiveFridges(venueId)
+    setFridges(data.map(withFridgeDefaults))
     setLoading(false)
   }, [venueId])
 
@@ -32,15 +59,13 @@ export function useFridgeDashboard() {
     if (!venueId) { setLoading(false); return }
 
     // Fetch fridges and all recent logs in just 2 queries (not N+1)
-    const [{ data: fridges }, { data: logs }] = await Promise.all([
-      supabase.from('fridges').select('id, name, is_active, min_temp, max_temp, venue_id').eq('venue_id', venueId).eq('is_active', true).order('name'),
+    const [fridges, { data: logs }] = await Promise.all([
+      fetchActiveFridges(venueId),
       supabase.from('fridge_temperature_logs').select('fridge_id, temperature, logged_at, logged_by_name')
         .eq('venue_id', venueId)
         .order('logged_at', { ascending: false })
         .limit(1000),
     ])
-
-    if (!fridges) { setLoading(false); return }
 
     // Match latest log per fridge client-side
     const seen = new Set()
@@ -52,7 +77,7 @@ export function useFridgeDashboard() {
       }
     }
 
-    const enriched = fridges.map(f => ({ ...f, lastLog: latestByFridge[f.id] ?? null }))
+    const enriched = fridges.map(f => ({ ...withFridgeDefaults(f), lastLog: latestByFridge[f.id] ?? null }))
     setData(enriched)
     setLoading(false)
   }, [venueId])
@@ -70,8 +95,8 @@ export function useTodayCheckStatus() {
     if (!venueId) { setLoading(false); return }
     setLoading(true)
     const today = new Date().toISOString().slice(0, 10)
-    const [{ data: fridges }, { data: logs }] = await Promise.all([
-      supabase.from('fridges').select('id, name, is_active, min_temp, max_temp, venue_id').eq('venue_id', venueId).eq('is_active', true).order('name'),
+    const [fridges, { data: logs }] = await Promise.all([
+      fetchActiveFridges(venueId),
       supabase.from('fridge_temperature_logs').select('id, fridge_id, temperature, logged_at, check_period, exceedance_reason, is_resolved, logged_by, logged_by_name, venue_id')
         .eq('venue_id', venueId)
         .gte('logged_at', `${today}T00:00:00`)
@@ -79,11 +104,19 @@ export function useTodayCheckStatus() {
         .order('logged_at', { ascending: false }),
     ])
 
-    const result = (fridges ?? []).map(f => {
+    const now = new Date()
+    const result = (fridges ?? []).map(rawFridge => {
+      const f = withFridgeDefaults(rawFridge)
       const fridgeLogs = (logs ?? []).filter(l => l.fridge_id === f.id)
       const am = fridgeLogs.find(l => l.check_period === 'am') ?? null
       const pm = fridgeLogs.find(l => l.check_period === 'pm') ?? null
-      return { ...f, am, pm }
+      return {
+        ...f,
+        am,
+        pm,
+        amRequired: isCheckRequired(f, now, 'am'),
+        pmRequired: isCheckRequired(f, now, 'pm'),
+      }
     })
 
     setStatus(result)
@@ -112,13 +145,8 @@ export function useFridgeMatrix(dateFrom, dateTo) {
     if (!venueId || !dateFrom || !dateTo) { setLoading(false); return }
     setLoading(true)
 
-    const [{ data: fridgeRows }, { data: logRows }] = await Promise.all([
-      supabase
-        .from('fridges')
-        .select('id, name, is_active, min_temp, max_temp, venue_id')
-        .eq('venue_id', venueId)
-        .eq('is_active', true)
-        .order('name'),
+    const [fridgeRows, { data: logRows }] = await Promise.all([
+      fetchActiveFridges(venueId),
       supabase
         .from('fridge_temperature_logs')
         .select('id, fridge_id, temperature, logged_at, check_period, exceedance_reason, logged_by_name, notes')
@@ -140,7 +168,7 @@ export function useFridgeMatrix(dateFrom, dateTo) {
       }
     }
 
-    setFridges(fridgeRows ?? [])
+    setFridges((fridgeRows ?? []).map(withFridgeDefaults))
     setMatrix(grouped)
     setLoading(false)
   }, [venueId, dateFrom, dateTo])

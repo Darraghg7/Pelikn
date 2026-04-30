@@ -20,6 +20,7 @@ import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../../components/ui/Toast'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
 import DateRangePresets, { presetToDates } from '../../components/ui/DateRangePresets'
+import TemperatureItemSettingsModal from '../../components/temperature/TemperatureItemSettingsModal'
 import {
   useHotHoldingItems,
   useHotHoldingTodayStatus,
@@ -28,6 +29,7 @@ import {
   HOT_HOLDING_MIN_TEMP,
 } from '../../hooks/useHotHolding'
 import { formatTemp, formatDateTime } from '../../lib/utils'
+import { formatCheckDays, formatRequiredPeriods, isCheckRequired } from '../../lib/temperatureChecks'
 
 function nowDatetimeLocal() {
   const d = new Date()
@@ -45,10 +47,36 @@ function PassBadge({ pass }) {
     : <span className="text-[11px] font-semibold tracking-wider uppercase bg-danger/10 text-danger px-2 py-0.5 rounded-full">Fail</span>
 }
 
-function PeriodBadge({ done }) {
+function PeriodBadge({ done, required = true }) {
+  if (!required) {
+    return <span className="text-[11px] font-semibold tracking-wider uppercase bg-charcoal/5 text-charcoal/35 px-2.5 py-1 rounded-full">Not required</span>
+  }
   return done
     ? <span className="text-[11px] font-semibold tracking-wider uppercase bg-success/10 text-success px-2.5 py-1 rounded-full inline-flex items-center gap-1"><svg className="w-3 h-3" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg> Done</span>
     : <span className="text-[11px] font-semibold tracking-wider uppercase bg-charcoal/8 text-charcoal/45 px-2.5 py-1 rounded-full">Pending</span>
+}
+
+function SettingsButton({ onClick }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label="Edit settings"
+      title="Edit settings"
+      className="w-8 h-8 rounded-full border border-charcoal/10 text-charcoal/35 hover:text-charcoal hover:border-charcoal/25 hover:bg-charcoal/5 transition-colors inline-flex items-center justify-center"
+    >
+      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="3" />
+        <path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .6 1.7 1.7 0 0 0-.4 1.1V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-.4-1.1 1.7 1.7 0 0 0-1-.6 1.7 1.7 0 0 0-1.88.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-.6-1 1.7 1.7 0 0 0-1.1-.4H3a2 2 0 1 1 0-4h.09a1.7 1.7 0 0 0 1.1-.4 1.7 1.7 0 0 0 .6-1 1.7 1.7 0 0 0-.34-1.88l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-.6 1.7 1.7 0 0 0 .4-1.1V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 .4 1.1 1.7 1.7 0 0 0 1 .6 1.7 1.7 0 0 0 1.88-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.7 1.7 0 0 0 19.4 9c.38.17.73.38 1 .6.3.27.6.66.6 1V11a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.1.4c-.27.22-.47.57-.6.95Z" />
+      </svg>
+    </button>
+  )
+}
+
+function formatHotRange(item) {
+  return item?.max_temp === null || item?.max_temp === undefined
+    ? `Safe: ≥${item?.min_temp ?? HOT_HOLDING_MIN_TEMP}°C`
+    : `Safe: ${item.min_temp}–${item.max_temp}°C`
 }
 
 /* ── Main Page ────────────────────────────────────────────────────────────── */
@@ -86,6 +114,7 @@ export default function HotHoldingPage() {
   // Manager: add item
   const [newItemName, setNewItemName] = useState('')
   const [addingItem, setAddingItem]   = useState(false)
+  const [settingsItem, setSettingsItem] = useState(null)
 
   const handleAddItem = async () => {
     if (!newItemName.trim()) return
@@ -105,6 +134,20 @@ export default function HotHoldingPage() {
     reloadItems()
   }
 
+  const handleSaveItemSettings = async (values) => {
+    if (!settingsItem) return
+    const { error } = await supabase
+      .from('hot_holding_items')
+      .update(values)
+      .eq('venue_id', venueId)
+      .eq('id', settingsItem.id)
+    if (error) { toast(error.message, 'error'); return }
+    toast(`${values.name} settings saved`)
+    setSettingsItem(null)
+    reloadItems()
+    reloadStatus()
+  }
+
   // Submit all readings for this period
   const handleCompleteCheck = async () => {
     const itemsWithReadings = items.filter(item => readings[item.id] !== undefined && readings[item.id] !== '')
@@ -113,7 +156,7 @@ export default function HotHoldingPage() {
     // Check all fails have comments
     const missingComment = itemsWithReadings.find(item => {
       const temp = parseFloat(readings[item.id])
-      return isHotHoldingFail(temp) && !comments[item.id]?.trim()
+      return isHotHoldingFail(temp, item) && !comments[item.id]?.trim()
     })
     if (missingComment) {
       toast(`Add a corrective action note for "${missingComment.name}"`, 'error')
@@ -144,6 +187,7 @@ export default function HotHoldingPage() {
   }
 
   const periodDone = period === 'am' ? status.am : status.pm
+  const periodRequired = period === 'am' ? status.amRequired !== false : status.pmRequired !== false
 
   return (
     <div className="flex flex-col gap-6">
@@ -152,9 +196,18 @@ export default function HotHoldingPage() {
       <div>
         <h1 className="text-2xl font-bold text-charcoal">Hot Holding</h1>
         <p className="text-sm text-charcoal/45 mt-1">
-          Check food held hot for service twice daily. UK minimum: <strong>≥{HOT_HOLDING_MIN_TEMP}°C</strong>.
+          Check food held hot for service on the days and periods configured for each item.
         </p>
       </div>
+
+      <TemperatureItemSettingsModal
+        open={Boolean(settingsItem)}
+        item={settingsItem}
+        title="Hot holding settings"
+        maxRequired={false}
+        onClose={() => setSettingsItem(null)}
+        onSave={handleSaveItemSettings}
+      />
 
       {/* Tab navigation */}
       <div className="flex gap-1 bg-charcoal/5 rounded-xl p-1 w-fit">
@@ -180,19 +233,31 @@ export default function HotHoldingPage() {
               <SectionLabel>Today's Status</SectionLabel>
               <div className="grid grid-cols-2 gap-3">
                 {[['am', 'AM Check'], ['pm', 'PM Check']].map(([p, label]) => (
+                  (() => {
+                    const required = p === 'am' ? status.amRequired : status.pmRequired
+                    const done = p === 'am' ? status.am : status.pm
+                    const missing = p === 'am' ? status.amMissing : status.pmMissing
+                    const logCount = p === 'am' ? status.amLogs?.length : status.pmLogs?.length
+                    return (
                   <div key={p} className={`rounded-xl border p-4 flex items-center justify-between ${
-                    (p === 'am' ? status.am : status.pm)
+                    done
                       ? 'border-success/25 bg-success/5'
+                      : required === false
+                        ? 'border-charcoal/10 bg-charcoal/3'
                       : 'border-charcoal/10 bg-white'
                   }`}>
                     <div>
                       <p className="text-sm font-semibold text-charcoal">{label}</p>
                       <p className="text-[11px] text-charcoal/45 mt-0.5">
-                        {p === 'am' ? status.amLogs?.length : status.pmLogs?.length} reading{(p === 'am' ? status.amLogs?.length : status.pmLogs?.length) === 1 ? '' : 's'}
+                        {required === false
+                          ? 'No items scheduled'
+                          : `${logCount} reading${logCount === 1 ? '' : 's'}${missing?.length ? ` · ${missing.length} missing` : ''}`}
                       </p>
                     </div>
-                    <PeriodBadge done={p === 'am' ? status.am : status.pm} />
+                    <PeriodBadge done={done} required={required !== false} />
                   </div>
+                    )
+                  })()
                 ))}
               </div>
             </div>
@@ -217,7 +282,13 @@ export default function HotHoldingPage() {
                 </button>
               ))}
             </div>
-            {periodDone && (
+            {periodRequired === false ? (
+              <div className="mt-3 px-4 py-3 rounded-xl bg-charcoal/5 border border-charcoal/10">
+                <p className="text-sm text-charcoal/50 font-medium">
+                  No hot holding items are scheduled for this {period.toUpperCase()} check today.
+                </p>
+              </div>
+            ) : periodDone && (
               <div className="mt-3 px-4 py-3 rounded-xl bg-success/8 border border-success/20">
                 <p className="text-sm text-success font-medium">
                   <span className="inline-flex items-center gap-1"><svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg> {period.toUpperCase()} check already completed today. You can log additional readings if needed.</span>
@@ -243,24 +314,34 @@ export default function HotHoldingPage() {
                 {items.map(item => {
                   const tempVal = readings[item.id] ?? ''
                   const hasTemp = tempVal !== '' && !isNaN(parseFloat(tempVal))
-                  const fail    = hasTemp && isHotHoldingFail(parseFloat(tempVal))
+                  const fail    = hasTemp && isHotHoldingFail(parseFloat(tempVal), item)
+                  const requiredForPeriod = isCheckRequired(item, new Date(), period)
                   return (
                     <div key={item.id} className={`p-4 rounded-xl border transition-all ${
                       hasTemp
                         ? fail
                           ? 'border-danger/30 bg-danger/4'
                           : 'border-success/25 bg-success/5'
+                        : !requiredForPeriod
+                          ? 'border-charcoal/8 bg-charcoal/3'
                         : 'border-charcoal/10 bg-white'
                     }`}>
                       <div className="flex items-center gap-3">
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium text-charcoal">{item.name}</p>
+                          <p className="text-[11px] text-charcoal/35 mt-0.5">
+                            {formatHotRange(item)} · {formatCheckDays(item.check_days)} · {formatRequiredPeriods(item.required_periods)}
+                          </p>
+                          {!requiredForPeriod && (
+                            <p className="text-[11px] text-charcoal/35 mt-0.5">Not required for this check.</p>
+                          )}
                           {hasTemp && (
                             <p className={`text-[11px] mt-0.5 font-medium ${fail ? 'text-danger' : 'text-success'}`}>
-                              {fail ? `↓ Below ${HOT_HOLDING_MIN_TEMP}°C — corrective action required` : <span className="inline-flex items-center gap-0.5"><svg className="w-3 h-3" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg> Pass</span>}
+                              {fail ? 'Outside safe range — corrective action required' : <span className="inline-flex items-center gap-0.5"><svg className="w-3 h-3" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg> Pass</span>}
                             </p>
                           )}
                         </div>
+                        {isManager && <SettingsButton onClick={() => setSettingsItem(item)} />}
                         <input
                           type="number"
                           step="0.1"
@@ -338,13 +419,19 @@ export default function HotHoldingPage() {
                 <div className="flex flex-col gap-1.5">
                   {items.map(item => (
                     <div key={item.id} className="flex items-center justify-between px-4 py-2.5 rounded-xl border border-charcoal/8 bg-white">
-                      <span className="text-sm text-charcoal">{item.name}</span>
-                      <button
-                        onClick={() => handleRemoveItem(item.id)}
-                        className="text-[11px] text-charcoal/35 hover:text-danger transition-colors px-2"
-                      >
-                        Remove
-                      </button>
+                      <div>
+                        <p className="text-sm text-charcoal">{item.name}</p>
+                        <p className="text-[11px] text-charcoal/35">{formatHotRange(item)} · {formatCheckDays(item.check_days)} · {formatRequiredPeriods(item.required_periods)}</p>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <SettingsButton onClick={() => setSettingsItem(item)} />
+                        <button
+                          onClick={() => handleRemoveItem(item.id)}
+                          className="text-[11px] text-charcoal/35 hover:text-danger transition-colors px-2"
+                        >
+                          Remove
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -386,7 +473,7 @@ export default function HotHoldingPage() {
                 </thead>
                 <tbody>
                   {histLogs.map(log => {
-                    const fail = isHotHoldingFail(log.temperature)
+                    const fail = isHotHoldingFail(log.temperature, log.hot_holding_items)
                     return (
                       <tr key={log.id} className={`border-t border-charcoal/6 ${fail ? 'bg-danger/4' : ''}`}>
                         <td className="px-5 py-3 text-charcoal font-medium">{log.item_name}</td>
