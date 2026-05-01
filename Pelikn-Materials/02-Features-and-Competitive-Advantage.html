@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Pelikn — Features &amp; Competitive Advantage</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Serif+Display&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --brand: #1a3c2e;
+    --brand-mid: #2d6b4f;
+    --cream: #faf8f4;
+    --charcoal: #18181b;
+    --teal: #0d9488;
+    --teal-light: #14b8a6;
+    --orange: #e07b39;
+    --blue: #2563eb;
+    --purple: #7c3aed;
+    --rose: #e11d48;
+    --green: #16a34a;
+    --muted: #71717a;
+    --subtle: #a1a1aa;
+    --surface: #f4f4f5;
+    --border: #e4e4e7;
+  }
+
+  body {
+    font-family: 'DM Sans', -apple-system, system-ui, sans-serif;
+    background: #fff;
+    color: var(--charcoal);
+    font-size: 15px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .page {
+    width: 100%;
+    min-height: 100vh;
+    padding: 72px 80px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+    page-break-after: always;
+    overflow: hidden;
+  }
+
+  .page-num {
+    position: absolute;
+    bottom: 36px;
+    right: 80px;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--subtle);
+    letter-spacing: 1px;
+  }
+
+  .page-logo {
+    position: absolute;
+    bottom: 36px;
+    left: 80px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: var(--subtle);
+  }
+
+  .cover {
+    background: var(--brand);
+    color: #fff;
+    justify-content: flex-end;
+    padding-bottom: 100px;
+  }
+
+  .cover::before {
+    content: '';
+    position: absolute;
+    top: -15%;
+    right: -8%;
+    width: 55vw;
+    height: 55vw;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(13,148,136,0.18) 0%, transparent 70%);
+  }
+
+  .cover-badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--teal-light);
+    border: 1px solid rgba(20,184,166,0.3);
+    padding: 6px 16px;
+    border-radius: 100px;
+    margin-bottom: 40px;
+  }
+
+  .cover h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 64px;
+    font-weight: 400;
+    letter-spacing: -2px;
+    line-height: 1.0;
+    margin-bottom: 24px;
+    position: relative;
+    z-index: 2;
+  }
+
+  .cover-sub {
+    font-size: 18px;
+    font-weight: 400;
+    color: rgba(255,255,255,0.55);
+    max-width: 520px;
+    line-height: 1.6;
+    position: relative;
+    z-index: 2;
+  }
+
+  .eyebrow {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+    display: block;
+  }
+
+  .eyebrow--teal { color: var(--teal); }
+  .eyebrow--orange { color: var(--orange); }
+  .eyebrow--blue { color: var(--blue); }
+  .eyebrow--purple { color: var(--purple); }
+  .eyebrow--green { color: var(--green); }
+
+  .title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 48px;
+    font-weight: 400;
+    letter-spacing: -2px;
+    line-height: 1.08;
+    margin-bottom: 16px;
+  }
+
+  .subtitle {
+    font-size: 16px;
+    color: var(--muted);
+    max-width: 600px;
+    line-height: 1.6;
+    margin-bottom: 40px;
+  }
+
+  .page--dark { background: var(--charcoal); color: #fff; }
+  .page--dark .subtitle { color: rgba(255,255,255,0.45); }
+  .page--dark .page-num, .page--dark .page-logo { color: rgba(255,255,255,0.2); }
+
+  .page--brand { background: var(--brand); color: #fff; }
+  .page--brand .subtitle { color: rgba(255,255,255,0.5); }
+  .page--brand .page-num, .page--brand .page-logo { color: rgba(255,255,255,0.2); }
+
+  .page--cream { background: var(--cream); }
+
+  .g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .g3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 18px; }
+
+  .card {
+    border-radius: 14px;
+    padding: 24px;
+  }
+
+  .card--surface { background: var(--surface); }
+  .card--white { background: #fff; border: 1px solid var(--border); }
+  .card--teal { background: rgba(13,148,136,0.07); border: 1px solid rgba(13,148,136,0.14); }
+  .card--blue { background: rgba(37,99,235,0.06); border: 1px solid rgba(37,99,235,0.12); }
+  .card--purple { background: rgba(124,58,237,0.06); border: 1px solid rgba(124,58,237,0.12); }
+  .card--glass { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); }
+
+  .card h3 { font-size: 15px; font-weight: 700; margin-bottom: 8px; }
+  .card p { font-size: 13px; color: var(--muted); line-height: 1.55; }
+  .card--glass h3 { color: #fff; }
+  .card--glass p { color: rgba(255,255,255,0.5); }
+
+  .card-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 17px;
+    margin-bottom: 12px;
+  }
+
+  .feature-list {
+    list-style: none;
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .feature-list li {
+    font-size: 12px;
+    color: var(--muted);
+    padding-left: 16px;
+    position: relative;
+    line-height: 1.4;
+  }
+
+  .feature-list li::before {
+    content: '\2192';
+    position: absolute;
+    left: 0;
+    color: var(--teal);
+    font-weight: 700;
+  }
+
+  /* Comparison table */
+  .comp-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12.5px;
+  }
+
+  .comp-table th {
+    text-align: center;
+    padding: 10px 12px;
+    font-weight: 700;
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--muted);
+    border-bottom: 2px solid var(--charcoal);
+  }
+
+  .comp-table th:first-child { text-align: left; }
+
+  .comp-table td {
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--border);
+    text-align: center;
+    font-size: 12.5px;
+  }
+
+  .comp-table td:first-child { text-align: left; font-weight: 500; font-size: 13px; }
+
+  .comp-table .hl { background: rgba(13,148,136,0.04); }
+  .comp-table .hl td:first-child { color: var(--charcoal); }
+  .y { color: var(--teal); font-weight: 700; }
+  .n { color: #d4d4d8; }
+  .p { color: var(--orange); font-size: 11px; font-weight: 600; }
+  .hl-col { font-weight: 700; }
+
+  /* Differentiator cards */
+  .diff-card {
+    display: flex;
+    gap: 18px;
+    padding: 24px;
+    border-radius: 14px;
+    background: var(--surface);
+    margin-bottom: 16px;
+  }
+
+  .diff-num {
+    font-family: 'DM Serif Display', serif;
+    font-size: 40px;
+    color: var(--teal);
+    line-height: 1;
+    flex-shrink: 0;
+    width: 40px;
+  }
+
+  .diff-card h3 { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+  .diff-card p { font-size: 13px; color: var(--muted); line-height: 1.55; }
+
+  @media print {
+    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .page { page-break-after: always; }
+  }
+</style>
+</head>
+<body>
+
+<!-- PAGE 1 — COVER -->
+<div class="page cover">
+  <div class="cover-badge">Features &amp; Competitive Advantage &middot; May 2026</div>
+  <h1>Everything a venue<br/>needs. Nothing it doesn&rsquo;t.</h1>
+  <p class="cover-sub">
+    A detailed breakdown of Pelikn&rsquo;s feature set, platform architecture,
+    and competitive position in the UK hospitality operations market.
+  </p>
+  <div class="page-logo" style="color:rgba(255,255,255,0.2);">PELIKN</div>
+  <div class="page-num" style="color:rgba(255,255,255,0.15);">01</div>
+</div>
+
+<!-- PAGE 2 — COMPLIANCE SUITE -->
+<div class="page">
+  <span class="eyebrow eyebrow--teal">Compliance Suite</span>
+  <h2 class="title">EHO-ready from day one</h2>
+  <p class="subtitle">
+    Every compliance record your venue needs to pass inspection &mdash; digitised, timestamped,
+    and exportable as a PDF in one tap. Built to the UK Food Safety Act 1990 and FSA guidelines.
+  </p>
+
+  <div class="g3" style="margin-bottom:20px;">
+    <div class="card card--teal">
+      <div class="card-icon" style="background:rgba(13,148,136,0.12);">&#127777;</div>
+      <h3>Temperature Logs</h3>
+      <p>Fridge, freezer, cooking, reheating, hot holding and cooling records. Automatic pass/fail with corrective action prompts.</p>
+      <ul class="feature-list">
+        <li>Multiple log types per shift</li>
+        <li>Pass/fail threshold auto-detection</li>
+        <li>Corrective action audit trail</li>
+      </ul>
+    </div>
+    <div class="card card--teal">
+      <div class="card-icon" style="background:rgba(13,148,136,0.12);">&#129516;</div>
+      <h3>Allergen Registry</h3>
+      <p>All 14 major allergens tracked per dish. Natasha&rsquo;s Law compliant. Full audit trail with QR-code-accessible public matrix.</p>
+      <ul class="feature-list">
+        <li>Dish-level allergen management</li>
+        <li>Public QR allergen menu</li>
+        <li>Change history &amp; timestamps</li>
+      </ul>
+    </div>
+    <div class="card card--teal">
+      <div class="card-icon" style="background:rgba(13,148,136,0.12);">&#129529;</div>
+      <h3>Cleaning Schedules</h3>
+      <p>Daily, weekly and ad-hoc cleaning tasks with live completion tracking and sign-off by named staff member.</p>
+      <ul class="feature-list">
+        <li>Recurring &amp; one-off tasks</li>
+        <li>Named staff sign-off</li>
+        <li>Live completion dashboard</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="g3">
+    <div class="card card--surface">
+      <div class="card-icon" style="background:rgba(37,99,235,0.08);">&#128666;</div>
+      <h3>Delivery Checks</h3>
+      <p>Log supplier deliveries with temperature readings, condition notes and photo evidence. Rejected items flagged automatically.</p>
+    </div>
+    <div class="card card--surface">
+      <div class="card-icon" style="background:rgba(37,99,235,0.08);">&#129293;</div>
+      <h3>Probe Calibration</h3>
+      <p>Scheduled calibration records with ice-water test results. Alerts when probes are overdue for testing.</p>
+    </div>
+    <div class="card card--surface">
+      <div class="card-icon" style="background:rgba(37,99,235,0.08);">&#128203;</div>
+      <h3>Opening &amp; Closing Checks</h3>
+      <p>Custom digital checklists signed off every shift. Full timestamped history. No paper trail to lose.</p>
+    </div>
+  </div>
+
+  <div class="page-logo">PELIKN</div>
+  <div class="page-num">02</div>
+</div>
+
+<!-- PAGE 3 — WORKFORCE MANAGEMENT -->
+<div class="page page--cream">
+  <span class="eyebrow eyebrow--blue">Workforce Management</span>
+  <h2 class="title">From rota chaos to<br/>real-time visibility</h2>
+  <p class="subtitle">
+    Replaces spreadsheets, WhatsApp groups and separate timesheet software
+    with a single integrated suite for scheduling, time tracking and HR admin.
+  </p>
+
+  <div class="g2" style="gap:24px;margin-bottom:24px;">
+    <div class="card card--white">
+      <div class="card-icon" style="background:rgba(37,99,235,0.08);">&#128197;</div>
+      <h3>Rota Builder</h3>
+      <p>Drag-and-drop weekly scheduling with shift templates, role filtering and AI-assisted auto-fill. Publish rotas with a single click and staff receive instant push notifications.</p>
+      <ul class="feature-list">
+        <li>Shift templates &amp; copy-week</li>
+        <li>Role and department filtering</li>
+        <li>Availability conflict warnings</li>
+        <li>Push notifications on publish</li>
+      </ul>
+    </div>
+    <div class="card card--white">
+      <div class="card-icon" style="background:rgba(37,99,235,0.08);">&#128336;</div>
+      <h3>Timesheets &amp; Clock-in</h3>
+      <p>PIN-based clock-in/out on any device. Automatic break deductions. Overtime flagging. One-click CSV export for payroll. No third-party integrations needed.</p>
+      <ul class="feature-list">
+        <li>PIN clock-in on shared device</li>
+        <li>Automatic break calculations</li>
+        <li>Overtime &amp; late arrival alerts</li>
+        <li>CSV export for payroll</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="g3">
+    <div class="card card--surface">
+      <div class="card-icon" style="background:rgba(124,58,237,0.08);">&#127891;</div>
+      <h3>Training Tracker</h3>
+      <p>Food hygiene certs, allergen awareness training and custom courses. Expiry tracking with 30-day alerts. Per-staff compliance overview.</p>
+    </div>
+    <div class="card card--surface">
+      <div class="card-icon" style="background:rgba(124,58,237,0.08);">&#127954;</div>
+      <h3>Time Off &amp; Swaps</h3>
+      <p>Staff submit leave requests in-app. Managers approve or decline. Shift swap requests between staff with manager oversight.</p>
+    </div>
+    <div class="card card--surface">
+      <div class="card-icon" style="background:rgba(124,58,237,0.08);">&#128200;</div>
+      <h3>Labour Cost Dashboard</h3>
+      <p>Real-time labour cost vs scheduled hours. Actual vs budgeted comparison. Weekly and monthly trends per role.</p>
+    </div>
+  </div>
+
+  <div class="page-logo">PELIKN</div>
+  <div class="page-num">03</div>
+</div>
+
+<!-- PAGE 4 — DAILY OPS & PLATFORM -->
+<div class="page">
+  <span class="eyebrow eyebrow--orange">Daily Operations &amp; Platform</span>
+  <h2 class="title">Built for the kitchen floor,<br/>not a desktop</h2>
+  <p class="subtitle">
+    A platform designed around how hospitality actually works &mdash; fast-moving, high-pressure,
+    and often without reliable wifi.
+  </p>
+
+  <div class="g2" style="gap:24px;margin-bottom:24px;">
+    <div>
+      <div class="card card--surface" style="margin-bottom:16px;">
+        <div class="card-icon" style="background:rgba(224,123,57,0.08);">&#9989;</div>
+        <h3>Daily Tasks &amp; Checklists</h3>
+        <p>Recurring daily tasks auto-generate each shift. One-off tasks assignable to named staff. Completion tracked with timestamps and sign-off.</p>
+      </div>
+      <div class="card card--surface" style="margin-bottom:16px;">
+        <div class="card-icon" style="background:rgba(224,123,57,0.08);">&#128230;</div>
+        <h3>Supplier Orders &amp; Waste Logs</h3>
+        <p>Log supplier orders and track waste by category. Identify high-waste items and cost leakage over time.</p>
+      </div>
+      <div class="card card--surface">
+        <div class="card-icon" style="background:rgba(224,123,57,0.08);">&#128226;</div>
+        <h3>Staff Noticeboard</h3>
+        <p>Pin announcements, policy updates and reminders. Staff see notices on login. Acknowledgement tracking for important updates.</p>
+      </div>
+    </div>
+
+    <div>
+      <div style="background: var(--charcoal); color:#fff; border-radius:16px; padding:32px; height:100%;">
+        <div style="font-size:10px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--teal-light);margin-bottom:20px;">Platform Highlights</div>
+        <div style="display:flex;flex-direction:column;gap:16px;">
+          <div style="display:flex;gap:14px;align-items:flex-start;">
+            <span style="font-size:18px;flex-shrink:0;">&#128241;</span>
+            <div><strong style="font-size:14px;">True PWA</strong><p style="font-size:12px;color:rgba(255,255,255,0.5);margin-top:2px;">Installs from browser to homescreen. No App Store. Works on iPhone, Android, iPad and desktop.</p></div>
+          </div>
+          <div style="display:flex;gap:14px;align-items:flex-start;">
+            <span style="font-size:18px;flex-shrink:0;">&#127758;</span>
+            <div><strong style="font-size:14px;">Offline-First</strong><p style="font-size:12px;color:rgba(255,255,255,0.5);margin-top:2px;">Records are saved locally when offline and sync automatically when connection is restored. Critical for kitchens.</p></div>
+          </div>
+          <div style="display:flex;gap:14px;align-items:flex-start;">
+            <span style="font-size:18px;flex-shrink:0;">&#128274;</span>
+            <div><strong style="font-size:14px;">PIN Authentication</strong><p style="font-size:12px;color:rgba(255,255,255,0.5);margin-top:2px;">Staff use 4&ndash;6 digit PINs on a shared device. No passwords. 13 granular permission types across 3 roles.</p></div>
+          </div>
+          <div style="display:flex;gap:14px;align-items:flex-start;">
+            <span style="font-size:18px;flex-shrink:0;">&#127970;</span>
+            <div><strong style="font-size:14px;">Multi-Venue Hub</strong><p style="font-size:12px;color:rgba(255,255,255,0.5);margin-top:2px;">Single login manages all sites. Compliance scores, labour costs and staff metrics across your entire estate.</p></div>
+          </div>
+          <div style="display:flex;gap:14px;align-items:flex-start;">
+            <span style="font-size:18px;flex-shrink:0;">&#128196;</span>
+            <div><strong style="font-size:14px;">One-Tap EHO Reports</strong><p style="font-size:12px;color:rgba(255,255,255,0.5);margin-top:2px;">Generate a full PDF compliance report for any date range. Ready to hand to an inspector on arrival.</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="page-logo">PELIKN</div>
+  <div class="page-num">04</div>
+</div>
+
+<!-- PAGE 5 — TECHNICAL ARCHITECTURE -->
+<div class="page page--cream">
+  <span class="eyebrow eyebrow--purple">Technical Architecture</span>
+  <h2 class="title">Engineered for reliability<br/>and rapid scale</h2>
+  <p class="subtitle">
+    Modern cloud-native stack with offline resilience. Built to handle multi-venue
+    enterprises and thousands of daily compliance records without performance degradation.
+  </p>
+
+  <div class="g3" style="margin-bottom:24px;">
+    <div class="card card--white">
+      <h3 style="color:var(--teal);">Frontend</h3>
+      <ul class="feature-list" style="margin-top:8px;">
+        <li>React 18 + Vite 5</li>
+        <li>Tailwind CSS v3</li>
+        <li>React Router v6</li>
+        <li>PWA via Workbox</li>
+        <li>jsPDF for compliance exports</li>
+      </ul>
+    </div>
+    <div class="card card--white">
+      <h3 style="color:var(--blue);">Backend &amp; Data</h3>
+      <ul class="feature-list" style="margin-top:8px;">
+        <li>Supabase (PostgreSQL)</li>
+        <li>Row-Level Security (RLS)</li>
+        <li>UK-based data storage</li>
+        <li>UK GDPR / ICO registered</li>
+        <li>Real-time subscriptions</li>
+      </ul>
+    </div>
+    <div class="card card--white">
+      <h3 style="color:var(--purple);">Deployment</h3>
+      <ul class="feature-list" style="margin-top:8px;">
+        <li>Vercel (auto-deploy)</li>
+        <li>Zero-downtime deploys</li>
+        <li>Edge CDN globally</li>
+        <li>Auto-backups daily</li>
+        <li>SSL / HTTPS enforced</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="g2" style="gap:20px;">
+    <div class="card card--surface">
+      <h3>Multi-Tenant by Design</h3>
+      <p>Each venue is a fully isolated data silo. Row-Level Security enforced at the database level. No cross-venue data leakage possible. Enterprise-grade data isolation without enterprise complexity.</p>
+    </div>
+    <div class="card card--surface">
+      <h3>Offline-First Architecture</h3>
+      <p>Service worker caches all critical assets and data. Staff can log temperature readings, complete checklists and clock in/out with zero network connection. Records sync on reconnect automatically.</p>
+    </div>
+  </div>
+
+  <div class="page-logo">PELIKN</div>
+  <div class="page-num">05</div>
+</div>
+
+<!-- PAGE 6 — COMPETITIVE COMPARISON TABLE -->
+<div class="page">
+  <span class="eyebrow eyebrow--teal">Competitive Landscape</span>
+  <h2 class="title">The only all-in-one built<br/>for independent hospitality</h2>
+  <p class="subtitle">
+    Competitors address either compliance or operations &mdash; never both &mdash; at significantly higher price points.
+  </p>
+
+  <table class="comp-table">
+    <thead>
+      <tr>
+        <th>Capability</th>
+        <th class="hl">Pelikn</th>
+        <th>Trail</th>
+        <th>Operandio</th>
+        <th>Food Alert</th>
+        <th>Compliance4i</th>
+        <th>Manual</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>HACCP Temperature Logs</td><td class="hl hl-col"><span class="y">&#10003;</span></td><td><span class="y">&#10003;</span></td><td><span class="y">&#10003;</span></td><td><span class="y">&#10003;</span></td><td><span class="y">&#10003;</span></td><td><span class="p">Paper</span></td></tr>
+      <tr><td>Cleaning Schedules</td><td class="hl hl-col"><span class="y">&#10003;</span></td><td><span class="y">&#10003;</span></td><td><span class="y">&#10003;</span></td><td><span class="y">&#10003;</span></td><td><span class="y">&#10003;</span></td><td><span class="p">Paper</span></td></tr>
+      <tr><td>Allergen Registry</td><td class="hl hl-col"><span class="y">&#10003;</span></td><td><span class="n">&#10005;</span></td><td><span class="n">&#10005;</span></td><td><span class="y">&#10003;</span></td><td><span class="n">&#10005;</span></td><td><span class="p">Paper</span></td></tr>
+      <tr><td>Delivery Checks</td><td class="hl hl-col"><span class="y">&#10003;</span></td><td><span class="y">&#10003;</span></td><td><span class="y">&#10003;</span></td><td><span class="y">&#10003;</span></td><td><span class="y">&#10003;</span></td><td><span class="p">Paper</span></td></tr>
+      <tr><td>EHO-ready PDF Reports</td><td class="hl hl-col"><span class="y">&#10003;</span></td><td><span class="n">&#10005;</span></td><td><span class="n">&#10005;</span></td><td><span class="y">&#10003;</span></td><td><span class="y">&#10003;</span></td><td><span class="n">&#10005;</span></td></tr>
+      <tr><td>Rota Builder</td><td class="hl hl-col"><span class="y">&#10003;</span></td><td><span class="n">&#10005;</span></td><td><span class="y">&#10003;</span></td><td><span class="n">&#10005;</span></td><td><span class="n">&#10005;</span></td><td><span class="p">Excel</span></td></tr>
+      <tr><td>Timesheets &amp; Clock-in</td><td class="hl hl-col"><span class="y">&#10003;</span></td><td><span class="n">&#10005;</span></td><td><span class="y">&#10003;</span></td><td><span class="n">&#10005;</span></td><td><span class="n">&#10005;</span></td><td><span class="p">Excel</span></td></tr>
+      <tr><td>Staff Training Tracker</td><td class="hl hl-col"><span class="y">&#10003;</span></td><td><span class="n">&#10005;</span></td><td><span class="y">&#10003;</span></td><td><span class="y">&#10003;</span></td><td><span class="n">&#10005;</span></td><td><span class="n">&#10005;</span></td></tr>
+      <tr><td>Labour Cost Dashboard</td><td class="hl hl-col"><span class="y">&#10003;</span></td><td><span class="n">&#10005;</span></td><td><span class="y">&#10003;</span></td><td><span class="n">&#10005;</span></td><td><span class="n">&#10005;</span></td><td><span class="n">&#10005;</span></td></tr>
+      <tr><td>Time Off &amp; Shift Swaps</td><td class="hl hl-col"><span class="y">&#10003;</span></td><td><span class="n">&#10005;</span></td><td><span class="y">&#10003;</span></td><td><span class="n">&#10005;</span></td><td><span class="n">&#10005;</span></td><td><span class="p">WhatsApp</span></td></tr>
+      <tr><td>Offline Mode</td><td class="hl hl-col"><span class="y">&#10003;</span></td><td><span class="n">&#10005;</span></td><td><span class="n">&#10005;</span></td><td><span class="n">&#10005;</span></td><td><span class="n">&#10005;</span></td><td><span class="y">&#10003;</span></td></tr>
+      <tr><td>Multi-Venue Dashboard</td><td class="hl hl-col"><span class="y">&#10003;</span></td><td><span class="y">&#10003;</span></td><td><span class="y">&#10003;</span></td><td><span class="y">&#10003;</span></td><td><span class="y">&#10003;</span></td><td><span class="n">&#10005;</span></td></tr>
+      <tr><td>No App Store Required</td><td class="hl hl-col"><span class="y">&#10003;</span></td><td><span class="n">&#10005;</span></td><td><span class="n">&#10005;</span></td><td><span class="n">&#10005;</span></td><td><span class="n">&#10005;</span></td><td><span class="y">&#10003;</span></td></tr>
+      <tr><td>Works Offline</td><td class="hl hl-col"><span class="y">&#10003;</span></td><td><span class="n">&#10005;</span></td><td><span class="n">&#10005;</span></td><td><span class="n">&#10005;</span></td><td><span class="n">&#10005;</span></td><td><span class="y">&#10003;</span></td></tr>
+      <tr style="font-weight:700;">
+        <td>Monthly Price (1 venue)</td>
+        <td class="hl hl-col"><strong style="color:var(--teal);">&pound;5&ndash;25</strong></td>
+        <td>&pound;30+</td>
+        <td>&pound;50+</td>
+        <td>&pound;60+</td>
+        <td>&pound;40+</td>
+        <td>Free</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="page-logo">PELIKN</div>
+  <div class="page-num">06</div>
+</div>
+
+<!-- PAGE 7 — WHY PELIKN WINS -->
+<div class="page page--brand">
+  <span class="eyebrow" style="color:var(--teal-light);">Why Pelikn Wins</span>
+  <h2 class="title" style="color:#fff;font-size:48px;">Five unfair advantages</h2>
+  <p class="subtitle" style="color:rgba(255,255,255,0.5);">
+    The combination of these factors creates a moat that compliance-only or operations-only
+    tools cannot easily replicate.
+  </p>
+
+  <div style="display:flex;flex-direction:column;gap:14px;">
+    <div class="diff-card">
+      <div class="diff-num">1</div>
+      <div>
+        <h3>Price</h3>
+        <p>At &pound;5&ndash;25/month, Pelikn is 2&ndash;10x cheaper than any comparable tool. Eliminates the &ldquo;too expensive for a small venue&rdquo; objection entirely.</p>
+      </div>
+    </div>
+    <div class="diff-card">
+      <div class="diff-num">2</div>
+      <div>
+        <h3>All-in-one scope</h3>
+        <p>Compliance + operations in a single login. Customers don&rsquo;t need Trail for compliance, Rota Cloud for scheduling, and a separate timesheet tool. One bill, one system.</p>
+      </div>
+    </div>
+    <div class="diff-card">
+      <div class="diff-num">3</div>
+      <div>
+        <h3>Offline-first architecture</h3>
+        <p>The only digital compliance tool that works in a basement with no wifi. This is not a nice-to-have in a kitchen environment &mdash; it&rsquo;s a requirement.</p>
+      </div>
+    </div>
+    <div class="diff-card">
+      <div class="diff-num">4</div>
+      <div>
+        <h3>Zero-friction onboarding</h3>
+        <p>No app store. No per-staff accounts. No training required. A venue manager can have the whole team live in under 15 minutes. This drives trial conversion.</p>
+      </div>
+    </div>
+    <div class="diff-card">
+      <div class="diff-num">5</div>
+      <div>
+        <h3>UK-first, compliance-native</h3>
+        <p>Built specifically for UK legislation: Food Safety Act 1990, FSA guidelines, Natasha&rsquo;s Law, UK GDPR. Not a generic tool retrofitted for compliance.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="page-logo" style="color:rgba(255,255,255,0.2);">PELIKN</div>
+  <div class="page-num" style="color:rgba(255,255,255,0.15);">07</div>
+</div>
+
+</body>
+</html>

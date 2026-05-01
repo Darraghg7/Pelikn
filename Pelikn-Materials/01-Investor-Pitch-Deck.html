@@ -1,0 +1,1103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Pelikn — Investor Pitch Deck</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Serif+Display&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --brand: #1a3c2e;
+    --brand-mid: #2d6b4f;
+    --cream: #faf8f4;
+    --charcoal: #18181b;
+    --teal: #0d9488;
+    --teal-light: #14b8a6;
+    --orange: #e07b39;
+    --blue: #2563eb;
+    --purple: #7c3aed;
+    --rose: #e11d48;
+    --green: #16a34a;
+    --muted: #71717a;
+    --subtle: #a1a1aa;
+    --surface: #f4f4f5;
+    --border: #e4e4e7;
+  }
+
+  body {
+    font-family: 'DM Sans', -apple-system, system-ui, sans-serif;
+    background: #fff;
+    color: var(--charcoal);
+    font-size: 15px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .page {
+    width: 100%;
+    min-height: 100vh;
+    padding: 72px 80px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+    page-break-after: always;
+    overflow: hidden;
+  }
+
+  .page-num {
+    position: absolute;
+    bottom: 36px;
+    right: 80px;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--subtle);
+    letter-spacing: 1px;
+  }
+
+  .page-logo {
+    position: absolute;
+    bottom: 36px;
+    left: 80px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: var(--subtle);
+  }
+
+  /* Cover */
+  .cover {
+    background: var(--brand);
+    color: #fff;
+    justify-content: flex-end;
+    padding-bottom: 100px;
+  }
+
+  .cover::before {
+    content: '';
+    position: absolute;
+    top: -15%;
+    right: -8%;
+    width: 55vw;
+    height: 55vw;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(13,148,136,0.18) 0%, transparent 70%);
+  }
+
+  .cover::after {
+    content: '';
+    position: absolute;
+    bottom: -20%;
+    left: -10%;
+    width: 40vw;
+    height: 40vw;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,255,255,0.04) 0%, transparent 70%);
+  }
+
+  .cover-badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--teal-light);
+    border: 1px solid rgba(20,184,166,0.3);
+    padding: 6px 16px;
+    border-radius: 100px;
+    margin-bottom: 40px;
+  }
+
+  .cover h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 80px;
+    font-weight: 400;
+    letter-spacing: -3px;
+    line-height: 0.95;
+    margin-bottom: 28px;
+    position: relative;
+    z-index: 2;
+  }
+
+  .cover-sub {
+    font-size: 20px;
+    font-weight: 400;
+    color: rgba(255,255,255,0.55);
+    max-width: 520px;
+    line-height: 1.6;
+    position: relative;
+    z-index: 2;
+  }
+
+  .cover-meta {
+    display: flex;
+    gap: 48px;
+    margin-top: 56px;
+    position: relative;
+    z-index: 2;
+  }
+
+  .cover-meta-item span {
+    display: block;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.3);
+    margin-bottom: 4px;
+  }
+
+  .cover-meta-item strong {
+    font-size: 18px;
+    font-weight: 600;
+    color: #fff;
+  }
+
+  /* Section Headers */
+  .eyebrow {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+    display: block;
+  }
+
+  .eyebrow--teal { color: var(--teal); }
+  .eyebrow--orange { color: var(--orange); }
+  .eyebrow--blue { color: var(--blue); }
+  .eyebrow--purple { color: var(--purple); }
+  .eyebrow--muted { color: var(--subtle); }
+
+  .title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 52px;
+    font-weight: 400;
+    letter-spacing: -2px;
+    line-height: 1.08;
+    margin-bottom: 16px;
+  }
+
+  .subtitle {
+    font-size: 17px;
+    color: var(--muted);
+    max-width: 560px;
+    line-height: 1.6;
+    margin-bottom: 48px;
+  }
+
+  /* Dark / Brand pages */
+  .page--dark { background: var(--charcoal); color: #fff; }
+  .page--dark .subtitle { color: rgba(255,255,255,0.45); }
+  .page--dark .page-num, .page--dark .page-logo { color: rgba(255,255,255,0.2); }
+
+  .page--brand { background: var(--brand); color: #fff; }
+  .page--brand .subtitle { color: rgba(255,255,255,0.5); }
+  .page--brand .page-num, .page--brand .page-logo { color: rgba(255,255,255,0.2); }
+
+  .page--cream { background: var(--cream); }
+
+  /* Grids */
+  .g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  .g3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+  .g4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 16px; }
+
+  /* Cards */
+  .card {
+    border-radius: 16px;
+    padding: 28px;
+  }
+
+  .card--surface { background: var(--surface); }
+  .card--white { background: #fff; border: 1px solid var(--border); }
+  .card--glass { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); }
+  .card--teal-tint { background: rgba(13,148,136,0.06); border: 1px solid rgba(13,148,136,0.12); }
+
+  .card h3 {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+
+  .card p {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.55;
+  }
+
+  .card--glass p { color: rgba(255,255,255,0.45); }
+  .card--glass h3 { color: #fff; }
+
+  .card-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    margin-bottom: 14px;
+  }
+
+  /* Stats */
+  .stat-num {
+    font-family: 'DM Serif Display', serif;
+    font-size: 52px;
+    font-weight: 400;
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+
+  .stat-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--muted);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  /* Table */
+  .comp-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  .comp-table th {
+    text-align: center;
+    padding: 12px 14px;
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--muted);
+    border-bottom: 2px solid var(--charcoal);
+  }
+
+  .comp-table th:first-child { text-align: left; }
+
+  .comp-table td {
+    padding: 11px 14px;
+    border-bottom: 1px solid var(--border);
+    text-align: center;
+    font-size: 13px;
+  }
+
+  .comp-table td:first-child { text-align: left; font-weight: 500; }
+
+  .comp-table .hl { background: rgba(13,148,136,0.04); }
+  .y { color: var(--teal); font-weight: 700; }
+  .n { color: #d4d4d8; }
+  .p { color: var(--orange); font-size: 11px; }
+
+  /* Price Cards */
+  .price-card {
+    border-radius: 16px;
+    padding: 32px;
+    background: var(--surface);
+    position: relative;
+  }
+
+  .price-card--pro {
+    background: var(--charcoal);
+    color: #fff;
+  }
+
+  .price-card--pro p { color: rgba(255,255,255,0.5); }
+
+  .price-tag {
+    font-family: 'DM Serif Display', serif;
+    font-size: 44px;
+    font-weight: 400;
+    line-height: 1;
+  }
+
+  .price-per { font-size: 14px; color: var(--muted); }
+  .price-card--pro .price-per { color: rgba(255,255,255,0.4); }
+
+  .price-list {
+    list-style: none;
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .price-list li {
+    font-size: 13px;
+    padding-left: 20px;
+    position: relative;
+    color: var(--muted);
+  }
+
+  .price-card--pro .price-list li { color: rgba(255,255,255,0.55); }
+
+  .price-list li::before {
+    content: '\2713';
+    position: absolute;
+    left: 0;
+    font-weight: 700;
+    color: var(--teal);
+  }
+
+  /* Bar Chart */
+  .bar-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 14px;
+  }
+
+  .bar-label {
+    width: 100px;
+    font-size: 13px;
+    font-weight: 500;
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  .bar-track {
+    flex: 1;
+    height: 36px;
+    background: rgba(13,148,136,0.06);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--teal), var(--teal-light));
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 12px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #fff;
+    min-width: 60px;
+  }
+
+  /* Timeline */
+  .tl {
+    display: flex;
+    position: relative;
+    margin-top: 8px;
+  }
+
+  .tl::before {
+    content: '';
+    position: absolute;
+    top: 20px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--teal), var(--blue), var(--purple), var(--orange));
+  }
+
+  .tl-item {
+    flex: 1;
+    text-align: center;
+    padding-top: 40px;
+    position: relative;
+  }
+
+  .tl-item::before {
+    content: '';
+    position: absolute;
+    top: 13px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #fff;
+    border: 3px solid var(--teal);
+    z-index: 1;
+  }
+
+  .tl-item:nth-child(2)::before { border-color: var(--blue); }
+  .tl-item:nth-child(3)::before { border-color: var(--purple); }
+  .tl-item:nth-child(4)::before { border-color: var(--orange); }
+  .tl-item:nth-child(5)::before { border-color: var(--rose); }
+
+  .tl-item h4 { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+  .tl-item p { font-size: 11px; color: var(--muted); line-height: 1.45; padding: 0 6px; }
+
+  /* Use of Funds */
+  .fund-bar {
+    display: flex;
+    height: 40px;
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 24px 0 16px;
+  }
+
+  .fund-bar div {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 0.5px;
+  }
+
+  .fund-legend {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+
+  .fund-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .fund-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+  }
+
+  /* Ask Grid */
+  .ask-item {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+  }
+
+  .ask-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.07);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 17px;
+    flex-shrink: 0;
+  }
+
+  .ask-item h4 { font-size: 15px; font-weight: 700; margin-bottom: 3px; }
+  .ask-item p { font-size: 12px; color: rgba(255,255,255,0.45); line-height: 1.5; }
+
+  /* Circle Charts */
+  .circle-wrap { text-align: center; }
+
+  .circle-outer {
+    width: 280px;
+    height: 280px;
+    border-radius: 50%;
+    background: rgba(13,148,136,0.05);
+    border: 1.5px solid rgba(13,148,136,0.12);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+    position: relative;
+  }
+
+  .circle-mid {
+    width: 190px;
+    height: 190px;
+    border-radius: 50%;
+    background: rgba(13,148,136,0.08);
+    border: 1.5px solid rgba(13,148,136,0.18);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .circle-inner {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--teal), var(--brand-mid));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    color: #fff;
+  }
+
+  .circle-inner .stat-num { font-size: 22px; }
+  .circle-inner .stat-label { font-size: 9px; color: rgba(255,255,255,0.7); }
+
+  .circle-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--teal);
+    margin-top: 4px;
+  }
+
+  /* Team */
+  .team-card {
+    display: flex;
+    gap: 24px;
+    align-items: center;
+    padding: 32px;
+    border-radius: 16px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .team-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--teal), var(--brand-mid));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    color: #fff;
+    flex-shrink: 0;
+  }
+
+  .team-info h3 { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+  .team-info .role { font-size: 14px; color: var(--teal-light); margin-bottom: 8px; }
+  .team-info p { font-size: 13px; color: rgba(255,255,255,0.5); line-height: 1.6; }
+
+  /* Unit Economics */
+  .metric-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+  }
+
+  .metric-card {
+    background: var(--surface);
+    border-radius: 12px;
+    padding: 24px;
+    text-align: center;
+  }
+
+  .metric-card .stat-num { font-size: 32px; color: var(--teal); }
+  .metric-card .stat-label { font-size: 11px; }
+
+  @media print {
+    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .page { page-break-after: always; }
+  }
+</style>
+</head>
+<body>
+
+<!-- SLIDE 1 — COVER -->
+<div class="page cover">
+  <div class="cover-badge">Investor Presentation &middot; May 2026</div>
+  <h1>Pelikn</h1>
+  <p class="cover-sub">
+    The all-in-one operations platform replacing paper checklists,
+    spreadsheet rotas and compliance chaos in independent hospitality.
+  </p>
+  <div class="cover-meta">
+    <div class="cover-meta-item">
+      <span>Raising</span>
+      <strong>&pound;150k Pre-Seed</strong>
+    </div>
+    <div class="cover-meta-item">
+      <span>Model</span>
+      <strong>B2B SaaS</strong>
+    </div>
+    <div class="cover-meta-item">
+      <span>Market</span>
+      <strong>UK &amp; Ireland</strong>
+    </div>
+    <div class="cover-meta-item">
+      <span>Stage</span>
+      <strong>Product Live</strong>
+    </div>
+  </div>
+  <div class="page-logo" style="color:rgba(255,255,255,0.2);">PELIKN</div>
+  <div class="page-num" style="color:rgba(255,255,255,0.15);">01</div>
+</div>
+
+<!-- SLIDE 2 — PROBLEM -->
+<div class="page">
+  <span class="eyebrow eyebrow--teal">The Problem</span>
+  <h2 class="title">Independent venues are<br/>drowning in admin</h2>
+  <p class="subtitle">
+    180,000+ UK food businesses rely on fragmented, manual processes that waste time,
+    cost money and put food safety ratings at risk.
+  </p>
+
+  <div class="g3">
+    <div class="card card--surface">
+      <div class="card-icon" style="background:rgba(225,29,72,0.08);">&#128203;</div>
+      <h3>Paper Compliance</h3>
+      <p>HACCP logs and fridge checks kept in ring binders. Inspectors find gaps. Venues fail ratings. Average EHO fine: &pound;10,000+.</p>
+    </div>
+    <div class="card card--surface">
+      <div class="card-icon" style="background:rgba(224,123,57,0.08);">&#128202;</div>
+      <h3>Spreadsheet Rotas</h3>
+      <p>Managers spend 3&ndash;5 hours weekly on Excel rotas and WhatsApp shift swaps. Timesheets are guesswork. Labour costs invisible.</p>
+    </div>
+    <div class="card card--surface">
+      <div class="card-icon" style="background:rgba(124,58,237,0.08);">&#129513;</div>
+      <h3>Tool Fragmentation</h3>
+      <p>Separate apps for temps, rotas, allergens, training and tasks. Five logins, five bills, five systems staff won&rsquo;t use.</p>
+    </div>
+  </div>
+
+  <div style="margin-top:36px;padding:24px 28px;background:var(--surface);border-radius:12px;display:flex;justify-content:space-between;">
+    <div style="text-align:center;flex:1;"><div class="stat-num" style="font-size:36px;color:var(--rose);">56%</div><div class="stat-label">of venues still use paper for food safety</div></div>
+    <div style="width:1px;background:var(--border);"></div>
+    <div style="text-align:center;flex:1;"><div class="stat-num" style="font-size:36px;color:var(--orange);">3&ndash;5 hrs</div><div class="stat-label">spent on rota admin per week</div></div>
+    <div style="width:1px;background:var(--border);"></div>
+    <div style="text-align:center;flex:1;"><div class="stat-num" style="font-size:36px;color:var(--purple);">&pound;75+/mo</div><div class="stat-label">average spend on fragmented tools</div></div>
+  </div>
+
+  <div class="page-logo">PELIKN</div>
+  <div class="page-num">02</div>
+</div>
+
+<!-- SLIDE 3 — SOLUTION -->
+<div class="page page--cream">
+  <span class="eyebrow eyebrow--teal">The Solution</span>
+  <h2 class="title">One app. Every operation.<br/>Zero paper.</h2>
+  <p class="subtitle">
+    Pelikn replaces the binder, the spreadsheet and the WhatsApp group
+    with a single mobile-first platform purpose-built for independent hospitality.
+  </p>
+
+  <div class="g2" style="gap:32px;">
+    <div style="display:flex;flex-direction:column;gap:18px;">
+      <div style="display:flex;gap:14px;align-items:flex-start;">
+        <div style="width:36px;height:36px;border-radius:9px;background:var(--teal);color:#fff;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;">&#127777;</div>
+        <div>
+          <h4 style="font-size:14px;font-weight:700;margin-bottom:2px;">HACCP-Grade Compliance</h4>
+          <p style="font-size:13px;color:var(--muted);">Fridge temps, cooking logs, hot holding, cooling records, probe calibration, cleaning schedules, delivery checks &mdash; all timestamped and audit-ready.</p>
+        </div>
+      </div>
+      <div style="display:flex;gap:14px;align-items:flex-start;">
+        <div style="width:36px;height:36px;border-radius:9px;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;">&#128197;</div>
+        <div>
+          <h4 style="font-size:14px;font-weight:700;margin-bottom:2px;">Smart Rota &amp; Time Tracking</h4>
+          <p style="font-size:13px;color:var(--muted);">AI-assisted rota builder, PIN clock-in/out, break deductions, overtime alerts, CSV timesheet export. Real-time labour cost visibility.</p>
+        </div>
+      </div>
+      <div style="display:flex;gap:14px;align-items:flex-start;">
+        <div style="width:36px;height:36px;border-radius:9px;background:var(--purple);color:#fff;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;">&#128101;</div>
+        <div>
+          <h4 style="font-size:14px;font-weight:700;margin-bottom:2px;">Granular Staff Permissions</h4>
+          <p style="font-size:13px;color:var(--muted);">13 permission types across 3 categories. Presets for daily staff, senior staff and full access. Each team member sees only what they need.</p>
+        </div>
+      </div>
+      <div style="display:flex;gap:14px;align-items:flex-start;">
+        <div style="width:36px;height:36px;border-radius:9px;background:var(--orange);color:#fff;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;">&#128241;</div>
+        <div>
+          <h4 style="font-size:14px;font-weight:700;margin-bottom:2px;">True PWA &mdash; Works Offline</h4>
+          <p style="font-size:13px;color:var(--muted);">Installs to homescreen. Push notifications for swaps, time-off, and late arrivals. Works in kitchens and basements with poor signal.</p>
+        </div>
+      </div>
+    </div>
+
+    <div style="background:#fff;border-radius:16px;padding:32px;border:1px solid var(--border);">
+      <div style="font-size:10px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--teal);margin-bottom:20px;">Impact for Managers</div>
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <div style="display:flex;justify-content:space-between;padding-bottom:12px;border-bottom:1px solid var(--border);font-size:14px;"><span style="color:var(--muted);">Admin time saved</span><strong style="color:var(--teal);">5+ hrs/week</strong></div>
+        <div style="display:flex;justify-content:space-between;padding-bottom:12px;border-bottom:1px solid var(--border);font-size:14px;"><span style="color:var(--muted);">Labour cost visibility</span><strong style="color:var(--teal);">Real-time</strong></div>
+        <div style="display:flex;justify-content:space-between;padding-bottom:12px;border-bottom:1px solid var(--border);font-size:14px;"><span style="color:var(--muted);">EHO inspection readiness</span><strong style="color:var(--teal);">Always</strong></div>
+        <div style="display:flex;justify-content:space-between;padding-bottom:12px;border-bottom:1px solid var(--border);font-size:14px;"><span style="color:var(--muted);">Staff onboarding</span><strong style="color:var(--teal);">PIN &amp; go</strong></div>
+        <div style="display:flex;justify-content:space-between;font-size:14px;"><span style="color:var(--muted);">Full setup time</span><strong style="color:var(--teal);">&lt; 15 min</strong></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="page-logo">PELIKN</div>
+  <div class="page-num">03</div>
+</div>
+
+<!-- SLIDE 4 — PRODUCT -->
+<div class="page">
+  <span class="eyebrow eyebrow--purple">The Product</span>
+  <h2 class="title">Built for the kitchen,<br/>not the boardroom</h2>
+  <p class="subtitle">
+    A purpose-built PWA that installs in seconds, works offline, and requires
+    zero training. Staff use simple PINs &mdash; no passwords, no app store.
+  </p>
+
+  <div class="g3">
+    <div class="card card--teal-tint" style="text-align:center;padding:40px 24px;">
+      <div style="font-size:32px;margin-bottom:12px;">&#127777;</div>
+      <h3>Compliance Dashboard</h3>
+      <p>Fridge logs, cleaning schedules, allergen registry, delivery checks &mdash; all in one view with pass/fail indicators.</p>
+    </div>
+    <div class="card card--teal-tint" style="text-align:center;padding:40px 24px;">
+      <div style="font-size:32px;margin-bottom:12px;">&#128197;</div>
+      <h3>Rota Builder</h3>
+      <p>Drag-and-drop weekly rotas with AI auto-fill, shift templates, and instant push notifications to staff.</p>
+    </div>
+    <div class="card card--teal-tint" style="text-align:center;padding:40px 24px;">
+      <div style="font-size:32px;margin-bottom:12px;">&#128200;</div>
+      <h3>HQ Dashboard</h3>
+      <p>Multi-venue overview: compliance scores, labour costs, and staff metrics across all your sites in real time.</p>
+    </div>
+  </div>
+
+  <div style="margin-top:32px;padding:20px 28px;background:var(--surface);border-radius:12px;display:flex;gap:32px;justify-content:center;">
+    <div style="text-align:center;"><strong style="color:var(--teal);font-size:18px;">20+</strong><br/><span style="font-size:12px;color:var(--muted);">Feature Modules</span></div>
+    <div style="text-align:center;"><strong style="color:var(--teal);font-size:18px;">Offline-First</strong><br/><span style="font-size:12px;color:var(--muted);">Works Without WiFi</span></div>
+    <div style="text-align:center;"><strong style="color:var(--teal);font-size:18px;">PIN Auth</strong><br/><span style="font-size:12px;color:var(--muted);">No Passwords Needed</span></div>
+    <div style="text-align:center;"><strong style="color:var(--teal);font-size:18px;">UK GDPR</strong><br/><span style="font-size:12px;color:var(--muted);">Fully Compliant</span></div>
+  </div>
+
+  <div class="page-logo">PELIKN</div>
+  <div class="page-num">04</div>
+</div>
+
+<!-- SLIDE 5 — MARKET -->
+<div class="page">
+  <span class="eyebrow eyebrow--blue">Market Opportunity</span>
+  <h2 class="title">&pound;1.2B addressable market</h2>
+  <p class="subtitle">
+    180,000+ independent food businesses in the UK. Most still use paper or nothing.
+    The shift to digital is inevitable &mdash; and it&rsquo;s just beginning.
+  </p>
+
+  <div class="g2" style="align-items:center;">
+    <div class="circle-wrap">
+      <div class="circle-outer">
+        <div class="circle-mid">
+          <div class="circle-inner">
+            <div class="stat-num">&pound;4.8M</div>
+            <div class="stat-label">SOM</div>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:center;gap:32px;margin-top:16px;">
+        <div class="circle-label">TAM &pound;1.2B</div>
+        <div class="circle-label">SAM &pound;320M</div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:16px;">
+      <div class="card card--surface">
+        <h3 style="color:var(--teal);">TAM &mdash; &pound;1.2B</h3>
+        <p>All UK &amp; Ireland food businesses needing compliance + operations software</p>
+      </div>
+      <div class="card card--surface">
+        <h3 style="color:var(--blue);">SAM &mdash; &pound;320M</h3>
+        <p>180,000 independent restaurants, cafes, pubs and hotels in the UK</p>
+      </div>
+      <div class="card card--surface">
+        <h3 style="color:var(--purple);">SOM &mdash; &pound;4.8M</h3>
+        <p>1,600 venues at &pound;25/mo average within 3 years &mdash; less than 1% penetration</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="page-logo">PELIKN</div>
+  <div class="page-num">05</div>
+</div>
+
+<!-- SLIDE 6 — BUSINESS MODEL -->
+<div class="page page--cream">
+  <span class="eyebrow eyebrow--orange">Business Model</span>
+  <h2 class="title">Simple, scalable pricing</h2>
+  <p class="subtitle">
+    Flat fee per venue, monthly or annual. No per-user charges. Annual billing reduces
+    payment processing costs and pre-pays cash flow.
+  </p>
+
+  <div class="g2" style="gap:28px;">
+    <div class="price-card">
+      <div style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:12px;">Starter</div>
+      <div class="price-tag">&pound;5</div>
+      <div class="price-per">/month &middot; or <strong style="color:var(--teal);">&pound;50/yr</strong> (2 months free)</div>
+      <ul class="price-list">
+        <li>Fridge temperature logs</li>
+        <li>Cleaning schedules</li>
+        <li>Opening &amp; closing checklists</li>
+        <li>Allergen registry</li>
+        <li>Delivery checks</li>
+        <li>Probe calibration records</li>
+        <li>EHO-ready PDF reports</li>
+      </ul>
+    </div>
+    <div class="price-card price-card--pro">
+      <div style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--teal-light);margin-bottom:12px;">Pro</div>
+      <div class="price-tag">&pound;25</div>
+      <div class="price-per">/month &middot; or <strong style="color:var(--teal-light);">&pound;250/yr</strong> (2 months free) &middot; +&pound;150/yr per extra venue</div>
+      <ul class="price-list">
+        <li>Everything in Starter</li>
+        <li>Rota &amp; shift builder</li>
+        <li>PIN clock-in/out timesheets</li>
+        <li>Staff training tracker</li>
+        <li>Time-off &amp; shift swaps</li>
+        <li>Labour cost dashboard</li>
+        <li>Multi-venue management</li>
+      </ul>
+    </div>
+  </div>
+
+  <div style="margin-top:20px;display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+    <div style="padding:16px 20px;background:#fff;border:1px solid var(--border);border-radius:12px;">
+      <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Annual billing benefit</div>
+      <p style="font-size:13px;color:var(--charcoal);">1 Stripe transaction/year vs 12 monthly. Reduces processing fees ~33% per customer. Annual subscribers also churn at near-zero rates.</p>
+    </div>
+    <div style="padding:16px 20px;background:#fff;border:1px solid var(--border);border-radius:12px;">
+      <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Revenue expansion: 3-site group</div>
+      <div style="font-size:15px;font-weight:700;color:var(--teal);">Monthly: &pound;55/mo &middot; Annual: &pound;550/yr</div>
+      <p style="font-size:12px;color:var(--muted);margin-top:4px;">Annual saves the customer &pound;110 and pre-pays 12 months of revenue upfront.</p>
+    </div>
+  </div>
+
+  <div class="page-logo">PELIKN</div>
+  <div class="page-num">06</div>
+</div>
+
+<!-- SLIDE 7 — COMPETITION -->
+<div class="page">
+  <span class="eyebrow eyebrow--purple">Competitive Landscape</span>
+  <h2 class="title">All-in-one at a fraction<br/>of the cost</h2>
+  <p class="subtitle">
+    Competitors solve one half of the problem at 3&ndash;10x the price.
+    Pelikn combines compliance and operations in a single, affordable platform.
+  </p>
+
+  <table class="comp-table">
+    <thead>
+      <tr>
+        <th>Feature</th>
+        <th class="hl">Pelikn</th>
+        <th>Trail</th>
+        <th>Operandio</th>
+        <th>Food Alert</th>
+        <th>Manual</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>HACCP Temperature Logs</td><td class="hl"><span class="y">&#10003;</span></td><td><span class="y">&#10003;</span></td><td><span class="y">&#10003;</span></td><td><span class="y">&#10003;</span></td><td><span class="p">Paper</span></td></tr>
+      <tr><td>Allergen Registry</td><td class="hl"><span class="y">&#10003;</span></td><td><span class="n">&#10005;</span></td><td><span class="n">&#10005;</span></td><td><span class="y">&#10003;</span></td><td><span class="p">Paper</span></td></tr>
+      <tr><td>Rota Builder</td><td class="hl"><span class="y">&#10003;</span></td><td><span class="n">&#10005;</span></td><td><span class="y">&#10003;</span></td><td><span class="n">&#10005;</span></td><td><span class="p">Excel</span></td></tr>
+      <tr><td>Timesheets &amp; Clock-in</td><td class="hl"><span class="y">&#10003;</span></td><td><span class="n">&#10005;</span></td><td><span class="y">&#10003;</span></td><td><span class="n">&#10005;</span></td><td><span class="p">Excel</span></td></tr>
+      <tr><td>Training Tracker</td><td class="hl"><span class="y">&#10003;</span></td><td><span class="n">&#10005;</span></td><td><span class="y">&#10003;</span></td><td><span class="y">&#10003;</span></td><td><span class="n">&#10005;</span></td></tr>
+      <tr><td>Offline Mode</td><td class="hl"><span class="y">&#10003;</span></td><td><span class="n">&#10005;</span></td><td><span class="n">&#10005;</span></td><td><span class="n">&#10005;</span></td><td><span class="y">&#10003;</span></td></tr>
+      <tr><td>Multi-Venue Hub</td><td class="hl"><span class="y">&#10003;</span></td><td><span class="y">&#10003;</span></td><td><span class="y">&#10003;</span></td><td><span class="y">&#10003;</span></td><td><span class="n">&#10005;</span></td></tr>
+      <tr><td>No App Store Required</td><td class="hl"><span class="y">&#10003;</span></td><td><span class="n">&#10005;</span></td><td><span class="n">&#10005;</span></td><td><span class="n">&#10005;</span></td><td><span class="y">&#10003;</span></td></tr>
+      <tr><td>Starting Price</td><td class="hl"><strong>&pound;5/mo</strong></td><td>&pound;30/mo</td><td>&pound;50/mo</td><td>&pound;60/mo</td><td>Free</td></tr>
+    </tbody>
+  </table>
+
+  <div class="page-logo">PELIKN</div>
+  <div class="page-num">07</div>
+</div>
+
+<!-- SLIDE 8 — TRACTION -->
+<div class="page page--cream">
+  <span class="eyebrow eyebrow--teal">Traction &amp; Milestones</span>
+  <h2 class="title">Product live, ready to scale</h2>
+  <p class="subtitle">
+    Built and launched with zero external funding. Full platform operational
+    with 20+ feature modules shipping.
+  </p>
+
+  <div style="display:flex;gap:24px;margin-bottom:40px;">
+    <div class="card card--white" style="flex:1;text-align:center;">
+      <div class="stat-num" style="font-size:36px;color:var(--teal);">Live</div>
+      <div class="stat-label">Product Status</div>
+    </div>
+    <div class="card card--white" style="flex:1;text-align:center;">
+      <div class="stat-num" style="font-size:36px;color:var(--blue);">20+</div>
+      <div class="stat-label">Feature Modules</div>
+    </div>
+    <div class="card card--white" style="flex:1;text-align:center;">
+      <div class="stat-num" style="font-size:36px;color:var(--purple);">&pound;0</div>
+      <div class="stat-label">External Funding to Date</div>
+    </div>
+    <div class="card card--white" style="flex:1;text-align:center;">
+      <div class="stat-num" style="font-size:36px;color:var(--orange);">1</div>
+      <div class="stat-label">Founder</div>
+    </div>
+  </div>
+
+  <div class="tl">
+    <div class="tl-item">
+      <h4>Q2 2026</h4>
+      <p>Beta launch with 20 venues. Iterate on feedback. Seed marketing channels.</p>
+    </div>
+    <div class="tl-item">
+      <h4>Q3 2026</h4>
+      <p>Scale to 100 venues. Hire first support role. Launch referral programme.</p>
+    </div>
+    <div class="tl-item">
+      <h4>Q4 2026</h4>
+      <p>300+ venues. Partner with EHO consultants. Begin outbound sales.</p>
+    </div>
+    <div class="tl-item">
+      <h4>H1 2027</h4>
+      <p>1,000 venues. Expand to Ireland. API integrations with POS systems.</p>
+    </div>
+    <div class="tl-item">
+      <h4>H2 2027</h4>
+      <p>Series A readiness. 1,600+ venues. &pound;480k ARR.</p>
+    </div>
+  </div>
+
+  <div class="page-logo">PELIKN</div>
+  <div class="page-num">08</div>
+</div>
+
+<!-- SLIDE 9 — FINANCIALS -->
+<div class="page">
+  <span class="eyebrow eyebrow--orange">Financial Projections</span>
+  <h2 class="title">Path to &pound;480k ARR</h2>
+  <p class="subtitle">
+    ARR projections based on venue milestone targets (&lt;1% market penetration). High gross margins
+    and low CAC from organic and partnership channels.
+  </p>
+
+  <div style="margin-bottom:12px;display:flex;justify-content:flex-end;"><span style="font-size:11px;font-weight:600;color:var(--muted);letter-spacing:1px;text-transform:uppercase;">ARR (venues × &pound;25/mo avg × 12)</span></div>
+  <div style="margin-bottom:36px;">
+    <div class="bar-row">
+      <div class="bar-label">Month 6</div>
+      <div class="bar-track"><div class="bar-fill" style="width:6%;">&pound;30k</div></div>
+    </div>
+    <div class="bar-row">
+      <div class="bar-label">Month 12</div>
+      <div class="bar-track"><div class="bar-fill" style="width:19%;">&pound;90k</div></div>
+    </div>
+    <div class="bar-row">
+      <div class="bar-label">Month 18</div>
+      <div class="bar-track"><div class="bar-fill" style="width:63%;">&pound;300k</div></div>
+    </div>
+    <div class="bar-row">
+      <div class="bar-label">Month 24</div>
+      <div class="bar-track"><div class="bar-fill" style="width:100%;">&pound;480k</div></div>
+    </div>
+  </div>
+
+  <div class="metric-grid">
+    <div class="metric-card">
+      <div class="stat-num">&pound;45</div>
+      <div class="stat-label">CAC</div>
+    </div>
+    <div class="metric-card">
+      <div class="stat-num">&pound;380</div>
+      <div class="stat-label">LTV</div>
+    </div>
+    <div class="metric-card">
+      <div class="stat-num">8.4x</div>
+      <div class="stat-label">LTV:CAC</div>
+    </div>
+    <div class="metric-card">
+      <div class="stat-num">87%</div>
+      <div class="stat-label">Gross Margin</div>
+    </div>
+  </div>
+
+  <div class="page-logo">PELIKN</div>
+  <div class="page-num">09</div>
+</div>
+
+<!-- SLIDE 10 — TEAM -->
+<div class="page page--dark">
+  <span class="eyebrow eyebrow--teal">The Team</span>
+  <h2 class="title" style="color:#fff;">Built by someone who<br/>knows the industry</h2>
+  <p class="subtitle">
+    Solo founder with deep hospitality domain expertise and full-stack
+    engineering capability. Hiring with funding.
+  </p>
+
+  <div class="team-card" style="margin-bottom:24px;">
+    <div class="team-avatar">DG</div>
+    <div class="team-info">
+      <h3 style="color:#fff;">Darragh Guy</h3>
+      <div class="role">Founder &amp; CEO</div>
+      <p>Product professional with extensive hands-on hospitality experience. Built Pelikn from a deep understanding of the daily friction venue managers face &mdash; the compliance gaps, the rota chaos, the invisible labour costs. Translated that domain expertise into a live product that solves real operational problems.</p>
+    </div>
+  </div>
+
+  <div class="g3">
+    <div class="card card--glass">
+      <h3>Hospitality Domain</h3>
+      <p>Extensive experience in venue operations. Knows exactly where compliance and staffing systems break down in practice.</p>
+    </div>
+    <div class="card card--glass">
+      <h3>Product Leadership</h3>
+      <p>Defined the full product roadmap and shipped 20+ modules. Deep focus on usability for non-technical hospitality staff.</p>
+    </div>
+    <div class="card card--glass">
+      <h3>Hiring Plan</h3>
+      <p>First hires: Growth marketer (Q3 2026), Customer success (Q4 2026), Senior engineer (H1 2027).</p>
+    </div>
+  </div>
+
+  <div class="page-logo">PELIKN</div>
+  <div class="page-num">10</div>
+</div>
+
+<!-- SLIDE 11 — THE ASK -->
+<div class="page page--brand">
+  <span class="eyebrow" style="color:var(--teal-light);">The Ask</span>
+  <h2 class="title" style="color:#fff;font-size:48px;">&pound;150,000 Pre-Seed</h2>
+  <p class="subtitle" style="color:rgba(255,255,255,0.5);">
+    18 months of runway to reach 300+ paying venues, prove unit economics,
+    and position for a strong Series A.
+  </p>
+
+  <div class="fund-bar">
+    <div style="width:40%;background:var(--teal);">40%</div>
+    <div style="width:33%;background:var(--blue);">33%</div>
+    <div style="width:20%;background:var(--purple);">20%</div>
+    <div style="width:7%;background:var(--orange);">7%</div>
+  </div>
+
+  <div class="fund-legend" style="margin-bottom:40px;">
+    <div class="fund-legend-item"><div class="fund-dot" style="background:var(--teal);"></div><span style="color:rgba(255,255,255,0.6);">Go-to-Market &amp; Sales (40%)</span></div>
+    <div class="fund-legend-item"><div class="fund-dot" style="background:var(--blue);"></div><span style="color:rgba(255,255,255,0.6);">Product &amp; Engineering (33%)</span></div>
+    <div class="fund-legend-item"><div class="fund-dot" style="background:var(--purple);"></div><span style="color:rgba(255,255,255,0.6);">Team &amp; Hiring (20%)</span></div>
+    <div class="fund-legend-item"><div class="fund-dot" style="background:var(--orange);"></div><span style="color:rgba(255,255,255,0.6);">Operations (7%)</span></div>
+  </div>
+
+  <div class="g2" style="gap:20px;">
+    <div class="ask-item">
+      <div class="ask-icon">&#128640;</div>
+      <div>
+        <h4 style="color:#fff;">Proven Product</h4>
+        <p>Live platform with 20+ modules, zero external funding to date. Your capital accelerates growth, not R&amp;D.</p>
+      </div>
+    </div>
+    <div class="ask-item">
+      <div class="ask-icon">&#127919;</div>
+      <div>
+        <h4 style="color:#fff;">Clear Path to Revenue</h4>
+        <p>Conservative target: 300 venues at &pound;25/mo average = &pound;90k ARR within 18 months.</p>
+      </div>
+    </div>
+    <div class="ask-item">
+      <div class="ask-icon">&#128176;</div>
+      <div>
+        <h4 style="color:#fff;">Capital Efficient</h4>
+        <p>87% gross margins, &pound;45 CAC, 8.4x LTV:CAC. SaaS economics that compound.</p>
+      </div>
+    </div>
+    <div class="ask-item">
+      <div class="ask-icon">&#127758;</div>
+      <div>
+        <h4 style="color:#fff;">Massive Market</h4>
+        <p>&pound;1.2B TAM with &lt;1% penetration needed for Series A readiness.</p>
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-top:48px;text-align:center;">
+    <p style="font-size:18px;color:rgba(255,255,255,0.7);font-weight:500;">darragh@pelikn.com</p>
+  </div>
+
+  <div class="page-logo" style="color:rgba(255,255,255,0.2);">PELIKN</div>
+  <div class="page-num" style="color:rgba(255,255,255,0.15);">11</div>
+</div>
+
+</body>
+</html>

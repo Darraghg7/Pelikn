@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom'
 import {
   STARTER_PRICE, PRO_PRICE, EXTRA_VENUE_PRICE,
   PRO_PRICE_NUM, EXTRA_VENUE_PRICE_NUM,
+  STARTER_ANNUAL, PRO_ANNUAL, EXTRA_VENUE_ANNUAL,
+  PRO_ANNUAL_NUM, EXTRA_VENUE_ANNUAL_NUM,
 } from '../../lib/pricing'
 
 /* ── Logo ───────────────────────────────────────────────────────────────────── */
@@ -70,6 +72,7 @@ const FAQS = [
   { q: 'Does it work on iPhone, iPad and Android?', a: 'Yes. Pelikn works on any modern browser. Install to your home screen on iOS via Safari, or on Android via Chrome, for the full app experience without the browser bar.' },
   { q: 'What counts as a "venue"?', a: "Each venue is managed separately and billed individually. The first venue on Pro is £25/month; each additional one is £15/month. Starter is £5/month per venue. There's no separate multi-venue tier, just add venues as you grow." },
   { q: 'Is my data secure?', a: "All data is stored in a UK-based Supabase database with row-level security. Staff can only see their own venue's data. We're registered with the ICO under UK GDPR." },
+  { q: 'Can I pay annually instead of monthly?', a: 'Yes. Choose annual billing at checkout and pay for 10 months upfront — you get 12 months of access. That\'s 2 months free on every plan. Starter drops from £60/yr to £50/yr, and Pro drops from £300/yr to £250/yr. Monthly billing is always available if you prefer.' },
   { q: 'Can I cancel anytime?', a: 'Yes, no contracts, no cancellation fees. Cancel from your account settings and your subscription ends at the end of the current billing period.' },
   { q: 'How long does setup take?', a: "Most venues are up and running in under 15 minutes. The setup wizard walks you through your venue type, features and first staff invites. No training required." },
 ]
@@ -348,6 +351,148 @@ const ScreenCaption = ({ children }) => (
   <p className="text-[10px] tracking-widest uppercase text-charcoal/35 text-center font-medium mt-2">{children}</p>
 )
 
+/* ── Pricing section ─────────────────────────────────────────────────────────── */
+function PricingSection() {
+  const [annual, setAnnual] = useState(false)
+
+  const starterPrice    = annual ? STARTER_ANNUAL    : STARTER_PRICE
+  const proPrice        = annual ? PRO_ANNUAL        : PRO_PRICE
+  const extraVenuePrice = annual ? EXTRA_VENUE_ANNUAL : EXTRA_VENUE_PRICE
+  const proNum          = annual ? PRO_ANNUAL_NUM        : PRO_PRICE_NUM
+  const extraNum        = annual ? EXTRA_VENUE_ANNUAL_NUM : EXTRA_VENUE_PRICE_NUM
+  const suffix          = annual ? '/yr' : '/mo'
+
+  return (
+    <section id="pricing" className="bg-white border-y border-charcoal/8">
+      <div className="max-w-5xl mx-auto px-5 sm:px-8 py-14">
+        <SectionLabel>Pricing</SectionLabel>
+        <h2 className="text-2xl font-bold sm:text-4xl text-brand text-center mb-4 tracking-tight">
+          Simple, honest pricing
+        </h2>
+        <p className="text-charcoal/50 text-center max-w-md mx-auto text-sm leading-relaxed mb-8">
+          No hidden fees. No per-user charges. Pay monthly or save two months by paying annually.
+        </p>
+
+        {/* Billing toggle */}
+        <div className="flex items-center justify-center gap-3 mb-10">
+          <button
+            onClick={() => setAnnual(false)}
+            className={`text-sm font-medium px-4 py-2 rounded-xl transition-colors ${!annual ? 'bg-brand text-cream' : 'text-charcoal/50 hover:text-charcoal'}`}
+          >
+            Monthly
+          </button>
+          <button
+            onClick={() => setAnnual(true)}
+            className={`flex items-center gap-2 text-sm font-medium px-4 py-2 rounded-xl transition-colors ${annual ? 'bg-brand text-cream' : 'text-charcoal/50 hover:text-charcoal'}`}
+          >
+            Annual
+            <span className={`text-[10px] font-bold tracking-wide px-2 py-0.5 rounded-full ${annual ? 'bg-accent/20 text-accent/90' : 'bg-accent/10 text-accent'}`}>
+              2 months free
+            </span>
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 max-w-2xl mx-auto">
+          {/* Starter */}
+          <div className="rounded-2xl border border-charcoal/10 bg-white p-6 flex flex-col">
+            <p className="text-[11px] tracking-widest uppercase text-brand font-semibold mb-4">Starter</p>
+            <div className="flex items-baseline gap-1.5 mb-1">
+              <span className="text-3xl font-bold text-charcoal">{starterPrice}</span>
+              <span className="text-charcoal/40 text-sm">{suffix}</span>
+            </div>
+            <p className="text-xs text-charcoal/35 mb-1">per venue</p>
+            {annual && (
+              <p className="text-xs font-medium text-accent mb-4">Save £10 vs monthly — 2 months free</p>
+            )}
+            {!annual && <div className="mb-4" />}
+            <p className="text-xs text-charcoal/50 leading-relaxed mb-6">
+              Everything you need to pass an EHO inspection and replace paper records.
+            </p>
+            <ul className="flex flex-col gap-2.5 mb-7 flex-1">
+              {[
+                'Temperature logs (fridge, cooking, hot holding)',
+                'Cleaning schedules & records',
+                "Allergen registry (Natasha's Law)",
+                'Delivery checks with condition notes',
+                'Probe calibration records',
+                'Opening & closing checklists',
+                'Corrective actions log',
+                'Audit-ready compliance PDF reports',
+              ].map(f => (
+                <li key={f} className="flex items-start gap-2 text-xs text-charcoal/60">
+                  <span className="text-success mt-0.5 shrink-0">{icons.check}</span>
+                  {f}
+                </li>
+              ))}
+            </ul>
+            <Link to={`/signup?plan=starter&billing=${annual ? 'annual' : 'monthly'}`} className="block text-center border border-brand/25 text-brand py-3 rounded-xl text-sm font-semibold hover:bg-brand/5 transition-colors">
+              Start Free Trial
+            </Link>
+            <p className="text-[11px] text-charcoal/30 text-center mt-3">
+              Need rotas? <Link to={`/signup?plan=pro&billing=${annual ? 'annual' : 'monthly'}`} className="text-accent font-medium hover:underline">Upgrade to Pro →</Link>
+            </p>
+          </div>
+
+          {/* Pro */}
+          <div className="rounded-2xl border-2 border-accent/30 bg-accent/[0.02] p-6 flex flex-col relative">
+            <div className="absolute -top-3.5 inset-x-0 flex justify-center">
+              <span className="bg-accent text-cream text-[10px] tracking-widest uppercase font-semibold px-3 py-1 rounded-full">Most Popular</span>
+            </div>
+            <p className="text-[11px] tracking-widest uppercase text-accent font-semibold mb-4">Pro</p>
+            <div className="flex items-baseline gap-1.5 mb-1">
+              <span className="text-3xl font-bold text-accent">{proPrice}</span>
+              <span className="text-charcoal/40 text-sm">{suffix}</span>
+            </div>
+            <p className="text-xs text-charcoal/35 mb-1">first venue · {extraVenuePrice}{suffix} each additional</p>
+            {annual && (
+              <p className="text-xs font-medium text-accent mb-4">Save £50 vs monthly — 2 months free</p>
+            )}
+            {!annual && <div className="mb-4" />}
+            <p className="text-xs text-charcoal/50 leading-relaxed mb-4">
+              For any business that manages a team, it replaces your rota tool, timesheet app and training tracker - all in one place.
+            </p>
+            <div className="bg-white rounded-xl border border-charcoal/8 p-4 mb-6">
+              <p className="text-[10px] tracking-widest uppercase text-charcoal/30 mb-3">Price as you grow</p>
+              <div className="flex flex-col gap-1.5">
+                {[1, 2, 3, 5, 10].map(n => {
+                  const price = proNum + (n - 1) * extraNum
+                  return (
+                    <div key={n} className="flex items-center justify-between">
+                      <span className="text-xs text-charcoal/50">{n} venue{n > 1 ? 's' : ''}</span>
+                      <span className="text-xs font-semibold text-accent">£{price}{suffix}</span>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+            <ul className="flex flex-col gap-2.5 mb-7 flex-1">
+              {[
+                ['Everything in Starter', true],
+                ['Rota builder with AI auto-fill', false],
+                ['Timesheets & payroll CSV export', false],
+                ['Staff training records & expiry alerts', false],
+                ['Clock in / out & break tracking', false],
+                ['Time off requests & shift swaps', false],
+                ['Labour cost tracking', false],
+                ['Multi-venue, unlimited staff', false],
+              ].map(([f, bold]) => (
+                <li key={f} className="flex items-start gap-2 text-xs text-charcoal/60">
+                  <span className="text-accent mt-0.5 shrink-0">{icons.check}</span>
+                  {bold ? <strong className="text-charcoal/70">{f}</strong> : f}
+                </li>
+              ))}
+            </ul>
+            <Link to={`/signup?plan=pro&billing=${annual ? 'annual' : 'monthly'}`} className="block text-center bg-accent text-cream py-3 rounded-xl text-sm font-semibold hover:bg-accent/90 active:scale-[0.98] transition-all">
+              Start Free Trial
+            </Link>
+          </div>
+        </div>
+        <p className="text-center text-xs text-charcoal/30 mt-6">All plans include a 7-day free trial. No card required.</p>
+      </div>
+    </section>
+  )
+}
+
 /* ═══════════════════════════════════════════════════════════════════════════════
    MARKETING PAGE
    ═══════════════════════════════════════════════════════════════════════════════ */
@@ -467,106 +612,7 @@ export default function MarketingPage() {
       </section>
 
       {/* ── Pricing ──────────────────────────────────────────────────────────── */}
-      <section id="pricing" className="bg-white border-y border-charcoal/8">
-        <div className="max-w-5xl mx-auto px-5 sm:px-8 py-14">
-          <SectionLabel>Pricing</SectionLabel>
-          <h2 className="text-2xl font-bold sm:text-4xl text-brand text-center mb-4 tracking-tight">
-            Simple, honest pricing
-          </h2>
-          <p className="text-charcoal/50 text-center max-w-md mx-auto text-sm leading-relaxed mb-10">
-            No hidden fees. No per-user charges. Just a flat monthly rate per venue.
-          </p>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 max-w-2xl mx-auto">
-            {/* Starter */}
-            <div className="rounded-2xl border border-charcoal/10 bg-white p-6 flex flex-col">
-              <p className="text-[11px] tracking-widest uppercase text-brand font-semibold mb-4">Starter</p>
-              <div className="flex items-baseline gap-1.5 mb-1">
-                <span className="text-3xl font-bold text-charcoal">{STARTER_PRICE}</span>
-                <span className="text-charcoal/40 text-sm">/month</span>
-              </div>
-              <p className="text-xs text-charcoal/35 mb-5">per venue</p>
-              <p className="text-xs text-charcoal/50 leading-relaxed mb-6">
-                Everything you need to pass an EHO inspection and replace paper records.
-              </p>
-              <ul className="flex flex-col gap-2.5 mb-7 flex-1">
-                {[
-                  'Temperature logs (fridge, cooking, hot holding)',
-                  'Cleaning schedules & records',
-                  "Allergen registry (Natasha's Law)",
-                  'Delivery checks with condition notes',
-                  'Probe calibration records',
-                  'Opening & closing checklists',
-                  'Corrective actions log',
-                  'Audit-ready compliance PDF reports',
-                ].map(f => (
-                  <li key={f} className="flex items-start gap-2 text-xs text-charcoal/60">
-                    <span className="text-success mt-0.5 shrink-0">{icons.check}</span>
-                    {f}
-                  </li>
-                ))}
-              </ul>
-              <Link to="/signup?plan=starter" className="block text-center border border-brand/25 text-brand py-3 rounded-xl text-sm font-semibold hover:bg-brand/5 transition-colors">
-                Start Free Trial
-              </Link>
-              <p className="text-[11px] text-charcoal/30 text-center mt-3">
-                Need rotas? <Link to="/signup?plan=pro" className="text-accent font-medium hover:underline">Upgrade to Pro →</Link>
-              </p>
-            </div>
-
-            {/* Pro */}
-            <div className="rounded-2xl border-2 border-accent/30 bg-accent/[0.02] p-6 flex flex-col relative">
-              <div className="absolute -top-3.5 inset-x-0 flex justify-center">
-                <span className="bg-accent text-cream text-[10px] tracking-widest uppercase font-semibold px-3 py-1 rounded-full">Most Popular</span>
-              </div>
-              <p className="text-[11px] tracking-widest uppercase text-accent font-semibold mb-4">Pro</p>
-              <div className="flex items-baseline gap-1.5 mb-1">
-                <span className="text-3xl font-bold text-accent">{PRO_PRICE}</span>
-                <span className="text-charcoal/40 text-sm">/month</span>
-              </div>
-              <p className="text-xs text-charcoal/35 mb-5">first venue · {EXTRA_VENUE_PRICE}/month each additional</p>
-              <p className="text-xs text-charcoal/50 leading-relaxed mb-4">
-                For any business that manages a team, it replaces your rota tool, timesheet app and training tracker - all in one place.
-              </p>
-              <div className="bg-white rounded-xl border border-charcoal/8 p-4 mb-6">
-                <p className="text-[10px] tracking-widest uppercase text-charcoal/30 mb-3">Price as you grow</p>
-                <div className="flex flex-col gap-1.5">
-                  {[1, 2, 3, 5, 10].map(n => {
-                    const price = PRO_PRICE_NUM + (n - 1) * EXTRA_VENUE_PRICE_NUM
-                    return (
-                      <div key={n} className="flex items-center justify-between">
-                        <span className="text-xs text-charcoal/50">{n} venue{n > 1 ? 's' : ''}</span>
-                        <span className="text-xs font-semibold text-accent">£{price}/mo</span>
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
-              <ul className="flex flex-col gap-2.5 mb-7 flex-1">
-                {[
-                  ['Everything in Starter', true],
-                  ['Rota builder with AI auto-fill', false],
-                  ['Timesheets & payroll CSV export', false],
-                  ['Staff training records & expiry alerts', false],
-                  ['Clock in / out & break tracking', false],
-                  ['Time off requests & shift swaps', false],
-                  ['Labour cost tracking', false],
-                  ['Multi-venue, unlimited staff', false],
-                ].map(([f, bold]) => (
-                  <li key={f} className="flex items-start gap-2 text-xs text-charcoal/60">
-                    <span className="text-accent mt-0.5 shrink-0">{icons.check}</span>
-                    {bold ? <strong className="text-charcoal/70">{f}</strong> : f}
-                  </li>
-                ))}
-              </ul>
-              <Link to="/signup?plan=pro" className="block text-center bg-accent text-cream py-3 rounded-xl text-sm font-semibold hover:bg-accent/90 active:scale-[0.98] transition-all">
-                Start Free Trial
-              </Link>
-            </div>
-          </div>
-          <p className="text-center text-xs text-charcoal/30 mt-6">All plans include a 7-day free trial. No card required.</p>
-        </div>
-      </section>
+      <PricingSection />
 
       {/* ── How to install ────────────────────────────────────────────────────── */}
       <section className="max-w-5xl mx-auto px-5 sm:px-8 py-14">

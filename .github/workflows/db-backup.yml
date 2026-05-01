@@ -24,13 +24,14 @@ jobs:
           pg_dump "$SUPABASE_DB_URL" \
             --no-owner \
             --no-acl \
-            --format=custom \
-            --file="pelikn-backup-${TIMESTAMP}.dump"
+            --format=plain \
+            --lock-wait-timeout=60s \
+            | gzip > "pelikn-backup-${TIMESTAMP}.sql.gz"
 
       - name: Upload backup artifact
         uses: actions/upload-artifact@v4
         with:
           name: db-backup-${{ github.run_id }}-${{ github.run_attempt }}
-          path: pelikn-backup-*.dump
+          path: pelikn-backup-*.sql.gz
           retention-days: 30
           if-no-files-found: error
