@@ -1,0 +1,1258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Multi-Venue Dashboard — Design Options</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --brand:   #1a3c2e;
+      --charcoal:#1a1a18;
+      --cream:   #f5f0e8;
+      --accent:  #c94f2a;
+      --success: #2d7a4f;
+      --warning: #b45309;
+      --danger:  #c0392b;
+      --bg:      #f2ede4;
+      --white:   #ffffff;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: #e8e2d8;
+      color: var(--charcoal);
+      min-height: 100vh;
+    }
+
+    /* ── Page chrome ── */
+    .page-header {
+      background: var(--charcoal);
+      color: var(--cream);
+      padding: 20px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .page-header h1 { font-size: 15px; font-weight: 700; letter-spacing: -0.01em; }
+    .page-header p  { font-size: 12px; opacity: 0.45; margin-top: 2px; }
+
+    .option-tabs {
+      display: flex;
+      gap: 8px;
+    }
+    .option-tab {
+      padding: 6px 16px;
+      border-radius: 20px;
+      border: 1.5px solid rgba(255,255,255,0.15);
+      background: transparent;
+      color: rgba(255,255,255,0.5);
+      font-size: 12px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .option-tab.active {
+      background: var(--cream);
+      border-color: var(--cream);
+      color: var(--charcoal);
+    }
+
+    /* ── Layout wrapper ── */
+    .options-wrapper { padding: 32px; display: flex; flex-direction: column; gap: 64px; }
+
+    .option-section { display: flex; flex-direction: column; gap: 16px; }
+    .option-label {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .option-badge {
+      background: var(--charcoal);
+      color: var(--cream);
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 4px 12px;
+      border-radius: 20px;
+    }
+    .option-title { font-size: 18px; font-weight: 700; }
+    .option-desc  { font-size: 13px; color: rgba(26,26,24,0.5); }
+
+    /* ── Mock browser shell ── */
+    .browser {
+      background: #d4cfc6;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .browser-bar {
+      background: #c8c3ba;
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .browser-dots { display: flex; gap: 5px; }
+    .browser-dots span { width: 10px; height: 10px; border-radius: 50%; background: rgba(0,0,0,0.15); }
+    .browser-url {
+      flex: 1;
+      background: rgba(255,255,255,0.5);
+      border-radius: 6px;
+      padding: 4px 10px;
+      font-size: 11px;
+      color: rgba(26,26,24,0.5);
+      font-family: 'DM Mono', monospace;
+    }
+
+    .browser-content {
+      background: var(--bg);
+      display: flex;
+      min-height: 560px;
+    }
+
+    /* ── App sidebar ── */
+    .sidebar {
+      width: 220px;
+      background: var(--charcoal);
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      padding: 20px 0;
+    }
+    .sidebar-brand {
+      padding: 0 20px 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      margin-bottom: 8px;
+    }
+    .sidebar-brand-name { font-size: 16px; font-weight: 800; color: var(--cream); letter-spacing: -0.02em; }
+    .sidebar-venue { font-size: 10px; color: rgba(245,240,232,0.35); text-transform: uppercase; letter-spacing: 0.1em; margin-top: 2px; }
+    .sidebar-nav { display: flex; flex-direction: column; gap: 2px; padding: 0 10px; }
+    .nav-item {
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      color: rgba(245,240,232,0.45);
+      display: flex;
+      align-items: center;
+      gap: 9px;
+    }
+    .nav-item.active { background: rgba(255,255,255,0.08); color: var(--cream); }
+    .nav-item.highlight { background: rgba(201,79,42,0.15); color: #e07a5a; }
+    .nav-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); margin-left: auto; }
+    .sidebar-section-label {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(245,240,232,0.2);
+      padding: 12px 22px 4px;
+    }
+    .sidebar-venues {
+      margin-top: auto;
+      padding: 12px 10px 0;
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+    .venue-switcher-item {
+      padding: 7px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      color: rgba(245,240,232,0.4);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+    }
+    .venue-switcher-item.current { color: rgba(245,240,232,0.75); }
+    .venue-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+
+    /* ── Main content area ── */
+    .main { flex: 1; overflow: auto; padding: 28px; display: flex; flex-direction: column; gap: 20px; }
+
+    /* ── Shared UI primitives ── */
+    .card {
+      background: var(--white);
+      border-radius: 16px;
+      border: 1px solid rgba(26,26,24,0.07);
+    }
+    .card-header {
+      padding: 14px 18px;
+      border-bottom: 1px solid rgba(26,26,24,0.06);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .card-body { padding: 16px 18px; }
+
+    .label-xs {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgba(26,26,24,0.35);
+    }
+    .status-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+    .dot-green  { background: var(--success); }
+    .dot-amber  { background: var(--warning); }
+    .dot-red    { background: var(--danger); }
+    .dot-grey   { background: rgba(26,26,24,0.2); }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 10px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 20px;
+    }
+    .pill-green { background: rgba(45,122,79,0.1); color: var(--success); }
+    .pill-amber { background: rgba(180,83,9,0.1);  color: var(--warning); }
+    .pill-red   { background: rgba(192,57,43,0.1); color: var(--danger); }
+    .pill-grey  { background: rgba(26,26,24,0.06); color: rgba(26,26,24,0.45); }
+
+    .badge-brand {
+      display: inline-flex;
+      align-items: center;
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: rgba(26,60,46,0.1);
+      color: var(--brand);
+    }
+    .badge-pro {
+      background: rgba(201,79,42,0.1);
+      color: var(--accent);
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 14px;
+      border-radius: 9px;
+      font-size: 12px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      border: none;
+      transition: all 0.15s;
+    }
+    .btn-primary { background: var(--charcoal); color: var(--cream); }
+    .btn-ghost   { background: transparent; border: 1.5px solid rgba(26,26,24,0.12); color: rgba(26,26,24,0.6); }
+    .btn-success { background: var(--success); color: #fff; }
+    .btn-xs { padding: 4px 10px; font-size: 11px; border-radius: 7px; }
+
+    /* ── Page title row ── */
+    .page-title { font-size: 22px; font-weight: 800; letter-spacing: -0.02em; color: var(--charcoal); }
+    .page-subtitle { font-size: 13px; color: rgba(26,26,24,0.4); margin-top: 2px; }
+
+    /* ═══════════════════════════════════════════════════
+       OPTION A — Enhanced card grid
+    ═══════════════════════════════════════════════════ */
+
+    .summary-bar {
+      background: var(--white);
+      border-radius: 14px;
+      border: 1px solid rgba(26,26,24,0.07);
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      gap: 24px;
+    }
+    .summary-stat { display: flex; flex-direction: column; gap: 1px; }
+    .summary-stat .num  { font-size: 22px; font-weight: 800; letter-spacing: -0.03em; color: var(--charcoal); }
+    .summary-stat .lbl  { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: rgba(26,26,24,0.35); }
+    .summary-divider { width: 1px; height: 32px; background: rgba(26,26,24,0.08); }
+    .summary-stat .num.warn { color: var(--warning); }
+    .summary-stat .num.danger { color: var(--danger); }
+    .summary-stat .num.success { color: var(--success); }
+
+    .venue-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+    .venue-card { background: var(--white); border-radius: 16px; border: 1px solid rgba(26,26,24,0.07); overflow: hidden; }
+    .venue-card-header { padding: 14px 16px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid rgba(26,26,24,0.06); }
+    .venue-card-name { font-size: 14px; font-weight: 700; flex: 1; }
+    .venue-card-body { padding: 14px 16px; display: flex; flex-direction: column; gap: 12px; }
+
+    .checks-row { display: flex; flex-wrap: wrap; gap: 5px; }
+
+    .stat-row { display: flex; align-items: center; gap: 6px; font-size: 12px; color: rgba(26,26,24,0.55); }
+    .stat-row strong { color: var(--charcoal); font-weight: 700; }
+
+    .time-off-mini {
+      background: rgba(26,26,24,0.03);
+      border-radius: 10px;
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+    .time-off-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .time-off-name { font-size: 12px; font-weight: 600; flex: 1; }
+    .time-off-date { font-size: 11px; color: rgba(26,26,24,0.4); }
+
+    /* ═══════════════════════════════════════════════════
+       OPTION B — HQ triage view
+    ═══════════════════════════════════════════════════ */
+
+    .hq-metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+    .hq-metric {
+      background: var(--white);
+      border-radius: 14px;
+      border: 1px solid rgba(26,26,24,0.07);
+      padding: 16px 18px;
+    }
+    .hq-metric .num  { font-size: 28px; font-weight: 800; letter-spacing: -0.04em; }
+    .hq-metric .lbl  { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: rgba(26,26,24,0.35); margin-top: 2px; }
+    .hq-metric .sub  { font-size: 11px; color: rgba(26,26,24,0.4); margin-top: 6px; }
+    .hq-metric.alert { border-color: rgba(180,83,9,0.25); background: rgba(180,83,9,0.03); }
+    .hq-metric.alert .num { color: var(--warning); }
+    .hq-metric.ok .num { color: var(--success); }
+
+    .attention-section {
+      background: rgba(180,83,9,0.04);
+      border: 1.5px solid rgba(180,83,9,0.2);
+      border-radius: 14px;
+      overflow: hidden;
+    }
+    .attention-header {
+      padding: 12px 16px;
+      background: rgba(180,83,9,0.07);
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--warning);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .attention-item {
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-top: 1px solid rgba(180,83,9,0.1);
+    }
+    .attention-icon { font-size: 14px; flex-shrink: 0; }
+    .attention-venue { font-size: 12px; font-weight: 700; }
+    .attention-detail { font-size: 11px; color: rgba(26,26,24,0.5); margin-top: 1px; }
+
+    .critical-section {
+      background: rgba(192,57,43,0.04);
+      border: 1.5px solid rgba(192,57,43,0.2);
+      border-radius: 14px;
+      overflow: hidden;
+    }
+    .critical-header {
+      padding: 12px 16px;
+      background: rgba(192,57,43,0.07);
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--danger);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .critical-item {
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-top: 1px solid rgba(192,57,43,0.1);
+    }
+
+    .venues-list { display: flex; flex-direction: column; gap: 1px; background: rgba(26,26,24,0.06); border-radius: 14px; overflow: hidden; }
+    .venues-list-header {
+      background: var(--white);
+      padding: 10px 16px;
+      display: grid;
+      grid-template-columns: 1fr 80px 80px 80px 100px;
+      gap: 8px;
+    }
+    .venues-list-header span { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: rgba(26,26,24,0.3); }
+    .venue-row {
+      background: var(--white);
+      padding: 12px 16px;
+      display: grid;
+      grid-template-columns: 1fr 80px 80px 80px 100px;
+      gap: 8px;
+      align-items: center;
+    }
+    .venue-row:hover { background: rgba(26,26,24,0.02); }
+    .venue-row-name { display: flex; align-items: center; gap: 8px; }
+    .venue-row-name strong { font-size: 13px; font-weight: 700; }
+    .venue-row-name small  { font-size: 11px; color: rgba(26,26,24,0.35); }
+    .venue-col { font-size: 12px; font-weight: 600; color: rgba(26,26,24,0.6); display: flex; align-items: center; gap: 4px; }
+    .venue-col.ok  { color: var(--success); }
+    .venue-col.warn { color: var(--warning); }
+
+    /* ═══════════════════════════════════════════════════
+       OPTION C — Tabbed HQ view
+    ═══════════════════════════════════════════════════ */
+
+    .inner-tabs { display: flex; gap: 4px; background: rgba(26,26,24,0.06); border-radius: 10px; padding: 3px; width: fit-content; }
+    .inner-tab {
+      padding: 6px 16px;
+      border-radius: 7px;
+      font-size: 12px;
+      font-weight: 600;
+      color: rgba(26,26,24,0.45);
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      font-family: inherit;
+      position: relative;
+    }
+    .inner-tab.active { background: var(--white); color: var(--charcoal); box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+    .inner-tab .tab-badge {
+      position: absolute;
+      top: 4px;
+      right: 8px;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: flex; flex-direction: column; gap: 14px; }
+
+    /* Today tab */
+    .today-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .today-venue-card { background: var(--white); border-radius: 14px; border: 1px solid rgba(26,26,24,0.07); overflow: hidden; }
+    .today-venue-header {
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid rgba(26,26,24,0.06);
+    }
+    .today-venue-name { font-size: 13px; font-weight: 700; flex: 1; }
+    .today-venue-body { padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; }
+    .check-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+    .check-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      font-weight: 500;
+    }
+    .check-item.done { color: var(--success); }
+    .check-item.miss { color: var(--warning); }
+    .check-icon { font-size: 11px; }
+
+    /* Team tab */
+    .team-table { background: var(--white); border-radius: 14px; border: 1px solid rgba(26,26,24,0.07); overflow: hidden; }
+    .team-table-header {
+      display: grid;
+      grid-template-columns: 1fr 120px 120px 100px 100px;
+      padding: 10px 16px;
+      border-bottom: 1px solid rgba(26,26,24,0.06);
+      background: rgba(26,26,24,0.02);
+    }
+    .team-table-header span { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: rgba(26,26,24,0.3); }
+    .team-row {
+      display: grid;
+      grid-template-columns: 1fr 120px 120px 100px 100px;
+      padding: 10px 16px;
+      border-bottom: 1px solid rgba(26,26,24,0.04);
+      align-items: center;
+    }
+    .team-row:last-child { border-bottom: none; }
+    .staff-name { font-size: 13px; font-weight: 600; }
+    .staff-venue-tag {
+      font-size: 10px;
+      font-weight: 600;
+      color: rgba(26,26,24,0.4);
+      background: rgba(26,26,24,0.05);
+      padding: 2px 6px;
+      border-radius: 4px;
+      margin-top: 2px;
+      display: inline-block;
+    }
+    .team-col { font-size: 12px; color: rgba(26,26,24,0.55); }
+    .team-col strong { color: var(--charcoal); }
+    .clock-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 6px; }
+    .clock-in    { background: rgba(45,122,79,0.1);  color: var(--success); }
+    .clock-out   { background: rgba(26,26,24,0.06);  color: rgba(26,26,24,0.4); }
+    .on-leave    { background: rgba(180,83,9,0.1);   color: var(--warning); }
+
+    /* Issues tab */
+    .issues-section { display: flex; flex-direction: column; gap: 8px; }
+    .issues-section-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(26,26,24,0.4); margin-bottom: 2px; }
+    .issue-card {
+      background: var(--white);
+      border-radius: 12px;
+      border: 1px solid rgba(26,26,24,0.07);
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .issue-card.critical { border-left: 3px solid var(--danger);  border-left-color: var(--danger); }
+    .issue-card.warning  { border-left: 3px solid var(--warning); }
+    .issue-icon { font-size: 16px; }
+    .issue-title { font-size: 13px; font-weight: 700; }
+    .issue-meta  { font-size: 11px; color: rgba(26,26,24,0.45); margin-top: 2px; }
+    .issue-venue { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; padding: 2px 7px; border-radius: 4px; background: rgba(26,26,24,0.06); color: rgba(26,26,24,0.5); margin-left: auto; flex-shrink: 0; }
+
+    /* General utility */
+    .flex { display: flex; }
+    .flex-col { flex-direction: column; }
+    .items-center { align-items: center; }
+    .justify-between { justify-content: space-between; }
+    .gap-2 { gap: 8px; }
+    .gap-3 { gap: 12px; }
+    .ml-auto { margin-left: auto; }
+    .opacity-50 { opacity: 0.5; }
+    .font-mono { font-family: 'DM Mono', monospace; }
+
+    /* Section dividers */
+    .section-divider {
+      padding: 48px 0 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .section-divider::before, .section-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: rgba(26,26,24,0.12);
+    }
+    .section-divider span {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: rgba(26,26,24,0.3);
+      padding: 0 8px;
+    }
+
+    /* Annotation callouts */
+    .annotations { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+    .annotation {
+      background: var(--charcoal);
+      color: var(--cream);
+      font-size: 11px;
+      padding: 6px 12px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .annotation .tag {
+      background: rgba(255,255,255,0.1);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+  </style>
+</head>
+<body>
+
+<div class="page-header">
+  <div>
+    <h1>Multi-Venue Dashboard — Design Concepts</h1>
+    <p>3 options for owners managing multiple venues</p>
+  </div>
+</div>
+
+<div class="options-wrapper">
+
+  <!-- ══════════════════════════════════════════════════════
+       OPTION A
+  ══════════════════════════════════════════════════════ -->
+
+  <div class="option-section">
+    <div>
+      <div class="option-label">
+        <span class="option-badge">Option A</span>
+        <span class="option-title">Enhanced card grid</span>
+      </div>
+      <p class="option-desc" style="margin-top:6px">Evolution of the current overview. Summary bar + richer venue cards. Best for 2–4 venues.</p>
+    </div>
+
+    <div class="browser">
+      <div class="browser-bar">
+        <div class="browser-dots"><span></span><span></span><span></span></div>
+        <div class="browser-url">pelikn.app/overview</div>
+      </div>
+      <div class="browser-content">
+
+        <!-- Sidebar -->
+        <div class="sidebar">
+          <div class="sidebar-brand">
+            <div class="sidebar-brand-name">Pelikn</div>
+            <div class="sidebar-venue">Overview</div>
+          </div>
+          <div class="sidebar-nav">
+            <div class="nav-item active">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+              My Venues
+            </div>
+          </div>
+          <div class="sidebar-section-label">Jump to venue</div>
+          <div class="sidebar-venues">
+            <div class="venue-switcher-item current">
+              <span class="venue-dot dot-green"></span> Brew & Bloom
+            </div>
+            <div class="venue-switcher-item">
+              <span class="venue-dot dot-amber"></span> The Canteen
+            </div>
+            <div class="venue-switcher-item">
+              <span class="venue-dot dot-green"></span> Corner Cup
+            </div>
+          </div>
+        </div>
+
+        <!-- Main -->
+        <div class="main">
+          <div>
+            <div class="page-title">My Venues</div>
+            <div class="page-subtitle">Thursday, 1 May · 3 venues</div>
+          </div>
+
+          <!-- Summary bar -->
+          <div class="summary-bar">
+            <div class="summary-stat">
+              <div class="num">3</div>
+              <div class="lbl">Venues</div>
+            </div>
+            <div class="summary-divider"></div>
+            <div class="summary-stat">
+              <div class="num success">2</div>
+              <div class="lbl">All clear</div>
+            </div>
+            <div class="summary-divider"></div>
+            <div class="summary-stat">
+              <div class="num warn">1</div>
+              <div class="lbl">Attention</div>
+            </div>
+            <div class="summary-divider"></div>
+            <div class="summary-stat">
+              <div class="num">14</div>
+              <div class="lbl">On shift</div>
+            </div>
+            <div class="summary-divider"></div>
+            <div class="summary-stat">
+              <div class="num">3</div>
+              <div class="lbl">Leave pending</div>
+            </div>
+            <div class="ml-auto">
+              <button class="btn btn-ghost" style="font-size:11px;padding:6px 12px;">Export report</button>
+            </div>
+          </div>
+
+          <!-- Venue grid -->
+          <div class="venue-grid">
+
+            <!-- Card 1: all good -->
+            <div class="venue-card">
+              <div class="venue-card-header">
+                <span class="status-dot dot-green"></span>
+                <span class="venue-card-name">Brew & Bloom</span>
+                <span class="badge-brand">Home</span>
+                <button class="btn btn-ghost btn-xs" style="margin-left:8px">Open →</button>
+              </div>
+              <div class="venue-card-body">
+                <div>
+                  <div class="label-xs" style="margin-bottom:6px">Today's checks</div>
+                  <div class="checks-row">
+                    <span class="pill pill-green">✓ Fridge AM</span>
+                    <span class="pill pill-green">✓ Fridge PM</span>
+                    <span class="pill pill-green">✓ Cooking</span>
+                    <span class="pill pill-green">✓ Hot Hold AM</span>
+                    <span class="pill pill-green">✓ Hot Hold PM</span>
+                    <span class="pill pill-green">✓ Opening checks</span>
+                  </div>
+                </div>
+                <div class="stat-row">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                  <strong>5</strong> on shift · <strong>3</strong> clocked in
+                </div>
+                <div class="stat-row">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                  <strong class="font-mono">09:00 – 17:00</strong> · peak shift
+                </div>
+              </div>
+            </div>
+
+            <!-- Card 2: attention needed -->
+            <div class="venue-card" style="border-color:rgba(180,83,9,0.25);">
+              <div class="venue-card-header" style="background:rgba(180,83,9,0.04);">
+                <span class="status-dot dot-amber"></span>
+                <span class="venue-card-name">The Canteen</span>
+                <button class="btn btn-ghost btn-xs" style="margin-left:auto">Open →</button>
+              </div>
+              <div class="venue-card-body">
+                <div>
+                  <div class="label-xs" style="margin-bottom:6px">Today's checks</div>
+                  <div class="checks-row">
+                    <span class="pill pill-green">✓ Fridge AM</span>
+                    <span class="pill pill-amber">— Fridge PM</span>
+                    <span class="pill pill-green">✓ Cooking</span>
+                    <span class="pill pill-green">✓ Hot Hold AM</span>
+                    <span class="pill pill-amber">— Hot Hold PM</span>
+                    <span class="pill pill-amber">— Opening checks</span>
+                  </div>
+                </div>
+                <div class="stat-row">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                  <strong>4</strong> on shift · <strong>2</strong> clocked in
+                </div>
+                <!-- Time off row -->
+                <div>
+                  <div class="label-xs" style="margin-bottom:6px">Leave pending</div>
+                  <div class="time-off-mini">
+                    <div class="time-off-row">
+                      <div style="flex:1"><div class="time-off-name">Sarah Mitchell</div><div class="time-off-date">5–7 May</div></div>
+                      <button class="btn btn-success btn-xs">Approve</button>
+                      <button class="btn btn-ghost btn-xs">Decline</button>
+                    </div>
+                    <div class="time-off-row">
+                      <div style="flex:1"><div class="time-off-name">James Wilson</div><div class="time-off-date">12 May</div></div>
+                      <button class="btn btn-success btn-xs">Approve</button>
+                      <button class="btn btn-ghost btn-xs">Decline</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card 3: all good -->
+            <div class="venue-card">
+              <div class="venue-card-header">
+                <span class="status-dot dot-green"></span>
+                <span class="venue-card-name">Corner Cup</span>
+                <button class="btn btn-ghost btn-xs" style="margin-left:auto">Open →</button>
+              </div>
+              <div class="venue-card-body">
+                <div>
+                  <div class="label-xs" style="margin-bottom:6px">Today's checks</div>
+                  <div class="checks-row">
+                    <span class="pill pill-green">✓ Fridge AM</span>
+                    <span class="pill pill-green">✓ Fridge PM</span>
+                    <span class="pill pill-green">✓ Cooking</span>
+                    <span class="pill pill-green">✓ Hot Hold AM</span>
+                    <span class="pill pill-grey">— Hot Hold PM</span>
+                    <span class="pill pill-green">✓ Opening checks</span>
+                  </div>
+                </div>
+                <div class="stat-row">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                  <strong>5</strong> on shift · <strong>4</strong> clocked in
+                </div>
+                <div class="stat-row">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                  1 duty in progress
+                </div>
+              </div>
+            </div>
+
+          </div><!-- /venue-grid -->
+        </div><!-- /main -->
+      </div><!-- /browser-content -->
+    </div><!-- /browser -->
+
+    <div class="annotations">
+      <div class="annotation"><span class="tag">New</span> Summary bar shows cross-venue numbers instantly</div>
+      <div class="annotation"><span class="tag">New</span> More check types per card (opening, duties)</div>
+      <div class="annotation"><span class="tag">New</span> Approve leave directly from the card</div>
+      <div class="annotation"><span class="tag">Keep</span> Red/amber/green status dot — familiar pattern</div>
+    </div>
+  </div>
+
+
+  <!-- ══════════════════════════════════════════════════════
+       OPTION B
+  ══════════════════════════════════════════════════════ -->
+
+  <div class="option-section">
+    <div>
+      <div class="option-label">
+        <span class="option-badge">Option B</span>
+        <span class="option-title">HQ triage view</span>
+      </div>
+      <p class="option-desc" style="margin-top:6px">Headline metrics at the top, attention items surfaced first, compact venue list below. Scales to 5+ venues.</p>
+    </div>
+
+    <div class="browser">
+      <div class="browser-bar">
+        <div class="browser-dots"><span></span><span></span><span></span></div>
+        <div class="browser-url">pelikn.app/overview</div>
+      </div>
+      <div class="browser-content">
+
+        <!-- Sidebar -->
+        <div class="sidebar">
+          <div class="sidebar-brand">
+            <div class="sidebar-brand-name">Pelikn</div>
+            <div class="sidebar-venue">HQ View</div>
+          </div>
+          <div class="sidebar-nav">
+            <div class="nav-item active">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+              HQ Overview
+            </div>
+          </div>
+          <div class="sidebar-section-label">Venues</div>
+          <div class="sidebar-venues">
+            <div class="venue-switcher-item current">
+              <span class="venue-dot dot-green"></span> Brew & Bloom
+            </div>
+            <div class="venue-switcher-item">
+              <span class="venue-dot dot-amber"></span> The Canteen
+            </div>
+            <div class="venue-switcher-item">
+              <span class="venue-dot dot-green"></span> Corner Cup
+            </div>
+            <div class="venue-switcher-item">
+              <span class="venue-dot dot-green"></span> The Depot
+            </div>
+            <div class="venue-switcher-item">
+              <span class="venue-dot dot-red"></span> Roast House
+            </div>
+          </div>
+        </div>
+
+        <!-- Main -->
+        <div class="main">
+          <div class="flex items-center justify-between">
+            <div>
+              <div class="page-title">HQ Overview</div>
+              <div class="page-subtitle">Thursday, 1 May · 5 venues · last updated just now</div>
+            </div>
+            <button class="btn btn-ghost" style="font-size:11px;padding:6px 12px;">↻ Refresh</button>
+          </div>
+
+          <!-- Headline metrics -->
+          <div class="hq-metrics">
+            <div class="hq-metric">
+              <div class="num">5</div>
+              <div class="lbl">Venues</div>
+              <div class="sub">4 open today</div>
+            </div>
+            <div class="hq-metric alert">
+              <div class="num">2</div>
+              <div class="lbl">Need attention</div>
+              <div class="sub">1 critical, 1 warning</div>
+            </div>
+            <div class="hq-metric">
+              <div class="num">23</div>
+              <div class="lbl">On shift today</div>
+              <div class="sub">17 clocked in</div>
+            </div>
+            <div class="hq-metric">
+              <div class="num">4</div>
+              <div class="lbl">Decisions needed</div>
+              <div class="sub">3 leave · 1 action</div>
+            </div>
+          </div>
+
+          <!-- Critical section -->
+          <div class="critical-section">
+            <div class="critical-header">
+              🔴 Critical — immediate action needed
+            </div>
+            <div class="critical-item">
+              <div style="flex:1">
+                <div class="attention-venue" style="font-size:13px;font-weight:700;">Roast House</div>
+                <div class="attention-detail">No fridge logs today · Hot holding not recorded · 1 critical corrective action open</div>
+              </div>
+              <button class="btn btn-ghost btn-xs">Open venue →</button>
+            </div>
+          </div>
+
+          <!-- Attention section -->
+          <div class="attention-section">
+            <div class="attention-header">
+              ⚠ Attention needed
+            </div>
+            <div class="attention-item">
+              <div style="flex:1">
+                <div style="font-size:13px;font-weight:700;">The Canteen</div>
+                <div class="attention-detail">Fridge PM not logged · 2 leave requests pending</div>
+              </div>
+              <button class="btn btn-ghost btn-xs">Open venue →</button>
+            </div>
+          </div>
+
+          <!-- Venue list table -->
+          <div class="card" style="overflow:hidden;">
+            <div class="card-header">
+              <span style="font-size:13px;font-weight:700;">All venues</span>
+              <span class="label-xs">5 total</span>
+            </div>
+            <div class="venues-list" style="border-radius:0;background:transparent;">
+              <div class="venues-list-header">
+                <span>Venue</span>
+                <span>Checks</span>
+                <span>On shift</span>
+                <span>Pending</span>
+                <span></span>
+              </div>
+              <div class="venue-row">
+                <div class="venue-row-name">
+                  <span class="status-dot dot-green"></span>
+                  <div><strong>Brew & Bloom</strong><br><small>Home venue</small></div>
+                </div>
+                <div class="venue-col ok">All done</div>
+                <div class="venue-col">5 / 3 in</div>
+                <div class="venue-col">—</div>
+                <button class="btn btn-ghost btn-xs">Open →</button>
+              </div>
+              <div class="venue-row" style="background:rgba(180,83,9,0.02)">
+                <div class="venue-row-name">
+                  <span class="status-dot dot-amber"></span>
+                  <div><strong>The Canteen</strong></div>
+                </div>
+                <div class="venue-col warn">2 missing</div>
+                <div class="venue-col">4 / 2 in</div>
+                <div class="venue-col warn">2 leave</div>
+                <button class="btn btn-ghost btn-xs">Open →</button>
+              </div>
+              <div class="venue-row">
+                <div class="venue-row-name">
+                  <span class="status-dot dot-green"></span>
+                  <div><strong>Corner Cup</strong></div>
+                </div>
+                <div class="venue-col ok">All done</div>
+                <div class="venue-col">5 / 4 in</div>
+                <div class="venue-col">1 leave</div>
+                <button class="btn btn-ghost btn-xs">Open →</button>
+              </div>
+              <div class="venue-row">
+                <div class="venue-row-name">
+                  <span class="status-dot dot-green"></span>
+                  <div><strong>The Depot</strong></div>
+                </div>
+                <div class="venue-col ok">All done</div>
+                <div class="venue-col">4 / 4 in</div>
+                <div class="venue-col">—</div>
+                <button class="btn btn-ghost btn-xs">Open →</button>
+              </div>
+              <div class="venue-row" style="background:rgba(192,57,43,0.02)">
+                <div class="venue-row-name">
+                  <span class="status-dot dot-red"></span>
+                  <div><strong>Roast House</strong></div>
+                </div>
+                <div class="venue-col" style="color:var(--danger);font-weight:700;">Critical</div>
+                <div class="venue-col">5 / 2 in</div>
+                <div class="venue-col" style="color:var(--danger);">1 action</div>
+                <button class="btn btn-ghost btn-xs" style="border-color:rgba(192,57,43,0.3);color:var(--danger);">Open →</button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <div class="annotations">
+      <div class="annotation"><span class="tag">Best for</span> 4+ venues — list view scales indefinitely</div>
+      <div class="annotation"><span class="tag">Key idea</span> Critical / Attention sections surface only what needs action</div>
+      <div class="annotation"><span class="tag">Key idea</span> Headline numbers give instant situational awareness</div>
+      <div class="annotation"><span class="tag">Note</span> Less visual than Option A but much faster to scan</div>
+    </div>
+  </div>
+
+
+  <!-- ══════════════════════════════════════════════════════
+       OPTION C
+  ══════════════════════════════════════════════════════ -->
+
+  <div class="option-section">
+    <div>
+      <div class="option-label">
+        <span class="option-badge">Option C</span>
+        <span class="option-title">Tabbed HQ view</span>
+      </div>
+      <p class="option-desc" style="margin-top:6px">Three tabs: Today (compliance), Team (all staff), Issues (anything requiring action). Most structured — best for larger operators.</p>
+    </div>
+
+    <div class="browser">
+      <div class="browser-bar">
+        <div class="browser-dots"><span></span><span></span><span></span></div>
+        <div class="browser-url">pelikn.app/overview</div>
+      </div>
+      <div class="browser-content">
+
+        <!-- Sidebar -->
+        <div class="sidebar">
+          <div class="sidebar-brand">
+            <div class="sidebar-brand-name">Pelikn</div>
+            <div class="sidebar-venue">Group View</div>
+          </div>
+          <div class="sidebar-nav">
+            <div class="nav-item active">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+              Group Overview
+            </div>
+          </div>
+          <div class="sidebar-section-label">Venues</div>
+          <div class="sidebar-venues">
+            <div class="venue-switcher-item current">
+              <span class="venue-dot dot-green"></span> Brew & Bloom
+            </div>
+            <div class="venue-switcher-item">
+              <span class="venue-dot dot-amber"></span> The Canteen
+            </div>
+            <div class="venue-switcher-item">
+              <span class="venue-dot dot-green"></span> Corner Cup
+            </div>
+          </div>
+        </div>
+
+        <!-- Main -->
+        <div class="main">
+          <div class="flex items-center justify-between">
+            <div>
+              <div class="page-title">Group Overview</div>
+              <div class="page-subtitle">Thursday, 1 May · 3 venues</div>
+            </div>
+          </div>
+
+          <!-- Tabs -->
+          <div class="inner-tabs">
+            <button class="inner-tab active" onclick="switchTab(event,'today')">Today</button>
+            <button class="inner-tab" onclick="switchTab(event,'team')">
+              Team
+            </button>
+            <button class="inner-tab" onclick="switchTab(event,'issues')" style="padding-right:22px;">
+              Issues
+              <span class="tab-badge"></span>
+            </button>
+          </div>
+
+          <!-- TODAY tab -->
+          <div class="tab-panel active" id="tab-today">
+            <div class="today-grid">
+
+              <div class="today-venue-card">
+                <div class="today-venue-header">
+                  <span class="status-dot dot-green"></span>
+                  <span class="today-venue-name">Brew & Bloom</span>
+                  <button class="btn btn-ghost btn-xs">Open →</button>
+                </div>
+                <div class="today-venue-body">
+                  <div class="check-grid">
+                    <div class="check-item done"><span class="check-icon">✓</span> Fridge AM</div>
+                    <div class="check-item done"><span class="check-icon">✓</span> Fridge PM</div>
+                    <div class="check-item done"><span class="check-icon">✓</span> Cooking</div>
+                    <div class="check-item done"><span class="check-icon">✓</span> Hot Hold AM</div>
+                    <div class="check-item done"><span class="check-icon">✓</span> Hot Hold PM</div>
+                    <div class="check-item done"><span class="check-icon">✓</span> Opening</div>
+                  </div>
+                  <div class="stat-row" style="font-size:11px;">
+                    <strong>5</strong> on shift · <strong>3</strong> clocked in · 2 duties assigned
+                  </div>
+                </div>
+              </div>
+
+              <div class="today-venue-card" style="border-color:rgba(180,83,9,0.3);">
+                <div class="today-venue-header" style="background:rgba(180,83,9,0.04);">
+                  <span class="status-dot dot-amber"></span>
+                  <span class="today-venue-name">The Canteen</span>
+                  <button class="btn btn-ghost btn-xs">Open →</button>
+                </div>
+                <div class="today-venue-body">
+                  <div class="check-grid">
+                    <div class="check-item done"><span class="check-icon">✓</span> Fridge AM</div>
+                    <div class="check-item miss"><span class="check-icon">—</span> Fridge PM</div>
+                    <div class="check-item done"><span class="check-icon">✓</span> Cooking</div>
+                    <div class="check-item done"><span class="check-icon">✓</span> Hot Hold AM</div>
+                    <div class="check-item miss"><span class="check-icon">—</span> Hot Hold PM</div>
+                    <div class="check-item miss"><span class="check-icon">—</span> Opening</div>
+                  </div>
+                  <div class="stat-row" style="font-size:11px;">
+                    <strong>4</strong> on shift · <strong>2</strong> clocked in · 2 leave pending
+                  </div>
+                </div>
+              </div>
+
+              <div class="today-venue-card">
+                <div class="today-venue-header">
+                  <span class="status-dot dot-green"></span>
+                  <span class="today-venue-name">Corner Cup</span>
+                  <button class="btn btn-ghost btn-xs">Open →</button>
+                </div>
+                <div class="today-venue-body">
+                  <div class="check-grid">
+                    <div class="check-item done"><span class="check-icon">✓</span> Fridge AM</div>
+                    <div class="check-item done"><span class="check-icon">✓</span> Fridge PM</div>
+                    <div class="check-item done"><span class="check-icon">✓</span> Cooking</div>
+                    <div class="check-item done"><span class="check-icon">✓</span> Hot Hold AM</div>
+                    <div class="check-item done"><span class="check-icon">✓</span> Hot Hold PM</div>
+                    <div class="check-item done"><span class="check-icon">✓</span> Opening</div>
+                  </div>
+                  <div class="stat-row" style="font-size:11px;">
+                    <strong>5</strong> on shift · <strong>4</strong> clocked in
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- TEAM tab -->
+          <div class="tab-panel" id="tab-team">
+            <div class="team-table">
+              <div class="team-table-header">
+                <span>Staff member</span>
+                <span>Venue</span>
+                <span>Shift</span>
+                <span>Status</span>
+                <span>Hours this wk</span>
+              </div>
+              <div class="team-row">
+                <div><div class="staff-name">Emma Richardson</div><div class="staff-venue-tag">Brew & Bloom</div></div>
+                <div class="team-col">Brew & Bloom</div>
+                <div class="team-col font-mono">09:00–17:00</div>
+                <div class="team-col"><span class="clock-badge clock-in">● Clocked in</span></div>
+                <div class="team-col"><strong>28.5h</strong></div>
+              </div>
+              <div class="team-row">
+                <div><div class="staff-name">James Wilson</div><div class="staff-venue-tag">The Canteen</div></div>
+                <div class="team-col">The Canteen</div>
+                <div class="team-col font-mono">10:00–18:00</div>
+                <div class="team-col"><span class="clock-badge clock-out">Not clocked in</span></div>
+                <div class="team-col"><strong>22h</strong></div>
+              </div>
+              <div class="team-row">
+                <div><div class="staff-name">Sarah Mitchell</div><div class="staff-venue-tag">The Canteen</div></div>
+                <div class="team-col">The Canteen</div>
+                <div class="team-col">—</div>
+                <div class="team-col"><span class="clock-badge on-leave">On leave 5–7 May</span></div>
+                <div class="team-col"><strong>16h</strong></div>
+              </div>
+              <div class="team-row">
+                <div><div class="staff-name">Oliver Thomas</div><div class="staff-venue-tag">Corner Cup</div></div>
+                <div class="team-col">Corner Cup</div>
+                <div class="team-col font-mono">08:00–16:00</div>
+                <div class="team-col"><span class="clock-badge clock-in">● Clocked in</span></div>
+                <div class="team-col"><strong>32h</strong></div>
+              </div>
+              <div class="team-row">
+                <div><div class="staff-name">Priya Patel</div><div class="staff-venue-tag">Brew & Bloom</div></div>
+                <div class="team-col">Brew & Bloom</div>
+                <div class="team-col font-mono">12:00–20:00</div>
+                <div class="team-col"><span class="clock-badge clock-out">Not yet</span></div>
+                <div class="team-col"><strong>24h</strong></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ISSUES tab -->
+          <div class="tab-panel" id="tab-issues">
+            <div class="issues-section">
+              <div class="issues-section-title">Leave requests (3)</div>
+              <div class="issue-card">
+                <div style="flex:1">
+                  <div class="issue-title">Sarah Mitchell — 5–7 May</div>
+                  <div class="issue-meta">3 days · annual leave · The Canteen</div>
+                </div>
+                <button class="btn btn-success btn-xs">Approve</button>
+                <button class="btn btn-ghost btn-xs">Decline</button>
+                <div class="issue-venue">The Canteen</div>
+              </div>
+              <div class="issue-card">
+                <div style="flex:1">
+                  <div class="issue-title">James Wilson — 12 May</div>
+                  <div class="issue-meta">1 day · personal · The Canteen</div>
+                </div>
+                <button class="btn btn-success btn-xs">Approve</button>
+                <button class="btn btn-ghost btn-xs">Decline</button>
+                <div class="issue-venue">The Canteen</div>
+              </div>
+              <div class="issue-card">
+                <div style="flex:1">
+                  <div class="issue-title">Liam O'Brien — 20–21 May</div>
+                  <div class="issue-meta">2 days · annual leave · Corner Cup</div>
+                </div>
+                <button class="btn btn-success btn-xs">Approve</button>
+                <button class="btn btn-ghost btn-xs">Decline</button>
+                <div class="issue-venue">Corner Cup</div>
+              </div>
+            </div>
+
+            <div class="issues-section">
+              <div class="issues-section-title">Compliance gaps (2)</div>
+              <div class="issue-card warning">
+                <div class="issue-icon">🌡</div>
+                <div>
+                  <div class="issue-title">Fridge PM not logged</div>
+                  <div class="issue-meta">Due before close · no reading recorded</div>
+                </div>
+                <div class="issue-venue">The Canteen</div>
+              </div>
+              <div class="issue-card warning">
+                <div class="issue-icon">📋</div>
+                <div>
+                  <div class="issue-title">Opening checks incomplete</div>
+                  <div class="issue-meta">3 of 8 checks remaining</div>
+                </div>
+                <div class="issue-venue">The Canteen</div>
+              </div>
+            </div>
+
+          </div>
+
+        </div><!-- /main -->
+      </div><!-- /browser-content -->
+    </div><!-- /browser -->
+
+    <div class="annotations">
+      <div class="annotation"><span class="tag">Today tab</span> Per-venue compliance grid — familiar from current overview</div>
+      <div class="annotation"><span class="tag">Team tab</span> All staff across venues in one list — great for payroll review</div>
+      <div class="annotation"><span class="tag">Issues tab</span> Everything requiring a decision, centralised</div>
+      <div class="annotation"><span class="tag">Most complex</span> Highest build effort — best suited if you grow beyond 3 venues</div>
+    </div>
+  </div>
+
+</div><!-- /options-wrapper -->
+
+<script>
+  function switchTab(e, tabId) {
+    // Update tab buttons
+    const tabs = e.target.closest('.inner-tabs').querySelectorAll('.inner-tab')
+    tabs.forEach(t => t.classList.remove('active'))
+    e.target.classList.add('active')
+
+    // Update panels
+    const panels = document.querySelectorAll('.tab-panel')
+    panels.forEach(p => p.classList.remove('active'))
+    document.getElementById('tab-' + tabId).classList.add('active')
+  }
+</script>
+
+</body>
+</html>
