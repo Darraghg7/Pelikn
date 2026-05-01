@@ -28,7 +28,7 @@ function useSupplierItems(supplierId) {
     setLoading(true)
     const { data } = await supabase
       .from('supplier_items')
-      .select('*')
+      .select('id, name, temp_required, min_temp, max_temp, category')
       .eq('supplier_id', supplierId)
       .eq('is_active', true)
       .order('name')
@@ -505,20 +505,20 @@ function DeliveryCheckModal({ open, onClose, suppliers, onSupplierAdded, onCompl
                 <div className="flex flex-col gap-2">
                   {tempItems.map(([id, item]) => (
                     <div key={id} className={`rounded-xl border p-3 ${item.received ? (item.tempPass ? 'border-charcoal/10' : 'border-danger/25 bg-danger/3') : 'border-charcoal/10 bg-charcoal/4 opacity-50'}`}>
-                      <div className="flex items-center gap-2 mb-2">
+                      <div className="flex items-center gap-3 mb-2">
                         <button
                           onClick={() => updateItem(id, 'received', !item.received)}
-                          className={`w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 transition-all ${
+                          className={`w-9 h-9 rounded-xl border-2 flex items-center justify-center shrink-0 transition-all ${
                             item.received ? 'bg-success border-success text-white' : 'border-charcoal/20'
                           }`}
                         >
-                          {item.received && <svg className="w-3 h-3" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg>}
+                          {item.received && <svg className="w-4 h-4" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg>}
                         </button>
                         <span className="text-sm font-medium text-charcoal flex-1 truncate">{item.itemName}</span>
                         <span className="text-[11px] tracking-wider uppercase text-charcoal/30">{item.category}</span>
                       </div>
                       {item.received && (
-                        <div className="flex items-center gap-2 ml-7">
+                        <div className="flex items-center gap-2 sm:ml-12">
                           <input
                             type="number"
                             step="0.1"
@@ -547,14 +547,14 @@ function DeliveryCheckModal({ open, onClose, suppliers, onSupplierAdded, onCompl
                 </p>
                 <div className="flex flex-col gap-1.5">
                   {nonTempItems.map(([id, item]) => (
-                    <div key={id} className="flex items-center gap-2 rounded-xl border border-charcoal/10 px-3 py-2.5">
+                    <div key={id} className="flex items-center gap-3 rounded-xl border border-charcoal/10 px-3 py-2.5">
                       <button
                         onClick={() => updateItem(id, 'received', !item.received)}
-                        className={`w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 transition-all ${
+                        className={`w-9 h-9 rounded-xl border-2 flex items-center justify-center shrink-0 transition-all ${
                           item.received ? 'bg-success border-success text-white' : 'border-charcoal/20'
                         }`}
                       >
-                        {item.received && <svg className="w-3 h-3" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg>}
+                        {item.received && <svg className="w-4 h-4" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg>}
                       </button>
                       <span className={`text-sm flex-1 truncate ${item.received ? 'text-charcoal' : 'text-charcoal/40 line-through'}`}>
                         {item.itemName}
@@ -585,7 +585,7 @@ function DeliveryCheckModal({ open, onClose, suppliers, onSupplierAdded, onCompl
                   key={key}
                   type="button"
                   onClick={() => set(!value)}
-                  className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl border transition-all mb-1.5 ${
+                  className={`min-h-12 w-full flex items-center justify-between px-4 py-3 rounded-xl border transition-all mb-1.5 ${
                     value
                       ? 'bg-success/5 border-success/20 text-charcoal'
                       : 'bg-danger/5 border-danger/20 text-danger'

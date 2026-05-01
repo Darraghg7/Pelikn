@@ -9,6 +9,7 @@ import { useToast } from '../../components/ui/Toast'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
 import { useVenueBranding } from '../../hooks/useVenueBranding'
 import ConfirmDialog from '../../components/ui/ConfirmDialog'
+import Toggle from '../../components/ui/Toggle'
 
 function SectionLabel({ children, action }) {
   return (
@@ -21,7 +22,7 @@ function SectionLabel({ children, action }) {
 
 export default function AllergenRegistryPage() {
   const [search, setSearch] = useState('')
-  const { items, loading, reload } = useFoodItems(search)
+  const { items, loading, reload } = useFoodItems(search, { includeInactive: true })
   const { venueId, venueSlug, venueName } = useVenue()
   const { isManager } = useSession()
   const toast                     = useToast()
@@ -82,6 +83,18 @@ export default function AllergenRegistryPage() {
     setDeleteTarget(null)
     if (error) { toast(error.message, 'error'); return }
     toast('Item removed')
+    reload()
+  }
+
+  const toggleItemActive = async (item) => {
+    const nextActive = !item.is_active
+    const { error } = await supabase
+      .from('food_items')
+      .update({ is_active: nextActive })
+      .eq('id', item.id)
+      .eq('venue_id', venueId)
+    if (error) { toast(error.message, 'error'); return }
+    toast(nextActive ? 'Item shown on QR menu' : 'Item hidden from QR menu')
     reload()
   }
 
@@ -191,7 +204,12 @@ export default function AllergenRegistryPage() {
                   </div>
 
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-charcoal text-sm">{item.name}</p>
+                    <div className="flex items-center gap-2 min-w-0">
+                      <p className={`font-medium text-sm truncate ${item.is_active ? 'text-charcoal' : 'text-charcoal/35'}`}>{item.name}</p>
+                      {!item.is_active && (
+                        <span className="text-[10px] uppercase tracking-widest text-charcoal/30 border border-charcoal/10 rounded-full px-1.5 py-0.5 shrink-0">Off QR</span>
+                      )}
+                    </div>
                     <p className="text-xs text-charcoal/40 truncate mt-0.5">
                       {allergens.length === 0
                         ? 'No allergens'
@@ -200,6 +218,16 @@ export default function AllergenRegistryPage() {
                   </div>
 
                   <div className="flex items-center gap-2 shrink-0">
+                    {isManager && (
+                      <div className="flex items-center gap-1.5 pr-1">
+                        <span className="text-[11px] text-charcoal/35">QR</span>
+                        <Toggle
+                          checked={item.is_active}
+                          onChange={() => toggleItemActive(item)}
+                          size="sm"
+                        />
+                      </div>
+                    )}
                     <Link
                       to={`/v/${venueSlug}/allergens/${item.id}`}
                       className="text-xs text-charcoal/50 hover:text-charcoal border border-charcoal/15 px-2.5 py-1 rounded-md hover:border-charcoal/30 transition-colors"

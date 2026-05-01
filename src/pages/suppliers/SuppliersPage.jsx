@@ -43,7 +43,7 @@ function useSuppliers(venueId) {
     setLoading(true)
     const { data } = await supabase
       .from('suppliers')
-      .select('*')
+      .select('id, name, category, contact_name, phone, email, notes')
       .eq('venue_id', venueId)
       .eq('is_active', true)
       .order('name')

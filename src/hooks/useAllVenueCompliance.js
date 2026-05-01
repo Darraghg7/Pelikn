@@ -68,29 +68,16 @@ export function useAllVenueCompliance(venues) {
     const init = venues.map(v => ({ venue: v, data: null, status: 'gray', loading: true }))
     setResults(init)
 
-    venues.forEach(async (venue, i) => {
-      try {
-        const data = await fetchVenueData(venue.id)
-        if (cancelled) return
-        setResults(prev => {
-          const next = [...prev]
-          next[i] = { venue, data, status: venueStatus(data), loading: false }
-          return next
-        })
-      } catch {
-        if (!cancelled) {
-          setResults(prev => {
-            const next = [...prev]
-            next[i] = { venue, data: null, status: 'gray', loading: false }
-            return next
-          })
+    Promise.allSettled(venues.map(v => fetchVenueData(v.id))).then(settled => {
+      if (cancelled) return
+      setResults(venues.map((venue, i) => {
+        const result = settled[i]
+        if (result.status === 'fulfilled') {
+          return { venue, data: result.value, status: venueStatus(result.value), loading: false }
         }
-      }
-    })
-
-    // Overall loading false once all resolve — track via a separate promise chain
-    Promise.allSettled(venues.map(v => fetchVenueData(v.id))).then(() => {
-      if (!cancelled) setLoading(false)
+        return { venue, data: null, status: 'gray', loading: false }
+      }))
+      setLoading(false)
     })
 
     return () => { cancelled = true }

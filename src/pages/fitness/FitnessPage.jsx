@@ -24,7 +24,7 @@ function useDeclarations(venueId, date) {
     setLoading(true)
     const { data } = await supabase
       .from('fitness_declarations')
-      .select('*')
+      .select('id, is_fit, declared_at, shift_type, staff_name, staff_id, has_dv_symptoms, has_skin_infection, has_other_illness, illness_details, confirm_handwashing, confirm_clean_uniform, confirm_no_jewellery')
       .eq('venue_id', venueId)
       .eq('declaration_date', date)
       .order('declared_at', { ascending: false })
@@ -411,7 +411,7 @@ export default function FitnessPage() {
     if (!venueId || !session?.staffId) { setCheckingOwn(false); return }
     const { data } = await supabase
       .from('fitness_declarations')
-      .select('*')
+      .select('id, is_fit, declared_at, shift_type, has_dv_symptoms, has_skin_infection, has_other_illness, illness_details, confirm_handwashing, confirm_clean_uniform, confirm_no_jewellery')
       .eq('venue_id', venueId)
       .eq('staff_id', session.staffId)
       .eq('declaration_date', today)

@@ -65,12 +65,13 @@ export default function CleaningPage() {
   }
 
   const openComplete = (task) => {
+    if (completing) return
     setCompleteModal(task)
     setNotes('')
   }
 
   const submitComplete = async () => {
-    if (!completeModal) return
+    if (!completeModal || completing) return
     setCompleting(completeModal.id)
 
     const { error } = await supabase.rpc('complete_cleaning_task', {
@@ -224,7 +225,7 @@ export default function CleaningPage() {
                 <div className="flex items-start gap-3">
                   <span className={`w-2.5 h-2.5 rounded-full shrink-0 mt-1.5 ${cfg.dot}`} />
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-2">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                       <p className="text-sm font-medium text-charcoal">{t.title}</p>
                       <div className="flex items-center gap-2 shrink-0">
                         <span className={`text-[11px] tracking-widest uppercase font-medium px-2.5 py-1 rounded-full ${cfg.bg} ${cfg.text}`}>
@@ -232,9 +233,10 @@ export default function CleaningPage() {
                         </span>
                         <button
                           onClick={() => openComplete(t)}
-                          className="px-3 py-1.5 rounded-lg bg-charcoal text-cream text-xs font-medium hover:bg-charcoal/80 transition-colors"
+                          disabled={!!completing}
+                          className="min-h-11 px-4 py-2.5 rounded-xl bg-charcoal text-cream text-sm font-semibold hover:bg-charcoal/80 transition-colors disabled:opacity-50 disabled:cursor-wait"
                         >
-                          Mark Done
+                          {completing === t.id ? 'Saving…' : 'Mark Done'}
                         </button>
                         {isManager && (
                           <button
@@ -296,7 +298,7 @@ export default function CleaningPage() {
               <button
                 onClick={submitComplete}
                 disabled={!!completing}
-                className="flex-1 bg-charcoal text-cream py-2.5 rounded-lg text-sm font-medium disabled:opacity-40"
+                className="min-h-12 flex-1 bg-charcoal text-cream py-3 rounded-xl text-sm font-semibold disabled:opacity-40"
               >
                 {completing ? 'Saving…' : 'Confirm Complete →'}
               </button>

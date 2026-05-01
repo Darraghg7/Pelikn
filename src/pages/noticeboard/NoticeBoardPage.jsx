@@ -16,7 +16,7 @@ function useNotices(venueId) {
     setLoading(true)
     const { data } = await supabase
       .from('noticeboard_posts')
-      .select('*')
+      .select('id, title, body, pinned, created_at, created_by_name')
       .eq('venue_id', venueId)
       .order('pinned', { ascending: false })
       .order('created_at', { ascending: false })

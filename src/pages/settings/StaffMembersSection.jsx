@@ -7,6 +7,7 @@ import { useToast } from '../../components/ui/Toast'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
 import { useVenueFeatures } from '../../hooks/useVenueFeatures'
 import { useVenueRoles } from '../../hooks/useVenueRoles'
+import useVenueSettings from '../../hooks/useVenueSettings'
 import Toggle from '../../components/ui/Toggle'
 import useStaffManagement from '../../hooks/useStaffManagement'
 import SettingsSection from './SettingsSection'
@@ -30,6 +31,7 @@ const DOW_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 export default function StaffMembersSection() {
   const { staff, loading: staffLoading, reload: reloadStaff } = useStaffManagement()
   const { venuePlan } = useVenueFeatures()
+  const { settings } = useVenueSettings()
   const { roles: venueRoles } = useVenueRoles()
   const { session } = useSession()
   const [deleteTarget, setDeleteTarget] = useState(null)
@@ -337,7 +339,7 @@ export default function StaffMembersSection() {
               <div className="flex items-center gap-4">
                 {s?.photo_url ? (
                   <img src={s.photo_url} alt={s.name}
-                    className="w-14 h-14 rounded-full object-cover border border-charcoal/10" />
+                    className="w-14 h-14 rounded-full object-cover border border-charcoal/10" loading="lazy" />
                 ) : (
                   <div className="w-14 h-14 rounded-full bg-charcoal/10 flex items-center justify-center">
                     <span className="text-xl font-semibold text-charcoal/40">{staffForm.name.charAt(0) || '?'}</span>
@@ -528,7 +530,7 @@ export default function StaffMembersSection() {
 
               {/* Quick presets */}
               <div className="flex gap-2 mb-4 flex-wrap">
-                {PERMISSION_PRESETS.map(preset => {
+                {(settings.permission_titles?.length ? settings.permission_titles : PERMISSION_PRESETS).map(preset => {
                   const active = preset.permissions.length === permForm.size &&
                     preset.permissions.every(p => permForm.has(p))
                   return (
@@ -678,7 +680,7 @@ export default function StaffMembersSection() {
               {/* Top row: avatar + name/role + reorder */}
               <div className="flex items-center gap-3 mb-3">
                 {s.photo_url ? (
-                  <img src={s.photo_url} alt={s.name} className="w-10 h-10 rounded-full object-cover shrink-0" />
+                  <img src={s.photo_url} alt={s.name} className="w-10 h-10 rounded-full object-cover shrink-0" loading="lazy" />
                 ) : (
                   <div
                     className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm shrink-0"

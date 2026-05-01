@@ -4,7 +4,8 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 const RESEND_API_KEY   = Deno.env.get('RESEND_API_KEY') ?? ''
 const SUPABASE_URL     = Deno.env.get('SUPABASE_URL') ?? ''
 const SUPABASE_SERVICE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-const ALLOWED_ORIGINS = ['https://pelikn.app', 'http://localhost:5173', 'capacitor://localhost', 'ionic://localhost']
+const DEV_ORIGIN = Deno.env.get('DEV_ORIGIN')
+const ALLOWED_ORIGINS = ['https://pelikn.app', 'capacitor://localhost', 'ionic://localhost', ...(DEV_ORIGIN ? [DEV_ORIGIN] : [])]
 
 function fmt(d: Date) {
   return d.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })

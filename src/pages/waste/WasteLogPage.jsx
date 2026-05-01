@@ -84,7 +84,7 @@ export default function WasteLogPage() {
     setExporting(true)
     const { data, error } = await supabase
       .from('waste_logs')
-      .select('*')
+      .select('recorded_at, item_name, quantity, unit, reason, recorded_by_name, notes')
       .eq('venue_id', venueId)
       .gte('recorded_at', exportFrom)
       .lte('recorded_at', exportTo + 'T23:59:59')

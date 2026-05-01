@@ -401,36 +401,36 @@ function useSidebarSections(venueId, localPath) {
       ? 'team'
       : null
 
+  const storageKey = venueId ? `${STORAGE_KEY}:${venueId}` : STORAGE_KEY
+  const defaultSections = useCallback(() => ({
+    compliance: activeSection === 'compliance',
+    team: activeSection === 'team',
+  }), [activeSection])
+
   const [sections, setSections] = useState(() => {
     try {
-      const stored = localStorage.getItem(STORAGE_KEY)
+      const stored = localStorage.getItem(storageKey)
       if (stored) return JSON.parse(stored)
     } catch {}
-    // Default: auto-expand based on active section
-    return { compliance: activeSection === 'compliance', team: activeSection === 'team' }
+    return defaultSections()
   })
 
-  // Auto-expand the section containing the active page
   useEffect(() => {
-    if (activeSection && !sections[activeSection]) {
-      setSections(prev => {
-        const next = { ...prev, [activeSection]: true }
-        // Collapse the other section for cleanliness
-        if (activeSection === 'compliance') next.team = false
-        if (activeSection === 'team') next.compliance = false
-        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(next)) } catch {}
-        return next
-      })
+    try {
+      const stored = localStorage.getItem(storageKey)
+      setSections(stored ? JSON.parse(stored) : defaultSections())
+    } catch {
+      setSections(defaultSections())
     }
-  }, [activeSection]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [storageKey, defaultSections])
 
   const toggle = useCallback((section) => {
     setSections(prev => {
       const next = { ...prev, [section]: !prev[section] }
-      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(next)) } catch {}
+      try { localStorage.setItem(storageKey, JSON.stringify(next)) } catch {}
       return next
     })
-  }, [])
+  }, [storageKey])
 
   return { sections, toggle }
 }
@@ -510,7 +510,7 @@ export default function AppShell({ children }) {
         <div className="px-5 pt-5 pb-4 border-b border-white/[0.07] shrink-0">
           <div className="flex items-center gap-3">
             {logoUrl ? (
-              <img src={logoUrl} alt="Venue logo" className="h-11 w-11 rounded-full object-contain bg-white p-1 shrink-0" />
+              <img src={logoUrl} alt="Venue logo" className="h-11 w-11 rounded-full object-contain bg-white p-1 shrink-0" loading="lazy" />
             ) : (
               <div className="h-11 w-11 rounded-full bg-white/15 flex items-center justify-center text-[17px] font-extrabold text-white shrink-0">
                 {(venueName || 'S')[0]}

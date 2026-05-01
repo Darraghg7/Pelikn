@@ -32,12 +32,12 @@ const APNS_BUNDLE_ID  = Deno.env.get('APNS_BUNDLE_ID')  ?? 'app.pelikn'
 const SUPABASE_URL    = Deno.env.get('SUPABASE_URL')    ?? ''
 const SUPABASE_SERVICE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
 
+const DEV_ORIGIN = Deno.env.get('DEV_ORIGIN')
 const ALLOWED_ORIGINS = [
   'https://pelikn.app',
-  'https://pelikn.app',
-  'http://localhost:5173',
   'capacitor://localhost',
   'ionic://localhost',
+  ...(DEV_ORIGIN ? [DEV_ORIGIN] : []),
 ]
 
 function jsonResponse(body: unknown, status: number, headers: Record<string, string>) {

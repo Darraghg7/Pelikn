@@ -17,6 +17,7 @@ function CleaningOverdueWidget() {
   const status = overdueCount > 3 ? 'bad' : overdueCount > 0 ? 'warning' : 'good'
 
   const completeTask = async (taskId) => {
+    if (completing) return
     setCompleting(taskId)
     const { error } = await supabase.rpc('complete_cleaning_task', {
       p_token: session?.token,
@@ -55,14 +56,14 @@ function CleaningOverdueWidget() {
           const threshold = FREQ_DAYS[t.frequency] ?? 1
           const overBy = days !== null ? days - threshold : null
           return (
-            <div key={t.id} className="flex items-center justify-between gap-2 py-1 border-b border-charcoal/6 last:border-0">
+            <div key={t.id} className="flex items-center justify-between gap-2 py-2 border-b border-charcoal/6 last:border-0">
               <button
                 onClick={(e) => { e.preventDefault(); completeTask(t.id) }}
                 disabled={completing === t.id}
-                className="shrink-0 w-6 h-6 rounded-full border-2 border-charcoal/20 flex items-center justify-center hover:border-success hover:bg-success/10 transition-colors disabled:opacity-40 text-success text-xs"
+                className="shrink-0 w-10 h-10 rounded-xl border-2 border-charcoal/20 flex items-center justify-center hover:border-success hover:bg-success/10 transition-colors disabled:opacity-40 disabled:cursor-wait text-success text-xs"
                 title="Mark complete"
               >
-                {completing === t.id ? '…' : <svg className="w-3 h-3" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg>}
+                {completing === t.id ? <span className="w-4 h-4 rounded-full border-2 border-success/25 border-t-success animate-spin" /> : <svg className="w-4 h-4" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg>}
               </button>
               <p className="text-xs text-charcoal truncate flex-1">{t.title}</p>
               <span className="text-[11px] text-danger/70 whitespace-nowrap shrink-0">

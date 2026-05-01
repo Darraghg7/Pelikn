@@ -121,6 +121,8 @@ export const PERMISSION_PRESETS = [
   { id: 'full',   label: 'Full Access',  permissions: STAFF_PERMISSIONS.map(p => p.id) },
 ]
 
+export const PERMISSION_TITLES_SETTING_KEY = 'permission_titles'
+
 // ── Venue type presets (onboarding) ─────────────────────────────────────────
 
 export const VENUE_PRESETS = [

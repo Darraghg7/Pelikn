@@ -146,13 +146,32 @@ export function useTodayDuties(staffId) {
 
   const toggleItem = useCallback(async (assignmentId, itemId, currentlyDone) => {
     const fn = currentlyDone ? 'uncomplete_duty_item' : 'complete_duty_item'
+    setDuties(prev => prev.map(duty => duty.assignmentId === assignmentId
+      ? {
+          ...duty,
+          items: duty.items.map(item => item.id === itemId
+            ? { ...item, completed: !currentlyDone }
+            : item),
+        }
+      : duty))
     const { error } = await supabase.rpc(fn, {
       p_token:         session?.token,
       p_venue_slug:    venueSlug,
       p_assignment_id: assignmentId,
       p_item_id:       itemId,
     })
-    if (!error) await load()
+    if (error) {
+      setDuties(prev => prev.map(duty => duty.assignmentId === assignmentId
+        ? {
+            ...duty,
+            items: duty.items.map(item => item.id === itemId
+              ? { ...item, completed: currentlyDone }
+              : item),
+          }
+        : duty))
+      return { error }
+    }
+    await load()
     return { error }
   }, [session, venueSlug, load])
 

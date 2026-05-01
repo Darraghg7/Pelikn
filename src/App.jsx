@@ -11,6 +11,7 @@ import AppShell                from './components/layout/AppShell'
 import { FullPageLoader }      from './components/ui/LoadingSpinner'
 import PlanGate                from './components/ui/PlanGate'
 import UpdateBanner            from './components/ui/UpdateBanner'
+import ErrorBoundary           from './components/ui/ErrorBoundary'
 
 // Auth
 const LoginPage = lazy(() => import('./pages/LoginPage'))
@@ -202,6 +203,7 @@ function LegacyRedirect() {
 
 function VenueRoutes() {
   return (
+    <ErrorBoundary>
     <VenueProvider>
       <SessionProvider>
         <ToastProvider>
@@ -258,6 +260,7 @@ function VenueRoutes() {
         </ToastProvider>
       </SessionProvider>
     </VenueProvider>
+    </ErrorBoundary>
   )
 }
 
@@ -270,6 +273,7 @@ export default function App() {
     <BrowserRouter>
       <UpdateBanner />
       <AuthProvider>
+        <ErrorBoundary>
         <Suspense fallback={<FullPageLoader />}>
         <Routes>
           {/* Public: marketing homepage */}
@@ -310,6 +314,7 @@ export default function App() {
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
         </Suspense>
+        </ErrorBoundary>
       </AuthProvider>
     </BrowserRouter>
   )

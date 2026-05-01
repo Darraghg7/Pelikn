@@ -204,9 +204,9 @@ const QUICK_ACTION_ICONS = {
   ),
 }
 
-function QuickActions({ venueSlug, hasPermission, isEnabled, hasShift }) {
+function QuickActions({ venueSlug, hasPermission, isEnabled, isPlanLocked, hasShift }) {
   const actions = [
-    hasShift && { label: 'Clock In', link: `/v/${venueSlug}/clock-in` },
+    hasShift && !isPlanLocked('clock-in') && { label: 'Clock In', link: `/v/${venueSlug}/clock-in` },
     isEnabled('fridge') && hasPermission('log_temps') && { label: 'Log Fridge Temp', link: `/v/${venueSlug}/fridge/log` },
     isEnabled('cleaning') && hasPermission('manage_cleaning') && { label: 'Cleaning', link: `/v/${venueSlug}/cleaning` },
     isEnabled('opening_closing') && hasPermission('manage_opening') && { label: 'Checks', link: `/v/${venueSlug}/opening-closing` },
@@ -381,29 +381,31 @@ function TodaySummary({ staffId, venueId, venueSlug, hasPermission, isEnabled, c
 function DutyItemRow({ item, assignmentId, toggleItem }) {
   const [busy, setBusy] = useState(false)
   const handleToggle = async () => {
+    if (busy) return
     setBusy(true)
-    await toggleItem(assignmentId, item.id, item.completed)
-    setBusy(false)
+    const { error } = await toggleItem(assignmentId, item.id, item.completed)
+    if (error) setBusy(false)
+    else setTimeout(() => setBusy(false), 150)
   }
   return (
     <button
       onClick={handleToggle}
       disabled={busy}
-      className="flex items-center gap-3 w-full text-left py-1.5 group disabled:opacity-50"
+      className="min-h-12 flex items-center gap-3 w-full text-left py-2.5 px-1.5 rounded-lg group disabled:opacity-70 hover:bg-charcoal/3 transition-colors"
     >
       <span className={[
-        'w-5 h-5 rounded border-2 shrink-0 flex items-center justify-center transition-all',
+        'w-7 h-7 rounded-lg border-2 shrink-0 flex items-center justify-center transition-all',
         item.completed
           ? 'bg-success border-success'
           : 'border-charcoal/25 group-hover:border-charcoal/50',
       ].join(' ')}>
         {item.completed && (
-          <svg className="w-3 h-3 text-white" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <svg className="w-4 h-4 text-white" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="2,6 5,9 10,3"/>
           </svg>
         )}
       </span>
-      <span className={`text-sm ${item.completed ? 'line-through text-charcoal/35' : 'text-charcoal'}`}>
+      <span className={`text-sm leading-snug ${item.completed ? 'line-through text-charcoal/35' : 'text-charcoal'}`}>
         {item.title}
       </span>
     </button>
@@ -459,7 +461,7 @@ function TodayDuties({ staffId }) {
 export default function StaffDashboardPage() {
   const { venueId, venueSlug } = useVenue()
   const { session, hasPermission } = useSession()
-  const { isEnabled } = useVenueFeatures()
+  const { isEnabled, isPlanLocked } = useVenueFeatures()
   const { venueName, logoUrl } = useVenueBranding(venueId)
   const { closedDays } = useAppSettings()
   const [todayShift, setTodayShift] = useState(null)
@@ -538,7 +540,7 @@ export default function StaffDashboardPage() {
       <PushNotificationBanner staffId={session.staffId} venueId={venueId} />
 
       {/* Quick actions */}
-      <QuickActions venueSlug={venueSlug} hasPermission={hasPermission} isEnabled={isEnabled} hasShift={!!todayShift} />
+      <QuickActions venueSlug={venueSlug} hasPermission={hasPermission} isEnabled={isEnabled} isPlanLocked={isPlanLocked} hasShift={!!todayShift} />
 
       {/* Today summary */}
       <TodaySummary staffId={session.staffId} venueId={venueId} venueSlug={venueSlug} hasPermission={hasPermission} isEnabled={isEnabled} closedDays={closedDays} />
@@ -561,9 +563,11 @@ export default function StaffDashboardPage() {
             ) : (
               <p className="text-sm text-charcoal/40 italic">No shift scheduled today</p>
             )}
-            <div className="border-t border-charcoal/8 pt-4">
-              <ClockPanel staffId={session.staffId} hasShift={!!todayShift} />
-            </div>
+            {!isPlanLocked('clock-in') && (
+              <div className="border-t border-charcoal/8 pt-4">
+                <ClockPanel staffId={session.staffId} hasShift={!!todayShift} />
+              </div>
+            )}
           </div>
 
           <MyUpcomingShifts shifts={weekShifts} hourlyRate={hourlyRate} venueSlug={venueSlug} />

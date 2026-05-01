@@ -59,6 +59,7 @@ export default function LoginPage() {
   const [pickerVenues, setPickerVenues] = useState(null) // null = no picker
   const [switching, setSwitching]     = useState(false)
   const pinRef = useRef(null)
+  const pinSectionRef = useRef(null)
 
   // Redirect if session was restored on app load (not a fresh login)
   useEffect(() => {
@@ -104,7 +105,10 @@ export default function LoginPage() {
     setSelected(member)
     setPin('')
     setError('')
-    setTimeout(() => pinRef.current?.focus(), 50)
+    setTimeout(() => {
+      pinSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      pinRef.current?.focus()
+    }, 50)
   }
 
   const handleSubmit = async (e) => {
@@ -211,7 +215,7 @@ export default function LoginPage() {
                 {/* Avatar */}
                 {s.photo_url ? (
                   <img src={s.photo_url} alt={s.name}
-                    className="w-9 h-9 rounded-full object-cover shrink-0 border border-charcoal/10" />
+                    className="w-9 h-9 rounded-full object-cover shrink-0 border border-charcoal/10" loading="lazy" />
                 ) : (
                   <div className="w-9 h-9 rounded-full bg-charcoal/10 flex items-center justify-center shrink-0">
                     <span className="text-sm font-semibold text-charcoal/50">{s.name.charAt(0).toUpperCase()}</span>
@@ -230,7 +234,7 @@ export default function LoginPage() {
 
           {/* PIN entry — shown once a staff member is selected */}
           {selected && (
-            <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+            <form ref={pinSectionRef} onSubmit={handleSubmit} className="flex flex-col gap-3 mt-4">
               <div>
                 <p className="text-[11px] tracking-widest font-semibold text-charcoal/40 uppercase mb-2">PIN</p>
                 <input

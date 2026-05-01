@@ -6,7 +6,8 @@ const SUPABASE_URL            = Deno.env.get('SUPABASE_URL')!
 const SUPABASE_SERVICE_ROLE   = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 const FROM_EMAIL              = Deno.env.get('FROM_EMAIL') ?? 'rota@pelikn.app'
 
-const ALLOWED_ORIGINS = ['https://pelikn.app', 'http://localhost:5173', 'capacitor://localhost', 'ionic://localhost']
+const DEV_ORIGIN = Deno.env.get('DEV_ORIGIN')
+const ALLOWED_ORIGINS = ['https://pelikn.app', 'capacitor://localhost', 'ionic://localhost', ...(DEV_ORIGIN ? [DEV_ORIGIN] : [])]
 
 serve(async (req) => {
   const origin = req.headers.get('origin') ?? ''

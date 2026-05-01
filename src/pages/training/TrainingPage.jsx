@@ -485,7 +485,7 @@ function InductionTab({ venueId, isManager, session }) {
               {/* Avatar */}
               <div className="w-9 h-9 rounded-full bg-charcoal/10 flex items-center justify-center shrink-0">
                 {r.staff?.photo_url
-                  ? <img src={r.staff.photo_url} alt="" className="w-9 h-9 rounded-full object-cover" />
+                  ? <img src={r.staff.photo_url} alt="" className="w-9 h-9 rounded-full object-cover" loading="lazy" />
                   : <span className="text-sm font-semibold text-charcoal/40">{initials(r.staff?.name)}</span>
                 }
               </div>
@@ -667,7 +667,7 @@ function CertificatesTab({ venueId }) {
             <div className="px-5 py-3 bg-white border-b border-charcoal/8 flex items-center gap-3">
               <div className="w-8 h-8 rounded-full bg-charcoal/10 flex items-center justify-center">
                 {recs[0]?.staff?.photo_url
-                  ? <img src={recs[0].staff.photo_url} alt={name} className="w-8 h-8 rounded-full object-cover" />
+                  ? <img src={recs[0].staff.photo_url} alt={name} className="w-8 h-8 rounded-full object-cover" loading="lazy" />
                   : <span className="text-sm font-semibold text-charcoal/40">{name.charAt(0)}</span>}
               </div>
               <div>

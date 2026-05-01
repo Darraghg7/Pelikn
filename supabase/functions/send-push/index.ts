@@ -20,10 +20,16 @@ const VAPID_PRIVATE_KEY = Deno.env.get('VAPID_PRIVATE_KEY') ?? ''
 const SUPABASE_URL      = Deno.env.get('SUPABASE_URL') ?? ''
 const SUPABASE_SERVICE  = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
 
-const ALLOWED_ORIGINS = ['https://pelikn.app', 'http://localhost:5173', 'capacitor://localhost', 'ionic://localhost']
+const DEV_ORIGIN = Deno.env.get('DEV_ORIGIN')
+const ALLOWED_ORIGINS = [
+  'https://pelikn.app',
+  'capacitor://localhost',
+  'ionic://localhost',
+  ...(DEV_ORIGIN ? [DEV_ORIGIN] : []),
+]
 
 webpush.setVapidDetails(
-  'mailto:nomad.bakes1@gmail.com',
+  'mailto:hello@pelikn.app',
   VAPID_PUBLIC_KEY,
   VAPID_PRIVATE_KEY,
 )

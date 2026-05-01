@@ -2,10 +2,11 @@ import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { useVenue } from '../contexts/VenueContext'
 
-export function useFoodItems(search = '') {
+export function useFoodItems(search = '', options = {}) {
   const { venueId } = useVenue()
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(true)
+  const includeInactive = options.includeInactive ?? false
 
   const load = useCallback(async () => {
     if (!venueId) { setLoading(false); return }
@@ -14,15 +15,16 @@ export function useFoodItems(search = '') {
       .from('food_items')
       .select('*, food_allergens(allergen)')
       .eq('venue_id', venueId)
-      .eq('is_active', true)
       .order('name')
+
+    if (!includeInactive) q = q.eq('is_active', true)
 
     if (search) q = q.ilike('name', `%${search}%`)
 
     const { data } = await q
     setItems(data ?? [])
     setLoading(false)
-  }, [venueId, search])
+  }, [venueId, search, includeInactive])
 
   useEffect(() => { load() }, [load])
   return { items, loading, reload: load }

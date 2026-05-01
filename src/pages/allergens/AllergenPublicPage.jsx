@@ -17,6 +17,9 @@ export default function AllergenPublicPage() {
 
   useEffect(() => {
     if (!venueSlug) return
+    let channel = null
+    let cancelled = false
+
     const load = async () => {
       // Look up venue by slug
       const { data: venueData, error: venueErr } = await supabase
@@ -30,29 +33,51 @@ export default function AllergenPublicPage() {
         setLoading(false)
         return
       }
+      // Fetch logo and food items in parallel
+      const [{ data: settingsData }, { data: foodItems }] = await Promise.all([
+        supabase
+          .from('app_settings')
+          .select('value')
+          .eq('venue_id', venueData.id)
+          .eq('key', 'logo_url')
+          .maybeSingle(),
+        supabase
+          .from('food_items')
+          .select('id, name, description, food_allergens(allergen)')
+          .eq('venue_id', venueData.id)
+          .eq('is_active', true)
+          .order('name'),
+      ])
 
-      // Fetch logo from app_settings
-      const { data: settingsData } = await supabase
-        .from('app_settings')
-        .select('key, value')
-        .eq('venue_id', venueData.id)
-        .eq('key', 'logo_url')
-        .maybeSingle()
+      if (!cancelled) {
+        setVenue({ ...venueData, logo_url: settingsData?.value ?? null })
+        setItems(foodItems ?? [])
+        setLoading(false)
+      }
 
-      setVenue({ ...venueData, logo_url: settingsData?.value ?? null })
-
-      // Fetch food items + allergens
-      const { data: foodItems } = await supabase
-        .from('food_items')
-        .select('id, name, description, food_allergens(allergen)')
-        .eq('venue_id', venueData.id)
-        .eq('is_active', true)
-        .order('name')
-
-      setItems(foodItems ?? [])
-      setLoading(false)
+      if (!channel) {
+        channel = supabase
+          .channel(`public-allergens:${venueData.id}`)
+          .on('postgres_changes', {
+            event: '*',
+            schema: 'public',
+            table: 'food_items',
+            filter: `venue_id=eq.${venueData.id}`,
+          }, () => load())
+          .on('postgres_changes', {
+            event: '*',
+            schema: 'public',
+            table: 'food_allergens',
+            filter: `venue_id=eq.${venueData.id}`,
+          }, () => load())
+          .subscribe()
+      }
     }
     load()
+    return () => {
+      cancelled = true
+      if (channel) supabase.removeChannel(channel)
+    }
   }, [venueSlug])
 
   if (loading) return (
@@ -78,6 +103,7 @@ export default function AllergenPublicPage() {
               src={venue.logo_url}
               alt={venue.name}
               className="h-14 w-auto object-contain mb-5"
+              loading="lazy"
             />
           )}
           <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-1">Allergen Information</p>

@@ -16,7 +16,8 @@ import { serve } from 'https://deno.land/std@0.177.0/http/server.ts'
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY') ?? ''
 const FROM_EMAIL     = 'Pelikn <onboarding@resend.dev>'
 
-const ALLOWED_ORIGINS = ['https://pelikn.app', 'http://localhost:5173', 'capacitor://localhost', 'ionic://localhost']
+const DEV_ORIGIN = Deno.env.get('DEV_ORIGIN')
+const ALLOWED_ORIGINS = ['https://pelikn.app', 'capacitor://localhost', 'ionic://localhost', ...(DEV_ORIGIN ? [DEV_ORIGIN] : [])]
 
 serve(async (req) => {
   const origin = req.headers.get('origin') ?? ''

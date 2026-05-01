@@ -76,7 +76,7 @@ export const PRO_ONLY_FEATURE_IDS = [
 // Routes/pages that are Pro-only but aren't in the feature-toggle system
 export const PRO_ONLY_ROUTES = new Set([
   'rota', 'timesheet', 'time-off', 'training', 'waste', 'orders',
-  'haccp', 'eho-mock',
+  'haccp', 'eho-mock', 'clock-in', 'noticeboard',
 ])
 
 const DEFAULT_CONFIG = { mode: 'all', enabled: ALL_FEATURE_IDS }
