@@ -111,12 +111,11 @@ export default function LoginPage() {
     }, 50)
   }
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    if (!selected || pin.length < 4) return
+  const doSignIn = async (pinValue) => {
+    if (!selected || pinValue.length < 4 || submitting) return
     setSubmitting(true)
     setError('')
-    const { error: err, linkedVenues } = await signIn(selected.id, pin, venueId, venueSlug)
+    const { error: err, linkedVenues } = await signIn(selected.id, pinValue, venueId, venueSlug)
     if (err) {
       const msg = err.message ?? ''
       if (/too many failed/i.test(msg)) {
@@ -138,6 +137,11 @@ export default function LoginPage() {
       return
     }
     // Single venue — redirect immediately (session is set, useEffect fires)
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    await doSignIn(pin)
   }
 
   const handlePickVenue = async (venue) => {
@@ -243,7 +247,15 @@ export default function LoginPage() {
                   inputMode="numeric"
                   maxLength={6}
                   value={pin}
-                  onChange={(e) => { setPin(e.target.value.replace(/\D/g, '')); setError('') }}
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/\D/g, '')
+                    setPin(val)
+                    setError('')
+                    // Auto-submit: pass val directly to avoid stale closure on pin state
+                    if (val.length === 4) {
+                      setTimeout(() => doSignIn(val), 150)
+                    }
+                  }}
                   placeholder="Enter PIN"
                   className={[
                     'w-full px-4 py-3 rounded-xl border bg-white text-charcoal text-sm font-mono tracking-[0.4em] placeholder:tracking-normal placeholder:font-sans placeholder:text-charcoal/30 outline-none transition-colors',

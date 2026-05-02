@@ -52,7 +52,7 @@ test.describe('Staff PIN login', () => {
     await page.getByText('Sarah Mitchell').first().click()
     await page.waitForSelector('input[type="password"]', { timeout: 5000 })
     await page.locator('input[type="password"]').fill('9999')
-    await page.getByRole('button', { name: 'Sign In' }).click()
+    // Auto-submits on 4 digits — just wait for the inline error
     await expect(page.getByText(/incorrect/i)).toBeVisible({ timeout: 8000 })
   })
 
@@ -62,7 +62,7 @@ test.describe('Staff PIN login', () => {
     await page.getByText('Sarah Mitchell').first().click()
     await page.waitForSelector('input[type="password"]', { timeout: 5000 })
     await page.locator('input[type="password"]').fill('1234')
-    await page.getByRole('button', { name: 'Sign In' }).click()
+    // Auto-submits on 4 digits — wait for navigation directly
     await page.waitForURL(`**/v/${VENUE}/dashboard**`, { timeout: 15000 })
     await expect(page).toHaveURL(new RegExp(`/v/${VENUE}/dashboard`))
   })

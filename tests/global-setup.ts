@@ -37,8 +37,12 @@ setup('authenticate owner and manager', async ({ page }) => {
 
   await page.waitForSelector('input[type="password"]', { timeout: 5000 })
   await page.locator('input[type="password"]').fill(STAFF_PIN)
-  await page.getByRole('button', { name: /sign in/i }).click()
-
+  // Auto-submits after 4 digits; fall back to button click for shorter PINs
+  const btn = page.getByRole('button', { name: /sign in/i })
+  await Promise.race([
+    page.waitForURL(`**/${VENUE_SLUG}/dashboard**`, { timeout: 15000 }),
+    btn.click({ timeout: 3000 }).catch(() => {}),
+  ])
   await page.waitForURL(`**/${VENUE_SLUG}/dashboard**`, { timeout: 15000 })
 
   // Save manager state (Supabase auth + PIN session)

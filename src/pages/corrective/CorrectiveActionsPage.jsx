@@ -6,6 +6,8 @@ import { useVenue } from '../../contexts/VenueContext'
 import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../../components/ui/Toast'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
+import EmptyState from '../../components/ui/EmptyState'
+import { SkeletonList } from '../../components/ui/Skeleton'
 import Modal from '../../components/ui/Modal'
 
 function useCorrectiveActions(venueId) {
@@ -176,11 +178,13 @@ export default function CorrectiveActionsPage() {
 
       {/* Records */}
       {loading ? (
-        <div className="flex justify-center py-10"><LoadingSpinner /></div>
+        <SkeletonList rows={4} className="py-4" />
       ) : filtered.length === 0 ? (
-        <div className="bg-white rounded-2xl border-charcoal/10 p-10 text-center">
-          <p className="text-charcoal/30 text-sm">No corrective actions logged yet.</p>
-        </div>
+        <EmptyState
+          icon="clipboard"
+          title="No corrective actions"
+          description="All clear — no actions have been logged yet."
+        />
       ) : (
         <div className="flex flex-col gap-3">
           {filtered.map(r => {

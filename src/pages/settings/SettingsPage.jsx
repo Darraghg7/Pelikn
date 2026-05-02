@@ -385,7 +385,7 @@ export default function SettingsPage() {
   const { settings, loading: sLoading, reload: reloadSettings } = useVenueSettings()
   const { closures, reload: reloadClosures } = useVenueClosures()
   const { closedDays, breakDurationMins, cleanupMinutes, fridgeCheckTime, openTime, closeTime, complianceNavOrder, saveClosedDays, saveBreakDuration, saveCleanupMinutes, saveFridgeCheckTime, saveOpenTime, saveCloseTime, saveComplianceNavOrder } = useAppSettings()
-  const { dark, toggle: toggleDark } = useTheme()
+  const { dark, mode: themeMode, setMode: setThemeMode } = useTheme()
   const { config: featuresConfig, save: saveFeatures, venuePlan, isEnabled } = useVenueFeatures()
 
   // Closed periods form
@@ -553,17 +553,32 @@ export default function SettingsPage() {
             </div>
           </div>
 
-          {/* Dark mode */}
+          {/* Theme mode */}
           <div className="border-t border-charcoal/10 pt-4 mt-2 flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-charcoal dark:text-white">Dark Mode</p>
+              <p className="text-sm font-medium text-charcoal dark:text-white">Appearance</p>
               <p className="text-xs text-charcoal/40 dark:text-white/40 mt-0.5">
-                {dark ? 'Dark theme active.' : 'Switch to a darker colour scheme.'}
+                {themeMode === 'system' ? 'Following your device settings.' : dark ? 'Dark theme active.' : 'Light theme active.'}
               </p>
             </div>
-            <div className="flex items-center gap-1.5">
-              <span className="text-charcoal/50">{dark ? <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg> : <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>}</span>
-              <Toggle checked={dark} onChange={toggleDark} />
+            <div className="flex bg-charcoal/8 dark:bg-white/10 rounded-lg p-0.5">
+              {[
+                { id: 'light', label: '☀️' },
+                { id: 'dark', label: '🌙' },
+                { id: 'system', label: '💻' },
+              ].map(opt => (
+                <button
+                  key={opt.id}
+                  onClick={() => setThemeMode(opt.id)}
+                  className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+                    themeMode === opt.id
+                      ? 'bg-white dark:bg-charcoal text-charcoal dark:text-white shadow-sm'
+                      : 'text-charcoal/50 dark:text-white/50 hover:text-charcoal dark:hover:text-white'
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
             </div>
           </div>
 

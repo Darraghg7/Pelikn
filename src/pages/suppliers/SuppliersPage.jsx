@@ -4,6 +4,8 @@ import { useVenue } from '../../contexts/VenueContext'
 import { useToast } from '../../components/ui/Toast'
 import Button from '../../components/ui/Button'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
+import EmptyState from '../../components/ui/EmptyState'
+import { SkeletonList } from '../../components/ui/Skeleton'
 
 const CATEGORIES = ['meat', 'fish', 'dairy', 'produce', 'dry_goods', 'other']
 
@@ -324,16 +326,13 @@ export default function SuppliersPage() {
       )}
 
       {loading ? (
-        <div className="flex justify-center py-10"><LoadingSpinner /></div>
+        <SkeletonList rows={4} className="py-4" />
       ) : grouped.length === 0 ? (
-        <div className="bg-white rounded-2xl border-dashed border-charcoal/20 p-10 text-center">
-          <p className="text-charcoal/30 text-sm">
-            {suppliers.length === 0 ? 'No approved suppliers yet.' : 'No suppliers in this category.'}
-          </p>
-          {suppliers.length === 0 && (
-            <p className="text-xs text-charcoal/25 mt-1">Add your first supplier above.</p>
-          )}
-        </div>
+        <EmptyState
+          icon="list"
+          title={suppliers.length === 0 ? 'No suppliers yet' : 'No suppliers in this category'}
+          description={suppliers.length === 0 ? 'Add your first approved supplier to get started.' : 'Try selecting a different category above.'}
+        />
       ) : (
         <div className="flex flex-col gap-3">
           {grouped.map((s) => (

@@ -6,6 +6,8 @@ import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../../components/ui/Toast'
 import Button from '../../components/ui/Button'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
+import EmptyState from '../../components/ui/EmptyState'
+import { SkeletonList } from '../../components/ui/Skeleton'
 
 function useNotices(venueId) {
   const [notices, setNotices] = useState([])
@@ -203,14 +205,13 @@ export default function NoticeBoardPage() {
       )}
 
       {loading ? (
-        <div className="flex justify-center py-10"><LoadingSpinner /></div>
+        <SkeletonList rows={3} className="py-4" />
       ) : notices.length === 0 ? (
-        <div className="bg-white rounded-2xl border-dashed border-charcoal/20 p-10 text-center">
-          <p className="text-charcoal/30 text-sm">No notices yet.</p>
-          {isManager && (
-            <p className="text-xs text-charcoal/25 mt-1">Post the first notice above.</p>
-          )}
-        </div>
+        <EmptyState
+          icon="list"
+          title="No notices yet"
+          description={isManager ? 'Post the first notice above to let your team know.' : 'No notices from your manager yet.'}
+        />
       ) : (
         <div className="flex flex-col gap-4">
           {notices.map((notice) => (

@@ -23,11 +23,15 @@ const icons = {
 export function ToastProvider({ children }) {
   const [toasts, setToasts] = useState([])
 
+  const dismiss = useCallback((id) => {
+    setToasts((t) => t.filter((x) => x.id !== id))
+  }, [])
+
   const toast = useCallback((message, type = 'success') => {
     const id = Date.now()
     setToasts((t) => [...t, { id, message, type }])
-    setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), 3500)
-  }, [])
+    setTimeout(() => dismiss(id), 3500)
+  }, [dismiss])
 
   const styles = {
     success: 'bg-charcoal text-cream',
@@ -38,11 +42,16 @@ export function ToastProvider({ children }) {
   return (
     <ToastContext.Provider value={toast}>
       {children}
-      <div className="fixed bottom-20 sm:bottom-4 left-1/2 -translate-x-1/2 z-50 flex flex-col gap-2 pointer-events-none">
+      <div
+        className="fixed bottom-20 sm:bottom-4 left-1/2 -translate-x-1/2 z-50 flex flex-col gap-2"
+        role="status"
+        aria-live="polite"
+      >
         {toasts.map((t) => (
           <div
             key={t.id}
-            className={`flex items-center gap-2.5 px-5 py-3 rounded-2xl shadow-lg text-sm font-medium whitespace-nowrap animate-slide-up ${styles[t.type] ?? styles.success}`}
+            onClick={() => dismiss(t.id)}
+            className={`flex items-center gap-2.5 px-5 py-3 rounded-2xl shadow-lg text-sm font-medium whitespace-nowrap animate-slide-up cursor-pointer select-none ${styles[t.type] ?? styles.success}`}
           >
             {icons[t.type] ?? icons.success}
             {t.message}

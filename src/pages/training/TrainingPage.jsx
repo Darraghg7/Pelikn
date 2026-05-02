@@ -5,6 +5,8 @@ import { useVenue } from '../../contexts/VenueContext'
 import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../../components/ui/Toast'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
+import EmptyState from '../../components/ui/EmptyState'
+import { SkeletonList } from '../../components/ui/Skeleton'
 import SignaturePad from '../../components/ui/SignaturePad'
 
 // ── SC6 topic list (standard food safety induction) ───────────────────────────
@@ -426,7 +428,7 @@ function InductionTab({ venueId, isManager, session }) {
   const pending  = records.filter(r => r.staff_id === staffId && !r.staff_acknowledged)
   const myRecords = records.filter(r => r.staff_id === staffId)
 
-  if (loading) return <div className="flex justify-center py-10"><LoadingSpinner /></div>
+  if (loading) return <SkeletonList rows={4} className="py-4" />
 
   return (
     <div className="flex flex-col gap-5">
@@ -469,11 +471,11 @@ function InductionTab({ venueId, isManager, session }) {
 
       {/* Records list */}
       {(isManager ? records : myRecords).length === 0 ? (
-        <div className="bg-white rounded-2xl border-charcoal/10 p-8 text-center">
-          <p className="text-sm text-charcoal/40">
-            {isManager ? 'No training records yet. Create the first one.' : 'No training records on your account yet.'}
-          </p>
-        </div>
+        <EmptyState
+          icon="clipboard"
+          title="No training records"
+          description={isManager ? 'Create the first training record to get started.' : 'No training records on your account yet.'}
+        />
       ) : (
         <div className="flex flex-col gap-3">
           {(isManager ? records : myRecords).map(r => (
@@ -585,7 +587,7 @@ function CertificatesTab({ venueId }) {
     toast('Record deleted'); reload()
   }
 
-  if (loading) return <div className="flex justify-center py-10"><LoadingSpinner /></div>
+  if (loading) return <SkeletonList rows={4} className="py-4" />
 
   const byStaff = {}
   for (const r of records) {
@@ -658,9 +660,11 @@ function CertificatesTab({ venueId }) {
       )}
 
       {Object.keys(byStaff).length === 0 ? (
-        <div className="bg-white rounded-2xl border-charcoal/10 p-8 text-center">
-          <p className="text-sm text-charcoal/40">No certificates yet. Add the first one above.</p>
-        </div>
+        <EmptyState
+          icon="clipboard"
+          title="No certificates"
+          description="Add the first certificate above to start tracking."
+        />
       ) : (
         Object.entries(byStaff).map(([name, recs]) => (
           <div key={name} className="bg-white rounded-2xl border-charcoal/10 overflow-hidden">

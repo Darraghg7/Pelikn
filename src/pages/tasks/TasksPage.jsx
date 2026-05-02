@@ -7,6 +7,8 @@ import { useSession } from '../../contexts/SessionContext'
 import { useAllTasks, useTasksForRole } from '../../hooks/useTasks'
 import { useToast } from '../../components/ui/Toast'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
+import EmptyState from '../../components/ui/EmptyState'
+import { SkeletonList } from '../../components/ui/Skeleton'
 
 function usePendingSignOffs(staffId, venueId) {
   const [count, setCount] = useState(0)
@@ -134,7 +136,7 @@ function DeptColumn({ role, label, color, templates, oneOffs, completions, onDel
         )}
 
         {deptTotal === 0 && (
-          <p className="text-xs text-charcoal/30 italic py-2">No tasks</p>
+          <EmptyState icon="clipboard" title="No tasks" description="No tasks set up for this department yet." className="py-4" />
         )}
       </div>
     </div>
@@ -219,7 +221,7 @@ function ManagerTasksView() {
     reload()
   }
 
-  if (loading) return <div className="flex justify-center py-10"><LoadingSpinner /></div>
+  if (loading) return <SkeletonList rows={4} className="py-4" />
 
   return (
     <div className="flex flex-col gap-6">
@@ -407,7 +409,7 @@ function StaffTasksView({ session }) {
     oneOffs.some((o) => o.id === c.task_one_off_id)
   ).length
 
-  if (loading) return <div className="flex justify-center py-10"><LoadingSpinner /></div>
+  if (loading) return <SkeletonList rows={4} className="py-4" />
 
   return (
     <div className="flex flex-col gap-6">
@@ -504,7 +506,7 @@ function StaffTasksView({ session }) {
             )
           })}
           {allTasks.length === 0 && (
-            <p className="text-sm text-charcoal/35 italic py-4 text-center">No tasks assigned for today.</p>
+            <EmptyState icon="clipboard" title="No tasks for today" description="You're all caught up. Check back later." className="py-4" />
           )}
         </div>
       </div>

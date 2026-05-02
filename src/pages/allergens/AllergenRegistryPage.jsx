@@ -7,6 +7,8 @@ import { useFoodItems } from '../../hooks/useFoodItems'
 import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../../components/ui/Toast'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
+import EmptyState from '../../components/ui/EmptyState'
+import { SkeletonList } from '../../components/ui/Skeleton'
 import { useVenueBranding } from '../../hooks/useVenueBranding'
 import ConfirmDialog from '../../components/ui/ConfirmDialog'
 import Toggle from '../../components/ui/Toggle'
@@ -184,11 +186,13 @@ export default function AllergenRegistryPage() {
         </div>
 
         {loading ? (
-          <div className="flex justify-center py-10"><LoadingSpinner /></div>
+          <SkeletonList rows={5} className="py-4" />
         ) : items.length === 0 ? (
-          <p className="text-center text-sm text-charcoal/35 italic py-10 pb-8">
-            {search ? 'No items match your search.' : 'No menu items yet. Add your first dish.'}
-          </p>
+          <EmptyState
+            icon={search ? 'search' : 'utensils'}
+            title={search ? 'No results' : 'No menu items yet'}
+            description={search ? 'No items match your search. Try a different term.' : 'Add your first dish to start tracking allergens.'}
+          />
         ) : (
           <div className="flex flex-col">
             {items.map((item) => {
