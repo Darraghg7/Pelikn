@@ -25,7 +25,7 @@ export function useSupplierOrders() {
     setLoading(true)
     const { data } = await supabase
       .from('supplier_orders')
-      .select('id, supplier_id, status, order_date, delivery_date, notes, venue_id, created_at, items:supplier_order_items(id, item_name, quantity, unit, notes)')
+      .select('id, supplier_id, supplier_name, raised_by_name, status, notes, venue_id, created_at, items:supplier_order_items(id, item_name, quantity, unit, notes)')
       .eq('venue_id', venueId)
       .order('created_at', { ascending: false })
     setOrders(data ?? [])
