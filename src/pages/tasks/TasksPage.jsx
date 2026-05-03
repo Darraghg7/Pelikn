@@ -9,6 +9,7 @@ import { useToast } from '../../components/ui/Toast'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
 import EmptyState from '../../components/ui/EmptyState'
 import { SkeletonList } from '../../components/ui/Skeleton'
+import DutiesSection from '../settings/DutiesSection'
 
 function usePendingSignOffs(staffId, venueId) {
   const [count, setCount] = useState(0)
@@ -516,14 +517,33 @@ function StaffTasksView({ session }) {
 
 export default function TasksPage() {
   const { session, isManager } = useSession()
+  const [tab, setTab] = useState('tasks')
 
   return (
     <div className="flex flex-col gap-6">
       <h1 className="text-2xl font-bold text-charcoal">
         {isManager ? 'Task Manager' : "Today's Tasks"}
       </h1>
+      {isManager && (
+        <div className="flex gap-1.5">
+          {['tasks', 'duties'].map(t => (
+            <button
+              key={t}
+              onClick={() => setTab(t)}
+              className={[
+                'px-4 py-1.5 rounded-full text-sm font-medium transition-all',
+                tab === t
+                  ? 'bg-charcoal text-cream'
+                  : 'bg-charcoal/8 text-charcoal/50 hover:bg-charcoal/12 hover:text-charcoal/70',
+              ].join(' ')}
+            >
+              {t === 'tasks' ? 'Tasks' : 'Duties'}
+            </button>
+          ))}
+        </div>
+      )}
       {isManager
-        ? <ManagerTasksView />
+        ? tab === 'tasks' ? <ManagerTasksView /> : <DutiesSection />
         : <StaffTasksView session={session} />
       }
     </div>
