@@ -173,18 +173,22 @@ function getManagerTabs(vp, isEnabled, complianceNavOrder = []) {
       children: teamChildren,
     },
     {
-      key: 'audit',
-      label: 'Audit',
-      to: vp('/audit'),
-      icon: ShieldIcon,
-      match: ['/audit'],
+      key: 'tasks',
+      label: 'Tasks',
+      to: vp('/tasks'),
+      icon: TasksIcon,
+      match: ['/tasks'],
     },
     {
       key: 'settings',
       label: 'Settings',
       to: vp('/settings'),
       icon: CogIcon,
-      match: ['/settings'],
+      match: ['/settings', '/audit'],
+      children: [
+        { to: vp('/settings'), label: 'Settings' },
+        { to: vp('/audit'),    label: 'EHO Audit' },
+      ],
     },
   ]
 }
