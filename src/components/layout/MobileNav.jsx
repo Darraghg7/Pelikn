@@ -101,7 +101,7 @@ function SubNav({ items, currentPath }) {
             to={item.to}
             aria-current={isActive ? 'page' : undefined}
             className={[
-              'px-3.5 py-1.5 rounded-full text-[12px] font-semibold tracking-wide whitespace-nowrap transition-all shrink-0',
+              'px-3.5 py-2 rounded-full text-[12px] font-semibold tracking-wide whitespace-nowrap transition-all shrink-0',
               isActive
                 ? 'bg-brand text-cream shadow-sm shadow-brand/20 dark:bg-cream dark:text-charcoal'
                 : 'bg-charcoal/6 text-charcoal/50 hover:bg-charcoal/10 hover:text-charcoal/70',

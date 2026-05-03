@@ -218,13 +218,13 @@ function SupplierCard({ supplier, onEdit, onArchive }) {
               <span className="text-xs text-charcoal/40">Archive?</span>
               <button
                 onClick={() => { onArchive(supplier.id); setConfirming(false) }}
-                className="text-xs text-danger font-medium hover:text-danger/80 transition-colors"
+                className="text-sm text-danger font-medium hover:text-danger/80 transition-colors px-3 py-1.5"
               >
                 Yes
               </button>
               <button
                 onClick={() => setConfirming(false)}
-                className="text-xs text-charcoal/40 hover:text-charcoal transition-colors"
+                className="text-sm text-charcoal/40 hover:text-charcoal transition-colors px-3 py-1.5"
               >
                 No
               </button>

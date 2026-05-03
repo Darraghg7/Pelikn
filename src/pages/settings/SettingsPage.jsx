@@ -963,7 +963,7 @@ function NavOrderSection({ isEnabled, venuePlan, complianceNavOrder, saveComplia
               <button
                 onClick={() => move(i, -1)}
                 disabled={i === 0}
-                className="p-0.5 text-charcoal/30 hover:text-charcoal disabled:opacity-20 transition-colors"
+                className="p-2 text-charcoal/30 hover:text-charcoal disabled:opacity-20 transition-colors"
                 aria-label="Move up"
               >
                 <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m18 15-6-6-6 6"/></svg>
@@ -971,7 +971,7 @@ function NavOrderSection({ isEnabled, venuePlan, complianceNavOrder, saveComplia
               <button
                 onClick={() => move(i, 1)}
                 disabled={i === orderedItems.length - 1}
-                className="p-0.5 text-charcoal/30 hover:text-charcoal disabled:opacity-20 transition-colors"
+                className="p-2 text-charcoal/30 hover:text-charcoal disabled:opacity-20 transition-colors"
                 aria-label="Move down"
               >
                 <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>

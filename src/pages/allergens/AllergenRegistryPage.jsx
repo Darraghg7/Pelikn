@@ -221,7 +221,7 @@ export default function AllergenRegistryPage() {
                     </p>
                   </div>
 
-                  <div className="flex items-center gap-2 shrink-0">
+                  <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 flex-wrap">
                     {isManager && (
                       <div className="flex items-center gap-1.5 pr-1">
                         <span className="text-[11px] text-charcoal/35">QR</span>
@@ -234,7 +234,7 @@ export default function AllergenRegistryPage() {
                     )}
                     <Link
                       to={`/v/${venueSlug}/allergens/${item.id}`}
-                      className="text-xs text-charcoal/50 hover:text-charcoal border border-charcoal/15 px-2.5 py-1 rounded-md hover:border-charcoal/30 transition-colors"
+                      className="text-xs text-charcoal/50 hover:text-charcoal border border-charcoal/15 px-3 py-1.5 rounded-md hover:border-charcoal/30 transition-colors"
                     >
                       View
                     </Link>
@@ -242,14 +242,14 @@ export default function AllergenRegistryPage() {
                       <>
                         <Link
                           to={`/v/${venueSlug}/allergens/${item.id}/edit`}
-                          className="text-xs text-charcoal/50 hover:text-charcoal border border-charcoal/15 px-2.5 py-1 rounded-md hover:border-charcoal/30 transition-colors"
+                          className="text-xs text-charcoal/50 hover:text-charcoal border border-charcoal/15 px-3 py-1.5 rounded-md hover:border-charcoal/30 transition-colors"
                         >
                           Edit
                         </Link>
                         <button
                           onClick={() => setDeleteTarget({ id: item.id, name: item.name })}
                           disabled={deleting === item.id}
-                          className="text-xs text-charcoal/35 hover:text-danger border border-charcoal/12 px-2 py-1 rounded-md hover:border-danger/30 transition-colors"
+                          className="text-xs text-charcoal/35 hover:text-danger border border-charcoal/12 px-2.5 py-1.5 rounded-md hover:border-danger/30 transition-colors"
                         >
                           ×
                         </button>

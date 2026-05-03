@@ -342,14 +342,14 @@ function WidgetPicker({ open, onClose, activeIds, todayIds, onSave, onSaveToday 
                     <button
                       onClick={() => moveTodayUp(id)}
                       disabled={idx === 0}
-                      className="text-charcoal/30 hover:text-charcoal disabled:opacity-20 text-[11px] leading-none"
+                      className="text-charcoal/30 hover:text-charcoal disabled:opacity-20 text-sm leading-none p-1.5"
                     >
                       ▲
                     </button>
                     <button
                       onClick={() => moveTodayDown(id)}
                       disabled={idx === selectedToday.length - 1}
-                      className="text-charcoal/30 hover:text-charcoal disabled:opacity-20 text-[11px] leading-none"
+                      className="text-charcoal/30 hover:text-charcoal disabled:opacity-20 text-sm leading-none p-1.5"
                     >
                       ▼
                     </button>
@@ -404,14 +404,14 @@ function WidgetPicker({ open, onClose, activeIds, todayIds, onSave, onSaveToday 
                       <button
                         onClick={() => moveUp(id)}
                         disabled={idx === 0}
-                        className="text-charcoal/30 hover:text-charcoal disabled:opacity-20 text-[11px] leading-none"
+                        className="text-charcoal/30 hover:text-charcoal disabled:opacity-20 text-sm leading-none p-1.5"
                       >
                         ▲
                       </button>
                       <button
                         onClick={() => moveDown(id)}
                         disabled={idx === selected.length - 1}
-                        className="text-charcoal/30 hover:text-charcoal disabled:opacity-20 text-[11px] leading-none"
+                        className="text-charcoal/30 hover:text-charcoal disabled:opacity-20 text-sm leading-none p-1.5"
                       >
                         ▼
                       </button>
@@ -704,7 +704,7 @@ function TodaySummaryCard({ venueId, closedDays, itemIds }) {
                   <p className={`text-2xl font-bold ${item.dangerWhenPositive && value > 0 ? 'text-danger' : strong ? 'text-charcoal' : 'text-charcoal/30'}`}>
                     {value}
                   </p>
-                  <p className="text-[10px] text-charcoal/45 leading-tight text-center">{item.metricLabel}</p>
+                  <p className="text-[11px] sm:text-xs text-charcoal/45 leading-tight text-center">{item.metricLabel}</p>
                 </div>
               )
             })}

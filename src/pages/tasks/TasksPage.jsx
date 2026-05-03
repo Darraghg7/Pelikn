@@ -89,7 +89,7 @@ function ManagerTaskRow({ item, isTemplate, completions, onDelete, deleting }) {
       <button
         onClick={() => onDelete(item.id)}
         disabled={deleting === item.id}
-        className="text-xs text-charcoal/35 hover:text-danger transition-colors shrink-0 px-1 py-0.5 rounded"
+        className="text-sm text-charcoal/35 hover:text-danger transition-colors shrink-0 px-2.5 py-1.5 rounded"
         title="Remove task"
       >{deleting === item.id ? '…' : '×'}</button>
     </div>
@@ -328,7 +328,7 @@ function ManagerTasksView() {
       )}
 
       {/* ── Department columns ─────────────────────────────────────────────── */}
-      <div className="flex gap-3 items-start">
+      <div className="flex flex-col sm:flex-row gap-3 items-start">
         <DeptColumn
           role="kitchen"
           label="Kitchen"
