@@ -30,14 +30,14 @@ test.describe('Corrective actions', () => {
     ).toBeVisible({ timeout: 5000 })
   })
 
-  test('can create a corrective action', async ({ page }) => {
+  test('can create a corrective action and it appears in the list', async ({ page }) => {
     await page.getByRole('button', { name: /log issue/i }).first().click()
     await expect(page.locator('[role="dialog"]').first()).toBeVisible({ timeout: 5000 })
 
     // "What happened?" field (required)
     const titleInput = page.locator('[role="dialog"]').locator('input[type="text"]').first()
     await expect(titleInput).toBeVisible({ timeout: 5000 })
-    await titleInput.fill('Fridge temperature exceeded safe range')
+    await titleInput.fill('PW Fridge temp exceeded range')
 
     // "Action taken" field (required — textarea)
     const actionTextarea = page.locator('[role="dialog"]').locator('textarea').last()
@@ -46,7 +46,9 @@ test.describe('Corrective actions', () => {
 
     // Submit — button enables once both required fields are filled
     await page.locator('[role="dialog"]').getByRole('button', { name: /log corrective/i }).click()
-    await expect(page.locator('body')).not.toContainText('404')
+
+    // Verify the action appears in the list after submission
+    await expect(page.getByText('PW Fridge temp exceeded range').first()).toBeVisible({ timeout: 10000 })
   })
 })
 

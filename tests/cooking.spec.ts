@@ -20,18 +20,20 @@ test.describe('Cooking temperatures', () => {
     ).toBeVisible()
   })
 
-  test('can open and fill a cooking temperature log', async ({ page }) => {
+  test('can log a cooking temperature and it appears in the history', async ({ page }) => {
     // Form is already inline — fill food item text and temperature spinbutton
     const textInput = page.locator('input[type="text"], [placeholder*="Chicken"]').first()
     await expect(textInput).toBeVisible({ timeout: 5000 })
-    await textInput.fill('Chicken breast')
+    await textInput.fill('PW Chicken Test')
 
     const tempInput = page.locator('[role="spinbutton"], input[type="number"]').first()
     await expect(tempInput).toBeVisible({ timeout: 5000 })
     await tempInput.fill('75')
 
     await page.getByRole('button', { name: /save|submit|add|log/i }).last().click()
-    await expect(page.locator('body')).not.toContainText('404')
+
+    // The submitted log entry should appear in the recent records on the page
+    await expect(page.getByText('PW Chicken Test').first()).toBeVisible({ timeout: 10000 })
   })
 })
 

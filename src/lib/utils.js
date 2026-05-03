@@ -61,5 +61,8 @@ export const slugify = (str) =>
 export const staffColour = (s) => {
   if (s.colour) return s.colour
   const hex = (s.id ?? '').replace(/-/g, '').slice(0, 8)
-  return STAFF_COLOUR_PALETTE[parseInt(hex, 16) % STAFF_COLOUR_PALETTE.length]
+  const idx = parseInt(hex, 16)
+  return STAFF_COLOUR_PALETTE[
+    Number.isNaN(idx) ? 0 : idx % STAFF_COLOUR_PALETTE.length
+  ]
 }
