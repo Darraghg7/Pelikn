@@ -8,7 +8,7 @@ export function useSuppliers() {
   const [loading, setLoading]     = useState(true)
   const load = useCallback(async () => {
     if (!venueId) { setLoading(false); return }
-    const { data } = await supabase.from('suppliers').select('id, name, contact_name, contact_email, contact_phone, is_active, venue_id').eq('venue_id', venueId).eq('is_active', true).order('name')
+    const { data } = await supabase.from('suppliers').select('id, name, contact_name, email, phone, is_active, venue_id').eq('venue_id', venueId).eq('is_active', true).order('name')
     setSuppliers(data ?? [])
     setLoading(false)
   }, [venueId])
@@ -25,7 +25,7 @@ export function useSupplierOrders() {
     setLoading(true)
     const { data } = await supabase
       .from('supplier_orders')
-      .select('id, supplier_id, status, order_date, delivery_date, notes, venue_id, created_at, items:supplier_order_items(id, product_name, quantity, unit, received, notes)')
+      .select('id, supplier_id, status, order_date, delivery_date, notes, venue_id, created_at, items:supplier_order_items(id, item_name, quantity, unit, notes)')
       .eq('venue_id', venueId)
       .order('created_at', { ascending: false })
     setOrders(data ?? [])
