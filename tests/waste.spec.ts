@@ -26,11 +26,11 @@ test.describe('Waste log', () => {
     ).toBeVisible({ timeout: 5000 })
   })
 
-  test('can submit a waste entry', async ({ page }) => {
+  test('can submit a waste entry and it appears in the log', async ({ page }) => {
     // Item name input has no type attribute — target by placeholder
     const nameField = page.getByPlaceholder(/chicken breast|mixed salad/i).first()
     await expect(nameField).toBeVisible({ timeout: 5000 })
-    await nameField.fill('Day-old bread')
+    await nameField.fill('PW Test Bread')
 
     // Quantity spinbutton
     const qtyField = page.locator('[role="spinbutton"], input[type="number"]').first()
@@ -41,6 +41,8 @@ test.describe('Waste log', () => {
 
     // "Log Waste →" button enables once item name + reason are set
     await page.getByRole('button', { name: /log waste/i }).first().click()
-    await expect(page.locator('body')).not.toContainText('404')
+
+    // Verify the submitted entry appears in the list (use .first() for duplicate-safe matching)
+    await expect(page.getByText('PW Test Bread').first()).toBeVisible({ timeout: 10000 })
   })
 })

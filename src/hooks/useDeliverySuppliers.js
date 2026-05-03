@@ -8,7 +8,7 @@ export default function useDeliverySuppliers(venueId) {
     if (!venueId) return
     const { data } = await supabase
       .from('suppliers')
-      .select('id, name, contact_name, contact_email, contact_phone, is_active, venue_id')
+      .select('id, name, contact_name, email, phone, is_active, venue_id')
       .eq('venue_id', venueId)
       .eq('is_active', true)
       .order('name')
