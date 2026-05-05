@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pelikn — Business Strategy</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f4f5f7;
+      color: #1a1f2e;
+      line-height: 1.6;
+    }
+
+    /* ── Header ── */
+    header {
+      background: #1a1f2e;
+      color: #fff;
+      padding: 48px 40px 40px;
+      position: relative;
+      overflow: hidden;
+    }
+    header::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #f59e0b, #fbbf24, #f59e0b);
+    }
+    .header-inner {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .logo-mark {
+      width: 40px; height: 40px;
+      background: #f59e0b;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 18px; color: #1a1f2e;
+    }
+    .logo-name { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
+    h1 {
+      font-size: 36px;
+      font-weight: 800;
+      letter-spacing: -1px;
+      line-height: 1.15;
+      margin-bottom: 12px;
+    }
+    h1 span { color: #f59e0b; }
+    .subtitle {
+      color: #9ca3af;
+      font-size: 16px;
+      max-width: 520px;
+    }
+
+    /* ── Layout ── */
+    main {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 40px 24px 80px;
+    }
+
+    /* ── Section ── */
+    .section {
+      background: #fff;
+      border-radius: 16px;
+      padding: 36px 36px 32px;
+      margin-bottom: 24px;
+      border: 1px solid #e5e7eb;
+      box-shadow: 0 1px 4px rgba(0,0,0,.06);
+    }
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+    .section-icon {
+      width: 44px; height: 44px;
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px;
+      flex-shrink: 0;
+    }
+    .icon-amber { background: #fef3c7; }
+    .icon-blue  { background: #dbeafe; }
+    .icon-green { background: #d1fae5; }
+    .section-title {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+    .section-title small {
+      display: block;
+      font-size: 13px;
+      font-weight: 400;
+      color: #6b7280;
+      margin-top: 2px;
+    }
+
+    /* ── Two-col grid ── */
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    @media (max-width: 600px) { .two-col { grid-template-columns: 1fr; } }
+
+    /* ── Pill card ── */
+    .card {
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 16px 18px;
+    }
+    .card-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: #f59e0b;
+      margin-bottom: 6px;
+    }
+    .card h3 {
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    .card p {
+      font-size: 13.5px;
+      color: #4b5563;
+      line-height: 1.5;
+    }
+
+    /* ── Highlight block ── */
+    .highlight {
+      background: #1a1f2e;
+      color: #fff;
+      border-radius: 12px;
+      padding: 20px 22px;
+      margin-bottom: 16px;
+    }
+    .highlight strong { color: #f59e0b; }
+
+    /* ── Segment table ── */
+    .segment-grid {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr 1fr;
+      gap: 0;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .sg-head {
+      background: #f3f4f6;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: #6b7280;
+      padding: 10px 14px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    .sg-cell {
+      padding: 12px 14px;
+      font-size: 13.5px;
+      border-bottom: 1px solid #f3f4f6;
+      vertical-align: top;
+    }
+    .sg-cell:nth-child(3n+1) { font-weight: 600; }
+    .sg-row-last .sg-cell { border-bottom: none; }
+    .tag {
+      display: inline-block;
+      background: #fef3c7;
+      color: #92400e;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 99px;
+      margin-bottom: 4px;
+    }
+    .tag.blue { background: #dbeafe; color: #1e40af; }
+    .tag.green { background: #d1fae5; color: #065f46; }
+    .tag.purple { background: #ede9fe; color: #5b21b6; }
+
+    /* ── Channel list ── */
+    .channel-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .channel-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px 14px;
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+    }
+    .channel-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #f59e0b;
+      margin-top: 6px;
+      flex-shrink: 0;
+    }
+    .channel-item strong { font-size: 14px; }
+    .channel-item span { font-size: 13px; color: #4b5563; }
+
+    /* ── Retention mechanics ── */
+    .retention-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .retention-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 16px;
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+    }
+    .retention-num {
+      width: 28px; height: 28px;
+      border-radius: 8px;
+      background: #1a1f2e;
+      color: #f59e0b;
+      font-size: 13px;
+      font-weight: 800;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .retention-item strong { font-size: 14px; display: block; }
+    .retention-item span { font-size: 13px; color: #4b5563; }
+
+    /* ── Opportunities ── */
+    .opp-list {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 4px;
+    }
+    @media (max-width: 600px) { .opp-list { grid-template-columns: 1fr; } }
+    .opp-item {
+      padding: 14px 16px;
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      border-left: 3px solid #f59e0b;
+    }
+    .opp-item strong { font-size: 13.5px; display: block; margin-bottom: 4px; }
+    .opp-item p { font-size: 13px; color: #4b5563; }
+
+    /* ── Pull quote ── */
+    .pullquote {
+      background: linear-gradient(135deg, #1a1f2e 0%, #2d3548 100%);
+      border-radius: 16px;
+      padding: 32px 36px;
+      text-align: center;
+      color: #fff;
+    }
+    .pullquote p {
+      font-size: 17px;
+      font-weight: 500;
+      line-height: 1.6;
+      color: #d1d5db;
+      max-width: 640px;
+      margin: 0 auto 10px;
+    }
+    .pullquote p strong { color: #f59e0b; }
+    .pullquote .attribution {
+      font-size: 12px;
+      color: #6b7280;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+
+    /* ── Divider ── */
+    .divider {
+      height: 1px;
+      background: #e5e7eb;
+      margin: 24px 0;
+    }
+
+    @media print {
+      body { background: #fff; }
+      .section { box-shadow: none; break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-inner">
+      <div class="logo">
+        <div class="logo-mark">P</div>
+        <span class="logo-name">Pelikn</span>
+      </div>
+      <h1>Growth &amp; Retention<br /><span>Strategy Brief</span></h1>
+      <p class="subtitle">Why customers choose us, how we reach them, and what keeps them.</p>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- ── SECTION 1: Why They Choose Us ── -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-icon icon-amber">🎯</div>
+        <div class="section-title">
+          Why They Choose Us
+          <small>The emotional and rational sale</small>
+        </div>
+      </div>
+
+      <div class="highlight">
+        <strong>The core hook is fear reduction.</strong> Venue owners live with a low-level dread of EHO inspections. Pelikn turns "am I compliant?" from a gnawing uncertainty into a one-tap PDF export.
+      </div>
+
+      <div class="two-col">
+        <div class="card">
+          <div class="card-label">Emotional</div>
+          <h3>Peace of mind</h3>
+          <p>Pass your next EHO inspection. All records captured automatically, audit-ready PDF in one tap.</p>
+        </div>
+        <div class="card">
+          <div class="card-label">Rational</div>
+          <h3>Replaces 3+ tools</h3>
+          <p>Paper logs + spreadsheet rotas + separate timesheet apps — gone. One PWA, no App Store needed.</p>
+        </div>
+        <div class="card">
+          <div class="card-label">Financial</div>
+          <h3>£5/month entry point</h3>
+          <p>Cheaper than a compliance binder refill. No per-user fees. Less than £1/day for Pro.</p>
+        </div>
+        <div class="card">
+          <div class="card-label">Competitive</div>
+          <h3>UK-specific by design</h3>
+          <p>EHO, FSA, Natasha's Law, HACCP — built for British venues, not a generic US SaaS with a UK label.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SECTION 2: How We Approach Them ── -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-icon icon-blue">📣</div>
+        <div class="section-title">
+          How We Approach Them
+          <small>Segment by urgency, not size</small>
+        </div>
+      </div>
+
+      <div class="segment-grid">
+        <div class="sg-head">Segment</div>
+        <div class="sg-head">Trigger</div>
+        <div class="sg-head">Lead With</div>
+
+        <div class="sg-cell"><span class="tag">Pre-EHO panic</span><br />Inspection coming up</div>
+        <div class="sg-cell">Fear of failure</div>
+        <div class="sg-cell">Audit-ready PDF in one tap. 15-min setup. → Starter</div>
+
+        <div class="sg-cell"><span class="tag">Post-EHO failure</span><br />Just got a bad score</div>
+        <div class="sg-cell">Shame + urgency</div>
+        <div class="sg-cell">"Never fail again." Compliance-first → upgrade path</div>
+
+        <div class="sg-cell"><span class="tag blue">Rota chaos</span><br />Growing team</div>
+        <div class="sg-cell">Spreadsheet pain</div>
+        <div class="sg-cell">AI rota builder + shift swaps → Pro from day one</div>
+
+        <div class="sg-row-last sg-cell"><span class="tag green">Multi-site ops</span><br />2+ venues</div>
+        <div class="sg-row-last sg-cell">No unified view</div>
+        <div class="sg-row-last sg-cell">HQ dashboard + £15/extra venue. Biggest LTV.</div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="channel-list">
+        <div class="channel-item">
+          <div class="channel-dot"></div>
+          <div>
+            <strong>Google Ads on "EHO inspection checklist"</strong><br />
+            <span>Captures intent at the moment of panic — highest-converting traffic you can buy.</span>
+          </div>
+        </div>
+        <div class="channel-item">
+          <div class="channel-dot"></div>
+          <div>
+            <strong>Instagram / TikTok for hospitality owners</strong><br />
+            <span>Short demo videos: "Watch us pass an EHO audit in 30 seconds." Shareable, cheap to produce.</span>
+          </div>
+        </div>
+        <div class="channel-item">
+          <div class="channel-dot"></div>
+          <div>
+            <strong>EHO consultants &amp; food safety trainers</strong><br />
+            <span>They recommend tools to every client they train. One referral partner = dozens of signups.</span>
+          </div>
+        </div>
+        <div class="channel-item">
+          <div class="channel-dot"></div>
+          <div>
+            <strong>Local hospitality Facebook groups</strong><br />
+            <span>Tight communities where owners share recommendations. Word of mouth travels fast.</span>
+          </div>
+        </div>
+        <div class="channel-item">
+          <div class="channel-dot" style="background:#6366f1"></div>
+          <div>
+            <strong>QR table cards as a Trojan horse 🃏</strong><br />
+            <span>Customers scan allergen QR codes and see "Powered by Pelikn." Every diner becomes a potential referral to the next venue owner.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SECTION 3: How We Retain Them ── -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-icon icon-green">🔒</div>
+        <div class="section-title">
+          How We Retain Them
+          <small>Built-in gravity at every layer</small>
+        </div>
+      </div>
+
+      <div class="retention-list">
+        <div class="retention-item">
+          <div class="retention-num">1</div>
+          <div>
+            <strong>Daily habit formation</strong>
+            <span>Temperature logs, opening/closing checklists, and cleaning schedules mean staff use the app every single shift. Muscle memory within a week.</span>
+          </div>
+        </div>
+        <div class="retention-item">
+          <div class="retention-num">2</div>
+          <div>
+            <strong>Compliance lock-in</strong>
+            <span>Once you've passed an EHO inspection using Pelikn's records, switching means rebuilding your entire compliance paper trail. Nobody does that voluntarily.</span>
+          </div>
+        </div>
+        <div class="retention-item">
+          <div class="retention-num">3</div>
+          <div>
+            <strong>Operational gravity (Pro)</strong>
+            <span>Rota + timesheets + training + time-off in one place. Switching costs compound with every week of data.</span>
+          </div>
+        </div>
+        <div class="retention-item">
+          <div class="retention-num">4</div>
+          <div>
+            <strong>Multi-venue gravity</strong>
+            <span>A 3-site group at £55/month has all cross-venue compliance + staffing in one dashboard. Switching cost is enormous.</span>
+          </div>
+        </div>
+        <div class="retention-item">
+          <div class="retention-num">5</div>
+          <div>
+            <strong>Push notifications</strong>
+            <span>Training certificate expiry alerts, rota changes, and time-off approvals keep the app present even when not actively in use.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <p style="font-size:14px; font-weight:600; color:#6b7280; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:12px;">Opportunities to strengthen retention further</p>
+      <div class="opp-list">
+        <div class="opp-item">
+          <strong>Monthly compliance score email</strong>
+          <p>"Your venue scored 98% this month. Here's what you missed." Creates a feedback loop owners would miss if they cancelled.</p>
+        </div>
+        <div class="opp-item">
+          <strong>Year-over-year EHO readiness trend</strong>
+          <p>"You're more compliant than 6 months ago" validates the subscription cost every renewal cycle.</p>
+        </div>
+        <div class="opp-item">
+          <strong>Staff-side value</strong>
+          <p>If staff love shift swaps and time-off requests, they become internal advocates who'd resist a switch.</p>
+        </div>
+        <div class="opp-item">
+          <strong>QR allergen page as referral engine</strong>
+          <p>Every customer who scans a table QR is a potential referral to another venue owner. Add a subtle "Get this for your venue" CTA.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Pull quote ── -->
+    <div class="pullquote">
+      <p>
+        <strong>Sell on fear</strong> (EHO inspection) → <strong>onboard on simplicity</strong> (15-min setup, no app store) → <strong>retain on daily habit + data gravity.</strong>
+      </p>
+      <div class="attribution">Pelikn Strategic Summary · May 2026</div>
+    </div>
+
+  </main>
+
+</body>
+</html>

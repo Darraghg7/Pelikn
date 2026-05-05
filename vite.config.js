@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
+import path from 'path'
 
 export default defineConfig({
   test: {
@@ -13,6 +14,12 @@ export default defineConfig({
       reporter: ['text', 'html'],
     },
   },
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+    },
+  },
+
   plugins: [
     react(),
     VitePWA({
@@ -33,6 +40,8 @@ export default defineConfig({
         manualChunks: {
           // Core React runtime — tiny, cached forever after first load
           'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          // Data fetching layer
+          'query-vendor': ['@tanstack/react-query'],
           // Supabase client — large but rarely changes
           'supabase-vendor': ['@supabase/supabase-js'],
           // Date utilities

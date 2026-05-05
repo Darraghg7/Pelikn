@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, memo, useCallback } from 'react'
+import React, { useState, useEffect, useMemo, useCallback } from 'react'
 import { format, endOfWeek, addWeeks, addDays, startOfMonth, endOfMonth, subMonths, parseISO } from 'date-fns'
 import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
@@ -9,10 +9,11 @@ import { useShifts, useStaffList, unpaidBreakMins } from '../../hooks/useShifts'
 import { useAppSettings } from '../../hooks/useSettings'
 import { formatMinutes, getWeekStart, getWeekDays, downloadCsv } from '../../lib/utils'
 import { buildPdfReport } from '../../lib/pdfUtils'
-import Modal from '../../components/ui/Modal'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
+import AddSessionModal from './AddSessionModal'
+import EditSessionModal from './EditSessionModal'
+import DrillDownPanel from './DrillDownPanel'
 
-// End-of-day offset: 23:59:59.999 in milliseconds
 const END_OF_DAY_MS = 86_399_999
 
 function SectionLabel({ children }) {
@@ -20,26 +21,15 @@ function SectionLabel({ children }) {
 }
 
 function fmtGBP(n) { return `£${Number(n).toFixed(2)}` }
-function fmtTime(iso) { return iso ? format(parseISO(iso), 'HH:mm') : '?' }
 
-// ── Discrepancy helper ────────────────────────────────────────────────────────
-
-/**
- * ok         — on time or surplus (within grace period)
- * minor      — 1–30 min short beyond grace
- * significant — >30 min short beyond grace
- * absent     — scheduled but no clock events
- */
 function discrepancyStatus(actualMins, expectedMins, cleanupMins) {
-  if (expectedMins === undefined) return null   // no shift scheduled — nothing to compare
+  if (expectedMins === undefined) return null
   if (actualMins === 0)           return 'absent'
-  const delta = expectedMins - actualMins       // positive = worked less than scheduled
+  const delta = expectedMins - actualMins
   if (delta <= cleanupMins) return 'ok'
   if (delta <= 30)          return 'minor'
   return 'significant'
 }
-
-// ── buildTimesheets ───────────────────────────────────────────────────────────
 
 function buildTimesheets(events, staffRates) {
   const results = {}
@@ -75,13 +65,6 @@ function buildTimesheets(events, staffRates) {
   return Object.values(results).sort((a, b) => a.name.localeCompare(b.name))
 }
 
-// ── buildDailyGrid ────────────────────────────────────────────────────────────
-/**
- * Groups clock events into per-staff, per-day data including event IDs for
- * admin deletion. Returns:
- * [{ staffId, name, days: { 'yyyy-MM-dd': { minutes, sessions[] } } }]
- * Each session: { in, inId, out, outId, breaks: [{ start, startId, end, endId }] }
- */
 function buildDailyGrid(events) {
   const grid = {}
   for (const e of events) {
@@ -105,7 +88,6 @@ function buildDailyGrid(events) {
       }
     }
   }
-
   const result = {}
   for (const [sid, r] of Object.entries(grid)) {
     result[sid] = { staffId: sid, name: r.name, days: {} }
@@ -125,416 +107,6 @@ function buildDailyGrid(events) {
   }
   return Object.values(result).sort((a, b) => a.name.localeCompare(b.name))
 }
-
-// ── AddSessionModal ───────────────────────────────────────────────────────────
-
-function AddSessionModal({ open, onClose, staffList, initialStaffId, initialDate, venueId, onSaved }) {
-  const toast = useToast()
-  const [form, setForm] = useState({
-    staffId: '', date: '', clockIn: '', clockOut: '',
-    breakEnabled: false, breakStart: '', breakEnd: '',
-  })
-  const [saving, setSaving] = useState(false)
-
-  // Reset whenever the modal opens with new target
-  useEffect(() => {
-    if (open) setForm({ staffId: initialStaffId, date: initialDate, clockIn: '', clockOut: '', breakEnabled: false, breakStart: '', breakEnd: '' })
-  }, [open, initialStaffId, initialDate])
-
-  const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
-
-  const save = async () => {
-    const { staffId, date, clockIn, clockOut, breakEnabled, breakStart, breakEnd } = form
-    if (!staffId)          { toast('Please select a staff member', 'error'); return }
-    if (!date)             { toast('Please select a date', 'error'); return }
-    if (!clockIn || !clockOut) { toast('Clock in and clock out are required', 'error'); return }
-    if (clockOut <= clockIn)   { toast('Clock out must be after clock in', 'error'); return }
-    if (breakEnabled) {
-      if (!breakStart || !breakEnd)                             { toast('Fill in both break times', 'error'); return }
-      if (breakStart <= clockIn || breakEnd <= breakStart || breakEnd >= clockOut) {
-        toast('Break times must fall within the shift', 'error'); return
-      }
-    }
-
-    const toISO = (t) => new Date(`${date}T${t}:00`).toISOString()
-    const events = [
-      { staff_id: staffId, event_type: 'clock_in',  occurred_at: toISO(clockIn),  venue_id: venueId },
-    ]
-    if (breakEnabled && breakStart && breakEnd) {
-      events.push({ staff_id: staffId, event_type: 'break_start', occurred_at: toISO(breakStart), venue_id: venueId })
-      events.push({ staff_id: staffId, event_type: 'break_end',   occurred_at: toISO(breakEnd),   venue_id: venueId })
-    }
-    events.push({ staff_id: staffId, event_type: 'clock_out', occurred_at: toISO(clockOut), venue_id: venueId })
-
-    setSaving(true)
-    const { error } = await supabase.from('clock_events').insert(events)
-    setSaving(false)
-    if (error) { toast(error.message, 'error'); return }
-    toast('Session added')
-    onSaved()
-  }
-
-  return (
-    <Modal open={open} onClose={onClose} title="Add Session">
-      <div className="flex flex-col gap-4">
-
-        {/* Staff */}
-        <div>
-          <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1">Staff Member</label>
-          <select
-            value={form.staffId}
-            onChange={e => set('staffId', e.target.value)}
-            className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
-          >
-            <option value="">Select staff…</option>
-            {staffList.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-          </select>
-        </div>
-
-        {/* Date */}
-        <div>
-          <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1">Date</label>
-          <input
-            type="date"
-            value={form.date}
-            onChange={e => set('date', e.target.value)}
-            className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
-          />
-        </div>
-
-        {/* Clock in / out */}
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1">Clock In</label>
-            <input
-              type="time"
-              value={form.clockIn}
-              onChange={e => set('clockIn', e.target.value)}
-              className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
-            />
-          </div>
-          <div>
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1">Clock Out</label>
-            <input
-              type="time"
-              value={form.clockOut}
-              onChange={e => set('clockOut', e.target.value)}
-              className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
-            />
-          </div>
-        </div>
-
-        {/* Break toggle */}
-        <label className="flex items-center gap-3 cursor-pointer select-none">
-          <input
-            type="checkbox"
-            checked={form.breakEnabled}
-            onChange={e => set('breakEnabled', e.target.checked)}
-            className="rounded accent-charcoal"
-          />
-          <span className="text-sm text-charcoal/70">Include a break</span>
-        </label>
-
-        {/* Break times */}
-        {form.breakEnabled && (
-          <div className="grid grid-cols-2 gap-3 pl-7">
-            <div>
-              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1">Break Start</label>
-              <input
-                type="time"
-                value={form.breakStart}
-                onChange={e => set('breakStart', e.target.value)}
-                className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
-              />
-            </div>
-            <div>
-              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1">Break End</label>
-              <input
-                type="time"
-                value={form.breakEnd}
-                onChange={e => set('breakEnd', e.target.value)}
-                className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
-              />
-            </div>
-          </div>
-        )}
-
-        <button
-          onClick={save}
-          disabled={saving}
-          className="bg-charcoal text-cream py-3 rounded-xl text-sm font-medium hover:bg-charcoal/90 transition-colors disabled:opacity-40 mt-1"
-        >
-          {saving ? 'Saving…' : 'Add Session →'}
-        </button>
-      </div>
-    </Modal>
-  )
-}
-
-// ── EditSessionModal ──────────────────────────────────────────────────────────
-
-const BREAK_OPTIONS = [0, 5, 10, 15, 20, 30, 45, 60, 90]
-
-function snapToBreakOption(mins) {
-  return BREAK_OPTIONS.reduce((prev, curr) =>
-    Math.abs(curr - mins) < Math.abs(prev - mins) ? curr : prev
-  )
-}
-
-function EditSessionModal({ open, onClose, session, venueId, onSaved }) {
-  const toast = useToast()
-  const [form, setForm] = useState({ clockIn: '', clockOut: '' })
-  const [breakMin, setBreakMin] = useState('0')
-  const [saving, setSaving] = useState(false)
-
-  useEffect(() => {
-    if (open && session) {
-      setForm({
-        clockIn:  session.in  ? format(parseISO(session.in),  'HH:mm') : '',
-        clockOut: session.out ? format(parseISO(session.out), 'HH:mm') : '',
-      })
-      const existingBreakMins = (session.breaks ?? []).reduce((acc, b) => {
-        if (!b.start || !b.end) return acc
-        return acc + Math.round((new Date(b.end) - new Date(b.start)) / 60000)
-      }, 0)
-      setBreakMin(String(snapToBreakOption(existingBreakMins)))
-    }
-  }, [open, session])
-
-  const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
-
-  const save = async () => {
-    const { clockIn, clockOut } = form
-    if (!clockIn || !clockOut) { toast('Both clock in and clock out are required', 'error'); return }
-    if (clockOut <= clockIn)   { toast('Clock out must be after clock in', 'error'); return }
-
-    const date  = session.in.slice(0, 10)
-    const toISO = (t) => new Date(`${date}T${t}:00`).toISOString()
-
-    setSaving(true)
-    const { error } = await supabase.rpc('edit_clock_session', {
-      p_clock_in_id:    session.inId,
-      p_clock_in_time:  toISO(clockIn),
-      p_clock_out_id:   session.outId ?? null,
-      p_clock_out_time: toISO(clockOut),
-      p_break_minutes:  parseInt(breakMin, 10) || 0,
-    })
-    setSaving(false)
-    if (error) { toast(error.message, 'error'); return }
-    toast('Session updated')
-    onSaved()
-  }
-
-  return (
-    <Modal open={open} onClose={onClose} title="Edit Session">
-      <div className="flex flex-col gap-4">
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1">Clock In</label>
-            <input
-              type="time"
-              value={form.clockIn}
-              onChange={e => set('clockIn', e.target.value)}
-              className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
-            />
-          </div>
-          <div>
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1">Clock Out</label>
-            <input
-              type="time"
-              value={form.clockOut}
-              onChange={e => set('clockOut', e.target.value)}
-              className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
-            />
-          </div>
-        </div>
-        <div>
-          <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1">Break</label>
-          <select
-            value={breakMin}
-            onChange={e => setBreakMin(e.target.value)}
-            className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 bg-white text-sm text-charcoal focus:outline-none focus:ring-2 focus:ring-charcoal/20"
-          >
-            {BREAK_OPTIONS.map(m => (
-              <option key={m} value={String(m)}>{m === 0 ? 'No break' : `${m} min`}</option>
-            ))}
-          </select>
-        </div>
-        <button
-          onClick={save}
-          disabled={saving}
-          className="bg-charcoal text-cream py-3 rounded-xl text-sm font-medium hover:bg-charcoal/90 transition-colors disabled:opacity-40 mt-1"
-        >
-          {saving ? 'Saving…' : 'Save Changes →'}
-        </button>
-      </div>
-    </Modal>
-  )
-}
-
-// ── DrillDownPanel ────────────────────────────────────────────────────────────
-
-const DrillDownPanel = memo(function DrillDownPanel({
-  person, gridDays, shiftsForPerson, cleanupMinutes,
-  breakDurationMins, isUnder18,
-  adminMode, onDeleteSession, onAddForPerson, onEditSession,
-}) {
-  const shiftsByDate = useMemo(() => {
-    const map = {}
-    for (const sh of shiftsForPerson) {
-      if (!map[sh.shift_date]) map[sh.shift_date] = []
-      map[sh.shift_date].push(sh)
-    }
-    return map
-  }, [shiftsForPerson])
-
-  const activeDays = gridDays.filter(d => {
-    const dateStr = format(d, 'yyyy-MM-dd')
-    return person.days[dateStr] || shiftsByDate[dateStr]
-  })
-
-  if (activeDays.length === 0) {
-    return (
-      <div className="mx-4 mb-2 p-3 rounded-xl bg-charcoal/3 text-xs text-charcoal/35 italic flex items-center justify-between">
-        <span>No clock events or scheduled shifts this week.</span>
-        {adminMode && (
-          <button
-            onClick={() => onAddForPerson(person.staffId, '')}
-            className="text-[11px] text-brand/70 hover:text-brand transition-colors font-medium shrink-0"
-          >
-            + Add Session
-          </button>
-        )}
-      </div>
-    )
-  }
-
-  return (
-    <div className="mx-4 mb-2 rounded-2xl border border-charcoal/8 bg-white overflow-hidden">
-      {activeDays.map((d, i) => {
-        const dateStr   = format(d, 'yyyy-MM-dd')
-        const dayData   = person.days[dateStr]
-        const dayShifts = shiftsByDate[dateStr] ?? []
-        const actual    = dayData?.minutes ?? 0
-        const expected  = dayShifts.reduce((acc, sh) => {
-          const [sh_h, sh_m] = sh.start_time.split(':').map(Number)
-          const [eh, em]     = sh.end_time.split(':').map(Number)
-          const rawMins = (eh * 60 + em) - (sh_h * 60 + sh_m)
-          return acc + rawMins - unpaidBreakMins(rawMins / 60, isUnder18, breakDurationMins)
-        }, 0)
-        const status = discrepancyStatus(actual, expected || undefined, cleanupMinutes)
-
-        return (
-          <div key={dateStr} className={['px-4 py-3', i > 0 ? 'border-t border-charcoal/6' : ''].join(' ')}>
-            {/* Day header */}
-            <p className="text-[11px] tracking-widest uppercase text-charcoal/45 font-semibold mb-2">
-              {format(d, 'EEE d MMM')}
-            </p>
-
-            {/* Absent */}
-            {status === 'absent' && (
-              <p className="text-xs text-danger font-medium">
-                <span className="inline-flex items-center gap-1"><svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Absent</span>
-                {dayShifts.length > 0 && (
-                  <span className="text-charcoal/40 font-normal ml-1">
-                    — scheduled {dayShifts.map(sh => `${sh.start_time.slice(0,5)}–${sh.end_time.slice(0,5)}`).join(', ')}
-                    {' '}({formatMinutes(expected)})
-                  </span>
-                )}
-              </p>
-            )}
-
-            {/* Sessions */}
-            {dayData?.sessions.map((s, si) => {
-              const sessionWorked = s.out
-                ? Math.max(0, (new Date(s.out) - new Date(s.in)) / 60000
-                    - s.breaks.reduce((acc, b) =>
-                      (!b.start || !b.end) ? acc : acc + (new Date(b.end) - new Date(b.start)) / 60000, 0))
-                : null
-
-              const eventIds = [s.inId, s.outId, ...s.breaks.flatMap(b => [b.startId, b.endId])].filter(Boolean)
-
-              return (
-                <div key={si} className="flex flex-wrap items-baseline gap-x-3 gap-y-0.5 text-xs mb-1">
-                  <span className="text-charcoal/40 font-medium">Clock in:</span>
-                  <span className="font-mono text-charcoal font-semibold">{fmtTime(s.in)}</span>
-
-                  {s.breaks.filter(b => b.start && b.end).map((b, bi) => (
-                    <React.Fragment key={bi}>
-                      <span className="text-charcoal/30">·</span>
-                      <span className="text-charcoal/40">Break:</span>
-                      <span className="font-mono text-charcoal/60">{fmtTime(b.start)}–{fmtTime(b.end)}</span>
-                    </React.Fragment>
-                  ))}
-
-                  <span className="text-charcoal/30">·</span>
-                  <span className="text-charcoal/40 font-medium">Clock out:</span>
-                  <span className={['font-mono font-semibold', s.out ? 'text-charcoal' : 'text-charcoal/30 italic'].join(' ')}>
-                    {s.out ? fmtTime(s.out) : 'still in'}
-                  </span>
-
-                  {sessionWorked !== null && (
-                    <>
-                      <span className="text-charcoal/30">·</span>
-                      <span className="font-mono text-charcoal/60">{formatMinutes(Math.round(sessionWorked))}</span>
-                    </>
-                  )}
-
-
-                  {adminMode && (
-                    <>
-                      <button
-                        onClick={() => onEditSession(s)}
-                        className="ml-1 text-charcoal/45 hover:text-charcoal text-[11px] border border-charcoal/15 hover:border-charcoal/35 rounded px-1.5 py-0.5 transition-colors leading-none shrink-0"
-                        title="Edit this session"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => onDeleteSession(eventIds)}
-                        className="ml-1 text-danger/50 hover:text-danger text-[11px] border border-danger/20 hover:border-danger/50 rounded px-1.5 py-0.5 transition-colors leading-none shrink-0"
-                        title="Remove this session"
-                      >
-                        Remove
-                      </button>
-                    </>
-                  )}
-                </div>
-              )
-            })}
-
-            {/* Shift comparison */}
-            {dayShifts.length > 0 && status !== 'absent' && (
-              <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-charcoal/45">
-                <span>Scheduled:</span>
-                <span className="font-mono">
-                  {dayShifts.map(sh => `${sh.start_time.slice(0,5)}–${sh.end_time.slice(0,5)}`).join(', ')}
-                  {' '}({formatMinutes(expected)})
-                </span>
-                <span className="text-charcoal/30">·</span>
-                {status === 'ok'          && <span className="text-success font-medium inline-flex items-center gap-0.5"><svg className="w-3.5 h-3.5" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg> On time</span>}
-                {status === 'minor'       && <span className="text-warning font-medium inline-flex items-center gap-0.5"><svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> {formatMinutes(Math.round(expected - actual))} short</span>}
-                {status === 'significant' && <span className="text-danger font-medium inline-flex items-center gap-0.5"><svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> {formatMinutes(Math.round(expected - actual))} short</span>}
-              </div>
-            )}
-
-            {/* Per-day add button (admin mode) */}
-            {adminMode && (
-              <button
-                onClick={() => onAddForPerson(person.staffId, dateStr)}
-                className="mt-2 text-[11px] text-brand/60 hover:text-brand transition-colors"
-              >
-                + Add session for this day
-              </button>
-            )}
-          </div>
-        )
-      })}
-    </div>
-  )
-})
-
-// ── Period helpers ────────────────────────────────────────────────────────────
 
 const PERIODS = [
   { key: 'this_week',  label: 'This Week' },
@@ -586,8 +158,6 @@ function periodToDates(period, customFrom, customTo) {
   return { dateFrom: '', dateTo: '', label: '—' }
 }
 
-// ── Page ──────────────────────────────────────────────────────────────────────
-
 export default function TimesheetPage() {
   const [period,        setPeriod]        = useState('this_week')
   const [customFrom,    setCustomFrom]    = useState('')
@@ -596,23 +166,21 @@ export default function TimesheetPage() {
   const [weekOffset,    setWeekOffset]    = useState(0)
   const [expandedStaff, setExpandedStaff] = useState(null)
   const [adminMode,     setAdminMode]     = useState(false)
-  const [addTarget,     setAddTarget]     = useState(null) // { staffId, date } | null
-  const [editTarget,    setEditTarget]    = useState(null) // session object | null
+  const [addTarget,     setAddTarget]     = useState(null)
+  const [editTarget,    setEditTarget]    = useState(null)
 
-  const { venueId }      = useVenue()
-  const { isManager }    = useSession()
-  const toast            = useToast()
+  const { venueId }   = useVenue()
+  const { isManager } = useSession()
+  const toast         = useToast()
   const { cleanupMinutes, breakDurationMins } = useAppSettings()
   const { staff: staffList } = useStaffList()
 
-  // Memoize period dates — periodToDates calls new Date() internally, so must be stable
   const { dateFrom, dateTo, label: periodLabel } = useMemo(
     () => periodToDates(period, customFrom, customTo),
     [period, customFrom, customTo]
   )
   const { rows, loading, reload } = useTimesheetData(dateFrom, dateTo)
 
-  // Weekly grid — memoized so useShifts/useTimesheetData don't see a new Date reference each render
   const gridWeekStart = useMemo(() => addWeeks(getWeekStart(new Date()), weekOffset), [weekOffset])
   const gridWeekEnd   = useMemo(() => addDays(gridWeekStart, 6), [gridWeekStart])
   const gridDays      = useMemo(() => getWeekDays(gridWeekStart), [gridWeekStart])
@@ -620,10 +188,8 @@ export default function TimesheetPage() {
   const gridDateTo    = useMemo(() => new Date(gridWeekEnd.getTime() + END_OF_DAY_MS).toISOString(), [gridWeekEnd])
   const { rows: gridRows, loading: gridLoading, reload: gridReload } = useTimesheetData(gridDateFrom, gridDateTo)
 
-  // Shifts for the grid week — gridWeekStart is now stable, so no re-fetch loop
   const { shifts } = useShifts(gridWeekStart)
 
-  // Expected-minutes map: { staffId: { 'yyyy-MM-dd': minutes } }
   const expectedMap = useMemo(() => {
     const map = {}
     for (const sh of shifts) {
@@ -638,7 +204,6 @@ export default function TimesheetPage() {
     return map
   }, [shifts, breakDurationMins])
 
-  // Under-18 lookup from shifts data
   const staffIsUnder18 = useMemo(() => {
     const map = {}
     for (const sh of shifts) {
@@ -647,7 +212,6 @@ export default function TimesheetPage() {
     return map
   }, [shifts])
 
-  // Grid-week totals for scheduled hours and cost
   const gridScheduled = useMemo(() => {
     let totalMins = 0, totalCost = 0
     const byStaff = {}
@@ -663,7 +227,6 @@ export default function TimesheetPage() {
     return { totalMins, totalCost, byStaff }
   }, [shifts, staffRates])
 
-  // Period shifts for pay-period scheduled comparison
   const [periodShifts, setPeriodShifts] = useState([])
   useEffect(() => {
     if (!venueId || !dateFrom || !dateTo) return
@@ -678,7 +241,6 @@ export default function TimesheetPage() {
       .then(({ data }) => setPeriodShifts(data ?? []))
   }, [venueId, dateFrom, dateTo])
 
-  // Period scheduled totals
   const periodScheduled = useMemo(() => {
     let totalMins = 0, totalCost = 0
     const byStaff = {}
@@ -694,7 +256,6 @@ export default function TimesheetPage() {
     return { totalMins, totalCost, byStaff }
   }, [periodShifts, staffRates])
 
-  // Staff on the rota this week who have no clock events — shown in admin mode
   const scheduledOnlyStaff = useMemo(() => {
     const inGrid = new Set(gridRows.map(e => e.staff_id))
     const seen   = new Set()
@@ -721,16 +282,12 @@ export default function TimesheetPage() {
 
   useEffect(() => { reload() },     [reload])
   useEffect(() => { gridReload() }, [gridReload])
-
-  // Collapse drill-down when week changes; exit admin mode when navigating away
   useEffect(() => { setExpandedStaff(null) }, [weekOffset])
 
   const timesheets = useMemo(() => buildTimesheets(rows, staffRates), [rows, staffRates])
   const dailyGrid  = useMemo(() => buildDailyGrid(gridRows), [gridRows])
   const totalMins  = useMemo(() => timesheets.reduce((a, t) => a + t.totalMinutes, 0), [timesheets])
   const totalWage  = useMemo(() => timesheets.reduce((a, t) => a + (t.totalMinutes / 60) * t.hourlyRate, 0), [timesheets])
-
-  // ── Admin handlers ──────────────────────────────────────────────────────────
 
   const deleteSession = useCallback(async (eventIds) => {
     if (!eventIds.length) return
@@ -757,8 +314,6 @@ export default function TimesheetPage() {
     reload()
   }, [gridReload, reload])
 
-  // ── Exports ─────────────────────────────────────────────────────────────────
-
   const exportPdf = () => {
     const pdfRows = timesheets.map((t) => {
       const hrs  = (t.totalMinutes / 60).toFixed(2)
@@ -784,7 +339,7 @@ export default function TimesheetPage() {
   }
 
   const exportCsv = () => {
-    const escape = (v) => `"${String(v).replace(/"/g, '""')}"`
+    const escape   = (v) => `"${String(v).replace(/"/g, '""')}"`
     const header   = ['Name', 'Hours Worked', 'Hourly Rate (£)', 'Gross Pay (£)'].map(escape).join(',')
     const dataRows = timesheets.map((t) => {
       const hrs  = (t.totalMinutes / 60).toFixed(2)
@@ -796,9 +351,6 @@ export default function TimesheetPage() {
     downloadCsv([header, ...dataRows, totalRow].join('\n'), `payroll-${dateFrom.slice(0, 10)}-to-${dateTo.slice(0, 10)}.csv`)
   }
 
-  // ── Render ───────────────────────────────────────────────────────────────────
-
-  // Combined grid rows for admin mode (includes scheduled-only staff)
   const visibleGridRows = adminMode ? [...dailyGrid, ...scheduledOnlyStaff] : dailyGrid
 
   return (
@@ -815,14 +367,14 @@ export default function TimesheetPage() {
           </button>
           <button
             onClick={exportPdf}
-            className="text-[11px] tracking-widest uppercase text-charcoal/40 hover:text-charcoal transition-colors border-b border-charcoal/20"
+            className="text-[11px] tracking-widests uppercase text-charcoal/40 hover:text-charcoal transition-colors border-b border-charcoal/20"
           >
             ↓ Export PDF
           </button>
         </div>
       </div>
 
-      {/* ── Pay Period Summary ───────────────────────────────────────── */}
+      {/* ── Pay Period Summary ── */}
       <div className="bg-white rounded-2xl border-charcoal/10 p-5">
         <SectionLabel>Pay Period Summary</SectionLabel>
 
@@ -944,7 +496,7 @@ export default function TimesheetPage() {
         )}
       </div>
 
-      {/* ── Weekly Hours Grid ────────────────────────────────────────── */}
+      {/* ── Weekly Hours Grid ── */}
       <div className={['bg-white rounded-2xl p-5 transition-colors', adminMode ? 'border-warning/30 ring-1 ring-warning/15' : 'border-charcoal/10'].join(' ')}>
 
         <div className="flex items-center justify-between mb-1 flex-wrap gap-3">
@@ -957,7 +509,6 @@ export default function TimesheetPage() {
             )}
           </div>
           <div className="flex items-center gap-2 -mt-3">
-            {/* Week nav */}
             <button
               onClick={() => setWeekOffset(w => w - 1)}
               className="w-7 h-7 rounded-lg border border-charcoal/15 flex items-center justify-center text-charcoal/50 hover:border-charcoal/30 hover:text-charcoal transition-colors text-sm"
@@ -971,7 +522,6 @@ export default function TimesheetPage() {
               className="w-7 h-7 rounded-lg border border-charcoal/15 flex items-center justify-center text-charcoal/50 hover:border-charcoal/30 hover:text-charcoal transition-colors text-sm disabled:opacity-25 disabled:cursor-not-allowed"
             >→</button>
 
-            {/* Admin mode controls */}
             {isManager && !adminMode && (
               <button
                 onClick={() => setAdminMode(true)}
@@ -1017,24 +567,16 @@ export default function TimesheetPage() {
             <table className="w-full min-w-[540px]">
               <thead>
                 <tr>
-                  <th className="text-left pb-3 pr-4 text-[11px] tracking-widest uppercase text-charcoal/40 font-semibold whitespace-nowrap">
-                    Staff
-                  </th>
+                  <th className="text-left pb-3 pr-4 text-[11px] tracking-widest uppercase text-charcoal/40 font-semibold whitespace-nowrap">Staff</th>
                   {gridDays.map(d => (
                     <th key={d.toISOString()} className="pb-3 px-2 text-center min-w-[60px]">
                       <span className="block text-[11px] tracking-widest uppercase text-charcoal/40 font-semibold">{format(d, 'EEE')}</span>
                       <span className="block text-xs text-charcoal/30 font-normal">{format(d, 'd')}</span>
                     </th>
                   ))}
-                  <th className="pb-3 pl-4 text-right text-[11px] tracking-widest uppercase text-charcoal/40 font-semibold whitespace-nowrap">
-                    Total
-                  </th>
-                  <th className="pb-3 pl-3 text-right text-[11px] tracking-widest uppercase text-charcoal/40 font-semibold whitespace-nowrap">
-                    Sched.
-                  </th>
-                  <th className="pb-3 pl-3 text-right text-[11px] tracking-widest uppercase text-charcoal/40 font-semibold whitespace-nowrap">
-                    Cost
-                  </th>
+                  <th className="pb-3 pl-4 text-right text-[11px] tracking-widest uppercase text-charcoal/40 font-semibold whitespace-nowrap">Total</th>
+                  <th className="pb-3 pl-3 text-right text-[11px] tracking-widest uppercase text-charcoal/40 font-semibold whitespace-nowrap">Sched.</th>
+                  <th className="pb-3 pl-3 text-right text-[11px] tracking-widest uppercase text-charcoal/40 font-semibold whitespace-nowrap">Cost</th>
                 </tr>
               </thead>
               <tbody>
@@ -1045,14 +587,12 @@ export default function TimesheetPage() {
                   return (
                     <React.Fragment key={person.staffId}>
                       <tr className="border-t border-charcoal/5">
-                        {/* Clickable name */}
                         <td
                           className="py-3 pr-4 text-sm font-medium text-charcoal whitespace-nowrap cursor-pointer select-none hover:text-brand transition-colors"
                           onClick={() => setExpandedStaff(s => s === person.staffId ? null : person.staffId)}
                         >
                           {person.name}
                           <span className="ml-1.5 text-charcoal/25 text-[10px]">{isOpen ? '▲' : '▼'}</span>
-                          {/* Admin quick-add per person */}
                           {adminMode && (
                             <button
                               onClick={e => { e.stopPropagation(); openAddModal(person.staffId, '') }}
@@ -1113,7 +653,6 @@ export default function TimesheetPage() {
                         </td>
                       </tr>
 
-                      {/* Drill-down row */}
                       {isOpen && (
                         <tr>
                           <td colSpan={gridDays.length + 4} className="pt-0 pb-2">
@@ -1176,7 +715,6 @@ export default function TimesheetPage() {
         )}
       </div>
 
-      {/* Add Session Modal */}
       <AddSessionModal
         open={!!addTarget}
         onClose={() => setAddTarget(null)}
@@ -1187,7 +725,6 @@ export default function TimesheetPage() {
         onSaved={handleAdminSaved}
       />
 
-      {/* Edit Session Modal */}
       <EditSessionModal
         open={!!editTarget}
         onClose={() => setEditTarget(null)}
@@ -1195,7 +732,6 @@ export default function TimesheetPage() {
         venueId={venueId}
         onSaved={handleEditSaved}
       />
-
     </div>
   )
 }

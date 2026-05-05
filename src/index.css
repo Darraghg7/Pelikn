@@ -37,6 +37,274 @@ table { border-spacing: 0; }
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 .scrollbar-hide { scrollbar-width: none; }
 
+/* ── Native iPhone login surface ─────────────────────────────────────── */
+.pelikn-ios-login {
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: #333333;
+  padding: max(1rem, env(safe-area-inset-top)) 1.15rem max(1rem, env(safe-area-inset-bottom));
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  overflow: hidden;
+}
+.pelikn-ios-card {
+  position: relative;
+  isolation: isolate;
+  width: min(100%, 40.75rem);
+  min-height: calc(100dvh - max(1rem, env(safe-area-inset-top)) - max(1rem, env(safe-area-inset-bottom)));
+  border-radius: 1.7rem;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: clamp(2.55rem, 6.3dvh, 5.25rem) clamp(1.95rem, 8vw, 3.85rem) clamp(2rem, 4.5dvh, 3.9rem);
+  color: #ffffff;
+  background:
+    radial-gradient(circle at 50% 14%, rgba(132, 205, 165, 0.28), transparent 17rem),
+    linear-gradient(150deg, #123d31 0%, #2f6a57 54%, #174233 100%);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.12), 0 1rem 3rem rgba(0,0,0,0.22);
+}
+.pelikn-ios-card::before,
+.pelikn-ios-card::after {
+  content: "";
+  position: absolute;
+  inset: -22%;
+  z-index: -2;
+  opacity: 0.5;
+  background:
+    radial-gradient(circle at 16% 74%, rgba(92, 178, 137, 0.32), transparent 18rem),
+    radial-gradient(circle at 88% 18%, rgba(255, 255, 255, 0.11), transparent 15rem);
+  animation: pelikn-login-drift 8s ease-in-out infinite alternate;
+}
+.pelikn-ios-card::after {
+  inset: -18%;
+  opacity: 0.28;
+  filter: blur(1.5rem);
+  animation-duration: 11s;
+  animation-direction: alternate-reverse;
+}
+.pelikn-ios-glow {
+  position: absolute;
+  top: clamp(4.6rem, 12dvh, 7.6rem);
+  left: 50%;
+  z-index: -1;
+  width: clamp(6.2rem, 25vw, 9rem);
+  aspect-ratio: 1;
+  transform: translateX(-50%);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 3.2rem 1.6rem rgba(121, 215, 162, 0.27);
+  animation: pelikn-login-pulse 2.8s ease-in-out infinite;
+}
+.pelikn-ios-brand {
+  width: 100%;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: clamp(2.35rem, 5.4dvh, 4.2rem);
+}
+.pelikn-ios-mark {
+  width: clamp(4.55rem, 18.5vw, 6.1rem);
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  margin-bottom: clamp(1.75rem, 4.2dvh, 2.85rem);
+  background: rgba(255,255,255,0.045);
+  border: 1px solid rgba(255,255,255,0.06);
+}
+.pelikn-ios-brand h1 {
+  font-size: clamp(2.45rem, 9vw, 3.7rem);
+  line-height: 1;
+  font-weight: 800;
+}
+.pelikn-ios-brand p {
+  margin-top: 1rem;
+  color: rgba(255,255,255,0.62);
+  font-size: clamp(0.95rem, 3.1vw, 1.22rem);
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+.pelikn-ios-form,
+.pelikn-ios-panel {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(1rem, 2.8dvh, 1.4rem);
+}
+.pelikn-ios-input {
+  width: 100%;
+  min-height: clamp(3.8rem, 7.4dvh, 5.15rem);
+  border-radius: 1.35rem;
+  border: 1px solid rgba(255,255,255,0.23);
+  background: rgba(255,255,255,0.12);
+  color: #ffffff;
+  padding: 0 4.5rem 0 clamp(1.55rem, 5.8vw, 3.4rem);
+  outline: none;
+  font-size: clamp(1rem, 3.45vw, 1.4rem);
+  font-weight: 700;
+  box-shadow: inset 0 1px 1px rgba(255,255,255,0.08);
+}
+.pelikn-ios-input::placeholder {
+  color: rgba(255,255,255,0.43);
+}
+.pelikn-ios-input:focus {
+  border-color: rgba(255,255,255,0.5);
+  background: rgba(255,255,255,0.16);
+}
+.pelikn-ios-password {
+  position: relative;
+}
+.pelikn-ios-password button {
+  position: absolute;
+  right: 1.35rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: rgba(255,255,255,0.48);
+  padding: 0.6rem;
+}
+.pelikn-ios-forgot {
+  align-self: flex-end;
+  margin-top: -0.35rem;
+  color: rgba(255,255,255,0.67);
+  font-size: clamp(0.95rem, 3.1vw, 1.28rem);
+  font-weight: 800;
+}
+.pelikn-ios-primary,
+.pelikn-ios-secondary {
+  min-height: clamp(3.9rem, 7.5dvh, 5.2rem);
+  width: 100%;
+  border-radius: 1.35rem;
+  font-size: clamp(1rem, 3.45vw, 1.35rem);
+  font-weight: 800;
+}
+.pelikn-ios-primary {
+  margin-top: clamp(0.75rem, 2.4dvh, 1.7rem);
+  color: #1f4b3e;
+  background: #ffffff;
+  box-shadow: 0 0.8rem 1.5rem rgba(0,0,0,0.08);
+}
+.pelikn-ios-primary:disabled {
+  opacity: 0.62;
+}
+.pelikn-ios-secondary {
+  color: #ffffff;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.28);
+}
+.pelikn-ios-divider {
+  display: flex;
+  align-items: center;
+  gap: 1.65rem;
+  margin: clamp(0.75rem, 2.35dvh, 1.55rem) 0 0.05rem;
+  color: rgba(255,255,255,0.5);
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+.pelikn-ios-divider::before,
+.pelikn-ios-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: rgba(255,255,255,0.27);
+}
+.pelikn-ios-signup {
+  margin-top: auto;
+  padding-top: clamp(1.45rem, 4.8dvh, 3.4rem);
+  color: rgba(255,255,255,0.64);
+  font-size: clamp(0.95rem, 3.2vw, 1.24rem);
+  font-weight: 800;
+  text-align: center;
+}
+.pelikn-ios-signup button {
+  color: #ffffff;
+}
+.pelikn-ios-error,
+.pelikn-ios-notice {
+  margin-top: -0.6rem;
+  font-size: 0.95rem;
+  font-weight: 800;
+}
+.pelikn-ios-error {
+  color: #fecaca;
+}
+.pelikn-ios-notice {
+  color: #bbf7d0;
+}
+.pelikn-ios-panel-title {
+  color: #ffffff;
+  font-size: 1.4rem;
+  font-weight: 800;
+  text-align: center;
+}
+.pelikn-ios-venue-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+.pelikn-ios-venue-list button {
+  min-height: 4.25rem;
+  border-radius: 1.2rem;
+  border: 1px solid rgba(255,255,255,0.22);
+  background: rgba(255,255,255,0.12);
+  color: #ffffff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 1.3rem;
+  font-weight: 800;
+}
+.pelikn-ios-venue-list button span:last-child {
+  color: rgba(255,255,255,0.58);
+  font-size: 0.85rem;
+}
+@keyframes pelikn-login-drift {
+  from { transform: translate3d(-1.4rem, -0.8rem, 0) scale(1); }
+  to { transform: translate3d(1.2rem, 1rem, 0) scale(1.04); }
+}
+@keyframes pelikn-login-pulse {
+  0%, 100% { opacity: 0.72; transform: translateX(-50%) scale(0.98); }
+  50% { opacity: 1; transform: translateX(-50%) scale(1.04); }
+}
+@media (max-height: 720px) {
+  .pelikn-ios-card {
+    padding-top: 1.9rem;
+    padding-bottom: 1.45rem;
+  }
+  .pelikn-ios-brand {
+    margin-bottom: 1.55rem;
+  }
+  .pelikn-ios-mark {
+    width: 4.1rem;
+    margin-bottom: 1.05rem;
+  }
+  .pelikn-ios-form {
+    gap: 0.82rem;
+  }
+  .pelikn-ios-input,
+  .pelikn-ios-primary,
+  .pelikn-ios-secondary {
+    min-height: 3.45rem;
+    border-radius: 1.12rem;
+  }
+  .pelikn-ios-brand h1 {
+    font-size: 2.35rem;
+  }
+  .pelikn-ios-brand p,
+  .pelikn-ios-forgot,
+  .pelikn-ios-signup {
+    font-size: 0.9rem;
+  }
+  .pelikn-ios-divider {
+    margin: 0.45rem 0 0;
+  }
+  .pelikn-ios-signup {
+    padding-top: 0.85rem;
+  }
+}
+
 /* ── Smooth transitions on interactive elements ───────────────────────── */
 button, a, input, select, textarea, [role="button"] {
   transition-property: color, background-color, border-color, box-shadow, opacity, transform;

@@ -1,0 +1,257 @@
+import React, { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
+import { format, startOfDay, endOfDay, subDays } from 'date-fns'
+import { supabase } from '../../lib/supabase'
+import { useVenue } from '../../contexts/VenueContext'
+import { useVenueFeatures } from '../../hooks/useVenueFeatures'
+import { TODAY_ITEM_REGISTRY, DEFAULT_TODAY_ITEMS } from './todayItemRegistry'
+
+function emptySummary() {
+  return {
+    overdueClean: 0,
+    onShiftToday: 0,
+    checksToday: 0,
+    uncheckedFridges: 0,
+    pendingLeave: 0,
+    criticalActions: 0,
+    cookingTempsToday: 0,
+    hotHoldingToday: 0,
+    coolingLogsToday: 0,
+    dutiesAssigned: 0,
+    dutiesCompleted: 0,
+  }
+}
+
+function useTodaySummary(venueId, closedDays = []) {
+  const [summary, setSummary] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [closedToday, setClosedToday] = useState(false)
+
+  useEffect(() => {
+    if (!venueId) return
+    const today = new Date()
+    const dayStart = startOfDay(today).toISOString()
+    const dayEnd   = endOfDay(today).toISOString()
+    const todayStr = format(today, 'yyyy-MM-dd')
+
+    let cancelled = false
+    const fetchAll = async () => {
+      setLoading(true)
+
+      // Check day-of-week closed setting (Mon=0…Sun=6)
+      const todayDow = (today.getDay() + 6) % 7
+      if (closedDays.includes(todayDow)) {
+        if (!cancelled) {
+          setClosedToday(true)
+          setSummary(emptySummary())
+          setLoading(false)
+        }
+        return
+      }
+
+      // Check if venue is closed today via a specific closure period
+      const { data: closureRows } = await supabase
+        .from('venue_closures')
+        .select('id, reason')
+        .eq('venue_id', venueId)
+        .lte('start_date', todayStr)
+        .gte('end_date', todayStr)
+        .limit(1)
+      if (cancelled) return
+      if (closureRows?.length) {
+        setClosedToday(closureRows[0].reason || true)
+        setSummary(emptySummary())
+        setLoading(false)
+        return
+      }
+      setClosedToday(false)
+
+      const [cleaning, rota, opening, fridges, fridgeLogs, leaveReqs, critActions, cookingTemps, hotHoldingLogs, coolingLogs, dutyShifts] = await Promise.all([
+        supabase.from('cleaning_tasks').select('id, frequency').eq('venue_id', venueId).eq('is_active', true),
+        supabase.from('shifts').select('id', { count: 'exact', head: true }).eq('venue_id', venueId).eq('shift_date', todayStr),
+        supabase.from('opening_closing_completions')
+          .select('id', { count: 'exact', head: true })
+          .eq('venue_id', venueId).gte('completed_at', dayStart).lte('completed_at', dayEnd),
+        supabase.from('fridges').select('id').eq('venue_id', venueId).eq('is_active', true),
+        supabase.from('fridge_temperature_logs').select('fridge_id').eq('venue_id', venueId).gte('logged_at', dayStart).lte('logged_at', dayEnd),
+        supabase.from('time_off_requests').select('id', { count: 'exact', head: true }).eq('venue_id', venueId).eq('status', 'pending'),
+        supabase.from('corrective_actions').select('id', { count: 'exact', head: true }).eq('venue_id', venueId).eq('status', 'open').eq('severity', 'critical'),
+        supabase.from('cooking_temp_logs').select('id', { count: 'exact', head: true }).eq('venue_id', venueId).gte('logged_at', dayStart).lte('logged_at', dayEnd),
+        supabase.from('hot_holding_logs').select('id', { count: 'exact', head: true }).eq('venue_id', venueId).gte('logged_at', dayStart).lte('logged_at', dayEnd),
+        supabase.from('cooling_logs').select('id', { count: 'exact', head: true }).eq('venue_id', venueId).gte('logged_at', dayStart).lte('logged_at', dayEnd),
+        supabase.from('shifts').select('id').eq('venue_id', venueId).eq('shift_date', todayStr),
+      ])
+
+      if (cancelled) return
+
+      // Overdue cleaning — limit completions to last 90 days (max frequency window)
+      let overdueCount = 0
+      if (cleaning.data?.length) {
+        const ninetyDaysAgo = subDays(new Date(), 90).toISOString()
+        const { data: completions } = await supabase
+          .from('cleaning_completions')
+          .select('cleaning_task_id, completed_at')
+          .eq('venue_id', venueId)
+          .gte('completed_at', ninetyDaysAgo)
+          .order('completed_at', { ascending: false })
+        if (cancelled) return
+        const freqDays = { daily: 1, weekly: 7, fortnightly: 14, monthly: 30, quarterly: 90 }
+        const now = new Date()
+        // Build Map for O(1) lookups (completions sorted desc, so first match = latest)
+        const latestByTask = new Map()
+        for (const c of (completions ?? [])) {
+          if (!latestByTask.has(c.cleaning_task_id)) latestByTask.set(c.cleaning_task_id, c)
+        }
+        for (const t of cleaning.data) {
+          const last = latestByTask.get(t.id)
+          if (!last) { overdueCount++; continue }
+          if ((now - new Date(last.completed_at)) / 86400000 > (freqDays[t.frequency] ?? 1)) overdueCount++
+        }
+      }
+
+      // Unchecked fridges
+      const checkedIds = new Set((fridgeLogs.data ?? []).map(l => l.fridge_id))
+      const uncheckedFridges = (fridges.data ?? []).filter(f => !checkedIds.has(f.id)).length
+
+      // Duties assigned today + fully completed count
+      let dutiesAssigned = 0, dutiesCompleted = 0
+      if (dutyShifts.data?.length) {
+        const todayShiftIds = dutyShifts.data.map(s => s.id)
+        const { data: dutyAssignments } = await supabase
+          .from('duty_assignments')
+          .select('id, duty_template_id, duty_template_items!duty_template_id ( id )')
+          .in('shift_id', todayShiftIds)
+        if (!cancelled && dutyAssignments?.length) {
+          dutiesAssigned = dutyAssignments.length
+          const assignmentIds = dutyAssignments.map(a => a.id)
+          const { data: completions } = await supabase
+            .from('duty_item_completions')
+            .select('duty_assignment_id, duty_template_item_id')
+            .in('duty_assignment_id', assignmentIds)
+          const completedByAssignment = (completions ?? []).reduce((acc, c) => {
+            acc[c.duty_assignment_id] = (acc[c.duty_assignment_id] ?? 0) + 1
+            return acc
+          }, {})
+          dutiesCompleted = dutyAssignments.filter(a => {
+            const total = a.duty_template_items?.length ?? 0
+            return total > 0 && (completedByAssignment[a.id] ?? 0) >= total
+          }).length
+        }
+      }
+
+      setSummary({
+        overdueClean:     overdueCount,
+        onShiftToday:     rota.count ?? 0,
+        checksToday:      opening.count ?? 0,
+        uncheckedFridges: uncheckedFridges,
+        pendingLeave:     leaveReqs.count ?? 0,
+        criticalActions:  critActions.count ?? 0,
+        cookingTempsToday: cookingTemps.count ?? 0,
+        hotHoldingToday:   hotHoldingLogs.count ?? 0,
+        coolingLogsToday:  coolingLogs.count ?? 0,
+        dutiesAssigned,
+        dutiesCompleted,
+      })
+      setLoading(false)
+    }
+    fetchAll()
+    return () => { cancelled = true }
+  }, [venueId, closedDays])
+
+  return { summary, loading, closedToday }
+}
+
+export default function TodaySummaryCard({ venueId, closedDays, itemIds }) {
+  const { venueSlug } = useVenue()
+  const { isEnabled } = useVenueFeatures()
+  const { summary, loading, closedToday } = useTodaySummary(venueId, closedDays)
+  const vp = (p) => `/v/${venueSlug}${p}`
+
+  const activeItems = (itemIds?.length ? itemIds : DEFAULT_TODAY_ITEMS)
+    .map(id => TODAY_ITEM_REGISTRY[id])
+    .filter(item => item && (!item.feature || isEnabled(item.feature)))
+
+  const actions = summary
+    ? activeItems.map(item => item.action?.(summary, vp)).filter(Boolean)
+    : []
+
+  const urgencyBorder = { warn: 'border-warning', danger: 'border-danger', info: 'border-accent' }
+  const urgencyText = { warn: 'text-warning', danger: 'text-danger', info: 'text-accent' }
+
+  if (!loading && closedToday) {
+    return (
+      <div className="bg-white rounded-2xl overflow-hidden">
+        <div className="px-5 py-6 text-center">
+          <span className="text-charcoal/25 mb-3 flex justify-center"><svg className="w-10 h-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg></span>
+          <p className="text-xl font-bold text-charcoal">Venue closed today</p>
+          <p className="text-sm text-charcoal/45 mt-1">
+            {typeof closedToday === 'string' ? closedToday : 'Enjoy the break!'}
+          </p>
+        </div>
+        {summary && actions.length > 0 && (
+          <div className="border-t border-charcoal/6 divide-y divide-charcoal/6">
+            {actions.map((a) => (
+              <Link key={a.to} to={a.to} className={`flex items-center border-l-[3px] ${urgencyBorder[a.urgency]} pl-4 pr-5 py-3.5 hover:bg-charcoal/3 transition-colors`}>
+                <p className={`text-sm flex-1 font-medium ${urgencyText[a.urgency]}`}>{a.label}</p>
+              </Link>
+            ))}
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  return (
+    <div className="bg-white rounded-2xl overflow-hidden">
+      <div className="px-4 pt-4 pb-3">
+        <p className="text-[11px] tracking-widest uppercase font-semibold text-charcoal/40 mb-3">Today</p>
+        {loading || !summary ? (
+          <div className="flex gap-3">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="flex-1 h-16 rounded-xl bg-charcoal/5 animate-pulse" />
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            {activeItems.length === 0 ? (
+              <div className="col-span-full rounded-xl border border-dashed border-charcoal/15 py-6 px-3 text-center">
+                <p className="text-sm text-charcoal/35">No Today items selected</p>
+              </div>
+            ) : activeItems.map(item => {
+              const value = item.metric(summary) ?? 0
+              const strong = item.dangerWhenPositive
+                ? value > 0
+                : value > 0
+              return (
+                <div key={item.id} className="flex flex-col items-center gap-0.5 border border-charcoal/10 rounded-xl py-3 px-2">
+                  <p className={`text-2xl font-bold ${item.dangerWhenPositive && value > 0 ? 'text-danger' : strong ? 'text-charcoal' : 'text-charcoal/30'}`}>
+                    {value}
+                  </p>
+                  <p className="text-[11px] sm:text-xs text-charcoal/45 leading-tight text-center">{item.metricLabel}</p>
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* Action items */}
+      {!loading && summary && (
+        actions.length === 0 ? (
+          <div className="border-t border-charcoal/6 px-5 py-3.5 flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-success shrink-0" />
+            <p className="text-sm font-medium text-charcoal/50">All checks on track</p>
+          </div>
+        ) : (
+          <div className="border-t border-charcoal/6 divide-y divide-charcoal/6">
+            {actions.map((a) => (
+              <Link key={a.to} to={a.to} className={`flex items-center border-l-[3px] ${urgencyBorder[a.urgency]} pl-4 pr-5 py-3.5 hover:bg-charcoal/3 transition-colors`}>
+                <p className={`text-sm flex-1 font-medium ${urgencyText[a.urgency]}`}>{a.label}</p>
+              </Link>
+            ))}
+          </div>
+        )
+      )}
+    </div>
+  )
+}

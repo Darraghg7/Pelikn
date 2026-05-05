@@ -65,7 +65,9 @@ export default function LandingPage() {
 
   const [email, setEmail]               = useState('')
   const [password, setPassword]         = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [error, setError]               = useState('')
+  const [notice, setNotice]             = useState('')
   const [loading, setLoading]           = useState(false)
   const [pendingVenues, setPendingVenues] = useState(null)
   const [view, setView]                 = useState('welcome') // 'welcome' | 'signin' | 'join' | 'picker'
@@ -79,6 +81,7 @@ export default function LandingPage() {
     if (!email.trim() || !password) return
     setLoading(true)
     setError('')
+    setNotice('')
 
     const { error: err, slug, venues: list } = await signInWithEmail(email.trim(), password)
 
@@ -106,6 +109,22 @@ export default function LandingPage() {
     window.location.replace(`/v/${slug}`)
   }
 
+  const handleForgotPassword = async () => {
+    setError('')
+    setNotice('')
+    const address = email.trim()
+    if (!address) {
+      setError('Enter your email first')
+      return
+    }
+    const { error: err } = await supabase.auth.resetPasswordForEmail(address)
+    if (err) {
+      setError(err.message)
+      return
+    }
+    setNotice('Reset link sent')
+  }
+
   const handleJoin = async (e) => {
     e.preventDefault()
     const code = joinCode.trim().toUpperCase()
@@ -121,9 +140,9 @@ export default function LandingPage() {
     navigate(`/v/${data[0].slug}`)
   }
 
-  const openSignIn = () => { setView('signin'); setError('') }
+  const openSignIn = () => { setView('signin'); setError(''); setNotice('') }
   const openJoin   = () => { setView('join'); setJoinCode(''); setJoinError('') }
-  const closeSheet = () => { setView('welcome'); setError(''); setJoinError('') }
+  const closeSheet = () => { setView('welcome'); setError(''); setNotice(''); setJoinError('') }
 
   if (authLoading) {
     return (
@@ -133,52 +152,100 @@ export default function LandingPage() {
     )
   }
 
-  const isSheetOpen = view === 'signin' || view === 'join' || view === 'picker'
-
   return (
     <div className="min-h-dvh bg-brand font-sans flex flex-col">
 
-      {/* ── MOBILE: full-screen welcome (hidden on md+) ───────────── */}
-      <div className="flex-1 flex flex-col md:hidden"
-           style={{ paddingTop: 'env(safe-area-inset-top)' }}>
+      {/* ── MOBILE: native-style sign-in screen (hidden on md+) ─────────── */}
+      <div className="pelikn-ios-login md:hidden">
+        <div className="pelikn-ios-card">
+          <div className="pelikn-ios-glow" />
 
-        {/* Branding */}
-        <div className="flex-1 flex flex-col items-center justify-center px-8 text-center">
-          <AppIcon size={36} />
-          <h1 className="font-bold text-white text-4xl tracking-tight mt-6">Pelikn</h1>
-          <p className="text-white/50 tracking-widest uppercase text-xs mt-3">
-            Food Safety, Simplified
-          </p>
-          <div className="flex items-center gap-2 mt-5 text-white/30 text-[11px]">
-            <span>Checklists</span>
-            <span>·</span>
-            <span>Temperature logs</span>
-            <span>·</span>
-            <span>Rota</span>
+          <div className="pelikn-ios-brand">
+            <div className="pelikn-ios-mark" aria-hidden="true">
+              <AppIcon size={38} bgClass="" strokeColor="rgba(255,255,255,0.95)" />
+            </div>
+            <h1>Pelikn</h1>
+            <p>Food Safety, Simplified</p>
           </div>
-        </div>
 
-        {/* CTAs */}
-        <div className="px-6 flex flex-col gap-3"
-             style={{ paddingBottom: 'max(2.5rem, env(safe-area-inset-bottom))' }}>
-          <button
-            onClick={() => navigate('/signup')}
-            className="w-full bg-surface text-brand rounded-2xl py-4 text-sm font-bold tracking-wide hover:bg-cream/90 transition-colors"
-          >
-            Get Started
-          </button>
-          <button
-            onClick={openSignIn}
-            className="w-full border border-white/20 text-white rounded-2xl py-4 text-sm font-semibold hover:bg-white/5 transition-colors"
-          >
-            Sign In
-          </button>
-          <button
-            onClick={openJoin}
-            className="w-full text-white/50 text-sm font-medium py-2 hover:text-white/80 transition-colors"
-          >
-            Join with venue code
-          </button>
+          {view === 'picker' && pendingVenues ? (
+            <div className="pelikn-ios-panel">
+              <p className="pelikn-ios-panel-title">Select a venue</p>
+              <div className="pelikn-ios-venue-list">
+                {pendingVenues.map(v => (
+                  <button key={v.id} type="button" onClick={() => handlePickVenue(v.slug)}>
+                    <span>{v.name}</span>
+                    <span>Continue</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : view === 'join' ? (
+            <form onSubmit={handleJoin} className="pelikn-ios-form">
+              <input
+                type="text"
+                autoComplete="off"
+                autoCapitalize="characters"
+                maxLength={6}
+                value={joinCode}
+                onChange={(e) => { setJoinCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '')); setJoinError('') }}
+                placeholder="Venue code"
+                className="pelikn-ios-input"
+              />
+              {joinError && <p className="pelikn-ios-error">{joinError}</p>}
+              <button type="submit" disabled={joinLoading || joinCode.length < 4} className="pelikn-ios-primary">
+                {joinLoading ? 'Looking up...' : 'Continue'}
+              </button>
+              <button type="button" onClick={openSignIn} className="pelikn-ios-secondary">
+                Sign in instead
+              </button>
+            </form>
+          ) : (
+            <form onSubmit={handleSubmit} className="pelikn-ios-form">
+              <input
+                type="email"
+                required
+                autoComplete="email"
+                value={email}
+                onChange={(e) => { setEmail(e.target.value); setError(''); setNotice('') }}
+                placeholder="Email"
+                className="pelikn-ios-input"
+              />
+              <div className="pelikn-ios-password">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  autoComplete="current-password"
+                  value={password}
+                  onChange={(e) => { setPassword(e.target.value); setError(''); setNotice('') }}
+                  placeholder="Password"
+                  className="pelikn-ios-input"
+                />
+                <button type="button" onClick={() => setShowPassword(v => !v)} aria-label={showPassword ? 'Hide password' : 'Show password'}>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z" />
+                    <circle cx="12" cy="12" r="3" />
+                  </svg>
+                </button>
+              </div>
+              <button type="button" onClick={handleForgotPassword} className="pelikn-ios-forgot">
+                Forgot password?
+              </button>
+              {error && <p className="pelikn-ios-error">{error}</p>}
+              {notice && <p className="pelikn-ios-notice">{notice}</p>}
+              <button type="submit" disabled={loading || !email.trim() || !password} className="pelikn-ios-primary">
+                {loading ? 'Signing in...' : 'Sign In'}
+              </button>
+              <div className="pelikn-ios-divider"><span>or</span></div>
+              <button type="button" onClick={openJoin} className="pelikn-ios-secondary">
+                Join with venue code
+              </button>
+            </form>
+          )}
+
+          <p className="pelikn-ios-signup">
+            Don't have an account? <button type="button" onClick={() => navigate('/signup')}>Sign up</button>
+          </p>
         </div>
       </div>
 
@@ -316,115 +383,6 @@ export default function LandingPage() {
         </div>
       </div>
 
-      {/* ── MOBILE: bottom sheet overlay ──────────────────────────── */}
-      <div
-        className={[
-          'fixed inset-0 bg-black/40 z-10 md:hidden transition-opacity duration-300',
-          isSheetOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none',
-        ].join(' ')}
-        onClick={view !== 'picker' ? closeSheet : undefined}
-      />
-
-      {/* Sheet */}
-      <div
-        className={[
-          'fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl z-20 md:hidden',
-          'max-h-[calc(100dvh-env(safe-area-inset-top)-0.75rem)] overflow-y-auto overscroll-contain',
-          'transition-transform duration-300 ease-out',
-          isSheetOpen ? 'translate-y-0' : 'translate-y-full',
-        ].join(' ')}
-        style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
-      >
-        <div className="w-10 h-1 bg-charcoal/12 rounded-full mx-auto mt-3 mb-1" />
-
-        <div className="px-6 pt-4 pb-6 flex flex-col gap-5">
-          {view === 'picker' && pendingVenues ? (
-            <VenuePicker venues={pendingVenues} onSelect={handlePickVenue} />
-          ) : view === 'join' ? (
-            <>
-              <div>
-                <h2 className="font-bold text-charcoal text-xl">Join a venue</h2>
-                <p className="text-xs text-charcoal/40 mt-1">Enter the code your manager shared with you</p>
-              </div>
-              <form onSubmit={handleJoin} className="flex flex-col gap-4">
-                <div>
-                  <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1.5">Venue Code</label>
-                  <input
-                    type="text"
-                    autoComplete="off"
-                    autoCapitalize="characters"
-                    autoFocus
-                    maxLength={6}
-                    value={joinCode}
-                    onChange={(e) => { setJoinCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '')); setJoinError('') }}
-                    placeholder="e.g. NOMAD23"
-                    className="w-full px-4 py-3 rounded-xl border border-charcoal/15 bg-white text-sm text-charcoal font-mono tracking-widest placeholder:tracking-normal placeholder:font-sans placeholder:text-charcoal/25 outline-none focus:border-brand transition-colors uppercase"
-                  />
-                  {joinError && <p className="text-danger text-xs mt-1.5">{joinError}</p>}
-                </div>
-                <button
-                  type="submit"
-                  disabled={joinLoading || joinCode.length < 4}
-                  className="w-full bg-brand text-cream py-3.5 rounded-xl text-sm font-semibold tracking-wide hover:bg-brand/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                >
-                  {joinLoading ? 'Looking up…' : 'Continue →'}
-                </button>
-              </form>
-              <div className="text-center">
-                <button type="button" onClick={closeSheet}
-                  className="text-xs text-charcoal/35 hover:text-charcoal/60 transition-colors">
-                  ← Back
-                </button>
-              </div>
-            </>
-          ) : (
-            <>
-              <div>
-                <h2 className="font-bold text-charcoal text-xl">Welcome back</h2>
-                <p className="text-xs text-charcoal/40 mt-1">Sign in to access your venue</p>
-              </div>
-              <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-                <div className="flex flex-col gap-3">
-                  <div>
-                    <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1.5">Email</label>
-                    <input
-                      type="email" required autoComplete="email"
-                      value={email}
-                      onChange={(e) => { setEmail(e.target.value); setError('') }}
-                      placeholder="you@example.com"
-                      className="w-full px-4 py-3 rounded-xl border border-charcoal/15 bg-white text-sm text-charcoal placeholder:text-charcoal/25 outline-none focus:border-brand transition-colors"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1.5">Password</label>
-                    <input
-                      type="password" required autoComplete="current-password"
-                      value={password}
-                      onChange={(e) => { setPassword(e.target.value); setError('') }}
-                      placeholder="••••••••"
-                      className="w-full px-4 py-3 rounded-xl border border-charcoal/15 bg-white text-sm text-charcoal placeholder:text-charcoal/25 outline-none focus:border-brand transition-colors"
-                    />
-                  </div>
-                </div>
-                {error && <p className="text-danger text-xs -mt-1">{error}</p>}
-                <button
-                  type="submit"
-                  disabled={loading || !email.trim() || !password}
-                  className="w-full bg-brand text-cream py-3.5 rounded-xl text-sm font-semibold tracking-wide hover:bg-brand/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                >
-                  {loading ? 'Signing in…' : 'Sign In'}
-                </button>
-              </form>
-              <div className="text-center">
-                <button type="button" onClick={closeSheet}
-                  className="text-xs text-charcoal/35 hover:text-charcoal/60 transition-colors">
-                  ← Back
-                </button>
-              </div>
-            </>
-          )}
-        </div>
-      </div>
     </div>
   )
 }

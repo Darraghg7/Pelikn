@@ -1,6 +1,6 @@
 import { test as setup } from '@playwright/test'
 
-const BASE_URL     = 'http://localhost:5173'
+const BASE_URL     = 'http://127.0.0.1:5173'
 const OWNER_EMAIL  = process.env.TEST_OWNER_EMAIL    ?? 'demo@safeserv.com'
 const OWNER_PASS   = process.env.TEST_OWNER_PASSWORD ?? 'Dearbhala30!'
 const VENUE_SLUG   = process.env.TEST_VENUE_SLUG     ?? 'brew-and-bloom'
@@ -15,12 +15,15 @@ setup('authenticate owner and manager', async ({ page }) => {
   await page.goto(`${BASE_URL}/login`)
   await page.waitForLoadState('networkidle')
 
-  // Landing page starts in 'welcome' view — click Sign In to reveal form
-  await page.getByRole('button', { name: /^sign in$/i }).first().click()
-  await page.waitForSelector('input[type="email"]', { timeout: 5000 })
-  await page.locator('input[type="email"]').first().fill(OWNER_EMAIL)
-  await page.locator('input[type="password"]').first().fill(OWNER_PASS)
-  await page.getByRole('button', { name: /^sign in$/i }).last().click()
+  // Desktop still starts on a welcome view; the native mobile login form is visible immediately.
+  const emailInput = page.locator('input[type="email"]:visible').first()
+  if (!(await emailInput.isVisible().catch(() => false))) {
+    await page.getByRole('button', { name: /^sign in$/i }).first().click()
+  }
+  await emailInput.waitFor({ state: 'visible', timeout: 5000 })
+  await emailInput.fill(OWNER_EMAIL)
+  await page.locator('input[type="password"]:visible').first().fill(OWNER_PASS)
+  await page.locator('button:visible', { hasText: /^Sign In$/ }).last().click()
 
   // Wait to land on the venue page
   await page.waitForURL(/\/v\//, { timeout: 20000 })

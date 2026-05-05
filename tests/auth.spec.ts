@@ -5,26 +5,33 @@ import { test, expect } from '@playwright/test'
 
 const VENUE = process.env.TEST_VENUE_SLUG ?? 'brew-and-bloom'
 
+async function openOwnerLoginForm(page) {
+  const emailInput = page.locator('input[type="email"]:visible').first()
+  if (!(await emailInput.isVisible().catch(() => false))) {
+    await page.getByRole('button', { name: /^sign in$/i }).first().click()
+  }
+  await emailInput.waitFor({ state: 'visible', timeout: 5000 })
+  return emailInput
+}
+
 test.describe('Owner login', () => {
   test.use({ storageState: { cookies: [], origins: [] } })
 
   test('shows login page at /login', async ({ page }) => {
     await page.goto('/login')
     await expect(page.getByRole('heading', { name: /pelikn/i })).toBeVisible()
-    // Form is hidden until "Sign In" is clicked
-    await page.getByRole('button', { name: /^sign in$/i }).first().click()
-    await expect(page.getByPlaceholder('you@example.com').first()).toBeVisible()
-    await expect(page.locator('input[type="password"]').first()).toBeVisible()
+    await openOwnerLoginForm(page)
+    await expect(page.locator('input[type="email"]:visible').first()).toBeVisible()
+    await expect(page.locator('input[type="password"]:visible').first()).toBeVisible()
   })
 
   test('shows error on wrong credentials', async ({ page }) => {
     await page.goto('/login')
-    await page.getByRole('button', { name: /^sign in$/i }).first().click()
-    await page.waitForSelector('input[type="email"]', { timeout: 5000 })
-    await page.locator('input[type="email"]').first().fill('wrong@example.com')
-    await page.locator('input[type="password"]').first().fill('wrongpassword')
-    await page.getByRole('button', { name: /^sign in$/i }).last().click()
-    await expect(page.getByText(/invalid|incorrect|error/i).first()).toBeVisible({ timeout: 8000 })
+    const emailInput = await openOwnerLoginForm(page)
+    await emailInput.fill('wrong@example.com')
+    await page.locator('input[type="password"]:visible').first().fill('wrongpassword')
+    await page.locator('button:visible', { hasText: /^Sign In$/ }).last().click()
+    await expect(page.locator(':visible', { hasText: /invalid|incorrect|error/i }).first()).toBeVisible({ timeout: 8000 })
   })
 })
 

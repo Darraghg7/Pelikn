@@ -10,8 +10,6 @@ import { useAvailability } from '../../hooks/useAvailability'
 import { useSession } from '../../contexts/SessionContext'
 import { getWeekStart, getWeekDays } from '../../lib/utils'
 import { useToast } from '../../components/ui/Toast'
-import TimeSelect from '../../components/ui/TimeSelect'
-import { SHIFT_PRESETS } from '../../lib/constants'
 import { useAppSettings } from '../../hooks/useSettings'
 import { useVenueRoles } from '../../hooks/useVenueRoles'
 import RotaWeekView from './RotaWeekView'
@@ -19,24 +17,12 @@ import { shareRotaImage } from '../../lib/rotaImageExport'
 import RotaBuilderModal from './RotaBuilderModal'
 import RotaAIModal from './RotaAIModal'
 import RotaConfigModal from './RotaConfigModal'
+import RotaToolbar from './RotaToolbar'
+import RotaShiftModal from './RotaShiftModal'
+import RotaSwapPanel from './RotaSwapPanel'
+import RotaSwapRequestModal from './RotaSwapRequestModal'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
-import Modal from '../../components/ui/Modal'
-import Toggle from '../../components/ui/Toggle'
 import { useDutyTemplates } from '../../hooks/useDuties'
-
-function SectionLabel({ children }) {
-  return <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-1">{children}</p>
-}
-
-function fmtDuration(startTime, endTime) {
-  const hrs = shiftDurationHours(startTime, endTime)
-  if (hrs <= 0) return null
-  const h = Math.floor(hrs)
-  const m = Math.round((hrs - h) * 60)
-  return h > 0 ? (m > 0 ? `${h}h ${m}m` : `${h}h`) : `${m}m`
-}
-
-function fmtGBP(n) { return `£${Number(n).toFixed(2)}` }
 
 export default function RotaPage() {
   const toast = useToast()
@@ -49,7 +35,7 @@ export default function RotaPage() {
   const { staff, loading: staffLoading } = useStaffList()
   const crossShifts = useCrossVenueShifts(staff, weekStart, numWeeks, venueId)
   const { swaps, loading: swapsLoading, reload: reloadSwaps, pendingCount } = useShiftSwaps()
-  const { unavailability, toggleAvailability, reload: reloadAvail } = useAvailability(weekStart, numWeeks)
+  const { unavailability, toggleAvailability } = useAvailability(weekStart, numWeeks)
   const { customRoles, closedDays, breakDurationMins } = useAppSettings()
   const { roles: venueRoles } = useVenueRoles()
 
@@ -65,7 +51,6 @@ export default function RotaPage() {
   }, [venueId])
   useEffect(() => { loadClosures() }, [loadClosures])
 
-  // Expand all closure ranges into a Set of 'yyyy-MM-dd' strings
   const closedDates = React.useMemo(() => {
     const set = new Set()
     for (const c of closures) {
@@ -77,13 +62,13 @@ export default function RotaPage() {
     return set
   }, [closures])
 
-  // ── Closure mode: pending local state, saved on "Save" ──
+  // ── Closure mode ──
   const [closureMode, setClosureMode]       = useState(false)
-  const [pendingClosed, setPendingClosed]   = useState(null) // Set<string> while in mode
+  const [pendingClosed, setPendingClosed]   = useState(null)
   const [savingClosures, setSavingClosures] = useState(false)
 
   const enterClosureMode = () => {
-    setPendingClosed(new Set(closedDates)) // copy current saved state
+    setPendingClosed(new Set(closedDates))
     setClosureMode(true)
   }
 
@@ -92,7 +77,6 @@ export default function RotaPage() {
     setClosureMode(false)
   }
 
-  // Toggle a date locally — no DB write yet
   const togglePendingClosure = (dateStr) => {
     setPendingClosed(prev => {
       const next = new Set(prev)
@@ -102,31 +86,20 @@ export default function RotaPage() {
     })
   }
 
-  // Save all pending changes to DB, then exit mode
   const saveClosures = async () => {
     if (!pendingClosed || savingClosures) return
     setSavingClosures(true)
-
-    // Dates to add (in pending but not in DB)
-    const toAdd = [...pendingClosed].filter(d => !closedDates.has(d))
-    // Dates to remove (in DB but not in pending) — only single-day closures we manage here
+    const toAdd    = [...pendingClosed].filter(d => !closedDates.has(d))
     const toDelete = [...closedDates].filter(d => !pendingClosed.has(d))
-
-    // Delete removed single-day closures
     for (const dateStr of toDelete) {
       const existing = closures.find(c => c.start_date === dateStr && c.end_date === dateStr)
-      if (existing) {
-        await supabase.from('venue_closures').delete().eq('id', existing.id)
-      }
+      if (existing) await supabase.from('venue_closures').delete().eq('id', existing.id)
     }
-
-    // Insert new closures in a single batch
     if (toAdd.length > 0) {
       await supabase.from('venue_closures').insert(
         toAdd.map(dateStr => ({ venue_id: venueId, start_date: dateStr, end_date: dateStr }))
       )
     }
-
     await loadClosures()
     setSavingClosures(false)
     setPendingClosed(null)
@@ -134,45 +107,40 @@ export default function RotaPage() {
     toast(toAdd.length + toDelete.length > 0 ? 'Closed days saved ✓' : 'No changes made')
   }
 
-  // The dates used for display/blocking: pending state while in mode, saved state otherwise
   const effectiveClosedDates = closureMode && pendingClosed != null ? pendingClosed : closedDates
 
-  const [showBuilder, setShowBuilder]   = useState(false)
-  const [showAI, setShowAI]             = useState(false)
-  const [showConfig, setShowConfig]     = useState(false)
+  const [showBuilder, setShowBuilder] = useState(false)
+  const [showAI, setShowAI]           = useState(false)
+  const [showConfig, setShowConfig]   = useState(false)
 
-  // Manager shift modal state
+  // Shift modal state
   const [modal, setModal]         = useState(null)
   const [editShift, setEditShift] = useState(null)
   const [form, setForm]           = useState({ staffId: '', startTime: '09:00', endTime: '17:00', roleLabel: 'Chef' })
   const [saving, setSaving]       = useState(false)
 
-  // Duty assignment state
   const { templates: dutyTemplates } = useDutyTemplates()
   const [assignDuty, setAssignDuty]         = useState(false)
   const [selectedDutyId, setSelectedDutyId] = useState(null)
-  const [emailing, setEmailing]   = useState(false)
-  const [sharing, setSharing]     = useState(false)
+  const [emailing, setEmailing] = useState(false)
+  const [sharing, setSharing]   = useState(false)
 
-  // Staff swap request modal state
-  const [swapModal, setSwapModal]   = useState(null) // { staffMember, date, shift }
+  // Swap state
+  const [swapModal, setSwapModal]   = useState(null)
   const [swapForm, setSwapForm]     = useState({ targetStaffId: '', message: '' })
   const [swapSaving, setSwapSaving] = useState(false)
-
-  // Manager swap panel state
-  const [showSwaps, setShowSwaps]     = useState(false)
-  const [rejectNote, setRejectNote]   = useState({}) // { [swapId]: note }
-  const [resolving, setResolving]     = useState(null)
+  const [showSwaps, setShowSwaps]   = useState(false)
+  const [rejectNote, setRejectNote] = useState({})
+  const [resolving, setResolving]   = useState(null)
 
   const prevWeek = () => setWeekStart((w) => addWeeks(w, -numWeeks))
   const nextWeek = () => setWeekStart((w) => addWeeks(w, numWeeks))
 
-  // ── Manager: shift cell click ──
   const openCell = (staffMember, date, dayShifts) => {
-    if (!isManager) return // staff handled separately via RotaWeekView callback
-    if (closureMode) return // in closure mode, day header handles clicks
+    if (!isManager) return
+    if (closureMode) return
     const dateStr = format(date, 'yyyy-MM-dd')
-    if (effectiveClosedDates.has(dateStr)) return // can't add shifts on closed days
+    if (effectiveClosedDates.has(dateStr)) return
     setModal({ staffMember, date, dayShifts })
     const lastRole = localStorage.getItem(`mise_last_role_${staffMember.id}`) || venueRoles[0]?.name || ''
     setForm({ staffId: staffMember.id, startTime: '09:00', endTime: '17:00', roleLabel: lastRole })
@@ -181,18 +149,12 @@ export default function RotaPage() {
     setSelectedDutyId(null)
   }
 
-  // ── Staff: cell click → open swap request if they have a shift ──
   const openStaffCell = (staffMember, date, dayShifts) => {
     if (isManager) return openCell(staffMember, date, dayShifts)
-    // Staff: only allow interaction on their own shifts
     if (staffMember.id !== session?.staffId) return
     if (dayShifts.length === 0) return
     setSwapModal({ staffMember, date, shift: dayShifts[0] })
     setSwapForm({ targetStaffId: '', message: '' })
-  }
-
-  const onToggleAvailability = (staffId, date) => {
-    toggleAvailability(staffId, date)
   }
 
   const openEdit = async (sh) => {
@@ -203,7 +165,6 @@ export default function RotaPage() {
       endTime:   sh.end_time?.slice(0, 5) ?? '17:00',
       roleLabel: sh.role_label,
     })
-    // Pre-populate duty assignment if one exists for this shift
     const { data } = await supabase
       .from('duty_assignments')
       .select('duty_template_id')
@@ -233,7 +194,6 @@ export default function RotaPage() {
       role_label: form.roleLabel,
       venue_id:   venueId,
     }
-
     let shiftId = editShift?.id
     if (editShift) {
       const { error } = await supabase.from('shifts').update(payload).eq('id', editShift.id)
@@ -243,20 +203,17 @@ export default function RotaPage() {
       if (error) { toast(error.message, 'error'); setSaving(false); return }
       shiftId = data.id
     }
-
-    // Save or clear duty assignment
     if (shiftId) {
       await supabase.from('duty_assignments').delete().eq('shift_id', shiftId)
       if (assignDuty && selectedDutyId) {
         await supabase.from('duty_assignments').insert({
-          venue_id:            venueId,
-          shift_id:            shiftId,
-          duty_template_id:    selectedDutyId,
+          venue_id:             venueId,
+          shift_id:             shiftId,
+          duty_template_id:     selectedDutyId,
           assigned_by_staff_id: session?.staffId ?? null,
         })
       }
     }
-
     setSaving(false)
     if (form.roleLabel) localStorage.setItem(`mise_last_role_${form.staffId}`, form.roleLabel)
     toast(editShift ? 'Shift updated' : 'Shift added')
@@ -275,50 +232,42 @@ export default function RotaPage() {
   const emailRota = async () => {
     setEmailing(true)
     const weekStartStr = format(weekStart, 'yyyy-MM-dd')
-
-    // 1. Save published state — this is the authoritative "publish" action
     const { error: saveErr } = await supabase.from('app_settings').upsert({
       venue_id: venueId,
       key: `rota_published_${weekStartStr}`,
       value: new Date().toISOString(),
     })
     if (saveErr) { toast('Failed to publish: ' + saveErr.message, 'error'); setEmailing(false); return }
-
-    // 2. Push notification to all staff on this week's rota (fire-and-forget, not blocking)
     const staffIds = [...new Set(shifts.map(s => s.staff_id).filter(Boolean))]
     if (staffIds.length) {
       sendPush({
         venueId,
         notificationType: 'rota_published',
         title: 'Rota Published',
-        body: `Your rota for the week of ${weekStartStr} is now available.`,
-        url: '/rota',
+        body:  `Your rota for the week of ${weekStartStr} is now available.`,
+        url:   '/rota',
         staffIds,
       }).catch(() => {})
     }
-
     setEmailing(false)
     toast('Rota published ✓')
   }
 
-  // ── Staff: submit swap request ──
   const submitSwapRequest = async () => {
     if (!swapForm.targetStaffId) { toast('Please select a colleague to swap with', 'error'); return }
     setSwapSaving(true)
     const targetStaff = staff.find((s) => s.id === swapForm.targetStaffId)
     const { error } = await supabase.rpc('create_swap_request', {
-      p_token:          session?.token,
-      p_shift_id:       swapModal.shift.id,
+      p_token:           session?.token,
+      p_shift_id:        swapModal.shift.id,
       p_target_staff_id: swapForm.targetStaffId,
-      p_message:        swapForm.message.trim() || null,
+      p_message:         swapForm.message.trim() || null,
     })
     setSwapSaving(false)
     if (error) { toast(error.message, 'error'); return }
     toast(`Swap request sent to ${targetStaff?.name ?? 'colleague'} ✓`)
     setSwapModal(null)
     reloadSwaps()
-
-    // Push notification to managers
     sendPush({
       venueId,
       notificationType: 'shift_swap_request',
@@ -329,7 +278,6 @@ export default function RotaPage() {
     }).catch(() => {})
   }
 
-  // ── Manager: approve swap ──
   const approveSwap = async (swap) => {
     setResolving(swap.id)
     const { error: shiftErr } = await supabase
@@ -344,7 +292,6 @@ export default function RotaPage() {
     setResolving(null)
     if (error) { toast(error.message, 'error'); return }
     toast('Swap approved — shift reassigned ✓')
-    // Notify both staff involved
     const staffIds = [swap.requester_id, swap.target_staff_id].filter(Boolean)
     if (staffIds.length) {
       sendPush({
@@ -360,7 +307,6 @@ export default function RotaPage() {
     reload()
   }
 
-  // ── Manager: reject swap ──
   const rejectSwap = async (swap) => {
     setResolving(swap.id)
     const { error } = await supabase
@@ -374,7 +320,6 @@ export default function RotaPage() {
     setResolving(null)
     if (error) { toast(error.message, 'error'); return }
     toast('Swap request rejected')
-    // Notify requester
     if (swap.requester_id) {
       sendPush({
         venueId,
@@ -388,27 +333,14 @@ export default function RotaPage() {
     reloadSwaps()
   }
 
-  // ── WhatsApp rota share — exports an image of the rota ──
   const shareViaWhatsApp = async () => {
     if (sharing) return
     setSharing(true)
     try {
       const days = getWeekDays(weekStart)
-      const currentShifts = shifts.filter(
-        (sh) => sh.week_start === format(weekStart, 'yyyy-MM-dd')
-      )
-      const result = await shareRotaImage({
-        venueName,
-        weekStart,
-        days,
-        shifts: currentShifts,
-        staff,
-        closedDays,
-        closedDates,
-      })
-      if (result === 'downloaded') {
-        toast('Rota image saved — share it on WhatsApp from your downloads')
-      }
+      const currentShifts = shifts.filter((sh) => sh.week_start === format(weekStart, 'yyyy-MM-dd'))
+      const result = await shareRotaImage({ venueName, weekStart, days, shifts: currentShifts, staff, closedDays, closedDates })
+      if (result === 'downloaded') toast('Rota image saved — share it on WhatsApp from your downloads')
     } catch {
       toast('Could not export rota image', 'error')
     } finally {
@@ -416,10 +348,8 @@ export default function RotaPage() {
     }
   }
 
-  // ── Builder: batch save ──
   const batchSaveShifts = async (newShifts, isRebuild) => {
     if (isRebuild) {
-      // Delete existing shifts for this week
       const wsStr = format(weekStart, 'yyyy-MM-dd')
       const { error: delErr } = await supabase
         .from('shifts')
@@ -434,89 +364,29 @@ export default function RotaPage() {
     reload()
   }
 
-  // Derived data
-  const duration = fmtDuration(form.startTime, form.endTime)
-  const staffMemberForModal = modal ? staff.find((s) => s.id === modal?.staffMember?.id) : null
-  const hourlyRate  = staffMemberForModal?.hourly_rate ?? 0
-  const isUnder18   = staffMemberForModal?.is_under_18 ?? false
-  const rawHrs      = shiftDurationHours(form.startTime, form.endTime)
-  const breakMins   = duration ? unpaidBreakMins(rawHrs, isUnder18, breakDurationMins) : 0
-  const paidHrs     = duration ? paidShiftHours(form.startTime, form.endTime, isUnder18, breakDurationMins) : 0
-  const shiftWage   = hourlyRate > 0 && duration
-    ? fmtGBP(paidHrs * hourlyRate)
-    : null
-
   const pendingSwaps  = swaps.filter((s) => s.status === 'pending')
   const resolvedSwaps = swaps.filter((s) => s.status !== 'pending')
-
-  // Staff that can be swapped with (exclude self)
   const swapCandidates = staff.filter((s) => s.id !== session?.staffId)
 
   return (
     <div className="flex flex-col gap-6">
 
-      <div className="flex flex-wrap items-start justify-between gap-y-3">
-        <h1 className="text-2xl font-bold text-charcoal">
-          {isManager ? 'Rota Manager' : 'Rota'}
-        </h1>
-        {isManager && (
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-            {!closureMode && (
-              <>
-                <button
-                  onClick={() => setShowConfig(true)}
-                  className="text-[11px] tracking-widest uppercase text-charcoal/40 hover:text-charcoal transition-colors border-b border-charcoal/20 hover:border-charcoal/40"
-                >
-                  <span className="inline-flex items-center gap-1"><svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg> Configure</span>
-                </button>
-                <button
-                  onClick={() => setShowAI(true)}
-                  className="text-[11px] tracking-widest uppercase text-accent/70 hover:text-accent transition-colors border-b border-accent/30 hover:border-accent/50"
-                >
-                  <span className="inline-flex items-center gap-1"><svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg> Auto-Fill</span>
-                </button>
-                <button
-                  onClick={emailRota}
-                  disabled={emailing || shifts.length === 0}
-                  className="text-[11px] tracking-widest uppercase text-charcoal/40 hover:text-charcoal transition-colors border-b border-charcoal/20 disabled:opacity-30 disabled:cursor-not-allowed"
-                >
-                  {emailing ? 'Notifying…' : <span className="inline-flex items-center gap-1"><svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg> Notify Staff</span>}
-                </button>
-                <button
-                  onClick={shareViaWhatsApp}
-                  disabled={shifts.length === 0 || sharing}
-                  className="text-[11px] tracking-widest uppercase text-success/70 hover:text-success transition-colors border-b border-success/30 disabled:opacity-30 disabled:cursor-not-allowed"
-                >
-                  {sharing ? 'Exporting…' : '↗ Share'}
-                </button>
-                <button
-                  onClick={enterClosureMode}
-                  className="text-[11px] tracking-widest uppercase text-danger/60 hover:text-danger transition-colors border-b border-danger/25 hover:border-danger/40"
-                >
-                  Mark Closed
-                </button>
-              </>
-            )}
-            {closureMode && (
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={cancelClosureMode}
-                  className="text-[11px] tracking-widest uppercase text-charcoal/40 hover:text-charcoal transition-colors border-b border-charcoal/20"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={saveClosures}
-                  disabled={savingClosures}
-                  className="text-[11px] tracking-widest uppercase bg-brand text-cream border border-brand/80 px-3 py-1.5 rounded-lg hover:bg-brand/90 transition-colors font-medium disabled:opacity-50"
-                >
-                  {savingClosures ? 'Saving…' : 'Save'}
-                </button>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
+      <RotaToolbar
+        isManager={isManager}
+        closureMode={closureMode}
+        showConfig={showConfig}
+        setShowConfig={setShowConfig}
+        setShowAI={setShowAI}
+        emailRota={emailRota}
+        emailing={emailing}
+        shiftsCount={shifts.length}
+        shareViaWhatsApp={shareViaWhatsApp}
+        sharing={sharing}
+        enterClosureMode={enterClosureMode}
+        cancelClosureMode={cancelClosureMode}
+        saveClosures={saveClosures}
+        savingClosures={savingClosures}
+      />
 
       {/* ── Closure mode banner ── */}
       {closureMode && (
@@ -532,7 +402,7 @@ export default function RotaPage() {
         </div>
       )}
 
-      {/* Availability legend (always visible for managers) */}
+      {/* Availability legend */}
       {isManager && (
         <div className="flex items-center gap-4 flex-wrap px-1">
           <div className="flex items-center gap-1.5">
@@ -566,115 +436,28 @@ export default function RotaPage() {
               <p className="text-sm font-semibold text-warning">
                 {pendingCount} shift swap request{pendingCount !== 1 ? 's' : ''} pending
               </p>
-              <p className="text-xs text-warning/70 mt-0.5">
-                Tap to review and approve or reject
-              </p>
+              <p className="text-xs text-warning/70 mt-0.5">Tap to review and approve or reject</p>
             </div>
           </div>
           <span className="text-warning/60 text-lg">{showSwaps ? '▲' : '▼'}</span>
         </button>
       )}
 
-      {/* ── Manager: swap requests panel ── */}
-      {isManager && showSwaps && (
-        <div className="bg-white rounded-2xl border-charcoal/10 overflow-hidden">
-          <div className="px-5 py-4 border-b border-charcoal/8 flex items-center justify-between">
-            <p className="text-[11px] tracking-widest uppercase text-charcoal/40">Shift Swap Requests</p>
-            <button
-              onClick={() => setShowSwaps(false)}
-              className="text-xs text-charcoal/30 hover:text-charcoal transition-colors"
-            >
-              Close ×
-            </button>
-          </div>
-
-          {swapsLoading ? (
-            <div className="flex justify-center py-6"><LoadingSpinner /></div>
-          ) : swaps.length === 0 ? (
-            <p className="text-sm text-charcoal/35 italic px-5 py-6">No swap requests yet.</p>
-          ) : (
-            <div className="flex flex-col divide-y divide-charcoal/6">
-              {/* Pending first */}
-              {pendingSwaps.map((swap) => (
-                <div key={swap.id} className="p-5 flex flex-col gap-3">
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-semibold text-charcoal text-sm">{swap.requester_name}</span>
-                        <span className="text-charcoal/30 text-xs">→ swap with</span>
-                        <span className="font-semibold text-charcoal text-sm">{swap.target_staff_name}</span>
-                        <span className="text-[11px] tracking-widest uppercase px-2 py-0.5 rounded-full bg-warning/15 text-warning font-medium">
-                          Pending
-                        </span>
-                      </div>
-                      {swap.shift && (
-                        <p className="text-xs text-charcoal/50 mt-1">
-                          Shift: {swap.shift.shift_date} · {swap.shift.start_time?.slice(0,5)}–{swap.shift.end_time?.slice(0,5)}
-                        </p>
-                      )}
-                      {swap.message && (
-                        <p className="text-xs text-charcoal/60 mt-1 italic">"{swap.message}"</p>
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    <input
-                      type="text"
-                      placeholder="Optional note for rejection…"
-                      value={rejectNote[swap.id] ?? ''}
-                      onChange={(e) => setRejectNote((n) => ({ ...n, [swap.id]: e.target.value }))}
-                      className="w-full px-3 py-2 rounded-lg border border-charcoal/15 bg-white text-xs focus:outline-none focus:ring-2 focus:ring-charcoal/20 placeholder-charcoal/25"
-                    />
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => approveSwap(swap)}
-                        disabled={resolving === swap.id}
-                        className="flex-1 py-2 rounded-lg bg-success text-white text-xs font-medium hover:bg-success/90 transition-colors disabled:opacity-40"
-                      >
-                        {resolving === swap.id ? '…' : <span className="inline-flex items-center gap-1"><svg className="w-3 h-3" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg> Approve</span>}
-                      </button>
-                      <button
-                        onClick={() => rejectSwap(swap)}
-                        disabled={resolving === swap.id}
-                        className="flex-1 py-2 rounded-lg border border-danger/25 text-danger text-xs font-medium hover:bg-danger/5 transition-colors disabled:opacity-40"
-                      >
-                        {resolving === swap.id ? '…' : <span className="inline-flex items-center gap-1"><svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Reject</span>}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-
-              {/* Resolved requests */}
-              {resolvedSwaps.length > 0 && (
-                <>
-                  <div className="px-5 py-2 bg-charcoal/3">
-                    <p className="text-[11px] tracking-widest uppercase text-charcoal/30">Resolved</p>
-                  </div>
-                  {resolvedSwaps.map((swap) => (
-                    <div key={swap.id} className="px-5 py-3 flex items-center justify-between gap-4">
-                      <div>
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-sm text-charcoal/60">{swap.requester_name} → {swap.target_staff_name}</span>
-                          <span className={`text-[11px] tracking-widest uppercase px-2 py-0.5 rounded-full font-medium ${
-                            swap.status === 'approved'
-                              ? 'bg-success/10 text-success'
-                              : 'bg-danger/10 text-danger'
-                          }`}>
-                            {swap.status}
-                          </span>
-                        </div>
-                        {swap.manager_note && (
-                          <p className="text-xs text-charcoal/40 mt-0.5 italic">Note: {swap.manager_note}</p>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </>
-              )}
-            </div>
-          )}
-        </div>
+      {/* ── Manager: swap panel ── */}
+      {isManager && (
+        <RotaSwapPanel
+          showSwaps={showSwaps}
+          setShowSwaps={setShowSwaps}
+          swapsLoading={swapsLoading}
+          swaps={swaps}
+          pendingSwaps={pendingSwaps}
+          resolvedSwaps={resolvedSwaps}
+          rejectNote={rejectNote}
+          setRejectNote={setRejectNote}
+          resolving={resolving}
+          approveSwap={approveSwap}
+          rejectSwap={rejectSwap}
+        />
       )}
 
       {/* ── Staff: my swap requests status ── */}
@@ -716,7 +499,7 @@ export default function RotaPage() {
         </div>
       )}
 
-      {/* ── Week count selector (manager only) ── */}
+      {/* ── Week count selector ── */}
       {isManager && (
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-[11px] tracking-widest uppercase text-charcoal/40 font-medium">View</span>
@@ -745,7 +528,6 @@ export default function RotaPage() {
         )
         return (
           <div key={format(thisWeekStart, 'yyyy-MM-dd')} className="bg-white rounded-2xl border-charcoal/10 overflow-hidden">
-            {/* Week nav header (only on first week) */}
             {wi === 0 && (
               <div className="flex items-center justify-between px-5 py-4 border-b border-charcoal/8">
                 <button onClick={prevWeek} className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-charcoal/8 text-charcoal/50 hover:text-charcoal transition-colors text-sm">‹</button>
@@ -755,7 +537,6 @@ export default function RotaPage() {
                 <button onClick={nextWeek} className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-charcoal/8 text-charcoal/50 hover:text-charcoal transition-colors text-sm">›</button>
               </div>
             )}
-            {/* Week label for multi-week view */}
             {numWeeks > 1 && (
               <div className="px-5 py-2 bg-charcoal/4 border-b border-charcoal/8">
                 <p className="text-[11px] tracking-widest uppercase text-charcoal/50 font-medium">
@@ -763,7 +544,6 @@ export default function RotaPage() {
                 </p>
               </div>
             )}
-
             {loading || staffLoading ? (
               <div className="flex justify-center py-10"><LoadingSpinner /></div>
             ) : (
@@ -772,7 +552,7 @@ export default function RotaPage() {
                 shifts={thisWeekShifts}
                 staff={staff}
                 onCellClick={openStaffCell}
-                onToggleAvailability={onToggleAvailability}
+                onToggleAvailability={(staffId, date) => toggleAvailability(staffId, date)}
                 currentStaffId={session?.staffId ?? null}
                 isManager={isManager}
                 unavailability={unavailability}
@@ -788,248 +568,32 @@ export default function RotaPage() {
         )
       })}
 
-
       {/* ── Manager: shift modal ── */}
       {isManager && (
-        <Modal
-          open={!!modal}
-          onClose={() => setModal(null)}
-          title={modal ? `${modal.staffMember?.name} · ${format(modal.date ?? new Date(), 'EEE d MMM')}` : ''}
-        >
-          {modal && (
-            <div className="flex flex-col gap-5">
-
-              {/* Existing shifts for this day */}
-              {modal.dayShifts?.length > 0 && (
-                <div className="rounded-xl border border-warning/30 bg-warning/6 p-3 flex flex-col gap-2">
-                  <p className="text-[11px] tracking-widest uppercase text-warning/80 font-semibold flex items-center gap-1.5">
-                    <span className="text-warning"><svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span> Already scheduled this day
-                  </p>
-                  {modal.dayShifts.map((sh) => (
-                    <div key={sh.id} className="flex items-center justify-between bg-white rounded-lg px-3 py-2.5 border border-charcoal/8">
-                      <div>
-                        <p className="font-semibold text-charcoal text-sm font-mono">
-                          {sh.start_time?.slice(0,5) ?? ''} – {sh.end_time?.slice(0,5) ?? ''}
-                          <span className="font-sans font-normal text-charcoal/40 text-xs ml-2">
-                            {fmtDuration(sh.start_time, sh.end_time)}
-                          </span>
-                        </p>
-                        <p className="text-xs text-charcoal/50 mt-0.5">{sh.role_label}</p>
-                      </div>
-                      <div className="flex gap-1.5">
-                        <button onClick={() => openEdit(sh)} className="text-xs px-2.5 py-1.5 rounded-lg border border-charcoal/15 text-charcoal/60 hover:text-charcoal hover:border-charcoal/30 transition-colors">Edit</button>
-                        <button onClick={() => deleteShift(sh.id)} className="text-xs px-2.5 py-1.5 rounded-lg border border-danger/20 text-danger/60 hover:text-danger hover:border-danger/40 transition-colors">Remove</button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              <SectionLabel>{editShift ? 'Edit Shift' : modal.dayShifts?.length > 0 ? 'Add Another Shift' : 'Add a Shift'}</SectionLabel>
-
-              {/* Quick presets */}
-              <div>
-                <p className="text-[11px] tracking-widest uppercase text-charcoal/30 mb-2">Quick Presets</p>
-                <div className="grid grid-cols-2 gap-2">
-                  {SHIFT_PRESETS.map((p) => {
-                    const active = form.startTime === p.start && form.endTime === p.end
-                    return (
-                      <button
-                        key={p.label}
-                        type="button"
-                        onClick={() => applyPreset(p)}
-                        className={[
-                          'py-2 px-2 rounded-lg border text-xs font-medium transition-all text-center',
-                          active
-                            ? 'bg-charcoal text-cream border-charcoal'
-                            : 'bg-white text-charcoal/60 border-charcoal/15 hover:border-charcoal/35 hover:text-charcoal',
-                        ].join(' ')}
-                      >
-                        <p className="font-semibold">{p.label}</p>
-                        <p className={`text-[11px] mt-0.5 ${active ? 'opacity-60' : 'text-charcoal/35'}`}>
-                          {p.start}–{p.end}
-                        </p>
-                      </button>
-                    )
-                  })}
-                </div>
-              </div>
-
-              {/* Time pickers */}
-              <div>
-                <p className="text-[11px] tracking-widest uppercase text-charcoal/30 mb-2">Custom Times</p>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-[11px] tracking-widest uppercase text-charcoal/40">Start</label>
-                    <TimeSelect
-                      value={form.startTime}
-                      onChange={(v) => setForm((f) => ({ ...f, startTime: v }))}
-                    />
-                  </div>
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-[11px] tracking-widest uppercase text-charcoal/40">End</label>
-                    <TimeSelect
-                      value={form.endTime}
-                      onChange={(v) => setForm((f) => ({ ...f, endTime: v }))}
-                    />
-                  </div>
-                </div>
-
-                {/* Duration + wage preview */}
-                {duration && (
-                  <div className="mt-3 rounded-xl bg-charcoal/4 px-4 py-3 flex flex-col gap-2">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className="text-lg">⏱</span>
-                        <div>
-                          <p className="text-xs text-charcoal/50">Shift duration</p>
-                          <p className="font-semibold text-charcoal">{duration}</p>
-                        </div>
-                      </div>
-                      {shiftWage && (
-                        <div className="text-right">
-                          <p className="text-xs text-charcoal/50">Est. cost (paid hrs)</p>
-                          <p className="font-semibold text-charcoal font-mono">{shiftWage}</p>
-                        </div>
-                      )}
-                    </div>
-                    {breakMins > 0 && (
-                      <p className="text-[11px] text-charcoal/40 border-t border-charcoal/8 pt-2">
-                        Includes {breakMins} min unpaid {isUnder18 ? 'break (under-18 rule)' : 'break'} — {paidHrs.toFixed(2)}h paid
-                      </p>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              {/* Role selector */}
-              <div>
-                <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-2">Role</p>
-                {venueRoles.length > 0 ? (
-                  <div className="flex flex-wrap gap-2">
-                    {venueRoles.map((r) => (
-                      <button
-                        key={r.id}
-                        type="button"
-                        onClick={() => setForm((f) => ({ ...f, roleLabel: r.name }))}
-                        className={[
-                          'px-3 py-1.5 rounded-full text-xs font-medium border transition-all',
-                          form.roleLabel === r.name
-                            ? 'bg-brand text-cream border-brand'
-                            : 'bg-white text-charcoal/50 border-charcoal/15 hover:border-charcoal/30',
-                        ].join(' ')}
-                      >
-                        {r.name}
-                      </button>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="flex flex-col gap-1.5">
-                    <input
-                      type="text"
-                      value={form.roleLabel}
-                      onChange={(e) => setForm((f) => ({ ...f, roleLabel: e.target.value }))}
-                      placeholder="e.g. Chef, Barista, FOH…"
-                      className="w-full px-3 py-2 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
-                    />
-                    <p className="text-[11px] text-charcoal/35">Add roles in Settings → Rota Roles to get quick-select chips here.</p>
-                  </div>
-                )}
-              </div>
-
-              {/* Duty assignment */}
-              {dutyTemplates.length > 0 && (
-                <div className="border-t border-charcoal/8 pt-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <div>
-                      <p className="text-sm font-medium text-charcoal">Assign duty?</p>
-                      <p className="text-[11px] text-charcoal/40 mt-0.5">Optional task checklist for this shift</p>
-                    </div>
-                    <Toggle
-                      checked={assignDuty}
-                      onChange={() => { setAssignDuty(v => !v); setSelectedDutyId(null) }}
-                    />
-                  </div>
-                  {assignDuty && (
-                    <div className="flex flex-col gap-2">
-                      {dutyTemplates.map(t => (
-                        <button
-                          key={t.id}
-                          type="button"
-                          onClick={() => setSelectedDutyId(t.id)}
-                          className={[
-                            'text-left px-3 py-2.5 rounded-xl border text-sm transition-all',
-                            selectedDutyId === t.id
-                              ? 'border-brand bg-brand/5 text-brand font-medium'
-                              : 'border-charcoal/12 text-charcoal hover:border-charcoal/30',
-                          ].join(' ')}
-                        >
-                          {t.title}
-                          <span className="text-[11px] text-charcoal/35 font-normal ml-2">
-                            {t.items.length} task{t.items.length !== 1 ? 's' : ''}
-                          </span>
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Validation message */}
-              {!duration && (
-                <p className="text-xs text-danger/70 -mt-2">
-                  End time must be after start time to save this shift.
-                </p>
-              )}
-
-              {/* Action buttons */}
-              <div className="flex items-center justify-between pt-1 border-t border-charcoal/8">
-                {editShift ? (
-                  <button
-                    onClick={() => deleteShift(editShift.id)}
-                    className="text-xs text-danger/60 hover:text-danger transition-colors"
-                  >
-                    Delete shift
-                  </button>
-                ) : (
-                  <div />
-                )}
-                <div className="flex gap-2">
-                  {editShift && (
-                    <button
-                      onClick={() => {
-                        const lastRole = localStorage.getItem(`mise_last_role_${modal.staffMember.id}`) || venueRoles[0]?.name || ''
-                        setEditShift(null)
-                        setForm({ staffId: modal.staffMember.id, startTime: '09:00', endTime: '17:00', roleLabel: lastRole })
-                      }}
-                      className="px-4 py-2.5 rounded-lg border border-charcoal/15 text-sm text-charcoal/60 hover:text-charcoal hover:border-charcoal/30 transition-colors"
-                      onClick={() => {
-                        const lastRole = localStorage.getItem(`mise_last_role_${modal.staffMember.id}`) || venueRoles[0]?.name || ''
-                        setEditShift(null)
-                        setForm({ staffId: modal.staffMember.id, startTime: '09:00', endTime: '17:00', roleLabel: lastRole })
-                        setAssignDuty(false)
-                        setSelectedDutyId(null)
-                      }}
-                    >
-                      Cancel Edit
-                    </button>
-                  )}
-                  <button
-                    onClick={saveShift}
-                    disabled={saving || !duration}
-                    className="bg-charcoal text-cream px-6 py-2.5 rounded-lg text-sm font-medium hover:bg-charcoal/90 transition-colors disabled:opacity-40"
-                  >
-                    {saving ? 'Saving…' : editShift ? 'Update Shift' : 'Add Shift →'}
-                  </button>
-                </div>
-              </div>
-
-            </div>
-          )}
-        </Modal>
+        <RotaShiftModal
+          modal={modal}
+          setModal={setModal}
+          editShift={editShift}
+          setEditShift={setEditShift}
+          form={form}
+          setForm={setForm}
+          saving={saving}
+          saveShift={saveShift}
+          deleteShift={deleteShift}
+          openEdit={openEdit}
+          applyPreset={applyPreset}
+          venueRoles={venueRoles}
+          staff={staff}
+          breakDurationMins={breakDurationMins}
+          dutyTemplates={dutyTemplates}
+          assignDuty={assignDuty}
+          setAssignDuty={setAssignDuty}
+          selectedDutyId={selectedDutyId}
+          setSelectedDutyId={setSelectedDutyId}
+        />
       )}
 
-      {/* ── Manager: AI rota builder modal ── */}
+      {/* ── Manager: rota builder modal ── */}
       {isManager && (
         <RotaBuilderModal
           open={showBuilder}
@@ -1062,77 +626,16 @@ export default function RotaPage() {
       />
 
       {/* ── Staff: swap request modal ── */}
-      {!isManager && swapModal && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-charcoal/40 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl w-full max-w-md p-6 flex flex-col gap-5 shadow-2xl" style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
-
-            <div>
-              <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-1">Request Shift Swap</p>
-              <h3 className="font-semibold text-charcoal text-lg">
-                {swapModal.shift.start_time?.slice(0,5) ?? ''} – {swapModal.shift.end_time?.slice(0,5) ?? ''}
-              </h3>
-              <p className="text-sm text-charcoal/50 mt-0.5">
-                {format(swapModal.date, 'EEEE d MMMM')} · {swapModal.shift.role_label}
-              </p>
-            </div>
-
-            <div>
-              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-2">
-                Swap with <span className="text-danger">*</span>
-              </label>
-              <div className="flex flex-wrap gap-2">
-                {swapCandidates.length === 0 ? (
-                  <p className="text-sm text-charcoal/40 italic">No other staff members found.</p>
-                ) : (
-                  swapCandidates.map((s) => (
-                    <button
-                      key={s.id}
-                      type="button"
-                      onClick={() => setSwapForm((f) => ({ ...f, targetStaffId: s.id }))}
-                      className={[
-                        'px-4 py-2 rounded-lg border text-sm font-medium transition-all',
-                        swapForm.targetStaffId === s.id
-                          ? 'bg-charcoal text-cream border-charcoal'
-                          : 'bg-white text-charcoal/60 border-charcoal/15 hover:border-charcoal/35',
-                      ].join(' ')}
-                    >
-                      {s.name}
-                    </button>
-                  ))
-                )}
-              </div>
-            </div>
-
-            <div>
-              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-2">
-                Message (optional)
-              </label>
-              <textarea
-                value={swapForm.message}
-                onChange={(e) => setSwapForm((f) => ({ ...f, message: e.target.value }))}
-                placeholder="e.g. I have a dentist appointment that morning…"
-                rows={3}
-                className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm resize-none focus:outline-none focus:ring-2 focus:ring-charcoal/20"
-              />
-            </div>
-
-            <div className="flex gap-2">
-              <button
-                onClick={submitSwapRequest}
-                disabled={swapSaving || !swapForm.targetStaffId}
-                className="flex-1 bg-charcoal text-cream py-2.5 rounded-lg text-sm font-medium hover:bg-charcoal/90 transition-colors disabled:opacity-40"
-              >
-                {swapSaving ? 'Sending…' : 'Request Swap →'}
-              </button>
-              <button
-                onClick={() => setSwapModal(null)}
-                className="px-4 py-2.5 rounded-lg border border-charcoal/15 text-sm text-charcoal/50 hover:text-charcoal transition-colors"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
+      {!isManager && (
+        <RotaSwapRequestModal
+          swapModal={swapModal}
+          setSwapModal={setSwapModal}
+          swapForm={swapForm}
+          setSwapForm={setSwapForm}
+          swapSaving={swapSaving}
+          submitSwapRequest={submitSwapRequest}
+          swapCandidates={swapCandidates}
+        />
       )}
     </div>
   )

@@ -7,15 +7,12 @@ import { goto } from './helpers/nav'
 test.describe('Overview dashboard', () => {
   test('loads the overview page', async ({ page }) => {
     await goto(page, '/overview')
-    await expect(page.getByText(/overview/i).first()).toBeVisible({ timeout: 10000 })
+    await expect(page.getByRole('heading', { name: /my venues/i })).toBeVisible({ timeout: 10000 })
   })
 
   test('shows compliance or venue summary content', async ({ page }) => {
     await goto(page, '/overview')
-    // Overview shows venue cards or a compliance summary — at least one meaningful element
-    await expect(
-      page.locator('[class*="card"], [class*="venue"], [class*="score"], h2, h3').first()
-    ).toBeVisible({ timeout: 10000 })
+    await expect(page.getByRole('link', { name: /brew & bloom/i }).first()).toBeVisible({ timeout: 10000 })
   })
 })
 

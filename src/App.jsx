@@ -1,5 +1,6 @@
 import React, { lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, useParams } from 'react-router-dom'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Capacitor } from '@capacitor/core'
 
 import { isConfigured }        from './lib/supabase'
@@ -274,6 +275,19 @@ function VenueRoutes() {
   )
 }
 
+// ── Query client ────────────────────────────────────────────────────────────
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 30_000,
+      gcTime: 5 * 60_000,
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+})
+
 // ── App root ─────────────────────────────────────────────────────────────────
 
 export default function App() {
@@ -284,6 +298,7 @@ export default function App() {
   if (!isConfigured) return <SetupPage />
 
   return (
+    <QueryClientProvider client={queryClient}>
     <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <UpdateBanner />
       <AuthProvider>
@@ -334,5 +349,6 @@ export default function App() {
         </ErrorBoundary>
       </AuthProvider>
     </BrowserRouter>
+    </QueryClientProvider>
   )
 }
