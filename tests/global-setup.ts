@@ -1,8 +1,8 @@
 import { test as setup } from '@playwright/test'
 
 const BASE_URL     = 'http://127.0.0.1:5173'
-const OWNER_EMAIL  = process.env.TEST_OWNER_EMAIL    ?? 'demo@safeserv.com'
-const OWNER_PASS   = process.env.TEST_OWNER_PASSWORD ?? 'Dearbhala30!'
+const OWNER_EMAIL  = process.env.TEST_OWNER_EMAIL
+const OWNER_PASS   = process.env.TEST_OWNER_PASSWORD
 const VENUE_SLUG   = process.env.TEST_VENUE_SLUG     ?? 'brew-and-bloom'
 const MANAGER_NAME = process.env.TEST_MANAGER_NAME   ?? 'Sarah Mitchell'
 const STAFF_PIN    = process.env.TEST_STAFF_PIN      ?? '1234'
@@ -11,6 +11,10 @@ export const OWNER_STATE   = 'tests/auth/owner-state.json'
 export const MANAGER_STATE = 'tests/auth/manager-state.json'
 
 setup('authenticate owner and manager', async ({ page }) => {
+  if (!OWNER_EMAIL || !OWNER_PASS) {
+    throw new Error('Set TEST_OWNER_EMAIL and TEST_OWNER_PASSWORD before running Playwright auth setup.')
+  }
+
   // ── 1. Owner Supabase login ──────────────────────────────────────────
   await page.goto(`${BASE_URL}/login`)
   await page.waitForLoadState('networkidle')

@@ -907,6 +907,6 @@ ON CONFLICT (venue_id, key) DO UPDATE SET value = EXCLUDED.value;
 -- Next steps:
 -- 1. Go to Supabase Dashboard → Authentication → Users
 -- 2. Verify nomad.bakes1@gmail.com exists (it should)
--- 3. Create user: sandbox@pelikn.app / Dearbhala31! (Auto Confirm)
+-- 3. Create user: sandbox@pelikn.app with a new secure password (Auto Confirm)
 -- 4. Test login at your app URL
 -- ============================================================================
