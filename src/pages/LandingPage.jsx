@@ -329,6 +329,7 @@ export default function LandingPage() {
       <div
         className={[
           'fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl z-20 md:hidden',
+          'max-h-[calc(100dvh-env(safe-area-inset-top)-0.75rem)] overflow-y-auto overscroll-contain',
           'transition-transform duration-300 ease-out',
           isSheetOpen ? 'translate-y-0' : 'translate-y-full',
         ].join(' ')}

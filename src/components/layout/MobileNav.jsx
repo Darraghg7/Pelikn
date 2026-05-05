@@ -4,6 +4,7 @@ import { useSession } from '../../contexts/SessionContext'
 import { useVenue } from '../../contexts/VenueContext'
 import { useVenueFeatures } from '../../hooks/useVenueFeatures'
 import { useAppSettings } from '../../hooks/useSettings'
+import { preloadRoute } from '../../lib/routePreload'
 
 /* ── SVG Icon components — thin outline, Revolut/Linear style ─────────────
    Active state: slightly bolder stroke + brand colour (via parent text-brand)
@@ -99,6 +100,9 @@ function SubNav({ items, currentPath }) {
           <NavLink
             key={item.to}
             to={item.to}
+            onPointerEnter={() => preloadRoute(item.to)}
+            onTouchStart={() => preloadRoute(item.to)}
+            onFocus={() => preloadRoute(item.to)}
             aria-current={isActive ? 'page' : undefined}
             className={[
               'px-3.5 py-2 rounded-full text-[12px] font-semibold tracking-wide whitespace-nowrap transition-all shrink-0',
@@ -277,6 +281,9 @@ export default function MobileNav() {
               <NavLink
                 key={tab.key}
                 to={tab.to}
+                onPointerEnter={() => preloadRoute(tab.to)}
+                onTouchStart={() => preloadRoute(tab.to)}
+                onFocus={() => preloadRoute(tab.to)}
                 role="tab"
                 aria-selected={isActive}
                 aria-label={tab.label}

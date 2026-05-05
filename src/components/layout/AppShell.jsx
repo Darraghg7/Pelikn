@@ -9,6 +9,7 @@ import OfflineBanner from '../ui/OfflineBanner'
 import MobileNav from './MobileNav'
 import { useVenueFeatures } from '../../hooks/useVenueFeatures'
 import { useVenueBranding } from '../../hooks/useVenueBranding'
+import { preloadRoute } from '../../lib/routePreload'
 
 // Per-venue cache — busted automatically after TTL or on app restart
 const CACHE_TTL = 60_000 // 1 minute
@@ -236,6 +237,8 @@ function SideItem({ to, icon: Ico, label, badge, alert, isActive }) {
   return (
     <NavLink
       to={to}
+      onPointerEnter={() => preloadRoute(to)}
+      onFocus={() => preloadRoute(to)}
       className={[
         'relative flex items-center gap-3 px-3.5 py-2 mx-2 rounded-lg text-[13.5px] font-medium',
         isActive
@@ -268,6 +271,8 @@ function SubItem({ to, icon: Ico, label, badge, alert, isActive }) {
   return (
     <NavLink
       to={to}
+      onPointerEnter={() => preloadRoute(to)}
+      onFocus={() => preloadRoute(to)}
       className={[
         'relative flex items-center gap-2.5 pl-5 pr-4 py-[7px] mx-2 rounded-lg text-[13px]',
         isActive

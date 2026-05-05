@@ -119,6 +119,16 @@ export function SessionProvider({ children }) {
       return
     }
 
+    const restored = sessionFromStorage(token, true)
+    if (restored) {
+      setSession(restored)
+      try {
+        const raw = localStorage.getItem(SESSION_LINKED_VENUES)
+        if (raw) setLinkedVenues(JSON.parse(raw))
+      } catch { /* corrupt cache */ }
+      setLoading(false)
+    }
+
     withTimeout(
       supabase.rpc('validate_staff_session', { p_token: token }),
       8000
@@ -138,21 +148,22 @@ export function SessionProvider({ children }) {
           // Server explicitly says the token is invalid — clear it so the
           // user is prompted to re-enter their PIN
           clearStorage()
+          setSession(null)
         }
-        setLoading(false)
+        if (!restored) setLoading(false)
       })
       .catch(() => {
         // Network offline or timeout — restore from localStorage rather than
         // clearing, so staff aren't logged out just because WiFi is down.
-        const restored = sessionFromStorage(token, navigator.onLine)
-        if (restored) {
-          setSession(restored)
+        const offlineRestored = sessionFromStorage(token, navigator.onLine)
+        if (offlineRestored) {
+          setSession(offlineRestored)
           try {
             const raw = localStorage.getItem(SESSION_LINKED_VENUES)
             if (raw) setLinkedVenues(JSON.parse(raw))
           } catch { /* corrupt cache */ }
         } else clearStorage()
-        setLoading(false)
+        if (!restored) setLoading(false)
       })
   }, [])
 

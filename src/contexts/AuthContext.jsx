@@ -88,24 +88,42 @@ export function AuthProvider({ children }) {
     ])
 
     sessionCheck
-      .then(async ({ data: { session } }) => {
+      .then(({ data: { session } }) => {
         if (cancelled) return
         if (session?.user) {
           setUser(session.user)
+          let cachedSlug = null
           try {
-            const list = await resolveVenuesSafe(session.user.email, session.user.id)
-            if (!cancelled) {
+            cachedSlug = localStorage.getItem('pelikn_last_venue')
+            if (cachedSlug) setVenueSlug(cachedSlug)
+          } catch {}
+
+          // Do not block startup on venue resolution. Native WebViews can take
+          // seconds to reach Supabase on cold launch; the cached slug is enough
+          // to get the user into the app while we refresh the venue list.
+          if (!cancelled) setAuthLoading(false)
+
+          resolveVenuesSafe(session.user.email, session.user.id)
+            .then((list) => {
+              if (cancelled) return
               setVenues(list)
-              setVenueSlug(pickSlug(list))
-            }
-          } catch (err) {
-            console.warn('[AuthContext] resolveVenues failed:', err)
-          }
+              setVenueSlug(pickSlug(list) ?? cachedSlug)
+            })
+            .catch((err) => {
+              console.warn('[AuthContext] resolveVenues failed:', err)
+            })
+          return
         }
         if (!cancelled) setAuthLoading(false)
       })
       .catch(() => {
-        if (!cancelled) setAuthLoading(false)
+        if (!cancelled) {
+          try {
+            const cachedSlug = localStorage.getItem('pelikn_last_venue')
+            if (cachedSlug) setVenueSlug(cachedSlug)
+          } catch {}
+          setAuthLoading(false)
+        }
       })
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -114,9 +132,12 @@ export function AuthProvider({ children }) {
           if (session?.user) {
             setUser(session.user)
             if (event === 'SIGNED_IN') {
+              let cachedSlug = null
+              try { cachedSlug = localStorage.getItem('pelikn_last_venue') } catch {}
+              if (cachedSlug) setVenueSlug(cachedSlug)
               const list = await resolveVenuesSafe(session.user.email, session.user.id)
               setVenues(list)
-              setVenueSlug(pickSlug(list))
+              setVenueSlug(pickSlug(list) ?? cachedSlug)
             }
           }
         } else if (event === 'SIGNED_OUT') {

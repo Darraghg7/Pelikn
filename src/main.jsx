@@ -26,6 +26,7 @@ async function initNative() {
       import('@capacitor/app'),
     ])
     StatusBar.setStyle({ style: Style.Dark })
+    StatusBar.setOverlaysWebView({ overlay: true }).catch(() => {})
     StatusBar.setBackgroundColor({ color: '#1a3c2e' }).catch(() => {}) // Android only
     SplashScreen.hide()
 

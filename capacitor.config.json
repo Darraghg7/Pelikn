@@ -7,20 +7,21 @@
     "androidScheme": "https"
   },
   "ios": {
-    "contentInset": "always",
-    "scrollEnabled": false,
-    "backgroundColor": "#1a1a18"
+    "contentInset": "never",
+    "scrollEnabled": true,
+    "backgroundColor": "#F0F0EF"
   },
   "android": {
-    "backgroundColor": "#1a1a18"
+    "backgroundColor": "#F0F0EF"
   },
   "plugins": {
     "StatusBar": {
+      "overlaysWebView": true,
       "style": "DARK",
       "backgroundColor": "#1a3c2e"
     },
     "SplashScreen": {
-      "launchShowDuration": 1500,
+      "launchShowDuration": 200,
       "backgroundColor": "#1a3c2e",
       "showSpinner": false,
       "splashFullScreen": true,

@@ -1,5 +1,6 @@
 import React, { lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, useParams } from 'react-router-dom'
+import { Capacitor } from '@capacitor/core'
 
 import { isConfigured }        from './lib/supabase'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
@@ -12,6 +13,7 @@ import { FullPageLoader }      from './components/ui/LoadingSpinner'
 import PlanGate                from './components/ui/PlanGate'
 import UpdateBanner            from './components/ui/UpdateBanner'
 import ErrorBoundary           from './components/ui/ErrorBoundary'
+import { preloadAppRoutes }    from './lib/routePreload'
 
 // Auth
 const LoginPage = lazy(() => import('./pages/LoginPage'))
@@ -202,6 +204,11 @@ function LegacyRedirect() {
   return <Navigate to={`/v/default${path}`} replace />
 }
 
+function RootRoute() {
+  if (Capacitor.isNativePlatform()) return <LandingRoute />
+  return <MarketingPage />
+}
+
 // ── Venue-scoped routes ─────────────────────────────────────────────────────
 
 function VenueRoutes() {
@@ -270,6 +277,10 @@ function VenueRoutes() {
 // ── App root ─────────────────────────────────────────────────────────────────
 
 export default function App() {
+  React.useEffect(() => {
+    if (isConfigured) preloadAppRoutes()
+  }, [])
+
   if (!isConfigured) return <SetupPage />
 
   return (
@@ -279,8 +290,8 @@ export default function App() {
         <ErrorBoundary>
         <Suspense fallback={<FullPageLoader />}>
         <Routes>
-          {/* Public: marketing homepage */}
-          <Route path="/" element={<MarketingPage />} />
+          {/* Public web homepage; native app opens the login/app flow. */}
+          <Route path="/" element={<RootRoute />} />
 
           {/* Public: allergen matrix (no auth required, accessible via QR code) */}
           <Route path="/allergens/:venueSlug" element={<AllergenPublicPage />} />

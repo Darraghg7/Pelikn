@@ -161,10 +161,16 @@ export default function LoginPage() {
   if (loading) return <FullPageLoader />
 
   return (
-    <div className="min-h-dvh bg-surface flex flex-col items-center justify-center px-5 py-10 font-sans">
+    <div
+      className="min-h-dvh bg-surface flex flex-col items-center justify-start sm:justify-center px-4 py-6 sm:px-5 sm:py-10 font-sans overflow-y-auto"
+      style={{
+        paddingTop: 'max(1.5rem, env(safe-area-inset-top))',
+        paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))',
+      }}
+    >
 
       {/* Logo */}
-      <div className="mb-10 text-center">
+      <div className="mb-6 sm:mb-10 text-center shrink-0">
         <h1 className="font-bold text-brand text-4xl tracking-tight">Pelikn</h1>
         {venueName && (
           <p className="text-sm font-medium text-charcoal/60 mt-1">{venueName}</p>
@@ -173,7 +179,7 @@ export default function LoginPage() {
         <p className="text-[10px] tracking-widest text-charcoal/25 uppercase mt-0.5">Food Safety &amp; Operations</p>
       </div>
 
-      <div className="w-full max-w-sm bg-white rounded-2xl shadow-sm border border-charcoal/8 p-6 flex flex-col gap-6">
+      <div className="w-full max-w-sm bg-white rounded-2xl shadow-sm border border-charcoal/8 p-5 sm:p-6 flex flex-col gap-6">
 
         {/* Venue picker — shown after login when staff work at multiple venues */}
         {pickerVenues && (
