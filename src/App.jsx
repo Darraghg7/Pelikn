@@ -206,7 +206,12 @@ function LegacyRedirect() {
 }
 
 function RootRoute() {
-  if (Capacitor.isNativePlatform()) return <LandingRoute />
+  const isCapacitorShell =
+    Capacitor.isNativePlatform() ||
+    window.location.protocol === 'capacitor:' ||
+    window.Capacitor?.isNativePlatform?.() === true
+
+  if (isCapacitorShell) return <LandingRoute />
   return <MarketingPage />
 }
 
