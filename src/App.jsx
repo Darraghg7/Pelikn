@@ -224,13 +224,11 @@ function isNativeShell() {
 }
 
 function BootIntro() {
-  const [phase, setPhase] = React.useState('enter')
   const [mounted, setMounted] = React.useState(() => isNativeShell())
 
   React.useEffect(() => {
     if (!mounted) return
 
-    let exitTimer
     let removeTimer
     let cancelled = false
 
@@ -243,12 +241,10 @@ function BootIntro() {
       })
     })
 
-    exitTimer = window.setTimeout(() => setPhase('exit'), 2450)
-    removeTimer = window.setTimeout(() => setMounted(false), 3020)
+    removeTimer = window.setTimeout(() => setMounted(false), 2920)
 
     return () => {
       cancelled = true
-      window.clearTimeout(exitTimer)
       window.clearTimeout(removeTimer)
     }
   }, [mounted])
@@ -256,7 +252,7 @@ function BootIntro() {
   if (!mounted) return null
 
   return (
-    <div className={`pelikn-boot-intro ${phase === 'exit' ? 'is-exiting' : ''}`} aria-hidden="true">
+    <div className="pelikn-boot-intro" aria-hidden="true">
       <div className="pelikn-boot-aura" />
       <div className="pelikn-boot-logo">
         <div className="pelikn-boot-mark">

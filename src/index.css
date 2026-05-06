@@ -39,6 +39,8 @@ table { border-spacing: 0; }
 
 /* ── Native iPhone login surface ─────────────────────────────────────── */
 .pelikn-boot-intro {
+  --boot-duration: 2.85s;
+  --boot-ease: cubic-bezier(0.16, 1, 0.3, 1);
   position: fixed;
   inset: 0;
   z-index: 9999;
@@ -52,9 +54,7 @@ table { border-spacing: 0; }
   opacity: 1;
   pointer-events: none;
   transform: translateZ(0);
-}
-.pelikn-boot-intro.is-exiting {
-  animation: pelikn-boot-away 0.56s cubic-bezier(0.4, 0, 0.2, 1) both;
+  animation: pelikn-boot-scene var(--boot-duration) var(--boot-ease) both;
 }
 .pelikn-boot-aura {
   position: absolute;
@@ -63,14 +63,15 @@ table { border-spacing: 0; }
   border-radius: 999px;
   background: rgba(132, 222, 170, 0.18);
   filter: blur(3rem);
-  animation: pelikn-boot-aura 2.4s ease-in-out both;
+  animation: pelikn-boot-aura var(--boot-duration) var(--boot-ease) both;
 }
 .pelikn-boot-logo {
   position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
-  transform: translateY(-0.5rem);
+  transform: translateY(-0.15rem);
+  animation: pelikn-boot-lockup var(--boot-duration) var(--boot-ease) both;
 }
 .pelikn-boot-mark {
   width: 4.35rem;
@@ -81,8 +82,8 @@ table { border-spacing: 0; }
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.1);
   box-shadow: 0 0 2.4rem rgba(255, 255, 255, 0.24);
-  opacity: 0;
-  animation: pelikn-boot-mark 1.26s 1.02s cubic-bezier(0.2, 1.24, 0.32, 1) both;
+  opacity: 1;
+  animation: pelikn-boot-mark var(--boot-duration) var(--boot-ease) both;
 }
 .pelikn-boot-mark svg {
   width: 2.3rem;
@@ -105,39 +106,52 @@ table { border-spacing: 0; }
 }
 .pelikn-boot-p {
   transform-origin: center;
-  animation: pelikn-boot-p 2.28s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: pelikn-boot-p var(--boot-duration) var(--boot-ease) both;
 }
 .pelikn-boot-rest {
-  max-width: 0;
+  max-width: 7rem;
   overflow: hidden;
-  opacity: 0;
-  filter: blur(0.25rem);
-  animation: pelikn-boot-rest 1.08s 0.82s cubic-bezier(0.22, 1, 0.36, 1) both;
+  opacity: 1;
+  clip-path: inset(0 100% 0 0);
+  transform: translateX(-0.34rem);
+  filter: blur(0.14rem);
+  animation: pelikn-boot-rest var(--boot-duration) var(--boot-ease) both;
 }
 @keyframes pelikn-boot-p {
-  0% { opacity: 0; transform: scale(0.78) translateY(0.35rem); filter: blur(0.2rem); }
-  18% { opacity: 1; transform: scale(1.06) translateY(0); filter: blur(0); }
-  38% { transform: scale(1); }
-  62% { transform: translateX(-2.35rem) scale(1); }
-  100% { opacity: 1; transform: translateX(0) scale(1); filter: blur(0); }
+  0% { opacity: 0; transform: translateX(1.95rem) scale(0.88); filter: blur(0.18rem); }
+  16% { opacity: 1; transform: translateX(1.72rem) scale(1.03); filter: blur(0); }
+  58% { opacity: 1; transform: translateX(0) scale(1); filter: blur(0); }
+  82% { opacity: 1; transform: translateX(0) scale(1); filter: blur(0); }
+  100% { opacity: 0; transform: translateX(0) translateY(-0.18rem) scale(0.985); filter: blur(0.12rem); }
 }
 @keyframes pelikn-boot-rest {
-  0% { max-width: 0; opacity: 0; transform: translateX(-0.4rem); filter: blur(0.22rem); }
-  100% { max-width: 7rem; opacity: 1; transform: translateX(0); filter: blur(0); }
+  0%, 20% { opacity: 0; clip-path: inset(0 100% 0 0); transform: translateX(-0.34rem); filter: blur(0.14rem); }
+  60% { opacity: 1; clip-path: inset(0 0 0 0); transform: translateX(0); filter: blur(0); }
+  82% { opacity: 1; clip-path: inset(0 0 0 0); transform: translateX(0); filter: blur(0); }
+  100% { opacity: 0; clip-path: inset(0 0 0 0); transform: translateX(0) translateY(-0.18rem); filter: blur(0.12rem); }
 }
 @keyframes pelikn-boot-mark {
-  0% { opacity: 0; transform: translateY(0.8rem) scale(0.7); }
-  55% { opacity: 1; transform: translateY(-0.12rem) scale(1.05); }
-  100% { opacity: 1; transform: translateY(0) scale(1); }
+  0% { opacity: 0; transform: translateY(2.2rem) scale(0.78); }
+  25% { opacity: 0.75; transform: translateY(1.15rem) scale(0.9); }
+  58% { opacity: 1; transform: translateY(0) scale(1); }
+  82% { opacity: 1; transform: translateY(0) scale(1); }
+  100% { opacity: 0; transform: translateY(-0.28rem) scale(0.98); }
 }
 @keyframes pelikn-boot-aura {
-  0% { opacity: 0; transform: scale(0.72); }
-  45% { opacity: 1; transform: scale(1.08); }
-  100% { opacity: 0.82; transform: scale(1); }
+  0% { opacity: 0; transform: scale(0.68); }
+  42% { opacity: 0.92; transform: scale(1.06); }
+  82% { opacity: 0.72; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.08); }
 }
-@keyframes pelikn-boot-away {
-  0% { opacity: 1; transform: scale(1); }
-  100% { opacity: 0; transform: scale(1.025); }
+@keyframes pelikn-boot-lockup {
+  0% { transform: translateY(0.25rem); }
+  58% { transform: translateY(-0.15rem); }
+  100% { transform: translateY(-0.32rem); }
+}
+@keyframes pelikn-boot-scene {
+  0% { opacity: 1; }
+  78% { opacity: 1; }
+  100% { opacity: 0; }
 }
 
 .pelikn-ios-login {
