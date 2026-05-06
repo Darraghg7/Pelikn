@@ -39,8 +39,8 @@ table { border-spacing: 0; }
 
 /* ── Native iPhone login surface ─────────────────────────────────────── */
 .pelikn-boot-intro {
-  --boot-duration: 3.08s;
-  --boot-ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --boot-duration: 3.2s;
+  --boot-ease: cubic-bezier(0.19, 1, 0.22, 1);
   position: fixed;
   inset: 0;
   z-index: 9999;
@@ -70,7 +70,7 @@ table { border-spacing: 0; }
   display: flex;
   flex-direction: column;
   align-items: center;
-  transform: translateY(-0.15rem);
+  transform: translateY(-0.1rem);
   animation: pelikn-boot-lockup var(--boot-duration) var(--boot-ease) both;
 }
 .pelikn-boot-mark {
@@ -78,7 +78,7 @@ table { border-spacing: 0; }
   aspect-ratio: 1;
   display: grid;
   place-items: center;
-  margin-bottom: 0.95rem;
+  margin-bottom: 1.05rem;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.1);
   box-shadow: 0 0 2.4rem rgba(255, 255, 255, 0.24);
@@ -98,6 +98,8 @@ table { border-spacing: 0; }
   line-height: 1;
   font-weight: 800;
   letter-spacing: 0;
+  transform-origin: center;
+  animation: pelikn-boot-word var(--boot-duration) var(--boot-ease) both;
 }
 .pelikn-boot-letter,
 .pelikn-boot-rest {
@@ -118,37 +120,44 @@ table { border-spacing: 0; }
   animation: pelikn-boot-rest var(--boot-duration) var(--boot-ease) both;
 }
 @keyframes pelikn-boot-p {
-  0% { opacity: 0; transform: translateX(3.02rem) scale(0.86); filter: blur(0.2rem); }
-  14% { opacity: 1; transform: translateX(3.02rem) scale(1.08); filter: blur(0); }
-  28% { opacity: 1; transform: translateX(3.02rem) scale(1); filter: blur(0); }
-  62% { opacity: 1; transform: translateX(0) scale(1); filter: blur(0); }
+  0% { opacity: 0; transform: translateX(3.06rem) scale(0.82); filter: blur(0.22rem); }
+  12% { opacity: 1; transform: translateX(3.06rem) scale(1.1); filter: blur(0); }
+  30% { opacity: 1; transform: translateX(3.06rem) scale(1); filter: blur(0); }
+  58% { opacity: 1; transform: translateX(0) scale(1); filter: blur(0); }
   84% { opacity: 1; transform: translateX(0) scale(1); filter: blur(0); }
   100% { opacity: 0; transform: translateX(0) translateY(-0.18rem) scale(0.985); filter: blur(0.12rem); }
 }
 @keyframes pelikn-boot-rest {
-  0%, 30% { opacity: 0; clip-path: inset(0 100% 0 0); transform: translateX(-0.42rem); filter: blur(0.16rem); }
-  40% { opacity: 0.72; clip-path: inset(0 72% 0 0); transform: translateX(-0.24rem); filter: blur(0.1rem); }
-  62% { opacity: 1; clip-path: inset(0 0 0 0); transform: translateX(0); filter: blur(0); }
+  0%, 32% { opacity: 0; clip-path: inset(0 100% 0 0); transform: translateX(-0.5rem); filter: blur(0.18rem); }
+  42% { opacity: 0.86; clip-path: inset(0 68% 0 0); transform: translateX(-0.24rem); filter: blur(0.08rem); }
+  58% { opacity: 1; clip-path: inset(0 0 0 0); transform: translateX(0); filter: blur(0); }
   84% { opacity: 1; clip-path: inset(0 0 0 0); transform: translateX(0); filter: blur(0); }
   100% { opacity: 0; clip-path: inset(0 0 0 0); transform: translateX(0) translateY(-0.18rem); filter: blur(0.12rem); }
 }
 @keyframes pelikn-boot-mark {
-  0%, 22% { opacity: 0; transform: translateY(2.2rem) scale(0.78); }
-  44% { opacity: 0.8; transform: translateY(0.78rem) scale(0.9); }
+  0%, 48% { opacity: 0; transform: translateY(1.25rem) scale(0.86); }
   64% { opacity: 1; transform: translateY(0) scale(1); }
   84% { opacity: 1; transform: translateY(0) scale(1); }
   100% { opacity: 0; transform: translateY(-0.28rem) scale(0.98); }
 }
 @keyframes pelikn-boot-aura {
   0% { opacity: 0; transform: scale(0.68); }
-  18% { opacity: 0.7; transform: scale(0.9); }
-  48% { opacity: 0.92; transform: scale(1.06); }
+  12% { opacity: 0.48; transform: scale(0.82); }
+  48% { opacity: 0.9; transform: scale(1.04); }
   84% { opacity: 0.72; transform: scale(1); }
   100% { opacity: 0; transform: scale(1.08); }
 }
+@keyframes pelikn-boot-word {
+  0% { transform: scale(0.96); }
+  12% { transform: scale(1.04); }
+  30% { transform: scale(1); }
+  58% { transform: scale(1); }
+  84% { transform: scale(1); }
+  100% { transform: translateY(-0.18rem) scale(0.985); }
+}
 @keyframes pelikn-boot-lockup {
-  0% { transform: translateY(0.25rem); }
-  64% { transform: translateY(-0.15rem); }
+  0% { transform: translateY(0.35rem); }
+  58% { transform: translateY(-0.08rem); }
   100% { transform: translateY(-0.32rem); }
 }
 @keyframes pelikn-boot-scene {
