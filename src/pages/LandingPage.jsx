@@ -177,6 +177,9 @@ export default function LandingPage() {
       <div className="pelikn-ios-login md:hidden">
         <div className="pelikn-ios-card">
           <div className="pelikn-ios-motion" aria-hidden="true" />
+          <div className="pelikn-ios-flow pelikn-ios-flow-one" aria-hidden="true" />
+          <div className="pelikn-ios-flow pelikn-ios-flow-two" aria-hidden="true" />
+          <div className="pelikn-ios-flow pelikn-ios-flow-three" aria-hidden="true" />
           <div className="pelikn-ios-glow" />
 
           <div className="pelikn-ios-brand">

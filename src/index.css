@@ -39,10 +39,14 @@ table { border-spacing: 0; }
 
 /* ── Native iPhone login surface ─────────────────────────────────────── */
 .pelikn-ios-login {
+  --ios-login-top: max(3.55rem, calc(env(safe-area-inset-top) + 0.75rem));
+  --ios-login-bottom: max(0.55rem, env(safe-area-inset-bottom));
   min-height: 100vh;
   min-height: 100dvh;
+  height: 100vh;
+  height: 100dvh;
   background: #333333;
-  padding: max(3.9rem, calc(env(safe-area-inset-top) + 0.8rem)) 1.15rem max(0.75rem, env(safe-area-inset-bottom));
+  padding: var(--ios-login-top) 1rem var(--ios-login-bottom);
   display: flex;
   align-items: stretch;
   justify-content: center;
@@ -52,14 +56,16 @@ table { border-spacing: 0; }
   position: relative;
   isolation: isolate;
   width: min(100%, 40.75rem);
-  min-height: calc(100dvh - max(3.9rem, calc(env(safe-area-inset-top) + 0.8rem)) - max(0.75rem, env(safe-area-inset-bottom)));
-  border-radius: 1.7rem;
+  height: calc(100dvh - var(--ios-login-top) - var(--ios-login-bottom));
+  min-height: 0;
+  max-height: calc(100dvh - var(--ios-login-top) - var(--ios-login-bottom));
+  border-radius: 1.55rem;
   overflow: hidden;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: clamp(1.6rem, 4.1dvh, 3.25rem) clamp(1.95rem, 8vw, 3.85rem) clamp(1.5rem, 3.4dvh, 2.6rem);
+  justify-content: flex-start;
+  padding: clamp(1.1rem, 3.1dvh, 2.15rem) clamp(1.6rem, 7vw, 3.3rem) clamp(1rem, 2.5dvh, 2rem);
   color: #ffffff;
   background:
     radial-gradient(circle at 50% 13%, rgba(163, 224, 190, 0.24), transparent 15rem),
@@ -95,17 +101,51 @@ table { border-spacing: 0; }
   position: absolute;
   inset: -18%;
   z-index: -1;
-  opacity: 0.7;
+  opacity: 0.82;
   background:
     radial-gradient(circle at 34% 22%, rgba(137, 211, 168, 0.24), transparent 13rem),
     radial-gradient(circle at 68% 58%, rgba(41, 101, 83, 0.5), transparent 16rem),
     radial-gradient(circle at 28% 92%, rgba(75, 171, 132, 0.24), transparent 15rem);
   filter: blur(0.15rem);
-  animation: pelikn-login-river 6.5s ease-in-out infinite alternate;
+  animation: pelikn-login-river 4.8s ease-in-out infinite alternate;
+}
+.pelikn-ios-flow {
+  position: absolute;
+  z-index: -1;
+  pointer-events: none;
+  border-radius: 999px;
+  filter: blur(1.4rem);
+  mix-blend-mode: screen;
+  opacity: 0.38;
+  will-change: transform, opacity;
+}
+.pelikn-ios-flow-one {
+  top: 4%;
+  left: -18%;
+  width: 18rem;
+  height: 26rem;
+  background: linear-gradient(120deg, rgba(206, 244, 218, 0.08), rgba(112, 219, 163, 0.46), rgba(255, 255, 255, 0.08));
+  animation: pelikn-login-flow-one 5.2s ease-in-out infinite alternate;
+}
+.pelikn-ios-flow-two {
+  right: -22%;
+  bottom: 8%;
+  width: 18rem;
+  height: 26rem;
+  background: linear-gradient(210deg, rgba(211, 244, 222, 0.12), rgba(74, 173, 134, 0.42), rgba(31, 91, 72, 0.18));
+  animation: pelikn-login-flow-two 6.4s ease-in-out infinite alternate;
+}
+.pelikn-ios-flow-three {
+  left: 14%;
+  bottom: -18%;
+  width: 14rem;
+  height: 20rem;
+  background: radial-gradient(ellipse at center, rgba(121, 226, 169, 0.34), transparent 67%);
+  animation: pelikn-login-flow-three 4.6s ease-in-out infinite alternate;
 }
 .pelikn-ios-glow {
   position: absolute;
-  top: clamp(3.25rem, 8.8dvh, 5.8rem);
+  top: clamp(2.65rem, 7.6dvh, 4.8rem);
   left: 50%;
   z-index: -1;
   width: clamp(5.1rem, 20vw, 7.25rem);
@@ -122,29 +162,29 @@ table { border-spacing: 0; }
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-bottom: clamp(1.8rem, 4.4dvh, 3rem);
+  margin-bottom: clamp(1.05rem, 3.2dvh, 2rem);
   animation: pelikn-login-enter 0.62s ease-out both;
 }
 .pelikn-ios-mark {
-  width: clamp(4.25rem, 18vw, 5.95rem);
+  width: clamp(3.75rem, 15.5vw, 5rem);
   aspect-ratio: 1;
   display: grid;
   place-items: center;
   border-radius: 999px;
-  margin-bottom: clamp(1.35rem, 3.25dvh, 2.15rem);
+  margin-bottom: clamp(0.95rem, 2.55dvh, 1.65rem);
   background: rgba(255,255,255,0.08);
   border: 1px solid rgba(255,255,255,0.09);
   box-shadow: 0 0 2.7rem rgba(255,255,255,0.13);
   animation: pelikn-login-logo 2.15s ease-in-out infinite;
 }
 .pelikn-ios-brand h1 {
-  font-size: clamp(2.3rem, 8.3vw, 3.2rem);
+  font-size: clamp(2.15rem, 7.5vw, 2.85rem);
   line-height: 1;
   font-weight: 800;
   letter-spacing: 0;
 }
 .pelikn-ios-brand p {
-  margin-top: 0.78rem;
+  margin-top: 0.62rem;
   color: rgba(255,255,255,0.62);
   font-size: clamp(0.76rem, 2.5vw, 0.95rem);
   line-height: 1.2;
@@ -156,7 +196,7 @@ table { border-spacing: 0; }
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: clamp(0.78rem, 2dvh, 1.12rem);
+  gap: clamp(0.62rem, 1.55dvh, 0.95rem);
   animation: pelikn-login-rise 0.68s 0.1s ease-out both;
 }
 .pelikn-ios-field {
@@ -175,7 +215,7 @@ table { border-spacing: 0; }
 }
 .pelikn-ios-input {
   width: 100%;
-  min-height: clamp(3.15rem, 6dvh, 4.25rem);
+  min-height: clamp(2.95rem, 5.25dvh, 3.65rem);
   border-radius: 1.18rem;
   border: 1px solid rgba(255,255,255,0.23);
   background: rgba(255,255,255,0.12);
@@ -209,19 +249,19 @@ table { border-spacing: 0; }
   align-self: flex-end;
   margin-top: -0.35rem;
   color: rgba(255,255,255,0.67);
-  font-size: clamp(0.82rem, 2.7vw, 1rem);
+  font-size: clamp(0.78rem, 2.55vw, 0.95rem);
   font-weight: 800;
 }
 .pelikn-ios-primary,
 .pelikn-ios-secondary {
-  min-height: clamp(3.25rem, 6.15dvh, 4.35rem);
+  min-height: clamp(3rem, 5.35dvh, 3.75rem);
   width: 100%;
   border-radius: 1.18rem;
   font-size: clamp(0.92rem, 2.95vw, 1.1rem);
   font-weight: 800;
 }
 .pelikn-ios-primary {
-  margin-top: clamp(0.55rem, 1.7dvh, 1.15rem);
+  margin-top: clamp(0.4rem, 1.25dvh, 0.85rem);
   color: #1f4b3e;
   background: #ffffff;
   box-shadow: 0 0.8rem 1.5rem rgba(0,0,0,0.08);
@@ -238,7 +278,7 @@ table { border-spacing: 0; }
   display: flex;
   align-items: center;
   gap: 1.65rem;
-  margin: clamp(0.42rem, 1.65dvh, 1rem) 0 0.05rem;
+  margin: clamp(0.32rem, 1.25dvh, 0.75rem) 0 0.05rem;
   color: rgba(255,255,255,0.5);
   font-size: 0.95rem;
   font-weight: 700;
@@ -251,8 +291,8 @@ table { border-spacing: 0; }
   background: rgba(255,255,255,0.27);
 }
 .pelikn-ios-signup {
-  margin-top: clamp(1.1rem, 3.1dvh, 2.35rem);
-  padding-top: 0;
+  margin-top: auto;
+  padding-top: clamp(0.85rem, 2.45dvh, 1.75rem);
   color: rgba(255,255,255,0.64);
   font-size: clamp(0.82rem, 2.8vw, 1rem);
   font-weight: 800;
@@ -305,9 +345,9 @@ table { border-spacing: 0; }
   to { transform: translate3d(1.8rem, 1.2rem, 0) scale(1.06) rotate(1.4deg); }
 }
 @keyframes pelikn-login-river {
-  0% { transform: translate3d(-1.2rem, -0.8rem, 0) scale(1); opacity: 0.52; }
-  45% { transform: translate3d(1rem, 1.5rem, 0) scale(1.06); opacity: 0.82; }
-  100% { transform: translate3d(1.6rem, -0.4rem, 0) scale(1.03); opacity: 0.68; }
+  0% { transform: translate3d(-1.7rem, -1.2rem, 0) scale(1); opacity: 0.48; }
+  45% { transform: translate3d(1.4rem, 1.9rem, 0) scale(1.1); opacity: 0.92; }
+  100% { transform: translate3d(2.1rem, -0.8rem, 0) scale(1.05); opacity: 0.72; }
 }
 @keyframes pelikn-login-sheen {
   from { background-position: 42% 18%, 0 0; }
@@ -329,21 +369,38 @@ table { border-spacing: 0; }
   from { opacity: 0; transform: translateY(1rem); }
   to { opacity: 1; transform: translateY(0); }
 }
+@keyframes pelikn-login-flow-one {
+  0% { transform: translate3d(-0.5rem, 1.2rem, 0) rotate(-8deg) scale(1); opacity: 0.22; }
+  55% { transform: translate3d(5.2rem, 0.2rem, 0) rotate(8deg) scale(1.12); opacity: 0.48; }
+  100% { transform: translate3d(3.6rem, 3.2rem, 0) rotate(16deg) scale(1.04); opacity: 0.34; }
+}
+@keyframes pelikn-login-flow-two {
+  0% { transform: translate3d(0.6rem, -1.2rem, 0) rotate(9deg) scale(1.02); opacity: 0.2; }
+  50% { transform: translate3d(-5.5rem, -2.3rem, 0) rotate(-7deg) scale(1.16); opacity: 0.46; }
+  100% { transform: translate3d(-3.1rem, 1.9rem, 0) rotate(-15deg) scale(1.08); opacity: 0.3; }
+}
+@keyframes pelikn-login-flow-three {
+  0% { transform: translate3d(-1rem, 0.8rem, 0) scale(0.9); opacity: 0.16; }
+  100% { transform: translate3d(2rem, -3.8rem, 0) scale(1.25); opacity: 0.42; }
+}
 @media (max-height: 720px) {
   .pelikn-ios-login {
-    padding-top: max(3.8rem, calc(env(safe-area-inset-top) + 0.75rem));
+    --ios-login-top: max(3.25rem, calc(env(safe-area-inset-top) + 0.55rem));
+    --ios-login-bottom: max(0.45rem, env(safe-area-inset-bottom));
   }
   .pelikn-ios-card {
-    min-height: calc(100dvh - max(3.8rem, calc(env(safe-area-inset-top) + 0.75rem)) - max(0.8rem, env(safe-area-inset-bottom)));
-    padding-top: 1.45rem;
-    padding-bottom: 1.15rem;
+    height: calc(100dvh - var(--ios-login-top) - var(--ios-login-bottom));
+    max-height: calc(100dvh - var(--ios-login-top) - var(--ios-login-bottom));
+    padding-top: 1rem;
+    padding-bottom: 0.9rem;
+    justify-content: flex-start;
   }
   .pelikn-ios-brand {
-    margin-bottom: 1.12rem;
+    margin-bottom: 0.82rem;
   }
   .pelikn-ios-mark {
-    width: 3.35rem;
-    margin-bottom: 0.82rem;
+    width: 3rem;
+    margin-bottom: 0.58rem;
   }
   .pelikn-ios-form {
     gap: 0.68rem;
@@ -351,7 +408,7 @@ table { border-spacing: 0; }
   .pelikn-ios-input,
   .pelikn-ios-primary,
   .pelikn-ios-secondary {
-    min-height: 3rem;
+    min-height: 2.75rem;
     border-radius: 1rem;
   }
   .pelikn-ios-field > svg {
@@ -359,7 +416,7 @@ table { border-spacing: 0; }
     height: 1.08rem;
   }
   .pelikn-ios-brand h1 {
-    font-size: 2rem;
+    font-size: 1.86rem;
   }
   .pelikn-ios-brand p,
   .pelikn-ios-forgot,
@@ -370,7 +427,8 @@ table { border-spacing: 0; }
     margin: 0.32rem 0 0;
   }
   .pelikn-ios-signup {
-    padding-top: 0.58rem;
+    margin-top: 0.55rem;
+    padding-top: 0;
   }
 }
 
