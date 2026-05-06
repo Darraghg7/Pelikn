@@ -20,15 +20,18 @@ ReactDOM.createRoot(document.getElementById('root')).render(
 async function initNative() {
   const { Capacitor } = await import('@capacitor/core')
   if (Capacitor.isNativePlatform()) {
-    const [{ StatusBar, Style }, { SplashScreen }, { App: CapApp }] = await Promise.all([
+    const [{ StatusBar, Style }, { App: CapApp }] = await Promise.all([
       import('@capacitor/status-bar'),
-      import('@capacitor/splash-screen'),
       import('@capacitor/app'),
     ])
     StatusBar.setStyle({ style: Style.Dark })
     StatusBar.setOverlaysWebView({ overlay: true }).catch(() => {})
     StatusBar.setBackgroundColor({ color: '#1a3c2e' }).catch(() => {}) // Android only
-    SplashScreen.hide()
+    window.setTimeout(() => {
+      import('@capacitor/splash-screen')
+        .then(({ SplashScreen }) => SplashScreen.hide({ fadeOutDuration: 180 }))
+        .catch(() => {})
+    }, 3500)
 
     // Android hardware back button: go back in history or exit app
     CapApp.addListener('backButton', ({ canGoBack }) => {

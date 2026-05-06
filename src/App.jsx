@@ -215,6 +215,65 @@ function RootRoute() {
   return <MarketingPage />
 }
 
+function isNativeShell() {
+  return (
+    Capacitor.isNativePlatform() ||
+    window.location.protocol === 'capacitor:' ||
+    window.Capacitor?.isNativePlatform?.() === true
+  )
+}
+
+function BootIntro() {
+  const [phase, setPhase] = React.useState('enter')
+  const [mounted, setMounted] = React.useState(() => isNativeShell())
+
+  React.useEffect(() => {
+    if (!mounted) return
+
+    let exitTimer
+    let removeTimer
+    let cancelled = false
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        if (cancelled) return
+        import('@capacitor/splash-screen')
+          .then(({ SplashScreen }) => SplashScreen.hide({ fadeOutDuration: 180 }))
+          .catch(() => {})
+      })
+    })
+
+    exitTimer = window.setTimeout(() => setPhase('exit'), 2450)
+    removeTimer = window.setTimeout(() => setMounted(false), 3020)
+
+    return () => {
+      cancelled = true
+      window.clearTimeout(exitTimer)
+      window.clearTimeout(removeTimer)
+    }
+  }, [mounted])
+
+  if (!mounted) return null
+
+  return (
+    <div className={`pelikn-boot-intro ${phase === 'exit' ? 'is-exiting' : ''}`} aria-hidden="true">
+      <div className="pelikn-boot-aura" />
+      <div className="pelikn-boot-logo">
+        <div className="pelikn-boot-mark">
+          <svg viewBox="0 0 36 36" fill="none">
+            <path d="M18 4L6 9v8c0 7.5 5.1 14.5 12 16.5C25 31.5 30 24.5 30 17V9L18 4z" fill="white" fillOpacity="0.92" />
+            <path d="M13 18l3.5 3.5L23 15" stroke="#1d483c" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </div>
+        <div className="pelikn-boot-word" aria-label="Pelikn">
+          <span className="pelikn-boot-letter pelikn-boot-p">P</span>
+          <span className="pelikn-boot-rest">elikn</span>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ── Venue-scoped routes ─────────────────────────────────────────────────────
 
 function VenueRoutes() {
@@ -307,6 +366,7 @@ export default function App() {
     <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <UpdateBanner />
       <AuthProvider>
+        <BootIntro />
         <ErrorBoundary>
         <Suspense fallback={<FullPageLoader />}>
         <Routes>

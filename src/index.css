@@ -38,6 +38,108 @@ table { border-spacing: 0; }
 .scrollbar-hide { scrollbar-width: none; }
 
 /* ── Native iPhone login surface ─────────────────────────────────────── */
+.pelikn-boot-intro {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  color: #ffffff;
+  background:
+    radial-gradient(circle at 50% 42%, rgba(126, 214, 166, 0.2), transparent 16rem),
+    linear-gradient(135deg, #183f35 0%, #2d5449 52%, #1d483c 100%);
+  opacity: 1;
+  pointer-events: none;
+  transform: translateZ(0);
+}
+.pelikn-boot-intro.is-exiting {
+  animation: pelikn-boot-away 0.56s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+.pelikn-boot-aura {
+  position: absolute;
+  width: 18rem;
+  aspect-ratio: 1;
+  border-radius: 999px;
+  background: rgba(132, 222, 170, 0.18);
+  filter: blur(3rem);
+  animation: pelikn-boot-aura 2.4s ease-in-out both;
+}
+.pelikn-boot-logo {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transform: translateY(-0.5rem);
+}
+.pelikn-boot-mark {
+  width: 4.35rem;
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  margin-bottom: 1rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 0 2.4rem rgba(255, 255, 255, 0.24);
+  opacity: 0;
+  animation: pelikn-boot-mark 1.26s 1.02s cubic-bezier(0.2, 1.24, 0.32, 1) both;
+}
+.pelikn-boot-mark svg {
+  width: 2.3rem;
+  height: 2.3rem;
+}
+.pelikn-boot-word {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  min-width: 9.6rem;
+  font-size: clamp(2.85rem, 12vw, 4.2rem);
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: 0;
+}
+.pelikn-boot-letter,
+.pelikn-boot-rest {
+  display: inline-block;
+  will-change: transform, opacity, filter;
+}
+.pelikn-boot-p {
+  transform-origin: center;
+  animation: pelikn-boot-p 2.28s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.pelikn-boot-rest {
+  max-width: 0;
+  overflow: hidden;
+  opacity: 0;
+  filter: blur(0.25rem);
+  animation: pelikn-boot-rest 1.08s 0.82s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes pelikn-boot-p {
+  0% { opacity: 0; transform: scale(0.78) translateY(0.35rem); filter: blur(0.2rem); }
+  18% { opacity: 1; transform: scale(1.06) translateY(0); filter: blur(0); }
+  38% { transform: scale(1); }
+  62% { transform: translateX(-2.35rem) scale(1); }
+  100% { opacity: 1; transform: translateX(0) scale(1); filter: blur(0); }
+}
+@keyframes pelikn-boot-rest {
+  0% { max-width: 0; opacity: 0; transform: translateX(-0.4rem); filter: blur(0.22rem); }
+  100% { max-width: 7rem; opacity: 1; transform: translateX(0); filter: blur(0); }
+}
+@keyframes pelikn-boot-mark {
+  0% { opacity: 0; transform: translateY(0.8rem) scale(0.7); }
+  55% { opacity: 1; transform: translateY(-0.12rem) scale(1.05); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes pelikn-boot-aura {
+  0% { opacity: 0; transform: scale(0.72); }
+  45% { opacity: 1; transform: scale(1.08); }
+  100% { opacity: 0.82; transform: scale(1); }
+}
+@keyframes pelikn-boot-away {
+  0% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.025); }
+}
+
 .pelikn-ios-login {
   min-height: 100vh;
   min-height: 100dvh;
