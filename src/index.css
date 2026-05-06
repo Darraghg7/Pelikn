@@ -78,15 +78,15 @@ table { border-spacing: 0; }
 }
 .pelikn-ios-motion {
   position: absolute;
-  top: 5rem;
-  left: 2.5rem;
+  top: -6rem;
+  left: -7rem;
   z-index: -1;
-  width: 16rem;
-  height: 16rem;
+  width: 19rem;
+  height: 19rem;
   border-radius: 999px;
-  opacity: 0.3;
+  opacity: 0.18;
   background: #3d6b5e;
-  filter: blur(3rem);
+  filter: blur(4rem);
   animation: pelikn-figma-orb-one 8s ease-in-out infinite;
 }
 .pelikn-ios-flow {
@@ -99,20 +99,20 @@ table { border-spacing: 0; }
   will-change: transform, opacity;
 }
 .pelikn-ios-flow-one {
-  right: 2.5rem;
-  bottom: 5rem;
-  width: 18rem;
-  height: 18rem;
-  opacity: 0.2;
+  right: -8rem;
+  bottom: 3rem;
+  width: 20rem;
+  height: 20rem;
+  opacity: 0.16;
   background: #4a7d6e;
   animation: pelikn-figma-orb-two 10s ease-in-out infinite;
 }
 .pelikn-ios-flow-two {
-  top: 50%;
-  left: 25%;
-  width: 12rem;
-  height: 12rem;
-  opacity: 0.15;
+  top: 56%;
+  left: -5rem;
+  width: 16rem;
+  height: 16rem;
+  opacity: 0.12;
   background: #5a8d7e;
   animation: pelikn-figma-orb-three 12s ease-in-out infinite;
 }
@@ -120,17 +120,7 @@ table { border-spacing: 0; }
   display: none;
 }
 .pelikn-ios-glow {
-  position: absolute;
-  top: calc(50% - 15.35rem);
-  left: 50%;
-  z-index: -1;
-  width: 6rem;
-  aspect-ratio: 1;
-  transform: translateX(-50%);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.08);
-  box-shadow: 0 0 2.5rem rgba(255, 255, 255, 0.5);
-  animation: pelikn-figma-glow 2s ease-in-out infinite;
+  display: none;
 }
 .pelikn-ios-brand {
   width: 100%;
@@ -158,18 +148,7 @@ table { border-spacing: 0; }
 }
 .pelikn-ios-mark::before,
 .pelikn-ios-mark::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  box-shadow: 0 0 2rem rgba(255, 255, 255, 0.25);
-  animation: pelikn-figma-ring 2s ease-in-out infinite;
-}
-.pelikn-ios-mark::after {
-  inset: -0.65rem;
-  opacity: 0.24;
-  animation-delay: 0.5s;
+  content: none;
 }
 .pelikn-ios-brand h1 {
   font-size: 2.25rem;
