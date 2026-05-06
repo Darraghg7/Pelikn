@@ -39,7 +39,7 @@ table { border-spacing: 0; }
 
 /* ── Native iPhone login surface ─────────────────────────────────────── */
 .pelikn-boot-intro {
-  --boot-duration: 2.85s;
+  --boot-duration: 3.08s;
   --boot-ease: cubic-bezier(0.16, 1, 0.3, 1);
   position: fixed;
   inset: 0;
@@ -78,7 +78,7 @@ table { border-spacing: 0; }
   aspect-ratio: 1;
   display: grid;
   place-items: center;
-  margin-bottom: 1rem;
+  margin-bottom: 0.95rem;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.1);
   box-shadow: 0 0 2.4rem rgba(255, 255, 255, 0.24);
@@ -113,44 +113,47 @@ table { border-spacing: 0; }
   overflow: hidden;
   opacity: 1;
   clip-path: inset(0 100% 0 0);
-  transform: translateX(-0.34rem);
-  filter: blur(0.14rem);
+  transform: translateX(-0.42rem);
+  filter: blur(0.16rem);
   animation: pelikn-boot-rest var(--boot-duration) var(--boot-ease) both;
 }
 @keyframes pelikn-boot-p {
-  0% { opacity: 0; transform: translateX(1.95rem) scale(0.88); filter: blur(0.18rem); }
-  16% { opacity: 1; transform: translateX(1.72rem) scale(1.03); filter: blur(0); }
-  58% { opacity: 1; transform: translateX(0) scale(1); filter: blur(0); }
-  82% { opacity: 1; transform: translateX(0) scale(1); filter: blur(0); }
+  0% { opacity: 0; transform: translateX(3.02rem) scale(0.86); filter: blur(0.2rem); }
+  14% { opacity: 1; transform: translateX(3.02rem) scale(1.08); filter: blur(0); }
+  28% { opacity: 1; transform: translateX(3.02rem) scale(1); filter: blur(0); }
+  62% { opacity: 1; transform: translateX(0) scale(1); filter: blur(0); }
+  84% { opacity: 1; transform: translateX(0) scale(1); filter: blur(0); }
   100% { opacity: 0; transform: translateX(0) translateY(-0.18rem) scale(0.985); filter: blur(0.12rem); }
 }
 @keyframes pelikn-boot-rest {
-  0%, 20% { opacity: 0; clip-path: inset(0 100% 0 0); transform: translateX(-0.34rem); filter: blur(0.14rem); }
-  60% { opacity: 1; clip-path: inset(0 0 0 0); transform: translateX(0); filter: blur(0); }
-  82% { opacity: 1; clip-path: inset(0 0 0 0); transform: translateX(0); filter: blur(0); }
+  0%, 30% { opacity: 0; clip-path: inset(0 100% 0 0); transform: translateX(-0.42rem); filter: blur(0.16rem); }
+  40% { opacity: 0.72; clip-path: inset(0 72% 0 0); transform: translateX(-0.24rem); filter: blur(0.1rem); }
+  62% { opacity: 1; clip-path: inset(0 0 0 0); transform: translateX(0); filter: blur(0); }
+  84% { opacity: 1; clip-path: inset(0 0 0 0); transform: translateX(0); filter: blur(0); }
   100% { opacity: 0; clip-path: inset(0 0 0 0); transform: translateX(0) translateY(-0.18rem); filter: blur(0.12rem); }
 }
 @keyframes pelikn-boot-mark {
-  0% { opacity: 0; transform: translateY(2.2rem) scale(0.78); }
-  25% { opacity: 0.75; transform: translateY(1.15rem) scale(0.9); }
-  58% { opacity: 1; transform: translateY(0) scale(1); }
-  82% { opacity: 1; transform: translateY(0) scale(1); }
+  0%, 22% { opacity: 0; transform: translateY(2.2rem) scale(0.78); }
+  44% { opacity: 0.8; transform: translateY(0.78rem) scale(0.9); }
+  64% { opacity: 1; transform: translateY(0) scale(1); }
+  84% { opacity: 1; transform: translateY(0) scale(1); }
   100% { opacity: 0; transform: translateY(-0.28rem) scale(0.98); }
 }
 @keyframes pelikn-boot-aura {
   0% { opacity: 0; transform: scale(0.68); }
-  42% { opacity: 0.92; transform: scale(1.06); }
-  82% { opacity: 0.72; transform: scale(1); }
+  18% { opacity: 0.7; transform: scale(0.9); }
+  48% { opacity: 0.92; transform: scale(1.06); }
+  84% { opacity: 0.72; transform: scale(1); }
   100% { opacity: 0; transform: scale(1.08); }
 }
 @keyframes pelikn-boot-lockup {
   0% { transform: translateY(0.25rem); }
-  58% { transform: translateY(-0.15rem); }
+  64% { transform: translateY(-0.15rem); }
   100% { transform: translateY(-0.32rem); }
 }
 @keyframes pelikn-boot-scene {
   0% { opacity: 1; }
-  78% { opacity: 1; }
+  84% { opacity: 1; }
   100% { opacity: 0; }
 }
 
