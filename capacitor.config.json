@@ -9,10 +9,10 @@
   "ios": {
     "contentInset": "never",
     "scrollEnabled": true,
-    "backgroundColor": "#F0F0EF"
+    "backgroundColor": "#1d483c"
   },
   "android": {
-    "backgroundColor": "#F0F0EF"
+    "backgroundColor": "#1d483c"
   },
   "plugins": {
     "StatusBar": {
