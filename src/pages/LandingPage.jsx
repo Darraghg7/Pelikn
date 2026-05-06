@@ -59,6 +59,24 @@ function AppIcon({ size = 36, bgClass = 'bg-white/10 border border-white/15', st
   )
 }
 
+function FieldIcon({ type }) {
+  if (type === 'mail') {
+    return (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <rect width="18" height="14" x="3" y="5" rx="2" />
+        <path d="m3 7 9 6 9-6" />
+      </svg>
+    )
+  }
+
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect width="18" height="11" x="3" y="11" rx="2" />
+      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+    </svg>
+  )
+}
+
 export default function LandingPage() {
   const navigate = useNavigate()
   const { user, venueSlug, authLoading, signInWithEmail, selectVenue } = useAuth()
@@ -183,16 +201,18 @@ export default function LandingPage() {
             </div>
           ) : view === 'join' ? (
             <form onSubmit={handleJoin} className="pelikn-ios-form">
-              <input
-                type="text"
-                autoComplete="off"
-                autoCapitalize="characters"
-                maxLength={6}
-                value={joinCode}
-                onChange={(e) => { setJoinCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '')); setJoinError('') }}
-                placeholder="Venue code"
-                className="pelikn-ios-input"
-              />
+              <div className="pelikn-ios-field">
+                <input
+                  type="text"
+                  autoComplete="off"
+                  autoCapitalize="characters"
+                  maxLength={6}
+                  value={joinCode}
+                  onChange={(e) => { setJoinCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '')); setJoinError('') }}
+                  placeholder="Venue code"
+                  className="pelikn-ios-input"
+                />
+              </div>
               {joinError && <p className="pelikn-ios-error">{joinError}</p>}
               <button type="submit" disabled={joinLoading || joinCode.length < 4} className="pelikn-ios-primary">
                 {joinLoading ? 'Looking up...' : 'Continue'}
@@ -203,16 +223,20 @@ export default function LandingPage() {
             </form>
           ) : (
             <form onSubmit={handleSubmit} className="pelikn-ios-form">
-              <input
-                type="email"
-                required
-                autoComplete="email"
-                value={email}
-                onChange={(e) => { setEmail(e.target.value); setError(''); setNotice('') }}
-                placeholder="Email"
-                className="pelikn-ios-input"
-              />
-              <div className="pelikn-ios-password">
+              <div className="pelikn-ios-field">
+                <FieldIcon type="mail" />
+                <input
+                  type="email"
+                  required
+                  autoComplete="email"
+                  value={email}
+                  onChange={(e) => { setEmail(e.target.value); setError(''); setNotice('') }}
+                  placeholder="Email"
+                  className="pelikn-ios-input"
+                />
+              </div>
+              <div className="pelikn-ios-field pelikn-ios-password">
+                <FieldIcon type="lock" />
                 <input
                   type={showPassword ? 'text' : 'password'}
                   required
