@@ -39,45 +39,56 @@ table { border-spacing: 0; }
 
 /* ── Splash screen (native boot animation) ──────────────────────────── */
 .pelikn-boot-intro {
-  --boot-duration: 3.2s;
-  --boot-ease: cubic-bezier(0.19, 1, 0.22, 1);
   position: fixed;
   inset: 0;
   z-index: 9999;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 16px;
   overflow: hidden;
-  background-color: #2d5a4a;
+  background: radial-gradient(120% 80% at 50% 35%, #2D4F45 0%, #2A4A40 100%);
   pointer-events: none;
   transform: translateZ(0);
-  animation: pelikn-boot-scene var(--boot-duration) var(--boot-ease) both;
+  animation: pk-scene-fade 2.9s cubic-bezier(0.19, 1, 0.22, 1) both;
 }
-.pelikn-boot-word {
-  display: flex;
-  font-size: clamp(3.2rem, 14vw, 5rem);
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  line-height: 1;
-  margin: 0;
-}
-.pelikn-boot-letter {
-  display: inline-block;
-  color: #ffffff;
-  opacity: 0;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  animation: pelikn-letter-in 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-@keyframes pelikn-letter-in {
-  0%  { opacity: 0; transform: translateX(-0.4em) translateY(0.05em); filter: blur(6px); }
-  60% { opacity: 1; filter: blur(0); }
-  100% { opacity: 1; transform: translateX(0) translateY(0); filter: blur(0); }
-}
-@keyframes pelikn-boot-scene {
-  0%  { opacity: 1; }
-  84% { opacity: 1; }
+@keyframes pk-scene-fade {
+  0%   { opacity: 1; }
+  88%  { opacity: 1; }
   100% { opacity: 0; }
+}
+@keyframes pk-halo-bloom {
+  0%   { transform: translate(-50%,-50%) scale(0.30); opacity: 0; }
+  55%  { opacity: 1; }
+  100% { transform: translate(-50%,-50%) scale(1.00); opacity: 0.85; }
+}
+@keyframes pk-halo-breathe {
+  0%, 100% { transform: translate(-50%,-50%) scale(1.00); opacity: 0.85; }
+  50%      { transform: translate(-50%,-50%) scale(1.06); opacity: 1.00; }
+}
+@keyframes pk-icon-rise {
+  0%   { transform: scaleY(0); }
+  100% { transform: scaleY(1); }
+}
+@keyframes pk-icon-settle {
+  0%   { transform: scale(1.000); }
+  35%  { transform: scale(1.055); }
+  70%  { transform: scale(0.985); }
+  100% { transform: scale(1.000); }
+}
+@keyframes pk-icon-breathe {
+  0%, 100% { transform: scale(1.000); }
+  50%      { transform: scale(1.018); }
+}
+@keyframes pk-letter-rise {
+  0%   { transform: translateY(110%); opacity: 0; }
+  45%  { opacity: 1; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+@keyframes pk-tag-fade {
+  0%, 60% { opacity: 0; transform: translateY(6px); letter-spacing: 0.15em; }
+  100%    { opacity: 0.65; transform: translateY(0); letter-spacing: 0.32em; }
 }
 
 .pelikn-ios-login {
