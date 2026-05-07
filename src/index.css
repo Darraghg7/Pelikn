@@ -37,131 +37,45 @@ table { border-spacing: 0; }
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 .scrollbar-hide { scrollbar-width: none; }
 
-/* ── Native iPhone login surface ─────────────────────────────────────── */
+/* ── Splash screen (native boot animation) ──────────────────────────── */
 .pelikn-boot-intro {
   --boot-duration: 3.2s;
   --boot-ease: cubic-bezier(0.19, 1, 0.22, 1);
   position: fixed;
   inset: 0;
   z-index: 9999;
-  display: grid;
-  place-items: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   overflow: hidden;
-  color: #ffffff;
-  background:
-    radial-gradient(circle at 50% 42%, rgba(126, 214, 166, 0.2), transparent 16rem),
-    linear-gradient(135deg, #183f35 0%, #2d5449 52%, #1d483c 100%);
-  opacity: 1;
+  background-color: #2d5a4a;
   pointer-events: none;
   transform: translateZ(0);
   animation: pelikn-boot-scene var(--boot-duration) var(--boot-ease) both;
 }
-.pelikn-boot-aura {
-  position: absolute;
-  width: 18rem;
-  aspect-ratio: 1;
-  border-radius: 999px;
-  background: rgba(132, 222, 170, 0.18);
-  filter: blur(3rem);
-  animation: pelikn-boot-aura var(--boot-duration) var(--boot-ease) both;
-}
-.pelikn-boot-logo {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  transform: translateY(-0.1rem);
-  animation: pelikn-boot-lockup var(--boot-duration) var(--boot-ease) both;
-}
-.pelikn-boot-mark {
-  width: 4.35rem;
-  aspect-ratio: 1;
-  display: grid;
-  place-items: center;
-  margin-bottom: 1.05rem;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.1);
-  box-shadow: 0 0 2.4rem rgba(255, 255, 255, 0.24);
-  opacity: 1;
-  animation: pelikn-boot-mark var(--boot-duration) var(--boot-ease) both;
-}
-.pelikn-boot-mark svg {
-  width: 2.3rem;
-  height: 2.3rem;
-}
 .pelikn-boot-word {
   display: flex;
-  align-items: baseline;
-  justify-content: center;
-  min-width: 9.6rem;
-  font-size: clamp(2.85rem, 12vw, 4.2rem);
+  font-size: clamp(3.2rem, 14vw, 5rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
   line-height: 1;
-  font-weight: 800;
-  letter-spacing: 0;
-  transform-origin: center;
-  animation: pelikn-boot-word var(--boot-duration) var(--boot-ease) both;
+  margin: 0;
 }
-.pelikn-boot-letter,
-.pelikn-boot-rest {
+.pelikn-boot-letter {
   display: inline-block;
-  will-change: transform, opacity, filter;
+  color: #ffffff;
+  opacity: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  animation: pelikn-letter-in 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
-.pelikn-boot-p {
-  transform-origin: center;
-  animation: pelikn-boot-p var(--boot-duration) var(--boot-ease) both;
-}
-.pelikn-boot-rest {
-  max-width: 7rem;
-  overflow: hidden;
-  opacity: 1;
-  clip-path: inset(0 100% 0 0);
-  transform: translateX(-0.42rem);
-  filter: blur(0.16rem);
-  animation: pelikn-boot-rest var(--boot-duration) var(--boot-ease) both;
-}
-@keyframes pelikn-boot-p {
-  0% { opacity: 0; transform: translateX(3.06rem) scale(0.82); filter: blur(0.22rem); }
-  12% { opacity: 1; transform: translateX(3.06rem) scale(1.1); filter: blur(0); }
-  30% { opacity: 1; transform: translateX(3.06rem) scale(1); filter: blur(0); }
-  58% { opacity: 1; transform: translateX(0) scale(1); filter: blur(0); }
-  84% { opacity: 1; transform: translateX(0) scale(1); filter: blur(0); }
-  100% { opacity: 0; transform: translateX(0) translateY(-0.18rem) scale(0.985); filter: blur(0.12rem); }
-}
-@keyframes pelikn-boot-rest {
-  0%, 32% { opacity: 0; clip-path: inset(0 100% 0 0); transform: translateX(-0.5rem); filter: blur(0.18rem); }
-  42% { opacity: 0.86; clip-path: inset(0 68% 0 0); transform: translateX(-0.24rem); filter: blur(0.08rem); }
-  58% { opacity: 1; clip-path: inset(0 0 0 0); transform: translateX(0); filter: blur(0); }
-  84% { opacity: 1; clip-path: inset(0 0 0 0); transform: translateX(0); filter: blur(0); }
-  100% { opacity: 0; clip-path: inset(0 0 0 0); transform: translateX(0) translateY(-0.18rem); filter: blur(0.12rem); }
-}
-@keyframes pelikn-boot-mark {
-  0%, 48% { opacity: 0; transform: translateY(1.25rem) scale(0.86); }
-  64% { opacity: 1; transform: translateY(0) scale(1); }
-  84% { opacity: 1; transform: translateY(0) scale(1); }
-  100% { opacity: 0; transform: translateY(-0.28rem) scale(0.98); }
-}
-@keyframes pelikn-boot-aura {
-  0% { opacity: 0; transform: scale(0.68); }
-  12% { opacity: 0.48; transform: scale(0.82); }
-  48% { opacity: 0.9; transform: scale(1.04); }
-  84% { opacity: 0.72; transform: scale(1); }
-  100% { opacity: 0; transform: scale(1.08); }
-}
-@keyframes pelikn-boot-word {
-  0% { transform: scale(0.96); }
-  12% { transform: scale(1.04); }
-  30% { transform: scale(1); }
-  58% { transform: scale(1); }
-  84% { transform: scale(1); }
-  100% { transform: translateY(-0.18rem) scale(0.985); }
-}
-@keyframes pelikn-boot-lockup {
-  0% { transform: translateY(0.35rem); }
-  58% { transform: translateY(-0.08rem); }
-  100% { transform: translateY(-0.32rem); }
+@keyframes pelikn-letter-in {
+  0%  { opacity: 0; transform: translateX(-0.4em) translateY(0.05em); filter: blur(6px); }
+  60% { opacity: 1; filter: blur(0); }
+  100% { opacity: 1; transform: translateX(0) translateY(0); filter: blur(0); }
 }
 @keyframes pelikn-boot-scene {
-  0% { opacity: 1; }
+  0%  { opacity: 1; }
   84% { opacity: 1; }
   100% { opacity: 0; }
 }
@@ -269,14 +183,27 @@ table { border-spacing: 0; }
   border-radius: 999px;
   margin-bottom: 1.5rem;
   background: rgba(255,255,255,0.1);
-  border: 0;
+  border: 1px solid rgba(255,255,255,0.15);
   backdrop-filter: blur(8px);
   box-shadow: 0 0 1.25rem rgba(255,255,255,0.3);
-  animation: pelikn-figma-logo-in 0.58s 0.2s cubic-bezier(0.2, 1.25, 0.35, 1) both, pelikn-figma-glow 2s 0.8s ease-in-out infinite;
+  animation: pelikn-figma-logo-in 0.58s 0.2s cubic-bezier(0.2, 1.25, 0.35, 1) both,
+             pelikn-figma-glow 3s 0.8s ease-in-out infinite;
 }
-.pelikn-ios-mark::before,
 .pelikn-ios-mark::after {
-  content: none;
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border-radius: 999px;
+  border: 1.5px solid rgba(255,255,255,0.2);
+  animation: pelikn-mark-ring-pulse 3s 0.8s ease-in-out infinite;
+}
+.pelikn-ios-mark::before {
+  content: "";
+  position: absolute;
+  inset: -12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.08);
+  animation: pelikn-mark-ring-outer 3s 0.8s ease-in-out infinite;
 }
 .pelikn-ios-brand h1 {
   font-size: 2.25rem;
@@ -530,8 +457,16 @@ table { border-spacing: 0; }
   50% { transform: translate3d(1.25rem, 2.5rem, 0) scale(1.2); }
 }
 @keyframes pelikn-figma-glow {
-  0%, 100% { box-shadow: 0 0 1.25rem rgba(255, 255, 255, 0.3); }
-  50% { box-shadow: 0 0 2.5rem rgba(255, 255, 255, 0.5); }
+  0%, 100% { box-shadow: 0 0 1.25rem rgba(255,255,255,0.25), 0 0 0 rgba(120,216,162,0); }
+  50% { box-shadow: 0 0 2.2rem rgba(255,255,255,0.5), 0 0 3.5rem rgba(120,216,162,0.18); }
+}
+@keyframes pelikn-mark-ring-pulse {
+  0%, 100% { opacity: 0.2; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(1.06); }
+}
+@keyframes pelikn-mark-ring-outer {
+  0%, 100% { opacity: 0; transform: scale(0.96); }
+  50% { opacity: 0.4; transform: scale(1.1); }
 }
 @keyframes pelikn-figma-ring {
   0%, 100% { opacity: 0.34; transform: scale(0.96); }

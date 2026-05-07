@@ -253,19 +253,13 @@ function BootIntro() {
 
   return (
     <div className="pelikn-boot-intro" aria-hidden="true">
-      <div className="pelikn-boot-aura" />
-      <div className="pelikn-boot-logo">
-        <div className="pelikn-boot-mark">
-          <svg viewBox="0 0 36 36" fill="none">
-            <path d="M18 4L6 9v8c0 7.5 5.1 14.5 12 16.5C25 31.5 30 24.5 30 17V9L18 4z" fill="white" fillOpacity="0.92" />
-            <path d="M13 18l3.5 3.5L23 15" stroke="#1d483c" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </div>
-        <div className="pelikn-boot-word" aria-label="Pelikn">
-          <span className="pelikn-boot-letter pelikn-boot-p">P</span>
-          <span className="pelikn-boot-rest">elikn</span>
-        </div>
-      </div>
+      <h1 className="pelikn-boot-word">
+        {Array.from('Pelikn').map((ch, i) => (
+          <span key={i} className="pelikn-boot-letter" style={{ animationDelay: `${0.4 + i * 0.12}s` }}>
+            {ch}
+          </span>
+        ))}
+      </h1>
     </div>
   )
 }
