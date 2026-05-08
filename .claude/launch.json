@@ -6,6 +6,12 @@
       "runtimeExecutable": "/usr/local/bin/node",
       "runtimeArgs": ["node_modules/vite/bin/vite.js"],
       "port": 5173
+    },
+    {
+      "name": "Splash Preview",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "4321", "--directory", "public"],
+      "port": 4321
     }
   ]
 }

@@ -22,7 +22,7 @@
     },
     "SplashScreen": {
       "launchShowDuration": 0,
-      "launchAutoHide": false,
+      "launchAutoHide": true,
       "backgroundColor": "#1a3c2e",
       "showSpinner": false,
       "splashFullScreen": true,
