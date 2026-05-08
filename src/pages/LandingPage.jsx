@@ -180,18 +180,9 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-dvh bg-brand font-sans flex flex-col">
-      <style>{`
-        /* Pause all animations on the mobile card until the splash is gone.
-           animation-play-state: paused at t=0 holds elements in their 'from'
-           state (opacity:0, transform offset) via animation-fill-mode: both. */
-        .landing-paused * {
-          animation-play-state: paused !important;
-        }
-      `}</style>
-
       {/* ── MOBILE: native-style sign-in screen (hidden on md+) ─────────── */}
       <div className="pelikn-ios-login md:hidden">
-        <div className={`pelikn-ios-card${ready ? '' : ' landing-paused'}`}>
+        <div className={`pelikn-ios-card${ready ? ' landing-ready' : ''}`}>
           <div className="pelikn-ios-motion" aria-hidden="true" />
           <div className="pelikn-ios-flow pelikn-ios-flow-one" aria-hidden="true" />
           <div className="pelikn-ios-flow pelikn-ios-flow-two" aria-hidden="true" />
