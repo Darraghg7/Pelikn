@@ -27,11 +27,12 @@ async function initNative() {
     StatusBar.setStyle({ style: Style.Dark })
     StatusBar.setOverlaysWebView({ overlay: true }).catch(() => {})
     StatusBar.setBackgroundColor({ color: '#1a3c2e' }).catch(() => {}) // Android only
-    window.setTimeout(() => {
+    // Dismiss native launch screen quickly so our HTML splash shows through
+    requestAnimationFrame(() => requestAnimationFrame(() => {
       import('@capacitor/splash-screen')
-        .then(({ SplashScreen }) => SplashScreen.hide({ fadeOutDuration: 180 }))
+        .then(({ SplashScreen }) => SplashScreen.hide({ fadeOutDuration: 300 }))
         .catch(() => {})
-    }, 3500)
+    }))
 
     // Android hardware back button: go back in history or exit app
     CapApp.addListener('backButton', ({ canGoBack }) => {
