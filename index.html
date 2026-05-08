@@ -24,7 +24,7 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <!-- Load Google Fonts async so it never blocks the first paint / splash screen -->
+    <!-- Load Google Fonts async so it never blocks the first paint -->
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"></noscript>
     <title>Pelikn</title>
@@ -41,135 +41,20 @@
          double-padding. Do NOT add padding-top/bottom here. */
     </style>
 
-    <!-- Splash screen — pure HTML/CSS, shows before React or Capacitor load -->
+    <!-- Plain background shown before React mounts (~50ms).
+         React's SplashScreen component renders the full animated splash. -->
     <style>
+      body { margin: 0; background: #2A4A40; }
       #pk-splash {
-        position: fixed;
-        top: 0; right: 0; bottom: 0; left: 0;
-        width: 100%; height: 100%;
-        z-index: 99999;
-        display: -webkit-box; display: -webkit-flex; display: flex;
-        -webkit-box-orient: vertical; -webkit-box-direction: normal;
-        -webkit-flex-direction: column; flex-direction: column;
-        -webkit-box-align: center; -webkit-align-items: center; align-items: center;
-        -webkit-box-pack: center; -webkit-justify-content: center; justify-content: center;
-        gap: 16px;
+        position: fixed; inset: 0;
         background: radial-gradient(120% 80% at 50% 35%, #2D4F45 0%, #2A4A40 100%);
-        opacity: 1;
-        pointer-events: none; overflow: hidden;
-        -webkit-transform: translateZ(0); transform: translateZ(0);
-      }
-      #pk-splash.pk-hiding {
-        transition: opacity 0.4s ease-out;
-        opacity: 0;
-      }
-      #pk-halo {
-        position: absolute; top: 50%; left: 50%;
-        width: 260px; height: 260px; border-radius: 50%;
-        background: radial-gradient(circle, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0.06) 40%, transparent 70%);
-        animation: pk-halo 0.9s cubic-bezier(.22,.9,.28,1) both;
-      }
-      @keyframes pk-halo {
-        from { transform: translate(-50%,-50%) scale(0.3); opacity: 0; }
-        to   { transform: translate(-50%,-50%) scale(1);   opacity: 1; }
-      }
-      /* Icon: GPU-composited rise only — solid white paths, no paint-heavy stroke animation */
-      #pk-icon {
-        position: relative; z-index: 1;
-        -webkit-will-change: transform, opacity; will-change: transform, opacity;
-        animation: pk-icon-rise 0.5s 0.1s cubic-bezier(.22,.9,.28,1) both;
-      }
-      @keyframes pk-icon-rise {
-        from { -webkit-transform: translate3d(0, 20px, 0) scale(0.9); transform: translate3d(0, 20px, 0) scale(0.9); opacity: 0; }
-        to   { -webkit-transform: translate3d(0, 0, 0)    scale(1);   transform: translate3d(0, 0, 0)    scale(1);   opacity: 1; }
-      }
-      #pk-glow {
-        position: absolute;
-        top: 50%; left: 50%;
-        width: 200px; height: 200px;
-        margin-top: -100px; margin-left: -100px;
-        border-radius: 50%;
-        background: radial-gradient(circle, rgba(120,210,150,.7) 0%, rgba(80,180,120,.2) 45%, transparent 70%);
-        pointer-events: none;
-        -webkit-will-change: transform, opacity; will-change: transform, opacity;
-        animation: pk-glow-burst 1.0s 0.55s ease-out both;
-      }
-      @keyframes pk-glow-burst {
-        0%   { opacity: 0; -webkit-transform: scale3d(0.3,0.3,1); transform: scale3d(0.3,0.3,1); }
-        30%  { opacity: 1; -webkit-transform: scale3d(1.1,1.1,1); transform: scale3d(1.1,1.1,1); }
-        100% { opacity: 0; -webkit-transform: scale3d(1.8,1.8,1); transform: scale3d(1.8,1.8,1); }
-      }
-      #pk-word {
-        display: flex; overflow: hidden; height: 58px;
-        position: relative; z-index: 1;
-      }
-      .pk-ch {
-        display: inline-block;
-        font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-        font-weight: 700; font-size: 48px; line-height: 58px;
-        letter-spacing: -0.01em; color: #fff;
-        -webkit-will-change: transform, opacity; will-change: transform, opacity;
-        animation: pk-ch 0.55s cubic-bezier(.22,.9,.28,1) both;
-      }
-      @keyframes pk-ch {
-        from { -webkit-transform: translate3d(0, 110%, 0); transform: translate3d(0, 110%, 0); opacity: 0; }
-        45%  { opacity: 1; }
-        to   { -webkit-transform: translate3d(0, 0, 0); transform: translate3d(0, 0, 0); opacity: 1; }
-      }
-      #pk-tag {
-        position: relative; z-index: 1;
-        font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-        font-size: 11px; font-weight: 500;
-        letter-spacing: 0.28em; text-transform: uppercase; color: #fff;
-        -webkit-will-change: transform, opacity; will-change: transform, opacity;
-        animation: pk-tag 0.55s 0.55s cubic-bezier(.22,.9,.28,1) both;
-      }
-      @keyframes pk-tag {
-        from { opacity: 0; -webkit-transform: translate3d(0,5px,0); transform: translate3d(0,5px,0); }
-        to   { opacity: 0.6; -webkit-transform: translate3d(0,0,0); transform: translate3d(0,0,0); }
+        z-index: 1;
       }
     </style>
   </head>
   <body>
-    <div id="pk-splash">
-      <div id="pk-halo"></div>
-      <div id="pk-icon">
-        <div id="pk-glow"></div>
-        <svg width="120" height="120" viewBox="0 0 218.749 224.045" style="display:block;overflow:visible">
-          <path fill="#fff" d="M111.581 104.182C96.2532 104.543 80.9327 105.088 65.6202 105.829C60.5271 106.056 45.127 107.88 41.575 105.113C40.7355 102.743 40.8666 103.955 41.3785 101.335C43.6299 98.8182 47.2266 98.3284 50.4259 98.659C63.5708 100.006 131.793 91.8746 139.38 94.6178C143.225 99.2529 133.006 106.588 129.368 111.762C114.802 132.477 110.197 170.39 77.5307 168.731C49.3708 165.694 45.8813 136.75 46.7483 115.308C70.6601 112.405 93.878 108.474 117.612 105.315C116.161 104.28 113.504 104.335 111.581 104.182Z"/>
-          <path fill="#fff" d="M148.644 51.1993C183.239 49.7481 187.978 90.0071 164.264 109.344C142.392 127.174 130.764 152.291 163.008 168.658L160.027 168.645C139.961 168.474 133.495 157.422 134.31 138.44C137.83 118.498 152.458 110.25 164.662 95.8485C177.496 80.4735 167.956 55.9997 146.305 60.1389C135.522 62.1963 128.977 74.4423 123.111 82.935C119.461 82.935 115.959 83.1248 112.322 83.3085C122.658 68.6928 129.24 54.0955 148.644 51.1993Z"/>
-        </svg>
-      </div>
-      <div id="pk-word">
-        <span class="pk-ch" style="animation-delay:.10s">P</span>
-        <span class="pk-ch" style="animation-delay:.14s">e</span>
-        <span class="pk-ch" style="animation-delay:.18s">l</span>
-        <span class="pk-ch" style="animation-delay:.22s">i</span>
-        <span class="pk-ch" style="animation-delay:.26s">k</span>
-        <span class="pk-ch" style="animation-delay:.30s">n</span>
-      </div>
-      <div id="pk-tag">Food Safety, Simplified</div>
-    </div>
-
+    <div id="pk-splash"></div>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
-    <script>
-      // Start the countdown from first paint (requestAnimationFrame fires after
-      // the browser has committed the first frame — i.e. after CSS has been applied
-      // and #pk-splash is actually visible on screen). This prevents the timer from
-      // ticking during any render-blocking resource load.
-      requestAnimationFrame(function() {
-        setTimeout(function() {
-          var el = document.getElementById('pk-splash');
-          if (!el) return;
-          el.classList.add('pk-hiding');
-          // Fire at fade-start so login elements animate IN during the 450ms
-          // crossfade — splash fades out while login fades in simultaneously,
-          // creating one continuous motion instead of two separate sequences.
-          window.dispatchEvent(new CustomEvent('pk-splash-done'));
-          setTimeout(function() { el.remove(); }, 450);
-        }, 2200);
-      });
-    </script>
   </body>
 </html>
