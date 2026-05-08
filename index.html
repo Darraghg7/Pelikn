@@ -24,7 +24,9 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <!-- Load Google Fonts async so it never blocks the first paint / splash screen -->
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"></noscript>
     <title>Pelikn</title>
 
     <!-- Safe area insets for iPhone notch / Dynamic Island / home indicator -->
@@ -42,9 +44,16 @@
     <!-- Splash screen — pure HTML/CSS, shows before React or Capacitor load -->
     <style>
       #pk-splash {
-        position: fixed; inset: 0; z-index: 99999;
-        display: flex; flex-direction: column;
-        align-items: center; justify-content: center; gap: 16px;
+        position: fixed;
+        top: 0; right: 0; bottom: 0; left: 0;
+        width: 100%; height: 100%;
+        z-index: 99999;
+        display: -webkit-box; display: -webkit-flex; display: flex;
+        -webkit-box-orient: vertical; -webkit-box-direction: normal;
+        -webkit-flex-direction: column; flex-direction: column;
+        -webkit-box-align: center; -webkit-align-items: center; align-items: center;
+        -webkit-box-pack: center; -webkit-justify-content: center; justify-content: center;
+        gap: 16px;
         background: radial-gradient(120% 80% at 50% 35%, #2D4F45 0%, #2A4A40 100%);
         opacity: 1;
         pointer-events: none; overflow: hidden;
@@ -124,13 +133,18 @@
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
     <script>
-      // Fade out then remove splash after animations complete
-      setTimeout(function() {
-        var el = document.getElementById('pk-splash');
-        if (!el) return;
-        el.classList.add('pk-hiding');
-        setTimeout(function() { el.remove(); }, 450);
-      }, 2600);
+      // Start the countdown from first paint (requestAnimationFrame fires after
+      // the browser has committed the first frame — i.e. after CSS has been applied
+      // and #pk-splash is actually visible on screen). This prevents the timer from
+      // ticking during any render-blocking resource load.
+      requestAnimationFrame(function() {
+        setTimeout(function() {
+          var el = document.getElementById('pk-splash');
+          if (!el) return;
+          el.classList.add('pk-hiding');
+          setTimeout(function() { el.remove(); }, 450);
+        }, 2600);
+      });
     </script>
   </body>
 </html>

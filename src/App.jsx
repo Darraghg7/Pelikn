@@ -230,7 +230,9 @@ function isNativeShell() {
 }
 
 // Splash screen is rendered as static HTML in index.html (before React loads).
-// This component just cleans it up after the animation completes.
+// The HTML script removes it via requestAnimationFrame + setTimeout(2600).
+// This component is a safety net: if for any reason the HTML timer misfires,
+// React will remove the splash 3200ms after mounting (always after first paint).
 function BootIntro() {
   React.useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -238,7 +240,7 @@ function BootIntro() {
       if (!el) return
       el.classList.add('pk-hiding')
       setTimeout(() => el.remove(), 450)
-    }, 2600)
+    }, 3200)
     return () => window.clearTimeout(timer)
   }, [])
   return null
