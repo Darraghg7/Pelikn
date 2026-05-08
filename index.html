@@ -46,12 +46,13 @@
         display: flex; flex-direction: column;
         align-items: center; justify-content: center; gap: 16px;
         background: radial-gradient(120% 80% at 50% 35%, #2D4F45 0%, #2A4A40 100%);
-        animation: pk-scene 2.9s linear both;
+        opacity: 1;
         pointer-events: none; overflow: hidden;
+        -webkit-transform: translateZ(0); transform: translateZ(0);
       }
-      @keyframes pk-scene {
-        0%, 88% { opacity: 1; }
-        100%    { opacity: 0; }
+      #pk-splash.pk-hiding {
+        transition: opacity 0.4s ease-out;
+        opacity: 0;
       }
       #pk-halo {
         position: absolute; top: 50%; left: 50%;
@@ -123,11 +124,13 @@
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
     <script>
-      // Fallback: remove splash after 3.2s in case React doesn't clean it up
+      // Fade out then remove splash after animations complete
       setTimeout(function() {
         var el = document.getElementById('pk-splash');
-        if (el) el.remove();
-      }, 3200);
+        if (!el) return;
+        el.classList.add('pk-hiding');
+        setTimeout(function() { el.remove(); }, 450);
+      }, 2600);
     </script>
   </body>
 </html>

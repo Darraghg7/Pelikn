@@ -234,8 +234,11 @@ function isNativeShell() {
 function BootIntro() {
   React.useEffect(() => {
     const timer = window.setTimeout(() => {
-      document.getElementById('pk-splash')?.remove()
-    }, 2920)
+      const el = document.getElementById('pk-splash')
+      if (!el) return
+      el.classList.add('pk-hiding')
+      setTimeout(() => el.remove(), 450)
+    }, 2600)
     return () => window.clearTimeout(timer)
   }, [])
   return null
