@@ -180,16 +180,16 @@ export default function LoginPage() {
     >
       <style>{`
         @keyframes login-logo-enter {
-          from { opacity: 0; transform: translateY(-16px); }
-          to   { opacity: 1; transform: translateY(0); }
+          from { opacity: 0; transform: translate3d(0, -16px, 0); }
+          to   { opacity: 1; transform: translate3d(0, 0, 0); }
         }
         @keyframes login-card-enter {
-          from { opacity: 0; transform: translateY(24px); }
-          to   { opacity: 1; transform: translateY(0); }
+          from { opacity: 0; transform: translate3d(0, 24px, 0); }
+          to   { opacity: 1; transform: translate3d(0, 0, 0); }
         }
         @keyframes login-row-enter {
-          from { opacity: 0; transform: translateX(-10px); }
-          to   { opacity: 1; transform: translateX(0); }
+          from { opacity: 0; transform: translate3d(-10px, 0, 0); }
+          to   { opacity: 1; transform: translate3d(0, 0, 0); }
         }
         @keyframes login-fade-enter {
           from { opacity: 0; }
@@ -199,7 +199,7 @@ export default function LoginPage() {
 
       {/* Logo */}
       <div className="mb-6 sm:mb-10 text-center shrink-0"
-        style={ready ? { animation: 'login-logo-enter 0.45s cubic-bezier(.22,.9,.28,1) both' } : { opacity: 0 }}
+        style={ready ? { animation: 'login-logo-enter 0.45s cubic-bezier(.22,.9,.28,1) both', willChange: 'transform, opacity' } : { opacity: 0, willChange: 'transform, opacity' }}
       >
         <h1 className="font-bold text-brand text-4xl tracking-tight">Pelikn</h1>
         {venueName && (
@@ -210,7 +210,7 @@ export default function LoginPage() {
       </div>
 
       <div className="w-full max-w-sm bg-white rounded-2xl shadow-sm border border-charcoal/8 p-5 sm:p-6 flex flex-col gap-6"
-        style={ready ? { animation: 'login-card-enter 0.5s 0.08s cubic-bezier(.34,1.15,.64,1) both' } : { opacity: 0 }}
+        style={ready ? { animation: 'login-card-enter 0.5s 0.08s cubic-bezier(.34,1.15,.64,1) both', willChange: 'transform, opacity' } : { opacity: 0, willChange: 'transform, opacity' }}
       >
 
         {/* Venue picker — shown after login when staff work at multiple venues */}

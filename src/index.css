@@ -183,6 +183,7 @@ table { border-spacing: 0; }
   flex-direction: column;
   align-items: center;
   margin-bottom: 3rem;
+  will-change: transform, opacity;
   animation: pelikn-figma-brand 0.6s ease-out both;
 }
 .pelikn-ios-mark {
@@ -196,7 +197,9 @@ table { border-spacing: 0; }
   background: rgba(255,255,255,0.1);
   border: 1px solid rgba(255,255,255,0.15);
   backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   box-shadow: 0 0 1.25rem rgba(255,255,255,0.3);
+  will-change: transform, opacity;
   animation: pelikn-figma-logo-in 0.58s 0.2s cubic-bezier(0.2, 1.25, 0.35, 1) both,
              pelikn-figma-glow 3s 0.8s ease-in-out infinite;
 }
@@ -239,6 +242,7 @@ table { border-spacing: 0; }
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  will-change: transform, opacity;
   animation: pelikn-figma-form 0.6s 0.6s ease-out both;
 }
 .pelikn-ios-field {
@@ -246,6 +250,7 @@ table { border-spacing: 0; }
   color: rgba(255,255,255,0.43);
   opacity: 0;
   transform-origin: center;
+  will-change: transform, opacity;
   animation: pelikn-login-bounce 0.72s cubic-bezier(0.2, 1.28, 0.36, 1) both;
 }
 .pelikn-ios-form > .pelikn-ios-field:nth-of-type(1) {
@@ -303,6 +308,7 @@ table { border-spacing: 0; }
   font-size: 0.875rem;
   font-weight: 500;
   opacity: 0;
+  will-change: transform, opacity;
   animation: pelikn-login-bounce 0.72s 0.36s cubic-bezier(0.2, 1.28, 0.36, 1) both;
 }
 .pelikn-ios-primary,
@@ -314,6 +320,7 @@ table { border-spacing: 0; }
   font-weight: 700;
   opacity: 0;
   transform-origin: center;
+  will-change: transform, opacity;
   animation: pelikn-login-bounce 0.72s cubic-bezier(0.2, 1.28, 0.36, 1) both;
 }
 .pelikn-ios-primary {
@@ -429,17 +436,17 @@ table { border-spacing: 0; }
   50% { opacity: 0.86; transform: scale(1.12); }
 }
 @keyframes pelikn-login-bounce {
-  0% { opacity: 0; transform: translateY(1rem) scale(0.94); }
-  62% { opacity: 1; transform: translateY(-0.28rem) scale(1.025); }
-  100% { opacity: 1; transform: translateY(0) scale(1); }
+  0%   { opacity: 0; transform: translate3d(0, 1rem, 0) scale(0.94); }
+  62%  { opacity: 1; transform: translate3d(0, -0.28rem, 0) scale(1.025); }
+  100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
 }
 @keyframes pelikn-login-enter {
-  from { opacity: 0; transform: translateY(-1rem); }
-  to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: translate3d(0, -1rem, 0); }
+  to   { opacity: 1; transform: translate3d(0, 0, 0); }
 }
 @keyframes pelikn-login-rise {
-  from { opacity: 0; transform: translateY(1rem); }
-  to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: translate3d(0, 1rem, 0); }
+  to   { opacity: 1; transform: translate3d(0, 0, 0); }
 }
 @keyframes pelikn-login-flow-one {
   0% { transform: translate3d(-0.5rem, 1.2rem, 0) rotate(-8deg) scale(1); opacity: 0.22; }
@@ -484,16 +491,16 @@ table { border-spacing: 0; }
   50% { opacity: 0.85; transform: scale(1.08); }
 }
 @keyframes pelikn-figma-logo-in {
-  from { opacity: 0; transform: scale(0); }
-  to { opacity: 1; transform: scale(1); }
+  from { opacity: 0; transform: scale3d(0, 0, 1); }
+  to   { opacity: 1; transform: scale3d(1, 1, 1); }
 }
 @keyframes pelikn-figma-brand {
-  from { opacity: 0; transform: translateY(-1.25rem); }
-  to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: translate3d(0, -1.25rem, 0); }
+  to   { opacity: 1; transform: translate3d(0, 0, 0); }
 }
 @keyframes pelikn-figma-form {
-  from { opacity: 0; transform: translateY(1.25rem); }
-  to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: translate3d(0, 1.25rem, 0); }
+  to   { opacity: 1; transform: translate3d(0, 0, 0); }
 }
 @keyframes pelikn-figma-fade {
   from { opacity: 0; }

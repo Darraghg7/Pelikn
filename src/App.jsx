@@ -238,15 +238,17 @@ function isNativeShell() {
 // React will remove the splash 3200ms after mounting (always after first paint).
 function BootIntro() {
   React.useEffect(() => {
+    const dispatch = () => window.dispatchEvent(new CustomEvent('pk-splash-done'))
     const timer = window.setTimeout(() => {
       const el = document.getElementById('pk-splash')
-      if (!el) return
+      if (!el) {
+        // HTML script already removed the splash and dispatched the event —
+        // this fallback fires just in case React loaded unusually fast.
+        dispatch()
+        return
+      }
       el.classList.add('pk-hiding')
-      setTimeout(() => {
-        el.remove()
-        // Tell the login page (and anything else) the splash is gone
-        window.dispatchEvent(new CustomEvent('pk-splash-done'))
-      }, 450)
+      setTimeout(() => { el.remove(); dispatch() }, 450)
     }, 3200)
     return () => window.clearTimeout(timer)
   }, [])

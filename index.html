@@ -183,7 +183,11 @@
           var el = document.getElementById('pk-splash');
           if (!el) return;
           el.classList.add('pk-hiding');
-          setTimeout(function() { el.remove(); }, 450);
+          setTimeout(function() {
+            el.remove();
+            // Signal login screens to begin their entrance animations
+            window.dispatchEvent(new CustomEvent('pk-splash-done'));
+          }, 450);
         }, 2600);
       });
     </script>
