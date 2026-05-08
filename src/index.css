@@ -51,7 +51,7 @@ table { border-spacing: 0; }
   background: radial-gradient(120% 80% at 50% 35%, #2D4F45 0%, #2A4A40 100%);
   pointer-events: none;
   transform: translateZ(0);
-  animation: pk-scene-fade 2.9s cubic-bezier(0.19, 1, 0.22, 1) both;
+  animation: pk-scene-fade 2.9s linear both;
 }
 @keyframes pk-scene-fade {
   0%   { opacity: 1; }
