@@ -259,7 +259,13 @@ function BootIcon({ size = 130 }) {
 }
 
 function BootIntro() {
-  const [mounted, setMounted] = React.useState(() => isNativeShell())
+  const [mounted, setMounted] = React.useState(true)
+
+  // Runs synchronously after DOM mutation but before browser paint.
+  // On web this removes the element before the user ever sees it.
+  React.useLayoutEffect(() => {
+    if (!isNativeShell()) setMounted(false)
+  }, [])
 
   React.useEffect(() => {
     if (!mounted) return
@@ -267,6 +273,7 @@ function BootIntro() {
     let removeTimer
     let cancelled = false
 
+    // Hide the native Capacitor splash so our web animation shows through
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
         if (cancelled) return
@@ -417,9 +424,9 @@ export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
     <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+      <BootIntro />
       <UpdateBanner />
       <AuthProvider>
-        <BootIntro />
         <ErrorBoundary>
         <Suspense fallback={<FullPageLoader />}>
         <Routes>
