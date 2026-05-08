@@ -37,69 +37,6 @@ table { border-spacing: 0; }
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 .scrollbar-hide { scrollbar-width: none; }
 
-/* ── Splash screen keyframes ─────────────────────────────────────────── */
-/* Defined here (not injected by JS) so they're in the CSSOM before React  */
-/* renders the SplashScreen component — avoids WKWebView keyframe-timing    */
-/* bug where <style> injected keyframes aren't parsed before animation runs */
-
-@keyframes pk-splash-out {
-  0%, 84% { opacity: 1; }
-  100%    { opacity: 0; }
-}
-@keyframes pk-halo {
-  from { transform: translate(-50%,-50%) scale(0.3); opacity: 0; }
-  to   { transform: translate(-50%,-50%) scale(1);   opacity: 1; }
-}
-@keyframes pk-icon-rise {
-  from { transform: translate3d(0,20px,0) scale(0.9); opacity: 0; }
-  to   { transform: translate3d(0,0,0)   scale(1);   opacity: 1; }
-}
-@keyframes pk-glow-burst {
-  0%   { opacity: 0; transform: scale3d(0.3,0.3,1); }
-  30%  { opacity: 1; transform: scale3d(1.1,1.1,1); }
-  100% { opacity: 0; transform: scale3d(1.8,1.8,1); }
-}
-@keyframes pk-ch {
-  from { transform: translate3d(0,110%,0); opacity: 0; }
-  45%  { opacity: 1; }
-  to   { transform: translate3d(0,0,0); opacity: 1; }
-}
-@keyframes pk-tag {
-  from { opacity: 0; transform: translate3d(0,5px,0); }
-  to   { opacity: 0.6; transform: translate3d(0,0,0); }
-}
-@keyframes pk-halo-bloom {
-  0%   { transform: translate(-50%,-50%) scale(0.30); opacity: 0; }
-  55%  { opacity: 1; }
-  100% { transform: translate(-50%,-50%) scale(1.00); opacity: 0.85; }
-}
-@keyframes pk-halo-breathe {
-  0%, 100% { transform: translate(-50%,-50%) scale(1.00); opacity: 0.85; }
-  50%      { transform: translate(-50%,-50%) scale(1.06); opacity: 1.00; }
-}
-@keyframes pk-icon-rise {
-  0%   { transform: scaleY(0); }
-  100% { transform: scaleY(1); }
-}
-@keyframes pk-icon-settle {
-  0%   { transform: scale(1.000); }
-  35%  { transform: scale(1.055); }
-  70%  { transform: scale(0.985); }
-  100% { transform: scale(1.000); }
-}
-@keyframes pk-icon-breathe {
-  0%, 100% { transform: scale(1.000); }
-  50%      { transform: scale(1.018); }
-}
-@keyframes pk-letter-rise {
-  0%   { transform: translateY(110%); opacity: 0; }
-  45%  { opacity: 1; }
-  100% { transform: translateY(0); opacity: 1; }
-}
-@keyframes pk-tag-fade {
-  0%, 60% { opacity: 0; transform: translateY(6px); letter-spacing: 0.15em; }
-  100%    { opacity: 0.65; transform: translateY(0); letter-spacing: 0.32em; }
-}
 
 .pelikn-ios-login {
   min-height: 100vh;
@@ -128,9 +65,9 @@ table { border-spacing: 0; }
   align-items: center;
   justify-content: center;
   padding:
-    max(1.4rem, env(safe-area-inset-top))
-    2rem
-    max(1.1rem, env(safe-area-inset-bottom));
+    max(40px, env(safe-area-inset-top))
+    24px
+    max(28px, env(safe-area-inset-bottom));
   color: #ffffff;
   background: transparent;
   box-shadow: none;
@@ -171,18 +108,6 @@ table { border-spacing: 0; }
   animation: pelikn-figma-orb-two 10s ease-in-out infinite;
 }
 .pelikn-ios-flow-two {
-  top: 56%;
-  left: -5rem;
-  width: 16rem;
-  height: 16rem;
-  opacity: 0.12;
-  background: #5a8d7e;
-  animation: pelikn-figma-orb-three 12s ease-in-out infinite;
-}
-.pelikn-ios-flow-three {
-  display: none;
-}
-.pelikn-ios-glow {
   display: none;
 }
 /* ── Landing entrance animations ────────────────────────────────────────────
@@ -198,7 +123,7 @@ table { border-spacing: 0; }
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-bottom: 3rem;
+  margin-bottom: 40px;
   opacity: 0;
   will-change: transform, opacity;
 }
@@ -208,17 +133,17 @@ table { border-spacing: 0; }
 
 .pelikn-ios-mark {
   position: relative;
-  width: 6rem;
+  width: 96px;
+  height: 96px;
   aspect-ratio: 1;
   display: grid;
   place-items: center;
   border-radius: 999px;
-  margin-bottom: 1.5rem;
+  margin-bottom: 24px;
   background: rgba(255,255,255,0.1);
   border: 1px solid rgba(255,255,255,0.15);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  box-shadow: 0 0 1.25rem rgba(255,255,255,0.3);
   transform: scale3d(0.72, 0.72, 1);
   will-change: transform;
 }
@@ -250,28 +175,28 @@ table { border-spacing: 0; }
 }
 
 .pelikn-ios-brand h1 {
-  font-size: 2.25rem;
+  font-size: 36px;
   line-height: 1;
   font-weight: 700;
   letter-spacing: 0;
 }
 
 .pelikn-ios-brand p {
-  margin-top: 0.5rem;
+  margin-top: 8px;
   color: rgba(255,255,255,0.6);
-  font-size: 0.875rem;
+  font-size: 12px;
   line-height: 1.2;
   text-transform: uppercase;
-  letter-spacing: 0;
+  letter-spacing: 0.18em;
 }
 
 .pelikn-ios-form,
 .pelikn-ios-panel {
   width: 100%;
-  max-width: 24rem;
+  max-width: 340px;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 12px;
   opacity: 0;
   will-change: transform, opacity;
 }
@@ -286,27 +211,28 @@ table { border-spacing: 0; }
 }
 .pelikn-ios-field > svg {
   position: absolute;
-  left: 1rem;
+  left: 14px;
   top: 50%;
   z-index: 1;
-  width: 1.25rem;
-  height: 1.25rem;
+  width: 18px;
+  height: 18px;
   transform: translateY(-50%);
   pointer-events: none;
 }
 .pelikn-ios-input {
   width: 100%;
-  min-height: 3.5rem;
-  border-radius: 1rem;
+  height: 56px;
+  min-height: 56px;
+  border-radius: 14px;
   border: 1px solid rgba(255,255,255,0.2);
   background: rgba(255,255,255,0.1);
   color: #ffffff;
-  padding: 0 3rem;
+  padding: 0 14px 0 42px;
   outline: none;
-  font-size: 1rem;
+  font-size: 15px;
   font-weight: 500;
-  box-shadow: inset 0 1px 1px rgba(255,255,255,0.08);
   backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 .pelikn-ios-input::placeholder {
   color: rgba(255,255,255,0.43);
@@ -320,7 +246,7 @@ table { border-spacing: 0; }
 }
 .pelikn-ios-password button {
   position: absolute;
-  right: 1.35rem;
+  right: 6px;
   top: 50%;
   transform: translateY(-50%);
   color: rgba(255,255,255,0.48);
@@ -328,25 +254,25 @@ table { border-spacing: 0; }
 }
 .pelikn-ios-forgot {
   align-self: flex-end;
-  margin-top: -0.2rem;
+  margin-top: 0;
   color: rgba(255,255,255,0.6);
-  font-size: 0.875rem;
+  font-size: 13px;
   font-weight: 500;
 }
 
 .pelikn-ios-primary,
 .pelikn-ios-secondary {
-  min-height: 3.5rem;
+  height: 56px;
+  min-height: 56px;
   width: 100%;
-  border-radius: 1rem;
-  font-size: 1rem;
+  border-radius: 14px;
+  font-size: 15px;
   font-weight: 700;
 }
 .pelikn-ios-primary {
-  margin-top: 1.5rem;
+  margin-top: 8px;
   color: #2d5449;
   background: #ffffff;
-  box-shadow: 0 0.8rem 1.5rem rgba(0,0,0,0.08);
 }
 .landing-ready .pelikn-ios-primary:disabled {
   opacity: 0.62;
@@ -360,10 +286,10 @@ table { border-spacing: 0; }
 .pelikn-ios-divider {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  margin: 1.5rem 0;
+  gap: 12px;
+  margin: 4px 0;
   color: rgba(255,255,255,0.4);
-  font-size: 0.875rem;
+  font-size: 13px;
   font-weight: 500;
 }
 .pelikn-ios-divider::before,
@@ -375,11 +301,11 @@ table { border-spacing: 0; }
 }
 .pelikn-ios-signup {
   width: 100%;
-  max-width: 24rem;
-  margin-top: 1.5rem;
+  max-width: 340px;
+  margin-top: 24px;
   padding-top: 0;
   color: rgba(255,255,255,0.6);
-  font-size: 0.875rem;
+  font-size: 13px;
   font-weight: 500;
   text-align: center;
   opacity: 0;
@@ -495,8 +421,8 @@ table { border-spacing: 0; }
   50% { transform: translate3d(1.25rem, 2.5rem, 0) scale(1.2); }
 }
 @keyframes pelikn-figma-glow {
-  0%, 100% { box-shadow: 0 0 1.25rem rgba(255,255,255,0.25), 0 0 0 rgba(120,216,162,0); }
-  50% { box-shadow: 0 0 2.2rem rgba(255,255,255,0.5), 0 0 3.5rem rgba(120,216,162,0.18); }
+  0%, 100% { box-shadow: 0 0 20px rgba(255,255,255,0.25), 0 0 0 rgba(120,216,162,0); }
+  50% { box-shadow: 0 0 35px rgba(255,255,255,0.5), 0 0 56px rgba(120,216,162,0.18); }
 }
 @keyframes pelikn-mark-ring-pulse {
   0%, 100% { opacity: 0.2; transform: scale(1); }
@@ -519,62 +445,17 @@ table { border-spacing: 0; }
   to   { transform: scale3d(1, 1, 1); }
 }
 @keyframes pelikn-figma-brand {
-  from { opacity: 0; transform: translate3d(0, -1.25rem, 0); }
+  from { opacity: 0; transform: translate3d(0, -20px, 0); }
   to   { opacity: 1; transform: translate3d(0, 0, 0); }
 }
 @keyframes pelikn-figma-form {
-  from { opacity: 0; transform: translate3d(0, 1.25rem, 0); }
+  from { opacity: 0; transform: translate3d(0, 20px, 0); }
   to   { opacity: 1; transform: translate3d(0, 0, 0); }
 }
 @keyframes pelikn-figma-fade {
   from { opacity: 0; }
   to { opacity: 1; }
 }
-@media (max-height: 720px) {
-  .pelikn-ios-card {
-    height: 100dvh;
-    max-height: 100dvh;
-    padding-top: max(1rem, env(safe-area-inset-top));
-    padding-bottom: max(0.8rem, env(safe-area-inset-bottom));
-    justify-content: center;
-  }
-  .pelikn-ios-brand {
-    margin-bottom: 1.15rem;
-  }
-  .pelikn-ios-mark {
-    width: 3.5rem;
-    margin-bottom: 0.75rem;
-  }
-  .pelikn-ios-form {
-    gap: 0.68rem;
-  }
-  .pelikn-ios-input,
-  .pelikn-ios-primary,
-  .pelikn-ios-secondary {
-    min-height: 2.85rem;
-    border-radius: 1rem;
-  }
-  .pelikn-ios-field > svg {
-    width: 1.08rem;
-    height: 1.08rem;
-  }
-  .pelikn-ios-brand h1 {
-    font-size: 2rem;
-  }
-  .pelikn-ios-brand p,
-  .pelikn-ios-forgot,
-  .pelikn-ios-signup {
-    font-size: 0.78rem;
-  }
-  .pelikn-ios-divider {
-    margin: 0.5rem 0;
-  }
-  .pelikn-ios-signup {
-    margin-top: 0.75rem;
-    padding-top: 0;
-  }
-}
-
 /* ── Smooth transitions on interactive elements ───────────────────────── */
 button, a, input, select, textarea, [role="button"] {
   transition-property: color, background-color, border-color, box-shadow, opacity, transform;
