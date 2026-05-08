@@ -176,10 +176,10 @@ table { border-spacing: 0; }
   display: none;
 }
 /* ── Landing entrance animations ────────────────────────────────────────────
-   Elements are invisible by default. The .landing-ready class is added to
-   .pelikn-ios-card by React when pk-splash-done fires, triggering all
-   animations in a single synchronous style-recalculation pass so they all
-   start on the exact same frame — no pausing/resuming needed. */
+   Only the GROUP containers carry opacity: 0. Children inside those groups
+   are hidden automatically by the parent — no per-element opacity needed.
+   Adding .landing-ready triggers all group animations in one style-recalc
+   pass so everything arrives as two coherent blocks, not a per-item stagger. */
 
 .pelikn-ios-brand {
   width: 100%;
@@ -193,7 +193,7 @@ table { border-spacing: 0; }
   will-change: transform, opacity;
 }
 .landing-ready .pelikn-ios-brand {
-  animation: pelikn-figma-brand 0.6s ease-out both;
+  animation: pelikn-figma-brand 0.5s ease-out both;
 }
 
 .pelikn-ios-mark {
@@ -209,12 +209,12 @@ table { border-spacing: 0; }
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   box-shadow: 0 0 1.25rem rgba(255,255,255,0.3);
-  opacity: 0;
-  will-change: transform, opacity;
+  transform: scale3d(0.72, 0.72, 1);
+  will-change: transform;
 }
 .landing-ready .pelikn-ios-mark {
-  animation: pelikn-figma-logo-in 0.58s 0.2s cubic-bezier(0.2, 1.25, 0.35, 1) both,
-             pelikn-figma-glow 3s 0.8s ease-in-out infinite;
+  animation: pelikn-mark-pop 0.45s cubic-bezier(0.2, 1.25, 0.35, 1) both,
+             pelikn-figma-glow 3s 0.5s ease-in-out infinite;
 }
 .pelikn-ios-mark::after {
   content: "";
@@ -225,7 +225,7 @@ table { border-spacing: 0; }
   opacity: 0;
 }
 .landing-ready .pelikn-ios-mark::after {
-  animation: pelikn-mark-ring-pulse 3s 0.8s ease-in-out infinite;
+  animation: pelikn-mark-ring-pulse 3s 0.5s ease-in-out infinite;
 }
 .pelikn-ios-mark::before {
   content: "";
@@ -236,7 +236,7 @@ table { border-spacing: 0; }
   opacity: 0;
 }
 .landing-ready .pelikn-ios-mark::before {
-  animation: pelikn-mark-ring-outer 3s 0.8s ease-in-out infinite;
+  animation: pelikn-mark-ring-outer 3s 0.5s ease-in-out infinite;
 }
 
 .pelikn-ios-brand h1 {
@@ -244,11 +244,6 @@ table { border-spacing: 0; }
   line-height: 1;
   font-weight: 700;
   letter-spacing: 0;
-  opacity: 0;
-  will-change: opacity;
-}
-.landing-ready .pelikn-ios-brand h1 {
-  animation: pelikn-figma-fade 0.6s 0.4s ease-out both;
 }
 
 .pelikn-ios-brand p {
@@ -258,11 +253,6 @@ table { border-spacing: 0; }
   line-height: 1.2;
   text-transform: uppercase;
   letter-spacing: 0;
-  opacity: 0;
-  will-change: opacity;
-}
-.landing-ready .pelikn-ios-brand p {
-  animation: pelikn-figma-fade 0.6s 0.5s ease-out both;
 }
 
 .pelikn-ios-form,
@@ -277,24 +267,12 @@ table { border-spacing: 0; }
 }
 .landing-ready .pelikn-ios-form,
 .landing-ready .pelikn-ios-panel {
-  animation: pelikn-figma-form 0.6s 0.6s ease-out both;
+  animation: pelikn-figma-form 0.5s 0.06s ease-out both;
 }
 
 .pelikn-ios-field {
   position: relative;
   color: rgba(255,255,255,0.43);
-  opacity: 0;
-  transform-origin: center;
-  will-change: transform, opacity;
-}
-.landing-ready .pelikn-ios-field {
-  animation: pelikn-login-bounce 0.72s cubic-bezier(0.2, 1.28, 0.36, 1) both;
-}
-.landing-ready .pelikn-ios-form > .pelikn-ios-field:nth-of-type(1) {
-  animation-delay: 0.18s;
-}
-.landing-ready .pelikn-ios-form > .pelikn-ios-field:nth-of-type(2) {
-  animation-delay: 0.28s;
 }
 .pelikn-ios-field > svg {
   position: absolute;
@@ -344,11 +322,6 @@ table { border-spacing: 0; }
   color: rgba(255,255,255,0.6);
   font-size: 0.875rem;
   font-weight: 500;
-  opacity: 0;
-  will-change: transform, opacity;
-}
-.landing-ready .pelikn-ios-forgot {
-  animation: pelikn-login-bounce 0.72s 0.36s cubic-bezier(0.2, 1.28, 0.36, 1) both;
 }
 
 .pelikn-ios-primary,
@@ -358,22 +331,12 @@ table { border-spacing: 0; }
   border-radius: 1rem;
   font-size: 1rem;
   font-weight: 700;
-  opacity: 0;
-  transform-origin: center;
-  will-change: transform, opacity;
-}
-.landing-ready .pelikn-ios-primary,
-.landing-ready .pelikn-ios-secondary {
-  animation: pelikn-login-bounce 0.72s cubic-bezier(0.2, 1.28, 0.36, 1) both;
 }
 .pelikn-ios-primary {
   margin-top: 1.5rem;
   color: #2d5449;
   background: #ffffff;
   box-shadow: 0 0.8rem 1.5rem rgba(0,0,0,0.08);
-}
-.landing-ready .pelikn-ios-primary {
-  animation-delay: 0.46s;
 }
 .landing-ready .pelikn-ios-primary:disabled {
   opacity: 0.62;
@@ -382,9 +345,6 @@ table { border-spacing: 0; }
   color: #ffffff;
   background: rgba(255,255,255,0.02);
   border: 1px solid rgba(255,255,255,0.3);
-}
-.landing-ready .pelikn-ios-secondary {
-  animation-delay: 0.66s;
 }
 
 .pelikn-ios-divider {
@@ -395,10 +355,6 @@ table { border-spacing: 0; }
   color: rgba(255,255,255,0.4);
   font-size: 0.875rem;
   font-weight: 500;
-  opacity: 0;
-}
-.landing-ready .pelikn-ios-divider {
-  animation: pelikn-login-bounce 0.72s 0.56s cubic-bezier(0.2, 1.28, 0.36, 1) both;
 }
 .pelikn-ios-divider::before,
 .pelikn-ios-divider::after {
@@ -420,7 +376,7 @@ table { border-spacing: 0; }
   will-change: opacity;
 }
 .landing-ready .pelikn-ios-signup {
-  animation: pelikn-figma-fade 0.6s 1.2s ease-out both;
+  animation: pelikn-figma-fade 0.4s 0.1s ease-out both;
 }
 .pelikn-ios-signup button {
   color: #ffffff;
@@ -547,6 +503,10 @@ table { border-spacing: 0; }
 @keyframes pelikn-figma-logo-in {
   from { opacity: 0; transform: scale3d(0, 0, 1); }
   to   { opacity: 1; transform: scale3d(1, 1, 1); }
+}
+@keyframes pelikn-mark-pop {
+  from { transform: scale3d(0.72, 0.72, 1); }
+  to   { transform: scale3d(1, 1, 1); }
 }
 @keyframes pelikn-figma-brand {
   from { opacity: 0; transform: translate3d(0, -1.25rem, 0); }
