@@ -242,13 +242,15 @@ function BootIntro() {
     const timer = window.setTimeout(() => {
       const el = document.getElementById('pk-splash')
       if (!el) {
-        // HTML script already removed the splash and dispatched the event —
-        // this fallback fires just in case React loaded unusually fast.
+        // HTML script already handled it — dispatch as safety net in case
+        // the event was missed (e.g. React mounted after the event fired)
         dispatch()
         return
       }
+      // Dispatch at fade-start (same as index.html script does at 2600ms)
       el.classList.add('pk-hiding')
-      setTimeout(() => { el.remove(); dispatch() }, 450)
+      dispatch()
+      setTimeout(() => { el.remove() }, 450)
     }, 3200)
     return () => window.clearTimeout(timer)
   }, [])

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useLayoutEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { supabase } from '../lib/supabase'
@@ -81,11 +81,13 @@ export default function LandingPage() {
 
   // Wait for the splash screen to finish before triggering entrance animations
   const [ready, setReady] = useState(() => !document.getElementById('pk-splash'))
-  useEffect(() => {
+  // useLayoutEffect fires before the browser paints — ensures landing-ready
+  // class is added in the same frame as the event, with no extra render gap
+  useLayoutEffect(() => {
     if (ready) return
     const onDone = () => setReady(true)
     window.addEventListener('pk-splash-done', onDone, { once: true })
-    const fallback = setTimeout(() => setReady(true), 3600)
+    const fallback = setTimeout(() => setReady(true), 2700)
     return () => { window.removeEventListener('pk-splash-done', onDone); clearTimeout(fallback) }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 

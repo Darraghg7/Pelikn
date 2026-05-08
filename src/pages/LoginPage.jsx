@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useSession } from '../contexts/SessionContext'
@@ -52,11 +52,11 @@ export default function LoginPage() {
 
   // Entrance animation: wait for splash to finish (or skip if already gone)
   const [ready, setReady] = useState(() => !document.getElementById('pk-splash'))
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (ready) return
     const onDone = () => setReady(true)
     window.addEventListener('pk-splash-done', onDone, { once: true })
-    const fallback = setTimeout(() => setReady(true), 3600) // hard fallback
+    const fallback = setTimeout(() => setReady(true), 2700)
     return () => { window.removeEventListener('pk-splash-done', onDone); clearTimeout(fallback) }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 

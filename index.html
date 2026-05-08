@@ -183,11 +183,11 @@
           var el = document.getElementById('pk-splash');
           if (!el) return;
           el.classList.add('pk-hiding');
-          setTimeout(function() {
-            el.remove();
-            // Signal login screens to begin their entrance animations
-            window.dispatchEvent(new CustomEvent('pk-splash-done'));
-          }, 450);
+          // Fire at fade-start so login elements animate IN during the 450ms
+          // crossfade — splash fades out while login fades in simultaneously,
+          // creating one continuous motion instead of two separate sequences.
+          window.dispatchEvent(new CustomEvent('pk-splash-done'));
+          setTimeout(function() { el.remove(); }, 450);
         }, 2600);
       });
     </script>
