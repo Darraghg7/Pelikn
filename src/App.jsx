@@ -268,29 +268,19 @@ function BootIntro() {
   const [mounted, setMounted] = React.useState(true)
 
   React.useEffect(() => {
-    // Not native: remove after one paint so web users never see it
-    if (!isNativeShell()) {
-      setMounted(false)
-      return
+    // Dismiss the native Capacitor launch screen if running on device.
+    // Use window.Capacitor directly — more reliable than the imported module
+    // which may evaluate before the native bridge sets window.Capacitor.
+    const platform = window.Capacitor?.getPlatform?.()
+    if (platform === 'ios' || platform === 'android') {
+      import('@capacitor/splash-screen')
+        .then(({ SplashScreen }) => SplashScreen.hide({ fadeOutDuration: 180 }))
+        .catch(() => {})
     }
 
-    // Native: hide the Capacitor splash so our animation shows through,
-    // then unmount after the animation completes
-    let cancelled = false
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        if (cancelled) return
-        import('@capacitor/splash-screen')
-          .then(({ SplashScreen }) => SplashScreen.hide({ fadeOutDuration: 180 }))
-          .catch(() => {})
-      })
-    })
-
-    const removeTimer = window.setTimeout(() => setMounted(false), 2920)
-    return () => {
-      cancelled = true
-      window.clearTimeout(removeTimer)
-    }
+    // Always unmount after the animation completes — no platform gate
+    const timer = window.setTimeout(() => setMounted(false), 2920)
+    return () => window.clearTimeout(timer)
   }, [])
 
   if (!mounted) return null
