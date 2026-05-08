@@ -112,6 +112,9 @@ const OverviewPage = lazy(() => import('./pages/overview/OverviewPage'))
 
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
 
+// Temporary animation preview — remove before shipping
+const IconPreviewPage = lazy(() => import('./pages/IconPreviewPage'))
+
 // ── Guards ───────────────────────────────────────────────────────────────────
 
 /** Require Supabase Auth session to access venue routes. */
@@ -347,6 +350,9 @@ export default function App() {
 
           {/* Public: allergen matrix (no auth required, accessible via QR code) */}
           <Route path="/allergens/:venueSlug" element={<AllergenPublicPage />} />
+
+          {/* Temporary: icon animation preview */}
+          <Route path="/icon-preview" element={<IconPreviewPage />} />
 
           {/* Public: privacy policy */}
           <Route path="/privacy" element={<PrivacyPolicyPage />} />
