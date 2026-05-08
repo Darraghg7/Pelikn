@@ -216,11 +216,17 @@ function RootRoute() {
 }
 
 function isNativeShell() {
-  return (
-    Capacitor.isNativePlatform() ||
-    window.location.protocol === 'capacitor:' ||
-    window.Capacitor?.isNativePlatform?.() === true
-  )
+  try {
+    return (
+      Capacitor.isNativePlatform() ||
+      window.Capacitor?.isNativePlatform?.() === true ||
+      window.Capacitor?.getPlatform?.() === 'ios' ||
+      window.Capacitor?.getPlatform?.() === 'android' ||
+      window.location.protocol === 'capacitor:'
+    )
+  } catch {
+    return false
+  }
 }
 
 function BootHalo() {
@@ -261,19 +267,16 @@ function BootIcon({ size = 130 }) {
 function BootIntro() {
   const [mounted, setMounted] = React.useState(true)
 
-  // Runs synchronously after DOM mutation but before browser paint.
-  // On web this removes the element before the user ever sees it.
-  React.useLayoutEffect(() => {
-    if (!isNativeShell()) setMounted(false)
-  }, [])
-
   React.useEffect(() => {
-    if (!mounted) return
+    // Not native: remove after one paint so web users never see it
+    if (!isNativeShell()) {
+      setMounted(false)
+      return
+    }
 
-    let removeTimer
+    // Native: hide the Capacitor splash so our animation shows through,
+    // then unmount after the animation completes
     let cancelled = false
-
-    // Hide the native Capacitor splash so our web animation shows through
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
         if (cancelled) return
@@ -283,13 +286,12 @@ function BootIntro() {
       })
     })
 
-    removeTimer = window.setTimeout(() => setMounted(false), 2920)
-
+    const removeTimer = window.setTimeout(() => setMounted(false), 2920)
     return () => {
       cancelled = true
       window.clearTimeout(removeTimer)
     }
-  }, [mounted])
+  }, [])
 
   if (!mounted) return null
 
