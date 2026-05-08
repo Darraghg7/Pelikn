@@ -238,34 +238,9 @@ function isNativeShell() {
 // index.html only provides a plain green background to prevent white flash
 // during the ~50ms before React mounts.
 
-const SPLASH_CSS = `
-  @keyframes pk-splash-out {
-    0%, 84% { opacity: 1; }
-    100%    { opacity: 0; }
-  }
-  @keyframes pk-halo {
-    from { transform: translate(-50%,-50%) scale(0.3); opacity: 0; }
-    to   { transform: translate(-50%,-50%) scale(1);   opacity: 1; }
-  }
-  @keyframes pk-icon-rise {
-    from { transform: translate3d(0,20px,0) scale(0.9); opacity: 0; }
-    to   { transform: translate3d(0,0,0)   scale(1);   opacity: 1; }
-  }
-  @keyframes pk-glow-burst {
-    0%   { opacity: 0; transform: scale3d(0.3,0.3,1); }
-    30%  { opacity: 1; transform: scale3d(1.1,1.1,1); }
-    100% { opacity: 0; transform: scale3d(1.8,1.8,1); }
-  }
-  @keyframes pk-ch {
-    from { transform: translate3d(0,110%,0); opacity: 0; }
-    45%  { opacity: 1; }
-    to   { transform: translate3d(0,0,0); opacity: 1; }
-  }
-  @keyframes pk-tag {
-    from { opacity: 0; transform: translate3d(0,5px,0); }
-    to   { opacity: 0.6; transform: translate3d(0,0,0); }
-  }
-`
+// pk-* keyframes live in index.css — always in CSSOM before React renders.
+// Injecting via <style> caused WKWebView to skip the splash (keyframes not
+// parsed before the animation property was evaluated → forwards fill → opacity 0).
 
 function SplashScreen() {
   const [mounted, setMounted] = React.useState(true)
@@ -297,17 +272,18 @@ function SplashScreen() {
   if (!mounted) return null
 
   return (
-    <>
-      <style>{SPLASH_CSS}</style>
-      <div style={{
-        position: 'fixed', inset: 0, zIndex: 99999,
-        background: 'radial-gradient(120% 80% at 50% 35%, #2D4F45 0%, #2A4A40 100%)',
-        display: 'flex', flexDirection: 'column',
-        alignItems: 'center', justifyContent: 'center', gap: 16,
-        overflow: 'hidden', pointerEvents: 'none',
-        animation: 'pk-splash-out 2.6s ease-out forwards',
-        willChange: 'opacity',
-      }}>
+    <div style={{
+      position: 'fixed', inset: 0, zIndex: 99999,
+      background: 'radial-gradient(120% 80% at 50% 35%, #2D4F45 0%, #2A4A40 100%)',
+      display: 'flex', flexDirection: 'column',
+      alignItems: 'center', justifyContent: 'center', gap: 16,
+      overflow: 'hidden', pointerEvents: 'none',
+      animation: 'pk-splash-out 2.6s ease-out forwards',
+      // DO NOT use willChange:'opacity' on position:fixed — known WebKit/WKWebView
+      // bug causes composited fixed layers to be invisible on first paint.
+      // translateZ(0) promotes to GPU layer safely without the opacity bug.
+      transform: 'translateZ(0)',
+    }}>
         {/* Halo */}
         <div style={{
           position: 'absolute', top: '50%', left: '50%',
@@ -359,8 +335,7 @@ function SplashScreen() {
           willChange: 'transform, opacity',
           animation: 'pk-tag 0.55s 0.55s cubic-bezier(.22,.9,.28,1) both',
         }}>Food Safety, Simplified</div>
-      </div>
-    </>
+    </div>
   )
 }
 

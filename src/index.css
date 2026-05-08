@@ -37,26 +37,36 @@ table { border-spacing: 0; }
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 .scrollbar-hide { scrollbar-width: none; }
 
-/* ── Splash screen (native boot animation) ──────────────────────────── */
-.pelikn-boot-intro {
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 16px;
-  overflow: hidden;
-  background: radial-gradient(120% 80% at 50% 35%, #2D4F45 0%, #2A4A40 100%);
-  pointer-events: none;
-  transform: translateZ(0);
-  animation: pk-scene-fade 2.9s linear both;
+/* ── Splash screen keyframes ─────────────────────────────────────────── */
+/* Defined here (not injected by JS) so they're in the CSSOM before React  */
+/* renders the SplashScreen component — avoids WKWebView keyframe-timing    */
+/* bug where <style> injected keyframes aren't parsed before animation runs */
+
+@keyframes pk-splash-out {
+  0%, 84% { opacity: 1; }
+  100%    { opacity: 0; }
 }
-@keyframes pk-scene-fade {
-  0%   { opacity: 1; }
-  88%  { opacity: 1; }
-  100% { opacity: 0; }
+@keyframes pk-halo {
+  from { transform: translate(-50%,-50%) scale(0.3); opacity: 0; }
+  to   { transform: translate(-50%,-50%) scale(1);   opacity: 1; }
+}
+@keyframes pk-icon-rise {
+  from { transform: translate3d(0,20px,0) scale(0.9); opacity: 0; }
+  to   { transform: translate3d(0,0,0)   scale(1);   opacity: 1; }
+}
+@keyframes pk-glow-burst {
+  0%   { opacity: 0; transform: scale3d(0.3,0.3,1); }
+  30%  { opacity: 1; transform: scale3d(1.1,1.1,1); }
+  100% { opacity: 0; transform: scale3d(1.8,1.8,1); }
+}
+@keyframes pk-ch {
+  from { transform: translate3d(0,110%,0); opacity: 0; }
+  45%  { opacity: 1; }
+  to   { transform: translate3d(0,0,0); opacity: 1; }
+}
+@keyframes pk-tag {
+  from { opacity: 0; transform: translate3d(0,5px,0); }
+  to   { opacity: 0.6; transform: translate3d(0,0,0); }
 }
 @keyframes pk-halo-bloom {
   0%   { transform: translate(-50%,-50%) scale(0.30); opacity: 0; }
