@@ -242,7 +242,11 @@ function BootIntro() {
       const el = document.getElementById('pk-splash')
       if (!el) return
       el.classList.add('pk-hiding')
-      setTimeout(() => el.remove(), 450)
+      setTimeout(() => {
+        el.remove()
+        // Tell the login page (and anything else) the splash is gone
+        window.dispatchEvent(new CustomEvent('pk-splash-done'))
+      }, 450)
     }, 3200)
     return () => window.clearTimeout(timer)
   }, [])

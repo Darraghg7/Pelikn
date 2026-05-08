@@ -50,6 +50,16 @@ export default function LoginPage() {
   const { signOutVenue } = useAuth()
   const navigate = useNavigate()
 
+  // Entrance animation: wait for splash to finish (or skip if already gone)
+  const [ready, setReady] = useState(() => !document.getElementById('pk-splash'))
+  useEffect(() => {
+    if (ready) return
+    const onDone = () => setReady(true)
+    window.addEventListener('pk-splash-done', onDone, { once: true })
+    const fallback = setTimeout(() => setReady(true), 3600) // hard fallback
+    return () => { window.removeEventListener('pk-splash-done', onDone); clearTimeout(fallback) }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
   const [staff, setStaff]             = useState([])
   const [staffLoading, setStaffLoading] = useState(true)
   const [selected, setSelected]       = useState(null)
@@ -168,9 +178,29 @@ export default function LoginPage() {
         paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))',
       }}
     >
+      <style>{`
+        @keyframes login-logo-enter {
+          from { opacity: 0; transform: translateY(-16px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes login-card-enter {
+          from { opacity: 0; transform: translateY(24px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes login-row-enter {
+          from { opacity: 0; transform: translateX(-10px); }
+          to   { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes login-fade-enter {
+          from { opacity: 0; }
+          to   { opacity: 1; }
+        }
+      `}</style>
 
       {/* Logo */}
-      <div className="mb-6 sm:mb-10 text-center shrink-0">
+      <div className="mb-6 sm:mb-10 text-center shrink-0"
+        style={ready ? { animation: 'login-logo-enter 0.45s cubic-bezier(.22,.9,.28,1) both' } : { opacity: 0 }}
+      >
         <h1 className="font-bold text-brand text-4xl tracking-tight">Pelikn</h1>
         {venueName && (
           <p className="text-sm font-medium text-charcoal/60 mt-1">{venueName}</p>
@@ -179,7 +209,9 @@ export default function LoginPage() {
         <p className="text-[10px] tracking-widest text-charcoal/25 uppercase mt-0.5">Food Safety &amp; Operations</p>
       </div>
 
-      <div className="w-full max-w-sm bg-white rounded-2xl shadow-sm border border-charcoal/8 p-5 sm:p-6 flex flex-col gap-6">
+      <div className="w-full max-w-sm bg-white rounded-2xl shadow-sm border border-charcoal/8 p-5 sm:p-6 flex flex-col gap-6"
+        style={ready ? { animation: 'login-card-enter 0.5s 0.08s cubic-bezier(.34,1.15,.64,1) both' } : { opacity: 0 }}
+      >
 
         {/* Venue picker — shown after login when staff work at multiple venues */}
         {pickerVenues && (
@@ -210,7 +242,7 @@ export default function LoginPage() {
             {!staffLoading && staff.length === 0 && (
               <p className="text-sm text-charcoal/40 text-center py-4">No staff members found for this venue.</p>
             )}
-            {staff.map((s) => (
+            {staff.map((s, i) => (
               <button
                 key={s.id}
                 type="button"
@@ -221,6 +253,7 @@ export default function LoginPage() {
                     ? 'border-accent bg-accent/5 ring-1 ring-accent'
                     : 'border-charcoal/10 hover:border-charcoal/25 bg-white',
                 ].join(' ')}
+                style={ready ? { animation: `login-row-enter 0.38s ${0.14 + i * 0.045}s cubic-bezier(.22,.9,.28,1) both` } : { opacity: 0 }}
               >
                 {/* Avatar */}
                 {s.photo_url ? (
@@ -293,6 +326,7 @@ export default function LoginPage() {
           navigate('/login', { replace: true })
         }}
         className="mt-6 text-xs text-charcoal/30 hover:text-charcoal/60 transition-colors"
+        style={ready ? { animation: 'login-fade-enter 0.4s 0.3s ease both' } : { opacity: 0 }}
       >
         Sign out of venue
       </button>
