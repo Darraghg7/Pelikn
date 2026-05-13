@@ -68,16 +68,16 @@ const PRO_FEATURES = [
 ]
 
 const PLATFORM_FEATURES = [
-  { icon: icons.pdf,       title: 'Document Vault',         desc: 'Premises licence, insurance, gas safety — upload, categorise and track expiry dates in one place.' },
+  { icon: icons.pdf,       title: 'Document Vault',         desc: 'Premises licence, insurance, gas safety. Upload, categorise and track expiry dates in one place.' },
   { icon: icons.clipboard, title: 'Incident & Accident Log', desc: 'Legally required record-keeping with severity tracking, witness details and PDF export for RIDDOR.' },
 ]
 
 const FAQS = [
   { q: 'Is this on the App Store?', a: 'Pelikn is a Progressive Web App, no App Store needed. Install it directly from your browser in seconds. It works offline too and sits on your home screen just like a native app.' },
   { q: 'Does it work on iPhone, iPad and Android?', a: 'Yes. Pelikn works on any modern browser. Install to your home screen on iOS via Safari, or on Android via Chrome, for the full app experience without the browser bar.' },
-  { q: 'What counts as a "venue"?', a: "Each venue is managed separately and billed individually. The first venue on Pro is £25/month; each additional one is £15/month. Starter is £5/month per venue. There's no separate multi-venue tier, just add venues as you grow." },
+  { q: 'What counts as a "venue"?', a: "Each venue is managed separately and billed individually. The first venue on Pro is £25/month; each additional one is £15/month. Starter is £10/month per venue. There's no separate multi-venue tier, just add venues as you grow." },
   { q: 'Is my data secure?', a: "All data is stored in a UK-based Supabase database with row-level security. Staff can only see their own venue's data. We're registered with the ICO under UK GDPR." },
-  { q: 'Can I pay annually instead of monthly?', a: 'Yes. Choose annual billing at checkout and pay for 10 months upfront — you get 12 months of access. That\'s 2 months free on every plan. Starter drops from £60/yr to £50/yr, and Pro drops from £300/yr to £250/yr. Monthly billing is always available if you prefer.' },
+  { q: 'Can I pay annually instead of monthly?', a: 'Yes. Choose annual billing at checkout and pay for 10 months upfront and get 12 months of access. That\'s 2 months free on every plan. Starter drops from £120/yr to £100/yr, and Pro drops from £300/yr to £250/yr. Monthly billing is always available if you prefer.' },
   { q: 'Can I cancel anytime?', a: 'Yes, no contracts, no cancellation fees. Cancel from your account settings and your subscription ends at the end of the current billing period.' },
   { q: 'How long does setup take?', a: "Most venues are up and running in under 15 minutes. The setup wizard walks you through your venue type, features and first staff invites. No training required." },
 ]
@@ -410,7 +410,7 @@ function PricingSection() {
             </div>
             <p className="text-xs text-charcoal/35 mb-1">first venue · {extraVenuePrice}{suffix} each additional</p>
             {annual && (
-              <p className="text-xs font-medium text-accent mb-4">Save £50 vs monthly — 2 months free</p>
+              <p className="text-xs font-medium text-accent mb-4">Save £50 vs monthly. 2 months free</p>
             )}
             {!annual && <div className="mb-4" />}
             <p className="text-xs text-charcoal/50 leading-relaxed mb-4">
@@ -461,7 +461,7 @@ function PricingSection() {
             </div>
             <p className="text-xs text-charcoal/35 mb-1">per venue</p>
             {annual && (
-              <p className="text-xs font-medium text-accent mb-4">Save £10 vs monthly — 2 months free</p>
+              <p className="text-xs font-medium text-accent mb-4">Save £20 vs monthly. 2 months free</p>
             )}
             {!annual && <div className="mb-4" />}
             <p className="text-xs text-charcoal/50 leading-relaxed mb-6">
@@ -527,7 +527,7 @@ export default function MarketingPage() {
             Built for hospitality.
           </h1>
           <p className="text-cream/60 text-sm sm:text-base max-w-xl mx-auto leading-relaxed mb-8">
-            Rotas, timesheets, compliance, training, tips — one app instead of five. Built for the way venues actually work, not adapted from something else.
+            Rotas, timesheets, compliance, training, tips. One app instead of five. Built for the way venues actually work, not adapted from something else.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-5">
             <Link to="/signup" className="w-full sm:w-auto bg-accent text-cream px-7 py-3.5 rounded-xl text-sm font-semibold hover:bg-accent/90 active:scale-[0.98] transition-all text-center">
@@ -588,7 +588,7 @@ export default function MarketingPage() {
         <div className="max-w-5xl mx-auto px-5 sm:px-8 py-14">
           <SectionLabel>Team management</SectionLabel>
           <h2 className="text-2xl font-bold sm:text-4xl text-brand text-center mb-4 tracking-tight">
-            Your rota, timesheets, and team — sorted
+            Your rota, timesheets, and team. Sorted.
           </h2>
           <p className="text-charcoal/50 text-center max-w-lg mx-auto text-sm leading-relaxed mb-10">
             Stop juggling spreadsheets, WhatsApp groups and paper rotas. One app handles scheduling, hours, training and tips.
@@ -606,7 +606,7 @@ export default function MarketingPage() {
           Inspection-ready without thinking about it
         </h2>
         <p className="text-charcoal/50 text-center max-w-lg mx-auto text-sm leading-relaxed mb-10">
-          Every log, checklist and record the EHO expects — captured on-device, stored securely, exportable in one tap.
+          Every log, checklist and record the EHO expects. Captured on-device, stored securely, exportable in one tap.
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {COMPLIANCE_FEATURES.map(f => <FeatureCard key={f.title} {...f} />)}
@@ -621,7 +621,7 @@ export default function MarketingPage() {
             Everything else your venue needs
           </h2>
           <p className="text-charcoal/50 text-center max-w-lg mx-auto text-sm leading-relaxed mb-10">
-            Documents, incidents, and records that every venue has to manage — all in one place, not scattered across filing cabinets.
+            Documents, incidents, and records that every venue has to manage. All in one place, not scattered across filing cabinets.
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-2xl mx-auto">
             {PLATFORM_FEATURES.map(f => <FeatureCard key={f.title} {...f} />)}
