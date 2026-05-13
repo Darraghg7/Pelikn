@@ -133,6 +133,8 @@ function getManagerTabs(vp, isEnabled, complianceNavOrder = []) {
     { key: 'allergens',       to: vp('/allergens'),       label: 'Allergens',     feature: 'allergens' },
     { key: 'cleaning',        to: vp('/cleaning'),        label: 'Cleaning',      feature: 'cleaning' },
     { key: 'corrective',      to: vp('/corrective'),      label: 'Actions',       feature: 'corrective' },
+    { key: 'documents',       to: vp('/documents'),       label: 'Documents',     feature: null },
+    { key: 'incidents',       to: vp('/incidents'),       label: 'Incidents',     feature: null },
   ]
     .filter(c => c.feature === null || isEnabled(c.feature))
     .sort((a, b) => {
@@ -150,6 +152,7 @@ function getManagerTabs(vp, isEnabled, complianceNavOrder = []) {
     { to: vp('/timesheet'), label: 'Hours',    feature: 'timesheet' },
     { to: vp('/training'),  label: 'Training', feature: 'training' },
     { to: vp('/time-off'),  label: 'Time Off', feature: 'time_off' },
+    { to: vp('/tips'),      label: 'Tips',     feature: 'tips' },
   ].filter(c => isEnabled(c.feature))
 
   return [
@@ -165,7 +168,7 @@ function getManagerTabs(vp, isEnabled, complianceNavOrder = []) {
       label: 'Checks',
       to: complianceChildren[0]?.to ?? vp('/opening-closing'),
       icon: ClipboardIcon,
-      match: ['/opening-closing', '/fitness', '/fridge', '/cooking-temps', '/hot-holding', '/cooling-logs', '/deliveries', '/probe', '/allergens', '/cleaning', '/corrective'],
+      match: ['/opening-closing', '/fitness', '/fridge', '/cooking-temps', '/hot-holding', '/cooling-logs', '/deliveries', '/probe', '/allergens', '/cleaning', '/corrective', '/documents', '/incidents'],
       children: complianceChildren,
     },
     {
@@ -173,7 +176,7 @@ function getManagerTabs(vp, isEnabled, complianceNavOrder = []) {
       label: 'Team',
       to: teamChildren[0]?.to ?? vp('/rota'),
       icon: UsersIcon,
-      match: ['/rota', '/timesheet', '/training', '/time-off'],
+      match: ['/rota', '/timesheet', '/training', '/time-off', '/tips'],
       children: teamChildren,
     },
     {

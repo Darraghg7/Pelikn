@@ -224,6 +224,9 @@ function IcoShield() {
 function IcoBook() {
   return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
 }
+function IcoCoins() {
+  return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="8" cy="8" r="6"/><path d="M18.09 10.37A6 6 0 1110.34 18"/><line x1="7" y1="6" x2="7.01" y2="6"/><line x1="13" y1="12" x2="13.01" y2="12"/></svg>
+}
 function IcoChevron({ className = '' }) {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
@@ -572,6 +575,8 @@ export default function AppShell({ children }) {
                 {isEnabled('cleaning')      && <SubItem to={vp('/cleaning')}       icon={IcoBroom}       label="Cleaning"       badge={overdueCount} alert={overdueCount > 0} isActive={isUnder('/cleaning')} />}
                 {isEnabled('corrective')    && <SubItem to={vp('/corrective')}     icon={IcoAlert}       label="Actions"        isActive={isUnder('/corrective')} />}
                 <SubItem to={vp('/suppliers')}  icon={IcoSupplier} label="Suppliers"       isActive={isUnder('/suppliers')} />
+                <SubItem to={vp('/documents')}  icon={IcoDoc}      label="Documents"       isActive={isUnder('/documents')} />
+                <SubItem to={vp('/incidents')}  icon={IcoAlert}    label="Incidents"       isActive={isUnder('/incidents')} />
                 <SubItem to={vp('/haccp')}      icon={IcoDoc}      label="HACCP"           isActive={isUnder('/haccp')} />
                 <SubItem to={vp('/eho-mock')}   icon={IcoShield}   label="Mock Inspection" isActive={isUnder('/eho-mock')} />
               </CollapsibleSection>
@@ -595,6 +600,8 @@ export default function AppShell({ children }) {
                   : <SubItem to={vp('/clock-in')}    icon={IcoClock}   label="Clock In / Out"  isActive={isUnder('/clock-in')} />}
                 {isPlanLocked('noticeboard') ? <LockedSubItem label="Noticeboard" />
                   : <SubItem to={vp('/noticeboard')} icon={IcoBoard}   label="Noticeboard"     isActive={isUnder('/noticeboard')} />}
+                {isPlanLocked('tips')       ? <LockedSubItem label="Tips" />
+                  : isEnabled('tips')      && <SubItem to={vp('/tips')}     icon={IcoCoins}   label="Tips"      isActive={isUnder('/tips')} />}
                 <SubItem to={vp('/staff')} icon={IcoTeam} label="Staff" isActive={isUnder('/staff')} />
               </CollapsibleSection>
 
