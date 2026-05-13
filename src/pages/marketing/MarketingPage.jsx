@@ -7,6 +7,16 @@ import {
   PRO_ANNUAL_NUM, EXTRA_VENUE_ANNUAL_NUM,
 } from '../../lib/pricing'
 
+/* ── Brand name helper ───────────────────────────────────────────────────────── */
+function brandify(text) {
+  const parts = text.split('Pelikn')
+  return parts.flatMap((part, i) =>
+    i < parts.length - 1
+      ? [part, <span key={i} className="font-semibold tracking-[0.18em] uppercase">Pelikn</span>]
+      : [part]
+  )
+}
+
 /* ── Logo ───────────────────────────────────────────────────────────────────── */
 function PeliknLogo({ iconSize = 'w-9 h-9', textSize = 'text-base', textClass = 'text-brand', iconClass = '' }) {
   return (
@@ -96,7 +106,7 @@ function FaqItem({ q, a }) {
           {icons.chevron}
         </span>
       </button>
-      {open && <p className="text-sm text-charcoal/55 pb-4 leading-relaxed">{a}</p>}
+      {open && <p className="text-sm text-charcoal/55 pb-4 leading-relaxed">{brandify(a)}</p>}
     </div>
   )
 }
@@ -639,7 +649,7 @@ export default function MarketingPage() {
           Up and running in 3 steps
         </h2>
         <p className="text-charcoal/50 text-center max-w-lg mx-auto text-sm leading-relaxed mb-10">
-          Pelikn is a Progressive Web App. Install it directly from your browser, works just like a native app - even offline.
+          {brandify('Pelikn is a Progressive Web App. Install it directly from your browser, works just like a native app - even offline.')}
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 max-w-3xl mx-auto">
           {[
@@ -651,7 +661,7 @@ export default function MarketingPage() {
               <div className="w-11 h-11 rounded-2xl bg-brand text-cream flex items-center justify-center mx-auto mb-4">{icon}</div>
               <p className="text-[10px] tracking-widest uppercase text-charcoal/30 mb-1.5">Step {step}</p>
               <p className="text-sm font-semibold text-charcoal mb-2">{title}</p>
-              <p className="text-xs text-charcoal/45 leading-relaxed">{desc}</p>
+              <p className="text-xs text-charcoal/45 leading-relaxed">{brandify(desc)}</p>
             </div>
           ))}
         </div>
@@ -698,7 +708,7 @@ export default function MarketingPage() {
           </div>
         </div>
         <div className="border-t border-charcoal/5 py-3 text-center">
-          <p className="text-[11px] text-charcoal/20">© {new Date().getFullYear()} Pelikn · Registered with ICO · UK GDPR compliant</p>
+          <p className="text-[11px] text-charcoal/20">© {new Date().getFullYear()} <span className="font-semibold tracking-[0.18em] uppercase">Pelikn</span> · Registered with ICO · UK GDPR compliant</p>
         </div>
       </footer>
 
