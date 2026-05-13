@@ -217,41 +217,127 @@ function StaffMobileScreen() {
   )
 }
 
-/* Fridge check mobile screen */
-function FridgeScreen() {
-  const logs = [
-    { fridge: 'Walk-in Fridge',  temp: '2°C', time: '09:15', staff: 'S. Murphy' },
-    { fridge: 'Sandwich Fridge', temp: '4°C', time: '09:18', staff: 'S. Murphy' },
-    { fridge: 'Display Fridge',  temp: '3°C', time: '13:02', staff: 'T. Walsh'  },
+/* Fridge temp recording mobile screen — active entry state */
+function FridgeRecordScreen() {
+  return (
+    <div className="rounded-2xl overflow-hidden shadow-[0_16px_48px_rgba(0,0,0,0.14)] ring-1 ring-charcoal/8" style={{ height: 420 }}>
+      <div className="bg-[#F0F0EF] h-full flex flex-col">
+        <div className="bg-brand px-4 py-3.5 shrink-0 flex items-center gap-2">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-cream/50"><polyline points="15 18 9 12 15 6"/></svg>
+          <p className="text-sm font-semibold text-cream">Log Temperature</p>
+        </div>
+        <div className="flex-1 overflow-hidden p-3 flex flex-col gap-2.5">
+          {/* Fridge selector */}
+          <div className="bg-white rounded-xl border border-charcoal/8 p-3">
+            <p className="text-[10px] tracking-widest uppercase text-charcoal/35 mb-2">Fridge</p>
+            <div className="flex flex-col gap-1.5">
+              {[
+                { label: 'Walk-in Fridge',  active: true  },
+                { label: 'Sandwich Fridge', active: false },
+                { label: 'Display Fridge',  active: false },
+              ].map(({ label, active }) => (
+                <div key={label} className={`flex items-center justify-between px-2.5 py-1.5 rounded-lg border text-xs font-medium ${active ? 'bg-brand/8 border-brand/25 text-brand' : 'border-charcoal/10 text-charcoal/45'}`}>
+                  {label}
+                  {active && <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
+                </div>
+              ))}
+            </div>
+          </div>
+          {/* Temperature input */}
+          <div className="bg-white rounded-xl border border-brand/30 p-3 ring-2 ring-brand/10">
+            <p className="text-[10px] tracking-widest uppercase text-charcoal/35 mb-1.5">Temperature (°C)</p>
+            <div className="flex items-baseline gap-1">
+              <p className="text-4xl font-bold text-brand font-mono tracking-tight">2</p>
+              <p className="text-lg font-bold text-charcoal/30">°C</p>
+              <div className="w-0.5 h-7 bg-brand ml-0.5 animate-pulse" />
+            </div>
+            <p className="text-[10px] text-success mt-1.5 font-medium">Within safe range (1°C – 8°C)</p>
+          </div>
+          {/* Notes */}
+          <div className="bg-white rounded-xl border border-charcoal/8 px-3 py-2.5">
+            <p className="text-[10px] tracking-widest uppercase text-charcoal/35 mb-1">Notes (optional)</p>
+            <p className="text-xs text-charcoal/20 italic">Add a note...</p>
+          </div>
+          {/* Save button */}
+          <button className="w-full bg-brand text-cream py-2.5 rounded-xl text-xs font-semibold mt-auto">Save Temperature →</button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/* Rota mobile screen — weekly shift view */
+function RotaMobileScreen() {
+  const days = ['M', 'T', 'W', 'T', 'F', 'S', 'S']
+  const staff = [
+    { name: 'Sarah M.', colour: '#4f7c5a', shifts: [1,1,0,1,0,1,0] },
+    { name: 'Tom W.',   colour: '#7c5a4f', shifts: [0,1,1,0,1,1,0] },
+    { name: 'Priya K.', colour: '#5a4f7c', shifts: [1,0,1,1,0,0,1] },
   ]
   return (
-    <AppScreen maxH={310}>
-      <div className="bg-[#F0F0EF]">
-        <div className="bg-brand px-4 py-3.5 flex items-center gap-2">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-cream/50"><polyline points="15 18 9 12 15 6"/></svg>
-          <p className="text-sm font-semibold text-cream">Fridge Checks</p>
+    <div className="rounded-2xl overflow-hidden shadow-[0_16px_48px_rgba(0,0,0,0.14)] ring-1 ring-charcoal/8" style={{ height: 420 }}>
+      <div className="bg-[#F0F0EF] h-full flex flex-col">
+        <div className="bg-brand px-4 py-3.5 shrink-0">
+          <p className="text-[10px] tracking-widest uppercase text-cream/45 mb-0.5">Week 28 Apr – 4 May</p>
+          <p className="text-sm font-semibold text-cream">Rota</p>
         </div>
-        <div className="p-3">
-          <p className="text-[10px] tracking-widest uppercase text-charcoal/40 mb-2.5">Today · 28 Apr</p>
-          <div className="flex flex-col gap-2 mb-3">
-            {logs.map(({ fridge, temp, time, staff }) => (
-              <div key={fridge} className="bg-white rounded-xl border border-charcoal/8 px-3 py-2.5 flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-medium text-charcoal mb-0.5">{fridge}</p>
-                  <p className="text-[10px] text-charcoal/40">{time} · {staff}</p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <p className="text-base font-bold text-brand font-mono">{temp}</p>
-                  <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-[#dcfce7] text-[#16a34a]">PASS</span>
-                </div>
-              </div>
+        <div className="flex-1 overflow-hidden p-3 flex flex-col gap-2.5">
+          {/* Day header */}
+          <div className="grid grid-cols-8 gap-0.5">
+            <div />
+            {days.map((d, i) => (
+              <div key={i} className={`text-center text-[9px] font-bold tracking-wide py-1 rounded-md ${i === 0 ? 'text-brand bg-brand/8' : 'text-charcoal/35'}`}>{d}</div>
             ))}
           </div>
-          <button className="w-full bg-brand text-cream py-2.5 rounded-xl text-xs font-semibold">+ Log Temperature</button>
+          {/* Staff rows */}
+          {staff.map(({ name, colour, shifts }) => (
+            <div key={name}>
+              <p className="text-[10px] font-medium text-charcoal/55 mb-1 truncate">{name}</p>
+              <div className="grid grid-cols-7 gap-0.5">
+                {shifts.map((on, i) => (
+                  <div
+                    key={i}
+                    className="rounded-md py-2"
+                    style={{ backgroundColor: on ? colour + '22' : 'transparent', border: on ? `1px solid ${colour}33` : '1px solid transparent' }}
+                  >
+                    {on && <div className="w-1 h-1 rounded-full mx-auto" style={{ backgroundColor: colour }} />}
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+          {/* Summary */}
+          <div className="mt-auto bg-white rounded-xl border border-charcoal/8 px-3 py-2.5">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-[10px] tracking-widest uppercase text-charcoal/35 mb-0.5">This week</p>
+                <p className="text-sm font-bold text-charcoal">9 shifts · 72 hrs</p>
+              </div>
+              <button className="bg-brand text-cream text-[10px] font-semibold px-2.5 py-1.5 rounded-lg">Publish →</button>
+            </div>
+          </div>
         </div>
-        <ScreenNav active="checks" />
+        <div className="shrink-0"><ScreenNav active="rota" /></div>
       </div>
-    </AppScreen>
+    </div>
+  )
+}
+
+/* Laptop frame wrapper */
+function LaptopFrame({ children }) {
+  return (
+    <div className="relative">
+      <div className="bg-[#1c1c1e] rounded-t-xl pt-2 px-2 pb-0 shadow-[0_24px_64px_rgba(0,0,0,0.22)]">
+        <div className="flex items-center gap-1.5 px-2 pb-1.5">
+          <div className="w-2 h-2 rounded-full bg-[#ff5f57]" />
+          <div className="w-2 h-2 rounded-full bg-[#febc2e]" />
+          <div className="w-2 h-2 rounded-full bg-[#28c840]" />
+        </div>
+        <div className="rounded-t-lg overflow-hidden">{children}</div>
+      </div>
+      <div className="bg-[#2a2a2c] h-2.5 rounded-b-sm mx-auto" style={{ width: '100%' }} />
+      <div className="bg-[#3a3a3c] h-1 rounded-b-md mx-auto" style={{ width: '70%' }} />
+    </div>
   )
 }
 
@@ -561,18 +647,20 @@ export default function MarketingPage() {
           <p className="text-charcoal/45 text-center max-w-lg mx-auto text-sm leading-relaxed mb-10">
             Manager dashboard, staff view and compliance records, all on one platform, any device.
           </p>
-          <div className="flex flex-col sm:flex-row gap-5 items-end">
-            <div className="sm:w-[195px] shrink-0">
-              <StaffMobileScreen />
-              <ScreenCaption>Staff view</ScreenCaption>
+          <div className="flex flex-col sm:flex-row gap-6 items-end">
+            <div className="sm:w-[190px] shrink-0">
+              <FridgeRecordScreen />
+              <ScreenCaption>Recording fridge temps</ScreenCaption>
             </div>
             <div className="flex-1 min-w-0">
-              <DesktopScreen />
+              <LaptopFrame>
+                <DesktopScreen />
+              </LaptopFrame>
               <ScreenCaption>Manager dashboard</ScreenCaption>
             </div>
-            <div className="sm:w-[195px] shrink-0">
-              <FridgeScreen />
-              <ScreenCaption>Fridge checks</ScreenCaption>
+            <div className="sm:w-[190px] shrink-0">
+              <RotaMobileScreen />
+              <ScreenCaption>Weekly rota</ScreenCaption>
             </div>
           </div>
         </div>
