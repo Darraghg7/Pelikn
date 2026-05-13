@@ -50,7 +50,7 @@ const FEATURE_ICONS = {
 
 const GROUP_LABELS = {
   temperature: 'Temperature Control',
-  food_safety: 'Food Safety',
+  compliance: 'Compliance',
   operations:  'Operations',
   team:        'Team Management',
 }

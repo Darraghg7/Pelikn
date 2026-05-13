@@ -198,7 +198,7 @@ export default function LandingPage() {
               <AppIconSvg size={57} iconColor="rgba(255,255,255,0.95)" />
             </div>
             <h1>Pelikn</h1>
-            <p>Food Safety, Simplified</p>
+            <p>Built for hospitality.</p>
           </div>
 
           {view === 'picker' && pendingVenues ? (
@@ -295,7 +295,7 @@ export default function LandingPage() {
             />
             <h1 className="font-bold text-brand text-3xl tracking-tight mt-4">Pelikn</h1>
             <p className="text-xs tracking-widest uppercase text-charcoal/40 mt-1.5">
-              Food Safety, Simplified
+              Built for hospitality.
             </p>
           </div>
 

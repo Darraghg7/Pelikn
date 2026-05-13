@@ -61,10 +61,15 @@ const COMPLIANCE_FEATURES = [
 const PRO_FEATURES = [
   { icon: icons.rota,      title: 'Rota & Shift Builder',   desc: 'Build rotas with an AI auto-fill tool. Staff get push notifications when the rota changes.' },
   { icon: icons.timesheet, title: 'Timesheets & Hours',     desc: 'Clock in/out on-device. Automatic timesheets generated from real clock data. CSV export for payroll.' },
-  { icon: icons.training,  title: 'Staff Training Tracker', desc: 'Food hygiene certs, allergen training, expiry dates. Alerts 30 days before anything lapses.' },
+  { icon: icons.training,  title: 'Staff Training Tracker', desc: 'Training certs, allergen awareness, expiry dates. Alerts 30 days before anything lapses.' },
   { icon: icons.clockin,   title: 'Time Off & Shift Swaps', desc: 'Staff request time off from the app. Managers approve with one tap. Swap requests handled in-app.' },
-  { icon: icons.chart,     title: 'Labour Cost Dashboard',  desc: 'Real-time labour cost vs. scheduled hours. Spot overruns before they hit your payroll.' },
+  { icon: icons.chart,     title: 'Tip Distribution',       desc: 'Split tips fairly across the team. Enter the total, assign amounts, and keep a full audit trail.' },
   { icon: icons.multisite, title: 'Multi-Venue Management', desc: 'One account, multiple sites. Each venue has its own settings, staff and compliance records.' },
+]
+
+const PLATFORM_FEATURES = [
+  { icon: icons.pdf,       title: 'Document Vault',         desc: 'Premises licence, insurance, gas safety — upload, categorise and track expiry dates in one place.' },
+  { icon: icons.clipboard, title: 'Incident & Accident Log', desc: 'Legally required record-keeping with severity tracking, witness details and PDF export for RIDDOR.' },
 ]
 
 const FAQS = [
@@ -393,50 +398,10 @@ function PricingSection() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 max-w-2xl mx-auto">
-          {/* Starter */}
-          <div className="rounded-2xl border border-charcoal/10 bg-white p-6 flex flex-col">
-            <p className="text-[11px] tracking-widest uppercase text-brand font-semibold mb-4">Starter</p>
-            <div className="flex items-baseline gap-1.5 mb-1">
-              <span className="text-3xl font-bold text-charcoal">{starterPrice}</span>
-              <span className="text-charcoal/40 text-sm">{suffix}</span>
-            </div>
-            <p className="text-xs text-charcoal/35 mb-1">per venue</p>
-            {annual && (
-              <p className="text-xs font-medium text-accent mb-4">Save £10 vs monthly — 2 months free</p>
-            )}
-            {!annual && <div className="mb-4" />}
-            <p className="text-xs text-charcoal/50 leading-relaxed mb-6">
-              Everything you need to pass an EHO inspection and replace paper records.
-            </p>
-            <ul className="flex flex-col gap-2.5 mb-7 flex-1">
-              {[
-                'Temperature logs (fridge, cooking, hot holding)',
-                'Cleaning schedules & records',
-                "Allergen registry (Natasha's Law)",
-                'Delivery checks with condition notes',
-                'Probe calibration records',
-                'Opening & closing checklists',
-                'Corrective actions log',
-                'Audit-ready compliance PDF reports',
-              ].map(f => (
-                <li key={f} className="flex items-start gap-2 text-xs text-charcoal/60">
-                  <span className="text-success mt-0.5 shrink-0">{icons.check}</span>
-                  {f}
-                </li>
-              ))}
-            </ul>
-            <Link to={`/signup?plan=starter&billing=${annual ? 'annual' : 'monthly'}`} className="block text-center border border-brand/25 text-brand py-3 rounded-xl text-sm font-semibold hover:bg-brand/5 transition-colors">
-              Start Free Trial
-            </Link>
-            <p className="text-[11px] text-charcoal/30 text-center mt-3">
-              Need rotas? <Link to={`/signup?plan=pro&billing=${annual ? 'annual' : 'monthly'}`} className="text-accent font-medium hover:underline">Upgrade to Pro →</Link>
-            </p>
-          </div>
-
-          {/* Pro */}
+          {/* Pro — recommended */}
           <div className="rounded-2xl border-2 border-accent/30 bg-accent/[0.02] p-6 flex flex-col relative">
             <div className="absolute -top-3.5 inset-x-0 flex justify-center">
-              <span className="bg-accent text-cream text-[10px] tracking-widest uppercase font-semibold px-3 py-1 rounded-full">Most Popular</span>
+              <span className="bg-accent text-cream text-[10px] tracking-widest uppercase font-semibold px-3 py-1 rounded-full">Recommended</span>
             </div>
             <p className="text-[11px] tracking-widest uppercase text-accent font-semibold mb-4">Pro</p>
             <div className="flex items-baseline gap-1.5 mb-1">
@@ -449,7 +414,7 @@ function PricingSection() {
             )}
             {!annual && <div className="mb-4" />}
             <p className="text-xs text-charcoal/50 leading-relaxed mb-4">
-              For any business that manages a team, it replaces your rota tool, timesheet app and training tracker - all in one place.
+              Team management and compliance in one place. Replaces your rota tool, timesheet app, training tracker and more.
             </p>
             <div className="bg-white rounded-xl border border-charcoal/8 p-4 mb-6">
               <p className="text-[10px] tracking-widest uppercase text-charcoal/30 mb-3">Price as you grow</p>
@@ -473,7 +438,7 @@ function PricingSection() {
                 ['Staff training records & expiry alerts', false],
                 ['Clock in / out & break tracking', false],
                 ['Time off requests & shift swaps', false],
-                ['Labour cost tracking', false],
+                ['Tip distribution & audit trail', false],
                 ['Multi-venue, unlimited staff', false],
               ].map(([f, bold]) => (
                 <li key={f} className="flex items-start gap-2 text-xs text-charcoal/60">
@@ -485,6 +450,46 @@ function PricingSection() {
             <Link to={`/signup?plan=pro&billing=${annual ? 'annual' : 'monthly'}`} className="block text-center bg-accent text-cream py-3 rounded-xl text-sm font-semibold hover:bg-accent/90 active:scale-[0.98] transition-all">
               Start Free Trial
             </Link>
+          </div>
+
+          {/* Starter */}
+          <div className="rounded-2xl border border-charcoal/10 bg-white p-6 flex flex-col">
+            <p className="text-[11px] tracking-widest uppercase text-brand font-semibold mb-4">Starter</p>
+            <div className="flex items-baseline gap-1.5 mb-1">
+              <span className="text-3xl font-bold text-charcoal">{starterPrice}</span>
+              <span className="text-charcoal/40 text-sm">{suffix}</span>
+            </div>
+            <p className="text-xs text-charcoal/35 mb-1">per venue</p>
+            {annual && (
+              <p className="text-xs font-medium text-accent mb-4">Save £10 vs monthly — 2 months free</p>
+            )}
+            {!annual && <div className="mb-4" />}
+            <p className="text-xs text-charcoal/50 leading-relaxed mb-6">
+              Just need compliance? Everything to pass an EHO inspection and ditch the paper.
+            </p>
+            <ul className="flex flex-col gap-2.5 mb-7 flex-1">
+              {[
+                'Temperature logs (fridge, cooking, hot holding)',
+                'Cleaning schedules & records',
+                "Allergen registry (Natasha's Law)",
+                'Delivery checks with condition notes',
+                'Probe calibration records',
+                'Opening & closing checklists',
+                'Document vault & incident log',
+                'Audit-ready compliance PDF reports',
+              ].map(f => (
+                <li key={f} className="flex items-start gap-2 text-xs text-charcoal/60">
+                  <span className="text-success mt-0.5 shrink-0">{icons.check}</span>
+                  {f}
+                </li>
+              ))}
+            </ul>
+            <Link to={`/signup?plan=starter&billing=${annual ? 'annual' : 'monthly'}`} className="block text-center border border-brand/25 text-brand py-3 rounded-xl text-sm font-semibold hover:bg-brand/5 transition-colors">
+              Start Free Trial
+            </Link>
+            <p className="text-[11px] text-charcoal/30 text-center mt-3">
+              Manage a team too? <Link to={`/signup?plan=pro&billing=${annual ? 'annual' : 'monthly'}`} className="text-accent font-medium hover:underline">Go Pro →</Link>
+            </p>
           </div>
         </div>
         <p className="text-center text-xs text-charcoal/30 mt-6">All plans include a 7-day free trial. No card required.</p>
@@ -516,13 +521,13 @@ export default function MarketingPage() {
         <div className="max-w-5xl mx-auto px-5 sm:px-8 pt-20 pb-16 sm:pt-28 sm:pb-20 text-center">
           <div className="inline-flex items-center gap-2 bg-cream/10 border border-cream/15 rounded-full px-3.5 py-1.5 mb-6">
             <span className="w-1.5 h-1.5 rounded-full bg-success shrink-0" />
-            <span className="text-[11px] tracking-widest uppercase text-cream/70 font-medium">Food Safety &amp; Team Operations</span>
+            <span className="text-[11px] tracking-widest uppercase text-cream/70 font-medium">All-in-one venue management</span>
           </div>
           <h1 className="text-4xl font-bold sm:text-5xl lg:text-7xl text-cream leading-[1.05] tracking-tight mb-5">
-            Let nothing slip.
+            Built for hospitality.
           </h1>
           <p className="text-cream/60 text-sm sm:text-base max-w-xl mx-auto leading-relaxed mb-8">
-            Every compliance record, rota and timesheet, captured automatically, stored securely, ready when you need it. Your next EHO visit? Already handled.
+            Rotas, timesheets, compliance, training, tips — one app instead of five. Built for the way venues actually work, not adapted from something else.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-5">
             <Link to="/signup" className="w-full sm:w-auto bg-accent text-cream px-7 py-3.5 rounded-xl text-sm font-semibold hover:bg-accent/90 active:scale-[0.98] transition-all text-center">
@@ -567,47 +572,60 @@ export default function MarketingPage() {
       <div className="bg-white border-b border-charcoal/8">
         <div className="max-w-5xl mx-auto px-5 sm:px-8 py-3.5">
           <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-1.5 text-[11px] tracking-widest uppercase text-charcoal/35 font-medium">
-            <span>UK Food Safety Act 1990</span>
-            <span className="hidden sm:block text-charcoal/12">·</span>
-            <span>FSA Guidelines</span>
+            <span>Replaces 5+ apps</span>
             <span className="hidden sm:block text-charcoal/12">·</span>
             <span>EHO-Ready Records</span>
+            <span className="hidden sm:block text-charcoal/12">·</span>
+            <span>FSA &amp; Food Safety Act Compliant</span>
             <span className="hidden sm:block text-charcoal/12">·</span>
             <span>UK GDPR · ICO Registered</span>
           </div>
         </div>
       </div>
 
-      {/* ── Compliance features ───────────────────────────────────────────────── */}
+      {/* ── Team management features ────────────────────────────────────────── */}
       <section className="bg-white border-b border-charcoal/8">
         <div className="max-w-5xl mx-auto px-5 sm:px-8 py-14">
-          <SectionLabel>Compliance tools</SectionLabel>
+          <SectionLabel>Team management</SectionLabel>
           <h2 className="text-2xl font-bold sm:text-4xl text-brand text-center mb-4 tracking-tight">
-            Everything the EHO expects to see
+            Your rota, timesheets, and team — sorted
           </h2>
           <p className="text-charcoal/50 text-center max-w-lg mx-auto text-sm leading-relaxed mb-10">
-            All the logs, checklists and records you legally need, captured on-device, stored securely, exportable in seconds.
+            Stop juggling spreadsheets, WhatsApp groups and paper rotas. One app handles scheduling, hours, training and tips.
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {COMPLIANCE_FEATURES.map(f => <FeatureCard key={f.title} {...f} />)}
+            {PRO_FEATURES.map(f => <FeatureCard key={f.title} accent {...f} />)}
           </div>
         </div>
       </section>
 
-      {/* ── Pro features ─────────────────────────────────────────────────────── */}
+      {/* ── Compliance features ───────────────────────────────────────────────── */}
       <section className="max-w-5xl mx-auto px-5 sm:px-8 py-14">
-        <div className="flex items-center gap-2.5 justify-center mb-3">
-          <SectionLabel center={false}>Pro plan</SectionLabel>
-          <span className="text-[10px] tracking-widest uppercase font-semibold px-2 py-0.5 rounded-full border bg-accent/10 text-accent border-accent/25 -mt-3">Pro</span>
-        </div>
+        <SectionLabel>Compliance &amp; safety records</SectionLabel>
         <h2 className="text-2xl font-bold sm:text-4xl text-brand text-center mb-4 tracking-tight">
-          Run your team. Stay compliant.
+          Inspection-ready without thinking about it
         </h2>
         <p className="text-charcoal/50 text-center max-w-lg mx-auto text-sm leading-relaxed mb-10">
-          Managing even a small team? Pro replaces your rota tool, timesheet app and training tracker for less than £1 a day per venue.
+          Every log, checklist and record the EHO expects — captured on-device, stored securely, exportable in one tap.
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {PRO_FEATURES.map(f => <FeatureCard key={f.title} accent {...f} />)}
+          {COMPLIANCE_FEATURES.map(f => <FeatureCard key={f.title} {...f} />)}
+        </div>
+      </section>
+
+      {/* ── Platform features ────────────────────────────────────────────────── */}
+      <section className="bg-white border-b border-charcoal/8">
+        <div className="max-w-5xl mx-auto px-5 sm:px-8 py-14">
+          <SectionLabel>Venue operations</SectionLabel>
+          <h2 className="text-2xl font-bold sm:text-4xl text-brand text-center mb-4 tracking-tight">
+            Everything else your venue needs
+          </h2>
+          <p className="text-charcoal/50 text-center max-w-lg mx-auto text-sm leading-relaxed mb-10">
+            Documents, incidents, and records that every venue has to manage — all in one place, not scattered across filing cabinets.
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-2xl mx-auto">
+            {PLATFORM_FEATURES.map(f => <FeatureCard key={f.title} {...f} />)}
+          </div>
         </div>
       </section>
 
@@ -658,9 +676,9 @@ export default function MarketingPage() {
               <img src="/icons/icon.svg" className="w-16 h-16" alt="Pelikn" />
             </div>
           </div>
-          <h2 className="text-2xl font-bold sm:text-4xl text-cream mb-4 tracking-tight">Let nothing slip.</h2>
+          <h2 className="text-2xl font-bold sm:text-4xl text-cream mb-4 tracking-tight">Built for hospitality.</h2>
           <p className="text-cream/50 max-w-md mx-auto text-sm leading-relaxed mb-8">
-            Start your free 7-day trial today. No credit card, no commitment. Better food safety records from day one.
+            Start your free 7-day trial today. No credit card, no commitment. One app for your whole venue from day one.
           </p>
           <Link to="/signup" className="inline-block bg-accent text-cream px-8 py-4 rounded-xl text-sm font-semibold hover:bg-accent/90 active:scale-[0.98] transition-all">
             Start Free Trial - No Card Required

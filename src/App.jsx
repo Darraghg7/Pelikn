@@ -104,6 +104,10 @@ const SuppliersPage = lazy(() => import('./pages/suppliers/SuppliersPage'))
 // EHO Mock Inspection
 const EHOMockPage = lazy(() => import('./pages/eho/EHOMockPage'))
 
+const TipsPage      = lazy(() => import('./pages/tips/TipsPage'))
+const DocumentsPage = lazy(() => import('./pages/documents/DocumentsPage'))
+const IncidentsPage = lazy(() => import('./pages/incidents/IncidentsPage'))
+
 // Tasks (daily recurring + one-off)
 const TasksPage = lazy(() => import('./pages/tasks/TasksPage'))
 
@@ -313,6 +317,9 @@ function VenueRoutes() {
             <Route path="orders"             element={wrapPerm(SupplierOrdersPage, 'log_deliveries', 'orders')} />
             <Route path="settings"           element={wrap(SettingsPage,           RequireManager)} />
             <Route path="staff"             element={wrap(StaffPage,              RequireManager)} />
+            <Route path="tips"              element={wrapPro(TipsPage,            RequireManager, 'tips')} />
+            <Route path="documents"         element={wrap(DocumentsPage,          RequireManager)} />
+            <Route path="incidents"         element={wrap(IncidentsPage,          RequireManager)} />
 
             <Route path="*" element={<NotFoundPage />} />
           </Routes>

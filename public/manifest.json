@@ -1,7 +1,7 @@
 {
   "name": "Pelikn",
   "short_name": "Pelikn",
-  "description": "Food safety & operations management",
+  "description": "All-in-one venue operations for hospitality",
   "start_url": "/login",
   "scope": "/",
   "display": "standalone",

@@ -83,14 +83,14 @@ export const STARTER_FEATURE_IDS = [
 ]
 
 export const PRO_ONLY_FEATURE_IDS = [
-  'rota', 'timesheet', 'training', 'time_off',                 // team
+  'rota', 'timesheet', 'training', 'time_off', 'tips',         // team
   'waste', 'orders',                                           // advanced ops
 ]
 
 // Routes/pages that are Pro-only but aren't in the feature-toggle system
 export const PRO_ONLY_ROUTES = new Set([
   'rota', 'timesheet', 'time-off', 'training', 'waste', 'orders',
-  'haccp', 'eho-mock', 'clock-in', 'noticeboard',
+  'haccp', 'eho-mock', 'clock-in', 'noticeboard', 'tips',
 ])
 
 interface FeatureConfig {
