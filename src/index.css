@@ -25,6 +25,119 @@ body {
   background: #F0F0EF;
 }
 
+/* ── React-owned fake splash: shown after native launch, before login ───── */
+.pelikn-fake-splash {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  background: radial-gradient(120% 80% at 50% 35%, #2D4F45 0%, #2A4A40 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  overflow: hidden;
+  pointer-events: none;
+  transform: translateZ(0);
+  font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+}
+.pelikn-fake-splash-run {
+  animation: pk-splash-out 2.6s ease-out forwards;
+}
+.pelikn-fake-splash-halo {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 260px;
+  height: 260px;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(255,255,255,.22) 0%, rgba(255,255,255,.06) 40%, transparent 70%);
+  transform: translate(-50%,-50%) scale(0.3);
+  opacity: 0;
+  will-change: transform, opacity;
+}
+.pelikn-fake-splash-run .pelikn-fake-splash-halo {
+  animation: pk-halo 0.9s cubic-bezier(.22,.9,.28,1) both;
+}
+.pelikn-fake-splash-icon-wrap {
+  position: relative;
+  z-index: 1;
+  transform: translate3d(0,20px,0) scale(0.9);
+  opacity: 0;
+  will-change: transform, opacity;
+}
+.pelikn-fake-splash-run .pelikn-fake-splash-icon-wrap {
+  animation: pk-icon-rise 0.5s 0.1s cubic-bezier(.22,.9,.28,1) both;
+}
+.pelikn-fake-splash-icon-wrap svg {
+  display: block;
+  overflow: visible;
+}
+.pelikn-fake-splash-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 200px;
+  height: 200px;
+  margin-top: -100px;
+  margin-left: -100px;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(120,210,150,.7) 0%, rgba(80,180,120,.2) 45%, transparent 70%);
+  transform: scale3d(0.3,0.3,1);
+  opacity: 0;
+  will-change: transform, opacity;
+}
+.pelikn-fake-splash-run .pelikn-fake-splash-glow {
+  animation: pk-glow-burst 1s 0.55s ease-out both;
+}
+.pelikn-fake-splash-word {
+  display: block;
+  min-height: 58px;
+  position: relative;
+  z-index: 1;
+  font-weight: 700;
+  font-size: 48px;
+  line-height: 58px;
+  letter-spacing: 0;
+  color: #fff;
+}
+.pelikn-fake-splash-tag {
+  position: relative;
+  z-index: 1;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: #fff;
+  transform: translate3d(0,5px,0);
+  opacity: 0;
+  will-change: transform, opacity;
+}
+.pelikn-fake-splash-run .pelikn-fake-splash-tag {
+  animation: pk-tag 0.55s 0.55s cubic-bezier(.22,.9,.28,1) both;
+}
+@keyframes pk-halo {
+  from { transform: translate(-50%,-50%) scale(0.3); opacity: 0; }
+  to   { transform: translate(-50%,-50%) scale(1); opacity: 1; }
+}
+@keyframes pk-icon-rise {
+  from { transform: translate3d(0,20px,0) scale(0.9); opacity: 0; }
+  to   { transform: translate3d(0,0,0) scale(1); opacity: 1; }
+}
+@keyframes pk-glow-burst {
+  0%   { opacity: 0; transform: scale3d(0.3,0.3,1); }
+  30%  { opacity: 1; transform: scale3d(1.1,1.1,1); }
+  100% { opacity: 0; transform: scale3d(1.8,1.8,1); }
+}
+@keyframes pk-tag {
+  from { opacity: 0; transform: translate3d(0,5px,0); }
+  to   { opacity: 0.6; transform: translate3d(0,0,0); }
+}
+@keyframes pk-splash-out {
+  0%, 84% { opacity: 1; }
+  100%    { opacity: 0; }
+}
+
 /* dvh fallback for Android WebView < Chrome 108 — Tailwind's min-h-dvh only
    outputs the dvh value with no fallback, so we patch it globally here.    */
 .min-h-dvh { min-height: 100vh; min-height: 100dvh; }
@@ -69,6 +182,7 @@ table { border-spacing: 0; }
     24px
     max(28px, env(safe-area-inset-bottom));
   color: #ffffff;
+  font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   background: transparent;
   box-shadow: none;
 }

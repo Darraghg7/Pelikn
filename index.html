@@ -37,137 +37,25 @@
         --safe-left: env(safe-area-inset-left, 0px);
         --safe-right: env(safe-area-inset-right, 0px);
       }
-      /* Safe-area insets are applied per-element inside AppShell to avoid
-         double-padding. Do NOT add padding-top/bottom here. */
-    </style>
-
-    <!-- Complete animated splash shown before React mounts. React only removes
-         this layer after the splash sequence so iOS/WKWebView cannot show a
-         blank green handoff. -->
-    <style>
-      body { margin: 0; background: #2A4A40; }
-      #pk-splash {
-        position: fixed; inset: 0;
-        z-index: 99999;
-        background: radial-gradient(120% 80% at 50% 35%, #2D4F45 0%, #2A4A40 100%);
-        display: flex; flex-direction: column;
-        align-items: center; justify-content: center; gap: 16px;
-        overflow: hidden; pointer-events: none;
-        opacity: 1;
-        transform: translateZ(0);
+      body {
+        margin: 0;
+        background: #2A4A40;
       }
-      #pk-splash .pk-splash-halo {
-        position: absolute; top: 50%; left: 50%;
-        width: 260px; height: 260px; border-radius: 999px;
-        background: radial-gradient(circle, rgba(255,255,255,.22) 0%, rgba(255,255,255,.06) 40%, transparent 70%);
-        transform: translate(-50%,-50%) scale(0.3);
-        opacity: 0;
-      }
-      #pk-splash .pk-splash-icon-wrap {
-        position: relative; z-index: 1;
-        opacity: 0;
-        transform: translate3d(0,20px,0) scale(0.9);
-      }
-      #pk-splash .pk-splash-glow {
-        position: absolute; top: 50%; left: 50%;
-        width: 200px; height: 200px; margin-top: -100px; margin-left: -100px;
-        border-radius: 999px;
-        background: radial-gradient(circle, rgba(120,210,150,.7) 0%, rgba(80,180,120,.2) 45%, transparent 70%);
-        opacity: 0;
-      }
-      #pk-splash .pk-splash-word {
-        display: flex; overflow: hidden; height: 58px; position: relative; z-index: 1;
-      }
-      #pk-splash .pk-splash-word span {
-        display: inline-block;
+      .app-launch-fallback {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #2A4A40;
+        color: #fff;
         font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-        font-weight: 700; font-size: 48px; line-height: 58px;
-        letter-spacing: -0.01em; color: #fff;
-        opacity: 0; transform: translate3d(0,110%,0);
-      }
-      #pk-splash .pk-splash-tag {
-        position: relative; z-index: 1;
-        font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-        font-size: 11px; font-weight: 500; letter-spacing: 0.28em;
-        text-transform: uppercase; color: #fff;
-        opacity: 0; transform: translate3d(0,5px,0);
-      }
-      #pk-splash.pk-splash-run {
-        animation: pk-splash-out 2.6s ease-out forwards;
-      }
-      #pk-splash.pk-splash-run .pk-splash-halo {
-        animation: pk-halo 0.9s cubic-bezier(.22,.9,.28,1) both;
-      }
-      #pk-splash.pk-splash-run .pk-splash-icon-wrap {
-        animation: pk-icon-rise 0.5s 0.1s cubic-bezier(.22,.9,.28,1) both;
-      }
-      #pk-splash.pk-splash-run .pk-splash-glow {
-        animation: pk-glow-burst 1s 0.55s ease-out both;
-      }
-      #pk-splash.pk-splash-run .pk-splash-word span {
-        animation: pk-ch 0.55s var(--pk-delay, 0.1s) cubic-bezier(.22,.9,.28,1) both;
-      }
-      #pk-splash.pk-splash-run .pk-splash-tag {
-        animation: pk-tag 0.55s 0.55s cubic-bezier(.22,.9,.28,1) both;
-      }
-      @keyframes pk-splash-out {
-        0%, 84% { opacity: 1; }
-        100% { opacity: 0; }
-      }
-      @keyframes pk-halo {
-        from { transform: translate(-50%,-50%) scale(0.3); opacity: 0; }
-        to { transform: translate(-50%,-50%) scale(1); opacity: 1; }
-      }
-      @keyframes pk-icon-rise {
-        from { transform: translate3d(0,20px,0) scale(0.9); opacity: 0; }
-        to { transform: translate3d(0,0,0) scale(1); opacity: 1; }
-      }
-      @keyframes pk-glow-burst {
-        0% { opacity: 0; transform: scale3d(0.3,0.3,1); }
-        30% { opacity: 1; transform: scale3d(1.1,1.1,1); }
-        100% { opacity: 0; transform: scale3d(1.8,1.8,1); }
-      }
-      @keyframes pk-ch {
-        from { transform: translate3d(0,110%,0); opacity: 0; }
-        45% { opacity: 1; }
-        to { transform: translate3d(0,0,0); opacity: 1; }
-      }
-      @keyframes pk-tag {
-        from { opacity: 0; transform: translate3d(0,5px,0); }
-        to { opacity: 0.6; transform: translate3d(0,0,0); }
+        font-size: 48px;
+        line-height: 1;
+        font-weight: 700;
+        pointer-events: none;
       }
     </style>
-    <script>
-      window.__peliknSplashDone = false;
-      window.__peliknSplashStarted = false;
-      window.__peliknStartSplash = function () {
-        if (window.__peliknSplashStarted) return;
-        window.__peliknSplashStarted = true;
-        var splash = document.getElementById('pk-splash');
-        if (splash) {
-          splash.classList.remove('pk-splash-run');
-          void splash.offsetWidth;
-          splash.classList.add('pk-splash-run');
-        }
-        window.setTimeout(function () {
-          window.__peliknSplashDone = true;
-          window.dispatchEvent(new CustomEvent('pk-splash-done'));
-        }, 2200);
-        window.setTimeout(function () {
-          var el = document.getElementById('pk-splash');
-          if (el) el.remove();
-        }, 2600);
-      };
-      window.setTimeout(function () {
-        if (!window.__peliknSplashStarted) window.__peliknStartSplash();
-      }, 1200);
-      window.__peliknHideNativeSplash = function () {
-        try {
-          var plugin = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.SplashScreen;
-          if (plugin && plugin.hide) plugin.hide({ fadeOutDuration: 0 });
-        } catch (_) {}
-      };
-    </script>
   </head>
   <body>
     <div id="pk-splash">
@@ -184,9 +72,6 @@
       </div>
       <div class="pk-splash-tag">Built for hospitality.</div>
     </div>
-    <!-- Start splash animations immediately once the #pk-splash element exists.
-         No waiting for React — eliminates the blank-green-screen gap on iOS.
-         __peliknStartSplash() is idempotent (guarded by __peliknSplashStarted). -->
     <script>window.__peliknStartSplash();</script>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>

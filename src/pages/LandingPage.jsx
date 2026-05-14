@@ -93,7 +93,7 @@ export default function LandingPage() {
     if (ready) return
     const onDone = () => setReady(true)
     window.addEventListener('pk-splash-done', onDone, { once: true })
-    const fallback = setTimeout(() => setReady(true), 2700)
+    const fallback = setTimeout(() => setReady(true), 5200)
     return () => { window.removeEventListener('pk-splash-done', onDone); clearTimeout(fallback) }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
