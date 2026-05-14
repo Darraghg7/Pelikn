@@ -148,7 +148,7 @@ export const VENUE_PRESETS: VenuePreset[] = [
     id: 'hotel',
     label: 'Hotel / Catering',
     icon: 'hotel',
-    description: 'Everything — full compliance, large teams, multi-department',
+    description: 'Everything: full compliance, large teams, multi-department',
     features: null,
     suggestedRoles: ['Head Chef', 'Sous Chef', 'CDP', 'KP', 'FOH', 'Concierge', 'Housekeeping'],
   },

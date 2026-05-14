@@ -297,7 +297,7 @@ function ManagerTasksView() {
               <select value={oForm.assigned_to_staff_id}
                 onChange={(e) => setOForm(f => ({ ...f, assigned_to_staff_id: e.target.value }))}
                 className="px-3 py-2 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20">
-                <option value="">— Specific person (optional) —</option>
+                <option value="">Specific person (optional)</option>
                 {staffList.map((s) => (
                   <option key={s.id} value={s.id}>{s.name} ({ROLE_LABELS[s.job_role] ?? s.job_role})</option>
                 ))}
@@ -458,7 +458,7 @@ function StaffTasksView({ session }) {
 
       {/* Task checklist */}
       <div className="bg-white rounded-2xl border-charcoal/10 p-5">
-        <SectionLabel>Your Tasks — {format(new Date(), 'd MMMM')}</SectionLabel>
+        <SectionLabel>Your Tasks: {format(new Date(), 'd MMMM')}</SectionLabel>
         <div className="flex flex-col gap-2">
           {allTasks.map((t) => {
             const isTemplate = 'job_role' in t && !('due_date' in t)

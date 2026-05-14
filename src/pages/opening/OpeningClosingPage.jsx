@@ -81,7 +81,7 @@ function IssueModal({ check, onConfirm, onCancel, saving }) {
           <textarea
             value={action}
             onChange={e => setAction(e.target.value)}
-            placeholder="e.g. Back door lock was stiff — reported to maintenance and used side entrance for closing."
+            placeholder="e.g. Back door lock was stiff, reported to maintenance and used side entrance for closing."
             rows={4}
             autoFocus
             className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm resize-none focus:outline-none focus:ring-2 focus:ring-charcoal/20"
@@ -433,7 +433,7 @@ export default function OpeningClosingPage() {
   const dateLabel = isToday(parseISO(selectedDate))
     ? format(parseISO(selectedDate), 'EEEE, d MMMM')
     : isYesterday(parseISO(selectedDate))
-    ? `Yesterday — ${format(parseISO(selectedDate), 'EEEE d MMMM')}`
+    ? `Yesterday, ${format(parseISO(selectedDate), 'EEEE d MMMM')}`
     : format(parseISO(selectedDate), 'EEEE, d MMMM yyyy')
 
   return (

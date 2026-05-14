@@ -329,7 +329,7 @@ export default function StaffMembersSection() {
 
       {/* Add / Edit form */}
       {showForm && (
-        <div className="mb-6 p-5 rounded-2xl bg-white border border-charcoal/10 flex flex-col gap-4">
+        <div className="mb-4 p-4 rounded-2xl bg-white border border-charcoal/10 flex flex-col gap-3">
           <p className="text-sm font-semibold text-charcoal">{editingId ? 'Edit Staff Member' : 'New Staff Member'}</p>
 
           {/* Photo upload (edit only) */}
@@ -426,9 +426,9 @@ export default function StaffMembersSection() {
               ))}
             </div>
             <p className="text-[11px] text-charcoal/40 mt-1.5">
-              {staffForm.role === 'owner'   && 'Full access — same as Manager plus cannot be deactivated.'}
+              {staffForm.role === 'owner'   && 'Full access: same as Manager plus cannot be deactivated.'}
               {staffForm.role === 'manager' && 'Can manage rota, settings, and all staff operations.'}
-              {staffForm.role === 'staff'   && 'Standard access — tasks, cleaning, temp logs and allergens (if enabled).'}
+              {staffForm.role === 'staff'   && 'Standard access: tasks, cleaning, temp logs and allergens (if enabled).'}
             </p>
           </div>
 
@@ -670,15 +670,15 @@ export default function StaffMembersSection() {
       )}
 
       {/* Staff list */}
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-2">
         {staff.map((s, idx) => {
           const initial = (s.name || '?').charAt(0).toUpperCase()
           const roleLabel = (staffRoleMap[s.id] ?? [])[0] ?? (JOB_LABELS[s.job_role] ?? s.job_role)
           const isLocked = s.pin_locked_until && new Date(s.pin_locked_until) > new Date()
           return (
-            <div key={s.id} className={`bg-white rounded-2xl p-4 ${!s.is_active ? 'opacity-50' : ''}`}>
+            <div key={s.id} className={`bg-white rounded-2xl p-3 ${!s.is_active ? 'opacity-50' : ''}`}>
               {/* Top row: avatar + name/role + reorder */}
-              <div className="flex items-center gap-3 mb-3">
+              <div className="flex items-center gap-3 mb-2">
                 {s.photo_url ? (
                   <img src={s.photo_url} alt={s.name} className="w-10 h-10 rounded-full object-cover shrink-0" loading="lazy" />
                 ) : (

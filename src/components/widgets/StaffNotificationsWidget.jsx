@@ -65,7 +65,7 @@ function StaffNotificationsWidget() {
               <span className="text-warning text-xs mt-0.5 shrink-0">●</span>
               <div className="min-w-0">
                 <p className="text-sm font-medium text-charcoal truncate group-hover:text-accent transition-colors">
-                  {r.staff?.name ?? 'Staff'} — Leave Request
+                  {r.staff?.name ?? 'Staff'}: Leave Request
                 </p>
                 <p className="text-[11px] text-charcoal/40">
                   {format(new Date(r.start_date), 'd MMM')} – {format(new Date(r.end_date), 'd MMM yyyy')}

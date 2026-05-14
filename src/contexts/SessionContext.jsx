@@ -202,7 +202,7 @@ export function SessionProvider({ children }) {
     if (!navigator.onLine) {
       const storedHash = localStorage.getItem(pinHashKey(staffId))
       if (!storedHash) {
-        return { error: new Error('No offline data — please log in while online first') }
+        return { error: new Error('No offline data. Please log in while online first') }
       }
       const enteredHash = await hashPin(staffId, pin)
       if (!enteredHash || enteredHash !== storedHash) {
@@ -228,7 +228,7 @@ export function SessionProvider({ children }) {
           return { error: null }
         }
       } catch { /* corrupt cache */ }
-      return { error: new Error('No offline session data — please log in while online first') }
+      return { error: new Error('No offline session data. Please log in while online first') }
     }
 
     // ── Online path ───────────────────────────────────────────────────────

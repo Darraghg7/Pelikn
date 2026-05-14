@@ -62,7 +62,7 @@ export default function ManagerDashboardPage() {
   const { venueName } = useVenueBranding(venueId)
   const { widgetIds, save } = useWidgetPreferences(session?.staffId, venueId)
   const { todayItemIds, save: saveToday } = useTodayPreferences(session?.staffId, venueId)
-  const { closedDays } = useAppSettings()
+  const { closedDays, actionSchedules } = useAppSettings()
   const [showPicker, setShowPicker] = useState(false)
 
   const hour = new Date().getHours()
@@ -99,7 +99,7 @@ export default function ManagerDashboardPage() {
       <GettingStartedCard venueId={venueId} venueSlug={venueSlug} />
 
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-4 items-start">
-        <TodaySummaryCard venueId={venueId} closedDays={closedDays} itemIds={todayItemIds} />
+        <TodaySummaryCard venueId={venueId} closedDays={closedDays} itemIds={todayItemIds} actionSchedules={actionSchedules} />
         <div className="bg-white rounded-2xl p-5">
           <p className="text-[11px] tracking-widest uppercase font-semibold text-charcoal/40 mb-3">My Clock</p>
           <ClockPanel staffId={session?.staffId} hasShift />

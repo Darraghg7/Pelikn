@@ -41,7 +41,7 @@ export default function AppIconPicker() {
       setActive(variant.id)
       toast(`App icon changed to ${variant.label}`)
     } catch (err) {
-      toast('Could not change icon — try updating the app', 'error')
+      toast('Could not change icon, try updating the app', 'error')
       console.warn('[icon]', err)
     } finally {
       setSwitching(false)

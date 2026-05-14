@@ -147,7 +147,7 @@ export default function StepDetails({ plan, extraVenues, qrAddon, onBack, onSubm
                 Creating your account…
               </>
             ) : (
-              <>Create my account — £{monthly}/mo</>
+              <>Create my account · £{monthly}/mo</>
             )}
           </button>
 

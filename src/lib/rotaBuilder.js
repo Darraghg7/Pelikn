@@ -143,7 +143,7 @@ export function buildRota(config) {
           type: 'role_unfilled',
           day: format(days[di], 'EEE d MMM'),
           role: req.role,
-          message: `Could not fill ${needed - candidates.length} ${req.role} slot(s) on ${format(days[di], 'EEE d MMM')} — no available staff`,
+          message: `Could not fill ${needed - candidates.length} ${req.role} slot(s) on ${format(days[di], 'EEE d MMM')}: no available staff`,
         })
       }
     }
@@ -188,7 +188,7 @@ export function buildRota(config) {
           type: 'skill_unfilled',
           day: format(days[di], 'EEE d MMM'),
           skill: req.skill,
-          message: `Could not fill ${needed - candidates.length} ${skillLabel} slot(s) on ${format(days[di], 'EEE d MMM')} — no available staff with that skill`,
+          message: `Could not fill ${needed - candidates.length} ${skillLabel} slot(s) on ${format(days[di], 'EEE d MMM')}: no available staff with that skill`,
         })
       }
     }
