@@ -11,6 +11,7 @@ function emptySummary() {
     overdueClean: 0,
     onShiftToday: 0,
     checksToday: 0,
+    closingChecksToday: 0,
     uncheckedFridges: 0,
     pendingLeave: 0,
     criticalActions: 0,
@@ -22,7 +23,17 @@ function emptySummary() {
   }
 }
 
-function useTodaySummary(venueId, closedDays = []) {
+function isActionDueToday(scheduleKey, actionSchedules) {
+  if (!scheduleKey) return true
+  const schedule = actionSchedules?.[scheduleKey]
+  if (!schedule) return true
+  if (!schedule.enabled) return false
+  if (!schedule.days?.length) return false
+  const todayDow = (new Date().getDay() + 6) % 7
+  return schedule.days.includes(todayDow)
+}
+
+function useTodaySummary(venueId, closedDays = [], actionSchedules = {}) {
   const [summary, setSummary] = useState(null)
   const [loading, setLoading] = useState(true)
   const [closedToday, setClosedToday] = useState(false)
@@ -38,7 +49,6 @@ function useTodaySummary(venueId, closedDays = []) {
     const fetchAll = async () => {
       setLoading(true)
 
-      // Check day-of-week closed setting (Mon=0…Sun=6)
       const todayDow = (today.getDay() + 6) % 7
       if (closedDays.includes(todayDow)) {
         if (!cancelled) {
@@ -49,7 +59,6 @@ function useTodaySummary(venueId, closedDays = []) {
         return
       }
 
-      // Check if venue is closed today via a specific closure period
       const { data: closureRows } = await supabase
         .from('venue_closures')
         .select('id, reason')
@@ -66,27 +75,47 @@ function useTodaySummary(venueId, closedDays = []) {
       }
       setClosedToday(false)
 
-      const [cleaning, rota, opening, fridges, fridgeLogs, leaveReqs, critActions, cookingTemps, hotHoldingLogs, coolingLogs, dutyShifts] = await Promise.all([
-        supabase.from('cleaning_tasks').select('id, frequency').eq('venue_id', venueId).eq('is_active', true),
+      const due = (key) => isActionDueToday(key, actionSchedules)
+
+      const [cleaning, rota, opening, closing, fridges, fridgeLogs, leaveReqs, critActions, cookingTemps, hotHoldingLogs, coolingLogs, dutyShifts] = await Promise.all([
+        due('cleaning_tasks')
+          ? supabase.from('cleaning_tasks').select('id, frequency').eq('venue_id', venueId).eq('is_active', true)
+          : { data: [] },
         supabase.from('shifts').select('id', { count: 'exact', head: true }).eq('venue_id', venueId).eq('shift_date', todayStr),
-        supabase.from('opening_closing_completions')
-          .select('id', { count: 'exact', head: true })
-          .eq('venue_id', venueId).gte('completed_at', dayStart).lte('completed_at', dayEnd),
-        supabase.from('fridges').select('id').eq('venue_id', venueId).eq('is_active', true),
-        supabase.from('fridge_temperature_logs').select('fridge_id').eq('venue_id', venueId).gte('logged_at', dayStart).lte('logged_at', dayEnd),
+        due('opening_checks')
+          ? supabase.from('opening_closing_completions')
+              .select('id', { count: 'exact', head: true })
+              .eq('venue_id', venueId).eq('session_type', 'opening').gte('completed_at', dayStart).lte('completed_at', dayEnd)
+          : { count: 0 },
+        due('closing_checks')
+          ? supabase.from('opening_closing_completions')
+              .select('id', { count: 'exact', head: true })
+              .eq('venue_id', venueId).eq('session_type', 'closing').gte('completed_at', dayStart).lte('completed_at', dayEnd)
+          : { count: 0 },
+        due('fridge_checks')
+          ? supabase.from('fridges').select('id').eq('venue_id', venueId).eq('is_active', true)
+          : { data: [] },
+        due('fridge_checks')
+          ? supabase.from('fridge_temperature_logs').select('fridge_id').eq('venue_id', venueId).gte('logged_at', dayStart).lte('logged_at', dayEnd)
+          : { data: [] },
         supabase.from('time_off_requests').select('id', { count: 'exact', head: true }).eq('venue_id', venueId).eq('status', 'pending'),
         supabase.from('corrective_actions').select('id', { count: 'exact', head: true }).eq('venue_id', venueId).eq('status', 'open').eq('severity', 'critical'),
-        supabase.from('cooking_temp_logs').select('id', { count: 'exact', head: true }).eq('venue_id', venueId).gte('logged_at', dayStart).lte('logged_at', dayEnd),
-        supabase.from('hot_holding_logs').select('id', { count: 'exact', head: true }).eq('venue_id', venueId).gte('logged_at', dayStart).lte('logged_at', dayEnd),
-        supabase.from('cooling_logs').select('id', { count: 'exact', head: true }).eq('venue_id', venueId).gte('logged_at', dayStart).lte('logged_at', dayEnd),
+        due('cooking_temps')
+          ? supabase.from('cooking_temp_logs').select('id', { count: 'exact', head: true }).eq('venue_id', venueId).gte('logged_at', dayStart).lte('logged_at', dayEnd)
+          : { count: 0 },
+        due('hot_holding')
+          ? supabase.from('hot_holding_logs').select('id', { count: 'exact', head: true }).eq('venue_id', venueId).gte('logged_at', dayStart).lte('logged_at', dayEnd)
+          : { count: 0 },
+        due('cooling_logs')
+          ? supabase.from('cooling_logs').select('id', { count: 'exact', head: true }).eq('venue_id', venueId).gte('logged_at', dayStart).lte('logged_at', dayEnd)
+          : { count: 0 },
         supabase.from('shifts').select('id').eq('venue_id', venueId).eq('shift_date', todayStr),
       ])
 
       if (cancelled) return
 
-      // Overdue cleaning — limit completions to last 90 days (max frequency window)
       let overdueCount = 0
-      if (cleaning.data?.length) {
+      if (due('cleaning_tasks') && cleaning.data?.length) {
         const ninetyDaysAgo = subDays(new Date(), 90).toISOString()
         const { data: completions } = await supabase
           .from('cleaning_completions')
@@ -97,7 +126,6 @@ function useTodaySummary(venueId, closedDays = []) {
         if (cancelled) return
         const freqDays = { daily: 1, weekly: 7, fortnightly: 14, monthly: 30, quarterly: 90 }
         const now = new Date()
-        // Build Map for O(1) lookups (completions sorted desc, so first match = latest)
         const latestByTask = new Map()
         for (const c of (completions ?? [])) {
           if (!latestByTask.has(c.cleaning_task_id)) latestByTask.set(c.cleaning_task_id, c)
@@ -109,11 +137,9 @@ function useTodaySummary(venueId, closedDays = []) {
         }
       }
 
-      // Unchecked fridges
       const checkedIds = new Set((fridgeLogs.data ?? []).map(l => l.fridge_id))
       const uncheckedFridges = (fridges.data ?? []).filter(f => !checkedIds.has(f.id)).length
 
-      // Duties assigned today + fully completed count
       let dutiesAssigned = 0, dutiesCompleted = 0
       if (dutyShifts.data?.length) {
         const todayShiftIds = dutyShifts.data.map(s => s.id)
@@ -140,15 +166,16 @@ function useTodaySummary(venueId, closedDays = []) {
       }
 
       setSummary({
-        overdueClean:     overdueCount,
-        onShiftToday:     rota.count ?? 0,
-        checksToday:      opening.count ?? 0,
-        uncheckedFridges: uncheckedFridges,
-        pendingLeave:     leaveReqs.count ?? 0,
-        criticalActions:  critActions.count ?? 0,
-        cookingTempsToday: cookingTemps.count ?? 0,
-        hotHoldingToday:   hotHoldingLogs.count ?? 0,
-        coolingLogsToday:  coolingLogs.count ?? 0,
+        overdueClean:       overdueCount,
+        onShiftToday:       rota.count ?? 0,
+        checksToday:        opening.count ?? 0,
+        closingChecksToday: closing.count ?? 0,
+        uncheckedFridges:   uncheckedFridges,
+        pendingLeave:       leaveReqs.count ?? 0,
+        criticalActions:    critActions.count ?? 0,
+        cookingTempsToday:  cookingTemps.count ?? 0,
+        hotHoldingToday:    hotHoldingLogs.count ?? 0,
+        coolingLogsToday:   coolingLogs.count ?? 0,
         dutiesAssigned,
         dutiesCompleted,
       })
@@ -156,20 +183,25 @@ function useTodaySummary(venueId, closedDays = []) {
     }
     fetchAll()
     return () => { cancelled = true }
-  }, [venueId, closedDays])
+  }, [venueId, closedDays, actionSchedules])
 
   return { summary, loading, closedToday }
 }
 
-export default function TodaySummaryCard({ venueId, closedDays, itemIds }) {
+export default function TodaySummaryCard({ venueId, closedDays, itemIds, actionSchedules }) {
   const { venueSlug } = useVenue()
   const { isEnabled } = useVenueFeatures()
-  const { summary, loading, closedToday } = useTodaySummary(venueId, closedDays)
+  const { summary, loading, closedToday } = useTodaySummary(venueId, closedDays, actionSchedules)
   const vp = (p) => `/v/${venueSlug}${p}`
 
   const activeItems = (itemIds?.length ? itemIds : DEFAULT_TODAY_ITEMS)
     .map(id => TODAY_ITEM_REGISTRY[id])
-    .filter(item => item && (!item.feature || isEnabled(item.feature)))
+    .filter(item => {
+      if (!item) return false
+      if (item.feature && !isEnabled(item.feature)) return false
+      if (item.scheduleKey && !isActionDueToday(item.scheduleKey, actionSchedules)) return false
+      return true
+    })
 
   const actions = summary
     ? activeItems.map(item => item.action?.(summary, vp)).filter(Boolean)

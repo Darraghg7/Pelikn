@@ -34,13 +34,20 @@ const COLOR_PALETTE = [
   'bg-stone-100 text-stone-800',
 ]
 
-const SETTINGS_KEYS = ['custom_roles', 'closed_days', 'break_duration_mins', 'cleanup_minutes', 'fridge_check_time', 'open_time', 'close_time', 'compliance_nav_order']
+const SETTINGS_KEYS = ['custom_roles', 'closed_days', 'break_duration_mins', 'cleanup_minutes', 'fridge_check_time', 'open_time', 'close_time', 'compliance_nav_order', 'action_schedules']
 
 interface CustomRole {
   value: string
   label: string
   color: string
 }
+
+interface ActionSchedule {
+  enabled: boolean
+  days: number[]
+}
+
+type ActionSchedules = Record<string, ActionSchedule>
 
 interface AppSettings {
   customRoles: CustomRole[]
@@ -51,6 +58,19 @@ interface AppSettings {
   openTime: string
   closeTime: string
   complianceNavOrder: string[]
+  actionSchedules: ActionSchedules
+}
+
+const ALL_DAYS = [0, 1, 2, 3, 4, 5, 6]
+
+const DEFAULT_ACTION_SCHEDULES: ActionSchedules = {
+  opening_checks:  { enabled: true, days: ALL_DAYS },
+  closing_checks:  { enabled: true, days: ALL_DAYS },
+  fridge_checks:   { enabled: true, days: ALL_DAYS },
+  cleaning_tasks:  { enabled: true, days: ALL_DAYS },
+  cooking_temps:   { enabled: true, days: ALL_DAYS },
+  hot_holding:     { enabled: true, days: ALL_DAYS },
+  cooling_logs:    { enabled: true, days: ALL_DAYS },
 }
 
 const DEFAULTS: AppSettings = {
@@ -62,6 +82,7 @@ const DEFAULTS: AppSettings = {
   openTime: '08:00',
   closeTime: '17:00',
   complianceNavOrder: [],
+  actionSchedules: DEFAULT_ACTION_SCHEDULES,
 }
 
 async function fetchAppSettings(venueId: string): Promise<AppSettings> {
@@ -100,6 +121,9 @@ async function fetchAppSettings(venueId: string): Promise<AppSettings> {
         }
         if (row.key === 'compliance_nav_order' && Array.isArray(parsed)) {
           result.complianceNavOrder = parsed
+        }
+        if (row.key === 'action_schedules' && typeof parsed === 'object' && parsed !== null) {
+          result.actionSchedules = { ...DEFAULT_ACTION_SCHEDULES, ...parsed }
         }
       } catch { /* ignore corrupt JSON — leave defaults */ }
     }
@@ -141,6 +165,7 @@ export function useAppSettings() {
         open_time: 'openTime',
         close_time: 'closeTime',
         compliance_nav_order: 'complianceNavOrder',
+        action_schedules: 'actionSchedules',
       }
       return { ...(old ?? DEFAULTS), [fieldMap[key]]: value }
     })
@@ -157,6 +182,7 @@ export function useAppSettings() {
   const saveOpenTime = useCallback((time: string) => saveSetting('open_time', time), [saveSetting])
   const saveCloseTime = useCallback((time: string) => saveSetting('close_time', time), [saveSetting])
   const saveComplianceNavOrder = useCallback((order: string[]) => saveSetting('compliance_nav_order', order), [saveSetting])
+  const saveActionSchedules = useCallback((schedules: ActionSchedules) => saveSetting('action_schedules', schedules), [saveSetting])
 
   /** Pick the next unused colour from the palette. Falls back to the least-used colour. */
   const nextColor = useCallback(() => {
@@ -182,9 +208,10 @@ export function useAppSettings() {
     openTime: settings.openTime,
     closeTime: settings.closeTime,
     complianceNavOrder: settings.complianceNavOrder,
+    actionSchedules: settings.actionSchedules,
     loading,
     saveCustomRoles, saveClosedDays, saveBreakDuration, saveCleanupMinutes, saveFridgeCheckTime,
-    saveOpenTime, saveCloseTime, saveComplianceNavOrder,
+    saveOpenTime, saveCloseTime, saveComplianceNavOrder, saveActionSchedules,
     nextColor, reload,
   }
 }

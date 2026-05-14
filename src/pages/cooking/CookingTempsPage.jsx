@@ -117,8 +117,8 @@ function LogForm({ checkType, onLogged }) {
           {hasTemp && (
             <p className={`text-[11px] mt-1.5 font-medium ${isFail ? 'text-danger' : 'text-success'}`}>
               {isFail
-                ? `↓ Below ${COOKING_TARGET_TEMP}°C minimum — corrective action required`
-                : <span className="inline-flex items-center gap-0.5"><svg className="w-3 h-3 shrink-0" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg> Above {COOKING_TARGET_TEMP}°C — pass</span>}
+                ? `↓ Below ${COOKING_TARGET_TEMP}°C minimum, corrective action required`
+                : <span className="inline-flex items-center gap-0.5"><svg className="w-3 h-3 shrink-0" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg> Above {COOKING_TARGET_TEMP}°C, pass</span>}
             </p>
           )}
         </div>

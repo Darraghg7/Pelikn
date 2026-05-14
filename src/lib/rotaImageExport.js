@@ -108,7 +108,7 @@ export function buildRotaCanvas({ venueName, weekStart, days, shifts, staff, clo
   // Week label
   ctx.fillStyle = rgba(C.cream, 0.55)
   ctx.font = `400 12px system-ui,-apple-system,sans-serif`
-  ctx.fillText(`Rota — Week of ${format(weekStart, 'EEE d MMM yyyy')}`, PAD + 4, PAD + 58)
+  ctx.fillText(`Rota: Week of ${format(weekStart, 'EEE d MMM yyyy')}`, PAD + 4, PAD + 58)
 
   // Shift count top-right
   if (shifts.length > 0) {
@@ -301,7 +301,7 @@ export async function shareRotaImage({ venueName, weekStart, days, shifts, staff
         try {
           await navigator.share({
             files: [new File([blob], filename, { type: 'image/png' })],
-            title: `Rota — Week of ${format(weekStart, 'EEE d MMM yyyy')}`,
+            title: `Rota: Week of ${format(weekStart, 'EEE d MMM yyyy')}`,
           })
           resolve('shared')
           return

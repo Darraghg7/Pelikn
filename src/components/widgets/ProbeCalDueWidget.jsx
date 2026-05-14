@@ -36,7 +36,7 @@ function ProbeCalDueWidget() {
       <MiniRow label="Last calibration" value={data.lastDate} />
       <MiniRow
         label="Days since"
-        value={data.daysSince ?? '—'}
+        value={data.daysSince ?? '-'}
         warn={data.daysSince !== null && data.daysSince > 30}
       />
       <MiniRow label="Recent failures" value={data.recentFails} warn={data.recentFails > 0} />

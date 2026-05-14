@@ -41,9 +41,9 @@ export default function OpeningClosingExportModal({ open, onClose }) {
           const check = checks?.find(ch => ch.id === c.check_id)
           return [
             c.session_date,
-            check?.title ?? '—',
+            check?.title ?? '-',
             c.session_type === 'opening' ? 'Opening' : 'Closing',
-            c.staff_name ?? '—',
+            c.staff_name ?? '-',
             format(new Date(c.completed_at), 'HH:mm'),
             c.notes ?? '',
           ]

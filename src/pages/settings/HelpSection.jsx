@@ -63,11 +63,11 @@ const FAQS = [
   },
   {
     q: 'How do I prepare for an EHO inspection?',
-    a: 'Open the Audit section from the compliance menu. You\'ll see a live readiness score, any gaps in your records, and a one-tap button to export a PDF covering all your logs — exactly what an EHO officer will want to see.',
+    a: 'Open the Audit section from the compliance menu. You\'ll see a live readiness score, any gaps in your records, and a one-tap button to export a PDF covering all your logs. Exactly what an EHO officer will want to see.',
   },
   {
     q: 'What does the allergen QR code do?',
-    a: 'When you add food items and tag their allergens in the Allergens section, Pelikn generates a QR code that customers can scan at their table. It shows a live allergen matrix for your full menu — no printing required.',
+    a: 'When you add food items and tag their allergens in the Allergens section, Pelikn generates a QR code that customers can scan at their table. It shows a live allergen matrix for your full menu, no printing required.',
   },
   {
     q: 'How do I export a compliance report?',
@@ -75,7 +75,7 @@ const FAQS = [
   },
   {
     q: 'Can I manage multiple venues from one account?',
-    a: 'Yes — on the Pro plan you can add additional venues at £15/month each. Open Settings → Venues to add a new location. You\'ll get a separate dashboard, staff list, and compliance records for each venue.',
+    a: 'Yes, on the Pro plan you can add additional venues at £15/month each. Open Settings → Venues to add a new location. You\'ll get a separate dashboard, staff list, and compliance records for each venue.',
   },
 ]
 
@@ -251,7 +251,7 @@ export default function HelpSection() {
           <div>
             <p className="text-sm font-medium text-charcoal mb-1">Still need help?</p>
             <p className="text-xs text-charcoal/45 mb-3">
-              Drop us an email and we'll get back to you — usually same day.
+              Drop us an email and we'll get back to you, usually same day.
             </p>
             <a
               href="mailto:hello@pelikn.app"

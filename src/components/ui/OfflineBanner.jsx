@@ -52,12 +52,12 @@ export default function OfflineBanner() {
         : 'bg-danger/10 text-danger'
     }`}>
       {!online ? (
-        <span>You're offline — data will be saved locally and synced when reconnected</span>
+        <span>You're offline. Data will be saved locally and synced when reconnected</span>
       ) : syncing ? (
         <span>Syncing {pending} offline record{pending !== 1 ? 's' : ''}...</span>
       ) : (
         <button onClick={doSync} className="underline">
-          {pending} offline record{pending !== 1 ? 's' : ''} pending — tap to sync
+          {pending} offline record{pending !== 1 ? 's' : ''} pending, tap to sync
         </button>
       )}
     </div>

@@ -290,7 +290,7 @@ export function useAllTodayDuties(): { duties: AllTodayDuty[]; loading: boolean 
         }
         return {
           assignmentId: aTyped.id,
-          staffName:    (staffById[aTyped.shift_id] as { name: string } | null)?.name ?? '—',
+          staffName:    (staffById[aTyped.shift_id] as { name: string } | null)?.name ?? '-',
           title:        aTyped.duty_templates?.title ?? '',
           total:        aTyped.duty_template_items?.length ?? 0,
           completed:    completedByAssignment[aTyped.id] ?? 0,

@@ -43,7 +43,7 @@ export default function VenuesSection() {
 
     if (error) {
       toast(error.message.includes('already taken')
-        ? 'That URL is already taken — try a different slug'
+        ? 'That URL is already taken, try a different slug'
         : error.message, 'error')
       return
     }

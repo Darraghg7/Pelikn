@@ -25,11 +25,12 @@ import VenueTypeIndicator from './VenueTypeIndicator'
 import VenueCodeSection from './VenueCodeSection'
 import PermissionTitlesSection from './PermissionTitlesSection'
 import NavOrderSection from './NavOrderSection'
+import ActionSchedulesSection from './ActionSchedulesSection'
 
 function SettingsGroup({ label, children }) {
   return (
-    <div className="flex flex-col gap-4">
-      <p className="text-[11px] tracking-widest uppercase text-charcoal/30 font-semibold px-1 pt-2">{label}</p>
+    <div className="flex flex-col gap-2.5">
+      <p className="text-[11px] tracking-widest uppercase text-charcoal/30 font-semibold px-1 pt-1">{label}</p>
       {children}
     </div>
   )
@@ -41,7 +42,7 @@ export default function SettingsPage() {
   const { venueId, venueSlug } = useVenue()
   const { settings, loading: sLoading, reload: reloadSettings } = useVenueSettings()
   const { closures, reload: reloadClosures } = useVenueClosures()
-  const { closedDays, breakDurationMins, cleanupMinutes, fridgeCheckTime, openTime, closeTime, complianceNavOrder, saveClosedDays, saveBreakDuration, saveCleanupMinutes, saveFridgeCheckTime, saveOpenTime, saveCloseTime, saveComplianceNavOrder } = useAppSettings()
+  const { closedDays, breakDurationMins, cleanupMinutes, fridgeCheckTime, openTime, closeTime, complianceNavOrder, actionSchedules, saveClosedDays, saveBreakDuration, saveCleanupMinutes, saveFridgeCheckTime, saveOpenTime, saveCloseTime, saveComplianceNavOrder, saveActionSchedules } = useAppSettings()
   const { dark, mode: themeMode, setMode: setThemeMode } = useTheme()
   const { config: featuresConfig, save: saveFeatures, venuePlan, isEnabled } = useVenueFeatures()
 
@@ -248,7 +249,7 @@ export default function SettingsPage() {
 
         <SettingsSection
           title="Roles & Skills"
-          subtitle="Define the roles in your business — assign them to staff and use them in the rota builder"
+          subtitle="Define the roles in your business, assign them to staff and use them in the rota builder"
           locked={venuePlan !== PLANS.PRO}
         >
           <RolesSection />
@@ -444,13 +445,19 @@ export default function SettingsPage() {
             </div>
           </div>
         </SettingsSection>
+        <SettingsSection
+          title="Daily Actions"
+          subtitle="Configure which checks appear on the dashboard and on which days"
+        >
+          <ActionSchedulesSection schedules={actionSchedules} onSave={saveActionSchedules} />
+        </SettingsSection>
       </SettingsGroup>
 
       {/* ── Compliance & Features ── */}
       <SettingsGroup label="Compliance & Features">
         <SettingsSection
           title="Modules"
-          subtitle={featuresConfig.mode === 'all' ? 'All modules enabled' : `Custom — ${featuresConfig.enabled?.length ?? 0} enabled`}
+          subtitle={featuresConfig.mode === 'all' ? 'All modules enabled' : `Custom: ${featuresConfig.enabled?.length ?? 0} enabled`}
         >
           <p className="text-xs text-charcoal/40 dark:text-white/40 mb-4">
             Choose which modules are available in this venue. Disabled modules are hidden from the navigation.

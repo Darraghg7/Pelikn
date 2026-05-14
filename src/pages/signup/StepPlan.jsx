@@ -121,7 +121,7 @@ export default function StepPlan({ selected, onSelect, extraVenues, onExtraVenue
                 <div>
                   <p className="text-xs font-medium text-charcoal/70">How many venues?</p>
                   <p className="text-[11px] text-charcoal/40 mt-0.5">
-                    {extraVenues === 0 ? 'Just 1 for now — add more later' : `${extraVenues + 1} venues · £${PRO_PRICE_NUM + extraVenues * EXTRA_VENUE_PRICE_NUM}/mo`}
+                    {extraVenues === 0 ? 'Just 1 for now, add more later' : `${extraVenues + 1} venues · £${PRO_PRICE_NUM + extraVenues * EXTRA_VENUE_PRICE_NUM}/mo`}
                   </p>
                 </div>
                 <div className="flex items-center gap-2">

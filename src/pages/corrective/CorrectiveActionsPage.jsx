@@ -183,7 +183,7 @@ export default function CorrectiveActionsPage() {
         <EmptyState
           icon="clipboard"
           title="No corrective actions"
-          description="All clear — no actions have been logged yet."
+          description="All clear, no actions have been logged yet."
         />
       ) : (
         <div className="flex flex-col gap-3">

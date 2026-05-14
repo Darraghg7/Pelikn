@@ -18,7 +18,7 @@ function passFailCell(hookData, colIndex, passValue = 'PASS') {
   if (hookData.cell.raw === passValue) {
     hookData.cell.styles.textColor = GREEN
     hookData.cell.styles.fontStyle = 'bold'
-  } else if (hookData.cell.raw && hookData.cell.raw !== '—' && hookData.cell.raw !== passValue) {
+  } else if (hookData.cell.raw && hookData.cell.raw !== '-' && hookData.cell.raw !== passValue) {
     hookData.cell.styles.textColor = RED
     hookData.cell.styles.fontStyle = 'bold'
   }
@@ -52,12 +52,12 @@ export async function exportTempLogs(venueId, days = 90) {
     return [
       format(new Date(r.logged_at), 'dd/MM/yyyy'),
       format(new Date(r.logged_at), 'HH:mm'),
-      r.check_period?.toUpperCase() ?? '—',
-      r.fridge?.name ?? '—',
+      r.check_period?.toUpperCase() ?? '-',
+      r.fridge?.name ?? '-',
       `${Number(r.temperature).toFixed(1)} °C`,
       status,
-      r.exceedance_reason ? (REASON_LABELS[r.exceedance_reason] ?? r.exceedance_reason) : '—',
-      r.logged_by_name ?? '—',
+      r.exceedance_reason ? (REASON_LABELS[r.exceedance_reason] ?? r.exceedance_reason) : '-',
+      r.logged_by_name ?? '-',
       r.notes ?? '',
     ]
   })
@@ -98,9 +98,9 @@ export async function exportCleaningRecords(venueId, days = 90) {
   const rows = (data ?? []).map(r => [
     format(new Date(r.completed_at), 'dd/MM/yyyy'),
     format(new Date(r.completed_at), 'HH:mm'),
-    r.task?.title ?? '—',
-    r.task?.frequency ?? '—',
-    r.completed_by_name ?? '—',
+    r.task?.title ?? '-',
+    r.task?.frequency ?? '-',
+    r.completed_by_name ?? '-',
     r.notes ?? '',
   ])
 
@@ -129,14 +129,14 @@ export async function exportDeliveryChecks(venueId, days = 90) {
   const rows = (data ?? []).map(r => [
     format(new Date(r.checked_at), 'dd/MM/yyyy'),
     format(new Date(r.checked_at), 'HH:mm'),
-    r.supplier_name ?? '—',
-    r.items_desc ?? '—',
-    r.temp_reading != null ? `${r.temp_reading} °C` : '—',
+    r.supplier_name ?? '-',
+    r.items_desc ?? '-',
+    r.temp_reading != null ? `${r.temp_reading} °C` : '-',
     yn(r.temp_pass),
     yn(r.packaging_ok),
     yn(r.use_by_ok),
     yn(r.overall_pass),
-    r.checker?.name ?? '—',
+    r.checker?.name ?? '-',
     r.notes ?? '',
   ])
 
@@ -168,15 +168,15 @@ export async function exportCorrectiveActions(venueId, days = 90) {
 
   const rows = (data ?? []).map(r => [
     format(new Date(r.reported_at), 'dd/MM/yyyy'),
-    r.title ?? '—',
-    r.category ?? '—',
+    r.title ?? '-',
+    r.category ?? '-',
     (r.severity ?? '').toUpperCase(),
     (r.status ?? '').toUpperCase(),
     r.description ?? '',
     r.action_taken ?? '',
-    r.reporter?.name ?? '—',
-    r.resolver?.name ?? '—',
-    r.resolved_at ? format(new Date(r.resolved_at), 'dd/MM/yyyy') : '—',
+    r.reporter?.name ?? '-',
+    r.resolver?.name ?? '-',
+    r.resolved_at ? format(new Date(r.resolved_at), 'dd/MM/yyyy') : '-',
   ])
 
   buildPdfReport({
@@ -224,13 +224,13 @@ export async function exportProbeCalibrations(venueId, days = 90) {
 
   const rows = (data ?? []).map(r => [
     format(new Date(r.calibrated_at), 'dd/MM/yyyy'),
-    r.probe_name ?? '—',
-    r.method ?? '—',
-    r.expected_temp != null ? `${r.expected_temp} °C` : '—',
-    r.actual_reading != null ? `${r.actual_reading} °C` : '—',
-    r.tolerance != null ? `±${r.tolerance} °C` : '—',
+    r.probe_name ?? '-',
+    r.method ?? '-',
+    r.expected_temp != null ? `${r.expected_temp} °C` : '-',
+    r.actual_reading != null ? `${r.actual_reading} °C` : '-',
+    r.tolerance != null ? `±${r.tolerance} °C` : '-',
     r.pass ? 'PASS' : 'FAIL',
-    r.calibrator?.name ?? '—',
+    r.calibrator?.name ?? '-',
     r.notes ?? '',
   ])
 
@@ -258,11 +258,11 @@ export async function exportTrainingRecords(venueId) {
     const expiry = r.expiry_date ? new Date(r.expiry_date) : null
     const status = !expiry ? 'No expiry' : expiry < now ? 'EXPIRED' : 'VALID'
     return [
-      r.staff?.name ?? '—',
-      r.title ?? '—',
-      r.category ?? '—',
-      r.issued_date ? format(new Date(r.issued_date), 'dd/MM/yyyy') : '—',
-      expiry ? format(expiry, 'dd/MM/yyyy') : '—',
+      r.staff?.name ?? '-',
+      r.title ?? '-',
+      r.category ?? '-',
+      r.issued_date ? format(new Date(r.issued_date), 'dd/MM/yyyy') : '-',
+      expiry ? format(expiry, 'dd/MM/yyyy') : '-',
       status,
       r.notes ?? '',
     ]
@@ -431,10 +431,10 @@ export async function exportEHOReport(venueId, venueName = '', days = 90) {
         const exp = oor && EXPLAINED.includes(r.exceedance_reason)
         return [
           format(new Date(r.logged_at), 'dd/MM/yy HH:mm'),
-          r.fridge?.name ?? '—',
+          r.fridge?.name ?? '-',
           Number(r.temperature).toFixed(1),
           oor ? (exp ? 'EXPLAINED' : 'OUT OF RANGE') : 'PASS',
-          r.logged_by_name ?? '—',
+          r.logged_by_name ?? '-',
         ]
       }),
       headStyles: { fillColor: [40, 40, 40], textColor: 255, fontSize: 8 },
@@ -457,7 +457,7 @@ export async function exportEHOReport(venueId, venueName = '', days = 90) {
       head: [['Date', 'Supplier', 'Overall Result']],
       body: d.map(r => [
         format(new Date(r.checked_at), 'dd/MM/yy HH:mm'),
-        r.supplier_name ?? '—',
+        r.supplier_name ?? '-',
         r.overall_pass ? 'PASS' : 'FAIL',
       ]),
       headStyles: { fillColor: [40, 40, 40], textColor: 255, fontSize: 8 },
@@ -480,7 +480,7 @@ export async function exportEHOReport(venueId, venueName = '', days = 90) {
       head: [['Date', 'Probe', 'Result']],
       body: c.map(r => [
         format(new Date(r.calibrated_at), 'dd/MM/yy'),
-        r.probe_name ?? '—',
+        r.probe_name ?? '-',
         r.pass ? 'PASS' : 'FAIL',
       ]),
       headStyles: { fillColor: [40, 40, 40], textColor: 255, fontSize: 8 },
@@ -505,7 +505,7 @@ export async function exportEHOReport(venueId, venueName = '', days = 90) {
         const fail = Number(r.end_temp) > Number(r.target_temp ?? 8)
         return [
           format(new Date(r.logged_at), 'dd/MM/yy'),
-          r.food_item ?? '—',
+          r.food_item ?? '-',
           Number(r.start_temp).toFixed(1),
           Number(r.end_temp).toFixed(1),
           `≤${r.target_temp ?? 8}°C`,
@@ -535,7 +535,7 @@ export async function exportEHOReport(venueId, venueName = '', days = 90) {
         const pass = Number(r.temperature) >= 63
         return [
           format(new Date(r.logged_at), 'dd/MM/yy HH:mm'),
-          r.item_name ?? '—',
+          r.item_name ?? '-',
           Number(r.temperature).toFixed(1),
           pass ? 'PASS' : 'BELOW 63°C',
         ]
@@ -560,11 +560,11 @@ export async function exportEHOReport(venueId, venueName = '', days = 90) {
       head: [['Date', 'Issue', 'Severity', 'Status', 'Action Taken', 'Resolved']],
       body: a.map(r => [
         format(new Date(r.reported_at), 'dd/MM/yy'),
-        r.title ?? '—',
+        r.title ?? '-',
         (r.severity ?? '').toUpperCase(),
         (r.status ?? '').toUpperCase(),
-        r.action_taken ?? '—',
-        r.resolved_at ? format(new Date(r.resolved_at), 'dd/MM/yy') : '—',
+        r.action_taken ?? '-',
+        r.resolved_at ? format(new Date(r.resolved_at), 'dd/MM/yy') : '-',
       ]),
       headStyles: { fillColor: [40, 40, 40], textColor: 255, fontSize: 8 },
       bodyStyles: { fontSize: 7 },
@@ -594,9 +594,9 @@ export async function exportEHOReport(venueId, venueName = '', days = 90) {
         const expiry = r.expiry_date ? new Date(r.expiry_date) : null
         const status = !expiry ? 'No expiry' : expiry < now ? 'EXPIRED' : 'VALID'
         return [
-          r.staff?.name ?? '—',
-          r.title ?? '—',
-          expiry ? format(expiry, 'dd/MM/yyyy') : '—',
+          r.staff?.name ?? '-',
+          r.title ?? '-',
+          expiry ? format(expiry, 'dd/MM/yyyy') : '-',
           status,
         ]
       }),
@@ -620,10 +620,10 @@ export async function exportEHOReport(venueId, venueName = '', days = 90) {
       head: [['Date', 'Type', 'Pest', 'Severity', 'Status']],
       body: p.map(r => [
         format(new Date(r.logged_at), 'dd/MM/yy'),
-        r.log_type ?? '—',
-        r.pest_type ?? '—',
-        (r.severity ?? '—').toUpperCase(),
-        (r.status ?? '—').toUpperCase(),
+        r.log_type ?? '-',
+        r.pest_type ?? '-',
+        (r.severity ?? '-').toUpperCase(),
+        (r.status ?? '-').toUpperCase(),
       ]),
       headStyles: { fillColor: [40, 40, 40], textColor: 255, fontSize: 8 },
       bodyStyles: { fontSize: 7 },
@@ -646,8 +646,8 @@ export async function exportEHOReport(venueId, venueName = '', days = 90) {
       head: [['Date', 'Task', 'Completed By']],
       body: clean.slice(0, 60).map(r => [
         format(new Date(r.completed_at), 'dd/MM/yy HH:mm'),
-        r.task?.title ?? '—',
-        r.completed_by_name ?? '—',
+        r.task?.title ?? '-',
+        r.completed_by_name ?? '-',
       ]),
       headStyles: { fillColor: [40, 40, 40], textColor: 255, fontSize: 8 },
       bodyStyles: { fontSize: 7 },

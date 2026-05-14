@@ -95,8 +95,8 @@ function ReportIncidentModal({ venueId, reporterId, onSaved, onClose }) {
   }
 
   async function handleSave() {
-    if (!form.location.trim()) { toast.error('Location is required'); return }
-    if (!form.description.trim()) { toast.error('Description is required'); return }
+    if (!form.location.trim()) { toast('Location is required', 'error'); return }
+    if (!form.description.trim()) { toast('Description is required', 'error'); return }
 
     setSaving(true)
     const validPeople = people.filter(p => p.name.trim())
@@ -116,8 +116,8 @@ function ReportIncidentModal({ venueId, reporterId, onSaved, onClose }) {
     })
 
     setSaving(false)
-    if (error) { toast.error(error.message); return }
-    toast.success('Incident reported')
+    if (error) { toast(error.message, 'error'); return }
+    toast('Incident reported')
     onSaved()
   }
 

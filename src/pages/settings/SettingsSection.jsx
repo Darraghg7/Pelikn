@@ -7,7 +7,7 @@ export default function SettingsSection({ title, subtitle, children, defaultOpen
       <button
         type="button"
         onClick={() => !locked && setOpen(o => !o)}
-        className={`w-full flex items-center justify-between px-5 py-4 text-left transition-colors ${locked ? 'cursor-default opacity-60' : 'hover:bg-charcoal/[0.02] dark:hover:bg-white/[0.02]'}`}
+        className={`w-full flex items-center justify-between px-4 py-3 text-left transition-colors ${locked ? 'cursor-default opacity-60' : 'hover:bg-charcoal/[0.02] dark:hover:bg-white/[0.02]'}`}
       >
         <div className="flex-1 min-w-0 mr-3">
           <div className="flex items-center gap-2">
@@ -29,7 +29,7 @@ export default function SettingsSection({ title, subtitle, children, defaultOpen
         )}
       </button>
       {open && !locked && (
-        <div className="px-5 pb-5 pt-4 border-t border-charcoal/6 dark:border-white/8">
+        <div className="px-4 pb-4 pt-3 border-t border-charcoal/6 dark:border-white/8">
           {children}
         </div>
       )}

@@ -100,6 +100,7 @@ function SubNav({ items, currentPath }) {
           <NavLink
             key={item.to}
             to={item.to}
+            preventScrollReset
             onPointerEnter={() => preloadRoute(item.to)}
             onTouchStart={() => preloadRoute(item.to)}
             onFocus={() => preloadRoute(item.to)}
@@ -284,6 +285,7 @@ export default function MobileNav() {
               <NavLink
                 key={tab.key}
                 to={tab.to}
+                preventScrollReset
                 onPointerEnter={() => preloadRoute(tab.to)}
                 onTouchStart={() => preloadRoute(tab.to)}
                 onFocus={() => preloadRoute(tab.to)}

@@ -240,6 +240,7 @@ function SideItem({ to, icon: Ico, label, badge, alert, isActive }) {
   return (
     <NavLink
       to={to}
+      preventScrollReset
       onPointerEnter={() => preloadRoute(to)}
       onFocus={() => preloadRoute(to)}
       className={[
@@ -274,6 +275,7 @@ function SubItem({ to, icon: Ico, label, badge, alert, isActive }) {
   return (
     <NavLink
       to={to}
+      preventScrollReset
       onPointerEnter={() => preloadRoute(to)}
       onFocus={() => preloadRoute(to)}
       className={[
@@ -602,7 +604,6 @@ export default function AppShell({ children }) {
                   : <SubItem to={vp('/noticeboard')} icon={IcoBoard}   label="Noticeboard"     isActive={isUnder('/noticeboard')} />}
                 {isPlanLocked('tips')       ? <LockedSubItem label="Tips" />
                   : isEnabled('tips')      && <SubItem to={vp('/tips')}     icon={IcoCoins}   label="Tips"      isActive={isUnder('/tips')} />}
-                <SubItem to={vp('/staff')} icon={IcoTeam} label="Staff" isActive={isUnder('/staff')} />
               </CollapsibleSection>
 
               {/* Bottom fixed items */}

@@ -81,9 +81,9 @@ function UploadDocumentModal({ venueId, uploaderId, onSaved, onClose }) {
   const [saving, setSaving] = useState(false)
 
   async function handleSave() {
-    if (!title.trim()) { toast.error('Title is required'); return }
-    if (!file) { toast.error('Please select a file'); return }
-    if (file.size > MAX_FILE_SIZE) { toast.error('File must be under 10 MB'); return }
+    if (!title.trim()) { toast('Title is required', 'error'); return }
+    if (!file) { toast('Please select a file', 'error'); return }
+    if (file.size > MAX_FILE_SIZE) { toast('File must be under 10 MB', 'error'); return }
 
     setSaving(true)
     const ext = file.name.split('.').pop()
@@ -94,7 +94,7 @@ function UploadDocumentModal({ venueId, uploaderId, onSaved, onClose }) {
       .upload(path, file, { upsert: false })
 
     if (uploadErr) {
-      toast.error('File upload failed: ' + uploadErr.message)
+      toast('File upload failed: ' + uploadErr.message, 'error')
       setSaving(false)
       return
     }
@@ -114,8 +114,8 @@ function UploadDocumentModal({ venueId, uploaderId, onSaved, onClose }) {
     })
 
     setSaving(false)
-    if (error) { toast.error(error.message); return }
-    toast.success('Document uploaded')
+    if (error) { toast(error.message, 'error'); return }
+    toast('Document uploaded')
     onSaved()
   }
 

@@ -11,18 +11,18 @@ import SignaturePad from '../../components/ui/SignaturePad'
 
 // ── SC6 topic list (standard food safety induction) ───────────────────────────
 const SC6_TOPICS = [
-  'Personal hygiene — handwashing, illness reporting, protective clothing',
-  'Food handling and storage — temperatures, use-by dates, labelling',
-  'Cross-contamination prevention — raw/ready-to-eat separation',
-  'Cooking and cooling temperatures — core temp verification',
-  'Cleaning and disinfection — schedules, correct dilutions',
-  'Allergen awareness — identification and communication to customers',
+  'Personal hygiene: handwashing, illness reporting, protective clothing',
+  'Food handling and storage: temperatures, use-by dates, labelling',
+  'Cross-contamination prevention: raw/ready-to-eat separation',
+  'Cooking and cooling temperatures: core temp verification',
+  'Cleaning and disinfection: schedules, correct dilutions',
+  'Allergen awareness: identification and communication to customers',
   'HACCP food safety management system overview',
-  'Pest control — signs to report, entry point hygiene',
+  'Pest control: signs to report, entry point hygiene',
   'Waste management procedures',
   'Reporting illness, injury and accidents',
   'Opening and closing procedures',
-  'Emergency procedures — fire, evacuation',
+  'Emergency procedures: fire, evacuation',
 ]
 
 const CERT_CATEGORIES = [
@@ -168,7 +168,7 @@ function CreateSignOffModal({ staff, venueId, managerName, onSaved, onClose }) {
                 onChange={e => setForm(f => ({ ...f, staff_id: e.target.value }))}
                 className="w-full px-3 py-2 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
               >
-                <option value="">— Select —</option>
+                <option value="">Select</option>
                 {staff.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
               </select>
             </div>
@@ -615,7 +615,7 @@ function CertificatesTab({ venueId }) {
               <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1">Staff Member *</label>
               <select value={form.staff_id} onChange={e => setForm(f => ({ ...f, staff_id: e.target.value }))}
                 className="w-full px-3 py-2 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20">
-                <option value="">— Select —</option>
+                <option value="">Select</option>
                 {staff.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
               </select>
             </div>
@@ -623,7 +623,7 @@ function CertificatesTab({ venueId }) {
               <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1">Category</label>
               <select value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))}
                 className="w-full px-3 py-2 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20">
-                <option value="">— Select —</option>
+                <option value="">Select</option>
                 {CERT_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>

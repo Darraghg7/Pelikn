@@ -32,7 +32,7 @@ export const FEATURE_GROUPS: FeatureGroup[] = [
       { id: 'fridge',        label: 'Fridge Temps',    description: 'Twice-daily fridge temperature checks' },
       { id: 'cooking_temps', label: 'Cooking Temps',   description: 'Cooking and reheating temperature logs (≥75°C)' },
       { id: 'hot_holding',   label: 'Hot Holding',     description: 'Twice-daily hot holding checks (≥63°C)' },
-      { id: 'cooling_logs',  label: 'Cooling Logs',    description: 'Food cooling records — target ≤8°C' },
+      { id: 'cooling_logs',  label: 'Cooling Logs',    description: 'Food cooling records (target ≤8°C)' },
     ],
   },
   {

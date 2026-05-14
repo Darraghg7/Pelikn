@@ -129,11 +129,11 @@ export default function LoginPage() {
     if (err) {
       const msg = err.message ?? ''
       if (/too many failed/i.test(msg)) {
-        setError(msg.replace('Too many failed attempts — try again after', 'Account locked — try again at'))
+        setError(msg.replace('Too many failed attempts — try again after', 'Account locked, try again at'))
       } else if (/inactive/i.test(msg)) {
-        setError('This account has been deactivated — contact your manager.')
+        setError('This account has been deactivated. Contact your manager.')
       } else {
-        setError('Incorrect PIN — try again')
+        setError('Incorrect PIN, try again')
       }
       setPin('')
       setSubmitting(false)

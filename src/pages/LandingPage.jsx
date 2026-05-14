@@ -167,7 +167,7 @@ export default function LandingPage() {
     const { data, error: err } = await supabase.rpc('get_venue_by_code', { p_code: code })
     setJoinLoading(false)
     if (err || !data?.length) {
-      setJoinError('Code not found — check with your manager')
+      setJoinError('Code not found. Check with your manager')
       return
     }
     navigate(`/v/${data[0].slug}`)
