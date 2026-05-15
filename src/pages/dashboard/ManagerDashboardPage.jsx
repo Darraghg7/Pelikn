@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useCallback, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { format } from 'date-fns'
 import { useVenue } from '../../contexts/VenueContext'
@@ -55,6 +55,98 @@ function UpgradeButton() {
       <span className="relative">Upgrade to Pro</span>
       <span className="relative font-normal opacity-75">· £25/mo</span>
     </a>
+  )
+}
+
+/* ── Draggable widget grid ──────────────────────────────────────────────── */
+function DraggableWidgetGrid({ widgetIds, onReorder }) {
+  const [ids, setIds] = useState(widgetIds)
+  const dragState = useRef(null) // { index, pointerId }
+  const itemRefs = useRef([])
+
+  // Keep local state in sync when widgetIds prop changes (e.g. after picker save)
+  const prevIds = useRef(widgetIds)
+  if (prevIds.current !== widgetIds) {
+    prevIds.current = widgetIds
+    setIds(widgetIds)
+  }
+
+  const closestIndex = useCallback((x, y) => {
+    let best = 0, bestDist = Infinity
+    itemRefs.current.forEach((el, i) => {
+      if (!el) return
+      const r = el.getBoundingClientRect()
+      const cx = r.left + r.width / 2
+      const cy = r.top + r.height / 2
+      const d = Math.hypot(x - cx, y - cy)
+      if (d < bestDist) { bestDist = d; best = i }
+    })
+    return best
+  }, [])
+
+  const onPointerDown = useCallback((e, index) => {
+    e.currentTarget.setPointerCapture(e.pointerId)
+    dragState.current = { index, pointerId: e.pointerId }
+  }, [])
+
+  const onPointerMove = useCallback((e) => {
+    const ds = dragState.current
+    if (!ds) return
+    const target = closestIndex(e.clientX, e.clientY)
+    if (target !== ds.index) {
+      setIds(prev => {
+        const next = [...prev]
+        const [removed] = next.splice(ds.index, 1)
+        next.splice(target, 0, removed)
+        return next
+      })
+      dragState.current = { ...ds, index: target }
+    }
+  }, [closestIndex])
+
+  const onPointerUp = useCallback((e) => {
+    if (!dragState.current) return
+    dragState.current = null
+    onReorder(ids)
+  }, [ids, onReorder])
+
+  return (
+    <div
+      className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+      onPointerCancel={onPointerUp}
+    >
+      {ids.map((id, index) => {
+        const widget = WIDGET_REGISTRY[id]
+        if (!widget) return null
+        const Component = widget.component
+        const isDragging = dragState.current?.index === index
+        return (
+          <div
+            key={id}
+            ref={el => { itemRefs.current[index] = el }}
+            className={`relative group transition-all duration-150 ${isDragging ? 'scale-[1.02] shadow-xl z-10 opacity-90' : ''}`}
+            style={{ touchAction: 'none' }}
+          >
+            {/* Drag handle — appears on hover/touch */}
+            <div
+              className="absolute top-2 right-2 z-20 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing p-1.5 rounded-lg bg-white/80 backdrop-blur-sm text-charcoal/40 hover:text-charcoal/70 shadow-sm"
+              onPointerDown={e => { e.stopPropagation(); onPointerDown(e, index) }}
+              style={{ touchAction: 'none' }}
+              title="Drag to reorder"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                <circle cx="9" cy="5" r="1.5"/><circle cx="15" cy="5" r="1.5"/>
+                <circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/>
+                <circle cx="9" cy="19" r="1.5"/><circle cx="15" cy="19" r="1.5"/>
+              </svg>
+            </div>
+            <Component />
+          </div>
+        )
+      })}
+    </div>
   )
 }
 
@@ -225,14 +317,12 @@ export default function ManagerDashboardPage() {
       </div>
 
       {/* Widget grid — shown on both */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {widgetIds.map(id => {
-          const widget = WIDGET_REGISTRY[id]
-          if (!widget) return null
-          const Component = widget.component
-          return <Component key={id} />
-        })}
-      </div>
+      {widgetIds.length > 0 && (
+        <DraggableWidgetGrid
+          widgetIds={widgetIds}
+          onReorder={(newIds) => { save(newIds); toast('Widget order saved') }}
+        />
+      )}
 
       {widgetIds.length === 0 && (
         <div className="bg-white rounded-2xl border border-dashed border-charcoal/20 p-10 text-center">
