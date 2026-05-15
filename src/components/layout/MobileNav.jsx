@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useRef } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 import { useSession } from '../../contexts/SessionContext'
 import { useVenue } from '../../contexts/VenueContext'
@@ -92,14 +92,30 @@ function TasksIcon({ active }) {
 
 /* ── Sub-navigation pills ──────────────────────────────────────────────── */
 function SubNav({ items, currentPath }) {
+  const scrollRef = useRef(null)
+  const activeRef = useRef(null)
+
+  useEffect(() => {
+    const active = activeRef.current
+    const container = scrollRef.current
+    if (!active || !container) return
+    const { offsetLeft, offsetWidth } = active
+    const { scrollLeft, offsetWidth: containerWidth } = container
+    const itemRight = offsetLeft + offsetWidth
+    if (offsetLeft < scrollLeft || itemRight > scrollLeft + containerWidth) {
+      container.scrollTo({ left: offsetLeft - 16, behavior: 'smooth' })
+    }
+  }, [currentPath])
+
   return (
-    <nav className="lg:hidden relative flex gap-2 px-4 py-2.5 overflow-x-auto scrollbar-hide bg-white dark:bg-[#1a1a1a] border-b border-charcoal/8" aria-label="Section navigation" style={{ maskImage: 'linear-gradient(90deg, black 90%, transparent)', WebkitMaskImage: 'linear-gradient(90deg, black 90%, transparent)' }}>
+    <nav ref={scrollRef} className="lg:hidden relative flex gap-2 px-4 py-2.5 overflow-x-auto scrollbar-hide bg-white dark:bg-[#1a1a1a] border-b border-charcoal/8" aria-label="Section navigation" style={{ maskImage: 'linear-gradient(90deg, black 90%, transparent)', WebkitMaskImage: 'linear-gradient(90deg, black 90%, transparent)' }}>
       {items.map(item => {
         const isActive = currentPath === item.to || currentPath.startsWith(item.to + '/')
         return (
           <NavLink
             key={item.to}
             to={item.to}
+            ref={isActive ? activeRef : null}
             preventScrollReset
             onPointerEnter={() => preloadRoute(item.to)}
             onTouchStart={() => preloadRoute(item.to)}

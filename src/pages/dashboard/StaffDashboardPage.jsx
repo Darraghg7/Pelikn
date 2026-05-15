@@ -661,6 +661,18 @@ export default function StaffDashboardPage() {
         <span className="text-[10.5px] font-mono text-charcoal/35">{dateLabel}</span>
       </div>
 
+      {/* Greeting */}
+      {(() => {
+        const h = new Date().getHours()
+        const salutation = h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening'
+        const first = session.staffName?.split(' ')[0]
+        return (
+          <h1 className="text-[26px] font-medium tracking-[-0.025em] text-charcoal leading-tight px-0.5">
+            {salutation}{first ? `, ${first}` : ''}
+          </h1>
+        )
+      })()}
+
       {/* Notifications card — always visible */}
       <NotificationsCard staffId={session.staffId} venueId={venueId} />
 
