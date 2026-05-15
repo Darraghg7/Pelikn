@@ -14,6 +14,7 @@ import { useClockSessions } from '../../hooks/useClockSessions'
 import { usePushNotifications } from '../../hooks/usePushNotifications'
 import { useAppSettings } from '../../hooks/useSettings'
 import { useTodayDuties } from '../../hooks/useDuties'
+import { useStaffNotifications } from '../../hooks/useStaffNotifications'
 
 
 function SectionLabel({ children }) {
@@ -377,6 +378,37 @@ function TodaySummary({ staffId, venueId, venueSlug, hasPermission, isEnabled, c
   )
 }
 
+/* ── Staff Notifications Panel ──────────────────────────────────────────── */
+const NOTIF_SEVERITY_STYLES = {
+  critical: { bg: 'bg-error/8 border-error/20', icon: 'text-error', dot: 'bg-error' },
+  warning:  { bg: 'bg-warning/8 border-warning/20', icon: 'text-warning', dot: 'bg-warning' },
+  info:     { bg: 'bg-brand/5 border-brand/12', icon: 'text-brand/60', dot: 'bg-brand/60' },
+}
+
+function StaffNotificationsPanel({ staffId }) {
+  const { notifications, loading } = useStaffNotifications(staffId)
+  if (loading || !notifications.length) return null
+
+  return (
+    <div className="flex flex-col gap-2">
+      <SectionLabel>Notifications</SectionLabel>
+      {notifications.map(n => {
+        const styles = NOTIF_SEVERITY_STYLES[n.severity] ?? NOTIF_SEVERITY_STYLES.info
+        return (
+          <Link
+            key={n.id}
+            to={n.link}
+            className={`flex items-start gap-3 px-4 py-3 rounded-xl border ${styles.bg} hover:opacity-80 transition-opacity`}
+          >
+            <span className={`mt-1.5 w-2 h-2 rounded-full shrink-0 ${styles.dot}`} />
+            <p className="text-sm font-medium text-charcoal leading-snug">{n.message}</p>
+          </Link>
+        )
+      })}
+    </div>
+  )
+}
+
 /* ── Today's Duties ─────────────────────────────────────────────────────── */
 function DutyItemRow({ item, assignmentId, toggleItem }) {
   const [busy, setBusy] = useState(false)
@@ -544,6 +576,9 @@ export default function StaffDashboardPage() {
 
       {/* Today summary */}
       <TodaySummary staffId={session.staffId} venueId={venueId} venueSlug={venueSlug} hasPermission={hasPermission} isEnabled={isEnabled} closedDays={closedDays} />
+
+      {/* Inline notifications — tip allocations, training sign-offs, shift alerts */}
+      <StaffNotificationsPanel staffId={session.staffId} />
 
       {/* Duties assigned for today's shift */}
       <TodayDuties staffId={session.staffId} />

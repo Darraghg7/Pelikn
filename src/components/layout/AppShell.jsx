@@ -240,7 +240,6 @@ function SideItem({ to, icon: Ico, label, badge, alert, isActive }) {
   return (
     <NavLink
       to={to}
-      preventScrollReset
       onPointerEnter={() => preloadRoute(to)}
       onFocus={() => preloadRoute(to)}
       className={[
@@ -275,7 +274,6 @@ function SubItem({ to, icon: Ico, label, badge, alert, isActive }) {
   return (
     <NavLink
       to={to}
-      preventScrollReset
       onPointerEnter={() => preloadRoute(to)}
       onFocus={() => preloadRoute(to)}
       className={[
@@ -603,7 +601,8 @@ export default function AppShell({ children }) {
                 {isPlanLocked('noticeboard') ? <LockedSubItem label="Noticeboard" />
                   : <SubItem to={vp('/noticeboard')} icon={IcoBoard}   label="Noticeboard"     isActive={isUnder('/noticeboard')} />}
                 {isPlanLocked('tips')       ? <LockedSubItem label="Tips" />
-                  : isEnabled('tips')      && <SubItem to={vp('/tips')}     icon={IcoCoins}   label="Tips"      isActive={isUnder('/tips')} />}
+                  : isEnabled('tips')      ? <SubItem to={vp('/tips')}     icon={IcoCoins}   label="Tips"      isActive={isUnder('/tips')} />
+                  : <LockedSubItem label="Tips" />}
               </CollapsibleSection>
 
               {/* Bottom fixed items */}
@@ -697,7 +696,7 @@ export default function AppShell({ children }) {
         <main
           id="main-content"
           role="main"
-          className={`flex-1 ${maxW} mx-auto w-full px-4 lg:px-8 py-5 lg:py-8 pb-[max(5.5rem,calc(4.5rem+env(safe-area-inset-bottom)))] lg:pb-8`}
+          className={`flex-1 ${maxW} mx-auto w-full px-4 lg:px-8 pt-5 lg:pt-8 pb-[max(5.5rem,calc(4.5rem+env(safe-area-inset-bottom)))] lg:pb-8`}
         >
           {children}
         </main>
