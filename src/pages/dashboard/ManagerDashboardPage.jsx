@@ -126,7 +126,7 @@ function DraggableWidgetGrid({ widgetIds, onReorder }) {
           <div
             key={id}
             ref={el => { itemRefs.current[index] = el }}
-            className={`relative group transition-all duration-150 ${isDragging ? 'scale-[1.02] shadow-xl z-10 opacity-90' : ''}`}
+            className={`relative group transition-all duration-150 rounded-2xl ${isDragging ? 'scale-[1.02] shadow-xl z-10 opacity-90' : ''}`}
             style={{ touchAction: 'none' }}
           >
             {/* Drag handle — appears on hover/touch */}
