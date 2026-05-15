@@ -63,10 +63,11 @@ export const FEATURE_GROUPS: FeatureGroup[] = [
     label: 'Team',
     description: 'Rota, training and time management',
     features: [
-      { id: 'rota',      label: 'Rota',        description: 'Weekly staff scheduling and shift swaps' },
-      { id: 'timesheet', label: 'Timesheets',  description: 'Hours and timesheet reporting' },
-      { id: 'training',  label: 'Training',    description: 'Staff training and certificate records' },
-      { id: 'time_off',  label: 'Time Off',    description: 'Staff time-off requests' },
+      { id: 'rota',      label: 'Rota',              description: 'Weekly staff scheduling and shift swaps' },
+      { id: 'timesheet', label: 'Timesheets',        description: 'Hours and timesheet reporting' },
+      { id: 'training',  label: 'Training',          description: 'Staff training and certificate records' },
+      { id: 'time_off',  label: 'Time Off',          description: 'Staff time-off requests' },
+      { id: 'tips',      label: 'Tip Distribution',  description: 'Distribute and track tips across your team' },
     ],
   },
 ]
