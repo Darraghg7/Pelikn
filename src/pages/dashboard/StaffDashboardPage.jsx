@@ -11,6 +11,7 @@ import { useAppSettings } from '../../hooks/useSettings'
 import { useTodayDuties } from '../../hooks/useDuties'
 import ClockPanel from '../../components/shifts/ClockPanel'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
+import AcknowledgeModal from '../../components/training/AcknowledgeModal'
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
@@ -353,6 +354,69 @@ function DutyCard({ duty, toggleItem }) {
         ))}
       </div>
     </div>
+  )
+}
+
+function PendingTrainingCard({ staffId, staffName }) {
+  const [records, setRecords] = useState([])
+  const [ackRecord, setAckRecord] = useState(null)
+
+  const load = useCallback(async () => {
+    if (!staffId) return
+    const { data } = await supabase
+      .from('training_sign_offs')
+      .select('id, training_date, trainer_name, topics, notes, manager_name, manager_signature')
+      .eq('staff_id', staffId)
+      .eq('staff_acknowledged', false)
+      .order('created_at', { ascending: false })
+    setRecords(data ?? [])
+  }, [staffId])
+
+  useEffect(() => { load() }, [load])
+
+  if (!records.length) return null
+
+  return (
+    <>
+      <div className="bg-white rounded-2xl border border-accent/20 overflow-hidden">
+        <div className="px-4 py-3 bg-accent/5 flex items-center gap-2.5">
+          <svg className="w-4 h-4 text-accent shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>
+          </svg>
+          <p className="text-sm font-semibold text-accent">
+            {records.length === 1 ? 'Training record needs your signature' : `${records.length} training records need your signature`}
+          </p>
+        </div>
+        <div className="divide-y divide-charcoal/6">
+          {records.map(r => (
+            <div key={r.id} className="flex items-center justify-between px-4 py-3 gap-3">
+              <div className="min-w-0">
+                <p className="text-sm text-charcoal font-medium truncate">{r.trainer_name}</p>
+                <p className="text-xs text-charcoal/40 mt-0.5">
+                  {new Date(r.training_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                  {' · '}{r.topics.length} topic{r.topics.length !== 1 ? 's' : ''}
+                </p>
+              </div>
+              <button
+                onClick={() => setAckRecord(r)}
+                className="shrink-0 bg-accent text-cream text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-accent/90 transition-colors"
+              >
+                Sign now
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {ackRecord && (
+        <AcknowledgeModal
+          record={ackRecord}
+          staffName={staffName}
+          onSaved={() => { setAckRecord(null); load() }}
+          onClose={() => setAckRecord(null)}
+        />
+      )}
+    </>
   )
 }
 
@@ -714,6 +778,9 @@ export default function StaffDashboardPage() {
       {isEnabled('opening_closing') && (
         <TodayChecks venueId={venueId} venueSlug={venueSlug} staffName={session.staffName} />
       )}
+
+      {/* Pending training sign-offs */}
+      <PendingTrainingCard staffId={session.staffId} staffName={session.staffName} />
 
       {/* Duties */}
       <TodayDuties staffId={session.staffId} />
