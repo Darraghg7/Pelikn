@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import { format, addDays, startOfWeek } from 'date-fns'
 import { supabase } from '../../lib/supabase'
@@ -369,43 +369,157 @@ function TodayDuties({ staffId }) {
   )
 }
 
-// ── Push notification banner ───────────────────────────────────────────────────
+// ── Notifications card (always visible) ───────────────────────────────────────
 
-function PushNotificationBanner({ staffId, venueId }) {
+function NotificationsCard({ staffId, venueId }) {
   const { supported, permission, subscribed, subscribing, subscribe } =
     usePushNotifications(staffId, venueId)
-  const [dismissed, setDismissed] = useState(() =>
-    localStorage.getItem('pelikn_push_dismissed') === 'true'
-  )
-
-  if (!supported || permission === 'denied' || subscribed || dismissed) return null
-
-  const dismiss = () => {
-    localStorage.setItem('pelikn_push_dismissed', 'true')
-    setDismissed(true)
-  }
 
   return (
-    <div className="bg-warning/8 border border-warning/25 rounded-xl p-4 flex items-center gap-3">
-      <span className="shrink-0 w-7 h-7 rounded-full bg-warning/15 flex items-center justify-center">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-warning">
-          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+    <div className="bg-white rounded-[14px] border border-charcoal/8 p-4 flex items-center gap-3">
+      <span className="shrink-0 w-8 h-8 rounded-full bg-brand/10 flex items-center justify-center">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-brand">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
         </svg>
       </span>
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold text-charcoal">Stay in the loop</p>
-        <p className="text-xs text-charcoal/50 mt-0.5">Get notified about rota changes, shift swaps, and more.</p>
+        <p className="text-[13px] font-semibold text-charcoal">Notifications</p>
+        {subscribed
+          ? <p className="text-[11px] text-success mt-0.5 font-medium">Push notifications enabled</p>
+          : <p className="text-[11px] text-charcoal/45 mt-0.5">Get notified about rota changes and shift updates.</p>
+        }
       </div>
-      <div className="flex items-center gap-2 shrink-0">
+      {subscribed ? (
+        <span className="shrink-0 w-6 h-6 rounded-full bg-success/15 flex items-center justify-center">
+          <svg className="w-3.5 h-3.5 text-success" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="2,6 5,9 10,3"/>
+          </svg>
+        </span>
+      ) : supported && permission !== 'denied' ? (
         <button onClick={subscribe} disabled={subscribing}
-          className="bg-brand text-white rounded-lg text-xs font-semibold px-3 py-1.5 hover:bg-brand/90 transition-colors disabled:opacity-40">
+          className="shrink-0 bg-charcoal text-cream rounded-lg text-[12px] font-semibold px-3 py-1.5 hover:bg-charcoal/85 transition-colors disabled:opacity-40">
           {subscribing ? 'Enabling…' : 'Enable'}
         </button>
-        <button onClick={dismiss} className="text-charcoal/30 hover:text-charcoal/60 transition-colors p-1">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-            <path d="M18 6L6 18M6 6l12 12"/>
+      ) : null}
+    </div>
+  )
+}
+
+// ── Opening/closing checks on My Shift ────────────────────────────────────────
+
+function useChecksForShift(venueId) {
+  const [checks, setChecks] = useState([])
+  const [loading, setLoading] = useState(true)
+  useEffect(() => {
+    if (!venueId) return
+    supabase
+      .from('opening_closing_checks')
+      .select('id, title, type, sort_order')
+      .eq('venue_id', venueId)
+      .eq('is_active', true)
+      .order('sort_order')
+      .order('created_at')
+      .then(({ data }) => { setChecks(data ?? []); setLoading(false) })
+  }, [venueId])
+  return { checks, loading }
+}
+
+function useShiftCompletions(venueId, dateStr, sessionType) {
+  const [completions, setCompletions] = useState([])
+  const load = useCallback(async () => {
+    if (!venueId || !dateStr) return
+    const { data } = await supabase
+      .from('opening_closing_completions')
+      .select('id, check_id, corrective_action')
+      .eq('venue_id', venueId)
+      .eq('session_date', dateStr)
+      .eq('session_type', sessionType)
+    setCompletions(data ?? [])
+  }, [venueId, dateStr, sessionType])
+  useEffect(() => { load() }, [load])
+  return { completions, reload: load }
+}
+
+function TodayChecks({ venueId, venueSlug, staffName }) {
+  const today = format(new Date(), 'yyyy-MM-dd')
+  const sessionType = new Date().getHours() < 14 ? 'opening' : 'closing'
+  const { checks, loading } = useChecksForShift(venueId)
+  const { completions, reload } = useShiftCompletions(venueId, today, sessionType)
+  const [saving, setSaving] = useState(null)
+
+  if (loading) return null
+  if (!checks.length) return null
+
+  const done = completions.length
+  const total = checks.length
+
+  const markOk = async (checkId) => {
+    if (saving) return
+    setSaving(checkId)
+    await supabase.from('opening_closing_completions').upsert({
+      venue_id: venueId,
+      check_id: checkId,
+      session_date: today,
+      session_type: sessionType,
+      completed_at: new Date().toISOString(),
+      staff_name: staffName ?? 'Staff',
+      corrective_action: null,
+    }, { onConflict: 'venue_id,check_id,session_date,session_type' })
+    setSaving(null)
+    reload()
+  }
+
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="flex items-baseline justify-between px-0.5">
+        <span className="text-[10.5px] font-mono tracking-widest uppercase text-charcoal/40 font-semibold">
+          {sessionType === 'opening' ? 'Opening Checks' : 'Closing Checks'}
+        </span>
+        <span className="text-[11px] font-mono text-charcoal/35">{done}/{total} recorded</span>
+      </div>
+      <div className="bg-white rounded-[14px] border border-charcoal/8 overflow-hidden">
+        {checks.map((check, i) => {
+          const comp = completions.find(c => c.check_id === check.id)
+          const isOk   = comp && !comp.corrective_action
+          const isIssue = comp && comp.corrective_action
+          return (
+            <div key={check.id} className={`px-4 py-3 flex items-center gap-3 ${i > 0 ? 'border-t border-charcoal/5' : ''}`}>
+              <p className={`text-[13.5px] flex-1 font-medium ${comp ? 'text-charcoal/40' : 'text-charcoal'}`}>{check.title}</p>
+              <div className="flex gap-1.5 shrink-0">
+                <button
+                  onClick={() => markOk(check.id)}
+                  disabled={!!saving || !!comp}
+                  className={[
+                    'px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all',
+                    isOk ? 'bg-success/15 text-success' : 'bg-charcoal/6 text-charcoal/45 hover:bg-success/10 hover:text-success disabled:opacity-40',
+                  ].join(' ')}
+                >
+                  {saving === check.id ? '…' : '✓ OK'}
+                </button>
+                {!comp && (
+                  <a
+                    href={`/v/${venueSlug}/opening-closing`}
+                    className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-charcoal/6 text-charcoal/45 hover:bg-warning/10 hover:text-warning transition-all"
+                  >
+                    ⚠ Issue
+                  </a>
+                )}
+                {isIssue && (
+                  <span className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-warning/12 text-warning">⚠ Issue</span>
+                )}
+              </div>
+            </div>
+          )
+        })}
+        <a
+          href={`/v/${venueSlug}/opening-closing`}
+          className="flex items-center justify-between px-4 py-3 border-t border-charcoal/5 text-[12px] font-semibold text-brand hover:bg-brand/3 transition-colors"
+        >
+          View full checks
+          <svg width="6" height="10" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M1 1l4 4-4 4"/>
           </svg>
-        </button>
+        </a>
       </div>
     </div>
   )
@@ -547,8 +661,8 @@ export default function StaffDashboardPage() {
         <span className="text-[10.5px] font-mono text-charcoal/35">{dateLabel}</span>
       </div>
 
-      {/* Push banner */}
-      <PushNotificationBanner staffId={session.staffId} venueId={venueId} />
+      {/* Notifications card — always visible */}
+      <NotificationsCard staffId={session.staffId} venueId={venueId} />
 
       {/* Hero card */}
       {!isPlanLocked('clock-in') && (
@@ -582,6 +696,11 @@ export default function StaffDashboardPage() {
           cleaningDue={summary.cleaningDue}
           venueSlug={venueSlug}
         />
+      )}
+
+      {/* Opening/closing checks — shown when feature is enabled for venue */}
+      {isEnabled('opening_closing') && (
+        <TodayChecks venueId={venueId} venueSlug={venueSlug} staffName={session.staffName} />
       )}
 
       {/* Duties */}

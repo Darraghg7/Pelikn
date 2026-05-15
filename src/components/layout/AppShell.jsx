@@ -537,7 +537,6 @@ export default function AppShell({ children }) {
                   />
                 )}
               </div>
-              <p className="text-[11px] text-white/30 mt-0.5">Pelikn</p>
             </div>
             {/* Bell lives here — top of sidebar, always visible */}
             <NotificationBell variant="dark" />

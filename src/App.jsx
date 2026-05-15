@@ -250,6 +250,7 @@ function SplashLogo({ size = 120 }) {
 function SplashScreen() {
   const [visible, setVisible] = React.useState(() => {
     if (typeof window === 'undefined') return false
+    if (!isNativeShell()) return false
     return window.__peliknSplashDone !== true
   })
   const [running, setRunning] = React.useState(false)
@@ -290,8 +291,6 @@ function SplashScreen() {
         <div className="pelikn-fake-splash-glow" />
         <SplashLogo size={120} />
       </div>
-      <div className="pelikn-fake-splash-word" aria-label="Pelikn">Pelikn</div>
-      <div className="pelikn-fake-splash-tag">Food Safety, Simplified</div>
     </div>
   )
 }

@@ -109,7 +109,7 @@ function SubNav({ items, currentPath }) {
               'px-3.5 py-2 rounded-full text-[12px] font-semibold tracking-wide whitespace-nowrap transition-all shrink-0',
               isActive
                 ? 'bg-brand text-cream shadow-sm shadow-brand/20 dark:bg-cream dark:text-charcoal'
-                : 'bg-charcoal/6 text-charcoal/50 hover:bg-charcoal/10 hover:text-charcoal/70',
+                : 'text-charcoal/55 hover:text-charcoal/80',
             ].join(' ')}
           >
             {item.label}
@@ -225,10 +225,9 @@ function getStaffTabs(session, vp, isEnabled) {
     {
       key: 'tasks',
       label: 'Tasks',
-      to: taskChildren[0]?.to ?? vp('/opening-closing'),
+      to: vp('/tasks'),
       icon: TasksIcon,
-      match: ['/opening-closing', '/cleaning', '/fridge', '/cooking-temps', '/hot-holding', '/cooling-logs', '/allergens'],
-      children: taskChildren.length > 1 ? taskChildren : undefined,
+      match: ['/tasks'],
     },
     ...(isEnabled('rota') ? [{
       key: 'rota',

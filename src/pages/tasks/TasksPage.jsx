@@ -469,8 +469,7 @@ function StaffDutyCard({ duty, toggleItem }) {
   )
 }
 
-function DutiesTab({ staffId }) {
-  const { duties, loading, toggleItem } = useTodayDuties(staffId)
+function DutiesTab({ duties, loading, toggleItem }) {
   if (loading) return <SkeletonList rows={3} />
   if (!duties.length) return (
     <div className="bg-white rounded-[14px] border border-charcoal/8 p-8 text-center">
@@ -484,8 +483,7 @@ function DutiesTab({ staffId }) {
   )
 }
 
-function CleaningTab({ venueId, dateStr }) {
-  const { tasks, completions, loading } = useStaffCleaning(venueId, dateStr)
+function CleaningTab({ tasks, completions, loading }) {
   if (loading) return <SkeletonList rows={4} />
   if (!tasks.length) return (
     <div className="bg-white rounded-[14px] border border-charcoal/8 p-8 text-center">
@@ -593,20 +591,18 @@ function StaffTasksView({ session }) {
 
   const targetDate = addDays(new Date(), dayOffset)
   const dateStr    = format(targetDate, 'yyyy-MM-dd')
-  const dayLabels  = ['Yesterday', 'Today', 'Tomorrow']
-  const dayOffsets = [-1, 0, 1]
 
-  const { templates, oneOffs, completions } = useTasksForRole(session?.jobRole ?? 'kitchen', session?.staffId)
-  const totalTasks = templates.length + oneOffs.length
-  const doneTasks  = completions.filter(c =>
-    templates.some(t => t.id === c.task_template_id) ||
-    oneOffs.some(o => o.id === c.task_one_off_id)
-  ).length
+  const dayLabel = (offset) => offset === 0 ? 'Today' : format(addDays(new Date(), offset), 'EEE')
+
+  const dutiesData   = useTodayDuties(session?.staffId)
+  const cleaningData = useStaffCleaning(venueId, dateStr)
+
+  const TAB_TITLE = { duties: 'Duties', cleaning: 'Cleaning', allergens: 'Allergens' }
 
   const TABS = [
-    { id: 'duties',   label: 'Duties' },
-    { id: 'cleaning', label: 'Cleaning' },
-    { id: 'allergens', label: 'Allergens' },
+    { id: 'duties',   label: 'Duties',   count: dutiesData.duties.length },
+    { id: 'cleaning', label: 'Cleaning', count: cleaningData.tasks.length },
+    { id: 'allergens', label: 'Allergens', count: 1 },
   ]
 
   return (
@@ -626,50 +622,55 @@ function StaffTasksView({ session }) {
         </Link>
       )}
 
-      {/* Page header */}
-      <div className="flex items-center gap-2 px-0.5">
-        <span className="text-[10.5px] font-mono tracking-widest uppercase text-charcoal/40 font-semibold flex-1">Tasks</span>
-        <span className="text-[10.5px] font-mono text-charcoal/35">{doneTasks} / {totalTasks} today</span>
+      {/* Page header: mono label + large title + date picker */}
+      <div className="flex items-start justify-between gap-3 px-0.5">
+        <div>
+          <span className="text-[10.5px] font-mono tracking-widest uppercase text-charcoal/40 font-semibold block">Tasks</span>
+          <h1 className="text-[28px] font-bold text-charcoal leading-tight mt-0.5">{TAB_TITLE[activeTab]}</h1>
+        </div>
         {/* Day selector */}
-        <div className="flex p-[2px] bg-white border border-charcoal/10 rounded-lg ml-2">
-          {dayOffsets.map((offset, i) => (
+        <div className="flex p-[3px] bg-white border border-charcoal/10 rounded-xl mt-1 shrink-0">
+          {[-1, 0, 1].map((offset) => (
             <button
               key={offset}
               onClick={() => setDayOffset(offset)}
               className={[
-                'px-2.5 py-1 rounded-md text-[11.5px] font-semibold transition-all',
+                'px-3 py-1.5 rounded-lg text-[12px] font-semibold transition-all',
                 dayOffset === offset
-                  ? 'bg-brand text-white'
-                  : 'text-charcoal/50 hover:text-charcoal/80',
+                  ? 'bg-charcoal text-cream shadow-sm'
+                  : 'text-charcoal/50 hover:text-charcoal/75',
               ].join(' ')}
             >
-              {dayLabels[i]}
+              {dayLabel(offset)}
             </button>
           ))}
         </div>
       </div>
 
-      {/* Tab switcher */}
-      <div className="flex gap-1 p-[3px] bg-white border border-charcoal/10 rounded-[10px]">
+      {/* Tab switcher with counts */}
+      <div className="flex gap-1 p-[3px] bg-white border border-charcoal/10 rounded-[12px]">
         {TABS.map(t => (
           <button
             key={t.id}
             onClick={() => setActiveTab(t.id)}
             className={[
-              'flex-1 py-2 rounded-[7px] text-[13px] font-semibold transition-all',
+              'flex-1 py-2 rounded-[9px] text-[13px] font-semibold transition-all flex items-center justify-center gap-1.5',
               activeTab === t.id
-                ? 'bg-brand text-white shadow-sm'
+                ? 'bg-charcoal text-cream shadow-sm'
                 : 'text-charcoal/55 hover:text-charcoal/80',
             ].join(' ')}
           >
             {t.label}
+            <span className={`text-[11px] font-mono tabular-nums ${activeTab === t.id ? 'text-cream/60' : 'text-charcoal/35'}`}>
+              {t.count}
+            </span>
           </button>
         ))}
       </div>
 
       {/* Tab content */}
-      {activeTab === 'duties'    && <DutiesTab staffId={session?.staffId} />}
-      {activeTab === 'cleaning'  && <CleaningTab venueId={venueId} dateStr={dateStr} />}
+      {activeTab === 'duties'    && <DutiesTab duties={dutiesData.duties} loading={dutiesData.loading} toggleItem={dutiesData.toggleItem} />}
+      {activeTab === 'cleaning'  && <CleaningTab tasks={cleaningData.tasks} completions={cleaningData.completions} loading={cleaningData.loading} />}
       {activeTab === 'allergens' && <AllergensTab venueSlug={venueSlug} />}
 
     </div>
@@ -682,9 +683,7 @@ export default function TasksPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-2xl font-bold text-charcoal">
-        {isManager ? 'Task Manager' : "Today's Tasks"}
-      </h1>
+      {isManager && <h1 className="text-2xl font-bold text-charcoal">Task Manager</h1>}
       {isManager && (
         <div className="flex gap-1.5">
           {['tasks', 'duties'].map(t => (
