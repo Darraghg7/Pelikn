@@ -197,8 +197,6 @@ export default function LandingPage() {
             <div className="pelikn-ios-mark" aria-hidden="true">
               <AppIconSvg size={57} iconColor="rgba(255,255,255,0.95)" />
             </div>
-            <h1>Pelikn</h1>
-            <p>Built for hospitality.</p>
           </div>
 
           {view === 'picker' && pendingVenues ? (
@@ -293,10 +291,6 @@ export default function LandingPage() {
               bgClass="bg-brand/10"
               iconColor="rgba(26,60,46,0.9)"
             />
-            <h1 className="font-bold text-brand text-3xl tracking-tight mt-4">Pelikn</h1>
-            <p className="text-xs tracking-widest uppercase text-charcoal/40 mt-1.5">
-              Built for hospitality.
-            </p>
           </div>
 
           {view === 'welcome' && (
