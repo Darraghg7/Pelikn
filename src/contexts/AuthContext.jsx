@@ -162,7 +162,7 @@ export function AuthProvider({ children }) {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) return { error, slug: null, venues: [] }
 
-    const DEMO_EMAILS = ['demo@pelikn.app', 'demo@saveserv.com']
+    const DEMO_EMAILS = ['demo@pelikn.app', 'demo@saveserv.com', 'demo@safeserv.com']
     const DEMO_SLUGS  = ['brew-and-bloom', 'the-corner-cup']
     const isDemo      = DEMO_EMAILS.includes(data.user?.email)
 
