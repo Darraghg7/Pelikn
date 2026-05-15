@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 import { useSession } from '../../contexts/SessionContext'
 import { useVenue } from '../../contexts/VenueContext'
@@ -87,6 +87,133 @@ function TasksIcon({ active }) {
     <Ico active={active}>
       <path d="M11.35 3.836c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15a2.25 2.25 0 0 1 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m8.9-4.414c.376.023.75.05 1.124.08 1.131.094 1.976 1.057 1.976 2.192V16.5A2.25 2.25 0 0 1 18 18.75h-2.25m-7.5-10.5H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25ZM6.75 12h.008v.008H6.75V12Zm0 3h.008v.008H6.75V15Zm0 3h.008v.008H6.75V18Z" />
     </Ico>
+  )
+}
+
+/* ── Nav order persistence ─────────────────────────────────────────────── */
+const REORDERABLE_KEYS = ['compliance', 'team', 'tasks']
+
+function useNavOrder(venueId) {
+  const key = `pk-nav-order-${venueId}`
+  const [order, setOrder] = useState(() => {
+    try { return JSON.parse(localStorage.getItem(key)) ?? null } catch { return null }
+  })
+  const save = useCallback((newOrder) => {
+    setOrder(newOrder)
+    localStorage.setItem(key, JSON.stringify(newOrder))
+  }, [key])
+  return [order, save]
+}
+
+function applyOrder(tabs, savedOrder) {
+  if (!savedOrder?.length) return tabs
+  const fixed = { home: tabs.find(t => t.key === 'home'), settings: tabs.find(t => t.key === 'settings') }
+  const middle = tabs.filter(t => REORDERABLE_KEYS.includes(t.key))
+  const sorted = savedOrder
+    .map(k => middle.find(t => t.key === k))
+    .filter(Boolean)
+  // include any new middle tabs not yet in saved order
+  middle.forEach(t => { if (!sorted.find(s => s.key === t.key)) sorted.push(t) })
+  return [fixed.home, ...sorted, fixed.settings].filter(Boolean)
+}
+
+/* ── Nav reorder sheet ─────────────────────────────────────────────────── */
+function NavReorderSheet({ items, onSave, onClose }) {
+  const [list, setList] = useState(items)
+  const dragState = useRef(null) // { index, startY, lastIndex }
+  const rowRefs = useRef([])
+
+  const onPointerDown = useCallback((e, index) => {
+    e.preventDefault()
+    e.currentTarget.setPointerCapture(e.pointerId)
+    dragState.current = { index, startY: e.clientY, lastIndex: index }
+  }, [])
+
+  const onPointerMove = useCallback((e) => {
+    const ds = dragState.current
+    if (!ds) return
+    const rows = rowRefs.current
+    let newIndex = ds.index
+    for (let i = 0; i < rows.length; i++) {
+      if (!rows[i]) continue
+      const { top, height } = rows[i].getBoundingClientRect()
+      if (e.clientY < top + height / 2) { newIndex = i; break }
+      newIndex = i
+    }
+    if (newIndex !== ds.index) {
+      setList(prev => {
+        const next = [...prev]
+        const [removed] = next.splice(ds.index, 1)
+        next.splice(newIndex, 0, removed)
+        return next
+      })
+      dragState.current = { ...ds, index: newIndex }
+    }
+  }, [])
+
+  const onPointerUp = useCallback(() => {
+    dragState.current = null
+  }, [])
+
+  return (
+    <div className="fixed inset-0 z-[200] flex items-end" style={{ touchAction: 'none' }}>
+      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
+      <div className="relative bg-white rounded-t-3xl w-full shadow-2xl" style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 20px)' }}>
+        <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-charcoal/8">
+          <div>
+            <p className="font-semibold text-charcoal text-base">Reorder tabs</p>
+            <p className="text-[12px] text-charcoal/45 mt-0.5">Drag to rearrange your nav</p>
+          </div>
+          <button onClick={onClose} className="text-charcoal/40 hover:text-charcoal p-1">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+
+        <div className="px-4 py-2" onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerCancel={onPointerUp}>
+          {list.map((item, index) => {
+            const isDragging = dragState.current?.index === index
+            return (
+              <div
+                key={item.key}
+                ref={el => { rowRefs.current[index] = el }}
+                className={[
+                  'flex items-center gap-4 px-3 py-4 rounded-2xl my-1 select-none transition-colors',
+                  isDragging ? 'bg-charcoal/6 shadow-lg scale-[1.02]' : 'bg-transparent active:bg-charcoal/4',
+                ].join(' ')}
+                style={{ transform: isDragging ? 'scale(1.02)' : undefined, touchAction: 'none' }}
+              >
+                <div
+                  className="touch-none cursor-grab active:cursor-grabbing p-1 text-charcoal/30 hover:text-charcoal/60"
+                  onPointerDown={e => onPointerDown(e, index)}
+                  style={{ touchAction: 'none' }}
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                    <circle cx="9" cy="6" r="1.5"/><circle cx="15" cy="6" r="1.5"/>
+                    <circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/>
+                    <circle cx="9" cy="18" r="1.5"/><circle cx="15" cy="18" r="1.5"/>
+                  </svg>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="w-9 h-9 rounded-xl bg-charcoal/6 flex items-center justify-center text-charcoal/50">
+                    <item.icon active={false} />
+                  </span>
+                  <span className="text-sm font-semibold text-charcoal">{item.label}</span>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+
+        <div className="px-5 pt-2 pb-1">
+          <button
+            onClick={() => { onSave(list.map(t => t.key)); onClose() }}
+            className="w-full bg-charcoal text-cream font-semibold text-sm rounded-2xl py-3.5 hover:bg-charcoal/90 transition-colors"
+          >
+            Save order
+          </button>
+        </div>
+      </div>
+    </div>
   )
 }
 
@@ -265,10 +392,13 @@ function getStaffTabs(session, vp, isEnabled) {
 /* ── MobileNav component ───────────────────────────────────────────────── */
 export default function MobileNav() {
   const { session, isManager } = useSession()
-  const { venueSlug } = useVenue()
+  const { venueSlug, venueId } = useVenue()
   const { pathname } = useLocation()
   const { isEnabled } = useVenueFeatures()
   const { complianceNavOrder } = useAppSettings()
+  const [savedOrder, saveOrder] = useNavOrder(venueId)
+  const [showReorder, setShowReorder] = useState(false)
+  const longPressTimer = useRef(null)
 
   const vp = (p) => `/v/${venueSlug}${p}`
 
@@ -277,10 +407,22 @@ export default function MobileNav() {
     ? (pathname.slice(base.length) || '/')
     : pathname
 
-  const tabs = isManager ? getManagerTabs(vp, isEnabled, complianceNavOrder) : getStaffTabs(session, vp, isEnabled)
+  const rawTabs = isManager ? getManagerTabs(vp, isEnabled, complianceNavOrder) : getStaffTabs(session, vp, isEnabled)
+  const tabs = isManager ? applyOrder(rawTabs, savedOrder) : rawTabs
 
   const activeTab = tabs.find(t => t.match.some(m => localPath === m || (m !== '/dashboard' && localPath.startsWith(m))))
   const showSubNav = activeTab?.children && activeTab.children.length > 1
+
+  const startLongPress = useCallback(() => {
+    if (!isManager) return
+    longPressTimer.current = setTimeout(() => setShowReorder(true), 500)
+  }, [isManager])
+
+  const cancelLongPress = useCallback(() => {
+    clearTimeout(longPressTimer.current)
+  }, [])
+
+  const reorderableTabs = tabs.filter(t => REORDERABLE_KEYS.includes(t.key))
 
   return (
     <>
@@ -301,6 +443,10 @@ export default function MobileNav() {
                 key={tab.key}
                 to={tab.to}
                 preventScrollReset
+                onPointerDown={startLongPress}
+                onPointerUp={cancelLongPress}
+                onPointerCancel={cancelLongPress}
+                onPointerLeave={cancelLongPress}
                 onPointerEnter={() => preloadRoute(tab.to)}
                 onTouchStart={() => preloadRoute(tab.to)}
                 onFocus={() => preloadRoute(tab.to)}
@@ -326,6 +472,14 @@ export default function MobileNav() {
           })}
         </div>
       </nav>
+
+      {showReorder && (
+        <NavReorderSheet
+          items={reorderableTabs}
+          onSave={saveOrder}
+          onClose={() => setShowReorder(false)}
+        />
+      )}
     </>
   )
 }
