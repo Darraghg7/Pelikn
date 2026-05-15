@@ -1,5 +1,6 @@
-import React, { useCallback, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { supabase } from '../../lib/supabase'
 import { format } from 'date-fns'
 import { useVenue } from '../../contexts/VenueContext'
 import { useSession } from '../../contexts/SessionContext'
@@ -228,6 +229,21 @@ export default function ManagerDashboardPage() {
   const { venueId, venuePlan, venueSlug } = useVenue()
   const { session } = useSession()
   const toast = useToast()
+  const navigate = useNavigate()
+
+  // Redirect to setup wizard if onboarding not yet complete
+  useEffect(() => {
+    if (!venueId) return
+    supabase
+      .from('app_settings')
+      .select('value')
+      .eq('venue_id', venueId)
+      .eq('key', 'onboarding_complete')
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!data) navigate(`/v/${venueSlug}/setup`, { replace: true })
+      })
+  }, [venueId, venueSlug, navigate])
   const { venueName } = useVenueBranding(venueId)
   const { widgetIds, save } = useWidgetPreferences(session?.staffId, venueId)
   const { todayItemIds, save: saveToday } = useTodayPreferences(session?.staffId, venueId)

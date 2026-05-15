@@ -116,13 +116,18 @@ export default function LandingPage() {
     setError('')
     setNotice('')
 
-    const { error: err, slug, venues: list } = await signInWithEmail(email.trim(), password)
+    const { error: err, slug, venues: list, needsOnboarding } = await signInWithEmail(email.trim(), password)
 
     if (err) {
       setError(err.message === 'Invalid login credentials'
         ? 'Incorrect email or password'
         : err.message)
       setLoading(false)
+      return
+    }
+
+    if (needsOnboarding) {
+      navigate('/signup')
       return
     }
 

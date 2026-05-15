@@ -178,8 +178,8 @@ export function AuthProvider({ children }) {
       list = list.filter(v => DEMO_SLUGS.includes(v.slug))
     }
     if (!list.length) {
-      await supabase.auth.signOut()
-      return { error: new Error('No venue found for this account. Contact support.'), slug: null, venues: [] }
+      // Keep the user authenticated — they need to complete venue setup
+      return { error: null, slug: null, venues: [], needsOnboarding: true }
     }
 
     if (list.length === 1) {
