@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import { format } from 'date-fns'
+import { format, addDays } from 'date-fns'
 import { Link } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
 import { useSession } from '../../contexts/SessionContext'
 import { useAllTasks, useTasksForRole } from '../../hooks/useTasks'
+import { useTodayDuties } from '../../hooks/useDuties'
 import { useToast } from '../../components/ui/Toast'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
 import EmptyState from '../../components/ui/EmptyState'
@@ -381,136 +382,296 @@ function ManagerTasksView() {
   )
 }
 
-// ── Staff View ────────────────────────────────────────────
-function StaffTasksView({ session }) {
-  const toast = useToast()
-  const { venueId, venueSlug } = useVenue()
-  const jobRole = session?.jobRole ?? 'kitchen'
-  const { templates, oneOffs, completions, loading, reload } = useTasksForRole(jobRole, session?.staffId)
-  const pendingSignOffs = usePendingSignOffs(session?.staffId, venueId)
-  const [completing, setCompleting] = useState(null)
+// ── Staff view helpers ─────────────────────────────────────
 
-  const completeTask = async (templateId, oneOffId) => {
-    const key = templateId ?? oneOffId
-    setCompleting(key)
-    const { error } = await supabase.rpc('complete_task', {
-      p_token:       session?.token,
-      p_template_id: templateId ?? null,
-      p_one_off_id:  oneOffId ?? null,
+function useStaffCleaning(venueId, dateStr) {
+  const [data, setData] = useState({ tasks: [], completions: [], loading: true })
+  useEffect(() => {
+    if (!venueId) return
+    let cancelled = false
+    Promise.all([
+      supabase.from('cleaning_tasks').select('id, title, frequency, area').eq('venue_id', venueId).eq('is_active', true).order('title'),
+      supabase.from('cleaning_completions').select('cleaning_task_id, completed_at').eq('venue_id', venueId).gte('completed_at', dateStr + 'T00:00:00').lte('completed_at', dateStr + 'T23:59:59'),
+    ]).then(([tasksRes, compsRes]) => {
+      if (cancelled) return
+      setData({ tasks: tasksRes.data ?? [], completions: compsRes.data ?? [], loading: false })
     })
-    setCompleting(null)
-    if (error) { toast(error.message, 'error'); return }
-    toast('Task marked complete ✓')
-    reload()
+    return () => { cancelled = true }
+  }, [venueId, dateStr])
+  return data
+}
+
+function TaskItemRow({ item, assignmentId, toggleItem }) {
+  const [busy, setBusy] = useState(false)
+  const handleToggle = async () => {
+    if (busy) return
+    setBusy(true)
+    const { error } = await toggleItem(assignmentId, item.id, item.completed)
+    if (error) setBusy(false)
+    else setTimeout(() => setBusy(false), 150)
   }
+  return (
+    <button
+      onClick={handleToggle}
+      disabled={busy}
+      className="min-h-11 flex items-center gap-3 w-full text-left py-2.5 px-4 group disabled:opacity-70 hover:bg-charcoal/3 transition-colors border-t border-charcoal/5 first:border-t-0"
+    >
+      <span className={[
+        'w-[22px] h-[22px] rounded-md border-[1.5px] shrink-0 flex items-center justify-center transition-all',
+        item.completed ? 'bg-success border-success' : 'border-charcoal/25 group-hover:border-charcoal/45',
+      ].join(' ')}>
+        {item.completed && (
+          <svg className="w-3 h-3 text-white" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="2,6 5,9 10,3"/>
+          </svg>
+        )}
+      </span>
+      <span className={`text-[13.5px] leading-snug flex-1 font-medium ${item.completed ? 'line-through text-charcoal/35' : 'text-charcoal'}`}>
+        {item.title}
+      </span>
+      {!item.completed && (
+        <svg width="6" height="10" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="text-charcoal/25 shrink-0">
+          <path d="M1 1l4 4-4 4"/>
+        </svg>
+      )}
+    </button>
+  )
+}
 
-  const allTasks = [...templates, ...oneOffs]
-  const done = completions.filter((c) =>
-    templates.some((t) => t.id === c.task_template_id) ||
-    oneOffs.some((o) => o.id === c.task_one_off_id)
-  ).length
+function StaffDutyCard({ duty, toggleItem }) {
+  const done    = duty.items.filter(i => i.completed).length
+  const total   = duty.items.length
+  const pct     = total > 0 ? Math.round((done / total) * 100) : 0
+  const allDone = done === total && total > 0
+  return (
+    <div className="bg-white rounded-[14px] border border-charcoal/8 overflow-hidden">
+      <div className="flex items-center justify-between px-4 pt-3.5 pb-3 border-b border-charcoal/6">
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="font-mono text-[9.5px] text-charcoal/40 tracking-widest uppercase font-semibold shrink-0">Duty</span>
+          <span className="text-charcoal/25 text-xs">·</span>
+          <p className="text-[15px] font-semibold text-charcoal truncate">{duty.title}</p>
+        </div>
+        <span className={`text-[10.5px] font-mono font-semibold shrink-0 ml-2 ${allDone ? 'text-success' : 'text-charcoal/35'}`}>
+          {done}/{total}
+        </span>
+      </div>
+      {total > 0 && (
+        <div className="h-[3px] bg-charcoal/6">
+          <div className={`h-full transition-all ${allDone ? 'bg-success' : 'bg-warning'}`} style={{ width: `${Math.max(pct, 2)}%` }} />
+        </div>
+      )}
+      <div>
+        {duty.items.map(item => (
+          <TaskItemRow key={item.id} item={item} assignmentId={duty.assignmentId} toggleItem={toggleItem} />
+        ))}
+      </div>
+    </div>
+  )
+}
 
-  if (loading) return <SkeletonList rows={4} className="py-4" />
+function DutiesTab({ staffId }) {
+  const { duties, loading, toggleItem } = useTodayDuties(staffId)
+  if (loading) return <SkeletonList rows={3} />
+  if (!duties.length) return (
+    <div className="bg-white rounded-[14px] border border-charcoal/8 p-8 text-center">
+      <p className="text-sm text-charcoal/40">No duties assigned for today</p>
+    </div>
+  )
+  return (
+    <div className="flex flex-col gap-2.5">
+      {duties.map(d => <StaffDutyCard key={d.assignmentId} duty={d} toggleItem={toggleItem} />)}
+    </div>
+  )
+}
+
+function CleaningTab({ venueId, dateStr }) {
+  const { tasks, completions, loading } = useStaffCleaning(venueId, dateStr)
+  if (loading) return <SkeletonList rows={4} />
+  if (!tasks.length) return (
+    <div className="bg-white rounded-[14px] border border-charcoal/8 p-8 text-center">
+      <p className="text-sm text-charcoal/40">No cleaning tasks configured</p>
+    </div>
+  )
+  const doneIds = new Set(completions.map(c => c.cleaning_task_id))
+  const pending = tasks.filter(t => !doneIds.has(t.id))
+  const done    = tasks.filter(t => doneIds.has(t.id))
+  const pct     = tasks.length > 0 ? Math.round((done.length / tasks.length) * 100) : 0
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-2.5">
+      {pending.length > 0 && (
+        <div>
+          <div className="flex items-baseline justify-between px-1 mb-2">
+            <span className="text-[10.5px] font-mono tracking-widest uppercase text-charcoal/40 font-semibold">Pending</span>
+            <span className="text-[11px] font-mono text-charcoal/35">{done.length} / {tasks.length}</span>
+          </div>
+          <div className="bg-white rounded-[14px] border border-charcoal/8 overflow-hidden">
+            <div className="h-[3px] bg-charcoal/6">
+              <div className="h-full bg-warning transition-all" style={{ width: `${Math.max(pct, 2)}%` }} />
+            </div>
+            {pending.map((t, i) => (
+              <div key={t.id} className={`px-4 py-3 flex items-center gap-3 ${i > 0 ? 'border-t border-charcoal/5' : ''}`}>
+                <span className="w-[22px] h-[22px] rounded-md border-[1.5px] border-charcoal/25 shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-[13.5px] font-medium text-charcoal">{t.title}</p>
+                  {t.area && <p className="text-[11px] text-charcoal/40 mt-0.5">{t.area}</p>}
+                </div>
+                <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded bg-charcoal/6 text-charcoal/40 uppercase tracking-wide">
+                  {t.frequency}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+      {done.length > 0 && (
+        <div>
+          <span className="text-[10.5px] font-mono tracking-widest uppercase text-charcoal/35 font-semibold px-1 mb-2 block">Completed</span>
+          <div className="bg-white rounded-[14px] border border-charcoal/8 overflow-hidden">
+            {done.map((t, i) => (
+              <div key={t.id} className={`px-4 py-3 flex items-center gap-3 ${i > 0 ? 'border-t border-charcoal/5' : ''}`}>
+                <span className="w-[22px] h-[22px] rounded-md bg-success border-success border-[1.5px] flex items-center justify-center shrink-0">
+                  <svg className="w-3 h-3 text-white" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg>
+                </span>
+                <p className="text-[13.5px] text-charcoal/40 line-through flex-1">{t.title}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function AllergensTab({ venueSlug }) {
+  return (
+    <div className="flex flex-col gap-2.5">
+      <div className="bg-white rounded-[14px] border border-charcoal/8 overflow-hidden">
+        <div className="px-4 pt-3.5 pb-3 border-b border-charcoal/6">
+          <p className="text-[10.5px] font-mono tracking-widest uppercase text-charcoal/40 font-semibold">Today's acknowledgement</p>
+        </div>
+        <Link
+          to={`/v/${venueSlug}/allergens`}
+          className="flex items-center gap-3 px-4 py-3.5 hover:bg-charcoal/3 transition-colors"
+        >
+          <span className="w-[22px] h-[22px] rounded-md border-[1.5px] border-charcoal/25 shrink-0" />
+          <p className="text-[13.5px] font-medium text-charcoal flex-1">View and confirm today's allergen sheet</p>
+          <svg width="6" height="10" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="text-charcoal/25 shrink-0">
+            <path d="M1 1l4 4-4 4"/>
+          </svg>
+        </Link>
+      </div>
+
+      <div className="bg-white rounded-[14px] border border-charcoal/8 overflow-hidden">
+        <div className="px-4 pt-3.5 pb-3 border-b border-charcoal/6">
+          <p className="text-[10.5px] font-mono tracking-widest uppercase text-charcoal/40 font-semibold">Reference</p>
+        </div>
+        <Link
+          to={`/v/${venueSlug}/allergens`}
+          className="flex items-center gap-3 px-4 py-3 hover:bg-charcoal/3 transition-colors"
+        >
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-charcoal/35 shrink-0">
+            <circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/>
+          </svg>
+          <span className="text-[13.5px] font-medium text-charcoal flex-1">Full allergen matrix</span>
+          <svg width="6" height="10" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="text-charcoal/25 shrink-0">
+            <path d="M1 1l4 4-4 4"/>
+          </svg>
+        </Link>
+      </div>
+    </div>
+  )
+}
+
+// ── Staff View ─────────────────────────────────────────────
+function StaffTasksView({ session }) {
+  const { venueId, venueSlug } = useVenue()
+  const pendingSignOffs = usePendingSignOffs(session?.staffId, venueId)
+
+  const [activeTab, setActiveTab] = useState('duties')
+  const [dayOffset, setDayOffset] = useState(0)
+
+  const targetDate = addDays(new Date(), dayOffset)
+  const dateStr    = format(targetDate, 'yyyy-MM-dd')
+  const dayLabels  = ['Yesterday', 'Today', 'Tomorrow']
+  const dayOffsets = [-1, 0, 1]
+
+  const { templates, oneOffs, completions } = useTasksForRole(session?.jobRole ?? 'kitchen', session?.staffId)
+  const totalTasks = templates.length + oneOffs.length
+  const doneTasks  = completions.filter(c =>
+    templates.some(t => t.id === c.task_template_id) ||
+    oneOffs.some(o => o.id === c.task_one_off_id)
+  ).length
+
+  const TABS = [
+    { id: 'duties',   label: 'Duties' },
+    { id: 'cleaning', label: 'Cleaning' },
+    { id: 'allergens', label: 'Allergens' },
+  ]
+
+  return (
+    <div className="flex flex-col gap-3">
 
       {/* Training sign-off notification */}
       {pendingSignOffs > 0 && (
         <Link
           to={`/v/${venueSlug}/training`}
-          className="block bg-accent/10 border border-accent/20 rounded-2xl px-5 py-4"
+          className="flex items-center justify-between gap-4 bg-accent/10 border border-accent/20 rounded-xl px-4 py-3"
         >
-          <div className="flex items-center justify-between gap-4">
-            <div>
-              <p className="text-sm font-semibold text-accent">
-                Training record awaiting your signature
-              </p>
-              <p className="text-xs text-accent/70 mt-0.5">
-                Tap to view and sign your training record
-              </p>
-            </div>
-            <span className="text-accent text-lg shrink-0">→</span>
+          <div>
+            <p className="text-sm font-semibold text-accent">Training record awaiting your signature</p>
+            <p className="text-xs text-accent/70 mt-0.5">Tap to view and sign</p>
           </div>
+          <span className="text-accent text-lg shrink-0">→</span>
         </Link>
       )}
 
-      {/* Progress summary */}
-      <div className="bg-white rounded-2xl border-charcoal/10 p-5">
-        <div className="flex items-center justify-between mb-3">
-          <div>
-            <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-1">Today's Progress</p>
-            <p className="text-xl font-bold text-charcoal">{done} / {allTasks.length} tasks done</p>
-          </div>
-          {done === allTasks.length && allTasks.length > 0 && (
-            <span className="text-success">
-              <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="9 12 11 14 15 10"/></svg>
-            </span>
-          )}
-        </div>
-        <div className="h-2 bg-charcoal/8 rounded-full overflow-hidden">
-          <div
-            className="h-full bg-success rounded-full transition-all"
-            style={{ width: allTasks.length > 0 ? `${(done / allTasks.length) * 100}%` : '0%' }}
-          />
+      {/* Page header */}
+      <div className="flex items-center gap-2 px-0.5">
+        <span className="text-[10.5px] font-mono tracking-widest uppercase text-charcoal/40 font-semibold flex-1">Tasks</span>
+        <span className="text-[10.5px] font-mono text-charcoal/35">{doneTasks} / {totalTasks} today</span>
+        {/* Day selector */}
+        <div className="flex p-[2px] bg-white border border-charcoal/10 rounded-lg ml-2">
+          {dayOffsets.map((offset, i) => (
+            <button
+              key={offset}
+              onClick={() => setDayOffset(offset)}
+              className={[
+                'px-2.5 py-1 rounded-md text-[11.5px] font-semibold transition-all',
+                dayOffset === offset
+                  ? 'bg-brand text-white'
+                  : 'text-charcoal/50 hover:text-charcoal/80',
+              ].join(' ')}
+            >
+              {dayLabels[i]}
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* Task checklist */}
-      <div className="bg-white rounded-2xl border-charcoal/10 p-5">
-        <SectionLabel>Your Tasks: {format(new Date(), 'd MMMM')}</SectionLabel>
-        <div className="flex flex-col gap-2">
-          {allTasks.map((t) => {
-            const isTemplate = 'job_role' in t && !('due_date' in t)
-            const comp = completions.find((c) =>
-              (isTemplate && c.task_template_id === t.id) ||
-              (!isTemplate && c.task_one_off_id === t.id)
-            )
-            const key = t.id
-            const isPersonal = !isTemplate && t.assigned_to_staff_id === session?.staffId
-            return (
-              <button
-                key={key}
-                onClick={() => !comp && completeTask(isTemplate ? t.id : null, !isTemplate ? t.id : null)}
-                disabled={!!comp || completing === key}
-                className={[
-                  'flex items-center gap-4 p-4 rounded-xl border text-left transition-all w-full',
-                  comp
-                    ? 'bg-success/5 border-success/20 cursor-default'
-                    : 'bg-white border-charcoal/10 hover:bg-charcoal/4 hover:border-charcoal/20 active:scale-[0.99]',
-                ].join(' ')}
-              >
-                <span className={[
-                  'w-5 h-5 rounded border flex items-center justify-center text-xs shrink-0 transition-all',
-                  comp ? 'bg-success border-success text-white' : 'border-charcoal/20',
-                ].join(' ')}>
-                  {comp ? <svg className="w-3 h-3" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg> : completing === key ? '…' : ''}
-                </span>
-                <div className="flex-1">
-                  <p className={`text-sm font-medium ${comp ? 'line-through text-charcoal/30' : 'text-charcoal'}`}>
-                    {t.title}
-                  </p>
-                  <div className="flex items-center gap-2 mt-0.5">
-                    {isPersonal && (
-                      <span className="text-[11px] bg-accent/10 text-accent px-2 py-0.5 rounded font-medium">
-                        Assigned to you
-                      </span>
-                    )}
-                    {comp && (
-                      <p className="text-xs text-charcoal/30">
-                        Done · {format(new Date(comp.completed_at), 'HH:mm')}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </button>
-            )
-          })}
-          {allTasks.length === 0 && (
-            <EmptyState icon="clipboard" title="No tasks for today" description="You're all caught up. Check back later." className="py-4" />
-          )}
-        </div>
+      {/* Tab switcher */}
+      <div className="flex gap-1 p-[3px] bg-white border border-charcoal/10 rounded-[10px]">
+        {TABS.map(t => (
+          <button
+            key={t.id}
+            onClick={() => setActiveTab(t.id)}
+            className={[
+              'flex-1 py-2 rounded-[7px] text-[13px] font-semibold transition-all',
+              activeTab === t.id
+                ? 'bg-brand text-white shadow-sm'
+                : 'text-charcoal/55 hover:text-charcoal/80',
+            ].join(' ')}
+          >
+            {t.label}
+          </button>
+        ))}
       </div>
+
+      {/* Tab content */}
+      {activeTab === 'duties'    && <DutiesTab staffId={session?.staffId} />}
+      {activeTab === 'cleaning'  && <CleaningTab venueId={venueId} dateStr={dateStr} />}
+      {activeTab === 'allergens' && <AllergensTab venueSlug={venueSlug} />}
+
     </div>
   )
 }

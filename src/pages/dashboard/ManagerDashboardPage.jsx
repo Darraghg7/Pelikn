@@ -73,8 +73,8 @@ export default function ManagerDashboardPage() {
     <div className="flex flex-col gap-4">
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
-          <p className="text-[11px] font-medium tracking-widest uppercase text-charcoal/40">{format(new Date(), 'EEEE, d MMMM')}</p>
-          <h1 className="text-2xl font-bold text-charcoal leading-tight mt-0.5">
+          <p className="font-mono text-[10.5px] tracking-[0.08em] uppercase text-charcoal/40">{format(new Date(), 'EEEE, d MMMM')}</p>
+          <h1 className="text-[30px] font-medium tracking-[-0.028em] text-charcoal leading-tight mt-0.5">
             {greeting}{firstName ? `, ${firstName}` : ''}
           </h1>
           {venueName && (

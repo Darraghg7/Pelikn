@@ -236,34 +236,47 @@ export default function TodaySummaryCard({ venueId, closedDays, itemIds, actionS
   return (
     <div className="bg-white rounded-2xl overflow-hidden">
       <div className="px-4 pt-4 pb-3">
-        <p className="text-[11px] tracking-widest uppercase font-semibold text-charcoal/40 mb-3">Today</p>
+        <p className="font-mono text-[10px] tracking-[0.08em] uppercase text-charcoal/40 mb-3">Today</p>
         {loading || !summary ? (
-          <div className="flex gap-3">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="flex-1 h-16 rounded-xl bg-charcoal/5 animate-pulse" />
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <div key={i} className="h-[100px] rounded-xl bg-charcoal/5 animate-pulse" />
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-            {activeItems.length === 0 ? (
-              <div className="col-span-full rounded-xl border border-dashed border-charcoal/15 py-6 px-3 text-center">
-                <p className="text-sm text-charcoal/35">No Today items selected</p>
-              </div>
-            ) : activeItems.map(item => {
-              const value = item.metric(summary) ?? 0
-              const strong = item.dangerWhenPositive
-                ? value > 0
-                : value > 0
-              return (
-                <div key={item.id} className="flex flex-col items-center gap-0.5 border border-charcoal/10 rounded-xl py-3 px-2">
-                  <p className={`text-2xl font-bold ${item.dangerWhenPositive && value > 0 ? 'text-danger' : strong ? 'text-charcoal' : 'text-charcoal/30'}`}>
-                    {value}
-                  </p>
-                  <p className="text-[11px] sm:text-xs text-charcoal/45 leading-tight text-center">{item.metricLabel}</p>
+          <>
+            {summary.overdueClean > 0 && (
+              <Link to={vp('/cleaning')} className="flex items-center gap-2.5 px-3.5 py-2.5 mb-3 rounded-xl bg-danger/8 border border-danger/15 text-danger hover:bg-danger/12 transition-colors">
+                <span className="w-5 h-5 rounded-full bg-danger/18 flex items-center justify-center shrink-0">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                </span>
+                <p className="text-sm font-semibold flex-1">{summary.overdueClean} overdue {summary.overdueClean === 1 ? 'clean' : 'cleans'}</p>
+                <span className="font-mono text-xs opacity-60">→</span>
+              </Link>
+            )}
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              {activeItems.length === 0 ? (
+                <div className="col-span-full rounded-xl border border-dashed border-charcoal/15 py-6 px-3 text-center">
+                  <p className="text-sm text-charcoal/35">No Today items selected</p>
                 </div>
-              )
-            })}
-          </div>
+              ) : activeItems.map(item => {
+                const value = item.metric(summary) ?? 0
+                const isDanger = item.dangerWhenPositive && value > 0
+                const isGood   = item.dangerWhenPositive && value === 0
+                return (
+                  <div key={item.id} className="flex flex-col gap-2 border border-charcoal/10 rounded-xl p-4 min-h-[100px]">
+                    <div className="flex items-center gap-1.5">
+                      <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${isDanger ? 'bg-danger' : isGood ? 'bg-success' : 'bg-charcoal/20'}`} />
+                      <span className="font-mono text-[10px] text-charcoal/40 uppercase tracking-[0.08em] leading-none">{item.metricLabel}</span>
+                    </div>
+                    <div className={`text-[34px] font-medium tracking-[-0.035em] leading-none tabular-nums ${isDanger ? 'text-danger' : 'text-charcoal'}`}>
+                      {value}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </>
         )}
       </div>
 
