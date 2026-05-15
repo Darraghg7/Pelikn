@@ -162,18 +162,19 @@ export function AuthProvider({ children }) {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) return { error, slug: null, venues: [] }
 
-    const DEMO_EMAIL = 'demo@pelikn.app'
-    const DEMO_SLUGS = ['brew-and-bloom', 'the-corner-cup']
+    const DEMO_EMAILS = ['demo@pelikn.app', 'demo@saveserv.com']
+    const DEMO_SLUGS  = ['brew-and-bloom', 'the-corner-cup']
+    const isDemo      = DEMO_EMAILS.includes(data.user?.email)
 
-    if (data.user?.email === DEMO_EMAIL) {
+    if (data.user?.email === 'demo@pelikn.app') {
       await supabase.functions.invoke('seed-demo')
     }
 
     let list = await resolveVenuesSafe(email, data.user.id, 10000)
 
-    // Guard: demo account must only ever see its own demo venues,
+    // Guard: demo accounts must only ever see demo venues,
     // never a real customer's venue regardless of DB state.
-    if (data.user?.email === DEMO_EMAIL) {
+    if (isDemo) {
       list = list.filter(v => DEMO_SLUGS.includes(v.slug))
     }
     if (!list.length) {
