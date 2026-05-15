@@ -191,10 +191,8 @@ export default function LandingPage() {
   }
 
   return (
-    <div className="min-h-dvh bg-brand font-sans flex flex-col">
-      {/* ── MOBILE: native-style sign-in screen (hidden on md+) ─────────── */}
-      <div className="pelikn-ios-login md:hidden">
-        <div className={`pelikn-ios-card${ready ? ' landing-ready' : ''}`}>
+    <div className="pelikn-ios-login">
+      <div className={`pelikn-ios-card${ready ? ' landing-ready' : ''}`}>
           <div className="pelikn-ios-motion" aria-hidden="true" />
           <div className="pelikn-ios-flow pelikn-ios-flow-one" aria-hidden="true" />
 
@@ -283,138 +281,6 @@ export default function LandingPage() {
             Don't have an account? <button type="button" onClick={() => navigate('/signup')}>Sign up</button>
           </p>
         </div>
-      </div>
-
-      {/* ── DESKTOP: centred card (md+) ───────────────────────────── */}
-      <div className="hidden md:flex flex-1 items-center justify-center px-6 py-12">
-        <div className="w-full max-w-md bg-white rounded-2xl shadow-lg border border-charcoal/8 p-8 flex flex-col gap-6">
-
-          {/* Logo */}
-          <div className="text-center pb-1">
-            <AppIcon
-              size={24}
-              bgClass="bg-brand/10"
-              iconColor="rgba(26,60,46,0.9)"
-            />
-          </div>
-
-          {view === 'welcome' && (
-            <div className="flex flex-col gap-3">
-              <button
-                onClick={() => navigate('/signup')}
-                className="w-full bg-brand text-cream rounded-xl py-3.5 text-sm font-bold tracking-wide hover:bg-brand/90 transition-colors"
-              >
-                Get Started
-              </button>
-              <button
-                onClick={openSignIn}
-                className="w-full border border-charcoal/15 text-charcoal rounded-xl py-3.5 text-sm font-semibold hover:border-charcoal/30 transition-colors"
-              >
-                Sign In
-              </button>
-              <button
-                onClick={openJoin}
-                className="w-full text-charcoal/40 text-sm font-medium py-1.5 hover:text-charcoal/70 transition-colors"
-              >
-                Join with venue code
-              </button>
-            </div>
-          )}
-
-          {view === 'signin' && (
-            <>
-              <div>
-                <h2 className="font-bold text-charcoal text-xl">Welcome back</h2>
-                <p className="text-xs text-charcoal/40 mt-1">Sign in to access your venue</p>
-              </div>
-              <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-                <div className="flex flex-col gap-3">
-                  <div>
-                    <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1.5">Email</label>
-                    <input
-                      type="email" required autoComplete="email"
-                      value={email}
-                      onChange={(e) => { setEmail(e.target.value); setError('') }}
-                      placeholder="you@example.com"
-                      className="w-full px-4 py-3 rounded-xl border border-charcoal/15 bg-white text-sm text-charcoal placeholder:text-charcoal/25 outline-none focus:border-brand transition-colors"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1.5">Password</label>
-                    <input
-                      type="password" required autoComplete="current-password"
-                      value={password}
-                      onChange={(e) => { setPassword(e.target.value); setError('') }}
-                      placeholder="••••••••"
-                      className="w-full px-4 py-3 rounded-xl border border-charcoal/15 bg-white text-sm text-charcoal placeholder:text-charcoal/25 outline-none focus:border-brand transition-colors"
-                    />
-                  </div>
-                </div>
-                {error && <p className="text-danger text-xs -mt-1">{error}</p>}
-                <button
-                  type="submit"
-                  disabled={loading || !email.trim() || !password}
-                  className="w-full bg-brand text-cream py-3.5 rounded-xl text-sm font-semibold tracking-wide hover:bg-brand/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                >
-                  {loading ? 'Signing in…' : 'Sign In'}
-                </button>
-              </form>
-              <div className="text-center">
-                <button
-                  type="button"
-                  onClick={closeSheet}
-                  className="text-xs text-charcoal/35 hover:text-charcoal/60 transition-colors"
-                >
-                  ← Back
-                </button>
-              </div>
-            </>
-          )}
-
-          {view === 'join' && (
-            <>
-              <div>
-                <h2 className="font-bold text-charcoal text-xl">Join a venue</h2>
-                <p className="text-xs text-charcoal/40 mt-1">Enter the code your manager shared with you</p>
-              </div>
-              <form onSubmit={handleJoin} className="flex flex-col gap-4">
-                <div>
-                  <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1.5">Venue Code</label>
-                  <input
-                    type="text"
-                    autoComplete="off"
-                    autoCapitalize="characters"
-                    maxLength={6}
-                    value={joinCode}
-                    onChange={(e) => { setJoinCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '')); setJoinError('') }}
-                    placeholder="e.g. NOMAD23"
-                    className="w-full px-4 py-3 rounded-xl border border-charcoal/15 bg-white text-sm text-charcoal font-mono tracking-widest placeholder:tracking-normal placeholder:font-sans placeholder:text-charcoal/25 outline-none focus:border-brand transition-colors uppercase"
-                  />
-                  {joinError && <p className="text-danger text-xs mt-1.5">{joinError}</p>}
-                </div>
-                <button
-                  type="submit"
-                  disabled={joinLoading || joinCode.length < 4}
-                  className="w-full bg-brand text-cream py-3.5 rounded-xl text-sm font-semibold tracking-wide hover:bg-brand/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                >
-                  {joinLoading ? 'Looking up…' : 'Continue →'}
-                </button>
-              </form>
-              <div className="text-center">
-                <button type="button" onClick={closeSheet}
-                  className="text-xs text-charcoal/35 hover:text-charcoal/60 transition-colors">
-                  ← Back
-                </button>
-              </div>
-            </>
-          )}
-
-          {view === 'picker' && pendingVenues && (
-            <VenuePicker venues={pendingVenues} onSelect={handlePickVenue} />
-          )}
-        </div>
-      </div>
-
     </div>
   )
 }

@@ -318,6 +318,12 @@ table { border-spacing: 0; }
 .landing-ready .pelikn-ios-panel {
   animation: pelikn-figma-form 0.5s 0.06s ease-out both;
 }
+@media (min-width: 768px) {
+  .pelikn-ios-form,
+  .pelikn-ios-panel {
+    max-width: 400px;
+  }
+}
 
 .pelikn-ios-field {
   position: relative;
