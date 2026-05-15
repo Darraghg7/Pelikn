@@ -202,10 +202,10 @@ export default function LoginPage() {
         style={ready ? { animation: 'login-logo-enter 0.45s cubic-bezier(.22,.9,.28,1) both', willChange: 'transform, opacity' } : { opacity: 0, willChange: 'transform, opacity' }}
       >
         <h1 className="font-bold text-brand text-4xl tracking-tight">Pelikn</h1>
-        {venueName && (
-          <p className="text-sm font-medium text-charcoal/60 mt-1">{venueName}</p>
-        )}
         <p className="text-xs tracking-widest text-charcoal/40 uppercase mt-1">Built for Hospitality</p>
+        {venueName && (
+          <p className="text-xl font-semibold text-charcoal mt-2">{venueName}</p>
+        )}
       </div>
 
       <div className="w-full max-w-sm bg-white rounded-2xl shadow-sm border border-charcoal/8 p-5 sm:p-6 flex flex-col gap-6"
