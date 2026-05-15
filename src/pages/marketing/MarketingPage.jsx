@@ -601,17 +601,6 @@ export default function MarketingPage() {
   return (
     <div className="min-h-dvh bg-surface font-sans text-charcoal">
 
-      {/* ── Nav ──────────────────────────────────────────────────────────────── */}
-      <nav className="sticky top-0 z-50 bg-cream/95 backdrop-blur-sm border-b border-charcoal/8">
-        <div className="max-w-5xl mx-auto px-5 sm:px-8 h-14 flex items-center justify-between">
-          <PeliknLogo iconSize="w-7 h-7" textSize="text-sm" />
-          <div className="flex items-center gap-1.5">
-            <Link to="/login" className="text-sm font-medium text-charcoal/55 hover:text-charcoal transition-colors px-3.5 py-2 rounded-lg">Sign In</Link>
-            <Link to="/signup" className="text-sm font-semibold text-cream bg-brand hover:bg-brand/90 transition-colors px-4 py-2 rounded-xl">Start Free Trial</Link>
-          </div>
-        </div>
-      </nav>
-
       {/* ── Hero ─────────────────────────────────────────────────────────────── */}
       <section className="bg-brand text-cream">
         <div className="max-w-5xl mx-auto px-5 sm:px-8 pt-20 pb-16 sm:pt-28 sm:pb-20 text-center">
