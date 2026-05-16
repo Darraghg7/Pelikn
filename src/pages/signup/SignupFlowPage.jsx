@@ -65,7 +65,8 @@ export default function SignupFlowPage() {
         // Advance to extra-venues naming step (stay authenticated)
         setStep(2)
       } else {
-        // No extra venues — sign out and go to success
+        // Send Day 0 welcome email before signing out (non-blocking)
+        supabase.functions.invoke('trial-lifecycle').catch(() => {})
         await supabase.auth.signOut()
         setStep(SUCCESS_STEP)
       }
@@ -92,6 +93,8 @@ export default function SignupFlowPage() {
         created.push({ name: v.name, slug: v.slug })
       }
 
+      // Send Day 0 welcome email before signing out (non-blocking)
+      supabase.functions.invoke('trial-lifecycle').catch(() => {})
       await supabase.auth.signOut()
       setAllVenues(created)
       setStep(3)
