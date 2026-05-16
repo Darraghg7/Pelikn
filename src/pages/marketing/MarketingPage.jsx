@@ -90,6 +90,9 @@ const FAQS = [
   { q: 'Can I pay annually instead of monthly?', a: 'Yes. Choose annual billing at checkout and pay for 10 months upfront and get 12 months of access. That\'s 2 months free on every plan. Starter drops from £120/yr to £100/yr, and Pro drops from £300/yr to £250/yr. Monthly billing is always available if you prefer.' },
   { q: 'Can I cancel anytime?', a: 'Yes, no contracts, no cancellation fees. Cancel from your account settings and your subscription ends at the end of the current billing period.' },
   { q: 'How long does setup take?', a: "Most venues are up and running in under 15 minutes. The setup wizard walks you through your venue type, features and first staff invites. No training required." },
+  { q: 'How does Pelikn compare to Trail App?', a: "Trail App is a solid compliance tool — but it doesn't do scheduling or timesheets, and it starts at £38/month. Pelikn Pro covers the same compliance ground, plus rota building, timesheets, staff training records, and AI auto-fill — all for £25/month. If you're paying for Trail and still managing your rota in a spreadsheet, Pelikn replaces both for less than Trail alone." },
+  { q: 'What happens to my compliance records if I cancel?', a: "Your data is yours. Before cancelling you can export a full compliance PDF report covering your entire history. We don't delete records immediately — there is a grace period after cancellation during which you can still access and download your logs." },
+  { q: "Does Pelikn cover Natasha's Law allergen requirements?", a: "Yes. Pelikn includes a full allergen registry where you track all 14 major allergens across every dish and ingredient. You can generate a QR code for customer-facing allergen information and produce an EHO-ready allergen audit trail — built to meet the requirements of Natasha's Law for UK food businesses." },
 ]
 
 /* ── Shared components ──────────────────────────────────────────────────────── */
@@ -452,6 +455,81 @@ const ScreenCaption = ({ children }) => (
   <p className="text-[10px] tracking-widest uppercase text-charcoal/35 text-center font-medium mt-2">{children}</p>
 )
 
+/* ── Comparison section ──────────────────────────────────────────────────────── */
+function ComparisonSection() {
+  const Tick = () => (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-success mx-auto"><polyline points="20 6 9 17 4 12"/></svg>
+  )
+  const Dash = () => <span className="text-charcoal/20 text-sm block text-center">–</span>
+
+  const rows = [
+    { feature: 'Food safety & temperature logs',   ps: true,  pp: true,  tr: true,  dp: false, pl: false },
+    { feature: 'EHO audit-ready PDF reports',      ps: true,  pp: true,  tr: true,  dp: false, pl: false },
+    { feature: "Natasha's Law allergen registry",  ps: true,  pp: true,  tr: false, dp: false, pl: false },
+    { feature: 'HACCP plan generator',             ps: false, pp: true,  tr: false, dp: false, pl: false },
+    { feature: 'Rota & shift scheduling',          ps: false, pp: true,  tr: false, dp: true,  pl: true  },
+    { feature: 'AI rota builder',                  ps: false, pp: true,  tr: false, dp: false, pl: false },
+    { feature: 'Timesheets & payroll export',      ps: false, pp: true,  tr: false, dp: true,  pl: true  },
+    { feature: 'Staff training records',           ps: false, pp: true,  tr: false, dp: false, pl: false },
+    { feature: 'Price per venue / month',          ps: '£10', pp: '£25', tr: '£38–75', dp: '~£130*', pl: '~£90*' },
+  ]
+
+  const cols = [
+    { key: 'ps', label: 'Pelikn Starter', sub: '£10/mo',    pro: false },
+    { key: 'pp', label: 'Pelikn Pro',     sub: '£25/mo',    pro: true  },
+    { key: 'tr', label: 'Trail App',      sub: '£38–75/mo', pro: false },
+    { key: 'dp', label: 'Deputy',         sub: '~£130/mo*', pro: false },
+    { key: 'pl', label: 'Planday',        sub: '~£90/mo*',  pro: false },
+  ]
+
+  return (
+    <section className="bg-[#F5F4F1] border-b border-charcoal/8">
+      <div className="max-w-5xl mx-auto px-5 sm:px-8 py-14">
+        <SectionLabel>How we compare</SectionLabel>
+        <h2 className="text-2xl font-bold sm:text-4xl text-brand text-center mb-3 tracking-tight">
+          More coverage. Lower price.
+        </h2>
+        <p className="text-charcoal/50 text-center max-w-lg mx-auto text-sm leading-relaxed mb-10">
+          Every scheduling tool ignores compliance. Every compliance tool ignores scheduling. Pelikn does both — for less than either alone.
+        </p>
+        <div className="overflow-x-auto -mx-5 sm:-mx-8 px-5 sm:px-8">
+          <table className="w-full min-w-[600px] border-collapse">
+            <thead>
+              <tr>
+                <th className="text-left pb-4 pr-4 w-52" />
+                {cols.map(({ key, label, sub, pro }) => (
+                  <th key={key} className="pb-4 px-3 text-center">
+                    <p className={`text-xs font-bold leading-snug ${pro ? 'text-accent' : 'text-charcoal/55'}`}>{label}</p>
+                    <p className={`text-[10px] mt-0.5 ${pro ? 'text-accent/65' : 'text-charcoal/30'}`}>{sub}</p>
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-charcoal/6">
+              {rows.map(({ feature, ...vals }) => (
+                <tr key={feature} className="bg-white/70 hover:bg-white/90 transition-colors">
+                  <td className="py-3 pr-4 text-xs text-charcoal/65 font-medium pl-4 rounded-l-xl">{feature}</td>
+                  {cols.map(({ key, pro }, ci) => {
+                    const v = vals[key]
+                    return (
+                      <td key={key} className={`py-3 px-3 text-center ${pro ? 'bg-accent/[0.05]' : ''} ${ci === cols.length - 1 ? 'rounded-r-xl' : ''}`}>
+                        {v === true ? <Tick /> : v === false ? <Dash /> : (
+                          <span className={`text-[11px] font-semibold ${pro ? 'text-accent' : 'text-charcoal/50'}`}>{v}</span>
+                        )}
+                      </td>
+                    )
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p className="text-[10px] text-charcoal/30 text-center mt-5">* Deputy and Planday charge per user. Price shown for a typical 20-person venue on a mid-tier plan.</p>
+      </div>
+    </section>
+  )
+}
+
 /* ── Pricing section ─────────────────────────────────────────────────────────── */
 function PricingSection() {
   const [annual, setAnnual] = useState(false)
@@ -491,6 +569,13 @@ function PricingSection() {
               2 months free
             </span>
           </button>
+        </div>
+
+        <div className="flex justify-center mb-8">
+          <div className="bg-brand/[0.06] border border-brand/15 rounded-xl px-5 py-3 text-center">
+            <p className="text-sm font-semibold text-brand">20 staff or 2 — the price doesn't change.</p>
+            <p className="text-xs text-charcoal/45 mt-0.5">Flat per-venue fee. No per-user surprises as your team grows.</p>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 max-w-2xl mx-auto">
@@ -617,13 +702,13 @@ export default function MarketingPage() {
         <div className="max-w-5xl mx-auto px-5 sm:px-8 pt-20 pb-16 sm:pt-28 sm:pb-20 text-center">
           <div className="inline-flex items-center gap-2 bg-cream/10 border border-cream/15 rounded-full px-3.5 py-1.5 mb-6">
             <span className="w-1.5 h-1.5 rounded-full bg-success shrink-0" />
-            <span className="text-[11px] tracking-widest uppercase text-cream/70 font-medium">All-in-one venue management</span>
+            <span className="text-[11px] tracking-widest uppercase text-cream/70 font-medium">UK Food Safety Compliance · Team Management</span>
           </div>
           <h1 className="text-4xl font-bold sm:text-5xl lg:text-7xl text-cream leading-[1.05] tracking-tight mb-5">
             Built for hospitality.
           </h1>
           <p className="text-cream/60 text-sm sm:text-base max-w-xl mx-auto leading-relaxed mb-8">
-            Rotas, timesheets, compliance, training, tips. One app instead of five. Built for the way venues actually work, not adapted from something else.
+            EHO-ready compliance records and AI-powered team management — one app, one flat price per venue. No per-user fees, no paper, no juggling five tools.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-5">
             <Link to="/signup" className="w-full sm:w-auto bg-accent text-cream px-7 py-3.5 rounded-xl text-sm font-semibold hover:bg-accent/90 active:scale-[0.98] transition-all text-center">
@@ -674,6 +759,8 @@ export default function MarketingPage() {
             <span className="hidden sm:block text-charcoal/12">·</span>
             <span>EHO-Ready Records</span>
             <span className="hidden sm:block text-charcoal/12">·</span>
+            <span>Natasha's Law Compliant</span>
+            <span className="hidden sm:block text-charcoal/12">·</span>
             <span>FSA &amp; Food Safety Act Compliant</span>
             <span className="hidden sm:block text-charcoal/12">·</span>
             <span>UK GDPR · ICO Registered</span>
@@ -681,33 +768,33 @@ export default function MarketingPage() {
         </div>
       </div>
 
-      {/* ── Team management features ────────────────────────────────────────── */}
+      {/* ── Compliance features ───────────────────────────────────────────────── */}
       <section className="bg-white border-b border-charcoal/8">
         <div className="max-w-5xl mx-auto px-5 sm:px-8 py-14">
-          <SectionLabel>Team management</SectionLabel>
+          <SectionLabel>Compliance &amp; safety records</SectionLabel>
           <h2 className="text-2xl font-bold sm:text-4xl text-brand text-center mb-4 tracking-tight">
-            Your rota, timesheets, and team. Sorted.
+            Inspection-ready without thinking about it
           </h2>
           <p className="text-charcoal/50 text-center max-w-lg mx-auto text-sm leading-relaxed mb-10">
-            Stop juggling spreadsheets, WhatsApp groups and paper rotas. One app handles scheduling, hours, training and tips.
+            Every log, checklist and record the EHO expects. Captured on-device, stored securely, exportable in one tap.
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {PRO_FEATURES.map(f => <FeatureCard key={f.title} accent {...f} />)}
+            {COMPLIANCE_FEATURES.map(f => <FeatureCard key={f.title} {...f} />)}
           </div>
         </div>
       </section>
 
-      {/* ── Compliance features ───────────────────────────────────────────────── */}
+      {/* ── Team management features ────────────────────────────────────────── */}
       <section className="max-w-5xl mx-auto px-5 sm:px-8 py-14">
-        <SectionLabel>Compliance &amp; safety records</SectionLabel>
+        <SectionLabel>Team management · Pro plan</SectionLabel>
         <h2 className="text-2xl font-bold sm:text-4xl text-brand text-center mb-4 tracking-tight">
-          Inspection-ready without thinking about it
+          Your rota, timesheets, and team. Sorted.
         </h2>
         <p className="text-charcoal/50 text-center max-w-lg mx-auto text-sm leading-relaxed mb-10">
-          Every log, checklist and record the EHO expects. Captured on-device, stored securely, exportable in one tap.
+          Stop juggling spreadsheets, WhatsApp groups and paper rotas. One app handles scheduling, hours, training and tips.
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {COMPLIANCE_FEATURES.map(f => <FeatureCard key={f.title} {...f} />)}
+          {PRO_FEATURES.map(f => <FeatureCard key={f.title} accent {...f} />)}
         </div>
       </section>
 
@@ -726,6 +813,9 @@ export default function MarketingPage() {
           </div>
         </div>
       </section>
+
+      {/* ── Comparison ───────────────────────────────────────────────────────── */}
+      <ComparisonSection />
 
       {/* ── Pricing ──────────────────────────────────────────────────────────── */}
       <PricingSection />
@@ -774,9 +864,9 @@ export default function MarketingPage() {
               <img src="/icons/icon.svg" className="w-16 h-16" alt="Pelikn" />
             </div>
           </div>
-          <h2 className="text-2xl font-bold sm:text-4xl text-cream mb-4 tracking-tight">Built for hospitality.</h2>
+          <h2 className="text-2xl font-bold sm:text-4xl text-cream mb-4 tracking-tight">Compliance and team management, sorted.</h2>
           <p className="text-cream/50 max-w-md mx-auto text-sm leading-relaxed mb-8">
-            Start your free 7-day trial today. No credit card, no commitment. One app for your whole venue from day one.
+            EHO-ready records, AI-powered scheduling, and staff training tracking — all in one place for £25/month per venue. No card required.
           </p>
           <Link to="/signup" className="inline-block bg-accent text-cream px-8 py-4 rounded-xl text-sm font-semibold hover:bg-accent/90 active:scale-[0.98] transition-all">
             Start Free Trial - No Card Required
