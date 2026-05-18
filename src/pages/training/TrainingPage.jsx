@@ -9,6 +9,7 @@ import EmptyState from '../../components/ui/EmptyState'
 import { SkeletonList } from '../../components/ui/Skeleton'
 import SignaturePad from '../../components/ui/SignaturePad'
 import AcknowledgeModal from '../../components/training/AcknowledgeModal'
+import { sendPush } from '../../lib/sendPush'
 
 // ── SC6 topic list (standard food safety induction) ───────────────────────────
 const SC6_TOPICS = [
@@ -264,7 +265,23 @@ function CreateSignOffModal({ staff, venueId, managerName, onSaved, onClose }) {
 // ── Staff acknowledgement modal ───────────────────────────────────────────────
 
 // ── View sign-off detail modal ────────────────────────────────────────────────
-function SignOffDetailModal({ record, onClose }) {
+function SignOffDetailModal({ record, venueId, onClose }) {
+  const [sending, setSending] = useState(false)
+  const [sent, setSent]       = useState(false)
+
+  async function handleRemind() {
+    setSending(true)
+    await sendPush({
+      venueId,
+      staffIds: [record.staff_id],
+      title: 'Training record to sign',
+      body: `You have a training record from ${record.trainer_name} that needs your signature.`,
+      url: '/training',
+    })
+    setSending(false)
+    setSent(true)
+  }
+
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 p-4" onClick={e => e.target === e.currentTarget && onClose()}>
       <div className="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
@@ -316,11 +333,20 @@ function SignOffDetailModal({ record, onClose }) {
           )}
 
           {!record.staff_acknowledged && (
-            <div className="bg-warning/8 border border-warning/25 rounded-lg px-4 py-3">
-              <p className="text-sm text-warning font-medium">Awaiting employee signature</p>
-              <p className="text-xs text-warning/70 mt-0.5">
-                {record.staff?.name} needs to sign this record from their account.
-              </p>
+            <div className="bg-warning/8 border border-warning/25 rounded-lg px-4 py-3 flex items-center justify-between gap-3">
+              <div>
+                <p className="text-sm text-warning font-medium">Awaiting employee signature</p>
+                <p className="text-xs text-warning/70 mt-0.5">
+                  {record.staff?.name} needs to sign this record from their account.
+                </p>
+              </div>
+              <button
+                onClick={handleRemind}
+                disabled={sending || sent}
+                className="shrink-0 bg-warning text-white text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-warning/90 transition-colors disabled:opacity-50"
+              >
+                {sent ? 'Reminder sent' : sending ? 'Sending…' : 'Send reminder'}
+              </button>
             </div>
           )}
         </div>
@@ -445,7 +471,7 @@ function InductionTab({ venueId, isManager, session }) {
         />
       )}
       {viewRecord && (
-        <SignOffDetailModal record={viewRecord} onClose={() => setViewRecord(null)} />
+        <SignOffDetailModal record={viewRecord} venueId={venueId} onClose={() => setViewRecord(null)} />
       )}
       {ackRecord && (
         <AcknowledgeModal
