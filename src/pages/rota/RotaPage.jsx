@@ -652,6 +652,52 @@ export default function RotaPage() {
     }
   }
 
+  const [copyingWeek, setCopyingWeek] = useState(false)
+
+  const copyWeek = async () => {
+    if (copyingWeek) return
+    setCopyingWeek(true)
+    const targetWeekStr = format(weekStart, 'yyyy-MM-dd')
+    const sourceWeekStart = addWeeks(weekStart, -1)
+    const sourceWeekStr   = format(sourceWeekStart, 'yyyy-MM-dd')
+
+    // Fetch shifts from previous week
+    const { data: sourceShifts, error: fetchErr } = await supabase
+      .from('shifts')
+      .select('staff_id, shift_date, start_time, end_time, role_label')
+      .eq('venue_id', venueId)
+      .eq('week_start', sourceWeekStr)
+    if (fetchErr) { toast(fetchErr.message, 'error'); setCopyingWeek(false); return }
+    if (!sourceShifts?.length) { toast('No shifts in previous week to copy', 'error'); setCopyingWeek(false); return }
+
+    const closedDateSet = closedDates
+
+    // Map each shift forward by 7 days, skipping closed dates
+    const newShifts = sourceShifts
+      .map(sh => {
+        const newDate = format(addWeeks(parseISO(sh.shift_date), 1), 'yyyy-MM-dd')
+        if (closedDateSet.has(newDate)) return null
+        return {
+          venue_id:   venueId,
+          staff_id:   sh.staff_id,
+          shift_date: newDate,
+          week_start: targetWeekStr,
+          start_time: sh.start_time,
+          end_time:   sh.end_time,
+          role_label: sh.role_label,
+        }
+      })
+      .filter(Boolean)
+
+    if (!newShifts.length) { toast('All shifts land on closed days — nothing to copy', 'error'); setCopyingWeek(false); return }
+
+    const { error: insertErr } = await supabase.from('shifts').insert(newShifts)
+    setCopyingWeek(false)
+    if (insertErr) { toast(insertErr.message, 'error'); return }
+    toast(`${newShifts.length} shift${newShifts.length !== 1 ? 's' : ''} copied from previous week ✓`)
+    reload()
+  }
+
   const batchSaveShifts = async (newShifts, isRebuild) => {
     if (isRebuild) {
       const wsStr = format(weekStart, 'yyyy-MM-dd')
@@ -712,6 +758,8 @@ export default function RotaPage() {
         cancelClosureMode={cancelClosureMode}
         saveClosures={saveClosures}
         savingClosures={savingClosures}
+        copyWeek={copyWeek}
+        copyingWeek={copyingWeek}
       />
 
       {/* ── Closure mode banner ── */}
