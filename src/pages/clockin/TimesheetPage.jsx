@@ -109,14 +109,20 @@ function buildDailyGrid(events) {
   return Object.values(result).sort((a, b) => a.name.localeCompare(b.name))
 }
 
-// Holiday pay: calculate total holiday minutes from approved annual leave requests
-function calcHolidayMins(leaveReqs, staffId, profile) {
+// Holiday pay: calculate total holiday minutes from approved annual leave requests.
+// periodFrom/periodTo are YYYY-MM-DD strings used to clip cross-period requests.
+function calcHolidayMins(leaveReqs, staffId, profile, periodFrom, periodTo) {
   const reqs = leaveReqs.filter(r => r.staff_id === staffId)
   if (!reqs.length) return 0
   const { contractedHours, workingDays } = profile
+  if (!contractedHours || contractedHours <= 0) return 0  // return 0, not a fabricated 8h default
   const daysPerWeek = workingDays?.length > 0 ? workingDays.length : 5
-  const dailyHours  = contractedHours > 0 ? contractedHours / daysPerWeek : 8
-  return reqs.reduce((sum, r) => sum + countWorkingDaysInRequest(r.start_date, r.end_date, workingDays) * dailyHours * 60, 0)
+  const dailyHours  = contractedHours / daysPerWeek
+  return reqs.reduce((sum, r) => {
+    const clippedStart = periodFrom && r.start_date < periodFrom ? periodFrom : r.start_date
+    const clippedEnd   = periodTo   && r.end_date   > periodTo   ? periodTo   : r.end_date
+    return sum + countWorkingDaysInRequest(clippedStart, clippedEnd, workingDays) * dailyHours * 60
+  }, 0)
 }
 
 const PERIODS = [
@@ -316,15 +322,14 @@ export default function TimesheetPage() {
       .then(({ data }) => setPeriodLeave(data ?? []))
   }, [venueId, dateFrom, dateTo])
 
-  // Approved annual leave overlapping the Hours-by-Day grid week
+  // All approved leave overlapping the Hours-by-Day grid week (all types for badge display)
   useEffect(() => {
     if (!venueId || !gridDateFrom || !gridDateTo) return
     supabase
       .from('time_off_requests')
-      .select('staff_id, start_date, end_date')
+      .select('staff_id, start_date, end_date, leave_type')
       .eq('venue_id', venueId)
       .eq('status', 'approved')
-      .eq('leave_type', 'annual')
       .lte('start_date', gridDateTo.slice(0, 10))
       .gte('end_date', gridDateFrom.slice(0, 10))
       .then(({ data }) => setWeekLeave(data ?? []))
@@ -341,10 +346,10 @@ export default function TimesheetPage() {
 
   const totalHolidayPay = useMemo(() => timesheets.reduce((a, t) => {
     const profile = staffProfiles[t.staffId] ?? { contractedHours: null, workingDays: [] }
-    return a + (calcHolidayMins(periodLeave, t.staffId, profile) / 60) * t.hourlyRate
-  }, 0), [timesheets, periodLeave, staffProfiles])
+    return a + (calcHolidayMins(periodLeave, t.staffId, profile, dateFrom.slice(0, 10), dateTo.slice(0, 10)) / 60) * t.hourlyRate
+  }, 0), [timesheets, periodLeave, staffProfiles, dateFrom, dateTo])
 
-  // { staffId: Set<dateStr> } — dates in the grid week where staff are on approved annual leave
+  // { staffId: { dateStr: leave_type } } — leave days in the grid week (all types)
   const weekLeaveMap = useMemo(() => {
     const map = {}
     for (const r of weekLeave) {
@@ -354,8 +359,8 @@ export default function TimesheetPage() {
         for (const d of eachDayOfInterval({ start: parseISO(r.start_date), end: parseISO(r.end_date) })) {
           const dow = getDay(d) === 0 ? 7 : getDay(d)
           if (!pattern.includes(dow)) continue
-          if (!map[r.staff_id]) map[r.staff_id] = new Set()
-          map[r.staff_id].add(format(d, 'yyyy-MM-dd'))
+          if (!map[r.staff_id]) map[r.staff_id] = {}
+          map[r.staff_id][format(d, 'yyyy-MM-dd')] = r.leave_type
         }
       } catch { /* invalid dates */ }
     }
@@ -388,18 +393,24 @@ export default function TimesheetPage() {
   }, [gridReload, reload])
 
   const exportPdf = () => {
+    const pFrom   = dateFrom.slice(0, 10)
+    const pTo     = dateTo.slice(0, 10)
     const pdfRows = timesheets.map((t) => {
-      const hrs  = (t.totalMinutes / 60).toFixed(2)
-      const rate = Number(t.hourlyRate).toFixed(2)
-      const pay  = ((t.totalMinutes / 60) * t.hourlyRate).toFixed(2)
-      return [t.name, `${hrs} hrs`, rate > 0 ? `£${rate}/hr` : '—', pay > 0 ? `£${pay}` : '—']
+      const hrs     = (t.totalMinutes / 60).toFixed(2)
+      const rate    = Number(t.hourlyRate).toFixed(2)
+      const worked  = ((t.totalMinutes / 60) * t.hourlyRate).toFixed(2)
+      const profile = staffProfiles[t.staffId] ?? { contractedHours: null, workingDays: [] }
+      const holMins = calcHolidayMins(periodLeave, t.staffId, profile, pFrom, pTo)
+      const holPay  = ((holMins / 60) * t.hourlyRate).toFixed(2)
+      const total   = (parseFloat(worked) + parseFloat(holPay)).toFixed(2)
+      return [t.name, `${hrs} hrs`, rate > 0 ? `£${rate}/hr` : '—', worked > 0 ? `£${worked}` : '—', holPay > 0 ? `£${holPay}` : '—', `£${total}`]
     })
-    pdfRows.push(['TOTAL', `${(totalMins / 60).toFixed(2)} hrs`, '', totalWage > 0 ? `£${totalWage.toFixed(2)}` : '—'])
+    pdfRows.push(['TOTAL', `${(totalMins / 60).toFixed(2)} hrs`, '', totalWage > 0 ? `£${totalWage.toFixed(2)}` : '—', totalHolidayPay > 0 ? `£${totalHolidayPay.toFixed(2)}` : '—', `£${(totalWage + totalHolidayPay).toFixed(2)}`])
     buildPdfReport({
       title: 'Pelikn',
       subtitle: 'Timesheet Report',
       periodLabel,
-      columns: ['Staff Member', 'Hours Worked', 'Hourly Rate', 'Est. Pay'],
+      columns: ['Staff Member', 'Hours Worked', 'Hourly Rate', 'Worked Pay', 'Holiday Pay', 'Total Pay'],
       rows: pdfRows,
       didParseCell(hookData) {
         if (hookData.section === 'body' && hookData.row.index === pdfRows.length - 1) {
@@ -412,15 +423,21 @@ export default function TimesheetPage() {
   }
 
   const exportCsv = () => {
-    const escape   = (v) => `"${String(v).replace(/"/g, '""')}"`
-    const header   = ['Name', 'Hours Worked', 'Hourly Rate (£)', 'Gross Pay (£)'].map(escape).join(',')
+    const escape  = (v) => `"${String(v).replace(/"/g, '""')}"`
+    const pFrom   = dateFrom.slice(0, 10)
+    const pTo     = dateTo.slice(0, 10)
+    const header  = ['Name', 'Hours Worked', 'Hourly Rate (£)', 'Worked Pay (£)', 'Holiday Pay (£)', 'Total Pay (£)'].map(escape).join(',')
     const dataRows = timesheets.map((t) => {
-      const hrs  = (t.totalMinutes / 60).toFixed(2)
-      const rate = Number(t.hourlyRate).toFixed(2)
-      const pay  = ((t.totalMinutes / 60) * t.hourlyRate).toFixed(2)
-      return [t.name, hrs, rate, pay].map(escape).join(',')
+      const hrs     = (t.totalMinutes / 60).toFixed(2)
+      const rate    = Number(t.hourlyRate).toFixed(2)
+      const worked  = ((t.totalMinutes / 60) * t.hourlyRate).toFixed(2)
+      const profile = staffProfiles[t.staffId] ?? { contractedHours: null, workingDays: [] }
+      const holMins = calcHolidayMins(periodLeave, t.staffId, profile, pFrom, pTo)
+      const holPay  = ((holMins / 60) * t.hourlyRate).toFixed(2)
+      const total   = (parseFloat(worked) + parseFloat(holPay)).toFixed(2)
+      return [t.name, hrs, rate, worked, holPay, total].map(escape).join(',')
     })
-    const totalRow = ['TOTAL', (totalMins / 60).toFixed(2), '', totalWage.toFixed(2)].map(escape).join(',')
+    const totalRow = ['TOTAL', (totalMins / 60).toFixed(2), '', totalWage.toFixed(2), totalHolidayPay.toFixed(2), (totalWage + totalHolidayPay).toFixed(2)].map(escape).join(',')
     downloadCsv([header, ...dataRows, totalRow].join('\n'), `payroll-${dateFrom.slice(0, 10)}-to-${dateTo.slice(0, 10)}.csv`)
   }
 
@@ -544,11 +561,13 @@ export default function TimesheetPage() {
                 <span className="text-right">Holiday</span>
               </div>
               {timesheets.map((t) => {
-                const pay       = (t.totalMinutes / 60) * t.hourlyRate
-                const schedMins = periodScheduled.byStaff[t.staffId] ?? 0
-                const profile   = staffProfiles[t.staffId] ?? { contractedHours: null, workingDays: [] }
-                const holMins   = calcHolidayMins(periodLeave, t.staffId, profile)
-                const holPay    = (holMins / 60) * t.hourlyRate
+                const pay            = (t.totalMinutes / 60) * t.hourlyRate
+                const schedMins      = periodScheduled.byStaff[t.staffId] ?? 0
+                const profile        = staffProfiles[t.staffId] ?? { contractedHours: null, workingDays: [] }
+                const hasLeave       = periodLeave.some(r => r.staff_id === t.staffId)
+                const missingHours   = hasLeave && !profile.contractedHours
+                const holMins        = calcHolidayMins(periodLeave, t.staffId, profile, dateFrom.slice(0, 10), dateTo.slice(0, 10))
+                const holPay         = (holMins / 60) * t.hourlyRate
                 return (
                   <div key={t.name} className="grid grid-cols-[1fr_auto_auto_auto_auto_auto] gap-x-4 py-3 border-t border-charcoal/5 items-center">
                     <span className="text-sm font-medium text-charcoal truncate">{t.name}</span>
@@ -569,7 +588,9 @@ export default function TimesheetPage() {
                       )}
                     </div>
                     <div className="text-right whitespace-nowrap">
-                      {holPay > 0 ? (
+                      {missingHours ? (
+                        <span className="text-[10px] text-warning" title="Set contracted hours in Staff settings to calculate holiday pay">⚠ Set hrs</span>
+                      ) : holPay > 0 ? (
                         <span className="font-mono text-xs text-success font-semibold">{fmtGBP(holPay)}</span>
                       ) : (
                         <span className="text-xs text-charcoal/15">—</span>
@@ -697,7 +718,7 @@ export default function TimesheetPage() {
                           const actual   = dayData?.minutes ?? 0
                           const expected = expectedMap[person.staffId]?.[dateStr]
                           const status   = discrepancyStatus(actual, expected, cleanupMinutes)
-                          const onLeave  = weekLeaveMap[person.staffId]?.has(dateStr) ?? false
+                          const leaveType = weekLeaveMap[person.staffId]?.[dateStr]
 
                           return (
                             <td key={dateStr} className="py-3 px-2 text-center align-top">
@@ -717,8 +738,12 @@ export default function TimesheetPage() {
                                     </span>
                                   )}
                                 </>
-                              ) : onLeave ? (
+                              ) : leaveType === 'annual' ? (
                                 <span className="inline-block text-[10px] font-bold text-success bg-success/10 rounded px-1 py-0.5 leading-tight">AL</span>
+                              ) : leaveType === 'unpaid' ? (
+                                <span className="inline-block text-[10px] font-bold text-charcoal/40 bg-charcoal/6 rounded px-1 py-0.5 leading-tight">UL</span>
+                              ) : leaveType ? (
+                                <span className="inline-block text-[10px] text-charcoal/30 bg-charcoal/4 rounded px-1 py-0.5 leading-tight">Off</span>
                               ) : status === 'absent' ? (
                                 <span className="text-danger font-bold"><svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
                               ) : (
