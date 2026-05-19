@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react'
-import { format, endOfWeek, addWeeks, addDays, startOfMonth, endOfMonth, subMonths, parseISO } from 'date-fns'
+import { format, endOfWeek, addWeeks, addDays, startOfMonth, endOfMonth, subMonths, parseISO, eachDayOfInterval, getDay } from 'date-fns'
 import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
 import { useSession } from '../../contexts/SessionContext'
@@ -9,6 +9,7 @@ import { useShifts, useStaffList, unpaidBreakMins } from '../../hooks/useShifts'
 import { useAppSettings } from '../../hooks/useSettings'
 import { formatMinutes, getWeekStart, getWeekDays, downloadCsv } from '../../lib/utils'
 import { buildPdfReport } from '../../lib/pdfUtils'
+import { countWorkingDaysInRequest } from '../../hooks/useLeaveBalance'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
 import AddSessionModal from './AddSessionModal'
 import EditSessionModal from './EditSessionModal'
@@ -108,6 +109,16 @@ function buildDailyGrid(events) {
   return Object.values(result).sort((a, b) => a.name.localeCompare(b.name))
 }
 
+// Holiday pay: calculate total holiday minutes from approved annual leave requests
+function calcHolidayMins(leaveReqs, staffId, profile) {
+  const reqs = leaveReqs.filter(r => r.staff_id === staffId)
+  if (!reqs.length) return 0
+  const { contractedHours, workingDays } = profile
+  const daysPerWeek = workingDays?.length > 0 ? workingDays.length : 5
+  const dailyHours  = contractedHours > 0 ? contractedHours / daysPerWeek : 8
+  return reqs.reduce((sum, r) => sum + countWorkingDaysInRequest(r.start_date, r.end_date, workingDays) * dailyHours * 60, 0)
+}
+
 const PERIODS = [
   { key: 'this_week',  label: 'This Week' },
   { key: 'last_week',  label: 'Last Week' },
@@ -163,11 +174,14 @@ export default function TimesheetPage() {
   const [customFrom,    setCustomFrom]    = useState('')
   const [customTo,      setCustomTo]      = useState('')
   const [staffRates,    setStaffRates]    = useState({})
+  const [staffProfiles, setStaffProfiles] = useState({})
   const [weekOffset,    setWeekOffset]    = useState(0)
   const [expandedStaff, setExpandedStaff] = useState(null)
   const [adminMode,     setAdminMode]     = useState(false)
   const [addTarget,     setAddTarget]     = useState(null)
   const [editTarget,    setEditTarget]    = useState(null)
+  const [periodLeave,   setPeriodLeave]   = useState([])
+  const [weekLeave,     setWeekLeave]     = useState([])
 
   const { venueId }   = useVenue()
   const { isManager } = useSession()
@@ -273,12 +287,48 @@ export default function TimesheetPage() {
     if (!venueId) return
     supabase
       .from('staff')
-      .select('id, hourly_rate')
+      .select('id, hourly_rate, contracted_hours, working_days')
       .eq('venue_id', venueId)
       .then(({ data }) => {
-        if (data) setStaffRates(Object.fromEntries(data.map((s) => [s.id, s.hourly_rate ?? 0])))
+        if (!data) return
+        const rates    = {}
+        const profiles = {}
+        for (const s of data) {
+          rates[s.id]    = s.hourly_rate ?? 0
+          profiles[s.id] = { contractedHours: s.contracted_hours ?? null, workingDays: s.working_days ?? [] }
+        }
+        setStaffRates(rates)
+        setStaffProfiles(profiles)
       })
   }, [venueId])
+
+  // Approved annual leave overlapping the selected Pay Period
+  useEffect(() => {
+    if (!venueId || !dateFrom || !dateTo) return
+    supabase
+      .from('time_off_requests')
+      .select('staff_id, start_date, end_date')
+      .eq('venue_id', venueId)
+      .eq('status', 'approved')
+      .eq('leave_type', 'annual')
+      .lte('start_date', dateTo.slice(0, 10))
+      .gte('end_date', dateFrom.slice(0, 10))
+      .then(({ data }) => setPeriodLeave(data ?? []))
+  }, [venueId, dateFrom, dateTo])
+
+  // Approved annual leave overlapping the Hours-by-Day grid week
+  useEffect(() => {
+    if (!venueId || !gridDateFrom || !gridDateTo) return
+    supabase
+      .from('time_off_requests')
+      .select('staff_id, start_date, end_date')
+      .eq('venue_id', venueId)
+      .eq('status', 'approved')
+      .eq('leave_type', 'annual')
+      .lte('start_date', gridDateTo.slice(0, 10))
+      .gte('end_date', gridDateFrom.slice(0, 10))
+      .then(({ data }) => setWeekLeave(data ?? []))
+  }, [venueId, gridDateFrom, gridDateTo])
 
   useEffect(() => { reload() },     [reload])
   useEffect(() => { gridReload() }, [gridReload])
@@ -288,6 +338,29 @@ export default function TimesheetPage() {
   const dailyGrid  = useMemo(() => buildDailyGrid(gridRows), [gridRows])
   const totalMins  = useMemo(() => timesheets.reduce((a, t) => a + t.totalMinutes, 0), [timesheets])
   const totalWage  = useMemo(() => timesheets.reduce((a, t) => a + (t.totalMinutes / 60) * t.hourlyRate, 0), [timesheets])
+
+  const totalHolidayPay = useMemo(() => timesheets.reduce((a, t) => {
+    const profile = staffProfiles[t.staffId] ?? { contractedHours: null, workingDays: [] }
+    return a + (calcHolidayMins(periodLeave, t.staffId, profile) / 60) * t.hourlyRate
+  }, 0), [timesheets, periodLeave, staffProfiles])
+
+  // { staffId: Set<dateStr> } — dates in the grid week where staff are on approved annual leave
+  const weekLeaveMap = useMemo(() => {
+    const map = {}
+    for (const r of weekLeave) {
+      const { workingDays } = staffProfiles[r.staff_id] ?? { workingDays: [] }
+      const pattern = workingDays?.length > 0 ? workingDays : [1, 2, 3, 4, 5]
+      try {
+        for (const d of eachDayOfInterval({ start: parseISO(r.start_date), end: parseISO(r.end_date) })) {
+          const dow = getDay(d) === 0 ? 7 : getDay(d)
+          if (!pattern.includes(dow)) continue
+          if (!map[r.staff_id]) map[r.staff_id] = new Set()
+          map[r.staff_id].add(format(d, 'yyyy-MM-dd'))
+        }
+      } catch { /* invalid dates */ }
+    }
+    return map
+  }, [weekLeave, staffProfiles])
 
   const deleteSession = useCallback(async (eventIds) => {
     if (!eventIds.length) return
@@ -435,10 +508,13 @@ export default function TimesheetPage() {
                   <p className="text-2xl font-bold text-charcoal/60">{formatMinutes(Math.round(periodScheduled.totalMins))}</p>
                 </div>
               )}
-              {totalWage > 0 && (
+              {(totalWage > 0 || totalHolidayPay > 0) && (
                 <div>
                   <p className="text-xs text-charcoal/40 mb-0.5">Actual wage bill</p>
-                  <p className="text-2xl font-bold text-charcoal font-mono">{fmtGBP(totalWage)}</p>
+                  <p className="text-2xl font-bold text-charcoal font-mono">{fmtGBP(totalWage + totalHolidayPay)}</p>
+                  {totalHolidayPay > 0 && (
+                    <span className="text-xs text-success font-medium">incl. {fmtGBP(totalHolidayPay)} holiday pay</span>
+                  )}
                 </div>
               )}
               {periodScheduled.totalCost > 0 && (
@@ -459,18 +535,22 @@ export default function TimesheetPage() {
             </div>
 
             <div className="flex flex-col gap-0">
-              <div className="grid grid-cols-[1fr_auto_auto_auto_auto] gap-x-4 pb-2 text-[11px] tracking-widest uppercase text-charcoal/40">
+              <div className="grid grid-cols-[1fr_auto_auto_auto_auto_auto] gap-x-4 pb-2 text-[11px] tracking-widest uppercase text-charcoal/40">
                 <span>Staff</span>
                 <span className="text-right">Hours</span>
                 <span className="text-right">Sched.</span>
                 <span className="text-right">Rate</span>
                 <span className="text-right">Est. Pay</span>
+                <span className="text-right">Holiday</span>
               </div>
               {timesheets.map((t) => {
-                const pay = (t.totalMinutes / 60) * t.hourlyRate
+                const pay       = (t.totalMinutes / 60) * t.hourlyRate
                 const schedMins = periodScheduled.byStaff[t.staffId] ?? 0
+                const profile   = staffProfiles[t.staffId] ?? { contractedHours: null, workingDays: [] }
+                const holMins   = calcHolidayMins(periodLeave, t.staffId, profile)
+                const holPay    = (holMins / 60) * t.hourlyRate
                 return (
-                  <div key={t.name} className="grid grid-cols-[1fr_auto_auto_auto_auto] gap-x-4 py-3 border-t border-charcoal/5 items-center">
+                  <div key={t.name} className="grid grid-cols-[1fr_auto_auto_auto_auto_auto] gap-x-4 py-3 border-t border-charcoal/5 items-center">
                     <span className="text-sm font-medium text-charcoal truncate">{t.name}</span>
                     <span className="text-right font-mono text-sm font-semibold text-charcoal whitespace-nowrap">
                       {formatMinutes(Math.round(t.totalMinutes))}
@@ -486,6 +566,13 @@ export default function TimesheetPage() {
                         <span className="font-mono text-sm text-charcoal">{fmtGBP(pay)}</span>
                       ) : (
                         <span className="text-xs text-charcoal/25">—</span>
+                      )}
+                    </div>
+                    <div className="text-right whitespace-nowrap">
+                      {holPay > 0 ? (
+                        <span className="font-mono text-xs text-success font-semibold">{fmtGBP(holPay)}</span>
+                      ) : (
+                        <span className="text-xs text-charcoal/15">—</span>
                       )}
                     </div>
                   </div>
@@ -610,6 +697,7 @@ export default function TimesheetPage() {
                           const actual   = dayData?.minutes ?? 0
                           const expected = expectedMap[person.staffId]?.[dateStr]
                           const status   = discrepancyStatus(actual, expected, cleanupMinutes)
+                          const onLeave  = weekLeaveMap[person.staffId]?.has(dateStr) ?? false
 
                           return (
                             <td key={dateStr} className="py-3 px-2 text-center align-top">
@@ -629,6 +717,8 @@ export default function TimesheetPage() {
                                     </span>
                                   )}
                                 </>
+                              ) : onLeave ? (
+                                <span className="inline-block text-[10px] font-bold text-success bg-success/10 rounded px-1 py-0.5 leading-tight">AL</span>
                               ) : status === 'absent' ? (
                                 <span className="text-danger font-bold"><svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
                               ) : (

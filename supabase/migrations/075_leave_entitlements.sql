@@ -3,7 +3,7 @@
 -- Leave type on requests (annual, sick, unpaid, other)
 ALTER TABLE time_off_requests
   ADD COLUMN IF NOT EXISTS leave_type text NOT NULL DEFAULT 'annual'
-    CHECK (leave_type IN ('annual', 'sick', 'unpaid', 'other'));
+    CHECK (leave_type IN ('annual', 'unpaid', 'other'));
 
 -- Leave entitlements: stores manager overrides for annual entitlement per staff per year.
 -- Calculated entitlement is derived in-app from employment_type + working_days.

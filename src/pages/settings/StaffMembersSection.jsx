@@ -30,6 +30,7 @@ const EMPLOYMENT_TYPES = [
 
 const EMPTY_FORM = {
   name: '', role: 'staff', job_role: 'kitchen', pin: '', email: '', hourly_rate: '',
+  contracted_hours: '',
   show_temp_logs: false, show_allergens: false, skills: [], is_under_18: false,
   working_days: [], colour: '',
   employment_type: '', start_date: '', emergency_contact_name: '', emergency_contact_phone: '',
@@ -152,6 +153,7 @@ export default function StaffMembersSection() {
       pin:                     '',
       email:                   s.email ?? '',
       hourly_rate:             s.hourly_rate?.toString() ?? '',
+      contracted_hours:        s.contracted_hours?.toString() ?? '',
       show_temp_logs:          s.show_temp_logs ?? false,
       show_allergens:          s.show_allergens ?? false,
       skills:                  s.skills ?? [],
@@ -239,6 +241,7 @@ export default function StaffMembersSection() {
     const extraFields = {
       is_under_18:             staffForm.is_under_18,
       working_days:            staffForm.working_days,
+      contracted_hours:        parseFloat(staffForm.contracted_hours) || null,
       employment_type:         staffForm.employment_type || null,
       start_date:              staffForm.start_date || null,
       emergency_contact_name:  staffForm.emergency_contact_name.trim() || null,
@@ -420,6 +423,16 @@ export default function StaffMembersSection() {
                 value={staffForm.hourly_rate}
                 onChange={e => setStaffForm(f => ({ ...f, hourly_rate: e.target.value }))}
                 placeholder="e.g. 12.50"
+                className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+              />
+            </div>
+            <div>
+              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1.5">Contracted Hours / week</label>
+              <input
+                type="number" step="0.5" min="0"
+                value={staffForm.contracted_hours}
+                onChange={e => setStaffForm(f => ({ ...f, contracted_hours: e.target.value }))}
+                placeholder="e.g. 37.5"
                 className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
               />
             </div>

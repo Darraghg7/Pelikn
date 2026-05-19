@@ -15,14 +15,12 @@ import { calculateEntitlementDays, countWorkingDaysInRequest } from '../../hooks
 /* ── Constants ─────────────────────────────────────────────────────────── */
 const LEAVE_TYPES = [
   { value: 'annual',  label: 'Annual Leave' },
-  { value: 'sick',    label: 'Sick Leave' },
   { value: 'unpaid',  label: 'Unpaid Leave' },
   { value: 'other',   label: 'Other' },
 ]
 
 const LEAVE_TYPE_COLOURS = {
   annual:  'bg-brand/10 text-brand',
-  sick:    'bg-warning/10 text-warning',
   unpaid:  'bg-charcoal/8 text-charcoal/50',
   other:   'bg-charcoal/8 text-charcoal/50',
 }
@@ -256,7 +254,7 @@ export default function TimeOffPage() {
   const [showDayDetail, setShowDayDetail] = useState(null)
   const [form, setForm]             = useState({ startDate: '', endDate: '', reason: '', leaveType: 'annual' })
   const [saving, setSaving]         = useState(false)
-  const [showTeamBalances, setShowTeamBalances] = useState(false)
+  const [showTeamBalances, setShowTeamBalances] = useState(true)
 
   // Manager review state
   const [reviewing, setReviewing]   = useState(null)
@@ -501,7 +499,7 @@ export default function TimeOffPage() {
             onClick={() => setShowTeamBalances(v => !v)}
             className="w-full flex items-center justify-between px-5 py-4 text-left"
           >
-            <p className="text-[11px] tracking-widest uppercase text-charcoal/40 font-medium">
+            <p className="text-[11px] tracking-widests uppercase text-charcoal/40 font-medium">
               Team Annual Leave — {currentYear}
             </p>
             <svg className={`w-4 h-4 text-charcoal/30 transition-transform ${showTeamBalances ? 'rotate-180' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
