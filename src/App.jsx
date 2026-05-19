@@ -104,9 +104,11 @@ const SuppliersPage = lazy(() => import('./pages/suppliers/SuppliersPage'))
 // EHO Mock Inspection
 const EHOMockPage = lazy(() => import('./pages/eho/EHOMockPage'))
 
-const TipsPage      = lazy(() => import('./pages/tips/TipsPage'))
-const DocumentsPage = lazy(() => import('./pages/documents/DocumentsPage'))
-const IncidentsPage = lazy(() => import('./pages/incidents/IncidentsPage'))
+const TipsPage                 = lazy(() => import('./pages/tips/TipsPage'))
+const DocumentsPage            = lazy(() => import('./pages/documents/DocumentsPage'))
+const IncidentsPage            = lazy(() => import('./pages/incidents/IncidentsPage'))
+const DateLabellingPage        = lazy(() => import('./pages/date-labelling/DateLabellingPage'))
+const EquipmentMaintenancePage = lazy(() => import('./pages/equipment-maintenance/EquipmentMaintenancePage'))
 
 // Tasks (daily recurring + one-off)
 const TasksPage = lazy(() => import('./pages/tasks/TasksPage'))
@@ -351,8 +353,10 @@ function VenueRoutes() {
             <Route path="settings"           element={wrap(SettingsPage,           RequireManager)} />
             <Route path="staff"             element={wrap(StaffPage,              RequireManager)} />
             <Route path="tips"              element={wrapPro(TipsPage,            RequireManager, 'tips')} />
-            <Route path="documents"         element={wrap(DocumentsPage,          RequireManager)} />
-            <Route path="incidents"         element={wrap(IncidentsPage,          RequireManager)} />
+            <Route path="documents"              element={wrap(DocumentsPage,               RequireManager)} />
+            <Route path="incidents"              element={wrap(IncidentsPage,               RequireManager)} />
+            <Route path="date-labelling"         element={wrapPerm(DateLabellingPage,        'log_food_dates',   'date_labelling')} />
+            <Route path="equipment-maintenance"  element={wrapPerm(EquipmentMaintenancePage, 'log_equipment',    'equipment_maintenance')} />
 
             <Route path="*" element={<NotFoundPage />} />
           </Routes>

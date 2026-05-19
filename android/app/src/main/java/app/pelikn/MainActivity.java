@@ -1,4 +1,4 @@
-package app.safeserv;
+package app.pelikn;
 
 import com.getcapacitor.BridgeActivity;
 

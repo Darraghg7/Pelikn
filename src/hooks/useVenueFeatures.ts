@@ -54,8 +54,10 @@ export const FEATURE_GROUPS: FeatureGroup[] = [
       { id: 'opening_closing', label: 'Opening / Closing', description: 'Daily opening and closing checklists' },
       { id: 'cleaning',        label: 'Cleaning',          description: 'Cleaning schedules and completion records' },
       { id: 'corrective',      label: 'Corrective Actions', description: 'Issue tracking and corrective action log' },
-      { id: 'waste',           label: 'Waste',             description: 'Food waste logging' },
-      { id: 'orders',          label: 'Supplier Orders',   description: 'Supplier order management' },
+      { id: 'waste',                 label: 'Waste',                description: 'Food waste logging' },
+      { id: 'orders',               label: 'Supplier Orders',      description: 'Supplier order management' },
+      { id: 'date_labelling',       label: 'Date Labelling',       description: 'Food item opened/use-by date tracking' },
+      { id: 'equipment_maintenance', label: 'Equipment Maintenance', description: 'Kitchen equipment servicing and calibration logs' },
     ],
   },
   {
@@ -81,6 +83,7 @@ export const STARTER_FEATURE_IDS = [
   'fridge', 'cooking_temps', 'hot_holding', 'cooling_logs',   // temperature
   'deliveries', 'probe', 'allergens', 'pest_control',          // food safety
   'opening_closing', 'cleaning', 'corrective',                 // daily ops
+  'date_labelling', 'equipment_maintenance',                   // EHO compliance
 ]
 
 export const PRO_ONLY_FEATURE_IDS = [

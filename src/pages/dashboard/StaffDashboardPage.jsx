@@ -357,7 +357,8 @@ function DutyCard({ duty, toggleItem }) {
   )
 }
 
-function PendingTrainingCard({ staffId, staffName }) {
+function PendingTrainingCard({ staffId, staffName, isManager }) {
+  if (isManager) return null
   const [records, setRecords] = useState([])
   const [ackRecord, setAckRecord] = useState(null)
 
@@ -670,7 +671,7 @@ function useTodaySummary({ staffId, venueId, isEnabled, hasPermission, closedDay
 
 export default function StaffDashboardPage() {
   const { venueId, venueSlug } = useVenue()
-  const { session, hasPermission } = useSession()
+  const { session, hasPermission, isManager } = useSession()
   const { isEnabled, isPlanLocked } = useVenueFeatures()
   const { closedDays } = useAppSettings()
   const [todayShift, setTodayShift] = useState(null)
@@ -780,7 +781,7 @@ export default function StaffDashboardPage() {
       )}
 
       {/* Pending training sign-offs */}
-      <PendingTrainingCard staffId={session.staffId} staffName={session.staffName} />
+      <PendingTrainingCard staffId={session.staffId} staffName={session.staffName} isManager={isManager} />
 
       {/* Duties */}
       <TodayDuties staffId={session.staffId} />

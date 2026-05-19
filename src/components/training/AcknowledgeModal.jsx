@@ -1,22 +1,24 @@
 import React, { useState } from 'react'
 import { format, parseISO } from 'date-fns'
 import { supabase } from '../../lib/supabase'
+import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../ui/Toast'
 import SignaturePad from '../ui/SignaturePad'
 
 export default function AcknowledgeModal({ record, staffName, onSaved, onClose }) {
   const toast = useToast()
+  const { session } = useSession()
   const [staffSig, setStaffSig] = useState(null)
   const [saving, setSaving]     = useState(false)
 
   const handleSubmit = async () => {
     if (!staffSig) { toast('Please sign to confirm you received this training', 'error'); return }
     setSaving(true)
-    const { error } = await supabase.from('training_sign_offs').update({
-      staff_acknowledged:    true,
-      staff_acknowledged_at: new Date().toISOString(),
-      staff_signature:       staffSig,
-    }).eq('id', record.id)
+    const { error } = await supabase.rpc('acknowledge_training_sign_off', {
+      p_token:       session?.token,
+      p_sign_off_id: record.id,
+      p_signature:   staffSig,
+    })
     setSaving(false)
     if (error) { toast(error.message, 'error'); return }
     toast('Training record signed ✓')

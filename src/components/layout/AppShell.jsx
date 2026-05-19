@@ -402,8 +402,8 @@ const STORAGE_KEY = 'pelikn_sidebar_sections'
 
 function useSidebarSections(venueId, localPath) {
   // Determine which section the current path belongs to
-  const compliancePaths = ['/fridge', '/cooking-temps', '/hot-holding', '/cooling-logs', '/deliveries', '/probe', '/allergens', '/pest-control', '/cleaning', '/corrective', '/suppliers', '/haccp', '/eho-mock']
-  const teamPaths = ['/rota', '/timesheet', '/training', '/time-off', '/clock-in', '/noticeboard', '/staff']
+  const compliancePaths = ['/fridge', '/cooking-temps', '/hot-holding', '/cooling-logs', '/deliveries', '/probe', '/allergens', '/pest-control', '/cleaning', '/corrective', '/suppliers', '/haccp', '/eho-mock', '/date-labelling', '/equipment-maintenance']
+  const teamPaths = ['/rota', '/timesheet', '/training', '/time-off', '/clock-in', '/noticeboard', '/staff', '/tips']
 
   const activeSection = compliancePaths.some(p => localPath.startsWith(p))
     ? 'compliance'
@@ -575,6 +575,8 @@ export default function AppShell({ children }) {
                 {isEnabled('pest_control')  && <SubItem to={vp('/pest-control')}   icon={IcoBug}         label="Pest Control"   isActive={isUnder('/pest-control')} />}
                 {isEnabled('cleaning')      && <SubItem to={vp('/cleaning')}       icon={IcoBroom}       label="Cleaning"       badge={overdueCount} alert={overdueCount > 0} isActive={isUnder('/cleaning')} />}
                 {isEnabled('corrective')    && <SubItem to={vp('/corrective')}     icon={IcoAlert}       label="Actions"        isActive={isUnder('/corrective')} />}
+                {isEnabled('date_labelling')        && <SubItem to={vp('/date-labelling')}        icon={IcoDoc}         label="Date Labels"         isActive={isUnder('/date-labelling')} />}
+                {isEnabled('equipment_maintenance') && <SubItem to={vp('/equipment-maintenance')} icon={IcoThermometer} label="Equipment"            isActive={isUnder('/equipment-maintenance')} />}
                 <SubItem to={vp('/suppliers')}  icon={IcoSupplier} label="Suppliers"       isActive={isUnder('/suppliers')} />
                 <SubItem to={vp('/documents')}  icon={IcoDoc}      label="Documents"       isActive={isUnder('/documents')} />
                 <SubItem to={vp('/incidents')}  icon={IcoAlert}    label="Incidents"       isActive={isUnder('/incidents')} />
