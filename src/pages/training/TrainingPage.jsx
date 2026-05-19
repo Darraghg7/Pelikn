@@ -103,7 +103,7 @@ function useActiveStaff(venueId) {
 }
 
 // ── Create SC6 record modal ───────────────────────────────────────────────────
-function CreateSignOffModal({ staff, venueId, managerName, onSaved, onClose }) {
+function CreateSignOffModal({ staff, venueId, managerName, managerStaffId, onSaved, onClose }) {
   const toast = useToast()
   const today = format(new Date(), 'yyyy-MM-dd')
   const [form, setForm] = useState({
@@ -171,7 +171,7 @@ function CreateSignOffModal({ staff, venueId, managerName, onSaved, onClose }) {
                 className="w-full px-3 py-2 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
               >
                 <option value="">Select</option>
-                {staff.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                {staff.filter(s => s.id !== managerStaffId).map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
               </select>
             </div>
             <div>
@@ -466,6 +466,7 @@ function InductionTab({ venueId, isManager, session }) {
           staff={staff}
           venueId={venueId}
           managerName={session?.staffName}
+          managerStaffId={session?.staffId}
           onSaved={() => { setShowCreate(false); reload() }}
           onClose={() => setShowCreate(false)}
         />
