@@ -21,10 +21,19 @@ const PERMISSION_ROLES  = ['staff', 'manager', 'owner']
 const PERMISSION_LABELS = { staff: 'Staff', manager: 'Manager', owner: 'Owner' }
 const JOB_ROLES  = ['kitchen', 'foh']
 const JOB_LABELS = { kitchen: 'Kitchen', foh: 'Front of House' }
+const EMPLOYMENT_TYPES = [
+  { value: 'full_time',   label: 'Full-time' },
+  { value: 'part_time',   label: 'Part-time' },
+  { value: 'zero_hours',  label: 'Zero-hours' },
+  { value: 'fixed_term',  label: 'Fixed-term' },
+]
+
 const EMPTY_FORM = {
   name: '', role: 'staff', job_role: 'kitchen', pin: '', email: '', hourly_rate: '',
+  contracted_hours: '',
   show_temp_logs: false, show_allergens: false, skills: [], is_under_18: false,
   working_days: [], colour: '',
+  employment_type: '', start_date: '', emergency_contact_name: '', emergency_contact_phone: '',
 }
 const DOW_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
@@ -138,18 +147,23 @@ export default function StaffMembersSection() {
   const openAdd = () => { setStaffForm(EMPTY_FORM); setEditingId(null); setPermForm(new Set(DEFAULT_STAFF_PERMISSIONS)); setShowForm(true) }
   const openEdit = async (s) => {
     setStaffForm({
-      name:           s.name,
-      role:           s.role ?? 'staff',
-      job_role:       s.job_role ?? 'kitchen',
-      pin:            '',
-      email:          s.email ?? '',
-      hourly_rate:    s.hourly_rate?.toString() ?? '',
-      show_temp_logs: s.show_temp_logs ?? false,
-      show_allergens: s.show_allergens ?? false,
-      skills:         s.skills ?? [],
-      is_under_18:    s.is_under_18 ?? false,
-      working_days:   s.working_days ?? [],
-      colour:         s.colour ?? '',
+      name:                    s.name,
+      role:                    s.role ?? 'staff',
+      job_role:                s.job_role ?? 'kitchen',
+      pin:                     '',
+      email:                   s.email ?? '',
+      hourly_rate:             s.hourly_rate?.toString() ?? '',
+      contracted_hours:        s.contracted_hours?.toString() ?? '',
+      show_temp_logs:          s.show_temp_logs ?? false,
+      show_allergens:          s.show_allergens ?? false,
+      skills:                  s.skills ?? [],
+      is_under_18:             s.is_under_18 ?? false,
+      working_days:            s.working_days ?? [],
+      colour:                  s.colour ?? '',
+      employment_type:         s.employment_type ?? '',
+      start_date:              s.start_date ?? '',
+      emergency_contact_name:  s.emergency_contact_name ?? '',
+      emergency_contact_phone: s.emergency_contact_phone ?? '',
     })
     setEditingId(s.id)
     setShowForm(true)
@@ -223,12 +237,18 @@ export default function StaffMembersSection() {
     setSavingStaff(false)
     if (error) { toast(error.message, 'error'); return }
 
-    // Persist fields not covered by RPC (is_under_18, working_days)
+    // Persist fields not covered by RPC
+    const extraFields = {
+      is_under_18:             staffForm.is_under_18,
+      working_days:            staffForm.working_days,
+      contracted_hours:        parseFloat(staffForm.contracted_hours) || null,
+      employment_type:         staffForm.employment_type || null,
+      start_date:              staffForm.start_date || null,
+      emergency_contact_name:  staffForm.emergency_contact_name.trim() || null,
+      emergency_contact_phone: staffForm.emergency_contact_phone.trim() || null,
+    }
     if (editingId) {
-      const { error: extraErr } = await supabase.from('staff').update({
-        is_under_18:  staffForm.is_under_18,
-        working_days: staffForm.working_days,
-      }).eq('id', editingId)
+      const { error: extraErr } = await supabase.from('staff').update(extraFields).eq('id', editingId)
       if (extraErr) { toast('Saved, but failed to update some fields: ' + extraErr.message, 'error') }
     } else {
       // Find the newly created staff member by name + venue
@@ -241,9 +261,8 @@ export default function StaffMembersSection() {
         .limit(1)
       if (newRow?.[0]?.id) {
         const { error: extraErr } = await supabase.from('staff').update({
-          is_under_18:  staffForm.is_under_18,
-          working_days: staffForm.working_days,
-          colour:       staffForm.colour || null,
+          ...extraFields,
+          colour: staffForm.colour || null,
         }).eq('id', newRow[0].id)
         if (extraErr) { toast('Saved, but failed to update some fields: ' + extraErr.message, 'error') }
       }
@@ -404,6 +423,61 @@ export default function StaffMembersSection() {
                 value={staffForm.hourly_rate}
                 onChange={e => setStaffForm(f => ({ ...f, hourly_rate: e.target.value }))}
                 placeholder="e.g. 12.50"
+                className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+              />
+            </div>
+            <div>
+              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1.5">Contracted Hours / week</label>
+              <input
+                type="number" step="0.5" min="0"
+                value={staffForm.contracted_hours}
+                onChange={e => setStaffForm(f => ({ ...f, contracted_hours: e.target.value }))}
+                placeholder="e.g. 37.5"
+                className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+              />
+            </div>
+          </div>
+
+          {/* Employment details */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1.5">Employment Type</label>
+              <select
+                value={staffForm.employment_type}
+                onChange={e => setStaffForm(f => ({ ...f, employment_type: e.target.value }))}
+                className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 text-charcoal"
+              >
+                <option value="">Not set</option>
+                {EMPLOYMENT_TYPES.map(t => (
+                  <option key={t.value} value={t.value}>{t.label}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1.5">Start Date</label>
+              <input
+                type="date"
+                value={staffForm.start_date}
+                onChange={e => setStaffForm(f => ({ ...f, start_date: e.target.value }))}
+                className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+              />
+            </div>
+            <div>
+              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1.5">Emergency Contact</label>
+              <input
+                value={staffForm.emergency_contact_name}
+                onChange={e => setStaffForm(f => ({ ...f, emergency_contact_name: e.target.value }))}
+                placeholder="Contact name"
+                className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+              />
+            </div>
+            <div>
+              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1.5">Emergency Phone</label>
+              <input
+                type="tel"
+                value={staffForm.emergency_contact_phone}
+                onChange={e => setStaffForm(f => ({ ...f, emergency_contact_phone: e.target.value }))}
+                placeholder="+44 7700 900000"
                 className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
               />
             </div>
@@ -695,7 +769,19 @@ export default function StaffMembersSection() {
                     {isLocked && <span className="inline-flex items-center gap-1 text-[10px] bg-danger/10 text-danger px-1.5 py-0.5 rounded-full font-bold"><svg className="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Locked</span>}
                     {!s.is_active && <span className="text-[10px] text-charcoal/30 italic">inactive</span>}
                   </div>
-                  <p className="text-xs text-charcoal/45 mt-0.5">{roleLabel}</p>
+                  <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
+                    <p className="text-xs text-charcoal/45">{roleLabel}</p>
+                    {s.employment_type && (
+                      <span className="text-[10px] bg-charcoal/6 text-charcoal/40 px-1.5 py-0.5 rounded-full font-medium">
+                        {EMPLOYMENT_TYPES.find(t => t.value === s.employment_type)?.label}
+                      </span>
+                    )}
+                    {s.start_date && (
+                      <span className="text-[10px] text-charcoal/30">
+                        since {new Date(s.start_date).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })}
+                      </span>
+                    )}
+                  </div>
                 </div>
                 {/* Reorder */}
                 <div className="flex flex-col gap-0.5 shrink-0">
@@ -705,11 +791,16 @@ export default function StaffMembersSection() {
               </div>
 
               {/* Contact icons row */}
-              {(s.email) && (
+              {(s.email || s.emergency_contact_phone) && (
                 <div className="flex items-center gap-2 mb-3">
                   {s.email && (
                     <a href={`mailto:${s.email}`} className="w-8 h-8 rounded-full border border-charcoal/15 flex items-center justify-center text-charcoal/40 hover:text-charcoal hover:border-charcoal/30 transition-colors">
                       <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" /></svg>
+                    </a>
+                  )}
+                  {s.emergency_contact_phone && (
+                    <a href={`tel:${s.emergency_contact_phone}`} title={`Emergency: ${s.emergency_contact_name || s.emergency_contact_phone}`} className="w-8 h-8 rounded-full border border-warning/25 flex items-center justify-center text-warning/60 hover:text-warning hover:border-warning/50 transition-colors">
+                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z" /></svg>
                     </a>
                   )}
                 </div>
