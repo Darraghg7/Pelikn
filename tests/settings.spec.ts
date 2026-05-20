@@ -66,6 +66,35 @@ test.describe('Staff management', () => {
       ).toBeVisible({ timeout: 5000 })
     }
   })
+
+  test('staff form has contracted hours field (PR #14)', async ({ page }) => {
+    await page.getByRole('button', { name: /add staff/i }).first().click()
+    await expect(page.getByPlaceholder(/full name/i).first()).toBeVisible({ timeout: 5000 })
+    // Label text: "Contracted Hours / week"
+    await expect(
+      page.getByText(/contracted hours/i).first()
+    ).toBeVisible({ timeout: 5000 })
+  })
+
+  test('staff form has working days selector (PR #14)', async ({ page }) => {
+    await page.getByRole('button', { name: /add staff/i }).first().click()
+    await expect(page.getByPlaceholder(/full name/i).first()).toBeVisible({ timeout: 5000 })
+    // Label text: "Working Days" with Mon–Sun buttons
+    await expect(page.getByText(/working days/i).first()).toBeVisible({ timeout: 5000 })
+    // Day-of-week buttons: Mon through Sun (use .first() in case of strict-mode duplicates)
+    for (const day of ['Mon', 'Tue', 'Wed', 'Thu', 'Fri']) {
+      await expect(page.getByRole('button', { name: day }).first()).toBeVisible({ timeout: 5000 })
+    }
+  })
+
+  test('staff form has employment type dropdown (PR #14)', async ({ page }) => {
+    await page.getByRole('button', { name: /add staff/i }).first().click()
+    await expect(page.getByPlaceholder(/full name/i).first()).toBeVisible({ timeout: 5000 })
+    // Label text: "Employment Type" with a <select> containing Full-time / Part-time / Zero-hours
+    await expect(page.getByText(/employment type/i).first()).toBeVisible({ timeout: 5000 })
+    const select = page.locator('select').filter({ has: page.locator('option', { hasText: /full.?time/i }) })
+    await expect(select).toBeVisible({ timeout: 5000 })
+  })
 })
 
 test.describe('Roles management', () => {

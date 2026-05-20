@@ -17,7 +17,7 @@
  *    reconstructed fully offline.
  */
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
-import { supabase } from '../lib/supabase'
+import { supabase, updateSessionToken } from '../lib/supabase'
 import {
   SESSION_TOKEN_KEY,
   SESSION_ID_KEY,
@@ -122,6 +122,7 @@ export function SessionProvider({ children }) {
     const restored = sessionFromStorage(token, true)
     if (restored) {
       setSession(restored)
+      updateSessionToken(token)
       try {
         const raw = localStorage.getItem(SESSION_LINKED_VENUES)
         if (raw) setLinkedVenues(JSON.parse(raw))
@@ -136,6 +137,7 @@ export function SessionProvider({ children }) {
       .then(({ data: isValid, error }) => {
         if (!error && isValid === true) {
           setSession(sessionFromStorage(token, true))
+          updateSessionToken(token)
           // Restore linked venues from cache
           try {
             const raw = localStorage.getItem(SESSION_LINKED_VENUES)
@@ -158,6 +160,7 @@ export function SessionProvider({ children }) {
         const offlineRestored = sessionFromStorage(token, navigator.onLine)
         if (offlineRestored) {
           setSession(offlineRestored)
+          updateSessionToken(token)
           try {
             const raw = localStorage.getItem(SESSION_LINKED_VENUES)
             if (raw) setLinkedVenues(JSON.parse(raw))
@@ -199,22 +202,14 @@ export function SessionProvider({ children }) {
   // ── Sign in ──────────────────────────────────────────────────────────────
   const signIn = useCallback(async (staffId, pin, venueId, venueSlug) => {
     // ── Offline path ──────────────────────────────────────────────────────
+    // PIN hash caching is disabled for security (brute-force risk on device).
+    // Offline login restores only from a previously-established session token.
     if (!navigator.onLine) {
-      const storedHash = localStorage.getItem(pinHashKey(staffId))
-      if (!storedHash) {
-        return { error: new Error('No offline data. Please log in while online first') }
-      }
-      const enteredHash = await hashPin(staffId, pin)
-      if (!enteredHash || enteredHash !== storedHash) {
-        return { error: new Error('Incorrect PIN') }
-      }
-      // Restore cached session
       try {
         const cached = localStorage.getItem(sessDataKey(staffId))
         if (cached) {
           const sess = JSON.parse(cached)
           const restoredSession = { ...sess, verified: false }
-          // Refresh active localStorage keys so sessionFromStorage works correctly
           localStorage.setItem(SESSION_TOKEN_KEY,      sess.token ?? '')
           localStorage.setItem(SESSION_ID_KEY,         sess.staffId)
           localStorage.setItem(SESSION_NAME_KEY,       sess.staffName)
@@ -228,7 +223,7 @@ export function SessionProvider({ children }) {
           return { error: null }
         }
       } catch { /* corrupt cache */ }
-      return { error: new Error('No offline session data. Please log in while online first') }
+      return { error: new Error('You are offline. Please connect to the internet to log in.') }
     }
 
     // ── Online path ───────────────────────────────────────────────────────
@@ -285,9 +280,7 @@ export function SessionProvider({ children }) {
     localStorage.setItem(SESSION_VENUE_ID_KEY,   venueId)
     localStorage.setItem(SESSION_VENUE_SLUG_KEY, venueSlug ?? '')
 
-    // Cache PIN hash + session data for offline use
-    const hash = await hashPin(staffId, pin)
-    if (hash) localStorage.setItem(pinHashKey(staffId), hash)
+    // Cache session data for offline restoration (token-based, not PIN-based)
     localStorage.setItem(sessDataKey(staffId), JSON.stringify(newSession))
 
     // Load linked venues (for overview dashboard — managers with cross-venue access)
@@ -302,6 +295,7 @@ export function SessionProvider({ children }) {
     setLinkedVenues(venues)
 
     setSession(newSession)
+    updateSessionToken(token)
 
     // Register for native iOS push notifications (no-op on web)
     import('../hooks/useNativePush').then(({ registerNativePush }) => {
@@ -331,6 +325,7 @@ export function SessionProvider({ children }) {
     localStorage.setItem(SESSION_TOKEN_KEY,      newToken)
     localStorage.setItem(SESSION_VENUE_ID_KEY,   targetVenueId)
     localStorage.setItem(SESSION_VENUE_SLUG_KEY, targetVenueSlug)
+    updateSessionToken(newToken)
     return { error: null }
   }, [session?.token])
 
@@ -339,6 +334,7 @@ export function SessionProvider({ children }) {
     const token = session?.token ?? localStorage.getItem(SESSION_TOKEN_KEY)
     clearStorage()
     setSession(null)
+    updateSessionToken('')
     if (token) {
       supabase.rpc('invalidate_staff_session', { p_token: token }).catch(() => {})
     }

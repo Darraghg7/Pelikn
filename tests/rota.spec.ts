@@ -52,6 +52,22 @@ test.describe('Rota builder', () => {
       ).toBeVisible({ timeout: 5000 })
     }
   })
+
+  test('shows Copy Prev Week button in manager toolbar', async ({ page }) => {
+    await expect(
+      page.getByRole('button', { name: /copy prev week/i })
+    ).toBeVisible({ timeout: 8000 })
+  })
+
+  test('Copy Prev Week does not crash the page', async ({ page }) => {
+    const copyBtn = page.getByRole('button', { name: /copy prev week/i })
+    await expect(copyBtn).toBeVisible({ timeout: 8000 })
+    await copyBtn.click()
+    // Wait for any async operation to settle, then verify no error state
+    await page.waitForTimeout(2000)
+    await expect(page.locator('body')).not.toContainText('Something went wrong')
+    await expect(page.locator('body')).not.toContainText('404')
+  })
 })
 
 test.describe('Time off requests', () => {

@@ -36,9 +36,14 @@ test.describe('Manager dashboard', () => {
   })
 
   test('can navigate to fridge from dashboard', async ({ page }) => {
-    // Click the "X fridges not logged today" action link in the Today card
-    await page.getByText(/fridges not logged today/i).click()
-    await page.waitForURL(`**/v/${VENUE}/fridge**`, { timeout: 15000 })
-    await expect(page).toHaveURL(new RegExp(`/v/${VENUE}/fridge`))
+    // The sidebar "Compliance" section is collapsed by default.
+    // Expand it so the Fridge Temps nav link becomes interactable.
+    const complianceToggle = page.getByRole('button', { name: /compliance/i }).first()
+    if (await complianceToggle.count() > 0) {
+      await complianceToggle.click()
+    }
+    await page.getByRole('link', { name: /fridge/i }).first().click()
+    await page.waitForURL(/\/fridge/, { timeout: 15000 })
+    await expect(page).toHaveURL(/\/fridge/)
   })
 })

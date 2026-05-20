@@ -1,4 +1,5 @@
 import { test as setup } from '@playwright/test'
+import fs from 'fs'
 
 const BASE_URL     = 'http://127.0.0.1:5173'
 const OWNER_EMAIL  = process.env.TEST_OWNER_EMAIL
@@ -11,6 +12,11 @@ export const OWNER_STATE   = 'tests/auth/owner-state.json'
 export const MANAGER_STATE = 'tests/auth/manager-state.json'
 
 setup('authenticate owner and manager', async ({ page }) => {
+  // Skip full re-auth when cached state files already exist (e.g. in worktrees).
+  // Set FORCE_AUTH_SETUP=true to always regenerate.
+  const stateFilesExist = fs.existsSync(OWNER_STATE) && fs.existsSync(MANAGER_STATE)
+  if (stateFilesExist && !process.env.FORCE_AUTH_SETUP) return
+
   if (!OWNER_EMAIL || !OWNER_PASS) {
     throw new Error('Set TEST_OWNER_EMAIL and TEST_OWNER_PASSWORD before running Playwright auth setup.')
   }
