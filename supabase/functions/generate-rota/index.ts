@@ -35,11 +35,6 @@ serve(async (req) => {
     if (!session_token) return err('Unauthorised', 401)
     if (!venueId || !weekStart) return err('Missing venueId or weekStart', 400)
 
-    // Validate weekStart is a real YYYY-MM-DD date
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(weekStart) || isNaN(new Date(weekStart + 'T00:00:00Z').getTime())) {
-      return err('Invalid weekStart — must be YYYY-MM-DD', 400)
-    }
-
     const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE)
 
     // ── Auth: validate PIN-based session token ─────────────────────────────
@@ -54,16 +49,12 @@ serve(async (req) => {
 
     const { data: staffInfo } = await admin
       .from('staff')
-      .select('role, is_active, venue_id')
+      .select('role, is_active')
       .eq('id', sessionRow.staff_id)
       .maybeSingle()
     if (!staffInfo?.is_active) return err('Staff account inactive', 401)
     if (!['manager', 'owner'].includes(staffInfo.role)) {
       return err(`AI rota builder requires manager access (you are: ${staffInfo.role})`, 403)
-    }
-    // Prevent cross-venue access: the requesting staff must belong to the target venue
-    if (staffInfo.venue_id !== venueId) {
-      return err('Forbidden — venue mismatch', 403)
     }
 
     // ── Rate limiting: max 20 AI rota generations per venue per hour ──────────

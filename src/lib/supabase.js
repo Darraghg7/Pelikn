@@ -15,16 +15,6 @@ if (!isConfigured) {
   )
 }
 
-// Holds the active PIN-session token so the custom fetch wrapper can inject it
-// into every Supabase request as X-Pelikn-Session. PostgREST reads this header
-// via the pre_request function, sets app.current_venue_id, and RLS policies
-// use that value to scope all queries to the authenticated venue.
-let _sessionToken = ''
-
-export function updateSessionToken(token) {
-  _sessionToken = token ?? ''
-}
-
 export const supabase = createClient(
   supabaseUrl     || 'https://placeholder.supabase.co',
   supabaseAnonKey || 'placeholder',
@@ -37,13 +27,9 @@ export const supabase = createClient(
     },
     global: {
       fetch: (url, options = {}) => {
-        const headers = {
-          ...options.headers,
-          ...(_sessionToken ? { 'x-pelikn-session': _sessionToken } : {}),
-        }
         const controller = new AbortController()
         const timeout = setTimeout(() => controller.abort(), 15000)
-        return fetch(url, { ...options, headers, signal: controller.signal })
+        return fetch(url, { ...options, signal: controller.signal })
           .finally(() => clearTimeout(timeout))
       },
     },
