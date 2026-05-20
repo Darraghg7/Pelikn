@@ -6,11 +6,10 @@ import { test, expect } from '@playwright/test'
 const VENUE = process.env.TEST_VENUE_SLUG ?? 'brew-and-bloom'
 
 async function openOwnerLoginForm(page) {
-  const emailInput = page.locator('input[type="email"]:visible').first()
-  if (!(await emailInput.isVisible().catch(() => false))) {
-    await page.getByRole('button', { name: /^sign in$/i }).first().click()
-  }
-  await emailInput.waitFor({ state: 'visible', timeout: 5000 })
+  // Fast-forward the 5.2s entrance animation so inputs become interactive immediately.
+  await page.evaluate(() => window.dispatchEvent(new Event('pk-splash-done')))
+  const emailInput = page.locator('input[type="email"]').first()
+  await emailInput.waitFor({ state: 'visible', timeout: 8000 })
   return emailInput
 }
 
@@ -19,10 +18,11 @@ test.describe('Owner login', () => {
 
   test('shows login page at /login', async ({ page }) => {
     await page.goto('/login')
-    await expect(page.getByRole('heading', { name: /pelikn/i })).toBeVisible()
-    await openOwnerLoginForm(page)
-    await expect(page.locator('input[type="email"]:visible').first()).toBeVisible()
-    await expect(page.locator('input[type="password"]:visible').first()).toBeVisible()
+    const emailInput = await openOwnerLoginForm(page)
+    // Brand is an SVG logo; verify the sign-in form fields are present
+    await expect(emailInput).toBeVisible()
+    await expect(page.locator('input[type="password"]').first()).toBeVisible()
+    await expect(page.getByRole('button', { name: /^Sign In$/i })).toBeVisible()
   })
 
   test('shows error on wrong credentials', async ({ page }) => {

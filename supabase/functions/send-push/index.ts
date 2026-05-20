@@ -23,8 +23,6 @@ const SUPABASE_SERVICE  = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
 const DEV_ORIGIN = Deno.env.get('DEV_ORIGIN')
 const ALLOWED_ORIGINS = [
   'https://pelikn.app',
-  'capacitor://localhost',
-  'ionic://localhost',
   ...(DEV_ORIGIN ? [DEV_ORIGIN] : []),
 ]
 
