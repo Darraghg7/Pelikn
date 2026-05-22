@@ -195,68 +195,71 @@ export default function SettingsPage() {
           {active === 'venue' && (
             <SettingsSection title="Your Venue" subtitle="Name, logo, theme and app icon" defaultOpen>
               <div className="flex flex-col gap-4">
+                {/* Venue Name + Manager Email side by side */}
                 <div>
-                  <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-2">Venue Name</label>
-                  <input
-                    value={venueForm.venue_name}
-                    onChange={e => setVenueForm(f => ({ ...f, venue_name: e.target.value }))}
-                    placeholder="e.g. The Crown Bar & Kitchen"
-                    className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
-                  />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-2">Venue Name</label>
+                      <input
+                        value={venueForm.venue_name}
+                        onChange={e => setVenueForm(f => ({ ...f, venue_name: e.target.value }))}
+                        placeholder="e.g. The Crown Bar & Kitchen"
+                        className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-2">Manager Email</label>
+                      <input
+                        type="email"
+                        value={venueForm.manager_email}
+                        onChange={e => setVenueForm(f => ({ ...f, manager_email: e.target.value }))}
+                        placeholder="manager@yoursite.com"
+                        className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+                      />
+                    </div>
+                  </div>
+                  <button
+                    onClick={saveVenue}
+                    disabled={savingVenue}
+                    className="h-9 px-4 rounded-lg bg-charcoal text-cream text-sm font-medium disabled:opacity-40 self-start mt-3"
+                  >
+                    {savingVenue ? 'Saving…' : 'Save Changes →'}
+                  </button>
                 </div>
-                <div>
-                  <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-2">Manager Email</label>
-                  <input
-                    type="email"
-                    value={venueForm.manager_email}
-                    onChange={e => setVenueForm(f => ({ ...f, manager_email: e.target.value }))}
-                    placeholder="manager@yoursite.com"
-                    className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
-                  />
-                </div>
-                <button
-                  onClick={saveVenue}
-                  disabled={savingVenue}
-                  className="bg-charcoal text-cream px-6 py-2.5 rounded-lg text-sm font-medium hover:bg-charcoal/90 transition-colors disabled:opacity-40 self-start"
-                >
-                  {savingVenue ? 'Saving…' : 'Save Changes →'}
-                </button>
 
                 {/* Logo upload */}
-                <div className="border-t border-charcoal/10 pt-4 mt-2">
-                  <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-3">Venue Logo</label>
-                  <div className="flex items-center gap-4 flex-wrap">
+                <div>
+                  <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-2">Venue Logo</label>
+                  <div className="flex items-center gap-3 flex-wrap pt-2">
                     {settings.logo_url && (
                       <img
                         src={settings.logo_url}
                         alt="Venue logo"
-                        className="h-12 w-12 rounded-lg object-contain border border-charcoal/10 bg-white p-1"
+                        className="h-10 w-10 rounded-lg object-contain border border-charcoal/10 bg-white p-1 shrink-0"
                         loading="lazy"
                       />
                     )}
-                    <div className="flex flex-col gap-2">
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={e => setLogoFile(e.target.files[0] ?? null)}
-                        className="text-sm text-charcoal/60 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border file:border-charcoal/15 file:text-xs file:bg-white file:text-charcoal/60 hover:file:bg-cream"
-                      />
-                      {logoFile && (
-                        <button
-                          onClick={() => uploadLogo(logoFile)}
-                          disabled={uploadingLogo}
-                          className="self-start bg-charcoal text-cream px-4 py-2 rounded-lg text-xs font-medium disabled:opacity-40 hover:bg-charcoal/90 transition-colors"
-                        >
-                          {uploadingLogo ? 'Uploading…' : 'Upload Logo →'}
-                        </button>
-                      )}
-                      <p className="text-[11px] text-charcoal/35">Displayed in the app header after login. PNG or SVG recommended.</p>
-                    </div>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={e => setLogoFile(e.target.files[0] ?? null)}
+                      className="text-sm text-charcoal/60 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border file:border-charcoal/15 file:text-xs file:bg-white file:text-charcoal/60 hover:file:bg-cream"
+                    />
+                    {logoFile && (
+                      <button
+                        onClick={() => uploadLogo(logoFile)}
+                        disabled={uploadingLogo}
+                        className="h-9 px-4 rounded-lg bg-charcoal text-cream text-xs font-medium disabled:opacity-40 shrink-0"
+                      >
+                        {uploadingLogo ? 'Uploading…' : 'Upload →'}
+                      </button>
+                    )}
                   </div>
+                  <p className="text-[11px] text-charcoal/35 mt-1.5">PNG or SVG recommended.</p>
                 </div>
 
                 {/* Theme mode */}
-                <div className="border-t border-charcoal/10 pt-4 mt-2 flex items-center justify-between">
+                <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-charcoal dark:text-white">Appearance</p>
                     <p className="text-xs text-charcoal/40 dark:text-white/40 mt-0.5">
@@ -265,20 +268,32 @@ export default function SettingsPage() {
                   </div>
                   <div className="flex bg-charcoal/8 dark:bg-white/10 rounded-lg p-0.5">
                     {[
-                      { id: 'light', label: '☀️' },
-                      { id: 'dark',  label: '🌙' },
-                      { id: 'system', label: '💻' },
+                      { id: 'light', icon: (
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
+                        </svg>
+                      )},
+                      { id: 'dark', icon: (
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                        </svg>
+                      )},
+                      { id: 'system', icon: (
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>
+                        </svg>
+                      )},
                     ].map(opt => (
                       <button
                         key={opt.id}
                         onClick={() => setThemeMode(opt.id)}
-                        className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+                        className={`px-3 py-1.5 rounded-md transition-all ${
                           themeMode === opt.id
                             ? 'bg-white dark:bg-charcoal text-charcoal dark:text-white shadow-sm'
                             : 'text-charcoal/50 dark:text-white/50 hover:text-charcoal dark:hover:text-white'
                         }`}
                       >
-                        {opt.label}
+                        {opt.icon}
                       </button>
                     ))}
                   </div>
