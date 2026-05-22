@@ -343,24 +343,21 @@ export default function SettingsPage() {
 
           {active === 'shifts' && (
             <SettingsSection title="Shifts & Breaks" subtitle={`Adult break: ${breakDurationMins} min · Under-18: 30 min`} locked={venuePlan !== PLANS.PRO} defaultOpen>
-              <p className="text-sm text-charcoal/50 mb-5">
-                Set the unpaid break deducted from worked hours for adult staff (18+) on shifts over 6 hours. UK law requires a minimum of 20 minutes. Under-18 staff always get 30 minutes as required by law.
-              </p>
-              <div className="flex items-center justify-between flex-wrap gap-3">
+              <div className="flex items-center justify-between gap-3 py-3">
                 <div>
-                  <p className="text-sm font-medium text-charcoal">Break duration (adults, shifts &gt;6h)</p>
-                  <p className="text-xs text-charcoal/40 mt-0.5">Deducted from worked hours</p>
+                  <p className="text-sm font-medium text-charcoal">Adult break (shifts &gt;6h)</p>
+                  <p className="text-xs text-charcoal/40 mt-0.5">Deducted from worked hours · UK minimum 20 min</p>
                 </div>
-                <div className="flex items-center gap-2 flex-wrap">
+                <div className="inline-flex p-0.5 rounded-lg bg-charcoal/5 border border-charcoal/8 gap-0.5">
                   {[15, 20, 30, 45, 60].map(mins => (
                     <button
                       key={mins}
                       onClick={() => saveBreakDuration(mins)}
                       className={[
-                        'px-3 py-1.5 rounded-lg text-sm font-medium border transition-all',
+                        'px-3 py-1 rounded-md text-xs font-medium transition-colors',
                         breakDurationMins === mins
-                          ? 'bg-charcoal text-cream border-charcoal'
-                          : 'bg-white text-charcoal/50 border-charcoal/15 hover:border-charcoal/30',
+                          ? 'bg-white text-charcoal shadow-sm'
+                          : 'text-charcoal/50 hover:text-charcoal',
                       ].join(' ')}
                     >
                       {mins}m
@@ -368,25 +365,22 @@ export default function SettingsPage() {
                   ))}
                 </div>
               </div>
-              {breakDurationMins < 20 && (
-                <p className="text-xs text-warning mt-3">Note: UK minimum break is 20 minutes.</p>
-              )}
 
-              <div className="mt-5 pt-5 border-t border-charcoal/6">
-                <p className="text-sm font-medium text-charcoal mb-0.5">Clean-up time</p>
-                <p className="text-xs text-charcoal/40 mt-0.5 mb-3">
-                  Grace period after shift end for cleaning and closing tasks. Clock-outs within this window won't show as a discrepancy on timesheets.
-                </p>
-                <div className="flex items-center gap-2 flex-wrap">
+              <div className="flex items-center justify-between gap-3 py-3 border-t border-charcoal/6">
+                <div>
+                  <p className="text-sm font-medium text-charcoal">Clean-up grace period</p>
+                  <p className="text-xs text-charcoal/40 mt-0.5">Clock-outs within this window won't show as a discrepancy</p>
+                </div>
+                <div className="inline-flex p-0.5 rounded-lg bg-charcoal/5 border border-charcoal/8 gap-0.5">
                   {[0, 15, 30, 45, 60].map(mins => (
                     <button
                       key={mins}
                       onClick={() => saveCleanupMinutes(mins)}
                       className={[
-                        'px-3 py-1.5 rounded-lg text-sm font-medium border transition-all',
+                        'px-3 py-1 rounded-md text-xs font-medium transition-colors',
                         cleanupMinutes === mins
-                          ? 'bg-charcoal text-cream border-charcoal'
-                          : 'bg-white text-charcoal/50 border-charcoal/15 hover:border-charcoal/30',
+                          ? 'bg-white text-charcoal shadow-sm'
+                          : 'text-charcoal/50 hover:text-charcoal',
                       ].join(' ')}
                     >
                       {mins === 0 ? 'None' : `${mins}m`}
@@ -534,13 +528,9 @@ export default function SettingsPage() {
               subtitle={featuresConfig.mode === 'all' ? 'All modules enabled' : `Custom: ${featuresConfig.enabled?.length ?? 0} enabled`}
               defaultOpen
             >
-              <p className="text-xs text-charcoal/40 dark:text-white/40 mb-4">
-                Choose which modules are available in this venue. Disabled modules are hidden from the navigation.
-              </p>
-
               <VenueTypeIndicator venueId={venueId} venueSlug={venueSlug} />
 
-              <div className="flex gap-2 mb-6">
+              <div className="inline-flex p-0.5 rounded-lg bg-charcoal/5 border border-charcoal/8 gap-0.5 mb-5">
                 {['all', 'custom'].map(mode => (
                   <button
                     key={mode}
@@ -548,13 +538,13 @@ export default function SettingsPage() {
                       mode,
                       enabled: mode === 'all' ? ALL_FEATURE_IDS : (featuresConfig.enabled ?? ALL_FEATURE_IDS),
                     })}
-                    className={`px-5 py-2.5 rounded-xl border text-sm font-medium transition-all ${
+                    className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
                       featuresConfig.mode === mode
-                        ? 'border-accent bg-accent/10 text-accent'
-                        : 'border-charcoal/15 dark:border-white/15 text-charcoal/50 dark:text-white/40 hover:border-charcoal/30 dark:hover:border-white/30'
+                        ? 'bg-white text-charcoal shadow-sm'
+                        : 'text-charcoal/50 hover:text-charcoal'
                     }`}
                   >
-                    {mode === 'all' ? 'All Modules' : 'Custom'}
+                    {mode === 'all' ? 'All modules' : 'Custom'}
                   </button>
                 ))}
               </div>
@@ -564,31 +554,27 @@ export default function SettingsPage() {
                   {FEATURE_GROUPS.map(group => {
                     const allOn = group.features.every(f => featuresConfig.enabled?.includes(f.id))
                     return (
-                      <div key={group.id} className="rounded-xl border border-charcoal/10 dark:border-white/10 overflow-hidden">
-                        <div className="flex items-center justify-between px-4 py-3 bg-charcoal/3 dark:bg-white/4 border-b border-charcoal/8 dark:border-white/8">
+                      <div key={group.id} className="rounded-xl border border-charcoal/10 overflow-hidden">
+                        <div className="flex items-center justify-between px-3 py-2.5 bg-charcoal/3 border-b border-charcoal/8">
                           <div>
-                            <p className="text-sm font-semibold text-charcoal dark:text-white">{group.label}</p>
-                            <p className="text-[11px] text-charcoal/40 dark:text-white/35 mt-0.5">{group.description}</p>
+                            <p className="text-sm font-semibold text-charcoal">{group.label}</p>
+                            <p className="text-[11px] text-charcoal/40 mt-0.5">{group.description}</p>
                           </div>
                           <Toggle checked={allOn} onChange={() => handleToggleGroup(group.features, allOn)} />
                         </div>
-                        <div className="divide-y divide-charcoal/6 dark:divide-white/6">
+                        <div className="divide-y divide-charcoal/6">
                           {group.features.map(feature => {
                             const isProOnly = PRO_ONLY_FEATURE_IDS.includes(feature.id)
                             const locked    = isProOnly && venuePlan !== PLANS.PRO
                             const on        = !locked && (featuresConfig.enabled?.includes(feature.id) ?? true)
                             return (
-                              <div key={feature.id} className={`flex items-center justify-between px-4 py-3 ${locked ? 'opacity-60' : ''}`}>
-                                <div className="flex-1 min-w-0 pr-4">
+                              <div key={feature.id} className={`grid grid-cols-[1fr_auto] items-center gap-3 px-3 py-2.5 ${locked ? 'opacity-60' : ''}`}>
+                                <div className="min-w-0 pr-4">
                                   <div className="flex items-center gap-2">
-                                    <p className={`text-sm font-medium ${on ? 'text-charcoal dark:text-white' : 'text-charcoal/35 dark:text-white/30'}`}>
-                                      {feature.label}
-                                    </p>
-                                    {locked && (
-                                      <span className="text-[9px] tracking-widest uppercase font-bold text-accent bg-accent/10 px-1.5 py-0.5 rounded shrink-0">Pro</span>
-                                    )}
+                                    <p className={`text-sm font-medium ${on ? 'text-charcoal' : 'text-charcoal/35'}`}>{feature.label}</p>
+                                    {locked && <span className="text-[10px] font-bold tracking-wider uppercase text-accent bg-accent/10 px-1.5 py-0.5 rounded">Pro</span>}
                                   </div>
-                                  <p className="text-[11px] text-charcoal/40 dark:text-white/35 mt-0.5 truncate">{feature.description}</p>
+                                  <p className="text-[11px] text-charcoal/40 mt-0.5">{feature.description}</p>
                                 </div>
                                 <Toggle checked={on} onChange={locked ? undefined : () => handleToggleFeature(feature.id)} disabled={locked} />
                               </div>
@@ -602,7 +588,7 @@ export default function SettingsPage() {
               )}
 
               {featuresConfig.mode === 'all' && (
-                <p className="text-xs text-charcoal/35 dark:text-white/30 italic">
+                <p className="text-xs text-charcoal/35 italic">
                   All {ALL_FEATURE_IDS.length} modules are enabled. Switch to Custom to hide any that don't apply to your business.
                 </p>
               )}
