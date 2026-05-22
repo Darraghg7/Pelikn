@@ -67,26 +67,25 @@ export default function VenuesSection() {
       locked={venuePlan !== PLANS.PRO}
     >
       {/* Venue list */}
-      <div className="flex flex-col divide-y divide-charcoal/6 mb-4">
+      <div className="bg-white rounded-xl border border-charcoal/8 overflow-hidden divide-y divide-charcoal/5 mb-4">
         {venues.map((v, i) => (
-          <div key={v.id} className="py-3.5 first:pt-0 flex items-center justify-between gap-3">
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2 flex-wrap">
-                <p className="font-medium text-charcoal text-sm">{v.name}</p>
-                <span className="text-[10px] tracking-widest uppercase font-semibold px-1.5 py-0.5 rounded bg-brand/8 text-brand">
-                  {v.plan}
-                </span>
+          <div key={v.id} className="grid items-center gap-3 py-2.5 px-3 grid-cols-[32px_1fr_auto] hover:bg-charcoal/[0.025] transition-colors">
+            <div className="w-8 h-8 rounded-lg bg-brand text-white grid place-items-center font-bold text-xs">
+              {v.name.charAt(0).toUpperCase()}
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <p className="text-sm font-semibold text-charcoal">{v.name}</p>
+                <span className="text-[10px] font-semibold tracking-wider uppercase px-1.5 py-0.5 rounded bg-brand/8 text-brand">{v.plan}</span>
                 {i === 0 && (
-                  <span className="text-[10px] tracking-widest uppercase font-medium px-1.5 py-0.5 rounded bg-charcoal/5 text-charcoal/40">
-                    Primary
-                  </span>
+                  <span className="text-[10px] tracking-wider uppercase font-medium px-1.5 py-0.5 rounded bg-charcoal/[0.06] text-charcoal/55">Primary</span>
                 )}
               </div>
-              <p className="text-xs text-charcoal/40 mt-0.5">pelikn.app/v/{v.slug}</p>
+              <p className="text-[11px] text-charcoal/40 mt-0.5 font-mono tracking-wide">pelikn.app/v/{v.slug}</p>
             </div>
             <button
               onClick={() => handleOpenVenue(v.slug)}
-              className="text-xs px-3 py-1.5 rounded-lg border border-charcoal/15 text-charcoal/60 hover:text-charcoal hover:border-charcoal/30 transition-colors whitespace-nowrap shrink-0"
+              className="h-7 px-2.5 rounded-md border border-charcoal/12 text-xs font-medium text-charcoal/60 hover:text-charcoal hover:border-charcoal/30 transition-colors"
             >
               Open →
             </button>
