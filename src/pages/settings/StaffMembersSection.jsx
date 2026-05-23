@@ -755,73 +755,108 @@ export default function StaffMembersSection() {
       {showForm && !editingId && renderFormPanel()}
 
       {/* Staff list */}
-      <div className="flex flex-col gap-2">
+      <div className="bg-white rounded-xl border border-charcoal/8 overflow-hidden divide-y divide-charcoal/5">
         {staff.map((s, idx) => {
           const initial   = (s.name || '?').charAt(0).toUpperCase()
           const roleLabel = (staffRoleMap[s.id] ?? [])[0] ?? (JOB_LABELS[s.job_role] ?? s.job_role)
-          const isLocked  = s.pin_locked_until && new Date(s.pin_locked_until) > new Date()
+          const isLocked = s.pin_locked_until && new Date(s.pin_locked_until) > new Date()
+          const empLabel = EMPLOYMENT_TYPES.find(t => t.value === s.employment_type)?.label
+
           return (
             <React.Fragment key={s.id}>
-              <div className={`bg-white rounded-2xl p-2.5 ${!s.is_active ? 'opacity-50' : ''}`}>
-                {/* Single info row */}
-                <div className="flex items-center gap-2.5">
-                  {s.photo_url ? (
-                    <img src={s.photo_url} alt={s.name} className="w-8 h-8 rounded-full object-cover shrink-0" loading="lazy" />
-                  ) : (
-                    <div
-                      className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-xs shrink-0"
-                      style={{ backgroundColor: s.colour || '#1a3c2e' }}
-                    >
-                      {initial}
-                    </div>
+              <div
+                className={[
+                  'group grid items-center gap-3 py-2.5 px-3 hover:bg-charcoal/[0.025] transition-colors',
+                  'grid-cols-[32px_1fr_auto_auto] sm:grid-cols-[32px_1fr_160px_auto]',
+                  !s.is_active && 'opacity-55',
+                ].filter(Boolean).join(' ')}
+              >
+                {/* Avatar */}
+                {s.photo_url ? (
+                  <img src={s.photo_url} alt={s.name} className="w-8 h-8 rounded-full object-cover" loading="lazy" />
+                ) : (
+                  <div
+                    className="w-8 h-8 rounded-full flex items-center justify-center text-white font-semibold text-xs"
+                    style={{ backgroundColor: s.colour || '#1a3c2e' }}
+                  >
+                    {initial}
+                  </div>
+                )}
+
+                {/* Name + role + tags (inline) */}
+                <div className="min-w-0 flex items-center gap-2 flex-wrap">
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-charcoal leading-tight truncate">{s.name}</p>
+                    <p className="text-xs text-charcoal/45 leading-tight">{roleLabel}</p>
+                  </div>
+                  {s.job_role && (
+                    <span className="text-[10px] font-semibold tracking-wider uppercase px-1.5 py-0.5 rounded bg-charcoal/[0.06] text-charcoal/55">
+                      {JOB_LABELS[s.job_role] ?? s.job_role}
+                    </span>
                   )}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      <p className="font-bold text-charcoal text-sm leading-tight">{s.name}</p>
-                      {isLocked && <span className="inline-flex items-center gap-1 text-[10px] bg-danger/10 text-danger px-1.5 py-0.5 rounded-full font-bold"><svg className="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Locked</span>}
-                      {!s.is_active && <span className="text-[10px] text-charcoal/30 italic">inactive</span>}
-                    </div>
-                    <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
-                      <p className="text-xs text-charcoal/45">{roleLabel}</p>
-                      {s.employment_type && (
-                        <span className="text-[10px] bg-charcoal/6 text-charcoal/40 px-1.5 py-0.5 rounded-full font-medium">
-                          {EMPLOYMENT_TYPES.find(t => t.value === s.employment_type)?.label}
-                        </span>
-                      )}
-                      {s.start_date && (
-                        <span className="text-[10px] text-charcoal/30">
-                          since {new Date(s.start_date).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  {/* Right-side icon cluster */}
-                  <div className="flex items-center gap-1.5 shrink-0">
-                    {s.email && (
-                      <a href={`mailto:${s.email}`} className="w-7 h-7 rounded-full border border-charcoal/15 flex items-center justify-center text-charcoal/40 hover:text-charcoal hover:border-charcoal/30 transition-colors">
-                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" /></svg>
-                      </a>
-                    )}
-                    {s.emergency_contact_phone && (
-                      <a href={`tel:${s.emergency_contact_phone}`} title={`Emergency: ${s.emergency_contact_name || s.emergency_contact_phone}`} className="w-7 h-7 rounded-full border border-warning/25 flex items-center justify-center text-warning/60 hover:text-warning hover:border-warning/50 transition-colors">
-                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z" /></svg>
-                      </a>
-                    )}
-                    <button
-                      onClick={() => openEdit(s)}
-                      className="w-7 h-7 rounded-full border border-charcoal/15 flex items-center justify-center text-charcoal/40 hover:text-charcoal hover:border-charcoal/30 transition-colors"
-                    >
-                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125" /></svg>
-                    </button>
-                    <div className="flex flex-col gap-0.5 shrink-0">
-                      <button onClick={() => moveStaff(s.id, 'up')} disabled={idx === 0} className="w-4 h-3.5 flex items-center justify-center text-charcoal/20 hover:text-charcoal disabled:opacity-0 text-[9px]">▲</button>
-                      <button onClick={() => moveStaff(s.id, 'down')} disabled={idx === staff.length - 1} className="w-4 h-3.5 flex items-center justify-center text-charcoal/20 hover:text-charcoal disabled:opacity-0 text-[9px]">▼</button>
-                    </div>
-                  </div>
+                  {isLocked && (
+                    <span className="inline-flex items-center gap-1 text-[10px] font-semibold tracking-wider uppercase px-1.5 py-0.5 rounded bg-danger/10 text-danger">
+                      <svg className="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4">
+                        <rect x="3" y="11" width="18" height="11" rx="2" />
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                      </svg>
+                      PIN locked
+                    </span>
+                  )}
+                  {!s.is_active && (
+                    <span className="text-[10px] tracking-wider uppercase text-charcoal/35">inactive</span>
+                  )}
                 </div>
-                {/* Thin action strip */}
-                <div className="flex items-center gap-3 mt-1.5 ml-[calc(32px+10px)]">
-                  <button onClick={() => openEdit(s)} className="text-[11px] text-charcoal/40 hover:text-charcoal transition-colors">Edit</button>
+
+                {/* Employment + start date (hidden on small) */}
+                <div className="hidden sm:flex items-center gap-2 text-xs text-charcoal/45 whitespace-nowrap">
+                  {empLabel && (
+                    <span className="text-[10px] font-semibold tracking-wider uppercase px-1.5 py-0.5 rounded bg-charcoal/[0.06] text-charcoal/55">
+                      {empLabel}
+                    </span>
+                  )}
+                  {s.start_date && (
+                    <span>
+                      since <b className="text-charcoal/65 font-medium">
+                        {new Date(s.start_date).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })}
+                      </b>
+                    </span>
+                  )}
+                </div>
+
+                {/* Actions (compact, inline) */}
+                <div className="flex items-center gap-1.5">
+                  {s.email && (
+                    <a
+                      href={`mailto:${s.email}`}
+                      title={s.email}
+                      className="hidden sm:grid place-items-center w-7 h-7 rounded-md text-charcoal/40 hover:text-charcoal hover:bg-charcoal/5 transition-colors"
+                    >
+                      <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
+                        <rect x="2" y="4" width="20" height="16" rx="2" />
+                        <path d="m22 6-10 7L2 6" />
+                      </svg>
+                    </a>
+                  )}
+                  {s.emergency_contact_phone && (
+                    <a
+                      href={`tel:${s.emergency_contact_phone}`}
+                      title={`Emergency: ${s.emergency_contact_name || s.emergency_contact_phone}`}
+                      className="hidden sm:grid place-items-center w-7 h-7 rounded-md text-warning/55 hover:text-warning hover:bg-warning/5 transition-colors"
+                    >
+                      <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
+                        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+                      </svg>
+                    </a>
+                  )}
+
+                  <button
+                    onClick={() => openEdit(s)}
+                    className="h-7 px-2.5 rounded-md border border-charcoal/12 text-xs font-medium text-charcoal/60 hover:text-charcoal hover:border-charcoal/30 transition-colors"
+                  >
+                    View
+                  </button>
+
                   {isLocked && (
                     <button
                       onClick={async () => {
@@ -829,26 +864,38 @@ export default function StaffMembersSection() {
                         toast(`${s.name}'s PIN unlocked`)
                         reloadStaff()
                       }}
-                      className="text-[11px] text-danger/40 hover:text-danger transition-colors"
+                      className="h-7 px-2.5 rounded-md border border-danger/25 text-xs font-medium text-danger/70 hover:text-danger hover:border-danger/45 transition-colors"
                     >
                       Unlock PIN
                     </button>
                   )}
+
                   <button
                     onClick={() => toggleActive(s)}
-                    className={s.is_active ? 'text-[11px] text-charcoal/30 hover:text-danger transition-colors' : 'text-[11px] text-success/50 hover:text-success transition-colors'}
+                    className={[
+                      'h-7 px-2.5 rounded-md border text-xs font-medium transition-colors',
+                      s.is_active
+                        ? 'border-charcoal/12 text-charcoal/55 hover:text-danger hover:border-danger/30'
+                        : 'border-success/25 text-success/70 hover:text-success hover:border-success/45',
+                    ].join(' ')}
                   >
                     {s.is_active ? 'Deactivate' : 'Reactivate'}
                   </button>
+
+                  {/* Reorder collapses to keyboard-only on hover */}
+                  <div className="flex flex-col opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button onClick={() => moveStaff(s.id, 'up')}   disabled={idx === 0}             className="w-5 h-3.5 flex items-center justify-center text-charcoal/30 hover:text-charcoal disabled:opacity-0 text-[8px]">▲</button>
+                    <button onClick={() => moveStaff(s.id, 'down')} disabled={idx === staff.length-1} className="w-5 h-3.5 flex items-center justify-center text-charcoal/30 hover:text-charcoal disabled:opacity-0 text-[8px]">▼</button>
+                  </div>
                 </div>
               </div>
 
-              {/* Inline edit form — opens directly below this staff member's card */}
+              {/* Inline edit form — opens directly below this staff member's row */}
               {showForm && editingId === s.id && renderFormPanel(inlineFormRef)}
             </React.Fragment>
           )
         })}
-        {staff.length === 0 && <p className="text-sm text-charcoal/35 italic py-4">No staff members yet.</p>}
+        {staff.length === 0 && <p className="text-sm text-charcoal/35 italic py-4 px-3">No staff members yet.</p>}
       </div>
 
       <ConfirmDialog

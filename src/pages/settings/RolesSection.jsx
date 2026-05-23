@@ -55,9 +55,9 @@ export default function RolesSection() {
 
       {/* Existing roles */}
       {roles.length > 0 && (
-        <div className="flex flex-col gap-2">
+        <div className="bg-white rounded-xl border border-charcoal/8 overflow-hidden divide-y divide-charcoal/5">
           {roles.map(role => (
-            <div key={role.id} className="flex items-center gap-2 px-3 py-2.5 rounded-xl border border-charcoal/10 bg-charcoal/2">
+            <div key={role.id} className="grid items-center gap-3 py-2 px-3 grid-cols-[1fr_auto] hover:bg-charcoal/[0.025] transition-colors group">
               {editingId === role.id ? (
                 <>
                   <input
@@ -65,23 +65,23 @@ export default function RolesSection() {
                     value={editName}
                     onChange={e => setEditName(e.target.value)}
                     onKeyDown={e => e.key === 'Enter' && handleRename(role.id)}
-                    className="flex-1 px-2 py-1 rounded-lg border border-charcoal/20 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+                    className="px-2 py-1 rounded-md border border-charcoal/20 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
                     autoFocus
                   />
-                  <button onClick={() => handleRename(role.id)} className="text-xs bg-charcoal text-cream px-2.5 py-1.5 rounded-lg">Save</button>
-                  <button onClick={() => setEditingId(null)} className="text-xs text-charcoal/40 hover:text-charcoal px-2 py-1.5">Cancel</button>
+                  <div className="flex gap-1">
+                    <button onClick={() => handleRename(role.id)}  className="h-7 px-2.5 rounded-md bg-charcoal text-cream text-xs font-medium">Save</button>
+                    <button onClick={() => setEditingId(null)}      className="h-7 px-2.5 rounded-md text-xs text-charcoal/50">Cancel</button>
+                  </div>
                 </>
               ) : (
                 <>
-                  <span className="flex-1 text-sm font-medium text-charcoal">{role.name}</span>
-                  <button
-                    onClick={() => { setEditingId(role.id); setEditName(role.name) }}
-                    className="text-[11px] text-charcoal/35 hover:text-charcoal transition-colors px-2 py-1"
-                  >Edit</button>
-                  <button
-                    onClick={() => setDeleteTarget({ id: role.id, name: role.name })}
-                    className="text-[11px] text-danger/40 hover:text-danger transition-colors px-2 py-1"
-                  >Remove</button>
+                  <span className="text-sm font-medium text-charcoal">{role.name}</span>
+                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button onClick={() => { setEditingId(role.id); setEditName(role.name) }}
+                            className="h-7 px-2.5 rounded-md border border-charcoal/12 text-xs font-medium text-charcoal/60 hover:text-charcoal hover:border-charcoal/30 transition-colors">Rename</button>
+                    <button onClick={() => setDeleteTarget({ id: role.id, name: role.name })}
+                            className="h-7 px-2.5 rounded-md border border-charcoal/12 text-xs font-medium text-charcoal/60 hover:text-danger hover:border-danger/30 transition-colors">Remove</button>
+                  </div>
                 </>
               )}
             </div>

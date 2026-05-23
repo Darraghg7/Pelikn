@@ -228,16 +228,31 @@ export default function CleaningPage() {
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                       <p className="text-sm font-medium text-charcoal">{t.title}</p>
                       <div className="flex items-center gap-2 shrink-0">
-                        <span className={`text-[11px] tracking-widest uppercase font-medium px-2.5 py-1 rounded-full ${cfg.bg} ${cfg.text}`}>
-                          {cfg.label}
-                        </span>
-                        <button
-                          onClick={() => openComplete(t)}
-                          disabled={!!completing}
-                          className="min-h-11 px-4 py-2.5 rounded-xl bg-charcoal text-cream text-sm font-semibold hover:bg-charcoal/80 transition-colors disabled:opacity-50 disabled:cursor-wait"
-                        >
-                          {completing === t.id ? 'Saving…' : 'Mark Done'}
-                        </button>
+                        {t.status === 'done' ? (
+                          <span
+                            title="Done"
+                            aria-label="Done"
+                            className="inline-flex items-center justify-center w-11 h-11 rounded-xl bg-success/10 text-success border border-success/20"
+                          >
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                              <polyline points="20 6 9 17 4 12" />
+                            </svg>
+                          </span>
+                        ) : (
+                          <>
+                            <span className={`text-[11px] tracking-widest uppercase font-medium px-2.5 py-1 rounded-full ${cfg.bg} ${cfg.text}`}>
+                              {cfg.label}
+                            </span>
+                            <button
+                              onClick={() => openComplete(t)}
+                              disabled={!!completing}
+                              className="min-h-11 px-4 py-2.5 rounded-xl bg-charcoal text-cream text-sm font-semibold hover:bg-charcoal/80 transition-colors disabled:opacity-50 disabled:cursor-wait"
+                            >
+                              {completing === t.id ? 'Saving…' : 'Mark Done'}
+                            </button>
+                          </>
+                        )}
+
                         {isManager && (
                           <button
                             onClick={() => deactivateTask(t.id)}
