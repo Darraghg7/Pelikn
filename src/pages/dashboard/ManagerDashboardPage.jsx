@@ -17,6 +17,16 @@ import TodaySummaryCard from './TodaySummaryCard'
 import WidgetPicker from './WidgetPicker'
 import PushBanner from './PushBanner'
 import GettingStartedCard from './GettingStartedCard'
+import {
+  DndContext, DragOverlay, closestCenter,
+  PointerSensor, useSensor, useSensors,
+  KeyboardSensor,
+} from '@dnd-kit/core'
+import {
+  SortableContext, rectSortingStrategy,
+  useSortable, sortableKeyboardCoordinates, arrayMove,
+} from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 
 const PLAN_CONFIG = {
   starter: { label: 'Starter', bg: 'bg-success/8',   text: 'text-brand', border: 'border-success/30'  },
@@ -60,94 +70,85 @@ function UpgradeButton() {
 }
 
 /* ── Draggable widget grid ──────────────────────────────────────────────── */
+function SortableWidget({ id }) {
+  const widget = WIDGET_REGISTRY[id]
+  if (!widget) return null
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id })
+  const Component = widget.component
+  return (
+    <div
+      ref={setNodeRef}
+      style={{
+        transform: CSS.Transform.toString(transform),
+        transition,
+        opacity: isDragging ? 0.35 : 1,
+      }}
+      className="relative group rounded-2xl"
+    >
+      {/* Drag handle — top-right, appears on hover */}
+      <div
+        {...attributes}
+        {...listeners}
+        className="absolute top-2 right-2 z-20 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing p-1.5 rounded-lg bg-white/80 backdrop-blur-sm text-charcoal/40 hover:text-charcoal/70 shadow-sm"
+        title="Drag to reorder"
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+          <circle cx="9" cy="5" r="1.5"/><circle cx="15" cy="5" r="1.5"/>
+          <circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/>
+          <circle cx="9" cy="19" r="1.5"/><circle cx="15" cy="19" r="1.5"/>
+        </svg>
+      </div>
+      <Component />
+    </div>
+  )
+}
+
 function DraggableWidgetGrid({ widgetIds, onReorder }) {
   const [ids, setIds] = useState(widgetIds)
-  const dragState = useRef(null) // { index, pointerId }
-  const itemRefs = useRef([])
+  const [activeId, setActiveId] = useState(null)
 
   // Keep local state in sync when widgetIds prop changes (e.g. after picker save)
   const prevIds = useRef(widgetIds)
-  if (prevIds.current !== widgetIds) {
-    prevIds.current = widgetIds
-    setIds(widgetIds)
+  if (prevIds.current !== widgetIds) { prevIds.current = widgetIds; setIds(widgetIds) }
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  )
+
+  const handleDragStart = ({ active }) => setActiveId(active.id)
+  const handleDragEnd = ({ active, over }) => {
+    setActiveId(null)
+    if (!over || active.id === over.id) return
+    setIds(prev => {
+      const next = arrayMove(prev, prev.indexOf(active.id), prev.indexOf(over.id))
+      onReorder(next)
+      return next
+    })
   }
 
-  const closestIndex = useCallback((x, y) => {
-    let best = 0, bestDist = Infinity
-    itemRefs.current.forEach((el, i) => {
-      if (!el) return
-      const r = el.getBoundingClientRect()
-      const cx = r.left + r.width / 2
-      const cy = r.top + r.height / 2
-      const d = Math.hypot(x - cx, y - cy)
-      if (d < bestDist) { bestDist = d; best = i }
-    })
-    return best
-  }, [])
-
-  const onPointerDown = useCallback((e, index) => {
-    e.currentTarget.setPointerCapture(e.pointerId)
-    dragState.current = { index, pointerId: e.pointerId }
-  }, [])
-
-  const onPointerMove = useCallback((e) => {
-    const ds = dragState.current
-    if (!ds) return
-    const target = closestIndex(e.clientX, e.clientY)
-    if (target !== ds.index) {
-      setIds(prev => {
-        const next = [...prev]
-        const [removed] = next.splice(ds.index, 1)
-        next.splice(target, 0, removed)
-        return next
-      })
-      dragState.current = { ...ds, index: target }
-    }
-  }, [closestIndex])
-
-  const onPointerUp = useCallback((e) => {
-    if (!dragState.current) return
-    dragState.current = null
-    onReorder(ids)
-  }, [ids, onReorder])
+  const ActiveWidget = activeId ? WIDGET_REGISTRY[activeId]?.component : null
 
   return (
-    <div
-      className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
-      onPointerMove={onPointerMove}
-      onPointerUp={onPointerUp}
-      onPointerCancel={onPointerUp}
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCenter}
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
     >
-      {ids.map((id, index) => {
-        const widget = WIDGET_REGISTRY[id]
-        if (!widget) return null
-        const Component = widget.component
-        const isDragging = dragState.current?.index === index
-        return (
-          <div
-            key={id}
-            ref={el => { itemRefs.current[index] = el }}
-            className={`relative group transition-all duration-150 rounded-2xl ${isDragging ? 'scale-[1.02] shadow-xl z-10 opacity-90' : ''}`}
-            style={{ touchAction: 'none' }}
-          >
-            {/* Drag handle — appears on hover/touch */}
-            <div
-              className="absolute top-2 right-2 z-20 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing p-1.5 rounded-lg bg-white/80 backdrop-blur-sm text-charcoal/40 hover:text-charcoal/70 shadow-sm"
-              onPointerDown={e => { e.stopPropagation(); onPointerDown(e, index) }}
-              style={{ touchAction: 'none' }}
-              title="Drag to reorder"
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                <circle cx="9" cy="5" r="1.5"/><circle cx="15" cy="5" r="1.5"/>
-                <circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/>
-                <circle cx="9" cy="19" r="1.5"/><circle cx="15" cy="19" r="1.5"/>
-              </svg>
-            </div>
-            <Component />
+      <SortableContext items={ids} strategy={rectSortingStrategy}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {ids.map(id => <SortableWidget key={id} id={id} />)}
+        </div>
+      </SortableContext>
+      <DragOverlay>
+        {ActiveWidget && (
+          <div className="rounded-2xl shadow-2xl scale-[1.03] opacity-95 cursor-grabbing">
+            <ActiveWidget />
           </div>
-        )
-      })}
-    </div>
+        )}
+      </DragOverlay>
+    </DndContext>
   )
 }
 

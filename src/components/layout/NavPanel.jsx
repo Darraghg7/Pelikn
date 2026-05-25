@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { T } from './navConfig'
 
 function PanelItem({ item, isActive, onClick }) {
@@ -93,6 +93,20 @@ export default function NavPanel({ cat, activeItemId, onPickItem, isPreview, onC
 
   const needsAttention = cat.items.filter(i => i.warn || i.badge > 0).length
 
+  // Preserve scroll position per category
+  const navRef    = useRef(null)
+  const scrollMap = useRef(new Map()) // catId → scrollTop
+  const prevCatId = useRef(cat.id)
+  if (prevCatId.current !== cat.id) {
+    if (navRef.current) scrollMap.current.set(prevCatId.current, navRef.current.scrollTop)
+    prevCatId.current = cat.id
+  }
+  useEffect(() => {
+    if (navRef.current) {
+      navRef.current.scrollTop = scrollMap.current.get(cat.id) ?? 0
+    }
+  }, [cat.id])
+
   return (
     <div style={{
       width: 260, background: T.bgPanel, color: T.ink,
@@ -171,7 +185,7 @@ export default function NavPanel({ cat, activeItemId, onPickItem, isPreview, onC
       )}
 
       {/* Nav items */}
-      <nav style={{ flex: 1, overflowY: 'auto', padding: '6px 0 12px', overscrollBehavior: 'contain' }} aria-label={`${cat.label} navigation`}>
+      <nav ref={navRef} style={{ flex: 1, overflowY: 'auto', padding: '6px 0 12px', overscrollBehavior: 'contain' }} aria-label={`${cat.label} navigation`}>
         {cat.items.map(item => (
           <PanelItem
             key={item.id}

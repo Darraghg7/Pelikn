@@ -11,6 +11,7 @@ import { useToast } from '../../components/ui/Toast'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
 import Modal from '../../components/ui/Modal'
 import { calculateEntitlementDays, countWorkingDaysInRequest } from '../../hooks/useLeaveBalance'
+import { useZeroHoursAccrual, useTeamZeroHoursAccruals } from '../../hooks/useZeroHoursAccrual'
 
 /* ── Constants ─────────────────────────────────────────────────────────── */
 const LEAVE_TYPES = [
@@ -206,20 +207,125 @@ function CalendarView({ month, requests, onDayClick }) {
 }
 
 /* ── Balance pill ──────────────────────────────────────────────────────── */
-function BalancePill({ entitlement, used, remaining, isZeroHours, small }) {
+function BalancePill({ entitlement, used, remaining, isZeroHours, accrued, small }) {
   if (isZeroHours) return (
-    <span className={`inline-flex items-center gap-1 ${small ? 'text-[10px]' : 'text-xs'} text-charcoal/40 bg-charcoal/6 px-2 py-0.5 rounded-full`}>
-      Accrual-based
+    <span className={`inline-flex items-center gap-1 ${small ? 'text-[10px]' : 'text-xs'} font-medium text-charcoal/60 bg-charcoal/6 px-2 py-0.5 rounded-full`}>
+      {accrued != null ? `${accrued} hrs accrued` : 'Calculating…'}
     </span>
   )
   if (entitlement == null) return null
-  const pct      = entitlement > 0 ? Math.round((used / entitlement) * 100) : 0
   const colour   = remaining === 0 ? 'text-danger' : remaining <= 5 ? 'text-warning' : 'text-success'
   return (
     <span className={`inline-flex items-center gap-1 ${small ? 'text-[10px]' : 'text-xs'} font-medium`}>
       <span className={colour}>{fmtDays(remaining)} left</span>
       <span className="text-charcoal/30">({used}/{entitlement} used)</span>
     </span>
+  )
+}
+
+/* ── Manual leave entry modal (manager) ───────────────────────────────── */
+function ManualLeaveModal({ staff, venueId, managerId, onClose, onSaved }) {
+  const toast = useToast()
+  const [form, setForm]     = useState({ startDate: '', endDate: '', leaveType: 'annual', note: '' })
+  const [saving, setSaving] = useState(false)
+
+  const save = async () => {
+    if (!form.startDate || !form.endDate) { toast('Please select start and end dates', 'error'); return }
+    if (form.endDate < form.startDate)    { toast('End date must be after start date', 'error'); return }
+    setSaving(true)
+    const { error: err } = await supabase.from('time_off_requests').insert({
+      staff_id:    staff.id,
+      venue_id:    venueId,
+      start_date:  form.startDate,
+      end_date:    form.endDate,
+      leave_type:  form.leaveType,
+      status:      'approved',
+      reviewed_by: managerId,
+      reviewed_at: new Date().toISOString(),
+      manager_note: form.note.trim() || 'Manually logged — pre-app record',
+      is_manual_entry: true,
+    })
+    setSaving(false)
+    if (err) { toast(err.message, 'error'); return }
+    toast(`Past leave logged for ${staff.name}`)
+    onSaved()
+    onClose()
+  }
+
+  return (
+    <Modal open onClose={onClose} title={`Log past leave — ${staff.name}`}>
+      <div className="flex flex-col gap-4">
+
+        {/* Leave type */}
+        <div>
+          <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-2">Leave Type</label>
+          <div className="flex gap-2 flex-wrap">
+            {LEAVE_TYPES.map(t => (
+              <button
+                key={t.value}
+                type="button"
+                onClick={() => setForm(f => ({ ...f, leaveType: t.value }))}
+                className={[
+                  'px-3 py-1.5 rounded-full text-xs font-medium border transition-all',
+                  form.leaveType === t.value
+                    ? 'bg-charcoal text-cream border-charcoal'
+                    : 'bg-white text-charcoal/50 border-charcoal/15',
+                ].join(' ')}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Date range */}
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="text-[11px] tracking-widests uppercase text-charcoal/40 block mb-1">Start date</label>
+            <input
+              type="date"
+              value={form.startDate}
+              onChange={e => setForm(f => ({ ...f, startDate: e.target.value, endDate: f.endDate || e.target.value }))}
+              className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+            />
+          </div>
+          <div>
+            <label className="text-[11px] tracking-widests uppercase text-charcoal/40 block mb-1">End date</label>
+            <input
+              type="date"
+              value={form.endDate}
+              min={form.startDate}
+              onChange={e => setForm(f => ({ ...f, endDate: e.target.value }))}
+              className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+            />
+          </div>
+        </div>
+
+        {/* Optional note */}
+        <div>
+          <label className="text-[11px] tracking-widests uppercase text-charcoal/40 block mb-1">Note (optional)</label>
+          <input
+            type="text"
+            value={form.note}
+            onChange={e => setForm(f => ({ ...f, note: e.target.value }))}
+            placeholder="e.g. Summer holiday 2024"
+            className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+          />
+        </div>
+
+        <p className="text-[11px] text-charcoal/35 -mt-2">
+          This will be recorded as approved leave and counted against {staff.name}'s annual balance.
+        </p>
+
+        <button
+          onClick={save}
+          disabled={saving || !form.startDate || !form.endDate}
+          className="bg-charcoal text-cream py-3 rounded-xl text-sm font-medium hover:bg-charcoal/90 transition-colors disabled:opacity-40"
+        >
+          {saving ? 'Saving…' : 'Log Leave'}
+        </button>
+      </div>
+    </Modal>
   )
 }
 
@@ -237,6 +343,22 @@ export default function TimeOffPage() {
     isManager ? staff : [],
     currentYear
   )
+
+  // Zero-hours accrual — own (staff view)
+  const { accrued: ownAccrued } = useZeroHoursAccrual(
+    ownProfile?.employment_type === 'zero_hours' ? session?.staffId : null,
+    currentYear
+  )
+
+  // Zero-hours accrual — team (manager view)
+  const zeroHoursIds = useMemo(
+    () => teamBalances.filter(b => b.isZeroHours).map(b => b.id),
+    [teamBalances]
+  )
+  const { map: zeroHoursMap } = useTeamZeroHoursAccruals(zeroHoursIds, currentYear)
+
+  // Manual leave entry state
+  const [manualEntry, setManualEntry] = useState(null) // null = closed; staff balance obj = open
 
   // Own balance (staff view)
   const ownBalance = useMemo(() => {
@@ -372,7 +494,7 @@ export default function TimeOffPage() {
           {/* Own balance pill shown below title for staff */}
           {ownBalance && (
             <div className="mt-0.5">
-              <BalancePill {...ownBalance} small />
+              <BalancePill {...ownBalance} accrued={ownAccrued} small />
               {!ownBalance.isZeroHours && ownBalance.entitlement != null && (
                 <span className="text-[10px] text-charcoal/30 ml-1">{currentYear} annual leave</span>
               )}
@@ -534,7 +656,15 @@ export default function TimeOffPage() {
                   {teamBalances.map(b => (
                     <div key={b.id} className="flex items-center justify-between px-5 py-3 gap-3">
                       <div className="min-w-0">
-                        <p className="text-sm font-medium text-charcoal truncate">{b.name}</p>
+                        <div className="flex items-center gap-1 flex-wrap">
+                          <p className="text-sm font-medium text-charcoal truncate">{b.name}</p>
+                          <button
+                            onClick={() => setManualEntry(b)}
+                            className="text-[10px] text-charcoal/35 hover:text-charcoal/65 underline underline-offset-2 shrink-0"
+                          >
+                            + log past leave
+                          </button>
+                        </div>
                         {b.employment_type && (
                           <p className="text-[10px] text-charcoal/35 capitalize mt-0.5">
                             {b.employment_type.replace('_', '-')}
@@ -547,6 +677,7 @@ export default function TimeOffPage() {
                           used={b.used}
                           remaining={b.remaining}
                           isZeroHours={b.isZeroHours}
+                          accrued={b.isZeroHours ? zeroHoursMap[b.id] : undefined}
                           small
                         />
                         {!b.isZeroHours && b.entitlement != null && (
@@ -637,7 +768,9 @@ export default function TimeOffPage() {
           )}
           {form.leaveType === 'annual' && ownBalance?.isZeroHours && (
             <p className="text-xs text-charcoal/40 bg-charcoal/4 rounded-xl px-4 py-3">
-              Your annual leave accrues at 12.07% of hours worked. Contact your manager for your current balance.
+              {ownAccrued != null
+                ? `You've accrued ${ownAccrued} hrs of holiday this year (12.07% of hours worked).`
+                : 'Calculating your accrued holiday…'}
             </p>
           )}
 
@@ -746,6 +879,17 @@ export default function TimeOffPage() {
           </button>
         )}
       </Modal>
+
+      {/* Manual leave entry modal */}
+      {manualEntry && (
+        <ManualLeaveModal
+          staff={manualEntry}
+          venueId={venueId}
+          managerId={session?.staffId}
+          onClose={() => setManualEntry(null)}
+          onSaved={() => { reloadBalances(); reload() }}
+        />
+      )}
     </div>
   )
 }
