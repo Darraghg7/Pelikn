@@ -8,8 +8,11 @@ import NotificationBell from '../notifications/NotificationBell'
 import OfflineBanner from '../ui/OfflineBanner'
 import MobileNav from './MobileNav'
 import { useVenueFeatures } from '../../hooks/useVenueFeatures'
-import { useVenueBranding } from '../../hooks/useVenueBranding'
 import { preloadRoute } from '../../lib/routePreload'
+import Rail from './RailNav'
+import NavPanel from './NavPanel'
+import NavTopbar from './NavTopbar'
+import { routeToNav, buildManagerCats, buildStaffCats } from './navConfig'
 
 // Per-venue cache — busted automatically after TTL or on app restart
 const CACHE_TTL = 60_000 // 1 minute
@@ -455,9 +458,8 @@ export default function AppShell({ children }) {
   const navigate     = useNavigate()
   const overdueCount = useOverdueCleaning(venueId)
   const pendingSwaps = usePendingSwaps(venueId)
-  const { logoUrl }  = useVenueBranding(venueId)
 
-  const { isEnabled, isPlanLocked, venuePlan } = useVenueFeatures()
+  const { isEnabled, isPlanLocked } = useVenueFeatures()
 
   const name = session?.staffName ?? ''
   const initials = name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
@@ -491,13 +493,47 @@ export default function AppShell({ children }) {
   // For staff: linkedVenues now includes primary + linked (migration 054), so use it directly.
   const allSwitchableVenues = isManager ? venues : linkedVenues
 
-  const isAt = (p) => localPath === p
-  const isUnder = (p) => localPath.startsWith(p)
+  const navInfo = routeToNav(localPath)
+  const mainCat  = navInfo.cat
+  const mainItem = navInfo.itemId
 
-  const { sections, toggle } = useSidebarSections(venueId, localPath)
+  const [browseCat, setBrowseCat] = useState(mainCat)
+  useEffect(() => { setBrowseCat(mainCat) }, [mainCat])
 
-  const complianceBadge = overdueCount
-  const teamBadge = pendingSwaps
+  const isSettingsRoute = localPath.startsWith('/settings')
+
+  // Panel collapse — persisted to localStorage
+  const [panelCollapsed, setPanelCollapsed] = useState(() => {
+    try { return localStorage.getItem('navc.panelCollapsed') === '1' } catch { return false }
+  })
+  useEffect(() => {
+    try { localStorage.setItem('navc.panelCollapsed', panelCollapsed ? '1' : '0') } catch {}
+  }, [panelCollapsed])
+
+  // ⌘\ / Ctrl+\ toggles panel
+  useEffect(() => {
+    const onKey = (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === '\\') {
+        e.preventDefault()
+        setPanelCollapsed(v => !v)
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
+
+  // Rail pick — also re-opens panel if it was collapsed
+  const handlePickCat = (catId) => {
+    if (panelCollapsed) setPanelCollapsed(false)
+    setBrowseCat(catId)
+  }
+
+  const cats = isManager
+    ? buildManagerCats({ isEnabled, isPlanLocked, overdueCount, pendingSwaps, vp })
+    : buildStaffCats({ isEnabled, isPlanLocked, hasPermission, overdueCount, vp })
+
+  const browseCatObj   = cats.find(c => c.id === browseCat) || cats[0]
+  const panelActiveItem = browseCat === mainCat ? mainItem : null
 
   const bgClass = 'bg-surface dark:bg-[#111111]'
   const maxW    = isManager ? 'max-w-[1280px]' : 'max-w-[860px]'
@@ -510,154 +546,55 @@ export default function AppShell({ children }) {
         Skip to content
       </a>
 
-      {/* ── Desktop sidebar (hidden on everything below 1024px — lg breakpoint) ─ */}
-      <aside
-        className="hidden lg:flex flex-col w-[232px] fixed top-3 bottom-3 left-3 z-30 bg-brand rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.18)]"
-        style={{ paddingTop: 'env(safe-area-inset-top)' }}
-        aria-label="Sidebar navigation"
-      >
-        {/* Logo + venue name */}
-        <div className="px-5 pt-5 pb-4 border-b border-white/[0.07] shrink-0">
-          <div className="flex items-center gap-3">
-            {logoUrl ? (
-              <img src={logoUrl} alt="Venue logo" className="h-11 w-11 rounded-full object-contain bg-white p-1 shrink-0" loading="lazy" />
-            ) : (
-              <div className="h-11 w-11 rounded-full bg-white/15 flex items-center justify-center text-[17px] font-extrabold text-white shrink-0">
-                {(venueName || 'S')[0]}
-              </div>
-            )}
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2">
-                <span className="font-bold text-white text-[15px] leading-tight truncate">{venueName || 'Pelikn'}</span>
-                {allSwitchableVenues.length > 1 && (
-                  <VenueSwitcher
-                    venues={allSwitchableVenues}
-                    currentSlug={venueSlug}
-                    onSelect={handleSwitchVenue}
-                  />
-                )}
-              </div>
-            </div>
-            {/* Bell lives here — top of sidebar, always visible */}
-            <NotificationBell variant="dark" />
-          </div>
-        </div>
+      {/* ── Desktop rail + panel (hidden below lg) ─────────────────────────── */}
+      <div className="hidden lg:block">
+        <Rail
+          cats={cats}
+          browseCat={browseCat}
+          mainCat={mainCat}
+          onPickCat={handlePickCat}
+          onOpenSettings={() => navigate(vp('/settings'))}
+          venueName={venueName}
+          initials={initials}
+          onSignOut={handleSignOut}
+          isSettingsRoute={isSettingsRoute}
+          notificationBell={<NotificationBell variant="dark" />}
+        />
+        {!isSettingsRoute && browseCatObj && !panelCollapsed && (
+          <NavPanel
+            cat={browseCatObj}
+            activeItemId={panelActiveItem}
+            onPickItem={(item) => navigate(item.route)}
+            isPreview={browseCat !== mainCat}
+            onCollapse={() => setPanelCollapsed(true)}
+          />
+        )}
+        {/* Edge tab — expand handle when panel is collapsed */}
+        {!isSettingsRoute && panelCollapsed && (
+          <button
+            onClick={() => setPanelCollapsed(false)}
+            title="Expand panel (⌘\)"
+            style={{
+              position: 'fixed', left: 80, top: '50%', transform: 'translateY(-50%)',
+              width: 18, height: 56, borderRadius: '0 6px 6px 0',
+              background: '#243a34', color: 'rgba(239,234,222,0.50)',
+              border: 'none', borderLeft: '1px solid rgba(255,255,255,0.07)',
+              cursor: 'pointer', zIndex: 39,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              transition: 'color .12s, width .12s',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.color = '#f3ede0'; e.currentTarget.style.width = '22px' }}
+            onMouseLeave={e => { e.currentTarget.style.color = 'rgba(239,234,222,0.50)'; e.currentTarget.style.width = '18px' }}
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="9 6 15 12 9 18"/>
+            </svg>
+          </button>
+        )}
+      </div>
 
-        {/* Nav */}
-        <nav className="flex-1 py-2 overflow-y-auto overflow-x-hidden" aria-label="Main navigation">
-          {isManager ? (
-            <>
-              {/* Top-level items — always visible */}
-              <div className="space-y-0.5 px-0 pt-2">
-                {hasMultiVenueAccess && (
-                  <SideItem to={vp('/overview')} icon={IcoVenues} label="All Venues" isActive={isAt('/overview')} />
-                )}
-                <SideItem to={vp('/dashboard')}      icon={IcoDashboard} label="Dashboard"   isActive={isAt('/dashboard')} />
-                {isEnabled('opening_closing') && <SideItem to={vp('/opening-closing')} icon={IcoChecks} label="Checks" isActive={isUnder('/opening-closing')} />}
-                <SideItem to={vp('/tasks')}    icon={IcoTasks}     label="Tasks"          isActive={isUnder('/tasks')} />
-                <SideItem to={vp('/fitness')}  icon={IcoUser}      label="Fitness to Work" isActive={isUnder('/fitness')} />
-              </div>
-
-              {/* Compliance — collapsible */}
-              <CollapsibleSection
-                label="Compliance"
-                badge={complianceBadge}
-                isOpen={sections.compliance}
-                onToggle={() => toggle('compliance')}
-              >
-                {isEnabled('fridge')        && <SubItem to={vp('/fridge')}         icon={IcoThermometer} label="Fridge Temps"   isActive={isUnder('/fridge')} />}
-                {isEnabled('cooking_temps') && <SubItem to={vp('/cooking-temps')}  icon={IcoFlame}       label="Cooking Temps"  isActive={isUnder('/cooking-temps')} />}
-                {isEnabled('hot_holding')   && <SubItem to={vp('/hot-holding')}    icon={IcoSnowflake}   label="Hot Holding"    isActive={isUnder('/hot-holding')} />}
-                {isEnabled('cooling_logs')  && <SubItem to={vp('/cooling-logs')}   icon={IcoSnowflake}   label="Cooling Logs"   isActive={isUnder('/cooling-logs')} />}
-                {isEnabled('deliveries')    && <SubItem to={vp('/deliveries')}     icon={IcoTruck}       label="Deliveries"     isActive={isUnder('/deliveries')} />}
-                {isEnabled('probe')         && <SubItem to={vp('/probe')}          icon={IcoThermometer} label="Probe Cal."     isActive={isUnder('/probe')} />}
-                {isEnabled('allergens')     && <SubItem to={vp('/allergens')}      icon={IcoAllergen}    label="Allergens"      isActive={isUnder('/allergens')} />}
-                {isEnabled('pest_control')  && <SubItem to={vp('/pest-control')}   icon={IcoBug}         label="Pest Control"   isActive={isUnder('/pest-control')} />}
-                {isEnabled('cleaning')      && <SubItem to={vp('/cleaning')}       icon={IcoBroom}       label="Cleaning"       badge={overdueCount} alert={overdueCount > 0} isActive={isUnder('/cleaning')} />}
-                {isEnabled('corrective')    && <SubItem to={vp('/corrective')}     icon={IcoAlert}       label="Actions"        isActive={isUnder('/corrective')} />}
-                {isEnabled('date_labelling')        && <SubItem to={vp('/date-labelling')}        icon={IcoDoc}         label="Date Labels"         isActive={isUnder('/date-labelling')} />}
-                {isEnabled('equipment_maintenance') && <SubItem to={vp('/equipment-maintenance')} icon={IcoThermometer} label="Equipment"            isActive={isUnder('/equipment-maintenance')} />}
-                <SubItem to={vp('/suppliers')}  icon={IcoSupplier} label="Suppliers"       isActive={isUnder('/suppliers')} />
-                <SubItem to={vp('/documents')}  icon={IcoDoc}      label="Documents"       isActive={isUnder('/documents')} />
-                <SubItem to={vp('/incidents')}  icon={IcoAlert}    label="Incidents"       isActive={isUnder('/incidents')} />
-                <SubItem to={vp('/haccp')}      icon={IcoDoc}      label="HACCP"           isActive={isUnder('/haccp')} />
-                <SubItem to={vp('/eho-mock')}   icon={IcoShield}   label="Mock Inspection" isActive={isUnder('/eho-mock')} />
-              </CollapsibleSection>
-
-              {/* Team — collapsible */}
-              <CollapsibleSection
-                label="Team"
-                badge={teamBadge}
-                isOpen={sections.team}
-                onToggle={() => toggle('team')}
-              >
-                {isPlanLocked('rota')      ? <LockedSubItem label="Rota" />
-                  : isEnabled('rota')      && <SubItem to={vp('/rota')}      icon={IcoRota}    label="Rota"      badge={pendingSwaps} alert={pendingSwaps > 0} isActive={isUnder('/rota')} />}
-                {isPlanLocked('timesheet') ? <LockedSubItem label="Hours" />
-                  : isEnabled('timesheet') && <SubItem to={vp('/timesheet')} icon={IcoClock}   label="Hours"     isActive={isUnder('/timesheet')} />}
-                {isPlanLocked('training')  ? <LockedSubItem label="Training" />
-                  : isEnabled('training')  && <SubItem to={vp('/training')}  icon={IcoBook}    label="Training"  isActive={isUnder('/training')} />}
-                {isPlanLocked('time_off')  ? <LockedSubItem label="Time Off" />
-                  : isEnabled('time_off')  && <SubItem to={vp('/time-off')}  icon={IcoTimeOff} label="Time Off"  isActive={isUnder('/time-off')} />}
-                {isPlanLocked('clock-in')    ? <LockedSubItem label="Clock In / Out" />
-                  : <SubItem to={vp('/clock-in')}    icon={IcoClock}   label="Clock In / Out"  isActive={isUnder('/clock-in')} />}
-                {isPlanLocked('noticeboard') ? <LockedSubItem label="Noticeboard" />
-                  : <SubItem to={vp('/noticeboard')} icon={IcoBoard}   label="Noticeboard"     isActive={isUnder('/noticeboard')} />}
-                {isPlanLocked('tips')       ? <LockedSubItem label="Tips" />
-                  : isEnabled('tips')      && <SubItem to={vp('/tips')}     icon={IcoCoins}   label="Tips"      isActive={isUnder('/tips')} />}
-              </CollapsibleSection>
-
-              {/* Bottom fixed items */}
-              <div className="mt-2 space-y-0.5 border-t border-white/[0.07] pt-2">
-                <SideItem to={vp('/audit')}    icon={IcoAudit}    label="EHO Audit"  isActive={isAt('/audit')} />
-                <SideItem to={vp('/settings')} icon={IcoSettings} label="Settings"   isActive={isUnder('/settings')} />
-              </div>
-            </>
-          ) : (
-            <div className="space-y-0.5 pt-2">
-              <SideItem to={vp('/dashboard')}       icon={IcoUser}       label="My Shift"      isActive={isAt('/dashboard')} />
-              <SideItem to={vp('/tasks')}           icon={IcoTasks}      label="Tasks"         isActive={isUnder('/tasks')} />
-              {!isPlanLocked('clock-in')    && <SideItem to={vp('/clock-in')}    icon={IcoClock} label="Clock In / Out" isActive={isUnder('/clock-in')} />}
-              {!isPlanLocked('noticeboard') && <SideItem to={vp('/noticeboard')} icon={IcoBoard} label="Noticeboard"   isActive={isUnder('/noticeboard')} />}
-              {isEnabled('opening_closing') && hasPermission('manage_opening') && <SideItem to={vp('/opening-closing')} icon={IcoChecks}     label="Checks"    isActive={isUnder('/opening-closing')} />}
-              {isEnabled('cleaning') && hasPermission('manage_cleaning') && <SideItem to={vp('/cleaning')}        icon={IcoCompliance} label="Cleaning"  isActive={isUnder('/cleaning')} />}
-              {isEnabled('fridge') && hasPermission('view_temp_logs') && (
-                <SideItem to={vp('/fridge')} icon={IcoCompliance} label="Temp Logs" isActive={isUnder('/fridge')} />
-              )}
-              {isEnabled('allergens') && hasPermission('manage_allergens') && (
-                <SideItem to={vp('/allergens')} icon={IcoCompliance} label="Allergens" isActive={isUnder('/allergens')} />
-              )}
-              {isEnabled('deliveries') && hasPermission('log_deliveries') && (
-                <SideItem to={vp('/deliveries')} icon={IcoCompliance} label="Deliveries" isActive={isUnder('/deliveries')} />
-              )}
-              {isEnabled('waste') && hasPermission('log_waste') && (
-                <SideItem to={vp('/waste')} icon={IcoCompliance} label="Waste" isActive={isUnder('/waste')} />
-              )}
-              {isEnabled('rota')     && <SideItem to={vp('/rota')}      icon={IcoRota}       label="Rota"      isActive={isUnder('/rota')} />}
-              {isEnabled('time_off') && <SideItem to={vp('/time-off')}  icon={IcoTimeOff}    label="Time Off"  isActive={isUnder('/time-off')} />}
-            </div>
-          )}
-        </nav>
-
-        {/* Bottom: user info + signout */}
-        <div className="shrink-0 border-t border-white/[0.07] px-5 py-4">
-          <p className="text-[10px] tracking-widest uppercase text-white/25 font-semibold mb-1">
-            Logged in as {isManager ? 'Manager' : 'Staff'}
-          </p>
-          <div className="flex items-center justify-between gap-2">
-            {name && <p className="text-[13px] font-semibold text-white truncate flex-1">{name}</p>}
-            <button
-              onClick={handleSignOut}
-              className="text-[11px] font-semibold text-white/25 border border-white/[0.08] rounded-lg px-3 py-1.5 hover:text-white/55 hover:border-white/20 hover:bg-white/[0.04] shrink-0"
-            >
-              Sign out
-            </button>
-          </div>
-        </div>
-      </aside>
-
-      {/* ── Content area (offset by sidebar on desktop) ───────────────────── */}
-      <div className={`flex-1 lg:ml-[248px] flex flex-col min-h-dvh overflow-x-hidden ${bgClass}`}>
+      {/* ── Content area (offset by rail + panel on desktop) ───────────────── */}
+      <div className={`flex-1 ${isSettingsRoute || panelCollapsed ? 'lg:ml-[80px]' : 'lg:ml-[340px]'} flex flex-col min-h-dvh overflow-x-hidden ${bgClass}`}>
 
         {/* Mobile-only header (shown below lg breakpoint) */}
         <header
@@ -690,6 +627,17 @@ export default function AppShell({ children }) {
 
         {/* Offline banner */}
         <OfflineBanner />
+
+        {/* Desktop topbar breadcrumb */}
+        {!isSettingsRoute && (
+          <div className="hidden lg:block">
+            <NavTopbar
+              venueName={venueName}
+              catLabel={cats.find(c => c.id === mainCat)?.label ?? ''}
+              itemLabel={cats.find(c => c.id === mainCat)?.items.find(i => i.id === mainItem)?.label ?? ''}
+            />
+          </div>
+        )}
 
         {/* Mobile sub-nav */}
         <MobileNav />
