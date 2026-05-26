@@ -564,7 +564,7 @@ export default function AppShell({ children }) {
           <NavPanel
             cat={browseCatObj}
             activeItemId={panelActiveItem}
-            onPickItem={(item) => navigate(item.route)}
+            onPickItem={(item) => navigate(item.route, { preventScrollReset: true })}
             isPreview={browseCat !== mainCat}
             onCollapse={() => setPanelCollapsed(true)}
           />
