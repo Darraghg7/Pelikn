@@ -335,8 +335,9 @@ export default function TimesheetPage() {
       .then(({ data }) => setWeekLeave(data ?? []))
   }, [venueId, gridDateFrom, gridDateTo])
 
-  useEffect(() => { reload() },     [reload])
-  useEffect(() => { gridReload() }, [gridReload])
+  // Note: reload / gridReload are still called explicitly after mutations
+  // (add, edit, delete) to keep the grid fresh. Auto-fetching on date-range
+  // changes is now handled by the enabled flag in useTimesheetData.
   useEffect(() => { setExpandedStaff(null) }, [weekOffset])
 
   const timesheets = useMemo(() => buildTimesheets(rows, staffRates), [rows, staffRates])

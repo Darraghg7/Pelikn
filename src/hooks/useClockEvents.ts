@@ -165,7 +165,9 @@ export function useTimesheetData(dateFrom: string, dateTo: string): {
       const { data } = await q
       return (data ?? []) as TimesheetRow[]
     },
-    enabled: false,
+    // Auto-fetch whenever the venue or date range changes; skip only when dates
+    // are not yet chosen (e.g. custom period with no dates entered).
+    enabled: !!venueId && !!dateFrom && !!dateTo,
   })
 
   return { rows: data ?? [], loading: isLoading, reload: refetch }
