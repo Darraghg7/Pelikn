@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { NavLink, useLocation } from 'react-router-dom'
 import { useSession } from '../../contexts/SessionContext'
 import { useVenue } from '../../contexts/VenueContext'
@@ -230,7 +231,7 @@ function SubNav({ items, currentPath }) {
     const { scrollLeft, offsetWidth: containerWidth } = container
     const itemRight = offsetLeft + offsetWidth
     if (offsetLeft < scrollLeft || itemRight > scrollLeft + containerWidth) {
-      container.scrollTo({ left: offsetLeft - 16, behavior: 'smooth' })
+      container.scrollTo({ left: offsetLeft - 16, behavior: 'instant' })
     }
   }, [currentPath])
 
@@ -428,57 +429,62 @@ export default function MobileNav() {
     <>
       {showSubNav && <SubNav items={activeTab.children} currentPath={pathname} />}
 
-      <nav
-        className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-[#1a1a1a] border-t border-charcoal/8 shadow-[0_-4px_20px_rgba(0,0,0,0.04)]"
-        style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
-        aria-label="Main navigation"
-        role="tablist"
-      >
-        <div className="flex items-center justify-around h-14 max-w-lg mx-auto px-1">
-          {tabs.map(tab => {
-            const isActive = tab.match.some(m => localPath === m || (m !== '/dashboard' && localPath.startsWith(m)))
-            const Icon = tab.icon
-            return (
-              <NavLink
-                key={tab.key}
-                to={tab.to}
-                preventScrollReset
-                onPointerDown={startLongPress}
-                onPointerUp={cancelLongPress}
-                onPointerCancel={cancelLongPress}
-                onPointerLeave={cancelLongPress}
-                onPointerEnter={() => preloadRoute(tab.to)}
-                onTouchStart={() => preloadRoute(tab.to)}
-                onFocus={() => preloadRoute(tab.to)}
-                role="tab"
-                aria-selected={isActive}
-                aria-label={tab.label}
-                className={[
-                  'flex flex-col items-center justify-center flex-1 gap-0.5 transition-colors relative focus-visible:outline-none',
-                  isActive ? 'text-brand dark:text-accent' : 'text-charcoal/40 active:text-charcoal/60',
-                ].join(' ')}
-              >
-                <span className={[
-                  'flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-all',
-                  isActive ? 'bg-navpill dark:bg-brand/30' : '',
-                ].join(' ')}>
-                  <Icon active={isActive} />
-                  <span className={['text-[10px] leading-none tracking-wide', isActive ? 'font-semibold' : 'font-medium'].join(' ')}>
-                    {tab.label}
-                  </span>
-                </span>
-              </NavLink>
-            )
-          })}
-        </div>
-      </nav>
+      {createPortal(
+        <>
+          <nav
+            className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-[#1a1a1a] border-t border-charcoal/8 shadow-[0_-4px_20px_rgba(0,0,0,0.04)]"
+            style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+            aria-label="Main navigation"
+            role="tablist"
+          >
+            <div className="flex items-center justify-around h-14 max-w-lg mx-auto px-1">
+              {tabs.map(tab => {
+                const isActive = tab.match.some(m => localPath === m || (m !== '/dashboard' && localPath.startsWith(m)))
+                const Icon = tab.icon
+                return (
+                  <NavLink
+                    key={tab.key}
+                    to={tab.to}
+                    preventScrollReset
+                    onPointerDown={startLongPress}
+                    onPointerUp={cancelLongPress}
+                    onPointerCancel={cancelLongPress}
+                    onPointerLeave={cancelLongPress}
+                    onPointerEnter={() => preloadRoute(tab.to)}
+                    onTouchStart={() => preloadRoute(tab.to)}
+                    onFocus={() => preloadRoute(tab.to)}
+                    role="tab"
+                    aria-selected={isActive}
+                    aria-label={tab.label}
+                    className={[
+                      'flex flex-col items-center justify-center flex-1 gap-0.5 transition-colors relative focus-visible:outline-none',
+                      isActive ? 'text-brand dark:text-accent' : 'text-charcoal/40 active:text-charcoal/60',
+                    ].join(' ')}
+                  >
+                    <span className={[
+                      'flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-all',
+                      isActive ? 'bg-navpill dark:bg-brand/30' : '',
+                    ].join(' ')}>
+                      <Icon active={isActive} />
+                      <span className={['text-[10px] leading-none tracking-wide', isActive ? 'font-semibold' : 'font-medium'].join(' ')}>
+                        {tab.label}
+                      </span>
+                    </span>
+                  </NavLink>
+                )
+              })}
+            </div>
+          </nav>
 
-      {showReorder && (
-        <NavReorderSheet
-          items={reorderableTabs}
-          onSave={saveOrder}
-          onClose={() => setShowReorder(false)}
-        />
+          {showReorder && (
+            <NavReorderSheet
+              items={reorderableTabs}
+              onSave={saveOrder}
+              onClose={() => setShowReorder(false)}
+            />
+          )}
+        </>,
+        document.body
       )}
     </>
   )
