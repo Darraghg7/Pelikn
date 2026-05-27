@@ -511,12 +511,14 @@ function TodayChecks({ venueId, venueSlug, staffName }) {
   const { checks, loading } = useChecksForShift(venueId)
   const { completions, reload } = useShiftCompletions(venueId, today, sessionType)
   const [saving, setSaving] = useState(null)
+  const [open, setOpen] = useState(false)
 
   if (loading) return null
   if (!checks.length) return null
 
   const done = completions.length
   const total = checks.length
+  const allDone = done === total && total > 0
 
   const markOk = async (checkId) => {
     if (saving) return
@@ -535,57 +537,84 @@ function TodayChecks({ venueId, venueSlug, staffName }) {
   }
 
   return (
-    <div className="flex flex-col gap-2">
-      <div className="flex items-baseline justify-between px-0.5">
+    <div className="flex flex-col gap-1.5">
+      {/* Collapsible header */}
+      <button
+        onClick={() => setOpen(v => !v)}
+        className="flex items-center justify-between w-full px-0.5 py-1 group"
+      >
         <span className="text-[10.5px] font-mono tracking-widest uppercase text-charcoal/40 font-semibold">
           {sessionType === 'opening' ? 'Opening Checks' : 'Closing Checks'}
         </span>
-        <span className="text-[11px] font-mono text-charcoal/35">{done}/{total} recorded</span>
-      </div>
-      <div className="bg-white rounded-[14px] border border-charcoal/8 overflow-hidden">
-        {checks.map((check, i) => {
-          const comp = completions.find(c => c.check_id === check.id)
-          const isOk   = comp && !comp.corrective_action
-          const isIssue = comp && comp.corrective_action
-          return (
-            <div key={check.id} className={`px-4 py-3 flex items-center gap-3 ${i > 0 ? 'border-t border-charcoal/5' : ''}`}>
-              <p className={`text-[13.5px] flex-1 font-medium ${comp ? 'text-charcoal/40' : 'text-charcoal'}`}>{check.title}</p>
-              <div className="flex gap-1.5 shrink-0">
-                <button
-                  onClick={() => markOk(check.id)}
-                  disabled={!!saving || !!comp}
-                  className={[
-                    'px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all',
-                    isOk ? 'bg-success/15 text-success' : 'bg-charcoal/6 text-charcoal/45 hover:bg-success/10 hover:text-success disabled:opacity-40',
-                  ].join(' ')}
-                >
-                  {saving === check.id ? '…' : '✓ OK'}
-                </button>
-                {!comp && (
-                  <a
-                    href={`/v/${venueSlug}/opening-closing`}
-                    className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-charcoal/6 text-charcoal/45 hover:bg-warning/10 hover:text-warning transition-all"
-                  >
-                    ⚠ Issue
-                  </a>
-                )}
-                {isIssue && (
-                  <span className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-warning/12 text-warning">⚠ Issue</span>
-                )}
-              </div>
-            </div>
-          )
-        })}
-        <a
-          href={`/v/${venueSlug}/opening-closing`}
-          className="flex items-center justify-between px-4 py-3 border-t border-charcoal/5 text-[12px] font-semibold text-brand hover:bg-brand/3 transition-colors"
-        >
-          View full checks
-          <svg width="6" height="10" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M1 1l4 4-4 4"/>
+        <div className="flex items-center gap-2">
+          <span className={`text-[11px] font-mono ${allDone ? 'text-success font-semibold' : 'text-charcoal/35'}`}>
+            {done}/{total}
+          </span>
+          <svg
+            className={`w-3.5 h-3.5 text-charcoal/30 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+            viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
+            strokeLinecap="round" strokeLinejoin="round"
+          >
+            <polyline points="6 9 12 15 18 9"/>
           </svg>
-        </a>
+        </div>
+      </button>
+
+      {/* Progress bar — always visible */}
+      <div className="h-[3px] bg-charcoal/6 rounded-full overflow-hidden mx-0.5">
+        <div
+          className={`h-full rounded-full transition-all duration-300 ${allDone ? 'bg-success' : 'bg-brand/50'}`}
+          style={{ width: total > 0 ? `${(done / total) * 100}%` : '0%' }}
+        />
       </div>
+
+      {/* Expandable check list */}
+      {open && (
+        <div className="bg-white rounded-[14px] border border-charcoal/8 overflow-hidden">
+          {checks.map((check, i) => {
+            const comp = completions.find(c => c.check_id === check.id)
+            const isOk    = comp && !comp.corrective_action
+            const isIssue = comp && comp.corrective_action
+            return (
+              <div key={check.id} className={`px-4 py-3 flex items-center gap-3 ${i > 0 ? 'border-t border-charcoal/5' : ''}`}>
+                <p className={`text-[13.5px] flex-1 font-medium ${comp ? 'text-charcoal/40' : 'text-charcoal'}`}>{check.title}</p>
+                <div className="flex gap-1.5 shrink-0">
+                  <button
+                    onClick={() => markOk(check.id)}
+                    disabled={!!saving || !!comp}
+                    className={[
+                      'px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all',
+                      isOk ? 'bg-success/15 text-success' : 'bg-charcoal/6 text-charcoal/45 hover:bg-success/10 hover:text-success disabled:opacity-40',
+                    ].join(' ')}
+                  >
+                    {saving === check.id ? '…' : '✓ OK'}
+                  </button>
+                  {!comp && (
+                    <a
+                      href={`/v/${venueSlug}/opening-closing`}
+                      className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-charcoal/6 text-charcoal/45 hover:bg-warning/10 hover:text-warning transition-all"
+                    >
+                      ⚠ Issue
+                    </a>
+                  )}
+                  {isIssue && (
+                    <span className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-warning/12 text-warning">⚠ Issue</span>
+                  )}
+                </div>
+              </div>
+            )
+          })}
+          <a
+            href={`/v/${venueSlug}/opening-closing`}
+            className="flex items-center justify-between px-4 py-3 border-t border-charcoal/5 text-[12px] font-semibold text-brand hover:bg-brand/3 transition-colors"
+          >
+            View full checks
+            <svg width="6" height="10" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M1 1l4 4-4 4"/>
+            </svg>
+          </a>
+        </div>
+      )}
     </div>
   )
 }
@@ -775,16 +804,16 @@ export default function StaffDashboardPage() {
         />
       )}
 
-      {/* Opening/closing checks — shown when feature is enabled for venue */}
+      {/* Duties — personal assignment for this shift */}
+      <TodayDuties staffId={session.staffId} />
+
+      {/* Opening/closing checks — collapsible, shown when feature is enabled for venue */}
       {isEnabled('opening_closing') && (
         <TodayChecks venueId={venueId} venueSlug={venueSlug} staffName={session.staffName} />
       )}
 
       {/* Pending training sign-offs */}
       <PendingTrainingCard staffId={session.staffId} staffName={session.staffName} isManager={isManager} />
-
-      {/* Duties */}
-      <TodayDuties staffId={session.staffId} />
 
       {/* Quick log row */}
       <QuickLogRow venueSlug={venueSlug} isEnabled={isEnabled} hasPermission={hasPermission} />
