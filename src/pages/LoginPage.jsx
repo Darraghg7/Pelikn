@@ -62,6 +62,7 @@ export default function LoginPage() {
 
   const [staff, setStaff]             = useState([])
   const [staffLoading, setStaffLoading] = useState(true)
+  const [staffQuery, setStaffQuery]   = useState('')
   const [selected, setSelected]       = useState(null)
   const [pin, setPin]                 = useState('')
   const [error, setError]             = useState('')
@@ -232,6 +233,33 @@ export default function LoginPage() {
           <p className="text-[11px] tracking-widest font-semibold text-charcoal/40 uppercase mb-3">
             Select Staff Member
           </p>
+
+          {/* Search — only shown when there are more than 12 staff */}
+          {staff.length > 12 && (
+            <div className="relative mb-2">
+              <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-charcoal/30 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+              <input
+                type="text"
+                placeholder="Search name…"
+                value={staffQuery}
+                onChange={e => setStaffQuery(e.target.value)}
+                className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-charcoal/10 bg-white text-sm text-charcoal placeholder:text-charcoal/30 focus:outline-none focus:ring-2 focus:ring-brand/25 focus:border-brand/40 transition-all"
+              />
+              {staffQuery && (
+                <button
+                  type="button"
+                  onClick={() => setStaffQuery('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-charcoal/30 hover:text-charcoal/60 transition-colors"
+                  aria-label="Clear search"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+              )}
+            </div>
+          )}
+
           <div className="flex flex-col gap-2">
             {staffLoading && (
               <div className="flex justify-center py-6">
@@ -241,7 +269,13 @@ export default function LoginPage() {
             {!staffLoading && staff.length === 0 && (
               <p className="text-sm text-charcoal/40 text-center py-4">No staff members found for this venue.</p>
             )}
-            {staff.map((s, i) => (
+            {!staffLoading && staff.length > 12 && staffQuery && staff.filter(s => s.name.toLowerCase().includes(staffQuery.toLowerCase())).length === 0 && (
+              <p className="text-sm text-charcoal/40 text-center py-4">No staff match "{staffQuery}"</p>
+            )}
+            {(staffQuery
+              ? staff.filter(s => s.name.toLowerCase().includes(staffQuery.toLowerCase()))
+              : staff
+            ).map((s, i) => (
               <button
                 key={s.id}
                 type="button"
