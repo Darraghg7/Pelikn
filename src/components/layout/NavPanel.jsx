@@ -167,23 +167,6 @@ export default function NavPanel({ cat, activeItemId, onPickItem, isPreview, onC
         </div>
       </header>
 
-      {/* Optional filter (Compliance only) */}
-      {cat.id === 'compliance' && (
-        <div style={{ padding: '10px 14px 6px' }}>
-          <div style={{
-            display: 'flex', alignItems: 'center', gap: 7,
-            padding: '6px 9px', borderRadius: 7,
-            background: 'rgba(0,0,0,0.20)', border: `1px solid ${T.divider}`,
-            color: T.inkMuted, fontSize: 12,
-          }}>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.5, flexShrink: 0 }}>
-              <circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-            </svg>
-            <span style={{ flex: 1, color: T.inkFaint }}>Filter…</span>
-          </div>
-        </div>
-      )}
-
       {/* Nav items */}
       <nav ref={navRef} style={{ flex: 1, overflowY: 'auto', padding: '6px 0 12px', overscrollBehavior: 'contain' }} aria-label={`${cat.label} navigation`}>
         {cat.items.map(item => (

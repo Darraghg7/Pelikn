@@ -495,7 +495,7 @@ function useShiftCompletions(venueId, dateStr, sessionType) {
     if (!venueId || !dateStr) return
     const { data } = await supabase
       .from('opening_closing_completions')
-      .select('id, check_id, corrective_action')
+      .select('id, check_id, corrective_action, staff_name, completed_at')
       .eq('venue_id', venueId)
       .eq('session_date', dateStr)
       .eq('session_type', sessionType)
@@ -519,6 +519,7 @@ function TodayChecks({ venueId, venueSlug, staffName }) {
   const done = completions.length
   const total = checks.length
   const allDone = done === total && total > 0
+  const pendingChecks = checks.filter(c => !completions.find(comp => comp.check_id === c.id))
 
   const markOk = async (checkId) => {
     if (saving) return
@@ -538,10 +539,10 @@ function TodayChecks({ venueId, venueSlug, staffName }) {
 
   return (
     <div className="flex flex-col gap-1.5">
-      {/* Collapsible header */}
+      {/* Header — non-interactive when all done */}
       <button
-        onClick={() => setOpen(v => !v)}
-        className="flex items-center justify-between w-full px-0.5 py-1 group"
+        onClick={() => !allDone && setOpen(v => !v)}
+        className={`flex items-center justify-between w-full px-0.5 py-1 ${allDone ? 'cursor-default' : 'group'}`}
       >
         <span className="text-[10.5px] font-mono tracking-widest uppercase text-charcoal/40 font-semibold">
           {sessionType === 'opening' ? 'Opening Checks' : 'Closing Checks'}
@@ -550,13 +551,15 @@ function TodayChecks({ venueId, venueSlug, staffName }) {
           <span className={`text-[11px] font-mono ${allDone ? 'text-success font-semibold' : 'text-charcoal/35'}`}>
             {done}/{total}
           </span>
-          <svg
-            className={`w-3.5 h-3.5 text-charcoal/30 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
-            viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
-            strokeLinecap="round" strokeLinejoin="round"
-          >
-            <polyline points="6 9 12 15 18 9"/>
-          </svg>
+          {!allDone && (
+            <svg
+              className={`w-3.5 h-3.5 text-charcoal/30 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+              viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
+              strokeLinecap="round" strokeLinejoin="round"
+            >
+              <polyline points="6 9 12 15 18 9"/>
+            </svg>
+          )}
         </div>
       </button>
 
@@ -568,42 +571,42 @@ function TodayChecks({ venueId, venueSlug, staffName }) {
         />
       </div>
 
-      {/* Expandable check list */}
-      {open && (
+      {/* All done — compact confirmation row */}
+      {allDone && (
+        <div className="bg-success/8 rounded-[14px] px-4 py-3 flex items-center gap-2">
+          <span className="text-success text-[13px] font-semibold">All checks completed</span>
+          <a
+            href={`/v/${venueSlug}/opening-closing`}
+            className="ml-auto text-[11px] font-semibold text-success/70 hover:text-success transition-colors"
+          >
+            View →
+          </a>
+        </div>
+      )}
+
+      {/* Expandable pending check list */}
+      {!allDone && open && (
         <div className="bg-white rounded-[14px] border border-charcoal/8 overflow-hidden">
-          {checks.map((check, i) => {
-            const comp = completions.find(c => c.check_id === check.id)
-            const isOk    = comp && !comp.corrective_action
-            const isIssue = comp && comp.corrective_action
-            return (
-              <div key={check.id} className={`px-4 py-3 flex items-center gap-3 ${i > 0 ? 'border-t border-charcoal/5' : ''}`}>
-                <p className={`text-[13.5px] flex-1 font-medium ${comp ? 'text-charcoal/40' : 'text-charcoal'}`}>{check.title}</p>
-                <div className="flex gap-1.5 shrink-0">
-                  <button
-                    onClick={() => markOk(check.id)}
-                    disabled={!!saving || !!comp}
-                    className={[
-                      'px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all',
-                      isOk ? 'bg-success/15 text-success' : 'bg-charcoal/6 text-charcoal/45 hover:bg-success/10 hover:text-success disabled:opacity-40',
-                    ].join(' ')}
-                  >
-                    {saving === check.id ? '…' : '✓ OK'}
-                  </button>
-                  {!comp && (
-                    <a
-                      href={`/v/${venueSlug}/opening-closing`}
-                      className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-charcoal/6 text-charcoal/45 hover:bg-warning/10 hover:text-warning transition-all"
-                    >
-                      ⚠ Issue
-                    </a>
-                  )}
-                  {isIssue && (
-                    <span className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-warning/12 text-warning">⚠ Issue</span>
-                  )}
-                </div>
+          {pendingChecks.map((check, i) => (
+            <div key={check.id} className={`px-4 py-3 flex items-center gap-3 ${i > 0 ? 'border-t border-charcoal/5' : ''}`}>
+              <p className="text-[13.5px] flex-1 font-medium text-charcoal">{check.title}</p>
+              <div className="flex gap-1.5 shrink-0">
+                <button
+                  onClick={() => markOk(check.id)}
+                  disabled={!!saving}
+                  className="px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all bg-charcoal/6 text-charcoal/45 hover:bg-success/10 hover:text-success disabled:opacity-40"
+                >
+                  {saving === check.id ? '…' : '✓ OK'}
+                </button>
+                <a
+                  href={`/v/${venueSlug}/opening-closing`}
+                  className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-charcoal/6 text-charcoal/45 hover:bg-warning/10 hover:text-warning transition-all"
+                >
+                  ⚠ Issue
+                </a>
               </div>
-            )
-          })}
+            </div>
+          ))}
           <a
             href={`/v/${venueSlug}/opening-closing`}
             className="flex items-center justify-between px-4 py-3 border-t border-charcoal/5 text-[12px] font-semibold text-brand hover:bg-brand/3 transition-colors"

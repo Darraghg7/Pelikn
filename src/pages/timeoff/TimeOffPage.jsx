@@ -66,7 +66,7 @@ function useActiveStaff(venueId) {
   useEffect(() => {
     if (!venueId) return
     supabase.from('staff')
-      .select('id, name, employment_type, working_days')
+      .select('id, name, employment_type, working_days, holiday_pay_eligible')
       .eq('venue_id', venueId)
       .eq('is_active', true)
       .order('name')
@@ -80,7 +80,7 @@ function useOwnProfile(staffId) {
   useEffect(() => {
     if (!staffId) return
     supabase.from('staff')
-      .select('id, employment_type, working_days')
+      .select('id, employment_type, working_days, holiday_pay_eligible')
       .eq('id', staffId)
       .maybeSingle()
       .then(({ data }) => setProfile(data))
@@ -123,13 +123,14 @@ function useTeamLeaveBalances(staff, leaveYear) {
   const reloadBalances = useCallback(() => setTick(t => t + 1), [])
 
   const balances = useMemo(() => staff.map(s => {
-    const calculated  = calculateEntitlementDays(s.employment_type, s.working_days)
-    const entitlement = overrides[s.id] ?? calculated
+    const eligible    = s.holiday_pay_eligible !== false
+    const calculated  = eligible ? calculateEntitlementDays(s.employment_type, s.working_days) : null
+    const entitlement = eligible ? (overrides[s.id] ?? calculated) : null
     const myReqs      = approvedReqs.filter(r => r.staff_id === s.id)
     const used        = myReqs.reduce((sum, r) =>
       sum + countWorkingDaysInRequest(r.start_date, r.end_date, s.working_days), 0)
     const remaining   = entitlement != null ? Math.max(0, entitlement - used) : null
-    return { ...s, entitlement, used, remaining, isZeroHours: s.employment_type === 'zero_hours' }
+    return { ...s, entitlement, used, remaining, isZeroHours: s.employment_type === 'zero_hours', isEligible: eligible }
   }), [staff, approvedReqs, overrides])
 
   return { balances, loading, reloadBalances }

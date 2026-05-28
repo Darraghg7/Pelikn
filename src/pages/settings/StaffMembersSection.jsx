@@ -34,6 +34,7 @@ const EMPTY_FORM = {
   show_temp_logs: false, show_allergens: false, skills: [], is_under_18: false,
   working_days: [], colour: '',
   employment_type: '', start_date: '', emergency_contact_name: '', emergency_contact_phone: '',
+  holiday_pay_eligible: true,
 }
 const DOW_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
@@ -173,6 +174,7 @@ export default function StaffMembersSection() {
       start_date:              s.start_date ?? '',
       emergency_contact_name:  s.emergency_contact_name ?? '',
       emergency_contact_phone: s.emergency_contact_phone ?? '',
+      holiday_pay_eligible:    s.holiday_pay_eligible ?? true,
     })
     setEditingId(s.id)
     setShowForm(true)
@@ -255,6 +257,7 @@ export default function StaffMembersSection() {
       start_date:              staffForm.start_date || null,
       emergency_contact_name:  staffForm.emergency_contact_name.trim() || null,
       emergency_contact_phone: staffForm.emergency_contact_phone.trim() || null,
+      holiday_pay_eligible:    staffForm.holiday_pay_eligible,
     }
     if (editingId) {
       const { error: extraErr } = await supabase.from('staff').update(extraFields).eq('id', editingId)
@@ -415,16 +418,6 @@ export default function StaffMembersSection() {
             className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
           />
         </div>
-        <div>
-          <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1.5">Contracted Hours / week</label>
-          <input
-            type="number" step="0.5" min="0"
-            value={staffForm.contracted_hours}
-            onChange={e => setStaffForm(f => ({ ...f, contracted_hours: e.target.value }))}
-            placeholder="e.g. 37.5"
-            className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
-          />
-        </div>
       </div>
 
       {/* Employment details */}
@@ -470,6 +463,20 @@ export default function StaffMembersSection() {
             className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
           />
         </div>
+      </div>
+
+      {/* Holiday pay eligibility */}
+      <div className="flex items-center justify-between rounded-xl border border-charcoal/10 px-4 py-3 bg-charcoal/2">
+        <div>
+          <p className="text-sm font-medium text-charcoal">Eligible for holiday pay</p>
+          <p className="text-[11px] text-charcoal/45 mt-0.5">
+            Entitles this staff member to annual leave accrual and balance tracking
+          </p>
+        </div>
+        <Toggle
+          checked={staffForm.holiday_pay_eligible}
+          onChange={v => setStaffForm(f => ({ ...f, holiday_pay_eligible: v }))}
+        />
       </div>
 
       {/* Permission level chips */}
@@ -526,48 +533,64 @@ export default function StaffMembersSection() {
         </p>
       </div>
 
-      {/* Working days */}
-      <div>
-        <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1.5">Working Days</label>
-        <p className="text-[11px] text-charcoal/35 mb-2">
-          Days this person is available to work. Leave all selected to indicate no restriction.
-        </p>
-        <div className="flex gap-1.5 flex-wrap">
-          {DOW_LABELS.map((day, i) => {
-            const dow    = i + 1
-            const allOn  = staffForm.working_days.length === 0
-            const active = allOn || staffForm.working_days.includes(dow)
-            return (
-              <button
-                key={dow}
-                type="button"
-                onClick={() => {
-                  const current = staffForm.working_days.length === 0
-                    ? [1, 2, 3, 4, 5, 6, 7]
-                    : [...staffForm.working_days]
-                  const next = current.includes(dow)
-                    ? current.filter(d => d !== dow)
-                    : [...current, dow].sort((a, b) => a - b)
-                  setStaffForm(f => ({ ...f, working_days: next.length === 7 ? [] : next }))
-                }}
-                className={[
-                  'px-2.5 py-1.5 rounded-lg text-xs font-medium border transition-all',
-                  active
-                    ? 'bg-brand text-cream border-brand'
-                    : 'bg-charcoal/4 text-charcoal/30 border-charcoal/10',
-                ].join(' ')}
-              >
-                {day}
-              </button>
-            )
-          })}
+      {/* Weekly schedule — hidden for zero-hours (no contracted pattern) */}
+      {staffForm.employment_type !== 'zero_hours' && (
+        <div className="flex flex-col gap-3">
+          <label className="text-[11px] tracking-widest uppercase text-charcoal/40">Weekly Schedule</label>
+
+          {/* Contracted hours */}
+          <div>
+            <label className="text-[11px] text-charcoal/45 block mb-1.5">Contracted hours / week</label>
+            <input
+              type="number" step="0.5" min="0"
+              value={staffForm.contracted_hours}
+              onChange={e => setStaffForm(f => ({ ...f, contracted_hours: e.target.value }))}
+              placeholder="e.g. 37.5"
+              className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+            />
+          </div>
+
+          {/* Working days */}
+          <div>
+            <label className="text-[11px] text-charcoal/45 block mb-1.5">Regular working days</label>
+            <div className="flex gap-1.5 flex-wrap">
+              {DOW_LABELS.map((day, i) => {
+                const dow    = i + 1
+                const allOn  = staffForm.working_days.length === 0
+                const active = allOn || staffForm.working_days.includes(dow)
+                return (
+                  <button
+                    key={dow}
+                    type="button"
+                    onClick={() => {
+                      const current = staffForm.working_days.length === 0
+                        ? [1, 2, 3, 4, 5, 6, 7]
+                        : [...staffForm.working_days]
+                      const next = current.includes(dow)
+                        ? current.filter(d => d !== dow)
+                        : [...current, dow].sort((a, b) => a - b)
+                      setStaffForm(f => ({ ...f, working_days: next.length === 7 ? [] : next }))
+                    }}
+                    className={[
+                      'px-2.5 py-1.5 rounded-lg text-xs font-medium border transition-all',
+                      active
+                        ? 'bg-brand text-cream border-brand'
+                        : 'bg-charcoal/4 text-charcoal/30 border-charcoal/10',
+                    ].join(' ')}
+                  >
+                    {day}
+                  </button>
+                )
+              })}
+            </div>
+            {staffForm.working_days.length > 0 && staffForm.working_days.length < 7 && (
+              <p className="text-[11px] text-brand mt-1.5">
+                Works: {staffForm.working_days.map(d => DOW_LABELS[d - 1]).join(', ')} only
+              </p>
+            )}
+          </div>
         </div>
-        {staffForm.working_days.length > 0 && staffForm.working_days.length < 7 && (
-          <p className="text-[11px] text-brand mt-1.5">
-            Works: {staffForm.working_days.map(d => DOW_LABELS[d - 1]).join(', ')} only
-          </p>
-        )}
-      </div>
+      )}
 
       {/* Under-18 toggle */}
       <div className="flex items-center justify-between rounded-xl border border-charcoal/10 px-4 py-3 bg-charcoal/2">

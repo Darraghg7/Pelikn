@@ -526,6 +526,11 @@ export default function AppShell({ children }) {
   const handlePickCat = (catId) => {
     if (panelCollapsed) setPanelCollapsed(false)
     setBrowseCat(catId)
+    if (isSettingsRoute) {
+      const cat = cats.find(c => c.id === catId)
+      const firstItem = cat?.items?.[0]
+      if (firstItem?.route) navigate(firstItem.route)
+    }
   }
 
   const cats = isManager
@@ -553,12 +558,13 @@ export default function AppShell({ children }) {
           browseCat={browseCat}
           mainCat={mainCat}
           onPickCat={handlePickCat}
+          onClickBrand={() => navigate(vp('/'))}
           onOpenSettings={() => navigate(vp('/settings'))}
           venueName={venueName}
           initials={initials}
           onSignOut={handleSignOut}
           isSettingsRoute={isSettingsRoute}
-          notificationBell={<NotificationBell variant="dark" />}
+          notificationBell={<NotificationBell variant="light" />}
         />
         {!isSettingsRoute && browseCatObj && !panelCollapsed && (
           <NavPanel
