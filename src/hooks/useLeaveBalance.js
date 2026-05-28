@@ -80,16 +80,18 @@ export function useLeaveBalance(staff, leaveYear) {
     return () => { cancelled = true }
   }, [staff?.id, staff?.employment_type, year])
 
-  const calculated   = calculateEntitlementDays(staff?.employment_type, staff?.working_days)
-  const entitlement  = overrideDays ?? calculated
+  const eligible     = staff?.holiday_pay_eligible !== false
+  const calculated   = eligible ? calculateEntitlementDays(staff?.employment_type, staff?.working_days) : null
+  const entitlement  = eligible ? (overrideDays ?? calculated) : null
   const remaining    = entitlement != null ? Math.max(0, entitlement - usedDays) : null
 
   return {
     loading,
-    entitlement,              // total days (null for zero-hours)
+    entitlement,              // total days (null for zero-hours or ineligible)
     used: usedDays,
-    remaining,                // null for zero-hours
+    remaining,                // null for zero-hours or ineligible
     isZeroHours: staff?.employment_type === 'zero_hours',
+    isEligible: eligible,
     isOverridden: overrideDays !== null,
     leaveYear: year,
   }

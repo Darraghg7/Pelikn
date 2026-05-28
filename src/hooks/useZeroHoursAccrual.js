@@ -36,7 +36,7 @@ export function useZeroHoursAccrual(staffId, leaveYear) {
     let cancelled = false
     fetchWorkedHours(staffId, year).then(h => {
       if (!cancelled) {
-        setAccrued(Math.round(h * 0.1207 * 10) / 10)
+        setAccrued(Math.min(Math.round(h * 0.1207 * 10) / 10, 224))
         setLoading(false)
       }
     })
@@ -84,7 +84,7 @@ export function useTeamZeroHoursAccruals(staffIds, leaveYear) {
             if (ev.event_type === 'break_end')   { clockIn = t }
             if (ev.event_type === 'clock_out')   { if (clockIn) { total += (t - clockIn) / 3600000; clockIn = null } }
           }
-          result[sid] = Math.round(total * 0.1207 * 10) / 10
+          result[sid] = Math.min(Math.round(total * 0.1207 * 10) / 10, 224)
         }
         setMap(result)
         setLoading(false)

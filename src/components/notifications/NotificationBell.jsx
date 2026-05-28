@@ -182,7 +182,7 @@ export default function NotificationBell({ variant = 'light' }) {
     <div className="relative" ref={ref}>
       <button
         onClick={handleBellClick}
-        className={`relative flex items-center justify-center w-9 h-9 rounded-lg transition-colors ${hoverColor}`}
+        className={`relative flex items-center justify-center w-9 h-9 rounded-lg transition-colors ${hoverColor} ${count > 0 ? (variant === 'light' ? 'bg-cream/15' : 'bg-charcoal/10') : ''}`}
         aria-label={`Notifications${count > 0 ? ` (${count} unread)` : ''}`}
       >
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={iconColor}>

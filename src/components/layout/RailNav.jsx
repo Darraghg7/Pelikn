@@ -1,25 +1,40 @@
 import React, { useState } from 'react'
 import { T, IcoCogNav } from './navConfig'
 
-function BrandMark({ initial, notifCount }) {
+function BrandMark({ initial, notifCount, onClick }) {
+  const [hovered, setHovered] = useState(false)
   return (
-    <div style={{
-      width: 40, height: 40, margin: '0 auto 4px', borderRadius: 10,
-      background: T.inkBright, color: T.bg,
-      display: 'grid', placeItems: 'center',
-      fontWeight: 700, fontSize: 15, letterSpacing: '-0.02em', position: 'relative',
-      fontFamily: 'Plus Jakarta Sans, sans-serif',
-    }}>
-      {initial}
-      {notifCount > 0 && (
-        <span style={{
-          position: 'absolute', top: -3, right: -4, minWidth: 15, height: 15, padding: '0 4px',
-          borderRadius: 8, background: T.alertRed, color: '#fff',
-          fontFamily: 'DM Mono, monospace', fontSize: 9, fontWeight: 700,
-          display: 'grid', placeItems: 'center', border: `1.5px solid ${T.bg}`,
-        }}>{notifCount}</span>
-      )}
-    </div>
+    <button
+      onClick={onClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      aria-label="Go to dashboard"
+      style={{
+        display: 'block', margin: '0 auto 4px', background: 'none',
+        border: 'none', padding: 0, cursor: 'pointer',
+        borderRadius: 12,
+        outline: 'none',
+      }}
+    >
+      <div style={{
+        width: 40, height: 40, borderRadius: 10,
+        background: hovered ? T.inkMuted : T.inkBright, color: T.bg,
+        display: 'grid', placeItems: 'center',
+        fontWeight: 700, fontSize: 15, letterSpacing: '-0.02em', position: 'relative',
+        fontFamily: 'Plus Jakarta Sans, sans-serif',
+        transition: 'background .12s',
+      }}>
+        {initial}
+        {notifCount > 0 && (
+          <span style={{
+            position: 'absolute', top: -3, right: -4, minWidth: 15, height: 15, padding: '0 4px',
+            borderRadius: 8, background: T.alertRed, color: '#fff',
+            fontFamily: 'DM Mono, monospace', fontSize: 9, fontWeight: 700,
+            display: 'grid', placeItems: 'center', border: `1.5px solid ${T.bg}`,
+          }}>{notifCount}</span>
+        )}
+      </div>
+    </button>
   )
 }
 
@@ -115,7 +130,7 @@ function SettingsTile({ isActive, onClick }) {
 
 export default function Rail({
   cats, browseCat, mainCat,
-  onPickCat, onOpenSettings,
+  onPickCat, onOpenSettings, onClickBrand,
   venueName, initials, onSignOut,
   isSettingsRoute, notifCount = 0,
   notificationBell,
@@ -136,7 +151,7 @@ export default function Rail({
     aria-label="Category navigation"
     >
       {/* Brand mark */}
-      <BrandMark initial={venueInitial} notifCount={notifCount} />
+      <BrandMark initial={venueInitial} notifCount={notifCount} onClick={onClickBrand} />
 
       {/* Venue mono label */}
       <div style={{
