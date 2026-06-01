@@ -28,6 +28,97 @@ const EMPLOYMENT_TYPES = [
   { value: 'fixed_term',  label: 'Fixed-term' },
 ]
 
+const CONTRACT_BTNS = [
+  { value: 'full_time',  label: 'Full Time' },
+  { value: 'part_time',  label: 'Part Time' },
+  { value: 'zero_hours', label: 'Zero Hours' },
+]
+
+// Module-level component so hooks are stable across renders
+function ContractTypeRow({ s, onSave }) {
+  const [localHours, setLocalHours] = useState(s.contracted_hours?.toString() ?? '')
+  const [saving, setSaving]         = useState(false)
+  const needsHours = s.employment_type === 'full_time' || s.employment_type === 'part_time'
+
+  // Keep localHours in sync when parent reloads staff data
+  React.useEffect(() => {
+    setLocalHours(s.contracted_hours?.toString() ?? '')
+  }, [s.contracted_hours])
+
+  const handleType = async (type) => {
+    setSaving(true)
+    const hours = type === 'zero_hours' ? null : (parseFloat(localHours) || null)
+    await onSave(s.id, type, hours)
+    setSaving(false)
+  }
+
+  const handleHoursBlur = async () => {
+    if (!needsHours) return
+    const hours = parseFloat(localHours) || null
+    setSaving(true)
+    await onSave(s.id, s.employment_type, hours)
+    setSaving(false)
+  }
+
+  // Annual leave entitlement preview (UK statutory: 5.6 weeks)
+  const daysPerWeek = s.working_days?.length > 0 ? Math.min(s.working_days.length, 7) : 5
+  const entitlementDays = Math.round(5.6 * daysPerWeek * 2) / 2
+
+  return (
+    <div className="flex items-center gap-1.5 flex-wrap mt-1.5 pb-1">
+      {CONTRACT_BTNS.map(btn => {
+        const active = s.employment_type === btn.value
+        return (
+          <button
+            key={btn.value}
+            type="button"
+            disabled={saving}
+            onClick={() => handleType(btn.value)}
+            className={[
+              'text-[10px] font-semibold tracking-wider uppercase px-2 py-0.5 rounded-full border transition-colors',
+              active
+                ? 'bg-brand text-white border-brand'
+                : 'bg-transparent text-charcoal/45 border-charcoal/15 hover:border-charcoal/35 hover:text-charcoal/70',
+              saving ? 'opacity-50 cursor-not-allowed' : '',
+            ].filter(Boolean).join(' ')}
+          >
+            {btn.label}
+          </button>
+        )
+      })}
+
+      {/* Contracted hours — shown for full/part time */}
+      {needsHours && (
+        <div className="flex items-center gap-1">
+          <input
+            type="number"
+            min="1"
+            max="60"
+            step="0.5"
+            value={localHours}
+            onChange={e => setLocalHours(e.target.value)}
+            onBlur={handleHoursBlur}
+            onKeyDown={e => e.key === 'Enter' && e.target.blur()}
+            placeholder="hrs/wk"
+            className="w-16 px-1.5 py-0.5 text-[11px] rounded border border-charcoal/15 bg-white text-charcoal focus:outline-none focus:ring-1 focus:ring-brand/30 focus:border-brand/40"
+          />
+          <span className="text-[10px] text-charcoal/40">hrs/wk</span>
+        </div>
+      )}
+
+      {/* Leave entitlement preview */}
+      {s.employment_type && s.employment_type !== 'zero_hours' && (
+        <span className="text-[10px] text-charcoal/30">
+          · {entitlementDays}d leave/yr
+        </span>
+      )}
+      {s.employment_type === 'zero_hours' && (
+        <span className="text-[10px] text-charcoal/30">· Leave accrues per hour worked</span>
+      )}
+    </div>
+  )
+}
+
 const EMPTY_FORM = {
   name: '', role: 'staff', job_role: 'kitchen', pin: '', email: '', hourly_rate: '',
   contracted_hours: '',
@@ -300,6 +391,16 @@ export default function StaffMembersSection() {
     toast(editingId ? 'Staff member updated' : 'Staff member added')
     setShowForm(false)
     setEditingId(null)
+    reloadStaff()
+  }
+
+  // ── Inline contract type save ────────────────────────────────────────────
+  const saveContractType = async (staffId, employment_type, contracted_hours) => {
+    const { error } = await supabase
+      .from('staff')
+      .update({ employment_type, contracted_hours: contracted_hours ?? null })
+      .eq('id', staffId)
+    if (error) { toast(error.message, 'error'); return }
     reloadStaff()
   }
 
@@ -789,66 +890,62 @@ export default function StaffMembersSection() {
             <React.Fragment key={s.id}>
               <div
                 className={[
-                  'group grid items-center gap-3 py-2.5 px-3 hover:bg-charcoal/[0.025] transition-colors',
-                  'grid-cols-[32px_1fr_auto_auto] sm:grid-cols-[32px_1fr_160px_auto]',
+                  'group px-3 py-2.5 hover:bg-charcoal/[0.025] transition-colors',
                   !s.is_active && 'opacity-55',
                 ].filter(Boolean).join(' ')}
               >
-                {/* Avatar */}
-                {s.photo_url ? (
-                  <img src={s.photo_url} alt={s.name} className="w-8 h-8 rounded-full object-cover" loading="lazy" />
-                ) : (
-                  <div
-                    className="w-8 h-8 rounded-full flex items-center justify-center text-white font-semibold text-xs"
-                    style={{ backgroundColor: s.colour || '#1a3c2e' }}
-                  >
-                    {initial}
+                {/* Top row: avatar + name/tags + start date + actions */}
+                <div className="grid items-center gap-3 grid-cols-[32px_1fr_auto_auto] sm:grid-cols-[32px_1fr_160px_auto]">
+                  {/* Avatar */}
+                  {s.photo_url ? (
+                    <img src={s.photo_url} alt={s.name} className="w-8 h-8 rounded-full object-cover" loading="lazy" />
+                  ) : (
+                    <div
+                      className="w-8 h-8 rounded-full flex items-center justify-center text-white font-semibold text-xs"
+                      style={{ backgroundColor: s.colour || '#1a3c2e' }}
+                    >
+                      {initial}
+                    </div>
+                  )}
+
+                  {/* Name + role + tags (inline) */}
+                  <div className="min-w-0 flex items-center gap-2 flex-wrap">
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-charcoal leading-tight truncate">{s.name}</p>
+                      <p className="text-xs text-charcoal/45 leading-tight">{roleLabel}</p>
+                    </div>
+                    {s.job_role && (
+                      <span className="text-[10px] font-semibold tracking-wider uppercase px-1.5 py-0.5 rounded bg-charcoal/[0.06] text-charcoal/55">
+                        {JOB_LABELS[s.job_role] ?? s.job_role}
+                      </span>
+                    )}
+                    {isLocked && (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-semibold tracking-wider uppercase px-1.5 py-0.5 rounded bg-danger/10 text-danger">
+                        <svg className="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4">
+                          <rect x="3" y="11" width="18" height="11" rx="2" />
+                          <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                        </svg>
+                        PIN locked
+                      </span>
+                    )}
+                    {!s.is_active && (
+                      <span className="text-[10px] tracking-wider uppercase text-charcoal/35">inactive</span>
+                    )}
                   </div>
-                )}
 
-                {/* Name + role + tags (inline) */}
-                <div className="min-w-0 flex items-center gap-2 flex-wrap">
-                  <div className="min-w-0">
-                    <p className="text-sm font-semibold text-charcoal leading-tight truncate">{s.name}</p>
-                    <p className="text-xs text-charcoal/45 leading-tight">{roleLabel}</p>
+                  {/* Start date (hidden on small) */}
+                  <div className="hidden sm:flex items-center gap-2 text-xs text-charcoal/45 whitespace-nowrap">
+                    {s.start_date && (
+                      <span>
+                        since <b className="text-charcoal/65 font-medium">
+                          {new Date(s.start_date).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })}
+                        </b>
+                      </span>
+                    )}
                   </div>
-                  {s.job_role && (
-                    <span className="text-[10px] font-semibold tracking-wider uppercase px-1.5 py-0.5 rounded bg-charcoal/[0.06] text-charcoal/55">
-                      {JOB_LABELS[s.job_role] ?? s.job_role}
-                    </span>
-                  )}
-                  {isLocked && (
-                    <span className="inline-flex items-center gap-1 text-[10px] font-semibold tracking-wider uppercase px-1.5 py-0.5 rounded bg-danger/10 text-danger">
-                      <svg className="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4">
-                        <rect x="3" y="11" width="18" height="11" rx="2" />
-                        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                      </svg>
-                      PIN locked
-                    </span>
-                  )}
-                  {!s.is_active && (
-                    <span className="text-[10px] tracking-wider uppercase text-charcoal/35">inactive</span>
-                  )}
-                </div>
 
-                {/* Employment + start date (hidden on small) */}
-                <div className="hidden sm:flex items-center gap-2 text-xs text-charcoal/45 whitespace-nowrap">
-                  {empLabel && (
-                    <span className="text-[10px] font-semibold tracking-wider uppercase px-1.5 py-0.5 rounded bg-charcoal/[0.06] text-charcoal/55">
-                      {empLabel}
-                    </span>
-                  )}
-                  {s.start_date && (
-                    <span>
-                      since <b className="text-charcoal/65 font-medium">
-                        {new Date(s.start_date).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })}
-                      </b>
-                    </span>
-                  )}
-                </div>
-
-                {/* Actions (compact, inline) */}
-                <div className="flex items-center gap-1.5">
+                  {/* Actions (compact, inline) */}
+                  <div className="flex items-center gap-1.5">
                   {s.email && (
                     <a
                       href={`mailto:${s.email}`}
@@ -910,7 +1007,15 @@ export default function StaffMembersSection() {
                     <button onClick={() => moveStaff(s.id, 'up')}   disabled={idx === 0}             className="w-5 h-3.5 flex items-center justify-center text-charcoal/30 hover:text-charcoal disabled:opacity-0 text-[8px]">▲</button>
                     <button onClick={() => moveStaff(s.id, 'down')} disabled={idx === staff.length-1} className="w-5 h-3.5 flex items-center justify-center text-charcoal/30 hover:text-charcoal disabled:opacity-0 text-[8px]">▼</button>
                   </div>
-                </div>
+                  </div>{/* end actions */}
+                </div>{/* end inner grid */}
+
+                {/* Contract type row — inline, below the name row */}
+                {s.is_active && (
+                  <div className="pl-11 mt-0.5">
+                    <ContractTypeRow s={s} onSave={saveContractType} />
+                  </div>
+                )}
               </div>
 
               {/* Inline edit form — opens directly below this staff member's row */}
