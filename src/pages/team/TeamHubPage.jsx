@@ -194,9 +194,7 @@ function TeamCard({ label, icon: Icon, status, statusText, count, onClick }) {
 // ── TeamHubPage ────────────────────────────────────────────────────────────
 export default function TeamHubPage() {
   const navigate = useNavigate()
-  const { venue } = useVenue()
-  const venueId  = venue?.id
-  const venueSlug = venue?.slug
+  const { venueId, venueSlug } = useVenue()
   const vp = (path) => `/v/${venueSlug}${path}`
 
   const { data, loading } = useTeamStatus(venueId)

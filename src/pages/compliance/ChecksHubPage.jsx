@@ -172,12 +172,9 @@ function HubCard({ check, statusInfo, onClick }) {
 // ── ChecksHubPage ──────────────────────────────────────────────────────────
 export default function ChecksHubPage() {
   const navigate = useNavigate()
-  const { venue } = useVenue()
+  const { venueId, venueSlug } = useVenue()
   const { session } = useSession()
   const { actionSchedules, closedDays } = useAppSettings()
-
-  const venueId = venue?.id
-  const venueSlug = venue?.slug
 
   const { summary, loading: summaryLoading } = useTodaySummary(venueId, closedDays, actionSchedules)
   const { statuses, loading: statusLoading } = useChecksStatus(venueId, summary, summaryLoading)

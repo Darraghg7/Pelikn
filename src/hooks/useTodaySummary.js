@@ -46,6 +46,7 @@ export function useTodaySummary(venueId, closedDays = [], actionSchedules = {}) 
     let cancelled = false
     const fetchAll = async () => {
       setLoading(true)
+      try {
 
       const todayDow = (today.getDay() + 6) % 7
       if (closedDays.includes(todayDow)) {
@@ -186,6 +187,9 @@ export function useTodaySummary(venueId, closedDays = [], actionSchedules = {}) 
         dutiesCompleted,
       })
       setLoading(false)
+      } catch {
+        if (!cancelled) { setSummary(emptySummary()); setLoading(false) }
+      }
     }
     fetchAll()
     return () => { cancelled = true }
