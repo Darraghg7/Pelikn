@@ -412,7 +412,8 @@ export default function MobileNav() {
   const tabs = isManager ? applyOrder(rawTabs, savedOrder) : rawTabs
 
   const activeTab = tabs.find(t => t.match.some(m => localPath === m || (m !== '/dashboard' && localPath.startsWith(m))))
-  const showSubNav = activeTab?.children && activeTab.children.length > 1
+  const HUB_PATHS = ['/checks', '/team']
+  const showSubNav = activeTab?.children && activeTab.children.length > 1 && !HUB_PATHS.includes(localPath)
 
   const startLongPress = useCallback(() => {
     if (!isManager) return

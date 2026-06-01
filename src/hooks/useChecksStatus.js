@@ -23,6 +23,7 @@ export function useChecksStatus(venueId, summary, summaryLoading) {
 
     async function derive() {
       setLoading(true)
+      try {
 
       const [fitnessRes, probeRes, deliveryRes, incidentRes] = await Promise.all([
         // Fitness: any declaration today?
@@ -152,6 +153,9 @@ export function useChecksStatus(venueId, summary, summaryLoading) {
           delivery, probe, allergen, pest, cleaning, haccp, docs, incident,
         })
         setLoading(false)
+      }
+      } catch {
+        if (!cancelled) setLoading(false)
       }
     }
 

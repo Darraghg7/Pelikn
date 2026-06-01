@@ -15,6 +15,7 @@ export function useTeamStatus(venueId) {
 
     async function fetch() {
       setLoading(true)
+      try {
       const today = new Date()
       const dayStart = startOfDay(today).toISOString()
       const dayEnd   = endOfDay(today).toISOString()
@@ -109,6 +110,9 @@ export function useTeamStatus(venueId) {
         expiringTraining: trainingRes.count ?? 0,
       })
       setLoading(false)
+      } catch {
+        setLoading(false)
+      }
     }
 
     fetch()
