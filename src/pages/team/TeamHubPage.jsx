@@ -2,6 +2,7 @@ import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useVenue } from '../../contexts/VenueContext'
 import { useTeamStatus } from '../../hooks/useTeamStatus'
+import { useAppSettings } from '../../hooks/useSettings'
 
 // ── Design tokens ──────────────────────────────────────────────────────────
 const MC = {
@@ -198,6 +199,7 @@ export default function TeamHubPage() {
   const vp = (path) => `/v/${venueSlug}${path}`
 
   const { data, loading } = useTeamStatus(venueId)
+  const { hiddenTeamTiles } = useAppSettings()
 
   const now = new Date()
   const timeStr = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
@@ -235,7 +237,9 @@ export default function TeamHubPage() {
   ]
 
   // Sort action-first
-  const ordered = [...cards].sort((a, b) => (STATUS_TONE[a.status]?.rank ?? 4) - (STATUS_TONE[b.status]?.rank ?? 4))
+  const ordered = cards
+    .filter(c => !hiddenTeamTiles.includes(c.id))
+    .sort((a, b) => (STATUS_TONE[a.status]?.rank ?? 4) - (STATUS_TONE[b.status]?.rank ?? 4))
 
   return (
     <div style={{ padding: '16px 16px 96px', maxWidth: 480, margin: '0 auto' }}>

@@ -174,15 +174,16 @@ export default function ChecksHubPage() {
   const navigate = useNavigate()
   const { venueId, venueSlug } = useVenue()
   const { session } = useSession()
-  const { actionSchedules, closedDays } = useAppSettings()
+  const { actionSchedules, closedDays, hiddenCheckTiles } = useAppSettings()
 
   const { summary, loading: summaryLoading } = useTodaySummary(venueId, closedDays, actionSchedules)
   const { statuses, loading: statusLoading } = useChecksStatus(venueId, summary, summaryLoading)
 
   const vp = (path) => `/v/${venueSlug}${path}`
 
-  // Build ordered list with live statuses
+  // Build ordered list with live statuses, excluding hidden tiles
   const ordered = CHECKS
+    .filter(c => !hiddenCheckTiles.includes(c.id))
     .map(c => ({ ...c, statusInfo: statuses[c.id] ?? { status: 'na', statusText: '—' } }))
     .sort((a, b) => (STATUS_TONE[a.statusInfo.status]?.rank ?? 4) - (STATUS_TONE[b.statusInfo.status]?.rank ?? 4))
 

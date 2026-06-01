@@ -122,6 +122,7 @@ const TeamHubPage = lazy(() => import('./pages/team/TeamHubPage'))
 // Settings hub + attendance sub-page
 const SettingsHubPage         = lazy(() => import('./pages/settings/SettingsHubPage'))
 const AttendanceSettingsPage  = lazy(() => import('./pages/settings/AttendanceSettingsPage'))
+const HubTilesPage            = lazy(() => import('./pages/settings/HubTilesPage'))
 
 // Multi-venue overview dashboard
 const OverviewPage = lazy(() => import('./pages/overview/OverviewPage'))
@@ -365,6 +366,7 @@ function VenueRoutes() {
             <Route path="settings"                element={wrap(SettingsPage,            RequireManager)} />
             <Route path="settings/hub"            element={wrap(SettingsHubPage,         RequireManager)} />
             <Route path="settings/attendance"     element={wrap(AttendanceSettingsPage,  RequireManager)} />
+            <Route path="settings/hub-tiles"      element={wrap(HubTilesPage,            RequireManager)} />
             <Route path="staff"             element={wrap(StaffPage,              RequireManager)} />
             <Route path="tips"              element={wrapPro(TipsPage,            RequireManager, 'tips')} />
             <Route path="documents"              element={wrap(DocumentsPage,               RequireManager)} />

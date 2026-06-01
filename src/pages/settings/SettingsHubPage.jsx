@@ -109,7 +109,7 @@ export default function SettingsHubPage() {
     { id: 'attendance',   label: 'Attendance',     sub: 'Clock-in & breaks',   icon: AttendanceIcon,   route: vp('/settings/attendance'),
       attention: attendanceAttention, statusText: `Grace: ${lateGraceMins}min` },
     { id: 'compliance',   label: 'Compliance',     sub: 'Schedules, HACCP',    icon: ComplianceIcon,   route: vp('/settings') },
-    { id: 'features',     label: 'Features',       sub: 'Modules on/off',      icon: FeaturesIcon,     route: vp('/settings') },
+    { id: 'features',     label: 'Features',       sub: 'Hub tile visibility', icon: FeaturesIcon,     route: vp('/settings/hub-tiles') },
     { id: 'notifications',label: 'Notifications',  sub: 'Alerts & digest',     icon: BellIcon,         route: vp('/settings') },
     ...(isOwner ? [{ id: 'billing', label: 'Plan & Billing', sub: 'Subscription', icon: BillingIcon, route: vp('/settings') }] : []),
     { id: 'integrations', label: 'Integrations',   sub: 'Connect apps',        icon: IntegrationsIcon, route: vp('/settings') },
