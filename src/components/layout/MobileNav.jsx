@@ -314,7 +314,6 @@ function getManagerTabs(vp, isEnabled, complianceNavOrder = []) {
       to: vp('/checks'),
       icon: ClipboardIcon,
       match: ['/checks', '/opening-closing', '/fitness', '/fridge', '/cooking-temps', '/hot-holding', '/cooling-logs', '/deliveries', '/probe', '/allergens', '/cleaning', '/corrective', '/documents', '/incidents', '/pest-control'],
-      children: complianceChildren,
     },
     {
       key: 'team',
@@ -322,7 +321,6 @@ function getManagerTabs(vp, isEnabled, complianceNavOrder = []) {
       to: vp('/team'),
       icon: UsersIcon,
       match: ['/team', '/rota', '/timesheet', '/training', '/time-off', '/tips', '/staff'],
-      children: teamChildren,
     },
     {
       key: 'tasks',
@@ -337,10 +335,6 @@ function getManagerTabs(vp, isEnabled, complianceNavOrder = []) {
       to: vp('/settings/hub'),
       icon: CogIcon,
       match: ['/settings', '/audit'],
-      children: [
-        { to: vp('/settings'), label: 'Settings' },
-        { to: vp('/audit'),    label: 'EHO Audit' },
-      ],
     },
   ]
 }
@@ -412,8 +406,12 @@ export default function MobileNav() {
   const tabs = isManager ? applyOrder(rawTabs, savedOrder) : rawTabs
 
   const activeTab = tabs.find(t => t.match.some(m => localPath === m || (m !== '/dashboard' && localPath.startsWith(m))))
-  const HUB_PATHS = ['/checks', '/team']
-  const showSubNav = activeTab?.children && activeTab.children.length > 1 && !HUB_PATHS.includes(localPath)
+
+  // Show a back-to-hub row when on a compliance or team sub-page (not the hub itself)
+  const HUB_ROUTES = { compliance: vp('/checks'), team: vp('/team') }
+  const HUB_LABELS = { compliance: 'Checks', team: 'Team' }
+  const onHub = localPath === '/checks' || localPath === '/team'
+  const showBackRow = !onHub && (activeTab?.key === 'compliance' || activeTab?.key === 'team')
 
   const startLongPress = useCallback(() => {
     if (!isManager) return
@@ -428,7 +426,26 @@ export default function MobileNav() {
 
   return (
     <>
-      {showSubNav && <SubNav items={activeTab.children} currentPath={pathname} />}
+      {showBackRow && (
+        <div className="lg:hidden" style={{
+          background: '#fff', borderBottom: '1px solid #e5e7eb',
+          padding: '8px 16px',
+        }}>
+          <NavLink
+            to={HUB_ROUTES[activeTab.key]}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              color: '#13362a', fontSize: 13, fontWeight: 600,
+              textDecoration: 'none',
+            }}
+          >
+            <svg width="7" height="12" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M5 1L1 5l4 4"/>
+            </svg>
+            {HUB_LABELS[activeTab.key]}
+          </NavLink>
+        </div>
+      )}
 
       {createPortal(
         <>
