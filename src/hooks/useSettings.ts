@@ -34,7 +34,7 @@ const COLOR_PALETTE = [
   'bg-stone-100 text-stone-800',
 ]
 
-const SETTINGS_KEYS = ['custom_roles', 'closed_days', 'break_duration_mins', 'cleanup_minutes', 'fridge_check_time', 'open_time', 'close_time', 'compliance_nav_order', 'action_schedules']
+const SETTINGS_KEYS = ['custom_roles', 'closed_days', 'break_duration_mins', 'cleanup_minutes', 'fridge_check_time', 'open_time', 'close_time', 'compliance_nav_order', 'action_schedules', 'late_grace_mins', 'break_overrun_grace_mins', 'require_late_reason', 'notify_manager_at_strike', 'disciplinary_at_strike', 'counting_window_days', 'push_to_manager']
 
 interface CustomRole {
   value: string
@@ -59,6 +59,14 @@ interface AppSettings {
   closeTime: string
   complianceNavOrder: string[]
   actionSchedules: ActionSchedules
+  // Attendance rules (drives ClockPanel + Staff Alert thresholds)
+  lateGraceMins: number
+  breakOverrunGraceMins: number
+  requireLateReason: boolean
+  notifyManagerAtStrike: number
+  disciplinaryAtStrike: number
+  countingWindowDays: number
+  pushToManager: boolean
 }
 
 const ALL_DAYS = [0, 1, 2, 3, 4, 5, 6]
@@ -83,6 +91,13 @@ const DEFAULTS: AppSettings = {
   closeTime: '17:00',
   complianceNavOrder: [],
   actionSchedules: DEFAULT_ACTION_SCHEDULES,
+  lateGraceMins: 0,
+  breakOverrunGraceMins: 5,
+  requireLateReason: true,
+  notifyManagerAtStrike: 3,
+  disciplinaryAtStrike: 4,
+  countingWindowDays: 30,
+  pushToManager: true,
 }
 
 async function fetchAppSettings(venueId: string): Promise<AppSettings> {
@@ -125,6 +140,13 @@ async function fetchAppSettings(venueId: string): Promise<AppSettings> {
         if (row.key === 'action_schedules' && typeof parsed === 'object' && parsed !== null) {
           result.actionSchedules = { ...DEFAULT_ACTION_SCHEDULES, ...parsed }
         }
+        if (row.key === 'late_grace_mins'          && typeof parsed === 'number')  result.lateGraceMins = parsed
+        if (row.key === 'break_overrun_grace_mins' && typeof parsed === 'number')  result.breakOverrunGraceMins = parsed
+        if (row.key === 'require_late_reason'      && typeof parsed === 'boolean') result.requireLateReason = parsed
+        if (row.key === 'notify_manager_at_strike' && typeof parsed === 'number')  result.notifyManagerAtStrike = parsed
+        if (row.key === 'disciplinary_at_strike'   && typeof parsed === 'number')  result.disciplinaryAtStrike = parsed
+        if (row.key === 'counting_window_days'     && typeof parsed === 'number')  result.countingWindowDays = parsed
+        if (row.key === 'push_to_manager'          && typeof parsed === 'boolean') result.pushToManager = parsed
       } catch { /* ignore corrupt JSON — leave defaults */ }
     }
   }
@@ -166,6 +188,13 @@ export function useAppSettings() {
         close_time: 'closeTime',
         compliance_nav_order: 'complianceNavOrder',
         action_schedules: 'actionSchedules',
+        late_grace_mins: 'lateGraceMins',
+        break_overrun_grace_mins: 'breakOverrunGraceMins',
+        require_late_reason: 'requireLateReason',
+        notify_manager_at_strike: 'notifyManagerAtStrike',
+        disciplinary_at_strike: 'disciplinaryAtStrike',
+        counting_window_days: 'countingWindowDays',
+        push_to_manager: 'pushToManager',
       }
       return { ...(old ?? DEFAULTS), [fieldMap[key]]: value }
     })
@@ -183,6 +212,13 @@ export function useAppSettings() {
   const saveCloseTime = useCallback((time: string) => saveSetting('close_time', time), [saveSetting])
   const saveComplianceNavOrder = useCallback((order: string[]) => saveSetting('compliance_nav_order', order), [saveSetting])
   const saveActionSchedules = useCallback((schedules: ActionSchedules) => saveSetting('action_schedules', schedules), [saveSetting])
+  const saveLateGraceMins = useCallback((mins: number) => saveSetting('late_grace_mins', mins), [saveSetting])
+  const saveBreakOverrunGraceMins = useCallback((mins: number) => saveSetting('break_overrun_grace_mins', mins), [saveSetting])
+  const saveRequireLateReason = useCallback((v: boolean) => saveSetting('require_late_reason', v), [saveSetting])
+  const saveNotifyManagerAtStrike = useCallback((n: number) => saveSetting('notify_manager_at_strike', n), [saveSetting])
+  const saveDisciplinaryAtStrike = useCallback((n: number) => saveSetting('disciplinary_at_strike', n), [saveSetting])
+  const saveCountingWindowDays = useCallback((n: number) => saveSetting('counting_window_days', n), [saveSetting])
+  const savePushToManager = useCallback((v: boolean) => saveSetting('push_to_manager', v), [saveSetting])
 
   /** Pick the next unused colour from the palette. Falls back to the least-used colour. */
   const nextColor = useCallback(() => {
@@ -209,9 +245,18 @@ export function useAppSettings() {
     closeTime: settings.closeTime,
     complianceNavOrder: settings.complianceNavOrder,
     actionSchedules: settings.actionSchedules,
+    lateGraceMins: settings.lateGraceMins,
+    breakOverrunGraceMins: settings.breakOverrunGraceMins,
+    requireLateReason: settings.requireLateReason,
+    notifyManagerAtStrike: settings.notifyManagerAtStrike,
+    disciplinaryAtStrike: settings.disciplinaryAtStrike,
+    countingWindowDays: settings.countingWindowDays,
+    pushToManager: settings.pushToManager,
     loading,
     saveCustomRoles, saveClosedDays, saveBreakDuration, saveCleanupMinutes, saveFridgeCheckTime,
     saveOpenTime, saveCloseTime, saveComplianceNavOrder, saveActionSchedules,
+    saveLateGraceMins, saveBreakOverrunGraceMins, saveRequireLateReason,
+    saveNotifyManagerAtStrike, saveDisciplinaryAtStrike, saveCountingWindowDays, savePushToManager,
     nextColor, reload,
   }
 }

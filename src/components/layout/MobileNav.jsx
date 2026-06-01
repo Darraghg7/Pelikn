@@ -311,17 +311,17 @@ function getManagerTabs(vp, isEnabled, complianceNavOrder = []) {
     {
       key: 'compliance',
       label: 'Checks',
-      to: complianceChildren[0]?.to ?? vp('/opening-closing'),
+      to: vp('/checks'),
       icon: ClipboardIcon,
-      match: ['/opening-closing', '/fitness', '/fridge', '/cooking-temps', '/hot-holding', '/cooling-logs', '/deliveries', '/probe', '/allergens', '/cleaning', '/corrective', '/documents', '/incidents'],
+      match: ['/checks', '/opening-closing', '/fitness', '/fridge', '/cooking-temps', '/hot-holding', '/cooling-logs', '/deliveries', '/probe', '/allergens', '/cleaning', '/corrective', '/documents', '/incidents', '/pest-control'],
       children: complianceChildren,
     },
     {
       key: 'team',
       label: 'Team',
-      to: teamChildren[0]?.to ?? vp('/rota'),
+      to: vp('/team'),
       icon: UsersIcon,
-      match: ['/rota', '/timesheet', '/training', '/time-off', '/tips'],
+      match: ['/team', '/rota', '/timesheet', '/training', '/time-off', '/tips', '/staff'],
       children: teamChildren,
     },
     {
@@ -334,7 +334,7 @@ function getManagerTabs(vp, isEnabled, complianceNavOrder = []) {
     {
       key: 'settings',
       label: 'Settings',
-      to: vp('/settings'),
+      to: vp('/settings/hub'),
       icon: CogIcon,
       match: ['/settings', '/audit'],
       children: [

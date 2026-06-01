@@ -17,6 +17,7 @@ import TodaySummaryCard from './TodaySummaryCard'
 import WidgetPicker from './WidgetPicker'
 import PushBanner from './PushBanner'
 import GettingStartedCard from './GettingStartedCard'
+import MobileManagerDashboard from './MobileManagerDashboard'
 import {
   DndContext, DragOverlay, closestCenter,
   PointerSensor, useSensor, useSensors,
@@ -291,16 +292,23 @@ export default function ManagerDashboardPage() {
       </div>
 
       {/* Mobile layout */}
-      <div className="lg:hidden flex flex-col gap-4">
-        <PushBanner staffId={session?.staffId} venueId={venueId} />
-        <GettingStartedCard venueId={venueId} venueSlug={venueSlug} />
-        <div className="grid grid-cols-1 gap-4 items-start">
-          <TodaySummaryCard venueId={venueId} closedDays={closedDays} itemIds={todayItemIds} actionSchedules={actionSchedules} />
-          <div className="bg-white rounded-2xl p-5">
-            <p className="text-[11px] tracking-widest uppercase font-semibold text-charcoal/40 mb-3">My Clock</p>
-            <ClockPanel staffId={session?.staffId} hasShift />
-          </div>
-        </div>
+      <div className="lg:hidden">
+        <MobileManagerDashboard
+          session={session}
+          venueId={venueId}
+          venueName={venueName}
+          venuePlan={venuePlan}
+          venueSlug={venueSlug}
+          greeting={greeting}
+          firstName={firstName}
+          summary={summary}
+          widgetIds={widgetIds}
+          onReorder={(newIds) => { save(newIds) }}
+          todayItemIds={todayItemIds}
+          actionSchedules={actionSchedules}
+          onOpenPicker={() => setShowPicker(true)}
+          isEnabled={isEnabled}
+        />
       </div>
 
       {/* Desktop layout */}
@@ -333,25 +341,26 @@ export default function ManagerDashboardPage() {
         </div>
       </div>
 
-      {/* Widget grid — shown on both */}
-      {widgetIds.length > 0 && (
-        <DraggableWidgetGrid
-          widgetIds={widgetIds}
-          onReorder={(newIds) => { save(newIds); toast('Widget order saved') }}
-        />
-      )}
-
-      {widgetIds.length === 0 && (
-        <div className="bg-white rounded-2xl border border-dashed border-charcoal/20 p-10 text-center">
-          <p className="text-charcoal/30 text-sm mb-3">No widgets on your dashboard</p>
-          <button
-            onClick={() => setShowPicker(true)}
-            className="bg-charcoal text-cream px-4 py-2 rounded-xl text-sm font-semibold hover:bg-charcoal/90 transition-colors"
-          >
-            + Add Widgets
-          </button>
-        </div>
-      )}
+      {/* Widget grid — desktop only (mobile renders its own inside MobileManagerDashboard) */}
+      <div className="hidden lg:block">
+        {widgetIds.length > 0 && (
+          <DraggableWidgetGrid
+            widgetIds={widgetIds}
+            onReorder={(newIds) => { save(newIds); toast('Widget order saved') }}
+          />
+        )}
+        {widgetIds.length === 0 && (
+          <div className="bg-white rounded-2xl border border-dashed border-charcoal/20 p-10 text-center">
+            <p className="text-charcoal/30 text-sm mb-3">No widgets on your dashboard</p>
+            <button
+              onClick={() => setShowPicker(true)}
+              className="bg-charcoal text-cream px-4 py-2 rounded-xl text-sm font-semibold hover:bg-charcoal/90 transition-colors"
+            >
+              + Add Widgets
+            </button>
+          </div>
+        )}
+      </div>
 
       <WidgetPicker
         open={showPicker}
