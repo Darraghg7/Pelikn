@@ -119,10 +119,16 @@ const ChecksHubPage = lazy(() => import('./pages/compliance/ChecksHubPage'))
 // Team hub
 const TeamHubPage = lazy(() => import('./pages/team/TeamHubPage'))
 
-// Settings hub + attendance sub-page
-const SettingsHubPage         = lazy(() => import('./pages/settings/SettingsHubPage'))
-const AttendanceSettingsPage  = lazy(() => import('./pages/settings/AttendanceSettingsPage'))
-const HubTilesPage            = lazy(() => import('./pages/settings/HubTilesPage'))
+// Settings hub + sub-pages
+const SettingsHubPage              = lazy(() => import('./pages/settings/SettingsHubPage'))
+const AttendanceSettingsPage       = lazy(() => import('./pages/settings/AttendanceSettingsPage'))
+const HubTilesPage                 = lazy(() => import('./pages/settings/HubTilesPage'))
+const VenueSettingsPage            = lazy(() => import('./pages/settings/VenueSettingsPage'))
+const ComplianceSettingsPage       = lazy(() => import('./pages/settings/ComplianceSettingsPage'))
+const NotificationsSettingsPage    = lazy(() => import('./pages/settings/NotificationsSettingsPage'))
+const BillingSettingsPage          = lazy(() => import('./pages/settings/BillingSettingsPage'))
+const IntegrationsSettingsPage     = lazy(() => import('./pages/settings/IntegrationsSettingsPage'))
+const HelpSettingsPage             = lazy(() => import('./pages/settings/HelpSettingsPage'))
 
 // Multi-venue overview dashboard
 const OverviewPage = lazy(() => import('./pages/overview/OverviewPage'))
@@ -364,9 +370,15 @@ function VenueRoutes() {
             <Route path="waste"              element={wrapPerm(WasteLogPage,       'log_waste', 'waste')} />
             <Route path="orders"             element={wrapPerm(SupplierOrdersPage, 'log_deliveries', 'orders')} />
             <Route path="settings"                element={wrap(SettingsPage,            RequireManager)} />
-            <Route path="settings/hub"            element={wrap(SettingsHubPage,         RequireManager)} />
-            <Route path="settings/attendance"     element={wrap(AttendanceSettingsPage,  RequireManager)} />
-            <Route path="settings/hub-tiles"      element={wrap(HubTilesPage,            RequireManager)} />
+            <Route path="settings/hub"            element={wrap(SettingsHubPage,              RequireManager)} />
+            <Route path="settings/attendance"     element={wrap(AttendanceSettingsPage,       RequireManager)} />
+            <Route path="settings/hub-tiles"      element={wrap(HubTilesPage,                 RequireManager)} />
+            <Route path="settings/venue"          element={wrap(VenueSettingsPage,            RequireManager)} />
+            <Route path="settings/compliance"     element={wrap(ComplianceSettingsPage,       RequireManager)} />
+            <Route path="settings/notifications"  element={wrap(NotificationsSettingsPage,    RequireManager)} />
+            <Route path="settings/billing"        element={wrap(BillingSettingsPage,          RequireManager)} />
+            <Route path="settings/integrations"   element={wrap(IntegrationsSettingsPage,     RequireManager)} />
+            <Route path="settings/help"           element={wrap(HelpSettingsPage,             RequireManager)} />
             <Route path="staff"             element={wrap(StaffPage,              RequireManager)} />
             <Route path="tips"              element={wrapPro(TipsPage,            RequireManager, 'tips')} />
             <Route path="documents"              element={wrap(DocumentsPage,               RequireManager)} />
