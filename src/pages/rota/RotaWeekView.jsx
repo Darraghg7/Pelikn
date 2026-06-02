@@ -10,55 +10,32 @@ function fmtGBP(amount) {
 }
 
 
-/* ── Mobile Week Grid ─────────────────────────────────────────────────────
-   Spec 05: frozen left staff column + pinned header row + horizontal scroll.
-   Station-colored left accent on cells. Today's column highlighted.
-   ────────────────────────────────────────────────────────────────────────── */
-
-// Station accent colors matching spec
-const STATION_COLOR = {
-  kitchen: '#16a34a',
-  foh:     '#2563eb',
-  bar:     '#7c3aed',
-  kp:      '#d97706',
-}
-function stationAccent(s) {
-  const key = (s.station ?? s.role_label ?? '').toLowerCase()
-  if (key.includes('kitchen') || key.includes('chef') || key.includes('cook')) return STATION_COLOR.kitchen
-  if (key.includes('bar'))     return STATION_COLOR.bar
-  if (key.includes('kp') || key.includes('porter')) return STATION_COLOR.kp
-  return STATION_COLOR.foh
-}
-
 function MobileShiftCell({ shift, accent, onClick }) {
   const canClick = !!onClick
+  const startH = shift.start_time?.slice(0, 2) ?? '--'
+  const endH   = shift.end_time?.slice(0, 2)   ?? '--'
+  const hrs    = shiftDurationHours(shift.start_time, shift.end_time)
+  const hrsStr = Number.isFinite(hrs) ? `${Math.round(hrs * 10) / 10}h` : ''
   return (
     <div
       onClick={canClick ? onClick : undefined}
-      style={{
-        display: 'flex', flexDirection: 'column',
-        paddingLeft: 6, paddingRight: 4, paddingTop: 5, paddingBottom: 5,
-        borderRadius: 7, marginBottom: 2,
-        background: accent + '14',
-        borderLeft: `3px solid ${accent}`,
-        cursor: canClick ? 'pointer' : 'default',
-      }}
+      className={`rounded-[10px] px-2 pt-[7px] pb-[6px] mb-1 last:mb-0${canClick ? ' cursor-pointer active:scale-[0.97] transition-transform' : ''}`}
+      style={{ background: accent + '1C' }}
     >
-      <span style={{ fontFamily: 'ui-monospace,SFMono-Regular,monospace', fontSize: 10, fontWeight: 600, color: '#111827', lineHeight: 1.2, whiteSpace: 'nowrap' }}>
-        {shift.start_time?.slice(0,5)}
-      </span>
-      <span style={{ fontFamily: 'ui-monospace,SFMono-Regular,monospace', fontSize: 10, color: '#6b7280', lineHeight: 1.2, whiteSpace: 'nowrap' }}>
-        {shift.end_time?.slice(0,5)}
-      </span>
+      <div className="font-semibold text-[13px] leading-none tabular-nums" style={{ color: accent }}>
+        {startH}–{endH}
+      </div>
+      <div className="text-[11px] leading-none mt-[5px] tabular-nums" style={{ color: accent, opacity: 0.65 }}>
+        {hrsStr}
+      </div>
     </div>
   )
 }
 
 function MobileWeekGrid({ days, shifts, shiftIndex, staff, onCellClick, currentStaffId, isManager, unavailability, closedDays, closedDates, breakDurationMins = 30, crossShifts = [] }) {
-  const COL_W = 68  // px per day column
-  const NAME_W = 108 // px for staff name column
+  const COL_W  = 78
+  const NAME_W = 140
 
-  // Per-day totals for footer
   const dayTotals = days.map((d, di) => {
     const dateStr = format(d, 'yyyy-MM-dd')
     if (closedDays.includes(di) || closedDates?.has(dateStr)) return { hours: 0, heads: 0 }
@@ -74,43 +51,34 @@ function MobileWeekGrid({ days, shifts, shiftIndex, staff, onCellClick, currentS
   })
 
   return (
-    <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', marginLeft: -16, marginRight: -16 }}>
+    <div className="mx-0 rounded-2xl border border-charcoal/8 overflow-hidden bg-white">
+    <div className="overflow-x-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
       <div style={{ minWidth: NAME_W + COL_W * 7 + 1 }}>
 
         {/* Header row */}
-        <div style={{ display: 'flex', position: 'sticky', top: 0, zIndex: 20, background: '#fff', borderBottom: '1px solid #e5e7eb' }}>
-          {/* Staff column header */}
-          <div style={{
-            position: 'sticky', left: 0, zIndex: 21, background: '#fff',
-            width: NAME_W, minWidth: NAME_W, flexShrink: 0,
-            padding: '8px 8px 8px 16px',
-            fontFamily: 'ui-monospace,SFMono-Regular,monospace',
-            fontSize: 10, fontWeight: 600, letterSpacing: '0.08em',
-            textTransform: 'uppercase', color: '#9ca3af',
-            borderRight: '1px solid #e5e7eb',
-          }}>Staff</div>
-          {/* Day headers */}
+        <div className="flex sticky top-0 z-20 bg-white border-b border-charcoal/8">
+          <div className="sticky left-0 z-[21] bg-white shrink-0" style={{ width: NAME_W, minWidth: NAME_W }} />
           {days.map((d, i) => {
             const today   = isToday(d)
             const dateStr = format(d, 'yyyy-MM-dd')
             const closed  = closedDays.includes(i) || closedDates?.has(dateStr)
             return (
-              <div key={i} style={{
-                width: COL_W, minWidth: COL_W, flexShrink: 0,
-                padding: '7px 4px', textAlign: 'center',
-                background: closed ? '#f9fafb' : today ? '#f0fdf4' : '#fff',
-                borderRight: i < 6 ? '1px solid #f3f4f6' : 'none',
-              }}>
-                <div style={{
-                  fontFamily: 'ui-monospace,SFMono-Regular,monospace',
-                  fontSize: 9.5, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase',
-                  color: today ? '#16a34a' : closed ? '#d1d5db' : '#9ca3af',
-                }}>{DAY_LABELS[i]}</div>
-                <div style={{
-                  fontSize: 12, fontWeight: 600,
-                  color: today ? '#16a34a' : closed ? '#d1d5db' : '#374151',
-                  marginTop: 1,
-                }}>{format(d, 'd')}</div>
+              <div key={i}
+                className={`shrink-0 pt-3 pb-2 px-1 text-center ${i < 6 ? 'border-r border-charcoal/6' : ''}`}
+                style={{ width: COL_W, minWidth: COL_W }}
+              >
+                <div className={`font-mono text-[10px] font-semibold tracking-[0.08em] uppercase mb-1.5 ${today ? 'text-accent' : closed ? 'text-charcoal/25' : 'text-charcoal/40'}`}>
+                  {DAY_LABELS[i]}
+                </div>
+                {today ? (
+                  <div className="w-7 h-7 rounded-full mx-auto flex items-center justify-center" style={{ background: '#13362a' }}>
+                    <span className="text-[13px] font-bold text-white leading-none">{format(d, 'd')}</span>
+                  </div>
+                ) : (
+                  <div className={`text-[13px] font-semibold leading-none ${closed ? 'text-charcoal/25' : 'text-charcoal/80'}`}>
+                    {format(d, 'd')}
+                  </div>
+                )}
               </div>
             )
           })}
@@ -118,91 +86,66 @@ function MobileWeekGrid({ days, shifts, shiftIndex, staff, onCellClick, currentS
 
         {/* Staff rows */}
         {staff.map((s) => {
-          const accent = stationAccent(s)
+          const accent     = staffColour(s)
           const isOwnStaff = !isManager && currentStaffId === s.id
+          const rowBg      = isOwnStaff ? 'bg-accent/4' : 'bg-white'
           return (
-            <div key={s.id} style={{
-              display: 'flex',
-              background: isOwnStaff ? '#f0fdf4' : '#fff',
-              borderBottom: '1px solid #f3f4f6',
-            }}>
+            <div key={s.id} className={`flex border-b border-charcoal/6 ${rowBg}`}>
               {/* Name cell */}
-              <div style={{
-                position: 'sticky', left: 0, zIndex: 10, background: 'inherit',
-                width: NAME_W, minWidth: NAME_W, flexShrink: 0,
-                padding: '8px 8px 8px 16px',
-                borderRight: '1px solid #e5e7eb',
-                display: 'flex', alignItems: 'center', gap: 6,
-              }}>
-                <span style={{
-                  width: 28, height: 28, borderRadius: 7, flexShrink: 0,
-                  background: accent + '22', color: accent,
-                  display: 'grid', placeItems: 'center',
-                  fontFamily: 'ui-monospace,SFMono-Regular,monospace',
-                  fontSize: 10, fontWeight: 700,
-                }}>
-                  {s.name.split(' ').map(w => w[0]).slice(0,2).join('')}
-                </span>
-                <div style={{ minWidth: 0 }}>
-                  <div style={{ fontSize: 12, fontWeight: 600, color: '#111827', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    {s.name.split(' ')[0]}
-                  </div>
-                  <div style={{
-                    fontSize: 9.5, fontWeight: 500, color: '#9ca3af',
-                    textTransform: 'uppercase', letterSpacing: '0.06em',
-                    marginTop: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-                  }}>
-                    {s.station ?? s.role ?? ''}
-                  </div>
+              <div
+                className={`sticky left-0 z-10 ${rowBg} shrink-0 pl-4 pr-3 py-3 flex items-center gap-2.5`}
+                style={{ width: NAME_W, minWidth: NAME_W }}
+              >
+                <div className="flex flex-col items-center gap-1 shrink-0">
+                  <span
+                    className="w-9 h-9 rounded-[9px] grid place-items-center font-semibold text-[12px]"
+                    style={{ background: accent + '20', color: accent }}
+                  >
+                    {s.name.split(' ').map(w => w[0]).slice(0, 2).join('')}
+                  </span>
+                  <span className="w-1.5 h-1.5 rounded-full" style={{ background: accent }} />
+                </div>
+                <div className="min-w-0">
+                  <div className="text-[13px] font-semibold text-charcoal truncate">{s.name.split(' ')[0]}</div>
                 </div>
               </div>
 
               {/* Day cells */}
               {days.map((d, di) => {
-                const dateStr  = format(d, 'yyyy-MM-dd')
-                const today    = isToday(d)
-                const closed   = closedDays.includes(di) || closedDates?.has(dateStr)
+                const dateStr   = format(d, 'yyyy-MM-dd')
+                const closed    = closedDays.includes(di) || closedDates?.has(dateStr)
                 const dayShifts = shiftIndex[`${s.id}:${dateStr}`] ?? []
-                const unavail  = unavailability?.[`${s.id}:${dateStr}`]
+                const unavail   = unavailability?.[`${s.id}:${dateStr}`]
                 const isTimeOff = unavail?.type === 'time_off'
-                const canClick = isManager || (currentStaffId === s.id && dayShifts.length > 0)
-
+                const canClick  = isManager || (currentStaffId === s.id && dayShifts.length > 0)
                 return (
-                  <div key={di} style={{
-                    width: COL_W, minWidth: COL_W, flexShrink: 0,
-                    padding: '6px 4px',
-                    background: closed ? '#f9fafb' : today ? '#f0fdf4' : 'transparent',
-                    borderRight: di < 6 ? '1px solid #f3f4f6' : 'none',
-                    minHeight: 52,
-                  }}>
+                  <div key={di}
+                    className={`shrink-0 px-1.5 py-2 ${di < 6 ? 'border-r border-charcoal/6' : ''}`}
+                    style={{ width: COL_W, minWidth: COL_W, minHeight: 64 }}
+                  >
                     {closed ? (
-                      <div style={{ height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <span style={{ fontFamily: 'ui-monospace,SFMono-Regular,monospace', fontSize: 9, color: '#d1d5db', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Closed</span>
+                      <div className="h-full flex items-center justify-center">
+                        <span className="font-mono text-[9px] text-charcoal/25 uppercase tracking-widest">—</span>
                       </div>
                     ) : isTimeOff && dayShifts.length === 0 ? (
-                      <div style={{ padding: '4px 2px' }}>
-                        <span style={{ fontFamily: 'ui-monospace,SFMono-Regular,monospace', fontSize: 9.5, color: '#c0392b', textTransform: 'uppercase', letterSpacing: '0.04em', fontWeight: 600 }}>Leave</span>
+                      <div className="h-full flex items-center justify-center">
+                        <div className="rounded-[8px] px-2 py-1 bg-charcoal/6">
+                          <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.06em] text-charcoal/40">Leave</span>
+                        </div>
                       </div>
                     ) : dayShifts.length > 0 ? (
                       dayShifts.map(sh => (
-                        <MobileShiftCell
-                          key={sh.id}
-                          shift={sh}
-                          accent={accent}
-                          onClick={canClick ? () => onCellClick(s, d, dayShifts) : undefined}
-                        />
+                        <MobileShiftCell key={sh.id} shift={sh} accent={accent}
+                          onClick={canClick ? () => onCellClick(s, d, dayShifts) : undefined} />
                       ))
-                    ) : isManager ? (
-                      <button
-                        onClick={() => onCellClick(s, d, [])}
-                        style={{
-                          width: '100%', minHeight: 40, border: '1.5px dashed #e5e7eb',
-                          borderRadius: 7, background: 'none', cursor: 'pointer',
-                          color: '#d1d5db', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        }}
-                      >+</button>
                     ) : (
-                      <div style={{ height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#e5e7eb', fontSize: 11 }}>—</div>
+                      <div
+                        className="h-full flex items-center justify-center"
+                        onClick={isManager ? () => onCellClick(s, d, []) : undefined}
+                        style={{ cursor: isManager ? 'pointer' : 'default' }}
+                      >
+                        <span className="w-1.5 h-1.5 rounded-full bg-charcoal/20 block" />
+                      </div>
                     )}
                   </div>
                 )
@@ -212,33 +155,26 @@ function MobileWeekGrid({ days, shifts, shiftIndex, staff, onCellClick, currentS
         })}
 
         {/* Totals row */}
-        <div style={{ display: 'flex', background: '#f9fafb', borderTop: '1px solid #e5e7eb' }}>
-          <div style={{
-            position: 'sticky', left: 0, zIndex: 10, background: '#f9fafb',
-            width: NAME_W, minWidth: NAME_W, flexShrink: 0,
-            padding: '8px 8px 8px 16px',
-            fontFamily: 'ui-monospace,SFMono-Regular,monospace',
-            fontSize: 10, fontWeight: 600, color: '#6b7280',
-            textTransform: 'uppercase', letterSpacing: '0.06em',
-            borderRight: '1px solid #e5e7eb',
-          }}>Totals</div>
+        <div className="flex border-t border-charcoal/10 bg-white">
+          <div
+            className="sticky left-0 z-10 bg-white shrink-0 pl-4 pr-3 py-3 font-mono text-[10px] font-semibold text-charcoal/40 uppercase tracking-[0.08em] flex items-center"
+            style={{ width: NAME_W, minWidth: NAME_W }}
+          >Hours</div>
           {dayTotals.map((t, i) => (
-            <div key={i} style={{
-              width: COL_W, minWidth: COL_W, flexShrink: 0,
-              padding: '8px 4px', textAlign: 'center',
-              borderRight: i < 6 ? '1px solid #f3f4f6' : 'none',
-            }}>
-              <div style={{ fontFamily: 'ui-monospace,SFMono-Regular,monospace', fontSize: 10, fontWeight: 600, color: '#374151' }}>
-                {t.hours > 0 ? `${t.hours}h` : '—'}
-              </div>
-              <div style={{ fontFamily: 'ui-monospace,SFMono-Regular,monospace', fontSize: 9, color: '#9ca3af', marginTop: 1 }}>
-                {t.heads > 0 ? `${t.heads} in` : ''}
-              </div>
+            <div key={i}
+              className={`shrink-0 py-3 px-1 text-center ${i < 6 ? 'border-r border-charcoal/6' : ''}`}
+              style={{ width: COL_W, minWidth: COL_W }}
+            >
+              <div className="font-semibold text-[13px] text-charcoal/80 tabular-nums">{t.hours > 0 ? `${t.hours}h` : '—'}</div>
+              {t.heads > 0 && (
+                <div className="font-mono text-[10px] text-charcoal/40 mt-0.5 uppercase tracking-[0.04em]">{t.heads} on</div>
+              )}
             </div>
           ))}
         </div>
 
       </div>
+    </div>
     </div>
   )
 }

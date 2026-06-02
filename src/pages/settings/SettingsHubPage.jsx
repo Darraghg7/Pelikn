@@ -85,18 +85,17 @@ function SettingsCard({ label, sub, icon: Icon, attention, statusText, onClick }
 // ── SettingsHubPage ────────────────────────────────────────────────────────
 export default function SettingsHubPage() {
   const navigate = useNavigate()
-  const { venue } = useVenue()
+  const { venueSlug, venueName } = useVenue()
   const { session } = useSession()
   const { signOutVenue } = useAuth()
   const { lateGraceMins } = useAppSettings()
 
-  const venueSlug = venue?.slug
   const vp = (path) => `/v/${venueSlug}${path}`
 
   const isOwner = session?.staffRole === 'owner'
   const staffName = session?.name ?? 'Manager'
   const role = session?.staffRole === 'owner' ? 'Owner' : session?.staffRole === 'manager' ? 'General Manager' : 'Manager'
-  const venueName = venue?.name ?? ''
+
 
   const initials = staffName.split(' ').map(w => w[0]).slice(0, 2).join('')
 
