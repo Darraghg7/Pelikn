@@ -124,6 +124,7 @@ const SettingsHubPage              = lazy(() => import('./pages/settings/Setting
 const AttendanceSettingsPage       = lazy(() => import('./pages/settings/AttendanceSettingsPage'))
 const HubTilesPage                 = lazy(() => import('./pages/settings/HubTilesPage'))
 const VenueSettingsPage            = lazy(() => import('./pages/settings/VenueSettingsPage'))
+const StaffSettingsPage            = lazy(() => import('./pages/settings/StaffSettingsPage'))
 const ComplianceSettingsPage       = lazy(() => import('./pages/settings/ComplianceSettingsPage'))
 const NotificationsSettingsPage    = lazy(() => import('./pages/settings/NotificationsSettingsPage'))
 const BillingSettingsPage          = lazy(() => import('./pages/settings/BillingSettingsPage'))
@@ -374,6 +375,7 @@ function VenueRoutes() {
             <Route path="settings/attendance"     element={wrap(AttendanceSettingsPage,       RequireManager)} />
             <Route path="settings/hub-tiles"      element={wrap(HubTilesPage,                 RequireManager)} />
             <Route path="settings/venue"          element={wrap(VenueSettingsPage,            RequireManager)} />
+            <Route path="settings/staff"          element={wrap(StaffSettingsPage,            RequireManager)} />
             <Route path="settings/compliance"     element={wrap(ComplianceSettingsPage,       RequireManager)} />
             <Route path="settings/notifications"  element={wrap(NotificationsSettingsPage,    RequireManager)} />
             <Route path="settings/billing"        element={wrap(BillingSettingsPage,          RequireManager)} />

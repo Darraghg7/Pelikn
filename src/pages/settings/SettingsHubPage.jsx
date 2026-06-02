@@ -104,14 +104,14 @@ export default function SettingsHubPage() {
 
   const cards = [
     { id: 'venue',        label: 'Venue',         sub: 'Hours, closing days', icon: VenueIcon,        route: vp('/settings/venue') },
-    { id: 'staff',        label: 'Staff & Roles',  sub: 'Team, permissions',   icon: StaffIcon,        route: vp('/staff') },
+    { id: 'staff',        label: 'Staff & Roles',  sub: 'Team, permissions',   icon: StaffIcon,        route: vp('/settings/staff') },
     { id: 'attendance',   label: 'Attendance',     sub: 'Clock-in & breaks',   icon: AttendanceIcon,   route: vp('/settings/attendance'),
       attention: attendanceAttention, statusText: `Grace: ${lateGraceMins}min` },
     { id: 'compliance',   label: 'Compliance',     sub: 'Schedules, HACCP',    icon: ComplianceIcon,   route: vp('/settings/compliance') },
     { id: 'features',     label: 'Features',       sub: 'Hub tile visibility', icon: FeaturesIcon,     route: vp('/settings/hub-tiles') },
     { id: 'notifications',label: 'Notifications',  sub: 'Alerts & digest',     icon: BellIcon,         route: vp('/settings/notifications') },
     ...(isOwner ? [{ id: 'billing', label: 'Plan & Billing', sub: 'Subscription', icon: BillingIcon, route: vp('/settings/billing') }] : []),
-    { id: 'integrations', label: 'Integrations',   sub: 'Connect apps',        icon: IntegrationsIcon, route: vp('/settings/integrations') },
+    // { id: 'integrations', label: 'Integrations', sub: 'Connect apps', icon: IntegrationsIcon, route: vp('/settings/integrations') },
     { id: 'help',         label: 'Help & Support', sub: 'Docs, contact',       icon: HelpIcon,         route: vp('/settings/help') },
   ]
 
