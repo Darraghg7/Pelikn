@@ -104,7 +104,7 @@ function Group({ label, children, foot }) {
 // ── AttendanceSettingsPage ─────────────────────────────────────────────────
 export default function AttendanceSettingsPage() {
   const navigate = useNavigate()
-  const { venue } = useVenue()
+  const { venueSlug } = useVenue()
   const settings = useAppSettings()
 
   const {
@@ -116,7 +116,6 @@ export default function AttendanceSettingsPage() {
     saveCountingWindowDays, savePushToManager,
   } = settings
 
-  const venueSlug = venue?.slug
   const vp = (path) => `/v/${venueSlug}${path}`
 
   return (
