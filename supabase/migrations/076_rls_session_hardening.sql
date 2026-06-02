@@ -51,7 +51,6 @@ BEGIN
   JOIN staff s ON s.id = ss.staff_id
   WHERE ss.token      = v_token::uuid
     AND ss.expires_at > now()
-    AND ss.is_active  = true
     AND s.is_active   = true
   LIMIT 1;
 
