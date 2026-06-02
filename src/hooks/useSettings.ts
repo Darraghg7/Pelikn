@@ -34,7 +34,7 @@ const COLOR_PALETTE = [
   'bg-stone-100 text-stone-800',
 ]
 
-const SETTINGS_KEYS = ['custom_roles', 'closed_days', 'break_duration_mins', 'cleanup_minutes', 'fridge_check_time', 'open_time', 'close_time', 'compliance_nav_order', 'action_schedules', 'late_grace_mins', 'break_overrun_grace_mins', 'require_late_reason', 'notify_manager_at_strike', 'disciplinary_at_strike', 'counting_window_days', 'push_to_manager']
+const SETTINGS_KEYS = ['custom_roles', 'closed_days', 'break_duration_mins', 'cleanup_minutes', 'fridge_check_time', 'open_time', 'close_time', 'compliance_nav_order', 'action_schedules', 'late_grace_mins', 'break_overrun_grace_mins', 'require_late_reason', 'notify_manager_at_strike', 'disciplinary_at_strike', 'counting_window_days', 'push_to_manager', 'hidden_check_tiles', 'hidden_team_tiles']
 
 interface CustomRole {
   value: string
@@ -67,6 +67,8 @@ interface AppSettings {
   disciplinaryAtStrike: number
   countingWindowDays: number
   pushToManager: boolean
+  hiddenCheckTiles: string[]
+  hiddenTeamTiles: string[]
 }
 
 const ALL_DAYS = [0, 1, 2, 3, 4, 5, 6]
@@ -98,6 +100,8 @@ const DEFAULTS: AppSettings = {
   disciplinaryAtStrike: 4,
   countingWindowDays: 30,
   pushToManager: true,
+  hiddenCheckTiles: [],
+  hiddenTeamTiles: [],
 }
 
 async function fetchAppSettings(venueId: string): Promise<AppSettings> {
@@ -195,6 +199,8 @@ export function useAppSettings() {
         disciplinary_at_strike: 'disciplinaryAtStrike',
         counting_window_days: 'countingWindowDays',
         push_to_manager: 'pushToManager',
+        hidden_check_tiles: 'hiddenCheckTiles',
+        hidden_team_tiles: 'hiddenTeamTiles',
       }
       return { ...(old ?? DEFAULTS), [fieldMap[key]]: value }
     })
@@ -219,6 +225,8 @@ export function useAppSettings() {
   const saveDisciplinaryAtStrike = useCallback((n: number) => saveSetting('disciplinary_at_strike', n), [saveSetting])
   const saveCountingWindowDays = useCallback((n: number) => saveSetting('counting_window_days', n), [saveSetting])
   const savePushToManager = useCallback((v: boolean) => saveSetting('push_to_manager', v), [saveSetting])
+  const saveHiddenCheckTiles = useCallback((ids: string[]) => saveSetting('hidden_check_tiles', ids), [saveSetting])
+  const saveHiddenTeamTiles = useCallback((ids: string[]) => saveSetting('hidden_team_tiles', ids), [saveSetting])
 
   /** Pick the next unused colour from the palette. Falls back to the least-used colour. */
   const nextColor = useCallback(() => {
@@ -252,11 +260,14 @@ export function useAppSettings() {
     disciplinaryAtStrike: settings.disciplinaryAtStrike,
     countingWindowDays: settings.countingWindowDays,
     pushToManager: settings.pushToManager,
+    hiddenCheckTiles: settings.hiddenCheckTiles,
+    hiddenTeamTiles: settings.hiddenTeamTiles,
     loading,
     saveCustomRoles, saveClosedDays, saveBreakDuration, saveCleanupMinutes, saveFridgeCheckTime,
     saveOpenTime, saveCloseTime, saveComplianceNavOrder, saveActionSchedules,
     saveLateGraceMins, saveBreakOverrunGraceMins, saveRequireLateReason,
     saveNotifyManagerAtStrike, saveDisciplinaryAtStrike, saveCountingWindowDays, savePushToManager,
+    saveHiddenCheckTiles, saveHiddenTeamTiles,
     nextColor, reload,
   }
 }

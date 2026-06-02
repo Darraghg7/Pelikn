@@ -85,18 +85,17 @@ function SettingsCard({ label, sub, icon: Icon, attention, statusText, onClick }
 // ── SettingsHubPage ────────────────────────────────────────────────────────
 export default function SettingsHubPage() {
   const navigate = useNavigate()
-  const { venue } = useVenue()
+  const { venueSlug, venueName } = useVenue()
   const { session } = useSession()
   const { signOutVenue } = useAuth()
   const { lateGraceMins } = useAppSettings()
 
-  const venueSlug = venue?.slug
   const vp = (path) => `/v/${venueSlug}${path}`
 
   const isOwner = session?.staffRole === 'owner'
   const staffName = session?.name ?? 'Manager'
   const role = session?.staffRole === 'owner' ? 'Owner' : session?.staffRole === 'manager' ? 'General Manager' : 'Manager'
-  const venueName = venue?.name ?? ''
+
 
   const initials = staffName.split(' ').map(w => w[0]).slice(0, 2).join('')
 
@@ -109,7 +108,7 @@ export default function SettingsHubPage() {
     { id: 'attendance',   label: 'Attendance',     sub: 'Clock-in & breaks',   icon: AttendanceIcon,   route: vp('/settings/attendance'),
       attention: attendanceAttention, statusText: `Grace: ${lateGraceMins}min` },
     { id: 'compliance',   label: 'Compliance',     sub: 'Schedules, HACCP',    icon: ComplianceIcon,   route: vp('/settings') },
-    { id: 'features',     label: 'Features',       sub: 'Modules on/off',      icon: FeaturesIcon,     route: vp('/settings') },
+    { id: 'features',     label: 'Features',       sub: 'Hub tile visibility', icon: FeaturesIcon,     route: vp('/settings/hub-tiles') },
     { id: 'notifications',label: 'Notifications',  sub: 'Alerts & digest',     icon: BellIcon,         route: vp('/settings') },
     ...(isOwner ? [{ id: 'billing', label: 'Plan & Billing', sub: 'Subscription', icon: BillingIcon, route: vp('/settings') }] : []),
     { id: 'integrations', label: 'Integrations',   sub: 'Connect apps',        icon: IntegrationsIcon, route: vp('/settings') },

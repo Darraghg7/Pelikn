@@ -743,24 +743,26 @@ export default function RotaPage() {
   return (
     <div className="flex flex-col gap-6">
 
-      <RotaToolbar
-        isManager={isManager}
-        closureMode={closureMode}
-        showConfig={showConfig}
-        setShowConfig={setShowConfig}
-        setShowAI={setShowAI}
-        emailRota={emailRota}
-        emailing={emailing}
-        shiftsCount={shifts.length}
-        shareViaWhatsApp={shareViaWhatsApp}
-        sharing={sharing}
-        enterClosureMode={enterClosureMode}
-        cancelClosureMode={cancelClosureMode}
-        saveClosures={saveClosures}
-        savingClosures={savingClosures}
-        copyWeek={copyWeek}
-        copyingWeek={copyingWeek}
-      />
+      <div className="hidden lg:block">
+        <RotaToolbar
+          isManager={isManager}
+          closureMode={closureMode}
+          showConfig={showConfig}
+          setShowConfig={setShowConfig}
+          setShowAI={setShowAI}
+          emailRota={emailRota}
+          emailing={emailing}
+          shiftsCount={shifts.length}
+          shareViaWhatsApp={shareViaWhatsApp}
+          sharing={sharing}
+          enterClosureMode={enterClosureMode}
+          cancelClosureMode={cancelClosureMode}
+          saveClosures={saveClosures}
+          savingClosures={savingClosures}
+          copyWeek={copyWeek}
+          copyingWeek={copyingWeek}
+        />
+      </div>
 
       {/* ── Closure mode banner ── */}
       {closureMode && (
@@ -778,7 +780,7 @@ export default function RotaPage() {
 
       {/* Availability legend */}
       {isManager && (
-        <div className="flex items-center gap-4 flex-wrap px-1">
+        <div className="hidden lg:flex items-center gap-4 flex-wrap px-1">
           <div className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded bg-success/30 border border-success/30" />
             <span className="text-[11px] tracking-wider uppercase text-charcoal/30">Available</span>
@@ -837,7 +839,7 @@ export default function RotaPage() {
 
       {/* ── Week count selector ── */}
       {isManager && (
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="hidden lg:flex flex-wrap items-center gap-2">
           <span className="text-[11px] tracking-widest uppercase text-charcoal/40 font-medium">View</span>
           {[1, 2, 3, 4].map((n) => (
             <button
