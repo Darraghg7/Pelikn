@@ -32,8 +32,8 @@ serve(async (req) => {
     const { session_token, venueId, weekStart } = await req.json() as {
       session_token: string; venueId: string; weekStart: string
     }
-    if (!session_token) return err('Unauthorised', 401)
-    if (!venueId || !weekStart) return err('Missing venueId or weekStart', 400)
+    if (!session_token) return err('Unauthorised', 401, corsHeaders)
+    if (!venueId || !weekStart) return err('Missing venueId or weekStart', 400, corsHeaders)
 
     const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE)
 
@@ -43,18 +43,18 @@ serve(async (req) => {
       .select('staff_id, expires_at')
       .eq('token', session_token)
       .maybeSingle()
-    if (sessionErr) return err(`Session lookup failed: ${sessionErr.message}`, 401)
-    if (!sessionRow) return err('Session not found — please sign out and back in', 401)
-    if (new Date(sessionRow.expires_at) < new Date()) return err('Session expired — please sign out and back in', 401)
+    if (sessionErr) return err(`Session lookup failed: ${sessionErr.message}`, 401, corsHeaders)
+    if (!sessionRow) return err('Session not found — please sign out and back in', 401, corsHeaders)
+    if (new Date(sessionRow.expires_at) < new Date()) return err('Session expired — please sign out and back in', 401, corsHeaders)
 
     const { data: staffInfo } = await admin
       .from('staff')
       .select('role, is_active')
       .eq('id', sessionRow.staff_id)
       .maybeSingle()
-    if (!staffInfo?.is_active) return err('Staff account inactive', 401)
+    if (!staffInfo?.is_active) return err('Staff account inactive', 401, corsHeaders)
     if (!['manager', 'owner'].includes(staffInfo.role)) {
-      return err(`AI rota builder requires manager access (you are: ${staffInfo.role})`, 403)
+      return err(`AI rota builder requires manager access (you are: ${staffInfo.role})`, 403, corsHeaders)
     }
 
     // ── Rate limiting: max 20 AI rota generations per venue per hour ──────────
@@ -67,7 +67,7 @@ serve(async (req) => {
       .gte('created_at', oneHourAgo)
 
     if ((recentCount ?? 0) >= 20) {
-      return err('Rate limit exceeded — maximum 20 AI rota generations per hour. Please try again later.', 429)
+      return err('Rate limit exceeded — maximum 20 AI rota generations per hour. Please try again later.', 429, corsHeaders)
     }
 
     // Log this request before calling Claude (non-blocking — failure is non-critical)
@@ -125,8 +125,8 @@ serve(async (req) => {
         .lt('shift_date', weekStart),
     ])
 
-    if (!requirements?.length) return err('No rota requirements configured. Set them up via Configure → Auto-Fill.', 400)
-    if (!staffList?.length)    return err('No active staff found.', 400)
+    if (!requirements?.length) return err('No rota requirements configured. Set them up via Configure → Auto-Fill.', 400, corsHeaders)
+    if (!staffList?.length)    return err('No active staff found.', 400, corsHeaders)
 
     // ── Build role lookup ──────────────────────────────────────────────────
     const roleMap = Object.fromEntries((venueRoles ?? []).map(r => [r.id, r.name]))
@@ -206,7 +206,7 @@ serve(async (req) => {
       }
     }
 
-    if (!slots.length) return err('No open days with requirements found for this week.', 400)
+    if (!slots.length) return err('No open days with requirements found for this week.', 400, corsHeaders)
 
     // ── Compute historical patterns ───────────────────────────────────────
     const hist = historicalShifts ?? []
@@ -321,7 +321,7 @@ Assign staff to fill every slot, following the rules. Return the JSON object.`
 
     if (!claudeRes.ok) {
       const errText = await claudeRes.text()
-      return err(`AI generation failed: ${errText}`, 500)
+      return err(`AI generation failed: ${errText}`, 500, corsHeaders)
     }
 
     const claudeData = await claudeRes.json()
@@ -333,7 +333,7 @@ Assign staff to fill every slot, following the rules. Return the JSON object.`
       const clean = rawText.replace(/^```json\s*/i, '').replace(/```\s*$/i, '').trim()
       parsed = JSON.parse(clean)
     } catch {
-      return err(`AI returned invalid JSON: ${rawText.slice(0, 200)}`, 500)
+      return err(`AI returned invalid JSON: ${rawText.slice(0, 200)}`, 500, corsHeaders)
     }
 
     // Deduplicate: one role per overlapping time window per person per day
@@ -377,7 +377,7 @@ Assign staff to fill every slot, following the rules. Return the JSON object.`
     )
 
   } catch (e) {
-    return err(String(e), 500)
+    return err(String(e), 500, corsHeaders)
   }
 })
 
@@ -385,9 +385,9 @@ function timesOverlap(s1: string, e1: string, s2: string, e2: string): boolean {
   return s1 < e2 && s2 < e1
 }
 
-function err(message: string, status: number) {
+function err(message: string, status: number, cors: Record<string, string> = {}) {
   return new Response(
     JSON.stringify({ error: message }),
-    { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    { status, headers: { ...cors, 'Content-Type': 'application/json' } }
   )
 }
