@@ -42,6 +42,7 @@ export function useTodaySummary(venueId, closedDays = [], actionSchedules = {}) 
     const dayStart = startOfDay(today).toISOString()
     const dayEnd   = endOfDay(today).toISOString()
     const todayStr = format(today, 'yyyy-MM-dd')
+    const ninetyDaysAgo = subDays(today, 90).toISOString()
 
     let cancelled = false
     const fetchAll = async () => {
@@ -76,10 +77,12 @@ export function useTodaySummary(venueId, closedDays = [], actionSchedules = {}) 
 
       const due = (key) => isActionDueToday(key, actionSchedules)
 
+      // All queries run in parallel — including cleaning completions and shift IDs
+      // so we avoid sequential waterfall fetches after this batch.
       const [
         cleaning, rota, opening, closing, fridges, fridgeLogs,
         leaveReqs, critActions, cookingTemps, hotHoldingLogs,
-        coolingLogs, dutyShifts, totalChecksRes,
+        coolingLogs, dutyShifts, totalChecksRes, cleaningCompletions,
       ] = await Promise.all([
         due('cleaning_tasks')
           ? supabase.from('cleaning_tasks').select('id, frequency').eq('venue_id', venueId).eq('is_active', true)
@@ -112,26 +115,28 @@ export function useTodaySummary(venueId, closedDays = [], actionSchedules = {}) 
         due('cooling_logs')
           ? supabase.from('cooling_logs').select('id', { count: 'exact', head: true }).eq('venue_id', venueId).gte('logged_at', dayStart).lte('logged_at', dayEnd)
           : { count: 0 },
+        // Fetch shifts with IDs so duty_assignments query can happen in the second round-trip
         supabase.from('shifts').select('id').eq('venue_id', venueId).eq('shift_date', todayStr),
         supabase.from('opening_closing_checks').select('id', { count: 'exact', head: true }).eq('venue_id', venueId).eq('is_active', true),
+        // Fetch cleaning completions upfront — avoids a sequential fetch after cleaning_tasks
+        due('cleaning_tasks')
+          ? supabase.from('cleaning_completions')
+              .select('cleaning_task_id, completed_at')
+              .eq('venue_id', venueId)
+              .gte('completed_at', ninetyDaysAgo)
+              .order('completed_at', { ascending: false })
+          : { data: [] },
       ])
 
       if (cancelled) return
 
+      // ── Cleaning overdue count (no extra round-trip needed) ──────────────
       let overdueCount = 0
       if (due('cleaning_tasks') && cleaning.data?.length) {
-        const ninetyDaysAgo = subDays(new Date(), 90).toISOString()
-        const { data: completions } = await supabase
-          .from('cleaning_completions')
-          .select('cleaning_task_id, completed_at')
-          .eq('venue_id', venueId)
-          .gte('completed_at', ninetyDaysAgo)
-          .order('completed_at', { ascending: false })
-        if (cancelled) return
         const freqDays = { daily: 1, weekly: 7, fortnightly: 14, monthly: 30, quarterly: 90 }
         const now = new Date()
         const latestByTask = new Map()
-        for (const c of (completions ?? [])) {
+        for (const c of (cleaningCompletions.data ?? [])) {
           if (!latestByTask.has(c.cleaning_task_id)) latestByTask.set(c.cleaning_task_id, c)
         }
         for (const t of cleaning.data) {
@@ -145,30 +150,27 @@ export function useTodaySummary(venueId, closedDays = [], actionSchedules = {}) 
       const uncheckedFridges = (fridges.data ?? []).filter(f => !checkedIds.has(f.id)).length
       const totalFridges = fridges.data?.length ?? 0
 
+      // ── Duties: one more round-trip (needs shift IDs from above) ─────────
       let dutiesAssigned = 0, dutiesCompleted = 0
-      if (dutyShifts.data?.length) {
-        const todayShiftIds = dutyShifts.data.map(s => s.id)
+      const todayShiftIds = (dutyShifts.data ?? []).map(s => s.id)
+      if (todayShiftIds.length) {
+        // Fetch duty_assignments with completions embedded — single query instead of two
         const { data: dutyAssignments } = await supabase
           .from('duty_assignments')
-          .select('id, duty_template_id, duty_template_items!duty_template_id ( id )')
+          .select('id, duty_template_id, duty_template_items!duty_template_id(id), duty_item_completions(duty_template_item_id)')
           .in('shift_id', todayShiftIds)
+
         if (!cancelled && dutyAssignments?.length) {
           dutiesAssigned = dutyAssignments.length
-          const assignmentIds = dutyAssignments.map(a => a.id)
-          const { data: itemCompletions } = await supabase
-            .from('duty_item_completions')
-            .select('duty_assignment_id, duty_template_item_id')
-            .in('duty_assignment_id', assignmentIds)
-          const completedByAssignment = (itemCompletions ?? []).reduce((acc, c) => {
-            acc[c.duty_assignment_id] = (acc[c.duty_assignment_id] ?? 0) + 1
-            return acc
-          }, {})
           dutiesCompleted = dutyAssignments.filter(a => {
             const total = a.duty_template_items?.length ?? 0
-            return total > 0 && (completedByAssignment[a.id] ?? 0) >= total
+            const done  = a.duty_item_completions?.length ?? 0
+            return total > 0 && done >= total
           }).length
         }
       }
+
+      if (cancelled) return
 
       setSummary({
         overdueClean:       overdueCount,

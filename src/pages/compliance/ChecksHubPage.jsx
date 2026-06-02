@@ -182,9 +182,11 @@ export default function ChecksHubPage() {
   const vp = (path) => `/v/${venueSlug}${path}`
 
   // Build ordered list with live statuses, excluding hidden tiles
+  const isLoading = summaryLoading || statusLoading
+
   const ordered = CHECKS
     .filter(c => !hiddenCheckTiles.includes(c.id))
-    .map(c => ({ ...c, statusInfo: statuses[c.id] ?? { status: 'na', statusText: '—' } }))
+    .map(c => ({ ...c, statusInfo: statuses[c.id] ?? { status: 'na', statusText: isLoading ? '…' : '—' } }))
     .sort((a, b) => (STATUS_TONE[a.statusInfo.status]?.rank ?? 4) - (STATUS_TONE[b.statusInfo.status]?.rank ?? 4))
 
   // Summary counts
@@ -216,7 +218,7 @@ export default function ChecksHubPage() {
         <h1 style={{ fontSize: 26, fontWeight: 600, letterSpacing: '-0.028em', lineHeight: 1.12, margin: '5px 0 0', color: MC.ink }}>
           Today's checks
         </h1>
-        {!summaryLoading && !statusLoading && (
+        {!isLoading && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginTop: 6 }}>
             {overdueCount > 0 && <StatusPill status="overdue" text={`${overdueCount} overdue`} />}
             {dueCount > 0     && <StatusPill status="due"     text={`${dueCount} due`} />}
@@ -242,7 +244,7 @@ export default function ChecksHubPage() {
             color: 'rgba(255,255,255,0.55)', fontWeight: 600,
           }}>Today</div>
           <div style={{ fontSize: 16, fontWeight: 600, letterSpacing: '-0.015em', marginTop: 3 }}>
-            {summaryLoading || statusLoading
+            {isLoading
               ? 'Loading…'
               : total === 0
                 ? 'All checks up to date'
@@ -286,27 +288,17 @@ export default function ChecksHubPage() {
         </span>
       </button>
 
-      {/* 2-col category grid */}
-      {summaryLoading || statusLoading ? (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 9 }}>
-          {CHECKS.map(c => (
-            <div key={c.id} style={{
-              height: 104, borderRadius: 14, background: MC.line2, animation: 'pulse 1.5s ease-in-out infinite',
-            }} />
-          ))}
-        </div>
-      ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 9 }}>
-          {ordered.map(c => (
-            <HubCard
-              key={c.id}
-              check={c}
-              statusInfo={c.statusInfo}
-              onClick={() => navigate(vp(c.route))}
-            />
-          ))}
-        </div>
-      )}
+      {/* 2-col category grid — renders immediately, statuses fill in as data loads */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 9 }}>
+        {ordered.map(c => (
+          <HubCard
+            key={c.id}
+            check={c}
+            statusInfo={c.statusInfo}
+            onClick={() => navigate(vp(c.route))}
+          />
+        ))}
+      </div>
     </div>
   )
 }
