@@ -4,9 +4,11 @@ import { format, parseISO } from 'date-fns'
 import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
 import { useAppSettings } from '../../hooks/useSettings'
+import { useTheme } from '../../contexts/ThemeContext'
 import useVenueSettings from '../../hooks/useVenueSettings'
 import useVenueClosures from '../../hooks/useVenueClosures'
 import TimeSelect from '../../components/ui/TimeSelect'
+import VenuesSection from './VenuesSection'
 
 const MC = {
   brand: '#13362a',
@@ -54,9 +56,13 @@ export default function VenueSettingsPage() {
 
   const vp = (path) => `/v/${venueSlug}${path}`
 
+  const { dark, mode: themeMode, setMode: setThemeMode } = useTheme()
+
   const [form, setForm] = useState({ venue_name: '', manager_email: '' })
   const [saving, setSaving] = useState(false)
   const [saveSuccess, setSaveSuccess] = useState(false)
+  const [logoFile, setLogoFile] = useState(null)
+  const [uploadingLogo, setUploadingLogo] = useState(false)
 
   const [closureForm, setClosureForm] = useState({ start_date: '', end_date: '', reason: '' })
   const [savingClosure, setSavingClosure] = useState(false)
@@ -74,6 +80,20 @@ export default function VenueSettingsPage() {
     setSaving(false)
     setSaveSuccess(true)
     setTimeout(() => setSaveSuccess(false), 2000)
+    reloadSettings()
+  }
+
+  const uploadLogo = async (file) => {
+    if (!file) return
+    setUploadingLogo(true)
+    const ext  = file.name.split('.').pop()
+    const path = `${venueId}/logo/venue-logo.${ext}`
+    const { error: upErr } = await supabase.storage.from('app-assets').upload(path, file, { upsert: true })
+    if (upErr) { setUploadingLogo(false); return }
+    const { data: urlData } = supabase.storage.from('app-assets').getPublicUrl(path)
+    await supabase.from('app_settings').upsert({ venue_id: venueId, key: 'logo_url', value: urlData.publicUrl + '?t=' + Date.now() })
+    setUploadingLogo(false)
+    setLogoFile(null)
     reloadSettings()
   }
 
@@ -235,6 +255,71 @@ export default function VenueSettingsPage() {
 
           </div>
         </Group>
+
+        {/* Logo */}
+        <Group label="Branding">
+          <div style={{ padding: '13px 15px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div style={{ fontFamily: MONO, fontSize: 10, color: MC.ink3, letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 600, marginBottom: 2 }}>Venue logo</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+              {settings.logo_url && (
+                <img src={settings.logo_url} alt="Venue logo" style={{ height: 44, width: 44, borderRadius: 10, objectFit: 'contain', border: `1px solid ${MC.line}`, background: MC.line2, padding: 4 }} />
+              )}
+              <input
+                type="file" accept="image/*"
+                onChange={e => setLogoFile(e.target.files[0] ?? null)}
+                style={{ fontSize: 13, color: MC.ink3 }}
+              />
+              {logoFile && (
+                <button
+                  onClick={() => uploadLogo(logoFile)}
+                  disabled={uploadingLogo}
+                  style={{ height: 34, padding: '0 14px', borderRadius: 8, border: 'none', cursor: 'pointer', background: MC.brand, color: '#fff', fontSize: 13, fontWeight: 600, opacity: uploadingLogo ? 0.5 : 1 }}
+                >
+                  {uploadingLogo ? 'Uploading…' : 'Upload'}
+                </button>
+              )}
+            </div>
+            <div style={{ fontSize: 11.5, color: MC.ink4 }}>PNG or SVG recommended. Shown in the app header.</div>
+          </div>
+        </Group>
+
+        {/* Appearance */}
+        <Group label="Appearance">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '13px 15px' }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 14, fontWeight: 500, color: MC.ink }}>Theme</div>
+              <div style={{ fontSize: 11.5, color: MC.ink3, marginTop: 2 }}>
+                {themeMode === 'system' ? 'Following device settings' : dark ? 'Dark mode active' : 'Light mode active'}
+              </div>
+            </div>
+            <div style={{ display: 'flex', background: MC.line2, borderRadius: 9, padding: 3, gap: 2 }}>
+              {[
+                { id: 'light', label: '☀️' },
+                { id: 'dark',  label: '🌙' },
+                { id: 'system', label: '💻' },
+              ].map(opt => (
+                <button
+                  key={opt.id}
+                  onClick={() => setThemeMode(opt.id)}
+                  style={{
+                    width: 34, height: 28, borderRadius: 7, border: 'none', cursor: 'pointer', fontSize: 14,
+                    background: themeMode === opt.id ? MC.paper : 'transparent',
+                    boxShadow: themeMode === opt.id ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                    transition: 'all .15s',
+                  }}
+                >{opt.label}</button>
+              ))}
+            </div>
+          </div>
+        </Group>
+
+        {/* My venues */}
+        <div>
+          <div style={{ fontFamily: MONO, fontSize: 10.5, color: MC.ink3, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600, padding: '0 2px 7px' }}>My venues</div>
+          <div style={{ background: MC.paper, border: `1px solid ${MC.line}`, borderRadius: 14, overflow: 'hidden', padding: '4px 0' }}>
+            <VenuesSection />
+          </div>
+        </div>
 
       </div>
     </div>

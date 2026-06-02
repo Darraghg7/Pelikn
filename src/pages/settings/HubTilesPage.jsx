@@ -2,6 +2,9 @@ import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useVenue } from '../../contexts/VenueContext'
 import { useAppSettings } from '../../hooks/useSettings'
+import { useVenueFeatures, FEATURE_GROUPS, ALL_FEATURE_IDS, PRO_ONLY_FEATURE_IDS } from '../../hooks/useVenueFeatures'
+import { PLANS } from '../../lib/constants'
+import NavOrderSection from './NavOrderSection'
 
 const MC = {
   brand:  '#13362a',
@@ -92,8 +95,9 @@ const TEAM_TILES = [
 
 export default function HubTilesPage() {
   const navigate = useNavigate()
-  const { venueSlug } = useVenue()
-  const { hiddenCheckTiles, hiddenTeamTiles, saveHiddenCheckTiles, saveHiddenTeamTiles } = useAppSettings()
+  const { venueId, venueSlug, venuePlan } = useVenue()
+  const { hiddenCheckTiles, hiddenTeamTiles, saveHiddenCheckTiles, saveHiddenTeamTiles, complianceNavOrder, saveComplianceNavOrder } = useAppSettings()
+  const { config: featuresConfig, save: saveFeatures, isEnabled } = useVenueFeatures()
 
   const vp = (path) => `/v/${venueSlug}${path}`
 
@@ -129,8 +133,8 @@ export default function HubTilesPage() {
       </button>
 
       <div style={{ marginBottom: 20 }}>
-        <h1 style={{ fontSize: 24, fontWeight: 600, letterSpacing: '-0.025em', margin: 0, color: MC.ink }}>Hub Tiles</h1>
-        <div style={{ fontSize: 12.5, color: MC.ink3, marginTop: 4 }}>Choose which tiles appear on each hub</div>
+        <h1 style={{ fontSize: 24, fontWeight: 600, letterSpacing: '-0.025em', margin: 0, color: MC.ink }}>Features</h1>
+        <div style={{ fontSize: 12.5, color: MC.ink3, marginTop: 4 }}>Modules, hub tiles & navigation</div>
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -160,6 +164,107 @@ export default function HubTilesPage() {
             />
           ))}
         </Group>
+
+        {/* Modules */}
+        <div>
+          <div style={{ fontFamily: MONO, fontSize: 10.5, color: MC.ink3, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600, padding: '0 2px 7px' }}>Modules</div>
+          <div style={{ background: MC.paper, border: `1px solid ${MC.line}`, borderRadius: 14, overflow: 'hidden', padding: '4px 0' }}>
+            <div style={{ padding: '8px 14px' }}>
+              <div style={{ display: 'inline-flex', background: MC.line2, borderRadius: 9, padding: 3, gap: 2, marginBottom: 12 }}>
+                {['all', 'custom'].map(mode => (
+                  <button
+                    key={mode}
+                    onClick={() => saveFeatures({ mode, enabled: mode === 'all' ? ALL_FEATURE_IDS : (featuresConfig.enabled ?? ALL_FEATURE_IDS) })}
+                    style={{
+                      padding: '5px 14px', borderRadius: 7, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 600,
+                      background: featuresConfig.mode === mode ? MC.paper : 'transparent',
+                      color: featuresConfig.mode === mode ? MC.ink : MC.ink3,
+                      boxShadow: featuresConfig.mode === mode ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                      transition: 'all .15s',
+                    }}
+                  >{mode === 'all' ? 'All modules' : 'Custom'}</button>
+                ))}
+              </div>
+
+              {featuresConfig.mode === 'custom' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  {FEATURE_GROUPS.map(group => {
+                    const allOn = group.features.every(f => featuresConfig.enabled?.includes(f.id))
+                    return (
+                      <div key={group.id} style={{ border: `1px solid ${MC.line}`, borderRadius: 10, overflow: 'hidden' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '9px 12px', background: MC.line2, borderBottom: `1px solid ${MC.line}` }}>
+                          <div>
+                            <div style={{ fontSize: 13, fontWeight: 600, color: MC.ink }}>{group.label}</div>
+                            <div style={{ fontSize: 11, color: MC.ink3, marginTop: 1 }}>{group.description}</div>
+                          </div>
+                          <button
+                            onClick={() => {
+                              const groupIds = group.features.map(f => f.id)
+                              const next = allOn
+                                ? (featuresConfig.enabled ?? ALL_FEATURE_IDS).filter(id => !groupIds.includes(id))
+                                : [...new Set([...(featuresConfig.enabled ?? []), ...groupIds])]
+                              saveFeatures({ ...featuresConfig, enabled: next })
+                            }}
+                            style={{ width: 40, height: 24, borderRadius: 999, border: 'none', cursor: 'pointer', flexShrink: 0, background: allOn ? MC.good : MC.line, position: 'relative', transition: 'background .18s', padding: 0 }}
+                            aria-pressed={allOn}
+                          >
+                            <span style={{ position: 'absolute', top: 2, left: allOn ? 18 : 2, width: 20, height: 20, borderRadius: 999, background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,0.2)', transition: 'left .18s' }} />
+                          </button>
+                        </div>
+                        {group.features.map((feature, fi) => {
+                          const isProOnly = PRO_ONLY_FEATURE_IDS.includes(feature.id)
+                          const locked = isProOnly && venuePlan !== PLANS.PRO
+                          const on = !locked && (featuresConfig.enabled?.includes(feature.id) ?? true)
+                          return (
+                            <div key={feature.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderTop: fi === 0 ? 'none' : `1px solid ${MC.line2}`, opacity: locked ? 0.5 : 1 }}>
+                              <div style={{ flex: 1, minWidth: 0 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                  <div style={{ fontSize: 13, fontWeight: 500, color: on ? MC.ink : MC.ink3 }}>{feature.label}</div>
+                                  {locked && <span style={{ fontFamily: MONO, fontSize: 9, fontWeight: 700, color: '#d97706', background: '#fffbeb', padding: '2px 5px', borderRadius: 4, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Pro</span>}
+                                </div>
+                                <div style={{ fontSize: 11, color: MC.ink3, marginTop: 1 }}>{feature.description}</div>
+                              </div>
+                              <button
+                                onClick={locked ? undefined : () => {
+                                  const current = featuresConfig.enabled ?? ALL_FEATURE_IDS
+                                  const next = current.includes(feature.id) ? current.filter(id => id !== feature.id) : [...current, feature.id]
+                                  saveFeatures({ ...featuresConfig, enabled: next })
+                                }}
+                                disabled={locked}
+                                style={{ width: 40, height: 24, borderRadius: 999, border: 'none', cursor: locked ? 'default' : 'pointer', flexShrink: 0, background: on ? MC.good : MC.line, position: 'relative', transition: 'background .18s', padding: 0 }}
+                                aria-pressed={on}
+                              >
+                                <span style={{ position: 'absolute', top: 2, left: on ? 18 : 2, width: 20, height: 20, borderRadius: 999, background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,0.2)', transition: 'left .18s' }} />
+                              </button>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+              {featuresConfig.mode === 'all' && (
+                <div style={{ fontSize: 12, color: MC.ink4, fontStyle: 'italic', marginBottom: 4 }}>
+                  All {ALL_FEATURE_IDS.length} modules are enabled. Switch to Custom to hide features that don't apply.
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Navigation order */}
+        <div>
+          <div style={{ fontFamily: MONO, fontSize: 10.5, color: MC.ink3, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600, padding: '0 2px 7px' }}>Navigation order</div>
+          <div style={{ background: MC.paper, border: `1px solid ${MC.line}`, borderRadius: 14, overflow: 'hidden', padding: '4px 0' }}>
+            <NavOrderSection
+              isEnabled={isEnabled}
+              venuePlan={venuePlan}
+              complianceNavOrder={complianceNavOrder}
+              saveComplianceNavOrder={saveComplianceNavOrder}
+            />
+          </div>
+        </div>
 
       </div>
     </div>

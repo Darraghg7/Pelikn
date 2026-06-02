@@ -108,10 +108,10 @@ export default function AttendanceSettingsPage() {
   const settings = useAppSettings()
 
   const {
-    lateGraceMins, breakDurationMins, breakOverrunGraceMins,
+    lateGraceMins, breakDurationMins, breakOverrunGraceMins, cleanupMinutes,
     requireLateReason, notifyManagerAtStrike, disciplinaryAtStrike,
     countingWindowDays, pushToManager,
-    saveLateGraceMins, saveBreakDuration, saveBreakOverrunGraceMins,
+    saveLateGraceMins, saveBreakDuration, saveBreakOverrunGraceMins, saveCleanupMinutes,
     saveRequireLateReason, saveNotifyManagerAtStrike, saveDisciplinaryAtStrike,
     saveCountingWindowDays, savePushToManager,
   } = settings
@@ -178,6 +178,18 @@ export default function AttendanceSettingsPage() {
             sub="Before an overrun is flagged"
             last={false}
             control={<Stepper value={breakOverrunGraceMins} onChange={saveBreakOverrunGraceMins} suffix=" min" max={20} />}
+          />
+        </Group>
+
+        {/* Clock-out grace */}
+        <Group
+          label="Clock-out"
+          foot={cleanupMinutes === 0 ? 'No grace — clock-outs must match the scheduled end exactly.' : `Clock-outs within ${cleanupMinutes} min of the scheduled end won't show as a discrepancy.`}
+        >
+          <Row
+            label="Cleanup grace"
+            sub="Minutes past shift end before flagged"
+            control={<Stepper value={cleanupMinutes} onChange={saveCleanupMinutes} suffix=" min" step={15} max={60} />}
           />
         </Group>
 
