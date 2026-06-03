@@ -266,10 +266,14 @@ export default function ClockPanel({ staffId, hasShift = true, compact = false }
         .maybeSingle()
         .then(async ({ data: shift }) => {
           if (!shift) return
-          const shiftStart = new Date(today + 'T' + shift.start_time)
-          const msLate     = now.getTime() - shiftStart.getTime()
+          // Floor both times to whole minutes before comparing so that
+          // a sub-minute clock-in (e.g. 07:00:40) isn't flagged as late.
+          const shiftStart   = new Date(today + 'T' + shift.start_time)
+          const nowFloored   = new Date(Math.floor(now.getTime() / 60000) * 60000)
+          const startFloored = new Date(Math.floor(shiftStart.getTime() / 60000) * 60000)
+          const msLate       = nowFloored.getTime() - startFloored.getTime()
 
-          if (msLate > 0) {
+          if (msLate >= 60000) { // >= 1 whole minute late
             const minsLate = Math.floor(msLate / 60000)
 
             // Notify managers (escalation level handled by strike count in modal)

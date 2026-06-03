@@ -17,7 +17,7 @@ body {
   overflow-x: clip; /* clip stops horizontal bleed without creating a scroll container */
   width: 100%;
   max-width: 100vw;
-  font-weight: 450; /* slightly heavier base for readability on mobile screens */
+  font-weight: 500;
 }
 #root {
   min-height: 100vh;

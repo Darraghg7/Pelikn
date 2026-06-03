@@ -291,8 +291,8 @@ export default function CleaningPage() {
 
       {/* Complete modal */}
       {completeModal && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-charcoal/40 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl w-full max-w-md p-6 flex flex-col gap-4 shadow-2xl" style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-charcoal/40 backdrop-blur-sm" onClick={() => setCompleteModal(null)}>
+          <div className="bg-white rounded-2xl w-full max-w-md p-6 flex flex-col gap-4 shadow-2xl" style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }} onClick={e => e.stopPropagation()}>
             <div>
               <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-1">Mark Complete</p>
               <h3 className="font-semibold text-charcoal text-lg">{completeModal.title}</h3>

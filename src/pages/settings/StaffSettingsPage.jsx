@@ -37,7 +37,7 @@ export default function StaffSettingsPage() {
   const vp = (path) => `/v/${venueSlug}${path}`
 
   return (
-    <div style={{ padding: '16px 16px 96px', maxWidth: 480, margin: '0 auto' }}>
+    <div style={{ padding: '16px 0 96px', maxWidth: 480, margin: '0 auto' }}>
 
       <button onClick={() => navigate(vp('/settings/hub'))} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 16, background: 'none', border: 'none', cursor: 'pointer', padding: '4px 0', color: MC.brand, fontSize: 14, fontWeight: 500 }}>
         <svg width="7" height="12" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ transform: 'rotate(180deg)' }}><path d="M1 1l4 4-4 4"/></svg>

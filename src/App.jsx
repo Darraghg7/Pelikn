@@ -114,7 +114,8 @@ const EquipmentMaintenancePage = lazy(() => import('./pages/equipment-maintenanc
 const TasksPage = lazy(() => import('./pages/tasks/TasksPage'))
 
 // Checks hub
-const ChecksHubPage = lazy(() => import('./pages/compliance/ChecksHubPage'))
+const ChecksHubPage      = lazy(() => import('./pages/compliance/ChecksHubPage'))
+const ChecksWorklistPage = lazy(() => import('./pages/compliance/ChecksWorklistPage'))
 
 // Team hub
 const TeamHubPage = lazy(() => import('./pages/team/TeamHubPage'))
@@ -345,6 +346,7 @@ function VenueRoutes() {
             <Route path="allergens"         element={wrap(AllergenRegistryPage)} />
             <Route path="allergens/:id"     element={wrap(FoodItemDetailPage)} />
             <Route path="checks"            element={wrap(ChecksHubPage, RequireManager)} />
+            <Route path="checks/worklist"   element={wrap(ChecksWorklistPage, RequireManager)} />
             <Route path="cleaning"          element={wrap(CleaningPage)} />
             <Route path="opening-closing"   element={wrap(OpeningClosingPage)} />
             <Route path="team"              element={wrap(TeamHubPage,    RequireManager)} />

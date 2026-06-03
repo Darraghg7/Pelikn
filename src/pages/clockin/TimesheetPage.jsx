@@ -14,6 +14,7 @@ import LoadingSpinner from '../../components/ui/LoadingSpinner'
 import AddSessionModal from './AddSessionModal'
 import EditSessionModal from './EditSessionModal'
 import DrillDownPanel from './DrillDownPanel'
+import ClockEditApprovalCard from '../../components/shifts/ClockEditApprovalCard'
 
 const END_OF_DAY_MS = 86_399_999
 
@@ -445,6 +446,9 @@ export default function TimesheetPage() {
 
   return (
     <div className="flex flex-col gap-6">
+
+      {/* Pending hour-edit approvals — managers only */}
+      {isManager && <ClockEditApprovalCard />}
 
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-charcoal">Timesheets</h1>

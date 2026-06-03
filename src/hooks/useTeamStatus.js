@@ -2,19 +2,40 @@ import { useState, useEffect } from 'react'
 import { startOfDay, endOfDay, format } from 'date-fns'
 import { supabase } from '../lib/supabase'
 
+// SWR cache — 30 s stale (clock status changes frequently)
+const _cache  = new Map()
+const STALE_MS = 30_000
+const FRESH_MS = 10_000
+
 /**
  * Returns live attendance data + counts for the Team hub status grid.
  */
 export function useTeamStatus(venueId) {
-  const [data, setData] = useState(null)
-  const [loading, setLoading] = useState(true)
+  const dateStr  = format(new Date(), 'yyyy-MM-dd')
+  const cacheKey = venueId ? `${venueId}:${dateStr}` : null
+  const cached   = cacheKey ? (_cache.get(cacheKey) ?? null) : null
+
+  const [data, setData]       = useState(cached?.data ?? null)
+  const [loading, setLoading] = useState(!cached)
 
   useEffect(() => {
     if (!venueId) return
+    const key   = `${venueId}:${dateStr}`
+    const entry = _cache.get(key) ?? null
+    const age   = entry ? Date.now() - entry.ts : Infinity
+
+    if (entry && age < FRESH_MS) {
+      setData(entry.data); setLoading(false); return
+    }
+    if (entry && age < STALE_MS) {
+      setData(entry.data); setLoading(false)
+      // fall through to background refresh
+    }
+
     let cancelled = false
 
     async function fetch() {
-      setLoading(true)
+      if (!entry) setLoading(true)
       try {
       const today = new Date()
       const dayStart = startOfDay(today).toISOString()
@@ -101,22 +122,25 @@ export function useTeamStatus(venueId) {
 
       const lateCount = onShift.filter(p => p.status === 'late').length
 
-      setData({
+      const fresh = {
         onShift,
         totalStaff: allStaff.length,
         lateCount,
         pendingSwaps:    swapRes.count   ?? 0,
         pendingTimeOff:  timeOffRes.count ?? 0,
         expiringTraining: trainingRes.count ?? 0,
-      })
+      }
+      _cache.set(key, { data: fresh, ts: Date.now() })
+      setData(fresh)
       setLoading(false)
       } catch {
-        setLoading(false)
+        if (!entry) setLoading(false)
       }
     }
 
     fetch()
     return () => { cancelled = true }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [venueId])
 
   return { data, loading }

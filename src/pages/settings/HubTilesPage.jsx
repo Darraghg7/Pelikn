@@ -116,7 +116,7 @@ export default function HubTilesPage() {
   }
 
   return (
-    <div style={{ padding: '16px 16px 96px', maxWidth: 480, margin: '0 auto' }}>
+    <div style={{ padding: '16px 0 96px', maxWidth: 480, margin: '0 auto' }}>
 
       <button
         onClick={() => navigate(vp('/settings/hub'))}
