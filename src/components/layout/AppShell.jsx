@@ -611,6 +611,7 @@ export default function AppShell({ children }) {
           <div className="px-4 h-14 flex items-center justify-between gap-2">
             <div className="flex items-center gap-2 min-w-0 flex-1">
               <span className="font-bold text-white text-[15px] tracking-wider uppercase truncate max-w-[160px]">{venueName || 'Pelikn'}</span>
+              <NotificationBell />
               {allSwitchableVenues.length > 1 && (
                 <VenueSwitcher
                   venues={allSwitchableVenues}
@@ -620,7 +621,6 @@ export default function AppShell({ children }) {
               )}
             </div>
             <div className="flex items-center gap-2 shrink-0">
-              <NotificationBell />
               <button
                 onClick={handleSignOut}
                 className="text-[11px] font-semibold tracking-wider uppercase text-white border border-white/30 rounded-lg px-3 py-1.5 hover:bg-white/10 whitespace-nowrap transition-colors"

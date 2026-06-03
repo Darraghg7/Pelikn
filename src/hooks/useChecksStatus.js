@@ -1,6 +1,11 @@
 import { useState, useEffect } from 'react'
-import { startOfDay, endOfDay, subDays, format } from 'date-fns'
+import { startOfDay, endOfDay, format } from 'date-fns'
 import { supabase } from '../lib/supabase'
+
+// Module-level SWR cache for the 4 independent queries (fitness/probe/delivery/incidents)
+const _rawCache = new Map()
+const STALE_MS  = 90_000
+const FRESH_MS  = 20_000
 
 /**
  * Derives live status for each of the 14 compliance categories.
@@ -10,19 +15,38 @@ import { supabase } from '../lib/supabase'
  * both own queries and summary are ready.
  */
 export function useChecksStatus(venueId, summary, summaryLoading) {
-  const [rawData, setRawData] = useState(null)
-  const [rawLoading, setRawLoading] = useState(true)
-  const [statuses, setStatuses] = useState({})
+  const dateStr  = format(new Date(), 'yyyy-MM-dd')
+  const cacheKey = venueId ? `${venueId}:${dateStr}` : null
+  const cached   = cacheKey ? (_rawCache.get(cacheKey) ?? null) : null
+
+  const [rawData, setRawData]       = useState(cached?.data ?? null)
+  const [rawLoading, setRawLoading] = useState(!cached)
+  const [statuses, setStatuses]     = useState({})
 
   // Phase 1: fetch independent data immediately (no dependency on summary)
   useEffect(() => {
     if (!venueId) return
+    const key   = `${venueId}:${dateStr}`
+    const entry = _rawCache.get(key) ?? null
+    const age   = entry ? Date.now() - entry.ts : Infinity
+
+    if (entry && age < FRESH_MS) {
+      setRawData(entry.data)
+      setRawLoading(false)
+      return
+    }
+    if (entry && age < STALE_MS) {
+      setRawData(entry.data)
+      setRawLoading(false)
+      // fall through to background refresh
+    }
+
     let cancelled = false
     const today = new Date()
     const dayStart = startOfDay(today).toISOString()
     const dayEnd   = endOfDay(today).toISOString()
 
-    setRawLoading(true)
+    if (!entry) setRawLoading(true)
 
     Promise.all([
       supabase
@@ -53,16 +77,19 @@ export function useChecksStatus(venueId, summary, summaryLoading) {
         .eq('status', 'open'),
     ]).then(([fitnessRes, probeRes, deliveryRes, incidentRes]) => {
       if (cancelled) return
-      setRawData({ fitnessRes, probeRes, deliveryRes, incidentRes, today })
+      const fresh = { fitnessRes, probeRes, deliveryRes, incidentRes, today }
+      _rawCache.set(key, { data: fresh, ts: Date.now() })
+      setRawData(fresh)
       setRawLoading(false)
     }).catch(() => {
-      if (!cancelled) {
+      if (!cancelled && !entry) {
         setRawData(null)
         setRawLoading(false)
       }
     })
 
     return () => { cancelled = true }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [venueId])
 
   // Phase 2: compute all statuses once both raw data and summary are ready

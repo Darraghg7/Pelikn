@@ -88,7 +88,9 @@ async function checkLateClockIns(items: AppNotification[], today: string, vid: s
     if (!shift) continue
     const shiftStart = new Date(today + 'T' + shift.start_time)
     const clockInTime = parseISO(ci.occurred_at)
-    if ((clockInTime.getTime() - shiftStart.getTime()) / 60000 > 5) lateOnes.push(ci.staff?.name ?? 'Unknown')
+    const clockInFloored  = new Date(Math.floor(clockInTime.getTime() / 60000) * 60000)
+    const shiftStartFloor = new Date(Math.floor(shiftStart.getTime() / 60000) * 60000)
+    if ((clockInFloored.getTime() - shiftStartFloor.getTime()) / 60000 >= 1) lateOnes.push(ci.staff?.name ?? 'Unknown')
   }
   if (lateOnes.length > 0) items.push({ id: 'late-today', type: 'late_clock_in', message: `Late clock-in today: ${lateOnes.join(', ')}`, link: '/timesheet', severity: 'warning' })
 }
@@ -151,7 +153,9 @@ async function checkRepeatOffenders(items: AppNotification[], vid: string, now =
     const ci = (clockIns as { staff_id: string; occurred_at: string }[]).find(c => c.staff_id === shift.staff_id && c.occurred_at.startsWith(shift.shift_date))
     if (!ci) continue
     const shiftStart = new Date(shift.shift_date + 'T' + shift.start_time)
-    if ((parseISO(ci.occurred_at).getTime() - shiftStart.getTime()) / 60000 > 5) {
+    const ciFloored    = new Date(Math.floor(parseISO(ci.occurred_at).getTime() / 60000) * 60000)
+    const startFloored = new Date(Math.floor(shiftStart.getTime() / 60000) * 60000)
+    if ((ciFloored.getTime() - startFloored.getTime()) / 60000 >= 1) {
       lateCounts[shift.staff_id] = (lateCounts[shift.staff_id] ?? 0) + 1
       staffNames[shift.staff_id] = shift.staff?.name ?? 'Unknown'
     }
@@ -232,6 +236,29 @@ async function checkTimeOffRequests(items: AppNotification[], vid: string): Prom
 }
 
 async function checkHourEdits(items: AppNotification[], vid: string): Promise<void> {
+  // Pending approval requests — highest priority (shown as warning, not just info)
+  const { data: pending } = await supabase
+    .from('clock_edit_requests')
+    .select('id, staff:staff_id ( name )')
+    .eq('venue_id', vid)
+    .eq('status', 'pending')
+    .order('created_at', { ascending: false })
+    .limit(20)
+
+  if (pending?.length) {
+    const count = pending.length
+    const names = [...new Set((pending as { staff?: { name?: string } }[]).map((r) => r.staff?.name).filter(Boolean))] as string[]
+    items.push({
+      id: 'hour-edit-requests',
+      type: 'hour_edit',
+      message: `${count} hour edit request${count > 1 ? 's' : ''} awaiting approval: ${names.slice(0, 3).join(', ')}`,
+      link: '/timesheet',
+      severity: 'warning',
+    })
+    return // don't stack with the legacy log notification
+  }
+
+  // Legacy: log of direct edits (kept for backwards compatibility)
   const since = format(subDays(new Date(), 7), 'yyyy-MM-dd')
   const { data } = await supabase
     .from('hour_edit_log')

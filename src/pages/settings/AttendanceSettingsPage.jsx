@@ -5,11 +5,12 @@ import { useAppSettings } from '../../hooks/useSettings'
 
 // ── Design tokens ──────────────────────────────────────────────────────────
 const MC = {
-  brand:  '#13362a',
-  good:   '#16a34a',
-  warn:   '#d97706',
-  ink:    '#111827', ink2: '#374151', ink3: '#6b7280', ink4: '#9ca3af',
-  line:   '#e5e7eb', line2: '#f3f4f6',
+  brand:  '#13362a', brandTint: '#eef4f0',
+  good:   '#1a7a4c', goodBg: '#e3f0e7',
+  warn:   '#a85d12', warnBg: '#fbeedc',
+  bad:    '#b3331c', badBg:  '#fbeae6',
+  ink:    '#0d1a14', ink2: '#3d4a44', ink3: '#76817b', ink4: '#b3b9b5',
+  line:   '#e4e6e2', line2: '#eef0ec',
   paper:  '#ffffff',
 }
 const MONO = 'ui-monospace, SFMono-Regular, monospace'
@@ -119,7 +120,7 @@ export default function AttendanceSettingsPage() {
   const vp = (path) => `/v/${venueSlug}${path}`
 
   return (
-    <div style={{ padding: '16px 16px 96px', maxWidth: 480, margin: '0 auto' }}>
+    <div style={{ padding: '16px 0 96px', maxWidth: 480, margin: '0 auto' }}>
 
       {/* Back button */}
       <button

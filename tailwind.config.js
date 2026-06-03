@@ -8,15 +8,25 @@ export default {
   theme: {
     extend: {
       colors: {
-        cream:    '#f5f4f1',
-        parchment:'#f0ede8',
-        staffbg:  '#f5f4f1',
-        charcoal: '#1a1a18',
-        accent:   '#c94f2a',
+        // ── Spec design tokens (exact) ─────────────────────────────────────
+        // Ink scale
+        ink:   '#0d1a14',
+        ink2:  '#3d4a44',
+        ink3:  '#76817b',
+        ink4:  '#b3b9b5',
 
-        // Brand green scale — deep bottle green with lighter/darker variants
+        // Surfaces
+        bg:    '#f3f3ef',
+        paper: '#ffffff',
+        line:  '#e4e6e2',
+        line2: '#eef0ec',
+
+        // Brand
         brand: {
-          DEFAULT: '#1a3c2e',
+          DEFAULT: '#13362a',
+          tint:    '#eef4f0',
+          soft:    '#e2ece7',
+          // Legacy scale kept for any existing references
           50:  '#f0f7f4',
           100: '#d1e8db',
           200: '#a3d1b7',
@@ -25,23 +35,38 @@ export default {
           500: '#2a7c56',
           600: '#1f5e40',
           700: '#1a4a33',
-          800: '#1a3c2e',
-          900: '#0f2419',
+          800: '#13362a',
+          900: '#0a1f19',
         },
 
-        // New design tokens
-        surface:  '#F0F0EF',   // page background (neutral light gray)
-        navpill:  '#E4EFE9',   // active bottom-nav pill background
-        midgreen: '#4A7C5F',   // scores, rates, positive indicators
+        // Status
+        good:    '#1a7a4c',
+        goodBg:  '#e3f0e7',
+        warn:    '#a85d12',
+        warnBg:  '#fbeedc',
+        bad:     '#b3331c',
+        badBg:   '#fbeae6',
+        severe:  '#7a1d0c',
+        info:    '#2c4577',
+        infoBg:  '#e7edf6',
+        accent:  '#c94f2a',
 
-        danger:   { DEFAULT: '#dc2626', light: '#fee2e2' },
-        warning:  { DEFAULT: '#d97706', light: '#fef3c7' },
-        success:  { DEFAULT: '#16a34a', light: '#dcfce7' },
+        // ── Legacy aliases kept for backwards compat ───────────────────────
+        cream:    '#f5f4f1',
+        parchment:'#f0ede8',
+        staffbg:  '#f5f4f1',
+        charcoal: '#1a1a18',
+        surface:  '#f3f3ef',
+        navpill:  '#eef4f0',
+        midgreen: '#1a7a4c',
+        danger:   { DEFAULT: '#b3331c', light: '#fbeae6' },
+        warning:  { DEFAULT: '#a85d12', light: '#fbeedc' },
+        success:  { DEFAULT: '#1a7a4c', light: '#e3f0e7' },
       },
       fontFamily: {
-        sans: ['Plus Jakarta Sans', 'sans-serif'],
-        mono: ['DM Mono', 'monospace'],
-        serif: ['Plus Jakarta Sans', 'sans-serif'],
+        sans:  ['Geist', '-apple-system', 'system-ui', 'sans-serif'],
+        mono:  ['Geist Mono', 'ui-monospace', 'monospace'],
+        serif: ['Geist', 'sans-serif'],
       },
       boxShadow: {
         'dropdown': '0 8px 28px rgba(26,26,24,0.10), 0 2px 6px rgba(26,26,24,0.04)',

@@ -7,11 +7,11 @@ import { useAppSettings } from '../../hooks/useSettings'
 
 // ── Design tokens ──────────────────────────────────────────────────────────
 const MC = {
-  brand:  '#13362a', brandTint: '#f0f7f4',
-  bad:    '#c0392b', badBg:  '#fef2f2',
-  warn:   '#d97706', warnBg: '#fffbeb',
-  ink:    '#111827', ink3: '#6b7280', ink4: '#9ca3af',
-  line:   '#e5e7eb', line2: '#f3f4f6',
+  brand:  '#13362a', brandTint: '#eef4f0',
+  bad:    '#b3331c', badBg:  '#fbeae6',
+  warn:   '#a85d12', warnBg: '#fbeedc',
+  ink:    '#0d1a14', ink3: '#76817b', ink4: '#b3b9b5',
+  line:   '#e4e6e2', line2: '#eef0ec',
   paper:  '#ffffff',
 }
 const MONO = 'ui-monospace, SFMono-Regular, monospace'
@@ -53,18 +53,18 @@ function SettingsCard({ label, sub, icon: Icon, attention, statusText, onClick }
       style={{
         textAlign: 'left', cursor: 'pointer', width: '100%',
         background: MC.paper, border: `1px solid ${MC.line}`,
-        borderRadius: 14, padding: '13px 13px 12px',
-        display: 'flex', flexDirection: 'column', gap: 10, minHeight: 100,
+        borderRadius: 12, padding: '12px',
+        display: 'flex', flexDirection: 'column', gap: 8, minHeight: 84,
       }}
     >
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
         <span style={{
-          width: 34, height: 34, borderRadius: 9,
+          width: 30, height: 30, borderRadius: 9,
           background: attention ? MC.warnBg : MC.brandTint,
           color: attention ? MC.warn : MC.brand,
           display: 'grid', placeItems: 'center',
         }}>
-          <span style={{ width: 17, height: 17, display: 'inline-flex' }}><Icon /></span>
+          <span style={{ width: 15, height: 15, display: 'inline-flex' }}><Icon /></span>
         </span>
         {attention && <span style={{ width: 7, height: 7, borderRadius: 4, background: MC.warn }} />}
       </div>
@@ -116,7 +116,7 @@ export default function SettingsHubPage() {
   ]
 
   return (
-    <div style={{ padding: '16px 16px 96px', maxWidth: 480, margin: '0 auto' }}>
+    <div style={{ padding: '16px 0 96px' }}>
 
       {/* Header */}
       <h1 style={{ fontSize: 26, fontWeight: 600, letterSpacing: '-0.028em', margin: '0 0 14px', color: MC.ink }}>Settings</h1>
@@ -149,7 +149,7 @@ export default function SettingsHubPage() {
       </button>
 
       {/* Category grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 9, marginBottom: 14 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 14 }}>
         {cards.map(c => (
           <SettingsCard
             key={c.id}

@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useVenue } from '../../contexts/VenueContext'
 import { useSession } from '../../contexts/SessionContext'
@@ -9,12 +9,12 @@ import { useChecksStatus } from '../../hooks/useChecksStatus'
 // ── Design tokens ──────────────────────────────────────────────────────────
 const MC = {
   brand:  '#13362a',
-  bad:    '#c0392b', badBg:  '#fef2f2',
-  warn:   '#d97706', warnBg: '#fffbeb',
-  good:   '#16a34a', goodBg: '#f0fdf4',
-  ink:    '#111827', ink2:   '#374151', ink3:   '#6b7280', ink4:   '#9ca3af',
-  line:   '#e5e7eb', line2:  '#f3f4f6',
-  paper:  '#ffffff', surf:   '#f9fafb',
+  bad:    '#b3331c', badBg:  '#fbeae6',
+  warn:   '#a85d12', warnBg: '#fbeedc',
+  good:   '#1a7a4c', goodBg: '#e3f0e7',
+  ink:    '#0d1a14', ink2:   '#3d4a44', ink3:   '#76817b', ink4:   '#b3b9b5',
+  line:   '#e4e6e2', line2:  '#eef0ec',
+  paper:  '#ffffff', surf:   '#f3f3ef',
 }
 
 const STATUS_TONE = {
@@ -105,7 +105,7 @@ function StatusPill({ status, text }) {
 }
 
 // ── HubCard ────────────────────────────────────────────────────────────────
-function HubCard({ check, statusInfo, onClick }) {
+function HubCard({ check, statusInfo, onClick, editMode, isHidden, onToggle }) {
   const status = statusInfo?.status ?? 'na'
   const statusText = statusInfo?.statusText ?? '—'
   const count = statusInfo?.count
@@ -114,28 +114,44 @@ function HubCard({ check, statusInfo, onClick }) {
 
   return (
     <button
-      onClick={onClick}
+      onClick={editMode ? onToggle : onClick}
       style={{
         textAlign: 'left', cursor: 'pointer', width: '100%',
         background: MC.paper,
-        border: `1px solid ${status === 'overdue' ? t.fg + '55' : MC.line}`,
-        borderRadius: 14, padding: '13px 13px 12px',
-        display: 'flex', flexDirection: 'column', gap: 10,
-        minHeight: 104, position: 'relative',
+        border: `1px solid ${!editMode && status === 'overdue' ? t.fg + '55' : MC.line}`,
+        borderRadius: 12, padding: '12px',
+        display: 'flex', flexDirection: 'column', gap: 8,
+        minHeight: 84, position: 'relative',
+        opacity: editMode && isHidden ? 0.38 : 1,
+        transition: 'opacity 0.15s ease',
       }}
     >
-      {/* Top row: icon + badge/check */}
+      {/* Top row: icon + badge/check/edit-checkbox */}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
         <span style={{
-          width: 34, height: 34, borderRadius: 9,
+          width: 30, height: 30, borderRadius: 9,
           background: t.bg, color: t.fg,
           display: 'grid', placeItems: 'center', flexShrink: 0,
         }}>
-          <span style={{ width: 17, height: 17, display: 'inline-flex' }}>
+          <span style={{ width: 15, height: 15, display: 'inline-flex' }}>
             <Icon />
           </span>
         </span>
-        {count && status !== 'done' && status !== 'na' ? (
+
+        {editMode ? (
+          <span style={{
+            width: 20, height: 20, borderRadius: 10, flexShrink: 0,
+            border: `2px solid ${isHidden ? MC.line : MC.good}`,
+            background: isHidden ? 'transparent' : MC.good,
+            display: 'grid', placeItems: 'center',
+          }}>
+            {!isHidden && (
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+            )}
+          </span>
+        ) : count && status !== 'done' && status !== 'na' ? (
           <span style={{
             minWidth: 20, height: 20, padding: '0 6px', borderRadius: 10,
             background: t.fg, color: '#fff',
@@ -162,7 +178,7 @@ function HubCard({ check, statusInfo, onClick }) {
           color: t.fg, fontWeight: 600,
           letterSpacing: '0.02em', textTransform: 'uppercase',
         }}>
-          {statusText}
+          {editMode ? (isHidden ? 'Hidden' : 'Visible') : statusText}
         </div>
       </div>
     </button>
@@ -174,22 +190,39 @@ export default function ChecksHubPage() {
   const navigate = useNavigate()
   const { venueId, venueSlug } = useVenue()
   const { session } = useSession()
-  const { actionSchedules, closedDays, hiddenCheckTiles } = useAppSettings()
+  const { actionSchedules, closedDays, hiddenCheckTiles, saveHiddenCheckTiles } = useAppSettings()
+
+  const [editMode, setEditMode] = useState(false)
+  const [localHidden, setLocalHidden] = useState([])
 
   const { summary, loading: summaryLoading } = useTodaySummary(venueId, closedDays, actionSchedules)
   const { statuses, loading: statusLoading } = useChecksStatus(venueId, summary, summaryLoading)
 
   const vp = (path) => `/v/${venueSlug}${path}`
-
-  // Build ordered list with live statuses, excluding hidden tiles
   const isLoading = summaryLoading || statusLoading
 
-  const ordered = CHECKS
-    .filter(c => !hiddenCheckTiles.includes(c.id))
-    .map(c => ({ ...c, statusInfo: statuses[c.id] ?? { status: 'na', statusText: isLoading ? '…' : '—' } }))
-    .sort((a, b) => (STATUS_TONE[a.statusInfo.status]?.rank ?? 4) - (STATUS_TONE[b.statusInfo.status]?.rank ?? 4))
+  function handleEdit() {
+    setLocalHidden(hiddenCheckTiles ?? [])
+    setEditMode(true)
+  }
 
-  // Summary counts
+  function handleDone() {
+    saveHiddenCheckTiles(localHidden)
+    setEditMode(false)
+  }
+
+  function toggleTile(id) {
+    setLocalHidden(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id])
+  }
+
+  // In edit mode: show all tiles in natural order. Normal mode: filter hidden, sort by status.
+  const ordered = editMode
+    ? CHECKS.map(c => ({ ...c, statusInfo: statuses[c.id] ?? { status: 'na', statusText: isLoading ? '…' : '—' } }))
+    : CHECKS
+        .filter(c => !(hiddenCheckTiles ?? []).includes(c.id))
+        .map(c => ({ ...c, statusInfo: statuses[c.id] ?? { status: 'na', statusText: isLoading ? '…' : '—' } }))
+        .sort((a, b) => (STATUS_TONE[a.statusInfo.status]?.rank ?? 4) - (STATUS_TONE[b.statusInfo.status]?.rank ?? 4))
+
   const overdueCount = ordered.filter(c => c.statusInfo.status === 'overdue')
     .reduce((n, c) => n + (c.statusInfo.count ?? 1), 0)
   const dueCount = ordered.filter(c => c.statusInfo.status === 'due')
@@ -201,101 +234,114 @@ export default function ChecksHubPage() {
   const dayStr  = now.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })
 
   return (
-    <div style={{ padding: '16px 16px 96px', maxWidth: 480, margin: '0 auto' }}>
+    <div style={{ padding: '16px 0 96px' }}>
 
       {/* Page header */}
-      <div style={{ marginBottom: 16 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+      <div style={{ marginBottom: 10 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span style={{
             fontFamily: 'ui-monospace, SFMono-Regular, monospace',
             fontSize: 10.5, color: MC.ink3, letterSpacing: '0.08em', textTransform: 'uppercase',
           }}>Checks</span>
-          <span style={{
-            fontFamily: 'ui-monospace, SFMono-Regular, monospace',
-            fontSize: 10.5, color: MC.ink4,
-          }}>{dayStr} · {timeStr}</span>
+          <button
+            onClick={editMode ? handleDone : handleEdit}
+            style={{
+              fontFamily: 'ui-monospace, SFMono-Regular, monospace',
+              fontSize: 11.5, fontWeight: 600, letterSpacing: '0.04em',
+              color: editMode ? MC.good : MC.ink3,
+              background: 'none', border: 'none', cursor: 'pointer', padding: '2px 0',
+            }}
+          >
+            {editMode ? 'Done' : 'Edit'}
+          </button>
         </div>
-        <h1 style={{ fontSize: 26, fontWeight: 600, letterSpacing: '-0.028em', lineHeight: 1.12, margin: '5px 0 0', color: MC.ink }}>
+        <h1 style={{ fontSize: 26, fontWeight: 600, letterSpacing: '-0.028em', lineHeight: 1.12, margin: '4px 0 0', color: MC.ink }}>
           Today's checks
         </h1>
-        {!isLoading && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginTop: 6 }}>
-            {overdueCount > 0 && <StatusPill status="overdue" text={`${overdueCount} overdue`} />}
-            {dueCount > 0     && <StatusPill status="due"     text={`${dueCount} due`} />}
-            {total === 0 && <StatusPill status="done" text="All clear" />}
+        {editMode && (
+          <div style={{
+            marginTop: 5, fontSize: 12, color: MC.ink3,
+            fontFamily: 'ui-monospace, SFMono-Regular, monospace',
+          }}>
+            Tap a tile to show or hide it
           </div>
         )}
       </div>
 
-      {/* Today forest summary card */}
-      <button
-        onClick={() => {/* worklist — for now, scroll to first action-needed */}}
-        style={{
-          width: '100%', textAlign: 'left', cursor: 'pointer',
-          background: MC.brand, color: '#fff',
-          border: 'none', borderRadius: 14, padding: '14px 16px',
-          display: 'flex', alignItems: 'center', gap: 14, marginBottom: 14,
-        }}
-      >
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{
-            fontFamily: 'ui-monospace, SFMono-Regular, monospace',
-            fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase',
-            color: 'rgba(255,255,255,0.55)', fontWeight: 600,
-          }}>Today</div>
-          <div style={{ fontSize: 16, fontWeight: 600, letterSpacing: '-0.015em', marginTop: 3 }}>
-            {isLoading
-              ? 'Loading…'
-              : total === 0
-                ? 'All checks up to date'
-                : `${total} ${total === 1 ? 'check needs' : 'checks need'} doing`}
-          </div>
-          {!summaryLoading && !statusLoading && total > 0 && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 7 }}>
-              {overdueCount > 0 && (
-                <span style={{
-                  display: 'inline-flex', alignItems: 'center', gap: 5,
-                  fontFamily: 'ui-monospace, SFMono-Regular, monospace',
-                  fontSize: 11, fontWeight: 600, color: '#ffb4a6',
-                }}>
-                  <span style={{ width: 5, height: 5, borderRadius: 3, background: 'currentColor' }} />
-                  {overdueCount} overdue
-                </span>
-              )}
-              {dueCount > 0 && (
-                <span style={{
-                  display: 'inline-flex', alignItems: 'center', gap: 5,
-                  fontFamily: 'ui-monospace, SFMono-Regular, monospace',
-                  fontSize: 11, fontWeight: 600, color: '#f2c48f',
-                }}>
-                  <span style={{ width: 5, height: 5, borderRadius: 3, background: 'currentColor' }} />
-                  {dueCount} due now
-                </span>
-              )}
+      {/* Today forest summary card — hidden in edit mode */}
+      {!editMode && (
+        <button
+          onClick={() => navigate(vp('/checks/worklist'))}
+          style={{
+            width: '100%', textAlign: 'left', cursor: 'pointer',
+            background: MC.brand, color: '#fff',
+            border: 'none', borderRadius: 14, padding: '14px 16px',
+            display: 'flex', alignItems: 'center', gap: 14, marginBottom: 14,
+          }}
+        >
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{
+              fontFamily: 'ui-monospace, SFMono-Regular, monospace',
+              fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase',
+              color: 'rgba(255,255,255,0.55)', fontWeight: 600,
+            }}>Today</div>
+            <div style={{ fontSize: 16, fontWeight: 600, letterSpacing: '-0.015em', marginTop: 3 }}>
+              {isLoading
+                ? 'Loading…'
+                : total === 0
+                  ? 'All checks up to date'
+                  : `${total} ${total === 1 ? 'check needs' : 'checks need'} doing`}
             </div>
-          )}
-        </div>
-        <span style={{
-          flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: 6,
-          fontFamily: 'ui-monospace, SFMono-Regular, monospace',
-          fontSize: 10, letterSpacing: '0.06em', textTransform: 'uppercase',
-          fontWeight: 600, color: 'rgba(255,255,255,0.85)',
-        }}>
-          View all
-          <svg width="6" height="10" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M1 1l4 4-4 4"/>
-          </svg>
-        </span>
-      </button>
+            {!summaryLoading && !statusLoading && total > 0 && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 7 }}>
+                {overdueCount > 0 && (
+                  <span style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 5,
+                    fontFamily: 'ui-monospace, SFMono-Regular, monospace',
+                    fontSize: 11, fontWeight: 600, color: '#ffb4a6',
+                  }}>
+                    <span style={{ width: 5, height: 5, borderRadius: 3, background: 'currentColor' }} />
+                    {overdueCount} overdue
+                  </span>
+                )}
+                {dueCount > 0 && (
+                  <span style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 5,
+                    fontFamily: 'ui-monospace, SFMono-Regular, monospace',
+                    fontSize: 11, fontWeight: 600, color: '#f2c48f',
+                  }}>
+                    <span style={{ width: 5, height: 5, borderRadius: 3, background: 'currentColor' }} />
+                    {dueCount} due now
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
+          <span style={{
+            flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: 6,
+            fontFamily: 'ui-monospace, SFMono-Regular, monospace',
+            fontSize: 10, letterSpacing: '0.06em', textTransform: 'uppercase',
+            fontWeight: 600, color: 'rgba(255,255,255,0.85)',
+          }}>
+            View all
+            <svg width="6" height="10" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M1 1l4 4-4 4"/>
+            </svg>
+          </span>
+        </button>
+      )}
 
-      {/* 2-col category grid — renders immediately, statuses fill in as data loads */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 9 }}>
+      {/* 2-col category grid */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
         {ordered.map(c => (
           <HubCard
             key={c.id}
             check={c}
             statusInfo={c.statusInfo}
             onClick={() => navigate(vp(c.route))}
+            editMode={editMode}
+            isHidden={localHidden.includes(c.id)}
+            onToggle={() => toggleTile(c.id)}
           />
         ))}
       </div>

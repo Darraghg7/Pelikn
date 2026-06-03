@@ -1,17 +1,19 @@
 /**
  * MobileManagerDashboard — lg:hidden branch of the manager dashboard.
- * Re-skin per the forest/Geist design spec. Desktop layout is unchanged.
- * Uses existing hooks, registry, and @dnd-kit setup — no new persistence model.
+ * Re-skinned to match the manager-dashboard-handoff prototype exactly.
+ * Keeps all existing data hooks/registry/DnD — no new persistence model.
  */
 import React, { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { format } from 'date-fns'
+import { format, startOfWeek } from 'date-fns'
 import { supabase } from '../../lib/supabase'
 import { isActionDueToday } from '../../hooks/useTodaySummary'
 import { TODAY_ITEM_REGISTRY } from './todayItemRegistry'
 import { WIDGET_REGISTRY } from '../../components/widgets/WidgetRegistry'
-import ClockPanel from '../../components/shifts/ClockPanel'
-import GettingStartedCard from './GettingStartedCard'
+import { useClockStatus } from '../../hooks/useClockEvents'
+import { offlineRpc } from '../../lib/offlineSupabase'
+import { useVenue } from '../../contexts/VenueContext'
+import { useToast } from '../../components/ui/Toast'
 import PushBanner from './PushBanner'
 import {
   DndContext,
@@ -31,7 +33,7 @@ import {
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 
-// ── Design tokens (spec-exact) ────────────────────────────────────────────
+// ── Design tokens ─────────────────────────────────────────────────────────
 const T = {
   ink:    '#0d1a14',
   ink2:   '#3d4a44',
@@ -50,16 +52,18 @@ const T = {
   severe: '#7a1d0c',
 }
 
+const MONO = "'Geist Mono', ui-monospace, monospace"
+
 function card(extra = {}) {
   return {
-    background:   T.paper,
-    border:       `1px solid ${T.line}`,
+    background: T.paper,
+    border: `1px solid ${T.line}`,
     borderRadius: 14,
     ...extra,
   }
 }
 
-// ── Live time (updates every minute) ─────────────────────────────────────
+// ── Live time (updates every minute) ──────────────────────────────────────
 function useLiveTime() {
   const [now, setNow] = useState(() => new Date())
   useEffect(() => {
@@ -69,18 +73,18 @@ function useLiveTime() {
   return now
 }
 
-// ── Plan pill ─────────────────────────────────────────────────────────────
+// ── Plan pill ──────────────────────────────────────────────────────────────
 function MobilePlanPill({ plan }) {
   const isPro = plan === 'pro'
   return (
     <span
-      className="font-mono"
       style={{
-        fontSize: 9.5,
+        fontFamily: MONO,
+        fontSize: 9,
         letterSpacing: '0.1em',
-        fontWeight: 600,
+        fontWeight: 700,
         textTransform: 'uppercase',
-        padding: '2px 8px',
+        padding: '2px 7px',
         borderRadius: 999,
         background: isPro ? `${T.accent}18` : `${T.good}18`,
         color: isPro ? T.accent : T.good,
@@ -93,83 +97,178 @@ function MobilePlanPill({ plan }) {
   )
 }
 
-// ── Stat tile ─────────────────────────────────────────────────────────────
+// ── Stat tile (3-col, with sub-label) ─────────────────────────────────────
+function subLabel(item, summary) {
+  const v = item.metric(summary) ?? 0
+  const id = item.id
+  if (id === 'on_shift')       return v === 0 ? 'none today' : v === 1 ? '1 in' : 'on shift'
+  if (id === 'opening_checks') return v === 0 ? 'not done' : 'complete'
+  if (id === 'closing_checks') return v === 0 ? 'not done' : 'complete'
+  if (id === 'fridge_checks')  return v === 0 ? 'all done' : `${v} due`
+  if (id === 'cleaning_tasks') return v === 0 ? 'all done' : 'overdue'
+  if (id === 'critical_actions') return v === 0 ? 'all clear' : 'open'
+  if (id === 'pending_leave')  return v === 0 ? '0 requests' : 'pending'
+  if (id === 'cooking_temps')  return v === 0 ? 'none logged' : 'logged'
+  if (id === 'hot_holding')    return v === 0 ? 'none logged' : 'logged'
+  if (id === 'cooling_logs')   return v === 0 ? 'none active' : 'active'
+  return null
+}
+
 function MobileStatTile({ item, summary }) {
   const value    = item.metric(summary) ?? 0
   const isDanger = item.dangerWhenPositive && value > 0
   const isGood   = item.dangerWhenPositive && value === 0
-  const dotColor = isDanger ? T.bad : isGood ? T.good : T.ink4
+  const dotColor = isDanger ? T.bad : isGood ? T.good : T.good
   const numColor = isDanger ? T.bad : T.ink
+  const sub      = subLabel(item, summary)
 
   return (
     <div
       style={{
         ...card(),
-        padding:        '12px 14px',
-        minHeight:      88,
-        display:        'flex',
-        flexDirection:  'column',
-        gap:            8,
+        padding: '10px 11px 11px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 4,
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-        <span
-          style={{
-            width:        6,
-            height:       6,
-            borderRadius: '50%',
-            background:   dotColor,
-            flexShrink:   0,
-          }}
-        />
-        <span
-          className="font-mono"
-          style={{ fontSize: 9.5, letterSpacing: '0.08em', color: T.ink3, lineHeight: 1, textTransform: 'uppercase' }}
-        >
+      <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+        <span style={{ width: 5, height: 5, borderRadius: '50%', background: dotColor, flexShrink: 0 }} />
+        <span style={{
+          fontFamily: MONO, fontSize: 8.5, letterSpacing: '0.07em',
+          color: T.ink3, textTransform: 'uppercase', lineHeight: 1,
+        }}>
           {item.metricLabel}
         </span>
       </div>
-      <span
-        className="font-mono tabular-nums"
-        style={{ fontSize: 30, fontWeight: 500, letterSpacing: '-0.02em', lineHeight: 1, color: numColor }}
-      >
+      <span style={{
+        fontFamily: MONO, fontSize: 26, fontWeight: 600,
+        letterSpacing: '-0.02em', lineHeight: 1.1, color: numColor,
+      }}>
         {value}
       </span>
+      {sub && (
+        <span style={{
+          fontFamily: MONO, fontSize: 9, color: isDanger ? T.bad : T.ink3,
+          letterSpacing: '0.03em', lineHeight: 1,
+        }}>
+          {sub}
+        </span>
+      )}
     </div>
   )
 }
 
-// ── Disciplinary strip (pinned, 4th-strike) ───────────────────────────────
-function DisciplinaryStrip({ alerts, editMode, venueSlug }) {
-  if (!alerts.length) return null
+// ── Section label (floating, mono-uppercase) ───────────────────────────────
+function SectionLabel({ children }) {
+  return (
+    <span style={{
+      fontFamily: MONO, fontSize: 9.5, fontWeight: 600,
+      letterSpacing: '0.1em', textTransform: 'uppercase',
+      color: T.ink3, display: 'block', marginBottom: 6,
+    }}>
+      {children}
+    </span>
+  )
+}
+
+// ── Attention card (all-clear or action list) ──────────────────────────────
+function AttentionCard({ actions, editMode, vp }) {
+  const isEmpty = actions.length === 0
   return (
     <div
       style={{
-        background:    T.severe,
-        borderRadius:  14,
-        padding:       '12px 16px',
-        display:       'flex',
-        flexDirection: 'column',
-        gap:           8,
-        opacity:       editMode ? 0.45 : 1,
-        transition:    'opacity 0.2s',
+        ...card({ overflow: 'hidden' }),
+        opacity: editMode ? 0.45 : 1,
+        transition: 'opacity 0.2s',
       }}
     >
+      {isEmpty ? (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 13, padding: '14px 16px' }}>
+          <div style={{
+            width: 40, height: 40, borderRadius: 11, background: T.goodBg,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+          }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={T.good} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+          </div>
+          <div>
+            <div style={{ fontSize: 15, fontWeight: 600, color: T.ink, lineHeight: 1.2 }}>All clear</div>
+            <div style={{ fontSize: 12.5, color: T.ink3, marginTop: 2 }}>Nothing needs your attention right now.</div>
+          </div>
+        </div>
+      ) : (
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '12px 16px 8px' }}>
+            <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: T.ink3, fontWeight: 600 }}>
+              Needs You
+            </span>
+            <span style={{
+              minWidth: 18, height: 18, borderRadius: 999,
+              background: T.bad, color: '#fff',
+              fontSize: 10, fontWeight: 700,
+              display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 5px',
+            }}>
+              {actions.length}
+            </span>
+          </div>
+          <div style={{ borderTop: `1px solid ${T.line2}` }}>
+            {actions.map((a, i) => {
+              const colors = {
+                warn:   { border: T.warn, text: T.warn },
+                danger: { border: T.bad,  text: T.bad  },
+                info:   { border: T.info, text: T.info },
+              }
+              const s = colors[a.urgency] ?? colors.warn
+              return (
+                <Link
+                  key={a.to}
+                  to={a.to}
+                  style={{
+                    display: 'flex', alignItems: 'center',
+                    borderLeft: `3px solid ${s.border}`,
+                    padding: '12px 16px',
+                    borderBottom: i < actions.length - 1 ? `1px solid ${T.line2}` : 'none',
+                    textDecoration: 'none',
+                  }}
+                >
+                  <span style={{ flex: 1, fontSize: 13.5, fontWeight: 500, color: s.text, lineHeight: 1.3 }}>
+                    {a.label}
+                  </span>
+                  <span style={{ fontFamily: MONO, fontSize: 13, color: T.ink4 }}>›</span>
+                </Link>
+              )
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ── Disciplinary strip ─────────────────────────────────────────────────────
+function DisciplinaryStrip({ alerts, editMode, venueSlug }) {
+  if (!alerts.length) return null
+  return (
+    <div style={{
+      background: T.severe,
+      borderRadius: 14,
+      padding: '12px 16px',
+      display: 'flex', flexDirection: 'column', gap: 8,
+      opacity: editMode ? 0.45 : 1,
+      transition: 'opacity 0.2s',
+    }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-        <span
-          className="font-mono"
-          style={{ fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.65)', fontWeight: 600 }}
-        >
+        <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.65)', fontWeight: 600 }}>
           Disciplinary Review
         </span>
-        <span
-          style={{
-            minWidth: 18, height: 18, borderRadius: 999,
-            background: 'rgba(255,255,255,0.2)', color: '#fff',
-            fontSize: 10, fontWeight: 700,
-            display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 5px',
-          }}
-        >
+        <span style={{
+          minWidth: 18, height: 18, borderRadius: 999,
+          background: 'rgba(255,255,255,0.2)', color: '#fff',
+          fontSize: 10, fontWeight: 700,
+          display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 5px',
+        }}>
           {alerts.length}
         </span>
       </div>
@@ -179,10 +278,9 @@ function DisciplinaryStrip({ alerts, editMode, venueSlug }) {
           to={`/v/${venueSlug}/timesheet`}
           style={{
             display: 'flex', alignItems: 'center', gap: 8,
-            background:    'rgba(255,255,255,0.1)',
-            borderRadius:  10,
-            padding:       '9px 12px',
-            textDecoration:'none',
+            background: 'rgba(255,255,255,0.1)',
+            borderRadius: 10, padding: '9px 12px',
+            textDecoration: 'none',
           }}
         >
           <span style={{ flex: 1, fontSize: 13, color: '#fff', fontWeight: 500, lineHeight: 1.35 }}>
@@ -190,77 +288,201 @@ function DisciplinaryStrip({ alerts, editMode, venueSlug }) {
             {a.offence_type === 'late_clock_in' ? 'late clock-in' : 'break overrun'},{' '}
             strike {a.strike_number}
           </span>
-          <span className="font-mono" style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>›</span>
+          <span style={{ fontFamily: MONO, fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>›</span>
         </Link>
       ))}
     </div>
   )
 }
 
-// ── Needs You action list (pinned, non-reorderable) ────────────────────────
-const URGENCY = {
-  warn:   { border: T.warn,  text: T.warn,  bg: T.warnBg },
-  danger: { border: T.bad,   text: T.bad,   bg: T.badBg  },
-  info:   { border: T.info,  text: T.info,  bg: T.infoBg },
+// ── Live shift elapsed (Xh Ym format) ─────────────────────────────────────
+function useShiftElapsed(clockInAt, breakStartAt, totalBreakMs, status) {
+  const [now, setNow] = useState(Date.now())
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 30000)
+    return () => clearInterval(id)
+  }, [])
+  if (!clockInAt) return null
+  const curBreak = status === 'on_break' && breakStartAt
+    ? now - breakStartAt.getTime() : 0
+  const ms = now - clockInAt.getTime() - totalBreakMs - curBreak
+  const h = Math.floor(ms / 3600000)
+  const m = Math.floor((ms % 3600000) / 60000)
+  return h > 0 ? `${h}h ${m}m` : `${m}m`
 }
 
-function NeedsYouSection({ actions, editMode }) {
-  if (!actions.length) return null
+// ── Weekly hours for a staff member ───────────────────────────────────────
+function useWeeklyHours(staffId, venueId) {
+  const [hours, setHours] = useState(null)
+  useEffect(() => {
+    if (!staffId || !venueId) return
+    const since = startOfWeek(new Date(), { weekStartsOn: 1 }).toISOString()
+    supabase
+      .from('clock_events')
+      .select('event_type, occurred_at')
+      .eq('staff_id', staffId)
+      .eq('venue_id', venueId)
+      .in('event_type', ['clock_in', 'clock_out'])
+      .gte('occurred_at', since)
+      .order('occurred_at', { ascending: true })
+      .then(({ data }) => {
+        if (!data) return
+        let total = 0, lastIn = null
+        for (const ev of data) {
+          if (ev.event_type === 'clock_in')  lastIn = new Date(ev.occurred_at)
+          if (ev.event_type === 'clock_out' && lastIn) {
+            total += new Date(ev.occurred_at) - lastIn
+            lastIn = null
+          }
+        }
+        // add current open shift
+        if (lastIn) total += Date.now() - lastIn.getTime()
+        const h = Math.floor(total / 3600000)
+        const m = Math.floor((total % 3600000) / 60000)
+        setHours(`${h}h ${m}m`)
+      })
+  }, [staffId, venueId])
+  return hours
+}
+
+// ── My Clock card (full hero) ──────────────────────────────────────────────
+function MobileClockCard({ staffId }) {
+  const { venueId } = useVenue()
+  const toast = useToast()
+  const { status, clockInAt, breakStartAt, totalBreakMs, loading, reload } = useClockStatus(staffId)
+  const [submitting, setSubmitting] = useState(false)
+  const elapsed  = useShiftElapsed(clockInAt, breakStartAt, totalBreakMs, status)
+  const weekHrs  = useWeeklyHours(staffId, venueId)
+  const now      = useLiveTime()
+
+  const record = async (eventType) => {
+    setSubmitting(true)
+    const { error } = await offlineRpc('record_clock_event', {
+      p_staff_id:   staffId,
+      p_event_type: eventType,
+      p_venue_id:   venueId,
+    })
+    setSubmitting(false)
+    if (error) { toast(error.message, 'error'); return }
+    reload()
+  }
+
+  // Status badge
+  const onShift  = status === 'clocked_in'
+  const onBreak  = status === 'on_break'
+  const badgeLabel = onBreak
+    ? `On Break${elapsed ? ' · ' + elapsed : ''}`
+    : onShift
+      ? `On Shift${elapsed ? ' · ' + elapsed : ''}`
+      : 'Not In'
+  const badgeBg = onBreak ? 'rgba(168,93,18,0.25)' : onShift ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.10)'
+  const badgeDot = onBreak ? '#e8a34e' : onShift ? '#6fcfa0' : 'rgba(255,255,255,0.35)'
+
   return (
-    <div
-      style={{
-        ...card({ overflow: 'hidden' }),
-        opacity:    editMode ? 0.45 : 1,
-        transition: 'opacity 0.2s',
-      }}
-    >
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '12px 16px 8px' }}>
-        <span
-          className="font-mono"
-          style={{ fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: T.ink3, fontWeight: 600 }}
-        >
-          Needs You
-        </span>
-        <span
-          style={{
-            minWidth: 18, height: 18, borderRadius: 999,
-            background: T.bad, color: '#fff',
-            fontSize: 10, fontWeight: 700,
-            display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 5px',
-          }}
-        >
-          {actions.length}
-        </span>
-      </div>
-      <div style={{ borderTop: `1px solid ${T.line2}` }}>
-        {actions.map((a) => {
-          const s = URGENCY[a.urgency] ?? URGENCY.warn
-          return (
-            <Link
-              key={a.to}
-              to={a.to}
-              style={{
-                display:        'flex',
-                alignItems:     'center',
-                borderLeft:     `3px solid ${s.border}`,
-                padding:        '12px 16px',
-                borderBottom:   `1px solid ${T.line2}`,
-                textDecoration: 'none',
-              }}
+    <div>
+      <SectionLabel>My Clock</SectionLabel>
+      <div style={{
+        background: T.brand,
+        borderRadius: 14,
+        padding: '14px 16px 16px',
+        display: 'flex', flexDirection: 'column', gap: 0,
+      }}>
+        {/* Header row: MY CLOCK label + status pill */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+          <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.45)', fontWeight: 600 }}>
+            My Clock
+          </span>
+          <span style={{
+            display: 'flex', alignItems: 'center', gap: 5,
+            background: badgeBg, borderRadius: 999,
+            padding: '3px 9px 3px 7px',
+          }}>
+            <span style={{ width: 6, height: 6, borderRadius: '50%', background: badgeDot, flexShrink: 0 }} />
+            <span style={{ fontFamily: MONO, fontSize: 9.5, fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.9)' }}>
+              {badgeLabel}
+            </span>
+          </span>
+        </div>
+
+        {/* Large current time */}
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 12 }}>
+          <span style={{ fontFamily: MONO, fontSize: 40, fontWeight: 600, letterSpacing: '-0.03em', color: '#fff', lineHeight: 1 }}>
+            {format(now, 'HH:mm')}
+          </span>
+          {(onShift || onBreak) && clockInAt && (
+            <span style={{ fontFamily: MONO, fontSize: 12, color: 'rgba(255,255,255,0.45)', letterSpacing: '0.02em' }}>
+              — since {format(clockInAt, 'HH:mm')}
+            </span>
+          )}
+        </div>
+
+        {/* Divider */}
+        <div style={{ height: 1, background: 'rgba(255,255,255,0.12)', marginBottom: 12 }} />
+
+        {/* Stats row */}
+        <div style={{ display: 'flex', gap: 20, marginBottom: 14 }}>
+          {[
+            { label: 'This Week', value: weekHrs ?? '—' },
+            { label: 'Break', value: onBreak && breakStartAt
+                ? `${Math.floor((Date.now() - breakStartAt.getTime()) / 60000)} min`
+                : totalBreakMs > 0
+                  ? `${Math.floor(totalBreakMs / 60000)} min`
+                  : '—' },
+            { label: 'Last In', value: clockInAt ? format(clockInAt, 'EEE HH:mm') : '—' },
+          ].map(({ label, value }) => (
+            <div key={label}>
+              <div style={{ fontFamily: MONO, fontSize: 8.5, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.40)', marginBottom: 3 }}>
+                {label}
+              </div>
+              <div style={{ fontFamily: MONO, fontSize: 13.5, fontWeight: 600, color: '#fff', letterSpacing: '-0.01em' }}>
+                {value}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Action button(s) */}
+        {loading ? null : status === 'clocked_out' ? (
+          <button
+            onClick={() => record('clock_in')}
+            disabled={submitting}
+            style={{ width: '100%', background: '#fff', color: T.brand, borderRadius: 11, padding: '13px 0', fontFamily: MONO, fontSize: 13, fontWeight: 700, letterSpacing: '0.02em', border: 'none', cursor: submitting ? 'not-allowed' : 'pointer', opacity: submitting ? 0.5 : 1 }}
+          >
+            Clock In
+          </button>
+        ) : status === 'clocked_in' ? (
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button
+              onClick={() => record('break_start')}
+              disabled={submitting}
+              style={{ flex: 1, background: 'rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.85)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: 11, padding: '13px 0', fontFamily: MONO, fontSize: 12, fontWeight: 600, cursor: submitting ? 'not-allowed' : 'pointer', opacity: submitting ? 0.5 : 1 }}
             >
-              <span style={{ flex: 1, fontSize: 13.5, fontWeight: 500, color: s.text, lineHeight: 1.3 }}>
-                {a.label}
-              </span>
-              <span className="font-mono" style={{ fontSize: 13, color: T.ink4 }}>›</span>
-            </Link>
-          )
-        })}
+              Break
+            </button>
+            <button
+              onClick={() => record('clock_out')}
+              disabled={submitting}
+              style={{ flex: 2, background: '#fff', color: T.brand, borderRadius: 11, padding: '13px 0', fontFamily: MONO, fontSize: 13, fontWeight: 700, border: 'none', cursor: submitting ? 'not-allowed' : 'pointer', opacity: submitting ? 0.5 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}
+            >
+              <span style={{ display: 'inline-block', width: 9, height: 9, background: T.brand, borderRadius: 2 }} />
+              Clock out
+            </button>
+          </div>
+        ) : status === 'on_break' ? (
+          <button
+            onClick={() => record('break_end')}
+            disabled={submitting}
+            style={{ width: '100%', background: '#fff', color: T.brand, borderRadius: 11, padding: '13px 0', fontFamily: MONO, fontSize: 13, fontWeight: 700, border: 'none', cursor: submitting ? 'not-allowed' : 'pointer', opacity: submitting ? 0.5 : 1 }}
+          >
+            End Break
+          </button>
+        ) : null}
       </div>
     </div>
   )
 }
 
-// ── Grip icon (drag handle) ───────────────────────────────────────────────
+// ── Grip handle ────────────────────────────────────────────────────────────
 function GripIcon() {
   return (
     <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
@@ -271,28 +493,23 @@ function GripIcon() {
   )
 }
 
-// ── Mobile sortable widget ────────────────────────────────────────────────
-function MobileSortableWidget({ id, editMode }) {
-  const widget = WIDGET_REGISTRY[id]
-  if (!widget) return null
-
+// ── Sortable wrapper for any card (special or registry) ───────────────────
+function MobileSortableCard({ id, editMode, children }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id,
     disabled: !editMode,
   })
-  const Component = widget.component
-
   return (
     <div
       ref={setNodeRef}
       style={{
-        transform:  CSS.Transform.toString(transform),
+        transform:    CSS.Transform.toString(transform),
         transition,
-        opacity:    isDragging ? 0.35 : 1,
+        opacity:      isDragging ? 0.35 : 1,
         borderRadius: 14,
-        outline:    editMode ? `1.5px dashed ${T.ink4}` : 'none',
+        outline:      editMode ? `1.5px dashed ${T.ink4}` : 'none',
         outlineOffset: 2,
-        position:   'relative',
+        position:     'relative',
       }}
     >
       {editMode && (
@@ -300,43 +517,58 @@ function MobileSortableWidget({ id, editMode }) {
           {...attributes}
           {...listeners}
           style={{
-            position:       'absolute',
-            top:            10,
-            right:          10,
-            zIndex:         20,
-            cursor:         'grab',
-            padding:        6,
-            borderRadius:   8,
-            background:     'rgba(255,255,255,0.92)',
-            backdropFilter: 'blur(4px)',
-            boxShadow:      '0 1px 4px rgba(0,0,0,0.12)',
-            color:          T.ink3,
-            display:        'flex',
-            alignItems:     'center',
-            justifyContent: 'center',
+            position: 'absolute', top: 10, right: 10, zIndex: 20,
+            cursor: 'grab', padding: 6, borderRadius: 8,
+            background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(4px)',
+            boxShadow: '0 1px 4px rgba(0,0,0,0.12)', color: T.ink3,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}
         >
           <GripIcon />
         </div>
       )}
-      {/* Disable inner interactions during drag-to-reorder edit mode */}
       <div style={{ pointerEvents: editMode ? 'none' : 'auto' }}>
-        <Component />
+        {children}
       </div>
     </div>
   )
 }
 
-// ── Mobile DnD widget list ────────────────────────────────────────────────
-function MobileDraggableWidgetGrid({ widgetIds, onReorder, editMode }) {
-  const [ids, setIds]         = useState(widgetIds)
-  const [activeId, setActiveId] = useState(null)
-  const prevIds               = useRef(widgetIds)
+// ── DnD list — stats + clock + registry widgets all reorderable ────────────
+const STORAGE_KEY = 'mgr.dash.order.v1'
+const DEFAULT_FIXED = ['stats', 'clock']
 
-  if (prevIds.current !== widgetIds) {
-    prevIds.current = widgetIds
-    setIds(widgetIds)
-  }
+function MobileDraggableWidgetGrid({
+  widgetIds, onReorder, editMode,
+  // special card content rendered by parent
+  statsContent, clockContent,
+}) {
+  const [ids, setIds] = useState(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? 'null')
+      if (Array.isArray(saved) && saved.length) {
+        // ensure any new widgetIds not in saved are appended
+        const extras = widgetIds.filter(id => !saved.includes(id))
+        return [...saved.filter(id => id === 'stats' || id === 'clock' || widgetIds.includes(id)), ...extras]
+      }
+    } catch (_) {}
+    return [...DEFAULT_FIXED, ...widgetIds]
+  })
+
+  const [activeId, setActiveId] = useState(null)
+
+  // keep in sync if parent widgetIds changes (e.g. widget added/removed)
+  const prevWidgetIds = useRef(widgetIds)
+  useEffect(() => {
+    if (prevWidgetIds.current === widgetIds) return
+    prevWidgetIds.current = widgetIds
+    setIds(prev => {
+      const existing = new Set(prev)
+      const added    = widgetIds.filter(id => !existing.has(id))
+      const next     = [...prev.filter(id => id === 'stats' || id === 'clock' || widgetIds.includes(id)), ...added]
+      return next
+    })
+  }, [widgetIds])
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -349,12 +581,21 @@ function MobileDraggableWidgetGrid({ widgetIds, onReorder, editMode }) {
     if (!over || active.id === over.id) return
     setIds(prev => {
       const next = arrayMove(prev, prev.indexOf(active.id), prev.indexOf(over.id))
-      onReorder(next)
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(next)) } catch (_) {}
+      // notify parent about registry widget order only
+      onReorder(next.filter(id => id !== 'stats' && id !== 'clock'))
       return next
     })
   }
 
-  const ActiveComponent = activeId ? WIDGET_REGISTRY[activeId]?.component : null
+  // snapshot for DragOverlay
+  const activeContent = activeId === 'stats'
+    ? statsContent
+    : activeId === 'clock'
+      ? clockContent
+      : activeId && WIDGET_REGISTRY[activeId]
+        ? React.createElement(WIDGET_REGISTRY[activeId].component)
+        : null
 
   return (
     <DndContext
@@ -364,16 +605,33 @@ function MobileDraggableWidgetGrid({ widgetIds, onReorder, editMode }) {
       onDragEnd={handleDragEnd}
     >
       <SortableContext items={ids} strategy={verticalListSortingStrategy}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {ids.map(id => (
-            <MobileSortableWidget key={id} id={id} editMode={editMode} />
-          ))}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 13 }}>
+          {ids.map(id => {
+            if (id === 'stats') return (
+              <MobileSortableCard key="stats" id="stats" editMode={editMode}>
+                {statsContent}
+              </MobileSortableCard>
+            )
+            if (id === 'clock') return (
+              <MobileSortableCard key="clock" id="clock" editMode={editMode}>
+                {clockContent}
+              </MobileSortableCard>
+            )
+            const widget = WIDGET_REGISTRY[id]
+            if (!widget) return null
+            const Comp = widget.component
+            return (
+              <MobileSortableCard key={id} id={id} editMode={editMode}>
+                <Comp />
+              </MobileSortableCard>
+            )
+          })}
         </div>
       </SortableContext>
       <DragOverlay>
-        {ActiveComponent && (
+        {activeContent && (
           <div style={{ borderRadius: 14, boxShadow: '0 24px 48px rgba(9,18,13,0.25)', transform: 'scale(1.02)', opacity: 0.95, cursor: 'grabbing' }}>
-            <ActiveComponent />
+            {activeContent}
           </div>
         )}
       </DragOverlay>
@@ -381,31 +639,7 @@ function MobileDraggableWidgetGrid({ widgetIds, onReorder, editMode }) {
   )
 }
 
-// ── My Clock hero card ────────────────────────────────────────────────────
-function MobileClockCard({ staffId }) {
-  return (
-    <div
-      style={{
-        background:    T.brand,
-        borderRadius:  14,
-        padding:       '16px 18px 18px',
-        display:       'flex',
-        flexDirection: 'column',
-        gap:           12,
-      }}
-    >
-      <span
-        className="font-mono"
-        style={{ fontSize: 9.5, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.45)', fontWeight: 600 }}
-      >
-        My Clock
-      </span>
-      <ClockPanel staffId={staffId} hasShift compact />
-    </div>
-  )
-}
-
-// ── Main export ───────────────────────────────────────────────────────────
+// ── Main export ────────────────────────────────────────────────────────────
 export default function MobileManagerDashboard({
   session,
   venueId,
@@ -422,8 +656,8 @@ export default function MobileManagerDashboard({
   onOpenPicker,
   isEnabled,
 }) {
-  const now       = useLiveTime()
-  const [editMode, setEditMode]             = useState(false)
+  const now     = useLiveTime()
+  const [editMode, setEditMode]               = useState(false)
   const [disciplinaryAlerts, setDisciplinaryAlerts] = useState([])
 
   const vp = (p) => `/v/${venueSlug}${p}`
@@ -445,7 +679,7 @@ export default function MobileManagerDashboard({
       })
   }, [venueId])
 
-  // Build stat tiles + action list from todayItemIds
+  // Active stat items + action list
   const activeItems = (todayItemIds ?? [])
     .map(id => TODAY_ITEM_REGISTRY[id])
     .filter(item => {
@@ -460,169 +694,108 @@ export default function MobileManagerDashboard({
     : []
 
   const checksText = summary
-    ? `${summary.checksToday} of ${summary.totalChecks} daily checks complete`
+    ? `· ${summary.checksToday} of ${summary.totalChecks} daily checks complete`
     : null
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 13 }}>
 
       <PushBanner staffId={session?.staffId} venueId={venueId} />
 
-      {/* Greeting ──────────────────────────────────────────────────────── */}
-      <div style={{ ...card(), padding: '14px 16px 16px' }}>
+      {/* ── Greeting (no card — text on bg surface) ─────────────────────── */}
+      <div style={{ paddingBottom: 2 }}>
+        {/* Row 1: date + REARRANGE */}
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
-          <div style={{ minWidth: 0, flex: 1 }}>
-            <p
-              className="font-mono"
-              style={{ fontSize: 9.5, letterSpacing: '0.08em', textTransform: 'uppercase', color: T.ink3 }}
-            >
-              {format(now, 'EEEE, d MMMM')} · {format(now, 'HH:mm')}
-            </p>
-            <h1 style={{ fontSize: 26, fontWeight: 600, letterSpacing: '-0.028em', color: T.ink, lineHeight: 1.15, margin: '5px 0 7px' }}>
-              {greeting}{firstName ? `, ${firstName}` : ''}.
-            </h1>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 7, flexWrap: 'wrap' }}>
-              {venueName && (
-                <span style={{ fontSize: 13.5, fontWeight: 500, color: T.ink2 }}>{venueName}</span>
-              )}
-              <MobilePlanPill plan={venuePlan} />
-            </div>
-            {checksText && (
-              <p className="font-mono" style={{ fontSize: 11, color: T.ink3, marginTop: 5 }}>
-                {checksText}
-              </p>
-            )}
-          </div>
+          <span style={{
+            fontFamily: MONO, fontSize: 10, letterSpacing: '0.08em',
+            textTransform: 'uppercase', color: T.ink3, paddingTop: 3,
+          }}>
+            {format(now, 'EEEE, d MMMM')} · {format(now, 'HH:mm')}
+          </span>
           <button
             onClick={() => setEditMode(v => !v)}
             style={{
-              flexShrink:    0,
-              fontSize:      12,
-              fontWeight:    600,
-              letterSpacing: '0.04em',
-              color:         editMode ? T.good : T.ink3,
-              background:    editMode ? `${T.good}12` : 'transparent',
-              border:        `1px solid ${editMode ? T.good + '40' : T.line}`,
-              borderRadius:  8,
-              padding:       '5px 12px',
-              cursor:        'pointer',
-              marginTop:     2,
-              whiteSpace:    'nowrap',
-              transition:    'all 0.15s',
+              flexShrink: 0, fontFamily: MONO,
+              fontSize: 10, fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase',
+              color: editMode ? T.good : T.ink3,
+              background: editMode ? T.goodBg : 'transparent',
+              border: `1px solid ${editMode ? T.good + '50' : T.line}`,
+              borderRadius: 8, padding: '4px 11px',
+              cursor: 'pointer', whiteSpace: 'nowrap', transition: 'all 0.15s',
             }}
           >
             {editMode ? 'Done' : 'Rearrange'}
           </button>
         </div>
-      </div>
 
-      <GettingStartedCard venueId={venueId} venueSlug={venueSlug} />
+        {/* H1 */}
+        <h1 style={{
+          fontSize: 30, fontWeight: 700, letterSpacing: '-0.03em',
+          color: T.ink, lineHeight: 1.1, margin: '5px 0 6px',
+        }}>
+          {greeting}{firstName ? `, ${firstName}` : ''}.
+        </h1>
 
-      {/* My Clock ──────────────────────────────────────────────────────── */}
-      <MobileClockCard staffId={session?.staffId} />
-
-      {/* Today stat tiles ──────────────────────────────────────────────── */}
-      <div style={{ ...card({ overflow: 'hidden' }) }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px 8px' }}>
-          <span
-            className="font-mono"
-            style={{ fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: T.ink3, fontWeight: 600 }}
-          >
-            Today
-          </span>
-          <button
-            onClick={onOpenPicker}
-            style={{ fontSize: 11.5, fontWeight: 600, color: T.brand, background: 'transparent', border: 'none', cursor: 'pointer' }}
-          >
-            Customise
-          </button>
-        </div>
-        <div style={{ padding: '0 12px 12px' }}>
-          {!summary ? (
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-              {[1, 2, 3, 4].map(i => (
-                <div
-                  key={i}
-                  style={{ height: 88, borderRadius: 14, background: T.line2 }}
-                  className="animate-pulse"
-                />
-              ))}
-            </div>
-          ) : activeItems.length === 0 ? (
-            <div
-              style={{
-                border: `1px dashed ${T.line}`,
-                borderRadius: 14,
-                padding: '24px 16px',
-                textAlign: 'center',
-              }}
-            >
-              <p style={{ fontSize: 13, color: T.ink3 }}>No Today items selected</p>
-              <button
-                onClick={onOpenPicker}
-                style={{ marginTop: 8, fontSize: 12, fontWeight: 600, color: T.brand, background: 'transparent', border: 'none', cursor: 'pointer' }}
-              >
-                + Add items
-              </button>
-            </div>
-          ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-              {activeItems.map(item => (
-                <MobileStatTile key={item.id} item={item} summary={summary} />
-              ))}
-            </div>
+        {/* Row 3: venue · PRO · checks */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+          {venueName && (
+            <span style={{ fontSize: 13, fontWeight: 500, color: T.ink2 }}>{venueName}</span>
+          )}
+          <MobilePlanPill plan={venuePlan} />
+          {checksText && (
+            <span style={{ fontFamily: MONO, fontSize: 10.5, color: T.ink3, letterSpacing: '0.01em' }}>
+              {checksText}
+            </span>
           )}
         </div>
       </div>
 
-      {/* Pinned alerts — outside SortableContext, non-reorderable ─────── */}
+      {/* ── Pinned alerts ───────────────────────────────────────────────── */}
       <DisciplinaryStrip alerts={disciplinaryAlerts} editMode={editMode} venueSlug={venueSlug} />
-      <NeedsYouSection actions={actions} editMode={editMode} />
+      <AttentionCard actions={actions} editMode={editMode} vp={vp} />
 
-      {/* Edit-mode hint */}
+      {/* ── Edit-mode hint ──────────────────────────────────────────────── */}
       {editMode && (
-        <p
-          className="font-mono text-center"
-          style={{ fontSize: 10.5, color: T.ink4, letterSpacing: '0.04em' }}
-        >
-          Drag cards to reorder · tap Done when finished
+        <p style={{ fontFamily: MONO, textAlign: 'center', fontSize: 10, color: T.ink4, letterSpacing: '0.04em' }}>
+          Drag widgets to reorder · tap Done when finished
         </p>
       )}
 
-      {/* Reorderable widget area ───────────────────────────────────────── */}
-      {widgetIds.length > 0 ? (
-        <MobileDraggableWidgetGrid
-          widgetIds={widgetIds}
-          onReorder={onReorder}
-          editMode={editMode}
-        />
-      ) : (
-        <div
-          style={{
-            ...card(),
-            border:      `1.5px dashed ${T.line}`,
-            padding:     '40px 16px',
-            textAlign:   'center',
-          }}
-        >
-          <p style={{ fontSize: 13, color: T.ink3, marginBottom: 12 }}>No widgets on your dashboard</p>
-          <button
-            onClick={onOpenPicker}
-            style={{
-              background:   T.brand,
-              color:        '#fff',
-              padding:      '8px 20px',
-              borderRadius: 10,
-              fontSize:     13,
-              fontWeight:   600,
-              border:       'none',
-              cursor:       'pointer',
-            }}
-          >
-            + Add Widgets
-          </button>
-        </div>
-      )}
+      {/* ── All reorderable cards (stats, clock, registry widgets) ──────── */}
+      <MobileDraggableWidgetGrid
+        widgetIds={widgetIds}
+        onReorder={onReorder}
+        editMode={editMode}
+        statsContent={
+          <div>
+            <SectionLabel>Today at a glance</SectionLabel>
+            {!summary ? (
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
+                {[1,2,3,4,5,6].map(i => (
+                  <div key={i} style={{ height: 84, borderRadius: 12, background: T.line2 }} className="animate-pulse" />
+                ))}
+              </div>
+            ) : activeItems.length === 0 ? (
+              <div style={{ ...card(), padding: '20px 16px', textAlign: 'center' }}>
+                <p style={{ fontSize: 13, color: T.ink3 }}>No Today items selected</p>
+                <button
+                  onClick={onOpenPicker}
+                  style={{ marginTop: 8, fontSize: 12, fontWeight: 600, color: T.brand, background: 'transparent', border: 'none', cursor: 'pointer' }}
+                >
+                  + Add items
+                </button>
+              </div>
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
+                {activeItems.map(item => (
+                  <MobileStatTile key={item.id} item={item} summary={summary} />
+                ))}
+              </div>
+            )}
+          </div>
+        }
+        clockContent={<MobileClockCard staffId={session?.staffId} />}
+      />
     </div>
   )
 }

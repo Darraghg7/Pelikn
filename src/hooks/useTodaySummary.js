@@ -1,6 +1,23 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { format, startOfDay, endOfDay, subDays } from 'date-fns'
 import { supabase } from '../lib/supabase'
+
+// ── Module-level SWR cache ─────────────────────────────────────────────────
+// Survives component unmount/remount (single-page navigation).
+// Key: `${venueId}:${dateStr}`  Value: { data, ts }
+const _cache = new Map()
+const STALE_MS  = 90_000   // show stale + revalidate after 90 s
+const FRESH_MS  = 20_000   // don't revalidate at all if data is < 20 s old
+
+function cacheGet(key) { return _cache.get(key) ?? null }
+function cacheSet(key, data) { _cache.set(key, { data, ts: Date.now() }) }
+
+/** Expose so other modules can bust the cache after a mutation (e.g. clock-in). */
+export function invalidateSummaryCache(venueId) {
+  for (const k of _cache.keys()) {
+    if (k.startsWith(venueId + ':')) _cache.delete(k)
+  }
+}
 
 export function isActionDueToday(scheduleKey, actionSchedules) {
   if (!scheduleKey) return true
@@ -32,21 +49,48 @@ function emptySummary() {
 }
 
 export function useTodaySummary(venueId, closedDays = [], actionSchedules = {}) {
-  const [summary, setSummary] = useState(null)
-  const [loading, setLoading] = useState(true)
+  const todayStr = format(new Date(), 'yyyy-MM-dd')
+  const cacheKey = venueId ? `${venueId}:${todayStr}` : null
+  const cached   = cacheKey ? cacheGet(cacheKey) : null
+
+  const [summary, setSummary]         = useState(cached?.data ?? null)
+  const [loading, setLoading]         = useState(!cached)
   const [closedToday, setClosedToday] = useState(false)
+
+  // track whether we already kicked off a background revalidation this mount
+  const revalidating = useRef(false)
 
   useEffect(() => {
     if (!venueId) return
+
+    const key   = `${venueId}:${todayStr}`
+    const entry = cacheGet(key)
+    const age   = entry ? Date.now() - entry.ts : Infinity
+
+    // Fresh enough — no fetch needed
+    if (entry && age < FRESH_MS) {
+      setSummary(entry.data)
+      setLoading(false)
+      return
+    }
+
+    // Stale hit — show immediately, revalidate in background
+    if (entry && age < STALE_MS) {
+      setSummary(entry.data)
+      setLoading(false)
+      if (revalidating.current) return
+      revalidating.current = true
+      // fall through to fetch (background — setLoading stays false)
+    }
+
     const today = new Date()
     const dayStart = startOfDay(today).toISOString()
     const dayEnd   = endOfDay(today).toISOString()
-    const todayStr = format(today, 'yyyy-MM-dd')
     const ninetyDaysAgo = subDays(today, 90).toISOString()
 
     let cancelled = false
     const fetchAll = async () => {
-      setLoading(true)
+      if (!entry) setLoading(true)
       try {
 
       const todayDow = (today.getDay() + 6) % 7
@@ -172,7 +216,7 @@ export function useTodaySummary(venueId, closedDays = [], actionSchedules = {}) 
 
       if (cancelled) return
 
-      setSummary({
+      const fresh = {
         overdueClean:       overdueCount,
         onShiftToday:       rota.count ?? 0,
         checksToday:        opening.count ?? 0,
@@ -187,15 +231,22 @@ export function useTodaySummary(venueId, closedDays = [], actionSchedules = {}) 
         coolingLogsToday:   coolingLogs.count ?? 0,
         dutiesAssigned,
         dutiesCompleted,
-      })
+      }
+      cacheSet(key, fresh)
+      setSummary(fresh)
       setLoading(false)
+      revalidating.current = false
       } catch {
-        if (!cancelled) { setSummary(emptySummary()); setLoading(false) }
+        if (!cancelled) {
+          if (!entry) { setSummary(emptySummary()); setLoading(false) }
+          revalidating.current = false
+        }
       }
     }
     fetchAll()
     return () => { cancelled = true }
-  }, [venueId, closedDays, actionSchedules])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [venueId])
 
   return { summary, loading, closedToday }
 }

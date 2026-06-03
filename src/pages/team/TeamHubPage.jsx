@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useVenue } from '../../contexts/VenueContext'
 import { useTeamStatus } from '../../hooks/useTeamStatus'
@@ -7,11 +7,11 @@ import { useAppSettings } from '../../hooks/useSettings'
 // ── Design tokens ──────────────────────────────────────────────────────────
 const MC = {
   brand:  '#13362a',
-  bad:    '#c0392b', badBg:  '#fef2f2',
-  warn:   '#d97706', warnBg: '#fffbeb',
-  good:   '#16a34a', goodBg: '#f0fdf4',
-  ink:    '#111827', ink2:   '#374151', ink3:   '#6b7280', ink4:   '#9ca3af',
-  line:   '#e5e7eb', line2:  '#f3f4f6',
+  bad:    '#b3331c', badBg:  '#fbeae6',
+  warn:   '#a85d12', warnBg: '#fbeedc',
+  good:   '#1a7a4c', goodBg: '#e3f0e7',
+  ink:    '#0d1a14', ink2:   '#3d4a44', ink3:   '#76817b', ink4:   '#b3b9b5',
+  line:   '#e4e6e2', line2:  '#eef0ec',
   paper:  '#ffffff',
 }
 
@@ -122,7 +122,6 @@ function AttendanceHero({ onShift, lateCount, loading, onClick }) {
         )}
       </div>
 
-      {/* Avatar stack */}
       {!loading && onShift.length > 0 && (
         <div style={{ display: 'flex', alignItems: 'center', marginTop: 13 }}>
           {onShift.slice(0, 6).map((p, i) => (
@@ -145,28 +144,44 @@ function AttendanceHero({ onShift, lateCount, loading, onClick }) {
 }
 
 // ── Team status card ───────────────────────────────────────────────────────
-function TeamCard({ label, icon: Icon, status, statusText, count, onClick }) {
+function TeamCard({ label, icon: Icon, status, statusText, count, onClick, editMode, isHidden, onToggle }) {
   const t = STATUS_TONE[status]
   return (
     <button
-      onClick={onClick}
+      onClick={editMode ? onToggle : onClick}
       style={{
         textAlign: 'left', cursor: 'pointer', width: '100%',
         background: MC.paper,
-        border: `1px solid ${status === 'overdue' ? t.fg + '55' : MC.line}`,
-        borderRadius: 14, padding: '13px 13px 12px',
-        display: 'flex', flexDirection: 'column', gap: 10, minHeight: 104,
+        border: `1px solid ${!editMode && status === 'overdue' ? t.fg + '55' : MC.line}`,
+        borderRadius: 12, padding: '12px',
+        display: 'flex', flexDirection: 'column', gap: 8, minHeight: 84,
+        opacity: editMode && isHidden ? 0.38 : 1,
+        transition: 'opacity 0.15s ease',
       }}
     >
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
         <span style={{
-          width: 34, height: 34, borderRadius: 9,
+          width: 30, height: 30, borderRadius: 9,
           background: t.bg, color: t.fg,
           display: 'grid', placeItems: 'center',
         }}>
-          <span style={{ width: 17, height: 17, display: 'inline-flex' }}><Icon /></span>
+          <span style={{ width: 15, height: 15, display: 'inline-flex' }}><Icon /></span>
         </span>
-        {count && status !== 'done' && status !== 'na' ? (
+
+        {editMode ? (
+          <span style={{
+            width: 20, height: 20, borderRadius: 10, flexShrink: 0,
+            border: `2px solid ${isHidden ? MC.line : MC.good}`,
+            background: isHidden ? 'transparent' : MC.good,
+            display: 'grid', placeItems: 'center',
+          }}>
+            {!isHidden && (
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+            )}
+          </span>
+        ) : count && status !== 'done' && status !== 'na' ? (
           <span style={{
             minWidth: 20, height: 20, padding: '0 6px', borderRadius: 10,
             background: t.fg, color: '#fff',
@@ -180,13 +195,17 @@ function TeamCard({ label, icon: Icon, status, statusText, count, onClick }) {
           </span>
         ) : null}
       </div>
+
       <div style={{ marginTop: 'auto' }}>
         <div style={{ fontSize: 14, fontWeight: 600, letterSpacing: '-0.01em', color: MC.ink }}>{label}</div>
         <div style={{
           fontFamily: MONO, fontSize: 10.5, marginTop: 3,
-          color: t.fg, fontWeight: 600,
+          color: editMode ? (isHidden ? MC.ink4 : MC.good) : t.fg,
+          fontWeight: 600,
           letterSpacing: '0.02em', textTransform: 'uppercase',
-        }}>{statusText}</div>
+        }}>
+          {editMode ? (isHidden ? 'Hidden' : 'Visible') : statusText}
+        </div>
       </div>
     </button>
   )
@@ -199,14 +218,30 @@ export default function TeamHubPage() {
   const vp = (path) => `/v/${venueSlug}${path}`
 
   const { data, loading } = useTeamStatus(venueId)
-  const { hiddenTeamTiles } = useAppSettings()
+  const { hiddenTeamTiles, saveHiddenTeamTiles } = useAppSettings()
+
+  const [editMode, setEditMode] = useState(false)
+  const [localHidden, setLocalHidden] = useState([])
 
   const now = new Date()
   const timeStr = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
   const dayStr  = now.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })
 
-  // Build status cards with live data
-  const cards = [
+  function handleEdit() {
+    setLocalHidden(hiddenTeamTiles ?? [])
+    setEditMode(true)
+  }
+
+  function handleDone() {
+    saveHiddenTeamTiles(localHidden)
+    setEditMode(false)
+  }
+
+  function toggleTile(id) {
+    setLocalHidden(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id])
+  }
+
+  const ALL_CARDS = [
     {
       id: 'rota', label: 'Rota', icon: CalIcon, route: '/rota',
       ...(data?.pendingSwaps > 0
@@ -236,49 +271,63 @@ export default function TeamHubPage() {
     },
   ]
 
-  // Sort action-first
-  const ordered = cards
-    .filter(c => !hiddenTeamTiles.includes(c.id))
-    .sort((a, b) => (STATUS_TONE[a.status]?.rank ?? 4) - (STATUS_TONE[b.status]?.rank ?? 4))
+  const ordered = editMode
+    ? ALL_CARDS
+    : ALL_CARDS
+        .filter(c => !(hiddenTeamTiles ?? []).includes(c.id))
+        .sort((a, b) => (STATUS_TONE[a.status]?.rank ?? 4) - (STATUS_TONE[b.status]?.rank ?? 4))
 
   return (
-    <div style={{ padding: '16px 16px 96px', maxWidth: 480, margin: '0 auto' }}>
+    <div style={{ padding: '16px 0 96px' }}>
 
       {/* Header */}
-      <div style={{ marginBottom: 16 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+      <div style={{ marginBottom: 10 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span style={{ fontFamily: MONO, fontSize: 10.5, color: MC.ink3, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
             Team
           </span>
-          <span style={{ fontFamily: MONO, fontSize: 10.5, color: MC.ink4 }}>{dayStr} · {timeStr}</span>
+          <button
+            onClick={editMode ? handleDone : handleEdit}
+            style={{
+              fontFamily: MONO, fontSize: 11.5, fontWeight: 600, letterSpacing: '0.04em',
+              color: editMode ? MC.good : MC.ink3,
+              background: 'none', border: 'none', cursor: 'pointer', padding: '2px 0',
+            }}
+          >
+            {editMode ? 'Done' : 'Edit'}
+          </button>
         </div>
-        <h1 style={{ fontSize: 26, fontWeight: 600, letterSpacing: '-0.028em', lineHeight: 1.12, margin: '5px 0 0', color: MC.ink }}>
+        <h1 style={{ fontSize: 26, fontWeight: 600, letterSpacing: '-0.028em', lineHeight: 1.12, margin: '4px 0 0', color: MC.ink }}>
           Your team
         </h1>
-        <div style={{ fontSize: 12.5, color: MC.ink3, marginTop: 5 }}>
-          {loading ? '…' : `${data?.totalStaff ?? 0} members · ${data?.onShift?.length ?? 0} on shift now`}
-        </div>
+        {editMode && (
+          <div style={{ marginTop: 5, fontSize: 12, color: MC.ink3, fontFamily: MONO }}>
+            Tap a tile to show or hide it
+          </div>
+        )}
       </div>
 
-      {/* Live attendance hero */}
-      <div style={{ marginBottom: 14 }}>
-        <AttendanceHero
-          onShift={data?.onShift ?? []}
-          lateCount={data?.lateCount ?? 0}
-          loading={loading}
-          onClick={() => navigate(vp('/timesheet'))}
-        />
-      </div>
+      {/* Live attendance hero — hidden in edit mode */}
+      {!editMode && (
+        <div style={{ marginBottom: 14 }}>
+          <AttendanceHero
+            onShift={data?.onShift ?? []}
+            lateCount={data?.lateCount ?? 0}
+            loading={loading}
+            onClick={() => navigate(vp('/timesheet'))}
+          />
+        </div>
+      )}
 
       {/* Status grid */}
-      {loading ? (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 9 }}>
+      {loading && !editMode ? (
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
           {[0,1,2,3,4].map(i => (
             <div key={i} style={{ height: 104, borderRadius: 14, background: MC.line2 }} />
           ))}
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 9 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
           {ordered.map(c => (
             <TeamCard
               key={c.id}
@@ -288,6 +337,9 @@ export default function TeamHubPage() {
               statusText={c.statusText}
               count={c.count}
               onClick={() => navigate(vp(c.route))}
+              editMode={editMode}
+              isHidden={localHidden.includes(c.id)}
+              onToggle={() => toggleTile(c.id)}
             />
           ))}
         </div>
