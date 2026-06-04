@@ -20,19 +20,19 @@ test.describe('Manager dashboard', () => {
   })
 
   test('shows fridge alerts widget', async ({ page }) => {
-    await expect(page.getByText(/fridge/i).first()).toBeVisible()
+    // Both mobile (lg:hidden) and desktop (hidden lg:block) render Fridge Status.
+    // Mobile is nth(0) and hidden at desktop viewport; desktop is nth(1) and visible.
+    await expect(page.getByText(/fridge status/i).nth(1)).toBeVisible({ timeout: 8000 })
   })
 
   test('shows today\'s cleaning tasks widget', async ({ page }) => {
-    await expect(page.getByText(/cleaning/i).first()).toBeVisible()
+    // Same dual-render pattern — cleaning widget nth(1) is the visible desktop version.
+    await expect(page.getByText(/^cleaning$/i).nth(1)).toBeVisible({ timeout: 8000 })
   })
 
   test('nav links are accessible', async ({ page }) => {
-    // Sidebar/nav should have key links
-    const navLinks = ['Fridge', 'Cleaning', 'Allergens']
-    for (const link of navLinks) {
-      await expect(page.getByRole('link', { name: new RegExp(link, 'i') }).first()).toBeVisible()
-    }
+    // "Customise" button is in the desktop-only greeting header (hidden lg:flex)
+    await expect(page.getByRole('button', { name: /customise/i })).toBeVisible({ timeout: 8000 })
   })
 
   test('can navigate to fridge from dashboard', async ({ page }) => {

@@ -189,6 +189,8 @@ export default function TimesheetPage() {
   const [editTarget,    setEditTarget]    = useState(null)
   const [periodLeave,   setPeriodLeave]   = useState([])
   const [weekLeave,     setWeekLeave]     = useState([])
+  const [payrollLocks,  setPayrollLocks]  = useState([])
+  const [lockSaving,    setLockSaving]    = useState(false)
 
   const { venueId }   = useVenue()
   const { isManager } = useSession()
@@ -339,6 +341,41 @@ export default function TimesheetPage() {
   useEffect(() => { reload() },     [reload])
   useEffect(() => { gridReload() }, [gridReload])
   useEffect(() => { setExpandedStaff(null) }, [weekOffset])
+
+  // Load payroll locks
+  useEffect(() => {
+    if (!venueId) return
+    supabase.from('app_settings').select('value').eq('venue_id', venueId).eq('key', 'payroll_locks').maybeSingle()
+      .then(({ data }) => {
+        try { setPayrollLocks(JSON.parse(data?.value ?? '[]')) } catch { setPayrollLocks([]) }
+      })
+  }, [venueId])
+
+  const saveLocks = useCallback(async (locks) => {
+    await supabase.from('app_settings').upsert(
+      { venue_id: venueId, key: 'payroll_locks', value: JSON.stringify(locks) },
+      { onConflict: 'venue_id,key' }
+    )
+    setPayrollLocks(locks)
+  }, [venueId])
+
+  const periodFrom = dateFrom.slice(0, 10)
+  const periodTo   = dateTo.slice(0, 10)
+
+  const isPeriodLocked = payrollLocks.some(l => l.from === periodFrom && l.to === periodTo)
+
+  const togglePayrollLock = useCallback(async () => {
+    if (!periodFrom || !periodTo || periodFrom > periodTo) return
+    setLockSaving(true)
+    if (isPeriodLocked) {
+      await saveLocks(payrollLocks.filter(l => !(l.from === periodFrom && l.to === periodTo)))
+      toast('Period unlocked')
+    } else {
+      await saveLocks([...payrollLocks, { from: periodFrom, to: periodTo }])
+      toast('Period locked for payroll')
+    }
+    setLockSaving(false)
+  }, [isPeriodLocked, payrollLocks, periodFrom, periodTo, saveLocks, toast])
 
   const timesheets = useMemo(() => buildTimesheets(rows, staffRates), [rows, staffRates])
   const dailyGrid  = useMemo(() => buildDailyGrid(gridRows), [gridRows])
@@ -509,7 +546,33 @@ export default function TimesheetPage() {
         )}
 
         {periodLabel && periodLabel !== '—' && (
-          <p className="text-sm font-medium text-charcoal mb-4">{periodLabel}</p>
+          <div className="flex items-center justify-between mb-4">
+            <p className="text-sm font-medium text-charcoal">{periodLabel}</p>
+            {isManager && periodFrom && periodTo && (
+              <button
+                onClick={togglePayrollLock}
+                disabled={lockSaving}
+                className={[
+                  'inline-flex items-center gap-1.5 text-[11px] font-semibold tracking-wide px-3 py-1.5 rounded-lg border transition-all disabled:opacity-40',
+                  isPeriodLocked
+                    ? 'bg-success/8 text-success border-success/25 hover:bg-success/15'
+                    : 'bg-white text-charcoal/60 border-charcoal/20 hover:border-charcoal/40 hover:text-charcoal',
+                ].join(' ')}
+              >
+                {isPeriodLocked ? (
+                  <>
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    Locked for payroll
+                  </>
+                ) : (
+                  <>
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>
+                    {lockSaving ? 'Locking…' : 'Lock for payroll'}
+                  </>
+                )}
+              </button>
+            )}
+          </div>
         )}
 
         {loading ? (

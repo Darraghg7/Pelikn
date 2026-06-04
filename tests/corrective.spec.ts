@@ -60,10 +60,9 @@ test.describe('Probe calibration', () => {
 
   test('shows probe list or add button', async ({ page }) => {
     await goto(page, '/probe')
+    // Page has a "+ Calibrate" button in the top-right
     await expect(
-      page.getByRole('button', { name: /add|new|log/i }).first().or(
-        page.locator('[class*="probe"], [class*="item"]').first()
-      )
+      page.getByRole('button', { name: /calibrate/i }).first()
     ).toBeVisible({ timeout: 8000 })
   })
 })

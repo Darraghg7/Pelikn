@@ -47,9 +47,11 @@ test.describe('Cleaning schedule', () => {
   })
 
   test('export modal opens', async ({ page }) => {
-    await page.getByRole('button', { name: /export|download|pdf/i }).first().click()
+    // "Export PDF" is the cleaning-specific button — avoid clicking the global page Export button
+    await page.getByRole('button', { name: /export pdf/i }).first().click()
+    // Modal renders with role="dialog" when open
     await expect(
-      page.locator('[role="dialog"], [class*="modal"]').first()
+      page.locator('[role="dialog"]').first()
     ).toBeVisible({ timeout: 5000 })
   })
 })
