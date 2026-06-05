@@ -1,232 +1,291 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react'
-import { format, addWeeks, subWeeks, isToday, parseISO } from 'date-fns'
+import { format, addWeeks, subWeeks, isToday, differenceInCalendarWeeks } from 'date-fns'
+import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { sendPush } from '../../lib/sendPush'
 import { useVenue } from '../../contexts/VenueContext'
-import { useShifts, useStaffList, shiftDurationHours } from '../../hooks/useShifts'
+import { useSession } from '../../contexts/SessionContext'
+import { useShifts, useStaffList, shiftDurationHours, paidShiftHours } from '../../hooks/useShifts'
 import { useShiftSwaps } from '../../hooks/useShiftSwaps'
+import { useVenueRoles } from '../../hooks/useVenueRoles'
 import { getWeekStart, getWeekDays } from '../../lib/utils'
 import { useToast } from '../../components/ui/Toast'
+import { useAuth } from '../../contexts/AuthContext'
+import NotificationBell from '../../components/notifications/NotificationBell'
 
-// ── Design tokens ────────────────────────────────────────────────────────────
+// ── Design tokens ─────────────────────────────────────────────────────────────
 const MC = {
-  brand: '#13362a', brandTint: '#eef4f0',
+  brand: '#13362a', brandSoft: '#e2ece7', brandTint: '#eef4f0',
   ink: '#0d1a14', ink2: '#3d4a44', ink3: '#76817b', ink4: '#b3b9b5',
   bg: '#f3f3ef', paper: '#ffffff',
   line: '#e4e6e2', line2: '#eef0ec',
   good: '#1a7a4c', goodBg: '#e3f0e7',
   warn: '#a85d12', warnBg: '#fbeedc',
-  bad: '#b3331c', badBg: '#fbeae6',
+  bad:  '#b3331c', badBg:  '#fbeae6',
+  accent: '#c94f2a', accentSoft: 'rgba(201,79,42,0.10)',
+  info: '#2c4577', infoBg: '#e7edf6',
 }
 const MONO = "'Geist Mono', ui-monospace, monospace"
+const SANS = "'Geist', -apple-system, system-ui, sans-serif"
 
-// Station colours
-const STATIONS = {
-  kitchen: { bg: '#f0ebde', fg: '#6b5028', label: 'Kitchen' },
-  foh:     { bg: '#e7eef3', fg: '#2a4a66', label: 'FOH' },
-  bar:     { bg: '#eaeae6', fg: '#3a3a30', label: 'Bar' },
-  kp:      { bg: '#ecdfe1', fg: '#5a3036', label: 'KP' },
-  default: { bg: MC.brandTint, fg: MC.brand, label: '' },
+const STATION_COLOR = { Kitchen: '#b5701f', FOH: '#2d7d6e', Bar: '#7a5ea8', KP: '#4f6d8a' }
+const STATION_AVATAR = {
+  Kitchen: { bg: '#f0ebde', fg: '#6b5028' },
+  FOH:     { bg: '#e7eef3', fg: '#2a4a66' },
+  Bar:     { bg: '#eaeae6', fg: '#3a3a30' },
+  KP:      { bg: '#ecdfe1', fg: '#5a3036' },
 }
+const STATION_ORDER = ['Kitchen', 'FOH', 'Bar', 'KP']
 
 function stationFromRole(role) {
-  if (!role) return STATIONS.default
+  if (!role) return null
   const r = role.toLowerCase()
-  if (r.includes('kitchen') || r.includes('chef') || r.includes('cook')) return STATIONS.kitchen
-  if (r.includes('kp') || r.includes('kitchen porter')) return STATIONS.kp
-  if (r.includes('bar')) return STATIONS.bar
-  if (r.includes('foh') || r.includes('floor') || r.includes('server') || r.includes('host')) return STATIONS.foh
-  return STATIONS.default
+  if (r.includes('kitchen') || r.includes('chef') || r.includes('cook')) return 'Kitchen'
+  if (r.includes('kp') || r.includes('porter')) return 'KP'
+  if (r.includes('bar') || r.includes('barista')) return 'Bar'
+  if (r.includes('foh') || r.includes('floor') || r.includes('server') || r.includes('host') || r.includes('supervisor')) return 'FOH'
+  return null
 }
 
-// Column widths
-const STAFF_COL = 96
-const DAY_COL   = 74
+// Column widths — matches design exactly
+const NAME_W = 92
+const DAY_COL = 76
+const ROW_H   = 56
 
-// ── ScrollWheelPicker ────────────────────────────────────────────────────────
-function ScrollWheelPicker({ value, options, onChange, label }) {
+// ── Time helpers ──────────────────────────────────────────────────────────────
+const HOURS   = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'))
+const MINUTES = ['00', '05', '10', '15', '20', '25', '30', '35', '40', '45', '50', '55']
+const PRESETS = [
+  { label: 'Open',   s: '07:00', e: '15:00' },
+  { label: 'Mid',    s: '11:00', e: '19:00' },
+  { label: 'Close',  s: '16:00', e: '23:30' },
+  { label: 'Double', s: '09:00', e: '21:00' },
+]
+
+function fmtT(t) { const [h, m] = t.split(':'); return m === '00' ? h : `${h}:${m}` }
+function fmtRange(s, e) { return `${fmtT(s)}–${fmtT(e)}` }
+function durLabel(s, e) {
+  const [sh, sm] = s.split(':').map(Number)
+  const [eh, em] = e.split(':').map(Number)
+  let mins = eh * 60 + em - (sh * 60 + sm)
+  if (mins < 0) mins += 24 * 60
+  const h = Math.floor(mins / 60), m = mins % 60
+  return m ? `${h}h ${m}m` : `${h}h`
+}
+
+// ── Scroll wheel picker ───────────────────────────────────────────────────────
+function Wheel({ values, value, onChange, accent }) {
   const ref = useRef(null)
-  const ITEM_H = 36
+  const timer = useRef(null)
+  const IH = 38, VIS = 5
+
+  const setNode = useCallback((node) => {
+    ref.current = node
+    if (node) node.scrollTop = Math.max(0, values.indexOf(value)) * IH
+  }, []) // eslint-disable-line
 
   useEffect(() => {
-    const idx = options.indexOf(value)
-    if (ref.current && idx >= 0) {
-      ref.current.scrollTop = idx * ITEM_H
-    }
-  }, [value, options])
+    const el = ref.current; if (!el) return
+    el.scrollTop = Math.max(0, values.indexOf(value)) * IH
+  }, [value, values])
 
-  const handleScroll = useCallback(() => {
-    if (!ref.current) return
-    const idx = Math.round(ref.current.scrollTop / ITEM_H)
-    const clamped = Math.max(0, Math.min(idx, options.length - 1))
-    onChange(options[clamped])
-  }, [options, onChange])
+  const onScroll = useCallback(() => {
+    if (timer.current) clearTimeout(timer.current)
+    timer.current = setTimeout(() => {
+      const el = ref.current; if (!el) return
+      const i = Math.max(0, Math.min(values.length - 1, Math.round(el.scrollTop / IH)))
+      if (el.scrollTop !== i * IH) el.scrollTo({ top: i * IH, behavior: 'smooth' })
+      if (values[i] !== value) onChange(values[i])
+    }, 80)
+  }, [values, value, onChange])
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-      <span style={{ fontFamily: MONO, fontSize: 10, color: MC.ink3, letterSpacing: '0.04em', textTransform: 'uppercase' }}>{label}</span>
-      <div style={{ position: 'relative', width: 60, height: ITEM_H * 3, overflow: 'hidden' }}>
-        {/* fade top */}
-        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: ITEM_H, background: 'linear-gradient(to bottom, rgba(255,255,255,0.9), transparent)', zIndex: 2, pointerEvents: 'none' }} />
-        {/* highlight band */}
-        <div style={{ position: 'absolute', top: ITEM_H, left: 0, right: 0, height: ITEM_H, background: MC.brandTint, borderRadius: 8, zIndex: 1 }} />
-        {/* fade bottom */}
-        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: ITEM_H, background: 'linear-gradient(to top, rgba(255,255,255,0.9), transparent)', zIndex: 2, pointerEvents: 'none' }} />
-        <div
-          ref={ref}
-          onScroll={handleScroll}
-          style={{
-            position: 'absolute', inset: 0, overflowY: 'scroll',
-            scrollSnapType: 'y mandatory', paddingTop: ITEM_H, paddingBottom: ITEM_H,
-            WebkitOverflowScrolling: 'touch',
-            scrollbarWidth: 'none', msOverflowStyle: 'none',
-          }}
-        >
-          {options.map((o) => (
-            <div key={o} style={{
-              height: ITEM_H, display: 'flex', alignItems: 'center', justifyContent: 'center',
-              scrollSnapAlign: 'center', fontFamily: MONO, fontSize: 16, fontWeight: 600,
-              color: o === value ? MC.brand : MC.ink3, zIndex: 3, position: 'relative',
-            }}>{o}</div>
-          ))}
-        </div>
+    <div style={{ position: 'relative', height: VIS * IH, flex: 1 }}>
+      <div ref={setNode} onScroll={onScroll} style={{ height: VIS * IH, overflowY: 'scroll', scrollSnapType: 'y mandatory', padding: `${((VIS - 1) / 2) * IH}px 0`, scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}>
+        {values.map((v, i) => {
+          const active = v === value
+          return (
+            <div key={v} onClick={() => { ref.current?.scrollTo({ top: i * IH, behavior: 'smooth' }); onChange(v) }} style={{ height: IH, display: 'flex', alignItems: 'center', justifyContent: 'center', scrollSnapAlign: 'center', cursor: 'pointer', fontFamily: MONO, fontVariantNumeric: 'tabular-nums', fontSize: active ? 25 : 19, fontWeight: active ? 600 : 500, color: active ? (accent || MC.ink) : MC.ink4, letterSpacing: '-0.02em', transition: 'font-size .1s, color .1s' }}>{v}</div>
+          )
+        })}
       </div>
+      <div style={{ position: 'absolute', left: 0, right: 0, top: ((VIS - 1) / 2) * IH, height: IH, pointerEvents: 'none', borderTop: `1px solid ${MC.line}`, borderBottom: `1px solid ${MC.line}`, background: 'rgba(19,54,42,0.03)' }} />
+      <div style={{ position: 'absolute', left: 0, right: 0, top: 0, height: ((VIS - 1) / 2) * IH, pointerEvents: 'none', background: `linear-gradient(${MC.bg}, ${MC.bg}00)` }} />
+      <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: ((VIS - 1) / 2) * IH, pointerEvents: 'none', background: `linear-gradient(${MC.bg}00, ${MC.bg})` }} />
     </div>
   )
 }
 
-const HOURS   = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'))
-const MINUTES = ['00', '05', '10', '15', '20', '25', '30', '35', '40', '45', '50', '55']
+// ── Avatar ────────────────────────────────────────────────────────────────────
+function Avatar({ name, station, size = 28 }) {
+  const initials = (name ?? '?').split(' ').map(w => w[0]).slice(0, 2).join('')
+  const av = STATION_AVATAR[station] || { bg: MC.brandTint, fg: MC.brand }
+  return (
+    <span style={{ width: size, height: size, borderRadius: Math.round(size * 0.32), background: av.bg, color: av.fg, flexShrink: 0, display: 'grid', placeItems: 'center', fontFamily: MONO, fontSize: size * 0.32, fontWeight: 600 }}>{initials}</span>
+  )
+}
 
-// ── ShiftSheet ───────────────────────────────────────────────────────────────
-function ShiftSheet({ shift, staffMember, day, venueId, onClose, onSaved, onDeleted }) {
-  const [startH, setStartH] = useState(shift?.start_time?.slice(0, 2) ?? '09')
+// ── Shift Sheet ───────────────────────────────────────────────────────────────
+function ShiftSheet({ shift, staffMember, day, venueId, roles, onClose, onSaved, onDeleted }) {
+  const existing = shift?.id ? shift : null
+  const [startH, setStartH] = useState(existing?.start_time?.slice(0, 2) ?? '09')
   const [startM, setStartM] = useState(
-    MINUTES.reduce((prev, m) => (Math.abs(+m - +(shift?.start_time?.slice(3, 5) ?? '0')) < Math.abs(+prev - +(shift?.start_time?.slice(3, 5) ?? '0')) ? m : prev), '00')
+    MINUTES.reduce((p, m) => Math.abs(+m - +(existing?.start_time?.slice(3, 5) ?? '0')) < Math.abs(+p - +(existing?.start_time?.slice(3, 5) ?? '0')) ? m : p, '00')
   )
-  const [endH, setEndH] = useState(shift?.end_time?.slice(0, 2) ?? '17')
+  const [endH, setEndH] = useState(existing?.end_time?.slice(0, 2) ?? '17')
   const [endM, setEndM] = useState(
-    MINUTES.reduce((prev, m) => (Math.abs(+m - +(shift?.end_time?.slice(3, 5) ?? '0')) < Math.abs(+prev - +(shift?.end_time?.slice(3, 5) ?? '0')) ? m : prev), '00')
+    MINUTES.reduce((p, m) => Math.abs(+m - +(existing?.end_time?.slice(3, 5) ?? '0')) < Math.abs(+p - +(existing?.end_time?.slice(3, 5) ?? '0')) ? m : p, '00')
   )
+  const [roleLabel, setRoleLabel] = useState(existing?.role_label ?? staffMember?.job_role ?? '')
+  const [edge, setEdge] = useState('start')
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const { toast } = useToast()
+  const { venueId: vid } = useVenue()
 
   const startTime = `${startH}:${startM}`
   const endTime   = `${endH}:${endM}`
+  const station   = stationFromRole(roleLabel)
+  const col       = station ? STATION_COLOR[station] : MC.brand
+  const hrs       = shiftDurationHours(startTime, endTime)
+  const valid     = hrs > 0
+  const rate      = staffMember?.hourly_rate
+  const cost      = (rate && valid) ? Math.round(paidShiftHours(startTime, endTime) * rate) : null
+
+  const applyPreset = (p) => {
+    setStartH(p.s.slice(0, 2)); setStartM(p.s.slice(3, 5))
+    setEndH(p.e.slice(0, 2));   setEndM(p.e.slice(3, 5))
+  }
 
   const save = async () => {
     setSaving(true)
     const payload = {
-      venue_id:   venueId,
+      venue_id:   venueId ?? vid,
       staff_id:   staffMember?.id ?? null,
       shift_date: format(day, 'yyyy-MM-dd'),
       week_start: format(getWeekStart(day), 'yyyy-MM-dd'),
       start_time: startTime,
       end_time:   endTime,
+      role_label: roleLabel || null,
     }
     let error
-    if (shift?.id) {
-      ;({ error } = await supabase.from('shifts').update({ start_time: startTime, end_time: endTime }).eq('id', shift.id))
+    if (existing) {
+      ;({ error } = await supabase.from('shifts').update({ start_time: startTime, end_time: endTime, role_label: roleLabel || null }).eq('id', existing.id))
     } else {
       ;({ error } = await supabase.from('shifts').insert(payload))
     }
     setSaving(false)
     if (error) { toast(error.message, 'error'); return }
-    toast(shift?.id ? 'Shift updated ✓' : 'Shift added ✓')
-    onSaved()
+    toast(existing ? 'Shift updated ✓' : 'Shift added ✓')
+    onSaved?.()
     onClose()
   }
 
   const del = async () => {
-    if (!shift?.id) { onClose(); return }
+    if (!existing) { onClose(); return }
     setDeleting(true)
-    const { error } = await supabase.from('shifts').delete().eq('id', shift.id)
+    const { error } = await supabase.from('shifts').delete().eq('id', existing.id)
     setDeleting(false)
     if (error) { toast(error.message, 'error'); return }
     toast('Shift removed')
-    onDeleted()
+    onDeleted?.()
     onClose()
   }
 
-  const hours = shiftDurationHours(startTime, endTime)
+  const curH = edge === 'start' ? startH : endH
+  const curM = edge === 'start' ? startM : endM
+  const setCur = (h, m) => { if (edge === 'start') { setStartH(h); setStartM(m) } else { setEndH(h); setEndM(m) } }
 
   return (
     <>
-      {/* Backdrop */}
-      <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(13,26,20,0.45)', zIndex: 40 }} />
-      {/* Sheet */}
-      <div style={{
-        position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 41,
-        background: MC.paper, borderRadius: '20px 20px 0 0',
-        padding: '8px 20px 32px',
-        boxShadow: '0 -4px 32px rgba(13,26,20,0.14)',
-      }}>
-        {/* Handle */}
-        <div style={{ width: 36, height: 4, borderRadius: 2, background: MC.line, margin: '0 auto 16px' }} />
+      <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(9,18,13,0.42)', zIndex: 40, animation: 'fadeIn .2s ease both' }} />
+      <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 41, background: MC.bg, borderRadius: '22px 22px 0 0', padding: '10px 16px 32px', maxHeight: '90%', overflowY: 'auto', boxShadow: '0 -12px 40px rgba(9,18,13,0.22)', animation: 'sheetUp .32s cubic-bezier(0.16,1,0.3,1) both' }}>
+        <div style={{ width: 38, height: 4, borderRadius: 2, background: MC.line, margin: '0 auto 14px' }} />
 
         {/* Header */}
-        <div style={{ marginBottom: 20 }}>
-          <div style={{ fontSize: 16, fontWeight: 600, color: MC.ink }}>
-            {staffMember?.name ?? 'Unassigned'} · {format(day, 'EEE d MMM')}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
+          <Avatar name={staffMember?.name} station={station} size={44} />
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 17, fontWeight: 600, letterSpacing: '-0.015em', color: MC.ink }}>{staffMember?.name ?? 'Unassigned'}</div>
+            <div style={{ fontSize: 12, color: MC.ink3, marginTop: 1 }}>{roleLabel || staffMember?.job_role || ''} · {format(day, 'EEE d MMM')}</div>
           </div>
-          {shift?.id && (
-            <div style={{ fontFamily: MONO, fontSize: 11, color: MC.ink3, marginTop: 3 }}>
-              {shift.start_time?.slice(0,5)}–{shift.end_time?.slice(0,5)}
+          <span style={{ fontFamily: MONO, fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', padding: '4px 9px', borderRadius: 999, color: existing ? MC.ink2 : MC.accent, background: existing ? MC.line2 : MC.accentSoft }}>
+            {existing ? 'Edit' : 'New shift'}
+          </span>
+        </div>
+
+        {/* Presets */}
+        <div style={{ display: 'flex', gap: 7, marginBottom: 12 }}>
+          {PRESETS.map((p) => {
+            const on = startTime === p.s && endTime === p.e
+            return (
+              <button key={p.label} onClick={() => applyPreset(p)} style={{ flex: 1, cursor: 'pointer', fontFamily: SANS, border: `1px solid ${on ? col : MC.line}`, borderRadius: 10, padding: '7px 2px', background: on ? col : MC.paper, color: on ? '#fff' : MC.ink2 }}>
+                <div style={{ fontSize: 12, fontWeight: 600 }}>{p.label}</div>
+                <div style={{ fontFamily: MONO, fontSize: 8.5, marginTop: 1, opacity: on ? 0.8 : 0.5 }}>{fmtRange(p.s, p.e)}</div>
+              </button>
+            )
+          })}
+        </div>
+
+        {/* Start / End toggle */}
+        <div style={{ display: 'flex', gap: 8, background: MC.line2, padding: 4, borderRadius: 12, marginBottom: 12 }}>
+          {[['start', 'Start', startTime], ['end', 'End', endTime]].map(([k, lbl, val]) => {
+            const on = edge === k
+            return (
+              <button key={k} onClick={() => setEdge(k)} style={{ flex: 1, cursor: 'pointer', fontFamily: SANS, border: 'none', borderRadius: 9, padding: '7px 0', background: on ? MC.paper : 'transparent', boxShadow: on ? '0 1px 3px rgba(9,18,13,0.1)' : 'none' }}>
+                <div style={{ fontFamily: MONO, fontSize: 9, color: MC.ink3, textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>{lbl}</div>
+                <div style={{ fontFamily: MONO, fontSize: 17, fontWeight: 600, color: on ? col : MC.ink3, marginTop: 2, fontVariantNumeric: 'tabular-nums' }}>{val}</div>
+              </button>
+            )
+          })}
+        </div>
+
+        {/* Wheels */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 6 }}>
+          <Wheel values={HOURS}   value={curH} onChange={(h) => setCur(h, curM)} accent={col} />
+          <span style={{ fontFamily: MONO, fontSize: 22, fontWeight: 600, color: MC.ink3, paddingBottom: 2 }}>:</span>
+          <Wheel values={MINUTES} value={curM} onChange={(m) => setCur(curH, m)} accent={col} />
+        </div>
+
+        {/* Summary */}
+        <div style={{ padding: '11px 13px', borderRadius: 11, background: col + '14', display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 14 }}>
+          <span style={{ fontFamily: MONO, fontSize: 14, fontWeight: 600, color: MC.ink, fontVariantNumeric: 'tabular-nums' }}>{startTime}–{endTime}</span>
+          <span style={{ fontSize: 12.5, color: valid ? MC.ink3 : MC.bad }}>· {valid ? durLabel(startTime, endTime) : 'end must be after start'}</span>
+          {valid && cost != null && <span style={{ fontFamily: MONO, fontSize: 12.5, color: MC.ink3 }}>· ~£{cost}</span>}
+        </div>
+
+        {/* Role chips */}
+        {roles.length > 0 && (
+          <div style={{ marginBottom: 18 }}>
+            <div style={{ fontFamily: MONO, fontSize: 9.5, color: MC.ink3, textTransform: 'uppercase', letterSpacing: '0.07em', fontWeight: 600, marginBottom: 8 }}>Role</div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+              {roles.map((r) => {
+                const on = roleLabel === r.name
+                return (
+                  <button key={r.id} onClick={() => setRoleLabel(r.name)} style={{ cursor: 'pointer', fontFamily: SANS, fontSize: 12, fontWeight: 500, padding: '6px 12px', borderRadius: 999, border: `1px solid ${on ? MC.brand : MC.line}`, background: on ? MC.brand : MC.paper, color: on ? '#fff' : MC.ink2 }}>{r.name}</button>
+                )
+              })}
             </div>
-          )}
-        </div>
-
-        {/* Pickers */}
-        <div style={{ display: 'flex', justifyContent: 'center', gap: 16, marginBottom: 20 }}>
-          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6 }}>
-            <ScrollWheelPicker value={startH} options={HOURS}   onChange={setStartH} label="Start H" />
-            <div style={{ fontFamily: MONO, fontSize: 20, fontWeight: 600, color: MC.ink2, paddingBottom: 8 }}>:</div>
-            <ScrollWheelPicker value={startM} options={MINUTES} onChange={setStartM} label="Start M" />
-          </div>
-          <div style={{ fontFamily: MONO, fontSize: 20, fontWeight: 600, color: MC.ink4, paddingBottom: 8 }}>–</div>
-          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6 }}>
-            <ScrollWheelPicker value={endH} options={HOURS}   onChange={setEndH} label="End H" />
-            <div style={{ fontFamily: MONO, fontSize: 20, fontWeight: 600, color: MC.ink2, paddingBottom: 8 }}>:</div>
-            <ScrollWheelPicker value={endM} options={MINUTES} onChange={setEndM} label="End M" />
-          </div>
-        </div>
-
-        {hours > 0 && (
-          <div style={{ textAlign: 'center', fontFamily: MONO, fontSize: 11, color: MC.ink3, marginBottom: 16 }}>
-            {hours.toFixed(1)}h shift
           </div>
         )}
 
         {/* Actions */}
-        <div style={{ display: 'flex', gap: 10 }}>
-          {shift?.id && (
-            <button
-              onClick={del}
-              disabled={deleting}
-              style={{
-                flex: 1, height: 48, borderRadius: 13, border: `1px solid ${MC.bad}33`,
-                background: MC.badBg, color: MC.bad, fontWeight: 600, fontSize: 14,
-                cursor: 'pointer',
-              }}
-            >{deleting ? '…' : 'Remove'}</button>
+        <div style={{ display: 'flex', gap: 8 }}>
+          {existing && (
+            <button onClick={del} disabled={deleting} style={{ width: 52, height: 50, borderRadius: 13, border: `1px solid ${MC.bad}40`, background: MC.badBg, color: MC.bad, cursor: 'pointer', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
+              {deleting ? '…' : <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>}
+            </button>
           )}
-          <button
-            onClick={save}
-            disabled={saving || hours <= 0}
-            style={{
-              flex: 2, height: 48, borderRadius: 13, border: 'none',
-              background: MC.brand, color: '#fff', fontWeight: 600, fontSize: 14,
-              cursor: saving ? 'default' : 'pointer', opacity: hours <= 0 ? 0.5 : 1,
-            }}
-          >{saving ? '…' : (shift?.id ? 'Save changes' : 'Add shift')}</button>
+          <button onClick={save} disabled={saving || !valid} style={{ flex: 1, height: 50, borderRadius: 13, border: 'none', cursor: (saving || !valid) ? 'default' : 'pointer', background: valid ? MC.brand : MC.line, color: valid ? '#fff' : MC.ink4, fontFamily: SANS, fontSize: 15, fontWeight: 700 }}>
+            {saving ? '…' : (existing ? 'Save changes' : 'Add to rota')}
+          </button>
         </div>
       </div>
     </>
   )
 }
 
-// ── SwapSheet ────────────────────────────────────────────────────────────────
+// ── Swap Sheet ────────────────────────────────────────────────────────────────
 function SwapSheet({ swaps, onClose, onResolved }) {
   const [resolving, setResolving] = useState(null)
   const { toast } = useToast()
@@ -242,9 +301,7 @@ function SwapSheet({ swaps, onClose, onResolved }) {
     if (error) { toast(error.message, 'error'); return }
     toast('Swap approved ✓')
     const staffIds = [swap.requester_id, swap.target_staff_id].filter(Boolean)
-    if (staffIds.length) {
-      sendPush({ venueId, notificationType: 'shift_swap_decision', title: 'Shift Swap Approved', body: 'Your shift swap has been approved.', url: '/rota', staffIds }).catch(() => {})
-    }
+    if (staffIds.length) sendPush({ venueId, notificationType: 'shift_swap_decision', title: 'Shift Swap Approved', body: 'Your shift swap has been approved.', url: '/rota', staffIds }).catch(() => {})
     onResolved()
   }
 
@@ -259,50 +316,33 @@ function SwapSheet({ swaps, onClose, onResolved }) {
 
   return (
     <>
-      <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(13,26,20,0.45)', zIndex: 40 }} />
-      <div style={{
-        position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 41,
-        background: MC.paper, borderRadius: '20px 20px 0 0',
-        maxHeight: '70vh', display: 'flex', flexDirection: 'column',
-        boxShadow: '0 -4px 32px rgba(13,26,20,0.14)',
-      }}>
-        <div style={{ padding: '8px 20px 0' }}>
-          <div style={{ width: 36, height: 4, borderRadius: 2, background: MC.line, margin: '0 auto 16px' }} />
-          <div style={{ fontSize: 16, fontWeight: 600, color: MC.ink, marginBottom: 12 }}>Swap requests</div>
+      <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(9,18,13,0.42)', zIndex: 40, animation: 'fadeIn .2s ease both' }} />
+      <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 41, background: MC.bg, borderRadius: '22px 22px 0 0', maxHeight: '80%', display: 'flex', flexDirection: 'column', boxShadow: '0 -12px 40px rgba(9,18,13,0.22)', animation: 'sheetUp .32s cubic-bezier(0.16,1,0.3,1) both' }}>
+        <div style={{ padding: '10px 16px 0' }}>
+          <div style={{ width: 38, height: 4, borderRadius: 2, background: MC.line, margin: '0 auto 14px' }} />
+          <div style={{ fontSize: 18, fontWeight: 600, letterSpacing: '-0.015em', color: MC.ink }}>Swap requests</div>
+          <div style={{ fontSize: 12.5, color: MC.ink3, marginTop: 2, marginBottom: 14 }}>{pending.length ? `${pending.length} pending your approval` : 'All caught up'}</div>
         </div>
-        <div style={{ overflowY: 'auto', flex: 1, padding: '0 20px 32px' }}>
+        <div style={{ overflowY: 'auto', flex: 1, padding: '0 16px 32px' }}>
           {pending.length === 0 ? (
-            <div style={{ color: MC.ink3, fontSize: 13, textAlign: 'center', padding: '20px 0' }}>No pending swaps</div>
-          ) : pending.map(swap => (
-            <div key={swap.id} style={{ padding: '14px 0', borderBottom: `1px solid ${MC.line}` }}>
-              <div style={{ fontSize: 14, fontWeight: 600, color: MC.ink, marginBottom: 4 }}>
-                {swap.requester_name ?? 'Staff'} → {swap.target_staff_name ?? 'Staff'}
+            <div style={{ padding: '28px 0', textAlign: 'center' }}>
+              <div style={{ width: 44, height: 44, borderRadius: 13, background: MC.goodBg, color: MC.good, display: 'grid', placeItems: 'center', margin: '0 auto 12px' }}>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
               </div>
+              <div style={{ color: MC.ink3, fontSize: 13 }}>No swaps waiting.</div>
+            </div>
+          ) : pending.map(swap => (
+            <div key={swap.id} style={{ background: MC.paper, border: `1px solid ${MC.line}`, borderRadius: 14, padding: '13px 14px', marginBottom: 10 }}>
+              <div style={{ fontSize: 13.5, fontWeight: 600, color: MC.ink }}>{swap.requester_name ?? 'Staff'} → {swap.target_staff_name ?? 'Staff'}</div>
               {swap.shift && (
-                <div style={{ fontFamily: MONO, fontSize: 11, color: MC.ink3, marginBottom: 8 }}>
-                  {swap.shift.shift_date} · {swap.shift.start_time?.slice(0,5)}–{swap.shift.end_time?.slice(0,5)}
+                <div style={{ fontFamily: MONO, fontSize: 10, color: MC.ink3, textTransform: 'uppercase', letterSpacing: '0.03em', marginTop: 4 }}>
+                  {swap.shift.shift_date} · {swap.shift.start_time?.slice(0, 5)}–{swap.shift.end_time?.slice(0, 5)}
                 </div>
               )}
-              {swap.message && (
-                <div style={{ fontSize: 12, color: MC.ink3, fontStyle: 'italic', marginBottom: 8 }}>"{swap.message}"</div>
-              )}
-              <div style={{ display: 'flex', gap: 8 }}>
-                <button
-                  onClick={() => decline(swap)}
-                  disabled={resolving === swap.id}
-                  style={{
-                    flex: 1, height: 38, borderRadius: 10, border: `1px solid ${MC.line}`,
-                    background: MC.paper, color: MC.ink2, fontWeight: 600, fontSize: 13, cursor: 'pointer',
-                  }}
-                >Decline</button>
-                <button
-                  onClick={() => approve(swap)}
-                  disabled={resolving === swap.id}
-                  style={{
-                    flex: 2, height: 38, borderRadius: 10, border: 'none',
-                    background: MC.brand, color: '#fff', fontWeight: 600, fontSize: 13, cursor: 'pointer',
-                  }}
-                >{resolving === swap.id ? '…' : 'Approve'}</button>
+              {swap.message && <div style={{ fontSize: 12.5, color: MC.ink2, fontStyle: 'italic', marginTop: 8 }}>"{swap.message}"</div>}
+              <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+                <button onClick={() => decline(swap)} disabled={resolving === swap.id} style={{ flex: 1, height: 40, borderRadius: 10, border: `1px solid ${MC.line}`, background: MC.paper, color: MC.ink2, fontWeight: 600, fontSize: 13, cursor: 'pointer', fontFamily: SANS }}>Decline</button>
+                <button onClick={() => approve(swap)} disabled={resolving === swap.id} style={{ flex: 2, height: 40, borderRadius: 10, border: 'none', background: MC.good, color: '#fff', fontWeight: 600, fontSize: 13, cursor: 'pointer', fontFamily: SANS }}>{resolving === swap.id ? '…' : 'Approve'}</button>
               </div>
             </div>
           ))}
@@ -312,309 +352,435 @@ function SwapSheet({ swaps, onClose, onResolved }) {
   )
 }
 
-// ── ShiftCell ────────────────────────────────────────────────────────────────
-function ShiftCell({ shift, hasSwapRequest, onTap }) {
+// ── AI Sheet ──────────────────────────────────────────────────────────────────
+function AISheet({ openShifts, staff, venueId, onClose, onFilled }) {
+  const [filling, setFilling] = useState(false)
+  const { toast } = useToast()
+
+  const fill = async () => {
+    if (!openShifts.length) return
+    setFilling(true)
+    for (const o of openShifts) {
+      if (!o.id) continue
+      // find a free same-station staff member (simplified)
+      const oStation = stationFromRole(o.role_label)
+      const suggested = staff.find(s => stationFromRole(s.job_role) === oStation) || staff[0]
+      if (suggested) {
+        await supabase.from('shifts').update({ staff_id: suggested.id }).eq('id', o.id)
+      }
+    }
+    setFilling(false)
+    toast(`Auto-fill drafted ${openShifts.length} ${openShifts.length === 1 ? 'shift' : 'shifts'} — review & publish`)
+    onFilled?.()
+    onClose()
+  }
+
+  return (
+    <>
+      <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(9,18,13,0.42)', zIndex: 40, animation: 'fadeIn .2s ease both' }} />
+      <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 41, background: MC.bg, borderRadius: '22px 22px 0 0', padding: '10px 16px 32px', maxHeight: '90%', overflowY: 'auto', boxShadow: '0 -12px 40px rgba(9,18,13,0.22)', animation: 'sheetUp .32s cubic-bezier(0.16,1,0.3,1) both' }}>
+        <div style={{ width: 38, height: 4, borderRadius: 2, background: MC.line, margin: '0 auto 14px' }} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
+          <span style={{ width: 40, height: 40, borderRadius: 12, background: MC.accentSoft, color: MC.accent, display: 'grid', placeItems: 'center', flexShrink: 0 }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg>
+          </span>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 17, fontWeight: 600, letterSpacing: '-0.015em', color: MC.ink }}>Auto-fill gaps</div>
+            <div style={{ fontSize: 12, color: MC.ink3, marginTop: 1 }}>Suggests staff for uncovered shifts</div>
+          </div>
+        </div>
+        <div style={{ marginTop: 14, fontFamily: MONO, fontSize: 9.5, color: MC.ink3, textTransform: 'uppercase', letterSpacing: '0.07em', fontWeight: 600 }}>{openShifts.length} gaps to cover</div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 9 }}>
+          {openShifts.length === 0 && <div style={{ padding: '20px 0', textAlign: 'center', color: MC.ink3, fontSize: 13 }}>Week is fully covered.</div>}
+          {openShifts.map((o, idx) => {
+            const col = STATION_COLOR[stationFromRole(o.role_label)] || MC.brand
+            return (
+              <div key={o.id ?? idx} style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '11px 13px', background: MC.paper, border: `1px solid ${MC.line}`, borderRadius: 12 }}>
+                <span style={{ width: 9, height: 32, borderRadius: 4, background: col + '26', borderLeft: `3px solid ${col}`, flexShrink: 0 }} />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: MC.ink }}>{o.role_label} · {fmtRange(o.start_time.slice(0,5), o.end_time.slice(0,5))}</div>
+                  <div style={{ fontFamily: MONO, fontSize: 10, color: MC.ink3, textTransform: 'uppercase', letterSpacing: '0.03em', marginTop: 1 }}>{format(o._day, 'EEE d MMM')}</div>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+        <button onClick={fill} disabled={filling || openShifts.length === 0} style={{ marginTop: 16, width: '100%', height: 50, borderRadius: 13, border: 'none', cursor: openShifts.length ? 'pointer' : 'default', background: openShifts.length ? MC.accent : MC.line, color: openShifts.length ? '#fff' : MC.ink4, fontFamily: SANS, fontSize: 15, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg>
+          {filling ? 'Filling…' : `Draft ${openShifts.length || ''} suggestions`}
+        </button>
+        <div style={{ fontFamily: MONO, fontSize: 10, color: MC.ink4, textAlign: 'center', marginTop: 9, letterSpacing: '0.02em' }}>Added to draft — nothing sent until you publish</div>
+      </div>
+    </>
+  )
+}
+
+// ── Grid cell ─────────────────────────────────────────────────────────────────
+function GridCell({ shift, isToday: todayCol, onTap }) {
+  const base = {
+    width: DAY_COL, minWidth: DAY_COL, height: ROW_H, flexShrink: 0,
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    cursor: 'pointer', fontFamily: MONO, padding: '5px 4px', position: 'relative',
+    background: todayCol ? 'rgba(19,54,42,0.04)' : 'transparent', border: 'none',
+  }
   if (!shift) {
     return (
-      <button
-        onClick={onTap}
-        style={{
-          width: DAY_COL - 8, height: 52, margin: '0 4px',
-          borderRadius: 9, border: `1.5px dashed ${MC.line}`,
-          background: 'transparent', cursor: 'pointer', display: 'flex',
-          alignItems: 'center', justifyContent: 'center',
-        }}
-      >
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={MC.line} strokeWidth="2" strokeLinecap="round">
-          <path d="M12 5v14M5 12h14"/>
-        </svg>
+      <button style={base} onClick={onTap}>
+        <span style={{ width: 22, height: 22, borderRadius: 7, border: `1px dashed ${MC.line}`, display: 'grid', placeItems: 'center', color: MC.ink4 }}>
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+        </span>
       </button>
     )
   }
-
-  const st = stationFromRole(shift.role)
+  const station = stationFromRole(shift.role_label)
+  const col = station ? STATION_COLOR[station] : MC.brand
+  const dur = Math.round(shiftDurationHours(shift.start_time, shift.end_time))
+  const hasSwap = shift._hasSwap
   return (
-    <button
-      onClick={onTap}
-      style={{
-        width: DAY_COL - 8, height: 52, margin: '0 4px',
-        borderRadius: 9, background: st.bg,
-        border: 'none', cursor: 'pointer', padding: 0, position: 'relative',
-        overflow: 'hidden', textAlign: 'left',
-        display: 'flex', alignItems: 'stretch',
-      }}
-    >
-      {/* Left accent */}
-      <div style={{ width: 3, background: st.fg, borderRadius: '9px 0 0 9px', flexShrink: 0 }} />
-      <div style={{ flex: 1, padding: '5px 6px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-        <div style={{ fontFamily: MONO, fontSize: 10, fontWeight: 600, color: st.fg, lineHeight: 1.3 }}>
-          {shift.start_time?.slice(0,5)}
-        </div>
-        <div style={{ fontFamily: MONO, fontSize: 10, color: st.fg, opacity: 0.7, lineHeight: 1.3 }}>
-          {shift.end_time?.slice(0,5)}
-        </div>
-      </div>
-      {/* Swap dot */}
-      {hasSwapRequest && (
-        <div style={{
-          position: 'absolute', top: 4, right: 4,
-          width: 6, height: 6, borderRadius: 3, background: MC.warn,
-        }} />
-      )}
+    <button style={base} onClick={onTap}>
+      <span style={{ width: '100%', height: '100%', borderRadius: 10, background: col + '1a', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2, position: 'relative' }}>
+        <span style={{ fontFamily: MONO, fontSize: 12, fontWeight: 700, color: col, letterSpacing: '-0.02em', fontVariantNumeric: 'tabular-nums', lineHeight: 1 }}>{fmtRange(shift.start_time.slice(0,5), shift.end_time.slice(0,5))}</span>
+        <span style={{ fontFamily: MONO, fontSize: 8.5, color: col, opacity: 0.7, fontWeight: 500 }}>{dur}h</span>
+        {hasSwap && <span style={{ position: 'absolute', top: 3, right: 4, width: 7, height: 7, borderRadius: 4, background: MC.warn, border: '1.5px solid #fff' }} />}
+      </span>
     </button>
   )
 }
 
-// ── RotaMobileGrid ───────────────────────────────────────────────────────────
+// ── Station legend ────────────────────────────────────────────────────────────
+function StationLegend() {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '2px 4px', flexWrap: 'wrap' }}>
+      {STATION_ORDER.map((s) => (
+        <span key={s} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontFamily: MONO, fontSize: 9.5, color: MC.ink3, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+          <span style={{ width: 9, height: 9, borderRadius: 3, background: STATION_COLOR[s] + '22', borderLeft: `2.5px solid ${STATION_COLOR[s]}` }} />{s}
+        </span>
+      ))}
+    </div>
+  )
+}
+
+// ── Gaps strip ────────────────────────────────────────────────────────────────
+function GapsStrip({ openShifts, days, onFill }) {
+  if (!openShifts.length) return null
+  return (
+    <div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '0 2px 9px' }}>
+        <span style={{ width: 6, height: 6, borderRadius: 3, background: MC.bad, flexShrink: 0 }} />
+        <span style={{ fontFamily: MONO, fontSize: 10.5, color: MC.bad, letterSpacing: '0.07em', textTransform: 'uppercase', fontWeight: 600 }}>{openShifts.length} {openShifts.length === 1 ? 'shift needs' : 'shifts need'} filling</span>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {openShifts.map((o, idx) => {
+          const station = stationFromRole(o.role_label)
+          const col = station ? STATION_COLOR[station] : MC.brand
+          return (
+            <div key={o.id ?? idx} style={{ display: 'flex', alignItems: 'center', gap: 13, padding: '11px 13px', background: MC.paper, border: `1px solid ${MC.line}`, borderRadius: 13 }}>
+              <span style={{ width: 38, height: 38, borderRadius: 11, background: col + '1c', color: col, display: 'grid', placeItems: 'center', flexShrink: 0 }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+              </span>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 14, fontWeight: 600, color: MC.ink, letterSpacing: '-0.01em' }}>{o.role_label} · {fmtRange(o.start_time.slice(0,5), o.end_time.slice(0,5))}</div>
+                <div style={{ fontSize: 11.5, color: MC.ink3, marginTop: 2 }}>{format(o._day, 'EEE d MMM')} · unassigned</div>
+              </div>
+              <button onClick={() => onFill(o)} style={{ fontFamily: SANS, fontSize: 12.5, fontWeight: 600, color: '#fff', background: MC.brand, padding: '8px 15px', borderRadius: 9, border: 'none', cursor: 'pointer' }}>Fill</button>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+// ── RotaMobileGrid ────────────────────────────────────────────────────────────
 export default function RotaMobileGrid() {
-  const { venueId } = useVenue()
+  const { venueId, venueName } = useVenue()
+  const { session } = useSession()
+  const { signOutVenue } = useAuth()
+  const navigate = useNavigate()
+  const { toast } = useToast()
+
+  const [weekOffset, setWeekOffset] = useState(0)
   const [weekStart, setWeekStart] = useState(() => getWeekStart())
   const days = getWeekDays(weekStart)
-  const [shiftSheet, setShiftSheet] = useState(null) // { shift, staffMember, day }
-  const [showSwaps, setShowSwaps] = useState(false)
-  const { toast } = useToast()
+  const weekLabel = `${format(days[0], 'd MMM')}–${format(days[6], 'd MMM')}`.toUpperCase()
+
+  const weekTitle = weekOffset === 0
+    ? 'This week'
+    : weekOffset < 0 ? `${-weekOffset}w ago`
+    : `In ${weekOffset}w`
+
+  const [shiftSheet, setShiftSheet] = useState(null)
+  const [showSwaps, setShowSwaps]   = useState(false)
+  const [showAI, setShowAI]         = useState(false)
+  const [showCost, setShowCost]     = useState(false)
+  const [pendingChanges, setPendingChanges] = useState(0)
+  const [publishing, setPublishing] = useState(false)
 
   const { shifts, loading, reload } = useShifts(weekStart, 1)
   const { staff, loading: staffLoading } = useStaffList()
   const { swaps, pendingCount, reload: reloadSwaps } = useShiftSwaps()
+  const { roles } = useVenueRoles()
 
-  const prevWeek = () => setWeekStart(w => subWeeks(w, 1))
-  const nextWeek = () => setWeekStart(w => addWeeks(w, 1))
+  const prevWeek = () => { const w = subWeeks(weekStart, 1); setWeekStart(w); setWeekOffset(o => o - 1); setPendingChanges(0) }
+  const nextWeek = () => { const w = addWeeks(weekStart, 1); setWeekStart(w); setWeekOffset(o => o + 1); setPendingChanges(0) }
 
-  // Build a lookup: staff_id + date → shift
+  // Build shift lookup
   const shiftMap = {}
+  const swapShiftIds = new Set(swaps.filter(s => s.status === 'pending').map(s => s.shift_id))
   for (const s of shifts) {
-    const key = `${s.staff_id ?? 'unassigned'}|${s.shift_date}`
-    shiftMap[key] = s
+    const key = `${s.staff_id}|${s.shift_date}`
+    shiftMap[key] = { ...s, _hasSwap: swapShiftIds.has(s.id) }
   }
 
-  // Swap lookup: shift_id → boolean
-  const swapShiftIds = new Set(swaps.filter(s => s.status === 'pending').map(s => s.shift_id))
+  // Open (unassigned) shifts for this week
+  const openShifts = shifts
+    .filter(s => !s.staff_id)
+    .map(s => ({ ...s, _day: days.find(d => format(d, 'yyyy-MM-dd') === s.shift_date) ?? days[0] }))
 
-  // Hours per day across all staff
-  const hoursPerDay = days.map(day => {
-    const dateStr = format(day, 'yyyy-MM-dd')
-    return shifts
-      .filter(s => s.shift_date === dateStr)
-      .reduce((sum, s) => sum + shiftDurationHours(s.start_time, s.end_time), 0)
+  // Per-day totals
+  const dayTotals = days.map(day => {
+    const ds = format(day, 'yyyy-MM-dd')
+    const dayShifts = shifts.filter(s => s.shift_date === ds && s.staff_id)
+    return {
+      hours: Math.round(dayShifts.reduce((sum, s) => sum + shiftDurationHours(s.start_time, s.end_time), 0)),
+      cost:  Math.round(dayShifts.reduce((sum, s) => sum + (s.staff ? paidShiftHours(s.start_time, s.end_time) * (s.staff.hourly_rate ?? 0) : 0), 0)),
+      count: dayShifts.length,
+    }
   })
+  const weekHours = dayTotals.reduce((a, t) => a + t.hours, 0)
+  const weekCost  = dayTotals.reduce((a, t) => a + t.cost, 0)
 
-  const headcountPerDay = days.map(day => {
-    const dateStr = format(day, 'yyyy-MM-dd')
-    return shifts.filter(s => s.shift_date === dateStr && s.staff_id).length
-  })
+  const managerInitials = (session?.staffName ?? 'MG').split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase()
+  const isDraft = pendingChanges > 0
 
+  const publish = async () => {
+    setPublishing(true)
+    const weekStartStr = format(weekStart, 'yyyy-MM-dd')
+    const { error } = await supabase.from('app_settings').upsert({ venue_id: venueId, key: `rota_published_${weekStartStr}`, value: new Date().toISOString() })
+    if (error) { toast(error.message, 'error'); setPublishing(false); return }
+    const staffIds = [...new Set(shifts.map(s => s.staff_id).filter(Boolean))]
+    if (staffIds.length) {
+      sendPush({ venueId, notificationType: 'rota_published', title: 'Rota Published', body: `Your rota for the week of ${weekStartStr} is now available.`, url: '/rota', staffIds }).catch(() => {})
+    }
+    setPublishing(false)
+    setPendingChanges(0)
+    toast('Rota published — everyone notified ✓')
+  }
+
+  const handleSaved   = () => { setPendingChanges(c => c + 1); reload() }
+  const handleDeleted = () => { setPendingChanges(c => c + 1); reload() }
   const isLoading = loading || staffLoading
 
-  // ── Render ─────────────────────────────────────────────────────────────────
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100dvh', background: MC.bg, overflow: 'hidden' }}>
+    <>
+      <style>{`
+        @keyframes sheetUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        @keyframes fadeIn  { from { opacity: 0; }                 to { opacity: 1; } }
+      `}</style>
 
-      {/* Top bar */}
-      <div style={{
-        background: MC.brand, color: '#fff',
-        padding: '12px 16px 10px',
-        flexShrink: 0,
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          {/* Week nav */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <button onClick={prevWeek} style={{ background: 'rgba(255,255,255,0.12)', border: 'none', color: '#fff', borderRadius: 8, width: 32, height: 32, cursor: 'pointer', display: 'grid', placeItems: 'center' }}>
-              <svg width="6" height="10" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 1L1 5l4 4"/></svg>
-            </button>
-            <div>
-              <div style={{ fontSize: 15, fontWeight: 600, letterSpacing: '-0.015em' }}>
-                Week of {format(weekStart, 'd MMM')}
-              </div>
-              <div style={{ fontFamily: MONO, fontSize: 10, color: 'rgba(255,255,255,0.6)', marginTop: 1 }}>
-                {format(weekStart, 'yyyy')}
-              </div>
+      <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', flexDirection: 'column', background: MC.bg, fontFamily: SANS, color: MC.ink, overflow: 'hidden' }}>
+
+        {/* ── Header: matches AppShell mobile header ── */}
+        <header style={{ background: MC.brand, color: '#fff', flexShrink: 0, paddingTop: 'env(safe-area-inset-top)' }}>
+          <div style={{ padding: '0 16px', height: 56, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0, flex: 1 }}>
+              <span style={{ fontWeight: 700, fontSize: 15, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 160 }}>{venueName || 'Pelikn'}</span>
+              <NotificationBell />
             </div>
-            <button onClick={nextWeek} style={{ background: 'rgba(255,255,255,0.12)', border: 'none', color: '#fff', borderRadius: 8, width: 32, height: 32, cursor: 'pointer', display: 'grid', placeItems: 'center' }}>
-              <svg width="6" height="10" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 1l4 4-4 4"/></svg>
-            </button>
+            <button onClick={signOutVenue} style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#fff', background: 'transparent', border: '1px solid rgba(255,255,255,0.3)', borderRadius: 8, padding: '6px 12px', cursor: 'pointer', fontFamily: SANS, whiteSpace: 'nowrap', flexShrink: 0 }}>Sign Out</button>
           </div>
-          {/* Published badge */}
-          <div style={{ fontFamily: MONO, fontSize: 10, fontWeight: 600, letterSpacing: '0.04em', color: 'rgba(255,255,255,0.6)', textTransform: 'uppercase', background: 'rgba(255,255,255,0.1)', borderRadius: 6, padding: '3px 8px' }}>
-            Draft
-          </div>
-        </div>
-      </div>
+        </header>
 
-      {/* Swap banner */}
-      {pendingCount > 0 && (
-        <button
-          onClick={() => setShowSwaps(true)}
-          style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            padding: '10px 16px', background: MC.warnBg, border: 'none', cursor: 'pointer',
-            borderBottom: `1px solid ${MC.warn}33`, flexShrink: 0,
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <div style={{ width: 7, height: 7, borderRadius: 4, background: MC.warn }} />
-            <span style={{ fontSize: 13, fontWeight: 600, color: MC.warn }}>
-              {pendingCount} swap {pendingCount === 1 ? 'request' : 'requests'} pending
+        {/* ── Cream sub-header: eyebrow + status pill + week nav ── */}
+        <div style={{ padding: '12px 14px 8px', background: MC.bg, flexShrink: 0 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 4px 8px' }}>
+            <button onClick={() => navigate(-1)} style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'transparent', border: 'none', cursor: 'pointer', padding: 0, color: MC.ink3, fontFamily: MONO, fontSize: 11, letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 600 }}>
+              <svg width="6" height="10" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M5 1L1 5l4 4"/></svg>
+              Team
+            </button>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontFamily: MONO, fontSize: 9.5, fontWeight: 700, color: isDraft ? MC.warn : MC.good, background: isDraft ? MC.warnBg : MC.goodBg, padding: '3px 8px', borderRadius: 999, letterSpacing: '0.05em', textTransform: 'uppercase', border: `1px solid ${isDraft ? MC.warn : MC.good}25` }}>
+              <span style={{ width: 5, height: 5, borderRadius: 3, background: 'currentColor' }} />
+              {isDraft ? `Draft · ${pendingChanges} unpublished` : 'Published'}
             </span>
           </div>
-          <svg width="6" height="10" viewBox="0 0 6 10" fill="none" stroke={MC.warn} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M1 1l4 4-4 4"/></svg>
-        </button>
-      )}
-
-      {/* Grid */}
-      <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-        {isLoading ? (
-          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: MC.ink3, fontSize: 14 }}>
-            Loading…
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            <button onClick={prevWeek} style={{ width: 32, height: 60, borderRadius: 9, background: MC.paper, border: `1px solid ${MC.line}`, display: 'grid', placeItems: 'center', color: MC.ink3, cursor: 'pointer', flexShrink: 0 }}>
+              <svg width="10" height="14" viewBox="0 0 10 14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M7 1L1 7l6 6"/></svg>
+            </button>
+            <div style={{ flex: 1, height: 60, borderRadius: 9, background: MC.paper, border: `1px solid ${MC.line}`, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2 }}>
+              <span style={{ fontSize: 15, fontWeight: 600, letterSpacing: '-0.015em', color: MC.ink }}>{weekTitle}</span>
+              <span style={{ fontFamily: MONO, fontSize: 10, color: MC.ink3, letterSpacing: '0.06em', textTransform: 'uppercase' }}>{weekLabel}</span>
+            </div>
+            <button onClick={nextWeek} style={{ width: 32, height: 60, borderRadius: 9, background: MC.paper, border: `1px solid ${MC.line}`, display: 'grid', placeItems: 'center', color: MC.ink3, cursor: 'pointer', flexShrink: 0 }}>
+              <svg width="10" height="14" viewBox="0 0 10 14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 1l6 6-6 6"/></svg>
+            </button>
           </div>
-        ) : (
-          <div style={{ flex: 1, overflow: 'auto', WebkitOverflowScrolling: 'touch' }}>
-            <div style={{ minWidth: STAFF_COL + DAY_COL * 7, paddingBottom: 80 }}>
+        </div>
 
-              {/* Header row */}
-              <div style={{
-                display: 'flex', alignItems: 'stretch',
-                position: 'sticky', top: 0, zIndex: 10,
-                background: MC.paper, borderBottom: `1px solid ${MC.line}`,
-              }}>
-                {/* Staff col header */}
-                <div style={{
-                  width: STAFF_COL, minWidth: STAFF_COL, flexShrink: 0,
-                  position: 'sticky', left: 0, zIndex: 11,
-                  background: MC.paper, borderRight: `1px solid ${MC.line}`,
-                  padding: '8px 10px', display: 'flex', alignItems: 'center',
-                }}>
-                  <span style={{ fontFamily: MONO, fontSize: 10, fontWeight: 600, color: MC.ink3, letterSpacing: '0.04em', textTransform: 'uppercase' }}>Staff</span>
-                </div>
-                {/* Day headers */}
-                {days.map((day, i) => {
-                  const today = isToday(day)
-                  return (
-                    <div key={i} style={{
-                      width: DAY_COL, minWidth: DAY_COL, flexShrink: 0,
-                      display: 'flex', flexDirection: 'column', alignItems: 'center',
-                      padding: '7px 0 6px', borderRight: i < 6 ? `1px solid ${MC.line2}` : 'none',
-                    }}>
-                      <span style={{ fontFamily: MONO, fontSize: 9, fontWeight: 600, color: today ? MC.brand : MC.ink4, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
-                        {format(day, 'EEE')}
-                      </span>
-                      <div style={{
-                        width: 26, height: 26, borderRadius: 13, marginTop: 3,
-                        background: today ? MC.brand : 'transparent',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      }}>
-                        <span style={{ fontFamily: MONO, fontSize: 12, fontWeight: 600, color: today ? '#fff' : MC.ink2 }}>
-                          {format(day, 'd')}
-                        </span>
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
+        {/* ── Action bar ── */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, padding: '10px 14px', background: MC.bg, borderBottom: `1px solid ${MC.line}`, flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, flexShrink: 0 }}>
+            <span style={{ fontFamily: MONO, fontSize: 9.5, color: MC.ink3, textTransform: 'uppercase', letterSpacing: '0.07em', fontWeight: 600 }}>Week</span>
+            <span style={{ fontFamily: MONO, fontSize: 15, fontWeight: 600, color: MC.ink, fontVariantNumeric: 'tabular-nums' }}>{showCost ? `£${weekCost}` : `${weekHours}h`}</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            {/* Hours / £ toggle */}
+            <div style={{ display: 'flex', background: MC.line2, borderRadius: 9, padding: 3 }}>
+              {[['Hours', false], ['£', true]].map(([lbl, val]) => {
+                const on = showCost === val
+                return (
+                  <button key={lbl} onClick={() => setShowCost(val)} style={{ cursor: 'pointer', fontFamily: SANS, border: 'none', borderRadius: 7, padding: '5px 11px', fontSize: 12, fontWeight: 600, background: on ? MC.paper : 'transparent', color: on ? MC.ink : MC.ink3, boxShadow: on ? '0 1px 2px rgba(9,18,13,0.1)' : 'none' }}>{lbl}</button>
+                )
+              })}
+            </div>
+            {/* Auto-fill */}
+            <button onClick={() => setShowAI(true)} title="Auto-fill gaps" style={{ display: 'flex', alignItems: 'center', gap: 5, fontFamily: SANS, fontSize: 12.5, fontWeight: 600, color: MC.accent, background: MC.accentSoft, border: 'none', borderRadius: 9, padding: '7px 11px', cursor: 'pointer' }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg>
+              Auto-fill
+            </button>
+          </div>
+        </div>
 
-              {/* Staff rows */}
-              {staff.map((member) => (
-                <div key={member.id} style={{
-                  display: 'flex', alignItems: 'center',
-                  borderBottom: `1px solid ${MC.line2}`, minHeight: 64,
-                }}>
-                  {/* Staff name cell */}
-                  <div style={{
-                    width: STAFF_COL, minWidth: STAFF_COL, flexShrink: 0,
-                    position: 'sticky', left: 0, zIndex: 2,
-                    background: MC.paper, borderRight: `1px solid ${MC.line}`,
-                    padding: '8px 10px', display: 'flex', alignItems: 'center', gap: 7,
-                  }}>
-                    <div style={{
-                      width: 28, height: 28, borderRadius: 8, flexShrink: 0,
-                      background: MC.brandTint, color: MC.brand,
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontFamily: MONO, fontSize: 10, fontWeight: 600,
-                    }}>
-                      {(member.name ?? '?').split(' ').map(w => w[0]).slice(0, 2).join('')}
+        {/* ── Scrollable content ── */}
+        <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', WebkitOverflowScrolling: 'touch' }}>
+          {isLoading ? (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 200, color: MC.ink3, fontSize: 14 }}>Loading…</div>
+          ) : (
+            <div style={{ padding: '13px 13px 0', display: 'flex', flexDirection: 'column', gap: 13 }}>
+
+              {/* Swap banner */}
+              {pendingCount > 0 && (
+                <button onClick={() => setShowSwaps(true)} style={{ width: '100%', textAlign: 'left', cursor: 'pointer', fontFamily: SANS, display: 'flex', alignItems: 'center', gap: 11, padding: '12px 14px', background: MC.warnBg, border: 'none', borderRadius: 13 }}>
+                  <span style={{ width: 30, height: 30, borderRadius: 9, background: 'rgba(168,93,18,0.16)', color: MC.warn, display: 'grid', placeItems: 'center', flexShrink: 0 }}>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3l4 4-4 4M21 7H8M7 21l-4-4 4-4M3 17h13"/></svg>
+                  </span>
+                  <span style={{ flex: 1, fontSize: 13.5, fontWeight: 600, color: MC.warn }}>{pendingCount} swap {pendingCount === 1 ? 'request' : 'requests'} pending</span>
+                  <span style={{ fontFamily: MONO, fontSize: 10, fontWeight: 700, color: MC.warn, textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: 4 }}>
+                    Review
+                    <svg width="6" height="10" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M1 1l4 4-4 4"/></svg>
+                  </span>
+                </button>
+              )}
+
+              {/* Week grid — wrapped in card */}
+              <div style={{ background: MC.paper, border: `1px solid ${MC.line}`, borderRadius: 16, overflow: 'hidden' }}>
+                <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+                  <div style={{ minWidth: NAME_W + DAY_COL * 7 }}>
+
+                    {/* Header row */}
+                    <div style={{ display: 'flex', borderBottom: `1px solid ${MC.line}` }}>
+                      <div style={{ width: NAME_W, minWidth: NAME_W, flexShrink: 0, position: 'sticky', left: 0, zIndex: 3, background: MC.paper }} />
+                      {days.map((day, i) => {
+                        const today = isToday(day)
+                        return (
+                          <div key={i} style={{ width: DAY_COL, minWidth: DAY_COL, flexShrink: 0, textAlign: 'center', padding: '11px 0 9px', background: today ? 'rgba(19,54,42,0.04)' : 'transparent' }}>
+                            <div style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '0.06em', textTransform: 'uppercase', color: MC.ink3, fontWeight: 600 }}>{format(day, 'EEE')}</div>
+                            <div style={{ margin: '4px auto 0', width: 26, height: 26, borderRadius: 13, display: 'grid', placeItems: 'center', background: today ? MC.brand : 'transparent' }}>
+                              <span style={{ fontFamily: MONO, fontSize: 13, fontWeight: 600, color: today ? '#fff' : MC.ink }}>{format(day, 'd')}</span>
+                            </div>
+                          </div>
+                        )
+                      })}
                     </div>
-                    <div style={{ minWidth: 0 }}>
-                      <div style={{ fontSize: 11, fontWeight: 600, color: MC.ink, lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                        {member.name?.split(' ')[0] ?? '—'}
-                      </div>
-                      {member.job_role && (
-                        <div style={{ fontFamily: MONO, fontSize: 9, color: MC.ink3, marginTop: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                          {member.job_role}
+
+                    {/* Staff rows */}
+                    {staff.map((member, ri) => {
+                      const station = stationFromRole(member.job_role)
+                      return (
+                        <div key={member.id} style={{ display: 'flex', borderBottom: ri === staff.length - 1 ? 'none' : `1px solid ${MC.line2}` }}>
+                          <div style={{ width: NAME_W, minWidth: NAME_W, flexShrink: 0, position: 'sticky', left: 0, zIndex: 2, background: MC.paper, borderRight: `1px solid ${MC.line2}`, display: 'flex', alignItems: 'center', gap: 8, padding: '0 9px' }}>
+                            <span style={{ position: 'relative', flexShrink: 0 }}>
+                              <Avatar name={member.name} station={station} size={28} />
+                              {station && <span style={{ position: 'absolute', bottom: -1, right: -1, width: 8, height: 8, borderRadius: 4, background: STATION_COLOR[station], border: '1.5px solid #fff' }} />}
+                            </span>
+                            <span style={{ fontSize: 12.5, fontWeight: 600, color: MC.ink, letterSpacing: '-0.01em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                              {member.name?.split(' ')[0] ?? '—'}
+                            </span>
+                          </div>
+                          {days.map((day, di) => {
+                            const dateStr = format(day, 'yyyy-MM-dd')
+                            const shift = shiftMap[`${member.id}|${dateStr}`] ?? null
+                            return (
+                              <GridCell key={di} shift={shift} isToday={isToday(day)} onTap={() => setShiftSheet({ shift, staffMember: member, day })} />
+                            )
+                          })}
                         </div>
-                      )}
-                    </div>
-                  </div>
-                  {/* Shift cells */}
-                  {days.map((day, i) => {
-                    const dateStr = format(day, 'yyyy-MM-dd')
-                    const key = `${member.id}|${dateStr}`
-                    const shift = shiftMap[key] ?? null
-                    const hasSwap = shift && swapShiftIds.has(shift.id)
-                    return (
-                      <div key={i} style={{ width: DAY_COL, minWidth: DAY_COL, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '6px 0', borderRight: i < 6 ? `1px solid ${MC.line2}` : 'none' }}>
-                        <ShiftCell
-                          shift={shift}
-                          hasSwapRequest={hasSwap}
-                          onTap={() => setShiftSheet({ shift, staffMember: member, day })}
-                        />
-                      </div>
-                    )
-                  })}
-                </div>
-              ))}
+                      )
+                    })}
 
-              {/* Totals row */}
-              <div style={{ display: 'flex', alignItems: 'stretch', borderTop: `1px solid ${MC.line}`, background: MC.paper, position: 'sticky', bottom: 0, zIndex: 5 }}>
-                <div style={{
-                  width: STAFF_COL, minWidth: STAFF_COL, flexShrink: 0,
-                  position: 'sticky', left: 0, zIndex: 6,
-                  background: MC.paper, borderRight: `1px solid ${MC.line}`,
-                  padding: '8px 10px',
-                }}>
-                  <span style={{ fontFamily: MONO, fontSize: 9, fontWeight: 600, color: MC.ink3, letterSpacing: '0.04em', textTransform: 'uppercase' }}>Totals</span>
-                </div>
-                {days.map((day, i) => (
-                  <div key={i} style={{
-                    width: DAY_COL, minWidth: DAY_COL, flexShrink: 0,
-                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                    padding: '6px 0', borderRight: i < 6 ? `1px solid ${MC.line2}` : 'none',
-                  }}>
-                    <span style={{ fontFamily: MONO, fontSize: 11, fontWeight: 600, color: MC.ink2 }}>
-                      {hoursPerDay[i].toFixed(0)}h
-                    </span>
-                    <span style={{ fontFamily: MONO, fontSize: 9, color: MC.ink4, marginTop: 2 }}>
-                      {headcountPerDay[i]} staff
-                    </span>
+                    {/* Totals row */}
+                    <div style={{ display: 'flex', background: MC.bg, borderTop: `1px solid ${MC.line}` }}>
+                      <div style={{ width: NAME_W, minWidth: NAME_W, flexShrink: 0, position: 'sticky', left: 0, zIndex: 2, background: MC.bg, borderRight: `1px solid ${MC.line2}`, display: 'flex', alignItems: 'center', padding: '0 9px' }}>
+                        <span style={{ fontFamily: MONO, fontSize: 9, fontWeight: 600, color: MC.ink3, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{showCost ? 'Cost' : 'Hours'}</span>
+                      </div>
+                      {dayTotals.map((t, i) => (
+                        <div key={i} style={{ width: DAY_COL, minWidth: DAY_COL, flexShrink: 0, textAlign: 'center', padding: '11px 0', background: isToday(days[i]) ? 'rgba(19,54,42,0.04)' : 'transparent' }}>
+                          <div style={{ fontFamily: MONO, fontSize: 12, fontWeight: 600, color: MC.ink, fontVariantNumeric: 'tabular-nums' }}>{showCost ? `£${t.cost}` : `${t.hours}h`}</div>
+                          <div style={{ fontFamily: MONO, fontSize: 8, color: MC.ink4, marginTop: 2, textTransform: 'uppercase', letterSpacing: '0.04em' }}>{t.count} on</div>
+                        </div>
+                      ))}
+                    </div>
+
                   </div>
-                ))}
+                </div>
               </div>
+
+              {/* Gaps strip */}
+              <GapsStrip openShifts={openShifts} days={days} onFill={(o) => setShiftSheet({ shift: o, staffMember: null, day: o._day })} />
+
+              {/* Station legend */}
+              <StationLegend />
 
             </div>
+          )}
+          <div style={{ height: pendingChanges > 0 ? 150 : 96 }} />
+        </div>
+
+        {/* ── Publish bar ── */}
+        {pendingChanges > 0 && (
+          <div style={{ position: 'absolute', bottom: 16, left: 12, right: 12, zIndex: 30, background: MC.ink, color: '#fff', borderRadius: 15, padding: '12px 14px', display: 'flex', alignItems: 'center', gap: 12, boxShadow: '0 10px 30px rgba(9,18,13,0.34)' }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 13.5, fontWeight: 600 }}>{pendingChanges} unpublished {pendingChanges === 1 ? 'change' : 'changes'}</div>
+              <div style={{ fontFamily: MONO, fontSize: 9.5, color: 'rgba(255,255,255,0.6)', textTransform: 'uppercase', letterSpacing: '0.04em', marginTop: 2 }}>Staff won't see them yet</div>
+            </div>
+            <button onClick={publish} disabled={publishing} style={{ height: 40, padding: '0 18px', borderRadius: 11, border: 'none', cursor: 'pointer', background: '#fff', color: MC.ink, fontFamily: SANS, fontSize: 13.5, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 7 }}>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4z"/></svg>
+              {publishing ? 'Publishing…' : 'Publish'}
+            </button>
           </div>
         )}
+
+        {/* ── Sheets ── */}
+        {shiftSheet && (
+          <ShiftSheet
+            shift={shiftSheet.shift}
+            staffMember={shiftSheet.staffMember}
+            day={shiftSheet.day}
+            venueId={venueId}
+            roles={roles}
+            onClose={() => setShiftSheet(null)}
+            onSaved={handleSaved}
+            onDeleted={handleDeleted}
+          />
+        )}
+        {showSwaps && (
+          <SwapSheet
+            swaps={swaps}
+            onClose={() => setShowSwaps(false)}
+            onResolved={() => { reloadSwaps(); reload() }}
+          />
+        )}
+        {showAI && (
+          <AISheet
+            openShifts={openShifts}
+            staff={staff}
+            days={days}
+            venueId={venueId}
+            onClose={() => setShowAI(false)}
+            onFilled={() => { reload(); setPendingChanges(c => c + openShifts.length) }}
+          />
+        )}
       </div>
-
-      {/* Shift sheet */}
-      {shiftSheet && (
-        <ShiftSheet
-          shift={shiftSheet.shift}
-          staffMember={shiftSheet.staffMember}
-          day={shiftSheet.day}
-          venueId={venueId}
-          onClose={() => setShiftSheet(null)}
-          onSaved={reload}
-          onDeleted={reload}
-        />
-      )}
-
-      {/* Swap sheet */}
-      {showSwaps && (
-        <SwapSheet
-          swaps={swaps}
-          onClose={() => setShowSwaps(false)}
-          onResolved={() => { reloadSwaps(); reload() }}
-        />
-      )}
-    </div>
+    </>
   )
 }

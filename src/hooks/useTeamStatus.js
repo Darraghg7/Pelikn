@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { startOfDay, endOfDay, format } from 'date-fns'
+import { startOfDay, endOfDay, format, startOfWeek, endOfWeek } from 'date-fns'
 import { supabase } from '../lib/supabase'
 
 // SWR cache — 30 s stale (clock status changes frequently)
@@ -43,7 +43,7 @@ export function useTeamStatus(venueId) {
       const todayStr = format(today, 'yyyy-MM-dd')
 
       const [
-        staffRes, clockRes, swapRes, timeOffRes, trainingRes, shiftSwapRes,
+        staffRes, clockRes, swapRes, timeOffRes, trainingRes, shiftSwapRes, unfilledRes, rotaPubRes,
       ] = await Promise.all([
         supabase.from('staff').select('id, name, role, station').eq('venue_id', venueId).eq('is_active', true),
         supabase.from('clock_events')
@@ -70,6 +70,19 @@ export function useTeamStatus(venueId) {
           .gte('expires_at', today.toISOString()),
         // Today's shifts for attendance context
         supabase.from('shifts').select('id, staff_id, start_time, end_time').eq('venue_id', venueId).eq('shift_date', todayStr),
+        // Unfilled shifts this week (no staff assigned)
+        supabase.from('shifts')
+          .select('id', { count: 'exact', head: true })
+          .eq('venue_id', venueId)
+          .is('staff_id', null)
+          .gte('shift_date', format(startOfWeek(today, { weekStartsOn: 1 }), 'yyyy-MM-dd'))
+          .lte('shift_date', format(endOfWeek(today, { weekStartsOn: 1 }), 'yyyy-MM-dd')),
+        // Rota published status for this week
+        supabase.from('app_settings')
+          .select('value')
+          .eq('venue_id', venueId)
+          .eq('key', `rota_published_${format(startOfWeek(today, { weekStartsOn: 1 }), 'yyyy-MM-dd')}`)
+          .maybeSingle(),
       ])
 
       if (cancelled) return
@@ -129,6 +142,8 @@ export function useTeamStatus(venueId) {
         pendingSwaps:    swapRes.count   ?? 0,
         pendingTimeOff:  timeOffRes.count ?? 0,
         expiringTraining: trainingRes.count ?? 0,
+        rotaUnfilled:    unfilledRes.count ?? 0,
+        rotaPublished:   !!(rotaPubRes.data?.value),
       }
       _cache.set(key, { data: fresh, ts: Date.now() })
       setData(fresh)

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import RotaMobileGrid from './RotaMobileGrid'
 import { format, addWeeks, eachDayOfInterval, parseISO, isBefore, startOfDay } from 'date-fns'
 import { useClockSessions } from '../../hooks/useClockSessions'
@@ -97,7 +98,7 @@ function GanttChart({ shifts, staff, currentStaffId, nowMins, showNow }) {
                   {shift.start_time.slice(0, 5)}–{shift.end_time.slice(0, 5)}
                 </div>
                 {shift.role_label && (
-                  <div className="font-mono text-[9px] text-charcoal/40 tracking-[0.06em] font-semibold mt-0.5 uppercase">{shift.role_label}</div>
+                  <div className="font-mono text-[9px] text-charcoal/60 tracking-[0.06em] font-semibold mt-0.5 uppercase truncate">{shift.role_label}</div>
                 )}
               </div>
             </div>
@@ -662,7 +663,7 @@ function StaffRotaView({ shifts, staff, loading, weekStart, prevWeek, nextWeek, 
   const selectedDateStr = format(selectedDate, 'yyyy-MM-dd')
   const myShifts = shifts.filter(s => s.staff_id === session?.staffId)
   const selectedShift = myShifts.find(s => s.shift_date === selectedDateStr)
-  const upcomingShifts = myShifts.filter(s => s.shift_date >= today).sort((a, b) => a.shift_date.localeCompare(b.shift_date))
+  const upcomingShifts = myShifts.filter(s => s.shift_date > today).sort((a, b) => a.shift_date.localeCompare(b.shift_date))
   const me = staff.find(s => s.id === session?.staffId)
   const hourlyRate = me?.hourly_rate
   const dayShifts = shifts.filter(s => s.shift_date === selectedDateStr)
@@ -804,7 +805,7 @@ function StaffRotaView({ shifts, staff, loading, weekStart, prevWeek, nextWeek, 
     <div className="flex flex-col gap-4">
       {/* Page header */}
       <div className="flex items-baseline justify-between px-1">
-        <span className="font-mono text-[10.5px] text-charcoal/50 tracking-[0.08em] uppercase">Rota</span>
+        <span className="font-mono text-[10.5px] text-charcoal/50 tracking-[0.08em] uppercase">My Shifts</span>
         <span className="font-mono text-[10.5px] text-charcoal/50">Week {weekNum} · {weekRange}</span>
       </div>
 
@@ -853,6 +854,17 @@ function StaffRotaView({ shifts, staff, loading, weekStart, prevWeek, nextWeek, 
               <span className="font-mono text-[11px] text-accent font-semibold tracking-[0.06em]">TODAY</span>
             )}
           </div>
+
+          {/* Day at a glance — always at top */}
+          {dayShifts.length > 0 && (
+            <div>
+              <div className="flex items-baseline justify-between px-1 mb-2">
+                <span className="font-mono text-[10.5px] text-charcoal/50 tracking-[0.08em] uppercase font-semibold">Day at a glance</span>
+                <span className="font-mono text-[11px] text-charcoal/50">{dayShifts.length} on shift</span>
+              </div>
+              <GanttChart shifts={dayShifts} staff={staff} currentStaffId={session?.staffId} nowMins={nowMins} showNow={selectedDateStr === today} />
+            </div>
+          )}
 
           {/* Per-day card — worked day OR scheduled shift OR empty */}
           {selectedDaySession ? (
@@ -942,7 +954,7 @@ function StaffRotaView({ shifts, staff, loading, weekStart, prevWeek, nextWeek, 
                     </div>
                     <div>
                       <div className="font-mono text-[9.5px] text-charcoal/50 tracking-[0.06em] uppercase">Hours</div>
-                      <div className="font-mono text-[14px] font-semibold mt-0.5">{upcomingHours % 1 === 0 ? upcomingHours : upcomingHours.toFixed(1)}h</div>
+                      <div className="font-mono text-[14px] font-semibold mt-0.5">{Math.round(upcomingHours)}h</div>
                     </div>
                     {upcomingPay != null && (
                       <div>
@@ -957,17 +969,6 @@ function StaffRotaView({ shifts, staff, loading, weekStart, prevWeek, nextWeek, 
           ) : (
             <div className="bg-white border border-charcoal/10 rounded-2xl px-5 py-6 text-center">
               <p className="text-sm text-charcoal/40">No upcoming shifts in the next 2 weeks</p>
-            </div>
-          )}
-
-          {/* Day at a glance */}
-          {dayShifts.length > 0 && (
-            <div>
-              <div className="flex items-baseline justify-between px-1 mb-2">
-                <span className="font-mono text-[10.5px] text-charcoal/50 tracking-[0.08em] uppercase font-semibold">Day at a glance</span>
-                <span className="font-mono text-[11px] text-charcoal/50">{dayShifts.length} on shift</span>
-              </div>
-              <GanttChart shifts={dayShifts} staff={staff} currentStaffId={session?.staffId} nowMins={nowMins} showNow={selectedDateStr === today} />
             </div>
           )}
 
@@ -1017,10 +1018,12 @@ export default function RotaPage() {
   const toast = useToast()
   const { venueId, venueName } = useVenue()
   const { session, isManager } = useSession()
+  const [searchParams] = useSearchParams()
+  const personalView = searchParams.get('personal') === '1'
 
   const [weekStart, setWeekStart] = useState(() => getWeekStart())
   const [numWeeks, setNumWeeks]   = useState(1)
-  const { shifts, loading, reload } = useShifts(weekStart, isManager ? numWeeks : 2)
+  const { shifts, loading, reload } = useShifts(weekStart, (isManager && !personalView) ? numWeeks : 2)
   const { staff, loading: staffLoading } = useStaffList()
   const crossShifts = useCrossVenueShifts(staff, weekStart, numWeeks, venueId)
   const { swaps, loading: swapsLoading, reload: reloadSwaps, pendingCount } = useShiftSwaps()
@@ -1403,7 +1406,7 @@ export default function RotaPage() {
   const resolvedSwaps = swaps.filter((s) => s.status !== 'pending')
   const swapCandidates = staff.filter((s) => s.id !== session?.staffId)
 
-  if (!isManager) {
+  if (!isManager || personalView) {
     return (
       <StaffRotaView
         shifts={shifts}
