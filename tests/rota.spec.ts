@@ -24,15 +24,16 @@ test.describe('Rota builder', () => {
   })
 
   test('shows staff names in rota grid', async ({ page }) => {
-    // Seed data has shifts — staff names should appear
+    // Seed data has staff — scope to main content to skip hidden mobile-layout clones
     await expect(
-      page.getByText(/sarah|james|tom|lucy|aoife|conor/i).first()
+      page.locator('[role="main"]').getByText(/aoife kelly|james o.brien|lucy brennan|sarah mitchell/i).first()
     ).toBeVisible({ timeout: 8000 })
   })
 
   test('shows day columns (Mon-Sun)', async ({ page }) => {
+    // Desktop rota uses a <table> — day labels appear in <th> elements (not in mobile grid)
     await expect(
-      page.getByText(/mon|tue|wed|thu|fri/i).first()
+      page.locator('th').getByText(/mon|tue|wed|thu|fri/i).first()
     ).toBeVisible({ timeout: 8000 })
   })
 
@@ -87,9 +88,10 @@ test.describe('Time off requests', () => {
 
   test('can open new time-off request form', async ({ page }) => {
     await page.getByRole('button', { name: /request|new|add/i }).first().click()
+    // Form opens as a bottom sheet / slide-up panel — look for leave type options
     await expect(
-      page.locator('form, [role="dialog"]').first()
-    ).toBeVisible({ timeout: 5000 })
+      page.getByText(/annual|unpaid|sick|leave type/i).first()
+    ).toBeVisible({ timeout: 8000 })
   })
 })
 

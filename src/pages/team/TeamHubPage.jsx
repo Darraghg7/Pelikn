@@ -10,16 +10,18 @@ const MC = {
   bad:    '#b3331c', badBg:  '#fbeae6',
   warn:   '#a85d12', warnBg: '#fbeedc',
   good:   '#1a7a4c', goodBg: '#e3f0e7',
+  draft:  '#c94f2a', draftBg: '#faeee9',
   ink:    '#0d1a14', ink2:   '#3d4a44', ink3:   '#76817b', ink4:   '#b3b9b5',
   line:   '#e4e6e2', line2:  '#eef0ec',
   paper:  '#ffffff',
 }
 
 const STATUS_TONE = {
-  overdue: { fg: MC.bad,  bg: MC.badBg,  rank: 0 },
-  due:     { fg: MC.warn, bg: MC.warnBg, rank: 1 },
-  done:    { fg: MC.good, bg: MC.goodBg, rank: 3 },
-  na:      { fg: MC.ink3, bg: MC.line2,  rank: 4 },
+  overdue: { fg: MC.bad,   bg: MC.badBg,   rank: 0 },
+  due:     { fg: MC.warn,  bg: MC.warnBg,  rank: 1 },
+  draft:   { fg: MC.draft, bg: MC.draftBg, rank: 2 },
+  done:    { fg: MC.good,  bg: MC.goodBg,  rank: 3 },
+  na:      { fg: MC.ink3,  bg: MC.line2,   rank: 4 },
 }
 
 const MONO = 'ui-monospace, SFMono-Regular, monospace'
@@ -27,6 +29,9 @@ const MONO = 'ui-monospace, SFMono-Regular, monospace'
 // ── Icons ──────────────────────────────────────────────────────────────────
 function CalIcon() {
   return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: '100%', height: '100%' }}><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+}
+function RotaIcon() {
+  return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: '100%', height: '100%' }}><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/><path d="M8 14h2M14 14h2M8 17.5h2"/></svg>
 }
 function ClockIcon() {
   return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: '100%', height: '100%' }}><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
@@ -243,7 +248,19 @@ export default function TeamHubPage() {
 
   const ALL_CARDS = [
     {
-      id: 'rota', label: 'Rota', icon: CalIcon, route: '/rota',
+      id: 'team-rota', label: 'Rota', icon: RotaIcon, route: '/rota',
+      ...(data?.rotaPublished
+        ? { status: 'done', statusText: 'Published' }
+        : {
+            status: 'draft',
+            statusText: data?.rotaUnfilled > 0
+              ? `Draft · ${data.rotaUnfilled} to fill`
+              : 'Draft · ready to publish',
+            count: data?.rotaUnfilled || undefined,
+          }),
+    },
+    {
+      id: 'rota', label: 'My Shifts', icon: CalIcon, route: '/rota?personal=1',
       ...(data?.pendingSwaps > 0
         ? { status: 'due', statusText: `${data.pendingSwaps} swap${data.pendingSwaps > 1 ? 's' : ''} pending`, count: data.pendingSwaps }
         : { status: 'done', statusText: 'No swaps pending' }),

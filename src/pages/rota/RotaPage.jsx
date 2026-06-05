@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import RotaMobileGrid from './RotaMobileGrid'
 import { format, addWeeks, eachDayOfInterval, parseISO, isBefore, startOfDay } from 'date-fns'
 import { useClockSessions } from '../../hooks/useClockSessions'
@@ -97,7 +98,7 @@ function GanttChart({ shifts, staff, currentStaffId, nowMins, showNow }) {
                   {shift.start_time.slice(0, 5)}–{shift.end_time.slice(0, 5)}
                 </div>
                 {shift.role_label && (
-                  <div className="font-mono text-[9px] text-charcoal/40 tracking-[0.06em] font-semibold mt-0.5 uppercase">{shift.role_label}</div>
+                  <div className="font-mono text-[9px] text-charcoal/60 tracking-[0.06em] font-semibold mt-0.5 uppercase truncate">{shift.role_label}</div>
                 )}
               </div>
             </div>
@@ -215,10 +216,20 @@ function EHStatusPill({ status }) {
 }
 
 /* Fix-hours bottom sheet */
+function timeDiffMins(a, b) {
+  const [ah, am] = a.split(':').map(Number)
+  const [bh, bm] = b.split(':').map(Number)
+  let d = (bh * 60 + bm) - (ah * 60 + am)
+  if (d < 0) d += 1440
+  return d
+}
+
 function FixHoursSheet({ ctx, onClose, onSubmit }) {
   const [start, setStart]       = React.useState('')
   const [end, setEnd]           = React.useState('')
-  const [brk, setBrk]           = React.useState(0)
+  const [brkStart, setBrkStart] = React.useState('')
+  const [brkEnd, setBrkEnd]     = React.useState('')
+  const [hasBreak, setHasBreak] = React.useState(false)
   const [edge, setEdge]         = React.useState('end')
   const [reason, setReason]     = React.useState('')
   const [note, setNote]         = React.useState('')
@@ -227,10 +238,30 @@ function FixHoursSheet({ ctx, onClose, onSubmit }) {
 
   React.useEffect(() => {
     if (!ctx) return
-    setStart(fmtHM(ctx.session.clockInAt))
-    setEnd(ctx.session.clockOutAt ? fmtHM(ctx.session.clockOutAt) : '00:00')
-    setBrk(ctx.session.breakMinutes ?? 0)
+    const s = fmtHM(ctx.session.clockInAt)
+    const e = ctx.session.clockOutAt ? fmtHM(ctx.session.clockOutAt) : '00:00'
+    setStart(s)
+    setEnd(e)
+    const origBrk = ctx.session.breakMinutes ?? 0
+    if (origBrk > 0) {
+      // Derive break start/end from clock-in + first break heuristic
+      const [sh, sm] = s.split(':').map(Number)
+      const midMins = sh * 60 + sm + Math.floor(timeDiffMins(s, e) / 2) - Math.floor(origBrk / 2)
+      const bsH = String(Math.floor((midMins % 1440) / 60)).padStart(2, '0')
+      const bsM = String(midMins % 60).padStart(2, '0')
+      const beM = midMins + origBrk
+      const beH = String(Math.floor((beM % 1440) / 60)).padStart(2, '0')
+      const beMm = String(beM % 60).padStart(2, '0')
+      setBrkStart(`${bsH}:${bsM}`)
+      setBrkEnd(`${beH}:${beMm}`)
+      setHasBreak(true)
+    } else {
+      setBrkStart('')
+      setBrkEnd('')
+      setHasBreak(false)
+    }
     setEdge('end')
+    setBrkEdge('brkStart')
     setReason('')
     setNote('')
     setConfirming(false)
@@ -240,19 +271,33 @@ function FixHoursSheet({ ctx, onClose, onSubmit }) {
   const { session, role } = ctx
   const origStart = fmtHM(session.clockInAt)
   const origEnd   = session.clockOutAt ? fmtHM(session.clockOutAt) : '--:--'
-  const recMins   = session.clockOutAt ? ehWorkedMins(origStart, origEnd, session.breakMinutes ?? 0) : 0
+  const origBrk   = session.breakMinutes ?? 0
+  const recMins   = session.clockOutAt ? ehWorkedMins(origStart, origEnd, origBrk) : 0
+
+  const brk = hasBreak && brkStart && brkEnd ? timeDiffMins(brkStart, brkEnd) : 0
   const newMins   = ehWorkedMins(start, end, brk)
   const delta     = newMins - recMins
-  const changed   = start !== origStart || end !== origEnd || brk !== (session.breakMinutes ?? 0)
-  const invalid   = newMins <= 0
+  const changed   = start !== origStart || end !== origEnd || brk !== origBrk
+  const invalid   = newMins <= 0 || (hasBreak && brk <= 0)
   const needReason = changed && Math.abs(delta) > 0
   const canSubmit = changed && !invalid && (!needReason || reason)
 
-  const [ch, cm] = (edge === 'start' ? start : end).split(':')
-  const setCur = (h, m) => {
-    const v = `${h}:${m}`
-    edge === 'start' ? setStart(v) : setEnd(v)
+  const getEdgeTime = (e) => {
+    if (e === 'start') return start
+    if (e === 'end') return end
+    if (e === 'brkStart') return brkStart || start
+    return brkEnd || end
   }
+  const setEdgeTime = (e, val) => {
+    if (e === 'start') setStart(val)
+    else if (e === 'end') setEnd(val)
+    else if (e === 'brkStart') setBrkStart(val)
+    else setBrkEnd(val)
+  }
+
+  const curTime = getEdgeTime(edge)
+  const [ch, cm] = curTime ? curTime.split(':') : ['00', '00']
+  const setCur = (h, m) => setEdgeTime(edge, `${h}:${m}`)
 
   const doSubmit = async () => {
     setSubmitting(true)
@@ -304,28 +349,74 @@ function FixHoursSheet({ ctx, onClose, onSubmit }) {
           })}
         </div>
 
-        {/* scroll wheels */}
-        <div className="flex items-center justify-center gap-1 mt-2.5">
-          <EHWheel values={WHEEL_HOURS} value={ch} onChange={(h) => setCur(h, cm)} />
-          <span className="font-mono text-[21px] font-semibold text-charcoal/40 pb-0.5">:</span>
-          <EHWheel values={WHEEL_MINS} value={cm} onChange={(m) => setCur(ch, m)} />
-        </div>
-
-        {/* break chips */}
-        <div className="mt-1">
-          <div className="font-mono text-[9.5px] text-charcoal/50 uppercase tracking-[0.06em] font-semibold px-0.5 pb-1.5">Unpaid break</div>
-          <div className="flex flex-wrap gap-1.5">
-            {BREAK_OPTIONS.map(b => {
-              const on = b === brk
-              return (
-                <button key={b} onClick={() => setBrk(b)}
-                  className="font-mono text-[12px] font-semibold px-2.5 py-1.5 rounded-[9px] transition-colors"
-                  style={{ border: `1px solid ${on ? '#13362a' : '#e4e6e2'}`, background: on ? '#13362a' : '#fff', color: on ? '#fff' : '#3d4a44', cursor:'pointer' }}>
-                  {b === 0 ? 'None' : `${b}m`}
-                </button>
-              )
-            })}
+        {/* scroll wheels — shift times */}
+        {(edge === 'start' || edge === 'end') && (
+          <div className="flex items-center justify-center gap-1 mt-2.5">
+            <EHWheel values={WHEEL_HOURS} value={ch} onChange={(h) => setCur(h, cm)} />
+            <span className="font-mono text-[21px] font-semibold text-charcoal/40 pb-0.5">:</span>
+            <EHWheel values={WHEEL_MINS} value={cm} onChange={(m) => setCur(ch, m)} />
           </div>
+        )}
+
+        {/* break section */}
+        <div className="mt-3">
+          <div className="flex items-center justify-between px-0.5 pb-2">
+            <div className="font-mono text-[9.5px] text-charcoal/50 uppercase tracking-[0.06em] font-semibold">Unpaid break</div>
+            <button
+              onClick={() => {
+                if (hasBreak) {
+                  setHasBreak(false)
+                  setEdge(edge === 'brkStart' || edge === 'brkEnd' ? 'start' : edge)
+                } else {
+                  // default break start to middle of shift
+                  const [sh, sm] = start.split(':').map(Number)
+                  const shiftMid = sh * 60 + sm + Math.floor(timeDiffMins(start, end) / 2)
+                  const bsH = String(Math.floor((shiftMid % 1440) / 60)).padStart(2, '0')
+                  const bsM = String(shiftMid % 60).padStart(2, '0')
+                  const beM = shiftMid + 30
+                  const beH = String(Math.floor((beM % 1440) / 60)).padStart(2, '0')
+                  const beMm = String(beM % 60).padStart(2, '0')
+                  setBrkStart(`${bsH}:${bsM}`)
+                  setBrkEnd(`${beH}:${beMm}`)
+                  setHasBreak(true)
+                  setEdge('brkStart')
+                }
+              }}
+              className="font-mono text-[11px] font-semibold px-2.5 py-1 rounded-full transition-colors"
+              style={{ border: `1px solid ${hasBreak ? '#b3331c' : '#e4e6e2'}`, background: hasBreak ? '#fbeae6' : '#fff', color: hasBreak ? '#b3331c' : '#76817b', cursor: 'pointer' }}
+            >
+              {hasBreak ? 'Remove break' : '+ Add break'}
+            </button>
+          </div>
+          {hasBreak && (
+            <>
+              <div className="flex gap-2 bg-charcoal/8 p-1 rounded-xl">
+                {[['brkStart', 'Break start', brkStart], ['brkEnd', 'Break end', brkEnd]].map(([k, label, val]) => {
+                  const on = edge === k
+                  return (
+                    <button key={k} onClick={() => setEdge(k)} className="flex-1 rounded-[9px] py-2 transition-all"
+                      style={{ background: on ? '#fff' : 'transparent', boxShadow: on ? '0 1px 3px rgba(9,18,13,0.1)' : 'none', border: 'none', cursor: 'pointer' }}>
+                      <div className="font-mono text-[9px] text-charcoal/50 uppercase tracking-[0.06em] font-semibold">{label}</div>
+                      <div className="font-mono text-[17px] font-semibold tabular-nums mt-0.5" style={{ color: on ? '#13362a' : '#76817b' }}>{val || '--:--'}</div>
+                    </button>
+                  )
+                })}
+              </div>
+              {(edge === 'brkStart' || edge === 'brkEnd') && (
+                <div className="flex items-center justify-center gap-1 mt-2.5">
+                  <EHWheel values={WHEEL_HOURS} value={ch} onChange={(h) => setCur(h, cm)} />
+                  <span className="font-mono text-[21px] font-semibold text-charcoal/40 pb-0.5">:</span>
+                  <EHWheel values={WHEEL_MINS} value={cm} onChange={(m) => setCur(ch, m)} />
+                </div>
+              )}
+              {brk > 0 && (
+                <div className="mt-1.5 text-center font-mono text-[11.5px] text-charcoal/50">{ehDurLabel(brk)} break</div>
+              )}
+              {brk <= 0 && brkStart && brkEnd && (
+                <div className="mt-1.5 text-center font-mono text-[11.5px] text-danger">Break end must be after break start</div>
+              )}
+            </>
+          )}
         </div>
 
         {/* live delta strip */}
@@ -334,7 +425,7 @@ function FixHoursSheet({ ctx, onClose, onSubmit }) {
           <div className="flex items-baseline gap-2">
             <span className="font-mono text-[15px] font-bold tabular-nums text-charcoal">{start}–{end}</span>
             <span className="text-[12.5px]" style={{ color: invalid ? '#b3331c' : '#76817b' }}>
-              {invalid ? 'clock-out must be after clock-in' : ehDurLabel(newMins)}
+              {invalid ? (newMins <= 0 ? 'clock-out must be after clock-in' : 'invalid break times') : ehDurLabel(newMins)}
             </span>
           </div>
           {!invalid && changed && (
@@ -464,7 +555,7 @@ function DayWorkedCard({ session, role, req }) {
 }
 
 /* weekly worked section */
-function WorkedSection({ rows, reqs, hourlyRate, onFix }) {
+function WorkedSection({ rows, reqs, hourlyRate, onFix, isDateLocked }) {
   const total = rows.reduce((sum, r) => {
     const req = reqs[r.session.clockInId]
     const mins = req?.status === 'approved' ? (req.newMins ?? 0) : r.workedMins
@@ -511,6 +602,11 @@ function WorkedSection({ rows, reqs, hourlyRate, onFix }) {
               {status === 'pending' ? (
                 <span className="font-mono text-[12.5px] font-bold text-warning tabular-nums shrink-0">
                   {req.start}–{req.end}
+                </span>
+              ) : isDateLocked?.(r.session.date) ? (
+                <span className="shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded-[9px] border border-charcoal/10 text-charcoal/30 text-[11.5px] font-semibold bg-charcoal/4" title="Locked for payroll">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                  Locked
                 </span>
               ) : (
                 <button onClick={() => onFix(r.session, r.role)}
@@ -567,7 +663,7 @@ function StaffRotaView({ shifts, staff, loading, weekStart, prevWeek, nextWeek, 
   const selectedDateStr = format(selectedDate, 'yyyy-MM-dd')
   const myShifts = shifts.filter(s => s.staff_id === session?.staffId)
   const selectedShift = myShifts.find(s => s.shift_date === selectedDateStr)
-  const upcomingShifts = myShifts.filter(s => s.shift_date >= today).sort((a, b) => a.shift_date.localeCompare(b.shift_date))
+  const upcomingShifts = myShifts.filter(s => s.shift_date > today).sort((a, b) => a.shift_date.localeCompare(b.shift_date))
   const me = staff.find(s => s.id === session?.staffId)
   const hourlyRate = me?.hourly_rate
   const dayShifts = shifts.filter(s => s.shift_date === selectedDateStr)
@@ -585,8 +681,23 @@ function StaffRotaView({ shifts, staff, loading, weekStart, prevWeek, nextWeek, 
   const { venueId }   = useVenue()
   const ehToast       = useToast()
   const { sessions: clockSessions, reload: reloadClockSessions } = useClockSessions(session?.staffId ?? '')
-  const [fixCtx, setFixCtx]   = React.useState(null)
-  const [reqs, setReqs]       = React.useState({})   // clockInId → { status, start, end, newMins }
+  const [fixCtx, setFixCtx]     = React.useState(null)
+  const [reqs, setReqs]         = React.useState({})
+  const [payrollLocks, setPayrollLocks] = React.useState([])
+
+  // Load payroll locks so staff can't submit corrections for locked periods
+  React.useEffect(() => {
+    if (!venueId) return
+    supabase.from('app_settings').select('value').eq('venue_id', venueId).eq('key', 'payroll_locks').maybeSingle()
+      .then(({ data }) => {
+        try { setPayrollLocks(JSON.parse(data?.value ?? '[]')) } catch { setPayrollLocks([]) }
+      })
+  }, [venueId])
+
+  const isDateLocked = React.useCallback((date) => {
+    const d = format(date, 'yyyy-MM-dd')
+    return payrollLocks.some(l => d >= l.from && d <= l.to)
+  }, [payrollLocks])
 
   // Fetch pending/denied clock_edit_requests for this staff member
   React.useEffect(() => {
@@ -649,6 +760,10 @@ function StaffRotaView({ shifts, staff, loading, weekStart, prevWeek, nextWeek, 
 
   // Submit a correction request
   const submitFix = React.useCallback(async (clockSess, data) => {
+    if (isDateLocked(clockSess.date)) {
+      ehToast('This period has been locked for payroll — contact your manager', 'error')
+      return
+    }
     const reqIn  = applyTimeToDate(clockSess.clockInAt,  data.start)
     const reqOut = applyTimeToDate(clockSess.clockOutAt ?? clockSess.clockInAt, data.end)
     const { error } = await supabase.rpc('submit_clock_edit_request', {
@@ -690,7 +805,7 @@ function StaffRotaView({ shifts, staff, loading, weekStart, prevWeek, nextWeek, 
     <div className="flex flex-col gap-4">
       {/* Page header */}
       <div className="flex items-baseline justify-between px-1">
-        <span className="font-mono text-[10.5px] text-charcoal/50 tracking-[0.08em] uppercase">Rota</span>
+        <span className="font-mono text-[10.5px] text-charcoal/50 tracking-[0.08em] uppercase">My Shifts</span>
         <span className="font-mono text-[10.5px] text-charcoal/50">Week {weekNum} · {weekRange}</span>
       </div>
 
@@ -740,6 +855,17 @@ function StaffRotaView({ shifts, staff, loading, weekStart, prevWeek, nextWeek, 
             )}
           </div>
 
+          {/* Day at a glance — always at top */}
+          {dayShifts.length > 0 && (
+            <div>
+              <div className="flex items-baseline justify-between px-1 mb-2">
+                <span className="font-mono text-[10.5px] text-charcoal/50 tracking-[0.08em] uppercase font-semibold">Day at a glance</span>
+                <span className="font-mono text-[11px] text-charcoal/50">{dayShifts.length} on shift</span>
+              </div>
+              <GanttChart shifts={dayShifts} staff={staff} currentStaffId={session?.staffId} nowMins={nowMins} showNow={selectedDateStr === today} />
+            </div>
+          )}
+
           {/* Per-day card — worked day OR scheduled shift OR empty */}
           {selectedDaySession ? (
             <DayWorkedCard
@@ -779,6 +905,7 @@ function StaffRotaView({ shifts, staff, loading, weekStart, prevWeek, nextWeek, 
             reqs={reqs}
             hourlyRate={hourlyRate}
             onFix={(sess, role) => setFixCtx({ session: sess, role })}
+            isDateLocked={isDateLocked}
           />
 
           {/* Upcoming shifts */}
@@ -827,7 +954,7 @@ function StaffRotaView({ shifts, staff, loading, weekStart, prevWeek, nextWeek, 
                     </div>
                     <div>
                       <div className="font-mono text-[9.5px] text-charcoal/50 tracking-[0.06em] uppercase">Hours</div>
-                      <div className="font-mono text-[14px] font-semibold mt-0.5">{upcomingHours % 1 === 0 ? upcomingHours : upcomingHours.toFixed(1)}h</div>
+                      <div className="font-mono text-[14px] font-semibold mt-0.5">{Math.round(upcomingHours)}h</div>
                     </div>
                     {upcomingPay != null && (
                       <div>
@@ -842,17 +969,6 @@ function StaffRotaView({ shifts, staff, loading, weekStart, prevWeek, nextWeek, 
           ) : (
             <div className="bg-white border border-charcoal/10 rounded-2xl px-5 py-6 text-center">
               <p className="text-sm text-charcoal/40">No upcoming shifts in the next 2 weeks</p>
-            </div>
-          )}
-
-          {/* Day at a glance */}
-          {dayShifts.length > 0 && (
-            <div>
-              <div className="flex items-baseline justify-between px-1 mb-2">
-                <span className="font-mono text-[10.5px] text-charcoal/50 tracking-[0.08em] uppercase font-semibold">Day at a glance</span>
-                <span className="font-mono text-[11px] text-charcoal/50">{dayShifts.length} on shift</span>
-              </div>
-              <GanttChart shifts={dayShifts} staff={staff} currentStaffId={session?.staffId} nowMins={nowMins} showNow={selectedDateStr === today} />
             </div>
           )}
 
@@ -902,10 +1018,12 @@ export default function RotaPage() {
   const toast = useToast()
   const { venueId, venueName } = useVenue()
   const { session, isManager } = useSession()
+  const [searchParams] = useSearchParams()
+  const personalView = searchParams.get('personal') === '1'
 
   const [weekStart, setWeekStart] = useState(() => getWeekStart())
   const [numWeeks, setNumWeeks]   = useState(1)
-  const { shifts, loading, reload } = useShifts(weekStart, isManager ? numWeeks : 2)
+  const { shifts, loading, reload } = useShifts(weekStart, (isManager && !personalView) ? numWeeks : 2)
   const { staff, loading: staffLoading } = useStaffList()
   const crossShifts = useCrossVenueShifts(staff, weekStart, numWeeks, venueId)
   const { swaps, loading: swapsLoading, reload: reloadSwaps, pendingCount } = useShiftSwaps()
@@ -1288,7 +1406,7 @@ export default function RotaPage() {
   const resolvedSwaps = swaps.filter((s) => s.status !== 'pending')
   const swapCandidates = staff.filter((s) => s.id !== session?.staffId)
 
-  if (!isManager || true) {
+  if (!isManager || personalView) {
     return (
       <StaffRotaView
         shifts={shifts}

@@ -5,6 +5,7 @@ import { useSession } from '../../contexts/SessionContext'
 import { useAppSettings } from '../../hooks/useSettings'
 import { useTodaySummary } from '../../hooks/useTodaySummary'
 import { useChecksStatus } from '../../hooks/useChecksStatus'
+import { exportEHOReport } from '../../lib/exportData'
 
 // ── Design tokens ──────────────────────────────────────────────────────────
 const MC = {
@@ -188,7 +189,7 @@ function HubCard({ check, statusInfo, onClick, editMode, isHidden, onToggle }) {
 // ── ChecksHubPage ──────────────────────────────────────────────────────────
 export default function ChecksHubPage() {
   const navigate = useNavigate()
-  const { venueId, venueSlug } = useVenue()
+  const { venueId, venueSlug, venueName } = useVenue()
   const { session } = useSession()
   const { actionSchedules, closedDays, hiddenCheckTiles, saveHiddenCheckTiles } = useAppSettings()
 
@@ -345,6 +346,54 @@ export default function ChecksHubPage() {
           />
         ))}
       </div>
+
+      {/* EHO Audit strip */}
+      {!editMode && (
+        <div style={{ marginTop: 16, borderRadius: 12, border: `1px solid ${MC.line}`, background: MC.paper, overflow: 'hidden' }}>
+          <button
+            onClick={() => navigate(vp('/audit'))}
+            style={{
+              width: '100%', textAlign: 'left', cursor: 'pointer',
+              background: 'none', border: 'none', padding: '13px 14px',
+              display: 'flex', alignItems: 'center', gap: 10,
+            }}
+          >
+            <span style={{
+              width: 32, height: 32, borderRadius: 9, flexShrink: 0,
+              background: MC.surf, color: MC.ink2,
+              display: 'grid', placeItems: 'center',
+            }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h4"/>
+              </svg>
+            </span>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 14, fontWeight: 600, color: MC.ink, letterSpacing: '-0.01em' }}>EHO Audit</div>
+              <div style={{ fontSize: 11.5, color: MC.ink3, marginTop: 1 }}>Compliance summary &amp; export</div>
+            </div>
+            <svg width="6" height="10" viewBox="0 0 6 10" fill="none" stroke={MC.ink4} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M1 1l4 4-4 4"/>
+            </svg>
+          </button>
+          <div style={{ borderTop: `1px solid ${MC.line2}`, padding: '10px 14px' }}>
+            <button
+              onClick={() => exportEHOReport(venueId, venueName, 90)}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 6,
+                fontFamily: 'ui-monospace, SFMono-Regular, monospace',
+                fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase',
+                color: MC.ink2, background: MC.surf,
+                border: 'none', borderRadius: 7, padding: '6px 10px', cursor: 'pointer',
+              }}
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+              </svg>
+              Export Report
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

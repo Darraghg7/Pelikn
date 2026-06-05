@@ -293,7 +293,7 @@ function getManagerTabs(vp, isEnabled, complianceNavOrder = []) {
     })
 
   const teamChildren = [
-    { to: vp('/rota'),      label: 'Rota',     feature: 'rota' },
+    { to: vp('/rota?personal=1'), label: 'My Shifts', feature: 'rota' },
     { to: vp('/timesheet'), label: 'Hours',    feature: 'timesheet' },
     { to: vp('/training'),  label: 'Training', feature: 'training' },
     { to: vp('/time-off'),  label: 'Time Off', feature: 'time_off' },
@@ -369,7 +369,7 @@ function getStaffTabs(session, vp, isEnabled) {
     },
     ...(isEnabled('rota') ? [{
       key: 'rota',
-      label: 'Rota',
+      label: 'My Shifts',
       to: vp('/rota'),
       icon: CalendarIcon,
       match: ['/rota'],

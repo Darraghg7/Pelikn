@@ -112,20 +112,20 @@ test.describe('Roles management', () => {
 
 test.describe('Venue settings', () => {
   test('shows venue config section', async ({ page }) => {
-    await goto(page, '/settings')
+    // Settings hub routes each card to its own sub-page (PR #33)
+    await goto(page, '/settings/venue')
     await expect(
-      page.getByText(/brew.and.bloom|venue name/i).first()
+      page.getByText(/venue|name|logo/i).first()
     ).toBeVisible({ timeout: 6000 })
   })
 })
 
 test.describe('Permission management', () => {
   test('can view staff permissions', async ({ page }) => {
-    await goto(page, '/staff')
-    const staffRow = page.getByText(/sarah|james|tom|lucy/i).first()
-    if (await staffRow.count() > 0) await staffRow.click()
+    // Permission levels are now under /settings/staff (PR #34)
+    await goto(page, '/settings/staff')
     await expect(
-      page.getByText(/log temps|cleaning|allergen|delivery|permission/i).first()
+      page.getByText(/permission levels/i).first()
     ).toBeVisible({ timeout: 6000 })
   })
 })
