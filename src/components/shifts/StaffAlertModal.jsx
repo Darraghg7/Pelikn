@@ -122,6 +122,7 @@ function ReasonChips({ type, strikeCount, selected, onSelect }) {
         {reasons.map(r => (
           <button
             key={r}
+            type="button"
             onClick={() => onSelect(selected === r ? null : r)}
             style={{
               border: `1.5px solid ${selected === r ? INK2 : LINE}`,
@@ -149,12 +150,13 @@ export default function StaffAlertModal({
   type = 'late_clock_in',
   minsOver = 0,
   strikeCount = 1,
-  scheduledTime,   // e.g. "07:00" — for late clock-in
-  actualTime,      // e.g. "07:04" — for late clock-in
-  breakStartTime,  // e.g. "13:00" — for break overrun
+  scheduledTime,       // e.g. "07:00" — for late clock-in
+  actualTime,          // e.g. "07:04" — for late clock-in
+  breakStartTime,      // e.g. "13:00" — for break overrun
   breakAllowanceMins = 30,
-  takenMins,       // e.g. 41 — for break overrun
-  onAcknowledge,   // (reason: string|null) => void
+  takenMins,           // e.g. 41 — for break overrun
+  requireLateReason = true,
+  onAcknowledge,       // (reason: string|null) => void
 }) {
   const tone = getTone(strikeCount)
   const [visible, setVisible] = useState(false)
@@ -182,6 +184,10 @@ export default function StaffAlertModal({
 
   const showBanner   = strikeCount >= 3
   const bannerSevere = strikeCount >= 4
+
+  const showReasonChips = requireLateReason
+  const reasonRequired  = requireLateReason && strikeCount >= 3
+  const submitDisabled  = reasonRequired && !selectedReason
 
   return (
     <div
@@ -312,30 +318,35 @@ export default function StaffAlertModal({
           )}
 
           {/* Reason chips */}
-          <ReasonChips
-            type={type}
-            strikeCount={strikeCount}
-            selected={selectedReason}
-            onSelect={setSelectedReason}
-          />
+          {showReasonChips && (
+            <ReasonChips
+              type={type}
+              strikeCount={strikeCount}
+              selected={selectedReason}
+              onSelect={setSelectedReason}
+            />
+          )}
 
           {/* Acknowledge button */}
           <button
-            onClick={() => onAcknowledge(selectedReason)}
+            type="button"
+            onClick={() => !submitDisabled && onAcknowledge(selectedReason)}
+            disabled={submitDisabled}
             style={{
               width: '100%',
               height: 50,
               borderRadius: 13,
-              background: '#13362a',
+              background: submitDisabled ? '#8a9e95' : '#13362a',
               color: '#fff',
               fontWeight: 700,
               fontSize: 15,
               border: 'none',
-              cursor: 'pointer',
+              cursor: submitDisabled ? 'not-allowed' : 'pointer',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               gap: 8,
+              opacity: submitDisabled ? 0.6 : 1,
             }}
           >
             <CheckIcon />

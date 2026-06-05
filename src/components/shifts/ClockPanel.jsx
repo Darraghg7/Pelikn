@@ -12,6 +12,7 @@ import LoadingSpinner from '../ui/LoadingSpinner'
 import { supabase } from '../../lib/supabase'
 import { sendPush } from '../../lib/sendPush'
 import StaffAlertModal from './StaffAlertModal'
+import { useSettings } from '../../hooks/useSettings'
 
 const STATUS_CONFIG = {
   clocked_out: { label: 'Not Clocked In', color: 'text-charcoal/50', dot: 'bg-charcoal/25' },
@@ -177,6 +178,7 @@ async function countBreakStrikes(staffId, venueId, now) {
 export default function ClockPanel({ staffId, hasShift = true, compact = false }) {
   const { venueId } = useVenue()
   const toast = useToast()
+  const { requireLateReason } = useSettings()
   const { status, clockInAt, breakStartAt, totalBreakMs, loading, reload } = useClockStatus(staffId)
   const [submitting, setSubmitting] = useState(false)
 
@@ -428,6 +430,7 @@ export default function ClockPanel({ staffId, hasShift = true, compact = false }
         breakStartTime={alert?.breakStartTime}
         breakAllowanceMins={alert?.breakAllowanceMins ?? breakAllowanceMins}
         takenMins={alert?.takenMins}
+        requireLateReason={requireLateReason}
         onAcknowledge={handleAcknowledge}
       />
 
