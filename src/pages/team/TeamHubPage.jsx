@@ -90,60 +90,44 @@ function AttendanceHero({ onShift, lateCount, loading, onClick }) {
       style={{
         width: '100%', textAlign: 'left', cursor: 'pointer',
         background: MC.brand, color: '#fff',
-        border: 'none', borderRadius: 14, padding: '15px 16px',
+        border: 'none', borderRadius: 14, padding: '14px 16px',
+        display: 'flex', alignItems: 'center', gap: 14,
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <span style={{
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{
           fontFamily: MONO, fontSize: 10, letterSpacing: '0.1em',
           textTransform: 'uppercase', color: 'rgba(255,255,255,0.55)', fontWeight: 600,
-        }}>On shift now</span>
-        <span style={{
-          display: 'inline-flex', alignItems: 'center', gap: 6,
-          fontFamily: MONO, fontSize: 10, letterSpacing: '0.06em',
-          textTransform: 'uppercase', fontWeight: 600, color: 'rgba(255,255,255,0.85)',
-        }}>
-          Attendance
-          <svg width="6" height="10" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M1 1l4 4-4 4"/>
-          </svg>
-        </span>
-      </div>
-
-      <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginTop: 8 }}>
-        <span style={{ fontFamily: MONO, fontSize: 34, fontWeight: 500, letterSpacing: '-0.03em', lineHeight: 1 }}>
-          {loading ? '—' : onShift.length}
-        </span>
-        <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)' }}>clocked in</span>
+        }}>On shift now</div>
+        <div style={{ fontSize: 16, fontWeight: 600, letterSpacing: '-0.015em', marginTop: 3 }}>
+          {loading
+            ? 'Loading…'
+            : onShift.length === 0
+              ? 'No staff clocked in yet'
+              : `${onShift.length} clocked in`}
+        </div>
         {!loading && lateCount > 0 && (
-          <span style={{
-            marginLeft: 'auto',
-            display: 'inline-flex', alignItems: 'center', gap: 5,
-            fontFamily: MONO, fontSize: 11, fontWeight: 600, color: '#ffb4a6',
-          }}>
-            <span style={{ width: 5, height: 5, borderRadius: 3, background: 'currentColor' }} />
-            {lateCount} late
-          </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 7 }}>
+            <span style={{
+              display: 'inline-flex', alignItems: 'center', gap: 5,
+              fontFamily: MONO, fontSize: 11, fontWeight: 600, color: '#ffb4a6',
+            }}>
+              <span style={{ width: 5, height: 5, borderRadius: 3, background: 'currentColor' }} />
+              {lateCount} late
+            </span>
+          </div>
         )}
       </div>
-
-      {!loading && onShift.length > 0 && (
-        <div style={{ display: 'flex', alignItems: 'center', marginTop: 13 }}>
-          {onShift.slice(0, 6).map((p, i) => (
-            <AvatarChip key={p.id} name={p.name} status={p.status} index={i} />
-          ))}
-          {onShift.length > 6 && (
-            <span style={{
-              marginLeft: 4, fontFamily: MONO, fontSize: 10, color: 'rgba(255,255,255,0.6)',
-            }}>+{onShift.length - 6}</span>
-          )}
-        </div>
-      )}
-      {!loading && onShift.length === 0 && (
-        <div style={{ marginTop: 10, fontSize: 12.5, color: 'rgba(255,255,255,0.5)' }}>
-          No staff clocked in yet
-        </div>
-      )}
+      <span style={{
+        flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: 6,
+        fontFamily: MONO, fontSize: 10, letterSpacing: '0.06em',
+        textTransform: 'uppercase', fontWeight: 600, color: 'rgba(255,255,255,0.85)',
+      }}>
+        Attendance
+        <svg width="6" height="10" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M1 1l4 4-4 4"/>
+        </svg>
+      </span>
     </button>
   )
 }

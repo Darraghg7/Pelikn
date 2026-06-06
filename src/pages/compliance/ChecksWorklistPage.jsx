@@ -218,7 +218,7 @@ export default function ChecksWorklistPage() {
   }
 
   return (
-    <div style={{ minHeight: '100dvh', background: MC.bg }}>
+    <div style={{ minHeight: '100dvh', background: MC.bg, paddingBottom: 96 }}>
 
       {/* Header */}
       <div style={{ padding: '16px 0 12px' }}>
@@ -294,7 +294,7 @@ export default function ChecksWorklistPage() {
         )}
       </div>
 
-      <div style={{ height: 96 }} />
+
     </div>
   )
 }

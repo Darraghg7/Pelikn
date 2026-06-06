@@ -154,7 +154,8 @@ export function useTeamStatus(venueId) {
     }
 
     fetch()
-    return () => { cancelled = true }
+    const interval = setInterval(fetch, STALE_MS)
+    return () => { cancelled = true; clearInterval(interval) }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [venueId])
 

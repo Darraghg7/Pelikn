@@ -346,7 +346,7 @@ export default function TimeOffPage() {
   )
 
   // Zero-hours accrual — own (staff view)
-  const { accrued: ownAccrued } = useZeroHoursAccrual(
+  const { accrued: ownAccrued, avgDailyHours: ownAvgDaily } = useZeroHoursAccrual(
     ownProfile?.employment_type === 'zero_hours' ? session?.staffId : null,
     currentYear
   )
@@ -374,6 +374,16 @@ export default function TimeOffPage() {
     const remaining   = entitlement != null ? Math.max(0, entitlement - used) : null
     return { entitlement, used, remaining, isZeroHours: ownProfile.employment_type === 'zero_hours' }
   }, [ownProfile, requests, session?.staffId])
+
+  // For zero-hours: convert approved leave days → estimated hours used
+  const ownUsedHours = useMemo(() => {
+    if (!ownBalance?.isZeroHours || ownBalance.used == null) return null
+    return Math.round(ownBalance.used * (ownAvgDaily ?? 7.6) * 10) / 10
+  }, [ownBalance, ownAvgDaily])
+  const ownRemainingHours = useMemo(() => {
+    if (ownAccrued == null || ownUsedHours == null) return ownAccrued ?? null
+    return Math.round(Math.max(0, ownAccrued - ownUsedHours) * 10) / 10
+  }, [ownAccrued, ownUsedHours])
 
   const [month, setMonth]           = useState(new Date())
   const [showRequest, setShowRequest] = useState(false)
@@ -768,11 +778,21 @@ export default function TimeOffPage() {
             </div>
           )}
           {form.leaveType === 'annual' && ownBalance?.isZeroHours && (
-            <p className="text-xs text-charcoal/40 bg-charcoal/4 rounded-xl px-4 py-3">
-              {ownAccrued != null
-                ? `You've accrued ${ownAccrued} hrs of holiday this year (12.07% of hours worked).`
-                : 'Calculating your accrued holiday…'}
-            </p>
+            <div className="rounded-xl bg-charcoal/4 px-4 py-3 flex items-center justify-between">
+              <div>
+                <p className="text-xs font-medium text-charcoal">{currentYear} Holiday Accrual</p>
+                <p className="text-[11px] text-charcoal/45 mt-0.5">
+                  {ownUsedHours != null ? `~${ownUsedHours} h used · ` : ''}
+                  {ownAccrued != null ? `${ownAccrued} h accrued (12.07%)` : 'Calculating…'}
+                </p>
+              </div>
+              <div className="text-right">
+                <p className={`text-sm font-bold ${ownRemainingHours === 0 ? 'text-danger' : ownRemainingHours != null && ownRemainingHours <= 4 ? 'text-warning' : 'text-success'}`}>
+                  {ownRemainingHours != null ? `${ownRemainingHours} h` : '—'}
+                </p>
+                <p className="text-[10px] text-charcoal/30">remaining</p>
+              </div>
+            </div>
           )}
 
           {/* Dates */}
@@ -798,11 +818,11 @@ export default function TimeOffPage() {
             </div>
           </div>
 
-          {/* Days preview for annual leave */}
-          {form.leaveType === 'annual' && previewDays != null && previewDays > 0 && (
+          {/* Days / hours preview for annual leave */}
+          {form.leaveType === 'annual' && previewDays != null && previewDays > 0 && !ownBalance?.isZeroHours && (
             <p className="text-xs text-charcoal/50 -mt-2">
               This request covers <span className="font-semibold text-charcoal">{fmtDays(previewDays)}</span> of your working days.
-              {ownBalance && !ownBalance.isZeroHours && ownBalance.remaining != null && (
+              {ownBalance && ownBalance.remaining != null && (
                 <span className={(ownBalance.remaining - previewDays) < 0 ? ' text-danger font-medium' : ''}>
                   {(ownBalance.remaining - previewDays) < 0
                     ? ` You only have ${fmtDays(ownBalance.remaining)} remaining — this exceeds your balance.`
@@ -811,6 +831,30 @@ export default function TimeOffPage() {
               )}
             </p>
           )}
+          {form.leaveType === 'annual' && previewDays != null && previewDays > 0 && ownBalance?.isZeroHours && ownAccrued != null && (() => {
+            const avgD = ownAvgDaily ?? 7.6
+            const reqHours = Math.round(previewDays * avgD * 10) / 10
+            const remaining = ownRemainingHours ?? ownAccrued
+            const paidHours = Math.min(reqHours, remaining)
+            const unpaidHours = Math.round(Math.max(0, reqHours - remaining) * 10) / 10
+            const afterHours = Math.round(Math.max(0, remaining - reqHours) * 10) / 10
+            return (
+              <div className={`-mt-2 rounded-xl px-4 py-3 text-xs ${unpaidHours > 0 ? 'bg-warning/8 border border-warning/20' : 'bg-charcoal/4'}`}>
+                <p className="text-charcoal/60">
+                  This request covers <span className="font-semibold text-charcoal">{fmtDays(previewDays)}</span> (~{reqHours} h based on your average shift length).
+                </p>
+                {unpaidHours > 0 ? (
+                  <p className="mt-1 font-medium text-warning">
+                    ~{Math.round(paidHours * 10) / 10} h paid · ~{unpaidHours} h unpaid — you don't have enough accrued hours to cover this in full.
+                  </p>
+                ) : (
+                  <p className="mt-1 text-charcoal/50">
+                    You'll have ~{afterHours} h remaining after this.
+                  </p>
+                )}
+              </div>
+            )
+          })()}
 
           <div>
             <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1">Reason (optional)</label>

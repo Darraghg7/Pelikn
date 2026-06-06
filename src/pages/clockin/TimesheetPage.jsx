@@ -1,49 +1,58 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react'
-import { format, endOfWeek, addWeeks, addDays, startOfMonth, endOfMonth, subMonths, parseISO, eachDayOfInterval, getDay } from 'date-fns'
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react'
+import { format, endOfWeek, addWeeks, startOfMonth, endOfMonth, subMonths, parseISO, eachDayOfInterval } from 'date-fns'
 import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
 import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../../components/ui/Toast'
 import { useTimesheetData } from '../../hooks/useClockEvents'
-import { useShifts, useStaffList, unpaidBreakMins } from '../../hooks/useShifts'
-import { useAppSettings } from '../../hooks/useSettings'
-import { formatMinutes, getWeekStart, getWeekDays, downloadCsv } from '../../lib/utils'
+import { useStaffList } from '../../hooks/useShifts'
+import { formatMinutes, getWeekStart, downloadCsv } from '../../lib/utils'
 import { buildPdfReport } from '../../lib/pdfUtils'
 import { countWorkingDaysInRequest } from '../../hooks/useLeaveBalance'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
 import AddSessionModal from './AddSessionModal'
-import EditSessionModal from './EditSessionModal'
-import DrillDownPanel from './DrillDownPanel'
 import ClockEditApprovalCard from '../../components/shifts/ClockEditApprovalCard'
 
-const END_OF_DAY_MS = 86_399_999
+// ── Design tokens ─────────────────────────────────────────────────────────────
+const MC = {
+  ink: '#0d1a14', ink2: '#3d4a44', ink3: '#76817b', ink4: '#b3b9b5',
+  line: '#e4e6e2', line2: '#eef0ec',
+  bg: '#f3f3ef', paper: '#ffffff',
+  brand: '#13362a', brandTint: '#eef4f0',
+  good: '#1a7a4c',
+  warn: '#a85d12', warnBg: '#fbeedc',
+  bad:  '#b3331c', badBg: '#fbeae6',
+}
+const MF = '"Geist", -apple-system, "SF Pro Text", system-ui, sans-serif'
+const MM = '"Geist Mono", ui-monospace, "SF Mono", monospace'
 
-function SectionLabel({ children }) {
-  return <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-3">{children}</p>
+const STATIONS = {
+  Kitchen: { bg: '#f0ebde', fg: '#6b5028' },
+  FOH:     { bg: '#e7eef3', fg: '#2a4a66' },
+  Bar:     { bg: '#eaeae6', fg: '#3a3a30' },
+  KP:      { bg: '#ecdfe1', fg: '#5a3036' },
 }
 
+// ── Wheel picker constants ─────────────────────────────────────────────────────
+const WH_HOURS  = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'))
+const WH_MINS   = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0'))
+const WH_BREAKS = [0, 5, 10, 15, 20, 30, 45, 60]
+const WH_IH = 36, WH_VIS = 5
+
+// ── Data helpers ───────────────────────────────────────────────────────────────
 function fmtGBP(n) { return `£${Number(n).toFixed(2)}` }
 
-function discrepancyStatus(actualMins, expectedMins, cleanupMins) {
-  if (expectedMins === undefined) return null
-  if (actualMins === 0)           return 'absent'
-  const delta = expectedMins - actualMins
-  if (delta <= cleanupMins) return 'ok'
-  if (delta <= 30)          return 'minor'
-  return 'significant'
+function minsStr(mins) {
+  if (mins <= 0) return '0m'
+  const h = Math.floor(mins / 60), m = Math.round(mins % 60)
+  return m === 0 ? `${h}h` : `${h}h ${m}m`
 }
 
 function buildTimesheets(events, staffRates) {
   const results = {}
   for (const e of events) {
     const sid = e.staff_id
-    if (!results[sid]) results[sid] = {
-      staffId: sid,
-      name: e.staff?.name ?? 'Unknown',
-      hourlyRate: staffRates[sid] ?? 0,
-      sessions: [],
-      totalMinutes: 0,
-    }
+    if (!results[sid]) results[sid] = { staffId: sid, name: e.staff?.name ?? 'Unknown', hourlyRate: staffRates[sid] ?? 0, sessions: [], totalMinutes: 0 }
     const r = results[sid]
     if (e.event_type === 'clock_in')    r.sessions.push({ in: e.occurred_at, out: null, breaks: [] })
     if (e.event_type === 'clock_out'   && r.sessions.length) r.sessions[r.sessions.length - 1].out = e.occurred_at
@@ -57,10 +66,7 @@ function buildTimesheets(events, staffRates) {
     for (const s of r.sessions) {
       if (!s.in || !s.out) continue
       const worked = (new Date(s.out) - new Date(s.in)) / 60000
-      const breaks = s.breaks.reduce((acc, b) => {
-        if (!b.start || !b.end) return acc
-        return acc + (new Date(b.end) - new Date(b.start)) / 60000
-      }, 0)
+      const breaks = s.breaks.reduce((acc, b) => (!b.start || !b.end) ? acc : acc + (new Date(b.end) - new Date(b.start)) / 60000, 0)
       r.totalMinutes += Math.max(0, worked - breaks)
     }
   }
@@ -71,28 +77,23 @@ function buildDailyGrid(events) {
   const grid = {}
   for (const e of events) {
     const sid = e.staff_id
-    if (!grid[sid]) grid[sid] = { name: e.staff?.name ?? 'Unknown', sessions: [] }
+    if (!grid[sid]) grid[sid] = { sessions: [] }
     const r = grid[sid]
     if (e.event_type === 'clock_in')
       r.sessions.push({ in: e.occurred_at, inId: e.id, out: null, outId: null, breaks: [], date: e.occurred_at.slice(0, 10) })
     if (e.event_type === 'clock_out' && r.sessions.length) {
-      const last = r.sessions[r.sessions.length - 1]
-      last.out = e.occurred_at
-      last.outId = e.id
+      const last = r.sessions[r.sessions.length - 1]; last.out = e.occurred_at; last.outId = e.id
     }
     if (e.event_type === 'break_start' && r.sessions.length)
       r.sessions[r.sessions.length - 1].breaks.push({ start: e.occurred_at, startId: e.id, end: null, endId: null })
     if (e.event_type === 'break_end' && r.sessions.length) {
       const br = r.sessions[r.sessions.length - 1].breaks
-      if (br.length) {
-        const lastBreak = br[br.length - 1]
-        if (!lastBreak.end) { lastBreak.end = e.occurred_at; lastBreak.endId = e.id }
-      }
+      if (br.length) { const lb = br[br.length - 1]; if (!lb.end) { lb.end = e.occurred_at; lb.endId = e.id } }
     }
   }
   const result = {}
   for (const [sid, r] of Object.entries(grid)) {
-    result[sid] = { staffId: sid, name: r.name, days: {} }
+    result[sid] = { staffId: sid, days: {} }
     for (const s of r.sessions) {
       if (!s.in) continue
       const date = s.date
@@ -101,22 +102,19 @@ function buildDailyGrid(events) {
       day.sessions.push({ in: s.in, inId: s.inId, out: s.out, outId: s.outId, breaks: s.breaks })
       if (s.out) {
         const worked = (new Date(s.out) - new Date(s.in)) / 60000
-        const brk = s.breaks.reduce((acc, b) =>
-          (!b.start || !b.end) ? acc : acc + (new Date(b.end) - new Date(b.start)) / 60000, 0)
+        const brk = s.breaks.reduce((acc, b) => (!b.start || !b.end) ? acc : acc + (new Date(b.end) - new Date(b.start)) / 60000, 0)
         day.minutes += Math.max(0, worked - brk)
       }
     }
   }
-  return Object.values(result).sort((a, b) => a.name.localeCompare(b.name))
+  return result
 }
 
-// Holiday pay: calculate total holiday minutes from approved annual leave requests.
-// periodFrom/periodTo are YYYY-MM-DD strings used to clip cross-period requests.
 function calcHolidayMins(leaveReqs, staffId, profile, periodFrom, periodTo) {
   const reqs = leaveReqs.filter(r => r.staff_id === staffId)
   if (!reqs.length) return 0
   const { contractedHours, workingDays } = profile
-  if (!contractedHours || contractedHours <= 0) return 0  // return 0, not a fabricated 8h default
+  if (!contractedHours || contractedHours <= 0) return 0
   const daysPerWeek = workingDays?.length > 0 ? workingDays.length : 5
   const dailyHours  = contractedHours / daysPerWeek
   return reqs.reduce((sum, r) => {
@@ -126,244 +124,386 @@ function calcHolidayMins(leaveReqs, staffId, profile, periodFrom, periodTo) {
   }, 0)
 }
 
+const END_OF_DAY_MS = 86_399_999
+
 const PERIODS = [
-  { key: 'this_week',  label: 'This Week' },
-  { key: 'last_week',  label: 'Last Week' },
+  { key: 'this_week',  label: 'This Week'  },
+  { key: 'last_week',  label: 'Last Week'  },
   { key: 'this_month', label: 'This Month' },
   { key: 'last_month', label: 'Last Month' },
-  { key: 'custom',     label: 'Custom' },
+  { key: 'custom',     label: 'Custom'     },
 ]
 
 function periodToDates(period, customFrom, customTo) {
   const now = new Date()
   const thisWeekStart = getWeekStart(now)
   const thisWeekEnd   = endOfWeek(thisWeekStart, { weekStartsOn: 1 })
-
-  if (period === 'this_week') return {
-    dateFrom: thisWeekStart.toISOString(),
-    dateTo:   thisWeekEnd.toISOString(),
-    label: `${format(thisWeekStart, 'd MMM')} – ${format(thisWeekEnd, 'd MMM yyyy')}`,
-  }
+  if (period === 'this_week') return { dateFrom: thisWeekStart.toISOString(), dateTo: thisWeekEnd.toISOString(), label: `${format(thisWeekStart, 'd MMM')} – ${format(thisWeekEnd, 'd MMM yyyy')}` }
   if (period === 'last_week') {
-    const start = addWeeks(thisWeekStart, -1)
-    const end   = endOfWeek(start, { weekStartsOn: 1 })
-    return {
-      dateFrom: start.toISOString(),
-      dateTo:   end.toISOString(),
-      label: `${format(start, 'd MMM')} – ${format(end, 'd MMM yyyy')}`,
-    }
+    const start = addWeeks(thisWeekStart, -1), end = endOfWeek(start, { weekStartsOn: 1 })
+    return { dateFrom: start.toISOString(), dateTo: end.toISOString(), label: `${format(start, 'd MMM')} – ${format(end, 'd MMM yyyy')}` }
   }
   if (period === 'this_month') {
-    const start = startOfMonth(now)
-    const end   = endOfMonth(now)
+    const start = startOfMonth(now), end = endOfMonth(now)
     return { dateFrom: start.toISOString(), dateTo: end.toISOString(), label: format(now, 'MMMM yyyy') }
   }
   if (period === 'last_month') {
-    const last  = subMonths(now, 1)
-    const start = startOfMonth(last)
-    const end   = endOfMonth(last)
+    const last = subMonths(now, 1), start = startOfMonth(last), end = endOfMonth(last)
     return { dateFrom: start.toISOString(), dateTo: end.toISOString(), label: format(last, 'MMMM yyyy') }
   }
   if (customFrom && customTo) {
-    const start = parseISO(customFrom)
-    const end   = parseISO(customTo)
-    return {
-      dateFrom: start.toISOString(),
-      dateTo:   new Date(end.getTime() + END_OF_DAY_MS).toISOString(),
-      label: `${format(start, 'd MMM yyyy')} – ${format(end, 'd MMM yyyy')}`,
-    }
+    const start = parseISO(customFrom), end = parseISO(customTo)
+    return { dateFrom: start.toISOString(), dateTo: new Date(end.getTime() + END_OF_DAY_MS).toISOString(), label: `${format(start, 'd MMM yyyy')} – ${format(end, 'd MMM yyyy')}` }
   }
   return { dateFrom: '', dateTo: '', label: '—' }
 }
 
+// ── UI atoms ───────────────────────────────────────────────────────────────────
+function Avatar({ name, station, size = 34 }) {
+  const initials = name.split(' ').map(w => w[0]).slice(0, 2).join('')
+  const st = STATIONS[station] || { bg: MC.brandTint, fg: MC.brand }
+  return (
+    <span style={{ width: size, height: size, borderRadius: 9, flexShrink: 0, background: st.bg, color: st.fg, display: 'grid', placeItems: 'center', fontFamily: MM, fontSize: Math.round(size * 0.32), fontWeight: 600, letterSpacing: '0.02em' }}>
+      {initials}
+    </span>
+  )
+}
+
+function SumTile({ label, value, sub, subGood }) {
+  return (
+    <div style={{ flex: 1, background: MC.bg, borderRadius: 11, padding: '10px 12px' }}>
+      <div style={{ fontFamily: MM, fontSize: 9, color: MC.ink3, textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 600, marginBottom: 5, lineHeight: 1.3 }}>{label}</div>
+      <div style={{ fontFamily: MM, fontSize: 17, fontWeight: 600, color: MC.ink, letterSpacing: '-0.025em', fontVariantNumeric: 'tabular-nums', lineHeight: 1 }}>{value || '—'}</div>
+      {sub && <div style={{ fontFamily: MM, fontSize: 10, color: subGood ? MC.good : MC.warn, marginTop: 5, fontWeight: 600 }}>{sub}</div>}
+    </div>
+  )
+}
+
+function PeriodChips({ period, onChange }) {
+  return (
+    <div style={{ display: 'flex', gap: 6, overflowX: 'auto', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch', paddingBottom: 1 }}>
+      {PERIODS.map(p => {
+        const on = period === p.key
+        return (
+          <button key={p.key} onClick={() => onChange(p.key)} style={{ flexShrink: 0, fontFamily: MF, fontSize: 13.5, fontWeight: on ? 600 : 500, cursor: 'pointer', padding: '7px 15px', borderRadius: 999, background: on ? MC.brand : MC.paper, color: on ? '#fff' : MC.ink2, border: on ? `1px solid ${MC.brand}` : `1px solid ${MC.line}` }}>
+            {p.label}
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
+function StaffRow({ t, station, last, onTap }) {
+  const hasData = t.totalMinutes > 0
+  const pay = (t.totalMinutes / 60) * t.hourlyRate
+  return (
+    <button onClick={onTap} style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '12px 14px', width: '100%', textAlign: 'left', cursor: 'pointer', background: 'transparent', border: 'none', fontFamily: MF, borderBottom: last ? 'none' : `1px solid ${MC.line2}` }}>
+      <Avatar name={t.name} station={station} size={38} />
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 14.5, fontWeight: 600, color: MC.ink, letterSpacing: '-0.01em', lineHeight: 1.2 }}>{t.name}</div>
+        {t.hourlyRate > 0 && <div style={{ fontFamily: MM, fontSize: 10.5, color: MC.ink3, marginTop: 3 }}>£{Number(t.hourlyRate).toFixed(2)}/hr</div>}
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+        <div style={{ textAlign: 'right' }}>
+          <div style={{ fontFamily: MM, fontSize: 15, fontWeight: 600, lineHeight: 1, fontVariantNumeric: 'tabular-nums', color: hasData ? MC.ink : MC.ink4 }}>{minsStr(t.totalMinutes)}</div>
+          <div style={{ fontFamily: MM, fontSize: 10.5, marginTop: 4, fontWeight: 600, color: hasData && pay > 0 ? MC.good : MC.ink4 }}>
+            {hasData && pay > 0 ? `£${pay.toFixed(2)}` : '—'}
+          </div>
+        </div>
+        <svg width="6" height="10" viewBox="0 0 6 10" fill="none" stroke={MC.ink4} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M1 1l4 4-4 4" /></svg>
+      </div>
+    </button>
+  )
+}
+
+// ── Wheel picker ───────────────────────────────────────────────────────────────
+function TsWheel({ values, value, onChange }) {
+  const ref   = useRef(null)
+  const timer = useRef(null)
+  const strVals = useMemo(() => values.map(String), [values])
+  const strVal  = String(value)
+  const idx = Math.max(0, strVals.indexOf(strVal))
+
+  const setNode = useCallback((node) => {
+    ref.current = node
+    if (node) node.scrollTop = idx * WH_IH
+  }, []) // eslint-disable-line
+
+  useEffect(() => { const el = ref.current; if (el) el.scrollTop = idx * WH_IH }, [strVal]) // eslint-disable-line
+
+  const onScroll = useCallback(() => {
+    clearTimeout(timer.current)
+    timer.current = setTimeout(() => {
+      const el = ref.current; if (!el) return
+      const i = Math.max(0, Math.min(strVals.length - 1, Math.round(el.scrollTop / WH_IH)))
+      if (el.scrollTop !== i * WH_IH) el.scrollTo({ top: i * WH_IH, behavior: 'smooth' })
+      if (strVals[i] !== strVal) onChange(strVals[i])
+    }, 80)
+  }, [strVals, strVal, onChange])
+
+  const pad = ((WH_VIS - 1) / 2) * WH_IH
+  return (
+    <div style={{ position: 'relative', height: WH_VIS * WH_IH, flex: 1 }}>
+      <div ref={setNode} onScroll={onScroll} style={{ height: WH_VIS * WH_IH, overflowY: 'scroll', scrollSnapType: 'y mandatory', padding: `${pad}px 0`, scrollbarWidth: 'none' }}>
+        {strVals.map((v, i) => {
+          const on = v === strVal
+          return (
+            <div key={v} onClick={() => { ref.current?.scrollTo({ top: i * WH_IH, behavior: 'smooth' }); onChange(v) }} style={{ height: WH_IH, display: 'flex', alignItems: 'center', justifyContent: 'center', scrollSnapAlign: 'center', cursor: 'pointer', fontFamily: MM, fontVariantNumeric: 'tabular-nums', fontSize: on ? 23 : 18, fontWeight: on ? 600 : 500, color: on ? MC.ink : MC.ink4, transition: 'font-size .1s, color .1s' }}>
+              {v}
+            </div>
+          )
+        })}
+      </div>
+      <div style={{ position: 'absolute', left: 0, right: 0, top: pad, height: WH_IH, pointerEvents: 'none', borderTop: `1px solid ${MC.line}`, borderBottom: `1px solid ${MC.line}`, background: 'rgba(19,54,42,0.03)' }} />
+      <div style={{ position: 'absolute', left: 0, right: 0, top: 0, height: pad, pointerEvents: 'none', background: `linear-gradient(${MC.bg}, ${MC.bg}00)` }} />
+      <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: pad, pointerEvents: 'none', background: `linear-gradient(${MC.bg}00, ${MC.bg})` }} />
+    </div>
+  )
+}
+
+// ── Edit session sheet (wheel picker) ──────────────────────────────────────────
+function EditSessionSheet({ staffName, dayLabel, session, onSave, onClose }) {
+  const toHM = (iso) => iso ? format(new Date(iso), 'HH:mm') : null
+  const [clockIn,  setIn]  = useState(toHM(session?.in)  || '08:00')
+  const [clockOut, setOut] = useState(toHM(session?.out) || '16:00')
+  const [brk,      setBrk] = useState(0)
+  const [edge,     setEdge]= useState('out')
+  const [ch, cm] = (edge === 'in' ? clockIn : clockOut).split(':')
+  const setCur = (h, m) => { const v = `${h}:${m}`; edge === 'in' ? setIn(v) : setOut(v) }
+  const toMin = (t) => { const [h, m] = t.split(':').map(Number); return h * 60 + m }
+  const worked = (s, e, b = 0) => { let d = toMin(e) - toMin(s); if (d < 0) d += 1440; return Math.max(0, d - b) }
+  const mins = worked(clockIn, clockOut, brk)
+  const valid = mins > 0
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 60, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
+      <div onClick={onClose} style={{ position: 'absolute', inset: 0, background: 'rgba(9,18,13,0.52)' }} />
+      <div style={{ position: 'relative', background: MC.bg, borderRadius: '22px 22px 0 0', padding: '10px 16px 34px', maxHeight: '90%', overflowY: 'auto', boxShadow: '0 -12px 40px rgba(9,18,13,0.24)' }}>
+        <div style={{ width: 38, height: 4, borderRadius: 2, background: MC.line, margin: '0 auto 16px' }} />
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 16 }}>
+          <div>
+            <div style={{ fontSize: 17, fontWeight: 600, letterSpacing: '-0.015em' }}>{dayLabel}</div>
+            <div style={{ fontSize: 12, color: MC.ink3, marginTop: 2 }}>{staffName}</div>
+          </div>
+          {session?.in && <span style={{ fontFamily: MM, fontSize: 9.5, fontWeight: 700, color: MC.warn, background: MC.warnBg, textTransform: 'uppercase', letterSpacing: '0.05em', padding: '4px 9px', borderRadius: 999 }}>Editing</span>}
+        </div>
+        <div style={{ display: 'flex', gap: 8, background: MC.line2, padding: 4, borderRadius: 12 }}>
+          {[['in', 'Clock in', clockIn], ['out', 'Clock out', clockOut]].map(([k, label, val]) => {
+            const on = edge === k
+            return (
+              <button key={k} onClick={() => setEdge(k)} style={{ flex: 1, cursor: 'pointer', fontFamily: MF, border: 'none', borderRadius: 9, padding: '8px 0', background: on ? MC.paper : 'transparent', boxShadow: on ? '0 1px 3px rgba(9,18,13,0.1)' : 'none' }}>
+                <div style={{ fontFamily: MM, fontSize: 9, color: MC.ink3, textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>{label}</div>
+                <div style={{ fontFamily: MM, fontSize: 17, fontWeight: 600, color: on ? MC.brand : MC.ink3, marginTop: 2, fontVariantNumeric: 'tabular-nums' }}>{val}</div>
+              </button>
+            )
+          })}
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, marginTop: 12 }}>
+          <TsWheel values={WH_HOURS} value={ch} onChange={(h) => setCur(h, cm)} />
+          <span style={{ fontFamily: MM, fontSize: 22, fontWeight: 600, color: MC.ink3, paddingBottom: 2 }}>:</span>
+          <TsWheel values={WH_MINS}  value={cm} onChange={(m) => setCur(ch, m)} />
+        </div>
+        <div style={{ marginTop: 8 }}>
+          <div style={{ fontFamily: MM, fontSize: 9.5, color: MC.ink3, letterSpacing: '0.07em', textTransform: 'uppercase', fontWeight: 600, padding: '0 2px 7px' }}>Unpaid break</div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+            {WH_BREAKS.map(b => {
+              const on = b === brk
+              return <button key={b} onClick={() => setBrk(b)} style={{ fontFamily: MM, fontSize: 12, fontWeight: 600, cursor: 'pointer', padding: '6px 11px', borderRadius: 9, border: `1px solid ${on ? MC.brand : MC.line}`, background: on ? MC.brand : MC.paper, color: on ? '#fff' : MC.ink2 }}>{b === 0 ? 'None' : `${b}m`}</button>
+            })}
+          </div>
+        </div>
+        <div style={{ marginTop: 10, padding: '10px 13px', borderRadius: 11, background: valid ? MC.brandTint : MC.badBg, display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ fontFamily: MM, fontSize: 14, fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>{clockIn} – {clockOut}</span>
+          <span style={{ fontSize: 12.5, color: valid ? MC.ink3 : MC.bad }}>· {valid ? minsStr(worked(clockIn, clockOut, brk)) : 'clock out must be after in'}</span>
+        </div>
+        <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
+          <button onClick={onClose} style={{ width: 90, height: 50, borderRadius: 13, border: `1px solid ${MC.line}`, background: MC.paper, color: MC.ink2, cursor: 'pointer', fontFamily: MF, fontSize: 14, fontWeight: 600 }}>Cancel</button>
+          <button disabled={!valid} onClick={() => { onSave({ clockIn, clockOut, brk }); onClose() }} style={{ flex: 1, height: 50, borderRadius: 13, border: 'none', cursor: valid ? 'pointer' : 'not-allowed', background: valid ? MC.brand : MC.line, color: valid ? '#fff' : MC.ink4, fontFamily: MF, fontSize: 15, fontWeight: 700 }}>Save hours</button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Staff hours bottom sheet ───────────────────────────────────────────────────
+function StaffHoursSheet({ t, station, periodDays, dailyGrid, periodLabel, onEditDay, onAddDay, onClose }) {
+  const staffGrid = dailyGrid[t.staffId] || null
+  const pay = (t.totalMinutes / 60) * t.hourlyRate
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
+      <div onClick={onClose} style={{ position: 'absolute', inset: 0, background: 'rgba(9,18,13,0.52)' }} />
+      <div style={{ position: 'relative', background: MC.bg, borderRadius: '22px 22px 0 0', padding: '20px 16px 34px', maxHeight: '90%', overflowY: 'auto', boxShadow: '0 -12px 40px rgba(9,18,13,0.24)' }}>
+        <div style={{ width: 38, height: 4, borderRadius: 2, background: MC.line, margin: '0 auto 16px' }} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
+          <Avatar name={t.name} station={station} size={44} />
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 17, fontWeight: 600, letterSpacing: '-0.015em' }}>{t.name}</div>
+            <div style={{ fontSize: 12, color: MC.ink3, marginTop: 2 }}>{periodLabel}</div>
+          </div>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          {periodDays.map((d, i) => {
+            const dateStr = format(d, 'yyyy-MM-dd')
+            const dayData = staffGrid?.days[dateStr]
+            const session = dayData?.sessions?.[0] || null
+            const has = !!(session?.in && session?.out)
+            const inTime  = has ? format(new Date(session.in),  'HH:mm') : null
+            const outTime = has ? format(new Date(session.out), 'HH:mm') : null
+            const breakMins = has ? session.breaks.reduce((acc, b) =>
+              (!b.start || !b.end) ? acc : acc + Math.round((new Date(b.end) - new Date(b.start)) / 60000), 0) : 0
+            return (
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 12, background: has ? MC.paper : MC.bg, border: `1px solid ${has ? MC.line : MC.line2}` }}>
+                <div style={{ width: 42, height: 46, borderRadius: 9, background: has ? MC.bg : MC.line2, border: `1px solid ${MC.line}`, flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
+                  <span style={{ fontFamily: MM, fontSize: 8.5, color: MC.ink3, fontWeight: 600, letterSpacing: '0.06em' }}>{format(d, 'EEE').toUpperCase()}</span>
+                  <span style={{ fontFamily: MM, fontSize: 15, fontWeight: 600, color: has ? MC.ink : MC.ink4, lineHeight: 1 }}>{format(d, 'd')}</span>
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  {has ? (
+                    <>
+                      <div style={{ fontFamily: MM, fontSize: 13.5, fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>{inTime} – {outTime}</div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 2 }}>
+                        <span style={{ fontFamily: MM, fontSize: 11.5, color: MC.ink3 }}>{minsStr(dayData.minutes)}</span>
+                        {breakMins > 0 && <><span style={{ color: MC.ink4 }}>·</span><span style={{ fontSize: 11.5, color: MC.ink3 }}>{breakMins}m break</span></>}
+                      </div>
+                    </>
+                  ) : <div style={{ fontSize: 13, color: MC.ink4 }}>Off</div>}
+                </div>
+                <button onClick={() => has ? onEditDay({ dateStr, session }) : onAddDay(dateStr)} style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: 4, padding: '7px 12px', borderRadius: 9, cursor: 'pointer', fontFamily: MF, fontSize: 12, fontWeight: 600, color: MC.ink2, background: MC.bg, border: `1px solid ${MC.line}` }}>
+                  {has
+                    ? <><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Edit</>
+                    : <><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14"/></svg>Add</>}
+                </button>
+              </div>
+            )
+          })}
+        </div>
+        <div style={{ marginTop: 14, padding: '13px 14px', background: MC.paper, borderRadius: 12, border: `1px solid ${MC.line}`, display: 'flex', alignItems: 'center', gap: 20 }}>
+          <div>
+            <div style={{ fontFamily: MM, fontSize: 9, color: MC.ink3, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 600 }}>Total</div>
+            <div style={{ fontFamily: MM, fontSize: 17, fontWeight: 600, color: MC.ink, marginTop: 3, fontVariantNumeric: 'tabular-nums' }}>{minsStr(t.totalMinutes)}</div>
+          </div>
+          {t.hourlyRate > 0 && (
+            <div>
+              <div style={{ fontFamily: MM, fontSize: 9, color: MC.ink3, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 600 }}>Est. pay</div>
+              <div style={{ fontFamily: MM, fontSize: 17, fontWeight: 600, color: pay > 0 ? MC.good : MC.ink4, marginTop: 3, fontVariantNumeric: 'tabular-nums' }}>{pay > 0 ? `£${pay.toFixed(2)}` : '—'}</div>
+            </div>
+          )}
+          <div style={{ marginLeft: 'auto' }}>
+            <div style={{ fontFamily: MM, fontSize: 9, color: MC.ink3, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 600 }}>Rate</div>
+            <div style={{ fontFamily: MM, fontSize: 12, fontWeight: 600, color: MC.ink3, marginTop: 3 }}>£{Number(t.hourlyRate).toFixed(2)}/hr</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Main page ──────────────────────────────────────────────────────────────────
 export default function TimesheetPage() {
   const [period,        setPeriod]        = useState('this_week')
   const [customFrom,    setCustomFrom]    = useState('')
   const [customTo,      setCustomTo]      = useState('')
   const [staffRates,    setStaffRates]    = useState({})
   const [staffProfiles, setStaffProfiles] = useState({})
-  const [weekOffset,    setWeekOffset]    = useState(0)
-  const [expandedStaff, setExpandedStaff] = useState(null)
-  const [adminMode,     setAdminMode]     = useState(false)
-  const [addTarget,     setAddTarget]     = useState(null)
-  const [editTarget,    setEditTarget]    = useState(null)
   const [periodLeave,   setPeriodLeave]   = useState([])
-  const [weekLeave,     setWeekLeave]     = useState([])
+  const [periodShifts,  setPeriodShifts]  = useState([])
   const [payrollLocks,  setPayrollLocks]  = useState([])
   const [lockSaving,    setLockSaving]    = useState(false)
+  const [selStaff,      setSelStaff]      = useState(null)
+  const [editCtx,       setEditCtx]       = useState(null)  // { dateStr, session }
+  const [addTarget,     setAddTarget]     = useState(null)  // { staffId, date }
 
   const { venueId }   = useVenue()
   const { isManager } = useSession()
   const toast         = useToast()
-  const { cleanupMinutes, breakDurationMins } = useAppSettings()
   const { staff: staffList } = useStaffList()
 
   const { dateFrom, dateTo, label: periodLabel } = useMemo(
     () => periodToDates(period, customFrom, customTo),
     [period, customFrom, customTo]
   )
+
   const { rows, loading, reload } = useTimesheetData(dateFrom, dateTo)
 
-  const gridWeekStart = useMemo(() => addWeeks(getWeekStart(new Date()), weekOffset), [weekOffset])
-  const gridWeekEnd   = useMemo(() => addDays(gridWeekStart, 6), [gridWeekStart])
-  const gridDays      = useMemo(() => getWeekDays(gridWeekStart), [gridWeekStart])
-  const gridDateFrom  = useMemo(() => gridWeekStart.toISOString(), [gridWeekStart])
-  const gridDateTo    = useMemo(() => new Date(gridWeekEnd.getTime() + END_OF_DAY_MS).toISOString(), [gridWeekEnd])
-  const { rows: gridRows, loading: gridLoading, reload: gridReload } = useTimesheetData(gridDateFrom, gridDateTo)
+  const timesheets   = useMemo(() => buildTimesheets(rows, staffRates), [rows, staffRates])
+  const dailyGrid    = useMemo(() => buildDailyGrid(rows), [rows])
+  const totalMins    = useMemo(() => timesheets.reduce((a, t) => a + t.totalMinutes, 0), [timesheets])
+  const totalWage    = useMemo(() => timesheets.reduce((a, t) => a + (t.totalMinutes / 60) * t.hourlyRate, 0), [timesheets])
 
-  const { shifts } = useShifts(gridWeekStart)
-
-  const expectedMap = useMemo(() => {
-    const map = {}
-    for (const sh of shifts) {
-      const [sh_h, sh_m] = sh.start_time.split(':').map(Number)
-      const [eh, em]     = sh.end_time.split(':').map(Number)
-      const rawMins = (eh * 60 + em) - (sh_h * 60 + sh_m)
-      const isU18   = sh.staff?.is_under_18 ?? false
-      const paid    = rawMins - unpaidBreakMins(rawMins / 60, isU18, breakDurationMins)
-      if (!map[sh.staff_id]) map[sh.staff_id] = {}
-      map[sh.staff_id][sh.shift_date] = (map[sh.staff_id][sh.shift_date] ?? 0) + paid
-    }
-    return map
-  }, [shifts, breakDurationMins])
-
-  const staffIsUnder18 = useMemo(() => {
-    const map = {}
-    for (const sh of shifts) {
-      if (sh.staff?.is_under_18 != null) map[sh.staff_id] = sh.staff.is_under_18
-    }
-    return map
-  }, [shifts])
-
-  const gridScheduled = useMemo(() => {
-    let totalMins = 0, totalCost = 0
-    const byStaff = {}
-    for (const sh of shifts) {
-      const [sh_h, sh_m] = sh.start_time.split(':').map(Number)
-      const [eh, em]     = sh.end_time.split(':').map(Number)
-      const mins = (eh * 60 + em) - (sh_h * 60 + sh_m)
-      totalMins += mins
-      const rate = staffRates[sh.staff_id] ?? 0
-      totalCost += (mins / 60) * rate
-      byStaff[sh.staff_id] = (byStaff[sh.staff_id] ?? 0) + mins
-    }
-    return { totalMins, totalCost, byStaff }
-  }, [shifts, staffRates])
-
-  const [periodShifts, setPeriodShifts] = useState([])
-  useEffect(() => {
-    if (!venueId || !dateFrom || !dateTo) return
-    const from = dateFrom.slice(0, 10)
-    const to   = dateTo.slice(0, 10)
-    supabase
-      .from('shifts')
-      .select('staff_id, start_time, end_time, shift_date')
-      .eq('venue_id', venueId)
-      .gte('shift_date', from)
-      .lte('shift_date', to)
-      .then(({ data }) => setPeriodShifts(data ?? []))
-  }, [venueId, dateFrom, dateTo])
+  const totalHolidayPay = useMemo(() => timesheets.reduce((a, t) => {
+    const profile = staffProfiles[t.staffId] ?? { contractedHours: null, workingDays: [] }
+    return a + (calcHolidayMins(periodLeave, t.staffId, profile, dateFrom.slice(0, 10), dateTo.slice(0, 10)) / 60) * t.hourlyRate
+  }, 0), [timesheets, periodLeave, staffProfiles, dateFrom, dateTo])
 
   const periodScheduled = useMemo(() => {
-    let totalMins = 0, totalCost = 0
-    const byStaff = {}
+    let totalM = 0, totalCost = 0
     for (const sh of periodShifts) {
       const [sh_h, sh_m] = sh.start_time.split(':').map(Number)
       const [eh, em]     = sh.end_time.split(':').map(Number)
       const mins = (eh * 60 + em) - (sh_h * 60 + sh_m)
-      totalMins += mins
-      const rate = staffRates[sh.staff_id] ?? 0
-      totalCost += (mins / 60) * rate
-      byStaff[sh.staff_id] = (byStaff[sh.staff_id] ?? 0) + mins
+      totalM    += mins
+      totalCost += (mins / 60) * (staffRates[sh.staff_id] ?? 0)
     }
-    return { totalMins, totalCost, byStaff }
+    return { totalMins: totalM, totalCost }
   }, [periodShifts, staffRates])
 
-  const scheduledOnlyStaff = useMemo(() => {
-    const inGrid = new Set(gridRows.map(e => e.staff_id))
-    const seen   = new Set()
-    const result = []
-    for (const sh of shifts) {
-      if (!inGrid.has(sh.staff_id) && !seen.has(sh.staff_id)) {
-        seen.add(sh.staff_id)
-        result.push({ staffId: sh.staff_id, name: sh.staff?.name ?? 'Unknown', days: {} })
-      }
-    }
-    return result.sort((a, b) => a.name.localeCompare(b.name))
-  }, [shifts, gridRows])
+  const stationMap = useMemo(() => {
+    const map = {}
+    for (const s of staffList ?? []) map[s.id] = s.station ?? ''
+    return map
+  }, [staffList])
+
+  // Enumerate days in selected period up to today (caps future days)
+  const periodDays = useMemo(() => {
+    if (!dateFrom || !dateTo) return []
+    try {
+      const end = new Date(Math.min(new Date(dateTo).getTime(), Date.now()))
+      return eachDayOfInterval({ start: new Date(dateFrom), end })
+    } catch { return [] }
+  }, [dateFrom, dateTo])
+
+  const periodFrom = dateFrom ? dateFrom.slice(0, 10) : ''
+  const periodTo   = dateTo   ? dateTo.slice(0, 10)   : ''
+  const isPeriodLocked = payrollLocks.some(l => l.from === periodFrom && l.to === periodTo)
 
   useEffect(() => {
     if (!venueId) return
-    supabase
-      .from('staff')
-      .select('id, hourly_rate, contracted_hours, working_days')
-      .eq('venue_id', venueId)
+    supabase.from('staff').select('id, hourly_rate, contracted_hours, working_days').eq('venue_id', venueId)
       .then(({ data }) => {
         if (!data) return
-        const rates    = {}
-        const profiles = {}
-        for (const s of data) {
-          rates[s.id]    = s.hourly_rate ?? 0
-          profiles[s.id] = { contractedHours: s.contracted_hours ?? null, workingDays: s.working_days ?? [] }
-        }
-        setStaffRates(rates)
-        setStaffProfiles(profiles)
+        const rates = {}, profiles = {}
+        for (const s of data) { rates[s.id] = s.hourly_rate ?? 0; profiles[s.id] = { contractedHours: s.contracted_hours ?? null, workingDays: s.working_days ?? [] } }
+        setStaffRates(rates); setStaffProfiles(profiles)
       })
   }, [venueId])
 
-  // Approved annual leave overlapping the selected Pay Period
   useEffect(() => {
     if (!venueId || !dateFrom || !dateTo) return
-    supabase
-      .from('time_off_requests')
-      .select('staff_id, start_date, end_date')
-      .eq('venue_id', venueId)
-      .eq('status', 'approved')
-      .eq('leave_type', 'annual')
-      .lte('start_date', dateTo.slice(0, 10))
-      .gte('end_date', dateFrom.slice(0, 10))
+    supabase.from('time_off_requests').select('staff_id, start_date, end_date')
+      .eq('venue_id', venueId).eq('status', 'approved').eq('leave_type', 'annual')
+      .lte('start_date', dateTo.slice(0, 10)).gte('end_date', dateFrom.slice(0, 10))
       .then(({ data }) => setPeriodLeave(data ?? []))
   }, [venueId, dateFrom, dateTo])
 
-  // All approved leave overlapping the Hours-by-Day grid week (all types for badge display)
   useEffect(() => {
-    if (!venueId || !gridDateFrom || !gridDateTo) return
-    supabase
-      .from('time_off_requests')
-      .select('staff_id, start_date, end_date, leave_type')
-      .eq('venue_id', venueId)
-      .eq('status', 'approved')
-      .lte('start_date', gridDateTo.slice(0, 10))
-      .gte('end_date', gridDateFrom.slice(0, 10))
-      .then(({ data }) => setWeekLeave(data ?? []))
-  }, [venueId, gridDateFrom, gridDateTo])
+    if (!venueId || !periodFrom || !periodTo) return
+    supabase.from('shifts').select('staff_id, start_time, end_time, shift_date')
+      .eq('venue_id', venueId).gte('shift_date', periodFrom).lte('shift_date', periodTo)
+      .then(({ data }) => setPeriodShifts(data ?? []))
+  }, [venueId, periodFrom, periodTo])
 
-  // Note: reload / gridReload are still called explicitly after mutations
-  // (add, edit, delete) to keep the grid fresh. Auto-fetching on date-range
-  // changes is now handled by the enabled flag in useTimesheetData.
-  useEffect(() => { setExpandedStaff(null) }, [weekOffset])
-
-  // Load payroll locks
   useEffect(() => {
     if (!venueId) return
     supabase.from('app_settings').select('value').eq('venue_id', venueId).eq('key', 'payroll_locks').maybeSingle()
-      .then(({ data }) => {
-        try { setPayrollLocks(JSON.parse(data?.value ?? '[]')) } catch { setPayrollLocks([]) }
-      })
+      .then(({ data }) => { try { setPayrollLocks(JSON.parse(data?.value ?? '[]')) } catch { setPayrollLocks([]) } })
   }, [venueId])
+
+  useEffect(() => { reload() }, [reload])
 
   const saveLocks = useCallback(async (locks) => {
-    await supabase.from('app_settings').upsert(
-      { venue_id: venueId, key: 'payroll_locks', value: JSON.stringify(locks) },
-      { onConflict: 'venue_id,key' }
-    )
+    await supabase.from('app_settings').upsert({ venue_id: venueId, key: 'payroll_locks', value: JSON.stringify(locks) }, { onConflict: 'venue_id,key' })
     setPayrollLocks(locks)
   }, [venueId])
-
-  const periodFrom = dateFrom.slice(0, 10)
-  const periodTo   = dateTo.slice(0, 10)
-
-  const isPeriodLocked = payrollLocks.some(l => l.from === periodFrom && l.to === periodTo)
 
   const togglePayrollLock = useCallback(async () => {
     if (!periodFrom || !periodTo || periodFrom > periodTo) return
@@ -378,526 +518,153 @@ export default function TimesheetPage() {
     setLockSaving(false)
   }, [isPeriodLocked, payrollLocks, periodFrom, periodTo, saveLocks, toast])
 
-  const timesheets = useMemo(() => buildTimesheets(rows, staffRates), [rows, staffRates])
-  const dailyGrid  = useMemo(() => buildDailyGrid(gridRows), [gridRows])
-  const totalMins  = useMemo(() => timesheets.reduce((a, t) => a + t.totalMinutes, 0), [timesheets])
-  const totalWage  = useMemo(() => timesheets.reduce((a, t) => a + (t.totalMinutes / 60) * t.hourlyRate, 0), [timesheets])
-
-  const totalHolidayPay = useMemo(() => timesheets.reduce((a, t) => {
-    const profile = staffProfiles[t.staffId] ?? { contractedHours: null, workingDays: [] }
-    return a + (calcHolidayMins(periodLeave, t.staffId, profile, dateFrom.slice(0, 10), dateTo.slice(0, 10)) / 60) * t.hourlyRate
-  }, 0), [timesheets, periodLeave, staffProfiles, dateFrom, dateTo])
-
-  // { staffId: { dateStr: leave_type } } — leave days in the grid week (all types)
-  const weekLeaveMap = useMemo(() => {
-    const map = {}
-    for (const r of weekLeave) {
-      const { workingDays } = staffProfiles[r.staff_id] ?? { workingDays: [] }
-      const pattern = workingDays?.length > 0 ? workingDays : [1, 2, 3, 4, 5]
-      try {
-        for (const d of eachDayOfInterval({ start: parseISO(r.start_date), end: parseISO(r.end_date) })) {
-          const dow = getDay(d) === 0 ? 7 : getDay(d)
-          if (!pattern.includes(dow)) continue
-          if (!map[r.staff_id]) map[r.staff_id] = {}
-          map[r.staff_id][format(d, 'yyyy-MM-dd')] = r.leave_type
-        }
-      } catch { /* invalid dates */ }
-    }
-    return map
-  }, [weekLeave, staffProfiles])
-
-  const deleteSession = useCallback(async (eventIds) => {
-    if (!eventIds.length) return
-    const { error } = await supabase.from('clock_events').delete().in('id', eventIds)
-    if (error) { toast(error.message, 'error'); return }
-    toast('Session removed')
-    gridReload()
+  const saveEditedSession = useCallback(async ({ dateStr, session }, { clockIn, clockOut }) => {
+    const newIn  = `${dateStr}T${clockIn}:00`
+    const newOut = `${dateStr}T${clockOut}:00`
+    const updates = []
+    if (session.inId)  updates.push(supabase.from('clock_events').update({ occurred_at: newIn  }).eq('id', session.inId))
+    if (session.outId) updates.push(supabase.from('clock_events').update({ occurred_at: newOut }).eq('id', session.outId))
+    const results = await Promise.all(updates)
+    const err = results.find(r => r.error)?.error
+    if (err) { toast(err.message, 'error'); return }
+    toast('Hours updated')
     reload()
-  }, [gridReload, reload, toast])
-
-  const openAddModal = useCallback((staffId = '', date = '') => {
-    setAddTarget({ staffId, date: date || format(gridWeekStart, 'yyyy-MM-dd') })
-  }, [gridWeekStart])
-
-  const handleAdminSaved = useCallback(() => {
-    setAddTarget(null)
-    gridReload()
-    reload()
-  }, [gridReload, reload])
-
-  const handleEditSaved = useCallback(() => {
-    setEditTarget(null)
-    gridReload()
-    reload()
-  }, [gridReload, reload])
+  }, [reload, toast])
 
   const exportPdf = () => {
-    const pFrom   = dateFrom.slice(0, 10)
-    const pTo     = dateTo.slice(0, 10)
-    const pdfRows = timesheets.map((t) => {
-      const hrs     = (t.totalMinutes / 60).toFixed(2)
-      const rate    = Number(t.hourlyRate).toFixed(2)
-      const worked  = ((t.totalMinutes / 60) * t.hourlyRate).toFixed(2)
+    const pFrom = dateFrom.slice(0, 10), pTo = dateTo.slice(0, 10)
+    const pdfRows = timesheets.map(t => {
+      const hrs    = (t.totalMinutes / 60).toFixed(2)
+      const rate   = Number(t.hourlyRate).toFixed(2)
+      const worked = ((t.totalMinutes / 60) * t.hourlyRate).toFixed(2)
       const profile = staffProfiles[t.staffId] ?? { contractedHours: null, workingDays: [] }
-      const holMins = calcHolidayMins(periodLeave, t.staffId, profile, pFrom, pTo)
-      const holPay  = ((holMins / 60) * t.hourlyRate).toFixed(2)
-      const total   = (parseFloat(worked) + parseFloat(holPay)).toFixed(2)
-      return [t.name, `${hrs} hrs`, rate > 0 ? `£${rate}/hr` : '—', worked > 0 ? `£${worked}` : '—', holPay > 0 ? `£${holPay}` : '—', `£${total}`]
+      const holPay  = ((calcHolidayMins(periodLeave, t.staffId, profile, pFrom, pTo) / 60) * t.hourlyRate).toFixed(2)
+      return [t.name, `${hrs} hrs`, rate > 0 ? `£${rate}/hr` : '—', worked > 0 ? `£${worked}` : '—', holPay > 0 ? `£${holPay}` : '—', `£${(parseFloat(worked) + parseFloat(holPay)).toFixed(2)}`]
     })
-    pdfRows.push(['TOTAL', `${(totalMins / 60).toFixed(2)} hrs`, '', totalWage > 0 ? `£${totalWage.toFixed(2)}` : '—', totalHolidayPay > 0 ? `£${totalHolidayPay.toFixed(2)}` : '—', `£${(totalWage + totalHolidayPay).toFixed(2)}`])
-    buildPdfReport({
-      title: 'Pelikn',
-      subtitle: 'Timesheet Report',
-      periodLabel,
-      columns: ['Staff Member', 'Hours Worked', 'Hourly Rate', 'Worked Pay', 'Holiday Pay', 'Total Pay'],
-      rows: pdfRows,
-      didParseCell(hookData) {
-        if (hookData.section === 'body' && hookData.row.index === pdfRows.length - 1) {
-          hookData.cell.styles.fontStyle = 'bold'
-          hookData.cell.styles.fillColor = [240, 240, 240]
-        }
-      },
-      filename: `timesheet-${dateFrom.slice(0, 10)}.pdf`,
-    })
+    pdfRows.push(['TOTAL', `${(totalMins / 60).toFixed(2)} hrs`, '', totalWage > 0 ? fmtGBP(totalWage) : '—', totalHolidayPay > 0 ? fmtGBP(totalHolidayPay) : '—', fmtGBP(totalWage + totalHolidayPay)])
+    buildPdfReport({ title: 'Pelikn', subtitle: 'Timesheet Report', periodLabel, columns: ['Staff Member', 'Hours Worked', 'Hourly Rate', 'Worked Pay', 'Holiday Pay', 'Total Pay'], rows: pdfRows, didParseCell(h) { if (h.section === 'body' && h.row.index === pdfRows.length - 1) { h.cell.styles.fontStyle = 'bold'; h.cell.styles.fillColor = [240, 240, 240] } }, filename: `timesheet-${dateFrom.slice(0, 10)}.pdf` })
   }
 
   const exportCsv = () => {
-    const escape  = (v) => `"${String(v).replace(/"/g, '""')}"`
-    const pFrom   = dateFrom.slice(0, 10)
-    const pTo     = dateTo.slice(0, 10)
-    const header  = ['Name', 'Hours Worked', 'Hourly Rate (£)', 'Worked Pay (£)', 'Holiday Pay (£)', 'Total Pay (£)'].map(escape).join(',')
-    const dataRows = timesheets.map((t) => {
-      const hrs     = (t.totalMinutes / 60).toFixed(2)
-      const rate    = Number(t.hourlyRate).toFixed(2)
-      const worked  = ((t.totalMinutes / 60) * t.hourlyRate).toFixed(2)
+    const esc = v => `"${String(v).replace(/"/g, '""')}"`
+    const pFrom = dateFrom.slice(0, 10), pTo = dateTo.slice(0, 10)
+    const header = ['Name', 'Hours Worked', 'Hourly Rate (£)', 'Worked Pay (£)', 'Holiday Pay (£)', 'Total Pay (£)'].map(esc).join(',')
+    const dataRows = timesheets.map(t => {
+      const hrs = (t.totalMinutes / 60).toFixed(2), rate = Number(t.hourlyRate).toFixed(2)
+      const worked = ((t.totalMinutes / 60) * t.hourlyRate).toFixed(2)
       const profile = staffProfiles[t.staffId] ?? { contractedHours: null, workingDays: [] }
-      const holMins = calcHolidayMins(periodLeave, t.staffId, profile, pFrom, pTo)
-      const holPay  = ((holMins / 60) * t.hourlyRate).toFixed(2)
-      const total   = (parseFloat(worked) + parseFloat(holPay)).toFixed(2)
-      return [t.name, hrs, rate, worked, holPay, total].map(escape).join(',')
+      const holPay  = ((calcHolidayMins(periodLeave, t.staffId, profile, pFrom, pTo) / 60) * t.hourlyRate).toFixed(2)
+      return [t.name, hrs, rate, worked, holPay, (parseFloat(worked) + parseFloat(holPay)).toFixed(2)].map(esc).join(',')
     })
-    const totalRow = ['TOTAL', (totalMins / 60).toFixed(2), '', totalWage.toFixed(2), totalHolidayPay.toFixed(2), (totalWage + totalHolidayPay).toFixed(2)].map(escape).join(',')
-    downloadCsv([header, ...dataRows, totalRow].join('\n'), `payroll-${dateFrom.slice(0, 10)}-to-${dateTo.slice(0, 10)}.csv`)
+    downloadCsv([header, ...dataRows, ['TOTAL', (totalMins / 60).toFixed(2), '', totalWage.toFixed(2), totalHolidayPay.toFixed(2), (totalWage + totalHolidayPay).toFixed(2)].map(esc).join(',')].join('\n'), `payroll-${periodFrom}-to-${periodTo}.csv`)
   }
 
-  const visibleGridRows = adminMode ? [...dailyGrid, ...scheduledOnlyStaff] : dailyGrid
+  const under = totalWage > 0 ? periodScheduled.totalCost - totalWage : 0
+  const underLabel = under > 0 ? `£${Math.round(under).toLocaleString()} under` : under < 0 ? `£${Math.round(Math.abs(under)).toLocaleString()} over` : null
 
   return (
-    <div className="flex flex-col gap-6">
-
-      {/* Pending hour-edit approvals — managers only */}
+    <div style={{ fontFamily: MF, color: MC.ink }}>
       {isManager && <ClockEditApprovalCard />}
 
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-charcoal">Timesheets</h1>
-        <div className="flex items-center gap-4">
-          <button
-            onClick={exportCsv}
-            className="text-[11px] tracking-widest uppercase text-charcoal/40 hover:text-charcoal transition-colors border-b border-charcoal/20"
-          >
-            ↓ Export CSV
-          </button>
-          <button
-            onClick={exportPdf}
-            className="text-[11px] tracking-widests uppercase text-charcoal/40 hover:text-charcoal transition-colors border-b border-charcoal/20"
-          >
-            ↓ Export PDF
-          </button>
-        </div>
-      </div>
-
-      {/* ── Pay Period Summary ── */}
-      <div className="bg-white rounded-2xl border-charcoal/10 p-5">
-        <SectionLabel>Pay Period Summary</SectionLabel>
-
-        <div className="flex flex-wrap gap-2 mb-4">
-          {PERIODS.map(p => (
-            <button
-              key={p.key}
-              onClick={() => setPeriod(p.key)}
-              className={[
-                'px-3 py-1.5 rounded-lg text-xs font-medium border transition-all',
-                period === p.key
-                  ? 'bg-charcoal text-cream border-charcoal'
-                  : 'bg-white text-charcoal/50 border-charcoal/15 hover:border-charcoal/30',
-              ].join(' ')}
-            >
-              {p.label}
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+        <h1 style={{ fontSize: 28, fontWeight: 700, letterSpacing: '-0.03em', lineHeight: 1.05, margin: 0 }}>Timesheets</h1>
+        <div style={{ display: 'flex', gap: 16 }}>
+          {[['CSV', exportCsv], ['PDF', exportPdf]].map(([fmt, fn]) => (
+            <button key={fmt} onClick={fn} style={{ display: 'flex', alignItems: 'center', gap: 4, fontFamily: MM, fontSize: 10.5, fontWeight: 700, color: MC.ink3, letterSpacing: '0.05em', textTransform: 'uppercase', background: 'transparent', border: 'none', cursor: 'pointer', padding: 0 }}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              {fmt}
             </button>
           ))}
         </div>
+      </div>
+
+      {/* Pay Period Summary card */}
+      <div style={{ background: MC.paper, border: `1px solid ${MC.line}`, borderRadius: 18, padding: '15px 14px 16px', display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 14 }}>
+        <div style={{ fontFamily: MM, fontSize: 9.5, color: MC.ink3, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 600 }}>Pay Period Summary</div>
+        <PeriodChips period={period} onChange={setPeriod} />
 
         {period === 'custom' && (
-          <div className="flex items-center gap-2 mb-4">
-            <input
-              type="date"
-              value={customFrom}
-              onChange={e => setCustomFrom(e.target.value)}
-              className="px-3 py-2 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
-            />
-            <span className="text-xs text-charcoal/40">to</span>
-            <input
-              type="date"
-              value={customTo}
-              min={customFrom}
-              onChange={e => setCustomTo(e.target.value)}
-              className="px-3 py-2 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
-            />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <input type="date" value={customFrom} onChange={e => setCustomFrom(e.target.value)} style={{ flex: 1, padding: '7px 10px', borderRadius: 9, border: `1px solid ${MC.line}`, fontSize: 13, fontFamily: MF, background: MC.paper, color: MC.ink, outline: 'none' }} />
+            <span style={{ fontSize: 12, color: MC.ink4, flexShrink: 0 }}>to</span>
+            <input type="date" value={customTo} min={customFrom} onChange={e => setCustomTo(e.target.value)} style={{ flex: 1, padding: '7px 10px', borderRadius: 9, border: `1px solid ${MC.line}`, fontSize: 13, fontFamily: MF, background: MC.paper, color: MC.ink, outline: 'none' }} />
           </div>
         )}
 
         {periodLabel && periodLabel !== '—' && (
-          <div className="flex items-center justify-between mb-4">
-            <p className="text-sm font-medium text-charcoal">{periodLabel}</p>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+            <span style={{ fontSize: 15, fontWeight: 600, letterSpacing: '-0.01em', color: MC.ink }}>{periodLabel}</span>
             {isManager && periodFrom && periodTo && (
-              <button
-                onClick={togglePayrollLock}
-                disabled={lockSaving}
-                className={[
-                  'inline-flex items-center gap-1.5 text-[11px] font-semibold tracking-wide px-3 py-1.5 rounded-lg border transition-all disabled:opacity-40',
-                  isPeriodLocked
-                    ? 'bg-success/8 text-success border-success/25 hover:bg-success/15'
-                    : 'bg-white text-charcoal/60 border-charcoal/20 hover:border-charcoal/40 hover:text-charcoal',
-                ].join(' ')}
-              >
-                {isPeriodLocked ? (
-                  <>
-                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                    Locked for payroll
-                  </>
-                ) : (
-                  <>
-                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>
-                    {lockSaving ? 'Locking…' : 'Lock for payroll'}
-                  </>
-                )}
+              <button onClick={togglePayrollLock} disabled={lockSaving} style={{ display: 'flex', alignItems: 'center', gap: 5, fontFamily: MF, fontSize: 11.5, fontWeight: 600, color: isPeriodLocked ? MC.good : MC.ink2, background: MC.paper, border: `1px solid ${isPeriodLocked ? MC.good + '55' : MC.line}`, borderRadius: 9, padding: '6px 11px', cursor: 'pointer', flexShrink: 0, opacity: lockSaving ? 0.4 : 1, whiteSpace: 'nowrap' }}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d={isPeriodLocked ? 'M7 11V7a5 5 0 0 1 10 0v4' : 'M7 11V7a5 5 0 0 1 9.9-1'}/></svg>
+                {isPeriodLocked ? 'Locked' : lockSaving ? 'Locking…' : 'Lock for payroll'}
               </button>
             )}
           </div>
         )}
 
         {loading ? (
-          <div className="flex justify-center py-6"><LoadingSpinner /></div>
-        ) : timesheets.length === 0 ? (
-          <p className="text-sm text-charcoal/35 italic py-4">No clock events recorded for this period.</p>
+          <div style={{ display: 'flex', justifyContent: 'center', padding: '16px 0' }}><LoadingSpinner /></div>
         ) : (
           <>
-            <div className="mb-4 pb-4 border-b border-charcoal/8 grid grid-cols-2 sm:grid-cols-4 gap-4">
-              <div>
-                <p className="text-xs text-charcoal/40 mb-0.5">Actual hours · {timesheets.length} staff</p>
-                <p className="text-2xl font-bold text-charcoal">{formatMinutes(Math.round(totalMins))}</p>
-              </div>
-              {periodScheduled.totalMins > 0 && (
-                <div>
-                  <p className="text-xs text-charcoal/40 mb-0.5">Scheduled hours</p>
-                  <p className="text-2xl font-bold text-charcoal/60">{formatMinutes(Math.round(periodScheduled.totalMins))}</p>
-                </div>
-              )}
-              {(totalWage > 0 || totalHolidayPay > 0) && (
-                <div>
-                  <p className="text-xs text-charcoal/40 mb-0.5">Actual wage bill</p>
-                  <p className="text-2xl font-bold text-charcoal font-mono">{fmtGBP(totalWage + totalHolidayPay)}</p>
-                  {totalHolidayPay > 0 && (
-                    <span className="text-xs text-success font-medium">incl. {fmtGBP(totalHolidayPay)} holiday pay</span>
-                  )}
-                </div>
-              )}
-              {periodScheduled.totalCost > 0 && (
-                <div>
-                  <p className="text-xs text-charcoal/40 mb-0.5">Scheduled cost</p>
-                  <p className="text-2xl font-bold text-charcoal/60 font-mono">{fmtGBP(periodScheduled.totalCost)}</p>
-                  {totalWage > 0 && (() => {
-                    const diff = totalWage - periodScheduled.totalCost
-                    if (Math.abs(diff) < 1) return null
-                    return (
-                      <span className={`text-xs font-medium ${diff > 0 ? 'text-danger' : 'text-success'}`}>
-                        {diff > 0 ? '+' : ''}{fmtGBP(diff)} {diff > 0 ? 'over' : 'under'}
-                      </span>
-                    )
-                  })()}
-                </div>
-              )}
+            <div style={{ display: 'flex', gap: 7 }}>
+              <SumTile label={`Actual hours · ${timesheets.length} staff`} value={totalMins > 0 ? minsStr(totalMins) : null} />
+              <SumTile label="Scheduled hours" value={periodScheduled.totalMins > 0 ? minsStr(periodScheduled.totalMins) : null} />
             </div>
-
-            <div className="flex flex-col gap-0">
-              <div className="grid grid-cols-[1fr_auto_auto_auto_auto_auto] gap-x-4 pb-2 text-[11px] tracking-widest uppercase text-charcoal/40">
-                <span>Staff</span>
-                <span className="text-right">Hours</span>
-                <span className="text-right">Sched.</span>
-                <span className="text-right">Rate</span>
-                <span className="text-right">Est. Pay</span>
-                <span className="text-right">Holiday</span>
-              </div>
-              {timesheets.map((t) => {
-                const pay            = (t.totalMinutes / 60) * t.hourlyRate
-                const schedMins      = periodScheduled.byStaff[t.staffId] ?? 0
-                const profile        = staffProfiles[t.staffId] ?? { contractedHours: null, workingDays: [] }
-                const hasLeave       = periodLeave.some(r => r.staff_id === t.staffId)
-                const missingHours   = hasLeave && !profile.contractedHours
-                const holMins        = calcHolidayMins(periodLeave, t.staffId, profile, dateFrom.slice(0, 10), dateTo.slice(0, 10))
-                const holPay         = (holMins / 60) * t.hourlyRate
-                return (
-                  <div key={t.name} className="grid grid-cols-[1fr_auto_auto_auto_auto_auto] gap-x-4 py-3 border-t border-charcoal/5 items-center">
-                    <span className="text-sm font-medium text-charcoal truncate">{t.name}</span>
-                    <span className="text-right font-mono text-sm font-semibold text-charcoal whitespace-nowrap">
-                      {formatMinutes(Math.round(t.totalMinutes))}
-                    </span>
-                    <span className="text-right font-mono text-xs text-charcoal/40 whitespace-nowrap">
-                      {schedMins > 0 ? formatMinutes(Math.round(schedMins)) : '—'}
-                    </span>
-                    <span className="text-right font-mono text-xs text-charcoal/40 whitespace-nowrap">
-                      {t.hourlyRate > 0 ? `£${Number(t.hourlyRate).toFixed(2)}/hr` : '—'}
-                    </span>
-                    <div className="text-right whitespace-nowrap">
-                      {pay > 0 ? (
-                        <span className="font-mono text-sm text-charcoal">{fmtGBP(pay)}</span>
-                      ) : (
-                        <span className="text-xs text-charcoal/25">—</span>
-                      )}
-                    </div>
-                    <div className="text-right whitespace-nowrap">
-                      {missingHours ? (
-                        <span className="text-[10px] text-warning" title="Set contracted hours in Staff settings to calculate holiday pay">⚠ Set hrs</span>
-                      ) : holPay > 0 ? (
-                        <span className="font-mono text-xs text-success font-semibold">{fmtGBP(holPay)}</span>
-                      ) : (
-                        <span className="text-xs text-charcoal/15">—</span>
-                      )}
-                    </div>
-                  </div>
-                )
-              })}
+            <div style={{ display: 'flex', gap: 7 }}>
+              <SumTile label="Actual wage bill" value={totalWage > 0 ? fmtGBP(totalWage + totalHolidayPay) : null} />
+              <SumTile label="Scheduled cost" value={periodScheduled.totalCost > 0 ? fmtGBP(periodScheduled.totalCost) : null} sub={underLabel} subGood={under > 0} />
             </div>
           </>
         )}
       </div>
 
-      {/* ── Weekly Hours Grid ── */}
-      <div className={['bg-white rounded-2xl p-5 transition-colors', adminMode ? 'border-warning/30 ring-1 ring-warning/15' : 'border-charcoal/10'].join(' ')}>
-
-        <div className="flex items-center justify-between mb-1 flex-wrap gap-3">
-          <div className="flex items-center gap-3">
-            <SectionLabel>Hours by Day</SectionLabel>
-            {adminMode && (
-              <span className="text-[10px] tracking-widest uppercase font-semibold px-2 py-0.5 rounded-full bg-warning/8 text-warning border border-warning/25 -mt-3">
-                Edit Mode
-              </span>
-            )}
+      {/* Staff list */}
+      {!loading && (
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 2px 9px' }}>
+            <span style={{ fontFamily: MM, fontSize: 10.5, color: MC.ink3, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 600 }}>Staff</span>
+            <span style={{ fontFamily: MM, fontSize: 11, color: MC.ink3 }}>{timesheets.length} members{totalMins > 0 ? ` · ${minsStr(totalMins)} total` : ''}</span>
           </div>
-          <div className="flex items-center gap-2 -mt-3">
-            <button
-              onClick={() => setWeekOffset(w => w - 1)}
-              className="w-7 h-7 rounded-lg border border-charcoal/15 flex items-center justify-center text-charcoal/50 hover:border-charcoal/30 hover:text-charcoal transition-colors text-sm"
-            >←</button>
-            <span className="text-xs font-medium text-charcoal min-w-[150px] text-center">
-              {format(gridWeekStart, 'd MMM')} – {format(gridWeekEnd, 'd MMM yyyy')}
-            </span>
-            <button
-              onClick={() => setWeekOffset(w => w + 1)}
-              disabled={weekOffset >= 0}
-              className="w-7 h-7 rounded-lg border border-charcoal/15 flex items-center justify-center text-charcoal/50 hover:border-charcoal/30 hover:text-charcoal transition-colors text-sm disabled:opacity-25 disabled:cursor-not-allowed"
-            >→</button>
-
-            {isManager && !adminMode && (
-              <button
-                onClick={() => setAdminMode(true)}
-                className="ml-2 text-[11px] tracking-widest uppercase text-charcoal/35 hover:text-charcoal border border-charcoal/15 hover:border-charcoal/30 px-2.5 py-1.5 rounded-lg transition-colors"
-                title="Edit sessions"
-              >
-                <span className="inline-flex items-center gap-1"><svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg> Edit</span>
-              </button>
-            )}
-            {adminMode && (
-              <>
-                <button
-                  onClick={() => openAddModal('', '')}
-                  className="ml-2 text-[11px] tracking-widest uppercase text-brand/70 hover:text-brand border border-brand/25 hover:border-brand/50 px-2.5 py-1.5 rounded-lg transition-colors font-medium"
-                >
-                  + Add Session
-                </button>
-                <button
-                  onClick={() => setAdminMode(false)}
-                  className="text-[11px] tracking-widest uppercase text-charcoal/35 hover:text-charcoal border border-charcoal/15 px-2.5 py-1.5 rounded-lg transition-colors"
-                >
-                  Done
-                </button>
-              </>
-            )}
-          </div>
+          {timesheets.length === 0 ? (
+            <p style={{ fontSize: 13, color: MC.ink4, fontStyle: 'italic', padding: '8px 2px' }}>No clock events recorded for this period.</p>
+          ) : (
+            <div style={{ background: MC.paper, border: `1px solid ${MC.line}`, borderRadius: 16, overflow: 'hidden' }}>
+              {timesheets.map((t, i) => (
+                <StaffRow key={t.staffId} t={t} station={stationMap[t.staffId] ?? ''} last={i === timesheets.length - 1} onTap={() => setSelStaff(t)} />
+              ))}
+            </div>
+          )}
         </div>
+      )}
 
-        {/* Legend */}
-        <div className="flex items-center gap-4 mb-4 text-[11px] text-charcoal/35 flex-wrap">
-          <span className="flex items-center gap-1"><span className="text-warning">~</span> Minor shortfall</span>
-          <span className="flex items-center gap-1"><span className="text-danger font-bold"><svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span> Absent / significant shortfall</span>
-          {!adminMode && <span className="italic">Click a name to drill down</span>}
-          {adminMode  && <span className="text-warning font-medium">Click a name to expand · Edit or Remove sessions · + Add Session to insert new ones</span>}
-        </div>
+      {/* Staff hours bottom sheet */}
+      {selStaff && (
+        <StaffHoursSheet
+          t={selStaff}
+          station={stationMap[selStaff.staffId] ?? ''}
+          periodDays={periodDays}
+          dailyGrid={dailyGrid}
+          periodLabel={periodLabel}
+          onEditDay={ctx => setEditCtx(ctx)}
+          onAddDay={dateStr => setAddTarget({ staffId: selStaff.staffId, date: dateStr })}
+          onClose={() => setSelStaff(null)}
+        />
+      )}
 
-        {gridLoading ? (
-          <div className="flex justify-center py-6"><LoadingSpinner /></div>
-        ) : visibleGridRows.length === 0 ? (
-          <p className="text-sm text-charcoal/35 italic py-4">No clock events recorded this week.</p>
-        ) : (
-          <div className="overflow-x-auto -mx-5 px-5">
-            <table className="w-full min-w-[540px]">
-              <thead>
-                <tr>
-                  <th className="text-left pb-3 pr-4 text-[11px] tracking-widest uppercase text-charcoal/40 font-semibold whitespace-nowrap">Staff</th>
-                  {gridDays.map(d => (
-                    <th key={d.toISOString()} className="pb-3 px-2 text-center min-w-[60px]">
-                      <span className="block text-[11px] tracking-widest uppercase text-charcoal/40 font-semibold">{format(d, 'EEE')}</span>
-                      <span className="block text-xs text-charcoal/30 font-normal">{format(d, 'd')}</span>
-                    </th>
-                  ))}
-                  <th className="pb-3 pl-4 text-right text-[11px] tracking-widest uppercase text-charcoal/40 font-semibold whitespace-nowrap">Total</th>
-                  <th className="pb-3 pl-3 text-right text-[11px] tracking-widest uppercase text-charcoal/40 font-semibold whitespace-nowrap">Sched.</th>
-                  <th className="pb-3 pl-3 text-right text-[11px] tracking-widest uppercase text-charcoal/40 font-semibold whitespace-nowrap">Cost</th>
-                </tr>
-              </thead>
-              <tbody>
-                {visibleGridRows.map(person => {
-                  const total  = Object.values(person.days).reduce((a, d) => a + d.minutes, 0)
-                  const isOpen = expandedStaff === person.staffId
+      {/* Wheel picker edit sheet */}
+      {editCtx && selStaff && (
+        <EditSessionSheet
+          staffName={selStaff.name}
+          dayLabel={format(parseISO(editCtx.dateStr), 'EEE d MMM')}
+          session={editCtx.session}
+          onSave={times => saveEditedSession(editCtx, times)}
+          onClose={() => setEditCtx(null)}
+        />
+      )}
 
-                  return (
-                    <React.Fragment key={person.staffId}>
-                      <tr className="border-t border-charcoal/5">
-                        <td
-                          className="py-3 pr-4 text-sm font-medium text-charcoal whitespace-nowrap cursor-pointer select-none hover:text-brand transition-colors"
-                          onClick={() => setExpandedStaff(s => s === person.staffId ? null : person.staffId)}
-                        >
-                          {person.name}
-                          <span className="ml-1.5 text-charcoal/25 text-[10px]">{isOpen ? '▲' : '▼'}</span>
-                          {adminMode && (
-                            <button
-                              onClick={e => { e.stopPropagation(); openAddModal(person.staffId, '') }}
-                              className="ml-2 text-brand/50 hover:text-brand text-[11px] border border-brand/20 hover:border-brand/40 rounded px-1.5 py-0.5 transition-colors leading-none align-middle"
-                              title="Add session for this person"
-                            >
-                              +
-                            </button>
-                          )}
-                        </td>
-
-                        {gridDays.map(d => {
-                          const dateStr  = format(d, 'yyyy-MM-dd')
-                          const dayData  = person.days[dateStr]
-                          const actual   = dayData?.minutes ?? 0
-                          const expected = expectedMap[person.staffId]?.[dateStr]
-                          const status   = discrepancyStatus(actual, expected, cleanupMinutes)
-                          const leaveType = weekLeaveMap[person.staffId]?.[dateStr]
-
-                          return (
-                            <td key={dateStr} className="py-3 px-2 text-center align-top">
-                              {actual > 0 ? (
-                                <>
-                                  <span className="text-xs font-mono font-semibold text-charcoal block">
-                                    {formatMinutes(Math.round(actual))}
-                                  </span>
-                                  {status === 'minor' && (
-                                    <span className="block text-[10px] text-warning leading-tight whitespace-nowrap">
-                                      ~{formatMinutes(Math.round(expected - actual))} short
-                                    </span>
-                                  )}
-                                  {status === 'significant' && (
-                                    <span className="block text-[10px] text-danger leading-tight whitespace-nowrap">
-                                      -{formatMinutes(Math.round(expected - actual))}
-                                    </span>
-                                  )}
-                                </>
-                              ) : leaveType === 'annual' ? (
-                                <span className="inline-block text-[10px] font-bold text-success bg-success/10 rounded px-1 py-0.5 leading-tight">AL</span>
-                              ) : leaveType === 'unpaid' ? (
-                                <span className="inline-block text-[10px] font-bold text-charcoal/40 bg-charcoal/6 rounded px-1 py-0.5 leading-tight">UL</span>
-                              ) : leaveType ? (
-                                <span className="inline-block text-[10px] text-charcoal/30 bg-charcoal/4 rounded px-1 py-0.5 leading-tight">Off</span>
-                              ) : status === 'absent' ? (
-                                <span className="text-danger font-bold"><svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
-                              ) : (
-                                <span className="text-charcoal/15 text-sm">—</span>
-                              )}
-                            </td>
-                          )
-                        })}
-
-                        <td className="py-3 pl-4 text-right font-mono text-sm font-semibold text-charcoal whitespace-nowrap align-top">
-                          {total > 0 ? formatMinutes(Math.round(total)) : <span className="text-charcoal/25">—</span>}
-                        </td>
-                        <td className="py-3 pl-3 text-right font-mono text-xs text-charcoal/40 whitespace-nowrap align-top">
-                          {(gridScheduled.byStaff[person.staffId] ?? 0) > 0
-                            ? formatMinutes(Math.round(gridScheduled.byStaff[person.staffId]))
-                            : <span className="text-charcoal/15">—</span>}
-                        </td>
-                        <td className="py-3 pl-3 text-right font-mono text-xs text-charcoal/50 whitespace-nowrap align-top">
-                          {total > 0 && (staffRates[person.staffId] ?? 0) > 0
-                            ? fmtGBP((total / 60) * staffRates[person.staffId])
-                            : <span className="text-charcoal/15">—</span>}
-                        </td>
-                      </tr>
-
-                      {isOpen && (
-                        <tr>
-                          <td colSpan={gridDays.length + 4} className="pt-0 pb-2">
-                            <DrillDownPanel
-                              person={person}
-                              gridDays={gridDays}
-                              shiftsForPerson={shifts.filter(s => s.staff_id === person.staffId)}
-                              cleanupMinutes={cleanupMinutes}
-                              breakDurationMins={breakDurationMins}
-                              isUnder18={staffIsUnder18[person.staffId] ?? false}
-                              adminMode={adminMode}
-                              onDeleteSession={deleteSession}
-                              onAddForPerson={openAddModal}
-                              onEditSession={setEditTarget}
-                            />
-                          </td>
-                        </tr>
-                      )}
-                    </React.Fragment>
-                  )
-                })}
-              </tbody>
-              <tfoot>
-                <tr className="border-t-2 border-charcoal/15">
-                  <td className="py-3 pr-4 text-sm font-semibold text-charcoal">Totals</td>
-                  {gridDays.map(d => <td key={d.toISOString()} />)}
-                  <td className="py-3 pl-4 text-right font-mono text-sm font-bold text-charcoal whitespace-nowrap">
-                    {(() => {
-                      const t = visibleGridRows.reduce((a, p) => a + Object.values(p.days).reduce((b, d) => b + d.minutes, 0), 0)
-                      return t > 0 ? formatMinutes(Math.round(t)) : '—'
-                    })()}
-                  </td>
-                  <td className="py-3 pl-3 text-right font-mono text-xs font-semibold text-charcoal/50 whitespace-nowrap">
-                    {gridScheduled.totalMins > 0 ? formatMinutes(Math.round(gridScheduled.totalMins)) : '—'}
-                  </td>
-                  <td className="py-3 pl-3 text-right whitespace-nowrap">
-                    {(() => {
-                      const actualCost = visibleGridRows.reduce((a, p) => {
-                        const mins = Object.values(p.days).reduce((b, d) => b + d.minutes, 0)
-                        return a + (mins / 60) * (staffRates[p.staffId] ?? 0)
-                      }, 0)
-                      if (actualCost <= 0 && gridScheduled.totalCost <= 0) return <span className="text-charcoal/15 text-xs">—</span>
-                      const diff = actualCost - gridScheduled.totalCost
-                      return (
-                        <div className="flex flex-col items-end gap-0.5">
-                          <span className="font-mono text-xs font-semibold text-charcoal">{fmtGBP(actualCost)}</span>
-                          {gridScheduled.totalCost > 0 && Math.abs(diff) >= 1 && (
-                            <span className={`text-[10px] font-medium ${diff > 0 ? 'text-danger' : 'text-success'}`}>
-                              {diff > 0 ? '+' : ''}{fmtGBP(diff)}
-                            </span>
-                          )}
-                        </div>
-                      )
-                    })()}
-                  </td>
-                </tr>
-              </tfoot>
-            </table>
-          </div>
-        )}
-      </div>
-
+      {/* Add session modal */}
       <AddSessionModal
         open={!!addTarget}
         onClose={() => setAddTarget(null)}
@@ -905,15 +672,7 @@ export default function TimesheetPage() {
         initialStaffId={addTarget?.staffId ?? ''}
         initialDate={addTarget?.date ?? ''}
         venueId={venueId}
-        onSaved={handleAdminSaved}
-      />
-
-      <EditSessionModal
-        open={!!editTarget}
-        onClose={() => setEditTarget(null)}
-        session={editTarget}
-        venueId={venueId}
-        onSaved={handleEditSaved}
+        onSaved={() => { setAddTarget(null); reload() }}
       />
     </div>
   )
