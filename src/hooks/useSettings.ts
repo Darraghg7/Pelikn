@@ -151,6 +151,8 @@ async function fetchAppSettings(venueId: string): Promise<AppSettings> {
         if (row.key === 'disciplinary_at_strike'   && typeof parsed === 'number')  result.disciplinaryAtStrike = parsed
         if (row.key === 'counting_window_days'     && typeof parsed === 'number')  result.countingWindowDays = parsed
         if (row.key === 'push_to_manager'          && typeof parsed === 'boolean') result.pushToManager = parsed
+        if (row.key === 'hidden_check_tiles' && Array.isArray(parsed)) result.hiddenCheckTiles = parsed
+        if (row.key === 'hidden_team_tiles'  && Array.isArray(parsed)) result.hiddenTeamTiles = parsed
       } catch { /* ignore corrupt JSON — leave defaults */ }
     }
   }
