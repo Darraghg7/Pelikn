@@ -105,6 +105,7 @@ const PanelIcons = {
   label:      P(<><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></>),
   staff:      P(<><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></>),
   fitness:    P(<path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>),
+  hr:         P(<><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/><path d="M16 11h2a2 2 0 012 2v1"/><line x1="17" y1="16" x2="17" y2="19"/><line x1="19" y1="16" x2="15" y2="19"/></>),
 }
 
 /* ── Route → { cat, itemId } map ───────────────────────────────────────────── */
@@ -139,6 +140,7 @@ const ROUTE_MAP = [
   ['/training',               { cat: 'team',       itemId: 'train' }],
   ['/time-off',               { cat: 'team',       itemId: 'off' }],
   ['/clock-in',               { cat: 'team',       itemId: 'clock' }],
+  ['/hr',                     { cat: 'team',       itemId: 'hr' }],
   ['/waste',                  { cat: 'compliance', itemId: 'waste' }],
 ]
 
@@ -212,6 +214,7 @@ export function buildManagerCats({ isEnabled, isPlanLocked, overdueCount, pendin
         ...(!isPlanLocked('training') && isEnabled('training')  ? [{ id: 'train', label: 'Training',        sub: 'Assigned docs & quizzes', icon: PanelIcons.book,   route: vp('/training') }] : []),
         ...(!isPlanLocked('time_off') && isEnabled('time_off')  ? [{ id: 'off',   label: 'Time Off',        sub: 'Requests & approvals',  icon: PanelIcons.timeoff,  route: vp('/time-off') }] : []),
         { id: 'clock',  label: 'Clock In / Out',  sub: "Today's attendance",     icon: PanelIcons.clock,    route: vp('/clock-in') },
+        { id: 'hr',     label: 'HR Records',       sub: 'Staff files & disciplinary', icon: PanelIcons.hr,    route: vp('/hr') },
       ],
     },
   ]
