@@ -556,7 +556,7 @@ export default function RotaMobileGrid() {
   const publish = async () => {
     setPublishing(true)
     const weekStartStr = format(weekStart, 'yyyy-MM-dd')
-    const { error } = await supabase.from('app_settings').upsert({ venue_id: venueId, key: `rota_published_${weekStartStr}`, value: new Date().toISOString() })
+    const { error } = await supabase.from('app_settings').upsert({ venue_id: venueId, key: `rota_published_${weekStartStr}`, value: new Date().toISOString() }, { onConflict: 'venue_id,key' })
     if (error) { toast(error.message, 'error'); setPublishing(false); return }
     const staffIds = [...new Set(shifts.map(s => s.staff_id).filter(Boolean))]
     if (staffIds.length) {

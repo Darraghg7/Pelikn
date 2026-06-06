@@ -208,7 +208,7 @@ export function useAppSettings() {
     })
     await supabase
       .from('app_settings')
-      .upsert({ venue_id: venueId, key, value: JSON.stringify(value) })
+      .upsert({ venue_id: venueId, key, value: JSON.stringify(value) }, { onConflict: 'venue_id,key' })
   }, [venueId, queryClient, queryKey])
 
   const saveCustomRoles = useCallback((roles: CustomRole[]) => saveSetting('custom_roles', roles), [saveSetting])

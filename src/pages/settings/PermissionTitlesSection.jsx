@@ -49,7 +49,7 @@ export default function PermissionTitlesSection({ venueId, titles, reloadSetting
       venue_id: venueId,
       key: PERMISSION_TITLES_SETTING_KEY,
       value: JSON.stringify(cleaned),
-    })
+    }, { onConflict: 'venue_id,key' })
     setSaving(false)
     if (error) { toast(error.message, 'error'); return }
     toast('Permission titles saved')

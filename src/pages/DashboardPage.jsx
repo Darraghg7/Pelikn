@@ -37,7 +37,7 @@ export default function DashboardPage() {
             // Existing venue — auto-complete onboarding silently
             await supabase.from('app_settings').upsert({
               venue_id: venueId, key: 'onboarding_complete', value: 'true',
-            })
+            }, { onConflict: 'venue_id,key' })
             setChecked(true)
           } else {
             navigate(`/v/${venueSlug}/setup`, { replace: true })

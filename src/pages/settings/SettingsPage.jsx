@@ -103,8 +103,8 @@ export default function SettingsPage() {
   const saveVenue = async () => {
     setSavingVenue(true)
     const results = await Promise.all([
-      supabase.from('app_settings').upsert({ venue_id: venueId, key: 'venue_name',    value: venueForm.venue_name }),
-      supabase.from('app_settings').upsert({ venue_id: venueId, key: 'manager_email', value: venueForm.manager_email }),
+      supabase.from('app_settings').upsert({ venue_id: venueId, key: 'venue_name',    value: venueForm.venue_name },    { onConflict: 'venue_id,key' }),
+      supabase.from('app_settings').upsert({ venue_id: venueId, key: 'manager_email', value: venueForm.manager_email }, { onConflict: 'venue_id,key' }),
     ])
     setSavingVenue(false)
     if (results.some(r => r.error)) { toast('Failed to save venue settings', 'error'); return }

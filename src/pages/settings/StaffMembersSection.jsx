@@ -336,8 +336,7 @@ export default function StaffMembersSection() {
       error = e
     }
 
-    setSavingStaff(false)
-    if (error) { toast(error.message, 'error'); return }
+    if (error) { toast(error.message, 'error'); setSavingStaff(false); return }
 
     // Persist fields not covered by RPC
     const extraFields = {
@@ -388,6 +387,7 @@ export default function StaffMembersSection() {
       }
     }
 
+    setSavingStaff(false)
     toast(editingId ? 'Staff member updated' : 'Staff member added')
     setShowForm(false)
     setEditingId(null)

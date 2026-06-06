@@ -125,22 +125,22 @@ export default function OnboardingPage() {
   const finishSetup = async () => {
     setSaving(true)
     if (selectedPreset) {
-      await supabase.from('app_settings').upsert({ venue_id: venueId, key: 'venue_type', value: selectedPreset.id })
+      await supabase.from('app_settings').upsert({ venue_id: venueId, key: 'venue_type', value: selectedPreset.id }, { onConflict: 'venue_id,key' })
     }
     await Promise.all([
       saveModules(),
-      supabase.from('app_settings').upsert({ venue_id: venueId, key: 'open_time', value: JSON.stringify(openTime) }),
-      supabase.from('app_settings').upsert({ venue_id: venueId, key: 'close_time', value: JSON.stringify(closeTime) }),
-      supabase.from('app_settings').upsert({ venue_id: venueId, key: 'closed_days', value: JSON.stringify(closedDays) }),
+      supabase.from('app_settings').upsert({ venue_id: venueId, key: 'open_time', value: JSON.stringify(openTime) }, { onConflict: 'venue_id,key' }),
+      supabase.from('app_settings').upsert({ venue_id: venueId, key: 'close_time', value: JSON.stringify(closeTime) }, { onConflict: 'venue_id,key' }),
+      supabase.from('app_settings').upsert({ venue_id: venueId, key: 'closed_days', value: JSON.stringify(closedDays) }, { onConflict: 'venue_id,key' }),
     ])
     await saveTeam()
-    await supabase.from('app_settings').upsert({ venue_id: venueId, key: 'onboarding_complete', value: 'true' })
+    await supabase.from('app_settings').upsert({ venue_id: venueId, key: 'onboarding_complete', value: 'true' }, { onConflict: 'venue_id,key' })
     setSaving(false)
     navigate(`/v/${venueSlug}/dashboard`)
   }
 
   const skipSetup = async () => {
-    await supabase.from('app_settings').upsert({ venue_id: venueId, key: 'onboarding_complete', value: 'true' })
+    await supabase.from('app_settings').upsert({ venue_id: venueId, key: 'onboarding_complete', value: 'true' }, { onConflict: 'venue_id,key' })
     navigate(`/v/${venueSlug}/dashboard`, { replace: true })
   }
 

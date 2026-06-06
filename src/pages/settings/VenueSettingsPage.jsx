@@ -74,8 +74,8 @@ export default function VenueSettingsPage() {
   const saveDetails = async () => {
     setSaving(true)
     await Promise.all([
-      supabase.from('app_settings').upsert({ venue_id: venueId, key: 'venue_name',    value: form.venue_name }),
-      supabase.from('app_settings').upsert({ venue_id: venueId, key: 'manager_email', value: form.manager_email }),
+      supabase.from('app_settings').upsert({ venue_id: venueId, key: 'venue_name',    value: form.venue_name },    { onConflict: 'venue_id,key' }),
+      supabase.from('app_settings').upsert({ venue_id: venueId, key: 'manager_email', value: form.manager_email }, { onConflict: 'venue_id,key' }),
     ])
     setSaving(false)
     setSaveSuccess(true)
@@ -91,7 +91,7 @@ export default function VenueSettingsPage() {
     const { error: upErr } = await supabase.storage.from('app-assets').upload(path, file, { upsert: true })
     if (upErr) { setUploadingLogo(false); return }
     const { data: urlData } = supabase.storage.from('app-assets').getPublicUrl(path)
-    await supabase.from('app_settings').upsert({ venue_id: venueId, key: 'logo_url', value: urlData.publicUrl + '?t=' + Date.now() })
+    await supabase.from('app_settings').upsert({ venue_id: venueId, key: 'logo_url', value: urlData.publicUrl + '?t=' + Date.now() }, { onConflict: 'venue_id,key' })
     setUploadingLogo(false)
     setLogoFile(null)
     reloadSettings()

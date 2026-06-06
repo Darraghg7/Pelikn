@@ -1228,7 +1228,7 @@ export default function RotaPage() {
       venue_id: venueId,
       key: `rota_published_${weekStartStr}`,
       value: new Date().toISOString(),
-    })
+    }, { onConflict: 'venue_id,key' })
     if (saveErr) { toast('Failed to publish: ' + saveErr.message, 'error'); setEmailing(false); return }
     const staffIds = [...new Set(shifts.map(s => s.staff_id).filter(Boolean))]
     if (staffIds.length) {
