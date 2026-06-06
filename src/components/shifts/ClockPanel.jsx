@@ -12,7 +12,7 @@ import LoadingSpinner from '../ui/LoadingSpinner'
 import { supabase } from '../../lib/supabase'
 import { sendPush } from '../../lib/sendPush'
 import StaffAlertModal from './StaffAlertModal'
-import { useSettings } from '../../hooks/useSettings'
+import { useAppSettings as useSettings } from '../../hooks/useSettings'
 
 const STATUS_CONFIG = {
   clocked_out: { label: 'Not Clocked In', color: 'text-charcoal/50', dot: 'bg-charcoal/25' },
