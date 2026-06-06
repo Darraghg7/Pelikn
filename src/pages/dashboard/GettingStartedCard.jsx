@@ -83,7 +83,7 @@ export default function GettingStartedCard({ venueId, venueSlug }) {
   if (items.every(i => i.done)) return null
 
   const dismiss = () => {
-    supabase.from('app_settings').upsert({ venue_id: venueId, key: 'setup_dismissed', value: 'true' }).then(() => {})
+    supabase.from('app_settings').upsert({ venue_id: venueId, key: 'setup_dismissed', value: 'true' }, { onConflict: 'venue_id,key' }).then(() => {})
     setDismissed(true)
   }
 
