@@ -120,6 +120,10 @@ const ChecksWorklistPage = lazy(() => import('./pages/compliance/ChecksWorklistP
 // Team hub
 const TeamHubPage = lazy(() => import('./pages/team/TeamHubPage'))
 
+// HR
+const HRHubPage          = lazy(() => import('./pages/hr/HRHubPage'))
+const EmployeeRecordPage = lazy(() => import('./pages/hr/EmployeeRecordPage'))
+
 // Settings hub + sub-pages
 const SettingsHubPage              = lazy(() => import('./pages/settings/SettingsHubPage'))
 const AttendanceSettingsPage       = lazy(() => import('./pages/settings/AttendanceSettingsPage'))
@@ -350,6 +354,8 @@ function VenueRoutes() {
             <Route path="cleaning"          element={wrap(CleaningPage)} />
             <Route path="opening-closing"   element={wrap(OpeningClosingPage)} />
             <Route path="team"              element={wrap(TeamHubPage,    RequireManager)} />
+            <Route path="hr"                element={wrap(HRHubPage,      RequireManager)} />
+            <Route path="hr/:staffId"       element={wrap(EmployeeRecordPage, RequireManager)} />
             <Route path="rota"              element={wrapPro(RotaPage,    RequireAuth, 'rota')} />
             <Route path="time-off"          element={wrapPro(TimeOffPage, RequireAuth, 'time-off')} />
 
