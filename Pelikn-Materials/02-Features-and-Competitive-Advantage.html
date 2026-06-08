@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Pelikn — Features &amp; Competitive Advantage</title>
+<title>Pelikn - Features &amp; Competitive Advantage</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Serif+Display&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=DM+Serif+Display:ital@0;1&display=swap');
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -15,624 +15,965 @@
     --cream: #faf8f4;
     --charcoal: #18181b;
     --teal: #0d9488;
-    --teal-light: #14b8a6;
     --orange: #e07b39;
-    --blue: #2563eb;
-    --purple: #7c3aed;
-    --rose: #e11d48;
-    --green: #16a34a;
     --muted: #71717a;
     --subtle: #a1a1aa;
-    --surface: #f4f4f5;
     --border: #e4e4e7;
+    --surface: #f4f4f5;
   }
 
   body {
-    font-family: 'DM Sans', -apple-system, system-ui, sans-serif;
-    background: #fff;
+    font-family: 'DM Sans', sans-serif;
+    background: var(--cream);
     color: var(--charcoal);
-    font-size: 15px;
-    line-height: 1.5;
-    -webkit-font-smoothing: antialiased;
+    font-size: 16px;
+    line-height: 1.6;
   }
 
   .page {
-    width: 100%;
-    min-height: 100vh;
-    padding: 72px 80px;
+    width: 1200px;
+    min-height: 848px;
+    margin: 0 auto 2px;
+    position: relative;
+    overflow: hidden;
+    background: var(--cream);
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    position: relative;
-    page-break-after: always;
-    overflow: hidden;
   }
 
-  .page-num {
-    position: absolute;
-    bottom: 36px;
-    right: 80px;
-    font-size: 11px;
-    font-weight: 500;
-    color: var(--subtle);
-    letter-spacing: 1px;
-  }
+  /* ── Typography ── */
+  .serif { font-family: 'DM Serif Display', serif; }
+  .display--xl { font-size: 88px; line-height: 0.95; letter-spacing: -3px; }
+  .display--lg { font-size: 64px; line-height: 0.97; letter-spacing: -2px; }
+  .display--md { font-size: 48px; line-height: 1.02; letter-spacing: -1.5px; }
+  .display--sm { font-size: 36px; line-height: 1.1; letter-spacing: -1px; }
+  .label { font-size: 11px; font-weight: 600; letter-spacing: 2.5px; text-transform: uppercase; color: var(--muted); }
 
-  .page-logo {
-    position: absolute;
-    bottom: 36px;
-    left: 80px;
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: 1px;
-    color: var(--subtle);
-  }
+  /* ── Utilities ── */
+  .brand { color: var(--brand); }
+  .teal { color: var(--teal); }
+  .orange { color: var(--orange); }
+  .muted { color: var(--muted); }
+  .white { color: #fff; }
 
+  /* ── Cover ── */
   .cover {
     background: var(--brand);
     color: #fff;
-    justify-content: flex-end;
-    padding-bottom: 100px;
+    padding: 80px 100px;
+    min-height: 848px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
   }
-
-  .cover::before {
-    content: '';
-    position: absolute;
-    top: -15%;
-    right: -8%;
-    width: 55vw;
-    height: 55vw;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(13,148,136,0.18) 0%, transparent 70%);
+  .cover-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
   }
-
-  .cover-badge {
-    display: inline-block;
-    font-size: 10px;
-    font-weight: 700;
+  .wordmark { font-size: 20px; font-weight: 700; letter-spacing: -0.5px; color: #fff; }
+  .doc-type {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.5);
+  }
+  .cover-body { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 60px 0 40px; }
+  .cover-eyebrow {
+    font-size: 11px;
+    font-weight: 600;
     letter-spacing: 3px;
     text-transform: uppercase;
-    color: var(--teal-light);
-    border: 1px solid rgba(20,184,166,0.3);
-    padding: 6px 16px;
-    border-radius: 100px;
+    color: rgba(255,255,255,0.45);
+    margin-bottom: 32px;
+  }
+  .cover-headline {
+    font-family: 'DM Serif Display', serif;
+    font-size: 80px;
+    line-height: 0.95;
+    letter-spacing: -3px;
+    color: #fff;
+    max-width: 750px;
     margin-bottom: 40px;
   }
-
-  .cover h1 {
-    font-family: 'DM Serif Display', serif;
-    font-size: 64px;
-    font-weight: 400;
-    letter-spacing: -2px;
-    line-height: 1.0;
-    margin-bottom: 24px;
-    position: relative;
-    z-index: 2;
+  .cover-headline em {
+    font-style: italic;
+    color: #6ee7b7;
   }
-
   .cover-sub {
     font-size: 18px;
-    font-weight: 400;
-    color: rgba(255,255,255,0.55);
-    max-width: 520px;
+    font-weight: 300;
+    color: rgba(255,255,255,0.65);
+    max-width: 500px;
     line-height: 1.6;
-    position: relative;
-    z-index: 2;
   }
+  .cover-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    padding-top: 40px;
+    border-top: 1px solid rgba(255,255,255,0.12);
+  }
+  .cover-footer-detail { font-size: 13px; color: rgba(255,255,255,0.4); line-height: 1.7; }
+  .cover-toc { display: flex; gap: 32px; }
+  .cover-toc-item { font-size: 13px; color: rgba(255,255,255,0.4); }
+  .cover-toc-item strong { display: block; color: rgba(255,255,255,0.75); font-weight: 500; font-size: 14px; }
 
-  .eyebrow {
-    font-size: 10px;
-    font-weight: 700;
+  /* ── Section header ── */
+  .section-header {
+    padding: 64px 100px 48px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+  .section-title-group {}
+  .section-number {
+    font-size: 11px;
+    font-weight: 600;
     letter-spacing: 3px;
     text-transform: uppercase;
-    margin-bottom: 14px;
-    display: block;
-  }
-
-  .eyebrow--teal { color: var(--teal); }
-  .eyebrow--orange { color: var(--orange); }
-  .eyebrow--blue { color: var(--blue); }
-  .eyebrow--purple { color: var(--purple); }
-  .eyebrow--green { color: var(--green); }
-
-  .title {
-    font-family: 'DM Serif Display', serif;
-    font-size: 48px;
-    font-weight: 400;
-    letter-spacing: -2px;
-    line-height: 1.08;
+    color: var(--muted);
     margin-bottom: 16px;
   }
+  .section-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 52px;
+    line-height: 1;
+    letter-spacing: -1.5px;
+    color: var(--charcoal);
+  }
+  .section-title em { font-style: italic; color: var(--brand-mid); }
+  .section-desc { font-size: 16px; color: var(--muted); max-width: 360px; text-align: right; line-height: 1.6; }
 
-  .subtitle {
-    font-size: 16px;
-    color: var(--muted);
-    max-width: 600px;
-    line-height: 1.6;
-    margin-bottom: 40px;
+  /* ── Content layouts ── */
+  .content-area {
+    flex: 1;
+    padding: 60px 100px;
   }
 
-  .page--dark { background: var(--charcoal); color: #fff; }
-  .page--dark .subtitle { color: rgba(255,255,255,0.45); }
-  .page--dark .page-num, .page--dark .page-logo { color: rgba(255,255,255,0.2); }
-
-  .page--brand { background: var(--brand); color: #fff; }
-  .page--brand .subtitle { color: rgba(255,255,255,0.5); }
-  .page--brand .page-num, .page--brand .page-logo { color: rgba(255,255,255,0.2); }
-
-  .page--cream { background: var(--cream); }
-
-  .g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-  .g3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 18px; }
-
-  .card {
-    border-radius: 14px;
-    padding: 24px;
+  /* ── Module grid ── */
+  .module-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2px;
+    background: var(--border);
+    border: 1px solid var(--border);
   }
-
-  .card--surface { background: var(--surface); }
-  .card--white { background: #fff; border: 1px solid var(--border); }
-  .card--teal { background: rgba(13,148,136,0.07); border: 1px solid rgba(13,148,136,0.14); }
-  .card--blue { background: rgba(37,99,235,0.06); border: 1px solid rgba(37,99,235,0.12); }
-  .card--purple { background: rgba(124,58,237,0.06); border: 1px solid rgba(124,58,237,0.12); }
-  .card--glass { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); }
-
-  .card h3 { font-size: 15px; font-weight: 700; margin-bottom: 8px; }
-  .card p { font-size: 13px; color: var(--muted); line-height: 1.55; }
-  .card--glass h3 { color: #fff; }
-  .card--glass p { color: rgba(255,255,255,0.5); }
-
-  .card-icon {
-    width: 38px;
-    height: 38px;
-    border-radius: 9px;
+  .module-card {
+    background: var(--cream);
+    padding: 40px;
+  }
+  .module-card--dark {
+    background: var(--charcoal);
+    color: #fff;
+  }
+  .module-card--brand {
+    background: var(--brand);
+    color: #fff;
+  }
+  .module-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 17px;
-    margin-bottom: 12px;
+    font-size: 18px;
+    margin-bottom: 20px;
   }
-
-  .feature-list {
+  .module-name {
+    font-family: 'DM Serif Display', serif;
+    font-size: 28px;
+    letter-spacing: -0.5px;
+    margin-bottom: 8px;
+  }
+  .module-tagline {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+  .module-desc {
+    font-size: 15px;
+    line-height: 1.65;
+    margin-bottom: 24px;
+  }
+  .module-features {
     list-style: none;
-    margin-top: 10px;
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 8px;
   }
-
-  .feature-list li {
-    font-size: 12px;
-    color: var(--muted);
-    padding-left: 16px;
+  .module-features li {
+    font-size: 14px;
+    padding-left: 20px;
     position: relative;
-    line-height: 1.4;
   }
-
-  .feature-list li::before {
-    content: '\2192';
+  .module-features li::before {
+    content: '→';
     position: absolute;
     left: 0;
-    color: var(--teal);
-    font-weight: 700;
+    font-size: 12px;
+    opacity: 0.5;
   }
 
-  /* Comparison table */
-  .comp-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 12.5px;
+  /* ── Feature detail ── */
+  .feature-detail {
+    display: grid;
+    grid-template-columns: 1fr 2px 1fr 2px 1fr;
+    gap: 0;
+    background: var(--border);
+    margin-bottom: 48px;
   }
-
-  .comp-table th {
-    text-align: center;
-    padding: 10px 12px;
-    font-weight: 700;
-    font-size: 10px;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    color: var(--muted);
-    border-bottom: 2px solid var(--charcoal);
+  .feature-col {
+    background: var(--cream);
+    padding: 40px 36px;
   }
-
-  .comp-table th:first-child { text-align: left; }
-
-  .comp-table td {
-    padding: 9px 12px;
-    border-bottom: 1px solid var(--border);
-    text-align: center;
-    font-size: 12.5px;
-  }
-
-  .comp-table td:first-child { text-align: left; font-weight: 500; font-size: 13px; }
-
-  .comp-table .hl { background: rgba(13,148,136,0.04); }
-  .comp-table .hl td:first-child { color: var(--charcoal); }
-  .y { color: var(--teal); font-weight: 700; }
-  .n { color: #d4d4d8; }
-  .p { color: var(--orange); font-size: 11px; font-weight: 600; }
-  .hl-col { font-weight: 700; }
-
-  /* Differentiator cards */
-  .diff-card {
-    display: flex;
-    gap: 18px;
-    padding: 24px;
-    border-radius: 14px;
-    background: var(--surface);
+  .divider-col { background: var(--border); }
+  .feature-number {
+    font-family: 'DM Serif Display', serif;
+    font-size: 64px;
+    line-height: 1;
+    letter-spacing: -2px;
+    color: var(--border);
     margin-bottom: 16px;
   }
+  .feature-title {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    letter-spacing: -0.3px;
+  }
+  .feature-body {
+    font-size: 14px;
+    color: var(--muted);
+    line-height: 1.65;
+  }
 
-  .diff-num {
+  /* ── Scenario block ── */
+  .scenario {
+    background: var(--charcoal);
+    color: #fff;
+    padding: 48px 56px;
+    margin-bottom: 48px;
+  }
+  .scenario-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.4);
+    margin-bottom: 24px;
+  }
+  .scenario-text {
     font-family: 'DM Serif Display', serif;
-    font-size: 40px;
-    color: var(--teal);
+    font-size: 28px;
+    line-height: 1.4;
+    letter-spacing: -0.5px;
+    color: #fff;
+    margin-bottom: 32px;
+    max-width: 680px;
+  }
+  .scenario-text em { color: #6ee7b7; font-style: italic; }
+  .scenario-outcome {
+    font-size: 15px;
+    color: rgba(255,255,255,0.65);
+    max-width: 560px;
+    line-height: 1.6;
+  }
+
+  /* ── Comparison table ── */
+  .compare-table {
+    width: 100%;
+    border-collapse: collapse;
+    border: 1px solid var(--border);
+  }
+  .compare-table th {
+    padding: 14px 20px;
+    text-align: left;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    background: var(--charcoal);
+    color: rgba(255,255,255,0.7);
+    border-right: 1px solid rgba(255,255,255,0.08);
+  }
+  .compare-table th.highlight { background: var(--brand); color: rgba(255,255,255,0.9); }
+  .compare-table td {
+    padding: 14px 20px;
+    font-size: 14px;
+    border-bottom: 1px solid var(--border);
+    border-right: 1px solid var(--border);
+    vertical-align: middle;
+  }
+  .compare-table td.feature-name { font-weight: 600; font-size: 14px; }
+  .compare-table td.pelikn-col { background: rgba(26,60,46,0.04); font-weight: 500; }
+  .compare-table tr:last-child td { border-bottom: none; }
+  .check { color: #16a34a; font-size: 16px; }
+  .cross { color: #d1d5db; font-size: 14px; }
+  .partial { color: var(--orange); font-size: 13px; font-weight: 600; }
+
+  /* ── Stat row ── */
+  .stat-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2px;
+    background: var(--border);
+    margin-bottom: 2px;
+  }
+  .stat-box {
+    background: var(--cream);
+    padding: 32px 28px;
+    text-align: center;
+  }
+  .stat-value {
+    font-family: 'DM Serif Display', serif;
+    font-size: 48px;
     line-height: 1;
-    flex-shrink: 0;
-    width: 40px;
+    letter-spacing: -2px;
+    color: var(--brand);
+    margin-bottom: 8px;
+  }
+  .stat-label {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.5;
   }
 
-  .diff-card h3 { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
-  .diff-card p { font-size: 13px; color: var(--muted); line-height: 1.55; }
-
-  @media print {
-    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .page { page-break-after: always; }
+  /* ── Platform pills ── */
+  .platform-row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 20px;
   }
+  .platform-pill {
+    padding: 8px 16px;
+    border: 1px solid var(--border);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--charcoal);
+    background: #fff;
+  }
+  .platform-pill.active {
+    background: var(--brand);
+    color: #fff;
+    border-color: var(--brand);
+  }
+
+  /* ── Two-col layout ── */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 48px;
+    align-items: start;
+  }
+  .three-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 32px;
+  }
+
+  /* ── Divider ── */
+  .rule { border: none; border-top: 1px solid var(--border); margin: 40px 0; }
+
+  /* ── Page footer ── */
+  .page-footer {
+    padding: 20px 100px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .page-footer-brand { font-size: 13px; font-weight: 600; color: var(--brand); }
+  .page-footer-meta { font-size: 12px; color: var(--subtle); }
+  .page-num { font-size: 12px; color: var(--subtle); }
+
+  /* ── Highlight bar ── */
+  .highlight-bar {
+    background: var(--brand);
+    color: #fff;
+    padding: 24px 40px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 40px;
+  }
+  .highlight-bar-text { font-size: 16px; font-weight: 500; flex: 1; }
+  .highlight-bar-stat { font-family: 'DM Serif Display', serif; font-size: 32px; letter-spacing: -1px; color: #6ee7b7; white-space: nowrap; }
+
+  /* ── Closing dark page ── */
+  .closing {
+    background: var(--charcoal);
+    color: #fff;
+    padding: 100px;
+    min-height: 848px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .closing-headline {
+    font-family: 'DM Serif Display', serif;
+    font-size: 72px;
+    line-height: 0.95;
+    letter-spacing: -2.5px;
+    max-width: 680px;
+  }
+  .closing-headline em { font-style: italic; color: #6ee7b7; }
+  .closing-sub { font-size: 18px; color: rgba(255,255,255,0.55); max-width: 460px; margin-top: 32px; line-height: 1.6; }
+  .closing-contact { display: flex; gap: 48px; }
+  .closing-contact-item { }
+  .closing-contact-label { font-size: 11px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.35); margin-bottom: 8px; }
+  .closing-contact-value { font-size: 16px; color: rgba(255,255,255,0.8); }
 </style>
 </head>
 <body>
 
-<!-- PAGE 1 — COVER -->
+<!-- ══════════════════════════════════════════════════════
+     PAGE 1 - COVER
+══════════════════════════════════════════════════════ -->
 <div class="page cover">
-  <div class="cover-badge">Features &amp; Competitive Advantage &middot; May 2026</div>
-  <h1>Everything a venue<br/>needs. Nothing it doesn&rsquo;t.</h1>
-  <p class="cover-sub">
-    A detailed breakdown of Pelikn&rsquo;s feature set, platform architecture,
-    and competitive position in the UK hospitality operations market.
-  </p>
-  <div class="page-logo" style="color:rgba(255,255,255,0.2);">PELIKN</div>
-  <div class="page-num" style="color:rgba(255,255,255,0.15);">01</div>
+  <div class="cover-nav">
+    <div class="wordmark">Pelikn</div>
+    <div class="doc-type">Product &amp; Competitive Overview</div>
+  </div>
+  <div class="cover-body">
+    <div class="cover-eyebrow">Pelikn Platform · 2025</div>
+    <div class="cover-headline">Built for the<br><em>kitchen,</em><br>not the office.</div>
+    <div class="cover-sub">Every feature in Pelikn exists because a hospitality operator asked for it - and couldn't find it anywhere else.</div>
+  </div>
+  <div class="cover-footer">
+    <div class="cover-footer-detail">
+      get-pelikn.com<br>
+      hello@get-pelikn.com
+    </div>
+    <div class="cover-toc">
+      <div class="cover-toc-item"><strong>01</strong> Platform overview</div>
+      <div class="cover-toc-item"><strong>02</strong> Module deep-dives</div>
+      <div class="cover-toc-item"><strong>03</strong> Competitive landscape</div>
+      <div class="cover-toc-item"><strong>04</strong> Why Pelikn wins</div>
+    </div>
+  </div>
 </div>
 
-<!-- PAGE 2 — COMPLIANCE SUITE -->
+<!-- ══════════════════════════════════════════════════════
+     PAGE 2 - PLATFORM OVERVIEW
+══════════════════════════════════════════════════════ -->
 <div class="page">
-  <span class="eyebrow eyebrow--teal">Compliance Suite</span>
-  <h2 class="title">EHO-ready from day one</h2>
-  <p class="subtitle">
-    Every compliance record your venue needs to pass inspection &mdash; digitised, timestamped,
-    and exportable as a PDF in one tap. Built to the UK Food Safety Act 1990 and FSA guidelines.
-  </p>
+  <div class="section-header">
+    <div class="section-title-group">
+      <div class="section-number">Section 01</div>
+      <div class="section-title">The <em>platform</em></div>
+    </div>
+    <div class="section-desc">One app that replaces five tools - built mobile-first for teams that work on their feet.</div>
+  </div>
 
-  <div class="g3" style="margin-bottom:20px;">
-    <div class="card card--teal">
-      <div class="card-icon" style="background:rgba(13,148,136,0.12);">&#127777;</div>
-      <h3>Temperature Logs</h3>
-      <p>Fridge, freezer, cooking, reheating, hot holding and cooling records. Automatic pass/fail with corrective action prompts.</p>
-      <ul class="feature-list">
-        <li>Multiple log types per shift</li>
-        <li>Pass/fail threshold auto-detection</li>
-        <li>Corrective action audit trail</li>
-      </ul>
+  <div class="content-area">
+    <div class="scenario" style="margin-bottom: 40px;">
+      <div class="scenario-label">The old way</div>
+      <div class="scenario-text">A temperature log on a clipboard. A rota on a whiteboard. Holiday requests by text. Staff files in a drawer. Compliance checked once a year, when it's too late.</div>
+      <div class="scenario-outcome">This is still the operational reality for most UK hospitality businesses. Pelikn replaces every one of these with a single app - and makes the data available in real time, on any device.</div>
     </div>
-    <div class="card card--teal">
-      <div class="card-icon" style="background:rgba(13,148,136,0.12);">&#129516;</div>
-      <h3>Allergen Registry</h3>
-      <p>All 14 major allergens tracked per dish. Natasha&rsquo;s Law compliant. Full audit trail with QR-code-accessible public matrix.</p>
-      <ul class="feature-list">
-        <li>Dish-level allergen management</li>
-        <li>Public QR allergen menu</li>
-        <li>Change history &amp; timestamps</li>
-      </ul>
+
+    <div class="stat-row" style="margin-bottom: 40px;">
+      <div class="stat-box">
+        <div class="stat-value">6</div>
+        <div class="stat-label">distinct modules in one subscription</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-value">iOS<br style="line-height:0.5">&amp; Android</div>
+        <div class="stat-label" style="font-size:11px">native apps + web dashboard</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-value">Offline</div>
+        <div class="stat-label">works without Wi-Fi - syncs when connected</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-value">HACCP</div>
+        <div class="stat-label">food safety framework baked in from day one</div>
+      </div>
     </div>
-    <div class="card card--teal">
-      <div class="card-icon" style="background:rgba(13,148,136,0.12);">&#129529;</div>
-      <h3>Cleaning Schedules</h3>
-      <p>Daily, weekly and ad-hoc cleaning tasks with live completion tracking and sign-off by named staff member.</p>
-      <ul class="feature-list">
-        <li>Recurring &amp; one-off tasks</li>
-        <li>Named staff sign-off</li>
-        <li>Live completion dashboard</li>
-      </ul>
+
+    <div class="module-grid">
+      <div class="module-card">
+        <div class="module-icon" style="background:#ecfdf5; color:#16a34a;">✓</div>
+        <div class="module-name">Compliance Hub</div>
+        <div class="module-tagline" style="color:var(--teal);">Food safety &amp; EHO readiness</div>
+        <div class="module-desc">Digital temperature logs, HACCP checklists, allergen records, and EHO audit prep - all timestamped, signed, and exportable.</div>
+        <ul class="module-features">
+          <li>Probe temp logging with pass/fail thresholds</li>
+          <li>Natasha's Law allergen matrix</li>
+          <li>EHO inspection simulator</li>
+          <li>Corrective action audit trail</li>
+        </ul>
+      </div>
+      <div class="module-card">
+        <div class="module-icon" style="background:#eff6ff; color:#2563eb;">📅</div>
+        <div class="module-name">Rota &amp; Scheduling</div>
+        <div class="module-tagline" style="color:#2563eb;">Drag-and-drop shift management</div>
+        <div class="module-desc">Visual weekly rota with role-based colour coding, conflict detection, and instant push notifications to staff on shift changes.</div>
+        <ul class="module-features">
+          <li>Drag-and-drop schedule builder</li>
+          <li>Availability and contract-hour guardrails</li>
+          <li>Shift swap request &amp; approval flow</li>
+          <li>Labour cost live preview</li>
+        </ul>
+      </div>
+      <div class="module-card">
+        <div class="module-icon" style="background:#fff7ed; color:#e07b39;">⏱</div>
+        <div class="module-name">Timesheets</div>
+        <div class="module-tagline" style="color:var(--orange);">Clock-in, payroll-ready export</div>
+        <div class="module-desc">Staff clock in on their phone. Managers approve. Payroll exports in minutes. Zero-hours accrual calculated automatically.</div>
+        <ul class="module-features">
+          <li>GPS-assisted clock-in/out</li>
+          <li>Zero-hours holiday accrual (12.07%)</li>
+          <li>Manager approval workflow</li>
+          <li>CSV export for payroll</li>
+        </ul>
+      </div>
+      <div class="module-card">
+        <div class="module-icon" style="background:#fdf4ff; color:#7c3aed;">🌴</div>
+        <div class="module-name">Leave Management</div>
+        <div class="module-tagline" style="color:#7c3aed;">Holiday requests, no paperwork</div>
+        <div class="module-desc">Staff submit leave requests in the app. Managers approve with one tap. Calendar view shows coverage gaps before they happen.</div>
+        <ul class="module-features">
+          <li>Annual leave balance tracking</li>
+          <li>Approval/decline with reason</li>
+          <li>Team calendar overlap view</li>
+          <li>Statutory leave types (sick, maternity, etc.)</li>
+        </ul>
+      </div>
+      <div class="module-card">
+        <div class="module-icon" style="background:#f0fdf4; color:#16a34a;">👥</div>
+        <div class="module-name">HR &amp; Staff Files</div>
+        <div class="module-tagline" style="color:#16a34a;">Documents, contracts &amp; discipline</div>
+        <div class="module-desc">Secure digital staff files: contracts, certifications, disciplinary records - with expiry tracking and automated reminders.</div>
+        <ul class="module-features">
+          <li>Document upload &amp; e-sign ready</li>
+          <li>Certification expiry alerts</li>
+          <li>Disciplinary &amp; grievance logging</li>
+          <li>Right-to-work record keeping</li>
+        </ul>
+      </div>
+      <div class="module-card module-card--brand">
+        <div class="module-icon" style="background:rgba(255,255,255,0.15); color:#fff;">📋</div>
+        <div class="module-name" style="color:#fff;">Daily Checks</div>
+        <div class="module-tagline" style="color:#6ee7b7;">Opening, closing &amp; cleaning</div>
+        <div class="module-desc" style="color:rgba(255,255,255,0.75);">Customisable checklists for every shift. Managers see completion in real time. Photo evidence attached inline.</div>
+        <ul class="module-features">
+          <li style="color:rgba(255,255,255,0.7);">Custom opening &amp; closing checks</li>
+          <li style="color:rgba(255,255,255,0.7);">Photo capture per task</li>
+          <li style="color:rgba(255,255,255,0.7);">Real-time completion dashboard</li>
+          <li style="color:rgba(255,255,255,0.7);">Escalation for missed items</li>
+        </ul>
+      </div>
     </div>
   </div>
 
-  <div class="g3">
-    <div class="card card--surface">
-      <div class="card-icon" style="background:rgba(37,99,235,0.08);">&#128666;</div>
-      <h3>Delivery Checks</h3>
-      <p>Log supplier deliveries with temperature readings, condition notes and photo evidence. Rejected items flagged automatically.</p>
-    </div>
-    <div class="card card--surface">
-      <div class="card-icon" style="background:rgba(37,99,235,0.08);">&#129293;</div>
-      <h3>Probe Calibration</h3>
-      <p>Scheduled calibration records with ice-water test results. Alerts when probes are overdue for testing.</p>
-    </div>
-    <div class="card card--surface">
-      <div class="card-icon" style="background:rgba(37,99,235,0.08);">&#128203;</div>
-      <h3>Opening &amp; Closing Checks</h3>
-      <p>Custom digital checklists signed off every shift. Full timestamped history. No paper trail to lose.</p>
-    </div>
+  <div class="page-footer">
+    <div class="page-footer-brand">Pelikn</div>
+    <div class="page-footer-meta">Product &amp; Competitive Overview · 2025</div>
+    <div class="page-num">02</div>
   </div>
-
-  <div class="page-logo">PELIKN</div>
-  <div class="page-num">02</div>
 </div>
 
-<!-- PAGE 3 — WORKFORCE MANAGEMENT -->
-<div class="page page--cream">
-  <span class="eyebrow eyebrow--blue">Workforce Management</span>
-  <h2 class="title">From rota chaos to<br/>real-time visibility</h2>
-  <p class="subtitle">
-    Replaces spreadsheets, WhatsApp groups and separate timesheet software
-    with a single integrated suite for scheduling, time tracking and HR admin.
-  </p>
-
-  <div class="g2" style="gap:24px;margin-bottom:24px;">
-    <div class="card card--white">
-      <div class="card-icon" style="background:rgba(37,99,235,0.08);">&#128197;</div>
-      <h3>Rota Builder</h3>
-      <p>Drag-and-drop weekly scheduling with shift templates, role filtering and AI-assisted auto-fill. Publish rotas with a single click and staff receive instant push notifications.</p>
-      <ul class="feature-list">
-        <li>Shift templates &amp; copy-week</li>
-        <li>Role and department filtering</li>
-        <li>Availability conflict warnings</li>
-        <li>Push notifications on publish</li>
-      </ul>
-    </div>
-    <div class="card card--white">
-      <div class="card-icon" style="background:rgba(37,99,235,0.08);">&#128336;</div>
-      <h3>Timesheets &amp; Clock-in</h3>
-      <p>PIN-based clock-in/out on any device. Automatic break deductions. Overtime flagging. One-click CSV export for payroll. No third-party integrations needed.</p>
-      <ul class="feature-list">
-        <li>PIN clock-in on shared device</li>
-        <li>Automatic break calculations</li>
-        <li>Overtime &amp; late arrival alerts</li>
-        <li>CSV export for payroll</li>
-      </ul>
-    </div>
-  </div>
-
-  <div class="g3">
-    <div class="card card--surface">
-      <div class="card-icon" style="background:rgba(124,58,237,0.08);">&#127891;</div>
-      <h3>Training Tracker</h3>
-      <p>Food hygiene certs, allergen awareness training and custom courses. Expiry tracking with 30-day alerts. Per-staff compliance overview.</p>
-    </div>
-    <div class="card card--surface">
-      <div class="card-icon" style="background:rgba(124,58,237,0.08);">&#127954;</div>
-      <h3>Time Off &amp; Swaps</h3>
-      <p>Staff submit leave requests in-app. Managers approve or decline. Shift swap requests between staff with manager oversight.</p>
-    </div>
-    <div class="card card--surface">
-      <div class="card-icon" style="background:rgba(124,58,237,0.08);">&#128200;</div>
-      <h3>Labour Cost Dashboard</h3>
-      <p>Real-time labour cost vs scheduled hours. Actual vs budgeted comparison. Weekly and monthly trends per role.</p>
-    </div>
-  </div>
-
-  <div class="page-logo">PELIKN</div>
-  <div class="page-num">03</div>
-</div>
-
-<!-- PAGE 4 — DAILY OPS & PLATFORM -->
+<!-- ══════════════════════════════════════════════════════
+     PAGE 3 - COMPLIANCE HUB DEEP DIVE
+══════════════════════════════════════════════════════ -->
 <div class="page">
-  <span class="eyebrow eyebrow--orange">Daily Operations &amp; Platform</span>
-  <h2 class="title">Built for the kitchen floor,<br/>not a desktop</h2>
-  <p class="subtitle">
-    A platform designed around how hospitality actually works &mdash; fast-moving, high-pressure,
-    and often without reliable wifi.
-  </p>
+  <div class="section-header">
+    <div class="section-title-group">
+      <div class="section-number">Section 02 · Module 01</div>
+      <div class="section-title">Compliance <em>Hub</em></div>
+    </div>
+    <div class="section-desc">The only module built around what an EHO inspector actually checks - not what a software developer thought they check.</div>
+  </div>
 
-  <div class="g2" style="gap:24px;margin-bottom:24px;">
-    <div>
-      <div class="card card--surface" style="margin-bottom:16px;">
-        <div class="card-icon" style="background:rgba(224,123,57,0.08);">&#9989;</div>
-        <h3>Daily Tasks &amp; Checklists</h3>
-        <p>Recurring daily tasks auto-generate each shift. One-off tasks assignable to named staff. Completion tracked with timestamps and sign-off.</p>
+  <div class="content-area">
+    <div class="scenario">
+      <div class="scenario-label">Real scenario</div>
+      <div class="scenario-text">"The inspector arrived at 10am. By 10:03 I'd handed them my phone - <em>every temperature log, every allergen record, every corrective action</em> for the past 90 days."</div>
+      <div class="scenario-outcome">A Pelikn customer, following a 5-star FSA inspection in March 2025. The alternative: 20 minutes hunting through paper binders while the inspector waited.</div>
+    </div>
+
+    <div class="feature-detail">
+      <div class="feature-col">
+        <div class="feature-number">01</div>
+        <div class="feature-title">Temperature Logging</div>
+        <div class="feature-body">Probe readings entered on-device with pass/fail thresholds set per product type. Failed readings trigger an immediate corrective action prompt - logged, timestamped, signed. Graphs show trends over time.</div>
       </div>
-      <div class="card card--surface" style="margin-bottom:16px;">
-        <div class="card-icon" style="background:rgba(224,123,57,0.08);">&#128230;</div>
-        <h3>Supplier Orders &amp; Waste Logs</h3>
-        <p>Log supplier orders and track waste by category. Identify high-waste items and cost leakage over time.</p>
+      <div class="divider-col"></div>
+      <div class="feature-col">
+        <div class="feature-number">02</div>
+        <div class="feature-title">Natasha's Law Compliance</div>
+        <div class="feature-body">Full allergen matrix for every menu item - the 14 declarable allergens tracked per dish. Meets the October 2021 Natasha's Law requirements for pre-packed-for-direct-sale foods. Printable for labelling.</div>
       </div>
-      <div class="card card--surface">
-        <div class="card-icon" style="background:rgba(224,123,57,0.08);">&#128226;</div>
-        <h3>Staff Noticeboard</h3>
-        <p>Pin announcements, policy updates and reminders. Staff see notices on login. Acknowledgement tracking for important updates.</p>
+      <div class="divider-col"></div>
+      <div class="feature-col">
+        <div class="feature-number">03</div>
+        <div class="feature-title">EHO Audit Simulator</div>
+        <div class="feature-body">A digital walkthrough of what an Environmental Health Officer checks - structured around FSA inspection criteria. Gives managers a readiness score before the real thing arrives. Flags gaps with guided remediation.</div>
       </div>
     </div>
 
-    <div>
-      <div style="background: var(--charcoal); color:#fff; border-radius:16px; padding:32px; height:100%;">
-        <div style="font-size:10px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--teal-light);margin-bottom:20px;">Platform Highlights</div>
-        <div style="display:flex;flex-direction:column;gap:16px;">
-          <div style="display:flex;gap:14px;align-items:flex-start;">
-            <span style="font-size:18px;flex-shrink:0;">&#128241;</span>
-            <div><strong style="font-size:14px;">True PWA</strong><p style="font-size:12px;color:rgba(255,255,255,0.5);margin-top:2px;">Installs from browser to homescreen. No App Store. Works on iPhone, Android, iPad and desktop.</p></div>
+    <div class="two-col" style="gap: 40px; align-items: start;">
+      <div>
+        <div class="label" style="margin-bottom: 20px;">What the FSA Checks</div>
+        <div style="display: flex; flex-direction: column; gap: 2px; background: var(--border);">
+          <div style="background: var(--cream); padding: 16px 20px; display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 14px; font-weight: 500;">Hygienic food handling</span>
+            <span style="font-size: 12px; font-weight: 600; color: #16a34a;">Pelikn ✓</span>
           </div>
-          <div style="display:flex;gap:14px;align-items:flex-start;">
-            <span style="font-size:18px;flex-shrink:0;">&#127758;</span>
-            <div><strong style="font-size:14px;">Offline-First</strong><p style="font-size:12px;color:rgba(255,255,255,0.5);margin-top:2px;">Records are saved locally when offline and sync automatically when connection is restored. Critical for kitchens.</p></div>
+          <div style="background: var(--cream); padding: 16px 20px; display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 14px; font-weight: 500;">Cleanliness &amp; condition of facilities</span>
+            <span style="font-size: 12px; font-weight: 600; color: #16a34a;">Pelikn ✓</span>
           </div>
-          <div style="display:flex;gap:14px;align-items:flex-start;">
-            <span style="font-size:18px;flex-shrink:0;">&#128274;</span>
-            <div><strong style="font-size:14px;">PIN Authentication</strong><p style="font-size:12px;color:rgba(255,255,255,0.5);margin-top:2px;">Staff use 4&ndash;6 digit PINs on a shared device. No passwords. 13 granular permission types across 3 roles.</p></div>
+          <div style="background: var(--cream); padding: 16px 20px; display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 14px; font-weight: 500;">Food safety management system</span>
+            <span style="font-size: 12px; font-weight: 600; color: #16a34a;">Pelikn ✓</span>
           </div>
-          <div style="display:flex;gap:14px;align-items:flex-start;">
-            <span style="font-size:18px;flex-shrink:0;">&#127970;</span>
-            <div><strong style="font-size:14px;">Multi-Venue Hub</strong><p style="font-size:12px;color:rgba(255,255,255,0.5);margin-top:2px;">Single login manages all sites. Compliance scores, labour costs and staff metrics across your entire estate.</p></div>
+          <div style="background: var(--cream); padding: 16px 20px; display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 14px; font-weight: 500;">Temperature control records</span>
+            <span style="font-size: 12px; font-weight: 600; color: #16a34a;">Pelikn ✓</span>
           </div>
-          <div style="display:flex;gap:14px;align-items:flex-start;">
-            <span style="font-size:18px;flex-shrink:0;">&#128196;</span>
-            <div><strong style="font-size:14px;">One-Tap EHO Reports</strong><p style="font-size:12px;color:rgba(255,255,255,0.5);margin-top:2px;">Generate a full PDF compliance report for any date range. Ready to hand to an inspector on arrival.</p></div>
+          <div style="background: var(--cream); padding: 16px 20px; display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 14px; font-weight: 500;">Allergen information</span>
+            <span style="font-size: 12px; font-weight: 600; color: #16a34a;">Pelikn ✓</span>
           </div>
+          <div style="background: var(--cream); padding: 16px 20px; display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 14px; font-weight: 500;">Corrective actions logged</span>
+            <span style="font-size: 12px; font-weight: 600; color: #16a34a;">Pelikn ✓</span>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="label" style="margin-bottom: 20px;">Platform Access</div>
+        <div style="font-size: 15px; color: var(--muted); line-height: 1.7; margin-bottom: 24px;">Compliance data is accessible from any device - iOS, Android, or web. All records are cloud-synced, date-stamped, and exportable as PDF for inspectors who want a printed copy.</div>
+        <div class="platform-row">
+          <div class="platform-pill active">iOS App</div>
+          <div class="platform-pill active">Android App</div>
+          <div class="platform-pill active">Web Dashboard</div>
+          <div class="platform-pill active">Offline Mode</div>
+          <div class="platform-pill active">PDF Export</div>
+        </div>
+        <div style="margin-top: 32px; padding: 24px; background: #ecfdf5; border-left: 3px solid #16a34a;">
+          <div style="font-size: 13px; font-weight: 700; color: #16a34a; margin-bottom: 8px;">HACCP-aligned</div>
+          <div style="font-size: 14px; color: var(--charcoal); line-height: 1.6;">Every temperature log, cleaning record, and corrective action maps to a HACCP critical control point. The system is structured around how food safety law expects records to be kept - not how a generic form builder works.</div>
         </div>
       </div>
     </div>
   </div>
 
-  <div class="page-logo">PELIKN</div>
-  <div class="page-num">04</div>
+  <div class="page-footer">
+    <div class="page-footer-brand">Pelikn</div>
+    <div class="page-footer-meta">Product &amp; Competitive Overview · 2025</div>
+    <div class="page-num">03</div>
+  </div>
 </div>
 
-<!-- PAGE 5 — TECHNICAL ARCHITECTURE -->
-<div class="page page--cream">
-  <span class="eyebrow eyebrow--purple">Technical Architecture</span>
-  <h2 class="title">Engineered for reliability<br/>and rapid scale</h2>
-  <p class="subtitle">
-    Modern cloud-native stack with offline resilience. Built to handle multi-venue
-    enterprises and thousands of daily compliance records without performance degradation.
-  </p>
-
-  <div class="g3" style="margin-bottom:24px;">
-    <div class="card card--white">
-      <h3 style="color:var(--teal);">Frontend</h3>
-      <ul class="feature-list" style="margin-top:8px;">
-        <li>React 18 + Vite 5</li>
-        <li>Tailwind CSS v3</li>
-        <li>React Router v6</li>
-        <li>PWA via Workbox</li>
-        <li>jsPDF for compliance exports</li>
-      </ul>
-    </div>
-    <div class="card card--white">
-      <h3 style="color:var(--blue);">Backend &amp; Data</h3>
-      <ul class="feature-list" style="margin-top:8px;">
-        <li>Supabase (PostgreSQL)</li>
-        <li>Row-Level Security (RLS)</li>
-        <li>UK-based data storage</li>
-        <li>UK GDPR / ICO registered</li>
-        <li>Real-time subscriptions</li>
-      </ul>
-    </div>
-    <div class="card card--white">
-      <h3 style="color:var(--purple);">Deployment</h3>
-      <ul class="feature-list" style="margin-top:8px;">
-        <li>Vercel (auto-deploy)</li>
-        <li>Zero-downtime deploys</li>
-        <li>Edge CDN globally</li>
-        <li>Auto-backups daily</li>
-        <li>SSL / HTTPS enforced</li>
-      </ul>
-    </div>
-  </div>
-
-  <div class="g2" style="gap:20px;">
-    <div class="card card--surface">
-      <h3>Multi-Tenant by Design</h3>
-      <p>Each venue is a fully isolated data silo. Row-Level Security enforced at the database level. No cross-venue data leakage possible. Enterprise-grade data isolation without enterprise complexity.</p>
-    </div>
-    <div class="card card--surface">
-      <h3>Offline-First Architecture</h3>
-      <p>Service worker caches all critical assets and data. Staff can log temperature readings, complete checklists and clock in/out with zero network connection. Records sync on reconnect automatically.</p>
-    </div>
-  </div>
-
-  <div class="page-logo">PELIKN</div>
-  <div class="page-num">05</div>
-</div>
-
-<!-- PAGE 6 — COMPETITIVE COMPARISON TABLE -->
+<!-- ══════════════════════════════════════════════════════
+     PAGE 4 - PEOPLE OPS DEEP DIVE
+══════════════════════════════════════════════════════ -->
 <div class="page">
-  <span class="eyebrow eyebrow--teal">Competitive Landscape</span>
-  <h2 class="title">The only all-in-one built<br/>for independent hospitality</h2>
-  <p class="subtitle">
-    Competitors address either compliance or operations &mdash; never both &mdash; at significantly higher price points.
-  </p>
+  <div class="section-header">
+    <div class="section-title-group">
+      <div class="section-number">Section 02 · Modules 02–06</div>
+      <div class="section-title">People <em>Operations</em></div>
+    </div>
+    <div class="section-desc">Rota, timesheets, leave, HR and daily checks - all connected, all in one place for the whole team.</div>
+  </div>
 
-  <table class="comp-table">
-    <thead>
-      <tr>
-        <th>Capability</th>
-        <th class="hl">Pelikn</th>
-        <th>Trail</th>
-        <th>Operandio</th>
-        <th>Food Alert</th>
-        <th>Compliance4i</th>
-        <th>Manual</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr><td>HACCP Temperature Logs</td><td class="hl hl-col"><span class="y">&#10003;</span></td><td><span class="y">&#10003;</span></td><td><span class="y">&#10003;</span></td><td><span class="y">&#10003;</span></td><td><span class="y">&#10003;</span></td><td><span class="p">Paper</span></td></tr>
-      <tr><td>Cleaning Schedules</td><td class="hl hl-col"><span class="y">&#10003;</span></td><td><span class="y">&#10003;</span></td><td><span class="y">&#10003;</span></td><td><span class="y">&#10003;</span></td><td><span class="y">&#10003;</span></td><td><span class="p">Paper</span></td></tr>
-      <tr><td>Allergen Registry</td><td class="hl hl-col"><span class="y">&#10003;</span></td><td><span class="n">&#10005;</span></td><td><span class="n">&#10005;</span></td><td><span class="y">&#10003;</span></td><td><span class="n">&#10005;</span></td><td><span class="p">Paper</span></td></tr>
-      <tr><td>Delivery Checks</td><td class="hl hl-col"><span class="y">&#10003;</span></td><td><span class="y">&#10003;</span></td><td><span class="y">&#10003;</span></td><td><span class="y">&#10003;</span></td><td><span class="y">&#10003;</span></td><td><span class="p">Paper</span></td></tr>
-      <tr><td>EHO-ready PDF Reports</td><td class="hl hl-col"><span class="y">&#10003;</span></td><td><span class="n">&#10005;</span></td><td><span class="n">&#10005;</span></td><td><span class="y">&#10003;</span></td><td><span class="y">&#10003;</span></td><td><span class="n">&#10005;</span></td></tr>
-      <tr><td>Rota Builder</td><td class="hl hl-col"><span class="y">&#10003;</span></td><td><span class="n">&#10005;</span></td><td><span class="y">&#10003;</span></td><td><span class="n">&#10005;</span></td><td><span class="n">&#10005;</span></td><td><span class="p">Excel</span></td></tr>
-      <tr><td>Timesheets &amp; Clock-in</td><td class="hl hl-col"><span class="y">&#10003;</span></td><td><span class="n">&#10005;</span></td><td><span class="y">&#10003;</span></td><td><span class="n">&#10005;</span></td><td><span class="n">&#10005;</span></td><td><span class="p">Excel</span></td></tr>
-      <tr><td>Staff Training Tracker</td><td class="hl hl-col"><span class="y">&#10003;</span></td><td><span class="n">&#10005;</span></td><td><span class="y">&#10003;</span></td><td><span class="y">&#10003;</span></td><td><span class="n">&#10005;</span></td><td><span class="n">&#10005;</span></td></tr>
-      <tr><td>Labour Cost Dashboard</td><td class="hl hl-col"><span class="y">&#10003;</span></td><td><span class="n">&#10005;</span></td><td><span class="y">&#10003;</span></td><td><span class="n">&#10005;</span></td><td><span class="n">&#10005;</span></td><td><span class="n">&#10005;</span></td></tr>
-      <tr><td>Time Off &amp; Shift Swaps</td><td class="hl hl-col"><span class="y">&#10003;</span></td><td><span class="n">&#10005;</span></td><td><span class="y">&#10003;</span></td><td><span class="n">&#10005;</span></td><td><span class="n">&#10005;</span></td><td><span class="p">WhatsApp</span></td></tr>
-      <tr><td>Offline Mode</td><td class="hl hl-col"><span class="y">&#10003;</span></td><td><span class="n">&#10005;</span></td><td><span class="n">&#10005;</span></td><td><span class="n">&#10005;</span></td><td><span class="n">&#10005;</span></td><td><span class="y">&#10003;</span></td></tr>
-      <tr><td>Multi-Venue Dashboard</td><td class="hl hl-col"><span class="y">&#10003;</span></td><td><span class="y">&#10003;</span></td><td><span class="y">&#10003;</span></td><td><span class="y">&#10003;</span></td><td><span class="y">&#10003;</span></td><td><span class="n">&#10005;</span></td></tr>
-      <tr><td>No App Store Required</td><td class="hl hl-col"><span class="y">&#10003;</span></td><td><span class="n">&#10005;</span></td><td><span class="n">&#10005;</span></td><td><span class="n">&#10005;</span></td><td><span class="n">&#10005;</span></td><td><span class="y">&#10003;</span></td></tr>
-      <tr><td>Works Offline</td><td class="hl hl-col"><span class="y">&#10003;</span></td><td><span class="n">&#10005;</span></td><td><span class="n">&#10005;</span></td><td><span class="n">&#10005;</span></td><td><span class="n">&#10005;</span></td><td><span class="y">&#10003;</span></td></tr>
-      <tr style="font-weight:700;">
-        <td>Monthly Price (1 venue)</td>
-        <td class="hl hl-col"><strong style="color:var(--teal);">&pound;5&ndash;25</strong></td>
-        <td>&pound;30+</td>
-        <td>&pound;50+</td>
-        <td>&pound;60+</td>
-        <td>&pound;40+</td>
-        <td>Free</td>
-      </tr>
-    </tbody>
-  </table>
+  <div class="content-area">
+    <div class="highlight-bar">
+      <div class="highlight-bar-text">The average hospitality manager spends <strong>6–8 hours per week</strong> on admin that Pelikn automates - rota building, timesheet reconciliation, holiday tracking, compliance logging.</div>
+      <div class="highlight-bar-stat">6–8 hrs<br><span style="font-size:14px; font-weight:400; color:rgba(255,255,255,0.6);">saved per week</span></div>
+    </div>
 
-  <div class="page-logo">PELIKN</div>
-  <div class="page-num">06</div>
-</div>
-
-<!-- PAGE 7 — WHY PELIKN WINS -->
-<div class="page page--brand">
-  <span class="eyebrow" style="color:var(--teal-light);">Why Pelikn Wins</span>
-  <h2 class="title" style="color:#fff;font-size:48px;">Five unfair advantages</h2>
-  <p class="subtitle" style="color:rgba(255,255,255,0.5);">
-    The combination of these factors creates a moat that compliance-only or operations-only
-    tools cannot easily replicate.
-  </p>
-
-  <div style="display:flex;flex-direction:column;gap:14px;">
-    <div class="diff-card">
-      <div class="diff-num">1</div>
-      <div>
-        <h3>Price</h3>
-        <p>At &pound;5&ndash;25/month, Pelikn is 2&ndash;10x cheaper than any comparable tool. Eliminates the &ldquo;too expensive for a small venue&rdquo; objection entirely.</p>
+    <div class="three-col" style="margin-bottom: 40px;">
+      <div style="border: 1px solid var(--border); padding: 32px;">
+        <div style="font-size: 11px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-bottom: 16px;">Rota &amp; Scheduling</div>
+        <div style="font-family: 'DM Serif Display', serif; font-size: 22px; margin-bottom: 16px; letter-spacing: -0.3px;">Know your labour cost before you publish.</div>
+        <div style="font-size: 14px; color: var(--muted); line-height: 1.65; margin-bottom: 20px;">Build the week's rota in the drag-and-drop grid. As shifts are placed, the live labour cost updates. Publish with one tap - staff get notified instantly on their phones.</div>
+        <ul style="list-style: none; display: flex; flex-direction: column; gap: 8px;">
+          <li style="font-size: 13px; padding-left: 18px; position: relative; color: var(--charcoal);"><span style="position:absolute;left:0;color:var(--teal);">→</span> Role &amp; colour-coded shifts</li>
+          <li style="font-size: 13px; padding-left: 18px; position: relative; color: var(--charcoal);"><span style="position:absolute;left:0;color:var(--teal);">→</span> Contract-hour conflict warnings</li>
+          <li style="font-size: 13px; padding-left: 18px; position: relative; color: var(--charcoal);"><span style="position:absolute;left:0;color:var(--teal);">→</span> Shift swap requests in-app</li>
+          <li style="font-size: 13px; padding-left: 18px; position: relative; color: var(--charcoal);"><span style="position:absolute;left:0;color:var(--teal);">→</span> Multi-venue support</li>
+        </ul>
+      </div>
+      <div style="border: 1px solid var(--border); padding: 32px;">
+        <div style="font-size: 11px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-bottom: 16px;">Timesheets &amp; Payroll</div>
+        <div style="font-family: 'DM Serif Display', serif; font-size: 22px; margin-bottom: 16px; letter-spacing: -0.3px;">From clock-in to payroll in under five minutes.</div>
+        <div style="font-size: 14px; color: var(--muted); line-height: 1.65; margin-bottom: 20px;">Staff clock in and out on the Pelikn app. Zero-hours holiday accrual is calculated automatically (12.07%). Managers approve, then export a clean CSV to their payroll provider.</div>
+        <ul style="list-style: none; display: flex; flex-direction: column; gap: 8px;">
+          <li style="font-size: 13px; padding-left: 18px; position: relative; color: var(--charcoal);"><span style="position:absolute;left:0;color:var(--orange);">→</span> GPS-assisted clock-in</li>
+          <li style="font-size: 13px; padding-left: 18px; position: relative; color: var(--charcoal);"><span style="position:absolute;left:0;color:var(--orange);">→</span> 12.07% holiday accrual</li>
+          <li style="font-size: 13px; padding-left: 18px; position: relative; color: var(--charcoal);"><span style="position:absolute;left:0;color:var(--orange);">→</span> Manager approval workflow</li>
+          <li style="font-size: 13px; padding-left: 18px; position: relative; color: var(--charcoal);"><span style="position:absolute;left:0;color:var(--orange);">→</span> CSV payroll export</li>
+        </ul>
+      </div>
+      <div style="border: 1px solid var(--border); padding: 32px;">
+        <div style="font-size: 11px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-bottom: 16px;">HR &amp; Staff Files</div>
+        <div style="font-family: 'DM Serif Display', serif; font-size: 22px; margin-bottom: 16px; letter-spacing: -0.3px;">Everything on a team member, in one secure place.</div>
+        <div style="font-size: 14px; color: var(--muted); line-height: 1.65; margin-bottom: 20px;">Digital staff files with contracts, certifications, and disciplinary records. Expiry reminders mean food hygiene certs and right-to-work documents never slip through the cracks.</div>
+        <ul style="list-style: none; display: flex; flex-direction: column; gap: 8px;">
+          <li style="font-size: 13px; padding-left: 18px; position: relative; color: var(--charcoal);"><span style="position:absolute;left:0;color:#16a34a;">→</span> Document upload &amp; storage</li>
+          <li style="font-size: 13px; padding-left: 18px; position: relative; color: var(--charcoal);"><span style="position:absolute;left:0;color:#16a34a;">→</span> Cert expiry notifications</li>
+          <li style="font-size: 13px; padding-left: 18px; position: relative; color: var(--charcoal);"><span style="position:absolute;left:0;color:#16a34a;">→</span> Disciplinary &amp; grievance log</li>
+          <li style="font-size: 13px; padding-left: 18px; position: relative; color: var(--charcoal);"><span style="position:absolute;left:0;color:#16a34a;">→</span> Right-to-work records</li>
+        </ul>
       </div>
     </div>
-    <div class="diff-card">
-      <div class="diff-num">2</div>
-      <div>
-        <h3>All-in-one scope</h3>
-        <p>Compliance + operations in a single login. Customers don&rsquo;t need Trail for compliance, Rota Cloud for scheduling, and a separate timesheet tool. One bill, one system.</p>
+
+    <div style="background: var(--surface); padding: 40px; display: flex; gap: 40px; align-items: flex-start;">
+      <div style="flex: 1;">
+        <div class="label" style="margin-bottom: 16px;">Leave Management</div>
+        <div style="font-size: 15px; color: var(--charcoal); line-height: 1.65; margin-bottom: 16px;">Staff submit holiday requests from their phone. Managers approve or decline - with a reason - from the dashboard. The team calendar shows coverage gaps before they become a problem.</div>
+        <div style="font-size: 13px; color: var(--muted);">Annual leave · Sick leave · Maternity/Paternity · Unpaid leave · Bank holidays</div>
       </div>
-    </div>
-    <div class="diff-card">
-      <div class="diff-num">3</div>
-      <div>
-        <h3>Offline-first architecture</h3>
-        <p>The only digital compliance tool that works in a basement with no wifi. This is not a nice-to-have in a kitchen environment &mdash; it&rsquo;s a requirement.</p>
-      </div>
-    </div>
-    <div class="diff-card">
-      <div class="diff-num">4</div>
-      <div>
-        <h3>Zero-friction onboarding</h3>
-        <p>No app store. No per-staff accounts. No training required. A venue manager can have the whole team live in under 15 minutes. This drives trial conversion.</p>
-      </div>
-    </div>
-    <div class="diff-card">
-      <div class="diff-num">5</div>
-      <div>
-        <h3>UK-first, compliance-native</h3>
-        <p>Built specifically for UK legislation: Food Safety Act 1990, FSA guidelines, Natasha&rsquo;s Law, UK GDPR. Not a generic tool retrofitted for compliance.</p>
+      <div style="width: 1px; background: var(--border); align-self: stretch;"></div>
+      <div style="flex: 1;">
+        <div class="label" style="margin-bottom: 16px;">Daily Checks</div>
+        <div style="font-size: 15px; color: var(--charcoal); line-height: 1.65; margin-bottom: 16px;">Custom checklists for opening, service, and closing - with photo evidence attached per task. Managers see completion in real time. Missed items escalate with a push notification.</div>
+        <div style="font-size: 13px; color: var(--muted);">Opening checks · Cleaning records · Service checklists · Closing sign-off · Photo capture</div>
       </div>
     </div>
   </div>
 
-  <div class="page-logo" style="color:rgba(255,255,255,0.2);">PELIKN</div>
-  <div class="page-num" style="color:rgba(255,255,255,0.15);">07</div>
+  <div class="page-footer">
+    <div class="page-footer-brand">Pelikn</div>
+    <div class="page-footer-meta">Product &amp; Competitive Overview · 2025</div>
+    <div class="page-num">04</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     PAGE 5 - COMPETITIVE COMPARISON
+══════════════════════════════════════════════════════ -->
+<div class="page">
+  <div class="section-header">
+    <div class="section-title-group">
+      <div class="section-number">Section 03</div>
+      <div class="section-title">The <em>landscape</em></div>
+    </div>
+    <div class="section-desc">No single competitor covers both compliance and people operations in one mobile-first product.</div>
+  </div>
+
+  <div class="content-area">
+    <div style="margin-bottom: 36px; font-size: 15px; color: var(--muted); max-width: 640px; line-height: 1.65;">
+      Hospitality operators cobble together 3–5 separate tools to cover what Pelikn does in one. Each tool means another login, another monthly bill, another training session for staff. The comparison below uses publicly available feature lists.
+    </div>
+
+    <table class="compare-table" style="margin-bottom: 40px;">
+      <thead>
+        <tr>
+          <th style="width: 200px;">Feature</th>
+          <th class="highlight">Pelikn</th>
+          <th>Trail App</th>
+          <th>Rotaready</th>
+          <th>Deputy</th>
+          <th>Nourish</th>
+          <th>Papertrail</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="feature-name">Temperature logging</td>
+          <td class="pelikn-col"><span class="check">●</span> Full</td>
+          <td><span class="check">●</span></td>
+          <td><span class="cross">-</span></td>
+          <td><span class="cross">-</span></td>
+          <td><span class="partial">Partial</span></td>
+          <td><span class="cross">-</span></td>
+        </tr>
+        <tr>
+          <td class="feature-name">Allergen / Natasha's Law</td>
+          <td class="pelikn-col"><span class="check">●</span> Full</td>
+          <td><span class="partial">Partial</span></td>
+          <td><span class="cross">-</span></td>
+          <td><span class="cross">-</span></td>
+          <td><span class="check">●</span></td>
+          <td><span class="cross">-</span></td>
+        </tr>
+        <tr>
+          <td class="feature-name">EHO audit tool</td>
+          <td class="pelikn-col"><span class="check">●</span> Full</td>
+          <td><span class="partial">Partial</span></td>
+          <td><span class="cross">-</span></td>
+          <td><span class="cross">-</span></td>
+          <td><span class="cross">-</span></td>
+          <td><span class="cross">-</span></td>
+        </tr>
+        <tr>
+          <td class="feature-name">Rota &amp; scheduling</td>
+          <td class="pelikn-col"><span class="check">●</span> Full</td>
+          <td><span class="cross">-</span></td>
+          <td><span class="check">●</span></td>
+          <td><span class="check">●</span></td>
+          <td><span class="cross">-</span></td>
+          <td><span class="cross">-</span></td>
+        </tr>
+        <tr>
+          <td class="feature-name">Timesheets &amp; clock-in</td>
+          <td class="pelikn-col"><span class="check">●</span> Full</td>
+          <td><span class="cross">-</span></td>
+          <td><span class="check">●</span></td>
+          <td><span class="check">●</span></td>
+          <td><span class="cross">-</span></td>
+          <td><span class="cross">-</span></td>
+        </tr>
+        <tr>
+          <td class="feature-name">Leave management</td>
+          <td class="pelikn-col"><span class="check">●</span> Full</td>
+          <td><span class="cross">-</span></td>
+          <td><span class="check">●</span></td>
+          <td><span class="check">●</span></td>
+          <td><span class="cross">-</span></td>
+          <td><span class="cross">-</span></td>
+        </tr>
+        <tr>
+          <td class="feature-name">HR &amp; staff documents</td>
+          <td class="pelikn-col"><span class="check">●</span> Full</td>
+          <td><span class="cross">-</span></td>
+          <td><span class="partial">Partial</span></td>
+          <td><span class="partial">Partial</span></td>
+          <td><span class="cross">-</span></td>
+          <td><span class="cross">-</span></td>
+        </tr>
+        <tr>
+          <td class="feature-name">Daily opening/closing checks</td>
+          <td class="pelikn-col"><span class="check">●</span> Full</td>
+          <td><span class="check">●</span></td>
+          <td><span class="cross">-</span></td>
+          <td><span class="cross">-</span></td>
+          <td><span class="cross">-</span></td>
+          <td><span class="check">●</span></td>
+        </tr>
+        <tr>
+          <td class="feature-name">Native iOS &amp; Android app</td>
+          <td class="pelikn-col"><span class="check">●</span> Yes</td>
+          <td><span class="check">●</span></td>
+          <td><span class="check">●</span></td>
+          <td><span class="check">●</span></td>
+          <td><span class="partial">Web only</span></td>
+          <td><span class="check">●</span></td>
+        </tr>
+        <tr>
+          <td class="feature-name">Offline mode</td>
+          <td class="pelikn-col"><span class="check">●</span> Yes</td>
+          <td><span class="partial">Limited</span></td>
+          <td><span class="cross">-</span></td>
+          <td><span class="cross">-</span></td>
+          <td><span class="cross">-</span></td>
+          <td><span class="cross">-</span></td>
+        </tr>
+        <tr>
+          <td class="feature-name">Flat monthly pricing</td>
+          <td class="pelikn-col"><span class="check">●</span> Yes</td>
+          <td><span class="cross">Per user</span></td>
+          <td><span class="cross">Per user</span></td>
+          <td><span class="cross">Per user</span></td>
+          <td><span class="cross">Per user</span></td>
+          <td><span class="cross">Per user</span></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div style="font-size: 12px; color: var(--subtle);">● = full feature included  ·  Partial = limited or add-on  ·  - = not available. Based on publicly available feature information, June 2025.</div>
+  </div>
+
+  <div class="page-footer">
+    <div class="page-footer-brand">Pelikn</div>
+    <div class="page-footer-meta">Product &amp; Competitive Overview · 2025</div>
+    <div class="page-num">05</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     PAGE 6 - WHY PELIKN WINS
+══════════════════════════════════════════════════════ -->
+<div class="page">
+  <div class="section-header">
+    <div class="section-title-group">
+      <div class="section-number">Section 04</div>
+      <div class="section-title">Why Pelikn <em>wins</em></div>
+    </div>
+    <div class="section-desc">Four structural advantages that are not easy to replicate once Pelikn is embedded in a team's daily workflow.</div>
+  </div>
+
+  <div class="content-area">
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2px; background: var(--border); margin-bottom: 40px;">
+      <div style="background: var(--charcoal); color: #fff; padding: 48px 40px;">
+        <div style="font-family: 'DM Serif Display', serif; font-size: 72px; line-height: 1; letter-spacing: -3px; color: rgba(255,255,255,0.1); margin-bottom: 20px;">01</div>
+        <div style="font-family: 'DM Serif Display', serif; font-size: 28px; letter-spacing: -0.5px; margin-bottom: 16px;">One product.<br>Not five.</div>
+        <div style="font-size: 15px; color: rgba(255,255,255,0.65); line-height: 1.65;">Compliance, scheduling, timesheets, leave, HR, and daily checks - all in one subscription, one login, one mobile app. Every competitor solves one category. Pelikn solves the whole operational stack.</div>
+      </div>
+      <div style="background: var(--cream); padding: 48px 40px;">
+        <div style="font-family: 'DM Serif Display', serif; font-size: 72px; line-height: 1; letter-spacing: -3px; color: var(--border); margin-bottom: 20px;">02</div>
+        <div style="font-family: 'DM Serif Display', serif; font-size: 28px; letter-spacing: -0.5px; margin-bottom: 16px;">Built for the<br>kitchen floor.</div>
+        <div style="font-size: 15px; color: var(--muted); line-height: 1.65;">Mobile-first, offline-capable, operable with one hand. Designed for a chef mid-service, not an office manager at a desktop. Competitors retrofitted mobile onto web apps. Pelikn started on the phone.</div>
+      </div>
+      <div style="background: var(--cream); padding: 48px 40px;">
+        <div style="font-family: 'DM Serif Display', serif; font-size: 72px; line-height: 1; letter-spacing: -3px; color: var(--border); margin-bottom: 20px;">03</div>
+        <div style="font-family: 'DM Serif Display', serif; font-size: 28px; letter-spacing: -0.5px; margin-bottom: 16px;">Flat pricing<br>that scales.</div>
+        <div style="font-size: 15px; color: var(--muted); line-height: 1.65;">£25/month per venue - unlimited staff, unlimited users. Competitors charge per head, meaning costs balloon as teams grow. For a 20-person kitchen, Pelikn can be 70% cheaper than per-user alternatives.</div>
+      </div>
+      <div style="background: var(--brand); color: #fff; padding: 48px 40px;">
+        <div style="font-family: 'DM Serif Display', serif; font-size: 72px; line-height: 1; letter-spacing: -3px; color: rgba(255,255,255,0.1); margin-bottom: 20px;">04</div>
+        <div style="font-family: 'DM Serif Display', serif; font-size: 28px; letter-spacing: -0.5px; margin-bottom: 16px;">Compliance and<br>operations unified.</div>
+        <div style="font-size: 15px; color: rgba(255,255,255,0.65); line-height: 1.65;">The staff member who logs today's temperatures is the same one who's on the rota tomorrow. That connection - compliance data tied to specific team members and shifts - is unique to Pelikn and impossible to replicate with separate tools.</div>
+      </div>
+    </div>
+
+    <div style="background: var(--surface); padding: 32px 40px; display: flex; justify-content: space-between; align-items: center;">
+      <div>
+        <div class="label" style="margin-bottom: 8px;">The switching cost</div>
+        <div style="font-size: 15px; color: var(--charcoal); max-width: 560px; line-height: 1.6;">Once a team's rota history, compliance records, staff files, and daily check logs are in Pelikn, the cost of switching is high - not because Pelikn locks data in, but because the operational habit is built into every shift, every day.</div>
+      </div>
+      <div style="text-align: right;">
+        <div style="font-family: 'DM Serif Display', serif; font-size: 48px; letter-spacing: -2px; color: var(--brand);">92%</div>
+        <div style="font-size: 13px; color: var(--muted); margin-top: 4px;">expected 12-month<br>retention target</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="page-footer">
+    <div class="page-footer-brand">Pelikn</div>
+    <div class="page-footer-meta">Product &amp; Competitive Overview · 2025</div>
+    <div class="page-num">06</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     PAGE 7 - CLOSING
+══════════════════════════════════════════════════════ -->
+<div class="page closing">
+  <div>
+    <div style="font-size: 11px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; color: rgba(255,255,255,0.35); margin-bottom: 48px;">Pelikn · Product &amp; Competitive Overview</div>
+    <div class="closing-headline">Compliance, scheduling, people.<br><em>One app.</em></div>
+    <div class="closing-sub">We'd love to show you Pelikn in a live demo - on your phone, running the checks your team runs every day.</div>
+  </div>
+  <div>
+    <div style="font-size: 11px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.35); margin-bottom: 24px;">Get in touch</div>
+    <div class="closing-contact">
+      <div class="closing-contact-item">
+        <div class="closing-contact-label">Website</div>
+        <div class="closing-contact-value">get-pelikn.com</div>
+      </div>
+      <div class="closing-contact-item">
+        <div class="closing-contact-label">Email</div>
+        <div class="closing-contact-value">hello@get-pelikn.com</div>
+      </div>
+      <div class="closing-contact-item">
+        <div class="closing-contact-label">Pricing</div>
+        <div class="closing-contact-value">From £5/month · Free trial</div>
+      </div>
+    </div>
+  </div>
 </div>
 
 </body>
