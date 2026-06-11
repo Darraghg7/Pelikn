@@ -16,11 +16,12 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y --no-install-recommends postgresql-client
 
-      - name: Dump database
+      - name: Dump and compress database
         env:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
         run: |
           TIMESTAMP=$(date +%Y-%m-%d)
+          echo "TIMESTAMP=${TIMESTAMP}" >> "$GITHUB_ENV"
           pg_dump "$SUPABASE_DB_URL" \
             --no-owner \
             --no-acl \
@@ -28,7 +29,26 @@ jobs:
             --lock-wait-timeout=60s \
             | gzip > "pelikn-backup-${TIMESTAMP}.sql.gz"
 
-      - name: Upload backup artifact
+      - name: Encrypt backup
+        run: |
+          openssl enc -aes-256-cbc -pbkdf2 -iter 100000 \
+            -in "pelikn-backup-${{ env.TIMESTAMP }}.sql.gz" \
+            -out "pelikn-backup-${{ env.TIMESTAMP }}.sql.gz.enc" \
+            -pass env:BACKUP_ENCRYPTION_PASSPHRASE
+        env:
+          BACKUP_ENCRYPTION_PASSPHRASE: ${{ secrets.BACKUP_ENCRYPTION_PASSPHRASE }}
+
+      - name: Upload to Cloudflare R2
+        run: |
+          aws s3 cp "pelikn-backup-${{ env.TIMESTAMP }}.sql.gz.enc" \
+            "s3://pelikn-backups/pelikn-backup-${{ env.TIMESTAMP }}.sql.gz.enc" \
+            --endpoint-url "https://${{ secrets.R2_ACCOUNT_ID }}.r2.cloudflarestorage.com"
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: auto
+
+      - name: Upload backup artifact (30-day secondary copy)
         uses: actions/upload-artifact@v4
         with:
           name: db-backup-${{ github.run_id }}-${{ github.run_attempt }}

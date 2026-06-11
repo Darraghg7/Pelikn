@@ -19,6 +19,13 @@ interface StaffMember {
   sort_order?: number
   pin_failed_attempts?: number
   pin_locked_until?: string | null
+  employment_type?: string | null
+  contracted_hours?: number | null
+  start_date?: string | null
+  emergency_contact_name?: string | null
+  emergency_contact_phone?: string | null
+  holiday_pay_eligible?: boolean
+  colour?: string | null
 }
 
 export default function useStaffManagement(): {
@@ -33,7 +40,7 @@ export default function useStaffManagement(): {
     queryFn: async () => {
       const { data } = await supabase
         .from('staff')
-        .select('id, name, email, job_role, role, hourly_rate, is_active, show_temp_logs, show_allergens, photo_url, skills, is_under_18, working_days, sort_order, pin_failed_attempts, pin_locked_until')
+        .select('id, name, email, job_role, role, hourly_rate, is_active, show_temp_logs, show_allergens, photo_url, skills, is_under_18, working_days, sort_order, pin_failed_attempts, pin_locked_until, employment_type, contracted_hours, start_date, emergency_contact_name, emergency_contact_phone, holiday_pay_eligible, colour')
         .eq('venue_id', venueId)
         .order('sort_order')
         .order('name')

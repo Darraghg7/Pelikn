@@ -21,7 +21,7 @@ const MC = {
 const MM = '"Geist Mono", ui-monospace, "SF Mono", monospace'
 const MF = '"Geist", -apple-system, "SF Pro Text", system-ui, sans-serif'
 
-const TABS = ['Profile', 'Documents', 'Disciplinary', 'Leave', 'Training']
+const TABS = ['Profile', 'Documents', 'Disciplinary', 'Leave', 'Training', 'Security']
 
 const FORMAL_ACTION_LABELS = {
   verbal_warning:       'Verbal Warning',
@@ -821,6 +821,90 @@ function TrainingTab({ staffId, venueSlug }) {
   )
 }
 
+// ── Security tab ───────────────────────────────────────────────────────────────
+function SecurityTab({ staffId, venueId }) {
+  const { session } = useSession()
+  const token = session?.token
+  const { showToast } = useToast()
+  const [sessions, setSessions] = useState([])
+  const [loading,  setLoading]  = useState(true)
+  const [revoking, setRevoking] = useState(null)
+
+  const load = useCallback(async () => {
+    setLoading(true)
+    const { data, error } = await supabase.rpc('list_staff_sessions', {
+      p_session_token: token,
+      p_staff_id:      staffId,
+    })
+    if (error) showToast(error.message, 'error')
+    setSessions(data ?? [])
+    setLoading(false)
+  }, [staffId, token, showToast])
+
+  useEffect(() => { load() }, [load])
+
+  async function handleRevoke(targetToken) {
+    setRevoking(targetToken)
+    const { error } = await supabase.rpc('revoke_staff_session', {
+      p_session_token: token,
+      p_target_token:  targetToken,
+    })
+    if (error) {
+      showToast(error.message, 'error')
+    } else {
+      showToast('Session revoked', 'success')
+      setSessions(s => s.filter(x => x.token !== targetToken))
+    }
+    setRevoking(null)
+  }
+
+  if (loading) return <LoadingSpinner />
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div style={{ fontFamily: MM, fontSize: 10, letterSpacing: '0.07em', textTransform: 'uppercase', color: MC.ink3 }}>
+        Active Sessions ({sessions.length})
+      </div>
+
+      {sessions.length === 0 ? (
+        <EmptyState icon="🔒" text="No active sessions" />
+      ) : (
+        <SectionCard>
+          {sessions.map((s, i) => (
+            <div key={s.token} style={{
+              padding: '12px 16px',
+              borderBottom: i < sessions.length - 1 ? `1px solid ${MC.line2}` : 'none',
+              display: 'flex', alignItems: 'center', gap: 12,
+            }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: MC.ink }}>
+                  {s.device_label ?? 'Unknown device'}
+                </div>
+                <div style={{ fontFamily: MM, fontSize: 10, color: MC.ink4, marginTop: 3 }}>
+                  Started {format(parseISO(s.created_at), 'd MMM yyyy, HH:mm')}
+                  {' · '}Expires {format(parseISO(s.expires_at), 'd MMM yyyy')}
+                </div>
+              </div>
+              <button
+                onClick={() => handleRevoke(s.token)}
+                disabled={revoking === s.token}
+                style={{
+                  padding: '6px 12px', borderRadius: 8, border: `1px solid ${MC.bad}`,
+                  background: 'transparent', color: MC.bad, cursor: 'pointer',
+                  fontFamily: MM, fontSize: 10, fontWeight: 700, letterSpacing: '0.04em',
+                  opacity: revoking === s.token ? 0.5 : 1,
+                }}
+              >
+                {revoking === s.token ? '…' : 'Revoke'}
+              </button>
+            </div>
+          ))}
+        </SectionCard>
+      )}
+    </div>
+  )
+}
+
 // ── Main page ───────────────────────────────────────────────────────────────────
 export default function EmployeeRecordPage() {
   const { staffId } = useParams()
@@ -909,6 +993,7 @@ export default function EmployeeRecordPage() {
       {tab === 'Disciplinary' && <DisciplinaryTab staffId={staffId} venueId={venueId} />}
       {tab === 'Leave'        && <LeaveTab        staffId={staffId} venueSlug={venueSlug} />}
       {tab === 'Training'     && <TrainingTab     staffId={staffId} venueSlug={venueSlug} />}
+      {tab === 'Security'     && <SecurityTab     staffId={staffId} venueId={venueId} />}
     </div>
   )
 }

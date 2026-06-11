@@ -7,13 +7,41 @@ import { PLANS } from '../../lib/constants'
 import NavOrderSection from './NavOrderSection'
 
 const MC = {
-  brand:  '#13362a',
-  good:   '#16a34a',
-  ink:    '#111827', ink2: '#374151', ink3: '#6b7280', ink4: '#9ca3af',
-  line:   '#e5e7eb', line2: '#f3f4f6',
-  paper:  '#ffffff',
+  brand:  '#13362a', brandTint: '#eef4f0',
+  good:   '#1a7a4c',
+  ink:    '#0d1a14', ink2: '#3d4a44', ink3: '#76817b', ink4: '#b3b9b5',
+  line:   '#e4e6e2', line2: '#eef0ec',
+  paper:  '#ffffff', bg: '#f3f3ef',
 }
 const MONO = 'ui-monospace, SFMono-Regular, monospace'
+const SANS = '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
+
+function SubHeader({ title, onBack }) {
+  return (
+    <div style={{
+      position: 'sticky', top: 0, zIndex: 10,
+      background: 'rgba(243,243,239,0.92)',
+      backdropFilter: 'saturate(180%) blur(20px)',
+      WebkitBackdropFilter: 'saturate(180%) blur(20px)',
+      borderBottom: `1px solid ${MC.line}`,
+      padding: '12px 16px 10px',
+      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+    }}>
+      <button onClick={onBack} style={{
+        display: 'flex', alignItems: 'center', gap: 6,
+        color: MC.brand, background: 'none', border: 'none',
+        cursor: 'pointer', padding: '4px 0', fontFamily: SANS, fontSize: 15, fontWeight: 500,
+      }}>
+        <svg width="9" height="15" viewBox="0 0 9 15" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M8 1L1.5 7.5 8 14"/>
+        </svg>
+        Settings
+      </button>
+      <span style={{ fontSize: 17, fontWeight: 600, letterSpacing: '-0.02em', color: MC.ink }}>{title}</span>
+      <span style={{ width: 70 }} />
+    </div>
+  )
+}
 
 function Toggle({ on, onClick }) {
   return (
@@ -116,27 +144,10 @@ export default function HubTilesPage() {
   }
 
   return (
-    <div style={{ padding: '16px 0 96px', maxWidth: 480, margin: '0 auto' }}>
+    <div style={{ minHeight: '100vh', background: MC.bg, fontFamily: SANS }}>
+      <SubHeader title="Features" onBack={() => navigate(vp('/settings/hub'))} />
 
-      <button
-        onClick={() => navigate(vp('/settings/hub'))}
-        style={{
-          display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 16,
-          background: 'none', border: 'none', cursor: 'pointer', padding: '4px 0',
-          color: MC.brand, fontSize: 14, fontWeight: 500,
-        }}
-      >
-        <svg width="7" height="12" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ transform: 'rotate(180deg)' }}>
-          <path d="M1 1l4 4-4 4"/>
-        </svg>
-        Settings
-      </button>
-
-      <div style={{ marginBottom: 20 }}>
-        <h1 style={{ fontSize: 24, fontWeight: 600, letterSpacing: '-0.025em', margin: 0, color: MC.ink }}>Features</h1>
-        <div style={{ fontSize: 12.5, color: MC.ink3, marginTop: 4 }}>Modules, hub tiles & navigation</div>
-      </div>
-
+      <div style={{ padding: '0 16px 96px', maxWidth: 480, margin: '0 auto' }}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
         <Group label="Checks hub" foot="Hidden tiles won't show on the Checks hub but their pages remain accessible from the menu.">
@@ -266,6 +277,7 @@ export default function HubTilesPage() {
           </div>
         </div>
 
+      </div>
       </div>
     </div>
   )

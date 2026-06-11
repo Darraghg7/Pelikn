@@ -44,8 +44,7 @@ export default function VenueCodeSection({ venueId, sessionToken }) {
   }
 
   return (
-    <SettingsSection title="Invite Staff">
-      <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4">
         <p className="text-sm text-charcoal/60 dark:text-white/60">
           Share this code with staff so they can join your venue on the app — no email or password needed.
         </p>
@@ -92,7 +91,6 @@ export default function VenueCodeSection({ venueId, sessionToken }) {
         <p className="text-[11px] text-charcoal/35 dark:text-white/35">
           Tap "New code" if a staff member leaves. The old code stops working immediately.
         </p>
-      </div>
-    </SettingsSection>
+    </div>
   )
 }

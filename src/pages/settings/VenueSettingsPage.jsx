@@ -11,14 +11,42 @@ import TimeSelect from '../../components/ui/TimeSelect'
 import VenuesSection from './VenuesSection'
 
 const MC = {
-  brand: '#13362a',
-  good:  '#16a34a',
-  ink:   '#111827', ink3: '#6b7280', ink4: '#9ca3af',
-  line:  '#e5e7eb', line2: '#f3f4f6',
-  paper: '#ffffff',
-  bad:   '#c0392b',
+  brand: '#13362a', brandTint: '#eef4f0',
+  good:  '#1a7a4c', goodBg: '#e3f0e7',
+  ink:   '#0d1a14', ink3: '#76817b', ink4: '#b3b9b5',
+  line:  '#e4e6e2', line2: '#eef0ec',
+  paper: '#ffffff', bg: '#f3f3ef',
+  bad:   '#b3331c',
 }
 const MONO = 'ui-monospace, SFMono-Regular, monospace'
+const SANS = '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
+
+function SubHeader({ title, onBack }) {
+  return (
+    <div style={{
+      position: 'sticky', top: 0, zIndex: 10,
+      background: 'rgba(243,243,239,0.92)',
+      backdropFilter: 'saturate(180%) blur(20px)',
+      WebkitBackdropFilter: 'saturate(180%) blur(20px)',
+      borderBottom: `1px solid ${MC.line}`,
+      padding: '12px 16px 10px',
+      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+    }}>
+      <button onClick={onBack} style={{
+        display: 'flex', alignItems: 'center', gap: 6,
+        color: MC.brand, background: 'none', border: 'none',
+        cursor: 'pointer', padding: '4px 0', fontFamily: SANS, fontSize: 15, fontWeight: 500,
+      }}>
+        <svg width="9" height="15" viewBox="0 0 9 15" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M8 1L1.5 7.5 8 14"/>
+        </svg>
+        Settings
+      </button>
+      <span style={{ fontSize: 17, fontWeight: 600, letterSpacing: '-0.02em', color: MC.ink }}>{title}</span>
+      <span style={{ width: 70 }} />
+    </div>
+  )
+}
 const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
 function Group({ label, children, foot }) {
@@ -52,7 +80,7 @@ export default function VenueSettingsPage() {
   const { venueId, venueSlug } = useVenue()
   const { settings, loading: sLoading, reload: reloadSettings } = useVenueSettings()
   const { closures, reload: reloadClosures } = useVenueClosures()
-  const { closedDays, openTime, closeTime, saveClosedDays, saveOpenTime, saveCloseTime } = useAppSettings()
+  const { closedDays, openTime, closeTime, dayHours, saveClosedDays, saveOpenTime, saveCloseTime, saveDayHours } = useAppSettings()
 
   const vp = (path) => `/v/${venueSlug}${path}`
 
@@ -122,18 +150,10 @@ export default function VenueSettingsPage() {
   }
 
   return (
-    <div style={{ padding: '16px 0 96px', maxWidth: 480, margin: '0 auto' }}>
+    <div style={{ minHeight: '100vh', background: MC.bg, fontFamily: SANS }}>
+      <SubHeader title="Venue" onBack={() => navigate(vp('/settings/hub'))} />
 
-      <button onClick={() => navigate(vp('/settings/hub'))} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 16, background: 'none', border: 'none', cursor: 'pointer', padding: '4px 0', color: MC.brand, fontSize: 14, fontWeight: 500 }}>
-        <svg width="7" height="12" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ transform: 'rotate(180deg)' }}><path d="M1 1l4 4-4 4"/></svg>
-        Settings
-      </button>
-
-      <div style={{ marginBottom: 20 }}>
-        <h1 style={{ fontSize: 24, fontWeight: 600, letterSpacing: '-0.025em', margin: 0, color: MC.ink }}>Venue</h1>
-        <div style={{ fontSize: 12.5, color: MC.ink3, marginTop: 4 }}>Name, hours & closed days</div>
-      </div>
-
+      <div style={{ padding: '0 16px 96px', maxWidth: 480, margin: '0 auto' }}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
         {/* Venue details */}
@@ -172,64 +192,56 @@ export default function VenueSettingsPage() {
           </div>
         </Group>
 
-        {/* Trading hours */}
-        <Group label="Trading hours" foot="Used to contextualise records and reports.">
-          <Row label="Opens" sub="Venue open time">
-            <div style={{ width: 120, flexShrink: 0 }}>
-              <TimeSelect value={openTime} onChange={saveOpenTime} />
-            </div>
-          </Row>
-          <Row label="Closes" sub="Venue close time" last={false}>
-            <div style={{ width: 120, flexShrink: 0 }}>
-              <TimeSelect value={closeTime} onChange={saveCloseTime} />
-            </div>
-          </Row>
-        </Group>
-
-        {/* Closed days */}
-        <Group label="Closed days" foot="Closed days are skipped by the rota builder and greyed out in schedules.">
-          <div style={{ padding: '13px 15px' }}>
-            <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap' }}>
-              {DAY_NAMES.map((day, i) => {
-                const isClosed = closedDays.includes(i)
-                return (
-                  <button
-                    key={i}
-                    onClick={() => toggleClosedDay(i)}
-                    style={{
-                      height: 36, padding: '0 14px', borderRadius: 9, fontSize: 13, fontWeight: 500, cursor: 'pointer', transition: 'all .15s',
-                      background: isClosed ? MC.line2 : '#f0fdf4',
-                      color: isClosed ? MC.ink4 : MC.good,
-                      border: `1px solid ${isClosed ? MC.line : '#bbf7d0'}`,
-                      textDecoration: isClosed ? 'line-through' : 'none',
-                    }}
-                  >{day}</button>
-                )
-              })}
-            </div>
-          </div>
+        {/* Trading hours — per day */}
+        <Group label="Trading hours" foot="Set open and close times per day. Closed days are skipped by the rota builder.">
+          {DAY_NAMES.map((day, i) => {
+            const isClosed = closedDays.includes(i)
+            const hours = dayHours[String(i)] ?? { open: openTime, close: closeTime }
+            const updateHours = (field, val) => {
+              const next = { ...dayHours, [String(i)]: { ...hours, [field]: val } }
+              saveDayHours(next)
+            }
+            return (
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 15px', borderTop: i === 0 ? 'none' : `1px solid ${MC.line2}` }}>
+                <div style={{ width: 36, fontSize: 13, fontWeight: 600, color: isClosed ? MC.ink4 : MC.ink, textDecoration: isClosed ? 'line-through' : 'none', flexShrink: 0 }}>{day}</div>
+                {isClosed ? (
+                  <div style={{ flex: 1, fontSize: 12, color: MC.ink4, fontFamily: MONO, letterSpacing: '0.04em' }}>CLOSED</div>
+                ) : (
+                  <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <div style={{ flex: 1 }}><TimeSelect value={hours.open} onChange={v => updateHours('open', v)} /></div>
+                    <span style={{ color: MC.ink4, fontSize: 12 }}>–</span>
+                    <div style={{ flex: 1 }}><TimeSelect value={hours.close} onChange={v => updateHours('close', v)} /></div>
+                  </div>
+                )}
+                <button
+                  onClick={() => toggleClosedDay(i)}
+                  style={{
+                    flexShrink: 0, height: 28, padding: '0 10px', borderRadius: 7, fontSize: 11.5, fontWeight: 600, cursor: 'pointer', border: 'none', transition: 'all .15s',
+                    background: isClosed ? MC.brand : MC.line2,
+                    color: isClosed ? '#fff' : MC.ink3,
+                  }}
+                >{isClosed ? 'Open' : 'Close'}</button>
+              </div>
+            )
+          })}
         </Group>
 
         {/* Closed periods */}
         <Group label="Closed periods" foot="Mark the venue closed for a date range — e.g. Christmas week. Checks won't be expected during these dates.">
           <div style={{ padding: '13px 15px', display: 'flex', flexDirection: 'column', gap: 10 }}>
 
-            {closures.length > 0 && closures.map(c => {
-              const past = c.end_date < format(new Date(), 'yyyy-MM-dd')
-              return (
-                <div key={c.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: '10px 12px', borderRadius: 10, border: `1px solid ${MC.line}`, background: past ? MC.line2 : MC.paper, opacity: past ? 0.6 : 1 }}>
+            {closures.filter(c => c.end_date >= format(new Date(), 'yyyy-MM-dd')).map(c => (
+                <div key={c.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: '10px 12px', borderRadius: 10, border: `1px solid ${MC.line}`, background: MC.paper }}>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 13, fontWeight: 500, color: MC.ink }}>
                       {format(parseISO(c.start_date), 'd MMM yyyy')}
                       {c.start_date !== c.end_date && ` – ${format(parseISO(c.end_date), 'd MMM yyyy')}`}
                     </div>
                     {c.reason && <div style={{ fontSize: 11.5, color: MC.ink3, marginTop: 2 }}>{c.reason}</div>}
-                    {past && <div style={{ fontFamily: MONO, fontSize: 10, color: MC.ink4, marginTop: 2, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Past</div>}
                   </div>
                   <button onClick={() => deleteClosure(c.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: MC.ink4, fontSize: 18, padding: '0 4px', lineHeight: 1 }}>×</button>
                 </div>
-              )
-            })}
+            ))}
 
             <div style={{ background: MC.line2, borderRadius: 10, padding: 12, display: 'flex', flexDirection: 'column', gap: 10 }}>
               <div style={{ fontFamily: MONO, fontSize: 10, color: MC.ink3, letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 600 }}>Add closed period</div>
@@ -321,6 +333,7 @@ export default function VenueSettingsPage() {
           </div>
         </div>
 
+      </div>
       </div>
     </div>
   )

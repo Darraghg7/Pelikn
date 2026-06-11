@@ -54,6 +54,24 @@ export async function offlineRpc(fnName, args) {
   }
 }
 
+/** Update with offline fallback. recordId is required — the PK value of the row to update. */
+export async function offlineUpdate(table, recordId, payload, idColumn = 'id') {
+  try {
+    const result = await supabase.from(table).update(payload).eq(idColumn, recordId)
+    if (result.error && isNetworkError(result.error)) {
+      enqueue(table, 'update', payload, recordId, idColumn)
+      return { data: null, error: null, queued: true }
+    }
+    return result
+  } catch (err) {
+    if (isNetworkError(err)) {
+      enqueue(table, 'update', payload, recordId, idColumn)
+      return { data: null, error: null, queued: true }
+    }
+    throw err
+  }
+}
+
 /** Retry all queued operations */
 export async function syncQueue() {
   const queue = getQueue()
@@ -70,7 +88,9 @@ export async function syncQueue() {
       } else if (item.operation === 'insert') {
         result = await supabase.from(item.table).insert(item.payload)
       } else if (item.operation === 'update') {
-        result = await supabase.from(item.table).update(item.payload)
+        // Drop updates that were queued without a recordId — they can't be safely replayed
+        if (!item.recordId) { dequeue(item.id); failed++; continue }
+        result = await supabase.from(item.table).update(item.payload).eq(item.idColumn ?? 'id', item.recordId)
       } else if (item.operation === 'upsert') {
         result = await supabase.from(item.table).upsert(item.payload)
       }
