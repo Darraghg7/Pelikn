@@ -5,84 +5,70 @@ import { useSession } from '../../contexts/SessionContext'
 import { useAuth } from '../../contexts/AuthContext'
 import { useAppSettings } from '../../hooks/useSettings'
 
-// ── Design tokens ──────────────────────────────────────────────────────────
 const MC = {
   brand:  '#13362a', brandTint: '#eef4f0',
   bad:    '#b3331c', badBg:  '#fbeae6',
   warn:   '#a85d12', warnBg: '#fbeedc',
-  ink:    '#0d1a14', ink3: '#76817b', ink4: '#b3b9b5',
+  ink:    '#0d1a14', ink2: '#3d4a44', ink3: '#76817b', ink4: '#b3b9b5',
   line:   '#e4e6e2', line2: '#eef0ec',
-  paper:  '#ffffff',
+  paper:  '#ffffff', bg: '#f3f3ef',
 }
 const MONO = 'ui-monospace, SFMono-Regular, monospace'
+const SANS = '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
 
-// ── Icons ──────────────────────────────────────────────────────────────────
-function VenueIcon() {
-  return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: '100%', height: '100%' }}><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg>
-}
-function StaffIcon() {
-  return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: '100%', height: '100%' }}><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-}
-function AttendanceIcon() {
-  return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: '100%', height: '100%' }}><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-}
-function ComplianceIcon() {
-  return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: '100%', height: '100%' }}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h4"/></svg>
-}
-function FeaturesIcon() {
-  return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: '100%', height: '100%' }}><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-}
-function BellIcon() {
-  return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: '100%', height: '100%' }}><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-}
-function BillingIcon() {
-  return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: '100%', height: '100%' }}><rect x="1" y="4" width="22" height="16" rx="2"/><path d="M1 10h22"/></svg>
-}
-function IntegrationsIcon() {
-  return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: '100%', height: '100%' }}><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-}
-function HelpIcon() {
-  return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: '100%', height: '100%' }}><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
+function GroupLabel({ label }) {
+  return (
+    <div style={{
+      fontFamily: MONO, fontSize: 10.5, fontWeight: 600, letterSpacing: '0.10em',
+      textTransform: 'uppercase', color: MC.ink3, padding: '12px 4px 6px',
+    }}>{label}</div>
+  )
 }
 
-// ── SettingsCard ───────────────────────────────────────────────────────────
-function SettingsCard({ label, sub, icon: Icon, attention, statusText, onClick }) {
+function RowGroup({ children }) {
+  return (
+    <div style={{ background: MC.paper, border: `1px solid ${MC.line}`, borderRadius: 14, overflow: 'hidden' }}>
+      {children}
+    </div>
+  )
+}
+
+function SRow({ icon, label, sub, value, attention, last, onClick, danger }) {
+  const iBg  = attention ? MC.warnBg  : danger ? MC.badBg  : MC.brandTint
+  const iCol = attention ? MC.warn    : danger ? MC.bad    : MC.brand
   return (
     <button
       onClick={onClick}
       style={{
-        textAlign: 'left', cursor: 'pointer', width: '100%',
-        background: MC.paper, border: `1px solid ${MC.line}`,
-        borderRadius: 12, padding: '12px',
-        display: 'flex', flexDirection: 'column', gap: 8, minHeight: 84,
+        width: '100%', textAlign: 'left', background: 'none', border: 'none',
+        cursor: onClick ? 'pointer' : 'default', padding: '0 14px',
+        borderBottom: last ? 'none' : `1px solid ${MC.line2}`,
+        display: 'flex', alignItems: 'center', gap: 13, minHeight: 58,
+        fontFamily: SANS,
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-        <span style={{
-          width: 30, height: 30, borderRadius: 9,
-          background: attention ? MC.warnBg : MC.brandTint,
-          color: attention ? MC.warn : MC.brand,
-          display: 'grid', placeItems: 'center',
-        }}>
-          <span style={{ width: 15, height: 15, display: 'inline-flex' }}><Icon /></span>
-        </span>
-        {attention && <span style={{ width: 7, height: 7, borderRadius: 4, background: MC.warn }} />}
+      <span style={{
+        width: 32, height: 32, borderRadius: 9, flexShrink: 0,
+        background: iBg, color: iCol, display: 'grid', placeItems: 'center',
+      }}>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+          {icon}
+        </svg>
+      </span>
+      <div style={{ flex: 1, minWidth: 0, padding: '13px 0' }}>
+        <div style={{ fontSize: 15, fontWeight: 500, letterSpacing: '-0.01em', color: danger ? MC.bad : MC.ink, lineHeight: 1.25 }}>{label}</div>
+        {sub && <div style={{ fontFamily: MONO, fontSize: 10.5, color: attention ? MC.warn : MC.ink3, marginTop: 2, letterSpacing: '0.01em', lineHeight: 1.4 }}>{sub}</div>}
       </div>
-      <div style={{ marginTop: 'auto' }}>
-        <div style={{ fontSize: 14, fontWeight: 600, letterSpacing: '-0.01em', color: MC.ink }}>{label}</div>
-        <div style={{
-          fontFamily: MONO, fontSize: 10, marginTop: 3,
-          color: attention ? MC.warn : MC.ink3,
-          fontWeight: attention ? 600 : 500,
-          letterSpacing: '0.01em',
-          textTransform: attention ? 'uppercase' : 'none',
-        }}>{attention ? statusText : sub}</div>
-      </div>
+      {value && <span style={{ fontFamily: MONO, fontSize: 11, color: MC.ink3, flexShrink: 0 }}>{value}</span>}
+      {onClick && (
+        <svg width="6" height="10" viewBox="0 0 6 10" fill="none" stroke={attention ? MC.warn : MC.ink4} strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M1 1l4 4-4 4"/>
+        </svg>
+      )}
     </button>
   )
 }
 
-// ── SettingsHubPage ────────────────────────────────────────────────────────
 export default function SettingsHubPage() {
   const navigate = useNavigate()
   const { venueSlug, venueName } = useVenue()
@@ -92,43 +78,27 @@ export default function SettingsHubPage() {
 
   const vp = (path) => `/v/${venueSlug}${path}`
 
-  const isOwner = session?.staffRole === 'owner'
+  const isOwner  = session?.staffRole === 'owner'
   const staffName = session?.name ?? 'Manager'
   const role = session?.staffRole === 'owner' ? 'Owner' : session?.staffRole === 'manager' ? 'General Manager' : 'Manager'
-
-
   const initials = staffName.split(' ').map(w => w[0]).slice(0, 2).join('')
 
-  // Attendance attention: grace is on (non-zero) = might surprise staff
   const attendanceAttention = lateGraceMins > 0
-
-  const cards = [
-    { id: 'venue',        label: 'Venue',         sub: 'Hours, closing days', icon: VenueIcon,        route: vp('/settings/venue') },
-    { id: 'staff',        label: 'Staff & Roles',  sub: 'Team, permissions',   icon: StaffIcon,        route: vp('/settings/staff') },
-    { id: 'attendance',   label: 'Attendance',     sub: 'Clock-in & breaks',   icon: AttendanceIcon,   route: vp('/settings/attendance'),
-      attention: attendanceAttention, statusText: `Grace: ${lateGraceMins}min` },
-    { id: 'compliance',   label: 'Compliance',     sub: 'Schedules, HACCP',    icon: ComplianceIcon,   route: vp('/settings/compliance') },
-    { id: 'features',     label: 'Features',       sub: 'Hub tile visibility', icon: FeaturesIcon,     route: vp('/settings/hub-tiles') },
-    { id: 'notifications',label: 'Notifications',  sub: 'Alerts & digest',     icon: BellIcon,         route: vp('/settings/notifications') },
-    ...(isOwner ? [{ id: 'billing', label: 'Plan & Billing', sub: 'Subscription', icon: BillingIcon, route: vp('/settings/billing') }] : []),
-    // { id: 'integrations', label: 'Integrations', sub: 'Connect apps', icon: IntegrationsIcon, route: vp('/settings/integrations') },
-    { id: 'help',         label: 'Help & Support', sub: 'Docs, contact',       icon: HelpIcon,         route: vp('/settings/help') },
-  ]
 
   return (
     <div style={{ padding: '16px 0 96px' }}>
 
-      {/* Header */}
       <h1 style={{ fontSize: 26, fontWeight: 600, letterSpacing: '-0.028em', margin: '0 0 14px', color: MC.ink }}>Settings</h1>
 
       {/* Profile hero */}
       <button
-        onClick={() => navigate(vp('/settings'))}
+        onClick={() => navigate(vp('/settings/hub'))}
         style={{
           width: '100%', textAlign: 'left', cursor: 'pointer',
           background: MC.brand, color: '#fff',
           border: 'none', borderRadius: 14, padding: 16,
-          display: 'flex', alignItems: 'center', gap: 13, marginBottom: 14,
+          display: 'flex', alignItems: 'center', gap: 13, marginBottom: 4,
+          fontFamily: SANS,
         }}
       >
         <span style={{
@@ -139,39 +109,99 @@ export default function SettingsHubPage() {
         }}>{initials}</span>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontSize: 17, fontWeight: 600, letterSpacing: '-0.015em' }}>{staffName}</div>
-          <div style={{ fontSize: 12.5, color: 'rgba(255,255,255,0.7)', marginTop: 1 }}>
+          <div style={{ fontFamily: MONO, fontSize: 11, color: 'rgba(255,255,255,0.65)', marginTop: 3 }}>
             {role}{venueName ? ` · ${venueName}` : ''}
           </div>
         </div>
-        <svg width="8" height="13" viewBox="0 0 6 10" fill="none" stroke="rgba(255,255,255,0.6)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <svg width="6" height="10" viewBox="0 0 6 10" fill="none" stroke="rgba(255,255,255,0.45)" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
           <path d="M1 1l4 4-4 4"/>
         </svg>
       </button>
 
-      {/* Category grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 14 }}>
-        {cards.map(c => (
-          <SettingsCard
-            key={c.id}
-            label={c.label}
-            sub={c.sub}
-            icon={c.icon}
-            attention={c.attention}
-            statusText={c.statusText}
-            onClick={() => navigate(c.route)}
+      {/* Account */}
+      <GroupLabel label="Account" />
+      <RowGroup>
+        <SRow
+          icon={<><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></>}
+          label="Venue"
+          sub="Name, logo, hours, venues, appearance"
+          onClick={() => navigate(vp('/settings/venue'))}
+        />
+        <SRow
+          icon={<><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></>}
+          label="Staff & Roles"
+          sub="Members, invite code, roles, duties"
+          onClick={() => navigate(vp('/settings/staff'))}
+          last
+        />
+      </RowGroup>
+
+      {/* Operations */}
+      <GroupLabel label="Operations" />
+      <RowGroup>
+        <SRow
+          icon={<><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></>}
+          label="Attendance"
+          sub={attendanceAttention ? `Grace: ${lateGraceMins} min · Breaks on` : 'Clock-in & break rules'}
+          attention={attendanceAttention}
+          onClick={() => navigate(vp('/settings/attendance'))}
+        />
+        <SRow
+          icon={<><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h4"/></>}
+          label="Compliance"
+          sub="Fridge check time, action schedules"
+          onClick={() => navigate(vp('/settings/compliance'))}
+        />
+        <SRow
+          icon={<><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></>}
+          label="Notifications"
+          sub="Push alerts, digest, reminders"
+          onClick={() => navigate(vp('/settings/notifications'))}
+          last
+        />
+      </RowGroup>
+
+      {/* Customise */}
+      <GroupLabel label="Customise" />
+      <RowGroup>
+        <SRow
+          icon={<><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></>}
+          label="Features"
+          sub="Enable or disable modules"
+          onClick={() => navigate(vp('/settings/hub-tiles'))}
+          last
+        />
+      </RowGroup>
+
+      {/* More */}
+      <GroupLabel label="More" />
+      <RowGroup>
+        {isOwner && (
+          <SRow
+            icon={<><rect x="1" y="4" width="22" height="16" rx="2"/><path d="M1 10h22"/></>}
+            label="Plan & Billing"
+            sub="Subscription & usage"
+            onClick={() => navigate(vp('/settings/billing'))}
           />
-        ))}
-      </div>
+        )}
+        <SRow
+          icon={<><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3M12 17h.01"/></>}
+          label="Help & Support"
+          sub="FAQ, docs, contact"
+          onClick={() => navigate(vp('/settings/help'))}
+          last
+        />
+      </RowGroup>
 
       {/* Sign out */}
       <button
         onClick={signOutVenue}
         style={{
-          width: '100%', height: 48, borderRadius: 13,
-          border: `1px solid ${MC.bad}33`, background: MC.badBg,
-          color: MC.bad, cursor: 'pointer', fontSize: 14, fontWeight: 600,
+          width: '100%', height: 50, marginTop: 14, borderRadius: 13,
+          border: `1px solid rgba(179,51,28,0.2)`, background: MC.badBg,
+          color: MC.bad, cursor: 'pointer', fontSize: 15, fontWeight: 600,
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-          marginBottom: 12,
+          fontFamily: SANS, letterSpacing: '-0.01em',
         }}
       >
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -180,7 +210,7 @@ export default function SettingsHubPage() {
         Sign out
       </button>
 
-      <div style={{ textAlign: 'center', fontFamily: MONO, fontSize: 10, color: MC.ink4, letterSpacing: '0.04em' }}>
+      <div style={{ textAlign: 'center', fontFamily: MONO, fontSize: 10, color: MC.ink4, letterSpacing: '0.08em', padding: '12px 0 0' }}>
         Pelikn
       </div>
     </div>

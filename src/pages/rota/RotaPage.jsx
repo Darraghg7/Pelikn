@@ -68,7 +68,7 @@ function GanttChart({ shifts, staff, currentStaffId, nowMins, showNow }) {
             </span>
           )}
         </div>
-        <div className="w-20 shrink-0" />
+        <div className="w-28 shrink-0" />
       </div>
       <div className="px-3.5 pb-3.5">
         {sorted.map((shift) => {
@@ -93,12 +93,12 @@ function GanttChart({ shifts, staff, currentStaffId, nowMins, showNow }) {
                 <div className="absolute top-0 h-[22px] rounded-full z-20"
                   style={{ left: `${left}%`, width: `${width}%`, background: isMe ? '#13362a' : '#e4e6e2', boxShadow: isMe ? '0 1px 4px rgba(19,54,42,0.3)' : 'none' }} />
               </div>
-              <div className="w-20 shrink-0 text-right">
+              <div className="w-28 shrink-0 text-right">
                 <div className={`font-mono text-[12px] font-semibold tabular-nums ${isMe ? 'text-brand' : 'text-charcoal/60'}`}>
                   {shift.start_time.slice(0, 5)}–{shift.end_time.slice(0, 5)}
                 </div>
                 {shift.role_label && (
-                  <div className="font-mono text-[9px] text-charcoal/60 tracking-[0.06em] font-semibold mt-0.5 uppercase truncate">{shift.role_label}</div>
+                  <div className="font-mono text-[10px] text-charcoal/50 tracking-[0.05em] font-semibold mt-0.5 uppercase truncate">{shift.role_label}</div>
                 )}
               </div>
             </div>
