@@ -16,7 +16,7 @@ function saveQueue(queue) {
 }
 
 /** Add a failed table operation to the queue */
-export function enqueue(table, operation, payload) {
+export function enqueue(table, operation, payload, recordId = null, idColumn = 'id') {
   const queue = getQueue()
   queue.push({
     id: Date.now() + '-' + Math.random().toString(36).slice(2),
@@ -24,6 +24,8 @@ export function enqueue(table, operation, payload) {
     table,
     operation, // 'insert' | 'update' | 'upsert'
     payload,
+    recordId,  // required for updates — the PK value to filter on
+    idColumn,  // column name for the WHERE clause (default 'id')
     timestamp: new Date().toISOString(),
   })
   saveQueue(queue)

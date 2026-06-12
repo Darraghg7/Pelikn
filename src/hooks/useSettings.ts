@@ -34,7 +34,7 @@ const COLOR_PALETTE = [
   'bg-stone-100 text-stone-800',
 ]
 
-const SETTINGS_KEYS = ['custom_roles', 'closed_days', 'break_duration_mins', 'cleanup_minutes', 'fridge_check_time', 'open_time', 'close_time', 'compliance_nav_order', 'action_schedules', 'late_grace_mins', 'break_overrun_grace_mins', 'require_late_reason', 'notify_manager_at_strike', 'disciplinary_at_strike', 'counting_window_days', 'push_to_manager', 'hidden_check_tiles', 'hidden_team_tiles']
+const SETTINGS_KEYS = ['custom_roles', 'closed_days', 'break_duration_mins', 'cleanup_minutes', 'fridge_check_time', 'open_time', 'close_time', 'day_hours', 'compliance_nav_order', 'action_schedules', 'late_grace_mins', 'break_overrun_grace_mins', 'require_late_reason', 'notify_manager_at_strike', 'disciplinary_at_strike', 'counting_window_days', 'push_to_manager', 'notify_break_overrun', 'hidden_check_tiles', 'hidden_team_tiles']
 
 interface CustomRole {
   value: string
@@ -49,6 +49,8 @@ interface ActionSchedule {
 
 type ActionSchedules = Record<string, ActionSchedule>
 
+interface DayHours { open: string; close: string }
+
 interface AppSettings {
   customRoles: CustomRole[]
   closedDays: number[]
@@ -57,6 +59,7 @@ interface AppSettings {
   fridgeCheckTime: string
   openTime: string
   closeTime: string
+  dayHours: Record<string, DayHours>
   complianceNavOrder: string[]
   actionSchedules: ActionSchedules
   // Attendance rules (drives ClockPanel + Staff Alert thresholds)
@@ -67,6 +70,7 @@ interface AppSettings {
   disciplinaryAtStrike: number
   countingWindowDays: number
   pushToManager: boolean
+  notifyBreakOverrun: boolean
   hiddenCheckTiles: string[]
   hiddenTeamTiles: string[]
 }
@@ -91,6 +95,7 @@ const DEFAULTS: AppSettings = {
   fridgeCheckTime: '10:00',
   openTime: '08:00',
   closeTime: '17:00',
+  dayHours: {},
   complianceNavOrder: [],
   actionSchedules: DEFAULT_ACTION_SCHEDULES,
   lateGraceMins: 0,
@@ -100,6 +105,7 @@ const DEFAULTS: AppSettings = {
   disciplinaryAtStrike: 4,
   countingWindowDays: 30,
   pushToManager: true,
+  notifyBreakOverrun: false,
   hiddenCheckTiles: [],
   hiddenTeamTiles: [],
 }
@@ -151,6 +157,8 @@ async function fetchAppSettings(venueId: string): Promise<AppSettings> {
         if (row.key === 'disciplinary_at_strike'   && typeof parsed === 'number')  result.disciplinaryAtStrike = parsed
         if (row.key === 'counting_window_days'     && typeof parsed === 'number')  result.countingWindowDays = parsed
         if (row.key === 'push_to_manager'          && typeof parsed === 'boolean') result.pushToManager = parsed
+        if (row.key === 'day_hours' && typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed)) result.dayHours = parsed
+        if (row.key === 'notify_break_overrun' && typeof parsed === 'boolean') result.notifyBreakOverrun = parsed
         if (row.key === 'hidden_check_tiles' && Array.isArray(parsed)) result.hiddenCheckTiles = parsed
         if (row.key === 'hidden_team_tiles'  && Array.isArray(parsed)) result.hiddenTeamTiles = parsed
       } catch { /* ignore corrupt JSON — leave defaults */ }
@@ -192,6 +200,7 @@ export function useAppSettings() {
         fridge_check_time: 'fridgeCheckTime',
         open_time: 'openTime',
         close_time: 'closeTime',
+        day_hours: 'dayHours',
         compliance_nav_order: 'complianceNavOrder',
         action_schedules: 'actionSchedules',
         late_grace_mins: 'lateGraceMins',
@@ -201,6 +210,7 @@ export function useAppSettings() {
         disciplinary_at_strike: 'disciplinaryAtStrike',
         counting_window_days: 'countingWindowDays',
         push_to_manager: 'pushToManager',
+        notify_break_overrun: 'notifyBreakOverrun',
         hidden_check_tiles: 'hiddenCheckTiles',
         hidden_team_tiles: 'hiddenTeamTiles',
       }
@@ -227,6 +237,8 @@ export function useAppSettings() {
   const saveDisciplinaryAtStrike = useCallback((n: number) => saveSetting('disciplinary_at_strike', n), [saveSetting])
   const saveCountingWindowDays = useCallback((n: number) => saveSetting('counting_window_days', n), [saveSetting])
   const savePushToManager = useCallback((v: boolean) => saveSetting('push_to_manager', v), [saveSetting])
+  const saveNotifyBreakOverrun = useCallback((v: boolean) => saveSetting('notify_break_overrun', v), [saveSetting])
+  const saveDayHours = useCallback((hours: Record<string, DayHours>) => saveSetting('day_hours', hours), [saveSetting])
   const saveHiddenCheckTiles = useCallback((ids: string[]) => saveSetting('hidden_check_tiles', ids), [saveSetting])
   const saveHiddenTeamTiles = useCallback((ids: string[]) => saveSetting('hidden_team_tiles', ids), [saveSetting])
 
@@ -253,6 +265,7 @@ export function useAppSettings() {
     fridgeCheckTime: settings.fridgeCheckTime,
     openTime: settings.openTime,
     closeTime: settings.closeTime,
+    dayHours: settings.dayHours,
     complianceNavOrder: settings.complianceNavOrder,
     actionSchedules: settings.actionSchedules,
     lateGraceMins: settings.lateGraceMins,
@@ -262,13 +275,14 @@ export function useAppSettings() {
     disciplinaryAtStrike: settings.disciplinaryAtStrike,
     countingWindowDays: settings.countingWindowDays,
     pushToManager: settings.pushToManager,
+    notifyBreakOverrun: settings.notifyBreakOverrun,
     hiddenCheckTiles: settings.hiddenCheckTiles,
     hiddenTeamTiles: settings.hiddenTeamTiles,
     loading,
     saveCustomRoles, saveClosedDays, saveBreakDuration, saveCleanupMinutes, saveFridgeCheckTime,
-    saveOpenTime, saveCloseTime, saveComplianceNavOrder, saveActionSchedules,
+    saveOpenTime, saveCloseTime, saveDayHours, saveComplianceNavOrder, saveActionSchedules,
     saveLateGraceMins, saveBreakOverrunGraceMins, saveRequireLateReason,
-    saveNotifyManagerAtStrike, saveDisciplinaryAtStrike, saveCountingWindowDays, savePushToManager,
+    saveNotifyManagerAtStrike, saveDisciplinaryAtStrike, saveCountingWindowDays, savePushToManager, saveNotifyBreakOverrun,
     saveHiddenCheckTiles, saveHiddenTeamTiles,
     nextColor, reload,
   }

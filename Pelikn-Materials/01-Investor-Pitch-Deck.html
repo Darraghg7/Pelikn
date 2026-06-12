@@ -3,43 +3,43 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Pelikn — Investor Pitch Deck</title>
+<title>Pelikn - Investor Pitch Deck</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Serif+Display&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=DM+Serif+Display:ital@0;1&display=swap');
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
-    --brand: #1a3c2e;
-    --brand-mid: #2d6b4f;
-    --cream: #faf8f4;
-    --charcoal: #18181b;
-    --teal: #0d9488;
-    --teal-light: #14b8a6;
-    --orange: #e07b39;
-    --blue: #2563eb;
-    --purple: #7c3aed;
-    --rose: #e11d48;
-    --green: #16a34a;
-    --muted: #71717a;
-    --subtle: #a1a1aa;
-    --surface: #f4f4f5;
-    --border: #e4e4e7;
+    --brand:       #1a3c2e;
+    --brand-mid:   #2d6b4f;
+    --teal:        #0d9488;
+    --teal-light:  #14b8a6;
+    --cream:       #faf8f4;
+    --charcoal:    #18181b;
+    --muted:       #71717a;
+    --subtle:      #a1a1aa;
+    --surface:     #f4f4f5;
+    --border:      #e4e4e7;
+    --orange:      #e07b39;
+    --blue:        #2563eb;
+    --purple:      #7c3aed;
+    --rose:        #e11d48;
+    --green:       #16a34a;
   }
 
   body {
-    font-family: 'DM Sans', -apple-system, system-ui, sans-serif;
+    font-family: 'DM Sans', system-ui, sans-serif;
     background: #fff;
     color: var(--charcoal);
-    font-size: 15px;
-    line-height: 1.5;
+    font-size: 14px;
+    line-height: 1.55;
     -webkit-font-smoothing: antialiased;
   }
 
   .page {
     width: 100%;
     min-height: 100vh;
-    padding: 72px 80px;
+    padding: 80px;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -48,540 +48,205 @@
     overflow: hidden;
   }
 
-  .page-num {
+  .footer {
     position: absolute;
     bottom: 36px;
+    left: 80px;
     right: 80px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .footer-logo {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--subtle);
+  }
+
+  .footer-num {
     font-size: 11px;
     font-weight: 500;
     color: var(--subtle);
     letter-spacing: 1px;
   }
 
-  .page-logo {
-    position: absolute;
-    bottom: 36px;
-    left: 80px;
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: 1px;
-    color: var(--subtle);
-  }
-
-  /* Cover */
-  .cover {
-    background: var(--brand);
-    color: #fff;
-    justify-content: flex-end;
-    padding-bottom: 100px;
-  }
-
-  .cover::before {
-    content: '';
-    position: absolute;
-    top: -15%;
-    right: -8%;
-    width: 55vw;
-    height: 55vw;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(13,148,136,0.18) 0%, transparent 70%);
-  }
-
-  .cover::after {
-    content: '';
-    position: absolute;
-    bottom: -20%;
-    left: -10%;
-    width: 40vw;
-    height: 40vw;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(255,255,255,0.04) 0%, transparent 70%);
-  }
-
-  .cover-badge {
-    display: inline-block;
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    color: var(--teal-light);
-    border: 1px solid rgba(20,184,166,0.3);
-    padding: 6px 16px;
-    border-radius: 100px;
-    margin-bottom: 40px;
-  }
-
-  .cover h1 {
-    font-family: 'DM Serif Display', serif;
-    font-size: 80px;
-    font-weight: 400;
-    letter-spacing: -3px;
-    line-height: 0.95;
-    margin-bottom: 28px;
-    position: relative;
-    z-index: 2;
-  }
-
-  .cover-sub {
-    font-size: 20px;
-    font-weight: 400;
-    color: rgba(255,255,255,0.55);
-    max-width: 520px;
-    line-height: 1.6;
-    position: relative;
-    z-index: 2;
-  }
-
-  .cover-meta {
-    display: flex;
-    gap: 48px;
-    margin-top: 56px;
-    position: relative;
-    z-index: 2;
-  }
-
-  .cover-meta-item span {
-    display: block;
-    font-size: 11px;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    color: rgba(255,255,255,0.3);
-    margin-bottom: 4px;
-  }
-
-  .cover-meta-item strong {
-    font-size: 18px;
-    font-weight: 600;
-    color: #fff;
-  }
-
-  /* Section Headers */
+  /* ── Typography ───────────────────────────── */
   .eyebrow {
     font-size: 10px;
     font-weight: 700;
     letter-spacing: 3px;
     text-transform: uppercase;
-    margin-bottom: 14px;
     display: block;
-  }
-
-  .eyebrow--teal { color: var(--teal); }
-  .eyebrow--orange { color: var(--orange); }
-  .eyebrow--blue { color: var(--blue); }
-  .eyebrow--purple { color: var(--purple); }
-  .eyebrow--muted { color: var(--subtle); }
-
-  .title {
-    font-family: 'DM Serif Display', serif;
-    font-size: 52px;
-    font-weight: 400;
-    letter-spacing: -2px;
-    line-height: 1.08;
     margin-bottom: 16px;
   }
 
-  .subtitle {
-    font-size: 17px;
-    color: var(--muted);
-    max-width: 560px;
-    line-height: 1.6;
-    margin-bottom: 48px;
+  .display {
+    font-family: 'DM Serif Display', serif;
+    font-weight: 400;
+    letter-spacing: -2px;
+    line-height: 1.0;
   }
 
-  /* Dark / Brand pages */
-  .page--dark { background: var(--charcoal); color: #fff; }
-  .page--dark .subtitle { color: rgba(255,255,255,0.45); }
-  .page--dark .page-num, .page--dark .page-logo { color: rgba(255,255,255,0.2); }
+  .display--xl  { font-size: 96px; }
+  .display--lg  { font-size: 72px; }
+  .display--md  { font-size: 56px; }
+  .display--sm  { font-size: 44px; }
 
-  .page--brand { background: var(--brand); color: #fff; }
-  .page--brand .subtitle { color: rgba(255,255,255,0.5); }
-  .page--brand .page-num, .page--brand .page-logo { color: rgba(255,255,255,0.2); }
+  .lead {
+    font-size: 18px;
+    line-height: 1.65;
+    color: var(--muted);
+    max-width: 560px;
+  }
 
-  .page--cream { background: var(--cream); }
+  /* ── Colors ───────────────────────────────── */
+  .page--dark   { background: var(--charcoal); color: #fff; }
+  .page--brand  { background: var(--brand); color: #fff; }
+  .page--cream  { background: var(--cream); }
+  .page--teal   { background: var(--teal); color: #fff; }
 
-  /* Grids */
-  .g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
-  .g3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
-  .g4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 16px; }
+  .page--dark  .footer-logo, .page--dark  .footer-num { color: rgba(255,255,255,0.2); }
+  .page--brand .footer-logo, .page--brand .footer-num { color: rgba(255,255,255,0.2); }
+  .page--teal  .footer-logo, .page--teal  .footer-num { color: rgba(255,255,255,0.3); }
 
-  /* Cards */
+  .page--dark  .lead { color: rgba(255,255,255,0.5); }
+  .page--brand .lead { color: rgba(255,255,255,0.5); }
+
+  /* ── Rule ─────────────────────────────────── */
+  .rule {
+    width: 100%;
+    height: 1px;
+    background: var(--border);
+    margin: 32px 0;
+  }
+
+  .rule--white { background: rgba(255,255,255,0.12); }
+
+  /* ── Accent line ──────────────────────────── */
+  .accent-line {
+    display: inline-block;
+    width: 48px;
+    height: 3px;
+    background: var(--teal);
+    border-radius: 2px;
+    margin-bottom: 20px;
+  }
+
+  /* ── Stat ─────────────────────────────────── */
+  .stat {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .stat-n {
+    font-family: 'DM Serif Display', serif;
+    font-size: 52px;
+    line-height: 1;
+    font-weight: 400;
+  }
+
+  .stat-l {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  /* ── Cards ────────────────────────────────── */
   .card {
-    border-radius: 16px;
+    border-radius: 14px;
     padding: 28px;
   }
 
-  .card--surface { background: var(--surface); }
-  .card--white { background: #fff; border: 1px solid var(--border); }
-  .card--glass { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); }
-  .card--teal-tint { background: rgba(13,148,136,0.06); border: 1px solid rgba(13,148,136,0.12); }
+  .card--f  { background: var(--surface); }
+  .card--w  { background: #fff; border: 1px solid var(--border); }
+  .card--g  { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); }
+  .card--t  { background: rgba(13,148,136,0.07); border: 1px solid rgba(13,148,136,0.14); }
 
-  .card h3 {
-    font-size: 16px;
-    font-weight: 700;
-    margin-bottom: 6px;
+  .card h3  { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+  .card p   { font-size: 13px; color: var(--muted); line-height: 1.6; }
+  .card--g h3 { color: #fff; }
+  .card--g p  { color: rgba(255,255,255,0.5); }
+
+  /* ── Feature row ──────────────────────────── */
+  .feat {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    padding: 22px 0;
+    border-bottom: 1px solid var(--border);
   }
 
-  .card p {
-    font-size: 13px;
-    color: var(--muted);
-    line-height: 1.55;
-  }
+  .feat:last-child { border-bottom: none; }
 
-  .card--glass p { color: rgba(255,255,255,0.45); }
-  .card--glass h3 { color: #fff; }
-
-  .card-icon {
+  .feat-icon {
     width: 40px;
     height: 40px;
     border-radius: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 18px;
-    margin-bottom: 14px;
-  }
-
-  /* Stats */
-  .stat-num {
-    font-family: 'DM Serif Display', serif;
-    font-size: 52px;
-    font-weight: 400;
-    line-height: 1;
-    margin-bottom: 6px;
-  }
-
-  .stat-label {
-    font-size: 12px;
-    font-weight: 500;
-    color: var(--muted);
-    letter-spacing: 1px;
-    text-transform: uppercase;
-  }
-
-  /* Table */
-  .comp-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 13px;
-  }
-
-  .comp-table th {
-    text-align: center;
-    padding: 12px 14px;
-    font-weight: 700;
-    font-size: 11px;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    color: var(--muted);
-    border-bottom: 2px solid var(--charcoal);
-  }
-
-  .comp-table th:first-child { text-align: left; }
-
-  .comp-table td {
-    padding: 11px 14px;
-    border-bottom: 1px solid var(--border);
-    text-align: center;
-    font-size: 13px;
-  }
-
-  .comp-table td:first-child { text-align: left; font-weight: 500; }
-
-  .comp-table .hl { background: rgba(13,148,136,0.04); }
-  .y { color: var(--teal); font-weight: 700; }
-  .n { color: #d4d4d8; }
-  .p { color: var(--orange); font-size: 11px; }
-
-  /* Price Cards */
-  .price-card {
-    border-radius: 16px;
-    padding: 32px;
-    background: var(--surface);
-    position: relative;
-  }
-
-  .price-card--pro {
-    background: var(--charcoal);
-    color: #fff;
-  }
-
-  .price-card--pro p { color: rgba(255,255,255,0.5); }
-
-  .price-tag {
-    font-family: 'DM Serif Display', serif;
-    font-size: 44px;
-    font-weight: 400;
-    line-height: 1;
-  }
-
-  .price-per { font-size: 14px; color: var(--muted); }
-  .price-card--pro .price-per { color: rgba(255,255,255,0.4); }
-
-  .price-list {
-    list-style: none;
-    margin-top: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .price-list li {
-    font-size: 13px;
-    padding-left: 20px;
-    position: relative;
-    color: var(--muted);
-  }
-
-  .price-card--pro .price-list li { color: rgba(255,255,255,0.55); }
-
-  .price-list li::before {
-    content: '\2713';
-    position: absolute;
-    left: 0;
-    font-weight: 700;
-    color: var(--teal);
-  }
-
-  /* Bar Chart */
-  .bar-row {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    margin-bottom: 14px;
-  }
-
-  .bar-label {
-    width: 100px;
-    font-size: 13px;
-    font-weight: 500;
-    text-align: right;
+    font-size: 17px;
     flex-shrink: 0;
   }
 
-  .bar-track {
-    flex: 1;
-    height: 36px;
-    background: rgba(13,148,136,0.06);
-    border-radius: 8px;
-    overflow: hidden;
-  }
+  .feat h4 { font-size: 14px; font-weight: 700; margin-bottom: 3px; }
+  .feat p  { font-size: 13px; color: var(--muted); line-height: 1.5; }
 
-  .bar-fill {
-    height: 100%;
-    background: linear-gradient(90deg, var(--teal), var(--teal-light));
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    padding-right: 12px;
-    font-size: 12px;
-    font-weight: 700;
-    color: #fff;
-    min-width: 60px;
+  /* ── Table ────────────────────────────────── */
+  .tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .tbl th {
+    text-align: center; padding: 12px 14px;
+    font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+    color: var(--muted); border-bottom: 2px solid var(--charcoal);
   }
+  .tbl th:first-child { text-align: left; }
+  .tbl td { padding: 11px 14px; border-bottom: 1px solid var(--border); text-align: center; }
+  .tbl td:first-child { text-align: left; font-weight: 500; }
+  .tbl .hi { background: rgba(13,148,136,0.04); }
+  .y  { color: var(--teal); font-weight: 700; font-size: 15px; }
+  .no { color: #d4d4d8; font-size: 15px; }
+  .pp { color: var(--orange); font-size: 11px; font-weight: 600; }
 
-  /* Timeline */
-  .tl {
-    display: flex;
-    position: relative;
-    margin-top: 8px;
-  }
+  /* ── Bar ──────────────────────────────────── */
+  .bar-row { display: flex; align-items: center; gap: 16px; margin-bottom: 16px; }
+  .bar-label { width: 88px; font-size: 12px; font-weight: 600; text-align: right; flex-shrink: 0; color: var(--muted); }
+  .bar-track { flex: 1; height: 38px; background: var(--surface); border-radius: 8px; overflow: hidden; }
+  .bar-fill  { height: 100%; background: linear-gradient(90deg, var(--brand-mid), var(--teal)); border-radius: 8px;
+               display: flex; align-items: center; justify-content: flex-end; padding-right: 14px;
+               font-size: 13px; font-weight: 700; color: #fff; min-width: 90px; }
 
-  .tl::before {
-    content: '';
-    position: absolute;
-    top: 20px;
-    left: 0;
-    right: 0;
-    height: 2px;
-    background: linear-gradient(90deg, var(--teal), var(--blue), var(--purple), var(--orange));
-  }
+  /* ── Fund bar ─────────────────────────────── */
+  .fund-bar { display: flex; height: 44px; border-radius: 10px; overflow: hidden; margin: 24px 0 16px; }
+  .fund-bar div { display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #fff; letter-spacing: 0.5px; }
+  .fund-leg { display: flex; gap: 24px; flex-wrap: wrap; }
+  .fund-leg-i { display: flex; align-items: center; gap: 8px; font-size: 12px; color: rgba(255,255,255,0.6); }
+  .fund-dot { width: 10px; height: 10px; border-radius: 3px; }
 
-  .tl-item {
-    flex: 1;
-    text-align: center;
-    padding-top: 40px;
-    position: relative;
-  }
+  /* ── Metric ───────────────────────────────── */
+  .metric-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; }
+  .metric-card { background: var(--surface); border-radius: 12px; padding: 24px; text-align: center; }
+  .metric-card .stat-n { font-size: 36px; color: var(--teal); }
+  .metric-card .stat-l { margin-top: 4px; }
 
-  .tl-item::before {
-    content: '';
-    position: absolute;
-    top: 13px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    background: #fff;
-    border: 3px solid var(--teal);
-    z-index: 1;
-  }
-
+  /* ── Timeline ─────────────────────────────── */
+  .tl { display: flex; position: relative; margin-top: 8px; }
+  .tl::before { content: ''; position: absolute; top: 18px; left: 0; right: 0; height: 2px;
+                background: linear-gradient(90deg, var(--teal), var(--blue), var(--purple), var(--orange)); }
+  .tl-item { flex: 1; text-align: center; padding-top: 42px; position: relative; }
+  .tl-item::before { content: ''; position: absolute; top: 11px; left: 50%; transform: translateX(-50%);
+                     width: 16px; height: 16px; border-radius: 50%; background: var(--cream);
+                     border: 3px solid var(--teal); z-index: 1; }
   .tl-item:nth-child(2)::before { border-color: var(--blue); }
   .tl-item:nth-child(3)::before { border-color: var(--purple); }
   .tl-item:nth-child(4)::before { border-color: var(--orange); }
   .tl-item:nth-child(5)::before { border-color: var(--rose); }
-
-  .tl-item h4 { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
-  .tl-item p { font-size: 11px; color: var(--muted); line-height: 1.45; padding: 0 6px; }
-
-  /* Use of Funds */
-  .fund-bar {
-    display: flex;
-    height: 40px;
-    border-radius: 10px;
-    overflow: hidden;
-    margin: 24px 0 16px;
-  }
-
-  .fund-bar div {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 11px;
-    font-weight: 700;
-    color: #fff;
-    letter-spacing: 0.5px;
-  }
-
-  .fund-legend {
-    display: flex;
-    gap: 24px;
-    flex-wrap: wrap;
-  }
-
-  .fund-legend-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 12px;
-    color: var(--muted);
-  }
-
-  .fund-dot {
-    width: 10px;
-    height: 10px;
-    border-radius: 3px;
-  }
-
-  /* Ask Grid */
-  .ask-item {
-    display: flex;
-    gap: 14px;
-    align-items: flex-start;
-  }
-
-  .ask-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: 10px;
-    background: rgba(255,255,255,0.07);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 17px;
-    flex-shrink: 0;
-  }
-
-  .ask-item h4 { font-size: 15px; font-weight: 700; margin-bottom: 3px; }
-  .ask-item p { font-size: 12px; color: rgba(255,255,255,0.45); line-height: 1.5; }
-
-  /* Circle Charts */
-  .circle-wrap { text-align: center; }
-
-  .circle-outer {
-    width: 280px;
-    height: 280px;
-    border-radius: 50%;
-    background: rgba(13,148,136,0.05);
-    border: 1.5px solid rgba(13,148,136,0.12);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto;
-    position: relative;
-  }
-
-  .circle-mid {
-    width: 190px;
-    height: 190px;
-    border-radius: 50%;
-    background: rgba(13,148,136,0.08);
-    border: 1.5px solid rgba(13,148,136,0.18);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .circle-inner {
-    width: 100px;
-    height: 100px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, var(--teal), var(--brand-mid));
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-    color: #fff;
-  }
-
-  .circle-inner .stat-num { font-size: 22px; }
-  .circle-inner .stat-label { font-size: 9px; color: rgba(255,255,255,0.7); }
-
-  .circle-label {
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    color: var(--teal);
-    margin-top: 4px;
-  }
-
-  /* Team */
-  .team-card {
-    display: flex;
-    gap: 24px;
-    align-items: center;
-    padding: 32px;
-    border-radius: 16px;
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.08);
-  }
-
-  .team-avatar {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, var(--teal), var(--brand-mid));
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 28px;
-    color: #fff;
-    flex-shrink: 0;
-  }
-
-  .team-info h3 { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
-  .team-info .role { font-size: 14px; color: var(--teal-light); margin-bottom: 8px; }
-  .team-info p { font-size: 13px; color: rgba(255,255,255,0.5); line-height: 1.6; }
-
-  /* Unit Economics */
-  .metric-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 16px;
-  }
-
-  .metric-card {
-    background: var(--surface);
-    border-radius: 12px;
-    padding: 24px;
-    text-align: center;
-  }
-
-  .metric-card .stat-num { font-size: 32px; color: var(--teal); }
-  .metric-card .stat-label { font-size: 11px; }
+  .tl-item h4 { font-size: 12px; font-weight: 700; margin-bottom: 5px; }
+  .tl-item p  { font-size: 11px; color: var(--muted); line-height: 1.45; padding: 0 4px; }
 
   @media print {
     body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
@@ -591,513 +256,591 @@
 </head>
 <body>
 
-<!-- SLIDE 1 — COVER -->
-<div class="page cover">
-  <div class="cover-badge">Investor Presentation &middot; May 2026</div>
-  <h1>Pelikn</h1>
-  <p class="cover-sub">
-    The all-in-one operations platform replacing paper checklists,
-    spreadsheet rotas and compliance chaos in independent hospitality.
-  </p>
-  <div class="cover-meta">
-    <div class="cover-meta-item">
-      <span>Raising</span>
-      <strong>&pound;150k Pre-Seed</strong>
-    </div>
-    <div class="cover-meta-item">
-      <span>Model</span>
-      <strong>B2B SaaS</strong>
-    </div>
-    <div class="cover-meta-item">
-      <span>Market</span>
-      <strong>UK &amp; Ireland</strong>
-    </div>
-    <div class="cover-meta-item">
-      <span>Stage</span>
-      <strong>Product Live</strong>
+
+<!-- 01 · COVER ──────────────────────────────────────────────── -->
+<div class="page page--brand" style="justify-content:space-between;padding-bottom:80px;">
+
+  <!-- background glow -->
+  <div style="position:absolute;top:-20%;right:-10%;width:60vw;height:60vw;border-radius:50%;
+              background:radial-gradient(circle,rgba(13,148,136,0.25) 0%,transparent 65%);pointer-events:none;"></div>
+  <div style="position:absolute;bottom:-25%;left:-5%;width:40vw;height:40vw;border-radius:50%;
+              background:radial-gradient(circle,rgba(255,255,255,0.04) 0%,transparent 70%);pointer-events:none;"></div>
+
+  <!-- top bar -->
+  <div style="display:flex;justify-content:space-between;align-items:center;position:relative;z-index:2;">
+    <div style="font-family:'DM Serif Display',serif;font-size:22px;letter-spacing:1px;color:rgba(255,255,255,0.9);">Pelikn</div>
+    <div style="font-size:10px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--teal-light);
+                border:1px solid rgba(20,184,166,0.3);padding:6px 16px;border-radius:100px;">Investor Presentation &middot; June 2026</div>
+  </div>
+
+  <!-- headline -->
+  <div style="position:relative;z-index:2;margin-top:auto;">
+    <div class="eyebrow" style="color:var(--teal-light);margin-bottom:24px;">Pre-Seed &middot; &pound;150,000</div>
+    <h1 class="display display--xl" style="color:#fff;max-width:700px;margin-bottom:28px;">
+      The end of the<br/>compliance binder.
+    </h1>
+    <p style="font-size:20px;color:rgba(255,255,255,0.55);max-width:520px;line-height:1.65;margin-bottom:56px;">
+      Pelikn is the all-in-one operations platform replacing paper checklists,
+      spreadsheet rotas and fragmented compliance tools across independent hospitality.
+    </p>
+
+    <div style="display:flex;gap:48px;border-top:1px solid rgba(255,255,255,0.08);padding-top:36px;">
+      <div>
+        <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.3);margin-bottom:4px;">Raising</div>
+        <strong style="font-size:17px;color:#fff;">&pound;150k Pre-Seed</strong>
+      </div>
+      <div>
+        <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.3);margin-bottom:4px;">Model</div>
+        <strong style="font-size:17px;color:#fff;">B2B SaaS</strong>
+      </div>
+      <div>
+        <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.3);margin-bottom:4px;">Market</div>
+        <strong style="font-size:17px;color:#fff;">UK &amp; Ireland</strong>
+      </div>
+      <div>
+        <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.3);margin-bottom:4px;">Platform</div>
+        <strong style="font-size:17px;color:#fff;">Web &middot; iOS &middot; Android</strong>
+      </div>
     </div>
   </div>
-  <div class="page-logo" style="color:rgba(255,255,255,0.2);">PELIKN</div>
-  <div class="page-num" style="color:rgba(255,255,255,0.15);">01</div>
+
+  <div class="footer">
+    <span class="footer-logo">PELIKN</span>
+    <span class="footer-num">01</span>
+  </div>
 </div>
 
-<!-- SLIDE 2 — PROBLEM -->
+
+<!-- 02 · THE SCENE ──────────────────────────────────────────── -->
 <div class="page">
-  <span class="eyebrow eyebrow--teal">The Problem</span>
-  <h2 class="title">Independent venues are<br/>drowning in admin</h2>
-  <p class="subtitle">
-    180,000+ UK food businesses rely on fragmented, manual processes that waste time,
-    cost money and put food safety ratings at risk.
-  </p>
-
-  <div class="g3">
-    <div class="card card--surface">
-      <div class="card-icon" style="background:rgba(225,29,72,0.08);">&#128203;</div>
-      <h3>Paper Compliance</h3>
-      <p>HACCP logs and fridge checks kept in ring binders. Inspectors find gaps. Venues fail ratings. Average EHO fine: &pound;10,000+.</p>
-    </div>
-    <div class="card card--surface">
-      <div class="card-icon" style="background:rgba(224,123,57,0.08);">&#128202;</div>
-      <h3>Spreadsheet Rotas</h3>
-      <p>Managers spend 3&ndash;5 hours weekly on Excel rotas and WhatsApp shift swaps. Timesheets are guesswork. Labour costs invisible.</p>
-    </div>
-    <div class="card card--surface">
-      <div class="card-icon" style="background:rgba(124,58,237,0.08);">&#129513;</div>
-      <h3>Tool Fragmentation</h3>
-      <p>Separate apps for temps, rotas, allergens, training and tasks. Five logins, five bills, five systems staff won&rsquo;t use.</p>
-    </div>
+  <div style="max-width:640px;">
+    <div class="eyebrow eyebrow" style="color:var(--rose);">Tuesday. 9:04am.</div>
+    <h2 class="display display--md" style="margin-bottom:28px;letter-spacing:-2px;">
+      An EHO inspector<br/>walks in unannounced.
+    </h2>
   </div>
 
-  <div style="margin-top:36px;padding:24px 28px;background:var(--surface);border-radius:12px;display:flex;justify-content:space-between;">
-    <div style="text-align:center;flex:1;"><div class="stat-num" style="font-size:36px;color:var(--rose);">56%</div><div class="stat-label">of venues still use paper for food safety</div></div>
-    <div style="width:1px;background:var(--border);"></div>
-    <div style="text-align:center;flex:1;"><div class="stat-num" style="font-size:36px;color:var(--orange);">3&ndash;5 hrs</div><div class="stat-label">spent on rota admin per week</div></div>
-    <div style="width:1px;background:var(--border);"></div>
-    <div style="text-align:center;flex:1;"><div class="stat-num" style="font-size:36px;color:var(--purple);">&pound;75+/mo</div><div class="stat-label">average spend on fragmented tools</div></div>
-  </div>
-
-  <div class="page-logo">PELIKN</div>
-  <div class="page-num">02</div>
-</div>
-
-<!-- SLIDE 3 — SOLUTION -->
-<div class="page page--cream">
-  <span class="eyebrow eyebrow--teal">The Solution</span>
-  <h2 class="title">One app. Every operation.<br/>Zero paper.</h2>
-  <p class="subtitle">
-    Pelikn replaces the binder, the spreadsheet and the WhatsApp group
-    with a single mobile-first platform purpose-built for independent hospitality.
-  </p>
-
-  <div class="g2" style="gap:32px;">
-    <div style="display:flex;flex-direction:column;gap:18px;">
-      <div style="display:flex;gap:14px;align-items:flex-start;">
-        <div style="width:36px;height:36px;border-radius:9px;background:var(--teal);color:#fff;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;">&#127777;</div>
-        <div>
-          <h4 style="font-size:14px;font-weight:700;margin-bottom:2px;">HACCP-Grade Compliance</h4>
-          <p style="font-size:13px;color:var(--muted);">Fridge temps, cooking logs, hot holding, cooling records, probe calibration, cleaning schedules, delivery checks &mdash; all timestamped and audit-ready.</p>
-        </div>
-      </div>
-      <div style="display:flex;gap:14px;align-items:flex-start;">
-        <div style="width:36px;height:36px;border-radius:9px;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;">&#128197;</div>
-        <div>
-          <h4 style="font-size:14px;font-weight:700;margin-bottom:2px;">Smart Rota &amp; Time Tracking</h4>
-          <p style="font-size:13px;color:var(--muted);">AI-assisted rota builder, PIN clock-in/out, break deductions, overtime alerts, CSV timesheet export. Real-time labour cost visibility.</p>
-        </div>
-      </div>
-      <div style="display:flex;gap:14px;align-items:flex-start;">
-        <div style="width:36px;height:36px;border-radius:9px;background:var(--purple);color:#fff;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;">&#128101;</div>
-        <div>
-          <h4 style="font-size:14px;font-weight:700;margin-bottom:2px;">Granular Staff Permissions</h4>
-          <p style="font-size:13px;color:var(--muted);">13 permission types across 3 categories. Presets for daily staff, senior staff and full access. Each team member sees only what they need.</p>
-        </div>
-      </div>
-      <div style="display:flex;gap:14px;align-items:flex-start;">
-        <div style="width:36px;height:36px;border-radius:9px;background:var(--orange);color:#fff;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;">&#128241;</div>
-        <div>
-          <h4 style="font-size:14px;font-weight:700;margin-bottom:2px;">True PWA &mdash; Works Offline</h4>
-          <p style="font-size:13px;color:var(--muted);">Installs to homescreen. Push notifications for swaps, time-off, and late arrivals. Works in kitchens and basements with poor signal.</p>
-        </div>
-      </div>
-    </div>
-
-    <div style="background:#fff;border-radius:16px;padding:32px;border:1px solid var(--border);">
-      <div style="font-size:10px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--teal);margin-bottom:20px;">Impact for Managers</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid var(--border);border-radius:16px;overflow:hidden;margin-bottom:36px;">
+    <div style="padding:36px;border-right:1px solid var(--border);">
+      <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--rose);margin-bottom:16px;">Without Pelikn</div>
       <div style="display:flex;flex-direction:column;gap:14px;">
-        <div style="display:flex;justify-content:space-between;padding-bottom:12px;border-bottom:1px solid var(--border);font-size:14px;"><span style="color:var(--muted);">Admin time saved</span><strong style="color:var(--teal);">5+ hrs/week</strong></div>
-        <div style="display:flex;justify-content:space-between;padding-bottom:12px;border-bottom:1px solid var(--border);font-size:14px;"><span style="color:var(--muted);">Labour cost visibility</span><strong style="color:var(--teal);">Real-time</strong></div>
-        <div style="display:flex;justify-content:space-between;padding-bottom:12px;border-bottom:1px solid var(--border);font-size:14px;"><span style="color:var(--muted);">EHO inspection readiness</span><strong style="color:var(--teal);">Always</strong></div>
-        <div style="display:flex;justify-content:space-between;padding-bottom:12px;border-bottom:1px solid var(--border);font-size:14px;"><span style="color:var(--muted);">Staff onboarding</span><strong style="color:var(--teal);">PIN &amp; go</strong></div>
-        <div style="display:flex;justify-content:space-between;font-size:14px;"><span style="color:var(--muted);">Full setup time</span><strong style="color:var(--teal);">&lt; 15 min</strong></div>
-      </div>
-    </div>
-  </div>
-
-  <div class="page-logo">PELIKN</div>
-  <div class="page-num">03</div>
-</div>
-
-<!-- SLIDE 4 — PRODUCT -->
-<div class="page">
-  <span class="eyebrow eyebrow--purple">The Product</span>
-  <h2 class="title">Built for the kitchen,<br/>not the boardroom</h2>
-  <p class="subtitle">
-    A purpose-built PWA that installs in seconds, works offline, and requires
-    zero training. Staff use simple PINs &mdash; no passwords, no app store.
-  </p>
-
-  <div class="g3">
-    <div class="card card--teal-tint" style="text-align:center;padding:40px 24px;">
-      <div style="font-size:32px;margin-bottom:12px;">&#127777;</div>
-      <h3>Compliance Dashboard</h3>
-      <p>Fridge logs, cleaning schedules, allergen registry, delivery checks &mdash; all in one view with pass/fail indicators.</p>
-    </div>
-    <div class="card card--teal-tint" style="text-align:center;padding:40px 24px;">
-      <div style="font-size:32px;margin-bottom:12px;">&#128197;</div>
-      <h3>Rota Builder</h3>
-      <p>Drag-and-drop weekly rotas with AI auto-fill, shift templates, and instant push notifications to staff.</p>
-    </div>
-    <div class="card card--teal-tint" style="text-align:center;padding:40px 24px;">
-      <div style="font-size:32px;margin-bottom:12px;">&#128200;</div>
-      <h3>HQ Dashboard</h3>
-      <p>Multi-venue overview: compliance scores, labour costs, and staff metrics across all your sites in real time.</p>
-    </div>
-  </div>
-
-  <div style="margin-top:32px;padding:20px 28px;background:var(--surface);border-radius:12px;display:flex;gap:32px;justify-content:center;">
-    <div style="text-align:center;"><strong style="color:var(--teal);font-size:18px;">20+</strong><br/><span style="font-size:12px;color:var(--muted);">Feature Modules</span></div>
-    <div style="text-align:center;"><strong style="color:var(--teal);font-size:18px;">Offline-First</strong><br/><span style="font-size:12px;color:var(--muted);">Works Without WiFi</span></div>
-    <div style="text-align:center;"><strong style="color:var(--teal);font-size:18px;">PIN Auth</strong><br/><span style="font-size:12px;color:var(--muted);">No Passwords Needed</span></div>
-    <div style="text-align:center;"><strong style="color:var(--teal);font-size:18px;">UK GDPR</strong><br/><span style="font-size:12px;color:var(--muted);">Fully Compliant</span></div>
-  </div>
-
-  <div class="page-logo">PELIKN</div>
-  <div class="page-num">04</div>
-</div>
-
-<!-- SLIDE 5 — MARKET -->
-<div class="page">
-  <span class="eyebrow eyebrow--blue">Market Opportunity</span>
-  <h2 class="title">&pound;1.2B addressable market</h2>
-  <p class="subtitle">
-    180,000+ independent food businesses in the UK. Most still use paper or nothing.
-    The shift to digital is inevitable &mdash; and it&rsquo;s just beginning.
-  </p>
-
-  <div class="g2" style="align-items:center;">
-    <div class="circle-wrap">
-      <div class="circle-outer">
-        <div class="circle-mid">
-          <div class="circle-inner">
-            <div class="stat-num">&pound;4.8M</div>
-            <div class="stat-label">SOM</div>
-          </div>
+        <p style="font-size:14px;line-height:1.65;color:var(--muted);">&#8220;The fridge log is in a binder somewhere. The cleaning schedule hasn&#8217;t been signed off this week. The allergen sheet is from last year. The manager is on the phone trying to find the HACCP folder.&#8221;</p>
+        <p style="font-size:14px;line-height:1.65;color:var(--muted);">The inspector marks three compliance failures. The Food Hygiene Rating drops to a 2. It goes on the window. On the website. On the FSA database.</p>
+        <div style="margin-top:8px;padding:14px 18px;background:rgba(225,29,72,0.06);border-radius:10px;border-left:3px solid var(--rose);">
+          <p style="font-size:13px;font-weight:600;color:var(--rose);">Average cost of a failed EHO visit: remediation, legal and reputational &pound;10,000+</p>
         </div>
       </div>
-      <div style="display:flex;justify-content:center;gap:32px;margin-top:16px;">
-        <div class="circle-label">TAM &pound;1.2B</div>
-        <div class="circle-label">SAM &pound;320M</div>
+    </div>
+    <div style="padding:36px;background:var(--cream);">
+      <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--teal);margin-bottom:16px;">With Pelikn</div>
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <p style="font-size:14px;line-height:1.65;color:var(--muted);">Every temperature log, cleaning sign-off and allergen record is in the system &mdash; timestamped, named, complete. The manager opens Pelikn and exports a PDF compliance report in one tap.</p>
+        <p style="font-size:14px;line-height:1.65;color:var(--muted);">The inspector reviews it. They&#8217;re in and out in 20 minutes. Five-star rating maintained. No stress, no scramble, no damage.</p>
+        <div style="margin-top:8px;padding:14px 18px;background:rgba(13,148,136,0.06);border-radius:10px;border-left:3px solid var(--teal);">
+          <p style="font-size:13px;font-weight:600;color:var(--teal);">This scenario plays out 180,000 times a year across UK food businesses.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:16px;">
+    <div style="flex:1;text-align:center;padding:24px;background:var(--surface);border-radius:12px;">
+      <div class="stat-n" style="color:var(--rose);">56%</div>
+      <div class="stat-l">of UK venues use paper<br/>for food safety records</div>
+    </div>
+    <div style="flex:1;text-align:center;padding:24px;background:var(--surface);border-radius:12px;">
+      <div class="stat-n" style="color:var(--orange);">3&ndash;5 hrs</div>
+      <div class="stat-l">lost per week per manager<br/>to rota admin</div>
+    </div>
+    <div style="flex:1;text-align:center;padding:24px;background:var(--surface);border-radius:12px;">
+      <div class="stat-n" style="color:var(--purple);">&pound;75+</div>
+      <div class="stat-l">per month spent across<br/>fragmented tools</div>
+    </div>
+    <div style="flex:1;text-align:center;padding:24px;background:var(--surface);border-radius:12px;">
+      <div class="stat-n" style="color:var(--blue);">180k+</div>
+      <div class="stat-l">independent food businesses<br/>in the UK today</div>
+    </div>
+  </div>
+
+  <div class="footer"><span class="footer-logo">PELIKN</span><span class="footer-num">02</span></div>
+</div>
+
+
+<!-- 03 · SOLUTION ───────────────────────────────────────────── -->
+<div class="page page--dark">
+  <div style="position:absolute;top:-10%;right:-5%;width:45vw;height:45vw;border-radius:50%;
+              background:radial-gradient(circle,rgba(13,148,136,0.12) 0%,transparent 65%);pointer-events:none;"></div>
+
+  <div style="position:relative;z-index:2;">
+    <div class="eyebrow" style="color:var(--teal-light);">The Solution</div>
+    <h2 class="display display--lg" style="color:#fff;margin-bottom:24px;max-width:640px;">
+      One app.<br/>Every operation.<br/>Zero paper.
+    </h2>
+    <p class="lead" style="margin-bottom:48px;max-width:500px;">
+      Pelikn brings compliance, workforce management and staff admin
+      into a single platform. Less than &pound;1 a day. Works offline. Up in 15 minutes.
+    </p>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+      <div style="display:flex;gap:16px;padding:24px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:14px;">
+        <div style="width:40px;height:40px;border-radius:10px;background:var(--teal);display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;">&#127777;</div>
+        <div>
+          <h4 style="font-size:14px;font-weight:700;color:#fff;margin-bottom:4px;">HACCP-Grade Compliance</h4>
+          <p style="font-size:13px;color:rgba(255,255,255,0.45);line-height:1.55;">Fridge logs, cooking records, allergens, EHO audit, cleaning &mdash; all timestamped. One-tap PDF for inspectors.</p>
+        </div>
+      </div>
+      <div style="display:flex;gap:16px;padding:24px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:14px;">
+        <div style="width:40px;height:40px;border-radius:10px;background:var(--blue);display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;">&#128197;</div>
+        <div>
+          <h4 style="font-size:14px;font-weight:700;color:#fff;margin-bottom:4px;">Rota &amp; Timesheets</h4>
+          <p style="font-size:13px;color:rgba(255,255,255,0.45);line-height:1.55;">AI-assisted scheduling, PIN clock-in/out, overtime alerts, payroll CSV. Real-time labour cost by role.</p>
+        </div>
+      </div>
+      <div style="display:flex;gap:16px;padding:24px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:14px;">
+        <div style="width:40px;height:40px;border-radius:10px;background:var(--purple);display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;">&#128101;</div>
+        <div>
+          <h4 style="font-size:14px;font-weight:700;color:#fff;margin-bottom:4px;">Staff Management &amp; HR</h4>
+          <p style="font-size:13px;color:rgba(255,255,255,0.45);line-height:1.55;">Digital staff files, training tracker, document storage, disciplinary records. No paper personnel folders.</p>
+        </div>
+      </div>
+      <div style="display:flex;gap:16px;padding:24px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:14px;">
+        <div style="width:40px;height:40px;border-radius:10px;background:var(--orange);display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;">&#127970;</div>
+        <div>
+          <h4 style="font-size:14px;font-weight:700;color:#fff;margin-bottom:4px;">Multi-Venue Hub</h4>
+          <p style="font-size:13px;color:rgba(255,255,255,0.45);line-height:1.55;">Compliance scores, labour costs and staff status across all sites. Full oversight from one login.</p>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:24px;display:flex;gap:0;padding:20px 28px;background:rgba(255,255,255,0.04);border-radius:12px;justify-content:space-around;">
+      <div style="text-align:center;"><strong style="color:var(--teal-light);font-size:16px;">20+</strong><br/><span style="font-size:11px;color:rgba(255,255,255,0.4);">Feature modules</span></div>
+      <div style="width:1px;background:rgba(255,255,255,0.08);"></div>
+      <div style="text-align:center;"><strong style="color:var(--teal-light);font-size:16px;">Offline-first</strong><br/><span style="font-size:11px;color:rgba(255,255,255,0.4);">Works without WiFi</span></div>
+      <div style="width:1px;background:rgba(255,255,255,0.08);"></div>
+      <div style="text-align:center;"><strong style="color:var(--teal-light);font-size:16px;">iOS &amp; Android</strong><br/><span style="font-size:11px;color:rgba(255,255,255,0.4);">Native app + PWA</span></div>
+      <div style="width:1px;background:rgba(255,255,255,0.08);"></div>
+      <div style="text-align:center;"><strong style="color:var(--teal-light);font-size:16px;">&lt; 15 min</strong><br/><span style="font-size:11px;color:rgba(255,255,255,0.4);">Full setup time</span></div>
+    </div>
+  </div>
+
+  <div class="footer"><span class="footer-logo">PELIKN</span><span class="footer-num">03</span></div>
+</div>
+
+
+<!-- 04 · WHY NOW ────────────────────────────────────────────── -->
+<div class="page page--cream">
+  <div class="eyebrow" style="color:var(--blue);">Why Now</div>
+  <h2 class="display display--md" style="margin-bottom:32px;">Three forces converging.</h2>
+
+  <div style="display:flex;flex-direction:column;gap:0;">
+    <div style="display:flex;gap:32px;padding:28px 0;border-bottom:1px solid var(--border);align-items:flex-start;">
+      <div style="font-family:'DM Serif Display',serif;font-size:56px;color:var(--border);line-height:1;flex-shrink:0;width:48px;">1</div>
+      <div>
+        <h3 style="font-size:17px;font-weight:700;margin-bottom:6px;">Regulatory enforcement is tightening</h3>
+        <p style="font-size:14px;color:var(--muted);line-height:1.65;max-width:640px;">The FSA&#8217;s Food Hygiene Rating Scheme is now mandatory in Wales and actively enforced across England. Natasha&#8217;s Law (allergen labelling) came into force October 2021, creating an ongoing compliance obligation every food business must meet. EHO inspection frequency is up post-pandemic. Non-compliance is costly and public.</p>
+      </div>
+    </div>
+    <div style="display:flex;gap:32px;padding:28px 0;border-bottom:1px solid var(--border);align-items:flex-start;">
+      <div style="font-family:'DM Serif Display',serif;font-size:56px;color:var(--border);line-height:1;flex-shrink:0;width:48px;">2</div>
+      <div>
+        <h3 style="font-size:17px;font-weight:700;margin-bottom:6px;">Digital adoption has crossed the threshold</h3>
+        <p style="font-size:14px;color:var(--muted);line-height:1.65;max-width:640px;">Post-pandemic, QR menus, contactless payment and online ordering normalised digital tools across independent hospitality. The &#8220;too complicated for our team&#8221; objection has largely evaporated. Venue managers are ready &mdash; they just haven&#8217;t found the right tool yet.</p>
+      </div>
+    </div>
+    <div style="display:flex;gap:32px;padding:28px 0;align-items:flex-start;">
+      <div style="font-family:'DM Serif Display',serif;font-size:56px;color:var(--border);line-height:1;flex-shrink:0;width:48px;">3</div>
+      <div>
+        <h3 style="font-size:17px;font-weight:700;margin-bottom:6px;">The competitive landscape is still fragmented</h3>
+        <p style="font-size:14px;color:var(--muted);line-height:1.65;max-width:640px;">No existing player combines compliance + workforce + HR for independent venues at an accessible price. Trail addresses compliance only. Operandio is priced for enterprise. The whitespace for a &pound;5&ndash;25/mo all-in-one is completely open.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer"><span class="footer-logo">PELIKN</span><span class="footer-num">04</span></div>
+</div>
+
+
+<!-- 05 · MARKET ─────────────────────────────────────────────── -->
+<div class="page">
+  <div class="eyebrow" style="color:var(--teal);">Market Opportunity</div>
+  <h2 class="display display--md" style="margin-bottom:12px;">&pound;1.2 billion addressable.</h2>
+  <p class="lead" style="margin-bottom:44px;">Less than 1% penetration needed to hit Series A readiness.</p>
+
+  <div style="display:grid;grid-template-columns:3fr 2fr;gap:40px;align-items:start;">
+    <div>
+      <div style="display:flex;flex-direction:column;gap:0;">
+        <div style="padding:28px;border-radius:14px 14px 0 0;background:var(--brand);color:#fff;">
+          <div style="font-size:10px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--teal-light);margin-bottom:8px;">TAM</div>
+          <div style="font-family:'DM Serif Display',serif;font-size:40px;margin-bottom:8px;">&pound;1.2B</div>
+          <p style="font-size:13px;color:rgba(255,255,255,0.55);">All UK &amp; Ireland food businesses requiring compliance and operations software &mdash; restaurants, pubs, hotels, cafes, takeaways, catering.</p>
+        </div>
+        <div style="padding:28px;border-radius:0;background:var(--brand-mid);color:#fff;">
+          <div style="font-size:10px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--teal-light);margin-bottom:8px;">SAM</div>
+          <div style="font-family:'DM Serif Display',serif;font-size:40px;margin-bottom:8px;">&pound;320M</div>
+          <p style="font-size:13px;color:rgba(255,255,255,0.55);">180,000+ independent restaurants, cafes, pubs and hotels in the UK. Our primary target market today.</p>
+        </div>
+        <div style="padding:28px;border-radius:0 0 14px 14px;background:var(--teal);color:#fff;">
+          <div style="font-size:10px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,0.6);margin-bottom:8px;">SOM &mdash; 3-year target</div>
+          <div style="font-family:'DM Serif Display',serif;font-size:40px;margin-bottom:8px;">&pound;4.8M</div>
+          <p style="font-size:13px;color:rgba(255,255,255,0.65);">1,600 venues at &pound;25/mo average. Less than 1% penetration of the independent market.</p>
+        </div>
       </div>
     </div>
 
     <div style="display:flex;flex-direction:column;gap:16px;">
-      <div class="card card--surface">
-        <h3 style="color:var(--teal);">TAM &mdash; &pound;1.2B</h3>
-        <p>All UK &amp; Ireland food businesses needing compliance + operations software</p>
+      <div style="padding:24px;background:var(--surface);border-radius:14px;">
+        <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;">UK Market Breakdown</div>
+        <div style="display:flex;flex-direction:column;gap:10px;font-size:13px;">
+          <div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--border);padding-bottom:8px;"><span style="color:var(--muted);">Restaurants</span><strong>48,000</strong></div>
+          <div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--border);padding-bottom:8px;"><span style="color:var(--muted);">Pubs &amp; bars</span><strong>38,000</strong></div>
+          <div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--border);padding-bottom:8px;"><span style="color:var(--muted);">Cafes &amp; coffee</span><strong>24,000</strong></div>
+          <div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--border);padding-bottom:8px;"><span style="color:var(--muted);">Hotels (with F&amp;B)</span><strong>14,000</strong></div>
+          <div style="display:flex;justify-content:space-between;"><span style="color:var(--muted);">Other food businesses</span><strong>56,000+</strong></div>
+        </div>
       </div>
-      <div class="card card--surface">
-        <h3 style="color:var(--blue);">SAM &mdash; &pound;320M</h3>
-        <p>180,000 independent restaurants, cafes, pubs and hotels in the UK</p>
-      </div>
-      <div class="card card--surface">
-        <h3 style="color:var(--purple);">SOM &mdash; &pound;4.8M</h3>
-        <p>1,600 venues at &pound;25/mo average within 3 years &mdash; less than 1% penetration</p>
+      <div style="padding:20px 24px;background:rgba(13,148,136,0.07);border:1px solid rgba(13,148,136,0.14);border-radius:14px;">
+        <div style="font-size:13px;font-weight:600;color:var(--teal);margin-bottom:4px;">Ireland expansion (H1 2027)</div>
+        <p style="font-size:12px;color:var(--muted);">15,000+ food businesses in ROI. Same compliance framework. Same problem. Adds ~8% to addressable market.</p>
       </div>
     </div>
   </div>
 
-  <div class="page-logo">PELIKN</div>
-  <div class="page-num">05</div>
+  <div class="footer"><span class="footer-logo">PELIKN</span><span class="footer-num">05</span></div>
 </div>
 
-<!-- SLIDE 6 — BUSINESS MODEL -->
+
+<!-- 06 · BUSINESS MODEL ─────────────────────────────────────── -->
 <div class="page page--cream">
-  <span class="eyebrow eyebrow--orange">Business Model</span>
-  <h2 class="title">Simple, scalable pricing</h2>
-  <p class="subtitle">
-    Flat fee per venue, monthly or annual. No per-user charges. Annual billing reduces
-    payment processing costs and pre-pays cash flow.
-  </p>
+  <div class="eyebrow" style="color:var(--orange);">Business Model</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:start;">
+    <div>
+      <h2 class="display display--sm" style="margin-bottom:20px;letter-spacing:-1.5px;">Simple. Flat. Sticky.</h2>
+      <p style="font-size:15px;color:var(--muted);line-height:1.65;margin-bottom:28px;">
+        One flat fee per venue. No per-user charges. Annual billing drives near-zero churn
+        and pre-pays 12 months of revenue upfront.
+      </p>
 
-  <div class="g2" style="gap:28px;">
-    <div class="price-card">
-      <div style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:12px;">Starter</div>
-      <div class="price-tag">&pound;5</div>
-      <div class="price-per">/month &middot; or <strong style="color:var(--teal);">&pound;50/yr</strong> (2 months free)</div>
-      <ul class="price-list">
-        <li>Fridge temperature logs</li>
-        <li>Cleaning schedules</li>
-        <li>Opening &amp; closing checklists</li>
-        <li>Allergen registry</li>
-        <li>Delivery checks</li>
-        <li>Probe calibration records</li>
-        <li>EHO-ready PDF reports</li>
-      </ul>
+      <div style="display:flex;flex-direction:column;gap:0;border:1px solid var(--border);border-radius:14px;overflow:hidden;">
+        <div style="padding:24px 28px;border-bottom:1px solid var(--border);">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+            <div>
+              <div style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Starter</div>
+              <div style="font-family:'DM Serif Display',serif;font-size:36px;">&pound;5 <span style="font-size:16px;font-family:'DM Sans',sans-serif;color:var(--muted);">/mo</span></div>
+            </div>
+            <div style="text-align:right;font-size:12px;color:var(--muted);">&pound;50/yr<br/>(2 months free)</div>
+          </div>
+          <p style="font-size:12px;color:var(--muted);">Full compliance suite &mdash; fridge logs, allergens, cleaning, EHO-ready PDF reports.</p>
+        </div>
+        <div style="padding:24px 28px;border-bottom:1px solid var(--border);background:var(--charcoal);">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+            <div>
+              <div style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--teal-light);margin-bottom:4px;">Pro</div>
+              <div style="font-family:'DM Serif Display',serif;font-size:36px;color:#fff;">&pound;25 <span style="font-size:16px;font-family:'DM Sans',sans-serif;color:rgba(255,255,255,0.4);">/mo</span></div>
+            </div>
+            <div style="text-align:right;font-size:12px;color:rgba(255,255,255,0.4);">&pound;250/yr<br/>(2 months free)</div>
+          </div>
+          <p style="font-size:12px;color:rgba(255,255,255,0.5);">Everything in Starter + rota, timesheets, staff HR module, multi-venue management.</p>
+        </div>
+        <div style="padding:16px 28px;background:#fff;font-size:13px;color:var(--muted);">
+          +&pound;15/mo per additional venue &middot; +&pound;1/mo allergen QR code add-on
+        </div>
+      </div>
     </div>
-    <div class="price-card price-card--pro">
-      <div style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--teal-light);margin-bottom:12px;">Pro</div>
-      <div class="price-tag">&pound;25</div>
-      <div class="price-per">/month &middot; or <strong style="color:var(--teal-light);">&pound;250/yr</strong> (2 months free) &middot; +&pound;150/yr per extra venue</div>
-      <ul class="price-list">
-        <li>Everything in Starter</li>
-        <li>Rota &amp; shift builder</li>
-        <li>PIN clock-in/out timesheets</li>
-        <li>Staff training tracker</li>
-        <li>Time-off &amp; shift swaps</li>
-        <li>Labour cost dashboard</li>
-        <li>Multi-venue management</li>
-      </ul>
+
+    <div style="display:flex;flex-direction:column;gap:16px;">
+      <div style="padding:24px;background:#fff;border:1px solid var(--border);border-radius:14px;">
+        <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:14px;">Annual billing economics</div>
+        <div style="display:flex;flex-direction:column;gap:10px;font-size:13px;">
+          <div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--border);padding-bottom:8px;"><span style="color:var(--muted);">Stripe transactions/year</span><strong>1 vs 12</strong></div>
+          <div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--border);padding-bottom:8px;"><span style="color:var(--muted);">Processing cost saving</span><strong style="color:var(--teal);">~33%</strong></div>
+          <div style="display:flex;justify-content:space-between;"><span style="color:var(--muted);">Annual cohort monthly churn</span><strong style="color:var(--teal);">~0%</strong></div>
+        </div>
+      </div>
+
+      <div style="padding:24px;background:#fff;border:1px solid var(--border);border-radius:14px;">
+        <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:14px;">Revenue expansion example &mdash; 3-site group</div>
+        <div style="font-family:'DM Serif Display',serif;font-size:28px;color:var(--teal);margin-bottom:6px;">&pound;55/mo &nbsp; &rarr; &nbsp; &pound;550/yr</div>
+        <p style="font-size:12px;color:var(--muted);">Pro at &pound;25 + 2 extra venues at &pound;15 each. Annual option saves the customer &pound;110 and pre-pays 12 months upfront.</p>
+      </div>
+
+      <div style="padding:20px 24px;background:rgba(13,148,136,0.07);border:1px solid rgba(13,148,136,0.14);border-radius:14px;">
+        <div style="font-size:13px;font-weight:600;color:var(--teal);margin-bottom:4px;">No competitor sells at this price</div>
+        <p style="font-size:12px;color:var(--muted);">Trail starts at &pound;30/mo. Operandio at &pound;50/mo. Food Alert at &pound;60/mo. Pelikn is 2&ndash;10x cheaper for a broader feature set.</p>
+      </div>
     </div>
   </div>
 
-  <div style="margin-top:20px;display:grid;grid-template-columns:1fr 1fr;gap:16px;">
-    <div style="padding:16px 20px;background:#fff;border:1px solid var(--border);border-radius:12px;">
-      <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Annual billing benefit</div>
-      <p style="font-size:13px;color:var(--charcoal);">1 Stripe transaction/year vs 12 monthly. Reduces processing fees ~33% per customer. Annual subscribers also churn at near-zero rates.</p>
-    </div>
-    <div style="padding:16px 20px;background:#fff;border:1px solid var(--border);border-radius:12px;">
-      <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Revenue expansion: 3-site group</div>
-      <div style="font-size:15px;font-weight:700;color:var(--teal);">Monthly: &pound;55/mo &middot; Annual: &pound;550/yr</div>
-      <p style="font-size:12px;color:var(--muted);margin-top:4px;">Annual saves the customer &pound;110 and pre-pays 12 months of revenue upfront.</p>
-    </div>
-  </div>
-
-  <div class="page-logo">PELIKN</div>
-  <div class="page-num">06</div>
+  <div class="footer"><span class="footer-logo">PELIKN</span><span class="footer-num">06</span></div>
 </div>
 
-<!-- SLIDE 7 — COMPETITION -->
+
+<!-- 07 · COMPETITION ────────────────────────────────────────── -->
 <div class="page">
-  <span class="eyebrow eyebrow--purple">Competitive Landscape</span>
-  <h2 class="title">All-in-one at a fraction<br/>of the cost</h2>
-  <p class="subtitle">
-    Competitors solve one half of the problem at 3&ndash;10x the price.
-    Pelikn combines compliance and operations in a single, affordable platform.
+  <div class="eyebrow" style="color:var(--purple);">Competitive Landscape</div>
+  <h2 class="display display--sm" style="margin-bottom:10px;">The only all-in-one<br/>for independent hospitality.</h2>
+  <p class="lead" style="margin-bottom:36px;font-size:15px;">
+    Every competitor solves half the problem at 2&ndash;10x the price. None works offline. None has HR.
   </p>
 
-  <table class="comp-table">
+  <table class="tbl">
     <thead>
       <tr>
-        <th>Feature</th>
-        <th class="hl">Pelikn</th>
+        <th>Capability</th>
+        <th class="hi">Pelikn</th>
         <th>Trail</th>
         <th>Operandio</th>
         <th>Food Alert</th>
-        <th>Manual</th>
+        <th>Rota Cloud</th>
+        <th>Paper / Manual</th>
       </tr>
     </thead>
     <tbody>
-      <tr><td>HACCP Temperature Logs</td><td class="hl"><span class="y">&#10003;</span></td><td><span class="y">&#10003;</span></td><td><span class="y">&#10003;</span></td><td><span class="y">&#10003;</span></td><td><span class="p">Paper</span></td></tr>
-      <tr><td>Allergen Registry</td><td class="hl"><span class="y">&#10003;</span></td><td><span class="n">&#10005;</span></td><td><span class="n">&#10005;</span></td><td><span class="y">&#10003;</span></td><td><span class="p">Paper</span></td></tr>
-      <tr><td>Rota Builder</td><td class="hl"><span class="y">&#10003;</span></td><td><span class="n">&#10005;</span></td><td><span class="y">&#10003;</span></td><td><span class="n">&#10005;</span></td><td><span class="p">Excel</span></td></tr>
-      <tr><td>Timesheets &amp; Clock-in</td><td class="hl"><span class="y">&#10003;</span></td><td><span class="n">&#10005;</span></td><td><span class="y">&#10003;</span></td><td><span class="n">&#10005;</span></td><td><span class="p">Excel</span></td></tr>
-      <tr><td>Training Tracker</td><td class="hl"><span class="y">&#10003;</span></td><td><span class="n">&#10005;</span></td><td><span class="y">&#10003;</span></td><td><span class="y">&#10003;</span></td><td><span class="n">&#10005;</span></td></tr>
-      <tr><td>Offline Mode</td><td class="hl"><span class="y">&#10003;</span></td><td><span class="n">&#10005;</span></td><td><span class="n">&#10005;</span></td><td><span class="n">&#10005;</span></td><td><span class="y">&#10003;</span></td></tr>
-      <tr><td>Multi-Venue Hub</td><td class="hl"><span class="y">&#10003;</span></td><td><span class="y">&#10003;</span></td><td><span class="y">&#10003;</span></td><td><span class="y">&#10003;</span></td><td><span class="n">&#10005;</span></td></tr>
-      <tr><td>No App Store Required</td><td class="hl"><span class="y">&#10003;</span></td><td><span class="n">&#10005;</span></td><td><span class="n">&#10005;</span></td><td><span class="n">&#10005;</span></td><td><span class="y">&#10003;</span></td></tr>
-      <tr><td>Starting Price</td><td class="hl"><strong>&pound;5/mo</strong></td><td>&pound;30/mo</td><td>&pound;50/mo</td><td>&pound;60/mo</td><td>Free</td></tr>
+      <tr><td>HACCP Temperature Logs</td><td class="hi"><span class="y">✓</span></td><td><span class="y">✓</span></td><td><span class="y">✓</span></td><td><span class="y">✓</span></td><td><span class="no">✗</span></td><td><span class="pp">Paper</span></td></tr>
+      <tr><td>Allergen Registry (Natasha&#8217;s Law)</td><td class="hi"><span class="y">✓</span></td><td><span class="no">✗</span></td><td><span class="no">✗</span></td><td><span class="y">✓</span></td><td><span class="no">✗</span></td><td><span class="pp">Paper</span></td></tr>
+      <tr><td>Cleaning &amp; Opening Schedules</td><td class="hi"><span class="y">✓</span></td><td><span class="y">✓</span></td><td><span class="y">✓</span></td><td><span class="y">✓</span></td><td><span class="no">✗</span></td><td><span class="pp">Paper</span></td></tr>
+      <tr><td>EHO-Ready PDF Report</td><td class="hi"><span class="y">✓</span></td><td><span class="no">✗</span></td><td><span class="no">✗</span></td><td><span class="y">✓</span></td><td><span class="no">✗</span></td><td><span class="no">✗</span></td></tr>
+      <tr><td>Rota Builder</td><td class="hi"><span class="y">✓</span></td><td><span class="no">✗</span></td><td><span class="y">✓</span></td><td><span class="no">✗</span></td><td><span class="y">✓</span></td><td><span class="pp">Excel</span></td></tr>
+      <tr><td>Timesheets &amp; Clock-in</td><td class="hi"><span class="y">✓</span></td><td><span class="no">✗</span></td><td><span class="y">✓</span></td><td><span class="no">✗</span></td><td><span class="y">✓</span></td><td><span class="pp">Excel</span></td></tr>
+      <tr><td>Staff HR Files &amp; Documents</td><td class="hi"><span class="y">✓</span></td><td><span class="no">✗</span></td><td><span class="no">✗</span></td><td><span class="no">✗</span></td><td><span class="no">✗</span></td><td><span class="pp">Paper</span></td></tr>
+      <tr><td>Offline Mode</td><td class="hi"><span class="y">✓</span></td><td><span class="no">✗</span></td><td><span class="no">✗</span></td><td><span class="no">✗</span></td><td><span class="no">✗</span></td><td><span class="y">✓</span></td></tr>
+      <tr><td>Multi-Venue Hub</td><td class="hi"><span class="y">✓</span></td><td><span class="y">✓</span></td><td><span class="y">✓</span></td><td><span class="y">✓</span></td><td><span class="no">✗</span></td><td><span class="no">✗</span></td></tr>
+      <tr style="font-weight:700;">
+        <td>Monthly Price (1 venue)</td>
+        <td class="hi"><strong style="color:var(--teal);">&pound;5&ndash;25</strong></td>
+        <td>&pound;30+</td><td>&pound;50+</td><td>&pound;60+</td><td>&pound;25+</td><td>Free</td>
+      </tr>
     </tbody>
   </table>
 
-  <div class="page-logo">PELIKN</div>
-  <div class="page-num">07</div>
+  <div class="footer"><span class="footer-logo">PELIKN</span><span class="footer-num">07</span></div>
 </div>
 
-<!-- SLIDE 8 — TRACTION -->
-<div class="page page--cream">
-  <span class="eyebrow eyebrow--teal">Traction &amp; Milestones</span>
-  <h2 class="title">Product live, ready to scale</h2>
-  <p class="subtitle">
-    Built and launched with zero external funding. Full platform operational
-    with 20+ feature modules shipping.
-  </p>
 
-  <div style="display:flex;gap:24px;margin-bottom:40px;">
-    <div class="card card--white" style="flex:1;text-align:center;">
-      <div class="stat-num" style="font-size:36px;color:var(--teal);">Live</div>
-      <div class="stat-label">Product Status</div>
+<!-- 08 · TRACTION ───────────────────────────────────────────── -->
+<div class="page page--cream">
+  <div class="eyebrow" style="color:var(--teal);">Traction &amp; What&#8217;s Built</div>
+  <h2 class="display display--sm" style="margin-bottom:10px;letter-spacing:-1.5px;">Full platform live.<br/>Zero external funding.</h2>
+  <p class="lead" style="font-size:15px;margin-bottom:40px;">Your capital accelerates growth, not development. The product is done.</p>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:28px;margin-bottom:28px;">
+    <div style="background:#fff;border:1px solid var(--border);border-radius:16px;padding:32px;">
+      <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:20px;">What&#8217;s shipped</div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div style="display:flex;align-items:center;gap:10px;font-size:13px;"><span style="color:var(--teal);font-weight:700;">&#10003;</span> Full compliance suite &mdash; HACCP, allergens, EHO audit, delivery checks</div>
+        <div style="display:flex;align-items:center;gap:10px;font-size:13px;"><span style="color:var(--teal);font-weight:700;">&#10003;</span> Rota builder with AI auto-fill &amp; shift templates</div>
+        <div style="display:flex;align-items:center;gap:10px;font-size:13px;"><span style="color:var(--teal);font-weight:700;">&#10003;</span> PIN clock-in/out timesheets with CSV payroll export</div>
+        <div style="display:flex;align-items:center;gap:10px;font-size:13px;"><span style="color:var(--teal);font-weight:700;">&#10003;</span> Staff HR module &mdash; files, documents, disciplinary records</div>
+        <div style="display:flex;align-items:center;gap:10px;font-size:13px;"><span style="color:var(--teal);font-weight:700;">&#10003;</span> Multi-venue overview dashboard</div>
+        <div style="display:flex;align-items:center;gap:10px;font-size:13px;"><span style="color:var(--teal);font-weight:700;">&#10003;</span> iOS App Store &amp; Google Play apps (Capacitor native)</div>
+        <div style="display:flex;align-items:center;gap:10px;font-size:13px;"><span style="color:var(--teal);font-weight:700;">&#10003;</span> Offline-first PWA with push notifications</div>
+        <div style="display:flex;align-items:center;gap:10px;font-size:13px;"><span style="color:var(--teal);font-weight:700;">&#10003;</span> 13-permission role system across 3 access levels</div>
+      </div>
     </div>
-    <div class="card card--white" style="flex:1;text-align:center;">
-      <div class="stat-num" style="font-size:36px;color:var(--blue);">20+</div>
-      <div class="stat-label">Feature Modules</div>
-    </div>
-    <div class="card card--white" style="flex:1;text-align:center;">
-      <div class="stat-num" style="font-size:36px;color:var(--purple);">&pound;0</div>
-      <div class="stat-label">External Funding to Date</div>
-    </div>
-    <div class="card card--white" style="flex:1;text-align:center;">
-      <div class="stat-num" style="font-size:36px;color:var(--orange);">1</div>
-      <div class="stat-label">Founder</div>
+    <div style="display:flex;flex-direction:column;gap:14px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;flex:1;">
+        <div style="text-align:center;padding:24px 16px;background:var(--brand);border-radius:14px;color:#fff;">
+          <div style="font-family:'DM Serif Display',serif;font-size:36px;color:var(--teal-light);">Live</div>
+          <div style="font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,0.4);margin-top:4px;">Product Status</div>
+        </div>
+        <div style="text-align:center;padding:24px 16px;background:var(--surface);border-radius:14px;">
+          <div style="font-family:'DM Serif Display',serif;font-size:36px;color:var(--teal);">20+</div>
+          <div style="font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-top:4px;">Modules Shipped</div>
+        </div>
+        <div style="text-align:center;padding:24px 16px;background:var(--surface);border-radius:14px;">
+          <div style="font-family:'DM Serif Display',serif;font-size:36px;color:var(--blue);">3</div>
+          <div style="font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-top:4px;">Platforms (Web/iOS/Android)</div>
+        </div>
+        <div style="text-align:center;padding:24px 16px;background:var(--surface);border-radius:14px;">
+          <div style="font-family:'DM Serif Display',serif;font-size:36px;color:var(--purple);">&pound;0</div>
+          <div style="font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-top:4px;">External Funding</div>
+        </div>
+      </div>
     </div>
   </div>
 
   <div class="tl">
-    <div class="tl-item">
-      <h4>Q2 2026</h4>
-      <p>Beta launch with 20 venues. Iterate on feedback. Seed marketing channels.</p>
-    </div>
-    <div class="tl-item">
-      <h4>Q3 2026</h4>
-      <p>Scale to 100 venues. Hire first support role. Launch referral programme.</p>
-    </div>
-    <div class="tl-item">
-      <h4>Q4 2026</h4>
-      <p>300+ venues. Partner with EHO consultants. Begin outbound sales.</p>
-    </div>
-    <div class="tl-item">
-      <h4>H1 2027</h4>
-      <p>1,000 venues. Expand to Ireland. API integrations with POS systems.</p>
-    </div>
-    <div class="tl-item">
-      <h4>H2 2027</h4>
-      <p>Series A readiness. 1,600+ venues. &pound;480k ARR.</p>
-    </div>
+    <div class="tl-item"><h4>Q2 2026</h4><p>Beta &mdash; 20 venues. Feedback &amp; refinement.</p></div>
+    <div class="tl-item"><h4>Q3 2026</h4><p>100 venues. Referral programme live.</p></div>
+    <div class="tl-item"><h4>Q4 2026</h4><p>300 venues. EHO partnerships. Outbound.</p></div>
+    <div class="tl-item"><h4>H1 2027</h4><p>1,000 venues. Ireland. POS integrations.</p></div>
+    <div class="tl-item"><h4>H2 2027</h4><p>Series A. 1,600+ venues. &pound;480k ARR.</p></div>
   </div>
 
-  <div class="page-logo">PELIKN</div>
-  <div class="page-num">08</div>
+  <div class="footer"><span class="footer-logo">PELIKN</span><span class="footer-num">08</span></div>
 </div>
 
-<!-- SLIDE 9 — FINANCIALS -->
+
+<!-- 09 · FINANCIALS ─────────────────────────────────────────── -->
 <div class="page">
-  <span class="eyebrow eyebrow--orange">Financial Projections</span>
-  <h2 class="title">Path to &pound;480k ARR</h2>
-  <p class="subtitle">
-    ARR projections based on venue milestone targets (&lt;1% market penetration). High gross margins
-    and low CAC from organic and partnership channels.
-  </p>
+  <div class="eyebrow" style="color:var(--orange);">Financial Projections</div>
+  <h2 class="display display--sm" style="margin-bottom:12px;letter-spacing:-1.5px;">Path to &pound;480k ARR.</h2>
+  <p class="lead" style="font-size:15px;margin-bottom:40px;">Less than 1% market penetration. Conservative, achievable milestones.</p>
 
-  <div style="margin-bottom:12px;display:flex;justify-content:flex-end;"><span style="font-size:11px;font-weight:600;color:var(--muted);letter-spacing:1px;text-transform:uppercase;">ARR (venues × &pound;25/mo avg × 12)</span></div>
-  <div style="margin-bottom:36px;">
-    <div class="bar-row">
-      <div class="bar-label">Month 6</div>
-      <div class="bar-track"><div class="bar-fill" style="width:6%;">&pound;30k</div></div>
+  <div style="display:grid;grid-template-columns:3fr 2fr;gap:40px;">
+    <div>
+      <div style="display:flex;justify-content:flex-end;margin-bottom:10px;"><span style="font-size:11px;font-weight:600;color:var(--muted);letter-spacing:1px;text-transform:uppercase;">ARR &mdash; venues &times; &pound;25/mo avg &times; 12</span></div>
+      <div class="bar-row"><div class="bar-label">Month 6</div><div class="bar-track"><div class="bar-fill" style="width:6%;">&pound;30k</div></div></div>
+      <div class="bar-row"><div class="bar-label">Month 12</div><div class="bar-track"><div class="bar-fill" style="width:19%;">&pound;90k</div></div></div>
+      <div class="bar-row"><div class="bar-label">Month 18</div><div class="bar-track"><div class="bar-fill" style="width:63%;">&pound;300k</div></div></div>
+      <div class="bar-row"><div class="bar-label">Month 24</div><div class="bar-track"><div class="bar-fill" style="width:100%;">&pound;480k</div></div></div>
     </div>
-    <div class="bar-row">
-      <div class="bar-label">Month 12</div>
-      <div class="bar-track"><div class="bar-fill" style="width:19%;">&pound;90k</div></div>
-    </div>
-    <div class="bar-row">
-      <div class="bar-label">Month 18</div>
-      <div class="bar-track"><div class="bar-fill" style="width:63%;">&pound;300k</div></div>
-    </div>
-    <div class="bar-row">
-      <div class="bar-label">Month 24</div>
-      <div class="bar-track"><div class="bar-fill" style="width:100%;">&pound;480k</div></div>
+
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div style="padding:22px;background:var(--surface);border-radius:14px;text-align:center;">
+        <div style="font-family:'DM Serif Display',serif;font-size:40px;color:var(--teal);">&pound;45</div>
+        <div style="font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-top:4px;">Blended CAC</div>
+      </div>
+      <div style="padding:22px;background:var(--surface);border-radius:14px;text-align:center;">
+        <div style="font-family:'DM Serif Display',serif;font-size:40px;color:var(--teal);">&pound;380</div>
+        <div style="font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-top:4px;">LTV</div>
+      </div>
+      <div style="padding:22px;background:var(--brand);border-radius:14px;text-align:center;">
+        <div style="font-family:'DM Serif Display',serif;font-size:40px;color:var(--teal-light);">8.4x</div>
+        <div style="font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,0.4);margin-top:4px;">LTV : CAC</div>
+      </div>
+      <div style="padding:22px;background:var(--surface);border-radius:14px;text-align:center;">
+        <div style="font-family:'DM Serif Display',serif;font-size:40px;color:var(--teal);">87%</div>
+        <div style="font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-top:4px;">Gross Margin</div>
+      </div>
     </div>
   </div>
 
-  <div class="metric-grid">
-    <div class="metric-card">
-      <div class="stat-num">&pound;45</div>
-      <div class="stat-label">CAC</div>
-    </div>
-    <div class="metric-card">
-      <div class="stat-num">&pound;380</div>
-      <div class="stat-label">LTV</div>
-    </div>
-    <div class="metric-card">
-      <div class="stat-num">8.4x</div>
-      <div class="stat-label">LTV:CAC</div>
-    </div>
-    <div class="metric-card">
-      <div class="stat-num">87%</div>
-      <div class="stat-label">Gross Margin</div>
-    </div>
-  </div>
-
-  <div class="page-logo">PELIKN</div>
-  <div class="page-num">09</div>
+  <div class="footer"><span class="footer-logo">PELIKN</span><span class="footer-num">09</span></div>
 </div>
 
-<!-- SLIDE 10 — TEAM -->
+
+<!-- 10 · TEAM ───────────────────────────────────────────────── -->
 <div class="page page--dark">
-  <span class="eyebrow eyebrow--teal">The Team</span>
-  <h2 class="title" style="color:#fff;">Built by someone who<br/>knows the industry</h2>
-  <p class="subtitle">
-    Solo founder with deep hospitality domain expertise and full-stack
-    engineering capability. Hiring with funding.
-  </p>
+  <div style="position:absolute;top:-10%;right:-5%;width:40vw;height:40vw;border-radius:50%;
+              background:radial-gradient(circle,rgba(13,148,136,0.1) 0%,transparent 65%);pointer-events:none;"></div>
 
-  <div class="team-card" style="margin-bottom:24px;">
-    <div class="team-avatar">DG</div>
-    <div class="team-info">
-      <h3 style="color:#fff;">Darragh Guy</h3>
-      <div class="role">Founder &amp; CEO</div>
-      <p>Product professional with extensive hands-on hospitality experience. Built Pelikn from a deep understanding of the daily friction venue managers face &mdash; the compliance gaps, the rota chaos, the invisible labour costs. Translated that domain expertise into a live product that solves real operational problems.</p>
+  <div style="position:relative;z-index:2;display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:start;">
+    <div>
+      <div class="eyebrow" style="color:var(--teal-light);">The Founder</div>
+      <h2 class="display display--sm" style="color:#fff;margin-bottom:28px;letter-spacing:-1.5px;">Built by someone who<br/>ran the kitchen.</h2>
+
+      <div style="display:flex;gap:20px;align-items:flex-start;padding:28px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:16px;margin-bottom:24px;">
+        <div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,var(--teal),var(--brand-mid));
+                    display:flex;align-items:center;justify-content:center;font-family:'DM Serif Display',serif;
+                    font-size:22px;color:#fff;flex-shrink:0;">DG</div>
+        <div>
+          <h3 style="font-size:20px;font-weight:700;color:#fff;margin-bottom:3px;">Darragh Guy</h3>
+          <div style="font-size:13px;color:var(--teal-light);margin-bottom:10px;">Founder &amp; CEO</div>
+          <p style="font-size:13px;color:rgba(255,255,255,0.55);line-height:1.65;">
+            Product professional with deep, hands-on hospitality experience. Built Pelikn from the inside out &mdash; starting with the real operational pain that managers live with daily: the compliance scrambles, the Sunday rota, the invisible labour costs, the paper personnel folders.<br/><br/>
+            Shipped a complete multi-platform product &mdash; web, iOS, Android &mdash; covering compliance, workforce, HR and operations. Zero external funding. Solo.
+          </p>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div style="padding:16px 18px;background:rgba(255,255,255,0.04);border-radius:10px;">
+          <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,0.3);margin-bottom:4px;">Domain</div>
+          <p style="font-size:13px;color:rgba(255,255,255,0.6);">Hospitality operations &amp; compliance</p>
+        </div>
+        <div style="padding:16px 18px;background:rgba(255,255,255,0.04);border-radius:10px;">
+          <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,0.3);margin-bottom:4px;">Capability</div>
+          <p style="font-size:13px;color:rgba(255,255,255,0.6);">Full product leadership end-to-end</p>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="eyebrow" style="color:var(--teal-light);">Hiring Plan</div>
+      <h3 style="font-size:22px;font-weight:700;color:#fff;margin-bottom:24px;">First three hires</h3>
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <div style="padding:20px 24px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:14px;">
+          <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+            <strong style="color:#fff;font-size:15px;">Growth Marketer</strong>
+            <span style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--teal-light);">Q3 2026</span>
+          </div>
+          <p style="font-size:12px;color:rgba(255,255,255,0.45);">SEO, content, referral programme, paid channel testing. Owns CAC.</p>
+        </div>
+        <div style="padding:20px 24px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:14px;">
+          <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+            <strong style="color:#fff;font-size:15px;">Customer Success</strong>
+            <span style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--teal-light);">Q4 2026</span>
+          </div>
+          <p style="font-size:12px;color:rgba(255,255,255,0.45);">Onboarding, retention, upsell from Starter to Pro. Owns churn.</p>
+        </div>
+        <div style="padding:20px 24px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:14px;">
+          <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+            <strong style="color:#fff;font-size:15px;">Senior Engineer</strong>
+            <span style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--teal-light);">H1 2027</span>
+          </div>
+          <p style="font-size:12px;color:rgba(255,255,255,0.45);">POS integrations, platform scale, Ireland infrastructure.</p>
+        </div>
+      </div>
     </div>
   </div>
 
-  <div class="g3">
-    <div class="card card--glass">
-      <h3>Hospitality Domain</h3>
-      <p>Extensive experience in venue operations. Knows exactly where compliance and staffing systems break down in practice.</p>
-    </div>
-    <div class="card card--glass">
-      <h3>Product Leadership</h3>
-      <p>Defined the full product roadmap and shipped 20+ modules. Deep focus on usability for non-technical hospitality staff.</p>
-    </div>
-    <div class="card card--glass">
-      <h3>Hiring Plan</h3>
-      <p>First hires: Growth marketer (Q3 2026), Customer success (Q4 2026), Senior engineer (H1 2027).</p>
-    </div>
-  </div>
-
-  <div class="page-logo">PELIKN</div>
-  <div class="page-num">10</div>
+  <div class="footer"><span class="footer-logo">PELIKN</span><span class="footer-num">10</span></div>
 </div>
 
-<!-- SLIDE 11 — THE ASK -->
+
+<!-- 11 · THE ASK ────────────────────────────────────────────── -->
 <div class="page page--brand">
-  <span class="eyebrow" style="color:var(--teal-light);">The Ask</span>
-  <h2 class="title" style="color:#fff;font-size:48px;">&pound;150,000 Pre-Seed</h2>
-  <p class="subtitle" style="color:rgba(255,255,255,0.5);">
-    18 months of runway to reach 300+ paying venues, prove unit economics,
-    and position for a strong Series A.
-  </p>
+  <div style="position:absolute;top:-15%;right:-8%;width:55vw;height:55vw;border-radius:50%;
+              background:radial-gradient(circle,rgba(13,148,136,0.2) 0%,transparent 65%);pointer-events:none;"></div>
 
-  <div class="fund-bar">
-    <div style="width:40%;background:var(--teal);">40%</div>
-    <div style="width:33%;background:var(--blue);">33%</div>
-    <div style="width:20%;background:var(--purple);">20%</div>
-    <div style="width:7%;background:var(--orange);">7%</div>
-  </div>
+  <div style="position:relative;z-index:2;display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:start;">
+    <div>
+      <div class="eyebrow" style="color:var(--teal-light);">The Ask</div>
+      <h2 class="display display--lg" style="color:#fff;margin-bottom:20px;">&pound;150,000<br/>Pre-Seed</h2>
+      <p style="font-size:16px;color:rgba(255,255,255,0.55);line-height:1.7;margin-bottom:36px;">
+        18 months of runway to reach 300+ paying venues, prove unit economics
+        and position for a strong Series A. The product is built and live.
+        Your capital goes straight to growth.
+      </p>
 
-  <div class="fund-legend" style="margin-bottom:40px;">
-    <div class="fund-legend-item"><div class="fund-dot" style="background:var(--teal);"></div><span style="color:rgba(255,255,255,0.6);">Go-to-Market &amp; Sales (40%)</span></div>
-    <div class="fund-legend-item"><div class="fund-dot" style="background:var(--blue);"></div><span style="color:rgba(255,255,255,0.6);">Product &amp; Engineering (33%)</span></div>
-    <div class="fund-legend-item"><div class="fund-dot" style="background:var(--purple);"></div><span style="color:rgba(255,255,255,0.6);">Team &amp; Hiring (20%)</span></div>
-    <div class="fund-legend-item"><div class="fund-dot" style="background:var(--orange);"></div><span style="color:rgba(255,255,255,0.6);">Operations (7%)</span></div>
-  </div>
-
-  <div class="g2" style="gap:20px;">
-    <div class="ask-item">
-      <div class="ask-icon">&#128640;</div>
-      <div>
-        <h4 style="color:#fff;">Proven Product</h4>
-        <p>Live platform with 20+ modules, zero external funding to date. Your capital accelerates growth, not R&amp;D.</p>
+      <div class="fund-bar">
+        <div style="width:40%;background:var(--teal);">40%</div>
+        <div style="width:30%;background:var(--blue);">30%</div>
+        <div style="width:22%;background:var(--purple);">22%</div>
+        <div style="width:8%;background:var(--orange);">8%</div>
+      </div>
+      <div class="fund-leg">
+        <div class="fund-leg-i"><div class="fund-dot" style="background:var(--teal);"></div>Go-to-Market &amp; Sales &mdash; &pound;60k</div>
+        <div class="fund-leg-i"><div class="fund-dot" style="background:var(--blue);"></div>Product &amp; Engineering &mdash; &pound;45k</div>
+        <div class="fund-leg-i"><div class="fund-dot" style="background:var(--purple);"></div>Team &amp; Hiring &mdash; &pound;33k</div>
+        <div class="fund-leg-i"><div class="fund-dot" style="background:var(--orange);"></div>Operations &mdash; &pound;12k</div>
       </div>
     </div>
-    <div class="ask-item">
-      <div class="ask-icon">&#127919;</div>
-      <div>
-        <h4 style="color:#fff;">Clear Path to Revenue</h4>
-        <p>Conservative target: 300 venues at &pound;25/mo average = &pound;90k ARR within 18 months.</p>
+
+    <div style="display:flex;flex-direction:column;gap:16px;">
+      <div style="padding:28px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:16px;">
+        <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.35);margin-bottom:14px;">Why invest</div>
+        <div style="display:flex;flex-direction:column;gap:14px;">
+          <div style="display:flex;gap:14px;">
+            <span style="font-size:18px;flex-shrink:0;">&#128640;</span>
+            <div><strong style="font-size:14px;color:#fff;">Proven product, not just a pitch</strong><p style="font-size:12px;color:rgba(255,255,255,0.45);margin-top:3px;">20+ modules. iOS, Android, web. Shipped without external funding. Capital goes to growth, not R&amp;D.</p></div>
+          </div>
+          <div style="display:flex;gap:14px;">
+            <span style="font-size:18px;flex-shrink:0;">&#127919;</span>
+            <div><strong style="font-size:14px;color:#fff;">Clear path to &pound;90k ARR</strong><p style="font-size:12px;color:rgba(255,255,255,0.45);margin-top:3px;">300 venues at &pound;25/mo average within 18 months. Less than 1% of the addressable market.</p></div>
+          </div>
+          <div style="display:flex;gap:14px;">
+            <span style="font-size:18px;flex-shrink:0;">&#128176;</span>
+            <div><strong style="font-size:14px;color:#fff;">87% gross margin SaaS economics</strong><p style="font-size:12px;color:rgba(255,255,255,0.45);margin-top:3px;">&pound;45 CAC, 8.4x LTV:CAC. Annual billing locks in customers and pre-pays cash.</p></div>
+          </div>
+          <div style="display:flex;gap:14px;">
+            <span style="font-size:18px;flex-shrink:0;">&#9878;</span>
+            <div><strong style="font-size:14px;color:#fff;">Regulatory tailwind driving demand</strong><p style="font-size:12px;color:rgba(255,255,255,0.45);margin-top:3px;">FSA enforcement, Natasha&#8217;s Law and post-pandemic digital normalisation. The market is moving.</p></div>
+          </div>
+        </div>
       </div>
-    </div>
-    <div class="ask-item">
-      <div class="ask-icon">&#128176;</div>
-      <div>
-        <h4 style="color:#fff;">Capital Efficient</h4>
-        <p>87% gross margins, &pound;45 CAC, 8.4x LTV:CAC. SaaS economics that compound.</p>
-      </div>
-    </div>
-    <div class="ask-item">
-      <div class="ask-icon">&#127758;</div>
-      <div>
-        <h4 style="color:#fff;">Massive Market</h4>
-        <p>&pound;1.2B TAM with &lt;1% penetration needed for Series A readiness.</p>
+
+      <div style="padding:24px 28px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:16px;text-align:center;">
+        <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.35);margin-bottom:10px;">Get in touch</div>
+        <p style="font-size:18px;color:#fff;font-weight:600;">darragh@get-pelikn.com</p>
+        <p style="font-size:14px;color:rgba(255,255,255,0.45);margin-top:4px;">get-pelikn.com</p>
       </div>
     </div>
   </div>
 
-  <div style="margin-top:48px;text-align:center;">
-    <p style="font-size:18px;color:rgba(255,255,255,0.7);font-weight:500;">darragh@pelikn.com</p>
-  </div>
-
-  <div class="page-logo" style="color:rgba(255,255,255,0.2);">PELIKN</div>
-  <div class="page-num" style="color:rgba(255,255,255,0.15);">11</div>
+  <div class="footer"><span class="footer-logo">PELIKN</span><span class="footer-num">11</span></div>
 </div>
+
 
 </body>
 </html>

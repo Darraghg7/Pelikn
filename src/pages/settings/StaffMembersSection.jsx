@@ -857,12 +857,7 @@ export default function StaffMembersSection() {
   )
 
   return (
-    <SettingsSection
-      title="Staff Members"
-      subtitle={`${activeStaffCount} active member${activeStaffCount !== 1 ? 's' : ''}`}
-      defaultOpen
-      locked={venuePlan !== PLANS.PRO}
-    >
+    <div>
       {/* Add staff button */}
       {!showForm && (
         <div className="flex justify-end mb-4">
@@ -1035,6 +1030,6 @@ export default function StaffMembersSection() {
         onConfirm={confirmDeleteStaff}
         onClose={() => setDeleteTarget(null)}
       />
-    </SettingsSection>
+    </div>
   )
 }

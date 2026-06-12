@@ -120,7 +120,7 @@ function UploadDocumentModal({ venueId, uploaderId, onSaved, onClose }) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 p-4" onClick={e => e.target === e.currentTarget && onClose()}>
+    <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-black/40 p-4" onClick={e => e.target === e.currentTarget && onClose()}>
       <div className="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto flex flex-col">
         <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-charcoal/8">
           <h2 className="text-lg font-bold text-charcoal">Upload Document</h2>

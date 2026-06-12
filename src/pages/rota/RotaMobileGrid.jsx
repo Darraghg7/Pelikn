@@ -198,8 +198,8 @@ function ShiftSheet({ shift, staffMember, day, venueId, roles, onClose, onSaved,
 
   return (
     <>
-      <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(9,18,13,0.42)', zIndex: 40, animation: 'fadeIn .2s ease both' }} />
-      <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 41, background: MC.bg, borderRadius: '22px 22px 0 0', padding: '10px 16px 32px', maxHeight: '90%', overflowY: 'auto', boxShadow: '0 -12px 40px rgba(9,18,13,0.22)', animation: 'sheetUp .32s cubic-bezier(0.16,1,0.3,1) both' }}>
+      <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(9,18,13,0.42)', zIndex: 52, animation: 'fadeIn .2s ease both' }} />
+      <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 53, background: MC.bg, borderRadius: '22px 22px 0 0', padding: '10px 16px 32px', maxHeight: '90%', overflowY: 'auto', boxShadow: '0 -12px 40px rgba(9,18,13,0.22)', animation: 'sheetUp .32s cubic-bezier(0.16,1,0.3,1) both' }}>
         <div style={{ width: 38, height: 4, borderRadius: 2, background: MC.line, margin: '0 auto 14px' }} />
 
         {/* Header */}
@@ -316,14 +316,14 @@ function SwapSheet({ swaps, onClose, onResolved }) {
 
   return (
     <>
-      <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(9,18,13,0.42)', zIndex: 40, animation: 'fadeIn .2s ease both' }} />
-      <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 41, background: MC.bg, borderRadius: '22px 22px 0 0', maxHeight: '80%', display: 'flex', flexDirection: 'column', boxShadow: '0 -12px 40px rgba(9,18,13,0.22)', animation: 'sheetUp .32s cubic-bezier(0.16,1,0.3,1) both' }}>
+      <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(9,18,13,0.42)', zIndex: 52, animation: 'fadeIn .2s ease both' }} />
+      <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 53, background: MC.bg, borderRadius: '22px 22px 0 0', maxHeight: '80%', display: 'flex', flexDirection: 'column', boxShadow: '0 -12px 40px rgba(9,18,13,0.22)', animation: 'sheetUp .32s cubic-bezier(0.16,1,0.3,1) both' }}>
         <div style={{ padding: '10px 16px 0' }}>
           <div style={{ width: 38, height: 4, borderRadius: 2, background: MC.line, margin: '0 auto 14px' }} />
           <div style={{ fontSize: 18, fontWeight: 600, letterSpacing: '-0.015em', color: MC.ink }}>Swap requests</div>
           <div style={{ fontSize: 12.5, color: MC.ink3, marginTop: 2, marginBottom: 14 }}>{pending.length ? `${pending.length} pending your approval` : 'All caught up'}</div>
         </div>
-        <div style={{ overflowY: 'auto', flex: 1, padding: '0 16px 32px' }}>
+        <div style={{ overflowY: 'auto', flex: 1, padding: '0 16px', paddingBottom: 'max(2rem, env(safe-area-inset-bottom, 0px))' }}>
           {pending.length === 0 ? (
             <div style={{ padding: '28px 0', textAlign: 'center' }}>
               <div style={{ width: 44, height: 44, borderRadius: 13, background: MC.goodBg, color: MC.good, display: 'grid', placeItems: 'center', margin: '0 auto 12px' }}>
@@ -377,8 +377,8 @@ function AISheet({ openShifts, staff, venueId, onClose, onFilled }) {
 
   return (
     <>
-      <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(9,18,13,0.42)', zIndex: 40, animation: 'fadeIn .2s ease both' }} />
-      <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 41, background: MC.bg, borderRadius: '22px 22px 0 0', padding: '10px 16px 32px', maxHeight: '90%', overflowY: 'auto', boxShadow: '0 -12px 40px rgba(9,18,13,0.22)', animation: 'sheetUp .32s cubic-bezier(0.16,1,0.3,1) both' }}>
+      <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(9,18,13,0.42)', zIndex: 52, animation: 'fadeIn .2s ease both' }} />
+      <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 53, background: MC.bg, borderRadius: '22px 22px 0 0', padding: '10px 16px 32px', maxHeight: '90%', overflowY: 'auto', boxShadow: '0 -12px 40px rgba(9,18,13,0.22)', animation: 'sheetUp .32s cubic-bezier(0.16,1,0.3,1) both' }}>
         <div style={{ width: 38, height: 4, borderRadius: 2, background: MC.line, margin: '0 auto 14px' }} />
         <div style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
           <span style={{ width: 40, height: 40, borderRadius: 12, background: MC.accentSoft, color: MC.accent, display: 'grid', placeItems: 'center', flexShrink: 0 }}>
@@ -578,7 +578,7 @@ export default function RotaMobileGrid() {
         @keyframes fadeIn  { from { opacity: 0; }                 to { opacity: 1; } }
       `}</style>
 
-      <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', flexDirection: 'column', background: MC.bg, fontFamily: SANS, color: MC.ink, overflow: 'hidden' }}>
+      <div style={{ position: 'fixed', inset: 0, zIndex: 51, display: 'flex', flexDirection: 'column', background: MC.bg, fontFamily: SANS, color: MC.ink, overflow: 'hidden' }}>
 
         {/* ── Header: matches AppShell mobile header ── */}
         <header style={{ background: MC.brand, color: '#fff', flexShrink: 0, paddingTop: 'env(safe-area-inset-top)' }}>
@@ -743,6 +743,9 @@ export default function RotaMobileGrid() {
               <div style={{ fontSize: 13.5, fontWeight: 600 }}>{pendingChanges} unpublished {pendingChanges === 1 ? 'change' : 'changes'}</div>
               <div style={{ fontFamily: MONO, fontSize: 9.5, color: 'rgba(255,255,255,0.6)', textTransform: 'uppercase', letterSpacing: '0.04em', marginTop: 2 }}>Staff won't see them yet</div>
             </div>
+            <button onClick={() => { setPendingChanges(0); reload() }} disabled={publishing} style={{ height: 40, padding: '0 14px', borderRadius: 11, border: '1px solid rgba(255,255,255,0.25)', cursor: 'pointer', background: 'transparent', color: 'rgba(255,255,255,0.75)', fontFamily: SANS, fontSize: 13.5, fontWeight: 600 }}>
+              Cancel
+            </button>
             <button onClick={publish} disabled={publishing} style={{ height: 40, padding: '0 18px', borderRadius: 11, border: 'none', cursor: 'pointer', background: '#fff', color: MC.ink, fontFamily: SANS, fontSize: 13.5, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 7 }}>
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4z"/></svg>
               {publishing ? 'Publishing…' : 'Publish'}

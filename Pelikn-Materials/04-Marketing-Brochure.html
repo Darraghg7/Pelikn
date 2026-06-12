@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Pelikn — Compliance sorted. Operations simplified.</title>
+<title>Pelikn - Marketing Brochure</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Serif+Display&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=DM+Serif+Display:ital@0;1&display=swap');
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -15,632 +15,535 @@
     --cream: #faf8f4;
     --charcoal: #18181b;
     --teal: #0d9488;
-    --teal-light: #14b8a6;
     --orange: #e07b39;
-    --blue: #2563eb;
-    --purple: #7c3aed;
-    --rose: #e11d48;
-    --green: #16a34a;
     --muted: #71717a;
     --subtle: #a1a1aa;
-    --surface: #f4f4f5;
     --border: #e4e4e7;
+    --surface: #f4f4f5;
   }
 
-  body {
-    font-family: 'DM Sans', -apple-system, system-ui, sans-serif;
-    background: #fff;
-    color: var(--charcoal);
-    font-size: 16px;
-    line-height: 1.6;
-    -webkit-font-smoothing: antialiased;
-  }
+  body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(--charcoal); font-size: 16px; line-height: 1.6; }
 
-  .page {
-    width: 100%;
-    min-height: 100vh;
-    padding: 72px 80px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    position: relative;
-    page-break-after: always;
-    overflow: hidden;
-  }
+  .page { width: 1200px; min-height: 848px; margin: 0 auto 2px; position: relative; overflow: hidden; background: var(--cream); display: flex; flex-direction: column; }
 
-  .page-num {
-    position: absolute;
-    bottom: 36px;
-    right: 80px;
-    font-size: 11px;
-    font-weight: 500;
-    color: var(--subtle);
-    letter-spacing: 1px;
-  }
+  .label { font-size: 11px; font-weight: 600; letter-spacing: 2.5px; text-transform: uppercase; color: var(--muted); }
 
-  .page-logo {
-    position: absolute;
-    bottom: 36px;
-    left: 80px;
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: 1px;
-    color: var(--subtle);
-  }
-
-  /* Cover */
+  /* ── Cover ── */
   .cover {
     background: var(--brand);
     color: #fff;
-    justify-content: center;
-    align-items: flex-start;
-  }
-
-  .cover::before {
-    content: '';
-    position: absolute;
-    top: -10%;
-    right: -10%;
-    width: 60vw;
-    height: 60vw;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(13,148,136,0.15) 0%, transparent 70%);
-  }
-
-  .cover::after {
-    content: '';
-    position: absolute;
-    bottom: -15%;
-    left: -5%;
-    width: 35vw;
-    height: 35vw;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(255,255,255,0.03) 0%, transparent 70%);
-  }
-
-  .cover-logo {
-    font-family: 'DM Serif Display', serif;
-    font-size: 20px;
-    letter-spacing: 2px;
-    color: var(--teal-light);
-    margin-bottom: 60px;
-    position: relative;
-    z-index: 2;
-  }
-
-  .cover h1 {
-    font-family: 'DM Serif Display', serif;
-    font-size: 72px;
-    font-weight: 400;
-    letter-spacing: -3px;
-    line-height: 0.95;
-    margin-bottom: 32px;
-    position: relative;
-    z-index: 2;
-    max-width: 640px;
-  }
-
-  .cover-tagline {
-    font-size: 22px;
-    font-weight: 400;
-    color: rgba(255,255,255,0.6);
-    margin-bottom: 48px;
-    position: relative;
-    z-index: 2;
-  }
-
-  .cover-pills {
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
-    position: relative;
-    z-index: 2;
-  }
-
-  .pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 18px;
-    border-radius: 100px;
-    font-size: 13px;
-    font-weight: 600;
-  }
-
-  .pill--teal { background: rgba(13,148,136,0.15); color: var(--teal-light); border: 1px solid rgba(13,148,136,0.25); }
-  .pill--white { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.75); border: 1px solid rgba(255,255,255,0.12); }
-
-  /* Shared */
-  .eyebrow {
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    margin-bottom: 14px;
-    display: block;
-  }
-
-  .eyebrow--teal   { color: var(--teal); }
-  .eyebrow--orange { color: var(--orange); }
-  .eyebrow--blue   { color: var(--blue); }
-  .eyebrow--purple { color: var(--purple); }
-
-  .title {
-    font-family: 'DM Serif Display', serif;
-    font-size: 48px;
-    font-weight: 400;
-    letter-spacing: -2px;
-    line-height: 1.08;
-    margin-bottom: 18px;
-  }
-
-  .subtitle {
-    font-size: 17px;
-    color: var(--muted);
-    max-width: 580px;
-    line-height: 1.65;
-    margin-bottom: 44px;
-  }
-
-  .page--cream { background: var(--cream); }
-  .page--dark  { background: var(--charcoal); color: #fff; }
-  .page--dark .subtitle { color: rgba(255,255,255,0.5); }
-  .page--dark .page-num, .page--dark .page-logo { color: rgba(255,255,255,0.2); }
-  .page--brand { background: var(--brand); color: #fff; }
-  .page--brand .subtitle { color: rgba(255,255,255,0.5); }
-  .page--brand .page-num, .page--brand .page-logo { color: rgba(255,255,255,0.2); }
-
-  .g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
-  .g3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 18px; }
-
-  /* Cards */
-  .card { border-radius: 16px; padding: 28px; }
-  .card--surface { background: var(--surface); }
-  .card--white   { background: #fff; border: 1px solid var(--border); }
-  .card--teal    { background: rgba(13,148,136,0.07); border: 1px solid rgba(13,148,136,0.14); }
-  .card--brand   { background: var(--brand); color: #fff; }
-  .card--glass   { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); }
-
-  .card h3 { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
-  .card p  { font-size: 14px; color: var(--muted); line-height: 1.6; }
-  .card--brand p  { color: rgba(255,255,255,0.6); }
-  .card--brand h3 { color: #fff; }
-  .card--glass h3 { color: #fff; }
-  .card--glass p  { color: rgba(255,255,255,0.5); }
-
-  .card-icon {
-    width: 44px; height: 44px; border-radius: 11px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 20px; margin-bottom: 16px;
-  }
-
-  /* Pain point scenario */
-  .scenario {
-    display: flex;
-    gap: 20px;
-    padding: 24px 28px;
-    border-radius: 14px;
-    background: #fff;
-    border: 1px solid var(--border);
-    margin-bottom: 16px;
-  }
-
-  .scenario-icon {
-    width: 48px; height: 48px; border-radius: 12px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 22px; flex-shrink: 0;
-  }
-
-  .scenario h3 { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
-  .scenario p  { font-size: 13px; color: var(--muted); line-height: 1.55; }
-
-  /* Benefit rows */
-  .benefit-row {
-    display: flex;
-    gap: 20px;
-    align-items: flex-start;
-    padding: 20px 24px;
-    border-radius: 12px;
-    margin-bottom: 14px;
-  }
-
-  .benefit-row h4 { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
-  .benefit-row p  { font-size: 13px; color: var(--muted); line-height: 1.55; }
-
-  /* Pricing */
-  .price-card {
-    border-radius: 18px;
-    padding: 36px;
-  }
-
-  .price-card--starter {
-    background: var(--surface);
-  }
-
-  .price-card--pro {
-    background: var(--brand);
-    color: #fff;
-  }
-
-  .price-tag {
-    font-family: 'DM Serif Display', serif;
-    font-size: 52px;
-    font-weight: 400;
-    line-height: 1;
-    margin-bottom: 4px;
-  }
-
-  .price-per { font-size: 14px; color: var(--muted); margin-bottom: 24px; }
-  .price-card--pro .price-per { color: rgba(255,255,255,0.5); }
-
-  .price-features {
-    list-style: none;
+    padding: 80px 100px;
+    min-height: 848px;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    justify-content: space-between;
   }
-
-  .price-features li {
-    font-size: 14px;
-    color: var(--muted);
-    padding-left: 22px;
-    position: relative;
-    line-height: 1.4;
+  .cover-top { display: flex; justify-content: space-between; align-items: flex-start; }
+  .wordmark { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
+  .cover-tagline-top { font-size: 13px; color: rgba(255,255,255,0.45); text-align: right; max-width: 280px; line-height: 1.5; }
+  .cover-body { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+  .cover-overline { font-size: 11px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; color: rgba(255,255,255,0.4); margin-bottom: 40px; }
+  .cover-headline {
+    font-family: 'DM Serif Display', serif;
+    font-size: 96px;
+    line-height: 0.92;
+    letter-spacing: -4px;
+    color: #fff;
+    margin-bottom: 48px;
+    max-width: 900px;
   }
-
-  .price-card--pro .price-features li { color: rgba(255,255,255,0.65); }
-
-  .price-features li::before {
-    content: '\2713';
-    position: absolute;
-    left: 0;
-    color: var(--teal);
-    font-weight: 700;
+  .cover-headline em { font-style: italic; color: #6ee7b7; }
+  .cover-sub { font-size: 20px; font-weight: 300; color: rgba(255,255,255,0.6); max-width: 520px; line-height: 1.6; }
+  .cover-bottom {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2px;
+    background: rgba(255,255,255,0.1);
+    border-top: 1px solid rgba(255,255,255,0.12);
+    padding-top: 32px;
   }
+  .cover-module { }
+  .cover-module-name { font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.8); margin-bottom: 4px; }
+  .cover-module-desc { font-size: 12px; color: rgba(255,255,255,0.4); line-height: 1.5; }
 
-  .price-card--pro .price-features li::before { color: var(--teal-light); }
+  /* ── Section header ── */
+  .section-header { padding: 64px 100px 48px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: flex-end; }
+  .section-number { font-size: 11px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; color: var(--muted); margin-bottom: 16px; }
+  .section-title { font-family: 'DM Serif Display', serif; font-size: 52px; line-height: 1; letter-spacing: -1.5px; color: var(--charcoal); }
+  .section-title em { font-style: italic; color: var(--brand-mid); }
+  .section-desc { font-size: 16px; color: var(--muted); max-width: 360px; text-align: right; line-height: 1.6; }
 
-  .badge-popular {
-    display: inline-block;
-    font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
-    padding: 4px 12px; border-radius: 100px;
-    background: var(--teal); color: #fff;
-    margin-bottom: 16px;
-  }
+  .content-area { flex: 1; padding: 60px 100px; }
 
-  /* Trust strip */
-  .trust-item {
+  .page-footer { padding: 20px 100px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+  .page-footer-brand { font-size: 13px; font-weight: 600; color: var(--brand); }
+  .page-footer-meta { font-size: 12px; color: var(--subtle); }
+  .page-num { font-size: 12px; color: var(--subtle); }
+
+  /* ── Problem/Solution split ── */
+  .split { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; background: var(--border); margin-bottom: 40px; }
+  .split-side { padding: 48px 40px; background: var(--cream); }
+  .split-side--dark { background: var(--charcoal); color: #fff; }
+  .split-label { font-size: 11px; font-weight: 600; letter-spacing: 2.5px; text-transform: uppercase; margin-bottom: 20px; color: var(--muted); }
+  .split-label--red { color: #e11d48; }
+  .split-label--green { color: #16a34a; }
+  .split-headline { font-family: 'DM Serif Display', serif; font-size: 32px; letter-spacing: -0.5px; margin-bottom: 20px; line-height: 1.2; }
+  .split-body { font-size: 15px; line-height: 1.7; }
+  .split-list { list-style: none; display: flex; flex-direction: column; gap: 12px; margin-top: 20px; }
+  .split-list li { font-size: 14px; padding-left: 22px; position: relative; line-height: 1.55; }
+  .split-list li::before { position: absolute; left: 0; }
+  .split-list--bad li::before { content: '✕'; color: #e11d48; font-size: 12px; top: 2px; }
+  .split-list--good li::before { content: '✓'; color: #16a34a; font-size: 12px; top: 2px; }
+
+  /* ── Day-in-the-life ── */
+  .timeline { display: flex; flex-direction: column; gap: 2px; background: var(--border); margin-bottom: 40px; }
+  .timeline-item { background: var(--cream); padding: 24px 32px; display: grid; grid-template-columns: 100px 1fr auto; gap: 24px; align-items: start; }
+  .timeline-time { font-family: 'DM Serif Display', serif; font-size: 22px; letter-spacing: -0.5px; color: var(--brand); padding-top: 2px; }
+  .timeline-title { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
+  .timeline-body { font-size: 14px; color: var(--muted); line-height: 1.6; }
+  .timeline-module { font-size: 11px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; padding: 6px 12px; background: var(--surface); color: var(--muted); align-self: start; white-space: nowrap; }
+
+  /* ── Feature cards ── */
+  .feature-trio { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 2px; background: var(--border); margin-bottom: 40px; }
+  .feature-card { background: var(--cream); padding: 36px 32px; }
+  .feature-card--brand { background: var(--brand); }
+  .feature-icon-line { width: 32px; height: 3px; background: var(--teal); margin-bottom: 20px; }
+  .feature-icon-line--orange { background: var(--orange); }
+  .feature-icon-line--green { background: #16a34a; }
+  .feature-icon-line--white { background: rgba(255,255,255,0.4); }
+  .feature-name { font-size: 20px; font-weight: 700; letter-spacing: -0.3px; margin-bottom: 12px; }
+  .feature-body { font-size: 14px; color: var(--muted); line-height: 1.65; margin-bottom: 20px; }
+  .feature-body--light { color: rgba(255,255,255,0.65); }
+  .feature-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+  .feature-list li { font-size: 13px; padding-left: 16px; position: relative; color: var(--charcoal); }
+  .feature-list li::before { content: '→'; position: absolute; left: 0; font-size: 11px; color: var(--teal); }
+  .feature-list--light li { color: rgba(255,255,255,0.8); }
+  .feature-list--light li::before { color: #6ee7b7; }
+
+  /* ── Pricing ── */
+  .pricing-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 2px; background: var(--border); margin-bottom: 40px; }
+  .pricing-card { background: var(--cream); padding: 40px 32px; }
+  .pricing-card--featured { background: var(--brand); color: #fff; }
+  .pricing-tier { font-size: 11px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-bottom: 12px; }
+  .pricing-tier--light { color: rgba(255,255,255,0.45); }
+  .pricing-price { font-family: 'DM Serif Display', serif; font-size: 56px; line-height: 1; letter-spacing: -2px; color: var(--brand); margin-bottom: 4px; }
+  .pricing-price--light { color: #fff; }
+  .pricing-per { font-size: 14px; color: var(--muted); margin-bottom: 24px; }
+  .pricing-per--light { color: rgba(255,255,255,0.55); }
+  .pricing-desc { font-size: 14px; color: var(--muted); line-height: 1.6; margin-bottom: 24px; }
+  .pricing-desc--light { color: rgba(255,255,255,0.65); }
+  .pricing-features { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+  .pricing-features li { font-size: 14px; padding-left: 20px; position: relative; }
+  .pricing-features li::before { content: '✓'; position: absolute; left: 0; font-size: 12px; color: #16a34a; }
+  .pricing-features--light li { color: rgba(255,255,255,0.8); }
+  .pricing-features--light li::before { color: #6ee7b7; }
+
+  /* ── CTA ── */
+  .cta-band {
+    background: var(--brand);
+    color: #fff;
+    padding: 56px 100px;
     display: flex;
+    justify-content: space-between;
     align-items: center;
-    gap: 10px;
-    font-size: 13px;
-    color: rgba(255,255,255,0.65);
+    gap: 48px;
   }
+  .cta-headline { font-family: 'DM Serif Display', serif; font-size: 44px; line-height: 1.05; letter-spacing: -1.5px; }
+  .cta-headline em { font-style: italic; color: #6ee7b7; }
+  .cta-sub { font-size: 16px; color: rgba(255,255,255,0.6); margin-top: 16px; line-height: 1.6; max-width: 380px; }
+  .cta-actions { display: flex; flex-direction: column; gap: 16px; min-width: 260px; }
+  .cta-primary { background: #fff; color: var(--brand); padding: 16px 28px; font-size: 15px; font-weight: 700; text-align: center; }
+  .cta-secondary { border: 1px solid rgba(255,255,255,0.3); color: rgba(255,255,255,0.8); padding: 16px 28px; font-size: 15px; font-weight: 500; text-align: center; }
+  .cta-detail { font-size: 13px; color: rgba(255,255,255,0.4); text-align: center; }
 
-  .trust-icon {
-    width: 36px; height: 36px; border-radius: 9px;
-    background: rgba(255,255,255,0.07);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 16px; flex-shrink: 0;
-  }
+  /* ── Closing ── */
+  .closing { background: var(--charcoal); color: #fff; padding: 100px; min-height: 848px; display: flex; flex-direction: column; justify-content: space-between; }
+  .closing-headline { font-family: 'DM Serif Display', serif; font-size: 80px; line-height: 0.92; letter-spacing: -3px; max-width: 780px; }
+  .closing-headline em { font-style: italic; color: #6ee7b7; }
+  .closing-contact { display: flex; gap: 64px; }
+  .closing-contact-label { font-size: 11px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.35); margin-bottom: 8px; }
+  .closing-contact-value { font-size: 17px; color: rgba(255,255,255,0.8); }
 
-  /* Testimonial */
-  .testimonial {
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 16px;
-    padding: 28px 32px;
-  }
+  /* ── Stat strip ── */
+  .stat-strip { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; background: var(--border); margin-bottom: 40px; }
+  .stat-box { background: var(--cream); padding: 32px; text-align: center; }
+  .stat-value { font-family: 'DM Serif Display', serif; font-size: 52px; line-height: 1; letter-spacing: -2px; color: var(--brand); margin-bottom: 8px; }
+  .stat-label { font-size: 13px; color: var(--muted); line-height: 1.5; }
 
-  .testimonial-quote {
-    font-size: 16px;
-    color: rgba(255,255,255,0.85);
-    line-height: 1.65;
-    font-style: italic;
-    margin-bottom: 16px;
-  }
-
-  .testimonial-author { font-size: 13px; color: rgba(255,255,255,0.45); }
-  .testimonial-author strong { color: rgba(255,255,255,0.7); }
-
-  .placeholder-note {
-    display: inline-block;
-    font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
-    color: var(--orange); background: rgba(224,123,57,0.12);
-    border: 1px solid rgba(224,123,57,0.2);
-    padding: 3px 10px; border-radius: 100px; margin-bottom: 12px;
-  }
-
-  @media print {
-    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .page { page-break-after: always; }
-  }
+  /* ── Quote ── */
+  .quote-block { background: var(--surface); padding: 40px 48px; margin-bottom: 40px; border-left: 4px solid var(--brand); }
+  .quote-text { font-family: 'DM Serif Display', serif; font-size: 26px; line-height: 1.4; letter-spacing: -0.5px; color: var(--charcoal); margin-bottom: 16px; }
+  .quote-attr { font-size: 13px; color: var(--muted); }
 </style>
 </head>
 <body>
 
-<!-- PAGE 1 — COVER -->
+<!-- PAGE 1 - COVER -->
 <div class="page cover">
-  <div class="cover-logo">PELIKN</div>
-  <h1>Compliance sorted.<br/>Operations simplified.</h1>
-  <p class="cover-tagline">
-    The all-in-one platform for independent hospitality venues.
-  </p>
-  <div class="cover-pills">
-    <span class="pill pill--teal">&#10003; EHO-Ready Compliance</span>
-    <span class="pill pill--teal">&#10003; Rotas &amp; Timesheets</span>
-    <span class="pill pill--teal">&#10003; Works Offline</span>
-    <span class="pill pill--white">From &pound;5/month</span>
-    <span class="pill pill--white">7-day free trial</span>
-    <span class="pill pill--white">No card required</span>
+  <div class="cover-top">
+    <div class="wordmark">Pelikn</div>
+    <div class="cover-tagline-top">Compliance, scheduling and people management - for hospitality teams that work on their feet.</div>
   </div>
-  <div class="page-logo" style="color:rgba(255,255,255,0.2);">PELIKN</div>
-  <div class="page-num" style="color:rgba(255,255,255,0.15);">01</div>
+  <div class="cover-body">
+    <div class="cover-overline">Pelikn · The hospitality operations platform</div>
+    <div class="cover-headline">Stop running<br>your kitchen<br>on <em>clipboards.</em></div>
+    <div class="cover-sub">One app for food safety compliance, staff scheduling, timesheets, HR and daily checks. Built for busy kitchens. Ready in under 10 minutes.</div>
+  </div>
+  <div class="cover-bottom">
+    <div class="cover-module">
+      <div class="cover-module-name">Compliance Hub</div>
+      <div class="cover-module-desc">Temperature logs, allergens, EHO audit prep</div>
+    </div>
+    <div class="cover-module">
+      <div class="cover-module-name">Rota &amp; Timesheets</div>
+      <div class="cover-module-desc">Scheduling, clock-in, payroll export</div>
+    </div>
+    <div class="cover-module">
+      <div class="cover-module-name">HR &amp; Leave</div>
+      <div class="cover-module-desc">Staff files, contracts, holiday management</div>
+    </div>
+    <div class="cover-module">
+      <div class="cover-module-name">Daily Checks</div>
+      <div class="cover-module-desc">Opening, closing and cleaning checklists</div>
+    </div>
+  </div>
 </div>
 
-<!-- PAGE 2 — THE CHALLENGE -->
-<div class="page page--cream">
-  <span class="eyebrow eyebrow--orange">Sound familiar?</span>
-  <h2 class="title">Running a venue is hard enough<br/>without the paperwork</h2>
-  <p class="subtitle">
-    Most independent venue managers are juggling food safety records,
-    staff rotas and team admin on top of actually running the place. Something always slips.
-  </p>
-
-  <div class="scenario">
-    <div class="scenario-icon" style="background:rgba(225,29,72,0.08);">&#128203;</div>
-    <div>
-      <h3>The EHO visit you weren&rsquo;t ready for</h3>
-      <p>Your fridge temperature log has a three-week gap. Your HACCP binder is from 2022. The inspector is standing in your kitchen. You know the paperwork exists somewhere &mdash; just not all in one place, and not today.</p>
-    </div>
-  </div>
-
-  <div class="scenario">
-    <div class="scenario-icon" style="background:rgba(224,123,57,0.08);">&#128197;</div>
-    <div>
-      <h3>The Sunday rota that takes three hours</h3>
-      <p>You&rsquo;re building next week&rsquo;s rota on a spreadsheet while fielding five WhatsApp messages from staff who want to swap shifts. By the time it&rsquo;s done, half your Sunday is gone and someone&rsquo;s still unhappy.</p>
-    </div>
-  </div>
-
-  <div class="scenario">
-    <div class="scenario-icon" style="background:rgba(124,58,237,0.08);">&#129513;</div>
-    <div>
-      <h3>Five apps, five logins, nobody uses any of them</h3>
-      <p>You signed up for a compliance app, a scheduling tool, and a training tracker. Staff don&rsquo;t use them consistently. You&rsquo;re paying for three things and still relying on paper for two of them.</p>
-    </div>
-  </div>
-
-  <div style="margin-top:8px;padding:20px 28px;background:#fff;border-radius:12px;border:1px solid var(--border);display:flex;align-items:center;gap:16px;">
-    <span style="font-size:24px;">&#128161;</span>
-    <p style="font-size:15px;color:var(--muted);line-height:1.6;">There&rsquo;s a better way. Pelikn puts everything in one place so your venue is always inspection-ready, your team always knows their schedule, and you can see what&rsquo;s happening without being on the floor.</p>
-  </div>
-
-  <div class="page-logo">PELIKN</div>
-  <div class="page-num">02</div>
-</div>
-
-<!-- PAGE 3 — HOW PELIKN HELPS -->
+<!-- PAGE 2 - THE PROBLEM -->
 <div class="page">
-  <span class="eyebrow eyebrow--teal">How Pelikn Helps</span>
-  <h2 class="title">One app. Everything sorted.</h2>
-  <p class="subtitle">
-    Whether you need to pass your next EHO inspection, stop spending your Sunday on the rota,
-    or finally get visibility of what your team is actually doing &mdash; Pelikn handles it.
-  </p>
-
-  <div style="display:flex;flex-direction:column;gap:0;">
-    <div class="benefit-row" style="background:rgba(13,148,136,0.06);">
-      <div style="width:48px;height:48px;border-radius:12px;background:var(--teal);color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">&#127777;</div>
-      <div>
-        <h4>Stay inspection-ready, every single day</h4>
-        <p>Fridge temps, cleaning records, allergen logs, delivery checks &mdash; all digitised, timestamped and stored. When an EHO inspector arrives, you generate a PDF compliance report in one tap. No scrambling, no gaps, no stress.</p>
+  <div class="section-header">
+    <div>
+      <div class="section-number">The reality</div>
+      <div class="section-title">Sound <em>familiar?</em></div>
+    </div>
+    <div class="section-desc">If you're managing a hospitality team, you already know what the problem looks like. Here's what Pelikn fixes.</div>
+  </div>
+  <div class="content-area">
+    <div class="split" style="margin-bottom: 40px;">
+      <div class="split-side split-side--dark">
+        <div class="split-label split-label--red">Before Pelikn</div>
+        <div class="split-headline" style="color: #fff;">A clipboard, a whiteboard, and a group chat.</div>
+        <div class="split-body" style="color: rgba(255,255,255,0.65);">The typical hospitality operation runs on a patchwork of paper logs, WhatsApp messages, and spreadsheets that nobody fully trusts. Every week is a scramble.</div>
+        <ul class="split-list split-list--bad" style="margin-top: 24px;">
+          <li style="color: rgba(255,255,255,0.7);">Temperature logs left blank mid-service</li>
+          <li style="color: rgba(255,255,255,0.7);">Rota changes communicated by text, then forgotten</li>
+          <li style="color: rgba(255,255,255,0.7);">Holiday requests on post-it notes</li>
+          <li style="color: rgba(255,255,255,0.7);">EHO inspection arrives - 20 minutes hunting for records</li>
+          <li style="color: rgba(255,255,255,0.7);">Payroll takes half a day to reconcile each month</li>
+          <li style="color: rgba(255,255,255,0.7);">Staff contracts filed in a drawer nobody can find</li>
+        </ul>
+      </div>
+      <div class="split-side">
+        <div class="split-label split-label--green">With Pelikn</div>
+        <div class="split-headline">Everything in one place. On every phone.</div>
+        <div class="split-body" style="color: var(--muted);">One app the whole team uses - from the head chef logging temperatures to the manager publishing the rota. Everything connected, everything timestamped, everything findable.</div>
+        <ul class="split-list split-list--good" style="margin-top: 24px;">
+          <li>Temperature logs completed on-device, signed automatically</li>
+          <li>Rota changes push-notified to every affected team member</li>
+          <li>Holiday requests submitted and approved in the app</li>
+          <li>EHO arrives - hand them your phone, 90 days of records</li>
+          <li>Timesheets approved in minutes, CSV ready for payroll</li>
+          <li>All staff documents in secure digital files, searchable</li>
+        </ul>
       </div>
     </div>
 
-    <div style="height:2px;background:var(--border);"></div>
-
-    <div class="benefit-row" style="background:rgba(37,99,235,0.04);">
-      <div style="width:48px;height:48px;border-radius:12px;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">&#128197;</div>
-      <div>
-        <h4>Build the rota in minutes, not hours</h4>
-        <p>Drag-and-drop scheduling with templates and AI auto-fill. Publish once and your team gets a push notification instantly. Shift swaps, time-off requests and clock-in/out all happen in the app &mdash; not on WhatsApp.</p>
+    <div class="stat-strip">
+      <div class="stat-box">
+        <div class="stat-value">6–8hrs</div>
+        <div class="stat-label">average time a hospitality manager spends on admin per week - Pelikn automates most of it</div>
       </div>
-    </div>
-
-    <div style="height:2px;background:var(--border);"></div>
-
-    <div class="benefit-row" style="background:rgba(124,58,237,0.04);">
-      <div style="width:48px;height:48px;border-radius:12px;background:var(--purple);color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">&#128200;</div>
-      <div>
-        <h4>Know your labour costs before payday</h4>
-        <p>See real-time labour cost vs scheduled hours, actual vs budgeted, broken down by role. Your payroll CSV exports itself. No more guessing at the end of the month.</p>
+      <div class="stat-box">
+        <div class="stat-value">68%</div>
+        <div class="stat-label">of UK hospitality businesses still use paper or spreadsheets for food safety records</div>
       </div>
-    </div>
-
-    <div style="height:2px;background:var(--border);"></div>
-
-    <div class="benefit-row" style="background:rgba(224,123,57,0.04);">
-      <div style="width:48px;height:48px;border-radius:12px;background:var(--orange);color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">&#128241;</div>
-      <div>
-        <h4>Works on any device, even without wifi</h4>
-        <p>No app store. No passwords for staff. Installs from a browser to any phone or tablet in seconds. Works fully offline in the kitchen or basement. PIN-based login means any team member is up and running immediately.</p>
+      <div class="stat-box">
+        <div class="stat-value">£25/mo</div>
+        <div class="stat-label">entire Pelikn platform - less than the cost of one hour of admin time, every month</div>
       </div>
     </div>
   </div>
-
-  <div class="page-logo">PELIKN</div>
-  <div class="page-num">03</div>
+  <div class="page-footer">
+    <div class="page-footer-brand">Pelikn</div>
+    <div class="page-footer-meta">The Hospitality Operations Platform</div>
+    <div class="page-num">02</div>
+  </div>
 </div>
 
-<!-- PAGE 4 — KEY FEATURES -->
-<div class="page page--cream">
-  <span class="eyebrow eyebrow--blue">What&rsquo;s Included</span>
-  <h2 class="title">20+ tools, one subscription</h2>
-  <p class="subtitle">
-    Everything your venue needs to manage compliance, staff and daily operations &mdash;
-    all in one login, for one flat monthly fee.
-  </p>
-
-  <div class="g3" style="margin-bottom:20px;">
-    <div class="card card--white">
-      <div class="card-icon" style="background:rgba(13,148,136,0.08);">&#127777;</div>
-      <h3>Temperature Logs</h3>
-      <p>Fridge, cooking, reheating, hot holding and cooling records. Auto pass/fail with corrective actions.</p>
-    </div>
-    <div class="card card--white">
-      <div class="card-icon" style="background:rgba(13,148,136,0.08);">&#129516;</div>
-      <h3>Allergen Registry</h3>
-      <p>All 14 allergens per dish. Natasha&rsquo;s Law compliant. QR code for customer menu access.</p>
-    </div>
-    <div class="card card--white">
-      <div class="card-icon" style="background:rgba(13,148,136,0.08);">&#129529;</div>
-      <h3>Cleaning Schedules</h3>
-      <p>Daily and weekly tasks with live completion tracking and named staff sign-off.</p>
-    </div>
-  </div>
-
-  <div class="g3">
-    <div class="card card--white">
-      <div class="card-icon" style="background:rgba(37,99,235,0.08);">&#128197;</div>
-      <h3>Rota Builder</h3>
-      <p>Drag-and-drop scheduling with templates. Publish with one click. Staff notified instantly.</p>
-    </div>
-    <div class="card card--white">
-      <div class="card-icon" style="background:rgba(37,99,235,0.08);">&#128336;</div>
-      <h3>Timesheets</h3>
-      <p>PIN clock-in/out on shared device. Auto break deductions. CSV export for payroll.</p>
-    </div>
-    <div class="card card--white">
-      <div class="card-icon" style="background:rgba(37,99,235,0.08);">&#127891;</div>
-      <h3>Training Tracker</h3>
-      <p>Food hygiene certs, allergen training, custom courses. 30-day expiry alerts.</p>
-    </div>
-  </div>
-
-  <div class="page-logo">PELIKN</div>
-  <div class="page-num">04</div>
-</div>
-
-<!-- PAGE 5 — PRICING -->
+<!-- PAGE 3 - A DAY IN THE LIFE -->
 <div class="page">
-  <span class="eyebrow eyebrow--orange">Simple Pricing</span>
-  <h2 class="title">Less than &pound;1 a day.<br/>No contracts.</h2>
-  <p class="subtitle">
-    Pay monthly or save two months by paying annually. No per-user charges. Cancel any time.
-    Start with a free 7-day trial &mdash; no card required.
-  </p>
-
-  <!-- Annual callout banner -->
-  <div style="margin-bottom:20px;padding:14px 24px;background:linear-gradient(90deg,rgba(13,148,136,0.12),rgba(13,148,136,0.06));border:1px solid rgba(13,148,136,0.2);border-radius:12px;display:flex;align-items:center;justify-content:space-between;">
-    <div style="display:flex;align-items:center;gap:12px;">
-      <span style="font-size:20px;">&#127381;</span>
-      <div>
-        <strong style="font-size:14px;color:var(--charcoal);">Pay annually &mdash; get 2 months free</strong>
-        <p style="font-size:12px;color:var(--muted);margin-top:1px;">Pay for 10 months, use Pelikn for 12. Same features, lower cost.</p>
+  <div class="section-header">
+    <div>
+      <div class="section-number">In practice</div>
+      <div class="section-title">A day with <em>Pelikn</em></div>
+    </div>
+    <div class="section-desc">What a typical day looks like when your whole team is running on one platform.</div>
+  </div>
+  <div class="content-area">
+    <div class="timeline">
+      <div class="timeline-item">
+        <div class="timeline-time">7:30</div>
+        <div>
+          <div class="timeline-title">Opening checks completed</div>
+          <div class="timeline-body">The morning chef opens the Pelikn app and works through the opening checklist - fridge temps, surface hygiene, date labels checked. Each task signed with a timestamp. Manager sees it done from home before they've arrived.</div>
+        </div>
+        <div class="timeline-module">Daily Checks</div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-time">9:15</div>
+        <div>
+          <div class="timeline-title">Delivery temperature logged</div>
+          <div class="timeline-body">A fish delivery arrives. The chef probes the crate - 3°C, within range. Logged in Pelikn in 20 seconds. If it had failed, a corrective action prompt would have appeared immediately, creating a compliant record of the decision made.</div>
+        </div>
+        <div class="timeline-module">Compliance Hub</div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-time">11:00</div>
+        <div>
+          <div class="timeline-title">Rota updated after a sick call</div>
+          <div class="timeline-body">A team member calls in sick. The manager adjusts the rota on their phone - moves a shift, offers it to an available team member. The affected staff get push notifications. No WhatsApp group required.</div>
+        </div>
+        <div class="timeline-module">Rota</div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-time">14:30</div>
+        <div>
+          <div class="timeline-title">Holiday request approved</div>
+          <div class="timeline-body">A team member submits two weeks' leave for August. The manager sees the request, checks the team calendar for coverage, and approves with one tap. The leave balance updates automatically. No sticky notes involved.</div>
+        </div>
+        <div class="timeline-module">Leave</div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-time">17:45</div>
+        <div>
+          <div class="timeline-title">EHO inspector arrives unannounced</div>
+          <div class="timeline-body">The inspector wants to see temperature records for the past 90 days, allergen information, and corrective actions taken. The manager opens Pelikn, hands over the phone. Every record is there - timestamped, signed, filterable. The inspection is over in 40 minutes.</div>
+        </div>
+        <div class="timeline-module">Compliance Hub</div>
+      </div>
+      <div class="timeline-item" style="background: var(--brand); color: #fff;">
+        <div class="timeline-time" style="color: #6ee7b7;">23:00</div>
+        <div>
+          <div class="timeline-title" style="color: #fff;">Closing checks signed off</div>
+          <div class="timeline-body" style="color: rgba(255,255,255,0.65);">The closing manager completes the end-of-night checklist - cleaning records, fridge checks, lock-up. Signed, timestamped, sent to the manager dashboard. Another compliant day, documented without a single piece of paper.</div>
+        </div>
+        <div class="timeline-module" style="background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.7);">Daily Checks</div>
       </div>
     </div>
-    <div style="text-align:right;">
-      <div style="font-size:13px;font-weight:700;color:var(--teal);">Starter: &pound;50/yr &nbsp;&middot;&nbsp; Pro: &pound;250/yr</div>
-      <div style="font-size:11px;color:var(--muted);margin-top:2px;">vs &pound;60/yr and &pound;300/yr monthly</div>
-    </div>
   </div>
-
-  <div class="g2" style="gap:28px;align-items:start;">
-    <div class="price-card price-card--starter">
-      <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:16px;">Starter</div>
-      <div class="price-tag">&pound;5</div>
-      <div class="price-per">/month &nbsp;&middot;&nbsp; or <strong style="color:var(--teal);">&pound;50/year</strong> (save &pound;10)</div>
-      <ul class="price-features">
-        <li>Fridge &amp; temperature logs</li>
-        <li>Cleaning schedules</li>
-        <li>Opening &amp; closing checklists</li>
-        <li>Allergen registry</li>
-        <li>Delivery checks</li>
-        <li>Probe calibration records</li>
-        <li>One-tap EHO PDF reports</li>
-        <li>7-day free trial</li>
-      </ul>
-    </div>
-
-    <div class="price-card price-card--pro">
-      <div class="badge-popular">Most Popular</div>
-      <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--teal-light);margin-bottom:16px;">Pro</div>
-      <div class="price-tag">&pound;25</div>
-      <div class="price-per">/month &nbsp;&middot;&nbsp; or <strong style="color:var(--teal-light);">&pound;250/year</strong> (save &pound;50) &middot; +&pound;150/yr per extra venue</div>
-      <ul class="price-features">
-        <li>Everything in Starter</li>
-        <li>Rota &amp; shift builder</li>
-        <li>PIN clock-in/out timesheets</li>
-        <li>Staff training tracker</li>
-        <li>Time-off &amp; shift swap requests</li>
-        <li>Labour cost dashboard</li>
-        <li>Multi-venue management</li>
-        <li>7-day free trial</li>
-      </ul>
-    </div>
+  <div class="page-footer">
+    <div class="page-footer-brand">Pelikn</div>
+    <div class="page-footer-meta">The Hospitality Operations Platform</div>
+    <div class="page-num">03</div>
   </div>
-
-  <div style="margin-top:20px;padding:14px 24px;background:var(--surface);border-radius:12px;display:flex;justify-content:space-around;align-items:center;">
-    <div style="text-align:center;font-size:13px;color:var(--muted);">&#128683; No long-term contracts</div>
-    <div style="text-align:center;font-size:13px;color:var(--muted);">&#10132; Cancel any time</div>
-    <div style="text-align:center;font-size:13px;color:var(--muted);">&#128179; No card for trial</div>
-    <div style="text-align:center;font-size:13px;color:var(--muted);">&#127881; Allergen QR code +&pound;1/mo</div>
-  </div>
-
-  <div class="page-logo">PELIKN</div>
-  <div class="page-num">05</div>
 </div>
 
-<!-- PAGE 6 — SOCIAL PROOF & CTA -->
-<div class="page page--dark">
-  <span class="eyebrow" style="color:var(--teal-light);">What Venues Say</span>
-  <h2 class="title" style="color:#fff;margin-bottom:12px;">Built for people who<br/>run real venues</h2>
-  <p class="subtitle" style="margin-bottom:32px;">
-    Pelikn was designed by someone who has lived the daily reality of hospitality operations.
-    Every feature exists because a real manager needed it.
-  </p>
-
-  <div class="g2" style="gap:16px;margin-bottom:32px;">
-    <div class="testimonial">
-      <div class="placeholder-note">Placeholder &mdash; Customer quote pending</div>
-      <p class="testimonial-quote">&ldquo;We used to spend two hours every Sunday building the rota and chasing shift swaps on WhatsApp. Now it takes 20 minutes and the team sort the swaps themselves.&rdquo;</p>
-      <div class="testimonial-author"><strong>[Venue Manager Name]</strong> &mdash; [Restaurant Name], [City]</div>
+<!-- PAGE 4 - FEATURES -->
+<div class="page">
+  <div class="section-header">
+    <div>
+      <div class="section-number">What's included</div>
+      <div class="section-title">Six modules.<br><em>One subscription.</em></div>
     </div>
-    <div class="testimonial">
-      <div class="placeholder-note">Placeholder &mdash; Customer quote pending</div>
-      <p class="testimonial-quote">&ldquo;The EHO came in unannounced and I had every record ready to go. They were in and out in 20 minutes. Honestly, Pelikn paid for itself in that one visit.&rdquo;</p>
-      <div class="testimonial-author"><strong>[Venue Owner Name]</strong> &mdash; [Cafe Name], [City]</div>
+    <div class="section-desc">Every feature below is included in a single Pelikn subscription. Unlimited staff, unlimited users, one flat monthly price.</div>
+  </div>
+  <div class="content-area">
+    <div class="feature-trio" style="margin-bottom: 2px;">
+      <div class="feature-card">
+        <div class="feature-icon-line"></div>
+        <div class="feature-name">Compliance Hub</div>
+        <div class="feature-body">Temperature logging, allergen records, HACCP-aligned checklists, EHO audit prep - all with corrective action trails and PDF export.</div>
+        <ul class="feature-list">
+          <li>Probe temp logs with pass/fail thresholds</li>
+          <li>14-allergen matrix (Natasha's Law)</li>
+          <li>EHO inspection simulator</li>
+          <li>90-day record history, exportable</li>
+        </ul>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon-line feature-icon-line--orange"></div>
+        <div class="feature-name">Rota &amp; Scheduling</div>
+        <div class="feature-body">Drag-and-drop weekly rota with live labour cost preview, conflict detection, and instant push notifications when shifts change.</div>
+        <ul class="feature-list">
+          <li>Visual grid rota builder</li>
+          <li>Contract-hour conflict warnings</li>
+          <li>Shift swap requests in-app</li>
+          <li>Multi-venue support</li>
+        </ul>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon-line feature-icon-line--green"></div>
+        <div class="feature-name">Timesheets</div>
+        <div class="feature-body">Staff clock in and out on their phone. Managers approve. Zero-hours holiday accrual calculated automatically. Payroll export in minutes.</div>
+        <ul class="feature-list">
+          <li>GPS-assisted clock-in/out</li>
+          <li>12.07% zero-hours accrual</li>
+          <li>Manager approval workflow</li>
+          <li>CSV payroll export</li>
+        </ul>
+      </div>
+    </div>
+    <div class="feature-trio">
+      <div class="feature-card">
+        <div class="feature-icon-line" style="background: #7c3aed;"></div>
+        <div class="feature-name">Leave Management</div>
+        <div class="feature-body">Staff submit holiday requests in the app. Managers approve with one tap. Team calendar shows coverage gaps before they become a problem.</div>
+        <ul class="feature-list">
+          <li>Annual leave balance tracking</li>
+          <li>Approve/decline with reason</li>
+          <li>Team overlap calendar view</li>
+          <li>All statutory leave types</li>
+        </ul>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon-line" style="background: #2563eb;"></div>
+        <div class="feature-name">HR &amp; Staff Files</div>
+        <div class="feature-body">Secure digital staff files for contracts, certifications, and disciplinary records - with expiry reminders so nothing slips through.</div>
+        <ul class="feature-list">
+          <li>Document upload &amp; storage</li>
+          <li>Certification expiry alerts</li>
+          <li>Disciplinary &amp; grievance log</li>
+          <li>Right-to-work record keeping</li>
+        </ul>
+      </div>
+      <div class="feature-card feature-card--brand">
+        <div class="feature-icon-line feature-icon-line--white"></div>
+        <div class="feature-name" style="color: #fff;">Daily Checks</div>
+        <div class="feature-body feature-body--light">Custom opening, service, and closing checklists - with photo evidence per task and real-time completion visible to managers.</div>
+        <ul class="feature-list feature-list--light">
+          <li>Custom checklist builder</li>
+          <li>Photo capture per task</li>
+          <li>Real-time manager dashboard</li>
+          <li>Escalation for missed items</li>
+        </ul>
+      </div>
+    </div>
+
+    <div style="margin-top: 32px; padding: 24px 32px; background: var(--surface); display: flex; gap: 32px; align-items: center;">
+      <div style="font-size: 14px; color: var(--muted); flex: 1; line-height: 1.6;">Available on <strong style="color: var(--charcoal);">iOS</strong>, <strong style="color: var(--charcoal);">Android</strong>, and <strong style="color: var(--charcoal);">web</strong>. Works offline - syncs automatically when back online. No hardware required. Your team is set up in under 10 minutes.</div>
+      <div style="display: flex; gap: 10px; flex-shrink: 0;">
+        <div style="padding: 8px 16px; background: var(--brand); color: #fff; font-size: 13px; font-weight: 600;">iOS App</div>
+        <div style="padding: 8px 16px; background: var(--brand); color: #fff; font-size: 13px; font-weight: 600;">Android App</div>
+        <div style="padding: 8px 16px; border: 1px solid var(--border); font-size: 13px; font-weight: 600; color: var(--charcoal);">Web Dashboard</div>
+        <div style="padding: 8px 16px; border: 1px solid var(--border); font-size: 13px; font-weight: 600; color: var(--charcoal);">Offline Mode</div>
+      </div>
     </div>
   </div>
+  <div class="page-footer">
+    <div class="page-footer-brand">Pelikn</div>
+    <div class="page-footer-meta">The Hospitality Operations Platform</div>
+    <div class="page-num">04</div>
+  </div>
+</div>
 
-  <div style="display:flex;gap:20px;justify-content:space-between;margin-bottom:44px;">
-    <div class="trust-item">
-      <div class="trust-icon">&#127477;&#127480;</div>
-      <span>UK-built &amp; UK GDPR compliant</span>
+<!-- PAGE 5 - PRICING + CTA -->
+<div class="page">
+  <div class="section-header">
+    <div>
+      <div class="section-number">Pricing</div>
+      <div class="section-title">Simple, <em>flat pricing.</em></div>
     </div>
-    <div class="trust-item">
-      <div class="trust-icon">&#127760;</div>
-      <span>Works offline, no wifi needed</span>
+    <div class="section-desc">Per venue, not per user. Your whole team for one fixed price - no surprise bills as you hire.</div>
+  </div>
+  <div class="content-area">
+    <div class="pricing-grid" style="margin-bottom: 32px;">
+      <div class="pricing-card">
+        <div class="pricing-tier">Starter</div>
+        <div class="pricing-price">£5</div>
+        <div class="pricing-per">per venue / month</div>
+        <div class="pricing-desc">Perfect for a new venue getting compliance in order, or a small operation that just needs the essentials.</div>
+        <ul class="pricing-features">
+          <li>Compliance Hub (temperature + allergens)</li>
+          <li>Daily Checks</li>
+          <li>Up to 10 staff</li>
+          <li>iOS, Android &amp; web access</li>
+          <li>PDF export</li>
+        </ul>
+      </div>
+      <div class="pricing-card pricing-card--featured">
+        <div class="pricing-tier pricing-tier--light">Pro · Most popular</div>
+        <div class="pricing-price pricing-price--light">£25</div>
+        <div class="pricing-per pricing-per--light">per venue / month</div>
+        <div class="pricing-desc pricing-desc--light">The full Pelikn platform - all six modules, unlimited staff, everything your team needs to run a compliant and well-managed venue.</div>
+        <ul class="pricing-features pricing-features--light">
+          <li>Everything in Starter</li>
+          <li>Rota &amp; Scheduling</li>
+          <li>Timesheets &amp; Payroll Export</li>
+          <li>Leave Management</li>
+          <li>HR &amp; Staff Files</li>
+          <li>Unlimited staff · No per-user fees</li>
+          <li>Multi-venue dashboard</li>
+        </ul>
+      </div>
+      <div class="pricing-card">
+        <div class="pricing-tier">Multi-Site</div>
+        <div class="pricing-price">£15</div>
+        <div class="pricing-per">per additional venue / month</div>
+        <div class="pricing-desc">For operators running more than one site. Add venues at a reduced rate, with centralised oversight across all locations.</div>
+        <ul class="pricing-features">
+          <li>Everything in Pro at each venue</li>
+          <li>Cross-venue compliance dashboard</li>
+          <li>Centralised staff management</li>
+          <li>Group-level reporting</li>
+          <li>Priority support</li>
+        </ul>
+      </div>
     </div>
-    <div class="trust-item">
-      <div class="trust-icon">&#128241;</div>
-      <span>No app store. Installs in seconds.</span>
+
+    <div style="background: var(--surface); padding: 24px 32px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px;">
+      <div style="font-size: 15px; color: var(--charcoal); line-height: 1.6;"><strong>Optional add-on:</strong> Pelikn QR - digital menu with allergen display · <strong>£1/month</strong> per venue</div>
+      <div style="font-size: 13px; color: var(--muted);">Annual billing available · Cancel any time · 14-day free trial - no card required</div>
     </div>
-    <div class="trust-item">
-      <div class="trust-icon">&#128274;</div>
-      <span>Data stored securely in UK</span>
+
+    <div style="background: var(--charcoal); color: #fff; padding: 40px 48px; display: flex; justify-content: space-between; align-items: center; gap: 40px;">
+      <div>
+        <div style="font-family: 'DM Serif Display', serif; font-size: 36px; line-height: 1.1; letter-spacing: -1px; margin-bottom: 16px;">For a 20-person kitchen, Pelikn Pro costs<br><span style="color: #6ee7b7;">less than £1.25 per team member per month.</span></div>
+        <div style="font-size: 15px; color: rgba(255,255,255,0.55); line-height: 1.6;">Competitors that charge per user would cost the same team £80–£120/month. Flat pricing is one of the reasons Pelikn wins against tools that start cheap and scale expensively.</div>
+      </div>
+      <div style="min-width: 200px; text-align: center;">
+        <div style="font-family: 'DM Serif Display', serif; font-size: 64px; line-height: 1; letter-spacing: -2px; color: #6ee7b7;">70%</div>
+        <div style="font-size: 13px; color: rgba(255,255,255,0.45); margin-top: 8px;">cheaper than per-user<br>alternatives for a team of 20</div>
+      </div>
     </div>
   </div>
-
-  <div style="text-align:center;padding:44px;background:rgba(13,148,136,0.1);border:1px solid rgba(13,148,136,0.2);border-radius:18px;">
-    <p style="font-family:'DM Serif Display',serif;font-size:32px;color:#fff;margin-bottom:12px;">Try Pelikn free for 7 days</p>
-    <p style="font-size:16px;color:rgba(255,255,255,0.55);margin-bottom:24px;">No card required. Full product access. Setup in under 15 minutes.</p>
-    <p style="font-size:18px;color:var(--teal-light);font-weight:700;">pelikn.com</p>
+  <div class="page-footer">
+    <div class="page-footer-brand">Pelikn</div>
+    <div class="page-footer-meta">The Hospitality Operations Platform</div>
+    <div class="page-num">05</div>
   </div>
+</div>
 
-  <div class="page-logo" style="color:rgba(255,255,255,0.2);">PELIKN</div>
-  <div class="page-num" style="color:rgba(255,255,255,0.15);">06</div>
+<!-- PAGE 6 - CLOSING -->
+<div class="page closing">
+  <div>
+    <div style="font-size: 11px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; color: rgba(255,255,255,0.35); margin-bottom: 48px;">Pelikn · The hospitality operations platform</div>
+    <div class="closing-headline">Your kitchen.<br>Less admin.<br><em>Better records.</em></div>
+    <div style="font-size: 18px; color: rgba(255,255,255,0.5); margin-top: 40px; max-width: 500px; line-height: 1.65;">Start a 14-day free trial today - no card required. Your team can be set up and running their first compliance check in under 10 minutes.</div>
+  </div>
+  <div>
+    <div style="margin-bottom: 48px; padding: 36px 40px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); display: flex; gap: 48px; align-items: center;">
+      <div style="font-family: 'DM Serif Display', serif; font-size: 28px; letter-spacing: -0.5px; color: rgba(255,255,255,0.8); flex: 1; line-height: 1.3;">Ready to try it? Start free at <span style="color: #6ee7b7;">get-pelikn.com</span></div>
+      <div style="display: flex; flex-direction: column; gap: 8px; min-width: 220px;">
+        <div style="background: #fff; color: var(--brand); padding: 14px 24px; font-size: 15px; font-weight: 700; text-align: center;">Start free trial</div>
+        <div style="border: 1px solid rgba(255,255,255,0.2); color: rgba(255,255,255,0.7); padding: 14px 24px; font-size: 15px; font-weight: 500; text-align: center;">Book a demo</div>
+      </div>
+    </div>
+    <div style="font-size: 11px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.35); margin-bottom: 24px;">Get in touch</div>
+    <div class="closing-contact">
+      <div>
+        <div class="closing-contact-label">Website</div>
+        <div class="closing-contact-value">get-pelikn.com</div>
+      </div>
+      <div>
+        <div class="closing-contact-label">Email</div>
+        <div class="closing-contact-value">hello@get-pelikn.com</div>
+      </div>
+      <div>
+        <div class="closing-contact-label">Pricing</div>
+        <div class="closing-contact-value">From £5/month · Free trial</div>
+      </div>
+    </div>
+  </div>
 </div>
 
 </body>
