@@ -199,86 +199,92 @@ function ShiftSheet({ shift, staffMember, day, venueId, roles, onClose, onSaved,
   return (
     <>
       <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(9,18,13,0.42)', zIndex: 52, animation: 'fadeIn .2s ease both' }} />
-      <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 53, background: MC.bg, borderRadius: '22px 22px 0 0', padding: '10px 16px 32px', maxHeight: '90%', overflowY: 'auto', boxShadow: '0 -12px 40px rgba(9,18,13,0.22)', animation: 'sheetUp .32s cubic-bezier(0.16,1,0.3,1) both' }}>
-        <div style={{ width: 38, height: 4, borderRadius: 2, background: MC.line, margin: '0 auto 14px' }} />
+      <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 53, background: MC.bg, borderRadius: '22px 22px 0 0', maxHeight: '90%', boxShadow: '0 -12px 40px rgba(9,18,13,0.22)', animation: 'sheetUp .32s cubic-bezier(0.16,1,0.3,1) both', display: 'flex', flexDirection: 'column' }}>
 
-        {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
-          <Avatar name={staffMember?.name} station={station} size={44} />
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 17, fontWeight: 600, letterSpacing: '-0.015em', color: MC.ink }}>{staffMember?.name ?? 'Unassigned'}</div>
-            <div style={{ fontSize: 12, color: MC.ink3, marginTop: 1 }}>{roleLabel || staffMember?.job_role || ''} · {format(day, 'EEE d MMM')}</div>
-          </div>
-          <span style={{ fontFamily: MONO, fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', padding: '4px 9px', borderRadius: 999, color: existing ? MC.ink2 : MC.accent, background: existing ? MC.line2 : MC.accentSoft }}>
-            {existing ? 'Edit' : 'New shift'}
-          </span>
-        </div>
+        {/* Scrollable form body */}
+        <div style={{ overflowY: 'auto', padding: '10px 16px 4px', flex: 1 }}>
+          <div style={{ width: 38, height: 4, borderRadius: 2, background: MC.line, margin: '0 auto 14px' }} />
 
-        {/* Presets */}
-        <div style={{ display: 'flex', gap: 7, marginBottom: 12 }}>
-          {PRESETS.map((p) => {
-            const on = startTime === p.s && endTime === p.e
-            return (
-              <button key={p.label} onClick={() => applyPreset(p)} style={{ flex: 1, cursor: 'pointer', fontFamily: SANS, border: `1px solid ${on ? col : MC.line}`, borderRadius: 10, padding: '7px 2px', background: on ? col : MC.paper, color: on ? '#fff' : MC.ink2 }}>
-                <div style={{ fontSize: 12, fontWeight: 600 }}>{p.label}</div>
-                <div style={{ fontFamily: MONO, fontSize: 8.5, marginTop: 1, opacity: on ? 0.8 : 0.5 }}>{fmtRange(p.s, p.e)}</div>
-              </button>
-            )
-          })}
-        </div>
-
-        {/* Start / End toggle */}
-        <div style={{ display: 'flex', gap: 8, background: MC.line2, padding: 4, borderRadius: 12, marginBottom: 12 }}>
-          {[['start', 'Start', startTime], ['end', 'End', endTime]].map(([k, lbl, val]) => {
-            const on = edge === k
-            return (
-              <button key={k} onClick={() => setEdge(k)} style={{ flex: 1, cursor: 'pointer', fontFamily: SANS, border: 'none', borderRadius: 9, padding: '7px 0', background: on ? MC.paper : 'transparent', boxShadow: on ? '0 1px 3px rgba(9,18,13,0.1)' : 'none' }}>
-                <div style={{ fontFamily: MONO, fontSize: 9, color: MC.ink3, textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>{lbl}</div>
-                <div style={{ fontFamily: MONO, fontSize: 17, fontWeight: 600, color: on ? col : MC.ink3, marginTop: 2, fontVariantNumeric: 'tabular-nums' }}>{val}</div>
-              </button>
-            )
-          })}
-        </div>
-
-        {/* Wheels */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 6 }}>
-          <Wheel values={HOURS}   value={curH} onChange={(h) => setCur(h, curM)} accent={col} />
-          <span style={{ fontFamily: MONO, fontSize: 22, fontWeight: 600, color: MC.ink3, paddingBottom: 2 }}>:</span>
-          <Wheel values={MINUTES} value={curM} onChange={(m) => setCur(curH, m)} accent={col} />
-        </div>
-
-        {/* Summary */}
-        <div style={{ padding: '11px 13px', borderRadius: 11, background: col + '14', display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 14 }}>
-          <span style={{ fontFamily: MONO, fontSize: 14, fontWeight: 600, color: MC.ink, fontVariantNumeric: 'tabular-nums' }}>{startTime}–{endTime}</span>
-          <span style={{ fontSize: 12.5, color: valid ? MC.ink3 : MC.bad }}>· {valid ? durLabel(startTime, endTime) : 'end must be after start'}</span>
-          {valid && cost != null && <span style={{ fontFamily: MONO, fontSize: 12.5, color: MC.ink3 }}>· ~£{cost}</span>}
-        </div>
-
-        {/* Role chips */}
-        {roles.length > 0 && (
-          <div style={{ marginBottom: 18 }}>
-            <div style={{ fontFamily: MONO, fontSize: 9.5, color: MC.ink3, textTransform: 'uppercase', letterSpacing: '0.07em', fontWeight: 600, marginBottom: 8 }}>Role</div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-              {roles.map((r) => {
-                const on = roleLabel === r.name
-                return (
-                  <button key={r.id} onClick={() => setRoleLabel(r.name)} style={{ cursor: 'pointer', fontFamily: SANS, fontSize: 12, fontWeight: 500, padding: '6px 12px', borderRadius: 999, border: `1px solid ${on ? MC.brand : MC.line}`, background: on ? MC.brand : MC.paper, color: on ? '#fff' : MC.ink2 }}>{r.name}</button>
-                )
-              })}
+          {/* Header */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
+            <Avatar name={staffMember?.name} station={station} size={44} />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 17, fontWeight: 600, letterSpacing: '-0.015em', color: MC.ink }}>{staffMember?.name ?? 'Unassigned'}</div>
+              <div style={{ fontSize: 12, color: MC.ink3, marginTop: 1 }}>{roleLabel || staffMember?.job_role || ''} · {format(day, 'EEE d MMM')}</div>
             </div>
+            <span style={{ fontFamily: MONO, fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', padding: '4px 9px', borderRadius: 999, color: existing ? MC.ink2 : MC.accent, background: existing ? MC.line2 : MC.accentSoft }}>
+              {existing ? 'Edit' : 'New shift'}
+            </span>
           </div>
-        )}
 
-        {/* Actions */}
-        <div style={{ display: 'flex', gap: 8 }}>
-          {existing && (
-            <button onClick={del} disabled={deleting} style={{ width: 52, height: 50, borderRadius: 13, border: `1px solid ${MC.bad}40`, background: MC.badBg, color: MC.bad, cursor: 'pointer', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
-              {deleting ? '…' : <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>}
-            </button>
+          {/* Presets */}
+          <div style={{ display: 'flex', gap: 7, marginBottom: 12 }}>
+            {PRESETS.map((p) => {
+              const on = startTime === p.s && endTime === p.e
+              return (
+                <button key={p.label} onClick={() => applyPreset(p)} style={{ flex: 1, cursor: 'pointer', fontFamily: SANS, border: `1px solid ${on ? col : MC.line}`, borderRadius: 10, padding: '7px 2px', background: on ? col : MC.paper, color: on ? '#fff' : MC.ink2 }}>
+                  <div style={{ fontSize: 12, fontWeight: 600 }}>{p.label}</div>
+                  <div style={{ fontFamily: MONO, fontSize: 8.5, marginTop: 1, opacity: on ? 0.8 : 0.5 }}>{fmtRange(p.s, p.e)}</div>
+                </button>
+              )
+            })}
+          </div>
+
+          {/* Start / End toggle */}
+          <div style={{ display: 'flex', gap: 8, background: MC.line2, padding: 4, borderRadius: 12, marginBottom: 12 }}>
+            {[['start', 'Start', startTime], ['end', 'End', endTime]].map(([k, lbl, val]) => {
+              const on = edge === k
+              return (
+                <button key={k} onClick={() => setEdge(k)} style={{ flex: 1, cursor: 'pointer', fontFamily: SANS, border: 'none', borderRadius: 9, padding: '7px 0', background: on ? MC.paper : 'transparent', boxShadow: on ? '0 1px 3px rgba(9,18,13,0.1)' : 'none' }}>
+                  <div style={{ fontFamily: MONO, fontSize: 9, color: MC.ink3, textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>{lbl}</div>
+                  <div style={{ fontFamily: MONO, fontSize: 17, fontWeight: 600, color: on ? col : MC.ink3, marginTop: 2, fontVariantNumeric: 'tabular-nums' }}>{val}</div>
+                </button>
+              )
+            })}
+          </div>
+
+          {/* Wheels */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 6 }}>
+            <Wheel values={HOURS}   value={curH} onChange={(h) => setCur(h, curM)} accent={col} />
+            <span style={{ fontFamily: MONO, fontSize: 22, fontWeight: 600, color: MC.ink3, paddingBottom: 2 }}>:</span>
+            <Wheel values={MINUTES} value={curM} onChange={(m) => setCur(curH, m)} accent={col} />
+          </div>
+
+          {/* Summary */}
+          <div style={{ padding: '11px 13px', borderRadius: 11, background: col + '14', display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 14 }}>
+            <span style={{ fontFamily: MONO, fontSize: 14, fontWeight: 600, color: MC.ink, fontVariantNumeric: 'tabular-nums' }}>{startTime}–{endTime}</span>
+            <span style={{ fontSize: 12.5, color: valid ? MC.ink3 : MC.bad }}>· {valid ? durLabel(startTime, endTime) : 'end must be after start'}</span>
+            {valid && cost != null && <span style={{ fontFamily: MONO, fontSize: 12.5, color: MC.ink3 }}>· ~£{cost}</span>}
+          </div>
+
+          {/* Role chips */}
+          {roles.length > 0 && (
+            <div style={{ marginBottom: 8 }}>
+              <div style={{ fontFamily: MONO, fontSize: 9.5, color: MC.ink3, textTransform: 'uppercase', letterSpacing: '0.07em', fontWeight: 600, marginBottom: 8 }}>Role</div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                {roles.map((r) => {
+                  const on = roleLabel === r.name
+                  return (
+                    <button key={r.id} onClick={() => setRoleLabel(r.name)} style={{ cursor: 'pointer', fontFamily: SANS, fontSize: 12, fontWeight: 500, padding: '6px 12px', borderRadius: 999, border: `1px solid ${on ? MC.brand : MC.line}`, background: on ? MC.brand : MC.paper, color: on ? '#fff' : MC.ink2 }}>{r.name}</button>
+                  )
+                })}
+              </div>
+            </div>
           )}
-          <button onClick={save} disabled={saving || !valid} style={{ flex: 1, height: 50, borderRadius: 13, border: 'none', cursor: (saving || !valid) ? 'default' : 'pointer', background: valid ? MC.brand : MC.line, color: valid ? '#fff' : MC.ink4, fontFamily: SANS, fontSize: 15, fontWeight: 700 }}>
-            {saving ? '…' : (existing ? 'Save changes' : 'Add to rota')}
-          </button>
+        </div>
+
+        {/* Sticky footer — always visible regardless of form scroll position */}
+        <div style={{ padding: '12px 16px', paddingBottom: 'max(24px, env(safe-area-inset-bottom))', borderTop: `1px solid ${MC.line2}`, background: MC.bg, flexShrink: 0 }}>
+          <div style={{ display: 'flex', gap: 8 }}>
+            {existing && (
+              <button onClick={del} disabled={deleting} style={{ width: 52, height: 50, borderRadius: 13, border: `1px solid ${MC.bad}40`, background: MC.badBg, color: MC.bad, cursor: 'pointer', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
+                {deleting ? '…' : <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>}
+              </button>
+            )}
+            <button onClick={save} disabled={saving || !valid} style={{ flex: 1, height: 50, borderRadius: 13, border: 'none', cursor: (saving || !valid) ? 'default' : 'pointer', background: valid ? MC.brand : MC.line, color: valid ? '#fff' : MC.ink4, fontFamily: SANS, fontSize: 15, fontWeight: 700 }}>
+              {saving ? '…' : (existing ? 'Save changes' : 'Add to rota')}
+            </button>
+          </div>
         </div>
       </div>
     </>
