@@ -212,9 +212,9 @@ function ShiftSheet({ shift, staffMember, day, venueId, roles, onClose, onSaved,
               <div style={{ fontSize: 17, fontWeight: 600, letterSpacing: '-0.015em', color: MC.ink }}>{staffMember?.name ?? 'Unassigned'}</div>
               <div style={{ fontSize: 12, color: MC.ink3, marginTop: 1 }}>{roleLabel || staffMember?.job_role || ''} · {format(day, 'EEE d MMM')}</div>
             </div>
-            <span style={{ fontFamily: MONO, fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', padding: '4px 9px', borderRadius: 999, color: existing ? MC.ink2 : MC.accent, background: existing ? MC.line2 : MC.accentSoft }}>
-              {existing ? 'Edit' : 'New shift'}
-            </span>
+            <button onClick={onClose} style={{ background: MC.line2, border: 'none', borderRadius: '50%', width: 32, height: 32, display: 'grid', placeItems: 'center', cursor: 'pointer', flexShrink: 0, color: MC.ink3 }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
           </div>
 
           {/* Presets */}
