@@ -521,11 +521,26 @@ export default function RotaMobileGrid() {
   const [showCost, setShowCost]     = useState(false)
   const [pendingChanges, setPendingChanges] = useState(0)
   const [publishing, setPublishing] = useState(false)
+  const [dbPublished, setDbPublished] = useState(false)
 
   const { shifts, loading, reload } = useShifts(weekStart, 1)
   const { staff, loading: staffLoading } = useStaffList()
   const { swaps, pendingCount, reload: reloadSwaps } = useShiftSwaps()
   const { roles } = useVenueRoles()
+
+  // Load actual publish state from DB whenever the viewed week changes
+  useEffect(() => {
+    if (!venueId) return
+    setDbPublished(false)
+    const weekStartStr = format(weekStart, 'yyyy-MM-dd')
+    supabase
+      .from('app_settings')
+      .select('value')
+      .eq('venue_id', venueId)
+      .eq('key', `rota_published_${weekStartStr}`)
+      .maybeSingle()
+      .then(({ data }) => setDbPublished(!!data?.value))
+  }, [venueId, weekStart])
 
   const prevWeek = () => { const w = subWeeks(weekStart, 1); setWeekStart(w); setWeekOffset(o => o - 1); setPendingChanges(0) }
   const nextWeek = () => { const w = addWeeks(weekStart, 1); setWeekStart(w); setWeekOffset(o => o + 1); setPendingChanges(0) }
@@ -557,7 +572,8 @@ export default function RotaMobileGrid() {
   const weekCost  = dayTotals.reduce((a, t) => a + t.cost, 0)
 
   const managerInitials = (session?.staffName ?? 'MG').split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase()
-  const isDraft = pendingChanges > 0
+  const isDraft      = pendingChanges > 0
+  const isPublished  = dbPublished && pendingChanges === 0
 
   const publish = async () => {
     setPublishing(true)
@@ -570,6 +586,7 @@ export default function RotaMobileGrid() {
     }
     setPublishing(false)
     setPendingChanges(0)
+    setDbPublished(true)
     toast('Rota published — everyone notified ✓')
   }
 
@@ -604,9 +621,9 @@ export default function RotaMobileGrid() {
               <svg width="6" height="10" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M5 1L1 5l4 4"/></svg>
               Team
             </button>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontFamily: MONO, fontSize: 9.5, fontWeight: 700, color: isDraft ? MC.warn : MC.good, background: isDraft ? MC.warnBg : MC.goodBg, padding: '3px 8px', borderRadius: 999, letterSpacing: '0.05em', textTransform: 'uppercase', border: `1px solid ${isDraft ? MC.warn : MC.good}25` }}>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontFamily: MONO, fontSize: 9.5, fontWeight: 700, color: isDraft ? MC.warn : isPublished ? MC.good : MC.ink3, background: isDraft ? MC.warnBg : isPublished ? MC.goodBg : MC.line2, padding: '3px 8px', borderRadius: 999, letterSpacing: '0.05em', textTransform: 'uppercase', border: `1px solid ${isDraft ? MC.warn : isPublished ? MC.good : MC.line}` }}>
               <span style={{ width: 5, height: 5, borderRadius: 3, background: 'currentColor' }} />
-              {isDraft ? `Draft · ${pendingChanges} unpublished` : 'Published'}
+              {isDraft ? `Draft · ${pendingChanges} change${pendingChanges !== 1 ? 's' : ''}` : isPublished ? 'Published' : 'Not published'}
             </span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
