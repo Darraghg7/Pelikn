@@ -144,9 +144,23 @@ export function SessionProvider({ children }) {
           // Opportunistically extend the session while we have a confirmed
           // valid token — fire-and-forget, failure is non-critical
           supabase.rpc('refresh_staff_session', { p_token: token }).catch(() => {})
+        } else if (error) {
+          // API error (e.g. brief Supabase outage, RLS issue) — treat the same
+          // as a network timeout: restore from localStorage rather than clearing,
+          // so a transient server error doesn't log the user out.
+          const errRestored = sessionFromStorage(token, navigator.onLine)
+          if (errRestored) {
+            setSession(errRestored)
+            try {
+              const raw = localStorage.getItem(SESSION_LINKED_VENUES)
+              if (raw) setLinkedVenues(JSON.parse(raw))
+            } catch { /* corrupt cache */ }
+          } else {
+            clearStorage()
+          }
         } else {
-          // Server explicitly says the token is invalid — clear it so the
-          // user is prompted to re-enter their PIN
+          // isValid === false — server explicitly says the token is invalid.
+          // Clear it so the user is prompted to re-enter their PIN.
           clearStorage()
           setSession(null)
         }

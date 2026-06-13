@@ -162,11 +162,13 @@ export default function StaffAlertModal({
   const [visible, setVisible] = useState(false)
   const [animating, setAnimating] = useState(false)
   const [selectedReason, setSelectedReason] = useState(null)
+  const [shakeReason, setShakeReason] = useState(false)
 
   useEffect(() => {
     if (open) {
       setVisible(true)
       setSelectedReason(null)
+      setShakeReason(false)
       requestAnimationFrame(() => setAnimating(true))
     } else if (visible) {
       setAnimating(false)
@@ -188,6 +190,15 @@ export default function StaffAlertModal({
   const showReasonChips = requireLateReason
   const reasonRequired  = requireLateReason && strikeCount >= 3
   const submitDisabled  = reasonRequired && !selectedReason
+
+  const handleSubmitClick = () => {
+    if (submitDisabled) {
+      setShakeReason(true)
+      setTimeout(() => setShakeReason(false), 500)
+      return
+    }
+    onAcknowledge(selectedReason)
+  }
 
   return (
     <div
@@ -319,19 +330,42 @@ export default function StaffAlertModal({
 
           {/* Reason chips */}
           {showReasonChips && (
-            <ReasonChips
-              type={type}
-              strikeCount={strikeCount}
-              selected={selectedReason}
-              onSelect={setSelectedReason}
-            />
+            <div
+              style={{
+                transition: 'transform 0.1s',
+                transform: shakeReason ? 'translateX(0)' : undefined,
+                animation: shakeReason ? 'shake-reason 0.45s ease' : undefined,
+              }}
+            >
+              <style>{`
+                @keyframes shake-reason {
+                  0%,100% { transform: translateX(0); }
+                  15%     { transform: translateX(-6px); }
+                  30%     { transform: translateX(6px); }
+                  45%     { transform: translateX(-4px); }
+                  60%     { transform: translateX(4px); }
+                  75%     { transform: translateX(-2px); }
+                  90%     { transform: translateX(2px); }
+                }
+              `}</style>
+              <ReasonChips
+                type={type}
+                strikeCount={strikeCount}
+                selected={selectedReason}
+                onSelect={setSelectedReason}
+              />
+              {submitDisabled && shakeReason && (
+                <p style={{ fontSize: 12, color: '#b3331c', marginTop: 6, fontWeight: 500 }}>
+                  Please select a reason to continue
+                </p>
+              )}
+            </div>
           )}
 
           {/* Acknowledge button */}
           <button
             type="button"
-            onClick={() => !submitDisabled && onAcknowledge(selectedReason)}
-            disabled={submitDisabled}
+            onClick={handleSubmitClick}
             style={{
               width: '100%',
               height: 50,
@@ -341,7 +375,7 @@ export default function StaffAlertModal({
               fontWeight: 700,
               fontSize: 15,
               border: 'none',
-              cursor: submitDisabled ? 'not-allowed' : 'pointer',
+              cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
