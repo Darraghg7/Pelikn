@@ -86,9 +86,10 @@ export default function CleaningPage() {
     reload()
   }
 
-  const filtered = filterStatus === 'all'
+  const filtered = (filterStatus === 'all'
     ? tasks
     : tasks.filter((t) => t.status === filterStatus)
+  ).slice().sort((a, b) => (a.status === 'done' ? 1 : 0) - (b.status === 'done' ? 1 : 0))
 
   if (loading) return <div className="flex justify-center py-10"><LoadingSpinner /></div>
 

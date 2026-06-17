@@ -277,7 +277,11 @@ function CheckSection({ type, label, checks, completions, onOK, onIssue, isManag
 
       {/* Rows */}
       <div className="flex flex-col divide-y divide-charcoal/6">
-        {typeChecks.map(check => {
+        {typeChecks.slice().sort((a, b) => {
+          const aDone = typeCompletions.some(c => c.check_id === a.id) ? 1 : 0
+          const bDone = typeCompletions.some(c => c.check_id === b.id) ? 1 : 0
+          return aDone - bDone
+        }).map(check => {
           const completion = typeCompletions.find(c => c.check_id === check.id) ?? null
           return (
             <CheckRow

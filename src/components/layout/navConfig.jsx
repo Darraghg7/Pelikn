@@ -61,6 +61,16 @@ export function IcoUsersNav() {
     </svg>
   )
 }
+export function IcoOverview() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="3" width="7" height="7" rx="1"/>
+      <rect x="14" y="3" width="7" height="7" rx="1"/>
+      <rect x="3" y="14" width="7" height="7" rx="1"/>
+      <rect x="14" y="14" width="7" height="7" rx="1"/>
+    </svg>
+  )
+}
 export function IcoCogNav() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
@@ -78,7 +88,7 @@ function P(children) {
     </svg>
   )
 }
-const PanelIcons = {
+export const PanelIcons = {
   dashboard:  P(<><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></>),
   checks:     P(<><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 01-2 2H6a2 2 0 01-2-2V5a2 2 0 012-2h9"/></>),
   tasks:      P(<><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></>),
@@ -110,6 +120,7 @@ const PanelIcons = {
 
 /* ── Route → { cat, itemId } map ───────────────────────────────────────────── */
 const ROUTE_MAP = [
+  ['/overview',               { cat: 'overview',   itemId: 'overview' }],
   ['/dashboard',              { cat: 'today',      itemId: 'dashboard' }],
   ['/opening-closing',        { cat: 'today',      itemId: 'openclose' }],
   ['/tasks',                  { cat: 'today',      itemId: 'tasks' }],

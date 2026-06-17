@@ -1,330 +1,381 @@
 import React, { useState } from 'react'
-import { Link } from 'react-router-dom'
-import { format, parseISO } from 'date-fns'
+import { format } from 'date-fns'
 import { useSession } from '../../contexts/SessionContext'
 import { useVenue } from '../../contexts/VenueContext'
+import { useAuth } from '../../contexts/AuthContext'
 import { useAllVenueCompliance } from '../../hooks/useAllVenueCompliance'
-import { supabase } from '../../lib/supabase'
+import { Navigate } from 'react-router-dom'
 
-/* ── Helpers ─────────────────────────────────────────────────────────────── */
-const STATUS_COLOUR = { green: '#2d7a4f', amber: '#b45309', red: '#c0392b', gray: '#9ca3af' }
-
-function StatusDot({ status }) {
-  return (
-    <span
-      className="inline-block w-2.5 h-2.5 rounded-full shrink-0"
-      style={{ backgroundColor: STATUS_COLOUR[status] ?? STATUS_COLOUR.gray }}
-    />
-  )
+/* ── Status helpers ──────────────────────────────────────────────────────────── */
+const STATUS = {
+  green:  { color: '#276640', bg: '#276640', label: 'All clear' },
+  amber:  { color: '#e08a4a', bg: '#e08a4a', label: 'Needs attention' },
+  red:    { color: '#d44d3a', bg: '#d44d3a', label: 'Checks missing' },
+  gray:   { color: '#9ca3af', bg: '#9ca3af', label: 'Loading…' },
 }
 
-function missingChecks(data) {
-  if (!data) return []
-  const missing = []
-  if (!data.fridgeAM)     missing.push('Fridge AM')
-  if (!data.fridgePM)     missing.push('Fridge PM')
-  if (!data.hotHoldingAM) missing.push('Hot Hold AM')
-  if (!data.hotHoldingPM) missing.push('Hot Hold PM')
-  return missing
+function statusFor(result) {
+  return STATUS[result.status] ?? STATUS.gray
 }
 
-/* ── Metric tile ─────────────────────────────────────────────────────────── */
-function MetricTile({ value, label, colour, loading }) {
-  const colourMap = {
-    green:  'text-success',
-    amber:  'text-warning',
-    red:    'text-danger',
-    brand:  'text-brand',
-    muted:  'text-charcoal/50',
-  }
+/* ── Check indicator (22×22 circle) ─────────────────────────────────────────── */
+function CheckDot({ done, label }) {
   return (
-    <div className="bg-white rounded-2xl border border-charcoal/8 px-5 py-4 flex flex-col gap-1">
-      <span className={`text-3xl font-bold tabular-nums ${colourMap[colour] ?? 'text-charcoal'}`}>
-        {loading ? <span className="inline-block w-8 h-7 rounded bg-charcoal/6 animate-pulse" /> : value}
-      </span>
-      <span className="text-xs text-charcoal/45 font-medium">{label}</span>
-    </div>
-  )
-}
-
-/* ── Section heading ─────────────────────────────────────────────────────── */
-function SectionHeading({ label, count, colour }) {
-  const dot = { red: 'bg-danger', amber: 'bg-warning' }[colour]
-  return (
-    <div className="flex items-center gap-2.5">
-      {dot && <span className={`w-2 h-2 rounded-full ${dot}`} />}
-      <span className="text-[11px] tracking-widest uppercase font-semibold text-charcoal/50">
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
+      <div style={{
+        width: 22, height: 22, borderRadius: '50%',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        fontSize: 10, fontWeight: 700,
+        background: done ? 'rgba(39,102,64,0.12)' : 'rgba(212,77,58,0.10)',
+        color: done ? '#276640' : '#d44d3a',
+      }}>
+        {done ? '✓' : '✕'}
+      </div>
+      <span style={{ fontSize: 8, fontWeight: 600, color: 'rgba(14,20,17,0.40)', textAlign: 'center', lineHeight: 1.2 }}>
         {label}
       </span>
-      <span className="text-[11px] text-charcoal/30 font-medium">{count}</span>
     </div>
   )
 }
 
-/* ── Time-off row (inline approve/decline) ───────────────────────────────── */
-function TimeOffRow({ req, venueId }) {
-  const { session } = useSession()
-  const [state, setState] = useState('idle') // idle | approving | rejecting | done
-
-  const handle = async (action) => {
-    setState(action === 'approve' ? 'approving' : 'rejecting')
-    await supabase.from('time_off_requests').update({
-      status:      action === 'approve' ? 'approved' : 'rejected',
-      reviewed_by: session.staffId,
-      reviewed_at: new Date().toISOString(),
-    }).eq('id', req.id)
-    setState('done')
-  }
-
-  if (state === 'done') return null
-
-  const fmtDate = d => format(parseISO(d), 'd MMM')
-  const range = req.start_date === req.end_date
-    ? fmtDate(req.start_date)
-    : `${fmtDate(req.start_date)} – ${fmtDate(req.end_date)}`
-
-  const busy = state === 'approving' || state === 'rejecting'
-
+/* ── Footer stat cell ────────────────────────────────────────────────────────── */
+function StatCell({ value, label, color, last }) {
   return (
-    <div className="flex items-center justify-between gap-3 py-2 px-3 rounded-xl bg-charcoal/2 border border-charcoal/6">
-      <div className="min-w-0 flex-1">
-        <p className="text-xs font-semibold text-charcoal truncate">{req.staff?.name ?? 'Staff'}</p>
-        <p className="text-[11px] text-charcoal/40">{range}</p>
+    <div style={{
+      flex: 1, paddingLeft: 14, paddingTop: 10, paddingBottom: 10,
+      borderRight: last ? 'none' : '1px solid rgba(14,20,17,0.08)',
+    }}>
+      <div style={{ fontSize: 17, fontWeight: 700, color: color ?? '#0E1411', fontVariantNumeric: 'tabular-nums', lineHeight: 1 }}>
+        {value}
       </div>
-      <div className="flex gap-1.5 shrink-0">
-        <button
-          disabled={busy}
-          onClick={() => handle('approve')}
-          className="text-[11px] font-semibold px-2.5 py-1 rounded-lg bg-success text-white hover:bg-success/90 disabled:opacity-40 transition-colors"
-        >
-          {state === 'approving' ? '…' : 'Approve'}
-        </button>
-        <button
-          disabled={busy}
-          onClick={() => handle('reject')}
-          className="text-[11px] font-semibold px-2.5 py-1 rounded-lg border border-charcoal/15 text-charcoal/60 hover:border-charcoal/30 hover:text-charcoal disabled:opacity-40 transition-colors"
-        >
-          {state === 'rejecting' ? '…' : 'Decline'}
-        </button>
+      <div style={{ fontSize: 9, fontWeight: 600, color: 'rgba(14,20,17,0.40)', marginTop: 1 }}>
+        {label}
       </div>
     </div>
   )
 }
 
-/* ── Alert card (critical / attention) ──────────────────────────────────── */
-function AlertCard({ result, type }) {
-  const { venue, data, status } = result
-  const borderColour = type === 'critical' ? 'border-danger/20' : 'border-warning/20'
-  const bgColour     = type === 'critical' ? 'bg-danger/2'      : 'bg-warning/2'
-  const missing      = missingChecks(data)
-
-  return (
-    <div className={`rounded-2xl border ${borderColour} ${bgColour} overflow-hidden`}>
-      <div className="px-4 py-3 flex items-center justify-between gap-3 border-b border-charcoal/6">
-        <div className="flex items-center gap-2.5 min-w-0">
-          <StatusDot status={status} />
-          <p className="font-semibold text-sm text-charcoal truncate">{venue.name}</p>
-        </div>
-        <button
-          onClick={() => window.location.replace(`/v/${venue.slug}/dashboard`)}
-          className="text-xs px-3 py-1.5 rounded-lg border border-charcoal/15 text-charcoal/60 hover:text-charcoal hover:border-charcoal/30 transition-colors whitespace-nowrap shrink-0"
-        >
-          Open →
-        </button>
-      </div>
-
-      <div className="px-4 py-3 flex flex-col gap-2.5">
-        {missing.length > 0 && (
-          <div className="flex flex-wrap gap-1.5">
-            {missing.map(m => (
-              <span key={m} className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-danger/8 text-danger">
-                <span className="opacity-60">✕</span> {m}
-              </span>
-            ))}
-          </div>
-        )}
-
-        {data?.pendingTimeOff?.length > 0 && (
-          <div className="flex flex-col gap-1.5">
-            <p className="text-[10px] tracking-widest uppercase text-charcoal/35 font-semibold">
-              Time off · {data.pendingTimeOff.length} pending
-            </p>
-            {data.pendingTimeOff.map(req => (
-              <TimeOffRow key={req.id} req={req} venueId={venue.id} />
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
-  )
-}
-
-/* ── Compact venue row (table) ───────────────────────────────────────────── */
-function VenueRow({ result, isHome }) {
+/* ── Venue card ──────────────────────────────────────────────────────────────── */
+function VenueCard({ result, isHome, dimmed, onOpen }) {
+  const [hovered, setHovered] = useState(false)
   const { venue, data, status, loading } = result
+  const st = statusFor(result)
 
-  const checks = data
-    ? [
-        { label: 'Fridge AM', done: data.fridgeAM },
-        { label: 'Fridge PM', done: data.fridgePM },
-        { label: 'Hot Hold AM', done: data.hotHoldingAM },
-        { label: 'Hot Hold PM', done: data.hotHoldingPM },
-      ]
-    : []
+  const checks = [
+    { label: 'Fridge AM', done: data?.fridgeAM },
+    { label: 'Fridge PM', done: data?.fridgePM },
+    { label: 'H·Hold AM', done: data?.hotHoldingAM },
+    { label: 'H·Hold PM', done: data?.hotHoldingPM },
+  ]
+
+  const pendingCount = data?.pendingTimeOff?.length ?? 0
 
   return (
-    <div className="flex items-center gap-4 py-3 px-4 rounded-xl hover:bg-charcoal/2 transition-colors group">
-      {/* Name */}
-      <div className="flex items-center gap-2.5 w-44 shrink-0 min-w-0">
-        <StatusDot status={loading ? 'gray' : status} />
-        <div className="min-w-0">
-          <p className="text-sm font-medium text-charcoal truncate">{venue.name}</p>
-          {isHome && (
-            <span className="text-[9px] tracking-widest uppercase text-brand/60 font-semibold">Home</span>
-          )}
+    <div
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      onClick={() => !dimmed && onOpen(venue.slug)}
+      style={{
+        background: '#ffffff',
+        borderRadius: 16,
+        border: '1px solid rgba(14,20,17,0.08)',
+        overflow: 'hidden',
+        cursor: dimmed ? 'default' : 'pointer',
+        opacity: dimmed ? 0.20 : 1,
+        pointerEvents: dimmed ? 'none' : 'auto',
+        transform: hovered && !dimmed ? 'translateY(-2px)' : 'translateY(0)',
+        boxShadow: hovered && !dimmed ? '0 8px 24px rgba(0,0,0,0.10)' : 'none',
+        transition: 'transform 150ms, box-shadow 150ms, opacity 150ms',
+        display: 'flex', flexDirection: 'column',
+      }}
+    >
+      {/* 3px coloured top bar */}
+      <div style={{ height: 3, background: st.bg, borderRadius: '16px 16px 0 0' }} />
+
+      {/* Top section */}
+      <div style={{ padding: '14px 16px 10px' }}>
+        <div style={{ fontSize: 14, fontWeight: 700, color: '#0E1411', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {venue.name}
+        </div>
+        <div style={{ fontSize: 10, fontWeight: 700, color: st.color, marginTop: 2 }}>
+          {loading ? 'Loading…' : st.label}
+        </div>
+        {isHome && (
+          <span style={{
+            display: 'inline-block', marginTop: 4,
+            fontSize: 8.5, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em',
+            color: '#2D4F45', background: 'rgba(45,79,69,0.09)',
+            padding: '2px 6px', borderRadius: 4,
+          }}>
+            Home
+          </span>
+        )}
+        <div style={{
+          marginTop: isHome ? 6 : 8,
+          opacity: hovered ? 1 : 0,
+          transition: 'opacity 150ms',
+        }}>
+          <button
+            onClick={(e) => { e.stopPropagation(); onOpen(venue.slug) }}
+            style={{
+              fontSize: 11, fontWeight: 600,
+              color: '#0E1411', background: 'none',
+              border: '1px solid rgba(14,20,17,0.18)',
+              borderRadius: 7, padding: '3px 10px',
+              cursor: 'pointer', fontFamily: 'Plus Jakarta Sans, sans-serif',
+            }}
+          >
+            Open →
+          </button>
         </div>
       </div>
 
-      {/* Check dots */}
-      <div className="flex items-center gap-1.5 flex-1">
-        {loading ? (
-          <div className="flex gap-1.5">
-            {[0,1,2,3].map(i => <span key={i} className="w-5 h-5 rounded-full bg-charcoal/6 animate-pulse" />)}
-          </div>
-        ) : (
-          checks.map(c => (
-            <span
-              key={c.label}
-              title={c.label}
-              className={[
-                'w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold',
-                c.done ? 'bg-success/12 text-success' : 'bg-danger/8 text-danger',
-              ].join(' ')}
-            >
-              {c.done ? '✓' : '✕'}
-            </span>
-          ))
-        )}
-      </div>
-
-      {/* On shift */}
-      <div className="w-20 shrink-0 text-center">
+      {/* Checks row */}
+      <div style={{
+        padding: '6px 16px 12px',
+        borderBottom: '1px solid rgba(14,20,17,0.08)',
+        display: 'flex', gap: 8,
+      }}>
         {loading
-          ? <span className="inline-block w-6 h-4 bg-charcoal/6 animate-pulse rounded" />
-          : <span className="text-sm text-charcoal/70">{data?.clockedInCount ?? 0}</span>
+          ? [0,1,2,3].map(i => (
+              <div key={i} style={{ width: 22, height: 22, borderRadius: '50%', background: 'rgba(14,20,17,0.06)', animation: 'pulse 1.5s ease-in-out infinite' }} />
+            ))
+          : checks.map(c => <CheckDot key={c.label} done={c.done} label={c.label} />)
         }
       </div>
 
-      {/* Pending */}
-      <div className="w-20 shrink-0 text-center">
-        {loading
-          ? <span className="inline-block w-6 h-4 bg-charcoal/6 animate-pulse rounded" />
-          : data?.pendingTimeOff?.length > 0
-            ? <span className="text-sm font-semibold text-warning">{data.pendingTimeOff.length}</span>
-            : <span className="text-sm text-charcoal/25">—</span>
-        }
+      {/* Footer stats */}
+      <div style={{ display: 'flex' }}>
+        <StatCell
+          value={loading ? '—' : (data?.clockedInCount ?? 0)}
+          label="On shift"
+          color={data?.clockedInCount > 0 ? '#276640' : '#0E1411'}
+        />
+        <StatCell
+          value="—"
+          label="Flags"
+          color="#0E1411"
+        />
+        <StatCell
+          value={loading ? '—' : (pendingCount > 0 ? pendingCount : '—')}
+          label="Pending"
+          color={pendingCount > 0 ? '#e08a4a' : 'rgba(14,20,17,0.30)'}
+        />
+        <StatCell
+          value="—"
+          label="Training"
+          color="rgba(14,20,17,0.30)"
+          last
+        />
       </div>
-
-      {/* Open */}
-      <button
-        onClick={() => window.location.replace(`/v/${venue.slug}/dashboard`)}
-        className="text-xs px-3 py-1.5 rounded-lg border border-charcoal/12 text-charcoal/50 hover:text-charcoal hover:border-charcoal/30 transition-colors shrink-0 opacity-0 group-hover:opacity-100"
-      >
-        Open →
-      </button>
     </div>
   )
 }
 
-/* ── Page ────────────────────────────────────────────────────────────────── */
+/* ── Summary strip cell ──────────────────────────────────────────────────────── */
+const STRIP_CELLS = [
+  { key: 'clear',     label: 'All clear',        color: '#276640', borderColor: '#276640' },
+  { key: 'attention', label: 'Need attention',    color: '#d44d3a', borderColor: '#d44d3a' },
+  { key: 'staff',     label: 'Staff on shift',    color: '#2D4F45', borderColor: '#2D4F45' },
+  { key: 'pending',   label: 'Decisions pending', color: '#e08a4a', borderColor: '#e08a4a' },
+]
+
+function StripCell({ cell, value, isActive, onClick, loading, isLast }) {
+  const [hovered, setHovered] = useState(false)
+  return (
+    <button
+      onClick={onClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        flex: 1, padding: '14px 18px 12px', textAlign: 'left',
+        background: isActive ? 'rgba(14,20,17,0.04)' : hovered ? 'rgba(14,20,17,0.02)' : 'transparent',
+        border: 'none', cursor: 'pointer',
+        borderRight: isLast ? 'none' : '1px solid rgba(14,20,17,0.08)',
+        position: 'relative',
+        transition: 'background .1s',
+        fontFamily: 'Plus Jakarta Sans, sans-serif',
+      }}
+    >
+      {/* Active bottom border */}
+      {isActive && (
+        <span style={{
+          position: 'absolute', bottom: 0, left: 0, right: 0,
+          height: 2.5, background: cell.borderColor, borderRadius: '2px 2px 0 0',
+        }} />
+      )}
+      <div style={{
+        fontSize: 28, fontWeight: 700, letterSpacing: '-0.04em',
+        fontVariantNumeric: 'tabular-nums',
+        color: cell.color,
+        lineHeight: 1,
+      }}>
+        {loading ? (
+          <span style={{ display: 'inline-block', width: 40, height: 28, borderRadius: 6, background: 'rgba(14,20,17,0.06)' }} />
+        ) : value}
+      </div>
+      <div style={{
+        fontSize: 10, fontWeight: 600, color: 'rgba(14,20,17,0.40)', marginTop: 3,
+        textTransform: 'uppercase', letterSpacing: '0.04em',
+      }}>
+        {cell.label}
+      </div>
+    </button>
+  )
+}
+
+/* ── Page ─────────────────────────────────────────────────────────────────────── */
 export default function OverviewPage() {
-  const { linkedVenues } = useSession()
+  const { isManager } = useSession()
   const { venueId, venueSlug, venueName } = useVenue()
+  const { venues } = useAuth()
 
-  const homeVenue = { id: venueId, slug: venueSlug, name: venueName }
-  const allVenues = [homeVenue, ...linkedVenues]
+  const isMultiVenue = isManager && (venues?.length ?? 0) > 1
+  if (!isMultiVenue) return <Navigate to={`/v/${venueSlug}/dashboard`} replace />
 
+  const allVenues = venues ?? []
   const { results, aggregate, loading } = useAllVenueCompliance(allVenues)
 
-  const critical  = results.filter(r => r.status === 'red')
-  const attention = results.filter(r => r.status === 'amber')
+  const [activeFilter, setActiveFilter] = useState(null) // 'clear' | 'attention' | 'staff' | 'pending' | null
+
+  const stripValues = {
+    clear:     aggregate.allClear,
+    attention: aggregate.critical + aggregate.attention,
+    staff:     aggregate.onShift,
+    pending:   aggregate.decisions,
+  }
+
+  const filterLabels = {
+    clear:     'All clear venues',
+    attention: 'Venues needing attention',
+    staff:     'Venues with staff on shift',
+    pending:   'Venues with pending decisions',
+  }
+
+  function matchesFilter(result) {
+    if (!activeFilter) return true
+    if (activeFilter === 'clear')     return result.status === 'green'
+    if (activeFilter === 'attention') return result.status === 'red' || result.status === 'amber'
+    if (activeFilter === 'staff')     return (result.data?.clockedInCount ?? 0) > 0
+    if (activeFilter === 'pending')   return (result.data?.pendingTimeOff?.length ?? 0) > 0
+    return true
+  }
+
+  const handleCellClick = (key) => {
+    setActiveFilter(prev => prev === key ? null : key)
+  }
+
+  const handleOpenVenue = (slug) => {
+    window.location.replace(`/v/${slug}/dashboard`)
+  }
+
+  const greeting = (() => {
+    const h = new Date().getHours()
+    if (h < 12) return 'Good morning'
+    if (h < 17) return 'Good afternoon'
+    return 'Good evening'
+  })()
+
+  const activeCell = STRIP_CELLS.find(c => c.key === activeFilter)
 
   return (
-    <div className="flex flex-col gap-6">
+    <div style={{ maxWidth: 1280, margin: '0 auto', padding: '32px 0' }}>
 
-      {/* Header */}
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-charcoal">My Venues</h1>
-          <p className="text-sm text-charcoal/45 mt-0.5">
-            {format(new Date(), 'EEEE d MMMM')} · {allVenues.length} venue{allVenues.length !== 1 ? 's' : ''}
-          </p>
-        </div>
-        <Link
-          to={`/v/${venueSlug}/dashboard`}
-          className="text-[11px] tracking-widest uppercase text-charcoal/40 hover:text-charcoal transition-colors border-b border-charcoal/20 whitespace-nowrap shrink-0"
-        >
-          ← {venueName || 'Dashboard'}
-        </Link>
+      {/* Greeting */}
+      <div style={{ marginBottom: 24 }}>
+        <h1 style={{ fontSize: 26, fontWeight: 700, color: '#0E1411', letterSpacing: '-0.02em', margin: 0 }}>
+          {greeting}
+        </h1>
+        <p style={{ fontSize: 13, color: 'rgba(14,20,17,0.45)', marginTop: 4 }}>
+          {format(new Date(), 'EEEE, d MMMM')} · {allVenues.length} venue{allVenues.length !== 1 ? 's' : ''}
+        </p>
       </div>
 
-      {/* Metric tiles */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <MetricTile value={aggregate.allClear}  label="All clear"        colour="green" loading={loading} />
-        <MetricTile value={aggregate.critical + aggregate.attention} label="Need attention" colour={aggregate.critical > 0 ? 'red' : aggregate.attention > 0 ? 'amber' : 'muted'} loading={loading} />
-        <MetricTile value={aggregate.onShift}   label="Staff on shift"   colour="brand" loading={loading} />
-        <MetricTile value={aggregate.decisions} label="Decisions pending" colour={aggregate.decisions > 0 ? 'amber' : 'muted'} loading={loading} />
+      {/* Summary strip */}
+      <div style={{
+        background: '#ffffff', borderRadius: 16,
+        border: '1px solid rgba(14,20,17,0.08)',
+        display: 'flex', overflow: 'hidden',
+        marginBottom: 16,
+      }}>
+        {STRIP_CELLS.map((cell, i) => (
+          <StripCell
+            key={cell.key}
+            cell={cell}
+            value={stripValues[cell.key]}
+            isActive={activeFilter === cell.key}
+            onClick={() => handleCellClick(cell.key)}
+            loading={loading}
+            isLast={i === STRIP_CELLS.length - 1}
+          />
+        ))}
       </div>
 
-      {/* Critical venues */}
-      {critical.length > 0 && (
-        <div className="flex flex-col gap-3">
-          <SectionHeading label="Critical — checks missing" count={critical.length} colour="red" />
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {critical.map(r => (
-              <AlertCard key={r.venue.id} result={r} type="critical" />
-            ))}
-          </div>
+      {/* Filter bar */}
+      {activeFilter && activeCell && (
+        <div style={{
+          background: '#ffffff', borderRadius: 12,
+          border: '1px solid rgba(14,20,17,0.08)',
+          padding: '9px 14px',
+          display: 'flex', alignItems: 'center', gap: 10,
+          marginBottom: 16,
+          animation: 'fadeSlideIn 150ms ease',
+        }}>
+          <span style={{ width: 7, height: 7, borderRadius: '50%', background: activeCell.color, flexShrink: 0 }} />
+          <span style={{ fontSize: 12, fontWeight: 600, color: '#0E1411', flex: 1 }}>
+            {filterLabels[activeFilter]}
+          </span>
+          <button
+            onClick={() => setActiveFilter(null)}
+            style={{
+              fontSize: 11, fontWeight: 600, color: 'rgba(14,20,17,0.40)',
+              background: 'none', border: 'none', cursor: 'pointer',
+              fontFamily: 'Plus Jakarta Sans, sans-serif',
+              transition: 'color .12s',
+            }}
+            onMouseEnter={e => e.currentTarget.style.color = '#0E1411'}
+            onMouseLeave={e => e.currentTarget.style.color = 'rgba(14,20,17,0.40)'}
+          >
+            Clear ✕
+          </button>
         </div>
       )}
 
-      {/* Attention venues */}
-      {attention.length > 0 && (
-        <div className="flex flex-col gap-3">
-          <SectionHeading label="Attention needed" count={attention.length} colour="amber" />
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {attention.map(r => (
-              <AlertCard key={r.venue.id} result={r} type="attention" />
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* All venues table */}
-      <div className="flex flex-col gap-2">
-        <SectionHeading label="All venues" count={results.length} />
-        <div className="bg-white rounded-2xl border border-charcoal/8 overflow-hidden">
-          {/* Table header */}
-          <div className="flex items-center gap-4 py-2 px-4 border-b border-charcoal/6">
-            <span className="text-[10px] tracking-widest uppercase text-charcoal/30 font-semibold w-44 shrink-0">Venue</span>
-            <div className="flex items-center gap-1.5 flex-1">
-              {['F·AM', 'F·PM', 'H·AM', 'H·PM'].map(l => (
-                <span key={l} className="text-[10px] tracking-widest uppercase text-charcoal/30 font-semibold w-5 text-center">{l}</span>
-              ))}
-            </div>
-            <span className="text-[10px] tracking-widest uppercase text-charcoal/30 font-semibold w-20 shrink-0 text-center">On shift</span>
-            <span className="text-[10px] tracking-widest uppercase text-charcoal/30 font-semibold w-20 shrink-0 text-center">Leave</span>
-            <span className="w-[68px] shrink-0" />
-          </div>
-
-          {results.map((r, i) => (
-            <div key={r.venue.id} className={i < results.length - 1 ? 'border-b border-charcoal/4' : ''}>
-              <VenueRow result={r} isHome={i === 0} />
-            </div>
-          ))}
-        </div>
+      {/* Venue card grid */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(3, 1fr)',
+        gap: 12,
+      }}>
+        {results.map(r => (
+          <VenueCard
+            key={r.venue.id}
+            result={r}
+            isHome={r.venue.slug === venueSlug}
+            dimmed={activeFilter !== null && !matchesFilter(r)}
+            onOpen={handleOpenVenue}
+          />
+        ))}
+        {/* Loading placeholders */}
+        {loading && results.length === 0 && allVenues.map(v => (
+          <div key={v.id} style={{
+            height: 220, background: '#ffffff', borderRadius: 16,
+            border: '1px solid rgba(14,20,17,0.08)',
+            animation: 'pulse 1.5s ease-in-out infinite',
+          }} />
+        ))}
       </div>
 
+      <style>{`
+        @keyframes fadeSlideIn {
+          from { opacity: 0; transform: translateY(-3px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50%       { opacity: 0.5; }
+        }
+      `}</style>
     </div>
   )
 }

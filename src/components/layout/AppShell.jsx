@@ -12,7 +12,7 @@ import { preloadRoute } from '../../lib/routePreload'
 import Rail from './RailNav'
 import NavPanel from './NavPanel'
 import NavTopbar from './NavTopbar'
-import { routeToNav, buildManagerCats, buildStaffCats } from './navConfig'
+import { routeToNav, buildManagerCats, buildStaffCats, IcoOverview, PanelIcons } from './navConfig'
 
 // Per-venue cache — busted automatically after TTL or on app restart
 const CACHE_TTL = 60_000 // 1 minute
@@ -522,10 +522,16 @@ export default function AppShell({ children }) {
     return () => window.removeEventListener('keydown', onKey)
   }, [])
 
+  const isMultiVenue = isManager && (venues?.length ?? 0) > 1
+
   // Rail pick — also re-opens panel if it was collapsed
   const handlePickCat = (catId) => {
     if (panelCollapsed) setPanelCollapsed(false)
     setBrowseCat(catId)
+    if (catId === 'overview') {
+      navigate(vp('/overview'))
+      return
+    }
     if (isSettingsRoute) {
       const cat = cats.find(c => c.id === catId)
       const firstItem = cat?.items?.[0]
@@ -537,7 +543,22 @@ export default function AppShell({ children }) {
     ? buildManagerCats({ isEnabled, isPlanLocked, overdueCount, pendingSwaps, vp })
     : buildStaffCats({ isEnabled, isPlanLocked, hasPermission, overdueCount, vp })
 
-  const browseCatObj   = cats.find(c => c.id === browseCat) || cats[0]
+  const overviewCat = isMultiVenue ? {
+    id: 'overview',
+    label: 'Overview',
+    title: 'My Venues',
+    subtitle: `${venues.length} venue${venues.length !== 1 ? 's' : ''} · Multi-venue view`,
+    icon: <IcoOverview />,
+    items: [
+      { id: 'overview',    label: 'Group Overview', sub: `All ${venues.length} venues at a glance`, icon: PanelIcons.dashboard, route: vp('/overview') },
+      { id: 'noticeboard', label: 'Noticeboard',    sub: 'Group-wide announcements',                icon: PanelIcons.board,    route: vp('/noticeboard') },
+      { id: 'allstaff',    label: 'All Staff',       sub: 'Across all venues',                       icon: PanelIcons.staff,    route: vp('/staff') },
+    ],
+  } : null
+
+  const allCats = overviewCat ? [overviewCat, ...cats] : cats
+
+  const browseCatObj   = allCats.find(c => c.id === browseCat) || allCats[0]
   const panelActiveItem = browseCat === mainCat ? mainItem : null
 
   const bgClass = 'bg-surface dark:bg-[#111111]'
@@ -554,7 +575,7 @@ export default function AppShell({ children }) {
       {/* ── Desktop rail + panel (hidden below lg) ─────────────────────────── */}
       <div className="hidden lg:block">
         <Rail
-          cats={cats}
+          cats={allCats}
           browseCat={browseCat}
           mainCat={mainCat}
           onPickCat={handlePickCat}
@@ -573,6 +594,11 @@ export default function AppShell({ children }) {
             onPickItem={(item) => navigate(item.route, { preventScrollReset: true })}
             isPreview={browseCat !== mainCat}
             onCollapse={() => setPanelCollapsed(true)}
+            isMultiVenue={isMultiVenue}
+            venues={allSwitchableVenues}
+            currentSlug={venueSlug}
+            onSwitchVenue={handleSwitchVenue}
+            onNavigateOverview={() => navigate(vp('/overview'))}
           />
         )}
         {/* Edge tab — expand handle when panel is collapsed */}
@@ -639,8 +665,8 @@ export default function AppShell({ children }) {
           <div className="hidden lg:block">
             <NavTopbar
               venueName={venueName}
-              catLabel={cats.find(c => c.id === mainCat)?.label ?? ''}
-              itemLabel={cats.find(c => c.id === mainCat)?.items.find(i => i.id === mainItem)?.label ?? ''}
+              catLabel={allCats.find(c => c.id === mainCat)?.label ?? ''}
+              itemLabel={allCats.find(c => c.id === mainCat)?.items.find(i => i.id === mainItem)?.label ?? ''}
             />
           </div>
         )}
