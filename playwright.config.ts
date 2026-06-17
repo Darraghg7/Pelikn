@@ -18,6 +18,8 @@ export default defineConfig({
   },
 
   projects: [
+    // Optional: run global-setup to generate real auth state files.
+    // Tests that use injectManagerSession() work without this.
     {
       name: 'setup',
       testMatch: /global-setup\.ts/,
@@ -26,9 +28,11 @@ export default defineConfig({
       name: 'chromium',
       use: {
         ...devices['Desktop Chrome'],
-        storageState: 'tests/auth/manager-state.json',
+        // storageState is used only when real auth state files exist.
+        // Tests that call injectManagerSession() bypass this entirely.
+        storageState: process.env.USE_AUTH_STATE ? 'tests/auth/manager-state.json' : undefined,
       },
-      dependencies: ['setup'],
+      // No dependency on setup — tests run without credentials by default.
     },
   ],
 
