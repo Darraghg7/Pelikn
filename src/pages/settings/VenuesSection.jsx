@@ -48,11 +48,16 @@ export default function VenuesSection() {
       return
     }
 
-    toast(`${form.name} added successfully`)
+    // Refresh venue list in context, then switch to the new venue.
+    // DashboardPage will detect that onboarding_complete is not set for
+    // this venue and redirect to /setup automatically.
+    const newSlug = form.slug.trim()
+    await refreshVenues()
     setShowForm(false)
     setForm({ name: '', slug: '' })
     setSlugEdited(false)
-    refreshVenues()
+    selectVenue(newSlug)
+    window.location.replace(`/v/${newSlug}/dashboard`)
   }
 
   const handleOpenVenue = (slug) => {

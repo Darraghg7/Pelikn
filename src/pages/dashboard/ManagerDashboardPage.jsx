@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { format } from 'date-fns'
 import { useVenue } from '../../contexts/VenueContext'
@@ -231,21 +231,10 @@ export default function ManagerDashboardPage() {
   const { venueId, venuePlan, venueSlug } = useVenue()
   const { session } = useSession()
   const toast = useToast()
-  const navigate = useNavigate()
 
-  // Redirect to setup wizard if onboarding not yet complete
-  useEffect(() => {
-    if (!venueId) return
-    supabase
-      .from('app_settings')
-      .select('value')
-      .eq('venue_id', venueId)
-      .eq('key', 'onboarding_complete')
-      .maybeSingle()
-      .then(({ data }) => {
-        if (!data) navigate(`/v/${venueSlug}/setup`, { replace: true })
-      })
-  }, [venueId, venueSlug, navigate])
+  // Setup redirect is handled exclusively in DashboardPage (the parent),
+  // which also runs the staff-count safety check before sending anyone
+  // through the wizard. No second check needed here.
   const { venueName } = useVenueBranding(venueId)
   const { widgetIds, save } = useWidgetPreferences(session?.staffId, venueId)
   const { todayItemIds, save: saveToday } = useTodayPreferences(session?.staffId, venueId)

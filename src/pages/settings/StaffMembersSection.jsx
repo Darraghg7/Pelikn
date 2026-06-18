@@ -19,8 +19,21 @@ import { saveStaffPermissions } from '../../hooks/useStaffPermissions'
 
 const PERMISSION_ROLES  = ['staff', 'manager', 'owner']
 const PERMISSION_LABELS = { staff: 'Staff', manager: 'Manager', owner: 'Owner' }
-const JOB_ROLES  = ['kitchen', 'foh']
-const JOB_LABELS = { kitchen: 'Kitchen', foh: 'Front of House' }
+const JOB_ROLES = [
+  { value: 'manager',         label: 'Manager' },
+  { value: 'supervisor',      label: 'Supervisor' },
+  { value: 'head_chef',       label: 'Head Chef' },
+  { value: 'sous_chef',       label: 'Sous Chef' },
+  { value: 'chef_de_partie',  label: 'Chef de Partie' },
+  { value: 'kitchen_porter',  label: 'Kitchen Porter' },
+  { value: 'front_of_house',  label: 'Front of House' },
+  { value: 'waiting_staff',   label: 'Waiting Staff' },
+  { value: 'bar_staff',       label: 'Bar Staff' },
+  { value: 'barista',         label: 'Barista' },
+  { value: 'delivery_driver', label: 'Delivery Driver' },
+  { value: 'other',           label: 'Other' },
+]
+const JOB_LABELS = Object.fromEntries(JOB_ROLES.map(r => [r.value, r.label]))
 const EMPLOYMENT_TYPES = [
   { value: 'full_time',   label: 'Full-time' },
   { value: 'part_time',   label: 'Part-time' },
@@ -120,7 +133,7 @@ function ContractTypeRow({ s, onSave }) {
 }
 
 const EMPTY_FORM = {
-  name: '', role: 'staff', job_role: 'kitchen', pin: '', email: '', hourly_rate: '',
+  name: '', role: 'staff', job_role: '', pin: '', email: '', hourly_rate: '',
   contracted_hours: '',
   show_temp_logs: false, show_allergens: false, skills: [], is_under_18: false,
   working_days: [], colour: '',
@@ -250,7 +263,7 @@ export default function StaffMembersSection() {
     setStaffForm({
       name:                    s.name,
       role:                    s.role ?? 'staff',
-      job_role:                s.job_role ?? 'kitchen',
+      job_role:                s.job_role ?? '',
       pin:                     '',
       email:                   s.email ?? '',
       hourly_rate:             s.hourly_rate?.toString() ?? '',
@@ -603,22 +616,19 @@ export default function StaffMembersSection() {
         </p>
       </div>
 
-      {/* Job role chips */}
+      {/* Job role select */}
       <div>
-        <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-2">Department</label>
-        <div className="flex gap-2 flex-wrap">
+        <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-2">Job Role</label>
+        <select
+          value={staffForm.job_role}
+          onChange={e => setStaffForm(f => ({ ...f, job_role: e.target.value }))}
+          className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 text-charcoal"
+        >
+          <option value="">Not set</option>
           {JOB_ROLES.map(r => (
-            <button
-              key={r} type="button"
-              onClick={() => setStaffForm(f => ({ ...f, job_role: r }))}
-              className={['px-3 py-1.5 rounded-full text-xs font-medium border transition-all',
-                staffForm.job_role === r ? 'bg-charcoal text-cream border-charcoal' : 'bg-white text-charcoal/50 border-charcoal/15',
-              ].join(' ')}
-            >
-              {JOB_LABELS[r]}
-            </button>
+            <option key={r.value} value={r.value}>{r.label}</option>
           ))}
-        </div>
+        </select>
       </div>
 
       {/* Skills / role assignment */}

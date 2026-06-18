@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useVenue } from '../../contexts/VenueContext'
 import { useTeamStatus } from '../../hooks/useTeamStatus'
 import { useAppSettings } from '../../hooks/useSettings'
+import useManagerCalendar from '../../hooks/useManagerCalendar'
 
 // ── Design tokens ──────────────────────────────────────────────────────────
 const MC = {
@@ -44,6 +45,9 @@ function LeafIcon() {
 }
 function UsersIcon() {
   return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: '100%', height: '100%' }}><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+}
+function CalendarIcon() {
+  return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: '100%', height: '100%' }}><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M8 2v4M16 2v4M3 10h18M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"/></svg>
 }
 
 // ── Avatar initials chip ───────────────────────────────────────────────────
@@ -208,6 +212,7 @@ export default function TeamHubPage() {
 
   const { data, loading } = useTeamStatus(venueId)
   const { hiddenTeamTiles, saveHiddenTeamTiles } = useAppSettings()
+  const { upcomingCount } = useManagerCalendar()
 
   const [editMode, setEditMode] = useState(false)
   const [localHidden, setLocalHidden] = useState([])
@@ -269,6 +274,12 @@ export default function TeamHubPage() {
       id: 'staff', label: 'Staff Members', icon: UsersIcon, route: '/staff',
       status: 'na',
       statusText: loading ? '…' : `${data?.totalStaff ?? 0} active`,
+    },
+    {
+      id: 'calendar', label: 'My Calendar', icon: CalendarIcon, route: '/calendar',
+      ...(upcomingCount > 0
+        ? { status: 'due', statusText: `${upcomingCount} upcoming`, count: upcomingCount }
+        : { status: 'na', statusText: 'No upcoming events' }),
     },
   ]
 

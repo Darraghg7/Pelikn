@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { format, parseISO } from 'date-fns'
 import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
 import { useAppSettings } from '../../hooks/useSettings'
 import { useTheme } from '../../contexts/ThemeContext'
 import useVenueSettings from '../../hooks/useVenueSettings'
-import useVenueClosures from '../../hooks/useVenueClosures'
 import TimeSelect from '../../components/ui/TimeSelect'
 import VenuesSection from './VenuesSection'
 
@@ -79,7 +77,6 @@ export default function VenueSettingsPage() {
   const navigate = useNavigate()
   const { venueId, venueSlug } = useVenue()
   const { settings, loading: sLoading, reload: reloadSettings } = useVenueSettings()
-  const { closures, reload: reloadClosures } = useVenueClosures()
   const { closedDays, openTime, closeTime, dayHours, saveClosedDays, saveOpenTime, saveCloseTime, saveDayHours } = useAppSettings()
 
   const vp = (path) => `/v/${venueSlug}${path}`
@@ -91,9 +88,6 @@ export default function VenueSettingsPage() {
   const [saveSuccess, setSaveSuccess] = useState(false)
   const [logoFile, setLogoFile] = useState(null)
   const [uploadingLogo, setUploadingLogo] = useState(false)
-
-  const [closureForm, setClosureForm] = useState({ start_date: '', end_date: '', reason: '' })
-  const [savingClosure, setSavingClosure] = useState(false)
 
   useEffect(() => {
     if (!sLoading) setForm({ venue_name: settings.venue_name, manager_email: settings.manager_email })
@@ -128,25 +122,6 @@ export default function VenueSettingsPage() {
   const toggleClosedDay = async (i) => {
     const next = closedDays.includes(i) ? closedDays.filter(d => d !== i) : [...closedDays, i]
     await saveClosedDays(next)
-  }
-
-  const addClosure = async () => {
-    if (!closureForm.start_date || !closureForm.end_date) return
-    setSavingClosure(true)
-    await supabase.from('venue_closures').insert({
-      venue_id:   venueId,
-      start_date: closureForm.start_date,
-      end_date:   closureForm.end_date,
-      reason:     closureForm.reason.trim() || null,
-    })
-    setSavingClosure(false)
-    setClosureForm({ start_date: '', end_date: '', reason: '' })
-    reloadClosures()
-  }
-
-  const deleteClosure = async (id) => {
-    await supabase.from('venue_closures').delete().eq('id', id)
-    reloadClosures()
   }
 
   return (
@@ -226,46 +201,18 @@ export default function VenueSettingsPage() {
           })}
         </Group>
 
-        {/* Closed periods */}
-        <Group label="Closed periods" foot="Mark the venue closed for a date range — e.g. Christmas week. Checks won't be expected during these dates.">
-          <div style={{ padding: '13px 15px', display: 'flex', flexDirection: 'column', gap: 10 }}>
-
-            {closures.filter(c => c.end_date >= format(new Date(), 'yyyy-MM-dd')).map(c => (
-                <div key={c.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: '10px 12px', borderRadius: 10, border: `1px solid ${MC.line}`, background: MC.paper }}>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 13, fontWeight: 500, color: MC.ink }}>
-                      {format(parseISO(c.start_date), 'd MMM yyyy')}
-                      {c.start_date !== c.end_date && ` – ${format(parseISO(c.end_date), 'd MMM yyyy')}`}
-                    </div>
-                    {c.reason && <div style={{ fontSize: 11.5, color: MC.ink3, marginTop: 2 }}>{c.reason}</div>}
-                  </div>
-                  <button onClick={() => deleteClosure(c.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: MC.ink4, fontSize: 18, padding: '0 4px', lineHeight: 1 }}>×</button>
-                </div>
-            ))}
-
-            <div style={{ background: MC.line2, borderRadius: 10, padding: 12, display: 'flex', flexDirection: 'column', gap: 10 }}>
-              <div style={{ fontFamily: MONO, fontSize: 10, color: MC.ink3, letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 600 }}>Add closed period</div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-                <div>
-                  <div style={{ fontFamily: MONO, fontSize: 10, color: MC.ink4, marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.04em' }}>From</div>
-                  <input type="date" value={closureForm.start_date} onChange={e => setClosureForm(f => ({ ...f, start_date: e.target.value }))} style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: `1px solid ${MC.line}`, fontSize: 13, color: MC.ink, outline: 'none', boxSizing: 'border-box', background: MC.paper }} />
-                </div>
-                <div>
-                  <div style={{ fontFamily: MONO, fontSize: 10, color: MC.ink4, marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.04em' }}>To</div>
-                  <input type="date" value={closureForm.end_date} min={closureForm.start_date} onChange={e => setClosureForm(f => ({ ...f, end_date: e.target.value }))} style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: `1px solid ${MC.line}`, fontSize: 13, color: MC.ink, outline: 'none', boxSizing: 'border-box', background: MC.paper }} />
-                </div>
-              </div>
-              <input value={closureForm.reason} onChange={e => setClosureForm(f => ({ ...f, reason: e.target.value }))} placeholder="Reason (optional) — e.g. Christmas holiday" style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: `1px solid ${MC.line}`, fontSize: 13, color: MC.ink, outline: 'none', boxSizing: 'border-box', background: MC.paper }} />
-              <button
-                onClick={addClosure}
-                disabled={savingClosure || !closureForm.start_date || !closureForm.end_date}
-                style={{ alignSelf: 'flex-start', height: 34, padding: '0 14px', borderRadius: 8, border: 'none', cursor: 'pointer', background: MC.brand, color: '#fff', fontSize: 13, fontWeight: 600, opacity: (savingClosure || !closureForm.start_date || !closureForm.end_date) ? 0.45 : 1 }}
-              >
-                {savingClosure ? 'Adding…' : 'Add period'}
-              </button>
+        {/* Closed periods → moved to My Calendar */}
+        <Group label="Closed periods">
+          <button
+            onClick={() => navigate(vp('/calendar'))}
+            style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '14px 15px', background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, textAlign: 'left' }}
+          >
+            <div>
+              <div style={{ fontSize: 14, fontWeight: 500, color: MC.ink }}>Manage in My Calendar</div>
+              <div style={{ fontSize: 12, color: MC.ink3, marginTop: 2 }}>Closed periods are now created as calendar events under Team → My Calendar</div>
             </div>
-
-          </div>
+            <svg width="6" height="10" viewBox="0 0 6 10" fill="none" stroke={MC.ink4} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><path d="M1 1l4 4-4 4"/></svg>
+          </button>
         </Group>
 
         {/* Logo */}

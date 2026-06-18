@@ -26,24 +26,28 @@ export default function DashboardPage() {
       .eq('key', 'onboarding_complete')
       .maybeSingle()
       .then(async ({ data }) => {
-        if (!data?.value) {
-          // Check if this is an existing venue (has staff) — don't force
-          // existing venues through onboarding, just mark them complete
-          const { count } = await supabase
-            .from('staff')
-            .select('id', { count: 'exact', head: true })
-            .eq('venue_id', venueId)
-          if (count && count > 1) {
-            // Existing venue — auto-complete onboarding silently
-            await supabase.from('app_settings').upsert({
-              venue_id: venueId, key: 'onboarding_complete', value: 'true',
-            }, { onConflict: 'venue_id,key' })
-            setChecked(true)
-          } else {
-            navigate(`/v/${venueSlug}/setup`, { replace: true })
-          }
-        } else {
+        if (data?.value === 'true') {
+          // Wizard already completed for this venue — proceed normally.
           setChecked(true)
+          return
+        }
+        // onboarding_complete is missing or not 'true'.
+        // Before sending them through the wizard, check whether this is a
+        // pre-existing venue that was simply created before the wizard existed
+        // (≥2 staff members means it was already set up manually).
+        const { count } = await supabase
+          .from('staff')
+          .select('id', { count: 'exact', head: true })
+          .eq('venue_id', venueId)
+        if (typeof count === 'number' && count > 1) {
+          // Existing venue — mark complete silently so it never prompts again.
+          await supabase.from('app_settings').upsert({
+            venue_id: venueId, key: 'onboarding_complete', value: 'true',
+          }, { onConflict: 'venue_id,key' })
+          setChecked(true)
+        } else {
+          // New venue (0–1 staff) — send through the setup wizard.
+          navigate(`/v/${venueSlug}/setup`, { replace: true })
         }
       })
       .catch(() => setChecked(true))
