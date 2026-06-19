@@ -32,9 +32,7 @@ create policy "venue managers can manage calendar events"
   for all
   using (
     venue_id in (
-      select venue_id from venue_members
-      where user_id = auth.uid()
-        and role in ('manager', 'owner')
+      select id from venues where owner_id = auth.uid()
     )
   );
 
