@@ -30,8 +30,22 @@ alter table manager_calendar_events enable row level security;
 create policy "venue managers can manage calendar events"
   on manager_calendar_events
   for all
-  using (true)
-  with check (true);
+  using (
+    venue_id in (
+      select venue_id from staff
+      where id = auth.uid()
+        and role in ('manager', 'owner')
+        and is_active = true
+    )
+  )
+  with check (
+    venue_id in (
+      select venue_id from staff
+      where id = auth.uid()
+        and role in ('manager', 'owner')
+        and is_active = true
+    )
+  );
 
 -- Migrate existing venue_closures → manager_calendar_events
 insert into manager_calendar_events (venue_id, title, type, colour, start_date, end_date, all_day, reminder_days, backup_reminder)
