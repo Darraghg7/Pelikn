@@ -15,6 +15,47 @@ if (!isConfigured) {
   )
 }
 
+/**
+ * Fetch wrapper with timeout + automatic retry for transient failures.
+ *
+ * Writes (POST/PATCH/PUT/DELETE) are retried up to 2 extra times with
+ * exponential back-off (1 s, 2 s). Reads (GET/HEAD) are not retried —
+ * a stale read is not data loss.
+ *
+ * Aborts after 20 s per attempt. An AbortError is treated as retryable
+ * on writes so that a slow connection gets a second chance.
+ */
+function makeRetryFetch(timeoutMs = 20_000, maxWriteRetries = 2) {
+  return async function retryFetch(url, options = {}) {
+    const method = (options.method ?? 'GET').toUpperCase()
+    const isWrite = !['GET', 'HEAD'].includes(method)
+    const attempts = isWrite ? maxWriteRetries + 1 : 1
+
+    let lastErr
+    for (let attempt = 0; attempt < attempts; attempt++) {
+      if (attempt > 0) {
+        // Exponential back-off: 1 s, 2 s
+        await new Promise(r => setTimeout(r, 1000 * attempt))
+      }
+      const controller = new AbortController()
+      const timer = setTimeout(() => controller.abort(), timeoutMs)
+      try {
+        const response = await fetch(url, { ...options, signal: controller.signal })
+        clearTimeout(timer)
+        return response
+      } catch (err) {
+        clearTimeout(timer)
+        lastErr = err
+        // Only retry on network / abort errors (not 4xx/5xx — those aren't thrown)
+        const retryable = err?.name === 'AbortError' || err?.name === 'TypeError'
+        if (!retryable || attempt === attempts - 1) throw err
+        console.warn(`[Pelikn] Write attempt ${attempt + 1} failed (${err.message}), retrying…`)
+      }
+    }
+    throw lastErr
+  }
+}
+
 export const supabase = createClient(
   supabaseUrl     || 'https://placeholder.supabase.co',
   supabaseAnonKey || 'placeholder',
@@ -26,12 +67,7 @@ export const supabase = createClient(
       storageKey: 'pelikn-auth-token',
     },
     global: {
-      fetch: (url, options = {}) => {
-        const controller = new AbortController()
-        const timeout = setTimeout(() => controller.abort(), 15000)
-        return fetch(url, { ...options, signal: controller.signal })
-          .finally(() => clearTimeout(timeout))
-      },
+      fetch: makeRetryFetch(20_000, 2),
     },
   }
 )

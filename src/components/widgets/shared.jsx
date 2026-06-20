@@ -7,8 +7,8 @@ export function WidgetShell({ title, to, children, status }) {
   const statusDot = { good: 'bg-success', warning: 'bg-warning', bad: 'bg-danger' }
   const href = to && venueSlug ? `/v/${venueSlug}${to}` : to
   return (
-    <div className="bg-white rounded-2xl overflow-hidden">
-      <div className="flex items-center justify-between px-5 pt-4 pb-2">
+    <div className="bg-white rounded-2xl overflow-hidden h-full flex flex-col">
+      <div className="flex items-center justify-between px-5 pt-4 pb-2 shrink-0">
         <div className="flex items-center gap-2">
           {status && <span className={`w-2 h-2 rounded-full shrink-0 ${statusDot[status] ?? 'bg-charcoal/20'}`} />}
           <p className="text-[11px] font-bold tracking-widest uppercase text-charcoal/50">{title}</p>
@@ -19,7 +19,7 @@ export function WidgetShell({ title, to, children, status }) {
           </Link>
         )}
       </div>
-      <div className="px-5 pb-4">{children}</div>
+      <div className="px-5 pb-4 flex-1">{children}</div>
     </div>
   )
 }

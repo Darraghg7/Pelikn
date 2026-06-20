@@ -14,7 +14,7 @@ import { useSession } from '../../contexts/SessionContext'
 import { getWeekStart, getWeekDays } from '../../lib/utils'
 import { useToast } from '../../components/ui/Toast'
 import { useAppSettings } from '../../hooks/useSettings'
-import { useVenueRoles } from '../../hooks/useVenueRoles'
+import { useVenueRoles, loadAllStaffRolesForVenue } from '../../hooks/useVenueRoles'
 import RotaWeekView from './RotaWeekView'
 import { shareRotaImage } from '../../lib/rotaImageExport'
 import RotaBuilderModal from './RotaBuilderModal'
@@ -1031,6 +1031,14 @@ export default function RotaPage() {
   const { customRoles, closedDays, breakDurationMins } = useAppSettings()
   const { roles: venueRoles } = useVenueRoles()
 
+  // ── Staff roles map (for auto-fill) ──
+  const [staffRoles, setStaffRoles] = useState({})
+  useEffect(() => {
+    if (!venueId) return
+    const crossVenueIds = staff.filter(s => s._crossVenue).map(s => s.id)
+    loadAllStaffRolesForVenue(venueId, crossVenueIds).then(setStaffRoles)
+  }, [venueId, staff])
+
   // ── Venue closures ──
   const [closures, setClosures] = useState([])
   const loadClosures = useCallback(async () => {
@@ -1647,6 +1655,11 @@ export default function RotaPage() {
         onClose={() => setShowAI(false)}
         weekStart={weekStart}
         onSave={batchSaveShifts}
+        staff={staff}
+        staffRoles={staffRoles}
+        unavailability={unavailability}
+        closedDays={closedDays}
+        crossVenueShifts={crossShifts}
       />
 
       {/* ── Rota config modal ── */}

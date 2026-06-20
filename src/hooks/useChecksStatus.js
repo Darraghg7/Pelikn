@@ -7,6 +7,15 @@ const _rawCache = new Map()
 const STALE_MS  = 90_000
 const FRESH_MS  = 20_000
 
+/** Call after any compliance write to force the next render to re-fetch. */
+export function invalidateChecksStatusCache(venueId) {
+  if (!venueId) { _rawCache.clear(); return }
+  // Remove any key starting with venueId (covers date variants)
+  for (const key of _rawCache.keys()) {
+    if (key.startsWith(venueId)) _rawCache.delete(key)
+  }
+}
+
 /**
  * Derives live status for each of the 14 compliance categories.
  * Queries that don't depend on summary (fitness, probe, delivery, incidents)

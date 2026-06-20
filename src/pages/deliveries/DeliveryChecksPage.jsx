@@ -416,7 +416,8 @@ function DeliveryCheckModal({ open, onClose, suppliers, onSupplierAdded, onCompl
         temp_pass: v.tempPass,
         venue_id: venueId,
       }))
-      await supabase.from('delivery_check_items').insert(lineItems)
+      const { error: itemsErr } = await supabase.from('delivery_check_items').insert(lineItems)
+      if (itemsErr) { toast('Delivery saved but line items could not be recorded — please try again', 'error'); setSaving(false); return }
     }
 
     setSaving(false)

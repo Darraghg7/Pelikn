@@ -1,11 +1,9 @@
 import React, { useState } from 'react'
 import { format } from 'date-fns'
 import Modal from '../../components/ui/Modal'
-import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
 import { useRotaRequirements, DAY_NAMES } from '../../hooks/useRotaRequirements'
-import { useToast } from '../../components/ui/Toast'
-import { useSession } from '../../contexts/SessionContext'
+import { fillRotaRequirements } from '../../lib/rotaBuilder'
 
 function SectionLabel({ children }) {
   return <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-2">{children}</p>
@@ -13,53 +11,52 @@ function SectionLabel({ children }) {
 
 const STAGES = { CONFIRM: 'confirm', LOADING: 'loading', PREVIEW: 'preview' }
 
-export default function RotaAIModal({ open, onClose, weekStart, onSave }) {
-  const toast                                     = useToast()
-  const { session }                               = useSession()
-  const { venueId }                               = useVenue()
+export default function RotaAIModal({
+  open,
+  onClose,
+  weekStart,
+  onSave,
+  staff = [],
+  staffRoles = {},
+  unavailability = {},
+  closedDays = [],
+  crossVenueShifts = [],
+}) {
+  const { venueId } = useVenue()
   const { requirements, byDay, totalSlots, loading: reqLoading } = useRotaRequirements()
 
   const [stage, setStage]   = useState(STAGES.CONFIRM)
-  const [result, setResult] = useState(null)   // { shifts, gaps, meta }
+  const [result, setResult] = useState(null)
   const [saving, setSaving] = useState(false)
-  const [mode, setMode]     = useState('fill_gaps') // 'fill_gaps' | 'rebuild'
+  const [mode, setMode]     = useState('fill_gaps')
 
   const weekLabel = weekStart ? format(weekStart, 'EEE d MMM yyyy') : ''
   const daysWithReqs = [1,2,3,4,5,6,7].filter(d => (byDay[d]?.length ?? 0) > 0)
 
-  const handleGenerate = async () => {
+  const handleGenerate = () => {
     setStage(STAGES.LOADING)
-    try {
-      // Call the edge function directly via fetch so we can read the real
-      // error body. supabase.functions.invoke consumes the response stream
-      // internally, making the server's error message impossible to recover.
-      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-rota`
-      const res = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type':  'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-          'apikey':        import.meta.env.VITE_SUPABASE_ANON_KEY,
-        },
-        body: JSON.stringify({
-          session_token: session?.token,
-          venueId,
-          weekStart:     format(weekStart, 'yyyy-MM-dd'),
-        }),
-      })
-      const rawText = await res.text()
-      let data
-      try { data = JSON.parse(rawText) } catch { data = null }
-      if (!res.ok) {
-        throw new Error(data?.error || `HTTP ${res.status}: ${rawText.slice(0, 200)}`)
+    // Defer to next tick so loading UI renders before algorithm runs
+    setTimeout(() => {
+      try {
+        const weekStartStr = format(weekStart, 'yyyy-MM-dd')
+        const data = fillRotaRequirements({
+          requirements,
+          staff,
+          staffRoles,
+          unavailability,
+          existingShifts: [],
+          weekStart: weekStartStr,
+          mode,
+          closedDays,
+          crossVenueShifts,
+        })
+        setResult(data)
+        setStage(STAGES.PREVIEW)
+      } catch (e) {
+        console.error('Auto-fill error:', e)
+        setStage(STAGES.CONFIRM)
       }
-      if (data?.error) throw new Error(data.error)
-      setResult(data)
-      setStage(STAGES.PREVIEW)
-    } catch (e) {
-      toast(e.message || 'Generation failed', 'error')
-      setStage(STAGES.CONFIRM)
-    }
+    }, 50)
   }
 
   const removeShift = (idx) => {
@@ -70,13 +67,11 @@ export default function RotaAIModal({ open, onClose, weekStart, onSave }) {
     if (!result?.shifts?.length) return
     setSaving(true)
 
-    const shifts = result.shifts.map(s => ({
-      staff_id:   s.staff_id,
-      shift_date: s.shift_date,
+    const shifts = result.shifts.map(({ staff_name: _n, ...s }) => ({
+      ...s,
       week_start: format(weekStart, 'yyyy-MM-dd'),
       start_time: s.start_time.length === 5 ? s.start_time + ':00' : s.start_time,
       end_time:   s.end_time.length   === 5 ? s.end_time   + ':00' : s.end_time,
-      role_label: s.role_label,
       venue_id:   venueId,
     }))
 
@@ -92,7 +87,7 @@ export default function RotaAIModal({ open, onClose, weekStart, onSave }) {
   }
 
   return (
-    <Modal open={open} onClose={handleClose} title="AI Rota Builder">
+    <Modal open={open} onClose={handleClose} title="Auto-fill Rota">
       <div className="flex flex-col gap-5 max-h-[80vh] overflow-y-auto">
 
         {/* ── Stage: Confirm ── */}
@@ -104,30 +99,30 @@ export default function RotaAIModal({ open, onClose, weekStart, onSave }) {
                 <p className="text-xs text-charcoal/40 animate-pulse">Loading requirements…</p>
               ) : requirements.length === 0 ? (
                 <div className="flex items-start gap-2 mt-1">
-                  <span className="text-warning shrink-0"><svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
+                  <span className="text-warning shrink-0">
+                    <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+                      <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+                    </svg>
+                  </span>
                   <p className="text-xs text-charcoal/60">
-                    No requirements configured. Use <strong>Configure</strong> to tell the AI what staff you need each day.
+                    No requirements configured. Use <strong>Configure</strong> to set the roles and shift times you need each day.
                   </p>
                 </div>
               ) : (
                 <>
                   <p className="text-xs text-charcoal/50 mb-3">
-                    {totalSlots} staff slot{totalSlots !== 1 ? 's' : ''} to fill across {daysWithReqs.length} day{daysWithReqs.length !== 1 ? 's' : ''}
+                    {totalSlots} staff slot{totalSlots !== 1 ? 's' : ''} across {daysWithReqs.length} day{daysWithReqs.length !== 1 ? 's' : ''}
                   </p>
-                  {/* Per-day summary */}
                   <div className="flex flex-col gap-1.5">
                     {daysWithReqs.map(d => {
-                      const slots   = byDay[d]
-                      const total   = slots.reduce((a, s) => a + s.staff_count, 0)
-                      const roles   = [...new Set(slots.map(s => s.role_name))].join(', ')
+                      const slots = byDay[d]
+                      const total = slots.reduce((a, s) => a + (s.staff_count ?? 1), 0)
+                      const roles = [...new Set(slots.map(s => s.role_name ?? s.venue_roles?.name))].filter(Boolean).join(', ')
                       return (
                         <div key={d} className="flex items-start gap-2 text-xs">
-                          <span className="font-medium text-charcoal w-24 shrink-0">
-                            {DAY_NAMES[d - 1]}
-                          </span>
-                          <span className="text-charcoal/50">
-                            {total} staff — {roles}
-                          </span>
+                          <span className="font-medium text-charcoal w-24 shrink-0">{DAY_NAMES[d - 1]}</span>
+                          <span className="text-charcoal/50">{total} staff — {roles}</span>
                         </div>
                       )
                     })}
@@ -142,7 +137,7 @@ export default function RotaAIModal({ open, onClose, weekStart, onSave }) {
               <div className="grid grid-cols-2 gap-2">
                 {[
                   { value: 'fill_gaps', label: 'Fill Gaps',  desc: 'Keep existing shifts, fill empty slots only' },
-                  { value: 'rebuild',   label: 'Rebuild',     desc: 'Clear the week and rebuild from scratch' },
+                  { value: 'rebuild',   label: 'Rebuild',    desc: 'Clear the week and rebuild from scratch' },
                 ].map(opt => (
                   <button
                     key={opt.value}
@@ -168,12 +163,11 @@ export default function RotaAIModal({ open, onClose, weekStart, onSave }) {
               disabled={reqLoading || requirements.length === 0}
               className="bg-brand text-cream py-3.5 rounded-xl text-sm font-semibold hover:bg-brand/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
-              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg> Generate with AI
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+              </svg>
+              Auto-fill Rota
             </button>
-
-            <p className="text-[11px] text-charcoal/30 text-center -mt-2">
-              Takes 3–5 seconds · Checks availability, skills and fairness
-            </p>
           </>
         )}
 
@@ -182,8 +176,8 @@ export default function RotaAIModal({ open, onClose, weekStart, onSave }) {
           <div className="flex flex-col items-center justify-center py-12 gap-4">
             <div className="w-10 h-10 border-2 border-brand/20 border-t-brand rounded-full animate-spin" />
             <div className="text-center">
-              <p className="text-sm font-medium text-charcoal">Generating your rota…</p>
-              <p className="text-xs text-charcoal/40 mt-1">Checking availability, skills and hours distribution</p>
+              <p className="text-sm font-medium text-charcoal">Building your rota…</p>
+              <p className="text-xs text-charcoal/40 mt-1">Checking availability, roles and hours distribution</p>
             </div>
           </div>
         )}
@@ -209,7 +203,13 @@ export default function RotaAIModal({ open, onClose, weekStart, onSave }) {
             {result.gaps?.length > 0 && (
               <div className="rounded-xl border border-warning/30 bg-warning/6 px-4 py-3 flex flex-col gap-1.5">
                 <p className="text-xs font-semibold text-charcoal">
-                  <span className="inline-flex items-center gap-1"><svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> {result.gaps.length} slot{result.gaps.length !== 1 ? 's' : ''} couldn't be filled</span>
+                  <span className="inline-flex items-center gap-1">
+                    <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+                      <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+                    </svg>
+                    {result.gaps.length} slot{result.gaps.length !== 1 ? 's' : ''} couldn't be filled
+                  </span>
                 </p>
                 {result.gaps.map((g, i) => (
                   <p key={i} className="text-[11px] text-charcoal/60">
@@ -236,9 +236,11 @@ export default function RotaAIModal({ open, onClose, weekStart, onSave }) {
                       </div>
                       <button
                         onClick={() => removeShift(i)}
-                        className="text-danger/40 hover:text-danger text-xs transition-colors px-2 py-1"
+                        className="text-danger/40 hover:text-danger transition-colors px-2 py-1"
                       >
-                        <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                        </svg>
                       </button>
                     </div>
                   ))

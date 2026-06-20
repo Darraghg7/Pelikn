@@ -12,6 +12,8 @@ import { useTodayDuties } from '../../hooks/useDuties'
 import ClockPanel from '../../components/shifts/ClockPanel'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
 import AcknowledgeModal from '../../components/training/AcknowledgeModal'
+import { useToast } from '../../components/ui/Toast'
+import { invalidateChecksStatusCache } from '../../hooks/useChecksStatus'
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
@@ -280,12 +282,17 @@ function QuickLogRow({ venueSlug, isEnabled, hasPermission }) {
 
 function DutyItemRow({ item, assignmentId, toggleItem }) {
   const [busy, setBusy] = useState(false)
+  const toast = useToast()
   const handleToggle = async () => {
     if (busy) return
     setBusy(true)
     const { error } = await toggleItem(assignmentId, item.id, item.completed)
-    if (error) setBusy(false)
-    else setTimeout(() => setBusy(false), 150)
+    if (error) {
+      toast('Could not save — please try again', 'error')
+      setBusy(false)
+    } else {
+      setTimeout(() => setBusy(false), 150)
+    }
   }
   return (
     <button
@@ -512,6 +519,7 @@ function TodayChecks({ venueId, venueSlug, staffName }) {
   const { completions, reload } = useShiftCompletions(venueId, today, sessionType)
   const [saving, setSaving] = useState(null)
   const [open, setOpen] = useState(false)
+  const toast = useToast()
 
   if (loading) return null
   if (!checks.length) return null
@@ -524,7 +532,7 @@ function TodayChecks({ venueId, venueSlug, staffName }) {
   const markOk = async (checkId) => {
     if (saving) return
     setSaving(checkId)
-    await supabase.from('opening_closing_completions').upsert({
+    const { error } = await supabase.from('opening_closing_completions').upsert({
       venue_id: venueId,
       check_id: checkId,
       session_date: today,
@@ -534,6 +542,11 @@ function TodayChecks({ venueId, venueSlug, staffName }) {
       corrective_action: null,
     }, { onConflict: 'venue_id,check_id,session_date,session_type' })
     setSaving(null)
+    if (error) {
+      toast('Check could not be saved — please try again', 'error')
+      return
+    }
+    invalidateChecksStatusCache(venueId)
     reload()
   }
 

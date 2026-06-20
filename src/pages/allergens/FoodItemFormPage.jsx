@@ -64,9 +64,10 @@ export default function FoodItemFormPage() {
         .single()
       if (itemErr) { toast(itemErr.message, 'error'); setSubmitting(false); return }
       if (allergens.length > 0) {
-        await supabase.from('food_allergens').insert(
+        const { error: allergenErr } = await supabase.from('food_allergens').insert(
           allergens.map((a) => ({ food_item_id: newItem.id, allergen: a, venue_id: venueId }))
         )
+        if (allergenErr) { toast('Item saved but allergens could not be recorded — please edit the item to add them', 'error'); setSubmitting(false); return }
       }
       toast('Item added')
       navigate(`/v/${venueSlug}/allergens`)

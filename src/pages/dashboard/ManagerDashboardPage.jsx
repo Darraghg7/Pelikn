@@ -84,7 +84,7 @@ function SortableWidget({ id }) {
         transition,
         opacity: isDragging ? 0.35 : 1,
       }}
-      className="relative group rounded-2xl"
+      className="relative group rounded-2xl h-full"
     >
       {/* Drag handle — top-right, appears on hover */}
       <div

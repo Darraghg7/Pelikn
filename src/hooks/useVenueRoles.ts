@@ -112,24 +112,57 @@ export function useStaffRoleAssignments(staffId: string): {
 }
 
 // ── Bulk load: all assignments for a venue (for the edge function context) ───
+//
+// crossVenueStaffIds: IDs of staff linked from other venues (_crossVenue: true).
+// Their role assignments live in their home venue's venue_roles rows — we fetch
+// those separately so auto-fill can match them to requirements by role name.
 
-export async function loadAllStaffRolesForVenue(venueId: string): Promise<Record<string, string[]>> {
-  // Get all role IDs for this venue first
+export async function loadAllStaffRolesForVenue(
+  venueId: string,
+  crossVenueStaffIds: string[] = [],
+): Promise<Record<string, string[]>> {
+  // 1. Home-venue staff roles
   const { data: venueRoles } = await supabase
     .from('venue_roles').select('id, name').eq('venue_id', venueId)
-  if (!venueRoles?.length) return {}
 
-  const roleMap = Object.fromEntries((venueRoles as { id: string; name: string }[]).map(r => [r.id, r.name]))
-  const roleIds = (venueRoles as { id: string }[]).map(r => r.id)
+  const roleMap: Record<string, string> = Object.fromEntries(
+    (venueRoles ?? [] as { id: string; name: string }[]).map((r: { id: string; name: string }) => [r.id, r.name])
+  )
+  const roleIds = (venueRoles ?? [] as { id: string }[]).map((r: { id: string }) => r.id)
 
-  const { data: assignments } = await supabase
-    .from('staff_role_assignments').select('staff_id, role_id').in('role_id', roleIds)
-
-  // Returns: { staffId: ['Barista', 'FOH', ...] }
   const result: Record<string, string[]> = {}
-  for (const a of (assignments ?? []) as { staff_id: string; role_id: string }[]) {
-    if (!result[a.staff_id]) result[a.staff_id] = []
-    result[a.staff_id].push(roleMap[a.role_id])
+
+  if (roleIds.length) {
+    const { data: assignments } = await supabase
+      .from('staff_role_assignments').select('staff_id, role_id').in('role_id', roleIds)
+    for (const a of (assignments ?? []) as { staff_id: string; role_id: string }[]) {
+      if (!result[a.staff_id]) result[a.staff_id] = []
+      result[a.staff_id].push(roleMap[a.role_id])
+    }
   }
+
+  // 2. Cross-venue (linked) staff — load their home-venue role assignments
+  if (crossVenueStaffIds.length) {
+    const { data: crossAssignments } = await supabase
+      .from('staff_role_assignments')
+      .select('staff_id, role_id')
+      .in('staff_id', crossVenueStaffIds)
+
+    if ((crossAssignments ?? []).length) {
+      const crossRoleIds = [...new Set((crossAssignments as { staff_id: string; role_id: string }[]).map(a => a.role_id))]
+      const { data: crossRoles } = await supabase
+        .from('venue_roles').select('id, name').in('id', crossRoleIds)
+      const crossRoleMap: Record<string, string> = Object.fromEntries(
+        (crossRoles ?? [] as { id: string; name: string }[]).map((r: { id: string; name: string }) => [r.id, r.name])
+      )
+      for (const a of (crossAssignments ?? []) as { staff_id: string; role_id: string }[]) {
+        const roleName = crossRoleMap[a.role_id]
+        if (!roleName) continue
+        if (!result[a.staff_id]) result[a.staff_id] = []
+        if (!result[a.staff_id].includes(roleName)) result[a.staff_id].push(roleName)
+      }
+    }
+  }
+
   return result
 }

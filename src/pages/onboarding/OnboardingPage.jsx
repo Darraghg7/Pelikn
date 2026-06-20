@@ -145,7 +145,14 @@ function UpgradeModal({ featureLabel, onClose }) {
 }
 
 /* ── Constants ───────────────────────────────────────────────────────────────── */
-const STEPS = ['Venue Type', 'Modules', 'Hours', 'Your Team', 'All Set']
+// STEPS is computed inside the component based on enabled features
+
+const ROLE_PRESETS = {
+  cafe:       ['Barista', 'Kitchen', 'FOH', 'Supervisor'],
+  pub:        ['Bar Staff', 'Kitchen', 'Floor Staff', 'Supervisor'],
+  restaurant: ['Chef', 'Sous Chef', 'Waiter', 'Kitchen Porter'],
+  hotel:      ['Front Desk', 'Housekeeping', 'Kitchen', 'Bar Staff'],
+}
 
 const JOB_ROLES = [
   { value: 'manager',         label: 'Manager' },
@@ -195,6 +202,18 @@ export default function OnboardingPage() {
   ])
   const [saving, setSaving] = useState(false)
 
+  // ── Roles & Rota step state ──
+  const [rolesInput, setRolesInput]           = useState([])       // string[]
+  const [roleAssignments, setRoleAssignments] = useState({})       // { staffName: roleName[] }
+  const [dailyCounts, setDailyCounts]         = useState({})       // { roleName: number }
+  const [customRoleText, setCustomRoleText]   = useState('')
+
+  // Dynamic steps: insert Roles & Rota between Your Team and All Set when rota is enabled
+  const hasRotaStep = enabledFeatures.has('rota')
+  const STEPS = hasRotaStep
+    ? ['Venue Type', 'Modules', 'Hours', 'Your Team', 'Roles & Rota', 'All Set']
+    : ['Venue Type', 'Modules', 'Hours', 'Your Team', 'All Set']
+
   /* ── Helpers ── */
   const selectPreset = (preset) => {
     setSelectedPreset(preset)
@@ -223,6 +242,36 @@ export default function OnboardingPage() {
   const updateStaff = (idx, field, value) =>
     setStaffEntries(prev => prev.map((s, i) => i === idx ? { ...s, [field]: value } : s))
 
+  const toggleRole = (roleName) => {
+    const trimmed = roleName.trim()
+    if (!trimmed) return
+    if (rolesInput.includes(trimmed)) {
+      setRolesInput(prev => prev.filter(r => r !== trimmed))
+      setDailyCounts(prev => { const n = { ...prev }; delete n[trimmed]; return n })
+    } else {
+      setRolesInput(prev => [...prev, trimmed])
+      setDailyCounts(prev => ({ ...prev, [trimmed]: 1 }))
+    }
+  }
+
+  const addCustomRole = () => {
+    const trimmed = customRoleText.trim()
+    if (!trimmed || rolesInput.includes(trimmed)) { setCustomRoleText(''); return }
+    setRolesInput(prev => [...prev, trimmed])
+    setDailyCounts(prev => ({ ...prev, [trimmed]: 1 }))
+    setCustomRoleText('')
+  }
+
+  const toggleStaffRole = (staffName, roleName) => {
+    setRoleAssignments(prev => {
+      const current = prev[staffName] ?? []
+      const next = current.includes(roleName)
+        ? current.filter(r => r !== roleName)
+        : [...current, roleName]
+      return { ...prev, [staffName]: next }
+    })
+  }
+
   const addStaffRow = () => {
     if (staffEntries.length >= 10) return
     setStaffEntries(prev => [...prev, { name: '', pin: '', jobRole: '' }])
@@ -240,6 +289,7 @@ export default function OnboardingPage() {
 
   const saveTeam = async () => {
     const valid = staffEntries.filter(s => s.name.trim() && s.pin.length === 4)
+    const created = [] // [{ id, name }]
     for (const entry of valid) {
       const { error } = await supabase.rpc('create_staff_member', {
         p_session_token: session.token,
@@ -262,8 +312,63 @@ export default function OnboardingPage() {
           await supabase.from('staff_permissions').insert(
             DEFAULT_STAFF_PERMISSIONS.map(p => ({ staff_id: newRow[0].id, venue_id: venueId, permission: p }))
           )
+          created.push({ id: newRow[0].id, name: entry.name.trim() })
         }
       }
+    }
+    return created
+  }
+
+  const saveRotaStep = async (createdStaff) => {
+    if (rolesInput.length === 0) return
+
+    // 1. Insert venue roles
+    const insertedRoles = []
+    for (const roleName of rolesInput) {
+      const { data, error } = await supabase
+        .from('venue_roles')
+        .insert({ venue_id: venueId, name: roleName, sort_order: rolesInput.indexOf(roleName) })
+        .select('id, name')
+        .single()
+      if (!error && data) insertedRoles.push(data)
+    }
+
+    // 2. Assign roles to staff
+    const roleByName = Object.fromEntries(insertedRoles.map(r => [r.name, r.id]))
+    const assignments = []
+    for (const member of createdStaff) {
+      const assignedRoles = roleAssignments[member.name] ?? []
+      for (const roleName of assignedRoles) {
+        const roleId = roleByName[roleName]
+        if (roleId) assignments.push({ staff_id: member.id, role_id: roleId })
+      }
+    }
+    if (assignments.length > 0) {
+      await supabase.from('staff_role_assignments').insert(assignments)
+    }
+
+    // 3. Create rota requirements for each open day × each role
+    const requirements = []
+    dayHours.forEach((day, i) => {
+      if (!day.open) return
+      const dow = i + 1 // 1=Mon … 7=Sun
+      for (const role of insertedRoles) {
+        const count = dailyCounts[role.name] ?? 1
+        if (count > 0) {
+          requirements.push({
+            venue_id:    venueId,
+            day_of_week: dow,
+            role_id:     role.id,
+            role_name:   role.name,
+            staff_count: count,
+            start_time:  day.start + ':00',
+            end_time:    day.end + ':00',
+          })
+        }
+      }
+    })
+    if (requirements.length > 0) {
+      await supabase.from('rota_requirements').insert(requirements)
     }
   }
 
@@ -285,7 +390,8 @@ export default function OnboardingPage() {
         supabase.from('app_settings').upsert({ venue_id: venueId, key: 'closed_days', value: JSON.stringify(dayHours.map((d, i) => d.open ? null : i).filter(x => x !== null)) }, { onConflict: 'venue_id,key' }),
       ])
     }
-    await saveTeam()
+    const createdStaff = await saveTeam()
+    if (hasRotaStep) await saveRotaStep(createdStaff)
     await supabase.from('app_settings').upsert({ venue_id: venueId, key: 'onboarding_complete', value: 'true' }, { onConflict: 'venue_id,key' })
     setSaving(false)
     navigate(`/v/${venueSlug}/dashboard`)
@@ -602,8 +708,138 @@ export default function OnboardingPage() {
             </div>
           )}
 
-          {/* Step 4: All Set */}
-          {step === 4 && (
+          {/* Step 4: Roles & Rota (conditional) */}
+          {step === 4 && hasRotaStep && (() => {
+            const validStaff = staffEntries.filter(s => s.name.trim() && s.pin.length === 4)
+            const presetRoles = ROLE_PRESETS[selectedPreset?.id] ?? ['FOH', 'Kitchen', 'Bar Staff', 'Supervisor']
+            return (
+              <div className="flex flex-col gap-6">
+                {/* Section A: Define roles */}
+                <div>
+                  <h2 className="text-[17px] font-bold text-charcoal mb-0.5">What roles do you have?</h2>
+                  <p className="text-[12.5px] text-charcoal/45 mb-4">Used to match staff to the right shifts when auto-filling your rota.</p>
+                  <div className="flex flex-wrap gap-2 mb-3">
+                    {presetRoles.map(role => {
+                      const active = rolesInput.includes(role)
+                      return (
+                        <button
+                          key={role}
+                          onClick={() => toggleRole(role)}
+                          className={[
+                            'px-3 py-1.5 rounded-full text-[12.5px] font-semibold border transition-all',
+                            active
+                              ? 'bg-brand text-white border-brand'
+                              : 'bg-white text-charcoal/60 border-charcoal/15 hover:border-charcoal/30',
+                          ].join(' ')}
+                        >
+                          {active && <span className="mr-1">✓</span>}{role}
+                        </button>
+                      )
+                    })}
+                  </div>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={customRoleText}
+                      onChange={e => setCustomRoleText(e.target.value)}
+                      onKeyDown={e => e.key === 'Enter' && addCustomRole()}
+                      placeholder="Add custom role…"
+                      className="flex-1 px-3 py-2 rounded-lg border border-charcoal/15 bg-white text-[12.5px] text-charcoal placeholder-charcoal/30 focus:outline-none focus:ring-2 focus:ring-brand/20"
+                    />
+                    <button
+                      onClick={addCustomRole}
+                      disabled={!customRoleText.trim()}
+                      className="px-3 py-2 rounded-lg bg-charcoal/8 text-charcoal/60 text-[12.5px] font-semibold hover:bg-charcoal/12 transition-colors disabled:opacity-40"
+                    >
+                      Add
+                    </button>
+                  </div>
+                  {rolesInput.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 mt-2">
+                      {rolesInput.filter(r => !presetRoles.includes(r)).map(role => (
+                        <span key={role} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-brand/8 text-brand text-[11.5px] font-semibold">
+                          {role}
+                          <button onClick={() => toggleRole(role)} className="ml-0.5 opacity-60 hover:opacity-100">×</button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Section B: Assign roles to staff */}
+                {rolesInput.length > 0 && validStaff.length > 0 && (
+                  <div>
+                    <h3 className="text-[13.5px] font-bold text-charcoal mb-0.5">Who can work each role?</h3>
+                    <p className="text-[12px] text-charcoal/40 mb-3">Tick the roles each team member is qualified to cover.</p>
+                    <div className="flex flex-col gap-2">
+                      {validStaff.map(member => {
+                        const assigned = roleAssignments[member.name] ?? []
+                        return (
+                          <div key={member.name} className="bg-white rounded-xl border border-charcoal/8 px-4 py-3">
+                            <p className="text-[12.5px] font-semibold text-charcoal mb-2">{member.name}</p>
+                            <div className="flex flex-wrap gap-2">
+                              {rolesInput.map(role => {
+                                const checked = assigned.includes(role)
+                                return (
+                                  <button
+                                    key={role}
+                                    onClick={() => toggleStaffRole(member.name, role)}
+                                    className={[
+                                      'px-2.5 py-1 rounded-lg text-[11.5px] font-medium border transition-all',
+                                      checked
+                                        ? 'bg-brand/10 text-brand border-brand/25'
+                                        : 'bg-charcoal/3 text-charcoal/45 border-charcoal/10 hover:border-charcoal/25',
+                                    ].join(' ')}
+                                  >
+                                    {checked && '✓ '}{role}
+                                  </button>
+                                )
+                              })}
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Section C: Daily counts */}
+                {rolesInput.length > 0 && (
+                  <div>
+                    <h3 className="text-[13.5px] font-bold text-charcoal mb-0.5">How many of each role per day?</h3>
+                    <p className="text-[12px] text-charcoal/40 mb-3">Applied to all open days when auto-filling your rota.</p>
+                    <div className="flex flex-col gap-2">
+                      {rolesInput.map(role => (
+                        <div key={role} className="flex items-center justify-between bg-white rounded-xl border border-charcoal/8 px-4 py-3">
+                          <span className="text-[13px] font-medium text-charcoal">{role}</span>
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => setDailyCounts(prev => ({ ...prev, [role]: Math.max(1, (prev[role] ?? 1) - 1) }))}
+                              className="w-7 h-7 rounded-lg border border-charcoal/15 text-charcoal/50 hover:text-charcoal hover:border-charcoal/30 transition-all flex items-center justify-center text-base font-medium"
+                            >−</button>
+                            <span className="w-6 text-center text-[13px] font-semibold text-charcoal tabular-nums">{dailyCounts[role] ?? 1}</span>
+                            <button
+                              onClick={() => setDailyCounts(prev => ({ ...prev, [role]: (prev[role] ?? 1) + 1 }))}
+                              className="w-7 h-7 rounded-lg border border-charcoal/15 text-charcoal/50 hover:text-charcoal hover:border-charcoal/30 transition-all flex items-center justify-center text-base font-medium"
+                            >+</button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {rolesInput.length === 0 && (
+                  <div className="bg-charcoal/3 rounded-xl border border-charcoal/8 px-4 py-6 text-center">
+                    <p className="text-[12.5px] text-charcoal/40">Select at least one role above, or skip this step and configure later in Settings.</p>
+                  </div>
+                )}
+              </div>
+            )
+          })()}
+
+          {/* Step 4/5: All Set */}
+          {step === STEPS.length - 1 && (
             <div className="text-center pt-2">
               <div className="w-16 h-16 rounded-[18px] bg-success/10 text-success flex items-center justify-center mx-auto mb-4">
                 <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -672,9 +908,9 @@ export default function OnboardingPage() {
               Back
             </button>
           )}
-          {step === 3 && (
+          {(step === 3 || (step === 4 && hasRotaStep)) && (
             <button
-              onClick={() => setStep(4)}
+              onClick={() => setStep(s => s + 1)}
               className="px-4 py-3 rounded-xl text-[13px] font-medium text-charcoal/40 hover:text-charcoal transition-colors whitespace-nowrap"
             >
               Skip

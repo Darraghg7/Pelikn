@@ -403,12 +403,17 @@ function useStaffCleaning(venueId, dateStr) {
 
 function TaskItemRow({ item, assignmentId, toggleItem }) {
   const [busy, setBusy] = useState(false)
+  const toast = useToast()
   const handleToggle = async () => {
     if (busy) return
     setBusy(true)
     const { error } = await toggleItem(assignmentId, item.id, item.completed)
-    if (error) setBusy(false)
-    else setTimeout(() => setBusy(false), 150)
+    if (error) {
+      toast('Could not save — please try again', 'error')
+      setBusy(false)
+    } else {
+      setTimeout(() => setBusy(false), 150)
+    }
   }
   return (
     <button

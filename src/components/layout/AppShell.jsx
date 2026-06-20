@@ -678,7 +678,7 @@ export default function AppShell({ children }) {
         <main
           id="main-content"
           role="main"
-          className={`flex-1 ${maxW} mx-auto w-full px-4 lg:px-8 py-5 lg:py-8 pb-[max(5.5rem,calc(4.5rem+env(safe-area-inset-bottom)))] lg:pb-8`}
+          className={`flex-1 ${maxW} mx-auto w-full px-4 lg:px-6 py-5 lg:py-6 pb-[max(5.5rem,calc(4.5rem+env(safe-area-inset-bottom)))] lg:pb-6`}
         >
           {children}
         </main>
