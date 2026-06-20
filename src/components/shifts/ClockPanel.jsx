@@ -391,15 +391,13 @@ export default function ClockPanel({ staffId, hasShift = true, compact = false }
   const handleAcknowledge = async (reason) => {
     if (!alert?.clockEventId) { setAlert(null); return }
 
-    const isDisc = alert.strikeCount >= 4
-
     supabase.rpc('acknowledge_clock_alert', {
       p_clock_event_id:  alert.clockEventId,
       p_alert_reason:    reason,
       p_strike_number:   alert.strikeCount,
       p_mins_over:       alert.minsOver,
       p_offence_type:    alert.type,
-      p_is_disciplinary: isDisc,
+      p_is_disciplinary: true,
     }).catch(() => {})
 
     // If live break overrun, end the break now
