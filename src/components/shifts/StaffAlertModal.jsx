@@ -110,13 +110,12 @@ function ordinal(n) {
 const LATE_REASONS    = ['Transport', 'Overslept', 'Personal', 'Other']
 const BREAK_REASONS   = ['Service was busy', 'Lost track of time', 'Personal', 'Other']
 
-function ReasonChips({ type, strikeCount, selected, onSelect }) {
+function ReasonChips({ type, selected, onSelect }) {
   const reasons = type === 'late_clock_in' ? LATE_REASONS : BREAK_REASONS
-  const optional = strikeCount <= 2
   return (
     <div className="flex flex-col gap-2">
       <p className="text-[12px] font-medium" style={{ color: INK3 }}>
-        Add a reason{optional ? ' (optional)' : ''}
+        Add a reason (optional)
       </p>
       <div className="flex flex-wrap gap-2">
         {reasons.map(r => (
@@ -162,13 +161,11 @@ export default function StaffAlertModal({
   const [visible, setVisible] = useState(false)
   const [animating, setAnimating] = useState(false)
   const [selectedReason, setSelectedReason] = useState(null)
-  const [shakeReason, setShakeReason] = useState(false)
 
   useEffect(() => {
     if (open) {
       setVisible(true)
       setSelectedReason(null)
-      setShakeReason(false)
       requestAnimationFrame(() => setAnimating(true))
     } else if (visible) {
       setAnimating(false)
@@ -188,15 +185,8 @@ export default function StaffAlertModal({
   const bannerSevere = strikeCount >= 4
 
   const showReasonChips = requireLateReason
-  const reasonRequired  = requireLateReason && strikeCount >= 3
-  const submitDisabled  = reasonRequired && !selectedReason
 
   const handleSubmitClick = () => {
-    if (submitDisabled) {
-      setShakeReason(true)
-      setTimeout(() => setShakeReason(false), 500)
-      return
-    }
     onAcknowledge(selectedReason)
   }
 
@@ -330,36 +320,11 @@ export default function StaffAlertModal({
 
           {/* Reason chips */}
           {showReasonChips && (
-            <div
-              style={{
-                transition: 'transform 0.1s',
-                transform: shakeReason ? 'translateX(0)' : undefined,
-                animation: shakeReason ? 'shake-reason 0.45s ease' : undefined,
-              }}
-            >
-              <style>{`
-                @keyframes shake-reason {
-                  0%,100% { transform: translateX(0); }
-                  15%     { transform: translateX(-6px); }
-                  30%     { transform: translateX(6px); }
-                  45%     { transform: translateX(-4px); }
-                  60%     { transform: translateX(4px); }
-                  75%     { transform: translateX(-2px); }
-                  90%     { transform: translateX(2px); }
-                }
-              `}</style>
-              <ReasonChips
-                type={type}
-                strikeCount={strikeCount}
-                selected={selectedReason}
-                onSelect={setSelectedReason}
-              />
-              {submitDisabled && shakeReason && (
-                <p style={{ fontSize: 12, color: '#b3331c', marginTop: 6, fontWeight: 500 }}>
-                  Please select a reason to continue
-                </p>
-              )}
-            </div>
+            <ReasonChips
+              type={type}
+              selected={selectedReason}
+              onSelect={setSelectedReason}
+            />
           )}
 
           {/* Acknowledge button */}
@@ -370,7 +335,7 @@ export default function StaffAlertModal({
               width: '100%',
               height: 50,
               borderRadius: 13,
-              background: submitDisabled ? '#8a9e95' : '#13362a',
+              background: '#13362a',
               color: '#fff',
               fontWeight: 700,
               fontSize: 15,
@@ -380,7 +345,6 @@ export default function StaffAlertModal({
               alignItems: 'center',
               justifyContent: 'center',
               gap: 8,
-              opacity: submitDisabled ? 0.6 : 1,
             }}
           >
             <CheckIcon />
