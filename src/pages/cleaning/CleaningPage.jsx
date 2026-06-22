@@ -142,7 +142,7 @@ export default function CleaningPage() {
           <input
             value={form.title}
             onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
-            placeholder="Task title e.g. Deep clean walk-in cooler"
+            placeholder="Task title e.g. Deep clean storage room"
             className="px-4 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
           />
           <div className="grid grid-cols-2 gap-3">

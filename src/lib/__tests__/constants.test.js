@@ -9,7 +9,6 @@ import {
   DEFAULT_STAFF_PERMISSIONS,
   PERMISSION_PRESETS,
   STAFF_COLOUR_PALETTE,
-  ROLE_OPTIONS,
   PLANS,
   EXPLAINED_EXCEEDANCE_REASONS,
 } from '../constants'
@@ -150,14 +149,6 @@ describe('STAFF_COLOUR_PALETTE', () => {
   })
 })
 
-describe('ROLE_OPTIONS', () => {
-  it('every role has a label and color', () => {
-    for (const role of ROLE_OPTIONS) {
-      expect(typeof role.label).toBe('string')
-      expect(typeof role.color).toBe('string')
-    }
-  })
-})
 
 describe('PLANS', () => {
   it('has STARTER and PRO plan identifiers', () => {

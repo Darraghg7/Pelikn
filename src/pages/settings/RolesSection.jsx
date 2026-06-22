@@ -49,7 +49,7 @@ export default function RolesSection() {
         onClose={() => setDeleteTarget(null)}
       />
       <p className="text-xs text-charcoal/45">
-        Define the roles in your business (e.g. Barista, Chef, FOH). These are used by the AI rota builder
+        Define the roles in your business (e.g. Manager, Team Lead, Assistant). These are used by the AI rota builder
         to match staff to shifts based on their skills.
       </p>
 

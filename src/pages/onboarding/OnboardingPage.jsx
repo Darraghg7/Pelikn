@@ -152,22 +152,8 @@ const ROLE_PRESETS = {
   pub:        ['Bar Staff', 'Kitchen', 'Floor Staff', 'Supervisor'],
   restaurant: ['Chef', 'Sous Chef', 'Waiter', 'Kitchen Porter'],
   hotel:      ['Front Desk', 'Housekeeping', 'Kitchen', 'Bar Staff'],
+  other:      [],
 }
-
-const JOB_ROLES = [
-  { value: 'manager',         label: 'Manager' },
-  { value: 'supervisor',      label: 'Supervisor' },
-  { value: 'head_chef',       label: 'Head Chef' },
-  { value: 'sous_chef',       label: 'Sous Chef' },
-  { value: 'chef_de_partie',  label: 'Chef de Partie' },
-  { value: 'kitchen_porter',  label: 'Kitchen Porter' },
-  { value: 'front_of_house',  label: 'Front of House' },
-  { value: 'waiting_staff',   label: 'Waiting Staff' },
-  { value: 'bar_staff',       label: 'Bar Staff' },
-  { value: 'barista',         label: 'Barista' },
-  { value: 'delivery_driver', label: 'Delivery Driver' },
-  { value: 'other',           label: 'Other' },
-]
 
 const DAY_FULL = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 
@@ -294,7 +280,7 @@ export default function OnboardingPage() {
       const { error } = await supabase.rpc('create_staff_member', {
         p_session_token: session.token,
         p_name:          entry.name.trim(),
-        p_job_role:      entry.jobRole || 'other',
+        p_job_role:      entry.jobRole ? entry.jobRole.toLowerCase().replace(/\s+/g, '_') : null,
         p_pin:           entry.pin,
         p_role:          'staff',
         p_email:         null,
@@ -680,14 +666,13 @@ export default function OnboardingPage() {
                         placeholder="PIN"
                         className="px-3 py-2.5 rounded-[9px] border border-charcoal/12 bg-white text-[13px] tracking-widest placeholder:text-charcoal/35 focus:outline-none focus:border-brand focus:ring-[3px] focus:ring-brand/10 transition-all"
                       />
-                      <select
+                      <input
+                        type="text"
                         value={entry.jobRole}
                         onChange={e => updateStaff(idx, 'jobRole', e.target.value)}
-                        className="role-select px-3 py-2.5 rounded-[9px] border border-charcoal/12 bg-white text-[13px] text-charcoal focus:outline-none focus:border-brand focus:ring-[3px] focus:ring-brand/10 appearance-none cursor-pointer transition-all"
-                      >
-                        <option value="" disabled>Role</option>
-                        {JOB_ROLES.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
-                      </select>
+                        placeholder="Role (e.g. Manager)"
+                        className="px-3 py-2.5 rounded-[9px] border border-charcoal/12 bg-white text-[13px] text-charcoal placeholder:text-charcoal/35 focus:outline-none focus:border-brand focus:ring-[3px] focus:ring-brand/10 transition-all"
+                      />
                     </div>
                     <button
                       onClick={() => removeStaffRow(idx)}
@@ -711,7 +696,7 @@ export default function OnboardingPage() {
           {/* Step 4: Roles & Rota (conditional) */}
           {step === 4 && hasRotaStep && (() => {
             const validStaff = staffEntries.filter(s => s.name.trim() && s.pin.length === 4)
-            const presetRoles = ROLE_PRESETS[selectedPreset?.id] ?? ['FOH', 'Kitchen', 'Bar Staff', 'Supervisor']
+            const presetRoles = ROLE_PRESETS[selectedPreset?.id] ?? []
             return (
               <div className="flex flex-col gap-6">
                 {/* Section A: Define roles */}

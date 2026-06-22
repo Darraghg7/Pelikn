@@ -63,7 +63,7 @@ function NewDutyForm({ onSave, onCancel }) {
           onChange={e => setTitle(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && document.activeElement.blur()}
           autoFocus
-          placeholder="e.g. Opening Barista"
+          placeholder="e.g. Opening Shift"
           className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 bg-white text-sm text-charcoal placeholder-charcoal/25 focus:outline-none focus:ring-2 focus:ring-charcoal/20"
         />
       </div>

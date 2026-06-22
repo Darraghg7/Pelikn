@@ -247,7 +247,7 @@ function ManagerTasksView() {
           <input
             value={tForm.title}
             onChange={(e) => setTForm((f) => ({ ...f, title: e.target.value }))}
-            placeholder="e.g. Clean prep surfaces"
+            placeholder="e.g. Complete daily checklist"
             className="px-4 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
           />
           <div className="flex gap-2 flex-wrap">

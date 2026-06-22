@@ -43,17 +43,6 @@ export const DEVICE_VENUES_KEY       = 'pelikn_device_venues'  // [{id,slug,name
 // VAPID public key for Web Push — private key stored in Supabase secrets as VAPID_PRIVATE_KEY
 export const VAPID_PUBLIC_KEY = 'BBDUCYpy030Ejbra3lzqTxIo663ciiqK_H-qCDmMQZ1wNwt9icOCYvjqhcyYAIyTIKorp4gpsS81MOp5InvjJDc'
 
-// Rota role options with colour coding
-export const ROLE_OPTIONS: { label: string; color: string }[] = [
-  { label: 'Chef',            color: 'bg-orange-100 text-orange-800' },
-  { label: 'Sous Chef',       color: 'bg-amber-100 text-amber-800' },
-  { label: 'Kitchen Porter',  color: 'bg-yellow-100 text-yellow-800' },
-  { label: 'Front of House',  color: 'bg-blue-100 text-blue-800' },
-  { label: 'Bartender',       color: 'bg-purple-100 text-purple-800' },
-  { label: 'Barista',         color: 'bg-teal-100 text-teal-800' },
-  { label: 'Supervisor',      color: 'bg-indigo-100 text-indigo-800' },
-  { label: 'Manager',         color: 'bg-rose-100 text-rose-800' },
-]
 
 // Quick shift time presets
 export const SHIFT_PRESETS: { label: string; start: string; end: string }[] = [
@@ -152,6 +141,14 @@ export const VENUE_PRESETS: VenuePreset[] = [
     description: 'Everything: full compliance, large teams, multi-department',
     features: null,
     suggestedRoles: ['Head Chef', 'Sous Chef', 'CDP', 'KP', 'FOH', 'Concierge', 'Housekeeping'],
+  },
+  {
+    id: 'other',
+    label: 'Other Business',
+    icon: 'other',
+    description: 'Custom setup — choose exactly which features you need',
+    features: ['cleaning', 'opening_closing', 'rota', 'timesheet'],
+    suggestedRoles: [],
   },
 ]
 

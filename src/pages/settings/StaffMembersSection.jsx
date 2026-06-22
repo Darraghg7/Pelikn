@@ -8,6 +8,7 @@ import LoadingSpinner from '../../components/ui/LoadingSpinner'
 import { useVenueFeatures } from '../../hooks/useVenueFeatures'
 import { useVenueRoles } from '../../hooks/useVenueRoles'
 import useVenueSettings from '../../hooks/useVenueSettings'
+import { useAppSettings } from '../../hooks/useSettings'
 import Toggle from '../../components/ui/Toggle'
 import useStaffManagement from '../../hooks/useStaffManagement'
 import SettingsSection from './SettingsSection'
@@ -19,21 +20,6 @@ import { saveStaffPermissions } from '../../hooks/useStaffPermissions'
 
 const PERMISSION_ROLES  = ['staff', 'manager', 'owner']
 const PERMISSION_LABELS = { staff: 'Staff', manager: 'Manager', owner: 'Owner' }
-const JOB_ROLES = [
-  { value: 'manager',         label: 'Manager' },
-  { value: 'supervisor',      label: 'Supervisor' },
-  { value: 'head_chef',       label: 'Head Chef' },
-  { value: 'sous_chef',       label: 'Sous Chef' },
-  { value: 'chef_de_partie',  label: 'Chef de Partie' },
-  { value: 'kitchen_porter',  label: 'Kitchen Porter' },
-  { value: 'front_of_house',  label: 'Front of House' },
-  { value: 'waiting_staff',   label: 'Waiting Staff' },
-  { value: 'bar_staff',       label: 'Bar Staff' },
-  { value: 'barista',         label: 'Barista' },
-  { value: 'delivery_driver', label: 'Delivery Driver' },
-  { value: 'other',           label: 'Other' },
-]
-const JOB_LABELS = Object.fromEntries(JOB_ROLES.map(r => [r.value, r.label]))
 const EMPLOYMENT_TYPES = [
   { value: 'full_time',   label: 'Full-time' },
   { value: 'part_time',   label: 'Part-time' },
@@ -147,6 +133,7 @@ export default function StaffMembersSection() {
   const { venuePlan } = useVenueFeatures()
   const { settings } = useVenueSettings()
   const { roles: venueRoles } = useVenueRoles()
+  const { customRoles } = useAppSettings()
   const { session } = useSession()
   const [deleteTarget, setDeleteTarget] = useState(null)
   const { venueId } = useVenue()
@@ -625,7 +612,7 @@ export default function StaffMembersSection() {
           className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 text-charcoal"
         >
           <option value="">Not set</option>
-          {JOB_ROLES.map(r => (
+          {customRoles.map(r => (
             <option key={r.value} value={r.value}>{r.label}</option>
           ))}
         </select>
@@ -887,7 +874,7 @@ export default function StaffMembersSection() {
       <div className="bg-white rounded-xl border border-charcoal/8 overflow-hidden divide-y divide-charcoal/5">
         {staff.map((s, idx) => {
           const initial   = (s.name || '?').charAt(0).toUpperCase()
-          const roleLabel = (staffRoleMap[s.id] ?? [])[0] ?? (JOB_LABELS[s.job_role] ?? s.job_role)
+          const roleLabel = (staffRoleMap[s.id] ?? [])[0] ?? (customRoles.find(r => r.value === s.job_role)?.label ?? s.job_role)
           const isLocked = s.pin_locked_until && new Date(s.pin_locked_until) > new Date()
           const empLabel = EMPLOYMENT_TYPES.find(t => t.value === s.employment_type)?.label
 
@@ -921,7 +908,7 @@ export default function StaffMembersSection() {
                     </div>
                     {s.job_role && (
                       <span className="text-[10px] font-semibold tracking-wider uppercase px-1.5 py-0.5 rounded bg-charcoal/[0.06] text-charcoal/55">
-                        {JOB_LABELS[s.job_role] ?? s.job_role}
+                        {customRoles.find(r => r.value === s.job_role)?.label ?? s.job_role}
                       </span>
                     )}
                     {isLocked && (
