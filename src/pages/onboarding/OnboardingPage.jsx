@@ -40,6 +40,14 @@ const VENUE_ICONS = {
       </svg>
     </div>
   ),
+  other: (
+    <div className="w-9 h-9 rounded-[9px] bg-brand/8 text-brand flex items-center justify-center shrink-0">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/>
+        <line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/>
+      </svg>
+    </div>
+  ),
 }
 
 function StarIcon({ size = 16 }) {

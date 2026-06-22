@@ -191,7 +191,7 @@ export default function RotaShiftModal({
                   type="text"
                   value={form.roleLabel}
                   onChange={(e) => setForm((f) => ({ ...f, roleLabel: e.target.value }))}
-                  placeholder="e.g. Chef, Barista, FOH…"
+                  placeholder="e.g. Manager, Team Lead…"
                   className="w-full px-3 py-2 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
                 />
                 <p className="text-[11px] text-charcoal/35">Add roles in Settings → Rota Roles to get quick-select chips here.</p>

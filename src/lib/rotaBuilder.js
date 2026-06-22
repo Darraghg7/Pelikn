@@ -331,7 +331,7 @@ export function buildRota(config) {
 
       const candidates = getAvailableStaff(di, { skillFilter: req.skill })
       for (let i = 0; i < needed && i < candidates.length; i++) {
-        assignShift(candidates[i], di, candidates[i].job_role || 'FOH')
+        assignShift(candidates[i], di, candidates[i].job_role || null)
       }
 
       if (candidates.length < needed) {
