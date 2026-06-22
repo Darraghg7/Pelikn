@@ -44,7 +44,8 @@ function stationFromRole(role) {
   if (r.includes('kp') || r.includes('porter')) return 'KP'
   if (r.includes('bar') || r.includes('barista')) return 'Bar'
   if (r.includes('foh') || r.includes('floor') || r.includes('server') || r.includes('host') || r.includes('supervisor')) return 'FOH'
-  return null
+  // For custom roles not matching food-service patterns, use the role label as the station
+  return role.charAt(0).toUpperCase() + role.slice(1)
 }
 
 // Column widths — matches design exactly

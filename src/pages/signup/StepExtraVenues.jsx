@@ -44,7 +44,7 @@ export default function StepExtraVenues({ count, onBack, onSubmit, loading, erro
               <input
                 value={v.name}
                 onChange={e => updateVenue(i, 'name', e.target.value)}
-                placeholder="e.g. Nomad City Centre"
+                placeholder="e.g. City Centre Branch"
                 className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-brand/20"
               />
             </div>
@@ -55,7 +55,7 @@ export default function StepExtraVenues({ count, onBack, onSubmit, loading, erro
                 <input
                   value={v.slug}
                   onChange={e => updateVenue(i, 'slug', e.target.value)}
-                  placeholder="nomad-city-centre"
+                  placeholder="city-centre-branch"
                   className="flex-1 px-2 py-2.5 text-sm bg-transparent focus:outline-none font-mono"
                 />
               </div>

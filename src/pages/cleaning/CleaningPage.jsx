@@ -8,10 +8,9 @@ import { useCleaningTasks } from '../../hooks/useCleaningTasks'
 import { useToast } from '../../components/ui/Toast'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
 import CleaningExportModal from './CleaningExportModal'
+import { useAppSettings } from '../../hooks/useSettings'
 
 const FREQ_OPTIONS = ['daily', 'weekly', 'fortnightly', 'monthly', 'quarterly']
-const ROLE_OPTIONS = ['all', 'kitchen', 'foh']
-const ROLE_LABELS  = { all: 'All Roles', kitchen: 'Kitchen', foh: 'Front of House' }
 
 const STATUS_CONFIG = {
   done:     { label: 'Done',     bg: 'bg-success/10',  text: 'text-success',  dot: 'bg-success' },
@@ -27,7 +26,9 @@ export default function CleaningPage() {
   const toast = useToast()
   const { venueId } = useVenue()
   const { session, isManager } = useSession()
-  const jobRole = isManager ? null : (session?.jobRole ?? 'kitchen')
+  const { customRoles = [] } = useAppSettings()
+  const roleOptions = [{ value: 'all', label: 'All Roles' }, ...customRoles.map(r => ({ value: r.value, label: r.label }))]
+  const jobRole = isManager ? null : (session?.jobRole ?? null)
 
   const { tasks, loading, reload } = useCleaningTasks(jobRole)
 
@@ -166,17 +167,17 @@ export default function CleaningPage() {
             <div>
               <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-2">Assigned To</label>
               <div className="flex flex-wrap gap-2">
-                {ROLE_OPTIONS.map((r) => (
+                {roleOptions.map((r) => (
                   <button
-                    key={r}
+                    key={r.value}
                     type="button"
-                    onClick={() => setForm((prev) => ({ ...prev, assigned_role: r }))}
+                    onClick={() => setForm((prev) => ({ ...prev, assigned_role: r.value }))}
                     className={[
                       'px-3 py-1.5 rounded-full text-xs font-medium border transition-all',
-                      form.assigned_role === r ? 'bg-charcoal text-cream border-charcoal' : 'bg-white text-charcoal/50 border-charcoal/15',
+                      form.assigned_role === r.value ? 'bg-charcoal text-cream border-charcoal' : 'bg-white text-charcoal/50 border-charcoal/15',
                     ].join(' ')}
                   >
-                    {ROLE_LABELS[r]}
+                    {r.label}
                   </button>
                 ))}
               </div>
@@ -267,7 +268,7 @@ export default function CleaningPage() {
                     <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-0.5">
                       <span className="text-[11px] tracking-widest uppercase text-charcoal/35">{capitalize(t.frequency)}</span>
                       <span className="text-charcoal/20">·</span>
-                      <span className="text-[11px] tracking-widest uppercase text-charcoal/35">{ROLE_LABELS[t.assigned_role]}</span>
+                      <span className="text-[11px] tracking-widest uppercase text-charcoal/35">{roleOptions.find(r => r.value === t.assigned_role)?.label ?? t.assigned_role}</span>
                       {t.lastCompletion && (
                         <>
                           <span className="text-charcoal/20">·</span>

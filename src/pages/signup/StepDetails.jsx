@@ -54,7 +54,7 @@ export default function StepDetails({ plan, extraVenues, qrAddon, onBack, onSubm
               <input
                 type="text"
                 required
-                placeholder="Venue name (e.g. The Corner Café)"
+                placeholder="Venue name (e.g. The Star Inn)"
                 value={form.venueName}
                 onChange={e => set('venueName', e.target.value)}
                 className="w-full px-4 py-3 rounded-xl border border-charcoal/15 bg-white text-sm text-charcoal placeholder:text-charcoal/30 outline-none focus:border-brand/40 focus:ring-2 focus:ring-brand/10 transition-all"

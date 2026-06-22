@@ -7,6 +7,7 @@ import { useSession } from '../../contexts/SessionContext'
 import { useAllTasks, useTasksForRole } from '../../hooks/useTasks'
 import { useTodayDuties } from '../../hooks/useDuties'
 import { useToast } from '../../components/ui/Toast'
+import { useAppSettings } from '../../hooks/useSettings'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
 import EmptyState from '../../components/ui/EmptyState'
 import { SkeletonList } from '../../components/ui/Skeleton'
@@ -27,23 +28,16 @@ function usePendingSignOffs(staffId, venueId) {
   return count
 }
 
-const JOB_ROLES = ['kitchen', 'foh', 'bar', 'all']
-const ROLE_LABELS = { kitchen: 'Kitchen', foh: 'Front of House', bar: 'Bar', all: 'All Roles' }
-const ROLE_COLORS = {
-  kitchen: 'bg-orange-100 text-orange-700',
-  foh:     'bg-blue-100 text-blue-700',
-  bar:     'bg-purple-100 text-purple-700',
-  all:     'bg-charcoal/10 text-charcoal',
-}
-
 function SectionLabel({ children }) {
   return <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-3">{children}</p>
 }
 
-function RoleBadge({ role }) {
+function RoleBadge({ role, customRoles }) {
+  const found = customRoles?.find(r => r.value === role)
+  const label = role === 'all' ? 'All Roles' : (found?.label ?? role)
   return (
-    <span className={`text-[11px] tracking-widest uppercase font-medium px-2 py-0.5 rounded ${ROLE_COLORS[role] ?? 'bg-charcoal/8 text-charcoal'}`}>
-      {ROLE_LABELS[role] ?? role}
+    <span className={`text-[11px] tracking-widest uppercase font-medium px-2 py-0.5 rounded ${found?.color ?? 'bg-charcoal/8 text-charcoal'}`}>
+      {label}
     </span>
   )
 }
@@ -152,10 +146,12 @@ function ManagerTasksView() {
   const today = new Date()
   const { templates, oneOffs, completions, loading, reload } = useAllTasks(today)
   const staffList = useStaffList()
+  const { customRoles = [] } = useAppSettings()
+  const jobRoleValues = customRoles.map(r => r.value)
 
   const [showAddTemplate, setShowAddTemplate] = useState(false)
   const [showAddOneOff, setShowAddOneOff]     = useState(false)
-  const [tForm, setTForm]   = useState({ title: '', job_role: 'kitchen' })
+  const [tForm, setTForm]   = useState({ title: '', job_role: 'all' })
   const [oForm, setOForm]   = useState({
     title: '',
     job_role: 'all',
@@ -165,9 +161,9 @@ function ManagerTasksView() {
   const [saving, setSaving]   = useState(false)
   const [deleting, setDeleting] = useState(null)
 
-  // "All roles" items (templates tagged 'all', one-offs with no role assignment)
-  const allRolesTemplates = templates.filter(t => t.job_role === 'all' || t.job_role === 'bar')
-  const allRolesOneOffs   = oneOffs.filter(o => o.job_role === 'all' || o.job_role === 'bar')
+  // "All roles" items — tasks tagged 'all' or whose role doesn't match any configured role
+  const allRolesTemplates = templates.filter(t => t.job_role === 'all' || !jobRoleValues.includes(t.job_role))
+  const allRolesOneOffs   = oneOffs.filter(o => o.job_role === 'all' || !jobRoleValues.includes(o.job_role))
 
   const saveTemplate = async () => {
     if (!tForm.title.trim()) return
@@ -178,7 +174,7 @@ function ManagerTasksView() {
     setSaving(false)
     if (error) { toast(error.message, 'error'); return }
     toast('Task template added')
-    setTForm({ title: '', job_role: 'kitchen' })
+    setTForm({ title: '', job_role: 'all' })
     setShowAddTemplate(false)
     reload()
   }
@@ -255,12 +251,12 @@ function ManagerTasksView() {
             className="px-4 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
           />
           <div className="flex gap-2 flex-wrap">
-            {JOB_ROLES.map((r) => (
-              <button key={r} type="button" onClick={() => setTForm(f => ({ ...f, job_role: r }))}
+            {[{ value: 'all', label: 'All Roles' }, ...customRoles].map((r) => (
+              <button key={r.value} type="button" onClick={() => setTForm(f => ({ ...f, job_role: r.value }))}
                 className={['px-3 py-1.5 rounded-full text-xs font-medium border transition-all',
-                  tForm.job_role === r ? 'bg-charcoal text-cream border-charcoal' : 'bg-white text-charcoal/50 border-charcoal/15',
+                  tForm.job_role === r.value ? 'bg-charcoal text-cream border-charcoal' : 'bg-white text-charcoal/50 border-charcoal/15',
                 ].join(' ')}>
-                {ROLE_LABELS[r]}
+                {r.label}
               </button>
             ))}
           </div>
@@ -299,18 +295,19 @@ function ManagerTasksView() {
                 onChange={(e) => setOForm(f => ({ ...f, assigned_to_staff_id: e.target.value }))}
                 className="px-3 py-2 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20">
                 <option value="">Specific person (optional)</option>
-                {staffList.map((s) => (
-                  <option key={s.id} value={s.id}>{s.name} ({ROLE_LABELS[s.job_role] ?? s.job_role})</option>
-                ))}
+                {staffList.map((s) => {
+                  const roleLabel = customRoles.find(r => r.value === s.job_role)?.label ?? s.job_role
+                  return <option key={s.id} value={s.id}>{s.name}{s.job_role ? ` (${roleLabel})` : ''}</option>
+                })}
               </select>
               {!oForm.assigned_to_staff_id && (
                 <div className="flex gap-2 flex-wrap">
-                  {JOB_ROLES.map((r) => (
-                    <button key={r} type="button" onClick={() => setOForm(f => ({ ...f, job_role: r }))}
+                  {[{ value: 'all', label: 'All Roles' }, ...customRoles].map((r) => (
+                    <button key={r.value} type="button" onClick={() => setOForm(f => ({ ...f, job_role: r.value }))}
                       className={['px-3 py-1.5 rounded-full text-xs font-medium border transition-all',
-                        oForm.job_role === r ? 'bg-charcoal text-cream border-charcoal' : 'bg-white text-charcoal/50 border-charcoal/15',
+                        oForm.job_role === r.value ? 'bg-charcoal text-cream border-charcoal' : 'bg-white text-charcoal/50 border-charcoal/15',
                       ].join(' ')}>
-                      {ROLE_LABELS[r]}
+                      {r.label}
                     </button>
                   ))}
                 </div>
@@ -330,32 +327,29 @@ function ManagerTasksView() {
       )}
 
       {/* ── Department columns ─────────────────────────────────────────────── */}
-      <div className="flex flex-col sm:flex-row gap-3 items-start">
-        <DeptColumn
-          role="kitchen"
-          label="Kitchen"
-          color="bg-orange-50 text-orange-800"
-          templates={templates}
-          oneOffs={oneOffs}
-          completions={completions}
-          onDeleteTemplate={deleteTemplate}
-          onDeleteOneOff={deleteOneOff}
-          deleting={deleting}
-        />
-        <DeptColumn
-          role="foh"
-          label="Front of House"
-          color="bg-blue-50 text-blue-800"
-          templates={templates}
-          oneOffs={oneOffs}
-          completions={completions}
-          onDeleteTemplate={deleteTemplate}
-          onDeleteOneOff={deleteOneOff}
-          deleting={deleting}
-        />
-      </div>
+      {customRoles.length > 0 && (
+        <div className="flex flex-col sm:flex-row gap-3 items-start">
+          {customRoles.map((r, i) => {
+            const role = typeof r === 'string' ? { value: r.toLowerCase().replace(/\s+/g, '_'), label: r, color: null } : r
+            return (
+            <DeptColumn
+              key={role.value ?? i}
+              role={role.value}
+              label={role.label}
+              color={role.color?.replace('text-', 'text-').replace('bg-', 'bg-') ?? 'bg-charcoal/5 text-charcoal'}
+              templates={templates}
+              oneOffs={oneOffs}
+              completions={completions}
+              onDeleteTemplate={deleteTemplate}
+              onDeleteOneOff={deleteOneOff}
+              deleting={deleting}
+            />
+            )
+          })}
+        </div>
+      )}
 
-      {/* ── All-roles tasks (bar / all) ────────────────────────────────────── */}
+      {/* ── All-roles tasks ───────────────────────────────────────────────── */}
       {(allRolesTemplates.length > 0 || allRolesOneOffs.length > 0) && (
         <div className="bg-white rounded-2xl border-charcoal/10 overflow-hidden">
           <div className="px-4 py-3 border-b border-charcoal/8 bg-charcoal/3">

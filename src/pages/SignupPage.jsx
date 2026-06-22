@@ -87,7 +87,7 @@ export default function SignupPage() {
         <div>
           <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-2">Your Venue</p>
           <div className="flex flex-col gap-2">
-            <input type="text" required placeholder="Venue Name (e.g. The Corner Cafe)" value={form.venueName}
+            <input type="text" required placeholder="Venue Name (e.g. The Star Inn)" value={form.venueName}
               onChange={e => set('venueName', e.target.value)}
               className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 bg-white text-sm text-charcoal placeholder:text-charcoal/30 outline-none focus:border-charcoal/40" />
             <div>

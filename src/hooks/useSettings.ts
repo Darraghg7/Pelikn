@@ -3,17 +3,8 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
 import { useVenue } from '../contexts/VenueContext'
 
-// Default roles — used when no custom_roles row exists in app_settings
-const DEFAULT_ROLES = [
-  { value: 'chef',            label: 'Chef',            color: 'bg-orange-100 text-orange-800' },
-  { value: 'sous_chef',       label: 'Sous Chef',       color: 'bg-amber-100 text-amber-800' },
-  { value: 'kitchen_porter',  label: 'Kitchen Porter',  color: 'bg-yellow-100 text-yellow-800' },
-  { value: 'foh',             label: 'Front of House',  color: 'bg-blue-100 text-blue-800' },
-  { value: 'bartender',       label: 'Bartender',       color: 'bg-purple-100 text-purple-800' },
-  { value: 'barista',         label: 'Barista',         color: 'bg-teal-100 text-teal-800' },
-  { value: 'supervisor',      label: 'Supervisor',      color: 'bg-indigo-100 text-indigo-800' },
-  { value: 'manager',         label: 'Manager',         color: 'bg-rose-100 text-rose-800' },
-]
+// New venues start with no roles — each venue configures their own in Settings
+const DEFAULT_ROLES: CustomRole[] = []
 
 // Palette for auto-assigning colours to new roles
 const COLOR_PALETTE = [
@@ -124,7 +115,13 @@ async function fetchAppSettings(venueId: string): Promise<AppSettings> {
       try {
         const parsed = JSON.parse(row.value)
         if (row.key === 'custom_roles' && Array.isArray(parsed) && parsed.length > 0) {
-          result.customRoles = parsed
+          // Normalise: legacy venues store roles as plain strings; new ones store {value,label,color}
+          result.customRoles = parsed.map((r: unknown, i: number) => {
+            if (typeof r === 'string') {
+              return { value: r.toLowerCase().replace(/\s+/g, '_'), label: r, color: COLOR_PALETTE[i % COLOR_PALETTE.length] }
+            }
+            return r as CustomRole
+          })
         }
         if (row.key === 'closed_days' && Array.isArray(parsed)) {
           result.closedDays = parsed
@@ -186,7 +183,17 @@ export function useAppSettings() {
     staleTime: 30_000,
   })
 
-  const settings = data ?? DEFAULTS
+  const rawSettings = data ?? DEFAULTS
+  // Normalise customRoles regardless of cache age — legacy venues store roles as plain strings
+  const settings: AppSettings = {
+    ...rawSettings,
+    customRoles: rawSettings.customRoles.map((r: unknown, i: number) => {
+      if (typeof r === 'string') {
+        return { value: r.toLowerCase().replace(/\s+/g, '_'), label: r, color: COLOR_PALETTE[i % COLOR_PALETTE.length] }
+      }
+      return r as CustomRole
+    }),
+  }
 
   const saveSetting = useCallback(async (key: string, value: unknown) => {
     if (!venueId) return

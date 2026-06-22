@@ -109,7 +109,7 @@ export default function VenuesSection() {
               <input
                 value={form.name}
                 onChange={e => handleNameChange(e.target.value)}
-                placeholder="e.g. Nomad City Centre"
+                placeholder="e.g. City Centre Branch"
                 className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
               />
             </div>
@@ -120,7 +120,7 @@ export default function VenuesSection() {
                 <input
                   value={form.slug}
                   onChange={e => { setSlugEdited(true); setForm(f => ({ ...f, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') })) }}
-                  placeholder="nomad-city-centre"
+                  placeholder="city-centre-branch"
                   className="flex-1 px-2 py-2.5 text-sm bg-transparent focus:outline-none"
                 />
               </div>
