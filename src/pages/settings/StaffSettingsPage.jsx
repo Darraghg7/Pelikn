@@ -8,42 +8,7 @@ import RolesSection from './RolesSection'
 import PermissionTitlesSection from './PermissionTitlesSection'
 import DutiesSection from './DutiesSection'
 import useVenueSettings from '../../hooks/useVenueSettings'
-
-const MC = {
-  brand: '#13362a', brandTint: '#eef4f0',
-  ink:   '#0d1a14', ink3: '#76817b', ink4: '#b3b9b5',
-  line:  '#e4e6e2', line2: '#eef0ec',
-  paper: '#ffffff', bg: '#f3f3ef',
-}
-const MONO = 'ui-monospace, SFMono-Regular, monospace'
-const SANS = '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
-
-function SubHeader({ title, onBack }) {
-  return (
-    <div style={{
-      position: 'sticky', top: 0, zIndex: 10,
-      background: 'rgba(243,243,239,0.92)',
-      backdropFilter: 'saturate(180%) blur(20px)',
-      WebkitBackdropFilter: 'saturate(180%) blur(20px)',
-      borderBottom: `1px solid ${MC.line}`,
-      padding: '12px 16px 10px',
-      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-    }}>
-      <button onClick={onBack} style={{
-        display: 'flex', alignItems: 'center', gap: 6,
-        color: MC.brand, background: 'none', border: 'none',
-        cursor: 'pointer', padding: '4px 0', fontFamily: SANS, fontSize: 15, fontWeight: 500,
-      }}>
-        <svg width="9" height="15" viewBox="0 0 9 15" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M8 1L1.5 7.5 8 14"/>
-        </svg>
-        Settings
-      </button>
-      <span style={{ fontSize: 17, fontWeight: 600, letterSpacing: '-0.02em', color: MC.ink }}>{title}</span>
-      <span style={{ width: 70 }} />
-    </div>
-  )
-}
+import SettingsSubHeader from '../../components/layout/SettingsSubHeader'
 
 const TABS = [
   { id: 'members', label: 'Members' },
@@ -63,31 +28,24 @@ export default function StaffSettingsPage() {
   const vp = (path) => `/v/${venueSlug}${path}`
 
   return (
-    <div style={{ minHeight: '100vh', background: MC.bg, fontFamily: SANS }}>
-      <SubHeader title="Staff & Roles" onBack={() => navigate(vp('/settings/hub'))} />
+    <div className="min-h-screen bg-surface">
+      <SettingsSubHeader title="Staff & Roles" onBack={() => navigate(vp('/settings/hub'))} />
 
-      {/* Tab strip */}
-      <div style={{
-        display: 'flex', background: MC.paper, borderBottom: `1px solid ${MC.line}`,
-        padding: '0 16px', gap: 2,
-        position: 'sticky', top: 49, zIndex: 9,
-      }}>
+      <div className="flex bg-white dark:bg-[#1e1e1e] border-b border-charcoal/10 px-4 gap-0.5 sticky top-[49px] z-[9]">
         {TABS.map(t => (
           <button
             key={t.id}
             onClick={() => setTab(t.id)}
-            style={{
-              padding: '12px 12px 11px', border: 'none', background: 'none', cursor: 'pointer',
-              fontFamily: SANS, fontSize: 13, fontWeight: tab === t.id ? 600 : 500,
-              color: tab === t.id ? MC.brand : MC.ink3,
-              borderBottom: tab === t.id ? `2px solid ${MC.brand}` : '2px solid transparent',
-              transition: 'all 0.15s', whiteSpace: 'nowrap',
-            }}
+            className={`px-3 py-[12px] pb-[11px] text-[13px] border-b-2 -mb-px transition-all whitespace-nowrap ${
+              tab === t.id
+                ? 'font-semibold text-brand border-brand'
+                : 'font-medium text-charcoal/50 border-transparent hover:text-charcoal'
+            }`}
           >{t.label}</button>
         ))}
       </div>
 
-      <div style={{ padding: tab === 'members' ? '0 0 96px' : '16px 16px 96px', maxWidth: 480, margin: '0 auto' }}>
+      <div className={`${tab === 'members' ? 'pb-24' : 'px-4 pt-4 pb-24'} max-w-[480px] mx-auto`}>
         {tab === 'members' && <StaffMembersSection />}
 
         {tab === 'invite' && (
@@ -95,7 +53,7 @@ export default function StaffSettingsPage() {
         )}
 
         {tab === 'roles' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div className="flex flex-col gap-4">
             <RolesSection />
             <PermissionTitlesSection
               venueId={venueId}

@@ -5,96 +5,7 @@ import { useAppSettings } from '../../hooks/useSettings'
 import { useVenueFeatures, FEATURE_GROUPS, ALL_FEATURE_IDS, PRO_ONLY_FEATURE_IDS } from '../../hooks/useVenueFeatures'
 import { PLANS } from '../../lib/constants'
 import NavOrderSection from './NavOrderSection'
-
-const MC = {
-  brand:  '#13362a', brandTint: '#eef4f0',
-  good:   '#1a7a4c',
-  ink:    '#0d1a14', ink2: '#3d4a44', ink3: '#76817b', ink4: '#b3b9b5',
-  line:   '#e4e6e2', line2: '#eef0ec',
-  paper:  '#ffffff', bg: '#f3f3ef',
-}
-const MONO = 'ui-monospace, SFMono-Regular, monospace'
-const SANS = '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
-
-function SubHeader({ title, onBack }) {
-  return (
-    <div style={{
-      position: 'sticky', top: 0, zIndex: 10,
-      background: 'rgba(243,243,239,0.92)',
-      backdropFilter: 'saturate(180%) blur(20px)',
-      WebkitBackdropFilter: 'saturate(180%) blur(20px)',
-      borderBottom: `1px solid ${MC.line}`,
-      padding: '12px 16px 10px',
-      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-    }}>
-      <button onClick={onBack} style={{
-        display: 'flex', alignItems: 'center', gap: 6,
-        color: MC.brand, background: 'none', border: 'none',
-        cursor: 'pointer', padding: '4px 0', fontFamily: SANS, fontSize: 15, fontWeight: 500,
-      }}>
-        <svg width="9" height="15" viewBox="0 0 9 15" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M8 1L1.5 7.5 8 14"/>
-        </svg>
-        Settings
-      </button>
-      <span style={{ fontSize: 17, fontWeight: 600, letterSpacing: '-0.02em', color: MC.ink }}>{title}</span>
-      <span style={{ width: 70 }} />
-    </div>
-  )
-}
-
-function Toggle({ on, onClick }) {
-  return (
-    <button
-      onClick={onClick}
-      aria-pressed={on}
-      style={{
-        width: 46, height: 28, borderRadius: 999, border: 'none', cursor: 'pointer', flexShrink: 0,
-        background: on ? MC.good : MC.line, position: 'relative', transition: 'background .18s', padding: 0,
-      }}
-    >
-      <span style={{
-        position: 'absolute', top: 3, left: on ? 21 : 3, width: 22, height: 22,
-        borderRadius: 999, background: '#fff',
-        boxShadow: '0 1px 3px rgba(9,18,13,0.25)', transition: 'left .18s',
-      }} />
-    </button>
-  )
-}
-
-function Row({ label, sub, on, onToggle, last }) {
-  return (
-    <div style={{
-      display: 'flex', alignItems: 'center', gap: 12, padding: '13px 15px',
-      borderTop: last === false ? `1px solid ${MC.line2}` : 'none',
-    }}>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 14, fontWeight: 500, color: MC.ink, letterSpacing: '-0.005em' }}>{label}</div>
-        {sub && <div style={{ fontSize: 11.5, color: MC.ink3, marginTop: 2, lineHeight: 1.4 }}>{sub}</div>}
-      </div>
-      <Toggle on={on} onClick={onToggle} />
-    </div>
-  )
-}
-
-function Group({ label, children, foot }) {
-  return (
-    <div>
-      {label && (
-        <div style={{
-          fontFamily: MONO, fontSize: 10.5, color: MC.ink3, letterSpacing: '0.08em',
-          textTransform: 'uppercase', fontWeight: 600, padding: '0 2px 7px',
-        }}>{label}</div>
-      )}
-      <div style={{ background: MC.paper, border: `1px solid ${MC.line}`, borderRadius: 14, overflow: 'hidden' }}>
-        {children}
-      </div>
-      {foot && (
-        <div style={{ fontSize: 11.5, color: MC.ink3, padding: '8px 4px 0', lineHeight: 1.45 }}>{foot}</div>
-      )}
-    </div>
-  )
-}
+import SettingsSubHeader from '../../components/layout/SettingsSubHeader'
 
 const CHECK_TILES = [
   { id: 'fitness',   label: 'Fitness to Work',  sub: 'Daily staff declarations' },
@@ -121,6 +32,50 @@ const TEAM_TILES = [
   { id: 'staff',     label: 'Staff Members',sub: 'Staff list & roles' },
 ]
 
+function Toggle({ on, onClick }) {
+  return (
+    <button
+      onClick={onClick}
+      aria-pressed={on}
+      className="relative w-10 h-6 rounded-full border-0 cursor-pointer shrink-0 transition-colors duration-[180ms] p-0"
+      style={{ background: on ? '#1a7a4c' : '#e4e6e2' }}
+    >
+      <span
+        className="absolute top-0.5 w-5 h-5 rounded-full bg-white transition-all duration-[180ms]"
+        style={{ left: on ? 18 : 2, boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }}
+      />
+    </button>
+  )
+}
+
+function Row({ label, sub, on, onToggle, last }) {
+  return (
+    <div className={`flex items-center gap-3 px-[15px] py-[13px] ${last === false ? 'border-t border-charcoal/6' : ''}`}>
+      <div className="flex-1 min-w-0">
+        <div className="text-sm font-medium text-charcoal tracking-[-0.005em]">{label}</div>
+        {sub && <div className="text-[11.5px] text-charcoal/50 mt-0.5 leading-[1.4]">{sub}</div>}
+      </div>
+      <Toggle on={on} onClick={onToggle} />
+    </div>
+  )
+}
+
+function Group({ label, children, foot }) {
+  return (
+    <div>
+      {label && (
+        <div className="font-mono text-[10.5px] font-semibold tracking-[0.08em] uppercase text-charcoal/50 px-0.5 pb-1.5">{label}</div>
+      )}
+      <div className="bg-white dark:bg-[#1e1e1e] border border-charcoal/10 rounded-[14px] overflow-hidden">
+        {children}
+      </div>
+      {foot && (
+        <div className="text-[11.5px] text-charcoal/50 px-1 pt-2 leading-[1.45]">{foot}</div>
+      )}
+    </div>
+  )
+}
+
 export default function HubTilesPage() {
   const navigate = useNavigate()
   const { venueId, venueSlug, venuePlan } = useVenue()
@@ -144,11 +99,11 @@ export default function HubTilesPage() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: MC.bg, fontFamily: SANS }}>
-      <SubHeader title="Features" onBack={() => navigate(vp('/settings/hub'))} />
+    <div className="min-h-screen bg-surface">
+      <SettingsSubHeader title="Features" onBack={() => navigate(vp('/settings/hub'))} />
 
-      <div style={{ padding: '0 16px 96px', maxWidth: 480, margin: '0 auto' }}>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div className="px-4 pb-24 max-w-[480px] mx-auto">
+      <div className="flex flex-col gap-4">
 
         <Group label="Checks hub" foot="Hidden tiles won't show on the Checks hub but their pages remain accessible from the menu.">
           {CHECK_TILES.map((t, i) => (
@@ -176,37 +131,30 @@ export default function HubTilesPage() {
           ))}
         </Group>
 
-        {/* Modules */}
         <div>
-          <div style={{ fontFamily: MONO, fontSize: 10.5, color: MC.ink3, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600, padding: '0 2px 7px' }}>Modules</div>
-          <div style={{ background: MC.paper, border: `1px solid ${MC.line}`, borderRadius: 14, overflow: 'hidden', padding: '4px 0' }}>
-            <div style={{ padding: '8px 14px' }}>
-              <div style={{ display: 'inline-flex', background: MC.line2, borderRadius: 9, padding: 3, gap: 2, marginBottom: 12 }}>
+          <div className="font-mono text-[10.5px] font-semibold tracking-[0.08em] uppercase text-charcoal/50 px-0.5 pb-1.5">Modules</div>
+          <div className="bg-white dark:bg-[#1e1e1e] border border-charcoal/10 rounded-[14px] overflow-hidden py-1">
+            <div className="px-[14px] py-2">
+              <div className="inline-flex bg-charcoal/6 rounded-[9px] p-[3px] gap-0.5 mb-3">
                 {['all', 'custom'].map(mode => (
                   <button
                     key={mode}
                     onClick={() => saveFeatures({ mode, enabled: mode === 'all' ? ALL_FEATURE_IDS : (featuresConfig.enabled ?? ALL_FEATURE_IDS) })}
-                    style={{
-                      padding: '5px 14px', borderRadius: 7, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 600,
-                      background: featuresConfig.mode === mode ? MC.paper : 'transparent',
-                      color: featuresConfig.mode === mode ? MC.ink : MC.ink3,
-                      boxShadow: featuresConfig.mode === mode ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
-                      transition: 'all .15s',
-                    }}
+                    className={`px-[14px] py-[5px] rounded-[7px] border-0 cursor-pointer text-xs font-semibold transition-all duration-150 ${featuresConfig.mode === mode ? 'bg-white text-charcoal shadow-sm' : 'bg-transparent text-charcoal/50'}`}
                   >{mode === 'all' ? 'All modules' : 'Custom'}</button>
                 ))}
               </div>
 
               {featuresConfig.mode === 'custom' && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <div className="flex flex-col gap-2.5">
                   {FEATURE_GROUPS.map(group => {
                     const allOn = group.features.every(f => featuresConfig.enabled?.includes(f.id))
                     return (
-                      <div key={group.id} style={{ border: `1px solid ${MC.line}`, borderRadius: 10, overflow: 'hidden' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '9px 12px', background: MC.line2, borderBottom: `1px solid ${MC.line}` }}>
+                      <div key={group.id} className="border border-charcoal/10 rounded-xl overflow-hidden">
+                        <div className="flex items-center justify-between px-3 py-[9px] bg-charcoal/6 border-b border-charcoal/10">
                           <div>
-                            <div style={{ fontSize: 13, fontWeight: 600, color: MC.ink }}>{group.label}</div>
-                            <div style={{ fontSize: 11, color: MC.ink3, marginTop: 1 }}>{group.description}</div>
+                            <div className="text-[13px] font-semibold text-charcoal">{group.label}</div>
+                            <div className="text-[11px] text-charcoal/50 mt-px">{group.description}</div>
                           </div>
                           <button
                             onClick={() => {
@@ -216,10 +164,11 @@ export default function HubTilesPage() {
                                 : [...new Set([...(featuresConfig.enabled ?? []), ...groupIds])]
                               saveFeatures({ ...featuresConfig, enabled: next })
                             }}
-                            style={{ width: 40, height: 24, borderRadius: 999, border: 'none', cursor: 'pointer', flexShrink: 0, background: allOn ? MC.good : MC.line, position: 'relative', transition: 'background .18s', padding: 0 }}
+                            className="relative w-10 h-6 rounded-full border-0 cursor-pointer shrink-0 p-0 transition-colors duration-[180ms]"
+                            style={{ background: allOn ? '#1a7a4c' : '#e4e6e2' }}
                             aria-pressed={allOn}
                           >
-                            <span style={{ position: 'absolute', top: 2, left: allOn ? 18 : 2, width: 20, height: 20, borderRadius: 999, background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,0.2)', transition: 'left .18s' }} />
+                            <span className="absolute top-0.5 w-5 h-5 rounded-full bg-white transition-all duration-[180ms]" style={{ left: allOn ? 18 : 2, boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} />
                           </button>
                         </div>
                         {group.features.map((feature, fi) => {
@@ -227,13 +176,13 @@ export default function HubTilesPage() {
                           const locked = isProOnly && venuePlan !== PLANS.PRO
                           const on = !locked && (featuresConfig.enabled?.includes(feature.id) ?? true)
                           return (
-                            <div key={feature.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderTop: fi === 0 ? 'none' : `1px solid ${MC.line2}`, opacity: locked ? 0.5 : 1 }}>
-                              <div style={{ flex: 1, minWidth: 0 }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                                  <div style={{ fontSize: 13, fontWeight: 500, color: on ? MC.ink : MC.ink3 }}>{feature.label}</div>
-                                  {locked && <span style={{ fontFamily: MONO, fontSize: 9, fontWeight: 700, color: '#d97706', background: '#fffbeb', padding: '2px 5px', borderRadius: 4, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Pro</span>}
+                            <div key={feature.id} className={`flex items-center gap-2.5 px-3 py-[9px] ${fi === 0 ? '' : 'border-t border-charcoal/6'} ${locked ? 'opacity-50' : ''}`}>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-1.5">
+                                  <div className={`text-[13px] font-medium ${on ? 'text-charcoal' : 'text-charcoal/50'}`}>{feature.label}</div>
+                                  {locked && <span className="font-mono text-[9px] font-bold text-[#d97706] bg-[#fffbeb] px-[5px] py-0.5 rounded uppercase tracking-[0.04em]">Pro</span>}
                                 </div>
-                                <div style={{ fontSize: 11, color: MC.ink3, marginTop: 1 }}>{feature.description}</div>
+                                <div className="text-[11px] text-charcoal/50 mt-px">{feature.description}</div>
                               </div>
                               <button
                                 onClick={locked ? undefined : () => {
@@ -242,10 +191,11 @@ export default function HubTilesPage() {
                                   saveFeatures({ ...featuresConfig, enabled: next })
                                 }}
                                 disabled={locked}
-                                style={{ width: 40, height: 24, borderRadius: 999, border: 'none', cursor: locked ? 'default' : 'pointer', flexShrink: 0, background: on ? MC.good : MC.line, position: 'relative', transition: 'background .18s', padding: 0 }}
+                                className="relative w-10 h-6 rounded-full border-0 shrink-0 p-0 transition-colors duration-[180ms]"
+                                style={{ background: on ? '#1a7a4c' : '#e4e6e2', cursor: locked ? 'default' : 'pointer' }}
                                 aria-pressed={on}
                               >
-                                <span style={{ position: 'absolute', top: 2, left: on ? 18 : 2, width: 20, height: 20, borderRadius: 999, background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,0.2)', transition: 'left .18s' }} />
+                                <span className="absolute top-0.5 w-5 h-5 rounded-full bg-white transition-all duration-[180ms]" style={{ left: on ? 18 : 2, boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} />
                               </button>
                             </div>
                           )
@@ -256,7 +206,7 @@ export default function HubTilesPage() {
                 </div>
               )}
               {featuresConfig.mode === 'all' && (
-                <div style={{ fontSize: 12, color: MC.ink4, fontStyle: 'italic', marginBottom: 4 }}>
+                <div className="text-xs text-charcoal/30 italic mb-1">
                   All {ALL_FEATURE_IDS.length} modules are enabled. Switch to Custom to hide features that don't apply.
                 </div>
               )}
@@ -264,10 +214,9 @@ export default function HubTilesPage() {
           </div>
         </div>
 
-        {/* Navigation order */}
         <div>
-          <div style={{ fontFamily: MONO, fontSize: 10.5, color: MC.ink3, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600, padding: '0 2px 7px' }}>Navigation order</div>
-          <div style={{ background: MC.paper, border: `1px solid ${MC.line}`, borderRadius: 14, overflow: 'hidden', padding: '4px 0' }}>
+          <div className="font-mono text-[10.5px] font-semibold tracking-[0.08em] uppercase text-charcoal/50 px-0.5 pb-1.5">Navigation order</div>
+          <div className="bg-white dark:bg-[#1e1e1e] border border-charcoal/10 rounded-[14px] overflow-hidden py-1">
             <NavOrderSection
               isEnabled={isEnabled}
               venuePlan={venuePlan}

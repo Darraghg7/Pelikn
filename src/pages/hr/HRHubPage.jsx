@@ -9,39 +9,43 @@ import { addDays } from 'date-fns'
 import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
-import EmployeeRecordPanel, { MC, MM, MF, Avatar, nameInitials } from './EmployeeRecordPanel'
+import EmployeeRecordPanel, { Avatar, nameInitials } from './EmployeeRecordPanel'
 
 // ── Stat tile ─────────────────────────────────────────────────────────────────
 function StatTile({ label, value, sub, tone, icon }) {
+  const accentClass =
+    tone === 'bad'  ? 'bg-danger'  :
+    tone === 'warn' ? 'bg-warning' :
+    tone === 'good' ? 'bg-success' : ''
+
+  const valueClass =
+    tone === 'bad'  ? 'text-danger'  :
+    tone === 'warn' ? 'text-warning' :
+    tone === 'good' ? 'text-success' : 'text-charcoal'
+
+  const iconClass =
+    tone === 'bad'  ? 'text-danger'  :
+    tone === 'warn' ? 'text-warning' :
+    tone === 'good' ? 'text-success' : 'text-charcoal/30'
+
   return (
-    <div style={{
-      background: MC.paper, border: `1px solid ${MC.line}`, borderRadius: 16,
-      padding: '15px 17px', display: 'flex', flexDirection: 'column', gap: 2,
-      position: 'relative', overflow: 'hidden',
-      boxShadow: '0 1px 2px rgba(13,26,20,0.03)',
-    }}>
+    <div className="bg-white dark:bg-[#1e1e1e] border border-charcoal/10 rounded-2xl px-[17px] py-[15px] flex flex-col gap-0.5 relative overflow-hidden shadow-sm">
       {tone && (
-        <span style={{
-          position: 'absolute', left: 0, top: 14, bottom: 14, width: 3,
-          borderRadius: '0 3px 3px 0', background: tone.fg,
-        }} />
+        <span className={`absolute left-0 top-[14px] bottom-[14px] w-[3px] rounded-r-full ${accentClass}`} />
       )}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <span style={{ fontFamily: MM, fontSize: 9.5, textTransform: 'uppercase', letterSpacing: '0.08em', color: MC.ink3, fontWeight: 600 }}>
+      <div className="flex items-center gap-2">
+        <span className="font-mono text-[9.5px] uppercase tracking-[0.08em] text-charcoal/50 font-semibold">
           {label}
         </span>
-        <span style={{ marginLeft: 'auto', color: tone ? tone.fg : MC.ink4, display: 'inline-flex' }}>
+        <span className={`ml-auto inline-flex ${iconClass}`}>
           {icon}
         </span>
       </div>
-      <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-        <span style={{
-          fontFamily: MM, fontSize: 28, fontWeight: 500, letterSpacing: '-0.03em',
-          color: tone ? tone.fg : MC.ink, lineHeight: 1, fontVariantNumeric: 'tabular-nums',
-        }}>
+      <div className="flex items-baseline gap-2">
+        <span className={`font-mono text-[28px] font-medium tracking-[-0.03em] leading-none tabular-nums ${valueClass}`}>
           {value}
         </span>
-        <span style={{ fontSize: 12, color: MC.ink3 }}>{sub}</span>
+        <span className="text-xs text-charcoal/50">{sub}</span>
       </div>
     </div>
   )
@@ -61,40 +65,29 @@ const ICO = {
 function ListRow({ s, selected, actionIds, expiringIds, onClick }) {
   const [hovered, setHovered] = useState(false)
   const isSel  = selected?.id === s.id
-  const dotCol = actionIds.has(s.id)   ? MC.bad  :
-                 expiringIds.has(s.id) ? MC.warn : null
+  const dotCol = actionIds.has(s.id)   ? 'bg-danger'  :
+                 expiringIds.has(s.id) ? 'bg-warning' : null
 
   return (
     <button
       onClick={onClick}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      style={{
-        display: 'flex', alignItems: 'center', gap: 11, width: '100%', textAlign: 'left',
-        cursor: 'pointer', padding: '10px 13px', borderRadius: 12,
-        border: '1px solid transparent', fontFamily: MF,
-        background: isSel ? MC.brandTint : hovered ? MC.line2 : 'transparent',
-        transition: 'background .12s',
-      }}
+      className={`flex items-center gap-[11px] w-full text-left cursor-pointer px-[13px] py-2.5 rounded-xl border border-transparent transition-colors duration-[120ms] ${
+        isSel ? 'bg-brand/8' : hovered ? 'bg-charcoal/6' : 'bg-transparent'
+      }`}
     >
-      <Avatar name={s.name} size={36} radius={10} />
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{
-          fontSize: 13.5, fontWeight: isSel ? 700 : 500, color: MC.ink,
-          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-        }}>
+      <Avatar name={s.name} size={36} />
+      <div className="flex-1 min-w-0">
+        <div className={`text-[13.5px] text-charcoal overflow-hidden text-ellipsis whitespace-nowrap ${isSel ? 'font-bold' : 'font-medium'}`}>
           {s.name}
         </div>
-        <div style={{
-          fontFamily: MM, fontSize: 10, color: MC.ink3,
-          textTransform: 'uppercase', letterSpacing: '0.03em', marginTop: 1,
-          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-        }}>
+        <div className="font-mono text-[10px] text-charcoal/50 uppercase tracking-[0.03em] mt-px overflow-hidden text-ellipsis whitespace-nowrap">
           {s.job_role ?? 'No role'}
         </div>
       </div>
       {dotCol && (
-        <span style={{ width: 8, height: 8, borderRadius: '50%', background: dotCol, flexShrink: 0 }} />
+        <span className={`w-2 h-2 rounded-full shrink-0 ${dotCol}`} />
       )}
     </button>
   )
@@ -106,15 +99,13 @@ export default function HRHubPage() {
   const { venueId, venueSlug } = useVenue()
   const vp = p => `/v/${venueSlug}${p}`
 
-  // Data
   const [staff,   setStaff]   = useState([])
   const [actions, setActions] = useState([])
   const [docs,    setDocs]    = useState([])
   const [loading, setLoading] = useState(true)
 
-  // UI state
   const [query,    setQuery]    = useState('')
-  const [selected, setSelected] = useState(null)   // full staff obj from list
+  const [selected, setSelected] = useState(null)
   const [tab,      setTab]      = useState('Profile')
 
   useEffect(() => {
@@ -147,7 +138,6 @@ export default function HRHubPage() {
       setDocs(docsData)
       setLoading(false)
 
-      // Auto-select first flagged staff member, or first staff member
       const actionIds   = new Set(actData.map(a => a.staff_id))
       const expiringIds = new Set(docsData.map(d => d.staff_id))
       const firstFlagged = staffData.find(s => actionIds.has(s.id) || expiringIds.has(s.id))
@@ -165,12 +155,11 @@ export default function HRHubPage() {
   const docsExpiringCount = useMemo(
     () => new Set(docs.filter(d => {
       const ms = new Date(d.expiry_date).getTime() - Date.now()
-      return ms >= 0  // ≥ today (within the 30d window already filtered by query)
+      return ms >= 0
     }).map(d => d.staff_id)).size,
     [docs],
   )
 
-  // Search filter (query only — no dept filter; no department field in DB yet)
   const q = query.toLowerCase()
   const filtered = useMemo(() => staff.filter(s =>
     !q || s.name.toLowerCase().includes(q) || (s.job_role ?? '').toLowerCase().includes(q),
@@ -181,102 +170,81 @@ export default function HRHubPage() {
 
   const openStaff = (s) => { setSelected(s); setTab('Profile') }
 
-  // Stat tiles (shown as a compact row above the workspace grid)
   const stats = [
-    { label: 'Active staff',    value: staff.length,      sub: 'on the books',  tone: null,                              icon: ICO.users  },
-    { label: 'Needs attention', value: flaggedCount,       sub: 'staff',         tone: { fg: MC.bad,  bg: MC.badBg  },    icon: ICO.alert  },
-    { label: 'Docs expiring',   value: docsExpiringCount,  sub: 'within 30 days',tone: { fg: MC.warn, bg: MC.warnBg },    icon: ICO.clock  },
-    { label: 'Formal actions',  value: actionIds.size,     sub: 'last 90 days',  tone: actionIds.size > 0 ? { fg: MC.bad, bg: MC.badBg } : null, icon: ICO.gavel },
+    { label: 'Active staff',    value: staff.length,       sub: 'on the books',   tone: null,                                    icon: ICO.users  },
+    { label: 'Needs attention', value: flaggedCount,        sub: 'staff',          tone: 'bad',                                   icon: ICO.alert  },
+    { label: 'Docs expiring',   value: docsExpiringCount,   sub: 'within 30 days', tone: 'warn',                                  icon: ICO.clock  },
+    { label: 'Formal actions',  value: actionIds.size,      sub: 'last 90 days',   tone: actionIds.size > 0 ? 'bad' : null,       icon: ICO.gavel  },
   ]
 
   return (
-    <div style={{ fontFamily: MF, padding: '16px 0 96px' }}>
+    <div className="pb-24 pt-4">
       {loading ? (
-        <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 80 }}>
+        <div className="flex justify-center pt-20">
           <LoadingSpinner />
         </div>
       ) : staff.length === 0 ? (
-        /* Empty state */
-        <div style={{ textAlign: 'center', padding: '60px 16px', color: MC.ink4 }}>
-          <div style={{ marginBottom: 6, fontFamily: MM, fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', color: MC.ink3 }}>Manager · Team</div>
-          <h1 style={{ fontSize: 28, fontWeight: 700, letterSpacing: '-0.03em', color: MC.ink, margin: '0 0 10px' }}>HR Records</h1>
-          <p style={{ fontSize: 13.5, color: MC.ink3, marginBottom: 24 }}>No active staff members found.</p>
+        <div className="text-center px-4 py-[60px] text-charcoal/30">
+          <div className="mb-1.5 font-mono text-[10px] tracking-[0.1em] uppercase text-charcoal/50">Manager · Team</div>
+          <h1 className="text-[28px] font-bold tracking-[-0.03em] text-charcoal mt-0 mb-2.5">HR Records</h1>
+          <p className="text-[13.5px] text-charcoal/50 mb-6">No active staff members found.</p>
           <button
             onClick={() => navigate(vp('/settings'))}
-            style={{
-              background: MC.brand, color: '#fff', border: 'none', borderRadius: 11,
-              padding: '10px 20px', cursor: 'pointer', fontFamily: MF, fontSize: 13, fontWeight: 600,
-            }}
+            className="bg-brand text-white border-0 rounded-[11px] px-5 py-2.5 cursor-pointer text-[13px] font-semibold"
           >
             Add staff in Settings
           </button>
         </div>
       ) : (
         <>
-          {/* Stat tiles row */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 13, marginBottom: 22 }}>
+          <div className="grid grid-cols-4 gap-[13px] mb-[22px]">
             {stats.map(s => (
               <StatTile key={s.label} label={s.label} value={s.value} sub={s.sub} tone={s.tone} icon={s.icon} />
             ))}
           </div>
 
-          {/* Workspace two-pane grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: '316px 1fr', gap: 22, alignItems: 'start' }}>
+          <div className="grid gap-[22px] items-start" style={{ gridTemplateColumns: '316px 1fr' }}>
 
-            {/* ── Left column: sticky staff list ──────────────────────────── */}
-            <div style={{ position: 'sticky', top: 76, height: 'calc(100vh - 160px)', display: 'flex', flexDirection: 'column' }}>
-              {/* Column title */}
-              <div style={{ marginBottom: 14 }}>
-                <div style={{ fontFamily: MM, fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', color: MC.ink3, fontWeight: 600 }}>
+            <div className="sticky top-[76px] h-[calc(100vh-160px)] flex flex-col">
+              <div className="mb-3.5">
+                <div className="font-mono text-[10px] tracking-[0.1em] uppercase text-charcoal/50 font-semibold">
                   Manager · Team
                 </div>
-                <h1 style={{ fontSize: 23, fontWeight: 700, letterSpacing: '-0.025em', color: MC.ink, lineHeight: 1.1, margin: '4px 0 0', fontFamily: MF }}>
+                <h1 className="text-[23px] font-bold tracking-[-0.025em] text-charcoal leading-[1.1] mt-1 mb-0">
                   HR Records
                 </h1>
               </div>
 
-              {/* Search */}
-              <div style={{ position: 'relative', marginBottom: 10 }}>
-                <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: MC.ink4, display: 'inline-flex', pointerEvents: 'none' }}>
+              <div className="relative mb-2.5">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-charcoal/30 inline-flex pointer-events-none">
                   {ICO.search}
                 </span>
                 <input
                   value={query}
                   onChange={e => setQuery(e.target.value)}
                   placeholder="Search staff…"
-                  style={{
-                    width: '100%', padding: '9px 12px 9px 36px', borderRadius: 11,
-                    border: `1px solid ${MC.line}`, fontSize: 13, fontFamily: MF,
-                    outline: 'none', background: MC.paper, color: MC.ink, boxSizing: 'border-box',
-                  }}
+                  className="w-full py-[9px] pl-9 pr-3 rounded-[11px] border border-charcoal/10 text-[13px] outline-none bg-white dark:bg-[#1e1e1e] text-charcoal box-border"
                 />
               </div>
 
-              {/* Add staff button */}
               <button
                 onClick={() => navigate(vp('/settings'))}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 7, width: '100%',
-                  padding: '9px 13px', borderRadius: 11, border: `1px solid ${MC.line}`,
-                  background: 'transparent', color: MC.ink3, cursor: 'pointer',
-                  fontFamily: MF, fontSize: 13, fontWeight: 500, marginBottom: 14,
-                }}
+                className="flex items-center gap-[7px] w-full px-[13px] py-[9px] rounded-[11px] border border-charcoal/10 bg-transparent text-charcoal/50 cursor-pointer text-[13px] font-medium mb-3.5"
               >
                 {ICO.plus}
                 <span>Add staff</span>
               </button>
 
-              {/* Scrollable list */}
-              <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 1, paddingRight: 2 }}>
+              <div className="flex-1 overflow-y-auto flex flex-col gap-px pr-0.5">
                 {filtered.length === 0 ? (
-                  <div style={{ textAlign: 'center', padding: '24px 12px', color: MC.ink4, fontFamily: MM, fontSize: 11 }}>
+                  <div className="text-center px-3 py-6 text-charcoal/30 font-mono text-[11px]">
                     No staff match your search
                   </div>
                 ) : (
                   <>
                     {attentionRows.length > 0 && (
                       <>
-                        <div style={{ fontFamily: MM, fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.08em', color: MC.bad, fontWeight: 700, padding: '8px 12px 5px' }}>
+                        <div className="font-mono text-[9px] uppercase tracking-[0.08em] text-danger font-bold px-3 pt-2 pb-[5px]">
                           Needs attention · {attentionRows.length}
                         </div>
                         {attentionRows.map(s => (
@@ -284,7 +252,7 @@ export default function HRHubPage() {
                         ))}
                       </>
                     )}
-                    <div style={{ fontFamily: MM, fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.08em', color: MC.ink3, fontWeight: 700, padding: '10px 12px 5px' }}>
+                    <div className="font-mono text-[9px] uppercase tracking-[0.08em] text-charcoal/50 font-bold px-3 pt-2.5 pb-[5px]">
                       All staff · {regularRows.length}
                     </div>
                     {regularRows.map(s => (
@@ -295,14 +263,13 @@ export default function HRHubPage() {
               </div>
             </div>
 
-            {/* ── Right column: employee record ─────────────────────────── */}
-            <div style={{ borderLeft: `1px solid ${MC.line}`, paddingLeft: 22, minHeight: 'calc(100vh - 160px)' }}>
+            <div className="border-l border-charcoal/10 pl-[22px] min-h-[calc(100vh-160px)]">
               <EmployeeRecordPanel
-                key={selected?.id}          // remount cleanly when selection changes
+                key={selected?.id}
                 staffId={selected?.id}
                 venueId={venueId}
                 venueSlug={venueSlug}
-                onBack={null}               // no back button in workspace mode
+                onBack={null}
                 tab={tab}
                 setTab={setTab}
               />

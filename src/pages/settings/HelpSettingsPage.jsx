@@ -1,42 +1,7 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useVenue } from '../../contexts/VenueContext'
-
-const MC = {
-  brand: '#13362a', brandTint: '#eef4f0',
-  ink:   '#0d1a14', ink3: '#76817b', ink4: '#b3b9b5',
-  line:  '#e4e6e2', line2: '#eef0ec',
-  paper: '#ffffff', bg: '#f3f3ef',
-}
-const MONO = 'ui-monospace, SFMono-Regular, monospace'
-const SANS = '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
-
-function SubHeader({ title, onBack }) {
-  return (
-    <div style={{
-      position: 'sticky', top: 0, zIndex: 10,
-      background: 'rgba(243,243,239,0.92)',
-      backdropFilter: 'saturate(180%) blur(20px)',
-      WebkitBackdropFilter: 'saturate(180%) blur(20px)',
-      borderBottom: `1px solid ${MC.line}`,
-      padding: '12px 16px 10px',
-      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-    }}>
-      <button onClick={onBack} style={{
-        display: 'flex', alignItems: 'center', gap: 6,
-        color: MC.brand, background: 'none', border: 'none',
-        cursor: 'pointer', padding: '4px 0', fontFamily: SANS, fontSize: 15, fontWeight: 500,
-      }}>
-        <svg width="9" height="15" viewBox="0 0 9 15" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M8 1L1.5 7.5 8 14"/>
-        </svg>
-        Settings
-      </button>
-      <span style={{ fontSize: 17, fontWeight: 600, letterSpacing: '-0.02em', color: MC.ink }}>{title}</span>
-      <span style={{ width: 70 }} />
-    </div>
-  )
-}
+import SettingsSubHeader from '../../components/layout/SettingsSubHeader'
 
 const FAQS = [
   { q: 'How do I publish the rota?', a: 'Once all shifts are added, tap "Publish rota" — staff are notified immediately via push.' },
@@ -55,56 +20,49 @@ export default function HelpSettingsPage() {
   const vp = (path) => `/v/${venueSlug}${path}`
 
   return (
-    <div style={{ minHeight: '100vh', background: MC.bg, fontFamily: SANS }}>
-      <SubHeader title="Help & Support" onBack={() => navigate(vp('/settings/hub'))} />
+    <div className="min-h-screen bg-surface">
+      <SettingsSubHeader title="Help & Support" onBack={() => navigate(vp('/settings/hub'))} />
 
-      <div style={{ padding: '0 16px 96px', maxWidth: 480, margin: '0 auto' }}>
+      <div className="px-4 pb-24 max-w-[480px] mx-auto">
 
-        <div style={{ fontFamily: MONO, fontSize: 10.5, color: MC.ink3, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600, padding: '18px 2px 7px' }}>Common questions</div>
-        <div style={{ background: MC.paper, border: `1px solid ${MC.line}`, borderRadius: 14, overflow: 'hidden' }}>
+        <div className="font-mono text-[10.5px] font-semibold tracking-[0.08em] uppercase text-charcoal/50 pt-[18px] pb-[7px] px-0.5">Common questions</div>
+        <div className="bg-white dark:bg-[#1e1e1e] border border-charcoal/10 rounded-[14px] overflow-hidden">
           {FAQS.map((faq, i) => (
-            <div key={i} style={{ borderBottom: i < FAQS.length - 1 ? `1px solid ${MC.line2}` : 'none' }}>
+            <div key={i} className={i < FAQS.length - 1 ? 'border-b border-charcoal/6' : ''}>
               <button
                 onClick={() => setExpanded(expanded === i ? null : i)}
-                style={{
-                  width: '100%', padding: '14px', textAlign: 'left', background: 'none', border: 'none',
-                  cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                  gap: 12, fontFamily: SANS,
-                }}
+                className="w-full p-[14px] text-left flex items-center justify-between gap-3"
               >
-                <span style={{ fontSize: 14.5, fontWeight: 500, color: MC.ink, lineHeight: 1.3 }}>{faq.q}</span>
-                <span style={{ transform: expanded === i ? 'rotate(90deg)' : 'none', transition: 'transform 0.2s', flexShrink: 0 }}>
-                  <svg width="6" height="10" viewBox="0 0 6 10" fill="none" stroke={MC.ink4} strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+                <span className="text-[14.5px] font-medium text-charcoal leading-[1.3]">{faq.q}</span>
+                <span className={`transition-transform duration-200 shrink-0 ${expanded === i ? 'rotate-90' : ''}`}>
+                  <svg width="6" height="10" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" className="text-charcoal/30">
                     <path d="M1 1l4 4-4 4"/>
                   </svg>
                 </span>
               </button>
               {expanded === i && (
-                <div style={{ padding: '0 14px 14px', fontFamily: MONO, fontSize: 11.5, color: MC.ink3, lineHeight: 1.65 }}>{faq.a}</div>
+                <div className="px-[14px] pb-[14px] font-mono text-[11.5px] text-charcoal/50 leading-[1.65]">{faq.a}</div>
               )}
             </div>
           ))}
         </div>
 
-        <div style={{ fontFamily: MONO, fontSize: 10.5, color: MC.ink3, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600, padding: '18px 2px 7px' }}>Get help</div>
-        <div style={{ background: MC.paper, border: `1px solid ${MC.line}`, borderRadius: 14, overflow: 'hidden' }}>
+        <div className="font-mono text-[10.5px] font-semibold tracking-[0.08em] uppercase text-charcoal/50 pt-[18px] pb-[7px] px-0.5">Get help</div>
+        <div className="bg-white dark:bg-[#1e1e1e] border border-charcoal/10 rounded-[14px] overflow-hidden">
           <a
             href="mailto:hello@pelikn.com"
-            style={{
-              display: 'flex', alignItems: 'center', gap: 13, padding: '0 14px', minHeight: 58,
-              borderBottom: `1px solid ${MC.line2}`, textDecoration: 'none',
-            }}
+            className="flex items-center gap-[13px] px-[14px] min-h-[58px] border-b border-charcoal/6 no-underline"
           >
-            <span style={{ width: 32, height: 32, borderRadius: 9, flexShrink: 0, background: MC.brandTint, color: MC.brand, display: 'grid', placeItems: 'center' }}>
+            <span className="w-8 h-8 rounded-[9px] shrink-0 bg-brand/8 text-brand flex items-center justify-center">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
               </svg>
             </span>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 15, fontWeight: 500, color: MC.ink }}>Chat with support</div>
-              <div style={{ fontFamily: MONO, fontSize: 10.5, color: MC.ink3, marginTop: 2 }}>Usually responds in under an hour</div>
+            <div className="flex-1 min-w-0">
+              <div className="text-[15px] font-medium text-charcoal">Chat with support</div>
+              <div className="font-mono text-[10.5px] text-charcoal/50 mt-0.5">Usually responds in under an hour</div>
             </div>
-            <svg width="6" height="10" viewBox="0 0 6 10" fill="none" stroke={MC.ink4} strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="6" height="10" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" className="text-charcoal/30">
               <path d="M1 1l4 4-4 4"/>
             </svg>
           </a>
@@ -112,22 +70,19 @@ export default function HelpSettingsPage() {
             href="https://docs.pelikn.com"
             target="_blank"
             rel="noopener noreferrer"
-            style={{
-              display: 'flex', alignItems: 'center', gap: 13, padding: '0 14px', minHeight: 58,
-              textDecoration: 'none',
-            }}
+            className="flex items-center gap-[13px] px-[14px] min-h-[58px] no-underline"
           >
-            <span style={{ width: 32, height: 32, borderRadius: 9, flexShrink: 0, background: MC.brandTint, color: MC.brand, display: 'grid', placeItems: 'center' }}>
+            <span className="w-8 h-8 rounded-[9px] shrink-0 bg-brand/8 text-brand flex items-center justify-center">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
                 <path d="M14 2v6h6M9 13h6M9 17h4"/>
               </svg>
             </span>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 15, fontWeight: 500, color: MC.ink }}>View documentation</div>
-              <div style={{ fontFamily: MONO, fontSize: 10.5, color: MC.ink3, marginTop: 2 }}>Guides, tutorials, release notes</div>
+            <div className="flex-1 min-w-0">
+              <div className="text-[15px] font-medium text-charcoal">View documentation</div>
+              <div className="font-mono text-[10.5px] text-charcoal/50 mt-0.5">Guides, tutorials, release notes</div>
             </div>
-            <svg width="6" height="10" viewBox="0 0 6 10" fill="none" stroke={MC.ink4} strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="6" height="10" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" className="text-charcoal/30">
               <path d="M1 1l4 4-4 4"/>
             </svg>
           </a>

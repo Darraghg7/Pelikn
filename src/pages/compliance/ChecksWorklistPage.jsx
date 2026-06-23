@@ -11,27 +11,13 @@ import { useAppSettings } from '../../hooks/useSettings'
 import { useTodaySummary } from '../../hooks/useTodaySummary'
 import { useChecksStatus } from '../../hooks/useChecksStatus'
 
-// ── Design tokens ──────────────────────────────────────────────────────────
-const MC = {
-  brand:  '#13362a',
-  bad:    '#b3331c', badBg:  '#fbeae6',
-  warn:   '#a85d12', warnBg: '#fbeedc',
-  good:   '#1a7a4c', goodBg: '#e3f0e7',
-  ink:    '#0d1a14', ink2:   '#3d4a44', ink3:   '#76817b', ink4:   '#b3b9b5',
-  line:   '#e4e6e2', line2:  '#eef0ec',
-  paper:  '#ffffff', bg:     '#f3f3ef',
-}
-
 const STATUS_TONE = {
-  overdue: { fg: MC.bad,  bg: MC.badBg,  rank: 0, label: 'Overdue' },
-  due:     { fg: MC.warn, bg: MC.warnBg, rank: 1, label: 'Due' },
-  done:    { fg: MC.good, bg: MC.goodBg, rank: 2, label: 'Done' },
-  na:      { fg: MC.ink4, bg: MC.line2,  rank: 3, label: '—' },
+  overdue: { fg: 'text-danger',  bg: 'bg-danger/10',  rank: 0, label: 'Overdue' },
+  due:     { fg: 'text-warning', bg: 'bg-warning/10', rank: 1, label: 'Due' },
+  done:    { fg: 'text-success', bg: 'bg-success/10', rank: 2, label: 'Done' },
+  na:      { fg: 'text-charcoal/30', bg: 'bg-charcoal/6', rank: 3, label: '—' },
 }
 
-const MONO = 'ui-monospace, SFMono-Regular, monospace'
-
-// ── All check categories (mirrors ChecksHubPage) ───────────────────────────
 const CHECKS = [
   { id: 'fitness',   label: 'Fitness to Work', area: 'Opening',      cadence: 'Daily',    icon: FitnessIcon,   route: '/fitness' },
   { id: 'openclose', label: 'Opening Checks',  area: 'Opening',      cadence: 'Daily',    icon: OpenCloseIcon, route: '/opening-closing' },
@@ -49,23 +35,21 @@ const CHECKS = [
   { id: 'incident',  label: 'Incidents',       area: 'Records',      cadence: 'As needed',icon: IncidentIcon,  route: '/incidents' },
 ]
 
-// ── Icons ──────────────────────────────────────────────────────────────────
-function FitnessIcon()   { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width:'100%',height:'100%' }}><path d="M20 7h-9M14 17H5M17 17a3 3 0 1 0 6 0 3 3 0 0 0-6 0zM1 7a3 3 0 1 0 6 0 3 3 0 0 0-6 0z"/></svg> }
-function OpenCloseIcon() { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width:'100%',height:'100%' }}><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg> }
-function FridgeIcon()    { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width:'100%',height:'100%' }}><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M5 10h14M9 5v2M9 13v3"/></svg> }
-function CookingIcon()   { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width:'100%',height:'100%' }}><path d="M8.5 8.5c-1.5-1-1-3 .5-4 0 1.5 1 2 1.5 1 .5 2-1 3-2 3M12 8.5c-1.5-1-1-3 .5-4 0 1.5 1 2 1.5 1M5 13h14l-1.2 7.2a1 1 0 0 1-1 .8H7.2a1 1 0 0 1-1-.8z"/></svg> }
-function HotIcon()       { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width:'100%',height:'100%' }}><path d="M4 14h16a8 8 0 0 1-16 0zM12 14V8M9 4.5c0 1-1 1.5-1 2.5M15 4.5c0 1-1 1.5-1 2.5"/></svg> }
-function CoolingIcon()   { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width:'100%',height:'100%' }}><path d="M12 2v20M4 6l16 12M20 6 4 18"/></svg> }
-function DeliveryIcon()  { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width:'100%',height:'100%' }}><rect x="1" y="3" width="15" height="13" rx="1"/><polygon points="16 8 20 8 23 11 23 16 16 16"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg> }
-function ProbeIcon()     { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width:'100%',height:'100%' }}><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></svg> }
-function AllergenIcon()  { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width:'100%',height:'100%' }}><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg> }
-function PestIcon()      { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width:'100%',height:'100%' }}><path d="M12 8a4 4 0 0 1 4 4v3a4 4 0 0 1-8 0v-3a4 4 0 0 1 4-4zM12 8V5M9 5 7.5 3.5M15 5l1.5-1.5M8 12H4M20 12h-4M8 16l-3 1.5M16 16l3 1.5"/></svg> }
-function CleaningIcon()  { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width:'100%',height:'100%' }}><path d="M19.4 5 11 13.4M14 6l4 4M9.5 11.5 4 17v3h3l5.5-5.5"/></svg> }
-function HaccpIcon()     { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width:'100%',height:'100%' }}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h4"/></svg> }
-function DocsIcon()      { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width:'100%',height:'100%' }}><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M13 2v7h7"/></svg> }
-function IncidentIcon()  { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width:'100%',height:'100%' }}><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4M12 17h.01"/></svg> }
+function FitnessIcon()   { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-full h-full"><path d="M20 7h-9M14 17H5M17 17a3 3 0 1 0 6 0 3 3 0 0 0-6 0zM1 7a3 3 0 1 0 6 0 3 3 0 0 0-6 0z"/></svg> }
+function OpenCloseIcon() { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-full h-full"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg> }
+function FridgeIcon()    { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-full h-full"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M5 10h14M9 5v2M9 13v3"/></svg> }
+function CookingIcon()   { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-full h-full"><path d="M8.5 8.5c-1.5-1-1-3 .5-4 0 1.5 1 2 1.5 1 .5 2-1 3-2 3M12 8.5c-1.5-1-1-3 .5-4 0 1.5 1 2 1.5 1M5 13h14l-1.2 7.2a1 1 0 0 1-1 .8H7.2a1 1 0 0 1-1-.8z"/></svg> }
+function HotIcon()       { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-full h-full"><path d="M4 14h16a8 8 0 0 1-16 0zM12 14V8M9 4.5c0 1-1 1.5-1 2.5M15 4.5c0 1-1 1.5-1 2.5"/></svg> }
+function CoolingIcon()   { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-full h-full"><path d="M12 2v20M4 6l16 12M20 6 4 18"/></svg> }
+function DeliveryIcon()  { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-full h-full"><rect x="1" y="3" width="15" height="13" rx="1"/><polygon points="16 8 20 8 23 11 23 16 16 16"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg> }
+function ProbeIcon()     { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-full h-full"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></svg> }
+function AllergenIcon()  { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-full h-full"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg> }
+function PestIcon()      { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-full h-full"><path d="M12 8a4 4 0 0 1 4 4v3a4 4 0 0 1-8 0v-3a4 4 0 0 1 4-4zM12 8V5M9 5 7.5 3.5M15 5l1.5-1.5M8 12H4M20 12h-4M8 16l-3 1.5M16 16l3 1.5"/></svg> }
+function CleaningIcon()  { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-full h-full"><path d="M19.4 5 11 13.4M14 6l4 4M9.5 11.5 4 17v3h3l5.5-5.5"/></svg> }
+function HaccpIcon()     { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-full h-full"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h4"/></svg> }
+function DocsIcon()      { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-full h-full"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M13 2v7h7"/></svg> }
+function IncidentIcon()  { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-full h-full"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4M12 17h.01"/></svg> }
 
-// ── Back icon ──────────────────────────────────────────────────────────────
 function BackIcon() {
   return (
     <svg width="8" height="14" viewBox="0 0 8 14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -74,32 +58,15 @@ function BackIcon() {
   )
 }
 
-// ── Filter chip ────────────────────────────────────────────────────────────
 function FilterChip({ label, count, active, onClick }) {
   return (
     <button
       onClick={onClick}
-      style={{
-        display: 'inline-flex', alignItems: 'center', gap: 5,
-        padding: '6px 13px',
-        borderRadius: 999,
-        border: `1.5px solid ${active ? MC.brand : MC.line}`,
-        background: active ? MC.brand : MC.paper,
-        color: active ? '#fff' : MC.ink3,
-        fontSize: 13, fontWeight: 600,
-        cursor: 'pointer', whiteSpace: 'nowrap',
-        transition: 'all 0.15s',
-      }}
+      className={`inline-flex items-center gap-[5px] px-[13px] py-1.5 rounded-full border-[1.5px] text-[13px] font-semibold cursor-pointer whitespace-nowrap transition-all ${active ? 'border-brand bg-brand text-white' : 'border-charcoal/10 bg-white dark:bg-[#1e1e1e] text-charcoal/50'}`}
     >
       {label}
       {count != null && (
-        <span style={{
-          minWidth: 18, height: 18, padding: '0 5px', borderRadius: 999,
-          background: active ? 'rgba(255,255,255,0.22)' : MC.line2,
-          color: active ? '#fff' : MC.ink3,
-          fontFamily: MONO, fontSize: 11, fontWeight: 600,
-          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-        }}>
+        <span className={`min-w-[18px] h-[18px] px-[5px] rounded-full font-mono text-[11px] font-semibold inline-flex items-center justify-center ${active ? 'bg-white/22 text-white' : 'bg-charcoal/6 text-charcoal/50'}`}>
           {count}
         </span>
       )}
@@ -107,74 +74,53 @@ function FilterChip({ label, count, active, onClick }) {
   )
 }
 
-// ── Worklist row ───────────────────────────────────────────────────────────
 function WorklistRow({ check, statusInfo, onClick }) {
   const status = statusInfo?.status ?? 'na'
-  const t = STATUS_TONE[status]
+  const { fg, bg } = STATUS_TONE[status] ?? STATUS_TONE.na
   const Icon = check.icon
 
   return (
     <button
       onClick={onClick}
-      style={{
-        width: '100%', textAlign: 'left', cursor: 'pointer',
-        background: MC.paper, border: 'none',
-        borderBottom: `1px solid ${MC.line2}`,
-        padding: '13px 16px',
-        display: 'flex', alignItems: 'center', gap: 13,
-      }}
+      className="w-full text-left cursor-pointer bg-white dark:bg-[#1e1e1e] border-none border-b border-charcoal/6 px-4 py-[13px] flex items-center gap-[13px] last:border-b-0"
     >
-      {/* Icon badge */}
-      <span style={{
-        width: 36, height: 36, borderRadius: 10, flexShrink: 0,
-        background: t.bg, color: t.fg,
-        display: 'grid', placeItems: 'center',
-      }}>
-        <span style={{ width: 18, height: 18, display: 'inline-flex' }}>
-          <Icon />
-        </span>
+      <span className={`w-9 h-9 rounded-[10px] shrink-0 flex items-center justify-center ${bg} ${fg}`}>
+        <span className="w-[18px] h-[18px] inline-flex"><Icon /></span>
       </span>
 
-      {/* Text */}
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 14, fontWeight: 600, color: MC.ink, letterSpacing: '-0.01em' }}>
+      <div className="flex-1 min-w-0">
+        <div className="text-sm font-semibold text-charcoal tracking-[-0.01em]">
           {check.label}
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 2 }}>
-          <span style={{ fontFamily: MONO, fontSize: 10, color: MC.ink4, letterSpacing: '0.04em' }}>
+        <div className="flex items-center gap-1.5 mt-0.5">
+          <span className="font-mono text-[10px] text-charcoal/30 tracking-[0.04em]">
             {check.area}
           </span>
-          <span style={{ width: 2, height: 2, borderRadius: 1, background: MC.ink4 }} />
-          <span style={{ fontFamily: MONO, fontSize: 10, color: MC.ink4, letterSpacing: '0.04em' }}>
+          <span className="w-0.5 h-0.5 rounded-full bg-charcoal/30" />
+          <span className="font-mono text-[10px] text-charcoal/30 tracking-[0.04em]">
             {check.cadence}
           </span>
         </div>
       </div>
 
-      {/* Status */}
-      <div style={{ textAlign: 'right', flexShrink: 0 }}>
+      <div className="text-right shrink-0">
         {status === 'done' ? (
-          <span style={{ color: t.fg, display: 'inline-flex' }}>
+          <span className={`${fg} inline-flex`}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="20 6 9 17 4 12"/>
             </svg>
           </span>
         ) : status !== 'na' ? (
-          <span style={{
-            display: 'inline-flex', alignItems: 'center', gap: 4,
-            fontFamily: MONO, fontSize: 10, fontWeight: 600,
-            color: t.fg, letterSpacing: '0.04em', textTransform: 'uppercase',
-          }}>
-            <span style={{ width: 5, height: 5, borderRadius: 3, background: 'currentColor' }} />
-            {statusInfo?.statusText ?? t.label}
+          <span className={`inline-flex items-center gap-1 font-mono text-[10px] font-semibold tracking-[0.04em] uppercase ${fg}`}>
+            <span className="w-[5px] h-[5px] rounded-full bg-current" />
+            {statusInfo?.statusText ?? STATUS_TONE[status].label}
           </span>
         ) : (
-          <span style={{ fontFamily: MONO, fontSize: 10, color: MC.ink4 }}>—</span>
+          <span className="font-mono text-[10px] text-charcoal/30">—</span>
         )}
       </div>
 
-      {/* Chevron */}
-      <span style={{ color: MC.ink4, display: 'inline-flex' }}>
+      <span className="text-charcoal/30 inline-flex">
         <svg width="6" height="10" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M1 1l4 4-4 4"/>
         </svg>
@@ -183,7 +129,6 @@ function WorklistRow({ check, statusInfo, onClick }) {
   )
 }
 
-// ── Page ───────────────────────────────────────────────────────────────────
 const FILTERS = ['All', 'Overdue', 'Due', 'Done']
 
 export default function ChecksWorklistPage() {
@@ -197,7 +142,6 @@ export default function ChecksWorklistPage() {
   const vp = (path) => `/v/${venueSlug}${path}`
   const isLoading = summaryLoading || statusLoading
 
-  // Build full list (all checks, including hidden — worklist shows everything)
   const allItems = CHECKS.map(c => ({
     ...c,
     statusInfo: statuses[c.id] ?? { status: 'na', statusText: isLoading ? '…' : '—' },
@@ -218,28 +162,21 @@ export default function ChecksWorklistPage() {
   }
 
   return (
-    <div style={{ minHeight: '100dvh', background: MC.bg, paddingBottom: 96 }}>
+    <div className="min-h-dvh bg-surface pb-24">
 
-      {/* Header */}
-      <div style={{ padding: '16px 0 12px' }}>
+      <div className="pt-4 pb-3">
         <button
           onClick={() => navigate(vp('/checks'))}
-          style={{
-            display: 'inline-flex', alignItems: 'center', gap: 6,
-            fontFamily: MONO, fontSize: 11.5, fontWeight: 600,
-            color: MC.ink3, letterSpacing: '0.04em',
-            background: 'none', border: 'none', cursor: 'pointer', padding: 0,
-            marginBottom: 10,
-          }}
+          className="inline-flex items-center gap-1.5 font-mono text-[11.5px] font-semibold text-charcoal/50 tracking-[0.04em] bg-transparent border-none cursor-pointer p-0 mb-[10px]"
         >
           <BackIcon />
           Checks
         </button>
-        <h1 style={{ fontSize: 24, fontWeight: 600, letterSpacing: '-0.025em', color: MC.ink, margin: '0 0 2px' }}>
+        <h1 className="text-2xl font-semibold tracking-[-0.025em] text-charcoal m-0 mb-0.5">
           All checks
         </h1>
         {!isLoading && (
-          <p style={{ fontFamily: MONO, fontSize: 11, color: MC.ink3, margin: 0 }}>
+          <p className="font-mono text-[11px] text-charcoal/50 m-0">
             {counts.Overdue > 0 && `${counts.Overdue} overdue · `}
             {counts.Due > 0 && `${counts.Due} due · `}
             {counts.Done} done
@@ -247,11 +184,7 @@ export default function ChecksWorklistPage() {
         )}
       </div>
 
-      {/* Filter chips */}
-      <div style={{
-        display: 'flex', gap: 8, padding: '0 16px 14px',
-        overflowX: 'auto', scrollbarWidth: 'none',
-      }}>
+      <div className="flex gap-2 px-4 pb-[14px] overflow-x-auto [scrollbar-width:none]">
         {FILTERS.map(f => (
           <FilterChip
             key={f}
@@ -263,24 +196,14 @@ export default function ChecksWorklistPage() {
         ))}
       </div>
 
-      {/* List */}
-      <div style={{
-        background: MC.paper,
-        borderRadius: 14,
-        border: `1px solid ${MC.line}`,
-        margin: '0 16px',
-        overflow: 'hidden',
-      }}>
+      <div className="bg-white dark:bg-[#1e1e1e] rounded-[14px] border border-charcoal/10 mx-4 overflow-hidden">
         {isLoading ? (
           Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} style={{
-              height: 64, borderBottom: `1px solid ${MC.line2}`,
-              background: i % 2 === 0 ? MC.paper : MC.bg,
-            }} />
+            <div key={i} className={`h-16 border-b border-charcoal/6 ${i % 2 === 0 ? 'bg-white dark:bg-[#1e1e1e]' : 'bg-surface'}`} />
           ))
         ) : filtered.length === 0 ? (
-          <div style={{ padding: '40px 24px', textAlign: 'center' }}>
-            <p style={{ fontSize: 14, color: MC.ink3 }}>No {filter.toLowerCase()} checks</p>
+          <div className="py-10 px-6 text-center">
+            <p className="text-sm text-charcoal/50">No {filter.toLowerCase()} checks</p>
           </div>
         ) : (
           filtered.map(c => (
@@ -293,7 +216,6 @@ export default function ChecksWorklistPage() {
           ))
         )}
       </div>
-
 
     </div>
   )

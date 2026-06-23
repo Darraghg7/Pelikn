@@ -33,36 +33,6 @@ import {
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 
-// ── Design tokens ─────────────────────────────────────────────────────────
-const T = {
-  ink:    '#0d1a14',
-  ink2:   '#3d4a44',
-  ink3:   '#76817b',
-  ink4:   '#b3b9b5',
-  line:   '#e4e6e2',
-  line2:  '#eef0ec',
-  bg:     '#f3f3ef',
-  paper:  '#ffffff',
-  brand:  '#13362a',
-  good:   '#1a7a4c',  goodBg:  '#e3f0e7',
-  warn:   '#a85d12',  warnBg:  '#fbeedc',
-  bad:    '#b3331c',  badBg:   '#fbeae6',
-  info:   '#2c4577',  infoBg:  '#e7edf6',
-  accent: '#c94f2a',
-  severe: '#7a1d0c',
-}
-
-const MONO = "'Geist Mono', ui-monospace, monospace"
-
-function card(extra = {}) {
-  return {
-    background: T.paper,
-    border: `1px solid ${T.line}`,
-    borderRadius: 14,
-    ...extra,
-  }
-}
-
 // ── Live time (updates every minute) ──────────────────────────────────────
 function useLiveTime() {
   const [now, setNow] = useState(() => new Date())
@@ -77,21 +47,12 @@ function useLiveTime() {
 function MobilePlanPill({ plan }) {
   const isPro = plan === 'pro'
   return (
-    <span
-      style={{
-        fontFamily: MONO,
-        fontSize: 9,
-        letterSpacing: '0.1em',
-        fontWeight: 700,
-        textTransform: 'uppercase',
-        padding: '2px 7px',
-        borderRadius: 999,
-        background: isPro ? `${T.accent}18` : `${T.good}18`,
-        color: isPro ? T.accent : T.good,
-        border: `1px solid ${isPro ? T.accent + '40' : T.good + '40'}`,
-        whiteSpace: 'nowrap',
-      }}
-    >
+    <span className={[
+      'font-mono text-[9px] tracking-[0.1em] font-bold uppercase px-[7px] py-[2px] rounded-full whitespace-nowrap',
+      isPro
+        ? 'bg-accent/10 text-accent border border-accent/25'
+        : 'bg-success/10 text-success border border-success/25',
+    ].join(' ')}>
       {isPro ? 'Pro' : 'Starter'}
     </span>
   )
@@ -117,41 +78,21 @@ function subLabel(item, summary) {
 function MobileStatTile({ item, summary }) {
   const value    = item.metric(summary) ?? 0
   const isDanger = item.dangerWhenPositive && value > 0
-  const isGood   = item.dangerWhenPositive && value === 0
-  const dotColor = isDanger ? T.bad : isGood ? T.good : T.good
-  const numColor = isDanger ? T.bad : T.ink
   const sub      = subLabel(item, summary)
 
   return (
-    <div
-      style={{
-        ...card(),
-        padding: '10px 11px 11px',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 4,
-      }}
-    >
-      <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-        <span style={{ width: 5, height: 5, borderRadius: '50%', background: dotColor, flexShrink: 0 }} />
-        <span style={{
-          fontFamily: MONO, fontSize: 8.5, letterSpacing: '0.07em',
-          color: T.ink3, textTransform: 'uppercase', lineHeight: 1,
-        }}>
+    <div className="bg-white dark:bg-[#1e1e1e] border border-charcoal/10 rounded-[14px] p-[10px_11px_11px] flex flex-col gap-1">
+      <div className="flex items-center gap-1">
+        <span className={`w-[5px] h-[5px] rounded-full shrink-0 ${isDanger ? 'bg-danger' : 'bg-success'}`} />
+        <span className="font-mono text-[8.5px] tracking-[0.07em] text-charcoal/50 uppercase leading-none">
           {item.metricLabel}
         </span>
       </div>
-      <span style={{
-        fontFamily: MONO, fontSize: 26, fontWeight: 600,
-        letterSpacing: '-0.02em', lineHeight: 1.1, color: numColor,
-      }}>
+      <span className={`font-mono text-[26px] font-semibold tracking-[-0.02em] leading-[1.1] ${isDanger ? 'text-danger' : 'text-charcoal'}`}>
         {value}
       </span>
       {sub && (
-        <span style={{
-          fontFamily: MONO, fontSize: 9, color: isDanger ? T.bad : T.ink3,
-          letterSpacing: '0.03em', lineHeight: 1,
-        }}>
+        <span className={`font-mono text-[9px] tracking-[0.03em] leading-none ${isDanger ? 'text-danger' : 'text-charcoal/50'}`}>
           {sub}
         </span>
       )}
@@ -162,81 +103,63 @@ function MobileStatTile({ item, summary }) {
 // ── Section label (floating, mono-uppercase) ───────────────────────────────
 function SectionLabel({ children }) {
   return (
-    <span style={{
-      fontFamily: MONO, fontSize: 9.5, fontWeight: 600,
-      letterSpacing: '0.1em', textTransform: 'uppercase',
-      color: T.ink3, display: 'block', marginBottom: 6,
-    }}>
+    <span className="font-mono text-[9.5px] font-semibold tracking-[0.1em] uppercase text-charcoal/50 block mb-1.5">
       {children}
     </span>
   )
 }
 
 // ── Attention card (all-clear or action list) ──────────────────────────────
-function AttentionCard({ actions, editMode, vp }) {
+function AttentionCard({ actions, editMode }) {
   const isEmpty = actions.length === 0
   return (
-    <div
-      style={{
-        ...card({ overflow: 'hidden' }),
-        opacity: editMode ? 0.45 : 1,
-        transition: 'opacity 0.2s',
-      }}
-    >
+    <div className={[
+      'bg-white dark:bg-[#1e1e1e] border border-charcoal/10 rounded-[14px] overflow-hidden transition-opacity duration-200',
+      editMode ? 'opacity-45' : 'opacity-100',
+    ].join(' ')}>
       {isEmpty ? (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 13, padding: '14px 16px' }}>
-          <div style={{
-            width: 40, height: 40, borderRadius: 11, background: T.goodBg,
-            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-          }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={T.good} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        <div className="flex items-center gap-[13px] p-[14px_16px]">
+          <div className="w-10 h-10 rounded-[11px] bg-[#e3f0e7] flex items-center justify-center shrink-0">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-success">
               <polyline points="20 6 9 17 4 12"/>
             </svg>
           </div>
           <div>
-            <div style={{ fontSize: 15, fontWeight: 600, color: T.ink, lineHeight: 1.2 }}>All clear</div>
-            <div style={{ fontSize: 12.5, color: T.ink3, marginTop: 2 }}>Nothing needs your attention right now.</div>
+            <div className="text-[15px] font-semibold text-charcoal leading-[1.2]">All clear</div>
+            <div className="text-[12.5px] text-charcoal/50 mt-0.5">Nothing needs your attention right now.</div>
           </div>
         </div>
       ) : (
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '12px 16px 8px' }}>
-            <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: T.ink3, fontWeight: 600 }}>
+          <div className="flex items-center gap-1.5 p-[12px_16px_8px]">
+            <span className="font-mono text-[9.5px] tracking-[0.1em] uppercase text-charcoal/50 font-semibold">
               Needs You
             </span>
-            <span style={{
-              minWidth: 18, height: 18, borderRadius: 999,
-              background: T.bad, color: '#fff',
-              fontSize: 10, fontWeight: 700,
-              display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 5px',
-            }}>
+            <span className="min-w-[18px] h-[18px] rounded-full bg-danger text-white text-[10px] font-bold flex items-center justify-center px-[5px]">
               {actions.length}
             </span>
           </div>
-          <div style={{ borderTop: `1px solid ${T.line2}` }}>
+          <div className="border-t border-charcoal/6">
             {actions.map((a, i) => {
-              const colors = {
-                warn:   { border: T.warn, text: T.warn },
-                danger: { border: T.bad,  text: T.bad  },
-                info:   { border: T.info, text: T.info },
-              }
-              const s = colors[a.urgency] ?? colors.warn
+              const urgencyClass = {
+                warn:   'border-l-warning text-warning',
+                danger: 'border-l-danger text-danger',
+                info:   'border-l-[#2c4577] text-[#2c4577]',
+              }[a.urgency] ?? 'border-l-warning text-warning'
               return (
                 <Link
                   key={a.to}
                   to={a.to}
-                  style={{
-                    display: 'flex', alignItems: 'center',
-                    borderLeft: `3px solid ${s.border}`,
-                    padding: '12px 16px',
-                    borderBottom: i < actions.length - 1 ? `1px solid ${T.line2}` : 'none',
-                    textDecoration: 'none',
-                  }}
+                  className={[
+                    'flex items-center border-l-[3px] p-[12px_16px] no-underline',
+                    i < actions.length - 1 ? 'border-b border-charcoal/6' : '',
+                    urgencyClass,
+                  ].join(' ')}
                 >
-                  <span style={{ flex: 1, fontSize: 13.5, fontWeight: 500, color: s.text, lineHeight: 1.3 }}>
+                  <span className="flex-1 text-[13.5px] font-medium leading-[1.3]">
                     {a.label}
                   </span>
-                  <span style={{ fontFamily: MONO, fontSize: 13, color: T.ink4 }}>›</span>
+                  <span className="font-mono text-[13px] text-charcoal/30">›</span>
                 </Link>
               )
             })}
@@ -251,24 +174,15 @@ function AttentionCard({ actions, editMode, vp }) {
 function DisciplinaryStrip({ alerts, editMode, venueSlug }) {
   if (!alerts.length) return null
   return (
-    <div style={{
-      background: T.severe,
-      borderRadius: 14,
-      padding: '12px 16px',
-      display: 'flex', flexDirection: 'column', gap: 8,
-      opacity: editMode ? 0.45 : 1,
-      transition: 'opacity 0.2s',
-    }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-        <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.65)', fontWeight: 600 }}>
+    <div className={[
+      'bg-[#7a1d0c] rounded-[14px] p-[12px_16px] flex flex-col gap-2 transition-opacity duration-200',
+      editMode ? 'opacity-45' : 'opacity-100',
+    ].join(' ')}>
+      <div className="flex items-center gap-1.5">
+        <span className="font-mono text-[9.5px] tracking-[0.1em] uppercase text-white/65 font-semibold">
           Disciplinary Review
         </span>
-        <span style={{
-          minWidth: 18, height: 18, borderRadius: 999,
-          background: 'rgba(255,255,255,0.2)', color: '#fff',
-          fontSize: 10, fontWeight: 700,
-          display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 5px',
-        }}>
+        <span className="min-w-[18px] h-[18px] rounded-full bg-white/20 text-white text-[10px] font-bold flex items-center justify-center px-[5px]">
           {alerts.length}
         </span>
       </div>
@@ -276,19 +190,14 @@ function DisciplinaryStrip({ alerts, editMode, venueSlug }) {
         <Link
           key={a.id}
           to={`/v/${venueSlug}/timesheet`}
-          style={{
-            display: 'flex', alignItems: 'center', gap: 8,
-            background: 'rgba(255,255,255,0.1)',
-            borderRadius: 10, padding: '9px 12px',
-            textDecoration: 'none',
-          }}
+          className="flex items-center gap-2 bg-white/10 rounded-[10px] p-[9px_12px] no-underline"
         >
-          <span style={{ flex: 1, fontSize: 13, color: '#fff', fontWeight: 500, lineHeight: 1.35 }}>
+          <span className="flex-1 text-[13px] text-white font-medium leading-[1.35]">
             {a.staff_name ?? 'Staff member'} —{' '}
             {a.offence_type === 'late_clock_in' ? 'late clock-in' : 'break overrun'},{' '}
             strike {a.strike_number}
           </span>
-          <span style={{ fontFamily: MONO, fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>›</span>
+          <span className="font-mono text-[12px] text-white/50">›</span>
         </Link>
       ))}
     </div>
@@ -335,7 +244,6 @@ function useWeeklyHours(staffId, venueId) {
             lastIn = null
           }
         }
-        // add current open shift
         if (lastIn) total += Date.now() - lastIn.getTime()
         const h = Math.floor(total / 3600000)
         const m = Math.floor((total % 3600000) / 60000)
@@ -367,7 +275,6 @@ function MobileClockCard({ staffId }) {
     reload()
   }
 
-  // Status badge
   const onShift  = status === 'clocked_in'
   const onBreak  = status === 'on_break'
   const badgeLabel = onBreak
@@ -375,52 +282,43 @@ function MobileClockCard({ staffId }) {
     : onShift
       ? `On Shift${elapsed ? ' · ' + elapsed : ''}`
       : 'Not In'
-  const badgeBg = onBreak ? 'rgba(168,93,18,0.25)' : onShift ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.10)'
+
+  const badgeBg  = onBreak ? 'rgba(168,93,18,0.25)' : onShift ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.10)'
   const badgeDot = onBreak ? '#e8a34e' : onShift ? '#6fcfa0' : 'rgba(255,255,255,0.35)'
 
   return (
     <div>
       <SectionLabel>My Clock</SectionLabel>
-      <div style={{
-        background: T.brand,
-        borderRadius: 14,
-        padding: '14px 16px 16px',
-        display: 'flex', flexDirection: 'column', gap: 0,
-      }}>
-        {/* Header row: MY CLOCK label + status pill */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-          <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.45)', fontWeight: 600 }}>
+      <div className="bg-brand rounded-[14px] p-[14px_16px_16px] flex flex-col gap-0">
+        <div className="flex items-center justify-between mb-2.5">
+          <span className="font-mono text-[9.5px] tracking-[0.1em] uppercase text-white/45 font-semibold">
             My Clock
           </span>
-          <span style={{
-            display: 'flex', alignItems: 'center', gap: 5,
-            background: badgeBg, borderRadius: 999,
-            padding: '3px 9px 3px 7px',
-          }}>
-            <span style={{ width: 6, height: 6, borderRadius: '50%', background: badgeDot, flexShrink: 0 }} />
-            <span style={{ fontFamily: MONO, fontSize: 9.5, fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.9)' }}>
+          <span
+            className="flex items-center gap-[5px] rounded-full py-[3px] pl-[7px] pr-[9px]"
+            style={{ background: badgeBg }}
+          >
+            <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: badgeDot }} />
+            <span className="font-mono text-[9.5px] font-bold tracking-[0.07em] uppercase text-white/90">
               {badgeLabel}
             </span>
           </span>
         </div>
 
-        {/* Large current time */}
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 12 }}>
-          <span style={{ fontFamily: MONO, fontSize: 40, fontWeight: 600, letterSpacing: '-0.03em', color: '#fff', lineHeight: 1 }}>
+        <div className="flex items-baseline gap-2 mb-3">
+          <span className="font-mono text-[40px] font-semibold tracking-[-0.03em] text-white leading-none">
             {format(now, 'HH:mm')}
           </span>
           {(onShift || onBreak) && clockInAt && (
-            <span style={{ fontFamily: MONO, fontSize: 12, color: 'rgba(255,255,255,0.45)', letterSpacing: '0.02em' }}>
+            <span className="font-mono text-xs text-white/45 tracking-[0.02em]">
               — since {format(clockInAt, 'HH:mm')}
             </span>
           )}
         </div>
 
-        {/* Divider */}
-        <div style={{ height: 1, background: 'rgba(255,255,255,0.12)', marginBottom: 12 }} />
+        <div className="h-px bg-white/12 mb-3" />
 
-        {/* Stats row */}
-        <div style={{ display: 'flex', gap: 20, marginBottom: 14 }}>
+        <div className="flex gap-5 mb-3.5">
           {[
             { label: 'This Week', value: weekHrs ?? '—' },
             { label: 'Break', value: onBreak && breakStartAt
@@ -431,40 +329,39 @@ function MobileClockCard({ staffId }) {
             { label: 'Last In', value: clockInAt ? format(clockInAt, 'EEE HH:mm') : '—' },
           ].map(({ label, value }) => (
             <div key={label}>
-              <div style={{ fontFamily: MONO, fontSize: 8.5, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.40)', marginBottom: 3 }}>
+              <div className="font-mono text-[8.5px] tracking-[0.08em] uppercase text-white/40 mb-[3px]">
                 {label}
               </div>
-              <div style={{ fontFamily: MONO, fontSize: 13.5, fontWeight: 600, color: '#fff', letterSpacing: '-0.01em' }}>
+              <div className="font-mono text-[13.5px] font-semibold text-white tracking-[-0.01em]">
                 {value}
               </div>
             </div>
           ))}
         </div>
 
-        {/* Action button(s) */}
         {loading ? null : status === 'clocked_out' ? (
           <button
             onClick={() => record('clock_in')}
             disabled={submitting}
-            style={{ width: '100%', background: '#fff', color: T.brand, borderRadius: 11, padding: '13px 0', fontFamily: MONO, fontSize: 13, fontWeight: 700, letterSpacing: '0.02em', border: 'none', cursor: submitting ? 'not-allowed' : 'pointer', opacity: submitting ? 0.5 : 1 }}
+            className={`w-full bg-white text-brand rounded-[11px] py-[13px] font-mono text-[13px] font-bold tracking-[0.02em] border-0 cursor-pointer ${submitting ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
             Clock In
           </button>
         ) : status === 'clocked_in' ? (
-          <div style={{ display: 'flex', gap: 8 }}>
+          <div className="flex gap-2">
             <button
               onClick={() => record('break_start')}
               disabled={submitting}
-              style={{ flex: 1, background: 'rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.85)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: 11, padding: '13px 0', fontFamily: MONO, fontSize: 12, fontWeight: 600, cursor: submitting ? 'not-allowed' : 'pointer', opacity: submitting ? 0.5 : 1 }}
+              className={`flex-1 bg-white/12 text-white/85 border border-white/20 rounded-[11px] py-[13px] font-mono text-xs font-semibold cursor-pointer ${submitting ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
               Break
             </button>
             <button
               onClick={() => record('clock_out')}
               disabled={submitting}
-              style={{ flex: 2, background: '#fff', color: T.brand, borderRadius: 11, padding: '13px 0', fontFamily: MONO, fontSize: 13, fontWeight: 700, border: 'none', cursor: submitting ? 'not-allowed' : 'pointer', opacity: submitting ? 0.5 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}
+              className={`flex-[2] bg-white text-brand rounded-[11px] py-[13px] font-mono text-[13px] font-bold border-0 cursor-pointer flex items-center justify-center gap-[7px] ${submitting ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
-              <span style={{ display: 'inline-block', width: 9, height: 9, background: T.brand, borderRadius: 2 }} />
+              <span className="inline-block w-[9px] h-[9px] bg-brand rounded-[2px]" />
               Clock out
             </button>
           </div>
@@ -472,7 +369,7 @@ function MobileClockCard({ staffId }) {
           <button
             onClick={() => record('break_end')}
             disabled={submitting}
-            style={{ width: '100%', background: '#fff', color: T.brand, borderRadius: 11, padding: '13px 0', fontFamily: MONO, fontSize: 13, fontWeight: 700, border: 'none', cursor: submitting ? 'not-allowed' : 'pointer', opacity: submitting ? 0.5 : 1 }}
+            className={`w-full bg-white text-brand rounded-[11px] py-[13px] font-mono text-[13px] font-bold border-0 cursor-pointer ${submitting ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
             End Break
           </button>
@@ -506,28 +403,21 @@ function MobileSortableCard({ id, editMode, children }) {
         transform:    CSS.Transform.toString(transform),
         transition,
         opacity:      isDragging ? 0.35 : 1,
-        borderRadius: 14,
-        outline:      editMode ? `1.5px dashed ${T.ink4}` : 'none',
+        outline:      editMode ? '1.5px dashed rgb(179 185 181)' : 'none',
         outlineOffset: 2,
-        position:     'relative',
       }}
+      className="rounded-[14px] relative"
     >
       {editMode && (
         <div
           {...attributes}
           {...listeners}
-          style={{
-            position: 'absolute', top: 10, right: 10, zIndex: 20,
-            cursor: 'grab', padding: 6, borderRadius: 8,
-            background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(4px)',
-            boxShadow: '0 1px 4px rgba(0,0,0,0.12)', color: T.ink3,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-          }}
+          className="absolute top-2.5 right-2.5 z-20 cursor-grab p-1.5 rounded-lg bg-white/92 backdrop-blur-sm shadow-sm text-charcoal/50 flex items-center justify-center"
         >
           <GripIcon />
         </div>
       )}
-      <div style={{ pointerEvents: editMode ? 'none' : 'auto' }}>
+      <div className={editMode ? 'pointer-events-none' : 'pointer-events-auto'}>
         {children}
       </div>
     </div>
@@ -540,14 +430,12 @@ const DEFAULT_FIXED = ['stats', 'clock']
 
 function MobileDraggableWidgetGrid({
   widgetIds, onReorder, editMode,
-  // special card content rendered by parent
   statsContent, clockContent,
 }) {
   const [ids, setIds] = useState(() => {
     try {
       const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? 'null')
       if (Array.isArray(saved) && saved.length) {
-        // ensure any new widgetIds not in saved are appended
         const extras = widgetIds.filter(id => !saved.includes(id))
         return [...saved.filter(id => id === 'stats' || id === 'clock' || widgetIds.includes(id)), ...extras]
       }
@@ -557,7 +445,6 @@ function MobileDraggableWidgetGrid({
 
   const [activeId, setActiveId] = useState(null)
 
-  // keep in sync if parent widgetIds changes (e.g. widget added/removed)
   const prevWidgetIds = useRef(widgetIds)
   useEffect(() => {
     if (prevWidgetIds.current === widgetIds) return
@@ -582,13 +469,11 @@ function MobileDraggableWidgetGrid({
     setIds(prev => {
       const next = arrayMove(prev, prev.indexOf(active.id), prev.indexOf(over.id))
       try { localStorage.setItem(STORAGE_KEY, JSON.stringify(next)) } catch (_) {}
-      // notify parent about registry widget order only
       onReorder(next.filter(id => id !== 'stats' && id !== 'clock'))
       return next
     })
   }
 
-  // snapshot for DragOverlay
   const activeContent = activeId === 'stats'
     ? statsContent
     : activeId === 'clock'
@@ -605,7 +490,7 @@ function MobileDraggableWidgetGrid({
       onDragEnd={handleDragEnd}
     >
       <SortableContext items={ids} strategy={verticalListSortingStrategy}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 13 }}>
+        <div className="flex flex-col gap-[13px]">
           {ids.map(id => {
             if (id === 'stats') return (
               <MobileSortableCard key="stats" id="stats" editMode={editMode}>
@@ -630,7 +515,7 @@ function MobileDraggableWidgetGrid({
       </SortableContext>
       <DragOverlay>
         {activeContent && (
-          <div style={{ borderRadius: 14, boxShadow: '0 24px 48px rgba(9,18,13,0.25)', transform: 'scale(1.02)', opacity: 0.95, cursor: 'grabbing' }}>
+          <div className="rounded-[14px] opacity-95 cursor-grabbing" style={{ boxShadow: '0 24px 48px rgba(9,18,13,0.25)', transform: 'scale(1.02)' }}>
             {activeContent}
           </div>
         )}
@@ -662,7 +547,6 @@ export default function MobileManagerDashboard({
 
   const vp = (p) => `/v/${venueSlug}${p}`
 
-  // 4th-strike disciplinary records from the last 7 days
   useEffect(() => {
     if (!venueId) return
     supabase
@@ -679,7 +563,6 @@ export default function MobileManagerDashboard({
       })
   }, [venueId])
 
-  // Active stat items + action list
   const activeItems = (todayItemIds ?? [])
     .map(id => TODAY_ITEM_REGISTRY[id])
     .filter(item => {
@@ -698,70 +581,54 @@ export default function MobileManagerDashboard({
     : null
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 13 }}>
+    <div className="flex flex-col gap-[13px]">
 
       <PushBanner staffId={session?.staffId} venueId={venueId} />
 
-      {/* ── Greeting (no card — text on bg surface) ─────────────────────── */}
-      <div style={{ paddingBottom: 2 }}>
-        {/* Row 1: date + REARRANGE */}
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
-          <span style={{
-            fontFamily: MONO, fontSize: 10, letterSpacing: '0.08em',
-            textTransform: 'uppercase', color: T.ink3, paddingTop: 3,
-          }}>
+      <div className="pb-0.5">
+        <div className="flex items-start justify-between gap-2">
+          <span className="font-mono text-[10px] tracking-[0.08em] uppercase text-charcoal/50 pt-[3px]">
             {format(now, 'EEEE, d MMMM')} · {format(now, 'HH:mm')}
           </span>
           <button
             onClick={() => setEditMode(v => !v)}
-            style={{
-              flexShrink: 0, fontFamily: MONO,
-              fontSize: 10, fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase',
-              color: editMode ? T.good : T.ink3,
-              background: editMode ? T.goodBg : 'transparent',
-              border: `1px solid ${editMode ? T.good + '50' : T.line}`,
-              borderRadius: 8, padding: '4px 11px',
-              cursor: 'pointer', whiteSpace: 'nowrap', transition: 'all 0.15s',
-            }}
+            className={[
+              'shrink-0 font-mono text-[10px] font-bold tracking-[0.07em] uppercase rounded-lg py-1 px-[11px] cursor-pointer whitespace-nowrap transition-all duration-150',
+              editMode
+                ? 'text-success bg-[#e3f0e7] border border-success/30'
+                : 'text-charcoal/50 bg-transparent border border-charcoal/10',
+            ].join(' ')}
           >
             {editMode ? 'Done' : 'Rearrange'}
           </button>
         </div>
 
-        {/* H1 */}
-        <h1 style={{
-          fontSize: 30, fontWeight: 700, letterSpacing: '-0.03em',
-          color: T.ink, lineHeight: 1.1, margin: '5px 0 6px',
-        }}>
+        <h1 className="text-[30px] font-bold tracking-[-0.03em] text-charcoal leading-[1.1] mt-[5px] mb-1.5">
           {greeting}{firstName ? `, ${firstName}` : ''}.
         </h1>
 
-        {/* Row 3: venue · PRO · checks */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+        <div className="flex items-center gap-1.5 flex-wrap">
           {venueName && (
-            <span style={{ fontSize: 13, fontWeight: 500, color: T.ink2 }}>{venueName}</span>
+            <span className="text-[13px] font-medium text-charcoal/75">{venueName}</span>
           )}
           <MobilePlanPill plan={venuePlan} />
           {checksText && (
-            <span style={{ fontFamily: MONO, fontSize: 10.5, color: T.ink3, letterSpacing: '0.01em' }}>
+            <span className="font-mono text-[10.5px] text-charcoal/50 tracking-[0.01em]">
               {checksText}
             </span>
           )}
         </div>
       </div>
 
-      {/* ── Pinned alerts ───────────────────────────────────────────────── */}
       <DisciplinaryStrip alerts={disciplinaryAlerts} editMode={editMode} venueSlug={venueSlug} />
       <AttentionCard actions={actions} editMode={editMode} vp={vp} />
 
-      {/* ── Edit-mode hint ──────────────────────────────────────────────── */}
       {editMode && (
-        <p style={{ fontFamily: MONO, textAlign: 'center', fontSize: 10, color: T.ink4, letterSpacing: '0.04em' }}>
+        <p className="font-mono text-center text-[10px] text-charcoal/30 tracking-[0.04em]">
           Drag widgets to reorder · tap Done when finished
         </p>
       )}
 
-      {/* ── All reorderable cards (stats, clock, registry widgets) ──────── */}
       <MobileDraggableWidgetGrid
         widgetIds={widgetIds}
         onReorder={onReorder}
@@ -770,23 +637,23 @@ export default function MobileManagerDashboard({
           <div>
             <SectionLabel>Today at a glance</SectionLabel>
             {!summary ? (
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
+              <div className="grid grid-cols-3 gap-2">
                 {[1,2,3,4,5,6].map(i => (
-                  <div key={i} style={{ height: 84, borderRadius: 12, background: T.line2 }} className="animate-pulse" />
+                  <div key={i} className="h-[84px] rounded-xl bg-charcoal/6 animate-pulse" />
                 ))}
               </div>
             ) : activeItems.length === 0 ? (
-              <div style={{ ...card(), padding: '20px 16px', textAlign: 'center' }}>
-                <p style={{ fontSize: 13, color: T.ink3 }}>No Today items selected</p>
+              <div className="bg-white dark:bg-[#1e1e1e] border border-charcoal/10 rounded-[14px] p-[20px_16px] text-center">
+                <p className="text-[13px] text-charcoal/50">No Today items selected</p>
                 <button
                   onClick={onOpenPicker}
-                  style={{ marginTop: 8, fontSize: 12, fontWeight: 600, color: T.brand, background: 'transparent', border: 'none', cursor: 'pointer' }}
+                  className="mt-2 text-xs font-semibold text-brand bg-transparent border-0 cursor-pointer"
                 >
                   + Add items
                 </button>
               </div>
             ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
+              <div className="grid grid-cols-3 gap-2">
                 {activeItems.map(item => (
                   <MobileStatTile key={item.id} item={item} summary={summary} />
                 ))}

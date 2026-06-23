@@ -3,55 +3,13 @@ import { useNavigate } from 'react-router-dom'
 import { useVenue } from '../../contexts/VenueContext'
 import { PLANS } from '../../lib/constants'
 import { PRO_PRICE, STARTER_PRICE, EXTRA_VENUE_PRICE } from '../../lib/pricing'
-
-const MC = {
-  brand: '#13362a', brandTint: '#eef4f0',
-  good:  '#1a7a4c', goodBg: '#e3f0e7',
-  warn:  '#a85d12', warnBg: '#fbeedc',
-  ink:   '#0d1a14', ink3: '#76817b', ink4: '#b3b9b5',
-  line:  '#e4e6e2', line2: '#eef0ec',
-  paper: '#ffffff', bg: '#f3f3ef',
-}
-const MONO = 'ui-monospace, SFMono-Regular, monospace'
-const SANS = '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
-
-function SubHeader({ title, onBack }) {
-  return (
-    <div style={{
-      position: 'sticky', top: 0, zIndex: 10,
-      background: 'rgba(243,243,239,0.92)',
-      backdropFilter: 'saturate(180%) blur(20px)',
-      WebkitBackdropFilter: 'saturate(180%) blur(20px)',
-      borderBottom: `1px solid ${MC.line}`,
-      padding: '12px 16px 10px',
-      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-    }}>
-      <button onClick={onBack} style={{
-        display: 'flex', alignItems: 'center', gap: 6,
-        color: MC.brand, background: 'none', border: 'none',
-        cursor: 'pointer', padding: '4px 0', fontFamily: SANS, fontSize: 15, fontWeight: 500,
-      }}>
-        <svg width="9" height="15" viewBox="0 0 9 15" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M8 1L1.5 7.5 8 14"/>
-        </svg>
-        Settings
-      </button>
-      <span style={{ fontSize: 17, fontWeight: 600, letterSpacing: '-0.02em', color: MC.ink }}>{title}</span>
-      <span style={{ width: 70 }} />
-    </div>
-  )
-}
+import SettingsSubHeader from '../../components/layout/SettingsSubHeader'
 
 function PlanBadge({ plan }) {
   const isPro = plan === PLANS.PRO
   return (
-    <span style={{
-      display: 'inline-flex', alignItems: 'center', gap: 5, padding: '4px 10px', borderRadius: 999,
-      background: isPro ? MC.brandTint : MC.line2,
-      color: isPro ? MC.brand : MC.ink3,
-      fontFamily: MONO, fontSize: 11, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase',
-    }}>
-      <span style={{ width: 6, height: 6, borderRadius: 3, background: 'currentColor' }} />
+    <span className={`inline-flex items-center gap-[5px] py-1 px-[10px] rounded-full font-mono text-[11px] font-bold tracking-[0.05em] uppercase ${isPro ? 'bg-brand/8 text-brand' : 'bg-charcoal/6 text-charcoal/50'}`}>
+      <span className="w-1.5 h-1.5 rounded-full bg-current" />
       {isPro ? 'Pro' : 'Starter'}
     </span>
   )
@@ -70,72 +28,59 @@ export default function BillingSettingsPage() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: MC.bg, fontFamily: SANS }}>
-      <SubHeader title="Plan & Billing" onBack={() => navigate(vp('/settings/hub'))} />
+    <div className="min-h-screen bg-surface">
+      <SettingsSubHeader title="Plan & Billing" onBack={() => navigate(vp('/settings/hub'))} />
 
-      <div style={{ padding: '16px 16px 96px', maxWidth: 480, margin: '0 auto' }}>
+      <div className="px-4 pt-4 pb-24 max-w-[480px] mx-auto">
 
-      {/* Current plan card */}
-      <div style={{ background: MC.brand, borderRadius: 14, padding: '18px 18px 16px', marginBottom: 14, color: '#fff' }}>
-        <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.55)', fontWeight: 600 }}>Current plan</div>
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginTop: 8 }}>
-          <span style={{ fontSize: 28, fontWeight: 700, letterSpacing: '-0.02em' }}>{isPro ? 'Pro' : 'Starter'}</span>
-          <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)' }}>{isPro ? `${PRO_PRICE}/mo` : `${STARTER_PRICE}/mo`}</span>
+        <div className="bg-brand rounded-[14px] p-[18px] pb-4 mb-[14px] text-white">
+          <div className="font-mono text-[10px] tracking-[0.1em] uppercase text-white/55 font-semibold">Current plan</div>
+          <div className="flex items-baseline gap-[10px] mt-2">
+            <span className="text-[28px] font-bold tracking-[-0.02em]">{isPro ? 'Pro' : 'Starter'}</span>
+            <span className="text-[13px] text-white/60">{isPro ? `${PRO_PRICE}/mo` : `${STARTER_PRICE}/mo`}</span>
+          </div>
+          <div className="mt-[14px] flex flex-col gap-1.5">
+            {(features[venuePlan] ?? features[PLANS.STARTER]).map(f => (
+              <div key={f} className="flex items-center gap-2 text-[13px] text-white/85">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                {f}
+              </div>
+            ))}
+          </div>
         </div>
-        <div style={{ marginTop: 14, display: 'flex', flexDirection: 'column', gap: 6 }}>
-          {(features[venuePlan] ?? features[PLANS.STARTER]).map(f => (
-            <div key={f} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'rgba(255,255,255,0.85)' }}>
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-              {f}
+
+        {!isPro && (
+          <div className="bg-warning/10 border border-warning/20 rounded-[14px] px-4 py-[14px] mb-[14px]">
+            <div className="text-sm font-semibold text-warning mb-1">Upgrade to Pro</div>
+            <div className="text-[13px] text-charcoal/50 leading-[1.5] mb-3">
+              Unlock the rota, timesheets, training tracker, time-off and more for {PRO_PRICE}/mo.
             </div>
-          ))}
-        </div>
-      </div>
+            <a
+              href="mailto:hello@pelikn.com?subject=Upgrade to Pro"
+              className="inline-flex items-center gap-1.5 h-9 px-4 rounded-[9px] bg-warning text-white no-underline text-[13px] font-semibold"
+            >
+              Request upgrade →
+            </a>
+          </div>
+        )}
 
-      {/* Upgrade prompt if on Starter */}
-      {!isPro && (
-        <div style={{ background: MC.warnBg, border: `1px solid ${MC.warn}33`, borderRadius: 14, padding: '14px 16px', marginBottom: 14 }}>
-          <div style={{ fontSize: 14, fontWeight: 600, color: MC.warn, marginBottom: 4 }}>Upgrade to Pro</div>
-          <div style={{ fontSize: 13, color: MC.ink3, lineHeight: 1.5, marginBottom: 12 }}>
-            Unlock the rota, timesheets, training tracker, time-off and more for {PRO_PRICE}/mo.
+        <div className="bg-white dark:bg-[#1e1e1e] border border-charcoal/10 rounded-[14px] px-4 py-[14px]">
+          <div className="font-mono text-[10px] text-charcoal/50 tracking-[0.06em] uppercase font-semibold mb-2">Add another venue</div>
+          <div className="text-[13px] text-charcoal/50 leading-[1.5]">
+            Each additional venue is {EXTRA_VENUE_PRICE}/mo on your current plan.
           </div>
           <a
-            href="mailto:hello@pelikn.com?subject=Upgrade to Pro"
-            style={{
-              display: 'inline-flex', alignItems: 'center', gap: 6,
-              height: 36, padding: '0 16px', borderRadius: 9,
-              background: MC.warn, color: '#fff', textDecoration: 'none',
-              fontSize: 13, fontWeight: 600,
-            }}
+            href="mailto:hello@pelikn.com?subject=Add another venue"
+            className="inline-flex items-center gap-1.5 mt-3 h-[34px] px-[14px] rounded-lg bg-charcoal/6 text-charcoal/50 no-underline text-[13px] font-medium"
           >
-            Request upgrade →
+            Contact us →
           </a>
         </div>
-      )}
 
-      {/* Additional venues */}
-      <div style={{ background: MC.paper, border: `1px solid ${MC.line}`, borderRadius: 14, padding: '14px 16px' }}>
-        <div style={{ fontFamily: MONO, fontSize: 10, color: MC.ink3, letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 600, marginBottom: 8 }}>Add another venue</div>
-        <div style={{ fontSize: 13, color: MC.ink3, lineHeight: 1.5 }}>
-          Each additional venue is {EXTRA_VENUE_PRICE}/mo on your current plan.
+        <div className="font-mono text-[10.5px] text-charcoal/30 text-center mt-5 leading-[1.5]">
+          To cancel or modify your subscription, email{' '}
+          <a href="mailto:hello@pelikn.com" className="text-brand">hello@pelikn.com</a>
         </div>
-        <a
-          href="mailto:hello@pelikn.com?subject=Add another venue"
-          style={{
-            display: 'inline-flex', alignItems: 'center', gap: 6, marginTop: 12,
-            height: 34, padding: '0 14px', borderRadius: 8,
-            background: MC.line2, color: MC.ink3, textDecoration: 'none',
-            fontSize: 13, fontWeight: 500,
-          }}
-        >
-          Contact us →
-        </a>
-      </div>
-
-      <div style={{ fontFamily: MONO, fontSize: 10.5, color: MC.ink4, textAlign: 'center', marginTop: 20, lineHeight: 1.5 }}>
-        To cancel or modify your subscription, email{' '}
-        <a href="mailto:hello@pelikn.com" style={{ color: MC.brand }}>hello@pelikn.com</a>
-      </div>
 
       </div>
     </div>

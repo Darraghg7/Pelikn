@@ -13,19 +13,6 @@ import LoadingSpinner from '../../components/ui/LoadingSpinner'
 import AddSessionModal from './AddSessionModal'
 import ClockEditApprovalCard from '../../components/shifts/ClockEditApprovalCard'
 
-// ── Design tokens ─────────────────────────────────────────────────────────────
-const MC = {
-  ink: '#0d1a14', ink2: '#3d4a44', ink3: '#76817b', ink4: '#b3b9b5',
-  line: '#e4e6e2', line2: '#eef0ec',
-  bg: '#f3f3ef', paper: '#ffffff',
-  brand: '#13362a', brandTint: '#eef4f0',
-  good: '#1a7a4c',
-  warn: '#a85d12', warnBg: '#fbeedc',
-  bad:  '#b3331c', badBg: '#fbeae6',
-}
-const MF = '"Geist", -apple-system, "SF Pro Text", system-ui, sans-serif'
-const MM = '"Geist Mono", ui-monospace, "SF Mono", monospace'
-
 const STATIONS = {
   Kitchen: { bg: '#f0ebde', fg: '#6b5028' },
   FOH:     { bg: '#e7eef3', fg: '#2a4a66' },
@@ -161,9 +148,12 @@ function periodToDates(period, customFrom, customTo) {
 // ── UI atoms ───────────────────────────────────────────────────────────────────
 function Avatar({ name, station, size = 34 }) {
   const initials = name.split(' ').map(w => w[0]).slice(0, 2).join('')
-  const st = STATIONS[station] || { bg: MC.brandTint, fg: MC.brand }
+  const st = STATIONS[station] || { bg: '#eef4f0', fg: '#13362a' }
   return (
-    <span style={{ width: size, height: size, borderRadius: 9, flexShrink: 0, background: st.bg, color: st.fg, display: 'grid', placeItems: 'center', fontFamily: MM, fontSize: Math.round(size * 0.32), fontWeight: 600, letterSpacing: '0.02em' }}>
+    <span
+      className="shrink-0 flex items-center justify-center font-mono font-semibold"
+      style={{ width: size, height: size, borderRadius: Math.round(size * 0.265), background: st.bg, color: st.fg, fontSize: Math.round(size * 0.32), letterSpacing: '0.02em' }}
+    >
       {initials}
     </span>
   )
@@ -171,21 +161,25 @@ function Avatar({ name, station, size = 34 }) {
 
 function SumTile({ label, value, sub, subGood }) {
   return (
-    <div style={{ flex: 1, background: MC.bg, borderRadius: 11, padding: '10px 12px' }}>
-      <div style={{ fontFamily: MM, fontSize: 9, color: MC.ink3, textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 600, marginBottom: 5, lineHeight: 1.3 }}>{label}</div>
-      <div style={{ fontFamily: MM, fontSize: 17, fontWeight: 600, color: MC.ink, letterSpacing: '-0.025em', fontVariantNumeric: 'tabular-nums', lineHeight: 1 }}>{value || '—'}</div>
-      {sub && <div style={{ fontFamily: MM, fontSize: 10, color: subGood ? MC.good : MC.warn, marginTop: 5, fontWeight: 600 }}>{sub}</div>}
+    <div className="flex-1 bg-surface rounded-[11px] px-3 py-[10px]">
+      <div className="font-mono text-[9px] text-charcoal/50 uppercase tracking-[0.1em] font-semibold mb-[5px] leading-[1.3]">{label}</div>
+      <div className="font-mono text-[17px] font-semibold text-charcoal tracking-[-0.025em] tabular-nums leading-none">{value || '—'}</div>
+      {sub && <div className={`font-mono text-[10px] font-semibold mt-[5px] ${subGood ? 'text-success' : 'text-warning'}`}>{sub}</div>}
     </div>
   )
 }
 
 function PeriodChips({ period, onChange }) {
   return (
-    <div style={{ display: 'flex', gap: 6, overflowX: 'auto', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch', paddingBottom: 1 }}>
+    <div className="flex gap-[6px] overflow-x-auto [scrollbar-width:none] [-webkit-overflow-scrolling:touch] pb-px">
       {PERIODS.map(p => {
         const on = period === p.key
         return (
-          <button key={p.key} onClick={() => onChange(p.key)} style={{ flexShrink: 0, fontFamily: MF, fontSize: 13.5, fontWeight: on ? 600 : 500, cursor: 'pointer', padding: '7px 15px', borderRadius: 999, background: on ? MC.brand : MC.paper, color: on ? '#fff' : MC.ink2, border: on ? `1px solid ${MC.brand}` : `1px solid ${MC.line}` }}>
+          <button
+            key={p.key}
+            onClick={() => onChange(p.key)}
+            className={`shrink-0 text-[13.5px] cursor-pointer px-[15px] py-[7px] rounded-full border transition-colors ${on ? 'font-semibold bg-brand text-white border-brand' : 'font-medium bg-white dark:bg-[#1e1e1e] text-charcoal/75 border-charcoal/10'}`}
+          >
             {p.label}
           </button>
         )
@@ -198,20 +192,23 @@ function StaffRow({ t, station, last, onTap }) {
   const hasData = t.totalMinutes > 0
   const pay = (t.totalMinutes / 60) * t.hourlyRate
   return (
-    <button onClick={onTap} style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '12px 14px', width: '100%', textAlign: 'left', cursor: 'pointer', background: 'transparent', border: 'none', fontFamily: MF, borderBottom: last ? 'none' : `1px solid ${MC.line2}` }}>
+    <button
+      onClick={onTap}
+      className={`flex items-center gap-[11px] px-[14px] py-3 w-full text-left cursor-pointer bg-transparent border-none ${last ? '' : 'border-b border-charcoal/[0.06]'}`}
+    >
       <Avatar name={t.name} station={station} size={38} />
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 14.5, fontWeight: 600, color: MC.ink, letterSpacing: '-0.01em', lineHeight: 1.2 }}>{t.name}</div>
-        {t.hourlyRate > 0 && <div style={{ fontFamily: MM, fontSize: 10.5, color: MC.ink3, marginTop: 3 }}>£{Number(t.hourlyRate).toFixed(2)}/hr</div>}
+      <div className="flex-1 min-w-0">
+        <div className="text-[14.5px] font-semibold text-charcoal tracking-[-0.01em] leading-[1.2]">{t.name}</div>
+        {t.hourlyRate > 0 && <div className="font-mono text-[10.5px] text-charcoal/50 mt-[3px]">£{Number(t.hourlyRate).toFixed(2)}/hr</div>}
       </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-        <div style={{ textAlign: 'right' }}>
-          <div style={{ fontFamily: MM, fontSize: 15, fontWeight: 600, lineHeight: 1, fontVariantNumeric: 'tabular-nums', color: hasData ? MC.ink : MC.ink4 }}>{minsStr(t.totalMinutes)}</div>
-          <div style={{ fontFamily: MM, fontSize: 10.5, marginTop: 4, fontWeight: 600, color: hasData && pay > 0 ? MC.good : MC.ink4 }}>
+      <div className="flex items-center gap-2 shrink-0">
+        <div className="text-right">
+          <div className={`font-mono text-[15px] font-semibold leading-none tabular-nums ${hasData ? 'text-charcoal' : 'text-charcoal/30'}`}>{minsStr(t.totalMinutes)}</div>
+          <div className={`font-mono text-[10.5px] mt-1 font-semibold ${hasData && pay > 0 ? 'text-success' : 'text-charcoal/30'}`}>
             {hasData && pay > 0 ? `£${pay.toFixed(2)}` : '—'}
           </div>
         </div>
-        <svg width="6" height="10" viewBox="0 0 6 10" fill="none" stroke={MC.ink4} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M1 1l4 4-4 4" /></svg>
+        <svg width="6" height="10" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="text-charcoal/30"><path d="M1 1l4 4-4 4" /></svg>
       </div>
     </button>
   )
@@ -244,20 +241,30 @@ function TsWheel({ values, value, onChange }) {
 
   const pad = ((WH_VIS - 1) / 2) * WH_IH
   return (
-    <div style={{ position: 'relative', height: WH_VIS * WH_IH, flex: 1 }}>
-      <div ref={setNode} onScroll={onScroll} style={{ height: WH_VIS * WH_IH, overflowY: 'scroll', scrollSnapType: 'y mandatory', padding: `${pad}px 0`, scrollbarWidth: 'none' }}>
+    <div className="relative flex-1" style={{ height: WH_VIS * WH_IH }}>
+      <div
+        ref={setNode}
+        onScroll={onScroll}
+        className="overflow-y-scroll [scroll-snap-type:y_mandatory] [scrollbar-width:none]"
+        style={{ height: WH_VIS * WH_IH, padding: `${pad}px 0` }}
+      >
         {strVals.map((v, i) => {
           const on = v === strVal
           return (
-            <div key={v} onClick={() => { ref.current?.scrollTo({ top: i * WH_IH, behavior: 'smooth' }); onChange(v) }} style={{ height: WH_IH, display: 'flex', alignItems: 'center', justifyContent: 'center', scrollSnapAlign: 'center', cursor: 'pointer', fontFamily: MM, fontVariantNumeric: 'tabular-nums', fontSize: on ? 23 : 18, fontWeight: on ? 600 : 500, color: on ? MC.ink : MC.ink4, transition: 'font-size .1s, color .1s' }}>
+            <div
+              key={v}
+              onClick={() => { ref.current?.scrollTo({ top: i * WH_IH, behavior: 'smooth' }); onChange(v) }}
+              className="flex items-center justify-center [scroll-snap-align:center] cursor-pointer font-mono tabular-nums transition-[font-size,color] duration-100"
+              style={{ height: WH_IH, fontSize: on ? 23 : 18, fontWeight: on ? 600 : 500, color: on ? '#0d1a14' : '#b3b9b5' }}
+            >
               {v}
             </div>
           )
         })}
       </div>
-      <div style={{ position: 'absolute', left: 0, right: 0, top: pad, height: WH_IH, pointerEvents: 'none', borderTop: `1px solid ${MC.line}`, borderBottom: `1px solid ${MC.line}`, background: 'rgba(19,54,42,0.03)' }} />
-      <div style={{ position: 'absolute', left: 0, right: 0, top: 0, height: pad, pointerEvents: 'none', background: `linear-gradient(${MC.bg}, ${MC.bg}00)` }} />
-      <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: pad, pointerEvents: 'none', background: `linear-gradient(${MC.bg}00, ${MC.bg})` }} />
+      <div className="absolute left-0 right-0 pointer-events-none border-t border-b border-charcoal/10" style={{ top: pad, height: WH_IH, background: 'rgba(19,54,42,0.03)' }} />
+      <div className="absolute left-0 right-0 top-0 pointer-events-none" style={{ height: pad, background: 'linear-gradient(#f3f3ef, #f3f3ef00)' }} />
+      <div className="absolute left-0 right-0 bottom-0 pointer-events-none" style={{ height: pad, background: 'linear-gradient(#f3f3ef00, #f3f3ef)' }} />
     </div>
   )
 }
@@ -276,49 +283,67 @@ function EditSessionSheet({ staffName, dayLabel, session, onSave, onClose }) {
   const mins = worked(clockIn, clockOut, brk)
   const valid = mins > 0
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 60, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
-      <div onClick={onClose} style={{ position: 'absolute', inset: 0, background: 'rgba(9,18,13,0.52)' }} />
-      <div style={{ position: 'relative', background: MC.bg, borderRadius: '22px 22px 0 0', padding: '10px 16px 34px', maxHeight: '90%', overflowY: 'auto', boxShadow: '0 -12px 40px rgba(9,18,13,0.24)' }}>
-        <div style={{ width: 38, height: 4, borderRadius: 2, background: MC.line, margin: '0 auto 16px' }} />
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 16 }}>
+    <div className="fixed inset-0 z-[60] flex flex-col justify-end">
+      <div onClick={onClose} className="absolute inset-0" style={{ background: 'rgba(9,18,13,0.52)' }} />
+      <div className="relative bg-surface rounded-t-[22px] px-4 pb-[34px] pt-[10px] max-h-[90%] overflow-y-auto" style={{ boxShadow: '0 -12px 40px rgba(9,18,13,0.24)' }}>
+        <div className="w-[38px] h-1 rounded-sm bg-charcoal/10 mx-auto mb-4" />
+        <div className="flex items-start justify-between mb-4">
           <div>
-            <div style={{ fontSize: 17, fontWeight: 600, letterSpacing: '-0.015em' }}>{dayLabel}</div>
-            <div style={{ fontSize: 12, color: MC.ink3, marginTop: 2 }}>{staffName}</div>
+            <div className="text-[17px] font-semibold tracking-[-0.015em]">{dayLabel}</div>
+            <div className="text-xs text-charcoal/50 mt-0.5">{staffName}</div>
           </div>
-          {session?.in && <span style={{ fontFamily: MM, fontSize: 9.5, fontWeight: 700, color: MC.warn, background: MC.warnBg, textTransform: 'uppercase', letterSpacing: '0.05em', padding: '4px 9px', borderRadius: 999 }}>Editing</span>}
+          {session?.in && <span className="font-mono text-[9.5px] font-bold text-warning bg-warning/10 uppercase tracking-[0.05em] px-[9px] py-1 rounded-full">Editing</span>}
         </div>
-        <div style={{ display: 'flex', gap: 8, background: MC.line2, padding: 4, borderRadius: 12 }}>
+        <div className="flex gap-2 bg-charcoal/[0.06] p-1 rounded-xl mb-3">
           {[['in', 'Clock in', clockIn], ['out', 'Clock out', clockOut]].map(([k, label, val]) => {
             const on = edge === k
             return (
-              <button key={k} onClick={() => setEdge(k)} style={{ flex: 1, cursor: 'pointer', fontFamily: MF, border: 'none', borderRadius: 9, padding: '8px 0', background: on ? MC.paper : 'transparent', boxShadow: on ? '0 1px 3px rgba(9,18,13,0.1)' : 'none' }}>
-                <div style={{ fontFamily: MM, fontSize: 9, color: MC.ink3, textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>{label}</div>
-                <div style={{ fontFamily: MM, fontSize: 17, fontWeight: 600, color: on ? MC.brand : MC.ink3, marginTop: 2, fontVariantNumeric: 'tabular-nums' }}>{val}</div>
+              <button
+                key={k}
+                onClick={() => setEdge(k)}
+                className={`flex-1 cursor-pointer border-none rounded-[9px] py-2 ${on ? 'bg-white dark:bg-[#1e1e1e] shadow-[0_1px_3px_rgba(9,18,13,0.1)]' : 'bg-transparent'}`}
+              >
+                <div className="font-mono text-[9px] text-charcoal/50 uppercase tracking-[0.06em] font-semibold">{label}</div>
+                <div className={`font-mono text-[17px] font-semibold mt-0.5 tabular-nums ${on ? 'text-brand' : 'text-charcoal/50'}`}>{val}</div>
               </button>
             )
           })}
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, marginTop: 12 }}>
+        <div className="flex items-center justify-center gap-1 mt-3">
           <TsWheel values={WH_HOURS} value={ch} onChange={(h) => setCur(h, cm)} />
-          <span style={{ fontFamily: MM, fontSize: 22, fontWeight: 600, color: MC.ink3, paddingBottom: 2 }}>:</span>
+          <span className="font-mono text-[22px] font-semibold text-charcoal/50 pb-0.5">:</span>
           <TsWheel values={WH_MINS}  value={cm} onChange={(m) => setCur(ch, m)} />
         </div>
-        <div style={{ marginTop: 8 }}>
-          <div style={{ fontFamily: MM, fontSize: 9.5, color: MC.ink3, letterSpacing: '0.07em', textTransform: 'uppercase', fontWeight: 600, padding: '0 2px 7px' }}>Unpaid break</div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+        <div className="mt-2">
+          <div className="font-mono text-[9.5px] text-charcoal/50 tracking-[0.07em] uppercase font-semibold px-0.5 pb-[7px]">Unpaid break</div>
+          <div className="flex flex-wrap gap-[6px]">
             {WH_BREAKS.map(b => {
               const on = b === brk
-              return <button key={b} onClick={() => setBrk(b)} style={{ fontFamily: MM, fontSize: 12, fontWeight: 600, cursor: 'pointer', padding: '6px 11px', borderRadius: 9, border: `1px solid ${on ? MC.brand : MC.line}`, background: on ? MC.brand : MC.paper, color: on ? '#fff' : MC.ink2 }}>{b === 0 ? 'None' : `${b}m`}</button>
+              return (
+                <button
+                  key={b}
+                  onClick={() => setBrk(b)}
+                  className={`font-mono text-xs font-semibold cursor-pointer px-[11px] py-[6px] rounded-[9px] border ${on ? 'border-brand bg-brand text-white' : 'border-charcoal/10 bg-white dark:bg-[#1e1e1e] text-charcoal/75'}`}
+                >
+                  {b === 0 ? 'None' : `${b}m`}
+                </button>
+              )
             })}
           </div>
         </div>
-        <div style={{ marginTop: 10, padding: '10px 13px', borderRadius: 11, background: valid ? MC.brandTint : MC.badBg, display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontFamily: MM, fontSize: 14, fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>{clockIn} – {clockOut}</span>
-          <span style={{ fontSize: 12.5, color: valid ? MC.ink3 : MC.bad }}>· {valid ? minsStr(worked(clockIn, clockOut, brk)) : 'clock out must be after in'}</span>
+        <div className={`mt-[10px] px-[13px] py-[10px] rounded-[11px] flex items-center gap-2 ${valid ? 'bg-brand/8' : 'bg-danger/10'}`}>
+          <span className="font-mono text-sm font-semibold tabular-nums">{clockIn} – {clockOut}</span>
+          <span className={`text-[12.5px] ${valid ? 'text-charcoal/50' : 'text-danger'}`}>· {valid ? minsStr(worked(clockIn, clockOut, brk)) : 'clock out must be after in'}</span>
         </div>
-        <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
-          <button onClick={onClose} style={{ width: 90, height: 50, borderRadius: 13, border: `1px solid ${MC.line}`, background: MC.paper, color: MC.ink2, cursor: 'pointer', fontFamily: MF, fontSize: 14, fontWeight: 600 }}>Cancel</button>
-          <button disabled={!valid} onClick={() => { onSave({ clockIn, clockOut, brk }); onClose() }} style={{ flex: 1, height: 50, borderRadius: 13, border: 'none', cursor: valid ? 'pointer' : 'not-allowed', background: valid ? MC.brand : MC.line, color: valid ? '#fff' : MC.ink4, fontFamily: MF, fontSize: 15, fontWeight: 700 }}>Save hours</button>
+        <div className="flex gap-2 mt-4">
+          <button onClick={onClose} className="w-[90px] h-[50px] rounded-[13px] border border-charcoal/10 bg-white dark:bg-[#1e1e1e] text-charcoal/75 cursor-pointer text-sm font-semibold">Cancel</button>
+          <button
+            disabled={!valid}
+            onClick={() => { onSave({ clockIn, clockOut, brk }); onClose() }}
+            className={`flex-1 h-[50px] rounded-[13px] border-none text-[15px] font-bold ${valid ? 'bg-brand text-white cursor-pointer' : 'bg-charcoal/10 text-charcoal/30 cursor-not-allowed'}`}
+          >
+            Save hours
+          </button>
         </div>
       </div>
     </div>
@@ -330,18 +355,18 @@ function StaffHoursSheet({ t, station, periodDays, dailyGrid, periodLabel, onEdi
   const staffGrid = dailyGrid[t.staffId] || null
   const pay = (t.totalMinutes / 60) * t.hourlyRate
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
-      <div onClick={onClose} style={{ position: 'absolute', inset: 0, background: 'rgba(9,18,13,0.52)' }} />
-      <div style={{ position: 'relative', background: MC.bg, borderRadius: '22px 22px 0 0', padding: '20px 16px 34px', maxHeight: '90%', overflowY: 'auto', boxShadow: '0 -12px 40px rgba(9,18,13,0.24)' }}>
-        <div style={{ width: 38, height: 4, borderRadius: 2, background: MC.line, margin: '0 auto 16px' }} />
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
+    <div className="fixed inset-0 z-[50] flex flex-col justify-end">
+      <div onClick={onClose} className="absolute inset-0" style={{ background: 'rgba(9,18,13,0.52)' }} />
+      <div className="relative bg-surface rounded-t-[22px] px-4 pt-5 pb-[34px] max-h-[90%] overflow-y-auto" style={{ boxShadow: '0 -12px 40px rgba(9,18,13,0.24)' }}>
+        <div className="w-[38px] h-1 rounded-sm bg-charcoal/10 mx-auto mb-4" />
+        <div className="flex items-center gap-3 mb-[14px]">
           <Avatar name={t.name} station={station} size={44} />
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 17, fontWeight: 600, letterSpacing: '-0.015em' }}>{t.name}</div>
-            <div style={{ fontSize: 12, color: MC.ink3, marginTop: 2 }}>{periodLabel}</div>
+          <div className="flex-1 min-w-0">
+            <div className="text-[17px] font-semibold tracking-[-0.015em]">{t.name}</div>
+            <div className="text-xs text-charcoal/50 mt-0.5">{periodLabel}</div>
           </div>
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+        <div className="flex flex-col gap-[6px]">
           {periodDays.map((d, i) => {
             const dateStr = format(d, 'yyyy-MM-dd')
             const dayData = staffGrid?.days[dateStr]
@@ -352,23 +377,26 @@ function StaffHoursSheet({ t, station, periodDays, dailyGrid, periodLabel, onEdi
             const breakMins = has ? session.breaks.reduce((acc, b) =>
               (!b.start || !b.end) ? acc : acc + Math.round((new Date(b.end) - new Date(b.start)) / 60000), 0) : 0
             return (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 12, background: has ? MC.paper : MC.bg, border: `1px solid ${has ? MC.line : MC.line2}` }}>
-                <div style={{ width: 42, height: 46, borderRadius: 9, background: has ? MC.bg : MC.line2, border: `1px solid ${MC.line}`, flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
-                  <span style={{ fontFamily: MM, fontSize: 8.5, color: MC.ink3, fontWeight: 600, letterSpacing: '0.06em' }}>{format(d, 'EEE').toUpperCase()}</span>
-                  <span style={{ fontFamily: MM, fontSize: 15, fontWeight: 600, color: has ? MC.ink : MC.ink4, lineHeight: 1 }}>{format(d, 'd')}</span>
+              <div key={i} className={`flex items-center gap-[10px] px-3 py-[10px] rounded-xl border ${has ? 'bg-white dark:bg-[#1e1e1e] border-charcoal/10' : 'bg-surface border-charcoal/[0.06]'}`}>
+                <div className={`w-[42px] h-[46px] rounded-[9px] border border-charcoal/10 shrink-0 flex flex-col items-center justify-center gap-px ${has ? 'bg-surface' : 'bg-charcoal/[0.06]'}`}>
+                  <span className="font-mono text-[8.5px] text-charcoal/50 font-semibold tracking-[0.06em]">{format(d, 'EEE').toUpperCase()}</span>
+                  <span className={`font-mono text-[15px] font-semibold leading-none ${has ? 'text-charcoal' : 'text-charcoal/30'}`}>{format(d, 'd')}</span>
                 </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
+                <div className="flex-1 min-w-0">
                   {has ? (
                     <>
-                      <div style={{ fontFamily: MM, fontSize: 13.5, fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>{inTime} – {outTime}</div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 2 }}>
-                        <span style={{ fontFamily: MM, fontSize: 11.5, color: MC.ink3 }}>{minsStr(dayData.minutes)}</span>
-                        {breakMins > 0 && <><span style={{ color: MC.ink4 }}>·</span><span style={{ fontSize: 11.5, color: MC.ink3 }}>{breakMins}m break</span></>}
+                      <div className="font-mono text-[13.5px] font-semibold tabular-nums">{inTime} – {outTime}</div>
+                      <div className="flex items-center gap-[5px] mt-0.5">
+                        <span className="font-mono text-[11.5px] text-charcoal/50">{minsStr(dayData.minutes)}</span>
+                        {breakMins > 0 && <><span className="text-charcoal/30">·</span><span className="text-[11.5px] text-charcoal/50">{breakMins}m break</span></>}
                       </div>
                     </>
-                  ) : <div style={{ fontSize: 13, color: MC.ink4 }}>Off</div>}
+                  ) : <div className="text-[13px] text-charcoal/30">Off</div>}
                 </div>
-                <button onClick={() => has ? onEditDay({ dateStr, session }) : onAddDay(dateStr)} style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: 4, padding: '7px 12px', borderRadius: 9, cursor: 'pointer', fontFamily: MF, fontSize: 12, fontWeight: 600, color: MC.ink2, background: MC.bg, border: `1px solid ${MC.line}` }}>
+                <button
+                  onClick={() => has ? onEditDay({ dateStr, session }) : onAddDay(dateStr)}
+                  className="shrink-0 flex items-center gap-1 px-3 py-[7px] rounded-[9px] cursor-pointer text-xs font-semibold text-charcoal/75 bg-surface border border-charcoal/10"
+                >
                   {has
                     ? <><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Edit</>
                     : <><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14"/></svg>Add</>}
@@ -377,20 +405,20 @@ function StaffHoursSheet({ t, station, periodDays, dailyGrid, periodLabel, onEdi
             )
           })}
         </div>
-        <div style={{ marginTop: 14, padding: '13px 14px', background: MC.paper, borderRadius: 12, border: `1px solid ${MC.line}`, display: 'flex', alignItems: 'center', gap: 20 }}>
+        <div className="mt-[14px] px-[14px] py-[13px] bg-white dark:bg-[#1e1e1e] rounded-xl border border-charcoal/10 flex items-center gap-5">
           <div>
-            <div style={{ fontFamily: MM, fontSize: 9, color: MC.ink3, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 600 }}>Total</div>
-            <div style={{ fontFamily: MM, fontSize: 17, fontWeight: 600, color: MC.ink, marginTop: 3, fontVariantNumeric: 'tabular-nums' }}>{minsStr(t.totalMinutes)}</div>
+            <div className="font-mono text-[9px] text-charcoal/50 tracking-[0.1em] uppercase font-semibold">Total</div>
+            <div className="font-mono text-[17px] font-semibold text-charcoal mt-[3px] tabular-nums">{minsStr(t.totalMinutes)}</div>
           </div>
           {t.hourlyRate > 0 && (
             <div>
-              <div style={{ fontFamily: MM, fontSize: 9, color: MC.ink3, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 600 }}>Est. pay</div>
-              <div style={{ fontFamily: MM, fontSize: 17, fontWeight: 600, color: pay > 0 ? MC.good : MC.ink4, marginTop: 3, fontVariantNumeric: 'tabular-nums' }}>{pay > 0 ? `£${pay.toFixed(2)}` : '—'}</div>
+              <div className="font-mono text-[9px] text-charcoal/50 tracking-[0.1em] uppercase font-semibold">Est. pay</div>
+              <div className={`font-mono text-[17px] font-semibold mt-[3px] tabular-nums ${pay > 0 ? 'text-success' : 'text-charcoal/30'}`}>{pay > 0 ? `£${pay.toFixed(2)}` : '—'}</div>
             </div>
           )}
-          <div style={{ marginLeft: 'auto' }}>
-            <div style={{ fontFamily: MM, fontSize: 9, color: MC.ink3, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 600 }}>Rate</div>
-            <div style={{ fontFamily: MM, fontSize: 12, fontWeight: 600, color: MC.ink3, marginTop: 3 }}>£{Number(t.hourlyRate).toFixed(2)}/hr</div>
+          <div className="ml-auto">
+            <div className="font-mono text-[9px] text-charcoal/50 tracking-[0.1em] uppercase font-semibold">Rate</div>
+            <div className="font-mono text-xs font-semibold text-charcoal/50 mt-[3px]">£{Number(t.hourlyRate).toFixed(2)}/hr</div>
           </div>
         </div>
       </div>
@@ -410,8 +438,8 @@ export default function TimesheetPage() {
   const [payrollLocks,  setPayrollLocks]  = useState([])
   const [lockSaving,    setLockSaving]    = useState(false)
   const [selStaff,      setSelStaff]      = useState(null)
-  const [editCtx,       setEditCtx]       = useState(null)  // { dateStr, session }
-  const [addTarget,     setAddTarget]     = useState(null)  // { staffId, date }
+  const [editCtx,       setEditCtx]       = useState(null)
+  const [addTarget,     setAddTarget]     = useState(null)
 
   const { venueId }   = useVenue()
   const { isManager } = useSession()
@@ -453,7 +481,6 @@ export default function TimesheetPage() {
     return map
   }, [staffList])
 
-  // Enumerate days in selected period up to today (caps future days)
   const periodDays = useMemo(() => {
     if (!dateFrom || !dateTo) return []
     try {
@@ -563,15 +590,15 @@ export default function TimesheetPage() {
   const underLabel = under > 0 ? `£${Math.round(under).toLocaleString()} under` : under < 0 ? `£${Math.round(Math.abs(under)).toLocaleString()} over` : null
 
   return (
-    <div style={{ fontFamily: MF, color: MC.ink }}>
+    <div className="text-charcoal">
       {isManager && <ClockEditApprovalCard />}
 
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-        <h1 style={{ fontSize: 28, fontWeight: 700, letterSpacing: '-0.03em', lineHeight: 1.05, margin: 0 }}>Timesheets</h1>
-        <div style={{ display: 'flex', gap: 16 }}>
+      <div className="flex items-center justify-between mb-4">
+        <h1 className="text-[28px] font-bold tracking-[-0.03em] leading-[1.05] m-0">Timesheets</h1>
+        <div className="flex gap-4">
           {[['CSV', exportCsv], ['PDF', exportPdf]].map(([fmt, fn]) => (
-            <button key={fmt} onClick={fn} style={{ display: 'flex', alignItems: 'center', gap: 4, fontFamily: MM, fontSize: 10.5, fontWeight: 700, color: MC.ink3, letterSpacing: '0.05em', textTransform: 'uppercase', background: 'transparent', border: 'none', cursor: 'pointer', padding: 0 }}>
+            <button key={fmt} onClick={fn} className="flex items-center gap-1 font-mono text-[10.5px] font-bold text-charcoal/50 tracking-[0.05em] uppercase bg-transparent border-none cursor-pointer p-0">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
               {fmt}
             </button>
@@ -580,23 +607,27 @@ export default function TimesheetPage() {
       </div>
 
       {/* Pay Period Summary card */}
-      <div style={{ background: MC.paper, border: `1px solid ${MC.line}`, borderRadius: 18, padding: '15px 14px 16px', display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 14 }}>
-        <div style={{ fontFamily: MM, fontSize: 9.5, color: MC.ink3, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 600 }}>Pay Period Summary</div>
+      <div className="bg-white dark:bg-[#1e1e1e] border border-charcoal/10 rounded-[18px] px-[14px] pt-[15px] pb-4 flex flex-col gap-3 mb-[14px]">
+        <div className="font-mono text-[9.5px] text-charcoal/50 tracking-[0.12em] uppercase font-semibold">Pay Period Summary</div>
         <PeriodChips period={period} onChange={setPeriod} />
 
         {period === 'custom' && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <input type="date" value={customFrom} onChange={e => setCustomFrom(e.target.value)} style={{ flex: 1, padding: '7px 10px', borderRadius: 9, border: `1px solid ${MC.line}`, fontSize: 13, fontFamily: MF, background: MC.paper, color: MC.ink, outline: 'none' }} />
-            <span style={{ fontSize: 12, color: MC.ink4, flexShrink: 0 }}>to</span>
-            <input type="date" value={customTo} min={customFrom} onChange={e => setCustomTo(e.target.value)} style={{ flex: 1, padding: '7px 10px', borderRadius: 9, border: `1px solid ${MC.line}`, fontSize: 13, fontFamily: MF, background: MC.paper, color: MC.ink, outline: 'none' }} />
+          <div className="flex items-center gap-2">
+            <input type="date" value={customFrom} onChange={e => setCustomFrom(e.target.value)} className="flex-1 px-[10px] py-[7px] rounded-[9px] border border-charcoal/10 text-[13px] bg-white dark:bg-[#1e1e1e] text-charcoal outline-none" />
+            <span className="text-xs text-charcoal/30 shrink-0">to</span>
+            <input type="date" value={customTo} min={customFrom} onChange={e => setCustomTo(e.target.value)} className="flex-1 px-[10px] py-[7px] rounded-[9px] border border-charcoal/10 text-[13px] bg-white dark:bg-[#1e1e1e] text-charcoal outline-none" />
           </div>
         )}
 
         {periodLabel && periodLabel !== '—' && (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-            <span style={{ fontSize: 15, fontWeight: 600, letterSpacing: '-0.01em', color: MC.ink }}>{periodLabel}</span>
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-[15px] font-semibold tracking-[-0.01em] text-charcoal">{periodLabel}</span>
             {isManager && periodFrom && periodTo && (
-              <button onClick={togglePayrollLock} disabled={lockSaving} style={{ display: 'flex', alignItems: 'center', gap: 5, fontFamily: MF, fontSize: 11.5, fontWeight: 600, color: isPeriodLocked ? MC.good : MC.ink2, background: MC.paper, border: `1px solid ${isPeriodLocked ? MC.good + '55' : MC.line}`, borderRadius: 9, padding: '6px 11px', cursor: 'pointer', flexShrink: 0, opacity: lockSaving ? 0.4 : 1, whiteSpace: 'nowrap' }}>
+              <button
+                onClick={togglePayrollLock}
+                disabled={lockSaving}
+                className={`flex items-center gap-[5px] text-[11.5px] font-semibold bg-white dark:bg-[#1e1e1e] rounded-[9px] px-[11px] py-[6px] cursor-pointer shrink-0 whitespace-nowrap transition-opacity ${isPeriodLocked ? 'text-success border border-success/[0.33]' : 'text-charcoal/75 border border-charcoal/10'} ${lockSaving ? 'opacity-40' : 'opacity-100'}`}
+              >
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d={isPeriodLocked ? 'M7 11V7a5 5 0 0 1 10 0v4' : 'M7 11V7a5 5 0 0 1 9.9-1'}/></svg>
                 {isPeriodLocked ? 'Locked' : lockSaving ? 'Locking…' : 'Lock for payroll'}
               </button>
@@ -605,14 +636,14 @@ export default function TimesheetPage() {
         )}
 
         {loading ? (
-          <div style={{ display: 'flex', justifyContent: 'center', padding: '16px 0' }}><LoadingSpinner /></div>
+          <div className="flex justify-center py-4"><LoadingSpinner /></div>
         ) : (
           <>
-            <div style={{ display: 'flex', gap: 7 }}>
+            <div className="flex gap-[7px]">
               <SumTile label={`Actual hours · ${timesheets.length} staff`} value={totalMins > 0 ? minsStr(totalMins) : null} />
               <SumTile label="Scheduled hours" value={periodScheduled.totalMins > 0 ? minsStr(periodScheduled.totalMins) : null} />
             </div>
-            <div style={{ display: 'flex', gap: 7 }}>
+            <div className="flex gap-[7px]">
               <SumTile label="Actual wage bill" value={totalWage > 0 ? fmtGBP(totalWage + totalHolidayPay) : null} />
               <SumTile label="Scheduled cost" value={periodScheduled.totalCost > 0 ? fmtGBP(periodScheduled.totalCost) : null} sub={underLabel} subGood={under > 0} />
             </div>
@@ -623,14 +654,14 @@ export default function TimesheetPage() {
       {/* Staff list */}
       {!loading && (
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 2px 9px' }}>
-            <span style={{ fontFamily: MM, fontSize: 10.5, color: MC.ink3, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 600 }}>Staff</span>
-            <span style={{ fontFamily: MM, fontSize: 11, color: MC.ink3 }}>{timesheets.length} members{totalMins > 0 ? ` · ${minsStr(totalMins)} total` : ''}</span>
+          <div className="flex items-center justify-between px-0.5 pb-[9px]">
+            <span className="font-mono text-[10.5px] text-charcoal/50 tracking-[0.1em] uppercase font-semibold">Staff</span>
+            <span className="font-mono text-[11px] text-charcoal/50">{timesheets.length} members{totalMins > 0 ? ` · ${minsStr(totalMins)} total` : ''}</span>
           </div>
           {timesheets.length === 0 ? (
-            <p style={{ fontSize: 13, color: MC.ink4, fontStyle: 'italic', padding: '8px 2px' }}>No clock events recorded for this period.</p>
+            <p className="text-[13px] text-charcoal/30 italic px-0.5 py-2">No clock events recorded for this period.</p>
           ) : (
-            <div style={{ background: MC.paper, border: `1px solid ${MC.line}`, borderRadius: 16, overflow: 'hidden' }}>
+            <div className="bg-white dark:bg-[#1e1e1e] border border-charcoal/10 rounded-2xl overflow-hidden">
               {timesheets.map((t, i) => (
                 <StaffRow key={t.staffId} t={t} station={stationMap[t.staffId] ?? ''} last={i === timesheets.length - 1} onTap={() => setSelStaff(t)} />
               ))}

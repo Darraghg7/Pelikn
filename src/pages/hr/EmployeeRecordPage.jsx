@@ -5,7 +5,7 @@
 import React, { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useVenue } from '../../contexts/VenueContext'
-import EmployeeRecordPanel, { MF } from './EmployeeRecordPanel'
+import EmployeeRecordPanel from './EmployeeRecordPanel'
 
 export default function EmployeeRecordPage() {
   const { staffId }            = useParams()
@@ -16,7 +16,7 @@ export default function EmployeeRecordPage() {
   const back = () => navigate(`/v/${venueSlug}/hr`)
 
   return (
-    <div style={{ fontFamily: MF, padding: '0 0 96px' }}>
+    <div className="pb-24">
       <EmployeeRecordPanel
         staffId={staffId}
         venueId={venueId}

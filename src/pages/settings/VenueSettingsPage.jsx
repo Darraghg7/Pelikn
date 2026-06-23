@@ -7,66 +7,30 @@ import { useTheme } from '../../contexts/ThemeContext'
 import useVenueSettings from '../../hooks/useVenueSettings'
 import TimeSelect from '../../components/ui/TimeSelect'
 import VenuesSection from './VenuesSection'
+import SettingsSubHeader from '../../components/layout/SettingsSubHeader'
 
-const MC = {
-  brand: '#13362a', brandTint: '#eef4f0',
-  good:  '#1a7a4c', goodBg: '#e3f0e7',
-  ink:   '#0d1a14', ink3: '#76817b', ink4: '#b3b9b5',
-  line:  '#e4e6e2', line2: '#eef0ec',
-  paper: '#ffffff', bg: '#f3f3ef',
-  bad:   '#b3331c',
-}
-const MONO = 'ui-monospace, SFMono-Regular, monospace'
-const SANS = '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
-
-function SubHeader({ title, onBack }) {
-  return (
-    <div style={{
-      position: 'sticky', top: 0, zIndex: 10,
-      background: 'rgba(243,243,239,0.92)',
-      backdropFilter: 'saturate(180%) blur(20px)',
-      WebkitBackdropFilter: 'saturate(180%) blur(20px)',
-      borderBottom: `1px solid ${MC.line}`,
-      padding: '12px 16px 10px',
-      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-    }}>
-      <button onClick={onBack} style={{
-        display: 'flex', alignItems: 'center', gap: 6,
-        color: MC.brand, background: 'none', border: 'none',
-        cursor: 'pointer', padding: '4px 0', fontFamily: SANS, fontSize: 15, fontWeight: 500,
-      }}>
-        <svg width="9" height="15" viewBox="0 0 9 15" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M8 1L1.5 7.5 8 14"/>
-        </svg>
-        Settings
-      </button>
-      <span style={{ fontSize: 17, fontWeight: 600, letterSpacing: '-0.02em', color: MC.ink }}>{title}</span>
-      <span style={{ width: 70 }} />
-    </div>
-  )
-}
 const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
 function Group({ label, children, foot }) {
   return (
     <div>
       {label && (
-        <div style={{ fontFamily: MONO, fontSize: 10.5, color: MC.ink3, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600, padding: '0 2px 7px' }}>{label}</div>
+        <div className="font-mono text-[10.5px] font-semibold tracking-[0.08em] uppercase text-charcoal/50 px-0.5 pt-[18px] pb-1.5">{label}</div>
       )}
-      <div style={{ background: MC.paper, border: `1px solid ${MC.line}`, borderRadius: 14, overflow: 'hidden' }}>
+      <div className="bg-white dark:bg-[#1e1e1e] border border-charcoal/10 rounded-[14px] overflow-hidden">
         {children}
       </div>
-      {foot && <div style={{ fontSize: 11.5, color: MC.ink3, padding: '8px 4px 0', lineHeight: 1.45 }}>{foot}</div>}
+      {foot && <div className="text-[11.5px] text-charcoal/50 px-1 pt-2 leading-[1.45]">{foot}</div>}
     </div>
   )
 }
 
 function Row({ label, sub, children, last }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '13px 15px', borderTop: last === false ? `1px solid ${MC.line2}` : 'none' }}>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 14, fontWeight: 500, color: MC.ink, letterSpacing: '-0.005em' }}>{label}</div>
-        {sub && <div style={{ fontSize: 11.5, color: MC.ink3, marginTop: 2, lineHeight: 1.4 }}>{sub}</div>}
+    <div className={`flex items-center gap-3 px-[15px] py-[13px] ${last === false ? 'border-t border-charcoal/6' : ''}`}>
+      <div className="flex-1 min-w-0">
+        <div className="text-sm font-medium text-charcoal tracking-[-0.005em]">{label}</div>
+        {sub && <div className="text-[11.5px] text-charcoal/50 mt-0.5 leading-[1.4]">{sub}</div>}
       </div>
       {children}
     </div>
@@ -125,49 +89,43 @@ export default function VenueSettingsPage() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: MC.bg, fontFamily: SANS }}>
-      <SubHeader title="Venue" onBack={() => navigate(vp('/settings/hub'))} />
+    <div className="min-h-screen bg-surface">
+      <SettingsSubHeader title="Venue" onBack={() => navigate(vp('/settings/hub'))} />
 
-      <div style={{ padding: '0 16px 96px', maxWidth: 480, margin: '0 auto' }}>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div className="px-4 pb-24 max-w-[480px] mx-auto">
+      <div className="flex flex-col gap-4">
 
-        {/* Venue details */}
         <Group label="Details">
-          <div style={{ padding: '13px 15px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div className="px-[15px] py-[13px] flex flex-col gap-3">
             <div>
-              <div style={{ fontFamily: MONO, fontSize: 10, color: MC.ink3, letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 600, marginBottom: 6 }}>Venue name</div>
+              <div className="font-mono text-[10px] font-semibold tracking-[0.06em] uppercase text-charcoal/50 mb-1.5">Venue name</div>
               <input
                 value={form.venue_name}
                 onChange={e => setForm(f => ({ ...f, venue_name: e.target.value }))}
                 placeholder="e.g. The Crown Bar & Kitchen"
-                style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: `1px solid ${MC.line}`, fontSize: 14, color: MC.ink, outline: 'none', boxSizing: 'border-box' }}
+                className="w-full px-3 py-2.5 rounded-[10px] border border-charcoal/10 text-sm text-charcoal outline-none box-border"
               />
             </div>
             <div>
-              <div style={{ fontFamily: MONO, fontSize: 10, color: MC.ink3, letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 600, marginBottom: 6 }}>Manager email</div>
+              <div className="font-mono text-[10px] font-semibold tracking-[0.06em] uppercase text-charcoal/50 mb-1.5">Manager email</div>
               <input
                 type="email"
                 value={form.manager_email}
                 onChange={e => setForm(f => ({ ...f, manager_email: e.target.value }))}
                 placeholder="manager@venue.com"
-                style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: `1px solid ${MC.line}`, fontSize: 14, color: MC.ink, outline: 'none', boxSizing: 'border-box' }}
+                className="w-full px-3 py-2.5 rounded-[10px] border border-charcoal/10 text-sm text-charcoal outline-none box-border"
               />
             </div>
             <button
               onClick={saveDetails}
               disabled={saving}
-              style={{
-                alignSelf: 'flex-start', height: 36, padding: '0 16px', borderRadius: 9, border: 'none', cursor: saving ? 'default' : 'pointer',
-                background: saveSuccess ? MC.good : MC.brand, color: '#fff',
-                fontSize: 13, fontWeight: 600, opacity: saving ? 0.6 : 1, transition: 'background .2s',
-              }}
+              className={`self-start h-9 px-4 rounded-[9px] border-0 text-[13px] font-semibold text-white transition-colors duration-200 ${saving ? 'opacity-60 cursor-default' : 'cursor-pointer'} ${saveSuccess ? 'bg-success' : 'bg-brand'}`}
             >
               {saving ? 'Saving…' : saveSuccess ? '✓ Saved' : 'Save changes'}
             </button>
           </div>
         </Group>
 
-        {/* Trading hours — per day */}
         <Group label="Trading hours" foot="Set open and close times per day. Closed days are skipped by the rota builder.">
           {DAY_NAMES.map((day, i) => {
             const isClosed = closedDays.includes(i)
@@ -177,81 +135,74 @@ export default function VenueSettingsPage() {
               saveDayHours(next)
             }
             return (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 15px', borderTop: i === 0 ? 'none' : `1px solid ${MC.line2}` }}>
-                <div style={{ width: 36, fontSize: 13, fontWeight: 600, color: isClosed ? MC.ink4 : MC.ink, textDecoration: isClosed ? 'line-through' : 'none', flexShrink: 0 }}>{day}</div>
+              <div key={i} className={`flex items-center gap-2.5 px-[15px] py-2.5 ${i === 0 ? '' : 'border-t border-charcoal/6'}`}>
+                <div className={`w-9 text-[13px] font-semibold shrink-0 ${isClosed ? 'text-charcoal/30 line-through' : 'text-charcoal'}`}>{day}</div>
                 {isClosed ? (
-                  <div style={{ flex: 1, fontSize: 12, color: MC.ink4, fontFamily: MONO, letterSpacing: '0.04em' }}>CLOSED</div>
+                  <div className="flex-1 text-xs text-charcoal/30 font-mono tracking-[0.04em]">CLOSED</div>
                 ) : (
-                  <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <div style={{ flex: 1 }}><TimeSelect value={hours.open} onChange={v => updateHours('open', v)} /></div>
-                    <span style={{ color: MC.ink4, fontSize: 12 }}>–</span>
-                    <div style={{ flex: 1 }}><TimeSelect value={hours.close} onChange={v => updateHours('close', v)} /></div>
+                  <div className="flex-1 flex items-center gap-1.5">
+                    <div className="flex-1"><TimeSelect value={hours.open} onChange={v => updateHours('open', v)} /></div>
+                    <span className="text-charcoal/30 text-xs">–</span>
+                    <div className="flex-1"><TimeSelect value={hours.close} onChange={v => updateHours('close', v)} /></div>
                   </div>
                 )}
                 <button
                   onClick={() => toggleClosedDay(i)}
-                  style={{
-                    flexShrink: 0, height: 28, padding: '0 10px', borderRadius: 7, fontSize: 11.5, fontWeight: 600, cursor: 'pointer', border: 'none', transition: 'all .15s',
-                    background: isClosed ? MC.brand : MC.line2,
-                    color: isClosed ? '#fff' : MC.ink3,
-                  }}
+                  className={`shrink-0 h-7 px-2.5 rounded-[7px] text-[11.5px] font-semibold cursor-pointer border-0 transition-all duration-150 ${isClosed ? 'bg-brand text-white' : 'bg-charcoal/6 text-charcoal/50'}`}
                 >{isClosed ? 'Open' : 'Close'}</button>
               </div>
             )
           })}
         </Group>
 
-        {/* Closed periods → moved to My Calendar */}
         <Group label="Closed periods">
           <button
             onClick={() => navigate(vp('/calendar'))}
-            style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '14px 15px', background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, textAlign: 'left' }}
+            className="w-full flex items-center justify-between gap-3 px-[15px] py-[14px] bg-transparent border-0 cursor-pointer text-left"
           >
             <div>
-              <div style={{ fontSize: 14, fontWeight: 500, color: MC.ink }}>Manage in My Calendar</div>
-              <div style={{ fontSize: 12, color: MC.ink3, marginTop: 2 }}>Closed periods are now created as calendar events under Team → My Calendar</div>
+              <div className="text-sm font-medium text-charcoal">Manage in My Calendar</div>
+              <div className="text-xs text-charcoal/50 mt-0.5">Closed periods are now created as calendar events under Team → My Calendar</div>
             </div>
-            <svg width="6" height="10" viewBox="0 0 6 10" fill="none" stroke={MC.ink4} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><path d="M1 1l4 4-4 4"/></svg>
+            <svg width="6" height="10" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-charcoal/30"><path d="M1 1l4 4-4 4"/></svg>
           </button>
         </Group>
 
-        {/* Logo */}
         <Group label="Branding">
-          <div style={{ padding: '13px 15px', display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <div style={{ fontFamily: MONO, fontSize: 10, color: MC.ink3, letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 600, marginBottom: 2 }}>Venue logo</div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+          <div className="px-[15px] py-[13px] flex flex-col gap-2.5">
+            <div className="font-mono text-[10px] font-semibold tracking-[0.06em] uppercase text-charcoal/50 mb-0.5">Venue logo</div>
+            <div className="flex items-center gap-3 flex-wrap">
               {settings.logo_url && (
-                <img src={settings.logo_url} alt="Venue logo" style={{ height: 44, width: 44, borderRadius: 10, objectFit: 'contain', border: `1px solid ${MC.line}`, background: MC.line2, padding: 4 }} />
+                <img src={settings.logo_url} alt="Venue logo" className="h-11 w-11 rounded-[10px] object-contain border border-charcoal/10 bg-charcoal/6 p-1" />
               )}
               <input
                 type="file" accept="image/*"
                 onChange={e => setLogoFile(e.target.files[0] ?? null)}
-                style={{ fontSize: 13, color: MC.ink3 }}
+                className="text-[13px] text-charcoal/50"
               />
               {logoFile && (
                 <button
                   onClick={() => uploadLogo(logoFile)}
                   disabled={uploadingLogo}
-                  style={{ height: 34, padding: '0 14px', borderRadius: 8, border: 'none', cursor: 'pointer', background: MC.brand, color: '#fff', fontSize: 13, fontWeight: 600, opacity: uploadingLogo ? 0.5 : 1 }}
+                  className={`h-[34px] px-[14px] rounded-lg border-0 cursor-pointer bg-brand text-white text-[13px] font-semibold ${uploadingLogo ? 'opacity-50' : ''}`}
                 >
                   {uploadingLogo ? 'Uploading…' : 'Upload'}
                 </button>
               )}
             </div>
-            <div style={{ fontSize: 11.5, color: MC.ink4 }}>PNG or SVG recommended. Shown in the app header.</div>
+            <div className="text-[11.5px] text-charcoal/30">PNG or SVG recommended. Shown in the app header.</div>
           </div>
         </Group>
 
-        {/* Appearance */}
         <Group label="Appearance">
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '13px 15px' }}>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 14, fontWeight: 500, color: MC.ink }}>Theme</div>
-              <div style={{ fontSize: 11.5, color: MC.ink3, marginTop: 2 }}>
+          <div className="flex items-center gap-3 px-[15px] py-[13px]">
+            <div className="flex-1 min-w-0">
+              <div className="text-sm font-medium text-charcoal">Theme</div>
+              <div className="text-[11.5px] text-charcoal/50 mt-0.5">
                 {themeMode === 'system' ? 'Following device settings' : dark ? 'Dark mode active' : 'Light mode active'}
               </div>
             </div>
-            <div style={{ display: 'flex', background: MC.line2, borderRadius: 9, padding: 3, gap: 2 }}>
+            <div className="flex bg-charcoal/6 rounded-[9px] p-[3px] gap-0.5">
               {[
                 { id: 'light', label: '☀️' },
                 { id: 'dark',  label: '🌙' },
@@ -260,22 +211,16 @@ export default function VenueSettingsPage() {
                 <button
                   key={opt.id}
                   onClick={() => setThemeMode(opt.id)}
-                  style={{
-                    width: 34, height: 28, borderRadius: 7, border: 'none', cursor: 'pointer', fontSize: 14,
-                    background: themeMode === opt.id ? MC.paper : 'transparent',
-                    boxShadow: themeMode === opt.id ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
-                    transition: 'all .15s',
-                  }}
+                  className={`w-[34px] h-7 rounded-[7px] border-0 cursor-pointer text-sm transition-all duration-150 ${themeMode === opt.id ? 'bg-white shadow-sm' : 'bg-transparent'}`}
                 >{opt.label}</button>
               ))}
             </div>
           </div>
         </Group>
 
-        {/* My venues */}
         <div>
-          <div style={{ fontFamily: MONO, fontSize: 10.5, color: MC.ink3, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600, padding: '0 2px 7px' }}>My venues</div>
-          <div style={{ background: MC.paper, border: `1px solid ${MC.line}`, borderRadius: 14, overflow: 'hidden', padding: '4px 0' }}>
+          <div className="font-mono text-[10.5px] font-semibold tracking-[0.08em] uppercase text-charcoal/50 px-0.5 pb-1.5">My venues</div>
+          <div className="bg-white dark:bg-[#1e1e1e] border border-charcoal/10 rounded-[14px] overflow-hidden py-1">
             <VenuesSection />
           </div>
         </div>

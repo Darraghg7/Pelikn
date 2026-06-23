@@ -5,63 +5,40 @@ import { useSession } from '../../contexts/SessionContext'
 import { useAuth } from '../../contexts/AuthContext'
 import { useAppSettings } from '../../hooks/useSettings'
 
-const MC = {
-  brand:  '#13362a', brandTint: '#eef4f0',
-  bad:    '#b3331c', badBg:  '#fbeae6',
-  warn:   '#a85d12', warnBg: '#fbeedc',
-  ink:    '#0d1a14', ink2: '#3d4a44', ink3: '#76817b', ink4: '#b3b9b5',
-  line:   '#e4e6e2', line2: '#eef0ec',
-  paper:  '#ffffff', bg: '#f3f3ef',
-}
-const MONO = 'ui-monospace, SFMono-Regular, monospace'
-const SANS = '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
-
 function GroupLabel({ label }) {
   return (
-    <div style={{
-      fontFamily: MONO, fontSize: 10.5, fontWeight: 600, letterSpacing: '0.10em',
-      textTransform: 'uppercase', color: MC.ink3, padding: '12px 4px 6px',
-    }}>{label}</div>
+    <div className="font-mono text-[10.5px] font-semibold tracking-[0.08em] uppercase text-charcoal/50 px-0.5 pt-3 pb-1.5">
+      {label}
+    </div>
   )
 }
 
 function RowGroup({ children }) {
   return (
-    <div style={{ background: MC.paper, border: `1px solid ${MC.line}`, borderRadius: 14, overflow: 'hidden' }}>
+    <div className="bg-white dark:bg-[#1e1e1e] border border-charcoal/10 rounded-[14px] overflow-hidden">
       {children}
     </div>
   )
 }
 
 function SRow({ icon, label, sub, value, attention, last, onClick, danger }) {
-  const iBg  = attention ? MC.warnBg  : danger ? MC.badBg  : MC.brandTint
-  const iCol = attention ? MC.warn    : danger ? MC.bad    : MC.brand
   return (
     <button
       onClick={onClick}
-      style={{
-        width: '100%', textAlign: 'left', background: 'none', border: 'none',
-        cursor: onClick ? 'pointer' : 'default', padding: '0 14px',
-        borderBottom: last ? 'none' : `1px solid ${MC.line2}`,
-        display: 'flex', alignItems: 'center', gap: 13, minHeight: 58,
-        fontFamily: SANS,
-      }}
+      className={`w-full text-left flex items-center gap-[13px] px-[14px] min-h-[52px] border-b border-charcoal/6 last:border-0 hover:bg-charcoal/[0.02] transition-colors ${last ? 'border-b-0' : ''}`}
     >
-      <span style={{
-        width: 32, height: 32, borderRadius: 9, flexShrink: 0,
-        background: iBg, color: iCol, display: 'grid', placeItems: 'center',
-      }}>
+      <span className={`w-8 h-8 rounded-[9px] shrink-0 flex items-center justify-center ${attention ? 'bg-warning/10 text-warning' : danger ? 'bg-danger/10 text-danger' : 'bg-brand/8 text-brand'}`}>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
           {icon}
         </svg>
       </span>
-      <div style={{ flex: 1, minWidth: 0, padding: '13px 0' }}>
-        <div style={{ fontSize: 15, fontWeight: 500, letterSpacing: '-0.01em', color: danger ? MC.bad : MC.ink, lineHeight: 1.25 }}>{label}</div>
-        {sub && <div style={{ fontFamily: MONO, fontSize: 10.5, color: attention ? MC.warn : MC.ink3, marginTop: 2, letterSpacing: '0.01em', lineHeight: 1.4 }}>{sub}</div>}
+      <div className="flex-1 min-w-0 py-3">
+        <div className={`text-sm font-medium tracking-[-0.005em] leading-snug ${danger ? 'text-danger' : 'text-charcoal'}`}>{label}</div>
+        {sub && <div className={`font-mono text-[10.5px] mt-0.5 leading-[1.4] ${attention ? 'text-warning' : 'text-charcoal/50'}`}>{sub}</div>}
       </div>
-      {value && <span style={{ fontFamily: MONO, fontSize: 11, color: MC.ink3, flexShrink: 0 }}>{value}</span>}
+      {value && <span className="font-mono text-[11px] text-charcoal/50 shrink-0">{value}</span>}
       {onClick && (
-        <svg width="6" height="10" viewBox="0 0 6 10" fill="none" stroke={attention ? MC.warn : MC.ink4} strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+        <svg width="6" height="10" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" className={`shrink-0 ${attention ? 'text-warning' : 'text-charcoal/30'}`}>
           <path d="M1 1l4 4-4 4"/>
         </svg>
       )}
@@ -86,30 +63,20 @@ export default function SettingsHubPage() {
   const attendanceAttention = lateGraceMins > 0
 
   return (
-    <div style={{ padding: '16px 0 96px' }}>
+    <div className="pb-24">
 
-      <h1 style={{ fontSize: 26, fontWeight: 600, letterSpacing: '-0.028em', margin: '0 0 14px', color: MC.ink }}>Settings</h1>
+      <h1 className="text-[26px] font-semibold tracking-[-0.028em] mb-[14px] text-charcoal">Settings</h1>
 
-      {/* Profile hero */}
       <button
         onClick={() => navigate(vp('/settings/hub'))}
-        style={{
-          width: '100%', textAlign: 'left', cursor: 'pointer',
-          background: MC.brand, color: '#fff',
-          border: 'none', borderRadius: 14, padding: 16,
-          display: 'flex', alignItems: 'center', gap: 13, marginBottom: 4,
-          fontFamily: SANS,
-        }}
+        className="w-full text-left bg-brand text-white rounded-[14px] p-4 flex items-center gap-[13px] mb-1 hover:bg-brand/90 transition-colors"
       >
-        <span style={{
-          width: 50, height: 50, borderRadius: 13, flexShrink: 0,
-          background: 'rgba(255,255,255,0.16)',
-          display: 'grid', placeItems: 'center',
-          fontFamily: MONO, fontSize: 16, fontWeight: 600,
-        }}>{initials}</span>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 17, fontWeight: 600, letterSpacing: '-0.015em' }}>{staffName}</div>
-          <div style={{ fontFamily: MONO, fontSize: 11, color: 'rgba(255,255,255,0.65)', marginTop: 3 }}>
+        <span className="w-[50px] h-[50px] rounded-[13px] shrink-0 bg-white/[0.16] flex items-center justify-center font-mono text-base font-semibold">
+          {initials}
+        </span>
+        <div className="flex-1 min-w-0">
+          <div className="text-[17px] font-semibold tracking-[-0.015em]">{staffName}</div>
+          <div className="font-mono text-[11px] text-white/65 mt-0.5">
             {role}{venueName ? ` · ${venueName}` : ''}
           </div>
         </div>
@@ -118,7 +85,6 @@ export default function SettingsHubPage() {
         </svg>
       </button>
 
-      {/* Account */}
       <GroupLabel label="Account" />
       <RowGroup>
         <SRow
@@ -136,7 +102,6 @@ export default function SettingsHubPage() {
         />
       </RowGroup>
 
-      {/* Operations */}
       <GroupLabel label="Operations" />
       <RowGroup>
         <SRow
@@ -161,7 +126,6 @@ export default function SettingsHubPage() {
         />
       </RowGroup>
 
-      {/* Customise */}
       <GroupLabel label="Customise" />
       <RowGroup>
         <SRow
@@ -173,7 +137,6 @@ export default function SettingsHubPage() {
         />
       </RowGroup>
 
-      {/* More */}
       <GroupLabel label="More" />
       <RowGroup>
         {isOwner && (
@@ -193,16 +156,9 @@ export default function SettingsHubPage() {
         />
       </RowGroup>
 
-      {/* Sign out */}
       <button
         onClick={signOutVenue}
-        style={{
-          width: '100%', height: 50, marginTop: 14, borderRadius: 13,
-          border: `1px solid rgba(179,51,28,0.2)`, background: MC.badBg,
-          color: MC.bad, cursor: 'pointer', fontSize: 15, fontWeight: 600,
-          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-          fontFamily: SANS, letterSpacing: '-0.01em',
-        }}
+        className="w-full h-[50px] mt-3.5 rounded-[13px] border border-danger/20 bg-danger/8 text-danger text-[15px] font-semibold flex items-center justify-center gap-2 hover:bg-danger/[0.12] transition-colors"
       >
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>
@@ -210,7 +166,7 @@ export default function SettingsHubPage() {
         Sign out
       </button>
 
-      <div style={{ textAlign: 'center', fontFamily: MONO, fontSize: 10, color: MC.ink4, letterSpacing: '0.08em', padding: '12px 0 0' }}>
+      <div className="text-center font-mono text-[10px] text-charcoal/30 tracking-[0.08em] pt-3">
         Pelikn
       </div>
     </div>

@@ -21,19 +21,6 @@ import { useToast } from '../../components/ui/Toast'
 import Modal from '../../components/ui/Modal'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
 
-// ── Design tokens ────────────────────────────────────────────────────────────
-export const MC = {
-  ink: '#0d1a14', ink2: '#3d4a44', ink3: '#76817b', ink4: '#b3b9b5',
-  line: '#e4e6e2', line2: '#eef0ec',
-  bg: '#f3f3ef', paper: '#ffffff',
-  brand: '#13362a', brandSoft: '#e2ece7', brandTint: '#eef4f0',
-  good: '#1a7a4c', goodBg: '#e3f0e7',
-  warn: '#a85d12', warnBg: '#fbeedc',
-  bad:  '#b3331c', badBg:  '#fbeae6',
-}
-export const MM = '"Geist Mono", ui-monospace, "SF Mono", monospace'
-export const MF = '"Geist", -apple-system, "SF Pro Text", system-ui, sans-serif'
-
 // ── Constants ────────────────────────────────────────────────────────────────
 export const TABS = ['Profile', 'Documents', 'Disciplinary', 'Leave', 'Training', 'Security']
 
@@ -45,17 +32,17 @@ const FORMAL_LABELS = {
   other:                 'Other',
 }
 const FORMAL_TONE = {
-  verbal_warning:        { fg: MC.warn,   bg: MC.warnBg },
-  written_warning:       { fg: MC.bad,    bg: MC.badBg  },
-  final_written_warning: { fg: '#7a1212', bg: '#fbeae6' },
-  dismissal:             { fg: '#ffffff', bg: '#0d1a14' },
-  other:                 { fg: MC.ink3,   bg: MC.line2  },
+  verbal_warning:        'warn',
+  written_warning:       'bad',
+  final_written_warning: 'dark-red',
+  dismissal:             'inverse',
+  other:                 'muted',
 }
 const DOC_CAT_LABELS = { contract: 'Contract', food_hygiene: 'Food Hygiene', other: 'Other' }
 const DOC_CAT_TONE   = {
-  contract:     { fg: MC.brand, bg: MC.brandTint },
-  food_hygiene: { fg: MC.good,  bg: MC.goodBg    },
-  other:        { fg: MC.ink3,  bg: MC.line2     },
+  contract:     'brand',
+  food_hygiene: 'good',
+  other:        'muted',
 }
 const EMPLOYMENT_LABELS = {
   full_time: 'Full-time', part_time: 'Part-time',
@@ -80,46 +67,49 @@ export function nameInitials(name) {
 function expiryStatus(dateStr) {
   if (!dateStr) return null
   const d = differenceInDays(parseISO(dateStr), new Date())
-  if (d < 0)   return { label: 'Expired',    tone: { fg: MC.bad,  bg: MC.badBg  } }
-  if (d <= 30) return { label: `${d}d left`, tone: { fg: MC.warn, bg: MC.warnBg } }
-  return { label: format(parseISO(dateStr), 'd MMM yyyy'), tone: { fg: MC.good, bg: MC.goodBg } }
+  if (d < 0)   return { label: 'Expired',    tone: 'bad'  }
+  if (d <= 30) return { label: `${d}d left`, tone: 'warn' }
+  return { label: format(parseISO(dateStr), 'd MMM yyyy'), tone: 'good' }
 }
 
 // ── Shared atoms ─────────────────────────────────────────────────────────────
-export function Avatar({ name, size = 40, radius = 11 }) {
+export function Avatar({ name, size = 40, color }) {
+  const initials = nameInitials(name)
   return (
-    <span style={{
-      width: size, height: size, borderRadius: radius, flexShrink: 0,
-      background: MC.brandTint, color: MC.brand,
-      display: 'grid', placeItems: 'center',
-      fontFamily: MM, fontSize: Math.round(size * 0.34), fontWeight: 700, letterSpacing: '0.01em',
-    }}>
-      {nameInitials(name)}
-    </span>
+    <div
+      className="rounded-full flex items-center justify-center font-mono font-semibold text-white shrink-0"
+      style={{ width: size, height: size, fontSize: size * 0.36, background: color || '#2D4F45' }}
+    >
+      {initials}
+    </div>
   )
+}
+
+function badgeClasses(tone) {
+  switch (tone) {
+    case 'brand':    return 'text-brand bg-brand/8'
+    case 'good':     return 'text-success bg-success/10'
+    case 'warn':     return 'text-warning bg-warning/10'
+    case 'bad':      return 'text-danger bg-danger/10'
+    case 'dark-red': return 'text-[#7a1212] bg-danger/10'
+    case 'inverse':  return 'text-white bg-charcoal'
+    case 'muted':    return 'text-charcoal/50 bg-charcoal/6'
+    default:         return 'text-charcoal/50 bg-charcoal/6'
+  }
 }
 
 export function Badge({ tone, children, dot }) {
   return (
-    <span style={{
-      display: 'inline-flex', alignItems: 'center', gap: 5,
-      fontFamily: MM, fontSize: 10, fontWeight: 600, letterSpacing: '0.04em',
-      textTransform: 'uppercase', borderRadius: 999, padding: '3px 9px',
-      color: tone.fg, background: tone.bg, whiteSpace: 'nowrap',
-    }}>
-      {dot && <span style={{ width: 5, height: 5, borderRadius: '50%', background: 'currentColor' }} />}
+    <span className={`inline-flex items-center gap-1.5 font-mono text-[10px] font-semibold tracking-[0.04em] uppercase rounded-full px-[9px] py-[3px] whitespace-nowrap ${badgeClasses(tone)}`}>
+      {dot && <span className="w-[5px] h-[5px] rounded-full bg-current" />}
       {children}
     </span>
   )
 }
 
-function SectionCard({ children, style }) {
+function SectionCard({ children, className }) {
   return (
-    <div style={{
-      background: MC.paper, border: `1px solid ${MC.line}`,
-      borderRadius: 14, overflow: 'hidden',
-      boxShadow: '0 1px 2px rgba(13,26,20,0.03)', ...style,
-    }}>
+    <div className={`bg-white dark:bg-[#1e1e1e] border border-charcoal/10 rounded-[14px] overflow-hidden shadow-sm ${className ?? ''}`}>
       {children}
     </div>
   )
@@ -127,11 +117,7 @@ function SectionCard({ children, style }) {
 
 function CardHead({ children }) {
   return (
-    <div style={{
-      padding: '12px 18px', borderBottom: `1px solid ${MC.line2}`,
-      fontFamily: MM, fontSize: 10, textTransform: 'uppercase',
-      letterSpacing: '0.09em', color: MC.ink3, fontWeight: 600,
-    }}>
+    <div className="px-[18px] py-3 border-b border-charcoal/6 font-mono text-[10px] uppercase tracking-[0.09em] text-charcoal/50 font-semibold">
       {children}
     </div>
   )
@@ -140,58 +126,72 @@ function CardHead({ children }) {
 function DataRow({ label, value }) {
   if (value === null || value === undefined || value === '') return null
   return (
-    <div style={{ display: 'flex', gap: 14, padding: '11px 18px', borderBottom: `1px solid ${MC.line2}` }}>
-      <span style={{
-        fontFamily: MM, fontSize: 10, textTransform: 'uppercase',
-        letterSpacing: '0.06em', color: MC.ink4, minWidth: 120, paddingTop: 1,
-      }}>
+    <div className="flex gap-3.5 px-[18px] py-[11px] border-b border-charcoal/6">
+      <span className="font-mono text-[10px] uppercase tracking-[0.06em] text-charcoal/30 min-w-[120px] pt-px">
         {label}
       </span>
-      <span style={{ fontSize: 13.5, color: MC.ink, flex: 1 }}>{value}</span>
+      <span className="text-[13.5px] text-charcoal flex-1">{value}</span>
     </div>
   )
 }
 
 function EmptyState({ icon, text }) {
   return (
-    <div style={{ textAlign: 'center', padding: '40px 20px', color: MC.ink4, fontFamily: MF }}>
-      <div style={{ marginBottom: 10, opacity: 0.5, display: 'flex', justifyContent: 'center' }}>{icon}</div>
-      <p style={{ fontSize: 13 }}>{text}</p>
+    <div className="text-center px-5 py-10 text-charcoal/30">
+      <div className="mb-2.5 opacity-50 flex justify-center">{icon}</div>
+      <p className="text-[13px]">{text}</p>
     </div>
   )
 }
 
 function MiniStat({ k, v, tone }) {
   return (
-    <div style={{
-      background: MC.paper, border: `1px solid ${MC.line}`,
-      borderRadius: 13, padding: '11px 14px',
-      boxShadow: '0 1px 2px rgba(13,26,20,0.03)',
-    }}>
-      <div style={{
-        fontFamily: MM, fontSize: 9, textTransform: 'uppercase',
-        letterSpacing: '0.07em', color: MC.ink3, fontWeight: 600,
-      }}>
+    <div className="bg-white dark:bg-[#1e1e1e] border border-charcoal/10 rounded-[13px] px-3.5 py-[11px] shadow-sm">
+      <div className="font-mono text-[9px] uppercase tracking-[0.07em] text-charcoal/50 font-semibold">
         {k}
       </div>
-      <div style={{ marginTop: 5, display: 'flex', alignItems: 'center' }}>
+      <div className="mt-[5px] flex items-center">
         {tone
           ? <Badge tone={tone}>{v}</Badge>
-          : <span style={{ fontSize: 16, fontWeight: 600, color: MC.ink, letterSpacing: '-0.01em' }}>{v}</span>}
+          : <span className="text-[16px] font-semibold text-charcoal tracking-[-0.01em]">{v}</span>}
       </div>
     </div>
   )
 }
 
-function btn(variant) {
-  const base = {
-    display: 'inline-flex', alignItems: 'center', gap: 7, padding: '9px 14px',
-    borderRadius: 10, cursor: 'pointer', fontFamily: MF, fontSize: 12.5,
-    fontWeight: 600, border: 'none', whiteSpace: 'nowrap',
-  }
-  if (variant === 'primary') return { ...base, background: MC.brand, color: '#fff' }
-  if (variant === 'danger')  return { ...base, background: MC.badBg, color: MC.bad, border: `1px solid ${MC.badBg}` }
-  return { ...base, background: MC.paper, color: MC.ink2, border: `1px solid ${MC.line}` }
+function BtnPrimary({ onClick, children, disabled }) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className="inline-flex items-center gap-[7px] px-3.5 py-[9px] rounded-[10px] cursor-pointer text-[12.5px] font-semibold border-0 whitespace-nowrap bg-brand text-white disabled:opacity-60 disabled:cursor-not-allowed"
+    >
+      {children}
+    </button>
+  )
+}
+
+function BtnDanger({ onClick, children, disabled }) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className="inline-flex items-center gap-[7px] px-3.5 py-[9px] rounded-[10px] cursor-pointer text-[12.5px] font-semibold whitespace-nowrap bg-danger/10 text-danger border border-danger/10 disabled:opacity-60 disabled:cursor-not-allowed"
+    >
+      {children}
+    </button>
+  )
+}
+
+function BtnDefault({ onClick, children, className }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`inline-flex items-center gap-[7px] px-3.5 py-[9px] rounded-[10px] cursor-pointer text-[12.5px] font-semibold whitespace-nowrap bg-white dark:bg-[#1e1e1e] text-charcoal/75 border border-charcoal/10 ${className ?? ''}`}
+    >
+      {children}
+    </button>
+  )
 }
 
 // SVG icons used in multiple places
@@ -211,24 +211,22 @@ const Ico = {
 
 // ── Profile Tab ──────────────────────────────────────────────────────────────
 function ProfileTab({ staff, docsCount, strikesCount, venueSlug }) {
-  if (!staff) return <div style={{ display: 'flex', justifyContent: 'center', padding: 40 }}><LoadingSpinner /></div>
+  if (!staff) return <div className="flex justify-center p-10"><LoadingSpinner /></div>
 
   const strikeTone =
-    strikesCount >= 3 ? { fg: MC.bad,  bg: MC.badBg  } :
-    strikesCount >  0 ? { fg: MC.warn, bg: MC.warnBg } :
-                        { fg: MC.good, bg: MC.goodBg  }
+    strikesCount >= 3 ? 'bad'  :
+    strikesCount >  0 ? 'warn' :
+                        'good'
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      {/* Mini-stat strip */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 11 }}>
+    <div className="flex flex-col gap-4">
+      <div className="grid grid-cols-4 gap-[11px]">
         <MiniStat k="Tenure"       v={tenure(staff.start_date) ?? '—'} />
         <MiniStat k="Holiday left" v={staff.holiday_balance != null ? `${staff.holiday_balance} days` : '—'} />
         <MiniStat k="Documents"    v={`${docsCount ?? 0} on file`} />
         <MiniStat k="Strikes"      v={`${strikesCount ?? 0} / 3`} tone={strikeTone} />
       </div>
 
-      {/* Employment */}
       <SectionCard>
         <CardHead>Employment</CardHead>
         <DataRow label="Full name"    value={staff.name} />
@@ -247,10 +245,9 @@ function ProfileTab({ staff, docsCount, strikesCount, venueSlug }) {
             : null
         } />
         {staff.is_under_18 && <DataRow label="Under 18" value="Yes — restricted hours apply" />}
-        <div style={{ height: 6 }} />
+        <div className="h-1.5" />
       </SectionCard>
 
-      {/* Emergency contact */}
       <SectionCard>
         <CardHead>Emergency contact</CardHead>
         {(staff.emergency_contact_name || staff.emergency_contact_phone) ? (
@@ -259,11 +256,11 @@ function ProfileTab({ staff, docsCount, strikesCount, venueSlug }) {
             <DataRow label="Phone" value={staff.emergency_contact_phone} />
           </>
         ) : (
-          <p style={{ padding: '14px 18px', fontSize: 13, color: MC.ink4, fontStyle: 'italic' }}>
+          <p className="px-[18px] py-3.5 text-[13px] text-charcoal/30 italic">
             No emergency contact on file
           </p>
         )}
-        <div style={{ height: 6 }} />
+        <div className="h-1.5" />
       </SectionCard>
     </div>
   )
@@ -337,18 +334,18 @@ function DocumentsTab({ staffId, venueId, onDocsCountChange }) {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-      <div style={{ display: 'flex', alignItems: 'center' }}>
-        <span style={{ fontFamily: MM, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.07em', color: MC.ink3, fontWeight: 600 }}>
+    <div className="flex flex-col gap-3.5">
+      <div className="flex items-center">
+        <span className="font-mono text-[11px] uppercase tracking-[0.07em] text-charcoal/50 font-semibold">
           {loading ? '—' : docs.length} documents
         </span>
-        <button style={{ ...btn('primary'), marginLeft: 'auto' }} onClick={() => setShowModal(true)}>
+        <BtnPrimary onClick={() => setShowModal(true)} className="ml-auto">
           {Ico.plus} Upload
-        </button>
+        </BtnPrimary>
       </div>
 
       {loading ? (
-        <div style={{ display: 'flex', justifyContent: 'center', padding: 32 }}><LoadingSpinner /></div>
+        <div className="flex justify-center p-8"><LoadingSpinner /></div>
       ) : docs.length === 0 ? (
         <EmptyState icon={Ico.file} text="No documents uploaded yet" />
       ) : (
@@ -358,22 +355,16 @@ function DocumentsTab({ staffId, venueId, onDocsCountChange }) {
             const exp     = expiryStatus(doc.expiry_date)
             const daysLeft = doc.expiry_date ? differenceInDays(parseISO(doc.expiry_date), new Date()) : null
             return (
-              <div key={doc.id} style={{
-                display: 'flex', alignItems: 'center', gap: 14, padding: '14px 18px',
-                borderBottom: i < docs.length - 1 ? `1px solid ${MC.line2}` : 'none',
-              }}>
-                <span style={{
-                  width: 38, height: 38, borderRadius: 10, background: MC.line2,
-                  color: MC.ink3, display: 'grid', placeItems: 'center', flexShrink: 0,
-                }}>
+              <div key={doc.id} className={`flex items-center gap-3.5 px-[18px] py-3.5 ${i < docs.length - 1 ? 'border-b border-charcoal/6' : ''}`}>
+                <span className="w-[38px] h-[38px] rounded-[10px] bg-charcoal/6 text-charcoal/50 flex items-center justify-center shrink-0">
                   {Ico.docSm}
                 </span>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 13.5, fontWeight: 600, color: MC.ink }}>{doc.title}</div>
-                  <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 5, flexWrap: 'wrap' }}>
+                <div className="flex-1 min-w-0">
+                  <div className="text-[13.5px] font-semibold text-charcoal">{doc.title}</div>
+                  <div className="flex gap-2 items-center mt-[5px] flex-wrap">
                     <Badge tone={catTone}>{DOC_CAT_LABELS[doc.category] ?? doc.category}</Badge>
                     {exp && daysLeft != null && daysLeft <= 30 && <Badge tone={exp.tone}>{exp.label}</Badge>}
-                    <span style={{ fontFamily: MM, fontSize: 10, color: MC.ink4 }}>
+                    <span className="font-mono text-[10px] text-charcoal/30">
                       {format(parseISO(doc.created_at), 'd MMM yyyy')} · {(doc.file_size / 1024).toFixed(0)} KB
                       {doc.expiry_date && daysLeft != null && daysLeft > 30
                         ? ` · expires ${format(parseISO(doc.expiry_date), 'd MMM yyyy')}`
@@ -381,16 +372,16 @@ function DocumentsTab({ staffId, venueId, onDocsCountChange }) {
                     </span>
                   </div>
                 </div>
-                <div style={{ display: 'flex', gap: 7, flexShrink: 0 }}>
+                <div className="flex gap-[7px] shrink-0">
                   <a
                     href={doc.file_url} target="_blank" rel="noopener noreferrer"
-                    style={{ ...btn('default'), padding: '6px 12px', fontSize: 11, textDecoration: 'none' }}
+                    className="inline-flex items-center gap-[7px] px-3 py-1.5 rounded-[10px] text-[11px] font-semibold whitespace-nowrap bg-white dark:bg-[#1e1e1e] text-charcoal/75 border border-charcoal/10 no-underline"
                   >
                     View
                   </a>
                   <button
                     onClick={() => deleteDoc(doc)}
-                    style={{ ...btn('danger'), padding: '6px 12px', fontSize: 11 }}
+                    className="inline-flex items-center gap-[7px] px-3 py-1.5 rounded-[10px] text-[11px] font-semibold whitespace-nowrap bg-danger/10 text-danger border border-danger/10"
                   >
                     Delete
                   </button>
@@ -402,48 +393,46 @@ function DocumentsTab({ staffId, venueId, onDocsCountChange }) {
       )}
 
       <Modal open={showModal} onClose={resetModal} title="Upload Document">
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <div className="flex flex-col gap-3.5">
           <div>
-            <label style={{ display: 'block', fontFamily: MM, fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.07em', color: MC.ink3, marginBottom: 6 }}>Title</label>
+            <label className="block font-mono text-[10px] uppercase tracking-[0.07em] text-charcoal/50 mb-1.5">Title</label>
             <input
               value={form.title}
               onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
               placeholder="e.g. Employment Contract 2024"
-              style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: `1px solid ${MC.line}`, fontSize: 13, fontFamily: MF, outline: 'none', boxSizing: 'border-box' }}
+              className="w-full px-3 py-2.5 rounded-[10px] border border-charcoal/10 text-[13px] outline-none box-border"
             />
           </div>
           <div>
-            <label style={{ display: 'block', fontFamily: MM, fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.07em', color: MC.ink3, marginBottom: 6 }}>Category</label>
-            <div style={{ display: 'flex', gap: 8 }}>
+            <label className="block font-mono text-[10px] uppercase tracking-[0.07em] text-charcoal/50 mb-1.5">Category</label>
+            <div className="flex gap-2">
               {Object.entries(DOC_CAT_LABELS).map(([k, v]) => (
-                <button key={k} type="button" onClick={() => setForm(f => ({ ...f, category: k }))} style={{
-                  flex: 1, padding: '8px 0', borderRadius: 9, cursor: 'pointer',
-                  border: `1px solid ${form.category === k ? MC.brand : MC.line}`,
-                  background: form.category === k ? MC.brand : 'transparent',
-                  color: form.category === k ? '#fff' : MC.ink3,
-                  fontFamily: MM, fontSize: 10, fontWeight: 700, letterSpacing: '0.04em',
-                }}>{v}</button>
+                <button key={k} type="button" onClick={() => setForm(f => ({ ...f, category: k }))}
+                  className={`flex-1 py-2 rounded-[9px] cursor-pointer font-mono text-[10px] font-bold tracking-[0.04em] border transition-colors ${
+                    form.category === k
+                      ? 'bg-brand text-white border-brand'
+                      : 'bg-transparent text-charcoal/50 border-charcoal/10'
+                  }`}
+                >{v}</button>
               ))}
             </div>
           </div>
           <div>
-            <label style={{ display: 'block', fontFamily: MM, fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.07em', color: MC.ink3, marginBottom: 6 }}>File</label>
-            <input type="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" onChange={e => setFile(e.target.files?.[0] ?? null)} style={{ width: '100%', fontSize: 13, fontFamily: MF }} />
-            {file && <p style={{ fontFamily: MM, fontSize: 10, color: MC.ink4, marginTop: 4 }}>{file.name} · {(file.size / 1024).toFixed(0)} KB</p>}
+            <label className="block font-mono text-[10px] uppercase tracking-[0.07em] text-charcoal/50 mb-1.5">File</label>
+            <input type="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" onChange={e => setFile(e.target.files?.[0] ?? null)} className="w-full text-[13px]" />
+            {file && <p className="font-mono text-[10px] text-charcoal/30 mt-1">{file.name} · {(file.size / 1024).toFixed(0)} KB</p>}
           </div>
           <div>
-            <label style={{ display: 'block', fontFamily: MM, fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.07em', color: MC.ink3, marginBottom: 6 }}>Expiry date (optional)</label>
-            <input type="date" value={form.expiry_date} onChange={e => setForm(f => ({ ...f, expiry_date: e.target.value }))} style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: `1px solid ${MC.line}`, fontSize: 13, fontFamily: MF, outline: 'none', boxSizing: 'border-box' }} />
+            <label className="block font-mono text-[10px] uppercase tracking-[0.07em] text-charcoal/50 mb-1.5">Expiry date (optional)</label>
+            <input type="date" value={form.expiry_date} onChange={e => setForm(f => ({ ...f, expiry_date: e.target.value }))} className="w-full px-3 py-2.5 rounded-[10px] border border-charcoal/10 text-[13px] outline-none box-border" />
           </div>
           <div>
-            <label style={{ display: 'block', fontFamily: MM, fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.07em', color: MC.ink3, marginBottom: 6 }}>Notes (optional)</label>
-            <textarea value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} rows={2} style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: `1px solid ${MC.line}`, fontSize: 13, fontFamily: MF, outline: 'none', resize: 'none', boxSizing: 'border-box' }} />
+            <label className="block font-mono text-[10px] uppercase tracking-[0.07em] text-charcoal/50 mb-1.5">Notes (optional)</label>
+            <textarea value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} rows={2} className="w-full px-3 py-2.5 rounded-[10px] border border-charcoal/10 text-[13px] outline-none resize-none box-border" />
           </div>
-          <button onClick={upload} disabled={saving} style={{
-            background: MC.brand, color: '#fff', border: 'none', borderRadius: 12,
-            padding: '13px 0', cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.6 : 1,
-            fontFamily: MM, fontSize: 13, fontWeight: 700, letterSpacing: '0.02em',
-          }}>
+          <button onClick={upload} disabled={saving}
+            className="bg-brand text-white border-0 rounded-xl py-[13px] cursor-pointer font-mono text-[13px] font-bold tracking-[0.02em] disabled:opacity-60 disabled:cursor-not-allowed"
+          >
             {saving ? 'Uploading…' : 'Upload Document'}
           </button>
         </div>
@@ -523,18 +512,18 @@ function DisciplinaryTab({ staffId, venueId }) {
   const OFFENCE_LABELS = { late_clock_in: 'Late clock-in', break_overrun: 'Break overrun' }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-      <div style={{ display: 'flex', alignItems: 'center' }}>
-        <span style={{ fontFamily: MM, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.07em', color: MC.ink3, fontWeight: 600 }}>
+    <div className="flex flex-col gap-3.5">
+      <div className="flex items-center">
+        <span className="font-mono text-[11px] uppercase tracking-[0.07em] text-charcoal/50 font-semibold">
           Timeline
         </span>
-        <button style={{ ...btn('danger'), marginLeft: 'auto' }} onClick={() => setShowModal(true)}>
+        <BtnDanger onClick={() => setShowModal(true)} className="ml-auto">
           {Ico.plus} Add formal action
-        </button>
+        </BtnDanger>
       </div>
 
       {loading ? (
-        <div style={{ display: 'flex', justifyContent: 'center', padding: 32 }}><LoadingSpinner /></div>
+        <div className="flex justify-center p-8"><LoadingSpinner /></div>
       ) : timeline.length === 0 ? (
         <EmptyState icon={Ico.shield} text="No disciplinary history on file" />
       ) : (
@@ -544,32 +533,32 @@ function DisciplinaryTab({ staffId, venueId }) {
             if (item._type === 'formal') {
               const tone = FORMAL_TONE[item.action_type] ?? FORMAL_TONE.other
               return (
-                <div key={`f-${item.id}`} style={{ padding: '15px 18px', borderBottom: isLast ? 'none' : `1px solid ${MC.line2}` }}>
-                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 9, flexWrap: 'wrap' }}>
+                <div key={`f-${item.id}`} className={`px-[18px] py-[15px] ${isLast ? '' : 'border-b border-charcoal/6'}`}>
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-[9px] flex-wrap">
                         <Badge tone={tone}>{FORMAL_LABELS[item.action_type] ?? item.action_type}</Badge>
-                        <span style={{ fontFamily: MM, fontSize: 10.5, color: MC.ink4 }}>
+                        <span className="font-mono text-[10.5px] text-charcoal/30">
                           {format(parseISO(item.occurred_at), 'd MMM yyyy')}
                         </span>
                       </div>
                       {item.notes && (
-                        <p style={{ fontSize: 13, color: MC.ink2, margin: '8px 0 0', lineHeight: 1.5 }}>{item.notes}</p>
+                        <p className="text-[13px] text-charcoal/75 mt-2 leading-[1.5]">{item.notes}</p>
                       )}
-                      <div style={{ display: 'flex', gap: 12, marginTop: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+                      <div className="flex gap-3 mt-2 items-center flex-wrap">
                         {item.added_by_staff?.name && (
-                          <span style={{ fontFamily: MM, fontSize: 10, color: MC.ink4 }}>Added by {item.added_by_staff.name}</span>
+                          <span className="font-mono text-[10px] text-charcoal/30">Added by {item.added_by_staff.name}</span>
                         )}
                         {item.file_url && (
                           <a href={item.file_url} target="_blank" rel="noopener noreferrer"
-                            style={{ fontFamily: MM, fontSize: 10, color: MC.brand, fontWeight: 700, textDecoration: 'none' }}>
+                            className="font-mono text-[10px] text-brand font-bold no-underline">
                             📎 {item.file_name ?? 'Attachment'}
                           </a>
                         )}
                       </div>
                     </div>
                     <button onClick={() => deleteFormal(item.id)} title="Delete"
-                      style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: 4, color: MC.ink4, flexShrink: 0 }}>
+                      className="bg-transparent border-0 cursor-pointer p-1 text-charcoal/30 shrink-0">
                       {Ico.trash}
                     </button>
                   </div>
@@ -577,30 +566,24 @@ function DisciplinaryTab({ staffId, venueId }) {
               )
             }
             return (
-              <div key={`s-${item.id}`} style={{
-                display: 'flex', alignItems: 'flex-start', gap: 12,
-                padding: '13px 18px', borderBottom: isLast ? 'none' : `1px solid ${MC.line2}`, opacity: 0.85,
-              }}>
-                <div style={{
-                  width: 28, height: 28, borderRadius: 8, background: MC.line2, color: MC.ink3,
-                  display: 'grid', placeItems: 'center', fontFamily: MM, fontSize: 11, fontWeight: 700, flexShrink: 0,
-                }}>
+              <div key={`s-${item.id}`} className={`flex items-start gap-3 px-[18px] py-[13px] opacity-85 ${isLast ? '' : 'border-b border-charcoal/6'}`}>
+                <div className="w-7 h-7 rounded-lg bg-charcoal/6 text-charcoal/50 flex items-center justify-center font-mono text-[11px] font-bold shrink-0">
                   {item.strike_number}
                 </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: MC.ink2 }}>
+                <div className="flex-1 min-w-0">
+                  <div className="text-[13px] font-semibold text-charcoal/75">
                     Strike {item.strike_number} — {OFFENCE_LABELS[item.offence_type] ?? item.offence_type}
                     {item.mins_over != null && (
-                      <span style={{ fontFamily: MM, fontSize: 10, color: MC.ink4, fontWeight: 400, marginLeft: 6 }}>
+                      <span className="font-mono text-[10px] text-charcoal/30 font-normal ml-1.5">
                         {item.mins_over} min over
                       </span>
                     )}
                   </div>
-                  <div style={{ fontFamily: MM, fontSize: 10, color: MC.ink4, marginTop: 3 }}>
+                  <div className="font-mono text-[10px] text-charcoal/30 mt-[3px]">
                     {format(parseISO(item.occurred_at), 'd MMM yyyy, HH:mm')}
                   </div>
                 </div>
-                <span style={{ fontFamily: MM, fontSize: 9, color: MC.ink4, textTransform: 'uppercase', letterSpacing: '0.05em', flexShrink: 0, marginTop: 3 }}>Auto</span>
+                <span className="font-mono text-[9px] text-charcoal/30 uppercase tracking-[0.05em] shrink-0 mt-[3px]">Auto</span>
               </div>
             )
           })}
@@ -608,34 +591,32 @@ function DisciplinaryTab({ staffId, venueId }) {
       )}
 
       <Modal open={showModal} onClose={() => { setShowModal(false); setFile(null) }} title="Add Formal Action">
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <div className="flex flex-col gap-3.5">
           <div>
-            <label style={{ display: 'block', fontFamily: MM, fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.07em', color: MC.ink3, marginBottom: 6 }}>Action type</label>
+            <label className="block font-mono text-[10px] uppercase tracking-[0.07em] text-charcoal/50 mb-1.5">Action type</label>
             <select value={form.action_type} onChange={e => setForm(f => ({ ...f, action_type: e.target.value }))}
-              style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: `1px solid ${MC.line}`, fontSize: 13, fontFamily: MF, outline: 'none', background: MC.paper, boxSizing: 'border-box' }}>
+              className="w-full px-3 py-2.5 rounded-[10px] border border-charcoal/10 text-[13px] outline-none bg-white dark:bg-[#1e1e1e] box-border">
               {Object.entries(FORMAL_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
             </select>
           </div>
           <div>
-            <label style={{ display: 'block', fontFamily: MM, fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.07em', color: MC.ink3, marginBottom: 6 }}>Date</label>
+            <label className="block font-mono text-[10px] uppercase tracking-[0.07em] text-charcoal/50 mb-1.5">Date</label>
             <input type="date" value={form.occurred_at} onChange={e => setForm(f => ({ ...f, occurred_at: e.target.value }))}
-              style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: `1px solid ${MC.line}`, fontSize: 13, fontFamily: MF, outline: 'none', boxSizing: 'border-box' }} />
+              className="w-full px-3 py-2.5 rounded-[10px] border border-charcoal/10 text-[13px] outline-none box-border" />
           </div>
           <div>
-            <label style={{ display: 'block', fontFamily: MM, fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.07em', color: MC.ink3, marginBottom: 6 }}>Notes</label>
+            <label className="block font-mono text-[10px] uppercase tracking-[0.07em] text-charcoal/50 mb-1.5">Notes</label>
             <textarea value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} rows={3}
               placeholder="Details, outcome, follow-up actions…"
-              style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: `1px solid ${MC.line}`, fontSize: 13, fontFamily: MF, outline: 'none', resize: 'none', boxSizing: 'border-box' }} />
+              className="w-full px-3 py-2.5 rounded-[10px] border border-charcoal/10 text-[13px] outline-none resize-none box-border" />
           </div>
           <div>
-            <label style={{ display: 'block', fontFamily: MM, fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.07em', color: MC.ink3, marginBottom: 6 }}>Attachment (optional)</label>
-            <input type="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" onChange={e => setFile(e.target.files?.[0] ?? null)} style={{ width: '100%', fontSize: 13, fontFamily: MF }} />
+            <label className="block font-mono text-[10px] uppercase tracking-[0.07em] text-charcoal/50 mb-1.5">Attachment (optional)</label>
+            <input type="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" onChange={e => setFile(e.target.files?.[0] ?? null)} className="w-full text-[13px]" />
           </div>
-          <button onClick={addFormal} disabled={saving} style={{
-            background: MC.bad, color: '#fff', border: 'none', borderRadius: 12,
-            padding: '13px 0', cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.6 : 1,
-            fontFamily: MM, fontSize: 13, fontWeight: 700, letterSpacing: '0.02em',
-          }}>
+          <button onClick={addFormal} disabled={saving}
+            className="bg-danger text-white border-0 rounded-xl py-[13px] cursor-pointer font-mono text-[13px] font-bold tracking-[0.02em] disabled:opacity-60 disabled:cursor-not-allowed"
+          >
             {saving ? 'Saving…' : 'Record Action'}
           </button>
         </div>
@@ -656,9 +637,9 @@ function LeaveTab({ staffId, venueSlug }) {
   }, [staffId])
 
   const STATUS_TONE = {
-    approved: { fg: MC.good, bg: MC.goodBg },
-    pending:  { fg: MC.warn, bg: MC.warnBg },
-    rejected: { fg: MC.bad,  bg: MC.badBg  },
+    approved: 'good',
+    pending:  'warn',
+    rejected: 'bad',
   }
   const LEAVE_LABELS = { annual: 'Annual', unpaid: 'Unpaid', other: 'Other' }
 
@@ -667,19 +648,18 @@ function LeaveTab({ staffId, venueSlug }) {
   const remaining = allowance - taken
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-      {/* Leave balance strip */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 13 }}>
+    <div className="flex flex-col gap-3.5">
+      <div className="grid grid-cols-3 gap-[13px]">
         {[{ k: 'Allowance', v: `${allowance} days` }, { k: 'Taken', v: `${taken} days` }, { k: 'Remaining', v: `${remaining} days` }].map(x => (
-          <div key={x.k} style={{ background: MC.paper, border: `1px solid ${MC.line}`, borderRadius: 14, padding: '13px 16px' }}>
-            <div style={{ fontFamily: MM, fontSize: 9.5, textTransform: 'uppercase', letterSpacing: '0.07em', color: MC.ink3, fontWeight: 600 }}>{x.k}</div>
-            <div style={{ fontSize: 20, fontWeight: 600, color: MC.ink, marginTop: 3, fontFamily: MM, letterSpacing: '-0.02em' }}>{x.v}</div>
+          <div key={x.k} className="bg-white dark:bg-[#1e1e1e] border border-charcoal/10 rounded-[14px] px-4 py-[13px]">
+            <div className="font-mono text-[9.5px] uppercase tracking-[0.07em] text-charcoal/50 font-semibold">{x.k}</div>
+            <div className="text-xl font-semibold text-charcoal mt-[3px] font-mono tracking-[-0.02em]">{x.v}</div>
           </div>
         ))}
       </div>
 
       {loading ? (
-        <div style={{ display: 'flex', justifyContent: 'center', padding: 32 }}><LoadingSpinner /></div>
+        <div className="flex justify-center p-8"><LoadingSpinner /></div>
       ) : requests.length === 0 ? (
         <EmptyState icon={Ico.cal} text="No leave requests on record" />
       ) : (
@@ -687,17 +667,14 @@ function LeaveTab({ staffId, venueSlug }) {
           {requests.map((r, i) => {
             const tone = STATUS_TONE[r.status] ?? STATUS_TONE.pending
             return (
-              <div key={r.id} style={{
-                display: 'flex', alignItems: 'center', gap: 12, padding: '13px 18px',
-                borderBottom: i < requests.length - 1 ? `1px solid ${MC.line2}` : 'none',
-              }}>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 13.5, fontWeight: 600, color: MC.ink }}>
+              <div key={r.id} className={`flex items-center gap-3 px-[18px] py-[13px] ${i < requests.length - 1 ? 'border-b border-charcoal/6' : ''}`}>
+                <div className="flex-1 min-w-0">
+                  <div className="text-[13.5px] font-semibold text-charcoal">
                     {format(parseISO(r.start_date), 'd MMM')} – {format(parseISO(r.end_date), 'd MMM yyyy')}
                   </div>
-                  <div style={{ display: 'flex', gap: 8, marginTop: 4, alignItems: 'center' }}>
-                    <Badge tone={{ fg: MC.ink3, bg: MC.line2 }}>{LEAVE_LABELS[r.leave_type] ?? r.leave_type}</Badge>
-                    {r.reason && <span style={{ fontFamily: MM, fontSize: 10, color: MC.ink4 }}>{r.reason}</span>}
+                  <div className="flex gap-2 mt-1 items-center">
+                    <Badge tone="muted">{LEAVE_LABELS[r.leave_type] ?? r.leave_type}</Badge>
+                    {r.reason && <span className="font-mono text-[10px] text-charcoal/30">{r.reason}</span>}
                   </div>
                 </div>
                 <Badge tone={tone} dot>{r.status}</Badge>
@@ -707,12 +684,9 @@ function LeaveTab({ staffId, venueSlug }) {
         </SectionCard>
       )}
 
-      <button onClick={() => navigate(`/v/${venueSlug}/time-off`)} style={{
-        background: 'transparent', border: `1px solid ${MC.line}`, borderRadius: 12,
-        padding: '11px 16px', cursor: 'pointer', fontFamily: MM, fontSize: 11,
-        fontWeight: 600, letterSpacing: '0.05em', color: MC.ink3, textAlign: 'center',
-        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-      }}>
+      <button onClick={() => navigate(`/v/${venueSlug}/time-off`)}
+        className="bg-transparent border border-charcoal/10 rounded-xl px-4 py-[11px] cursor-pointer font-mono text-[11px] font-semibold tracking-[0.05em] text-charcoal/50 text-center flex items-center justify-center gap-1.5"
+      >
         Manage in Time Off
         <svg width="5" height="9" viewBox="0 0 5 9" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M1 1l3 3.5L1 8"/></svg>
       </button>
@@ -739,20 +713,20 @@ function TrainingTab({ staffId, venueSlug }) {
   }, [staffId])
 
   const certStatus = (expiry) => {
-    if (!expiry) return { label: 'No expiry', tone: { fg: MC.ink4, bg: MC.line2 } }
+    if (!expiry) return { label: 'No expiry', tone: 'muted' }
     const d = differenceInDays(parseISO(expiry), new Date())
-    if (d < 0)   return { label: 'Expired',  tone: { fg: MC.bad,  bg: MC.badBg  } }
-    if (d <= 30) return { label: `${d}d`,    tone: { fg: MC.warn, bg: MC.warnBg } }
-    return { label: format(parseISO(expiry), 'd MMM yy'), tone: { fg: MC.good, bg: MC.goodBg } }
+    if (d < 0)   return { label: 'Expired',  tone: 'bad'  }
+    if (d <= 30) return { label: `${d}d`,    tone: 'warn' }
+    return { label: format(parseISO(expiry), 'd MMM yy'), tone: 'good' }
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+    <div className="flex flex-col gap-3.5">
       {loading ? (
-        <div style={{ display: 'flex', justifyContent: 'center', padding: 32 }}><LoadingSpinner /></div>
+        <div className="flex justify-center p-8"><LoadingSpinner /></div>
       ) : (
         <>
-          <span style={{ fontFamily: MM, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.07em', color: MC.ink3, fontWeight: 600 }}>
+          <span className="font-mono text-[11px] uppercase tracking-[0.07em] text-charcoal/50 font-semibold">
             Certificates · {certs.length}
           </span>
           {certs.length === 0
@@ -762,13 +736,10 @@ function TrainingTab({ staffId, venueSlug }) {
                 {certs.map((c, i) => {
                   const st = certStatus(c.expiry_date)
                   return (
-                    <div key={c.id} style={{
-                      display: 'flex', alignItems: 'center', gap: 12, padding: '13px 18px',
-                      borderBottom: i < certs.length - 1 ? `1px solid ${MC.line2}` : 'none',
-                    }}>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: 13.5, fontWeight: 600, color: MC.ink }}>{c.title}</div>
-                        {c.category && <div style={{ fontFamily: MM, fontSize: 10, color: MC.ink4, marginTop: 2, textTransform: 'uppercase', letterSpacing: '0.03em' }}>{c.category}</div>}
+                    <div key={c.id} className={`flex items-center gap-3 px-[18px] py-[13px] ${i < certs.length - 1 ? 'border-b border-charcoal/6' : ''}`}>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-[13.5px] font-semibold text-charcoal">{c.title}</div>
+                        {c.category && <div className="font-mono text-[10px] text-charcoal/30 mt-0.5 uppercase tracking-[0.03em]">{c.category}</div>}
                       </div>
                       <Badge tone={st.tone}>{st.label}</Badge>
                     </div>
@@ -778,7 +749,7 @@ function TrainingTab({ staffId, venueSlug }) {
             )
           }
 
-          <span style={{ fontFamily: MM, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.07em', color: MC.ink3, fontWeight: 600, marginTop: 4 }}>
+          <span className="font-mono text-[11px] uppercase tracking-[0.07em] text-charcoal/50 font-semibold mt-1">
             Induction records · {inductions.length}
           </span>
           {inductions.length === 0
@@ -786,19 +757,16 @@ function TrainingTab({ staffId, venueSlug }) {
             : (
               <SectionCard>
                 {inductions.map((ind, i) => (
-                  <div key={ind.id} style={{
-                    display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10,
-                    padding: '13px 18px', borderBottom: i < inductions.length - 1 ? `1px solid ${MC.line2}` : 'none',
-                  }}>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 13.5, fontWeight: 600, color: MC.ink }}>
+                  <div key={ind.id} className={`flex items-center justify-between gap-2.5 px-[18px] py-[13px] ${i < inductions.length - 1 ? 'border-b border-charcoal/6' : ''}`}>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-[13.5px] font-semibold text-charcoal">
                         Induction — {ind.trainer_name ?? 'Unknown trainer'}
                       </div>
-                      <div style={{ fontFamily: MM, fontSize: 10, color: MC.ink4, marginTop: 3 }}>
+                      <div className="font-mono text-[10px] text-charcoal/30 mt-[3px]">
                         {format(parseISO(ind.training_date), 'd MMM yyyy')}
                       </div>
                     </div>
-                    <Badge tone={ind.staff_acknowledged ? { fg: MC.good, bg: MC.goodBg } : { fg: MC.warn, bg: MC.warnBg }} dot>
+                    <Badge tone={ind.staff_acknowledged ? 'good' : 'warn'} dot>
                       {ind.staff_acknowledged ? 'Signed' : 'Pending'}
                     </Badge>
                   </div>
@@ -809,12 +777,9 @@ function TrainingTab({ staffId, venueSlug }) {
         </>
       )}
 
-      <button onClick={() => navigate(`/v/${venueSlug}/training`)} style={{
-        background: 'transparent', border: `1px solid ${MC.line}`, borderRadius: 12,
-        padding: '11px 16px', cursor: 'pointer', fontFamily: MM, fontSize: 11,
-        fontWeight: 600, letterSpacing: '0.05em', color: MC.ink3, textAlign: 'center',
-        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-      }}>
+      <button onClick={() => navigate(`/v/${venueSlug}/training`)}
+        className="bg-transparent border border-charcoal/10 rounded-xl px-4 py-[11px] cursor-pointer font-mono text-[11px] font-semibold tracking-[0.05em] text-charcoal/50 text-center flex items-center justify-center gap-1.5"
+      >
         Manage in Training
         <svg width="5" height="9" viewBox="0 0 5 9" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M1 1l3 3.5L1 8"/></svg>
       </button>
@@ -860,37 +825,28 @@ function SecurityTab({ staffId }) {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-      <span style={{ fontFamily: MM, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.07em', color: MC.ink3, fontWeight: 600 }}>
+    <div className="flex flex-col gap-3.5">
+      <span className="font-mono text-[11px] uppercase tracking-[0.07em] text-charcoal/50 font-semibold">
         Active sessions · {loading ? '—' : sessions.length}
       </span>
       {loading ? (
-        <div style={{ display: 'flex', justifyContent: 'center', padding: 32 }}><LoadingSpinner /></div>
+        <div className="flex justify-center p-8"><LoadingSpinner /></div>
       ) : sessions.length === 0 ? (
         <EmptyState icon={Ico.lock} text="No active sessions" />
       ) : (
         <SectionCard>
           {sessions.map((s, i) => (
-            <div key={s.token} style={{
-              display: 'flex', alignItems: 'center', gap: 12, padding: '13px 18px',
-              borderBottom: i < sessions.length - 1 ? `1px solid ${MC.line2}` : 'none',
-            }}>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 13.5, fontWeight: 600, color: MC.ink }}>{s.device_label ?? 'Unknown device'}</div>
-                <div style={{ fontFamily: MM, fontSize: 10, color: MC.ink4, marginTop: 3 }}>
+            <div key={s.token} className={`flex items-center gap-3 px-[18px] py-[13px] ${i < sessions.length - 1 ? 'border-b border-charcoal/6' : ''}`}>
+              <div className="flex-1 min-w-0">
+                <div className="text-[13.5px] font-semibold text-charcoal">{s.device_label ?? 'Unknown device'}</div>
+                <div className="font-mono text-[10px] text-charcoal/30 mt-[3px]">
                   Started {format(parseISO(s.created_at), 'd MMM yyyy, HH:mm')} · Expires {format(parseISO(s.expires_at), 'd MMM yyyy')}
                 </div>
               </div>
               <button
                 onClick={() => handleRevoke(s.token)}
                 disabled={revoking === s.token}
-                style={{
-                  padding: '6px 12px', borderRadius: 8,
-                  border: `1px solid ${MC.bad}`, background: 'transparent',
-                  color: MC.bad, cursor: revoking === s.token ? 'not-allowed' : 'pointer',
-                  fontFamily: MM, fontSize: 10, fontWeight: 700, letterSpacing: '0.04em',
-                  opacity: revoking === s.token ? 0.5 : 1,
-                }}
+                className="px-3 py-1.5 rounded-lg border border-danger bg-transparent text-danger cursor-pointer font-mono text-[10px] font-bold tracking-[0.04em] disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {revoking === s.token ? '…' : 'Revoke'}
               </button>
@@ -937,57 +893,42 @@ export default function EmployeeRecordPanel({ staffId, venueId, venueSlug, onBac
 
   if (!staffId) {
     return (
-      <div style={{
-        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-        height: '100%', minHeight: 300, color: MC.ink4, fontFamily: MF, gap: 12, padding: 40,
-      }}>
-        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.4 }}>
+      <div className="flex flex-col items-center justify-center h-full min-h-[300px] text-charcoal/30 gap-3 p-10">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" className="opacity-40">
           <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>
           <path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/>
         </svg>
-        <p style={{ fontSize: 13 }}>Select a staff member to view their record</p>
+        <p className="text-[13px]">Select a staff member to view their record</p>
       </div>
     )
   }
 
-  const hasAction   = false // derived from parent flags; not re-fetched here
-  const hasExpiring = false
-
-  // Status badges shown in the header — re-use the props passed from hub if available
-  // (In practice the hub passes staff flags; for EmployeeRecordPage we derive from data)
-
   return (
-    <div style={{ fontFamily: MF }}>
-      {/* Back button (directory / URL mode only) */}
+    <div>
       {onBack && (
-        <button onClick={onBack} style={{
-          background: 'transparent', border: 'none', cursor: 'pointer',
-          padding: '0 0 14px', display: 'flex', alignItems: 'center', gap: 7,
-          fontFamily: MM, fontSize: 11, fontWeight: 600, color: MC.ink3, letterSpacing: '0.04em',
-        }}>
+        <button onClick={onBack} className="bg-transparent border-0 cursor-pointer pb-3.5 flex items-center gap-[7px] font-mono text-[11px] font-semibold text-charcoal/50 tracking-[0.04em]">
           {Ico.back} HR Records
         </button>
       )}
 
-      {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 15, marginBottom: 18, flexWrap: 'wrap' }}>
+      <div className="flex items-center gap-[15px] mb-[18px] flex-wrap">
         {loading
-          ? <div style={{ width: 56, height: 56, borderRadius: 15, background: MC.line2 }} />
-          : <Avatar name={staff?.name ?? ''} size={56} radius={15} />
+          ? <div className="w-14 h-14 rounded-[15px] bg-charcoal/6" />
+          : <Avatar name={staff?.name ?? ''} size={56} />
         }
-        <div style={{ flex: 1, minWidth: 200 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-            <h1 style={{ fontSize: 23, fontWeight: 700, letterSpacing: '-0.02em', color: MC.ink, margin: 0 }}>
-              {loading ? <span style={{ color: MC.ink4 }}>Loading…</span> : (staff?.name ?? '—')}
+        <div className="flex-1 min-w-[200px]">
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <h1 className="text-[23px] font-bold tracking-[-0.02em] text-charcoal m-0">
+              {loading ? <span className="text-charcoal/30">Loading…</span> : (staff?.name ?? '—')}
             </h1>
           </div>
           {!loading && staff && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 11, marginTop: 5, flexWrap: 'wrap' }}>
-              <span style={{ fontSize: 13.5, color: MC.ink3 }}>{staff.job_role}</span>
+            <div className="flex items-center gap-[11px] mt-[5px] flex-wrap">
+              <span className="text-[13.5px] text-charcoal/50">{staff.job_role}</span>
               {staff.employment_type && (
                 <>
-                  <span style={{ width: 1, height: 12, background: MC.line }} />
-                  <span style={{ fontFamily: MM, fontSize: 11, color: MC.ink3 }}>
+                  <span className="w-px h-3 bg-charcoal/10" />
+                  <span className="font-mono text-[11px] text-charcoal/50">
                     {EMPLOYMENT_LABELS[staff.employment_type] ?? staff.employment_type}
                     {staff.start_date && ` · ${tenure(staff.start_date)}`}
                   </span>
@@ -996,40 +937,30 @@ export default function EmployeeRecordPanel({ staffId, venueId, venueSlug, onBac
             </div>
           )}
         </div>
-        {/* Header action buttons */}
-        <div style={{ display: 'flex', gap: 8, flexShrink: 0, marginLeft: 'auto' }}>
-          <button style={btn('default')} onClick={() => navigate(`/v/${venueSlug}/settings`)}>
+        <div className="flex gap-2 shrink-0 ml-auto">
+          <BtnDefault onClick={() => navigate(`/v/${venueSlug}/settings`)}>
             {Ico.edit} Edit
-          </button>
-          <button style={btn('primary')} onClick={() => setTab('Documents')}>
+          </BtnDefault>
+          <BtnPrimary onClick={() => setTab('Documents')}>
             {Ico.doc} Upload doc
-          </button>
+          </BtnPrimary>
         </div>
       </div>
 
-      {/* Tab bar */}
-      <div style={{
-        display: 'flex', gap: 2, marginBottom: 20,
-        background: MC.line2, borderRadius: 12, padding: 3,
-        maxWidth: 560, overflowX: 'auto', WebkitOverflowScrolling: 'touch',
-      }}>
+      <div className="flex gap-0.5 mb-5 bg-charcoal/6 rounded-xl p-[3px] max-w-[560px] overflow-x-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
         {TABS.map(t => (
-          <button key={t} onClick={() => setTab(t)} style={{
-            flex: 1, padding: '8px 4px', border: 'none', cursor: 'pointer', borderRadius: 9,
-            whiteSpace: 'nowrap',
-            background: tab === t ? MC.paper : 'transparent',
-            color: tab === t ? MC.ink : MC.ink3,
-            fontFamily: MM, fontSize: 10, fontWeight: tab === t ? 700 : 600,
-            letterSpacing: '0.02em',
-            boxShadow: tab === t ? '0 1px 4px rgba(13,26,20,0.10)' : 'none',
-            transition: 'all .15s',
-          }}>
+          <button key={t} onClick={() => setTab(t)}
+            className={`flex-1 py-2 px-1 border-0 cursor-pointer rounded-[9px] whitespace-nowrap font-mono text-[10px] tracking-[0.02em] transition-all duration-150 ${
+              tab === t
+                ? 'bg-white dark:bg-[#1e1e1e] text-charcoal font-bold shadow-[0_1px_4px_rgba(13,26,20,0.10)]'
+                : 'bg-transparent text-charcoal/50 font-semibold'
+            }`}
+          >
             {t}
           </button>
         ))}
       </div>
 
-      {/* Tab content */}
       {tab === 'Profile'      && <ProfileTab      staff={staff} docsCount={docsCount} strikesCount={strikesCount} venueSlug={venueSlug} />}
       {tab === 'Documents'    && <DocumentsTab    staffId={staffId} venueId={venueId} onDocsCountChange={setDocsCount} />}
       {tab === 'Disciplinary' && <DisciplinaryTab staffId={staffId} venueId={venueId} />}

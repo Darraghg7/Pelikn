@@ -41,7 +41,7 @@ function timeToDate(dateStr, timeStr) {
 
 function StatePill({ clockStatus, todayShift }) {
   let label = 'NO SHIFT'
-  let style = { background: 'rgba(255,255,255,0.14)', color: '#fff' }
+  let pillClass = 'bg-white/14 text-white'
 
   if (todayShift) {
     const now = new Date()
@@ -50,31 +50,25 @@ function StatePill({ clockStatus, todayShift }) {
 
     if (clockStatus === 'clocked_in' && now > shiftEnd) {
       label = 'OVERRUN'
-      style = { background: 'rgba(252,188,80,0.22)', color: '#f7c473' }
+      pillClass = 'bg-[rgba(252,188,80,0.22)] text-[#f7c473]'
     } else if (clockStatus === 'clocked_in') {
       label = 'ON SHIFT'
-      style = { background: 'rgba(83,212,131,0.18)', color: '#7eecaa' }
+      pillClass = 'bg-[rgba(83,212,131,0.18)] text-[#7eecaa]'
     } else if (clockStatus === 'on_break') {
       label = 'ON BREAK'
-      style = { background: 'rgba(252,188,80,0.22)', color: '#f7c473' }
+      pillClass = 'bg-[rgba(252,188,80,0.22)] text-[#f7c473]'
     } else if (now < shiftStart) {
       label = 'STARTING SOON'
-      style = { background: 'rgba(255,255,255,0.14)', color: '#fff' }
+      pillClass = 'bg-white/14 text-white'
     } else {
       label = 'NOT CLOCKED IN'
-      style = { background: 'rgba(255,255,255,0.10)', color: 'rgba(255,255,255,0.65)' }
+      pillClass = 'bg-white/10 text-white/65'
     }
   }
 
   return (
-    <span style={{
-      display: 'inline-flex', alignItems: 'center', gap: 5,
-      padding: '3px 9px', borderRadius: 999,
-      fontFamily: 'var(--font-mono, ui-monospace, monospace)',
-      fontSize: 10.5, fontWeight: 700, letterSpacing: '0.06em',
-      ...style,
-    }}>
-      <span style={{ width: 5, height: 5, borderRadius: 3, background: 'currentColor' }} />
+    <span className={`inline-flex items-center gap-[5px] px-[9px] py-[3px] rounded-full font-mono text-[10.5px] font-bold tracking-[0.06em] ${pillClass}`}>
+      <span className="w-[5px] h-[5px] rounded-[3px] bg-current" />
       {label}
     </span>
   )
@@ -98,21 +92,21 @@ function LiveTimer({ clockInAt, breakStartAt, totalBreakMs, status }) {
   const workingMs = now - clockInAt.getTime() - totalBreakMs - currentBreakMs
 
   return (
-    <div style={{ marginTop: 14, paddingTop: 12, borderTop: '1px solid rgba(255,255,255,0.12)' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <span style={{ fontFamily: 'var(--font-mono, ui-monospace)', fontSize: 10.5, color: 'rgba(255,255,255,0.45)', letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600 }}>
+    <div className="mt-3.5 pt-3 border-t border-white/12">
+      <div className="flex justify-between items-center">
+        <span className="font-mono text-[10.5px] text-white/45 tracking-[0.08em] uppercase font-semibold">
           {status === 'on_break' ? 'Break elapsed' : 'Clocked in · elapsed'}
         </span>
-        <span style={{ fontFamily: 'var(--font-mono, ui-monospace)', fontSize: 19, fontWeight: 600, fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.01em' }}>
+        <span className="font-mono text-[19px] font-semibold tabular-nums tracking-[-0.01em]">
           {status === 'on_break' && breakStartAt ? fmtElapsed(currentBreakMs) : fmtElapsed(workingMs)}
         </span>
       </div>
       {totalBreakMs > 0 && status !== 'on_break' && (
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 5 }}>
-          <span style={{ fontFamily: 'var(--font-mono, ui-monospace)', fontSize: 10, color: 'rgba(255,255,255,0.35)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+        <div className="flex justify-between mt-[5px]">
+          <span className="font-mono text-[10px] text-white/35 tracking-[0.08em] uppercase">
             Breaks used
           </span>
-          <span style={{ fontFamily: 'var(--font-mono, ui-monospace)', fontSize: 12, color: 'rgba(255,255,255,0.65)', fontVariantNumeric: 'tabular-nums' }}>
+          <span className="font-mono text-xs text-white/65 tabular-nums">
             {fmtElapsed(totalBreakMs)}
           </span>
         </div>
@@ -130,39 +124,35 @@ function ShiftHeroCard({ todayShift, hourlyRate, staffId, hasShift }) {
   const estPay    = durationH && hourlyRate > 0 ? (parseFloat(durationH) * hourlyRate).toFixed(2) : null
 
   return (
-    <div style={{ background: '#13362a', color: '#fff', borderRadius: 14, overflow: 'hidden' }}>
-      <div style={{ padding: '18px 18px 0' }}>
-        {/* Label + state pill */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontFamily: 'var(--font-mono, ui-monospace)', fontSize: 10.5, color: 'rgba(255,255,255,0.45)', letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 600 }}>
+    <div className="bg-brand text-white rounded-[14px] overflow-hidden">
+      <div className="p-[18px_18px_0]">
+        <div className="flex justify-between items-center">
+          <span className="font-mono text-[10.5px] text-white/45 tracking-[0.1em] uppercase font-semibold">
             Your shift
           </span>
           <StatePill clockStatus={status} todayShift={todayShift} />
         </div>
 
-        {/* Shift times */}
         {todayShift ? (
-          <div style={{ fontFamily: 'var(--font-mono, ui-monospace)', fontSize: 30, fontWeight: 500, letterSpacing: '-0.025em', marginTop: 8, fontVariantNumeric: 'tabular-nums', lineHeight: 1.05 }}>
+          <div className="font-mono text-[30px] font-medium tracking-[-0.025em] mt-2 tabular-nums leading-[1.05]">
             {todayShift.start_time.slice(0, 5)} — {todayShift.end_time.slice(0, 5)}
           </div>
         ) : (
-          <div style={{ fontSize: 22, fontWeight: 500, marginTop: 8, color: 'rgba(255,255,255,0.55)' }}>
+          <div className="text-[22px] font-medium mt-2 text-white/55">
             No shift today
           </div>
         )}
 
-        {/* Meta row */}
         {todayShift && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 4, color: 'rgba(255,255,255,0.55)', fontSize: 13 }}>
+          <div className="flex items-center gap-2.5 mt-1 text-white/55 text-[13px]">
             {todayShift.role_label && <span>{todayShift.role_label}</span>}
-            {todayShift.role_label && durationH && <span style={{ color: 'rgba(255,255,255,0.2)' }}>·</span>}
-            {durationH && <span style={{ fontFamily: 'var(--font-mono, ui-monospace)' }}>{durationH}h</span>}
-            {estPay && <span style={{ color: 'rgba(255,255,255,0.2)' }}>·</span>}
-            {estPay && <span style={{ fontFamily: 'var(--font-mono, ui-monospace)' }}>£{estPay}</span>}
+            {todayShift.role_label && durationH && <span className="text-white/20">·</span>}
+            {durationH && <span className="font-mono">{durationH}h</span>}
+            {estPay && <span className="text-white/20">·</span>}
+            {estPay && <span className="font-mono">£{estPay}</span>}
           </div>
         )}
 
-        {/* Timer */}
         {status !== 'clocked_out' && (
           <LiveTimer
             clockInAt={clockInAt}
@@ -173,8 +163,7 @@ function ShiftHeroCard({ todayShift, hourlyRate, staffId, hasShift }) {
         )}
       </div>
 
-      {/* Clock buttons — use ClockPanel compact */}
-      <div style={{ padding: 12 }}>
+      <div className="p-3">
         <ClockPanel staffId={staffId} hasShift={hasShift} compact />
       </div>
     </div>
@@ -799,14 +788,14 @@ export default function StaffDashboardPage() {
       {/* If clock-in is locked, show shift info in a simpler card */}
       {isPlanLocked('clock-in') && todayShift && (
         <div className="bg-brand text-white rounded-[14px] p-5">
-          <span style={{ fontFamily: 'var(--font-mono, ui-monospace)', fontSize: 10.5, color: 'rgba(255,255,255,0.45)', letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 600 }}>
+          <span className="font-mono text-[10.5px] text-white/45 tracking-[0.1em] uppercase font-semibold">
             Your shift today
           </span>
-          <div style={{ fontFamily: 'var(--font-mono, ui-monospace)', fontSize: 28, fontWeight: 500, marginTop: 8, fontVariantNumeric: 'tabular-nums' }}>
+          <div className="font-mono text-[28px] font-medium mt-2 tabular-nums">
             {todayShift.start_time.slice(0, 5)} — {todayShift.end_time.slice(0, 5)}
           </div>
           {todayShift.role_label && (
-            <p className="text-sm mt-1" style={{ color: 'rgba(255,255,255,0.55)' }}>{todayShift.role_label}</p>
+            <p className="text-sm mt-1 text-white/55">{todayShift.role_label}</p>
           )}
         </div>
       )}

@@ -2,87 +2,21 @@ import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useVenue } from '../../contexts/VenueContext'
 import { useAppSettings } from '../../hooks/useSettings'
-
-const MC = {
-  brand:  '#13362a', brandTint: '#eef4f0',
-  good:   '#1a7a4c', goodBg: '#e3f0e7',
-  warn:   '#a85d12', warnBg: '#fbeedc',
-  bad:    '#b3331c', badBg:  '#fbeae6',
-  ink:    '#0d1a14', ink2: '#3d4a44', ink3: '#76817b', ink4: '#b3b9b5',
-  line:   '#e4e6e2', line2: '#eef0ec',
-  paper:  '#ffffff', bg: '#f3f3ef',
-}
-const MONO = 'ui-monospace, SFMono-Regular, monospace'
-const SANS = '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
-
-function SubHeader({ title, onBack }) {
-  return (
-    <div style={{
-      position: 'sticky', top: 0, zIndex: 10,
-      background: 'rgba(243,243,239,0.92)',
-      backdropFilter: 'saturate(180%) blur(20px)',
-      WebkitBackdropFilter: 'saturate(180%) blur(20px)',
-      borderBottom: `1px solid ${MC.line}`,
-      padding: '12px 16px 10px',
-      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-    }}>
-      <button onClick={onBack} style={{
-        display: 'flex', alignItems: 'center', gap: 6,
-        color: MC.brand, background: 'none', border: 'none',
-        cursor: 'pointer', padding: '4px 0', fontFamily: SANS, fontSize: 15, fontWeight: 500,
-      }}>
-        <svg width="9" height="15" viewBox="0 0 9 15" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M8 1L1.5 7.5 8 14"/>
-        </svg>
-        Settings
-      </button>
-      <span style={{ fontSize: 17, fontWeight: 600, letterSpacing: '-0.02em', color: MC.ink }}>{title}</span>
-      <span style={{ width: 70 }} />
-    </div>
-  )
-}
-
-function Toggle({ on, onClick }) {
-  return (
-    <button
-      onClick={onClick}
-      aria-pressed={on}
-      style={{
-        width: 46, height: 28, borderRadius: 999, border: 'none', cursor: 'pointer', flexShrink: 0,
-        background: on ? MC.brand : MC.line, position: 'relative', transition: 'background .18s', padding: 0,
-      }}
-    >
-      <span style={{
-        position: 'absolute', top: 3, left: on ? 21 : 3, width: 22, height: 22,
-        borderRadius: 999, background: '#fff',
-        boxShadow: '0 1px 3px rgba(9,18,13,0.25)', transition: 'left .18s',
-      }} />
-    </button>
-  )
-}
+import SettingsSubHeader from '../../components/layout/SettingsSubHeader'
+import Toggle from '../../components/ui/Toggle'
 
 function Stepper({ value, onChange, suffix, min = 0, max = 99, step = 1 }) {
   const btn = (label, fn, disabled) => (
     <button
       onClick={fn}
       disabled={disabled}
-      style={{
-        width: 34, height: 34, borderRadius: 9, border: `1px solid ${MC.line}`,
-        background: disabled ? MC.line2 : MC.paper,
-        cursor: disabled ? 'default' : 'pointer',
-        color: disabled ? MC.ink4 : MC.ink,
-        fontSize: 18, fontWeight: 600,
-        display: 'grid', placeItems: 'center', lineHeight: 1,
-      }}
+      className={`w-[34px] h-[34px] rounded-[9px] border border-charcoal/10 flex items-center justify-center text-lg font-semibold transition-colors ${disabled ? 'bg-charcoal/5 text-charcoal/30 cursor-default' : 'bg-white text-charcoal hover:bg-charcoal/[0.03]'}`}
     >{label}</button>
   )
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+    <div className="flex items-center gap-2 shrink-0">
       {btn('–', () => onChange(Math.max(min, value - step)), value <= min)}
-      <span style={{
-        fontFamily: MONO, fontSize: 14, fontWeight: 600, color: MC.ink,
-        minWidth: 52, textAlign: 'center', fontVariantNumeric: 'tabular-nums',
-      }}>{value}{suffix}</span>
+      <span className="font-mono text-sm font-semibold text-charcoal min-w-[52px] text-center tabular-nums">{value}{suffix}</span>
       {btn('+', () => onChange(Math.min(max, value + step)), value >= max)}
     </div>
   )
@@ -90,18 +24,12 @@ function Stepper({ value, onChange, suffix, min = 0, max = 99, step = 1 }) {
 
 function Row({ label, sub, warnText, control, last }) {
   return (
-    <div style={{
-      display: 'flex', alignItems: 'center', gap: 12, padding: '13px 15px',
-      borderTop: last === false ? `1px solid ${MC.line2}` : 'none',
-    }}>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 14, fontWeight: 500, color: MC.ink, letterSpacing: '-0.005em' }}>{label}</div>
-        {sub && <div style={{ fontSize: 11.5, color: MC.ink3, marginTop: 2, lineHeight: 1.4 }}>{sub}</div>}
+    <div className={`flex items-center gap-3 px-[15px] py-[13px] ${last === false ? 'border-t border-charcoal/6' : ''}`}>
+      <div className="flex-1 min-w-0">
+        <div className="text-sm font-medium text-charcoal tracking-[-0.005em]">{label}</div>
+        {sub && <div className="text-[11.5px] text-charcoal/50 mt-0.5 leading-[1.4]">{sub}</div>}
         {warnText && (
-          <div style={{
-            fontFamily: MONO, fontSize: 10, color: MC.warn, marginTop: 4,
-            textTransform: 'uppercase', letterSpacing: '0.04em', fontWeight: 600,
-          }}>{warnText}</div>
+          <div className="font-mono text-[10px] text-warning mt-1 uppercase tracking-[0.04em] font-semibold">{warnText}</div>
         )}
       </div>
       {control}
@@ -113,16 +41,13 @@ function Group({ label, children, foot }) {
   return (
     <div>
       {label && (
-        <div style={{
-          fontFamily: MONO, fontSize: 10.5, color: MC.ink3, letterSpacing: '0.08em',
-          textTransform: 'uppercase', fontWeight: 600, padding: '18px 2px 7px',
-        }}>{label}</div>
+        <div className="font-mono text-[10.5px] font-semibold tracking-[0.08em] uppercase text-charcoal/50 px-0.5 pt-[18px] pb-1.5">{label}</div>
       )}
-      <div style={{ background: MC.paper, border: `1px solid ${MC.line}`, borderRadius: 14, overflow: 'hidden' }}>
+      <div className="bg-white dark:bg-[#1e1e1e] border border-charcoal/10 rounded-[14px] overflow-hidden">
         {children}
       </div>
       {foot && (
-        <div style={{ fontSize: 11.5, color: MC.ink3, padding: '8px 4px 0', lineHeight: 1.45 }}>{foot}</div>
+        <div className="text-[11.5px] text-charcoal/50 px-1 pt-2 leading-[1.45]">{foot}</div>
       )}
     </div>
   )
@@ -145,10 +70,10 @@ export default function AttendanceSettingsPage() {
   const vp = (path) => `/v/${venueSlug}${path}`
 
   return (
-    <div style={{ minHeight: '100vh', background: MC.bg, fontFamily: SANS }}>
-      <SubHeader title="Attendance" onBack={() => navigate(vp('/settings/hub'))} />
+    <div className="min-h-screen bg-surface">
+      <SettingsSubHeader title="Attendance" onBack={() => navigate(vp('/settings/hub'))} />
 
-      <div style={{ padding: '0 16px 96px', maxWidth: 480, margin: '0 auto' }}>
+      <div className="px-4 pb-24 max-w-[480px] mx-auto">
 
         <Group
           label="Late clock-in"
@@ -165,7 +90,7 @@ export default function AttendanceSettingsPage() {
             label="Require a reason"
             sub="Staff pick a reason when late"
             last={false}
-            control={<Toggle on={requireLateReason} onClick={() => saveRequireLateReason(!requireLateReason)} />}
+            control={<Toggle checked={requireLateReason} onChange={saveRequireLateReason} />}
           />
         </Group>
 
@@ -236,7 +161,7 @@ export default function AttendanceSettingsPage() {
             label="Push to manager"
             sub="Send a notification on escalation"
             last={false}
-            control={<Toggle on={pushToManager} onClick={() => savePushToManager(!pushToManager)} />}
+            control={<Toggle checked={pushToManager} onChange={savePushToManager} />}
           />
         </Group>
 

@@ -8,10 +8,10 @@ import { Navigate } from 'react-router-dom'
 
 /* ── Status helpers ──────────────────────────────────────────────────────────── */
 const STATUS = {
-  green:  { color: '#276640', bg: '#276640', label: 'All clear' },
-  amber:  { color: '#e08a4a', bg: '#e08a4a', label: 'Needs attention' },
-  red:    { color: '#d44d3a', bg: '#d44d3a', label: 'Checks missing' },
-  gray:   { color: '#9ca3af', bg: '#9ca3af', label: 'Loading…' },
+  green: { dotClass: 'bg-success',  label: 'All clear',       topBarClass: 'bg-success',  textClass: 'text-success'  },
+  amber: { dotClass: 'bg-warning',  label: 'Needs attention', topBarClass: 'bg-warning',  textClass: 'text-warning'  },
+  red:   { dotClass: 'bg-danger',   label: 'Checks missing',  topBarClass: 'bg-danger',   textClass: 'text-danger'   },
+  gray:  { dotClass: 'bg-charcoal/25', label: 'Loading…',     topBarClass: 'bg-charcoal/25', textClass: 'text-charcoal/40' },
 }
 
 function statusFor(result) {
@@ -21,17 +21,14 @@ function statusFor(result) {
 /* ── Check indicator (22×22 circle) ─────────────────────────────────────────── */
 function CheckDot({ done, label }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
-      <div style={{
-        width: 22, height: 22, borderRadius: '50%',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontSize: 10, fontWeight: 700,
-        background: done ? 'rgba(39,102,64,0.12)' : 'rgba(212,77,58,0.10)',
-        color: done ? '#276640' : '#d44d3a',
-      }}>
+    <div className="flex flex-col items-center gap-[3px]">
+      <div className={[
+        'w-[22px] h-[22px] rounded-full flex items-center justify-center text-[10px] font-bold',
+        done ? 'bg-success/10 text-success' : 'bg-danger/10 text-danger',
+      ].join(' ')}>
         {done ? '✓' : '✕'}
       </div>
-      <span style={{ fontSize: 8, fontWeight: 600, color: 'rgba(14,20,17,0.40)', textAlign: 'center', lineHeight: 1.2 }}>
+      <span className="text-[8px] font-semibold text-charcoal/40 text-center leading-[1.2]">
         {label}
       </span>
     </div>
@@ -39,16 +36,13 @@ function CheckDot({ done, label }) {
 }
 
 /* ── Footer stat cell ────────────────────────────────────────────────────────── */
-function StatCell({ value, label, color, last }) {
+function StatCell({ value, label, colorClass, last }) {
   return (
-    <div style={{
-      flex: 1, paddingLeft: 14, paddingTop: 10, paddingBottom: 10,
-      borderRight: last ? 'none' : '1px solid rgba(14,20,17,0.08)',
-    }}>
-      <div style={{ fontSize: 17, fontWeight: 700, color: color ?? '#0E1411', fontVariantNumeric: 'tabular-nums', lineHeight: 1 }}>
+    <div className={`flex-1 pl-3.5 py-2.5 ${last ? '' : 'border-r border-charcoal/8'}`}>
+      <div className={`text-[17px] font-bold tabular-nums leading-none ${colorClass ?? 'text-charcoal'}`}>
         {value}
       </div>
-      <div style={{ fontSize: 9, fontWeight: 600, color: 'rgba(14,20,17,0.40)', marginTop: 1 }}>
+      <div className="text-[9px] font-semibold text-charcoal/40 mt-[1px]">
         {label}
       </div>
     </div>
@@ -75,96 +69,72 @@ function VenueCard({ result, isHome, dimmed, onOpen }) {
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       onClick={() => !dimmed && onOpen(venue.slug)}
+      className="bg-white dark:bg-[#1e1e1e] rounded-2xl border border-charcoal/8 overflow-hidden flex flex-col"
       style={{
-        background: '#ffffff',
-        borderRadius: 16,
-        border: '1px solid rgba(14,20,17,0.08)',
-        overflow: 'hidden',
         cursor: dimmed ? 'default' : 'pointer',
         opacity: dimmed ? 0.20 : 1,
         pointerEvents: dimmed ? 'none' : 'auto',
         transform: hovered && !dimmed ? 'translateY(-2px)' : 'translateY(0)',
         boxShadow: hovered && !dimmed ? '0 8px 24px rgba(0,0,0,0.10)' : 'none',
         transition: 'transform 150ms, box-shadow 150ms, opacity 150ms',
-        display: 'flex', flexDirection: 'column',
       }}
     >
-      {/* 3px coloured top bar */}
-      <div style={{ height: 3, background: st.bg, borderRadius: '16px 16px 0 0' }} />
+      <div className={`h-[3px] rounded-t-2xl ${st.topBarClass}`} />
 
-      {/* Top section */}
-      <div style={{ padding: '14px 16px 10px' }}>
-        <div style={{ fontSize: 14, fontWeight: 700, color: '#0E1411', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+      <div className="p-[14px_16px_10px]">
+        <div className="text-sm font-bold text-charcoal overflow-hidden text-ellipsis whitespace-nowrap">
           {venue.name}
         </div>
-        <div style={{ fontSize: 10, fontWeight: 700, color: st.color, marginTop: 2 }}>
+        <div className={`text-[10px] font-bold mt-0.5 ${st.textClass}`}>
           {loading ? 'Loading…' : st.label}
         </div>
         {isHome && (
-          <span style={{
-            display: 'inline-block', marginTop: 4,
-            fontSize: 8.5, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em',
-            color: '#2D4F45', background: 'rgba(45,79,69,0.09)',
-            padding: '2px 6px', borderRadius: 4,
-          }}>
+          <span className="inline-block mt-1 text-[8.5px] font-bold uppercase tracking-[0.08em] text-brand bg-brand/9 px-1.5 py-[2px] rounded">
             Home
           </span>
         )}
-        <div style={{
-          marginTop: isHome ? 6 : 8,
-          opacity: hovered ? 1 : 0,
-          transition: 'opacity 150ms',
-        }}>
+        <div
+          className="mt-1.5"
+          style={{ opacity: hovered ? 1 : 0, transition: 'opacity 150ms' }}
+        >
           <button
             onClick={(e) => { e.stopPropagation(); onOpen(venue.slug) }}
-            style={{
-              fontSize: 11, fontWeight: 600,
-              color: '#0E1411', background: 'none',
-              border: '1px solid rgba(14,20,17,0.18)',
-              borderRadius: 7, padding: '3px 10px',
-              cursor: 'pointer', fontFamily: 'Plus Jakarta Sans, sans-serif',
-            }}
+            className="text-[11px] font-semibold text-charcoal bg-transparent border border-charcoal/18 rounded-[7px] px-2.5 py-[3px] cursor-pointer"
           >
             Open →
           </button>
         </div>
       </div>
 
-      {/* Checks row */}
-      <div style={{
-        padding: '6px 16px 12px',
-        borderBottom: '1px solid rgba(14,20,17,0.08)',
-        display: 'flex', gap: 8,
-      }}>
+      <div className="px-4 pb-3 pt-1.5 border-b border-charcoal/8 flex gap-2">
         {loading
           ? [0,1,2,3].map(i => (
-              <div key={i} style={{ width: 22, height: 22, borderRadius: '50%', background: 'rgba(14,20,17,0.06)', animation: 'pulse 1.5s ease-in-out infinite' }} />
+              <div key={i} className="w-[22px] h-[22px] rounded-full bg-charcoal/6 animate-pulse" />
             ))
           : checks.map(c => <CheckDot key={c.label} done={c.done} label={c.label} />)
         }
       </div>
 
-      {/* Footer stats */}
-      <div style={{ display: 'flex' }}>
+      <div className="flex">
         <StatCell
           value={loading ? '—' : (data?.clockedInCount ?? 0)}
           label="On shift"
-          color={data?.clockedInCount > 0 ? '#276640' : '#0E1411'}
+          colorClass={data?.clockedInCount > 0 ? 'text-success' : 'text-charcoal'}
         />
         <StatCell
           value="—"
           label="Flags"
-          color="#0E1411"
+          colorClass="text-charcoal"
         />
         <StatCell
           value={loading ? '—' : (pendingCount > 0 ? pendingCount : '—')}
           label="Pending"
-          color={pendingCount > 0 ? '#e08a4a' : 'rgba(14,20,17,0.30)'}
+          colorClass={pendingCount > 0 ? 'text-warning' : 'text-charcoal/30'}
         />
         <StatCell
           value="—"
           label="Training"
-          color="rgba(14,20,17,0.30)"
+          colorClass="text-charcoal/30"
           last
         />
       </div>
@@ -174,10 +144,10 @@ function VenueCard({ result, isHome, dimmed, onOpen }) {
 
 /* ── Summary strip cell ──────────────────────────────────────────────────────── */
 const STRIP_CELLS = [
-  { key: 'clear',     label: 'All clear',        color: '#276640', borderColor: '#276640' },
-  { key: 'attention', label: 'Need attention',    color: '#d44d3a', borderColor: '#d44d3a' },
-  { key: 'staff',     label: 'Staff on shift',    color: '#2D4F45', borderColor: '#2D4F45' },
-  { key: 'pending',   label: 'Decisions pending', color: '#e08a4a', borderColor: '#e08a4a' },
+  { key: 'clear',     label: 'All clear',        numClass: 'text-success', barClass: 'bg-success' },
+  { key: 'attention', label: 'Need attention',    numClass: 'text-danger',  barClass: 'bg-danger'  },
+  { key: 'staff',     label: 'Staff on shift',    numClass: 'text-brand',   barClass: 'bg-brand'   },
+  { key: 'pending',   label: 'Decisions pending', numClass: 'text-warning', barClass: 'bg-warning' },
 ]
 
 function StripCell({ cell, value, isActive, onClick, loading, isLast }) {
@@ -187,37 +157,21 @@ function StripCell({ cell, value, isActive, onClick, loading, isLast }) {
       onClick={onClick}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      style={{
-        flex: 1, padding: '14px 18px 12px', textAlign: 'left',
-        background: isActive ? 'rgba(14,20,17,0.04)' : hovered ? 'rgba(14,20,17,0.02)' : 'transparent',
-        border: 'none', cursor: 'pointer',
-        borderRight: isLast ? 'none' : '1px solid rgba(14,20,17,0.08)',
-        position: 'relative',
-        transition: 'background .1s',
-        fontFamily: 'Plus Jakarta Sans, sans-serif',
-      }}
+      className={[
+        'flex-1 p-[14px_18px_12px] text-left border-0 cursor-pointer relative transition-colors duration-100',
+        isLast ? '' : 'border-r border-charcoal/8',
+        isActive ? 'bg-charcoal/4' : hovered ? 'bg-charcoal/2' : 'bg-transparent',
+      ].join(' ')}
     >
-      {/* Active bottom border */}
       {isActive && (
-        <span style={{
-          position: 'absolute', bottom: 0, left: 0, right: 0,
-          height: 2.5, background: cell.borderColor, borderRadius: '2px 2px 0 0',
-        }} />
+        <span className={`absolute bottom-0 left-0 right-0 h-[2.5px] rounded-t-sm ${cell.barClass}`} />
       )}
-      <div style={{
-        fontSize: 28, fontWeight: 700, letterSpacing: '-0.04em',
-        fontVariantNumeric: 'tabular-nums',
-        color: cell.color,
-        lineHeight: 1,
-      }}>
+      <div className={`text-[28px] font-bold tracking-[-0.04em] tabular-nums leading-none ${cell.numClass}`}>
         {loading ? (
-          <span style={{ display: 'inline-block', width: 40, height: 28, borderRadius: 6, background: 'rgba(14,20,17,0.06)' }} />
+          <span className="inline-block w-10 h-7 rounded-md bg-charcoal/6" />
         ) : value}
       </div>
-      <div style={{
-        fontSize: 10, fontWeight: 600, color: 'rgba(14,20,17,0.40)', marginTop: 3,
-        textTransform: 'uppercase', letterSpacing: '0.04em',
-      }}>
+      <div className="text-[10px] font-semibold text-charcoal/40 mt-[3px] uppercase tracking-[0.04em]">
         {cell.label}
       </div>
     </button>
@@ -236,7 +190,7 @@ export default function OverviewPage() {
   const allVenues = venues ?? []
   const { results, aggregate, loading } = useAllVenueCompliance(allVenues)
 
-  const [activeFilter, setActiveFilter] = useState(null) // 'clear' | 'attention' | 'staff' | 'pending' | null
+  const [activeFilter, setActiveFilter] = useState(null)
 
   const stripValues = {
     clear:     aggregate.allClear,
@@ -279,25 +233,18 @@ export default function OverviewPage() {
   const activeCell = STRIP_CELLS.find(c => c.key === activeFilter)
 
   return (
-    <div style={{ maxWidth: 1280, margin: '0 auto', padding: '32px 0' }}>
+    <div className="max-w-[1280px] mx-auto py-8">
 
-      {/* Greeting */}
-      <div style={{ marginBottom: 24 }}>
-        <h1 style={{ fontSize: 26, fontWeight: 700, color: '#0E1411', letterSpacing: '-0.02em', margin: 0 }}>
+      <div className="mb-6">
+        <h1 className="text-[26px] font-semibold tracking-[-0.028em] text-charcoal m-0">
           {greeting}
         </h1>
-        <p style={{ fontSize: 13, color: 'rgba(14,20,17,0.45)', marginTop: 4 }}>
+        <p className="text-[13px] text-charcoal/45 mt-1">
           {format(new Date(), 'EEEE, d MMMM')} · {allVenues.length} venue{allVenues.length !== 1 ? 's' : ''}
         </p>
       </div>
 
-      {/* Summary strip */}
-      <div style={{
-        background: '#ffffff', borderRadius: 16,
-        border: '1px solid rgba(14,20,17,0.08)',
-        display: 'flex', overflow: 'hidden',
-        marginBottom: 16,
-      }}>
+      <div className="bg-white dark:bg-[#1e1e1e] rounded-2xl border border-charcoal/8 flex overflow-hidden mb-4">
         {STRIP_CELLS.map((cell, i) => (
           <StripCell
             key={cell.key}
@@ -311,42 +258,22 @@ export default function OverviewPage() {
         ))}
       </div>
 
-      {/* Filter bar */}
       {activeFilter && activeCell && (
-        <div style={{
-          background: '#ffffff', borderRadius: 12,
-          border: '1px solid rgba(14,20,17,0.08)',
-          padding: '9px 14px',
-          display: 'flex', alignItems: 'center', gap: 10,
-          marginBottom: 16,
-          animation: 'fadeSlideIn 150ms ease',
-        }}>
-          <span style={{ width: 7, height: 7, borderRadius: '50%', background: activeCell.color, flexShrink: 0 }} />
-          <span style={{ fontSize: 12, fontWeight: 600, color: '#0E1411', flex: 1 }}>
+        <div className="bg-white dark:bg-[#1e1e1e] rounded-xl border border-charcoal/8 px-3.5 py-[9px] flex items-center gap-2.5 mb-4 animate-[fadeSlideIn_150ms_ease]">
+          <span className={`w-[7px] h-[7px] rounded-full shrink-0 ${activeCell.barClass}`} />
+          <span className="text-xs font-semibold text-charcoal flex-1">
             {filterLabels[activeFilter]}
           </span>
           <button
             onClick={() => setActiveFilter(null)}
-            style={{
-              fontSize: 11, fontWeight: 600, color: 'rgba(14,20,17,0.40)',
-              background: 'none', border: 'none', cursor: 'pointer',
-              fontFamily: 'Plus Jakarta Sans, sans-serif',
-              transition: 'color .12s',
-            }}
-            onMouseEnter={e => e.currentTarget.style.color = '#0E1411'}
-            onMouseLeave={e => e.currentTarget.style.color = 'rgba(14,20,17,0.40)'}
+            className="text-[11px] font-semibold text-charcoal/40 bg-transparent border-0 cursor-pointer hover:text-charcoal transition-colors duration-100"
           >
             Clear ✕
           </button>
         </div>
       )}
 
-      {/* Venue card grid */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(3, 1fr)',
-        gap: 12,
-      }}>
+      <div className="grid grid-cols-3 gap-3">
         {results.map(r => (
           <VenueCard
             key={r.venue.id}
@@ -356,13 +283,8 @@ export default function OverviewPage() {
             onOpen={handleOpenVenue}
           />
         ))}
-        {/* Loading placeholders */}
         {loading && results.length === 0 && allVenues.map(v => (
-          <div key={v.id} style={{
-            height: 220, background: '#ffffff', borderRadius: 16,
-            border: '1px solid rgba(14,20,17,0.08)',
-            animation: 'pulse 1.5s ease-in-out infinite',
-          }} />
+          <div key={v.id} className="h-[220px] bg-white dark:bg-[#1e1e1e] rounded-2xl border border-charcoal/8 animate-pulse" />
         ))}
       </div>
 
@@ -370,10 +292,6 @@ export default function OverviewPage() {
         @keyframes fadeSlideIn {
           from { opacity: 0; transform: translateY(-3px); }
           to   { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes pulse {
-          0%, 100% { opacity: 1; }
-          50%       { opacity: 0.5; }
         }
       `}</style>
     </div>
