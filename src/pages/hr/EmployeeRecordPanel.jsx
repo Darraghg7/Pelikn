@@ -15,6 +15,7 @@
 import React, { useEffect, useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { format, parseISO, differenceInDays } from 'date-fns'
+import { calculateEntitlementDays, countWorkingDaysInRequest } from '../../hooks/useLeaveBalance'
 import { supabase } from '../../lib/supabase'
 import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../../components/ui/Toast'
@@ -626,10 +627,11 @@ function DisciplinaryTab({ staffId, venueId }) {
 }
 
 // ── Leave Tab ────────────────────────────────────────────────────────────────
-function LeaveTab({ staffId, venueSlug }) {
+function LeaveTab({ staffId, venueSlug, staff }) {
   const navigate = useNavigate()
   const [requests, setRequests] = useState([])
   const [loading,  setLoading]  = useState(true)
+  const currentYear = new Date().getFullYear()
 
   useEffect(() => {
     supabase.from('time_off_requests').select('*').eq('staff_id', staffId).order('start_date', { ascending: false })
@@ -643,14 +645,22 @@ function LeaveTab({ staffId, venueSlug }) {
   }
   const LEAVE_LABELS = { annual: 'Annual', unpaid: 'Unpaid', other: 'Other' }
 
-  const taken     = requests.filter(r => r.status === 'approved').length
-  const allowance = 20
-  const remaining = allowance - taken
+  const eligible   = staff?.holiday_pay_eligible !== false
+  const isZeroHrs  = staff?.employment_type === 'zero_hours'
+  const allowance  = eligible ? calculateEntitlementDays(staff?.employment_type, staff?.working_days) : null
+  const taken      = requests
+    .filter(r => r.status === 'approved' && r.leave_type === 'annual' && r.start_date?.startsWith(String(currentYear)))
+    .reduce((sum, r) => sum + countWorkingDaysInRequest(r.start_date, r.end_date, staff?.working_days), 0)
+  const remaining  = allowance != null ? Math.max(0, allowance - taken) : null
 
   return (
     <div className="flex flex-col gap-3.5">
       <div className="grid grid-cols-3 gap-[13px]">
-        {[{ k: 'Allowance', v: `${allowance} days` }, { k: 'Taken', v: `${taken} days` }, { k: 'Remaining', v: `${remaining} days` }].map(x => (
+        {[
+          { k: 'Allowance', v: isZeroHrs ? 'Accrual' : allowance != null ? `${allowance} days` : '—' },
+          { k: 'Taken',     v: `${taken} days` },
+          { k: 'Remaining', v: remaining != null ? `${remaining} days` : '—' },
+        ].map(x => (
           <div key={x.k} className="bg-white dark:bg-[#1e1e1e] border border-charcoal/10 rounded-[14px] px-4 py-[13px]">
             <div className="font-mono text-[9.5px] uppercase tracking-[0.07em] text-charcoal/50 font-semibold">{x.k}</div>
             <div className="text-xl font-semibold text-charcoal mt-[3px] font-mono tracking-[-0.02em]">{x.v}</div>
@@ -872,7 +882,7 @@ export default function EmployeeRecordPanel({ staffId, venueId, venueSlug, onBac
     setLoading(true)
     Promise.all([
       supabase.from('staff')
-        .select('id, name, job_role, employment_type, start_date, hourly_rate, contracted_hours, working_days, is_under_18, emergency_contact_name, emergency_contact_phone')
+        .select('id, name, job_role, employment_type, start_date, hourly_rate, contracted_hours, working_days, is_under_18, emergency_contact_name, emergency_contact_phone, holiday_pay_eligible')
         .eq('id', staffId)
         .maybeSingle(),
       supabase.from('staff_hr_documents')
@@ -964,7 +974,7 @@ export default function EmployeeRecordPanel({ staffId, venueId, venueSlug, onBac
       {tab === 'Profile'      && <ProfileTab      staff={staff} docsCount={docsCount} strikesCount={strikesCount} venueSlug={venueSlug} />}
       {tab === 'Documents'    && <DocumentsTab    staffId={staffId} venueId={venueId} onDocsCountChange={setDocsCount} />}
       {tab === 'Disciplinary' && <DisciplinaryTab staffId={staffId} venueId={venueId} />}
-      {tab === 'Leave'        && <LeaveTab        staffId={staffId} venueSlug={venueSlug} />}
+      {tab === 'Leave'        && <LeaveTab        staffId={staffId} venueSlug={venueSlug} staff={staff} />}
       {tab === 'Training'     && <TrainingTab     staffId={staffId} venueSlug={venueSlug} />}
       {tab === 'Security'     && <SecurityTab     staffId={staffId} />}
     </div>
