@@ -685,6 +685,181 @@ function CertificatesTab({ venueId }) {
   )
 }
 
+// ── Allergen compliance tab ───────────────────────────────────────────────────
+
+function useAllergenCerts(venueId) {
+  const [certs, setCerts] = useState([])
+  const [loading, setLoading] = useState(true)
+  const load = useCallback(async () => {
+    if (!venueId) return
+    setLoading(true)
+    const { data } = await supabase
+      .from('staff_training')
+      .select('*, staff:staff_id(id, name)')
+      .eq('venue_id', venueId)
+      .eq('category', 'allergen_awareness')
+      .order('issued_date', { ascending: false, nullsFirst: false })
+    setCerts(data ?? [])
+    setLoading(false)
+  }, [venueId])
+  useEffect(() => { load() }, [load])
+  return { certs, loading, reload: load }
+}
+
+function AllergenComplianceTab({ venueId }) {
+  const toast = useToast()
+  const staff = useActiveStaff(venueId)
+  const { certs, loading, reload } = useAllergenCerts(venueId)
+  const [addFor, setAddFor]   = useState(null)
+  const [form, setForm]       = useState({ issued_date: '', expiry_date: '', notes: '' })
+  const [file, setFile]       = useState(null)
+  const [saving, setSaving]   = useState(false)
+
+  // Latest cert per staff member
+  const certByStaff = {}
+  for (const c of certs) {
+    if (!certByStaff[c.staff_id]) certByStaff[c.staff_id] = c
+  }
+
+  const compliantCount = staff.filter(s => {
+    const c = certByStaff[s.id]
+    return c && certStatus(c) !== 'expired'
+  }).length
+  const isFullyCompliant = staff.length > 0 && compliantCount === staff.length
+
+  const openAdd = (s) => {
+    setAddFor(s)
+    setForm({ issued_date: format(new Date(), 'yyyy-MM-dd'), expiry_date: '', notes: '' })
+    setFile(null)
+  }
+
+  const save = async () => {
+    setSaving(true)
+    let file_url = null, file_name = null
+    if (file) {
+      const ext  = file.name.split('.').pop()
+      const path = `${venueId}/${addFor.id}/${Date.now()}.${ext}`
+      const { error: uploadErr } = await supabase.storage.from('training-files').upload(path, file, { upsert: false })
+      if (uploadErr) { toast('Upload failed: ' + uploadErr.message, 'error'); setSaving(false); return }
+      const { data: urlData } = supabase.storage.from('training-files').getPublicUrl(path)
+      file_url = urlData.publicUrl; file_name = file.name
+    }
+    const { error } = await supabase.from('staff_training').insert({
+      staff_id: addFor.id, title: 'Allergen Awareness Training', category: 'allergen_awareness',
+      issued_date: form.issued_date || null, expiry_date: form.expiry_date || null,
+      notes: form.notes.trim() || null, file_url, file_name, venue_id: venueId,
+    })
+    setSaving(false)
+    if (error) { toast(error.message, 'error'); return }
+    toast(`Allergen cert added for ${addFor.name}`)
+    setAddFor(null); reload()
+  }
+
+  if (loading) return <SkeletonList rows={4} className="py-4" />
+
+  return (
+    <div className="flex flex-col gap-5">
+
+      {/* Compliance banner */}
+      <div className={`rounded-xl px-5 py-4 border flex items-center gap-5 ${
+        isFullyCompliant ? 'bg-success/8 border-success/20' : 'bg-danger/8 border-danger/20'
+      }`}>
+        <div className={`text-3xl font-bold tabular-nums ${isFullyCompliant ? 'text-success' : 'text-danger'}`}>
+          {compliantCount}/{staff.length}
+        </div>
+        <div>
+          <p className={`text-sm font-semibold ${isFullyCompliant ? 'text-success' : 'text-danger'}`}>
+            {isFullyCompliant ? 'All staff have valid allergen training ✓' : 'Allergen training incomplete'}
+          </p>
+          <p className={`text-xs mt-0.5 ${isFullyCompliant ? 'text-success/60' : 'text-danger/60'}`}>
+            EHOs require a valid allergen awareness certificate for every food-handling staff member — post Natasha's Law (Oct 2021).
+          </p>
+        </div>
+      </div>
+
+      {/* Per-staff table */}
+      <div className="bg-white rounded-2xl border border-charcoal/10 overflow-hidden">
+        {staff.length === 0 ? (
+          <p className="px-5 py-8 text-sm text-charcoal/40 text-center">No active staff found.</p>
+        ) : staff.map((s, i) => {
+          const cert   = certByStaff[s.id]
+          const status = cert ? certStatus(cert) : null
+          return (
+            <div key={s.id} className={`flex items-center gap-4 px-5 py-3.5 ${i > 0 ? 'border-t border-charcoal/6' : ''}`}>
+              <div className="w-8 h-8 rounded-full bg-charcoal/8 flex items-center justify-center text-xs font-semibold text-charcoal/50 shrink-0">
+                {s.name?.charAt(0) ?? '?'}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-charcoal">{s.name}</p>
+                {cert ? (
+                  <p className="text-xs text-charcoal/40">
+                    {cert.title}
+                    {cert.issued_date && <> · Issued {format(parseISO(cert.issued_date), 'd MMM yyyy')}</>}
+                    {cert.expiry_date && <> · Expires {format(parseISO(cert.expiry_date), 'd MMM yyyy')}</>}
+                  </p>
+                ) : (
+                  <p className="text-xs text-danger/70">No allergen awareness training on record</p>
+                )}
+              </div>
+              {cert && <StatusBadge status={status} />}
+              {!cert && (
+                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full border bg-danger/8 text-danger border-danger/20">
+                  Missing
+                </span>
+              )}
+              <button
+                onClick={() => openAdd(s)}
+                className="text-xs px-3 py-1.5 rounded-lg border border-charcoal/15 text-charcoal/50 hover:text-charcoal hover:border-charcoal/30 transition-colors shrink-0"
+              >
+                {cert ? 'Update' : '+ Add'}
+              </button>
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Add / update cert panel */}
+      {addFor && (
+        <div className="bg-white rounded-2xl border border-charcoal/10 p-6 flex flex-col gap-4">
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-semibold text-charcoal">
+              Allergen Awareness Training — {addFor.name}
+            </p>
+            <button onClick={() => setAddFor(null)} className="text-charcoal/30 hover:text-charcoal text-xl leading-none">×</button>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1">Date issued</label>
+              <input type="date" value={form.issued_date} onChange={e => setForm(f => ({ ...f, issued_date: e.target.value }))}
+                className="w-full px-3 py-2 rounded-lg border border-charcoal/15 text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20" />
+            </div>
+            <div>
+              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1">Expiry date (if applicable)</label>
+              <input type="date" value={form.expiry_date} onChange={e => setForm(f => ({ ...f, expiry_date: e.target.value }))}
+                className="w-full px-3 py-2 rounded-lg border border-charcoal/15 text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20" />
+            </div>
+          </div>
+          <div>
+            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1">Upload certificate (optional)</label>
+            <input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={e => setFile(e.target.files[0] || null)}
+              className="text-sm text-charcoal/60" />
+          </div>
+          <div>
+            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1">Notes</label>
+            <input value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))}
+              placeholder="e.g. Online course via HighSpeed Training / in-house induction"
+              className="w-full px-3 py-2 rounded-lg border border-charcoal/15 text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20" />
+          </div>
+          <button onClick={save} disabled={saving}
+            className="bg-charcoal text-cream py-2.5 rounded-xl text-sm font-semibold hover:bg-charcoal/90 transition-colors disabled:opacity-40">
+            {saving ? 'Saving…' : 'Save Certificate'}
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ── Page ──────────────────────────────────────────────────────────────────────
 export default function TrainingPage() {
   const { venueId } = useVenue()
@@ -705,6 +880,7 @@ export default function TrainingPage() {
         {[
           { id: 'induction',    label: 'Induction Records' },
           { id: 'certificates', label: 'Certificates' },
+          { id: 'allergen',     label: 'Allergen Compliance' },
         ].map(t => (
           <button
             key={t.id}
@@ -720,7 +896,9 @@ export default function TrainingPage() {
 
       {tab === 'induction'
         ? <InductionTab venueId={venueId} isManager={isManager} session={session} />
-        : <CertificatesTab venueId={venueId} />
+        : tab === 'certificates'
+        ? <CertificatesTab venueId={venueId} />
+        : <AllergenComplianceTab venueId={venueId} />
       }
     </div>
   )

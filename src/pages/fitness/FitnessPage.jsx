@@ -398,6 +398,154 @@ function ManagerDeclarationsView({ venueId }) {
 
 // ── Main page ─────────────────────────────────────────────────────────────────
 
+// ── Illness exclusion policy (manager-only) ───────────────────────────────────
+
+function useIllnessPolicy(venueId) {
+  const [policy, setPolicy]   = useState(null)
+  const [loading, setLoading] = useState(true)
+  const load = useCallback(async () => {
+    if (!venueId) return
+    setLoading(true)
+    const { data } = await supabase
+      .from('illness_exclusion_policies')
+      .select('*')
+      .eq('venue_id', venueId)
+      .maybeSingle()
+    setPolicy(data)
+    setLoading(false)
+  }, [venueId])
+  useEffect(() => { load() }, [load])
+  return { policy, loading, reload: load }
+}
+
+function IllnessPolicyTab({ venueId }) {
+  const toast = useToast()
+  const { policy, loading, reload } = useIllnessPolicy(venueId)
+  const [meta, setMeta]   = useState({ responsible_person: '', return_contact: '', eho_contact: '' })
+  const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    if (policy) {
+      setMeta({
+        responsible_person: policy.responsible_person ?? '',
+        return_contact:     policy.return_contact ?? '',
+        eho_contact:        policy.eho_contact ?? '',
+      })
+    }
+  }, [policy])
+
+  const save = async () => {
+    setSaving(true)
+    const payload = {
+      venue_id:           venueId,
+      responsible_person: meta.responsible_person.trim() || null,
+      return_contact:     meta.return_contact.trim() || null,
+      eho_contact:        meta.eho_contact.trim() || null,
+      updated_at:         new Date().toISOString(),
+    }
+    const { error } = policy
+      ? await supabase.from('illness_exclusion_policies').update(payload).eq('venue_id', venueId)
+      : await supabase.from('illness_exclusion_policies').insert(payload)
+    setSaving(false)
+    if (error) { toast(error.message, 'error'); return }
+    toast('Policy saved')
+    await reload()
+  }
+
+  if (loading) return <div className="flex justify-center pt-12"><div className="w-6 h-6 border-2 border-charcoal/20 border-t-charcoal rounded-full animate-spin" /></div>
+
+  return (
+    <div className="flex flex-col gap-5">
+
+      <div className="bg-amber-50 border border-amber-200 rounded-2xl px-5 py-4 flex gap-3">
+        <span className="text-amber-500 mt-0.5 shrink-0">⚠</span>
+        <p className="text-xs text-amber-700 leading-relaxed">
+          EHOs will ask to see your illness exclusion policy. This document must specify the 48-hour rule for D&V and list which illnesses require EHO notification.
+        </p>
+      </div>
+
+      {/* Contacts */}
+      <div className="bg-white rounded-2xl border border-charcoal/10 p-5">
+        <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-3">Policy Contacts</p>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          {[
+            { key: 'responsible_person', label: 'Responsible person', placeholder: 'Manager responsible for return-to-work decisions' },
+            { key: 'return_contact',     label: 'Return-to-work contact', placeholder: 'Phone / email staff should call when unwell' },
+            { key: 'eho_contact',        label: 'Local EHO contact', placeholder: 'Name and phone of your local EHO' },
+          ].map(f => (
+            <div key={f.key} className="flex flex-col gap-1">
+              <label className="text-[10px] tracking-widest uppercase text-charcoal/30">{f.label}</label>
+              <input
+                value={meta[f.key]}
+                onChange={e => setMeta(m => ({ ...m, [f.key]: e.target.value }))}
+                placeholder={f.placeholder}
+                className="px-3 py-2 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Policy document */}
+      {[
+        {
+          title: 'General Obligations',
+          body:
+            'All staff must inform the responsible manager (see above) before their shift if they feel unwell or have symptoms that may make them unfit to handle food. Staff must not attend work if they are suffering from symptoms that could contaminate food or surfaces.',
+        },
+        {
+          title: 'Diarrhoea & Vomiting (D&V) — 48-Hour Rule',
+          body:
+            'Any staff member experiencing diarrhoea and/or vomiting must not return to work until at least 48 hours have passed since their last symptom. This rule is mandatory under UK food hygiene law and must not be waived under any circumstances, regardless of operational pressure.',
+        },
+        {
+          title: 'Reportable Illnesses',
+          body:
+            'The following illnesses must be reported to the responsible manager immediately, who must then notify the local Environmental Health Officer (EHO):\n\n• Salmonella\n• E. coli O157 (or other VTEC strains)\n• Typhoid or paratyphoid fever\n• Hepatitis A\n• Norovirus (where there is an outbreak pattern)\n• Shigella\n• Cholera\n\nAffected staff must not return to work until cleared by their GP or EHO.',
+        },
+        {
+          title: 'Skin Infections & Wounds',
+          body:
+            'Staff with open cuts, wounds, sores, or infected skin (especially on hands, wrists, or face) must cover them with a brightly-coloured waterproof plaster before handling food. If the wound is on the hand, a food-safe glove must be worn over the plaster. Staff with extensive skin infections affecting food-handling ability must be excluded until treated.',
+        },
+        {
+          title: 'Return to Work',
+          body:
+            `To return to work after illness, staff must contact ${meta.return_contact || '[return-to-work contact]'} and confirm they are free of symptoms before their next shift. After D&V, staff must confirm they have been symptom-free for 48 hours. After a notifiable illness, written clearance from a GP or EHO is required before returning.`,
+        },
+        {
+          title: 'Record Keeping',
+          body:
+            'All illness absences are logged in the Pelikn Fitness to Work daily declarations. Managers must retain these records for a minimum of 3 years. Any outbreak-level illness affecting 2 or more staff members in a 48-hour period must be reported to the local EHO immediately.',
+        },
+      ].map((section, i) => (
+        <div key={i} className="bg-white rounded-2xl border border-charcoal/10 p-5">
+          <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-2">{section.title}</p>
+          <p className="text-sm text-charcoal/70 leading-relaxed whitespace-pre-line">{section.body}</p>
+        </div>
+      ))}
+
+      {policy?.updated_at && (
+        <p className="text-[11px] text-charcoal/30 text-right -mt-2">
+          Last saved {format(new Date(policy.updated_at), 'd MMM yyyy, HH:mm')}
+        </p>
+      )}
+
+      <div className="flex gap-3">
+        <button onClick={save} disabled={saving}
+          className="flex-1 bg-charcoal text-cream py-3 rounded-xl text-sm font-semibold hover:bg-charcoal/90 transition-colors disabled:opacity-40">
+          {saving ? 'Saving…' : 'Save Policy'}
+        </button>
+        <button onClick={() => window.print()}
+          className="px-5 py-3 rounded-xl border border-charcoal/15 text-sm text-charcoal/60 hover:border-charcoal/30 hover:text-charcoal transition-colors">
+          Print
+        </button>
+      </div>
+    </div>
+  )
+}
+
+// ── Page ──────────────────────────────────────────────────────────────────────
 export default function FitnessPage() {
   const { venueId } = useVenue()
   const { session, isManager } = useSession()
@@ -424,6 +572,8 @@ export default function FitnessPage() {
 
   useEffect(() => { checkOwnDeclaration() }, [checkOwnDeclaration])
 
+  const [tab, setTab] = useState('declarations')
+
   if (checkingOwn) {
     return <div className="flex justify-center pt-20"><LoadingSpinner size="lg" /></div>
   }
@@ -441,30 +591,55 @@ export default function FitnessPage() {
         <span className="text-[11px] tracking-widest uppercase text-charcoal/30 border border-charcoal/15 rounded px-2 py-1">SC7</span>
       </div>
 
-      {/* Staff: show form OR summary */}
-      {!isManager && (
-        myDeclaration
-          ? <DeclarationSummary declaration={myDeclaration} />
-          : <StaffDeclarationForm session={session} venueId={venueId} onSaved={() => checkOwnDeclaration()} />
+      {/* Tabs — policy tab for managers only */}
+      {isManager && (
+        <div className="flex gap-1 bg-charcoal/5 rounded-xl p-1 w-fit">
+          {[
+            { id: 'declarations', label: 'Daily Declarations' },
+            { id: 'policy',       label: 'Illness Policy' },
+          ].map(t => (
+            <button
+              key={t.id}
+              onClick={() => setTab(t.id)}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                tab === t.id ? 'bg-white text-charcoal shadow-sm' : 'text-charcoal/50 hover:text-charcoal'
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
       )}
 
-      {/* Manager: always show own form + declarations panel */}
-      {isManager && (
+      {/* Policy tab */}
+      {isManager && tab === 'policy' && <IllnessPolicyTab venueId={venueId} />}
+
+      {/* Declarations content */}
+      {tab === 'declarations' && (
         <>
-          {/* Manager's own declaration */}
-          <div>
-            <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-3">Your declaration</p>
-            {myDeclaration
+          {/* Staff: show form OR summary */}
+          {!isManager && (
+            myDeclaration
               ? <DeclarationSummary declaration={myDeclaration} />
               : <StaffDeclarationForm session={session} venueId={venueId} onSaved={() => checkOwnDeclaration()} />
-            }
-          </div>
+          )}
 
-          {/* All staff declarations */}
-          <div>
-            <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-3">Team declarations</p>
-            <ManagerDeclarationsView venueId={venueId} />
-          </div>
+          {/* Manager: own declaration + team panel */}
+          {isManager && (
+            <>
+              <div>
+                <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-3">Your declaration</p>
+                {myDeclaration
+                  ? <DeclarationSummary declaration={myDeclaration} />
+                  : <StaffDeclarationForm session={session} venueId={venueId} onSaved={() => checkOwnDeclaration()} />
+                }
+              </div>
+              <div>
+                <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-3">Team declarations</p>
+                <ManagerDeclarationsView venueId={venueId} />
+              </div>
+            </>
+          )}
         </>
       )}
     </div>
