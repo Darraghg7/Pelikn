@@ -51,6 +51,11 @@ const FoodItemFormPage     = lazy(() => import('./pages/allergens/FoodItemFormPa
 const FoodItemDetailPage   = lazy(() => import('./pages/allergens/FoodItemDetailPage'))
 const AllergenPublicPage   = lazy(() => import('./pages/allergens/AllergenPublicPage'))
 
+// PPDS / Natasha's Law
+const PPDSItemsPage    = lazy(() => import('./pages/allergens/PPDSItemsPage'))
+const PPDSItemFormPage = lazy(() => import('./pages/allergens/PPDSItemFormPage'))
+const PPDSLabelPage    = lazy(() => import('./pages/allergens/PPDSLabelPage'))
+
 // Cleaning
 const CleaningPage = lazy(() => import('./pages/cleaning/CleaningPage'))
 
@@ -96,7 +101,11 @@ const ClockInPage = lazy(() => import('./pages/clockin/ClockInPage'))
 const NoticeBoardPage = lazy(() => import('./pages/noticeboard/NoticeBoardPage'))
 
 // HACCP
-const HACCPPage = lazy(() => import('./pages/haccp/HACCPPage'))
+const HACCPPage       = lazy(() => import('./pages/haccp/HACCPPage'))
+const HACCPWizardPage = lazy(() => import('./pages/haccp/HACCPWizardPage'))
+
+// Recall & Withdrawal
+const RecallPage = lazy(() => import('./pages/recall/RecallPage'))
 
 // Suppliers (approved)
 const SuppliersPage = lazy(() => import('./pages/suppliers/SuppliersPage'))
@@ -348,8 +357,12 @@ function VenueRoutes() {
             <Route path="fridge"            element={wrap(FridgeDashboardPage)} />
             <Route path="fridge/log"        element={wrap(FridgeLogFormPage)} />
             <Route path="fridge/history"    element={wrap(FridgeHistoryPage)} />
-            <Route path="allergens"         element={wrap(AllergenRegistryPage)} />
-            <Route path="allergens/:id"     element={wrap(FoodItemDetailPage)} />
+            <Route path="allergens"                    element={wrap(AllergenRegistryPage)} />
+            <Route path="allergens/ppds"             element={wrapPerm(PPDSItemsPage,    'manage_allergens')} />
+            <Route path="allergens/ppds/new"         element={wrapPerm(PPDSItemFormPage, 'manage_allergens')} />
+            <Route path="allergens/ppds/:id/edit"    element={wrapPerm(PPDSItemFormPage, 'manage_allergens')} />
+            <Route path="allergens/ppds/:id/label"   element={wrapPerm(PPDSLabelPage,    'manage_allergens')} />
+            <Route path="allergens/:id"              element={wrap(FoodItemDetailPage)} />
             <Route path="checks"            element={wrap(ChecksHubPage, RequireManager)} />
             <Route path="checks/worklist"   element={wrap(ChecksWorklistPage, RequireManager)} />
             <Route path="cleaning"          element={wrap(CleaningPage)} />
@@ -362,7 +375,8 @@ function VenueRoutes() {
             <Route path="time-off"          element={wrapPro(TimeOffPage, RequireAuth, 'time-off')} />
 
             {/* Manager only */}
-            <Route path="haccp"              element={wrapPro(HACCPPage,            RequireManager, 'haccp')} />
+            <Route path="haccp"              element={wrapPro(HACCPWizardPage,      RequireManager, 'haccp')} />
+            <Route path="recall"             element={wrap(RecallPage,              RequireManager)} />
             <Route path="suppliers"          element={wrap(SuppliersPage,          RequireManager)} />
             <Route path="eho-mock"           element={wrapPro(EHOMockPage,         RequireManager, 'eho-mock')} />
             <Route path="fitness"            element={wrap(FitnessPage,            RequireManager)} />

@@ -389,25 +389,31 @@ export default function ClockPanel({ staffId, hasShift = true, compact = false }
   }
 
   const handleAcknowledge = async (reason) => {
-    if (!alert?.clockEventId) { setAlert(null); return }
+    const current = alert
+    setAlert(null) // always close immediately — never leave staff trapped
 
-    supabase.rpc('acknowledge_clock_alert', {
-      p_clock_event_id:  alert.clockEventId,
+    if (!current?.clockEventId) return
+
+    // Acknowledge in the background; fallback to direct update if RPC missing
+    const { error } = await supabase.rpc('acknowledge_clock_alert', {
+      p_clock_event_id:  current.clockEventId,
       p_alert_reason:    reason,
-      p_strike_number:   alert.strikeCount,
-      p_mins_over:       alert.minsOver,
-      p_offence_type:    alert.type,
+      p_strike_number:   current.strikeCount,
+      p_mins_over:       current.minsOver,
+      p_offence_type:    current.type,
       p_is_disciplinary: true,
-    }).catch(() => {})
-
-    // If live break overrun, end the break now
-    if (alert.type === 'break_overrun' && alert.breakStillActive) {
-      setAlert(null)
-      await record('break_end')
-      return
+    })
+    if (error) {
+      supabase
+        .from('clock_events')
+        .update({ acknowledged_at: new Date().toISOString() })
+        .eq('id', current.clockEventId)
+        .catch(() => {})
     }
 
-    setAlert(null)
+    if (current.type === 'break_overrun' && current.breakStillActive) {
+      await record('break_end')
+    }
   }
 
   const cfg = STATUS_CONFIG[status] ?? STATUS_CONFIG.clocked_out

@@ -104,7 +104,17 @@ export default function AllergenRegistryPage() {
     <div className="flex flex-col gap-6">
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-2xl font-bold text-charcoal">Allergen Checklists</h1>
+        <div className="flex items-center gap-4">
+          <h1 className="text-2xl font-bold text-charcoal">Allergen Checklists</h1>
+          {isManager && (
+            <Link
+              to={`/v/${venueSlug}/allergens/ppds`}
+              className="text-xs px-3 py-1.5 rounded-lg border border-charcoal/15 text-charcoal/50 hover:text-charcoal hover:border-charcoal/30 transition-colors"
+            >
+              PPDS / Natasha's Law →
+            </Link>
+          )}
+        </div>
         <input
           type="search"
           placeholder="Search…"

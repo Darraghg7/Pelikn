@@ -84,7 +84,7 @@ function useCertRecords(venueId) {
       .from('staff_training')
       .select('*, staff:staff_id(id, name, job_role, photo_url)')
       .eq('venue_id', venueId)
-      .order('created_at', { ascending: false })
+      .order('expiry_date', { ascending: true, nullsFirst: false })
     setRecords(data ?? [])
     setLoading(false)
   }, [venueId])
@@ -538,8 +538,30 @@ function CertificatesTab({ venueId }) {
     byStaff[name].push(r)
   }
 
+  const expiredCount  = records.filter(r => certStatus(r) === 'expired').length
+  const expiringCount = records.filter(r => certStatus(r) === 'expiring').length
+
   return (
     <div className="flex flex-col gap-5">
+
+      {/* Expiry alert banner */}
+      {(expiredCount > 0 || expiringCount > 0) && (
+        <div className={`rounded-xl px-5 py-4 flex items-start gap-3 border ${expiredCount > 0 ? 'bg-danger/8 border-danger/20' : 'bg-warning/8 border-warning/20'}`}>
+          <svg className={`w-4 h-4 mt-0.5 shrink-0 ${expiredCount > 0 ? 'text-danger' : 'text-warning'}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          <div>
+            <p className={`text-sm font-semibold ${expiredCount > 0 ? 'text-danger' : 'text-warning'}`}>
+              {[
+                expiredCount  > 0 && `${expiredCount} certificate${expiredCount  !== 1 ? 's' : ''} expired`,
+                expiringCount > 0 && `${expiringCount} expiring within 30 days`,
+              ].filter(Boolean).join(' · ')}
+            </p>
+            <p className={`text-xs mt-0.5 ${expiredCount > 0 ? 'text-danger/70' : 'text-warning/70'}`}>
+              Renew certificates below to ensure EHO records are up to date.
+            </p>
+          </div>
+        </div>
+      )}
+
       <div className="flex justify-end">
         <button
           onClick={() => setShowForm(f => !f)}

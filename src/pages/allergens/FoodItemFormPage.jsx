@@ -25,6 +25,8 @@ export default function FoodItemFormPage() {
   const [name, setName]               = useState('')
   const [description, setDescription] = useState('')
   const [allergens, setAllergens]     = useState([])
+  const [mayContain, setMayContain]   = useState([])
+  const [verbalNote, setVerbalNote]   = useState('')
   const [submitting, setSubmitting]   = useState(false)
 
   useEffect(() => {
@@ -32,11 +34,18 @@ export default function FoodItemFormPage() {
       setName(item.name)
       setDescription(item.description ?? '')
       setAllergens(item.food_allergens?.map((a) => a.allergen) ?? [])
+      setMayContain(item.may_contain_allergens ?? [])
+      setVerbalNote(item.verbal_confirmation_note ?? '')
     }
   }, [item])
 
   const toggleAllergen = (a) =>
     setAllergens((prev) =>
+      prev.includes(a) ? prev.filter((x) => x !== a) : [...prev, a]
+    )
+
+  const toggleMayContain = (a) =>
+    setMayContain((prev) =>
       prev.includes(a) ? prev.filter((x) => x !== a) : [...prev, a]
     )
 
@@ -54,12 +63,22 @@ export default function FoodItemFormPage() {
         p_allergens:     allergens,
       })
       if (itemErr) { toast(itemErr.message, 'error'); setSubmitting(false); return }
+      await supabase.from('food_items').update({
+        may_contain_allergens:    mayContain.length > 0 ? mayContain : null,
+        verbal_confirmation_note: verbalNote.trim() || null,
+      }).eq('id', id).eq('venue_id', venueId)
       toast('Item updated')
       navigate(`/v/${venueSlug}/allergens/${id}`)
     } else {
       const { data: newItem, error: itemErr } = await supabase
         .from('food_items')
-        .insert({ name, description: description || null, venue_id: venueId })
+        .insert({
+          name,
+          description:              description || null,
+          venue_id:                 venueId,
+          may_contain_allergens:    mayContain.length > 0 ? mayContain : null,
+          verbal_confirmation_note: verbalNote.trim() || null,
+        })
         .select()
         .single()
       if (itemErr) { toast(itemErr.message, 'error'); setSubmitting(false); return }
@@ -118,7 +137,7 @@ export default function FoodItemFormPage() {
         </div>
 
         <div className="bg-white rounded-2xl border-charcoal/10 p-5">
-          <SectionLabel>Allergens (select all that apply)</SectionLabel>
+          <SectionLabel>Contains (select all that apply)</SectionLabel>
           <div className="grid grid-cols-2 gap-2">
             {EU_ALLERGENS.map((a) => (
               <label
@@ -139,6 +158,47 @@ export default function FoodItemFormPage() {
                 <span className="font-medium">{a}</span>
               </label>
             ))}
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl border-charcoal/10 p-5 flex flex-col gap-4">
+          <div>
+            <SectionLabel>May Contain — cross-contamination risk</SectionLabel>
+            <p className="text-xs text-charcoal/40 mb-3 -mt-1">
+              Allergens that may be present due to shared equipment or preparation areas.
+            </p>
+            <div className="grid grid-cols-2 gap-2">
+              {EU_ALLERGENS.map((a) => (
+                <label
+                  key={a}
+                  className={[
+                    'flex items-center gap-3 px-4 py-2.5 rounded-lg border cursor-pointer transition-all text-sm',
+                    mayContain.includes(a)
+                      ? 'bg-warning/10 text-warning border-warning/40'
+                      : 'bg-white text-charcoal border-charcoal/12 hover:border-charcoal/30',
+                  ].join(' ')}
+                >
+                  <input
+                    type="checkbox"
+                    className="sr-only"
+                    checked={mayContain.includes(a)}
+                    onChange={() => toggleMayContain(a)}
+                  />
+                  <span className="font-medium">{a}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[11px] tracking-widest uppercase text-charcoal/40">
+              Verbal Guidance Note (optional)
+            </label>
+            <input
+              value={verbalNote}
+              onChange={(e) => setVerbalNote(e.target.value)}
+              placeholder="e.g. Please inform staff before ordering if you have a nut allergy"
+              className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 bg-white text-charcoal placeholder-charcoal/25 text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+            />
           </div>
         </div>
 

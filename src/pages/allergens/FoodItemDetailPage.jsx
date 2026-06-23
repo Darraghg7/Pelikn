@@ -37,8 +37,10 @@ export default function FoodItemDetailPage() {
   const toast             = useToast()
   const navigate          = useNavigate()
 
-  const allergens = item?.food_allergens?.map((a) => a.allergen) ?? []
-  const absent    = EU_ALLERGENS.filter((a) => !allergens.includes(a))
+  const allergens   = item?.food_allergens?.map((a) => a.allergen) ?? []
+  const mayContain  = item?.may_contain_allergens ?? []
+  const verbalNote  = item?.verbal_confirmation_note ?? null
+  const absent      = EU_ALLERGENS.filter((a) => !allergens.includes(a) && !mayContain.includes(a))
 
   const handleDelete = async () => {
     if (!confirm(`Delete "${item.name}"?`)) return
@@ -103,6 +105,23 @@ export default function FoodItemDetailPage() {
           </div>
         )}
       </div>
+
+      {/* May Contain */}
+      {mayContain.length > 0 && (
+        <div className="bg-white rounded-2xl border-charcoal/10 p-5">
+          <SectionLabel>May Contain — cross-contamination risk</SectionLabel>
+          <div className="flex flex-wrap gap-2">
+            {mayContain.map((a) => (
+              <span key={a} className="inline-block px-3 py-1 rounded-full text-xs font-medium border bg-amber-50 border-amber-200 text-amber-800">
+                {a}
+              </span>
+            ))}
+          </div>
+          {verbalNote && (
+            <p className="mt-3 text-xs text-charcoal/50 italic">{verbalNote}</p>
+          )}
+        </div>
+      )}
 
       {/* Does not contain */}
       <div className="bg-white rounded-2xl border-charcoal/10 p-5">
