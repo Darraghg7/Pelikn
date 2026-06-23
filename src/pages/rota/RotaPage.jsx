@@ -174,9 +174,10 @@ function EHWheel({ values, value, onChange }) {
           return (
             <div key={v}
               onClick={() => { ref.current.scrollTo({ top: i * WHEEL_IH, behavior: 'smooth' }); onChange(v) }}
+              className="font-mono tabular-nums"
               style={{
                 height: WHEEL_IH, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                scrollSnapAlign: 'center', cursor: 'pointer', fontFamily: "'Geist Mono',ui-monospace,monospace",
+                scrollSnapAlign: 'center', cursor: 'pointer',
                 fontVariantNumeric: 'tabular-nums',
                 fontSize: on ? 23 : 18, fontWeight: on ? 600 : 500,
                 color: on ? '#0d1a14' : '#b3b9b5', transition: 'font-size .1s, color .1s',

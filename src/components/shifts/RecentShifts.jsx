@@ -70,10 +70,10 @@ function ConfirmDialog({ onConfirm, onCancel, saving }) {
           </svg>
         </div>
 
-        <h2 style={{ fontSize: 17, fontWeight: 700, color: '#0d1a14', margin: '0 0 8px' }}>
+        <h2 className="text-[17px] font-bold text-charcoal" style={{ margin: '0 0 8px' }}>
           Your manager will be notified
         </h2>
-        <p style={{ fontSize: 14, color: '#76817b', lineHeight: 1.5, margin: '0 0 24px' }}>
+        <p className="text-sm text-charcoal/50 leading-relaxed" style={{ margin: '0 0 24px' }}>
           This change won't take effect until your manager reviews and approves it.
           Your original hours will remain until then.
         </p>
@@ -81,23 +81,15 @@ function ConfirmDialog({ onConfirm, onCancel, saving }) {
         <button
           onClick={onConfirm}
           disabled={saving}
-          style={{
-            width: '100%', padding: '14px 0', borderRadius: 12, border: 'none',
-            background: '#13362a', color: '#fff', fontSize: 15, fontWeight: 600,
-            cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.6 : 1,
-            marginBottom: 10,
-          }}
+          className="w-full text-[15px] font-semibold text-white bg-brand rounded-xl py-3.5 border-none disabled:opacity-60 disabled:cursor-not-allowed mb-2.5"
+          style={{ cursor: saving ? 'not-allowed' : 'pointer' }}
         >
           {saving ? 'Submitting…' : 'Submit for approval'}
         </button>
         <button
           onClick={onCancel}
           disabled={saving}
-          style={{
-            width: '100%', padding: '12px 0', borderRadius: 12, border: 'none',
-            background: 'transparent', color: '#76817b', fontSize: 14, fontWeight: 500,
-            cursor: 'pointer',
-          }}
+          className="w-full text-sm font-medium text-charcoal/50 bg-transparent rounded-xl py-3 border-none cursor-pointer"
         >
           Go back
         </button>

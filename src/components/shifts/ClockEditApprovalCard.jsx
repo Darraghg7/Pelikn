@@ -41,7 +41,7 @@ function DenySheet({ onDeny, onCancel }) {
         }}
         onClick={e => e.stopPropagation()}
       >
-        <p style={{ fontSize: 15, fontWeight: 700, color: '#0d1a14', marginBottom: 12 }}>
+        <p className="text-[15px] font-bold text-charcoal" style={{ marginBottom: 12 }}>
           Deny this request
         </p>
         <textarea
@@ -49,18 +49,19 @@ function DenySheet({ onDeny, onCancel }) {
           onChange={e => setNote(e.target.value)}
           placeholder="Reason for denying (optional — staff will see this)"
           rows={3}
+          className="text-sm text-charcoal resize-none outline-none w-full"
           style={{
-            width: '100%', borderRadius: 10, border: '1px solid #e4e6e2',
-            padding: '10px 12px', fontSize: 14, color: '#0d1a14',
-            resize: 'none', outline: 'none', boxSizing: 'border-box', marginBottom: 14,
+            borderRadius: 10, border: '1px solid #e4e6e2',
+            padding: '10px 12px', boxSizing: 'border-box', marginBottom: 14,
           }}
         />
         <div style={{ display: 'flex', gap: 8 }}>
           <button
             onClick={onCancel}
+            className="text-sm font-medium cursor-pointer border-none"
             style={{
-              flex: 1, padding: '12px 0', borderRadius: 11, border: 'none',
-              background: '#f3f3ef', color: '#76817b', fontSize: 14, fontWeight: 500, cursor: 'pointer',
+              flex: 1, padding: '12px 0', borderRadius: 11,
+              background: '#f3f3ef', color: '#76817b',
             }}
           >
             Cancel
@@ -68,10 +69,11 @@ function DenySheet({ onDeny, onCancel }) {
           <button
             disabled={saving}
             onClick={async () => { setSaving(true); await onDeny(note); setSaving(false) }}
+            className="text-sm font-semibold text-white border-none disabled:opacity-60"
             style={{
-              flex: 1, padding: '12px 0', borderRadius: 11, border: 'none',
-              background: '#b3331c', color: '#fff', fontSize: 14, fontWeight: 600,
-              cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.6 : 1,
+              flex: 1, padding: '12px 0', borderRadius: 11,
+              background: '#b3331c',
+              cursor: saving ? 'not-allowed' : 'pointer',
             }}
           >
             {saving ? 'Denying…' : 'Deny'}
@@ -146,19 +148,12 @@ export default function ClockEditApprovalCard({ compact = false }) {
           padding: '12px 16px 8px',
           borderBottom: '1px solid #eef0ec',
         }}>
-          <span style={{
-            fontFamily: "'Geist Mono', ui-monospace, monospace",
-            fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase',
-            color: '#76817b', fontWeight: 600,
-          }}>
+          <span className="font-mono text-[9.5px] tracking-[0.1em] uppercase font-semibold" style={{ color: '#76817b' }}>
             Hour Edit Requests
           </span>
-          <span style={{
-            minWidth: 18, height: 18, borderRadius: 999,
-            background: '#a85d12', color: '#fff',
-            fontSize: 10, fontWeight: 700,
-            display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 5px',
-          }}>
+          <span className="text-[10px] font-bold text-white flex items-center justify-center"
+            style={{ minWidth: 18, height: 18, borderRadius: 999, background: '#a85d12', padding: '0 5px' }}
+          >
             {requests.length}
           </span>
         </div>
@@ -174,13 +169,10 @@ export default function ClockEditApprovalCard({ compact = false }) {
           >
             {/* Staff name + date */}
             <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 6 }}>
-              <span style={{ fontSize: 14, fontWeight: 600, color: '#0d1a14' }}>
+              <span className="text-sm font-semibold text-charcoal">
                 {r.staff?.name ?? 'Staff member'}
               </span>
-              <span style={{
-                fontFamily: "'Geist Mono', ui-monospace, monospace",
-                fontSize: 10, color: '#b3b9b5', letterSpacing: '0.05em',
-              }}>
+              <span className="font-mono text-[10px] tracking-[0.05em]" style={{ color: '#b3b9b5' }}>
                 {fmtDate(r.requested_clock_in)}
               </span>
             </div>
@@ -189,11 +181,8 @@ export default function ClockEditApprovalCard({ compact = false }) {
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: r.reason ? 6 : 10, flexWrap: 'wrap' }}>
               {/* Original */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                <span style={{ fontSize: 11, color: '#b3b9b5' }}>Was</span>
-                <span style={{
-                  fontFamily: "'Geist Mono', ui-monospace, monospace",
-                  fontSize: 12, color: '#76817b', textDecoration: 'line-through',
-                }}>
+                <span className="text-[11px]" style={{ color: '#b3b9b5' }}>Was</span>
+                <span className="font-mono text-xs line-through" style={{ color: '#76817b' }}>
                   {fmt(r.original_clock_in)} → {fmt(r.original_clock_out)}
                 </span>
               </div>
@@ -203,14 +192,11 @@ export default function ClockEditApprovalCard({ compact = false }) {
               </svg>
               {/* Requested */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                <span style={{ fontSize: 11, color: '#76817b' }}>Wants</span>
-                <span style={{
-                  fontFamily: "'Geist Mono', ui-monospace, monospace",
-                  fontSize: 12, fontWeight: 600, color: '#0d1a14',
-                }}>
+                <span className="text-[11px]" style={{ color: '#76817b' }}>Wants</span>
+                <span className="font-mono text-xs font-semibold text-charcoal">
                   {fmt(r.requested_clock_in)} → {fmt(r.requested_clock_out)}
                   {r.break_minutes > 0 && (
-                    <span style={{ fontWeight: 400, color: '#76817b' }}> · {r.break_minutes}m break</span>
+                    <span className="font-normal" style={{ color: '#76817b' }}> · {r.break_minutes}m break</span>
                   )}
                 </span>
               </div>
@@ -218,7 +204,7 @@ export default function ClockEditApprovalCard({ compact = false }) {
 
             {/* Reason */}
             {r.reason && (
-              <p style={{ fontSize: 12, color: '#76817b', fontStyle: 'italic', marginBottom: 10, lineHeight: 1.4 }}>
+              <p className="text-xs italic" style={{ color: '#76817b', marginBottom: 10, lineHeight: 1.4 }}>
                 "{r.reason}"
               </p>
             )}
@@ -227,22 +213,21 @@ export default function ClockEditApprovalCard({ compact = false }) {
             <div style={{ display: 'flex', gap: 8 }}>
               <button
                 onClick={() => setDenyTarget(r.id)}
+                className="text-[13px] font-medium cursor-pointer"
                 style={{
                   flex: 1, padding: '9px 0', borderRadius: 9,
                   border: '1px solid #e4e6e2', background: '#fff',
-                  fontSize: 13, fontWeight: 500, color: '#76817b',
-                  cursor: 'pointer',
+                  color: '#76817b',
                 }}
               >
                 Deny
               </button>
               <button
                 onClick={() => approve(r.id)}
+                className="text-[13px] font-semibold text-white cursor-pointer border-none"
                 style={{
                   flex: 2, padding: '9px 0', borderRadius: 9,
-                  border: 'none', background: '#13362a',
-                  fontSize: 13, fontWeight: 600, color: '#fff',
-                  cursor: 'pointer',
+                  background: '#13362a',
                 }}
               >
                 Approve

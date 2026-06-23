@@ -10,6 +10,7 @@ function PanelItem({ item, isActive, onClick }) {
       aria-current={isActive ? 'page' : undefined}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
+      className={['font-sans text-[13px] text-left cursor-pointer transition-[background,color] duration-100', isActive ? 'font-medium' : 'font-[450]'].join(' ')}
       style={{
         display: 'flex', alignItems: 'center', gap: 10,
         width: 'calc(100% - 16px)', margin: '1px 8px',
@@ -17,10 +18,6 @@ function PanelItem({ item, isActive, onClick }) {
         background: isActive ? T.bgActive : hovered ? T.bgHover : 'transparent',
         border: isActive ? `1px solid rgba(255,255,255,0.10)` : '1px solid transparent',
         color: isActive ? T.inkBright : isWarn ? T.warn : T.ink,
-        fontSize: 13, fontWeight: isActive ? 500 : 450,
-        textAlign: 'left', cursor: 'pointer',
-        transition: 'background .1s, color .1s',
-        fontFamily: 'Plus Jakarta Sans, sans-serif',
       }}
     >
       <span style={{
@@ -38,24 +35,23 @@ function PanelItem({ item, isActive, onClick }) {
           {item.label}
         </span>
         {item.sub && (
-          <span style={{
-            display: 'block',
-            color: isActive ? 'rgba(243,237,224,0.55)' : T.inkFaint,
-            fontSize: 10.5, marginTop: 1,
-            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-          }}>
+          <span
+            className="block text-[10.5px] overflow-hidden text-ellipsis whitespace-nowrap"
+            style={{ color: isActive ? 'rgba(243,237,224,0.55)' : T.inkFaint, marginTop: 1 }}
+          >
             {item.sub}
           </span>
         )}
       </span>
       {item.badge > 0 && (
-        <span style={{
-          minWidth: 18, height: 17, padding: '0 5px', borderRadius: 8,
-          background: isWarn ? T.warnBg : 'rgba(255,255,255,0.12)',
-          color: isWarn ? T.warn : T.inkBright,
-          fontFamily: 'DM Mono, monospace', fontSize: 9.5, fontWeight: 700,
-          display: 'grid', placeItems: 'center',
-        }}>
+        <span
+          className="font-mono text-[9.5px] font-bold grid place-items-center"
+          style={{
+            minWidth: 18, height: 17, padding: '0 5px', borderRadius: 8,
+            background: isWarn ? T.warnBg : 'rgba(255,255,255,0.12)',
+            color: isWarn ? T.warn : T.inkBright,
+          }}
+        >
           {item.badge}
         </span>
       )}
@@ -108,27 +104,22 @@ function PanelVenueSwitcher({ venues, currentSlug, onSelect, onOverview }) {
         onClick={() => setOpen(v => !v)}
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
+        className="font-sans text-[11.5px] font-semibold cursor-pointer transition-[background,color,border-color] duration-[120ms] flex items-center gap-[7px] w-full"
         style={{
-          display: 'flex', alignItems: 'center', gap: 7, width: '100%',
           padding: '7px 10px', borderRadius: 8,
           background: open ? 'rgba(255,255,255,0.16)' : hovered ? 'rgba(255,255,255,0.14)' : 'rgba(255,255,255,0.09)',
           border: open ? '1px solid rgba(255,255,255,0.22)' : '1px solid rgba(255,255,255,0.12)',
           color: hovered || open ? T.inkBright : 'rgba(239,234,222,0.80)',
-          fontSize: 11.5, fontWeight: 600,
-          cursor: 'pointer', transition: 'background .12s, color .12s, border-color .12s',
-          fontFamily: 'Plus Jakarta Sans, sans-serif',
         }}
       >
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
           <path d="M8 9l4-4 4 4M16 15l-4 4-4-4"/>
         </svg>
         <span style={{ flex: 1, textAlign: 'left' }}>Switch venue</span>
-        <span style={{
-          fontSize: 9, opacity: 0.55,
-          display: 'inline-block',
-          transform: open ? 'rotate(180deg)' : 'rotate(0deg)',
-          transition: 'transform .2s',
-        }}>▾</span>
+        <span
+          className="text-[9px] opacity-55 inline-block transition-transform duration-200"
+          style={{ transform: open ? 'rotate(180deg)' : 'rotate(0deg)' }}
+        >▾</span>
       </button>
 
       {/* Dropdown */}
@@ -143,25 +134,18 @@ function PanelVenueSwitcher({ venues, currentSlug, onSelect, onOverview }) {
         opacity: open ? 1 : 0,
         transition: 'max-height 220ms cubic-bezier(0.4,0,0.2,1), opacity 150ms',
         pointerEvents: open ? 'auto' : 'none',
-        overflow: 'hidden',
       }}>
-        <p style={{
-          padding: '9px 12px 6px',
-          fontFamily: 'DM Mono, monospace', fontSize: 9,
-          letterSpacing: '0.12em', textTransform: 'uppercase',
-          color: 'rgba(14,20,17,0.40)', fontWeight: 600,
-        }}>
+        <p
+          className="font-mono text-[9px] font-semibold uppercase tracking-[0.12em]"
+          style={{ padding: '9px 12px 6px', color: 'rgba(14,20,17,0.40)' }}
+        >
           Your venues
         </p>
         {/* Group Overview link */}
         <button
           onClick={() => { setOpen(false); onOverview?.() }}
-          style={{
-            display: 'block', width: '100%', textAlign: 'left',
-            padding: '8px 12px', fontSize: 12.5, fontWeight: 700,
-            color: '#2D4F45', background: 'none', border: 'none',
-            cursor: 'pointer', fontFamily: 'Plus Jakarta Sans, sans-serif',
-          }}
+          className="font-sans block w-full text-left text-[12.5px] font-bold cursor-pointer border-none"
+          style={{ padding: '8px 12px', color: '#2D4F45', background: 'none' }}
           onMouseEnter={e => e.currentTarget.style.background = 'rgba(45,79,69,0.06)'}
           onMouseLeave={e => e.currentTarget.style.background = 'none'}
         >
@@ -174,16 +158,11 @@ function PanelVenueSwitcher({ venues, currentSlug, onSelect, onOverview }) {
             <button
               key={v.id}
               onClick={() => { setOpen(false); onSelect(v.slug) }}
+              className={['font-sans flex items-center gap-2 w-full text-left text-[12.5px] border-none cursor-pointer transition-[background] duration-100', isCurrent ? 'font-bold' : 'font-[450]'].join(' ')}
               style={{
-                display: 'flex', alignItems: 'center', gap: 8,
-                width: '100%', textAlign: 'left',
-                padding: '8px 12px', fontSize: 12.5,
-                fontWeight: isCurrent ? 700 : 450,
+                padding: '8px 12px',
                 color: isCurrent ? '#2D4F45' : 'rgba(14,20,17,0.65)',
                 background: isCurrent ? 'rgba(45,79,69,0.06)' : 'none',
-                border: 'none', cursor: 'pointer',
-                fontFamily: 'Plus Jakarta Sans, sans-serif',
-                transition: 'background .1s',
               }}
               onMouseEnter={e => { if (!isCurrent) e.currentTarget.style.background = 'rgba(14,20,17,0.04)' }}
               onMouseLeave={e => { if (!isCurrent) e.currentTarget.style.background = 'none' }}
@@ -243,35 +222,33 @@ export default function NavPanel({
   }, [cat.id])
 
   return (
-    <div style={{
-      width: 260, background: T.bgPanel, color: T.ink,
-      display: 'flex', flexDirection: 'column',
-      borderRight: '1px solid rgba(0,0,0,0.12)',
-      flexShrink: 0,
-      position: 'fixed', top: 0, height: '100vh', left: 80,
-      zIndex: 39,
-      fontFamily: 'Plus Jakarta Sans, sans-serif',
-    }}>
+    <div
+      className="font-sans"
+      style={{
+        width: 260, background: T.bgPanel, color: T.ink,
+        display: 'flex', flexDirection: 'column',
+        borderRight: '1px solid rgba(0,0,0,0.12)',
+        flexShrink: 0,
+        position: 'fixed', top: 0, height: '100vh', left: 80,
+        zIndex: 39,
+      }}
+    >
       {/* Header */}
       <header style={{ padding: '18px 18px 14px', borderBottom: `1px solid ${T.divider}` }}>
         {/* Category mono label row */}
-        <div style={{
-          display: 'flex', alignItems: 'center', gap: 7, marginBottom: 6,
-          fontFamily: 'DM Mono, monospace', fontSize: 9.5,
-          letterSpacing: '0.12em', color: T.inkFaint,
-          textTransform: 'uppercase', fontWeight: 600,
-        }}>
+        <div
+          className="font-mono text-[9.5px] font-semibold uppercase tracking-[0.12em] flex items-center gap-[7px]"
+          style={{ color: T.inkFaint, marginBottom: 6 }}
+        >
           <span style={{ width: 11, height: 11, display: 'inline-flex', opacity: 0.7 }}>
             {cat.icon}
           </span>
           {cat.label}
           {isPreview && (
-            <span style={{
-              marginLeft: 'auto', padding: '2px 7px', borderRadius: 5,
-              background: 'rgba(196,99,64,0.18)', color: T.warn,
-              fontSize: 9, fontWeight: 700, letterSpacing: '0.08em',
-              fontFamily: 'DM Mono, monospace',
-            }}>
+            <span
+              className="font-mono text-[9px] font-bold tracking-[0.08em] ml-auto"
+              style={{ padding: '2px 7px', borderRadius: 5, background: 'rgba(196,99,64,0.18)', color: T.warn }}
+            >
               Browsing
             </span>
           )}
@@ -279,15 +256,15 @@ export default function NavPanel({
         </div>
 
         {/* Title */}
-        <div style={{
-          color: T.inkBright, fontSize: 19, fontWeight: 600,
-          letterSpacing: '-0.015em', lineHeight: 1.15,
-        }}>
+        <div
+          className="text-[19px] font-semibold tracking-[-0.015em] leading-[1.15]"
+          style={{ color: T.inkBright }}
+        >
           {panelTitle}
         </div>
 
         {/* Subtitle */}
-        <div style={{ color: T.inkMuted, fontSize: 11.5, marginTop: 3 }}>
+        <div className="text-[11.5px]" style={{ color: T.inkMuted, marginTop: 3 }}>
           {panelSubtitle}
         </div>
 

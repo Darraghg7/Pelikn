@@ -123,16 +123,13 @@ function ReasonChips({ type, selected, onSelect }) {
             key={r}
             type="button"
             onClick={() => onSelect(selected === r ? null : r)}
+            className="text-[13px] font-medium cursor-pointer transition-all duration-150"
             style={{
               border: `1.5px solid ${selected === r ? INK2 : LINE}`,
               background: selected === r ? INK : 'transparent',
               color: selected === r ? '#fff' : INK2,
               borderRadius: 20,
               padding: '6px 14px',
-              fontSize: 13,
-              fontWeight: 500,
-              cursor: 'pointer',
-              transition: 'all 0.15s',
             }}
           >
             {r}
@@ -261,13 +258,13 @@ export default function StaffAlertModal({
           </p>
 
           {/* H1 */}
-          <h1 style={{ fontSize: 22, fontWeight: 600, letterSpacing: '-0.022em', color: INK, margin: 0, lineHeight: 1.2 }}>
+          <h1 className="text-[22px] font-semibold tracking-[-0.022em] leading-[1.2]" style={{ color: INK, margin: 0 }}>
             {heading}
           </h1>
 
           {/* Big mono number */}
           <div>
-            <span className="font-mono" style={{ fontSize: 34, fontWeight: 500, color: tone.fg, lineHeight: 1 }}>
+            <span className="font-mono text-[34px] font-medium leading-none" style={{ color: tone.fg }}>
               {minsOver >= 1 ? `${minsOver} min` : '< 1 min'}
             </span>
             <span className="font-mono text-[13px] ml-2" style={{ color: INK3 }}>
@@ -292,7 +289,7 @@ export default function StaffAlertModal({
           </div>
 
           {/* Body line */}
-          <p style={{ fontSize: 13.5, color: INK2, lineHeight: 1.5, margin: 0 }}>
+          <p className="text-[13.5px] leading-relaxed" style={{ color: INK2, margin: 0 }}>
             {isLate
               ? `Your shift starts at ${scheduledTime}. Any clock-in after your start time is logged as late.`
               : `Your break allowance is ${breakAllowanceMins} minutes. Time over your allowance is logged on your timesheet.`
@@ -302,13 +299,12 @@ export default function StaffAlertModal({
           {/* Escalation banner */}
           {showBanner && (
             <div
+              className="text-[13px] font-semibold"
               style={{
                 borderRadius: 10,
                 padding: '10px 14px',
                 background: bannerSevere ? '#7a1d0c' : TONES.bad.bg,
                 color: bannerSevere ? '#fff' : TONES.bad.fg,
-                fontSize: 13,
-                fontWeight: 600,
               }}
             >
               {bannerSevere
@@ -331,28 +327,15 @@ export default function StaffAlertModal({
           <button
             type="button"
             onClick={handleSubmitClick}
-            style={{
-              width: '100%',
-              height: 50,
-              borderRadius: 13,
-              background: '#13362a',
-              color: '#fff',
-              fontWeight: 700,
-              fontSize: 15,
-              border: 'none',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 8,
-            }}
+            className="w-full flex items-center justify-center gap-2 text-[15px] font-bold text-white bg-brand border-none cursor-pointer"
+            style={{ height: 50, borderRadius: 13 }}
           >
             <CheckIcon />
             {isLate ? 'I understand' : 'End break now'}
           </button>
 
           {/* Footnote */}
-          <p className="font-mono text-center" style={{ fontSize: 11, color: INK3, margin: 0 }}>
+          <p className="font-mono text-center text-[11px]" style={{ color: INK3, margin: 0 }}>
             Clock-in times are recorded on your timesheet.
           </p>
         </div>

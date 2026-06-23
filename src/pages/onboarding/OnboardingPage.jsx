@@ -425,7 +425,7 @@ export default function OnboardingPage() {
           <span className={`text-[10px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-md ${isPro ? 'bg-accent/12 text-accent' : 'bg-brand/9 text-brand'}`}>
             {isPro ? 'Pro' : 'Starter'}
           </span>
-          <div className="flex items-center gap-1 text-charcoal/30" style={{ fontFamily: 'DM Mono, monospace', fontSize: 9.5 }}>
+          <div className="flex items-center gap-1 text-charcoal/30 font-mono text-[9.5px]">
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
             Secure setup
           </div>
@@ -443,12 +443,11 @@ export default function OnboardingPage() {
                   <button
                     onClick={() => { if (i < step) setStep(i) }}
                     className={[
-                      'w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold border-none shrink-0 transition-all',
+                      'w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold font-mono border-none shrink-0 transition-all',
                       state === 'done' ? 'bg-brand text-white cursor-pointer' :
                       state === 'cur'  ? 'bg-brand text-white shadow-[0_0_0_4px_rgba(45,79,69,0.15)]' :
                                          'bg-charcoal/12 text-charcoal/40 cursor-default',
                     ].join(' ')}
-                    style={{ fontFamily: 'DM Mono, monospace' }}
                   >
                     {state === 'done'
                       ? <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg>
@@ -515,7 +514,7 @@ export default function OnboardingPage() {
                 if (allPro && !isPro) {
                   return (
                     <div key={group.id} className="mb-5">
-                      <p className="text-[9.5px] tracking-[0.12em] uppercase text-charcoal/40 mb-1.5 flex items-center gap-2 px-0.5" style={{ fontFamily: 'DM Mono, monospace' }}>
+                      <p className="font-mono text-[9.5px] tracking-[0.12em] uppercase text-charcoal/40 mb-1.5 flex items-center gap-2 px-0.5">
                         {group.label}
                         <span className="text-[8.5px] font-bold tracking-widest uppercase px-1.5 py-0.5 rounded bg-accent/12 text-accent">Pro only</span>
                       </p>
@@ -557,7 +556,7 @@ export default function OnboardingPage() {
 
                 return (
                   <div key={group.id} className="mb-5">
-                    <p className="text-[9.5px] tracking-[0.12em] uppercase text-charcoal/40 mb-1.5 px-0.5" style={{ fontFamily: 'DM Mono, monospace' }}>
+                    <p className="font-mono text-[9.5px] tracking-[0.12em] uppercase text-charcoal/40 mb-1.5 px-0.5">
                       {group.label}
                     </p>
                     <div className="bg-white rounded-2xl border border-charcoal/10 overflow-hidden">
@@ -572,7 +571,7 @@ export default function OnboardingPage() {
                               <p className={`text-sm ${isProLocked ? 'text-charcoal/40' : 'text-charcoal'}`}>
                                 {feature.label}
                                 {isProLocked && (
-                                  <span className="ml-1.5 text-[9px] font-bold tracking-widest uppercase text-accent" style={{ fontFamily: 'DM Mono, monospace' }}>
+                                  <span className="font-mono ml-1.5 text-[9px] font-bold tracking-widest uppercase text-accent">
                                     PRO
                                   </span>
                                 )}
@@ -850,7 +849,7 @@ export default function OnboardingPage() {
                 </div>
               )}
               <div className="bg-white rounded-[14px] border border-charcoal/8 p-[18px] mt-[18px] text-left">
-                <p className="text-[9.5px] tracking-[0.12em] uppercase text-charcoal/40 mb-2.5" style={{ fontFamily: 'DM Mono, monospace' }}>
+                <p className="font-mono text-[9.5px] tracking-[0.12em] uppercase text-charcoal/40 mb-2.5">
                   Setup summary
                 </p>
                 {[

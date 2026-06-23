@@ -266,15 +266,13 @@ function SlidingVenueTabs({ venues, activeSlug, onSelect, onAdd }) {
               key={v.slug}
               ref={el => { btnRefs.current[v.slug] = el }}
               onClick={() => onSelect(v.slug)}
-              className="relative flex-shrink-0 border-none whitespace-nowrap font-semibold transition-colors"
+              className="relative flex-shrink-0 border-none whitespace-nowrap font-semibold transition-colors text-[12.5px] cursor-pointer"
               style={{
                 zIndex: 1,
                 padding: '7px 14px',
                 borderRadius: 9,
                 background: 'transparent',
                 color: isActive ? '#ffffff' : 'rgba(28,47,42,0.5)',
-                fontSize: 12.5,
-                cursor: 'pointer',
                 transition: 'color 0.18s',
               }}
             >

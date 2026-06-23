@@ -28,7 +28,7 @@ export function ComplianceGauge({ score }) {
   const offset = circ - (circ * score / 100)
 
   return (
-    <svg width="112" height="112" viewBox="0 0 112 112" style={{ flexShrink: 0 }}>
+    <svg width="112" height="112" viewBox="0 0 112 112" style={{ flexShrink: 0 }} fontFamily="Geist,ui-sans-serif,sans-serif">
       {/* Track */}
       <circle cx={cx} cy={cy} r={r} fill="none" stroke="rgba(26,26,24,0.07)" strokeWidth="11" />
       {/* Progress arc */}
@@ -45,12 +45,12 @@ export function ComplianceGauge({ score }) {
       />
       {/* Score number */}
       <text x={cx} y={cy - 2} textAnchor="middle" dominantBaseline="middle"
-        fontSize="24" fontWeight="700" fontFamily="DM Sans,sans-serif" fill={tier.color}>
+        fontSize="24" fontWeight="700" fill={tier.color}>
         {score}
       </text>
       {/* /100 sub-label */}
       <text x={cx} y={cy + 17} textAnchor="middle" dominantBaseline="middle"
-        fontSize="10" fill="rgba(26,26,24,0.35)" fontFamily="DM Sans,sans-serif">
+        fontSize="10" fill="rgba(26,26,24,0.35)">
         /100
       </text>
     </svg>

@@ -433,11 +433,7 @@ export default function MobileNav() {
         }}>
           <NavLink
             to={HUB_ROUTES[activeTab.key]}
-            style={{
-              display: 'inline-flex', alignItems: 'center', gap: 6,
-              color: '#13362a', fontSize: 13, fontWeight: 600,
-              textDecoration: 'none',
-            }}
+            className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-brand no-underline"
           >
             <svg width="7" height="12" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
               <path d="M5 1L1 5l4 4"/>

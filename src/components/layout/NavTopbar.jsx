@@ -3,36 +3,28 @@ import { T } from './navConfig'
 
 export default function NavTopbar({ venueName, catLabel, itemLabel }) {
   return (
-    <div style={{
-      position: 'sticky', top: 0, zIndex: 5, height: 52,
-      background: 'rgba(240,239,235,0.88)',
-      backdropFilter: 'saturate(160%) blur(10px)',
-      WebkitBackdropFilter: 'saturate(160%) blur(10px)',
-      borderBottom: `1px solid ${T.mainLine}`,
-      padding: '0 24px',
-      display: 'flex', alignItems: 'center', gap: 12,
-      fontFamily: 'Plus Jakarta Sans, sans-serif',
-    }}>
+    <div
+      className="font-sans sticky top-0 z-[5] h-[52px] flex items-center gap-3 px-6"
+      style={{
+        background: 'rgba(240,239,235,0.88)',
+        backdropFilter: 'saturate(160%) blur(10px)',
+        WebkitBackdropFilter: 'saturate(160%) blur(10px)',
+        borderBottom: `1px solid ${T.mainLine}`,
+      }}
+    >
       {/* Breadcrumb */}
-      <div style={{
-        display: 'flex', alignItems: 'center', gap: 6,
-        fontSize: 12.5, color: T.mainInk3,
-        minWidth: 0, flex: 1,
-      }}>
-        <span style={{ whiteSpace: 'nowrap', flexShrink: 0 }}>{venueName || 'Venue'}</span>
+      <div className="flex items-center gap-1.5 text-[12.5px] flex-1 min-w-0" style={{ color: T.mainInk3 }}>
+        <span className="whitespace-nowrap shrink-0">{venueName || 'Venue'}</span>
         {catLabel && (
           <>
-            <span style={{ color: T.mainInk4, flexShrink: 0 }}>/</span>
-            <span style={{ color: T.mainInk2, whiteSpace: 'nowrap', flexShrink: 0 }}>{catLabel}</span>
+            <span className="shrink-0" style={{ color: T.mainInk4 }}>/</span>
+            <span className="whitespace-nowrap shrink-0" style={{ color: T.mainInk2 }}>{catLabel}</span>
           </>
         )}
         {itemLabel && (
           <>
-            <span style={{ color: T.mainInk4, flexShrink: 0 }}>/</span>
-            <b style={{
-              color: T.mainInk, fontWeight: 500,
-              overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-            }}>
+            <span className="shrink-0" style={{ color: T.mainInk4 }}>/</span>
+            <b className="font-medium overflow-hidden text-ellipsis whitespace-nowrap" style={{ color: T.mainInk }}>
               {itemLabel}
             </b>
           </>
@@ -40,13 +32,14 @@ export default function NavTopbar({ venueName, catLabel, itemLabel }) {
       </div>
 
       {/* Export placeholder */}
-      <button style={{
-        display: 'inline-flex', alignItems: 'center', gap: 7,
-        padding: '6px 11px', fontSize: 12.5, fontWeight: 500,
-        background: T.paperWhite, border: `1px solid ${T.mainLine}`,
-        borderRadius: 8, color: T.mainInk, cursor: 'pointer',
-        flexShrink: 0, fontFamily: 'Plus Jakarta Sans, sans-serif',
-      }}>
+      <button
+        className="font-sans inline-flex items-center gap-[7px] text-[12.5px] font-medium shrink-0 cursor-pointer rounded-lg"
+        style={{
+          padding: '6px 11px',
+          background: T.paperWhite, border: `1px solid ${T.mainLine}`,
+          color: T.mainInk,
+        }}
+      >
         Export
       </button>
     </div>

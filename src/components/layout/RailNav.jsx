@@ -16,22 +16,23 @@ function BrandMark({ initial, notifCount, onClick }) {
         outline: 'none',
       }}
     >
-      <div style={{
-        width: 40, height: 40, borderRadius: 10,
-        background: hovered ? T.inkMuted : T.inkBright, color: T.bg,
-        display: 'grid', placeItems: 'center',
-        fontWeight: 700, fontSize: 15, letterSpacing: '-0.02em', position: 'relative',
-        fontFamily: 'Plus Jakarta Sans, sans-serif',
-        transition: 'background .12s',
-      }}>
+      <div
+        className="font-sans font-bold text-[15px] tracking-[-0.02em] grid place-items-center relative transition-[background] duration-[120ms]"
+        style={{
+          width: 40, height: 40, borderRadius: 10,
+          background: hovered ? T.inkMuted : T.inkBright, color: T.bg,
+        }}
+      >
         {initial}
         {notifCount > 0 && (
-          <span style={{
-            position: 'absolute', top: -3, right: -4, minWidth: 15, height: 15, padding: '0 4px',
-            borderRadius: 8, background: T.alertRed, color: '#fff',
-            fontFamily: 'DM Mono, monospace', fontSize: 9, fontWeight: 700,
-            display: 'grid', placeItems: 'center', border: `1.5px solid ${T.bg}`,
-          }}>{notifCount}</span>
+          <span
+            className="font-mono text-[9px] font-bold text-white grid place-items-center absolute"
+            style={{
+              top: -3, right: -4, minWidth: 15, height: 15, padding: '0 4px',
+              borderRadius: 8, background: T.alertRed,
+              border: `1.5px solid ${T.bg}`,
+            }}
+          >{notifCount}</span>
         )}
       </div>
     </button>
@@ -76,19 +77,18 @@ function RailTile({ cat, isActive, isCurrent, onClick }) {
           }} />
         )}
       </span>
-      <span style={{
-        fontSize: 10.5,
-        fontWeight: isActive ? 500 : 450,
-        letterSpacing: '-0.003em',
-        lineHeight: 1,
-      }}>{cat.label}</span>
+      <span className={['text-[10.5px] tracking-[-0.003em] leading-none', isActive ? 'font-medium' : 'font-[450]'].join(' ')}>
+        {cat.label}
+      </span>
       {cat.alert > 0 && !isActive && (
-        <span style={{
-          position: 'absolute', top: 6, right: 8, minWidth: 14, height: 14, padding: '0 4px',
-          borderRadius: 7, background: T.accent, color: '#fff',
-          fontFamily: 'DM Mono, monospace', fontSize: 9, fontWeight: 700,
-          display: 'grid', placeItems: 'center', border: `1.5px solid ${T.bg}`,
-        }}>{cat.alert}</span>
+        <span
+          className="font-mono text-[9px] font-bold text-white grid place-items-center absolute"
+          style={{
+            top: 6, right: 8, minWidth: 14, height: 14, padding: '0 4px',
+            borderRadius: 7, background: T.accent,
+            border: `1.5px solid ${T.bg}`,
+          }}
+        >{cat.alert}</span>
       )}
     </button>
   )
@@ -121,7 +121,7 @@ function SettingsTile({ isActive, onClick }) {
       <span style={{ width: 18, height: 18, opacity: isActive || hovered ? 1 : 0.72, display: 'inline-flex' }}>
         <IcoCogNav />
       </span>
-      <span style={{ fontSize: 10.5, fontWeight: isActive ? 500 : 450, letterSpacing: '-0.003em', lineHeight: 1 }}>
+      <span className={['text-[10.5px] tracking-[-0.003em] leading-none', isActive ? 'font-medium' : 'font-[450]'].join(' ')}>
         Settings
       </span>
     </button>
@@ -138,29 +138,27 @@ export default function Rail({
   const venueInitial = (venueName || 'S')[0].toUpperCase()
 
   return (
-    <aside style={{
-      width: 80, background: T.bg, color: T.ink,
-      display: 'flex', flexDirection: 'column',
-      padding: '14px 8px 12px',
-      borderRight: `1px solid ${T.divider}`,
-      flexShrink: 0,
-      position: 'fixed', top: 0, height: '100vh', left: 0,
-      zIndex: 40,
-      fontFamily: 'Plus Jakarta Sans, sans-serif',
-    }}
+    <aside
+      className="font-sans"
+      style={{
+        width: 80, background: T.bg, color: T.ink,
+        display: 'flex', flexDirection: 'column',
+        padding: '14px 8px 12px',
+        borderRight: `1px solid ${T.divider}`,
+        flexShrink: 0,
+        position: 'fixed', top: 0, height: '100vh', left: 0,
+        zIndex: 40,
+      }}
     aria-label="Category navigation"
     >
       {/* Brand mark */}
       <BrandMark initial={venueInitial} notifCount={notifCount} onClick={onClickBrand} />
 
       {/* Venue mono label */}
-      <div style={{
-        textAlign: 'center', fontSize: 9, color: T.inkFaint,
-        fontFamily: 'DM Mono, monospace', letterSpacing: '0.09em',
-        textTransform: 'uppercase', marginBottom: 12, fontWeight: 500,
-        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-        padding: '0 4px',
-      }}>
+      <div
+        className="font-mono text-[9px] font-medium uppercase tracking-[0.09em] text-center overflow-hidden text-ellipsis whitespace-nowrap"
+        style={{ color: T.inkFaint, marginBottom: 12, padding: '0 4px' }}
+      >
         {(venueName || 'Venue').slice(0, 8)}
       </div>
 
@@ -197,14 +195,10 @@ export default function Rail({
         paddingTop: 10, borderTop: `1px solid ${T.divider}`,
       }}>
         {/* Avatar */}
-        <div style={{
-          width: 32, height: 32, borderRadius: 8,
-          background: T.inkBright, color: T.bg,
-          display: 'grid', placeItems: 'center',
-          fontWeight: 600, fontSize: 12,
-          fontFamily: 'Plus Jakarta Sans, sans-serif',
-          flexShrink: 0,
-        }}>
+        <div
+          className="font-sans font-semibold text-xs grid place-items-center shrink-0"
+          style={{ width: 32, height: 32, borderRadius: 8, background: T.inkBright, color: T.bg }}
+        >
           {initials || venueInitial}
         </div>
 
