@@ -158,7 +158,7 @@ export default function FridgeHistoryPage() {
                               {formatTemp(log.temperature)}
                             </span>
                             {oor && (
-                              <span className={`text-[10px] font-semibold tracking-wide px-1.5 py-0.5 rounded-full ${
+                              <span className={`text-[11px] font-semibold tracking-wide px-1.5 py-0.5 rounded-full ${
                                 explained ? 'bg-warning/15 text-warning' : 'bg-danger/12 text-danger'
                               }`}>
                                 {log.exceedance_reason ? REASON_LABELS[log.exceedance_reason] : <span className="flex items-center gap-0.5"><svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> No reason</span>}
@@ -167,7 +167,7 @@ export default function FridgeHistoryPage() {
                             {isManager && oor && !isEditing && (
                               <button
                                 onClick={(e) => { e.stopPropagation(); setEditingId(log.id) }}
-                                className={`text-[10px] px-2 py-0.5 rounded-full border transition-colors ${
+                                className={`text-[11px] px-2 py-0.5 rounded-full border transition-colors ${
                                   explained
                                     ? 'border-charcoal/15 text-charcoal/35 hover:border-charcoal/30 hover:text-charcoal/60'
                                     : 'border-danger/25 text-danger/60 hover:border-danger/50 hover:text-danger'
@@ -216,7 +216,7 @@ export default function FridgeHistoryPage() {
                                   >
                                     <span className="shrink-0 text-charcoal/50">{EXCEEDANCE_ICONS[r.id]}</span>
                                     <span>{r.label}</span>
-                                    {r.explained && <span className="text-[9px] text-success font-bold">NO PENALTY</span>}
+                                    {r.explained && <span className="text-[11px] text-success font-bold">NO PENALTY</span>}
                                   </button>
                                 ))}
                                 <button

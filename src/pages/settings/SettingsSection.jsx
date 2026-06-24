@@ -13,7 +13,7 @@ export default function SettingsSection({ title, subtitle, children, defaultOpen
           <div className="flex items-center gap-2">
             <p className="text-[11px] font-bold tracking-widest uppercase text-charcoal/60 dark:text-white/50">{title}</p>
             {locked && (
-              <span className="text-[9px] tracking-widest uppercase font-bold bg-accent/10 text-accent px-1.5 py-0.5 rounded-full">Pro</span>
+              <span className="text-[11px] tracking-widest uppercase font-bold bg-accent/10 text-accent px-1.5 py-0.5 rounded-full">Pro</span>
             )}
           </div>
           {subtitle && <p className="text-xs text-charcoal/40 dark:text-white/30 mt-0.5 truncate">{subtitle}</p>}

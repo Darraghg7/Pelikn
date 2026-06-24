@@ -21,7 +21,7 @@ export default function ProgressBar({ step, hasExtraVenues }) {
               }`}>
                 {done ? <IconCheck size={13} color="white" /> : i + 1}
               </div>
-              <span className={`text-[10px] tracking-wide whitespace-nowrap transition-colors ${active ? 'text-brand font-medium' : 'text-charcoal/35'}`}>
+              <span className={`text-[11px] tracking-wide whitespace-nowrap transition-colors ${active ? 'text-brand font-medium' : 'text-charcoal/35'}`}>
                 {label}
               </span>
             </div>

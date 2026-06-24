@@ -7,7 +7,7 @@ import { useAppSettings } from '../../hooks/useSettings'
 
 function GroupLabel({ label }) {
   return (
-    <div className="font-mono text-[10.5px] font-semibold tracking-[0.08em] uppercase text-charcoal/50 px-0.5 pt-3 pb-1.5">
+    <div className="font-mono text-[11px] font-semibold tracking-[0.08em] uppercase text-charcoal/50 px-0.5 pt-3 pb-1.5">
       {label}
     </div>
   )
@@ -34,7 +34,7 @@ function SRow({ icon, label, sub, value, attention, last, onClick, danger }) {
       </span>
       <div className="flex-1 min-w-0 py-3">
         <div className={`text-sm font-medium tracking-[-0.005em] leading-snug ${danger ? 'text-danger' : 'text-charcoal'}`}>{label}</div>
-        {sub && <div className={`font-mono text-[10.5px] mt-0.5 leading-[1.4] ${attention ? 'text-warning' : 'text-charcoal/50'}`}>{sub}</div>}
+        {sub && <div className={`font-mono text-[11px] mt-0.5 leading-[1.4] ${attention ? 'text-warning' : 'text-charcoal/50'}`}>{sub}</div>}
       </div>
       {value && <span className="font-mono text-[11px] text-charcoal/50 shrink-0">{value}</span>}
       {onClick && (
@@ -166,7 +166,7 @@ export default function SettingsHubPage() {
         Sign out
       </button>
 
-      <div className="text-center font-mono text-[10px] text-charcoal/30 tracking-[0.08em] pt-3">
+      <div className="text-center font-mono text-[11px] text-charcoal/30 tracking-[0.08em] pt-3">
         Pelikn
       </div>
     </div>

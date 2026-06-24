@@ -83,7 +83,7 @@ function StatusPill({ status, text }) {
   }
   const { toneBg, toneFg } = toneMap[status] ?? toneMap.na
   return (
-    <span className={`inline-flex items-center gap-1 px-[7px] py-[2px] rounded-full font-mono text-[10px] font-semibold tracking-[0.04em] uppercase whitespace-nowrap ${toneBg} ${toneFg}`}>
+    <span className={`inline-flex items-center gap-1 px-[7px] py-[2px] rounded-full font-mono text-[11px] font-semibold tracking-[0.04em] uppercase whitespace-nowrap ${toneBg} ${toneFg}`}>
       {status !== 'na' && <span className="w-[5px] h-[5px] rounded-full bg-current shrink-0" />}
       {text}
     </span>
@@ -130,7 +130,7 @@ function HubCard({ check, statusInfo, onClick, editMode, isHidden, onToggle }) {
 
       <div className="mt-auto">
         <div className="text-sm font-semibold tracking-[-0.01em] text-charcoal">{check.label}</div>
-        <div className={`font-mono text-[10.5px] mt-0.5 font-semibold tracking-[0.02em] uppercase ${statusTextClass}`}>
+        <div className={`font-mono text-[11px] mt-0.5 font-semibold tracking-[0.02em] uppercase ${statusTextClass}`}>
           {editMode ? (isHidden ? 'Hidden' : 'Visible') : statusText}
         </div>
       </div>
@@ -189,7 +189,7 @@ export default function ChecksHubPage() {
 
       <div className="mb-[10px]">
         <div className="flex justify-between items-center">
-          <span className="font-mono text-[10.5px] text-charcoal/50 tracking-[0.08em] uppercase">Checks</span>
+          <span className="font-mono text-[11px] text-charcoal/50 tracking-[0.08em] uppercase">Checks</span>
           <button
             onClick={editMode ? handleDone : handleEdit}
             className={`font-mono text-[11.5px] font-semibold tracking-[0.04em] bg-transparent border-none cursor-pointer py-0.5 px-0 ${editMode ? 'text-success' : 'text-charcoal/50'}`}
@@ -213,7 +213,7 @@ export default function ChecksHubPage() {
           className="w-full text-left bg-brand text-white rounded-[14px] px-4 py-3.5 flex items-center gap-3.5 mb-3.5 hover:bg-brand/90 transition-colors border-none cursor-pointer"
         >
           <div className="flex-1 min-w-0">
-            <div className="font-mono text-[10px] tracking-[0.1em] uppercase text-white/55 font-semibold">Today</div>
+            <div className="font-mono text-[11px] tracking-[0.1em] uppercase text-white/55 font-semibold">Today</div>
             <div className="text-base font-semibold tracking-[-0.015em] mt-[3px]">
               {isLoading
                 ? 'Loading…'
@@ -238,7 +238,7 @@ export default function ChecksHubPage() {
               </div>
             )}
           </div>
-          <span className="shrink-0 inline-flex items-center gap-1.5 font-mono text-[10px] tracking-[0.06em] uppercase font-semibold text-white/85">
+          <span className="shrink-0 inline-flex items-center gap-1.5 font-mono text-[11px] tracking-[0.06em] uppercase font-semibold text-white/85">
             View all
             <svg width="6" height="10" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
               <path d="M1 1l4 4-4 4"/>

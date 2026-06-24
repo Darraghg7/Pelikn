@@ -177,7 +177,7 @@ export default function AllergenProcedurePage() {
             { key: 'eho_contact',         label: 'Local EHO contact',   placeholder: 'Name and phone of your local Environmental Health Officer' },
           ].map(f => (
             <div key={f.key} className="flex flex-col gap-1">
-              <label className="text-[10px] tracking-widest uppercase text-charcoal/30">{f.label}</label>
+              <label className="text-[11px] tracking-widest uppercase text-charcoal/30">{f.label}</label>
               <input
                 value={meta[f.key]}
                 onChange={e => setMeta(m => ({ ...m, [f.key]: e.target.value }))}

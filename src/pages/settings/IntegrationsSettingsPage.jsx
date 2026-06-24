@@ -76,7 +76,7 @@ export default function IntegrationsSettingsPage() {
               <div className="text-sm font-semibold text-charcoal">{item.name}</div>
               <div className="text-xs text-charcoal/50 mt-0.5 leading-[1.4]">{item.description}</div>
             </div>
-            <span className="shrink-0 py-[3px] px-[9px] rounded-full bg-charcoal/6 font-mono text-[9.5px] font-semibold text-charcoal/30 tracking-[0.05em] uppercase">Soon</span>
+            <span className="shrink-0 py-[3px] px-[9px] rounded-full bg-charcoal/6 font-mono text-[11px] font-semibold text-charcoal/30 tracking-[0.05em] uppercase">Soon</span>
           </div>
         ))}
       </div>

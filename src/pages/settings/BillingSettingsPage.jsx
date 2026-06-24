@@ -34,7 +34,7 @@ export default function BillingSettingsPage() {
       <div className="px-4 pt-4 pb-24 max-w-[480px] mx-auto">
 
         <div className="bg-brand rounded-[14px] p-[18px] pb-4 mb-[14px] text-white">
-          <div className="font-mono text-[10px] tracking-[0.1em] uppercase text-white/55 font-semibold">Current plan</div>
+          <div className="font-mono text-[11px] tracking-[0.1em] uppercase text-white/55 font-semibold">Current plan</div>
           <div className="flex items-baseline gap-[10px] mt-2">
             <span className="text-[28px] font-bold tracking-[-0.02em]">{isPro ? 'Pro' : 'Starter'}</span>
             <span className="text-[13px] text-white/60">{isPro ? `${PRO_PRICE}/mo` : `${STARTER_PRICE}/mo`}</span>
@@ -65,7 +65,7 @@ export default function BillingSettingsPage() {
         )}
 
         <div className="bg-white dark:bg-[#1e1e1e] border border-charcoal/10 rounded-[14px] px-4 py-[14px]">
-          <div className="font-mono text-[10px] text-charcoal/50 tracking-[0.06em] uppercase font-semibold mb-2">Add another venue</div>
+          <div className="font-mono text-[11px] text-charcoal/50 tracking-[0.06em] uppercase font-semibold mb-2">Add another venue</div>
           <div className="text-[13px] text-charcoal/50 leading-[1.5]">
             Each additional venue is {EXTRA_VENUE_PRICE}/mo on your current plan.
           </div>
@@ -77,7 +77,7 @@ export default function BillingSettingsPage() {
           </a>
         </div>
 
-        <div className="font-mono text-[10.5px] text-charcoal/30 text-center mt-5 leading-[1.5]">
+        <div className="font-mono text-[11px] text-charcoal/30 text-center mt-5 leading-[1.5]">
           To cancel or modify your subscription, email{' '}
           <a href="mailto:hello@pelikn.com" className="text-brand">hello@pelikn.com</a>
         </div>

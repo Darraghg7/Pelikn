@@ -64,7 +64,7 @@ function Group({ label, children, foot }) {
   return (
     <div>
       {label && (
-        <div className="font-mono text-[10.5px] font-semibold tracking-[0.08em] uppercase text-charcoal/50 px-0.5 pb-1.5">{label}</div>
+        <div className="font-mono text-[11px] font-semibold tracking-[0.08em] uppercase text-charcoal/50 px-0.5 pb-1.5">{label}</div>
       )}
       <div className="bg-white dark:bg-[#1e1e1e] border border-charcoal/10 rounded-[14px] overflow-hidden">
         {children}
@@ -132,7 +132,7 @@ export default function HubTilesPage() {
         </Group>
 
         <div>
-          <div className="font-mono text-[10.5px] font-semibold tracking-[0.08em] uppercase text-charcoal/50 px-0.5 pb-1.5">Modules</div>
+          <div className="font-mono text-[11px] font-semibold tracking-[0.08em] uppercase text-charcoal/50 px-0.5 pb-1.5">Modules</div>
           <div className="bg-white dark:bg-[#1e1e1e] border border-charcoal/10 rounded-[14px] overflow-hidden py-1">
             <div className="px-[14px] py-2">
               <div className="inline-flex bg-charcoal/6 rounded-[9px] p-[3px] gap-0.5 mb-3">
@@ -180,7 +180,7 @@ export default function HubTilesPage() {
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-1.5">
                                   <div className={`text-[13px] font-medium ${on ? 'text-charcoal' : 'text-charcoal/50'}`}>{feature.label}</div>
-                                  {locked && <span className="font-mono text-[9px] font-bold text-[#d97706] bg-[#fffbeb] px-[5px] py-0.5 rounded uppercase tracking-[0.04em]">Pro</span>}
+                                  {locked && <span className="font-mono text-[11px] font-bold text-[#d97706] bg-[#fffbeb] px-[5px] py-0.5 rounded uppercase tracking-[0.04em]">Pro</span>}
                                 </div>
                                 <div className="text-[11px] text-charcoal/50 mt-px">{feature.description}</div>
                               </div>
@@ -215,7 +215,7 @@ export default function HubTilesPage() {
         </div>
 
         <div>
-          <div className="font-mono text-[10.5px] font-semibold tracking-[0.08em] uppercase text-charcoal/50 px-0.5 pb-1.5">Navigation order</div>
+          <div className="font-mono text-[11px] font-semibold tracking-[0.08em] uppercase text-charcoal/50 px-0.5 pb-1.5">Navigation order</div>
           <div className="bg-white dark:bg-[#1e1e1e] border border-charcoal/10 rounded-[14px] overflow-hidden py-1">
             <NavOrderSection
               isEnabled={isEnabled}

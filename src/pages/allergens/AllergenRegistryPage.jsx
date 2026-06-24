@@ -229,7 +229,7 @@ export default function AllergenRegistryPage() {
                     <div className="flex items-center gap-2 min-w-0">
                       <p className={`font-medium text-sm truncate ${item.is_active ? 'text-charcoal' : 'text-charcoal/35'}`}>{item.name}</p>
                       {!item.is_active && (
-                        <span className="text-[10px] uppercase tracking-widest text-charcoal/30 border border-charcoal/10 rounded-full px-1.5 py-0.5 shrink-0">Off QR</span>
+                        <span className="text-[11px] uppercase tracking-widest text-charcoal/30 border border-charcoal/10 rounded-full px-1.5 py-0.5 shrink-0">Off QR</span>
                       )}
                     </div>
                     <p className="text-xs text-charcoal/40 truncate mt-0.5">

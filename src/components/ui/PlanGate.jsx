@@ -39,7 +39,7 @@ export default function PlanGate({ feature, children }) {
         </svg>
       </div>
 
-      <span className="text-[10px] tracking-widest uppercase font-semibold text-accent bg-accent/10 px-2.5 py-0.5 rounded-full mb-3">
+      <span className="text-[11px] tracking-widest uppercase font-semibold text-accent bg-accent/10 px-2.5 py-0.5 rounded-full mb-3">
         Pro Plan
       </span>
 

@@ -26,7 +26,7 @@ function BrandMark({ initial, notifCount, onClick }) {
         {initial}
         {notifCount > 0 && (
           <span
-            className="font-mono text-[9px] font-bold text-white grid place-items-center absolute"
+            className="font-mono text-[11px] font-bold text-white grid place-items-center absolute"
             style={{
               top: -3, right: -4, minWidth: 15, height: 15, padding: '0 4px',
               borderRadius: 8, background: T.alertRed,
@@ -77,12 +77,12 @@ function RailTile({ cat, isActive, isCurrent, onClick }) {
           }} />
         )}
       </span>
-      <span className={['text-[10.5px] tracking-[-0.003em] leading-none', isActive ? 'font-medium' : 'font-[450]'].join(' ')}>
+      <span className={['text-[11px] tracking-[-0.003em] leading-none', isActive ? 'font-medium' : 'font-[450]'].join(' ')}>
         {cat.label}
       </span>
       {cat.alert > 0 && !isActive && (
         <span
-          className="font-mono text-[9px] font-bold text-white grid place-items-center absolute"
+          className="font-mono text-[11px] font-bold text-white grid place-items-center absolute"
           style={{
             top: 6, right: 8, minWidth: 14, height: 14, padding: '0 4px',
             borderRadius: 7, background: T.accent,
@@ -121,7 +121,7 @@ function SettingsTile({ isActive, onClick }) {
       <span style={{ width: 18, height: 18, opacity: isActive || hovered ? 1 : 0.72, display: 'inline-flex' }}>
         <IcoCogNav />
       </span>
-      <span className={['text-[10.5px] tracking-[-0.003em] leading-none', isActive ? 'font-medium' : 'font-[450]'].join(' ')}>
+      <span className={['text-[11px] tracking-[-0.003em] leading-none', isActive ? 'font-medium' : 'font-[450]'].join(' ')}>
         Settings
       </span>
     </button>
@@ -156,7 +156,7 @@ export default function Rail({
 
       {/* Venue mono label */}
       <div
-        className="font-mono text-[9px] font-medium uppercase tracking-[0.09em] text-center overflow-hidden text-ellipsis whitespace-nowrap"
+        className="font-mono text-[11px] font-medium uppercase tracking-[0.09em] text-center overflow-hidden text-ellipsis whitespace-nowrap"
         style={{ color: T.inkFaint, marginBottom: 12, padding: '0 4px' }}
       >
         {(venueName || 'Venue').slice(0, 8)}

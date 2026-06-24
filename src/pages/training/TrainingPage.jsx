@@ -207,7 +207,7 @@ function CreateSignOffModal({ staff, venueId, managerName, managerStaffId, onSav
                 <label key={t} className="flex items-start gap-2.5 cursor-pointer group">
                   <span
                     onClick={() => toggleTopic(t)}
-                    className={`mt-0.5 w-4 h-4 rounded border shrink-0 flex items-center justify-center text-[10px] transition-colors ${
+                    className={`mt-0.5 w-4 h-4 rounded border shrink-0 flex items-center justify-center text-[11px] transition-colors ${
                       form.topics.includes(t)
                         ? 'bg-charcoal border-charcoal text-cream'
                         : 'border-charcoal/25 group-hover:border-charcoal/50'
@@ -803,7 +803,7 @@ function AllergenComplianceTab({ venueId }) {
               </div>
               {cert && <StatusBadge status={status} />}
               {!cert && (
-                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full border bg-danger/8 text-danger border-danger/20">
+                <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full border bg-danger/8 text-danger border-danger/20">
                   Missing
                 </span>
               )}

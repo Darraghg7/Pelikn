@@ -51,7 +51,7 @@ export default function StepPlan({ selected, onSelect, extraVenues, onExtraVenue
               <IconCheck size={12} color="white" />
             </span>
           )}
-          <p className="text-[10px] tracking-widest uppercase font-semibold text-brand mb-2">Starter</p>
+          <p className="text-[11px] tracking-widest uppercase font-semibold text-brand mb-2">Starter</p>
           <div className="flex items-baseline gap-1 mb-1">
             <span className="text-2xl font-bold text-charcoal">{STARTER_PRICE}</span>
             <span className="text-charcoal/40 text-sm">/month</span>
@@ -81,7 +81,7 @@ export default function StepPlan({ selected, onSelect, extraVenues, onExtraVenue
         >
           {/* Most popular badge */}
           <div className="absolute -top-3 left-0 right-0 flex justify-center">
-            <span className="inline-flex items-center gap-1 bg-accent text-cream text-[10px] tracking-widest uppercase font-semibold px-3 py-0.5 rounded-full">
+            <span className="inline-flex items-center gap-1 bg-accent text-cream text-[11px] tracking-widest uppercase font-semibold px-3 py-0.5 rounded-full">
               <IconSpark />
               Most Popular
             </span>
@@ -93,7 +93,7 @@ export default function StepPlan({ selected, onSelect, extraVenues, onExtraVenue
             </span>
           )}
 
-          <p className="text-[10px] tracking-widest uppercase font-semibold text-accent mb-2 mt-2">Pro</p>
+          <p className="text-[11px] tracking-widest uppercase font-semibold text-accent mb-2 mt-2">Pro</p>
           <div className="flex items-baseline gap-1 mb-1">
             <span className="text-2xl font-bold text-accent">{PRO_PRICE}</span>
             <span className="text-charcoal/40 text-sm">/month</span>
@@ -164,7 +164,7 @@ export default function StepPlan({ selected, onSelect, extraVenues, onExtraVenue
             <div>
               <div className="flex items-center gap-2 mb-0.5">
                 <p className="text-sm font-semibold text-charcoal">QR Table Cards</p>
-                <span className="text-[10px] tracking-widest uppercase font-semibold text-brand bg-brand/8 px-2 py-0.5 rounded-full">Add-on</span>
+                <span className="text-[11px] tracking-widest uppercase font-semibold text-brand bg-brand/8 px-2 py-0.5 rounded-full">Add-on</span>
               </div>
               <p className="text-xs text-charcoal/50 leading-relaxed">
                 Generate printable allergen QR cards for your tables. Customers scan to view your live allergen matrix — with your logo.
