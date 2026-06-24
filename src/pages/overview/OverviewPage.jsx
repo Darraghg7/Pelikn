@@ -69,7 +69,7 @@ function VenueCard({ result, isHome, dimmed, onOpen }) {
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       onClick={() => !dimmed && onOpen(venue.slug)}
-      className="bg-white dark:bg-[#1e1e1e] rounded-2xl border border-charcoal/8 overflow-hidden flex flex-col"
+      className="bg-white dark:bg-paperDark rounded-2xl border border-charcoal/8 overflow-hidden flex flex-col"
       style={{
         cursor: dimmed ? 'default' : 'pointer',
         opacity: dimmed ? 0.20 : 1,
@@ -244,7 +244,7 @@ export default function OverviewPage() {
         </p>
       </div>
 
-      <div className="bg-white dark:bg-[#1e1e1e] rounded-2xl border border-charcoal/8 flex overflow-hidden mb-4">
+      <div className="bg-white dark:bg-paperDark rounded-2xl border border-charcoal/8 flex overflow-hidden mb-4">
         {STRIP_CELLS.map((cell, i) => (
           <StripCell
             key={cell.key}
@@ -259,7 +259,7 @@ export default function OverviewPage() {
       </div>
 
       {activeFilter && activeCell && (
-        <div className="bg-white dark:bg-[#1e1e1e] rounded-xl border border-charcoal/8 px-3.5 py-[9px] flex items-center gap-2.5 mb-4 animate-[fadeSlideIn_150ms_ease]">
+        <div className="bg-white dark:bg-paperDark rounded-xl border border-charcoal/8 px-3.5 py-[9px] flex items-center gap-2.5 mb-4 animate-[fadeSlideIn_150ms_ease]">
           <span className={`w-[7px] h-[7px] rounded-full shrink-0 ${activeCell.barClass}`} />
           <span className="text-xs font-semibold text-charcoal flex-1">
             {filterLabels[activeFilter]}
@@ -284,7 +284,7 @@ export default function OverviewPage() {
           />
         ))}
         {loading && results.length === 0 && allVenues.map(v => (
-          <div key={v.id} className="h-[220px] bg-white dark:bg-[#1e1e1e] rounded-2xl border border-charcoal/8 animate-pulse" />
+          <div key={v.id} className="h-[220px] bg-white dark:bg-paperDark rounded-2xl border border-charcoal/8 animate-pulse" />
         ))}
       </div>
 

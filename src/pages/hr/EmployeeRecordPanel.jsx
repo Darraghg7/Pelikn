@@ -110,7 +110,7 @@ export function Badge({ tone, children, dot }) {
 
 function SectionCard({ children, className }) {
   return (
-    <div className={`bg-white dark:bg-[#1e1e1e] border border-charcoal/10 rounded-[14px] overflow-hidden shadow-sm ${className ?? ''}`}>
+    <div className={`bg-white dark:bg-paperDark border border-charcoal/10 rounded-[14px] overflow-hidden shadow-sm ${className ?? ''}`}>
       {children}
     </div>
   )
@@ -147,7 +147,7 @@ function EmptyState({ icon, text }) {
 
 function MiniStat({ k, v, tone }) {
   return (
-    <div className="bg-white dark:bg-[#1e1e1e] border border-charcoal/10 rounded-[13px] px-3.5 py-[11px] shadow-sm">
+    <div className="bg-white dark:bg-paperDark border border-charcoal/10 rounded-[13px] px-3.5 py-[11px] shadow-sm">
       <div className="font-mono text-[11px] uppercase tracking-[0.07em] text-charcoal/50 font-semibold">
         {k}
       </div>
@@ -188,7 +188,7 @@ function BtnDefault({ onClick, children, className }) {
   return (
     <button
       onClick={onClick}
-      className={`inline-flex items-center gap-[7px] px-3.5 py-[9px] rounded-[10px] cursor-pointer text-[12.5px] font-semibold whitespace-nowrap bg-white dark:bg-[#1e1e1e] text-charcoal/75 border border-charcoal/10 ${className ?? ''}`}
+      className={`inline-flex items-center gap-[7px] px-3.5 py-[9px] rounded-[10px] cursor-pointer text-[12.5px] font-semibold whitespace-nowrap bg-white dark:bg-paperDark text-charcoal/75 border border-charcoal/10 ${className ?? ''}`}
     >
       {children}
     </button>
@@ -376,7 +376,7 @@ function DocumentsTab({ staffId, venueId, onDocsCountChange }) {
                 <div className="flex gap-[7px] shrink-0">
                   <a
                     href={doc.file_url} target="_blank" rel="noopener noreferrer"
-                    className="inline-flex items-center gap-[7px] px-3 py-1.5 rounded-[10px] text-[11px] font-semibold whitespace-nowrap bg-white dark:bg-[#1e1e1e] text-charcoal/75 border border-charcoal/10 no-underline"
+                    className="inline-flex items-center gap-[7px] px-3 py-1.5 rounded-[10px] text-[11px] font-semibold whitespace-nowrap bg-white dark:bg-paperDark text-charcoal/75 border border-charcoal/10 no-underline"
                   >
                     View
                   </a>
@@ -596,7 +596,7 @@ function DisciplinaryTab({ staffId, venueId }) {
           <div>
             <label className="block font-mono text-[11px] uppercase tracking-[0.07em] text-charcoal/50 mb-1.5">Action type</label>
             <select value={form.action_type} onChange={e => setForm(f => ({ ...f, action_type: e.target.value }))}
-              className="w-full px-3 py-2.5 rounded-[10px] border border-charcoal/10 text-[13px] outline-none bg-white dark:bg-[#1e1e1e] box-border">
+              className="w-full px-3 py-2.5 rounded-[10px] border border-charcoal/10 text-[13px] outline-none bg-white dark:bg-paperDark box-border">
               {Object.entries(FORMAL_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
             </select>
           </div>
@@ -661,7 +661,7 @@ function LeaveTab({ staffId, venueSlug, staff }) {
           { k: 'Taken',     v: `${taken} days` },
           { k: 'Remaining', v: remaining != null ? `${remaining} days` : '—' },
         ].map(x => (
-          <div key={x.k} className="bg-white dark:bg-[#1e1e1e] border border-charcoal/10 rounded-[14px] px-4 py-[13px]">
+          <div key={x.k} className="bg-white dark:bg-paperDark border border-charcoal/10 rounded-[14px] px-4 py-[13px]">
             <div className="font-mono text-[11px] uppercase tracking-[0.07em] text-charcoal/50 font-semibold">{x.k}</div>
             <div className="text-xl font-semibold text-charcoal mt-[3px] font-mono tracking-[-0.02em]">{x.v}</div>
           </div>
@@ -962,7 +962,7 @@ export default function EmployeeRecordPanel({ staffId, venueId, venueSlug, onBac
           <button key={t} onClick={() => setTab(t)}
             className={`flex-1 py-2 px-1 border-0 cursor-pointer rounded-[9px] whitespace-nowrap font-mono text-[11px] tracking-[0.02em] transition-all duration-150 ${
               tab === t
-                ? 'bg-white dark:bg-[#1e1e1e] text-charcoal font-bold shadow-[0_1px_4px_rgba(13,26,20,0.10)]'
+                ? 'bg-white dark:bg-paperDark text-charcoal font-bold shadow-[0_1px_4px_rgba(13,26,20,0.10)]'
                 : 'bg-transparent text-charcoal/50 font-semibold'
             }`}
           >

@@ -21,7 +21,7 @@ export function SkeletonText({ lines = 3, className = '' }) {
 
 export function SkeletonCard({ className = '' }) {
   return (
-    <div className={`bg-white dark:bg-[#1e1e1e] rounded-2xl border border-charcoal/8 p-4 ${className}`}>
+    <div className={`bg-white dark:bg-paperDark rounded-2xl border border-charcoal/8 p-4 ${className}`}>
       <div className="flex items-center gap-3 mb-4">
         <Skeleton className="w-10 h-10" rounded="rounded-full" />
         <div className="flex-1">
@@ -57,7 +57,7 @@ export function SkeletonDashboard() {
       <Skeleton className="h-8 w-1/3 mb-2" />
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         {Array.from({ length: 6 }).map((_, i) => (
-          <div key={i} className="bg-white dark:bg-[#1e1e1e] rounded-2xl border border-charcoal/8 p-4">
+          <div key={i} className="bg-white dark:bg-paperDark rounded-2xl border border-charcoal/8 p-4">
             <Skeleton className="h-3 w-2/3 mb-3" />
             <Skeleton className="h-8 w-1/2 mb-2" />
             <Skeleton className="h-3 w-full" />

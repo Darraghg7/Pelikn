@@ -212,7 +212,7 @@ function CalendarEventForm({ event, defaultDate, onSave, onDelete, onBack }) {
         <input
           value={title} onChange={e => setTitle(e.target.value)}
           placeholder="Event name…"
-          className="w-full px-[14px] h-[54px] rounded-[11px] border border-charcoal/10 bg-white dark:bg-[#1e1e1e] text-[17px] font-semibold text-charcoal tracking-[-0.01em] outline-none box-border"
+          className="w-full px-[14px] h-[54px] rounded-[11px] border border-charcoal/10 bg-white dark:bg-paperDark text-[17px] font-semibold text-charcoal tracking-[-0.01em] outline-none box-border"
         />
 
         {/* Type */}
@@ -243,7 +243,7 @@ function CalendarEventForm({ event, defaultDate, onSave, onDelete, onBack }) {
         </div>
 
         {/* Dates */}
-        <div className="bg-white dark:bg-[#1e1e1e] border border-charcoal/10 rounded-[14px] overflow-hidden">
+        <div className="bg-white dark:bg-paperDark border border-charcoal/10 rounded-[14px] overflow-hidden">
           {/* All day row */}
           <button
             onClick={() => setAllDay(!allDay)}
@@ -275,7 +275,7 @@ function CalendarEventForm({ event, defaultDate, onSave, onDelete, onBack }) {
         </div>
 
         {/* Reminder */}
-        <div className="bg-white dark:bg-[#1e1e1e] border border-charcoal/10 rounded-[14px] overflow-hidden">
+        <div className="bg-white dark:bg-paperDark border border-charcoal/10 rounded-[14px] overflow-hidden">
           <div className="px-4 py-[15px] border-b border-charcoal/6">
             <div className="flex items-center gap-2.5 mb-[14px]">
               <span className="w-8 h-8 rounded-[9px] bg-brand/8 flex items-center justify-center shrink-0">
@@ -315,7 +315,7 @@ function CalendarEventForm({ event, defaultDate, onSave, onDelete, onBack }) {
         <textarea
           value={notes} onChange={e => setNotes(e.target.value)}
           placeholder="Notes (optional)…" rows={3}
-          className="w-full px-[14px] py-3 rounded-[11px] border border-charcoal/10 bg-white dark:bg-[#1e1e1e] text-sm text-charcoal outline-none box-border resize-none leading-[1.55]"
+          className="w-full px-[14px] py-3 rounded-[11px] border border-charcoal/10 bg-white dark:bg-paperDark text-sm text-charcoal outline-none box-border resize-none leading-[1.55]"
         />
 
         {/* Delete */}
@@ -337,7 +337,7 @@ function CalendarEventForm({ event, defaultDate, onSave, onDelete, onBack }) {
               >Yes, delete</button>
               <button
                 onClick={() => setShowDelete(false)}
-                className="flex-1 h-11 rounded-[11px] border border-charcoal/10 bg-white dark:bg-[#1e1e1e] text-charcoal/75 text-sm font-semibold cursor-pointer"
+                className="flex-1 h-11 rounded-[11px] border border-charcoal/10 bg-white dark:bg-paperDark text-charcoal/75 text-sm font-semibold cursor-pointer"
               >Cancel</button>
             </div>
           </div>
@@ -410,7 +410,7 @@ function CalendarDayView({ dateStr, dayMapItems, onBack, onAdd, onEdit }) {
         <div>
           <div className="font-mono text-[11px] text-charcoal/30 uppercase tracking-[0.07em] font-semibold px-0.5 pb-2">Staff leave</div>
           {staffItems.map(sl => (
-            <div key={sl.id} className="flex items-center gap-2.5 px-[14px] py-[11px] rounded-xl bg-white dark:bg-[#1e1e1e] border border-charcoal/10 mb-1.5">
+            <div key={sl.id} className="flex items-center gap-2.5 px-[14px] py-[11px] rounded-xl bg-white dark:bg-paperDark border border-charcoal/10 mb-1.5">
               <span className="w-3 h-3 rounded-[3px] bg-charcoal/10 shrink-0" />
               <span className="text-sm font-medium text-charcoal/75">{sl.title}</span>
             </div>
@@ -517,7 +517,7 @@ function StaffLeaveBar({ year, month, staffLeave }) {
           return (
             <div
               key={sl.name + sl.startDate}
-              className="inline-flex items-center gap-[7px] py-1.5 pr-3 pl-2 rounded-full bg-white dark:bg-[#1e1e1e] border-[1.5px] border-charcoal/10"
+              className="inline-flex items-center gap-[7px] py-1.5 pr-3 pl-2 rounded-full bg-white dark:bg-paperDark border-[1.5px] border-charcoal/10"
             >
               <span className="w-6 h-6 rounded-[7px] bg-charcoal/6 flex items-center justify-center font-mono text-[11px] font-bold text-charcoal/50">
                 {sl.name.split(' ').map(w => w[0]).join('')}
@@ -555,7 +555,7 @@ function EventStrip({ year, month, dayMap, onSelectDate }) {
           <button
             key={dateStr}
             onClick={() => onSelectDate(dateStr)}
-            className="w-full text-left bg-white dark:bg-[#1e1e1e] border border-charcoal/10 rounded-xl px-[13px] py-2.5 cursor-pointer flex items-start gap-3 overflow-hidden relative"
+            className="w-full text-left bg-white dark:bg-paperDark border border-charcoal/10 rounded-xl px-[13px] py-2.5 cursor-pointer flex items-start gap-3 overflow-hidden relative"
           >
             <span
               className="absolute left-0 top-0 bottom-0 w-1 rounded-l-xl"
@@ -670,7 +670,7 @@ export default function CalendarPage() {
         </div>
 
         {/* Month navigator */}
-        <div className="bg-white dark:bg-[#1e1e1e] border border-charcoal/10 rounded-[14px] px-[14px] pt-[14px] pb-4">
+        <div className="bg-white dark:bg-paperDark border border-charcoal/10 rounded-[14px] px-[14px] pt-[14px] pb-4">
           <div className="flex items-center justify-between mb-3">
             <button
               onClick={prevMonth}

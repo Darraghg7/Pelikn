@@ -100,7 +100,7 @@ function HubCard({ check, statusInfo, onClick, editMode, isHidden, onToggle }) {
   return (
     <button
       onClick={editMode ? onToggle : onClick}
-      className={`text-left cursor-pointer w-full bg-white dark:bg-[#1e1e1e] border rounded-xl p-3 flex flex-col gap-2 min-h-[84px] relative transition-opacity ${editMode && isHidden ? 'opacity-40' : 'opacity-100'} ${!editMode && status === 'overdue' ? 'border-danger/30' : 'border-charcoal/10'}`}
+      className={`text-left cursor-pointer w-full bg-white dark:bg-paperDark border rounded-xl p-3 flex flex-col gap-2 min-h-[84px] relative transition-opacity ${editMode && isHidden ? 'opacity-40' : 'opacity-100'} ${!editMode && status === 'overdue' ? 'border-danger/30' : 'border-charcoal/10'}`}
     >
       <div className="flex items-start justify-between">
         <span className={`w-[30px] h-[30px] rounded-[9px] flex items-center justify-center shrink-0 ${statusBg} ${statusTextClass}`}>
@@ -262,7 +262,7 @@ export default function ChecksHubPage() {
       </div>
 
       {!editMode && (
-        <div className="mt-4 rounded-xl border border-charcoal/10 bg-white dark:bg-[#1e1e1e] overflow-hidden">
+        <div className="mt-4 rounded-xl border border-charcoal/10 bg-white dark:bg-paperDark overflow-hidden">
           <button
             onClick={() => navigate(vp('/audit'))}
             className="w-full text-left cursor-pointer bg-transparent border-none px-[14px] py-[13px] flex items-center gap-[10px]"
