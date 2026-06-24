@@ -64,7 +64,7 @@ export default function BillingSettingsPage() {
           </div>
         )}
 
-        <div className="bg-white dark:bg-[#1e1e1e] border border-charcoal/10 rounded-[14px] px-4 py-[14px]">
+        <div className="bg-white dark:bg-paperDark border border-charcoal/10 rounded-[14px] px-4 py-[14px]">
           <div className="font-mono text-[11px] text-charcoal/50 tracking-[0.06em] uppercase font-semibold mb-2">Add another venue</div>
           <div className="text-[13px] text-charcoal/50 leading-[1.5]">
             Each additional venue is {EXTRA_VENUE_PRICE}/mo on your current plan.

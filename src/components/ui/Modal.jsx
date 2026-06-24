@@ -47,7 +47,7 @@ export default function Modal({ open, onClose, title, children, size = 'md' }) {
       {/* Panel */}
       <div
         ref={panelRef}
-        className={`relative bg-surface dark:bg-[#1e1e1e] w-full ${SIZE_CLASS[size] ?? SIZE_CLASS.md} rounded-t-3xl sm:rounded-3xl shadow-modal p-6 pb-8 sm:pb-6 z-10 max-h-[90dvh] overflow-y-auto transition-all duration-[250ms] ease-out ${
+        className={`relative bg-surface dark:bg-paperDark w-full ${SIZE_CLASS[size] ?? SIZE_CLASS.md} rounded-t-3xl sm:rounded-3xl shadow-modal p-6 pb-8 sm:pb-6 z-10 max-h-[90dvh] overflow-y-auto transition-all duration-[250ms] ease-out ${
           animating
             ? 'opacity-100 translate-y-0 scale-100'
             : 'opacity-0 translate-y-4 sm:translate-y-2 sm:scale-[0.97]'

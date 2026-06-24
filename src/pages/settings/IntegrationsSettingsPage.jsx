@@ -69,7 +69,7 @@ export default function IntegrationsSettingsPage() {
         {INTEGRATIONS.map(item => (
           <div
             key={item.id}
-            className="bg-white dark:bg-[#1e1e1e] border border-charcoal/10 rounded-[14px] px-[15px] py-[14px] flex items-center gap-[13px] opacity-65"
+            className="bg-white dark:bg-paperDark border border-charcoal/10 rounded-[14px] px-[15px] py-[14px] flex items-center gap-[13px] opacity-65"
           >
             <span className="text-[28px] shrink-0 leading-none">{item.icon}</span>
             <div className="flex-1 min-w-0">

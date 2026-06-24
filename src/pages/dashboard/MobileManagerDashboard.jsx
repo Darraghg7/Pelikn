@@ -81,7 +81,7 @@ function MobileStatTile({ item, summary }) {
   const sub      = subLabel(item, summary)
 
   return (
-    <div className="bg-white dark:bg-[#1e1e1e] border border-charcoal/10 rounded-[14px] p-[10px_11px_11px] flex flex-col gap-1">
+    <div className="bg-white dark:bg-paperDark border border-charcoal/10 rounded-[14px] p-[10px_11px_11px] flex flex-col gap-1">
       <div className="flex items-center gap-1">
         <span className={`w-[5px] h-[5px] rounded-full shrink-0 ${isDanger ? 'bg-danger' : 'bg-success'}`} />
         <span className="font-mono text-[9px] tracking-[0.07em] text-charcoal/60 uppercase leading-none">
@@ -114,12 +114,12 @@ function AttentionCard({ actions, editMode }) {
   const isEmpty = actions.length === 0
   return (
     <div className={[
-      'bg-white dark:bg-[#1e1e1e] border border-charcoal/10 rounded-[14px] overflow-hidden transition-opacity duration-200',
+      'bg-white dark:bg-paperDark border border-charcoal/10 rounded-[14px] overflow-hidden transition-opacity duration-200',
       editMode ? 'opacity-45' : 'opacity-100',
     ].join(' ')}>
       {isEmpty ? (
         <div className="flex items-center gap-[13px] p-[14px_16px]">
-          <div className="w-10 h-10 rounded-[11px] bg-[#e3f0e7] flex items-center justify-center shrink-0">
+          <div className="w-10 h-10 rounded-[11px] bg-goodBg flex items-center justify-center shrink-0">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-success">
               <polyline points="20 6 9 17 4 12"/>
             </svg>
@@ -175,7 +175,7 @@ function DisciplinaryStrip({ alerts, editMode, venueSlug }) {
   if (!alerts.length) return null
   return (
     <div className={[
-      'bg-[#7a1d0c] rounded-[14px] p-[12px_16px] flex flex-col gap-2 transition-opacity duration-200',
+      'bg-severe rounded-[14px] p-[12px_16px] flex flex-col gap-2 transition-opacity duration-200',
       editMode ? 'opacity-45' : 'opacity-100',
     ].join(' ')}>
       <div className="flex items-center gap-1.5">
@@ -595,7 +595,7 @@ export default function MobileManagerDashboard({
             className={[
               'shrink-0 font-mono text-[11px] font-bold tracking-[0.07em] uppercase rounded-lg py-1 px-[11px] cursor-pointer whitespace-nowrap transition-all duration-150',
               editMode
-                ? 'text-success bg-[#e3f0e7] border border-success/30'
+                ? 'text-success bg-goodBg border border-success/30'
                 : 'text-charcoal/50 bg-transparent border border-charcoal/10',
             ].join(' ')}
           >
@@ -643,7 +643,7 @@ export default function MobileManagerDashboard({
                 ))}
               </div>
             ) : activeItems.length === 0 ? (
-              <div className="bg-white dark:bg-[#1e1e1e] border border-charcoal/10 rounded-[14px] p-[20px_16px] text-center">
+              <div className="bg-white dark:bg-paperDark border border-charcoal/10 rounded-[14px] p-[20px_16px] text-center">
                 <p className="text-[13px] text-charcoal/50">No Today items selected</p>
                 <button
                   onClick={onOpenPicker}

@@ -20,7 +20,7 @@ export default function ComplianceSettingsPage() {
       <div className="px-4 pb-24 max-w-[480px] mx-auto">
 
         <div className="font-mono text-[11px] font-semibold tracking-[0.08em] uppercase text-charcoal/50 pt-[18px] pb-[7px] px-0.5">Fridge checks</div>
-        <div className="bg-white dark:bg-[#1e1e1e] border border-charcoal/10 rounded-[14px] overflow-hidden">
+        <div className="bg-white dark:bg-paperDark border border-charcoal/10 rounded-[14px] overflow-hidden">
           <div className="flex items-center gap-3 px-[15px] py-[13px]">
             <div className="flex-1 min-w-0">
               <div className="text-sm font-medium text-charcoal tracking-[-0.005em]">Default check time</div>
@@ -33,7 +33,7 @@ export default function ComplianceSettingsPage() {
         </div>
 
         <div className="font-mono text-[11px] font-semibold tracking-[0.08em] uppercase text-charcoal/50 pt-[18px] pb-[7px] px-0.5">Daily action schedules</div>
-        <div className="bg-white dark:bg-[#1e1e1e] border border-charcoal/10 rounded-[14px] px-[15px] pt-1 pb-2">
+        <div className="bg-white dark:bg-paperDark border border-charcoal/10 rounded-[14px] px-[15px] pt-1 pb-2">
           <ActionSchedulesSection schedules={actionSchedules} onSave={saveActionSchedules} />
         </div>
         <div className="text-[11.5px] text-charcoal/50 pt-2 px-1 leading-[1.45]">

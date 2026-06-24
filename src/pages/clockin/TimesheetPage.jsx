@@ -178,7 +178,7 @@ function PeriodChips({ period, onChange }) {
           <button
             key={p.key}
             onClick={() => onChange(p.key)}
-            className={`shrink-0 text-[13.5px] cursor-pointer px-[15px] py-[7px] rounded-full border transition-colors ${on ? 'font-semibold bg-brand text-white border-brand' : 'font-medium bg-white dark:bg-[#1e1e1e] text-charcoal/75 border-charcoal/10'}`}
+            className={`shrink-0 text-[13.5px] cursor-pointer px-[15px] py-[7px] rounded-full border transition-colors ${on ? 'font-semibold bg-brand text-white border-brand' : 'font-medium bg-white dark:bg-paperDark text-charcoal/75 border-charcoal/10'}`}
           >
             {p.label}
           </button>
@@ -301,7 +301,7 @@ function EditSessionSheet({ staffName, dayLabel, session, onSave, onClose }) {
               <button
                 key={k}
                 onClick={() => setEdge(k)}
-                className={`flex-1 cursor-pointer border-none rounded-[9px] py-2 ${on ? 'bg-white dark:bg-[#1e1e1e] shadow-[0_1px_3px_rgba(9,18,13,0.1)]' : 'bg-transparent'}`}
+                className={`flex-1 cursor-pointer border-none rounded-[9px] py-2 ${on ? 'bg-white dark:bg-paperDark shadow-[0_1px_3px_rgba(9,18,13,0.1)]' : 'bg-transparent'}`}
               >
                 <div className="font-mono text-[11px] text-charcoal/50 uppercase tracking-[0.06em] font-semibold">{label}</div>
                 <div className={`font-mono text-[17px] font-semibold mt-0.5 tabular-nums ${on ? 'text-brand' : 'text-charcoal/50'}`}>{val}</div>
@@ -323,7 +323,7 @@ function EditSessionSheet({ staffName, dayLabel, session, onSave, onClose }) {
                 <button
                   key={b}
                   onClick={() => setBrk(b)}
-                  className={`font-mono text-xs font-semibold cursor-pointer px-[11px] py-[6px] rounded-[9px] border ${on ? 'border-brand bg-brand text-white' : 'border-charcoal/10 bg-white dark:bg-[#1e1e1e] text-charcoal/75'}`}
+                  className={`font-mono text-xs font-semibold cursor-pointer px-[11px] py-[6px] rounded-[9px] border ${on ? 'border-brand bg-brand text-white' : 'border-charcoal/10 bg-white dark:bg-paperDark text-charcoal/75'}`}
                 >
                   {b === 0 ? 'None' : `${b}m`}
                 </button>
@@ -336,7 +336,7 @@ function EditSessionSheet({ staffName, dayLabel, session, onSave, onClose }) {
           <span className={`text-[12.5px] ${valid ? 'text-charcoal/50' : 'text-danger'}`}>· {valid ? minsStr(worked(clockIn, clockOut, brk)) : 'clock out must be after in'}</span>
         </div>
         <div className="flex gap-2 mt-4">
-          <button onClick={onClose} className="w-[90px] h-[50px] rounded-[13px] border border-charcoal/10 bg-white dark:bg-[#1e1e1e] text-charcoal/75 cursor-pointer text-sm font-semibold">Cancel</button>
+          <button onClick={onClose} className="w-[90px] h-[50px] rounded-[13px] border border-charcoal/10 bg-white dark:bg-paperDark text-charcoal/75 cursor-pointer text-sm font-semibold">Cancel</button>
           <button
             disabled={!valid}
             onClick={() => { onSave({ clockIn, clockOut, brk }); onClose() }}
@@ -377,7 +377,7 @@ function StaffHoursSheet({ t, station, periodDays, dailyGrid, periodLabel, onEdi
             const breakMins = has ? session.breaks.reduce((acc, b) =>
               (!b.start || !b.end) ? acc : acc + Math.round((new Date(b.end) - new Date(b.start)) / 60000), 0) : 0
             return (
-              <div key={i} className={`flex items-center gap-[10px] px-3 py-[10px] rounded-xl border ${has ? 'bg-white dark:bg-[#1e1e1e] border-charcoal/10' : 'bg-surface border-charcoal/[0.06]'}`}>
+              <div key={i} className={`flex items-center gap-[10px] px-3 py-[10px] rounded-xl border ${has ? 'bg-white dark:bg-paperDark border-charcoal/10' : 'bg-surface border-charcoal/[0.06]'}`}>
                 <div className={`w-[42px] h-[46px] rounded-[9px] border border-charcoal/10 shrink-0 flex flex-col items-center justify-center gap-px ${has ? 'bg-surface' : 'bg-charcoal/[0.06]'}`}>
                   <span className="font-mono text-[11px] text-charcoal/50 font-semibold tracking-[0.06em]">{format(d, 'EEE').toUpperCase()}</span>
                   <span className={`font-mono text-[15px] font-semibold leading-none ${has ? 'text-charcoal' : 'text-charcoal/30'}`}>{format(d, 'd')}</span>
@@ -405,7 +405,7 @@ function StaffHoursSheet({ t, station, periodDays, dailyGrid, periodLabel, onEdi
             )
           })}
         </div>
-        <div className="mt-[14px] px-[14px] py-[13px] bg-white dark:bg-[#1e1e1e] rounded-xl border border-charcoal/10 flex items-center gap-5">
+        <div className="mt-[14px] px-[14px] py-[13px] bg-white dark:bg-paperDark rounded-xl border border-charcoal/10 flex items-center gap-5">
           <div>
             <div className="font-mono text-[11px] text-charcoal/50 tracking-[0.1em] uppercase font-semibold">Total</div>
             <div className="font-mono text-[17px] font-semibold text-charcoal mt-[3px] tabular-nums">{minsStr(t.totalMinutes)}</div>
@@ -607,15 +607,15 @@ export default function TimesheetPage() {
       </div>
 
       {/* Pay Period Summary card */}
-      <div className="bg-white dark:bg-[#1e1e1e] border border-charcoal/10 rounded-[18px] px-[14px] pt-[15px] pb-4 flex flex-col gap-3 mb-[14px]">
+      <div className="bg-white dark:bg-paperDark border border-charcoal/10 rounded-[18px] px-[14px] pt-[15px] pb-4 flex flex-col gap-3 mb-[14px]">
         <div className="font-mono text-[11px] text-charcoal/50 tracking-[0.12em] uppercase font-semibold">Pay Period Summary</div>
         <PeriodChips period={period} onChange={setPeriod} />
 
         {period === 'custom' && (
           <div className="flex items-center gap-2">
-            <input type="date" value={customFrom} onChange={e => setCustomFrom(e.target.value)} className="flex-1 px-[10px] py-[7px] rounded-[9px] border border-charcoal/10 text-[13px] bg-white dark:bg-[#1e1e1e] text-charcoal outline-none" />
+            <input type="date" value={customFrom} onChange={e => setCustomFrom(e.target.value)} className="flex-1 px-[10px] py-[7px] rounded-[9px] border border-charcoal/10 text-[13px] bg-white dark:bg-paperDark text-charcoal outline-none" />
             <span className="text-xs text-charcoal/30 shrink-0">to</span>
-            <input type="date" value={customTo} min={customFrom} onChange={e => setCustomTo(e.target.value)} className="flex-1 px-[10px] py-[7px] rounded-[9px] border border-charcoal/10 text-[13px] bg-white dark:bg-[#1e1e1e] text-charcoal outline-none" />
+            <input type="date" value={customTo} min={customFrom} onChange={e => setCustomTo(e.target.value)} className="flex-1 px-[10px] py-[7px] rounded-[9px] border border-charcoal/10 text-[13px] bg-white dark:bg-paperDark text-charcoal outline-none" />
           </div>
         )}
 
@@ -626,7 +626,7 @@ export default function TimesheetPage() {
               <button
                 onClick={togglePayrollLock}
                 disabled={lockSaving}
-                className={`flex items-center gap-[5px] text-[11.5px] font-semibold bg-white dark:bg-[#1e1e1e] rounded-[9px] px-[11px] py-[6px] cursor-pointer shrink-0 whitespace-nowrap transition-opacity ${isPeriodLocked ? 'text-success border border-success/[0.33]' : 'text-charcoal/75 border border-charcoal/10'} ${lockSaving ? 'opacity-40' : 'opacity-100'}`}
+                className={`flex items-center gap-[5px] text-[11.5px] font-semibold bg-white dark:bg-paperDark rounded-[9px] px-[11px] py-[6px] cursor-pointer shrink-0 whitespace-nowrap transition-opacity ${isPeriodLocked ? 'text-success border border-success/[0.33]' : 'text-charcoal/75 border border-charcoal/10'} ${lockSaving ? 'opacity-40' : 'opacity-100'}`}
               >
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d={isPeriodLocked ? 'M7 11V7a5 5 0 0 1 10 0v4' : 'M7 11V7a5 5 0 0 1 9.9-1'}/></svg>
                 {isPeriodLocked ? 'Locked' : lockSaving ? 'Locking…' : 'Lock for payroll'}
@@ -661,7 +661,7 @@ export default function TimesheetPage() {
           {timesheets.length === 0 ? (
             <p className="text-[13px] text-charcoal/30 italic px-0.5 py-2">No clock events recorded for this period.</p>
           ) : (
-            <div className="bg-white dark:bg-[#1e1e1e] border border-charcoal/10 rounded-2xl overflow-hidden">
+            <div className="bg-white dark:bg-paperDark border border-charcoal/10 rounded-2xl overflow-hidden">
               {timesheets.map((t, i) => (
                 <StaffRow key={t.staffId} t={t} station={stationMap[t.staffId] ?? ''} last={i === timesheets.length - 1} onTap={() => setSelStaff(t)} />
               ))}

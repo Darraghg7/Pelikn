@@ -8,7 +8,7 @@ import useManagerCalendar from '../../hooks/useManagerCalendar'
 const STATUS_TONE = {
   overdue: { statusBg: 'bg-danger/10',  statusText: 'text-danger',  statusFg: 'bg-danger',  rank: 0 },
   due:     { statusBg: 'bg-warning/10', statusText: 'text-warning', statusFg: 'bg-warning', rank: 1 },
-  draft:   { statusBg: 'bg-[#faeee9]',  statusText: 'text-[#c94f2a]', statusFg: 'bg-[#c94f2a]', rank: 2 },
+  draft:   { statusBg: 'bg-[#faeee9]',  statusText: 'text-accent', statusFg: 'bg-accent', rank: 2 },
   done:    { statusBg: 'bg-success/10', statusText: 'text-success', statusFg: 'bg-success', rank: 3 },
   na:      { statusBg: 'bg-charcoal/6', statusText: 'text-charcoal/50', statusFg: 'bg-charcoal/50', rank: 4 },
 }
@@ -93,7 +93,7 @@ function TeamCard({ label, icon: Icon, status, statusText, count, onClick, editM
   return (
     <button
       onClick={editMode ? onToggle : onClick}
-      className={`text-left cursor-pointer w-full bg-white dark:bg-[#1e1e1e] border rounded-xl p-3 flex flex-col gap-2 min-h-[84px] transition-opacity ${editMode && isHidden ? 'opacity-40' : 'opacity-100'} ${!editMode && status === 'overdue' ? 'border-danger/30' : 'border-charcoal/10'}`}
+      className={`text-left cursor-pointer w-full bg-white dark:bg-paperDark border rounded-xl p-3 flex flex-col gap-2 min-h-[84px] transition-opacity ${editMode && isHidden ? 'opacity-40' : 'opacity-100'} ${!editMode && status === 'overdue' ? 'border-danger/30' : 'border-charcoal/10'}`}
     >
       <div className="flex items-start justify-between">
         <span className={`w-[30px] h-[30px] rounded-[9px] flex items-center justify-center ${statusBg} ${statusTextClass}`}>

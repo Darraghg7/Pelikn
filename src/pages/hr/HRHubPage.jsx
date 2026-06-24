@@ -29,7 +29,7 @@ function StatTile({ label, value, sub, tone, icon }) {
     tone === 'good' ? 'text-success' : 'text-charcoal/30'
 
   return (
-    <div className="bg-white dark:bg-[#1e1e1e] border border-charcoal/10 rounded-2xl px-[17px] py-[15px] flex flex-col gap-0.5 relative overflow-hidden shadow-sm">
+    <div className="bg-white dark:bg-paperDark border border-charcoal/10 rounded-2xl px-[17px] py-[15px] flex flex-col gap-0.5 relative overflow-hidden shadow-sm">
       {tone && (
         <span className={`absolute left-0 top-[14px] bottom-[14px] w-[3px] rounded-r-full ${accentClass}`} />
       )}
@@ -223,7 +223,7 @@ export default function HRHubPage() {
                   value={query}
                   onChange={e => setQuery(e.target.value)}
                   placeholder="Search staff…"
-                  className="w-full py-[9px] pl-9 pr-3 rounded-[11px] border border-charcoal/10 text-[13px] outline-none bg-white dark:bg-[#1e1e1e] text-charcoal box-border"
+                  className="w-full py-[9px] pl-9 pr-3 rounded-[11px] border border-charcoal/10 text-[13px] outline-none bg-white dark:bg-paperDark text-charcoal box-border"
                 />
               </div>
 

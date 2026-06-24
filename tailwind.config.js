@@ -18,6 +18,7 @@ export default {
         // Surfaces
         bg:    '#f3f3ef',
         paper: '#ffffff',
+        paperDark: '#1e1e1e',  // dark-mode card surface
         line:  '#e4e6e2',
         line2: '#eef0ec',
 
@@ -53,8 +54,6 @@ export default {
 
         // ── Legacy aliases kept for backwards compat ───────────────────────
         cream:    '#f5f4f1',
-        parchment:'#f0ede8',
-        staffbg:  '#f5f4f1',
         charcoal: '#1a1a18',
         surface:  '#f3f3ef',
         navpill:  '#eef4f0',

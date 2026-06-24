@@ -15,7 +15,7 @@ function GroupLabel({ label }) {
 
 function RowGroup({ children }) {
   return (
-    <div className="bg-white dark:bg-[#1e1e1e] border border-charcoal/10 rounded-[14px] overflow-hidden">
+    <div className="bg-white dark:bg-paperDark border border-charcoal/10 rounded-[14px] overflow-hidden">
       {children}
     </div>
   )

@@ -62,7 +62,7 @@ function FilterChip({ label, count, active, onClick }) {
   return (
     <button
       onClick={onClick}
-      className={`inline-flex items-center gap-[5px] px-[13px] py-1.5 rounded-full border-[1.5px] text-[13px] font-semibold cursor-pointer whitespace-nowrap transition-all ${active ? 'border-brand bg-brand text-white' : 'border-charcoal/10 bg-white dark:bg-[#1e1e1e] text-charcoal/50'}`}
+      className={`inline-flex items-center gap-[5px] px-[13px] py-1.5 rounded-full border-[1.5px] text-[13px] font-semibold cursor-pointer whitespace-nowrap transition-all ${active ? 'border-brand bg-brand text-white' : 'border-charcoal/10 bg-white dark:bg-paperDark text-charcoal/50'}`}
     >
       {label}
       {count != null && (
@@ -82,7 +82,7 @@ function WorklistRow({ check, statusInfo, onClick }) {
   return (
     <button
       onClick={onClick}
-      className="w-full text-left cursor-pointer bg-white dark:bg-[#1e1e1e] border-none border-b border-charcoal/6 px-4 py-[13px] flex items-center gap-[13px] last:border-b-0"
+      className="w-full text-left cursor-pointer bg-white dark:bg-paperDark border-none border-b border-charcoal/6 px-4 py-[13px] flex items-center gap-[13px] last:border-b-0"
     >
       <span className={`w-9 h-9 rounded-[10px] shrink-0 flex items-center justify-center ${bg} ${fg}`}>
         <span className="w-[18px] h-[18px] inline-flex"><Icon /></span>
@@ -196,10 +196,10 @@ export default function ChecksWorklistPage() {
         ))}
       </div>
 
-      <div className="bg-white dark:bg-[#1e1e1e] rounded-[14px] border border-charcoal/10 mx-4 overflow-hidden">
+      <div className="bg-white dark:bg-paperDark rounded-[14px] border border-charcoal/10 mx-4 overflow-hidden">
         {isLoading ? (
           Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className={`h-16 border-b border-charcoal/6 ${i % 2 === 0 ? 'bg-white dark:bg-[#1e1e1e]' : 'bg-surface'}`} />
+            <div key={i} className={`h-16 border-b border-charcoal/6 ${i % 2 === 0 ? 'bg-white dark:bg-paperDark' : 'bg-surface'}`} />
           ))
         ) : filtered.length === 0 ? (
           <div className="py-10 px-6 text-center">
