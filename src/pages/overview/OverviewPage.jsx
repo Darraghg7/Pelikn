@@ -23,12 +23,12 @@ function CheckDot({ done, label }) {
   return (
     <div className="flex flex-col items-center gap-[3px]">
       <div className={[
-        'w-[22px] h-[22px] rounded-full flex items-center justify-center text-[10px] font-bold',
+        'w-[22px] h-[22px] rounded-full flex items-center justify-center text-[11px] font-bold',
         done ? 'bg-success/10 text-success' : 'bg-danger/10 text-danger',
       ].join(' ')}>
         {done ? '✓' : '✕'}
       </div>
-      <span className="text-[8px] font-semibold text-charcoal/40 text-center leading-[1.2]">
+      <span className="text-[11px] font-semibold text-charcoal/40 text-center leading-[1.2]">
         {label}
       </span>
     </div>
@@ -42,7 +42,7 @@ function StatCell({ value, label, colorClass, last }) {
       <div className={`text-[17px] font-bold tabular-nums leading-none ${colorClass ?? 'text-charcoal'}`}>
         {value}
       </div>
-      <div className="text-[9px] font-semibold text-charcoal/40 mt-[1px]">
+      <div className="text-[11px] font-semibold text-charcoal/40 mt-[1px]">
         {label}
       </div>
     </div>
@@ -85,11 +85,11 @@ function VenueCard({ result, isHome, dimmed, onOpen }) {
         <div className="text-sm font-bold text-charcoal overflow-hidden text-ellipsis whitespace-nowrap">
           {venue.name}
         </div>
-        <div className={`text-[10px] font-bold mt-0.5 ${st.textClass}`}>
+        <div className={`text-[11px] font-bold mt-0.5 ${st.textClass}`}>
           {loading ? 'Loading…' : st.label}
         </div>
         {isHome && (
-          <span className="inline-block mt-1 text-[8.5px] font-bold uppercase tracking-[0.08em] text-brand bg-brand/9 px-1.5 py-[2px] rounded">
+          <span className="inline-block mt-1 text-[11px] font-bold uppercase tracking-[0.08em] text-brand bg-brand/9 px-1.5 py-[2px] rounded">
             Home
           </span>
         )}
@@ -171,7 +171,7 @@ function StripCell({ cell, value, isActive, onClick, loading, isLast }) {
           <span className="inline-block w-10 h-7 rounded-md bg-charcoal/6" />
         ) : value}
       </div>
-      <div className="text-[10px] font-semibold text-charcoal/40 mt-[3px] uppercase tracking-[0.04em]">
+      <div className="text-[11px] font-semibold text-charcoal/40 mt-[3px] uppercase tracking-[0.04em]">
         {cell.label}
       </div>
     </button>

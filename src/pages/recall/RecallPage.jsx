@@ -189,7 +189,7 @@ function LogModal({ open, onClose, onSaved, venueId, editLog }) {
 
   const Field = ({ label, required, children }) => (
     <div className="flex flex-col gap-1">
-      <label className="text-[10px] tracking-widest uppercase text-charcoal/40">
+      <label className="text-[11px] tracking-widest uppercase text-charcoal/40">
         {label}{required && <span className="text-danger ml-0.5">*</span>}
       </label>
       {children}
@@ -275,7 +275,7 @@ function LogCard({ log, onEdit }) {
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
               <p className="font-semibold text-charcoal text-sm">{log.product_name}</p>
-              <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+              <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${
                 resolved
                   ? 'bg-success/10 text-success'
                   : 'bg-danger/10 text-danger'
@@ -298,16 +298,16 @@ function LogCard({ log, onEdit }) {
 
         <div className="mt-3 flex flex-col gap-2">
           <div>
-            <p className="text-[10px] tracking-widest uppercase text-charcoal/30 mb-0.5">Reason</p>
+            <p className="text-[11px] tracking-widest uppercase text-charcoal/30 mb-0.5">Reason</p>
             <p className="text-xs text-charcoal/70">{log.reason}</p>
           </div>
           <div>
-            <p className="text-[10px] tracking-widest uppercase text-charcoal/30 mb-0.5">Action taken</p>
+            <p className="text-[11px] tracking-widest uppercase text-charcoal/30 mb-0.5">Action taken</p>
             <p className="text-xs text-charcoal/70">{log.action_taken}</p>
           </div>
           {log.who_notified && (
             <div>
-              <p className="text-[10px] tracking-widest uppercase text-charcoal/30 mb-0.5">Notified</p>
+              <p className="text-[11px] tracking-widest uppercase text-charcoal/30 mb-0.5">Notified</p>
               <p className="text-xs text-charcoal/70">{log.who_notified}</p>
             </div>
           )}
@@ -383,7 +383,7 @@ function ProcedureTab({ venueId }) {
             { key: 'eho_contact',        label: 'Local EHO contact',   placeholder: 'Name and phone number of your local EHO' },
           ].map(f => (
             <div key={f.key} className="flex flex-col gap-1">
-              <label className="text-[10px] tracking-widest uppercase text-charcoal/30">{f.label}</label>
+              <label className="text-[11px] tracking-widest uppercase text-charcoal/30">{f.label}</label>
               <input
                 value={meta[f.key]}
                 onChange={e => setMeta(m => ({ ...m, [f.key]: e.target.value }))}

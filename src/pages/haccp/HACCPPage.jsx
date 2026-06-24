@@ -249,7 +249,7 @@ export default function HACCPPage() {
                 <div key={item.label} className="bg-white rounded-2xl border-charcoal/10 p-4">
                   <p className="text-2xl font-bold font-semibold text-charcoal">{item.count}</p>
                   <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mt-0.5">{item.label}</p>
-                  <p className="text-[10px] text-charcoal/30 mt-0.5">last 30 days</p>
+                  <p className="text-[11px] text-charcoal/30 mt-0.5">last 30 days</p>
                 </div>
               ))}
             </div>

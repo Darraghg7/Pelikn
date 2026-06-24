@@ -34,7 +34,7 @@ function StatTile({ label, value, sub, tone, icon }) {
         <span className={`absolute left-0 top-[14px] bottom-[14px] w-[3px] rounded-r-full ${accentClass}`} />
       )}
       <div className="flex items-center gap-2">
-        <span className="font-mono text-[9.5px] uppercase tracking-[0.08em] text-charcoal/50 font-semibold">
+        <span className="font-mono text-[11px] uppercase tracking-[0.08em] text-charcoal/50 font-semibold">
           {label}
         </span>
         <span className={`ml-auto inline-flex ${iconClass}`}>
@@ -82,7 +82,7 @@ function ListRow({ s, selected, actionIds, expiringIds, onClick }) {
         <div className={`text-[13.5px] text-charcoal overflow-hidden text-ellipsis whitespace-nowrap ${isSel ? 'font-bold' : 'font-medium'}`}>
           {s.name}
         </div>
-        <div className="font-mono text-[10px] text-charcoal/50 uppercase tracking-[0.03em] mt-px overflow-hidden text-ellipsis whitespace-nowrap">
+        <div className="font-mono text-[11px] text-charcoal/50 uppercase tracking-[0.03em] mt-px overflow-hidden text-ellipsis whitespace-nowrap">
           {s.job_role ?? 'No role'}
         </div>
       </div>
@@ -185,7 +185,7 @@ export default function HRHubPage() {
         </div>
       ) : staff.length === 0 ? (
         <div className="text-center px-4 py-[60px] text-charcoal/30">
-          <div className="mb-1.5 font-mono text-[10px] tracking-[0.1em] uppercase text-charcoal/50">Manager · Team</div>
+          <div className="mb-1.5 font-mono text-[11px] tracking-[0.1em] uppercase text-charcoal/50">Manager · Team</div>
           <h1 className="text-[28px] font-bold tracking-[-0.03em] text-charcoal mt-0 mb-2.5">HR Records</h1>
           <p className="text-[13.5px] text-charcoal/50 mb-6">No active staff members found.</p>
           <button
@@ -207,7 +207,7 @@ export default function HRHubPage() {
 
             <div className="sticky top-[76px] h-[calc(100vh-160px)] flex flex-col">
               <div className="mb-3.5">
-                <div className="font-mono text-[10px] tracking-[0.1em] uppercase text-charcoal/50 font-semibold">
+                <div className="font-mono text-[11px] tracking-[0.1em] uppercase text-charcoal/50 font-semibold">
                   Manager · Team
                 </div>
                 <h1 className="text-[23px] font-bold tracking-[-0.025em] text-charcoal leading-[1.1] mt-1 mb-0">
@@ -244,7 +244,7 @@ export default function HRHubPage() {
                   <>
                     {attentionRows.length > 0 && (
                       <>
-                        <div className="font-mono text-[9px] uppercase tracking-[0.08em] text-danger font-bold px-3 pt-2 pb-[5px]">
+                        <div className="font-mono text-[11px] uppercase tracking-[0.08em] text-danger font-bold px-3 pt-2 pb-[5px]">
                           Needs attention · {attentionRows.length}
                         </div>
                         {attentionRows.map(s => (
@@ -252,7 +252,7 @@ export default function HRHubPage() {
                         ))}
                       </>
                     )}
-                    <div className="font-mono text-[9px] uppercase tracking-[0.08em] text-charcoal/50 font-bold px-3 pt-2.5 pb-[5px]">
+                    <div className="font-mono text-[11px] uppercase tracking-[0.08em] text-charcoal/50 font-bold px-3 pt-2.5 pb-[5px]">
                       All staff · {regularRows.length}
                     </div>
                     {regularRows.map(s => (

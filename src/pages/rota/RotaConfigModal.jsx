@@ -188,11 +188,11 @@ export default function RotaConfigModal({ open, onClose, closedDayIndices = [] }
               >
                 <span className="tracking-widest uppercase">{DAY_SHORT[d - 1]}</span>
                 {!isClosed && slotCount > 0 && (
-                  <span className={`text-[11px] mt-0.5 ${activeDay === d ? 'text-cream/60' : 'text-brand/60'}`}>
+                  <span className={`text-[9px] mt-0.5 ${activeDay === d ? 'text-cream/60' : 'text-brand/60'}`}>
                     {slotCount} slot{slotCount !== 1 ? 's' : ''}
                   </span>
                 )}
-                {isClosed && <span className="text-[11px] mt-0.5">Closed</span>}
+                {isClosed && <span className="text-[9px] mt-0.5">Closed</span>}
               </button>
             )
           })}

@@ -224,7 +224,7 @@ function StepIndicator({ current, total, steps }) {
                 ? <svg className="w-3.5 h-3.5" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg>
                 : i + 1}
             </div>
-            <p className={`text-[9px] font-medium mt-0.5 text-center w-12 leading-tight ${i === current ? 'text-charcoal' : 'text-charcoal/30'}`}>
+            <p className={`text-[11px] font-medium mt-0.5 text-center w-12 leading-tight ${i === current ? 'text-charcoal' : 'text-charcoal/30'}`}>
               P{i + 1}
             </p>
           </div>
@@ -386,7 +386,7 @@ export default function HACCPWizardPage() {
             <p className="text-[11px] tracking-widest uppercase text-charcoal/40">Plan Details</p>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div className="flex flex-col gap-1">
-                <label className="text-[10px] tracking-widest uppercase text-charcoal/30">Business Name</label>
+                <label className="text-[11px] tracking-widest uppercase text-charcoal/30">Business Name</label>
                 <input
                   value={meta.business_name}
                   onChange={e => setMeta(m => ({ ...m, business_name: e.target.value }))}
@@ -395,7 +395,7 @@ export default function HACCPWizardPage() {
                 />
               </div>
               <div className="flex flex-col gap-1">
-                <label className="text-[10px] tracking-widest uppercase text-charcoal/30">Responsible Manager</label>
+                <label className="text-[11px] tracking-widest uppercase text-charcoal/30">Responsible Manager</label>
                 <input
                   value={meta.responsible_manager}
                   onChange={e => setMeta(m => ({ ...m, responsible_manager: e.target.value }))}
@@ -404,7 +404,7 @@ export default function HACCPWizardPage() {
                 />
               </div>
               <div className="flex flex-col gap-1">
-                <label className="text-[10px] tracking-widest uppercase text-charcoal/30">Next Review Date</label>
+                <label className="text-[11px] tracking-widest uppercase text-charcoal/30">Next Review Date</label>
                 <input
                   type="date"
                   value={meta.review_date}
@@ -419,7 +419,7 @@ export default function HACCPWizardPage() {
             <div key={s.id} className="bg-white rounded-2xl border-charcoal/10 overflow-hidden">
               <div className="px-5 py-3 border-b border-charcoal/8 flex items-center justify-between">
                 <div>
-                  <span className="text-[10px] tracking-widest uppercase text-charcoal/40">{s.principle}</span>
+                  <span className="text-[11px] tracking-widest uppercase text-charcoal/40">{s.principle}</span>
                   <p className="font-semibold text-charcoal text-sm">{s.title}</p>
                 </div>
                 <button
@@ -487,7 +487,7 @@ export default function HACCPWizardPage() {
         <div className="bg-white rounded-2xl border-charcoal/10 px-5 py-4">
           <StepIndicator current={step} total={STEPS.length} steps={STEPS} />
           <div className="mt-3">
-            <p className="text-[10px] tracking-widest uppercase text-charcoal/40">{currentStep.principle}</p>
+            <p className="text-[11px] tracking-widest uppercase text-charcoal/40">{currentStep.principle}</p>
             <p className="text-base font-semibold text-charcoal">{currentStep.title}</p>
           </div>
         </div>
