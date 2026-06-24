@@ -703,7 +703,12 @@ export default function MarketingPage() {
               </div>
             </div>
 
-            {/* Right — desktop dashboard */}
+            {/* Mobile hero phone — shown only on small screens */}
+            <div className="flex justify-center lg:hidden mt-4" style={{ animation:'pkMockIn 0.7s 200ms cubic-bezier(.16,1,.3,1) both' }}>
+              <IPhoneFrame><MockChecksGrid /></IPhoneFrame>
+            </div>
+
+            {/* Right — desktop dashboard (large screens only) */}
             <div className="hidden lg:block" style={{ animation:'pkMockIn 0.7s 100ms cubic-bezier(.16,1,.3,1) both' }}>
               <div className="rounded-2xl overflow-hidden shadow-[0_48px_120px_rgba(0,0,0,0.55)] ring-1 ring-white/8">
                 <div className="bg-[#0c1910] px-4 py-3 flex items-center gap-2.5">
@@ -778,12 +783,12 @@ export default function MarketingPage() {
               </FadeUp>
             </div>
             <FadeUp dir="right" delay={80} className="flex justify-center lg:justify-end">
-              <div className="flex gap-6 items-start">
+              <div className="flex flex-col items-center gap-10 lg:flex-row lg:items-start lg:gap-6">
                 <div>
                   <p className="text-[10px] tracking-widest uppercase text-charcoal/30 font-medium text-center mb-3">Staff view</p>
                   <IPhoneFrame><MockMobileHome /></IPhoneFrame>
                 </div>
-                <div className="mt-16">
+                <div className="lg:mt-16">
                   <p className="text-[10px] tracking-widest uppercase text-charcoal/30 font-medium text-center mb-3">Checks hub</p>
                   <IPhoneFrame><MockChecksGrid /></IPhoneFrame>
                 </div>
@@ -798,7 +803,11 @@ export default function MarketingPage() {
         <div className="max-w-5xl mx-auto px-6 sm:px-10 py-20 sm:py-28">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <FadeUp dir="left" className="order-2 lg:order-1">
-              <MockRota />
+              <div className="overflow-x-auto -mx-6 px-6 lg:mx-0 lg:px-0">
+                <div style={{ minWidth: 560 }}>
+                  <MockRota />
+                </div>
+              </div>
             </FadeUp>
             <div className="order-1 lg:order-2">
               <FadeUp>
