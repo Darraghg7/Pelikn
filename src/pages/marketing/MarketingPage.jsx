@@ -52,8 +52,8 @@ function IPhoneFrame({ children }) {
       <div style={{ position:'absolute', left:-3, top:88,  width:3, height:26, background:'#2a2a2a', borderRadius:'3px 0 0 3px' }}/>
       <div style={{ position:'absolute', left:-3, top:122, width:3, height:26, background:'#2a2a2a', borderRadius:'3px 0 0 3px' }}/>
       <div style={{ position:'absolute', left:-3, top:156, width:3, height:52, background:'#2a2a2a', borderRadius:'3px 0 0 3px' }}/>
-      {/* Screen */}
-      <div style={{ borderRadius:40, overflow:'hidden', background:'#f3f3ef', position:'relative' }}>
+      {/* Screen — fixed height for realistic iPhone 15 proportions */}
+      <div style={{ borderRadius:40, overflow:'hidden', background:'#f3f3ef', position:'relative', height:572 }}>
         {/* Dynamic island */}
         <div style={{ position:'absolute', top:12, left:'50%', transform:'translateX(-50%)', width:100, height:28, background:'#141414', borderRadius:14, zIndex:10 }}/>
         {children}
@@ -668,64 +668,46 @@ export default function MarketingPage() {
           </svg>
         </div>
 
-        <div className="max-w-5xl mx-auto px-6 sm:px-10 pt-16 sm:pt-24 pb-20 sm:pb-28 relative">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-14 lg:gap-10 items-center">
-
-            {/* Left */}
-            <div style={{ animation:'pkTextIn 0.55s cubic-bezier(.16,1,.3,1) both' }}>
-              <div className="inline-flex items-center gap-2 bg-cream/8 border border-cream/12 rounded-full px-3.5 py-1.5 mb-7">
-                <div className="w-1.5 h-1.5 rounded-full bg-[#1a7a4c]" style={{ animation:'pkPulse 2s infinite' }} />
-                <span className="text-[11px] font-medium text-cream/55">Food safety · Rota · Timesheets · Training</span>
-              </div>
-              <h1 className="text-[52px] sm:text-[62px] lg:text-[58px] xl:text-[64px] font-bold text-cream leading-[1.02] tracking-[-0.025em] mb-5">
-                Ditch the clipboard,<br />
-                <span className="text-cream/30">keep the compliance.</span>
-              </h1>
-              <p className="text-cream/50 text-[15px] sm:text-base max-w-md leading-relaxed mb-8">
-                One app for food safety records, rotas, timesheets and team management. EHO-ready from day one, on any device, for the whole team.
-              </p>
-              <div className="flex flex-wrap items-center gap-3 mb-7">
-                <Link to="/signup" className="bg-accent text-cream px-7 py-3.5 rounded-xl text-sm font-semibold hover:bg-accent/90 active:scale-[0.98] transition-all cursor-pointer shadow-[0_4px_20px_rgba(201,79,42,0.45)]">
-                  Start free for 7 days
-                </Link>
-                <a href="#compliance" className="flex items-center gap-1.5 text-cream/40 text-sm hover:text-cream/65 transition-colors cursor-pointer">
-                  See how it works
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-                </a>
-              </div>
-              <div className="flex flex-wrap gap-x-5 gap-y-1.5">
-                {['No card required','Cancel any time','ICO registered · UK GDPR'].map(t=>(
-                  <div key={t} className="flex items-center gap-1.5">
-                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-cream/25"><polyline points="20 6 9 17 4 12"/></svg>
-                    <span className="text-xs text-cream/30">{t}</span>
-                  </div>
-                ))}
-              </div>
+        <div className="max-w-3xl mx-auto px-6 sm:px-10 pt-16 sm:pt-24 pb-0 relative text-center">
+          <div style={{ animation:'pkTextIn 0.55s cubic-bezier(.16,1,.3,1) both' }}>
+            <div className="inline-flex items-center gap-2 bg-cream/8 border border-cream/12 rounded-full px-3.5 py-1.5 mb-7">
+              <div className="w-1.5 h-1.5 rounded-full bg-[#1a7a4c]" style={{ animation:'pkPulse 2s infinite' }} />
+              <span className="text-[11px] font-medium text-cream/55">Food safety · Rota · Timesheets · Training</span>
             </div>
-
-            {/* Mobile hero phone — shown only on small screens */}
-            <div className="flex justify-center lg:hidden mt-4" style={{ animation:'pkMockIn 0.7s 200ms cubic-bezier(.16,1,.3,1) both' }}>
-              <IPhoneFrame><MockChecksGrid /></IPhoneFrame>
+            <h1 className="text-[48px] sm:text-[64px] lg:text-[72px] font-bold text-cream leading-[1.02] tracking-[-0.03em] mb-5">
+              Ditch the clipboard,<br />
+              <span className="text-cream/30">keep the compliance.</span>
+            </h1>
+            <p className="text-cream/50 text-[15px] sm:text-base max-w-lg mx-auto leading-relaxed mb-8">
+              One app for food safety records, rotas, timesheets and team management. EHO-ready from day one, on any device, for the whole team.
+            </p>
+            <div className="flex flex-wrap justify-center items-center gap-3 mb-6">
+              <Link to="/signup" className="bg-accent text-cream px-7 py-3.5 rounded-xl text-sm font-semibold hover:bg-accent/90 active:scale-[0.98] transition-all cursor-pointer shadow-[0_4px_20px_rgba(201,79,42,0.45)]">
+                Start free for 7 days
+              </Link>
+              <a href="#compliance" className="flex items-center gap-1.5 text-cream/40 text-sm hover:text-cream/65 transition-colors cursor-pointer">
+                See how it works
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+              </a>
             </div>
-
-            {/* Right — desktop dashboard (large screens only) */}
-            <div className="hidden lg:block" style={{ animation:'pkMockIn 0.7s 100ms cubic-bezier(.16,1,.3,1) both' }}>
-              <div className="rounded-2xl overflow-hidden shadow-[0_48px_120px_rgba(0,0,0,0.55)] ring-1 ring-white/8">
-                <div className="bg-[#0c1910] px-4 py-3 flex items-center gap-2.5">
-                  <div className="flex gap-1.5">
-                    {['bg-white/10','bg-white/10','bg-white/10'].map((c,i)=><div key={i} className={`w-2.5 h-2.5 rounded-full ${c}`}/>)}
-                  </div>
-                  <div className="flex-1 bg-black/30 rounded px-2.5 py-1 flex items-center gap-1.5">
-                    <div className="w-1.5 h-1.5 rounded-full bg-[#1a7a4c]"/>
-                    <span className="text-[9px] text-white/18 font-mono tracking-wide">app.pelikn.app</span>
-                  </div>
+            <div className="flex flex-wrap justify-center gap-x-5 gap-y-1.5 mb-14">
+              {['No card required','Cancel any time','ICO registered · UK GDPR'].map(t=>(
+                <div key={t} className="flex items-center gap-1.5">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-cream/25"><polyline points="20 6 9 17 4 12"/></svg>
+                  <span className="text-xs text-cream/30">{t}</span>
                 </div>
-                <MockDashboard />
-              </div>
+              ))}
             </div>
-
+          </div>
+          {/* Hero phones — two iPhones side by side, partially cropped at bottom */}
+          <div className="flex justify-center gap-6 items-end" style={{ animation:'pkMockIn 0.7s 200ms cubic-bezier(.16,1,.3,1) both' }}>
+            <div className="hidden sm:block" style={{ transform:'translateY(40px)' }}>
+              <IPhoneFrame><MockMobileHome /></IPhoneFrame>
+            </div>
+            <IPhoneFrame><MockChecksGrid /></IPhoneFrame>
           </div>
         </div>
+        <div className="h-16 sm:h-24" />
       </section>
 
       {/* ── Replaces ─────────────────────────────────────────────────────── */}
@@ -802,41 +784,40 @@ export default function MarketingPage() {
 
       {/* ── Team ─────────────────────────────────────────────────────────── */}
       <section id="team" className="bg-charcoal">
-        <div className="max-w-5xl mx-auto px-6 sm:px-10 py-20 sm:py-28">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-            <FadeUp dir="left" className="order-2 lg:order-1">
-              <div className="overflow-x-auto -mx-6 px-6 lg:mx-0 lg:px-0 lg:overflow-visible">
-                <MockRota />
-              </div>
-            </FadeUp>
-            <div className="order-1 lg:order-2">
-              <FadeUp>
-                <span className="inline-block text-[10px] tracking-widest uppercase text-accent font-semibold bg-accent/12 px-3 py-1.5 rounded-full mb-5">Team &amp; scheduling · Pro</span>
-                <h2 className="text-4xl sm:text-5xl font-bold text-cream tracking-tight leading-tight mb-4">
-                  Stop managing<br />your team over<br />WhatsApp.
-                </h2>
-                <p className="text-cream/40 text-[15px] leading-relaxed mb-8 max-w-sm">
-                  Build the rota in minutes, publish it, done. Timesheets write themselves. Swaps and time-off come through the app. You stop being the middleman.
-                </p>
-              </FadeUp>
-              <div className="grid grid-cols-2 gap-3">
-                {[
-                  { n:'Rota builder',  d:'Drag-and-drop or AI auto-fill from your patterns' },
-                  { n:'Timesheets',    d:'Staff clock in/out on the app, exports to payroll' },
-                  { n:'Time off',      d:'Requests, approvals and shift swaps all in-app' },
-                  { n:'Training',      d:'Cert records and 30-day expiry alerts' },
-                  { n:'Tips',          d:'Enter the pot, set the split. Full audit trail' },
-                  { n:'Multi-venue',   d:'One login for every site you run' },
-                ].map(({ n, d }, i) => (
-                  <FadeUp key={n} delay={i * 40}>
-                    <div className="border border-cream/8 rounded-xl p-4 hover:border-cream/20 hover:bg-cream/4 transition-all duration-200">
-                      <p className="text-sm font-semibold text-cream mb-1">{n}</p>
-                      <p className="text-xs text-cream/30 leading-relaxed">{d}</p>
-                    </div>
-                  </FadeUp>
-                ))}
-              </div>
+        <div className="max-w-5xl mx-auto px-6 sm:px-10 pt-20 sm:pt-28 pb-20 sm:pb-28">
+          {/* Heading */}
+          <FadeUp className="max-w-2xl mb-10 sm:mb-12">
+            <span className="inline-block text-[10px] tracking-widest uppercase text-accent font-semibold bg-accent/12 px-3 py-1.5 rounded-full mb-5">Team &amp; scheduling · Pro</span>
+            <h2 className="text-4xl sm:text-5xl font-bold text-cream tracking-tight leading-tight mb-4">
+              Stop managing your team over WhatsApp.
+            </h2>
+            <p className="text-cream/40 text-[15px] leading-relaxed max-w-lg">
+              Build the rota in minutes, publish it, done. Timesheets write themselves. Swaps and time-off come through the app. You stop being the middleman.
+            </p>
+          </FadeUp>
+          {/* Rota — full width */}
+          <FadeUp dir="up" delay={60} className="mb-10 sm:mb-12">
+            <div className="overflow-x-auto -mx-6 px-6 sm:mx-0 sm:px-0 sm:overflow-visible">
+              <MockRota />
             </div>
+          </FadeUp>
+          {/* Features */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            {[
+              { n:'Rota builder',  d:'Drag-and-drop or auto-fill from your patterns' },
+              { n:'Timesheets',    d:'Staff clock in/out on the app, exports to payroll' },
+              { n:'Time off',      d:'Requests, approvals and shift swaps all in-app' },
+              { n:'Training',      d:'Cert records and 30-day expiry alerts' },
+              { n:'Tips',          d:'Enter the pot, set the split. Full audit trail' },
+              { n:'Multi-venue',   d:'One login for every site you run' },
+            ].map(({ n, d }, i) => (
+              <FadeUp key={n} delay={i * 40}>
+                <div className="border border-cream/8 rounded-xl p-4 hover:border-cream/20 hover:bg-cream/4 transition-all duration-200">
+                  <p className="text-sm font-semibold text-cream mb-1">{n}</p>
+                  <p className="text-xs text-cream/30 leading-relaxed">{d}</p>
+                </div>
+              </FadeUp>
+            ))}
           </div>
         </div>
       </section>
