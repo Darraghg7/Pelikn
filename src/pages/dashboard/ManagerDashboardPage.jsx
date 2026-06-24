@@ -37,7 +37,7 @@ const PLAN_CONFIG = {
 function PlanBadge({ plan }) {
   const cfg = PLAN_CONFIG[plan] ?? PLAN_CONFIG.starter
   return (
-    <span className={`text-[10px] tracking-widest uppercase font-semibold px-2 py-0.5 rounded border ${cfg.bg} ${cfg.text} ${cfg.border}`}>
+    <span className={`text-[11px] tracking-widest uppercase font-semibold px-2 py-0.5 rounded border ${cfg.bg} ${cfg.text} ${cfg.border}`}>
       {cfg.label}
     </span>
   )
@@ -160,7 +160,7 @@ function StatTile({ label, value, variant = 'neutral', to }) {
     <div className="flex flex-col gap-2 bg-white rounded-2xl p-4 min-h-[100px]">
       <div className="flex items-center gap-1.5">
         <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${dot[variant]}`} />
-        <span className="font-mono text-[10px] text-charcoal/40 uppercase tracking-[0.08em] leading-none">{label}</span>
+        <span className="font-mono text-[11px] text-charcoal/40 uppercase tracking-[0.08em] leading-none">{label}</span>
       </div>
       <div className={`text-[34px] font-medium tracking-[-0.035em] leading-none tabular-nums ${num[variant]}`}>
         {value}
@@ -253,7 +253,7 @@ export default function ManagerDashboardPage() {
       {/* Greeting — desktop only; mobile has its own greeting card inside MobileManagerDashboard */}
       <div className="hidden lg:flex items-start justify-between gap-2">
         <div className="min-w-0">
-          <p className="font-mono text-[10.5px] tracking-[0.08em] uppercase text-charcoal/40">{format(new Date(), 'EEEE, d MMMM')}</p>
+          <p className="font-mono text-[11px] tracking-[0.08em] uppercase text-charcoal/40">{format(new Date(), 'EEEE, d MMMM')}</p>
           <h1 className="text-[30px] font-medium tracking-[-0.028em] text-charcoal leading-tight mt-0.5">
             {greeting}{firstName ? `, ${firstName}` : ''}
           </h1>

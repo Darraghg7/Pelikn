@@ -148,10 +148,10 @@ export default function ClockEditApprovalCard({ compact = false }) {
           padding: '12px 16px 8px',
           borderBottom: '1px solid #eef0ec',
         }}>
-          <span className="font-mono text-[9.5px] tracking-[0.1em] uppercase font-semibold" style={{ color: '#76817b' }}>
+          <span className="font-mono text-[11px] tracking-[0.1em] uppercase font-semibold" style={{ color: '#76817b' }}>
             Hour Edit Requests
           </span>
-          <span className="text-[10px] font-bold text-white flex items-center justify-center"
+          <span className="text-[11px] font-bold text-white flex items-center justify-center"
             style={{ minWidth: 18, height: 18, borderRadius: 999, background: '#a85d12', padding: '0 5px' }}
           >
             {requests.length}
@@ -172,7 +172,7 @@ export default function ClockEditApprovalCard({ compact = false }) {
               <span className="text-sm font-semibold text-charcoal">
                 {r.staff?.name ?? 'Staff member'}
               </span>
-              <span className="font-mono text-[10px] tracking-[0.05em]" style={{ color: '#b3b9b5' }}>
+              <span className="font-mono text-[11px] tracking-[0.05em]" style={{ color: '#b3b9b5' }}>
                 {fmtDate(r.requested_clock_in)}
               </span>
             </div>

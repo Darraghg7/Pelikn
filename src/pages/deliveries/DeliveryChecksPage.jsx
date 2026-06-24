@@ -697,7 +697,7 @@ export default function DeliveryChecksPage() {
           { label: 'Failed', value: failCount, color: 'text-danger' },
         ].map(s => (
           <div key={s.label} className="bg-white rounded-2xl border-charcoal/10 p-3 sm:p-4 text-center">
-            <p className="text-[9px] sm:text-[11px] tracking-widest uppercase text-charcoal/40">{s.label}</p>
+            <p className="text-[11px] sm:text-[11px] tracking-widest uppercase text-charcoal/40">{s.label}</p>
             <p className={`text-xl sm:text-2xl font-bold ${s.color}`}>{s.value}</p>
           </div>
         ))}

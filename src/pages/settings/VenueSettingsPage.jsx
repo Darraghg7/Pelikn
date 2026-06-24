@@ -15,7 +15,7 @@ function Group({ label, children, foot }) {
   return (
     <div>
       {label && (
-        <div className="font-mono text-[10.5px] font-semibold tracking-[0.08em] uppercase text-charcoal/50 px-0.5 pt-[18px] pb-1.5">{label}</div>
+        <div className="font-mono text-[11px] font-semibold tracking-[0.08em] uppercase text-charcoal/50 px-0.5 pt-[18px] pb-1.5">{label}</div>
       )}
       <div className="bg-white dark:bg-[#1e1e1e] border border-charcoal/10 rounded-[14px] overflow-hidden">
         {children}
@@ -98,7 +98,7 @@ export default function VenueSettingsPage() {
         <Group label="Details">
           <div className="px-[15px] py-[13px] flex flex-col gap-3">
             <div>
-              <div className="font-mono text-[10px] font-semibold tracking-[0.06em] uppercase text-charcoal/50 mb-1.5">Venue name</div>
+              <div className="font-mono text-[11px] font-semibold tracking-[0.06em] uppercase text-charcoal/50 mb-1.5">Venue name</div>
               <input
                 value={form.venue_name}
                 onChange={e => setForm(f => ({ ...f, venue_name: e.target.value }))}
@@ -107,7 +107,7 @@ export default function VenueSettingsPage() {
               />
             </div>
             <div>
-              <div className="font-mono text-[10px] font-semibold tracking-[0.06em] uppercase text-charcoal/50 mb-1.5">Manager email</div>
+              <div className="font-mono text-[11px] font-semibold tracking-[0.06em] uppercase text-charcoal/50 mb-1.5">Manager email</div>
               <input
                 type="email"
                 value={form.manager_email}
@@ -170,7 +170,7 @@ export default function VenueSettingsPage() {
 
         <Group label="Branding">
           <div className="px-[15px] py-[13px] flex flex-col gap-2.5">
-            <div className="font-mono text-[10px] font-semibold tracking-[0.06em] uppercase text-charcoal/50 mb-0.5">Venue logo</div>
+            <div className="font-mono text-[11px] font-semibold tracking-[0.06em] uppercase text-charcoal/50 mb-0.5">Venue logo</div>
             <div className="flex items-center gap-3 flex-wrap">
               {settings.logo_url && (
                 <img src={settings.logo_url} alt="Venue logo" className="h-11 w-11 rounded-[10px] object-contain border border-charcoal/10 bg-charcoal/6 p-1" />
@@ -219,7 +219,7 @@ export default function VenueSettingsPage() {
         </Group>
 
         <div>
-          <div className="font-mono text-[10.5px] font-semibold tracking-[0.08em] uppercase text-charcoal/50 px-0.5 pb-1.5">My venues</div>
+          <div className="font-mono text-[11px] font-semibold tracking-[0.08em] uppercase text-charcoal/50 px-0.5 pb-1.5">My venues</div>
           <div className="bg-white dark:bg-[#1e1e1e] border border-charcoal/10 rounded-[14px] overflow-hidden py-1">
             <VenuesSection />
           </div>

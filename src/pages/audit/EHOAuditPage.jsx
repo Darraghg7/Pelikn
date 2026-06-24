@@ -33,7 +33,7 @@ function DrillTable({ headers, rows }) {
         <thead>
           <tr>
             {headers.map(h => (
-              <th key={h} className="text-left text-[10px] tracking-widest uppercase text-charcoal/40 font-medium pb-2 pr-3 border-b border-charcoal/8">{h}</th>
+              <th key={h} className="text-left text-[11px] tracking-widest uppercase text-charcoal/40 font-medium pb-2 pr-3 border-b border-charcoal/8">{h}</th>
             ))}
             {hasAction && <th className="border-b border-charcoal/8 pb-2" />}
           </tr>
@@ -350,15 +350,15 @@ export default function EHOAuditPage() {
             </div>
             <div className="grid grid-cols-3 gap-3 pt-3 border-t border-charcoal/6">
               <div className="text-center">
-                <p className="text-[10px] tracking-widest uppercase text-charcoal/40 mb-0.5">Points</p>
+                <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-0.5">Points</p>
                 <p className="font-bold text-charcoal text-base">{Math.round(overallScore)}</p>
               </div>
               <div className="text-center">
-                <p className="text-[10px] tracking-widest uppercase text-charcoal/40 mb-0.5">Max</p>
+                <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-0.5">Max</p>
                 <p className="font-bold text-charcoal text-base">100</p>
               </div>
               <div className="text-center">
-                <p className="text-[10px] tracking-widest uppercase text-charcoal/40 mb-0.5">Rate</p>
+                <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-0.5">Rate</p>
                 <p className="font-bold text-midgreen text-base">{overallScore}%</p>
               </div>
             </div>

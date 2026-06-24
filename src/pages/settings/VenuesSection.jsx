@@ -81,9 +81,9 @@ export default function VenuesSection() {
             <div className="min-w-0">
               <div className="flex items-center gap-1.5 flex-wrap">
                 <p className="text-sm font-semibold text-charcoal">{v.name}</p>
-                <span className="text-[10px] font-semibold tracking-wider uppercase px-1.5 py-0.5 rounded bg-brand/8 text-brand">{v.plan}</span>
+                <span className="text-[11px] font-semibold tracking-wider uppercase px-1.5 py-0.5 rounded bg-brand/8 text-brand">{v.plan}</span>
                 {i === 0 && (
-                  <span className="text-[10px] tracking-wider uppercase font-medium px-1.5 py-0.5 rounded bg-charcoal/[0.06] text-charcoal/55">Primary</span>
+                  <span className="text-[11px] tracking-wider uppercase font-medium px-1.5 py-0.5 rounded bg-charcoal/[0.06] text-charcoal/55">Primary</span>
                 )}
               </div>
               <p className="text-[11px] text-charcoal/40 mt-0.5 font-mono tracking-wide">pelikn.app/v/{v.slug}</p>

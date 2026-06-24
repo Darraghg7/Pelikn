@@ -480,7 +480,7 @@ export default function MobileNav() {
                       isActive ? 'bg-navpill dark:bg-brand/30' : '',
                     ].join(' ')}>
                       <Icon active={isActive} />
-                      <span className={['text-[10px] leading-none tracking-wide', isActive ? 'font-semibold' : 'font-medium'].join(' ')}>
+                      <span className={['text-[11px] leading-none tracking-wide', isActive ? 'font-semibold' : 'font-medium'].join(' ')}>
                         {tab.label}
                       </span>
                     </span>

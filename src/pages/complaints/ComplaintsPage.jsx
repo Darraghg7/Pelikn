@@ -171,8 +171,8 @@ function ComplaintCard({ item, onEdit }) {
         <div className="flex items-start justify-between gap-3 mb-2">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className={`text-[10px] font-semibold px-2 py-0.5 rounded border ${info.color}`}>{info.label}</span>
-              <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+              <span className={`text-[11px] font-semibold px-2 py-0.5 rounded border ${info.color}`}>{info.label}</span>
+              <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${
                 resolved ? 'bg-success/10 text-success' : 'bg-danger/10 text-danger'
               }`}>
                 {resolved ? 'Resolved' : 'Open'}
@@ -195,19 +195,19 @@ function ComplaintCard({ item, onEdit }) {
           <div className="mt-3 pt-3 border-t border-charcoal/6 flex flex-col gap-1.5">
             {item.investigation_notes && (
               <div>
-                <p className="text-[10px] tracking-widest uppercase text-charcoal/30">Investigation</p>
+                <p className="text-[11px] tracking-widest uppercase text-charcoal/30">Investigation</p>
                 <p className="text-xs text-charcoal/60 mt-0.5">{item.investigation_notes}</p>
               </div>
             )}
             {item.outcome && (
               <div>
-                <p className="text-[10px] tracking-widest uppercase text-charcoal/30">Outcome</p>
+                <p className="text-[11px] tracking-widest uppercase text-charcoal/30">Outcome</p>
                 <p className="text-xs text-charcoal/60 mt-0.5">{item.outcome}</p>
               </div>
             )}
             {item.corrective_action && (
               <div>
-                <p className="text-[10px] tracking-widest uppercase text-charcoal/30">Corrective action</p>
+                <p className="text-[11px] tracking-widest uppercase text-charcoal/30">Corrective action</p>
                 <p className="text-xs text-charcoal/60 mt-0.5">{item.corrective_action}</p>
               </div>
             )}

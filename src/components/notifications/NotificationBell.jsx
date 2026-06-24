@@ -229,7 +229,7 @@ export default function NotificationBell({ variant = 'light' }) {
                   />
                 ))}
               </ul>
-              <p className="text-[10px] text-charcoal/25 text-center py-2 border-t border-charcoal/6">
+              <p className="text-[11px] text-charcoal/25 text-center py-2 border-t border-charcoal/6">
                 Swipe left to dismiss · Resets when new activity occurs
               </p>
             </>

@@ -74,7 +74,7 @@ function ContractTypeRow({ s, onSave }) {
             disabled={saving}
             onClick={() => handleType(btn.value)}
             className={[
-              'text-[10px] font-semibold tracking-wider uppercase px-2 py-0.5 rounded-full border transition-colors',
+              'text-[11px] font-semibold tracking-wider uppercase px-2 py-0.5 rounded-full border transition-colors',
               active
                 ? 'bg-brand text-white border-brand'
                 : 'bg-transparent text-charcoal/45 border-charcoal/15 hover:border-charcoal/35 hover:text-charcoal/70',
@@ -101,18 +101,18 @@ function ContractTypeRow({ s, onSave }) {
             placeholder="hrs/wk"
             className="w-16 px-1.5 py-0.5 text-[11px] rounded border border-charcoal/15 bg-white text-charcoal focus:outline-none focus:ring-1 focus:ring-brand/30 focus:border-brand/40"
           />
-          <span className="text-[10px] text-charcoal/40">hrs/wk</span>
+          <span className="text-[11px] text-charcoal/40">hrs/wk</span>
         </div>
       )}
 
       {/* Leave entitlement preview */}
       {s.employment_type && s.employment_type !== 'zero_hours' && (
-        <span className="text-[10px] text-charcoal/30">
+        <span className="text-[11px] text-charcoal/30">
           · {entitlementDays}d leave/yr
         </span>
       )}
       {s.employment_type === 'zero_hours' && (
-        <span className="text-[10px] text-charcoal/30">· Leave accrues per hour worked</span>
+        <span className="text-[11px] text-charcoal/30">· Leave accrues per hour worked</span>
       )}
     </div>
   )
@@ -787,7 +787,7 @@ export default function StaffMembersSection() {
             <button
               type="button"
               onClick={() => setStaffForm(f => ({ ...f, colour: '' }))}
-              className="text-[10px] text-charcoal/40 hover:text-charcoal transition-colors border border-charcoal/15 rounded-full px-2 py-0.5"
+              className="text-[11px] text-charcoal/40 hover:text-charcoal transition-colors border border-charcoal/15 rounded-full px-2 py-0.5"
             >
               Auto
             </button>
@@ -907,12 +907,12 @@ export default function StaffMembersSection() {
                       <p className="text-xs text-charcoal/45 leading-tight">{roleLabel}</p>
                     </div>
                     {s.job_role && (
-                      <span className="text-[10px] font-semibold tracking-wider uppercase px-1.5 py-0.5 rounded bg-charcoal/[0.06] text-charcoal/55">
+                      <span className="text-[11px] font-semibold tracking-wider uppercase px-1.5 py-0.5 rounded bg-charcoal/[0.06] text-charcoal/55">
                         {customRoles.find(r => r.value === s.job_role)?.label ?? s.job_role}
                       </span>
                     )}
                     {isLocked && (
-                      <span className="inline-flex items-center gap-1 text-[10px] font-semibold tracking-wider uppercase px-1.5 py-0.5 rounded bg-danger/10 text-danger">
+                      <span className="inline-flex items-center gap-1 text-[11px] font-semibold tracking-wider uppercase px-1.5 py-0.5 rounded bg-danger/10 text-danger">
                         <svg className="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4">
                           <rect x="3" y="11" width="18" height="11" rx="2" />
                           <path d="M7 11V7a5 5 0 0 1 10 0v4" />
@@ -921,7 +921,7 @@ export default function StaffMembersSection() {
                       </span>
                     )}
                     {!s.is_active && (
-                      <span className="text-[10px] tracking-wider uppercase text-charcoal/35">inactive</span>
+                      <span className="text-[11px] tracking-wider uppercase text-charcoal/35">inactive</span>
                     )}
                   </div>
 
@@ -996,8 +996,8 @@ export default function StaffMembersSection() {
 
                   {/* Reorder collapses to keyboard-only on hover */}
                   <div className="flex flex-col opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button onClick={() => moveStaff(s.id, 'up')}   disabled={idx === 0}             className="w-5 h-3.5 flex items-center justify-center text-charcoal/30 hover:text-charcoal disabled:opacity-0 text-[8px]">▲</button>
-                    <button onClick={() => moveStaff(s.id, 'down')} disabled={idx === staff.length-1} className="w-5 h-3.5 flex items-center justify-center text-charcoal/30 hover:text-charcoal disabled:opacity-0 text-[8px]">▼</button>
+                    <button onClick={() => moveStaff(s.id, 'up')}   disabled={idx === 0}             className="w-5 h-3.5 flex items-center justify-center text-charcoal/30 hover:text-charcoal disabled:opacity-0 text-[11px]">▲</button>
+                    <button onClick={() => moveStaff(s.id, 'down')} disabled={idx === staff.length-1} className="w-5 h-3.5 flex items-center justify-center text-charcoal/30 hover:text-charcoal disabled:opacity-0 text-[11px]">▼</button>
                   </div>
                   </div>{/* end actions */}
                 </div>{/* end inner grid */}

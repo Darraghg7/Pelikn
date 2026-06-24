@@ -29,7 +29,7 @@ function Row({ label, sub, warnText, control, last }) {
         <div className="text-sm font-medium text-charcoal tracking-[-0.005em]">{label}</div>
         {sub && <div className="text-[11.5px] text-charcoal/50 mt-0.5 leading-[1.4]">{sub}</div>}
         {warnText && (
-          <div className="font-mono text-[10px] text-warning mt-1 uppercase tracking-[0.04em] font-semibold">{warnText}</div>
+          <div className="font-mono text-[11px] text-warning mt-1 uppercase tracking-[0.04em] font-semibold">{warnText}</div>
         )}
       </div>
       {control}
@@ -41,7 +41,7 @@ function Group({ label, children, foot }) {
   return (
     <div>
       {label && (
-        <div className="font-mono text-[10.5px] font-semibold tracking-[0.08em] uppercase text-charcoal/50 px-0.5 pt-[18px] pb-1.5">{label}</div>
+        <div className="font-mono text-[11px] font-semibold tracking-[0.08em] uppercase text-charcoal/50 px-0.5 pt-[18px] pb-1.5">{label}</div>
       )}
       <div className="bg-white dark:bg-[#1e1e1e] border border-charcoal/10 rounded-[14px] overflow-hidden">
         {children}

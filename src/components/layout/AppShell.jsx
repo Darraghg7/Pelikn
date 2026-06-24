@@ -316,7 +316,7 @@ function LockedSubItem({ label }) {
     <div className="flex items-center gap-2.5 pl-5 pr-4 py-[7px] mx-2 rounded-lg text-[13px] text-white/25 cursor-default select-none">
       <span className="w-1 h-1 rounded-full shrink-0 bg-white/15" />
       <span className="flex-1 truncate">{label}</span>
-      <span className="text-[9px] tracking-widest uppercase font-bold text-accent bg-accent/10 px-1.5 py-0.5 rounded shrink-0">Pro</span>
+      <span className="text-[11px] tracking-widest uppercase font-bold text-accent bg-accent/10 px-1.5 py-0.5 rounded shrink-0">Pro</span>
     </div>
   )
 }
@@ -329,11 +329,11 @@ function CollapsibleSection({ label, badge, isOpen, onToggle, children }) {
         onClick={onToggle}
         className="w-full flex items-center gap-2 px-5 pt-3 pb-1.5 group"
       >
-        <span className="text-[10.5px] font-semibold tracking-[0.12em] uppercase text-white/25 group-hover:text-white/40 transition-colors flex-1 text-left select-none">
+        <span className="text-[11px] font-semibold tracking-[0.12em] uppercase text-white/25 group-hover:text-white/40 transition-colors flex-1 text-left select-none">
           {label}
         </span>
         {badge > 0 && (
-          <span className="min-w-[18px] h-[18px] text-[10px] font-bold rounded-full flex items-center justify-center px-1 shrink-0 bg-warning/15 text-warning">
+          <span className="min-w-[18px] h-[18px] text-[11px] font-bold rounded-full flex items-center justify-center px-1 shrink-0 bg-warning/15 text-warning">
             {badge}
           </span>
         )}
@@ -378,7 +378,7 @@ function VenueSwitcher({ venues, currentSlug, onSelect }) {
       </button>
       {open && (
         <div className="absolute top-full left-0 mt-2 w-52 bg-brand-800 rounded-xl shadow-dropdown border border-white/10 overflow-hidden z-50 animate-fade-in">
-          <p className="px-3 pt-2.5 pb-1.5 text-[10px] tracking-[0.12em] uppercase text-white/30 font-semibold">Your venues</p>
+          <p className="px-3 pt-2.5 pb-1.5 text-[11px] tracking-[0.12em] uppercase text-white/30 font-semibold">Your venues</p>
           {venues.map(v => (
             <button
               key={v.id}

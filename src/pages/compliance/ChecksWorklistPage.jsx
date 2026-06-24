@@ -93,11 +93,11 @@ function WorklistRow({ check, statusInfo, onClick }) {
           {check.label}
         </div>
         <div className="flex items-center gap-1.5 mt-0.5">
-          <span className="font-mono text-[10px] text-charcoal/30 tracking-[0.04em]">
+          <span className="font-mono text-[11px] text-charcoal/30 tracking-[0.04em]">
             {check.area}
           </span>
           <span className="w-0.5 h-0.5 rounded-full bg-charcoal/30" />
-          <span className="font-mono text-[10px] text-charcoal/30 tracking-[0.04em]">
+          <span className="font-mono text-[11px] text-charcoal/30 tracking-[0.04em]">
             {check.cadence}
           </span>
         </div>
@@ -111,12 +111,12 @@ function WorklistRow({ check, statusInfo, onClick }) {
             </svg>
           </span>
         ) : status !== 'na' ? (
-          <span className={`inline-flex items-center gap-1 font-mono text-[10px] font-semibold tracking-[0.04em] uppercase ${fg}`}>
+          <span className={`inline-flex items-center gap-1 font-mono text-[11px] font-semibold tracking-[0.04em] uppercase ${fg}`}>
             <span className="w-[5px] h-[5px] rounded-full bg-current" />
             {statusInfo?.statusText ?? STATUS_TONE[status].label}
           </span>
         ) : (
-          <span className="font-mono text-[10px] text-charcoal/30">—</span>
+          <span className="font-mono text-[11px] text-charcoal/30">—</span>
         )}
       </div>
 

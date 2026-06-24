@@ -42,7 +42,7 @@ const APPROVAL_LABELS = {
 function CategoryBadge({ category }) {
   const cls = CATEGORY_STYLES[category] ?? CATEGORY_STYLES.other
   return (
-    <span className={`text-[10px] tracking-widest uppercase font-semibold px-2 py-0.5 rounded border ${cls}`}>
+    <span className={`text-[11px] tracking-widest uppercase font-semibold px-2 py-0.5 rounded border ${cls}`}>
       {CATEGORY_LABELS[category] ?? category}
     </span>
   )
@@ -52,7 +52,7 @@ function ApprovalBadge({ status }) {
   const s = status ?? 'pending'
   const cls = APPROVAL_STYLES[s] ?? APPROVAL_STYLES.pending
   return (
-    <span className={`text-[10px] tracking-widest uppercase font-semibold px-2 py-0.5 rounded border ${cls}`}>
+    <span className={`text-[11px] tracking-widest uppercase font-semibold px-2 py-0.5 rounded border ${cls}`}>
       {APPROVAL_LABELS[s] ?? s}
     </span>
   )
@@ -252,7 +252,7 @@ function SupplierModal({ supplier, venueId, onSaved, onClose }) {
             <label className="text-[11px] tracking-widest uppercase text-charcoal/40">Food Safety Certificate</label>
             <div className="grid grid-cols-2 gap-3">
               <div className="flex flex-col gap-1">
-                <label className="text-[10px] text-charcoal/35 uppercase tracking-wider">Expiry Date</label>
+                <label className="text-[11px] text-charcoal/35 uppercase tracking-wider">Expiry Date</label>
                 <input
                   type="date"
                   value={form.food_safety_cert_expiry}
@@ -261,7 +261,7 @@ function SupplierModal({ supplier, venueId, onSaved, onClose }) {
                 />
               </div>
               <div className="flex flex-col gap-1">
-                <label className="text-[10px] text-charcoal/35 uppercase tracking-wider">Upload Certificate</label>
+                <label className="text-[11px] text-charcoal/35 uppercase tracking-wider">Upload Certificate</label>
                 <input
                   type="file"
                   accept="image/*,.pdf,.doc,.docx"

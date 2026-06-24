@@ -69,7 +69,7 @@ function ManagerTaskRow({ item, isTemplate, completions, onDelete, deleting }) {
   return (
     <div className="py-2.5 first:pt-0 last:pb-0 flex items-center justify-between gap-2">
       <div className="flex items-center gap-2.5 min-w-0">
-        <span className={`w-3.5 h-3.5 rounded border shrink-0 flex items-center justify-center text-[10px] ${comp ? 'bg-success border-success text-white' : 'border-charcoal/20'}`}>
+        <span className={`w-3.5 h-3.5 rounded border shrink-0 flex items-center justify-center text-[11px] ${comp ? 'bg-success border-success text-white' : 'border-charcoal/20'}`}>
           {comp ? <svg className="w-2.5 h-2.5" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg> : ''}
         </span>
         <div className="min-w-0">
@@ -114,7 +114,7 @@ function DeptColumn({ role, label, color, templates, oneOffs, completions, onDel
         {/* Recurring */}
         {deptTemplates.length > 0 && (
           <div className="pb-3">
-            <p className="text-[10px] tracking-widest uppercase text-charcoal/30 mb-2">Recurring</p>
+            <p className="text-[11px] tracking-widest uppercase text-charcoal/30 mb-2">Recurring</p>
             {deptTemplates.map(t => (
               <ManagerTaskRow key={t.id} item={t} isTemplate completions={completions} onDelete={onDeleteTemplate} deleting={deleting} />
             ))}
@@ -124,7 +124,7 @@ function DeptColumn({ role, label, color, templates, oneOffs, completions, onDel
         {/* One-offs */}
         {deptOneOffs.length > 0 && (
           <div className={deptTemplates.length > 0 ? 'pt-3' : ''}>
-            <p className="text-[10px] tracking-widest uppercase text-charcoal/30 mb-2">One-off</p>
+            <p className="text-[11px] tracking-widest uppercase text-charcoal/30 mb-2">One-off</p>
             {deptOneOffs.map(o => (
               <ManagerTaskRow key={o.id} item={o} isTemplate={false} completions={completions} onDelete={onDeleteOneOff} deleting={deleting} />
             ))}
@@ -446,11 +446,11 @@ function StaffDutyCard({ duty, toggleItem }) {
     <div className="bg-white rounded-[14px] border border-charcoal/8 overflow-hidden">
       <div className="flex items-center justify-between px-4 pt-3.5 pb-3 border-b border-charcoal/6">
         <div className="flex items-center gap-2 min-w-0">
-          <span className="font-mono text-[9.5px] text-charcoal/40 tracking-widest uppercase font-semibold shrink-0">Duty</span>
+          <span className="font-mono text-[11px] text-charcoal/40 tracking-widest uppercase font-semibold shrink-0">Duty</span>
           <span className="text-charcoal/25 text-xs">·</span>
           <p className="text-[15px] font-semibold text-charcoal truncate">{duty.title}</p>
         </div>
-        <span className={`text-[10.5px] font-mono font-semibold shrink-0 ml-2 ${allDone ? 'text-success' : 'text-charcoal/35'}`}>
+        <span className={`text-[11px] font-mono font-semibold shrink-0 ml-2 ${allDone ? 'text-success' : 'text-charcoal/35'}`}>
           {done}/{total}
         </span>
       </div>
@@ -499,7 +499,7 @@ function CleaningTab({ tasks, completions, loading }) {
       {pending.length > 0 && (
         <div>
           <div className="flex items-baseline justify-between px-1 mb-2">
-            <span className="text-[10.5px] font-mono tracking-widest uppercase text-charcoal/40 font-semibold">Pending</span>
+            <span className="text-[11px] font-mono tracking-widest uppercase text-charcoal/40 font-semibold">Pending</span>
             <span className="text-[11px] font-mono text-charcoal/35">{done.length} / {tasks.length}</span>
           </div>
           <div className="bg-white rounded-[14px] border border-charcoal/8 overflow-hidden">
@@ -513,7 +513,7 @@ function CleaningTab({ tasks, completions, loading }) {
                   <p className="text-[13.5px] font-medium text-charcoal">{t.title}</p>
                   {t.area && <p className="text-[11px] text-charcoal/40 mt-0.5">{t.area}</p>}
                 </div>
-                <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded bg-charcoal/6 text-charcoal/40 uppercase tracking-wide">
+                <span className="text-[11px] font-mono font-semibold px-2 py-0.5 rounded bg-charcoal/6 text-charcoal/40 uppercase tracking-wide">
                   {t.frequency}
                 </span>
               </div>
@@ -523,7 +523,7 @@ function CleaningTab({ tasks, completions, loading }) {
       )}
       {done.length > 0 && (
         <div>
-          <span className="text-[10.5px] font-mono tracking-widest uppercase text-charcoal/35 font-semibold px-1 mb-2 block">Completed</span>
+          <span className="text-[11px] font-mono tracking-widest uppercase text-charcoal/35 font-semibold px-1 mb-2 block">Completed</span>
           <div className="bg-white rounded-[14px] border border-charcoal/8 overflow-hidden">
             {done.map((t, i) => (
               <div key={t.id} className={`px-4 py-3 flex items-center gap-3 ${i > 0 ? 'border-t border-charcoal/5' : ''}`}>
@@ -545,7 +545,7 @@ function AllergensTab({ venueSlug }) {
     <div className="flex flex-col gap-2.5">
       <div className="bg-white rounded-[14px] border border-charcoal/8 overflow-hidden">
         <div className="px-4 pt-3.5 pb-3 border-b border-charcoal/6">
-          <p className="text-[10.5px] font-mono tracking-widest uppercase text-charcoal/40 font-semibold">Today's acknowledgement</p>
+          <p className="text-[11px] font-mono tracking-widest uppercase text-charcoal/40 font-semibold">Today's acknowledgement</p>
         </div>
         <Link
           to={`/v/${venueSlug}/allergens`}
@@ -561,7 +561,7 @@ function AllergensTab({ venueSlug }) {
 
       <div className="bg-white rounded-[14px] border border-charcoal/8 overflow-hidden">
         <div className="px-4 pt-3.5 pb-3 border-b border-charcoal/6">
-          <p className="text-[10.5px] font-mono tracking-widest uppercase text-charcoal/40 font-semibold">Reference</p>
+          <p className="text-[11px] font-mono tracking-widest uppercase text-charcoal/40 font-semibold">Reference</p>
         </div>
         <Link
           to={`/v/${venueSlug}/allergens`}
@@ -624,7 +624,7 @@ function StaffTasksView({ session }) {
       {/* Page header: mono label + large title + date picker */}
       <div className="flex items-start justify-between gap-3 px-0.5">
         <div>
-          <span className="text-[10.5px] font-mono tracking-widest uppercase text-charcoal/40 font-semibold block">Tasks</span>
+          <span className="text-[11px] font-mono tracking-widest uppercase text-charcoal/40 font-semibold block">Tasks</span>
           <h1 className="text-[28px] font-bold text-charcoal leading-tight mt-0.5">{TAB_TITLE[activeTab]}</h1>
         </div>
         {/* Day selector */}

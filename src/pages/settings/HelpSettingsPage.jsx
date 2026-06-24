@@ -25,7 +25,7 @@ export default function HelpSettingsPage() {
 
       <div className="px-4 pb-24 max-w-[480px] mx-auto">
 
-        <div className="font-mono text-[10.5px] font-semibold tracking-[0.08em] uppercase text-charcoal/50 pt-[18px] pb-[7px] px-0.5">Common questions</div>
+        <div className="font-mono text-[11px] font-semibold tracking-[0.08em] uppercase text-charcoal/50 pt-[18px] pb-[7px] px-0.5">Common questions</div>
         <div className="bg-white dark:bg-[#1e1e1e] border border-charcoal/10 rounded-[14px] overflow-hidden">
           {FAQS.map((faq, i) => (
             <div key={i} className={i < FAQS.length - 1 ? 'border-b border-charcoal/6' : ''}>
@@ -47,7 +47,7 @@ export default function HelpSettingsPage() {
           ))}
         </div>
 
-        <div className="font-mono text-[10.5px] font-semibold tracking-[0.08em] uppercase text-charcoal/50 pt-[18px] pb-[7px] px-0.5">Get help</div>
+        <div className="font-mono text-[11px] font-semibold tracking-[0.08em] uppercase text-charcoal/50 pt-[18px] pb-[7px] px-0.5">Get help</div>
         <div className="bg-white dark:bg-[#1e1e1e] border border-charcoal/10 rounded-[14px] overflow-hidden">
           <a
             href="mailto:hello@pelikn.com"
@@ -60,7 +60,7 @@ export default function HelpSettingsPage() {
             </span>
             <div className="flex-1 min-w-0">
               <div className="text-[15px] font-medium text-charcoal">Chat with support</div>
-              <div className="font-mono text-[10.5px] text-charcoal/50 mt-0.5">Usually responds in under an hour</div>
+              <div className="font-mono text-[11px] text-charcoal/50 mt-0.5">Usually responds in under an hour</div>
             </div>
             <svg width="6" height="10" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" className="text-charcoal/30">
               <path d="M1 1l4 4-4 4"/>
@@ -80,7 +80,7 @@ export default function HelpSettingsPage() {
             </span>
             <div className="flex-1 min-w-0">
               <div className="text-[15px] font-medium text-charcoal">View documentation</div>
-              <div className="font-mono text-[10.5px] text-charcoal/50 mt-0.5">Guides, tutorials, release notes</div>
+              <div className="font-mono text-[11px] text-charcoal/50 mt-0.5">Guides, tutorials, release notes</div>
             </div>
             <svg width="6" height="10" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" className="text-charcoal/30">
               <path d="M1 1l4 4-4 4"/>

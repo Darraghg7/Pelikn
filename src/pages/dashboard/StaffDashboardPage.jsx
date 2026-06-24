@@ -67,7 +67,7 @@ function StatePill({ clockStatus, todayShift }) {
   }
 
   return (
-    <span className={`inline-flex items-center gap-[5px] px-[9px] py-[3px] rounded-full font-mono text-[10.5px] font-bold tracking-[0.06em] ${pillClass}`}>
+    <span className={`inline-flex items-center gap-[5px] px-[9px] py-[3px] rounded-full font-mono text-[11px] font-bold tracking-[0.06em] ${pillClass}`}>
       <span className="w-[5px] h-[5px] rounded-[3px] bg-current" />
       {label}
     </span>
@@ -94,7 +94,7 @@ function LiveTimer({ clockInAt, breakStartAt, totalBreakMs, status }) {
   return (
     <div className="mt-3.5 pt-3 border-t border-white/12">
       <div className="flex justify-between items-center">
-        <span className="font-mono text-[10.5px] text-white/45 tracking-[0.08em] uppercase font-semibold">
+        <span className="font-mono text-[11px] text-white/45 tracking-[0.08em] uppercase font-semibold">
           {status === 'on_break' ? 'Break elapsed' : 'Clocked in · elapsed'}
         </span>
         <span className="font-mono text-[19px] font-semibold tabular-nums tracking-[-0.01em]">
@@ -103,7 +103,7 @@ function LiveTimer({ clockInAt, breakStartAt, totalBreakMs, status }) {
       </div>
       {totalBreakMs > 0 && status !== 'on_break' && (
         <div className="flex justify-between mt-[5px]">
-          <span className="font-mono text-[10px] text-white/35 tracking-[0.08em] uppercase">
+          <span className="font-mono text-[11px] text-white/35 tracking-[0.08em] uppercase">
             Breaks used
           </span>
           <span className="font-mono text-xs text-white/65 tabular-nums">
@@ -127,7 +127,7 @@ function ShiftHeroCard({ todayShift, hourlyRate, staffId, hasShift }) {
     <div className="bg-brand text-white rounded-[14px] overflow-hidden">
       <div className="p-[18px_18px_0]">
         <div className="flex justify-between items-center">
-          <span className="font-mono text-[10.5px] text-white/45 tracking-[0.1em] uppercase font-semibold">
+          <span className="font-mono text-[11px] text-white/45 tracking-[0.1em] uppercase font-semibold">
             Your shift
           </span>
           <StatePill clockStatus={status} todayShift={todayShift} />
@@ -248,7 +248,7 @@ function QuickLogRow({ venueSlug, isEnabled, hasPermission }) {
 
   return (
     <div>
-      <p className="text-[10.5px] font-mono tracking-widest uppercase text-charcoal/40 px-1 mb-2">Log quickly</p>
+      <p className="text-[11px] font-mono tracking-widest uppercase text-charcoal/40 px-1 mb-2">Log quickly</p>
       <div className="grid grid-cols-3 gap-2">
         {buttons.map(b => (
           <Link
@@ -324,11 +324,11 @@ function DutyCard({ duty, toggleItem }) {
       {/* Header */}
       <div className="flex items-center justify-between px-4 pt-3.5 pb-3 border-b border-charcoal/6">
         <div className="flex items-center gap-2 min-w-0">
-          <span className="font-mono text-[9.5px] text-charcoal/40 tracking-widest uppercase font-semibold shrink-0">Duty</span>
+          <span className="font-mono text-[11px] text-charcoal/40 tracking-widest uppercase font-semibold shrink-0">Duty</span>
           <span className="text-charcoal/25 text-xs">·</span>
           <p className="text-[15px] font-semibold text-charcoal truncate">{duty.title}</p>
         </div>
-        <span className={`text-[10.5px] font-mono font-semibold shrink-0 ml-2 ${allDone ? 'text-success' : 'text-charcoal/35'}`}>
+        <span className={`text-[11px] font-mono font-semibold shrink-0 ml-2 ${allDone ? 'text-success' : 'text-charcoal/35'}`}>
           {done}/{total}
         </span>
       </div>
@@ -422,7 +422,7 @@ function TodayDuties({ staffId }) {
   if (loading || !duties.length) return null
   return (
     <div className="flex flex-col gap-2.5">
-      <p className="text-[10.5px] font-mono tracking-widest uppercase text-charcoal/40 px-1">Your duties today</p>
+      <p className="text-[11px] font-mono tracking-widest uppercase text-charcoal/40 px-1">Your duties today</p>
       {duties.map(d => (
         <DutyCard key={d.assignmentId} duty={d} toggleItem={toggleItem} />
       ))}
@@ -546,7 +546,7 @@ function TodayChecks({ venueId, venueSlug, staffName }) {
         onClick={() => !allDone && setOpen(v => !v)}
         className={`flex items-center justify-between w-full px-0.5 py-1 ${allDone ? 'cursor-default' : 'group'}`}
       >
-        <span className="text-[10.5px] font-mono tracking-widest uppercase text-charcoal/40 font-semibold">
+        <span className="text-[11px] font-mono tracking-widest uppercase text-charcoal/40 font-semibold">
           {sessionType === 'opening' ? 'Opening Checks' : 'Closing Checks'}
         </span>
         <div className="flex items-center gap-2">
@@ -756,8 +756,8 @@ export default function StaffDashboardPage() {
 
       {/* Page header */}
       <div className="flex items-baseline justify-between px-0.5">
-        <span className="text-[10.5px] font-mono tracking-widest uppercase text-charcoal/40 font-semibold">My Shift</span>
-        <span className="text-[10.5px] font-mono text-charcoal/35">{dateLabel}</span>
+        <span className="text-[11px] font-mono tracking-widest uppercase text-charcoal/40 font-semibold">My Shift</span>
+        <span className="text-[11px] font-mono text-charcoal/35">{dateLabel}</span>
       </div>
 
       {/* Greeting */}
@@ -788,7 +788,7 @@ export default function StaffDashboardPage() {
       {/* If clock-in is locked, show shift info in a simpler card */}
       {isPlanLocked('clock-in') && todayShift && (
         <div className="bg-brand text-white rounded-[14px] p-5">
-          <span className="font-mono text-[10.5px] text-white/45 tracking-[0.1em] uppercase font-semibold">
+          <span className="font-mono text-[11px] text-white/45 tracking-[0.1em] uppercase font-semibold">
             Your shift today
           </span>
           <div className="font-mono text-[28px] font-medium mt-2 tabular-nums">

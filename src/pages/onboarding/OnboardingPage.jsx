@@ -422,10 +422,10 @@ export default function OnboardingPage() {
       <div className="sticky top-0 z-10 bg-white border-b border-charcoal/8 h-[52px] flex items-center justify-between px-5 shrink-0">
         <span className="font-extrabold text-[16px] text-brand tracking-tight">Pelikn</span>
         <div className="flex items-center gap-2.5">
-          <span className={`text-[10px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-md ${isPro ? 'bg-accent/12 text-accent' : 'bg-brand/9 text-brand'}`}>
+          <span className={`text-[11px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-md ${isPro ? 'bg-accent/12 text-accent' : 'bg-brand/9 text-brand'}`}>
             {isPro ? 'Pro' : 'Starter'}
           </span>
-          <div className="flex items-center gap-1 text-charcoal/30 font-mono text-[9.5px]">
+          <div className="flex items-center gap-1 text-charcoal/30 font-mono text-[11px]">
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
             Secure setup
           </div>
@@ -443,7 +443,7 @@ export default function OnboardingPage() {
                   <button
                     onClick={() => { if (i < step) setStep(i) }}
                     className={[
-                      'w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold font-mono border-none shrink-0 transition-all',
+                      'w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold font-mono border-none shrink-0 transition-all',
                       state === 'done' ? 'bg-brand text-white cursor-pointer' :
                       state === 'cur'  ? 'bg-brand text-white shadow-[0_0_0_4px_rgba(45,79,69,0.15)]' :
                                          'bg-charcoal/12 text-charcoal/40 cursor-default',
@@ -454,7 +454,7 @@ export default function OnboardingPage() {
                       : i + 1
                     }
                   </button>
-                  <span className={`text-[9px] font-semibold tracking-wider uppercase hidden sm:block whitespace-nowrap ${state === 'todo' ? 'text-charcoal/30' : 'text-brand'}`}>
+                  <span className={`text-[11px] font-semibold tracking-wider uppercase hidden sm:block whitespace-nowrap ${state === 'todo' ? 'text-charcoal/30' : 'text-brand'}`}>
                     {label}
                   </span>
                 </div>
@@ -493,7 +493,7 @@ export default function OnboardingPage() {
                     <div>{VENUE_ICONS[preset.icon]}</div>
                     <div>
                       <p className="font-bold text-[13px] text-charcoal mb-0.5">{preset.label}</p>
-                      <p className="text-[10.5px] text-charcoal/40 leading-[1.4]">{preset.description}</p>
+                      <p className="text-[11px] text-charcoal/40 leading-[1.4]">{preset.description}</p>
                     </div>
                   </button>
                 ))}
@@ -514,9 +514,9 @@ export default function OnboardingPage() {
                 if (allPro && !isPro) {
                   return (
                     <div key={group.id} className="mb-5">
-                      <p className="font-mono text-[9.5px] tracking-[0.12em] uppercase text-charcoal/40 mb-1.5 flex items-center gap-2 px-0.5">
+                      <p className="font-mono text-[11px] tracking-[0.12em] uppercase text-charcoal/40 mb-1.5 flex items-center gap-2 px-0.5">
                         {group.label}
-                        <span className="text-[8.5px] font-bold tracking-widest uppercase px-1.5 py-0.5 rounded bg-accent/12 text-accent">Pro only</span>
+                        <span className="text-[11px] font-bold tracking-widest uppercase px-1.5 py-0.5 rounded bg-accent/12 text-accent">Pro only</span>
                       </p>
                       <div className="bg-white rounded-2xl border border-charcoal/10 overflow-hidden">
                         <div className="flex items-center gap-3 px-4 py-3 bg-accent/[0.06] border-b border-accent/10">
@@ -525,7 +525,7 @@ export default function OnboardingPage() {
                           </div>
                           <div className="flex-1">
                             <p className="text-[12px] font-bold text-charcoal">Available on Pro</p>
-                            <p className="text-[10.5px] text-charcoal/40 mt-0.5">Unlock {group.label} for £25/mo</p>
+                            <p className="text-[11px] text-charcoal/40 mt-0.5">Unlock {group.label} for £25/mo</p>
                           </div>
                           <button
                             onClick={() => setUpgradeFeature(group.features[0].id)}
@@ -542,7 +542,7 @@ export default function OnboardingPage() {
                             </div>
                             <button
                               onClick={() => setUpgradeFeature(feature.id)}
-                              className="flex items-center gap-1.5 text-[10.5px] font-bold text-accent bg-accent/8 border border-accent/18 px-2.5 py-1 rounded-lg ml-3 shrink-0 hover:bg-accent/14 transition-colors"
+                              className="flex items-center gap-1.5 text-[11px] font-bold text-accent bg-accent/8 border border-accent/18 px-2.5 py-1 rounded-lg ml-3 shrink-0 hover:bg-accent/14 transition-colors"
                             >
                               <LockIcon size={10} />
                               Pro
@@ -556,7 +556,7 @@ export default function OnboardingPage() {
 
                 return (
                   <div key={group.id} className="mb-5">
-                    <p className="font-mono text-[9.5px] tracking-[0.12em] uppercase text-charcoal/40 mb-1.5 px-0.5">
+                    <p className="font-mono text-[11px] tracking-[0.12em] uppercase text-charcoal/40 mb-1.5 px-0.5">
                       {group.label}
                     </p>
                     <div className="bg-white rounded-2xl border border-charcoal/10 overflow-hidden">
@@ -571,7 +571,7 @@ export default function OnboardingPage() {
                               <p className={`text-sm ${isProLocked ? 'text-charcoal/40' : 'text-charcoal'}`}>
                                 {feature.label}
                                 {isProLocked && (
-                                  <span className="font-mono ml-1.5 text-[9px] font-bold tracking-widest uppercase text-accent">
+                                  <span className="font-mono ml-1.5 text-[11px] font-bold tracking-widest uppercase text-accent">
                                     PRO
                                   </span>
                                 )}
@@ -583,7 +583,7 @@ export default function OnboardingPage() {
                             {isProLocked ? (
                               <button
                                 onClick={() => setUpgradeFeature(feature.id)}
-                                className="flex items-center gap-1.5 text-[10.5px] font-bold text-accent bg-accent/8 border border-accent/18 px-2.5 py-1 rounded-lg ml-3 shrink-0 hover:bg-accent/14 transition-colors"
+                                className="flex items-center gap-1.5 text-[11px] font-bold text-accent bg-accent/8 border border-accent/18 px-2.5 py-1 rounded-lg ml-3 shrink-0 hover:bg-accent/14 transition-colors"
                               >
                                 <LockIcon size={10} />
                                 Pro
@@ -849,7 +849,7 @@ export default function OnboardingPage() {
                 </div>
               )}
               <div className="bg-white rounded-[14px] border border-charcoal/8 p-[18px] mt-[18px] text-left">
-                <p className="font-mono text-[9.5px] tracking-[0.12em] uppercase text-charcoal/40 mb-2.5">
+                <p className="font-mono text-[11px] tracking-[0.12em] uppercase text-charcoal/40 mb-2.5">
                   Setup summary
                 </p>
                 {[
@@ -873,7 +873,7 @@ export default function OnboardingPage() {
                   </div>
                   <div className="flex-1">
                     <p className="text-[12.5px] font-bold text-accent">Unlock Pro features</p>
-                    <p className="text-[10.5px] text-charcoal/40 mt-0.5">Rota, timesheets, training records, time off and more</p>
+                    <p className="text-[11px] text-charcoal/40 mt-0.5">Rota, timesheets, training records, time off and more</p>
                   </div>
                   <button
                     onClick={() => setUpgradeFeature('rota')}

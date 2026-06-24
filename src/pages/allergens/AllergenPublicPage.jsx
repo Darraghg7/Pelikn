@@ -141,7 +141,7 @@ export default function AllergenPublicPage() {
                         )}
                         {mayContainSet.size > 0 && (
                           <div className="flex flex-wrap gap-1.5 items-center">
-                            <span className="text-[10px] tracking-widest uppercase text-charcoal/35 font-medium">May contain:</span>
+                            <span className="text-[11px] tracking-widest uppercase text-charcoal/35 font-medium">May contain:</span>
                             {[...mayContainSet].sort().map(a => (
                               <span key={a} className="text-xs font-medium bg-amber-50 text-amber-600 border border-amber-200 px-2 py-0.5 rounded-full">{a}</span>
                             ))}
@@ -183,7 +183,7 @@ export default function AllergenPublicPage() {
                               {allergenSet.has(a) ? (
                                 <span title="Contains" className="inline-flex w-4 h-4 rounded-sm bg-amber-400 text-white items-center justify-center"><svg className="w-2.5 h-2.5" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg></span>
                               ) : mayContainSet.has(a) ? (
-                                <span title="May contain" className="inline-flex w-4 h-4 rounded-sm bg-amber-100 border border-amber-300 text-amber-600 items-center justify-center text-[9px] font-bold">M</span>
+                                <span title="May contain" className="inline-flex w-4 h-4 rounded-sm bg-amber-100 border border-amber-300 text-amber-600 items-center justify-center text-[11px] font-bold">M</span>
                               ) : (
                                 <span className="text-charcoal/15">–</span>
                               )}
@@ -202,7 +202,7 @@ export default function AllergenPublicPage() {
                   <span className="text-[11px] text-charcoal/50">Contains</span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <span className="inline-flex w-4 h-4 rounded-sm bg-amber-100 border border-amber-300 text-amber-600 items-center justify-center text-[9px] font-bold">M</span>
+                  <span className="inline-flex w-4 h-4 rounded-sm bg-amber-100 border border-amber-300 text-amber-600 items-center justify-center text-[11px] font-bold">M</span>
                   <span className="text-[11px] text-charcoal/50">May contain (cross-contamination risk)</span>
                 </div>
               </div>

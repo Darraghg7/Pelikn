@@ -183,7 +183,7 @@ function CalendarView({ month, requests, onDayClick }) {
                   {dayRequests.slice(0, 2).map(r => (
                     <div
                       key={r.id}
-                      className={`rounded px-1 py-0.5 text-[9px] sm:text-[11px] font-medium truncate ${
+                      className={`rounded px-1 py-0.5 text-[11px] sm:text-[11px] font-medium truncate ${
                         r.status === 'approved'
                           ? 'bg-success/15 text-success'
                           : r.status === 'pending'
@@ -195,7 +195,7 @@ function CalendarView({ month, requests, onDayClick }) {
                     </div>
                   ))}
                   {dayRequests.length > 2 && (
-                    <span className="text-[9px] text-charcoal/30">+{dayRequests.length - 2}</span>
+                    <span className="text-[11px] text-charcoal/30">+{dayRequests.length - 2}</span>
                   )}
                 </div>
               </button>
@@ -210,14 +210,14 @@ function CalendarView({ month, requests, onDayClick }) {
 /* ── Balance pill ──────────────────────────────────────────────────────── */
 function BalancePill({ entitlement, used, remaining, isZeroHours, accrued, small }) {
   if (isZeroHours) return (
-    <span className={`inline-flex items-center gap-1 ${small ? 'text-[10px]' : 'text-xs'} font-medium text-charcoal/60 bg-charcoal/6 px-2 py-0.5 rounded-full`}>
+    <span className={`inline-flex items-center gap-1 ${small ? 'text-[11px]' : 'text-xs'} font-medium text-charcoal/60 bg-charcoal/6 px-2 py-0.5 rounded-full`}>
       {accrued != null ? `${accrued} hrs accrued` : 'Calculating…'}
     </span>
   )
   if (entitlement == null) return null
   const colour   = remaining === 0 ? 'text-danger' : remaining <= 5 ? 'text-warning' : 'text-success'
   return (
-    <span className={`inline-flex items-center gap-1 ${small ? 'text-[10px]' : 'text-xs'} font-medium`}>
+    <span className={`inline-flex items-center gap-1 ${small ? 'text-[11px]' : 'text-xs'} font-medium`}>
       <span className={colour}>{fmtDays(remaining)} left</span>
       <span className="text-charcoal/30">({used}/{entitlement} used)</span>
     </span>
@@ -507,7 +507,7 @@ export default function TimeOffPage() {
             <div className="mt-0.5">
               <BalancePill {...ownBalance} accrued={ownAccrued} small />
               {!ownBalance.isZeroHours && ownBalance.entitlement != null && (
-                <span className="text-[10px] text-charcoal/30 ml-1">{currentYear} annual leave</span>
+                <span className="text-[11px] text-charcoal/30 ml-1">{currentYear} annual leave</span>
               )}
             </div>
           )}
@@ -576,7 +576,7 @@ export default function TimeOffPage() {
                     <div className="min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <p className="font-semibold text-charcoal">{r.staff?.name}</p>
-                        <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full ${LEAVE_TYPE_COLOURS[r.leave_type] ?? LEAVE_TYPE_COLOURS.other}`}>
+                        <span className={`text-[11px] font-medium px-1.5 py-0.5 rounded-full ${LEAVE_TYPE_COLOURS[r.leave_type] ?? LEAVE_TYPE_COLOURS.other}`}>
                           {LEAVE_TYPES.find(t => t.value === r.leave_type)?.label ?? r.leave_type}
                         </span>
                       </div>
@@ -671,13 +671,13 @@ export default function TimeOffPage() {
                           <p className="text-sm font-medium text-charcoal truncate">{b.name}</p>
                           <button
                             onClick={() => setManualEntry(b)}
-                            className="text-[10px] text-charcoal/35 hover:text-charcoal/65 underline underline-offset-2 shrink-0"
+                            className="text-[11px] text-charcoal/35 hover:text-charcoal/65 underline underline-offset-2 shrink-0"
                           >
                             + log past leave
                           </button>
                         </div>
                         {b.employment_type && (
-                          <p className="text-[10px] text-charcoal/35 capitalize mt-0.5">
+                          <p className="text-[11px] text-charcoal/35 capitalize mt-0.5">
                             {b.employment_type.replace('_', '-')}
                           </p>
                         )}
@@ -692,7 +692,7 @@ export default function TimeOffPage() {
                           small
                         />
                         {!b.isZeroHours && b.entitlement != null && (
-                          <p className="text-[10px] text-charcoal/25 mt-0.5">{b.entitlement} days entitlement</p>
+                          <p className="text-[11px] text-charcoal/25 mt-0.5">{b.entitlement} days entitlement</p>
                         )}
                       </div>
                     </div>
@@ -717,7 +717,7 @@ export default function TimeOffPage() {
                       <p className="text-sm font-medium">
                         {format(parseISO(r.start_date), 'd MMM')} — {format(parseISO(r.end_date), 'd MMM yyyy')}
                       </p>
-                      <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full ${LEAVE_TYPE_COLOURS[r.leave_type] ?? LEAVE_TYPE_COLOURS.other}`}>
+                      <span className={`text-[11px] font-medium px-1.5 py-0.5 rounded-full ${LEAVE_TYPE_COLOURS[r.leave_type] ?? LEAVE_TYPE_COLOURS.other}`}>
                         {LEAVE_TYPES.find(t => t.value === r.leave_type)?.label ?? r.leave_type}
                       </span>
                     </div>
@@ -773,7 +773,7 @@ export default function TimeOffPage() {
                 <p className={`text-sm font-bold ${ownBalance.remaining === 0 ? 'text-danger' : ownBalance.remaining <= 5 ? 'text-warning' : 'text-success'}`}>
                   {fmtDays(ownBalance.remaining)}
                 </p>
-                <p className="text-[10px] text-charcoal/30">remaining</p>
+                <p className="text-[11px] text-charcoal/30">remaining</p>
               </div>
             </div>
           )}
@@ -790,7 +790,7 @@ export default function TimeOffPage() {
                 <p className={`text-sm font-bold ${ownRemainingHours === 0 ? 'text-danger' : ownRemainingHours != null && ownRemainingHours <= 4 ? 'text-warning' : 'text-success'}`}>
                   {ownRemainingHours != null ? `${ownRemainingHours} h` : '—'}
                 </p>
-                <p className="text-[10px] text-charcoal/30">remaining</p>
+                <p className="text-[11px] text-charcoal/30">remaining</p>
               </div>
             </div>
           )}
@@ -893,7 +893,7 @@ export default function TimeOffPage() {
                   <div>
                     <div className="flex items-center gap-2 flex-wrap">
                       <p className="font-semibold text-sm">{r.staff?.name}</p>
-                      <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full ${LEAVE_TYPE_COLOURS[r.leave_type] ?? LEAVE_TYPE_COLOURS.other}`}>
+                      <span className={`text-[11px] font-medium px-1.5 py-0.5 rounded-full ${LEAVE_TYPE_COLOURS[r.leave_type] ?? LEAVE_TYPE_COLOURS.other}`}>
                         {LEAVE_TYPES.find(t => t.value === r.leave_type)?.label ?? r.leave_type}
                       </span>
                     </div>

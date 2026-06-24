@@ -205,7 +205,7 @@ export default function PestControlPage() {
              t === 'open'    ? 'Open Issues' :
                                'History'}
             {t === 'open' && issues.length > 0 && (
-              <span className={`ml-1.5 inline-flex items-center justify-center w-4 h-4 rounded-full text-[9px] font-bold text-white ${
+              <span className={`ml-1.5 inline-flex items-center justify-center w-4 h-4 rounded-full text-[11px] font-bold text-white ${
                 highCount > 0 ? 'bg-danger' : 'bg-warning'
               }`}>
                 {issues.length}

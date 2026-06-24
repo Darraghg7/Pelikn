@@ -220,7 +220,7 @@ export default function FridgeLogFormPage() {
                   >
                     <span className="shrink-0 text-charcoal/50">{EXCEEDANCE_ICONS[r.id]}</span>
                     <span className="flex-1">{r.label}</span>
-                    {r.explained && <span className="text-[10px] text-success font-bold tracking-wide">No penalty</span>}
+                    {r.explained && <span className="text-[11px] text-success font-bold tracking-wide">No penalty</span>}
                   </button>
                 ))}
               </div>

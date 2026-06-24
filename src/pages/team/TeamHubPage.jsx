@@ -40,7 +40,7 @@ function AvatarChip({ name, status, index }) {
   return (
     <span
       title={name}
-      className="w-[30px] h-[30px] rounded-lg shrink-0 flex items-center justify-center font-mono text-[10.5px] font-semibold text-white border-[1.5px] border-brand bg-white/16 relative"
+      className="w-[30px] h-[30px] rounded-lg shrink-0 flex items-center justify-center font-mono text-[11px] font-semibold text-white border-[1.5px] border-brand bg-white/16 relative"
       style={{ marginLeft: index === 0 ? 0 : -6, zIndex: 6 - index }}
     >
       {initials}
@@ -61,7 +61,7 @@ function AttendanceHero({ onShift, lateCount, loading, onClick }) {
       className="w-full text-left cursor-pointer bg-brand text-white border-none rounded-[14px] px-4 py-3.5 flex items-center gap-3.5"
     >
       <div className="flex-1 min-w-0">
-        <div className="font-mono text-[10px] tracking-[0.1em] uppercase text-white/55 font-semibold">On shift now</div>
+        <div className="font-mono text-[11px] tracking-[0.1em] uppercase text-white/55 font-semibold">On shift now</div>
         <div className="text-base font-semibold tracking-[-0.015em] mt-[3px]">
           {loading
             ? 'Loading…'
@@ -78,7 +78,7 @@ function AttendanceHero({ onShift, lateCount, loading, onClick }) {
           </div>
         )}
       </div>
-      <span className="shrink-0 inline-flex items-center gap-1.5 font-mono text-[10px] tracking-[0.06em] uppercase font-semibold text-white/85">
+      <span className="shrink-0 inline-flex items-center gap-1.5 font-mono text-[11px] tracking-[0.06em] uppercase font-semibold text-white/85">
         Attendance
         <svg width="6" height="10" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
           <path d="M1 1l4 4-4 4"/>
@@ -123,7 +123,7 @@ function TeamCard({ label, icon: Icon, status, statusText, count, onClick, editM
 
       <div className="mt-auto">
         <div className="text-sm font-semibold tracking-[-0.01em] text-charcoal">{label}</div>
-        <div className={`font-mono text-[10.5px] mt-0.5 font-semibold tracking-[0.02em] uppercase ${editMode ? (isHidden ? 'text-charcoal/30' : 'text-success') : statusTextClass}`}>
+        <div className={`font-mono text-[11px] mt-0.5 font-semibold tracking-[0.02em] uppercase ${editMode ? (isHidden ? 'text-charcoal/30' : 'text-success') : statusTextClass}`}>
           {editMode ? (isHidden ? 'Hidden' : 'Visible') : statusText}
         </div>
       </div>
@@ -220,7 +220,7 @@ export default function TeamHubPage() {
 
       <div className="mb-[10px]">
         <div className="flex justify-between items-center">
-          <span className="font-mono text-[10.5px] text-charcoal/50 tracking-[0.08em] uppercase">
+          <span className="font-mono text-[11px] text-charcoal/50 tracking-[0.08em] uppercase">
             Team
           </span>
           <button

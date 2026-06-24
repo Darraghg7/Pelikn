@@ -279,13 +279,13 @@ function SessionRow({ session, staffId, onReload, isManagerEdit, pendingRequests
           </p>
           {/* Status badges */}
           {pending && (
-            <span className="inline-flex items-center gap-1 mt-1.5 text-[10px] font-semibold tracking-wide uppercase px-2 py-0.5 rounded-full bg-warning/10 text-warning border border-warning/20">
+            <span className="inline-flex items-center gap-1 mt-1.5 text-[11px] font-semibold tracking-wide uppercase px-2 py-0.5 rounded-full bg-warning/10 text-warning border border-warning/20">
               <span className="w-1.5 h-1.5 rounded-full bg-warning inline-block" />
               Pending approval
             </span>
           )}
           {denied && !pending && (
-            <span className="inline-flex items-center gap-1 mt-1.5 text-[10px] font-semibold tracking-wide uppercase px-2 py-0.5 rounded-full bg-danger/8 text-danger border border-danger/15">
+            <span className="inline-flex items-center gap-1 mt-1.5 text-[11px] font-semibold tracking-wide uppercase px-2 py-0.5 rounded-full bg-danger/8 text-danger border border-danger/15">
               Edit not approved
               {denied.manager_note && <span className="normal-case font-normal ml-1">· {denied.manager_note}</span>}
             </span>

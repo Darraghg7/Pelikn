@@ -572,7 +572,7 @@ export default function SettingsPage() {
                                 <div className="min-w-0 pr-4">
                                   <div className="flex items-center gap-2">
                                     <p className={`text-sm font-medium ${on ? 'text-charcoal' : 'text-charcoal/35'}`}>{feature.label}</p>
-                                    {locked && <span className="text-[10px] font-bold tracking-wider uppercase text-accent bg-accent/10 px-1.5 py-0.5 rounded">Pro</span>}
+                                    {locked && <span className="text-[11px] font-bold tracking-wider uppercase text-accent bg-accent/10 px-1.5 py-0.5 rounded">Pro</span>}
                                   </div>
                                   <p className="text-[11px] text-charcoal/40 mt-0.5">{feature.description}</p>
                                 </div>

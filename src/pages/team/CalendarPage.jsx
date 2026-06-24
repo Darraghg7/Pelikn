@@ -217,7 +217,7 @@ function CalendarEventForm({ event, defaultDate, onSave, onDelete, onBack }) {
 
         {/* Type */}
         <div>
-          <span className="font-mono text-[10px] text-charcoal/30 uppercase tracking-[0.08em] font-semibold mb-2.5 block">Type</span>
+          <span className="font-mono text-[11px] text-charcoal/30 uppercase tracking-[0.08em] font-semibold mb-2.5 block">Type</span>
           <div className="flex gap-[7px] flex-wrap">
             {EVENT_TYPES.map(et => (
               <button
@@ -238,7 +238,7 @@ function CalendarEventForm({ event, defaultDate, onSave, onDelete, onBack }) {
 
         {/* Colour */}
         <div>
-          <span className="font-mono text-[10px] text-charcoal/30 uppercase tracking-[0.08em] font-semibold mb-2.5 block">Colour</span>
+          <span className="font-mono text-[11px] text-charcoal/30 uppercase tracking-[0.08em] font-semibold mb-2.5 block">Colour</span>
           <ColourPicker value={colour} onChange={setColour} />
         </div>
 
@@ -305,7 +305,7 @@ function CalendarEventForm({ event, defaultDate, onSave, onDelete, onBack }) {
           >
             <div className="text-left">
               <div className="text-sm font-medium text-charcoal">Backup reminder</div>
-              <div className="font-mono text-[10.5px] text-charcoal/50 mt-0.5">Also 1 day before</div>
+              <div className="font-mono text-[11px] text-charcoal/50 mt-0.5">Also 1 day before</div>
             </div>
             <CalToggle on={backupReminder} onClick={e => { e.stopPropagation(); setBackupReminder(!backupReminder) }} />
           </button>
@@ -396,7 +396,7 @@ function CalendarDayView({ dateStr, dayMapItems, onBack, onAdd, onEdit }) {
             <span className="w-[14px] h-[14px] rounded-[4px] shrink-0" style={{ background: col.bg }} />
             <div className="flex-1 min-w-0">
               <div className="text-[15px] font-semibold text-charcoal">{ev.title}</div>
-              <div className="font-mono text-[10.5px] text-charcoal/50 mt-[3px] uppercase tracking-[0.04em]">
+              <div className="font-mono text-[11px] text-charcoal/50 mt-[3px] uppercase tracking-[0.04em]">
                 {et?.label}{!ev.all_day && ev.start_time ? ` · ${ev.start_time}–${ev.end_time}` : ''}
                 {ev.reminder_days ? ` · 🔔 ${ev.reminder_days}d` : ''}
               </div>
@@ -408,7 +408,7 @@ function CalendarDayView({ dateStr, dayMapItems, onBack, onAdd, onEdit }) {
 
       {staffItems.length > 0 && (
         <div>
-          <div className="font-mono text-[10px] text-charcoal/30 uppercase tracking-[0.07em] font-semibold px-0.5 pb-2">Staff leave</div>
+          <div className="font-mono text-[11px] text-charcoal/30 uppercase tracking-[0.07em] font-semibold px-0.5 pb-2">Staff leave</div>
           {staffItems.map(sl => (
             <div key={sl.id} className="flex items-center gap-2.5 px-[14px] py-[11px] rounded-xl bg-white dark:bg-[#1e1e1e] border border-charcoal/10 mb-1.5">
               <span className="w-3 h-3 rounded-[3px] bg-charcoal/10 shrink-0" />
@@ -460,7 +460,7 @@ function MonthGrid({ year, month, dayMap, selectedDate, onSelectDate }) {
         {DAYS_SHORT.map((d, i) => (
           <div
             key={i}
-            className={`text-center font-mono text-[10px] font-semibold tracking-[0.06em] py-1 ${isWknd(i) ? 'text-charcoal/30' : 'text-charcoal/50'}`}
+            className={`text-center font-mono text-[11px] font-semibold tracking-[0.06em] py-1 ${isWknd(i) ? 'text-charcoal/30' : 'text-charcoal/50'}`}
           >{d}</div>
         ))}
       </div>
@@ -507,7 +507,7 @@ function StaffLeaveBar({ year, month, staffLeave }) {
   if (!active.length) return null
   return (
     <div>
-      <div className="font-mono text-[10px] text-charcoal/30 uppercase tracking-[0.08em] font-semibold mb-[9px]">Staff leave this month</div>
+      <div className="font-mono text-[11px] text-charcoal/30 uppercase tracking-[0.08em] font-semibold mb-[9px]">Staff leave this month</div>
       <div className="flex gap-1.5 flex-wrap">
         {active.map(sl => {
           const start = new Date(sl.startDate + 'T00:00:00')
@@ -519,12 +519,12 @@ function StaffLeaveBar({ year, month, staffLeave }) {
               key={sl.name + sl.startDate}
               className="inline-flex items-center gap-[7px] py-1.5 pr-3 pl-2 rounded-full bg-white dark:bg-[#1e1e1e] border-[1.5px] border-charcoal/10"
             >
-              <span className="w-6 h-6 rounded-[7px] bg-charcoal/6 flex items-center justify-center font-mono text-[9.5px] font-bold text-charcoal/50">
+              <span className="w-6 h-6 rounded-[7px] bg-charcoal/6 flex items-center justify-center font-mono text-[11px] font-bold text-charcoal/50">
                 {sl.name.split(' ').map(w => w[0]).join('')}
               </span>
               <div>
                 <div className="text-[12.5px] font-semibold text-charcoal leading-none">{sl.name.split(' ')[0]}</div>
-                <div className="font-mono text-[9.5px] text-charcoal/30 mt-[1px]">{label}</div>
+                <div className="font-mono text-[11px] text-charcoal/30 mt-[1px]">{label}</div>
               </div>
             </div>
           )
@@ -569,7 +569,7 @@ function EventStrip({ year, month, dayMap, onSelectDate }) {
                   <div key={ev.id} className="flex items-center gap-[7px]">
                     <span className="w-2.5 h-2.5 rounded-[3px] shrink-0" style={{ background: col.bg }} />
                     <span className="text-[13px] font-medium text-charcoal flex-1 min-w-0 overflow-hidden text-ellipsis whitespace-nowrap">{ev.title}</span>
-                    {!ev.all_day && ev.start_time && <span className="font-mono text-[10.5px] text-charcoal/50">{ev.start_time}</span>}
+                    {!ev.all_day && ev.start_time && <span className="font-mono text-[11px] text-charcoal/50">{ev.start_time}</span>}
                   </div>
                 )
               })}
@@ -702,7 +702,7 @@ export default function CalendarPage() {
 
         {/* Event strip */}
         <div>
-          <div className="font-mono text-[10.5px] text-charcoal/50 tracking-[0.08em] uppercase font-semibold px-0.5 pb-2">
+          <div className="font-mono text-[11px] text-charcoal/50 tracking-[0.08em] uppercase font-semibold px-0.5 pb-2">
             {MONTHS[month]} events
           </div>
           <EventStrip year={year} month={month} dayMap={dayMap} onSelectDate={goDay} />

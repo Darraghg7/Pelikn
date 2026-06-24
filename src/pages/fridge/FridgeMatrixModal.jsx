@@ -171,7 +171,7 @@ function BackfillModal({ open, onClose, fridge, dateStr, period, onSaved }) {
                   ].join(' ')}
                 >
                   <span>{r.label}</span>
-                  {r.explained && <span className="text-[10px] tracking-wide text-success font-semibold">No penalty</span>}
+                  {r.explained && <span className="text-[11px] tracking-wide text-success font-semibold">No penalty</span>}
                 </button>
               ))}
             </div>
@@ -244,7 +244,7 @@ export default function FridgeMatrixModal({ open, onClose }) {
     if (!log && !required) {
       return (
         <td className="text-center px-2 py-4 bg-charcoal/4 border-r border-charcoal/6 last:border-r-0">
-          <span className="text-[10px] tracking-widest uppercase text-charcoal/25 font-medium">Not req.</span>
+          <span className="text-[11px] tracking-widest uppercase text-charcoal/25 font-medium">Not req.</span>
         </td>
       )
     }
@@ -263,7 +263,7 @@ export default function FridgeMatrixModal({ open, onClose }) {
           >
             <span className={`font-mono text-sm font-bold ${colour}`}>{formatTemp(log.temperature)}</span>
             {oor && explained && (
-              <span className="text-[9px] tracking-wide uppercase text-warning/70 font-semibold">Expl.</span>
+              <span className="text-[11px] tracking-wide uppercase text-warning/70 font-semibold">Expl.</span>
             )}
           </button>
         </td>
@@ -348,7 +348,7 @@ export default function FridgeMatrixModal({ open, onClose }) {
                             <div className={`text-xs font-semibold ${isToday ? 'text-brand' : isClosed ? 'text-charcoal/30' : 'text-charcoal'}`}>
                               {format(d, 'd MMM')}
                             </div>
-                            <div className={`text-[10px] mt-0.5 ${isClosed ? 'text-charcoal/25' : 'text-charcoal/40'}`}>
+                            <div className={`text-[11px] mt-0.5 ${isClosed ? 'text-charcoal/25' : 'text-charcoal/40'}`}>
                               {format(d, 'EEE')}
                             </div>
                           </th>
@@ -363,10 +363,10 @@ export default function FridgeMatrixModal({ open, onClose }) {
                         const isClosed = closedSet.has(dateStr)
                         return (
                           <React.Fragment key={dateStr + '-ampm'}>
-                            <th className={`text-[10px] tracking-widest uppercase text-charcoal/35 font-medium py-2 px-2 border-l border-charcoal/8 ${isClosed ? 'bg-charcoal/3' : ''}`}>
+                            <th className={`text-[11px] tracking-widest uppercase text-charcoal/35 font-medium py-2 px-2 border-l border-charcoal/8 ${isClosed ? 'bg-charcoal/3' : ''}`}>
                               AM
                             </th>
-                            <th className={`text-[10px] tracking-widest uppercase text-charcoal/35 font-medium py-2 px-2 border-r border-charcoal/8 ${isClosed ? 'bg-charcoal/3' : ''}`}>
+                            <th className={`text-[11px] tracking-widest uppercase text-charcoal/35 font-medium py-2 px-2 border-r border-charcoal/8 ${isClosed ? 'bg-charcoal/3' : ''}`}>
                               PM
                             </th>
                           </React.Fragment>

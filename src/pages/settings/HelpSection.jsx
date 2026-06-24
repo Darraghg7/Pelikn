@@ -96,7 +96,7 @@ function FeatureRow({ feature, venueSlug, locked }) {
         <div className="flex items-center gap-2 flex-wrap">
           <p className="text-sm font-semibold text-charcoal">{feature.label}</p>
           {locked && (
-            <span className="text-[9px] tracking-widest uppercase font-bold bg-accent/10 text-accent px-1.5 py-0.5 rounded-full shrink-0">
+            <span className="text-[11px] tracking-widest uppercase font-bold bg-accent/10 text-accent px-1.5 py-0.5 rounded-full shrink-0">
               Pro
             </span>
           )}
@@ -158,7 +158,7 @@ function FeatureGroup({ group, venueSlug, venuePlan }) {
             {GROUP_LABELS[group.id] ?? group.label}
           </p>
           {hasLockedFeatures && venuePlan === PLANS.STARTER && (
-            <span className="text-[9px] tracking-widest uppercase font-bold bg-accent/10 text-accent px-1.5 py-0.5 rounded-full">
+            <span className="text-[11px] tracking-widest uppercase font-bold bg-accent/10 text-accent px-1.5 py-0.5 rounded-full">
               {proCount} Pro
             </span>
           )}

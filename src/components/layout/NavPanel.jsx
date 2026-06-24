@@ -36,7 +36,7 @@ function PanelItem({ item, isActive, onClick }) {
         </span>
         {item.sub && (
           <span
-            className="block text-[10.5px] overflow-hidden text-ellipsis whitespace-nowrap"
+            className="block text-[11px] overflow-hidden text-ellipsis whitespace-nowrap"
             style={{ color: isActive ? 'rgba(243,237,224,0.55)' : T.inkFaint, marginTop: 1 }}
           >
             {item.sub}
@@ -45,7 +45,7 @@ function PanelItem({ item, isActive, onClick }) {
       </span>
       {item.badge > 0 && (
         <span
-          className="font-mono text-[9.5px] font-bold grid place-items-center"
+          className="font-mono text-[11px] font-bold grid place-items-center"
           style={{
             minWidth: 18, height: 17, padding: '0 5px', borderRadius: 8,
             background: isWarn ? T.warnBg : 'rgba(255,255,255,0.12)',
@@ -117,7 +117,7 @@ function PanelVenueSwitcher({ venues, currentSlug, onSelect, onOverview }) {
         </svg>
         <span style={{ flex: 1, textAlign: 'left' }}>Switch venue</span>
         <span
-          className="text-[9px] opacity-55 inline-block transition-transform duration-200"
+          className="text-[11px] opacity-55 inline-block transition-transform duration-200"
           style={{ transform: open ? 'rotate(180deg)' : 'rotate(0deg)' }}
         >▾</span>
       </button>
@@ -136,7 +136,7 @@ function PanelVenueSwitcher({ venues, currentSlug, onSelect, onOverview }) {
         pointerEvents: open ? 'auto' : 'none',
       }}>
         <p
-          className="font-mono text-[9px] font-semibold uppercase tracking-[0.12em]"
+          className="font-mono text-[11px] font-semibold uppercase tracking-[0.12em]"
           style={{ padding: '9px 12px 6px', color: 'rgba(14,20,17,0.40)' }}
         >
           Your venues
@@ -237,7 +237,7 @@ export default function NavPanel({
       <header style={{ padding: '18px 18px 14px', borderBottom: `1px solid ${T.divider}` }}>
         {/* Category mono label row */}
         <div
-          className="font-mono text-[9.5px] font-semibold uppercase tracking-[0.12em] flex items-center gap-[7px]"
+          className="font-mono text-[11px] font-semibold uppercase tracking-[0.12em] flex items-center gap-[7px]"
           style={{ color: T.inkFaint, marginBottom: 6 }}
         >
           <span style={{ width: 11, height: 11, display: 'inline-flex', opacity: 0.7 }}>
@@ -246,7 +246,7 @@ export default function NavPanel({
           {cat.label}
           {isPreview && (
             <span
-              className="font-mono text-[9px] font-bold tracking-[0.08em] ml-auto"
+              className="font-mono text-[11px] font-bold tracking-[0.08em] ml-auto"
               style={{ padding: '2px 7px', borderRadius: 5, background: 'rgba(196,99,64,0.18)', color: T.warn }}
             >
               Browsing

@@ -162,9 +162,9 @@ function Avatar({ name, station, size = 34 }) {
 function SumTile({ label, value, sub, subGood }) {
   return (
     <div className="flex-1 bg-surface rounded-[11px] px-3 py-[10px]">
-      <div className="font-mono text-[9px] text-charcoal/50 uppercase tracking-[0.1em] font-semibold mb-[5px] leading-[1.3]">{label}</div>
+      <div className="font-mono text-[11px] text-charcoal/50 uppercase tracking-[0.1em] font-semibold mb-[5px] leading-[1.3]">{label}</div>
       <div className="font-mono text-[17px] font-semibold text-charcoal tracking-[-0.025em] tabular-nums leading-none">{value || '—'}</div>
-      {sub && <div className={`font-mono text-[10px] font-semibold mt-[5px] ${subGood ? 'text-success' : 'text-warning'}`}>{sub}</div>}
+      {sub && <div className={`font-mono text-[11px] font-semibold mt-[5px] ${subGood ? 'text-success' : 'text-warning'}`}>{sub}</div>}
     </div>
   )
 }
@@ -199,12 +199,12 @@ function StaffRow({ t, station, last, onTap }) {
       <Avatar name={t.name} station={station} size={38} />
       <div className="flex-1 min-w-0">
         <div className="text-[14.5px] font-semibold text-charcoal tracking-[-0.01em] leading-[1.2]">{t.name}</div>
-        {t.hourlyRate > 0 && <div className="font-mono text-[10.5px] text-charcoal/50 mt-[3px]">£{Number(t.hourlyRate).toFixed(2)}/hr</div>}
+        {t.hourlyRate > 0 && <div className="font-mono text-[11px] text-charcoal/50 mt-[3px]">£{Number(t.hourlyRate).toFixed(2)}/hr</div>}
       </div>
       <div className="flex items-center gap-2 shrink-0">
         <div className="text-right">
           <div className={`font-mono text-[15px] font-semibold leading-none tabular-nums ${hasData ? 'text-charcoal' : 'text-charcoal/30'}`}>{minsStr(t.totalMinutes)}</div>
-          <div className={`font-mono text-[10.5px] mt-1 font-semibold ${hasData && pay > 0 ? 'text-success' : 'text-charcoal/30'}`}>
+          <div className={`font-mono text-[11px] mt-1 font-semibold ${hasData && pay > 0 ? 'text-success' : 'text-charcoal/30'}`}>
             {hasData && pay > 0 ? `£${pay.toFixed(2)}` : '—'}
           </div>
         </div>
@@ -292,7 +292,7 @@ function EditSessionSheet({ staffName, dayLabel, session, onSave, onClose }) {
             <div className="text-[17px] font-semibold tracking-[-0.015em]">{dayLabel}</div>
             <div className="text-xs text-charcoal/50 mt-0.5">{staffName}</div>
           </div>
-          {session?.in && <span className="font-mono text-[9.5px] font-bold text-warning bg-warning/10 uppercase tracking-[0.05em] px-[9px] py-1 rounded-full">Editing</span>}
+          {session?.in && <span className="font-mono text-[11px] font-bold text-warning bg-warning/10 uppercase tracking-[0.05em] px-[9px] py-1 rounded-full">Editing</span>}
         </div>
         <div className="flex gap-2 bg-charcoal/[0.06] p-1 rounded-xl mb-3">
           {[['in', 'Clock in', clockIn], ['out', 'Clock out', clockOut]].map(([k, label, val]) => {
@@ -303,7 +303,7 @@ function EditSessionSheet({ staffName, dayLabel, session, onSave, onClose }) {
                 onClick={() => setEdge(k)}
                 className={`flex-1 cursor-pointer border-none rounded-[9px] py-2 ${on ? 'bg-white dark:bg-[#1e1e1e] shadow-[0_1px_3px_rgba(9,18,13,0.1)]' : 'bg-transparent'}`}
               >
-                <div className="font-mono text-[9px] text-charcoal/50 uppercase tracking-[0.06em] font-semibold">{label}</div>
+                <div className="font-mono text-[11px] text-charcoal/50 uppercase tracking-[0.06em] font-semibold">{label}</div>
                 <div className={`font-mono text-[17px] font-semibold mt-0.5 tabular-nums ${on ? 'text-brand' : 'text-charcoal/50'}`}>{val}</div>
               </button>
             )
@@ -315,7 +315,7 @@ function EditSessionSheet({ staffName, dayLabel, session, onSave, onClose }) {
           <TsWheel values={WH_MINS}  value={cm} onChange={(m) => setCur(ch, m)} />
         </div>
         <div className="mt-2">
-          <div className="font-mono text-[9.5px] text-charcoal/50 tracking-[0.07em] uppercase font-semibold px-0.5 pb-[7px]">Unpaid break</div>
+          <div className="font-mono text-[11px] text-charcoal/50 tracking-[0.07em] uppercase font-semibold px-0.5 pb-[7px]">Unpaid break</div>
           <div className="flex flex-wrap gap-[6px]">
             {WH_BREAKS.map(b => {
               const on = b === brk
@@ -379,7 +379,7 @@ function StaffHoursSheet({ t, station, periodDays, dailyGrid, periodLabel, onEdi
             return (
               <div key={i} className={`flex items-center gap-[10px] px-3 py-[10px] rounded-xl border ${has ? 'bg-white dark:bg-[#1e1e1e] border-charcoal/10' : 'bg-surface border-charcoal/[0.06]'}`}>
                 <div className={`w-[42px] h-[46px] rounded-[9px] border border-charcoal/10 shrink-0 flex flex-col items-center justify-center gap-px ${has ? 'bg-surface' : 'bg-charcoal/[0.06]'}`}>
-                  <span className="font-mono text-[8.5px] text-charcoal/50 font-semibold tracking-[0.06em]">{format(d, 'EEE').toUpperCase()}</span>
+                  <span className="font-mono text-[11px] text-charcoal/50 font-semibold tracking-[0.06em]">{format(d, 'EEE').toUpperCase()}</span>
                   <span className={`font-mono text-[15px] font-semibold leading-none ${has ? 'text-charcoal' : 'text-charcoal/30'}`}>{format(d, 'd')}</span>
                 </div>
                 <div className="flex-1 min-w-0">
@@ -407,17 +407,17 @@ function StaffHoursSheet({ t, station, periodDays, dailyGrid, periodLabel, onEdi
         </div>
         <div className="mt-[14px] px-[14px] py-[13px] bg-white dark:bg-[#1e1e1e] rounded-xl border border-charcoal/10 flex items-center gap-5">
           <div>
-            <div className="font-mono text-[9px] text-charcoal/50 tracking-[0.1em] uppercase font-semibold">Total</div>
+            <div className="font-mono text-[11px] text-charcoal/50 tracking-[0.1em] uppercase font-semibold">Total</div>
             <div className="font-mono text-[17px] font-semibold text-charcoal mt-[3px] tabular-nums">{minsStr(t.totalMinutes)}</div>
           </div>
           {t.hourlyRate > 0 && (
             <div>
-              <div className="font-mono text-[9px] text-charcoal/50 tracking-[0.1em] uppercase font-semibold">Est. pay</div>
+              <div className="font-mono text-[11px] text-charcoal/50 tracking-[0.1em] uppercase font-semibold">Est. pay</div>
               <div className={`font-mono text-[17px] font-semibold mt-[3px] tabular-nums ${pay > 0 ? 'text-success' : 'text-charcoal/30'}`}>{pay > 0 ? `£${pay.toFixed(2)}` : '—'}</div>
             </div>
           )}
           <div className="ml-auto">
-            <div className="font-mono text-[9px] text-charcoal/50 tracking-[0.1em] uppercase font-semibold">Rate</div>
+            <div className="font-mono text-[11px] text-charcoal/50 tracking-[0.1em] uppercase font-semibold">Rate</div>
             <div className="font-mono text-xs font-semibold text-charcoal/50 mt-[3px]">£{Number(t.hourlyRate).toFixed(2)}/hr</div>
           </div>
         </div>
@@ -598,7 +598,7 @@ export default function TimesheetPage() {
         <h1 className="text-[28px] font-bold tracking-[-0.03em] leading-[1.05] m-0">Timesheets</h1>
         <div className="flex gap-4">
           {[['CSV', exportCsv], ['PDF', exportPdf]].map(([fmt, fn]) => (
-            <button key={fmt} onClick={fn} className="flex items-center gap-1 font-mono text-[10.5px] font-bold text-charcoal/50 tracking-[0.05em] uppercase bg-transparent border-none cursor-pointer p-0">
+            <button key={fmt} onClick={fn} className="flex items-center gap-1 font-mono text-[11px] font-bold text-charcoal/50 tracking-[0.05em] uppercase bg-transparent border-none cursor-pointer p-0">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
               {fmt}
             </button>
@@ -608,7 +608,7 @@ export default function TimesheetPage() {
 
       {/* Pay Period Summary card */}
       <div className="bg-white dark:bg-[#1e1e1e] border border-charcoal/10 rounded-[18px] px-[14px] pt-[15px] pb-4 flex flex-col gap-3 mb-[14px]">
-        <div className="font-mono text-[9.5px] text-charcoal/50 tracking-[0.12em] uppercase font-semibold">Pay Period Summary</div>
+        <div className="font-mono text-[11px] text-charcoal/50 tracking-[0.12em] uppercase font-semibold">Pay Period Summary</div>
         <PeriodChips period={period} onChange={setPeriod} />
 
         {period === 'custom' && (
@@ -655,7 +655,7 @@ export default function TimesheetPage() {
       {!loading && (
         <div>
           <div className="flex items-center justify-between px-0.5 pb-[9px]">
-            <span className="font-mono text-[10.5px] text-charcoal/50 tracking-[0.1em] uppercase font-semibold">Staff</span>
+            <span className="font-mono text-[11px] text-charcoal/50 tracking-[0.1em] uppercase font-semibold">Staff</span>
             <span className="font-mono text-[11px] text-charcoal/50">{timesheets.length} members{totalMins > 0 ? ` · ${minsStr(totalMins)} total` : ''}</span>
           </div>
           {timesheets.length === 0 ? (

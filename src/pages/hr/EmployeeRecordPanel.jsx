@@ -101,7 +101,7 @@ function badgeClasses(tone) {
 
 export function Badge({ tone, children, dot }) {
   return (
-    <span className={`inline-flex items-center gap-1.5 font-mono text-[10px] font-semibold tracking-[0.04em] uppercase rounded-full px-[9px] py-[3px] whitespace-nowrap ${badgeClasses(tone)}`}>
+    <span className={`inline-flex items-center gap-1.5 font-mono text-[11px] font-semibold tracking-[0.04em] uppercase rounded-full px-[9px] py-[3px] whitespace-nowrap ${badgeClasses(tone)}`}>
       {dot && <span className="w-[5px] h-[5px] rounded-full bg-current" />}
       {children}
     </span>
@@ -118,7 +118,7 @@ function SectionCard({ children, className }) {
 
 function CardHead({ children }) {
   return (
-    <div className="px-[18px] py-3 border-b border-charcoal/6 font-mono text-[10px] uppercase tracking-[0.09em] text-charcoal/50 font-semibold">
+    <div className="px-[18px] py-3 border-b border-charcoal/6 font-mono text-[11px] uppercase tracking-[0.09em] text-charcoal/50 font-semibold">
       {children}
     </div>
   )
@@ -128,7 +128,7 @@ function DataRow({ label, value }) {
   if (value === null || value === undefined || value === '') return null
   return (
     <div className="flex gap-3.5 px-[18px] py-[11px] border-b border-charcoal/6">
-      <span className="font-mono text-[10px] uppercase tracking-[0.06em] text-charcoal/30 min-w-[120px] pt-px">
+      <span className="font-mono text-[11px] uppercase tracking-[0.06em] text-charcoal/30 min-w-[120px] pt-px">
         {label}
       </span>
       <span className="text-[13.5px] text-charcoal flex-1">{value}</span>
@@ -148,7 +148,7 @@ function EmptyState({ icon, text }) {
 function MiniStat({ k, v, tone }) {
   return (
     <div className="bg-white dark:bg-[#1e1e1e] border border-charcoal/10 rounded-[13px] px-3.5 py-[11px] shadow-sm">
-      <div className="font-mono text-[9px] uppercase tracking-[0.07em] text-charcoal/50 font-semibold">
+      <div className="font-mono text-[11px] uppercase tracking-[0.07em] text-charcoal/50 font-semibold">
         {k}
       </div>
       <div className="mt-[5px] flex items-center">
@@ -365,7 +365,7 @@ function DocumentsTab({ staffId, venueId, onDocsCountChange }) {
                   <div className="flex gap-2 items-center mt-[5px] flex-wrap">
                     <Badge tone={catTone}>{DOC_CAT_LABELS[doc.category] ?? doc.category}</Badge>
                     {exp && daysLeft != null && daysLeft <= 30 && <Badge tone={exp.tone}>{exp.label}</Badge>}
-                    <span className="font-mono text-[10px] text-charcoal/30">
+                    <span className="font-mono text-[11px] text-charcoal/30">
                       {format(parseISO(doc.created_at), 'd MMM yyyy')} · {(doc.file_size / 1024).toFixed(0)} KB
                       {doc.expiry_date && daysLeft != null && daysLeft > 30
                         ? ` · expires ${format(parseISO(doc.expiry_date), 'd MMM yyyy')}`
@@ -396,7 +396,7 @@ function DocumentsTab({ staffId, venueId, onDocsCountChange }) {
       <Modal open={showModal} onClose={resetModal} title="Upload Document">
         <div className="flex flex-col gap-3.5">
           <div>
-            <label className="block font-mono text-[10px] uppercase tracking-[0.07em] text-charcoal/50 mb-1.5">Title</label>
+            <label className="block font-mono text-[11px] uppercase tracking-[0.07em] text-charcoal/50 mb-1.5">Title</label>
             <input
               value={form.title}
               onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
@@ -405,11 +405,11 @@ function DocumentsTab({ staffId, venueId, onDocsCountChange }) {
             />
           </div>
           <div>
-            <label className="block font-mono text-[10px] uppercase tracking-[0.07em] text-charcoal/50 mb-1.5">Category</label>
+            <label className="block font-mono text-[11px] uppercase tracking-[0.07em] text-charcoal/50 mb-1.5">Category</label>
             <div className="flex gap-2">
               {Object.entries(DOC_CAT_LABELS).map(([k, v]) => (
                 <button key={k} type="button" onClick={() => setForm(f => ({ ...f, category: k }))}
-                  className={`flex-1 py-2 rounded-[9px] cursor-pointer font-mono text-[10px] font-bold tracking-[0.04em] border transition-colors ${
+                  className={`flex-1 py-2 rounded-[9px] cursor-pointer font-mono text-[11px] font-bold tracking-[0.04em] border transition-colors ${
                     form.category === k
                       ? 'bg-brand text-white border-brand'
                       : 'bg-transparent text-charcoal/50 border-charcoal/10'
@@ -419,16 +419,16 @@ function DocumentsTab({ staffId, venueId, onDocsCountChange }) {
             </div>
           </div>
           <div>
-            <label className="block font-mono text-[10px] uppercase tracking-[0.07em] text-charcoal/50 mb-1.5">File</label>
+            <label className="block font-mono text-[11px] uppercase tracking-[0.07em] text-charcoal/50 mb-1.5">File</label>
             <input type="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" onChange={e => setFile(e.target.files?.[0] ?? null)} className="w-full text-[13px]" />
-            {file && <p className="font-mono text-[10px] text-charcoal/30 mt-1">{file.name} · {(file.size / 1024).toFixed(0)} KB</p>}
+            {file && <p className="font-mono text-[11px] text-charcoal/30 mt-1">{file.name} · {(file.size / 1024).toFixed(0)} KB</p>}
           </div>
           <div>
-            <label className="block font-mono text-[10px] uppercase tracking-[0.07em] text-charcoal/50 mb-1.5">Expiry date (optional)</label>
+            <label className="block font-mono text-[11px] uppercase tracking-[0.07em] text-charcoal/50 mb-1.5">Expiry date (optional)</label>
             <input type="date" value={form.expiry_date} onChange={e => setForm(f => ({ ...f, expiry_date: e.target.value }))} className="w-full px-3 py-2.5 rounded-[10px] border border-charcoal/10 text-[13px] outline-none box-border" />
           </div>
           <div>
-            <label className="block font-mono text-[10px] uppercase tracking-[0.07em] text-charcoal/50 mb-1.5">Notes (optional)</label>
+            <label className="block font-mono text-[11px] uppercase tracking-[0.07em] text-charcoal/50 mb-1.5">Notes (optional)</label>
             <textarea value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} rows={2} className="w-full px-3 py-2.5 rounded-[10px] border border-charcoal/10 text-[13px] outline-none resize-none box-border" />
           </div>
           <button onClick={upload} disabled={saving}
@@ -539,7 +539,7 @@ function DisciplinaryTab({ staffId, venueId }) {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-[9px] flex-wrap">
                         <Badge tone={tone}>{FORMAL_LABELS[item.action_type] ?? item.action_type}</Badge>
-                        <span className="font-mono text-[10.5px] text-charcoal/30">
+                        <span className="font-mono text-[11px] text-charcoal/30">
                           {format(parseISO(item.occurred_at), 'd MMM yyyy')}
                         </span>
                       </div>
@@ -548,11 +548,11 @@ function DisciplinaryTab({ staffId, venueId }) {
                       )}
                       <div className="flex gap-3 mt-2 items-center flex-wrap">
                         {item.added_by_staff?.name && (
-                          <span className="font-mono text-[10px] text-charcoal/30">Added by {item.added_by_staff.name}</span>
+                          <span className="font-mono text-[11px] text-charcoal/30">Added by {item.added_by_staff.name}</span>
                         )}
                         {item.file_url && (
                           <a href={item.file_url} target="_blank" rel="noopener noreferrer"
-                            className="font-mono text-[10px] text-brand font-bold no-underline">
+                            className="font-mono text-[11px] text-brand font-bold no-underline">
                             📎 {item.file_name ?? 'Attachment'}
                           </a>
                         )}
@@ -575,16 +575,16 @@ function DisciplinaryTab({ staffId, venueId }) {
                   <div className="text-[13px] font-semibold text-charcoal/75">
                     Strike {item.strike_number} — {OFFENCE_LABELS[item.offence_type] ?? item.offence_type}
                     {item.mins_over != null && (
-                      <span className="font-mono text-[10px] text-charcoal/30 font-normal ml-1.5">
+                      <span className="font-mono text-[11px] text-charcoal/30 font-normal ml-1.5">
                         {item.mins_over} min over
                       </span>
                     )}
                   </div>
-                  <div className="font-mono text-[10px] text-charcoal/30 mt-[3px]">
+                  <div className="font-mono text-[11px] text-charcoal/30 mt-[3px]">
                     {format(parseISO(item.occurred_at), 'd MMM yyyy, HH:mm')}
                   </div>
                 </div>
-                <span className="font-mono text-[9px] text-charcoal/30 uppercase tracking-[0.05em] shrink-0 mt-[3px]">Auto</span>
+                <span className="font-mono text-[11px] text-charcoal/30 uppercase tracking-[0.05em] shrink-0 mt-[3px]">Auto</span>
               </div>
             )
           })}
@@ -594,25 +594,25 @@ function DisciplinaryTab({ staffId, venueId }) {
       <Modal open={showModal} onClose={() => { setShowModal(false); setFile(null) }} title="Add Formal Action">
         <div className="flex flex-col gap-3.5">
           <div>
-            <label className="block font-mono text-[10px] uppercase tracking-[0.07em] text-charcoal/50 mb-1.5">Action type</label>
+            <label className="block font-mono text-[11px] uppercase tracking-[0.07em] text-charcoal/50 mb-1.5">Action type</label>
             <select value={form.action_type} onChange={e => setForm(f => ({ ...f, action_type: e.target.value }))}
               className="w-full px-3 py-2.5 rounded-[10px] border border-charcoal/10 text-[13px] outline-none bg-white dark:bg-[#1e1e1e] box-border">
               {Object.entries(FORMAL_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
             </select>
           </div>
           <div>
-            <label className="block font-mono text-[10px] uppercase tracking-[0.07em] text-charcoal/50 mb-1.5">Date</label>
+            <label className="block font-mono text-[11px] uppercase tracking-[0.07em] text-charcoal/50 mb-1.5">Date</label>
             <input type="date" value={form.occurred_at} onChange={e => setForm(f => ({ ...f, occurred_at: e.target.value }))}
               className="w-full px-3 py-2.5 rounded-[10px] border border-charcoal/10 text-[13px] outline-none box-border" />
           </div>
           <div>
-            <label className="block font-mono text-[10px] uppercase tracking-[0.07em] text-charcoal/50 mb-1.5">Notes</label>
+            <label className="block font-mono text-[11px] uppercase tracking-[0.07em] text-charcoal/50 mb-1.5">Notes</label>
             <textarea value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} rows={3}
               placeholder="Details, outcome, follow-up actions…"
               className="w-full px-3 py-2.5 rounded-[10px] border border-charcoal/10 text-[13px] outline-none resize-none box-border" />
           </div>
           <div>
-            <label className="block font-mono text-[10px] uppercase tracking-[0.07em] text-charcoal/50 mb-1.5">Attachment (optional)</label>
+            <label className="block font-mono text-[11px] uppercase tracking-[0.07em] text-charcoal/50 mb-1.5">Attachment (optional)</label>
             <input type="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" onChange={e => setFile(e.target.files?.[0] ?? null)} className="w-full text-[13px]" />
           </div>
           <button onClick={addFormal} disabled={saving}
@@ -662,7 +662,7 @@ function LeaveTab({ staffId, venueSlug, staff }) {
           { k: 'Remaining', v: remaining != null ? `${remaining} days` : '—' },
         ].map(x => (
           <div key={x.k} className="bg-white dark:bg-[#1e1e1e] border border-charcoal/10 rounded-[14px] px-4 py-[13px]">
-            <div className="font-mono text-[9.5px] uppercase tracking-[0.07em] text-charcoal/50 font-semibold">{x.k}</div>
+            <div className="font-mono text-[11px] uppercase tracking-[0.07em] text-charcoal/50 font-semibold">{x.k}</div>
             <div className="text-xl font-semibold text-charcoal mt-[3px] font-mono tracking-[-0.02em]">{x.v}</div>
           </div>
         ))}
@@ -684,7 +684,7 @@ function LeaveTab({ staffId, venueSlug, staff }) {
                   </div>
                   <div className="flex gap-2 mt-1 items-center">
                     <Badge tone="muted">{LEAVE_LABELS[r.leave_type] ?? r.leave_type}</Badge>
-                    {r.reason && <span className="font-mono text-[10px] text-charcoal/30">{r.reason}</span>}
+                    {r.reason && <span className="font-mono text-[11px] text-charcoal/30">{r.reason}</span>}
                   </div>
                 </div>
                 <Badge tone={tone} dot>{r.status}</Badge>
@@ -749,7 +749,7 @@ function TrainingTab({ staffId, venueSlug }) {
                     <div key={c.id} className={`flex items-center gap-3 px-[18px] py-[13px] ${i < certs.length - 1 ? 'border-b border-charcoal/6' : ''}`}>
                       <div className="flex-1 min-w-0">
                         <div className="text-[13.5px] font-semibold text-charcoal">{c.title}</div>
-                        {c.category && <div className="font-mono text-[10px] text-charcoal/30 mt-0.5 uppercase tracking-[0.03em]">{c.category}</div>}
+                        {c.category && <div className="font-mono text-[11px] text-charcoal/30 mt-0.5 uppercase tracking-[0.03em]">{c.category}</div>}
                       </div>
                       <Badge tone={st.tone}>{st.label}</Badge>
                     </div>
@@ -772,7 +772,7 @@ function TrainingTab({ staffId, venueSlug }) {
                       <div className="text-[13.5px] font-semibold text-charcoal">
                         Induction — {ind.trainer_name ?? 'Unknown trainer'}
                       </div>
-                      <div className="font-mono text-[10px] text-charcoal/30 mt-[3px]">
+                      <div className="font-mono text-[11px] text-charcoal/30 mt-[3px]">
                         {format(parseISO(ind.training_date), 'd MMM yyyy')}
                       </div>
                     </div>
@@ -849,14 +849,14 @@ function SecurityTab({ staffId }) {
             <div key={s.token} className={`flex items-center gap-3 px-[18px] py-[13px] ${i < sessions.length - 1 ? 'border-b border-charcoal/6' : ''}`}>
               <div className="flex-1 min-w-0">
                 <div className="text-[13.5px] font-semibold text-charcoal">{s.device_label ?? 'Unknown device'}</div>
-                <div className="font-mono text-[10px] text-charcoal/30 mt-[3px]">
+                <div className="font-mono text-[11px] text-charcoal/30 mt-[3px]">
                   Started {format(parseISO(s.created_at), 'd MMM yyyy, HH:mm')} · Expires {format(parseISO(s.expires_at), 'd MMM yyyy')}
                 </div>
               </div>
               <button
                 onClick={() => handleRevoke(s.token)}
                 disabled={revoking === s.token}
-                className="px-3 py-1.5 rounded-lg border border-danger bg-transparent text-danger cursor-pointer font-mono text-[10px] font-bold tracking-[0.04em] disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-3 py-1.5 rounded-lg border border-danger bg-transparent text-danger cursor-pointer font-mono text-[11px] font-bold tracking-[0.04em] disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {revoking === s.token ? '…' : 'Revoke'}
               </button>
@@ -960,7 +960,7 @@ export default function EmployeeRecordPanel({ staffId, venueId, venueSlug, onBac
       <div className="flex gap-0.5 mb-5 bg-charcoal/6 rounded-xl p-[3px] max-w-[560px] overflow-x-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
         {TABS.map(t => (
           <button key={t} onClick={() => setTab(t)}
-            className={`flex-1 py-2 px-1 border-0 cursor-pointer rounded-[9px] whitespace-nowrap font-mono text-[10px] tracking-[0.02em] transition-all duration-150 ${
+            className={`flex-1 py-2 px-1 border-0 cursor-pointer rounded-[9px] whitespace-nowrap font-mono text-[11px] tracking-[0.02em] transition-all duration-150 ${
               tab === t
                 ? 'bg-white dark:bg-[#1e1e1e] text-charcoal font-bold shadow-[0_1px_4px_rgba(13,26,20,0.10)]'
                 : 'bg-transparent text-charcoal/50 font-semibold'
