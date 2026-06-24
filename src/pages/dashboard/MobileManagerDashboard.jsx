@@ -48,7 +48,7 @@ function MobilePlanPill({ plan }) {
   const isPro = plan === 'pro'
   return (
     <span className={[
-      'font-mono text-[9px] tracking-[0.1em] font-bold uppercase px-[7px] py-[2px] rounded-full whitespace-nowrap',
+      'font-mono text-[11px] tracking-[0.1em] font-bold uppercase px-[7px] py-[2px] rounded-full whitespace-nowrap',
       isPro
         ? 'bg-accent/10 text-accent border border-accent/25'
         : 'bg-success/10 text-success border border-success/25',
@@ -84,7 +84,7 @@ function MobileStatTile({ item, summary }) {
     <div className="bg-white dark:bg-[#1e1e1e] border border-charcoal/10 rounded-[14px] p-[10px_11px_11px] flex flex-col gap-1">
       <div className="flex items-center gap-1">
         <span className={`w-[5px] h-[5px] rounded-full shrink-0 ${isDanger ? 'bg-danger' : 'bg-success'}`} />
-        <span className="font-mono text-[8.5px] tracking-[0.07em] text-charcoal/50 uppercase leading-none">
+        <span className="font-mono text-[9px] tracking-[0.07em] text-charcoal/60 uppercase leading-none">
           {item.metricLabel}
         </span>
       </div>
@@ -92,7 +92,7 @@ function MobileStatTile({ item, summary }) {
         {value}
       </span>
       {sub && (
-        <span className={`font-mono text-[9px] tracking-[0.03em] leading-none ${isDanger ? 'text-danger' : 'text-charcoal/50'}`}>
+        <span className={`font-mono text-[11px] tracking-[0.03em] leading-none ${isDanger ? 'text-danger' : 'text-charcoal/50'}`}>
           {sub}
         </span>
       )}
@@ -103,7 +103,7 @@ function MobileStatTile({ item, summary }) {
 // ── Section label (floating, mono-uppercase) ───────────────────────────────
 function SectionLabel({ children }) {
   return (
-    <span className="font-mono text-[9.5px] font-semibold tracking-[0.1em] uppercase text-charcoal/50 block mb-1.5">
+    <span className="font-mono text-[11px] font-semibold tracking-[0.1em] uppercase text-charcoal/50 block mb-1.5">
       {children}
     </span>
   )
@@ -132,10 +132,10 @@ function AttentionCard({ actions, editMode }) {
       ) : (
         <div>
           <div className="flex items-center gap-1.5 p-[12px_16px_8px]">
-            <span className="font-mono text-[9.5px] tracking-[0.1em] uppercase text-charcoal/50 font-semibold">
+            <span className="font-mono text-[11px] tracking-[0.1em] uppercase text-charcoal/50 font-semibold">
               Needs You
             </span>
-            <span className="min-w-[18px] h-[18px] rounded-full bg-danger text-white text-[10px] font-bold flex items-center justify-center px-[5px]">
+            <span className="min-w-[18px] h-[18px] rounded-full bg-danger text-white text-[11px] font-bold flex items-center justify-center px-[5px]">
               {actions.length}
             </span>
           </div>
@@ -179,10 +179,10 @@ function DisciplinaryStrip({ alerts, editMode, venueSlug }) {
       editMode ? 'opacity-45' : 'opacity-100',
     ].join(' ')}>
       <div className="flex items-center gap-1.5">
-        <span className="font-mono text-[9.5px] tracking-[0.1em] uppercase text-white/65 font-semibold">
+        <span className="font-mono text-[11px] tracking-[0.1em] uppercase text-white/65 font-semibold">
           Disciplinary Review
         </span>
-        <span className="min-w-[18px] h-[18px] rounded-full bg-white/20 text-white text-[10px] font-bold flex items-center justify-center px-[5px]">
+        <span className="min-w-[18px] h-[18px] rounded-full bg-white/20 text-white text-[11px] font-bold flex items-center justify-center px-[5px]">
           {alerts.length}
         </span>
       </div>
@@ -291,7 +291,7 @@ function MobileClockCard({ staffId }) {
       <SectionLabel>My Clock</SectionLabel>
       <div className="bg-brand rounded-[14px] p-[14px_16px_16px] flex flex-col gap-0">
         <div className="flex items-center justify-between mb-2.5">
-          <span className="font-mono text-[9.5px] tracking-[0.1em] uppercase text-white/45 font-semibold">
+          <span className="font-mono text-[11px] tracking-[0.1em] uppercase text-white/60 font-semibold">
             My Clock
           </span>
           <span
@@ -299,7 +299,7 @@ function MobileClockCard({ staffId }) {
             style={{ background: badgeBg }}
           >
             <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: badgeDot }} />
-            <span className="font-mono text-[9.5px] font-bold tracking-[0.07em] uppercase text-white/90">
+            <span className="font-mono text-[11px] font-bold tracking-[0.07em] uppercase text-white/90">
               {badgeLabel}
             </span>
           </span>
@@ -310,7 +310,7 @@ function MobileClockCard({ staffId }) {
             {format(now, 'HH:mm')}
           </span>
           {(onShift || onBreak) && clockInAt && (
-            <span className="font-mono text-xs text-white/45 tracking-[0.02em]">
+            <span className="font-mono text-xs text-white/60 tracking-[0.02em]">
               — since {format(clockInAt, 'HH:mm')}
             </span>
           )}
@@ -329,7 +329,7 @@ function MobileClockCard({ staffId }) {
             { label: 'Last In', value: clockInAt ? format(clockInAt, 'EEE HH:mm') : '—' },
           ].map(({ label, value }) => (
             <div key={label}>
-              <div className="font-mono text-[8.5px] tracking-[0.08em] uppercase text-white/40 mb-[3px]">
+              <div className="font-mono text-[11px] tracking-[0.08em] uppercase text-white/55 mb-[3px]">
                 {label}
               </div>
               <div className="font-mono text-[13.5px] font-semibold text-white tracking-[-0.01em]">
@@ -587,13 +587,13 @@ export default function MobileManagerDashboard({
 
       <div className="pb-0.5">
         <div className="flex items-start justify-between gap-2">
-          <span className="font-mono text-[10px] tracking-[0.08em] uppercase text-charcoal/50 pt-[3px]">
+          <span className="font-mono text-[11px] tracking-[0.08em] uppercase text-charcoal/50 pt-[3px]">
             {format(now, 'EEEE, d MMMM')} · {format(now, 'HH:mm')}
           </span>
           <button
             onClick={() => setEditMode(v => !v)}
             className={[
-              'shrink-0 font-mono text-[10px] font-bold tracking-[0.07em] uppercase rounded-lg py-1 px-[11px] cursor-pointer whitespace-nowrap transition-all duration-150',
+              'shrink-0 font-mono text-[11px] font-bold tracking-[0.07em] uppercase rounded-lg py-1 px-[11px] cursor-pointer whitespace-nowrap transition-all duration-150',
               editMode
                 ? 'text-success bg-[#e3f0e7] border border-success/30'
                 : 'text-charcoal/50 bg-transparent border border-charcoal/10',
@@ -613,7 +613,7 @@ export default function MobileManagerDashboard({
           )}
           <MobilePlanPill plan={venuePlan} />
           {checksText && (
-            <span className="font-mono text-[10.5px] text-charcoal/50 tracking-[0.01em]">
+            <span className="font-mono text-[11px] text-charcoal/50 tracking-[0.01em]">
               {checksText}
             </span>
           )}
@@ -624,7 +624,7 @@ export default function MobileManagerDashboard({
       <AttentionCard actions={actions} editMode={editMode} vp={vp} />
 
       {editMode && (
-        <p className="font-mono text-center text-[10px] text-charcoal/30 tracking-[0.04em]">
+        <p className="font-mono text-center text-[11px] text-charcoal/30 tracking-[0.04em]">
           Drag widgets to reorder · tap Done when finished
         </p>
       )}
