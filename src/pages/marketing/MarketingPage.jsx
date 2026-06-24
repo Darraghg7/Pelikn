@@ -783,12 +783,14 @@ export default function MarketingPage() {
               </FadeUp>
             </div>
             <FadeUp dir="right" delay={80} className="flex justify-center lg:justify-end">
-              <div className="flex flex-col items-center gap-10 lg:flex-row lg:items-start lg:gap-6">
-                <div>
+              <div className="flex flex-col items-center gap-10">
+                {/* Staff view — mobile only, stacked above Checks Hub */}
+                <div className="lg:hidden">
                   <p className="text-[10px] tracking-widest uppercase text-charcoal/30 font-medium text-center mb-3">Staff view</p>
                   <IPhoneFrame><MockMobileHome /></IPhoneFrame>
                 </div>
-                <div className="lg:mt-16">
+                {/* Checks hub — always shown, solo on desktop */}
+                <div>
                   <p className="text-[10px] tracking-widest uppercase text-charcoal/30 font-medium text-center mb-3">Checks hub</p>
                   <IPhoneFrame><MockChecksGrid /></IPhoneFrame>
                 </div>
@@ -803,10 +805,8 @@ export default function MarketingPage() {
         <div className="max-w-5xl mx-auto px-6 sm:px-10 py-20 sm:py-28">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <FadeUp dir="left" className="order-2 lg:order-1">
-              <div className="overflow-x-auto -mx-6 px-6 lg:mx-0 lg:px-0">
-                <div style={{ minWidth: 560 }}>
-                  <MockRota />
-                </div>
+              <div className="overflow-x-auto -mx-6 px-6 lg:mx-0 lg:px-0 lg:overflow-visible">
+                <MockRota />
               </div>
             </FadeUp>
             <div className="order-1 lg:order-2">
