@@ -53,7 +53,7 @@ export default function TodaySummaryCard({ venueId, closedDays, itemIds, actionS
   return (
     <div className="bg-white rounded-2xl overflow-hidden">
       <div className="px-4 pt-4 pb-3">
-        <p className="font-mono text-[10px] tracking-[0.08em] uppercase text-charcoal/40 mb-3">Today</p>
+        <p className="font-mono text-[11px] tracking-[0.08em] uppercase text-charcoal/40 mb-3">Today</p>
         {loading || !summary ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
             {[1, 2, 3, 4, 5, 6].map((i) => (

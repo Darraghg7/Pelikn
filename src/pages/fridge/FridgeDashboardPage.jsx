@@ -283,7 +283,7 @@ function FridgeCard({ fridge, session, venueId, isManager, onSaved, onSettings }
                     <span className="shrink-0 text-charcoal/50">{EXCEEDANCE_ICONS[r.id]}</span>
                     <span className="flex-1">{r.label}</span>
                     {r.explained && (
-                      <span className="text-[10px] tracking-wide text-success font-semibold">No penalty</span>
+                      <span className="text-[11px] tracking-wide text-success font-semibold">No penalty</span>
                     )}
                   </button>
                 ))}
@@ -317,7 +317,7 @@ function FridgeCard({ fridge, session, venueId, isManager, onSaved, onSettings }
                     rows={2}
                     className="w-full px-3 py-2 rounded-lg border border-charcoal/15 bg-white focus:outline-none focus:ring-2 focus:ring-danger/20 text-sm resize-none"
                   />
-                  <p className="text-[10px] text-charcoal/35">
+                  <p className="text-[11px] text-charcoal/35">
                     {comment.trim().length < 5 ? `${5 - comment.trim().length} more characters needed` : 'Press Enter or tab away to save'}
                   </p>
                 </div>
@@ -535,7 +535,7 @@ export default function FridgeDashboardPage() {
                           {formatTemp(log.temperature)}
                         </span>
                         {oor && explained && (
-                          <span className="text-[9px] tracking-wide text-warning/80 font-semibold uppercase">Explained</span>
+                          <span className="text-[11px] tracking-wide text-warning/80 font-semibold uppercase">Explained</span>
                         )}
                       </div>
                     )
