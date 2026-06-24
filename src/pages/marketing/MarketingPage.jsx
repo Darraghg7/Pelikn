@@ -155,7 +155,7 @@ function MockDashboard() {
       {/* Sub-nav */}
       <div className="flex flex-col pt-3 shrink-0" style={{ width: 145, background: 'rgba(19,54,42,0.96)' }}>
         <div className="px-3 mb-3">
-          <p className="text-[7px] tracking-widest uppercase text-cream/25">THE CANTEEN</p>
+          <p className="text-[7px] tracking-widest uppercase text-cream/25">THE FORGE</p>
           <p className="text-[8px] text-cream/50 mt-0.5">Today · 4 items</p>
         </div>
         {[
@@ -177,7 +177,7 @@ function MockDashboard() {
             <p className="text-[7px] tracking-widest uppercase text-charcoal/30">WEDNESDAY, 24 JUNE</p>
             <h3 className="text-[15px] font-bold text-charcoal mt-0.5">Good afternoon, Sarah</h3>
             <div className="flex items-center gap-1.5 mt-0.5">
-              <span className="text-[7px] text-charcoal/45">THE CANTEEN</span>
+              <span className="text-[7px] text-charcoal/45">THE FORGE</span>
               <span className="text-[7px] font-bold bg-brand text-cream px-1.5 py-0.5 rounded tracking-wide">PRO</span>
               <span className="text-[7px] text-charcoal/30">· 0 of 14 daily checks complete</span>
             </div>
@@ -260,7 +260,7 @@ function MockMobileHome() {
       {/* Status bar — sits below dynamic island */}
       <div className="bg-brand px-4 pt-14 pb-3">
         <div className="flex items-center justify-between">
-          <span className="text-[10px] font-bold text-cream tracking-widest">NOMAD</span>
+          <span className="text-[10px] font-bold text-cream tracking-widest">SALT</span>
           <span className="text-[9px] text-cream/40 border border-cream/20 px-2 py-0.5 rounded">Sign Out</span>
         </div>
       </div>
@@ -364,7 +364,7 @@ function MockChecksGrid() {
       {/* Status bar below dynamic island */}
       <div className="bg-brand px-4 pt-14 pb-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className="text-[11px] font-bold text-cream tracking-widest">NOMAD</span>
+          <span className="text-[11px] font-bold text-cream tracking-widest">SALT</span>
           <div className="w-5 h-5 bg-cream/15 rounded-full flex items-center justify-center relative">
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-cream"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/></svg>
             <div className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-accent rounded-full flex items-center justify-center"><span className="text-[7px] font-bold text-white">4</span></div>
