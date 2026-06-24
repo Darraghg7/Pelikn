@@ -11,26 +11,25 @@ import {
 function GlobalCSS() {
   return (
     <style>{`
-      /* Generic entrance — slight Y + scale for depth */
       @keyframes pkIn {
         from { opacity:0; transform:translateY(16px) scale(0.98); }
         to   { opacity:1; transform:translateY(0) scale(1); }
       }
-      /* Phone/mock entrance — rises from below */
       @keyframes pkRise {
-        from { opacity:0; transform:translateY(52px) scale(0.96); }
+        from { opacity:0; transform:translateY(56px) scale(0.96); }
         to   { opacity:1; transform:translateY(0) scale(1); }
       }
-      /* Pill badge glow-pulse */
       @keyframes pkPulse {
         0%,100% { opacity:1; box-shadow:0 0 0 0 rgba(26,122,76,0.5); }
         60%      { opacity:0.55; box-shadow:0 0 0 5px rgba(26,122,76,0); }
       }
-      /* Subtle shimmer on nav CTA */
-      @keyframes pkShimmer {
-        from { transform:translateX(-100%) skewX(-12deg); }
-        to   { transform:translateX(220%) skewX(-12deg); }
+      /* Scrolling ticker — seamless loop */
+      @keyframes pkTicker {
+        from { transform:translateX(0); }
+        to   { transform:translateX(-50%); }
       }
+      .pk-ticker-track { animation: pkTicker 28s linear infinite; }
+      .pk-ticker-track:hover { animation-play-state: paused; }
     `}</style>
   )
 }
@@ -670,85 +669,89 @@ export default function MarketingPage() {
           </svg>
         </div>
 
-        <div className="max-w-3xl mx-auto px-6 sm:px-10 pt-20 sm:pt-28 pb-0 relative text-center">
+        {/* Bottom gradient fade into next section */}
+        <div className="absolute bottom-0 left-0 right-0 h-40 pointer-events-none" aria-hidden style={{ background:'linear-gradient(to bottom, transparent, rgba(19,54,42,0.6))' }} />
+
+        <div className="max-w-4xl mx-auto px-6 sm:px-10 pt-20 sm:pt-32 pb-0 relative text-center">
           {/* Pill badge */}
           <div style={{ animation:'pkIn 0.55s cubic-bezier(.16,1,.3,1) both' }}>
-            <div className="inline-flex items-center gap-2 bg-cream/8 border border-cream/12 rounded-full px-3.5 py-1.5 mb-8">
-              <div className="w-1.5 h-1.5 rounded-full bg-[#1a7a4c]" style={{ animation:'pkPulse 2.4s ease-in-out infinite' }} />
-              <span className="text-[11px] font-medium text-cream/50 tracking-wide">Food safety · Rota · Timesheets · Training</span>
+            <div className="inline-flex items-center gap-2.5 bg-cream/6 border border-cream/10 rounded-full px-4 py-2 mb-10">
+              <div className="w-1.5 h-1.5 rounded-full bg-[#4ade80]" style={{ animation:'pkPulse 2.4s ease-in-out infinite' }} />
+              <span className="text-[12px] font-medium text-cream/55 tracking-[0.06em]">Food safety · Rota · Timesheets · Training</span>
             </div>
           </div>
           {/* Headline */}
-          <h1 className="text-[48px] sm:text-[64px] lg:text-[76px] font-bold text-cream leading-[1.0] tracking-[-0.035em] mb-6" style={{ animation:'pkIn 0.7s 70ms cubic-bezier(.16,1,.3,1) both' }}>
-            Ditch the clipboard,<br />
-            <span className="text-cream/28">keep the compliance.</span>
+          <h1 className="text-[56px] sm:text-[80px] lg:text-[104px] font-bold text-cream leading-[0.96] tracking-[-0.04em] mb-8" style={{ animation:'pkIn 0.75s 60ms cubic-bezier(.16,1,.3,1) both' }}>
+            Ditch the<br />clipboard,<br />
+            <span style={{ backgroundImage:'linear-gradient(180deg,rgba(245,244,241,0.28) 0%,rgba(245,244,241,0.07) 100%)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text' }}>keep the compliance.</span>
           </h1>
           {/* Subtitle */}
-          <p className="text-cream/48 text-[15px] sm:text-[16px] max-w-md mx-auto leading-[1.65] mb-9" style={{ animation:'pkIn 0.7s 150ms cubic-bezier(.16,1,.3,1) both' }}>
+          <p className="text-cream/60 text-[17px] sm:text-[18px] max-w-[480px] mx-auto leading-[1.7] mb-10" style={{ animation:'pkIn 0.75s 140ms cubic-bezier(.16,1,.3,1) both' }}>
             One app for food safety records, rotas, timesheets and team management. EHO-ready from day one, on any device, for the whole team.
           </p>
           {/* CTAs */}
-          <div className="flex flex-wrap justify-center items-center gap-3 mb-5" style={{ animation:'pkIn 0.65s 210ms cubic-bezier(.16,1,.3,1) both' }}>
-            <Link to="/signup" className="bg-accent text-cream px-7 py-3.5 rounded-xl text-sm font-semibold hover:bg-[#b8431f] hover:shadow-[0_8px_28px_rgba(201,79,42,0.5)] active:scale-[0.97] transition-all duration-200 cursor-pointer shadow-[0_4px_18px_rgba(201,79,42,0.42)]">
+          <div className="flex flex-wrap justify-center items-center gap-4 mb-7" style={{ animation:'pkIn 0.65s 210ms cubic-bezier(.16,1,.3,1) both' }}>
+            <Link to="/signup" className="bg-accent text-cream px-8 py-4 rounded-xl text-[15px] font-semibold hover:bg-[#b8431f] hover:shadow-[0_10px_32px_rgba(201,79,42,0.55)] active:scale-[0.97] transition-all duration-200 cursor-pointer shadow-[0_4px_20px_rgba(201,79,42,0.45)]">
               Start free for 7 days
             </Link>
-            <a href="#compliance" className="flex items-center gap-1.5 text-cream/35 text-sm hover:text-cream/60 transition-colors duration-200 cursor-pointer">
+            <a href="#compliance" className="flex items-center gap-2 text-cream/45 text-[15px] hover:text-cream/70 transition-colors duration-200 cursor-pointer">
               See how it works
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
             </a>
           </div>
           {/* Trust badges */}
-          <div className="flex flex-wrap justify-center gap-x-5 gap-y-1.5 mb-16" style={{ animation:'pkIn 0.6s 280ms cubic-bezier(.16,1,.3,1) both' }}>
+          <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 mb-20" style={{ animation:'pkIn 0.6s 280ms cubic-bezier(.16,1,.3,1) both' }}>
             {['No card required','Cancel any time','ICO registered · UK GDPR'].map(t=>(
-              <div key={t} className="flex items-center gap-1.5">
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-cream/22"><polyline points="20 6 9 17 4 12"/></svg>
-                <span className="text-xs text-cream/28">{t}</span>
+              <div key={t} className="flex items-center gap-2">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-cream/35"><polyline points="20 6 9 17 4 12"/></svg>
+                <span className="text-[13px] text-cream/40">{t}</span>
               </div>
             ))}
           </div>
           {/* Hero phones — staggered rise */}
-          <div className="flex justify-center gap-5 sm:gap-8 items-end">
-            <div className="hidden sm:block" style={{ transform:'translateY(44px)', animation:'pkRise 0.9s 360ms cubic-bezier(.16,1,.3,1) both' }}>
+          <div className="flex justify-center gap-5 sm:gap-10 items-end">
+            <div className="hidden sm:block" style={{ transform:'translateY(48px)', animation:'pkRise 1s 350ms cubic-bezier(.16,1,.3,1) both' }}>
               <IPhoneFrame><MockMobileHome /></IPhoneFrame>
             </div>
-            <div style={{ animation:'pkRise 0.9s 420ms cubic-bezier(.16,1,.3,1) both' }}>
+            <div style={{ animation:'pkRise 1s 420ms cubic-bezier(.16,1,.3,1) both' }}>
               <IPhoneFrame><MockChecksGrid /></IPhoneFrame>
             </div>
           </div>
         </div>
-        <div className="h-20 sm:h-28" />
+        <div className="h-24 sm:h-32" />
       </section>
 
-      {/* ── Replaces ─────────────────────────────────────────────────────── */}
-      <div className="bg-[#f3f3ef] border-b border-charcoal/6">
-        <div className="max-w-5xl mx-auto px-6 sm:px-10 py-4">
-          <div className="flex flex-wrap items-center gap-x-7 gap-y-2">
-            <span className="text-xs text-charcoal/30 font-medium tracking-wide">Replaces your</span>
-            {['Rota spreadsheet','WhatsApp group','Paper temperature logs','Training folder','Tip calculator'].map(item=>(
-              <div key={item} className="flex items-center gap-1.5">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#1a7a4c" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0"><polyline points="20 6 9 17 4 12"/></svg>
-                <span className="text-sm text-charcoal/55 font-medium">{item}</span>
-              </div>
-            ))}
-          </div>
+      {/* ── Replaces — scrolling ticker ──────────────────────────────────── */}
+      <div className="bg-[#f0efec] border-y border-charcoal/8 overflow-hidden py-4 select-none">
+        <div className="flex pk-ticker-track whitespace-nowrap" aria-hidden>
+          {[...Array(2)].map((_, pass) => (
+            <div key={pass} className="flex items-center shrink-0">
+              {['Rota spreadsheets','WhatsApp groups','Paper temp logs','Training folders','Tip calculators','Compliance binders','Shift-swap texts','Clocking-in sheets'].map(item => (
+                <div key={item} className="inline-flex items-center gap-3 mx-8">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-brand/50 shrink-0"><polyline points="20 6 9 17 4 12"/></svg>
+                  <span className="text-[14px] font-medium text-charcoal/50">{item}</span>
+                </div>
+              ))}
+            </div>
+          ))}
         </div>
       </div>
 
       {/* ── Compliance ───────────────────────────────────────────────────── */}
       <section id="compliance" className="bg-white">
-        <div className="max-w-5xl mx-auto px-6 sm:px-10 py-20 sm:py-28">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+        <div className="max-w-5xl mx-auto px-6 sm:px-10 py-24 sm:py-36">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-20 items-center">
             <div>
               <FadeUp>
-                <span className="inline-block text-[10px] tracking-widest uppercase text-brand font-semibold bg-brand/8 px-3 py-1.5 rounded-full mb-5">Food safety</span>
-                <h2 className="text-4xl sm:text-5xl font-bold text-charcoal tracking-tight leading-tight mb-4">
+                <span className="inline-block text-[11px] tracking-[0.12em] uppercase text-brand font-semibold bg-brand/8 px-3.5 py-1.5 rounded-full mb-6">Food safety</span>
+                <h2 className="text-[40px] sm:text-[52px] lg:text-[56px] font-bold text-charcoal tracking-[-0.025em] leading-[1.05] mb-6">
                   If the EHO walked<br />in today, would<br />you be ready?
                 </h2>
-                <p className="text-charcoal/45 text-[15px] leading-relaxed mb-8 max-w-sm">
+                <p className="text-charcoal/55 text-[17px] leading-[1.75] mb-10 max-w-md">
                   Every temp log, cleaning record, allergen check and delivery sign-off captured and stored. Export a full audit trail PDF in one tap, exactly how an inspector expects it.
                 </p>
               </FadeUp>
-              <div className="flex flex-col gap-6">
+              <div className="flex flex-col gap-7">
                 {[
                   { title:'Temperature logs',   desc:'Fridge, cooking, reheating and hot holding. Automatic pass/fail detection against your thresholds.' },
                   { title:'Cleaning schedules',  desc:'Daily, weekly and ad-hoc tasks assigned to staff. Live completion status at a glance.' },
@@ -757,32 +760,30 @@ export default function MarketingPage() {
                 ].map(({ title, desc }, i) => (
                   <FadeUp key={title} delay={i * 55}>
                     <div className="flex gap-4 group cursor-default">
-                      <div className="w-0.5 rounded-full bg-brand/15 group-hover:bg-brand transition-colors duration-300 shrink-0 mt-1" style={{ minHeight:48 }}/>
+                      <div className="w-0.5 rounded-full bg-brand/20 group-hover:bg-brand transition-colors duration-300 shrink-0 mt-1.5" style={{ minHeight:52 }}/>
                       <div className="transition-transform duration-300 group-hover:translate-x-0.5">
-                        <p className="text-sm font-semibold text-charcoal mb-1">{title}</p>
-                        <p className="text-[14px] text-charcoal/42 leading-relaxed">{desc}</p>
+                        <p className="text-[15px] font-semibold text-charcoal mb-1.5">{title}</p>
+                        <p className="text-[15px] text-charcoal/55 leading-[1.7]">{desc}</p>
                       </div>
                     </div>
                   </FadeUp>
                 ))}
               </div>
               <FadeUp delay={250}>
-                <Link to="/signup" className="inline-flex items-center gap-2 bg-brand text-cream px-6 py-3 rounded-xl text-sm font-semibold hover:bg-brand/85 hover:shadow-[0_6px_20px_rgba(19,54,42,0.25)] hover:-translate-y-0.5 transition-all duration-200 mt-8 cursor-pointer">
+                <Link to="/signup" className="inline-flex items-center gap-2 bg-brand text-cream px-6 py-3.5 rounded-xl text-[15px] font-semibold hover:bg-brand/85 hover:shadow-[0_6px_20px_rgba(19,54,42,0.25)] hover:-translate-y-0.5 transition-all duration-200 mt-10 cursor-pointer">
                   Start free trial
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
                 </Link>
               </FadeUp>
             </div>
             <FadeUp dir="right" delay={80} className="flex justify-center lg:justify-end">
               <div className="flex flex-col items-center gap-10">
-                {/* Staff view — mobile only, stacked above Checks Hub */}
                 <div className="lg:hidden">
-                  <p className="text-[10px] tracking-widest uppercase text-charcoal/30 font-medium text-center mb-3">Staff view</p>
+                  <p className="text-[11px] tracking-[0.1em] uppercase text-charcoal/35 font-medium text-center mb-4">Staff view</p>
                   <IPhoneFrame><MockMobileHome /></IPhoneFrame>
                 </div>
-                {/* Checks hub — always shown, solo on desktop */}
                 <div>
-                  <p className="text-[10px] tracking-widest uppercase text-charcoal/30 font-medium text-center mb-3">Checks hub</p>
+                  <p className="text-[11px] tracking-[0.1em] uppercase text-charcoal/35 font-medium text-center mb-4">Checks hub</p>
                   <IPhoneFrame><MockChecksGrid /></IPhoneFrame>
                 </div>
               </div>
@@ -793,25 +794,25 @@ export default function MarketingPage() {
 
       {/* ── Team ─────────────────────────────────────────────────────────── */}
       <section id="team" className="bg-charcoal">
-        <div className="max-w-5xl mx-auto px-6 sm:px-10 pt-20 sm:pt-28 pb-20 sm:pb-28">
+        <div className="max-w-5xl mx-auto px-6 sm:px-10 pt-24 sm:pt-36 pb-24 sm:pb-36">
           {/* Heading */}
-          <FadeUp className="max-w-2xl mb-10 sm:mb-12">
-            <span className="inline-block text-[10px] tracking-widest uppercase text-accent font-semibold bg-accent/12 px-3 py-1.5 rounded-full mb-5">Team &amp; scheduling · Pro</span>
-            <h2 className="text-4xl sm:text-5xl font-bold text-cream tracking-tight leading-tight mb-4">
-              Stop managing your team over WhatsApp.
+          <FadeUp className="max-w-3xl mb-12 sm:mb-16">
+            <span className="inline-block text-[11px] tracking-[0.12em] uppercase text-accent font-semibold bg-accent/12 px-3.5 py-1.5 rounded-full mb-6">Team &amp; scheduling · Pro</span>
+            <h2 className="text-[40px] sm:text-[52px] lg:text-[60px] font-bold text-cream tracking-[-0.025em] leading-[1.05] mb-6">
+              Stop managing your<br />team over WhatsApp.
             </h2>
-            <p className="text-cream/40 text-[15px] leading-relaxed max-w-lg">
+            <p className="text-cream/55 text-[17px] leading-[1.75] max-w-xl">
               Build the rota in minutes, publish it, done. Timesheets write themselves. Swaps and time-off come through the app. You stop being the middleman.
             </p>
           </FadeUp>
           {/* Rota — full width */}
-          <FadeUp dir="up" delay={60} className="mb-10 sm:mb-12">
+          <FadeUp dir="up" delay={60} className="mb-12 sm:mb-16">
             <div className="overflow-x-auto -mx-6 px-6 sm:mx-0 sm:px-0 sm:overflow-visible">
               <MockRota />
             </div>
           </FadeUp>
           {/* Features */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
             {[
               { n:'Rota builder',  d:'Drag-and-drop or auto-fill from your patterns' },
               { n:'Timesheets',    d:'Staff clock in/out on the app, exports to payroll' },
@@ -821,9 +822,9 @@ export default function MarketingPage() {
               { n:'Multi-venue',   d:'One login for every site you run' },
             ].map(({ n, d }, i) => (
               <FadeUp key={n} delay={i * 40}>
-                <div className="border border-cream/8 rounded-2xl p-4 hover:border-cream/18 hover:bg-cream/5 hover:-translate-y-0.5 transition-all duration-300 ease-[cubic-bezier(.16,1,.3,1)] cursor-default">
-                  <p className="text-sm font-semibold text-cream mb-1">{n}</p>
-                  <p className="text-[12px] text-cream/30 leading-relaxed">{d}</p>
+                <div className="border border-cream/8 rounded-2xl p-5 hover:border-cream/18 hover:bg-cream/5 hover:-translate-y-0.5 transition-all duration-300 ease-[cubic-bezier(.16,1,.3,1)] cursor-default">
+                  <p className="text-[15px] font-semibold text-cream mb-1.5">{n}</p>
+                  <p className="text-[13px] text-cream/50 leading-[1.65]">{d}</p>
                 </div>
               </FadeUp>
             ))}
@@ -833,17 +834,17 @@ export default function MarketingPage() {
 
       {/* ── Stats ────────────────────────────────────────────────────────── */}
       <section className="bg-brand">
-        <div className="max-w-5xl mx-auto px-6 sm:px-10 py-16 sm:py-20">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 sm:gap-0 sm:divide-x sm:divide-cream/15">
+        <div className="max-w-5xl mx-auto px-6 sm:px-10 py-24 sm:py-28">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-12 sm:gap-0 sm:divide-x sm:divide-cream/12">
             {[
               { to:15, suffix:' min', label:'Average setup time',  sub:'From sign-up to first check logged', delay:0 },
               { to:5,  suffix:' apps', label:'Replaced by one',    sub:'Rota, compliance, timesheets, training, tips', delay:80 },
               { to:100,suffix:'%',    label:'On your phone',       sub:'No app store. Install from your browser in seconds', delay:160 },
             ].map(({ to, suffix, label, sub, delay }) => (
-              <FadeUp key={label} delay={delay} className="sm:px-10 first:pl-0 last:pr-0">
-                <p className="text-6xl font-bold text-cream mb-2 tabular-nums tracking-tight"><CountUp to={to} suffix={suffix} duration={1300}/></p>
-                <p className="text-sm font-semibold text-cream/55 mb-1">{label}</p>
-                <p className="text-[12px] text-cream/28 leading-relaxed">{sub}</p>
+              <FadeUp key={label} delay={delay} className="sm:px-12 first:pl-0 last:pr-0">
+                <p className="text-[72px] sm:text-[80px] font-bold text-cream mb-3 tabular-nums tracking-[-0.03em] leading-none"><CountUp to={to} suffix={suffix} duration={1300}/></p>
+                <p className="text-[15px] font-semibold text-cream/65 mb-1.5">{label}</p>
+                <p className="text-[14px] text-cream/40 leading-[1.6]">{sub}</p>
               </FadeUp>
             ))}
           </div>
@@ -851,11 +852,11 @@ export default function MarketingPage() {
       </section>
 
       {/* ── Feature grid ─────────────────────────────────────────────────── */}
-      <section className="bg-[#f3f3ef]">
-        <div className="max-w-5xl mx-auto px-6 sm:px-10 py-20 sm:py-28">
-          <FadeUp>
-            <h2 className="text-4xl sm:text-5xl font-bold text-charcoal tracking-tight leading-tight mb-2">There's a lot more inside.</h2>
-            <p className="text-charcoal/40 text-base mb-10 max-w-xs leading-relaxed">A glimpse at what's waiting once you're in.</p>
+      <section className="bg-[#f0efec]">
+        <div className="max-w-5xl mx-auto px-6 sm:px-10 py-24 sm:py-36">
+          <FadeUp className="mb-14">
+            <h2 className="text-[40px] sm:text-[52px] font-bold text-charcoal tracking-[-0.025em] leading-[1.05] mb-3">There's a lot more inside.</h2>
+            <p className="text-charcoal/50 text-[17px] leading-[1.7] max-w-sm">A glimpse at what's waiting once you're in.</p>
           </FadeUp>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
             {[
@@ -870,12 +871,12 @@ export default function MarketingPage() {
               { icon:'M5 8h14 M5 12h14 M5 16h6', title:'Clock in / out',    desc:'Staff clock on from their phone. Timesheets build automatically.' },
             ].map(({ icon, title, desc }, i) => (
               <FadeUp key={title} delay={i * 30}>
-                <div className="bg-white rounded-2xl border border-brand/10 p-5 hover:border-brand/25 hover:shadow-[0_12px_36px_rgba(19,54,42,0.09)] hover:-translate-y-1.5 transition-all duration-300 ease-[cubic-bezier(.16,1,.3,1)] h-full group cursor-default">
-                  <div className="w-9 h-9 rounded-xl bg-brand/7 text-brand flex items-center justify-center mb-4 group-hover:bg-brand group-hover:text-cream transition-all duration-300">
-                    <Ico d={icon} size={17} />
+                <div className="bg-white rounded-2xl border border-charcoal/8 p-6 hover:border-brand/20 hover:shadow-[0_12px_40px_rgba(19,54,42,0.09)] hover:-translate-y-1.5 transition-all duration-300 ease-[cubic-bezier(.16,1,.3,1)] h-full group cursor-default">
+                  <div className="w-10 h-10 rounded-xl bg-brand/7 text-brand flex items-center justify-center mb-5 group-hover:bg-brand group-hover:text-cream transition-all duration-300">
+                    <Ico d={icon} size={18} />
                   </div>
-                  <p className="text-sm font-semibold text-charcoal mb-1">{title}</p>
-                  <p className="text-[12px] text-charcoal/40 leading-relaxed">{desc}</p>
+                  <p className="text-[15px] font-semibold text-charcoal mb-2">{title}</p>
+                  <p className="text-[14px] text-charcoal/55 leading-[1.65]">{desc}</p>
                 </div>
               </FadeUp>
             ))}
@@ -885,34 +886,34 @@ export default function MarketingPage() {
 
       {/* ── How it works ─────────────────────────────────────────────────── */}
       <section id="how-it-works" className="bg-white">
-        <div className="max-w-5xl mx-auto px-6 sm:px-10 py-20 sm:py-28">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+        <div className="max-w-5xl mx-auto px-6 sm:px-10 py-24 sm:py-36">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-20 items-center">
             <FadeUp>
-              <span className="inline-block text-[10px] tracking-widest uppercase text-brand font-semibold bg-brand/8 px-3 py-1.5 rounded-full mb-5">Setup</span>
-              <h2 className="text-4xl sm:text-5xl font-bold text-charcoal tracking-tight leading-tight mb-4">Live in 15 minutes.</h2>
-              <p className="text-charcoal/45 text-[15px] leading-relaxed mb-7 max-w-sm">
+              <span className="inline-block text-[11px] tracking-[0.12em] uppercase text-brand font-semibold bg-brand/8 px-3.5 py-1.5 rounded-full mb-6">Setup</span>
+              <h2 className="text-[40px] sm:text-[52px] lg:text-[56px] font-bold text-charcoal tracking-[-0.025em] leading-[1.05] mb-6">Live in 15 minutes.</h2>
+              <p className="text-charcoal/55 text-[17px] leading-[1.75] mb-8 max-w-sm">
                 No app store. No IT department. Open in your browser, install to your home screen and it works like any other app. Offline included.
               </p>
-              <Link to="/signup" className="inline-flex items-center gap-2 bg-brand text-cream px-6 py-3 rounded-xl text-sm font-semibold hover:bg-brand/85 hover:shadow-[0_6px_20px_rgba(19,54,42,0.25)] hover:-translate-y-0.5 transition-all duration-200 cursor-pointer">
+              <Link to="/signup" className="inline-flex items-center gap-2 bg-brand text-cream px-6 py-3.5 rounded-xl text-[15px] font-semibold hover:bg-brand/85 hover:shadow-[0_6px_20px_rgba(19,54,42,0.25)] hover:-translate-y-0.5 transition-all duration-200 cursor-pointer">
                 Get started free
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
               </Link>
             </FadeUp>
-            <div className="flex flex-col">
+            <div className="flex flex-col gap-0">
               {[
                 { n:'01', title:'Sign up', desc:'Create your account and set up your venue. Name, location, your first team members. About five minutes.' },
                 { n:'02', title:'Install on any device', desc:"Open app.pelikn.app in Safari or Chrome. Tap 'Add to Home Screen'. It lands on your home screen like any other app." },
                 { n:'03', title:'Invite your team', desc:"Send invite links. Staff install the app and they're ready to log checks, see their rota and clock in." },
               ].map(({ n, title, desc }, i) => (
                 <FadeUp key={n} delay={i * 65}>
-                  <div className="flex gap-5 items-start pb-8 last:pb-0 relative group cursor-default">
-                    {i < 2 && <div className="absolute left-[19px] top-11 bottom-0 w-px bg-charcoal/8"/>}
-                    <div className="w-10 h-10 rounded-full border-2 border-charcoal/10 bg-white flex items-center justify-center shrink-0 z-10 transition-all duration-300 group-hover:border-brand/30 group-hover:shadow-[0_4px_12px_rgba(19,54,42,0.12)]">
-                      <span className="text-xs font-bold text-charcoal/30 tabular-nums group-hover:text-brand/60 transition-colors duration-300">{n}</span>
+                  <div className="flex gap-5 items-start pb-9 last:pb-0 relative group cursor-default">
+                    {i < 2 && <div className="absolute left-[20px] top-12 bottom-0 w-px bg-charcoal/8"/>}
+                    <div className="w-11 h-11 rounded-full border-2 border-charcoal/10 bg-white flex items-center justify-center shrink-0 z-10 transition-all duration-300 group-hover:border-brand/30 group-hover:shadow-[0_4px_14px_rgba(19,54,42,0.12)]">
+                      <span className="text-[12px] font-bold text-charcoal/30 tabular-nums group-hover:text-brand/60 transition-colors duration-300">{n}</span>
                     </div>
-                    <div className="pt-1.5">
-                      <p className="text-sm font-semibold text-charcoal mb-1">{title}</p>
-                      <p className="text-sm text-charcoal/45 leading-relaxed">{desc}</p>
+                    <div className="pt-2">
+                      <p className="text-[16px] font-semibold text-charcoal mb-2">{title}</p>
+                      <p className="text-[15px] text-charcoal/55 leading-[1.7]">{desc}</p>
                     </div>
                   </div>
                 </FadeUp>
@@ -927,9 +928,9 @@ export default function MarketingPage() {
 
       {/* ── FAQ ──────────────────────────────────────────────────────────── */}
       <section className="bg-white">
-        <div className="max-w-2xl mx-auto px-6 sm:px-10 py-20 sm:py-24">
+        <div className="max-w-2xl mx-auto px-6 sm:px-10 py-24 sm:py-32">
           <FadeUp>
-            <h2 className="text-3xl font-bold text-charcoal tracking-tight mb-8">Common questions</h2>
+            <h2 className="text-[36px] sm:text-[44px] font-bold text-charcoal tracking-[-0.02em] mb-10">Common questions</h2>
           </FadeUp>
           <FadeUp delay={50}>
             <div className="border-t border-charcoal/8">
@@ -949,20 +950,21 @@ export default function MarketingPage() {
       {/* ── Final CTA ────────────────────────────────────────────────────── */}
       <section className="bg-brand relative overflow-hidden">
         <div className="absolute inset-0 pointer-events-none" aria-hidden style={{ backgroundImage:'radial-gradient(rgba(255,255,255,0.06) 1px, transparent 1px)', backgroundSize:'28px 28px' }} />
-        <div className="absolute top-0 left-0 w-[500px] h-[500px] pointer-events-none" aria-hidden style={{ background:'radial-gradient(ellipse at top left, rgba(201,79,42,0.1) 0%, transparent 60%)' }} />
-        <div className="max-w-5xl mx-auto px-6 sm:px-10 py-24 sm:py-32 relative">
+        <div className="absolute top-0 left-0 w-[600px] h-[600px] pointer-events-none" aria-hidden style={{ background:'radial-gradient(ellipse at top left, rgba(201,79,42,0.14) 0%, transparent 60%)' }} />
+        <div className="absolute bottom-0 right-0 w-[500px] h-[500px] pointer-events-none" aria-hidden style={{ background:'radial-gradient(ellipse at bottom right, rgba(19,54,42,0.8) 0%, transparent 70%)' }} />
+        <div className="max-w-5xl mx-auto px-6 sm:px-10 py-28 sm:py-40 relative">
           <FadeUp>
-            <h2 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-cream tracking-tight leading-[1.02] mb-4 max-w-xl">
+            <h2 className="text-[52px] sm:text-[68px] lg:text-[84px] font-bold text-cream tracking-[-0.035em] leading-[1.0] mb-6 max-w-2xl">
               Ditch the clipboard.<br />Keep the compliance.
             </h2>
-            <p className="text-cream/38 text-base leading-relaxed mb-9 max-w-xs">
+            <p className="text-cream/50 text-[17px] leading-[1.7] mb-10 max-w-xs">
               7 days free. No card. 15 minutes to set up.
             </p>
-            <div className="flex flex-col sm:flex-row items-start gap-3">
-              <Link to="/signup" className="bg-accent text-cream px-8 py-4 rounded-xl text-sm font-semibold hover:bg-[#b8431f] hover:shadow-[0_10px_32px_rgba(201,79,42,0.52)] hover:-translate-y-0.5 active:scale-[0.97] transition-all duration-200 text-center cursor-pointer shadow-[0_4px_24px_rgba(201,79,42,0.42)]">
+            <div className="flex flex-col sm:flex-row items-start gap-4">
+              <Link to="/signup" className="bg-accent text-cream px-8 py-4 rounded-xl text-[15px] font-semibold hover:bg-[#b8431f] hover:shadow-[0_10px_36px_rgba(201,79,42,0.55)] hover:-translate-y-0.5 active:scale-[0.97] transition-all duration-200 text-center cursor-pointer shadow-[0_4px_24px_rgba(201,79,42,0.42)]">
                 Start free trial
               </Link>
-              <a href="mailto:hello@pelikn.app" className="border border-cream/14 text-cream/35 hover:text-cream/55 hover:border-cream/25 hover:-translate-y-0.5 px-8 py-4 rounded-xl text-sm font-medium transition-all duration-200 text-center cursor-pointer">
+              <a href="mailto:hello@pelikn.app" className="border border-cream/14 text-cream/45 hover:text-cream/65 hover:border-cream/28 hover:-translate-y-0.5 px-8 py-4 rounded-xl text-[15px] font-medium transition-all duration-200 text-center cursor-pointer">
                 Get in touch
               </a>
             </div>
