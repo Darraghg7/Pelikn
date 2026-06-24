@@ -11,30 +11,25 @@ import {
 function GlobalCSS() {
   return (
     <style>{`
-      @keyframes pkFloat1 {
-        0%,100% { transform: translateY(0px) rotate(-0.5deg); }
-        50%      { transform: translateY(-14px) rotate(-0.5deg); }
+      /* Generic entrance — slight Y + scale for depth */
+      @keyframes pkIn {
+        from { opacity:0; transform:translateY(16px) scale(0.98); }
+        to   { opacity:1; transform:translateY(0) scale(1); }
       }
-      @keyframes pkFloat2 {
-        0%,100% { transform: translateY(0px) rotate(0.8deg); }
-        50%      { transform: translateY(-20px) rotate(0.8deg); }
+      /* Phone/mock entrance — rises from below */
+      @keyframes pkRise {
+        from { opacity:0; transform:translateY(52px) scale(0.96); }
+        to   { opacity:1; transform:translateY(0) scale(1); }
       }
-      @keyframes pkTextIn {
-        from { opacity:0; transform:translateY(28px); }
-        to   { opacity:1; transform:translateY(0); }
-      }
-      @keyframes pkMockIn {
-        from { opacity:0; transform:translateX(32px) scale(0.97); }
-        to   { opacity:1; transform:translateX(0) scale(1); }
-      }
+      /* Pill badge glow-pulse */
       @keyframes pkPulse {
-        0%,100% { opacity:1; }
-        50%      { opacity:0.3; }
+        0%,100% { opacity:1; box-shadow:0 0 0 0 rgba(26,122,76,0.5); }
+        60%      { opacity:0.55; box-shadow:0 0 0 5px rgba(26,122,76,0); }
       }
-      @keyframes pkIconPop {
-        0%   { transform:scale(1); }
-        40%  { transform:scale(1.18); }
-        100% { transform:scale(1); }
+      /* Subtle shimmer on nav CTA */
+      @keyframes pkShimmer {
+        from { transform:translateX(-100%) skewX(-12deg); }
+        to   { transform:translateX(220%) skewX(-12deg); }
       }
     `}</style>
   )
@@ -44,7 +39,7 @@ function GlobalCSS() {
 function IPhoneFrame({ children }) {
   return (
     <div
-      className="relative shrink-0"
+      className="relative shrink-0 transition-transform duration-500 ease-[cubic-bezier(.16,1,.3,1)] hover:-translate-y-2"
       style={{ width:300, background:'#141414', borderRadius:52, padding:14, boxShadow:'0 40px 80px rgba(0,0,0,0.4), inset 0 0 0 1.5px rgba(255,255,255,0.13)' }}
     >
       {/* Side buttons */}
@@ -70,13 +65,18 @@ function FadeUp({ children, delay = 0, className = '', dir = 'up' }) {
     const el = ref.current; if (!el) return
     const ob = new IntersectionObserver(
       ([e]) => { if (e.isIntersecting) { setV(true); ob.disconnect() } },
-      { threshold: 0.05, rootMargin: '0px 0px -16px 0px' }
+      { threshold: 0.08, rootMargin: '0px 0px -24px 0px' }
     )
     ob.observe(el); return () => ob.disconnect()
   }, [])
-  const t = { up:'translateY(24px)', down:'translateY(-16px)', left:'translateX(-24px)', right:'translateX(24px)' }
+  const t = {
+    up:    'translateY(20px) scale(0.99)',
+    down:  'translateY(-14px)',
+    left:  'translateX(-22px)',
+    right: 'translateX(22px)',
+  }
   return (
-    <div ref={ref} className={className} style={{ opacity:v?1:0, transform:v?'none':(t[dir]??t.up), transition:`opacity 0.6s cubic-bezier(.16,1,.3,1) ${delay}ms,transform 0.6s cubic-bezier(.16,1,.3,1) ${delay}ms` }}>
+    <div ref={ref} className={className} style={{ opacity:v?1:0, transform:v?'none':(t[dir]??t.up), transition:`opacity 0.65s cubic-bezier(.16,1,.3,1) ${delay}ms, transform 0.65s cubic-bezier(.16,1,.3,1) ${delay}ms` }}>
       {children}
     </div>
   )
@@ -631,17 +631,19 @@ export default function MarketingPage() {
       <GlobalCSS />
 
       {/* ── Nav ─────────────────────────────────────────────────────────── */}
-      <header className="sticky top-0 z-50 transition-all duration-300" style={{ background: navScrolled ? 'rgba(255,255,255,0.94)' : 'rgba(19,54,42,0.72)', backdropFilter: 'blur(20px) saturate(180%)', borderBottom: navScrolled ? '1px solid rgba(26,26,24,0.07)' : '1px solid rgba(255,255,255,0.06)' }}>
+      <header className="sticky top-0 z-50 transition-all duration-500" style={{ background: navScrolled ? 'rgba(255,255,255,0.95)' : 'rgba(19,54,42,0.76)', backdropFilter: 'blur(24px) saturate(200%)', borderBottom: navScrolled ? '1px solid rgba(26,26,24,0.07)' : '1px solid rgba(255,255,255,0.07)' }}>
         <div className="max-w-5xl mx-auto px-6 sm:px-10 h-14 flex items-center justify-between">
           <PeliknLogo light={!navScrolled} />
           <nav className="hidden sm:flex items-center gap-1">
             {[['Compliance','#compliance'],['Team','#team'],['Pricing','#pricing']].map(([l,h])=>(
-              <a key={l} href={h} className={`text-sm px-3 py-2 rounded-lg transition-colors cursor-pointer ${navScrolled?'text-charcoal/45 hover:text-charcoal':'text-cream/50 hover:text-cream/80'}`}>{l}</a>
+              <a key={l} href={h} className={`text-sm px-3 py-2 rounded-lg transition-colors duration-200 cursor-pointer ${navScrolled?'text-charcoal/40 hover:text-charcoal':'text-cream/45 hover:text-cream/80'}`}>{l}</a>
             ))}
           </nav>
-          <div className="flex items-center gap-1">
-            <Link to="/login" className={`text-sm font-medium transition-colors px-4 py-2 rounded-lg cursor-pointer ${navScrolled?'text-charcoal/45 hover:text-charcoal':'text-cream/50 hover:text-cream/80'}`}>Sign in</Link>
-            <Link to="/signup" className="text-sm font-semibold text-cream bg-accent hover:bg-accent/90 transition-colors px-4 py-2 rounded-xl cursor-pointer">Free trial</Link>
+          <div className="flex items-center gap-1.5">
+            <Link to="/login" className={`text-sm font-medium transition-colors duration-200 px-4 py-2 rounded-lg cursor-pointer ${navScrolled?'text-charcoal/40 hover:text-charcoal':'text-cream/45 hover:text-cream/80'}`}>Sign in</Link>
+            <Link to="/signup" className="relative overflow-hidden text-sm font-semibold text-cream bg-accent hover:bg-[#b8431f] transition-colors duration-200 px-4 py-2 rounded-xl cursor-pointer shadow-[0_2px_8px_rgba(201,79,42,0.35)] hover:shadow-[0_4px_14px_rgba(201,79,42,0.45)]">
+              Free trial
+            </Link>
           </div>
         </div>
       </header>
@@ -668,46 +670,53 @@ export default function MarketingPage() {
           </svg>
         </div>
 
-        <div className="max-w-3xl mx-auto px-6 sm:px-10 pt-16 sm:pt-24 pb-0 relative text-center">
-          <div style={{ animation:'pkTextIn 0.55s cubic-bezier(.16,1,.3,1) both' }}>
-            <div className="inline-flex items-center gap-2 bg-cream/8 border border-cream/12 rounded-full px-3.5 py-1.5 mb-7">
-              <div className="w-1.5 h-1.5 rounded-full bg-[#1a7a4c]" style={{ animation:'pkPulse 2s infinite' }} />
-              <span className="text-[11px] font-medium text-cream/55">Food safety · Rota · Timesheets · Training</span>
-            </div>
-            <h1 className="text-[48px] sm:text-[64px] lg:text-[72px] font-bold text-cream leading-[1.02] tracking-[-0.03em] mb-5">
-              Ditch the clipboard,<br />
-              <span className="text-cream/30">keep the compliance.</span>
-            </h1>
-            <p className="text-cream/50 text-[15px] sm:text-base max-w-lg mx-auto leading-relaxed mb-8">
-              One app for food safety records, rotas, timesheets and team management. EHO-ready from day one, on any device, for the whole team.
-            </p>
-            <div className="flex flex-wrap justify-center items-center gap-3 mb-6">
-              <Link to="/signup" className="bg-accent text-cream px-7 py-3.5 rounded-xl text-sm font-semibold hover:bg-accent/90 active:scale-[0.98] transition-all cursor-pointer shadow-[0_4px_20px_rgba(201,79,42,0.45)]">
-                Start free for 7 days
-              </Link>
-              <a href="#compliance" className="flex items-center gap-1.5 text-cream/40 text-sm hover:text-cream/65 transition-colors cursor-pointer">
-                See how it works
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-              </a>
-            </div>
-            <div className="flex flex-wrap justify-center gap-x-5 gap-y-1.5 mb-14">
-              {['No card required','Cancel any time','ICO registered · UK GDPR'].map(t=>(
-                <div key={t} className="flex items-center gap-1.5">
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-cream/25"><polyline points="20 6 9 17 4 12"/></svg>
-                  <span className="text-xs text-cream/30">{t}</span>
-                </div>
-              ))}
+        <div className="max-w-3xl mx-auto px-6 sm:px-10 pt-20 sm:pt-28 pb-0 relative text-center">
+          {/* Pill badge */}
+          <div style={{ animation:'pkIn 0.55s cubic-bezier(.16,1,.3,1) both' }}>
+            <div className="inline-flex items-center gap-2 bg-cream/8 border border-cream/12 rounded-full px-3.5 py-1.5 mb-8">
+              <div className="w-1.5 h-1.5 rounded-full bg-[#1a7a4c]" style={{ animation:'pkPulse 2.4s ease-in-out infinite' }} />
+              <span className="text-[11px] font-medium text-cream/50 tracking-wide">Food safety · Rota · Timesheets · Training</span>
             </div>
           </div>
-          {/* Hero phones — two iPhones side by side, partially cropped at bottom */}
-          <div className="flex justify-center gap-6 items-end" style={{ animation:'pkMockIn 0.7s 200ms cubic-bezier(.16,1,.3,1) both' }}>
-            <div className="hidden sm:block" style={{ transform:'translateY(40px)' }}>
+          {/* Headline */}
+          <h1 className="text-[48px] sm:text-[64px] lg:text-[76px] font-bold text-cream leading-[1.0] tracking-[-0.035em] mb-6" style={{ animation:'pkIn 0.7s 70ms cubic-bezier(.16,1,.3,1) both' }}>
+            Ditch the clipboard,<br />
+            <span className="text-cream/28">keep the compliance.</span>
+          </h1>
+          {/* Subtitle */}
+          <p className="text-cream/48 text-[15px] sm:text-[16px] max-w-md mx-auto leading-[1.65] mb-9" style={{ animation:'pkIn 0.7s 150ms cubic-bezier(.16,1,.3,1) both' }}>
+            One app for food safety records, rotas, timesheets and team management. EHO-ready from day one, on any device, for the whole team.
+          </p>
+          {/* CTAs */}
+          <div className="flex flex-wrap justify-center items-center gap-3 mb-5" style={{ animation:'pkIn 0.65s 210ms cubic-bezier(.16,1,.3,1) both' }}>
+            <Link to="/signup" className="bg-accent text-cream px-7 py-3.5 rounded-xl text-sm font-semibold hover:bg-[#b8431f] hover:shadow-[0_8px_28px_rgba(201,79,42,0.5)] active:scale-[0.97] transition-all duration-200 cursor-pointer shadow-[0_4px_18px_rgba(201,79,42,0.42)]">
+              Start free for 7 days
+            </Link>
+            <a href="#compliance" className="flex items-center gap-1.5 text-cream/35 text-sm hover:text-cream/60 transition-colors duration-200 cursor-pointer">
+              See how it works
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </a>
+          </div>
+          {/* Trust badges */}
+          <div className="flex flex-wrap justify-center gap-x-5 gap-y-1.5 mb-16" style={{ animation:'pkIn 0.6s 280ms cubic-bezier(.16,1,.3,1) both' }}>
+            {['No card required','Cancel any time','ICO registered · UK GDPR'].map(t=>(
+              <div key={t} className="flex items-center gap-1.5">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-cream/22"><polyline points="20 6 9 17 4 12"/></svg>
+                <span className="text-xs text-cream/28">{t}</span>
+              </div>
+            ))}
+          </div>
+          {/* Hero phones — staggered rise */}
+          <div className="flex justify-center gap-5 sm:gap-8 items-end">
+            <div className="hidden sm:block" style={{ transform:'translateY(44px)', animation:'pkRise 0.9s 360ms cubic-bezier(.16,1,.3,1) both' }}>
               <IPhoneFrame><MockMobileHome /></IPhoneFrame>
             </div>
-            <IPhoneFrame><MockChecksGrid /></IPhoneFrame>
+            <div style={{ animation:'pkRise 0.9s 420ms cubic-bezier(.16,1,.3,1) both' }}>
+              <IPhoneFrame><MockChecksGrid /></IPhoneFrame>
+            </div>
           </div>
         </div>
-        <div className="h-16 sm:h-24" />
+        <div className="h-20 sm:h-28" />
       </section>
 
       {/* ── Replaces ─────────────────────────────────────────────────────── */}
@@ -739,26 +748,26 @@ export default function MarketingPage() {
                   Every temp log, cleaning record, allergen check and delivery sign-off captured and stored. Export a full audit trail PDF in one tap, exactly how an inspector expects it.
                 </p>
               </FadeUp>
-              <div className="flex flex-col gap-5">
+              <div className="flex flex-col gap-6">
                 {[
                   { title:'Temperature logs',   desc:'Fridge, cooking, reheating and hot holding. Automatic pass/fail detection against your thresholds.' },
                   { title:'Cleaning schedules',  desc:'Daily, weekly and ad-hoc tasks assigned to staff. Live completion status at a glance.' },
                   { title:'Allergen registry',   desc:"All 14 allergens across every dish on your menu. Natasha's Law compliant by design." },
                   { title:'Audit-ready exports', desc:'One tap to a full compliance PDF. Timestamped, signed, formatted for inspection.' },
                 ].map(({ title, desc }, i) => (
-                  <FadeUp key={title} delay={i * 50}>
-                    <div className="flex gap-4 group">
-                      <div className="w-1 rounded-full bg-brand/12 group-hover:bg-brand transition-colors duration-300 shrink-0 mt-1" style={{ minHeight:44 }}/>
-                      <div>
-                        <p className="text-sm font-semibold text-charcoal mb-0.5">{title}</p>
-                        <p className="text-sm text-charcoal/45 leading-relaxed">{desc}</p>
+                  <FadeUp key={title} delay={i * 55}>
+                    <div className="flex gap-4 group cursor-default">
+                      <div className="w-0.5 rounded-full bg-brand/15 group-hover:bg-brand transition-colors duration-300 shrink-0 mt-1" style={{ minHeight:48 }}/>
+                      <div className="transition-transform duration-300 group-hover:translate-x-0.5">
+                        <p className="text-sm font-semibold text-charcoal mb-1">{title}</p>
+                        <p className="text-[14px] text-charcoal/42 leading-relaxed">{desc}</p>
                       </div>
                     </div>
                   </FadeUp>
                 ))}
               </div>
               <FadeUp delay={250}>
-                <Link to="/signup" className="inline-flex items-center gap-2 bg-brand text-cream px-6 py-3 rounded-xl text-sm font-semibold hover:bg-brand/85 transition-colors mt-8 cursor-pointer">
+                <Link to="/signup" className="inline-flex items-center gap-2 bg-brand text-cream px-6 py-3 rounded-xl text-sm font-semibold hover:bg-brand/85 hover:shadow-[0_6px_20px_rgba(19,54,42,0.25)] hover:-translate-y-0.5 transition-all duration-200 mt-8 cursor-pointer">
                   Start free trial
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
                 </Link>
@@ -812,9 +821,9 @@ export default function MarketingPage() {
               { n:'Multi-venue',   d:'One login for every site you run' },
             ].map(({ n, d }, i) => (
               <FadeUp key={n} delay={i * 40}>
-                <div className="border border-cream/8 rounded-xl p-4 hover:border-cream/20 hover:bg-cream/4 transition-all duration-200">
+                <div className="border border-cream/8 rounded-2xl p-4 hover:border-cream/18 hover:bg-cream/5 hover:-translate-y-0.5 transition-all duration-300 ease-[cubic-bezier(.16,1,.3,1)] cursor-default">
                   <p className="text-sm font-semibold text-cream mb-1">{n}</p>
-                  <p className="text-xs text-cream/30 leading-relaxed">{d}</p>
+                  <p className="text-[12px] text-cream/30 leading-relaxed">{d}</p>
                 </div>
               </FadeUp>
             ))}
@@ -832,9 +841,9 @@ export default function MarketingPage() {
               { to:100,suffix:'%',    label:'On your phone',       sub:'No app store. Install from your browser in seconds', delay:160 },
             ].map(({ to, suffix, label, sub, delay }) => (
               <FadeUp key={label} delay={delay} className="sm:px-10 first:pl-0 last:pr-0">
-                <p className="text-5xl font-bold text-cream mb-1.5 tabular-nums"><CountUp to={to} suffix={suffix}/></p>
-                <p className="text-sm font-semibold text-cream/60 mb-1">{label}</p>
-                <p className="text-xs text-cream/30 leading-relaxed">{sub}</p>
+                <p className="text-6xl font-bold text-cream mb-2 tabular-nums tracking-tight"><CountUp to={to} suffix={suffix} duration={1300}/></p>
+                <p className="text-sm font-semibold text-cream/55 mb-1">{label}</p>
+                <p className="text-[12px] text-cream/28 leading-relaxed">{sub}</p>
               </FadeUp>
             ))}
           </div>
@@ -860,13 +869,13 @@ export default function MarketingPage() {
               { icon:'M12 1v22 M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6', title:'Tip distribution',  desc:'Enter the pot, set the split, done. Full audit trail.' },
               { icon:'M5 8h14 M5 12h14 M5 16h6', title:'Clock in / out',    desc:'Staff clock on from their phone. Timesheets build automatically.' },
             ].map(({ icon, title, desc }, i) => (
-              <FadeUp key={title} delay={i * 28}>
-                <div className="bg-white rounded-xl border border-brand/12 p-5 sm:p-5 hover:border-brand/30 hover:shadow-[0_8px_24px_rgba(19,54,42,0.08)] hover:-translate-y-0.5 transition-all duration-200 h-full group cursor-default">
-                  <div className="w-9 h-9 rounded-xl bg-brand/7 text-brand flex items-center justify-center mb-4 group-hover:bg-brand group-hover:text-cream transition-all duration-200" style={{ }}>
+              <FadeUp key={title} delay={i * 30}>
+                <div className="bg-white rounded-2xl border border-brand/10 p-5 hover:border-brand/25 hover:shadow-[0_12px_36px_rgba(19,54,42,0.09)] hover:-translate-y-1.5 transition-all duration-300 ease-[cubic-bezier(.16,1,.3,1)] h-full group cursor-default">
+                  <div className="w-9 h-9 rounded-xl bg-brand/7 text-brand flex items-center justify-center mb-4 group-hover:bg-brand group-hover:text-cream transition-all duration-300">
                     <Ico d={icon} size={17} />
                   </div>
                   <p className="text-sm font-semibold text-charcoal mb-1">{title}</p>
-                  <p className="text-xs text-charcoal/42 leading-relaxed">{desc}</p>
+                  <p className="text-[12px] text-charcoal/40 leading-relaxed">{desc}</p>
                 </div>
               </FadeUp>
             ))}
@@ -884,7 +893,7 @@ export default function MarketingPage() {
               <p className="text-charcoal/45 text-[15px] leading-relaxed mb-7 max-w-sm">
                 No app store. No IT department. Open in your browser, install to your home screen and it works like any other app. Offline included.
               </p>
-              <Link to="/signup" className="inline-flex items-center gap-2 bg-brand text-cream px-6 py-3 rounded-xl text-sm font-semibold hover:bg-brand/85 transition-colors cursor-pointer">
+              <Link to="/signup" className="inline-flex items-center gap-2 bg-brand text-cream px-6 py-3 rounded-xl text-sm font-semibold hover:bg-brand/85 hover:shadow-[0_6px_20px_rgba(19,54,42,0.25)] hover:-translate-y-0.5 transition-all duration-200 cursor-pointer">
                 Get started free
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
               </Link>
@@ -896,10 +905,10 @@ export default function MarketingPage() {
                 { n:'03', title:'Invite your team', desc:"Send invite links. Staff install the app and they're ready to log checks, see their rota and clock in." },
               ].map(({ n, title, desc }, i) => (
                 <FadeUp key={n} delay={i * 65}>
-                  <div className="flex gap-5 items-start pb-8 last:pb-0 relative">
+                  <div className="flex gap-5 items-start pb-8 last:pb-0 relative group cursor-default">
                     {i < 2 && <div className="absolute left-[19px] top-11 bottom-0 w-px bg-charcoal/8"/>}
-                    <div className="w-10 h-10 rounded-full border-2 border-charcoal/10 bg-white flex items-center justify-center shrink-0 z-10">
-                      <span className="text-xs font-bold text-charcoal/30 tabular-nums">{n}</span>
+                    <div className="w-10 h-10 rounded-full border-2 border-charcoal/10 bg-white flex items-center justify-center shrink-0 z-10 transition-all duration-300 group-hover:border-brand/30 group-hover:shadow-[0_4px_12px_rgba(19,54,42,0.12)]">
+                      <span className="text-xs font-bold text-charcoal/30 tabular-nums group-hover:text-brand/60 transition-colors duration-300">{n}</span>
                     </div>
                     <div className="pt-1.5">
                       <p className="text-sm font-semibold text-charcoal mb-1">{title}</p>
@@ -950,10 +959,10 @@ export default function MarketingPage() {
               7 days free. No card. 15 minutes to set up.
             </p>
             <div className="flex flex-col sm:flex-row items-start gap-3">
-              <Link to="/signup" className="bg-accent text-cream px-8 py-4 rounded-xl text-sm font-semibold hover:bg-accent/90 active:scale-[0.98] transition-all text-center cursor-pointer shadow-[0_4px_24px_rgba(201,79,42,0.45)]">
+              <Link to="/signup" className="bg-accent text-cream px-8 py-4 rounded-xl text-sm font-semibold hover:bg-[#b8431f] hover:shadow-[0_10px_32px_rgba(201,79,42,0.52)] hover:-translate-y-0.5 active:scale-[0.97] transition-all duration-200 text-center cursor-pointer shadow-[0_4px_24px_rgba(201,79,42,0.42)]">
                 Start free trial
               </Link>
-              <a href="mailto:hello@pelikn.app" className="border border-cream/16 text-cream/40 hover:text-cream/60 hover:border-cream/28 px-8 py-4 rounded-xl text-sm font-medium transition-colors text-center cursor-pointer">
+              <a href="mailto:hello@pelikn.app" className="border border-cream/14 text-cream/35 hover:text-cream/55 hover:border-cream/25 hover:-translate-y-0.5 px-8 py-4 rounded-xl text-sm font-medium transition-all duration-200 text-center cursor-pointer">
                 Get in touch
               </a>
             </div>
