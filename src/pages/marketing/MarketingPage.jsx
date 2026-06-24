@@ -45,7 +45,7 @@ const Ico = ({ d, size = 20, cls = '' }) => (
 /* ─── App mock screens ──────────────────────────────────────────────────── */
 function MockDashboard() {
   return (
-    <div className="rounded-2xl overflow-hidden bg-[#f0f0ef] shadow-[0_32px_80px_rgba(0,0,0,0.28)] ring-1 ring-white/10">
+    <div className="rounded-2xl overflow-hidden bg-surface shadow-[0_32px_80px_rgba(0,0,0,0.28)] ring-1 ring-white/10">
       <div className="flex" style={{ minHeight: 460 }}>
         {/* Sidebar */}
         <div className="w-44 shrink-0 bg-brand flex flex-col">

@@ -5,12 +5,12 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html {
   font-size: 16px;
-  background: #F0F0EF;
+  background: #f3f3ef;
   -webkit-text-size-adjust: 100%;
   /* Do NOT set overflow-x:hidden on <html> — it breaks vertical scroll on iOS Safari */
 }
 body {
-  background: #F0F0EF;
+  background: #f3f3ef;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overscroll-behavior-y: none;
@@ -22,7 +22,7 @@ body {
 #root {
   min-height: 100vh;
   min-height: 100dvh;
-  background: #F0F0EF;
+  background: #f3f3ef;
 }
 
 /* ── React-owned fake splash: shown after native launch, before login ───── */
@@ -778,7 +778,7 @@ html.dark .bg-danger\/8 {
 
 /* ── Focus-visible styles (a11y) ───────────────────────────────────────── */
 *:focus-visible {
-  outline: 2px solid var(--color-brand, #1a3c2e);
+  outline: 2px solid #13362a;
   outline-offset: 2px;
   border-radius: 4px;
 }

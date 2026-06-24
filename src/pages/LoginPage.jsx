@@ -51,7 +51,7 @@ function initials(name) {
 function VenuePicker({ venues, currentSlug, onSelect }) {
   return (
     <div className="flex flex-col gap-4">
-      <p className="text-[11px] tracking-widest font-semibold text-charcoal/40 uppercase">
+      <p className="text-xs tracking-widest font-semibold text-charcoal/40 uppercase">
         Where are you working today?
       </p>
       <div className="flex flex-col gap-2">
@@ -69,7 +69,7 @@ function VenuePicker({ venues, currentSlug, onSelect }) {
           >
             <span className="font-semibold text-charcoal text-sm">{v.name}</span>
             {v.slug === currentSlug && (
-              <span className="text-[11px] uppercase tracking-widest font-medium text-accent">Here</span>
+              <span className="text-xs uppercase tracking-widest font-medium text-accent">Here</span>
             )}
           </button>
         ))}
@@ -137,7 +137,7 @@ function AddVenueModal({ currentDeviceVenues, onAdd, onClose }) {
         style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}
       >
         <div>
-          <p className="text-[11px] tracking-widest uppercase font-semibold text-charcoal/40 mb-0.5">Add a venue</p>
+          <p className="text-xs tracking-widest uppercase font-semibold text-charcoal/40 mb-0.5">Add a venue</p>
           <h2 className="text-lg font-bold text-charcoal">Enter venue code</h2>
           <p className="text-xs text-charcoal/45 mt-1 leading-relaxed">
             Ask your manager for your venue code or group code.
@@ -165,7 +165,7 @@ function AddVenueModal({ currentDeviceVenues, onAdd, onClose }) {
         {status === 'found' && found.length > 0 && (
           <div className="flex flex-col gap-2">
             {found.length > 1 && (
-              <p className="text-[11px] tracking-widest uppercase text-charcoal/40 font-semibold">
+              <p className="text-xs tracking-widest uppercase text-charcoal/40 font-semibold">
                 {found.length} venues found
               </p>
             )}
@@ -175,7 +175,7 @@ function AddVenueModal({ currentDeviceVenues, onAdd, onClose }) {
                 <div key={v.id} className={`flex items-center gap-3 px-3 py-2.5 rounded-xl border ${exists ? 'border-charcoal/8 bg-charcoal/2' : 'border-brand/20 bg-brand/4'}`}>
                   <div className={`w-2 h-2 rounded-full shrink-0 ${exists ? 'bg-charcoal/20' : 'bg-brand'}`} />
                   <span className={`flex-1 text-sm font-semibold ${exists ? 'text-charcoal/40' : 'text-charcoal'}`}>{v.name}</span>
-                  {exists && <span className="text-[10px] uppercase tracking-widest text-charcoal/30 font-semibold">Added</span>}
+                  {exists && <span className="text-xs uppercase tracking-widest text-charcoal/30 font-semibold">Added</span>}
                 </div>
               )
             })}
@@ -607,7 +607,7 @@ export default function LoginPage() {
           <>
             {/* Staff list section */}
             <div className="px-5 pt-5 pb-3">
-              <p className="text-[11px] tracking-widest font-semibold text-charcoal/40 uppercase mb-3">
+              <p className="text-xs tracking-widest font-semibold text-charcoal/40 uppercase mb-3">
                 Select Staff Member
               </p>
 
@@ -684,7 +684,7 @@ export default function LoginPage() {
                       )}
 
                       <span className="flex-1 font-semibold text-charcoal text-sm">{s.name}</span>
-                      <span className={`text-[11px] uppercase tracking-widest font-semibold font-mono ${isSel ? 'text-accent' : 'text-charcoal/35'}`}>
+                      <span className={`text-xs uppercase tracking-widest font-semibold font-mono ${isSel ? 'text-accent' : 'text-charcoal/35'}`}>
                         {ROLE_LABEL[s.role] ?? s.role}
                       </span>
                     </button>
@@ -710,7 +710,7 @@ export default function LoginPage() {
                           style={{ borderRadius: 9 }} loading="lazy" />
                       ) : (
                         <div
-                          className="w-8 h-8 shrink-0 flex items-center justify-center font-mono text-[10.5px] font-bold"
+                          className="w-8 h-8 shrink-0 flex items-center justify-center font-mono text-xs font-bold"
                           style={{ borderRadius: 9, background: av.bg, color: av.text }}
                         >
                           {initials(selected.name)}
@@ -718,7 +718,7 @@ export default function LoginPage() {
                       )}
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-bold text-charcoal tracking-[-0.01em] truncate">{selected.name}</p>
-                        <p className="text-[10px] uppercase tracking-[0.06em] font-mono text-charcoal/40">{ROLE_LABEL[selected.role] ?? selected.role}</p>
+                        <p className="text-xs uppercase tracking-[0.06em] font-mono text-charcoal/40">{ROLE_LABEL[selected.role] ?? selected.role}</p>
                       </div>
                       <button
                         type="button"
