@@ -254,91 +254,117 @@ function MockDashboard() {
 
 /* Mobile staff home */
 function MockMobileHome() {
+  const navIcons = [
+    { label:'Home',   d:'M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z M9 22V12h6v10', active:true },
+    { label:'Checks', d:'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2 M9 3h6v4H9z', active:false },
+    { label:'Team',   d:'M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2 M9 7a4 4 0 100 8 4 4 0 000-8z M23 21v-2a4 4 0 00-3-3.87 M16 3.13a4 4 0 010 7.75', active:false },
+    { label:'Tasks',  d:'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2 M9 3h6v4H9z M9 12h6 M9 16h4', active:false },
+    { label:'Settings',d:'M12 15a3 3 0 100-6 3 3 0 000 6z M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z', active:false },
+  ]
   return (
-    <div className="bg-[#f3f3ef]" style={{ width: 272 }}>
-      {/* Status bar — sits below dynamic island */}
-      <div className="bg-brand px-4 pt-14 pb-3">
+    <div className="bg-[#f0efec] flex flex-col" style={{ width:272, height:572, overflow:'hidden' }}>
+      {/* Header */}
+      <div className="bg-brand px-4 pt-14 pb-3 shrink-0">
         <div className="flex items-center justify-between">
-          <span className="text-[10px] font-bold text-cream tracking-widest">SALT</span>
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] font-bold text-cream tracking-widest">DEPOT</span>
+            <div className="relative">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-cream/60"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+              <div className="absolute -top-1 -right-1.5 w-3.5 h-3.5 bg-accent rounded-full flex items-center justify-center">
+                <span className="text-[7px] font-bold text-white">6</span>
+              </div>
+            </div>
+          </div>
           <span className="text-[9px] text-cream/40 border border-cream/20 px-2 py-0.5 rounded">Sign Out</span>
         </div>
       </div>
-      <div className="px-4 pt-3 pb-1">
-        <p className="text-[9px] tracking-widest uppercase text-charcoal/35">MY SHIFT</p>
-        <p className="text-[17px] font-bold text-charcoal mt-0.5">Good afternoon, Emma</p>
-      </div>
-      {/* Notifications card */}
-      <div className="mx-3 mb-3 bg-white border border-charcoal/8 rounded-2xl p-3 flex items-center gap-3">
-        <div className="w-8 h-8 rounded-full bg-charcoal/8 flex items-center justify-center shrink-0">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="text-charcoal/50"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9 M13.73 21a2 2 0 01-3.46 0"/></svg>
+
+      {/* Scrollable content */}
+      <div className="flex-1 overflow-hidden">
+        {/* Greeting */}
+        <div className="px-4 pt-3 pb-2">
+          <p className="text-[9px] tracking-widest uppercase text-charcoal/35 mb-0.5">SATURDAY, 28 JUNE · 09:14</p>
+          <p className="text-[18px] font-bold text-charcoal leading-tight">Good morning, James.</p>
+          <p className="text-[9px] text-charcoal/40 mt-0.5">DEPOT <span className="inline-flex items-center gap-0.5 bg-accent/15 text-accent px-1 py-px rounded text-[8px] font-semibold">PRO</span> · 9 of 22 daily checks complete</p>
         </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-[11px] font-semibold text-charcoal">Notifications</p>
-          <p className="text-[9px] text-charcoal/40 leading-tight">Get notified about rota changes and shift updates.</p>
-        </div>
-        <button className="bg-charcoal text-cream text-[9px] font-semibold px-2.5 py-1.5 rounded-lg shrink-0">Enable</button>
-      </div>
-      {/* Shift card */}
-      <div className="mx-3 mb-3 bg-brand rounded-2xl p-4">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-[9px] tracking-widest uppercase text-cream/40">YOUR SHIFT</span>
-          <div className="flex items-center gap-1.5">
-            <div className="w-1.5 h-1.5 rounded-full bg-[#4ade80]" style={{ boxShadow:'0 0 6px #4ade80' }}/>
-            <span className="text-[9px] text-cream/60 font-medium">TODAY</span>
+
+        {/* Needs You */}
+        <div className="mx-3 mb-3 bg-white border border-charcoal/8 rounded-2xl overflow-hidden">
+          <div className="px-3 py-2 border-b border-charcoal/6 flex items-center justify-between">
+            <span className="text-[9px] font-bold tracking-widest text-charcoal/50 uppercase">NEEDS YOU</span>
+            <span className="bg-accent text-white text-[8px] font-bold w-4 h-4 rounded-full flex items-center justify-center">3</span>
           </div>
-        </div>
-        <p className="text-[24px] font-bold text-cream leading-none tracking-tight">08:00 – 14:00</p>
-        <p className="text-[9px] text-cream/45 mt-1 mb-3">Kitchen · Wednesday, 24 June</p>
-        <div className="bg-white/10 rounded-xl px-3 py-2 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-cream/45"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-            <span className="text-[10px] text-cream/50">Not clocked in</span>
-          </div>
-          <button className="bg-white text-brand text-[10px] font-bold px-3 py-1.5 rounded-lg">Clock In</button>
-        </div>
-      </div>
-      {/* Alert */}
-      <div className="mx-3 mb-3 border border-accent/25 bg-[#fff3ee] rounded-2xl px-3.5 py-3 flex items-center gap-2.5">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c94f2a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-        <span className="text-[11px] font-semibold text-accent">23 cleaning tasks due</span>
-      </div>
-      {/* Training alert */}
-      <div className="mx-3 mb-3 border border-accent/20 bg-[#fff3ee] rounded-2xl p-3.5">
-        <div className="flex items-center gap-2 mb-2">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#c94f2a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-          <span className="text-[10px] font-semibold text-accent">Training record needs your signature</span>
-        </div>
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-[11px] font-semibold text-charcoal">Sarah</p>
-            <p className="text-[9px] text-charcoal/40">1 May 2026 · 6 topics</p>
-          </div>
-          <button className="bg-accent text-cream text-[9px] font-semibold px-3 py-1.5 rounded-lg">Sign now</button>
-        </div>
-      </div>
-      {/* Quick log */}
-      <div className="px-3 mb-3">
-        <p className="text-[9px] tracking-widest uppercase text-charcoal/35 mb-2">LOG QUICKLY</p>
-        <div className="grid grid-cols-2 gap-2">
-          {[
-            ['Fridge temp','M12 3a9 9 0 100 18A9 9 0 0012 3z M12 7v5l3 3'],
-            ['Checks','M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2 M9 3h6v4H9z m0 9l2 2 4-4'],
-          ].map(([l,d])=>(
-            <div key={l} className="bg-white border border-charcoal/8 rounded-2xl p-3 flex flex-col items-center gap-2">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="text-charcoal/45"><path d={d}/></svg>
-              <span className="text-[10px] font-medium text-charcoal/55">{l}</span>
+          <div className="flex items-center gap-0">
+            <div className="w-0.5 self-stretch bg-accent shrink-0" />
+            <div className="flex-1 px-3 py-2.5 flex items-center justify-between border-b border-charcoal/6">
+              <span className="text-[10px] font-semibold text-accent">4 cleaning tasks overdue</span>
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-charcoal/25"><polyline points="9 18 15 12 9 6"/></svg>
             </div>
-          ))}
+          </div>
+          <div className="flex items-center gap-0">
+            <div className="w-0.5 self-stretch bg-[#3b82f6] shrink-0" />
+            <div className="flex-1 px-3 py-2.5 flex items-center justify-between border-b border-charcoal/6">
+              <span className="text-[10px] font-semibold text-[#3b82f6]">2 leave requests pending</span>
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-charcoal/25"><polyline points="9 18 15 12 9 6"/></svg>
+            </div>
+          </div>
+          <div className="flex items-center gap-0">
+            <div className="w-0.5 self-stretch bg-brand shrink-0" />
+            <div className="flex-1 px-3 py-2.5 flex items-center justify-between">
+              <span className="text-[10px] font-semibold text-brand">Fridge B temp not logged</span>
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-charcoal/25"><polyline points="9 18 15 12 9 6"/></svg>
+            </div>
+          </div>
+        </div>
+
+        {/* Today at a glance */}
+        <div className="px-3 mb-3">
+          <p className="text-[9px] tracking-widest uppercase text-charcoal/35 mb-2">TODAY AT A GLANCE</p>
+          <div className="grid grid-cols-3 gap-1.5">
+            {[
+              { label:'ON SHIFT',      val:'7',  sub:'on shift',   col:'text-charcoal' },
+              { label:'CHECKS DONE',   val:'9',  sub:'complete',   col:'text-charcoal' },
+              { label:'FRIDGES DUE',   val:'1',  sub:'due now',    col:'text-accent' },
+              { label:'OVERDUE CLEANS',val:'4',  sub:'overdue',    col:'text-accent' },
+              { label:'CRITICAL',      val:'0',  sub:'all clear',  col:'text-charcoal' },
+              { label:'LEAVE',         val:'2',  sub:'pending',    col:'text-charcoal' },
+            ].map(({ label, val, sub, col }) => (
+              <div key={label} className="bg-white border border-charcoal/8 rounded-xl p-2">
+                <p className="text-[7px] tracking-wide uppercase text-charcoal/35 leading-tight mb-1">{label}</p>
+                <p className={`text-[16px] font-bold leading-none ${col}`}>{val}</p>
+                <p className="text-[7px] text-charcoal/40 mt-0.5">{sub}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* My Clock */}
+        <div className="mx-3 mb-3 bg-brand rounded-2xl p-3">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-[9px] tracking-widest uppercase text-cream/40">MY CLOCK</span>
+            <div className="flex items-center gap-1">
+              <div className="w-1.5 h-1.5 rounded-full bg-[#4ade80]" style={{ boxShadow:'0 0 5px #4ade80' }}/>
+              <span className="text-[8px] text-cream/60 font-medium">CLOCKED IN</span>
+            </div>
+          </div>
+          <p className="text-[26px] font-bold text-cream leading-none tracking-tight mb-2">09:14</p>
+          <div className="flex items-center gap-4">
+            {[['THIS WEEK','3h 12m'],['BREAK','–'],['LAST IN','Fri 14:00']].map(([k,v])=>(
+              <div key={k}>
+                <p className="text-[7px] text-cream/35 uppercase tracking-wide">{k}</p>
+                <p className="text-[9px] font-semibold text-cream/80">{v}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
+
       {/* Bottom nav */}
-      <div className="bg-white border-t border-charcoal/8 flex justify-around px-2 py-2.5 pb-4">
-        {['My Shift','Tasks','My Shifts','Time Off'].map((t,i)=>(
-          <div key={t} className="flex flex-col items-center gap-1">
-            <div className={`w-6 h-6 rounded-lg flex items-center justify-center ${i===0?'bg-brand/10':''}`}>
-              <div className={`w-4 h-4 rounded-sm ${i===0?'bg-brand/40':'bg-charcoal/12'}`}/>
-            </div>
-            <span className={`text-[8px] font-medium ${i===0?'text-brand':'text-charcoal/30'}`}>{t}</span>
+      <div className="bg-white border-t border-charcoal/8 flex justify-around px-1 pt-2 pb-3 shrink-0">
+        {navIcons.map(({ label, d, active }) => (
+          <div key={label} className="flex flex-col items-center gap-0.5">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active?2.25:1.75} strokeLinecap="round" strokeLinejoin="round" className={active?'text-brand':'text-charcoal/30'}><path d={d}/></svg>
+            <span className={`text-[7px] font-medium ${active?'text-brand':'text-charcoal/30'}`}>{label}</span>
           </div>
         ))}
       </div>
@@ -346,69 +372,91 @@ function MockMobileHome() {
   )
 }
 
-/* Mobile checks grid */
+/* Mobile team hub */
 function MockChecksGrid() {
-  const checks = [
-    { l:'Cleaning',      s:'13 OVERDUE',       warn:true,  ok:false, n:13 },
-    { l:'Opening Checks',s:'0/14 DONE',         warn:false, ok:false, n:14 },
-    { l:'Cooking Temps', s:'NONE LOGGED YET',   warn:false, ok:false, n:null },
-    { l:'Hot Holding',   s:'NONE LOGGED YET',   warn:false, ok:false, n:null },
-    { l:'Probe Cal.',    s:'DUE IN 3D',          warn:true,  ok:false, n:1 },
-    { l:'Fridge Temps',  s:'4 CHECKED',          warn:false, ok:true,  n:null },
-    { l:'Cooling Logs',  s:'NONE ACTIVE',        warn:false, ok:false, n:null },
-    { l:'Deliveries',    s:'NONE TODAY',         warn:false, ok:false, n:null },
+  const tiles = [
+    { iBg:'#fef0e8', iCol:'#c94f2a', icon:'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z',      label:'My Shifts',     sub:'3 SWAPS PENDING',        sCol:'#c94f2a',              badge:'3', bCol:'#c94f2a', check:false },
+    { iBg:'#fef0e8', iCol:'#c94f2a', icon:'M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14',                label:'Time Off',      sub:'1 PENDING',              sCol:'#c94f2a',              badge:'1', bCol:'#c94f2a', check:false },
+    { iBg:'#fef0e8', iCol:'#c94f2a', icon:'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z',      label:'Rota',          sub:'DRAFT · READY TO PUBLISH',sCol:'#c94f2a',             badge:null,bCol:null,    check:false },
+    { iBg:'#e8f5ee', iCol:'#1a7a4c', icon:'M12 14l9-5-9-5-9 5 9 5z M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z', label:'Training', sub:'ALL UP TO DATE', sCol:'#1a7a4c', badge:null, bCol:null, check:true },
+    { iBg:'#f0efec', iCol:'#9ca3af', icon:'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z',                                                   label:'Hours',         sub:'VIEW TIMESHEETS',        sCol:'rgba(26,26,24,0.35)',  badge:null,bCol:null,    check:false },
+    { iBg:'#f0efec', iCol:'#9ca3af', icon:'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z', label:'Staff Members', sub:'11 ACTIVE', sCol:'rgba(26,26,24,0.35)', badge:null, bCol:null, check:false },
+    { iBg:'#f0efec', iCol:'#9ca3af', icon:'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z',      label:'My Calendar',   sub:'NO UPCOMING EVENTS',     sCol:'rgba(26,26,24,0.35)',  badge:null,bCol:null,    check:false },
+  ]
+  const navIcons = [
+    { label:'Home',     d:'M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z M9 22V12h6v10', active:false },
+    { label:'Checks',   d:'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2 M9 3h6v4H9z', active:false },
+    { label:'Team',     d:'M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2 M9 7a4 4 0 100 8 4 4 0 000-8z M23 21v-2a4 4 0 00-3-3.87 M16 3.13a4 4 0 010 7.75', active:true },
+    { label:'Tasks',    d:'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2 M9 3h6v4H9z M9 12h6 M9 16h4', active:false },
+    { label:'Settings', d:'M12 15a3 3 0 100-6 3 3 0 000 6z M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z', active:false },
   ]
   return (
-    <div className="bg-[#f3f3ef]" style={{ width: 272 }}>
-      {/* Status bar below dynamic island */}
-      <div className="bg-brand px-4 pt-14 pb-3 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <span className="text-[11px] font-bold text-cream tracking-widest">SALT</span>
-          <div className="w-5 h-5 bg-cream/15 rounded-full flex items-center justify-center relative">
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-cream"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/></svg>
-            <div className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-accent rounded-full flex items-center justify-center"><span className="text-[7px] font-bold text-white">4</span></div>
+    <div className="bg-[#f0efec] flex flex-col" style={{ width:272, height:572, overflow:'hidden' }}>
+      {/* Header */}
+      <div className="bg-brand px-4 pt-14 pb-3 shrink-0">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] font-bold text-cream tracking-widest">DEPOT</span>
+            <div className="relative">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-cream/60"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+              <div className="absolute -top-1 -right-1.5 w-3.5 h-3.5 bg-accent rounded-full flex items-center justify-center">
+                <span className="text-[7px] font-bold text-white">6</span>
+              </div>
+            </div>
           </div>
+          <span className="text-[9px] text-cream/40 border border-cream/20 px-2 py-0.5 rounded">Sign Out</span>
         </div>
-        <span className="text-[9px] text-cream/40 border border-cream/20 px-2 py-0.5 rounded">Sign Out</span>
       </div>
-      <div className="px-4 pt-3 pb-1.5">
-        <div className="flex items-center justify-between mb-0.5">
-          <p className="text-[9px] tracking-widest uppercase text-charcoal/35">CHECKS</p>
+
+      {/* Scrollable content */}
+      <div className="flex-1 overflow-hidden px-3 pt-3">
+        {/* Title */}
+        <div className="flex items-center justify-between mb-2.5">
+          <div>
+            <p className="text-[9px] tracking-widest uppercase text-charcoal/35">TEAM</p>
+            <p className="text-[17px] font-bold text-charcoal leading-tight">Your team</p>
+          </div>
           <span className="text-[10px] text-brand/50 font-medium">Edit</span>
         </div>
-        <p className="text-[17px] font-bold text-charcoal">Today's checks</p>
-      </div>
-      <div className="mx-3 mb-3">
-        <div className="bg-brand rounded-2xl px-4 py-3">
-          <div className="flex items-center justify-between">
-            <p className="text-[9px] tracking-widest uppercase text-cream/35">TODAY</p>
-            <span className="text-[9px] text-cream/45 font-medium">VIEW ALL ›</span>
+
+        {/* On shift banner */}
+        <div className="bg-brand rounded-2xl px-3.5 py-3 mb-3 flex items-center justify-between">
+          <div>
+            <p className="text-[8px] tracking-widest uppercase text-cream/40 mb-0.5">ON SHIFT NOW</p>
+            <p className="text-[12px] font-bold text-cream">5 staff clocked in</p>
           </div>
-          <p className="text-[13px] font-bold text-cream mt-1">30 checks need doing</p>
-          <div className="flex gap-4 mt-1.5">
-            <span className="text-[9px] font-semibold text-accent">• 13 overdue</span>
-            <span className="text-[9px] text-cream/40">• 17 due now</span>
+          <div className="flex items-center gap-1 text-cream/50">
+            <span className="text-[9px] font-semibold tracking-wide">ATTENDANCE</span>
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
           </div>
         </div>
-      </div>
-      <div className="grid grid-cols-2 gap-2 px-3 pb-3">
-        {checks.map(({ l, s, warn, ok, n }) => (
-          <div key={l} className={`bg-white rounded-2xl p-3 border relative ${warn?'border-accent/20':'border-charcoal/8'}`}>
-            {n && <span className="absolute top-2 right-2 w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold text-white" style={{ background: warn?'#c94f2a':'#2a7c56' }}>{n}</span>}
-            <div className={`w-7 h-7 rounded-xl flex items-center justify-center mb-2 ${warn?'bg-accent/10':ok?'bg-[#1a7a4c]/10':'bg-charcoal/6'}`}>
-              <div className={`w-3.5 h-3.5 rounded ${warn?'bg-accent/50':ok?'bg-[#1a7a4c]/50':'bg-charcoal/25'}`}/>
+
+        {/* Tile grid */}
+        <div className="grid grid-cols-2 gap-2">
+          {tiles.map(({ iBg, iCol, icon, label, sub, sCol, badge, bCol, check }) => (
+            <div key={label} className="bg-white border border-charcoal/8 rounded-2xl p-3 relative">
+              {badge && (
+                <span className="absolute top-2.5 right-2.5 w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold text-white" style={{ background: bCol }}>{badge}</span>
+              )}
+              {check && !badge && (
+                <svg className="absolute top-3 right-3" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#1a7a4c" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              )}
+              <div className="w-8 h-8 rounded-xl flex items-center justify-center mb-2" style={{ background: iBg }}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={iCol} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d={icon}/></svg>
+              </div>
+              <p className="text-[11px] font-bold text-charcoal leading-tight">{label}</p>
+              <p className="text-[8px] font-semibold mt-0.5 uppercase tracking-wide" style={{ color: sCol }}>{sub}</p>
             </div>
-            <p className="text-[10px] font-bold text-charcoal leading-tight">{l}</p>
-            {s && <p className={`text-[8px] font-semibold mt-0.5 ${warn?'text-accent':ok?'text-[#1a7a4c]':'text-charcoal/35'}`}>{s}</p>}
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
+
       {/* Bottom nav */}
-      <div className="bg-white border-t border-charcoal/8 flex justify-around px-2 py-2 pb-4">
-        {['Home','Checks','Team','Tasks','Settings'].map((t,i)=>(
-          <div key={t} className="flex flex-col items-center gap-1">
-            <div className={`w-6 h-6 rounded-lg flex items-center justify-center ${i===1?'bg-brand/10':''}`}><div className={`w-4 h-4 rounded-sm ${i===1?'bg-brand/40':'bg-charcoal/12'}`}/></div>
-            <span className={`text-[8px] font-medium ${i===1?'text-brand font-semibold':'text-charcoal/30'}`}>{t}</span>
+      <div className="bg-white border-t border-charcoal/8 flex justify-around px-1 pt-2 pb-3 shrink-0">
+        {navIcons.map(({ label, d, active }) => (
+          <div key={label} className="flex flex-col items-center gap-0.5">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active?2.25:1.75} strokeLinecap="round" strokeLinejoin="round" className={active?'text-brand':'text-charcoal/30'}><path d={d}/></svg>
+            <span className={`text-[7px] font-medium ${active?'text-brand':'text-charcoal/30'}`}>{label}</span>
           </div>
         ))}
       </div>
