@@ -17,9 +17,10 @@
  *    reconstructed fully offline.
  */
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
-import { supabase } from '../lib/supabase'
+import { supabase, supabaseUrl, supabaseAnonKey, setSessionJwt, clearSessionJwt } from '../lib/supabase'
 import {
   SESSION_TOKEN_KEY,
+  SESSION_JWT_KEY,
   SESSION_ID_KEY,
   SESSION_NAME_KEY,
   SESSION_ROLE_KEY,
@@ -47,6 +48,7 @@ function withTimeout(promise, ms) {
 /** All localStorage keys we manage — centralised for easy clearSession(). */
 const LS_KEYS = [
   SESSION_TOKEN_KEY,
+  SESSION_JWT_KEY,
   SESSION_ID_KEY,
   SESSION_NAME_KEY,
   SESSION_ROLE_KEY,
@@ -134,6 +136,10 @@ export function SessionProvider({ children }) {
       setLoading(false)
       return
     }
+
+    // Re-activate the JWT so PostgREST calls are venue-scoped immediately
+    const cachedJwt = localStorage.getItem(SESSION_JWT_KEY)
+    if (cachedJwt) setSessionJwt(cachedJwt)
 
     const restored = sessionFromStorage(token, true)
     if (restored) {
@@ -261,13 +267,39 @@ export function SessionProvider({ children }) {
     }
 
     // ── Online path ───────────────────────────────────────────────────────
-    const { data: token, error: tokenErr } = await supabase.rpc(
-      'verify_staff_pin_and_create_session',
-      { p_staff_id: staffId, p_pin: pin, p_venue_id: venueId }
-    )
-    if (tokenErr || !token) {
-      return { error: tokenErr || new Error('Incorrect PIN') }
+    // Call the pin-login edge function — validates PIN and returns a
+    // venue-scoped JWT (signed with SUPABASE_JWT_SECRET) alongside the
+    // session token. The JWT is injected into every PostgREST request so
+    // venue-scoped RLS can enforce (auth.jwt() ->> 'venue_id').
+    let token, jwt
+    try {
+      const res = await fetch(`${supabaseUrl}/functions/v1/pin-login`, {
+        method:  'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${supabaseAnonKey}`,
+          'apikey':        supabaseAnonKey,
+        },
+        body: JSON.stringify({ action: 'login', staff_id: staffId, pin, venue_id: venueId }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        return { error: new Error(data.error ?? 'Incorrect PIN') }
+      }
+      token = data.session_token
+      jwt   = data.jwt
+    } catch (fetchErr) {
+      // Edge function unreachable (e.g. local dev without Supabase CLI).
+      // Fall back to the direct RPC so development still works.
+      const { data: rpcToken, error: rpcErr } = await supabase.rpc(
+        'verify_staff_pin_and_create_session',
+        { p_staff_id: staffId, p_pin: pin, p_venue_id: venueId }
+      )
+      if (rpcErr || !rpcToken) return { error: rpcErr || new Error('Incorrect PIN') }
+      token = rpcToken
+      jwt   = null
     }
+    if (!token) return { error: new Error('Incorrect PIN') }
 
     const { data: row, error: rowErr } = await supabase
       .from('staff')
@@ -314,6 +346,12 @@ export function SessionProvider({ children }) {
     localStorage.setItem(SESSION_VENUE_ID_KEY,   venueId)
     localStorage.setItem(SESSION_VENUE_SLUG_KEY, venueSlug ?? '')
 
+    // Activate the venue-scoped JWT for all subsequent PostgREST calls
+    if (jwt) {
+      localStorage.setItem(SESSION_JWT_KEY, jwt)
+      setSessionJwt(jwt)
+    }
+
     // Cache PIN hash + session data for offline use
     const hash = await hashPin(staffId, pin)
     if (hash) localStorage.setItem(pinHashKey(staffId), hash)
@@ -357,6 +395,27 @@ export function SessionProvider({ children }) {
     localStorage.setItem(SESSION_TOKEN_KEY,      newToken)
     localStorage.setItem(SESSION_VENUE_ID_KEY,   targetVenueId)
     localStorage.setItem(SESSION_VENUE_SLUG_KEY, targetVenueSlug)
+
+    // Get a new venue-scoped JWT for the target venue
+    try {
+      const res = await fetch(`${supabaseUrl}/functions/v1/pin-login`, {
+        method:  'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${supabaseAnonKey}`,
+          'apikey':        supabaseAnonKey,
+        },
+        body: JSON.stringify({ action: 'issue_jwt', session_token: newToken, venue_id: targetVenueId }),
+      })
+      if (res.ok) {
+        const { jwt } = await res.json()
+        if (jwt) {
+          localStorage.setItem(SESSION_JWT_KEY, jwt)
+          setSessionJwt(jwt)
+        }
+      }
+    } catch { /* non-critical — JWT can be refreshed on next login */ }
+
     return { error: null }
   }, [session?.token])
 
@@ -364,6 +423,7 @@ export function SessionProvider({ children }) {
   const signOut = useCallback(() => {
     const token = session?.token ?? localStorage.getItem(SESSION_TOKEN_KEY)
     clearStorage()
+    clearSessionJwt()
     setSession(null)
     if (token) {
       supabase.rpc('invalidate_staff_session', { p_token: token }).catch(() => {})

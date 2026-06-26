@@ -153,6 +153,7 @@ export const VENUE_PRESETS: VenuePreset[] = [
 ]
 
 export const SESSION_PERMISSIONS_KEY = 'pelikn_staff_permissions'
+export const SESSION_JWT_KEY         = 'pelikn_staff_jwt'
 
 // Legacy aliases — kept so old code doesn't break during migration
 export const STAFF_SESSION_KEY  = SESSION_TOKEN_KEY
