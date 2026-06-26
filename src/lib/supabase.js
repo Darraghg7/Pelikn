@@ -40,15 +40,6 @@ function makeRetryFetch(timeoutMs = 20_000, maxWriteRetries = 2) {
     const isWrite = !['GET', 'HEAD'].includes(method)
     const attempts = isWrite ? maxWriteRetries + 1 : 1
 
-    // Inject the venue-scoped JWT for PostgREST calls only.
-    // Auth endpoints (/auth/v1/) keep the anon key so signup/signOut work normally.
-    if (_sessionJwt && !url.includes('/auth/v1/')) {
-      options = {
-        ...options,
-        headers: { ...options.headers, Authorization: `Bearer ${_sessionJwt}` },
-      }
-    }
-
     let lastErr
     for (let attempt = 0; attempt < attempts; attempt++) {
       if (attempt > 0) {
