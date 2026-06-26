@@ -267,10 +267,10 @@ export function SessionProvider({ children }) {
     }
 
     // ── Online path ───────────────────────────────────────────────────────
-    // Call the pin-login edge function — validates PIN and returns a
-    // venue-scoped JWT (signed with SUPABASE_JWT_SECRET) alongside the
-    // session token. The JWT is injected into every PostgREST request so
-    // venue-scoped RLS can enforce (auth.jwt() ->> 'venue_id').
+    // Try the pin-login edge function first — it returns a venue-scoped JWT
+    // alongside the session token, enabling RLS enforcement without a paid plan.
+    // If the edge function is unavailable or errors for any reason, fall through
+    // to the direct RPC so logins are never blocked by an edge function issue.
     let token, jwt
     try {
       const res = await fetch(`${supabaseUrl}/functions/v1/pin-login`, {
@@ -282,15 +282,20 @@ export function SessionProvider({ children }) {
         },
         body: JSON.stringify({ action: 'login', staff_id: staffId, pin, venue_id: venueId }),
       })
-      const data = await res.json()
-      if (!res.ok) {
-        return { error: new Error(data.error ?? 'Incorrect PIN') }
+      if (res.ok) {
+        const data = await res.json()
+        token = data.session_token
+        jwt   = data.jwt
       }
-      token = data.session_token
-      jwt   = data.jwt
-    } catch (fetchErr) {
-      // Edge function unreachable (e.g. local dev without Supabase CLI).
-      // Fall back to the direct RPC so development still works.
+      // Non-OK response (e.g. SUPABASE_JWT_SECRET not yet set) falls through
+      // to the RPC below — logins still work, just without a JWT for now.
+    } catch {
+      // Network error or CORS — falls through to RPC below.
+    }
+
+    // Fallback: direct RPC — authoritative source for PIN validation and
+    // the error message shown to the user on a wrong PIN.
+    if (!token) {
       const { data: rpcToken, error: rpcErr } = await supabase.rpc(
         'verify_staff_pin_and_create_session',
         { p_staff_id: staffId, p_pin: pin, p_venue_id: venueId }
@@ -299,7 +304,6 @@ export function SessionProvider({ children }) {
       token = rpcToken
       jwt   = null
     }
-    if (!token) return { error: new Error('Incorrect PIN') }
 
     const { data: row, error: rowErr } = await supabase
       .from('staff')
