@@ -99,9 +99,24 @@ async function hashPin(staffId, pin) {
 const pinHashKey  = (id) => `pelikn_pin_${id}`
 const sessDataKey = (id) => `pelikn_sess_${id}`
 
+const DEV_PREVIEW = import.meta.env.DEV && import.meta.env.VITE_DEV_PREVIEW === 'true'
+const DEV_SESSION = DEV_PREVIEW ? {
+  token: 'dev-preview-token',
+  staffId: 'dev-staff-id',
+  staffName: 'Dev Manager',
+  staffRole: 'manager',
+  jobRole: 'Manager',
+  showTempLogs: true,
+  showAllergens: true,
+  permissions: [],
+  venueId: null,
+  venueSlug: import.meta.env.VITE_DEV_VENUE ?? '',
+  verified: true,
+} : null
+
 export function SessionProvider({ children }) {
-  const [session,       setSession]       = useState(null)
-  const [loading,       setLoading]       = useState(true)
+  const [session,       setSession]       = useState(DEV_SESSION)
+  const [loading,       setLoading]       = useState(!DEV_PREVIEW)
   const [linkedVenues,  setLinkedVenues]  = useState(() => {
     try {
       const raw = localStorage.getItem(SESSION_LINKED_VENUES)
@@ -111,6 +126,7 @@ export function SessionProvider({ children }) {
 
   // ── Restore session from localStorage on mount ──────────────────────────
   useEffect(() => {
+    if (DEV_PREVIEW) return
     const token = localStorage.getItem(SESSION_TOKEN_KEY)
     const id    = localStorage.getItem(SESSION_ID_KEY)
 

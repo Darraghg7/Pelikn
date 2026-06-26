@@ -3,7 +3,7 @@
  * Persists across logouts: timer is derived from DB timestamps, not local state.
  */
 import React, { useEffect, useRef, useState } from 'react'
-import { format, subDays, parseISO } from 'date-fns'
+import { format, subDays } from 'date-fns'
 import { offlineRpc } from '../../lib/offlineSupabase'
 import { useClockStatus, saveClockStatusCache } from '../../hooks/useClockEvents'
 import { useVenue } from '../../contexts/VenueContext'
@@ -67,40 +67,18 @@ function ElapsedTimer({ clockInAt, breakStartAt, totalBreakMs, status }) {
   )
 }
 
-/** Count late clock-ins for this staff in the last 30 days (threshold: any positive lateness) */
+/** Count active (non-dismissed) late clock-in strikes in the last 30 days, +1 for the current one */
 async function countLateStrikes(staffId, venueId, now) {
-  const since = format(subDays(now, 30), 'yyyy-MM-dd')
-  const today = format(now, 'yyyy-MM-dd')
-
-  const [{ data: shifts }, { data: clockIns }] = await Promise.all([
-    supabase
-      .from('shifts')
-      .select('shift_date, start_time')
-      .eq('staff_id', staffId)
-      .eq('venue_id', venueId)
-      .gte('shift_date', since)
-      .lte('shift_date', today),
-    supabase
-      .from('clock_events')
-      .select('occurred_at')
-      .eq('staff_id', staffId)
-      .eq('venue_id', venueId)
-      .eq('event_type', 'clock_in')
-      .gte('occurred_at', since + 'T00:00:00'),
-  ])
-
-  if (!shifts?.length || !clockIns?.length) return 1
-
-  let count = 0
-  for (const shift of shifts) {
-    const ci = clockIns.find(c => c.occurred_at.startsWith(shift.shift_date))
-    if (!ci) continue
-    const shiftStart  = new Date(shift.shift_date + 'T' + shift.start_time)
-    const clockInTime = parseISO(ci.occurred_at)
-    if (clockInTime > shiftStart) count++
-  }
-
-  return Math.max(count, 1)
+  const since = format(subDays(now, 30), 'yyyy-MM-dd') + 'T00:00:00'
+  const { count } = await supabase
+    .from('staff_disciplinary_log')
+    .select('*', { count: 'exact', head: true })
+    .eq('staff_id', staffId)
+    .eq('venue_id', venueId)
+    .eq('offence_type', 'late_clock_in')
+    .is('dismissed_at', null)
+    .gte('occurred_at', since)
+  return (count ?? 0) + 1
 }
 
 /** Fetch the most recent clock_in event ID + acknowledged_at for this staff today */
@@ -135,44 +113,18 @@ async function fetchTodayBreakStartEvent(staffId, venueId) {
   return data ?? null
 }
 
-/** Count break overrun strikes for this staff in the last 30 days */
+/** Count active (non-dismissed) break overrun strikes in the last 30 days, +1 for the current one */
 async function countBreakStrikes(staffId, venueId, now) {
-  const since = format(subDays(now, 30), 'yyyy-MM-dd')
-  const today = format(now, 'yyyy-MM-dd')
-
-  const { data: events } = await supabase
-    .from('clock_events')
-    .select('event_type, occurred_at')
+  const since = format(subDays(now, 30), 'yyyy-MM-dd') + 'T00:00:00'
+  const { count } = await supabase
+    .from('staff_disciplinary_log')
+    .select('*', { count: 'exact', head: true })
     .eq('staff_id', staffId)
     .eq('venue_id', venueId)
-    .in('event_type', ['break_start', 'break_end'])
-    .gte('occurred_at', since + 'T00:00:00')
-    .lte('occurred_at', today + 'T23:59:59')
-    .order('occurred_at', { ascending: true })
-
-  if (!events?.length) return 1
-
-  const { data: settingsRows } = await supabase
-    .from('app_settings')
-    .select('value')
-    .eq('venue_id', venueId)
-    .eq('key', 'break_duration_mins')
-    .maybeSingle()
-  const allowanceMins = settingsRows ? JSON.parse(settingsRows.value) : 30
-
-  let count = 0
-  let lastBreakStart = null
-  for (const ev of events) {
-    if (ev.event_type === 'break_start') {
-      lastBreakStart = parseISO(ev.occurred_at)
-    } else if (ev.event_type === 'break_end' && lastBreakStart) {
-      const takenMins = (parseISO(ev.occurred_at).getTime() - lastBreakStart.getTime()) / 60000
-      if (takenMins > allowanceMins) count++
-      lastBreakStart = null
-    }
-  }
-
-  return Math.max(count, 1)
+    .eq('offence_type', 'break_overrun')
+    .is('dismissed_at', null)
+    .gte('occurred_at', since)
+  return (count ?? 0) + 1
 }
 
 export default function ClockPanel({ staffId, hasShift = true, compact = false }) {
