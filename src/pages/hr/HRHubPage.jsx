@@ -61,7 +61,36 @@ const ICO = {
   plus:   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>,
 }
 
-// ── Workspace list row ────────────────────────────────────────────────────────
+// ── Mobile list row (navigates to /hr/:id) ───────────────────────────────────
+function MobileRow({ s, actionIds, expiringIds, onClick }) {
+  const isFormal   = actionIds.has(s.id)
+  const isExpiring = expiringIds.has(s.id)
+  const hasAttn    = isFormal || isExpiring
+
+  return (
+    <button
+      onClick={onClick}
+      className="flex items-center gap-[11px] w-full text-left cursor-pointer px-[14px] py-[10px] bg-transparent border-0 border-t border-charcoal/6 first:border-t-0"
+    >
+      <Avatar name={s.name} size={38} />
+      <div className="flex-1 min-w-0">
+        <div className="text-[13.5px] font-medium text-charcoal overflow-hidden text-ellipsis whitespace-nowrap">{s.name}</div>
+        <div className="font-mono text-[10px] text-charcoal/50 uppercase tracking-[0.03em] mt-px overflow-hidden text-ellipsis whitespace-nowrap">{s.job_role ?? 'No role'}</div>
+      </div>
+      {hasAttn ? (
+        <span className={`inline-flex items-center gap-1 px-2 py-[3px] rounded-full text-[10px] font-mono font-semibold tracking-[0.04em] uppercase whitespace-nowrap shrink-0 ${isFormal ? 'text-danger bg-danger/10' : 'text-warning bg-warning/10'}`}>
+          <span className="w-[5px] h-[5px] rounded-full bg-current" />
+          {isFormal ? 'Formal' : 'Expiring'}
+        </span>
+      ) : (
+        <span className="w-[6px] h-[6px] rounded-full bg-success shrink-0" />
+      )}
+      <svg width="7" height="11" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="text-charcoal/25 shrink-0"><path d="M1 1l4 4-4 4"/></svg>
+    </button>
+  )
+}
+
+// ── Desktop list row ──────────────────────────────────────────────────────────
 function ListRow({ s, selected, actionIds, expiringIds, onClick }) {
   const [hovered, setHovered] = useState(false)
   const isSel  = selected?.id === s.id
@@ -178,7 +207,7 @@ export default function HRHubPage() {
   ]
 
   return (
-    <div className="pb-24 pt-4">
+    <div className="pb-24">
       {loading ? (
         <div className="flex justify-center pt-20">
           <LoadingSpinner />
@@ -197,13 +226,64 @@ export default function HRHubPage() {
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-4 gap-[13px] mb-[22px]">
+          {/* KPI tiles — 2-col on mobile, 4-col on desktop */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-[13px] mb-[14px] lg:mb-[22px]">
             {stats.map(s => (
               <StatTile key={s.label} label={s.label} value={s.value} sub={s.sub} tone={s.tone} icon={s.icon} />
             ))}
           </div>
 
-          <div className="grid gap-[22px] items-start" style={{ gridTemplateColumns: '316px 1fr' }}>
+          {/* ── Mobile: single-column list, rows navigate to /hr/:id ── */}
+          <div className="lg:hidden flex flex-col gap-[14px]">
+            <div className="px-0.5">
+              <div className="font-mono text-[10.5px] tracking-[0.1em] uppercase text-charcoal/50 font-semibold">Manager · Team</div>
+              <h1 className="text-[24px] font-semibold tracking-[-0.025em] text-charcoal m-0 mt-[5px]">HR Records</h1>
+            </div>
+
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-charcoal/30 inline-flex pointer-events-none">{ICO.search}</span>
+              <input
+                value={query}
+                onChange={e => setQuery(e.target.value)}
+                placeholder="Search staff…"
+                className="w-full py-[10px] pl-9 pr-3 rounded-[12px] border border-charcoal/10 text-[13.5px] outline-none bg-white dark:bg-paperDark text-charcoal box-border"
+              />
+            </div>
+
+            {filtered.length === 0 ? (
+              <div className="bg-white border border-charcoal/10 rounded-[14px] overflow-hidden px-4 py-8 text-center text-charcoal/30 text-[13px]">
+                No staff match your search
+              </div>
+            ) : (
+              <>
+                {attentionRows.length > 0 && (
+                  <div>
+                    <div className="font-mono text-[10.5px] text-danger tracking-[0.08em] uppercase font-semibold pb-[7px] px-0.5">
+                      Needs attention · {attentionRows.length}
+                    </div>
+                    <div className="bg-white border border-charcoal/10 rounded-[14px] overflow-hidden">
+                      {attentionRows.map(s => (
+                        <MobileRow key={s.id} s={s} actionIds={actionIds} expiringIds={expiringIds} onClick={() => navigate(vp('/hr/' + s.id))} />
+                      ))}
+                    </div>
+                  </div>
+                )}
+                <div>
+                  <div className="font-mono text-[10.5px] text-charcoal/50 tracking-[0.08em] uppercase font-semibold pb-[7px] px-0.5">
+                    All staff · {regularRows.length}
+                  </div>
+                  <div className="bg-white border border-charcoal/10 rounded-[14px] overflow-hidden">
+                    {regularRows.map(s => (
+                      <MobileRow key={s.id} s={s} actionIds={actionIds} expiringIds={expiringIds} onClick={() => navigate(vp('/hr/' + s.id))} />
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* ── Desktop: sticky two-pane master-detail ── */}
+          <div className="hidden lg:grid gap-[22px] items-start" style={{ gridTemplateColumns: '316px 1fr' }}>
 
             <div className="sticky top-[76px] h-[calc(100vh-160px)] flex flex-col">
               <div className="mb-3.5">

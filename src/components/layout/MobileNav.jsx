@@ -320,7 +320,7 @@ function getManagerTabs(vp, isEnabled, complianceNavOrder = []) {
       label: 'Team',
       to: vp('/team'),
       icon: UsersIcon,
-      match: ['/team', '/rota', '/timesheet', '/training', '/time-off', '/tips', '/staff'],
+      match: ['/team', '/rota', '/timesheet', '/training', '/time-off', '/tips', '/staff', '/hr'],
     },
     {
       key: 'tasks',
@@ -412,6 +412,10 @@ export default function MobileNav() {
   const HUB_LABELS = { compliance: 'Checks', team: 'Team' }
   const onHub = localPath === '/checks' || localPath === '/team'
   const showBackRow = !onHub && (activeTab?.key === 'compliance' || activeTab?.key === 'team')
+  // Employee record (/hr/:staffId) is a level deeper — back goes to HR Records, not Team
+  const isEmployeeRecord = localPath.startsWith('/hr/') && localPath.length > '/hr/'.length
+  const backRoute = isEmployeeRecord ? vp('/hr') : HUB_ROUTES[activeTab?.key]
+  const backLabel = isEmployeeRecord ? 'HR Records' : HUB_LABELS[activeTab?.key]
 
   const startLongPress = useCallback(() => {
     if (!isManager) return
@@ -432,13 +436,13 @@ export default function MobileNav() {
           padding: '8px 16px',
         }}>
           <NavLink
-            to={HUB_ROUTES[activeTab.key]}
+            to={backRoute}
             className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-brand no-underline"
           >
             <svg width="7" height="12" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
               <path d="M5 1L1 5l4 4"/>
             </svg>
-            {HUB_LABELS[activeTab.key]}
+            {backLabel}
           </NavLink>
         </div>
       )}

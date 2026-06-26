@@ -25,6 +25,11 @@ import LoadingSpinner from '../../components/ui/LoadingSpinner'
 // ── Constants ────────────────────────────────────────────────────────────────
 export const TABS = ['Profile', 'Documents', 'Disciplinary', 'Leave', 'Training', 'Security']
 
+const TAB_LABELS = {
+  Profile: 'Profile', Documents: 'Docs', Disciplinary: 'Conduct',
+  Leave: 'Leave', Training: 'Training', Security: 'Security',
+}
+
 const FORMAL_LABELS = {
   verbal_warning:        'Verbal Warning',
   written_warning:       'Written Warning',
@@ -147,14 +152,14 @@ function EmptyState({ icon, text }) {
 
 function MiniStat({ k, v, tone }) {
   return (
-    <div className="bg-white dark:bg-paperDark border border-charcoal/10 rounded-[13px] px-3.5 py-[11px] shadow-sm">
-      <div className="font-mono text-[11px] uppercase tracking-[0.07em] text-charcoal/50 font-semibold">
+    <div className="bg-white dark:bg-paperDark border border-charcoal/10 rounded-[13px] px-[11px] py-[10px] lg:px-3.5 lg:py-[11px] shadow-sm flex-1 min-w-0">
+      <div className="font-mono text-[9px] lg:text-[11px] uppercase tracking-[0.07em] text-charcoal/50 font-semibold">
         {k}
       </div>
-      <div className="mt-[5px] flex items-center">
+      <div className="mt-[4px] flex items-center">
         {tone
           ? <Badge tone={tone}>{v}</Badge>
-          : <span className="text-[16px] font-semibold text-charcoal tracking-[-0.01em]">{v}</span>}
+          : <span className="text-[14.5px] lg:text-[16px] font-semibold text-charcoal tracking-[-0.01em]">{v}</span>}
       </div>
     </div>
   )
@@ -221,11 +226,11 @@ function ProfileTab({ staff, docsCount, strikesCount, venueSlug }) {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="grid grid-cols-4 gap-[11px]">
-        <MiniStat k="Tenure"       v={tenure(staff.start_date) ?? '—'} />
-        <MiniStat k="Holiday left" v={staff.holiday_balance != null ? `${staff.holiday_balance} days` : '—'} />
-        <MiniStat k="Documents"    v={`${docsCount ?? 0} on file`} />
-        <MiniStat k="Strikes"      v={`${strikesCount ?? 0} / 3`} tone={strikeTone} />
+      <div className="flex gap-[8px]">
+        <MiniStat k="Tenure"  v={tenure(staff.start_date) ?? '—'} />
+        <MiniStat k="Holiday" v={staff.holiday_balance != null ? `${staff.holiday_balance}d` : '—'} />
+        <MiniStat k="Docs"    v={`${docsCount ?? 0}`} />
+        <MiniStat k="Strikes" v={`${strikesCount ?? 0}/3`} tone={strikeTone} />
       </div>
 
       <SectionCard>
@@ -336,11 +341,11 @@ function DocumentsTab({ staffId, venueId, onDocsCountChange }) {
 
   return (
     <div className="flex flex-col gap-3.5">
-      <div className="flex items-center">
+      <div className="flex items-center justify-between">
         <span className="font-mono text-[11px] uppercase tracking-[0.07em] text-charcoal/50 font-semibold">
           {loading ? '—' : docs.length} documents
         </span>
-        <BtnPrimary onClick={() => setShowModal(true)} className="ml-auto">
+        <BtnPrimary onClick={() => setShowModal(true)}>
           {Ico.plus} Upload
         </BtnPrimary>
       </div>
@@ -443,29 +448,37 @@ function DocumentsTab({ staffId, venueId, onDocsCountChange }) {
 }
 
 // ── Disciplinary Tab ─────────────────────────────────────────────────────────
-function DisciplinaryTab({ staffId, venueId }) {
+function DisciplinaryTab({ staffId, venueId, onStrikesCountChange }) {
   const toast = useToast()
   const { session } = useSession()
-  const [strikes,   setStrikes]   = useState([])
-  const [formals,   setFormals]   = useState([])
-  const [loading,   setLoading]   = useState(true)
-  const [showModal, setShowModal] = useState(false)
-  const [form,      setForm]      = useState({ action_type: 'verbal_warning', occurred_at: new Date().toISOString().slice(0, 10), notes: '' })
-  const [file,      setFile]      = useState(null)
-  const [saving,    setSaving]    = useState(false)
+  const [strikes,    setStrikes]   = useState([])
+  const [formals,    setFormals]   = useState([])
+  const [loading,    setLoading]   = useState(true)
+  const [showModal,  setShowModal] = useState(false)
+  const [form,       setForm]      = useState({ action_type: 'verbal_warning', occurred_at: new Date().toISOString().slice(0, 10), notes: '' })
+  const [file,       setFile]      = useState(null)
+  const [saving,     setSaving]    = useState(false)
+  const [dismissing, setDismissing] = useState(null) // strike id or 'all'
 
   const load = useCallback(async () => {
     setLoading(true)
     const [strikeRes, formalRes] = await Promise.all([
-      supabase.from('staff_disciplinary_log').select('*').eq('staff_id', staffId).order('occurred_at', { ascending: false }),
+      supabase.from('staff_disciplinary_log')
+        .select('*, dismissed_by_staff:dismissed_by(name)')
+        .eq('staff_id', staffId)
+        .order('occurred_at', { ascending: false }),
       supabase.from('hr_formal_actions').select('*, added_by_staff:added_by(name)').eq('staff_id', staffId).order('occurred_at', { ascending: false }),
     ])
-    setStrikes(strikeRes.data ?? [])
+    const rows = strikeRes.data ?? []
+    setStrikes(rows)
     setFormals(formalRes.data ?? [])
     setLoading(false)
-  }, [staffId])
+    onStrikesCountChange?.(rows.filter(s => !s.dismissed_at).length)
+  }, [staffId, onStrikesCountChange])
 
   useEffect(() => { load() }, [load])
+
+  const activeStrikes = strikes.filter(s => !s.dismissed_at)
 
   const timeline = [...strikes.map(s => ({ ...s, _type: 'strike', _date: s.occurred_at })),
                     ...formals.map(f => ({ ...f, _type: 'formal', _date: f.occurred_at }))]
@@ -510,17 +523,52 @@ function DisciplinaryTab({ staffId, venueId }) {
     load()
   }
 
+  const dismissStrike = async (strikeId) => {
+    setDismissing(strikeId)
+    const { error } = await supabase.from('staff_disciplinary_log')
+      .update({ dismissed_at: new Date().toISOString(), dismissed_by: session?.staffId ?? null })
+      .eq('id', strikeId)
+    setDismissing(null)
+    if (error) { toast(error.message, 'error'); return }
+    toast('Strike dismissed')
+    load()
+  }
+
+  const dismissAllStrikes = async () => {
+    if (!confirm('Clear all active strikes for this staff member?')) return
+    setDismissing('all')
+    const { error } = await supabase.from('staff_disciplinary_log')
+      .update({ dismissed_at: new Date().toISOString(), dismissed_by: session?.staffId ?? null })
+      .eq('staff_id', staffId)
+      .is('dismissed_at', null)
+    setDismissing(null)
+    if (error) { toast(error.message, 'error'); return }
+    toast('All strikes cleared')
+    load()
+  }
+
   const OFFENCE_LABELS = { late_clock_in: 'Late clock-in', break_overrun: 'Break overrun' }
 
   return (
     <div className="flex flex-col gap-3.5">
-      <div className="flex items-center">
+      <div className="flex items-center justify-between gap-2">
         <span className="font-mono text-[11px] uppercase tracking-[0.07em] text-charcoal/50 font-semibold">
           Timeline
         </span>
-        <BtnDanger onClick={() => setShowModal(true)} className="ml-auto">
-          {Ico.plus} Add formal action
-        </BtnDanger>
+        <div className="flex gap-2">
+          {activeStrikes.length > 0 && (
+            <button
+              onClick={dismissAllStrikes}
+              disabled={dismissing === 'all'}
+              className="inline-flex items-center gap-[7px] px-3.5 py-[9px] rounded-[10px] cursor-pointer text-[12.5px] font-semibold whitespace-nowrap bg-warning/10 text-warning border border-warning/10 disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {dismissing === 'all' ? 'Clearing…' : 'Reset all strikes'}
+            </button>
+          )}
+          <BtnDanger onClick={() => setShowModal(true)}>
+            {Ico.plus} Add formal action
+          </BtnDanger>
+        </div>
       </div>
 
       {loading ? (
@@ -566,8 +614,32 @@ function DisciplinaryTab({ staffId, venueId }) {
                 </div>
               )
             }
+            if (item.dismissed_at) {
+              return (
+                <div key={`s-${item.id}`} className={`flex items-start gap-3 px-[18px] py-[13px] opacity-40 ${isLast ? '' : 'border-b border-charcoal/6'}`}>
+                  <div className="w-7 h-7 rounded-lg bg-charcoal/6 text-charcoal/40 flex items-center justify-center font-mono text-[11px] font-bold shrink-0 line-through">
+                    {item.strike_number}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[13px] font-semibold text-charcoal/50 line-through">
+                      Strike {item.strike_number} — {OFFENCE_LABELS[item.offence_type] ?? item.offence_type}
+                      {item.mins_over != null && (
+                        <span className="font-mono text-[11px] font-normal ml-1.5">{item.mins_over} min over</span>
+                      )}
+                    </div>
+                    <div className="font-mono text-[11px] text-charcoal/30 mt-[3px]">
+                      {format(parseISO(item.occurred_at), 'd MMM yyyy, HH:mm')}
+                      {item.dismissed_by_staff?.name && (
+                        <> · Dismissed by {item.dismissed_by_staff.name} on {format(parseISO(item.dismissed_at), 'd MMM')}</>
+                      )}
+                    </div>
+                  </div>
+                  <span className="font-mono text-[11px] text-charcoal/30 uppercase tracking-[0.05em] shrink-0 mt-[3px]">Dismissed</span>
+                </div>
+              )
+            }
             return (
-              <div key={`s-${item.id}`} className={`flex items-start gap-3 px-[18px] py-[13px] opacity-85 ${isLast ? '' : 'border-b border-charcoal/6'}`}>
+              <div key={`s-${item.id}`} className={`flex items-start gap-3 px-[18px] py-[13px] ${isLast ? '' : 'border-b border-charcoal/6'}`}>
                 <div className="w-7 h-7 rounded-lg bg-charcoal/6 text-charcoal/50 flex items-center justify-center font-mono text-[11px] font-bold shrink-0">
                   {item.strike_number}
                 </div>
@@ -584,7 +656,16 @@ function DisciplinaryTab({ staffId, venueId }) {
                     {format(parseISO(item.occurred_at), 'd MMM yyyy, HH:mm')}
                   </div>
                 </div>
-                <span className="font-mono text-[11px] text-charcoal/30 uppercase tracking-[0.05em] shrink-0 mt-[3px]">Auto</span>
+                <div className="flex items-center gap-2 shrink-0 mt-[3px]">
+                  <span className="font-mono text-[11px] text-charcoal/30 uppercase tracking-[0.05em]">Auto</span>
+                  <button
+                    onClick={() => dismissStrike(item.id)}
+                    disabled={!!dismissing}
+                    className="px-2.5 py-1 rounded-[8px] border border-charcoal/10 bg-transparent text-charcoal/40 cursor-pointer font-mono text-[11px] font-semibold tracking-[0.03em] disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {dismissing === item.id ? '…' : 'Dismiss'}
+                  </button>
+                </div>
               </div>
             )
           })}
@@ -889,14 +970,13 @@ export default function EmployeeRecordPanel({ staffId, venueId, venueSlug, onBac
         .select('*', { count: 'exact', head: true })
         .eq('staff_id', staffId),
       supabase.from('staff_disciplinary_log')
-        .select('strike_number')
+        .select('*', { count: 'exact', head: true })
         .eq('staff_id', staffId)
-        .order('strike_number', { ascending: false })
-        .limit(1),
+        .is('dismissed_at', null),
     ]).then(([staffRes, docsRes, strikesRes]) => {
       setStaff(staffRes.data)
       setDocsCount(docsRes.count ?? 0)
-      setStrikesCount(strikesRes.data?.[0]?.strike_number ?? 0)
+      setStrikesCount(strikesRes.count ?? 0)
       setLoading(false)
     })
   }, [staffId])
@@ -914,40 +994,47 @@ export default function EmployeeRecordPanel({ staffId, venueId, venueSlug, onBac
   }
 
   return (
-    <div>
+    <div className="flex flex-col gap-[14px] lg:block">
       {onBack && (
-        <button onClick={onBack} className="bg-transparent border-0 cursor-pointer pb-3.5 flex items-center gap-[7px] font-mono text-[11px] font-semibold text-charcoal/50 tracking-[0.04em]">
+        <button onClick={onBack} className="bg-transparent border-0 cursor-pointer lg:pb-3.5 flex items-center gap-[7px] font-mono text-[11px] font-semibold text-charcoal/50 tracking-[0.04em] self-start">
           {Ico.back} HR Records
         </button>
       )}
 
-      <div className="flex items-center gap-[15px] mb-[18px] flex-wrap">
+      {/* Identity row */}
+      <div className="flex items-center gap-[13px] lg:gap-[15px] lg:mb-[18px]">
         {loading
-          ? <div className="w-14 h-14 rounded-[15px] bg-charcoal/6" />
-          : <Avatar name={staff?.name ?? ''} size={56} />
+          ? <div className="w-[52px] h-[52px] lg:w-14 lg:h-14 rounded-[15px] bg-charcoal/6 shrink-0" />
+          : <Avatar name={staff?.name ?? ''} size={52} />
         }
-        <div className="flex-1 min-w-[200px]">
-          <div className="flex items-center gap-2.5 flex-wrap">
-            <h1 className="text-[23px] font-bold tracking-[-0.02em] text-charcoal m-0">
-              {loading ? <span className="text-charcoal/30">Loading…</span> : (staff?.name ?? '—')}
-            </h1>
+        <div className="flex-1 min-w-0">
+          <div className="text-[18px] lg:text-[23px] font-semibold lg:font-bold tracking-[-0.015em] lg:tracking-[-0.02em] text-charcoal leading-tight">
+            {loading ? <span className="text-charcoal/30">Loading…</span> : (staff?.name ?? '—')}
           </div>
           {!loading && staff && (
-            <div className="flex items-center gap-[11px] mt-[5px] flex-wrap">
-              <span className="text-[13.5px] text-charcoal/50">{staff.job_role}</span>
-              {staff.employment_type && (
-                <>
-                  <span className="w-px h-3 bg-charcoal/10" />
-                  <span className="font-mono text-[11px] text-charcoal/50">
-                    {EMPLOYMENT_LABELS[staff.employment_type] ?? staff.employment_type}
-                    {staff.start_date && ` · ${tenure(staff.start_date)}`}
-                  </span>
-                </>
-              )}
-            </div>
+            <>
+              {/* Mobile: compact single-line */}
+              <div className="lg:hidden text-[12.5px] text-charcoal/50 mt-[2px] overflow-hidden text-ellipsis whitespace-nowrap">
+                {staff.job_role}{staff.employment_type ? ` · ${EMPLOYMENT_LABELS[staff.employment_type] ?? staff.employment_type}` : ''}{staff.start_date ? ` · ${tenure(staff.start_date)}` : ''}
+              </div>
+              {/* Desktop: multi-line */}
+              <div className="hidden lg:flex items-center gap-[11px] mt-[5px] flex-wrap">
+                <span className="text-[13.5px] text-charcoal/50">{staff.job_role}</span>
+                {staff.employment_type && (
+                  <>
+                    <span className="w-px h-3 bg-charcoal/10" />
+                    <span className="font-mono text-[11px] text-charcoal/50">
+                      {EMPLOYMENT_LABELS[staff.employment_type] ?? staff.employment_type}
+                      {staff.start_date && ` · ${tenure(staff.start_date)}`}
+                    </span>
+                  </>
+                )}
+              </div>
+            </>
           )}
         </div>
-        <div className="flex gap-2 shrink-0 ml-auto">
+        {/* Desktop: inline buttons */}
+        <div className="hidden lg:flex gap-2 shrink-0">
           <BtnDefault onClick={() => navigate(`/v/${venueSlug}/settings`)}>
             {Ico.edit} Edit
           </BtnDefault>
@@ -957,23 +1044,37 @@ export default function EmployeeRecordPanel({ staffId, venueId, venueSlug, onBac
         </div>
       </div>
 
-      <div className="flex gap-0.5 mb-5 bg-charcoal/6 rounded-xl p-[3px] max-w-[560px] overflow-x-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
+      {/* Mobile: full-width action buttons */}
+      <div className="flex lg:hidden gap-2">
+        <BtnDefault onClick={() => navigate(`/v/${venueSlug}/settings`)} className="flex-1 justify-center">
+          {Ico.edit} Edit
+        </BtnDefault>
+        <button
+          onClick={() => setTab('Documents')}
+          className="flex-1 inline-flex items-center justify-center gap-[7px] px-3.5 py-[9px] rounded-[10px] cursor-pointer text-[12.5px] font-semibold border-0 whitespace-nowrap bg-brand text-white"
+        >
+          {Ico.doc} Upload doc
+        </button>
+      </div>
+
+      {/* Tab bar */}
+      <div className="flex gap-0.5 lg:mb-5 bg-charcoal/6 rounded-[11px] p-[3px]">
         {TABS.map(t => (
           <button key={t} onClick={() => setTab(t)}
-            className={`flex-1 py-2 px-1 border-0 cursor-pointer rounded-[9px] whitespace-nowrap font-mono text-[11px] tracking-[0.02em] transition-all duration-150 ${
+            className={`flex-1 py-[7px] lg:py-2 px-0 border-0 cursor-pointer rounded-[8px] font-mono text-[10px] lg:text-[11px] tracking-[0] transition-all duration-150 ${
               tab === t
-                ? 'bg-white dark:bg-paperDark text-charcoal font-bold shadow-[0_1px_4px_rgba(13,26,20,0.10)]'
+                ? 'bg-white dark:bg-paperDark text-charcoal font-bold shadow-[0_1px_3px_rgba(13,26,20,0.10)]'
                 : 'bg-transparent text-charcoal/50 font-semibold'
             }`}
           >
-            {t}
+            {TAB_LABELS[t]}
           </button>
         ))}
       </div>
 
       {tab === 'Profile'      && <ProfileTab      staff={staff} docsCount={docsCount} strikesCount={strikesCount} venueSlug={venueSlug} />}
       {tab === 'Documents'    && <DocumentsTab    staffId={staffId} venueId={venueId} onDocsCountChange={setDocsCount} />}
-      {tab === 'Disciplinary' && <DisciplinaryTab staffId={staffId} venueId={venueId} />}
+      {tab === 'Disciplinary' && <DisciplinaryTab staffId={staffId} venueId={venueId} onStrikesCountChange={setStrikesCount} />}
       {tab === 'Leave'        && <LeaveTab        staffId={staffId} venueSlug={venueSlug} staff={staff} />}
       {tab === 'Training'     && <TrainingTab     staffId={staffId} venueSlug={venueSlug} />}
       {tab === 'Security'     && <SecurityTab     staffId={staffId} />}
