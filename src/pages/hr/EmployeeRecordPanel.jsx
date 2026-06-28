@@ -494,8 +494,9 @@ function AttendanceStat({ label, total, active, dates, tone }) {
 function DisciplinaryTab({ staffId, venueId, onStrikesCountChange }) {
   const toast = useToast()
   const { session } = useSession()
-  const [strikes,    setStrikes]   = useState([])
-  const [formals,    setFormals]   = useState([])
+  const [strikes,     setStrikes]    = useState([])
+  const [formals,     setFormals]    = useState([])
+  const [lateHistory, setLateHistory] = useState([]) // derived from clock_events + shifts
   const [loading,    setLoading]   = useState(true)
   const [showModal,  setShowModal] = useState(false)
   const [form,       setForm]      = useState({ action_type: 'verbal_warning', occurred_at: new Date().toISOString().slice(0, 10), notes: '' })
@@ -505,18 +506,48 @@ function DisciplinaryTab({ staffId, venueId, onStrikesCountChange }) {
 
   const load = useCallback(async () => {
     setLoading(true)
-    const [strikeRes, formalRes] = await Promise.all([
+    const [strikeRes, formalRes, clockRes, shiftRes] = await Promise.all([
       supabase.from('staff_disciplinary_log')
         .select('*, dismissed_by_staff:dismissed_by(name)')
         .eq('staff_id', staffId)
         .order('occurred_at', { ascending: false }),
       supabase.from('hr_formal_actions').select('*, added_by_staff:added_by(name)').eq('staff_id', staffId).order('occurred_at', { ascending: false }),
+      supabase.from('clock_events')
+        .select('id, occurred_at')
+        .eq('staff_id', staffId)
+        .eq('venue_id', venueId)
+        .eq('event_type', 'clock_in')
+        .order('occurred_at', { ascending: false }),
+      supabase.from('shifts')
+        .select('shift_date, start_time')
+        .eq('staff_id', staffId)
+        .eq('venue_id', venueId),
     ])
+
+    // Derive late clock-ins from raw clock data — the source of truth
+    const clockIns = clockRes.data ?? []
+    const shifts   = shiftRes.data ?? []
+    const shiftMap = {}
+    shifts.forEach(s => { shiftMap[s.shift_date] = s.start_time })
+
+    const late = clockIns.flatMap(ev => {
+      const date      = ev.occurred_at.slice(0, 10)
+      const startTime = shiftMap[date]
+      if (!startTime) return []
+      const shiftStart  = new Date(`${date}T${startTime}`)
+      const clockedIn   = new Date(ev.occurred_at)
+      const msLate      = Math.floor(clockedIn.getTime() / 60000) * 60000
+                        - Math.floor(shiftStart.getTime() / 60000) * 60000
+      if (msLate < 60000) return [] // < 1 whole minute — not late
+      return [{ id: ev.id, occurred_at: ev.occurred_at, minsLate: Math.floor(msLate / 60000), scheduledTime: startTime }]
+    })
+    setLateHistory(late)
+
     const rows = strikeRes.data ?? []
     setStrikes(rows)
     setFormals(formalRes.data ?? [])
     setLoading(false)
-    onStrikesCountChange?.(rows.filter(s => !s.dismissed_at).length)
+    onStrikesCountChange?.(late.length)
   }, [staffId, onStrikesCountChange])
 
   useEffect(() => { load() }, [load])
@@ -592,23 +623,21 @@ function DisciplinaryTab({ staffId, venueId, onStrikesCountChange }) {
 
   const OFFENCE_LABELS = { late_clock_in: 'Late clock-in', break_overrun: 'Break overrun' }
 
-  const lateAll    = strikes.filter(s => s.offence_type === 'late_clock_in')
-  const lateActive = lateAll.filter(s => !s.dismissed_at)
-  const breakAll   = strikes.filter(s => s.offence_type === 'break_overrun')
+  const breakAll    = strikes.filter(s => s.offence_type === 'break_overrun')
   const breakActive = breakAll.filter(s => !s.dismissed_at)
 
   return (
     <div className="flex flex-col gap-3.5">
 
       {/* ── Attendance summary ─────────────────────────────────────────────── */}
-      {!loading && strikes.length > 0 && (
+      {!loading && (lateHistory.length > 0 || breakAll.length > 0) && (
         <div className="grid grid-cols-2 gap-2.5">
           <AttendanceStat
             label="Late clock-ins"
-            total={lateAll.length}
-            active={lateActive.length}
-            dates={lateActive.map(s => s.occurred_at)}
-            tone="warn"
+            total={lateHistory.length}
+            active={lateHistory.length}
+            dates={lateHistory.map(s => s.occurred_at)}
+            tone={lateHistory.length > 0 ? 'warn' : 'neutral'}
           />
           <AttendanceStat
             label="Break overruns"
@@ -618,6 +647,35 @@ function DisciplinaryTab({ staffId, venueId, onStrikesCountChange }) {
             tone="neutral"
           />
         </div>
+      )}
+
+      {/* ── Late clock-in history (ground truth from clock_events + shifts) ── */}
+      {!loading && lateHistory.length > 0 && (
+        <>
+          <span className="font-mono text-[11px] uppercase tracking-[0.07em] text-charcoal/50 font-semibold">
+            Late clock-ins ({lateHistory.length})
+          </span>
+          <SectionCard>
+            {lateHistory.map((item, i) => (
+              <div key={item.id} className={`flex items-center gap-3 px-[18px] py-[13px] ${i < lateHistory.length - 1 ? 'border-b border-charcoal/6' : ''}`}>
+                <div className="w-7 h-7 rounded-lg bg-warning/10 flex items-center justify-center font-mono text-[11px] font-bold text-warning shrink-0">
+                  {i + 1}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-[13px] font-semibold text-charcoal/75">
+                    {item.minsLate} min{item.minsLate !== 1 ? 's' : ''} late
+                    <span className="font-mono text-[11px] font-normal text-charcoal/30 ml-2">
+                      scheduled {item.scheduledTime.slice(0, 5)}
+                    </span>
+                  </div>
+                  <div className="font-mono text-[11px] text-charcoal/30 mt-[3px]">
+                    {format(parseISO(item.occurred_at), 'd MMM yyyy, HH:mm')}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </SectionCard>
+        </>
       )}
 
       <div className="flex items-center justify-between gap-2">
