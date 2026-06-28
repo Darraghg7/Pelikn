@@ -227,7 +227,7 @@ export default function ClockPanel({ staffId, hasShift = true, compact = false }
           const startFloored = new Date(Math.floor(shiftStart.getTime() / 60000) * 60000)
           const msLate       = nowFloored.getTime() - startFloored.getTime()
 
-          if (msLate >= 60000) { // >= 1 whole minute late
+          if (msLate > 0) { // any second past shift start is late
             const minsLate = Math.floor(msLate / 60000)
 
             // Notify managers (escalation level handled by strike count in modal)
