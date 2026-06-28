@@ -534,12 +534,12 @@ function DisciplinaryTab({ staffId, venueId, onStrikesCountChange }) {
       const date      = ev.occurred_at.slice(0, 10)
       const startTime = shiftMap[date]
       if (!startTime) return []
-      const shiftStart  = new Date(`${date}T${startTime}`)
-      const clockedIn   = new Date(ev.occurred_at)
-      const msLate      = Math.floor(clockedIn.getTime() / 60000) * 60000
-                        - Math.floor(shiftStart.getTime() / 60000) * 60000
-      if (msLate < 60000) return [] // < 1 whole minute — not late
-      return [{ id: ev.id, occurred_at: ev.occurred_at, minsLate: Math.floor(msLate / 60000), scheduledTime: startTime }]
+      const shiftStart = new Date(`${date}T${startTime}`)
+      const clockedIn  = new Date(ev.occurred_at)
+      const msLate     = clockedIn.getTime() - shiftStart.getTime()
+      if (msLate <= 0) return [] // on time or early
+      const minsLate = Math.floor(msLate / 60000)
+      return [{ id: ev.id, occurred_at: ev.occurred_at, minsLate, secsLate: Math.floor(msLate / 1000), scheduledTime: startTime }]
     })
     setLateHistory(late)
 
@@ -663,7 +663,7 @@ function DisciplinaryTab({ staffId, venueId, onStrikesCountChange }) {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="text-[13px] font-semibold text-charcoal/75">
-                    {item.minsLate} min{item.minsLate !== 1 ? 's' : ''} late
+                    {item.minsLate >= 1 ? `${item.minsLate} min${item.minsLate !== 1 ? 's' : ''} late` : `${item.secsLate}s late`}
                     <span className="font-mono text-[11px] font-normal text-charcoal/30 ml-2">
                       scheduled {item.scheduledTime.slice(0, 5)}
                     </span>
