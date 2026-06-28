@@ -19,10 +19,12 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const SUPABASE_URL     = Deno.env.get('SUPABASE_URL') ?? ''
 const SUPABASE_SERVICE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-const JWT_SECRET       = Deno.env.get('SUPABASE_JWT_SECRET') ?? ''
+const JWT_SECRET       = Deno.env.get('JWT_SIGNING_SECRET') ?? Deno.env.get('SUPABASE_JWT_SECRET') ?? ''
 
 const ALLOWED_ORIGINS = [
+  'https://get-pelikn.com',
   'https://pelikn.app',
+  'https://pelikn.vercel.app',
   'capacitor://localhost',
   'ionic://localhost',
   'http://localhost:5173',
@@ -114,6 +116,38 @@ Deno.serve(async (req) => {
 
       const jwt = await makeJwt(staff_id, venue_id, sessionToken)
       return json({ jwt, session_token: sessionToken })
+    }
+
+    // ── action: verify_pin (PIN check without creating a session) ────────
+    if (action === 'verify_pin') {
+      const { staff_id, pin, venue_id } = body
+      if (!staff_id || !pin || !venue_id) return json({ error: 'staff_id, pin, venue_id required' }, 400)
+
+      const { data: sessionToken, error } = await db.rpc('verify_staff_pin_and_create_session', {
+        p_staff_id: staff_id,
+        p_pin:      pin,
+        p_venue_id: venue_id,
+      })
+
+      if (error || !sessionToken) {
+        const msg = error?.message ?? 'Invalid PIN'
+        const status = msg.toLowerCase().includes('too many') ? 429
+          : msg.toLowerCase().includes('inactive')           ? 403
+          : 401
+        return json({ error: msg }, status)
+      }
+
+      // PIN valid — delete the temporary session so it doesn't linger
+      db.from('staff_sessions').delete().eq('token', sessionToken).then(() => {})
+
+      // Return the staff role so the caller can confirm manager access
+      const { data: staff } = await db
+        .from('staff')
+        .select('role, name')
+        .eq('id', staff_id)
+        .single()
+
+      return json({ ok: true, role: staff?.role ?? 'staff', name: staff?.name ?? '' })
     }
 
     // ── action: issue_jwt (existing session_token → new JWT for venue) ────

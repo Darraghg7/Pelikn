@@ -60,10 +60,10 @@ export default function AttendanceSettingsPage() {
 
   const {
     lateGraceMins, breakDurationMins, breakOverrunGraceMins, cleanupMinutes,
-    requireLateReason, notifyManagerAtStrike, disciplinaryAtStrike,
+    requireLateReason, requireManagerApprovalForLate, notifyManagerAtStrike, disciplinaryAtStrike,
     countingWindowDays, pushToManager,
     saveLateGraceMins, saveBreakDuration, saveBreakOverrunGraceMins, saveCleanupMinutes,
-    saveRequireLateReason, saveNotifyManagerAtStrike, saveDisciplinaryAtStrike,
+    saveRequireLateReason, saveRequireManagerApprovalForLate, saveNotifyManagerAtStrike, saveDisciplinaryAtStrike,
     saveCountingWindowDays, savePushToManager,
   } = settings
 
@@ -91,6 +91,12 @@ export default function AttendanceSettingsPage() {
             sub="Staff pick a reason when late"
             last={false}
             control={<Toggle checked={requireLateReason} onChange={saveRequireLateReason} />}
+          />
+          <Row
+            label="Require manager approval"
+            sub="Manager must enter their PIN to dismiss the late alert"
+            last={false}
+            control={<Toggle checked={requireManagerApprovalForLate} onChange={saveRequireManagerApprovalForLate} />}
           />
         </Group>
 

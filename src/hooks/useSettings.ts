@@ -57,6 +57,7 @@ interface AppSettings {
   lateGraceMins: number
   breakOverrunGraceMins: number
   requireLateReason: boolean
+  requireManagerApprovalForLate: boolean
   notifyManagerAtStrike: number
   disciplinaryAtStrike: number
   countingWindowDays: number
@@ -92,6 +93,7 @@ const DEFAULTS: AppSettings = {
   lateGraceMins: 0,
   breakOverrunGraceMins: 5,
   requireLateReason: true,
+  requireManagerApprovalForLate: true,
   notifyManagerAtStrike: 3,
   disciplinaryAtStrike: 4,
   countingWindowDays: 30,
@@ -149,7 +151,8 @@ async function fetchAppSettings(venueId: string): Promise<AppSettings> {
         }
         if (row.key === 'late_grace_mins'          && typeof parsed === 'number')  result.lateGraceMins = parsed
         if (row.key === 'break_overrun_grace_mins' && typeof parsed === 'number')  result.breakOverrunGraceMins = parsed
-        if (row.key === 'require_late_reason'      && typeof parsed === 'boolean') result.requireLateReason = parsed
+        if (row.key === 'require_late_reason'               && typeof parsed === 'boolean') result.requireLateReason = parsed
+        if (row.key === 'require_manager_approval_for_late' && typeof parsed === 'boolean') result.requireManagerApprovalForLate = parsed
         if (row.key === 'notify_manager_at_strike' && typeof parsed === 'number')  result.notifyManagerAtStrike = parsed
         if (row.key === 'disciplinary_at_strike'   && typeof parsed === 'number')  result.disciplinaryAtStrike = parsed
         if (row.key === 'counting_window_days'     && typeof parsed === 'number')  result.countingWindowDays = parsed
@@ -213,6 +216,7 @@ export function useAppSettings() {
         late_grace_mins: 'lateGraceMins',
         break_overrun_grace_mins: 'breakOverrunGraceMins',
         require_late_reason: 'requireLateReason',
+        require_manager_approval_for_late: 'requireManagerApprovalForLate',
         notify_manager_at_strike: 'notifyManagerAtStrike',
         disciplinary_at_strike: 'disciplinaryAtStrike',
         counting_window_days: 'countingWindowDays',
@@ -240,6 +244,7 @@ export function useAppSettings() {
   const saveLateGraceMins = useCallback((mins: number) => saveSetting('late_grace_mins', mins), [saveSetting])
   const saveBreakOverrunGraceMins = useCallback((mins: number) => saveSetting('break_overrun_grace_mins', mins), [saveSetting])
   const saveRequireLateReason = useCallback((v: boolean) => saveSetting('require_late_reason', v), [saveSetting])
+  const saveRequireManagerApprovalForLate = useCallback((v: boolean) => saveSetting('require_manager_approval_for_late', v), [saveSetting])
   const saveNotifyManagerAtStrike = useCallback((n: number) => saveSetting('notify_manager_at_strike', n), [saveSetting])
   const saveDisciplinaryAtStrike = useCallback((n: number) => saveSetting('disciplinary_at_strike', n), [saveSetting])
   const saveCountingWindowDays = useCallback((n: number) => saveSetting('counting_window_days', n), [saveSetting])
@@ -278,6 +283,7 @@ export function useAppSettings() {
     lateGraceMins: settings.lateGraceMins,
     breakOverrunGraceMins: settings.breakOverrunGraceMins,
     requireLateReason: settings.requireLateReason,
+    requireManagerApprovalForLate: settings.requireManagerApprovalForLate,
     notifyManagerAtStrike: settings.notifyManagerAtStrike,
     disciplinaryAtStrike: settings.disciplinaryAtStrike,
     countingWindowDays: settings.countingWindowDays,
@@ -288,7 +294,7 @@ export function useAppSettings() {
     loading,
     saveCustomRoles, saveClosedDays, saveBreakDuration, saveCleanupMinutes, saveFridgeCheckTime,
     saveOpenTime, saveCloseTime, saveDayHours, saveComplianceNavOrder, saveActionSchedules,
-    saveLateGraceMins, saveBreakOverrunGraceMins, saveRequireLateReason,
+    saveLateGraceMins, saveBreakOverrunGraceMins, saveRequireLateReason, saveRequireManagerApprovalForLate,
     saveNotifyManagerAtStrike, saveDisciplinaryAtStrike, saveCountingWindowDays, savePushToManager, saveNotifyBreakOverrun,
     saveHiddenCheckTiles, saveHiddenTeamTiles,
     nextColor, reload,

@@ -9,7 +9,7 @@ import { useClockStatus, saveClockStatusCache } from '../../hooks/useClockEvents
 import { useVenue } from '../../contexts/VenueContext'
 import { useToast } from '../ui/Toast'
 import LoadingSpinner from '../ui/LoadingSpinner'
-import { supabase } from '../../lib/supabase'
+import { supabase, supabaseUrl, supabaseAnonKey } from '../../lib/supabase'
 import { sendPush } from '../../lib/sendPush'
 import StaffAlertModal from './StaffAlertModal'
 import { useAppSettings as useSettings } from '../../hooks/useSettings'
@@ -130,7 +130,7 @@ async function countBreakStrikes(staffId, venueId, now) {
 export default function ClockPanel({ staffId, hasShift = true, compact = false }) {
   const { venueId } = useVenue()
   const toast = useToast()
-  const { requireLateReason } = useSettings()
+  const { requireLateReason, requireManagerApprovalForLate } = useSettings()
   const { status, clockInAt, breakStartAt, totalBreakMs, loading, reload } = useClockStatus(staffId)
   const [submitting, setSubmitting] = useState(false)
 
@@ -368,6 +368,49 @@ export default function ClockPanel({ staffId, hasShift = true, compact = false }
     }
   }
 
+  // Build manager list from the cached staff list (populated at login — no extra fetch)
+  const managers = React.useMemo(() => {
+    if (!venueId) return []
+    try {
+      const cached = localStorage.getItem(`pelikn_staff_${venueId}`)
+      const all = cached ? JSON.parse(cached) : []
+      return all.filter(s => s.role === 'manager' || s.role === 'owner')
+    } catch { return [] }
+  }, [venueId])
+
+  // Verify a manager's PIN — online first, offline hash fallback
+  const verifyManagerPin = React.useCallback(async (managerId, pin) => {
+    // Online path via edge function verify_pin action
+    try {
+      const res = await fetch(`${supabaseUrl}/functions/v1/pin-login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', apikey: supabaseAnonKey },
+        body: JSON.stringify({ action: 'verify_pin', staff_id: managerId, pin, venue_id: venueId }),
+        signal: AbortSignal.timeout(6000),
+      })
+      const data = await res.json()
+      if (res.ok && data.ok) {
+        if (!['manager', 'owner'].includes(data.role)) {
+          return { ok: false, error: "This account doesn't have manager access" }
+        }
+        return { ok: true }
+      }
+      if (res.status === 429) return { ok: false, error: 'Too many attempts — wait a moment' }
+      return { ok: false, error: 'Incorrect PIN, try again' }
+    } catch { /* network offline — fall through */ }
+
+    // Offline fallback: verify against cached SHA-256 hash
+    try {
+      const data = new TextEncoder().encode(`${managerId}:${pin}:pelikn_offline_v1`)
+      const buf  = await crypto.subtle.digest('SHA-256', data)
+      const hash = Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('')
+      const cachedHash = localStorage.getItem(`pelikn_pin_${managerId}`)
+      if (!cachedHash || hash !== cachedHash) return { ok: false, error: 'Incorrect PIN, try again' }
+      // Role already confirmed — managers list is pre-filtered
+      return { ok: true }
+    } catch { return { ok: false, error: 'Incorrect PIN, try again' } }
+  }, [venueId])
+
   const cfg = STATUS_CONFIG[status] ?? STATUS_CONFIG.clocked_out
 
   if (loading) {
@@ -387,6 +430,9 @@ export default function ClockPanel({ staffId, hasShift = true, compact = false }
         breakAllowanceMins={alert?.breakAllowanceMins ?? breakAllowanceMins}
         takenMins={alert?.takenMins}
         requireLateReason={requireLateReason}
+        requireManagerApproval={requireManagerApprovalForLate && alert?.type === 'late_clock_in'}
+        managers={managers}
+        onVerifyManagerPin={verifyManagerPin}
         onAcknowledge={handleAcknowledge}
       />
 
