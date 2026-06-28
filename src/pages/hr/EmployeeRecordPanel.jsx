@@ -447,6 +447,49 @@ function DocumentsTab({ staffId, venueId, onDocsCountChange }) {
   )
 }
 
+// ── Attendance summary stat card ─────────────────────────────────────────────
+function AttendanceStat({ label, total, active, dates, tone }) {
+  const isWarn = tone === 'warn' && active > 0
+  const bg     = isWarn ? '#fff8f0' : '#f5f6f4'
+  const numClr = isWarn ? '#a85d12' : '#3d4a44'
+  const lblClr = isWarn ? '#a85d12' : '#76817b'
+
+  return (
+    <div style={{ background: bg, borderRadius: 12, padding: '14px 16px' }}>
+      <p className="font-mono text-[11px] uppercase tracking-[0.07em] font-semibold mb-1" style={{ color: lblClr }}>
+        {label}
+      </p>
+      <div className="flex items-baseline gap-2">
+        <span className="font-mono text-[28px] font-bold leading-none" style={{ color: numClr }}>
+          {active}
+        </span>
+        <span className="font-mono text-[11px]" style={{ color: lblClr }}>
+          active
+        </span>
+        {total > active && (
+          <span className="font-mono text-[11px] text-charcoal/30 ml-auto">
+            {total} total
+          </span>
+        )}
+      </div>
+      {dates.length > 0 && (
+        <div className="flex flex-col gap-0.5 mt-2">
+          {dates.slice(0, 3).map((d, i) => (
+            <span key={i} className="font-mono text-[11px]" style={{ color: lblClr }}>
+              {format(parseISO(d), 'd MMM, HH:mm')}
+            </span>
+          ))}
+          {dates.length > 3 && (
+            <span className="font-mono text-[11px] text-charcoal/30">
+              +{dates.length - 3} more
+            </span>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ── Disciplinary Tab ─────────────────────────────────────────────────────────
 function DisciplinaryTab({ staffId, venueId, onStrikesCountChange }) {
   const toast = useToast()
@@ -549,8 +592,34 @@ function DisciplinaryTab({ staffId, venueId, onStrikesCountChange }) {
 
   const OFFENCE_LABELS = { late_clock_in: 'Late clock-in', break_overrun: 'Break overrun' }
 
+  const lateAll    = strikes.filter(s => s.offence_type === 'late_clock_in')
+  const lateActive = lateAll.filter(s => !s.dismissed_at)
+  const breakAll   = strikes.filter(s => s.offence_type === 'break_overrun')
+  const breakActive = breakAll.filter(s => !s.dismissed_at)
+
   return (
     <div className="flex flex-col gap-3.5">
+
+      {/* ── Attendance summary ─────────────────────────────────────────────── */}
+      {!loading && strikes.length > 0 && (
+        <div className="grid grid-cols-2 gap-2.5">
+          <AttendanceStat
+            label="Late clock-ins"
+            total={lateAll.length}
+            active={lateActive.length}
+            dates={lateActive.map(s => s.occurred_at)}
+            tone="warn"
+          />
+          <AttendanceStat
+            label="Break overruns"
+            total={breakAll.length}
+            active={breakActive.length}
+            dates={breakActive.map(s => s.occurred_at)}
+            tone="neutral"
+          />
+        </div>
+      )}
+
       <div className="flex items-center justify-between gap-2">
         <span className="font-mono text-[11px] uppercase tracking-[0.07em] text-charcoal/50 font-semibold">
           Timeline
