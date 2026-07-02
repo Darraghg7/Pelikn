@@ -19,8 +19,8 @@ CREATE POLICY "staff can manage own apns tokens"
   USING (
     staff_id IN (
       SELECT s.id FROM staff s
-      JOIN sessions sess ON sess.staff_id = s.id
-      WHERE sess.token = current_setting('request.jwt.claims', true)::json->>'session_token'
+      JOIN staff_sessions sess ON sess.staff_id = s.id
+      WHERE sess.token::text = current_setting('request.jwt.claims', true)::json->>'session_token'
     )
   );
 
