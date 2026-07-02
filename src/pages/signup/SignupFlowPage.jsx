@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { supabase } from '../../lib/supabase'
+import { supabase, supabaseUrl, supabaseAnonKey } from '../../lib/supabase'
 import StepPlan from './StepPlan'
 import StepDetails from './StepDetails'
 import StepExtraVenues from './StepExtraVenues'
@@ -37,6 +37,17 @@ export default function SignupFlowPage() {
     setError('')
 
     try {
+      // 0. Rate-limit check — blocks bot/spam signups by IP
+      const guardRes = await fetch(`${supabaseUrl}/functions/v1/signup-guard`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', apikey: supabaseAnonKey },
+        body: JSON.stringify({ email }),
+      })
+      if (!guardRes.ok) {
+        const guardData = await guardRes.json()
+        throw new Error(guardData.error ?? 'Too many signup attempts. Please try again later.')
+      }
+
       // 1. Create Supabase Auth account
       const { error: authErr } = await supabase.auth.signUp({ email, password })
       if (authErr) throw new Error(authErr.message)
