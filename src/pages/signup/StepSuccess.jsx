@@ -32,6 +32,16 @@ export default function StepSuccess({ venueName, venueSlug, plan, allVenues = []
         </p>
       </div>
 
+      {/* Email verification nudge */}
+      <div className="w-full bg-charcoal/4 rounded-xl px-4 py-3 flex items-start gap-3 text-left">
+        <svg className="shrink-0 mt-0.5" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#76817b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>
+        </svg>
+        <p className="text-xs text-charcoal/50 leading-relaxed">
+          We've sent a verification email to your inbox. Click the link to confirm your account — you can still use Pelikn in the meantime.
+        </p>
+      </div>
+
       {/* Plan badge */}
       <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold border ${
         plan === 'pro'
