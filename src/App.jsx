@@ -28,8 +28,10 @@ const MarketingPage = lazy(() => import('./pages/marketing/MarketingPage'))
 // Privacy policy
 const PrivacyPolicyPage = lazy(() => import('./pages/PrivacyPolicyPage'))
 
-// Signup flow
-const SignupFlowPage = lazy(() => import('./pages/signup/SignupFlowPage'))
+// Signup flow + auth callbacks
+const SignupFlowPage    = lazy(() => import('./pages/signup/SignupFlowPage'))
+const AuthCallbackPage  = lazy(() => import('./pages/AuthCallbackPage'))
+const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage'))
 
 // Onboarding
 const OnboardingPage = lazy(() => import('./pages/onboarding/OnboardingPage'))
@@ -470,6 +472,10 @@ export default function App() {
 
           {/* Sign up */}
           <Route path="/signup" element={<SignupFlowPage />} />
+
+          {/* Auth email callbacks — verification + password reset */}
+          <Route path="/auth/callback"   element={<AuthCallbackPage />} />
+          <Route path="/reset-password"  element={<ResetPasswordPage />} />
 
           {/* Login — redirects to venue if already authenticated */}
           <Route path="/login" element={<LandingRoute />} />

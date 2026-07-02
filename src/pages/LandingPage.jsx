@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useLayoutEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { supabase } from '../lib/supabase'
 
@@ -84,6 +84,7 @@ function FieldIcon({ type }) {
 export default function LandingPage() {
   const navigate = useNavigate()
   const { user, venueSlug, authLoading, signInWithEmail, selectVenue } = useAuth()
+  const location = useLocation()
 
   // Wait for the splash screen to finish before triggering entrance animations
   const [ready, setReady] = useState(() => typeof window !== 'undefined' && window.__peliknSplashDone === true)
@@ -100,7 +101,7 @@ export default function LandingPage() {
   const [email, setEmail]               = useState('')
   const [password, setPassword]         = useState('')
   const [error, setError]               = useState('')
-  const [notice, setNotice]             = useState('')
+  const [notice, setNotice]             = useState(location.state?.notice ?? '')
   const [loading, setLoading]           = useState(false)
   const [pendingVenues, setPendingVenues] = useState(null)
   const [view, setView]                 = useState('welcome') // 'welcome' | 'signin' | 'join' | 'picker'
@@ -155,12 +156,14 @@ export default function LandingPage() {
       setError('Enter your email first')
       return
     }
-    const { error: err } = await supabase.auth.resetPasswordForEmail(address)
+    const { error: err } = await supabase.auth.resetPasswordForEmail(address, {
+      redirectTo: `${window.location.origin}/auth/callback`,
+    })
     if (err) {
       setError(err.message)
       return
     }
-    setNotice('Reset link sent')
+    setNotice('Reset link sent — check your email')
   }
 
   const handleJoin = async (e) => {
