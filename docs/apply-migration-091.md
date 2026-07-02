@@ -19,10 +19,15 @@ If either fails **stop** — that's a pre-existing issue to fix first.
 
 ## Step 2 — Apply (3 min)
 
-1. Go to [supabase.com/dashboard](https://supabase.com/dashboard) → your project → **SQL Editor**.
-2. On your Mac, open `supabase/migrations/091_venue_scoped_rls.sql`, select **all** of it, copy.
-3. Paste into the SQL Editor and press **Run**.
-4. It should finish with "Success. No rows returned." Warnings about "policy does not exist, skipping" are fine (that's the `DROP POLICY IF EXISTS` lines).
+The migration is **drift-proof and re-runnable** (rewritten and tested July 2026): every statement checks its table exists first, so it cannot fail on a database that's missing tables from skipped migrations. Running it twice is harmless.
+
+1. Take a fresh backup first (see the backup protocol — do not skip this).
+2. Go to [supabase.com/dashboard](https://supabase.com/dashboard) → your project → **SQL Editor**.
+3. On your Mac, open `supabase/migrations/091_venue_scoped_rls.sql`, select **all** of it, copy.
+4. Paste into the SQL Editor and press **Run**.
+5. The **Results panel shows a drift report** — a single row called `skipped_missing_tables`:
+   - `none` → the whole migration applied. Done.
+   - a list of table names → those tables don't exist in this database (schema drift). The rest of the migration still applied safely. **Send the list to Claude** — each named table means a feature whose migration was never applied here.
 
 ## Step 3 — Verify (5 min)
 
