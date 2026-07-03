@@ -106,6 +106,37 @@ function ordinal(n) {
   return n + (s[(v - 20) % 10] || s[v] || s[0])
 }
 
+// ── Alert tone ───────────────────────────────────────────────────────────────
+// Urgent two-tone chime via Web Audio — no audio asset needed, works offline.
+// Browsers allow this because the modal always follows a user tap (clock in /
+// break end); if audio is blocked or unsupported it fails silently.
+function playAlertTone() {
+  try {
+    const Ctx = window.AudioContext || window.webkitAudioContext
+    if (!Ctx) return
+    const ctx = new Ctx()
+    const beep = (freq, at, dur) => {
+      const osc  = ctx.createOscillator()
+      const gain = ctx.createGain()
+      osc.type = 'square'
+      osc.frequency.value = freq
+      const t = ctx.currentTime + at
+      gain.gain.setValueAtTime(0.0001, t)
+      gain.gain.exponentialRampToValueAtTime(0.25, t + 0.02)
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + dur)
+      osc.connect(gain)
+      gain.connect(ctx.destination)
+      osc.start(t)
+      osc.stop(t + dur + 0.05)
+    }
+    beep(880, 0,    0.28)
+    beep(660, 0.34, 0.28)
+    beep(880, 0.68, 0.42)
+    if (ctx.state === 'suspended') ctx.resume().catch(() => {})
+    setTimeout(() => { ctx.close().catch(() => {}) }, 2000)
+  } catch { /* audio unavailable — alert still shows */ }
+}
+
 // ── Reason chips ─────────────────────────────────────────────────────────────
 const LATE_REASONS    = ['Transport', 'Overslept', 'Personal', 'Other']
 const BREAK_REASONS   = ['Service was busy', 'Lost track of time', 'Personal', 'Other']
@@ -115,7 +146,7 @@ function ReasonChips({ type, selected, onSelect }) {
   return (
     <div className="flex flex-col gap-2">
       <p className="text-[12px] font-medium" style={{ color: INK3 }}>
-        Add a reason (optional)
+        Select a reason
       </p>
       <div className="flex flex-wrap gap-2">
         {reasons.map(r => (
@@ -263,6 +294,8 @@ export default function StaffAlertModal({
       setSelectedManager(null)
       setPin('')
       setPinError('')
+      playAlertTone()
+      if (navigator.vibrate) { try { navigator.vibrate([200, 100, 200]) } catch { /* not supported */ } }
       requestAnimationFrame(() => setAnimating(true))
     } else if (visible) {
       setAnimating(false)
@@ -281,8 +314,10 @@ export default function StaffAlertModal({
   const showBanner   = strikeCount >= 3
   const bannerSevere = strikeCount >= 4
   const showReasonChips = requireLateReason
+  const reasonMissing   = showReasonChips && !selectedReason
 
   const handleSubmitClick = () => {
+    if (reasonMissing) return // a reason must be selected before continuing
     if (requireManagerApproval) {
       setPhase('manager_pin')
     } else {
@@ -462,12 +497,17 @@ export default function StaffAlertModal({
                 />
               )}
 
-              {/* CTA button */}
+              {/* CTA button — locked until a reason is selected when reasons are required */}
               <button
                 type="button"
                 onClick={handleSubmitClick}
+                disabled={reasonMissing}
                 className="w-full flex items-center justify-center gap-2 text-[15px] font-bold text-white bg-brand border-none cursor-pointer"
-                style={{ height: 50, borderRadius: 13 }}
+                style={{
+                  height: 50, borderRadius: 13,
+                  opacity: reasonMissing ? 0.4 : 1,
+                  cursor: reasonMissing ? 'not-allowed' : 'pointer',
+                }}
               >
                 {requireManagerApproval ? (
                   <>

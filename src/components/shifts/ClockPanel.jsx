@@ -81,16 +81,21 @@ async function countLateStrikes(staffId, venueId, now) {
   return (count ?? 0) + 1
 }
 
+/** Local midnight as a UTC instant — a bare timestamp string would be read as UTC by Postgres */
+function localDayStartISO() {
+  const today = format(new Date(), 'yyyy-MM-dd')
+  return new Date(today + 'T00:00:00').toISOString()
+}
+
 /** Fetch the most recent clock_in event ID + acknowledged_at for this staff today */
 async function fetchTodayClockInEvent(staffId, venueId) {
-  const today = format(new Date(), 'yyyy-MM-dd')
   const { data } = await supabase
     .from('clock_events')
     .select('id, acknowledged_at')
     .eq('staff_id', staffId)
     .eq('venue_id', venueId)
     .eq('event_type', 'clock_in')
-    .gte('occurred_at', today + 'T00:00:00')
+    .gte('occurred_at', localDayStartISO())
     .order('occurred_at', { ascending: false })
     .limit(1)
     .maybeSingle()
@@ -99,14 +104,13 @@ async function fetchTodayClockInEvent(staffId, venueId) {
 
 /** Fetch the most recent break_start event ID + acknowledged_at for this staff today */
 async function fetchTodayBreakStartEvent(staffId, venueId) {
-  const today = format(new Date(), 'yyyy-MM-dd')
   const { data } = await supabase
     .from('clock_events')
     .select('id, acknowledged_at')
     .eq('staff_id', staffId)
     .eq('venue_id', venueId)
     .eq('event_type', 'break_start')
-    .gte('occurred_at', today + 'T00:00:00')
+    .gte('occurred_at', localDayStartISO())
     .order('occurred_at', { ascending: false })
     .limit(1)
     .maybeSingle()
@@ -217,9 +221,14 @@ export default function ClockPanel({ staffId, hasShift = true, compact = false }
         .eq('venue_id', venueId)
         .eq('staff_id', staffId)
         .eq('shift_date', today)
-        .maybeSingle()
-        .then(async ({ data: shift }) => {
-          if (!shift) return
+        .order('start_time')
+        .then(async ({ data: shifts }) => {
+          if (!shifts?.length) return
+          // Staff can have more than one shift row per day (split shifts,
+          // duplicated rota rows) — judge lateness against the shift whose
+          // start time is closest to this clock-in.
+          const distToStart = (s) => Math.abs(new Date(today + 'T' + s.start_time) - now)
+          const shift = shifts.reduce((best, s) => distToStart(s) < distToStart(best) ? s : best)
           // Floor both times to whole minutes before comparing so that
           // a sub-minute clock-in (e.g. 07:00:40) isn't flagged as late.
           const shiftStart   = new Date(today + 'T' + shift.start_time)
@@ -242,12 +251,17 @@ export default function ClockPanel({ staffId, hasShift = true, compact = false }
               roles: ['manager', 'owner'],
             }).catch(() => {})
 
-            const [strikes, ev] = await Promise.all([
-              countLateStrikes(staffId, venueId, now),
-              fetchTodayClockInEvent(staffId, venueId),
-            ])
+            // Never let a failed lookup suppress the alert — the staff member
+            // must always see the late window (and manager approval if enabled).
+            let strikes = 1, ev = null
+            try {
+              [strikes, ev] = await Promise.all([
+                countLateStrikes(staffId, venueId, now),
+                fetchTodayClockInEvent(staffId, venueId),
+              ])
+            } catch { /* show the alert with defaults */ }
 
-            if (!ev || ev.acknowledged_at) return // already acknowledged this event
+            if (ev?.acknowledged_at) return // already acknowledged this event
 
             // 3rd+ strike: additional manager push
             if (strikes >= 3) {
@@ -267,7 +281,7 @@ export default function ClockPanel({ staffId, hasShift = true, compact = false }
               strikeCount: strikes,
               scheduledTime: format(shiftStart, 'HH:mm'),
               actualTime: format(now, 'HH:mm'),
-              clockEventId: ev.id,
+              clockEventId: ev?.id ?? null,
               breakStillActive: false,
             })
           }
@@ -284,9 +298,13 @@ export default function ClockPanel({ staffId, hasShift = true, compact = false }
         .eq('venue_id', venueId)
         .eq('staff_id', staffId)
         .eq('shift_date', today)
-        .maybeSingle()
-        .then(({ data: shift }) => {
-          if (!shift) return
+        .order('start_time')
+        .then(({ data: shifts }) => {
+          if (!shifts?.length) return
+          // Multiple shift rows per day are possible — compare against the
+          // shift whose end time is closest to this clock-out.
+          const distToEnd = (s) => Math.abs(new Date(today + 'T' + s.end_time) - now)
+          const shift = shifts.reduce((best, s) => distToEnd(s) < distToEnd(best) ? s : best)
           const shiftEnd = new Date(today + 'T' + shift.end_time)
           const minsEarly = Math.round((shiftEnd - now) / 60000)
           if (minsEarly > 15) {
@@ -368,14 +386,28 @@ export default function ClockPanel({ staffId, hasShift = true, compact = false }
     }
   }
 
-  // Build manager list from the cached staff list (populated at login — no extra fetch)
-  const managers = React.useMemo(() => {
-    if (!venueId) return []
+  // Build manager list from the cached staff list (populated at login — no extra
+  // fetch). Falls back to the DB when the cache is missing on this device, so the
+  // manager approval screen always has managers to select.
+  const [managers, setManagers] = useState([])
+  useEffect(() => {
+    if (!venueId) { setManagers([]); return }
     try {
       const cached = localStorage.getItem(`pelikn_staff_${venueId}`)
       const all = cached ? JSON.parse(cached) : []
-      return all.filter(s => s.role === 'manager' || s.role === 'owner')
-    } catch { return [] }
+      const fromCache = all.filter(s => s.role === 'manager' || s.role === 'owner')
+      if (fromCache.length > 0) { setManagers(fromCache); return }
+    } catch { /* fall through to DB fetch */ }
+    let cancelled = false
+    supabase
+      .from('staff')
+      .select('id, name, role, photo_url')
+      .eq('venue_id', venueId)
+      .eq('is_active', true)
+      .in('role', ['manager', 'owner'])
+      .order('name')
+      .then(({ data }) => { if (!cancelled && data) setManagers(data) })
+    return () => { cancelled = true }
   }, [venueId])
 
   // Verify a manager's PIN — online first, offline hash fallback
