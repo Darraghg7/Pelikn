@@ -17,7 +17,8 @@ jobs:
           sudo apt-get install -y --no-install-recommends postgresql-common
           sudo YES=1 /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
           sudo apt-get install -y --no-install-recommends postgresql-client-17
-          pg_dump --version
+          # Runner preinstalls client 16 and keeps it first on PATH — use v17 explicitly
+          /usr/lib/postgresql/17/bin/pg_dump --version
 
       # NOTE: SUPABASE_DB_URL must be the Supabase "Session pooler" URI
       # (aws-*.pooler.supabase.com) — the direct db.*.supabase.co host is
@@ -50,7 +51,7 @@ jobs:
           SUPABASE_DB_URL="$(printf %s "$SUPABASE_DB_URL" | tr -d '[:space:]')"
           TIMESTAMP=$(date +%Y-%m-%d)
           echo "TIMESTAMP=${TIMESTAMP}" >> "$GITHUB_ENV"
-          pg_dump "$SUPABASE_DB_URL" \
+          /usr/lib/postgresql/17/bin/pg_dump "$SUPABASE_DB_URL" \
             --no-owner \
             --no-acl \
             --format=plain \
