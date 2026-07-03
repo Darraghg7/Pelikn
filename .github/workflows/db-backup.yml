@@ -43,6 +43,8 @@ jobs:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
         run: |
           set -euo pipefail
+          # Strip stray whitespace/newlines that sneak in when pasting the secret
+          SUPABASE_DB_URL="$(printf %s "$SUPABASE_DB_URL" | tr -d '[:space:]')"
           TIMESTAMP=$(date +%Y-%m-%d)
           echo "TIMESTAMP=${TIMESTAMP}" >> "$GITHUB_ENV"
           pg_dump "$SUPABASE_DB_URL" \
