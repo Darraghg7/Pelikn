@@ -1,61 +1,53 @@
-# Applying migration 091 — venue-scoped RLS
+# Enabling venue isolation (migration 091 + client)
 
-**What it does:** locks every venue's data to that venue. Today the database policies say "anyone with the app's public key may read/write" (`USING (true)`); after 091, ~123 policies check `venue_id = current_venue_id()`, where the venue ID comes from the signed login token. Data is never modified by this migration — only *access rules* change (plus a `venue_id` column added and backfilled on 7 child tables).
+**What this does:** locks every venue's data to that venue. Today the database says "anyone with the app's public key may read/write any venue" (`USING (true)`); afterwards, every venue-scoped policy checks `has_venue_access(venue_id)` — true only if the row belongs to **your** venue (staff, via the venue stamp in their login token) **or you own that venue** (owners, via their email login). No venue's data is ever modified — only the *access rules* change (plus a `venue_id` column added and backfilled on 7 child tables).
 
-**Cost:** nothing. RLS is a core Postgres feature, free on every Supabase plan.
+**Cost:** nothing. RLS is core Postgres, free on every Supabase plan. No edge-function deploy needed (the pin-login function is unchanged).
 
-**Time:** ~10 minutes including checks. Do it at a quiet time (e.g. after close) — if anything misbehaves, the rollback takes under a minute.
+**Two parts, and the order matters:**
+- **Client** (`feature/venue-isolation` branch): makes staff requests carry the venue stamp. Deploy this **first**. While the DB policies are still open, it changes nothing users can see — but it must be live before the DB half, or staff would carry no stamp and see nothing.
+- **Database** (migration 091): flips scoping on. Do this **second**, after confirming the client is deployed and the app still works.
+
+> **Why this order:** owners are recognised by their email login and work the moment 091 lands. Staff are recognised by the stamp the client injects — so if 091 goes first, staff get locked out until the client ships. Client first = safe and invisible; DB second = the actual switch-on.
 
 ---
 
-## Step 1 — Pre-checks (2 min)
+## Step 0 — Take a fresh backup first (non-negotiable)
 
-These should already be true (the app has been venue-aware since the pin-login update), but confirm:
+Trigger the backup workflow manually (GitHub → Actions → Daily Database Backup → Run workflow) and confirm it goes green with a real size (~300 KB+). Do not proceed until you have a verified backup from today.
 
-1. Open the live app and log in to a real venue (e.g. NOMAD) as staff via PIN. Pages load? Good.
-2. Log in as owner (email/password). Dashboard loads? Good.
+## Step 1 — Deploy the client (staff stamping)
 
-If either fails **stop** — that's a pre-existing issue to fix first.
+1. Merge `feature/venue-isolation` to `main` (Vercel auto-deploys).
+2. Once deployed, on the **live** site: log into NOMAD as staff (PIN) and as owner (email). Everything should work exactly as before — because the DB is still open, the stamp is invisible for now.
+3. If anything is off, stop and tell Claude — do not proceed to the DB step.
 
-## Step 2 — Apply (3 min)
+## Step 2 — Apply migration 091 (the switch-on)
 
-The migration is **drift-proof and re-runnable** (rewritten and tested July 2026): every statement checks its table exists first, so it cannot fail on a database that's missing tables from skipped migrations. Running it twice is harmless.
+The migration is **drift-proof, owner-aware, and re-runnable** (tested on Postgres 16: staff/owner/anon scoping, cross-venue blocking, apply/rollback all verified). Running it twice is harmless.
 
-1. Take a fresh backup first (see the backup protocol — do not skip this).
-2. Go to [supabase.com/dashboard](https://supabase.com/dashboard) → your project → **SQL Editor**.
-3. On your Mac, open `supabase/migrations/091_venue_scoped_rls.sql`, select **all** of it, copy.
-4. Paste into the SQL Editor and press **Run**.
-5. The **Results panel shows a drift report** — a single row called `skipped_missing_tables`:
-   - `none` → the whole migration applied. Done.
-   - a list of table names → those tables don't exist in this database (schema drift). The rest of the migration still applied safely. **Send the list to Claude** — each named table means a feature whose migration was never applied here.
+1. Pick a quiet window (after close).
+2. Supabase Dashboard → **SQL Editor**. Paste the entire contents of `supabase/migrations/091_venue_scoped_rls.sql`. Run.
+3. Read the **drift report** in the Results panel — one row, `skipped_missing_tables`:
+   - `none` → everything scoped. 
+   - a list → those tables lack a `venue_id` column (or don't exist); they were safely left open, not broken. **Send Claude the list** — each is a follow-up to add the column + backfill so it can be scoped too.
 
-## Step 3 — Verify (5 min)
+## Step 3 — Verify on the live app (the important bit)
 
-**In the SQL Editor**, run this:
+Right after applying, on NOMAD:
+1. **Staff PIN login** → dashboard, fridge temps, rota, cleaning all show NOMAD's data (not empty).
+2. **Log a fridge temperature** → saves.
+3. **Clock in / out** → works.
+4. **Owner email login** → settings, HR, timesheets all load.
+5. If you have a second venue, log into it and confirm you see *its* data, not NOMAD's.
+6. Log out fully, reopen → the login page still lists the venue's staff (venues/staff stay readable pre-login by design).
 
-```sql
-SELECT count(*) AS venue_scoped_policies
-FROM pg_policies
-WHERE qual ILIKE '%current_venue_id%';
-```
+If any of those show **empty** where there should be data, that's the signal to roll back.
 
-Expect a number around **120**. If it returns 0, the migration didn't apply — re-run Step 2.
+## Rollback (under a minute, no data touched)
 
-**In the app** (the checks that actually matter):
+SQL Editor → paste all of `supabase/migrations/091_rollback.sql` → Run. All policies return to open exactly as before; both helper functions are dropped. Tell Claude which step showed empty data so the policy can be fixed before retrying.
 
-1. Log in to venue A (e.g. NOMAD) as staff — dashboard, fridge temps, rota, cleaning all load and show NOMAD's data.
-2. Log a fridge temperature — it saves.
-3. Clock in and out — works.
-4. Log in as the owner — settings, HR, timesheets load.
-5. If you have a second venue (e.g. sandbox), log in there too and confirm you see *its* data, not NOMAD's.
-6. Log out completely, then open the app fresh — the login page still lists the venue's staff (that's intentional: `venues` and `staff` stay readable pre-login so the PIN screen works).
+## After it's verified
 
-## If anything breaks — rollback (1 min)
-
-1. SQL Editor → paste the entire contents of `supabase/migrations/091_rollback.sql` → **Run**.
-2. Everything returns to exactly how it was. No data is touched.
-3. Tell Claude what broke (which page, which action, any error message) so the policy can be fixed before retrying.
-
-## Afterwards
-
-Once verified, tell Claude it's applied — the audit's Launch Blocker #1 is then closed, and the "anon key is safe because RLS" statement in the README becomes fully true.
+Tell Claude it's live. The audit's #1 launch blocker is then closed, and the "anon key is safe because RLS" line in the README becomes fully true.
