@@ -75,7 +75,8 @@ jobs:
             exit 1
           fi
           # Sanity-check the dump actually contains schema statements
-          if ! gunzip -c "pelikn-backup-${{ env.TIMESTAMP }}.sql.gz" | head -200 | grep -q "CREATE TABLE"; then
+          # (grep -m1 stops at the first match; dumps open with long preambles)
+          if ! gunzip -c "pelikn-backup-${{ env.TIMESTAMP }}.sql.gz" | grep -q -m1 "CREATE TABLE"; then
             echo "::error::Backup contains no CREATE TABLE statements — not a valid dump."
             exit 1
           fi
