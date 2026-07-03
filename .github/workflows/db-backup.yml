@@ -51,7 +51,13 @@ jobs:
           SUPABASE_DB_URL="$(printf %s "$SUPABASE_DB_URL" | tr -d '[:space:]')"
           TIMESTAMP=$(date +%Y-%m-%d)
           echo "TIMESTAMP=${TIMESTAMP}" >> "$GITHUB_ENV"
+          # public = all venue/app data; auth = manager login accounts.
+          # Supabase-internal schemas (cron, storage, realtime, …) are
+          # excluded — cron.job_run_details alone is huge and killed the
+          # pooler connection mid-dump.
           /usr/lib/postgresql/17/bin/pg_dump "$SUPABASE_DB_URL" \
+            --schema=public \
+            --schema=auth \
             --no-owner \
             --no-acl \
             --format=plain \
