@@ -74,10 +74,13 @@ jobs:
             echo "::error::Backup file is only ${SIZE} bytes — pg_dump produced no data. Failing the run."
             exit 1
           fi
-          # Sanity-check the dump actually contains schema statements
-          # (grep -m1 stops at the first match; dumps open with long preambles)
-          if ! gunzip -c "pelikn-backup-${{ env.TIMESTAMP }}.sql.gz" | grep -q -m1 "CREATE TABLE"; then
-            echo "::error::Backup contains no CREATE TABLE statements — not a valid dump."
+          # Sanity-check the dump actually contains schema statements.
+          # grep -c reads the whole stream — early-exit grep -q SIGPIPEs gunzip,
+          # which pipefail then misreports as a failure.
+          TABLES=$(gunzip -c "pelikn-backup-${{ env.TIMESTAMP }}.sql.gz" | grep -c "^CREATE TABLE" || true)
+          echo "CREATE TABLE statements: ${TABLES}"
+          if [ "${TABLES}" -lt 10 ]; then
+            echo "::error::Only ${TABLES} CREATE TABLE statements — not a valid dump."
             exit 1
           fi
 
