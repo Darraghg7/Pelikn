@@ -17,7 +17,7 @@
  *    reconstructed fully offline.
  */
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
-import { supabase, supabaseUrl, supabaseAnonKey, setSessionJwt, clearSessionJwt } from '../lib/supabase'
+import { supabase, supabaseUrl, supabaseAnonKey, setSessionJwt, clearSessionJwt, registerJwtRefresher } from '../lib/supabase'
 import {
   SESSION_TOKEN_KEY,
   SESSION_JWT_KEY,
@@ -62,6 +62,37 @@ const LS_KEYS = [
 ]
 
 const clearStorage = () => LS_KEYS.forEach(k => localStorage.removeItem(k))
+
+/**
+ * Re-issue a venue-scoped JWT from the currently-stored staff session token.
+ * Registered with the Supabase client as the JWT refresher, so an expiring or
+ * rejected venue JWT is renewed automatically without forcing a re-login.
+ * Reads token/venue from localStorage each call, so it always reflects the
+ * active session (including after a venue switch). Returns null on any failure
+ * — the caller then falls back to the anon key.
+ */
+async function issueVenueJwt() {
+  const token   = localStorage.getItem(SESSION_TOKEN_KEY)
+  const venueId = localStorage.getItem(SESSION_VENUE_ID_KEY)
+  if (!token || !venueId) return null
+  try {
+    const res = await fetch(`${supabaseUrl}/functions/v1/pin-login`, {
+      method:  'POST',
+      headers: {
+        'Content-Type':  'application/json',
+        'Authorization': `Bearer ${supabaseAnonKey}`,
+        'apikey':        supabaseAnonKey,
+      },
+      body: JSON.stringify({ action: 'issue_jwt', session_token: token, venue_id: venueId }),
+    })
+    if (!res.ok) return null
+    const { jwt } = await res.json()
+    if (jwt) localStorage.setItem(SESSION_JWT_KEY, jwt)
+    return jwt ?? null
+  } catch {
+    return null
+  }
+}
 
 /** Build a session object from localStorage keys. */
 function sessionFromStorage(token, verified = false) {
@@ -125,6 +156,9 @@ export function SessionProvider({ children }) {
       return raw ? JSON.parse(raw) : []
     } catch { return [] }
   })
+
+  // Let the Supabase client renew an expiring/rejected venue JWT on its own.
+  useEffect(() => { registerJwtRefresher(issueVenueJwt) }, [])
 
   // ── Restore session from localStorage on mount ──────────────────────────
   useEffect(() => {

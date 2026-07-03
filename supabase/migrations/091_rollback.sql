@@ -8,12 +8,12 @@
 
 
 -- ── Drift guard (added July 2026) ─────────────────────────────────────────────
--- Some environments are missing tables (migrations were applied by hand and
--- drifted). Every statement below only runs if its table exists; missing
--- tables are collected and reported by the SELECT at the very end.
+-- Some environments are missing tables/columns (migrations applied by hand and
+-- drifted). Every statement below only runs if its table (and, for policies, the
+-- venue_id column) exists; anything skipped is reported by the SELECT at the end.
 CREATE TEMP TABLE IF NOT EXISTS _mig_skipped (tbl text);
 
--- (current_venue_id() is dropped at the END — 091's policies depend on it)
+-- (helpers are dropped at the END — policies depend on them)
 
 -- Core tables
 DO $mig$
@@ -25,7 +25,7 @@ BEGIN
   ELSE
     IF to_regclass('public.shifts') IS NULL THEN
       INSERT INTO _mig_skipped VALUES ('shifts');
-      RAISE NOTICE 'PELIKN MIGRATION: skipped — table % missing', 'shifts';
+      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'shifts';
     END IF;
   END IF;
 END;
@@ -40,7 +40,7 @@ BEGIN
   ELSE
     IF to_regclass('public.app_settings') IS NULL THEN
       INSERT INTO _mig_skipped VALUES ('app_settings');
-      RAISE NOTICE 'PELIKN MIGRATION: skipped — table % missing', 'app_settings';
+      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'app_settings';
     END IF;
   END IF;
 END;
@@ -55,7 +55,7 @@ BEGIN
   ELSE
     IF to_regclass('public.task_templates') IS NULL THEN
       INSERT INTO _mig_skipped VALUES ('task_templates');
-      RAISE NOTICE 'PELIKN MIGRATION: skipped — table % missing', 'task_templates';
+      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'task_templates';
     END IF;
   END IF;
 END;
@@ -70,7 +70,7 @@ BEGIN
   ELSE
     IF to_regclass('public.task_one_offs') IS NULL THEN
       INSERT INTO _mig_skipped VALUES ('task_one_offs');
-      RAISE NOTICE 'PELIKN MIGRATION: skipped — table % missing', 'task_one_offs';
+      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'task_one_offs';
     END IF;
   END IF;
 END;
@@ -83,7 +83,7 @@ BEGIN
   ELSE
     IF to_regclass('public.task_completions') IS NULL THEN
       INSERT INTO _mig_skipped VALUES ('task_completions');
-      RAISE NOTICE 'PELIKN MIGRATION: skipped — table % missing', 'task_completions';
+      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'task_completions';
     END IF;
   END IF;
 END;
@@ -103,7 +103,7 @@ BEGIN
   ELSE
     IF to_regclass('public.cleaning_tasks') IS NULL THEN
       INSERT INTO _mig_skipped VALUES ('cleaning_tasks');
-      RAISE NOTICE 'PELIKN MIGRATION: skipped — table % missing', 'cleaning_tasks';
+      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'cleaning_tasks';
     END IF;
   END IF;
 END;
@@ -118,7 +118,7 @@ BEGIN
   ELSE
     IF to_regclass('public.cleaning_completions') IS NULL THEN
       INSERT INTO _mig_skipped VALUES ('cleaning_completions');
-      RAISE NOTICE 'PELIKN MIGRATION: skipped — table % missing', 'cleaning_completions';
+      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'cleaning_completions';
     END IF;
   END IF;
 END;
@@ -133,7 +133,7 @@ BEGIN
   ELSE
     IF to_regclass('public.fridges') IS NULL THEN
       INSERT INTO _mig_skipped VALUES ('fridges');
-      RAISE NOTICE 'PELIKN MIGRATION: skipped — table % missing', 'fridges';
+      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'fridges';
     END IF;
   END IF;
 END;
@@ -148,7 +148,7 @@ BEGIN
   ELSE
     IF to_regclass('public.fridge_temperature_logs') IS NULL THEN
       INSERT INTO _mig_skipped VALUES ('fridge_temperature_logs');
-      RAISE NOTICE 'PELIKN MIGRATION: skipped — table % missing', 'fridge_temperature_logs';
+      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'fridge_temperature_logs';
     END IF;
   END IF;
 END;
@@ -163,7 +163,7 @@ BEGIN
   ELSE
     IF to_regclass('public.food_items') IS NULL THEN
       INSERT INTO _mig_skipped VALUES ('food_items');
-      RAISE NOTICE 'PELIKN MIGRATION: skipped — table % missing', 'food_items';
+      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'food_items';
     END IF;
   END IF;
 END;
@@ -178,7 +178,7 @@ BEGIN
   ELSE
     IF to_regclass('public.food_allergens') IS NULL THEN
       INSERT INTO _mig_skipped VALUES ('food_allergens');
-      RAISE NOTICE 'PELIKN MIGRATION: skipped — table % missing', 'food_allergens';
+      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'food_allergens';
     END IF;
   END IF;
 END;
@@ -193,7 +193,7 @@ BEGIN
   ELSE
     IF to_regclass('public.waste_logs') IS NULL THEN
       INSERT INTO _mig_skipped VALUES ('waste_logs');
-      RAISE NOTICE 'PELIKN MIGRATION: skipped — table % missing', 'waste_logs';
+      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'waste_logs';
     END IF;
   END IF;
 END;
@@ -208,7 +208,7 @@ BEGIN
   ELSE
     IF to_regclass('public.delivery_checks') IS NULL THEN
       INSERT INTO _mig_skipped VALUES ('delivery_checks');
-      RAISE NOTICE 'PELIKN MIGRATION: skipped — table % missing', 'delivery_checks';
+      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'delivery_checks';
     END IF;
   END IF;
 END;
@@ -223,7 +223,7 @@ BEGIN
   ELSE
     IF to_regclass('public.delivery_check_items') IS NULL THEN
       INSERT INTO _mig_skipped VALUES ('delivery_check_items');
-      RAISE NOTICE 'PELIKN MIGRATION: skipped — table % missing', 'delivery_check_items';
+      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'delivery_check_items';
     END IF;
   END IF;
 END;
@@ -238,7 +238,7 @@ BEGIN
   ELSE
     IF to_regclass('public.suppliers') IS NULL THEN
       INSERT INTO _mig_skipped VALUES ('suppliers');
-      RAISE NOTICE 'PELIKN MIGRATION: skipped — table % missing', 'suppliers';
+      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'suppliers';
     END IF;
   END IF;
 END;
@@ -253,7 +253,7 @@ BEGIN
   ELSE
     IF to_regclass('public.supplier_items') IS NULL THEN
       INSERT INTO _mig_skipped VALUES ('supplier_items');
-      RAISE NOTICE 'PELIKN MIGRATION: skipped — table % missing', 'supplier_items';
+      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'supplier_items';
     END IF;
   END IF;
 END;
@@ -268,7 +268,7 @@ BEGIN
   ELSE
     IF to_regclass('public.supplier_orders') IS NULL THEN
       INSERT INTO _mig_skipped VALUES ('supplier_orders');
-      RAISE NOTICE 'PELIKN MIGRATION: skipped — table % missing', 'supplier_orders';
+      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'supplier_orders';
     END IF;
   END IF;
 END;
@@ -283,7 +283,7 @@ BEGIN
   ELSE
     IF to_regclass('public.supplier_order_items') IS NULL THEN
       INSERT INTO _mig_skipped VALUES ('supplier_order_items');
-      RAISE NOTICE 'PELIKN MIGRATION: skipped — table % missing', 'supplier_order_items';
+      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'supplier_order_items';
     END IF;
   END IF;
 END;
@@ -298,7 +298,7 @@ BEGIN
   ELSE
     IF to_regclass('public.opening_closing_checks') IS NULL THEN
       INSERT INTO _mig_skipped VALUES ('opening_closing_checks');
-      RAISE NOTICE 'PELIKN MIGRATION: skipped — table % missing', 'opening_closing_checks';
+      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'opening_closing_checks';
     END IF;
   END IF;
 END;
@@ -313,7 +313,7 @@ BEGIN
   ELSE
     IF to_regclass('public.opening_closing_completions') IS NULL THEN
       INSERT INTO _mig_skipped VALUES ('opening_closing_completions');
-      RAISE NOTICE 'PELIKN MIGRATION: skipped — table % missing', 'opening_closing_completions';
+      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'opening_closing_completions';
     END IF;
   END IF;
 END;
@@ -328,7 +328,7 @@ BEGIN
   ELSE
     IF to_regclass('public.cooking_temp_logs') IS NULL THEN
       INSERT INTO _mig_skipped VALUES ('cooking_temp_logs');
-      RAISE NOTICE 'PELIKN MIGRATION: skipped — table % missing', 'cooking_temp_logs';
+      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'cooking_temp_logs';
     END IF;
   END IF;
 END;
@@ -343,7 +343,7 @@ BEGIN
   ELSE
     IF to_regclass('public.cooling_logs') IS NULL THEN
       INSERT INTO _mig_skipped VALUES ('cooling_logs');
-      RAISE NOTICE 'PELIKN MIGRATION: skipped — table % missing', 'cooling_logs';
+      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'cooling_logs';
     END IF;
   END IF;
 END;
@@ -358,7 +358,7 @@ BEGIN
   ELSE
     IF to_regclass('public.pest_control_logs') IS NULL THEN
       INSERT INTO _mig_skipped VALUES ('pest_control_logs');
-      RAISE NOTICE 'PELIKN MIGRATION: skipped — table % missing', 'pest_control_logs';
+      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'pest_control_logs';
     END IF;
   END IF;
 END;
@@ -373,7 +373,7 @@ BEGIN
   ELSE
     IF to_regclass('public.probe_calibrations') IS NULL THEN
       INSERT INTO _mig_skipped VALUES ('probe_calibrations');
-      RAISE NOTICE 'PELIKN MIGRATION: skipped — table % missing', 'probe_calibrations';
+      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'probe_calibrations';
     END IF;
   END IF;
 END;
@@ -388,7 +388,7 @@ BEGIN
   ELSE
     IF to_regclass('public.hot_holding_items') IS NULL THEN
       INSERT INTO _mig_skipped VALUES ('hot_holding_items');
-      RAISE NOTICE 'PELIKN MIGRATION: skipped — table % missing', 'hot_holding_items';
+      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'hot_holding_items';
     END IF;
   END IF;
 END;
@@ -403,7 +403,7 @@ BEGIN
   ELSE
     IF to_regclass('public.hot_holding_logs') IS NULL THEN
       INSERT INTO _mig_skipped VALUES ('hot_holding_logs');
-      RAISE NOTICE 'PELIKN MIGRATION: skipped — table % missing', 'hot_holding_logs';
+      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'hot_holding_logs';
     END IF;
   END IF;
 END;
@@ -418,7 +418,7 @@ BEGIN
   ELSE
     IF to_regclass('public.corrective_actions') IS NULL THEN
       INSERT INTO _mig_skipped VALUES ('corrective_actions');
-      RAISE NOTICE 'PELIKN MIGRATION: skipped — table % missing', 'corrective_actions';
+      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'corrective_actions';
     END IF;
   END IF;
 END;
@@ -433,7 +433,7 @@ BEGIN
   ELSE
     IF to_regclass('public.rota_requirements') IS NULL THEN
       INSERT INTO _mig_skipped VALUES ('rota_requirements');
-      RAISE NOTICE 'PELIKN MIGRATION: skipped — table % missing', 'rota_requirements';
+      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'rota_requirements';
     END IF;
   END IF;
 END;
@@ -448,7 +448,7 @@ BEGIN
   ELSE
     IF to_regclass('public.clock_events') IS NULL THEN
       INSERT INTO _mig_skipped VALUES ('clock_events');
-      RAISE NOTICE 'PELIKN MIGRATION: skipped — table % missing', 'clock_events';
+      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'clock_events';
     END IF;
   END IF;
 END;
@@ -463,7 +463,7 @@ BEGIN
   ELSE
     IF to_regclass('public.push_subscriptions') IS NULL THEN
       INSERT INTO _mig_skipped VALUES ('push_subscriptions');
-      RAISE NOTICE 'PELIKN MIGRATION: skipped — table % missing', 'push_subscriptions';
+      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'push_subscriptions';
     END IF;
   END IF;
 END;
@@ -478,7 +478,7 @@ BEGIN
   ELSE
     IF to_regclass('public.time_off_requests') IS NULL THEN
       INSERT INTO _mig_skipped VALUES ('time_off_requests');
-      RAISE NOTICE 'PELIKN MIGRATION: skipped — table % missing', 'time_off_requests';
+      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'time_off_requests';
     END IF;
   END IF;
 END;
@@ -497,7 +497,7 @@ BEGIN
   ELSE
     IF to_regclass('public.staff_availability') IS NULL THEN
       INSERT INTO _mig_skipped VALUES ('staff_availability');
-      RAISE NOTICE 'PELIKN MIGRATION: skipped — table % missing', 'staff_availability';
+      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'staff_availability';
     END IF;
   END IF;
 END;
@@ -512,7 +512,7 @@ BEGIN
   ELSE
     IF to_regclass('public.fitness_declarations') IS NULL THEN
       INSERT INTO _mig_skipped VALUES ('fitness_declarations');
-      RAISE NOTICE 'PELIKN MIGRATION: skipped — table % missing', 'fitness_declarations';
+      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'fitness_declarations';
     END IF;
   END IF;
 END;
@@ -527,7 +527,7 @@ BEGIN
   ELSE
     IF to_regclass('public.dashboard_widgets') IS NULL THEN
       INSERT INTO _mig_skipped VALUES ('dashboard_widgets');
-      RAISE NOTICE 'PELIKN MIGRATION: skipped — table % missing', 'dashboard_widgets';
+      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'dashboard_widgets';
     END IF;
   END IF;
 END;
@@ -542,7 +542,7 @@ BEGIN
   ELSE
     IF to_regclass('public.venue_roles') IS NULL THEN
       INSERT INTO _mig_skipped VALUES ('venue_roles');
-      RAISE NOTICE 'PELIKN MIGRATION: skipped — table % missing', 'venue_roles';
+      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'venue_roles';
     END IF;
   END IF;
 END;
@@ -557,7 +557,7 @@ BEGIN
   ELSE
     IF to_regclass('public.staff_venue_links') IS NULL THEN
       INSERT INTO _mig_skipped VALUES ('staff_venue_links');
-      RAISE NOTICE 'PELIKN MIGRATION: skipped — table % missing', 'staff_venue_links';
+      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'staff_venue_links';
     END IF;
   END IF;
 END;
@@ -572,7 +572,7 @@ BEGIN
   ELSE
     IF to_regclass('public.tip_splits') IS NULL THEN
       INSERT INTO _mig_skipped VALUES ('tip_splits');
-      RAISE NOTICE 'PELIKN MIGRATION: skipped — table % missing', 'tip_splits';
+      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'tip_splits';
     END IF;
   END IF;
 END;
@@ -587,7 +587,7 @@ BEGIN
   ELSE
     IF to_regclass('public.tip_allocations') IS NULL THEN
       INSERT INTO _mig_skipped VALUES ('tip_allocations');
-      RAISE NOTICE 'PELIKN MIGRATION: skipped — table % missing', 'tip_allocations';
+      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'tip_allocations';
     END IF;
   END IF;
 END;
@@ -603,7 +603,7 @@ BEGIN
   ELSE
     IF to_regclass('public.documents') IS NULL THEN
       INSERT INTO _mig_skipped VALUES ('documents');
-      RAISE NOTICE 'PELIKN MIGRATION: skipped — table % missing', 'documents';
+      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'documents';
     END IF;
   END IF;
 END;
@@ -619,7 +619,7 @@ BEGIN
   ELSE
     IF to_regclass('public.incidents') IS NULL THEN
       INSERT INTO _mig_skipped VALUES ('incidents');
-      RAISE NOTICE 'PELIKN MIGRATION: skipped — table % missing', 'incidents';
+      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'incidents';
     END IF;
   END IF;
 END;
@@ -634,7 +634,7 @@ BEGIN
   ELSE
     IF to_regclass('public.hr_formal_actions') IS NULL THEN
       INSERT INTO _mig_skipped VALUES ('hr_formal_actions');
-      RAISE NOTICE 'PELIKN MIGRATION: skipped — table % missing', 'hr_formal_actions';
+      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'hr_formal_actions';
     END IF;
   END IF;
 END;
@@ -649,7 +649,7 @@ BEGIN
   ELSE
     IF to_regclass('public.equipment_maintenance_logs') IS NULL THEN
       INSERT INTO _mig_skipped VALUES ('equipment_maintenance_logs');
-      RAISE NOTICE 'PELIKN MIGRATION: skipped — table % missing', 'equipment_maintenance_logs';
+      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'equipment_maintenance_logs';
     END IF;
   END IF;
 END;
@@ -664,7 +664,7 @@ BEGIN
   ELSE
     IF to_regclass('public.date_labelling_logs') IS NULL THEN
       INSERT INTO _mig_skipped VALUES ('date_labelling_logs');
-      RAISE NOTICE 'PELIKN MIGRATION: skipped — table % missing', 'date_labelling_logs';
+      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'date_labelling_logs';
     END IF;
   END IF;
 END;
@@ -679,7 +679,7 @@ BEGIN
   ELSE
     IF to_regclass('public.duty_templates') IS NULL THEN
       INSERT INTO _mig_skipped VALUES ('duty_templates');
-      RAISE NOTICE 'PELIKN MIGRATION: skipped — table % missing', 'duty_templates';
+      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'duty_templates';
     END IF;
   END IF;
 END;
@@ -694,7 +694,7 @@ BEGIN
   ELSE
     IF to_regclass('public.duty_template_items') IS NULL THEN
       INSERT INTO _mig_skipped VALUES ('duty_template_items');
-      RAISE NOTICE 'PELIKN MIGRATION: skipped — table % missing', 'duty_template_items';
+      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'duty_template_items';
     END IF;
   END IF;
 END;
@@ -709,7 +709,7 @@ BEGIN
   ELSE
     IF to_regclass('public.duty_assignments') IS NULL THEN
       INSERT INTO _mig_skipped VALUES ('duty_assignments');
-      RAISE NOTICE 'PELIKN MIGRATION: skipped — table % missing', 'duty_assignments';
+      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'duty_assignments';
     END IF;
   END IF;
 END;
@@ -724,7 +724,7 @@ BEGIN
   ELSE
     IF to_regclass('public.duty_item_completions') IS NULL THEN
       INSERT INTO _mig_skipped VALUES ('duty_item_completions');
-      RAISE NOTICE 'PELIKN MIGRATION: skipped — table % missing', 'duty_item_completions';
+      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'duty_item_completions';
     END IF;
   END IF;
 END;
@@ -739,7 +739,7 @@ BEGIN
   ELSE
     IF to_regclass('public.allergen_procedures') IS NULL THEN
       INSERT INTO _mig_skipped VALUES ('allergen_procedures');
-      RAISE NOTICE 'PELIKN MIGRATION: skipped — table % missing', 'allergen_procedures';
+      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'allergen_procedures';
     END IF;
   END IF;
 END;
@@ -754,7 +754,7 @@ BEGIN
   ELSE
     IF to_regclass('public.illness_exclusion_policies') IS NULL THEN
       INSERT INTO _mig_skipped VALUES ('illness_exclusion_policies');
-      RAISE NOTICE 'PELIKN MIGRATION: skipped — table % missing', 'illness_exclusion_policies';
+      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'illness_exclusion_policies';
     END IF;
   END IF;
 END;
@@ -769,7 +769,7 @@ BEGIN
   ELSE
     IF to_regclass('public.staff_notification_preferences') IS NULL THEN
       INSERT INTO _mig_skipped VALUES ('staff_notification_preferences');
-      RAISE NOTICE 'PELIKN MIGRATION: skipped — table % missing', 'staff_notification_preferences';
+      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'staff_notification_preferences';
     END IF;
   END IF;
 END;
@@ -784,7 +784,7 @@ BEGIN
   ELSE
     IF to_regclass('public.food_complaints') IS NULL THEN
       INSERT INTO _mig_skipped VALUES ('food_complaints');
-      RAISE NOTICE 'PELIKN MIGRATION: skipped — table % missing', 'food_complaints';
+      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'food_complaints';
     END IF;
   END IF;
 END;
@@ -799,7 +799,7 @@ BEGIN
   ELSE
     IF to_regclass('public.hour_edit_log') IS NULL THEN
       INSERT INTO _mig_skipped VALUES ('hour_edit_log');
-      RAISE NOTICE 'PELIKN MIGRATION: skipped — table % missing', 'hour_edit_log';
+      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'hour_edit_log';
     END IF;
   END IF;
 END;
@@ -814,7 +814,7 @@ BEGIN
   ELSE
     IF to_regclass('public.staff_hr_documents') IS NULL THEN
       INSERT INTO _mig_skipped VALUES ('staff_hr_documents');
-      RAISE NOTICE 'PELIKN MIGRATION: skipped — table % missing', 'staff_hr_documents';
+      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'staff_hr_documents';
     END IF;
   END IF;
 END;
@@ -829,7 +829,7 @@ BEGIN
   ELSE
     IF to_regclass('public.leave_entitlements') IS NULL THEN
       INSERT INTO _mig_skipped VALUES ('leave_entitlements');
-      RAISE NOTICE 'PELIKN MIGRATION: skipped — table % missing', 'leave_entitlements';
+      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'leave_entitlements';
     END IF;
   END IF;
 END;
@@ -844,7 +844,7 @@ BEGIN
   ELSE
     IF to_regclass('public.staff_dashboard_today_items') IS NULL THEN
       INSERT INTO _mig_skipped VALUES ('staff_dashboard_today_items');
-      RAISE NOTICE 'PELIKN MIGRATION: skipped — table % missing', 'staff_dashboard_today_items';
+      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'staff_dashboard_today_items';
     END IF;
   END IF;
 END;
@@ -865,7 +865,7 @@ BEGIN
   ELSE
     IF to_regclass('public.staff_training') IS NULL THEN
       INSERT INTO _mig_skipped VALUES ('staff_training');
-      RAISE NOTICE 'PELIKN MIGRATION: skipped — table % missing', 'staff_training';
+      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'staff_training';
     END IF;
   END IF;
 END;
@@ -880,7 +880,7 @@ BEGIN
   ELSE
     IF to_regclass('public.shift_swaps') IS NULL THEN
       INSERT INTO _mig_skipped VALUES ('shift_swaps');
-      RAISE NOTICE 'PELIKN MIGRATION: skipped — table % missing', 'shift_swaps';
+      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'shift_swaps';
     END IF;
   END IF;
 END;
@@ -895,7 +895,7 @@ BEGIN
   ELSE
     IF to_regclass('public.staff_role_assignments') IS NULL THEN
       INSERT INTO _mig_skipped VALUES ('staff_role_assignments');
-      RAISE NOTICE 'PELIKN MIGRATION: skipped — table % missing', 'staff_role_assignments';
+      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'staff_role_assignments';
     END IF;
   END IF;
 END;
@@ -910,7 +910,7 @@ BEGIN
   ELSE
     IF to_regclass('public.apns_tokens') IS NULL THEN
       INSERT INTO _mig_skipped VALUES ('apns_tokens');
-      RAISE NOTICE 'PELIKN MIGRATION: skipped — table % missing', 'apns_tokens';
+      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'apns_tokens';
     END IF;
   END IF;
 END;
@@ -926,7 +926,7 @@ BEGIN
   ELSE
     IF to_regclass('public.staff') IS NULL THEN
       INSERT INTO _mig_skipped VALUES ('staff');
-      RAISE NOTICE 'PELIKN MIGRATION: skipped — table % missing', 'staff';
+      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'staff';
     END IF;
   END IF;
 END;
@@ -939,7 +939,7 @@ BEGIN
   ELSE
     IF to_regclass('public.noticeboard_posts') IS NULL THEN
       INSERT INTO _mig_skipped VALUES ('noticeboard_posts');
-      RAISE NOTICE 'PELIKN MIGRATION: skipped — table % missing', 'noticeboard_posts';
+      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'noticeboard_posts';
     END IF;
   END IF;
 END;
@@ -951,13 +951,14 @@ DO $$ BEGIN
   END IF;
 END $$;
 
--- ── Drop the JWT helper — safe now that no policy references it ─────────────
+-- ── Drop helpers last — nothing references them once policies are open ──
+DROP FUNCTION IF EXISTS has_venue_access(uuid);
 DROP FUNCTION IF EXISTS current_venue_id();
 
 
 -- ── Drift report — THIS IS THE OUTPUT TO READ ────────────────────────────────
--- 'none' = the whole migration applied. Any table named here was skipped
--- because it does not exist in this database (schema drift — investigate).
+-- 'none' = the whole migration applied. Anything listed here was skipped because
+-- its table or venue_id column is missing in this database (drift — investigate).
 SELECT COALESCE(string_agg(DISTINCT tbl, ', ' ORDER BY tbl), 'none')
        AS skipped_missing_tables
 FROM _mig_skipped;

@@ -8,14 +8,55 @@ export const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJ
 
 export const isConfigured = !!(supabaseUrl && supabaseAnonKey)
 
-// ── Session JWT ───────────────────────────────────────────────────────────────
-// Set after PIN login. Injected into every PostgREST request so venue-scoped
-// RLS policies can read (auth.jwt() ->> 'venue_id'). Auth endpoints are excluded
-// so signup/signOut continue to use the anon key.
-let _sessionJwt = null
+// ── Venue-scoped session JWT ─────────────────────────────────────────────────
+// Set after PIN login (staff) or venue selection (owner). Injected as the
+// Authorization bearer on every PostgREST (/rest/v1) request so venue-scoped
+// RLS can read (auth.jwt() ->> 'venue_id'). The anon key stays as the apikey.
+// Auth (/auth/v1), Edge Functions (/functions/v1) and Storage are never
+// overridden — they keep the anon key / Supabase-Auth token.
+//
+// Safety rules that keep this from repeating the 2026 "EC key mismatch" outage:
+//   • Only a well-formed, non-expired JWT is ever injected. An expired or
+//     unparseable token is ignored — the request falls back to the anon key,
+//     which still works (open policies) and returns empty (scoped policies),
+//     prompting a refresh rather than a hard 401.
+//   • A refresher (registered by SessionContext) re-issues the JWT proactively
+//     when it is close to expiry, and reactively on a 401.
+let _sessionJwt    = null
+let _sessionJwtExp = 0      // unix seconds; 0 = unknown/unparseable
+let _jwtRefresher  = null   // async () => freshJwt | null
 
-export const setSessionJwt   = (jwt)  => { _sessionJwt = jwt }
-export const clearSessionJwt = ()     => { _sessionJwt = null }
+function jwtExpSeconds(jwt) {
+  try {
+    const payload = jwt.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')
+    const claims = JSON.parse(atob(payload))
+    return typeof claims.exp === 'number' ? claims.exp : 0
+  } catch { return 0 }
+}
+
+export const setSessionJwt = (jwt) => {
+  _sessionJwt    = jwt || null
+  _sessionJwtExp = jwt ? jwtExpSeconds(jwt) : 0
+}
+export const clearSessionJwt = () => { _sessionJwt = null; _sessionJwtExp = 0 }
+
+// SessionContext registers a callback that re-issues the venue JWT from the
+// active session token. Kept here (not imported) to avoid a circular import.
+export const registerJwtRefresher = (fn) => { _jwtRefresher = fn }
+
+// A JWT is usable only if it parses and has >60 s of life left (clock-skew pad).
+const jwtUsable = () => !!_sessionJwt && _sessionJwtExp * 1000 > Date.now() + 60_000
+
+function urlIsRest(url) {
+  const u = typeof url === 'string' ? url : (url?.url ?? '')
+  return u.includes('/rest/v1/')
+}
+
+function withBearer(options, jwt) {
+  const headers = new Headers(options.headers || {})
+  headers.set('Authorization', `Bearer ${jwt}`)
+  return { ...options, headers }
+}
 
 if (!isConfigured) {
   console.warn(
@@ -35,33 +76,66 @@ if (!isConfigured) {
  * on writes so that a slow connection gets a second chance.
  */
 function makeRetryFetch(timeoutMs = 20_000, maxWriteRetries = 2) {
+  const doFetch = async (url, options) => {
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), timeoutMs)
+    try {
+      return await fetch(url, { ...options, signal: controller.signal })
+    } finally {
+      clearTimeout(timer)
+    }
+  }
+
   return async function retryFetch(url, options = {}) {
     const method = (options.method ?? 'GET').toUpperCase()
     const isWrite = !['GET', 'HEAD'].includes(method)
-    const attempts = isWrite ? maxWriteRetries + 1 : 1
+    const isRest = urlIsRest(url)
 
-    let lastErr
-    for (let attempt = 0; attempt < attempts; attempt++) {
-      if (attempt > 0) {
-        // Exponential back-off: 1 s, 2 s
-        await new Promise(r => setTimeout(r, 1000 * attempt))
-      }
-      const controller = new AbortController()
-      const timer = setTimeout(() => controller.abort(), timeoutMs)
+    // Proactively refresh a venue JWT that is missing/expiring before a data call.
+    if (isRest && _sessionJwt && !jwtUsable() && _jwtRefresher) {
       try {
-        const response = await fetch(url, { ...options, signal: controller.signal })
-        clearTimeout(timer)
+        const fresh = await _jwtRefresher()
+        if (fresh) setSessionJwt(fresh)
+      } catch { /* fall back to anon below */ }
+    }
+
+    // Inject the venue-scoped JWT on data requests when it is usable.
+    let injected = false
+    if (isRest && jwtUsable()) {
+      options = withBearer(options, _sessionJwt)
+      injected = true
+    }
+
+    let writeRetries = 0
+    let didAuthRetry = false
+    while (true) {
+      try {
+        const response = await doFetch(url, options)
+
+        // Reactive recovery (once): an injected token was rejected (expired in
+        // the moment, or revoked). Re-issue and retry with the fresh token.
+        if (injected && !didAuthRetry && response.status === 401 && _jwtRefresher) {
+          didAuthRetry = true
+          try {
+            const fresh = await _jwtRefresher()
+            if (fresh) { setSessionJwt(fresh); options = withBearer(options, fresh) }
+            else injected = false
+          } catch { injected = false }
+          continue
+        }
         return response
       } catch (err) {
-        clearTimeout(timer)
-        lastErr = err
         // Only retry on network / abort errors (not 4xx/5xx — those aren't thrown)
         const retryable = err?.name === 'AbortError' || err?.name === 'TypeError'
-        if (!retryable || attempt === attempts - 1) throw err
-        console.warn(`[Pelikn] Write attempt ${attempt + 1} failed (${err.message}), retrying…`)
+        if (isWrite && retryable && writeRetries < maxWriteRetries) {
+          writeRetries += 1
+          console.warn(`[Pelikn] Write attempt ${writeRetries} failed (${err.message}), retrying…`)
+          await new Promise(r => setTimeout(r, 1000 * writeRetries)) // 1 s, 2 s
+          continue
+        }
+        throw err
       }
     }
-    throw lastErr
   }
 }
 
