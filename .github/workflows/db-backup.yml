@@ -19,6 +19,25 @@ jobs:
       # NOTE: SUPABASE_DB_URL must be the Supabase "Session pooler" URI
       # (aws-*.pooler.supabase.com) — the direct db.*.supabase.co host is
       # IPv6-only and unreachable from GitHub runners.
+      - name: Show connection target (non-secret diagnostics)
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          python3 - <<'EOF'
+          import os
+          from urllib.parse import urlsplit
+          raw = os.environ["SUPABASE_DB_URL"]
+          u = urlsplit(raw.strip())
+          print("scheme:  ", u.scheme)
+          print("username:", u.username)
+          print("host:    ", u.hostname)
+          print("port:    ", u.port)
+          print("database:", u.path)
+          print("password length:", len(u.password or ""))
+          print("raw value length:", len(raw), "| stripped:", len(raw.strip()),
+                "| has whitespace/newline:", raw != raw.strip() or any(c in raw.strip() for c in ' \t\n\r'))
+          EOF
+
       - name: Dump and compress database
         env:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
