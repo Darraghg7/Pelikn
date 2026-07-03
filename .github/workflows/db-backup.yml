@@ -11,26 +11,82 @@ jobs:
     timeout-minutes: 15
 
     steps:
-      - name: Install PostgreSQL client
+      - name: Install PostgreSQL client (v17 — must be >= server version)
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y --no-install-recommends postgresql-client
+          sudo apt-get install -y --no-install-recommends postgresql-common
+          sudo YES=1 /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
+          sudo apt-get install -y --no-install-recommends postgresql-client-17
+          # Runner preinstalls client 16 and keeps it first on PATH — use v17 explicitly
+          /usr/lib/postgresql/17/bin/pg_dump --version
+
+      # NOTE: SUPABASE_DB_URL must be the Supabase "Session pooler" URI
+      # (aws-*.pooler.supabase.com) — the direct db.*.supabase.co host is
+      # IPv6-only and unreachable from GitHub runners.
+      - name: Show connection target (non-secret diagnostics)
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          python3 - <<'EOF'
+          import os
+          from urllib.parse import urlsplit
+          raw = os.environ["SUPABASE_DB_URL"]
+          u = urlsplit(raw.strip())
+          print("scheme:  ", u.scheme)
+          print("username:", u.username)
+          print("host:    ", u.hostname)
+          print("port:    ", u.port)
+          print("database:", u.path)
+          print("password length:", len(u.password or ""))
+          print("raw value length:", len(raw), "| stripped:", len(raw.strip()),
+                "| has whitespace/newline:", raw != raw.strip() or any(c in raw.strip() for c in ' \t\n\r'))
+          EOF
 
       - name: Dump and compress database
         env:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
         run: |
+          set -euo pipefail
+          # Strip stray whitespace/newlines that sneak in when pasting the secret
+          SUPABASE_DB_URL="$(printf %s "$SUPABASE_DB_URL" | tr -d '[:space:]')"
           TIMESTAMP=$(date +%Y-%m-%d)
           echo "TIMESTAMP=${TIMESTAMP}" >> "$GITHUB_ENV"
-          pg_dump "$SUPABASE_DB_URL" \
+          # public = all venue/app data; auth = manager login accounts.
+          # Supabase-internal schemas (cron, storage, realtime, …) are
+          # excluded — cron.job_run_details alone is huge and killed the
+          # pooler connection mid-dump.
+          /usr/lib/postgresql/17/bin/pg_dump "$SUPABASE_DB_URL" \
+            --schema=public \
+            --schema=auth \
             --no-owner \
             --no-acl \
             --format=plain \
             --lock-wait-timeout=60s \
             | gzip > "pelikn-backup-${TIMESTAMP}.sql.gz"
 
+      - name: Verify backup is not empty
+        run: |
+          set -euo pipefail
+          MIN_BYTES=51200   # 50 KB — a real dump is far larger; an empty one is ~30 bytes
+          SIZE=$(stat -c%s "pelikn-backup-${{ env.TIMESTAMP }}.sql.gz")
+          echo "Backup size: ${SIZE} bytes"
+          if [ "$SIZE" -lt "$MIN_BYTES" ]; then
+            echo "::error::Backup file is only ${SIZE} bytes — pg_dump produced no data. Failing the run."
+            exit 1
+          fi
+          # Sanity-check the dump actually contains schema statements.
+          # grep -c reads the whole stream — early-exit grep -q SIGPIPEs gunzip,
+          # which pipefail then misreports as a failure.
+          TABLES=$(gunzip -c "pelikn-backup-${{ env.TIMESTAMP }}.sql.gz" | grep -c "^CREATE TABLE" || true)
+          echo "CREATE TABLE statements: ${TABLES}"
+          if [ "${TABLES}" -lt 10 ]; then
+            echo "::error::Only ${TABLES} CREATE TABLE statements — not a valid dump."
+            exit 1
+          fi
+
       - name: Encrypt backup
         run: |
+          set -euo pipefail
           openssl enc -aes-256-cbc -pbkdf2 -iter 100000 \
             -in "pelikn-backup-${{ env.TIMESTAMP }}.sql.gz" \
             -out "pelikn-backup-${{ env.TIMESTAMP }}.sql.gz.enc" \
@@ -40,6 +96,7 @@ jobs:
 
       - name: Upload to Cloudflare R2
         run: |
+          set -euo pipefail
           aws s3 cp "pelikn-backup-${{ env.TIMESTAMP }}.sql.gz.enc" \
             "s3://pelikn-backups/pelikn-backup-${{ env.TIMESTAMP }}.sql.gz.enc" \
             --endpoint-url "https://${{ secrets.R2_ACCOUNT_ID }}.r2.cloudflarestorage.com"
@@ -48,10 +105,12 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: auto
 
+      # Secondary copy kept ENCRYPTED — the artifact previously stored the
+      # plaintext dump on GitHub for 30 days.
       - name: Upload backup artifact (30-day secondary copy)
         uses: actions/upload-artifact@v4
         with:
           name: db-backup-${{ github.run_id }}-${{ github.run_attempt }}
-          path: pelikn-backup-*.sql.gz
+          path: pelikn-backup-*.sql.gz.enc
           retention-days: 30
           if-no-files-found: error
