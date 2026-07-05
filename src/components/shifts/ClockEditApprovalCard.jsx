@@ -6,19 +6,19 @@
  * Usage: render anywhere in the manager UI (Timesheet page, Dashboard).
  */
 import React, { useCallback, useEffect, useState } from 'react'
-import { format } from 'date-fns'
 import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
 import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../ui/Toast'
+import { formatLondon } from '../../lib/time'
 
 function fmt(iso) {
   if (!iso) return '—'
-  return format(new Date(iso), 'HH:mm')
+  return formatLondon(iso, 'HH:mm')
 }
 function fmtDate(iso) {
   if (!iso) return '—'
-  return format(new Date(iso), 'EEE d MMM')
+  return formatLondon(iso, 'EEE d MMM')
 }
 
 function DenySheet({ onDeny, onCancel }) {

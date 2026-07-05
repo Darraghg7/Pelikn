@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react'
-import { format, parseISO } from 'date-fns'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../components/ui/Toast'
 import Modal from '../../components/ui/Modal'
+import { formatLondon, londonDateStr, londonWallTimeToInstant } from '../../lib/time'
 
 const BREAK_OPTIONS = [0, 5, 10, 15, 20, 30, 45, 60, 90]
 
@@ -21,8 +21,8 @@ export default function EditSessionModal({ open, onClose, session, venueId, onSa
   useEffect(() => {
     if (open && session) {
       setForm({
-        clockIn:  session.in  ? format(parseISO(session.in),  'HH:mm') : '',
-        clockOut: session.out ? format(parseISO(session.out), 'HH:mm') : '',
+        clockIn:  session.in  ? formatLondon(session.in,  'HH:mm') : '',
+        clockOut: session.out ? formatLondon(session.out, 'HH:mm') : '',
       })
       const existingBreakMins = (session.breaks ?? []).reduce((acc, b) => {
         if (!b.start || !b.end) return acc
@@ -39,8 +39,10 @@ export default function EditSessionModal({ open, onClose, session, venueId, onSa
     if (!clockIn || !clockOut) { toast('Both clock in and clock out are required', 'error'); return }
     if (clockOut <= clockIn)   { toast('Clock out must be after clock in', 'error'); return }
 
-    const date  = session.in.slice(0, 10)
-    const toISO = (t) => new Date(`${date}T${t}:00`).toISOString()
+    // Anchor the edited times to the session's UK calendar date and interpret
+    // them as UK wall-clock, so the stored UTC is correct from any timezone.
+    const date  = londonDateStr(session.in)
+    const toISO = (t) => londonWallTimeToInstant(date, t).toISOString()
 
     setSaving(true)
     const { error } = await supabase.rpc('edit_clock_session', {

@@ -14,6 +14,7 @@ import LoadingSpinner from '../../components/ui/LoadingSpinner'
 import AcknowledgeModal from '../../components/training/AcknowledgeModal'
 import { useToast } from '../../components/ui/Toast'
 import { invalidateChecksStatusCache } from '../../hooks/useChecksStatus'
+import { londonWallTimeToInstant } from '../../lib/time'
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
@@ -33,8 +34,10 @@ function shiftDurationH(start, end) {
   return (mins / 60).toFixed(1)
 }
 
+// Scheduled shift times are UK wall-clock (Europe/London), independent of the
+// viewer's device timezone — so on-time status reads the same everywhere.
 function timeToDate(dateStr, timeStr) {
-  return new Date(`${dateStr}T${timeStr}`)
+  return londonWallTimeToInstant(dateStr, timeStr)
 }
 
 // ── State pill ─────────────────────────────────────────────────────────────────

@@ -12,6 +12,7 @@ import { countWorkingDaysInRequest } from '../../hooks/useLeaveBalance'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
 import AddSessionModal from './AddSessionModal'
 import ClockEditApprovalCard from '../../components/shifts/ClockEditApprovalCard'
+import { formatLondon, londonWallTimeToInstant } from '../../lib/time'
 
 const STATIONS = {
   Kitchen: { bg: '#f0ebde', fg: '#6b5028' },
@@ -271,7 +272,7 @@ function TsWheel({ values, value, onChange }) {
 
 // ── Edit session sheet (wheel picker) ──────────────────────────────────────────
 function EditSessionSheet({ staffName, dayLabel, session, onSave, onClose }) {
-  const toHM = (iso) => iso ? format(new Date(iso), 'HH:mm') : null
+  const toHM = (iso) => iso ? formatLondon(iso, 'HH:mm') : null
   const [clockIn,  setIn]  = useState(toHM(session?.in)  || '08:00')
   const [clockOut, setOut] = useState(toHM(session?.out) || '16:00')
   const [brk,      setBrk] = useState(0)
@@ -372,8 +373,8 @@ function StaffHoursSheet({ t, station, periodDays, dailyGrid, periodLabel, onEdi
             const dayData = staffGrid?.days[dateStr]
             const session = dayData?.sessions?.[0] || null
             const has = !!(session?.in && session?.out)
-            const inTime  = has ? format(new Date(session.in),  'HH:mm') : null
-            const outTime = has ? format(new Date(session.out), 'HH:mm') : null
+            const inTime  = has ? formatLondon(session.in,  'HH:mm') : null
+            const outTime = has ? formatLondon(session.out, 'HH:mm') : null
             const breakMins = has ? session.breaks.reduce((acc, b) =>
               (!b.start || !b.end) ? acc : acc + Math.round((new Date(b.end) - new Date(b.start)) / 60000), 0) : 0
             return (
@@ -546,8 +547,10 @@ export default function TimesheetPage() {
   }, [isPeriodLocked, payrollLocks, periodFrom, periodTo, saveLocks, toast])
 
   const saveEditedSession = useCallback(async ({ dateStr, session }, { clockIn, clockOut }) => {
-    const newIn  = `${dateStr}T${clockIn}:00`
-    const newOut = `${dateStr}T${clockOut}:00`
+    // Interpret the edited times as UK wall-clock and store the resulting UTC
+    // instant (ISO with offset) — a bare string would be read as UTC by Postgres.
+    const newIn  = londonWallTimeToInstant(dateStr, clockIn).toISOString()
+    const newOut = londonWallTimeToInstant(dateStr, clockOut).toISOString()
     const updates = []
     if (session.inId)  updates.push(supabase.from('clock_events').update({ occurred_at: newIn  }).eq('id', session.inId))
     if (session.outId) updates.push(supabase.from('clock_events').update({ occurred_at: newOut }).eq('id', session.outId))

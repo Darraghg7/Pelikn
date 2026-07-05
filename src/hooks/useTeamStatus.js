@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
-import { startOfDay, endOfDay, format, startOfWeek, endOfWeek } from 'date-fns'
+import { format, startOfWeek, endOfWeek } from 'date-fns'
 import { supabase } from '../lib/supabase'
+import { londonToday, londonWallTimeToInstant } from '../lib/time'
 
 // SWR cache — 30 s stale (clock status changes frequently)
 const _cache  = new Map()
@@ -11,7 +12,7 @@ const FRESH_MS = 10_000
  * Returns live attendance data + counts for the Team hub status grid.
  */
 export function useTeamStatus(venueId) {
-  const dateStr  = format(new Date(), 'yyyy-MM-dd')
+  const dateStr  = londonToday()
   const cacheKey = venueId ? `${venueId}:${dateStr}` : null
   const cached   = cacheKey ? (_cache.get(cacheKey) ?? null) : null
 
@@ -38,9 +39,11 @@ export function useTeamStatus(venueId) {
       if (!entry) setLoading(true)
       try {
       const today = new Date()
-      const dayStart = startOfDay(today).toISOString()
-      const dayEnd   = endOfDay(today).toISOString()
-      const todayStr = format(today, 'yyyy-MM-dd')
+      // Anchor "today" to UK time so the window matches the cafés' day, not the
+      // viewer's device timezone.
+      const todayStr = londonToday()
+      const dayStart = londonWallTimeToInstant(todayStr, '00:00:00').toISOString()
+      const dayEnd   = new Date(londonWallTimeToInstant(todayStr, '00:00:00').getTime() + 86400000 - 1).toISOString()
 
       const [
         staffRes, clockRes, swapRes, timeOffRes, trainingRes, shiftSwapRes, unfilledRes, rotaPubRes,
@@ -119,7 +122,8 @@ export function useTeamStatus(venueId) {
         const shift = todayShifts.find(sh => sh.staff_id === s.id)
         let isLate = false
         if (shift && clockInTime) {
-          const shiftStart = new Date(`${todayStr}T${shift.start_time}`)
+          // Scheduled start is UK wall-clock, independent of the viewer's device tz.
+          const shiftStart = londonWallTimeToInstant(todayStr, shift.start_time)
           const actualIn   = new Date(clockInTime)
           isLate = actualIn > shiftStart
         }

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../components/ui/Toast'
 import Modal from '../../components/ui/Modal'
+import { londonWallTimeToInstant } from '../../lib/time'
 
 export default function AddSessionModal({ open, onClose, staffList, initialStaffId, initialDate, venueId, onSaved }) {
   const toast = useToast()
@@ -31,7 +32,8 @@ export default function AddSessionModal({ open, onClose, staffList, initialStaff
       }
     }
 
-    const toISO = (t) => new Date(`${date}T${t}:00`).toISOString()
+    // Interpret entered times as UK wall-clock (Europe/London); store UTC.
+    const toISO = (t) => londonWallTimeToInstant(date, t).toISOString()
     const events = [
       { staff_id: staffId, event_type: 'clock_in',  occurred_at: toISO(clockIn),  venue_id: venueId },
     ]

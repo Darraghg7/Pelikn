@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { format, subDays } from 'date-fns'
 import { supabase } from '../lib/supabase'
 import { useVenue } from '../contexts/VenueContext'
+import { londonToday, londonWallTimeToInstant } from '../lib/time'
 
 type NotificationSeverity = 'critical' | 'warning' | 'info'
 
@@ -99,7 +100,7 @@ async function checkMyTimeOffUpdates(items: StaffNotification[], staffId: string
 
 async function checkMyUpcomingShift(items: StaffNotification[], staffId: string, venueId: string): Promise<void> {
   const now = new Date()
-  const today = format(now, 'yyyy-MM-dd')
+  const today = londonToday()
 
   const { data } = await supabase
     .from('shifts')
@@ -111,7 +112,8 @@ async function checkMyUpcomingShift(items: StaffNotification[], staffId: string,
     .limit(5)
 
   for (const shift of (data ?? []) as { id: string; shift_date: string; start_time: string; end_time: string }[]) {
-    const shiftStart = new Date(`${shift.shift_date}T${shift.start_time}`)
+    // Scheduled start is UK wall-clock (Europe/London), not the device tz.
+    const shiftStart = londonWallTimeToInstant(shift.shift_date, shift.start_time)
     const minsUntil = (shiftStart.getTime() - now.getTime()) / 60000
     // Only show if shift is within the next 2 hours and hasn't started yet
     if (minsUntil > 0 && minsUntil <= 120) {
