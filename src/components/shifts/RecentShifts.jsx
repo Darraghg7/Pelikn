@@ -20,6 +20,7 @@ import { useSession } from '../../contexts/SessionContext'
 import { useClockSessions } from '../../hooks/useClockSessions'
 import { useToast } from '../ui/Toast'
 import { sendPush } from '../../lib/sendPush'
+import { londonWallTimeToInstant, londonDateStr, formatLondon } from '../../lib/time'
 import LoadingSpinner from '../ui/LoadingSpinner'
 
 /* ── Helpers ─────────────────────────────────────────────────────────── */
@@ -104,8 +105,8 @@ function EditSessionForm({ session, staffId, onSave, onCancel, isManagerEdit }) 
   const { venueId }  = useVenue()
   const { session: authSession } = useSession()
 
-  const [clockIn,  setClockIn]  = useState(format(session.clockInAt,  'HH:mm'))
-  const [clockOut, setClockOut] = useState(session.clockOutAt ? format(session.clockOutAt, 'HH:mm') : '')
+  const [clockIn,  setClockIn]  = useState(formatLondon(session.clockInAt,  'HH:mm'))
+  const [clockOut, setClockOut] = useState(session.clockOutAt ? formatLondon(session.clockOutAt, 'HH:mm') : '')
   const [breakMin, setBreakMin] = useState(String(session.breakMinutes))
   const [reason,   setReason]   = useState('')
 
@@ -113,11 +114,11 @@ function EditSessionForm({ session, staffId, onSave, onCancel, isManagerEdit }) 
   const [confirming, setConfirming] = useState(false)
   const [saving,     setSaving]     = useState(false)
 
+  // Combine an edited HH:mm with the session's UK calendar date, interpreting
+  // the time as UK wall-clock (Europe/London) so the stored UTC instant is
+  // correct regardless of the editor's device timezone.
   const parseTime = (timeStr, referenceDate) => {
-    const [h, m] = timeStr.split(':').map(Number)
-    const d = new Date(referenceDate)
-    d.setHours(h, m, 0, 0)
-    return d
+    return londonWallTimeToInstant(londonDateStr(referenceDate), timeStr)
   }
 
   const validate = () => {
@@ -176,7 +177,7 @@ function EditSessionForm({ session, staffId, onSave, onCancel, isManagerEdit }) 
       venueId,
       notificationType: 'hour_edit_request',
       title: 'Hour edit request',
-      body: `${authSession?.staffName ?? 'A staff member'} requested a change to their hours on ${format(session.clockInAt, 'd MMM')}`,
+      body: `${authSession?.staffName ?? 'A staff member'} requested a change to their hours on ${formatLondon(session.clockInAt, 'd MMM')}`,
       url: '/timesheet',
       roles: ['manager', 'owner'],
     }).catch(() => {})
@@ -268,10 +269,10 @@ function SessionRow({ session, staffId, onReload, isManagerEdit, pendingRequests
         <div className="min-w-0">
           <p className="text-sm font-medium text-charcoal">{sessionDateLabel(session.date)}</p>
           <p className="text-xs text-charcoal/40 mt-0.5">
-            {format(session.clockInAt, 'HH:mm')}
+            {formatLondon(session.clockInAt, 'HH:mm')}
             {' → '}
             {session.clockOutAt
-              ? format(session.clockOutAt, 'HH:mm')
+              ? formatLondon(session.clockOutAt, 'HH:mm')
               : <span className="text-warning">active</span>}
             {session.breakMinutes > 0 && (
               <span className="ml-1.5 text-charcoal/30">· {session.breakMinutes}m break</span>
@@ -345,16 +346,16 @@ function AddShiftForm({ staffId, onSave, onCancel, isManagerEdit = false }) {
   const [confirming, setConfirming] = useState(false)
 
   const validate = () => {
-    const newClockIn  = new Date(`${date}T${clockIn}:00`)
-    const newClockOut = new Date(`${date}T${clockOut}:00`)
+    const newClockIn  = londonWallTimeToInstant(date, clockIn)
+    const newClockOut = londonWallTimeToInstant(date, clockOut)
     if (newClockOut <= newClockIn) { toast('Clock out must be after clock in', 'error'); return false }
     return true
   }
 
   const saveManagerAdd = async () => {
     setSaving(true)
-    const newClockIn  = new Date(`${date}T${clockIn}:00`)
-    const newClockOut = new Date(`${date}T${clockOut}:00`)
+    const newClockIn  = londonWallTimeToInstant(date, clockIn)
+    const newClockOut = londonWallTimeToInstant(date, clockOut)
     const { data, error } = await supabase.rpc('add_clock_session', {
       p_staff_id:       staffId,
       p_venue_id:       venueId,
@@ -372,8 +373,8 @@ function AddShiftForm({ staffId, onSave, onCancel, isManagerEdit = false }) {
   // Staff submitting an "add missed shift" request — use the same pending flow
   const submitAddRequest = async () => {
     setSaving(true)
-    const newClockIn  = new Date(`${date}T${clockIn}:00`)
-    const newClockOut = new Date(`${date}T${clockOut}:00`)
+    const newClockIn  = londonWallTimeToInstant(date, clockIn)
+    const newClockOut = londonWallTimeToInstant(date, clockOut)
 
     // For an "add" we have no existing clock_in_id/clock_out_id
     const { error } = await supabase.rpc('submit_clock_edit_request', {

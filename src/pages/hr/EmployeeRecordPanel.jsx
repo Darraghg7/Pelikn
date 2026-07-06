@@ -17,6 +17,7 @@ import { useNavigate } from 'react-router-dom'
 import { format, parseISO, differenceInDays } from 'date-fns'
 import { calculateEntitlementDays, countWorkingDaysInRequest } from '../../hooks/useLeaveBalance'
 import { supabase } from '../../lib/supabase'
+import { londonDateStr, londonWallTimeToInstant } from '../../lib/time'
 import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../../components/ui/Toast'
 import Modal from '../../components/ui/Modal'
@@ -531,10 +532,12 @@ function DisciplinaryTab({ staffId, venueId, onStrikesCountChange }) {
     shifts.forEach(s => { shiftMap[s.shift_date] = s.start_time })
 
     const late = clockIns.flatMap(ev => {
-      const date      = ev.occurred_at.slice(0, 10)
+      // Match the clock-in to its shift by UK calendar date, and compare against
+      // the scheduled start read as UK wall-clock — not the device timezone.
+      const date      = londonDateStr(ev.occurred_at)
       const startTime = shiftMap[date]
       if (!startTime) return []
-      const shiftStart = new Date(`${date}T${startTime}`)
+      const shiftStart = londonWallTimeToInstant(date, startTime)
       const clockedIn  = new Date(ev.occurred_at)
       const msLate     = clockedIn.getTime() - shiftStart.getTime()
       if (msLate <= 0) return [] // on time or early

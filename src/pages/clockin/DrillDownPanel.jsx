@@ -2,11 +2,12 @@ import React, { useMemo, memo } from 'react'
 import { format } from 'date-fns'
 import { unpaidBreakMins } from '../../hooks/useShifts'
 import { formatMinutes } from '../../lib/utils'
+import { formatLondon } from '../../lib/time'
 
 function fmtTime(iso) {
   if (!iso) return '?'
-  const d = new Date(iso)
-  return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`
+  // Clock times are shown in UK time regardless of the viewer's device tz.
+  return formatLondon(iso, 'HH:mm')
 }
 
 /**

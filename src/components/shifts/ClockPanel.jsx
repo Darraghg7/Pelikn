@@ -13,6 +13,7 @@ import { supabase, supabaseUrl, supabaseAnonKey } from '../../lib/supabase'
 import { sendPush } from '../../lib/sendPush'
 import StaffAlertModal from './StaffAlertModal'
 import { useAppSettings as useSettings } from '../../hooks/useSettings'
+import { londonToday, londonWallTimeToInstant, londonDayStartInstant, formatLondon } from '../../lib/time'
 
 const STATUS_CONFIG = {
   clocked_out: { label: 'Not Clocked In', color: 'text-charcoal/50', dot: 'bg-charcoal/25' },
@@ -81,10 +82,9 @@ async function countLateStrikes(staffId, venueId, now) {
   return (count ?? 0) + 1
 }
 
-/** Local midnight as a UTC instant — a bare timestamp string would be read as UTC by Postgres */
-function localDayStartISO() {
-  const today = format(new Date(), 'yyyy-MM-dd')
-  return new Date(today + 'T00:00:00').toISOString()
+/** Start of today in UK time, as a UTC instant — the "today" window all cafés share */
+function londonDayStartISO() {
+  return londonDayStartInstant().toISOString()
 }
 
 /** Fetch the most recent clock_in event ID + acknowledged_at for this staff today */
@@ -95,7 +95,7 @@ async function fetchTodayClockInEvent(staffId, venueId) {
     .eq('staff_id', staffId)
     .eq('venue_id', venueId)
     .eq('event_type', 'clock_in')
-    .gte('occurred_at', localDayStartISO())
+    .gte('occurred_at', londonDayStartISO())
     .order('occurred_at', { ascending: false })
     .limit(1)
     .maybeSingle()
@@ -110,7 +110,7 @@ async function fetchTodayBreakStartEvent(staffId, venueId) {
     .eq('staff_id', staffId)
     .eq('venue_id', venueId)
     .eq('event_type', 'break_start')
-    .gte('occurred_at', localDayStartISO())
+    .gte('occurred_at', londonDayStartISO())
     .order('occurred_at', { ascending: false })
     .limit(1)
     .maybeSingle()
@@ -185,7 +185,7 @@ export default function ClockPanel({ staffId, hasShift = true, compact = false }
         type: 'break_overrun',
         minsOver,
         strikeCount: strikes,
-        breakStartTime: format(breakStartAt, 'HH:mm'),
+        breakStartTime: formatLondon(breakStartAt, 'HH:mm'),
         takenMins: Math.floor(elapsedMins),
         breakAllowanceMins,
         clockEventId: ev.id,
@@ -214,7 +214,7 @@ export default function ClockPanel({ staffId, hasShift = true, compact = false }
     // ── Late clock-in check ──────────────────────────────────────────────────
     if (eventType === 'clock_in' && !queued) {
       const now = new Date()
-      const today = format(now, 'yyyy-MM-dd')
+      const today = londonToday()
       supabase
         .from('shifts')
         .select('start_time, end_time, staff:staff_id(name)')
@@ -226,12 +226,13 @@ export default function ClockPanel({ staffId, hasShift = true, compact = false }
           if (!shifts?.length) return
           // Staff can have more than one shift row per day (split shifts,
           // duplicated rota rows) — judge lateness against the shift whose
-          // start time is closest to this clock-in.
-          const distToStart = (s) => Math.abs(new Date(today + 'T' + s.start_time) - now)
+          // start time is closest to this clock-in. Scheduled times are UK
+          // wall-clock (Europe/London), regardless of the viewer's device tz.
+          const distToStart = (s) => Math.abs(londonWallTimeToInstant(today, s.start_time) - now)
           const shift = shifts.reduce((best, s) => distToStart(s) < distToStart(best) ? s : best)
           // Floor both times to whole minutes before comparing so that
           // a sub-minute clock-in (e.g. 07:00:40) isn't flagged as late.
-          const shiftStart   = new Date(today + 'T' + shift.start_time)
+          const shiftStart   = londonWallTimeToInstant(today, shift.start_time)
           const nowFloored   = new Date(Math.floor(now.getTime() / 60000) * 60000)
           const startFloored = new Date(Math.floor(shiftStart.getTime() / 60000) * 60000)
           const msLate       = nowFloored.getTime() - startFloored.getTime()
@@ -279,8 +280,8 @@ export default function ClockPanel({ staffId, hasShift = true, compact = false }
               type: 'late_clock_in',
               minsOver: minsLate,
               strikeCount: strikes,
-              scheduledTime: format(shiftStart, 'HH:mm'),
-              actualTime: format(now, 'HH:mm'),
+              scheduledTime: formatLondon(shiftStart, 'HH:mm'),
+              actualTime: formatLondon(now, 'HH:mm'),
               clockEventId: ev?.id ?? null,
               breakStillActive: false,
             })
@@ -291,7 +292,7 @@ export default function ClockPanel({ staffId, hasShift = true, compact = false }
     // ── Early clock-out check ────────────────────────────────────────────────
     if (eventType === 'clock_out' && !queued) {
       const now = new Date()
-      const today = format(now, 'yyyy-MM-dd')
+      const today = londonToday()
       supabase
         .from('shifts')
         .select('end_time, staff:staff_id(name)')
@@ -302,10 +303,11 @@ export default function ClockPanel({ staffId, hasShift = true, compact = false }
         .then(({ data: shifts }) => {
           if (!shifts?.length) return
           // Multiple shift rows per day are possible — compare against the
-          // shift whose end time is closest to this clock-out.
-          const distToEnd = (s) => Math.abs(new Date(today + 'T' + s.end_time) - now)
+          // shift whose end time is closest to this clock-out. Scheduled times
+          // are UK wall-clock (Europe/London), not the viewer's device tz.
+          const distToEnd = (s) => Math.abs(londonWallTimeToInstant(today, s.end_time) - now)
           const shift = shifts.reduce((best, s) => distToEnd(s) < distToEnd(best) ? s : best)
-          const shiftEnd = new Date(today + 'T' + shift.end_time)
+          const shiftEnd = londonWallTimeToInstant(today, shift.end_time)
           const minsEarly = Math.round((shiftEnd - now) / 60000)
           if (minsEarly > 15) {
             sendPush({
@@ -335,7 +337,7 @@ export default function ClockPanel({ staffId, hasShift = true, compact = false }
             type: 'break_overrun',
             minsOver,
             strikeCount: strikes,
-            breakStartTime: format(breakStartAt, 'HH:mm'),
+            breakStartTime: formatLondon(breakStartAt, 'HH:mm'),
             takenMins: Math.floor(elapsedMins),
             breakAllowanceMins,
             clockEventId: ev.id,
