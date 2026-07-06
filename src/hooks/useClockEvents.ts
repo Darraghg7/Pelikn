@@ -145,11 +145,12 @@ interface TimesheetRow {
 export function useTimesheetData(dateFrom: string, dateTo: string): {
   rows: TimesheetRow[]
   loading: boolean
+  error: Error | null
   reload: () => void
 } {
   const { venueId } = useVenue()
 
-  const { data, isLoading, refetch } = useQuery({
+  const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ['timesheetData', venueId, dateFrom, dateTo],
     queryFn: async () => {
       let q = supabase
@@ -162,7 +163,11 @@ export function useTimesheetData(dateFrom: string, dateTo: string): {
         .limit(5000)
       if (venueId) q = q.eq('venue_id', venueId)
 
-      const { data } = await q
+      const { data, error } = await q
+      // Surface the failure instead of returning [] — a swallowed error is
+      // indistinguishable from "no hours" and hides stale-build / RLS / network
+      // problems from the user (they just see blank actual-hours tiles).
+      if (error) throw error
       return (data ?? []) as TimesheetRow[]
     },
     // Auto-fetch whenever the venue or date range changes; skip only when dates
@@ -170,5 +175,5 @@ export function useTimesheetData(dateFrom: string, dateTo: string): {
     enabled: !!venueId && !!dateFrom && !!dateTo,
   })
 
-  return { rows: data ?? [], loading: isLoading, reload: refetch }
+  return { rows: data ?? [], loading: isLoading, error: isError ? (error as Error) : null, reload: refetch }
 }

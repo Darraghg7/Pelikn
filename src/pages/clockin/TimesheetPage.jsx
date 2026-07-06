@@ -452,7 +452,7 @@ export default function TimesheetPage() {
     [period, customFrom, customTo]
   )
 
-  const { rows, loading, reload } = useTimesheetData(dateFrom, dateTo)
+  const { rows, loading, error: loadError, reload } = useTimesheetData(dateFrom, dateTo)
 
   const timesheets   = useMemo(() => buildTimesheets(rows, staffRates), [rows, staffRates])
   const dailyGrid    = useMemo(() => buildDailyGrid(rows), [rows])
@@ -640,6 +640,15 @@ export default function TimesheetPage() {
 
         {loading ? (
           <div className="flex justify-center py-4"><LoadingSpinner /></div>
+        ) : loadError ? (
+          <div className="flex items-center gap-3 bg-danger/10 rounded-[11px] px-[13px] py-[11px]">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-danger"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <div className="flex-1 min-w-0">
+              <div className="text-[13.5px] font-semibold text-danger leading-tight">Couldn't load hours</div>
+              <div className="text-[11.5px] text-charcoal/50 mt-[3px] leading-snug">The clock-in data failed to load — this can happen on an out-of-date app. Try again, or fully close and reopen the app.</div>
+            </div>
+            <button onClick={reload} className="shrink-0 text-[12px] font-semibold text-charcoal bg-white dark:bg-paperDark border border-charcoal/10 rounded-[9px] px-[13px] py-[8px] cursor-pointer">Retry</button>
+          </div>
         ) : (
           <>
             <div className="flex gap-[7px]">
@@ -655,7 +664,7 @@ export default function TimesheetPage() {
       </div>
 
       {/* Staff list */}
-      {!loading && (
+      {!loading && !loadError && (
         <div>
           <div className="flex items-center justify-between px-0.5 pb-[9px]">
             <span className="font-mono text-[11px] text-charcoal/50 tracking-[0.1em] uppercase font-semibold">Staff</span>

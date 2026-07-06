@@ -62,9 +62,22 @@ function useUpdateReady() {
  * Non-blocking update banner — sits at the bottom of the screen.
  * Does not prevent app usage.
  */
+// How long to hide the banner after the user taps × before nudging again.
+// Dismiss only snoozes — an un-applied update must never be forgotten, since a
+// stale build silently breaks data-loading (e.g. blank timesheet hours).
+const SNOOZE_MS = 3 * 60 * 1000
+
 export default function UpdateBanner() {
   const { updateReady, applyUpdate } = useUpdateReady()
   const [dismissed, setDismissed] = useState(false)
+
+  // Bring the banner back after the snooze window so it keeps reminding the
+  // user until they actually apply the update.
+  useEffect(() => {
+    if (!dismissed) return
+    const t = setTimeout(() => setDismissed(false), SNOOZE_MS)
+    return () => clearTimeout(t)
+  }, [dismissed])
 
   if (!updateReady || dismissed) return null
 
@@ -87,7 +100,7 @@ export default function UpdateBanner() {
         <button
           onClick={() => setDismissed(true)}
           className="text-cream/40 hover:text-cream/70 transition-colors text-lg leading-none shrink-0"
-          aria-label="Dismiss"
+          aria-label="Remind me later"
         >
           ×
         </button>
