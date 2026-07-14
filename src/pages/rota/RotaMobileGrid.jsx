@@ -143,7 +143,7 @@ function ShiftSheet({ shift, staffMember, day, venueId, roles, onClose, onSaved,
   const [edge, setEdge] = useState('start')
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState(false)
-  const { toast } = useToast()
+  const toast = useToast()
   const { venueId: vid } = useVenue()
 
   const startTime = `${startH}:${startM}`
@@ -171,16 +171,26 @@ function ShiftSheet({ shift, staffMember, day, venueId, roles, onClose, onSaved,
       end_time:   endTime,
       role_label: roleLabel || null,
     }
-    let error
+    let change
     if (existing) {
-      ;({ error } = await supabase.from('shifts').update({ start_time: startTime, end_time: endTime, role_label: roleLabel || null }).eq('id', existing.id))
+      const before = {
+        id:         existing.id,
+        staff_id:   existing.staff_id ?? null,
+        start_time: existing.start_time,
+        end_time:   existing.end_time,
+        role_label: existing.role_label ?? null,
+      }
+      const { error } = await supabase.from('shifts').update({ start_time: startTime, end_time: endTime, role_label: roleLabel || null }).eq('id', existing.id)
+      if (error) { setSaving(false); toast(error.message, 'error'); return }
+      change = { type: 'edit', before }
     } else {
-      ;({ error } = await supabase.from('shifts').insert(payload))
+      const { data, error } = await supabase.from('shifts').insert(payload).select('id').single()
+      if (error) { setSaving(false); toast(error.message, 'error'); return }
+      change = { type: 'add', id: data.id }
     }
     setSaving(false)
-    if (error) { toast(error.message, 'error'); return }
     toast(existing ? 'Shift updated ✓' : 'Shift added ✓')
-    onSaved?.()
+    onSaved?.(change)
     onClose()
   }
 
@@ -191,7 +201,19 @@ function ShiftSheet({ shift, staffMember, day, venueId, roles, onClose, onSaved,
     setDeleting(false)
     if (error) { toast(error.message, 'error'); return }
     toast('Shift removed')
-    onDeleted?.()
+    onDeleted?.({
+      type: 'delete',
+      before: {
+        id:         existing.id,
+        venue_id:   existing.venue_id,
+        staff_id:   existing.staff_id ?? null,
+        shift_date: existing.shift_date,
+        week_start: existing.week_start,
+        start_time: existing.start_time,
+        end_time:   existing.end_time,
+        role_label: existing.role_label ?? null,
+      },
+    })
     onClose()
   }
 
@@ -310,7 +332,7 @@ function ShiftSheet({ shift, staffMember, day, venueId, roles, onClose, onSaved,
 // ── Swap Sheet ────────────────────────────────────────────────────────────────
 function SwapSheet({ swaps, onClose, onResolved }) {
   const [resolving, setResolving] = useState(null)
-  const { toast } = useToast()
+  const toast = useToast()
   const { venueId } = useVenue()
   const pending = swaps.filter(s => s.status === 'pending')
 
@@ -377,7 +399,7 @@ function SwapSheet({ swaps, onClose, onResolved }) {
 // ── AI Sheet ──────────────────────────────────────────────────────────────────
 function AISheet({ openShifts, staff, venueId, onClose, onFilled }) {
   const [filling, setFilling] = useState(false)
-  const { toast } = useToast()
+  const toast = useToast()
 
   const fill = async () => {
     if (!openShifts.length) return
@@ -528,7 +550,7 @@ export default function RotaMobileGrid() {
   const { session } = useSession()
   const { signOutVenue } = useAuth()
   const navigate = useNavigate()
-  const { toast } = useToast()
+  const toast = useToast()
 
   const [weekOffset, setWeekOffset] = useState(0)
   const [weekStart, setWeekStart] = useState(() => getWeekStart())
@@ -544,9 +566,13 @@ export default function RotaMobileGrid() {
   const [showSwaps, setShowSwaps]   = useState(false)
   const [showAI, setShowAI]         = useState(false)
   const [showCost, setShowCost]     = useState(false)
-  const [pendingChanges, setPendingChanges] = useState(0)
+  // Unpublished edits made this session, newest last. Each entry lets Cancel
+  // undo the change: { type: 'add', id } | { type: 'edit', before } | { type: 'delete', before }
+  const [sessionChanges, setSessionChanges] = useState([])
   const [publishing, setPublishing] = useState(false)
+  const [reverting, setReverting]   = useState(false)
   const [dbPublished, setDbPublished] = useState(false)
+  const pendingChanges = sessionChanges.length
 
   const { shifts, loading, reload } = useShifts(weekStart, 1)
   const { staff, loading: staffLoading } = useStaffList()
@@ -566,8 +592,8 @@ export default function RotaMobileGrid() {
       .then(({ data }) => setDbPublished(!!data?.value))
   }, [venueId, weekStart])
 
-  const prevWeek = () => { const w = subWeeks(weekStart, 1); setWeekStart(w); setWeekOffset(o => o - 1); setPendingChanges(0) }
-  const nextWeek = () => { const w = addWeeks(weekStart, 1); setWeekStart(w); setWeekOffset(o => o + 1); setPendingChanges(0) }
+  const prevWeek = () => { const w = subWeeks(weekStart, 1); setWeekStart(w); setWeekOffset(o => o - 1); setSessionChanges([]) }
+  const nextWeek = () => { const w = addWeeks(weekStart, 1); setWeekStart(w); setWeekOffset(o => o + 1); setSessionChanges([]) }
 
   const shiftMap = {}
   const swapShiftIds = new Set(swaps.filter(s => s.status === 'pending').map(s => s.shift_id))
@@ -595,6 +621,7 @@ export default function RotaMobileGrid() {
   const managerInitials = (session?.staffName ?? 'MG').split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase()
   const isDraft      = pendingChanges > 0
   const isPublished  = dbPublished && pendingChanges === 0
+  const showPublishBar = shifts.length > 0 && !isPublished
 
   const publish = async () => {
     setPublishing(true)
@@ -606,13 +633,34 @@ export default function RotaMobileGrid() {
       sendPush({ venueId, notificationType: 'rota_published', title: 'Rota Published', body: `Your rota for the week of ${weekStartStr} is now available.`, url: '/rota', staffIds }).catch(() => {})
     }
     setPublishing(false)
-    setPendingChanges(0)
+    setSessionChanges([])
     setDbPublished(true)
     toast('Rota published — everyone notified ✓')
   }
 
-  const handleSaved   = () => { setPendingChanges(c => c + 1); reload() }
-  const handleDeleted = () => { setPendingChanges(c => c + 1); reload() }
+  // Discard every unpublished change this session by reversing each in LIFO order:
+  // added shifts are deleted, edits are restored, deletions are re-inserted.
+  const cancelChanges = async () => {
+    if (reverting || sessionChanges.length === 0) return
+    setReverting(true)
+    for (const ch of [...sessionChanges].reverse()) {
+      if (ch.type === 'add') {
+        await supabase.from('shifts').delete().eq('id', ch.id)
+      } else if (ch.type === 'edit') {
+        const b = ch.before
+        await supabase.from('shifts').update({ staff_id: b.staff_id, start_time: b.start_time, end_time: b.end_time, role_label: b.role_label }).eq('id', b.id)
+      } else if (ch.type === 'delete') {
+        await supabase.from('shifts').insert(ch.before)
+      }
+    }
+    setSessionChanges([])
+    setReverting(false)
+    reload()
+    toast('Changes discarded')
+  }
+
+  const handleSaved   = (change) => { if (change) setSessionChanges(c => [...c, change]); reload() }
+  const handleDeleted = (change) => { if (change) setSessionChanges(c => [...c, change]); reload() }
   const isLoading = loading || staffLoading
 
   return (
@@ -785,20 +833,22 @@ export default function RotaMobileGrid() {
 
             </div>
           )}
-          <div style={{ height: pendingChanges > 0 ? 150 : 96 }} />
+          <div style={{ height: showPublishBar ? 150 : 96 }} />
         </div>
 
         {/* ── Publish bar ── */}
-        {pendingChanges > 0 && (
+        {showPublishBar && (
           <div className="absolute bottom-4 left-3 right-3 z-[30] bg-charcoal text-white rounded-[15px] px-[14px] py-3 flex items-center gap-3" style={{ boxShadow: '0 10px 30px rgba(9,18,13,0.34)' }}>
             <div className="flex-1 min-w-0">
-              <div className="text-[13.5px] font-semibold">{pendingChanges} unpublished {pendingChanges === 1 ? 'change' : 'changes'}</div>
-              <div className="font-mono text-[9.5px] text-white/60 uppercase tracking-[0.04em] mt-0.5">Staff won't see them yet</div>
+              <div className="text-[13.5px] font-semibold">{isDraft ? `${pendingChanges} unpublished ${pendingChanges === 1 ? 'change' : 'changes'}` : 'Rota not published'}</div>
+              <div className="font-mono text-[9.5px] text-white/60 uppercase tracking-[0.04em] mt-0.5">{isDraft ? "Staff won't see them yet" : "Staff can't see this week yet"}</div>
             </div>
-            <button onClick={() => { setPendingChanges(0); reload() }} disabled={publishing} className="h-10 px-[14px] rounded-[11px] border border-white/25 cursor-pointer bg-transparent text-white/75 text-[13.5px] font-semibold">
-              Cancel
-            </button>
-            <button onClick={publish} disabled={publishing} className="h-10 px-[18px] rounded-[11px] border-none cursor-pointer bg-white text-charcoal text-[13.5px] font-bold flex items-center gap-[7px]">
+            {isDraft && (
+              <button onClick={cancelChanges} disabled={publishing || reverting} className="h-10 px-[14px] rounded-[11px] border border-white/25 cursor-pointer bg-transparent text-white/75 text-[13.5px] font-semibold">
+                {reverting ? 'Undoing…' : 'Cancel'}
+              </button>
+            )}
+            <button onClick={publish} disabled={publishing || reverting} className="h-10 px-[18px] rounded-[11px] border-none cursor-pointer bg-white text-charcoal text-[13.5px] font-bold flex items-center gap-[7px]">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4z"/></svg>
               {publishing ? 'Publishing…' : 'Publish'}
             </button>
@@ -832,7 +882,15 @@ export default function RotaMobileGrid() {
             days={days}
             venueId={venueId}
             onClose={() => setShowAI(false)}
-            onFilled={() => { reload(); setPendingChanges(c => c + openShifts.length) }}
+            onFilled={() => {
+              // Auto-fill assigns staff to previously-open shifts; record each as an
+              // edit so Cancel can unassign them (revert staff_id back to null).
+              const changes = openShifts
+                .filter(o => o.id)
+                .map(o => ({ type: 'edit', before: { id: o.id, staff_id: null, start_time: o.start_time, end_time: o.end_time, role_label: o.role_label ?? null } }))
+              setSessionChanges(c => [...c, ...changes])
+              reload()
+            }}
           />
         )}
       </div>
