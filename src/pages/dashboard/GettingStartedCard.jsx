@@ -15,13 +15,20 @@ const CircleIcon = () => (
   </svg>
 )
 
+// Once setup is complete or dismissed the card never shows again, so remember
+// that locally and skip all six progress queries on subsequent visits.
+const doneKey = (venueId) => `pelikn_setup_card_done_${venueId}`
+
 export default function GettingStartedCard({ venueId, venueSlug }) {
   const [checks, setChecks] = useState(null)
-  const [dismissed, setDismissed] = useState(null)
+  const [dismissed, setDismissed] = useState(() =>
+    venueId && localStorage.getItem(doneKey(venueId)) === 'true' ? true : null
+  )
   const { isEnabled } = useVenueFeatures()
 
   useEffect(() => {
     if (!venueId) return
+    if (localStorage.getItem(doneKey(venueId)) === 'true') return
 
     const today = new Date().toISOString().slice(0, 10)
     const weekStart = (() => {
@@ -45,8 +52,7 @@ export default function GettingStartedCard({ venueId, venueSlug }) {
       const hasVenueType = !!rows.find(r => r.key === 'venue_type')?.value
       const hasHours = !!rows.find(r => r.key === 'open_time')?.value
 
-      setDismissed(dismissed)
-      setChecks({
+      const nextChecks = {
         venueType:     hasVenueType,
         hours:         hasHours,
         staff:         (staffRes.count ?? 0) > 0,
@@ -54,13 +60,21 @@ export default function GettingStartedCard({ venueId, venueSlug }) {
         cleaning:      (cleaningRes.count ?? 0) > 0,
         rota:          (shiftsRes.count ?? 0) > 0,
         allergens:     (foodRes.count ?? 0) > 0,
-      })
+      }
+      // Dismissed, or every step done regardless of feature gating — the card
+      // will never show again, so skip these queries from now on.
+      if (dismissed || Object.values(nextChecks).every(Boolean)) {
+        localStorage.setItem(doneKey(venueId), 'true')
+      }
+      setDismissed(dismissed)
+      setChecks(nextChecks)
     })
   }, [venueId])
 
   useEffect(() => {
     const handler = () => {
       supabase.from('app_settings').delete().eq('venue_id', venueId).eq('key', 'setup_dismissed').then(() => {})
+      localStorage.removeItem(doneKey(venueId))
       setDismissed(false)
     }
     window.addEventListener('pelikn:reopen-setup', handler)
@@ -84,6 +98,7 @@ export default function GettingStartedCard({ venueId, venueSlug }) {
 
   const dismiss = () => {
     supabase.from('app_settings').upsert({ venue_id: venueId, key: 'setup_dismissed', value: 'true' }, { onConflict: 'venue_id,key' }).then(() => {})
+    localStorage.setItem(doneKey(venueId), 'true')
     setDismissed(true)
   }
 

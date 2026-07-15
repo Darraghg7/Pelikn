@@ -1,8 +1,9 @@
-import React, { memo, useEffect, useState } from 'react'
+import React, { memo } from 'react'
 import { Link } from 'react-router-dom'
 import { subDays } from 'date-fns'
 import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
+import { useWidgetQuery } from '../../hooks/useWidgetQuery'
 import LoadingSpinner from '../ui/LoadingSpinner'
 import { WidgetShell } from './shared'
 import { EXPLAINED_EXCEEDANCE_REASONS } from '../../lib/constants'
@@ -59,11 +60,8 @@ export function ComplianceGauge({ score }) {
 
 function ComplianceScoreWidget() {
   const { venueId, venueSlug } = useVenue()
-  const [data, setData] = useState(null)
 
-  useEffect(() => {
-    if (!venueId) return
-    const load = async () => {
+  const { data } = useWidgetQuery('compliance_score', [venueId], async () => {
       const since = subDays(new Date(), 30).toISOString()
       const [temps, deliveries, calibrations, actions, training, coolingLogs, pestIssues] = await Promise.all([
         supabase.from('fridge_temperature_logs').select('id, temperature, exceedance_reason, is_resolved, fridge:fridge_id(min_temp, max_temp)').eq('venue_id', venueId).gte('logged_at', since),
@@ -127,10 +125,8 @@ function ComplianceScoreWidget() {
       if (coolingFails > 0) issueList.push({ label: 'Cooling logs', detail: `${coolingFails} exceeded target`, section: null, severity: 'warning' })
       if (openHighPest > 0) issueList.push({ label: 'Pest control', detail: `${openHighPest} high-severity open`, section: null, severity: 'bad' })
 
-      setData({ score, issues, status: getScoreTier(score).status, issueList })
-    }
-    load()
-  }, [venueId])
+      return { score, issues, status: getScoreTier(score).status, issueList }
+  })
 
   if (!data) return (
     <WidgetShell title="Compliance Score" to="/audit">

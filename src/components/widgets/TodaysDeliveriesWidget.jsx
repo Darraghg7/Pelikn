@@ -1,29 +1,28 @@
-import React, { memo, useEffect, useState } from 'react'
+import React, { memo } from 'react'
+import { format } from 'date-fns'
 import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
+import { useWidgetQuery } from '../../hooks/useWidgetQuery'
 import LoadingSpinner from '../ui/LoadingSpinner'
 import { WidgetShell, MiniRow } from './shared'
 
 function TodaysDeliveriesWidget() {
   const { venueId } = useVenue()
-  const [data, setData] = useState(null)
+  const todayStr = format(new Date(), 'yyyy-MM-dd')
 
-  useEffect(() => {
-    if (!venueId) return
+  const { data } = useWidgetQuery('todays_deliveries', [venueId, todayStr], async () => {
     const today = new Date()
     today.setHours(0, 0, 0, 0)
-    supabase.from('delivery_checks')
+    const { data: checks } = await supabase.from('delivery_checks')
       .select('id, supplier_name, overall_pass, checked_at')
       .eq('venue_id', venueId)
       .gte('checked_at', today.toISOString())
       .order('checked_at', { ascending: false })
       .limit(5)
-      .then(({ data: checks }) => {
-        const items = checks ?? []
-        const fails = items.filter(c => !c.overall_pass).length
-        setData({ total: items.length, fails, items })
-      })
-  }, [venueId])
+    const items = checks ?? []
+    const fails = items.filter(c => !c.overall_pass).length
+    return { total: items.length, fails, items }
+  })
 
   if (!data) return <WidgetShell title="Today's Deliveries" to="/deliveries"><div className="flex justify-center py-4"><LoadingSpinner /></div></WidgetShell>
 

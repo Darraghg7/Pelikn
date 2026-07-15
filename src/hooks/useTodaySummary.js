@@ -103,31 +103,25 @@ export function useTodaySummary(venueId, closedDays = [], actionSchedules = {}) 
         return
       }
 
-      const { data: closureRows } = await supabase
-        .from('venue_closures')
-        .select('id, reason')
-        .eq('venue_id', venueId)
-        .lte('start_date', todayStr)
-        .gte('end_date', todayStr)
-        .limit(1)
-      if (cancelled) return
-      if (closureRows?.length) {
-        setClosedToday(closureRows[0].reason || true)
-        setSummary(emptySummary())
-        setLoading(false)
-        return
-      }
-      setClosedToday(false)
-
       const due = (key) => isActionDueToday(key, actionSchedules)
 
-      // All queries run in parallel — including cleaning completions and shift IDs
-      // so we avoid sequential waterfall fetches after this batch.
+      // All queries run in parallel — including the venue-closure check,
+      // cleaning completions and shift IDs, so the whole summary needs a
+      // single round-trip (plus one follow-up for duties when shifts exist).
+      // On a closure day the other results are simply discarded.
       const [
+        closures,
         cleaning, rota, opening, closing, fridges, fridgeLogs,
         leaveReqs, critActions, cookingTemps, hotHoldingLogs,
         coolingLogs, dutyShifts, totalChecksRes, cleaningCompletions,
       ] = await Promise.all([
+        supabase
+          .from('venue_closures')
+          .select('id, reason')
+          .eq('venue_id', venueId)
+          .lte('start_date', todayStr)
+          .gte('end_date', todayStr)
+          .limit(1),
         due('cleaning_tasks')
           ? supabase.from('cleaning_tasks').select('id, frequency').eq('venue_id', venueId).eq('is_active', true)
           : { data: [] },
@@ -173,6 +167,16 @@ export function useTodaySummary(venueId, closedDays = [], actionSchedules = {}) 
       ])
 
       if (cancelled) return
+
+      // ── Venue closed today? Discard the batch and report empty ───────────
+      if (closures.data?.length) {
+        setClosedToday(closures.data[0].reason || true)
+        setSummary(emptySummary())
+        setLoading(false)
+        revalidating.current = false
+        return
+      }
+      setClosedToday(false)
 
       // ── Cleaning overdue count (no extra round-trip needed) ──────────────
       let overdueCount = 0

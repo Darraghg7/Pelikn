@@ -11,14 +11,22 @@ import { useVenue } from '../contexts/VenueContext'
 import StaffDashboardPage  from './dashboard/StaffDashboardPage'
 import ManagerDashboardPage from './dashboard/ManagerDashboardPage'
 
+// Once a venue is confirmed onboarded, remember it locally — the answer never
+// changes back, so later visits can skip the network check entirely and
+// render the dashboard immediately.
+const onboardedKey = (venueId) => `pelikn_onboarded_${venueId}`
+
 export default function DashboardPage() {
   const { isManager } = useSession()
   const { venueId, venueSlug } = useVenue()
   const navigate = useNavigate()
-  const [checked, setChecked] = useState(!isManager)
+  const [checked, setChecked] = useState(() =>
+    !isManager || (venueId && localStorage.getItem(onboardedKey(venueId)) === 'true')
+  )
 
   useEffect(() => {
     if (!isManager || !venueId) { setChecked(true); return }
+    if (localStorage.getItem(onboardedKey(venueId)) === 'true') { setChecked(true); return }
     supabase
       .from('app_settings')
       .select('value')
@@ -28,6 +36,7 @@ export default function DashboardPage() {
       .then(async ({ data }) => {
         if (data?.value === 'true') {
           // Wizard already completed for this venue — proceed normally.
+          localStorage.setItem(onboardedKey(venueId), 'true')
           setChecked(true)
           return
         }
@@ -44,6 +53,7 @@ export default function DashboardPage() {
           await supabase.from('app_settings').upsert({
             venue_id: venueId, key: 'onboarding_complete', value: 'true',
           }, { onConflict: 'venue_id,key' })
+          localStorage.setItem(onboardedKey(venueId), 'true')
           setChecked(true)
         } else {
           // New venue (0–1 staff) — send through the setup wizard.

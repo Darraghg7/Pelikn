@@ -1,23 +1,24 @@
-import React, { memo, useEffect, useState } from 'react'
+import React, { memo } from 'react'
 import { format } from 'date-fns'
 import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
+import { useWidgetQuery } from '../../hooks/useWidgetQuery'
 import LoadingSpinner from '../ui/LoadingSpinner'
 import { WidgetShell } from './shared'
 
+function weekStartStr() {
+  const now = new Date()
+  const day = now.getDay()
+  const monday = new Date(now)
+  monday.setDate(now.getDate() - (day === 0 ? 6 : day - 1))
+  return format(monday, 'yyyy-MM-dd')
+}
+
 function WeeklyLabourWidget() {
   const { venueId } = useVenue()
-  const [data, setData] = useState(null)
+  const weekStart = weekStartStr()
 
-  useEffect(() => {
-    if (!venueId) return
-    const load = async () => {
-      const now = new Date()
-      const day = now.getDay()
-      const monday = new Date(now)
-      monday.setDate(now.getDate() - (day === 0 ? 6 : day - 1))
-      const weekStart = format(monday, 'yyyy-MM-dd')
-
+  const { data } = useWidgetQuery('weekly_labour', [venueId, weekStart], async () => {
       const { data: shifts } = await supabase
         .from('shifts')
         .select('start_time, end_time, staff:staff_id(hourly_rate)')
@@ -36,10 +37,8 @@ function WeeklyLabourWidget() {
         totalCost += hrs * (s.staff?.hourly_rate ?? 0)
       }
 
-      setData({ shifts: items.length, hours: totalHrs.toFixed(1), cost: totalCost.toFixed(2) })
-    }
-    load()
-  }, [venueId])
+      return { shifts: items.length, hours: totalHrs.toFixed(1), cost: totalCost.toFixed(2) }
+  })
 
   if (!data) return <WidgetShell title="Weekly Labour" to="/rota"><div className="flex justify-center py-4"><LoadingSpinner /></div></WidgetShell>
 
