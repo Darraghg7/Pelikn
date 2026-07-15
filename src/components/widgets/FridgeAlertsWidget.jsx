@@ -1,9 +1,10 @@
-import React, { memo, useEffect, useState } from 'react'
+import React, { memo } from 'react'
 import { Link } from 'react-router-dom'
 import { format } from 'date-fns'
 import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
 import { useAppSettings } from '../../hooks/useSettings'
+import { useWidgetQuery } from '../../hooks/useWidgetQuery'
 import LoadingSpinner from '../ui/LoadingSpinner'
 import { WidgetShell, MiniRow } from './shared'
 import { EXPLAINED_EXCEEDANCE_REASONS } from '../../lib/constants'
@@ -11,33 +12,25 @@ import { EXPLAINED_EXCEEDANCE_REASONS } from '../../lib/constants'
 function FridgeAlertsWidget() {
   const { venueId, venueSlug } = useVenue()
   const { closedDays } = useAppSettings()
-  const [data, setData] = useState(null)
+  const today = format(new Date(), 'yyyy-MM-dd')
 
-  useEffect(() => {
-    if (!venueId) return
-    const load = async () => {
-      const today = format(new Date(), 'yyyy-MM-dd')
-
-      // Is today a regular closed day-of-week? (closedDays: 0=Mon…6=Sun)
-      const todayDow = (new Date().getDay() + 6) % 7
-      const isDowClosed = closedDays.includes(todayDow)
-
-      // Is today inside a venue closure period?
-      const { data: closureRows } = await supabase
-        .from('venue_closures')
-        .select('id')
-        .eq('venue_id', venueId)
-        .lte('start_date', today)
-        .gte('end_date', today)
-        .limit(1)
-      const isClosed = isDowClosed || (closureRows?.length ?? 0) > 0
-
-      const { data: logs } = await supabase
-        .from('fridge_temperature_logs')
-        .select('id, temperature, exceedance_reason, is_resolved, fridge:fridge_id(name, min_temp, max_temp)')
-        .eq('venue_id', venueId)
-        .gte('logged_at', today)
-        .order('logged_at', { ascending: false })
+  const { data: raw } = useWidgetQuery('fridge_alerts', [venueId, today], async () => {
+      const [{ data: closureRows }, { data: logs }, { data: fridges }] = await Promise.all([
+        supabase
+          .from('venue_closures')
+          .select('id')
+          .eq('venue_id', venueId)
+          .lte('start_date', today)
+          .gte('end_date', today)
+          .limit(1),
+        supabase
+          .from('fridge_temperature_logs')
+          .select('id, temperature, exceedance_reason, is_resolved, fridge:fridge_id(name, min_temp, max_temp)')
+          .eq('venue_id', venueId)
+          .gte('logged_at', today)
+          .order('logged_at', { ascending: false }),
+        supabase.from('fridges').select('id, name').eq('venue_id', venueId).eq('is_active', true),
+      ])
 
       const items = logs ?? []
       const outOfRange = items.filter(l =>
@@ -46,19 +39,27 @@ function FridgeAlertsWidget() {
         !EXPLAINED_EXCEEDANCE_REASONS.includes(l.exceedance_reason) &&
         !l.is_resolved
       )
-      const total = items.length
-      const { data: fridges } = await supabase.from('fridges').select('id, name').eq('venue_id', venueId).eq('is_active', true)
-      const fridgeCount = fridges?.length ?? 0
       const checkedFridgeIds = new Set(items.map(l => l.fridge?.name).filter(Boolean))
-      // Don't flag unchecked fridges on closed days
-      const unchecked = isClosed ? 0 : Math.max(0, fridgeCount - checkedFridgeIds.size)
 
-      setData({ total, alerts: outOfRange.length, unchecked, fridgeCount, isClosed, alertItems: outOfRange.slice(0, 4) })
-    }
-    load()
-  }, [venueId, closedDays])
+      return {
+        total: items.length,
+        alerts: outOfRange.length,
+        fridgeCount: fridges?.length ?? 0,
+        checkedCount: checkedFridgeIds.size,
+        hasClosure: (closureRows?.length ?? 0) > 0,
+        alertItems: outOfRange.slice(0, 4),
+      }
+  })
 
-  if (!data) return <WidgetShell title="Fridge Status" to="/fridge"><div className="flex justify-center py-4"><LoadingSpinner /></div></WidgetShell>
+  if (!raw) return <WidgetShell title="Fridge Status" to="/fridge"><div className="flex justify-center py-4"><LoadingSpinner /></div></WidgetShell>
+
+  // Closed-day logic stays outside the query so a settings change applies
+  // immediately without a refetch. closedDays: 0=Mon…6=Sun.
+  const todayDow = (new Date().getDay() + 6) % 7
+  const isClosed = closedDays.includes(todayDow) || raw.hasClosure
+  // Don't flag unchecked fridges on closed days
+  const unchecked = isClosed ? 0 : Math.max(0, raw.fridgeCount - raw.checkedCount)
+  const data = { ...raw, isClosed, unchecked }
 
   const status = data.alerts > 0 ? 'bad' : data.unchecked > 0 ? 'warning' : 'good'
 

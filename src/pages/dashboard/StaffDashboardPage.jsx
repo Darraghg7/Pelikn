@@ -640,20 +640,17 @@ function useTodaySummary({ staffId, venueId, isEnabled, hasPermission, closedDay
       return
     }
 
-    supabase.from('venue_closures')
-      .select('id, reason').eq('venue_id', venueId)
-      .lte('start_date', today).gte('end_date', today).limit(1)
-      .then(({ data: closures }) => {
-        if (cancelled) return
-        if (closures?.length) {
-          setData({ fridgesUnchecked: 0, cleaningDue: 0, loaded: true, closedToday: closures[0].reason || true })
-          return
-        }
-        loadCounts()
-      })
+    loadCounts()
 
     async function loadCounts() {
-      const promises = []
+      // Closure check runs in the same parallel batch as the counts — one
+      // round-trip instead of two. On a closure day the counts are discarded.
+      const promises = [
+        supabase.from('venue_closures')
+          .select('id, reason').eq('venue_id', venueId)
+          .lte('start_date', today).gte('end_date', today).limit(1)
+          .then(({ data }) => ({ type: 'closures', rows: data ?? [] })),
+      ]
 
       if (isEnabled('cleaning') && hasPermission('manage_cleaning')) {
         promises.push(
@@ -678,13 +675,15 @@ function useTodaySummary({ staffId, venueId, isEnabled, hasPermission, closedDay
         )
       }
 
-      if (!promises.length) {
-        if (!cancelled) setData({ fridgesUnchecked: 0, cleaningDue: 0, loaded: true, closedToday: false })
+      const results = await Promise.all(promises)
+      if (cancelled) return
+
+      const closures = results.find(res => res.type === 'closures')?.rows ?? []
+      if (closures.length) {
+        setData({ fridgesUnchecked: 0, cleaningDue: 0, loaded: true, closedToday: closures[0].reason || true })
         return
       }
 
-      const results = await Promise.all(promises)
-      if (cancelled) return
       const r = {}
       for (const res of results) r[res.type] = res.count
       setData({

@@ -1,26 +1,26 @@
-import React, { memo, useEffect, useState } from 'react'
+import React, { memo } from 'react'
 import { format } from 'date-fns'
 import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
+import { useWidgetQuery } from '../../hooks/useWidgetQuery'
 import LoadingSpinner from '../ui/LoadingSpinner'
 import { WidgetShell } from './shared'
 
 function StaffOnShiftWidget() {
   const { venueId } = useVenue()
-  const [shifts, setShifts] = useState([])
-  const [loading, setLoading] = useState(true)
+  const today = format(new Date(), 'yyyy-MM-dd')
 
-  useEffect(() => {
-    if (!venueId) return
-    const today = format(new Date(), 'yyyy-MM-dd')
-    supabase.from('shifts')
+  const { data } = useWidgetQuery('staff_on_shift', [venueId, today], async () => {
+    const { data: rows } = await supabase.from('shifts')
       .select('id, start_time, end_time, role_label, staff:staff_id(name, job_role)')
       .eq('venue_id', venueId)
       .eq('shift_date', today)
       .order('start_time')
-      .then(({ data }) => { setShifts(data ?? []); setLoading(false) })
-  }, [venueId])
+    return rows ?? []
+  })
 
+  const shifts = data ?? []
+  const loading = !data
   const now = format(new Date(), 'HH:mm')
 
   return (

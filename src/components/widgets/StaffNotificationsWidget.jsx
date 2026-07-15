@@ -1,17 +1,16 @@
-import React, { memo, useEffect, useState } from 'react'
+import React, { memo } from 'react'
 import { format } from 'date-fns'
 import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
+import { useWidgetQuery } from '../../hooks/useWidgetQuery'
 import LoadingSpinner from '../ui/LoadingSpinner'
 import { WidgetShell } from './shared'
 
 function StaffNotificationsWidget() {
   const { venueId, venueSlug } = useVenue()
-  const [data, setData] = useState(null)
 
-  useEffect(() => {
-    if (!venueId) return
-    Promise.all([
+  const { data } = useWidgetQuery('staff_notifications', [venueId], async () => {
+    const [{ data: leave }, { data: swaps }, { count: trainCount }] = await Promise.all([
       supabase
         .from('time_off_requests')
         .select('id, start_date, end_date, reason, staff:staff_id(name)')
@@ -30,14 +29,13 @@ function StaffNotificationsWidget() {
         .select('id', { count: 'exact', head: true })
         .eq('venue_id', venueId)
         .eq('staff_acknowledged', false),
-    ]).then(([{ data: leave }, { data: swaps }, { count: trainCount }]) => {
-      setData({
-        leave:      leave  ?? [],
-        swaps:      swaps  ?? [],
-        trainCount: trainCount ?? 0,
-      })
-    })
-  }, [venueId])
+    ])
+    return {
+      leave:      leave  ?? [],
+      swaps:      swaps  ?? [],
+      trainCount: trainCount ?? 0,
+    }
+  })
 
   if (!data) {
     return (
