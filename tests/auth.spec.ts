@@ -1,11 +1,11 @@
 /**
  * Auth flows — owner login, staff PIN login, permission gates, logout.
  */
-import { test, expect } from '@playwright/test'
+import { test, expect, type Page } from '@playwright/test'
 
 const VENUE = process.env.TEST_VENUE_SLUG ?? 'brew-and-bloom'
 
-async function openOwnerLoginForm(page) {
+async function openOwnerLoginForm(page: Page) {
   // Fast-forward the 5.2s entrance animation so inputs become interactive immediately.
   await page.evaluate(() => window.dispatchEvent(new Event('pk-splash-done')))
   const emailInput = page.locator('input[type="email"]').first()

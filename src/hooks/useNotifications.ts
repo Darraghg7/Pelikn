@@ -83,7 +83,8 @@ async function checkLateClockIns(items: AppNotification[], today: string, vid: s
   ])
   if (!shifts?.length || !clockIns?.length) return
   const lateOnes: string[] = []
-  for (const ci of clockIns as { staff_id: string; occurred_at: string; staff?: { name: string } | null }[]) {
+  // PostgREST returns to-one staff joins as objects; the untyped client infers arrays.
+  for (const ci of clockIns as unknown as { staff_id: string; occurred_at: string; staff?: { name: string } | null }[]) {
     const shift = (shifts as { staff_id: string; start_time: string }[]).find(s => s.staff_id === ci.staff_id)
     if (!shift) continue
     const shiftStart = new Date(today + 'T' + shift.start_time)
@@ -108,7 +109,7 @@ async function checkLateBreakReturns(items: AppNotification[], today: string, vi
   if (!events?.length) return
 
   const state: Record<string, { name: string; onBreakSince: Date | null }> = {}
-  for (const ev of events as { staff_id: string; event_type: string; occurred_at: string; staff?: { name: string } | null }[]) {
+  for (const ev of events as unknown as { staff_id: string; event_type: string; occurred_at: string; staff?: { name: string } | null }[]) {
     if (!state[ev.staff_id]) state[ev.staff_id] = { name: ev.staff?.name ?? 'Unknown', onBreakSince: null }
     if (ev.event_type === 'break_start') state[ev.staff_id].onBreakSince = parseISO(ev.occurred_at)
     else state[ev.staff_id].onBreakSince = null
@@ -149,7 +150,7 @@ async function checkRepeatOffenders(items: AppNotification[], vid: string, now =
   if (!shifts?.length || !clockIns?.length) return
   const lateCounts: Record<string, number> = {}
   const staffNames: Record<string, string> = {}
-  for (const shift of shifts as { staff_id: string; shift_date: string; start_time: string; staff?: { name: string } | null }[]) {
+  for (const shift of shifts as unknown as { staff_id: string; shift_date: string; start_time: string; staff?: { name: string } | null }[]) {
     const ci = (clockIns as { staff_id: string; occurred_at: string }[]).find(c => c.staff_id === shift.staff_id && c.occurred_at.startsWith(shift.shift_date))
     if (!ci) continue
     const shiftStart = new Date(shift.shift_date + 'T' + shift.start_time)
@@ -168,7 +169,7 @@ const EXPLAINED_REASONS = ['delivery', 'defrost', 'service_access']
 
 async function checkFridgeAlerts(items: AppNotification[], today: string, vid: string, now = new Date()): Promise<void> {
   const { data: logs } = await supabase.from('fridge_temperature_logs').select('id, fridge_id, temperature, exceedance_reason, is_resolved, fridge:fridge_id(name, min_temp, max_temp)').eq('venue_id', vid).gte('logged_at', today + 'T00:00:00')
-  const readings = (logs ?? []) as { fridge_id: string; temperature: number; exceedance_reason?: string; is_resolved?: boolean; fridge?: { name: string; min_temp: number; max_temp: number } | null }[]
+  const readings = (logs ?? []) as unknown as { fridge_id: string; temperature: number; exceedance_reason?: string; is_resolved?: boolean; fridge?: { name: string; min_temp: number; max_temp: number } | null }[]
   const outOfRange = readings.filter(l =>
     l.fridge &&
     (l.temperature < l.fridge.min_temp || l.temperature > l.fridge.max_temp) &&
@@ -192,7 +193,7 @@ async function checkFridgeAlerts(items: AppNotification[], today: string, vid: s
 async function checkExpiringTraining(items: AppNotification[], vid: string, now = new Date()): Promise<void> {
   const thirtyDays = new Date(now.getTime() + 30 * 86400000)
   const { data: certs } = await supabase.from('staff_training').select('id, title, expiry_date, staff:staff_id(name)').eq('venue_id', vid).not('expiry_date', 'is', null).lte('expiry_date', format(thirtyDays, 'yyyy-MM-dd')).order('expiry_date')
-  const records = (certs ?? []) as { expiry_date: string; title: string; staff?: { name: string } | null }[]
+  const records = (certs ?? []) as unknown as { expiry_date: string; title: string; staff?: { name: string } | null }[]
   const expired = records.filter(c => new Date(c.expiry_date) < now)
   const expiring = records.filter(c => { const d = new Date(c.expiry_date); return d >= now && d <= thirtyDays })
   if (expired.length > 0) items.push({ id: 'training-expired', type: 'training_expired', message: `${expired.length} training cert${expired.length > 1 ? 's' : ''} expired: ${expired.slice(0, 3).map(c => `${c.staff?.name} (${c.title})`).join(', ')}`, link: '/training', severity: 'critical' })

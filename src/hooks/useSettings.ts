@@ -180,7 +180,7 @@ export function useAppSettings() {
 
   const { data, isLoading: loading } = useQuery({
     queryKey,
-    queryFn: () => fetchAppSettings(venueId),
+    queryFn: () => fetchAppSettings(venueId!),
     enabled: !!venueId,
     placeholderData: DEFAULTS,
     staleTime: 30_000,

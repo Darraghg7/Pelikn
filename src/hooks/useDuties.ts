@@ -126,7 +126,8 @@ export function useTodayDuties(staffId: string): {
   toggleItem: (assignmentId: string, itemId: string, currentlyDone: boolean) => Promise<{ error: unknown }>
 } {
   const { venueId, venueSlug } = useVenue()
-  const { session } = useSession()
+  // SessionContext is untyped .jsx (its inferred type is null) — shape the one field we use.
+  const { session } = (useSession() ?? {}) as { session?: { token?: string } | null }
   const queryClient = useQueryClient()
 
   const { data, isLoading, refetch } = useQuery({
@@ -171,7 +172,8 @@ export function useTodayDuties(staffId: string): {
       )
 
       return assignments.map(a => {
-        const aTyped = a as {
+        // PostgREST returns to-one joins as objects; the untyped client infers arrays.
+        const aTyped = a as unknown as {
           id: string
           duty_template_id: string
           duty_templates?: { title: string } | null
@@ -208,7 +210,7 @@ export function useTodayDuties(staffId: string): {
         : duty)
     )
     const { error } = await supabase.rpc(fn, {
-      p_token:         (session as { token?: string } | null)?.token,
+      p_token:         session?.token,
       p_venue_slug:    venueSlug,
       p_assignment_id: assignmentId,
       p_item_id:       itemId,
@@ -254,7 +256,7 @@ export function useAllTodayDuties(): { duties: AllTodayDuty[]; loading: boolean 
 
       const shiftIds = shifts.map(s => (s as { id: string }).id)
       const staffById = Object.fromEntries(shifts.map(s => {
-        const st = s as { id: string; staff?: { name: string } | null }
+        const st = s as unknown as { id: string; staff?: { name: string } | null }
         return [st.id, st.staff]
       }))
 
@@ -282,7 +284,7 @@ export function useAllTodayDuties(): { duties: AllTodayDuty[]; loading: boolean 
       }, {})
 
       return assignments.map(a => {
-        const aTyped = a as {
+        const aTyped = a as unknown as {
           id: string
           shift_id: string
           duty_templates?: { title: string } | null

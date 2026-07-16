@@ -128,7 +128,7 @@ export function useVenueFeatures() {
 
   const { data: config, isLoading: loading, refetch } = useQuery({
     queryKey,
-    queryFn: () => fetchFeatures(venueId),
+    queryFn: () => fetchFeatures(venueId!),
     enabled: !!venueId,
     placeholderData: DEFAULT_CONFIG,
     staleTime: 60_000,

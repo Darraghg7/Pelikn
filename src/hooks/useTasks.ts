@@ -16,7 +16,7 @@ export function useTasksForRole(jobRole: string, staffId: string): {
 
   const { data, isLoading, refetch } = useQuery({
     queryKey: ['tasksForRole', venueId, jobRole, staffId, today],
-    queryFn: () => fetchTasksForRole(venueId, today),
+    queryFn: () => fetchTasksForRole(venueId!, today),
     enabled: !!venueId,
   })
 
@@ -53,7 +53,7 @@ export function useAllTasks(selectedDate?: Date | null): {
 
   const { data, isLoading, refetch } = useQuery({
     queryKey: ['allTasks', venueId, dateStr],
-    queryFn: () => fetchAllTasks(venueId, dateStr),
+    queryFn: () => fetchAllTasks(venueId!, dateStr),
     enabled: !!venueId,
   })
 

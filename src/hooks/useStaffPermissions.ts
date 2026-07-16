@@ -33,7 +33,7 @@ export function useStaffPermissions(staffId: string, staffRole: string): {
 
   const { data: permissionsList, isLoading, refetch } = useQuery({
     queryKey,
-    queryFn: () => fetchPermissions(staffId, venueId),
+    queryFn: () => fetchPermissions(staffId, venueId!),
     enabled: !isManager && !!staffId && !!venueId,
     placeholderData: [],
     staleTime: 60_000,
