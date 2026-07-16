@@ -1,19 +1,41 @@
 import { useState, useEffect } from 'react'
 import { startOfDay, endOfDay, format } from 'date-fns'
 import { supabase } from '../lib/supabase'
+import { readPersisted, writePersisted, clearPersisted } from '../lib/persistedCache'
 
-// Module-level SWR cache for the 4 independent queries (fitness/probe/delivery/incidents)
+// Module-level SWR cache for the 4 independent queries (fitness/probe/delivery/incidents),
+// backed by localStorage so a cold app open renders the last-known tile
+// statuses immediately while a background refresh fires.
 const _rawCache = new Map()
 const STALE_MS  = 90_000
 const FRESH_MS  = 20_000
 
+function rawCacheGet(key) {
+  const entry = _rawCache.get(key)
+  if (entry) return entry
+  const persisted = readPersisted('checks_raw', key)
+  if (persisted) {
+    // `today` was serialised to a string — rehydrate as "now", which is what
+    // the probe days-since calculation wants anyway.
+    const seeded = { data: { ...persisted, today: new Date() }, ts: Date.now() - FRESH_MS - 1000 }
+    _rawCache.set(key, seeded)
+    return seeded
+  }
+  return null
+}
+function rawCacheSet(key, data) {
+  _rawCache.set(key, { data, ts: Date.now() })
+  writePersisted('checks_raw', key, data)
+}
+
 /** Call after any compliance write to force the next render to re-fetch. */
 export function invalidateChecksStatusCache(venueId) {
-  if (!venueId) { _rawCache.clear(); return }
+  if (!venueId) { _rawCache.clear(); clearPersisted('checks_raw'); return }
   // Remove any key starting with venueId (covers date variants)
   for (const key of _rawCache.keys()) {
     if (key.startsWith(venueId)) _rawCache.delete(key)
   }
+  clearPersisted('checks_raw')
 }
 
 /**
@@ -26,7 +48,7 @@ export function invalidateChecksStatusCache(venueId) {
 export function useChecksStatus(venueId, summary, summaryLoading) {
   const dateStr  = format(new Date(), 'yyyy-MM-dd')
   const cacheKey = venueId ? `${venueId}:${dateStr}` : null
-  const cached   = cacheKey ? (_rawCache.get(cacheKey) ?? null) : null
+  const cached   = cacheKey ? rawCacheGet(cacheKey) : null
 
   const [rawData, setRawData]       = useState(cached?.data ?? null)
   const [rawLoading, setRawLoading] = useState(!cached)
@@ -36,7 +58,7 @@ export function useChecksStatus(venueId, summary, summaryLoading) {
   useEffect(() => {
     if (!venueId) return
     const key   = `${venueId}:${dateStr}`
-    const entry = _rawCache.get(key) ?? null
+    const entry = rawCacheGet(key)
     const age   = entry ? Date.now() - entry.ts : Infinity
 
     if (entry && age < FRESH_MS) {
@@ -87,7 +109,7 @@ export function useChecksStatus(venueId, summary, summaryLoading) {
     ]).then(([fitnessRes, probeRes, deliveryRes, incidentRes]) => {
       if (cancelled) return
       const fresh = { fitnessRes, probeRes, deliveryRes, incidentRes, today }
-      _rawCache.set(key, { data: fresh, ts: Date.now() })
+      rawCacheSet(key, fresh)
       setRawData(fresh)
       setRawLoading(false)
     }).catch(() => {
