@@ -1,5 +1,5 @@
 -- ============================================================================
--- 091: Venue-scoped RLS via JWT claims  (v2 — data-driven, drift-proof)
+-- 091: Venue-scoped RLS via JWT claims  (v3 — data-driven, drift-proof)
 --
 -- ╔══════════════════════════════════════════════════════════════════════════╗
 -- ║  APPLY MANUALLY IN SUPABASE SQL EDITOR — "Run without RLS"                ║
@@ -88,6 +88,7 @@ DECLARE
     'apns_tokens',
     'cleaning_completions',
     'cleaning_tasks',
+    'clock_edit_requests',
     'clock_events',
     'cooking_temp_logs',
     'cooling_logs',
@@ -106,6 +107,7 @@ DECLARE
     'food_complaints',
     'fridge_temperature_logs',
     'fridges',
+    'haccp_plans',
     'hot_holding_items',
     'hot_holding_logs',
     'hour_edit_log',
@@ -117,8 +119,11 @@ DECLARE
     'opening_closing_checks',
     'opening_closing_completions',
     'pest_control_logs',
+    'ppds_items',
     'probe_calibrations',
     'push_subscriptions',
+    'recall_logs',
+    'recall_procedures',
     'rota_requirements',
     'shift_swaps',
     'shifts',
@@ -126,6 +131,7 @@ DECLARE
     'staff_dashboard_today_items',
     'staff_hr_documents',
     'staff_notification_preferences',
+    'staff_permissions',
     'staff_role_assignments',
     'staff_training',
     'staff_venue_links',
@@ -139,6 +145,8 @@ DECLARE
     'time_off_requests',
     'tip_allocations',
     'tip_splits',
+    'training_sign_offs',
+    'venue_closures',
     'venue_roles',
     'waste_logs'
 
