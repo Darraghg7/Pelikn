@@ -41,8 +41,11 @@ Right after applying, on NOMAD:
 4. **Owner email login** → settings, HR, timesheets all load.
 5. If you have a second venue, log into it and confirm you see *its* data, not NOMAD's.
 6. Log out fully, reopen → the login page still lists the venue's staff (venues/staff stay readable pre-login by design).
+7. **Public QR allergen menu** → open `/allergens/<venueSlug>` in a private window (no login). It must still show the venue's food items. v2 keeps a public read on the allergen-menu tables so this page keeps working — this check confirms it.
 
 If any of those show **empty** where there should be data, that's the signal to roll back.
+
+> **v2 note (Jul 2026):** the first apply of 091 was rolled back — it dropped old policies by guessed name (leaving most tables open) and scoped the allergen-menu tables (breaking the public page). The migration was rewritten to drop *every* policy per table generically and to keep the allergen menu public. The drift report at the end lists any table with no `venue_id` column — those are left open as follow-ups (add column + backfill, then scope); send Claude the list.
 
 ## Rollback (under a minute, no data touched)
 
