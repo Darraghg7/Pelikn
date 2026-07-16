@@ -27,7 +27,7 @@ export function useStaffNotifications(staffId: string): {
 
   const { data: notifications, isLoading: loading } = useQuery({
     queryKey: ['staff-notifications', staffId, venueId],
-    queryFn: () => loadStaffNotifications(staffId, venueId),
+    queryFn: () => loadStaffNotifications(staffId, venueId!),
     enabled: !!staffId && !!venueId,
     placeholderData: [],
     staleTime: 60_000,

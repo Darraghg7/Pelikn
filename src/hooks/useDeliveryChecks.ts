@@ -1,10 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { fetchDeliveryChecks } from '../lib/api/deliveries'
-
-interface DeliveryCheck {
-  id: string
-  [key: string]: unknown
-}
+import { fetchDeliveryChecks, type DeliveryCheck } from '../lib/api/deliveries'
 
 export default function useDeliveryChecks(venueId: string): {
   checks: DeliveryCheck[]
@@ -17,5 +12,5 @@ export default function useDeliveryChecks(venueId: string): {
     enabled: !!venueId,
   })
 
-  return { checks: (data ?? []) as DeliveryCheck[], loading: isLoading, reload: refetch }
+  return { checks: data ?? [], loading: isLoading, reload: refetch }
 }

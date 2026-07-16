@@ -1,6 +1,6 @@
 import { supabase } from '../supabase'
 
-interface CleaningTask {
+export interface CleaningTask {
   id: string
   title: string
   frequency: string
@@ -9,7 +9,7 @@ interface CleaningTask {
   venue_id: string
 }
 
-interface CleaningCompletion {
+export interface CleaningCompletion {
   id: string
   cleaning_task_id: string
   completed_at: string
@@ -18,7 +18,7 @@ interface CleaningCompletion {
   venue_id: string
 }
 
-interface CleaningResult {
+export interface CleaningResult {
   tasks: CleaningTask[]
   completions: CleaningCompletion[]
 }

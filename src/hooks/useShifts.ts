@@ -12,7 +12,7 @@ export function useShifts(weekStart: Date | null, numWeeks = 1): {
 
   const { data, isLoading, refetch } = useQuery({
     queryKey: ['shifts', venueId, weekStart?.toISOString(), numWeeks],
-    queryFn: () => fetchShifts(venueId!, weekStart, numWeeks),
+    queryFn: () => fetchShifts(venueId!, weekStart!, numWeeks),
     enabled: !!weekStart && !!venueId,
   })
 

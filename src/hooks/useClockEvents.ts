@@ -168,7 +168,8 @@ export function useTimesheetData(dateFrom: string, dateTo: string): {
       // indistinguishable from "no hours" and hides stale-build / RLS / network
       // problems from the user (they just see blank actual-hours tiles).
       if (error) throw error
-      return (data ?? []) as TimesheetRow[]
+      // PostgREST returns the to-one staff join as an object; the untyped client infers an array.
+      return (data ?? []) as unknown as TimesheetRow[]
     },
     // Auto-fetch whenever the venue or date range changes; skip only when dates
     // are not yet chosen (e.g. custom period with no dates entered).

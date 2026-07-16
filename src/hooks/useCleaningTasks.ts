@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { useVenue } from '../contexts/VenueContext'
-import { fetchCleaningTasks } from '../lib/api/cleaning'
+import { fetchCleaningTasks, type CleaningTask, type CleaningCompletion } from '../lib/api/cleaning'
 
 const FREQ_DAYS: Record<string, number> = { daily: 1, weekly: 7, fortnightly: 14, monthly: 30, quarterly: 90 }
 
@@ -8,19 +8,6 @@ function calendarDaysBetween(a: Date, b: Date): number {
   const aDay = new Date(a.getFullYear(), a.getMonth(), a.getDate())
   const bDay = new Date(b.getFullYear(), b.getMonth(), b.getDate())
   return Math.round((bDay.getTime() - aDay.getTime()) / 86400000)
-}
-
-interface CleaningCompletion {
-  cleaning_task_id: string
-  completed_at: string
-  [key: string]: unknown
-}
-
-interface CleaningTask {
-  id: string
-  frequency: string
-  assigned_role?: string
-  [key: string]: unknown
 }
 
 export type CleaningStatus = 'done' | 'due_soon' | 'overdue'
@@ -53,12 +40,12 @@ export function useCleaningTasks(jobRole: string | null = null): {
 
   const { data, isLoading, refetch } = useQuery({
     queryKey: ['cleaningTasks', venueId],
-    queryFn: () => fetchCleaningTasks(venueId),
+    queryFn: () => fetchCleaningTasks(venueId!),
     enabled: !!venueId,
   })
 
-  const tasks: CleaningTask[] = (data as { tasks?: CleaningTask[] })?.tasks ?? []
-  const completions: CleaningCompletion[] = (data as { completions?: CleaningCompletion[] })?.completions ?? []
+  const tasks: CleaningTask[] = data?.tasks ?? []
+  const completions: CleaningCompletion[] = data?.completions ?? []
 
   let filtered = tasks
   if (jobRole) {

@@ -96,7 +96,7 @@ export function useHotHoldingItems(): { items: HotHoldingItem[]; loading: boolea
 
   const { data: items = [], isLoading: loading } = useQuery({
     queryKey,
-    queryFn: () => fetchActiveHotHoldingItems(venueId),
+    queryFn: () => fetchActiveHotHoldingItems(venueId!),
     enabled: !!venueId,
   })
 
@@ -122,7 +122,7 @@ export function useHotHoldingTodayStatus(): { status: HotHoldingTodayStatus; loa
     queryFn: async (): Promise<HotHoldingTodayStatus> => {
       const today = new Date().toISOString().slice(0, 10)
       const [items, { data }] = await Promise.all([
-        fetchActiveHotHoldingItems(venueId),
+        fetchActiveHotHoldingItems(venueId!),
         supabase
           .from('hot_holding_logs')
           .select('id, item_id, temperature, check_period, logged_at, logged_by_name, venue_id')
@@ -190,7 +190,8 @@ export function useHotHoldingLogs(dateFrom: string | null = null, dateTo: string
       if (dateTo)   q = q.lte('logged_at', `${dateTo}T23:59:59`)
 
       const { data, error } = await q
-      if (!error) return (data ?? []) as HotHoldingLog[]
+      // PostgREST returns the to-one join as an object; the untyped client infers an array.
+      if (!error) return (data ?? []) as unknown as HotHoldingLog[]
 
       // Legacy fallback without join
       let fallback = supabase

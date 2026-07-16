@@ -53,7 +53,7 @@ export default function useVenueSettings(): {
 
   const { data: settings, isLoading: loading } = useQuery({
     queryKey,
-    queryFn: () => fetchVenueSettings(venueId),
+    queryFn: () => fetchVenueSettings(venueId!),
     enabled: !!venueId,
     placeholderData: { venue_name: '', manager_email: '', logo_url: '', permission_titles: PERMISSION_PRESETS as PermissionPreset[] },
   })
