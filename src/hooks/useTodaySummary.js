@@ -1,22 +1,41 @@
 import { useEffect, useRef, useState } from 'react'
 import { format, startOfDay, endOfDay, subDays } from 'date-fns'
 import { supabase } from '../lib/supabase'
+import { readPersisted, writePersisted, clearPersisted } from '../lib/persistedCache'
 
 // ── Module-level SWR cache ─────────────────────────────────────────────────
-// Survives component unmount/remount (single-page navigation).
+// Survives component unmount/remount (single-page navigation), and is backed
+// by localStorage so a cold app open renders the last-known summary
+// immediately while a background refresh fires.
 // Key: `${venueId}:${dateStr}`  Value: { data, ts }
 const _cache = new Map()
 const STALE_MS  = 90_000   // show stale + revalidate after 90 s
 const FRESH_MS  = 20_000   // don't revalidate at all if data is < 20 s old
 
-function cacheGet(key) { return _cache.get(key) ?? null }
-function cacheSet(key, data) { _cache.set(key, { data, ts: Date.now() }) }
+function cacheGet(key) {
+  const entry = _cache.get(key)
+  if (entry) return entry
+  const persisted = readPersisted('today_summary', key)
+  if (persisted) {
+    // Seed as just-past-fresh: shown immediately via the stale-hit path,
+    // which also kicks off a background revalidation.
+    const seeded = { data: persisted, ts: Date.now() - FRESH_MS - 1000 }
+    _cache.set(key, seeded)
+    return seeded
+  }
+  return null
+}
+function cacheSet(key, data) {
+  _cache.set(key, { data, ts: Date.now() })
+  writePersisted('today_summary', key, data)
+}
 
 /** Expose so other modules can bust the cache after a mutation (e.g. clock-in). */
 export function invalidateSummaryCache(venueId) {
   for (const k of _cache.keys()) {
     if (k.startsWith(venueId + ':')) _cache.delete(k)
   }
+  clearPersisted('today_summary')
 }
 
 export function isActionDueToday(scheduleKey, actionSchedules) {

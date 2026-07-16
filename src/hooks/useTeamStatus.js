@@ -2,11 +2,32 @@ import { useState, useEffect } from 'react'
 import { format, startOfWeek, endOfWeek } from 'date-fns'
 import { supabase } from '../lib/supabase'
 import { londonToday, londonWallTimeToInstant } from '../lib/time'
+import { readPersisted, writePersisted } from '../lib/persistedCache'
 
-// SWR cache — 30 s stale (clock status changes frequently)
+// SWR cache — 30 s stale (clock status changes frequently). Backed by
+// localStorage so a cold app open renders the last-known tiles immediately
+// while a background refresh fires.
 const _cache  = new Map()
 const STALE_MS = 30_000
 const FRESH_MS = 10_000
+
+function cacheGet(key) {
+  const entry = _cache.get(key)
+  if (entry) return entry
+  const persisted = readPersisted('team_status', key)
+  if (persisted) {
+    // Seed as just-past-fresh: shown immediately via the stale-hit path,
+    // which also kicks off a background revalidation.
+    const seeded = { data: persisted, ts: Date.now() - FRESH_MS - 1000 }
+    _cache.set(key, seeded)
+    return seeded
+  }
+  return null
+}
+function cacheSet(key, data) {
+  _cache.set(key, { data, ts: Date.now() })
+  writePersisted('team_status', key, data)
+}
 
 /**
  * Returns live attendance data + counts for the Team hub status grid.
@@ -14,7 +35,7 @@ const FRESH_MS = 10_000
 export function useTeamStatus(venueId) {
   const dateStr  = londonToday()
   const cacheKey = venueId ? `${venueId}:${dateStr}` : null
-  const cached   = cacheKey ? (_cache.get(cacheKey) ?? null) : null
+  const cached   = cacheKey ? cacheGet(cacheKey) : null
 
   const [data, setData]       = useState(cached?.data ?? null)
   const [loading, setLoading] = useState(!cached)
@@ -22,7 +43,7 @@ export function useTeamStatus(venueId) {
   useEffect(() => {
     if (!venueId) return
     const key   = `${venueId}:${dateStr}`
-    const entry = _cache.get(key) ?? null
+    const entry = cacheGet(key)
     const age   = entry ? Date.now() - entry.ts : Infinity
 
     if (entry && age < FRESH_MS) {
@@ -48,7 +69,7 @@ export function useTeamStatus(venueId) {
       const [
         staffRes, clockRes, swapRes, timeOffRes, trainingRes, shiftSwapRes, unfilledRes, rotaPubRes,
       ] = await Promise.all([
-        supabase.from('staff').select('id, name, role, station').eq('venue_id', venueId).eq('is_active', true),
+        supabase.from('staff').select('id, name, role').eq('venue_id', venueId).eq('is_active', true),
         supabase.from('clock_events')
           .select('staff_id, event_type, occurred_at')
           .eq('venue_id', venueId)
@@ -65,12 +86,12 @@ export function useTeamStatus(venueId) {
           .select('id', { count: 'exact', head: true })
           .eq('venue_id', venueId)
           .eq('status', 'pending'),
-        // Training expiring soon (within 30 days)
-        supabase.from('training_records')
+        // Training expiring soon (within 30 days) — staff_training.expiry_date is a DATE
+        supabase.from('staff_training')
           .select('id', { count: 'exact', head: true })
           .eq('venue_id', venueId)
-          .lte('expires_at', new Date(Date.now() + 30 * 86400000).toISOString())
-          .gte('expires_at', today.toISOString()),
+          .lte('expiry_date', format(new Date(Date.now() + 30 * 86400000), 'yyyy-MM-dd'))
+          .gte('expiry_date', todayStr),
         // Today's shifts for attendance context
         supabase.from('shifts').select('id, staff_id, start_time, end_time').eq('venue_id', venueId).eq('shift_date', todayStr),
         // Unfilled shifts this week (no staff assigned)
@@ -132,7 +153,6 @@ export function useTeamStatus(venueId) {
           id: s.id,
           name: s.name,
           role: s.role ?? '',
-          station: s.station ?? '',
           status: isLate ? 'late' : status === 'on_break' ? 'break' : 'on',
         })
       }
@@ -149,7 +169,7 @@ export function useTeamStatus(venueId) {
         rotaUnfilled:    unfilledRes.count ?? 0,
         rotaPublished:   !!(rotaPubRes.data?.value),
       }
-      _cache.set(key, { data: fresh, ts: Date.now() })
+      cacheSet(key, fresh)
       setData(fresh)
       setLoading(false)
       } catch {
