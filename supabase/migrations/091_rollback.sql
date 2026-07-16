@@ -1,964 +1,108 @@
 -- ============================================================================
--- 091 ROLLBACK — revert venue-scoped RLS back to open access
---
--- Run this in Supabase Dashboard → SQL Editor if migration 091 causes issues.
--- Restores all tables to USING (true) / WITH CHECK (true).
--- Data is NEVER affected — only access policies change.
+-- 091 ROLLBACK (v2) — revert venue-scoped RLS to fully-open access.
+-- Run in Supabase SQL Editor ("Run without RLS") if 091 causes issues.
+-- Drops every policy on each managed table (name-agnostic) and restores a
+-- single open FOR ALL USING(true) policy. Data is never touched — only access.
 -- ============================================================================
 
-
--- ── Drift guard (added July 2026) ─────────────────────────────────────────────
--- Some environments are missing tables/columns (migrations applied by hand and
--- drifted). Every statement below only runs if its table (and, for policies, the
--- venue_id column) exists; anything skipped is reported by the SELECT at the end.
 CREATE TEMP TABLE IF NOT EXISTS _mig_skipped (tbl text);
 
--- (helpers are dropped at the END — policies depend on them)
-
--- Core tables
-DO $mig$
+CREATE OR REPLACE FUNCTION _pk_drop_all_policies(p_tbl text)
+RETURNS void LANGUAGE plpgsql AS $$
+DECLARE r record;
 BEGIN
-  IF to_regclass('public.shifts') IS NOT NULL THEN
-    DROP POLICY IF EXISTS "shifts_venue_access"            ON shifts;
-    DROP POLICY IF EXISTS "shifts_venue_access" ON shifts;
-    CREATE POLICY "shifts_venue_access" ON shifts FOR ALL USING (true) WITH CHECK (true);
-  ELSE
-    IF to_regclass('public.shifts') IS NULL THEN
-      INSERT INTO _mig_skipped VALUES ('shifts');
-      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'shifts';
-    END IF;
-  END IF;
-END;
-$mig$;
+  FOR r IN SELECT polname FROM pg_policy WHERE polrelid = ('public.'||p_tbl)::regclass LOOP
+    EXECUTE format('DROP POLICY IF EXISTS %I ON public.%I', r.polname, p_tbl);
+  END LOOP;
+END $$;
 
-DO $mig$
+CREATE OR REPLACE FUNCTION _pk_open(p_tbl text)
+RETURNS void LANGUAGE plpgsql AS $$
 BEGIN
-  IF to_regclass('public.app_settings') IS NOT NULL THEN
-    DROP POLICY IF EXISTS "settings_venue_access"          ON app_settings;
-    DROP POLICY IF EXISTS "settings_venue_access" ON app_settings;
-    CREATE POLICY "settings_venue_access" ON app_settings FOR ALL USING (true) WITH CHECK (true);
-  ELSE
-    IF to_regclass('public.app_settings') IS NULL THEN
-      INSERT INTO _mig_skipped VALUES ('app_settings');
-      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'app_settings';
-    END IF;
-  END IF;
-END;
-$mig$;
-
-DO $mig$
-BEGIN
-  IF to_regclass('public.task_templates') IS NOT NULL THEN
-    DROP POLICY IF EXISTS "task_templates_venue_access"    ON task_templates;
-    DROP POLICY IF EXISTS "task_templates_venue_access" ON task_templates;
-    CREATE POLICY "task_templates_venue_access" ON task_templates FOR ALL USING (true) WITH CHECK (true);
-  ELSE
-    IF to_regclass('public.task_templates') IS NULL THEN
-      INSERT INTO _mig_skipped VALUES ('task_templates');
-      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'task_templates';
-    END IF;
-  END IF;
-END;
-$mig$;
-
-DO $mig$
-BEGIN
-  IF to_regclass('public.task_one_offs') IS NOT NULL THEN
-    DROP POLICY IF EXISTS "task_one_offs_venue_access"     ON task_one_offs;
-    DROP POLICY IF EXISTS "task_one_offs_venue_access" ON task_one_offs;
-    CREATE POLICY "task_one_offs_venue_access" ON task_one_offs FOR ALL USING (true) WITH CHECK (true);
-  ELSE
-    IF to_regclass('public.task_one_offs') IS NULL THEN
-      INSERT INTO _mig_skipped VALUES ('task_one_offs');
-      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'task_one_offs';
-    END IF;
-  END IF;
-END;
-$mig$;
-
-DO $mig$
-BEGIN
-  IF to_regclass('public.task_completions') IS NOT NULL THEN
-    DROP POLICY IF EXISTS "task_completions_venue_access"  ON task_completions;
-  ELSE
-    IF to_regclass('public.task_completions') IS NULL THEN
-      INSERT INTO _mig_skipped VALUES ('task_completions');
-      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'task_completions';
-    END IF;
-  END IF;
-END;
-$mig$;
-DO $$ BEGIN
-  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'task_completions') THEN
-    EXECUTE $p$ CREATE POLICY "task_completions_venue_access" ON task_completions FOR ALL USING (true) WITH CHECK (true) $p$;
-  END IF;
+  IF to_regclass('public.'||p_tbl) IS NULL THEN
+    INSERT INTO _mig_skipped VALUES (p_tbl); RETURN; END IF;
+  PERFORM _pk_drop_all_policies(p_tbl);
+  EXECUTE format('CREATE POLICY %I ON public.%I FOR ALL USING (true) WITH CHECK (true)', p_tbl||'_open', p_tbl);
+  EXECUTE format('ALTER TABLE public.%I ENABLE ROW LEVEL SECURITY', p_tbl);
 END $$;
 
 DO $mig$
-BEGIN
-  IF to_regclass('public.cleaning_tasks') IS NOT NULL THEN
-    DROP POLICY IF EXISTS "cleaning_tasks_venue_access"    ON cleaning_tasks;
-    DROP POLICY IF EXISTS "cleaning_tasks_all_write" ON cleaning_tasks;
-    CREATE POLICY "cleaning_tasks_all_write" ON cleaning_tasks FOR ALL USING (true) WITH CHECK (true);
-  ELSE
-    IF to_regclass('public.cleaning_tasks') IS NULL THEN
-      INSERT INTO _mig_skipped VALUES ('cleaning_tasks');
-      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'cleaning_tasks';
-    END IF;
-  END IF;
-END;
-$mig$;
+DECLARE
+  managed text[] := ARRAY[
+    'venues','staff',
+    'app_settings','food_items','food_allergens',
 
-DO $mig$
-BEGIN
-  IF to_regclass('public.cleaning_completions') IS NOT NULL THEN
-    DROP POLICY IF EXISTS "cleaning_completions_venue_access" ON cleaning_completions;
-    DROP POLICY IF EXISTS "cleaning_completions_all_write" ON cleaning_completions;
-    CREATE POLICY "cleaning_completions_all_write" ON cleaning_completions FOR ALL USING (true) WITH CHECK (true);
-  ELSE
-    IF to_regclass('public.cleaning_completions') IS NULL THEN
-      INSERT INTO _mig_skipped VALUES ('cleaning_completions');
-      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'cleaning_completions';
-    END IF;
-  END IF;
-END;
-$mig$;
+    'allergen_procedures',
+    'apns_tokens',
+    'cleaning_completions',
+    'cleaning_tasks',
+    'clock_events',
+    'cooking_temp_logs',
+    'cooling_logs',
+    'corrective_actions',
+    'dashboard_widgets',
+    'date_labelling_logs',
+    'delivery_check_items',
+    'delivery_checks',
+    'documents',
+    'duty_assignments',
+    'duty_item_completions',
+    'duty_template_items',
+    'duty_templates',
+    'equipment_maintenance_logs',
+    'fitness_declarations',
+    'food_complaints',
+    'fridge_temperature_logs',
+    'fridges',
+    'hot_holding_items',
+    'hot_holding_logs',
+    'hour_edit_log',
+    'hr_formal_actions',
+    'illness_exclusion_policies',
+    'incidents',
+    'leave_entitlements',
+    'noticeboard_posts',
+    'opening_closing_checks',
+    'opening_closing_completions',
+    'pest_control_logs',
+    'probe_calibrations',
+    'push_subscriptions',
+    'rota_requirements',
+    'shift_swaps',
+    'shifts',
+    'staff_availability',
+    'staff_dashboard_today_items',
+    'staff_hr_documents',
+    'staff_notification_preferences',
+    'staff_role_assignments',
+    'staff_training',
+    'staff_venue_links',
+    'supplier_items',
+    'supplier_order_items',
+    'supplier_orders',
+    'suppliers',
+    'task_completions',
+    'task_one_offs',
+    'task_templates',
+    'time_off_requests',
+    'tip_allocations',
+    'tip_splits',
+    'venue_roles',
+    'waste_logs'
 
-DO $mig$
-BEGIN
-  IF to_regclass('public.fridges') IS NOT NULL THEN
-    DROP POLICY IF EXISTS "fridges_venue_access"           ON fridges;
-    DROP POLICY IF EXISTS "fridges_all_write" ON fridges;
-    CREATE POLICY "fridges_all_write" ON fridges FOR ALL USING (true) WITH CHECK (true);
-  ELSE
-    IF to_regclass('public.fridges') IS NULL THEN
-      INSERT INTO _mig_skipped VALUES ('fridges');
-      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'fridges';
-    END IF;
-  END IF;
-END;
-$mig$;
 
-DO $mig$
+  ];
+  t text;
 BEGIN
-  IF to_regclass('public.fridge_temperature_logs') IS NOT NULL THEN
-    DROP POLICY IF EXISTS "fridge_logs_venue_access"       ON fridge_temperature_logs;
-    DROP POLICY IF EXISTS "fridge_logs_all_write" ON fridge_temperature_logs;
-    CREATE POLICY "fridge_logs_all_write" ON fridge_temperature_logs FOR ALL USING (true) WITH CHECK (true);
-  ELSE
-    IF to_regclass('public.fridge_temperature_logs') IS NULL THEN
-      INSERT INTO _mig_skipped VALUES ('fridge_temperature_logs');
-      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'fridge_temperature_logs';
-    END IF;
-  END IF;
-END;
-$mig$;
+  FOREACH t IN ARRAY managed LOOP PERFORM _pk_open(t); END LOOP;
+END $mig$;
 
-DO $mig$
-BEGIN
-  IF to_regclass('public.food_items') IS NOT NULL THEN
-    DROP POLICY IF EXISTS "food_items_venue_access"        ON food_items;
-    DROP POLICY IF EXISTS "food_items_all_write" ON food_items;
-    CREATE POLICY "food_items_all_write" ON food_items FOR ALL USING (true) WITH CHECK (true);
-  ELSE
-    IF to_regclass('public.food_items') IS NULL THEN
-      INSERT INTO _mig_skipped VALUES ('food_items');
-      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'food_items';
-    END IF;
-  END IF;
-END;
-$mig$;
+DROP FUNCTION _pk_drop_all_policies(text);
+DROP FUNCTION _pk_open(text);
 
-DO $mig$
-BEGIN
-  IF to_regclass('public.food_allergens') IS NOT NULL THEN
-    DROP POLICY IF EXISTS "food_allergens_venue_access"    ON food_allergens;
-    DROP POLICY IF EXISTS "food_allergens_all_write" ON food_allergens;
-    CREATE POLICY "food_allergens_all_write" ON food_allergens FOR ALL USING (true) WITH CHECK (true);
-  ELSE
-    IF to_regclass('public.food_allergens') IS NULL THEN
-      INSERT INTO _mig_skipped VALUES ('food_allergens');
-      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'food_allergens';
-    END IF;
-  END IF;
-END;
-$mig$;
-
-DO $mig$
-BEGIN
-  IF to_regclass('public.waste_logs') IS NOT NULL THEN
-    DROP POLICY IF EXISTS "waste_logs_venue_access"        ON waste_logs;
-    DROP POLICY IF EXISTS "waste_logs_all" ON waste_logs;
-    CREATE POLICY "waste_logs_all" ON waste_logs FOR ALL USING (true) WITH CHECK (true);
-  ELSE
-    IF to_regclass('public.waste_logs') IS NULL THEN
-      INSERT INTO _mig_skipped VALUES ('waste_logs');
-      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'waste_logs';
-    END IF;
-  END IF;
-END;
-$mig$;
-
-DO $mig$
-BEGIN
-  IF to_regclass('public.delivery_checks') IS NOT NULL THEN
-    DROP POLICY IF EXISTS "delivery_checks_venue_access"   ON delivery_checks;
-    DROP POLICY IF EXISTS "delivery_checks_all" ON delivery_checks;
-    CREATE POLICY "delivery_checks_all" ON delivery_checks FOR ALL USING (true) WITH CHECK (true);
-  ELSE
-    IF to_regclass('public.delivery_checks') IS NULL THEN
-      INSERT INTO _mig_skipped VALUES ('delivery_checks');
-      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'delivery_checks';
-    END IF;
-  END IF;
-END;
-$mig$;
-
-DO $mig$
-BEGIN
-  IF to_regclass('public.delivery_check_items') IS NOT NULL THEN
-    DROP POLICY IF EXISTS "delivery_check_items_venue_access" ON delivery_check_items;
-    DROP POLICY IF EXISTS "delivery_check_items_write" ON delivery_check_items;
-    CREATE POLICY "delivery_check_items_write" ON delivery_check_items FOR ALL USING (true) WITH CHECK (true);
-  ELSE
-    IF to_regclass('public.delivery_check_items') IS NULL THEN
-      INSERT INTO _mig_skipped VALUES ('delivery_check_items');
-      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'delivery_check_items';
-    END IF;
-  END IF;
-END;
-$mig$;
-
-DO $mig$
-BEGIN
-  IF to_regclass('public.suppliers') IS NOT NULL THEN
-    DROP POLICY IF EXISTS "suppliers_venue_access"         ON suppliers;
-    DROP POLICY IF EXISTS "suppliers_all" ON suppliers;
-    CREATE POLICY "suppliers_all" ON suppliers FOR ALL USING (true) WITH CHECK (true);
-  ELSE
-    IF to_regclass('public.suppliers') IS NULL THEN
-      INSERT INTO _mig_skipped VALUES ('suppliers');
-      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'suppliers';
-    END IF;
-  END IF;
-END;
-$mig$;
-
-DO $mig$
-BEGIN
-  IF to_regclass('public.supplier_items') IS NOT NULL THEN
-    DROP POLICY IF EXISTS "supplier_items_venue_access"    ON supplier_items;
-    DROP POLICY IF EXISTS "supplier_items_write" ON supplier_items;
-    CREATE POLICY "supplier_items_write" ON supplier_items FOR ALL USING (true) WITH CHECK (true);
-  ELSE
-    IF to_regclass('public.supplier_items') IS NULL THEN
-      INSERT INTO _mig_skipped VALUES ('supplier_items');
-      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'supplier_items';
-    END IF;
-  END IF;
-END;
-$mig$;
-
-DO $mig$
-BEGIN
-  IF to_regclass('public.supplier_orders') IS NOT NULL THEN
-    DROP POLICY IF EXISTS "supplier_orders_venue_access"   ON supplier_orders;
-    DROP POLICY IF EXISTS "supplier_orders_all" ON supplier_orders;
-    CREATE POLICY "supplier_orders_all" ON supplier_orders FOR ALL USING (true) WITH CHECK (true);
-  ELSE
-    IF to_regclass('public.supplier_orders') IS NULL THEN
-      INSERT INTO _mig_skipped VALUES ('supplier_orders');
-      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'supplier_orders';
-    END IF;
-  END IF;
-END;
-$mig$;
-
-DO $mig$
-BEGIN
-  IF to_regclass('public.supplier_order_items') IS NOT NULL THEN
-    DROP POLICY IF EXISTS "supplier_order_items_venue_access" ON supplier_order_items;
-    DROP POLICY IF EXISTS "open" ON supplier_order_items;
-    CREATE POLICY "open" ON supplier_order_items FOR ALL USING (true) WITH CHECK (true);
-  ELSE
-    IF to_regclass('public.supplier_order_items') IS NULL THEN
-      INSERT INTO _mig_skipped VALUES ('supplier_order_items');
-      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'supplier_order_items';
-    END IF;
-  END IF;
-END;
-$mig$;
-
-DO $mig$
-BEGIN
-  IF to_regclass('public.opening_closing_checks') IS NOT NULL THEN
-    DROP POLICY IF EXISTS "oc_checks_venue_access"         ON opening_closing_checks;
-    DROP POLICY IF EXISTS "oc_checks_write" ON opening_closing_checks;
-    CREATE POLICY "oc_checks_write" ON opening_closing_checks FOR ALL USING (true) WITH CHECK (true);
-  ELSE
-    IF to_regclass('public.opening_closing_checks') IS NULL THEN
-      INSERT INTO _mig_skipped VALUES ('opening_closing_checks');
-      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'opening_closing_checks';
-    END IF;
-  END IF;
-END;
-$mig$;
-
-DO $mig$
-BEGIN
-  IF to_regclass('public.opening_closing_completions') IS NOT NULL THEN
-    DROP POLICY IF EXISTS "oc_completions_venue_access"    ON opening_closing_completions;
-    DROP POLICY IF EXISTS "oc_completions_all" ON opening_closing_completions;
-    CREATE POLICY "oc_completions_all" ON opening_closing_completions FOR ALL USING (true) WITH CHECK (true);
-  ELSE
-    IF to_regclass('public.opening_closing_completions') IS NULL THEN
-      INSERT INTO _mig_skipped VALUES ('opening_closing_completions');
-      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'opening_closing_completions';
-    END IF;
-  END IF;
-END;
-$mig$;
-
-DO $mig$
-BEGIN
-  IF to_regclass('public.cooking_temp_logs') IS NOT NULL THEN
-    DROP POLICY IF EXISTS "cooking_logs_venue_access"      ON cooking_temp_logs;
-    DROP POLICY IF EXISTS "cooking_logs_all" ON cooking_temp_logs;
-    CREATE POLICY "cooking_logs_all" ON cooking_temp_logs FOR ALL USING (true) WITH CHECK (true);
-  ELSE
-    IF to_regclass('public.cooking_temp_logs') IS NULL THEN
-      INSERT INTO _mig_skipped VALUES ('cooking_temp_logs');
-      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'cooking_temp_logs';
-    END IF;
-  END IF;
-END;
-$mig$;
-
-DO $mig$
-BEGIN
-  IF to_regclass('public.cooling_logs') IS NOT NULL THEN
-    DROP POLICY IF EXISTS "cooling_logs_venue_access"      ON cooling_logs;
-    DROP POLICY IF EXISTS "cooling_logs_all" ON cooling_logs;
-    CREATE POLICY "cooling_logs_all" ON cooling_logs FOR ALL USING (true) WITH CHECK (true);
-  ELSE
-    IF to_regclass('public.cooling_logs') IS NULL THEN
-      INSERT INTO _mig_skipped VALUES ('cooling_logs');
-      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'cooling_logs';
-    END IF;
-  END IF;
-END;
-$mig$;
-
-DO $mig$
-BEGIN
-  IF to_regclass('public.pest_control_logs') IS NOT NULL THEN
-    DROP POLICY IF EXISTS "pest_control_venue_access"      ON pest_control_logs;
-    DROP POLICY IF EXISTS "pest_control_all" ON pest_control_logs;
-    CREATE POLICY "pest_control_all" ON pest_control_logs FOR ALL USING (true) WITH CHECK (true);
-  ELSE
-    IF to_regclass('public.pest_control_logs') IS NULL THEN
-      INSERT INTO _mig_skipped VALUES ('pest_control_logs');
-      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'pest_control_logs';
-    END IF;
-  END IF;
-END;
-$mig$;
-
-DO $mig$
-BEGIN
-  IF to_regclass('public.probe_calibrations') IS NOT NULL THEN
-    DROP POLICY IF EXISTS "probe_calibrations_venue_access" ON probe_calibrations;
-    DROP POLICY IF EXISTS "probe_calibrations_all" ON probe_calibrations;
-    CREATE POLICY "probe_calibrations_all" ON probe_calibrations FOR ALL USING (true) WITH CHECK (true);
-  ELSE
-    IF to_regclass('public.probe_calibrations') IS NULL THEN
-      INSERT INTO _mig_skipped VALUES ('probe_calibrations');
-      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'probe_calibrations';
-    END IF;
-  END IF;
-END;
-$mig$;
-
-DO $mig$
-BEGIN
-  IF to_regclass('public.hot_holding_items') IS NOT NULL THEN
-    DROP POLICY IF EXISTS "hot_holding_items_venue_access" ON hot_holding_items;
-    DROP POLICY IF EXISTS "hot_holding_items_all" ON hot_holding_items;
-    CREATE POLICY "hot_holding_items_all" ON hot_holding_items FOR ALL USING (true) WITH CHECK (true);
-  ELSE
-    IF to_regclass('public.hot_holding_items') IS NULL THEN
-      INSERT INTO _mig_skipped VALUES ('hot_holding_items');
-      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'hot_holding_items';
-    END IF;
-  END IF;
-END;
-$mig$;
-
-DO $mig$
-BEGIN
-  IF to_regclass('public.hot_holding_logs') IS NOT NULL THEN
-    DROP POLICY IF EXISTS "hot_holding_logs_venue_access"  ON hot_holding_logs;
-    DROP POLICY IF EXISTS "hot_holding_logs_all" ON hot_holding_logs;
-    CREATE POLICY "hot_holding_logs_all" ON hot_holding_logs FOR ALL USING (true) WITH CHECK (true);
-  ELSE
-    IF to_regclass('public.hot_holding_logs') IS NULL THEN
-      INSERT INTO _mig_skipped VALUES ('hot_holding_logs');
-      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'hot_holding_logs';
-    END IF;
-  END IF;
-END;
-$mig$;
-
-DO $mig$
-BEGIN
-  IF to_regclass('public.corrective_actions') IS NOT NULL THEN
-    DROP POLICY IF EXISTS "corrective_actions_venue_access" ON corrective_actions;
-    DROP POLICY IF EXISTS "corrective_actions_all" ON corrective_actions;
-    CREATE POLICY "corrective_actions_all" ON corrective_actions FOR ALL USING (true) WITH CHECK (true);
-  ELSE
-    IF to_regclass('public.corrective_actions') IS NULL THEN
-      INSERT INTO _mig_skipped VALUES ('corrective_actions');
-      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'corrective_actions';
-    END IF;
-  END IF;
-END;
-$mig$;
-
-DO $mig$
-BEGIN
-  IF to_regclass('public.rota_requirements') IS NOT NULL THEN
-    DROP POLICY IF EXISTS "rota_requirements_venue_access" ON rota_requirements;
-    DROP POLICY IF EXISTS "rota_requirements_all" ON rota_requirements;
-    CREATE POLICY "rota_requirements_all" ON rota_requirements FOR ALL USING (true) WITH CHECK (true);
-  ELSE
-    IF to_regclass('public.rota_requirements') IS NULL THEN
-      INSERT INTO _mig_skipped VALUES ('rota_requirements');
-      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'rota_requirements';
-    END IF;
-  END IF;
-END;
-$mig$;
-
-DO $mig$
-BEGIN
-  IF to_regclass('public.clock_events') IS NOT NULL THEN
-    DROP POLICY IF EXISTS "clock_events_venue_access"      ON clock_events;
-    DROP POLICY IF EXISTS "clock_events_all_write" ON clock_events;
-    CREATE POLICY "clock_events_all_write" ON clock_events FOR ALL USING (true) WITH CHECK (true);
-  ELSE
-    IF to_regclass('public.clock_events') IS NULL THEN
-      INSERT INTO _mig_skipped VALUES ('clock_events');
-      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'clock_events';
-    END IF;
-  END IF;
-END;
-$mig$;
-
-DO $mig$
-BEGIN
-  IF to_regclass('public.push_subscriptions') IS NOT NULL THEN
-    DROP POLICY IF EXISTS "push_subscriptions_venue_access" ON push_subscriptions;
-    DROP POLICY IF EXISTS "push_subscriptions_all" ON push_subscriptions;
-    CREATE POLICY "push_subscriptions_all" ON push_subscriptions FOR ALL USING (true) WITH CHECK (true);
-  ELSE
-    IF to_regclass('public.push_subscriptions') IS NULL THEN
-      INSERT INTO _mig_skipped VALUES ('push_subscriptions');
-      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'push_subscriptions';
-    END IF;
-  END IF;
-END;
-$mig$;
-
-DO $mig$
-BEGIN
-  IF to_regclass('public.time_off_requests') IS NOT NULL THEN
-    DROP POLICY IF EXISTS "time_off_venue_access"          ON time_off_requests;
-    DROP POLICY IF EXISTS "time_off_all" ON time_off_requests;
-    CREATE POLICY "time_off_all" ON time_off_requests FOR ALL USING (true) WITH CHECK (true);
-  ELSE
-    IF to_regclass('public.time_off_requests') IS NULL THEN
-      INSERT INTO _mig_skipped VALUES ('time_off_requests');
-      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'time_off_requests';
-    END IF;
-  END IF;
-END;
-$mig$;
-
-DO $mig$
-BEGIN
-  IF to_regclass('public.staff_availability') IS NOT NULL THEN
-    DROP POLICY IF EXISTS "staff_availability_venue_access" ON staff_availability;
-    CREATE POLICY "Public read staff_availability"   ON staff_availability FOR SELECT USING (true);
-    CREATE POLICY "Public write staff_availability"  ON staff_availability FOR INSERT WITH CHECK (true);
-    DROP POLICY IF EXISTS "Public update staff_availability" ON staff_availability;
-    CREATE POLICY "Public update staff_availability" ON staff_availability FOR UPDATE USING (true);
-    DROP POLICY IF EXISTS "Public delete staff_availability" ON staff_availability;
-    CREATE POLICY "Public delete staff_availability" ON staff_availability FOR DELETE USING (true);
-  ELSE
-    IF to_regclass('public.staff_availability') IS NULL THEN
-      INSERT INTO _mig_skipped VALUES ('staff_availability');
-      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'staff_availability';
-    END IF;
-  END IF;
-END;
-$mig$;
-
-DO $mig$
-BEGIN
-  IF to_regclass('public.fitness_declarations') IS NOT NULL THEN
-    DROP POLICY IF EXISTS "fitness_venue_access"           ON fitness_declarations;
-    DROP POLICY IF EXISTS "fitness_all" ON fitness_declarations;
-    CREATE POLICY "fitness_all" ON fitness_declarations FOR ALL USING (true) WITH CHECK (true);
-  ELSE
-    IF to_regclass('public.fitness_declarations') IS NULL THEN
-      INSERT INTO _mig_skipped VALUES ('fitness_declarations');
-      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'fitness_declarations';
-    END IF;
-  END IF;
-END;
-$mig$;
-
-DO $mig$
-BEGIN
-  IF to_regclass('public.dashboard_widgets') IS NOT NULL THEN
-    DROP POLICY IF EXISTS "dashboard_widgets_venue_access" ON dashboard_widgets;
-    DROP POLICY IF EXISTS "dashboard_widgets_all" ON dashboard_widgets;
-    CREATE POLICY "dashboard_widgets_all" ON dashboard_widgets FOR ALL USING (true) WITH CHECK (true);
-  ELSE
-    IF to_regclass('public.dashboard_widgets') IS NULL THEN
-      INSERT INTO _mig_skipped VALUES ('dashboard_widgets');
-      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'dashboard_widgets';
-    END IF;
-  END IF;
-END;
-$mig$;
-
-DO $mig$
-BEGIN
-  IF to_regclass('public.venue_roles') IS NOT NULL THEN
-    DROP POLICY IF EXISTS "venue_roles_venue_access"       ON venue_roles;
-    DROP POLICY IF EXISTS "venue_roles_all" ON venue_roles;
-    CREATE POLICY "venue_roles_all" ON venue_roles FOR ALL USING (true) WITH CHECK (true);
-  ELSE
-    IF to_regclass('public.venue_roles') IS NULL THEN
-      INSERT INTO _mig_skipped VALUES ('venue_roles');
-      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'venue_roles';
-    END IF;
-  END IF;
-END;
-$mig$;
-
-DO $mig$
-BEGIN
-  IF to_regclass('public.staff_venue_links') IS NOT NULL THEN
-    DROP POLICY IF EXISTS "staff_venue_links_venue_access" ON staff_venue_links;
-    DROP POLICY IF EXISTS "staff_venue_links_all" ON staff_venue_links;
-    CREATE POLICY "staff_venue_links_all" ON staff_venue_links FOR ALL USING (true) WITH CHECK (true);
-  ELSE
-    IF to_regclass('public.staff_venue_links') IS NULL THEN
-      INSERT INTO _mig_skipped VALUES ('staff_venue_links');
-      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'staff_venue_links';
-    END IF;
-  END IF;
-END;
-$mig$;
-
-DO $mig$
-BEGIN
-  IF to_regclass('public.tip_splits') IS NOT NULL THEN
-    DROP POLICY IF EXISTS "tip_splits_venue_access"        ON tip_splits;
-    DROP POLICY IF EXISTS "tip_splits_all" ON tip_splits;
-    CREATE POLICY "tip_splits_all" ON tip_splits FOR ALL USING (true) WITH CHECK (true);
-  ELSE
-    IF to_regclass('public.tip_splits') IS NULL THEN
-      INSERT INTO _mig_skipped VALUES ('tip_splits');
-      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'tip_splits';
-    END IF;
-  END IF;
-END;
-$mig$;
-
-DO $mig$
-BEGIN
-  IF to_regclass('public.tip_allocations') IS NOT NULL THEN
-    DROP POLICY IF EXISTS "tip_allocations_venue_access"   ON tip_allocations;
-    DROP POLICY IF EXISTS "tip_allocations_all" ON tip_allocations;
-    CREATE POLICY "tip_allocations_all" ON tip_allocations FOR ALL USING (true) WITH CHECK (true);
-  ELSE
-    IF to_regclass('public.tip_allocations') IS NULL THEN
-      INSERT INTO _mig_skipped VALUES ('tip_allocations');
-      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'tip_allocations';
-    END IF;
-  END IF;
-END;
-$mig$;
-
-DO $mig$
-BEGIN
-  IF to_regclass('public.documents') IS NOT NULL THEN
-    DROP POLICY IF EXISTS "documents_venue_access"         ON documents;
-    CREATE POLICY "documents_read"  ON documents FOR SELECT USING (true);
-    DROP POLICY IF EXISTS "documents_write" ON documents;
-    CREATE POLICY "documents_write" ON documents FOR ALL    USING (true) WITH CHECK (true);
-  ELSE
-    IF to_regclass('public.documents') IS NULL THEN
-      INSERT INTO _mig_skipped VALUES ('documents');
-      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'documents';
-    END IF;
-  END IF;
-END;
-$mig$;
-
-DO $mig$
-BEGIN
-  IF to_regclass('public.incidents') IS NOT NULL THEN
-    DROP POLICY IF EXISTS "incidents_venue_access"         ON incidents;
-    CREATE POLICY "incidents_read"  ON incidents FOR SELECT USING (true);
-    DROP POLICY IF EXISTS "incidents_write" ON incidents;
-    CREATE POLICY "incidents_write" ON incidents FOR ALL    USING (true) WITH CHECK (true);
-  ELSE
-    IF to_regclass('public.incidents') IS NULL THEN
-      INSERT INTO _mig_skipped VALUES ('incidents');
-      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'incidents';
-    END IF;
-  END IF;
-END;
-$mig$;
-
-DO $mig$
-BEGIN
-  IF to_regclass('public.hr_formal_actions') IS NOT NULL THEN
-    DROP POLICY IF EXISTS "hr_formal_actions_venue_access"           ON hr_formal_actions;
-    DROP POLICY IF EXISTS "hr_formal_actions_all" ON hr_formal_actions;
-    CREATE POLICY "hr_formal_actions_all" ON hr_formal_actions FOR ALL USING (true) WITH CHECK (true);
-  ELSE
-    IF to_regclass('public.hr_formal_actions') IS NULL THEN
-      INSERT INTO _mig_skipped VALUES ('hr_formal_actions');
-      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'hr_formal_actions';
-    END IF;
-  END IF;
-END;
-$mig$;
-
-DO $mig$
-BEGIN
-  IF to_regclass('public.equipment_maintenance_logs') IS NOT NULL THEN
-    DROP POLICY IF EXISTS "equipment_maintenance_venue_access"       ON equipment_maintenance_logs;
-    DROP POLICY IF EXISTS "equipment_maintenance_open" ON equipment_maintenance_logs;
-    CREATE POLICY "equipment_maintenance_open" ON equipment_maintenance_logs FOR ALL USING (true) WITH CHECK (true);
-  ELSE
-    IF to_regclass('public.equipment_maintenance_logs') IS NULL THEN
-      INSERT INTO _mig_skipped VALUES ('equipment_maintenance_logs');
-      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'equipment_maintenance_logs';
-    END IF;
-  END IF;
-END;
-$mig$;
-
-DO $mig$
-BEGIN
-  IF to_regclass('public.date_labelling_logs') IS NOT NULL THEN
-    DROP POLICY IF EXISTS "date_labelling_venue_access"    ON date_labelling_logs;
-    DROP POLICY IF EXISTS "date_labelling_open" ON date_labelling_logs;
-    CREATE POLICY "date_labelling_open" ON date_labelling_logs FOR ALL USING (true) WITH CHECK (true);
-  ELSE
-    IF to_regclass('public.date_labelling_logs') IS NULL THEN
-      INSERT INTO _mig_skipped VALUES ('date_labelling_logs');
-      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'date_labelling_logs';
-    END IF;
-  END IF;
-END;
-$mig$;
-
-DO $mig$
-BEGIN
-  IF to_regclass('public.duty_templates') IS NOT NULL THEN
-    DROP POLICY IF EXISTS "duty_templates_venue_access"    ON duty_templates;
-    DROP POLICY IF EXISTS "duty_templates_write" ON duty_templates;
-    CREATE POLICY "duty_templates_write" ON duty_templates FOR ALL USING (true) WITH CHECK (true);
-  ELSE
-    IF to_regclass('public.duty_templates') IS NULL THEN
-      INSERT INTO _mig_skipped VALUES ('duty_templates');
-      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'duty_templates';
-    END IF;
-  END IF;
-END;
-$mig$;
-
-DO $mig$
-BEGIN
-  IF to_regclass('public.duty_template_items') IS NOT NULL THEN
-    DROP POLICY IF EXISTS "duty_template_items_venue_access" ON duty_template_items;
-    DROP POLICY IF EXISTS "duty_template_items_write" ON duty_template_items;
-    CREATE POLICY "duty_template_items_write" ON duty_template_items FOR ALL USING (true) WITH CHECK (true);
-  ELSE
-    IF to_regclass('public.duty_template_items') IS NULL THEN
-      INSERT INTO _mig_skipped VALUES ('duty_template_items');
-      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'duty_template_items';
-    END IF;
-  END IF;
-END;
-$mig$;
-
-DO $mig$
-BEGIN
-  IF to_regclass('public.duty_assignments') IS NOT NULL THEN
-    DROP POLICY IF EXISTS "duty_assignments_venue_access"  ON duty_assignments;
-    DROP POLICY IF EXISTS "duty_assignments_write" ON duty_assignments;
-    CREATE POLICY "duty_assignments_write" ON duty_assignments FOR ALL USING (true) WITH CHECK (true);
-  ELSE
-    IF to_regclass('public.duty_assignments') IS NULL THEN
-      INSERT INTO _mig_skipped VALUES ('duty_assignments');
-      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'duty_assignments';
-    END IF;
-  END IF;
-END;
-$mig$;
-
-DO $mig$
-BEGIN
-  IF to_regclass('public.duty_item_completions') IS NOT NULL THEN
-    DROP POLICY IF EXISTS "duty_item_completions_venue_access" ON duty_item_completions;
-    DROP POLICY IF EXISTS "duty_item_completions_read" ON duty_item_completions;
-    CREATE POLICY "duty_item_completions_read" ON duty_item_completions FOR SELECT USING (true);
-  ELSE
-    IF to_regclass('public.duty_item_completions') IS NULL THEN
-      INSERT INTO _mig_skipped VALUES ('duty_item_completions');
-      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'duty_item_completions';
-    END IF;
-  END IF;
-END;
-$mig$;
-
-DO $mig$
-BEGIN
-  IF to_regclass('public.allergen_procedures') IS NOT NULL THEN
-    DROP POLICY IF EXISTS "allergen_procedures_venue_access" ON allergen_procedures;
-    DROP POLICY IF EXISTS "allergen_procedures_all" ON allergen_procedures;
-    CREATE POLICY "allergen_procedures_all" ON allergen_procedures FOR ALL USING (true) WITH CHECK (true);
-  ELSE
-    IF to_regclass('public.allergen_procedures') IS NULL THEN
-      INSERT INTO _mig_skipped VALUES ('allergen_procedures');
-      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'allergen_procedures';
-    END IF;
-  END IF;
-END;
-$mig$;
-
-DO $mig$
-BEGIN
-  IF to_regclass('public.illness_exclusion_policies') IS NOT NULL THEN
-    DROP POLICY IF EXISTS "illness_policies_venue_access"  ON illness_exclusion_policies;
-    DROP POLICY IF EXISTS "illness_policies_all" ON illness_exclusion_policies;
-    CREATE POLICY "illness_policies_all" ON illness_exclusion_policies FOR ALL USING (true) WITH CHECK (true);
-  ELSE
-    IF to_regclass('public.illness_exclusion_policies') IS NULL THEN
-      INSERT INTO _mig_skipped VALUES ('illness_exclusion_policies');
-      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'illness_exclusion_policies';
-    END IF;
-  END IF;
-END;
-$mig$;
-
-DO $mig$
-BEGIN
-  IF to_regclass('public.staff_notification_preferences') IS NOT NULL THEN
-    DROP POLICY IF EXISTS "staff_notification_preferences_venue_access" ON staff_notification_preferences;
-    DROP POLICY IF EXISTS "staff_notification_preferences_all" ON staff_notification_preferences;
-    CREATE POLICY "staff_notification_preferences_all" ON staff_notification_preferences FOR ALL USING (true) WITH CHECK (true);
-  ELSE
-    IF to_regclass('public.staff_notification_preferences') IS NULL THEN
-      INSERT INTO _mig_skipped VALUES ('staff_notification_preferences');
-      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'staff_notification_preferences';
-    END IF;
-  END IF;
-END;
-$mig$;
-
-DO $mig$
-BEGIN
-  IF to_regclass('public.food_complaints') IS NOT NULL THEN
-    DROP POLICY IF EXISTS "food_complaints_venue_access"   ON food_complaints;
-    DROP POLICY IF EXISTS "food_complaints_all" ON food_complaints;
-    CREATE POLICY "food_complaints_all" ON food_complaints FOR ALL USING (true) WITH CHECK (true);
-  ELSE
-    IF to_regclass('public.food_complaints') IS NULL THEN
-      INSERT INTO _mig_skipped VALUES ('food_complaints');
-      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'food_complaints';
-    END IF;
-  END IF;
-END;
-$mig$;
-
-DO $mig$
-BEGIN
-  IF to_regclass('public.hour_edit_log') IS NOT NULL THEN
-    DROP POLICY IF EXISTS "hour_edit_log_venue_access"     ON hour_edit_log;
-    DROP POLICY IF EXISTS "hour_edit_log_select" ON hour_edit_log;
-    CREATE POLICY "hour_edit_log_select" ON hour_edit_log FOR SELECT USING (true);
-  ELSE
-    IF to_regclass('public.hour_edit_log') IS NULL THEN
-      INSERT INTO _mig_skipped VALUES ('hour_edit_log');
-      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'hour_edit_log';
-    END IF;
-  END IF;
-END;
-$mig$;
-
-DO $mig$
-BEGIN
-  IF to_regclass('public.staff_hr_documents') IS NOT NULL THEN
-    DROP POLICY IF EXISTS "staff_hr_documents_venue_access" ON staff_hr_documents;
-    DROP POLICY IF EXISTS "staff_hr_documents_all" ON staff_hr_documents;
-    CREATE POLICY "staff_hr_documents_all" ON staff_hr_documents FOR ALL USING (true) WITH CHECK (true);
-  ELSE
-    IF to_regclass('public.staff_hr_documents') IS NULL THEN
-      INSERT INTO _mig_skipped VALUES ('staff_hr_documents');
-      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'staff_hr_documents';
-    END IF;
-  END IF;
-END;
-$mig$;
-
-DO $mig$
-BEGIN
-  IF to_regclass('public.leave_entitlements') IS NOT NULL THEN
-    DROP POLICY IF EXISTS "leave_entitlements_venue_access" ON leave_entitlements;
-    DROP POLICY IF EXISTS "leave_entitlements_all" ON leave_entitlements;
-    CREATE POLICY "leave_entitlements_all" ON leave_entitlements FOR ALL USING (true) WITH CHECK (true);
-  ELSE
-    IF to_regclass('public.leave_entitlements') IS NULL THEN
-      INSERT INTO _mig_skipped VALUES ('leave_entitlements');
-      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'leave_entitlements';
-    END IF;
-  END IF;
-END;
-$mig$;
-
-DO $mig$
-BEGIN
-  IF to_regclass('public.staff_dashboard_today_items') IS NOT NULL THEN
-    DROP POLICY IF EXISTS "staff_dashboard_today_items_venue_access" ON staff_dashboard_today_items;
-    DROP POLICY IF EXISTS "staff_dashboard_today_items_all" ON staff_dashboard_today_items;
-    CREATE POLICY "staff_dashboard_today_items_all" ON staff_dashboard_today_items FOR ALL USING (true) WITH CHECK (true);
-  ELSE
-    IF to_regclass('public.staff_dashboard_today_items') IS NULL THEN
-      INSERT INTO _mig_skipped VALUES ('staff_dashboard_today_items');
-      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'staff_dashboard_today_items';
-    END IF;
-  END IF;
-END;
-$mig$;
-
-DO $mig$
-BEGIN
-  IF to_regclass('public.staff_training') IS NOT NULL THEN
-    DROP POLICY IF EXISTS "staff_training_venue_access"    ON staff_training;
-    DROP POLICY IF EXISTS "training_select" ON staff_training;
-    CREATE POLICY "training_select" ON staff_training FOR SELECT USING (true);
-    DROP POLICY IF EXISTS "training_insert" ON staff_training;
-    CREATE POLICY "training_insert" ON staff_training FOR INSERT WITH CHECK (true);
-    DROP POLICY IF EXISTS "training_update" ON staff_training;
-    CREATE POLICY "training_update" ON staff_training FOR UPDATE USING (true);
-    DROP POLICY IF EXISTS "training_delete" ON staff_training;
-    CREATE POLICY "training_delete" ON staff_training FOR DELETE USING (true);
-  ELSE
-    IF to_regclass('public.staff_training') IS NULL THEN
-      INSERT INTO _mig_skipped VALUES ('staff_training');
-      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'staff_training';
-    END IF;
-  END IF;
-END;
-$mig$;
-
-DO $mig$
-BEGIN
-  IF to_regclass('public.shift_swaps') IS NOT NULL THEN
-    DROP POLICY IF EXISTS "shift_swaps_venue_access"       ON shift_swaps;
-    DROP POLICY IF EXISTS "shift_swaps_all" ON shift_swaps;
-    CREATE POLICY "shift_swaps_all" ON shift_swaps FOR ALL USING (true) WITH CHECK (true);
-  ELSE
-    IF to_regclass('public.shift_swaps') IS NULL THEN
-      INSERT INTO _mig_skipped VALUES ('shift_swaps');
-      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'shift_swaps';
-    END IF;
-  END IF;
-END;
-$mig$;
-
-DO $mig$
-BEGIN
-  IF to_regclass('public.staff_role_assignments') IS NOT NULL THEN
-    DROP POLICY IF EXISTS "staff_role_assignments_venue_access" ON staff_role_assignments;
-    DROP POLICY IF EXISTS "staff_role_assignments_all" ON staff_role_assignments;
-    CREATE POLICY "staff_role_assignments_all" ON staff_role_assignments FOR ALL USING (true) WITH CHECK (true);
-  ELSE
-    IF to_regclass('public.staff_role_assignments') IS NULL THEN
-      INSERT INTO _mig_skipped VALUES ('staff_role_assignments');
-      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'staff_role_assignments';
-    END IF;
-  END IF;
-END;
-$mig$;
-
-DO $mig$
-BEGIN
-  IF to_regclass('public.apns_tokens') IS NOT NULL THEN
-    DROP POLICY IF EXISTS "apns_tokens_venue_access"       ON apns_tokens;
-    DROP POLICY IF EXISTS "staff can manage own apns tokens" ON apns_tokens;
-    CREATE POLICY "staff can manage own apns tokens" ON apns_tokens FOR ALL USING (true) WITH CHECK (true);
-  ELSE
-    IF to_regclass('public.apns_tokens') IS NULL THEN
-      INSERT INTO _mig_skipped VALUES ('apns_tokens');
-      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'apns_tokens';
-    END IF;
-  END IF;
-END;
-$mig$;
-
-DO $mig$
-BEGIN
-  IF to_regclass('public.staff') IS NOT NULL THEN
-    DROP POLICY IF EXISTS "staff_write"  ON staff;
-    DROP POLICY IF EXISTS "staff_select" ON staff;
-    DROP POLICY IF EXISTS "staff_all_write" ON staff;
-    CREATE POLICY "staff_all_write" ON staff FOR ALL USING (true) WITH CHECK (true);
-  ELSE
-    IF to_regclass('public.staff') IS NULL THEN
-      INSERT INTO _mig_skipped VALUES ('staff');
-      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'staff';
-    END IF;
-  END IF;
-END;
-$mig$;
-
-DO $mig$
-BEGIN
-  IF to_regclass('public.noticeboard_posts') IS NOT NULL THEN
-    DROP POLICY IF EXISTS "noticeboard_venue_access" ON noticeboard_posts;
-  ELSE
-    IF to_regclass('public.noticeboard_posts') IS NULL THEN
-      INSERT INTO _mig_skipped VALUES ('noticeboard_posts');
-      RAISE NOTICE 'PELIKN 091: skipped — table % missing', 'noticeboard_posts';
-    END IF;
-  END IF;
-END;
-$mig$;
-DO $$ BEGIN
-  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'noticeboard_posts') THEN
-    EXECUTE $p$ CREATE POLICY "noticeboard_insert" ON noticeboard_posts FOR INSERT WITH CHECK (true) $p$;
-    EXECUTE $p$ CREATE POLICY "noticeboard_update" ON noticeboard_posts FOR UPDATE USING (true)      $p$;
-  END IF;
-END $$;
-
--- ── Drop helpers last — nothing references them once policies are open ──
+-- Helpers are dropped last (policies referenced them until now).
 DROP FUNCTION IF EXISTS has_venue_access(uuid);
 DROP FUNCTION IF EXISTS current_venue_id();
 
+SELECT COALESCE(string_agg(tbl, ', '), 'none') AS skipped_missing_tables FROM _mig_skipped;
 
--- ── Drift report — THIS IS THE OUTPUT TO READ ────────────────────────────────
--- 'none' = the whole migration applied. Anything listed here was skipped because
--- its table or venue_id column is missing in this database (drift — investigate).
-SELECT COALESCE(string_agg(DISTINCT tbl, ', ' ORDER BY tbl), 'none')
-       AS skipped_missing_tables
-FROM _mig_skipped;
