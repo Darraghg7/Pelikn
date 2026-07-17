@@ -1,7 +1,9 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState } from 'react'
 import { format, isPast, parseISO, differenceInDays } from 'date-fns'
 import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
+import { useSuppliers } from '../../hooks/useSuppliers'
+import { insertSupplier, updateSupplier, deactivateSupplier } from '../../lib/api/suppliers'
 import { useToast } from '../../components/ui/Toast'
 import Button from '../../components/ui/Button'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
@@ -66,26 +68,6 @@ function certStatus(expiry) {
   return 'valid'
 }
 
-function useSuppliers(venueId) {
-  const [suppliers, setSuppliers] = useState([])
-  const [loading, setLoading] = useState(true)
-
-  const load = useCallback(async () => {
-    if (!venueId) return
-    setLoading(true)
-    const { data } = await supabase
-      .from('suppliers')
-      .select('id, name, category, contact_name, phone, email, notes, approval_status, food_safety_cert_expiry, food_safety_cert_url, food_safety_cert_name')
-      .eq('venue_id', venueId)
-      .eq('is_active', true)
-      .order('name')
-    setSuppliers(data ?? [])
-    setLoading(false)
-  }, [venueId])
-
-  useEffect(() => { load() }, [load])
-  return { suppliers, loading, reload: load }
-}
 
 const EMPTY_FORM = {
   name: '', category: 'dry_goods', contact_name: '', phone: '', email: '', notes: '',
@@ -141,8 +123,8 @@ function SupplierModal({ supplier, venueId, onSaved, onClose }) {
       food_safety_cert_name:   certName,
     }
     const { error } = supplier
-      ? await supabase.from('suppliers').update(payload).eq('id', supplier.id)
-      : await supabase.from('suppliers').insert(payload)
+      ? await updateSupplier(supplier.id, payload)
+      : await insertSupplier(payload)
     setSaving(false)
     if (error) { toast(error.message, 'error'); return }
     toast(supplier ? 'Supplier updated ✓' : 'Supplier added ✓')
@@ -399,13 +381,13 @@ function SupplierCard({ supplier, onEdit, onArchive }) {
 export default function SuppliersPage() {
   const { venueId } = useVenue()
   const toast = useToast()
-  const { suppliers, loading, reload } = useSuppliers(venueId)
+  const { suppliers, loading, reload } = useSuppliers()
   const [modalSupplier, setModalSupplier] = useState(undefined) // undefined = closed, null = new
   const [filterCat, setFilterCat]         = useState('all')
   const [filterApproval, setFilterApproval] = useState('all')
 
   const archiveSupplier = async (id) => {
-    const { error } = await supabase.from('suppliers').update({ is_active: false }).eq('id', id)
+    const { error } = await deactivateSupplier(id)
     if (error) { toast(error.message, 'error'); return }
     toast('Supplier archived')
     reload()
