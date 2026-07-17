@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState } from 'react'
 import { format, isPast, parseISO, differenceInDays } from 'date-fns'
 import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
@@ -10,6 +10,8 @@ import { SkeletonList } from '../../components/ui/Skeleton'
 import SignaturePad from '../../components/ui/SignaturePad'
 import AcknowledgeModal from '../../components/training/AcknowledgeModal'
 import { sendPush } from '../../lib/sendPush'
+import { useSignOffs, useCertRecords, useActiveStaff, useAllergenCerts } from '../../hooks/useTraining'
+import { insertSignOff, insertTrainingRecord, deleteTrainingRecord } from '../../lib/api/training'
 
 // ── SC6 topic list (standard food safety induction) ───────────────────────────
 const SC6_TOPICS = [
@@ -55,52 +57,6 @@ function initials(name = '') {
   return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)
 }
 
-// ── Data hooks ────────────────────────────────────────────────────────────────
-function useSignOffs(venueId) {
-  const [records, setRecords] = useState([])
-  const [loading, setLoading] = useState(true)
-  const load = useCallback(async () => {
-    if (!venueId) return
-    setLoading(true)
-    const { data } = await supabase
-      .from('training_sign_offs')
-      .select('*, staff:staff_id(id, name, job_role, photo_url)')
-      .eq('venue_id', venueId)
-      .order('created_at', { ascending: false })
-    setRecords(data ?? [])
-    setLoading(false)
-  }, [venueId])
-  useEffect(() => { load() }, [load])
-  return { records, loading, reload: load }
-}
-
-function useCertRecords(venueId) {
-  const [records, setRecords] = useState([])
-  const [loading, setLoading] = useState(true)
-  const load = useCallback(async () => {
-    if (!venueId) return
-    setLoading(true)
-    const { data } = await supabase
-      .from('staff_training')
-      .select('*, staff:staff_id(id, name, job_role, photo_url)')
-      .eq('venue_id', venueId)
-      .order('expiry_date', { ascending: true, nullsFirst: false })
-    setRecords(data ?? [])
-    setLoading(false)
-  }, [venueId])
-  useEffect(() => { load() }, [load])
-  return { records, loading, reload: load }
-}
-
-function useActiveStaff(venueId) {
-  const [staff, setStaff] = useState([])
-  useEffect(() => {
-    if (!venueId) return
-    supabase.from('staff').select('id, name, job_role, photo_url').eq('venue_id', venueId).eq('is_active', true).order('name')
-      .then(({ data }) => setStaff(data ?? []))
-  }, [venueId])
-  return staff
-}
 
 // ── Create SC6 record modal ───────────────────────────────────────────────────
 function CreateSignOffModal({ staff, venueId, managerName, managerStaffId, onSaved, onClose }) {
@@ -131,7 +87,7 @@ function CreateSignOffModal({ staff, venueId, managerName, managerStaffId, onSav
     if (!managerSig)              { toast('Manager signature is required', 'error'); return }
 
     setSaving(true)
-    const { error } = await supabase.from('training_sign_offs').insert({
+    const { error } = await insertSignOff({
       venue_id:          venueId,
       staff_id:          form.staff_id,
       training_date:     form.training_date,
@@ -358,8 +314,8 @@ function SignOffDetailModal({ record, venueId, onClose }) {
 // ── SC6 Induction Records tab ─────────────────────────────────────────────────
 function InductionTab({ venueId, isManager, session }) {
   const toast = useToast()
-  const { records, loading, reload } = useSignOffs(venueId)
-  const staff    = useActiveStaff(venueId)
+  const { records, loading, reload } = useSignOffs()
+  const staff    = useActiveStaff()
   const [showCreate, setShowCreate]   = useState(false)
   const [viewRecord, setViewRecord]   = useState(null)
   const [ackRecord, setAckRecord]     = useState(null)
@@ -489,8 +445,8 @@ function InductionTab({ venueId, isManager, session }) {
 // ── Certificates tab (existing feature) ───────────────────────────────────────
 function CertificatesTab({ venueId }) {
   const toast   = useToast()
-  const { records, loading, reload } = useCertRecords(venueId)
-  const staff   = useActiveStaff(venueId)
+  const { records, loading, reload } = useCertRecords()
+  const staff   = useActiveStaff()
 
   const EMPTY_FORM = { staff_id: '', title: '', category: '', issued_date: '', expiry_date: '', notes: '' }
   const [showForm, setShowForm] = useState(false)
@@ -512,7 +468,7 @@ function CertificatesTab({ venueId }) {
       file_url = urlData.publicUrl
       file_name = file.name
     }
-    const { error } = await supabase.from('staff_training').insert({
+    const { error } = await insertTrainingRecord({
       staff_id: form.staff_id, title: form.title.trim(), category: form.category || null,
       issued_date: form.issued_date || null, expiry_date: form.expiry_date || null,
       notes: form.notes.trim() || null, file_url, file_name, venue_id: venueId,
@@ -524,7 +480,7 @@ function CertificatesTab({ venueId }) {
   }
 
   const handleDelete = async (id) => {
-    const { error } = await supabase.from('staff_training').delete().eq('id', id).eq('venue_id', venueId)
+    const { error } = await deleteTrainingRecord(id, venueId)
     if (error) { toast(error.message, 'error'); return }
     toast('Record deleted'); reload()
   }
@@ -687,29 +643,10 @@ function CertificatesTab({ venueId }) {
 
 // ── Allergen compliance tab ───────────────────────────────────────────────────
 
-function useAllergenCerts(venueId) {
-  const [certs, setCerts] = useState([])
-  const [loading, setLoading] = useState(true)
-  const load = useCallback(async () => {
-    if (!venueId) return
-    setLoading(true)
-    const { data } = await supabase
-      .from('staff_training')
-      .select('*, staff:staff_id(id, name)')
-      .eq('venue_id', venueId)
-      .eq('category', 'allergen_awareness')
-      .order('issued_date', { ascending: false, nullsFirst: false })
-    setCerts(data ?? [])
-    setLoading(false)
-  }, [venueId])
-  useEffect(() => { load() }, [load])
-  return { certs, loading, reload: load }
-}
-
 function AllergenComplianceTab({ venueId }) {
   const toast = useToast()
-  const staff = useActiveStaff(venueId)
-  const { certs, loading, reload } = useAllergenCerts(venueId)
+  const staff = useActiveStaff()
+  const { certs, loading, reload } = useAllergenCerts()
   const [addFor, setAddFor]   = useState(null)
   const [form, setForm]       = useState({ issued_date: '', expiry_date: '', notes: '' })
   const [file, setFile]       = useState(null)
@@ -744,7 +681,7 @@ function AllergenComplianceTab({ venueId }) {
       const { data: urlData } = supabase.storage.from('training-files').getPublicUrl(path)
       file_url = urlData.publicUrl; file_name = file.name
     }
-    const { error } = await supabase.from('staff_training').insert({
+    const { error } = await insertTrainingRecord({
       staff_id: addFor.id, title: 'Allergen Awareness Training', category: 'allergen_awareness',
       issued_date: form.issued_date || null, expiry_date: form.expiry_date || null,
       notes: form.notes.trim() || null, file_url, file_name, venue_id: venueId,
