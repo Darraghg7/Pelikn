@@ -1,12 +1,13 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState } from 'react'
 import { format, parseISO } from 'date-fns'
-import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
 import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../../components/ui/Toast'
 import EmptyState from '../../components/ui/EmptyState'
 import { SkeletonList } from '../../components/ui/Skeleton'
 import { buildPdfReport } from '../../lib/pdfUtils'
+import { useIncidents } from '../../hooks/useIncidents'
+import { insertIncident } from '../../lib/api/incidents'
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
@@ -30,24 +31,6 @@ const PERSON_TYPES = [
 
 // ── Hook ─────────────────────────────────────────────────────────────────────
 
-function useIncidents(venueId) {
-  const [incidents, setIncidents] = useState([])
-  const [loading, setLoading] = useState(true)
-
-  const load = useCallback(async () => {
-    if (!venueId) return
-    const { data } = await supabase
-      .from('incidents')
-      .select('*, reporter:reported_by(id, name)')
-      .eq('venue_id', venueId)
-      .order('incident_date', { ascending: false })
-    setIncidents(data ?? [])
-    setLoading(false)
-  }, [venueId])
-
-  useEffect(() => { load() }, [load])
-  return { incidents, loading, reload: load }
-}
 
 // ── Severity Badge ───────────────────────────────────────────────────────────
 
@@ -101,7 +84,7 @@ function ReportIncidentModal({ venueId, reporterId, onSaved, onClose }) {
     setSaving(true)
     const validPeople = people.filter(p => p.name.trim())
 
-    const { error } = await supabase.from('incidents').insert({
+    const { error } = await insertIncident({
       venue_id: venueId,
       incident_date: form.incident_date,
       location: form.location.trim(),
@@ -405,7 +388,7 @@ function IncidentCard({ incident, onClick }) {
 export default function IncidentsPage() {
   const { venueId, venueName } = useVenue()
   const { session, isManager } = useSession()
-  const { incidents, loading, reload } = useIncidents(venueId)
+  const { incidents, loading, reload } = useIncidents()
   const [showReport, setShowReport] = useState(false)
   const [viewIncident, setViewIncident] = useState(null)
   const [severityFilter, setSeverityFilter] = useState('all')
