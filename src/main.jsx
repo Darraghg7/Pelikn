@@ -47,6 +47,9 @@ async function initNative() {
       import('@capacitor/app'),
       import('@capacitor/splash-screen'),
     ])
+    // Best-effort native chrome setup — individual calls are no-ops on
+    // platforms that don't support them (e.g. background colour is Android
+    // only); a failure here must not block app start, so it stays silent.
     StatusBar.setStyle({ style: Style.Dark })
     StatusBar.setOverlaysWebView({ overlay: true }).catch(() => {})
     StatusBar.setBackgroundColor({ color: '#1a3c2e' }).catch(() => {}) // Android only
