@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { format, subDays, parseISO } from 'date-fns'
 import { supabase } from '../lib/supabase'
 import { useVenue } from '../contexts/VenueContext'
@@ -22,20 +22,20 @@ export function useNotifications(isManager: boolean): {
   loading: boolean
 } {
   const { venueId } = useVenue()
-  const [notifications, setNotifications] = useState<AppNotification[]>([])
-  const [loading, setLoading]             = useState(true)
 
-  useEffect(() => {
-    if (!isManager || !venueId) { setLoading(false); return }
-    let cancelled = false
-    load(venueId)
-      .then(items  => { if (!cancelled) setNotifications(items) })
-      .catch(()    => { if (!cancelled) setNotifications([]) })
-      .finally(()  => { if (!cancelled) setLoading(false) })
-    return () => { cancelled = true }
-  }, [isManager, venueId])
+  // React Query caches the result (60s) and dedupes across every mount of the
+  // notification bell, so navigating between pages no longer re-runs the ~20
+  // underlying queries — they run at most once a minute per venue.
+  const { data, isLoading } = useQuery({
+    queryKey: ['notifications', venueId],
+    queryFn: () => load(venueId!),
+    enabled: isManager && !!venueId,
+    staleTime: 60_000,
+    placeholderData: [],
+  })
 
-  return { notifications, count: notifications.length, loading }
+  const notifications = data ?? []
+  return { notifications, count: notifications.length, loading: isLoading }
 }
 
 async function load(vid: string): Promise<AppNotification[]> {
