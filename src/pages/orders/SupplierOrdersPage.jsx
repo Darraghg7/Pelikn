@@ -3,7 +3,9 @@ import { format } from 'date-fns'
 import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
 import { useSession } from '../../contexts/SessionContext'
-import { useSuppliers, useSupplierOrders } from '../../hooks/useSupplierOrders'
+import { useSupplierOrders } from '../../hooks/useSupplierOrders'
+import { useSuppliers } from '../../hooks/useSuppliers'
+import { insertSupplier, deactivateSupplier } from '../../lib/api/suppliers'
 import { useToast } from '../../components/ui/Toast'
 import Modal from '../../components/ui/Modal'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
@@ -119,7 +121,7 @@ export default function SupplierOrdersPage() {
   const saveSupplier = async () => {
     if (!supplierForm.name.trim()) { toast('Name is required', 'error'); return }
     setSavingSupplier(true)
-    const { error } = await supabase.from('suppliers').insert({
+    const { error } = await insertSupplier({
       name:         supplierForm.name.trim(),
       contact_name: supplierForm.contact_name.trim() || null,
       email:        supplierForm.email.trim() || null,
@@ -133,8 +135,8 @@ export default function SupplierOrdersPage() {
     reloadSuppliers()
   }
 
-  const deactivateSupplier = async (id, name) => {
-    await supabase.from('suppliers').update({ is_active: false }).eq('id', id)
+  const removeSupplier = async (id, name) => {
+    await deactivateSupplier(id)
     toast(`${name} removed`)
     reloadSuppliers()
   }
@@ -196,7 +198,7 @@ export default function SupplierOrdersPage() {
                     <p className="text-sm font-medium text-charcoal">{s.name}</p>
                     {s.contact_name && <p className="text-xs text-charcoal/40">{s.contact_name}{s.email ? ` · ${s.email}` : ''}</p>}
                   </div>
-                  <button onClick={() => deactivateSupplier(s.id, s.name)}
+                  <button onClick={() => removeSupplier(s.id, s.name)}
                     className="text-xs text-charcoal/25 hover:text-danger transition-colors px-2 py-1">Remove</button>
                 </div>
               ))}

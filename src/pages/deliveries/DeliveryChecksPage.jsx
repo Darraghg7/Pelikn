@@ -7,7 +7,8 @@ import { useToast } from '../../components/ui/Toast'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
 import Modal from '../../components/ui/Modal'
 import useDeliveryChecks from '../../hooks/useDeliveryChecks'
-import useDeliverySuppliers from '../../hooks/useDeliverySuppliers'
+import { useSuppliers } from '../../hooks/useSuppliers'
+import { insertSupplier } from '../../lib/api/suppliers'
 // tesseract.js is ~7 MB — dynamically imported only when OCR is actually used
 
 function nowDatetimeLocal() {
@@ -108,7 +109,7 @@ function AddSupplierModal({ open, onClose, onAdded, venueId }) {
   const save = async () => {
     if (!name.trim()) return
     setSaving(true)
-    const { data, error } = await supabase.from('suppliers').insert({ name: name.trim(), venue_id: venueId }).select().single()
+    const { data, error } = await insertSupplier({ name: name.trim(), venue_id: venueId })
     setSaving(false)
     if (error) { toast(error.message, 'error'); return }
     toast('Supplier added')
@@ -664,7 +665,7 @@ function DeliveryCheckModal({ open, onClose, suppliers, onSupplierAdded, onCompl
 export default function DeliveryChecksPage() {
   const { venueId } = useVenue()
   const { checks, loading, reload } = useDeliveryChecks(venueId)
-  const { suppliers, reload: reloadSuppliers } = useDeliverySuppliers(venueId)
+  const { suppliers, reload: reloadSuppliers } = useSuppliers()
   const [showCheck, setShowCheck] = useState(false)
   const [filter, setFilter] = useState('all')
 
