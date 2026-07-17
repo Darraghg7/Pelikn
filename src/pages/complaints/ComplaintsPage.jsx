@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect } from 'react'
 import { format, parseISO } from 'date-fns'
-import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
+import { useComplaints } from '../../hooks/useComplaints'
+import { insertComplaint, updateComplaint } from '../../lib/api/complaints'
 import { useToast } from '../../components/ui/Toast'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
 import Modal from '../../components/ui/Modal'
@@ -32,26 +33,6 @@ const EMPTY = {
 
 // ── Data hook ─────────────────────────────────────────────────────────────────
 
-function useComplaints(venueId) {
-  const [complaints, setComplaints] = useState([])
-  const [loading, setLoading]       = useState(true)
-
-  const load = useCallback(async () => {
-    if (!venueId) return
-    setLoading(true)
-    const { data } = await supabase
-      .from('food_complaints')
-      .select('*')
-      .eq('venue_id', venueId)
-      .order('date_received', { ascending: false })
-      .limit(200)
-    setComplaints(data ?? [])
-    setLoading(false)
-  }, [venueId])
-
-  useEffect(() => { load() }, [load])
-  return { complaints, loading, reload: load }
-}
 
 // ── Complaint modal ───────────────────────────────────────────────────────────
 
@@ -82,8 +63,8 @@ function ComplaintModal({ open, onClose, editItem, venueId, onSaved }) {
       resolved_at:         form.resolved_at || null,
     }
     const { error } = editItem
-      ? await supabase.from('food_complaints').update(payload).eq('id', editItem.id)
-      : await supabase.from('food_complaints').insert(payload)
+      ? await updateComplaint(editItem.id, payload)
+      : await insertComplaint(payload)
     setSaving(false)
     if (error) { toast(error.message, 'error'); return }
     toast(editItem ? 'Complaint updated' : 'Complaint logged')
@@ -227,7 +208,7 @@ function ComplaintCard({ item, onEdit }) {
 
 export default function ComplaintsPage() {
   const { venueId }                       = useVenue()
-  const { complaints, loading, reload }   = useComplaints(venueId)
+  const { complaints, loading, reload }   = useComplaints()
   const [showModal, setShowModal]         = useState(false)
   const [editItem, setEditItem]           = useState(null)
   const [filter, setFilter]              = useState('all')

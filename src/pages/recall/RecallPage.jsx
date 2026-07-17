@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect } from 'react'
 import { format, parseISO } from 'date-fns'
-import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
+import { useRecallProcedure, useRecallLogs } from '../../hooks/useRecall'
+import { insertRecallLog, updateRecallLog, insertRecallProcedure, updateRecallProcedure } from '../../lib/api/recall'
 import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../../components/ui/Toast'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
@@ -89,46 +90,6 @@ const DEFAULT_SECTIONS = Object.fromEntries(PROC_SECTIONS.map(s => [s.key, s.def
 
 // ── Data hooks ────────────────────────────────────────────────────────────────
 
-function useRecallProcedure(venueId) {
-  const [procedure, setProcedure] = useState(null)
-  const [loading, setLoading]     = useState(true)
-
-  const load = useCallback(async () => {
-    if (!venueId) return
-    setLoading(true)
-    const { data } = await supabase
-      .from('recall_procedures')
-      .select('*')
-      .eq('venue_id', venueId)
-      .maybeSingle()
-    setProcedure(data)
-    setLoading(false)
-  }, [venueId])
-
-  useEffect(() => { load() }, [load])
-  return { procedure, loading, reload: load }
-}
-
-function useRecallLogs(venueId) {
-  const [logs, setLogs]       = useState([])
-  const [loading, setLoading] = useState(true)
-
-  const load = useCallback(async () => {
-    if (!venueId) return
-    setLoading(true)
-    const { data } = await supabase
-      .from('recall_logs')
-      .select('*')
-      .eq('venue_id', venueId)
-      .order('date_identified', { ascending: false })
-      .limit(200)
-    setLogs(data ?? [])
-    setLoading(false)
-  }, [venueId])
-
-  useEffect(() => { load() }, [load])
-  return { logs, loading, reload: load }
-}
 
 // ── Log form modal ────────────────────────────────────────────────────────────
 
@@ -178,8 +139,8 @@ function LogModal({ open, onClose, onSaved, venueId, editLog }) {
     }
 
     const { error } = editLog
-      ? await supabase.from('recall_logs').update(payload).eq('id', editLog.id)
-      : await supabase.from('recall_logs').insert(payload)
+      ? await updateRecallLog(editLog.id, payload)
+      : await insertRecallLog(payload)
 
     setSaving(false)
     if (error) { toast(error.message, 'error'); return }
@@ -327,7 +288,7 @@ function LogCard({ log, onEdit }) {
 
 function ProcedureTab({ venueId }) {
   const toast = useToast()
-  const { procedure, loading, reload } = useRecallProcedure(venueId)
+  const { procedure, loading, reload } = useRecallProcedure()
   const [sections, setSections] = useState(DEFAULT_SECTIONS)
   const [meta, setMeta]         = useState({ responsible_person: '', fsa_contact: '', eho_contact: '' })
   const [saving, setSaving]     = useState(false)
@@ -360,8 +321,8 @@ function ProcedureTab({ venueId }) {
       updated_at:         new Date().toISOString(),
     }
     const { error } = procedure
-      ? await supabase.from('recall_procedures').update(payload).eq('venue_id', venueId)
-      : await supabase.from('recall_procedures').insert(payload)
+      ? await updateRecallProcedure(venueId, payload)
+      : await insertRecallProcedure(payload)
     setSaving(false)
     if (error) { toast(error.message, 'error'); return }
     toast('Recall procedure saved')
@@ -431,7 +392,7 @@ function ProcedureTab({ venueId }) {
 // ── Log tab ───────────────────────────────────────────────────────────────────
 
 function LogTab({ venueId }) {
-  const { logs, loading, reload } = useRecallLogs(venueId)
+  const { logs, loading, reload } = useRecallLogs()
   const [showModal, setShowModal] = useState(false)
   const [editLog, setEditLog]     = useState(null)
   const [filter, setFilter]       = useState('all') // all | open | resolved

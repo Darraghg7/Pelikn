@@ -7,34 +7,17 @@
  */
 import React, { useState, useCallback, useEffect } from 'react'
 import { format, subDays, parseISO } from 'date-fns'
-import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
+import { useDeclarations, useIllnessPolicy } from '../../hooks/useFitness'
+import {
+  insertDeclaration, insertIllnessPolicy, updateIllnessPolicy, fetchOwnDeclaration,
+} from '../../lib/api/fitness'
 import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../../components/ui/Toast'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
 
 // ── Hook: today's declarations ────────────────────────────────────────────────
 
-function useDeclarations(venueId, date) {
-  const [declarations, setDeclarations] = useState([])
-  const [loading, setLoading]           = useState(true)
-
-  const load = useCallback(async () => {
-    if (!venueId) { setLoading(false); return }
-    setLoading(true)
-    const { data } = await supabase
-      .from('fitness_declarations')
-      .select('id, is_fit, declared_at, shift_type, staff_name, staff_id, has_dv_symptoms, has_skin_infection, has_other_illness, illness_details, confirm_handwashing, confirm_clean_uniform, confirm_no_jewellery')
-      .eq('venue_id', venueId)
-      .eq('declaration_date', date)
-      .order('declared_at', { ascending: false })
-    setDeclarations(data ?? [])
-    setLoading(false)
-  }, [venueId, date])
-
-  useEffect(() => { load() }, [load])
-  return { declarations, loading, reload: load }
-}
 
 // ── Staff declaration form ────────────────────────────────────────────────────
 
@@ -68,7 +51,7 @@ function StaffDeclarationForm({ session, venueId, onSaved }) {
 
   const submit = async () => {
     setSaving(true)
-    const { error } = await supabase.from('fitness_declarations').insert({
+    const { error } = await insertDeclaration({
       venue_id:              venueId,
       staff_id:              session?.staffId ?? null,
       staff_name:            session?.staffName ?? 'Unknown',
@@ -297,7 +280,7 @@ function DeclarationSummary({ declaration }) {
 
 function ManagerDeclarationsView({ venueId }) {
   const [viewDate, setViewDate] = useState(format(new Date(), 'yyyy-MM-dd'))
-  const { declarations, loading, reload } = useDeclarations(venueId, viewDate)
+  const { declarations, loading, reload } = useDeclarations(viewDate)
 
   const fitCount   = declarations.filter(d => d.is_fit).length
   const unfitCount = declarations.filter(d => !d.is_fit).length
@@ -400,27 +383,10 @@ function ManagerDeclarationsView({ venueId }) {
 
 // ── Illness exclusion policy (manager-only) ───────────────────────────────────
 
-function useIllnessPolicy(venueId) {
-  const [policy, setPolicy]   = useState(null)
-  const [loading, setLoading] = useState(true)
-  const load = useCallback(async () => {
-    if (!venueId) return
-    setLoading(true)
-    const { data } = await supabase
-      .from('illness_exclusion_policies')
-      .select('*')
-      .eq('venue_id', venueId)
-      .maybeSingle()
-    setPolicy(data)
-    setLoading(false)
-  }, [venueId])
-  useEffect(() => { load() }, [load])
-  return { policy, loading, reload: load }
-}
 
 function IllnessPolicyTab({ venueId }) {
   const toast = useToast()
-  const { policy, loading, reload } = useIllnessPolicy(venueId)
+  const { policy, loading, reload } = useIllnessPolicy()
   const [meta, setMeta]   = useState({ responsible_person: '', return_contact: '', eho_contact: '' })
   const [saving, setSaving] = useState(false)
 
@@ -444,8 +410,8 @@ function IllnessPolicyTab({ venueId }) {
       updated_at:         new Date().toISOString(),
     }
     const { error } = policy
-      ? await supabase.from('illness_exclusion_policies').update(payload).eq('venue_id', venueId)
-      : await supabase.from('illness_exclusion_policies').insert(payload)
+      ? await updateIllnessPolicy(venueId, payload)
+      : await insertIllnessPolicy(payload)
     setSaving(false)
     if (error) { toast(error.message, 'error'); return }
     toast('Policy saved')
@@ -557,15 +523,7 @@ export default function FitnessPage() {
 
   const checkOwnDeclaration = useCallback(async () => {
     if (!venueId || !session?.staffId) { setCheckingOwn(false); return }
-    const { data } = await supabase
-      .from('fitness_declarations')
-      .select('id, is_fit, declared_at, shift_type, has_dv_symptoms, has_skin_infection, has_other_illness, illness_details, confirm_handwashing, confirm_clean_uniform, confirm_no_jewellery')
-      .eq('venue_id', venueId)
-      .eq('staff_id', session.staffId)
-      .eq('declaration_date', today)
-      .order('declared_at', { ascending: false })
-      .limit(1)
-      .maybeSingle()
+    const data = await fetchOwnDeclaration(venueId, session.staffId, today)
     setMyDeclaration(data ?? null)
     setCheckingOwn(false)
   }, [venueId, session?.staffId, today])
