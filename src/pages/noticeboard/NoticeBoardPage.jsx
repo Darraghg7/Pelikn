@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState } from 'react'
 import { format } from 'date-fns'
-import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
+import { useNotices } from '../../hooks/useNoticeboard'
+import { insertNotice, deleteNotice } from '../../lib/api/noticeboard'
 import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../../components/ui/Toast'
 import Button from '../../components/ui/Button'
@@ -9,26 +10,6 @@ import LoadingSpinner from '../../components/ui/LoadingSpinner'
 import EmptyState from '../../components/ui/EmptyState'
 import { SkeletonList } from '../../components/ui/Skeleton'
 
-function useNotices(venueId) {
-  const [notices, setNotices] = useState([])
-  const [loading, setLoading] = useState(true)
-
-  const load = useCallback(async () => {
-    if (!venueId) return
-    setLoading(true)
-    const { data } = await supabase
-      .from('noticeboard_posts')
-      .select('id, title, body, pinned, created_at, created_by_name')
-      .eq('venue_id', venueId)
-      .order('pinned', { ascending: false })
-      .order('created_at', { ascending: false })
-    setNotices(data ?? [])
-    setLoading(false)
-  }, [venueId])
-
-  useEffect(() => { load() }, [load])
-  return { notices, loading, reload: load }
-}
 
 function PostCard({ notice, isManager, onDelete }) {
   const [confirming, setConfirming] = useState(false)
@@ -109,7 +90,7 @@ function NewPostForm({ venueId, staffName, onPosted, onCancel }) {
     e.preventDefault()
     if (!form.title.trim()) { toast('Title is required', 'error'); return }
     setSaving(true)
-    const { error } = await supabase.from('noticeboard_posts').insert({
+    const { error } = await insertNotice({
       venue_id: venueId,
       title: form.title.trim(),
       body: form.body.trim() || null,
@@ -174,11 +155,11 @@ export default function NoticeBoardPage() {
   const { venueId } = useVenue()
   const { session, isManager } = useSession()
   const toast = useToast()
-  const { notices, loading, reload } = useNotices(venueId)
+  const { notices, loading, reload } = useNotices()
   const [showForm, setShowForm] = useState(false)
 
-  const deleteNotice = async (id) => {
-    const { error } = await supabase.from('noticeboard_posts').delete().eq('id', id)
+  const handleDeleteNotice = async (id) => {
+    const { error } = await deleteNotice(id)
     if (error) { toast(error.message, 'error'); return }
     toast('Notice deleted')
     reload()
@@ -219,7 +200,7 @@ export default function NoticeBoardPage() {
               key={notice.id}
               notice={notice}
               isManager={isManager}
-              onDelete={deleteNotice}
+              onDelete={handleDeleteNotice}
             />
           ))}
         </div>

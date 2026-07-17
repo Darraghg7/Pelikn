@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState } from 'react'
 import { format, subDays, isPast } from 'date-fns'
-import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
+import { useDateLabellingLogs } from '../../hooks/useDateLabelling'
+import { insertDateLabellingLog, fetchDateLabellingExport } from '../../lib/api/dateLabelling'
 import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../../components/ui/Toast'
 import Modal from '../../components/ui/Modal'
@@ -31,25 +32,8 @@ export default function DateLabellingPage() {
 
   const today = format(new Date(), 'yyyy-MM-dd')
 
-  // Data state
-  const [logs, setLogs] = useState([])
-  const [loading, setLoading] = useState(true)
-
-  const fetchLogs = useCallback(async () => {
-    if (!venueId) return
-    const weekAgo = format(subDays(new Date(), 7), 'yyyy-MM-dd')
-    const { data, error } = await supabase
-      .from('date_labelling_logs')
-      .select('*')
-      .eq('venue_id', venueId)
-      .gte('opened_date', weekAgo)
-      .order('opened_date', { ascending: false })
-    setLoading(false)
-    if (error) { toast(error.message, 'error'); return }
-    setLogs(data ?? [])
-  }, [venueId, toast])
-
-  useEffect(() => { fetchLogs() }, [fetchLogs])
+  // Data (React Query — cached + deduped)
+  const { logs, loading, reload } = useDateLabellingLogs()
 
   // Form state
   const [form, setForm] = useState({
@@ -76,7 +60,7 @@ export default function DateLabellingPage() {
     e.preventDefault()
     if (!canSubmit) return
     setSubmitting(true)
-    const { error } = await supabase.from('date_labelling_logs').insert({
+    const { error } = await insertDateLabellingLog({
       item_name:         form.item_name.trim(),
       opened_date:       form.opened_date,
       use_by_date:       form.use_by_date,
@@ -91,18 +75,12 @@ export default function DateLabellingPage() {
     if (error) { toast(error.message, 'error'); return }
     toast('Item logged')
     setForm({ item_name: '', opened_date: today, use_by_date: '', storage_location: '', notes: '' })
-    fetchLogs()
+    reload()
   }
 
   const handleExportPdf = async () => {
     setExporting(true)
-    const { data, error } = await supabase
-      .from('date_labelling_logs')
-      .select('opened_date, item_name, use_by_date, storage_location, recorded_by_name, notes')
-      .eq('venue_id', venueId)
-      .gte('opened_date', exportFrom)
-      .lte('opened_date', exportTo)
-      .order('opened_date')
+    const { data, error } = await fetchDateLabellingExport(venueId, exportFrom, exportTo)
     setExporting(false)
     if (error) { toast(error.message, 'error'); return }
     if (!data?.length) { toast('No records in this period', 'error'); return }

@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState } from 'react'
 import { format, subDays, differenceInDays } from 'date-fns'
-import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
+import { useEquipmentLogs } from '../../hooks/useEquipmentMaintenance'
+import { insertEquipmentLog, fetchEquipmentExport } from '../../lib/api/equipment'
 import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../../components/ui/Toast'
 import Modal from '../../components/ui/Modal'
@@ -38,26 +39,8 @@ export default function EquipmentMaintenancePage() {
 
   const today = format(new Date(), 'yyyy-MM-dd')
 
-  // Inline data fetching — last 90 days
-  const [logs, setLogs] = useState([])
-  const [loading, setLoading] = useState(true)
-
-  const reload = useCallback(async () => {
-    if (!venueId) return
-    setLoading(true)
-    const from = format(subDays(new Date(), 90), 'yyyy-MM-dd')
-    const { data, error } = await supabase
-      .from('equipment_maintenance_logs')
-      .select('*')
-      .eq('venue_id', venueId)
-      .gte('service_date', from)
-      .order('service_date', { ascending: false })
-    setLoading(false)
-    if (error) { toast(error.message, 'error'); return }
-    setLogs(data ?? [])
-  }, [venueId]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => { reload() }, [reload])
+  // Data (React Query — cached + deduped, last 90 days)
+  const { logs, loading, reload } = useEquipmentLogs()
 
   // Form state
   const [form, setForm] = useState({
@@ -82,7 +65,7 @@ export default function EquipmentMaintenancePage() {
     e.preventDefault()
     if (!canSubmit) return
     setSubmitting(true)
-    const { error } = await supabase.from('equipment_maintenance_logs').insert({
+    const { error } = await insertEquipmentLog({
       equipment_name:   form.equipment_name.trim(),
       service_type:     form.service_type,
       service_date:     form.service_date,
@@ -110,13 +93,7 @@ export default function EquipmentMaintenancePage() {
 
   const handleExportPdf = async () => {
     setExporting(true)
-    const { data, error } = await supabase
-      .from('equipment_maintenance_logs')
-      .select('service_date, equipment_name, service_type, next_due_date, engineer_name, recorded_by_name, notes')
-      .eq('venue_id', venueId)
-      .gte('service_date', exportFrom)
-      .lte('service_date', exportTo)
-      .order('service_date')
+    const { data, error } = await fetchEquipmentExport(venueId, exportFrom, exportTo)
     setExporting(false)
     if (error) { toast(error.message, 'error'); return }
     if (!data?.length) { toast('No records in this period', 'error'); return }

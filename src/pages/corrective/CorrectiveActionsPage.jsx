@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState } from 'react'
 import { format, formatDistanceToNow } from 'date-fns'
-import { supabase } from '../../lib/supabase'
 import { sendPush } from '../../lib/sendPush'
+import { useCorrectiveActions } from '../../hooks/useCorrectiveActions'
+import { insertCorrectiveAction, updateCorrectiveAction } from '../../lib/api/corrective'
 import { useVenue } from '../../contexts/VenueContext'
 import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../../components/ui/Toast'
@@ -10,24 +11,6 @@ import EmptyState from '../../components/ui/EmptyState'
 import { SkeletonList } from '../../components/ui/Skeleton'
 import Modal from '../../components/ui/Modal'
 
-function useCorrectiveActions(venueId) {
-  const [records, setRecords] = useState([])
-  const [loading, setLoading] = useState(true)
-  const load = useCallback(async () => {
-    if (!venueId) return
-    setLoading(true)
-    const { data } = await supabase
-      .from('corrective_actions')
-      .select('*, reporter:staff!reported_by(name), resolver:staff!resolved_by(name)')
-      .eq('venue_id', venueId)
-      .order('reported_at', { ascending: false })
-      .limit(200)
-    setRecords(data ?? [])
-    setLoading(false)
-  }, [venueId])
-  useEffect(() => { load() }, [load])
-  return { records, loading, reload: load }
-}
 
 const CATEGORIES = [
   { value: 'temperature', label: 'Temperature Issue' },
@@ -71,7 +54,7 @@ export default function CorrectiveActionsPage() {
     if (!form.title.trim()) { toast('Title is required', 'error'); return }
     if (!form.action_taken.trim()) { toast('Corrective action is required', 'error'); return }
     setSaving(true)
-    const { error } = await supabase.from('corrective_actions').insert({
+    const { error } = await insertCorrectiveAction({
       category: form.category,
       title: form.title.trim(),
       description: form.description.trim() || null,
@@ -102,11 +85,11 @@ export default function CorrectiveActionsPage() {
 
   const resolve = async (id) => {
     setResolving(id)
-    const { error } = await supabase.from('corrective_actions').update({
+    const { error } = await updateCorrectiveAction(id, {
       status: 'resolved',
       resolved_by: session?.staffId,
       resolved_at: new Date().toISOString(),
-    }).eq('id', id)
+    })
     setResolving(null)
     if (error) { toast(error.message, 'error'); return }
     toast('Marked as resolved')
