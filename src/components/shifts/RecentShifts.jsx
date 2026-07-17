@@ -20,6 +20,7 @@ import { useSession } from '../../contexts/SessionContext'
 import { useClockSessions } from '../../hooks/useClockSessions'
 import { useToast } from '../ui/Toast'
 import { sendPush } from '../../lib/sendPush'
+import { captureSilent } from '../../lib/reportError'
 import { londonWallTimeToInstant, londonDateStr, formatLondon } from '../../lib/time'
 import LoadingSpinner from '../ui/LoadingSpinner'
 
@@ -365,7 +366,7 @@ function AddShiftForm({ staffId, onSave, onCancel, isManagerEdit = false }) {
     })
     setSaving(false)
     if (error) { toast(error.message ?? 'Failed to save', 'error'); return }
-    if (!isManagerEdit && data) supabase.rpc('log_hour_edit', { p_clock_in_id: data }).catch(() => {})
+    if (!isManagerEdit && data) supabase.rpc('log_hour_edit', { p_clock_in_id: data }).then(({ error: logErr }) => { if (logErr) captureSilent(logErr, 'RecentShifts:log_hour_edit') }, (e) => captureSilent(e, 'RecentShifts:log_hour_edit'))
     toast('Shift added')
     onSave()
   }

@@ -14,6 +14,7 @@ import { sendPush } from '../../lib/sendPush'
 import StaffAlertModal from './StaffAlertModal'
 import { useAppSettings as useSettings } from '../../hooks/useSettings'
 import { londonToday, londonWallTimeToInstant, londonDayStartInstant, formatLondon } from '../../lib/time'
+import { captureSilent } from '../../lib/reportError'
 
 const STATUS_CONFIG = {
   clocked_out: { label: 'Not Clocked In', color: 'text-charcoal/50', dot: 'bg-charcoal/25' },
@@ -380,7 +381,10 @@ export default function ClockPanel({ staffId, hasShift = true, compact = false }
         .from('clock_events')
         .update({ acknowledged_at: new Date().toISOString() })
         .eq('id', current.clockEventId)
-        .catch(() => {})
+        .then(
+          ({ error: ackErr }) => { if (ackErr) captureSilent(ackErr, 'ClockPanel:ack-clock-event') },
+          (e) => captureSilent(e, 'ClockPanel:ack-clock-event'),
+        )
     }
 
     if (current.type === 'break_overrun' && current.breakStillActive) {

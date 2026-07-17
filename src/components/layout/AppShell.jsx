@@ -9,6 +9,7 @@ import OfflineBanner from '../ui/OfflineBanner'
 import MobileNav from './MobileNav'
 import { useVenueFeatures } from '../../hooks/useVenueFeatures'
 import { preloadRoute } from '../../lib/routePreload'
+import { captureSilent } from '../../lib/reportError'
 import Rail from './RailNav'
 import NavPanel from './NavPanel'
 import NavTopbar from './NavTopbar'
@@ -82,7 +83,7 @@ function usePendingSwaps(venueId) {
         _cache.swaps[venueId + '_ts'] = Date.now()
         setCount(c ?? 0)
       })
-      .catch(() => {})
+      .catch((e) => captureSilent(e, 'AppShell:pending-swaps-count'))
     return () => { cancelled = true }
   }, [venueId])
   return count

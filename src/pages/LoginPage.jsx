@@ -6,6 +6,7 @@ import { useVenue } from '../contexts/VenueContext'
 import { useAuth } from '../contexts/AuthContext'
 import { FullPageLoader } from '../components/ui/LoadingSpinner'
 import { DEVICE_VENUES_KEY } from '../lib/constants'
+import { captureSilent } from '../lib/reportError'
 
 // ── Device venue helpers ──────────────────────────────────────────────────────
 function readDeviceVenues() {
@@ -453,7 +454,7 @@ export default function LoginPage() {
         localStorage.setItem(cacheKey, JSON.stringify(data))
         setStaff(data)
       })
-      .catch(() => {})
+      .catch((e) => captureSilent(e, 'LoginPage:staff-list-refresh'))
       .finally(() => { if (!cancelled) setStaffLoading(false) })
     return () => { cancelled = true }
   }, [venueId])
