@@ -13,6 +13,7 @@ import LoadingSpinner from '../../components/ui/LoadingSpinner'
 import AddSessionModal from './AddSessionModal'
 import ClockEditApprovalCard from '../../components/shifts/ClockEditApprovalCard'
 import { formatLondon, londonWallTimeToInstant } from '../../lib/time'
+import { offlineRpc } from '../../lib/offlineSupabase'
 
 const STATIONS = {
   Kitchen: { bg: '#f0ebde', fg: '#6b5028' },
@@ -546,17 +547,22 @@ export default function TimesheetPage() {
     setLockSaving(false)
   }, [isPeriodLocked, payrollLocks, periodFrom, periodTo, saveLocks, toast])
 
-  const saveEditedSession = useCallback(async ({ dateStr, session }, { clockIn, clockOut }) => {
+  const saveEditedSession = useCallback(async ({ dateStr, session }, { clockIn, clockOut, brk }) => {
     // Interpret the edited times as UK wall-clock and store the resulting UTC
     // instant (ISO with offset) — a bare string would be read as UTC by Postgres.
     const newIn  = londonWallTimeToInstant(dateStr, clockIn).toISOString()
     const newOut = londonWallTimeToInstant(dateStr, clockOut).toISOString()
-    const updates = []
-    if (session.inId)  updates.push(supabase.from('clock_events').update({ occurred_at: newIn  }).eq('id', session.inId))
-    if (session.outId) updates.push(supabase.from('clock_events').update({ occurred_at: newOut }).eq('id', session.outId))
-    const results = await Promise.all(updates)
-    const err = results.find(r => r.error)?.error
-    if (err) { toast(err.message, 'error'); return }
+    // Routed through edit_clock_session (not a raw table update) so the break
+    // duration picked in the sheet is actually replaced in clock_events —
+    // this RPC also handles deleting/re-inserting break_start/break_end.
+    const { error } = await offlineRpc('edit_clock_session', {
+      p_clock_in_id:    session.inId,
+      p_clock_in_time:  newIn,
+      p_clock_out_id:   session.outId ?? null,
+      p_clock_out_time: newOut,
+      p_break_minutes:  brk || 0,
+    })
+    if (error) { toast(error.message, 'error'); return }
     toast('Hours updated')
     reload()
   }, [reload, toast])
