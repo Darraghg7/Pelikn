@@ -14,7 +14,7 @@ import LoadingSpinner from '../../components/ui/LoadingSpinner'
 import AcknowledgeModal from '../../components/training/AcknowledgeModal'
 import { useToast } from '../../components/ui/Toast'
 import { invalidateChecksStatusCache } from '../../hooks/useChecksStatus'
-import { londonWallTimeToInstant } from '../../lib/time'
+import { londonWallTimeToInstant, londonToday } from '../../lib/time'
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
@@ -714,7 +714,7 @@ export default function StaffDashboardPage() {
   const [hourlyRate, setHourlyRate] = useState(0)
   const [loading, setLoading]       = useState(true)
 
-  const today = format(new Date(), 'yyyy-MM-dd')
+  const today = londonToday()
   const dateLabel = format(new Date(), 'EEEE, d MMMM')
 
   useEffect(() => {
