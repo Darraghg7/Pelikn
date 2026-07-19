@@ -109,16 +109,30 @@ function SectionLabel({ children }) {
   )
 }
 
-// ── Attention card (all-clear or action list) ──────────────────────────────
+// ── Attention card (all-clear or "Needs You" action list) ──────────────────
+// Populated state matches the design handoff pixel-for-pixel: a single
+// status dot (black, or red for the one genuinely overdue item) replaces
+// the old per-urgency border-stripe. At most one row can be red — if more
+// than one action is flagged 'danger', only the first in display order
+// gets the red dot/bold weight; the rest fall back to normal.
 function AttentionCard({ actions, editMode }) {
   const isEmpty = actions.length === 0
+  const overdueIdx = actions.findIndex(a => a.urgency === 'danger')
+
   return (
-    <div className={[
-      'bg-white dark:bg-paperDark border border-charcoal/10 rounded-[14px] overflow-hidden transition-opacity duration-200',
-      editMode ? 'opacity-45' : 'opacity-100',
-    ].join(' ')}>
+    <div
+      className={[
+        'rounded-[16px] overflow-hidden transition-opacity duration-200',
+        editMode ? 'opacity-45' : 'opacity-100',
+      ].join(' ')}
+      style={isEmpty ? undefined : {
+        background: '#F1EFE8',
+        border: '1px solid rgba(23,35,29,0.08)',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+      }}
+    >
       {isEmpty ? (
-        <div className="flex items-center gap-[13px] p-[14px_16px]">
+        <div className="bg-white dark:bg-paperDark border border-charcoal/10 rounded-[14px] flex items-center gap-[13px] p-[14px_16px]">
           <div className="w-10 h-10 rounded-[11px] bg-goodBg flex items-center justify-center shrink-0">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-success">
               <polyline points="20 6 9 17 4 12"/>
@@ -131,35 +145,49 @@ function AttentionCard({ actions, editMode }) {
         </div>
       ) : (
         <div>
-          <div className="flex items-center gap-1.5 p-[12px_16px_8px]">
-            <span className="font-mono text-[11px] tracking-[0.1em] uppercase text-charcoal/50 font-semibold">
+          <div className="flex items-center gap-[10px]" style={{ padding: '18px 20px 12px' }}>
+            <span
+              className="font-mono uppercase"
+              style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.08em', color: 'rgba(23,35,29,0.55)' }}
+            >
               Needs You
             </span>
-            <span className="min-w-[18px] h-[18px] rounded-full bg-danger text-white text-[11px] font-bold flex items-center justify-center px-[5px]">
+            <span
+              className="flex items-center justify-center"
+              style={{
+                background: '#B23A2E', color: '#fff', fontSize: 12, fontWeight: 700,
+                minWidth: 20, height: 20, borderRadius: 10, padding: '0 6px',
+              }}
+            >
               {actions.length}
             </span>
           </div>
-          <div className="border-t border-charcoal/6">
+          <div>
             {actions.map((a, i) => {
-              const urgencyClass = {
-                warn:   'border-l-warning text-warning',
-                danger: 'border-l-danger text-danger',
-                info:   'border-l-[#2c4577] text-[#2c4577]',
-              }[a.urgency] ?? 'border-l-warning text-warning'
+              const isOverdue = i === overdueIdx
               return (
                 <Link
                   key={a.to}
                   to={a.to}
-                  className={[
-                    'flex items-center border-l-[3px] p-[12px_16px] no-underline',
-                    i < actions.length - 1 ? 'border-b border-charcoal/6' : '',
-                    urgencyClass,
-                  ].join(' ')}
+                  className="flex items-center no-underline active:bg-charcoal/4 transition-colors"
+                  style={{
+                    gap: 12,
+                    padding: '15px 20px',
+                    borderTop: '1px solid rgba(23,35,29,0.1)',
+                    borderBottom: i === actions.length - 1 ? '1px solid rgba(23,35,29,0.1)' : undefined,
+                  }}
                 >
-                  <span className="flex-1 text-[13.5px] font-medium leading-[1.3]">
+                  <span
+                    className="shrink-0 rounded-full"
+                    style={{ width: 7, height: 7, background: isOverdue ? '#B23A2E' : '#17231D' }}
+                  />
+                  <span
+                    className="flex-1"
+                    style={{ fontSize: 15.5, color: '#17231D', fontWeight: isOverdue ? 700 : 600 }}
+                  >
                     {a.label}
                   </span>
-                  <span className="font-mono text-[13px] text-charcoal/30">›</span>
+                  <span style={{ fontSize: 15, color: 'rgba(23,35,29,0.3)' }}>›</span>
                 </Link>
               )
             })}
