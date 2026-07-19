@@ -123,10 +123,10 @@ function AttentionCard({ actions, editMode }) {
     <div
       className={[
         'rounded-[16px] overflow-hidden transition-opacity duration-200',
+        isEmpty ? '' : 'bg-white dark:bg-paperDark',
         editMode ? 'opacity-45' : 'opacity-100',
       ].join(' ')}
       style={isEmpty ? undefined : {
-        background: '#F1EFE8',
         border: '1px solid rgba(23,35,29,0.08)',
         boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
       }}
