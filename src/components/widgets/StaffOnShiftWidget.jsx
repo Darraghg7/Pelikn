@@ -5,10 +5,11 @@ import { useVenue } from '../../contexts/VenueContext'
 import { useWidgetQuery } from '../../hooks/useWidgetQuery'
 import LoadingSpinner from '../ui/LoadingSpinner'
 import { WidgetShell } from './shared'
+import { londonToday } from '../../lib/time'
 
 function StaffOnShiftWidget() {
   const { venueId } = useVenue()
-  const today = format(new Date(), 'yyyy-MM-dd')
+  const today = londonToday()
 
   const { data } = useWidgetQuery('staff_on_shift', [venueId, today], async () => {
     const { data: rows } = await supabase.from('shifts')

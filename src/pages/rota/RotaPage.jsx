@@ -262,7 +262,6 @@ function FixHoursSheet({ ctx, onClose, onSubmit }) {
       setHasBreak(false)
     }
     setEdge('end')
-    setBrkEdge('brkStart')
     setReason('')
     setNote('')
     setConfirming(false)
