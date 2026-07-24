@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { format, formatDistanceToNow } from 'date-fns'
+import { format, formatDistanceToNow, differenceInCalendarDays } from 'date-fns'
 import { supabase } from '../../lib/supabase'
 import { capitalize } from '../../lib/utils'
 import { useVenue } from '../../contexts/VenueContext'
@@ -11,15 +11,57 @@ import CleaningExportModal from './CleaningExportModal'
 import { useAppSettings } from '../../hooks/useSettings'
 
 const FREQ_OPTIONS = ['daily', 'weekly', 'fortnightly', 'monthly', 'quarterly']
-
-const STATUS_CONFIG = {
-  done:     { label: 'Done',     bg: 'bg-success/10',  text: 'text-success',  dot: 'bg-success' },
-  due_soon: { label: 'Due Soon', bg: 'bg-warning/10',  text: 'text-warning',  dot: 'bg-warning' },
-  overdue:  { label: 'Overdue',  bg: 'bg-danger/10',   text: 'text-danger',   dot: 'bg-danger'  },
-}
+const FREQ_DAYS = { daily: 1, weekly: 7, fortnightly: 14, monthly: 30, quarterly: 90 }
 
 function SectionLabel({ children }) {
   return <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-3">{children}</p>
+}
+
+/** Bold, coloured urgency chip for the meta line — "3d overdue" / "Due in 2d" / null when on-schedule. */
+function urgencyLabel(t) {
+  if (!t.lastCompletion) return t.status === 'overdue' ? 'Never done' : null
+  const daysSince = differenceInCalendarDays(new Date(), new Date(t.lastCompletion.completed_at))
+  const threshold = FREQ_DAYS[t.frequency] ?? 1
+  if (t.status === 'overdue') {
+    const overdueBy = t.frequency === 'daily' ? daysSince : daysSince - threshold
+    return `${Math.max(overdueBy, 1)}d overdue`
+  }
+  if (t.status === 'due_soon') {
+    return `Due in ${Math.max(threshold - daysSince, 0)}d`
+  }
+  return null
+}
+
+/** Leading tap-to-complete circle — this IS the action, no separate button. */
+function CheckCircle({ status, onTap }) {
+  if (status === 'done') {
+    return (
+      <span
+        aria-label="Done"
+        className="w-[26px] h-[26px] rounded-full shrink-0 bg-success text-white grid place-items-center"
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round">
+          <polyline points="20 6 9 17 4 12" />
+        </svg>
+      </span>
+    )
+  }
+  const overdue = status === 'overdue'
+  return (
+    <button
+      onClick={onTap}
+      aria-label="Mark done"
+      className={[
+        'w-[26px] h-[26px] rounded-full shrink-0 p-0 grid place-items-center border-2 cursor-pointer',
+        'text-transparent hover:bg-success hover:border-success hover:text-white transition-colors',
+        overdue ? 'border-danger bg-danger/8' : 'border-charcoal/20 bg-transparent',
+      ].join(' ')}
+    >
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round">
+        <polyline points="20 6 9 17 4 12" />
+      </svg>
+    </button>
+  )
 }
 
 export default function CleaningPage() {
@@ -126,18 +168,28 @@ export default function CleaningPage() {
 
       {/* Summary banner */}
       {(overdueCount > 0 || dueSoonCount > 0) && (
-        <div className={`rounded-2xl border p-4 flex items-center gap-3 ${overdueCount > 0 ? 'bg-danger/5 border-danger/20' : 'bg-warning/5 border-warning/20'}`}>
-          <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${overdueCount > 0 ? 'bg-danger' : 'bg-warning'}`} />
-          <div>
-            {overdueCount > 0 && <p className="text-sm font-semibold text-danger">{overdueCount} task{overdueCount !== 1 ? 's' : ''} overdue</p>}
-            {dueSoonCount > 0 && <p className="text-sm text-warning">{dueSoonCount} task{dueSoonCount !== 1 ? 's' : ''} due soon</p>}
+        <div className={[
+          'rounded-xl p-[10px_12px] flex items-center gap-[9px] border',
+          overdueCount > 0 ? 'bg-danger/8 border-danger/20' : 'bg-warning/8 border-warning/20',
+        ].join(' ')}>
+          <span className={[
+            'w-6 h-6 rounded-[7px] shrink-0 grid place-items-center text-white',
+            overdueCount > 0 ? 'bg-danger' : 'bg-warning',
+          ].join(' ')}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" /><path d="M12 9v4M12 17h.01" />
+            </svg>
+          </span>
+          <div className="flex-1 min-w-0">
+            {overdueCount > 0 && <p className="text-[13.5px] font-bold text-danger">{overdueCount} task{overdueCount !== 1 ? 's' : ''} overdue</p>}
+            {dueSoonCount > 0 && <p className={`text-xs ${overdueCount > 0 ? 'text-charcoal/60' : 'text-warning'}`}>{dueSoonCount} task{dueSoonCount !== 1 ? 's' : ''} due soon</p>}
           </div>
         </div>
       )}
 
       {/* Add task form (isManager only) */}
       {showAdd && isManager && (
-        <div className="bg-white rounded-2xl border-charcoal/10 p-5 flex flex-col gap-4">
+        <div className="bg-white rounded-2xl border border-charcoal/10 p-5 flex flex-col gap-4">
           <SectionLabel>New Cleaning Task</SectionLabel>
           <input
             value={form.title}
@@ -205,86 +257,76 @@ export default function CleaningPage() {
             key={s}
             onClick={() => setFilterStatus(s)}
             className={[
-              'px-4 py-1.5 rounded-full text-xs font-medium border transition-all',
+              'px-[14px] py-[7px] rounded-full text-[13px] font-medium border transition-all inline-flex items-center gap-1.5',
               filterStatus === s
                 ? 'bg-charcoal text-cream border-charcoal'
                 : 'bg-white text-charcoal/50 border-charcoal/15 hover:border-charcoal/30',
             ].join(' ')}
           >
             {s === 'all' ? 'All' : s === 'due_soon' ? 'Due Soon' : capitalize(s)}
-            {s === 'overdue' && overdueCount > 0 && <span className="ml-1.5 bg-danger/20 text-danger px-1.5 rounded-full text-[11px]">{overdueCount}</span>}
+            {s === 'overdue' && overdueCount > 0 && (
+              <span className={[
+                'font-mono text-[11px] font-bold rounded-full px-1.5',
+                filterStatus === s ? 'bg-white/20 text-cream' : 'bg-danger/15 text-danger',
+              ].join(' ')}>{overdueCount}</span>
+            )}
           </button>
         ))}
       </div>
 
       {/* Task list */}
-      <div className="bg-white rounded-2xl border-charcoal/10 overflow-hidden">
+      <div className="bg-white rounded-2xl border border-charcoal/10 overflow-hidden px-[14px]">
         <div className="flex flex-col divide-y divide-charcoal/6">
           {filtered.map((t) => {
-            const cfg = STATUS_CONFIG[t.status]
+            const done = t.status === 'done'
+            const overdue = t.status === 'overdue'
+            const urgency = urgencyLabel(t)
+            const roleLabel = roleOptions.find(r => r.value === t.assigned_role)?.label ?? t.assigned_role
             return (
-              <div key={t.id} className="p-4">
-                <div className="flex items-start gap-3">
-                  <span className={`w-2.5 h-2.5 rounded-full shrink-0 mt-1.5 ${cfg.dot}`} />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                      <p className="text-sm font-medium text-charcoal">{t.title}</p>
-                      <div className="flex items-center gap-2 shrink-0">
-                        {t.status === 'done' ? (
-                          <span
-                            title="Done"
-                            aria-label="Done"
-                            className="inline-flex items-center justify-center w-11 h-11 rounded-xl bg-success/10 text-success border border-success/20"
-                          >
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                              <polyline points="20 6 9 17 4 12" />
-                            </svg>
-                          </span>
-                        ) : (
-                          <>
-                            <span className={`text-[11px] tracking-widest uppercase font-medium px-2.5 py-1 rounded-full ${cfg.bg} ${cfg.text}`}>
-                              {cfg.label}
-                            </span>
-                            <button
-                              onClick={() => openComplete(t)}
-                              disabled={!!completing}
-                              className="min-h-11 px-4 py-2.5 rounded-xl bg-charcoal text-cream text-sm font-semibold hover:bg-charcoal/80 transition-colors disabled:opacity-50 disabled:cursor-wait"
-                            >
-                              {completing === t.id ? 'Saving…' : 'Mark Done'}
-                            </button>
-                          </>
-                        )}
+              <div key={t.id} className="flex items-center gap-[13px] py-3">
+                <CheckCircle status={t.status} onTap={() => openComplete(t)} />
 
-                        {isManager && (
-                          <button
-                            onClick={() => deactivateTask(t.id)}
-                            className="text-xs text-charcoal/25 hover:text-danger transition-colors px-1"
-                          >
-                            ×
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-0.5">
-                      <span className="text-[11px] tracking-widest uppercase text-charcoal/35">{capitalize(t.frequency)}</span>
-                      <span className="text-charcoal/20">·</span>
-                      <span className="text-[11px] tracking-widest uppercase text-charcoal/35">{roleOptions.find(r => r.value === t.assigned_role)?.label ?? t.assigned_role}</span>
-                      {t.lastCompletion && (
-                        <>
-                          <span className="text-charcoal/20">·</span>
-                          <span className="text-xs text-charcoal/35">
-                            Last done {formatDistanceToNow(new Date(t.lastCompletion.completed_at), { addSuffix: true })} by {t.lastCompletion.completed_by_name}
-                          </span>
-                        </>
-                      )}
-                    </div>
+                <div className="flex-1 min-w-0">
+                  <div className={`text-[15px] font-medium tracking-[-0.01em] whitespace-nowrap overflow-hidden text-ellipsis ${done ? 'text-charcoal/60' : 'text-charcoal'}`}>
+                    {t.title}
+                  </div>
+                  <div className="flex items-center gap-1.5 mt-1 min-w-0 whitespace-nowrap overflow-hidden">
+                    {urgency && (
+                      <span className={`font-mono text-[10px] font-bold tracking-wide uppercase shrink-0 ${overdue ? 'text-danger' : 'text-warning'}`}>
+                        {urgency}
+                      </span>
+                    )}
+                    {urgency && <span className="text-charcoal/20 text-[10px] shrink-0">·</span>}
+                    <span className="font-mono text-[10px] font-medium tracking-wide uppercase text-charcoal/40 shrink-0">{capitalize(t.frequency)}</span>
+                    <span className="text-charcoal/20 text-[10px] shrink-0">·</span>
+                    <span className="font-mono text-[10px] font-medium tracking-wide uppercase text-charcoal/40 shrink-0">{roleLabel}</span>
+                    <span className="text-charcoal/20 text-[10px] shrink-0">·</span>
+                    <span className="text-[11.5px] text-charcoal/35 overflow-hidden text-ellipsis min-w-0">
+                      {t.lastCompletion
+                        ? done
+                          ? `${formatDistanceToNow(new Date(t.lastCompletion.completed_at), { addSuffix: true })} · ${t.lastCompletion.completed_by_name}`
+                          : `last ${formatDistanceToNow(new Date(t.lastCompletion.completed_at), { addSuffix: true })}`
+                        : 'never completed'}
+                    </span>
                   </div>
                 </div>
+
+                {isManager && (
+                  <button
+                    onClick={() => deactivateTask(t.id)}
+                    aria-label="Remove task"
+                    className="shrink-0 w-7 h-7 rounded-lg grid place-items-center text-charcoal/30 hover:text-danger hover:bg-danger/8 transition-colors"
+                  >
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M18 6 6 18M6 6l12 12" />
+                    </svg>
+                  </button>
+                )}
               </div>
             )
           })}
           {filtered.length === 0 && (
-            <p className="text-sm text-charcoal/35 italic p-6 text-center">
+            <p className="text-sm text-charcoal/35 italic py-6 text-center">
               {tasks.length === 0 ? 'No cleaning tasks set up yet.' : 'No tasks match this filter.'}
             </p>
           )}

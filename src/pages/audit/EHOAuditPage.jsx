@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { format, subDays } from 'date-fns'
+import { useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
 import { useToast } from '../../components/ui/Toast'
@@ -102,6 +103,7 @@ function SectionCard({ title, status, children, sectionId, openSection, onToggle
 export default function EHOAuditPage() {
   const { venueId, venueName } = useVenue()
   const toast = useToast()
+  const queryClient = useQueryClient()
   const [range, setRange] = useState(90)
   const [loading, setLoading] = useState(true)
   const [data, setData] = useState(null)
@@ -136,7 +138,8 @@ export default function EHOAuditPage() {
         : {}
       return { ...prev, [listKey]: newList, [countKey]: newList.length, ...extra }
     })
-  }, [toast])
+    queryClient.invalidateQueries({ queryKey: ['widget', 'compliance_score', venueId] })
+  }, [toast, queryClient, venueId])
 
   // Corrective actions use status field instead of is_resolved
   const resolveAction = useCallback(async (id) => {
@@ -153,7 +156,8 @@ export default function EHOAuditPage() {
       const newOpen = prev.openActions.filter(a => a.id !== id)
       return { ...prev, openActions: newOpen, caOpen: newOpen.length, caCritical: newOpen.filter(a => a.severity === 'critical').length }
     })
-  }, [toast])
+    queryClient.invalidateQueries({ queryKey: ['widget', 'compliance_score', venueId] })
+  }, [toast, queryClient, venueId])
 
   useEffect(() => {
     if (!venueId) return

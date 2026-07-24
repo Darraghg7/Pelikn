@@ -135,8 +135,8 @@ export default function ChecksWorklistPage() {
   const navigate = useNavigate()
   const { venueId, venueSlug } = useVenue()
   const { actionSchedules, closedDays, hiddenCheckTiles } = useAppSettings()
-  const { summary, loading: summaryLoading } = useTodaySummary(venueId, closedDays, actionSchedules)
-  const { statuses, loading: statusLoading } = useChecksStatus(venueId, summary, summaryLoading)
+  const { summary, loading: summaryLoading, closedToday } = useTodaySummary(venueId, closedDays, actionSchedules)
+  const { statuses, loading: statusLoading } = useChecksStatus(venueId, summary, summaryLoading, closedToday, actionSchedules)
 
   const [filter, setFilter] = useState('All')
   const vp = (path) => `/v/${venueSlug}${path}`

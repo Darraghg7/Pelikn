@@ -31,6 +31,7 @@ export default function AllergenRegistryPage() {
   const [deleting, setDeleting]     = useState(null)
   const [deleteTarget, setDeleteTarget] = useState(null)
   const [showQR, setShowQR]         = useState(false)
+  const [expandedId, setExpandedId] = useState(null) // mobile only — tap a row to reveal View/Edit
   const qrRef                     = useRef(null)
   const { logoUrl }               = useVenueBranding(venueId)
 
@@ -215,34 +216,38 @@ export default function AllergenRegistryPage() {
           <div className="flex flex-col">
             {items.map((item) => {
               const allergens = item.food_allergens?.map((a) => a.allergen) ?? []
+              const expanded = expandedId === item.id
               return (
-                <div
-                  key={item.id}
-                  className="flex items-center gap-4 px-5 py-3.5 border-t border-charcoal/6 hover:bg-white transition-colors"
-                >
-                  {/* Icon placeholder */}
-                  <div className="w-7 h-7 rounded-md bg-charcoal/8 flex items-center justify-center shrink-0 text-charcoal/40">
-                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 002-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 00-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"/></svg>
-                  </div>
-
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <p className={`font-medium text-sm truncate ${item.is_active ? 'text-charcoal' : 'text-charcoal/35'}`}>{item.name}</p>
-                      {!item.is_active && (
-                        <span className="text-[11px] uppercase tracking-widest text-charcoal/30 border border-charcoal/10 rounded-full px-1.5 py-0.5 shrink-0">Off QR</span>
-                      )}
+                <div key={item.id} className="border-t border-charcoal/6">
+                  <div
+                    onClick={() => setExpandedId(id => id === item.id ? null : item.id)}
+                    className="flex items-center gap-4 px-5 py-3.5 hover:bg-white transition-colors cursor-pointer sm:cursor-default"
+                  >
+                    {/* Icon placeholder */}
+                    <div className="w-7 h-7 rounded-md bg-charcoal/8 flex items-center justify-center shrink-0 text-charcoal/40">
+                      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 002-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 00-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"/></svg>
                     </div>
-                    <p className="text-xs text-charcoal/40 truncate mt-0.5">
-                      {allergens.length === 0
-                        ? 'No allergens'
-                        : allergens.join(', ')}
-                    </p>
-                  </div>
 
-                  <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 flex-wrap">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 min-w-0 flex-wrap">
+                        <p className={`font-medium text-sm break-words sm:truncate ${item.is_active ? 'text-charcoal' : 'text-charcoal/35'}`}>{item.name}</p>
+                        {!item.is_active && (
+                          <span className="text-[11px] uppercase tracking-widest text-charcoal/30 border border-charcoal/10 rounded-full px-1.5 py-0.5 shrink-0">Off QR</span>
+                        )}
+                      </div>
+                      <p className="text-xs text-charcoal/40 truncate mt-0.5">
+                        {allergens.length === 0
+                          ? 'No allergens'
+                          : allergens.join(', ')}
+                      </p>
+                    </div>
+
                     {isManager && (
-                      <div className="flex items-center gap-1.5 pr-1">
-                        <span className="text-[11px] text-charcoal/35">QR</span>
+                      <div
+                        onClick={(e) => e.stopPropagation()}
+                        className="flex items-center gap-1.5 shrink-0"
+                      >
+                        <span className="text-[11px] text-charcoal/35 hidden sm:inline">QR</span>
                         <Toggle
                           checked={item.is_active}
                           onChange={() => toggleItemActive(item)}
@@ -250,30 +255,73 @@ export default function AllergenRegistryPage() {
                         />
                       </div>
                     )}
-                    <Link
-                      to={`/v/${venueSlug}/allergens/${item.id}`}
-                      className="text-xs text-charcoal/50 hover:text-charcoal border border-charcoal/15 px-3 py-1.5 rounded-md hover:border-charcoal/30 transition-colors"
+
+                    {/* Tablet/desktop — actions stay inline, unchanged */}
+                    <div className="hidden sm:flex items-center gap-2 shrink-0">
+                      <Link
+                        to={`/v/${venueSlug}/allergens/${item.id}`}
+                        onClick={(e) => e.stopPropagation()}
+                        className="text-xs text-charcoal/50 hover:text-charcoal border border-charcoal/15 px-3 py-1.5 rounded-md hover:border-charcoal/30 transition-colors"
+                      >
+                        View
+                      </Link>
+                      {isManager && (
+                        <>
+                          <Link
+                            to={`/v/${venueSlug}/allergens/${item.id}/edit`}
+                            onClick={(e) => e.stopPropagation()}
+                            className="text-xs text-charcoal/50 hover:text-charcoal border border-charcoal/15 px-3 py-1.5 rounded-md hover:border-charcoal/30 transition-colors"
+                          >
+                            Edit
+                          </Link>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setDeleteTarget({ id: item.id, name: item.name }) }}
+                            disabled={deleting === item.id}
+                            className="text-xs text-charcoal/35 hover:text-danger border border-charcoal/12 px-2.5 py-1.5 rounded-md hover:border-danger/30 transition-colors"
+                          >
+                            ×
+                          </button>
+                        </>
+                      )}
+                    </div>
+
+                    {/* Mobile — chevron hints the row expands */}
+                    <svg
+                      className={`sm:hidden shrink-0 text-charcoal/25 transition-transform ${expanded ? 'rotate-180' : ''}`}
+                      width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"
                     >
-                      View
-                    </Link>
-                    {isManager && (
-                      <>
-                        <Link
-                          to={`/v/${venueSlug}/allergens/${item.id}/edit`}
-                          className="text-xs text-charcoal/50 hover:text-charcoal border border-charcoal/15 px-3 py-1.5 rounded-md hover:border-charcoal/30 transition-colors"
-                        >
-                          Edit
-                        </Link>
-                        <button
-                          onClick={() => setDeleteTarget({ id: item.id, name: item.name })}
-                          disabled={deleting === item.id}
-                          className="text-xs text-charcoal/35 hover:text-danger border border-charcoal/12 px-2.5 py-1.5 rounded-md hover:border-danger/30 transition-colors"
-                        >
-                          ×
-                        </button>
-                      </>
-                    )}
+                      <polyline points="6 9 12 15 18 9" />
+                    </svg>
                   </div>
+
+                  {/* Mobile — View/Edit/Remove revealed on tap */}
+                  {expanded && (
+                    <div className="sm:hidden flex items-center gap-2 px-5 pb-3.5">
+                      <Link
+                        to={`/v/${venueSlug}/allergens/${item.id}`}
+                        className="flex-1 text-center text-xs text-charcoal/50 hover:text-charcoal border border-charcoal/15 py-2 rounded-md hover:border-charcoal/30 transition-colors"
+                      >
+                        View
+                      </Link>
+                      {isManager && (
+                        <>
+                          <Link
+                            to={`/v/${venueSlug}/allergens/${item.id}/edit`}
+                            className="flex-1 text-center text-xs text-charcoal/50 hover:text-charcoal border border-charcoal/15 py-2 rounded-md hover:border-charcoal/30 transition-colors"
+                          >
+                            Edit
+                          </Link>
+                          <button
+                            onClick={() => setDeleteTarget({ id: item.id, name: item.name })}
+                            disabled={deleting === item.id}
+                            className="text-xs text-charcoal/35 hover:text-danger border border-charcoal/12 px-3 py-2 rounded-md hover:border-danger/30 transition-colors"
+                          >
+                            Remove
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  )}
                 </div>
               )
             })}

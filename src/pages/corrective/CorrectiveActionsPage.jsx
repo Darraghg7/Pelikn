@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { format, formatDistanceToNow } from 'date-fns'
+import { useQueryClient } from '@tanstack/react-query'
 import { sendPush } from '../../lib/sendPush'
 import { useCorrectiveActions } from '../../hooks/useCorrectiveActions'
 import { insertCorrectiveAction, updateCorrectiveAction } from '../../lib/api/corrective'
@@ -42,6 +43,7 @@ export default function CorrectiveActionsPage() {
   const { venueId } = useVenue()
   const { session, isManager } = useSession()
   const { records, loading, reload } = useCorrectiveActions(venueId)
+  const queryClient = useQueryClient()
 
   const [showForm, setShowForm] = useState(false)
   const [form, setForm] = useState(EMPTY_FORM)
@@ -94,6 +96,7 @@ export default function CorrectiveActionsPage() {
     if (error) { toast(error.message, 'error'); return }
     toast('Marked as resolved')
     reload()
+    queryClient.invalidateQueries({ queryKey: ['widget', 'compliance_score', venueId] })
   }
 
   const filtered = records

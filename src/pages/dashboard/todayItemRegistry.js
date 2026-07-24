@@ -18,7 +18,7 @@ export const TODAY_ITEM_REGISTRY = {
     scheduleKey: 'opening_checks',
     metric: summary => summary.checksToday,
     metricLabel: 'Checks done',
-    action: (summary, vp) => summary.checksToday === 0 && { label: 'Opening checks not done', to: vp('/opening-closing'), urgency: 'warn' },
+    action: (summary, vp, closedToday) => !closedToday && summary.checksToday === 0 && { label: 'Opening checks not done', to: vp('/opening-closing'), urgency: 'warn' },
   },
   closing_checks: {
     id: 'closing_checks',
@@ -28,7 +28,7 @@ export const TODAY_ITEM_REGISTRY = {
     scheduleKey: 'closing_checks',
     metric: summary => summary.closingChecksToday,
     metricLabel: 'Closing done',
-    action: (summary, vp) => summary.closingChecksToday === 0 && { label: 'Closing checks not done', to: vp('/opening-closing'), urgency: 'warn' },
+    action: (summary, vp, closedToday) => !closedToday && summary.closingChecksToday === 0 && { label: 'Closing checks not done', to: vp('/opening-closing'), urgency: 'warn' },
   },
   fridge_checks: {
     id: 'fridge_checks',
