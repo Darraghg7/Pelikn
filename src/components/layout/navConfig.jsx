@@ -22,7 +22,7 @@ export const T = {
   mainInk3:    'rgba(14,20,17,0.42)',
   mainInk4:    'rgba(14,20,17,0.22)',
   mainLine:    'rgba(14,20,17,0.08)',
-  brand:       '#2D4F45',
+  brand:       '#13362a',
 }
 
 /* ── Rail category icons (18×18, stroke 1.7) ────────────────────────────────── */

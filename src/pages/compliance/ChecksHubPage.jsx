@@ -147,8 +147,8 @@ export default function ChecksHubPage() {
   const [editMode, setEditMode] = useState(false)
   const [localHidden, setLocalHidden] = useState([])
 
-  const { summary, loading: summaryLoading } = useTodaySummary(venueId, closedDays, actionSchedules)
-  const { statuses, loading: statusLoading } = useChecksStatus(venueId, summary, summaryLoading)
+  const { summary, loading: summaryLoading, closedToday } = useTodaySummary(venueId, closedDays, actionSchedules)
+  const { statuses, loading: statusLoading } = useChecksStatus(venueId, summary, summaryLoading, closedToday, actionSchedules)
 
   const vp = (path) => `/v/${venueSlug}${path}`
   const isLoading = summaryLoading || statusLoading

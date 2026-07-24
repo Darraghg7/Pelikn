@@ -7,7 +7,7 @@ import { readPersisted, writePersisted, clearPersisted } from '../lib/persistedC
 // Survives component unmount/remount (single-page navigation), and is backed
 // by localStorage so a cold app open renders the last-known summary
 // immediately while a background refresh fires.
-// Key: `${venueId}:${dateStr}`  Value: { data, ts }
+// Key: `${venueId}:${dateStr}`  Value: { data, closedToday, ts }
 const _cache = new Map()
 const STALE_MS  = 90_000   // show stale + revalidate after 90 s
 const FRESH_MS  = 20_000   // don't revalidate at all if data is < 20 s old
@@ -19,15 +19,15 @@ function cacheGet(key) {
   if (persisted) {
     // Seed as just-past-fresh: shown immediately via the stale-hit path,
     // which also kicks off a background revalidation.
-    const seeded = { data: persisted, ts: Date.now() - FRESH_MS - 1000 }
+    const seeded = { data: persisted.data ?? persisted, closedToday: persisted.closedToday ?? false, ts: Date.now() - FRESH_MS - 1000 }
     _cache.set(key, seeded)
     return seeded
   }
   return null
 }
-function cacheSet(key, data) {
-  _cache.set(key, { data, ts: Date.now() })
-  writePersisted('today_summary', key, data)
+function cacheSet(key, data, closedToday = false) {
+  _cache.set(key, { data, closedToday, ts: Date.now() })
+  writePersisted('today_summary', key, { data, closedToday })
 }
 
 /** Expose so other modules can bust the cache after a mutation (e.g. clock-in). */
@@ -82,13 +82,15 @@ export function useTodaySummary(venueId, closedDays = [], actionSchedules = {}) 
   useEffect(() => {
     if (!venueId) return
 
-    const key   = `${venueId}:${todayStr}`
+    const key = `${venueId}:${todayStr}`
+
     const entry = cacheGet(key)
     const age   = entry ? Date.now() - entry.ts : Infinity
 
     // Fresh enough — no fetch needed
     if (entry && age < FRESH_MS) {
       setSummary(entry.data)
+      setClosedToday(entry.closedToday)
       setLoading(false)
       return
     }
@@ -96,6 +98,7 @@ export function useTodaySummary(venueId, closedDays = [], actionSchedules = {}) 
     // Stale hit — show immediately, revalidate in background
     if (entry && age < STALE_MS) {
       setSummary(entry.data)
+      setClosedToday(entry.closedToday)
       setLoading(false)
       if (revalidating.current) return
       revalidating.current = true
@@ -111,16 +114,6 @@ export function useTodaySummary(venueId, closedDays = [], actionSchedules = {}) 
     const fetchAll = async () => {
       if (!entry) setLoading(true)
       try {
-
-      const todayDow = (today.getDay() + 6) % 7
-      if (closedDays.includes(todayDow)) {
-        if (!cancelled) {
-          setClosedToday(true)
-          setSummary(emptySummary())
-          setLoading(false)
-        }
-        return
-      }
 
       const due = (key) => isActionDueToday(key, actionSchedules)
 
@@ -187,15 +180,18 @@ export function useTodaySummary(venueId, closedDays = [], actionSchedules = {}) 
 
       if (cancelled) return
 
-      // ── Venue closed today? Discard the batch and report empty ───────────
-      if (closures.data?.length) {
-        setClosedToday(closures.data[0].reason || true)
-        setSummary(emptySummary())
-        setLoading(false)
-        revalidating.current = false
-        return
-      }
-      setClosedToday(false)
+      // ── Closed today? Informational only — trading closure (weekly
+      // closedDays or a one-off venue_closures entry) doesn't blank out
+      // checks that have their own action_schedule (fridge, cooking, etc.):
+      // staff can be scheduled to record those on a day the venue isn't
+      // open to customers. Only opening/closing-checks consumers should
+      // treat this flag as "nothing to do" — see todayItemRegistry.js and
+      // useChecksStatus.js.
+      const todayDow = (today.getDay() + 6) % 7
+      const closureReason = closures.data?.[0]?.reason
+      const closedToday = closedDays.includes(todayDow) || !!closures.data?.length
+        ? (closureReason || true)
+        : false
 
       // ── Cleaning overdue count (no extra round-trip needed) ──────────────
       let overdueCount = 0
@@ -255,8 +251,9 @@ export function useTodaySummary(venueId, closedDays = [], actionSchedules = {}) 
         dutiesAssigned,
         dutiesCompleted,
       }
-      cacheSet(key, fresh)
+      cacheSet(key, fresh, closedToday)
       setSummary(fresh)
+      setClosedToday(closedToday)
       setLoading(false)
       revalidating.current = false
       } catch {
@@ -269,7 +266,7 @@ export function useTodaySummary(venueId, closedDays = [], actionSchedules = {}) 
     fetchAll()
     return () => { cancelled = true }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [venueId])
+  }, [venueId, closedDays.join(',')])
 
   return { summary, loading, closedToday }
 }

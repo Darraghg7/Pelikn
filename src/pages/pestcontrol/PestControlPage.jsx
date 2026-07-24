@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { format } from 'date-fns'
+import { useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
 import { useSession } from '../../contexts/SessionContext'
@@ -110,7 +111,8 @@ function LogCard({ log, onResolve }) {
 export default function PestControlPage() {
   const { venueId } = useVenue()
   const { session } = useSession()
-  const { addToast } = useToast()
+  const addToast = useToast()
+  const queryClient = useQueryClient()
 
   const [tab, setTab] = useState('log')
   const [form, setForm] = useState(EMPTY_FORM)
@@ -163,6 +165,8 @@ export default function PestControlPage() {
     if (error) { addToast(error.message, 'error'); return }
     addToast('Issue marked as resolved', 'success')
     reloadHistory()
+    queryClient.invalidateQueries({ queryKey: ['openPestIssues', venueId] })
+    queryClient.invalidateQueries({ queryKey: ['widget', 'compliance_score', venueId] })
   }
 
   const highCount = issues.filter(i => i.severity === 'high').length

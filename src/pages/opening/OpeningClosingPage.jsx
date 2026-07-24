@@ -114,69 +114,71 @@ function CheckRow({ check, completion, onOK, onIssue, readOnly, isManager, onRem
   const hasIssue = completion?.has_issue ?? false
 
   return (
-    <div className={`grid grid-cols-[auto_1fr] sm:flex sm:items-center gap-3 px-5 py-4 group ${done ? 'opacity-70' : ''}`}>
-      {/* Radio circle */}
-      <div className="shrink-0">
-        <span className={`inline-flex items-center justify-center w-5 h-5 rounded-full border-2 ${
-          done
-            ? hasIssue ? 'border-warning bg-warning/10' : 'border-success bg-success/10'
-            : 'border-charcoal/20 bg-transparent'
-        }`}>
-          {done && !hasIssue && <svg className="w-2.5 h-2.5 text-success" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>}
-          {done && hasIssue && <svg className="w-2.5 h-2.5 text-warning" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" /></svg>}
+    <div className={`flex items-start gap-3 px-5 py-3 group ${done ? 'opacity-70' : ''}`}>
+      {/* Leading tap-to-complete circle — tap marks OK, this IS the action */}
+      {done ? (
+        <span
+          aria-label={hasIssue ? 'Completed with issue' : 'Done'}
+          className={`w-[26px] h-[26px] rounded-full shrink-0 grid place-items-center text-white mt-px ${hasIssue ? 'bg-warning' : 'bg-success'}`}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
         </span>
+      ) : readOnly ? (
+        <span className="w-[26px] h-[26px] rounded-full shrink-0 border-2 border-charcoal/12 mt-px" />
+      ) : (
+        <button
+          onClick={() => onOK(check)}
+          disabled={saving}
+          aria-label="Mark OK"
+          className="w-[26px] h-[26px] rounded-full shrink-0 p-0 grid place-items-center border-2 border-charcoal/20 bg-transparent text-transparent hover:bg-success hover:border-success hover:text-white transition-colors disabled:cursor-wait mt-px"
+        >
+          {saving ? (
+            <span className="w-3 h-3 rounded-full border-2 border-success/25 border-t-success animate-spin" />
+          ) : (
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+          )}
+        </button>
+      )}
+
+      {/* Title + meta */}
+      <div className="flex-1 min-w-0">
+        <p className={`text-[15px] font-medium tracking-[-0.01em] leading-snug break-words ${done ? 'text-charcoal/60' : 'text-charcoal'}`}>
+          {check.title}
+        </p>
+        {done && completion.staff_name && (
+          <p className="text-[11.5px] text-charcoal/35 mt-0.5 break-words">
+            {completion.staff_name} · {format(new Date(completion.completed_at), 'HH:mm')}
+            {hasIssue && completion.corrective_action && <span className="text-warning/70 italic"> · "{completion.corrective_action}"</span>}
+          </p>
+        )}
+        {!done && readOnly && (
+          <p className="text-[11.5px] text-charcoal/30 italic mt-0.5">Not recorded</p>
+        )}
       </div>
 
-      {/* Title */}
-      <p className={`flex-1 text-sm ${done ? 'text-charcoal/50' : 'text-charcoal font-medium'}`}>
-        {check.title}
-        {done && completion.staff_name && (
-          <span className="block text-[11px] text-charcoal/35 font-normal mt-0.5">
-            {completion.staff_name} · {format(new Date(completion.completed_at), 'HH:mm')}
-          </span>
-        )}
-        {done && hasIssue && completion.corrective_action && (
-          <span className="block text-[11px] text-warning/70 italic font-normal mt-0.5">
-            "{completion.corrective_action}"
-          </span>
-        )}
-      </p>
-
-      {/* Action badges */}
-      {!done && !readOnly ? (
-        <div className="col-span-2 sm:col-span-1 flex items-center justify-end gap-2 shrink-0 w-full sm:w-auto">
-          <button
-            onClick={() => onOK(check)}
-            disabled={saving}
-            className="min-h-11 flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-success/12 text-success text-xs font-bold hover:bg-success/20 transition-colors disabled:opacity-50 disabled:cursor-wait"
-          >
-            {saving ? (
-              <span className="w-3.5 h-3.5 rounded-full border-2 border-success/25 border-t-success animate-spin" />
-            ) : (
-              <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
-            )}
-            {saving ? 'Saving' : 'OK'}
-          </button>
-          <button
-            onClick={() => onIssue(check)}
-            disabled={saving}
-            className="min-h-11 flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-warning/12 text-warning text-xs font-bold hover:bg-warning/20 transition-colors disabled:opacity-50 disabled:cursor-wait"
-          >
-            <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" /></svg>
-            Issue
-          </button>
-          {isManager && (
-            <button
-              onClick={() => onRemove(check.id)}
-              className="opacity-0 group-hover:opacity-100 transition-opacity text-charcoal/25 hover:text-danger text-base leading-none ml-1"
-            >
-              ×
-            </button>
-          )}
-        </div>
-      ) : readOnly && !done ? (
-        <span className="text-[11px] text-charcoal/30 italic shrink-0">Not recorded</span>
-      ) : null}
+      {/* Flag issue + remove */}
+      {!done && !readOnly && (
+        <button
+          onClick={() => onIssue(check)}
+          disabled={saving}
+          className="shrink-0 text-[11px] font-bold tracking-wide uppercase text-warning/70 hover:text-warning transition-colors disabled:opacity-50 px-1 mt-1"
+        >
+          Issue
+        </button>
+      )}
+      {isManager && !readOnly && (
+        <button
+          onClick={() => onRemove(check.id)}
+          aria-label="Remove check"
+          className="opacity-0 group-hover:opacity-100 shrink-0 w-7 h-7 rounded-lg grid place-items-center text-charcoal/25 hover:text-danger hover:bg-danger/8 transition-colors"
+        >
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18M6 6l12 12" /></svg>
+        </button>
+      )}
     </div>
   )
 }

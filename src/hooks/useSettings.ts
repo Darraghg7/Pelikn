@@ -2,6 +2,7 @@ import { useCallback } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
 import { useVenue } from '../contexts/VenueContext'
+import { useToast } from '../components/ui/Toast'
 
 // New venues start with no roles — each venue configures their own in Settings
 const DEFAULT_ROLES: CustomRole[] = []
@@ -175,6 +176,7 @@ async function fetchAppSettings(venueId: string): Promise<AppSettings> {
 export function useAppSettings() {
   const { venueId } = useVenue()
   const queryClient = useQueryClient()
+  const toast = useToast() as ((message: string, type?: string) => void) | null
 
   const queryKey = ['app-settings', venueId]
 
@@ -200,37 +202,46 @@ export function useAppSettings() {
 
   const saveSetting = useCallback(async (key: string, value: unknown) => {
     if (!venueId) return
-    // Optimistically update cache
-    queryClient.setQueryData(queryKey, (old: AppSettings | undefined) => {
-      const fieldMap: Record<string, keyof AppSettings> = {
-        custom_roles: 'customRoles',
-        closed_days: 'closedDays',
-        break_duration_mins: 'breakDurationMins',
-        cleanup_minutes: 'cleanupMinutes',
-        fridge_check_time: 'fridgeCheckTime',
-        open_time: 'openTime',
-        close_time: 'closeTime',
-        day_hours: 'dayHours',
-        compliance_nav_order: 'complianceNavOrder',
-        action_schedules: 'actionSchedules',
-        late_grace_mins: 'lateGraceMins',
-        break_overrun_grace_mins: 'breakOverrunGraceMins',
-        require_late_reason: 'requireLateReason',
-        require_manager_approval_for_late: 'requireManagerApprovalForLate',
-        notify_manager_at_strike: 'notifyManagerAtStrike',
-        disciplinary_at_strike: 'disciplinaryAtStrike',
-        counting_window_days: 'countingWindowDays',
-        push_to_manager: 'pushToManager',
-        notify_break_overrun: 'notifyBreakOverrun',
-        hidden_check_tiles: 'hiddenCheckTiles',
-        hidden_team_tiles: 'hiddenTeamTiles',
-      }
-      return { ...(old ?? DEFAULTS), [fieldMap[key]]: value }
-    })
-    await supabase
+    const fieldMap: Record<string, keyof AppSettings> = {
+      custom_roles: 'customRoles',
+      closed_days: 'closedDays',
+      break_duration_mins: 'breakDurationMins',
+      cleanup_minutes: 'cleanupMinutes',
+      fridge_check_time: 'fridgeCheckTime',
+      open_time: 'openTime',
+      close_time: 'closeTime',
+      day_hours: 'dayHours',
+      compliance_nav_order: 'complianceNavOrder',
+      action_schedules: 'actionSchedules',
+      late_grace_mins: 'lateGraceMins',
+      break_overrun_grace_mins: 'breakOverrunGraceMins',
+      require_late_reason: 'requireLateReason',
+      require_manager_approval_for_late: 'requireManagerApprovalForLate',
+      notify_manager_at_strike: 'notifyManagerAtStrike',
+      disciplinary_at_strike: 'disciplinaryAtStrike',
+      counting_window_days: 'countingWindowDays',
+      push_to_manager: 'pushToManager',
+      notify_break_overrun: 'notifyBreakOverrun',
+      hidden_check_tiles: 'hiddenCheckTiles',
+      hidden_team_tiles: 'hiddenTeamTiles',
+    }
+
+    // Keep the pre-write snapshot so a failed save can be rolled back —
+    // otherwise the optimistic update sits in the cache looking saved.
+    const previous = queryClient.getQueryData<AppSettings>(queryKey)
+    queryClient.setQueryData(queryKey, (old: AppSettings | undefined) => ({
+      ...(old ?? DEFAULTS), [fieldMap[key]]: value,
+    }))
+
+    const { error } = await supabase
       .from('app_settings')
       .upsert({ venue_id: venueId, key, value: JSON.stringify(value) }, { onConflict: 'venue_id,key' })
-  }, [venueId, queryClient, queryKey])
+
+    if (error) {
+      queryClient.setQueryData(queryKey, previous)
+      toast?.('Failed to save — please try again', 'error')
+    }
+  }, [venueId, queryClient, queryKey, toast])
 
   const saveCustomRoles = useCallback((roles: CustomRole[]) => saveSetting('custom_roles', roles), [saveSetting])
   const saveClosedDays = useCallback((days: number[]) => saveSetting('closed_days', days), [saveSetting])

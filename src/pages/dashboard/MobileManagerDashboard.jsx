@@ -562,6 +562,7 @@ export default function MobileManagerDashboard({
   greeting,
   firstName,
   summary,
+  closedToday,
   widgetIds,
   onReorder,
   todayItemIds,
@@ -601,7 +602,7 @@ export default function MobileManagerDashboard({
     })
 
   const actions = summary
-    ? activeItems.map(item => item.action?.(summary, vp)).filter(Boolean)
+    ? activeItems.map(item => item.action?.(summary, vp, closedToday)).filter(Boolean)
     : []
 
   const checksText = summary

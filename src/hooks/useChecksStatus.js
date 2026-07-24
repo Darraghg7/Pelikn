@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { startOfDay, endOfDay, format } from 'date-fns'
 import { supabase } from '../lib/supabase'
 import { readPersisted, writePersisted, clearPersisted } from '../lib/persistedCache'
+import { isActionDueToday } from './useTodaySummary'
 
 // Module-level SWR cache for the 4 independent queries (fitness/probe/delivery/incidents),
 // backed by localStorage so a cold app open renders the last-known tile
@@ -45,7 +46,7 @@ export function invalidateChecksStatusCache(venueId) {
  * Summary-derived statuses (fridge, cleaning, openclose, etc.) resolve once
  * both own queries and summary are ready.
  */
-export function useChecksStatus(venueId, summary, summaryLoading) {
+export function useChecksStatus(venueId, summary, summaryLoading, closedToday = false, actionSchedules = {}) {
   const dateStr  = format(new Date(), 'yyyy-MM-dd')
   const cacheKey = venueId ? `${venueId}:${dateStr}` : null
   const cached   = cacheKey ? rawCacheGet(cacheKey) : null
@@ -128,45 +129,60 @@ export function useChecksStatus(venueId, summary, summaryLoading) {
     if (rawLoading || summaryLoading || !rawData || !summary) return
 
     const { fitnessRes, probeRes, deliveryRes, incidentRes, today } = rawData
+    const due = (key) => isActionDueToday(key, actionSchedules)
 
-    // Fitness to Work
+    // Fitness to Work — staff still declare fitness to work on a day they're
+    // in (e.g. prepping/baking), independent of trading closure
     const fitnessCount = fitnessRes.count ?? 0
     const fitness = fitnessCount > 0
       ? { status: 'done', statusText: `Logged today` }
       : { status: 'due', statusText: 'Not logged yet', count: 1 }
 
-    // Opening Checks
+    // Opening Checks — tied to opening for trading, so closure suppresses it
     const { checksToday = 0, totalChecks = 0 } = summary
-    const openclose = totalChecks === 0
-      ? { status: 'na', statusText: 'Not configured' }
-      : checksToday >= totalChecks
-        ? { status: 'done', statusText: `${checksToday}/${totalChecks} done` }
-        : checksToday > 0
-          ? { status: 'due', statusText: `${checksToday}/${totalChecks} done`, count: totalChecks - checksToday }
-          : { status: 'due', statusText: `0/${totalChecks} done`, count: totalChecks }
+    const openclose = closedToday
+      ? { status: 'na', statusText: 'Closed today' }
+      : totalChecks === 0
+        ? { status: 'na', statusText: 'Not configured' }
+        : checksToday >= totalChecks
+          ? { status: 'done', statusText: `${checksToday}/${totalChecks} done` }
+          : checksToday > 0
+            ? { status: 'due', statusText: `${checksToday}/${totalChecks} done`, count: totalChecks - checksToday }
+            : { status: 'due', statusText: `0/${totalChecks} done`, count: totalChecks }
 
-    // Fridge Temps
+    // Fridge Temps — has its own action_schedule (see useTodaySummary). Not
+    // scheduled today reads as "Not scheduled today" rather than the
+    // misleading "No fridges" (which the 0-count would otherwise imply even
+    // when the venue has fridges, just not due for a check today).
     const { uncheckedFridges = 0, totalFridges = 0 } = summary
-    const fridge = totalFridges === 0
-      ? { status: 'na', statusText: 'No fridges' }
-      : uncheckedFridges === 0
-        ? { status: 'done', statusText: `${totalFridges} checked` }
-        : { status: 'due', statusText: `${uncheckedFridges} unchecked`, count: uncheckedFridges }
+    const fridge = !due('fridge_checks')
+      ? { status: 'na', statusText: 'Not scheduled today' }
+      : totalFridges === 0
+        ? { status: 'na', statusText: 'No fridges' }
+        : uncheckedFridges === 0
+          ? { status: 'done', statusText: `${totalFridges} checked` }
+          : { status: 'due', statusText: `${uncheckedFridges} unchecked`, count: uncheckedFridges }
 
-    // Cooking Temps
-    const cooking = (summary.cookingTempsToday ?? 0) > 0
-      ? { status: 'done', statusText: `${summary.cookingTempsToday} logged` }
-      : { status: 'due', statusText: 'None logged yet' }
+    // Cooking Temps — schedule-driven, not trading-closure-driven
+    const cooking = !due('cooking_temps')
+      ? { status: 'na', statusText: 'Not scheduled today' }
+      : (summary.cookingTempsToday ?? 0) > 0
+        ? { status: 'done', statusText: `${summary.cookingTempsToday} logged` }
+        : { status: 'due', statusText: 'None logged yet' }
 
-    // Hot Holding
-    const hot = (summary.hotHoldingToday ?? 0) > 0
-      ? { status: 'done', statusText: `${summary.hotHoldingToday} logged` }
-      : { status: 'due', statusText: 'None logged yet' }
+    // Hot Holding — schedule-driven, not trading-closure-driven
+    const hot = !due('hot_holding')
+      ? { status: 'na', statusText: 'Not scheduled today' }
+      : (summary.hotHoldingToday ?? 0) > 0
+        ? { status: 'done', statusText: `${summary.hotHoldingToday} logged` }
+        : { status: 'due', statusText: 'None logged yet' }
 
-    // Cooling Logs
-    const cooling = (summary.coolingLogsToday ?? 0) > 0
-      ? { status: 'done', statusText: `${summary.coolingLogsToday} logged` }
-      : { status: 'na', statusText: 'None active' }
+    // Cooling Logs — schedule-driven, not trading-closure-driven
+    const cooling = !due('cooling_logs')
+      ? { status: 'na', statusText: 'Not scheduled today' }
+      : (summary.coolingLogsToday ?? 0) > 0
+        ? { status: 'done', statusText: `${summary.coolingLogsToday} logged` }
+        : { status: 'na', statusText: 'None active' }
 
     // Deliveries
     const deliveryCount = deliveryRes.count ?? 0
@@ -218,7 +234,7 @@ export function useChecksStatus(venueId, summary, summaryLoading) {
       fitness, openclose, fridge, cooking, hot, cooling,
       delivery, probe, allergen, pest, cleaning, haccp, docs, incident,
     })
-  }, [rawData, rawLoading, summary, summaryLoading])
+  }, [rawData, rawLoading, summary, summaryLoading, closedToday, actionSchedules])
 
   return { statuses, loading: rawLoading || summaryLoading }
 }

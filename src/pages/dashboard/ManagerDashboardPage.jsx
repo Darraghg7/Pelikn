@@ -240,7 +240,7 @@ export default function ManagerDashboardPage() {
   const { todayItemIds, save: saveToday } = useTodayPreferences(session?.staffId, venueId)
   const { closedDays, actionSchedules } = useAppSettings()
   const { isEnabled } = useVenueFeatures()
-  const { summary } = useTodaySummary(venueId, closedDays, actionSchedules)
+  const { summary, closedToday } = useTodaySummary(venueId, closedDays, actionSchedules)
   const [showPicker, setShowPicker] = useState(false)
 
   const vp = (p) => `/v/${venueSlug}${p}`
@@ -291,6 +291,7 @@ export default function ManagerDashboardPage() {
           greeting={greeting}
           firstName={firstName}
           summary={summary}
+          closedToday={closedToday}
           widgetIds={widgetIds}
           onReorder={(newIds) => { save(newIds) }}
           todayItemIds={todayItemIds}
