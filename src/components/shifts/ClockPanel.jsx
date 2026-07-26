@@ -218,12 +218,16 @@ export default function ClockPanel({ staffId, hasShift = true, compact = false }
       const today = londonToday()
       supabase
         .from('shifts')
-        .select('start_time, end_time, staff:staff_id(name)')
+        .select('start_time, end_time')
         .eq('venue_id', venueId)
         .eq('staff_id', staffId)
         .eq('shift_date', today)
         .order('start_time')
-        .then(async ({ data: shifts }) => {
+        .then(async ({ data: shifts, error: shiftsError }) => {
+          // A failed lookup must never silently kill the alert — report it so a
+          // systemic break (RLS, schema drift, network) is visible instead of
+          // the late screen just quietly stopping for everyone.
+          if (shiftsError) { captureSilent(shiftsError, 'ClockPanel:late-check-shift-lookup'); return }
           if (!shifts?.length) return
           // Staff can have more than one shift row per day (split shifts,
           // duplicated rota rows) — judge lateness against the shift whose
@@ -241,14 +245,21 @@ export default function ClockPanel({ staffId, hasShift = true, compact = false }
           if (msLate > 0) { // any second past shift start is late
             const minsLate = Math.floor(msLate / 60000)
 
+            // Best-effort name for the push notification body only — must never
+            // block or suppress the alert itself if this lookup fails.
+            const staffName = await supabase
+              .from('staff').select('name').eq('id', staffId).single()
+              .then(({ data }) => data?.name ?? 'A staff member')
+              .catch(() => 'A staff member')
+
             // Notify managers (escalation level handled by strike count in modal)
             sendPush({
               venueId,
               notificationType: 'late_clock_in',
               title: 'Late Clock-In',
               body:  minsLate >= 1
-                ? `${shift.staff?.name ?? 'A staff member'} clocked in ${minsLate} min late`
-                : `${shift.staff?.name ?? 'A staff member'} clocked in late`,
+                ? `${staffName} clocked in ${minsLate} min late`
+                : `${staffName} clocked in late`,
               url:   '/timesheet',
               roles: ['manager', 'owner'],
             }).catch(() => {})
@@ -271,7 +282,7 @@ export default function ClockPanel({ staffId, hasShift = true, compact = false }
                 venueId,
                 notificationType: 'repeat_offender',
                 title: strikes >= 4 ? 'Disciplinary Review Triggered' : 'Repeat Late Clock-In',
-                body:  `${shift.staff?.name ?? 'A staff member'} — ${strikes} late clock-ins in 30 days`,
+                body:  `${staffName} — ${strikes} late clock-ins in 30 days`,
                 url:   '/timesheet',
                 roles: ['manager', 'owner'],
               }).catch(() => {})
