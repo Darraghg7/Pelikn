@@ -21,6 +21,7 @@ import { londonDateStr, londonWallTimeToInstant } from '../../lib/time'
 import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../../components/ui/Toast'
 import Modal from '../../components/ui/Modal'
+import ConfirmDialog from '../../components/ui/ConfirmDialog'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
 
 // ── Constants ────────────────────────────────────────────────────────────────
@@ -283,6 +284,7 @@ function DocumentsTab({ staffId, venueId, onDocsCountChange }) {
   const [form,      setForm]      = useState({ title: '', category: 'contract', expiry_date: '', notes: '' })
   const [file,      setFile]      = useState(null)
   const [saving,    setSaving]    = useState(false)
+  const [deleteTarget, setDeleteTarget] = useState(null)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -334,7 +336,6 @@ function DocumentsTab({ staffId, venueId, onDocsCountChange }) {
   }
 
   const deleteDoc = async (doc) => {
-    if (!confirm(`Delete "${doc.title}"? This cannot be undone.`)) return
     await supabase.from('staff_hr_documents').delete().eq('id', doc.id)
     toast('Document deleted')
     load()
@@ -342,6 +343,15 @@ function DocumentsTab({ staffId, venueId, onDocsCountChange }) {
 
   return (
     <div className="flex flex-col gap-3.5">
+      <ConfirmDialog
+        open={!!deleteTarget}
+        title="Delete document?"
+        message={deleteTarget ? `Delete "${deleteTarget.title}"? This cannot be undone.` : ''}
+        confirmLabel="Delete"
+        danger
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={() => { deleteDoc(deleteTarget); setDeleteTarget(null) }}
+      />
       <div className="flex items-center justify-between">
         <span className="font-mono text-[11px] uppercase tracking-[0.07em] text-charcoal/50 font-semibold">
           {loading ? '—' : docs.length} documents
@@ -387,7 +397,7 @@ function DocumentsTab({ staffId, venueId, onDocsCountChange }) {
                     View
                   </a>
                   <button
-                    onClick={() => deleteDoc(doc)}
+                    onClick={() => setDeleteTarget(doc)}
                     className="inline-flex items-center gap-[7px] px-3 py-1.5 rounded-[10px] text-[11px] font-semibold whitespace-nowrap bg-danger/10 text-danger border border-danger/10"
                   >
                     Delete
@@ -407,7 +417,7 @@ function DocumentsTab({ staffId, venueId, onDocsCountChange }) {
               value={form.title}
               onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
               placeholder="e.g. Employment Contract 2024"
-              className="w-full px-3 py-2.5 rounded-[10px] border border-charcoal/10 text-[13px] outline-none box-border"
+              className="w-full px-3 py-2.5 rounded-[10px] border border-charcoal/10 text-[13px] outline-none focus:ring-2 focus:ring-charcoal/20 focus:border-charcoal/20 box-border"
             />
           </div>
           <div>
@@ -431,11 +441,11 @@ function DocumentsTab({ staffId, venueId, onDocsCountChange }) {
           </div>
           <div>
             <label className="block font-mono text-[11px] uppercase tracking-[0.07em] text-charcoal/50 mb-1.5">Expiry date (optional)</label>
-            <input type="date" value={form.expiry_date} onChange={e => setForm(f => ({ ...f, expiry_date: e.target.value }))} className="w-full px-3 py-2.5 rounded-[10px] border border-charcoal/10 text-[13px] outline-none box-border" />
+            <input type="date" value={form.expiry_date} onChange={e => setForm(f => ({ ...f, expiry_date: e.target.value }))} className="w-full px-3 py-2.5 rounded-[10px] border border-charcoal/10 text-[13px] outline-none focus:ring-2 focus:ring-charcoal/20 focus:border-charcoal/20 box-border" />
           </div>
           <div>
             <label className="block font-mono text-[11px] uppercase tracking-[0.07em] text-charcoal/50 mb-1.5">Notes (optional)</label>
-            <textarea value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} rows={2} className="w-full px-3 py-2.5 rounded-[10px] border border-charcoal/10 text-[13px] outline-none resize-none box-border" />
+            <textarea value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} rows={2} className="w-full px-3 py-2.5 rounded-[10px] border border-charcoal/10 text-[13px] outline-none focus:ring-2 focus:ring-charcoal/20 focus:border-charcoal/20 resize-none box-border" />
           </div>
           <button onClick={upload} disabled={saving}
             className="bg-brand text-white border-0 rounded-xl py-[13px] cursor-pointer font-mono text-[13px] font-bold tracking-[0.02em] disabled:opacity-60 disabled:cursor-not-allowed"
@@ -504,6 +514,8 @@ function DisciplinaryTab({ staffId, venueId, onStrikesCountChange }) {
   const [file,       setFile]      = useState(null)
   const [saving,     setSaving]    = useState(false)
   const [dismissing, setDismissing] = useState(null) // strike id or 'all'
+  const [deleteFormalTarget, setDeleteFormalTarget] = useState(null)
+  const [confirmClearAll, setConfirmClearAll] = useState(false)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -594,7 +606,6 @@ function DisciplinaryTab({ staffId, venueId, onStrikesCountChange }) {
   }
 
   const deleteFormal = async (id) => {
-    if (!confirm('Delete this disciplinary record? This cannot be undone.')) return
     await supabase.from('hr_formal_actions').delete().eq('id', id)
     toast('Record deleted')
     load()
@@ -612,7 +623,6 @@ function DisciplinaryTab({ staffId, venueId, onStrikesCountChange }) {
   }
 
   const dismissAllStrikes = async () => {
-    if (!confirm('Clear all active strikes for this staff member?')) return
     setDismissing('all')
     const { error } = await supabase.from('staff_disciplinary_log')
       .update({ dismissed_at: new Date().toISOString(), dismissed_by: session?.staffId ?? null })
@@ -631,6 +641,25 @@ function DisciplinaryTab({ staffId, venueId, onStrikesCountChange }) {
 
   return (
     <div className="flex flex-col gap-3.5">
+
+      <ConfirmDialog
+        open={!!deleteFormalTarget}
+        title="Delete disciplinary record?"
+        message="This cannot be undone."
+        confirmLabel="Delete"
+        danger
+        onClose={() => setDeleteFormalTarget(null)}
+        onConfirm={() => { deleteFormal(deleteFormalTarget.id); setDeleteFormalTarget(null) }}
+      />
+      <ConfirmDialog
+        open={confirmClearAll}
+        title="Clear all strikes?"
+        message="This clears all active strikes for this staff member. This cannot be undone."
+        confirmLabel="Clear all"
+        danger
+        onClose={() => setConfirmClearAll(false)}
+        onConfirm={() => { setConfirmClearAll(false); dismissAllStrikes() }}
+      />
 
       {/* ── Attendance summary ─────────────────────────────────────────────── */}
       {!loading && (lateHistory.length > 0 || breakAll.length > 0) && (
@@ -688,7 +717,7 @@ function DisciplinaryTab({ staffId, venueId, onStrikesCountChange }) {
         <div className="flex gap-2">
           {activeStrikes.length > 0 && (
             <button
-              onClick={dismissAllStrikes}
+              onClick={() => setConfirmClearAll(true)}
               disabled={dismissing === 'all'}
               className="inline-flex items-center gap-[7px] px-3.5 py-[9px] rounded-[10px] cursor-pointer text-[12.5px] font-semibold whitespace-nowrap bg-warning/10 text-warning border border-warning/10 disabled:opacity-60 disabled:cursor-not-allowed"
             >
@@ -736,7 +765,7 @@ function DisciplinaryTab({ staffId, venueId, onStrikesCountChange }) {
                         )}
                       </div>
                     </div>
-                    <button onClick={() => deleteFormal(item.id)} title="Delete"
+                    <button onClick={() => setDeleteFormalTarget(item)} title="Delete"
                       className="bg-transparent border-0 cursor-pointer p-1 text-charcoal/30 shrink-0">
                       {Ico.trash}
                     </button>
@@ -807,20 +836,20 @@ function DisciplinaryTab({ staffId, venueId, onStrikesCountChange }) {
           <div>
             <label className="block font-mono text-[11px] uppercase tracking-[0.07em] text-charcoal/50 mb-1.5">Action type</label>
             <select value={form.action_type} onChange={e => setForm(f => ({ ...f, action_type: e.target.value }))}
-              className="w-full px-3 py-2.5 rounded-[10px] border border-charcoal/10 text-[13px] outline-none bg-white dark:bg-paperDark box-border">
+              className="w-full px-3 py-2.5 rounded-[10px] border border-charcoal/10 text-[13px] outline-none focus:ring-2 focus:ring-charcoal/20 focus:border-charcoal/20 bg-white dark:bg-paperDark box-border">
               {Object.entries(FORMAL_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
             </select>
           </div>
           <div>
             <label className="block font-mono text-[11px] uppercase tracking-[0.07em] text-charcoal/50 mb-1.5">Date</label>
             <input type="date" value={form.occurred_at} onChange={e => setForm(f => ({ ...f, occurred_at: e.target.value }))}
-              className="w-full px-3 py-2.5 rounded-[10px] border border-charcoal/10 text-[13px] outline-none box-border" />
+              className="w-full px-3 py-2.5 rounded-[10px] border border-charcoal/10 text-[13px] outline-none focus:ring-2 focus:ring-charcoal/20 focus:border-charcoal/20 box-border" />
           </div>
           <div>
             <label className="block font-mono text-[11px] uppercase tracking-[0.07em] text-charcoal/50 mb-1.5">Notes</label>
             <textarea value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} rows={3}
               placeholder="Details, outcome, follow-up actions…"
-              className="w-full px-3 py-2.5 rounded-[10px] border border-charcoal/10 text-[13px] outline-none resize-none box-border" />
+              className="w-full px-3 py-2.5 rounded-[10px] border border-charcoal/10 text-[13px] outline-none focus:ring-2 focus:ring-charcoal/20 focus:border-charcoal/20 resize-none box-border" />
           </div>
           <div>
             <label className="block font-mono text-[11px] uppercase tracking-[0.07em] text-charcoal/50 mb-1.5">Attachment (optional)</label>
@@ -1016,6 +1045,7 @@ function SecurityTab({ staffId }) {
   const [sessions, setSessions] = useState([])
   const [loading,  setLoading]  = useState(true)
   const [revoking, setRevoking] = useState(null)
+  const [revokeTarget, setRevokeTarget] = useState(null)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -1047,6 +1077,15 @@ function SecurityTab({ staffId }) {
 
   return (
     <div className="flex flex-col gap-3.5">
+      <ConfirmDialog
+        open={!!revokeTarget}
+        title="Revoke session?"
+        message={revokeTarget ? `Sign out "${revokeTarget.device_label ?? 'this device'}"? They'll need to log in again.` : ''}
+        confirmLabel="Revoke"
+        danger
+        onClose={() => setRevokeTarget(null)}
+        onConfirm={() => { handleRevoke(revokeTarget.token); setRevokeTarget(null) }}
+      />
       <span className="font-mono text-[11px] uppercase tracking-[0.07em] text-charcoal/50 font-semibold">
         Active sessions · {loading ? '—' : sessions.length}
       </span>
@@ -1065,7 +1104,7 @@ function SecurityTab({ staffId }) {
                 </div>
               </div>
               <button
-                onClick={() => handleRevoke(s.token)}
+                onClick={() => setRevokeTarget(s)}
                 disabled={revoking === s.token}
                 className="px-3 py-1.5 rounded-lg border border-danger bg-transparent text-danger cursor-pointer font-mono text-[11px] font-bold tracking-[0.04em] disabled:opacity-50 disabled:cursor-not-allowed"
               >

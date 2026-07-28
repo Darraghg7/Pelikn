@@ -103,7 +103,7 @@ export default function VenueSettingsPage() {
                 value={form.venue_name}
                 onChange={e => setForm(f => ({ ...f, venue_name: e.target.value }))}
                 placeholder="e.g. The Crown Bar & Kitchen"
-                className="w-full px-3 py-2.5 rounded-[10px] border border-charcoal/10 text-sm text-charcoal outline-none box-border"
+                className="w-full px-3 py-2.5 rounded-[10px] border border-charcoal/10 text-sm text-charcoal outline-none focus:ring-2 focus:ring-charcoal/20 focus:border-charcoal/20 box-border"
               />
             </div>
             <div>
@@ -113,7 +113,7 @@ export default function VenueSettingsPage() {
                 value={form.manager_email}
                 onChange={e => setForm(f => ({ ...f, manager_email: e.target.value }))}
                 placeholder="manager@venue.com"
-                className="w-full px-3 py-2.5 rounded-[10px] border border-charcoal/10 text-sm text-charcoal outline-none box-border"
+                className="w-full px-3 py-2.5 rounded-[10px] border border-charcoal/10 text-sm text-charcoal outline-none focus:ring-2 focus:ring-charcoal/20 focus:border-charcoal/20 box-border"
               />
             </div>
             <button

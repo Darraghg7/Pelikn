@@ -19,6 +19,8 @@ import { useVenue } from '../../contexts/VenueContext'
 import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../../components/ui/Toast'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
+import EmptyState from '../../components/ui/EmptyState'
+import ConfirmDialog from '../../components/ui/ConfirmDialog'
 import DateRangePresets, { presetToDates } from '../../components/ui/DateRangePresets'
 import TemperatureItemSettingsModal from '../../components/temperature/TemperatureItemSettingsModal'
 import {
@@ -115,6 +117,7 @@ export default function HotHoldingPage() {
   const [newItemName, setNewItemName] = useState('')
   const [addingItem, setAddingItem]   = useState(false)
   const [settingsItem, setSettingsItem] = useState(null)
+  const [removeTarget, setRemoveTarget] = useState(null)
 
   const handleAddItem = async () => {
     if (!newItemName.trim()) return
@@ -191,6 +194,16 @@ export default function HotHoldingPage() {
 
   return (
     <div className="flex flex-col gap-6">
+
+      <ConfirmDialog
+        open={!!removeTarget}
+        title="Remove item?"
+        message={removeTarget ? `Remove "${removeTarget.name}"? This can't be undone.` : ''}
+        confirmLabel="Remove"
+        danger
+        onClose={() => setRemoveTarget(null)}
+        onConfirm={() => { handleRemoveItem(removeTarget.id); setRemoveTarget(null) }}
+      />
 
       {/* Page header */}
       <div>
@@ -307,10 +320,11 @@ export default function HotHoldingPage() {
             <div className="flex justify-center py-10"><LoadingSpinner /></div>
           ) : items.length === 0 ? (
             <div className="bg-white rounded-2xl border border-charcoal/10 p-8 text-center">
-              <p className="text-sm text-charcoal/45 italic">
-                No hot holding items configured yet.
-                {isManager ? ' Add items below to get started.' : ' Ask your manager to add items.'}
-              </p>
+              <EmptyState
+                icon="thermometer"
+                title="No hot holding items yet"
+                description={isManager ? 'Add items below to get started.' : 'Ask your manager to add items.'}
+              />
             </div>
           ) : (
             <div className="bg-white rounded-2xl border border-charcoal/10 p-5">
@@ -431,7 +445,7 @@ export default function HotHoldingPage() {
                       <div className="flex items-center gap-1">
                         <SettingsButton onClick={() => setSettingsItem(item)} />
                         <button
-                          onClick={() => handleRemoveItem(item.id)}
+                          onClick={() => setRemoveTarget(item)}
                           className="text-[11px] text-charcoal/35 hover:text-danger transition-colors px-2"
                         >
                           Remove
@@ -462,7 +476,7 @@ export default function HotHoldingPage() {
           {histLoading ? (
             <div className="flex justify-center py-10"><LoadingSpinner /></div>
           ) : histLogs.length === 0 ? (
-            <p className="text-center text-sm text-charcoal/35 italic py-10">No records found. Try adjusting the date range.</p>
+            <EmptyState icon="thermometer" title="No records found" description="Try adjusting the date range." />
           ) : (
             <div className="overflow-x-auto -mx-5">
               <table className="w-full text-sm">

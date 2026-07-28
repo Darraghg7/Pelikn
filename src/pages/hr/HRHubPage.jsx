@@ -246,7 +246,7 @@ export default function HRHubPage() {
                 value={query}
                 onChange={e => setQuery(e.target.value)}
                 placeholder="Search staff…"
-                className="w-full py-[10px] pl-9 pr-3 rounded-[12px] border border-charcoal/10 text-[13.5px] outline-none bg-white dark:bg-paperDark text-charcoal box-border"
+                className="w-full py-[10px] pl-9 pr-3 rounded-[12px] border border-charcoal/10 text-[13.5px] outline-none focus:ring-2 focus:ring-charcoal/20 focus:border-charcoal/20 bg-white dark:bg-paperDark text-charcoal box-border"
               />
             </div>
 
@@ -303,7 +303,7 @@ export default function HRHubPage() {
                   value={query}
                   onChange={e => setQuery(e.target.value)}
                   placeholder="Search staff…"
-                  className="w-full py-[9px] pl-9 pr-3 rounded-[11px] border border-charcoal/10 text-[13px] outline-none bg-white dark:bg-paperDark text-charcoal box-border"
+                  className="w-full py-[9px] pl-9 pr-3 rounded-[11px] border border-charcoal/10 text-[13px] outline-none focus:ring-2 focus:ring-charcoal/20 focus:border-charcoal/20 bg-white dark:bg-paperDark text-charcoal box-border"
                 />
               </div>
 

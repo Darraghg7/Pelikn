@@ -4,6 +4,7 @@ import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
 import { useToast } from '../../components/ui/Toast'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
+import ConfirmDialog from '../../components/ui/ConfirmDialog'
 
 function usePPDSItems(venueId) {
   const [items, setItems]   = useState([])
@@ -47,6 +48,7 @@ export default function PPDSItemsPage() {
   const toast = useToast()
   const { items, loading, reload } = usePPDSItems(venueId)
   const [deleting, setDeleting] = useState(null)
+  const [deleteTarget, setDeleteTarget] = useState(null)
 
   const toggleActive = async (item) => {
     const { error } = await supabase
@@ -60,7 +62,6 @@ export default function PPDSItemsPage() {
   }
 
   const deleteItem = async (item) => {
-    if (!confirm(`Delete "${item.name}"?`)) return
     setDeleting(item.id)
     const { error } = await supabase
       .from('ppds_items')
@@ -75,6 +76,16 @@ export default function PPDSItemsPage() {
 
   return (
     <div className="flex flex-col gap-6">
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        title="Delete item?"
+        message={deleteTarget ? `Delete "${deleteTarget.name}"? This can't be undone.` : ''}
+        confirmLabel="Delete"
+        danger
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={() => { deleteItem(deleteTarget); setDeleteTarget(null) }}
+      />
 
       {/* Header */}
       <div className="flex flex-col gap-1">
@@ -156,7 +167,7 @@ export default function PPDSItemsPage() {
                     Edit
                   </Link>
                   <button
-                    onClick={() => deleteItem(item)}
+                    onClick={() => setDeleteTarget(item)}
                     disabled={deleting === item.id}
                     className="text-xs text-charcoal/30 hover:text-danger border border-charcoal/12 px-2.5 py-1.5 rounded-md hover:border-danger/30 transition-colors"
                   >

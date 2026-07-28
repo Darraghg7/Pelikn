@@ -5,6 +5,7 @@ import { useSession } from '../../contexts/SessionContext'
 import { useVenue } from '../../contexts/VenueContext'
 import { useToast } from '../../components/ui/Toast'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
+import ConfirmDialog from '../../components/ui/ConfirmDialog'
 import { useAppSettings } from '../../hooks/useSettings'
 import { useTheme } from '../../contexts/ThemeContext'
 import { useVenueFeatures, FEATURE_GROUPS, ALL_FEATURE_IDS, PRO_ONLY_FEATURE_IDS } from '../../hooks/useVenueFeatures'
@@ -91,6 +92,7 @@ export default function SettingsPage() {
     reloadClosures()
   }
 
+  const [deleteClosureTarget, setDeleteClosureTarget] = useState(null)
   const [venueForm, setVenueForm]       = useState({ venue_name: '', manager_email: '' })
   const [savingVenue, setSavingVenue]   = useState(false)
   const [logoFile, setLogoFile]         = useState(null)
@@ -161,6 +163,15 @@ export default function SettingsPage() {
 
   return (
     <div className="flex flex-col gap-4">
+      <ConfirmDialog
+        open={!!deleteClosureTarget}
+        title="Remove closed period?"
+        message={deleteClosureTarget ? `Remove the closure ${format(parseISO(deleteClosureTarget.start_date), 'd MMM yyyy')}${deleteClosureTarget.start_date !== deleteClosureTarget.end_date ? ` – ${format(parseISO(deleteClosureTarget.end_date), 'd MMM yyyy')}` : ''}?` : ''}
+        confirmLabel="Remove"
+        danger
+        onClose={() => setDeleteClosureTarget(null)}
+        onConfirm={() => { deleteClosure(deleteClosureTarget.id); setDeleteClosureTarget(null) }}
+      />
       {active === null ? (
         <>
           <h1 className="text-2xl font-bold text-charcoal dark:text-white">Settings</h1>
@@ -459,7 +470,7 @@ export default function SettingsPage() {
                             {past && <p className="text-[11px] text-charcoal/30 italic mt-0.5">Past</p>}
                           </div>
                           <button
-                            onClick={() => deleteClosure(c.id)}
+                            onClick={() => setDeleteClosureTarget(c)}
                             className="text-xs text-charcoal/25 hover:text-danger transition-colors shrink-0"
                           >×</button>
                         </div>

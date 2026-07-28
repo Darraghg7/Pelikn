@@ -10,6 +10,7 @@ import { formatMinutes, getWeekStart, downloadCsv } from '../../lib/utils'
 import { buildPdfReport } from '../../lib/pdfUtils'
 import { countWorkingDaysInRequest } from '../../hooks/useLeaveBalance'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
+import EmptyState from '../../components/ui/EmptyState'
 import AddSessionModal from './AddSessionModal'
 import ClockEditApprovalCard from '../../components/shifts/ClockEditApprovalCard'
 import { formatLondon, londonWallTimeToInstant } from '../../lib/time'
@@ -622,9 +623,9 @@ export default function TimesheetPage() {
 
         {period === 'custom' && (
           <div className="flex items-center gap-2">
-            <input type="date" value={customFrom} onChange={e => setCustomFrom(e.target.value)} className="flex-1 px-[10px] py-[7px] rounded-[9px] border border-charcoal/10 text-[13px] bg-white dark:bg-paperDark text-charcoal outline-none" />
+            <input type="date" value={customFrom} onChange={e => setCustomFrom(e.target.value)} className="flex-1 px-[10px] py-[7px] rounded-[9px] border border-charcoal/10 text-[13px] bg-white dark:bg-paperDark text-charcoal outline-none focus:ring-2 focus:ring-charcoal/20 focus:border-charcoal/20" />
             <span className="text-xs text-charcoal/30 shrink-0">to</span>
-            <input type="date" value={customTo} min={customFrom} onChange={e => setCustomTo(e.target.value)} className="flex-1 px-[10px] py-[7px] rounded-[9px] border border-charcoal/10 text-[13px] bg-white dark:bg-paperDark text-charcoal outline-none" />
+            <input type="date" value={customTo} min={customFrom} onChange={e => setCustomTo(e.target.value)} className="flex-1 px-[10px] py-[7px] rounded-[9px] border border-charcoal/10 text-[13px] bg-white dark:bg-paperDark text-charcoal outline-none focus:ring-2 focus:ring-charcoal/20 focus:border-charcoal/20" />
           </div>
         )}
 
@@ -677,7 +678,7 @@ export default function TimesheetPage() {
             <span className="font-mono text-[11px] text-charcoal/50">{timesheets.length} members{totalMins > 0 ? ` · ${minsStr(totalMins)} total` : ''}</span>
           </div>
           {timesheets.length === 0 ? (
-            <p className="text-[13px] text-charcoal/30 italic px-0.5 py-2">No clock events recorded for this period.</p>
+            <EmptyState icon="users" title="No clock events" description="No clock events recorded for this period." className="py-6" />
           ) : (
             <div className="bg-white dark:bg-paperDark border border-charcoal/10 rounded-2xl overflow-hidden">
               {timesheets.map((t, i) => (

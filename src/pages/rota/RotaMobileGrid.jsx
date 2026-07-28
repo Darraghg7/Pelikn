@@ -33,7 +33,15 @@ function stationFromRole(role) {
 }
 
 // Column widths — matches design exactly
-const NAME_W = 92
+const NAME_W = 118
+
+/** "Darragh Guy" → "Darragh G." — disambiguates staff who share a first name. */
+function shortName(name) {
+  if (!name) return '—'
+  const parts = name.trim().split(/\s+/)
+  if (parts.length < 2) return parts[0] ?? '—'
+  return `${parts[0]} ${parts[parts.length - 1][0]}.`
+}
 const DAY_COL = 76
 const ROW_H   = 56
 
@@ -683,13 +691,17 @@ export default function RotaMobileGrid() {
           </div>
         </header>
 
-        {/* ── Cream sub-header: eyebrow + status pill + week nav ── */}
+        {/* ── Back bar — matches the shared MobileNav back-row ── */}
+        <div style={{ background: '#fff', borderBottom: '1px solid #e5e7eb', padding: '8px 16px' }}>
+          <button onClick={() => navigate(-1)} className="inline-flex items-center gap-1.5 bg-transparent border-none cursor-pointer p-0 text-brand text-[13px] font-semibold">
+            <svg width="7" height="12" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M5 1L1 5l4 4"/></svg>
+            Team
+          </button>
+        </div>
+
+        {/* ── Cream sub-header: status pill + week nav ── */}
         <div className="px-[14px] pt-3 pb-2 bg-surface shrink-0">
-          <div className="flex justify-between items-center px-1 pb-2">
-            <button onClick={() => navigate(-1)} className="flex items-center gap-1 bg-transparent border-none cursor-pointer p-0 text-charcoal/50 font-mono text-[11px] tracking-[0.06em] uppercase font-semibold">
-              <svg width="6" height="10" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M5 1L1 5l4 4"/></svg>
-              Team
-            </button>
+          <div className="flex justify-end items-center px-1 pb-2">
             <span
               className={`inline-flex items-center gap-[5px] font-mono text-[9.5px] font-bold px-2 py-[3px] rounded-full tracking-[0.05em] uppercase border ${isDraft ? 'text-warning bg-warning/10 border-warning' : isPublished ? 'text-success bg-success/10 border-success' : 'text-charcoal/50 bg-charcoal/[0.06] border-charcoal/10'}`}
             >
@@ -790,8 +802,8 @@ export default function RotaMobileGrid() {
                               <Avatar name={member.name} station={station} size={28} />
                               {station && <span className="absolute -bottom-px -right-px w-2 h-2 rounded-[4px] border-[1.5px] border-white" style={{ background: STATION_COLOR[station] }} />}
                             </span>
-                            <span className="text-[12.5px] font-semibold text-charcoal tracking-[-0.01em] whitespace-nowrap overflow-hidden text-ellipsis">
-                              {member.name?.split(' ')[0] ?? '—'}
+                            <span className="text-[12.5px] font-semibold text-charcoal tracking-[-0.01em] whitespace-nowrap overflow-hidden text-ellipsis" title={member.name}>
+                              {shortName(member.name)}
                             </span>
                           </div>
                           {days.map((day, di) => {

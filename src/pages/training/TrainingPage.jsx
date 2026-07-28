@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { format, isPast, parseISO, differenceInDays } from 'date-fns'
 import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
@@ -6,6 +6,7 @@ import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../../components/ui/Toast'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
 import EmptyState from '../../components/ui/EmptyState'
+import ConfirmDialog from '../../components/ui/ConfirmDialog'
 import { SkeletonList } from '../../components/ui/Skeleton'
 import SignaturePad from '../../components/ui/SignaturePad'
 import AcknowledgeModal from '../../components/training/AcknowledgeModal'
@@ -59,7 +60,16 @@ function initials(name = '') {
 
 
 // ── Create SC6 record modal ───────────────────────────────────────────────────
+function useEscapeKey(onClose) {
+  useEffect(() => {
+    const handler = (e) => { if (e.key === 'Escape') onClose() }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [onClose])
+}
+
 function CreateSignOffModal({ staff, venueId, managerName, managerStaffId, onSaved, onClose }) {
+  useEscapeKey(onClose)
   const toast = useToast()
   const today = format(new Date(), 'yyyy-MM-dd')
   const [form, setForm] = useState({
@@ -222,6 +232,7 @@ function CreateSignOffModal({ staff, venueId, managerName, managerStaffId, onSav
 
 // ── View sign-off detail modal ────────────────────────────────────────────────
 function SignOffDetailModal({ record, venueId, onClose }) {
+  useEscapeKey(onClose)
   const [sending, setSending] = useState(false)
   const [sent, setSent]       = useState(false)
 
@@ -453,6 +464,7 @@ function CertificatesTab({ venueId }) {
   const [form, setForm]         = useState(EMPTY_FORM)
   const [file, setFile]         = useState(null)
   const [saving, setSaving]     = useState(false)
+  const [deleteTarget, setDeleteTarget] = useState(null)
 
   const handleAdd = async () => {
     if (!form.staff_id)     { toast('Select a staff member', 'error'); return }
@@ -499,6 +511,16 @@ function CertificatesTab({ venueId }) {
 
   return (
     <div className="flex flex-col gap-5">
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        title="Delete certificate?"
+        message={deleteTarget ? `Delete "${deleteTarget.title}"? This can't be undone.` : ''}
+        confirmLabel="Delete"
+        danger
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={() => { handleDelete(deleteTarget.id); setDeleteTarget(null) }}
+      />
 
       {/* Expiry alert banner */}
       {(expiredCount > 0 || expiringCount > 0) && (
@@ -628,7 +650,7 @@ function CertificatesTab({ venueId }) {
                       </div>
                       {r.notes && <p className="text-xs text-charcoal/40 mt-1 italic">{r.notes}</p>}
                     </div>
-                    <button onClick={() => handleDelete(r.id)}
+                    <button onClick={() => setDeleteTarget(r)}
                       className="text-charcoal/25 hover:text-danger transition-colors shrink-0 mt-0.5"><svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
                   </li>
                 )

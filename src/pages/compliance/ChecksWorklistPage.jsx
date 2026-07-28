@@ -10,6 +10,7 @@ import { useVenue } from '../../contexts/VenueContext'
 import { useAppSettings } from '../../hooks/useSettings'
 import { useTodaySummary } from '../../hooks/useTodaySummary'
 import { useChecksStatus } from '../../hooks/useChecksStatus'
+import { SkeletonList } from '../../components/ui/Skeleton'
 
 const STATUS_TONE = {
   overdue: { fg: 'text-danger',  bg: 'bg-danger/10',  rank: 0, label: 'Overdue' },
@@ -49,14 +50,6 @@ function CleaningIcon()  { return <svg viewBox="0 0 24 24" fill="none" stroke="c
 function HaccpIcon()     { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-full h-full"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h4"/></svg> }
 function DocsIcon()      { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-full h-full"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M13 2v7h7"/></svg> }
 function IncidentIcon()  { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-full h-full"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4M12 17h.01"/></svg> }
-
-function BackIcon() {
-  return (
-    <svg width="8" height="14" viewBox="0 0 8 14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M7 1L1 7l6 6"/>
-    </svg>
-  )
-}
 
 function FilterChip({ label, count, active, onClick }) {
   return (
@@ -165,13 +158,6 @@ export default function ChecksWorklistPage() {
     <div className="min-h-dvh bg-surface pb-24">
 
       <div className="pt-4 pb-3">
-        <button
-          onClick={() => navigate(vp('/checks'))}
-          className="inline-flex items-center gap-1.5 font-mono text-[11.5px] font-semibold text-charcoal/50 tracking-[0.04em] bg-transparent border-none cursor-pointer p-0 mb-[10px]"
-        >
-          <BackIcon />
-          Checks
-        </button>
         <h1 className="text-2xl font-semibold tracking-[-0.025em] text-charcoal m-0 mb-0.5">
           All checks
         </h1>
@@ -189,18 +175,16 @@ export default function ChecksWorklistPage() {
           <FilterChip
             key={f}
             label={f}
-            count={f !== 'All' ? counts[f] : null}
+            count={!isLoading && f !== 'All' ? counts[f] : null}
             active={filter === f}
             onClick={() => setFilter(f)}
           />
         ))}
       </div>
 
-      <div className="bg-white dark:bg-paperDark rounded-[14px] border border-charcoal/10 mx-4 overflow-hidden">
+      <div className={isLoading ? 'mx-4' : 'bg-white dark:bg-paperDark rounded-[14px] border border-charcoal/10 mx-4 overflow-hidden'}>
         {isLoading ? (
-          Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className={`h-16 border-b border-charcoal/6 ${i % 2 === 0 ? 'bg-white dark:bg-paperDark' : 'bg-surface'}`} />
-          ))
+          <SkeletonList rows={6} />
         ) : filtered.length === 0 ? (
           <div className="py-10 px-6 text-center">
             <p className="text-sm text-charcoal/50">No {filter.toLowerCase()} checks</p>

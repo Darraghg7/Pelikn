@@ -6,6 +6,7 @@ import { useVenue } from '../../contexts/VenueContext'
 import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../../components/ui/Toast'
 import DateRangePresets, { presetToDates } from '../../components/ui/DateRangePresets'
+import EmptyState from '../../components/ui/EmptyState'
 import {
   usePestControlLogs,
   useOpenPestIssues,
@@ -250,7 +251,7 @@ export default function PestControlPage() {
                 <select
                   value={form.pestType}
                   onChange={e => set('pestType', e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-white/8 text-sm text-charcoal dark:text-white outline-none focus:border-accent appearance-none"
+                  className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-white/8 text-sm text-charcoal dark:text-white outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 appearance-none"
                 >
                   <option value="">Select…</option>
                   {PEST_TYPES.map(p => (
@@ -285,7 +286,7 @@ export default function PestControlPage() {
               value={form.location}
               onChange={e => set('location', e.target.value)}
               placeholder="e.g. Kitchen store room, Back yard, Near bins"
-              className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-white/8 text-sm text-charcoal dark:text-white placeholder:text-charcoal/30 dark:placeholder:text-white/25 outline-none focus:border-accent"
+              className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-white/8 text-sm text-charcoal dark:text-white placeholder:text-charcoal/30 dark:placeholder:text-white/25 outline-none focus:border-accent focus:ring-2 focus:ring-accent/20"
             />
           </div>
 
@@ -304,7 +305,7 @@ export default function PestControlPage() {
                 'e.g. Follow-up inspection after previous sighting.'
               }
               rows={3}
-              className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-white/8 text-sm text-charcoal dark:text-white placeholder:text-charcoal/30 dark:placeholder:text-white/25 outline-none focus:border-accent resize-none"
+              className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-white/8 text-sm text-charcoal dark:text-white placeholder:text-charcoal/30 dark:placeholder:text-white/25 outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 resize-none"
             />
           </div>
 
@@ -316,7 +317,7 @@ export default function PestControlPage() {
               value={form.actionTaken}
               onChange={e => set('actionTaken', e.target.value)}
               placeholder="e.g. Sealed entry point, notified pest control contractor"
-              className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-white/8 text-sm text-charcoal dark:text-white placeholder:text-charcoal/30 dark:placeholder:text-white/25 outline-none focus:border-accent"
+              className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-white/8 text-sm text-charcoal dark:text-white placeholder:text-charcoal/30 dark:placeholder:text-white/25 outline-none focus:border-accent focus:ring-2 focus:ring-accent/20"
             />
           </div>
 
@@ -328,7 +329,7 @@ export default function PestControlPage() {
               value={form.contractor}
               onChange={e => set('contractor', e.target.value)}
               placeholder="e.g. Rentokil, local pest control company"
-              className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-white/8 text-sm text-charcoal dark:text-white placeholder:text-charcoal/30 dark:placeholder:text-white/25 outline-none focus:border-accent"
+              className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-white/8 text-sm text-charcoal dark:text-white placeholder:text-charcoal/30 dark:placeholder:text-white/25 outline-none focus:border-accent focus:ring-2 focus:ring-accent/20"
             />
           </div>
 
@@ -391,7 +392,7 @@ export default function PestControlPage() {
           {historyLoading ? (
             <p className="text-sm text-charcoal/40 dark:text-white/35">Loading…</p>
           ) : historyLogs.length === 0 ? (
-            <p className="text-sm text-charcoal/40 dark:text-white/35 italic">No pest control logs for this period</p>
+            <EmptyState icon="clipboard" title="No records found" description="No pest control logs for this period." />
           ) : (
             <div className="space-y-3">
               {historyLogs.map(log => <LogCard key={log.id} log={log} />)}

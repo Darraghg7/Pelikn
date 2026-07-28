@@ -481,13 +481,13 @@ export default function AppShell({ children }) {
   const handleSwitchVenue = async (slug) => {
     if (isManager) {
       selectVenue(slug)
-      window.location.replace(`/v/${slug}/dashboard`)
+      navigate(`/v/${slug}/dashboard`, { replace: true })
       return
     }
     const target = linkedVenues.find(v => v.slug === slug)
     if (!target) return
     const { error } = await switchVenue(target.id, target.slug)
-    if (!error) window.location.replace(`/v/${slug}/dashboard`)
+    if (!error) navigate(`/v/${slug}/dashboard`, { replace: true })
   }
 
   // All venues the current user can switch to.

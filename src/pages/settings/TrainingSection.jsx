@@ -4,6 +4,7 @@ import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
 import { useToast } from '../../components/ui/Toast'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
+import ConfirmDialog from '../../components/ui/ConfirmDialog'
 import { useStaffTraining } from '../../hooks/useTraining'
 
 const EMPTY_TRAINING = { title: '', issued_date: '', expiry_date: '', notes: '' }
@@ -17,6 +18,7 @@ export default function TrainingSection({ staffId }) {
   const [form, setForm]         = useState(EMPTY_TRAINING)
   const [file, setFile]         = useState(null)
   const [saving, setSaving]     = useState(false)
+  const [deleteTarget, setDeleteTarget] = useState(null)
 
   const handleAdd = async () => {
     if (!form.title.trim()) { toast('Title is required', 'error'); return }
@@ -68,6 +70,15 @@ export default function TrainingSection({ staffId }) {
 
   return (
     <div className="border-t border-charcoal/10 pt-4 mt-2">
+      <ConfirmDialog
+        open={!!deleteTarget}
+        title="Delete training record?"
+        message={deleteTarget ? `Delete "${deleteTarget.title}"? This can't be undone.` : ''}
+        confirmLabel="Delete"
+        danger
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={() => { handleDelete(deleteTarget.id); setDeleteTarget(null) }}
+      />
       <div className="flex items-center justify-between mb-3">
         <p className="text-[11px] tracking-widest uppercase text-charcoal/40">Training Records</p>
         <button
@@ -151,7 +162,7 @@ export default function TrainingSection({ staffId }) {
                   </div>
                   {r.notes && <p className="text-xs text-charcoal/40 mt-1 italic">{r.notes}</p>}
                 </div>
-                <button onClick={() => handleDelete(r.id)}
+                <button onClick={() => setDeleteTarget(r)}
                   className="text-charcoal/25 hover:text-danger transition-colors shrink-0 mt-0.5"><svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
               </li>
             )

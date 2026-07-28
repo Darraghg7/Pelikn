@@ -60,7 +60,7 @@ export default function DashboardPage() {
           navigate(`/v/${venueSlug}/setup`, { replace: true })
         }
       })
-      .catch(() => setChecked(true))
+      .catch((err) => { console.error('Onboarding check failed:', err); setChecked(true) })
   }, [isManager, venueId, venueSlug, navigate])
 
   if (!checked) return null

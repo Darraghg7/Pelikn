@@ -10,6 +10,7 @@ import { useToast } from '../../components/ui/Toast'
 import { useAppSettings } from '../../hooks/useSettings'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
 import EmptyState from '../../components/ui/EmptyState'
+import ConfirmDialog from '../../components/ui/ConfirmDialog'
 import { SkeletonList } from '../../components/ui/Skeleton'
 import DutiesSection from '../settings/DutiesSection'
 
@@ -160,6 +161,7 @@ function ManagerTasksView() {
   })
   const [saving, setSaving]   = useState(false)
   const [deleting, setDeleting] = useState(null)
+  const [confirmDelete, setConfirmDelete] = useState(null) // { id, isTemplate }
 
   // "All roles" items — tasks tagged 'all' or whose role doesn't match any configured role
   const allRolesTemplates = templates.filter(t => t.job_role === 'all' || !jobRoleValues.includes(t.job_role))
@@ -223,6 +225,20 @@ function ManagerTasksView() {
 
   return (
     <div className="flex flex-col gap-6">
+
+      <ConfirmDialog
+        open={!!confirmDelete}
+        title="Remove task?"
+        message="This can't be undone."
+        confirmLabel="Remove"
+        danger
+        onClose={() => setConfirmDelete(null)}
+        onConfirm={() => {
+          const { id, isTemplate } = confirmDelete
+          setConfirmDelete(null)
+          isTemplate ? deleteTemplate(id) : deleteOneOff(id)
+        }}
+      />
 
       {/* ── Add forms ─────────────────────────────────────────────────────── */}
       <div className="flex gap-2">
@@ -340,8 +356,8 @@ function ManagerTasksView() {
               templates={templates}
               oneOffs={oneOffs}
               completions={completions}
-              onDeleteTemplate={deleteTemplate}
-              onDeleteOneOff={deleteOneOff}
+              onDeleteTemplate={(id) => setConfirmDelete({ id, isTemplate: true })}
+              onDeleteOneOff={(id) => setConfirmDelete({ id, isTemplate: false })}
               deleting={deleting}
             />
             )
@@ -364,7 +380,7 @@ function ManagerTasksView() {
                   item={item}
                   isTemplate={isTemplate}
                   completions={completions}
-                  onDelete={isTemplate ? deleteTemplate : deleteOneOff}
+                  onDelete={(id) => setConfirmDelete({ id, isTemplate })}
                   deleting={deleting}
                 />
               )

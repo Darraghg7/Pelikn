@@ -15,6 +15,7 @@ import {
 import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../../components/ui/Toast'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
+import EmptyState from '../../components/ui/EmptyState'
 
 // ── Hook: today's declarations ────────────────────────────────────────────────
 
@@ -334,7 +335,7 @@ function ManagerDeclarationsView({ venueId }) {
         {loading ? (
           <div className="flex justify-center py-8"><LoadingSpinner /></div>
         ) : declarations.length === 0 ? (
-          <p className="text-sm text-charcoal/35 italic text-center py-8">No declarations recorded for this date.</p>
+          <EmptyState icon="clipboard" title="No declarations" description="No declarations recorded for this date." />
         ) : (
           <div className="divide-y divide-charcoal/6">
             {declarations.map(d => (

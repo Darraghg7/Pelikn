@@ -24,7 +24,8 @@ function ItemInput({ value, onChange, onRemove, onKeyDown, autoFocus }) {
       <button
         type="button"
         onClick={onRemove}
-        className="text-charcoal/25 hover:text-danger transition-colors shrink-0 px-1"
+        aria-label="Remove item"
+        className="text-charcoal/25 hover:text-danger transition-colors shrink-0 w-9 h-9 inline-flex items-center justify-center"
       >×</button>
     </div>
   )

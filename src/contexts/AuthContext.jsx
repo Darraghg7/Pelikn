@@ -156,7 +156,7 @@ export function AuthProvider({ children }) {
 
   // ── Sign in with email + password ─────────────────────────────────────
   // Returns { error, slug, venues }
-  // - Single venue:  slug is set, caller does window.location.replace
+  // - Single venue:  slug is set, caller navigates to the venue dashboard
   // - Multi-venue:   slug is null, caller shows venue picker
   const signInWithEmail = useCallback(async (email, password) => {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password })
@@ -194,11 +194,16 @@ export function AuthProvider({ children }) {
   }, [selectVenue])
 
   // ── Sign out ───────────────────────────────────────────────────────────
+  // Clear local state first so the UI moves immediately. supabase.auth.signOut()
+  // POSTs to /logout and only clears its storage key once that returns, so
+  // awaiting it left the user on a spinner for a full round-trip — and hanging
+  // for the 20 s fetch timeout when the connection was down. Revocation still
+  // happens (global scope, all devices); it just no longer blocks the redirect.
   const signOutVenue = useCallback(async () => {
-    await supabase.auth.signOut()
     setUser(null)
     setVenues([])
     setVenueSlug(null)
+    supabase.auth.signOut().catch(() => {})
   }, [])
 
   const value = useMemo(() => ({

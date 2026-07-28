@@ -114,8 +114,50 @@ Deno.serve(async (req) => {
         return json({ error: msg }, status)
       }
 
-      const jwt = await makeJwt(staff_id, venue_id, sessionToken)
-      return json({ jwt, session_token: sessionToken })
+      // Everything the client needs to build a session, resolved here in one
+      // shot. These used to be three further round trips from the device
+      // (staff row → permissions → venue links), each waiting on the last —
+      // roughly a second of pure latency on mobile data. Server-side they run
+      // in parallel against Postgres and cost a few milliseconds.
+      const [jwt, staffRes, permsRes, linksRes] = await Promise.all([
+        makeJwt(staff_id, venue_id, sessionToken),
+        db.from('staff')
+          .select('name, role, job_role, show_temp_logs, show_allergens')
+          .eq('id', staff_id)
+          .single(),
+        db.from('staff_permissions')
+          .select('permission')
+          .eq('staff_id', staff_id)
+          .eq('venue_id', venue_id),
+        db.rpc('get_staff_venue_links', { p_session_token: sessionToken }),
+      ])
+
+      // A failure here is not fatal — the client falls back to fetching these
+      // itself, so the login still succeeds rather than erroring out.
+      if (staffRes.error || !staffRes.data) {
+        console.error('pin-login: staff bundle failed', staffRes.error)
+        return json({ jwt, session_token: sessionToken })
+      }
+
+      const staff = staffRes.data
+      // Managers/owners bypass granular permissions entirely.
+      const permissions = staff.role === 'staff'
+        ? (permsRes.data ?? []).map((r: { permission: string }) => r.permission)
+        : []
+      const linkedVenues = (linksRes.data ?? []).map((l: Record<string, string>) => ({
+        id:   l.venue_id,
+        name: l.venue_name,
+        slug: l.venue_slug,
+        plan: l.venue_plan,
+      }))
+
+      return json({
+        jwt,
+        session_token:  sessionToken,
+        staff,
+        permissions,
+        linked_venues: linkedVenues,
+      })
     }
 
     // ── action: verify_pin (PIN check without creating a session) ────────
