@@ -111,12 +111,72 @@ export function useTodaySummary(venueId, closedDays = [], actionSchedules = {}) 
     const ninetyDaysAgo = subDays(today, 90).toISOString()
 
     let cancelled = false
+
+    // ── Fast path: one RPC for the whole summary ────────────────────────────
+    // get_dashboard_snapshot (migration 095) runs every query below next to
+    // the data. Returns null if the migration hasn't been applied yet, in
+    // which case we fall back to the original multi-query path.
+    const fetchViaSnapshot = async () => {
+      const { data, error } = await supabase.rpc('get_dashboard_snapshot', {
+        p_venue_id:  venueId,
+        p_date:      todayStr,
+        p_day_start: dayStart,
+        p_day_end:   dayEnd,
+      })
+      if (error || !data) return null
+
+      const due = (k) => isActionDueToday(k, actionSchedules)
+
+      // The RPC always computes everything; the action-schedule gating stays
+      // on the client because the schedules live in app settings, not the DB.
+      // A check that isn't due today reads as zero, exactly as before.
+      return {
+        summary: {
+          overdueClean:       due('cleaning_tasks') ? data.overdueClean       : 0,
+          onShiftToday:       data.onShiftToday     ?? 0,
+          checksToday:        due('opening_checks') ? data.checksToday        : 0,
+          closingChecksToday: due('closing_checks') ? data.closingChecksToday : 0,
+          uncheckedFridges:   due('fridge_checks')  ? data.uncheckedFridges   : 0,
+          totalFridges:       due('fridge_checks')  ? data.totalFridges       : 0,
+          totalChecks:        data.totalChecks      ?? 0,
+          pendingLeave:       data.pendingLeave     ?? 0,
+          criticalActions:    data.criticalActions  ?? 0,
+          cookingTempsToday:  due('cooking_temps')  ? data.cookingTempsToday  : 0,
+          hotHoldingToday:    due('hot_holding')    ? data.hotHoldingToday    : 0,
+          coolingLogsToday:   due('cooling_logs')   ? data.coolingLogsToday   : 0,
+          dutiesAssigned:     data.dutiesAssigned   ?? 0,
+          dutiesCompleted:    data.dutiesCompleted  ?? 0,
+        },
+        isClosed:      !!data.isClosed,
+        closureReason: data.closureReason,
+      }
+    }
+
     const fetchAll = async () => {
       if (!entry) setLoading(true)
       try {
 
       const due = (key) => isActionDueToday(key, actionSchedules)
 
+      const snapshot = await fetchViaSnapshot()
+      if (cancelled) return
+
+      if (snapshot) {
+        const todayDowFast = (today.getDay() + 6) % 7
+        const closedFast = closedDays.includes(todayDowFast) || snapshot.isClosed
+          ? (snapshot.closureReason || true)
+          : false
+        cacheSet(key, snapshot.summary, closedFast)
+        setSummary(snapshot.summary)
+        setClosedToday(closedFast)
+        setLoading(false)
+        revalidating.current = false
+        return
+      }
+
+      // ── Fallback path: pre-095 databases ────────────────────────────────
+      // Kept so the frontend can ship before the migration is applied — the
+      // RPC 404s, fetchViaSnapshot returns null, and we land here.
       // All queries run in parallel — including the venue-closure check,
       // cleaning completions and shift IDs, so the whole summary needs a
       // single round-trip (plus one follow-up for duties when shifts exist).

@@ -236,7 +236,7 @@ export default function ManagerDashboardPage() {
   // which also runs the staff-count safety check before sending anyone
   // through the wizard. No second check needed here.
   const { venueName } = useVenueBranding(venueId)
-  const { widgetIds, save } = useWidgetPreferences(session?.staffId, venueId)
+  const { widgetIds, loading: widgetsLoading, save } = useWidgetPreferences(session?.staffId, venueId)
   const { todayItemIds, save: saveToday } = useTodayPreferences(session?.staffId, venueId)
   const { closedDays, actionSchedules } = useAppSettings()
   const { isEnabled } = useVenueFeatures()
@@ -333,13 +333,18 @@ export default function ManagerDashboardPage() {
 
       {/* Widget grid — desktop only (mobile renders its own inside MobileManagerDashboard) */}
       <div className="hidden lg:block">
-        {widgetIds.length > 0 && (
+        {widgetsLoading && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[1,2,3,4,5,6].map(i => <div key={i} className="h-[180px] rounded-2xl bg-charcoal/5 animate-pulse" />)}
+          </div>
+        )}
+        {!widgetsLoading && widgetIds.length > 0 && (
           <DraggableWidgetGrid
             widgetIds={widgetIds}
             onReorder={(newIds) => { save(newIds); toast('Widget order saved') }}
           />
         )}
-        {widgetIds.length === 0 && (
+        {!widgetsLoading && widgetIds.length === 0 && (
           <div className="bg-white rounded-2xl border border-dashed border-charcoal/20 p-10 text-center">
             <p className="text-charcoal/30 text-sm mb-3">No widgets on your dashboard</p>
             <button

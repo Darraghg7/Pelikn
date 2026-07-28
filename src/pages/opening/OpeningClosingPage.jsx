@@ -5,6 +5,7 @@ import { useVenue } from '../../contexts/VenueContext'
 import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../../components/ui/Toast'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
+import ConfirmDialog from '../../components/ui/ConfirmDialog'
 import OpeningClosingExportModal from './OpeningClosingExportModal'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -61,9 +62,20 @@ function useCompletionsForDate(sessionDate, venueId) {
 
 function IssueModal({ check, onConfirm, onCancel, saving }) {
   const [action, setAction] = useState('')
+
+  useEffect(() => {
+    const handler = (e) => { if (e.key === 'Escape') onCancel() }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [onCancel])
+
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-charcoal/40 backdrop-blur-sm">
+    <div
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-charcoal/40 backdrop-blur-sm"
+      onClick={onCancel}
+    >
       <div
+        onClick={(e) => e.stopPropagation()}
         className="bg-white rounded-2xl w-full max-w-md p-6 flex flex-col gap-4 shadow-2xl"
         style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}
       >
@@ -387,6 +399,7 @@ export default function OpeningClosingPage() {
   const [pendingIsIssue, setPendingIsIssue] = useState(false)
   const [saving, setSaving] = useState(false)
   const [savingCheckId, setSavingCheckId] = useState(null)
+  const [removeTarget, setRemoveTarget] = useState(null) // check object
 
   const openOK = (check) => {
     if (savingCheckId) return
@@ -428,7 +441,9 @@ export default function OpeningClosingPage() {
   }
 
   const removeCheck = async (id) => {
-    await supabase.from('opening_closing_checks').update({ is_active: false }).eq('id', id)
+    const { error } = await supabase.from('opening_closing_checks').update({ is_active: false }).eq('id', id)
+    if (error) { toast(error.message, 'error'); return }
+    toast('Check removed')
     reloadChecks()
   }
 
@@ -445,6 +460,16 @@ export default function OpeningClosingPage() {
   return (
     <div className="flex flex-col gap-4">
       <OpeningClosingExportModal open={showExport} onClose={() => setShowExport(false)} />
+
+      <ConfirmDialog
+        open={!!removeTarget}
+        title="Remove check?"
+        message={removeTarget ? `Remove "${removeTarget.title}"? This can't be undone.` : ''}
+        confirmLabel="Remove"
+        danger
+        onClose={() => setRemoveTarget(null)}
+        onConfirm={() => { removeCheck(removeTarget.id); setRemoveTarget(null) }}
+      />
 
       {/* Issue modal (shown when staff taps "Issue") */}
       {pendingCheck && pendingIsIssue && (
@@ -494,7 +519,7 @@ export default function OpeningClosingPage() {
           onIssue={openIssue}
           isManager={isManager}
           onAddCheck={reloadChecks}
-          onRemoveCheck={removeCheck}
+          onRemoveCheck={(id) => setRemoveTarget(checks.find(c => c.id === id))}
           venueId={venueId}
           readOnly={readOnly}
           savingCheckId={savingCheckId}
@@ -508,7 +533,7 @@ export default function OpeningClosingPage() {
           onIssue={openIssue}
           isManager={isManager}
           onAddCheck={reloadChecks}
-          onRemoveCheck={removeCheck}
+          onRemoveCheck={(id) => setRemoveTarget(checks.find(c => c.id === id))}
           venueId={venueId}
           readOnly={readOnly}
           savingCheckId={savingCheckId}

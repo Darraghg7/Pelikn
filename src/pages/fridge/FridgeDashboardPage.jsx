@@ -7,6 +7,7 @@ import { useSession } from '../../contexts/SessionContext'
 import { isTempOutOfRange, formatTemp } from '../../lib/utils'
 import { useToast } from '../../components/ui/Toast'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
+import ConfirmDialog from '../../components/ui/ConfirmDialog'
 import FridgeExportModal from './FridgeExportModal'
 import FridgeMatrixModal from './FridgeMatrixModal'
 import TemperatureItemSettingsModal from '../../components/temperature/TemperatureItemSettingsModal'
@@ -354,6 +355,7 @@ export default function FridgeDashboardPage() {
   const [showExport, setShowExport] = useState(false)
   const [showMatrix, setShowMatrix] = useState(false)
   const [settingsFridge, setSettingsFridge] = useState(null)
+  const [removeTarget, setRemoveTarget] = useState(null)
 
   const addFridge = async () => {
     if (!fridgeForm.name.trim()) { toast('Name is required', 'error'); return }
@@ -423,6 +425,15 @@ export default function FridgeDashboardPage() {
         </div>
       </div>
 
+      <ConfirmDialog
+        open={!!removeTarget}
+        title="Remove fridge?"
+        message={removeTarget ? `Remove "${removeTarget.name}"? Its logging history is kept, but it'll no longer show up for checks.` : ''}
+        confirmLabel="Remove"
+        danger
+        onClose={() => setRemoveTarget(null)}
+        onConfirm={() => { removeFridge(removeTarget.id, removeTarget.name); setRemoveTarget(null) }}
+      />
       <FridgeExportModal open={showExport} onClose={() => setShowExport(false)} />
       <FridgeMatrixModal open={showMatrix} onClose={() => { setShowMatrix(false); reloadDash() }} />
       <TemperatureItemSettingsModal
@@ -472,8 +483,8 @@ export default function FridgeDashboardPage() {
                     <p className="text-xs text-charcoal/40">Safe range: {f.min_temp}°C to {f.max_temp}°C</p>
                     <p className="text-xs text-charcoal/35">Checks: {formatCheckDays(f.check_days)} · {formatRequiredPeriods(f.required_periods)}</p>
                   </div>
-                  <button onClick={() => removeFridge(f.id, f.name)}
-                    className="text-xs text-charcoal/25 hover:text-danger transition-colors px-2 py-1">Remove</button>
+                  <button onClick={() => setRemoveTarget(f)}
+                    className="min-h-[40px] inline-flex items-center text-xs text-charcoal/25 hover:text-danger transition-colors px-3">Remove</button>
                 </div>
               ))}
             </div>

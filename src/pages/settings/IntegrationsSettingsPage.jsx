@@ -1,6 +1,7 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useVenue } from '../../contexts/VenueContext'
+import SettingsSubHeader from '../../components/layout/SettingsSubHeader'
 
 const INTEGRATIONS = [
   {
@@ -40,12 +41,10 @@ export default function IntegrationsSettingsPage() {
   const vp = (path) => `/v/${venueSlug}${path}`
 
   return (
-    <div className="pb-24 max-w-[480px] mx-auto px-0 pt-4">
+    <div className="min-h-screen bg-surface">
+      <SettingsSubHeader title="Integrations" onBack={() => navigate(vp('/settings/hub'))} />
 
-      <button onClick={() => navigate(vp('/settings/hub'))} className="inline-flex items-center gap-1.5 mb-4 text-brand text-sm font-medium">
-        <svg width="7" height="12" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="rotate-180"><path d="M1 1l4 4-4 4"/></svg>
-        Settings
-      </button>
+      <div className="px-4 pb-24 max-w-[480px] mx-auto pt-4">
 
       <div className="mb-5">
         <h1 className="text-2xl font-semibold tracking-[-0.025em] text-charcoal m-0">Integrations</h1>
@@ -81,6 +80,7 @@ export default function IntegrationsSettingsPage() {
         ))}
       </div>
 
+      </div>
     </div>
   )
 }

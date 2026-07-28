@@ -133,7 +133,7 @@ export default function LandingPage() {
     }
 
     if (slug) {
-      window.location.replace(`/v/${slug}/dashboard`)
+      navigate(`/v/${slug}/dashboard`, { replace: true })
       return
     }
 
@@ -145,7 +145,7 @@ export default function LandingPage() {
 
   const handlePickVenue = (slug) => {
     selectVenue(slug)
-    window.location.replace(`/v/${slug}/dashboard`)
+    navigate(`/v/${slug}/dashboard`, { replace: true })
   }
 
   const handleForgotPassword = async () => {

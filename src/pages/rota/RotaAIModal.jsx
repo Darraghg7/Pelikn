@@ -4,6 +4,7 @@ import Modal from '../../components/ui/Modal'
 import { useVenue } from '../../contexts/VenueContext'
 import { useRotaRequirements, DAY_NAMES } from '../../hooks/useRotaRequirements'
 import { fillRotaRequirements } from '../../lib/rotaBuilder'
+import { useToast } from '../../components/ui/Toast'
 
 function SectionLabel({ children }) {
   return <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-2">{children}</p>
@@ -23,6 +24,7 @@ export default function RotaAIModal({
   crossVenueShifts = [],
 }) {
   const { venueId } = useVenue()
+  const toast = useToast()
   const { requirements, byDay, totalSlots, loading: reqLoading } = useRotaRequirements()
 
   const [stage, setStage]   = useState(STAGES.CONFIRM)
@@ -54,6 +56,7 @@ export default function RotaAIModal({
         setStage(STAGES.PREVIEW)
       } catch (e) {
         console.error('Auto-fill error:', e)
+        toast('Auto-fill failed — please try again', 'error')
         setStage(STAGES.CONFIRM)
       }
     }, 50)

@@ -1,6 +1,4 @@
 import React, { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { useVenue } from '../../contexts/VenueContext'
 import useManagerCalendar from '../../hooks/useManagerCalendar'
 
 const DAYS_SHORT = ['M', 'T', 'W', 'T', 'F', 'S', 'S']
@@ -212,7 +210,7 @@ function CalendarEventForm({ event, defaultDate, onSave, onDelete, onBack }) {
         <input
           value={title} onChange={e => setTitle(e.target.value)}
           placeholder="Event name…"
-          className="w-full px-[14px] h-[54px] rounded-[11px] border border-charcoal/10 bg-white dark:bg-paperDark text-[17px] font-semibold text-charcoal tracking-[-0.01em] outline-none box-border"
+          className="w-full px-[14px] h-[54px] rounded-[11px] border border-charcoal/10 bg-white dark:bg-paperDark text-[17px] font-semibold text-charcoal tracking-[-0.01em] outline-none focus:ring-2 focus:ring-charcoal/20 focus:border-charcoal/20 box-border"
         />
 
         {/* Type */}
@@ -315,7 +313,7 @@ function CalendarEventForm({ event, defaultDate, onSave, onDelete, onBack }) {
         <textarea
           value={notes} onChange={e => setNotes(e.target.value)}
           placeholder="Notes (optional)…" rows={3}
-          className="w-full px-[14px] py-3 rounded-[11px] border border-charcoal/10 bg-white dark:bg-paperDark text-sm text-charcoal outline-none box-border resize-none leading-[1.55]"
+          className="w-full px-[14px] py-3 rounded-[11px] border border-charcoal/10 bg-white dark:bg-paperDark text-sm text-charcoal outline-none focus:ring-2 focus:ring-charcoal/20 focus:border-charcoal/20 box-border resize-none leading-[1.55]"
         />
 
         {/* Delete */}
@@ -582,8 +580,6 @@ function EventStrip({ year, month, dayMap, onSelectDate }) {
 }
 
 export default function CalendarPage() {
-  const navigate = useNavigate()
-  const { venueSlug } = useVenue()
   const { events, staffLeave, isLoading, save, remove } = useManagerCalendar()
 
   const now = new Date()
@@ -644,15 +640,6 @@ export default function CalendarPage() {
 
   return (
     <div className="px-4 pb-24">
-      {/* Back to team */}
-      <button
-        onClick={() => navigate(`/v/${venueSlug}/team`)}
-        className="flex items-center gap-1.5 bg-transparent border-none cursor-pointer text-charcoal/75 text-sm font-medium p-0 mb-4"
-      >
-        <svg width="7" height="12" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M5 1L1 5l4 4"/></svg>
-        Team
-      </button>
-
       <div className="flex flex-col gap-4">
         {/* Header */}
         <div className="px-0.5 flex items-start justify-between">

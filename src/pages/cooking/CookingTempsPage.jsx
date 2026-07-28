@@ -17,6 +17,7 @@ import { useVenue } from '../../contexts/VenueContext'
 import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../../components/ui/Toast'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
+import EmptyState from '../../components/ui/EmptyState'
 import DateRangePresets, { presetToDates } from '../../components/ui/DateRangePresets'
 import { useCookingLogs, useTodayCookingLogs, isCookingTempFail, COOKING_TARGET_TEMP } from '../../hooks/useCookingLogs'
 import { formatTemp, formatDateTime } from '../../lib/utils'
@@ -176,7 +177,7 @@ function LogForm({ checkType, onLogged }) {
 function HistoryTable({ logs, loading }) {
   if (loading) return <div className="flex justify-center py-10"><LoadingSpinner /></div>
   if (logs.length === 0) return (
-    <p className="text-center text-sm text-charcoal/35 italic py-10">No records found. Try adjusting the date range.</p>
+    <EmptyState icon="thermometer" title="No records found" description="Try adjusting the date range." />
   )
   return (
     <div className="overflow-x-auto -mx-5">
@@ -317,7 +318,7 @@ export default function CookingTempsPage() {
             {todayLoading ? (
               <div className="flex justify-center py-6"><LoadingSpinner /></div>
             ) : todayLogs.length === 0 ? (
-              <p className="text-sm text-charcoal/35 italic py-2">No readings logged today yet.</p>
+              <EmptyState icon="thermometer" title="No readings yet" description="Log a cooking temperature above to get started." className="py-6" />
             ) : (
               <div className="flex flex-col gap-2">
                 {todayLogs.map(log => {

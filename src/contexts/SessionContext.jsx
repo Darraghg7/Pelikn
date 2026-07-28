@@ -305,7 +305,7 @@ export function SessionProvider({ children }) {
     // alongside the session token, enabling RLS enforcement without a paid plan.
     // If the edge function is unavailable or errors for any reason, fall through
     // to the direct RPC so logins are never blocked by an edge function issue.
-    let token, jwt
+    let token, jwt, bundle = null
     try {
       const res = await fetch(`${supabaseUrl}/functions/v1/pin-login`, {
         method:  'POST',
@@ -320,9 +320,26 @@ export function SessionProvider({ children }) {
         const data = await res.json()
         token = data.session_token
         jwt   = data.jwt
+        // Current edge function returns the staff row, permissions and venue
+        // links alongside the token, so the whole login is one round trip.
+        // Older deploys return only token + jwt — `bundle` stays null and we
+        // fetch the rest below, so the two can be rolled out independently.
+        if (data.staff) bundle = data
+      } else if ([401, 403, 429].includes(res.status)) {
+        // Definitive auth failure — the edge function already ran the PIN
+        // check. Returning here rather than falling through to the RPC is
+        // important: the RPC is the same function, so retrying it counted a
+        // second failed attempt against pin_failed_attempts and locked
+        // accounts out after 3 wrong PINs instead of 5.
+        // The message is the raw Postgres exception ('Incorrect PIN',
+        // 'Account inactive', 'Too many failed attempts — …'), which is what
+        // LoginPage matches on.
+        const { error: msg } = await res.json().catch(() => ({}))
+        return { error: new Error(msg || 'Incorrect PIN') }
       }
-      // Non-OK response (e.g. SUPABASE_JWT_SECRET not yet set) falls through
-      // to the RPC below — logins still work, just without a JWT for now.
+      // Any other non-OK response (e.g. SUPABASE_JWT_SECRET not yet set, 5xx)
+      // falls through to the RPC below — logins are never blocked by an edge
+      // function issue, just done without a JWT.
     } catch {
       // Network error or CORS — falls through to RPC below.
     }
@@ -339,23 +356,43 @@ export function SessionProvider({ children }) {
       jwt   = null
     }
 
-    const { data: row, error: rowErr } = await supabase
-      .from('staff')
-      .select('name, role, job_role, show_temp_logs, show_allergens')
-      .eq('id', staffId)
-      .single()
+    // ── Resolve staff row, permissions and linked venues ──────────────────
+    // Fast path: they arrived with the login response above (one round trip).
+    // Fallback: fetch them here — but in parallel, not chained, so a stale
+    // edge function costs two round trips rather than four.
+    let row, permissions, venues
+    if (bundle) {
+      row         = bundle.staff
+      permissions = bundle.permissions ?? []
+      venues      = bundle.linked_venues ?? []
+    } else {
+      const [staffRes, permsRes, linksRes] = await Promise.all([
+        supabase
+          .from('staff')
+          .select('name, role, job_role, show_temp_logs, show_allergens')
+          .eq('id', staffId)
+          .single(),
+        supabase
+          .from('staff_permissions')
+          .select('permission')
+          .eq('staff_id', staffId)
+          .eq('venue_id', venueId),
+        supabase.rpc('get_staff_venue_links', { p_session_token: token }),
+      ])
 
-    if (rowErr) return { error: rowErr }
+      if (staffRes.error) return { error: staffRes.error }
 
-    // Fetch granular permissions for non-managers
-    let permissions = []
-    if (row.role === 'staff') {
-      const { data: permRows } = await supabase
-        .from('staff_permissions')
-        .select('permission')
-        .eq('staff_id', staffId)
-        .eq('venue_id', venueId)
-      permissions = (permRows ?? []).map(r => r.permission)
+      row = staffRes.data
+      // Managers/owners bypass granular permissions entirely.
+      permissions = row.role === 'staff'
+        ? (permsRes.data ?? []).map(r => r.permission)
+        : []
+      venues = (linksRes.data ?? []).map(l => ({
+        id:   l.venue_id,
+        name: l.venue_name,
+        slug: l.venue_slug,
+        plan: l.venue_plan,
+      }))
     }
 
     const newSession = {
@@ -390,23 +427,21 @@ export function SessionProvider({ children }) {
       setSessionJwt(jwt)
     }
 
-    // Cache PIN hash + session data for offline use
-    const hash = await hashPin(staffId, pin)
-    if (hash) localStorage.setItem(pinHashKey(staffId), hash)
-    localStorage.setItem(sessDataKey(staffId), JSON.stringify(newSession))
-
-    // Load linked venues (for overview dashboard — managers with cross-venue access)
-    const { data: links } = await supabase.rpc('get_staff_venue_links', { p_session_token: token })
-    const venues = (links ?? []).map(l => ({
-      id:   l.venue_id,
-      name: l.venue_name,
-      slug: l.venue_slug,
-      plan: l.venue_plan,
-    }))
+    // Linked venues (for the overview dashboard — cross-venue managers)
     localStorage.setItem(SESSION_LINKED_VENUES, JSON.stringify(venues))
     setLinkedVenues(venues)
 
+    // Session is live from here — the UI can move. Everything below is
+    // best-effort background work and must not delay the redirect.
     setSession(newSession)
+
+    // Cache session data + PIN hash for offline logins. hashPin is async
+    // (crypto.subtle), so it runs after the session is set rather than
+    // holding the sign-in promise open.
+    localStorage.setItem(sessDataKey(staffId), JSON.stringify(newSession))
+    hashPin(staffId, pin).then(hash => {
+      if (hash) localStorage.setItem(pinHashKey(staffId), hash)
+    }).catch(() => {})
 
     // Register for native iOS push notifications (no-op on web)
     import('../hooks/useNativePush').then(({ registerNativePush }) => {
@@ -454,8 +489,24 @@ export function SessionProvider({ children }) {
       }
     } catch { /* non-critical — JWT can be refreshed on next login */ }
 
+    // Reflect the switch in React state. SessionProvider is mounted inside the
+    // /v/:venueSlug/* route, so it does NOT remount when only the slug param
+    // changes — without this the context would keep serving the previous
+    // venue's id/slug/token. Callers used to paper over it with a full page
+    // reload; updating state here is what makes SPA navigation correct.
+    const switched = session
+      ? { ...session, token: newToken, venueId: targetVenueId, venueSlug: targetVenueSlug }
+      : sessionFromStorage(newToken, true)
+    if (switched) {
+      setSession(switched)
+      // Keep the offline session cache in step with the active venue
+      try {
+        localStorage.setItem(sessDataKey(switched.staffId), JSON.stringify(switched))
+      } catch { /* storage full — offline cache is best-effort */ }
+    }
+
     return { error: null }
-  }, [session?.token])
+  }, [session])
 
   // ── Sign out ─────────────────────────────────────────────────────────────
   const signOut = useCallback(() => {

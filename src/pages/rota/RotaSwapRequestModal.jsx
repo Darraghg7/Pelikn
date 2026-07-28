@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { format } from 'date-fns'
 
 export default function RotaSwapRequestModal({
@@ -10,11 +10,20 @@ export default function RotaSwapRequestModal({
   submitSwapRequest,
   swapCandidates,
 }) {
+  const onClose = () => setSwapModal(null)
+
+  useEffect(() => {
+    if (!swapModal) return
+    const handler = (e) => { if (e.key === 'Escape') onClose() }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [swapModal]) // eslint-disable-line react-hooks/exhaustive-deps
+
   if (!swapModal) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-charcoal/40 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl w-full max-w-md p-6 flex flex-col gap-5 shadow-2xl" style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-charcoal/40 backdrop-blur-sm" onClick={onClose}>
+      <div onClick={(e) => e.stopPropagation()} className="bg-white rounded-2xl w-full max-w-md p-6 flex flex-col gap-5 shadow-2xl" style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
 
         <div>
           <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-1">Request Shift Swap</p>
@@ -75,7 +84,7 @@ export default function RotaSwapRequestModal({
             {swapSaving ? 'Sending…' : 'Request Swap →'}
           </button>
           <button
-            onClick={() => setSwapModal(null)}
+            onClick={onClose}
             className="px-4 py-2.5 rounded-lg border border-charcoal/15 text-sm text-charcoal/50 hover:text-charcoal transition-colors"
           >
             Cancel

@@ -4,7 +4,7 @@ import { useSession } from '../../contexts/SessionContext'
 import { useVenue } from '../../contexts/VenueContext'
 import { useAuth } from '../../contexts/AuthContext'
 import { useAllVenueCompliance } from '../../hooks/useAllVenueCompliance'
-import { Navigate } from 'react-router-dom'
+import { Navigate, useNavigate } from 'react-router-dom'
 
 /* ── Status helpers ──────────────────────────────────────────────────────────── */
 const STATUS = {
@@ -182,7 +182,8 @@ function StripCell({ cell, value, isActive, onClick, loading, isLast }) {
 export default function OverviewPage() {
   const { isManager } = useSession()
   const { venueId, venueSlug, venueName } = useVenue()
-  const { venues } = useAuth()
+  const { venues, selectVenue } = useAuth()
+  const navigate = useNavigate()
 
   const isMultiVenue = isManager && (venues?.length ?? 0) > 1
   if (!isMultiVenue) return <Navigate to={`/v/${venueSlug}/dashboard`} replace />
@@ -220,7 +221,8 @@ export default function OverviewPage() {
   }
 
   const handleOpenVenue = (slug) => {
-    window.location.replace(`/v/${slug}/dashboard`)
+    selectVenue(slug)
+    navigate(`/v/${slug}/dashboard`, { replace: true })
   }
 
   const greeting = (() => {

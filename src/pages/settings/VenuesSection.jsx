@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { useToast } from '../../components/ui/Toast'
 import { supabase } from '../../lib/supabase'
@@ -12,6 +13,7 @@ export default function VenuesSection() {
   const { venues, refreshVenues, selectVenue } = useAuth()
   const { venuePlan } = useVenueFeatures()
   const toast = useToast()
+  const navigate = useNavigate()
 
   const [showForm, setShowForm] = useState(false)
   const [form, setForm]         = useState({ name: '', slug: '' })
@@ -57,12 +59,12 @@ export default function VenuesSection() {
     setForm({ name: '', slug: '' })
     setSlugEdited(false)
     selectVenue(newSlug)
-    window.location.replace(`/v/${newSlug}/dashboard`)
+    navigate(`/v/${newSlug}/dashboard`, { replace: true })
   }
 
   const handleOpenVenue = (slug) => {
     selectVenue(slug)
-    window.location.replace(`/v/${slug}/dashboard`)
+    navigate(`/v/${slug}/dashboard`, { replace: true })
   }
 
   return (

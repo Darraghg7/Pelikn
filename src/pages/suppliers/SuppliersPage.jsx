@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { format, isPast, parseISO, differenceInDays } from 'date-fns'
 import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
@@ -90,6 +90,12 @@ function SupplierModal({ supplier, venueId, onSaved, onClose }) {
   const [existingCert, setExistingCert] = useState(supplier?.food_safety_cert_url ? { url: supplier.food_safety_cert_url, name: supplier.food_safety_cert_name } : null)
   const [saving, setSaving]       = useState(false)
 
+  useEffect(() => {
+    const handler = (e) => { if (e.key === 'Escape') onClose() }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [onClose])
+
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }))
 
   const submit = async (e) => {
@@ -132,8 +138,8 @@ function SupplierModal({ supplier, venueId, onSaved, onClose }) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-charcoal/40 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl w-full max-w-md flex flex-col shadow-2xl" style={{ maxHeight: '90dvh', paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-charcoal/40 backdrop-blur-sm" onClick={onClose}>
+      <div onClick={(e) => e.stopPropagation()} className="bg-white rounded-2xl w-full max-w-md flex flex-col shadow-2xl" style={{ maxHeight: '90dvh', paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
         <div className="px-6 py-5 border-b border-charcoal/8 flex items-center justify-between">
           <h2 className="font-semibold text-charcoal">{supplier ? 'Edit Supplier' : 'Add Supplier'}</h2>
           <button onClick={onClose} className="text-charcoal/30 hover:text-charcoal transition-colors text-xl leading-none">×</button>

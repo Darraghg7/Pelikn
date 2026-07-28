@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { format, formatDistanceToNow, differenceInCalendarDays } from 'date-fns'
 import { supabase } from '../../lib/supabase'
 import { capitalize } from '../../lib/utils'
@@ -7,6 +7,7 @@ import { useSession } from '../../contexts/SessionContext'
 import { useCleaningTasks } from '../../hooks/useCleaningTasks'
 import { useToast } from '../../components/ui/Toast'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
+import ConfirmDialog from '../../components/ui/ConfirmDialog'
 import CleaningExportModal from './CleaningExportModal'
 import { useAppSettings } from '../../hooks/useSettings'
 
@@ -82,6 +83,7 @@ export default function CleaningPage() {
   const [notes, setNotes]       = useState('')
   const [filterStatus, setFilterStatus] = useState('all')
   const [showExport, setShowExport] = useState(false)
+  const [removeTarget, setRemoveTarget] = useState(null)
 
   const saveTask = async () => {
     if (!form.title.trim()) return
@@ -113,6 +115,13 @@ export default function CleaningPage() {
     setNotes('')
   }
 
+  useEffect(() => {
+    if (!completeModal) return
+    const handler = (e) => { if (e.key === 'Escape') setCompleteModal(null) }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [completeModal])
+
   const submitComplete = async () => {
     if (!completeModal || completing) return
     setCompleting(completeModal.id)
@@ -143,6 +152,16 @@ export default function CleaningPage() {
     <div className="flex flex-col gap-6">
 
       <CleaningExportModal open={showExport} onClose={() => setShowExport(false)} />
+
+      <ConfirmDialog
+        open={!!removeTarget}
+        title="Remove cleaning task?"
+        message={removeTarget ? `Remove "${removeTarget.title}"? This can't be undone.` : ''}
+        confirmLabel="Remove"
+        danger
+        onClose={() => setRemoveTarget(null)}
+        onConfirm={() => { deactivateTask(removeTarget.id); setRemoveTarget(null) }}
+      />
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-2xl font-bold text-charcoal">Cleaning Schedule</h1>
@@ -313,7 +332,7 @@ export default function CleaningPage() {
 
                 {isManager && (
                   <button
-                    onClick={() => deactivateTask(t.id)}
+                    onClick={() => setRemoveTarget(t)}
                     aria-label="Remove task"
                     className="shrink-0 w-7 h-7 rounded-lg grid place-items-center text-charcoal/30 hover:text-danger hover:bg-danger/8 transition-colors"
                   >

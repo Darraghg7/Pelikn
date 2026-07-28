@@ -573,6 +573,7 @@ export default function MobileManagerDashboard({
   const now     = useLiveTime()
   const [editMode, setEditMode]               = useState(false)
   const [disciplinaryAlerts, setDisciplinaryAlerts] = useState([])
+  const [unsignedTraining, setUnsignedTraining] = useState(0)
 
   const vp = (p) => `/v/${venueSlug}${p}`
 
@@ -592,6 +593,18 @@ export default function MobileManagerDashboard({
       })
   }, [venueId])
 
+  // Training records awaiting a staff signature — surfaced in Needs You
+  // alongside the customizable Today items, same as disciplinary alerts.
+  useEffect(() => {
+    if (!venueId) return
+    supabase
+      .from('training_sign_offs')
+      .select('id', { count: 'exact', head: true })
+      .eq('venue_id', venueId)
+      .eq('staff_acknowledged', false)
+      .then(({ count }) => setUnsignedTraining(count ?? 0))
+  }, [venueId])
+
   const activeItems = (todayItemIds ?? [])
     .map(id => TODAY_ITEM_REGISTRY[id])
     .filter(item => {
@@ -604,6 +617,13 @@ export default function MobileManagerDashboard({
   const actions = summary
     ? activeItems.map(item => item.action?.(summary, vp, closedToday)).filter(Boolean)
     : []
+  if (unsignedTraining > 0) {
+    actions.push({
+      label: `${unsignedTraining} training record${unsignedTraining > 1 ? 's' : ''} unsigned`,
+      to: vp('/training'),
+      urgency: 'info',
+    })
+  }
 
   const checksText = summary
     ? `· ${summary.checksToday} of ${summary.totalChecks} daily checks complete`

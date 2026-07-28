@@ -60,10 +60,17 @@ function CleaningOverdueWidget() {
               <button
                 onClick={(e) => { e.preventDefault(); completeTask(t.id) }}
                 disabled={completing === t.id}
-                className="shrink-0 w-10 h-10 rounded-xl border-2 border-charcoal/20 flex items-center justify-center hover:border-success hover:bg-success/10 transition-colors disabled:opacity-40 disabled:cursor-wait text-success text-xs"
-                title="Mark complete"
+                aria-label="Mark done"
+                className={[
+                  'w-[26px] h-[26px] rounded-full shrink-0 p-0 grid place-items-center border-2 cursor-pointer',
+                  'text-transparent hover:bg-success hover:border-success hover:text-white transition-colors',
+                  'disabled:opacity-40 disabled:cursor-wait',
+                  'border-danger bg-danger/8',
+                ].join(' ')}
               >
-                {completing === t.id ? <span className="w-4 h-4 rounded-full border-2 border-success/25 border-t-success animate-spin" /> : <svg className="w-4 h-4" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg>}
+                {completing === t.id
+                  ? <span className="w-3 h-3 rounded-full border-2 border-success/25 border-t-success animate-spin" />
+                  : <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>}
               </button>
               <p className="text-xs text-charcoal truncate flex-1">{t.title}</p>
               <span className="text-[11px] text-danger/70 whitespace-nowrap shrink-0">

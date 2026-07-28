@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import Modal from '../../components/ui/Modal'
+import ConfirmDialog from '../../components/ui/ConfirmDialog'
 import TimeSelect from '../../components/ui/TimeSelect'
 import { useVenueRoles } from '../../hooks/useVenueRoles'
 import { useRotaRequirements, DAY_NAMES, DAY_SHORT } from '../../hooks/useRotaRequirements'
@@ -109,6 +110,8 @@ export default function RotaConfigModal({ open, onClose, closedDayIndices = [] }
     addRequirement, updateRequirement, deleteRequirement,
   } = useRotaRequirements()
 
+  const [deleteTarget, setDeleteTarget] = useState(null)
+
   // closedDayIndices: 0-based (0=Mon). Convert to 1-based for DB.
   const closedDays1Based = new Set(closedDayIndices.map(d => d + 1))
 
@@ -149,6 +152,15 @@ export default function RotaConfigModal({ open, onClose, closedDayIndices = [] }
 
   return (
     <Modal open={open} onClose={onClose} title="Configure Auto-Fill">
+      <ConfirmDialog
+        open={!!deleteTarget}
+        title="Remove slot?"
+        message={deleteTarget ? `Remove this ${deleteTarget.role_name || 'staff'} slot${deleteTarget.label ? ` (${deleteTarget.label})` : ''}?` : ''}
+        confirmLabel="Remove"
+        danger
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={() => { handleDeleteSlot(deleteTarget.id); setDeleteTarget(null) }}
+      />
       <div className="flex flex-col gap-4 max-h-[80vh]">
 
         {/* Summary strip */}
@@ -219,7 +231,7 @@ export default function RotaConfigModal({ open, onClose, closedDayIndices = [] }
                   key={slot.id}
                   slot={slot}
                   roles={roles}
-                  onDelete={() => handleDeleteSlot(slot.id)}
+                  onDelete={() => setDeleteTarget(slot)}
                   onSave={(form) => handleUpdateSlot(slot.id, form)}
                 />
               ))}

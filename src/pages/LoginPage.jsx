@@ -503,7 +503,7 @@ export default function LoginPage() {
     setSwitching(true)
     const { error: err } = await switchVenue(venue.id, venue.slug)
     if (err) { setSwitching(false); return }
-    window.location.replace(`/v/${venue.slug}/dashboard`)
+    navigate(`/v/${venue.slug}/dashboard`, { replace: true })
   }
 
   // Numpad handlers

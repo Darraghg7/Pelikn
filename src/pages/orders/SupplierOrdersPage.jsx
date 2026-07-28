@@ -199,7 +199,7 @@ export default function SupplierOrdersPage() {
                     {s.contact_name && <p className="text-xs text-charcoal/40">{s.contact_name}{s.email ? ` · ${s.email}` : ''}</p>}
                   </div>
                   <button onClick={() => removeSupplier(s.id, s.name)}
-                    className="text-xs text-charcoal/25 hover:text-danger transition-colors px-2 py-1">Remove</button>
+                    className="min-h-[40px] inline-flex items-center text-xs text-charcoal/25 hover:text-danger transition-colors px-3">Remove</button>
                 </div>
               ))}
             </div>

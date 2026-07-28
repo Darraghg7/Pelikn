@@ -5,6 +5,7 @@ import { useVenue } from '../../contexts/VenueContext'
 import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../../components/ui/Toast'
 import DateRangePresets, { presetToDates } from '../../components/ui/DateRangePresets'
+import EmptyState from '../../components/ui/EmptyState'
 import {
   useCoolingLogs,
   useTodayCoolingLogs,
@@ -267,7 +268,7 @@ export default function CoolingLogsPage() {
             {todayLoading ? (
               <p className="text-sm text-charcoal/40 dark:text-white/35">Loading…</p>
             ) : todayLogs.length === 0 ? (
-              <p className="text-sm text-charcoal/40 dark:text-white/35 italic">No cooling logs recorded today</p>
+              <EmptyState icon="thermometer" title="No logs yet" description="No cooling logs recorded today." className="py-6" />
             ) : (
               <div className="space-y-3">
                 {todayLogs.map(log => <LogRow key={log.id} log={log} />)}
@@ -294,7 +295,7 @@ export default function CoolingLogsPage() {
           {historyLoading ? (
             <p className="text-sm text-charcoal/40 dark:text-white/35">Loading…</p>
           ) : historyLogs.length === 0 ? (
-            <p className="text-sm text-charcoal/40 dark:text-white/35 italic">No cooling logs for this period</p>
+            <EmptyState icon="thermometer" title="No records found" description="No cooling logs for this period." />
           ) : (
             <div className="space-y-3">
               {historyLogs.map(log => <LogRow key={log.id} log={log} />)}

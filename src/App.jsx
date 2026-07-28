@@ -427,6 +427,20 @@ function VenueRoutes() {
   )
 }
 
+/**
+ * Remounts the entire venue subtree when the slug changes.
+ *
+ * Venue switching used to go through window.location.replace, which rebooted
+ * the whole SPA purely to guarantee no state leaked between venues. Keying on
+ * the slug gives the same clean slate — VenueProvider, SessionProvider and
+ * every page below them remount — without re-downloading and re-parsing the
+ * bundle or re-running the auth handshake.
+ */
+function VenueRoutesKeyed() {
+  const { venueSlug } = useParams()
+  return <VenueRoutes key={venueSlug} />
+}
+
 // ── Query client ────────────────────────────────────────────────────────────
 
 const queryClient = new QueryClient({
@@ -481,7 +495,7 @@ export default function App() {
           <Route path="/login" element={<LandingRoute />} />
 
           {/* Venue-scoped app — PIN login is public; inner routes need RequireAuth */}
-          <Route path="/v/:venueSlug/*" element={<VenueRoutes />} />
+          <Route path="/v/:venueSlug/*" element={<VenueRoutesKeyed />} />
 
           {/* Legacy redirects for old bookmarks */}
           <Route path="/dashboard"       element={<LegacyRedirect />} />

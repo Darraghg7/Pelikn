@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
@@ -7,6 +7,7 @@ import { useSession } from '../../contexts/SessionContext'
 import { EU_ALLERGENS } from '../../lib/constants'
 import { useToast } from '../../components/ui/Toast'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
+import ConfirmDialog from '../../components/ui/ConfirmDialog'
 
 function SectionLabel({ children }) {
   return <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-3">{children}</p>
@@ -36,6 +37,7 @@ export default function FoodItemDetailPage() {
   const { venueId, venueSlug } = useVenue()
   const toast             = useToast()
   const navigate          = useNavigate()
+  const [confirmDelete, setConfirmDelete] = useState(false)
 
   const allergens   = item?.food_allergens?.map((a) => a.allergen) ?? []
   const mayContain  = item?.may_contain_allergens ?? []
@@ -43,7 +45,6 @@ export default function FoodItemDetailPage() {
   const absent      = EU_ALLERGENS.filter((a) => !allergens.includes(a) && !mayContain.includes(a))
 
   const handleDelete = async () => {
-    if (!confirm(`Delete "${item.name}"?`)) return
     const { error } = await supabase
       .from('food_items')
       .update({ is_active: false })
@@ -60,6 +61,16 @@ export default function FoodItemDetailPage() {
   return (
     <div className="flex flex-col gap-6 max-w-xl">
 
+      <ConfirmDialog
+        open={confirmDelete}
+        title="Delete item?"
+        message={`Delete "${item.name}"? This can't be undone.`}
+        confirmLabel="Delete"
+        danger
+        onClose={() => setConfirmDelete(false)}
+        onConfirm={() => { setConfirmDelete(false); handleDelete() }}
+      />
+
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Link to={`/v/${venueSlug}/allergens`} className="text-charcoal/40 hover:text-charcoal transition-colors text-lg">←</Link>
@@ -74,7 +85,7 @@ export default function FoodItemDetailPage() {
               Edit
             </Link>
             <button
-              onClick={handleDelete}
+              onClick={() => setConfirmDelete(true)}
               className="text-xs text-danger/70 hover:text-danger border border-danger/20 px-3 py-1.5 rounded-lg hover:border-danger/40 transition-colors"
             >
               Delete

@@ -1,5 +1,6 @@
-import React from 'react'
+import React, { useState } from 'react'
 import Modal from '../../components/ui/Modal'
+import ConfirmDialog from '../../components/ui/ConfirmDialog'
 import TimeSelect from '../../components/ui/TimeSelect'
 import Toggle from '../../components/ui/Toggle'
 import { SHIFT_PRESETS } from '../../lib/constants'
@@ -41,6 +42,8 @@ export default function RotaShiftModal({
   selectedDutyId,
   setSelectedDutyId,
 }) {
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null)
+
   const staffMemberForModal = modal ? staff.find((s) => s.id === modal?.staffMember?.id) : null
   const hourlyRate  = staffMemberForModal?.hourly_rate ?? 0
   const isUnder18   = staffMemberForModal?.is_under_18 ?? false
@@ -61,6 +64,16 @@ export default function RotaShiftModal({
       {modal && (
         <div className="flex flex-col gap-5">
 
+          <ConfirmDialog
+            open={!!confirmDeleteId}
+            title="Delete shift?"
+            message="This can't be undone."
+            confirmLabel="Delete"
+            danger
+            onClose={() => setConfirmDeleteId(null)}
+            onConfirm={() => { deleteShift(confirmDeleteId); setConfirmDeleteId(null) }}
+          />
+
           {/* Existing shifts for this day */}
           {modal.dayShifts?.length > 0 && (
             <div className="rounded-xl border border-warning/30 bg-warning/6 p-3 flex flex-col gap-2">
@@ -80,7 +93,7 @@ export default function RotaShiftModal({
                   </div>
                   <div className="flex gap-1.5">
                     <button onClick={() => openEdit(sh)} className="text-xs px-2.5 py-1.5 rounded-lg border border-charcoal/15 text-charcoal/60 hover:text-charcoal hover:border-charcoal/30 transition-colors">Edit</button>
-                    <button onClick={() => deleteShift(sh.id)} className="text-xs px-2.5 py-1.5 rounded-lg border border-danger/20 text-danger/60 hover:text-danger hover:border-danger/40 transition-colors">Remove</button>
+                    <button onClick={() => setConfirmDeleteId(sh.id)} className="text-xs px-2.5 py-1.5 rounded-lg border border-danger/20 text-danger/60 hover:text-danger hover:border-danger/40 transition-colors">Remove</button>
                   </div>
                 </div>
               ))}
@@ -248,7 +261,7 @@ export default function RotaShiftModal({
           <div className="flex items-center justify-between pt-1 border-t border-charcoal/8">
             {editShift ? (
               <button
-                onClick={() => deleteShift(editShift.id)}
+                onClick={() => setConfirmDeleteId(editShift.id)}
                 className="text-xs text-danger/60 hover:text-danger transition-colors"
               >
                 Delete shift
