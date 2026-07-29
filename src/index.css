@@ -41,8 +41,12 @@ body {
   transform: translateZ(0);
   font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
 }
-.pelikn-fake-splash-run {
-  animation: pk-splash-out 2.6s ease-out forwards;
+/* The fade-out is no longer baked into a fixed-length animation that held
+   opacity until 84% of 2.6s. It is now triggered by JS (see SplashScreen in
+   App.jsx) the moment the entrance animation has finished AND the app is
+   ready, so a fast launch is not padded out to a fixed duration. */
+.pelikn-fake-splash-exit {
+  animation: pk-splash-out 0.32s ease-out forwards;
 }
 .pelikn-fake-splash-halo {
   position: absolute;
@@ -134,8 +138,8 @@ body {
   to   { opacity: 0.6; transform: translate3d(0,0,0); }
 }
 @keyframes pk-splash-out {
-  0%, 84% { opacity: 1; }
-  100%    { opacity: 0; }
+  from { opacity: 1; }
+  to   { opacity: 0; }
 }
 
 /* dvh fallback for Android WebView < Chrome 108 — Tailwind's min-h-dvh only

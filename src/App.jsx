@@ -286,6 +286,14 @@ function SplashLogo({ size = 120 }) {
   )
 }
 
+// Splash timing. The brand animation itself (halo → icon rise → glow → tag)
+// finishes 1550 ms after the -run class lands; the numbers below are derived
+// from the keyframes in index.css and must move together with them.
+const SPLASH_LEAD_IN  = 250   // beat before the animation starts
+const SPLASH_ANIM_MS  = 1550  // longest entrance animation (glow: 1s @ .55s delay)
+const SPLASH_FADE_MS  = 320   // matches .pelikn-fake-splash-exit
+const SPLASH_MAX_MS   = 4000  // safety net: never hold the splash past this
+
 function SplashScreen() {
   const [visible, setVisible] = React.useState(() => {
     if (typeof window === 'undefined') return false
@@ -293,38 +301,53 @@ function SplashScreen() {
     return window.__peliknSplashDone !== true
   })
   const [running, setRunning] = React.useState(false)
+  const [exiting, setExiting] = React.useState(false)
 
   React.useEffect(() => {
-    if (!visible) return undefined
+    // The splash is native-only, but the done flag/event must be published on
+    // every platform: LandingPage and LoginPage wait on it before revealing
+    // themselves, and on web they would otherwise wait out their own 5.2 s
+    // fallback staring at an empty screen.
+    if (!visible) {
+      window.__peliknSplashDone = true
+      window.dispatchEvent(new CustomEvent('pk-splash-done'))
+      return undefined
+    }
 
     window.__peliknSplashDone = false
     window.__peliknSplashStarted = true
 
-    const startDelay = isNativeShell() ? 350 : 0
-    const startTimer = window.setTimeout(() => {
-      setRunning(true)
-    }, startDelay)
+    const timers = []
+    const at = (fn, ms) => timers.push(window.setTimeout(fn, ms))
 
-    const doneTimer = window.setTimeout(() => {
+    at(() => setRunning(true), SPLASH_LEAD_IN)
+
+    // Hand off as soon as the brand animation has actually played out, rather
+    // than padding to a fixed 2.6 s. finish() is idempotent and is raced
+    // against SPLASH_MAX_MS so a slow boot can't strand the user here.
+    let finished = false
+    const finish = () => {
+      if (finished) return
+      finished = true
+      setExiting(true)
       window.__peliknSplashDone = true
       window.dispatchEvent(new CustomEvent('pk-splash-done'))
-    }, startDelay + 2200)
-
-    const removeTimer = window.setTimeout(() => {
-      setVisible(false)
-    }, startDelay + 2600)
-
-    return () => {
-      window.clearTimeout(startTimer)
-      window.clearTimeout(doneTimer)
-      window.clearTimeout(removeTimer)
+      at(() => setVisible(false), SPLASH_FADE_MS)
     }
+
+    at(finish, SPLASH_LEAD_IN + SPLASH_ANIM_MS)
+    at(finish, SPLASH_MAX_MS)
+
+    return () => timers.forEach(window.clearTimeout)
   }, [visible])
 
   if (!visible) return null
 
   return (
-    <div className={`pelikn-fake-splash${running ? ' pelikn-fake-splash-run' : ''}`} aria-hidden="true">
+    <div
+      className={`pelikn-fake-splash${running ? ' pelikn-fake-splash-run' : ''}${exiting ? ' pelikn-fake-splash-exit' : ''}`}
+      aria-hidden="true"
+    >
       <div className="pelikn-fake-splash-halo" />
       <div className="pelikn-fake-splash-icon-wrap">
         <div className="pelikn-fake-splash-glow" />
