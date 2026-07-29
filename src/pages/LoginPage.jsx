@@ -370,9 +370,17 @@ export default function LoginPage() {
   const [ready, setReady] = useState(() => typeof window !== 'undefined' && window.__peliknSplashDone === true)
   useLayoutEffect(() => {
     if (ready) return
+    // Re-check the flag before subscribing — the splash can finish between
+    // this component's first render and this effect running, and the event
+    // would then already have been dispatched and missed.
+    if (window.__peliknSplashDone === true) { setReady(true); return }
     const onDone = () => setReady(true)
     window.addEventListener('pk-splash-done', onDone, { once: true })
-    const fallback = setTimeout(() => setReady(true), 5200)
+    // Safety net only. Every element on this screen is opacity:0 until
+    // `ready`, so this timeout is literally how long a user stares at a blank
+    // login screen if the event never arrives. It used to be 5200 ms, which
+    // is exactly what happened on web where the splash never runs.
+    const fallback = setTimeout(() => setReady(true), 800)
     return () => { window.removeEventListener('pk-splash-done', onDone); clearTimeout(fallback) }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 

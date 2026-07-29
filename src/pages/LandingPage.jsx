@@ -92,9 +92,14 @@ export default function LandingPage() {
   // class is added in the same frame as the event, with no extra render gap
   useLayoutEffect(() => {
     if (ready) return
+    // Re-check the flag before subscribing — the splash can finish between
+    // this component's first render and this effect running, and the event
+    // would then already have been dispatched and missed.
+    if (window.__peliknSplashDone === true) { setReady(true); return }
     const onDone = () => setReady(true)
     window.addEventListener('pk-splash-done', onDone, { once: true })
-    const fallback = setTimeout(() => setReady(true), 5200)
+    // Safety net only — see the matching note in LoginPage. Was 5200 ms.
+    const fallback = setTimeout(() => setReady(true), 800)
     return () => { window.removeEventListener('pk-splash-done', onDone); clearTimeout(fallback) }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
