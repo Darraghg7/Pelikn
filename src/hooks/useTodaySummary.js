@@ -30,6 +30,23 @@ function cacheSet(key, data, closedToday = false) {
   writePersisted('today_summary', key, { data, closedToday })
 }
 
+// ── In-flight coalescing ────────────────────────────────────────────────────
+// Three components mount this hook on a manager dashboard (the page itself,
+// the mobile dashboard and TodaySummaryCard). They mount in the same tick, so
+// all three miss the cache and all three fetch — the single-round-trip
+// snapshot RPC was being called three times per load. Sharing the promise per
+// cache key means concurrent callers wait on one request; the module cache
+// then serves everyone once it resolves.
+const _inFlight = new Map()
+
+function fetchOnce(key, fn) {
+  const pending = _inFlight.get(key)
+  if (pending) return pending
+  const p = fn().finally(() => _inFlight.delete(key))
+  _inFlight.set(key, p)
+  return p
+}
+
 /** Expose so other modules can bust the cache after a mutation (e.g. clock-in). */
 export function invalidateSummaryCache(venueId) {
   for (const k of _cache.keys()) {
@@ -117,12 +134,14 @@ export function useTodaySummary(venueId, closedDays = [], actionSchedules = {}) 
     // the data. Returns null if the migration hasn't been applied yet, in
     // which case we fall back to the original multi-query path.
     const fetchViaSnapshot = async () => {
-      const { data, error } = await supabase.rpc('get_dashboard_snapshot', {
-        p_venue_id:  venueId,
-        p_date:      todayStr,
-        p_day_start: dayStart,
-        p_day_end:   dayEnd,
-      })
+      const { data, error } = await fetchOnce(`snap:${key}`, () =>
+        supabase.rpc('get_dashboard_snapshot', {
+          p_venue_id:  venueId,
+          p_date:      todayStr,
+          p_day_start: dayStart,
+          p_day_end:   dayEnd,
+        })
+      )
       if (error || !data) return null
 
       const due = (k) => isActionDueToday(k, actionSchedules)

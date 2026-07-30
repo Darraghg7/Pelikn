@@ -6,6 +6,7 @@ import { useVenue } from '../../contexts/VenueContext'
 import { useToast } from '../../components/ui/Toast'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
 import { exportTempLogs, exportCleaningRecords, exportDeliveryChecks, exportCorrectiveActions, exportProbeCalibrations, exportTrainingRecords, exportFullReport, exportEHOReport } from '../../lib/exportData'
+import { computeComplianceScore, COMPLIANCE_RANGE_DAYS } from '../../lib/compliance'
 
 const RANGE_OPTIONS = [
   { label: '7 days',   days: 7 },
@@ -104,7 +105,9 @@ export default function EHOAuditPage() {
   const { venueId, venueName } = useVenue()
   const toast = useToast()
   const queryClient = useQueryClient()
-  const [range, setRange] = useState(90)
+  // Default must stay in step with the widget's window, or the dashboard score
+  // and this page's score disagree the moment you click through.
+  const [range, setRange] = useState(COMPLIANCE_RANGE_DAYS)
   const [loading, setLoading] = useState(true)
   const [data, setData] = useState(null)
   const [openSection, setOpenSection] = useState(null)
@@ -277,16 +280,10 @@ export default function EHOAuditPage() {
     service_access: 'Busy service', equipment: 'Equipment concern', other: 'Other',
   }
 
-  // Compute an overall compliance score (0–100) across categories
-  const overallScore = data ? (() => {
-    let pts = 0, max = 0
-    max += 30; pts += data.tempTotal > 0 ? (data.tempPassRate / 100) * 30 : (data.tempTotal === 0 ? 25 : 0)
-    max += 20; pts += data.deliveryTotal > 0 ? (data.deliveryFails === 0 ? 20 : Math.max(0, 20 - data.deliveryFails * 4)) : 15
-    max += 20; pts += data.caCritical === 0 && data.caOpen === 0 ? 20 : data.caCritical > 0 ? 5 : Math.max(0, 20 - data.caOpen * 3)
-    max += 15; pts += data.expiredCerts === 0 ? 15 : Math.max(0, 15 - data.expiredCerts * 3)
-    max += 15; pts += data.probeTotal > 0 ? (data.probeFails === 0 ? 15 : Math.max(0, 15 - data.probeFails * 4)) : 10
-    return Math.round((pts / max) * 100)
-  })() : 0
+  // Overall compliance score — shared with ComplianceScoreWidget so the
+  // dashboard number and this page can never disagree again.
+  const { score: overallScore, points: scorePoints, max: scoreMax } =
+    data ? computeComplianceScore(data) : { score: 0, points: 0, max: 100 }
 
   return (
     <div className="flex flex-col gap-4">
@@ -355,11 +352,11 @@ export default function EHOAuditPage() {
             <div className="grid grid-cols-3 gap-3 pt-3 border-t border-charcoal/6">
               <div className="text-center">
                 <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-0.5">Points</p>
-                <p className="font-bold text-charcoal text-base">{Math.round(overallScore)}</p>
+                <p className="font-bold text-charcoal text-base">{Math.round(scorePoints)}</p>
               </div>
               <div className="text-center">
                 <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-0.5">Max</p>
-                <p className="font-bold text-charcoal text-base">100</p>
+                <p className="font-bold text-charcoal text-base">{scoreMax}</p>
               </div>
               <div className="text-center">
                 <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-0.5">Rate</p>
