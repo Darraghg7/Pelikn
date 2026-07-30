@@ -13,7 +13,16 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: ['./src/test-setup.ts'],
-    // Playwright specs live in tests/ and must not run under vitest.
-    exclude: [...configDefaults.exclude, 'tests/**', 'test-results/**', 'playwright-report/**'],
+    // Playwright specs live in tests/ and must not run under vitest. Patterns are
+    // depth-independent so nested copies (e.g. agent git worktrees under .claude/)
+    // and build output are never collected.
+    exclude: [
+      ...configDefaults.exclude,
+      '**/tests/**',
+      '**/test-results/**',
+      '**/playwright-report/**',
+      '**/.claude/**',
+      '**/dist/**',
+    ],
   },
 })
