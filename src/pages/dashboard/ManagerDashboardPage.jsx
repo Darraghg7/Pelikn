@@ -13,6 +13,7 @@ import { useWidgetPreferences } from '../../hooks/useWidgetPreferences'
 import { useTodayPreferences } from '../../hooks/useTodayPreferences'
 import { useTodaySummary } from '../../hooks/useTodaySummary'
 import { useVenueFeatures } from '../../hooks/useVenueFeatures'
+import { useIsDesktop } from '../../hooks/useMediaQuery'
 import TodaySummaryCard from './TodaySummaryCard'
 import WidgetPicker from './WidgetPicker'
 import PushBanner from './PushBanner'
@@ -230,6 +231,8 @@ function DesktopStatGrid({ summary, venueSlug, isEnabled }) {
 export default function ManagerDashboardPage() {
   const { venueId, venuePlan, venueSlug } = useVenue()
   const { session } = useSession()
+  // Drives which dashboard is *rendered* — see the comment on the mobile block.
+  const isDesktop = useIsDesktop()
   const toast = useToast()
 
   // Setup redirect is handled exclusively in DashboardPage (the parent),
@@ -251,7 +254,8 @@ export default function ManagerDashboardPage() {
   return (
     <div className="flex flex-col gap-4">
       {/* Greeting — desktop only; mobile has its own greeting card inside MobileManagerDashboard */}
-      <div className="hidden lg:flex items-start justify-between gap-2">
+      {isDesktop && (
+      <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
           <p className="font-mono text-[11px] tracking-[0.08em] uppercase text-charcoal/40">{format(new Date(), 'EEEE, d MMMM')}</p>
           <h1 className="text-[30px] font-medium tracking-[-0.028em] text-charcoal leading-tight mt-0.5">
@@ -279,9 +283,14 @@ export default function ManagerDashboardPage() {
           </button>
         </div>
       </div>
+      )}
 
-      {/* Mobile layout */}
-      <div className="lg:hidden">
+      {/* Mobile layout — rendered only below `lg`. Previously this was
+          `lg:hidden`, which merely hid it: the whole mobile dashboard still
+          mounted on desktop (and the desktop one on phones), so every hook in
+          both trees fired its queries. That alone accounted for roughly half
+          of the 76 API calls this page used to make on a single load. */}
+      {!isDesktop && (
         <MobileManagerDashboard
           session={session}
           venueId={venueId}
@@ -299,10 +308,11 @@ export default function ManagerDashboardPage() {
           onOpenPicker={() => setShowPicker(true)}
           isEnabled={isEnabled}
         />
-      </div>
+      )}
 
       {/* Desktop layout */}
-      <div className="hidden lg:flex lg:flex-col lg:gap-4">
+      {isDesktop && (
+      <div className="flex flex-col gap-4">
         <GettingStartedCard venueId={venueId} venueSlug={venueSlug} />
 
         {summary?.overdueClean > 0 && (
@@ -330,9 +340,11 @@ export default function ManagerDashboardPage() {
           </div>
         </div>
       </div>
+      )}
 
       {/* Widget grid — desktop only (mobile renders its own inside MobileManagerDashboard) */}
-      <div className="hidden lg:block">
+      {isDesktop && (
+      <div>
         {widgetsLoading && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {[1,2,3,4,5,6].map(i => <div key={i} className="h-[180px] rounded-2xl bg-charcoal/5 animate-pulse" />)}
@@ -356,6 +368,7 @@ export default function ManagerDashboardPage() {
           </div>
         )}
       </div>
+      )}
 
       <WidgetPicker
         open={showPicker}

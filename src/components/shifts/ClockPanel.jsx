@@ -2,19 +2,14 @@
  * ClockPanel — inline clock-in/out/break widget with live elapsed timer.
  * Persists across logouts: timer is derived from DB timestamps, not local state.
  */
-import React, { useEffect, useRef, useState } from 'react'
-import { format, subDays } from 'date-fns'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { offlineRpc } from '../../lib/offlineSupabase'
 import { useClockStatus, saveClockStatusCache } from '../../hooks/useClockEvents'
 import { useVenue } from '../../contexts/VenueContext'
 import { useToast } from '../ui/Toast'
 import LoadingSpinner from '../ui/LoadingSpinner'
-import { supabase, supabaseUrl, supabaseAnonKey } from '../../lib/supabase'
-import { sendPush } from '../../lib/sendPush'
 import StaffAlertModal from './StaffAlertModal'
-import { useAppSettings as useSettings } from '../../hooks/useSettings'
-import { londonToday, londonWallTimeToInstant, londonDayStartInstant, formatLondon } from '../../lib/time'
-import { captureSilent } from '../../lib/reportError'
+import { useClockAlerts } from '../../hooks/useClockAlerts'
 
 const STATUS_CONFIG = {
   clocked_out: { label: 'Not Clocked In', color: 'text-charcoal/50', dot: 'bg-charcoal/25' },
@@ -69,137 +64,28 @@ function ElapsedTimer({ clockInAt, breakStartAt, totalBreakMs, status }) {
   )
 }
 
-/** Count active (non-dismissed) late clock-in strikes in the last 30 days, +1 for the current one */
-async function countLateStrikes(staffId, venueId, now) {
-  const since = format(subDays(now, 30), 'yyyy-MM-dd') + 'T00:00:00'
-  const { count } = await supabase
-    .from('staff_disciplinary_log')
-    .select('*', { count: 'exact', head: true })
-    .eq('staff_id', staffId)
-    .eq('venue_id', venueId)
-    .eq('offence_type', 'late_clock_in')
-    .is('dismissed_at', null)
-    .gte('occurred_at', since)
-  return (count ?? 0) + 1
-}
-
-/** Start of today in UK time, as a UTC instant — the "today" window all cafés share */
-function londonDayStartISO() {
-  return londonDayStartInstant().toISOString()
-}
-
-/** Fetch the most recent clock_in event ID + acknowledged_at for this staff today */
-async function fetchTodayClockInEvent(staffId, venueId) {
-  const { data } = await supabase
-    .from('clock_events')
-    .select('id, acknowledged_at')
-    .eq('staff_id', staffId)
-    .eq('venue_id', venueId)
-    .eq('event_type', 'clock_in')
-    .gte('occurred_at', londonDayStartISO())
-    .order('occurred_at', { ascending: false })
-    .limit(1)
-    .maybeSingle()
-  return data ?? null
-}
-
-/** Fetch the most recent break_start event ID + acknowledged_at for this staff today */
-async function fetchTodayBreakStartEvent(staffId, venueId) {
-  const { data } = await supabase
-    .from('clock_events')
-    .select('id, acknowledged_at')
-    .eq('staff_id', staffId)
-    .eq('venue_id', venueId)
-    .eq('event_type', 'break_start')
-    .gte('occurred_at', londonDayStartISO())
-    .order('occurred_at', { ascending: false })
-    .limit(1)
-    .maybeSingle()
-  return data ?? null
-}
-
-/** Count active (non-dismissed) break overrun strikes in the last 30 days, +1 for the current one */
-async function countBreakStrikes(staffId, venueId, now) {
-  const since = format(subDays(now, 30), 'yyyy-MM-dd') + 'T00:00:00'
-  const { count } = await supabase
-    .from('staff_disciplinary_log')
-    .select('*', { count: 'exact', head: true })
-    .eq('staff_id', staffId)
-    .eq('venue_id', venueId)
-    .eq('offence_type', 'break_overrun')
-    .is('dismissed_at', null)
-    .gte('occurred_at', since)
-  return (count ?? 0) + 1
-}
-
 export default function ClockPanel({ staffId, hasShift = true, compact = false }) {
   const { venueId } = useVenue()
   const toast = useToast()
-  const { requireLateReason, requireManagerApprovalForLate } = useSettings()
   const { status, clockInAt, breakStartAt, totalBreakMs, loading, reload } = useClockStatus(staffId)
   const [submitting, setSubmitting] = useState(false)
 
-  // Break allowance from venue settings (fetched once)
-  const [breakAllowanceMins, setBreakAllowanceMins] = useState(30)
-  useEffect(() => {
-    if (!venueId) return
-    supabase
-      .from('app_settings')
-      .select('value')
-      .eq('venue_id', venueId)
-      .eq('key', 'break_duration_mins')
-      .maybeSingle()
-      .then(({ data }) => {
-        if (data?.value) setBreakAllowanceMins(JSON.parse(data.value))
-      })
-  }, [venueId])
+  // Late clock-in / break-overrun alerts live in a shared hook so that every
+  // clock surface behaves identically — see useClockAlerts. Ending a break from
+  // the overrun modal has to come back through `record`, which is defined
+  // below, so it goes via a ref to keep the callback identity stable.
+  const recordRef = useRef(null)
+  const { onClockEvent, alertModalProps } = useClockAlerts({
+    staffId,
+    status,
+    breakStartAt,
+    onEndBreak: useCallback(() => recordRef.current?.('break_end'), []),
+  })
 
-  // Alert modal state
-  const [alert, setAlert] = useState(null) // { type, minsOver, strikeCount, scheduledTime, actualTime, breakStartTime, takenMins, clockEventId, breakStillActive }
-  const breakAlertShownRef = useRef(false)
-
-  // Reset break alert guard when a new break starts
-  useEffect(() => {
-    if (status === 'on_break') {
-      breakAlertShownRef.current = false
-    }
-  }, [breakStartAt]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Live break overrun detection — check every 15s when on break
-  useEffect(() => {
-    if (status !== 'on_break' || !breakStartAt || !venueId) return
-
-    const check = async () => {
-      if (breakAlertShownRef.current) return
-      const elapsedMins = (Date.now() - breakStartAt.getTime()) / 60000
-      if (elapsedMins < breakAllowanceMins) return
-
-      breakAlertShownRef.current = true
-      const minsOver = Math.floor(elapsedMins - breakAllowanceMins)
-
-      const ev = await fetchTodayBreakStartEvent(staffId, venueId)
-      if (!ev || ev.acknowledged_at) return // already acknowledged
-
-      const strikes = await countBreakStrikes(staffId, venueId, new Date())
-
-      setAlert({
-        type: 'break_overrun',
-        minsOver,
-        strikeCount: strikes,
-        breakStartTime: formatLondon(breakStartAt, 'HH:mm'),
-        takenMins: Math.floor(elapsedMins),
-        breakAllowanceMins,
-        clockEventId: ev.id,
-        breakStillActive: true,
-      })
-    }
-
-    check()
-    const id = setInterval(check, 15000)
-    return () => clearInterval(id)
-  }, [status, breakStartAt, breakAllowanceMins, staffId, venueId])
-
-  const record = async (eventType) => {
+  const record = useCallback(async (eventType) => {
+    // Captured before the RPC so a slow round trip can't make a punctual
+    // clock-in look late.
+    const at = new Date()
     setSubmitting(true)
     const { error, queued } = await offlineRpc('record_clock_event', {
       p_staff_id:   staffId,
@@ -212,242 +98,20 @@ export default function ClockPanel({ staffId, hasShift = true, compact = false }
     const labels = { clock_in: 'Clocked in', clock_out: 'Clocked out', break_start: 'Break started', break_end: 'Break ended' }
     toast(queued ? `${labels[eventType]} (saved offline)` : labels[eventType])
 
-    // ── Late clock-in check ──────────────────────────────────────────────────
-    if (eventType === 'clock_in' && !queued) {
-      const now = new Date()
-      const today = londonToday()
-      supabase
-        .from('shifts')
-        .select('start_time, end_time, staff:staff_id(name)')
-        .eq('venue_id', venueId)
-        .eq('staff_id', staffId)
-        .eq('shift_date', today)
-        .order('start_time')
-        .then(async ({ data: shifts }) => {
-          if (!shifts?.length) return
-          // Staff can have more than one shift row per day (split shifts,
-          // duplicated rota rows) — judge lateness against the shift whose
-          // start time is closest to this clock-in. Scheduled times are UK
-          // wall-clock (Europe/London), regardless of the viewer's device tz.
-          const distToStart = (s) => Math.abs(londonWallTimeToInstant(today, s.start_time) - now)
-          const shift = shifts.reduce((best, s) => distToStart(s) < distToStart(best) ? s : best)
-          // Floor both times to whole minutes before comparing so that
-          // a sub-minute clock-in (e.g. 07:00:40) isn't flagged as late.
-          const shiftStart   = londonWallTimeToInstant(today, shift.start_time)
-          const nowFloored   = new Date(Math.floor(now.getTime() / 60000) * 60000)
-          const startFloored = new Date(Math.floor(shiftStart.getTime() / 60000) * 60000)
-          const msLate       = nowFloored.getTime() - startFloored.getTime()
-
-          if (msLate > 0) { // any second past shift start is late
-            const minsLate = Math.floor(msLate / 60000)
-
-            // Notify managers (escalation level handled by strike count in modal)
-            sendPush({
-              venueId,
-              notificationType: 'late_clock_in',
-              title: 'Late Clock-In',
-              body:  minsLate >= 1
-                ? `${shift.staff?.name ?? 'A staff member'} clocked in ${minsLate} min late`
-                : `${shift.staff?.name ?? 'A staff member'} clocked in late`,
-              url:   '/timesheet',
-              roles: ['manager', 'owner'],
-            }).catch(() => {})
-
-            // Never let a failed lookup suppress the alert — the staff member
-            // must always see the late window (and manager approval if enabled).
-            let strikes = 1, ev = null
-            try {
-              [strikes, ev] = await Promise.all([
-                countLateStrikes(staffId, venueId, now),
-                fetchTodayClockInEvent(staffId, venueId),
-              ])
-            } catch { /* show the alert with defaults */ }
-
-            if (ev?.acknowledged_at) return // already acknowledged this event
-
-            // 3rd+ strike: additional manager push
-            if (strikes >= 3) {
-              sendPush({
-                venueId,
-                notificationType: 'repeat_offender',
-                title: strikes >= 4 ? 'Disciplinary Review Triggered' : 'Repeat Late Clock-In',
-                body:  `${shift.staff?.name ?? 'A staff member'} — ${strikes} late clock-ins in 30 days`,
-                url:   '/timesheet',
-                roles: ['manager', 'owner'],
-              }).catch(() => {})
-            }
-
-            setAlert({
-              type: 'late_clock_in',
-              minsOver: minsLate,
-              strikeCount: strikes,
-              scheduledTime: formatLondon(shiftStart, 'HH:mm'),
-              actualTime: formatLondon(now, 'HH:mm'),
-              clockEventId: ev?.id ?? null,
-              breakStillActive: false,
-            })
-          }
-        })
-    }
-
-    // ── Early clock-out check ────────────────────────────────────────────────
-    if (eventType === 'clock_out' && !queued) {
-      const now = new Date()
-      const today = londonToday()
-      supabase
-        .from('shifts')
-        .select('end_time, staff:staff_id(name)')
-        .eq('venue_id', venueId)
-        .eq('staff_id', staffId)
-        .eq('shift_date', today)
-        .order('start_time')
-        .then(({ data: shifts }) => {
-          if (!shifts?.length) return
-          // Multiple shift rows per day are possible — compare against the
-          // shift whose end time is closest to this clock-out. Scheduled times
-          // are UK wall-clock (Europe/London), not the viewer's device tz.
-          const distToEnd = (s) => Math.abs(londonWallTimeToInstant(today, s.end_time) - now)
-          const shift = shifts.reduce((best, s) => distToEnd(s) < distToEnd(best) ? s : best)
-          const shiftEnd = londonWallTimeToInstant(today, shift.end_time)
-          const minsEarly = Math.round((shiftEnd - now) / 60000)
-          if (minsEarly > 15) {
-            sendPush({
-              venueId,
-              notificationType: 'early_clock_out',
-              title: 'Early Clock-Out',
-              body:  `${shift.staff?.name ?? 'A staff member'} clocked out ${minsEarly} min early`,
-              url:   '/timesheet',
-              roles: ['manager', 'owner'],
-            }).catch(() => {})
-          }
-        })
-    }
-
-    // ── Break-end overrun check (if live trigger didn't already fire) ────────
-    if (eventType === 'break_end' && !queued && breakStartAt) {
-      const elapsedMins = (Date.now() - breakStartAt.getTime()) / 60000
-      if (elapsedMins > breakAllowanceMins && !breakAlertShownRef.current) {
-        breakAlertShownRef.current = true
-        const minsOver = Math.floor(elapsedMins - breakAllowanceMins)
-        const [ev, strikes] = await Promise.all([
-          fetchTodayBreakStartEvent(staffId, venueId),
-          countBreakStrikes(staffId, venueId, new Date()),
-        ])
-        if (ev && !ev.acknowledged_at) {
-          setAlert({
-            type: 'break_overrun',
-            minsOver,
-            strikeCount: strikes,
-            breakStartTime: formatLondon(breakStartAt, 'HH:mm'),
-            takenMins: Math.floor(elapsedMins),
-            breakAllowanceMins,
-            clockEventId: ev.id,
-            breakStillActive: false,
-          })
-        }
-      }
-    }
-
     if (queued) {
-      const now = new Date()
       let newStatus = status, newClockInAt = clockInAt, newBreakStartAt = breakStartAt, newTotalBreakMs = totalBreakMs
-      if (eventType === 'clock_in')     { newStatus = 'clocked_in';  newClockInAt = now }
+      if (eventType === 'clock_in')     { newStatus = 'clocked_in';  newClockInAt = at }
       if (eventType === 'clock_out')    { newStatus = 'clocked_out'; newClockInAt = null; newBreakStartAt = null; newTotalBreakMs = 0 }
-      if (eventType === 'break_start')  { newStatus = 'on_break';    newBreakStartAt = now }
-      if (eventType === 'break_end')    { newStatus = 'clocked_in';  newTotalBreakMs += breakStartAt ? now - breakStartAt : 0; newBreakStartAt = null }
+      if (eventType === 'break_start')  { newStatus = 'on_break';    newBreakStartAt = at }
+      if (eventType === 'break_end')    { newStatus = 'clocked_in';  newTotalBreakMs += breakStartAt ? at - breakStartAt : 0; newBreakStartAt = null }
       saveClockStatusCache(staffId, { status: newStatus, clockInAt: newClockInAt, breakStartAt: newBreakStartAt, totalBreakMs: newTotalBreakMs })
     }
 
     reload()
-  }
+    await onClockEvent(eventType, { queued, at })
+  }, [staffId, venueId, toast, status, clockInAt, breakStartAt, totalBreakMs, reload, onClockEvent])
 
-  const handleAcknowledge = async (reason) => {
-    const current = alert
-    setAlert(null) // always close immediately — never leave staff trapped
-
-    if (!current?.clockEventId) return
-
-    // Acknowledge in the background; fallback to direct update if RPC missing
-    const { error } = await supabase.rpc('acknowledge_clock_alert', {
-      p_clock_event_id:  current.clockEventId,
-      p_alert_reason:    reason,
-      p_strike_number:   current.strikeCount,
-      p_mins_over:       current.minsOver,
-      p_offence_type:    current.type,
-      p_is_disciplinary: true,
-    })
-    if (error) {
-      supabase
-        .from('clock_events')
-        .update({ acknowledged_at: new Date().toISOString() })
-        .eq('id', current.clockEventId)
-        .then(
-          ({ error: ackErr }) => { if (ackErr) captureSilent(ackErr, 'ClockPanel:ack-clock-event') },
-          (e) => captureSilent(e, 'ClockPanel:ack-clock-event'),
-        )
-    }
-
-    if (current.type === 'break_overrun' && current.breakStillActive) {
-      await record('break_end')
-    }
-  }
-
-  // Build manager list from the cached staff list (populated at login — no extra
-  // fetch). Falls back to the DB when the cache is missing on this device, so the
-  // manager approval screen always has managers to select.
-  const [managers, setManagers] = useState([])
-  useEffect(() => {
-    if (!venueId) { setManagers([]); return }
-    try {
-      const cached = localStorage.getItem(`pelikn_staff_${venueId}`)
-      const all = cached ? JSON.parse(cached) : []
-      const fromCache = all.filter(s => s.role === 'manager' || s.role === 'owner')
-      if (fromCache.length > 0) { setManagers(fromCache); return }
-    } catch { /* fall through to DB fetch */ }
-    let cancelled = false
-    supabase
-      .from('staff')
-      .select('id, name, role, photo_url')
-      .eq('venue_id', venueId)
-      .eq('is_active', true)
-      .in('role', ['manager', 'owner'])
-      .order('name')
-      .then(({ data }) => { if (!cancelled && data) setManagers(data) })
-    return () => { cancelled = true }
-  }, [venueId])
-
-  // Verify a manager's PIN — online first, offline hash fallback
-  const verifyManagerPin = React.useCallback(async (managerId, pin) => {
-    // Online path via edge function verify_pin action
-    try {
-      const res = await fetch(`${supabaseUrl}/functions/v1/pin-login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', apikey: supabaseAnonKey },
-        body: JSON.stringify({ action: 'verify_pin', staff_id: managerId, pin, venue_id: venueId }),
-        signal: AbortSignal.timeout(6000),
-      })
-      const data = await res.json()
-      if (res.ok && data.ok) {
-        if (!['manager', 'owner'].includes(data.role)) {
-          return { ok: false, error: "This account doesn't have manager access" }
-        }
-        return { ok: true }
-      }
-      if (res.status === 429) return { ok: false, error: 'Too many attempts — wait a moment' }
-      return { ok: false, error: 'Incorrect PIN, try again' }
-    } catch { /* network offline — fall through */ }
-
-    // Offline fallback: verify against cached SHA-256 hash
-    try {
-      const data = new TextEncoder().encode(`${managerId}:${pin}:pelikn_offline_v1`)
-      const buf  = await crypto.subtle.digest('SHA-256', data)
-      const hash = Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('')
-      const cachedHash = localStorage.getItem(`pelikn_pin_${managerId}`)
-      if (!cachedHash || hash !== cachedHash) return { ok: false, error: 'Incorrect PIN, try again' }
-      // Role already confirmed — managers list is pre-filtered
-      return { ok: true }
-    } catch { return { ok: false, error: 'Incorrect PIN, try again' } }
-  }, [venueId])
+  recordRef.current = record
 
   const cfg = STATUS_CONFIG[status] ?? STATUS_CONFIG.clocked_out
 
@@ -457,22 +121,7 @@ export default function ClockPanel({ staffId, hasShift = true, compact = false }
 
   return (
     <>
-      <StaffAlertModal
-        open={!!alert}
-        type={alert?.type}
-        minsOver={alert?.minsOver ?? 0}
-        strikeCount={alert?.strikeCount ?? 1}
-        scheduledTime={alert?.scheduledTime}
-        actualTime={alert?.actualTime}
-        breakStartTime={alert?.breakStartTime}
-        breakAllowanceMins={alert?.breakAllowanceMins ?? breakAllowanceMins}
-        takenMins={alert?.takenMins}
-        requireLateReason={requireLateReason}
-        requireManagerApproval={requireManagerApprovalForLate && alert?.type === 'late_clock_in'}
-        managers={managers}
-        onVerifyManagerPin={verifyManagerPin}
-        onAcknowledge={handleAcknowledge}
-      />
+      <StaffAlertModal {...alertModalProps} />
 
       <div className="flex flex-col gap-3">
         {/* Status badge — hidden in compact mode (hero card shows its own) */}

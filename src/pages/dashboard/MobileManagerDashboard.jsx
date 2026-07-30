@@ -3,7 +3,7 @@
  * Re-skinned to match the manager-dashboard-handoff prototype exactly.
  * Keeps all existing data hooks/registry/DnD — no new persistence model.
  */
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { format, startOfWeek } from 'date-fns'
 import { supabase } from '../../lib/supabase'
@@ -11,9 +11,11 @@ import { isActionDueToday } from '../../hooks/useTodaySummary'
 import { TODAY_ITEM_REGISTRY } from './todayItemRegistry'
 import { WIDGET_REGISTRY } from '../../components/widgets/WidgetRegistry'
 import { useClockStatus } from '../../hooks/useClockEvents'
+import { useClockAlerts } from '../../hooks/useClockAlerts'
 import { offlineRpc } from '../../lib/offlineSupabase'
 import { useVenue } from '../../contexts/VenueContext'
 import { useToast } from '../../components/ui/Toast'
+import StaffAlertModal from '../../components/shifts/StaffAlertModal'
 import PushBanner from './PushBanner'
 import {
   DndContext,
@@ -291,9 +293,23 @@ function MobileClockCard({ staffId }) {
   const weekHrs  = useWeeklyHours(staffId, venueId)
   const now      = useLiveTime()
 
-  const record = async (eventType) => {
+  // Same late clock-in / break-overrun alerts as ClockPanel. This card used to
+  // call the RPC and nothing else, so a manager clocking in late on a phone was
+  // never shown the reason / manager-approval screen.
+  const recordRef = useRef(null)
+  const { onClockEvent, alertModalProps } = useClockAlerts({
+    staffId,
+    status,
+    breakStartAt,
+    onEndBreak: useCallback(() => recordRef.current?.('break_end'), []),
+  })
+
+  const record = useCallback(async (eventType) => {
+    // Captured before the RPC so a slow round trip can't make a punctual
+    // clock-in look late.
+    const at = new Date()
     setSubmitting(true)
-    const { error } = await offlineRpc('record_clock_event', {
+    const { error, queued } = await offlineRpc('record_clock_event', {
       p_staff_id:   staffId,
       p_event_type: eventType,
       p_venue_id:   venueId,
@@ -301,7 +317,10 @@ function MobileClockCard({ staffId }) {
     setSubmitting(false)
     if (error) { toast(error.message, 'error'); return }
     reload()
-  }
+    await onClockEvent(eventType, { queued, at })
+  }, [staffId, venueId, toast, reload, onClockEvent])
+
+  recordRef.current = record
 
   const onShift  = status === 'clocked_in'
   const onBreak  = status === 'on_break'
@@ -316,6 +335,7 @@ function MobileClockCard({ staffId }) {
 
   return (
     <div>
+      <StaffAlertModal {...alertModalProps} />
       <SectionLabel>My Clock</SectionLabel>
       <div className="bg-brand rounded-[14px] p-[14px_16px_16px] flex flex-col gap-0">
         <div className="flex items-center justify-between mb-2.5">
