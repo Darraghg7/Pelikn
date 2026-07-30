@@ -725,7 +725,7 @@ export default function MarketingPage() {
           <div style={{ animation:'pkIn 0.55s cubic-bezier(.16,1,.3,1) both' }}>
             <div className="inline-flex items-center gap-2.5 bg-cream/6 border border-cream/10 rounded-full px-4 py-2 mb-10">
               <div className="w-1.5 h-1.5 rounded-full bg-[#4ade80]" style={{ animation:'pkPulse 2.4s ease-in-out infinite' }} />
-              <span className="text-[12px] font-medium text-cream/55 tracking-[0.06em]">Food safety · Rota · Timesheets · Training</span>
+              <span className="text-[12px] font-semibold text-cream/70 tracking-[0.12em] uppercase">Always inspection-ready</span>
             </div>
           </div>
           {/* Headline */}
