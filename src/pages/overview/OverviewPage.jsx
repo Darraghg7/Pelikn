@@ -185,13 +185,15 @@ export default function OverviewPage() {
   const { venues, selectVenue } = useAuth()
   const navigate = useNavigate()
 
-  const isMultiVenue = isManager && (venues?.length ?? 0) > 1
-  if (!isMultiVenue) return <Navigate to={`/v/${venueSlug}/dashboard`} replace />
-
   const allVenues = venues ?? []
-  const { results, aggregate, loading } = useAllVenueCompliance(allVenues)
+  const isMultiVenue = isManager && allVenues.length > 1
 
+  // All hooks must run before the single-venue redirect below — `venues` resolves
+  // asynchronously, so isMultiVenue flips false → true after mount.
+  const { results, aggregate, loading } = useAllVenueCompliance(isMultiVenue ? allVenues : [])
   const [activeFilter, setActiveFilter] = useState(null)
+
+  if (!isMultiVenue) return <Navigate to={`/v/${venueSlug}/dashboard`} replace />
 
   const stripValues = {
     clear:     aggregate.allClear,
