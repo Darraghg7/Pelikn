@@ -11,8 +11,28 @@
     <meta name="apple-mobile-web-app-title" content="Pelikn" />
     <meta name="application-name" content="Pelikn" />
     <meta name="theme-color" content="#1a1a18" />
-    <meta name="description" content="All-in-one venue operations for hospitality" />
+    <meta name="description" content="One app for food-safety records, rotas, timesheets and team management. EHO-ready from day one, on any device, for the whole team — from £10/month." />
     <link rel="manifest" href="/manifest.json" />
+
+    <!-- SEO / canonical -->
+    <link rel="canonical" href="https://get-pelikn.com/" />
+
+    <!-- Open Graph (Facebook, LinkedIn, WhatsApp, Slack…) -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Pelikn" />
+    <meta property="og:title" content="Pelikn — Run the venue, not the paperwork" />
+    <meta property="og:description" content="One app for food-safety records, rotas, timesheets and team management. EHO-ready from day one — from £10/month." />
+    <meta property="og:url" content="https://get-pelikn.com/" />
+    <meta property="og:image" content="https://get-pelikn.com/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Pelikn — food-safety compliance and team management for hospitality" />
+
+    <!-- Twitter / X -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Pelikn — Run the venue, not the paperwork" />
+    <meta name="twitter:description" content="One app for food-safety records, rotas, timesheets and team management. EHO-ready from day one — from £10/month." />
+    <meta name="twitter:image" content="https://get-pelikn.com/og-image.png" />
 
     <!-- App icons -->
     <link rel="apple-touch-icon" sizes="512x512" href="/icons/apple-touch-icon.png" />
@@ -27,7 +47,27 @@
     <!-- Load Google Fonts async so it never blocks the first paint -->
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet"></noscript>
-    <title>Pelikn</title>
+    <title>Pelikn — Compliance & team management for hospitality</title>
+
+    <!-- Structured data (Google rich results) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "Pelikn",
+      "applicationCategory": "BusinessApplication",
+      "operatingSystem": "Web, iOS, Android",
+      "description": "One app for food-safety records, rotas, timesheets and team management for hospitality venues. EHO-ready from day one.",
+      "url": "https://get-pelikn.com/",
+      "image": "https://get-pelikn.com/og-image.png",
+      "offers": {
+        "@type": "Offer",
+        "price": "10",
+        "priceCurrency": "GBP",
+        "description": "Starter plan, per venue, per month"
+      }
+    }
+    </script>
 
     <!-- Safe area insets for iPhone notch / Dynamic Island / home indicator -->
     <style>
