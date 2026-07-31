@@ -396,7 +396,13 @@ export default function StaffAlertModal({
             boxShadow: '0 24px 60px rgba(9,18,13,0.4)',
             paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))',
             maxHeight: '92dvh',
-            overflowY: 'auto',
+            // Column layout so the CTA can live in a footer that never scrolls.
+            // When the whole sheet scrolled, this alert (710px of content) opened
+            // on a 667pt phone with "End break now" ~32px below the fold and no
+            // cue that there was anything below it.
+            display: 'flex',
+            flexDirection: 'column',
+            overflow: 'hidden',
             transition: 'transform 0.25s cubic-bezier(0.22,1,0.36,1), opacity 0.25s',
             transform: animating ? 'translateY(0)' : 'translateY(40px)',
             opacity: animating ? 1 : 0,
@@ -404,10 +410,11 @@ export default function StaffAlertModal({
           }}
         >
           {/* Top accent hairline */}
-          <div style={{ height: 4, background: tone.hairline, borderRadius: '24px 24px 0 0' }} />
+          <div style={{ height: 4, background: tone.hairline, borderRadius: '24px 24px 0 0', flexShrink: 0 }} />
 
           {phase === 'alert' ? (
-            <div className="px-5 pt-4 pb-2 flex flex-col gap-4">
+            <>
+            <div className="px-5 pt-4 pb-4 flex flex-col gap-4" style={{ overflowY: 'auto', flex: '1 1 auto', minHeight: 0 }}>
 
               {/* Icon + pips row */}
               <div className="flex items-start justify-between">
@@ -504,7 +511,14 @@ export default function StaffAlertModal({
                   onSelect={setSelectedReason}
                 />
               )}
+            </div>
 
+            {/* Action footer — outside the scroll area so the primary action is on
+                screen the moment the alert opens, whatever the phone's height. */}
+            <div
+              className="px-5 pt-3 flex flex-col gap-3"
+              style={{ flexShrink: 0, borderTop: `1px solid ${LINE2}`, background: '#fff' }}
+            >
               {/* CTA button — locked until a reason is selected when reasons are required */}
               <button
                 type="button"
@@ -538,9 +552,10 @@ export default function StaffAlertModal({
                 }
               </p>
             </div>
+            </>
           ) : (
             /* ── Phase 2: Manager PIN ─────────────────────────────────────── */
-            <div className="px-5 pt-4 pb-2 flex flex-col gap-4">
+            <div className="px-5 pt-4 pb-2 flex flex-col gap-4" style={{ overflowY: 'auto', flex: '1 1 auto', minHeight: 0 }}>
 
               {/* Back button */}
               <button
