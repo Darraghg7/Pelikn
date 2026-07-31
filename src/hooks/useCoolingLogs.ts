@@ -17,15 +17,20 @@ interface CoolingLog {
   food_item: string
   start_temp: number
   end_temp: number
+  target_temp: number
   cooling_method: string
-  start_time: string
-  end_time: string
-  pass: boolean
-  corrective_action?: string
+  started_at: string
   logged_at: string
   logged_by_name?: string
+  notes?: string
   venue_id: string
 }
+
+// Matches the cooling_logs table. There is no stored pass flag or end
+// timestamp — pass is derived from end_temp vs target_temp (isCoolingTempFail),
+// and the corrective action a failed cool needs is written to `notes`.
+const COOLING_COLUMNS =
+  'id, food_item, start_temp, end_temp, target_temp, cooling_method, started_at, logged_at, logged_by_name, notes, venue_id'
 
 /** Returns true if the end temperature is above the safe threshold */
 export function isCoolingTempFail(endTemp: number | string, targetTemp = COOLING_TARGET_TEMP): boolean {
@@ -48,7 +53,7 @@ export function useCoolingLogs(dateFrom: string | null, dateTo: string | null): 
     queryFn: async () => {
       let q = supabase
         .from('cooling_logs')
-        .select('id, food_item, start_temp, end_temp, cooling_method, start_time, end_time, pass, corrective_action, logged_at, logged_by_name, venue_id')
+        .select(COOLING_COLUMNS)
         .eq('venue_id', venueId)
         .order('logged_at', { ascending: false })
         .limit(200)
@@ -79,7 +84,7 @@ export function useTodayCoolingLogs(): { logs: CoolingLog[]; loading: boolean } 
       const today = new Date().toISOString().slice(0, 10)
       const { data } = await supabase
         .from('cooling_logs')
-        .select('id, food_item, start_temp, end_temp, cooling_method, start_time, end_time, pass, corrective_action, logged_at, logged_by_name, venue_id')
+        .select(COOLING_COLUMNS)
         .eq('venue_id', venueId)
         .gte('logged_at', today)
         .order('logged_at', { ascending: false })

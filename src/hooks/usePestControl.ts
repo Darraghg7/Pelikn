@@ -30,7 +30,9 @@ interface PestControlLog {
   pest_type?: string
   severity?: string
   location?: string
-  notes?: string
+  description: string
+  action_taken?: string
+  contractor?: string
   status: string
   logged_at: string
   logged_by_name?: string
@@ -51,7 +53,7 @@ export function usePestControlLogs(dateFrom: string | null, dateTo: string | nul
       if (!venueId) return [] as PestControlLog[]
       let q = supabase
         .from('pest_control_logs')
-        .select('id, log_type, pest_type, severity, location, notes, status, logged_at, logged_by_name, venue_id')
+        .select('id, log_type, pest_type, severity, location, description, action_taken, contractor, status, logged_at, logged_by_name, venue_id')
         .eq('venue_id', venueId)
         .order('logged_at', { ascending: false })
         .limit(200)
@@ -77,7 +79,7 @@ export function useOpenPestIssues(): { issues: PestControlLog[]; loading: boolea
     queryFn: async () => {
       const { data } = await supabase
         .from('pest_control_logs')
-        .select('id, log_type, pest_type, severity, location, notes, status, logged_at, logged_by_name, venue_id')
+        .select('id, log_type, pest_type, severity, location, description, action_taken, contractor, status, logged_at, logged_by_name, venue_id')
         .eq('venue_id', venueId)
         .eq('status', 'open')
         .in('log_type', ['sighting', 'treatment'])
