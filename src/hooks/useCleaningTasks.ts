@@ -13,33 +13,42 @@ function calendarDaysBetween(a: Date, b: Date): number {
 
 export type CleaningStatus = 'done' | 'due_soon' | 'overdue'
 
-export function cleaningStatus(task: CleaningTask, lastCompletion: CleaningCompletion | null): CleaningStatus {
+/** `asOf` lets a caller ask "what was the state on this day" — defaults to now. */
+export function cleaningStatus(
+  task: CleaningTask,
+  lastCompletion: CleaningCompletion | null,
+  asOf: Date = new Date(),
+): CleaningStatus {
   if (!lastCompletion) return 'overdue'
   const completedAt = new Date(lastCompletion.completed_at)
-  const now = new Date()
 
   if (task.frequency === 'daily' || !FREQ_DAYS[task.frequency]) {
-    const daysAgo = calendarDaysBetween(completedAt, now)
+    const daysAgo = calendarDaysBetween(completedAt, asOf)
     if (daysAgo <= 0) return 'done'
     return 'overdue'
   }
 
-  const daysSince = (now.getTime() - completedAt.getTime()) / 86400000
+  const daysSince = (asOf.getTime() - completedAt.getTime()) / 86400000
   const threshold = FREQ_DAYS[task.frequency]
   if (daysSince <= threshold * 0.8) return 'done'
   if (daysSince <= threshold)       return 'due_soon'
   return 'overdue'
 }
 
-export function useCleaningTasks(jobRole: string | null = null, knownRoles: readonly string[] = []): {
+export function useCleaningTasks(
+  jobRole: string | null = null,
+  knownRoles: readonly string[] = [],
+  asOf?: Date,
+): {
   tasks: (CleaningTask & { lastCompletion: CleaningCompletion | null; status: CleaningStatus })[]
   loading: boolean
+  error: unknown
   reload: () => void
   overdueCount: number
 } {
   const { venueId } = useVenue()
 
-  const { data, isLoading, refetch } = useQuery({
+  const { data, isLoading, refetch, error } = useQuery({
     queryKey: ['cleaningTasks', venueId],
     queryFn: () => fetchCleaningTasks(venueId!),
     enabled: !!venueId,
@@ -51,12 +60,21 @@ export function useCleaningTasks(jobRole: string | null = null, knownRoles: read
   const matchesRole = roleMatcher(jobRole, knownRoles)
   const filtered = tasks.filter((t) => matchesRole(t.assigned_role))
 
+  const reference = asOf ?? new Date()
+  // Completions logged after the day being viewed don't count towards it.
+  const cutoff = new Date(
+    reference.getFullYear(), reference.getMonth(), reference.getDate(), 23, 59, 59, 999,
+  ).getTime()
+
+  // completions arrive newest-first, so the first hit is the latest one.
   const enriched = filtered.map((t) => {
-    const last = completions.find((c) => c.cleaning_task_id === t.id) ?? null
-    return { ...t, lastCompletion: last, status: cleaningStatus(t, last) }
+    const last = completions.find((c) =>
+      c.cleaning_task_id === t.id && new Date(c.completed_at).getTime() <= cutoff
+    ) ?? null
+    return { ...t, lastCompletion: last, status: cleaningStatus(t, last, reference) }
   })
 
   const overdueCount = enriched.filter((t) => t.status === 'overdue').length
 
-  return { tasks: enriched, loading: isLoading, reload: refetch, overdueCount }
+  return { tasks: enriched, loading: isLoading, error, reload: refetch, overdueCount }
 }

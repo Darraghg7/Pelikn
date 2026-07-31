@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import { format, addDays } from 'date-fns'
+import { format, addDays, formatDistanceToNow } from 'date-fns'
 import { Link } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
 import { useSession } from '../../contexts/SessionContext'
 import { useAllTasks, useTasksForRole } from '../../hooks/useTasks'
 import { useTodayDuties } from '../../hooks/useDuties'
+import { useCleaningTasks } from '../../hooks/useCleaningTasks'
 import { useToast } from '../../components/ui/Toast'
 import { useAppSettings } from '../../hooks/useSettings'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
@@ -394,31 +395,10 @@ function ManagerTasksView() {
 
 // ── Staff view helpers ─────────────────────────────────────
 
-function useStaffCleaning(venueId, dateStr) {
-  const [data, setData] = useState({ tasks: [], completions: [], loading: true, error: null })
-  useEffect(() => {
-    if (!venueId) return
-    let cancelled = false
-    Promise.all([
-      supabase.from('cleaning_tasks').select('id, title, frequency').eq('venue_id', venueId).eq('is_active', true).order('title'),
-      supabase.from('cleaning_completions').select('cleaning_task_id, completed_at').eq('venue_id', venueId).gte('completed_at', dateStr + 'T00:00:00').lte('completed_at', dateStr + 'T23:59:59'),
-    ]).then(([tasksRes, compsRes]) => {
-      if (cancelled) return
-      // A failed fetch must not render as an empty schedule. This select used
-      // to ask for a non-existent `area` column, so PostgREST 400'd and every
-      // staff member was told "no cleaning tasks configured" while managers
-      // saw the full list.
-      setData({
-        tasks:       tasksRes.data ?? [],
-        completions: compsRes.data ?? [],
-        loading:     false,
-        error:       tasksRes.error ?? compsRes.error ?? null,
-      })
-    })
-    return () => { cancelled = true }
-  }, [venueId, dateStr])
-  return data
-}
+// Staff read the same schedule as managers, through the same frequency-aware
+// hook. The bespoke version this replaced compared completions against a single
+// calendar day, so a weekly task ticked on Monday was pending again on Tuesday
+// for everyone else.
 
 function TaskItemRow({ item, assignmentId, toggleItem }) {
   const [busy, setBusy] = useState(false)
@@ -507,7 +487,7 @@ function DutiesTab({ duties, loading, toggleItem }) {
   )
 }
 
-function CleaningTab({ tasks, completions, loading, error }) {
+function CleaningTab({ tasks, loading, error }) {
   if (loading) return <SkeletonList rows={4} />
   if (error) return (
     <div className="bg-white rounded-[14px] border border-danger/20 p-8 text-center">
@@ -520,9 +500,11 @@ function CleaningTab({ tasks, completions, loading, error }) {
       <p className="text-sm text-charcoal/40">No cleaning tasks configured</p>
     </div>
   )
-  const doneIds = new Set(completions.map(c => c.cleaning_task_id))
-  const pending = tasks.filter(t => !doneIds.has(t.id))
-  const done    = tasks.filter(t => doneIds.has(t.id))
+  // A task drops off everyone's list once it's ticked, and comes back only when
+  // its frequency brings it round again — a weekly task done on Monday is
+  // nobody's job until the next Monday, whoever ticked it.
+  const pending = tasks.filter(t => t.status === 'overdue')
+  const done    = tasks.filter(t => t.status !== 'overdue')
   const pct     = tasks.length > 0 ? Math.round((done.length / tasks.length) * 100) : 0
 
   return (
@@ -560,7 +542,15 @@ function CleaningTab({ tasks, completions, loading, error }) {
                 <span className="w-[22px] h-[22px] rounded-md bg-success border-success border-[1.5px] flex items-center justify-center shrink-0">
                   <svg className="w-3 h-3 text-white" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg>
                 </span>
-                <p className="text-[13.5px] text-charcoal/40 line-through flex-1">{t.title}</p>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[13.5px] text-charcoal/40 line-through">{t.title}</p>
+                  {/* Says who cleared it, so nobody wonders why it's gone. */}
+                  {t.lastCompletion?.completed_by_name && (
+                    <p className="text-[11px] text-charcoal/35 mt-0.5 no-underline">
+                      {t.lastCompletion.completed_by_name} · {formatDistanceToNow(new Date(t.lastCompletion.completed_at), { addSuffix: true })}
+                    </p>
+                  )}
+                </div>
               </div>
             ))}
           </div>
@@ -619,18 +609,20 @@ function StaffTasksView({ session }) {
   const [dayOffset, setDayOffset] = useState(0)
 
   const targetDate = addDays(new Date(), dayOffset)
-  const dateStr    = format(targetDate, 'yyyy-MM-dd')
 
   const dayLabel = (offset) => offset === 0 ? 'Today' : format(addDays(new Date(), offset), 'EEE')
 
   const dutiesData   = useTodayDuties(session?.staffId)
-  const cleaningData = useStaffCleaning(venueId, dateStr)
+  // Whole schedule, unfiltered by role — matches what the manager sees.
+  const cleaningData = useCleaningTasks(null, [], targetDate)
+  const cleaningDue  = cleaningData.tasks.filter(t => t.status === 'overdue').length
 
   const TAB_TITLE = { duties: 'Duties', cleaning: 'Cleaning', allergens: 'Allergens' }
 
   const TABS = [
     { id: 'duties',   label: 'Duties',   count: dutiesData.duties.length },
-    { id: 'cleaning', label: 'Cleaning', count: cleaningData.tasks.length },
+    // Outstanding, not total — the badge is "what's left to do".
+    { id: 'cleaning', label: 'Cleaning', count: cleaningDue },
     { id: 'allergens', label: 'Allergens', count: 1 },
   ]
 
@@ -699,7 +691,7 @@ function StaffTasksView({ session }) {
 
       {/* Tab content */}
       {activeTab === 'duties'    && <DutiesTab duties={dutiesData.duties} loading={dutiesData.loading} toggleItem={dutiesData.toggleItem} />}
-      {activeTab === 'cleaning'  && <CleaningTab tasks={cleaningData.tasks} completions={cleaningData.completions} loading={cleaningData.loading} error={cleaningData.error} />}
+      {activeTab === 'cleaning'  && <CleaningTab tasks={cleaningData.tasks} loading={cleaningData.loading} error={cleaningData.error} />}
       {activeTab === 'allergens' && <AllergensTab venueSlug={venueSlug} />}
 
     </div>
