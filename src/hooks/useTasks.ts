@@ -2,9 +2,10 @@ import { useQuery } from '@tanstack/react-query'
 import { useVenue } from '../contexts/VenueContext'
 import { format } from 'date-fns'
 import { fetchTasksForRole, fetchAllTasks } from '../lib/api/tasks'
+import { roleMatcher } from '../lib/roleFilter'
 import type { TaskTemplate, TaskOneOff, TaskCompletion } from '../types'
 
-export function useTasksForRole(jobRole: string, staffId: string): {
+export function useTasksForRole(jobRole: string, staffId: string, knownRoles: readonly string[] = []): {
   templates: TaskTemplate[]
   oneOffs: TaskOneOff[]
   completions: TaskCompletion[]
@@ -24,15 +25,12 @@ export function useTasksForRole(jobRole: string, staffId: string): {
   const rawOneOffs: TaskOneOff[] = (data as { oneOffs?: TaskOneOff[] })?.oneOffs ?? []
   const completions: TaskCompletion[] = (data as { completions?: TaskCompletion[] })?.completions ?? []
 
-  const templates = rawTemplates.filter(
-    (t) => t.job_role === jobRole || t.job_role === 'all'
-  )
+  const matchesRole = roleMatcher(jobRole, knownRoles)
+
+  const templates = rawTemplates.filter((t) => matchesRole(t.job_role))
 
   const allOneOffs = rawOneOffs.filter(
-    (o) =>
-      o.job_role === jobRole ||
-      o.job_role === 'all' ||
-      (staffId && o.assigned_to_staff_id === staffId)
+    (o) => matchesRole(o.job_role) || (!!staffId && o.assigned_to_staff_id === staffId)
   )
 
   const seen = new Set<string>()

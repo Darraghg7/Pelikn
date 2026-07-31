@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { format, formatDistanceToNow, differenceInCalendarDays } from 'date-fns'
 import { supabase } from '../../lib/supabase'
 import { capitalize } from '../../lib/utils'
@@ -72,8 +72,11 @@ export default function CleaningPage() {
   const { customRoles = [] } = useAppSettings()
   const roleOptions = [{ value: 'all', label: 'All Roles' }, ...customRoles.map(r => ({ value: r.value, label: r.label }))]
   const jobRole = isManager ? null : (session?.jobRole ?? null)
+  // Passed through so a task or job_role naming a deleted role stays visible
+  // rather than silently filtering the staff member out — see lib/roleFilter.
+  const knownRoles = useMemo(() => customRoles.map(r => r.value), [customRoles])
 
-  const { tasks, loading, reload } = useCleaningTasks(jobRole)
+  const { tasks, loading, reload } = useCleaningTasks(jobRole, knownRoles)
 
   const [showAdd, setShowAdd]   = useState(false)
   const [form, setForm]         = useState({ title: '', frequency: 'daily', assigned_role: 'all' })

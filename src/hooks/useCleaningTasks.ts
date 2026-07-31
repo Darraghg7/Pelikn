@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { useVenue } from '../contexts/VenueContext'
 import { fetchCleaningTasks, type CleaningTask, type CleaningCompletion } from '../lib/api/cleaning'
+import { roleMatcher } from '../lib/roleFilter'
 
 const FREQ_DAYS: Record<string, number> = { daily: 1, weekly: 7, fortnightly: 14, monthly: 30, quarterly: 90 }
 
@@ -30,7 +31,7 @@ export function cleaningStatus(task: CleaningTask, lastCompletion: CleaningCompl
   return 'overdue'
 }
 
-export function useCleaningTasks(jobRole: string | null = null): {
+export function useCleaningTasks(jobRole: string | null = null, knownRoles: readonly string[] = []): {
   tasks: (CleaningTask & { lastCompletion: CleaningCompletion | null; status: CleaningStatus })[]
   loading: boolean
   reload: () => void
@@ -47,10 +48,8 @@ export function useCleaningTasks(jobRole: string | null = null): {
   const tasks: CleaningTask[] = data?.tasks ?? []
   const completions: CleaningCompletion[] = data?.completions ?? []
 
-  let filtered = tasks
-  if (jobRole) {
-    filtered = filtered.filter((t) => t.assigned_role === jobRole || t.assigned_role === 'all')
-  }
+  const matchesRole = roleMatcher(jobRole, knownRoles)
+  const filtered = tasks.filter((t) => matchesRole(t.assigned_role))
 
   const enriched = filtered.map((t) => {
     const last = completions.find((c) => c.cleaning_task_id === t.id) ?? null
