@@ -20,10 +20,10 @@ export default function HelpSettingsPage() {
   const vp = (path) => `/v/${venueSlug}${path}`
 
   return (
-    <div className="min-h-screen bg-surface">
+    <div>
       <SettingsSubHeader title="Help & Support" onBack={() => navigate(vp('/settings/hub'))} />
 
-      <div className="px-4 pb-24 max-w-[480px] mx-auto">
+      <div className="pb-24 max-w-[480px] mx-auto">
 
         <div className="font-mono text-[11px] font-semibold tracking-[0.08em] uppercase text-charcoal/50 pt-[18px] pb-[7px] px-0.5">Common questions</div>
         <div className="bg-white dark:bg-paperDark border border-charcoal/10 rounded-[14px] overflow-hidden">

@@ -99,10 +99,10 @@ export default function HubTilesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-surface">
+    <div>
       <SettingsSubHeader title="Features" onBack={() => navigate(vp('/settings/hub'))} />
 
-      <div className="px-4 pb-24 max-w-[480px] mx-auto">
+      <div className="pb-24 max-w-[480px] mx-auto">
       <div className="flex flex-col gap-4">
 
         <Group label="Checks hub" foot="Hidden tiles won't show on the Checks hub but their pages remain accessible from the menu.">

@@ -28,10 +28,10 @@ export default function StaffSettingsPage() {
   const vp = (path) => `/v/${venueSlug}${path}`
 
   return (
-    <div className="min-h-screen bg-surface">
+    <div>
       <SettingsSubHeader title="Staff & Roles" onBack={() => navigate(vp('/settings/hub'))} />
 
-      <div className="flex bg-white dark:bg-paperDark border-b border-charcoal/10 px-4 gap-0.5 sticky top-[49px] z-[9]">
+      <div className="flex bg-white dark:bg-paperDark border-b border-charcoal/10 gap-0.5 sticky top-[49px] z-[9]">
         {TABS.map(t => (
           <button
             key={t.id}

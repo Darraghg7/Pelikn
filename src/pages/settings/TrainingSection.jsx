@@ -6,6 +6,7 @@ import { useToast } from '../../components/ui/Toast'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
 import ConfirmDialog from '../../components/ui/ConfirmDialog'
 import { useStaffTraining } from '../../hooks/useTraining'
+import { TRAINING_BUCKET, trainingFilePath, openTrainingFile } from '../../lib/trainingFiles'
 
 const EMPTY_TRAINING = { title: '', issued_date: '', expiry_date: '', notes: '' }
 
@@ -24,18 +25,16 @@ export default function TrainingSection({ staffId }) {
     if (!form.title.trim()) { toast('Title is required', 'error'); return }
     setSaving(true)
 
-    let file_url = null
+    let file_path = null
     let file_name = null
 
     if (file) {
-      const ext  = file.name.split('.').pop()
-      const path = `${venueId}/${staffId}/${Date.now()}.${ext}`
+      const path = trainingFilePath(venueId, staffId, file.name)
       const { error: uploadErr } = await supabase.storage
-        .from('training-files')
+        .from(TRAINING_BUCKET)
         .upload(path, file, { upsert: false })
       if (uploadErr) { toast('File upload failed: ' + uploadErr.message, 'error'); setSaving(false); return }
-      const { data: urlData } = supabase.storage.from('training-files').getPublicUrl(path)
-      file_url  = urlData.publicUrl
+      file_path = path
       file_name = file.name
     }
 
@@ -46,7 +45,7 @@ export default function TrainingSection({ staffId }) {
       issued_date: form.issued_date || null,
       expiry_date: form.expiry_date || null,
       notes:       form.notes.trim() || null,
-      file_url,
+      file_path,
       file_name,
     })
 
@@ -153,11 +152,11 @@ export default function TrainingSection({ staffId }) {
                         Expires: {format(parseISO(r.expiry_date), 'dd/MM/yyyy')}
                       </p>
                     )}
-                    {r.file_url && (
-                      <a href={r.file_url} target="_blank" rel="noreferrer"
-                        className="text-xs text-accent underline underline-offset-2 hover:opacity-70 transition-opacity truncate max-w-[200px]">
+                    {(r.file_path || r.file_url) && (
+                      <button onClick={() => openTrainingFile(r, toast)}
+                        className="text-xs text-accent underline underline-offset-2 hover:opacity-70 transition-opacity truncate max-w-[200px] text-left">
                         {r.file_name ?? 'View file'}
-                      </a>
+                      </button>
                     )}
                   </div>
                   {r.notes && <p className="text-xs text-charcoal/40 mt-1 italic">{r.notes}</p>}

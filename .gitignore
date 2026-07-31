@@ -6,6 +6,8 @@ backups/
 .DS_Store
 supabase/.temp
 .claude/settings.local.json
+.claude/skills/
+.vercel/
 
 # Playwright
 playwright-report/
