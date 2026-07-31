@@ -28,10 +28,10 @@ export default function BillingSettingsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-surface">
+    <div>
       <SettingsSubHeader title="Plan & Billing" onBack={() => navigate(vp('/settings/hub'))} />
 
-      <div className="px-4 pt-4 pb-24 max-w-[480px] mx-auto">
+      <div className="pt-4 pb-24 max-w-[480px] mx-auto">
 
         <div className="bg-brand rounded-[14px] p-[18px] pb-4 mb-[14px] text-white">
           <div className="font-mono text-[11px] tracking-[0.1em] uppercase text-white/55 font-semibold">Current plan</div>

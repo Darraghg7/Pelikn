@@ -155,14 +155,15 @@ export default function ChecksWorklistPage() {
   }
 
   return (
-    <div className="min-h-dvh bg-surface pb-24">
+    <div className="pb-24">
 
-      <div className="pt-4 pb-3">
-        <h1 className="text-2xl font-semibold tracking-[-0.025em] text-charcoal m-0 mb-0.5">
+      <div className="mb-[10px]">
+        <span className="font-mono text-[11px] text-charcoal/50 tracking-[0.08em] uppercase">Checks</span>
+        <h1 className="text-[26px] font-semibold tracking-[-0.028em] leading-[1.12] mt-1 mb-0 text-charcoal">
           All checks
         </h1>
         {!isLoading && (
-          <p className="font-mono text-[11px] text-charcoal/50 m-0">
+          <p className="font-mono text-[11px] text-charcoal/50 mt-[5px] mb-0">
             {counts.Overdue > 0 && `${counts.Overdue} overdue · `}
             {counts.Due > 0 && `${counts.Due} due · `}
             {counts.Done} done
@@ -170,7 +171,7 @@ export default function ChecksWorklistPage() {
         )}
       </div>
 
-      <div className="flex gap-2 px-4 pb-[14px] overflow-x-auto [scrollbar-width:none]">
+      <div className="flex gap-2 pb-[14px] overflow-x-auto [scrollbar-width:none]">
         {FILTERS.map(f => (
           <FilterChip
             key={f}
@@ -182,7 +183,7 @@ export default function ChecksWorklistPage() {
         ))}
       </div>
 
-      <div className={isLoading ? 'mx-4' : 'bg-white dark:bg-paperDark rounded-[14px] border border-charcoal/10 mx-4 overflow-hidden'}>
+      <div className={isLoading ? '' : 'bg-white dark:bg-paperDark rounded-[14px] border border-charcoal/10 overflow-hidden'}>
         {isLoading ? (
           <SkeletonList rows={6} />
         ) : filtered.length === 0 ? (

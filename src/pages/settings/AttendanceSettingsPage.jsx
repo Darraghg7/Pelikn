@@ -70,10 +70,10 @@ export default function AttendanceSettingsPage() {
   const vp = (path) => `/v/${venueSlug}${path}`
 
   return (
-    <div className="min-h-screen bg-surface">
+    <div>
       <SettingsSubHeader title="Attendance" onBack={() => navigate(vp('/settings/hub'))} />
 
-      <div className="px-4 pb-24 max-w-[480px] mx-auto">
+      <div className="pb-24 max-w-[480px] mx-auto">
 
         <Group
           label="Late clock-in"

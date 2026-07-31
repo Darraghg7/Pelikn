@@ -41,10 +41,10 @@ export default function IntegrationsSettingsPage() {
   const vp = (path) => `/v/${venueSlug}${path}`
 
   return (
-    <div className="min-h-screen bg-surface">
+    <div>
       <SettingsSubHeader title="Integrations" onBack={() => navigate(vp('/settings/hub'))} />
 
-      <div className="px-4 pb-24 max-w-[480px] mx-auto pt-4">
+      <div className="pb-24 max-w-[480px] mx-auto pt-4">
 
       <div className="mb-5">
         <h1 className="text-2xl font-semibold tracking-[-0.025em] text-charcoal m-0">Integrations</h1>

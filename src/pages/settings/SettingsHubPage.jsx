@@ -56,6 +56,7 @@ export default function SettingsHubPage() {
   const vp = (path) => `/v/${venueSlug}${path}`
 
   const isOwner  = session?.staffRole === 'owner'
+  const staffId  = session?.staffId
   const staffName = session?.name ?? 'Manager'
   const role = session?.staffRole === 'owner' ? 'Owner' : session?.staffRole === 'manager' ? 'General Manager' : 'Manager'
   const initials = staffName.split(' ').map(w => w[0]).slice(0, 2).join('')
@@ -67,9 +68,13 @@ export default function SettingsHubPage() {
 
       <h1 className="text-[26px] font-semibold tracking-[-0.028em] mb-[14px] text-charcoal">Settings</h1>
 
+      {/* Opens the signed-in manager's own staff record. Without a staffId
+          there is nowhere to go, so the card renders inert rather than
+          navigating to the page it already sits on. */}
       <button
-        onClick={() => navigate(vp('/settings/hub'))}
-        className="w-full text-left bg-brand text-white rounded-[14px] p-4 flex items-center gap-[13px] mb-1 hover:bg-brand/90 transition-colors"
+        onClick={staffId ? () => navigate(vp(`/hr/${staffId}`)) : undefined}
+        disabled={!staffId}
+        className={`w-full text-left bg-brand text-white rounded-[14px] p-4 flex items-center gap-[13px] mb-1 transition-colors ${staffId ? 'hover:bg-brand/90 cursor-pointer' : 'cursor-default'}`}
       >
         <span className="w-[50px] h-[50px] rounded-[13px] shrink-0 bg-white/[0.16] flex items-center justify-center font-mono text-base font-semibold">
           {initials}
@@ -80,9 +85,11 @@ export default function SettingsHubPage() {
             {role}{venueName ? ` · ${venueName}` : ''}
           </div>
         </div>
-        <svg width="6" height="10" viewBox="0 0 6 10" fill="none" stroke="rgba(255,255,255,0.45)" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M1 1l4 4-4 4"/>
-        </svg>
+        {staffId && (
+          <svg width="6" height="10" viewBox="0 0 6 10" fill="none" stroke="rgba(255,255,255,0.45)" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M1 1l4 4-4 4"/>
+          </svg>
+        )}
       </button>
 
       <GroupLabel label="Account" />
