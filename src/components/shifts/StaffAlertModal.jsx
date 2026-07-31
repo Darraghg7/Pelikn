@@ -367,6 +367,10 @@ export default function StaffAlertModal({
 
       <div
         className="fixed inset-0 z-[60] flex items-end justify-center"
+        // iOS resolves `inset:0` against the layout viewport, which is taller than
+        // the visible area while the browser toolbars are showing — a bottom-aligned
+        // sheet then sits partly under them. dvh tracks the visible area instead.
+        style={{ height: '100dvh' }}
         role="dialog"
         aria-modal="true"
       >

@@ -627,7 +627,12 @@ export default function AppShell({ children }) {
       </div>
 
       {/* ── Content area (offset by rail + panel on desktop) ───────────────── */}
-      <div className={`flex-1 ${isSettingsRoute || panelCollapsed ? 'lg:ml-[80px]' : 'lg:ml-[340px]'} flex flex-col min-h-dvh overflow-x-hidden ${bgClass}`}>
+      {/* overflow-x-clip, not -hidden: `overflow-x:hidden` forces overflow-y to
+          compute to `auto`, quietly turning this wrapper into a full-page nested
+          scroll container that fights the document scroll on iOS. `clip` stops the
+          horizontal bleed without that side effect — same reasoning as the
+          overflow-x:clip on <body> in index.css. */}
+      <div className={`flex-1 ${isSettingsRoute || panelCollapsed ? 'lg:ml-[80px]' : 'lg:ml-[340px]'} flex flex-col min-h-dvh overflow-x-clip ${bgClass}`}>
 
         {/* Mobile-only header (shown below lg breakpoint) */}
         <header
