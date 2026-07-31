@@ -304,6 +304,33 @@ export default function StaffAlertModal({
     }
   }, [open]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  const handleManagerApprove = async () => {
+    if (!selectedManager || pin.length !== 4 || pinLoading) return
+    setPinLoading(true)
+    setPinError('')
+    const result = await onVerifyManagerPin(selectedManager.id, pin)
+    setPinLoading(false)
+    if (result.ok) {
+      onAcknowledge(selectedReason)
+    } else {
+      setPin('')
+      setPinError(result.error ?? 'Incorrect PIN, try again')
+      setShake(true)
+      setTimeout(() => setShake(false), 500)
+    }
+  }
+
+  // Auto-submit when 4th digit is entered.
+  // Must stay above the `!visible` guard below — `visible` flips false → true
+  // when the alert opens, so a hook after the guard changes the hook count
+  // between renders and crashes with "Rendered more hooks than during the
+  // previous render". handleManagerApprove moves up with it for the same reason.
+  useEffect(() => {
+    if (phase === 'manager_pin' && pin.length === 4) {
+      handleManagerApprove()
+    }
+  }, [pin]) // eslint-disable-line react-hooks/exhaustive-deps
+
   // No Escape key close — intentionally non-dismissible
   if (!visible) return null
 
@@ -324,29 +351,6 @@ export default function StaffAlertModal({
       onAcknowledge(selectedReason)
     }
   }
-
-  const handleManagerApprove = async () => {
-    if (!selectedManager || pin.length !== 4 || pinLoading) return
-    setPinLoading(true)
-    setPinError('')
-    const result = await onVerifyManagerPin(selectedManager.id, pin)
-    setPinLoading(false)
-    if (result.ok) {
-      onAcknowledge(selectedReason)
-    } else {
-      setPin('')
-      setPinError(result.error ?? 'Incorrect PIN, try again')
-      setShake(true)
-      setTimeout(() => setShake(false), 500)
-    }
-  }
-
-  // Auto-submit when 4th digit is entered
-  useEffect(() => {
-    if (phase === 'manager_pin' && pin.length === 4) {
-      handleManagerApprove()
-    }
-  }, [pin]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <>

@@ -74,8 +74,10 @@ function UpgradeButton() {
 /* ── Draggable widget grid ──────────────────────────────────────────────── */
 function SortableWidget({ id }) {
   const widget = WIDGET_REGISTRY[id]
-  if (!widget) return null
+  // useSortable must run before the unknown-widget guard so a saved layout
+  // holding a since-removed widget id can't change the hook count mid-render.
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id })
+  if (!widget) return null
   const Component = widget.component
   return (
     <div

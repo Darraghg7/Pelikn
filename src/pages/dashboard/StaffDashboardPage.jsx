@@ -358,12 +358,14 @@ function DutyCard({ duty, toggleItem }) {
 }
 
 function PendingTrainingCard({ staffId, staffName, isManager }) {
-  if (isManager) return null
+  // No early return above the hooks — `isManager` derives from the session,
+  // which resolves asynchronously, so it flips after mount. Guarding here
+  // would change the hook count between renders and crash the dashboard.
   const [records, setRecords] = useState([])
   const [ackRecord, setAckRecord] = useState(null)
 
   const load = useCallback(async () => {
-    if (!staffId) return
+    if (!staffId || isManager) return
     const { data } = await supabase
       .from('training_sign_offs')
       .select('id, training_date, trainer_name, topics, notes, manager_name, manager_signature')
@@ -371,11 +373,11 @@ function PendingTrainingCard({ staffId, staffName, isManager }) {
       .eq('staff_acknowledged', false)
       .order('created_at', { ascending: false })
     setRecords(data ?? [])
-  }, [staffId])
+  }, [staffId, isManager])
 
   useEffect(() => { load() }, [load])
 
-  if (!records.length) return null
+  if (isManager || !records.length) return null
 
   return (
     <>
