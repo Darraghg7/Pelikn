@@ -46,7 +46,11 @@ function ConfirmDialog({ onConfirm, onCancel, saving }) {
   return (
     <div
       style={{
-        position: 'fixed', inset: 0, zIndex: 9999,
+        // height:100dvh as well as inset:0 — on iOS `inset:0` resolves against the
+        // *layout* viewport, so with the keyboard up (the Reason field is focused
+        // right before this opens) the bottom-aligned sheet lands behind the
+        // keyboard and its buttons become untappable. dvh tracks the visible area.
+        position: 'fixed', inset: 0, height: '100dvh', zIndex: 9999,
         background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(2px)',
         display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
         padding: '0 0 env(safe-area-inset-bottom)',
@@ -57,6 +61,10 @@ function ConfirmDialog({ onConfirm, onCancel, saving }) {
         style={{
           background: '#fff', borderRadius: '20px 20px 0 0',
           padding: '28px 24px 32px', width: '100%', maxWidth: 480,
+          // Without these the sheet overflows off the *top* of the screen when it
+          // is taller than the viewport, and nothing scrolls — the confirm button
+          // is then unreachable.
+          maxHeight: '92dvh', overflowY: 'auto',
           boxShadow: '0 -8px 32px rgba(0,0,0,0.15)',
         }}
         onClick={e => e.stopPropagation()}
