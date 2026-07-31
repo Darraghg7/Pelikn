@@ -1,5 +1,5 @@
-# Quality gates — typecheck + unit tests on every PR and push to main.
-# These checks were green on 16 July 2026; if this workflow fails, the change
+# Quality gates — lint + typecheck + unit tests on every PR and push to main.
+# These checks were green on 31 July 2026; if this workflow fails, the change
 # being merged broke them. Fix the change, don't skip the check.
 name: CI
 
@@ -22,6 +22,12 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      # Gates react-hooks/rules-of-hooks, which is an error. React #310 shipped
+      # to production three times before this step existed. exhaustive-deps is a
+      # warning and does not fail the build — see eslint.config.js.
+      - name: Lint
+        run: npm run lint
 
       - name: Typecheck
         run: npm run typecheck

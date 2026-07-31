@@ -228,9 +228,9 @@ function TsWheel({ values, value, onChange }) {
   const setNode = useCallback((node) => {
     ref.current = node
     if (node) node.scrollTop = idx * WH_IH
-  }, []) // eslint-disable-line
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  useEffect(() => { const el = ref.current; if (el) el.scrollTop = idx * WH_IH }, [strVal]) // eslint-disable-line
+  useEffect(() => { const el = ref.current; if (el) el.scrollTop = idx * WH_IH }, [strVal]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const onScroll = useCallback(() => {
     clearTimeout(timer.current)

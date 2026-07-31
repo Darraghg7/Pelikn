@@ -152,7 +152,7 @@ function EHWheel({ values, value, onChange }) {
   const ref   = React.useRef(null)
   const timer = React.useRef(null)
   const idx   = Math.max(0, values.indexOf(value))
-  React.useLayoutEffect(() => { if (ref.current) ref.current.scrollTop = idx * WHEEL_IH }, [value]) // eslint-disable-line
+  React.useLayoutEffect(() => { if (ref.current) ref.current.scrollTop = idx * WHEEL_IH }, [value]) // eslint-disable-line react-hooks/exhaustive-deps
   const onScroll = () => {
     clearTimeout(timer.current)
     timer.current = setTimeout(() => {
@@ -725,13 +725,13 @@ function StaffRotaView({ shifts, staff, loading, weekStart, prevWeek, nextWeek, 
         }
         setReqs(map)
       })
-  }, [session?.staffId, venueId]) // eslint-disable-line
+  }, [session?.staffId, venueId]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Filter clock sessions to the current week
   const weekDateStrs = weekDays.map(d => format(d, 'yyyy-MM-dd'))
   const weekClockSessions = React.useMemo(() => {
     return clockSessions.filter(s => s.clockOutAt && weekDateStrs.includes(format(s.date, 'yyyy-MM-dd')))
-  }, [clockSessions, weekStart]) // eslint-disable-line
+  }, [clockSessions, weekStart]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Build worked rows with display data
   const workedRows = React.useMemo(() => {
@@ -799,7 +799,7 @@ function StaffRotaView({ shifts, staff, loading, weekStart, prevWeek, nextWeek, 
     }))
     ehToast('Sent to your manager for approval ✓')
     reloadClockSessions()
-  }, [venueId, session, me, ehToast, reloadClockSessions]) // eslint-disable-line
+  }, [venueId, session, me, ehToast, reloadClockSessions]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="flex flex-col gap-4">
