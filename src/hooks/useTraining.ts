@@ -14,7 +14,8 @@ interface TrainingRecord {
   issued_date?: string
   expiry_date?: string
   notes?: string
-  file_url?: string
+  file_path?: string
+  file_url?: string     // legacy public URL, pre-086
   file_name?: string
   staff_id: string
   venue_id: string
@@ -34,7 +35,7 @@ export function useStaffTraining(staffId: string): {
       if (!staffId) return [] as TrainingRecord[]
       let q = supabase
         .from('staff_training')
-        .select('id, title, category, issued_date, expiry_date, notes, file_url, file_name, staff_id, venue_id, created_at')
+        .select('id, title, category, issued_date, expiry_date, notes, file_path, file_url, file_name, staff_id, venue_id, created_at')
         .eq('staff_id', staffId)
         .order('created_at', { ascending: false })
       if (venueId) q = q.eq('venue_id', venueId)

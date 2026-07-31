@@ -12,6 +12,7 @@ import SignaturePad from '../../components/ui/SignaturePad'
 import AcknowledgeModal from '../../components/training/AcknowledgeModal'
 import { sendPush } from '../../lib/sendPush'
 import { useSignOffs, useCertRecords, useActiveStaff, useAllergenCerts } from '../../hooks/useTraining'
+import { TRAINING_BUCKET, trainingFilePath, openTrainingFile } from '../../lib/trainingFiles'
 import { insertSignOff, insertTrainingRecord, deleteTrainingRecord } from '../../lib/api/training'
 
 // ── SC6 topic list (standard food safety induction) ───────────────────────────
@@ -470,20 +471,18 @@ function CertificatesTab({ venueId }) {
     if (!form.staff_id)     { toast('Select a staff member', 'error'); return }
     if (!form.title.trim()) { toast('Title is required', 'error'); return }
     setSaving(true)
-    let file_url = null, file_name = null
+    let file_path = null, file_name = null
     if (file) {
-      const ext  = file.name.split('.').pop()
-      const path = `${venueId}/${form.staff_id}/${Date.now()}.${ext}`
-      const { error: uploadErr } = await supabase.storage.from('training-files').upload(path, file, { upsert: false })
+      const path = trainingFilePath(venueId, form.staff_id, file.name)
+      const { error: uploadErr } = await supabase.storage.from(TRAINING_BUCKET).upload(path, file, { upsert: false })
       if (uploadErr) { toast('File upload failed: ' + uploadErr.message, 'error'); setSaving(false); return }
-      const { data: urlData } = supabase.storage.from('training-files').getPublicUrl(path)
-      file_url = urlData.publicUrl
+      file_path = path
       file_name = file.name
     }
     const { error } = await insertTrainingRecord({
       staff_id: form.staff_id, title: form.title.trim(), category: form.category || null,
       issued_date: form.issued_date || null, expiry_date: form.expiry_date || null,
-      notes: form.notes.trim() || null, file_url, file_name, venue_id: venueId,
+      notes: form.notes.trim() || null, file_path, file_name, venue_id: venueId,
     })
     setSaving(false)
     if (error) { toast(error.message, 'error'); return }
@@ -641,11 +640,11 @@ function CertificatesTab({ venueId }) {
                             Expires: {format(parseISO(r.expiry_date), 'dd MMM yyyy')}
                           </p>
                         )}
-                        {r.file_url && (
-                          <a href={r.file_url} target="_blank" rel="noreferrer"
-                            className="text-xs text-accent underline underline-offset-2 hover:opacity-70 transition-opacity truncate max-w-[200px]">
+                        {(r.file_path || r.file_url) && (
+                          <button onClick={() => openTrainingFile(r, toast)}
+                            className="text-xs text-accent underline underline-offset-2 hover:opacity-70 transition-opacity truncate max-w-[200px] text-left">
                             {r.file_name ?? 'View certificate'}
-                          </a>
+                          </button>
                         )}
                       </div>
                       {r.notes && <p className="text-xs text-charcoal/40 mt-1 italic">{r.notes}</p>}
@@ -694,19 +693,17 @@ function AllergenComplianceTab({ venueId }) {
 
   const save = async () => {
     setSaving(true)
-    let file_url = null, file_name = null
+    let file_path = null, file_name = null
     if (file) {
-      const ext  = file.name.split('.').pop()
-      const path = `${venueId}/${addFor.id}/${Date.now()}.${ext}`
-      const { error: uploadErr } = await supabase.storage.from('training-files').upload(path, file, { upsert: false })
+      const path = trainingFilePath(venueId, addFor.id, file.name)
+      const { error: uploadErr } = await supabase.storage.from(TRAINING_BUCKET).upload(path, file, { upsert: false })
       if (uploadErr) { toast('Upload failed: ' + uploadErr.message, 'error'); setSaving(false); return }
-      const { data: urlData } = supabase.storage.from('training-files').getPublicUrl(path)
-      file_url = urlData.publicUrl; file_name = file.name
+      file_path = path; file_name = file.name
     }
     const { error } = await insertTrainingRecord({
       staff_id: addFor.id, title: 'Allergen Awareness Training', category: 'allergen_awareness',
       issued_date: form.issued_date || null, expiry_date: form.expiry_date || null,
-      notes: form.notes.trim() || null, file_url, file_name, venue_id: venueId,
+      notes: form.notes.trim() || null, file_path, file_name, venue_id: venueId,
     })
     setSaving(false)
     if (error) { toast(error.message, 'error'); return }

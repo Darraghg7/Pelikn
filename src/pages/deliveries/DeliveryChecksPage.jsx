@@ -9,6 +9,7 @@ import Modal from '../../components/ui/Modal'
 import useDeliveryChecks from '../../hooks/useDeliveryChecks'
 import { useSuppliers } from '../../hooks/useSuppliers'
 import { insertSupplier } from '../../lib/api/suppliers'
+import { TRAINING_BUCKET, deliveryPhotoPath } from '../../lib/trainingFiles'
 // tesseract.js is ~7 MB — dynamically imported only when OCR is actually used
 
 function nowDatetimeLocal() {
@@ -211,7 +212,7 @@ function DeliveryCheckModal({ open, onClose, suppliers, onSupplierAdded, onCompl
   const [categorisingIdx, setCategorisingIdx] = useState(0)
 
   // Photo upload
-  const [photoUrl, setPhotoUrl] = useState('')
+  const [photoPath, setPhotoPath] = useState('')
   const [uploading, setUploading] = useState(false)
   const [checkedAt, setCheckedAt] = useState(nowDatetimeLocal())
 
@@ -226,7 +227,7 @@ function DeliveryCheckModal({ open, onClose, suppliers, onSupplierAdded, onCompl
       setUseByOk(true)
       setOcrItems([])
       setCategorisingIdx(0)
-      setPhotoUrl('')
+      setPhotoPath('')
     }
   }, [open])
 
@@ -361,12 +362,10 @@ function DeliveryCheckModal({ open, onClose, suppliers, onSupplierAdded, onCompl
     const file = e.target.files?.[0]
     if (!file) return
     setUploading(true)
-    const ext = file.name.split('.').pop()
-    const path = `${venueId}/delivery-photos/${Date.now()}.${ext}`
-    const { error } = await supabase.storage.from('training-files').upload(path, file)
+    const path = deliveryPhotoPath(venueId, file.name)
+    const { error } = await supabase.storage.from(TRAINING_BUCKET).upload(path, file)
     if (error) { toast('Upload failed', 'error'); setUploading(false); return }
-    const { data: { publicUrl } } = supabase.storage.from('training-files').getPublicUrl(path)
-    setPhotoUrl(publicUrl)
+    setPhotoPath(path)
     setUploading(false)
   }
 
@@ -396,7 +395,7 @@ function DeliveryCheckModal({ open, onClose, suppliers, onSupplierAdded, onCompl
       packaging_ok: packagingOk,
       use_by_ok: useByOk,
       overall_pass: overallPass,
-      photo_url: photoUrl || null,
+      photo_path: photoPath || null,
       notes: overallNotes.trim() || null,
       items_desc: itemEntries.map(([, v]) => v.itemName).join(', ').slice(0, 200),
       checked_by: session?.staffId,
@@ -606,7 +605,7 @@ function DeliveryCheckModal({ open, onClose, suppliers, onSupplierAdded, onCompl
               <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1">Delivery note photo</label>
               <input type="file" accept="image/*" onChange={handlePhoto} className="text-sm" />
               {uploading && <p className="text-xs text-charcoal/40 mt-1">Uploading...</p>}
-              {photoUrl && <p className="text-xs text-success mt-1">Photo attached</p>}
+              {photoPath && <p className="text-xs text-success mt-1">Photo attached</p>}
             </div>
 
             {/* Notes */}
