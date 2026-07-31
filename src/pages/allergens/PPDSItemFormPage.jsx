@@ -38,7 +38,7 @@ export default function PPDSItemFormPage() {
         setMayContain(data.may_contain_allergens ?? [])
         setLoading(false)
       })
-  }, [id, venueId, isEdit]) // eslint-disable-line
+  }, [id, venueId, isEdit]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Ingredient list helpers ──────────────────────────────────────────────────
 

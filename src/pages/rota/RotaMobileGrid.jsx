@@ -75,7 +75,7 @@ function Wheel({ values, value, onChange, accent }) {
   const setNode = useCallback((node) => {
     ref.current = node
     if (node) node.scrollTop = Math.max(0, values.indexOf(value)) * IH
-  }, []) // eslint-disable-line
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const el = ref.current; if (!el) return
