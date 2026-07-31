@@ -18,6 +18,7 @@ import { format, parseISO, differenceInDays } from 'date-fns'
 import { calculateEntitlementDays, countWorkingDaysInRequest } from '../../hooks/useLeaveBalance'
 import { supabase } from '../../lib/supabase'
 import { londonDateStr, londonWallTimeToInstant } from '../../lib/time'
+import { HR_BUCKET, hrAttachmentPath, openHrAttachment } from '../../lib/hrDocuments'
 import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../../components/ui/Toast'
 import Modal from '../../components/ui/Modal'
@@ -312,16 +313,15 @@ function DocumentsTab({ staffId, venueId, onDocsCountChange }) {
     if (!file) { toast('Please select a file', 'error'); return }
     if (file.size > 15 * 1024 * 1024) { toast('File must be under 15 MB', 'error'); return }
     setSaving(true)
-    const path = `${venueId}/${staffId}/${Date.now()}-${file.name.replace(/[^a-z0-9.]/gi, '_')}`
-    const { error: upErr } = await supabase.storage.from('hr-documents').upload(path, file, { upsert: false })
+    const path = hrAttachmentPath(venueId, staffId, file.name)
+    const { error: upErr } = await supabase.storage.from(HR_BUCKET).upload(path, file, { upsert: false })
     if (upErr) { toast('Upload failed: ' + upErr.message, 'error'); setSaving(false); return }
-    const { data: urlData } = supabase.storage.from('hr-documents').getPublicUrl(path)
     const { error: dbErr } = await supabase.from('staff_hr_documents').insert({
       venue_id:    venueId,
       staff_id:    staffId,
       title:       form.title.trim(),
       category:    form.category,
-      file_url:    urlData.publicUrl,
+      file_path:   path,
       file_name:   file.name,
       file_size:   file.size,
       expiry_date: form.expiry_date || null,
@@ -337,6 +337,9 @@ function DocumentsTab({ staffId, venueId, onDocsCountChange }) {
 
   const deleteDoc = async (doc) => {
     await supabase.from('staff_hr_documents').delete().eq('id', doc.id)
+    // Drop the file too — deleting only the row left the contract sitting in
+    // storage with nothing in the UI pointing at it.
+    if (doc.file_path) await supabase.storage.from(HR_BUCKET).remove([doc.file_path])
     toast('Document deleted')
     load()
   }
@@ -390,12 +393,12 @@ function DocumentsTab({ staffId, venueId, onDocsCountChange }) {
                   </div>
                 </div>
                 <div className="flex gap-[7px] shrink-0">
-                  <a
-                    href={doc.file_url} target="_blank" rel="noopener noreferrer"
-                    className="inline-flex items-center gap-[7px] px-3 py-1.5 rounded-[10px] text-[11px] font-semibold whitespace-nowrap bg-white dark:bg-paperDark text-charcoal/75 border border-charcoal/10 no-underline"
+                  <button
+                    onClick={() => openHrAttachment(doc, toast)}
+                    className="inline-flex items-center gap-[7px] px-3 py-1.5 rounded-[10px] text-[11px] font-semibold whitespace-nowrap bg-white dark:bg-paperDark text-charcoal/75 border border-charcoal/10"
                   >
                     View
-                  </a>
+                  </button>
                   <button
                     onClick={() => setDeleteTarget(doc)}
                     className="inline-flex items-center gap-[7px] px-3 py-1.5 rounded-[10px] text-[11px] font-semibold whitespace-nowrap bg-danger/10 text-danger border border-danger/10"
@@ -576,14 +579,13 @@ function DisciplinaryTab({ staffId, venueId, onStrikesCountChange }) {
   const addFormal = async () => {
     if (!form.occurred_at) { toast('Date is required', 'error'); return }
     setSaving(true)
-    let fileUrl = null, fileName = null
+    let filePath = null, fileName = null
     if (file) {
       if (file.size > 15 * 1024 * 1024) { toast('File must be under 15 MB', 'error'); setSaving(false); return }
-      const path = `${venueId}/${staffId}/${Date.now()}-${file.name.replace(/[^a-z0-9.]/gi, '_')}`
-      const { error: upErr } = await supabase.storage.from('hr-documents').upload(path, file, { upsert: false })
+      const path = hrAttachmentPath(venueId, staffId, file.name)
+      const { error: upErr } = await supabase.storage.from(HR_BUCKET).upload(path, file, { upsert: false })
       if (upErr) { toast('File upload failed: ' + upErr.message, 'error'); setSaving(false); return }
-      const { data: urlData } = supabase.storage.from('hr-documents').getPublicUrl(path)
-      fileUrl  = urlData.publicUrl
+      filePath = path
       fileName = file.name
     }
     const { error } = await supabase.from('hr_formal_actions').insert({
@@ -592,7 +594,7 @@ function DisciplinaryTab({ staffId, venueId, onStrikesCountChange }) {
       action_type: form.action_type,
       occurred_at: form.occurred_at,
       notes:       form.notes.trim() || null,
-      file_url:    fileUrl,
+      file_path:   filePath,
       file_name:   fileName,
       added_by:    session?.staffId ?? null,
     })
@@ -605,8 +607,10 @@ function DisciplinaryTab({ staffId, venueId, onStrikesCountChange }) {
     load()
   }
 
-  const deleteFormal = async (id) => {
-    await supabase.from('hr_formal_actions').delete().eq('id', id)
+  const deleteFormal = async (record) => {
+    await supabase.from('hr_formal_actions').delete().eq('id', record.id)
+    // Remove the attachment as well, not just the row.
+    if (record.file_path) await supabase.storage.from(HR_BUCKET).remove([record.file_path])
     toast('Record deleted')
     load()
   }
@@ -649,7 +653,7 @@ function DisciplinaryTab({ staffId, venueId, onStrikesCountChange }) {
         confirmLabel="Delete"
         danger
         onClose={() => setDeleteFormalTarget(null)}
-        onConfirm={() => { deleteFormal(deleteFormalTarget.id); setDeleteFormalTarget(null) }}
+        onConfirm={() => { deleteFormal(deleteFormalTarget); setDeleteFormalTarget(null) }}
       />
       <ConfirmDialog
         open={confirmClearAll}
@@ -757,11 +761,11 @@ function DisciplinaryTab({ staffId, venueId, onStrikesCountChange }) {
                         {item.added_by_staff?.name && (
                           <span className="font-mono text-[11px] text-charcoal/30">Added by {item.added_by_staff.name}</span>
                         )}
-                        {item.file_url && (
-                          <a href={item.file_url} target="_blank" rel="noopener noreferrer"
-                            className="font-mono text-[11px] text-brand font-bold no-underline">
+                        {(item.file_path || item.file_url) && (
+                          <button onClick={() => openHrAttachment(item, toast)}
+                            className="font-mono text-[11px] text-brand font-bold">
                             📎 {item.file_name ?? 'Attachment'}
-                          </a>
+                          </button>
                         )}
                       </div>
                     </div>
