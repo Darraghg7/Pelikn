@@ -189,6 +189,22 @@ export default function NavPanel({
   cat, activeItemId, onPickItem, isPreview, onCollapse,
   isMultiVenue, venues, currentSlug, onSwitchVenue, onNavigateOverview,
 }) {
+  // Preserve scroll position per category. These hooks must run before the
+  // `!cat` guard below, or the hook count changes between renders whenever cat
+  // goes null → non-null ("Rendered more hooks than during the previous render").
+  const navRef    = useRef(null)
+  const scrollMap = useRef(new Map()) // catId → scrollTop
+  const prevCatId = useRef(cat?.id)
+  if (prevCatId.current !== cat?.id) {
+    if (navRef.current) scrollMap.current.set(prevCatId.current, navRef.current.scrollTop)
+    prevCatId.current = cat?.id
+  }
+  useEffect(() => {
+    if (navRef.current) {
+      navRef.current.scrollTop = scrollMap.current.get(cat?.id) ?? 0
+    }
+  }, [cat?.id])
+
   if (!cat) return null
 
   const needsAttention = cat.items.filter(i => i.warn || i.badge > 0).length
@@ -206,20 +222,6 @@ export default function NavPanel({
         </>
       )
   )
-
-  // Preserve scroll position per category
-  const navRef    = useRef(null)
-  const scrollMap = useRef(new Map()) // catId → scrollTop
-  const prevCatId = useRef(cat.id)
-  if (prevCatId.current !== cat.id) {
-    if (navRef.current) scrollMap.current.set(prevCatId.current, navRef.current.scrollTop)
-    prevCatId.current = cat.id
-  }
-  useEffect(() => {
-    if (navRef.current) {
-      navRef.current.scrollTop = scrollMap.current.get(cat.id) ?? 0
-    }
-  }, [cat.id])
 
   return (
     <div
