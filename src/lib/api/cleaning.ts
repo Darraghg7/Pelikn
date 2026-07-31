@@ -24,7 +24,7 @@ export interface CleaningResult {
 }
 
 export async function fetchCleaningTasks(venueId: string): Promise<CleaningResult> {
-  const [{ data: tData }, { data: cData }] = await Promise.all([
+  const [{ data: tData, error: tErr }, { data: cData, error: cErr }] = await Promise.all([
     supabase.from('cleaning_tasks').select('id, title, frequency, assigned_role, is_active, venue_id').eq('venue_id', venueId).eq('is_active', true).order('title'),
     supabase
       .from('cleaning_completions')
@@ -33,6 +33,11 @@ export async function fetchCleaningTasks(venueId: string): Promise<CleaningResul
       .order('completed_at', { ascending: false })
       .limit(1000),
   ])
+
+  // Reject rather than return an empty schedule — callers must be able to tell
+  // "the fetch failed" from "this venue has no cleaning tasks".
+  if (tErr) throw tErr
+  if (cErr) throw cErr
 
   return {
     tasks:       (tData ?? []) as CleaningTask[],

@@ -9,6 +9,7 @@ import { useClockStatus } from '../../hooks/useClockEvents'
 import { usePushNotifications } from '../../hooks/usePushNotifications'
 import { useAppSettings } from '../../hooks/useSettings'
 import { useTodayDuties } from '../../hooks/useDuties'
+import { useCleaningTasks } from '../../hooks/useCleaningTasks'
 import ClockPanel from '../../components/shifts/ClockPanel'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
 import AcknowledgeModal from '../../components/training/AcknowledgeModal'
@@ -630,7 +631,7 @@ function TodayChecks({ venueId, venueSlug, staffName }) {
 // ── Today summary data ─────────────────────────────────────────────────────────
 
 function useTodaySummary({ staffId, venueId, isEnabled, hasPermission, closedDays }) {
-  const [data, setData] = useState({ fridgesUnchecked: 0, cleaningDue: 0, loaded: false, closedToday: false })
+  const [data, setData] = useState({ fridgesUnchecked: 0, loaded: false, closedToday: false })
 
   useEffect(() => {
     if (!staffId || !venueId) return
@@ -639,7 +640,7 @@ function useTodaySummary({ staffId, venueId, isEnabled, hasPermission, closedDay
     const todayDow = (new Date().getDay() + 6) % 7
 
     if (closedDays.includes(todayDow)) {
-      setData({ fridgesUnchecked: 0, cleaningDue: 0, loaded: true, closedToday: true })
+      setData({ fridgesUnchecked: 0, loaded: true, closedToday: true })
       return
     }
 
@@ -655,17 +656,8 @@ function useTodaySummary({ staffId, venueId, isEnabled, hasPermission, closedDay
           .then(({ data }) => ({ type: 'closures', rows: data ?? [] })),
       ]
 
-      if (isEnabled('cleaning') && hasPermission('manage_cleaning')) {
-        promises.push(
-          supabase.from('cleaning_tasks').select('id', { count: 'exact', head: true }).eq('venue_id', venueId).eq('is_active', true)
-            .then(({ count }) => ({ type: 'total_cleaning', count: count ?? 0 }))
-        )
-        promises.push(
-          supabase.from('cleaning_completions').select('id', { count: 'exact', head: true })
-            .eq('venue_id', venueId).gte('completed_at', today + 'T00:00:00')
-            .then(({ count }) => ({ type: 'done_cleaning', count: count ?? 0 }))
-        )
-      }
+      // Cleaning is counted by useCleaningTasks below — it has to respect each
+      // task's frequency, which a same-day completion count cannot.
 
       if (isEnabled('fridge') && hasPermission('log_temps')) {
         promises.push(
@@ -683,7 +675,7 @@ function useTodaySummary({ staffId, venueId, isEnabled, hasPermission, closedDay
 
       const closures = results.find(res => res.type === 'closures')?.rows ?? []
       if (closures.length) {
-        setData({ fridgesUnchecked: 0, cleaningDue: 0, loaded: true, closedToday: closures[0].reason || true })
+        setData({ fridgesUnchecked: 0, loaded: true, closedToday: closures[0].reason || true })
         return
       }
 
@@ -691,7 +683,6 @@ function useTodaySummary({ staffId, venueId, isEnabled, hasPermission, closedDay
       for (const res of results) r[res.type] = res.count
       setData({
         fridgesUnchecked: Math.max(0, (r.total_fridges ?? 0) - (r.checked_fridges ?? 0)),
-        cleaningDue: Math.max(0, (r.total_cleaning ?? 0) - (r.done_cleaning ?? 0)),
         loaded: true,
         closedToday: false,
       })
@@ -747,6 +738,13 @@ export default function StaffDashboardPage() {
     hasPermission,
     closedDays,
   })
+
+  // Only tasks their frequency has actually brought round again — one ticked by
+  // a colleague stays off this count until it's next due.
+  const { overdueCount: cleaningOverdue } = useCleaningTasks()
+  const cleaningDue = isEnabled('cleaning') && hasPermission('manage_cleaning') && !summary.closedToday
+    ? cleaningOverdue
+    : 0
 
   if (!session) return null
   if (loading) return <div className="flex justify-center pt-20"><LoadingSpinner size="lg" /></div>
@@ -806,7 +804,7 @@ export default function StaffDashboardPage() {
       {summary.loaded && !summary.closedToday && (
         <AlertStrip
           fridgesUnchecked={summary.fridgesUnchecked}
-          cleaningDue={summary.cleaningDue}
+          cleaningDue={cleaningDue}
           venueSlug={venueSlug}
         />
       )}
