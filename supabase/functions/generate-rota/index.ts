@@ -27,6 +27,17 @@ serve(async (req) => {
   }
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
 
+  // Defined here, not at module scope: it closes over `corsHeaders`, which only
+  // exists per-request. As a module-scope function it referenced an identifier
+  // that was not in scope, so every error path threw instead of returning — the
+  // caller saw an opaque 500 with no CORS headers and the browser reported it as
+  // "Failed to fetch".
+  const err = (message: string, status: number) =>
+    new Response(
+      JSON.stringify({ error: message }),
+      { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+    )
+
   try {
     // ── Parse request ──────────────────────────────────────────────────────
     const { session_token, venueId, weekStart } = await req.json() as {
@@ -385,9 +396,3 @@ function timesOverlap(s1: string, e1: string, s2: string, e2: string): boolean {
   return s1 < e2 && s2 < e1
 }
 
-function err(message: string, status: number) {
-  return new Response(
-    JSON.stringify({ error: message }),
-    { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-  )
-}
