@@ -395,16 +395,25 @@ function ManagerTasksView() {
 // ── Staff view helpers ─────────────────────────────────────
 
 function useStaffCleaning(venueId, dateStr) {
-  const [data, setData] = useState({ tasks: [], completions: [], loading: true })
+  const [data, setData] = useState({ tasks: [], completions: [], loading: true, error: null })
   useEffect(() => {
     if (!venueId) return
     let cancelled = false
     Promise.all([
-      supabase.from('cleaning_tasks').select('id, title, frequency, area').eq('venue_id', venueId).eq('is_active', true).order('title'),
+      supabase.from('cleaning_tasks').select('id, title, frequency').eq('venue_id', venueId).eq('is_active', true).order('title'),
       supabase.from('cleaning_completions').select('cleaning_task_id, completed_at').eq('venue_id', venueId).gte('completed_at', dateStr + 'T00:00:00').lte('completed_at', dateStr + 'T23:59:59'),
     ]).then(([tasksRes, compsRes]) => {
       if (cancelled) return
-      setData({ tasks: tasksRes.data ?? [], completions: compsRes.data ?? [], loading: false })
+      // A failed fetch must not render as an empty schedule. This select used
+      // to ask for a non-existent `area` column, so PostgREST 400'd and every
+      // staff member was told "no cleaning tasks configured" while managers
+      // saw the full list.
+      setData({
+        tasks:       tasksRes.data ?? [],
+        completions: compsRes.data ?? [],
+        loading:     false,
+        error:       tasksRes.error ?? compsRes.error ?? null,
+      })
     })
     return () => { cancelled = true }
   }, [venueId, dateStr])
@@ -498,8 +507,14 @@ function DutiesTab({ duties, loading, toggleItem }) {
   )
 }
 
-function CleaningTab({ tasks, completions, loading }) {
+function CleaningTab({ tasks, completions, loading, error }) {
   if (loading) return <SkeletonList rows={4} />
+  if (error) return (
+    <div className="bg-white rounded-[14px] border border-danger/20 p-8 text-center">
+      <p className="text-sm text-danger/80">Could not load the cleaning schedule</p>
+      <p className="text-[11px] text-charcoal/40 mt-1">Pull to refresh, or tell your manager if it keeps happening.</p>
+    </div>
+  )
   if (!tasks.length) return (
     <div className="bg-white rounded-[14px] border border-charcoal/8 p-8 text-center">
       <p className="text-sm text-charcoal/40">No cleaning tasks configured</p>
@@ -527,7 +542,6 @@ function CleaningTab({ tasks, completions, loading }) {
                 <span className="w-[22px] h-[22px] rounded-md border-[1.5px] border-charcoal/25 shrink-0" />
                 <div className="flex-1 min-w-0">
                   <p className="text-[13.5px] font-medium text-charcoal">{t.title}</p>
-                  {t.area && <p className="text-[11px] text-charcoal/40 mt-0.5">{t.area}</p>}
                 </div>
                 <span className="text-[11px] font-mono font-semibold px-2 py-0.5 rounded bg-charcoal/6 text-charcoal/40 uppercase tracking-wide">
                   {t.frequency}
@@ -685,7 +699,7 @@ function StaffTasksView({ session }) {
 
       {/* Tab content */}
       {activeTab === 'duties'    && <DutiesTab duties={dutiesData.duties} loading={dutiesData.loading} toggleItem={dutiesData.toggleItem} />}
-      {activeTab === 'cleaning'  && <CleaningTab tasks={cleaningData.tasks} completions={cleaningData.completions} loading={cleaningData.loading} />}
+      {activeTab === 'cleaning'  && <CleaningTab tasks={cleaningData.tasks} completions={cleaningData.completions} loading={cleaningData.loading} error={cleaningData.error} />}
       {activeTab === 'allergens' && <AllergensTab venueSlug={venueSlug} />}
 
     </div>
