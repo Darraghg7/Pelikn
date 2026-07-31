@@ -54,12 +54,14 @@ async function loadStaffNotifications(staffId: string, venueId: string): Promise
 async function checkMySwapUpdates(items: StaffNotification[], staffId: string, venueId: string, since: string): Promise<void> {
   const { data } = await supabase
     .from('shift_swaps')
-    .select('id, status, updated_at')
+    // resolved_at is stamped when a swap is approved or rejected — there is no
+    // updated_at on this table.
+    .select('id, status, resolved_at')
     .eq('venue_id', venueId)
     .eq('requester_id', staffId)
     .in('status', ['approved', 'rejected'])
-    .gte('updated_at', since + 'T00:00:00')
-    .order('updated_at', { ascending: false })
+    .gte('resolved_at', since + 'T00:00:00')
+    .order('resolved_at', { ascending: false })
     .limit(10)
 
   for (const swap of (data ?? []) as { id: string; status: string }[]) {
@@ -76,12 +78,13 @@ async function checkMySwapUpdates(items: StaffNotification[], staffId: string, v
 async function checkMyTimeOffUpdates(items: StaffNotification[], staffId: string, venueId: string, since: string): Promise<void> {
   const { data } = await supabase
     .from('time_off_requests')
-    .select('id, status, start_date, end_date, updated_at')
+    // reviewed_at is stamped when a manager approves or rejects the request.
+    .select('id, status, start_date, end_date, reviewed_at')
     .eq('venue_id', venueId)
     .eq('staff_id', staffId)
     .in('status', ['approved', 'rejected'])
-    .gte('updated_at', since + 'T00:00:00')
-    .order('updated_at', { ascending: false })
+    .gte('reviewed_at', since + 'T00:00:00')
+    .order('reviewed_at', { ascending: false })
     .limit(10)
 
   for (const req of (data ?? []) as { id: string; status: string; start_date: string; end_date: string }[]) {

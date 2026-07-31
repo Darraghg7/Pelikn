@@ -123,6 +123,7 @@ export interface TaskCompletion {
   task_template_id?: string
   task_one_off_id?: string
   completion_date: string
-  staff_id?: string
+  completed_by_staff_id?: string
+  completed_by_name?: string
   venue_id: string
 }

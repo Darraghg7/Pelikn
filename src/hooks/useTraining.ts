@@ -6,12 +6,16 @@ import {
   type SignOffRecord, type CertRecord, type StaffLite,
 } from '../lib/api/training'
 
+// staff_training has no `provider`; the certificate lives in file_url/file_name.
 interface TrainingRecord {
   id: string
   title: string
-  provider?: string
+  category?: string
+  issued_date?: string
   expiry_date?: string
-  certificate_url?: string
+  notes?: string
+  file_url?: string
+  file_name?: string
   staff_id: string
   venue_id: string
   created_at: string
@@ -30,7 +34,7 @@ export function useStaffTraining(staffId: string): {
       if (!staffId) return [] as TrainingRecord[]
       let q = supabase
         .from('staff_training')
-        .select('id, title, provider, expiry_date, certificate_url, staff_id, venue_id, created_at')
+        .select('id, title, category, issued_date, expiry_date, notes, file_url, file_name, staff_id, venue_id, created_at')
         .eq('staff_id', staffId)
         .order('created_at', { ascending: false })
       if (venueId) q = q.eq('venue_id', venueId)

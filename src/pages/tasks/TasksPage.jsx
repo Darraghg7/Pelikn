@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import { format, addDays, formatDistanceToNow } from 'date-fns'
 import { Link } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
@@ -603,6 +603,7 @@ function AllergensTab({ venueSlug }) {
 // ── Staff View ─────────────────────────────────────────────
 function StaffTasksView({ session }) {
   const { venueId, venueSlug } = useVenue()
+  const { customRoles = [] } = useAppSettings()
   const pendingSignOffs = usePendingSignOffs(session?.staffId, venueId)
 
   const [activeTab, setActiveTab] = useState('duties')
@@ -613,8 +614,11 @@ function StaffTasksView({ session }) {
   const dayLabel = (offset) => offset === 0 ? 'Today' : format(addDays(new Date(), offset), 'EEE')
 
   const dutiesData   = useTodayDuties(session?.staffId)
-  // Whole schedule, unfiltered by role — matches what the manager sees.
-  const cleaningData = useCleaningTasks(null, [], targetDate)
+  // Same role targeting as /cleaning, so a task assigned to one role doesn't
+  // appear here and then vanish on the page where it gets ticked off. Unknown
+  // roles fail open — see lib/roleFilter.
+  const knownRoles   = useMemo(() => customRoles.map(r => r.value), [customRoles])
+  const cleaningData = useCleaningTasks(session?.jobRole ?? null, knownRoles, targetDate)
   const cleaningDue  = cleaningData.tasks.filter(t => t.status === 'overdue').length
 
   const TAB_TITLE = { duties: 'Duties', cleaning: 'Cleaning', allergens: 'Allergens' }
