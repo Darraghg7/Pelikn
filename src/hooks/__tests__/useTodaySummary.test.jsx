@@ -79,6 +79,42 @@ describe('useTodaySummary — refreshing after a write', () => {
     expect(rpcCalls).toBe(1)
   })
 
+  it('falls back to the multi-query path when the snapshot RPC is missing', async () => {
+    // Databases without migration 095 have no get_dashboard_snapshot. The RPC
+    // 404s and the original per-table queries run instead — that path has to
+    // produce real numbers too, not the all-zeros the TypeError used to yield.
+    global.fetch = vi.fn(async (url, options = {}) => {
+      const u = String(url)
+      const method = (options.method ?? 'GET').toUpperCase()
+      if (u.includes('/rpc/get_dashboard_snapshot')) {
+        return new Response(JSON.stringify({ message: 'function does not exist' }), {
+          status: 404, headers: { 'Content-Type': 'application/json' },
+        })
+      }
+      // Counted queries (head: true) carry their result in content-range.
+      const counted = (n) => new Response(null, {
+        status: 200,
+        headers: { 'Content-Type': 'application/json', 'content-range': `*/${n}` },
+      })
+      if (method === 'HEAD') {
+        if (u.includes('/shifts')) return counted(6)
+        if (u.includes('session_type=eq.opening')) return counted(4)
+        if (u.includes('/time_off_requests')) return counted(2)
+        return counted(0)
+      }
+      return json([])
+    })
+
+    const { result } = renderHook(() => useTodaySummary(VENUE, [], {}))
+
+    await waitFor(() => expect(result.current.summary).not.toBeNull())
+    expect(result.current.summary).toMatchObject({
+      onShiftToday: 6,
+      checksToday: 4,
+      pendingLeave: 2,
+    })
+  })
+
   it('re-fetches when a completed check is written, without falling back to skeletons', async () => {
     const { result } = renderHook(() => useTodaySummary(VENUE, [], {}))
 
