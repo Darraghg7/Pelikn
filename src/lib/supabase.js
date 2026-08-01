@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { emitDataWrite } from './cacheBus'
 
 export const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
   || 'https://djwgyyerxvxovicixxrp.supabase.co'
@@ -50,6 +51,24 @@ const jwtUsable = () => !!_sessionJwt && _sessionJwtExp * 1000 > Date.now() + 60
 function urlIsRest(url) {
   const u = typeof url === 'string' ? url : (url?.url ?? '')
   return u.includes('/rest/v1/')
+}
+
+/**
+ * PostgREST table a data request targets, e.g.
+ * `…/rest/v1/fridge_temperature_logs?on_conflict=…` → `fridge_temperature_logs`.
+ *
+ * An RPC (`…/rest/v1/rpc/get_dashboard_snapshot`) yields `rpc`, never a table
+ * name. That matters: RPCs are POSTs, so a read-only snapshot RPC would
+ * otherwise be announced as a write, invalidate the cache that just called it,
+ * and refetch forever. `rpc` is not a table, so it is dropped here explicitly
+ * rather than relying on no cache ever subscribing to that name.
+ */
+function restTable(url) {
+  const u = typeof url === 'string' ? url : (url?.url ?? '')
+  const at = u.indexOf('/rest/v1/')
+  if (at === -1) return null
+  const name = u.slice(at + '/rest/v1/'.length).split(/[?#/]/)[0]
+  return !name || name === 'rpc' ? null : name
 }
 
 function withBearer(options, jwt) {
@@ -123,6 +142,11 @@ function makeRetryFetch(timeoutMs = 20_000, maxWriteRetries = 2) {
           } catch { injected = false }
           continue
         }
+
+        // Announce successful data writes so the SWR caches can drop what they
+        // are holding. Only 2xx counts — a rejected write changed nothing.
+        if (isWrite && isRest && response.ok) emitDataWrite(restTable(url))
+
         return response
       } catch (err) {
         // Only retry on network / abort errors (not 4xx/5xx — those aren't thrown)
