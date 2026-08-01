@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react'
 import { format, startOfDay, endOfDay, subDays } from 'date-fns'
 import { supabase } from '../lib/supabase'
 import { readPersisted, writePersisted, clearPersisted } from '../lib/persistedCache'
+import { onDataWrite } from '../lib/cacheBus'
+import { captureSilent } from '../lib/reportError'
 
 // ── Module-level SWR cache ─────────────────────────────────────────────────
 // Survives component unmount/remount (single-page navigation), and is backed
@@ -42,18 +44,66 @@ const _inFlight = new Map()
 function fetchOnce(key, fn) {
   const pending = _inFlight.get(key)
   if (pending) return pending
-  const p = fn().finally(() => _inFlight.delete(key))
+  // Promise.resolve() is load-bearing, not defensive tidying. A supabase query
+  // builder is a *thenable*, not a Promise: it implements then() and nothing
+  // else. Calling .finally() straight on it threw TypeError synchronously,
+  // which the caller's try/catch swallowed into an all-zeros summary — every
+  // Today tile read 0 no matter what had been logged. Adopting the thenable
+  // into a real Promise first is what makes .finally() exist.
+  const p = Promise.resolve(fn()).finally(() => _inFlight.delete(key))
   _inFlight.set(key, p)
   return p
 }
 
 /** Expose so other modules can bust the cache after a mutation (e.g. clock-in). */
 export function invalidateSummaryCache(venueId) {
+  if (!venueId) { _cache.clear(); clearPersisted('today_summary'); return }
   for (const k of _cache.keys()) {
     if (k.startsWith(venueId + ':')) _cache.delete(k)
   }
   clearPersisted('today_summary')
 }
+
+// ── Auto-invalidation on write ──────────────────────────────────────────────
+// Every table the summary counts from. A successful write to any of them means
+// at least one tile is now showing a number that is no longer true — most
+// visibly "Checks done", which stayed at its pre-write value because the cache
+// was still inside its 20 s fresh window when the manager navigated back.
+//
+// This used to depend on each write site remembering to call
+// invalidateSummaryCache(). None of them did. Subscribing to the write bus
+// instead means the tiles stay correct no matter which screen did the writing.
+const SUMMARY_TABLES = new Set([
+  'opening_closing_completions', 'opening_closing_checks',
+  'fridge_temperature_logs', 'fridges',
+  'cleaning_completions', 'cleaning_tasks',
+  'cooking_temp_logs', 'hot_holding_logs', 'cooling_logs',
+  'corrective_actions', 'time_off_requests',
+  'shifts', 'duty_assignments', 'duty_item_completions', 'duty_template_items',
+  'venue_closures',
+])
+
+// Mounted hooks register here so a write refreshes the tiles in place — the
+// manager may still be looking at the dashboard (or at a sheet layered over
+// it) when the write lands, with no remount coming to pick the change up.
+const _subscribers = new Set()
+let _notifyTimer = null
+
+onDataWrite((table) => {
+  if (!SUMMARY_TABLES.has(table)) return
+
+  // Drop the cache immediately: a screen mounting in the debounce window below
+  // must not be served the numbers this write just invalidated.
+  invalidateSummaryCache(null)
+
+  // Coalesce the refetch. Marking off a checklist writes a row per item, and
+  // each one lands here — one refresh at the end, not one per tick.
+  if (_notifyTimer) clearTimeout(_notifyTimer)
+  _notifyTimer = setTimeout(() => {
+    _notifyTimer = null
+    for (const fn of _subscribers) fn()
+  }, 300)
+})
 
 export function isActionDueToday(scheduleKey, actionSchedules) {
   if (!scheduleKey) return true
@@ -95,6 +145,19 @@ export function useTodaySummary(venueId, closedDays = [], actionSchedules = {}) 
 
   // track whether we already kicked off a background revalidation this mount
   const revalidating = useRef(false)
+
+  // Bumped when a write invalidates the cache, to re-run the fetch below.
+  const [refreshTick, setRefreshTick] = useState(0)
+  useEffect(() => {
+    const refresh = () => setRefreshTick(t => t + 1)
+    _subscribers.add(refresh)
+    return () => { _subscribers.delete(refresh) }
+  }, [])
+
+  // Read in the fetch effect without making `summary` a dependency of it —
+  // depending on the value it sets would re-run the effect on every fetch.
+  const summaryRef = useRef(summary)
+  summaryRef.current = summary
 
   useEffect(() => {
     if (!venueId) return
@@ -172,7 +235,10 @@ export function useTodaySummary(venueId, closedDays = [], actionSchedules = {}) 
     }
 
     const fetchAll = async () => {
-      if (!entry) setLoading(true)
+      // Only show skeletons when there is nothing to show. A post-write refresh
+      // has no cache entry (it was just dropped) but does have numbers on
+      // screen — those stay up, and swap for the new ones when the fetch lands.
+      if (!entry && !summaryRef.current) setLoading(true)
       try {
 
       const due = (key) => isActionDueToday(key, actionSchedules)
@@ -335,7 +401,12 @@ export function useTodaySummary(venueId, closedDays = [], actionSchedules = {}) 
       setClosedToday(closedToday)
       setLoading(false)
       revalidating.current = false
-      } catch {
+      } catch (err) {
+        // Report it. This catch is why a TypeError in the fetch path went
+        // unnoticed for so long: falling back to emptySummary() renders as
+        // "0 overdue cleans, 0 fridges due", which reads as a compliant venue
+        // rather than as a broken screen. Nobody can report what looks fine.
+        captureSilent(err, 'useTodaySummary:fetch')
         if (!cancelled) {
           if (!entry) { setSummary(emptySummary()); setLoading(false) }
           revalidating.current = false
@@ -345,7 +416,7 @@ export function useTodaySummary(venueId, closedDays = [], actionSchedules = {}) 
     fetchAll()
     return () => { cancelled = true }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [venueId, closedDays.join(',')])
+  }, [venueId, closedDays.join(','), refreshTick])
 
   return { summary, loading, closedToday }
 }
