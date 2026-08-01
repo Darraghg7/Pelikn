@@ -337,3 +337,128 @@ describe('useTodaySummary — keeping a left-open dashboard live', () => {
     expect(rpcCalls).toBe(1)
   })
 })
+
+describe('useTodaySummary — live updates', () => {
+  let serverSnapshot
+  let rpcCalls
+  let bindings
+  let channelNames
+  let removed
+  let statusCb
+
+  function fakeChannel(name) {
+    channelNames.push(name)
+    const ch = {
+      on: (event, cfg, cb) => { bindings.push({ event, ...cfg, cb }); return ch },
+      subscribe: (cb) => { statusCb = cb; cb?.('SUBSCRIBED'); return ch },
+    }
+    return ch
+  }
+
+  /** Fire a postgres_changes event for `table`, as the server would. */
+  function emit(table) {
+    for (const b of bindings.filter(b => b.table === table)) b.cb({ eventType: 'INSERT' })
+  }
+
+  beforeEach(() => {
+    invalidateSummaryCache(null)
+    localStorage.clear()
+    serverSnapshot = snapshot()
+    rpcCalls = 0
+    bindings = []
+    channelNames = []
+    removed = []
+    statusCb = null
+    global.fetch = vi.fn(async (url) => {
+      const u = typeof url === 'string' ? url : url?.url ?? ''
+      if (u.includes('/rest/v1/rpc/get_dashboard_snapshot')) {
+        rpcCalls++
+        return json(serverSnapshot)
+      }
+      return json([])
+    })
+    vi.spyOn(supabase, 'channel').mockImplementation(fakeChannel)
+    vi.spyOn(supabase, 'removeChannel').mockImplementation((c) => { removed.push(c) })
+  })
+  afterEach(() => {
+    invalidateSummaryCache(null)
+    localStorage.clear()
+    vi.restoreAllMocks()
+  })
+
+  it('watches every summary table, scoped to the venue', async () => {
+    const h = renderHook(() => useTodaySummary(VENUE, [], {}))
+    await waitFor(() => expect(h.result.current.summary).not.toBeNull())
+
+    expect(channelNames).toEqual([`today-summary:${VENUE}`])
+    expect(bindings.length).toBeGreaterThan(0)
+    // Every binding is venue-scoped — without the filter a client would be
+    // handed every other venue's operational data over the socket.
+    for (const b of bindings) {
+      expect(b.filter).toBe(`venue_id=eq.${VENUE}`)
+      expect(b.schema).toBe('public')
+    }
+    const watched = bindings.map(b => b.table)
+    expect(watched).toContain('fridge_temperature_logs')
+    expect(watched).toContain('opening_closing_completions')
+    expect(watched).toContain('shifts')
+    // No venue_id column to filter on, so it must not be watched.
+    expect(watched).not.toContain('duty_template_items')
+
+    h.unmount()
+  })
+
+  it('updates the tiles when another device logs something', async () => {
+    const h = renderHook(() => useTodaySummary(VENUE, [], {}))
+    await waitFor(() => expect(h.result.current.summary).not.toBeNull())
+    expect(h.result.current.summary.uncheckedFridges).toBe(0)
+
+    // A chef logs a fridge temp on their phone. Nothing happened on this
+    // device — only the server can tell us, which is the whole point.
+    serverSnapshot = snapshot({ uncheckedFridges: 2 })
+    emit('fridge_temperature_logs')
+
+    await waitFor(() => expect(h.result.current.summary.uncheckedFridges).toBe(2))
+    h.unmount()
+  })
+
+  it('coalesces a burst of events into one refetch', async () => {
+    const h = renderHook(() => useTodaySummary(VENUE, [], {}))
+    await waitFor(() => expect(h.result.current.summary).not.toBeNull())
+    expect(rpcCalls).toBe(1)
+
+    serverSnapshot = snapshot({ checksToday: 5 })
+    for (let i = 0; i < 6; i++) emit('opening_closing_completions')
+
+    await waitFor(() => expect(h.result.current.summary.checksToday).toBe(5))
+    await new Promise(r => setTimeout(r, 400))
+    expect(rpcCalls).toBe(2)
+    h.unmount()
+  })
+
+  it('shares one subscription across the hooks on a dashboard', async () => {
+    const a = renderHook(() => useTodaySummary(VENUE, [], {}))
+    const b = renderHook(() => useTodaySummary(VENUE, [], {}))
+    const c = renderHook(() => useTodaySummary(VENUE, [], {}))
+    await waitFor(() => expect(a.result.current.summary).not.toBeNull())
+
+    expect(channelNames).toHaveLength(1)
+
+    // Released only once the last one goes.
+    a.unmount(); b.unmount()
+    expect(removed).toHaveLength(0)
+    c.unmount()
+    expect(removed).toHaveLength(1)
+  })
+
+  it('reports the channel status so the backstop knows to take over', async () => {
+    const h = renderHook(() => useTodaySummary(VENUE, [], {}))
+    await waitFor(() => expect(h.result.current.summary).not.toBeNull())
+
+    // The subscribe callback is how the poll learns whether it is the update
+    // path or just a safety net. It has to be wired for that to work.
+    expect(typeof statusCb).toBe('function')
+    expect(() => statusCb('CHANNEL_ERROR')).not.toThrow()
+    h.unmount()
+  })
+})

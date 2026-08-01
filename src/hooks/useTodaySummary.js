@@ -28,8 +28,14 @@ function cacheGet(key) {
   }
   return null
 }
+// When the summary last came back from the server. Drives the backstop timer,
+// which needs "how stale are the tiles" — a question the per-key cache cannot
+// answer once invalidation has emptied it.
+let _lastRefreshAt = 0
+
 function cacheSet(key, data, closedToday = false) {
   _cache.set(key, { data, closedToday, ts: Date.now() })
+  _lastRefreshAt = Date.now()
   writePersisted('today_summary', key, { data, closedToday })
 }
 
@@ -94,44 +100,120 @@ function notifySubscribers() {
   for (const fn of _subscribers) fn()
 }
 
-onDataWrite((table) => {
-  if (!SUMMARY_TABLES.has(table)) return
+// Debounce before refetching. A checklist marked off writes a row per item and
+// realtime echoes each one back, so this collapses a burst into one refresh.
+// Short enough to still read as instant.
+const REFRESH_DEBOUNCE_MS = 300
 
-  // Drop the cache immediately: a screen mounting in the debounce window below
-  // must not be served the numbers this write just invalidated.
+/** Drop the cache and refresh every mounted hook, coalescing bursts. */
+function scheduleSummaryRefresh() {
+  // Drop the cache immediately: a screen mounting inside the debounce window
+  // must not be served numbers we already know are stale.
   invalidateSummaryCache(null)
 
-  // Coalesce the refetch. Marking off a checklist writes a row per item, and
-  // each one lands here — one refresh at the end, not one per tick.
   if (_notifyTimer) clearTimeout(_notifyTimer)
   _notifyTimer = setTimeout(() => {
     _notifyTimer = null
     notifySubscribers()
-  }, 300)
+  }, REFRESH_DEBOUNCE_MS)
+}
+
+onDataWrite((table) => {
+  if (SUMMARY_TABLES.has(table)) scheduleSummaryRefresh()
 })
 
-// ── Keeping a left-open dashboard honest ────────────────────────────────────
-// The tiles only ever fetched on mount, which is fine on a phone that gets
-// locked and reopened but wrong on the venue tablet the dashboard actually
-// lives on: it sits on one screen all shift, so the numbers froze at whatever
-// they were when someone opened it, and the day rolled over underneath them.
+// ── Live updates ────────────────────────────────────────────────────────────
+// Writes made on *this* device already refresh the tiles via the bus above.
+// The dashboard's real job is showing what everyone else is doing: a chef
+// logging a fridge temp on their phone has to land on the manager's tablet
+// without anyone touching it. Only the server can tell us about that, so the
+// summary tables are watched over a realtime channel.
 //
-// Nudging every mounted hook is cheap — the fetch effect re-checks the cache
-// first and does nothing at all while the data is still fresh, so this costs a
-// request a minute at most, and only while someone is actually looking.
-const REVALIDATE_MS = 60_000
+// duty_template_items is deliberately absent. postgres_changes filters on a
+// real column and it has no venue_id, so it could only be watched unfiltered —
+// every venue's edits, to every client. It is template config rather than
+// operational data, edited from this device when it changes at all, so the
+// write bus already covers the case that matters.
+const REALTIME_TABLES = [...SUMMARY_TABLES].filter(t => t !== 'duty_template_items')
+
+let _rtChannel   = null
+let _rtVenueId   = null
+let _rtRefs      = 0
+let _rtConnected = false
+
+function teardownRealtime() {
+  if (_rtChannel) {
+    try { supabase.removeChannel(_rtChannel) } catch { /* already gone */ }
+  }
+  _rtChannel   = null
+  _rtVenueId   = null
+  _rtRefs      = 0
+  _rtConnected = false
+}
+
+/**
+ * Join the live channel for a venue, sharing one subscription across every
+ * mounted hook. Returns the release function for the caller's effect cleanup.
+ */
+function acquireRealtime(venueId) {
+  if (_rtVenueId !== venueId) teardownRealtime()
+  _rtVenueId = venueId
+  _rtRefs += 1
+
+  if (!_rtChannel) {
+    try {
+      const channel = supabase.channel(`today-summary:${venueId}`)
+      for (const table of REALTIME_TABLES) {
+        channel.on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table, filter: `venue_id=eq.${venueId}` },
+          scheduleSummaryRefresh,
+        )
+      }
+      channel.subscribe((status) => { _rtConnected = status === 'SUBSCRIBED' })
+      _rtChannel = channel
+    } catch {
+      // No realtime here. The poll below notices _rtConnected never went true
+      // and keeps the tiles current the slow way.
+      _rtConnected = false
+    }
+  }
+
+  return () => {
+    // A release from a previous venue's channel must not decrement this one.
+    if (_rtVenueId !== venueId) return
+    _rtRefs -= 1
+    if (_rtRefs <= 0) teardownRealtime()
+  }
+}
+
+// ── Backstop ────────────────────────────────────────────────────────────────
+// Realtime is the live path, not a guaranteed one: the socket can drop, the
+// tables may not be in the publication yet, and a suspended tab misses events
+// entirely. So the tiles are still checked on a timer — but only as far behind
+// as they are allowed to get, which is very different depending on whether the
+// live channel is actually up.
+const POLL_MS          = 30_000    // how often we consider refreshing
+const LIVE_MAX_AGE_MS  = 120_000   // channel up: pure backstop
+const DEAD_MAX_AGE_MS  = 30_000    // channel down: this is the update path
 
 if (typeof document !== 'undefined') {
-  const revalidateIfVisible = () => {
-    if (document.visibilityState === 'visible') notifySubscribers()
+  const refreshIfDue = (maxAgeMs) => {
+    if (document.visibilityState !== 'visible') return
+    if (Date.now() - _lastRefreshAt < maxAgeMs) return
+    notifySubscribers()
   }
-  // Coming back to the app is the moment the numbers are most likely stale.
-  document.addEventListener('visibilitychange', revalidateIfVisible)
-  window.addEventListener('focus', revalidateIfVisible)
-  // …and a slow tick for the tablet that is never hidden and never refocused.
-  // Also what rolls the dashboard onto the new day at midnight: the tick
-  // re-renders the hook, which recomputes todayStr and so the cache key.
-  setInterval(revalidateIfVisible, REVALIDATE_MS)
+  // Coming back to the app is the moment the numbers are most likely stale,
+  // and the moment a dropped socket is most likely to still be dropped.
+  const onReturn = () => refreshIfDue(0)
+  document.addEventListener('visibilitychange', onReturn)
+  window.addEventListener('focus', onReturn)
+  // …and a tick for the tablet that is never hidden and never refocused. Also
+  // what rolls the dashboard onto the new day at midnight: the nudge re-renders
+  // the hook, which recomputes todayStr and with it the cache key.
+  setInterval(() => {
+    refreshIfDue(_rtConnected ? LIVE_MAX_AGE_MS : DEAD_MAX_AGE_MS)
+  }, POLL_MS)
 }
 
 // Counts the summary reports as zero when the check is not scheduled today.
@@ -205,13 +287,20 @@ export function useTodaySummary(venueId, closedDays = [], actionSchedules = {}) 
   // track whether we already kicked off a background revalidation this mount
   const revalidating = useRef(false)
 
-  // Bumped when a write invalidates the cache, to re-run the fetch below.
+  // Bumped when something invalidates the cache, to re-run the fetch below.
   const [refreshTick, setRefreshTick] = useState(0)
   useEffect(() => {
     const refresh = () => setRefreshTick(t => t + 1)
     _subscribers.add(refresh)
     return () => { _subscribers.delete(refresh) }
   }, [])
+
+  // Join the venue's live channel. Shared across every mounted hook, so the
+  // three on a manager dashboard cost one subscription between them.
+  useEffect(() => {
+    if (!venueId) return
+    return acquireRealtime(venueId)
+  }, [venueId])
 
   // Read in the fetch effect without making `summary` a dependency of it —
   // depending on the value it sets would re-run the effect on every fetch.
