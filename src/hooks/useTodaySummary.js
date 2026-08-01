@@ -9,7 +9,8 @@ import { captureSilent } from '../lib/reportError'
 // Survives component unmount/remount (single-page navigation), and is backed
 // by localStorage so a cold app open renders the last-known summary
 // immediately while a background refresh fires.
-// Key: `${venueId}:${dateStr}`  Value: { data, closedToday, ts }
+// Key: `${venueId}:${dateStr}:${gating}`  Value: { data, closedToday, ts }
+// The gating segment is the schedule signature — see scheduleSignature().
 const _cache = new Map()
 const STALE_MS  = 90_000   // show stale + revalidate after 90 s
 const FRESH_MS  = 20_000   // don't revalidate at all if data is < 20 s old
@@ -89,6 +90,10 @@ const SUMMARY_TABLES = new Set([
 const _subscribers = new Set()
 let _notifyTimer = null
 
+function notifySubscribers() {
+  for (const fn of _subscribers) fn()
+}
+
 onDataWrite((table) => {
   if (!SUMMARY_TABLES.has(table)) return
 
@@ -101,9 +106,47 @@ onDataWrite((table) => {
   if (_notifyTimer) clearTimeout(_notifyTimer)
   _notifyTimer = setTimeout(() => {
     _notifyTimer = null
-    for (const fn of _subscribers) fn()
+    notifySubscribers()
   }, 300)
 })
+
+// ── Keeping a left-open dashboard honest ────────────────────────────────────
+// The tiles only ever fetched on mount, which is fine on a phone that gets
+// locked and reopened but wrong on the venue tablet the dashboard actually
+// lives on: it sits on one screen all shift, so the numbers froze at whatever
+// they were when someone opened it, and the day rolled over underneath them.
+//
+// Nudging every mounted hook is cheap — the fetch effect re-checks the cache
+// first and does nothing at all while the data is still fresh, so this costs a
+// request a minute at most, and only while someone is actually looking.
+const REVALIDATE_MS = 60_000
+
+if (typeof document !== 'undefined') {
+  const revalidateIfVisible = () => {
+    if (document.visibilityState === 'visible') notifySubscribers()
+  }
+  // Coming back to the app is the moment the numbers are most likely stale.
+  document.addEventListener('visibilitychange', revalidateIfVisible)
+  window.addEventListener('focus', revalidateIfVisible)
+  // …and a slow tick for the tablet that is never hidden and never refocused.
+  // Also what rolls the dashboard onto the new day at midnight: the tick
+  // re-renders the hook, which recomputes todayStr and so the cache key.
+  setInterval(revalidateIfVisible, REVALIDATE_MS)
+}
+
+// Counts the summary reports as zero when the check is not scheduled today.
+// The gating is therefore baked into the cached value, which is why it belongs
+// in the cache key — see the signature comment in the hook.
+const GATED_SCHEDULE_KEYS = [
+  'opening_checks', 'closing_checks', 'fridge_checks',
+  'cleaning_tasks', 'cooking_temps', 'hot_holding', 'cooling_logs',
+]
+
+function scheduleSignature(actionSchedules) {
+  return GATED_SCHEDULE_KEYS
+    .map(k => (isActionDueToday(k, actionSchedules) ? '1' : '0'))
+    .join('')
+}
 
 export function isActionDueToday(scheduleKey, actionSchedules) {
   if (!scheduleKey) return true
@@ -136,7 +179,23 @@ function emptySummary() {
 
 export function useTodaySummary(venueId, closedDays = [], actionSchedules = {}) {
   const todayStr = format(new Date(), 'yyyy-MM-dd')
-  const cacheKey = venueId ? `${venueId}:${todayStr}` : null
+
+  // Which checks are due today, as a 7-character string. Two jobs:
+  //
+  // It is a dependency the fetch effect can actually be keyed on. The effect
+  // gates every count through these schedules but only listed venueId, so
+  // editing a schedule in Settings left the tiles showing the gating they were
+  // fetched under. Depending on `actionSchedules` itself would not work —
+  // useAppSettings rebuilds the object every render, and callers pass object
+  // literals, so the effect would re-run forever.
+  //
+  // It also belongs in the cache key. A check that is not due reads as zero, so
+  // two different schedules produce two different summaries for the same venue
+  // and day; sharing one cache entry between them would hand back the other
+  // one's numbers. Changed gating simply reads as a miss.
+  const gating = scheduleSignature(actionSchedules)
+
+  const cacheKey = venueId ? `${venueId}:${todayStr}:${gating}` : null
   const cached   = cacheKey ? cacheGet(cacheKey) : null
 
   const [summary, setSummary]         = useState(cached?.data ?? null)
@@ -162,7 +221,7 @@ export function useTodaySummary(venueId, closedDays = [], actionSchedules = {}) 
   useEffect(() => {
     if (!venueId) return
 
-    const key = `${venueId}:${todayStr}`
+    const key = `${venueId}:${todayStr}:${gating}`
 
     const entry = cacheGet(key)
     const age   = entry ? Date.now() - entry.ts : Infinity
@@ -416,7 +475,7 @@ export function useTodaySummary(venueId, closedDays = [], actionSchedules = {}) 
     fetchAll()
     return () => { cancelled = true }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [venueId, closedDays.join(','), refreshTick])
+  }, [venueId, closedDays.join(','), todayStr, gating, refreshTick])
 
   return { summary, loading, closedToday }
 }

@@ -174,3 +174,166 @@ describe('useTodaySummary — refreshing after a write', () => {
     await waitFor(() => expect(second.result.current.summary?.criticalActions).toBe(2))
   })
 })
+
+describe('useTodaySummary — action schedules', () => {
+  let serverSnapshot
+  let rpcCalls
+
+  beforeEach(() => {
+    invalidateSummaryCache(null)
+    localStorage.clear()
+    serverSnapshot = snapshot({ uncheckedFridges: 3, totalFridges: 4 })
+    rpcCalls = 0
+    global.fetch = vi.fn(async (url) => {
+      const u = typeof url === 'string' ? url : url?.url ?? ''
+      if (u.includes('/rest/v1/rpc/get_dashboard_snapshot')) {
+        rpcCalls++
+        return json(serverSnapshot)
+      }
+      return json([])
+    })
+  })
+  afterEach(() => {
+    invalidateSummaryCache(null)
+    localStorage.clear()
+    vi.restoreAllMocks()
+  })
+
+  const NOT_DUE = { fridge_checks: { enabled: false, days: [] } }
+
+  it('re-gates the tiles when a schedule changes', async () => {
+    const { result, rerender } = renderHook(
+      ({ sched }) => useTodaySummary(VENUE, [], sched),
+      { initialProps: { sched: {} } },
+    )
+
+    await waitFor(() => expect(result.current.summary).not.toBeNull())
+    expect(result.current.summary.uncheckedFridges).toBe(3)
+
+    // Fridge checks switched off for today in Settings. The summary reports a
+    // check that isn't due as zero — which it could not do before, because the
+    // effect never re-ran on a schedule change.
+    rerender({ sched: NOT_DUE })
+    await waitFor(() => expect(result.current.summary.uncheckedFridges).toBe(0))
+  })
+
+  it('does not serve one schedule the other schedule’s numbers', async () => {
+    const { result, rerender } = renderHook(
+      ({ sched }) => useTodaySummary(VENUE, [], sched),
+      { initialProps: { sched: {} } },
+    )
+    await waitFor(() => expect(result.current.summary?.uncheckedFridges).toBe(3))
+
+    rerender({ sched: NOT_DUE })
+    await waitFor(() => expect(result.current.summary.uncheckedFridges).toBe(0))
+
+    // Straight back — well inside the 20 s fresh window. The two gatings must
+    // hold separate cache entries, or this reads the zeroed one.
+    rerender({ sched: {} })
+    await waitFor(() => expect(result.current.summary.uncheckedFridges).toBe(3))
+  })
+
+  it('does not re-fetch when the schedules object is rebuilt unchanged', async () => {
+    // useAppSettings returns a fresh object every render and callers pass
+    // literals, so the effect is keyed on the gating those schedules produce,
+    // not on their identity. Getting this wrong is an infinite fetch loop.
+    const { result, rerender } = renderHook(
+      ({ sched }) => useTodaySummary(VENUE, [], sched),
+      { initialProps: { sched: { fridge_checks: { enabled: true, days: [0,1,2,3,4,5,6] } } } },
+    )
+    await waitFor(() => expect(result.current.summary).not.toBeNull())
+    expect(rpcCalls).toBe(1)
+
+    for (let i = 0; i < 5; i++) {
+      rerender({ sched: { fridge_checks: { enabled: true, days: [0,1,2,3,4,5,6] } } })
+    }
+
+    await new Promise(r => setTimeout(r, 100))
+    expect(rpcCalls).toBe(1)
+  })
+})
+
+describe('useTodaySummary — keeping a left-open dashboard live', () => {
+  let serverSnapshot
+  let rpcCalls
+
+  beforeEach(() => {
+    invalidateSummaryCache(null)
+    localStorage.clear()
+    serverSnapshot = snapshot()
+    rpcCalls = 0
+    global.fetch = vi.fn(async (url) => {
+      const u = typeof url === 'string' ? url : url?.url ?? ''
+      if (u.includes('/rest/v1/rpc/get_dashboard_snapshot')) {
+        rpcCalls++
+        return json(serverSnapshot)
+      }
+      return json([])
+    })
+  })
+  afterEach(() => {
+    invalidateSummaryCache(null)
+    localStorage.clear()
+    setVisibility('visible')
+    vi.restoreAllMocks()
+  })
+
+  function setVisibility(state) {
+    Object.defineProperty(document, 'visibilityState', {
+      configurable: true, get: () => state,
+    })
+  }
+
+  async function mounted() {
+    const h = renderHook(() => useTodaySummary(VENUE, [], {}))
+    await waitFor(() => expect(h.result.current.summary).not.toBeNull())
+    expect(rpcCalls).toBe(1)
+    return h
+  }
+
+  it('re-fetches when the tab becomes visible again and the cache cannot serve it', async () => {
+    const { result } = await mounted()
+
+    // Stand in for data that is no longer usable — a day rolled over, or the
+    // entry aged out. Previously nothing re-ran at all: the tiles only ever
+    // fetched on mount, so a dashboard left open never moved.
+    serverSnapshot = snapshot({ onShiftToday: 9 })
+    invalidateSummaryCache(null)
+    document.dispatchEvent(new Event('visibilitychange'))
+
+    await waitFor(() => expect(result.current.summary.onShiftToday).toBe(9))
+  })
+
+  it('re-fetches on window focus', async () => {
+    const { result } = await mounted()
+
+    serverSnapshot = snapshot({ criticalActions: 4 })
+    invalidateSummaryCache(null)
+    window.dispatchEvent(new Event('focus'))
+
+    await waitFor(() => expect(result.current.summary.criticalActions).toBe(4))
+  })
+
+  it('costs nothing while the cached numbers are still fresh', async () => {
+    await mounted()
+
+    // The revalidation nudge is deliberately unconditional; the fetch effect
+    // is what decides. Inside the fresh window that decision is "no request".
+    document.dispatchEvent(new Event('visibilitychange'))
+    window.dispatchEvent(new Event('focus'))
+
+    await new Promise(r => setTimeout(r, 100))
+    expect(rpcCalls).toBe(1)
+  })
+
+  it('does not fetch for a hidden tab', async () => {
+    await mounted()
+
+    setVisibility('hidden')
+    invalidateSummaryCache(null)
+    document.dispatchEvent(new Event('visibilitychange'))
+
+    await new Promise(r => setTimeout(r, 100))
+    expect(rpcCalls).toBe(1)
+  })
+})
