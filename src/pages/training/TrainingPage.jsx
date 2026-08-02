@@ -482,10 +482,14 @@ function CertificatesTab({ venueId }) {
     const { error } = await insertTrainingRecord({
       staff_id: form.staff_id, title: form.title.trim(), category: form.category || null,
       issued_date: form.issued_date || null, expiry_date: form.expiry_date || null,
-      notes: form.notes.trim() || null, file_path, file_name, venue_id: venueId,
-    })
+      notes: form.notes.trim() || null, file_name, venue_id: venueId,
+    }, file_path)
     setSaving(false)
-    if (error) { toast(error.message, 'error'); return }
+    if (error) {
+      console.error('Training record insert failed:', error)
+      toast('Certificate could not be saved — please try again', 'error')
+      return
+    }
     toast('Certificate added')
     setForm(EMPTY_FORM); setFile(null); setShowForm(false); reload()
   }
@@ -703,10 +707,14 @@ function AllergenComplianceTab({ venueId }) {
     const { error } = await insertTrainingRecord({
       staff_id: addFor.id, title: 'Allergen Awareness Training', category: 'allergen_awareness',
       issued_date: form.issued_date || null, expiry_date: form.expiry_date || null,
-      notes: form.notes.trim() || null, file_path, file_name, venue_id: venueId,
-    })
+      notes: form.notes.trim() || null, file_name, venue_id: venueId,
+    }, file_path)
     setSaving(false)
-    if (error) { toast(error.message, 'error'); return }
+    if (error) {
+      console.error('Allergen cert insert failed:', error)
+      toast('Certificate could not be saved — please try again', 'error')
+      return
+    }
     toast(`Allergen cert added for ${addFor.name}`)
     setAddFor(null); reload()
   }

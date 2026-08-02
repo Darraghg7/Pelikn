@@ -40,6 +40,43 @@ export async function attachmentUrl(bucket, path, legacyUrl = null) {
   return legacyUrl ?? null
 }
 
+/**
+ * True when `error` is PostgREST refusing a statement because `column` is not
+ * in its schema cache (PGRST204 on a write, 42703 on a read).
+ *
+ * 085 and 086 are applied by hand in the SQL editor, so a database can be
+ * running the client that writes a storage key before it has the column to put
+ * it in.
+ */
+export function isMissingColumn(error, column) {
+  if (!error) return false
+  const missing = error.code === 'PGRST204' || error.code === '42703'
+  return missing && String(error.message ?? '').includes(column)
+}
+
+/**
+ * Insert a row that may carry an attachment, without letting the attachment
+ * decide whether the row can be written at all.
+ *
+ * PostgREST rejects the whole row over a column its schema cache does not know
+ * — including one set to null — so `pathColumn` is named only when there is a
+ * file, and a database that turns out not to have it keeps the file in the
+ * legacy `urlColumn` instead. The migrations that add the storage key close the
+ * bucket in the same script, so a database missing the column still has the
+ * bucket public: the URL resolves, and the migration's backfill converts it to
+ * a storage key whenever it is applied.
+ *
+ * `insert` is a callback so the caller keeps control of the query it builds
+ * (`.select().single()` or a bare insert).
+ */
+export async function insertWithAttachment(insert, row, { bucket, path, pathColumn, urlColumn }) {
+  const res = await insert(path ? { ...row, [pathColumn]: path } : row)
+  if (!path || !isMissingColumn(res.error, pathColumn)) return res
+
+  const { data } = supabase.storage.from(bucket).getPublicUrl(path)
+  return insert({ ...row, [urlColumn]: data?.publicUrl ?? null })
+}
+
 /** Open an attachment in a new tab, reporting failure rather than doing nothing. */
 export async function openAttachment(bucket, path, legacyUrl, toast) {
   if (!path && !legacyUrl) {

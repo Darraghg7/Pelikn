@@ -1,4 +1,6 @@
 import { supabase } from '../supabase'
+import { insertWithAttachment } from '../attachments'
+import { TRAINING_BUCKET } from '../trainingFiles'
 
 export interface StaffLite {
   id: string
@@ -71,8 +73,24 @@ export function insertSignOff(payload: Record<string, unknown>) {
   return supabase.from('training_sign_offs').insert(payload)
 }
 
-export function insertTrainingRecord(payload: Record<string, unknown>) {
-  return supabase.from('staff_training').insert(payload)
+/**
+ * Insert a certificate record, recording the uploaded file if there is one.
+ *
+ * `file_path` comes from 086, which is applied by hand — until it has been,
+ * naming the column rejects the whole record with "Could not find the
+ * 'file_path' column of 'staff_training' in the schema cache", even for a
+ * certificate with no file attached. Training is a compliance record and has to
+ * be loggable either way, so the file falls back to the legacy `file_url`.
+ */
+export function insertTrainingRecord(
+  payload: Record<string, unknown>,
+  filePath?: string | null,
+) {
+  return insertWithAttachment(
+    (row: Record<string, unknown>) => supabase.from('staff_training').insert(row),
+    payload,
+    { bucket: TRAINING_BUCKET, path: filePath, pathColumn: 'file_path', urlColumn: 'file_url' },
+  )
 }
 
 export function deleteTrainingRecord(id: string, venueId: string) {

@@ -2,16 +2,20 @@
 
 **Symptom that sends you here:** a manager cannot log a delivery check and sees
 *"Could not find the 'photo_path' column of 'delivery_checks' in the schema cache"*.
+The same fault hit training certificates via `staff_training.file_path` — the add
+form failing, and a staff member's certificate list rendering empty as though
+they had none.
 
 **What it means:** `086_private_training_files.sql` has to be run by hand in the
 Supabase SQL editor, and it hasn't been. The client shipped on 2026-07-31 writes
 the storage key the migration adds; PostgREST rejects a row that names a column
 its schema cache does not have, so the whole delivery check fails.
 
-The client no longer depends on the column — `photo_path` is only named when a
-photo was attached, and a database without it falls back to the legacy public
-`photo_url`. Deliveries log either way. Applying 086 is still the fix: until it
-runs, the `training-files` bucket stays public, which is the hole 086 closes.
+The client no longer depends on either column — the storage key is named only
+when a file was actually attached, and a database without the column falls back
+to the legacy public URL (`photo_url` / `file_url`). Deliveries and certificates
+save either way. Applying 086 is still the fix: until it runs, the
+`training-files` bucket stays public, which is the hole 086 closes.
 
 ---
 

@@ -33,9 +33,13 @@ export function useStaffTraining(staffId: string): {
     queryKey: ['staffTraining', venueId, staffId],
     queryFn: async () => {
       if (!staffId) return [] as TrainingRecord[]
+      // `*` rather than a column list: naming file_path (086, applied by hand)
+      // makes the whole read fail on a database that does not have it yet, and
+      // this query drops the error, so the certificate list would render empty
+      // as though the staff member had no training at all.
       let q = supabase
         .from('staff_training')
-        .select('id, title, category, issued_date, expiry_date, notes, file_path, file_url, file_name, staff_id, venue_id, created_at')
+        .select('*')
         .eq('staff_id', staffId)
         .order('created_at', { ascending: false })
       if (venueId) q = q.eq('venue_id', venueId)

@@ -1,4 +1,5 @@
 import { supabase } from '../supabase'
+import { insertWithAttachment } from '../attachments'
 import { TRAINING_BUCKET } from '../trainingFiles'
 
 export interface DeliveryCheck {
@@ -24,44 +25,21 @@ export async function fetchDeliveryChecks(venueId: string): Promise<DeliveryChec
 }
 
 /**
- * PostgREST rejects an insert that names a column its schema cache does not
- * know, and it rejects the whole row — so on a database where 086 has not been
- * applied yet, `photo_path` in the payload fails every delivery check with
- * "Could not find the 'photo_path' column of 'delivery_checks' in the schema
- * cache", even when no photo was attached.
- */
-function isMissingPhotoPath(error: { code?: string; message?: string } | null): boolean {
-  if (!error) return false
-  const missingColumn = error.code === 'PGRST204' || error.code === '42703'
-  return missingColumn && (error.message ?? '').includes('photo_path')
-}
-
-/**
- * Insert a delivery check, recording the photo if there is one.
+ * Insert a delivery check and return the created row (`.select().single()`).
  *
- * A delivery check is a food-safety record and has to be loggable whatever the
- * state of the photo column, so `photo_path` is named only when a photo was
- * actually uploaded, and a database that does not have the column yet keeps
- * the photo in the legacy `photo_url`.
+ * A delivery check is a food-safety record and has to be loggable whatever
+ * state `photo_path` is in — on a database where 086 has not been applied yet,
+ * naming the column failed every check with "Could not find the 'photo_path'
+ * column of 'delivery_checks' in the schema cache", photo or no photo.
  */
-export async function insertDeliveryCheck(
+export function insertDeliveryCheck(
   row: Record<string, unknown>,
   photoPath?: string | null,
 ) {
-  const res = await supabase
-    .from('delivery_checks')
-    .insert(photoPath ? { ...row, photo_path: photoPath } : row)
-    .select()
-    .single()
-  if (!photoPath || !isMissingPhotoPath(res.error)) return res
-
-  // 086 adds the column and closes the bucket in the same script, so a database
-  // missing the column still has training-files public: the public URL resolves,
-  // and 086's backfill converts it to a storage key whenever it is applied.
-  const { data } = supabase.storage.from(TRAINING_BUCKET).getPublicUrl(photoPath)
-  return supabase
-    .from('delivery_checks')
-    .insert({ ...row, photo_url: data?.publicUrl ?? null })
-    .select()
-    .single()
+  return insertWithAttachment(
+    (payload: Record<string, unknown>) =>
+      supabase.from('delivery_checks').insert(payload).select().single(),
+    row,
+    { bucket: TRAINING_BUCKET, path: photoPath, pathColumn: 'photo_path', urlColumn: 'photo_url' },
+  )
 }
