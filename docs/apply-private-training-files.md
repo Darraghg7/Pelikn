@@ -45,7 +45,38 @@ If it stops with *"N staff_training row(s) have a file_url that could not be
 converted to a storage key"*, that is the deliberate sanity check — inspect
 those rows before continuing rather than forcing past it.
 
-## Step 2 — Verify on the live app
+## Step 2 — Verify in SQL
+
+Paste this into the SQL editor after the migration. All four blocks should come
+back `PASS`; anything else means that part did not take.
+
+```sql
+-- 1. Both storage-key columns exist (4 rows expected)
+select table_name, column_name
+  from information_schema.columns
+ where (table_name = 'delivery_checks' and column_name in ('photo_path', 'photo_url'))
+    or (table_name = 'staff_training'  and column_name in ('file_path',  'file_url'))
+ order by table_name, column_name;
+
+-- 2. The bucket is closed
+select case when public then 'FAIL — still public' else 'PASS' end
+  from storage.buckets where id = 'training-files';
+
+-- 3. The three venue-scoped policies replaced 049's open ones
+select case when count(*) = 3 then 'PASS' else 'FAIL — ' || count(*) || ' of 3' end
+  from pg_policies
+ where schemaname = 'storage' and tablename = 'objects'
+   and policyname in ('training_files_read', 'training_files_insert', 'training_files_delete');
+
+-- 4. No delivery photo was orphaned by the backfill.
+--    The migration's own sanity check covers staff_training but NOT this table,
+--    and a row left here has a photo that is now unreachable: the bucket is
+--    private, so its stored public URL no longer resolves.
+select case when count(*) = 0 then 'PASS' else 'FAIL — ' || count(*) || ' orphaned photo(s)' end
+  from delivery_checks where photo_url is not null and photo_path is null;
+```
+
+## Step 3 — Verify on the live app
 
 Signed in to NOMAD:
 
@@ -56,6 +87,6 @@ Signed in to NOMAD:
 4. Paste an old public `…/object/public/training-files/…` URL into a logged-out
    browser — it should now be refused. That refusal is the point of the migration.
 
-If step 3 fails, the client half is not deployed; ship `main` and retry. The
+If step 3 of the app checks fails, the client half is not deployed; ship `main` and retry. The
 rollback block at the foot of the migration restores 049's behaviour, openness
 included.
