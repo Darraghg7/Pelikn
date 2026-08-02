@@ -1,4 +1,11 @@
-# Applying migration 086 (private training-files bucket)
+# Applying `086_private_training_files.sql`
+
+> **Two migrations are numbered 086.** This is the one committed 2026-07-31.
+> `086_venue_group_code.sql` is a different, unrelated migration from the June
+> batch and is almost certainly applied already — running it again is harmless
+> but does nothing for this. Go by the **filename**, never the number. (`085`
+> collides the same way; `091` has two files, but that pair is deliberate —
+> `091_rollback.sql` is the rollback for `091_venue_scoped_rls.sql`.)
 
 **Symptom that sends you here:** a manager cannot log a delivery check and sees
 *"Could not find the 'photo_path' column of 'delivery_checks' in the schema cache"*.
@@ -14,8 +21,8 @@ its schema cache does not have, so the whole delivery check fails.
 The client no longer depends on either column — the storage key is named only
 when a file was actually attached, and a database without the column falls back
 to the legacy public URL (`photo_url` / `file_url`). Deliveries and certificates
-save either way. Applying 086 is still the fix: until it runs, the
-`training-files` bucket stays public, which is the hole 086 closes.
+save either way. Applying the migration is still the fix: until it runs, the
+`training-files` bucket stays public, which is the hole it closes.
 
 ---
 
