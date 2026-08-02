@@ -7,6 +7,7 @@ import LoadingSpinner from '../../components/ui/LoadingSpinner'
 import ConfirmDialog from '../../components/ui/ConfirmDialog'
 import { useStaffTraining } from '../../hooks/useTraining'
 import { TRAINING_BUCKET, trainingFilePath, openTrainingFile } from '../../lib/trainingFiles'
+import { insertTrainingRecord } from '../../lib/api/training'
 
 const EMPTY_TRAINING = { title: '', issued_date: '', expiry_date: '', notes: '' }
 
@@ -38,19 +39,22 @@ export default function TrainingSection({ staffId }) {
       file_name = file.name
     }
 
-    const { error } = await supabase.from('staff_training').insert({
+    const { error } = await insertTrainingRecord({
       venue_id:    venueId,
       staff_id:    staffId,
       title:       form.title.trim(),
       issued_date: form.issued_date || null,
       expiry_date: form.expiry_date || null,
       notes:       form.notes.trim() || null,
-      file_path,
       file_name,
-    })
+    }, file_path)
 
     setSaving(false)
-    if (error) { toast(error.message, 'error'); return }
+    if (error) {
+      console.error('Training record insert failed:', error)
+      toast('Training record could not be saved — please try again', 'error')
+      return
+    }
     toast('Training record added')
     setForm(EMPTY_TRAINING)
     setFile(null)

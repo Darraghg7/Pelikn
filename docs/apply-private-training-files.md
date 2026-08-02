@@ -1,0 +1,92 @@
+# Applying `086_private_training_files.sql`
+
+> **Two migrations are numbered 086.** This is the one committed 2026-07-31.
+> `086_venue_group_code.sql` is a different, unrelated migration from the June
+> batch and is almost certainly applied already — running it again is harmless
+> but does nothing for this. Go by the **filename**, never the number. (`085`
+> collides the same way; `091` has two files, but that pair is deliberate —
+> `091_rollback.sql` is the rollback for `091_venue_scoped_rls.sql`.)
+
+**Symptom that sends you here:** a manager cannot log a delivery check and sees
+*"Could not find the 'photo_path' column of 'delivery_checks' in the schema cache"*.
+The same fault hit training certificates via `staff_training.file_path` — the add
+form failing, and a staff member's certificate list rendering empty as though
+they had none.
+
+**What it means:** `086_private_training_files.sql` has to be run by hand in the
+Supabase SQL editor, and it hasn't been. The client shipped on 2026-07-31 writes
+the storage key the migration adds; PostgREST rejects a row that names a column
+its schema cache does not have, so the whole delivery check fails.
+
+The client no longer depends on either column — the storage key is named only
+when a file was actually attached, and a database without the column falls back
+to the legacy public URL (`photo_url` / `file_url`). Deliveries and certificates
+save either way. Applying the migration is still the fix: until it runs, the
+`training-files` bucket stays public, which is the hole it closes.
+
+---
+
+## Step 0 — Take a fresh backup
+
+GitHub → Actions → Daily Database Backup → Run workflow. Confirm it goes green
+with a real size before continuing.
+
+## Step 1 — Run the migration
+
+Supabase Dashboard → **SQL Editor**. Paste the entire contents of
+`supabase/migrations/086_private_training_files.sql` and run it.
+
+It adds `staff_training.file_path` and `delivery_checks.photo_path`, backfills
+both from the existing public URLs, closes the bucket and replaces 049's
+open storage policies with venue-scoped ones. Every statement is `IF NOT EXISTS`
+or idempotent, so running it twice is harmless.
+
+If it stops with *"N staff_training row(s) have a file_url that could not be
+converted to a storage key"*, that is the deliberate sanity check — inspect
+those rows before continuing rather than forcing past it.
+
+## Step 2 — Verify in SQL
+
+Paste this into the SQL editor after the migration. All four blocks should come
+back `PASS`; anything else means that part did not take.
+
+```sql
+-- 1. Both storage-key columns exist (4 rows expected)
+select table_name, column_name
+  from information_schema.columns
+ where (table_name = 'delivery_checks' and column_name in ('photo_path', 'photo_url'))
+    or (table_name = 'staff_training'  and column_name in ('file_path',  'file_url'))
+ order by table_name, column_name;
+
+-- 2. The bucket is closed
+select case when public then 'FAIL — still public' else 'PASS' end
+  from storage.buckets where id = 'training-files';
+
+-- 3. The three venue-scoped policies replaced 049's open ones
+select case when count(*) = 3 then 'PASS' else 'FAIL — ' || count(*) || ' of 3' end
+  from pg_policies
+ where schemaname = 'storage' and tablename = 'objects'
+   and policyname in ('training_files_read', 'training_files_insert', 'training_files_delete');
+
+-- 4. No delivery photo was orphaned by the backfill.
+--    The migration's own sanity check covers staff_training but NOT this table,
+--    and a row left here has a photo that is now unreachable: the bucket is
+--    private, so its stored public URL no longer resolves.
+select case when count(*) = 0 then 'PASS' else 'FAIL — ' || count(*) || ' orphaned photo(s)' end
+  from delivery_checks where photo_url is not null and photo_path is null;
+```
+
+## Step 3 — Verify on the live app
+
+Signed in to NOMAD:
+
+1. Log a delivery check **without** a photo — saves.
+2. Log one **with** a photo — saves, and the photo uploads.
+3. Open a staff training certificate — it opens (via a short-lived signed URL now,
+   not a public link).
+4. Paste an old public `…/object/public/training-files/…` URL into a logged-out
+   browser — it should now be refused. That refusal is the point of the migration.
+
+If step 3 of the app checks fails, the client half is not deployed; ship `main` and retry. The
+rollback block at the foot of the migration restores 049's behaviour, openness
+included.
