@@ -35,11 +35,32 @@ function jwtExpSeconds(jwt) {
   } catch { return 0 }
 }
 
+/**
+ * Hand the venue JWT to the realtime socket as well as to PostgREST.
+ *
+ * The fetch wrapper below only sees /rest/v1 — realtime rides a WebSocket and
+ * never passes through it. Without this the socket authenticates as anon, so
+ * `current_venue_id()` is NULL, `has_venue_access()` is false, and once
+ * venue-scoped RLS (091) is switched on every postgres_changes event is
+ * filtered out server-side: live updates would go quiet with no error.
+ */
+function syncRealtimeAuth(jwt) {
+  try {
+    // Async in supabase-js v2, and nothing downstream waits on it.
+    Promise.resolve(supabase.realtime.setAuth(jwt ?? null)).catch(() => {})
+  } catch { /* no realtime in this environment — REST is unaffected */ }
+}
+
 export const setSessionJwt = (jwt) => {
   _sessionJwt    = jwt || null
   _sessionJwtExp = jwt ? jwtExpSeconds(jwt) : 0
+  syncRealtimeAuth(_sessionJwt)
 }
-export const clearSessionJwt = () => { _sessionJwt = null; _sessionJwtExp = 0 }
+export const clearSessionJwt = () => {
+  _sessionJwt = null
+  _sessionJwtExp = 0
+  syncRealtimeAuth(null)
+}
 
 // SessionContext registers a callback that re-issues the venue JWT from the
 // active session token. Kept here (not imported) to avoid a circular import.
