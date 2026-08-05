@@ -7,6 +7,7 @@ import { useVenue } from '../../contexts/VenueContext'
 import { useSession } from '../../contexts/SessionContext'
 import { useShifts, useStaffList, shiftDurationHours, paidShiftHours } from '../../hooks/useShifts'
 import { useShiftSwaps } from '../../hooks/useShiftSwaps'
+import { useAvailability } from '../../hooks/useAvailability'
 import { useVenueRoles } from '../../hooks/useVenueRoles'
 import { getWeekStart, getWeekDays } from '../../lib/utils'
 import { useToast } from '../../components/ui/Toast'
@@ -405,23 +406,34 @@ function SwapSheet({ swaps, onClose, onResolved }) {
 }
 
 // ── AI Sheet ──────────────────────────────────────────────────────────────────
-function AISheet({ openShifts, staff, venueId, onClose, onFilled }) {
+function AISheet({ openShifts, staff, unavailability = {}, venueId, onClose, onFilled }) {
   const [filling, setFilling] = useState(false)
   const toast = useToast()
 
   const fill = async () => {
     if (!openShifts.length) return
     setFilling(true)
+    let skipped = 0
     for (const o of openShifts) {
       if (!o.id) continue
+      const dateStr = format(o._day, 'yyyy-MM-dd')
+      // Never suggest someone who has booked the day off.
+      const free = staff.filter(s => !unavailability[`${s.id}:${dateStr}`])
       const oStation = stationFromRole(o.role_label)
-      const suggested = staff.find(s => stationFromRole(s.job_role) === oStation) || staff[0]
+      const suggested = free.find(s => stationFromRole(s.job_role) === oStation) || free[0]
       if (suggested) {
         await supabase.from('shifts').update({ staff_id: suggested.id }).eq('id', o.id)
+      } else {
+        skipped++
       }
     }
     setFilling(false)
-    toast(`Auto-fill drafted ${openShifts.length} ${openShifts.length === 1 ? 'shift' : 'shifts'} — review & publish`)
+    const drafted = openShifts.length - skipped
+    toast(
+      skipped
+        ? `Auto-fill drafted ${drafted} of ${openShifts.length} — ${skipped} left open, nobody free`
+        : `Auto-fill drafted ${drafted} ${drafted === 1 ? 'shift' : 'shifts'} — review & publish`
+    )
     onFilled?.()
     onClose()
   }
@@ -472,9 +484,23 @@ function AISheet({ openShifts, staff, venueId, onClose, onFilled }) {
 }
 
 // ── Grid cell ─────────────────────────────────────────────────────────────────
-function GridCell({ shift, isToday: todayCol, onTap }) {
+function GridCell({ shift, isToday: todayCol, onTap, onLeave }) {
   const baseStyle = {
     width: DAY_COL, minWidth: DAY_COL, height: ROW_H,
+  }
+  // Approved time off blocks the slot, same as the desktop grid: no tap target,
+  // so nobody gets rota'd onto a day they have booked off.
+  if (!shift && onLeave) {
+    return (
+      <div
+        className="flex items-center justify-center font-mono p-[5px_4px] shrink-0"
+        style={{ ...baseStyle, background: todayCol ? 'rgba(19,54,42,0.04)' : 'transparent' }}
+      >
+        <span className="w-full h-full rounded-[10px] flex items-center justify-center bg-charcoal/[0.06]">
+          <span className="font-mono text-[8.5px] font-semibold uppercase tracking-[0.06em] text-charcoal/40">Leave</span>
+        </span>
+      </div>
+    )
   }
   if (!shift) {
     return (
@@ -584,6 +610,7 @@ export default function RotaMobileGrid() {
 
   const { shifts, loading, reload } = useShifts(weekStart, 1)
   const { staff, loading: staffLoading } = useStaffList()
+  const { unavailability } = useAvailability(weekStart, 1)
   const { swaps, pendingCount, reload: reloadSwaps } = useShiftSwaps()
   const { roles } = useVenueRoles()
 
@@ -809,8 +836,15 @@ export default function RotaMobileGrid() {
                           {days.map((day, di) => {
                             const dateStr = format(day, 'yyyy-MM-dd')
                             const shift = shiftMap[`${member.id}|${dateStr}`] ?? null
+                            const onLeave = unavailability[`${member.id}:${dateStr}`]?.type === 'time_off'
                             return (
-                              <GridCell key={di} shift={shift} isToday={isToday(day)} onTap={() => setShiftSheet({ shift, staffMember: member, day })} />
+                              <GridCell
+                                key={di}
+                                shift={shift}
+                                onLeave={onLeave}
+                                isToday={isToday(day)}
+                                onTap={() => setShiftSheet({ shift, staffMember: member, day })}
+                              />
                             )
                           })}
                         </div>
@@ -891,6 +925,7 @@ export default function RotaMobileGrid() {
           <AISheet
             openShifts={openShifts}
             staff={staff}
+            unavailability={unavailability}
             days={days}
             venueId={venueId}
             onClose={() => setShowAI(false)}

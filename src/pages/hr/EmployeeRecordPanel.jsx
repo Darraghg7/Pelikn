@@ -883,9 +883,10 @@ function LeaveTab({ staffId, venueSlug, staff }) {
   }, [staffId])
 
   const STATUS_TONE = {
-    approved: 'good',
-    pending:  'warn',
-    rejected: 'bad',
+    approved:  'good',
+    pending:   'warn',
+    rejected:  'bad',
+    cancelled: 'muted',
   }
   const LEAVE_LABELS = { annual: 'Annual', unpaid: 'Unpaid', other: 'Other' }
 
