@@ -9,6 +9,7 @@ import Modal from '../../components/ui/Modal'
 import useDeliveryChecks from '../../hooks/useDeliveryChecks'
 import { useSuppliers } from '../../hooks/useSuppliers'
 import { insertSupplier } from '../../lib/api/suppliers'
+import { insertDeliveryCheck } from '../../lib/api/deliveries'
 import { TRAINING_BUCKET, deliveryPhotoPath } from '../../lib/trainingFiles'
 // tesseract.js is ~7 MB — dynamically imported only when OCR is actually used
 
@@ -387,7 +388,7 @@ function DeliveryCheckModal({ open, onClose, suppliers, onSupplierAdded, onCompl
       : null
 
     // Create the delivery check
-    const { data: check, error } = await supabase.from('delivery_checks').insert({
+    const { data: check, error } = await insertDeliveryCheck({
       supplier_name: selectedSupplier.name,
       supplier_id: selectedSupplier.id,
       temp_reading: avgTemp,
@@ -395,15 +396,19 @@ function DeliveryCheckModal({ open, onClose, suppliers, onSupplierAdded, onCompl
       packaging_ok: packagingOk,
       use_by_ok: useByOk,
       overall_pass: overallPass,
-      photo_path: photoPath || null,
       notes: overallNotes.trim() || null,
       items_desc: itemEntries.map(([, v]) => v.itemName).join(', ').slice(0, 200),
       checked_by: session?.staffId,
       checked_at: new Date(checkedAt).toISOString(),
       venue_id: venueId,
-    }).select().single()
+    }, photoPath)
 
-    if (error) { toast(error.message, 'error'); setSaving(false); return }
+    if (error) {
+      console.error('Delivery check insert failed:', error)
+      toast('Delivery check could not be saved — please try again', 'error')
+      setSaving(false)
+      return
+    }
 
     // Save line items
     if (check && itemEntries.length > 0) {
