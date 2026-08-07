@@ -17,6 +17,11 @@ export const NOTIFICATION_TYPES: NotificationType[] = [
     description: 'Staff clocking out before their scheduled shift ends.',
   },
   {
+    id: 'unscheduled_clock_in',
+    label: 'Unscheduled clock-ins',
+    description: 'Staff clocking in with no shift scheduled for today.',
+  },
+  {
     id: 'corrective_action_logged',
     label: 'Corrective actions',
     description: 'New food safety or operational corrective actions.',

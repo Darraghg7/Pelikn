@@ -72,7 +72,7 @@ function StaffClockRow({ staffMember }) {
 function ManagerOwnClock({ venueId }) {
   const { session } = useSession()
   if (!session?.staffId) return <p className="text-sm text-charcoal/35 italic">No staff session.</p>
-  return <ClockPanel staffId={session.staffId} hasShift />
+  return <ClockPanel staffId={session.staffId} />
 }
 
 /* ── Manager view ────────────────────────────────────────────────── */
@@ -135,7 +135,7 @@ function StaffView({ staffId, staffName }) {
         <p className="text-xs text-charcoal/40 mb-5">
           {format(new Date(), 'EEEE, d MMMM yyyy')}
         </p>
-        <ClockPanel staffId={staffId} hasShift />
+        <ClockPanel staffId={staffId} />
       </div>
 
       <RecentShifts staffId={staffId} isManagerEdit={false} />

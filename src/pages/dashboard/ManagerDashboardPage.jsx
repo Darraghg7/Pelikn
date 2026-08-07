@@ -338,7 +338,7 @@ export default function ManagerDashboardPage() {
           <DesktopStatGrid summary={summary} venueSlug={venueSlug} isEnabled={isEnabled} />
           <div className="bg-white rounded-2xl p-5">
             <p className="text-[11px] tracking-widest uppercase font-semibold text-charcoal/40 mb-3">My Clock</p>
-            <ClockPanel staffId={session?.staffId} hasShift />
+            <ClockPanel staffId={session?.staffId} />
           </div>
         </div>
       </div>
