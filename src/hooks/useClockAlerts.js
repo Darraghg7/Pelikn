@@ -22,7 +22,9 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { format, subDays } from 'date-fns'
 import { supabase, supabaseUrl, supabaseAnonKey } from '../lib/supabase'
 import { useVenue } from '../contexts/VenueContext'
+import { useSession } from '../contexts/SessionContext'
 import { useAppSettings } from './useSettings'
+import { useToast } from '../components/ui/Toast'
 import { sendPush } from '../lib/sendPush'
 import { londonToday, londonWallTimeToInstant, londonDayStartInstant, formatLondon } from '../lib/time'
 import { captureSilent } from '../lib/reportError'
@@ -64,6 +66,8 @@ function closestShift(shifts, today, at, field) {
 
 export function useClockAlerts({ staffId, status, breakStartAt, onEndBreak }) {
   const { venueId } = useVenue()
+  const { session } = useSession()
+  const toast = useToast()
   const {
     requireLateReason,
     requireManagerApprovalForLate,
@@ -134,7 +138,26 @@ export function useClockAlerts({ staffId, status, breakStartAt, onEndBreak }) {
         .eq('staff_id', staffId)
         .eq('shift_date', today)
         .order('start_time')
-      if (!shifts?.length) return
+      if (!shifts?.length) {
+        // No rota row does not block clock-in — some venues don't run a rota
+        // at all. Flag it instead: a warning to the person clocking in, and a
+        // push to managers/owners. Unknown role flags anyway (a missed
+        // compliance signal costs more than one spurious manager ping).
+        // Managers/owners are routinely off-rota, so they're exempt.
+        const role = session?.staffRole
+        if (role !== 'manager' && role !== 'owner') {
+          toast('Clocked in — no shift scheduled today', 'warning')
+          sendPush({
+            venueId,
+            notificationType: 'unscheduled_clock_in',
+            title: 'Unscheduled Clock-In',
+            body: `${session?.staffName ?? 'A staff member'} clocked in with no shift scheduled`,
+            url: '/timesheet',
+            roles: ['manager', 'owner'],
+          }).catch(() => {})
+        }
+        return
+      }
 
       // Scheduled times are UK wall-clock (Europe/London), whatever the device tz.
       const shift      = closestShift(shifts, today, at, 'start_time')
@@ -248,7 +271,7 @@ export function useClockAlerts({ staffId, status, breakStartAt, onEndBreak }) {
         breakStillActive: false,
       })
     }
-  }, [staffId, venueId, breakStartAt, breakAllowanceMins, lateGraceMins])
+  }, [staffId, venueId, breakStartAt, breakAllowanceMins, lateGraceMins, session?.staffRole, session?.staffName, toast])
 
   const handleAcknowledge = useCallback(async (reason) => {
     const current = alert

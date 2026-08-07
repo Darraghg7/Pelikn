@@ -64,7 +64,7 @@ function ElapsedTimer({ clockInAt, breakStartAt, totalBreakMs, status }) {
   )
 }
 
-export default function ClockPanel({ staffId, hasShift = true, compact = false }) {
+export default function ClockPanel({ staffId, compact = false }) {
   const { venueId } = useVenue()
   const toast = useToast()
   const { status, clockInAt, breakStartAt, totalBreakMs, loading, reload } = useClockStatus(staffId)
@@ -144,21 +144,15 @@ export default function ClockPanel({ staffId, hasShift = true, compact = false }
 
         {/* Action buttons — compact=true renders on-dark variants for the hero card */}
         {status === 'clocked_out' && (
-          hasShift ? (
-            <button
-              onClick={() => record('clock_in')}
-              disabled={submitting}
-              className={compact
-                ? 'w-full bg-white text-brand py-3 rounded-xl text-sm font-bold hover:bg-white/90 transition-colors disabled:opacity-40'
-                : 'w-full bg-charcoal text-cream py-3 rounded-xl text-sm font-semibold hover:bg-charcoal/90 transition-colors disabled:opacity-40'}
-            >
-              {submitting ? '…' : 'Clock In'}
-            </button>
-          ) : (
-            <p className={`text-xs italic text-center py-2 ${compact ? 'text-white/40' : 'text-charcoal/35'}`}>
-              No shift scheduled — clock in not available
-            </p>
-          )
+          <button
+            onClick={() => record('clock_in')}
+            disabled={submitting}
+            className={compact
+              ? 'w-full bg-white text-brand py-3 rounded-xl text-sm font-bold hover:bg-white/90 transition-colors disabled:opacity-40'
+              : 'w-full bg-charcoal text-cream py-3 rounded-xl text-sm font-semibold hover:bg-charcoal/90 transition-colors disabled:opacity-40'}
+          >
+            {submitting ? '…' : 'Clock In'}
+          </button>
         )}
 
         {status === 'clocked_in' && (

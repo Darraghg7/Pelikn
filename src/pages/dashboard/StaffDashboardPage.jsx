@@ -121,7 +121,7 @@ function LiveTimer({ clockInAt, breakStartAt, totalBreakMs, status }) {
 
 // ── Shift hero card ────────────────────────────────────────────────────────────
 
-function ShiftHeroCard({ todayShift, hourlyRate, staffId, hasShift }) {
+function ShiftHeroCard({ todayShift, hourlyRate, staffId }) {
   const { status, clockInAt, breakStartAt, totalBreakMs } = useClockStatus(staffId)
 
   const durationH = todayShift ? shiftDurationH(todayShift.start_time, todayShift.end_time) : null
@@ -168,7 +168,7 @@ function ShiftHeroCard({ todayShift, hourlyRate, staffId, hasShift }) {
       </div>
 
       <div className="p-3">
-        <ClockPanel staffId={staffId} hasShift={hasShift} compact />
+        <ClockPanel staffId={staffId} compact />
       </div>
     </div>
   )
@@ -751,8 +751,6 @@ export default function StaffDashboardPage() {
   if (!session) return null
   if (loading) return <div className="flex justify-center pt-20"><LoadingSpinner size="lg" /></div>
 
-  const hasShift = !!todayShift
-
   return (
     <div className="flex flex-col gap-3">
 
@@ -783,7 +781,6 @@ export default function StaffDashboardPage() {
           todayShift={todayShift}
           hourlyRate={hourlyRate}
           staffId={session.staffId}
-          hasShift={hasShift}
         />
       )}
 
