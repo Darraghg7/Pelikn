@@ -9,7 +9,7 @@ import { sendPush } from '../../lib/sendPush'
 import { useVenue } from '../../contexts/VenueContext'
 import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../../components/ui/Toast'
-import LoadingSpinner from '../../components/ui/LoadingSpinner'
+import { SkeletonList } from '../../components/ui/Skeleton'
 import Modal from '../../components/ui/Modal'
 import ConfirmDialog from '../../components/ui/ConfirmDialog'
 import { calculateEntitlementDays, countWorkingDaysInRequest } from '../../hooks/useLeaveBalance'
@@ -826,7 +826,7 @@ export default function TimeOffPage() {
           <button onClick={nextMonth} className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-charcoal/8 text-charcoal/50 hover:text-charcoal transition-colors text-sm">›</button>
         </div>
         {loading ? (
-          <div className="flex justify-center py-10"><LoadingSpinner /></div>
+          <SkeletonList rows={4} />
         ) : error ? (
           <p className="text-center text-sm text-danger/70 py-10">{error}</p>
         ) : (
@@ -940,7 +940,7 @@ export default function TimeOffPage() {
           {showTeamBalances && (
             <div className="border-t border-charcoal/8">
               {balancesLoading ? (
-                <div className="flex justify-center py-6"><LoadingSpinner /></div>
+                <SkeletonList rows={3} />
               ) : (
                 <div className="divide-y divide-charcoal/6">
                   {teamBalances.length === 0 && (

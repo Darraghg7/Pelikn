@@ -8,7 +8,7 @@ import { useNavigate } from 'react-router-dom'
 import { addDays } from 'date-fns'
 import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
-import LoadingSpinner from '../../components/ui/LoadingSpinner'
+import { SkeletonList } from '../../components/ui/Skeleton'
 import EmployeeRecordPanel, { Avatar, nameInitials } from './EmployeeRecordPanel'
 
 // ── Stat tile ─────────────────────────────────────────────────────────────────
@@ -209,9 +209,7 @@ export default function HRHubPage() {
   return (
     <div className="pb-24">
       {loading ? (
-        <div className="flex justify-center pt-20">
-          <LoadingSpinner />
-        </div>
+        <SkeletonList rows={5} />
       ) : staff.length === 0 ? (
         <div className="text-center px-4 py-[60px] text-charcoal/30">
           <div className="mb-1.5 font-mono text-[11px] tracking-[0.1em] uppercase text-charcoal/50">Manager · Team</div>

@@ -11,6 +11,7 @@ import { ToastProvider }       from './components/ui/Toast'
 import SetupPage               from './pages/SetupPage'
 import AppShell                from './components/layout/AppShell'
 import { FullPageLoader }      from './components/ui/LoadingSpinner'
+import AppSkeleton              from './components/ui/AppSkeleton'
 import PlanGate                from './components/ui/PlanGate'
 import UpdateBanner            from './components/ui/UpdateBanner'
 import ErrorBoundary           from './components/ui/ErrorBoundary'
@@ -163,7 +164,7 @@ const IconPreviewPage = lazy(() => import('./pages/IconPreviewPage'))
 /** Require Supabase Auth session to access venue routes. */
 function RequireVenueAuth({ children }) {
   const { user, authLoading } = useAuth()
-  if (authLoading) return <FullPageLoader />
+  if (authLoading) return <AppSkeleton />
   if (!user) return <Navigate to="/login" replace />
   return children
 }
@@ -172,7 +173,7 @@ function RequireVenueAuth({ children }) {
 function RequireAuth({ children }) {
   const { session, loading } = useSession()
   const { venueSlug } = useParams()
-  if (loading) return <FullPageLoader />
+  if (loading) return <AppSkeleton />
   if (!session) return <Navigate to={`/v/${venueSlug}`} replace />
   return children
 }
@@ -181,7 +182,7 @@ function RequireAuth({ children }) {
 function RequireManager({ children }) {
   const { session, loading, isManager } = useSession()
   const { venueSlug } = useParams()
-  if (loading) return <FullPageLoader />
+  if (loading) return <AppSkeleton />
   if (!session) return <Navigate to={`/v/${venueSlug}`} replace />
   if (!isManager) return <Navigate to={`/v/${venueSlug}/dashboard`} replace />
   return children
@@ -191,7 +192,7 @@ function RequireManager({ children }) {
 function RequirePermission({ permission, children }) {
   const { session, loading, isManager, hasPermission } = useSession()
   const { venueSlug } = useParams()
-  if (loading) return <FullPageLoader />
+  if (loading) return <AppSkeleton />
   if (!session) return <Navigate to={`/v/${venueSlug}`} replace />
   if (!isManager && !hasPermission(permission)) return <Navigate to={`/v/${venueSlug}/dashboard`} replace />
   return children

@@ -3,7 +3,7 @@ import { format, subDays } from 'date-fns'
 import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
 import Button from '../../components/ui/Button'
-import LoadingSpinner from '../../components/ui/LoadingSpinner'
+import { SkeletonList } from '../../components/ui/Skeleton'
 
 const HACCP_POINTS = [
   {
@@ -233,7 +233,7 @@ export default function HACCPPage() {
             </Button>
           </div>
         ) : loading ? (
-          <div className="flex justify-center py-10"><LoadingSpinner /></div>
+          <SkeletonList rows={4} />
         ) : data ? (
           <>
             {/* Compliance overview cards */}

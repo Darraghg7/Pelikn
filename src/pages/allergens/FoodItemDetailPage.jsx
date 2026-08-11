@@ -6,7 +6,7 @@ import { useFoodItem } from '../../hooks/useFoodItems'
 import { useSession } from '../../contexts/SessionContext'
 import { EU_ALLERGENS } from '../../lib/constants'
 import { useToast } from '../../components/ui/Toast'
-import LoadingSpinner from '../../components/ui/LoadingSpinner'
+import { PageSkeleton } from '../../components/ui/Skeleton'
 import ConfirmDialog from '../../components/ui/ConfirmDialog'
 
 function SectionLabel({ children }) {
@@ -55,7 +55,7 @@ export default function FoodItemDetailPage() {
     navigate(`/v/${venueSlug}/allergens`)
   }
 
-  if (loading) return <div className="flex justify-center pt-20"><LoadingSpinner size="lg" /></div>
+  if (loading) return <PageSkeleton />
   if (!item)   return <div className="pt-10 text-center text-charcoal/40 text-sm">Item not found.</div>
 
   return (

@@ -4,7 +4,7 @@ import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
 import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../../components/ui/Toast'
-import LoadingSpinner from '../../components/ui/LoadingSpinner'
+import { SkeletonList } from '../../components/ui/Skeleton'
 import Modal from '../../components/ui/Modal'
 
 function nowDatetimeLocal() {
@@ -135,7 +135,7 @@ export default function ProbeCalibrationPage() {
 
       {/* Records */}
       {loading ? (
-        <div className="flex justify-center py-10"><LoadingSpinner /></div>
+        <SkeletonList rows={4} />
       ) : records.length === 0 ? (
         <div className="bg-white rounded-2xl border-charcoal/10 p-10 text-center">
           <p className="text-charcoal/30 text-sm">No calibration records yet.</p>

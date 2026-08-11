@@ -5,7 +5,7 @@ import { useFridges, useFridgeHistory } from '../../hooks/useFridgeLogs'
 import { useSession } from '../../contexts/SessionContext'
 import { useVenue } from '../../contexts/VenueContext'
 import { isTempOutOfRange, formatTemp, formatDateTime } from '../../lib/utils'
-import LoadingSpinner from '../../components/ui/LoadingSpinner'
+import { SkeletonList } from '../../components/ui/Skeleton'
 import DateRangePresets, { presetToDates } from '../../components/ui/DateRangePresets'
 import { useToast } from '../../components/ui/Toast'
 
@@ -112,7 +112,7 @@ export default function FridgeHistoryPage() {
         </div>
 
         {loading ? (
-          <div className="flex justify-center py-10"><LoadingSpinner /></div>
+          <SkeletonList rows={4} />
         ) : logs.length === 0 ? (
           <p className="text-center text-sm text-charcoal/35 italic py-10 pb-8">
             No readings found. Try adjusting your filters.

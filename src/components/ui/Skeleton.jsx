@@ -51,6 +51,15 @@ export function SkeletonList({ rows = 5, className = '' }) {
   )
 }
 
+export function PageSkeleton({ rows = 5 }) {
+  return (
+    <div className="flex flex-col gap-4">
+      <Skeleton className="h-7 w-1/3" />
+      <SkeletonList rows={rows} />
+    </div>
+  )
+}
+
 export function SkeletonDashboard() {
   return (
     <div className="flex flex-col gap-4 p-4">

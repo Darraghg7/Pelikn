@@ -4,7 +4,7 @@ import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
 import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../../components/ui/Toast'
-import LoadingSpinner from '../../components/ui/LoadingSpinner'
+import { PageSkeleton } from '../../components/ui/Skeleton'
 import ConfirmDialog from '../../components/ui/ConfirmDialog'
 import OpeningClosingExportModal from './OpeningClosingExportModal'
 
@@ -448,7 +448,7 @@ export default function OpeningClosingPage() {
   }
 
   if (checksLoading) {
-    return <div className="flex justify-center pt-20"><LoadingSpinner size="lg" /></div>
+    return <PageSkeleton />
   }
 
   const dateLabel = isToday(parseISO(selectedDate))

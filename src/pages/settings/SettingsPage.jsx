@@ -4,7 +4,7 @@ import { supabase } from '../../lib/supabase'
 import { useSession } from '../../contexts/SessionContext'
 import { useVenue } from '../../contexts/VenueContext'
 import { useToast } from '../../components/ui/Toast'
-import LoadingSpinner from '../../components/ui/LoadingSpinner'
+import { PageSkeleton } from '../../components/ui/Skeleton'
 import ConfirmDialog from '../../components/ui/ConfirmDialog'
 import { useAppSettings } from '../../hooks/useSettings'
 import { useTheme } from '../../contexts/ThemeContext'
@@ -158,7 +158,7 @@ export default function SettingsPage() {
   }
 
   if (sLoading) {
-    return <div className="flex justify-center pt-20"><LoadingSpinner size="lg" /></div>
+    return <PageSkeleton />
   }
 
   return (

@@ -5,6 +5,7 @@ import { useVenue } from '../../contexts/VenueContext'
 import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../../components/ui/Toast'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
+import { SkeletonList } from '../../components/ui/Skeleton'
 import Modal from '../../components/ui/Modal'
 import useDeliveryChecks from '../../hooks/useDeliveryChecks'
 import { useSuppliers } from '../../hooks/useSuppliers'
@@ -727,7 +728,7 @@ export default function DeliveryChecksPage() {
 
       {/* Records */}
       {loading ? (
-        <div className="flex justify-center py-10"><LoadingSpinner /></div>
+        <SkeletonList rows={4} />
       ) : filtered.length === 0 ? (
         <div className="bg-white rounded-2xl border-charcoal/10 p-10 text-center">
           <p className="text-charcoal/30 text-sm">No delivery checks recorded yet.</p>

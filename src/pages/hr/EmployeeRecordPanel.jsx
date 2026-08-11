@@ -23,7 +23,7 @@ import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../../components/ui/Toast'
 import Modal from '../../components/ui/Modal'
 import ConfirmDialog from '../../components/ui/ConfirmDialog'
-import LoadingSpinner from '../../components/ui/LoadingSpinner'
+import { PageSkeleton, SkeletonList } from '../../components/ui/Skeleton'
 
 // ── Constants ────────────────────────────────────────────────────────────────
 export const TABS = ['Profile', 'Documents', 'Disciplinary', 'Leave', 'Training', 'Security']
@@ -220,7 +220,7 @@ const Ico = {
 
 // ── Profile Tab ──────────────────────────────────────────────────────────────
 function ProfileTab({ staff, docsCount, strikesCount, venueSlug }) {
-  if (!staff) return <div className="flex justify-center p-10"><LoadingSpinner /></div>
+  if (!staff) return <PageSkeleton rows={4} />
 
   const strikeTone =
     strikesCount >= 3 ? 'bad'  :
@@ -365,7 +365,7 @@ function DocumentsTab({ staffId, venueId, onDocsCountChange }) {
       </div>
 
       {loading ? (
-        <div className="flex justify-center p-8"><LoadingSpinner /></div>
+        <SkeletonList rows={4} />
       ) : docs.length === 0 ? (
         <EmptyState icon={Ico.file} text="No documents uploaded yet" />
       ) : (
@@ -735,7 +735,7 @@ function DisciplinaryTab({ staffId, venueId, onStrikesCountChange }) {
       </div>
 
       {loading ? (
-        <div className="flex justify-center p-8"><LoadingSpinner /></div>
+        <SkeletonList rows={4} />
       ) : timeline.length === 0 ? (
         <EmptyState icon={Ico.shield} text="No disciplinary history on file" />
       ) : (
@@ -914,7 +914,7 @@ function LeaveTab({ staffId, venueSlug, staff }) {
       </div>
 
       {loading ? (
-        <div className="flex justify-center p-8"><LoadingSpinner /></div>
+        <SkeletonList rows={4} />
       ) : requests.length === 0 ? (
         <EmptyState icon={Ico.cal} text="No leave requests on record" />
       ) : (
@@ -978,7 +978,7 @@ function TrainingTab({ staffId, venueSlug }) {
   return (
     <div className="flex flex-col gap-3.5">
       {loading ? (
-        <div className="flex justify-center p-8"><LoadingSpinner /></div>
+        <SkeletonList rows={4} />
       ) : (
         <>
           <span className="font-mono text-[11px] uppercase tracking-[0.07em] text-charcoal/50 font-semibold">
@@ -1095,7 +1095,7 @@ function SecurityTab({ staffId }) {
         Active sessions · {loading ? '—' : sessions.length}
       </span>
       {loading ? (
-        <div className="flex justify-center p-8"><LoadingSpinner /></div>
+        <SkeletonList rows={4} />
       ) : sessions.length === 0 ? (
         <EmptyState icon={Ico.lock} text="No active sessions" />
       ) : (

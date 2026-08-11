@@ -3,17 +3,21 @@
  * Each widget lives in its own file; this module re-exports them all
  * and defines the registry metadata used by the dashboard.
  */
-import ComplianceScoreWidget from './ComplianceScoreWidget'
-import FridgeAlertsWidget from './FridgeAlertsWidget'
-import CleaningOverdueWidget from './CleaningOverdueWidget'
-import StaffOnShiftWidget from './StaffOnShiftWidget'
-import OpenActionsWidget from './OpenActionsWidget'
-import ExpiringTrainingWidget from './ExpiringTrainingWidget'
-import TodaysDeliveriesWidget from './TodaysDeliveriesWidget'
-import WeeklyLabourWidget from './WeeklyLabourWidget'
-import PendingSwapsWidget from './PendingSwapsWidget'
-import ProbeCalDueWidget from './ProbeCalDueWidget'
-import StaffNotificationsWidget from './StaffNotificationsWidget'
+import { lazy } from 'react'
+
+// Lazy-loaded so a login only downloads the code for the widgets a venue
+// actually has enabled, instead of bundling all 11 into the dashboard chunk.
+const ComplianceScoreWidget = lazy(() => import('./ComplianceScoreWidget'))
+const FridgeAlertsWidget = lazy(() => import('./FridgeAlertsWidget'))
+const CleaningOverdueWidget = lazy(() => import('./CleaningOverdueWidget'))
+const StaffOnShiftWidget = lazy(() => import('./StaffOnShiftWidget'))
+const OpenActionsWidget = lazy(() => import('./OpenActionsWidget'))
+const ExpiringTrainingWidget = lazy(() => import('./ExpiringTrainingWidget'))
+const TodaysDeliveriesWidget = lazy(() => import('./TodaysDeliveriesWidget'))
+const WeeklyLabourWidget = lazy(() => import('./WeeklyLabourWidget'))
+const PendingSwapsWidget = lazy(() => import('./PendingSwapsWidget'))
+const ProbeCalDueWidget = lazy(() => import('./ProbeCalDueWidget'))
+const StaffNotificationsWidget = lazy(() => import('./StaffNotificationsWidget'))
 
 export {
   ComplianceScoreWidget,

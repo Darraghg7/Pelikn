@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
 import { useToast } from '../../components/ui/Toast'
-import LoadingSpinner from '../../components/ui/LoadingSpinner'
+import { SkeletonList } from '../../components/ui/Skeleton'
 import ConfirmDialog from '../../components/ui/ConfirmDialog'
 
 function usePPDSItems(venueId) {
@@ -113,7 +113,7 @@ export default function PPDSItemsPage() {
       {/* List */}
       <div className="bg-white rounded-2xl border-charcoal/10 overflow-hidden">
         {loading ? (
-          <div className="flex justify-center py-10"><LoadingSpinner size="md" /></div>
+          <SkeletonList rows={4} />
         ) : items.length === 0 ? (
           <div className="px-6 py-10 text-center">
             <p className="text-sm text-charcoal/35 font-medium">No PPDS items yet</p>

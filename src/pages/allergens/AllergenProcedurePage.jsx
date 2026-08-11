@@ -3,7 +3,7 @@ import { format } from 'date-fns'
 import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
 import { useToast } from '../../components/ui/Toast'
-import LoadingSpinner from '../../components/ui/LoadingSpinner'
+import { PageSkeleton } from '../../components/ui/Skeleton'
 
 // ── Procedure sections ────────────────────────────────────────────────────────
 
@@ -141,7 +141,7 @@ export default function AllergenProcedurePage() {
     await reload()
   }
 
-  if (loading) return <div className="flex justify-center pt-16"><LoadingSpinner size="md" /></div>
+  if (loading) return <PageSkeleton />
 
   return (
     <div className="flex flex-col gap-5">

@@ -4,7 +4,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
 import { useToast } from '../../components/ui/Toast'
-import LoadingSpinner from '../../components/ui/LoadingSpinner'
+import { SkeletonList } from '../../components/ui/Skeleton'
 import { exportTempLogs, exportCleaningRecords, exportDeliveryChecks, exportCorrectiveActions, exportProbeCalibrations, exportTrainingRecords, exportFullReport, exportEHOReport } from '../../lib/exportData'
 import { computeComplianceScore, COMPLIANCE_RANGE_DAYS } from '../../lib/compliance'
 
@@ -310,7 +310,7 @@ export default function EHOAuditPage() {
       </div>
 
       {loading ? (
-        <div className="flex justify-center py-16"><LoadingSpinner /></div>
+        <SkeletonList rows={5} />
       ) : !data ? null : (
         <>
           {/* Overall status banner */}

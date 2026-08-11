@@ -48,6 +48,9 @@ export default defineConfig({
           'date-vendor': ['date-fns'],
           // PDF / canvas export — only needed on demand
           'pdf-vendor': ['jspdf', 'html2canvas'],
+          // Drag-and-drop — only used by the dashboard widget grid; split out
+          // so it downloads as a parallel chunk instead of bloating that bundle
+          'dnd-vendor': ['@dnd-kit/core', '@dnd-kit/sortable', '@dnd-kit/utilities'],
         },
       },
     },

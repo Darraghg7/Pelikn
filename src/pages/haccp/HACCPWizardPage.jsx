@@ -4,7 +4,7 @@ import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
 import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../../components/ui/Toast'
-import LoadingSpinner from '../../components/ui/LoadingSpinner'
+import { PageSkeleton } from '../../components/ui/Skeleton'
 
 // ── HACCP 7 Principles ────────────────────────────────────────────────────────
 
@@ -361,7 +361,7 @@ export default function HACCPWizardPage() {
     setTimeout(() => window.print(), 300)
   }
 
-  if (loading) return <div className="flex justify-center pt-20"><LoadingSpinner size="lg" /></div>
+  if (loading) return <PageSkeleton />
 
   // ── Review / print screen
   if (reviewing) {

@@ -5,7 +5,7 @@ import { useRecallProcedure, useRecallLogs } from '../../hooks/useRecall'
 import { insertRecallLog, updateRecallLog, insertRecallProcedure, updateRecallProcedure } from '../../lib/api/recall'
 import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../../components/ui/Toast'
-import LoadingSpinner from '../../components/ui/LoadingSpinner'
+import { PageSkeleton, SkeletonList } from '../../components/ui/Skeleton'
 import Modal from '../../components/ui/Modal'
 
 // ── Procedure sections definition ─────────────────────────────────────────────
@@ -329,7 +329,7 @@ function ProcedureTab({ venueId }) {
     await reload()
   }
 
-  if (loading) return <div className="flex justify-center pt-12"><LoadingSpinner size="md" /></div>
+  if (loading) return <PageSkeleton />
 
   return (
     <div className="flex flex-col gap-5">
@@ -465,7 +465,7 @@ function LogTab({ venueId }) {
 
         {/* List */}
         {loading ? (
-          <div className="flex justify-center pt-8"><LoadingSpinner size="md" /></div>
+          <SkeletonList rows={4} />
         ) : filtered.length === 0 ? (
           <div className="bg-white rounded-2xl border-charcoal/10 px-6 py-10 text-center">
             <p className="text-sm text-charcoal/35 font-medium">

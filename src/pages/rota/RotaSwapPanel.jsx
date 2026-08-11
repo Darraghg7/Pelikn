@@ -1,5 +1,5 @@
 import React from 'react'
-import LoadingSpinner from '../../components/ui/LoadingSpinner'
+import { SkeletonList } from '../../components/ui/Skeleton'
 
 export default function RotaSwapPanel({
   showSwaps,
@@ -29,7 +29,7 @@ export default function RotaSwapPanel({
       </div>
 
       {swapsLoading ? (
-        <div className="flex justify-center py-6"><LoadingSpinner /></div>
+        <SkeletonList rows={3} />
       ) : swaps.length === 0 ? (
         <p className="text-sm text-charcoal/35 italic px-5 py-6">No swap requests yet.</p>
       ) : (

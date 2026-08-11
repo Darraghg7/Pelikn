@@ -24,7 +24,7 @@ import RotaToolbar from './RotaToolbar'
 import RotaShiftModal from './RotaShiftModal'
 import RotaSwapPanel from './RotaSwapPanel'
 import RotaSwapRequestModal from './RotaSwapRequestModal'
-import LoadingSpinner from '../../components/ui/LoadingSpinner'
+import { SkeletonList } from '../../components/ui/Skeleton'
 import { useDutyTemplates } from '../../hooks/useDuties'
 
 function durationLabel(start, end) {
@@ -844,7 +844,7 @@ function StaffRotaView({ shifts, staff, loading, weekStart, prevWeek, nextWeek, 
       </div>
 
       {loading ? (
-        <div className="flex justify-center py-8"><LoadingSpinner /></div>
+        <SkeletonList rows={6} />
       ) : (
         <>
           {/* Day heading */}
@@ -1584,7 +1584,7 @@ export default function RotaPage() {
               </div>
             )}
             {loading || staffLoading ? (
-              <div className="flex justify-center py-10"><LoadingSpinner /></div>
+              <SkeletonList rows={4} />
             ) : (
               <RotaWeekView
                 weekStart={thisWeekStart}

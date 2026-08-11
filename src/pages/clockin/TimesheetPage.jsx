@@ -9,7 +9,7 @@ import { useStaffList } from '../../hooks/useShifts'
 import { formatMinutes, getWeekStart, downloadCsv } from '../../lib/utils'
 import { buildPdfReport } from '../../lib/pdfUtils'
 import { countWorkingDaysInRequest } from '../../hooks/useLeaveBalance'
-import LoadingSpinner from '../../components/ui/LoadingSpinner'
+import { SkeletonList } from '../../components/ui/Skeleton'
 import EmptyState from '../../components/ui/EmptyState'
 import AddSessionModal from './AddSessionModal'
 import ClockEditApprovalCard from '../../components/shifts/ClockEditApprovalCard'
@@ -646,7 +646,7 @@ export default function TimesheetPage() {
         )}
 
         {loading ? (
-          <div className="flex justify-center py-4"><LoadingSpinner /></div>
+          <SkeletonList rows={4} />
         ) : loadError ? (
           <div className="flex items-center gap-3 bg-danger/10 rounded-[11px] px-[13px] py-[11px]">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-danger"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>

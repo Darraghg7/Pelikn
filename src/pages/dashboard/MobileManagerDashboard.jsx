@@ -3,7 +3,7 @@
  * Re-skinned to match the manager-dashboard-handoff prototype exactly.
  * Keeps all existing data hooks/registry/DnD — no new persistence model.
  */
-import React, { useCallback, useEffect, useRef, useState } from 'react'
+import React, { Suspense, useCallback, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { format, startOfWeek } from 'date-fns'
 import { supabase } from '../../lib/supabase'
@@ -555,7 +555,9 @@ function MobileDraggableWidgetGrid({
             const Comp = widget.component
             return (
               <MobileSortableCard key={id} id={id} editMode={editMode}>
-                <Comp />
+                <Suspense fallback={<div className="h-[84px] rounded-[14px] bg-charcoal/6 animate-pulse" />}>
+                  <Comp />
+                </Suspense>
               </MobileSortableCard>
             )
           })}
@@ -564,7 +566,9 @@ function MobileDraggableWidgetGrid({
       <DragOverlay>
         {activeContent && (
           <div className="rounded-[14px] opacity-95 cursor-grabbing" style={{ boxShadow: '0 24px 48px rgba(9,18,13,0.25)', transform: 'scale(1.02)' }}>
-            {activeContent}
+            <Suspense fallback={null}>
+              {activeContent}
+            </Suspense>
           </div>
         )}
       </DragOverlay>

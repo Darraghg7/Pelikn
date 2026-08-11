@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react'
+import React, { Suspense, useCallback, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { format } from 'date-fns'
@@ -107,6 +107,16 @@ function SortableWidget({ id }) {
   )
 }
 
+function WidgetGridSkeleton({ count }) {
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      {Array.from({ length: count }).map((_, i) => (
+        <div key={i} className="h-[180px] rounded-2xl bg-charcoal/5 animate-pulse" />
+      ))}
+    </div>
+  )
+}
+
 function DraggableWidgetGrid({ widgetIds, onReorder }) {
   const [ids, setIds] = useState(widgetIds)
   const [activeId, setActiveId] = useState(null)
@@ -141,14 +151,18 @@ function DraggableWidgetGrid({ widgetIds, onReorder }) {
       onDragEnd={handleDragEnd}
     >
       <SortableContext items={ids} strategy={rectSortingStrategy}>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {ids.map(id => <SortableWidget key={id} id={id} />)}
-        </div>
+        <Suspense fallback={<WidgetGridSkeleton count={ids.length} />}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {ids.map(id => <SortableWidget key={id} id={id} />)}
+          </div>
+        </Suspense>
       </SortableContext>
       <DragOverlay>
         {ActiveWidget && (
           <div className="rounded-2xl shadow-2xl scale-[1.03] opacity-95 cursor-grabbing">
-            <ActiveWidget />
+            <Suspense fallback={null}>
+              <ActiveWidget />
+            </Suspense>
           </div>
         )}
       </DragOverlay>

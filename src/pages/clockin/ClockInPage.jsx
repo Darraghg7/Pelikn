@@ -4,7 +4,7 @@ import { useVenue } from '../../contexts/VenueContext'
 import { supabase } from '../../lib/supabase'
 import ClockPanel from '../../components/shifts/ClockPanel'
 import { useClockStatus } from '../../hooks/useClockEvents'
-import LoadingSpinner from '../../components/ui/LoadingSpinner'
+import { SkeletonList } from '../../components/ui/Skeleton'
 import RecentShifts from '../../components/shifts/RecentShifts'
 import { format } from 'date-fns'
 
@@ -109,7 +109,7 @@ function ManagerView({ venueId }) {
       <div className="bg-white rounded-2xl p-5">
         <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-3">Team Status</p>
         {loading ? (
-          <div className="flex justify-center py-6"><LoadingSpinner /></div>
+          <SkeletonList rows={3} />
         ) : staff.length === 0 ? (
           <p className="text-sm text-charcoal/35 italic">No active staff found.</p>
         ) : (
