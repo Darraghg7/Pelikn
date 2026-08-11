@@ -31,21 +31,23 @@ export default function StaffSettingsPage() {
     <div>
       <SettingsSubHeader title="Staff & Roles" onBack={() => navigate(vp('/settings/hub'))} />
 
-      <div className="flex bg-white dark:bg-paperDark border-b border-charcoal/10 gap-0.5 sticky top-[49px] z-[9]">
-        {TABS.map(t => (
-          <button
-            key={t.id}
-            onClick={() => setTab(t.id)}
-            className={`px-3 py-[12px] pb-[11px] text-[13px] border-b-2 -mb-px transition-all whitespace-nowrap ${
-              tab === t.id
-                ? 'font-semibold text-brand border-brand'
-                : 'font-medium text-charcoal/50 border-transparent hover:text-charcoal'
-            }`}
-          >{t.label}</button>
-        ))}
+      <div className="sticky top-[49px] z-[9] bg-surface dark:bg-[#111111] pt-3 pb-2">
+        <div className="max-w-[480px] md:max-w-2xl lg:max-w-3xl mx-auto flex bg-charcoal/[0.05] dark:bg-white/5 rounded-xl p-1 gap-1">
+          {TABS.map(t => (
+            <button
+              key={t.id}
+              onClick={() => setTab(t.id)}
+              className={`flex-1 px-3 py-2 rounded-lg text-[13px] font-medium transition-all whitespace-nowrap ${
+                tab === t.id
+                  ? 'bg-white dark:bg-paperDark text-charcoal shadow-sm'
+                  : 'text-charcoal/50 hover:text-charcoal'
+              }`}
+            >{t.label}</button>
+          ))}
+        </div>
       </div>
 
-      <div className={`${tab === 'members' ? 'pb-24' : 'px-4 pt-4 pb-24'} max-w-[480px] mx-auto`}>
+      <div className={`${tab === 'members' ? 'pb-24' : 'px-4 pt-4 pb-24'} max-w-[480px] md:max-w-2xl lg:max-w-3xl mx-auto`}>
         {tab === 'members' && <StaffMembersSection />}
 
         {tab === 'invite' && (
