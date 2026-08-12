@@ -26,7 +26,7 @@ const COLOR_PALETTE = [
   'bg-stone-100 text-stone-800',
 ]
 
-const SETTINGS_KEYS = ['custom_roles', 'closed_days', 'break_duration_mins', 'cleanup_minutes', 'fridge_check_time', 'open_time', 'close_time', 'day_hours', 'compliance_nav_order', 'action_schedules', 'late_grace_mins', 'break_overrun_grace_mins', 'require_late_reason', 'require_manager_approval_for_late', 'notify_manager_at_strike', 'disciplinary_at_strike', 'counting_window_days', 'push_to_manager', 'notify_break_overrun', 'hidden_check_tiles', 'hidden_team_tiles']
+const SETTINGS_KEYS = ['custom_roles', 'closed_days', 'break_duration_mins', 'cleanup_minutes', 'fridge_check_time', 'open_time', 'close_time', 'day_hours', 'compliance_nav_order', 'action_schedules', 'late_grace_mins', 'break_overrun_grace_mins', 'require_late_reason', 'require_manager_approval_for_late', 'notify_manager_at_strike', 'disciplinary_at_strike', 'counting_window_days', 'push_to_manager', 'notify_break_overrun', 'hidden_check_tiles', 'hidden_team_tiles', 'max_staff_off_enabled', 'max_staff_off_count']
 
 interface CustomRole {
   value: string
@@ -66,6 +66,9 @@ interface AppSettings {
   notifyBreakOverrun: boolean
   hiddenCheckTiles: string[]
   hiddenTeamTiles: string[]
+  // Time-off staffing rule: max staff allowed off on the same day
+  maxStaffOffEnabled: boolean
+  maxStaffOffCount: number
 }
 
 const ALL_DAYS = [0, 1, 2, 3, 4, 5, 6]
@@ -102,6 +105,8 @@ const DEFAULTS: AppSettings = {
   notifyBreakOverrun: false,
   hiddenCheckTiles: [],
   hiddenTeamTiles: [],
+  maxStaffOffEnabled: false,
+  maxStaffOffCount: 1,
 }
 
 async function fetchAppSettings(venueId: string): Promise<AppSettings> {
@@ -162,6 +167,8 @@ async function fetchAppSettings(venueId: string): Promise<AppSettings> {
         if (row.key === 'notify_break_overrun' && typeof parsed === 'boolean') result.notifyBreakOverrun = parsed
         if (row.key === 'hidden_check_tiles' && Array.isArray(parsed)) result.hiddenCheckTiles = parsed
         if (row.key === 'hidden_team_tiles'  && Array.isArray(parsed)) result.hiddenTeamTiles = parsed
+        if (row.key === 'max_staff_off_enabled' && typeof parsed === 'boolean') result.maxStaffOffEnabled = parsed
+        if (row.key === 'max_staff_off_count'   && typeof parsed === 'number')  result.maxStaffOffCount = parsed
       } catch { /* ignore corrupt JSON — leave defaults */ }
     }
   }
@@ -224,6 +231,8 @@ export function useAppSettings() {
       notify_break_overrun: 'notifyBreakOverrun',
       hidden_check_tiles: 'hiddenCheckTiles',
       hidden_team_tiles: 'hiddenTeamTiles',
+      max_staff_off_enabled: 'maxStaffOffEnabled',
+      max_staff_off_count: 'maxStaffOffCount',
     }
 
     // Keep the pre-write snapshot so a failed save can be rolled back —
@@ -264,6 +273,8 @@ export function useAppSettings() {
   const saveDayHours = useCallback((hours: Record<string, DayHours>) => saveSetting('day_hours', hours), [saveSetting])
   const saveHiddenCheckTiles = useCallback((ids: string[]) => saveSetting('hidden_check_tiles', ids), [saveSetting])
   const saveHiddenTeamTiles = useCallback((ids: string[]) => saveSetting('hidden_team_tiles', ids), [saveSetting])
+  const saveMaxStaffOffEnabled = useCallback((v: boolean) => saveSetting('max_staff_off_enabled', v), [saveSetting])
+  const saveMaxStaffOffCount = useCallback((n: number) => saveSetting('max_staff_off_count', n), [saveSetting])
 
   /** Pick the next unused colour from the palette. Falls back to the least-used colour. */
   const nextColor = useCallback(() => {
@@ -302,12 +313,14 @@ export function useAppSettings() {
     notifyBreakOverrun: settings.notifyBreakOverrun,
     hiddenCheckTiles: settings.hiddenCheckTiles,
     hiddenTeamTiles: settings.hiddenTeamTiles,
+    maxStaffOffEnabled: settings.maxStaffOffEnabled,
+    maxStaffOffCount: settings.maxStaffOffCount,
     loading,
     saveCustomRoles, saveClosedDays, saveBreakDuration, saveCleanupMinutes, saveFridgeCheckTime,
     saveOpenTime, saveCloseTime, saveDayHours, saveComplianceNavOrder, saveActionSchedules,
     saveLateGraceMins, saveBreakOverrunGraceMins, saveRequireLateReason, saveRequireManagerApprovalForLate,
     saveNotifyManagerAtStrike, saveDisciplinaryAtStrike, saveCountingWindowDays, savePushToManager, saveNotifyBreakOverrun,
-    saveHiddenCheckTiles, saveHiddenTeamTiles,
+    saveHiddenCheckTiles, saveHiddenTeamTiles, saveMaxStaffOffEnabled, saveMaxStaffOffCount,
     nextColor, reload,
   }
 }

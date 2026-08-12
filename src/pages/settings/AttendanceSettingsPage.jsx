@@ -61,10 +61,10 @@ export default function AttendanceSettingsPage() {
   const {
     lateGraceMins, breakDurationMins, breakOverrunGraceMins, cleanupMinutes,
     requireLateReason, requireManagerApprovalForLate, notifyManagerAtStrike, disciplinaryAtStrike,
-    countingWindowDays, pushToManager,
+    countingWindowDays, pushToManager, maxStaffOffEnabled, maxStaffOffCount,
     saveLateGraceMins, saveBreakDuration, saveBreakOverrunGraceMins, saveCleanupMinutes,
     saveRequireLateReason, saveRequireManagerApprovalForLate, saveNotifyManagerAtStrike, saveDisciplinaryAtStrike,
-    saveCountingWindowDays, savePushToManager,
+    saveCountingWindowDays, savePushToManager, saveMaxStaffOffEnabled, saveMaxStaffOffCount,
   } = settings
 
   const vp = (path) => `/v/${venueSlug}${path}`
@@ -169,6 +169,26 @@ export default function AttendanceSettingsPage() {
             last={false}
             control={<Toggle checked={pushToManager} onChange={savePushToManager} />}
           />
+        </Group>
+
+        <Group
+          label="Time off"
+          foot={maxStaffOffEnabled
+            ? `Staff booking a day that already has ${maxStaffOffCount} off will see a warning, but can still submit — useful if it's been pre-cleared with you.`
+            : 'Off — staff can request any day off with no staffing-limit warning.'}
+        >
+          <Row
+            label="Limit staff off per day"
+            sub="Warn when too many are off at once"
+            control={<Toggle checked={maxStaffOffEnabled} onChange={saveMaxStaffOffEnabled} />}
+          />
+          {maxStaffOffEnabled && (
+            <Row
+              label="Max staff off at once"
+              last={false}
+              control={<Stepper value={maxStaffOffCount} onChange={saveMaxStaffOffCount} min={1} max={20} />}
+            />
+          )}
         </Group>
 
       </div>

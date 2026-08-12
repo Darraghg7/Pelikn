@@ -16,6 +16,14 @@ import ClockEditApprovalCard from '../../components/shifts/ClockEditApprovalCard
 import { formatLondon, londonWallTimeToInstant } from '../../lib/time'
 import { offlineRpc } from '../../lib/offlineSupabase'
 
+function useBodyScrollLock() {
+  useEffect(() => {
+    const prevOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = prevOverflow }
+  }, [])
+}
+
 const STATIONS = {
   Kitchen: { bg: '#f0ebde', fg: '#6b5028' },
   FOH:     { bg: '#e7eef3', fg: '#2a4a66' },
@@ -285,10 +293,11 @@ function EditSessionSheet({ staffName, dayLabel, session, onSave, onClose }) {
   const worked = (s, e, b = 0) => { let d = toMin(e) - toMin(s); if (d < 0) d += 1440; return Math.max(0, d - b) }
   const mins = worked(clockIn, clockOut, brk)
   const valid = mins > 0
+  useBodyScrollLock()
   return (
     <div className="fixed inset-0 z-[60] flex flex-col justify-end">
       <div onClick={onClose} className="absolute inset-0" style={{ background: 'rgba(9,18,13,0.52)' }} />
-      <div className="relative bg-surface rounded-t-[22px] px-4 pb-[34px] pt-[10px] max-h-[90%] overflow-y-auto" style={{ boxShadow: '0 -12px 40px rgba(9,18,13,0.24)' }}>
+      <div className="relative bg-surface rounded-t-[22px] px-4 pb-[34px] pt-[10px] max-h-[90%] overflow-y-auto [-webkit-overflow-scrolling:touch]" style={{ boxShadow: '0 -12px 40px rgba(9,18,13,0.24)' }}>
         <div className="w-[38px] h-1 rounded-sm bg-charcoal/10 mx-auto mb-4" />
         <div className="flex items-start justify-between mb-4">
           <div>
@@ -357,10 +366,11 @@ function EditSessionSheet({ staffName, dayLabel, session, onSave, onClose }) {
 function StaffHoursSheet({ t, station, periodDays, dailyGrid, periodLabel, onEditDay, onAddDay, onClose }) {
   const staffGrid = dailyGrid[t.staffId] || null
   const pay = (t.totalMinutes / 60) * t.hourlyRate
+  useBodyScrollLock()
   return (
-    <div className="fixed inset-0 z-[50] flex flex-col justify-end">
+    <div className="fixed inset-0 z-[55] flex flex-col justify-end">
       <div onClick={onClose} className="absolute inset-0" style={{ background: 'rgba(9,18,13,0.52)' }} />
-      <div className="relative bg-surface rounded-t-[22px] px-4 pt-5 pb-[34px] max-h-[90%] overflow-y-auto" style={{ boxShadow: '0 -12px 40px rgba(9,18,13,0.24)' }}>
+      <div className="relative bg-surface rounded-t-[22px] px-4 pt-5 pb-[34px] max-h-[90%] overflow-y-auto [-webkit-overflow-scrolling:touch]" style={{ boxShadow: '0 -12px 40px rgba(9,18,13,0.24)' }}>
         <div className="w-[38px] h-1 rounded-sm bg-charcoal/10 mx-auto mb-4" />
         <div className="flex items-center gap-3 mb-[14px]">
           <Avatar name={t.name} station={station} size={44} />
@@ -424,6 +434,12 @@ function StaffHoursSheet({ t, station, periodDays, dailyGrid, periodLabel, onEdi
             <div className="font-mono text-xs font-semibold text-charcoal/50 mt-[3px]">£{Number(t.hourlyRate).toFixed(2)}/hr</div>
           </div>
         </div>
+        <button
+          onClick={onClose}
+          className="w-full h-[50px] mt-4 rounded-[13px] border border-charcoal/10 bg-white dark:bg-paperDark text-charcoal/75 cursor-pointer text-sm font-semibold"
+        >
+          Close
+        </button>
       </div>
     </div>
   )

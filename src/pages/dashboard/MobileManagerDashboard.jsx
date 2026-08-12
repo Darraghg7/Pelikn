@@ -77,13 +77,15 @@ function subLabel(item, summary) {
   return null
 }
 
-function MobileStatTile({ item, summary }) {
+function MobileStatTile({ item, summary, vp }) {
   const value    = item.metric(summary) ?? 0
   const isDanger = item.dangerWhenPositive && value > 0
   const sub      = subLabel(item, summary)
+  const Tag      = item.route ? Link : 'div'
+  const tagProps = item.route ? { to: vp(item.route) } : {}
 
   return (
-    <div className="bg-white dark:bg-paperDark border border-charcoal/10 rounded-[14px] p-[10px_11px_11px] flex flex-col gap-1">
+    <Tag {...tagProps} className="bg-white dark:bg-paperDark border border-charcoal/10 rounded-[14px] p-[10px_11px_11px] flex flex-col gap-1 no-underline active:bg-charcoal/4 transition-colors">
       <div className="flex items-center gap-1">
         <span className={`w-[5px] h-[5px] rounded-full shrink-0 ${isDanger ? 'bg-danger' : 'bg-success'}`} />
         <span className="font-mono text-[9px] tracking-[0.07em] text-charcoal/60 uppercase leading-none">
@@ -98,7 +100,7 @@ function MobileStatTile({ item, summary }) {
           {sub}
         </span>
       )}
-    </div>
+    </Tag>
   )
 }
 
@@ -728,7 +730,7 @@ export default function MobileManagerDashboard({
             ) : (
               <div className="grid grid-cols-3 gap-2">
                 {activeItems.map(item => (
-                  <MobileStatTile key={item.id} item={item} summary={summary} />
+                  <MobileStatTile key={item.id} item={item} summary={summary} vp={vp} />
                 ))}
               </div>
             )}

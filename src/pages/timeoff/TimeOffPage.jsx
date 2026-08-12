@@ -16,6 +16,7 @@ import { calculateEntitlementDays, countWorkingDaysInRequest } from '../../hooks
 import { useZeroHoursAccrual, useTeamZeroHoursAccruals } from '../../hooks/useZeroHoursAccrual'
 import { invalidateSummaryCache } from '../../hooks/useTodaySummary'
 import { cancelTimeOffRequest, updateTimeOffRequest, timeOffPermissions, isBlocking } from '../../lib/api/timeOff'
+import { useAppSettings } from '../../hooks/useSettings'
 
 /* ── Constants ─────────────────────────────────────────────────────────── */
 const LEAVE_TYPES = [
@@ -50,6 +51,12 @@ function getRequestsForDay(requests, day) {
 function fmtDays(n) {
   if (n === null || n === undefined) return '—'
   return n === 1 ? '1 day' : `${n} days`
+}
+
+function maxStaffOffInRange(requests, startDateStr, endDateStr) {
+  if (!startDateStr || !endDateStr) return 0
+  const days = eachDayOfInterval({ start: parseISO(startDateStr), end: parseISO(endDateStr) })
+  return days.reduce((max, day) => Math.max(max, getRequestsForDay(requests, day).length), 0)
 }
 
 /* ── Hooks ─────────────────────────────────────────────────────────────── */
@@ -598,6 +605,7 @@ export default function TimeOffPage() {
   const queryClient = useQueryClient()
   const { venueId }          = useVenue()
   const { session, isManager } = useSession()
+  const { maxStaffOffEnabled, maxStaffOffCount } = useAppSettings()
   const { requests, loading, error, reload } = useTimeOffRequests(venueId)
   const staff      = useActiveStaff(venueId)
   const ownProfile = useOwnProfile(session?.staffId)
@@ -770,6 +778,14 @@ export default function TimeOffPage() {
   // stay off the calendar — the staff member still sees them in "My Requests".
   const bookedRequests  = useMemo(() => requests.filter(r => isBlocking(r.status)), [requests])
   const dayDetailRequests = useMemo(() => getRequestsForDay(bookedRequests, showDayDetail), [bookedRequests, showDayDetail])
+
+  // Staffing limit: how many staff are already off on the busiest day of the
+  // requested range, before this request is added.
+  const staffAlreadyOff = useMemo(() => {
+    if (!maxStaffOffEnabled || !form.startDate || !form.endDate) return 0
+    return maxStaffOffInRange(bookedRequests, form.startDate, form.endDate)
+  }, [maxStaffOffEnabled, bookedRequests, form.startDate, form.endDate])
+  const overStaffOffLimit = maxStaffOffEnabled && staffAlreadyOff >= maxStaffOffCount
 
   const canActOn = useCallback(
     (r) => {
@@ -1114,6 +1130,16 @@ export default function TimeOffPage() {
               />
             </div>
           </div>
+
+          {/* Staffing limit warning — informational only, submit is never blocked */}
+          {overStaffOffLimit && (
+            <div className="rounded-xl bg-danger/8 border border-danger/20 px-4 py-3">
+              <p className="text-xs font-semibold text-danger">Maximum number of staff already off</p>
+              <p className="text-[11.5px] text-charcoal/60 mt-1 leading-[1.4]">
+                {staffAlreadyOff} staff {staffAlreadyOff === 1 ? 'is' : 'are'} already off on at least one of these days (limit: {maxStaffOffCount}). You can still submit if this has been pre-cleared with your manager.
+              </p>
+            </div>
+          )}
 
           {/* Days / hours preview for annual leave */}
           {form.leaveType === 'annual' && previewDays != null && previewDays > 0 && !ownBalance?.isZeroHours && (

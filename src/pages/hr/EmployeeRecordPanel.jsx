@@ -1053,6 +1053,7 @@ function SecurityTab({ staffId }) {
   const [revokeTarget, setRevokeTarget] = useState(null)
 
   const load = useCallback(async () => {
+    if (!token) return
     setLoading(true)
     const { data, error } = await supabase.rpc('list_staff_sessions', {
       p_session_token: token,
@@ -1066,6 +1067,7 @@ function SecurityTab({ staffId }) {
   useEffect(() => { load() }, [load])
 
   const handleRevoke = async (targetToken) => {
+    if (!token) return
     setRevoking(targetToken)
     const { error } = await supabase.rpc('revoke_staff_session', {
       p_session_token: token,

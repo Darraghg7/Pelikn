@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase'
 import { readPersisted, writePersisted, clearPersisted } from '../lib/persistedCache'
 import { onDataWrite } from '../lib/cacheBus'
 import { captureSilent } from '../lib/reportError'
+import { isCheckRequired } from '../lib/temperatureChecks'
 
 // ── Module-level SWR cache ─────────────────────────────────────────────────
 // Survives component unmount/remount (single-page navigation), and is backed
@@ -442,10 +443,10 @@ export function useTodaySummary(venueId, closedDays = [], actionSchedules = {}) 
               .eq('venue_id', venueId).eq('session_type', 'closing').gte('completed_at', dayStart).lte('completed_at', dayEnd)
           : { count: 0 },
         due('fridge_checks')
-          ? supabase.from('fridges').select('id').eq('venue_id', venueId).eq('is_active', true)
+          ? supabase.from('fridges').select('id, check_days, required_periods').eq('venue_id', venueId).eq('is_active', true)
           : { data: [] },
         due('fridge_checks')
-          ? supabase.from('fridge_temperature_logs').select('fridge_id').eq('venue_id', venueId).gte('logged_at', dayStart).lte('logged_at', dayEnd)
+          ? supabase.from('fridge_temperature_logs').select('fridge_id, check_period').eq('venue_id', venueId).gte('logged_at', dayStart).lte('logged_at', dayEnd)
           : { data: [] },
         supabase.from('time_off_requests').select('id', { count: 'exact', head: true }).eq('venue_id', venueId).eq('status', 'pending'),
         supabase.from('corrective_actions').select('id', { count: 'exact', head: true }).eq('venue_id', venueId).eq('status', 'open').eq('severity', 'critical'),
@@ -473,13 +474,13 @@ export function useTodaySummary(venueId, closedDays = [], actionSchedules = {}) 
 
       if (cancelled) return
 
-      // ── Closed today? Informational only — trading closure (weekly
-      // closedDays or a one-off venue_closures entry) doesn't blank out
-      // checks that have their own action_schedule (fridge, cooking, etc.):
-      // staff can be scheduled to record those on a day the venue isn't
-      // open to customers. Only opening/closing-checks consumers should
-      // treat this flag as "nothing to do" — see todayItemRegistry.js and
-      // useChecksStatus.js.
+      // ── Closed today? Trading closure (weekly closedDays or a one-off
+      // venue_closures entry) doesn't blank out checks that have their own
+      // action_schedule (fridge, cooking, etc.): staff can be scheduled to
+      // record those on a day the venue isn't open to customers. Cleaning
+      // is the exception — nobody's on site to do it, so overdue cleaning
+      // tasks don't nag on a closed day (see the overdueCount block below,
+      // and useCleaningTasks.ts for the same rule on the Cleaning page).
       const todayDow = (today.getDay() + 6) % 7
       const closureReason = closures.data?.[0]?.reason
       const closedToday = closedDays.includes(todayDow) || !!closures.data?.length
@@ -487,8 +488,10 @@ export function useTodaySummary(venueId, closedDays = [], actionSchedules = {}) 
         : false
 
       // ── Cleaning overdue count (no extra round-trip needed) ──────────────
+      // Nobody's on site on a closed day, so cleaning tasks never nag as
+      // overdue then — see the closedToday comment above.
       let overdueCount = 0
-      if (due('cleaning_tasks') && cleaning.data?.length) {
+      if (!closedToday && due('cleaning_tasks') && cleaning.data?.length) {
         const freqDays = { daily: 1, weekly: 7, fortnightly: 14, monthly: 30, quarterly: 90 }
         const now = new Date()
         const latestByTask = new Map()
@@ -502,8 +505,15 @@ export function useTodaySummary(venueId, closedDays = [], actionSchedules = {}) 
         }
       }
 
-      const checkedIds = new Set((fridgeLogs.data ?? []).map(l => l.fridge_id))
-      const uncheckedFridges = (fridges.data ?? []).filter(f => !checkedIds.has(f.id)).length
+      const loggedPeriodsByFridge = new Map()
+      for (const l of (fridgeLogs.data ?? [])) {
+        if (!loggedPeriodsByFridge.has(l.fridge_id)) loggedPeriodsByFridge.set(l.fridge_id, new Set())
+        loggedPeriodsByFridge.get(l.fridge_id).add(l.check_period)
+      }
+      const uncheckedFridges = (fridges.data ?? []).filter(f => {
+        const logged = loggedPeriodsByFridge.get(f.id) ?? new Set()
+        return ['am', 'pm'].some(period => isCheckRequired(f, today, period) && !logged.has(period))
+      }).length
       const totalFridges = fridges.data?.length ?? 0
 
       // ── Duties: one more round-trip (needs shift IDs from above) ─────────
