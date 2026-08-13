@@ -3,7 +3,7 @@
  * Re-skinned to match the manager-dashboard-handoff prototype exactly.
  * Keeps all existing data hooks/registry/DnD — no new persistence model.
  */
-import React, { useCallback, useEffect, useRef, useState } from 'react'
+import React, { Suspense, useCallback, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { format, startOfWeek } from 'date-fns'
 import { supabase } from '../../lib/supabase'
@@ -77,13 +77,15 @@ function subLabel(item, summary) {
   return null
 }
 
-function MobileStatTile({ item, summary }) {
+function MobileStatTile({ item, summary, vp }) {
   const value    = item.metric(summary) ?? 0
   const isDanger = item.dangerWhenPositive && value > 0
   const sub      = subLabel(item, summary)
+  const Tag      = item.route ? Link : 'div'
+  const tagProps = item.route ? { to: vp(item.route) } : {}
 
   return (
-    <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[14px] p-[10px_11px_11px] flex flex-col gap-1">
+    <Tag {...tagProps} className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[14px] p-[10px_11px_11px] flex flex-col gap-1 no-underline active:bg-charcoal/4 dark:active:bg-white/6 transition-colors">
       <div className="flex items-center gap-1">
         <span className={`w-[5px] h-[5px] rounded-full shrink-0 ${isDanger ? 'bg-danger' : 'bg-success'}`} />
         <span className="font-mono text-[9px] tracking-[0.07em] text-charcoal/60 dark:text-white/50 uppercase leading-none">
@@ -98,7 +100,7 @@ function MobileStatTile({ item, summary }) {
           {sub}
         </span>
       )}
-    </div>
+    </Tag>
   )
 }
 
@@ -555,7 +557,9 @@ function MobileDraggableWidgetGrid({
             const Comp = widget.component
             return (
               <MobileSortableCard key={id} id={id} editMode={editMode}>
-                <Comp />
+                <Suspense fallback={<div className="h-[84px] rounded-[14px] bg-charcoal/6 animate-pulse" />}>
+                  <Comp />
+                </Suspense>
               </MobileSortableCard>
             )
           })}
@@ -564,7 +568,9 @@ function MobileDraggableWidgetGrid({
       <DragOverlay>
         {activeContent && (
           <div className="rounded-[14px] opacity-95 cursor-grabbing" style={{ boxShadow: '0 24px 48px rgba(9,18,13,0.25)', transform: 'scale(1.02)' }}>
-            {activeContent}
+            <Suspense fallback={null}>
+              {activeContent}
+            </Suspense>
           </div>
         )}
       </DragOverlay>
@@ -724,7 +730,7 @@ export default function MobileManagerDashboard({
             ) : (
               <div className="grid grid-cols-3 gap-2">
                 {activeItems.map(item => (
-                  <MobileStatTile key={item.id} item={item} summary={summary} />
+                  <MobileStatTile key={item.id} item={item} summary={summary} vp={vp} />
                 ))}
               </div>
             )}

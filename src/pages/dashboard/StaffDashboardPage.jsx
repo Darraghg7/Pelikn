@@ -11,7 +11,7 @@ import { useAppSettings } from '../../hooks/useSettings'
 import { useTodayDuties } from '../../hooks/useDuties'
 import { useCleaningTasks } from '../../hooks/useCleaningTasks'
 import ClockPanel from '../../components/shifts/ClockPanel'
-import LoadingSpinner from '../../components/ui/LoadingSpinner'
+import { PageSkeleton } from '../../components/ui/Skeleton'
 import AcknowledgeModal from '../../components/training/AcknowledgeModal'
 import { useToast } from '../../components/ui/Toast'
 import { invalidateChecksStatusCache } from '../../hooks/useChecksStatus'
@@ -749,7 +749,7 @@ export default function StaffDashboardPage() {
     : 0
 
   if (!session) return null
-  if (loading) return <div className="flex justify-center pt-20"><LoadingSpinner size="lg" /></div>
+  if (loading) return <PageSkeleton />
 
   return (
     <div className="flex flex-col gap-3">

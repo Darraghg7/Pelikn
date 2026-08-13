@@ -3,7 +3,7 @@ import { useNavigate, useParams, Link } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
 import { useToast } from '../../components/ui/Toast'
-import LoadingSpinner from '../../components/ui/LoadingSpinner'
+import { PageSkeleton } from '../../components/ui/Skeleton'
 import { EU_ALLERGENS } from '../../lib/constants'
 
 const EMPTY_INGREDIENT = { name: '', allergen: null }
@@ -99,7 +99,7 @@ export default function PPDSItemFormPage() {
     navigate(`/v/${venueSlug}/allergens/ppds`)
   }
 
-  if (loading) return <div className="flex justify-center pt-20"><LoadingSpinner size="lg" /></div>
+  if (loading) return <PageSkeleton />
 
   return (
     <div className="flex flex-col gap-6 max-w-xl">

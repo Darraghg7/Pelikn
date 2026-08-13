@@ -3,7 +3,7 @@ import { format, isPast, parseISO } from 'date-fns'
 import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
 import { useToast } from '../../components/ui/Toast'
-import LoadingSpinner from '../../components/ui/LoadingSpinner'
+import { SkeletonList } from '../../components/ui/Skeleton'
 import ConfirmDialog from '../../components/ui/ConfirmDialog'
 import { useStaffTraining } from '../../hooks/useTraining'
 import { TRAINING_BUCKET, trainingFilePath, openTrainingFile } from '../../lib/trainingFiles'
@@ -69,7 +69,7 @@ export default function TrainingSection({ staffId }) {
     reload()
   }
 
-  if (loading) return <div className="pt-2"><LoadingSpinner size="sm" /></div>
+  if (loading) return <div className="pt-2"><SkeletonList rows={2} /></div>
 
   return (
     <div className="border-t border-charcoal/10 dark:border-white/10 pt-4 mt-2">

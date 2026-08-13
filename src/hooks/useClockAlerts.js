@@ -28,6 +28,7 @@ import { useToast } from '../components/ui/Toast'
 import { sendPush } from '../lib/sendPush'
 import { londonToday, londonWallTimeToInstant, londonDayStartInstant, formatLondon } from '../lib/time'
 import { captureSilent } from '../lib/reportError'
+import { hashPin, pinHashKey } from '../lib/offlinePin'
 
 /** Count active (non-dismissed) strikes of one offence type in the last 30 days, +1 for the current one */
 async function countStrikes(staffId, venueId, offenceType, now) {
@@ -328,7 +329,12 @@ export function useClockAlerts({ staffId, status, breakStartAt, onEndBreak }) {
     return () => { cancelled = true }
   }, [venueId])
 
-  // Verify a manager's PIN — online first, offline hash fallback
+  // Verify a manager's PIN — online first, offline hash fallback. The
+  // offline check reuses the hash SessionContext caches under
+  // pinHashKey(staffId) after that manager's last online login on this
+  // device, so it only works if they've signed in here before while
+  // online. `managers` is already pre-filtered to manager/owner roles
+  // (see above), so a hash match there is enough to confirm access.
   const verifyManagerPin = useCallback(async (managerId, pin) => {
     try {
       const res = await fetch(`${supabaseUrl}/functions/v1/pin-login`, {
@@ -346,18 +352,17 @@ export function useClockAlerts({ staffId, status, breakStartAt, onEndBreak }) {
       }
       if (res.status === 429) return { ok: false, error: 'Too many attempts — wait a moment' }
       return { ok: false, error: 'Incorrect PIN, try again' }
-    } catch { /* network offline — fall through */ }
+    } catch { /* network unreachable — fall through to the offline check */ }
 
-    // Offline fallback: verify against the cached SHA-256 hash
-    try {
-      const data = new TextEncoder().encode(`${managerId}:${pin}:pelikn_offline_v1`)
-      const buf  = await crypto.subtle.digest('SHA-256', data)
-      const hash = Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('')
-      const cachedHash = localStorage.getItem(`pelikn_pin_${managerId}`)
-      if (!cachedHash || hash !== cachedHash) return { ok: false, error: 'Incorrect PIN, try again' }
-      // Role already confirmed — the managers list is pre-filtered
-      return { ok: true }
-    } catch { return { ok: false, error: 'Incorrect PIN, try again' } }
+    const cachedHash = localStorage.getItem(pinHashKey(managerId))
+    if (!cachedHash) {
+      return { ok: false, error: "Couldn't reach the server — check your connection and try again" }
+    }
+    const enteredHash = await hashPin(managerId, pin)
+    if (!enteredHash || enteredHash !== cachedHash) {
+      return { ok: false, error: 'Incorrect PIN, try again' }
+    }
+    return { ok: true }
   }, [venueId])
 
   return {

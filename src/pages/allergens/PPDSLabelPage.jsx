@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom'
 import { format } from 'date-fns'
 import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
-import LoadingSpinner from '../../components/ui/LoadingSpinner'
+import { PageSkeleton } from '../../components/ui/Skeleton'
 
 export default function PPDSLabelPage() {
   const { id }              = useParams()
@@ -25,7 +25,7 @@ export default function PPDSLabelPage() {
       .then(({ data }) => { setItem(data); setLoading(false) })
   }, [id, venueId])
 
-  if (loading) return <div className="flex justify-center pt-20"><LoadingSpinner size="lg" /></div>
+  if (loading) return <PageSkeleton />
   if (!item)   return <div className="pt-10 text-center text-charcoal/40 dark:text-white/35 text-sm">Item not found.</div>
 
   const ingredients   = item.ingredients ?? []

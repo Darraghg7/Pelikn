@@ -6,7 +6,7 @@ import { insertDateLabellingLog, fetchDateLabellingExport } from '../../lib/api/
 import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../../components/ui/Toast'
 import Modal from '../../components/ui/Modal'
-import LoadingSpinner from '../../components/ui/LoadingSpinner'
+import { PageSkeleton } from '../../components/ui/Skeleton'
 import { buildPdfReport } from '../../lib/pdfUtils'
 
 const STORAGE_LOCATIONS = ['Walk-in fridge', 'Reach-in fridge', 'Freezer', 'Dry store', 'Counter']
@@ -103,7 +103,7 @@ export default function DateLabellingPage() {
     setShowExport(false)
   }
 
-  if (loading) return <div className="flex justify-center pt-20"><LoadingSpinner size="lg" /></div>
+  if (loading) return <PageSkeleton />
 
   const grouped = groupByDate(logs)
 

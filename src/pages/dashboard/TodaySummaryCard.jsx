@@ -80,8 +80,10 @@ export default function TodaySummaryCard({ venueId, closedDays, itemIds, actionS
                 const value = item.metric(summary) ?? 0
                 const isDanger = item.dangerWhenPositive && value > 0
                 const isGood   = item.dangerWhenPositive && value === 0
+                const Tag      = item.route ? Link : 'div'
+                const tagProps = item.route ? { to: vp(item.route) } : {}
                 return (
-                  <div key={item.id} className="flex flex-col gap-2 border border-charcoal/10 dark:border-white/10 rounded-xl p-4 min-h-[100px]">
+                  <Tag key={item.id} {...tagProps} className="flex flex-col gap-2 border border-charcoal/10 dark:border-white/10 rounded-xl p-4 min-h-[100px] no-underline hover:bg-charcoal/3 dark:hover:bg-white/5 transition-colors">
                     <div className="flex items-center gap-1.5">
                       <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${isDanger ? 'bg-danger' : isGood ? 'bg-success' : 'bg-charcoal/20 dark:bg-white/20'}`} />
                       <span className="font-mono text-[10px] text-charcoal/40 dark:text-white/35 uppercase tracking-[0.08em] leading-none">{item.metricLabel}</span>
@@ -89,7 +91,7 @@ export default function TodaySummaryCard({ venueId, closedDays, itemIds, actionS
                     <div className={`text-[34px] font-medium tracking-[-0.035em] leading-none tabular-nums ${isDanger ? 'text-danger' : 'text-charcoal dark:text-white'}`}>
                       {value}
                     </div>
-                  </div>
+                  </Tag>
                 )
               })}
             </div>

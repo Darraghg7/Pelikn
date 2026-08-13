@@ -8,7 +8,7 @@ import { useFridges } from '../../hooks/useFridgeLogs'
 import { useSession } from '../../contexts/SessionContext'
 import { isTempOutOfRange } from '../../lib/utils'
 import { useToast } from '../../components/ui/Toast'
-import LoadingSpinner from '../../components/ui/LoadingSpinner'
+import { PageSkeleton } from '../../components/ui/Skeleton'
 import NumPad from '../../components/ui/NumPad'
 
 function SectionLabel({ children }) {
@@ -108,7 +108,7 @@ export default function FridgeLogFormPage() {
     navigate(`/v/${venueSlug}/fridge`)
   }
 
-  if (loading) return <div className="flex justify-center pt-20"><LoadingSpinner size="lg" /></div>
+  if (loading) return <PageSkeleton />
 
   return (
     <div className="flex flex-col gap-6 max-w-xl">

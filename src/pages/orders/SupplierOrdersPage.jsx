@@ -8,7 +8,7 @@ import { useSuppliers } from '../../hooks/useSuppliers'
 import { insertSupplier, deactivateSupplier } from '../../lib/api/suppliers'
 import { useToast } from '../../components/ui/Toast'
 import Modal from '../../components/ui/Modal'
-import LoadingSpinner from '../../components/ui/LoadingSpinner'
+import { PageSkeleton } from '../../components/ui/Skeleton'
 
 const STATUS_CONFIG = {
   submitted: { label: 'Pending',  bg: 'bg-warning/10',  text: 'text-warning' },
@@ -145,7 +145,7 @@ export default function SupplierOrdersPage() {
     ? orders
     : orders.filter(o => o.status === tab)
 
-  if (suppLoading || ordersLoading) return <div className="flex justify-center pt-20"><LoadingSpinner size="lg" /></div>
+  if (suppLoading || ordersLoading) return <PageSkeleton />
 
   return (
     <div className="flex flex-col gap-6">

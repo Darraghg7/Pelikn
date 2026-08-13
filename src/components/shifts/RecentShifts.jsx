@@ -22,7 +22,7 @@ import { useToast } from '../ui/Toast'
 import { sendPush } from '../../lib/sendPush'
 import { captureSilent } from '../../lib/reportError'
 import { londonWallTimeToInstant, londonDateStr, formatLondon } from '../../lib/time'
-import LoadingSpinner from '../ui/LoadingSpinner'
+import { SkeletonList } from '../ui/Skeleton'
 
 /* ── Helpers ─────────────────────────────────────────────────────────── */
 function sessionDateLabel(date) {
@@ -534,7 +534,7 @@ export default function RecentShifts({ staffId, isManagerEdit = false, inline = 
       )}
 
       {loading ? (
-        <div className="flex justify-center py-4"><LoadingSpinner /></div>
+        <SkeletonList rows={3} />
       ) : sessions.length === 0 && !adding ? (
         <p className="text-sm text-charcoal/35 dark:text-white/30 italic py-2">No shifts recorded in the last 7 days.</p>
       ) : (

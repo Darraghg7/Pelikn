@@ -1,5 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { useVenue } from '../contexts/VenueContext'
+import { useAppSettings } from './useSettings'
+import useVenueClosures from './useVenueClosures'
 import { fetchCleaningTasks, type CleaningTask, type CleaningCompletion } from '../lib/api/cleaning'
 import { roleMatcher } from '../lib/roleFilter'
 
@@ -9,6 +11,18 @@ function calendarDaysBetween(a: Date, b: Date): number {
   const aDay = new Date(a.getFullYear(), a.getMonth(), a.getDate())
   const bDay = new Date(b.getFullYear(), b.getMonth(), b.getDate())
   return Math.round((bDay.getTime() - aDay.getTime()) / 86400000)
+}
+
+function toDateStr(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
+/** closedDays is Monday-first (0=Mon..6=Sun) — see the same conversion in useTodaySummary.js. */
+function isVenueClosedOn(date: Date, closedDays: number[], closures: { start_date: string; end_date: string }[]): boolean {
+  const dow = (date.getDay() + 6) % 7
+  if (closedDays.includes(dow)) return true
+  const dateStr = toDateStr(date)
+  return closures.some(c => dateStr >= c.start_date && dateStr <= c.end_date)
 }
 
 export type CleaningStatus = 'done' | 'due_soon' | 'overdue'
@@ -47,6 +61,8 @@ export function useCleaningTasks(
   overdueCount: number
 } {
   const { venueId } = useVenue()
+  const { closedDays } = useAppSettings()
+  const { closures } = useVenueClosures()
 
   const { data, isLoading, refetch, error } = useQuery({
     queryKey: ['cleaningTasks', venueId],
@@ -66,12 +82,17 @@ export function useCleaningTasks(
     reference.getFullYear(), reference.getMonth(), reference.getDate(), 23, 59, 59, 999,
   ).getTime()
 
+  // The venue isn't open, so nothing should nag staff/managers to clean —
+  // status is capped at 'done' rather than left as overdue/due_soon.
+  const closedOnReference = isVenueClosedOn(reference, closedDays, closures)
+
   // completions arrive newest-first, so the first hit is the latest one.
   const enriched = filtered.map((t) => {
     const last = completions.find((c) =>
       c.cleaning_task_id === t.id && new Date(c.completed_at).getTime() <= cutoff
     ) ?? null
-    return { ...t, lastCompletion: last, status: cleaningStatus(t, last, reference) }
+    const status = closedOnReference ? 'done' : cleaningStatus(t, last, reference)
+    return { ...t, lastCompletion: last, status }
   })
 
   const overdueCount = enriched.filter((t) => t.status === 'overdue').length

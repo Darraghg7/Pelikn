@@ -686,7 +686,11 @@ export default function AppShell({ children }) {
           role="main"
           className={`flex-1 ${maxW} mx-auto w-full px-4 lg:px-6 py-5 lg:py-6 pb-[max(5.5rem,calc(4.5rem+env(safe-area-inset-bottom)))] lg:pb-6`}
         >
-          {children}
+          {/* Remounting on pathname change retriggers the fade-in keyframe,
+              giving every navigation a soft crossfade instead of a hard swap. */}
+          <div key={location.pathname} className="animate-fade-in">
+            {children}
+          </div>
         </main>
       </div>
     </div>

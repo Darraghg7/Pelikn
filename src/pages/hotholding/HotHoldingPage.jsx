@@ -18,7 +18,7 @@ import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
 import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../../components/ui/Toast'
-import LoadingSpinner from '../../components/ui/LoadingSpinner'
+import { SkeletonList } from '../../components/ui/Skeleton'
 import EmptyState from '../../components/ui/EmptyState'
 import ConfirmDialog from '../../components/ui/ConfirmDialog'
 import DateRangePresets, { presetToDates } from '../../components/ui/DateRangePresets'
@@ -317,7 +317,7 @@ export default function HotHoldingPage() {
 
           {/* Readings grid */}
           {itemsLoading ? (
-            <div className="flex justify-center py-10"><LoadingSpinner /></div>
+            <SkeletonList rows={4} />
           ) : items.length === 0 ? (
             <div className="bg-white dark:bg-paperDark rounded-2xl border border-charcoal/10 dark:border-white/10 p-8 text-center">
               <EmptyState
@@ -474,7 +474,7 @@ export default function HotHoldingPage() {
           </div>
 
           {histLoading ? (
-            <div className="flex justify-center py-10"><LoadingSpinner /></div>
+            <SkeletonList rows={4} />
           ) : histLogs.length === 0 ? (
             <EmptyState icon="thermometer" title="No records found" description="Try adjusting the date range." />
           ) : (

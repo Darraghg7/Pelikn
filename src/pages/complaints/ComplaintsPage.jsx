@@ -4,7 +4,7 @@ import { useVenue } from '../../contexts/VenueContext'
 import { useComplaints } from '../../hooks/useComplaints'
 import { insertComplaint, updateComplaint } from '../../lib/api/complaints'
 import { useToast } from '../../components/ui/Toast'
-import LoadingSpinner from '../../components/ui/LoadingSpinner'
+import { SkeletonList } from '../../components/ui/Skeleton'
 import Modal from '../../components/ui/Modal'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -278,7 +278,7 @@ export default function ComplaintsPage() {
 
       {/* List */}
       {loading ? (
-        <div className="flex justify-center pt-12"><LoadingSpinner size="md" /></div>
+        <SkeletonList rows={4} />
       ) : filtered.length === 0 ? (
         <div className="bg-white dark:bg-paperDark rounded-2xl border border-charcoal/10 dark:border-white/10 px-5 py-12 text-center">
           <p className="text-charcoal/40 dark:text-white/35 text-sm">

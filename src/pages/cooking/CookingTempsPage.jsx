@@ -16,7 +16,7 @@ import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
 import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../../components/ui/Toast'
-import LoadingSpinner from '../../components/ui/LoadingSpinner'
+import { PageSkeleton, SkeletonList } from '../../components/ui/Skeleton'
 import EmptyState from '../../components/ui/EmptyState'
 import DateRangePresets, { presetToDates } from '../../components/ui/DateRangePresets'
 import { useCookingLogs, useTodayCookingLogs, isCookingTempFail, COOKING_TARGET_TEMP } from '../../hooks/useCookingLogs'
@@ -175,7 +175,7 @@ function LogForm({ checkType, onLogged }) {
 
 /* ── History table ────────────────────────────────────────────────────────── */
 function HistoryTable({ logs, loading }) {
-  if (loading) return <div className="flex justify-center py-10"><LoadingSpinner /></div>
+  if (loading) return <PageSkeleton />
   if (logs.length === 0) return (
     <EmptyState icon="thermometer" title="No records found" description="Try adjusting the date range." />
   )
@@ -316,7 +316,7 @@ export default function CookingTempsPage() {
           <div className="bg-white dark:bg-paperDark rounded-2xl border border-charcoal/10 dark:border-white/10 p-5">
             <SectionLabel>Today's Readings</SectionLabel>
             {todayLoading ? (
-              <div className="flex justify-center py-6"><LoadingSpinner /></div>
+              <SkeletonList rows={3} />
             ) : todayLogs.length === 0 ? (
               <EmptyState icon="thermometer" title="No readings yet" description="Log a cooking temperature above to get started." className="py-6" />
             ) : (

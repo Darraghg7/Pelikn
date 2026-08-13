@@ -6,7 +6,7 @@ import { useSession } from '../../contexts/SessionContext'
 import { useFoodItem } from '../../hooks/useFoodItems'
 import { EU_ALLERGENS } from '../../lib/constants'
 import { useToast } from '../../components/ui/Toast'
-import LoadingSpinner from '../../components/ui/LoadingSpinner'
+import { PageSkeleton } from '../../components/ui/Skeleton'
 
 function SectionLabel({ children }) {
   return <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-3">{children}</p>
@@ -94,7 +94,7 @@ export default function FoodItemFormPage() {
     setSubmitting(false)
   }
 
-  if (isEdit && loading) return <div className="flex justify-center pt-20"><LoadingSpinner size="lg" /></div>
+  if (isEdit && loading) return <PageSkeleton />
 
   return (
     <div className="flex flex-col gap-6 max-w-xl">

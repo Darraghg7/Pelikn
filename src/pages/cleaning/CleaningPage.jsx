@@ -6,7 +6,7 @@ import { useVenue } from '../../contexts/VenueContext'
 import { useSession } from '../../contexts/SessionContext'
 import { useCleaningTasks } from '../../hooks/useCleaningTasks'
 import { useToast } from '../../components/ui/Toast'
-import LoadingSpinner from '../../components/ui/LoadingSpinner'
+import { PageSkeleton } from '../../components/ui/Skeleton'
 import ConfirmDialog from '../../components/ui/ConfirmDialog'
 import CleaningExportModal from './CleaningExportModal'
 import { useAppSettings } from '../../hooks/useSettings'
@@ -146,7 +146,7 @@ export default function CleaningPage() {
     : tasks.filter((t) => t.status === filterStatus)
   ).slice().sort((a, b) => (a.status === 'done' ? 1 : 0) - (b.status === 'done' ? 1 : 0))
 
-  if (loading) return <div className="flex justify-center py-10"><LoadingSpinner /></div>
+  if (loading) return <PageSkeleton />
 
   const overdueCount  = tasks.filter((t) => t.status === 'overdue').length
   const dueSoonCount  = tasks.filter((t) => t.status === 'due_soon').length

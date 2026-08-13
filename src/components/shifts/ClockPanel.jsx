@@ -7,7 +7,7 @@ import { offlineRpc } from '../../lib/offlineSupabase'
 import { useClockStatus, saveClockStatusCache } from '../../hooks/useClockEvents'
 import { useVenue } from '../../contexts/VenueContext'
 import { useToast } from '../ui/Toast'
-import LoadingSpinner from '../ui/LoadingSpinner'
+import Skeleton from '../ui/Skeleton'
 import StaffAlertModal from './StaffAlertModal'
 import { useClockAlerts } from '../../hooks/useClockAlerts'
 
@@ -116,7 +116,7 @@ export default function ClockPanel({ staffId, compact = false }) {
   const cfg = STATUS_CONFIG[status] ?? STATUS_CONFIG.clocked_out
 
   if (loading) {
-    return <div className="flex justify-center py-4"><LoadingSpinner /></div>
+    return <Skeleton className="h-24 w-full" />
   }
 
   return (

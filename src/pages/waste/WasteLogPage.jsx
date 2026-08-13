@@ -6,7 +6,7 @@ import { useSession } from '../../contexts/SessionContext'
 import { useWasteLogs } from '../../hooks/useWasteLogs'
 import { useToast } from '../../components/ui/Toast'
 import Modal from '../../components/ui/Modal'
-import LoadingSpinner from '../../components/ui/LoadingSpinner'
+import { PageSkeleton } from '../../components/ui/Skeleton'
 import { buildPdfReport } from '../../lib/pdfUtils'
 
 const UNITS   = ['kg', 'portions', 'items', 'litres']
@@ -112,7 +112,7 @@ export default function WasteLogPage() {
     setShowExport(false)
   }
 
-  if (loading) return <div className="flex justify-center pt-20"><LoadingSpinner size="lg" /></div>
+  if (loading) return <PageSkeleton />
 
   const grouped = groupByDate(logs)
 

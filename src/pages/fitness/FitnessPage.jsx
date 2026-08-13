@@ -14,7 +14,7 @@ import {
 } from '../../lib/api/fitness'
 import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../../components/ui/Toast'
-import LoadingSpinner from '../../components/ui/LoadingSpinner'
+import { PageSkeleton, SkeletonList } from '../../components/ui/Skeleton'
 import EmptyState from '../../components/ui/EmptyState'
 
 // ── Hook: today's declarations ────────────────────────────────────────────────
@@ -333,7 +333,7 @@ function ManagerDeclarationsView({ venueId }) {
       {/* Declaration list */}
       <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 overflow-hidden">
         {loading ? (
-          <div className="flex justify-center py-8"><LoadingSpinner /></div>
+          <SkeletonList rows={4} />
         ) : declarations.length === 0 ? (
           <EmptyState icon="clipboard" title="No declarations" description="No declarations recorded for this date." />
         ) : (
@@ -534,7 +534,7 @@ export default function FitnessPage() {
   const [tab, setTab] = useState('declarations')
 
   if (checkingOwn) {
-    return <div className="flex justify-center pt-20"><LoadingSpinner size="lg" /></div>
+    return <PageSkeleton />
   }
 
   return (

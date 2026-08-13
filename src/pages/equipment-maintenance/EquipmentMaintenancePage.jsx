@@ -6,7 +6,7 @@ import { insertEquipmentLog, fetchEquipmentExport } from '../../lib/api/equipmen
 import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../../components/ui/Toast'
 import Modal from '../../components/ui/Modal'
-import LoadingSpinner from '../../components/ui/LoadingSpinner'
+import { PageSkeleton } from '../../components/ui/Skeleton'
 import { buildPdfReport } from '../../lib/pdfUtils'
 
 const SERVICE_TYPES = ['service', 'repair', 'calibration', 'inspection', 'other']
@@ -117,7 +117,7 @@ export default function EquipmentMaintenancePage() {
     setShowExport(false)
   }
 
-  if (loading) return <div className="flex justify-center pt-20"><LoadingSpinner size="lg" /></div>
+  if (loading) return <PageSkeleton />
 
   const grouped = groupByDate(logs)
 

@@ -6,7 +6,7 @@ import { useFridges, useTodayCheckStatus } from '../../hooks/useFridgeLogs'
 import { useSession } from '../../contexts/SessionContext'
 import { isTempOutOfRange, formatTemp } from '../../lib/utils'
 import { useToast } from '../../components/ui/Toast'
-import LoadingSpinner from '../../components/ui/LoadingSpinner'
+import { PageSkeleton } from '../../components/ui/Skeleton'
 import ConfirmDialog from '../../components/ui/ConfirmDialog'
 import FridgeExportModal from './FridgeExportModal'
 import FridgeMatrixModal from './FridgeMatrixModal'
@@ -398,7 +398,7 @@ export default function FridgeDashboardPage() {
   }
 
   if (fridgesLoading || dashLoading) {
-    return <div className="flex justify-center pt-20"><LoadingSpinner size="lg" /></div>
+    return <PageSkeleton />
   }
 
   return (
