@@ -78,7 +78,7 @@ export default function CorrectiveActionsPage() {
       body: `${catLabel}: ${form.title.trim()}`,
       url: '/corrective',
       roles: ['manager', 'owner'],
-    }).catch(() => {})
+    })
 
     setForm(EMPTY_FORM)
     setShowForm(false)

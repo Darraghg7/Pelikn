@@ -102,7 +102,7 @@ export default function FridgeLogFormPage() {
         body: `${selectedFridge?.name ?? 'Fridge'} at ${parseFloat(temp)}°C — outside safe range (${selectedFridge?.min_temp}–${selectedFridge?.max_temp}°C)`,
         url: '/fridge',
         roles: ['manager', 'owner'],
-      }).catch(() => {})
+      })
     }
 
     navigate(`/v/${venueSlug}/fridge`)

@@ -189,7 +189,7 @@ function EditSessionForm({ session, staffId, onSave, onCancel, isManagerEdit }) 
       body: `${authSession?.staffName ?? 'A staff member'} requested a change to their hours on ${formatLondon(session.clockInAt, 'd MMM')}`,
       url: '/timesheet',
       roles: ['manager', 'owner'],
-    }).catch(() => {})
+    })
 
     toast('Edit submitted — awaiting manager approval')
     setConfirming(false)
@@ -408,7 +408,7 @@ function AddShiftForm({ staffId, onSave, onCancel, isManagerEdit = false }) {
       body: `${authSession?.staffName ?? 'A staff member'} reported a missed clock-in on ${date}`,
       url: '/timesheet',
       roles: ['manager', 'owner'],
-    }).catch(() => {})
+    })
 
     toast('Shift request submitted — awaiting manager approval')
     setConfirming(false)

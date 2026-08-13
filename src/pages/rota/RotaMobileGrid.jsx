@@ -354,7 +354,7 @@ function SwapSheet({ swaps, onClose, onResolved }) {
     if (error) { toast(error.message, 'error'); return }
     toast('Swap approved ✓')
     const staffIds = [swap.requester_id, swap.target_staff_id].filter(Boolean)
-    if (staffIds.length) sendPush({ venueId, notificationType: 'shift_swap_decision', title: 'Shift Swap Approved', body: 'Your shift swap has been approved.', url: '/rota', staffIds }).catch(() => {})
+    if (staffIds.length) sendPush({ venueId, notificationType: 'shift_swap_decision', title: 'Shift Swap Approved', body: 'Your shift swap has been approved.', url: '/rota', staffIds })
     onResolved()
   }
 
@@ -665,7 +665,7 @@ export default function RotaMobileGrid() {
     if (error) { toast(error.message, 'error'); setPublishing(false); return }
     const staffIds = [...new Set(shifts.map(s => s.staff_id).filter(Boolean))]
     if (staffIds.length) {
-      sendPush({ venueId, notificationType: 'rota_published', title: 'Rota Published', body: `Your rota for the week of ${weekStartStr} is now available.`, url: '/rota', staffIds }).catch(() => {})
+      sendPush({ venueId, notificationType: 'rota_published', title: 'Rota Published', body: `Your rota for the week of ${weekStartStr} is now available.`, url: '/rota', staffIds })
     }
     setPublishing(false)
     setSessionChanges([])

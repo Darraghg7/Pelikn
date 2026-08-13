@@ -1247,7 +1247,7 @@ export default function RotaPage() {
         body:  `Your rota for the week of ${weekStartStr} is now available.`,
         url:   '/rota',
         staffIds,
-      }).catch(() => {})
+      })
     }
     setEmailing(false)
     toast('Rota published ✓')
@@ -1275,7 +1275,7 @@ export default function RotaPage() {
       body:  `${session?.staffName ?? 'A staff member'} has requested a shift swap`,
       url:   '/rota',
       roles: ['manager', 'owner'],
-    }).catch(() => {})
+    })
   }
 
   const approveSwap = async (swap) => {
@@ -1301,7 +1301,7 @@ export default function RotaPage() {
         body:  'Your shift swap request has been approved. Check the rota for updates.',
         url:   '/rota',
         staffIds,
-      }).catch(() => {})
+      })
     }
     reloadSwaps()
     reload()
@@ -1328,7 +1328,7 @@ export default function RotaPage() {
         body:  `Your shift swap request was not approved.${rejectNote[swap.id]?.trim() ? ' Note: ' + rejectNote[swap.id].trim() : ''}`,
         url:   '/rota',
         staffIds: [swap.requester_id],
-      }).catch(() => {})
+      })
     }
     reloadSwaps()
   }

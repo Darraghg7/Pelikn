@@ -396,7 +396,7 @@ function EditRequestModal({ request, isManager, actorId, actorName, venueId, onC
           : `${actorName ?? 'A staff member'} changed their ${leaveTypeLabel(patch?.leave_type ?? request.leave_type)} to ${range}.`,
         url: '/time-off',
         roles: ['manager', 'owner'],
-      }).catch(() => {})
+      })
     } else if (request.staff_id) {
       sendPush({
         venueId,
@@ -407,7 +407,7 @@ function EditRequestModal({ request, isManager, actorId, actorName, venueId, onC
           : `Your time off was changed to ${range}.`,
         url: '/time-off',
         staffIds: [request.staff_id],
-      }).catch(() => {})
+      })
     }
   }
 
@@ -706,7 +706,7 @@ export default function TimeOffPage() {
       body:  `${session?.staffName ?? 'A staff member'} requested ${leaveTypeLabel(form.leaveType)}: ${form.startDate} – ${form.endDate}`,
       url:   '/time-off',
       roles: ['manager', 'owner'],
-    }).catch(() => {})
+    })
     setForm({ startDate: '', endDate: '', reason: '', leaveType: 'annual' })
     setShowRequest(false)
     refreshDependents()
@@ -733,7 +733,7 @@ export default function TimeOffPage() {
         body:  `Your ${leaveTypeLabel(req.leave_type)} (${req.start_date} – ${req.end_date}) has been approved.`,
         url:   '/time-off',
         staffIds: [req.staff_id],
-      }).catch(() => {})
+      })
     }
     refreshDependents()
   }
@@ -759,7 +759,7 @@ export default function TimeOffPage() {
         body:  `Your time off request (${req.start_date} – ${req.end_date}) was not approved.${managerNote.trim() ? ' Note: ' + managerNote.trim() : ''}`,
         url:   '/time-off',
         staffIds: [req.staff_id],
-      }).catch(() => {})
+      })
     }
     refreshDependents()
   }

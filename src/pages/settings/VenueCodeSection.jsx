@@ -20,10 +20,13 @@ export default function VenueCodeSection({ venueId, sessionToken }) {
 
   const copy = () => {
     if (!code) return
-    navigator.clipboard.writeText(code).catch(() => {})
-    setCopied(true)
-    clearTimeout(copyTimer.current)
-    copyTimer.current = setTimeout(() => setCopied(false), 2000)
+    navigator.clipboard.writeText(code).then(() => {
+      setCopied(true)
+      clearTimeout(copyTimer.current)
+      copyTimer.current = setTimeout(() => setCopied(false), 2000)
+    }, () => {
+      toast('Could not copy — select the code and copy it manually', 'error')
+    })
   }
 
   const shareWhatsApp = () => {
