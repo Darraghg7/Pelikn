@@ -10,7 +10,7 @@ import LoadingSpinner from '../../components/ui/LoadingSpinner'
 import ConfirmDialog from '../../components/ui/ConfirmDialog'
 
 function SectionLabel({ children }) {
-  return <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-3">{children}</p>
+  return <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-3">{children}</p>
 }
 
 const ALLERGEN_COLORS = {
@@ -56,7 +56,7 @@ export default function FoodItemDetailPage() {
   }
 
   if (loading) return <div className="flex justify-center pt-20"><LoadingSpinner size="lg" /></div>
-  if (!item)   return <div className="pt-10 text-center text-charcoal/40 text-sm">Item not found.</div>
+  if (!item)   return <div className="pt-10 text-center text-charcoal/40 dark:text-white/35 text-sm">Item not found.</div>
 
   return (
     <div className="flex flex-col gap-6 max-w-xl">
@@ -73,14 +73,14 @@ export default function FoodItemDetailPage() {
 
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Link to={`/v/${venueSlug}/allergens`} className="text-charcoal/40 hover:text-charcoal transition-colors text-lg">←</Link>
-          <h1 className="text-2xl font-bold text-charcoal">{item.name}</h1>
+          <Link to={`/v/${venueSlug}/allergens`} className="text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white transition-colors text-lg">←</Link>
+          <h1 className="text-2xl font-bold text-charcoal dark:text-white">{item.name}</h1>
         </div>
         {isManager && (
           <div className="flex gap-2">
             <Link
               to={`/v/${venueSlug}/allergens/${id}/edit`}
-              className="text-xs text-charcoal/50 hover:text-charcoal border border-charcoal/15 px-3 py-1.5 rounded-lg hover:border-charcoal/30 transition-colors"
+              className="text-xs text-charcoal/50 dark:text-white/40 hover:text-charcoal dark:hover:text-white border border-charcoal/15 dark:border-white/15 px-3 py-1.5 rounded-lg hover:border-charcoal/30 dark:hover:border-white/30 transition-colors"
             >
               Edit
             </Link>
@@ -95,20 +95,20 @@ export default function FoodItemDetailPage() {
       </div>
 
       {item.description && (
-        <p className="text-charcoal/60 text-sm">{item.description}</p>
+        <p className="text-charcoal/60 dark:text-white/50 text-sm">{item.description}</p>
       )}
 
       {/* Contains */}
-      <div className="bg-white rounded-2xl border-charcoal/10 p-5">
+      <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-5">
         <SectionLabel>Contains</SectionLabel>
         {allergens.length === 0 ? (
-          <p className="text-sm text-charcoal/35 italic">No allergens declared.</p>
+          <p className="text-sm text-charcoal/35 dark:text-white/30 italic">No allergens declared.</p>
         ) : (
           <div className="flex flex-wrap gap-2">
             {allergens.map((a) => (
               <span
                 key={a}
-                className={['inline-block px-3 py-1 rounded-full text-xs font-medium border', ALLERGEN_COLORS[a] ?? 'bg-charcoal/8 border-charcoal/15 text-charcoal'].join(' ')}
+                className={['inline-block px-3 py-1 rounded-full text-xs font-medium border', ALLERGEN_COLORS[a] ?? 'bg-charcoal/8 dark:bg-white/8 border-charcoal/15 dark:border-white/15 text-charcoal dark:text-white'].join(' ')}
               >
                 {a}
               </span>
@@ -119,7 +119,7 @@ export default function FoodItemDetailPage() {
 
       {/* May Contain */}
       {mayContain.length > 0 && (
-        <div className="bg-white rounded-2xl border-charcoal/10 p-5">
+        <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-5">
           <SectionLabel>May Contain — cross-contamination risk</SectionLabel>
           <div className="flex flex-wrap gap-2">
             {mayContain.map((a) => (
@@ -129,17 +129,17 @@ export default function FoodItemDetailPage() {
             ))}
           </div>
           {verbalNote && (
-            <p className="mt-3 text-xs text-charcoal/50 italic">{verbalNote}</p>
+            <p className="mt-3 text-xs text-charcoal/50 dark:text-white/40 italic">{verbalNote}</p>
           )}
         </div>
       )}
 
       {/* Does not contain */}
-      <div className="bg-white rounded-2xl border-charcoal/10 p-5">
+      <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-5">
         <SectionLabel>Does not contain</SectionLabel>
         <div className="flex flex-wrap gap-2">
           {absent.map((a) => (
-            <span key={a} className="inline-block px-3 py-1 rounded-full text-xs text-charcoal/30 bg-charcoal/4 border border-charcoal/8">
+            <span key={a} className="inline-block px-3 py-1 rounded-full text-xs text-charcoal/30 dark:text-white/30 bg-charcoal/4 dark:bg-white/5 border border-charcoal/8 dark:border-white/8">
               {a}
             </span>
           ))}

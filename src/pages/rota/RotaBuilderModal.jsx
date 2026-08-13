@@ -5,7 +5,7 @@ import { buildRota } from '../../lib/rotaBuilder'
 import TimeSelect from '../../components/ui/TimeSelect'
 
 function SectionLabel({ children }) {
-  return <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-2">{children}</p>
+  return <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-2">{children}</p>
 }
 
 export default function RotaBuilderModal({
@@ -113,12 +113,12 @@ export default function RotaBuilderModal({
                     className={[
                       'p-3 rounded-xl border text-left transition-all',
                       mode === opt.value
-                        ? 'bg-charcoal text-cream border-charcoal'
-                        : 'bg-white text-charcoal/60 border-charcoal/15 hover:border-charcoal/30',
+                        ? 'bg-charcoal text-cream border-charcoal dark:border-white'
+                        : 'bg-white dark:bg-paperDark text-charcoal/60 dark:text-white/50 border-charcoal/15 dark:border-white/15 hover:border-charcoal/30 dark:hover:border-white/30',
                     ].join(' ')}
                   >
                     <p className="text-sm font-medium">{opt.label}</p>
-                    <p className={`text-[11px] mt-0.5 ${mode === opt.value ? 'text-cream/60' : 'text-charcoal/35'}`}>
+                    <p className={`text-[11px] mt-0.5 ${mode === opt.value ? 'text-cream/60' : 'text-charcoal/35 dark:text-white/30'}`}>
                       {opt.desc}
                     </p>
                   </button>
@@ -128,11 +128,11 @@ export default function RotaBuilderModal({
 
             {/* Closed days info */}
             {closedDays.length > 0 && (
-              <div className="rounded-lg bg-charcoal/4 border border-charcoal/10 px-3 py-2">
-                <p className="text-[11px] tracking-widest uppercase text-charcoal/35 mb-1">Closed Days (skipped)</p>
+              <div className="rounded-lg bg-charcoal/4 dark:bg-white/5 border border-charcoal/10 dark:border-white/10 px-3 py-2">
+                <p className="text-[11px] tracking-widest uppercase text-charcoal/35 dark:text-white/30 mb-1">Closed Days (skipped)</p>
                 <div className="flex gap-1.5 flex-wrap">
                   {closedDays.sort((a, b) => a - b).map(d => (
-                    <span key={d} className="text-xs text-charcoal/40 bg-charcoal/8 px-2 py-0.5 rounded line-through">
+                    <span key={d} className="text-xs text-charcoal/40 dark:text-white/35 bg-charcoal/8 dark:bg-white/8 px-2 py-0.5 rounded line-through">
                       {closedDayNames[d]}
                     </span>
                   ))}
@@ -145,25 +145,25 @@ export default function RotaBuilderModal({
               <SectionLabel>Staffing per Day</SectionLabel>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-[11px] tracking-widest uppercase text-charcoal/30 block mb-1">Minimum</label>
+                  <label className="text-[11px] tracking-widest uppercase text-charcoal/30 dark:text-white/30 block mb-1">Minimum</label>
                   <input
                     type="number"
                     min={1}
                     max={staff.length}
                     value={minStaff}
                     onChange={e => setMinStaff(parseInt(e.target.value) || 1)}
-                    className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 bg-white text-sm text-center focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+                    className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-center focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
                   />
                 </div>
                 <div>
-                  <label className="text-[11px] tracking-widest uppercase text-charcoal/30 block mb-1">Maximum</label>
+                  <label className="text-[11px] tracking-widest uppercase text-charcoal/30 dark:text-white/30 block mb-1">Maximum</label>
                   <input
                     type="number"
                     min={minStaff}
                     max={staff.length}
                     value={maxStaff}
                     onChange={e => setMaxStaff(parseInt(e.target.value) || staff.length)}
-                    className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 bg-white text-sm text-center focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+                    className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-center focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
                   />
                 </div>
               </div>
@@ -174,11 +174,11 @@ export default function RotaBuilderModal({
               <SectionLabel>Default Shift Times</SectionLabel>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-[11px] tracking-widest uppercase text-charcoal/30 block mb-1">Start</label>
+                  <label className="text-[11px] tracking-widest uppercase text-charcoal/30 dark:text-white/30 block mb-1">Start</label>
                   <TimeSelect value={defaultStart} onChange={setDefaultStart} />
                 </div>
                 <div>
-                  <label className="text-[11px] tracking-widest uppercase text-charcoal/30 block mb-1">End</label>
+                  <label className="text-[11px] tracking-widest uppercase text-charcoal/30 dark:text-white/30 block mb-1">End</label>
                   <TimeSelect value={defaultEnd} onChange={setDefaultEnd} />
                 </div>
               </div>
@@ -187,26 +187,26 @@ export default function RotaBuilderModal({
             {/* Required Roles per Day */}
             <div>
               <SectionLabel>Required Roles per Day</SectionLabel>
-              <p className="text-[11px] text-charcoal/30 mb-2">
+              <p className="text-[11px] text-charcoal/30 dark:text-white/30 mb-2">
                 Set minimum count for each role needed daily. Leave 0 to skip.
               </p>
               {customRoles.length === 0 ? (
-                <p className="text-xs text-charcoal/30 italic">No roles configured. Add roles in Settings.</p>
+                <p className="text-xs text-charcoal/30 dark:text-white/30 italic">No roles configured. Add roles in Settings.</p>
               ) : (
                 <div className="grid grid-cols-2 gap-2">
                   {customRoles.map(r => {
                     const current = syncedRoles.find(sr => sr.role === r.label)
                     return (
-                      <div key={r.value} className="flex items-center gap-2 rounded-lg border border-charcoal/10 px-3 py-2">
-                        <span className={`w-2 h-2 rounded-full ${r.color?.split(' ')[0] ?? 'bg-charcoal/20'}`} />
-                        <span className="text-xs text-charcoal/70 flex-1 truncate">{r.label}</span>
+                      <div key={r.value} className="flex items-center gap-2 rounded-lg border border-charcoal/10 dark:border-white/10 px-3 py-2">
+                        <span className={`w-2 h-2 rounded-full ${r.color?.split(' ')[0] ?? 'bg-charcoal/20 dark:bg-white/20'}`} />
+                        <span className="text-xs text-charcoal/70 dark:text-white/60 flex-1 truncate">{r.label}</span>
                         <input
                           type="number"
                           min={0}
                           max={staff.length}
                           value={current?.min ?? 0}
                           onChange={e => updateRoleMin(r.label, e.target.value)}
-                          className="w-12 px-1 py-1 rounded border border-charcoal/15 text-xs text-center focus:outline-none focus:ring-1 focus:ring-charcoal/20"
+                          className="w-12 px-1 py-1 rounded border border-charcoal/15 dark:border-white/15 text-xs text-center focus:outline-none focus:ring-1 focus:ring-charcoal/20 dark:focus:ring-white/20"
                         />
                       </div>
                     )
@@ -232,16 +232,16 @@ export default function RotaBuilderModal({
               <p className="text-[11px] tracking-widest uppercase text-accent/60 mb-2">Generation Summary</p>
               <div className="grid grid-cols-3 gap-3 text-center">
                 <div>
-                  <p className="text-xl font-bold text-charcoal">{result.stats.totalShiftsCreated}</p>
-                  <p className="text-[11px] text-charcoal/40">Shifts</p>
+                  <p className="text-xl font-bold text-charcoal dark:text-white">{result.stats.totalShiftsCreated}</p>
+                  <p className="text-[11px] text-charcoal/40 dark:text-white/35">Shifts</p>
                 </div>
                 <div>
-                  <p className="text-xl font-bold text-charcoal">{result.stats.totalHours.toFixed(0)}h</p>
-                  <p className="text-[11px] text-charcoal/40">Paid Hours</p>
+                  <p className="text-xl font-bold text-charcoal dark:text-white">{result.stats.totalHours.toFixed(0)}h</p>
+                  <p className="text-[11px] text-charcoal/40 dark:text-white/35">Paid Hours</p>
                 </div>
                 <div>
-                  <p className="text-xl font-bold text-charcoal">£{result.stats.estimatedCost.toFixed(0)}</p>
-                  <p className="text-[11px] text-charcoal/40">Est. Cost</p>
+                  <p className="text-xl font-bold text-charcoal dark:text-white">£{result.stats.estimatedCost.toFixed(0)}</p>
+                  <p className="text-[11px] text-charcoal/40 dark:text-white/35">Est. Cost</p>
                 </div>
               </div>
             </div>
@@ -252,11 +252,11 @@ export default function RotaBuilderModal({
                 <SectionLabel>Staff Hours Breakdown</SectionLabel>
                 <div className="flex flex-col gap-1">
                   {result.stats.staffHoursBreakdown.map(s => (
-                    <div key={s.staffId} className="flex items-center justify-between text-xs px-3 py-2 rounded-lg bg-charcoal/3">
-                      <span className="text-charcoal/70">{s.name}</span>
-                      <span className="font-mono text-charcoal">
+                    <div key={s.staffId} className="flex items-center justify-between text-xs px-3 py-2 rounded-lg bg-charcoal/3 dark:bg-white/5">
+                      <span className="text-charcoal/70 dark:text-white/60">{s.name}</span>
+                      <span className="font-mono text-charcoal dark:text-white">
                         {s.existingHours > 0 && (
-                          <span className="text-charcoal/30">{s.existingHours.toFixed(1)}h existing + </span>
+                          <span className="text-charcoal/30 dark:text-white/30">{s.existingHours.toFixed(1)}h existing + </span>
                         )}
                         {s.newHours.toFixed(1)}h new
                       </span>
@@ -274,7 +274,7 @@ export default function RotaBuilderModal({
                   {result.warnings.map((w, i) => (
                     <div key={i} className="flex items-start gap-2 text-xs px-3 py-2 rounded-lg bg-warning/8 border border-warning/15">
                       <span className="text-warning mt-0.5"><svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
-                      <span className="text-charcoal/70">{w.message}</span>
+                      <span className="text-charcoal/70 dark:text-white/60">{w.message}</span>
                     </div>
                   ))}
                 </div>
@@ -285,15 +285,15 @@ export default function RotaBuilderModal({
             <div>
               <SectionLabel>Generated Shifts ({result.generatedShifts.length})</SectionLabel>
               {result.generatedShifts.length === 0 ? (
-                <p className="text-sm text-charcoal/30 italic">No shifts generated. Adjust your settings and try again.</p>
+                <p className="text-sm text-charcoal/30 dark:text-white/30 italic">No shifts generated. Adjust your settings and try again.</p>
               ) : (
                 <div className="flex flex-col gap-1 max-h-48 overflow-y-auto">
                   {result.generatedShifts.map((sh, i) => (
-                    <div key={i} className="flex items-center justify-between px-3 py-2 rounded-lg bg-charcoal/3 border border-charcoal/6">
+                    <div key={i} className="flex items-center justify-between px-3 py-2 rounded-lg bg-charcoal/3 dark:bg-white/5 border border-charcoal/6 dark:border-white/8">
                       <div className="flex items-center gap-3">
                         <div>
-                          <p className="text-xs font-medium text-charcoal">{sh._staffName}</p>
-                          <p className="text-[11px] text-charcoal/40">
+                          <p className="text-xs font-medium text-charcoal dark:text-white">{sh._staffName}</p>
+                          <p className="text-[11px] text-charcoal/40 dark:text-white/35">
                             {sh.shift_date} · {sh.start_time}–{sh.end_time} · {sh.role_label}
                           </p>
                         </div>
@@ -321,7 +321,7 @@ export default function RotaBuilderModal({
               </button>
               <button
                 onClick={() => setResult(null)}
-                className="px-4 py-3 rounded-xl border border-charcoal/15 text-sm text-charcoal/50 hover:text-charcoal transition-colors"
+                className="px-4 py-3 rounded-xl border border-charcoal/15 dark:border-white/15 text-sm text-charcoal/50 dark:text-white/40 hover:text-charcoal dark:hover:text-white transition-colors"
               >
                 Back
               </button>

@@ -60,9 +60,9 @@ function FridgeAlertsWidget() {
         <Link
           key={l.id}
           to={`/v/${venueSlug}/fridge/history`}
-          className="flex items-center justify-between py-1 border-t border-charcoal/5 group"
+          className="flex items-center justify-between py-1 border-t border-charcoal/5 dark:border-white/5 group"
         >
-          <span className="text-xs text-charcoal/60 truncate group-hover:text-charcoal transition-colors">{l.fridge?.name ?? 'Unknown'}</span>
+          <span className="text-xs text-charcoal/60 dark:text-white/50 truncate group-hover:text-charcoal dark:group-hover:text-white transition-colors">{l.fridge?.name ?? 'Unknown'}</span>
           <span className="text-xs font-semibold text-danger">{Number(l.temperature).toFixed(1)} °C</span>
         </Link>
       ))}

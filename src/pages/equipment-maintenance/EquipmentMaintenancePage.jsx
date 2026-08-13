@@ -19,7 +19,7 @@ const SERVICE_TYPE_LABELS = {
 }
 
 function SectionLabel({ children }) {
-  return <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-3">{children}</p>
+  return <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-3">{children}</p>
 }
 
 function groupByDate(logs) {
@@ -126,11 +126,11 @@ export default function EquipmentMaintenancePage() {
 
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-charcoal">Equipment Maintenance</h1>
+        <h1 className="text-2xl font-bold text-charcoal dark:text-white">Equipment Maintenance</h1>
         {isManager && (
           <button
             onClick={() => setShowExport(true)}
-            className="text-[11px] tracking-widest uppercase text-charcoal/40 hover:text-charcoal transition-colors border-b border-charcoal/20"
+            className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white transition-colors border-b border-charcoal/20 dark:border-white/20"
           >
             Export PDF
           </button>
@@ -142,14 +142,14 @@ export default function EquipmentMaintenancePage() {
         <div className="flex flex-col gap-4">
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1.5">From</label>
+              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1.5">From</label>
               <input type="date" value={exportFrom} onChange={e => setExportFrom(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg border border-charcoal/15 bg-white text-sm text-charcoal focus:outline-none focus:ring-2 focus:ring-charcoal/20" />
+                className="w-full px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20" />
             </div>
             <div>
-              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1.5">To</label>
+              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1.5">To</label>
               <input type="date" value={exportTo} onChange={e => setExportTo(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg border border-charcoal/15 bg-white text-sm text-charcoal focus:outline-none focus:ring-2 focus:ring-charcoal/20" />
+                className="w-full px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20" />
             </div>
           </div>
           <button onClick={handleExportPdf} disabled={exporting}
@@ -160,22 +160,22 @@ export default function EquipmentMaintenancePage() {
       </Modal>
 
       {/* Log form */}
-      <div className="bg-white rounded-2xl border-charcoal/10 p-5">
+      <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-5">
         <SectionLabel>Log Service Record</SectionLabel>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
 
           <div>
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-2">Equipment Name</label>
+            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">Equipment Name</label>
             <input
               value={form.equipment_name}
               onChange={e => setForm(f => ({ ...f, equipment_name: e.target.value }))}
               placeholder="e.g. Walk-in fridge, Dishwasher, Probe thermometer"
-              className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+              className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
             />
           </div>
 
           <div>
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-2">Service Type</label>
+            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">Service Type</label>
             <div className="flex flex-wrap gap-1.5">
               {SERVICE_TYPES.map(t => (
                 <button key={t} type="button"
@@ -183,8 +183,8 @@ export default function EquipmentMaintenancePage() {
                   className={[
                     'px-3 py-1.5 rounded-lg text-xs font-medium border transition-all',
                     form.service_type === t
-                      ? 'bg-charcoal text-cream border-charcoal'
-                      : 'bg-white text-charcoal/50 border-charcoal/15 hover:border-charcoal/35',
+                      ? 'bg-charcoal text-cream border-charcoal dark:border-white'
+                      : 'bg-white dark:bg-paperDark text-charcoal/50 dark:text-white/40 border-charcoal/15 dark:border-white/15 hover:border-charcoal/35 dark:hover:border-white/35',
                   ].join(' ')}>
                   {SERVICE_TYPE_LABELS[t]}
                 </button>
@@ -194,49 +194,49 @@ export default function EquipmentMaintenancePage() {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-2">Service Date</label>
+              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">Service Date</label>
               <input
                 type="date"
                 value={form.service_date}
                 onChange={e => setForm(f => ({ ...f, service_date: e.target.value }))}
-                className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm text-charcoal focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+                className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
               />
             </div>
             <div>
-              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-2">
-                Next Due <span className="normal-case text-charcoal/30">(optional)</span>
+              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">
+                Next Due <span className="normal-case text-charcoal/30 dark:text-white/30">(optional)</span>
               </label>
               <input
                 type="date"
                 value={form.next_due_date}
                 onChange={e => setForm(f => ({ ...f, next_due_date: e.target.value }))}
-                className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm text-charcoal focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+                className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
               />
             </div>
           </div>
 
           <div>
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-2">
-              Engineer / Company <span className="normal-case text-charcoal/30">(optional)</span>
+            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">
+              Engineer / Company <span className="normal-case text-charcoal/30 dark:text-white/30">(optional)</span>
             </label>
             <input
               value={form.engineer_name}
               onChange={e => setForm(f => ({ ...f, engineer_name: e.target.value }))}
               placeholder="e.g. Acme Refrigeration Ltd"
-              className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+              className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
             />
           </div>
 
           <div>
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-2">
-              Notes <span className="normal-case text-charcoal/30">(optional)</span>
+            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">
+              Notes <span className="normal-case text-charcoal/30 dark:text-white/30">(optional)</span>
             </label>
             <textarea
               value={form.notes}
               onChange={e => setForm(f => ({ ...f, notes: e.target.value }))}
               placeholder="Any additional details"
               rows={2}
-              className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm resize-none focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+              className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm resize-none focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
             />
           </div>
 
@@ -255,13 +255,13 @@ export default function EquipmentMaintenancePage() {
         <div className="flex flex-col gap-4">
           <SectionLabel>Recent Records (last 90 days)</SectionLabel>
           {grouped.map(([date, entries]) => (
-            <div key={date} className="bg-white rounded-2xl border-charcoal/10 overflow-hidden">
-              <div className="px-5 py-3 border-b border-charcoal/8">
-                <p className="text-xs font-medium text-charcoal/50 uppercase tracking-widest">
+            <div key={date} className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 overflow-hidden">
+              <div className="px-5 py-3 border-b border-charcoal/8 dark:border-white/8">
+                <p className="text-xs font-medium text-charcoal/50 dark:text-white/40 uppercase tracking-widest">
                   {format(new Date(date + 'T12:00:00'), 'EEEE d MMMM')}
                 </p>
               </div>
-              <div className="divide-y divide-charcoal/6">
+              <div className="divide-y divide-charcoal/6 dark:divide-white/8">
                 {entries.map(log => {
                   const daysUntilDue = log.next_due_date
                     ? differenceInDays(new Date(log.next_due_date + 'T12:00:00'), new Date())
@@ -272,25 +272,25 @@ export default function EquipmentMaintenancePage() {
                     <div key={log.id} className="flex items-start justify-between px-5 py-3 gap-4">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <p className="text-sm font-medium text-charcoal">{log.equipment_name}</p>
-                          <span className="px-2 py-0.5 rounded-full text-[11px] font-medium bg-charcoal/8 text-charcoal/60 border border-charcoal/10">
+                          <p className="text-sm font-medium text-charcoal dark:text-white">{log.equipment_name}</p>
+                          <span className="px-2 py-0.5 rounded-full text-[11px] font-medium bg-charcoal/8 dark:bg-white/8 text-charcoal/60 dark:text-white/50 border border-charcoal/10 dark:border-white/10">
                             {SERVICE_TYPE_LABELS[log.service_type] ?? log.service_type}
                           </span>
                         </div>
                         {log.engineer_name && (
-                          <p className="text-xs text-charcoal/40 mt-0.5">{log.engineer_name}</p>
+                          <p className="text-xs text-charcoal/40 dark:text-white/35 mt-0.5">{log.engineer_name}</p>
                         )}
                         {log.next_due_date && (
-                          <p className={['text-xs mt-0.5', dueSoon ? 'text-amber-600 font-medium' : 'text-charcoal/40'].join(' ')}>
+                          <p className={['text-xs mt-0.5', dueSoon ? 'text-amber-600 font-medium' : 'text-charcoal/40 dark:text-white/35'].join(' ')}>
                             Next due: {format(new Date(log.next_due_date + 'T12:00:00'), 'd MMM yyyy')}
                             {dueSoon && daysUntilDue >= 0 && ` (${daysUntilDue}d)`}
                             {dueSoon && daysUntilDue < 0 && ' (overdue)'}
                           </p>
                         )}
-                        {log.notes && <p className="text-xs text-charcoal/35 italic mt-0.5">"{log.notes}"</p>}
+                        {log.notes && <p className="text-xs text-charcoal/35 dark:text-white/30 italic mt-0.5">"{log.notes}"</p>}
                       </div>
                       <div className="text-right shrink-0">
-                        <p className="text-xs text-charcoal/40">{log.recorded_by_name}</p>
+                        <p className="text-xs text-charcoal/40 dark:text-white/35">{log.recorded_by_name}</p>
                       </div>
                     </div>
                   )
@@ -302,8 +302,8 @@ export default function EquipmentMaintenancePage() {
       )}
 
       {grouped.length === 0 && (
-        <div className="bg-white rounded-2xl border-charcoal/10 p-8 text-center">
-          <p className="text-charcoal/40 text-sm">No maintenance records in the last 90 days.</p>
+        <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-8 text-center">
+          <p className="text-charcoal/40 dark:text-white/35 text-sm">No maintenance records in the last 90 days.</p>
         </div>
       )}
     </div>

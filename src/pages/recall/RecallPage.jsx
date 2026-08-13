@@ -150,7 +150,7 @@ function LogModal({ open, onClose, onSaved, venueId, editLog }) {
 
   const Field = ({ label, required, children }) => (
     <div className="flex flex-col gap-1">
-      <label className="text-[11px] tracking-widest uppercase text-charcoal/40">
+      <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">
         {label}{required && <span className="text-danger ml-0.5">*</span>}
       </label>
       {children}
@@ -161,7 +161,7 @@ function LogModal({ open, onClose, onSaved, venueId, editLog }) {
     <input
       value={form[k]}
       onChange={e => set(k, e.target.value)}
-      className="w-full px-3 py-2 rounded-lg border border-charcoal/15 bg-white text-sm text-charcoal placeholder-charcoal/25 focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+      className="w-full px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white placeholder-charcoal/25 dark:placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
       {...rest}
     />
   )
@@ -171,7 +171,7 @@ function LogModal({ open, onClose, onSaved, venueId, editLog }) {
       value={form[k]}
       onChange={e => set(k, e.target.value)}
       rows={rows}
-      className="w-full px-3 py-2 rounded-lg border border-charcoal/15 bg-white text-sm text-charcoal placeholder-charcoal/25 focus:outline-none focus:ring-2 focus:ring-charcoal/20 resize-none"
+      className="w-full px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white placeholder-charcoal/25 dark:placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 resize-none"
       {...rest}
     />
   )
@@ -230,12 +230,12 @@ function LogCard({ log, onEdit }) {
   const resolved = !!log.resolved_at
 
   return (
-    <div className={`bg-white rounded-2xl border overflow-hidden ${resolved ? 'border-charcoal/10' : 'border-danger/30'}`}>
+    <div className={`bg-white dark:bg-paperDark rounded-2xl border overflow-hidden ${resolved ? 'border-charcoal/10 dark:border-white/10' : 'border-danger/30'}`}>
       <div className="px-5 py-4">
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <p className="font-semibold text-charcoal text-sm">{log.product_name}</p>
+              <p className="font-semibold text-charcoal dark:text-white text-sm">{log.product_name}</p>
               <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${
                 resolved
                   ? 'bg-success/10 text-success'
@@ -244,14 +244,14 @@ function LogCard({ log, onEdit }) {
                 {resolved ? 'Resolved' : 'Open'}
               </span>
             </div>
-            <p className="text-xs text-charcoal/40 mt-0.5">
+            <p className="text-xs text-charcoal/40 dark:text-white/35 mt-0.5">
               Identified {format(parseISO(log.date_identified), 'd MMM yyyy')}
               {log.batch_lot_number && <> · Batch: <span className="font-mono">{log.batch_lot_number}</span></>}
             </p>
           </div>
           <button
             onClick={() => onEdit(log)}
-            className="text-xs text-charcoal/40 hover:text-charcoal border border-charcoal/12 hover:border-charcoal/25 px-3 py-1.5 rounded-lg transition-colors shrink-0"
+            className="text-xs text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white border border-charcoal/12 dark:border-white/15 hover:border-charcoal/25 dark:hover:border-white/25 px-3 py-1.5 rounded-lg transition-colors shrink-0"
           >
             Edit
           </button>
@@ -259,24 +259,24 @@ function LogCard({ log, onEdit }) {
 
         <div className="mt-3 flex flex-col gap-2">
           <div>
-            <p className="text-[11px] tracking-widest uppercase text-charcoal/30 mb-0.5">Reason</p>
-            <p className="text-xs text-charcoal/70">{log.reason}</p>
+            <p className="text-[11px] tracking-widest uppercase text-charcoal/30 dark:text-white/30 mb-0.5">Reason</p>
+            <p className="text-xs text-charcoal/70 dark:text-white/60">{log.reason}</p>
           </div>
           <div>
-            <p className="text-[11px] tracking-widest uppercase text-charcoal/30 mb-0.5">Action taken</p>
-            <p className="text-xs text-charcoal/70">{log.action_taken}</p>
+            <p className="text-[11px] tracking-widest uppercase text-charcoal/30 dark:text-white/30 mb-0.5">Action taken</p>
+            <p className="text-xs text-charcoal/70 dark:text-white/60">{log.action_taken}</p>
           </div>
           {log.who_notified && (
             <div>
-              <p className="text-[11px] tracking-widest uppercase text-charcoal/30 mb-0.5">Notified</p>
-              <p className="text-xs text-charcoal/70">{log.who_notified}</p>
+              <p className="text-[11px] tracking-widest uppercase text-charcoal/30 dark:text-white/30 mb-0.5">Notified</p>
+              <p className="text-xs text-charcoal/70 dark:text-white/60">{log.who_notified}</p>
             </div>
           )}
           {log.resolved_at && (
             <p className="text-xs text-success/80">Resolved {format(parseISO(log.resolved_at), 'd MMM yyyy')}</p>
           )}
           {log.notes && (
-            <p className="text-xs text-charcoal/40 italic border-t border-charcoal/6 pt-2 mt-1">{log.notes}</p>
+            <p className="text-xs text-charcoal/40 dark:text-white/35 italic border-t border-charcoal/6 dark:border-white/8 pt-2 mt-1">{log.notes}</p>
           )}
         </div>
       </div>
@@ -335,8 +335,8 @@ function ProcedureTab({ venueId }) {
     <div className="flex flex-col gap-5">
 
       {/* Key contacts */}
-      <div className="bg-white rounded-2xl border border-charcoal/10 p-5">
-        <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-3">Key Contacts</p>
+      <div className="bg-white dark:bg-paperDark rounded-2xl border border-charcoal/10 dark:border-white/10 p-5">
+        <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-3">Key Contacts</p>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {[
             { key: 'responsible_person', label: 'Responsible person', placeholder: 'Name of manager responsible for recall decisions' },
@@ -344,12 +344,12 @@ function ProcedureTab({ venueId }) {
             { key: 'eho_contact',        label: 'Local EHO contact',   placeholder: 'Name and phone number of your local EHO' },
           ].map(f => (
             <div key={f.key} className="flex flex-col gap-1">
-              <label className="text-[11px] tracking-widest uppercase text-charcoal/30">{f.label}</label>
+              <label className="text-[11px] tracking-widest uppercase text-charcoal/30 dark:text-white/30">{f.label}</label>
               <input
                 value={meta[f.key]}
                 onChange={e => setMeta(m => ({ ...m, [f.key]: e.target.value }))}
                 placeholder={f.placeholder}
-                className="px-3 py-2 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+                className="px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
               />
             </div>
           ))}
@@ -358,14 +358,14 @@ function ProcedureTab({ venueId }) {
 
       {/* Procedure sections */}
       {PROC_SECTIONS.map(section => (
-        <div key={section.key} className="bg-white rounded-2xl border border-charcoal/10 p-5">
-          <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-0.5">{section.title}</p>
-          <p className="text-xs text-charcoal/40 mb-3">{section.desc}</p>
+        <div key={section.key} className="bg-white dark:bg-paperDark rounded-2xl border border-charcoal/10 dark:border-white/10 p-5">
+          <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-0.5">{section.title}</p>
+          <p className="text-xs text-charcoal/40 dark:text-white/35 mb-3">{section.desc}</p>
           <textarea
             value={sections[section.key] || ''}
             onChange={e => setSections(prev => ({ ...prev, [section.key]: e.target.value }))}
             rows={section.rows}
-            className="w-full px-4 py-3 rounded-lg border border-charcoal/15 bg-white text-charcoal text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-charcoal/20 resize-none"
+            className="w-full px-4 py-3 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-charcoal dark:text-white text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 resize-none"
           />
         </div>
       ))}
@@ -380,7 +380,7 @@ function ProcedureTab({ venueId }) {
         </button>
         <button
           onClick={() => window.print()}
-          className="px-5 py-3 rounded-xl border border-charcoal/15 text-sm text-charcoal/60 hover:border-charcoal/30 hover:text-charcoal transition-colors"
+          className="px-5 py-3 rounded-xl border border-charcoal/15 dark:border-white/15 text-sm text-charcoal/60 dark:text-white/50 hover:border-charcoal/30 dark:hover:border-white/30 hover:text-charcoal dark:hover:text-white transition-colors"
         >
           Print
         </button>
@@ -448,7 +448,7 @@ function LogTab({ venueId }) {
                 className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                   filter === f.value
                     ? 'bg-charcoal text-cream'
-                    : 'bg-white border border-charcoal/12 text-charcoal/50 hover:border-charcoal/25 hover:text-charcoal'
+                    : 'bg-white dark:bg-paperDark border border-charcoal/12 dark:border-white/15 text-charcoal/50 dark:text-white/40 hover:border-charcoal/25 dark:hover:border-white/25 hover:text-charcoal dark:hover:text-white'
                 }`}
               >
                 {f.label}
@@ -467,14 +467,14 @@ function LogTab({ venueId }) {
         {loading ? (
           <div className="flex justify-center pt-8"><LoadingSpinner size="md" /></div>
         ) : filtered.length === 0 ? (
-          <div className="bg-white rounded-2xl border-charcoal/10 px-6 py-10 text-center">
-            <p className="text-sm text-charcoal/35 font-medium">
+          <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 px-6 py-10 text-center">
+            <p className="text-sm text-charcoal/35 dark:text-white/30 font-medium">
               {logs.length === 0
                 ? 'No recall events logged yet'
                 : `No ${filter} recalls`}
             </p>
             {logs.length === 0 && (
-              <p className="text-xs text-charcoal/25 mt-1">
+              <p className="text-xs text-charcoal/25 dark:text-white/25 mt-1">
                 Log a recall or withdrawal event whenever a product is removed from service due to a food safety concern.
               </p>
             )}
@@ -501,14 +501,14 @@ export default function RecallPage() {
     <div className="flex flex-col gap-6 max-w-2xl">
 
       <div>
-        <h1 className="text-2xl font-bold text-charcoal">Food Recall & Withdrawal</h1>
-        <p className="text-sm text-charcoal/40 mt-0.5">
+        <h1 className="text-2xl font-bold text-charcoal dark:text-white">Food Recall & Withdrawal</h1>
+        <p className="text-sm text-charcoal/40 dark:text-white/35 mt-0.5">
           Standing procedure and a log of all recall events
         </p>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 bg-charcoal/5 p-1 rounded-xl w-fit">
+      <div className="flex gap-1 bg-charcoal/5 dark:bg-white/5 p-1 rounded-xl w-fit">
         {[
           { id: 'procedure', label: 'Procedure' },
           { id: 'log',       label: 'Recall Log' },
@@ -518,8 +518,8 @@ export default function RecallPage() {
             onClick={() => setTab(t.id)}
             className={`px-5 py-2 rounded-lg text-sm font-medium transition-colors ${
               tab === t.id
-                ? 'bg-white text-charcoal shadow-sm'
-                : 'text-charcoal/45 hover:text-charcoal'
+                ? 'bg-white dark:bg-paperDark text-charcoal dark:text-white shadow-sm'
+                : 'text-charcoal/45 dark:text-white/40 hover:text-charcoal dark:hover:text-white'
             }`}
           >
             {t.label}

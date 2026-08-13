@@ -18,8 +18,8 @@ function VenuePicker({ venues, onSelect }) {
   return (
     <div className="flex flex-col gap-4">
       <div>
-        <h2 className="font-bold text-charcoal text-xl">Select a venue</h2>
-        <p className="text-xs text-charcoal/40 mt-1">
+        <h2 className="font-bold text-charcoal dark:text-white text-xl">Select a venue</h2>
+        <p className="text-xs text-charcoal/40 dark:text-white/35 mt-1">
           Your account has {venues.length} venues — choose one to continue
         </p>
       </div>
@@ -28,15 +28,15 @@ function VenuePicker({ venues, onSelect }) {
           <button
             key={v.id}
             onClick={() => onSelect(v.slug)}
-            className="flex items-center justify-between w-full px-4 py-3.5 rounded-xl border border-charcoal/12 bg-white hover:bg-cream hover:border-brand/30 transition-all text-left group"
+            className="flex items-center justify-between w-full px-4 py-3.5 rounded-xl border border-charcoal/12 dark:border-white/15 bg-white dark:bg-paperDark hover:bg-cream hover:border-brand/30 transition-all text-left group"
           >
             <div>
-              <p className="text-sm font-semibold text-charcoal group-hover:text-brand transition-colors">
+              <p className="text-sm font-semibold text-charcoal dark:text-white group-hover:text-brand transition-colors">
                 {v.name}
               </p>
-              <p className="text-[11px] text-charcoal/40 mt-0.5">pelikn.app/v/{v.slug}</p>
+              <p className="text-[11px] text-charcoal/40 dark:text-white/35 mt-0.5">pelikn.app/v/{v.slug}</p>
             </div>
-            <span className="text-charcoal/25 group-hover:text-brand transition-colors text-lg leading-none">→</span>
+            <span className="text-charcoal/25 dark:text-white/25 group-hover:text-brand transition-colors text-lg leading-none">→</span>
           </button>
         ))}
       </div>

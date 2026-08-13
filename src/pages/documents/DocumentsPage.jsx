@@ -121,19 +121,19 @@ function UploadDocumentModal({ venueId, uploaderId, onSaved, onClose }) {
 
   return (
     <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-black/40 p-4" onClick={e => e.target === e.currentTarget && onClose()}>
-      <div className="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto flex flex-col">
-        <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-charcoal/8">
-          <h2 className="text-lg font-bold text-charcoal">Upload Document</h2>
-          <button onClick={onClose} className="text-charcoal/30 hover:text-charcoal text-xl leading-none">&times;</button>
+      <div className="bg-white dark:bg-paperDark rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto flex flex-col">
+        <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-charcoal/8 dark:border-white/8">
+          <h2 className="text-lg font-bold text-charcoal dark:text-white">Upload Document</h2>
+          <button onClick={onClose} className="text-charcoal/30 dark:text-white/30 hover:text-charcoal dark:hover:text-white text-xl leading-none">&times;</button>
         </div>
 
         <div className="px-5 py-4 flex flex-col gap-4">
           <div>
-            <label className="text-xs font-medium text-charcoal/50 mb-1 block">Title</label>
+            <label className="text-xs font-medium text-charcoal/50 dark:text-white/40 mb-1 block">Title</label>
             <input
               type="text" value={title}
               onChange={e => setTitle(e.target.value)}
-              className="w-full border border-charcoal/15 rounded-xl py-2.5 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30"
+              className="w-full border border-charcoal/15 dark:border-white/15 rounded-xl py-2.5 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30"
               placeholder="e.g. Premises Licence"
               autoFocus
             />
@@ -141,49 +141,49 @@ function UploadDocumentModal({ venueId, uploaderId, onSaved, onClose }) {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-xs font-medium text-charcoal/50 mb-1 block">Category</label>
+              <label className="text-xs font-medium text-charcoal/50 dark:text-white/40 mb-1 block">Category</label>
               <select
                 value={category}
                 onChange={e => setCategory(e.target.value)}
-                className="w-full border border-charcoal/15 rounded-xl py-2.5 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30 bg-white"
+                className="w-full border border-charcoal/15 dark:border-white/15 rounded-xl py-2.5 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30 bg-white dark:bg-paperDark"
               >
                 {CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
               </select>
             </div>
             <div>
-              <label className="text-xs font-medium text-charcoal/50 mb-1 block">Expiry date (optional)</label>
+              <label className="text-xs font-medium text-charcoal/50 dark:text-white/40 mb-1 block">Expiry date (optional)</label>
               <input
                 type="date" value={expiryDate}
                 onChange={e => setExpiryDate(e.target.value)}
-                className="w-full border border-charcoal/15 rounded-xl py-2.5 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30"
+                className="w-full border border-charcoal/15 dark:border-white/15 rounded-xl py-2.5 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30"
               />
             </div>
           </div>
 
           <div>
-            <label className="text-xs font-medium text-charcoal/50 mb-1 block">Notes (optional)</label>
+            <label className="text-xs font-medium text-charcoal/50 dark:text-white/40 mb-1 block">Notes (optional)</label>
             <input
               type="text" value={notes}
               onChange={e => setNotes(e.target.value)}
-              className="w-full border border-charcoal/15 rounded-xl py-2.5 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30"
+              className="w-full border border-charcoal/15 dark:border-white/15 rounded-xl py-2.5 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30"
               placeholder="Any additional context"
             />
           </div>
 
           <div>
-            <label className="text-xs font-medium text-charcoal/50 mb-1 block">File</label>
+            <label className="text-xs font-medium text-charcoal/50 dark:text-white/40 mb-1 block">File</label>
             <input
               type="file"
               accept=".pdf,.jpg,.jpeg,.png,.docx,.doc"
               onChange={e => setFile(e.target.files?.[0] || null)}
-              className="w-full text-sm text-charcoal/60 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-medium file:bg-brand/8 file:text-brand hover:file:bg-brand/15 cursor-pointer"
+              className="w-full text-sm text-charcoal/60 dark:text-white/50 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-medium file:bg-brand/8 file:text-brand hover:file:bg-brand/15 cursor-pointer"
             />
-            <p className="text-[11px] text-charcoal/35 mt-1">PDF, images, or Word documents. Max 10 MB.</p>
+            <p className="text-[11px] text-charcoal/35 dark:text-white/30 mt-1">PDF, images, or Word documents. Max 10 MB.</p>
           </div>
         </div>
 
         <div className="px-5 pb-5 pt-2 flex gap-3">
-          <button onClick={onClose} className="flex-1 border border-charcoal/15 text-charcoal/60 py-2.5 rounded-xl text-sm font-medium hover:bg-charcoal/5 transition-colors">
+          <button onClick={onClose} className="flex-1 border border-charcoal/15 dark:border-white/15 text-charcoal/60 dark:text-white/50 py-2.5 rounded-xl text-sm font-medium hover:bg-charcoal/5 dark:hover:bg-white/5 transition-colors">
             Cancel
           </button>
           <button
@@ -205,7 +205,7 @@ function DocumentCard({ doc }) {
   const status = docStatus(doc)
 
   return (
-    <div className="bg-white rounded-2xl border border-charcoal/8 px-4 py-3.5 flex items-center gap-3">
+    <div className="bg-white dark:bg-paperDark rounded-2xl border border-charcoal/8 dark:border-white/8 px-4 py-3.5 flex items-center gap-3">
       <div className="w-9 h-9 rounded-xl bg-brand/8 text-brand flex items-center justify-center shrink-0">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
           <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
@@ -214,10 +214,10 @@ function DocumentCard({ doc }) {
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-0.5">
-          <p className="text-sm font-semibold text-charcoal truncate">{doc.title}</p>
+          <p className="text-sm font-semibold text-charcoal dark:text-white truncate">{doc.title}</p>
           {doc.expiry_date && <StatusBadge status={status} />}
         </div>
-        <p className="text-[11px] text-charcoal/40">
+        <p className="text-[11px] text-charcoal/40 dark:text-white/35">
           {CATEGORY_MAP[doc.category] || doc.category}
           {doc.expiry_date && <> &middot; Expires {format(parseISO(doc.expiry_date), 'd MMM yyyy')}</>}
           {doc.file_size ? <> &middot; {formatFileSize(doc.file_size)}</> : null}
@@ -255,8 +255,8 @@ export default function DocumentsPage() {
     <div className="flex flex-col gap-6">
       <div className="flex items-end justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-charcoal">Documents</h1>
-          <p className="text-sm text-charcoal/40 mt-1">Venue licences, insurance, safety records and more</p>
+          <h1 className="text-2xl font-bold text-charcoal dark:text-white">Documents</h1>
+          <p className="text-sm text-charcoal/40 dark:text-white/35 mt-1">Venue licences, insurance, safety records and more</p>
         </div>
         {isManager && (
           <button
@@ -273,7 +273,7 @@ export default function DocumentsPage() {
         <button
           onClick={() => setFilter('all')}
           className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
-            filter === 'all' ? 'bg-brand text-cream' : 'bg-charcoal/5 text-charcoal/50 hover:bg-charcoal/10'
+            filter === 'all' ? 'bg-brand text-cream' : 'bg-charcoal/5 dark:bg-white/5 text-charcoal/50 dark:text-white/40 hover:bg-charcoal/10 dark:hover:bg-white/10'
           }`}
         >
           All
@@ -283,7 +283,7 @@ export default function DocumentsPage() {
             key={c.value}
             onClick={() => setFilter(c.value)}
             className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
-              filter === c.value ? 'bg-brand text-cream' : 'bg-charcoal/5 text-charcoal/50 hover:bg-charcoal/10'
+              filter === c.value ? 'bg-brand text-cream' : 'bg-charcoal/5 dark:bg-white/5 text-charcoal/50 dark:text-white/40 hover:bg-charcoal/10 dark:hover:bg-white/10'
             }`}
           >
             {c.label}

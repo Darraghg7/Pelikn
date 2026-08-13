@@ -96,7 +96,7 @@ export default function ProbeCalibrationPage() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-charcoal">Probe Calibration</h1>
+        <h1 className="text-2xl font-bold text-charcoal dark:text-white">Probe Calibration</h1>
         <button
           onClick={() => setShowForm(true)}
           className="bg-charcoal text-cream px-4 py-2 rounded-lg text-sm font-medium hover:bg-charcoal/90 transition-colors"
@@ -107,26 +107,26 @@ export default function ProbeCalibrationPage() {
 
       {/* Summary */}
       <div className="grid grid-cols-3 gap-2 sm:gap-3">
-        <div className="bg-white rounded-2xl border-charcoal/10 p-3 sm:p-4 text-center">
-          <p className="text-[11px] sm:text-[11px] tracking-wide uppercase text-charcoal/40 truncate">Last Cal.</p>
-          <p className="text-sm font-semibold text-charcoal mt-1">
+        <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-3 sm:p-4 text-center">
+          <p className="text-[11px] sm:text-[11px] tracking-wide uppercase text-charcoal/40 dark:text-white/35 truncate">Last Cal.</p>
+          <p className="text-sm font-semibold text-charcoal dark:text-white mt-1">
             {lastCalibration ? format(new Date(lastCalibration.calibrated_at), 'd MMM') : '--'}
           </p>
         </div>
-        <div className="bg-white rounded-2xl border-charcoal/10 p-3 sm:p-4 text-center">
-          <p className="text-[11px] sm:text-[11px] tracking-wide uppercase text-charcoal/40">Passed</p>
+        <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-3 sm:p-4 text-center">
+          <p className="text-[11px] sm:text-[11px] tracking-wide uppercase text-charcoal/40 dark:text-white/35">Passed</p>
           <p className="text-2xl font-bold text-success">{passCount}</p>
         </div>
-        <div className="bg-white rounded-2xl border-charcoal/10 p-3 sm:p-4 text-center">
-          <p className="text-[11px] sm:text-[11px] tracking-wide uppercase text-charcoal/40">Failed</p>
+        <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-3 sm:p-4 text-center">
+          <p className="text-[11px] sm:text-[11px] tracking-wide uppercase text-charcoal/40 dark:text-white/35">Failed</p>
           <p className="text-2xl font-bold text-danger">{failCount}</p>
         </div>
       </div>
 
       {/* Info banner */}
-      <div className="rounded-xl bg-charcoal/4 px-4 py-3 flex items-start gap-2">
+      <div className="rounded-xl bg-charcoal/4 dark:bg-white/5 px-4 py-3 flex items-start gap-2">
         <span className="text-sm mt-0.5">*</span>
-        <p className="text-xs text-charcoal/50">
+        <p className="text-xs text-charcoal/50 dark:text-white/40">
           UK food safety law requires thermometer probes to be calibrated regularly.
           Use the <strong>ice water method</strong> (expected 0.0C +/-1.0C) or <strong>boiling water method</strong> (expected 100.0C +/-1.0C).
           Record a corrective action if a probe fails.
@@ -137,33 +137,33 @@ export default function ProbeCalibrationPage() {
       {loading ? (
         <div className="flex justify-center py-10"><LoadingSpinner /></div>
       ) : records.length === 0 ? (
-        <div className="bg-white rounded-2xl border-charcoal/10 p-10 text-center">
-          <p className="text-charcoal/30 text-sm">No calibration records yet.</p>
+        <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-10 text-center">
+          <p className="text-charcoal/30 dark:text-white/30 text-sm">No calibration records yet.</p>
         </div>
       ) : (
         <div className="flex flex-col gap-3">
           {records.map(r => (
-            <div key={r.id} className={`bg-white rounded-2xl p-4 ${r.pass ? 'border-charcoal/10' : 'border-danger/25 bg-danger/3'}`}>
+            <div key={r.id} className={`bg-white dark:bg-paperDark rounded-2xl p-4 ${r.pass ? 'border-charcoal/10 dark:border-white/10' : 'border-danger/25 bg-danger/3'}`}>
               <div className="flex items-center justify-between">
                 <div>
                   <div className="flex items-center gap-2">
-                    <h3 className="font-semibold text-charcoal text-sm">{r.probe_name}</h3>
+                    <h3 className="font-semibold text-charcoal dark:text-white text-sm">{r.probe_name}</h3>
                     <span className={`text-[11px] tracking-wider uppercase font-medium px-2 py-0.5 rounded-full ${
                       r.pass ? 'bg-success/10 text-success' : 'bg-danger/10 text-danger'
                     }`}>
                       {r.pass ? 'PASS' : 'FAIL'}
                     </span>
                   </div>
-                  <p className="text-xs text-charcoal/50 mt-1">
+                  <p className="text-xs text-charcoal/50 dark:text-white/40 mt-1">
                     {r.method === 'ice_water' ? 'Ice water' : 'Boiling water'} test
                     {' '} — Expected {r.expected_temp}C, Read <span className="font-mono font-semibold">{r.actual_reading}C</span>
                     {' '} (+/-{r.tolerance}C)
                   </p>
-                  {r.notes && <p className="text-xs text-charcoal/40 mt-1 italic">{r.notes}</p>}
+                  {r.notes && <p className="text-xs text-charcoal/40 dark:text-white/35 mt-1 italic">{r.notes}</p>}
                 </div>
                 <div className="text-right shrink-0 ml-3">
-                  <p className="text-xs text-charcoal/40">{format(new Date(r.calibrated_at), 'd MMM HH:mm')}</p>
-                  <p className="text-[11px] text-charcoal/30 mt-0.5">{r.calibrator?.name ?? 'Unknown'}</p>
+                  <p className="text-xs text-charcoal/40 dark:text-white/35">{format(new Date(r.calibrated_at), 'd MMM HH:mm')}</p>
+                  <p className="text-[11px] text-charcoal/30 dark:text-white/30 mt-0.5">{r.calibrator?.name ?? 'Unknown'}</p>
                 </div>
               </div>
             </div>
@@ -175,18 +175,18 @@ export default function ProbeCalibrationPage() {
       <Modal open={showForm} onClose={() => setShowForm(false)} title="Calibrate Probe">
         <div className="flex flex-col gap-4">
           <div>
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1">Probe name</label>
+            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Probe name</label>
             <input
               type="text"
               value={form.probe_name}
               onChange={e => setForm(f => ({ ...f, probe_name: e.target.value }))}
               placeholder="e.g. Probe 1, Kitchen probe"
-              className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+              className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
             />
           </div>
 
           <div>
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-2">Method</label>
+            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">Method</label>
             <div className="grid grid-cols-2 gap-2">
               {METHODS.map(m => (
                 <button
@@ -195,12 +195,12 @@ export default function ProbeCalibrationPage() {
                   onClick={() => setForm(f => ({ ...f, method: m.value }))}
                   className={`py-3 px-3 rounded-xl border text-sm font-medium transition-all text-center ${
                     form.method === m.value
-                      ? 'bg-charcoal text-cream border-charcoal'
-                      : 'bg-white text-charcoal/60 border-charcoal/15 hover:border-charcoal/30'
+                      ? 'bg-charcoal text-cream border-charcoal dark:border-white'
+                      : 'bg-white dark:bg-paperDark text-charcoal/60 dark:text-white/50 border-charcoal/15 dark:border-white/15 hover:border-charcoal/30 dark:hover:border-white/30'
                   }`}
                 >
                   <p className="font-semibold text-xs">{m.value === 'ice_water' ? 'Ice Water' : 'Boiling Water'}</p>
-                  <p className={`text-[11px] mt-0.5 ${form.method === m.value ? 'opacity-60' : 'text-charcoal/35'}`}>
+                  <p className={`text-[11px] mt-0.5 ${form.method === m.value ? 'opacity-60' : 'text-charcoal/35 dark:text-white/30'}`}>
                     Expected {m.expected}C
                   </p>
                 </button>
@@ -209,7 +209,7 @@ export default function ProbeCalibrationPage() {
           </div>
 
           <div>
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1">
+            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">
               Actual reading (C) <span className="text-danger">*</span>
             </label>
             <input
@@ -218,18 +218,18 @@ export default function ProbeCalibrationPage() {
               value={form.actual_reading}
               onChange={e => setForm(f => ({ ...f, actual_reading: e.target.value }))}
               placeholder={`Expected: ${expectedTemp}C`}
-              className="w-full px-4 py-3 rounded-xl border border-charcoal/15 bg-white text-lg font-mono text-center focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+              className="w-full px-4 py-3 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-lg font-mono text-center focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
             />
           </div>
 
           <div>
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1">Tolerance (+/-)</label>
+            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Tolerance (+/-)</label>
             <input
               type="number"
               step="0.1"
               value={form.tolerance}
               onChange={e => setForm(f => ({ ...f, tolerance: e.target.value }))}
-              className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 bg-white text-sm font-mono focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+              className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm font-mono focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
             />
           </div>
 
@@ -245,24 +245,24 @@ export default function ProbeCalibrationPage() {
           )}
 
           <div>
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1">Date &amp; Time</label>
+            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Date &amp; Time</label>
             <input
               type="datetime-local"
               value={form.calibrated_at}
               max={nowDatetimeLocal()}
               onChange={e => setForm(f => ({ ...f, calibrated_at: e.target.value }))}
-              className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+              className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
             />
           </div>
 
           <div>
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1">Notes</label>
+            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Notes</label>
             <textarea
               value={form.notes}
               onChange={e => setForm(f => ({ ...f, notes: e.target.value }))}
               rows={2}
               placeholder="Optional notes..."
-              className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 bg-white text-sm resize-none focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+              className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm resize-none focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
             />
           </div>
 

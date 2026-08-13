@@ -71,23 +71,23 @@ function IssueModal({ check, onConfirm, onCancel, saving }) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-charcoal/40 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-charcoal/40 dark:bg-white/40 backdrop-blur-sm"
       onClick={onCancel}
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="bg-white rounded-2xl w-full max-w-md p-6 flex flex-col gap-4 shadow-2xl"
+        className="bg-white dark:bg-paperDark rounded-2xl w-full max-w-md p-6 flex flex-col gap-4 shadow-2xl"
         style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}
       >
         <div>
           <p className="text-[11px] tracking-widest uppercase text-warning mb-1">Issue Flagged</p>
-          <h3 className="font-semibold text-charcoal text-lg">{check.title}</h3>
-          <p className="text-xs text-charcoal/40 mt-1">
+          <h3 className="font-semibold text-charcoal dark:text-white text-lg">{check.title}</h3>
+          <p className="text-xs text-charcoal/40 dark:text-white/35 mt-1">
             Describe what corrective action was taken. This will appear in the audit log.
           </p>
         </div>
         <div>
-          <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-2">
+          <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">
             Corrective Action Taken <span className="text-danger">*</span>
           </label>
           <textarea
@@ -96,7 +96,7 @@ function IssueModal({ check, onConfirm, onCancel, saving }) {
             placeholder="e.g. Back door lock was stiff, reported to maintenance and used side entrance for closing."
             rows={4}
             autoFocus
-            className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm resize-none focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+            className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm resize-none focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
           />
         </div>
         <div className="flex gap-2">
@@ -109,7 +109,7 @@ function IssueModal({ check, onConfirm, onCancel, saving }) {
           </button>
           <button
             onClick={onCancel}
-            className="px-4 py-2.5 rounded-lg border border-charcoal/15 text-sm text-charcoal/50 hover:border-charcoal/30 transition-colors"
+            className="px-4 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 text-sm text-charcoal/50 dark:text-white/40 hover:border-charcoal/30 dark:hover:border-white/30 transition-colors"
           >
             Cancel
           </button>
@@ -138,13 +138,13 @@ function CheckRow({ check, completion, onOK, onIssue, readOnly, isManager, onRem
           </svg>
         </span>
       ) : readOnly ? (
-        <span className="w-[26px] h-[26px] rounded-full shrink-0 border-2 border-charcoal/12 mt-px" />
+        <span className="w-[26px] h-[26px] rounded-full shrink-0 border-2 border-charcoal/12 dark:border-white/15 mt-px" />
       ) : (
         <button
           onClick={() => onOK(check)}
           disabled={saving}
           aria-label="Mark OK"
-          className="w-[26px] h-[26px] rounded-full shrink-0 p-0 grid place-items-center border-2 border-charcoal/20 bg-transparent text-transparent hover:bg-success hover:border-success hover:text-white transition-colors disabled:cursor-wait mt-px"
+          className="w-[26px] h-[26px] rounded-full shrink-0 p-0 grid place-items-center border-2 border-charcoal/20 dark:border-white/20 bg-transparent text-transparent hover:bg-success hover:border-success hover:text-white transition-colors disabled:cursor-wait mt-px"
         >
           {saving ? (
             <span className="w-3 h-3 rounded-full border-2 border-success/25 border-t-success animate-spin" />
@@ -158,17 +158,17 @@ function CheckRow({ check, completion, onOK, onIssue, readOnly, isManager, onRem
 
       {/* Title + meta */}
       <div className="flex-1 min-w-0">
-        <p className={`text-[15px] font-medium tracking-[-0.01em] leading-snug break-words ${done ? 'text-charcoal/60' : 'text-charcoal'}`}>
+        <p className={`text-[15px] font-medium tracking-[-0.01em] leading-snug break-words ${done ? 'text-charcoal/60 dark:text-white/50' : 'text-charcoal dark:text-white'}`}>
           {check.title}
         </p>
         {done && completion.staff_name && (
-          <p className="text-[11.5px] text-charcoal/35 mt-0.5 break-words">
+          <p className="text-[11.5px] text-charcoal/35 dark:text-white/30 mt-0.5 break-words">
             {completion.staff_name} · {format(new Date(completion.completed_at), 'HH:mm')}
             {hasIssue && completion.corrective_action && <span className="text-warning/70 italic"> · "{completion.corrective_action}"</span>}
           </p>
         )}
         {!done && readOnly && (
-          <p className="text-[11.5px] text-charcoal/30 italic mt-0.5">Not recorded</p>
+          <p className="text-[11.5px] text-charcoal/30 dark:text-white/30 italic mt-0.5">Not recorded</p>
         )}
       </div>
 
@@ -186,7 +186,7 @@ function CheckRow({ check, completion, onOK, onIssue, readOnly, isManager, onRem
         <button
           onClick={() => onRemove(check.id)}
           aria-label="Remove check"
-          className="opacity-0 group-hover:opacity-100 shrink-0 w-7 h-7 rounded-lg grid place-items-center text-charcoal/25 hover:text-danger hover:bg-danger/8 transition-colors"
+          className="opacity-0 group-hover:opacity-100 shrink-0 w-7 h-7 rounded-lg grid place-items-center text-charcoal/25 dark:text-white/25 hover:text-danger hover:bg-danger/8 transition-colors"
         >
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18M6 6l12 12" /></svg>
         </button>
@@ -226,12 +226,12 @@ function CheckSection({ type, label, checks, completions, onOK, onIssue, isManag
   }
 
   return (
-    <div className="bg-white rounded-2xl overflow-hidden flex flex-col">
+    <div className="bg-white dark:bg-paperDark rounded-2xl overflow-hidden flex flex-col">
       {/* Header */}
       <div className="flex items-center justify-between px-5 pt-4 pb-3">
         <div>
-          <p className="text-[11px] font-bold tracking-widest uppercase text-charcoal/50">{label}</p>
-          <p className="text-xs text-charcoal/40 mt-0.5">
+          <p className="text-[11px] font-bold tracking-widest uppercase text-charcoal/50 dark:text-white/40">{label}</p>
+          <p className="text-xs text-charcoal/40 dark:text-white/35 mt-0.5">
             {doneCount}/{typeChecks.length} recorded
             {issueCount > 0 && (
               <span className="ml-2 text-warning font-semibold">· {issueCount} issue{issueCount > 1 ? 's' : ''}</span>
@@ -252,7 +252,7 @@ function CheckSection({ type, label, checks, completions, onOK, onIssue, isManag
           {isManager && !readOnly && (
             <button
               onClick={() => setShowAdd(v => !v)}
-              className="text-[11px] font-semibold text-charcoal/40 hover:text-charcoal transition-colors"
+              className="text-[11px] font-semibold text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white transition-colors"
             >
               {showAdd ? 'Cancel' : '+ Add'}
             </button>
@@ -261,7 +261,7 @@ function CheckSection({ type, label, checks, completions, onOK, onIssue, isManag
       </div>
 
       {/* Progress bar */}
-      <div className="h-0.5 bg-charcoal/6 mx-5 rounded-full">
+      <div className="h-0.5 bg-charcoal/6 dark:bg-white/8 mx-5 rounded-full">
         <div
           className={`h-full rounded-full transition-all duration-300 ${issueCount > 0 ? 'bg-warning' : 'bg-success'}`}
           style={{ width: typeChecks.length > 0 ? `${(doneCount / typeChecks.length) * 100}%` : '0%' }}
@@ -270,14 +270,14 @@ function CheckSection({ type, label, checks, completions, onOK, onIssue, isManag
 
       {/* Add check form */}
       {showAdd && isManager && (
-        <div className="px-5 py-3 border-b border-charcoal/8 flex gap-2">
+        <div className="px-5 py-3 border-b border-charcoal/8 dark:border-white/8 flex gap-2">
           <input
             value={newTitle}
             onChange={e => setNewTitle(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && handleAdd()}
             placeholder="e.g. Check all fridges are at temperature"
             autoFocus
-            className="flex-1 px-3 py-2 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+            className="flex-1 px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
           />
           <button
             onClick={handleAdd}
@@ -290,7 +290,7 @@ function CheckSection({ type, label, checks, completions, onOK, onIssue, isManag
       )}
 
       {/* Rows */}
-      <div className="flex flex-col divide-y divide-charcoal/6">
+      <div className="flex flex-col divide-y divide-charcoal/6 dark:divide-white/8">
         {typeChecks.slice().sort((a, b) => {
           const aDone = typeCompletions.some(c => c.check_id === a.id) ? 1 : 0
           const bDone = typeCompletions.some(c => c.check_id === b.id) ? 1 : 0
@@ -312,7 +312,7 @@ function CheckSection({ type, label, checks, completions, onOK, onIssue, isManag
           )
         })}
         {typeChecks.length === 0 && (
-          <p className="text-sm text-charcoal/35 italic px-5 py-4">
+          <p className="text-sm text-charcoal/35 dark:text-white/30 italic px-5 py-4">
             No {label.toLowerCase()} checks set up yet.
             {isManager && ' Click "+ Add Check" to get started.'}
           </p>
@@ -338,10 +338,10 @@ function DateSelector({ value, onChange }) {
   }
 
   return (
-    <div className="bg-white rounded-2xl p-1 flex items-center gap-1">
+    <div className="bg-white dark:bg-paperDark rounded-2xl p-1 flex items-center gap-1">
       <button
         onClick={() => onChange(prevDay)}
-        className="p-2 rounded-xl text-charcoal/40 hover:text-charcoal hover:bg-charcoal/5 transition-colors"
+        className="p-2 rounded-xl text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white hover:bg-charcoal/5 dark:hover:bg-white/5 transition-colors"
       >
         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
       </button>
@@ -357,8 +357,8 @@ function DateSelector({ value, onChange }) {
               d === value
                 ? 'bg-brand text-white'
                 : d > today
-                ? 'text-charcoal/20 cursor-default'
-                : 'text-charcoal/50 hover:bg-charcoal/5',
+                ? 'text-charcoal/20 dark:text-white/20 cursor-default'
+                : 'text-charcoal/50 dark:text-white/40 hover:bg-charcoal/5 dark:hover:bg-white/5',
             ].join(' ')}
           >
             {labelFor(d)}
@@ -369,7 +369,7 @@ function DateSelector({ value, onChange }) {
       <button
         onClick={() => onChange(nextDay)}
         disabled={nextDay > today}
-        className="p-2 rounded-xl text-charcoal/40 hover:text-charcoal hover:bg-charcoal/5 transition-colors disabled:opacity-25 disabled:cursor-default"
+        className="p-2 rounded-xl text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white hover:bg-charcoal/5 dark:hover:bg-white/5 transition-colors disabled:opacity-25 disabled:cursor-default"
       >
         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
       </button>
@@ -484,8 +484,8 @@ export default function OpeningClosingPage() {
       {/* Page header */}
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-[11px] font-medium tracking-widest uppercase text-charcoal/40">{dateLabel}</p>
-          <h1 className="text-2xl font-bold text-charcoal mt-0.5">Opening &amp; Closing</h1>
+          <p className="text-[11px] font-medium tracking-widest uppercase text-charcoal/40 dark:text-white/35">{dateLabel}</p>
+          <h1 className="text-2xl font-bold text-charcoal dark:text-white mt-0.5">Opening &amp; Closing</h1>
         </div>
         {isManager && (
           <button
@@ -502,7 +502,7 @@ export default function OpeningClosingPage() {
       <div className="flex flex-col gap-2">
         <DateSelector value={selectedDate} onChange={setSelectedDate} />
         {isPast && (
-          <p className="text-[11px] text-charcoal/40 italic px-1">
+          <p className="text-[11px] text-charcoal/40 dark:text-white/35 italic px-1">
             Retroactive entry — checks will be logged against {format(parseISO(selectedDate), 'd MMM yyyy')}.
           </p>
         )}

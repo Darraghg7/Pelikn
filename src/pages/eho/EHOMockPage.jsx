@@ -62,7 +62,7 @@ const ANSWER_OPTIONS = [
   { value: 'yes',     label: 'Yes',     score: 1.0,  style: 'bg-success/10 text-success border-success/30 ring-success/40' },
   { value: 'partial', label: 'Partial', score: 0.5,  style: 'bg-warning/10 text-warning border-warning/30 ring-warning/40' },
   { value: 'no',      label: 'No',      score: 0.0,  style: 'bg-danger/10  text-danger  border-danger/30  ring-danger/40'  },
-  { value: 'na',      label: 'N/A',     score: null, style: 'bg-charcoal/8 text-charcoal/50 border-charcoal/20 ring-charcoal/20' },
+  { value: 'na',      label: 'N/A',     score: null, style: 'bg-charcoal/8 dark:bg-white/8 text-charcoal/50 dark:text-white/40 border-charcoal/20 dark:border-white/20 ring-charcoal/20 dark:ring-white/20' },
 ]
 
 function scoreLabel(pct) {
@@ -123,15 +123,15 @@ export default function EHOMockPage() {
       <div className="flex flex-col gap-6">
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-charcoal">EHO Mock Inspection</h1>
-            <p className="text-sm text-charcoal/40 mt-1">
+            <h1 className="text-2xl font-bold text-charcoal dark:text-white">EHO Mock Inspection</h1>
+            <p className="text-sm text-charcoal/40 dark:text-white/35 mt-1">
               Food Standards Agency-style self-assessment checklist
             </p>
           </div>
           {submitted && (
             <button
               onClick={handlePrint}
-              className="no-print text-[11px] tracking-widest uppercase text-charcoal/40 hover:text-charcoal transition-colors border-b border-charcoal/20"
+              className="no-print text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white transition-colors border-b border-charcoal/20 dark:border-white/20"
             >
               Print Result
             </button>
@@ -139,19 +139,19 @@ export default function EHOMockPage() {
         </div>
 
         {/* Live score bar */}
-        <div className={`rounded-2xl border p-5 ${submitted ? scoreBg(pct) : 'bg-white border-charcoal/10'}`}>
+        <div className={`rounded-2xl border p-5 ${submitted ? scoreBg(pct) : 'bg-white dark:bg-paperDark border-charcoal/10 dark:border-white/10'}`}>
           <div className="flex items-center justify-between mb-2">
-            <p className="text-[11px] tracking-widest uppercase text-charcoal/40">
+            <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">
               {submitted
               ? `Final Score${naCount > 0 ? ` · ${naCount} N/A` : ''}`
               : `Progress · ${answeredCount}/${allQuestions.length} answered${naCount > 0 ? ` · ${naCount} N/A` : ''}`
             }
             </p>
-            <p className={`text-xl font-bold font-semibold ${submitted ? scoreColor : 'text-charcoal'}`}>
+            <p className={`text-xl font-bold font-semibold ${submitted ? scoreColor : 'text-charcoal dark:text-white'}`}>
               {submitted ? `${pct}/100` : `${pct}%`}
             </p>
           </div>
-          <div className="h-2 rounded-full bg-charcoal/10 overflow-hidden">
+          <div className="h-2 rounded-full bg-charcoal/10 dark:bg-white/10 overflow-hidden">
             <div
               className={`h-full rounded-full transition-all duration-500 ${pct >= 80 ? 'bg-success' : pct >= 60 ? 'bg-warning' : 'bg-danger'}`}
               style={{ width: `${pct}%` }}
@@ -164,16 +164,16 @@ export default function EHOMockPage() {
 
         {/* Sections */}
         {SECTIONS.map((section) => (
-          <div key={section.id} className="bg-white rounded-2xl border-charcoal/10 overflow-hidden">
-            <div className="px-5 py-4 border-b border-charcoal/8 bg-charcoal/2">
-              <p className="text-[11px] tracking-widest uppercase text-charcoal/40">{section.label}</p>
+          <div key={section.id} className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 overflow-hidden">
+            <div className="px-5 py-4 border-b border-charcoal/8 dark:border-white/8 bg-charcoal/2 dark:bg-white/3">
+              <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">{section.label}</p>
             </div>
-            <div className="flex flex-col divide-y divide-charcoal/6">
+            <div className="flex flex-col divide-y divide-charcoal/6 dark:divide-white/8">
               {section.questions.map((q) => {
                 const current = answers[q.id]
                 return (
                   <div key={q.id} className="px-5 py-4 flex flex-col sm:flex-row sm:items-center gap-3">
-                    <p className="text-sm text-charcoal flex-1 leading-relaxed">{q.text}</p>
+                    <p className="text-sm text-charcoal dark:text-white flex-1 leading-relaxed">{q.text}</p>
                     <div className="flex gap-2 shrink-0">
                       {ANSWER_OPTIONS.map((opt) => (
                         <button
@@ -184,7 +184,7 @@ export default function EHOMockPage() {
                             'px-3 py-1.5 rounded-lg text-xs font-medium border transition-all',
                             current === opt.value
                               ? `${opt.style} ring-2 ring-offset-1`
-                              : 'bg-white text-charcoal/40 border-charcoal/15 hover:border-charcoal/30 disabled:cursor-default',
+                              : 'bg-white dark:bg-paperDark text-charcoal/40 dark:text-white/35 border-charcoal/15 dark:border-white/15 hover:border-charcoal/30 dark:hover:border-white/30 disabled:cursor-default',
                           ].join(' ')}
                         >
                           {opt.label}
@@ -214,10 +214,10 @@ export default function EHOMockPage() {
           <div className="flex flex-col gap-4">
             {/* Final result card */}
             <div className={`rounded-xl border p-6 text-center ${scoreBg(pct)}`}>
-              <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-2">Your Mock Inspection Score</p>
+              <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-2">Your Mock Inspection Score</p>
               <p className={`text-4xl font-bold font-semibold ${scoreColor}`}>{pct}<span className="text-2xl">/100</span></p>
               <p className={`text-base font-semibold mt-2 ${scoreColor}`}>{scoreLabel_}</p>
-              <p className="text-xs text-charcoal/40 mt-1">
+              <p className="text-xs text-charcoal/40 dark:text-white/35 mt-1">
                 {pct >= 80 ? 'Your food safety management appears to be in good order.' :
                  pct >= 60 ? 'Some areas need attention before an EHO inspection.' :
                  'Significant improvements are required. Review the areas below urgently.'}
@@ -226,11 +226,11 @@ export default function EHOMockPage() {
 
             {/* Areas to improve */}
             {failedQuestions.length > 0 && (
-              <div className="bg-white rounded-2xl border-charcoal/10 overflow-hidden">
-                <div className="px-5 py-4 border-b border-charcoal/8">
-                  <p className="text-[11px] tracking-widest uppercase text-charcoal/40">Areas to Improve</p>
+              <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 overflow-hidden">
+                <div className="px-5 py-4 border-b border-charcoal/8 dark:border-white/8">
+                  <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">Areas to Improve</p>
                 </div>
-                <div className="flex flex-col divide-y divide-charcoal/6">
+                <div className="flex flex-col divide-y divide-charcoal/6 dark:divide-white/8">
                   {failedQuestions.map((q) => {
                     const ans = answers[q.id]
                     return (
@@ -238,7 +238,7 @@ export default function EHOMockPage() {
                         <span className={`text-xs font-semibold mt-0.5 shrink-0 ${ans === 'partial' ? 'text-warning' : 'text-danger'}`}>
                           {ans === 'partial' ? '~' : <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>}
                         </span>
-                        <p className="text-sm text-charcoal/70">{q.text}</p>
+                        <p className="text-sm text-charcoal/70 dark:text-white/60">{q.text}</p>
                         <span className={`text-[11px] tracking-widest uppercase shrink-0 ${ans === 'partial' ? 'text-warning' : 'text-danger'}`}>
                           {ans === 'partial' ? 'Partial' : 'Fail'}
                         </span>
@@ -252,20 +252,20 @@ export default function EHOMockPage() {
             {failedQuestions.length === 0 && (
               <div className="rounded-xl border border-success/30 bg-success/5 p-5 text-center">
                 <p className="text-success font-semibold">No failed or partial answers</p>
-                <p className="text-xs text-charcoal/40 mt-1">Excellent — you answered Yes to every question.</p>
+                <p className="text-xs text-charcoal/40 dark:text-white/35 mt-1">Excellent — you answered Yes to every question.</p>
               </div>
             )}
 
             <div className="no-print flex gap-3">
               <button
                 onClick={handlePrint}
-                className="px-4 py-2.5 rounded-lg border border-charcoal/15 text-sm text-charcoal/60 hover:text-charcoal hover:border-charcoal/30 transition-colors"
+                className="px-4 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 text-sm text-charcoal/60 dark:text-white/50 hover:text-charcoal dark:hover:text-white hover:border-charcoal/30 dark:hover:border-white/30 transition-colors"
               >
                 Print Result
               </button>
               <button
                 onClick={() => { setAnswers({}); setSubmitted(false) }}
-                className="px-4 py-2.5 rounded-lg border border-charcoal/15 text-sm text-charcoal/40 hover:text-charcoal hover:border-charcoal/30 transition-colors"
+                className="px-4 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 text-sm text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white hover:border-charcoal/30 dark:hover:border-white/30 transition-colors"
               >
                 Start Over
               </button>

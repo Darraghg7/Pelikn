@@ -218,18 +218,18 @@ function StepIndicator({ current, total, steps }) {
               'w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all',
               i < current  ? 'bg-success text-white' :
               i === current ? 'bg-charcoal text-cream' :
-                             'bg-charcoal/10 text-charcoal/30',
+                             'bg-charcoal/10 dark:bg-white/10 text-charcoal/30 dark:text-white/30',
             ].join(' ')}>
               {i < current
                 ? <svg className="w-3.5 h-3.5" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg>
                 : i + 1}
             </div>
-            <p className={`text-[11px] font-medium mt-0.5 text-center w-12 leading-tight ${i === current ? 'text-charcoal' : 'text-charcoal/30'}`}>
+            <p className={`text-[11px] font-medium mt-0.5 text-center w-12 leading-tight ${i === current ? 'text-charcoal dark:text-white' : 'text-charcoal/30 dark:text-white/30'}`}>
               P{i + 1}
             </p>
           </div>
           {i < total - 1 && (
-            <div className={`flex-1 h-px mx-1 mb-3 min-w-[12px] ${i < current ? 'bg-success/50' : 'bg-charcoal/10'}`} />
+            <div className={`flex-1 h-px mx-1 mb-3 min-w-[12px] ${i < current ? 'bg-success/50' : 'bg-charcoal/10 dark:bg-white/10'}`} />
           )}
         </React.Fragment>
       ))}
@@ -375,52 +375,52 @@ export default function HACCPWizardPage() {
         />
         <div className="flex flex-col gap-6 max-w-2xl">
           <div className="flex items-center gap-4">
-            <button onClick={() => setReviewing(false)} className="text-charcoal/40 hover:text-charcoal transition-colors text-lg">←</button>
+            <button onClick={() => setReviewing(false)} className="text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white transition-colors text-lg">←</button>
             <div>
-              <h1 className="text-2xl font-bold text-charcoal">HACCP Plan Review</h1>
-              <p className="text-sm text-charcoal/40 mt-0.5">Check all 7 principles, then print or save as PDF</p>
+              <h1 className="text-2xl font-bold text-charcoal dark:text-white">HACCP Plan Review</h1>
+              <p className="text-sm text-charcoal/40 dark:text-white/35 mt-0.5">Check all 7 principles, then print or save as PDF</p>
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl border-charcoal/10 p-5 flex flex-col gap-4">
-            <p className="text-[11px] tracking-widest uppercase text-charcoal/40">Plan Details</p>
+          <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-5 flex flex-col gap-4">
+            <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">Plan Details</p>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div className="flex flex-col gap-1">
-                <label className="text-[11px] tracking-widest uppercase text-charcoal/30">Business Name</label>
+                <label className="text-[11px] tracking-widest uppercase text-charcoal/30 dark:text-white/30">Business Name</label>
                 <input
                   value={meta.business_name}
                   onChange={e => setMeta(m => ({ ...m, business_name: e.target.value }))}
                   placeholder={venueName}
-                  className="px-3 py-2 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+                  className="px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
                 />
               </div>
               <div className="flex flex-col gap-1">
-                <label className="text-[11px] tracking-widest uppercase text-charcoal/30">Responsible Manager</label>
+                <label className="text-[11px] tracking-widest uppercase text-charcoal/30 dark:text-white/30">Responsible Manager</label>
                 <input
                   value={meta.responsible_manager}
                   onChange={e => setMeta(m => ({ ...m, responsible_manager: e.target.value }))}
                   placeholder="Manager name"
-                  className="px-3 py-2 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+                  className="px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
                 />
               </div>
               <div className="flex flex-col gap-1">
-                <label className="text-[11px] tracking-widest uppercase text-charcoal/30">Next Review Date</label>
+                <label className="text-[11px] tracking-widest uppercase text-charcoal/30 dark:text-white/30">Next Review Date</label>
                 <input
                   type="date"
                   value={meta.review_date}
                   onChange={e => setMeta(m => ({ ...m, review_date: e.target.value }))}
-                  className="px-3 py-2 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+                  className="px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
                 />
               </div>
             </div>
           </div>
 
           {STEPS.map((s, i) => (
-            <div key={s.id} className="bg-white rounded-2xl border-charcoal/10 overflow-hidden">
-              <div className="px-5 py-3 border-b border-charcoal/8 flex items-center justify-between">
+            <div key={s.id} className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 overflow-hidden">
+              <div className="px-5 py-3 border-b border-charcoal/8 dark:border-white/8 flex items-center justify-between">
                 <div>
-                  <span className="text-[11px] tracking-widest uppercase text-charcoal/40">{s.principle}</span>
-                  <p className="font-semibold text-charcoal text-sm">{s.title}</p>
+                  <span className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">{s.principle}</span>
+                  <p className="font-semibold text-charcoal dark:text-white text-sm">{s.title}</p>
                 </div>
                 <button
                   onClick={() => { setReviewing(false); setStep(i) }}
@@ -430,7 +430,7 @@ export default function HACCPWizardPage() {
                 </button>
               </div>
               <div className="px-5 py-4">
-                <pre className="text-xs text-charcoal/70 whitespace-pre-wrap font-sans leading-relaxed">
+                <pre className="text-xs text-charcoal/70 dark:text-white/60 whitespace-pre-wrap font-sans leading-relaxed">
                   {answers[s.id] || s.default}
                 </pre>
               </div>
@@ -468,8 +468,8 @@ export default function HACCPWizardPage() {
         {/* Header */}
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-charcoal">HACCP Plan</h1>
-            <p className="text-sm text-charcoal/40 mt-0.5">
+            <h1 className="text-2xl font-bold text-charcoal dark:text-white">HACCP Plan</h1>
+            <p className="text-sm text-charcoal/40 dark:text-white/35 mt-0.5">
               {plan ? `Last saved ${format(new Date(plan.updated_at), 'd MMM yyyy, HH:mm')}` : 'Not saved yet — complete each step'}
             </p>
           </div>
@@ -484,23 +484,23 @@ export default function HACCPWizardPage() {
         </div>
 
         {/* Step indicator */}
-        <div className="bg-white rounded-2xl border-charcoal/10 px-5 py-4">
+        <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 px-5 py-4">
           <StepIndicator current={step} total={STEPS.length} steps={STEPS} />
           <div className="mt-3">
-            <p className="text-[11px] tracking-widest uppercase text-charcoal/40">{currentStep.principle}</p>
-            <p className="text-base font-semibold text-charcoal">{currentStep.title}</p>
+            <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">{currentStep.principle}</p>
+            <p className="text-base font-semibold text-charcoal dark:text-white">{currentStep.title}</p>
           </div>
         </div>
 
         {/* Guidance */}
-        <div className="bg-charcoal/4 rounded-xl px-4 py-3 border border-charcoal/8">
-          <p className="text-sm text-charcoal/70 leading-relaxed">{currentStep.guidance}</p>
+        <div className="bg-charcoal/4 dark:bg-white/5 rounded-xl px-4 py-3 border border-charcoal/8 dark:border-white/8">
+          <p className="text-sm text-charcoal/70 dark:text-white/60 leading-relaxed">{currentStep.guidance}</p>
         </div>
 
         {/* Textarea */}
-        <div className="bg-white rounded-2xl border-charcoal/10 p-5">
+        <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-5">
           <div className="flex items-center justify-between mb-2">
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40">Your notes for this principle</label>
+            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">Your notes for this principle</label>
             {!currentAnswer && (
               <button
                 type="button"
@@ -517,10 +517,10 @@ export default function HACCPWizardPage() {
             onChange={e => setCurrentAnswer(e.target.value)}
             placeholder={currentStep.placeholder}
             rows={14}
-            className="w-full px-4 py-3 rounded-lg border border-charcoal/15 bg-white text-charcoal placeholder-charcoal/25 text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 resize-none font-mono leading-relaxed"
+            className="w-full px-4 py-3 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-charcoal dark:text-white placeholder-charcoal/25 dark:placeholder-white/20 text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 resize-none font-mono leading-relaxed"
           />
           {!currentAnswer && (
-            <p className="text-[11px] text-charcoal/30 mt-1.5">
+            <p className="text-[11px] text-charcoal/30 dark:text-white/30 mt-1.5">
               Click "Use suggested text" above to pre-fill with guidance for a typical hospitality business, then edit to match your operation.
             </p>
           )}
@@ -532,7 +532,7 @@ export default function HACCPWizardPage() {
             <button
               onClick={handlePrev}
               disabled={saving}
-              className="px-5 py-3 rounded-xl border border-charcoal/15 text-sm text-charcoal/50 hover:border-charcoal/30 hover:text-charcoal transition-colors disabled:opacity-40"
+              className="px-5 py-3 rounded-xl border border-charcoal/15 dark:border-white/15 text-sm text-charcoal/50 dark:text-white/40 hover:border-charcoal/30 dark:hover:border-white/30 hover:text-charcoal dark:hover:text-white transition-colors disabled:opacity-40"
             >
               {saving ? '…' : '← Previous'}
             </button>
@@ -558,7 +558,7 @@ export default function HACCPWizardPage() {
 
         {/* Progress summary */}
         <div className="text-center">
-          <p className="text-xs text-charcoal/30">
+          <p className="text-xs text-charcoal/30 dark:text-white/30">
             {completedCount} of {STEPS.length} principles completed
             {completedCount === STEPS.length && ' — ready to generate your plan'}
           </p>

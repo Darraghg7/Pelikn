@@ -53,7 +53,7 @@ export default function VenueCodeSection({ venueId, sessionToken }) {
         </p>
 
         {loading ? (
-          <div className="h-14 bg-charcoal/5 rounded-xl animate-pulse" />
+          <div className="h-14 bg-charcoal/5 dark:bg-white/5 rounded-xl animate-pulse" />
         ) : (
           <div className="flex items-center gap-3 px-5 py-4 rounded-xl bg-brand/5 border border-brand/20">
             <span className="font-mono text-2xl font-bold tracking-[0.25em] text-brand dark:text-accent flex-1">
@@ -83,7 +83,7 @@ export default function VenueCodeSection({ venueId, sessionToken }) {
           <button
             onClick={regenerate}
             disabled={refreshing || !code}
-            className="flex items-center gap-2 border border-charcoal/15 text-charcoal/60 dark:text-white/60 px-4 py-2.5 rounded-xl text-sm font-medium hover:border-charcoal/30 hover:text-charcoal dark:hover:text-white transition-colors disabled:opacity-40"
+            className="flex items-center gap-2 border border-charcoal/15 dark:border-white/15 text-charcoal/60 dark:text-white/60 px-4 py-2.5 rounded-xl text-sm font-medium hover:border-charcoal/30 dark:hover:border-white/30 hover:text-charcoal dark:hover:text-white transition-colors disabled:opacity-40"
           >
             <svg className={['w-3.5 h-3.5', refreshing ? 'animate-spin' : ''].join(' ')} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M21 2v6h-6M3 12a9 9 0 0115-6.7L21 8M3 22v-6h6M21 12a9 9 0 01-15 6.7L3 16"/>

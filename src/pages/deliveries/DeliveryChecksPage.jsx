@@ -128,7 +128,7 @@ function AddSupplierModal({ open, onClose, onAdded, venueId }) {
           value={name}
           onChange={e => setName(e.target.value)}
           placeholder="e.g. Henderson's, Brakes, Musgrave"
-          className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+          className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
           autoFocus
         />
         <button
@@ -149,8 +149,8 @@ function ItemCategoryPicker({ itemName, onSave, onSkip }) {
   const cat = categoryConfig(category)
 
   return (
-    <div className="bg-charcoal/4 rounded-xl p-3 flex flex-col gap-2">
-      <p className="text-sm font-medium text-charcoal truncate">{itemName}</p>
+    <div className="bg-charcoal/4 dark:bg-white/5 rounded-xl p-3 flex flex-col gap-2">
+      <p className="text-sm font-medium text-charcoal dark:text-white truncate">{itemName}</p>
       <div className="flex gap-1.5 flex-wrap">
         {CATEGORIES.map(c => (
           <button
@@ -158,8 +158,8 @@ function ItemCategoryPicker({ itemName, onSave, onSkip }) {
             onClick={() => setCategory(c.value)}
             className={`px-2.5 py-1 rounded-lg text-[11px] font-medium border transition-all ${
               category === c.value
-                ? 'bg-charcoal text-cream border-charcoal'
-                : 'bg-white text-charcoal/50 border-charcoal/15'
+                ? 'bg-charcoal text-cream border-charcoal dark:border-white'
+                : 'bg-white dark:bg-paperDark text-charcoal/50 dark:text-white/40 border-charcoal/15 dark:border-white/15'
             }`}
           >
             {c.label}
@@ -175,7 +175,7 @@ function ItemCategoryPicker({ itemName, onSave, onSkip }) {
         </button>
         <button
           onClick={onSkip}
-          className="px-3 py-1.5 rounded-lg border border-charcoal/15 text-xs text-charcoal/40"
+          className="px-3 py-1.5 rounded-lg border border-charcoal/15 dark:border-white/15 text-xs text-charcoal/40 dark:text-white/35"
         >
           Skip
         </button>
@@ -444,21 +444,21 @@ function DeliveryCheckModal({ open, onClose, suppliers, onSupplierAdded, onCompl
         {step === 'select_supplier' && (
           <div className="flex flex-col gap-3">
             {suppliers.length === 0 ? (
-              <p className="text-sm text-charcoal/40 italic py-4">No suppliers yet. Add one to get started.</p>
+              <p className="text-sm text-charcoal/40 dark:text-white/35 italic py-4">No suppliers yet. Add one to get started.</p>
             ) : (
               suppliers.map(s => (
                 <button
                   key={s.id}
                   onClick={() => selectSupplier(s)}
-                  className="text-left px-4 py-3 rounded-xl border border-charcoal/10 hover:border-charcoal/25 hover:bg-charcoal/3 transition-all"
+                  className="text-left px-4 py-3 rounded-xl border border-charcoal/10 dark:border-white/10 hover:border-charcoal/25 dark:hover:border-white/25 hover:bg-charcoal/3 dark:hover:bg-white/5 transition-all"
                 >
-                  <p className="text-sm font-medium text-charcoal">{s.name}</p>
+                  <p className="text-sm font-medium text-charcoal dark:text-white">{s.name}</p>
                 </button>
               ))
             )}
             <button
               onClick={() => setShowAddSupplier(true)}
-              className="px-4 py-3 rounded-xl border border-dashed border-charcoal/20 text-sm text-charcoal/40 hover:text-charcoal/60 hover:border-charcoal/35 transition-all"
+              className="px-4 py-3 rounded-xl border border-dashed border-charcoal/20 dark:border-white/20 text-sm text-charcoal/40 dark:text-white/35 hover:text-charcoal/60 dark:hover:text-white/50 hover:border-charcoal/35 dark:hover:border-white/35 transition-all"
             >
               + Add New Supplier
             </button>
@@ -472,8 +472,8 @@ function DeliveryCheckModal({ open, onClose, suppliers, onSupplierAdded, onCompl
               <label className="flex-1 cursor-pointer">
                 <div className={`text-center py-2.5 rounded-xl border border-dashed text-sm font-medium transition-all ${
                   scanning
-                    ? 'border-charcoal/30 bg-charcoal/5 text-charcoal/50'
-                    : 'border-charcoal/20 text-charcoal/40 hover:border-charcoal/35 hover:text-charcoal/60'
+                    ? 'border-charcoal/30 dark:border-white/30 bg-charcoal/5 dark:bg-white/5 text-charcoal/50 dark:text-white/40'
+                    : 'border-charcoal/20 dark:border-white/20 text-charcoal/40 dark:text-white/35 hover:border-charcoal/35 dark:hover:border-white/35 hover:text-charcoal/60 dark:hover:text-white/50'
                 }`}>
                   {scanning ? 'Scanning...' : 'Scan Delivery Docket'}
                 </div>
@@ -484,14 +484,14 @@ function DeliveryCheckModal({ open, onClose, suppliers, onSupplierAdded, onCompl
             {scanning && (
               <div className="flex justify-center py-4">
                 <LoadingSpinner />
-                <span className="ml-2 text-sm text-charcoal/40">Reading docket...</span>
+                <span className="ml-2 text-sm text-charcoal/40 dark:text-white/35">Reading docket...</span>
               </div>
             )}
 
             {/* OCR categorisation */}
             {ocrItems.length > 0 && categorisingIdx < ocrItems.length && (
               <div>
-                <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-2">
+                <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-2">
                   Categorise new item ({categorisingIdx + 1}/{ocrItems.length})
                 </p>
                 <ItemCategoryPicker
@@ -505,23 +505,23 @@ function DeliveryCheckModal({ open, onClose, suppliers, onSupplierAdded, onCompl
             {/* Checklist — items needing temp */}
             {tempItems.length > 0 && (
               <div>
-                <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-2">
+                <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-2">
                   Temperature Items ({tempItems.length})
                 </p>
                 <div className="flex flex-col gap-2">
                   {tempItems.map(([id, item]) => (
-                    <div key={id} className={`rounded-xl border p-3 ${item.received ? (item.tempPass ? 'border-charcoal/10' : 'border-danger/25 bg-danger/3') : 'border-charcoal/10 bg-charcoal/4 opacity-50'}`}>
+                    <div key={id} className={`rounded-xl border p-3 ${item.received ? (item.tempPass ? 'border-charcoal/10 dark:border-white/10' : 'border-danger/25 bg-danger/3') : 'border-charcoal/10 bg-charcoal/4 dark:bg-white/5 opacity-50'}`}>
                       <div className="flex items-center gap-3 mb-2">
                         <button
                           onClick={() => updateItem(id, 'received', !item.received)}
                           className={`w-9 h-9 rounded-xl border-2 flex items-center justify-center shrink-0 transition-all ${
-                            item.received ? 'bg-success border-success text-white' : 'border-charcoal/20'
+                            item.received ? 'bg-success border-success text-white' : 'border-charcoal/20 dark:border-white/20'
                           }`}
                         >
                           {item.received && <svg className="w-4 h-4" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg>}
                         </button>
-                        <span className="text-sm font-medium text-charcoal flex-1 truncate">{item.itemName}</span>
-                        <span className="text-[11px] tracking-wider uppercase text-charcoal/30">{item.category}</span>
+                        <span className="text-sm font-medium text-charcoal dark:text-white flex-1 truncate">{item.itemName}</span>
+                        <span className="text-[11px] tracking-wider uppercase text-charcoal/30 dark:text-white/30">{item.category}</span>
                       </div>
                       {item.received && (
                         <div className="flex items-center gap-2 sm:ml-12">
@@ -531,7 +531,7 @@ function DeliveryCheckModal({ open, onClose, suppliers, onSupplierAdded, onCompl
                             value={item.tempReading}
                             onChange={e => checkTemp(id, e.target.value)}
                             placeholder={`${item.minTemp ?? '?'}C to ${item.maxTemp ?? '?'}C`}
-                            className="flex-1 px-3 py-1.5 rounded-lg border border-charcoal/15 bg-white text-sm font-mono focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+                            className="flex-1 px-3 py-1.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm font-mono focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
                           />
                           <span className="text-xs">°C</span>
                           {item.tempReading && (
@@ -548,24 +548,24 @@ function DeliveryCheckModal({ open, onClose, suppliers, onSupplierAdded, onCompl
             {/* Checklist — non-temp items */}
             {nonTempItems.length > 0 && (
               <div>
-                <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-2">
+                <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-2">
                   Other Items ({nonTempItems.length})
                 </p>
                 <div className="flex flex-col gap-1.5">
                   {nonTempItems.map(([id, item]) => (
-                    <div key={id} className="flex items-center gap-3 rounded-xl border border-charcoal/10 px-3 py-2.5">
+                    <div key={id} className="flex items-center gap-3 rounded-xl border border-charcoal/10 dark:border-white/10 px-3 py-2.5">
                       <button
                         onClick={() => updateItem(id, 'received', !item.received)}
                         className={`w-9 h-9 rounded-xl border-2 flex items-center justify-center shrink-0 transition-all ${
-                          item.received ? 'bg-success border-success text-white' : 'border-charcoal/20'
+                          item.received ? 'bg-success border-success text-white' : 'border-charcoal/20 dark:border-white/20'
                         }`}
                       >
                         {item.received && <svg className="w-4 h-4" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg>}
                       </button>
-                      <span className={`text-sm flex-1 truncate ${item.received ? 'text-charcoal' : 'text-charcoal/40 line-through'}`}>
+                      <span className={`text-sm flex-1 truncate ${item.received ? 'text-charcoal dark:text-white' : 'text-charcoal/40 dark:text-white/35 line-through'}`}>
                         {item.itemName}
                       </span>
-                      <span className="text-[11px] tracking-wider uppercase text-charcoal/25">{item.category}</span>
+                      <span className="text-[11px] tracking-wider uppercase text-charcoal/25 dark:text-white/25">{item.category}</span>
                     </div>
                   ))}
                 </div>
@@ -574,7 +574,7 @@ function DeliveryCheckModal({ open, onClose, suppliers, onSupplierAdded, onCompl
 
             {/* Empty state */}
             {itemEntries.length === 0 && !scanning && ocrItems.length === 0 && (
-              <div className="text-center py-6 text-charcoal/30">
+              <div className="text-center py-6 text-charcoal/30 dark:text-white/30">
                 <p className="text-sm mb-2">No items in catalog for {selectedSupplier?.name}.</p>
                 <p className="text-xs">Scan a delivery docket to add items automatically, or they'll be added as you go.</p>
               </div>
@@ -582,7 +582,7 @@ function DeliveryCheckModal({ open, onClose, suppliers, onSupplierAdded, onCompl
 
             {/* Overall checks */}
             <div>
-              <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-2">Overall Checks</p>
+              <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-2">Overall Checks</p>
               {[
                 { key: 'packaging', label: 'Packaging intact', value: packagingOk, set: setPackagingOk },
                 { key: 'useby', label: 'Use-by dates valid', value: useByOk, set: setUseByOk },
@@ -593,7 +593,7 @@ function DeliveryCheckModal({ open, onClose, suppliers, onSupplierAdded, onCompl
                   onClick={() => set(!value)}
                   className={`min-h-12 w-full flex items-center justify-between px-4 py-3 rounded-xl border transition-all mb-1.5 ${
                     value
-                      ? 'bg-success/5 border-success/20 text-charcoal'
+                      ? 'bg-success/5 border-success/20 text-charcoal dark:text-white'
                       : 'bg-danger/5 border-danger/20 text-danger'
                   }`}
                 >
@@ -607,33 +607,33 @@ function DeliveryCheckModal({ open, onClose, suppliers, onSupplierAdded, onCompl
 
             {/* Photo */}
             <div>
-              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1">Delivery note photo</label>
+              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Delivery note photo</label>
               <input type="file" accept="image/*" onChange={handlePhoto} className="text-sm" />
-              {uploading && <p className="text-xs text-charcoal/40 mt-1">Uploading...</p>}
+              {uploading && <p className="text-xs text-charcoal/40 dark:text-white/35 mt-1">Uploading...</p>}
               {photoPath && <p className="text-xs text-success mt-1">Photo attached</p>}
             </div>
 
             {/* Notes */}
             <div>
-              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1">Notes</label>
+              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Notes</label>
               <textarea
                 value={overallNotes}
                 onChange={e => setOverallNotes(e.target.value)}
                 rows={2}
                 placeholder="Any issues or observations..."
-                className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 bg-white text-sm resize-none focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+                className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm resize-none focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
               />
             </div>
 
             {/* Delivery date/time */}
             <div>
-              <label className="text-xs text-charcoal/50 mb-1 block">Delivery Date &amp; Time</label>
+              <label className="text-xs text-charcoal/50 dark:text-white/40 mb-1 block">Delivery Date &amp; Time</label>
               <input
                 type="datetime-local"
                 value={checkedAt}
                 max={nowDatetimeLocal()}
                 onChange={e => setCheckedAt(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 bg-white text-sm text-charcoal focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+                className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
               />
             </div>
 
@@ -685,7 +685,7 @@ export default function DeliveryChecksPage() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-charcoal">Delivery Checks</h1>
+        <h1 className="text-2xl font-bold text-charcoal dark:text-white">Delivery Checks</h1>
         <button
           onClick={() => setShowCheck(true)}
           className="bg-charcoal text-cream px-4 py-2 rounded-lg text-sm font-medium hover:bg-charcoal/90 transition-colors"
@@ -697,12 +697,12 @@ export default function DeliveryChecksPage() {
       {/* Summary */}
       <div className="grid grid-cols-3 gap-2 sm:gap-3">
         {[
-          { label: 'Total', value: checks.length, color: 'text-charcoal' },
+          { label: 'Total', value: checks.length, color: 'text-charcoal dark:text-white' },
           { label: 'Passed', value: passCount, color: 'text-success' },
           { label: 'Failed', value: failCount, color: 'text-danger' },
         ].map(s => (
-          <div key={s.label} className="bg-white rounded-2xl border-charcoal/10 p-3 sm:p-4 text-center">
-            <p className="text-[11px] sm:text-[11px] tracking-widest uppercase text-charcoal/40">{s.label}</p>
+          <div key={s.label} className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-3 sm:p-4 text-center">
+            <p className="text-[11px] sm:text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">{s.label}</p>
             <p className={`text-xl sm:text-2xl font-bold ${s.color}`}>{s.value}</p>
           </div>
         ))}
@@ -716,8 +716,8 @@ export default function DeliveryChecksPage() {
             onClick={() => setFilter(f)}
             className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
               filter === f
-                ? 'bg-charcoal text-cream border-charcoal'
-                : 'bg-white text-charcoal/50 border-charcoal/15 hover:border-charcoal/30'
+                ? 'bg-charcoal text-cream border-charcoal dark:border-white'
+                : 'bg-white dark:bg-paperDark text-charcoal/50 dark:text-white/40 border-charcoal/15 dark:border-white/15 hover:border-charcoal/30 dark:hover:border-white/30'
             }`}
           >
             {f === 'all' ? 'All' : f === 'pass' ? 'Passed' : 'Failed'}
@@ -729,26 +729,26 @@ export default function DeliveryChecksPage() {
       {loading ? (
         <div className="flex justify-center py-10"><LoadingSpinner /></div>
       ) : filtered.length === 0 ? (
-        <div className="bg-white rounded-2xl border-charcoal/10 p-10 text-center">
-          <p className="text-charcoal/30 text-sm">No delivery checks recorded yet.</p>
-          <p className="text-charcoal/20 text-xs mt-1">Tap "+ Check Delivery" to log your first one.</p>
+        <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-10 text-center">
+          <p className="text-charcoal/30 dark:text-white/30 text-sm">No delivery checks recorded yet.</p>
+          <p className="text-charcoal/20 dark:text-white/20 text-xs mt-1">Tap "+ Check Delivery" to log your first one.</p>
         </div>
       ) : (
         <div className="flex flex-col gap-3">
           {filtered.map(c => (
-            <div key={c.id} className={`bg-white rounded-2xl p-4 ${c.overall_pass ? 'border-charcoal/10' : 'border-danger/25 bg-danger/3'}`}>
+            <div key={c.id} className={`bg-white dark:bg-paperDark rounded-2xl p-4 ${c.overall_pass ? 'border-charcoal/10 dark:border-white/10' : 'border-danger/25 bg-danger/3'}`}>
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <h3 className="font-semibold text-charcoal">{c.supplier?.name ?? c.supplier_name}</h3>
+                    <h3 className="font-semibold text-charcoal dark:text-white">{c.supplier?.name ?? c.supplier_name}</h3>
                     <PassFailChip pass={c.overall_pass} />
                   </div>
-                  {c.items_desc && <p className="text-sm text-charcoal/50 mt-1 truncate">{c.items_desc}</p>}
-                  {c.notes && <p className="text-xs text-charcoal/40 mt-1 italic">{c.notes}</p>}
+                  {c.items_desc && <p className="text-sm text-charcoal/50 dark:text-white/40 mt-1 truncate">{c.items_desc}</p>}
+                  {c.notes && <p className="text-xs text-charcoal/40 dark:text-white/35 mt-1 italic">{c.notes}</p>}
                 </div>
                 <div className="text-right shrink-0">
-                  <p className="text-xs text-charcoal/40">{format(new Date(c.checked_at), 'd MMM HH:mm')}</p>
-                  <p className="text-[11px] text-charcoal/30 mt-0.5">{c.checker?.name ?? 'Unknown'}</p>
+                  <p className="text-xs text-charcoal/40 dark:text-white/35">{format(new Date(c.checked_at), 'd MMM HH:mm')}</p>
+                  <p className="text-[11px] text-charcoal/30 dark:text-white/30 mt-0.5">{c.checker?.name ?? 'Unknown'}</p>
                 </div>
               </div>
             </div>

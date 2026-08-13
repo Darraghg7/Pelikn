@@ -14,7 +14,7 @@ const COMPLAINT_TYPES = [
   { value: 'allergen_reaction', label: 'Allergic reaction',     color: 'bg-orange-50 text-orange-700 border-orange-200' },
   { value: 'foreign_body',      label: 'Foreign body in food',  color: 'bg-amber-50 text-amber-700 border-amber-200' },
   { value: 'contamination',     label: 'Contamination / quality', color: 'bg-yellow-50 text-yellow-700 border-yellow-200' },
-  { value: 'other',             label: 'Other food safety issue', color: 'bg-charcoal/5 text-charcoal/60 border-charcoal/15' },
+  { value: 'other',             label: 'Other food safety issue', color: 'bg-charcoal/5 dark:bg-white/5 text-charcoal/60 dark:text-white/50 border-charcoal/15 dark:border-white/15' },
 ]
 
 const typeInfo = (value) => COMPLAINT_TYPES.find(t => t.value === value) ?? COMPLAINT_TYPES[4]
@@ -73,13 +73,13 @@ function ComplaintModal({ open, onClose, editItem, venueId, onSaved }) {
 
   const Field = ({ label, required, children }) => (
     <div className="flex flex-col gap-1">
-      <label className="text-[11px] tracking-widest uppercase text-charcoal/40">
+      <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">
         {label}{required && <span className="text-danger ml-0.5">*</span>}
       </label>
       {children}
     </div>
   )
-  const inp = 'px-3 py-2 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20'
+  const inp = 'px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20'
   const ta  = `${inp} resize-none`
 
   return (
@@ -147,7 +147,7 @@ function ComplaintCard({ item, onEdit }) {
   const info     = typeInfo(item.complaint_type)
 
   return (
-    <div className={`bg-white rounded-2xl border overflow-hidden ${resolved ? 'border-charcoal/10' : 'border-danger/30'}`}>
+    <div className={`bg-white dark:bg-paperDark rounded-2xl border overflow-hidden ${resolved ? 'border-charcoal/10 dark:border-white/10' : 'border-danger/30'}`}>
       <div className="px-5 py-4">
         <div className="flex items-start justify-between gap-3 mb-2">
           <div className="flex-1 min-w-0">
@@ -159,37 +159,37 @@ function ComplaintCard({ item, onEdit }) {
                 {resolved ? 'Resolved' : 'Open'}
               </span>
             </div>
-            <p className="text-xs text-charcoal/40 mt-1">
+            <p className="text-xs text-charcoal/40 dark:text-white/35 mt-1">
               Received {format(parseISO(item.date_received), 'd MMM yyyy')}
               {item.product_involved && <> · {item.product_involved}</>}
             </p>
           </div>
           <button onClick={() => onEdit(item)}
-            className="text-xs text-charcoal/40 hover:text-charcoal border border-charcoal/12 hover:border-charcoal/25 px-3 py-1.5 rounded-lg transition-colors shrink-0">
+            className="text-xs text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white border border-charcoal/12 dark:border-white/15 hover:border-charcoal/25 dark:hover:border-white/25 px-3 py-1.5 rounded-lg transition-colors shrink-0">
             Edit
           </button>
         </div>
 
-        <p className="text-sm text-charcoal leading-relaxed">{item.description}</p>
+        <p className="text-sm text-charcoal dark:text-white leading-relaxed">{item.description}</p>
 
         {(item.investigation_notes || item.outcome || item.corrective_action) && (
-          <div className="mt-3 pt-3 border-t border-charcoal/6 flex flex-col gap-1.5">
+          <div className="mt-3 pt-3 border-t border-charcoal/6 dark:border-white/8 flex flex-col gap-1.5">
             {item.investigation_notes && (
               <div>
-                <p className="text-[11px] tracking-widest uppercase text-charcoal/30">Investigation</p>
-                <p className="text-xs text-charcoal/60 mt-0.5">{item.investigation_notes}</p>
+                <p className="text-[11px] tracking-widest uppercase text-charcoal/30 dark:text-white/30">Investigation</p>
+                <p className="text-xs text-charcoal/60 dark:text-white/50 mt-0.5">{item.investigation_notes}</p>
               </div>
             )}
             {item.outcome && (
               <div>
-                <p className="text-[11px] tracking-widest uppercase text-charcoal/30">Outcome</p>
-                <p className="text-xs text-charcoal/60 mt-0.5">{item.outcome}</p>
+                <p className="text-[11px] tracking-widest uppercase text-charcoal/30 dark:text-white/30">Outcome</p>
+                <p className="text-xs text-charcoal/60 dark:text-white/50 mt-0.5">{item.outcome}</p>
               </div>
             )}
             {item.corrective_action && (
               <div>
-                <p className="text-[11px] tracking-widest uppercase text-charcoal/30">Corrective action</p>
-                <p className="text-xs text-charcoal/60 mt-0.5">{item.corrective_action}</p>
+                <p className="text-[11px] tracking-widest uppercase text-charcoal/30 dark:text-white/30">Corrective action</p>
+                <p className="text-xs text-charcoal/60 dark:text-white/50 mt-0.5">{item.corrective_action}</p>
               </div>
             )}
             {resolved && (
@@ -231,8 +231,8 @@ export default function ComplaintsPage() {
       {/* Header */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-charcoal">Food Safety Complaints</h1>
-          <p className="text-sm text-charcoal/40 mt-1">
+          <h1 className="text-2xl font-bold text-charcoal dark:text-white">Food Safety Complaints</h1>
+          <p className="text-sm text-charcoal/40 dark:text-white/35 mt-1">
             Log and investigate illness reports, allergen reactions, and foreign body complaints
           </p>
         </div>
@@ -261,7 +261,7 @@ export default function ComplaintsPage() {
       </div>
 
       {/* Filters */}
-      <div className="flex gap-1 bg-charcoal/5 rounded-xl p-1 w-fit">
+      <div className="flex gap-1 bg-charcoal/5 dark:bg-white/5 rounded-xl p-1 w-fit">
         {[
           { id: 'all',      label: 'All' },
           { id: 'open',     label: `Open${openCount > 0 ? ` (${openCount})` : ''}` },
@@ -269,7 +269,7 @@ export default function ComplaintsPage() {
         ].map(f => (
           <button key={f.id} onClick={() => setFilter(f.id)}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-              filter === f.id ? 'bg-white text-charcoal shadow-sm' : 'text-charcoal/50 hover:text-charcoal'
+              filter === f.id ? 'bg-white dark:bg-paperDark text-charcoal dark:text-white shadow-sm' : 'text-charcoal/50 dark:text-white/40 hover:text-charcoal dark:hover:text-white'
             }`}>
             {f.label}
           </button>
@@ -280,13 +280,13 @@ export default function ComplaintsPage() {
       {loading ? (
         <div className="flex justify-center pt-12"><LoadingSpinner size="md" /></div>
       ) : filtered.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-charcoal/10 px-5 py-12 text-center">
-          <p className="text-charcoal/40 text-sm">
+        <div className="bg-white dark:bg-paperDark rounded-2xl border border-charcoal/10 dark:border-white/10 px-5 py-12 text-center">
+          <p className="text-charcoal/40 dark:text-white/35 text-sm">
             {filter === 'open' ? 'No open complaints.' : filter === 'resolved' ? 'No resolved complaints yet.' : 'No complaints logged yet.'}
           </p>
           {filter === 'all' && (
             <button onClick={openNew}
-              className="mt-4 text-sm text-charcoal/50 hover:text-charcoal border border-charcoal/15 px-4 py-2 rounded-xl transition-colors">
+              className="mt-4 text-sm text-charcoal/50 dark:text-white/40 hover:text-charcoal dark:hover:text-white border border-charcoal/15 dark:border-white/15 px-4 py-2 rounded-xl transition-colors">
               + Log first complaint
             </button>
           )}

@@ -20,7 +20,7 @@ export default function RotaToolbar({
 }) {
   return (
     <div className="flex flex-wrap items-start justify-between gap-y-3">
-      <h1 className="text-2xl font-bold text-charcoal">
+      <h1 className="text-2xl font-bold text-charcoal dark:text-white">
         {isManager ? 'Rota Manager' : 'Rota'}
       </h1>
       {isManager && (
@@ -30,7 +30,7 @@ export default function RotaToolbar({
               <button
                 onClick={copyWeek}
                 disabled={copyingWeek}
-                className="text-[11px] tracking-widest uppercase text-charcoal/40 hover:text-charcoal transition-colors border-b border-charcoal/20 hover:border-charcoal/40 disabled:opacity-40"
+                className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white transition-colors border-b border-charcoal/20 dark:border-white/20 hover:border-charcoal/40 dark:hover:border-white/40 disabled:opacity-40"
               >
                 <span className="inline-flex items-center gap-1">
                   <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
@@ -39,7 +39,7 @@ export default function RotaToolbar({
               </button>
               <button
                 onClick={() => setShowConfig(true)}
-                className="text-[11px] tracking-widest uppercase text-charcoal/40 hover:text-charcoal transition-colors border-b border-charcoal/20 hover:border-charcoal/40"
+                className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white transition-colors border-b border-charcoal/20 dark:border-white/20 hover:border-charcoal/40 dark:hover:border-white/40"
               >
                 <span className="inline-flex items-center gap-1"><svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg> Configure</span>
               </button>
@@ -82,7 +82,7 @@ export default function RotaToolbar({
             <div className="flex items-center gap-2">
               <button
                 onClick={cancelClosureMode}
-                className="text-[11px] tracking-widest uppercase text-charcoal/40 hover:text-charcoal transition-colors border-b border-charcoal/20"
+                className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white transition-colors border-b border-charcoal/20 dark:border-white/20"
               >
                 Cancel
               </button>

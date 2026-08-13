@@ -74,7 +74,7 @@ export default function VenuesSection() {
       locked={venuePlan !== PLANS.PRO}
     >
       {/* Venue list */}
-      <div className="bg-white rounded-xl border border-charcoal/8 overflow-hidden divide-y divide-charcoal/5 mb-4">
+      <div className="bg-white dark:bg-paperDark rounded-xl border border-charcoal/8 dark:border-white/8 overflow-hidden divide-y divide-charcoal/5 dark:divide-white/5 mb-4">
         {venues.map((v, i) => (
           <div key={v.id} className="grid items-center gap-3 py-2.5 px-3 grid-cols-[32px_1fr_auto] hover:bg-charcoal/[0.025] transition-colors">
             <div className="w-8 h-8 rounded-lg bg-brand text-white grid place-items-center font-bold text-xs">
@@ -82,17 +82,17 @@ export default function VenuesSection() {
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-1.5 flex-wrap">
-                <p className="text-sm font-semibold text-charcoal">{v.name}</p>
+                <p className="text-sm font-semibold text-charcoal dark:text-white">{v.name}</p>
                 <span className="text-[11px] font-semibold tracking-wider uppercase px-1.5 py-0.5 rounded bg-brand/8 text-brand">{v.plan}</span>
                 {i === 0 && (
-                  <span className="text-[11px] tracking-wider uppercase font-medium px-1.5 py-0.5 rounded bg-charcoal/[0.06] text-charcoal/55">Primary</span>
+                  <span className="text-[11px] tracking-wider uppercase font-medium px-1.5 py-0.5 rounded bg-charcoal/[0.06] text-charcoal/55 dark:text-white/45">Primary</span>
                 )}
               </div>
-              <p className="text-[11px] text-charcoal/40 mt-0.5 font-mono tracking-wide">pelikn.app/v/{v.slug}</p>
+              <p className="text-[11px] text-charcoal/40 dark:text-white/35 mt-0.5 font-mono tracking-wide">pelikn.app/v/{v.slug}</p>
             </div>
             <button
               onClick={() => handleOpenVenue(v.slug)}
-              className="h-7 px-2.5 rounded-md border border-charcoal/12 text-xs font-medium text-charcoal/60 hover:text-charcoal hover:border-charcoal/30 transition-colors"
+              className="h-7 px-2.5 rounded-md border border-charcoal/12 dark:border-white/15 text-xs font-medium text-charcoal/60 dark:text-white/50 hover:text-charcoal dark:hover:text-white hover:border-charcoal/30 dark:hover:border-white/30 transition-colors"
             >
               Open →
             </button>
@@ -102,23 +102,23 @@ export default function VenuesSection() {
 
       {/* Add venue form */}
       {showForm ? (
-        <div className="p-4 rounded-2xl bg-white border border-charcoal/10 flex flex-col gap-3.5">
-          <p className="text-sm font-semibold text-charcoal">Add New Venue</p>
+        <div className="p-4 rounded-2xl bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 flex flex-col gap-3.5">
+          <p className="text-sm font-semibold text-charcoal dark:text-white">Add New Venue</p>
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div>
-              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1.5">Venue Name *</label>
+              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1.5">Venue Name *</label>
               <input
                 value={form.name}
                 onChange={e => handleNameChange(e.target.value)}
                 placeholder="e.g. City Centre Branch"
-                className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+                className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
               />
             </div>
             <div>
-              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1.5">URL Slug *</label>
-              <div className="flex items-center rounded-lg border border-charcoal/15 bg-white overflow-hidden focus-within:ring-2 focus-within:ring-charcoal/20">
-                <span className="pl-3 text-xs text-charcoal/30 whitespace-nowrap">/v/</span>
+              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1.5">URL Slug *</label>
+              <div className="flex items-center rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark overflow-hidden focus-within:ring-2 focus-within:ring-charcoal/20 dark:focus-within:ring-white/20">
+                <span className="pl-3 text-xs text-charcoal/30 dark:text-white/30 whitespace-nowrap">/v/</span>
                 <input
                   value={form.slug}
                   onChange={e => { setSlugEdited(true); setForm(f => ({ ...f, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') })) }}
@@ -129,7 +129,7 @@ export default function VenuesSection() {
             </div>
           </div>
 
-          <div className="flex items-start gap-2 text-xs text-charcoal/50 bg-warning/8 rounded-lg px-3 py-2.5">
+          <div className="flex items-start gap-2 text-xs text-charcoal/50 dark:text-white/40 bg-warning/8 rounded-lg px-3 py-2.5">
             <span className="text-warning shrink-0">
               <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
             </span>
@@ -148,7 +148,7 @@ export default function VenuesSection() {
             </button>
             <button
               onClick={() => { setShowForm(false); setForm({ name: '', slug: '' }); setSlugEdited(false) }}
-              className="px-4 py-2.5 rounded-lg border border-charcoal/15 text-sm text-charcoal/50 hover:border-charcoal/30 transition-colors"
+              className="px-4 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 text-sm text-charcoal/50 dark:text-white/40 hover:border-charcoal/30 dark:hover:border-white/30 transition-colors"
             >
               Cancel
             </button>
@@ -158,7 +158,7 @@ export default function VenuesSection() {
         <div className="flex justify-end">
           <button
             onClick={() => setShowForm(true)}
-            className="text-[11px] tracking-widest uppercase text-charcoal/40 hover:text-charcoal transition-colors border-b border-charcoal/20"
+            className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white transition-colors border-b border-charcoal/20 dark:border-white/20"
           >
             + Add Venue
           </button>

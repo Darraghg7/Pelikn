@@ -77,7 +77,7 @@ function ContractTypeRow({ s, onSave }) {
               'text-[11px] font-semibold tracking-wider uppercase px-2 py-0.5 rounded-full border transition-colors',
               active
                 ? 'bg-brand text-white border-brand'
-                : 'bg-transparent text-charcoal/45 border-charcoal/15 hover:border-charcoal/35 hover:text-charcoal/70',
+                : 'bg-transparent text-charcoal/45 dark:text-white/40 border-charcoal/15 dark:border-white/15 hover:border-charcoal/35 dark:hover:border-white/35 hover:text-charcoal/70 dark:hover:text-white/60',
               saving ? 'opacity-50 cursor-not-allowed' : '',
             ].filter(Boolean).join(' ')}
           >
@@ -99,20 +99,20 @@ function ContractTypeRow({ s, onSave }) {
             onBlur={handleHoursBlur}
             onKeyDown={e => e.key === 'Enter' && e.target.blur()}
             placeholder="hrs/wk"
-            className="w-16 px-1.5 py-0.5 text-[11px] rounded border border-charcoal/15 bg-white text-charcoal focus:outline-none focus:ring-1 focus:ring-brand/30 focus:border-brand/40"
+            className="w-16 px-1.5 py-0.5 text-[11px] rounded border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-charcoal dark:text-white focus:outline-none focus:ring-1 focus:ring-brand/30 focus:border-brand/40"
           />
-          <span className="text-[11px] text-charcoal/40">hrs/wk</span>
+          <span className="text-[11px] text-charcoal/40 dark:text-white/35">hrs/wk</span>
         </div>
       )}
 
       {/* Leave entitlement preview */}
       {s.employment_type && s.employment_type !== 'zero_hours' && (
-        <span className="text-[11px] text-charcoal/30">
+        <span className="text-[11px] text-charcoal/30 dark:text-white/30">
           · {entitlementDays}d leave/yr
         </span>
       )}
       {s.employment_type === 'zero_hours' && (
-        <span className="text-[11px] text-charcoal/30">· Leave accrues per hour worked</span>
+        <span className="text-[11px] text-charcoal/30 dark:text-white/30">· Leave accrues per hour worked</span>
       )}
     </div>
   )
@@ -441,8 +441,8 @@ export default function StaffMembersSection() {
   const activeStaffCount = staff.filter(s => s.is_active).length
 
   const renderFormPanel = (ref = null) => (
-    <div ref={ref} className="mb-1 p-4 rounded-2xl bg-white border border-charcoal/10 flex flex-col gap-3">
-      <p className="text-sm font-semibold text-charcoal">{editingId ? 'Edit Staff Member' : 'New Staff Member'}</p>
+    <div ref={ref} className="mb-1 p-4 rounded-2xl bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 flex flex-col gap-3">
+      <p className="text-sm font-semibold text-charcoal dark:text-white">{editingId ? 'Edit Staff Member' : 'New Staff Member'}</p>
 
       {/* Photo upload (edit only) */}
       {editingId && (() => {
@@ -451,17 +451,17 @@ export default function StaffMembersSection() {
           <div className="flex items-center gap-4">
             {s?.photo_url ? (
               <img src={s.photo_url} alt={s.name}
-                className="w-14 h-14 rounded-full object-cover border border-charcoal/10" loading="lazy" />
+                className="w-14 h-14 rounded-full object-cover border border-charcoal/10 dark:border-white/10" loading="lazy" />
             ) : (
-              <div className="w-14 h-14 rounded-full bg-charcoal/10 flex items-center justify-center">
-                <span className="text-xl font-semibold text-charcoal/40">{staffForm.name.charAt(0) || '?'}</span>
+              <div className="w-14 h-14 rounded-full bg-charcoal/10 dark:bg-white/10 flex items-center justify-center">
+                <span className="text-xl font-semibold text-charcoal/40 dark:text-white/35">{staffForm.name.charAt(0) || '?'}</span>
               </div>
             )}
             <div className="flex flex-col gap-1.5">
-              <label className="text-[11px] tracking-widest uppercase text-charcoal/40">Photo</label>
+              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">Photo</label>
               <input type="file" accept="image/*"
                 onChange={e => setPhotoFile(e.target.files[0] ?? null)}
-                className="text-xs text-charcoal/60 file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border file:border-charcoal/15 file:text-xs file:bg-white file:text-charcoal/60 hover:file:bg-cream" />
+                className="text-xs text-charcoal/60 dark:text-white/50 file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border file:border-charcoal/15 dark:file:border-white/15 file:text-xs file:bg-white dark:file:bg-paperDark file:text-charcoal/60 dark:file:text-white/50 hover:file:bg-cream" />
               {photoFile && (
                 <button type="button"
                   onClick={() => uploadStaffPhoto(editingId, photoFile)}
@@ -477,27 +477,27 @@ export default function StaffMembersSection() {
 
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1.5">Name *</label>
+          <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1.5">Name *</label>
           <input
             value={staffForm.name}
             onChange={e => setStaffForm(f => ({ ...f, name: e.target.value }))}
             placeholder="Full name"
-            className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+            className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
           />
         </div>
         <div>
-          <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1.5">Email</label>
+          <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1.5">Email</label>
           <input
             type="email"
             value={staffForm.email}
             onChange={e => setStaffForm(f => ({ ...f, email: e.target.value }))}
             placeholder="staff@example.com"
-            className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+            className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
           />
         </div>
         <div>
-          <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1.5">
-            PIN {editingId && <span className="normal-case text-charcoal/30">— blank to keep current</span>}
+          <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1.5">
+            PIN {editingId && <span className="normal-case text-charcoal/30 dark:text-white/30">— blank to keep current</span>}
           </label>
           <input
             type="password"
@@ -506,17 +506,17 @@ export default function StaffMembersSection() {
             value={staffForm.pin}
             onChange={e => setStaffForm(f => ({ ...f, pin: e.target.value.replace(/\D/g, '').slice(0, 4) }))}
             placeholder="••••"
-            className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 tracking-widest"
+            className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 tracking-widest"
           />
         </div>
         <div>
-          <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1.5">Hourly Rate (£)</label>
+          <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1.5">Hourly Rate (£)</label>
           <input
             type="number" step="0.01" min="0"
             value={staffForm.hourly_rate}
             onChange={e => setStaffForm(f => ({ ...f, hourly_rate: e.target.value }))}
             placeholder="e.g. 12.50"
-            className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+            className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
           />
         </div>
       </div>
@@ -524,11 +524,11 @@ export default function StaffMembersSection() {
       {/* Employment details */}
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1.5">Employment Type</label>
+          <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1.5">Employment Type</label>
           <select
             value={staffForm.employment_type}
             onChange={e => setStaffForm(f => ({ ...f, employment_type: e.target.value }))}
-            className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 text-charcoal"
+            className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 text-charcoal dark:text-white"
           >
             <option value="">Not set</option>
             {EMPLOYMENT_TYPES.map(t => (
@@ -537,40 +537,40 @@ export default function StaffMembersSection() {
           </select>
         </div>
         <div>
-          <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1.5">Start Date</label>
+          <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1.5">Start Date</label>
           <input
             type="date"
             value={staffForm.start_date}
             onChange={e => setStaffForm(f => ({ ...f, start_date: e.target.value }))}
-            className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+            className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
           />
         </div>
         <div>
-          <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1.5">Emergency Contact</label>
+          <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1.5">Emergency Contact</label>
           <input
             value={staffForm.emergency_contact_name}
             onChange={e => setStaffForm(f => ({ ...f, emergency_contact_name: e.target.value }))}
             placeholder="Contact name"
-            className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+            className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
           />
         </div>
         <div>
-          <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1.5">Emergency Phone</label>
+          <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1.5">Emergency Phone</label>
           <input
             type="tel"
             value={staffForm.emergency_contact_phone}
             onChange={e => setStaffForm(f => ({ ...f, emergency_contact_phone: e.target.value }))}
             placeholder="+44 7700 900000"
-            className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+            className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
           />
         </div>
       </div>
 
       {/* Holiday pay eligibility */}
-      <div className="flex items-center justify-between rounded-xl border border-charcoal/10 px-4 py-3 bg-charcoal/2">
+      <div className="flex items-center justify-between rounded-xl border border-charcoal/10 dark:border-white/10 px-4 py-3 bg-charcoal/2 dark:bg-white/3">
         <div>
-          <p className="text-sm font-medium text-charcoal">Eligible for holiday pay</p>
-          <p className="text-[11px] text-charcoal/45 mt-0.5">
+          <p className="text-sm font-medium text-charcoal dark:text-white">Eligible for holiday pay</p>
+          <p className="text-[11px] text-charcoal/45 dark:text-white/40 mt-0.5">
             Entitles this staff member to annual leave accrual and balance tracking
           </p>
         </div>
@@ -582,21 +582,21 @@ export default function StaffMembersSection() {
 
       {/* Permission level chips */}
       <div>
-        <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-2">Permission Level</label>
+        <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">Permission Level</label>
         <div className="flex gap-2 flex-wrap">
           {PERMISSION_ROLES.map(r => (
             <button
               key={r} type="button"
               onClick={() => setStaffForm(f => ({ ...f, role: r }))}
               className={['px-3 py-1.5 rounded-full text-xs font-medium border transition-all',
-                staffForm.role === r ? 'bg-charcoal text-cream border-charcoal' : 'bg-white text-charcoal/50 border-charcoal/15',
+                staffForm.role === r ? 'bg-charcoal text-cream border-charcoal dark:border-white' : 'bg-white dark:bg-paperDark text-charcoal/50 dark:text-white/40 border-charcoal/15 dark:border-white/15',
               ].join(' ')}
             >
               {PERMISSION_LABELS[r]}
             </button>
           ))}
         </div>
-        <p className="text-[11px] text-charcoal/40 mt-1.5">
+        <p className="text-[11px] text-charcoal/40 dark:text-white/35 mt-1.5">
           {staffForm.role === 'owner'   && 'Full access: same as Manager plus cannot be deactivated.'}
           {staffForm.role === 'manager' && 'Can manage rota, settings, and all staff operations.'}
           {staffForm.role === 'staff'   && 'Standard access: tasks, cleaning, temp logs and allergens (if enabled).'}
@@ -605,11 +605,11 @@ export default function StaffMembersSection() {
 
       {/* Job role select */}
       <div>
-        <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-2">Job Role</label>
+        <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">Job Role</label>
         <select
           value={staffForm.job_role}
           onChange={e => setStaffForm(f => ({ ...f, job_role: e.target.value }))}
-          className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 text-charcoal"
+          className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 text-charcoal dark:text-white"
         >
           <option value="">Not set</option>
           {customRoles.map(r => (
@@ -620,13 +620,13 @@ export default function StaffMembersSection() {
 
       {/* Skills / role assignment */}
       <div>
-        <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-2">Skills</label>
+        <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">Skills</label>
         {editingId ? (
           <StaffRolesAssignment staffId={editingId} />
         ) : (
-          <p className="text-xs text-charcoal/35 italic">Save this staff member first, then assign their skills.</p>
+          <p className="text-xs text-charcoal/35 dark:text-white/30 italic">Save this staff member first, then assign their skills.</p>
         )}
-        <p className="text-[11px] text-charcoal/35 mt-2">
+        <p className="text-[11px] text-charcoal/35 dark:text-white/30 mt-2">
           Skills tell the AI rota builder which shifts this person can cover.
         </p>
       </div>
@@ -634,23 +634,23 @@ export default function StaffMembersSection() {
       {/* Weekly schedule — hidden for zero-hours (no contracted pattern) */}
       {staffForm.employment_type !== 'zero_hours' && (
         <div className="flex flex-col gap-3">
-          <label className="text-[11px] tracking-widest uppercase text-charcoal/40">Weekly Schedule</label>
+          <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">Weekly Schedule</label>
 
           {/* Contracted hours */}
           <div>
-            <label className="text-[11px] text-charcoal/45 block mb-1.5">Contracted hours / week</label>
+            <label className="text-[11px] text-charcoal/45 dark:text-white/40 block mb-1.5">Contracted hours / week</label>
             <input
               type="number" step="0.5" min="0"
               value={staffForm.contracted_hours}
               onChange={e => setStaffForm(f => ({ ...f, contracted_hours: e.target.value }))}
               placeholder="e.g. 37.5"
-              className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+              className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
             />
           </div>
 
           {/* Working days */}
           <div>
-            <label className="text-[11px] text-charcoal/45 block mb-1.5">Regular working days</label>
+            <label className="text-[11px] text-charcoal/45 dark:text-white/40 block mb-1.5">Regular working days</label>
             <div className="flex gap-1.5 flex-wrap">
               {DOW_LABELS.map((day, i) => {
                 const dow    = i + 1
@@ -673,7 +673,7 @@ export default function StaffMembersSection() {
                       'px-2.5 py-1.5 rounded-lg text-xs font-medium border transition-all',
                       active
                         ? 'bg-brand text-cream border-brand'
-                        : 'bg-charcoal/4 text-charcoal/30 border-charcoal/10',
+                        : 'bg-charcoal/4 dark:bg-white/5 text-charcoal/30 dark:text-white/30 border-charcoal/10 dark:border-white/10',
                     ].join(' ')}
                   >
                     {day}
@@ -691,10 +691,10 @@ export default function StaffMembersSection() {
       )}
 
       {/* Under-18 toggle */}
-      <div className="flex items-center justify-between rounded-xl border border-charcoal/10 px-4 py-3 bg-charcoal/2">
+      <div className="flex items-center justify-between rounded-xl border border-charcoal/10 dark:border-white/10 px-4 py-3 bg-charcoal/2 dark:bg-white/3">
         <div>
-          <p className="text-sm font-medium text-charcoal">Under 18</p>
-          <p className="text-[11px] text-charcoal/45 mt-0.5">
+          <p className="text-sm font-medium text-charcoal dark:text-white">Under 18</p>
+          <p className="text-[11px] text-charcoal/45 dark:text-white/40 mt-0.5">
             Applies 30-min unpaid break for shifts over 4.5h (UK law)
           </p>
         </div>
@@ -707,8 +707,8 @@ export default function StaffMembersSection() {
       {/* Granular permissions (staff role only — managers get everything) */}
       {staffForm.role === 'staff' && (
         <div>
-          <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-2">Permissions</label>
-          <p className="text-[11px] text-charcoal/35 mb-3">
+          <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">Permissions</label>
+          <p className="text-[11px] text-charcoal/35 dark:text-white/30 mb-3">
             Controls what this staff member can see and do in the app.
           </p>
 
@@ -724,7 +724,7 @@ export default function StaffMembersSection() {
                   onClick={() => setPermForm(new Set(preset.permissions))}
                   className={[
                     'px-3 py-1.5 rounded-full text-xs font-medium border transition-all',
-                    active ? 'bg-brand text-cream border-brand' : 'bg-white text-charcoal/50 border-charcoal/15 hover:border-charcoal/30',
+                    active ? 'bg-brand text-cream border-brand' : 'bg-white dark:bg-paperDark text-charcoal/50 dark:text-white/40 border-charcoal/15 dark:border-white/15 hover:border-charcoal/30 dark:hover:border-white/30',
                   ].join(' ')}
                 >
                   {preset.label}
@@ -738,13 +738,13 @@ export default function StaffMembersSection() {
             const perms = STAFF_PERMISSIONS.filter(p => p.category === category)
             return (
               <div key={category} className="mb-3">
-                <p className="text-[11px] tracking-widest uppercase text-charcoal/30 mb-1.5">{category}</p>
+                <p className="text-[11px] tracking-widest uppercase text-charcoal/30 dark:text-white/30 mb-1.5">{category}</p>
                 <div className="flex flex-col gap-1.5">
                   {perms.map(perm => (
-                    <div key={perm.id} className="flex items-center justify-between py-1.5 px-3 rounded-lg hover:bg-charcoal/3 transition-colors">
+                    <div key={perm.id} className="flex items-center justify-between py-1.5 px-3 rounded-lg hover:bg-charcoal/3 dark:hover:bg-white/5 transition-colors">
                       <div className="min-w-0 flex-1">
-                        <p className="text-sm text-charcoal">{perm.label}</p>
-                        <p className="text-[11px] text-charcoal/35">{perm.description}</p>
+                        <p className="text-sm text-charcoal dark:text-white">{perm.label}</p>
+                        <p className="text-[11px] text-charcoal/35 dark:text-white/30">{perm.description}</p>
                       </div>
                       <Toggle
                         checked={permForm.has(perm.id)}
@@ -768,7 +768,7 @@ export default function StaffMembersSection() {
 
       {/* Rota colour picker */}
       <div>
-        <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-2">Rota Colour</label>
+        <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">Rota Colour</label>
         <div className="flex items-center gap-2 flex-wrap">
           {STAFF_COLOUR_PALETTE.map(hex => (
             <button
@@ -778,7 +778,7 @@ export default function StaffMembersSection() {
               style={{ backgroundColor: hex }}
               className={[
                 'w-7 h-7 rounded-full border-2 transition-all',
-                staffForm.colour === hex ? 'border-charcoal scale-110 shadow-sm' : 'border-transparent opacity-80 hover:opacity-100 hover:scale-105',
+                staffForm.colour === hex ? 'border-charcoal dark:border-white scale-110 shadow-sm' : 'border-transparent opacity-80 hover:opacity-100 hover:scale-105',
               ].join(' ')}
               title={hex}
             />
@@ -787,13 +787,13 @@ export default function StaffMembersSection() {
             <button
               type="button"
               onClick={() => setStaffForm(f => ({ ...f, colour: '' }))}
-              className="text-[11px] text-charcoal/40 hover:text-charcoal transition-colors border border-charcoal/15 rounded-full px-2 py-0.5"
+              className="text-[11px] text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white transition-colors border border-charcoal/15 dark:border-white/15 rounded-full px-2 py-0.5"
             >
               Auto
             </button>
           )}
         </div>
-        <p className="text-[11px] text-charcoal/35 mt-1">
+        <p className="text-[11px] text-charcoal/35 dark:text-white/30 mt-1">
           Colour used to identify this person on the rota. Leave unset for automatic assignment.
         </p>
       </div>
@@ -803,10 +803,10 @@ export default function StaffMembersSection() {
         const isManager = staffForm.role === 'manager' || staffForm.role === 'owner'
         return (
           <div>
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1.5">
+            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1.5">
               {isManager ? 'Venue Access' : 'Works At'}
             </label>
-            <p className="text-[11px] text-charcoal/35 mb-2">
+            <p className="text-[11px] text-charcoal/35 dark:text-white/30 mb-2">
               {isManager
                 ? 'Controls which venues this manager sees in their All Venues overview dashboard. Also determines which venues they can be rostered at.'
                 : 'Toggling a venue on makes this staff member visible in that venue\'s rota.'}
@@ -823,7 +823,7 @@ export default function StaffMembersSection() {
                     onClick={() => !isHome && toggleVenueLink(editingId, v.id, (venueLinks[editingId] ?? []).includes(v.id))}
                     className={[
                       'px-3 py-1.5 rounded-full text-xs font-medium border transition-all',
-                      isLinked ? 'bg-brand text-cream border-brand' : 'bg-white text-charcoal/50 border-charcoal/15',
+                      isLinked ? 'bg-brand text-cream border-brand' : 'bg-white dark:bg-paperDark text-charcoal/50 dark:text-white/40 border-charcoal/15 dark:border-white/15',
                       isHome ? 'opacity-60 cursor-default' : 'hover:border-brand/40',
                     ].join(' ')}
                   >
@@ -844,7 +844,7 @@ export default function StaffMembersSection() {
         >
           {savingStaff ? 'Saving…' : editingId ? 'Update Staff Member' : 'Add Staff Member →'}
         </button>
-        <button onClick={cancelEdit} className="px-4 py-2.5 rounded-lg border border-charcoal/15 text-sm text-charcoal/50">
+        <button onClick={cancelEdit} className="px-4 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 text-sm text-charcoal/50 dark:text-white/40">
           Cancel
         </button>
       </div>
@@ -860,7 +860,7 @@ export default function StaffMembersSection() {
         <div className="flex justify-end mb-4">
           <button
             onClick={openAdd}
-            className="text-[11px] tracking-widest uppercase text-charcoal/40 hover:text-charcoal transition-colors border-b border-charcoal/20"
+            className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white transition-colors border-b border-charcoal/20 dark:border-white/20"
           >
             + Add Staff
           </button>
@@ -871,7 +871,7 @@ export default function StaffMembersSection() {
       {showForm && !editingId && renderFormPanel()}
 
       {/* Staff list */}
-      <div className="bg-white rounded-xl border border-charcoal/8 overflow-hidden divide-y divide-charcoal/5">
+      <div className="bg-white dark:bg-paperDark rounded-xl border border-charcoal/8 dark:border-white/8 overflow-hidden divide-y divide-charcoal/5 dark:divide-white/5">
         {staff.map((s, idx) => {
           const initial   = (s.name || '?').charAt(0).toUpperCase()
           const roleLabel = (staffRoleMap[s.id] ?? [])[0] ?? (customRoles.find(r => r.value === s.job_role)?.label ?? s.job_role)
@@ -903,11 +903,11 @@ export default function StaffMembersSection() {
                   {/* Name + role + tags (inline) */}
                   <div className="min-w-0 flex items-center gap-2 flex-wrap">
                     <div className="min-w-0">
-                      <p className="text-sm font-semibold text-charcoal leading-tight truncate">{s.name}</p>
-                      <p className="text-xs text-charcoal/45 leading-tight">{roleLabel}</p>
+                      <p className="text-sm font-semibold text-charcoal dark:text-white leading-tight truncate">{s.name}</p>
+                      <p className="text-xs text-charcoal/45 dark:text-white/40 leading-tight">{roleLabel}</p>
                     </div>
                     {s.job_role && (
-                      <span className="text-[11px] font-semibold tracking-wider uppercase px-1.5 py-0.5 rounded bg-charcoal/[0.06] text-charcoal/55">
+                      <span className="text-[11px] font-semibold tracking-wider uppercase px-1.5 py-0.5 rounded bg-charcoal/[0.06] text-charcoal/55 dark:text-white/45">
                         {customRoles.find(r => r.value === s.job_role)?.label ?? s.job_role}
                       </span>
                     )}
@@ -921,15 +921,15 @@ export default function StaffMembersSection() {
                       </span>
                     )}
                     {!s.is_active && (
-                      <span className="text-[11px] tracking-wider uppercase text-charcoal/35">inactive</span>
+                      <span className="text-[11px] tracking-wider uppercase text-charcoal/35 dark:text-white/30">inactive</span>
                     )}
                   </div>
 
                   {/* Start date (hidden on small) */}
-                  <div className="hidden sm:flex items-center gap-2 text-xs text-charcoal/45 whitespace-nowrap">
+                  <div className="hidden sm:flex items-center gap-2 text-xs text-charcoal/45 dark:text-white/40 whitespace-nowrap">
                     {s.start_date && (
                       <span>
-                        since <b className="text-charcoal/65 font-medium">
+                        since <b className="text-charcoal/65 dark:text-white/55 font-medium">
                           {new Date(s.start_date).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })}
                         </b>
                       </span>
@@ -942,7 +942,7 @@ export default function StaffMembersSection() {
                     <a
                       href={`mailto:${s.email}`}
                       title={s.email}
-                      className="hidden sm:grid place-items-center w-7 h-7 rounded-md text-charcoal/40 hover:text-charcoal hover:bg-charcoal/5 transition-colors"
+                      className="hidden sm:grid place-items-center w-7 h-7 rounded-md text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white hover:bg-charcoal/5 dark:hover:bg-white/5 transition-colors"
                     >
                       <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
                         <rect x="2" y="4" width="20" height="16" rx="2" />
@@ -964,7 +964,7 @@ export default function StaffMembersSection() {
 
                   <button
                     onClick={() => openEdit(s)}
-                    className="h-7 px-2.5 rounded-md border border-charcoal/12 text-xs font-medium text-charcoal/60 hover:text-charcoal hover:border-charcoal/30 transition-colors"
+                    className="h-7 px-2.5 rounded-md border border-charcoal/12 dark:border-white/15 text-xs font-medium text-charcoal/60 dark:text-white/50 hover:text-charcoal dark:hover:text-white hover:border-charcoal/30 dark:hover:border-white/30 transition-colors"
                   >
                     View
                   </button>
@@ -987,7 +987,7 @@ export default function StaffMembersSection() {
                     className={[
                       'h-7 px-2.5 rounded-md border text-xs font-medium transition-colors',
                       s.is_active
-                        ? 'border-charcoal/12 text-charcoal/55 hover:text-danger hover:border-danger/30'
+                        ? 'border-charcoal/12 dark:border-white/15 text-charcoal/55 dark:text-white/45 hover:text-danger hover:border-danger/30'
                         : 'border-success/25 text-success/70 hover:text-success hover:border-success/45',
                     ].join(' ')}
                   >
@@ -996,8 +996,8 @@ export default function StaffMembersSection() {
 
                   {/* Reorder collapses to keyboard-only on hover */}
                   <div className="flex flex-col opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button onClick={() => moveStaff(s.id, 'up')}   disabled={idx === 0}             className="w-5 h-3.5 flex items-center justify-center text-charcoal/30 hover:text-charcoal disabled:opacity-0 text-[11px]">▲</button>
-                    <button onClick={() => moveStaff(s.id, 'down')} disabled={idx === staff.length-1} className="w-5 h-3.5 flex items-center justify-center text-charcoal/30 hover:text-charcoal disabled:opacity-0 text-[11px]">▼</button>
+                    <button onClick={() => moveStaff(s.id, 'up')}   disabled={idx === 0}             className="w-5 h-3.5 flex items-center justify-center text-charcoal/30 dark:text-white/30 hover:text-charcoal dark:hover:text-white disabled:opacity-0 text-[11px]">▲</button>
+                    <button onClick={() => moveStaff(s.id, 'down')} disabled={idx === staff.length-1} className="w-5 h-3.5 flex items-center justify-center text-charcoal/30 dark:text-white/30 hover:text-charcoal dark:hover:text-white disabled:opacity-0 text-[11px]">▼</button>
                   </div>
                   </div>{/* end actions */}
                 </div>{/* end inner grid */}
@@ -1015,7 +1015,7 @@ export default function StaffMembersSection() {
             </React.Fragment>
           )
         })}
-        {staff.length === 0 && <p className="text-sm text-charcoal/35 italic py-4 px-3">No staff members yet.</p>}
+        {staff.length === 0 && <p className="text-sm text-charcoal/35 dark:text-white/30 italic py-4 px-3">No staff members yet.</p>}
       </div>
 
       <ConfirmDialog

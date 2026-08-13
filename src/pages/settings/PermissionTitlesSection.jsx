@@ -58,18 +58,18 @@ export default function PermissionTitlesSection({ venueId, titles, reloadSetting
 
   return (
     <div className="flex flex-col gap-4">
-      <p className="text-xs text-charcoal/45">
+      <p className="text-xs text-charcoal/45 dark:text-white/40">
         Create the access titles used when editing staff members. Each venue can keep its own set.
       </p>
 
       <div className="flex flex-col gap-3">
         {draft.map(title => (
-          <div key={title.id} className="rounded-xl border border-charcoal/10 bg-white p-4">
+          <div key={title.id} className="rounded-xl border border-charcoal/10 dark:border-white/10 bg-white dark:bg-paperDark p-4">
             <div className="flex items-center gap-2 mb-4">
               <input
                 value={title.label}
                 onChange={e => updateTitle(title.id, { label: e.target.value })}
-                className="flex-1 px-3 py-2 rounded-lg border border-charcoal/15 bg-white text-sm font-semibold text-charcoal focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+                className="flex-1 px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm font-semibold text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
               />
               <button
                 onClick={() => removeTitle(title.id)}
@@ -81,11 +81,11 @@ export default function PermissionTitlesSection({ venueId, titles, reloadSetting
 
             {['Compliance', 'Operations', 'Team'].map(category => (
               <div key={category} className="mb-3 last:mb-0">
-                <p className="text-[11px] tracking-widest uppercase text-charcoal/30 mb-1.5">{category}</p>
+                <p className="text-[11px] tracking-widest uppercase text-charcoal/30 dark:text-white/30 mb-1.5">{category}</p>
                 <div className="grid sm:grid-cols-2 gap-1.5">
                   {STAFF_PERMISSIONS.filter(p => p.category === category).map(permission => (
-                    <label key={permission.id} className="flex items-center justify-between gap-3 px-3 py-2 rounded-lg bg-charcoal/2">
-                      <span className="text-xs text-charcoal/65">{permission.label}</span>
+                    <label key={permission.id} className="flex items-center justify-between gap-3 px-3 py-2 rounded-lg bg-charcoal/2 dark:bg-white/3">
+                      <span className="text-xs text-charcoal/65 dark:text-white/55">{permission.label}</span>
                       <Toggle
                         checked={title.permissions.includes(permission.id)}
                         onChange={on => togglePermission(title.id, permission.id, on)}
@@ -103,7 +103,7 @@ export default function PermissionTitlesSection({ venueId, titles, reloadSetting
       <div className="flex flex-wrap gap-2">
         <button
           onClick={addTitle}
-          className="px-4 py-2 rounded-lg border border-charcoal/15 text-sm text-charcoal/60 hover:text-charcoal hover:border-charcoal/30 transition-colors"
+          className="px-4 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 text-sm text-charcoal/60 dark:text-white/50 hover:text-charcoal dark:hover:text-white hover:border-charcoal/30 dark:hover:border-white/30 transition-colors"
         >
           + Add Title
         </button>

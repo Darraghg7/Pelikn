@@ -16,7 +16,7 @@ import Toggle from '../../components/ui/Toggle'
 function SectionLabel({ children, action }) {
   return (
     <div className="flex items-center justify-between mb-3">
-      <p className="text-[11px] tracking-widest uppercase text-charcoal/40">{children}</p>
+      <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">{children}</p>
       {action}
     </div>
   )
@@ -106,18 +106,18 @@ export default function AllergenRegistryPage() {
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-4">
-          <h1 className="text-2xl font-bold text-charcoal">Allergen Checklists</h1>
+          <h1 className="text-2xl font-bold text-charcoal dark:text-white">Allergen Checklists</h1>
           {isManager && (
             <div className="flex gap-2">
               <Link
                 to={`/v/${venueSlug}/allergens/procedure`}
-                className="text-xs px-3 py-1.5 rounded-lg border border-charcoal/15 text-charcoal/50 hover:text-charcoal hover:border-charcoal/30 transition-colors"
+                className="text-xs px-3 py-1.5 rounded-lg border border-charcoal/15 dark:border-white/15 text-charcoal/50 dark:text-white/40 hover:text-charcoal dark:hover:text-white hover:border-charcoal/30 dark:hover:border-white/30 transition-colors"
               >
                 Procedure →
               </Link>
               <Link
                 to={`/v/${venueSlug}/allergens/ppds`}
-                className="text-xs px-3 py-1.5 rounded-lg border border-charcoal/15 text-charcoal/50 hover:text-charcoal hover:border-charcoal/30 transition-colors"
+                className="text-xs px-3 py-1.5 rounded-lg border border-charcoal/15 dark:border-white/15 text-charcoal/50 dark:text-white/40 hover:text-charcoal dark:hover:text-white hover:border-charcoal/30 dark:hover:border-white/30 transition-colors"
               >
                 PPDS / Natasha's Law →
               </Link>
@@ -129,43 +129,43 @@ export default function AllergenRegistryPage() {
           placeholder="Search…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="px-3 py-2 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 w-full sm:w-48"
+          className="px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 w-full sm:w-48"
         />
       </div>
 
       {/* QR code panel — manager only */}
       {isManager && venueSlug && (
-        <div className="bg-white rounded-2xl border-charcoal/10 px-5 py-4">
+        <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 px-5 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-[11px] tracking-widest uppercase text-charcoal/40">Customer Allergen QR Code</p>
-              <p className="text-xs text-charcoal/45 mt-0.5">Customers can scan this to see your live allergen matrix — no login required.</p>
+              <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">Customer Allergen QR Code</p>
+              <p className="text-xs text-charcoal/45 dark:text-white/40 mt-0.5">Customers can scan this to see your live allergen matrix — no login required.</p>
             </div>
             <button
               onClick={() => setShowQR(v => !v)}
-              className="text-xs px-3 py-1.5 rounded-lg border border-charcoal/15 text-charcoal/55 hover:text-charcoal hover:border-charcoal/30 transition-colors shrink-0 ml-4"
+              className="text-xs px-3 py-1.5 rounded-lg border border-charcoal/15 dark:border-white/15 text-charcoal/55 dark:text-white/45 hover:text-charcoal dark:hover:text-white hover:border-charcoal/30 dark:hover:border-white/30 transition-colors shrink-0 ml-4"
             >
               {showQR ? 'Hide QR' : 'Show QR'}
             </button>
           </div>
           {showQR && (
             <div className="mt-4 flex flex-col sm:flex-row items-start gap-5">
-              <div ref={qrRef} className="p-3 bg-white rounded-2xl border-charcoal/10 shadow-sm shrink-0">
+              <div ref={qrRef} className="p-3 bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 shadow-sm shrink-0">
                 <QRCodeCanvas value={publicUrl} size={140} />
               </div>
               <div className="flex flex-col gap-2 min-w-0 flex-1">
-                <p className="text-[11px] tracking-widest uppercase text-charcoal/35">Public URL</p>
-                <p className="text-xs font-mono text-charcoal/60 break-all bg-charcoal/4 px-3 py-2 rounded-lg">{publicUrl}</p>
+                <p className="text-[11px] tracking-widest uppercase text-charcoal/35 dark:text-white/30">Public URL</p>
+                <p className="text-xs font-mono text-charcoal/60 dark:text-white/50 break-all bg-charcoal/4 dark:bg-white/5 px-3 py-2 rounded-lg">{publicUrl}</p>
                 <div className="flex flex-wrap gap-2 mt-1">
                   <button
                     onClick={() => { navigator.clipboard.writeText(publicUrl); toast('URL copied') }}
-                    className="text-xs px-3 py-1.5 rounded-lg border border-charcoal/15 text-charcoal/55 hover:text-charcoal hover:border-charcoal/30 transition-colors"
+                    className="text-xs px-3 py-1.5 rounded-lg border border-charcoal/15 dark:border-white/15 text-charcoal/55 dark:text-white/45 hover:text-charcoal dark:hover:text-white hover:border-charcoal/30 dark:hover:border-white/30 transition-colors"
                   >
                     Copy URL
                   </button>
                   <button
                     onClick={downloadQR}
-                    className="text-xs px-3 py-1.5 rounded-lg border border-charcoal/15 text-charcoal/55 hover:text-charcoal hover:border-charcoal/30 transition-colors"
+                    className="text-xs px-3 py-1.5 rounded-lg border border-charcoal/15 dark:border-white/15 text-charcoal/55 dark:text-white/45 hover:text-charcoal dark:hover:text-white hover:border-charcoal/30 dark:hover:border-white/30 transition-colors"
                   >
                     Download PNG
                   </button>
@@ -176,8 +176,8 @@ export default function AllergenRegistryPage() {
                     Print Table Card
                   </button>
                 </div>
-                <p className="text-[11px] text-charcoal/35 mt-1">
-                  <strong className="text-charcoal/50">Print Table Card</strong> opens a ready-to-print card with your venue logo, QR code and instructions — place on tables or counters.
+                <p className="text-[11px] text-charcoal/35 dark:text-white/30 mt-1">
+                  <strong className="text-charcoal/50 dark:text-white/40">Print Table Card</strong> opens a ready-to-print card with your venue logo, QR code and instructions — place on tables or counters.
                   {!logoUrl && <span className="block mt-0.5 text-accent/70">Add your logo in Settings to include it on the card.</span>}
                 </p>
               </div>
@@ -186,7 +186,7 @@ export default function AllergenRegistryPage() {
         </div>
       )}
 
-      <div className="bg-white rounded-2xl border-charcoal/10 overflow-hidden">
+      <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 overflow-hidden">
         <div className="px-5 pt-5">
           <SectionLabel
             action={
@@ -218,24 +218,24 @@ export default function AllergenRegistryPage() {
               const allergens = item.food_allergens?.map((a) => a.allergen) ?? []
               const expanded = expandedId === item.id
               return (
-                <div key={item.id} className="border-t border-charcoal/6">
+                <div key={item.id} className="border-t border-charcoal/6 dark:border-white/8">
                   <div
                     onClick={() => setExpandedId(id => id === item.id ? null : item.id)}
-                    className="flex items-center gap-4 px-5 py-3.5 hover:bg-white transition-colors cursor-pointer sm:cursor-default"
+                    className="flex items-center gap-4 px-5 py-3.5 hover:bg-white dark:hover:bg-paperDark transition-colors cursor-pointer sm:cursor-default"
                   >
                     {/* Icon placeholder */}
-                    <div className="w-7 h-7 rounded-md bg-charcoal/8 flex items-center justify-center shrink-0 text-charcoal/40">
+                    <div className="w-7 h-7 rounded-md bg-charcoal/8 dark:bg-white/8 flex items-center justify-center shrink-0 text-charcoal/40 dark:text-white/35">
                       <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 002-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 00-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"/></svg>
                     </div>
 
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 min-w-0 flex-wrap">
-                        <p className={`font-medium text-sm break-words sm:truncate ${item.is_active ? 'text-charcoal' : 'text-charcoal/35'}`}>{item.name}</p>
+                        <p className={`font-medium text-sm break-words sm:truncate ${item.is_active ? 'text-charcoal dark:text-white' : 'text-charcoal/35 dark:text-white/30'}`}>{item.name}</p>
                         {!item.is_active && (
-                          <span className="text-[11px] uppercase tracking-widest text-charcoal/30 border border-charcoal/10 rounded-full px-1.5 py-0.5 shrink-0">Off QR</span>
+                          <span className="text-[11px] uppercase tracking-widest text-charcoal/30 dark:text-white/30 border border-charcoal/10 dark:border-white/10 rounded-full px-1.5 py-0.5 shrink-0">Off QR</span>
                         )}
                       </div>
-                      <p className="text-xs text-charcoal/40 truncate mt-0.5">
+                      <p className="text-xs text-charcoal/40 dark:text-white/35 truncate mt-0.5">
                         {allergens.length === 0
                           ? 'No allergens'
                           : allergens.join(', ')}
@@ -247,7 +247,7 @@ export default function AllergenRegistryPage() {
                         onClick={(e) => e.stopPropagation()}
                         className="flex items-center gap-1.5 shrink-0"
                       >
-                        <span className="text-[11px] text-charcoal/35 hidden sm:inline">QR</span>
+                        <span className="text-[11px] text-charcoal/35 dark:text-white/30 hidden sm:inline">QR</span>
                         <Toggle
                           checked={item.is_active}
                           onChange={() => toggleItemActive(item)}
@@ -261,7 +261,7 @@ export default function AllergenRegistryPage() {
                       <Link
                         to={`/v/${venueSlug}/allergens/${item.id}`}
                         onClick={(e) => e.stopPropagation()}
-                        className="text-xs text-charcoal/50 hover:text-charcoal border border-charcoal/15 px-3 py-1.5 rounded-md hover:border-charcoal/30 transition-colors"
+                        className="text-xs text-charcoal/50 dark:text-white/40 hover:text-charcoal dark:hover:text-white border border-charcoal/15 dark:border-white/15 px-3 py-1.5 rounded-md hover:border-charcoal/30 dark:hover:border-white/30 transition-colors"
                       >
                         View
                       </Link>
@@ -270,14 +270,14 @@ export default function AllergenRegistryPage() {
                           <Link
                             to={`/v/${venueSlug}/allergens/${item.id}/edit`}
                             onClick={(e) => e.stopPropagation()}
-                            className="text-xs text-charcoal/50 hover:text-charcoal border border-charcoal/15 px-3 py-1.5 rounded-md hover:border-charcoal/30 transition-colors"
+                            className="text-xs text-charcoal/50 dark:text-white/40 hover:text-charcoal dark:hover:text-white border border-charcoal/15 dark:border-white/15 px-3 py-1.5 rounded-md hover:border-charcoal/30 dark:hover:border-white/30 transition-colors"
                           >
                             Edit
                           </Link>
                           <button
                             onClick={(e) => { e.stopPropagation(); setDeleteTarget({ id: item.id, name: item.name }) }}
                             disabled={deleting === item.id}
-                            className="text-xs text-charcoal/35 hover:text-danger border border-charcoal/12 px-2.5 py-1.5 rounded-md hover:border-danger/30 transition-colors"
+                            className="text-xs text-charcoal/35 dark:text-white/30 hover:text-danger border border-charcoal/12 dark:border-white/15 px-2.5 py-1.5 rounded-md hover:border-danger/30 transition-colors"
                           >
                             ×
                           </button>
@@ -287,7 +287,7 @@ export default function AllergenRegistryPage() {
 
                     {/* Mobile — chevron hints the row expands */}
                     <svg
-                      className={`sm:hidden shrink-0 text-charcoal/25 transition-transform ${expanded ? 'rotate-180' : ''}`}
+                      className={`sm:hidden shrink-0 text-charcoal/25 dark:text-white/25 transition-transform ${expanded ? 'rotate-180' : ''}`}
                       width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"
                     >
                       <polyline points="6 9 12 15 18 9" />
@@ -299,7 +299,7 @@ export default function AllergenRegistryPage() {
                     <div className="sm:hidden flex items-center gap-2 px-5 pb-3.5">
                       <Link
                         to={`/v/${venueSlug}/allergens/${item.id}`}
-                        className="flex-1 text-center text-xs text-charcoal/50 hover:text-charcoal border border-charcoal/15 py-2 rounded-md hover:border-charcoal/30 transition-colors"
+                        className="flex-1 text-center text-xs text-charcoal/50 dark:text-white/40 hover:text-charcoal dark:hover:text-white border border-charcoal/15 dark:border-white/15 py-2 rounded-md hover:border-charcoal/30 dark:hover:border-white/30 transition-colors"
                       >
                         View
                       </Link>
@@ -307,14 +307,14 @@ export default function AllergenRegistryPage() {
                         <>
                           <Link
                             to={`/v/${venueSlug}/allergens/${item.id}/edit`}
-                            className="flex-1 text-center text-xs text-charcoal/50 hover:text-charcoal border border-charcoal/15 py-2 rounded-md hover:border-charcoal/30 transition-colors"
+                            className="flex-1 text-center text-xs text-charcoal/50 dark:text-white/40 hover:text-charcoal dark:hover:text-white border border-charcoal/15 dark:border-white/15 py-2 rounded-md hover:border-charcoal/30 dark:hover:border-white/30 transition-colors"
                           >
                             Edit
                           </Link>
                           <button
                             onClick={() => setDeleteTarget({ id: item.id, name: item.name })}
                             disabled={deleting === item.id}
-                            className="text-xs text-charcoal/35 hover:text-danger border border-charcoal/12 px-3 py-2 rounded-md hover:border-danger/30 transition-colors"
+                            className="text-xs text-charcoal/35 dark:text-white/30 hover:text-danger border border-charcoal/12 dark:border-white/15 px-3 py-2 rounded-md hover:border-danger/30 transition-colors"
                           >
                             Remove
                           </button>

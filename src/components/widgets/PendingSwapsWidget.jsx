@@ -22,13 +22,13 @@ function PendingSwapsWidget() {
   return (
     <WidgetShell title="Swap Requests" to="/rota" status={data.count > 0 ? 'warning' : undefined}>
       {data.count === 0 ? (
-        <p className="text-sm text-charcoal/30 italic py-2">No pending requests</p>
+        <p className="text-sm text-charcoal/30 dark:text-white/30 italic py-2">No pending requests</p>
       ) : (
         <>
           <BigNumber value={data.count} label="pending" alert={false} />
-          <div className="mt-1 border-t border-charcoal/6 pt-2">
+          <div className="mt-1 border-t border-charcoal/6 dark:border-white/8 pt-2">
             {data.items.map(s => (
-              <p key={s.id} className="text-xs text-charcoal/50 py-0.5 truncate">
+              <p key={s.id} className="text-xs text-charcoal/50 dark:text-white/40 py-0.5 truncate">
                 {s.requester_name} → {s.target_staff_name}
               </p>
             ))}

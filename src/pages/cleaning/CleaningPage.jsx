@@ -15,7 +15,7 @@ const FREQ_OPTIONS = ['daily', 'weekly', 'fortnightly', 'monthly', 'quarterly']
 const FREQ_DAYS = { daily: 1, weekly: 7, fortnightly: 14, monthly: 30, quarterly: 90 }
 
 function SectionLabel({ children }) {
-  return <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-3">{children}</p>
+  return <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-3">{children}</p>
 }
 
 /** Bold, coloured urgency chip for the meta line — "3d overdue" / "Due in 2d" / null when on-schedule. */
@@ -55,7 +55,7 @@ function CheckCircle({ status, onTap }) {
       className={[
         'w-[26px] h-[26px] rounded-full shrink-0 p-0 grid place-items-center border-2 cursor-pointer',
         'text-transparent hover:bg-success hover:border-success hover:text-white transition-colors',
-        overdue ? 'border-danger bg-danger/8' : 'border-charcoal/20 bg-transparent',
+        overdue ? 'border-danger bg-danger/8' : 'border-charcoal/20 dark:border-white/20 bg-transparent',
       ].join(' ')}
     >
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round">
@@ -167,12 +167,12 @@ export default function CleaningPage() {
       />
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-2xl font-bold text-charcoal">Cleaning Schedule</h1>
+        <h1 className="text-2xl font-bold text-charcoal dark:text-white">Cleaning Schedule</h1>
         <div className="flex items-center gap-3">
           {isManager && (
             <button
               onClick={() => setShowExport(true)}
-              className="text-[11px] tracking-widest uppercase text-charcoal/40 hover:text-charcoal transition-colors border-b border-charcoal/20"
+              className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white transition-colors border-b border-charcoal/20 dark:border-white/20"
             >
               Export PDF
             </button>
@@ -180,7 +180,7 @@ export default function CleaningPage() {
           {isManager && (
           <button
             onClick={() => setShowAdd((v) => !v)}
-            className="text-[11px] tracking-widest uppercase text-charcoal/40 hover:text-charcoal transition-colors border-b border-charcoal/20"
+            className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white transition-colors border-b border-charcoal/20 dark:border-white/20"
           >
             + Add Task
           </button>
@@ -204,24 +204,24 @@ export default function CleaningPage() {
           </span>
           <div className="flex-1 min-w-0">
             {overdueCount > 0 && <p className="text-[13.5px] font-bold text-danger">{overdueCount} task{overdueCount !== 1 ? 's' : ''} overdue</p>}
-            {dueSoonCount > 0 && <p className={`text-xs ${overdueCount > 0 ? 'text-charcoal/60' : 'text-warning'}`}>{dueSoonCount} task{dueSoonCount !== 1 ? 's' : ''} due soon</p>}
+            {dueSoonCount > 0 && <p className={`text-xs ${overdueCount > 0 ? 'text-charcoal/60 dark:text-white/50' : 'text-warning'}`}>{dueSoonCount} task{dueSoonCount !== 1 ? 's' : ''} due soon</p>}
           </div>
         </div>
       )}
 
       {/* Add task form (isManager only) */}
       {showAdd && isManager && (
-        <div className="bg-white rounded-2xl border border-charcoal/10 p-5 flex flex-col gap-4">
+        <div className="bg-white dark:bg-paperDark rounded-2xl border border-charcoal/10 dark:border-white/10 p-5 flex flex-col gap-4">
           <SectionLabel>New Cleaning Task</SectionLabel>
           <input
             value={form.title}
             onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
             placeholder="Task title e.g. Deep clean storage room"
-            className="px-4 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+            className="px-4 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
           />
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-2">Frequency</label>
+              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">Frequency</label>
               <div className="flex flex-wrap gap-2">
                 {FREQ_OPTIONS.map((f) => (
                   <button
@@ -230,7 +230,7 @@ export default function CleaningPage() {
                     onClick={() => setForm((prev) => ({ ...prev, frequency: f }))}
                     className={[
                       'px-3 py-1.5 rounded-full text-xs font-medium border transition-all',
-                      form.frequency === f ? 'bg-charcoal text-cream border-charcoal' : 'bg-white text-charcoal/50 border-charcoal/15',
+                      form.frequency === f ? 'bg-charcoal text-cream border-charcoal dark:border-white' : 'bg-white dark:bg-paperDark text-charcoal/50 dark:text-white/40 border-charcoal/15 dark:border-white/15',
                     ].join(' ')}
                   >
                     {capitalize(f)}
@@ -239,7 +239,7 @@ export default function CleaningPage() {
               </div>
             </div>
             <div>
-              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-2">Assigned To</label>
+              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">Assigned To</label>
               <div className="flex flex-wrap gap-2">
                 {roleOptions.map((r) => (
                   <button
@@ -248,7 +248,7 @@ export default function CleaningPage() {
                     onClick={() => setForm((prev) => ({ ...prev, assigned_role: r.value }))}
                     className={[
                       'px-3 py-1.5 rounded-full text-xs font-medium border transition-all',
-                      form.assigned_role === r.value ? 'bg-charcoal text-cream border-charcoal' : 'bg-white text-charcoal/50 border-charcoal/15',
+                      form.assigned_role === r.value ? 'bg-charcoal text-cream border-charcoal dark:border-white' : 'bg-white dark:bg-paperDark text-charcoal/50 dark:text-white/40 border-charcoal/15 dark:border-white/15',
                     ].join(' ')}
                   >
                     {r.label}
@@ -265,7 +265,7 @@ export default function CleaningPage() {
             >
               {saving ? 'Saving…' : 'Save Task →'}
             </button>
-            <button onClick={() => setShowAdd(false)} className="px-4 py-2.5 rounded-lg border border-charcoal/15 text-sm text-charcoal/50">
+            <button onClick={() => setShowAdd(false)} className="px-4 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 text-sm text-charcoal/50 dark:text-white/40">
               Cancel
             </button>
           </div>
@@ -281,8 +281,8 @@ export default function CleaningPage() {
             className={[
               'px-[14px] py-[7px] rounded-full text-[13px] font-medium border transition-all inline-flex items-center gap-1.5',
               filterStatus === s
-                ? 'bg-charcoal text-cream border-charcoal'
-                : 'bg-white text-charcoal/50 border-charcoal/15 hover:border-charcoal/30',
+                ? 'bg-charcoal text-cream border-charcoal dark:border-white'
+                : 'bg-white dark:bg-paperDark text-charcoal/50 dark:text-white/40 border-charcoal/15 dark:border-white/15 hover:border-charcoal/30 dark:hover:border-white/30',
             ].join(' ')}
           >
             {s === 'all' ? 'All' : s === 'due_soon' ? 'Due Soon' : capitalize(s)}
@@ -297,8 +297,8 @@ export default function CleaningPage() {
       </div>
 
       {/* Task list */}
-      <div className="bg-white rounded-2xl border border-charcoal/10 overflow-hidden px-[14px]">
-        <div className="flex flex-col divide-y divide-charcoal/6">
+      <div className="bg-white dark:bg-paperDark rounded-2xl border border-charcoal/10 dark:border-white/10 overflow-hidden px-[14px]">
+        <div className="flex flex-col divide-y divide-charcoal/6 dark:divide-white/8">
           {filtered.map((t) => {
             const done = t.status === 'done'
             const overdue = t.status === 'overdue'
@@ -309,7 +309,7 @@ export default function CleaningPage() {
                 <CheckCircle status={t.status} onTap={() => openComplete(t)} />
 
                 <div className="flex-1 min-w-0">
-                  <div className={`text-[15px] font-medium tracking-[-0.01em] whitespace-nowrap overflow-hidden text-ellipsis ${done ? 'text-charcoal/60' : 'text-charcoal'}`}>
+                  <div className={`text-[15px] font-medium tracking-[-0.01em] whitespace-nowrap overflow-hidden text-ellipsis ${done ? 'text-charcoal/60 dark:text-white/50' : 'text-charcoal dark:text-white'}`}>
                     {t.title}
                   </div>
                   <div className="flex items-center gap-1.5 mt-1 min-w-0 whitespace-nowrap overflow-hidden">
@@ -318,12 +318,12 @@ export default function CleaningPage() {
                         {urgency}
                       </span>
                     )}
-                    {urgency && <span className="text-charcoal/20 text-[10px] shrink-0">·</span>}
-                    <span className="font-mono text-[10px] font-medium tracking-wide uppercase text-charcoal/40 shrink-0">{capitalize(t.frequency)}</span>
-                    <span className="text-charcoal/20 text-[10px] shrink-0">·</span>
-                    <span className="font-mono text-[10px] font-medium tracking-wide uppercase text-charcoal/40 shrink-0">{roleLabel}</span>
-                    <span className="text-charcoal/20 text-[10px] shrink-0">·</span>
-                    <span className="text-[11.5px] text-charcoal/35 overflow-hidden text-ellipsis min-w-0">
+                    {urgency && <span className="text-charcoal/20 dark:text-white/20 text-[10px] shrink-0">·</span>}
+                    <span className="font-mono text-[10px] font-medium tracking-wide uppercase text-charcoal/40 dark:text-white/35 shrink-0">{capitalize(t.frequency)}</span>
+                    <span className="text-charcoal/20 dark:text-white/20 text-[10px] shrink-0">·</span>
+                    <span className="font-mono text-[10px] font-medium tracking-wide uppercase text-charcoal/40 dark:text-white/35 shrink-0">{roleLabel}</span>
+                    <span className="text-charcoal/20 dark:text-white/20 text-[10px] shrink-0">·</span>
+                    <span className="text-[11.5px] text-charcoal/35 dark:text-white/30 overflow-hidden text-ellipsis min-w-0">
                       {t.lastCompletion
                         ? done
                           ? `${formatDistanceToNow(new Date(t.lastCompletion.completed_at), { addSuffix: true })} · ${t.lastCompletion.completed_by_name}`
@@ -337,7 +337,7 @@ export default function CleaningPage() {
                   <button
                     onClick={() => setRemoveTarget(t)}
                     aria-label="Remove task"
-                    className="shrink-0 w-7 h-7 rounded-lg grid place-items-center text-charcoal/30 hover:text-danger hover:bg-danger/8 transition-colors"
+                    className="shrink-0 w-7 h-7 rounded-lg grid place-items-center text-charcoal/30 dark:text-white/30 hover:text-danger hover:bg-danger/8 transition-colors"
                   >
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M18 6 6 18M6 6l12 12" />
@@ -348,7 +348,7 @@ export default function CleaningPage() {
             )
           })}
           {filtered.length === 0 && (
-            <p className="text-sm text-charcoal/35 italic py-6 text-center">
+            <p className="text-sm text-charcoal/35 dark:text-white/30 italic py-6 text-center">
               {tasks.length === 0 ? 'No cleaning tasks set up yet.' : 'No tasks match this filter.'}
             </p>
           )}
@@ -357,14 +357,14 @@ export default function CleaningPage() {
 
       {/* Complete modal */}
       {completeModal && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-charcoal/40 backdrop-blur-sm" onClick={() => setCompleteModal(null)}>
-          <div className="bg-white rounded-2xl w-full max-w-md p-6 flex flex-col gap-4 shadow-2xl" style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }} onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-charcoal/40 dark:bg-white/40 backdrop-blur-sm" onClick={() => setCompleteModal(null)}>
+          <div className="bg-white dark:bg-paperDark rounded-2xl w-full max-w-md p-6 flex flex-col gap-4 shadow-2xl" style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }} onClick={e => e.stopPropagation()}>
             <div>
-              <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-1">Mark Complete</p>
-              <h3 className="font-semibold text-charcoal text-lg">{completeModal.title}</h3>
+              <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-1">Mark Complete</p>
+              <h3 className="font-semibold text-charcoal dark:text-white text-lg">{completeModal.title}</h3>
             </div>
             <div>
-              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-2">
+              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">
                 Notes (optional)
               </label>
               <textarea
@@ -372,7 +372,7 @@ export default function CleaningPage() {
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="Any notes about this cleaning task…"
                 rows={3}
-                className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm resize-none focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+                className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm resize-none focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
               />
             </div>
             <div className="flex gap-2">
@@ -385,7 +385,7 @@ export default function CleaningPage() {
               </button>
               <button
                 onClick={() => setCompleteModal(null)}
-                className="px-4 py-2.5 rounded-lg border border-charcoal/15 text-sm text-charcoal/50"
+                className="px-4 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 text-sm text-charcoal/50 dark:text-white/40"
               >
                 Cancel
               </button>

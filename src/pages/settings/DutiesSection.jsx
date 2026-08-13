@@ -6,7 +6,7 @@ import ConfirmDialog from '../../components/ui/ConfirmDialog'
 function ItemInput({ value, onChange, onRemove, onKeyDown, autoFocus }) {
   return (
     <div className="flex items-center gap-2">
-      <span className="text-charcoal/20 shrink-0">
+      <span className="text-charcoal/20 dark:text-white/20 shrink-0">
         <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/>
           <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
@@ -19,13 +19,13 @@ function ItemInput({ value, onChange, onRemove, onKeyDown, autoFocus }) {
         onKeyDown={onKeyDown}
         autoFocus={autoFocus}
         placeholder="Task description…"
-        className="flex-1 px-3 py-1.5 rounded-lg border border-charcoal/12 bg-white text-sm text-charcoal placeholder-charcoal/25 focus:outline-none focus:ring-2 focus:ring-charcoal/15"
+        className="flex-1 px-3 py-1.5 rounded-lg border border-charcoal/12 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white placeholder-charcoal/25 dark:placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-charcoal/15 dark:focus:ring-white/15"
       />
       <button
         type="button"
         onClick={onRemove}
         aria-label="Remove item"
-        className="text-charcoal/25 hover:text-danger transition-colors shrink-0 w-9 h-9 inline-flex items-center justify-center"
+        className="text-charcoal/25 dark:text-white/25 hover:text-danger transition-colors shrink-0 w-9 h-9 inline-flex items-center justify-center"
       >×</button>
     </div>
   )
@@ -55,9 +55,9 @@ function NewDutyForm({ onSave, onCancel }) {
   }
 
   return (
-    <div className="rounded-2xl border border-charcoal/12 bg-charcoal/2 p-4 flex flex-col gap-3">
+    <div className="rounded-2xl border border-charcoal/12 dark:border-white/15 bg-charcoal/2 dark:bg-white/3 p-4 flex flex-col gap-3">
       <div>
-        <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1.5">Duty name</label>
+        <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1.5">Duty name</label>
         <input
           type="text"
           value={title}
@@ -65,12 +65,12 @@ function NewDutyForm({ onSave, onCancel }) {
           onKeyDown={e => e.key === 'Enter' && document.activeElement.blur()}
           autoFocus
           placeholder="e.g. Opening Shift"
-          className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 bg-white text-sm text-charcoal placeholder-charcoal/25 focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+          className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white placeholder-charcoal/25 dark:placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
         />
       </div>
 
       <div>
-        <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-2">Tasks</label>
+        <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">Tasks</label>
         <div className="flex flex-col gap-2">
           {items.map((item, i) => (
             <ItemInput
@@ -92,7 +92,7 @@ function NewDutyForm({ onSave, onCancel }) {
         </button>
       </div>
 
-      <div className="flex gap-2 pt-1 border-t border-charcoal/8">
+      <div className="flex gap-2 pt-1 border-t border-charcoal/8 dark:border-white/8">
         <button
           onClick={handleSave}
           disabled={saving || !title.trim()}
@@ -102,7 +102,7 @@ function NewDutyForm({ onSave, onCancel }) {
         </button>
         <button
           onClick={onCancel}
-          className="px-4 py-2 rounded-lg border border-charcoal/15 text-sm text-charcoal/60 hover:text-charcoal hover:border-charcoal/30 transition-colors"
+          className="px-4 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 text-sm text-charcoal/60 dark:text-white/50 hover:text-charcoal dark:hover:text-white hover:border-charcoal/30 dark:hover:border-white/30 transition-colors"
         >
           Cancel
         </button>
@@ -115,15 +115,15 @@ function TemplateRow({ template, onDelete }) {
   const [expanded, setExpanded] = useState(false)
 
   return (
-    <div className="rounded-xl border border-charcoal/10 bg-charcoal/2 overflow-hidden">
+    <div className="rounded-xl border border-charcoal/10 dark:border-white/10 bg-charcoal/2 dark:bg-white/3 overflow-hidden">
       <button
         type="button"
         onClick={() => setExpanded(e => !e)}
         className="w-full flex items-center justify-between px-3 py-2.5 text-left"
       >
         <div className="flex items-center gap-2.5 min-w-0">
-          <span className="text-sm font-medium text-charcoal truncate">{template.title}</span>
-          <span className="text-[11px] text-charcoal/35 shrink-0">{template.items.length} task{template.items.length !== 1 ? 's' : ''}</span>
+          <span className="text-sm font-medium text-charcoal dark:text-white truncate">{template.title}</span>
+          <span className="text-[11px] text-charcoal/35 dark:text-white/30 shrink-0">{template.items.length} task{template.items.length !== 1 ? 's' : ''}</span>
         </div>
         <div className="flex items-center gap-1.5 shrink-0 ml-2">
           <button
@@ -134,7 +134,7 @@ function TemplateRow({ template, onDelete }) {
             Remove
           </button>
           <svg
-            className={`w-4 h-4 text-charcoal/30 transition-transform ${expanded ? 'rotate-180' : ''}`}
+            className={`w-4 h-4 text-charcoal/30 dark:text-white/30 transition-transform ${expanded ? 'rotate-180' : ''}`}
             viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
           >
             <path d="m6 9 6 6 6-6"/>
@@ -143,10 +143,10 @@ function TemplateRow({ template, onDelete }) {
       </button>
 
       {expanded && template.items.length > 0 && (
-        <div className="border-t border-charcoal/8 px-3 py-2.5 flex flex-col gap-1.5">
+        <div className="border-t border-charcoal/8 dark:border-white/8 px-3 py-2.5 flex flex-col gap-1.5">
           {template.items.map((item, i) => (
-            <div key={item.id} className="flex items-center gap-2 text-sm text-charcoal/60">
-              <span className="text-[11px] text-charcoal/25 font-mono w-4 shrink-0">{i + 1}.</span>
+            <div key={item.id} className="flex items-center gap-2 text-sm text-charcoal/60 dark:text-white/50">
+              <span className="text-[11px] text-charcoal/25 dark:text-white/25 font-mono w-4 shrink-0">{i + 1}.</span>
               {item.title}
             </div>
           ))}
@@ -154,7 +154,7 @@ function TemplateRow({ template, onDelete }) {
       )}
 
       {expanded && template.items.length === 0 && (
-        <p className="border-t border-charcoal/8 px-3 py-2.5 text-sm text-charcoal/30 italic">No tasks added</p>
+        <p className="border-t border-charcoal/8 dark:border-white/8 px-3 py-2.5 text-sm text-charcoal/30 dark:text-white/30 italic">No tasks added</p>
       )}
     </div>
   )
@@ -180,7 +180,7 @@ export default function DutiesSection() {
     else toast('Duty removed')
   }
 
-  if (loading) return <div className="py-4 text-center text-sm text-charcoal/30">Loading…</div>
+  if (loading) return <div className="py-4 text-center text-sm text-charcoal/30 dark:text-white/30">Loading…</div>
 
   return (
     <div className="flex flex-col gap-4">
@@ -194,7 +194,7 @@ export default function DutiesSection() {
         onClose={() => setDeleteTarget(null)}
       />
 
-      <p className="text-xs text-charcoal/45">
+      <p className="text-xs text-charcoal/45 dark:text-white/40">
         Create named duty templates with a checklist of tasks. Assign them to staff when building the rota — staff see their duties on the dashboard when they log in.
       </p>
 
@@ -207,7 +207,7 @@ export default function DutiesSection() {
       )}
 
       {templates.length === 0 && !adding && (
-        <p className="text-sm text-charcoal/30 italic">No duties yet — create your first one below.</p>
+        <p className="text-sm text-charcoal/30 dark:text-white/30 italic">No duties yet — create your first one below.</p>
       )}
 
       {adding ? (

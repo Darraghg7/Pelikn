@@ -31,7 +31,7 @@ export default function StaffSettingsPage() {
     <div>
       <SettingsSubHeader title="Staff & Roles" onBack={() => navigate(vp('/settings/hub'))} />
 
-      <div className="flex bg-white dark:bg-paperDark border-b border-charcoal/10 gap-0.5 sticky top-[49px] z-[9]">
+      <div className="flex bg-white dark:bg-paperDark border-b border-charcoal/10 dark:border-white/10 gap-0.5 sticky top-[49px] z-[9]">
         {TABS.map(t => (
           <button
             key={t.id}
@@ -39,7 +39,7 @@ export default function StaffSettingsPage() {
             className={`px-3 py-[12px] pb-[11px] text-[13px] border-b-2 -mb-px transition-all whitespace-nowrap ${
               tab === t.id
                 ? 'font-semibold text-brand border-brand'
-                : 'font-medium text-charcoal/50 border-transparent hover:text-charcoal'
+                : 'font-medium text-charcoal/50 dark:text-white/40 border-transparent hover:text-charcoal dark:hover:text-white'
             }`}
           >{t.label}</button>
         ))}

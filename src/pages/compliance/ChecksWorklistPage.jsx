@@ -16,7 +16,7 @@ const STATUS_TONE = {
   overdue: { fg: 'text-danger',  bg: 'bg-danger/10',  rank: 0, label: 'Overdue' },
   due:     { fg: 'text-warning', bg: 'bg-warning/10', rank: 1, label: 'Due' },
   done:    { fg: 'text-success', bg: 'bg-success/10', rank: 2, label: 'Done' },
-  na:      { fg: 'text-charcoal/30', bg: 'bg-charcoal/6', rank: 3, label: '—' },
+  na:      { fg: 'text-charcoal/30 dark:text-white/30', bg: 'bg-charcoal/6 dark:bg-white/8', rank: 3, label: '—' },
 }
 
 const CHECKS = [
@@ -55,11 +55,11 @@ function FilterChip({ label, count, active, onClick }) {
   return (
     <button
       onClick={onClick}
-      className={`inline-flex items-center gap-[5px] px-[13px] py-1.5 rounded-full border-[1.5px] text-[13px] font-semibold cursor-pointer whitespace-nowrap transition-all ${active ? 'border-brand bg-brand text-white' : 'border-charcoal/10 bg-white dark:bg-paperDark text-charcoal/50'}`}
+      className={`inline-flex items-center gap-[5px] px-[13px] py-1.5 rounded-full border-[1.5px] text-[13px] font-semibold cursor-pointer whitespace-nowrap transition-all ${active ? 'border-brand bg-brand text-white' : 'border-charcoal/10 dark:border-white/10 bg-white dark:bg-paperDark text-charcoal/50 dark:text-white/40'}`}
     >
       {label}
       {count != null && (
-        <span className={`min-w-[18px] h-[18px] px-[5px] rounded-full font-mono text-[11px] font-semibold inline-flex items-center justify-center ${active ? 'bg-white/22 text-white' : 'bg-charcoal/6 text-charcoal/50'}`}>
+        <span className={`min-w-[18px] h-[18px] px-[5px] rounded-full font-mono text-[11px] font-semibold inline-flex items-center justify-center ${active ? 'bg-white/22 text-white' : 'bg-charcoal/6 dark:bg-white/8 text-charcoal/50 dark:text-white/40'}`}>
           {count}
         </span>
       )}
@@ -75,22 +75,22 @@ function WorklistRow({ check, statusInfo, onClick }) {
   return (
     <button
       onClick={onClick}
-      className="w-full text-left cursor-pointer bg-white dark:bg-paperDark border-none border-b border-charcoal/6 px-4 py-[13px] flex items-center gap-[13px] last:border-b-0"
+      className="w-full text-left cursor-pointer bg-white dark:bg-paperDark border-none border-b border-charcoal/6 dark:border-white/8 px-4 py-[13px] flex items-center gap-[13px] last:border-b-0"
     >
       <span className={`w-9 h-9 rounded-[10px] shrink-0 flex items-center justify-center ${bg} ${fg}`}>
         <span className="w-[18px] h-[18px] inline-flex"><Icon /></span>
       </span>
 
       <div className="flex-1 min-w-0">
-        <div className="text-sm font-semibold text-charcoal tracking-[-0.01em]">
+        <div className="text-sm font-semibold text-charcoal dark:text-white tracking-[-0.01em]">
           {check.label}
         </div>
         <div className="flex items-center gap-1.5 mt-0.5">
-          <span className="font-mono text-[11px] text-charcoal/30 tracking-[0.04em]">
+          <span className="font-mono text-[11px] text-charcoal/30 dark:text-white/30 tracking-[0.04em]">
             {check.area}
           </span>
-          <span className="w-0.5 h-0.5 rounded-full bg-charcoal/30" />
-          <span className="font-mono text-[11px] text-charcoal/30 tracking-[0.04em]">
+          <span className="w-0.5 h-0.5 rounded-full bg-charcoal/30 dark:bg-white/30" />
+          <span className="font-mono text-[11px] text-charcoal/30 dark:text-white/30 tracking-[0.04em]">
             {check.cadence}
           </span>
         </div>
@@ -109,11 +109,11 @@ function WorklistRow({ check, statusInfo, onClick }) {
             {statusInfo?.statusText ?? STATUS_TONE[status].label}
           </span>
         ) : (
-          <span className="font-mono text-[11px] text-charcoal/30">—</span>
+          <span className="font-mono text-[11px] text-charcoal/30 dark:text-white/30">—</span>
         )}
       </div>
 
-      <span className="text-charcoal/30 inline-flex">
+      <span className="text-charcoal/30 dark:text-white/30 inline-flex">
         <svg width="6" height="10" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M1 1l4 4-4 4"/>
         </svg>
@@ -158,12 +158,12 @@ export default function ChecksWorklistPage() {
     <div className="pb-24">
 
       <div className="mb-[10px]">
-        <span className="font-mono text-[11px] text-charcoal/50 tracking-[0.08em] uppercase">Checks</span>
-        <h1 className="text-[26px] font-semibold tracking-[-0.028em] leading-[1.12] mt-1 mb-0 text-charcoal">
+        <span className="font-mono text-[11px] text-charcoal/50 dark:text-white/40 tracking-[0.08em] uppercase">Checks</span>
+        <h1 className="text-[26px] font-semibold tracking-[-0.028em] leading-[1.12] mt-1 mb-0 text-charcoal dark:text-white">
           All checks
         </h1>
         {!isLoading && (
-          <p className="font-mono text-[11px] text-charcoal/50 mt-[5px] mb-0">
+          <p className="font-mono text-[11px] text-charcoal/50 dark:text-white/40 mt-[5px] mb-0">
             {counts.Overdue > 0 && `${counts.Overdue} overdue · `}
             {counts.Due > 0 && `${counts.Due} due · `}
             {counts.Done} done
@@ -183,12 +183,12 @@ export default function ChecksWorklistPage() {
         ))}
       </div>
 
-      <div className={isLoading ? '' : 'bg-white dark:bg-paperDark rounded-[14px] border border-charcoal/10 overflow-hidden'}>
+      <div className={isLoading ? '' : 'bg-white dark:bg-paperDark rounded-[14px] border border-charcoal/10 dark:border-white/10 overflow-hidden'}>
         {isLoading ? (
           <SkeletonList rows={6} />
         ) : filtered.length === 0 ? (
           <div className="py-10 px-6 text-center">
-            <p className="text-sm text-charcoal/50">No {filter.toLowerCase()} checks</p>
+            <p className="text-sm text-charcoal/50 dark:text-white/40">No {filter.toLowerCase()} checks</p>
           </div>
         ) : (
           filtered.map(c => (

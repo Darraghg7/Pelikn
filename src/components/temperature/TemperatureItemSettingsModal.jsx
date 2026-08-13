@@ -107,42 +107,42 @@ export default function TemperatureItemSettingsModal({
       <div className="flex flex-col gap-5">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <label className="sm:col-span-3">
-            <span className="block text-[11px] tracking-widest uppercase text-charcoal/40 mb-1.5">Name</span>
+            <span className="block text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-1.5">Name</span>
             <input
               value={form.name}
               onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-              className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 bg-white text-sm text-charcoal focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+              className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
             />
           </label>
           <label>
-            <span className="block text-[11px] tracking-widest uppercase text-charcoal/40 mb-1.5">Safe min °C</span>
+            <span className="block text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-1.5">Safe min °C</span>
             <input
               type="number"
               step="0.1"
               value={form.min_temp}
               onChange={e => setForm(f => ({ ...f, min_temp: e.target.value }))}
               placeholder={suggestions.min}
-              className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 bg-white text-sm text-charcoal placeholder-charcoal/25 focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+              className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white placeholder-charcoal/25 dark:placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
             />
           </label>
           <label>
-            <span className="block text-[11px] tracking-widest uppercase text-charcoal/40 mb-1.5">Safe max °C</span>
+            <span className="block text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-1.5">Safe max °C</span>
             <input
               type="number"
               step="0.1"
               value={form.max_temp ?? ''}
               onChange={e => setForm(f => ({ ...f, max_temp: e.target.value }))}
               placeholder={suggestions.max}
-              className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 bg-white text-sm text-charcoal placeholder-charcoal/25 focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+              className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white placeholder-charcoal/25 dark:placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
             />
           </label>
-          <p className="sm:col-span-3 text-[11px] text-charcoal/35 -mt-1">
+          <p className="sm:col-span-3 text-[11px] text-charcoal/35 dark:text-white/30 -mt-1">
             {suggestions.note}
           </p>
         </div>
 
         <div>
-          <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-2">Days to check</p>
+          <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-2">Days to check</p>
           <div className="grid grid-cols-2 sm:grid-cols-7 gap-2">
             {CHECK_DAYS.map(day => {
               const active = form.check_days.includes(day.value)
@@ -154,8 +154,8 @@ export default function TemperatureItemSettingsModal({
                   className={[
                     'px-3 py-2 rounded-xl border text-xs font-semibold transition-all',
                     active
-                      ? 'bg-charcoal text-cream border-charcoal'
-                      : 'bg-white text-charcoal/50 border-charcoal/15 hover:border-charcoal/30',
+                      ? 'bg-charcoal text-cream border-charcoal dark:border-white'
+                      : 'bg-white dark:bg-paperDark text-charcoal/50 dark:text-white/40 border-charcoal/15 dark:border-white/15 hover:border-charcoal/30 dark:hover:border-white/30',
                   ].join(' ')}
                 >
                   {day.short}
@@ -166,7 +166,7 @@ export default function TemperatureItemSettingsModal({
         </div>
 
         <div>
-          <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-2">Required checks</p>
+          <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-2">Required checks</p>
           <div className="grid grid-cols-2 gap-2">
             {CHECK_PERIODS.map(period => {
               const active = form.required_periods.includes(period.value)
@@ -178,8 +178,8 @@ export default function TemperatureItemSettingsModal({
                   className={[
                     'py-2.5 rounded-xl border text-sm font-semibold transition-all',
                     active
-                      ? 'bg-charcoal text-cream border-charcoal'
-                      : 'bg-white text-charcoal/50 border-charcoal/15 hover:border-charcoal/30',
+                      ? 'bg-charcoal text-cream border-charcoal dark:border-white'
+                      : 'bg-white dark:bg-paperDark text-charcoal/50 dark:text-white/40 border-charcoal/15 dark:border-white/15 hover:border-charcoal/30 dark:hover:border-white/30',
                   ].join(' ')}
                 >
                   {period.label}
@@ -193,7 +193,7 @@ export default function TemperatureItemSettingsModal({
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 rounded-xl border border-charcoal/15 text-sm font-medium text-charcoal/60 hover:text-charcoal hover:border-charcoal/30 transition-colors"
+            className="px-4 py-2 rounded-xl border border-charcoal/15 dark:border-white/15 text-sm font-medium text-charcoal/60 dark:text-white/50 hover:text-charcoal dark:hover:text-white hover:border-charcoal/30 dark:hover:border-white/30 transition-colors"
           >
             Cancel
           </button>

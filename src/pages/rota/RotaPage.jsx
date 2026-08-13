@@ -48,21 +48,21 @@ function GanttChart({ shifts, staff, currentStaffId, nowMins, showNow }) {
     return a.start_time.localeCompare(b.start_time)
   })
   return (
-    <div className="bg-white border border-charcoal/10 rounded-2xl overflow-hidden">
+    <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-2xl overflow-hidden">
       <div className="flex items-baseline gap-2.5 px-3.5 pt-3 pb-2">
         <div className="w-16 shrink-0" />
         <div className="flex-1 relative h-3.5">
           {ticks.map(h => {
             const p = pct(h * 60)
             return (
-              <span key={h} className="absolute top-0 font-mono text-[10px] text-charcoal/40 font-semibold tracking-[0.04em]"
+              <span key={h} className="absolute top-0 font-mono text-[10px] text-charcoal/40 dark:text-white/35 font-semibold tracking-[0.04em]"
                 style={{ left: `${p}%`, transform: h === 6 ? 'none' : h === 24 ? 'translateX(-100%)' : 'translateX(-50%)' }}>
                 {String(h).padStart(2, '0')}
               </span>
             )
           })}
           {showNow && (
-            <span className="absolute top-0 font-mono text-[9px] text-accent font-bold tracking-[0.06em] bg-white px-1 z-10"
+            <span className="absolute top-0 font-mono text-[9px] text-accent font-bold tracking-[0.06em] bg-white dark:bg-paperDark px-1 z-10"
               style={{ left: `${nowPct}%`, transform: 'translateX(-50%)' }}>
               NOW
             </span>
@@ -79,7 +79,7 @@ function GanttChart({ shifts, staff, currentStaffId, nowMins, showNow }) {
           const left = pct(sMin), right = pct(eMin), width = Math.max(right - left, 4)
           return (
             <div key={shift.id} className={`flex items-center gap-2.5 h-[38px] rounded-lg -mx-1.5 px-1.5 ${isMe ? 'bg-brand/8' : ''}`}>
-              <div className={`w-16 shrink-0 text-[13px] font-semibold truncate flex items-center gap-1 ${isMe ? 'text-brand' : 'text-charcoal/70'}`}>
+              <div className={`w-16 shrink-0 text-[13px] font-semibold truncate flex items-center gap-1 ${isMe ? 'text-brand' : 'text-charcoal/70 dark:text-white/60'}`}>
                 <span className="truncate">{(staffMember?.name ?? 'Staff').split(' ')[0]}</span>
                 {isMe && <span className="font-mono text-[8px] text-accent font-bold tracking-[0.08em] bg-danger/8 px-1 py-0.5 rounded shrink-0">YOU</span>}
               </div>
@@ -87,18 +87,18 @@ function GanttChart({ shifts, staff, currentStaffId, nowMins, showNow }) {
                 {ticks.map((h, ti) => {
                   const p = pct(h * 60)
                   if (p <= 0.5 || p >= 99.5) return null
-                  return <span key={ti} className="absolute top-[-8px] bottom-[-8px] w-px bg-charcoal/8 z-0" style={{ left: `${p}%` }} />
+                  return <span key={ti} className="absolute top-[-8px] bottom-[-8px] w-px bg-charcoal/8 dark:bg-white/8 z-0" style={{ left: `${p}%` }} />
                 })}
                 {showNow && <span className="absolute top-[-8px] bottom-[-8px] z-10" style={{ left: `${nowPct}%`, width: '1.5px', background: '#c94f2a' }} />}
                 <div className="absolute top-0 h-[22px] rounded-full z-20"
                   style={{ left: `${left}%`, width: `${width}%`, background: isMe ? '#13362a' : '#e4e6e2', boxShadow: isMe ? '0 1px 4px rgba(19,54,42,0.3)' : 'none' }} />
               </div>
               <div className="w-28 shrink-0 text-right">
-                <div className={`font-mono text-[12px] font-semibold tabular-nums ${isMe ? 'text-brand' : 'text-charcoal/60'}`}>
+                <div className={`font-mono text-[12px] font-semibold tabular-nums ${isMe ? 'text-brand' : 'text-charcoal/60 dark:text-white/50'}`}>
                   {shift.start_time.slice(0, 5)}–{shift.end_time.slice(0, 5)}
                 </div>
                 {shift.role_label && (
-                  <div className="font-mono text-[10px] text-charcoal/50 tracking-[0.05em] font-semibold mt-0.5 uppercase truncate">{shift.role_label}</div>
+                  <div className="font-mono text-[10px] text-charcoal/50 dark:text-white/40 tracking-[0.05em] font-semibold mt-0.5 uppercase truncate">{shift.role_label}</div>
                 )}
               </div>
             </div>
@@ -322,27 +322,27 @@ function FixHoursSheet({ ctx, onClose, onSubmit }) {
         <div className="flex items-center gap-3">
           <div className="flex-1 min-w-0">
             <div className="text-[17px] font-semibold tracking-[-0.015em]">Fix hours</div>
-            <div className="text-[12px] text-charcoal/50 mt-0.5">{format(session.date, 'EEEE, d MMMM')}{role ? ` · ${role}` : ''}</div>
+            <div className="text-[12px] text-charcoal/50 dark:text-white/40 mt-0.5">{format(session.date, 'EEEE, d MMMM')}{role ? ` · ${role}` : ''}</div>
           </div>
           <span className="font-mono text-[9.5px] font-bold text-warning bg-warning/10 px-2.5 py-1 rounded-full tracking-[0.05em] uppercase">Recorded</span>
         </div>
 
         {/* recorded reference strip */}
-        <div className="mt-3 flex items-center justify-between bg-white border border-charcoal/10 rounded-[11px] px-3 py-2.5">
-          <span className="text-[11.5px] text-charcoal/50">On the clock</span>
-          <span className="font-mono text-[12.5px] font-semibold tabular-nums text-charcoal/70">
+        <div className="mt-3 flex items-center justify-between bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[11px] px-3 py-2.5">
+          <span className="text-[11.5px] text-charcoal/50 dark:text-white/40">On the clock</span>
+          <span className="font-mono text-[12.5px] font-semibold tabular-nums text-charcoal/70 dark:text-white/60">
             {origStart}–{origEnd} · {ehDurLabel(recMins)}
           </span>
         </div>
 
         {/* start/end toggle */}
-        <div className="flex gap-2 mt-3.5 bg-charcoal/8 p-1 rounded-xl">
+        <div className="flex gap-2 mt-3.5 bg-charcoal/8 dark:bg-white/8 p-1 rounded-xl">
           {[['start','Clock in', start], ['end','Clock out', end]].map(([k, label, val]) => {
             const on = edge === k
             return (
               <button key={k} onClick={() => setEdge(k)} className="flex-1 rounded-[9px] py-2 transition-all"
                 style={{ background: on ? '#fff' : 'transparent', boxShadow: on ? '0 1px 3px rgba(9,18,13,0.1)' : 'none', border:'none', cursor:'pointer' }}>
-                <div className="font-mono text-[9px] text-charcoal/50 uppercase tracking-[0.06em] font-semibold">{label}</div>
+                <div className="font-mono text-[9px] text-charcoal/50 dark:text-white/40 uppercase tracking-[0.06em] font-semibold">{label}</div>
                 <div className="font-mono text-[17px] font-semibold tabular-nums mt-0.5" style={{ color: on ? '#13362a' : '#76817b' }}>{val}</div>
               </button>
             )
@@ -353,7 +353,7 @@ function FixHoursSheet({ ctx, onClose, onSubmit }) {
         {(edge === 'start' || edge === 'end') && (
           <div className="flex items-center justify-center gap-1 mt-2.5">
             <EHWheel values={WHEEL_HOURS} value={ch} onChange={(h) => setCur(h, cm)} />
-            <span className="font-mono text-[21px] font-semibold text-charcoal/40 pb-0.5">:</span>
+            <span className="font-mono text-[21px] font-semibold text-charcoal/40 dark:text-white/35 pb-0.5">:</span>
             <EHWheel values={WHEEL_MINS} value={cm} onChange={(m) => setCur(ch, m)} />
           </div>
         )}
@@ -361,7 +361,7 @@ function FixHoursSheet({ ctx, onClose, onSubmit }) {
         {/* break section */}
         <div className="mt-3">
           <div className="flex items-center justify-between px-0.5 pb-2">
-            <div className="font-mono text-[9.5px] text-charcoal/50 uppercase tracking-[0.06em] font-semibold">Unpaid break</div>
+            <div className="font-mono text-[9.5px] text-charcoal/50 dark:text-white/40 uppercase tracking-[0.06em] font-semibold">Unpaid break</div>
             <button
               onClick={() => {
                 if (hasBreak) {
@@ -390,13 +390,13 @@ function FixHoursSheet({ ctx, onClose, onSubmit }) {
           </div>
           {hasBreak && (
             <>
-              <div className="flex gap-2 bg-charcoal/8 p-1 rounded-xl">
+              <div className="flex gap-2 bg-charcoal/8 dark:bg-white/8 p-1 rounded-xl">
                 {[['brkStart', 'Break start', brkStart], ['brkEnd', 'Break end', brkEnd]].map(([k, label, val]) => {
                   const on = edge === k
                   return (
                     <button key={k} onClick={() => setEdge(k)} className="flex-1 rounded-[9px] py-2 transition-all"
                       style={{ background: on ? '#fff' : 'transparent', boxShadow: on ? '0 1px 3px rgba(9,18,13,0.1)' : 'none', border: 'none', cursor: 'pointer' }}>
-                      <div className="font-mono text-[9px] text-charcoal/50 uppercase tracking-[0.06em] font-semibold">{label}</div>
+                      <div className="font-mono text-[9px] text-charcoal/50 dark:text-white/40 uppercase tracking-[0.06em] font-semibold">{label}</div>
                       <div className="font-mono text-[17px] font-semibold tabular-nums mt-0.5" style={{ color: on ? '#13362a' : '#76817b' }}>{val || '--:--'}</div>
                     </button>
                   )
@@ -405,12 +405,12 @@ function FixHoursSheet({ ctx, onClose, onSubmit }) {
               {(edge === 'brkStart' || edge === 'brkEnd') && (
                 <div className="flex items-center justify-center gap-1 mt-2.5">
                   <EHWheel values={WHEEL_HOURS} value={ch} onChange={(h) => setCur(h, cm)} />
-                  <span className="font-mono text-[21px] font-semibold text-charcoal/40 pb-0.5">:</span>
+                  <span className="font-mono text-[21px] font-semibold text-charcoal/40 dark:text-white/35 pb-0.5">:</span>
                   <EHWheel values={WHEEL_MINS} value={cm} onChange={(m) => setCur(ch, m)} />
                 </div>
               )}
               {brk > 0 && (
-                <div className="mt-1.5 text-center font-mono text-[11.5px] text-charcoal/50">{ehDurLabel(brk)} break</div>
+                <div className="mt-1.5 text-center font-mono text-[11.5px] text-charcoal/50 dark:text-white/40">{ehDurLabel(brk)} break</div>
               )}
               {brk <= 0 && brkStart && brkEnd && (
                 <div className="mt-1.5 text-center font-mono text-[11.5px] text-danger">Break end must be after break start</div>
@@ -423,7 +423,7 @@ function FixHoursSheet({ ctx, onClose, onSubmit }) {
         <div className="mt-3 flex items-center justify-between px-3 py-2.5 rounded-xl"
           style={{ background: invalid ? '#fbeae6' : changed ? '#eef4f0' : '#fff', border: `1px solid ${invalid ? '#b3331c40' : '#e4e6e2'}` }}>
           <div className="flex items-baseline gap-2">
-            <span className="font-mono text-[15px] font-bold tabular-nums text-charcoal">{start}–{end}</span>
+            <span className="font-mono text-[15px] font-bold tabular-nums text-charcoal dark:text-white">{start}–{end}</span>
             <span className="text-[12.5px]" style={{ color: invalid ? '#b3331c' : '#76817b' }}>
               {invalid ? (newMins <= 0 ? 'clock-out must be after clock-in' : 'invalid break times') : ehDurLabel(newMins)}
             </span>
@@ -438,7 +438,7 @@ function FixHoursSheet({ ctx, onClose, onSubmit }) {
         {/* reason chips */}
         {needReason && (
           <div className="mt-3.5">
-            <div className="font-mono text-[9.5px] text-charcoal/50 uppercase tracking-[0.06em] font-semibold px-0.5 pb-1.5">Reason for change</div>
+            <div className="font-mono text-[9.5px] text-charcoal/50 dark:text-white/40 uppercase tracking-[0.06em] font-semibold px-0.5 pb-1.5">Reason for change</div>
             <div className="flex flex-wrap gap-1.5">
               {EDIT_REASONS.map(r => {
                 const on = r === reason
@@ -454,7 +454,7 @@ function FixHoursSheet({ ctx, onClose, onSubmit }) {
             <input
               value={note} onChange={e => setNote(e.target.value)}
               placeholder="Add a note for your manager (optional)"
-              className="w-full mt-2.5 px-3 py-2.5 rounded-[10px] border border-charcoal/10 bg-white text-[13px] text-charcoal outline-none focus:ring-2 focus:ring-charcoal/20 focus:border-charcoal/20"
+              className="w-full mt-2.5 px-3 py-2.5 rounded-[10px] border border-charcoal/10 dark:border-white/10 bg-white dark:bg-paperDark text-[13px] text-charcoal dark:text-white outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 focus:border-charcoal/20 dark:focus:border-white/20"
             />
           </div>
         )}
@@ -462,14 +462,14 @@ function FixHoursSheet({ ctx, onClose, onSubmit }) {
         {/* approval info */}
         <div className="mt-3 flex gap-2 items-start px-0.5">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#76817b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mt-0.5 shrink-0"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
-          <span className="text-[11.5px] text-charcoal/50 leading-snug">
+          <span className="text-[11.5px] text-charcoal/50 dark:text-white/40 leading-snug">
             Your manager reviews this before it changes your pay. Recorded hours stay until approved.
           </span>
         </div>
 
         {/* actions */}
         <div className="flex gap-2 mt-3.5">
-          <button onClick={onClose} className="w-24 h-12 rounded-xl border border-charcoal/10 bg-white text-[14px] font-semibold text-charcoal/70" style={{ cursor:'pointer' }}>
+          <button onClick={onClose} className="w-24 h-12 rounded-xl border border-charcoal/10 dark:border-white/10 bg-white dark:bg-paperDark text-[14px] font-semibold text-charcoal/70 dark:text-white/60" style={{ cursor:'pointer' }}>
             Cancel
           </button>
           <button
@@ -490,10 +490,10 @@ function FixHoursSheet({ ctx, onClose, onSubmit }) {
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#a85d12" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
               </div>
               <div className="text-[17px] font-bold tracking-[-0.015em]">Send to your manager</div>
-              <p className="text-[13.5px] text-charcoal/50 leading-relaxed mt-2 mb-4">
+              <p className="text-[13.5px] text-charcoal/50 dark:text-white/40 leading-relaxed mt-2 mb-4">
                 You're asking to change {format(session.date, 'EEEE')}'s hours from{' '}
-                <strong className="text-charcoal/70">{ehDurLabel(recMins)}</strong> to{' '}
-                <strong className="text-charcoal/70">{ehDurLabel(newMins)}</strong> ({ehSignedLabel(delta)}).
+                <strong className="text-charcoal/70 dark:text-white/60">{ehDurLabel(recMins)}</strong> to{' '}
+                <strong className="text-charcoal/70 dark:text-white/60">{ehDurLabel(newMins)}</strong> ({ehSignedLabel(delta)}).
                 This won't change your pay until it's approved.
               </p>
               <button onClick={doSubmit} disabled={submitting}
@@ -502,7 +502,7 @@ function FixHoursSheet({ ctx, onClose, onSubmit }) {
                 {submitting ? 'Sending…' : 'Submit for approval'}
               </button>
               <button onClick={() => setConfirming(false)}
-                className="w-full h-[42px] rounded-xl text-[13.5px] font-semibold text-charcoal/50"
+                className="w-full h-[42px] rounded-xl text-[13.5px] font-semibold text-charcoal/50 dark:text-white/40"
                 style={{ background:'transparent', border:'none', cursor:'pointer' }}>
                 Go back
               </button>
@@ -522,22 +522,22 @@ function DayWorkedCard({ session, role, req }) {
   const status    = req?.status
   const showReq   = status === 'pending' || status === 'approved'
   return (
-    <div className="bg-white rounded-2xl p-4" style={{ border:'1px solid rgba(13,26,20,0.20)', boxShadow:'0 1px 3px rgba(13,26,20,0.05)' }}>
+    <div className="bg-white dark:bg-paperDark rounded-2xl p-4" style={{ border:'1px solid rgba(13,26,20,0.20)', boxShadow:'0 1px 3px rgba(13,26,20,0.05)' }}>
       <div className="flex items-center justify-between">
-        <span className="font-mono text-[10.5px] text-charcoal/50 tracking-[0.1em] uppercase">Hours worked</span>
+        <span className="font-mono text-[10.5px] text-charcoal/50 dark:text-white/40 tracking-[0.1em] uppercase">Hours worked</span>
         {status ? <EHStatusPill status={status} /> : (
-          <span className="font-mono text-[9.5px] font-bold text-charcoal/40 bg-charcoal/8 px-2 py-0.5 rounded-full tracking-[0.05em] uppercase">Recorded</span>
+          <span className="font-mono text-[9.5px] font-bold text-charcoal/40 dark:text-white/35 bg-charcoal/8 dark:bg-white/8 px-2 py-0.5 rounded-full tracking-[0.05em] uppercase">Recorded</span>
         )}
       </div>
       <div className="font-mono text-[30px] font-medium tracking-[-0.025em] tabular-nums mt-2"
         style={{ textDecoration: showReq ? 'line-through' : 'none', opacity: showReq ? 0.45 : 1 }}>
         {origStart} — {origEnd}
       </div>
-      <div className="flex items-center gap-2.5 text-[13px] text-charcoal/50 mt-1">
+      <div className="flex items-center gap-2.5 text-[13px] text-charcoal/50 dark:text-white/40 mt-1">
         <span className="font-mono">{ehDurLabel(recMins)}</span>
-        <span className="text-charcoal/25">·</span>
+        <span className="text-charcoal/25 dark:text-white/25">·</span>
         <span>{session.breakMinutes ?? 0}m break</span>
-        {role && <><span className="text-charcoal/25">·</span><span>{role}</span></>}
+        {role && <><span className="text-charcoal/25 dark:text-white/25">·</span><span>{role}</span></>}
       </div>
       {showReq && req?.start && (
         <div className="mt-2.5 flex items-center justify-between px-3 py-2 rounded-[11px]"
@@ -568,8 +568,8 @@ function WorkedSection({ rows, reqs, hourlyRate, onFix, isDateLocked }) {
   return (
     <div>
       <div className="flex items-baseline justify-between px-1 mb-2">
-        <span className="font-mono text-[10.5px] text-charcoal/50 tracking-[0.08em] uppercase font-semibold">This week · worked</span>
-        <span className="font-mono text-[11px] text-charcoal/50">{rows.length} logged · so far</span>
+        <span className="font-mono text-[10.5px] text-charcoal/50 dark:text-white/40 tracking-[0.08em] uppercase font-semibold">This week · worked</span>
+        <span className="font-mono text-[11px] text-charcoal/50 dark:text-white/40">{rows.length} logged · so far</span>
       </div>
       <div className="rounded-2xl overflow-hidden" style={{ background:'#fff', border:'1px solid rgba(13,26,20,0.20)', boxShadow:'0 1px 3px rgba(13,26,20,0.05)' }}>
         {rows.map((r, i) => {
@@ -581,20 +581,20 @@ function WorkedSection({ rows, reqs, hourlyRate, onFix, isDateLocked }) {
               className="flex items-center gap-3 px-3.5 py-3"
               style={{ borderTop: i === 0 ? 'none' : '1px solid #eef0ec' }}>
               {/* date chip */}
-              <div className="w-11 h-12 rounded-[9px] bg-charcoal/4 border border-charcoal/10 shrink-0 flex flex-col items-center justify-center gap-0.5">
-                <span className="font-mono text-[9px] text-charcoal/50 tracking-[0.06em] font-semibold">{r.dow}</span>
-                <span className="font-mono text-[17px] font-semibold text-charcoal leading-none">{r.dateNum}</span>
+              <div className="w-11 h-12 rounded-[9px] bg-charcoal/4 dark:bg-white/5 border border-charcoal/10 dark:border-white/10 shrink-0 flex flex-col items-center justify-center gap-0.5">
+                <span className="font-mono text-[9px] text-charcoal/50 dark:text-white/40 tracking-[0.06em] font-semibold">{r.dow}</span>
+                <span className="font-mono text-[17px] font-semibold text-charcoal dark:text-white leading-none">{r.dateNum}</span>
               </div>
               {/* middle */}
               <div className="flex-1 min-w-0">
-                <div className="font-mono text-[13.5px] font-semibold tabular-nums text-charcoal"
+                <div className="font-mono text-[13.5px] font-semibold tabular-nums text-charcoal dark:text-white"
                   style={{ textDecoration: showReq ? 'line-through' : 'none', opacity: showReq ? 0.5 : 1 }}>
                   {r.startStr}–{r.endStr}
                 </div>
-                <div className="text-[11.5px] text-charcoal/50 mt-0.5 flex items-center gap-1.5">
+                <div className="text-[11.5px] text-charcoal/50 dark:text-white/40 mt-0.5 flex items-center gap-1.5">
                   <span className="font-mono">{ehDurLabel(r.workedMins)}</span>
-                  {r.role && <><span className="text-charcoal/25">·</span><span>{r.role}</span></>}
-                  {(r.session.breakMinutes ?? 0) > 0 && <><span className="text-charcoal/25">·</span><span>{r.session.breakMinutes}m break</span></>}
+                  {r.role && <><span className="text-charcoal/25 dark:text-white/25">·</span><span>{r.role}</span></>}
+                  {(r.session.breakMinutes ?? 0) > 0 && <><span className="text-charcoal/25 dark:text-white/25">·</span><span>{r.session.breakMinutes}m break</span></>}
                 </div>
                 {showReq && <div className="mt-1"><EHStatusPill status={status} /></div>}
               </div>
@@ -604,13 +604,13 @@ function WorkedSection({ rows, reqs, hourlyRate, onFix, isDateLocked }) {
                   {req.start}–{req.end}
                 </span>
               ) : isDateLocked?.(r.session.date) ? (
-                <span className="shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded-[9px] border border-charcoal/10 text-charcoal/30 text-[11.5px] font-semibold bg-charcoal/4" title="Locked for payroll">
+                <span className="shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded-[9px] border border-charcoal/10 dark:border-white/10 text-charcoal/30 dark:text-white/30 text-[11.5px] font-semibold bg-charcoal/4 dark:bg-white/5" title="Locked for payroll">
                   <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
                   Locked
                 </span>
               ) : (
                 <button onClick={() => onFix(r.session, r.role)}
-                  className="shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded-[9px] border border-charcoal/15 text-charcoal/60 text-[11.5px] font-semibold"
+                  className="shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded-[9px] border border-charcoal/15 dark:border-white/15 text-charcoal/60 dark:text-white/50 text-[11.5px] font-semibold"
                   style={{ background:'#fff', cursor:'pointer' }}>
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
                   Fix
@@ -620,14 +620,14 @@ function WorkedSection({ rows, reqs, hourlyRate, onFix, isDateLocked }) {
           )
         })}
         {/* footer */}
-        <div className="flex items-center gap-4 px-3.5 py-3 bg-charcoal/3" style={{ borderTop:'1px solid #eef0ec' }}>
+        <div className="flex items-center gap-4 px-3.5 py-3 bg-charcoal/3 dark:bg-white/5" style={{ borderTop:'1px solid #eef0ec' }}>
           <div>
-            <div className="font-mono text-[9.5px] text-charcoal/50 tracking-[0.06em] uppercase">Worked</div>
+            <div className="font-mono text-[9.5px] text-charcoal/50 dark:text-white/40 tracking-[0.06em] uppercase">Worked</div>
             <div className="font-mono text-[14px] font-semibold mt-0.5">{ehDurLabel(total)}</div>
           </div>
           {hourlyRate && (
             <div>
-              <div className="font-mono text-[9.5px] text-charcoal/50 tracking-[0.06em] uppercase">Est. Pay</div>
+              <div className="font-mono text-[9.5px] text-charcoal/50 dark:text-white/40 tracking-[0.06em] uppercase">Est. Pay</div>
               <div className="font-mono text-[14px] font-semibold mt-0.5 text-success">£{(total / 60 * hourlyRate).toFixed(2)}</div>
             </div>
           )}
@@ -805,13 +805,13 @@ function StaffRotaView({ shifts, staff, loading, weekStart, prevWeek, nextWeek, 
     <div className="flex flex-col gap-4">
       {/* Page header */}
       <div className="flex items-baseline justify-between px-1">
-        <span className="font-mono text-[10.5px] text-charcoal/50 tracking-[0.08em] uppercase">My Shifts</span>
-        <span className="font-mono text-[10.5px] text-charcoal/50">Week {weekNum} · {weekRange}</span>
+        <span className="font-mono text-[10.5px] text-charcoal/50 dark:text-white/40 tracking-[0.08em] uppercase">My Shifts</span>
+        <span className="font-mono text-[10.5px] text-charcoal/50 dark:text-white/40">Week {weekNum} · {weekRange}</span>
       </div>
 
       {/* Week strip */}
       <div className="flex items-center gap-1.5">
-        <button onClick={prevWeek} className="w-8 h-[60px] flex items-center justify-center rounded-[9px] bg-white border border-charcoal/15 text-charcoal/40 hover:text-charcoal hover:border-charcoal/30 transition-colors shrink-0">
+        <button onClick={prevWeek} className="w-8 h-[60px] flex items-center justify-center rounded-[9px] bg-white dark:bg-paperDark border border-charcoal/15 dark:border-white/15 text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white hover:border-charcoal/30 dark:hover:border-white/30 transition-colors shrink-0">
           <svg width="10" height="14" viewBox="0 0 10 14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M7 1L1 7l6 6"/></svg>
         </button>
         <div className="flex-1 grid grid-cols-7 gap-1">
@@ -823,13 +823,13 @@ function StaffRotaView({ shifts, staff, loading, weekStart, prevWeek, nextWeek, 
             const isT = dateStr === today
             return (
               <button key={dateStr} onClick={() => setSelectedDate(day)}
-                className={`h-[60px] rounded-[9px] flex flex-col items-center justify-center gap-0.5 relative transition-colors ${isSel ? 'bg-charcoal border border-charcoal text-white' : 'bg-white border border-charcoal/15 text-charcoal hover:border-charcoal/30'}`}>
-                <span className={`font-mono text-[9px] font-semibold tracking-[0.06em] ${isSel ? 'text-white/70' : 'text-charcoal/50'}`}>
+                className={`h-[60px] rounded-[9px] flex flex-col items-center justify-center gap-0.5 relative transition-colors ${isSel ? 'bg-charcoal border border-charcoal dark:border-white text-white' : 'bg-white dark:bg-paperDark border border-charcoal/15 dark:border-white/15 text-charcoal dark:text-white hover:border-charcoal/30 dark:hover:border-white/30'}`}>
+                <span className={`font-mono text-[9px] font-semibold tracking-[0.06em] ${isSel ? 'text-white/70' : 'text-charcoal/50 dark:text-white/40'}`}>
                   {format(day, 'EEE').toUpperCase()}
                 </span>
                 <span className="font-mono text-[17px] font-semibold leading-none">{format(day, 'd')}</span>
                 {(hasMyShift || hasOtherShift) && (
-                  <span className={`absolute bottom-1.5 w-1 h-1 rounded-full ${hasMyShift ? (isSel ? 'bg-white' : 'bg-brand') : (isSel ? 'bg-white/40' : 'bg-charcoal/25')}`} />
+                  <span className={`absolute bottom-1.5 w-1 h-1 rounded-full ${hasMyShift ? (isSel ? 'bg-white dark:bg-paperDark' : 'bg-brand') : (isSel ? 'bg-white/40' : 'bg-charcoal/25 dark:bg-white/25')}`} />
                 )}
                 {isT && !isSel && (
                   <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-accent" />
@@ -838,7 +838,7 @@ function StaffRotaView({ shifts, staff, loading, weekStart, prevWeek, nextWeek, 
             )
           })}
         </div>
-        <button onClick={nextWeek} className="w-8 h-[60px] flex items-center justify-center rounded-[9px] bg-white border border-charcoal/15 text-charcoal/40 hover:text-charcoal hover:border-charcoal/30 transition-colors shrink-0">
+        <button onClick={nextWeek} className="w-8 h-[60px] flex items-center justify-center rounded-[9px] bg-white dark:bg-paperDark border border-charcoal/15 dark:border-white/15 text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white hover:border-charcoal/30 dark:hover:border-white/30 transition-colors shrink-0">
           <svg width="10" height="14" viewBox="0 0 10 14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 1l6 6-6 6"/></svg>
         </button>
       </div>
@@ -859,8 +859,8 @@ function StaffRotaView({ shifts, staff, loading, weekStart, prevWeek, nextWeek, 
           {dayShifts.length > 0 && (
             <div>
               <div className="flex items-baseline justify-between px-1 mb-2">
-                <span className="font-mono text-[10.5px] text-charcoal/50 tracking-[0.08em] uppercase font-semibold">Day at a glance</span>
-                <span className="font-mono text-[11px] text-charcoal/50">{dayShifts.length} on shift</span>
+                <span className="font-mono text-[10.5px] text-charcoal/50 dark:text-white/40 tracking-[0.08em] uppercase font-semibold">Day at a glance</span>
+                <span className="font-mono text-[11px] text-charcoal/50 dark:text-white/40">{dayShifts.length} on shift</span>
               </div>
               <GanttChart shifts={dayShifts} staff={staff} currentStaffId={session?.staffId} nowMins={nowMins} showNow={selectedDateStr === today} />
             </div>
@@ -894,8 +894,8 @@ function StaffRotaView({ shifts, staff, loading, weekStart, prevWeek, nextWeek, 
               </div>
             </div>
           ) : (
-            <div className="rounded-2xl bg-charcoal/4 border border-dashed border-charcoal/20 px-5 py-5 text-center">
-              <p className="text-sm text-charcoal/40">No shift scheduled on this day</p>
+            <div className="rounded-2xl bg-charcoal/4 dark:bg-white/5 border border-dashed border-charcoal/20 dark:border-white/20 px-5 py-5 text-center">
+              <p className="text-sm text-charcoal/40 dark:text-white/35">No shift scheduled on this day</p>
             </div>
           )}
 
@@ -912,24 +912,24 @@ function StaffRotaView({ shifts, staff, loading, weekStart, prevWeek, nextWeek, 
           {upcomingShifts.length > 0 ? (
             <div>
               <div className="flex items-baseline justify-between px-1 mb-2">
-                <span className="font-mono text-[10.5px] text-charcoal/50 tracking-[0.08em] uppercase font-semibold">Your upcoming shifts</span>
-                <span className="font-mono text-[11px] text-charcoal/50">{upcomingShifts.length} · next 2 wks</span>
+                <span className="font-mono text-[10.5px] text-charcoal/50 dark:text-white/40 tracking-[0.08em] uppercase font-semibold">Your upcoming shifts</span>
+                <span className="font-mono text-[11px] text-charcoal/50 dark:text-white/40">{upcomingShifts.length} · next 2 wks</span>
               </div>
-              <div className="bg-white border border-charcoal/10 rounded-2xl overflow-hidden">
+              <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-2xl overflow-hidden">
                 {upcomingShifts.map((shift, i) => (
-                  <div key={shift.id} className={`flex items-center gap-3 px-4 py-3 ${i > 0 ? 'border-t border-charcoal/8' : ''}`}>
-                    <div className="w-11 h-12 rounded-[9px] bg-charcoal/4 border border-charcoal/10 shrink-0 flex flex-col items-center justify-center gap-0.5">
-                      <span className="font-mono text-[9px] text-charcoal/50 tracking-[0.06em] font-semibold">{format(parseISO(shift.shift_date), 'EEE').toUpperCase()}</span>
-                      <span className="font-mono text-[17px] font-semibold text-charcoal leading-none">{format(parseISO(shift.shift_date), 'd')}</span>
+                  <div key={shift.id} className={`flex items-center gap-3 px-4 py-3 ${i > 0 ? 'border-t border-charcoal/8 dark:border-white/8' : ''}`}>
+                    <div className="w-11 h-12 rounded-[9px] bg-charcoal/4 dark:bg-white/5 border border-charcoal/10 dark:border-white/10 shrink-0 flex flex-col items-center justify-center gap-0.5">
+                      <span className="font-mono text-[9px] text-charcoal/50 dark:text-white/40 tracking-[0.06em] font-semibold">{format(parseISO(shift.shift_date), 'EEE').toUpperCase()}</span>
+                      <span className="font-mono text-[17px] font-semibold text-charcoal dark:text-white leading-none">{format(parseISO(shift.shift_date), 'd')}</span>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="font-mono text-[13.5px] font-semibold tabular-nums text-charcoal">
+                      <div className="font-mono text-[13.5px] font-semibold tabular-nums text-charcoal dark:text-white">
                         {shift.start_time.slice(0, 5)}–{shift.end_time.slice(0, 5)}
                       </div>
-                      <div className="text-[11.5px] text-charcoal/50 mt-0.5 flex items-center gap-1.5">
+                      <div className="text-[11.5px] text-charcoal/50 dark:text-white/40 mt-0.5 flex items-center gap-1.5">
                         <span>{durationLabel(shift.start_time, shift.end_time)}</span>
-                        {shift.role_label && <><span className="text-charcoal/30">·</span><span>{shift.role_label}</span></>}
-                        <span className="text-charcoal/30">·</span>
+                        {shift.role_label && <><span className="text-charcoal/30 dark:text-white/30">·</span><span>{shift.role_label}</span></>}
+                        <span className="text-charcoal/30 dark:text-white/30">·</span>
                         <span>{shift.shift_date === today ? 'Today' : format(parseISO(shift.shift_date), 'EEE d MMM')}</span>
                       </div>
                     </div>
@@ -939,26 +939,26 @@ function StaffRotaView({ shifts, staff, loading, weekStart, prevWeek, nextWeek, 
                         setSwapModal({ staffMember, date: parseISO(shift.shift_date), shift })
                         setSwapForm({ targetStaffId: '', message: '' })
                       }}
-                      className="shrink-0 flex items-center gap-1 px-3 py-1.5 rounded-lg border border-charcoal/15 text-charcoal/60 text-[11.5px] font-semibold hover:border-charcoal/30 hover:text-charcoal transition-colors"
+                      className="shrink-0 flex items-center gap-1 px-3 py-1.5 rounded-lg border border-charcoal/15 dark:border-white/15 text-charcoal/60 dark:text-white/50 text-[11.5px] font-semibold hover:border-charcoal/30 dark:hover:border-white/30 hover:text-charcoal dark:hover:text-white transition-colors"
                     >
                       <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 1l4 4-4 4M3 11V9a4 4 0 014-4h14M7 23l-4-4 4-4M21 13v2a4 4 0 01-4 4H3"/></svg>
                       Swap
                     </button>
                   </div>
                 ))}
-                <div className="flex items-center justify-between px-4 py-3 border-t border-charcoal/8 bg-charcoal/3">
+                <div className="flex items-center justify-between px-4 py-3 border-t border-charcoal/8 dark:border-white/8 bg-charcoal/3 dark:bg-white/5">
                   <div className="flex gap-4">
                     <div>
-                      <div className="font-mono text-[9.5px] text-charcoal/50 tracking-[0.06em] uppercase">Shifts</div>
+                      <div className="font-mono text-[9.5px] text-charcoal/50 dark:text-white/40 tracking-[0.06em] uppercase">Shifts</div>
                       <div className="font-mono text-[14px] font-semibold mt-0.5">{upcomingShifts.length}</div>
                     </div>
                     <div>
-                      <div className="font-mono text-[9.5px] text-charcoal/50 tracking-[0.06em] uppercase">Hours</div>
+                      <div className="font-mono text-[9.5px] text-charcoal/50 dark:text-white/40 tracking-[0.06em] uppercase">Hours</div>
                       <div className="font-mono text-[14px] font-semibold mt-0.5">{Math.round(upcomingHours)}h</div>
                     </div>
                     {upcomingPay != null && (
                       <div>
-                        <div className="font-mono text-[9.5px] text-charcoal/50 tracking-[0.06em] uppercase">Est. Pay</div>
+                        <div className="font-mono text-[9.5px] text-charcoal/50 dark:text-white/40 tracking-[0.06em] uppercase">Est. Pay</div>
                         <div className="font-mono text-[14px] font-semibold mt-0.5 text-success">£{upcomingPay.toFixed(2)}</div>
                       </div>
                     )}
@@ -967,21 +967,21 @@ function StaffRotaView({ shifts, staff, loading, weekStart, prevWeek, nextWeek, 
               </div>
             </div>
           ) : (
-            <div className="bg-white border border-charcoal/10 rounded-2xl px-5 py-6 text-center">
-              <p className="text-sm text-charcoal/40">No upcoming shifts in the next 2 weeks</p>
+            <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-2xl px-5 py-6 text-center">
+              <p className="text-sm text-charcoal/40 dark:text-white/35">No upcoming shifts in the next 2 weeks</p>
             </div>
           )}
 
           {/* My swap requests */}
           {mySwaps.length > 0 && (
-            <div className={`rounded-2xl border px-5 py-4 ${myPending.length > 0 ? 'bg-warning/5 border-warning/20' : 'bg-charcoal/4 border-charcoal/10'}`}>
-              <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-2">My Swap Requests</p>
+            <div className={`rounded-2xl border px-5 py-4 ${myPending.length > 0 ? 'bg-warning/5 border-warning/20' : 'bg-charcoal/4 dark:bg-white/5 border-charcoal/10 dark:border-white/10'}`}>
+              <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-2">My Swap Requests</p>
               <div className="flex flex-col gap-2">
                 {mySwaps.slice(0, 3).map((swap) => (
                   <div key={swap.id} className="flex items-center justify-between text-sm">
-                    <span className="text-charcoal/70">
-                      Swap with <span className="font-medium text-charcoal">{swap.target_staff_name}</span>
-                      {swap.shift && <span className="text-xs text-charcoal/40 ml-1">({swap.shift.shift_date})</span>}
+                    <span className="text-charcoal/70 dark:text-white/60">
+                      Swap with <span className="font-medium text-charcoal dark:text-white">{swap.target_staff_name}</span>
+                      {swap.shift && <span className="text-xs text-charcoal/40 dark:text-white/35 ml-1">({swap.shift.shift_date})</span>}
                     </span>
                     <span className={`text-[11px] tracking-widest uppercase px-2 py-0.5 rounded-full font-medium ${swap.status === 'pending' ? 'bg-warning/15 text-warning' : swap.status === 'approved' ? 'bg-success/10 text-success' : 'bg-danger/10 text-danger'}`}>
                       {swap.status}
@@ -1484,19 +1484,19 @@ export default function RotaPage() {
         <div className="hidden lg:flex items-center gap-4 flex-wrap px-1">
           <div className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded bg-success/30 border border-success/30" />
-            <span className="text-[11px] tracking-wider uppercase text-charcoal/30">Available</span>
+            <span className="text-[11px] tracking-wider uppercase text-charcoal/30 dark:text-white/30">Available</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded bg-charcoal/15 border border-charcoal/20" />
-            <span className="text-[11px] tracking-wider uppercase text-charcoal/30">Unavailable</span>
+            <span className="w-2.5 h-2.5 rounded bg-charcoal/15 dark:bg-white/15 border border-charcoal/20 dark:border-white/20" />
+            <span className="text-[11px] tracking-wider uppercase text-charcoal/30 dark:text-white/30">Unavailable</span>
           </div>
           <div className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded bg-danger/20 border border-danger/25" />
-            <span className="text-[11px] tracking-wider uppercase text-charcoal/30">Time Off</span>
+            <span className="text-[11px] tracking-wider uppercase text-charcoal/30 dark:text-white/30">Time Off</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded bg-charcoal/8 border border-charcoal/15" />
-            <span className="text-[11px] tracking-wider uppercase text-charcoal/30">Closed</span>
+            <span className="w-2.5 h-2.5 rounded bg-charcoal/8 dark:bg-white/8 border border-charcoal/15 dark:border-white/15" />
+            <span className="text-[11px] tracking-wider uppercase text-charcoal/30 dark:text-white/30">Closed</span>
           </div>
         </div>
       )}
@@ -1541,7 +1541,7 @@ export default function RotaPage() {
       {/* ── Week count selector ── */}
       {isManager && (
         <div className="hidden lg:flex flex-wrap items-center gap-2">
-          <span className="text-[11px] tracking-widest uppercase text-charcoal/40 font-medium">View</span>
+          <span className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 font-medium">View</span>
           {[1, 2, 3, 4].map((n) => (
             <button
               key={n}
@@ -1549,8 +1549,8 @@ export default function RotaPage() {
               className={[
                 'px-3 py-1.5 rounded-lg text-xs font-medium border transition-all',
                 numWeeks === n
-                  ? 'bg-charcoal text-cream border-charcoal'
-                  : 'bg-white text-charcoal/50 border-charcoal/15 hover:border-charcoal/30 hover:text-charcoal',
+                  ? 'bg-charcoal text-cream border-charcoal dark:border-white'
+                  : 'bg-white dark:bg-paperDark text-charcoal/50 dark:text-white/40 border-charcoal/15 dark:border-white/15 hover:border-charcoal/30 dark:hover:border-white/30 hover:text-charcoal dark:hover:text-white',
               ].join(' ')}
             >
               {n} {n === 1 ? 'week' : 'weeks'}
@@ -1566,19 +1566,19 @@ export default function RotaPage() {
           (sh) => sh.week_start === format(thisWeekStart, 'yyyy-MM-dd')
         )
         return (
-          <div key={format(thisWeekStart, 'yyyy-MM-dd')} className="bg-white rounded-2xl border-charcoal/10 overflow-hidden">
+          <div key={format(thisWeekStart, 'yyyy-MM-dd')} className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 overflow-hidden">
             {wi === 0 && (
-              <div className="flex items-center justify-between px-5 py-4 border-b border-charcoal/8">
-                <button onClick={prevWeek} className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-charcoal/8 text-charcoal/50 hover:text-charcoal transition-colors text-sm">‹</button>
-                <span className="text-sm font-medium text-charcoal">
+              <div className="flex items-center justify-between px-5 py-4 border-b border-charcoal/8 dark:border-white/8">
+                <button onClick={prevWeek} className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-charcoal/8 dark:hover:bg-white/8 text-charcoal/50 dark:text-white/40 hover:text-charcoal dark:hover:text-white transition-colors text-sm">‹</button>
+                <span className="text-sm font-medium text-charcoal dark:text-white">
                   {format(weekStart, 'd MMM')} – {format(addWeeks(weekStart, numWeeks), 'd MMM yyyy')}
                 </span>
-                <button onClick={nextWeek} className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-charcoal/8 text-charcoal/50 hover:text-charcoal transition-colors text-sm">›</button>
+                <button onClick={nextWeek} className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-charcoal/8 dark:hover:bg-white/8 text-charcoal/50 dark:text-white/40 hover:text-charcoal dark:hover:text-white transition-colors text-sm">›</button>
               </div>
             )}
             {numWeeks > 1 && (
-              <div className="px-5 py-2 bg-charcoal/4 border-b border-charcoal/8">
-                <p className="text-[11px] tracking-widest uppercase text-charcoal/50 font-medium">
+              <div className="px-5 py-2 bg-charcoal/4 dark:bg-white/5 border-b border-charcoal/8 dark:border-white/8">
+                <p className="text-[11px] tracking-widest uppercase text-charcoal/50 dark:text-white/40 font-medium">
                   Week {wi + 1} — {format(thisWeekStart, 'd MMM')} – {format(addWeeks(thisWeekStart, 1), 'd MMM')}
                 </p>
               </div>

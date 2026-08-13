@@ -28,11 +28,11 @@ export default function ConfirmDialog({
 }) {
   return (
     <Modal open={open} onClose={onClose} title={title}>
-      <p className="text-sm text-charcoal/70 mb-6">{message}</p>
+      <p className="text-sm text-charcoal/70 dark:text-white/60 mb-6">{message}</p>
       <div className="flex gap-3 justify-end">
         <button
           onClick={onClose}
-          className="px-4 py-2 rounded-lg border border-charcoal/15 text-sm text-charcoal/60 hover:text-charcoal hover:border-charcoal/30 transition-colors"
+          className="px-4 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 text-sm text-charcoal/60 dark:text-white/50 hover:text-charcoal dark:hover:text-white hover:border-charcoal/30 dark:hover:border-white/30 transition-colors"
         >
           Cancel
         </button>
@@ -41,7 +41,7 @@ export default function ConfirmDialog({
           className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
             danger
               ? 'bg-danger text-white hover:bg-danger/90'
-              : 'bg-charcoal text-cream hover:bg-charcoal/90'
+              : 'bg-charcoal text-cream hover:bg-charcoal/90 dark:bg-white dark:text-charcoal dark:hover:bg-white/90'
           }`}
         >
           {confirmLabel}

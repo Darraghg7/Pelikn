@@ -11,7 +11,7 @@ const steps = [
           supabase.com
         </a>
         , create a free project, then open the <strong>SQL Editor</strong> and run the contents of{' '}
-        <code className="font-mono text-sm bg-charcoal/10 px-1 rounded">supabase/migrations/001_initial_schema.sql</code>.
+        <code className="font-mono text-sm bg-charcoal/10 dark:bg-white/10 px-1 rounded">supabase/migrations/001_initial_schema.sql</code>.
       </>
     ),
   },
@@ -20,8 +20,8 @@ const steps = [
     title: 'Add your .env file',
     body: (
       <>
-        Copy <code className="font-mono text-sm bg-charcoal/10 px-1 rounded">.env.example</code> to{' '}
-        <code className="font-mono text-sm bg-charcoal/10 px-1 rounded">.env</code> and fill in your project URL and
+        Copy <code className="font-mono text-sm bg-charcoal/10 dark:bg-white/10 px-1 rounded">.env.example</code> to{' '}
+        <code className="font-mono text-sm bg-charcoal/10 dark:bg-white/10 px-1 rounded">.env</code> and fill in your project URL and
         anon key from <strong>Supabase → Settings → API</strong>.
         <pre className="mt-3 text-xs bg-charcoal text-cream rounded-xl p-4 overflow-x-auto leading-relaxed">{`VITE_SUPABASE_URL=https://xxxx.supabase.co\nVITE_SUPABASE_ANON_KEY=eyJ...`}</pre>
       </>
@@ -33,7 +33,7 @@ const steps = [
     body: (
       <>
         Stop the server, then run{' '}
-        <code className="font-mono text-sm bg-charcoal/10 px-1 rounded">npm run dev</code> again. The app will load
+        <code className="font-mono text-sm bg-charcoal/10 dark:bg-white/10 px-1 rounded">npm run dev</code> again. The app will load
         normally once the environment variables are detected.
       </>
     ),
@@ -46,12 +46,12 @@ export default function SetupPage() {
       <div className="w-full max-w-lg">
         {/* Header */}
         <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold text-charcoal mb-1">Pelikn</h1>
-          <p className="text-charcoal/50 text-sm">Setup required</p>
+          <h1 className="text-3xl font-bold text-charcoal dark:text-white mb-1">Pelikn</h1>
+          <p className="text-charcoal/50 dark:text-white/40 text-sm">Setup required</p>
         </div>
 
-        <div className="bg-white/70 rounded-3xl p-6 shadow-sm border border-charcoal/10 mb-6">
-          <p className="text-sm text-charcoal/70 mb-5">
+        <div className="bg-white/70 rounded-3xl p-6 shadow-sm border border-charcoal/10 dark:border-white/10 mb-6">
+          <p className="text-sm text-charcoal/70 dark:text-white/60 mb-5">
             Supabase credentials are not configured yet. Follow these steps to get the app running:
           </p>
 
@@ -62,15 +62,15 @@ export default function SetupPage() {
                   {s.n}
                 </div>
                 <div>
-                  <p className="font-medium text-charcoal mb-1">{s.title}</p>
-                  <p className="text-sm text-charcoal/60 leading-relaxed">{s.body}</p>
+                  <p className="font-medium text-charcoal dark:text-white mb-1">{s.title}</p>
+                  <p className="text-sm text-charcoal/60 dark:text-white/50 leading-relaxed">{s.body}</p>
                 </div>
               </div>
             ))}
           </div>
         </div>
 
-        <p className="text-center text-xs text-charcoal/40">
+        <p className="text-center text-xs text-charcoal/40 dark:text-white/35">
           After setup, this page will be replaced by the login screen automatically.
         </p>
       </div>

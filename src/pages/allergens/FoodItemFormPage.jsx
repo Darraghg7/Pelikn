@@ -9,7 +9,7 @@ import { useToast } from '../../components/ui/Toast'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
 
 function SectionLabel({ children }) {
-  return <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-3">{children}</p>
+  return <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-3">{children}</p>
 }
 
 export default function FoodItemFormPage() {
@@ -102,41 +102,41 @@ export default function FoodItemFormPage() {
       <div className="flex items-center gap-4">
         <Link
           to={isEdit ? `/v/${venueSlug}/allergens/${id}` : `/v/${venueSlug}/allergens`}
-          className="text-charcoal/40 hover:text-charcoal transition-colors text-lg"
+          className="text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white transition-colors text-lg"
         >
           ←
         </Link>
-        <h1 className="text-2xl font-bold text-charcoal">
+        <h1 className="text-2xl font-bold text-charcoal dark:text-white">
           {isEdit ? 'Edit Dish' : 'Add New Dish'}
         </h1>
       </div>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-        <div className="bg-white rounded-2xl border-charcoal/10 p-5 flex flex-col gap-4">
+        <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-5 flex flex-col gap-4">
           <SectionLabel>Dish Details</SectionLabel>
           <div className="flex flex-col gap-1.5">
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40">Name</label>
+            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">Name</label>
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g. Caesar Salad"
               required
-              className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 bg-white text-charcoal placeholder-charcoal/25 text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+              className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-charcoal dark:text-white placeholder-charcoal/25 dark:placeholder-white/20 text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
             />
           </div>
           <div className="flex flex-col gap-1.5">
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40">Description (optional)</label>
+            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">Description (optional)</label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Brief description…"
               rows={2}
-              className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 bg-white text-charcoal placeholder-charcoal/25 text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 resize-none"
+              className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-charcoal dark:text-white placeholder-charcoal/25 dark:placeholder-white/20 text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 resize-none"
             />
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl border-charcoal/10 p-5">
+        <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-5">
           <SectionLabel>Contains (select all that apply)</SectionLabel>
           <div className="grid grid-cols-2 gap-2">
             {EU_ALLERGENS.map((a) => (
@@ -145,8 +145,8 @@ export default function FoodItemFormPage() {
                 className={[
                   'flex items-center gap-3 px-4 py-2.5 rounded-lg border cursor-pointer transition-all text-sm',
                   allergens.includes(a)
-                    ? 'bg-charcoal text-cream border-charcoal'
-                    : 'bg-white text-charcoal border-charcoal/12 hover:border-charcoal/30',
+                    ? 'bg-charcoal text-cream border-charcoal dark:border-white'
+                    : 'bg-white dark:bg-paperDark text-charcoal dark:text-white border-charcoal/12 dark:border-white/15 hover:border-charcoal/30 dark:hover:border-white/30',
                 ].join(' ')}
               >
                 <input
@@ -161,10 +161,10 @@ export default function FoodItemFormPage() {
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl border-charcoal/10 p-5 flex flex-col gap-4">
+        <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-5 flex flex-col gap-4">
           <div>
             <SectionLabel>May Contain — cross-contamination risk</SectionLabel>
-            <p className="text-xs text-charcoal/40 mb-3 -mt-1">
+            <p className="text-xs text-charcoal/40 dark:text-white/35 mb-3 -mt-1">
               Allergens that may be present due to shared equipment or preparation areas.
             </p>
             <div className="grid grid-cols-2 gap-2">
@@ -175,7 +175,7 @@ export default function FoodItemFormPage() {
                     'flex items-center gap-3 px-4 py-2.5 rounded-lg border cursor-pointer transition-all text-sm',
                     mayContain.includes(a)
                       ? 'bg-warning/10 text-warning border-warning/40'
-                      : 'bg-white text-charcoal border-charcoal/12 hover:border-charcoal/30',
+                      : 'bg-white dark:bg-paperDark text-charcoal dark:text-white border-charcoal/12 dark:border-white/15 hover:border-charcoal/30 dark:hover:border-white/30',
                   ].join(' ')}
                 >
                   <input
@@ -190,14 +190,14 @@ export default function FoodItemFormPage() {
             </div>
           </div>
           <div className="flex flex-col gap-1.5">
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40">
+            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">
               Verbal Guidance Note (optional)
             </label>
             <input
               value={verbalNote}
               onChange={(e) => setVerbalNote(e.target.value)}
               placeholder="e.g. Please inform staff before ordering if you have a nut allergy"
-              className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 bg-white text-charcoal placeholder-charcoal/25 text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+              className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-charcoal dark:text-white placeholder-charcoal/25 dark:placeholder-white/20 text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
             />
           </div>
         </div>

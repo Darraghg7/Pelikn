@@ -38,12 +38,12 @@ function OpenActionsWidget() {
         <Link
           key={a.id}
           to={`/v/${venueSlug}/corrective`}
-          className="flex items-center justify-between py-1.5 border-t border-charcoal/5 group"
+          className="flex items-center justify-between py-1.5 border-t border-charcoal/5 dark:border-white/5 group"
         >
-          <span className="text-xs text-charcoal/70 truncate flex-1 group-hover:text-charcoal transition-colors">{a.title ?? 'Untitled'}</span>
+          <span className="text-xs text-charcoal/70 dark:text-white/60 truncate flex-1 group-hover:text-charcoal dark:group-hover:text-white transition-colors">{a.title ?? 'Untitled'}</span>
           <span className={`text-[11px] font-semibold shrink-0 ml-2 ${
             a.severity === 'critical' ? 'text-danger' :
-            a.severity === 'major' ? 'text-warning' : 'text-charcoal/40'
+            a.severity === 'major' ? 'text-warning' : 'text-charcoal/40 dark:text-white/35'
           }`}>{a.severity?.toUpperCase()}</span>
         </Link>
       ))}

@@ -118,12 +118,12 @@ export default function SignupFlowPage() {
   return (
     <div className="min-h-dvh bg-surface font-sans">
       {/* Header */}
-      <div className="border-b border-charcoal/8 bg-white">
+      <div className="border-b border-charcoal/8 dark:border-white/8 bg-white dark:bg-paperDark">
         <div className="max-w-5xl mx-auto px-5 sm:px-8 h-14 flex items-center justify-between">
           <Link to="/" className="font-bold text-brand text-lg tracking-tight hover:opacity-80 transition-opacity">
             Pelikn
           </Link>
-          <div className="flex items-center gap-1.5 text-[11px] text-charcoal/35">
+          <div className="flex items-center gap-1.5 text-[11px] text-charcoal/35 dark:text-white/30">
             <IconLock />
             <span>Secure signup</span>
           </div>

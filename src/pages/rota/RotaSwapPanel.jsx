@@ -17,12 +17,12 @@ export default function RotaSwapPanel({
   if (!showSwaps) return null
 
   return (
-    <div className="bg-white rounded-2xl border-charcoal/10 overflow-hidden">
-      <div className="px-5 py-4 border-b border-charcoal/8 flex items-center justify-between">
-        <p className="text-[11px] tracking-widest uppercase text-charcoal/40">Shift Swap Requests</p>
+    <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 overflow-hidden">
+      <div className="px-5 py-4 border-b border-charcoal/8 dark:border-white/8 flex items-center justify-between">
+        <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">Shift Swap Requests</p>
         <button
           onClick={() => setShowSwaps(false)}
-          className="text-xs text-charcoal/30 hover:text-charcoal transition-colors"
+          className="text-xs text-charcoal/30 dark:text-white/30 hover:text-charcoal dark:hover:text-white transition-colors"
         >
           Close ×
         </button>
@@ -31,29 +31,29 @@ export default function RotaSwapPanel({
       {swapsLoading ? (
         <div className="flex justify-center py-6"><LoadingSpinner /></div>
       ) : swaps.length === 0 ? (
-        <p className="text-sm text-charcoal/35 italic px-5 py-6">No swap requests yet.</p>
+        <p className="text-sm text-charcoal/35 dark:text-white/30 italic px-5 py-6">No swap requests yet.</p>
       ) : (
-        <div className="flex flex-col divide-y divide-charcoal/6">
+        <div className="flex flex-col divide-y divide-charcoal/6 dark:divide-white/8">
           {/* Pending first */}
           {pendingSwaps.map((swap) => (
             <div key={swap.id} className="p-5 flex flex-col gap-3">
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-semibold text-charcoal text-sm">{swap.requester_name}</span>
-                    <span className="text-charcoal/30 text-xs">→ swap with</span>
-                    <span className="font-semibold text-charcoal text-sm">{swap.target_staff_name}</span>
+                    <span className="font-semibold text-charcoal dark:text-white text-sm">{swap.requester_name}</span>
+                    <span className="text-charcoal/30 dark:text-white/30 text-xs">→ swap with</span>
+                    <span className="font-semibold text-charcoal dark:text-white text-sm">{swap.target_staff_name}</span>
                     <span className="text-[11px] tracking-widest uppercase px-2 py-0.5 rounded-full bg-warning/15 text-warning font-medium">
                       Pending
                     </span>
                   </div>
                   {swap.shift && (
-                    <p className="text-xs text-charcoal/50 mt-1">
+                    <p className="text-xs text-charcoal/50 dark:text-white/40 mt-1">
                       Shift: {swap.shift.shift_date} · {swap.shift.start_time?.slice(0,5)}–{swap.shift.end_time?.slice(0,5)}
                     </p>
                   )}
                   {swap.message && (
-                    <p className="text-xs text-charcoal/60 mt-1 italic">"{swap.message}"</p>
+                    <p className="text-xs text-charcoal/60 dark:text-white/50 mt-1 italic">"{swap.message}"</p>
                   )}
                 </div>
               </div>
@@ -63,7 +63,7 @@ export default function RotaSwapPanel({
                   placeholder="Optional note for rejection…"
                   value={rejectNote[swap.id] ?? ''}
                   onChange={(e) => setRejectNote((n) => ({ ...n, [swap.id]: e.target.value }))}
-                  className="w-full px-3 py-2 rounded-lg border border-charcoal/15 bg-white text-xs focus:outline-none focus:ring-2 focus:ring-charcoal/20 placeholder-charcoal/25"
+                  className="w-full px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-xs focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 placeholder-charcoal/25 dark:placeholder-white/20"
                 />
                 <div className="flex gap-2">
                   <button
@@ -88,14 +88,14 @@ export default function RotaSwapPanel({
           {/* Resolved requests */}
           {resolvedSwaps.length > 0 && (
             <>
-              <div className="px-5 py-2 bg-charcoal/3">
-                <p className="text-[11px] tracking-widest uppercase text-charcoal/30">Resolved</p>
+              <div className="px-5 py-2 bg-charcoal/3 dark:bg-white/5">
+                <p className="text-[11px] tracking-widest uppercase text-charcoal/30 dark:text-white/30">Resolved</p>
               </div>
               {resolvedSwaps.map((swap) => (
                 <div key={swap.id} className="px-5 py-3 flex items-center justify-between gap-4">
                   <div>
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-sm text-charcoal/60">{swap.requester_name} → {swap.target_staff_name}</span>
+                      <span className="text-sm text-charcoal/60 dark:text-white/50">{swap.requester_name} → {swap.target_staff_name}</span>
                       <span className={`text-[11px] tracking-widest uppercase px-2 py-0.5 rounded-full font-medium ${
                         swap.status === 'approved'
                           ? 'bg-success/10 text-success'
@@ -105,7 +105,7 @@ export default function RotaSwapPanel({
                       </span>
                     </div>
                     {swap.manager_note && (
-                      <p className="text-xs text-charcoal/40 mt-0.5 italic">Note: {swap.manager_note}</p>
+                      <p className="text-xs text-charcoal/40 dark:text-white/35 mt-0.5 italic">Note: {swap.manager_note}</p>
                     )}
                   </div>
                 </div>

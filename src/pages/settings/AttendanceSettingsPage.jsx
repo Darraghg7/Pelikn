@@ -10,13 +10,13 @@ function Stepper({ value, onChange, suffix, min = 0, max = 99, step = 1 }) {
     <button
       onClick={fn}
       disabled={disabled}
-      className={`w-[34px] h-[34px] rounded-[9px] border border-charcoal/10 flex items-center justify-center text-lg font-semibold transition-colors ${disabled ? 'bg-charcoal/5 text-charcoal/30 cursor-default' : 'bg-white text-charcoal hover:bg-charcoal/[0.03]'}`}
+      className={`w-[34px] h-[34px] rounded-[9px] border border-charcoal/10 dark:border-white/10 flex items-center justify-center text-lg font-semibold transition-colors ${disabled ? 'bg-charcoal/5 dark:bg-white/5 text-charcoal/30 dark:text-white/30 cursor-default' : 'bg-white dark:bg-paperDark text-charcoal dark:text-white hover:bg-charcoal/[0.03]'}`}
     >{label}</button>
   )
   return (
     <div className="flex items-center gap-2 shrink-0">
       {btn('–', () => onChange(Math.max(min, value - step)), value <= min)}
-      <span className="font-mono text-sm font-semibold text-charcoal min-w-[52px] text-center tabular-nums">{value}{suffix}</span>
+      <span className="font-mono text-sm font-semibold text-charcoal dark:text-white min-w-[52px] text-center tabular-nums">{value}{suffix}</span>
       {btn('+', () => onChange(Math.min(max, value + step)), value >= max)}
     </div>
   )
@@ -24,10 +24,10 @@ function Stepper({ value, onChange, suffix, min = 0, max = 99, step = 1 }) {
 
 function Row({ label, sub, warnText, control, last }) {
   return (
-    <div className={`flex items-center gap-3 px-[15px] py-[13px] ${last === false ? 'border-t border-charcoal/6' : ''}`}>
+    <div className={`flex items-center gap-3 px-[15px] py-[13px] ${last === false ? 'border-t border-charcoal/6 dark:border-white/8' : ''}`}>
       <div className="flex-1 min-w-0">
-        <div className="text-sm font-medium text-charcoal tracking-[-0.005em]">{label}</div>
-        {sub && <div className="text-[11.5px] text-charcoal/50 mt-0.5 leading-[1.4]">{sub}</div>}
+        <div className="text-sm font-medium text-charcoal dark:text-white tracking-[-0.005em]">{label}</div>
+        {sub && <div className="text-[11.5px] text-charcoal/50 dark:text-white/40 mt-0.5 leading-[1.4]">{sub}</div>}
         {warnText && (
           <div className="font-mono text-[11px] text-warning mt-1 uppercase tracking-[0.04em] font-semibold">{warnText}</div>
         )}
@@ -41,13 +41,13 @@ function Group({ label, children, foot }) {
   return (
     <div>
       {label && (
-        <div className="font-mono text-[11px] font-semibold tracking-[0.08em] uppercase text-charcoal/50 px-0.5 pt-[18px] pb-1.5">{label}</div>
+        <div className="font-mono text-[11px] font-semibold tracking-[0.08em] uppercase text-charcoal/50 dark:text-white/40 px-0.5 pt-[18px] pb-1.5">{label}</div>
       )}
-      <div className="bg-white dark:bg-paperDark border border-charcoal/10 rounded-[14px] overflow-hidden">
+      <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[14px] overflow-hidden">
         {children}
       </div>
       {foot && (
-        <div className="text-[11.5px] text-charcoal/50 px-1 pt-2 leading-[1.45]">{foot}</div>
+        <div className="text-[11.5px] text-charcoal/50 dark:text-white/40 px-1 pt-2 leading-[1.45]">{foot}</div>
       )}
     </div>
   )

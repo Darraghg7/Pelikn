@@ -106,41 +106,41 @@ export default function PPDSItemFormPage() {
 
       {/* Header */}
       <div className="flex items-center gap-4">
-        <Link to={`/v/${venueSlug}/allergens/ppds`} className="text-charcoal/40 hover:text-charcoal transition-colors text-lg">←</Link>
+        <Link to={`/v/${venueSlug}/allergens/ppds`} className="text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white transition-colors text-lg">←</Link>
         <div>
-          <h1 className="text-2xl font-bold text-charcoal">{isEdit ? 'Edit PPDS Item' : 'New PPDS Item'}</h1>
-          <p className="text-xs text-charcoal/40 mt-0.5">Pre-packed for direct sale — Natasha's Law</p>
+          <h1 className="text-2xl font-bold text-charcoal dark:text-white">{isEdit ? 'Edit PPDS Item' : 'New PPDS Item'}</h1>
+          <p className="text-xs text-charcoal/40 dark:text-white/35 mt-0.5">Pre-packed for direct sale — Natasha's Law</p>
         </div>
       </div>
 
       {/* Basic info */}
-      <div className="bg-white rounded-2xl border-charcoal/10 p-5 flex flex-col gap-4">
+      <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-5 flex flex-col gap-4">
         <div className="flex flex-col gap-1">
-          <label className="text-[11px] tracking-widest uppercase text-charcoal/40">Product name <span className="text-danger">*</span></label>
+          <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">Product name <span className="text-danger">*</span></label>
           <input
             value={name}
             onChange={e => setName(e.target.value)}
             placeholder="e.g. Chicken Caesar Wrap"
-            className="px-3 py-2 rounded-lg border border-charcoal/15 bg-white text-sm text-charcoal placeholder-charcoal/25 focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+            className="px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white placeholder-charcoal/25 dark:placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
           />
         </div>
         <div className="flex flex-col gap-1">
-          <label className="text-[11px] tracking-widest uppercase text-charcoal/40">Description (optional)</label>
+          <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">Description (optional)</label>
           <input
             value={description}
             onChange={e => setDesc(e.target.value)}
             placeholder="e.g. Available daily — freshly prepared on premises"
-            className="px-3 py-2 rounded-lg border border-charcoal/15 bg-white text-sm text-charcoal placeholder-charcoal/25 focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+            className="px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white placeholder-charcoal/25 dark:placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
           />
         </div>
       </div>
 
       {/* Ingredient builder */}
-      <div className="bg-white rounded-2xl border-charcoal/10 p-5 flex flex-col gap-4">
+      <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-5 flex flex-col gap-4">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-[11px] tracking-widest uppercase text-charcoal/40">Ingredients</p>
-            <p className="text-xs text-charcoal/35 mt-0.5">In descending order by weight. Tick the allergen if one applies.</p>
+            <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">Ingredients</p>
+            <p className="text-xs text-charcoal/35 dark:text-white/30 mt-0.5">In descending order by weight. Tick the allergen if one applies.</p>
           </div>
         </div>
 
@@ -153,7 +153,7 @@ export default function PPDSItemFormPage() {
                   type="button"
                   onClick={() => moveUp(idx)}
                   disabled={idx === 0}
-                  className="w-5 h-5 flex items-center justify-center text-charcoal/25 hover:text-charcoal disabled:opacity-20 transition-colors"
+                  className="w-5 h-5 flex items-center justify-center text-charcoal/25 dark:text-white/25 hover:text-charcoal dark:hover:text-white disabled:opacity-20 transition-colors"
                   title="Move up"
                 >
                   <svg className="w-3 h-3" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="2,8 6,4 10,8"/></svg>
@@ -162,7 +162,7 @@ export default function PPDSItemFormPage() {
                   type="button"
                   onClick={() => moveDown(idx)}
                   disabled={idx === ingredients.length - 1}
-                  className="w-5 h-5 flex items-center justify-center text-charcoal/25 hover:text-charcoal disabled:opacity-20 transition-colors"
+                  className="w-5 h-5 flex items-center justify-center text-charcoal/25 dark:text-white/25 hover:text-charcoal dark:hover:text-white disabled:opacity-20 transition-colors"
                   title="Move down"
                 >
                   <svg className="w-3 h-3" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="2,4 6,8 10,4"/></svg>
@@ -174,17 +174,17 @@ export default function PPDSItemFormPage() {
                 value={row.name}
                 onChange={e => setIngr(idx, 'name', e.target.value)}
                 placeholder={`Ingredient ${idx + 1}`}
-                className="flex-1 px-3 py-2 rounded-lg border border-charcoal/15 bg-white text-sm text-charcoal placeholder-charcoal/25 focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+                className="flex-1 px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white placeholder-charcoal/25 dark:placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
               />
 
               {/* Allergen selector */}
               <select
                 value={row.allergen ?? ''}
                 onChange={e => setIngr(idx, 'allergen', e.target.value || null)}
-                className={`px-2 py-2 rounded-lg border text-xs focus:outline-none focus:ring-2 focus:ring-charcoal/20 ${
+                className={`px-2 py-2 rounded-lg border text-xs focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 ${
                   row.allergen
                     ? 'border-amber-300 bg-amber-50 text-amber-800 font-medium'
-                    : 'border-charcoal/15 bg-white text-charcoal/40'
+                    : 'border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-charcoal/40 dark:text-white/35'
                 }`}
                 style={{ minWidth: '100px' }}
               >
@@ -197,7 +197,7 @@ export default function PPDSItemFormPage() {
                 type="button"
                 onClick={() => removeIngredient(idx)}
                 disabled={ingredients.length === 1}
-                className="mt-1 w-7 h-7 flex items-center justify-center text-charcoal/25 hover:text-danger transition-colors disabled:opacity-20 shrink-0"
+                className="mt-1 w-7 h-7 flex items-center justify-center text-charcoal/25 dark:text-white/25 hover:text-danger transition-colors disabled:opacity-20 shrink-0"
               >
                 ×
               </button>
@@ -215,9 +215,9 @@ export default function PPDSItemFormPage() {
 
         {/* Live preview */}
         {ingredients.some(r => r.name.trim()) && (
-          <div className="bg-charcoal/3 rounded-lg px-4 py-3 border border-charcoal/8">
-            <p className="text-[11px] tracking-widest uppercase text-charcoal/30 mb-1">Label preview</p>
-            <p className="text-xs text-charcoal/70 leading-relaxed font-sans">
+          <div className="bg-charcoal/3 dark:bg-white/5 rounded-lg px-4 py-3 border border-charcoal/8 dark:border-white/8">
+            <p className="text-[11px] tracking-widest uppercase text-charcoal/30 dark:text-white/30 mb-1">Label preview</p>
+            <p className="text-xs text-charcoal/70 dark:text-white/60 leading-relaxed font-sans">
               <span className="font-bold">INGREDIENTS: </span>
               {ingredients
                 .filter(r => r.name.trim())
@@ -237,10 +237,10 @@ export default function PPDSItemFormPage() {
       </div>
 
       {/* May Contain */}
-      <div className="bg-white rounded-2xl border-charcoal/10 p-5 flex flex-col gap-3">
+      <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-5 flex flex-col gap-3">
         <div>
-          <p className="text-[11px] tracking-widest uppercase text-charcoal/40">May Contain</p>
-          <p className="text-xs text-charcoal/35 mt-0.5">Cross-contamination risks — select any that apply to your kitchen environment.</p>
+          <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">May Contain</p>
+          <p className="text-xs text-charcoal/35 dark:text-white/30 mt-0.5">Cross-contamination risks — select any that apply to your kitchen environment.</p>
         </div>
         <div className="flex flex-wrap gap-2">
           {EU_ALLERGENS.map(a => {
@@ -253,7 +253,7 @@ export default function PPDSItemFormPage() {
                 className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
                   sel
                     ? 'bg-amber-100 border-amber-300 text-amber-800'
-                    : 'bg-white border-charcoal/15 text-charcoal/50 hover:border-charcoal/30 hover:text-charcoal'
+                    : 'bg-white dark:bg-paperDark border-charcoal/15 dark:border-white/15 text-charcoal/50 dark:text-white/40 hover:border-charcoal/30 dark:hover:border-white/30 hover:text-charcoal dark:hover:text-white'
                 }`}
               >
                 {a}
@@ -267,7 +267,7 @@ export default function PPDSItemFormPage() {
       <div className="flex gap-3">
         <Link
           to={`/v/${venueSlug}/allergens/ppds`}
-          className="px-5 py-3 rounded-xl border border-charcoal/15 text-sm text-charcoal/50 hover:border-charcoal/30 hover:text-charcoal transition-colors"
+          className="px-5 py-3 rounded-xl border border-charcoal/15 dark:border-white/15 text-sm text-charcoal/50 dark:text-white/40 hover:border-charcoal/30 dark:hover:border-white/30 hover:text-charcoal dark:hover:text-white transition-colors"
         >
           Cancel
         </Link>
