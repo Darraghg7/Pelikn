@@ -7,7 +7,7 @@ import { useRotaRequirements, DAY_NAMES, DAY_SHORT } from '../../hooks/useRotaRe
 import { useToast } from '../../components/ui/Toast'
 
 function SectionLabel({ children }) {
-  return <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-2">{children}</p>
+  return <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-2">{children}</p>
 }
 
 const EMPTY_SLOT = { role_id: '', role_name: '', staff_count: 1, start_time: '09:00', end_time: '17:00', label: '' }
@@ -38,24 +38,24 @@ function SlotRow({ slot, roles, onDelete, onSave, isNew = false }) {
   const changed = JSON.stringify(form) !== JSON.stringify({ ...EMPTY_SLOT, ...slot })
 
   return (
-    <div className="flex flex-col gap-2 p-3 rounded-xl border border-charcoal/10 bg-charcoal/[0.02]">
+    <div className="flex flex-col gap-2 p-3 rounded-xl border border-charcoal/10 dark:border-white/10 bg-charcoal/[0.02]">
       {/* Row 1: Role + Count */}
       <div className="flex items-center gap-2 flex-wrap">
         <select
           value={form.role_id}
           onChange={e => handleRoleChange(e.target.value)}
-          className="flex-1 min-w-[130px] px-3 py-2 rounded-lg border border-charcoal/15 bg-white text-sm text-charcoal focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+          className="flex-1 min-w-[130px] px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
         >
           <option value="">Select role…</option>
           {roles.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
         </select>
 
         <div className="flex items-center gap-1.5">
-          <span className="text-[11px] text-charcoal/40 whitespace-nowrap">× staff</span>
+          <span className="text-[11px] text-charcoal/40 dark:text-white/35 whitespace-nowrap">× staff</span>
           <input
             type="number" min={1} max={20} value={form.staff_count}
             onChange={e => set('staff_count', Math.max(1, parseInt(e.target.value) || 1))}
-            className="w-14 px-2 py-2 rounded-lg border border-charcoal/15 bg-white text-sm text-center focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+            className="w-14 px-2 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-center focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
           />
         </div>
       </div>
@@ -64,14 +64,14 @@ function SlotRow({ slot, roles, onDelete, onSave, isNew = false }) {
       <div className="flex items-center gap-2 flex-wrap">
         <div className="flex items-center gap-1.5">
           <TimeSelect value={form.start_time} onChange={v => set('start_time', v)} />
-          <span className="text-charcoal/30 text-sm">–</span>
+          <span className="text-charcoal/30 dark:text-white/30 text-sm">–</span>
           <TimeSelect value={form.end_time} onChange={v => set('end_time', v)} />
         </div>
 
         <input
           type="text" value={form.label} placeholder="Label (optional, e.g. Closer)"
           onChange={e => set('label', e.target.value)}
-          className="flex-1 min-w-[120px] px-3 py-2 rounded-lg border border-charcoal/15 bg-white text-sm text-charcoal placeholder-charcoal/25 focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+          className="flex-1 min-w-[120px] px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white placeholder-charcoal/25 dark:placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
         />
       </div>
 
@@ -165,7 +165,7 @@ export default function RotaConfigModal({ open, onClose, closedDayIndices = [] }
 
         {/* Summary strip */}
         <div className="rounded-xl bg-brand/6 border border-brand/12 px-4 py-3 flex items-center justify-between">
-          <p className="text-xs text-charcoal/60">
+          <p className="text-xs text-charcoal/60 dark:text-white/50">
             {requirements.length === 0
               ? 'No requirements set — add slots below for each day you are open.'
               : `${totalSlots} total staff slot${totalSlots !== 1 ? 's' : ''} across ${Object.values(byDay).filter(d => d.length > 0).length} days`}
@@ -190,12 +190,12 @@ export default function RotaConfigModal({ open, onClose, closedDayIndices = [] }
                 className={[
                   'flex flex-col items-center px-3 py-1.5 rounded-lg border text-[11px] font-medium transition-all',
                   isClosed
-                    ? 'bg-charcoal/4 border-charcoal/8 text-charcoal/20 cursor-not-allowed line-through'
+                    ? 'bg-charcoal/4 dark:bg-white/5 border-charcoal/8 dark:border-white/8 text-charcoal/20 dark:text-white/20 cursor-not-allowed line-through'
                     : activeDay === d
-                      ? 'bg-charcoal text-cream border-charcoal'
+                      ? 'bg-charcoal text-cream border-charcoal dark:border-white'
                       : slotCount > 0
                         ? 'bg-brand/8 border-brand/20 text-brand'
-                        : 'bg-white border-charcoal/12 text-charcoal/50 hover:border-charcoal/25',
+                        : 'bg-white dark:bg-paperDark border-charcoal/12 dark:border-white/15 text-charcoal/50 dark:text-white/40 hover:border-charcoal/25 dark:hover:border-white/25',
                 ].join(' ')}
               >
                 <span className="tracking-widest uppercase">{DAY_SHORT[d - 1]}</span>
@@ -213,8 +213,8 @@ export default function RotaConfigModal({ open, onClose, closedDayIndices = [] }
         {/* Day content */}
         <div className="flex-1 overflow-y-auto flex flex-col gap-3">
           <div className="flex items-center justify-between">
-            <p className="font-medium text-charcoal text-sm">{DAY_NAMES[activeDay - 1]}</p>
-            <p className="text-[11px] text-charcoal/35">
+            <p className="font-medium text-charcoal dark:text-white text-sm">{DAY_NAMES[activeDay - 1]}</p>
+            <p className="text-[11px] text-charcoal/35 dark:text-white/30">
               {byDay[activeDay]?.length > 0
                 ? `${byDay[activeDay].reduce((a, r) => a + r.staff_count, 0)} staff needed`
                 : 'No slots yet'}
@@ -222,7 +222,7 @@ export default function RotaConfigModal({ open, onClose, closedDayIndices = [] }
           </div>
 
           {loading ? (
-            <p className="text-sm text-charcoal/30 italic py-4 text-center">Loading…</p>
+            <p className="text-sm text-charcoal/30 dark:text-white/30 italic py-4 text-center">Loading…</p>
           ) : (
             <>
               {/* Existing slots */}
@@ -249,9 +249,9 @@ export default function RotaConfigModal({ open, onClose, closedDayIndices = [] }
                   />
                 </div>
               ) : (
-                <div className="rounded-xl border border-charcoal/10 px-4 py-6 text-center">
-                  <p className="text-sm text-charcoal/40">No roles configured yet.</p>
-                  <p className="text-xs text-charcoal/30 mt-1">
+                <div className="rounded-xl border border-charcoal/10 dark:border-white/10 px-4 py-6 text-center">
+                  <p className="text-sm text-charcoal/40 dark:text-white/35">No roles configured yet.</p>
+                  <p className="text-xs text-charcoal/30 dark:text-white/30 mt-1">
                     Go to <strong>Settings → Roles</strong> to add your business roles first.
                   </p>
                 </div>
@@ -261,7 +261,7 @@ export default function RotaConfigModal({ open, onClose, closedDayIndices = [] }
         </div>
 
         {/* Footer hint */}
-        <p className="text-[11px] text-charcoal/30 text-center border-t border-charcoal/8 pt-3">
+        <p className="text-[11px] text-charcoal/30 dark:text-white/30 text-center border-t border-charcoal/8 dark:border-white/8 pt-3">
           Changes save instantly. Once configured, use <strong>Auto-Fill</strong> on the rota to generate shifts.
         </p>
       </div>

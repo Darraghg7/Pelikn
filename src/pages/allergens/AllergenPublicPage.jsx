@@ -82,13 +82,13 @@ export default function AllergenPublicPage() {
 
   if (loading) return (
     <div className="min-h-screen bg-[#f5f4f1] flex items-center justify-center">
-      <p className="text-sm text-charcoal/40">Loading allergen information…</p>
+      <p className="text-sm text-charcoal/40 dark:text-white/35">Loading allergen information…</p>
     </div>
   )
 
   if (error) return (
     <div className="min-h-screen bg-[#f5f4f1] flex items-center justify-center">
-      <p className="text-sm text-charcoal/40">{error}</p>
+      <p className="text-sm text-charcoal/40 dark:text-white/35">{error}</p>
     </div>
   )
 
@@ -106,16 +106,16 @@ export default function AllergenPublicPage() {
               loading="lazy"
             />
           )}
-          <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-1">Allergen Information</p>
+          <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-1">Allergen Information</p>
           <h1 className="text-3xl font-bold text-[#1a3c2e]">{venue?.name}</h1>
-          <p className="text-sm text-charcoal/50 mt-2">
+          <p className="text-sm text-charcoal/50 dark:text-white/40 mt-2">
             The 14 major allergens are listed below. <span className="font-semibold text-amber-700">If you have a severe allergy, please speak with a member of staff before ordering.</span>
           </p>
         </div>
 
         {items.length === 0 ? (
-          <div className="bg-white rounded-2xl border-charcoal/10 px-6 py-8 text-center">
-            <p className="text-sm text-charcoal/40">No allergen information available yet.</p>
+          <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 px-6 py-8 text-center">
+            <p className="text-sm text-charcoal/40 dark:text-white/35">No allergen information available yet.</p>
           </div>
         ) : (
           <>
@@ -125,11 +125,11 @@ export default function AllergenPublicPage() {
                 const allergenSet  = new Set((item.food_allergens ?? []).map(a => a.allergen))
                 const mayContainSet = new Set((item.may_contain_allergens ?? []))
                 return (
-                  <div key={item.id} className="bg-white rounded-2xl border-charcoal/10 px-5 py-4">
-                    <p className="font-semibold text-charcoal mb-1">{item.name}</p>
-                    {item.description && <p className="text-xs text-charcoal/45 mb-3">{item.description}</p>}
+                  <div key={item.id} className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 px-5 py-4">
+                    <p className="font-semibold text-charcoal dark:text-white mb-1">{item.name}</p>
+                    {item.description && <p className="text-xs text-charcoal/45 dark:text-white/40 mb-3">{item.description}</p>}
                     {allergenSet.size === 0 && mayContainSet.size === 0 ? (
-                      <p className="text-xs text-charcoal/35 italic">No allergens declared</p>
+                      <p className="text-xs text-charcoal/35 dark:text-white/30 italic">No allergens declared</p>
                     ) : (
                       <div className="flex flex-col gap-2">
                         {allergenSet.size > 0 && (
@@ -141,7 +141,7 @@ export default function AllergenPublicPage() {
                         )}
                         {mayContainSet.size > 0 && (
                           <div className="flex flex-wrap gap-1.5 items-center">
-                            <span className="text-[11px] tracking-widest uppercase text-charcoal/35 font-medium">May contain:</span>
+                            <span className="text-[11px] tracking-widest uppercase text-charcoal/35 dark:text-white/30 font-medium">May contain:</span>
                             {[...mayContainSet].sort().map(a => (
                               <span key={a} className="text-xs font-medium bg-amber-50 text-amber-600 border border-amber-200 px-2 py-0.5 rounded-full">{a}</span>
                             ))}
@@ -150,7 +150,7 @@ export default function AllergenPublicPage() {
                       </div>
                     )}
                     {item.verbal_confirmation_note && (
-                      <p className="text-xs text-charcoal/45 italic mt-2 border-t border-charcoal/6 pt-2">{item.verbal_confirmation_note}</p>
+                      <p className="text-xs text-charcoal/45 dark:text-white/40 italic mt-2 border-t border-charcoal/6 dark:border-white/8 pt-2">{item.verbal_confirmation_note}</p>
                     )}
                   </div>
                 )
@@ -158,7 +158,7 @@ export default function AllergenPublicPage() {
             </div>
 
             {/* Desktop: matrix table */}
-            <div className="hidden lg:block bg-white rounded-2xl border-charcoal/10 overflow-hidden">
+            <div className="hidden lg:block bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full text-xs">
                   <thead>
@@ -176,8 +176,8 @@ export default function AllergenPublicPage() {
                       const allergenSet   = new Set((item.food_allergens ?? []).map(a => a.allergen))
                       const mayContainSet = new Set((item.may_contain_allergens ?? []))
                       return (
-                        <tr key={item.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-[#f5f4f1]'}>
-                          <td className="px-4 py-2.5 font-medium text-charcoal">{item.name}</td>
+                        <tr key={item.id} className={idx % 2 === 0 ? 'bg-white dark:bg-paperDark' : 'bg-[#f5f4f1]'}>
+                          <td className="px-4 py-2.5 font-medium text-charcoal dark:text-white">{item.name}</td>
                           {ALL_ALLERGENS.map(a => (
                             <td key={a} className="px-2 py-2.5 text-center">
                               {allergenSet.has(a) ? (
@@ -185,7 +185,7 @@ export default function AllergenPublicPage() {
                               ) : mayContainSet.has(a) ? (
                                 <span title="May contain" className="inline-flex w-4 h-4 rounded-sm bg-amber-100 border border-amber-300 text-amber-600 items-center justify-center text-[11px] font-bold">M</span>
                               ) : (
-                                <span className="text-charcoal/15">–</span>
+                                <span className="text-charcoal/15 dark:text-white/15">–</span>
                               )}
                             </td>
                           ))}
@@ -196,14 +196,14 @@ export default function AllergenPublicPage() {
                 </table>
               </div>
               {/* Legend */}
-              <div className="px-4 py-3 border-t border-charcoal/6 flex items-center gap-5">
+              <div className="px-4 py-3 border-t border-charcoal/6 dark:border-white/8 flex items-center gap-5">
                 <div className="flex items-center gap-1.5">
                   <span className="inline-flex w-4 h-4 rounded-sm bg-amber-400 text-white items-center justify-center"><svg className="w-2.5 h-2.5" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg></span>
-                  <span className="text-[11px] text-charcoal/50">Contains</span>
+                  <span className="text-[11px] text-charcoal/50 dark:text-white/40">Contains</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <span className="inline-flex w-4 h-4 rounded-sm bg-amber-100 border border-amber-300 text-amber-600 items-center justify-center text-[11px] font-bold">M</span>
-                  <span className="text-[11px] text-charcoal/50">May contain (cross-contamination risk)</span>
+                  <span className="text-[11px] text-charcoal/50 dark:text-white/40">May contain (cross-contamination risk)</span>
                 </div>
               </div>
             </div>
@@ -212,13 +212,13 @@ export default function AllergenPublicPage() {
 
         {/* Footer */}
         <div className="mt-8 text-center flex flex-col gap-1">
-          <p className="text-xs text-charcoal/50 font-medium">
+          <p className="text-xs text-charcoal/50 dark:text-white/40 font-medium">
             If you have a severe or life-threatening allergy, please speak directly with a member of staff before ordering.
           </p>
-          <p className="text-[11px] text-charcoal/30">
+          <p className="text-[11px] text-charcoal/30 dark:text-white/30">
             Allergen information is updated regularly but may change. Always check with staff when visiting.
           </p>
-          <p className="text-[11px] text-charcoal/20 mt-1">Powered by Pelikn</p>
+          <p className="text-[11px] text-charcoal/20 dark:text-white/20 mt-1">Powered by Pelikn</p>
         </div>
       </div>
     </div>

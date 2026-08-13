@@ -11,7 +11,7 @@ const STATUS_TONE = {
   overdue: { statusBg: 'bg-danger/10',  statusText: 'text-danger',  statusFg: 'bg-danger',  rank: 0 },
   due:     { statusBg: 'bg-warning/10', statusText: 'text-warning', statusFg: 'bg-warning', rank: 1 },
   done:    { statusBg: 'bg-success/10', statusText: 'text-success', statusFg: 'bg-success', rank: 3 },
-  na:      { statusBg: 'bg-charcoal/6', statusText: 'text-charcoal/50', statusFg: 'bg-charcoal/50', rank: 4 },
+  na:      { statusBg: 'bg-charcoal/6 dark:bg-white/8', statusText: 'text-charcoal/50 dark:text-white/40', statusFg: 'bg-charcoal/50 dark:bg-white/50', rank: 4 },
 }
 
 const CHECKS = [
@@ -79,7 +79,7 @@ function StatusPill({ status, text }) {
     overdue: { toneBg: 'bg-danger/10',  toneFg: 'text-danger' },
     due:     { toneBg: 'bg-warning/10', toneFg: 'text-warning' },
     done:    { toneBg: 'bg-success/10', toneFg: 'text-success' },
-    na:      { toneBg: 'bg-charcoal/6', toneFg: 'text-charcoal/50' },
+    na:      { toneBg: 'bg-charcoal/6 dark:bg-white/8', toneFg: 'text-charcoal/50 dark:text-white/40' },
   }
   const { toneBg, toneFg } = toneMap[status] ?? toneMap.na
   return (
@@ -100,7 +100,7 @@ function HubCard({ check, statusInfo, onClick, editMode, isHidden, onToggle }) {
   return (
     <button
       onClick={editMode ? onToggle : onClick}
-      className={`text-left cursor-pointer w-full bg-white dark:bg-paperDark border rounded-xl p-3 flex flex-col gap-2 min-h-[84px] relative transition-opacity ${editMode && isHidden ? 'opacity-40' : 'opacity-100'} ${!editMode && status === 'overdue' ? 'border-danger/30' : 'border-charcoal/10'}`}
+      className={`text-left cursor-pointer w-full bg-white dark:bg-paperDark border rounded-xl p-3 flex flex-col gap-2 min-h-[84px] relative transition-opacity ${editMode && isHidden ? 'opacity-40' : 'opacity-100'} ${!editMode && status === 'overdue' ? 'border-danger/30' : 'border-charcoal/10 dark:border-white/10'}`}
     >
       <div className="flex items-start justify-between">
         <span className={`w-[30px] h-[30px] rounded-[9px] flex items-center justify-center shrink-0 ${statusBg} ${statusTextClass}`}>
@@ -108,7 +108,7 @@ function HubCard({ check, statusInfo, onClick, editMode, isHidden, onToggle }) {
         </span>
 
         {editMode ? (
-          <span className={`w-5 h-5 rounded-full shrink-0 border-2 flex items-center justify-center ${isHidden ? 'border-charcoal/20 bg-transparent' : 'border-success bg-success'}`}>
+          <span className={`w-5 h-5 rounded-full shrink-0 border-2 flex items-center justify-center ${isHidden ? 'border-charcoal/20 dark:border-white/20 bg-transparent' : 'border-success bg-success'}`}>
             {!isHidden && (
               <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="20 6 9 17 4 12"/>
@@ -129,7 +129,7 @@ function HubCard({ check, statusInfo, onClick, editMode, isHidden, onToggle }) {
       </div>
 
       <div className="mt-auto">
-        <div className="text-sm font-semibold tracking-[-0.01em] text-charcoal">{check.label}</div>
+        <div className="text-sm font-semibold tracking-[-0.01em] text-charcoal dark:text-white">{check.label}</div>
         <div className={`font-mono text-[11px] mt-0.5 font-semibold tracking-[0.02em] uppercase ${statusTextClass}`}>
           {editMode ? (isHidden ? 'Hidden' : 'Visible') : statusText}
         </div>
@@ -189,19 +189,19 @@ export default function ChecksHubPage() {
 
       <div className="mb-[10px]">
         <div className="flex justify-between items-center">
-          <span className="font-mono text-[11px] text-charcoal/50 tracking-[0.08em] uppercase">Checks</span>
+          <span className="font-mono text-[11px] text-charcoal/50 dark:text-white/40 tracking-[0.08em] uppercase">Checks</span>
           <button
             onClick={editMode ? handleDone : handleEdit}
-            className={`font-mono text-[11.5px] font-semibold tracking-[0.04em] bg-transparent border-none cursor-pointer py-0.5 px-0 ${editMode ? 'text-success' : 'text-charcoal/50'}`}
+            className={`font-mono text-[11.5px] font-semibold tracking-[0.04em] bg-transparent border-none cursor-pointer py-0.5 px-0 ${editMode ? 'text-success' : 'text-charcoal/50 dark:text-white/40'}`}
           >
             {editMode ? 'Done' : 'Edit'}
           </button>
         </div>
-        <h1 className="text-[26px] font-semibold tracking-[-0.028em] leading-[1.12] mt-1 mb-0 text-charcoal">
+        <h1 className="text-[26px] font-semibold tracking-[-0.028em] leading-[1.12] mt-1 mb-0 text-charcoal dark:text-white">
           Today's checks
         </h1>
         {editMode && (
-          <div className="mt-[5px] text-xs text-charcoal/50 font-mono">
+          <div className="mt-[5px] text-xs text-charcoal/50 dark:text-white/40 font-mono">
             Tap a tile to show or hide it
           </div>
         )}
@@ -262,28 +262,28 @@ export default function ChecksHubPage() {
       </div>
 
       {!editMode && (
-        <div className="mt-4 rounded-xl border border-charcoal/10 bg-white dark:bg-paperDark overflow-hidden">
+        <div className="mt-4 rounded-xl border border-charcoal/10 dark:border-white/10 bg-white dark:bg-paperDark overflow-hidden">
           <button
             onClick={() => navigate(vp('/audit'))}
             className="w-full text-left cursor-pointer bg-transparent border-none px-[14px] py-[13px] flex items-center gap-[10px]"
           >
-            <span className="w-8 h-8 rounded-[9px] shrink-0 bg-surface text-charcoal/75 flex items-center justify-center">
+            <span className="w-8 h-8 rounded-[9px] shrink-0 bg-surface text-charcoal/75 dark:text-white/62 flex items-center justify-center">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h4"/>
               </svg>
             </span>
             <div className="flex-1 min-w-0">
-              <div className="text-sm font-semibold text-charcoal tracking-[-0.01em]">EHO Audit</div>
-              <div className="text-[11.5px] text-charcoal/50 mt-[1px]">Compliance summary &amp; export</div>
+              <div className="text-sm font-semibold text-charcoal dark:text-white tracking-[-0.01em]">EHO Audit</div>
+              <div className="text-[11.5px] text-charcoal/50 dark:text-white/40 mt-[1px]">Compliance summary &amp; export</div>
             </div>
-            <svg width="6" height="10" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="text-charcoal/30">
+            <svg width="6" height="10" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="text-charcoal/30 dark:text-white/30">
               <path d="M1 1l4 4-4 4"/>
             </svg>
           </button>
-          <div className="border-t border-charcoal/6 px-[14px] py-[10px]">
+          <div className="border-t border-charcoal/6 dark:border-white/8 px-[14px] py-[10px]">
             <button
               onClick={() => exportEHOReport(venueId, venueName, 90)}
-              className="inline-flex items-center gap-1.5 font-mono text-[11px] font-semibold tracking-[0.04em] uppercase text-charcoal/75 bg-surface border-none rounded-[7px] px-2.5 py-1.5 cursor-pointer hover:bg-charcoal/8 transition-colors"
+              className="inline-flex items-center gap-1.5 font-mono text-[11px] font-semibold tracking-[0.04em] uppercase text-charcoal/75 dark:text-white/62 bg-surface border-none rounded-[7px] px-2.5 py-1.5 cursor-pointer hover:bg-charcoal/8 dark:hover:bg-white/8 transition-colors"
             >
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>

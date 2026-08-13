@@ -43,8 +43,8 @@ export default function PlanGate({ feature, children }) {
         Pro Plan
       </span>
 
-      <h2 className="text-xl font-bold text-charcoal mb-2">{label}</h2>
-      <p className="text-sm text-charcoal/50 max-w-sm leading-relaxed mb-8">
+      <h2 className="text-xl font-bold text-charcoal dark:text-white mb-2">{label}</h2>
+      <p className="text-sm text-charcoal/50 dark:text-white/40 max-w-sm leading-relaxed mb-8">
         This feature is included in Pelikn Pro. Upgrade to unlock rota management,
         timesheets, training records, HACCP tools, and more.
       </p>
@@ -59,14 +59,14 @@ export default function PlanGate({ feature, children }) {
         <Link
           to="../dashboard"
           relative="path"
-          className="flex-1 border border-charcoal/15 text-charcoal/60 py-3 rounded-xl text-sm font-medium text-center hover:bg-charcoal/5 transition-colors"
+          className="flex-1 border border-charcoal/15 dark:border-white/15 text-charcoal/60 dark:text-white/50 py-3 rounded-xl text-sm font-medium text-center hover:bg-charcoal/5 dark:hover:bg-white/8 transition-colors"
         >
           Back to Dashboard
         </Link>
       </div>
 
-      <p className="text-[11px] text-charcoal/30 mt-5">
-        Current plan: <strong className="text-brand">Starter</strong> · {STARTER_PRICE}/month
+      <p className="text-[11px] text-charcoal/30 dark:text-white/30 mt-5">
+        Current plan: <strong className="text-brand dark:text-accent">Starter</strong> · {STARTER_PRICE}/month
       </p>
     </div>
   )

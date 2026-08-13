@@ -36,10 +36,10 @@ function ExpiringTrainingWidget() {
       <MiniRow label="Expired" value={data.expired} warn={data.expired > 0} />
       <MiniRow label="Expiring (30 days)" value={data.expiring} warn={data.expiring > 0} />
       {data.items.length > 0 && (
-        <div className="mt-2 border-t border-charcoal/6 pt-2">
+        <div className="mt-2 border-t border-charcoal/6 dark:border-white/8 pt-2">
           {data.items.map(c => (
-            <Link key={c.id} to={`/v/${venueSlug}/training`} className="flex items-center justify-between py-0.5 hover:text-charcoal transition-colors group">
-              <span className="text-xs text-charcoal/50 truncate group-hover:text-charcoal">{c.staff?.name} — {c.title}</span>
+            <Link key={c.id} to={`/v/${venueSlug}/training`} className="flex items-center justify-between py-0.5 hover:text-charcoal dark:hover:text-white transition-colors group">
+              <span className="text-xs text-charcoal/50 dark:text-white/40 truncate group-hover:text-charcoal dark:group-hover:text-white">{c.staff?.name} — {c.title}</span>
               <span className={`text-[11px] font-semibold ml-2 shrink-0 ${new Date(c.expiry_date) < new Date() ? 'text-danger' : 'text-warning'}`}>
                 {format(new Date(c.expiry_date), 'd MMM yy')}
               </span>

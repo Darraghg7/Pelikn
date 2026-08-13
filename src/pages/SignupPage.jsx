@@ -66,50 +66,50 @@ export default function SignupPage() {
     <div className="min-h-dvh bg-surface flex flex-col items-center justify-center px-5 py-10 font-sans">
       <div className="mb-8 text-center">
         <h1 className="font-bold text-brand text-3xl tracking-tight">Create Your Venue</h1>
-        <p className="text-xs text-charcoal/40 mt-1">Set up Pelikn for your business</p>
+        <p className="text-xs text-charcoal/40 dark:text-white/35 mt-1">Set up Pelikn for your business</p>
       </div>
 
-      <form onSubmit={handleSubmit} className="w-full max-w-sm bg-white rounded-2xl shadow-sm border border-charcoal/8 p-6 flex flex-col gap-5">
+      <form onSubmit={handleSubmit} className="w-full max-w-sm bg-white dark:bg-paperDark rounded-2xl shadow-sm border border-charcoal/8 dark:border-white/8 p-6 flex flex-col gap-5">
         {/* Account */}
         <div>
-          <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-2">Your Account</p>
+          <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-2">Your Account</p>
           <div className="flex flex-col gap-2">
             <input type="email" required placeholder="Email" value={form.email}
               onChange={e => set('email', e.target.value)}
-              className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 bg-white text-sm text-charcoal placeholder:text-charcoal/30 outline-none focus:border-charcoal/40" />
+              className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white placeholder:text-charcoal/30 dark:placeholder:text-white/25 outline-none focus:border-charcoal/40 dark:focus:border-white/40" />
             <input type="password" required minLength={6} placeholder="Password (min 6 chars)" value={form.password}
               onChange={e => set('password', e.target.value)}
-              className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 bg-white text-sm text-charcoal placeholder:text-charcoal/30 outline-none focus:border-charcoal/40" />
+              className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white placeholder:text-charcoal/30 dark:placeholder:text-white/25 outline-none focus:border-charcoal/40 dark:focus:border-white/40" />
           </div>
         </div>
 
         {/* Venue */}
         <div>
-          <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-2">Your Venue</p>
+          <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-2">Your Venue</p>
           <div className="flex flex-col gap-2">
             <input type="text" required placeholder="Venue Name (e.g. The Star Inn)" value={form.venueName}
               onChange={e => set('venueName', e.target.value)}
-              className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 bg-white text-sm text-charcoal placeholder:text-charcoal/30 outline-none focus:border-charcoal/40" />
+              className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white placeholder:text-charcoal/30 dark:placeholder:text-white/25 outline-none focus:border-charcoal/40 dark:focus:border-white/40" />
             <div>
               <input type="text" required placeholder="venue-slug" value={form.slug}
                 onChange={e => { set('slug', e.target.value.replace(/[^a-z0-9-]/g, '')); setSlugEdited(true) }}
-                className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 bg-white text-sm text-charcoal font-mono placeholder:text-charcoal/30 outline-none focus:border-charcoal/40" />
-              <p className="text-[11px] text-charcoal/30 mt-1">Your URL will be pelikn.app/v/{form.slug || 'your-venue'}</p>
+                className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white font-mono placeholder:text-charcoal/30 dark:placeholder:text-white/25 outline-none focus:border-charcoal/40 dark:focus:border-white/40" />
+              <p className="text-[11px] text-charcoal/30 dark:text-white/30 mt-1">Your URL will be pelikn.app/v/{form.slug || 'your-venue'}</p>
             </div>
           </div>
         </div>
 
         {/* Owner */}
         <div>
-          <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-2">Owner Staff Profile</p>
+          <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-2">Owner Staff Profile</p>
           <div className="flex flex-col gap-2">
             <input type="text" required placeholder="Your Name" value={form.ownerName}
               onChange={e => set('ownerName', e.target.value)}
-              className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 bg-white text-sm text-charcoal placeholder:text-charcoal/30 outline-none focus:border-charcoal/40" />
+              className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white placeholder:text-charcoal/30 dark:placeholder:text-white/25 outline-none focus:border-charcoal/40 dark:focus:border-white/40" />
             <input type="password" inputMode="numeric" required minLength={4} maxLength={6}
               placeholder="PIN (4-6 digits)" value={form.pin}
               onChange={e => set('pin', e.target.value.replace(/\D/g, ''))}
-              className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 bg-white text-sm text-charcoal font-mono tracking-[0.3em] placeholder:tracking-normal placeholder:font-sans placeholder:text-charcoal/30 outline-none focus:border-charcoal/40" />
+              className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white font-mono tracking-[0.3em] placeholder:tracking-normal placeholder:font-sans placeholder:text-charcoal/30 dark:placeholder:text-white/25 outline-none focus:border-charcoal/40 dark:focus:border-white/40" />
           </div>
         </div>
 
@@ -120,7 +120,7 @@ export default function SignupPage() {
           {loading ? 'Creating…' : 'Create Venue'}
         </button>
 
-        <p className="text-center text-xs text-charcoal/40">
+        <p className="text-center text-xs text-charcoal/40 dark:text-white/35">
           Already have a venue? <Link to="/" className="text-accent hover:underline">Sign in</Link>
         </p>
       </form>

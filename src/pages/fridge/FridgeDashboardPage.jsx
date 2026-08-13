@@ -14,7 +14,7 @@ import TemperatureItemSettingsModal from '../../components/temperature/Temperatu
 import { formatCheckDays, formatRequiredPeriods, isCheckRequired } from '../../lib/temperatureChecks'
 
 function SectionLabel({ children }) {
-  return <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-3">{children}</p>
+  return <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-3">{children}</p>
 }
 
 function SettingsButton({ onClick }) {
@@ -24,7 +24,7 @@ function SettingsButton({ onClick }) {
       onClick={onClick}
       aria-label="Edit settings"
       title="Edit settings"
-      className="w-8 h-8 rounded-full border border-charcoal/10 text-charcoal/35 hover:text-charcoal hover:border-charcoal/25 hover:bg-charcoal/5 transition-colors inline-flex items-center justify-center"
+      className="w-8 h-8 rounded-full border border-charcoal/10 dark:border-white/10 text-charcoal/35 dark:text-white/30 hover:text-charcoal dark:hover:text-white hover:border-charcoal/25 dark:hover:border-white/25 hover:bg-charcoal/5 dark:hover:bg-white/5 transition-colors inline-flex items-center justify-center"
     >
       <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <circle cx="12" cy="12" r="3" />
@@ -150,26 +150,26 @@ function FridgeCard({ fridge, session, venueId, isManager, onSaved, onSettings }
 
   return (
     <div className={[
-      'bg-white rounded-2xl p-5 flex flex-col gap-3 transition-colors',
+      'bg-white dark:bg-paperDark rounded-2xl p-5 flex flex-col gap-3 transition-colors',
       savedLog
         ? savedLog.outOfRange && !savedLog.isExplained ? 'border-danger/25 bg-danger/2'
           : savedLog.outOfRange ? 'border-warning/30 bg-warning/3'
           : 'border-success/30 bg-success/2'
         : outOfRange ? 'border-warning/40'
-        : 'border-charcoal/10',
+        : 'border-charcoal/10 dark:border-white/10',
     ].join(' ')}>
 
       {/* Header */}
       <div className="flex items-start justify-between gap-2">
         <div>
-          <p className="font-semibold text-charcoal text-sm">{fridge.name}</p>
-          <p className="text-[11px] text-charcoal/35 mt-0.5">Safe: {fridge.min_temp}–{fridge.max_temp}°C</p>
-          <p className="text-[11px] text-charcoal/35 mt-0.5">
+          <p className="font-semibold text-charcoal dark:text-white text-sm">{fridge.name}</p>
+          <p className="text-[11px] text-charcoal/35 dark:text-white/30 mt-0.5">Safe: {fridge.min_temp}–{fridge.max_temp}°C</p>
+          <p className="text-[11px] text-charcoal/35 dark:text-white/30 mt-0.5">
             Checks: {formatCheckDays(fridge.check_days)} · {formatRequiredPeriods(fridge.required_periods)}
           </p>
         </div>
         {isManager && <SettingsButton onClick={onSettings} />}
-        {saving && <span className="text-[11px] text-charcoal/30 animate-pulse">Saving…</span>}
+        {saving && <span className="text-[11px] text-charcoal/30 dark:text-white/30 animate-pulse">Saving…</span>}
         {savedLog && !saving && (
           <span className={`text-[11px] font-semibold ${
             savedLog.outOfRange && !savedLog.isExplained ? 'text-danger' :
@@ -192,14 +192,14 @@ function FridgeCard({ fridge, session, venueId, isManager, onSaved, onSettings }
             <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
           </span>
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-semibold text-charcoal">
+            <p className="text-xs font-semibold text-charcoal dark:text-white">
               Follow-up check due {format(new Date(followUp.dueAt), 'HH:mm')}
             </p>
-            <p className="text-[11px] text-charcoal/50 mt-0.5">
+            <p className="text-[11px] text-charcoal/50 dark:text-white/40 mt-0.5">
               Last reading was {formatTemp(followUp.temp)} — log a new reading to confirm the temperature has recovered.
             </p>
           </div>
-          <button onClick={dismissFollowUp} className="text-charcoal/25 hover:text-charcoal shrink-0 text-sm leading-none mt-0.5">×</button>
+          <button onClick={dismissFollowUp} className="text-charcoal/25 dark:text-white/25 hover:text-charcoal dark:hover:text-white shrink-0 text-sm leading-none mt-0.5">×</button>
         </div>
       )}
 
@@ -213,14 +213,14 @@ function FridgeCard({ fridge, session, venueId, isManager, onSaved, onSettings }
             }`}>
               {formatTemp(savedLog.temp)}
             </p>
-            <p className="text-[11px] text-charcoal/35 mt-0.5">
+            <p className="text-[11px] text-charcoal/35 dark:text-white/30 mt-0.5">
               {format(savedLog.time, 'HH:mm')} · {savedLog.time.getHours() < 12 ? 'AM' : 'PM'} check
               {savedLog.isExplained && ' · Follow-up due in 30 min'}
             </p>
           </div>
           <button
             onClick={reset}
-            className="text-xs text-charcoal/40 hover:text-charcoal border border-charcoal/15 hover:border-charcoal/30 px-3 py-1.5 rounded-lg transition-colors shrink-0"
+            className="text-xs text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white border border-charcoal/15 dark:border-white/15 hover:border-charcoal/30 dark:hover:border-white/30 px-3 py-1.5 rounded-lg transition-colors shrink-0"
           >
             + Log another
           </button>
@@ -229,11 +229,11 @@ function FridgeCard({ fridge, session, venueId, isManager, onSaved, onSettings }
         <>
           {/* Temperature input */}
           <div>
-            <p className="text-[11px] tracking-widest uppercase text-charcoal/35 mb-1.5">
+            <p className="text-[11px] tracking-widest uppercase text-charcoal/35 dark:text-white/30 mb-1.5">
               Temperature (°C){!outOfRange && ' — press Enter to save'}
             </p>
             {!requiredNow && (
-              <p className="text-[11px] text-charcoal/35 mb-2">
+              <p className="text-[11px] text-charcoal/35 dark:text-white/30 mb-2">
                 Not required for this {currentPeriod.toUpperCase()} check, but you can still log a reading.
               </p>
             )}
@@ -248,9 +248,9 @@ function FridgeCard({ fridge, session, venueId, isManager, onSaved, onSettings }
               autoComplete="off"
               inputMode="decimal"
               className={[
-                'w-full px-4 py-3 rounded-lg border bg-white focus:outline-none focus:ring-2',
-                'text-2xl font-mono text-charcoal placeholder-charcoal/20 transition-colors',
-                outOfRange ? 'border-warning/50 bg-warning/5 focus:ring-warning/20' : 'border-charcoal/15 focus:ring-charcoal/20',
+                'w-full px-4 py-3 rounded-lg border bg-white dark:bg-paperDark focus:outline-none focus:ring-2',
+                'text-2xl font-mono text-charcoal dark:text-white placeholder-charcoal/20 dark:placeholder-white/15 transition-colors',
+                outOfRange ? 'border-warning/50 bg-warning/5 focus:ring-warning/20' : 'border-charcoal/15 dark:border-white/15 focus:ring-charcoal/20 dark:focus:ring-white/20',
                 saving ? 'opacity-50' : '',
               ].join(' ')}
             />
@@ -263,7 +263,7 @@ function FridgeCard({ fridge, session, venueId, isManager, onSaved, onSettings }
                 <span className="text-warning">
                   <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
                 </span>
-                <p className="text-xs font-semibold text-charcoal">Above safe range — what's the reason?</p>
+                <p className="text-xs font-semibold text-charcoal dark:text-white">Above safe range — what's the reason?</p>
               </div>
 
               <div className="flex flex-col gap-1.5">
@@ -276,12 +276,12 @@ function FridgeCard({ fridge, session, venueId, isManager, onSaved, onSettings }
                       'flex items-center gap-2.5 px-3 py-2 rounded-lg border text-left text-xs font-medium transition-all',
                       reason === r.id
                         ? r.explained
-                          ? 'bg-warning/15 border-warning/40 text-charcoal'
-                          : 'bg-danger/8 border-danger/25 text-charcoal'
-                        : 'bg-white border-charcoal/12 text-charcoal/60 hover:border-charcoal/25 hover:text-charcoal',
+                          ? 'bg-warning/15 border-warning/40 text-charcoal dark:text-white'
+                          : 'bg-danger/8 border-danger/25 text-charcoal dark:text-white'
+                        : 'bg-white dark:bg-paperDark border-charcoal/12 dark:border-white/15 text-charcoal/60 dark:text-white/50 hover:border-charcoal/25 dark:hover:border-white/25 hover:text-charcoal dark:hover:text-white',
                     ].join(' ')}
                   >
-                    <span className="shrink-0 text-charcoal/50">{EXCEEDANCE_ICONS[r.id]}</span>
+                    <span className="shrink-0 text-charcoal/50 dark:text-white/40">{EXCEEDANCE_ICONS[r.id]}</span>
                     <span className="flex-1">{r.label}</span>
                     {r.explained && (
                       <span className="text-[11px] tracking-wide text-success font-semibold">No penalty</span>
@@ -297,8 +297,8 @@ function FridgeCard({ fridge, session, venueId, isManager, onSaved, onSettings }
                     <svg className="w-3.5 h-3.5" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg>
                   </span>
                   <div>
-                    <p className="text-xs font-medium text-charcoal">Explained exceedance — no compliance penalty</p>
-                    <p className="text-[11px] text-charcoal/50 mt-0.5">
+                    <p className="text-xs font-medium text-charcoal dark:text-white">Explained exceedance — no compliance penalty</p>
+                    <p className="text-[11px] text-charcoal/50 dark:text-white/40 mt-0.5">
                       The reading is recorded honestly in your audit log. A 30‑minute follow‑up reminder will appear to confirm the temperature recovers.
                     </p>
                   </div>
@@ -316,9 +316,9 @@ function FridgeCard({ fridge, session, venueId, isManager, onSaved, onSettings }
                     onBlur={handleCommentBlur}
                     placeholder="Describe the corrective action taken…"
                     rows={2}
-                    className="w-full px-3 py-2 rounded-lg border border-charcoal/15 bg-white focus:outline-none focus:ring-2 focus:ring-danger/20 text-sm resize-none"
+                    className="w-full px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark focus:outline-none focus:ring-2 focus:ring-danger/20 text-sm resize-none"
                   />
-                  <p className="text-[11px] text-charcoal/35">
+                  <p className="text-[11px] text-charcoal/35 dark:text-white/30">
                     {comment.trim().length < 5 ? `${5 - comment.trim().length} more characters needed` : 'Press Enter or tab away to save'}
                   </p>
                 </div>
@@ -404,22 +404,22 @@ export default function FridgeDashboardPage() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-charcoal">Temperature Logs</h1>
+        <h1 className="text-2xl font-bold text-charcoal dark:text-white">Temperature Logs</h1>
         <div className="flex items-center gap-3">
           {isManager && (
             <button onClick={() => setShowManage(v => !v)}
-              className="text-[11px] tracking-widest uppercase text-charcoal/40 hover:text-charcoal transition-colors border-b border-charcoal/20">
+              className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white transition-colors border-b border-charcoal/20 dark:border-white/20">
               {showManage ? 'Done' : 'Manage Fridges'}
             </button>
           )}
           {isManager && (
             <button onClick={() => setShowMatrix(true)}
-              className="text-[11px] tracking-widest uppercase text-charcoal/40 hover:text-charcoal transition-colors border-b border-charcoal/20">
+              className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white transition-colors border-b border-charcoal/20 dark:border-white/20">
               View History
             </button>
           )}
           <button onClick={() => setShowExport(true)}
-            className="text-[11px] tracking-widest uppercase text-charcoal/40 hover:text-charcoal transition-colors border-b border-charcoal/20">
+            className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white transition-colors border-b border-charcoal/20 dark:border-white/20">
             Export PDF
           </button>
         </div>
@@ -451,22 +451,22 @@ export default function FridgeDashboardPage() {
 
       {/* Manage Fridges panel */}
       {showManage && isManager && (
-        <div className="bg-white rounded-2xl border-charcoal/10 p-5 flex flex-col gap-5">
+        <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-5 flex flex-col gap-5">
           <SectionLabel>Manage Fridges &amp; Freezers</SectionLabel>
           <div className="flex flex-col gap-3">
-            <p className="text-xs font-medium text-charcoal/60">Add new</p>
+            <p className="text-xs font-medium text-charcoal/60 dark:text-white/50">Add new</p>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
               <input value={fridgeForm.name} onChange={e => setFridgeForm(f => ({ ...f, name: e.target.value }))}
                 placeholder="Name (e.g. Walk-in Fridge)"
-                className="px-3 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20" />
+                className="px-3 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20" />
               <input type="number" step="0.5" value={fridgeForm.min_temp} onChange={e => setFridgeForm(f => ({ ...f, min_temp: e.target.value }))}
                 placeholder="Suggested: 0°C"
-                className="px-3 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm placeholder-charcoal/25 focus:outline-none focus:ring-2 focus:ring-charcoal/20" />
+                className="px-3 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm placeholder-charcoal/25 dark:placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20" />
               <input type="number" step="0.5" value={fridgeForm.max_temp} onChange={e => setFridgeForm(f => ({ ...f, max_temp: e.target.value }))}
                 placeholder="Suggested: 5°C"
-                className="px-3 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm placeholder-charcoal/25 focus:outline-none focus:ring-2 focus:ring-charcoal/20" />
+                className="px-3 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm placeholder-charcoal/25 dark:placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20" />
             </div>
-            <p className="text-[11px] text-charcoal/35">
+            <p className="text-[11px] text-charcoal/35 dark:text-white/30">
               Suggested chilled range is 0-5°C. For a freezer, use a safe max of -18°C or colder.
             </p>
             <button onClick={addFridge} disabled={savingFridge}
@@ -475,16 +475,16 @@ export default function FridgeDashboardPage() {
             </button>
           </div>
           {fridges.length > 0 && (
-            <div className="border-t border-charcoal/8 pt-4 flex flex-col divide-y divide-charcoal/6">
+            <div className="border-t border-charcoal/8 dark:border-white/8 pt-4 flex flex-col divide-y divide-charcoal/6 dark:divide-white/8">
               {fridges.map(f => (
                 <div key={f.id} className="flex items-center justify-between py-2.5">
                   <div>
-                    <p className="text-sm font-medium text-charcoal">{f.name}</p>
-                    <p className="text-xs text-charcoal/40">Safe range: {f.min_temp}°C to {f.max_temp}°C</p>
-                    <p className="text-xs text-charcoal/35">Checks: {formatCheckDays(f.check_days)} · {formatRequiredPeriods(f.required_periods)}</p>
+                    <p className="text-sm font-medium text-charcoal dark:text-white">{f.name}</p>
+                    <p className="text-xs text-charcoal/40 dark:text-white/35">Safe range: {f.min_temp}°C to {f.max_temp}°C</p>
+                    <p className="text-xs text-charcoal/35 dark:text-white/30">Checks: {formatCheckDays(f.check_days)} · {formatRequiredPeriods(f.required_periods)}</p>
                   </div>
                   <button onClick={() => setRemoveTarget(f)}
-                    className="min-h-[40px] inline-flex items-center text-xs text-charcoal/25 hover:text-danger transition-colors px-3">Remove</button>
+                    className="min-h-[40px] inline-flex items-center text-xs text-charcoal/25 dark:text-white/25 hover:text-danger transition-colors px-3">Remove</button>
                 </div>
               ))}
             </div>
@@ -508,11 +508,11 @@ export default function FridgeDashboardPage() {
           ))}
         </div>
       ) : !showManage && (
-        <div className="bg-white rounded-2xl border-charcoal/10 p-8 text-center">
-          <p className="text-charcoal/40 text-sm">No fridges set up yet.</p>
+        <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-8 text-center">
+          <p className="text-charcoal/40 dark:text-white/35 text-sm">No fridges set up yet.</p>
           {isManager && (
             <button onClick={() => setShowManage(true)}
-              className="mt-3 text-xs text-charcoal/50 hover:text-charcoal underline underline-offset-2 transition-colors">
+              className="mt-3 text-xs text-charcoal/50 dark:text-white/40 hover:text-charcoal dark:hover:text-white underline underline-offset-2 transition-colors">
               Add your first fridge →
             </button>
           )}
@@ -521,22 +521,22 @@ export default function FridgeDashboardPage() {
 
       {/* Today's AM/PM status */}
       {checkStatus.length > 0 && (
-        <div className="bg-white rounded-2xl border-charcoal/10 p-5">
+        <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-5">
           <SectionLabel>Today's Checks</SectionLabel>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-[11px] tracking-widest uppercase text-charcoal/40">
+                <tr className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">
                   <th className="text-left pb-3 font-medium">Fridge / Freezer</th>
                   <th className="text-center pb-3 font-medium w-24">AM</th>
                   <th className="text-center pb-3 font-medium w-24">PM</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-charcoal/6">
+              <tbody className="divide-y divide-charcoal/6 dark:divide-white/8">
                 {checkStatus.map(f => {
                   const renderCell = (log, required) => {
-                    if (!required) return <span className="text-[11px] text-charcoal/30">Not required</span>
-                    if (!log) return <span className="text-charcoal/25">—</span>
+                    if (!required) return <span className="text-[11px] text-charcoal/30 dark:text-white/30">Not required</span>
+                    if (!log) return <span className="text-charcoal/25 dark:text-white/25">—</span>
                     const oor      = isTempOutOfRange(log.temperature, f.min_temp, f.max_temp)
                     const explained = log.exceedance_reason &&
                       ['delivery', 'defrost', 'service_access'].includes(log.exceedance_reason)
@@ -554,8 +554,8 @@ export default function FridgeDashboardPage() {
                   return (
                     <tr key={f.id}>
                       <td className="py-3">
-                        <p className="font-medium text-charcoal">{f.name}</p>
-                        <p className="text-[11px] text-charcoal/35">{f.min_temp}–{f.max_temp}°C</p>
+                        <p className="font-medium text-charcoal dark:text-white">{f.name}</p>
+                        <p className="text-[11px] text-charcoal/35 dark:text-white/30">{f.min_temp}–{f.max_temp}°C</p>
                       </td>
                       <td className={`text-center py-3 ${f.am || !f.amRequired ? '' : 'bg-warning/5'}`}>{renderCell(f.am, f.amRequired)}</td>
                       <td className={`text-center py-3 ${f.pm || !f.pmRequired ? '' : 'bg-warning/5'}`}>{renderCell(f.pm, f.pmRequired)}</td>
@@ -569,7 +569,7 @@ export default function FridgeDashboardPage() {
             const total = checkStatus.filter(f => f.amRequired).length + checkStatus.filter(f => f.pmRequired).length
             const done  = checkStatus.filter(f => f.amRequired && f.am).length + checkStatus.filter(f => f.pmRequired && f.pm).length
             return (
-              <p className="text-[11px] text-charcoal/35 mt-3 pt-2 border-t border-charcoal/6">
+              <p className="text-[11px] text-charcoal/35 dark:text-white/30 mt-3 pt-2 border-t border-charcoal/6 dark:border-white/8">
                 {done}/{total} checks completed today
               </p>
             )

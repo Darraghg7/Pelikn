@@ -10,7 +10,7 @@ const STATUS_TONE = {
   due:     { statusBg: 'bg-warning/10', statusText: 'text-warning', statusFg: 'bg-warning', rank: 1 },
   draft:   { statusBg: 'bg-[#faeee9]',  statusText: 'text-accent', statusFg: 'bg-accent', rank: 2 },
   done:    { statusBg: 'bg-success/10', statusText: 'text-success', statusFg: 'bg-success', rank: 3 },
-  na:      { statusBg: 'bg-charcoal/6', statusText: 'text-charcoal/50', statusFg: 'bg-charcoal/50', rank: 4 },
+  na:      { statusBg: 'bg-charcoal/6 dark:bg-white/8', statusText: 'text-charcoal/50 dark:text-white/40', statusFg: 'bg-charcoal/50 dark:bg-white/50', rank: 4 },
 }
 
 function CalIcon() {
@@ -96,7 +96,7 @@ function TeamCard({ label, icon: Icon, status, statusText, count, onClick, editM
   return (
     <button
       onClick={editMode ? onToggle : onClick}
-      className={`text-left cursor-pointer w-full bg-white dark:bg-paperDark border rounded-xl p-3 flex flex-col gap-2 min-h-[84px] transition-opacity ${editMode && isHidden ? 'opacity-40' : 'opacity-100'} ${!editMode && status === 'overdue' ? 'border-danger/30' : 'border-charcoal/10'}`}
+      className={`text-left cursor-pointer w-full bg-white dark:bg-paperDark border rounded-xl p-3 flex flex-col gap-2 min-h-[84px] transition-opacity ${editMode && isHidden ? 'opacity-40' : 'opacity-100'} ${!editMode && status === 'overdue' ? 'border-danger/30' : 'border-charcoal/10 dark:border-white/10'}`}
     >
       <div className="flex items-start justify-between">
         <span className={`w-[30px] h-[30px] rounded-[9px] flex items-center justify-center ${statusBg} ${statusTextClass}`}>
@@ -104,7 +104,7 @@ function TeamCard({ label, icon: Icon, status, statusText, count, onClick, editM
         </span>
 
         {editMode ? (
-          <span className={`w-5 h-5 rounded-full shrink-0 border-2 flex items-center justify-center ${isHidden ? 'border-charcoal/20 bg-transparent' : 'border-success bg-success'}`}>
+          <span className={`w-5 h-5 rounded-full shrink-0 border-2 flex items-center justify-center ${isHidden ? 'border-charcoal/20 dark:border-white/20 bg-transparent' : 'border-success bg-success'}`}>
             {!isHidden && (
               <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="20 6 9 17 4 12"/>
@@ -125,8 +125,8 @@ function TeamCard({ label, icon: Icon, status, statusText, count, onClick, editM
       </div>
 
       <div className="mt-auto">
-        <div className="text-sm font-semibold tracking-[-0.01em] text-charcoal">{label}</div>
-        <div className={`font-mono text-[11px] mt-0.5 font-semibold tracking-[0.02em] uppercase ${editMode ? (isHidden ? 'text-charcoal/30' : 'text-success') : statusTextClass}`}>
+        <div className="text-sm font-semibold tracking-[-0.01em] text-charcoal dark:text-white">{label}</div>
+        <div className={`font-mono text-[11px] mt-0.5 font-semibold tracking-[0.02em] uppercase ${editMode ? (isHidden ? 'text-charcoal/30 dark:text-white/30' : 'text-success') : statusTextClass}`}>
           {editMode ? (isHidden ? 'Hidden' : 'Visible') : statusText}
         </div>
       </div>
@@ -227,21 +227,21 @@ export default function TeamHubPage() {
 
       <div className="mb-[10px]">
         <div className="flex justify-between items-center">
-          <span className="font-mono text-[11px] text-charcoal/50 tracking-[0.08em] uppercase">
+          <span className="font-mono text-[11px] text-charcoal/50 dark:text-white/40 tracking-[0.08em] uppercase">
             Team
           </span>
           <button
             onClick={editMode ? handleDone : handleEdit}
-            className={`font-mono text-[11.5px] font-semibold tracking-[0.04em] bg-transparent border-none cursor-pointer py-0.5 px-0 ${editMode ? 'text-success' : 'text-charcoal/50'}`}
+            className={`font-mono text-[11.5px] font-semibold tracking-[0.04em] bg-transparent border-none cursor-pointer py-0.5 px-0 ${editMode ? 'text-success' : 'text-charcoal/50 dark:text-white/40'}`}
           >
             {editMode ? 'Done' : 'Edit'}
           </button>
         </div>
-        <h1 className="text-[26px] font-semibold tracking-[-0.028em] leading-[1.12] mt-1 mb-0 text-charcoal">
+        <h1 className="text-[26px] font-semibold tracking-[-0.028em] leading-[1.12] mt-1 mb-0 text-charcoal dark:text-white">
           Your team
         </h1>
         {editMode && (
-          <div className="mt-[5px] text-xs text-charcoal/50 font-mono">
+          <div className="mt-[5px] text-xs text-charcoal/50 dark:text-white/40 font-mono">
             Tap a tile to show or hide it
           </div>
         )}
@@ -261,7 +261,7 @@ export default function TeamHubPage() {
       {loading && !editMode ? (
         <div className="grid grid-cols-2 gap-2">
           {[0,1,2,3,4].map(i => (
-            <div key={i} className="h-[104px] rounded-[14px] bg-charcoal/6" />
+            <div key={i} className="h-[104px] rounded-[14px] bg-charcoal/6 dark:bg-white/8" />
           ))}
         </div>
       ) : (

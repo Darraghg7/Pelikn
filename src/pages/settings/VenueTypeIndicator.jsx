@@ -36,7 +36,7 @@ export default function VenueTypeIndicator({ venueId, venueSlug }) {
           <span className="text-sm font-medium text-brand">{preset.label}</span>
         </>
       ) : (
-        <span className="text-sm text-charcoal/50">No venue type set</span>
+        <span className="text-sm text-charcoal/50 dark:text-white/40">No venue type set</span>
       )}
       <button
         onClick={reopenSetup}

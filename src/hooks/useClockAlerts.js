@@ -155,7 +155,7 @@ export function useClockAlerts({ staffId, status, breakStartAt, onEndBreak }) {
             body: `${session?.staffName ?? 'A staff member'} clocked in with no shift scheduled`,
             url: '/timesheet',
             roles: ['manager', 'owner'],
-          }).catch(() => {})
+          })
         }
         return
       }
@@ -182,7 +182,7 @@ export function useClockAlerts({ staffId, status, breakStartAt, onEndBreak }) {
           : `${shift.staff?.name ?? 'A staff member'} clocked in late`,
         url:   '/timesheet',
         roles: ['manager', 'owner'],
-      }).catch(() => {})
+      })
 
       // Never let a failed lookup suppress the alert — the staff member must
       // always see the late window (and manager approval if enabled).
@@ -205,7 +205,7 @@ export function useClockAlerts({ staffId, status, breakStartAt, onEndBreak }) {
           body:  `${shift.staff?.name ?? 'A staff member'} — ${strikes} late clock-ins in 30 days`,
           url:   '/timesheet',
           roles: ['manager', 'owner'],
-        }).catch(() => {})
+        })
       }
 
       setAlert({
@@ -243,7 +243,7 @@ export function useClockAlerts({ staffId, status, breakStartAt, onEndBreak }) {
           body:  `${shift.staff?.name ?? 'A staff member'} clocked out ${minsEarly} min early`,
           url:   '/timesheet',
           roles: ['manager', 'owner'],
-        }).catch(() => {})
+        })
       }
       return
     }

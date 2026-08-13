@@ -15,7 +15,7 @@ const HOURS   = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'))
 const MINUTES = Array.from({ length: 12 }, (_, i) => String(i * 5).padStart(2, '0'))
 
 const selectCls = [
-  'flex-1 min-w-0 px-2 py-2.5 rounded-xl border border-charcoal/15',
+  'flex-1 min-w-0 px-2 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15',
   'bg-white dark:bg-white/5 dark:border-white/10',
   'text-sm font-mono text-center text-charcoal dark:text-white/80',
   'focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20',

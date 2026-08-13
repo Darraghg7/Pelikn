@@ -93,7 +93,7 @@ function SortableWidget({ id }) {
       <div
         {...attributes}
         {...listeners}
-        className="absolute top-2 right-2 z-20 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing p-1.5 rounded-lg bg-white/80 backdrop-blur-sm text-charcoal/40 hover:text-charcoal/70 shadow-sm"
+        className="absolute top-2 right-2 z-20 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing p-1.5 rounded-lg bg-white/80 backdrop-blur-sm text-charcoal/40 dark:text-white/35 hover:text-charcoal/70 dark:hover:text-white/60 shadow-sm"
         title="Drag to reorder"
       >
         <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
@@ -171,13 +171,13 @@ function DraggableWidgetGrid({ widgetIds, onReorder }) {
 }
 
 function StatTile({ label, value, variant = 'neutral', to }) {
-  const dot = { neutral: 'bg-charcoal/20', good: 'bg-success', warn: 'bg-warning', danger: 'bg-danger' }
-  const num = { neutral: 'text-charcoal', good: 'text-charcoal', warn: 'text-warning', danger: 'text-danger' }
+  const dot = { neutral: 'bg-charcoal/20 dark:bg-white/20', good: 'bg-success', warn: 'bg-warning', danger: 'bg-danger' }
+  const num = { neutral: 'text-charcoal dark:text-white', good: 'text-charcoal', warn: 'text-warning', danger: 'text-danger' }
   const inner = (
-    <div className="flex flex-col gap-2 bg-white rounded-2xl p-4 min-h-[100px]">
+    <div className="flex flex-col gap-2 bg-white dark:bg-paperDark rounded-2xl p-4 min-h-[100px]">
       <div className="flex items-center gap-1.5">
         <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${dot[variant]}`} />
-        <span className="font-mono text-[11px] text-charcoal/40 uppercase tracking-[0.08em] leading-none">{label}</span>
+        <span className="font-mono text-[11px] text-charcoal/40 dark:text-white/35 uppercase tracking-[0.08em] leading-none">{label}</span>
       </div>
       <div className={`text-[34px] font-medium tracking-[-0.035em] leading-none tabular-nums ${num[variant]}`}>
         {value}
@@ -193,7 +193,7 @@ function DesktopStatGrid({ summary, venueSlug, isEnabled }) {
   if (!summary) {
     return (
       <div className="grid grid-cols-3 gap-3">
-        {[1,2,3,4,5,6].map(i => <div key={i} className="h-[100px] rounded-2xl bg-charcoal/5 animate-pulse" />)}
+        {[1,2,3,4,5,6].map(i => <div key={i} className="h-[100px] rounded-2xl bg-charcoal/5 dark:bg-white/5 animate-pulse" />)}
       </div>
     )
   }
@@ -273,18 +273,18 @@ export default function ManagerDashboardPage() {
       {isDesktop && (
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
-          <p className="font-mono text-[11px] tracking-[0.08em] uppercase text-charcoal/40">{format(new Date(), 'EEEE, d MMMM')}</p>
-          <h1 className="text-[30px] font-medium tracking-[-0.028em] text-charcoal leading-tight mt-0.5">
+          <p className="font-mono text-[11px] tracking-[0.08em] uppercase text-charcoal/40 dark:text-white/35">{format(new Date(), 'EEEE, d MMMM')}</p>
+          <h1 className="text-[30px] font-medium tracking-[-0.028em] text-charcoal dark:text-white leading-tight mt-0.5">
             {greeting}{firstName ? `, ${firstName}` : ''}
           </h1>
           {venueName && (
             <div className="flex items-center gap-2 mt-1">
-              <p className="text-sm font-medium text-charcoal/50">{venueName}</p>
+              <p className="text-sm font-medium text-charcoal/50 dark:text-white/40">{venueName}</p>
               <PlanBadge plan={venuePlan} />
             </div>
           )}
           {summary && (
-            <p className="hidden lg:block text-sm text-charcoal/40 mt-0.5">
+            <p className="hidden lg:block text-sm text-charcoal/40 dark:text-white/35 mt-0.5">
               {summary.checksToday} of {summary.totalChecks} daily checks complete
             </p>
           )}
@@ -293,7 +293,7 @@ export default function ManagerDashboardPage() {
           {venuePlan === 'starter' && <UpgradeButton />}
           <button
             onClick={() => setShowPicker(true)}
-            className="text-[11px] font-semibold tracking-wider uppercase text-charcoal/40 hover:text-charcoal/70 border border-charcoal/15 hover:border-charcoal/30 px-3 py-1.5 rounded-lg transition-colors"
+            className="text-[11px] font-semibold tracking-wider uppercase text-charcoal/40 dark:text-white/35 hover:text-charcoal/70 dark:hover:text-white/60 border border-charcoal/15 dark:border-white/15 hover:border-charcoal/30 dark:hover:border-white/30 px-3 py-1.5 rounded-lg transition-colors"
           >
             Customise
           </button>
@@ -350,8 +350,8 @@ export default function ManagerDashboardPage() {
 
         <div className="grid grid-cols-[1fr_280px] gap-4 items-start">
           <DesktopStatGrid summary={summary} venueSlug={venueSlug} isEnabled={isEnabled} />
-          <div className="bg-white rounded-2xl p-5">
-            <p className="text-[11px] tracking-widest uppercase font-semibold text-charcoal/40 mb-3">My Clock</p>
+          <div className="bg-white dark:bg-paperDark rounded-2xl p-5">
+            <p className="text-[11px] tracking-widest uppercase font-semibold text-charcoal/40 dark:text-white/35 mb-3">My Clock</p>
             <ClockPanel staffId={session?.staffId} />
           </div>
         </div>
@@ -363,7 +363,7 @@ export default function ManagerDashboardPage() {
       <div>
         {widgetsLoading && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {[1,2,3,4,5,6].map(i => <div key={i} className="h-[180px] rounded-2xl bg-charcoal/5 animate-pulse" />)}
+            {[1,2,3,4,5,6].map(i => <div key={i} className="h-[180px] rounded-2xl bg-charcoal/5 dark:bg-white/5 animate-pulse" />)}
           </div>
         )}
         {!widgetsLoading && widgetIds.length > 0 && (
@@ -373,8 +373,8 @@ export default function ManagerDashboardPage() {
           />
         )}
         {!widgetsLoading && widgetIds.length === 0 && (
-          <div className="bg-white rounded-2xl border border-dashed border-charcoal/20 p-10 text-center">
-            <p className="text-charcoal/30 text-sm mb-3">No widgets on your dashboard</p>
+          <div className="bg-white dark:bg-paperDark rounded-2xl border border-dashed border-charcoal/20 dark:border-white/20 p-10 text-center">
+            <p className="text-charcoal/30 dark:text-white/30 text-sm mb-3">No widgets on your dashboard</p>
             <button
               onClick={() => setShowPicker(true)}
               className="bg-charcoal text-cream px-4 py-2 rounded-xl text-sm font-semibold hover:bg-charcoal/90 transition-colors"

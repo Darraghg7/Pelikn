@@ -116,7 +116,7 @@ function Wheel({ values, value, onChange, accent }) {
           )
         })}
       </div>
-      <div className="absolute left-0 right-0 pointer-events-none border-t border-b border-charcoal/10" style={{ top: pad, height: IH, background: 'rgba(19,54,42,0.03)' }} />
+      <div className="absolute left-0 right-0 pointer-events-none border-t border-b border-charcoal/10 dark:border-white/10" style={{ top: pad, height: IH, background: 'rgba(19,54,42,0.03)' }} />
       <div className="absolute left-0 right-0 top-0 pointer-events-none" style={{ height: pad, background: 'linear-gradient(#f3f3ef, #f3f3ef00)' }} />
       <div className="absolute left-0 right-0 bottom-0 pointer-events-none" style={{ height: pad, background: 'linear-gradient(#f3f3ef00, #f3f3ef)' }} />
     </div>
@@ -237,16 +237,16 @@ function ShiftSheet({ shift, staffMember, day, venueId, roles, onClose, onSaved,
 
         {/* Scrollable form body */}
         <div className="overflow-y-auto px-4 pt-[10px] pb-1 flex-1">
-          <div className="w-[38px] h-1 rounded-sm bg-charcoal/10 mx-auto mb-[14px]" />
+          <div className="w-[38px] h-1 rounded-sm bg-charcoal/10 dark:bg-white/10 mx-auto mb-[14px]" />
 
           {/* Header */}
           <div className="flex items-center gap-3 mb-4">
             <Avatar name={staffMember?.name} station={station} size={44} />
             <div className="flex-1 min-w-0">
-              <div className="text-[17px] font-semibold tracking-[-0.015em] text-charcoal">{staffMember?.name ?? 'Unassigned'}</div>
-              <div className="text-xs text-charcoal/50 mt-px">{roleLabel || staffMember?.job_role || ''} · {format(day, 'EEE d MMM')}</div>
+              <div className="text-[17px] font-semibold tracking-[-0.015em] text-charcoal dark:text-white">{staffMember?.name ?? 'Unassigned'}</div>
+              <div className="text-xs text-charcoal/50 dark:text-white/40 mt-px">{roleLabel || staffMember?.job_role || ''} · {format(day, 'EEE d MMM')}</div>
             </div>
-            <button onClick={onClose} className="bg-charcoal/[0.06] border-none rounded-full w-8 h-8 flex items-center justify-center cursor-pointer shrink-0 text-charcoal/50">
+            <button onClick={onClose} className="bg-charcoal/[0.06] border-none rounded-full w-8 h-8 flex items-center justify-center cursor-pointer shrink-0 text-charcoal/50 dark:text-white/40">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
             </button>
           </div>
@@ -279,7 +279,7 @@ function ShiftSheet({ shift, staffMember, day, venueId, roles, onClose, onSaved,
                   onClick={() => setEdge(k)}
                   className={`flex-1 cursor-pointer border-none rounded-[9px] py-[7px] ${on ? 'bg-white dark:bg-paperDark shadow-[0_1px_3px_rgba(9,18,13,0.1)]' : 'bg-transparent'}`}
                 >
-                  <div className="font-mono text-[9px] text-charcoal/50 uppercase tracking-[0.06em] font-semibold">{lbl}</div>
+                  <div className="font-mono text-[9px] text-charcoal/50 dark:text-white/40 uppercase tracking-[0.06em] font-semibold">{lbl}</div>
                   <div className="font-mono text-[17px] font-semibold mt-0.5 tabular-nums" style={{ color: on ? col : '#76817b' }}>{val}</div>
                 </button>
               )
@@ -289,26 +289,26 @@ function ShiftSheet({ shift, staffMember, day, venueId, roles, onClose, onSaved,
           {/* Wheels */}
           <div className="flex items-center gap-1 mb-[6px]">
             <Wheel values={HOURS}   value={curH} onChange={(h) => setCur(h, curM)} accent={col} />
-            <span className="font-mono text-[22px] font-semibold text-charcoal/50 pb-0.5">:</span>
+            <span className="font-mono text-[22px] font-semibold text-charcoal/50 dark:text-white/40 pb-0.5">:</span>
             <Wheel values={MINUTES} value={curM} onChange={(m) => setCur(curH, m)} accent={col} />
           </div>
 
           {/* Summary */}
           <div className="px-[13px] py-[11px] rounded-[11px] flex items-center gap-2 justify-center flex-wrap mb-[14px]" style={{ background: col + '14' }}>
-            <span className="font-mono text-sm font-semibold text-charcoal tabular-nums">{startTime}–{endTime}</span>
-            <span className={`text-[12.5px] ${valid ? 'text-charcoal/50' : 'text-danger'}`}>· {valid ? durLabel(startTime, endTime) : 'end must be after start'}</span>
-            {valid && cost != null && <span className="font-mono text-[12.5px] text-charcoal/50">· ~£{cost}</span>}
+            <span className="font-mono text-sm font-semibold text-charcoal dark:text-white tabular-nums">{startTime}–{endTime}</span>
+            <span className={`text-[12.5px] ${valid ? 'text-charcoal/50 dark:text-white/40' : 'text-danger'}`}>· {valid ? durLabel(startTime, endTime) : 'end must be after start'}</span>
+            {valid && cost != null && <span className="font-mono text-[12.5px] text-charcoal/50 dark:text-white/40">· ~£{cost}</span>}
           </div>
 
           {/* Role chips */}
           {roles.length > 0 && (
             <div className="mb-2">
-              <div className="font-mono text-[9.5px] text-charcoal/50 uppercase tracking-[0.07em] font-semibold mb-2">Role</div>
+              <div className="font-mono text-[9.5px] text-charcoal/50 dark:text-white/40 uppercase tracking-[0.07em] font-semibold mb-2">Role</div>
               <div className="flex flex-wrap gap-[6px]">
                 {roles.map((r) => {
                   const on = roleLabel === r.name
                   return (
-                    <button key={r.id} onClick={() => setRoleLabel(r.name)} className={`cursor-pointer text-xs font-medium px-3 py-[6px] rounded-full border ${on ? 'border-brand bg-brand text-white' : 'border-charcoal/10 bg-white dark:bg-paperDark text-charcoal/75'}`}>{r.name}</button>
+                    <button key={r.id} onClick={() => setRoleLabel(r.name)} className={`cursor-pointer text-xs font-medium px-3 py-[6px] rounded-full border ${on ? 'border-brand bg-brand text-white' : 'border-charcoal/10 dark:border-white/10 bg-white dark:bg-paperDark text-charcoal/75 dark:text-white/62'}`}>{r.name}</button>
                   )
                 })}
               </div>
@@ -327,7 +327,7 @@ function ShiftSheet({ shift, staffMember, day, venueId, roles, onClose, onSaved,
             <button
               onClick={save}
               disabled={saving || !valid}
-              className={`flex-1 h-[50px] rounded-[13px] border-none text-[15px] font-bold ${valid ? 'bg-brand text-white' : 'bg-charcoal/10 text-charcoal/30'} ${(saving || !valid) ? 'cursor-default' : 'cursor-pointer'}`}
+              className={`flex-1 h-[50px] rounded-[13px] border-none text-[15px] font-bold ${valid ? 'bg-brand text-white' : 'bg-charcoal/10 dark:bg-white/10 text-charcoal/30 dark:text-white/30'} ${(saving || !valid) ? 'cursor-default' : 'cursor-pointer'}`}
             >
               {saving ? '…' : (existing ? 'Save changes' : 'Add to rota')}
             </button>
@@ -354,7 +354,7 @@ function SwapSheet({ swaps, onClose, onResolved }) {
     if (error) { toast(error.message, 'error'); return }
     toast('Swap approved ✓')
     const staffIds = [swap.requester_id, swap.target_staff_id].filter(Boolean)
-    if (staffIds.length) sendPush({ venueId, notificationType: 'shift_swap_decision', title: 'Shift Swap Approved', body: 'Your shift swap has been approved.', url: '/rota', staffIds }).catch(() => {})
+    if (staffIds.length) sendPush({ venueId, notificationType: 'shift_swap_decision', title: 'Shift Swap Approved', body: 'Your shift swap has been approved.', url: '/rota', staffIds })
     onResolved()
   }
 
@@ -372,9 +372,9 @@ function SwapSheet({ swaps, onClose, onResolved }) {
       <div onClick={onClose} className="fixed inset-0 z-[52] [animation:fadeIn_.2s_ease_both]" style={{ background: 'rgba(9,18,13,0.42)' }} />
       <div className="fixed bottom-0 left-0 right-0 z-[53] bg-surface rounded-t-[22px] max-h-[80%] flex flex-col [animation:sheetUp_.32s_cubic-bezier(0.16,1,0.3,1)_both]" style={{ boxShadow: '0 -12px 40px rgba(9,18,13,0.22)' }}>
         <div className="px-4 pt-[10px]">
-          <div className="w-[38px] h-1 rounded-sm bg-charcoal/10 mx-auto mb-[14px]" />
-          <div className="text-[18px] font-semibold tracking-[-0.015em] text-charcoal">Swap requests</div>
-          <div className="text-[12.5px] text-charcoal/50 mt-0.5 mb-[14px]">{pending.length ? `${pending.length} pending your approval` : 'All caught up'}</div>
+          <div className="w-[38px] h-1 rounded-sm bg-charcoal/10 dark:bg-white/10 mx-auto mb-[14px]" />
+          <div className="text-[18px] font-semibold tracking-[-0.015em] text-charcoal dark:text-white">Swap requests</div>
+          <div className="text-[12.5px] text-charcoal/50 dark:text-white/40 mt-0.5 mb-[14px]">{pending.length ? `${pending.length} pending your approval` : 'All caught up'}</div>
         </div>
         <div className="overflow-y-auto flex-1 px-4" style={{ paddingBottom: 'max(2rem, env(safe-area-inset-bottom, 0px))' }}>
           {pending.length === 0 ? (
@@ -382,19 +382,19 @@ function SwapSheet({ swaps, onClose, onResolved }) {
               <div className="w-11 h-11 rounded-[13px] bg-success/10 text-success flex items-center justify-center mx-auto mb-3">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
               </div>
-              <div className="text-charcoal/50 text-[13px]">No swaps waiting.</div>
+              <div className="text-charcoal/50 dark:text-white/40 text-[13px]">No swaps waiting.</div>
             </div>
           ) : pending.map(swap => (
-            <div key={swap.id} className="bg-white dark:bg-paperDark border border-charcoal/10 rounded-[14px] px-[14px] py-[13px] mb-[10px]">
-              <div className="text-[13.5px] font-semibold text-charcoal">{swap.requester_name ?? 'Staff'} → {swap.target_staff_name ?? 'Staff'}</div>
+            <div key={swap.id} className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[14px] px-[14px] py-[13px] mb-[10px]">
+              <div className="text-[13.5px] font-semibold text-charcoal dark:text-white">{swap.requester_name ?? 'Staff'} → {swap.target_staff_name ?? 'Staff'}</div>
               {swap.shift && (
-                <div className="font-mono text-[10px] text-charcoal/50 uppercase tracking-[0.03em] mt-1">
+                <div className="font-mono text-[10px] text-charcoal/50 dark:text-white/40 uppercase tracking-[0.03em] mt-1">
                   {swap.shift.shift_date} · {swap.shift.start_time?.slice(0, 5)}–{swap.shift.end_time?.slice(0, 5)}
                 </div>
               )}
-              {swap.message && <div className="text-[12.5px] text-charcoal/75 italic mt-2">"{swap.message}"</div>}
+              {swap.message && <div className="text-[12.5px] text-charcoal/75 dark:text-white/62 italic mt-2">"{swap.message}"</div>}
               <div className="flex gap-2 mt-3">
-                <button onClick={() => decline(swap)} disabled={resolving === swap.id} className="flex-1 h-10 rounded-[10px] border border-charcoal/10 bg-white dark:bg-paperDark text-charcoal/75 font-semibold text-[13px] cursor-pointer">Decline</button>
+                <button onClick={() => decline(swap)} disabled={resolving === swap.id} className="flex-1 h-10 rounded-[10px] border border-charcoal/10 dark:border-white/10 bg-white dark:bg-paperDark text-charcoal/75 dark:text-white/62 font-semibold text-[13px] cursor-pointer">Decline</button>
                 <button onClick={() => approve(swap)} disabled={resolving === swap.id} className="flex-[2] h-10 rounded-[10px] border-none bg-success text-white font-semibold text-[13px] cursor-pointer">{resolving === swap.id ? '…' : 'Approve'}</button>
               </div>
             </div>
@@ -442,27 +442,27 @@ function AISheet({ openShifts, staff, unavailability = {}, venueId, onClose, onF
     <>
       <div onClick={onClose} className="fixed inset-0 z-[52] [animation:fadeIn_.2s_ease_both]" style={{ background: 'rgba(9,18,13,0.42)' }} />
       <div className="fixed bottom-0 left-0 right-0 z-[53] bg-surface rounded-t-[22px] px-4 pb-8 pt-[10px] max-h-[90%] overflow-y-auto [animation:sheetUp_.32s_cubic-bezier(0.16,1,0.3,1)_both]" style={{ boxShadow: '0 -12px 40px rgba(9,18,13,0.22)' }}>
-        <div className="w-[38px] h-1 rounded-sm bg-charcoal/10 mx-auto mb-[14px]" />
+        <div className="w-[38px] h-1 rounded-sm bg-charcoal/10 dark:bg-white/10 mx-auto mb-[14px]" />
         <div className="flex items-center gap-[11px]">
           <span className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'rgba(201,79,42,0.10)', color: '#c94f2a' }}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg>
           </span>
           <div className="flex-1 min-w-0">
-            <div className="text-[17px] font-semibold tracking-[-0.015em] text-charcoal">Auto-fill gaps</div>
-            <div className="text-xs text-charcoal/50 mt-px">Suggests staff for uncovered shifts</div>
+            <div className="text-[17px] font-semibold tracking-[-0.015em] text-charcoal dark:text-white">Auto-fill gaps</div>
+            <div className="text-xs text-charcoal/50 dark:text-white/40 mt-px">Suggests staff for uncovered shifts</div>
           </div>
         </div>
-        <div className="mt-[14px] font-mono text-[9.5px] text-charcoal/50 uppercase tracking-[0.07em] font-semibold">{openShifts.length} gaps to cover</div>
+        <div className="mt-[14px] font-mono text-[9.5px] text-charcoal/50 dark:text-white/40 uppercase tracking-[0.07em] font-semibold">{openShifts.length} gaps to cover</div>
         <div className="flex flex-col gap-2 mt-[9px]">
-          {openShifts.length === 0 && <div className="py-5 text-center text-charcoal/50 text-[13px]">Week is fully covered.</div>}
+          {openShifts.length === 0 && <div className="py-5 text-center text-charcoal/50 dark:text-white/40 text-[13px]">Week is fully covered.</div>}
           {openShifts.map((o, idx) => {
             const col = STATION_COLOR[stationFromRole(o.role_label)] || '#13362a'
             return (
-              <div key={o.id ?? idx} className="flex items-center gap-[11px] px-[13px] py-[11px] bg-white dark:bg-paperDark border border-charcoal/10 rounded-xl">
+              <div key={o.id ?? idx} className="flex items-center gap-[11px] px-[13px] py-[11px] bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-xl">
                 <span className="w-[9px] h-8 rounded-[4px] shrink-0" style={{ background: col + '26', borderLeft: `3px solid ${col}` }} />
                 <div className="flex-1 min-w-0">
-                  <div className="text-[13px] font-semibold text-charcoal">{o.role_label} · {fmtRange(o.start_time.slice(0,5), o.end_time.slice(0,5))}</div>
-                  <div className="font-mono text-[10px] text-charcoal/50 uppercase tracking-[0.03em] mt-px">{format(o._day, 'EEE d MMM')}</div>
+                  <div className="text-[13px] font-semibold text-charcoal dark:text-white">{o.role_label} · {fmtRange(o.start_time.slice(0,5), o.end_time.slice(0,5))}</div>
+                  <div className="font-mono text-[10px] text-charcoal/50 dark:text-white/40 uppercase tracking-[0.03em] mt-px">{format(o._day, 'EEE d MMM')}</div>
                 </div>
               </div>
             )
@@ -477,7 +477,7 @@ function AISheet({ openShifts, staff, unavailability = {}, venueId, onClose, onF
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg>
           {filling ? 'Filling…' : `Draft ${openShifts.length || ''} suggestions`}
         </button>
-        <div className="font-mono text-[10px] text-charcoal/30 text-center mt-[9px] tracking-[0.02em]">Added to draft — nothing sent until you publish</div>
+        <div className="font-mono text-[10px] text-charcoal/30 dark:text-white/30 text-center mt-[9px] tracking-[0.02em]">Added to draft — nothing sent until you publish</div>
       </div>
     </>
   )
@@ -497,7 +497,7 @@ function GridCell({ shift, isToday: todayCol, onTap, onLeave }) {
         style={{ ...baseStyle, background: todayCol ? 'rgba(19,54,42,0.04)' : 'transparent' }}
       >
         <span className="w-full h-full rounded-[10px] flex items-center justify-center bg-charcoal/[0.06]">
-          <span className="font-mono text-[8.5px] font-semibold uppercase tracking-[0.06em] text-charcoal/40">Leave</span>
+          <span className="font-mono text-[8.5px] font-semibold uppercase tracking-[0.06em] text-charcoal/40 dark:text-white/35">Leave</span>
         </span>
       </div>
     )
@@ -509,7 +509,7 @@ function GridCell({ shift, isToday: todayCol, onTap, onLeave }) {
         style={{ ...baseStyle, background: todayCol ? 'rgba(19,54,42,0.04)' : 'transparent' }}
         onClick={onTap}
       >
-        <span className="w-[22px] h-[22px] rounded-[7px] border border-dashed border-charcoal/10 flex items-center justify-center text-charcoal/30">
+        <span className="w-[22px] h-[22px] rounded-[7px] border border-dashed border-charcoal/10 dark:border-white/10 flex items-center justify-center text-charcoal/30 dark:text-white/30">
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14"/></svg>
         </span>
       </button>
@@ -539,7 +539,7 @@ function StationLegend() {
   return (
     <div className="flex items-center gap-3 px-1 py-0.5 flex-wrap">
       {STATION_ORDER.map((s) => (
-        <span key={s} className="inline-flex items-center gap-[5px] font-mono text-[9.5px] text-charcoal/50 uppercase tracking-[0.04em]">
+        <span key={s} className="inline-flex items-center gap-[5px] font-mono text-[9.5px] text-charcoal/50 dark:text-white/40 uppercase tracking-[0.04em]">
           <span className="w-[9px] h-[9px] rounded-[3px]" style={{ background: STATION_COLOR[s] + '22', borderLeft: `2.5px solid ${STATION_COLOR[s]}` }} />{s}
         </span>
       ))}
@@ -561,13 +561,13 @@ function GapsStrip({ openShifts, days, onFill }) {
           const station = stationFromRole(o.role_label)
           const col = station ? STATION_COLOR[station] : '#13362a'
           return (
-            <div key={o.id ?? idx} className="flex items-center gap-[13px] px-[13px] py-[11px] bg-white dark:bg-paperDark border border-charcoal/10 rounded-[13px]">
+            <div key={o.id ?? idx} className="flex items-center gap-[13px] px-[13px] py-[11px] bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[13px]">
               <span className="w-[38px] h-[38px] rounded-[11px] flex items-center justify-center shrink-0" style={{ background: col + '1c', color: col }}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14"/></svg>
               </span>
               <div className="flex-1 min-w-0">
-                <div className="text-sm font-semibold text-charcoal tracking-[-0.01em]">{o.role_label} · {fmtRange(o.start_time.slice(0,5), o.end_time.slice(0,5))}</div>
-                <div className="text-[11.5px] text-charcoal/50 mt-0.5">{format(o._day, 'EEE d MMM')} · unassigned</div>
+                <div className="text-sm font-semibold text-charcoal dark:text-white tracking-[-0.01em]">{o.role_label} · {fmtRange(o.start_time.slice(0,5), o.end_time.slice(0,5))}</div>
+                <div className="text-[11.5px] text-charcoal/50 dark:text-white/40 mt-0.5">{format(o._day, 'EEE d MMM')} · unassigned</div>
               </div>
               <button onClick={() => onFill(o)} className="text-[12.5px] font-semibold text-white bg-brand px-[15px] py-2 rounded-[9px] border-none cursor-pointer">Fill</button>
             </div>
@@ -665,7 +665,7 @@ export default function RotaMobileGrid() {
     if (error) { toast(error.message, 'error'); setPublishing(false); return }
     const staffIds = [...new Set(shifts.map(s => s.staff_id).filter(Boolean))]
     if (staffIds.length) {
-      sendPush({ venueId, notificationType: 'rota_published', title: 'Rota Published', body: `Your rota for the week of ${weekStartStr} is now available.`, url: '/rota', staffIds }).catch(() => {})
+      sendPush({ venueId, notificationType: 'rota_published', title: 'Rota Published', body: `Your rota for the week of ${weekStartStr} is now available.`, url: '/rota', staffIds })
     }
     setPublishing(false)
     setSessionChanges([])
@@ -705,7 +705,7 @@ export default function RotaMobileGrid() {
         @keyframes fadeIn  { from { opacity: 0; }                 to { opacity: 1; } }
       `}</style>
 
-      <div className="fixed inset-0 z-[51] flex flex-col bg-surface text-charcoal overflow-hidden">
+      <div className="fixed inset-0 z-[51] flex flex-col bg-surface text-charcoal dark:text-white overflow-hidden">
 
         {/* ── Header: matches AppShell mobile header ── */}
         <header className="bg-brand text-white shrink-0" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
@@ -730,31 +730,31 @@ export default function RotaMobileGrid() {
         <div className="px-[14px] pt-3 pb-2 bg-surface shrink-0">
           <div className="flex justify-end items-center px-1 pb-2">
             <span
-              className={`inline-flex items-center gap-[5px] font-mono text-[9.5px] font-bold px-2 py-[3px] rounded-full tracking-[0.05em] uppercase border ${isDraft ? 'text-warning bg-warning/10 border-warning' : isPublished ? 'text-success bg-success/10 border-success' : 'text-charcoal/50 bg-charcoal/[0.06] border-charcoal/10'}`}
+              className={`inline-flex items-center gap-[5px] font-mono text-[9.5px] font-bold px-2 py-[3px] rounded-full tracking-[0.05em] uppercase border ${isDraft ? 'text-warning bg-warning/10 border-warning' : isPublished ? 'text-success bg-success/10 border-success' : 'text-charcoal/50 dark:text-white/40 bg-charcoal/[0.06] border-charcoal/10 dark:border-white/10'}`}
             >
               <span className="w-[5px] h-[5px] rounded-[3px] bg-current" />
               {isDraft ? `Draft · ${pendingChanges} change${pendingChanges !== 1 ? 's' : ''}` : isPublished ? 'Published' : 'Not published'}
             </span>
           </div>
           <div className="flex items-center gap-1">
-            <button onClick={prevWeek} className="w-8 flex items-center justify-center shrink-0 bg-white dark:bg-paperDark border border-charcoal/10 rounded-[9px] text-charcoal/50 cursor-pointer" style={{ height: 60 }}>
+            <button onClick={prevWeek} className="w-8 flex items-center justify-center shrink-0 bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[9px] text-charcoal/50 dark:text-white/40 cursor-pointer" style={{ height: 60 }}>
               <svg width="10" height="14" viewBox="0 0 10 14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M7 1L1 7l6 6"/></svg>
             </button>
-            <div className="flex-1 bg-white dark:bg-paperDark border border-charcoal/10 rounded-[9px] flex flex-col items-center justify-center gap-0.5" style={{ height: 60 }}>
-              <span className="text-[15px] font-semibold tracking-[-0.015em] text-charcoal">{weekTitle}</span>
-              <span className="font-mono text-[10px] text-charcoal/50 tracking-[0.06em] uppercase">{weekLabel}</span>
+            <div className="flex-1 bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[9px] flex flex-col items-center justify-center gap-0.5" style={{ height: 60 }}>
+              <span className="text-[15px] font-semibold tracking-[-0.015em] text-charcoal dark:text-white">{weekTitle}</span>
+              <span className="font-mono text-[10px] text-charcoal/50 dark:text-white/40 tracking-[0.06em] uppercase">{weekLabel}</span>
             </div>
-            <button onClick={nextWeek} className="w-8 flex items-center justify-center shrink-0 bg-white dark:bg-paperDark border border-charcoal/10 rounded-[9px] text-charcoal/50 cursor-pointer" style={{ height: 60 }}>
+            <button onClick={nextWeek} className="w-8 flex items-center justify-center shrink-0 bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[9px] text-charcoal/50 dark:text-white/40 cursor-pointer" style={{ height: 60 }}>
               <svg width="10" height="14" viewBox="0 0 10 14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 1l6 6-6 6"/></svg>
             </button>
           </div>
         </div>
 
         {/* ── Action bar ── */}
-        <div className="flex items-center justify-between gap-2 px-[14px] py-[10px] bg-surface border-b border-charcoal/10 shrink-0">
+        <div className="flex items-center justify-between gap-2 px-[14px] py-[10px] bg-surface border-b border-charcoal/10 dark:border-white/10 shrink-0">
           <div className="flex items-baseline gap-[6px] shrink-0">
-            <span className="font-mono text-[9.5px] text-charcoal/50 uppercase tracking-[0.07em] font-semibold">Week</span>
-            <span className="font-mono text-[15px] font-semibold text-charcoal tabular-nums">{showCost ? `£${weekCost}` : `${weekHours}h`}</span>
+            <span className="font-mono text-[9.5px] text-charcoal/50 dark:text-white/40 uppercase tracking-[0.07em] font-semibold">Week</span>
+            <span className="font-mono text-[15px] font-semibold text-charcoal dark:text-white tabular-nums">{showCost ? `£${weekCost}` : `${weekHours}h`}</span>
           </div>
           <div className="flex items-center gap-2">
             {/* Hours / £ toggle */}
@@ -762,7 +762,7 @@ export default function RotaMobileGrid() {
               {[['Hours', false], ['£', true]].map(([lbl, val]) => {
                 const on = showCost === val
                 return (
-                  <button key={lbl} onClick={() => setShowCost(val)} className={`cursor-pointer border-none rounded-[7px] px-[11px] py-[5px] text-xs font-semibold ${on ? 'bg-white dark:bg-paperDark text-charcoal shadow-[0_1px_2px_rgba(9,18,13,0.1)]' : 'bg-transparent text-charcoal/50'}`}>{lbl}</button>
+                  <button key={lbl} onClick={() => setShowCost(val)} className={`cursor-pointer border-none rounded-[7px] px-[11px] py-[5px] text-xs font-semibold ${on ? 'bg-white dark:bg-paperDark text-charcoal dark:text-white shadow-[0_1px_2px_rgba(9,18,13,0.1)]' : 'bg-transparent text-charcoal/50 dark:text-white/40'}`}>{lbl}</button>
                 )
               })}
             </div>
@@ -777,7 +777,7 @@ export default function RotaMobileGrid() {
         {/* ── Scrollable content ── */}
         <div className="flex-1 overflow-y-auto overflow-x-hidden [-webkit-overflow-scrolling:touch]">
           {isLoading ? (
-            <div className="flex items-center justify-center h-[200px] text-charcoal/50 text-sm">Loading…</div>
+            <div className="flex items-center justify-center h-[200px] text-charcoal/50 dark:text-white/40 text-sm">Loading…</div>
           ) : (
             <div className="px-[13px] pt-[13px] flex flex-col gap-[13px]">
 
@@ -796,18 +796,18 @@ export default function RotaMobileGrid() {
               )}
 
               {/* Week grid — wrapped in card */}
-              <div className="bg-white dark:bg-paperDark border border-charcoal/10 rounded-2xl overflow-hidden">
+              <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-2xl overflow-hidden">
                 <div className="overflow-x-auto [-webkit-overflow-scrolling:touch]">
                   <div style={{ minWidth: NAME_W + DAY_COL * 7 }}>
 
                     {/* Header row */}
-                    <div className="flex border-b border-charcoal/10">
+                    <div className="flex border-b border-charcoal/10 dark:border-white/10">
                       <div className="shrink-0 sticky left-0 z-[3] bg-white dark:bg-paperDark" style={{ width: NAME_W, minWidth: NAME_W }} />
                       {days.map((day, i) => {
                         const today = isToday(day)
                         return (
                           <div key={i} className="shrink-0 text-center pt-[11px] pb-[9px]" style={{ width: DAY_COL, minWidth: DAY_COL, background: today ? 'rgba(19,54,42,0.04)' : 'transparent' }}>
-                            <div className="font-mono text-[9px] tracking-[0.06em] uppercase text-charcoal/50 font-semibold">{format(day, 'EEE')}</div>
+                            <div className="font-mono text-[9px] tracking-[0.06em] uppercase text-charcoal/50 dark:text-white/40 font-semibold">{format(day, 'EEE')}</div>
                             <div className="mt-1 w-[26px] h-[26px] rounded-full flex items-center justify-center mx-auto" style={{ background: today ? '#13362a' : 'transparent' }}>
                               <span className="font-mono text-[13px] font-semibold" style={{ color: today ? '#fff' : '#0d1a14' }}>{format(day, 'd')}</span>
                             </div>
@@ -829,7 +829,7 @@ export default function RotaMobileGrid() {
                               <Avatar name={member.name} station={station} size={28} />
                               {station && <span className="absolute -bottom-px -right-px w-2 h-2 rounded-[4px] border-[1.5px] border-white" style={{ background: STATION_COLOR[station] }} />}
                             </span>
-                            <span className="text-[12.5px] font-semibold text-charcoal tracking-[-0.01em] whitespace-nowrap overflow-hidden text-ellipsis" title={member.name}>
+                            <span className="text-[12.5px] font-semibold text-charcoal dark:text-white tracking-[-0.01em] whitespace-nowrap overflow-hidden text-ellipsis" title={member.name}>
                               {shortName(member.name)}
                             </span>
                           </div>
@@ -852,17 +852,17 @@ export default function RotaMobileGrid() {
                     })}
 
                     {/* Totals row */}
-                    <div className="flex bg-surface border-t border-charcoal/10">
+                    <div className="flex bg-surface border-t border-charcoal/10 dark:border-white/10">
                       <div
                         className="shrink-0 sticky left-0 z-[2] bg-surface border-r border-charcoal/[0.06] flex items-center px-[9px]"
                         style={{ width: NAME_W, minWidth: NAME_W }}
                       >
-                        <span className="font-mono text-[9px] font-semibold text-charcoal/50 uppercase tracking-[0.06em]">{showCost ? 'Cost' : 'Hours'}</span>
+                        <span className="font-mono text-[9px] font-semibold text-charcoal/50 dark:text-white/40 uppercase tracking-[0.06em]">{showCost ? 'Cost' : 'Hours'}</span>
                       </div>
                       {dayTotals.map((t, i) => (
                         <div key={i} className="shrink-0 text-center py-[11px]" style={{ width: DAY_COL, minWidth: DAY_COL, background: isToday(days[i]) ? 'rgba(19,54,42,0.04)' : 'transparent' }}>
-                          <div className="font-mono text-xs font-semibold text-charcoal tabular-nums">{showCost ? `£${t.cost}` : `${t.hours}h`}</div>
-                          <div className="font-mono text-[8px] text-charcoal/30 mt-0.5 uppercase tracking-[0.04em]">{t.count} on</div>
+                          <div className="font-mono text-xs font-semibold text-charcoal dark:text-white tabular-nums">{showCost ? `£${t.cost}` : `${t.hours}h`}</div>
+                          <div className="font-mono text-[8px] text-charcoal/30 dark:text-white/30 mt-0.5 uppercase tracking-[0.04em]">{t.count} on</div>
                         </div>
                       ))}
                     </div>
@@ -894,7 +894,7 @@ export default function RotaMobileGrid() {
                 {reverting ? 'Undoing…' : 'Cancel'}
               </button>
             )}
-            <button onClick={publish} disabled={publishing || reverting} className="h-10 px-[18px] rounded-[11px] border-none cursor-pointer bg-white text-charcoal text-[13.5px] font-bold flex items-center gap-[7px]">
+            <button onClick={publish} disabled={publishing || reverting} className="h-10 px-[18px] rounded-[11px] border-none cursor-pointer bg-white dark:bg-paperDark text-charcoal dark:text-white text-[13.5px] font-bold flex items-center gap-[7px]">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4z"/></svg>
               {publishing ? 'Publishing…' : 'Publish'}
             </button>

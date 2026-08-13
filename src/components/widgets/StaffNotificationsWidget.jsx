@@ -51,7 +51,7 @@ function StaffNotificationsWidget() {
   return (
     <WidgetShell title="Staff Notifications" status={status}>
       {total === 0 ? (
-        <p className="text-sm text-charcoal/30 italic py-2">No pending notifications</p>
+        <p className="text-sm text-charcoal/30 dark:text-white/30 italic py-2">No pending notifications</p>
       ) : (
         <div className="flex flex-col gap-2 pt-1">
           {data.leave.map(r => (
@@ -62,10 +62,10 @@ function StaffNotificationsWidget() {
             >
               <span className="text-warning text-xs mt-0.5 shrink-0">●</span>
               <div className="min-w-0">
-                <p className="text-sm font-medium text-charcoal truncate group-hover:text-accent transition-colors">
+                <p className="text-sm font-medium text-charcoal dark:text-white truncate group-hover:text-accent transition-colors">
                   {r.staff?.name ?? 'Staff'}: Leave Request
                 </p>
-                <p className="text-[11px] text-charcoal/40">
+                <p className="text-[11px] text-charcoal/40 dark:text-white/35">
                   {format(new Date(r.start_date), 'd MMM')} – {format(new Date(r.end_date), 'd MMM yyyy')}
                   {r.reason ? ` · ${r.reason}` : ''}
                 </p>
@@ -80,10 +80,10 @@ function StaffNotificationsWidget() {
             >
               <span className="text-accent text-xs mt-0.5 shrink-0">●</span>
               <div className="min-w-0">
-                <p className="text-sm font-medium text-charcoal truncate group-hover:text-accent transition-colors">
+                <p className="text-sm font-medium text-charcoal dark:text-white truncate group-hover:text-accent transition-colors">
                   Swap: {s.requester_name} → {s.target_staff_name}
                 </p>
-                <p className="text-[11px] text-charcoal/40">Shift swap pending approval</p>
+                <p className="text-[11px] text-charcoal/40 dark:text-white/35">Shift swap pending approval</p>
               </div>
             </a>
           ))}
@@ -92,12 +92,12 @@ function StaffNotificationsWidget() {
               href={`/v/${venueSlug}/training`}
               className="flex items-start gap-2 group"
             >
-              <span className="text-charcoal/40 text-xs mt-0.5 shrink-0">●</span>
+              <span className="text-charcoal/40 dark:text-white/35 text-xs mt-0.5 shrink-0">●</span>
               <div className="min-w-0">
-                <p className="text-sm font-medium text-charcoal group-hover:text-accent transition-colors">
+                <p className="text-sm font-medium text-charcoal dark:text-white group-hover:text-accent transition-colors">
                   {data.trainCount} training record{data.trainCount !== 1 ? 's' : ''} unsigned
                 </p>
-                <p className="text-[11px] text-charcoal/40">Awaiting employee signature</p>
+                <p className="text-[11px] text-charcoal/40 dark:text-white/35">Awaiting employee signature</p>
               </div>
             </a>
           )}

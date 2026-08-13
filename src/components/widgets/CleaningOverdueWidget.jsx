@@ -56,7 +56,7 @@ function CleaningOverdueWidget() {
           const threshold = FREQ_DAYS[t.frequency] ?? 1
           const overBy = days !== null ? days - threshold : null
           return (
-            <div key={t.id} className="flex items-center justify-between gap-2 py-2 border-b border-charcoal/6 last:border-0">
+            <div key={t.id} className="flex items-center justify-between gap-2 py-2 border-b border-charcoal/6 dark:border-white/8 last:border-0">
               <button
                 onClick={(e) => { e.preventDefault(); completeTask(t.id) }}
                 disabled={completing === t.id}
@@ -72,7 +72,7 @@ function CleaningOverdueWidget() {
                   ? <span className="w-3 h-3 rounded-full border-2 border-success/25 border-t-success animate-spin" />
                   : <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>}
               </button>
-              <p className="text-xs text-charcoal truncate flex-1">{t.title}</p>
+              <p className="text-xs text-charcoal dark:text-white truncate flex-1">{t.title}</p>
               <span className="text-[11px] text-danger/70 whitespace-nowrap shrink-0">
                 {overBy !== null ? `${overBy}d overdue` : 'Never done'}
               </span>
@@ -81,19 +81,19 @@ function CleaningOverdueWidget() {
         })}
       </div>
       {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-3 mt-2 pt-1 border-t border-charcoal/6">
+        <div className="flex items-center justify-center gap-3 mt-2 pt-1 border-t border-charcoal/6 dark:border-white/8">
           <button
             onClick={() => setPage(p => Math.max(0, p - 1))}
             disabled={page === 0}
-            className="text-[11px] text-charcoal/40 hover:text-charcoal disabled:opacity-20"
+            className="text-[11px] text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white disabled:opacity-20"
           >
             ‹
           </button>
-          <span className="text-[11px] text-charcoal/30">{page + 1}/{totalPages}</span>
+          <span className="text-[11px] text-charcoal/30 dark:text-white/30">{page + 1}/{totalPages}</span>
           <button
             onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
             disabled={page >= totalPages - 1}
-            className="text-[11px] text-charcoal/40 hover:text-charcoal disabled:opacity-20"
+            className="text-[11px] text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white disabled:opacity-20"
           >
             ›
           </button>

@@ -17,10 +17,10 @@ const RANGE_OPTIONS = [
 function StatRow({ label, value, sub, warn }) {
   return (
     <div className="flex items-center justify-between py-1.5">
-      <span className="text-sm text-charcoal/70">{label}</span>
+      <span className="text-sm text-charcoal/70 dark:text-white/60">{label}</span>
       <div className="text-right">
-        <span className={`text-sm font-semibold ${warn ? 'text-danger' : 'text-charcoal'}`}>{value}</span>
-        {sub && <p className="text-[11px] text-charcoal/35">{sub}</p>}
+        <span className={`text-sm font-semibold ${warn ? 'text-danger' : 'text-charcoal dark:text-white'}`}>{value}</span>
+        {sub && <p className="text-[11px] text-charcoal/35 dark:text-white/30">{sub}</p>}
       </div>
     </div>
   )
@@ -28,23 +28,23 @@ function StatRow({ label, value, sub, warn }) {
 
 function DrillTable({ headers, rows }) {
   const hasAction = rows.some(r => r.action)
-  if (!rows.length) return <p className="text-xs text-charcoal/40 italic py-2">No records to display.</p>
+  if (!rows.length) return <p className="text-xs text-charcoal/40 dark:text-white/35 italic py-2">No records to display.</p>
   return (
     <div className="overflow-x-auto -mx-5 px-5">
       <table className="w-full text-xs min-w-[480px]">
         <thead>
           <tr>
             {headers.map(h => (
-              <th key={h} className="text-left text-[11px] tracking-widest uppercase text-charcoal/40 font-medium pb-2 pr-3 border-b border-charcoal/8">{h}</th>
+              <th key={h} className="text-left text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 font-medium pb-2 pr-3 border-b border-charcoal/8 dark:border-white/8">{h}</th>
             ))}
-            {hasAction && <th className="border-b border-charcoal/8 pb-2" />}
+            {hasAction && <th className="border-b border-charcoal/8 dark:border-white/8 pb-2" />}
           </tr>
         </thead>
         <tbody>
           {rows.map((row, i) => (
-            <tr key={i} className="border-b border-charcoal/5 last:border-0">
+            <tr key={i} className="border-b border-charcoal/5 dark:border-white/5 last:border-0">
               {row.cells.map((cell, j) => (
-                <td key={j} className={`py-2 pr-3 ${cell.bold ? 'font-semibold' : ''} ${cell.color ?? 'text-charcoal/70'}`}>
+                <td key={j} className={`py-2 pr-3 ${cell.bold ? 'font-semibold' : ''} ${cell.color ?? 'text-charcoal/70 dark:text-white/60'}`}>
                   {cell.text}
                 </td>
               ))}
@@ -71,22 +71,22 @@ function DrillTable({ headers, rows }) {
 
 function SectionCard({ title, status, children, sectionId, openSection, onToggle, failCount, failLabel }) {
   const isOpen = openSection === sectionId
-  const dotColors = { good: 'bg-success', warning: 'bg-warning', bad: 'bg-danger', neutral: 'bg-charcoal/20' }
+  const dotColors = { good: 'bg-success', warning: 'bg-warning', bad: 'bg-danger', neutral: 'bg-charcoal/20 dark:bg-white/20' }
 
   return (
-    <div id={sectionId} className="bg-white rounded-2xl overflow-hidden">
+    <div id={sectionId} className="bg-white dark:bg-paperDark rounded-2xl overflow-hidden">
       <div className="p-5">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <span className={`w-2 h-2 rounded-full shrink-0 ${dotColors[status] ?? dotColors.neutral}`} />
-            <h3 className="text-[11px] font-bold tracking-widest uppercase text-charcoal/50">{title}</h3>
+            <h3 className="text-[11px] font-bold tracking-widest uppercase text-charcoal/50 dark:text-white/40">{title}</h3>
           </div>
           {failCount > 0 && sectionId && (
             <button
               onClick={() => onToggle(sectionId)}
               className={`text-[11px] font-semibold px-2.5 py-1 rounded-full transition-colors ${
                 isOpen
-                  ? 'text-charcoal/50 bg-charcoal/8'
+                  ? 'text-charcoal/50 dark:text-white/40 bg-charcoal/8 dark:bg-white/8'
                   : status === 'bad' ? 'text-danger bg-danger/10 hover:bg-danger/15'
                   : 'text-warning bg-warning/10 hover:bg-warning/15'
               }`}
@@ -288,8 +288,8 @@ export default function EHOAuditPage() {
   return (
     <div className="flex flex-col gap-4">
       <div>
-        <h1 className="text-2xl font-bold text-charcoal">EHO Audit Trail</h1>
-        <p className="text-sm text-charcoal/45 mt-0.5">Environmental Health Officer inspection readiness</p>
+        <h1 className="text-2xl font-bold text-charcoal dark:text-white">EHO Audit Trail</h1>
+        <p className="text-sm text-charcoal/45 dark:text-white/40 mt-0.5">Environmental Health Officer inspection readiness</p>
       </div>
 
       {/* Range selector */}
@@ -301,7 +301,7 @@ export default function EHOAuditPage() {
             className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all ${
               range === r.days
                 ? 'bg-brand text-white border-brand'
-                : 'bg-white text-charcoal/50 border-charcoal/15 hover:border-charcoal/30'
+                : 'bg-white dark:bg-paperDark text-charcoal/50 dark:text-white/40 border-charcoal/15 dark:border-white/15 hover:border-charcoal/30 dark:hover:border-white/30'
             }`}
           >
             Last {r.label}
@@ -330,36 +330,36 @@ export default function EHOAuditPage() {
               <p className={`font-bold text-sm ${overall === 'good' ? 'text-success' : overall === 'warning' ? 'text-warning' : 'text-danger'}`}>
                 {overall === 'good' ? 'Exemplary — ready for inspection' : overallLabels[overall]}
               </p>
-              <p className="text-[11px] text-charcoal/40 mt-0.5">Score calculated at {format(new Date(), 'dd/MM/yy HH:mm')}</p>
+              <p className="text-[11px] text-charcoal/40 dark:text-white/35 mt-0.5">Score calculated at {format(new Date(), 'dd/MM/yy HH:mm')}</p>
             </div>
           </div>
 
           {/* Overall score card */}
-          <div className="bg-white rounded-2xl p-5">
-            <p className="text-[11px] font-bold tracking-widest uppercase text-charcoal/40 mb-3">Overall Score</p>
+          <div className="bg-white dark:bg-paperDark rounded-2xl p-5">
+            <p className="text-[11px] font-bold tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-3">Overall Score</p>
             <div className="flex items-baseline gap-2 mb-3">
               <span className="text-4xl font-bold text-midgreen">{overallScore}%</span>
               {overallScore >= 80 && (
                 <svg className="w-5 h-5 text-midgreen" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18 9 11.25l4.306 4.306a11.95 11.95 0 0 1 5.814-5.518l2.74-1.22m0 0-5.94-2.281m5.94 2.28-2.28 5.941" /></svg>
               )}
             </div>
-            <div className="w-full h-2 bg-charcoal/8 rounded-full overflow-hidden mb-4">
+            <div className="w-full h-2 bg-charcoal/8 dark:bg-white/8 rounded-full overflow-hidden mb-4">
               <div
                 className="h-full bg-charcoal rounded-full transition-all duration-500"
                 style={{ width: `${overallScore}%` }}
               />
             </div>
-            <div className="grid grid-cols-3 gap-3 pt-3 border-t border-charcoal/6">
+            <div className="grid grid-cols-3 gap-3 pt-3 border-t border-charcoal/6 dark:border-white/8">
               <div className="text-center">
-                <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-0.5">Points</p>
-                <p className="font-bold text-charcoal text-base">{Math.round(scorePoints)}</p>
+                <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-0.5">Points</p>
+                <p className="font-bold text-charcoal dark:text-white text-base">{Math.round(scorePoints)}</p>
               </div>
               <div className="text-center">
-                <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-0.5">Max</p>
-                <p className="font-bold text-charcoal text-base">{scoreMax}</p>
+                <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-0.5">Max</p>
+                <p className="font-bold text-charcoal dark:text-white text-base">{scoreMax}</p>
               </div>
               <div className="text-center">
-                <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-0.5">Rate</p>
+                <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-0.5">Rate</p>
                 <p className="font-bold text-midgreen text-base">{overallScore}%</p>
               </div>
             </div>
@@ -380,8 +380,8 @@ export default function EHOAuditPage() {
               <StatRow label="Pass rate" value={`${data.tempPassRate}%`} warn={data.tempPassRate < 95} />
               <StatRow label="Failed readings" value={data.tempFails} warn={data.tempFails > 0} />
               {openSection === 'temps' && data.failedTemps.length > 0 && (
-                <div className="mt-3 pt-3 border-t border-charcoal/10">
-                  <p className="text-[11px] text-charcoal/40 mb-2">These readings are out of range with no accepted explanation. Mark as resolved once actioned.</p>
+                <div className="mt-3 pt-3 border-t border-charcoal/10 dark:border-white/10">
+                  <p className="text-[11px] text-charcoal/40 dark:text-white/35 mb-2">These readings are out of range with no accepted explanation. Mark as resolved once actioned.</p>
                   <DrillTable
                     headers={['Date', 'Time', 'Fridge', 'Temp', 'Reason', 'Recorded By']}
                     rows={data.failedTemps.map(t => ({
@@ -403,7 +403,7 @@ export default function EHOAuditPage() {
                 </div>
               )}
               {openSection === 'temps' && data.failedTemps.length === 0 && (
-                <p className="mt-3 pt-3 border-t border-charcoal/10 text-xs text-success font-medium">All temperature alerts resolved</p>
+                <p className="mt-3 pt-3 border-t border-charcoal/10 dark:border-white/10 text-xs text-success font-medium">All temperature alerts resolved</p>
               )}
             </SectionCard>
 
@@ -436,7 +436,7 @@ export default function EHOAuditPage() {
                 <p className="text-xs text-warning mt-2">No delivery checks recorded. EHOs expect these.</p>
               )}
               {openSection === 'deliveries' && data.failedDeliveries.length > 0 && (
-                <div className="mt-3 pt-3 border-t border-charcoal/10">
+                <div className="mt-3 pt-3 border-t border-charcoal/10 dark:border-white/10">
                   <DrillTable
                     headers={['Date', 'Supplier', 'Temp', 'Temp OK', 'Pack OK', 'Use-By OK', 'Notes']}
                     rows={data.failedDeliveries.map(d => ({
@@ -455,7 +455,7 @@ export default function EHOAuditPage() {
                 </div>
               )}
               {openSection === 'deliveries' && data.failedDeliveries.length === 0 && data.deliveryTotal > 0 && (
-                <p className="mt-3 pt-3 border-t border-charcoal/10 text-xs text-success font-medium">All delivery failures resolved</p>
+                <p className="mt-3 pt-3 border-t border-charcoal/10 dark:border-white/10 text-xs text-success font-medium">All delivery failures resolved</p>
               )}
             </SectionCard>
 
@@ -476,7 +476,7 @@ export default function EHOAuditPage() {
                 <p className="text-xs text-warning mt-2">No calibrations on record. Probes should be checked regularly.</p>
               )}
               {openSection === 'probes' && data.failedProbes.length > 0 && (
-                <div className="mt-3 pt-3 border-t border-charcoal/10">
+                <div className="mt-3 pt-3 border-t border-charcoal/10 dark:border-white/10">
                   <DrillTable
                     headers={['Date', 'Probe', 'Expected', 'Actual', 'Result']}
                     rows={data.failedProbes.map(p => ({
@@ -493,7 +493,7 @@ export default function EHOAuditPage() {
                 </div>
               )}
               {openSection === 'probes' && data.failedProbes.length === 0 && data.probeTotal > 0 && (
-                <p className="mt-3 pt-3 border-t border-charcoal/10 text-xs text-success font-medium">All probe failures resolved</p>
+                <p className="mt-3 pt-3 border-t border-charcoal/10 dark:border-white/10 text-xs text-success font-medium">All probe failures resolved</p>
               )}
             </SectionCard>
 
@@ -511,7 +511,7 @@ export default function EHOAuditPage() {
               <StatRow label="Open issues" value={data.caOpen} warn={data.caOpen > 0} />
               <StatRow label="Critical open" value={data.caCritical} warn={data.caCritical > 0} />
               {openSection === 'actions' && data.openActions.length > 0 && (
-                <div className="mt-3 pt-3 border-t border-charcoal/10">
+                <div className="mt-3 pt-3 border-t border-charcoal/10 dark:border-white/10">
                   <DrillTable
                     headers={['Date', 'Title', 'Severity', 'Description']}
                     rows={data.openActions.map(a => ({
@@ -520,7 +520,7 @@ export default function EHOAuditPage() {
                         { text: a.title ?? '—', bold: true },
                         {
                           text: (a.severity ?? '').toUpperCase(),
-                          color: a.severity === 'critical' ? 'text-danger' : a.severity === 'major' ? 'text-warning' : 'text-charcoal/60',
+                          color: a.severity === 'critical' ? 'text-danger' : a.severity === 'major' ? 'text-warning' : 'text-charcoal/60 dark:text-white/50',
                           bold: true,
                         },
                         { text: a.description ?? '—' },
@@ -531,7 +531,7 @@ export default function EHOAuditPage() {
                 </div>
               )}
               {openSection === 'actions' && data.openActions.length === 0 && data.caTotal > 0 && (
-                <p className="mt-3 pt-3 border-t border-charcoal/10 text-xs text-success font-medium">All corrective actions resolved</p>
+                <p className="mt-3 pt-3 border-t border-charcoal/10 dark:border-white/10 text-xs text-success font-medium">All corrective actions resolved</p>
               )}
             </SectionCard>
 
@@ -549,7 +549,7 @@ export default function EHOAuditPage() {
               <StatRow label="Valid certificates" value={data.validCerts} />
               <StatRow label="Expired certificates" value={data.expiredCerts} warn={data.expiredCerts > 0} />
               {openSection === 'training' && data.expiredCertsList.length > 0 && (
-                <div className="mt-3 pt-3 border-t border-charcoal/10">
+                <div className="mt-3 pt-3 border-t border-charcoal/10 dark:border-white/10">
                   <DrillTable
                     headers={['Staff', 'Certificate', 'Expired']}
                     rows={data.expiredCertsList.map(c => ({
@@ -564,15 +564,15 @@ export default function EHOAuditPage() {
                 </div>
               )}
               {openSection === 'training' && data.expiredCertsList.length === 0 && (
-                <p className="mt-3 pt-3 border-t border-charcoal/10 text-xs text-success font-medium">All certificates up to date</p>
+                <p className="mt-3 pt-3 border-t border-charcoal/10 dark:border-white/10 text-xs text-success font-medium">All certificates up to date</p>
               )}
             </SectionCard>
           </div>
 
           {/* EHO Inspection Report */}
-          <div className="bg-white rounded-2xl px-5 py-4">
-            <p className="text-[11px] font-bold tracking-widest uppercase text-charcoal/40 mb-1">EHO Inspection Report</p>
-            <p className="text-xs text-charcoal/45 mb-3">One comprehensive PDF covering all compliance areas — ready to show an EHO inspector.</p>
+          <div className="bg-white dark:bg-paperDark rounded-2xl px-5 py-4">
+            <p className="text-[11px] font-bold tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-1">EHO Inspection Report</p>
+            <p className="text-xs text-charcoal/45 dark:text-white/40 mb-3">One comprehensive PDF covering all compliance areas — ready to show an EHO inspector.</p>
             <button
               onClick={() => exportEHOReport(venueId, venueName, range)}
               className="w-full px-4 py-3 rounded-xl bg-brand text-white text-xs font-bold hover:bg-brand/90 transition-colors"
@@ -582,8 +582,8 @@ export default function EHOAuditPage() {
           </div>
 
           {/* Data Export */}
-          <div className="bg-white rounded-2xl px-5 py-4">
-            <p className="text-[11px] font-bold tracking-widest uppercase text-charcoal/40 mb-3">Export Records (PDF)</p>
+          <div className="bg-white dark:bg-paperDark rounded-2xl px-5 py-4">
+            <p className="text-[11px] font-bold tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-3">Export Records (PDF)</p>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               {[
                 { label: 'Temp Logs',  fn: () => exportTempLogs(venueId, range) },
@@ -594,7 +594,7 @@ export default function EHOAuditPage() {
                 { label: 'Training',   fn: () => exportTrainingRecords(venueId) },
               ].map(btn => (
                 <button key={btn.label} onClick={btn.fn}
-                  className="px-3 py-2 rounded-xl border border-charcoal/15 text-xs font-semibold text-charcoal/60 hover:text-charcoal hover:border-charcoal/30 transition-colors">
+                  className="px-3 py-2 rounded-xl border border-charcoal/15 dark:border-white/15 text-xs font-semibold text-charcoal/60 dark:text-white/50 hover:text-charcoal dark:hover:text-white hover:border-charcoal/30 dark:hover:border-white/30 transition-colors">
                   ↓ {btn.label}
                 </button>
               ))}
@@ -606,9 +606,9 @@ export default function EHOAuditPage() {
           </div>
 
           {/* Guidance note */}
-          <div className="bg-white rounded-2xl px-5 py-4">
-            <p className="text-[11px] font-bold tracking-widest uppercase text-charcoal/40 mb-2">EHO Inspection Tips</p>
-            <ul className="text-xs text-charcoal/50 space-y-1.5 list-disc list-inside">
+          <div className="bg-white dark:bg-paperDark rounded-2xl px-5 py-4">
+            <p className="text-[11px] font-bold tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-2">EHO Inspection Tips</p>
+            <ul className="text-xs text-charcoal/50 dark:text-white/40 space-y-1.5 list-disc list-inside">
               <li>Ensure all fridge temps are logged at least twice daily (opening and closing)</li>
               <li>Every delivery should have a temperature check recorded</li>
               <li>Probes should be calibrated at least monthly</li>

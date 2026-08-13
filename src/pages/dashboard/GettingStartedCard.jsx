@@ -103,15 +103,15 @@ export default function GettingStartedCard({ venueId, venueSlug }) {
   }
 
   return (
-    <div className="bg-white rounded-2xl p-5">
+    <div className="bg-white dark:bg-paperDark rounded-2xl p-5">
       <div className="flex items-center justify-between mb-3">
         <div>
-          <p className="text-sm font-bold text-charcoal">Getting Started</p>
-          <p className="text-[11px] text-charcoal/40 mt-0.5">{completed} of {items.length} complete</p>
+          <p className="text-sm font-bold text-charcoal dark:text-white">Getting Started</p>
+          <p className="text-[11px] text-charcoal/40 dark:text-white/35 mt-0.5">{completed} of {items.length} complete</p>
         </div>
-        <button onClick={dismiss} className="text-charcoal/30 hover:text-charcoal/60 transition-colors text-xl leading-none">&times;</button>
+        <button onClick={dismiss} className="text-charcoal/30 dark:text-white/30 hover:text-charcoal/60 dark:hover:text-white/50 transition-colors text-xl leading-none">&times;</button>
       </div>
-      <div className="h-1 bg-charcoal/8 rounded-full mb-4 overflow-hidden">
+      <div className="h-1 bg-charcoal/8 dark:bg-white/8 rounded-full mb-4 overflow-hidden">
         <div className="h-full bg-brand rounded-full transition-all" style={{ width: `${(completed / items.length) * 100}%` }} />
       </div>
       <div className="flex flex-col gap-1">
@@ -119,12 +119,12 @@ export default function GettingStartedCard({ venueId, venueSlug }) {
           <Link
             key={item.id}
             to={item.link}
-            className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${item.done ? 'bg-success/5' : 'hover:bg-charcoal/3'}`}
+            className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${item.done ? 'bg-success/5' : 'hover:bg-charcoal/3 dark:hover:bg-white/5'}`}
           >
-            <span className={item.done ? 'text-success' : 'text-charcoal/20'}>
+            <span className={item.done ? 'text-success' : 'text-charcoal/20 dark:text-white/20'}>
               {item.done ? <CheckIcon /> : <CircleIcon />}
             </span>
-            <span className={`text-sm ${item.done ? 'text-charcoal/40 line-through' : 'text-charcoal'}`}>{item.label}</span>
+            <span className={`text-sm ${item.done ? 'text-charcoal/40 dark:text-white/35 line-through' : 'text-charcoal dark:text-white'}`}>{item.label}</span>
           </Link>
         ))}
       </div>

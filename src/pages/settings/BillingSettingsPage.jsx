@@ -8,7 +8,7 @@ import SettingsSubHeader from '../../components/layout/SettingsSubHeader'
 function PlanBadge({ plan }) {
   const isPro = plan === PLANS.PRO
   return (
-    <span className={`inline-flex items-center gap-[5px] py-1 px-[10px] rounded-full font-mono text-[11px] font-bold tracking-[0.05em] uppercase ${isPro ? 'bg-brand/8 text-brand' : 'bg-charcoal/6 text-charcoal/50'}`}>
+    <span className={`inline-flex items-center gap-[5px] py-1 px-[10px] rounded-full font-mono text-[11px] font-bold tracking-[0.05em] uppercase ${isPro ? 'bg-brand/8 text-brand' : 'bg-charcoal/6 dark:bg-white/8 text-charcoal/50 dark:text-white/40'}`}>
       <span className="w-1.5 h-1.5 rounded-full bg-current" />
       {isPro ? 'Pro' : 'Starter'}
     </span>
@@ -52,7 +52,7 @@ export default function BillingSettingsPage() {
         {!isPro && (
           <div className="bg-warning/10 border border-warning/20 rounded-[14px] px-4 py-[14px] mb-[14px]">
             <div className="text-sm font-semibold text-warning mb-1">Upgrade to Pro</div>
-            <div className="text-[13px] text-charcoal/50 leading-[1.5] mb-3">
+            <div className="text-[13px] text-charcoal/50 dark:text-white/40 leading-[1.5] mb-3">
               Unlock the rota, timesheets, training tracker, time-off and more for {PRO_PRICE}/mo.
             </div>
             <a
@@ -64,20 +64,20 @@ export default function BillingSettingsPage() {
           </div>
         )}
 
-        <div className="bg-white dark:bg-paperDark border border-charcoal/10 rounded-[14px] px-4 py-[14px]">
-          <div className="font-mono text-[11px] text-charcoal/50 tracking-[0.06em] uppercase font-semibold mb-2">Add another venue</div>
-          <div className="text-[13px] text-charcoal/50 leading-[1.5]">
+        <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[14px] px-4 py-[14px]">
+          <div className="font-mono text-[11px] text-charcoal/50 dark:text-white/40 tracking-[0.06em] uppercase font-semibold mb-2">Add another venue</div>
+          <div className="text-[13px] text-charcoal/50 dark:text-white/40 leading-[1.5]">
             Each additional venue is {EXTRA_VENUE_PRICE}/mo on your current plan.
           </div>
           <a
             href="mailto:hello@pelikn.com?subject=Add another venue"
-            className="inline-flex items-center gap-1.5 mt-3 h-[34px] px-[14px] rounded-lg bg-charcoal/6 text-charcoal/50 no-underline text-[13px] font-medium"
+            className="inline-flex items-center gap-1.5 mt-3 h-[34px] px-[14px] rounded-lg bg-charcoal/6 dark:bg-white/8 text-charcoal/50 dark:text-white/40 no-underline text-[13px] font-medium"
           >
             Contact us →
           </a>
         </div>
 
-        <div className="font-mono text-[11px] text-charcoal/30 text-center mt-5 leading-[1.5]">
+        <div className="font-mono text-[11px] text-charcoal/30 dark:text-white/30 text-center mt-5 leading-[1.5]">
           To cancel or modify your subscription, email{' '}
           <a href="mailto:hello@pelikn.com" className="text-brand">hello@pelikn.com</a>
         </div>

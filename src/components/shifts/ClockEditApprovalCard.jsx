@@ -41,7 +41,7 @@ function DenySheet({ onDeny, onCancel }) {
         }}
         onClick={e => e.stopPropagation()}
       >
-        <p className="text-[15px] font-bold text-charcoal" style={{ marginBottom: 12 }}>
+        <p className="text-[15px] font-bold text-charcoal dark:text-white" style={{ marginBottom: 12 }}>
           Deny this request
         </p>
         <textarea
@@ -49,7 +49,7 @@ function DenySheet({ onDeny, onCancel }) {
           onChange={e => setNote(e.target.value)}
           placeholder="Reason for denying (optional — staff will see this)"
           rows={3}
-          className="text-sm text-charcoal resize-none outline-none w-full"
+          className="text-sm text-charcoal dark:text-white resize-none outline-none w-full"
           style={{
             borderRadius: 10, border: '1px solid #e4e6e2',
             padding: '10px 12px', boxSizing: 'border-box', marginBottom: 14,
@@ -169,7 +169,7 @@ export default function ClockEditApprovalCard({ compact = false }) {
           >
             {/* Staff name + date */}
             <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 6 }}>
-              <span className="text-sm font-semibold text-charcoal">
+              <span className="text-sm font-semibold text-charcoal dark:text-white">
                 {r.staff?.name ?? 'Staff member'}
               </span>
               <span className="font-mono text-[11px] tracking-[0.05em]" style={{ color: '#b3b9b5' }}>
@@ -193,7 +193,7 @@ export default function ClockEditApprovalCard({ compact = false }) {
               {/* Requested */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                 <span className="text-[11px]" style={{ color: '#76817b' }}>Wants</span>
-                <span className="font-mono text-xs font-semibold text-charcoal">
+                <span className="font-mono text-xs font-semibold text-charcoal dark:text-white">
                   {fmt(r.requested_clock_in)} → {fmt(r.requested_clock_out)}
                   {r.break_minutes > 0 && (
                     <span className="font-normal" style={{ color: '#76817b' }}> · {r.break_minutes}m break</span>

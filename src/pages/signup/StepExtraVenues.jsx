@@ -23,7 +23,7 @@ export default function StepExtraVenues({ count, onBack, onSubmit, loading, erro
 
   return (
     <div className="flex flex-col gap-6 w-full max-w-xl mx-auto">
-      <button onClick={onBack} className="flex items-center gap-1.5 text-xs text-charcoal/40 hover:text-charcoal transition-colors group w-fit">
+      <button onClick={onBack} className="flex items-center gap-1.5 text-xs text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white transition-colors group w-fit">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="group-hover:-translate-x-0.5 transition-transform">
           <line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" />
         </svg>
@@ -32,26 +32,26 @@ export default function StepExtraVenues({ count, onBack, onSubmit, loading, erro
 
       <div>
         <h2 className="text-xl font-bold sm:text-3xl text-brand mb-1">Name your venues</h2>
-        <p className="text-sm text-charcoal/50">Set a name and URL for each additional venue.</p>
+        <p className="text-sm text-charcoal/50 dark:text-white/40">Set a name and URL for each additional venue.</p>
       </div>
 
       <div className="flex flex-col gap-5">
         {venues.map((v, i) => (
-          <div key={i} className="p-4 rounded-2xl bg-white border border-charcoal/10 flex flex-col gap-3">
-            <p className="text-xs font-semibold text-charcoal/60 tracking-widest uppercase">Venue {i + 2}</p>
+          <div key={i} className="p-4 rounded-2xl bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 flex flex-col gap-3">
+            <p className="text-xs font-semibold text-charcoal/60 dark:text-white/50 tracking-widest uppercase">Venue {i + 2}</p>
             <div>
-              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1.5">Venue Name *</label>
+              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1.5">Venue Name *</label>
               <input
                 value={v.name}
                 onChange={e => updateVenue(i, 'name', e.target.value)}
                 placeholder="e.g. City Centre Branch"
-                className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-brand/20"
+                className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-brand/20"
               />
             </div>
             <div>
-              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1.5">URL Slug *</label>
-              <div className="flex items-center rounded-lg border border-charcoal/15 bg-white overflow-hidden focus-within:ring-2 focus-within:ring-brand/20">
-                <span className="pl-3 text-xs text-charcoal/30 whitespace-nowrap font-mono">/v/</span>
+              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1.5">URL Slug *</label>
+              <div className="flex items-center rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark overflow-hidden focus-within:ring-2 focus-within:ring-brand/20">
+                <span className="pl-3 text-xs text-charcoal/30 dark:text-white/30 whitespace-nowrap font-mono">/v/</span>
                 <input
                   value={v.slug}
                   onChange={e => updateVenue(i, 'slug', e.target.value)}

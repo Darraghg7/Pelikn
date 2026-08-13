@@ -26,7 +26,7 @@ export default function PPDSLabelPage() {
   }, [id, venueId])
 
   if (loading) return <PageSkeleton />
-  if (!item)   return <div className="pt-10 text-center text-charcoal/40 text-sm">Item not found.</div>
+  if (!item)   return <div className="pt-10 text-center text-charcoal/40 dark:text-white/35 text-sm">Item not found.</div>
 
   const ingredients   = item.ingredients ?? []
   const mayContain    = item.may_contain_allergens ?? []
@@ -59,40 +59,40 @@ export default function PPDSLabelPage() {
         {/* ── Screen controls (hidden on print) ── */}
         <div id="ppds-screen-controls" className="flex flex-col gap-6 max-w-md">
           <div className="flex items-center gap-4">
-            <Link to={`/v/${venueSlug}/allergens/ppds`} className="text-charcoal/40 hover:text-charcoal transition-colors text-lg">←</Link>
+            <Link to={`/v/${venueSlug}/allergens/ppds`} className="text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white transition-colors text-lg">←</Link>
             <div>
-              <h1 className="text-xl font-bold text-charcoal">Print Label</h1>
-              <p className="text-xs text-charcoal/40 mt-0.5">Natasha's Law compliant — PPDS label</p>
+              <h1 className="text-xl font-bold text-charcoal dark:text-white">Print Label</h1>
+              <p className="text-xs text-charcoal/40 dark:text-white/35 mt-0.5">Natasha's Law compliant — PPDS label</p>
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl border-charcoal/10 p-5 flex flex-col gap-4">
-            <p className="text-[11px] tracking-widest uppercase text-charcoal/40">Label dates</p>
+          <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-5 flex flex-col gap-4">
+            <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">Label dates</p>
             <div className="grid grid-cols-2 gap-3">
               <div className="flex flex-col gap-1">
-                <label className="text-[11px] tracking-widest uppercase text-charcoal/30">Made on</label>
+                <label className="text-[11px] tracking-widest uppercase text-charcoal/30 dark:text-white/30">Made on</label>
                 <input
                   type="date"
                   value={madeOn}
                   onChange={e => setMadeOn(e.target.value)}
-                  className="px-3 py-2 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+                  className="px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
                 />
               </div>
               <div className="flex flex-col gap-1">
-                <label className="text-[11px] tracking-widest uppercase text-charcoal/30">Use by</label>
+                <label className="text-[11px] tracking-widest uppercase text-charcoal/30 dark:text-white/30">Use by</label>
                 <input
                   type="date"
                   value={useBy}
                   onChange={e => setUseBy(e.target.value)}
-                  className="px-3 py-2 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+                  className="px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
                 />
               </div>
             </div>
           </div>
 
           {/* Label preview */}
-          <div className="bg-white rounded-2xl border-charcoal/10 p-5">
-            <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-4">Label preview</p>
+          <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-5">
+            <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-4">Label preview</p>
             <LabelContent
               item={item}
               venueName={venueName}

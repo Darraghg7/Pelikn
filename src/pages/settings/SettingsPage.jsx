@@ -47,7 +47,7 @@ const SECTIONS = [
 function SettingsGroup({ label, children }) {
   return (
     <div className="flex flex-col gap-2.5">
-      <p className="text-[11px] tracking-widest uppercase text-charcoal/30 font-semibold px-1 pt-1">{label}</p>
+      <p className="text-[11px] tracking-widest uppercase text-charcoal/30 dark:text-white/30 font-semibold px-1 pt-1">{label}</p>
       {children}
     </div>
   )
@@ -195,7 +195,7 @@ export default function SettingsPage() {
         <>
           <button
             onClick={() => setActive(null)}
-            className="self-start inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-charcoal/12 dark:border-white/15 text-xs font-medium text-charcoal/60 dark:text-white/60 hover:text-charcoal hover:border-charcoal/30 dark:hover:text-white transition-colors"
+            className="self-start inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-charcoal/12 dark:border-white/15 text-xs font-medium text-charcoal/60 dark:text-white/60 hover:text-charcoal dark:hover:text-white hover:border-charcoal/30 dark:hover:border-white/30 transition-colors"
           >
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
               <polyline points="15 18 9 12 15 6" />
@@ -210,22 +210,22 @@ export default function SettingsPage() {
                 <div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                      <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-2">Venue Name</label>
+                      <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">Venue Name</label>
                       <input
                         value={venueForm.venue_name}
                         onChange={e => setVenueForm(f => ({ ...f, venue_name: e.target.value }))}
                         placeholder="e.g. The Crown Bar & Kitchen"
-                        className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+                        className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
                       />
                     </div>
                     <div>
-                      <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-2">Manager Email</label>
+                      <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">Manager Email</label>
                       <input
                         type="email"
                         value={venueForm.manager_email}
                         onChange={e => setVenueForm(f => ({ ...f, manager_email: e.target.value }))}
                         placeholder="manager@yoursite.com"
-                        className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+                        className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
                       />
                     </div>
                   </div>
@@ -240,13 +240,13 @@ export default function SettingsPage() {
 
                 {/* Logo upload */}
                 <div>
-                  <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-2">Venue Logo</label>
+                  <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">Venue Logo</label>
                   <div className="flex items-center gap-3 flex-wrap pt-2">
                     {settings.logo_url && (
                       <img
                         src={settings.logo_url}
                         alt="Venue logo"
-                        className="h-10 w-10 rounded-lg object-contain border border-charcoal/10 bg-white p-1 shrink-0"
+                        className="h-10 w-10 rounded-lg object-contain border border-charcoal/10 dark:border-white/10 bg-white dark:bg-paperDark p-1 shrink-0"
                         loading="lazy"
                       />
                     )}
@@ -254,7 +254,7 @@ export default function SettingsPage() {
                       type="file"
                       accept="image/*"
                       onChange={e => setLogoFile(e.target.files[0] ?? null)}
-                      className="text-sm text-charcoal/60 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border file:border-charcoal/15 file:text-xs file:bg-white file:text-charcoal/60 hover:file:bg-cream"
+                      className="text-sm text-charcoal/60 dark:text-white/50 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border file:border-charcoal/15 dark:file:border-white/15 file:text-xs file:bg-white dark:file:bg-paperDark file:text-charcoal/60 dark:file:text-white/50 hover:file:bg-cream"
                     />
                     {logoFile && (
                       <button
@@ -266,7 +266,7 @@ export default function SettingsPage() {
                       </button>
                     )}
                   </div>
-                  <p className="text-[11px] text-charcoal/35 mt-1.5">PNG or SVG recommended.</p>
+                  <p className="text-[11px] text-charcoal/35 dark:text-white/30 mt-1.5">PNG or SVG recommended.</p>
                 </div>
 
                 {/* Theme mode */}
@@ -300,7 +300,7 @@ export default function SettingsPage() {
                         onClick={() => setThemeMode(opt.id)}
                         className={`px-3 py-1.5 rounded-md transition-all ${
                           themeMode === opt.id
-                            ? 'bg-white dark:bg-charcoal text-charcoal dark:text-white shadow-sm'
+                            ? 'bg-white dark:bg-paperDark dark:bg-charcoal text-charcoal dark:text-white shadow-sm'
                             : 'text-charcoal/50 dark:text-white/50 hover:text-charcoal dark:hover:text-white'
                         }`}
                       >
@@ -356,10 +356,10 @@ export default function SettingsPage() {
             <SettingsSection title="Shifts & Breaks" subtitle={`Adult break: ${breakDurationMins} min · Under-18: 30 min`} locked={venuePlan !== PLANS.PRO} defaultOpen>
               <div className="flex items-center justify-between gap-3 py-3">
                 <div>
-                  <p className="text-sm font-medium text-charcoal">Adult break (shifts &gt;6h)</p>
-                  <p className="text-xs text-charcoal/40 mt-0.5">Deducted from worked hours · UK minimum 20 min</p>
+                  <p className="text-sm font-medium text-charcoal dark:text-white">Adult break (shifts &gt;6h)</p>
+                  <p className="text-xs text-charcoal/40 dark:text-white/35 mt-0.5">Deducted from worked hours · UK minimum 20 min</p>
                 </div>
-                <div className="inline-flex p-0.5 rounded-lg bg-charcoal/5 border border-charcoal/8 gap-0.5">
+                <div className="inline-flex p-0.5 rounded-lg bg-charcoal/5 dark:bg-white/5 border border-charcoal/8 dark:border-white/8 gap-0.5">
                   {[15, 20, 30, 45, 60].map(mins => (
                     <button
                       key={mins}
@@ -367,8 +367,8 @@ export default function SettingsPage() {
                       className={[
                         'px-3 py-1 rounded-md text-xs font-medium transition-colors',
                         breakDurationMins === mins
-                          ? 'bg-white text-charcoal shadow-sm'
-                          : 'text-charcoal/50 hover:text-charcoal',
+                          ? 'bg-white dark:bg-paperDark text-charcoal dark:text-white shadow-sm'
+                          : 'text-charcoal/50 dark:text-white/40 hover:text-charcoal dark:hover:text-white',
                       ].join(' ')}
                     >
                       {mins}m
@@ -377,12 +377,12 @@ export default function SettingsPage() {
                 </div>
               </div>
 
-              <div className="flex items-center justify-between gap-3 py-3 border-t border-charcoal/6">
+              <div className="flex items-center justify-between gap-3 py-3 border-t border-charcoal/6 dark:border-white/8">
                 <div>
-                  <p className="text-sm font-medium text-charcoal">Clean-up grace period</p>
-                  <p className="text-xs text-charcoal/40 mt-0.5">Clock-outs within this window won't show as a discrepancy</p>
+                  <p className="text-sm font-medium text-charcoal dark:text-white">Clean-up grace period</p>
+                  <p className="text-xs text-charcoal/40 dark:text-white/35 mt-0.5">Clock-outs within this window won't show as a discrepancy</p>
                 </div>
-                <div className="inline-flex p-0.5 rounded-lg bg-charcoal/5 border border-charcoal/8 gap-0.5">
+                <div className="inline-flex p-0.5 rounded-lg bg-charcoal/5 dark:bg-white/5 border border-charcoal/8 dark:border-white/8 gap-0.5">
                   {[0, 15, 30, 45, 60].map(mins => (
                     <button
                       key={mins}
@@ -390,8 +390,8 @@ export default function SettingsPage() {
                       className={[
                         'px-3 py-1 rounded-md text-xs font-medium transition-colors',
                         cleanupMinutes === mins
-                          ? 'bg-white text-charcoal shadow-sm'
-                          : 'text-charcoal/50 hover:text-charcoal',
+                          ? 'bg-white dark:bg-paperDark text-charcoal dark:text-white shadow-sm'
+                          : 'text-charcoal/50 dark:text-white/40 hover:text-charcoal dark:hover:text-white',
                       ].join(' ')}
                     >
                       {mins === 0 ? 'None' : `${mins}m`}
@@ -409,7 +409,7 @@ export default function SettingsPage() {
               locked={venuePlan !== PLANS.PRO}
               defaultOpen
             >
-              <p className="text-xs text-charcoal/40 mb-4">
+              <p className="text-xs text-charcoal/40 dark:text-white/35 mb-4">
                 Mark days the venue is closed. Closed days are skipped by the rota builder and greyed out in the schedule.
               </p>
               <div className="flex gap-2 flex-wrap mb-8">
@@ -422,7 +422,7 @@ export default function SettingsPage() {
                       className={[
                         'px-4 py-2.5 rounded-lg text-sm font-medium border transition-all min-w-[64px]',
                         isClosed
-                          ? 'bg-charcoal/8 text-charcoal/35 border-charcoal/15 line-through'
+                          ? 'bg-charcoal/8 dark:bg-white/8 text-charcoal/35 dark:text-white/30 border-charcoal/15 dark:border-white/15 line-through'
                           : 'bg-success/10 text-success border-success/20',
                       ].join(' ')}
                     >
@@ -433,25 +433,25 @@ export default function SettingsPage() {
               </div>
 
               {/* Trading hours */}
-              <div className="border-t border-charcoal/10 pt-6 mb-6">
-                <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-1">Trading Hours</p>
-                <p className="text-xs text-charcoal/40 mb-4">Set the hours your venue is open. Used to contextualise records and reports.</p>
+              <div className="border-t border-charcoal/10 dark:border-white/10 pt-6 mb-6">
+                <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-1">Trading Hours</p>
+                <p className="text-xs text-charcoal/40 dark:text-white/35 mb-4">Set the hours your venue is open. Used to contextualise records and reports.</p>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-2">Opens</label>
+                    <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">Opens</label>
                     <TimeSelect value={openTime} onChange={saveOpenTime} />
                   </div>
                   <div>
-                    <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-2">Closes</label>
+                    <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">Closes</label>
                     <TimeSelect value={closeTime} onChange={saveCloseTime} />
                   </div>
                 </div>
               </div>
 
               {/* Closed periods */}
-              <div className="border-t border-charcoal/10 pt-6">
-                <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-1">Closed Periods</p>
-                <p className="text-xs text-charcoal/40 mb-5">
+              <div className="border-t border-charcoal/10 dark:border-white/10 pt-6">
+                <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-1">Closed Periods</p>
+                <p className="text-xs text-charcoal/40 dark:text-white/35 mb-5">
                   Mark your venue as closed for a specific date range — e.g. Christmas week, annual holiday. This flags the period across the app so staff aren't expected to complete checks.
                 </p>
 
@@ -460,18 +460,18 @@ export default function SettingsPage() {
                     {closures.map(c => {
                       const past = c.end_date < format(new Date(), 'yyyy-MM-dd')
                       return (
-                        <div key={c.id} className={`flex items-center justify-between gap-3 px-4 py-3 rounded-xl border ${past ? 'bg-charcoal/2 border-charcoal/8 opacity-50' : 'bg-white border-charcoal/10'}`}>
+                        <div key={c.id} className={`flex items-center justify-between gap-3 px-4 py-3 rounded-xl border ${past ? 'bg-charcoal/2 dark:bg-white/3 border-charcoal/8 dark:border-white/8 opacity-50' : 'bg-white dark:bg-paperDark border-charcoal/10 dark:border-white/10'}`}>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-charcoal">
+                            <p className="text-sm font-medium text-charcoal dark:text-white">
                               {format(parseISO(c.start_date), 'd MMM yyyy')}
                               {c.start_date !== c.end_date && ` – ${format(parseISO(c.end_date), 'd MMM yyyy')}`}
                             </p>
-                            {c.reason && <p className="text-xs text-charcoal/40 mt-0.5">{c.reason}</p>}
-                            {past && <p className="text-[11px] text-charcoal/30 italic mt-0.5">Past</p>}
+                            {c.reason && <p className="text-xs text-charcoal/40 dark:text-white/35 mt-0.5">{c.reason}</p>}
+                            {past && <p className="text-[11px] text-charcoal/30 dark:text-white/30 italic mt-0.5">Past</p>}
                           </div>
                           <button
                             onClick={() => setDeleteClosureTarget(c)}
-                            className="text-xs text-charcoal/25 hover:text-danger transition-colors shrink-0"
+                            className="text-xs text-charcoal/25 dark:text-white/25 hover:text-danger transition-colors shrink-0"
                           >×</button>
                         </div>
                       )
@@ -479,36 +479,36 @@ export default function SettingsPage() {
                   </div>
                 )}
 
-                <div className="flex flex-col gap-3 p-4 rounded-2xl bg-white border border-charcoal/10">
-                  <p className="text-[11px] tracking-widest uppercase text-charcoal/40">Add Closed Period</p>
+                <div className="flex flex-col gap-3 p-4 rounded-2xl bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10">
+                  <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">Add Closed Period</p>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1">From *</label>
+                      <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">From *</label>
                       <input
                         type="date"
                         value={closureForm.start_date}
                         onChange={e => setClosureForm(f => ({ ...f, start_date: e.target.value }))}
-                        className="w-full px-3 py-2 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+                        className="w-full px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
                       />
                     </div>
                     <div>
-                      <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1">To *</label>
+                      <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">To *</label>
                       <input
                         type="date"
                         value={closureForm.end_date}
                         min={closureForm.start_date}
                         onChange={e => setClosureForm(f => ({ ...f, end_date: e.target.value }))}
-                        className="w-full px-3 py-2 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+                        className="w-full px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
                       />
                     </div>
                   </div>
                   <div>
-                    <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1">Reason (optional)</label>
+                    <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Reason (optional)</label>
                     <input
                       value={closureForm.reason}
                       onChange={e => setClosureForm(f => ({ ...f, reason: e.target.value }))}
                       placeholder="e.g. Christmas holiday, annual deep clean"
-                      className="w-full px-3 py-2 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+                      className="w-full px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
                     />
                   </div>
                   <button
@@ -541,7 +541,7 @@ export default function SettingsPage() {
             >
               <VenueTypeIndicator venueId={venueId} venueSlug={venueSlug} />
 
-              <div className="inline-flex p-0.5 rounded-lg bg-charcoal/5 border border-charcoal/8 gap-0.5 mb-5">
+              <div className="inline-flex p-0.5 rounded-lg bg-charcoal/5 dark:bg-white/5 border border-charcoal/8 dark:border-white/8 gap-0.5 mb-5">
                 {['all', 'custom'].map(mode => (
                   <button
                     key={mode}
@@ -551,8 +551,8 @@ export default function SettingsPage() {
                     })}
                     className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
                       featuresConfig.mode === mode
-                        ? 'bg-white text-charcoal shadow-sm'
-                        : 'text-charcoal/50 hover:text-charcoal'
+                        ? 'bg-white dark:bg-paperDark text-charcoal dark:text-white shadow-sm'
+                        : 'text-charcoal/50 dark:text-white/40 hover:text-charcoal dark:hover:text-white'
                     }`}
                   >
                     {mode === 'all' ? 'All modules' : 'Custom'}
@@ -565,15 +565,15 @@ export default function SettingsPage() {
                   {FEATURE_GROUPS.map(group => {
                     const allOn = group.features.every(f => featuresConfig.enabled?.includes(f.id))
                     return (
-                      <div key={group.id} className="rounded-xl border border-charcoal/10 overflow-hidden">
-                        <div className="flex items-center justify-between px-3 py-2.5 bg-charcoal/3 border-b border-charcoal/8">
+                      <div key={group.id} className="rounded-xl border border-charcoal/10 dark:border-white/10 overflow-hidden">
+                        <div className="flex items-center justify-between px-3 py-2.5 bg-charcoal/3 dark:bg-white/5 border-b border-charcoal/8 dark:border-white/8">
                           <div>
-                            <p className="text-sm font-semibold text-charcoal">{group.label}</p>
-                            <p className="text-[11px] text-charcoal/40 mt-0.5">{group.description}</p>
+                            <p className="text-sm font-semibold text-charcoal dark:text-white">{group.label}</p>
+                            <p className="text-[11px] text-charcoal/40 dark:text-white/35 mt-0.5">{group.description}</p>
                           </div>
                           <Toggle checked={allOn} onChange={() => handleToggleGroup(group.features, allOn)} />
                         </div>
-                        <div className="divide-y divide-charcoal/6">
+                        <div className="divide-y divide-charcoal/6 dark:divide-white/8">
                           {group.features.map(feature => {
                             const isProOnly = PRO_ONLY_FEATURE_IDS.includes(feature.id)
                             const locked    = isProOnly && venuePlan !== PLANS.PRO
@@ -582,10 +582,10 @@ export default function SettingsPage() {
                               <div key={feature.id} className={`grid grid-cols-[1fr_auto] items-center gap-3 px-3 py-2.5 ${locked ? 'opacity-60' : ''}`}>
                                 <div className="min-w-0 pr-4">
                                   <div className="flex items-center gap-2">
-                                    <p className={`text-sm font-medium ${on ? 'text-charcoal' : 'text-charcoal/35'}`}>{feature.label}</p>
+                                    <p className={`text-sm font-medium ${on ? 'text-charcoal dark:text-white' : 'text-charcoal/35 dark:text-white/30'}`}>{feature.label}</p>
                                     {locked && <span className="text-[11px] font-bold tracking-wider uppercase text-accent bg-accent/10 px-1.5 py-0.5 rounded">Pro</span>}
                                   </div>
-                                  <p className="text-[11px] text-charcoal/40 mt-0.5">{feature.description}</p>
+                                  <p className="text-[11px] text-charcoal/40 dark:text-white/35 mt-0.5">{feature.description}</p>
                                 </div>
                                 <Toggle checked={on} onChange={locked ? undefined : () => handleToggleFeature(feature.id)} disabled={locked} />
                               </div>
@@ -599,7 +599,7 @@ export default function SettingsPage() {
               )}
 
               {featuresConfig.mode === 'all' && (
-                <p className="text-xs text-charcoal/35 italic">
+                <p className="text-xs text-charcoal/35 dark:text-white/30 italic">
                   All {ALL_FEATURE_IDS.length} modules are enabled. Switch to Custom to hide any that don't apply to your business.
                 </p>
               )}
@@ -618,9 +618,9 @@ export default function SettingsPage() {
           {active === 'notif' && (
             <SettingsSection title="Notifications" subtitle="Push alerts and fridge check reminder" defaultOpen>
               <NotificationsPanel session={session} toast={toast} settings={settings} />
-              <div className="border-t border-charcoal/8 pt-4 mt-4">
-                <p className="text-sm font-medium text-charcoal mb-0.5">Fridge check reminder</p>
-                <p className="text-xs text-charcoal/40 mb-3">
+              <div className="border-t border-charcoal/8 dark:border-white/8 pt-4 mt-4">
+                <p className="text-sm font-medium text-charcoal dark:text-white mb-0.5">Fridge check reminder</p>
+                <p className="text-xs text-charcoal/40 dark:text-white/35 mb-3">
                   Send a push notification to managers if no fridge temperatures have been logged by this time.
                 </p>
                 <div className="flex items-center gap-3">
@@ -628,9 +628,9 @@ export default function SettingsPage() {
                     type="time"
                     value={fridgeCheckTime}
                     onChange={e => saveFridgeCheckTime(e.target.value)}
-                    className="px-3 py-1.5 rounded-lg border border-charcoal/15 bg-white text-sm text-charcoal focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+                    className="px-3 py-1.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
                   />
-                  <span className="text-xs text-charcoal/40">Push sent to managers with notifications enabled</span>
+                  <span className="text-xs text-charcoal/40 dark:text-white/35">Push sent to managers with notifications enabled</span>
                 </div>
               </div>
             </SettingsSection>

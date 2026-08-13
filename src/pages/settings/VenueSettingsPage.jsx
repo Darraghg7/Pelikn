@@ -15,22 +15,22 @@ function Group({ label, children, foot }) {
   return (
     <div>
       {label && (
-        <div className="font-mono text-[11px] font-semibold tracking-[0.08em] uppercase text-charcoal/50 px-0.5 pt-[18px] pb-1.5">{label}</div>
+        <div className="font-mono text-[11px] font-semibold tracking-[0.08em] uppercase text-charcoal/50 dark:text-white/40 px-0.5 pt-[18px] pb-1.5">{label}</div>
       )}
-      <div className="bg-white dark:bg-paperDark border border-charcoal/10 rounded-[14px] overflow-hidden">
+      <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[14px] overflow-hidden">
         {children}
       </div>
-      {foot && <div className="text-[11.5px] text-charcoal/50 px-1 pt-2 leading-[1.45]">{foot}</div>}
+      {foot && <div className="text-[11.5px] text-charcoal/50 dark:text-white/40 px-1 pt-2 leading-[1.45]">{foot}</div>}
     </div>
   )
 }
 
 function Row({ label, sub, children, last }) {
   return (
-    <div className={`flex items-center gap-3 px-[15px] py-[13px] ${last === false ? 'border-t border-charcoal/6' : ''}`}>
+    <div className={`flex items-center gap-3 px-[15px] py-[13px] ${last === false ? 'border-t border-charcoal/6 dark:border-white/8' : ''}`}>
       <div className="flex-1 min-w-0">
-        <div className="text-sm font-medium text-charcoal tracking-[-0.005em]">{label}</div>
-        {sub && <div className="text-[11.5px] text-charcoal/50 mt-0.5 leading-[1.4]">{sub}</div>}
+        <div className="text-sm font-medium text-charcoal dark:text-white tracking-[-0.005em]">{label}</div>
+        {sub && <div className="text-[11.5px] text-charcoal/50 dark:text-white/40 mt-0.5 leading-[1.4]">{sub}</div>}
       </div>
       {children}
     </div>
@@ -98,22 +98,22 @@ export default function VenueSettingsPage() {
         <Group label="Details">
           <div className="px-[15px] py-[13px] flex flex-col gap-3">
             <div>
-              <div className="font-mono text-[11px] font-semibold tracking-[0.06em] uppercase text-charcoal/50 mb-1.5">Venue name</div>
+              <div className="font-mono text-[11px] font-semibold tracking-[0.06em] uppercase text-charcoal/50 dark:text-white/40 mb-1.5">Venue name</div>
               <input
                 value={form.venue_name}
                 onChange={e => setForm(f => ({ ...f, venue_name: e.target.value }))}
                 placeholder="e.g. The Crown Bar & Kitchen"
-                className="w-full px-3 py-2.5 rounded-[10px] border border-charcoal/10 text-sm text-charcoal outline-none focus:ring-2 focus:ring-charcoal/20 focus:border-charcoal/20 box-border"
+                className="w-full px-3 py-2.5 rounded-[10px] border border-charcoal/10 dark:border-white/10 text-sm text-charcoal dark:text-white outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 focus:border-charcoal/20 dark:focus:border-white/20 box-border"
               />
             </div>
             <div>
-              <div className="font-mono text-[11px] font-semibold tracking-[0.06em] uppercase text-charcoal/50 mb-1.5">Manager email</div>
+              <div className="font-mono text-[11px] font-semibold tracking-[0.06em] uppercase text-charcoal/50 dark:text-white/40 mb-1.5">Manager email</div>
               <input
                 type="email"
                 value={form.manager_email}
                 onChange={e => setForm(f => ({ ...f, manager_email: e.target.value }))}
                 placeholder="manager@venue.com"
-                className="w-full px-3 py-2.5 rounded-[10px] border border-charcoal/10 text-sm text-charcoal outline-none focus:ring-2 focus:ring-charcoal/20 focus:border-charcoal/20 box-border"
+                className="w-full px-3 py-2.5 rounded-[10px] border border-charcoal/10 dark:border-white/10 text-sm text-charcoal dark:text-white outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 focus:border-charcoal/20 dark:focus:border-white/20 box-border"
               />
             </div>
             <button
@@ -135,20 +135,20 @@ export default function VenueSettingsPage() {
               saveDayHours(next)
             }
             return (
-              <div key={i} className={`flex items-center gap-2.5 px-[15px] py-2.5 ${i === 0 ? '' : 'border-t border-charcoal/6'}`}>
-                <div className={`w-9 text-[13px] font-semibold shrink-0 ${isClosed ? 'text-charcoal/30 line-through' : 'text-charcoal'}`}>{day}</div>
+              <div key={i} className={`flex items-center gap-2.5 px-[15px] py-2.5 ${i === 0 ? '' : 'border-t border-charcoal/6 dark:border-white/8'}`}>
+                <div className={`w-9 text-[13px] font-semibold shrink-0 ${isClosed ? 'text-charcoal/30 dark:text-white/30 line-through' : 'text-charcoal dark:text-white'}`}>{day}</div>
                 {isClosed ? (
-                  <div className="flex-1 text-xs text-charcoal/30 font-mono tracking-[0.04em]">CLOSED</div>
+                  <div className="flex-1 text-xs text-charcoal/30 dark:text-white/30 font-mono tracking-[0.04em]">CLOSED</div>
                 ) : (
                   <div className="flex-1 flex items-center gap-1.5">
                     <div className="flex-1"><TimeSelect value={hours.open} onChange={v => updateHours('open', v)} /></div>
-                    <span className="text-charcoal/30 text-xs">–</span>
+                    <span className="text-charcoal/30 dark:text-white/30 text-xs">–</span>
                     <div className="flex-1"><TimeSelect value={hours.close} onChange={v => updateHours('close', v)} /></div>
                   </div>
                 )}
                 <button
                   onClick={() => toggleClosedDay(i)}
-                  className={`shrink-0 h-7 px-2.5 rounded-[7px] text-[11.5px] font-semibold cursor-pointer border-0 transition-all duration-150 ${isClosed ? 'bg-brand text-white' : 'bg-charcoal/6 text-charcoal/50'}`}
+                  className={`shrink-0 h-7 px-2.5 rounded-[7px] text-[11.5px] font-semibold cursor-pointer border-0 transition-all duration-150 ${isClosed ? 'bg-brand text-white' : 'bg-charcoal/6 dark:bg-white/8 text-charcoal/50 dark:text-white/40'}`}
                 >{isClosed ? 'Open' : 'Close'}</button>
               </div>
             )
@@ -161,24 +161,24 @@ export default function VenueSettingsPage() {
             className="w-full flex items-center justify-between gap-3 px-[15px] py-[14px] bg-transparent border-0 cursor-pointer text-left"
           >
             <div>
-              <div className="text-sm font-medium text-charcoal">Manage in My Calendar</div>
-              <div className="text-xs text-charcoal/50 mt-0.5">Closed periods are now created as calendar events under Team → My Calendar</div>
+              <div className="text-sm font-medium text-charcoal dark:text-white">Manage in My Calendar</div>
+              <div className="text-xs text-charcoal/50 dark:text-white/40 mt-0.5">Closed periods are now created as calendar events under Team → My Calendar</div>
             </div>
-            <svg width="6" height="10" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-charcoal/30"><path d="M1 1l4 4-4 4"/></svg>
+            <svg width="6" height="10" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-charcoal/30 dark:text-white/30"><path d="M1 1l4 4-4 4"/></svg>
           </button>
         </Group>
 
         <Group label="Branding">
           <div className="px-[15px] py-[13px] flex flex-col gap-2.5">
-            <div className="font-mono text-[11px] font-semibold tracking-[0.06em] uppercase text-charcoal/50 mb-0.5">Venue logo</div>
+            <div className="font-mono text-[11px] font-semibold tracking-[0.06em] uppercase text-charcoal/50 dark:text-white/40 mb-0.5">Venue logo</div>
             <div className="flex items-center gap-3 flex-wrap">
               {settings.logo_url && (
-                <img src={settings.logo_url} alt="Venue logo" className="h-11 w-11 rounded-[10px] object-contain border border-charcoal/10 bg-charcoal/6 p-1" />
+                <img src={settings.logo_url} alt="Venue logo" className="h-11 w-11 rounded-[10px] object-contain border border-charcoal/10 dark:border-white/10 bg-charcoal/6 dark:bg-white/8 p-1" />
               )}
               <input
                 type="file" accept="image/*"
                 onChange={e => setLogoFile(e.target.files[0] ?? null)}
-                className="text-[13px] text-charcoal/50"
+                className="text-[13px] text-charcoal/50 dark:text-white/40"
               />
               {logoFile && (
                 <button
@@ -190,19 +190,19 @@ export default function VenueSettingsPage() {
                 </button>
               )}
             </div>
-            <div className="text-[11.5px] text-charcoal/30">PNG or SVG recommended. Shown in the app header.</div>
+            <div className="text-[11.5px] text-charcoal/30 dark:text-white/30">PNG or SVG recommended. Shown in the app header.</div>
           </div>
         </Group>
 
         <Group label="Appearance">
           <div className="flex items-center gap-3 px-[15px] py-[13px]">
             <div className="flex-1 min-w-0">
-              <div className="text-sm font-medium text-charcoal">Theme</div>
-              <div className="text-[11.5px] text-charcoal/50 mt-0.5">
+              <div className="text-sm font-medium text-charcoal dark:text-white">Theme</div>
+              <div className="text-[11.5px] text-charcoal/50 dark:text-white/40 mt-0.5">
                 {themeMode === 'system' ? 'Following device settings' : dark ? 'Dark mode active' : 'Light mode active'}
               </div>
             </div>
-            <div className="flex bg-charcoal/6 rounded-[9px] p-[3px] gap-0.5">
+            <div className="flex bg-charcoal/6 dark:bg-white/8 rounded-[9px] p-[3px] gap-0.5">
               {[
                 { id: 'light', label: '☀️' },
                 { id: 'dark',  label: '🌙' },
@@ -211,7 +211,7 @@ export default function VenueSettingsPage() {
                 <button
                   key={opt.id}
                   onClick={() => setThemeMode(opt.id)}
-                  className={`w-[34px] h-7 rounded-[7px] border-0 cursor-pointer text-sm transition-all duration-150 ${themeMode === opt.id ? 'bg-white shadow-sm' : 'bg-transparent'}`}
+                  className={`w-[34px] h-7 rounded-[7px] border-0 cursor-pointer text-sm transition-all duration-150 ${themeMode === opt.id ? 'bg-white dark:bg-paperDark shadow-sm' : 'bg-transparent'}`}
                 >{opt.label}</button>
               ))}
             </div>
@@ -219,8 +219,8 @@ export default function VenueSettingsPage() {
         </Group>
 
         <div>
-          <div className="font-mono text-[11px] font-semibold tracking-[0.08em] uppercase text-charcoal/50 px-0.5 pb-1.5">My venues</div>
-          <div className="bg-white dark:bg-paperDark border border-charcoal/10 rounded-[14px] overflow-hidden py-1">
+          <div className="font-mono text-[11px] font-semibold tracking-[0.08em] uppercase text-charcoal/50 dark:text-white/40 px-0.5 pb-1.5">My venues</div>
+          <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[14px] overflow-hidden py-1">
             <VenuesSection />
           </div>
         </div>

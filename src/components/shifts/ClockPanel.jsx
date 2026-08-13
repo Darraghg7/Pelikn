@@ -12,7 +12,7 @@ import StaffAlertModal from './StaffAlertModal'
 import { useClockAlerts } from '../../hooks/useClockAlerts'
 
 const STATUS_CONFIG = {
-  clocked_out: { label: 'Not Clocked In', color: 'text-charcoal/50', dot: 'bg-charcoal/25' },
+  clocked_out: { label: 'Not Clocked In', color: 'text-charcoal/50 dark:text-white/40', dot: 'bg-charcoal/25 dark:bg-white/25' },
   clocked_in:  { label: 'Clocked In',     color: 'text-success',     dot: 'bg-success'     },
   on_break:    { label: 'On Break',        color: 'text-warning',     dot: 'bg-warning'     },
 }
@@ -46,8 +46,8 @@ function ElapsedTimer({ clockInAt, breakStartAt, totalBreakMs, status }) {
   return (
     <div className="flex items-baseline gap-3">
       <div>
-        <p className="text-[11px] tracking-widest uppercase text-charcoal/40">Shift</p>
-        <p className="font-mono text-2xl text-charcoal tabular-nums">{formatElapsed(workingMs)}</p>
+        <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">Shift</p>
+        <p className="font-mono text-2xl text-charcoal dark:text-white tabular-nums">{formatElapsed(workingMs)}</p>
       </div>
       {status === 'on_break' && breakStartAt && (
         <div>
@@ -56,7 +56,7 @@ function ElapsedTimer({ clockInAt, breakStartAt, totalBreakMs, status }) {
         </div>
       )}
       {totalBreakMs > 0 && status !== 'on_break' && (
-        <p className="text-[11px] text-charcoal/30">
+        <p className="text-[11px] text-charcoal/30 dark:text-white/30">
           {formatElapsed(totalBreakMs)} on breaks
         </p>
       )}
@@ -148,7 +148,7 @@ export default function ClockPanel({ staffId, compact = false }) {
             onClick={() => record('clock_in')}
             disabled={submitting}
             className={compact
-              ? 'w-full bg-white text-brand py-3 rounded-xl text-sm font-bold hover:bg-white/90 transition-colors disabled:opacity-40'
+              ? 'w-full bg-white dark:bg-paperDark text-brand py-3 rounded-xl text-sm font-bold hover:bg-white/90 transition-colors disabled:opacity-40'
               : 'w-full bg-charcoal text-cream py-3 rounded-xl text-sm font-semibold hover:bg-charcoal/90 transition-colors disabled:opacity-40'}
           >
             {submitting ? '…' : 'Clock In'}
@@ -170,7 +170,7 @@ export default function ClockPanel({ staffId, compact = false }) {
               onClick={() => record('clock_out')}
               disabled={submitting}
               className={compact
-                ? 'flex-[1.4] bg-white text-brand py-3 rounded-xl text-sm font-bold hover:bg-white/90 transition-colors disabled:opacity-40'
+                ? 'flex-[1.4] bg-white dark:bg-paperDark text-brand py-3 rounded-xl text-sm font-bold hover:bg-white/90 transition-colors disabled:opacity-40'
                 : 'flex-1 bg-charcoal text-cream py-3 rounded-xl text-sm font-semibold hover:bg-charcoal/90 transition-colors disabled:opacity-40'}
             >
               {submitting ? '…' : 'Clock Out'}
@@ -183,7 +183,7 @@ export default function ClockPanel({ staffId, compact = false }) {
             onClick={() => record('break_end')}
             disabled={submitting}
             className={compact
-              ? 'w-full bg-white text-brand py-3 rounded-xl text-sm font-bold hover:bg-white/90 transition-colors disabled:opacity-40'
+              ? 'w-full bg-white dark:bg-paperDark text-brand py-3 rounded-xl text-sm font-bold hover:bg-white/90 transition-colors disabled:opacity-40'
               : 'w-full bg-charcoal text-cream py-3 rounded-xl text-sm font-semibold hover:bg-charcoal/90 transition-colors disabled:opacity-40'}
           >
             {submitting ? '…' : 'End Break'}

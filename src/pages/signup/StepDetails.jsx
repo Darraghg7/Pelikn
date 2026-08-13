@@ -34,7 +34,7 @@ export default function StepDetails({ plan, extraVenues, qrAddon, onBack, onSubm
 
       {/* Form */}
       <div className="flex-1 min-w-0">
-        <button onClick={onBack} className="flex items-center gap-1.5 text-xs text-charcoal/40 hover:text-charcoal mb-6 transition-colors group">
+        <button onClick={onBack} className="flex items-center gap-1.5 text-xs text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white mb-6 transition-colors group">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="group-hover:-translate-x-0.5 transition-transform">
             <line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" />
           </svg>
@@ -49,7 +49,7 @@ export default function StepDetails({ plan, extraVenues, qrAddon, onBack, onSubm
         >
           {/* Venue */}
           <div>
-            <label className="block text-[11px] tracking-widest uppercase text-charcoal/40 mb-2">Your Venue</label>
+            <label className="block text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-2">Your Venue</label>
             <div className="flex flex-col gap-2">
               <input
                 type="text"
@@ -57,28 +57,28 @@ export default function StepDetails({ plan, extraVenues, qrAddon, onBack, onSubm
                 placeholder="Venue name (e.g. The Star Inn)"
                 value={form.venueName}
                 onChange={e => set('venueName', e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-charcoal/15 bg-white text-sm text-charcoal placeholder:text-charcoal/30 outline-none focus:border-brand/40 focus:ring-2 focus:ring-brand/10 transition-all"
+                className="w-full px-4 py-3 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white placeholder:text-charcoal/30 dark:placeholder:text-white/25 outline-none focus:border-brand/40 focus:ring-2 focus:ring-brand/10 transition-all"
               />
               <div>
-                <div className="flex items-center rounded-xl border border-charcoal/15 bg-white overflow-hidden focus-within:border-brand/40 focus-within:ring-2 focus-within:ring-brand/10 transition-all">
-                  <span className="px-3 text-xs text-charcoal/35 font-mono border-r border-charcoal/10 py-3 bg-charcoal/3 shrink-0">pelikn.app/v/</span>
+                <div className="flex items-center rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark overflow-hidden focus-within:border-brand/40 focus-within:ring-2 focus-within:ring-brand/10 transition-all">
+                  <span className="px-3 text-xs text-charcoal/35 dark:text-white/30 font-mono border-r border-charcoal/10 dark:border-white/10 py-3 bg-charcoal/3 dark:bg-white/5 shrink-0">pelikn.app/v/</span>
                   <input
                     type="text"
                     required
                     placeholder="your-venue"
                     value={slug}
                     onChange={e => { setSlug(e.target.value.replace(/[^a-z0-9-]/g, '')); setSlugEdited(true) }}
-                    className="flex-1 px-3 py-3 text-sm text-charcoal font-mono placeholder:text-charcoal/30 outline-none bg-white"
+                    className="flex-1 px-3 py-3 text-sm text-charcoal dark:text-white font-mono placeholder:text-charcoal/30 dark:placeholder:text-white/25 outline-none bg-white dark:bg-paperDark"
                   />
                 </div>
-                <p className="text-[11px] text-charcoal/30 mt-1 px-1">Your staff will use this URL to log in</p>
+                <p className="text-[11px] text-charcoal/30 dark:text-white/30 mt-1 px-1">Your staff will use this URL to log in</p>
               </div>
             </div>
           </div>
 
           {/* Owner */}
           <div>
-            <label className="block text-[11px] tracking-widest uppercase text-charcoal/40 mb-2">Your Profile</label>
+            <label className="block text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-2">Your Profile</label>
             <div className="flex flex-col gap-2">
               <input
                 type="text"
@@ -86,7 +86,7 @@ export default function StepDetails({ plan, extraVenues, qrAddon, onBack, onSubm
                 placeholder="Your full name"
                 value={form.ownerName}
                 onChange={e => set('ownerName', e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-charcoal/15 bg-white text-sm text-charcoal placeholder:text-charcoal/30 outline-none focus:border-brand/40 focus:ring-2 focus:ring-brand/10 transition-all"
+                className="w-full px-4 py-3 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white placeholder:text-charcoal/30 dark:placeholder:text-white/25 outline-none focus:border-brand/40 focus:ring-2 focus:ring-brand/10 transition-all"
               />
               <div className="relative">
                 <input
@@ -98,16 +98,16 @@ export default function StepDetails({ plan, extraVenues, qrAddon, onBack, onSubm
                   placeholder="Staff PIN (4-6 digits)"
                   value={form.pin}
                   onChange={e => set('pin', e.target.value.replace(/\D/g, ''))}
-                  className="w-full px-4 py-3 rounded-xl border border-charcoal/15 bg-white text-sm text-charcoal font-mono tracking-[0.3em] placeholder:tracking-normal placeholder:font-sans placeholder:text-charcoal/30 outline-none focus:border-brand/40 focus:ring-2 focus:ring-brand/10 transition-all"
+                  className="w-full px-4 py-3 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white font-mono tracking-[0.3em] placeholder:tracking-normal placeholder:font-sans placeholder:text-charcoal/30 dark:placeholder:text-white/25 outline-none focus:border-brand/40 focus:ring-2 focus:ring-brand/10 transition-all"
                 />
-                <p className="text-[11px] text-charcoal/30 mt-1 px-1">Used by you and your staff to log into the app</p>
+                <p className="text-[11px] text-charcoal/30 dark:text-white/30 mt-1 px-1">Used by you and your staff to log into the app</p>
               </div>
             </div>
           </div>
 
           {/* Account */}
           <div>
-            <label className="block text-[11px] tracking-widest uppercase text-charcoal/40 mb-2">Login Details</label>
+            <label className="block text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-2">Login Details</label>
             <div className="flex flex-col gap-2">
               <input
                 type="email"
@@ -115,7 +115,7 @@ export default function StepDetails({ plan, extraVenues, qrAddon, onBack, onSubm
                 placeholder="Email address"
                 value={form.email}
                 onChange={e => set('email', e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-charcoal/15 bg-white text-sm text-charcoal placeholder:text-charcoal/30 outline-none focus:border-brand/40 focus:ring-2 focus:ring-brand/10 transition-all"
+                className="w-full px-4 py-3 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white placeholder:text-charcoal/30 dark:placeholder:text-white/25 outline-none focus:border-brand/40 focus:ring-2 focus:ring-brand/10 transition-all"
               />
               <input
                 type="password"
@@ -124,9 +124,9 @@ export default function StepDetails({ plan, extraVenues, qrAddon, onBack, onSubm
                 placeholder="Password (min 6 characters)"
                 value={form.password}
                 onChange={e => set('password', e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-charcoal/15 bg-white text-sm text-charcoal placeholder:text-charcoal/30 outline-none focus:border-brand/40 focus:ring-2 focus:ring-brand/10 transition-all"
+                className="w-full px-4 py-3 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white placeholder:text-charcoal/30 dark:placeholder:text-white/25 outline-none focus:border-brand/40 focus:ring-2 focus:ring-brand/10 transition-all"
               />
-              <p className="text-[11px] text-charcoal/30 px-1">Used to manage billing and account settings</p>
+              <p className="text-[11px] text-charcoal/30 dark:text-white/30 px-1">Used to manage billing and account settings</p>
             </div>
           </div>
 
@@ -151,7 +151,7 @@ export default function StepDetails({ plan, extraVenues, qrAddon, onBack, onSubm
             )}
           </button>
 
-          <p className="text-center text-[11px] text-charcoal/35 leading-relaxed">
+          <p className="text-center text-[11px] text-charcoal/35 dark:text-white/30 leading-relaxed">
             By creating an account you agree to our terms of service.<br />
             Already have an account? <Link to="/login" className="text-brand hover:underline">Sign in</Link>
           </p>
@@ -160,26 +160,26 @@ export default function StepDetails({ plan, extraVenues, qrAddon, onBack, onSubm
 
       {/* Order summary — desktop sidebar */}
       <div className="w-full lg:w-72 shrink-0">
-        <div className="bg-white rounded-2xl border border-charcoal/10 p-5 sticky top-6">
-          <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-4">Order Summary</p>
+        <div className="bg-white dark:bg-paperDark rounded-2xl border border-charcoal/10 dark:border-white/10 p-5 sticky top-6">
+          <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-4">Order Summary</p>
 
           {/* Plan */}
           <div className="flex items-center justify-between mb-3">
             <div>
-              <p className="text-sm font-medium text-charcoal">{plan === 'pro' ? 'Pro' : 'Starter'} Plan</p>
-              <p className="text-[11px] text-charcoal/40">per venue / month</p>
+              <p className="text-sm font-medium text-charcoal dark:text-white">{plan === 'pro' ? 'Pro' : 'Starter'} Plan</p>
+              <p className="text-[11px] text-charcoal/40 dark:text-white/35">per venue / month</p>
             </div>
-            <p className="text-sm font-semibold text-charcoal">{plan === 'pro' ? PRO_PRICE : STARTER_PRICE}</p>
+            <p className="text-sm font-semibold text-charcoal dark:text-white">{plan === 'pro' ? PRO_PRICE : STARTER_PRICE}</p>
           </div>
 
           {/* Extra venues */}
           {plan === 'pro' && extraVenues > 0 && (
             <div className="flex items-center justify-between mb-3">
               <div>
-                <p className="text-sm font-medium text-charcoal">+{extraVenues} extra venue{extraVenues > 1 ? 's' : ''}</p>
-                <p className="text-[11px] text-charcoal/40">{EXTRA_VENUE_PRICE} × {extraVenues} / month</p>
+                <p className="text-sm font-medium text-charcoal dark:text-white">+{extraVenues} extra venue{extraVenues > 1 ? 's' : ''}</p>
+                <p className="text-[11px] text-charcoal/40 dark:text-white/35">{EXTRA_VENUE_PRICE} × {extraVenues} / month</p>
               </div>
-              <p className="text-sm font-semibold text-charcoal">£{extraTotal}</p>
+              <p className="text-sm font-semibold text-charcoal dark:text-white">£{extraTotal}</p>
             </div>
           )}
 
@@ -187,17 +187,17 @@ export default function StepDetails({ plan, extraVenues, qrAddon, onBack, onSubm
           {qrAddon && (
             <div className="flex items-center justify-between mb-3">
               <div>
-                <p className="text-sm font-medium text-charcoal">QR Table Cards</p>
-                <p className="text-[11px] text-charcoal/40">add-on / month</p>
+                <p className="text-sm font-medium text-charcoal dark:text-white">QR Table Cards</p>
+                <p className="text-[11px] text-charcoal/40 dark:text-white/35">add-on / month</p>
               </div>
-              <p className="text-sm font-semibold text-charcoal">{QR_ADDON_PRICE}</p>
+              <p className="text-sm font-semibold text-charcoal dark:text-white">{QR_ADDON_PRICE}</p>
             </div>
           )}
 
-          <div className="border-t border-charcoal/8 pt-3 mt-1 mb-4">
+          <div className="border-t border-charcoal/8 dark:border-white/8 pt-3 mt-1 mb-4">
             <div className="flex items-center justify-between">
-              <p className="text-sm font-semibold text-charcoal">Total after trial</p>
-              <p className="text-sm font-semibold text-charcoal">£{monthly}/mo</p>
+              <p className="text-sm font-semibold text-charcoal dark:text-white">Total after trial</p>
+              <p className="text-sm font-semibold text-charcoal dark:text-white">£{monthly}/mo</p>
             </div>
           </div>
 
@@ -210,7 +210,7 @@ export default function StepDetails({ plan, extraVenues, qrAddon, onBack, onSubm
           {/* Feature highlights */}
           <div className="flex flex-col gap-1.5 mt-3">
             {(plan === 'pro' ? PRO_FEATURES : STARTER_FEATURES).slice(0, 4).map(f => (
-              <div key={f} className="flex items-start gap-2 text-[11px] text-charcoal/50">
+              <div key={f} className="flex items-start gap-2 text-[11px] text-charcoal/50 dark:text-white/40">
                 <span className={`mt-0.5 shrink-0 ${plan === 'pro' ? 'text-accent' : 'text-success'}`}>
                   <IconCheck size={12} />
                 </span>
@@ -218,7 +218,7 @@ export default function StepDetails({ plan, extraVenues, qrAddon, onBack, onSubm
               </div>
             ))}
             {(plan === 'pro' ? PRO_FEATURES : STARTER_FEATURES).length > 4 && (
-              <p className="text-[11px] text-charcoal/35 pl-4">
+              <p className="text-[11px] text-charcoal/35 dark:text-white/30 pl-4">
                 +{(plan === 'pro' ? PRO_FEATURES : STARTER_FEATURES).length - 4} more features
               </p>
             )}

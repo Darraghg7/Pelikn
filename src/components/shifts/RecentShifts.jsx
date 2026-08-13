@@ -80,10 +80,10 @@ function ConfirmDialog({ onConfirm, onCancel, saving }) {
           </svg>
         </div>
 
-        <h2 className="text-[17px] font-bold text-charcoal" style={{ margin: '0 0 8px' }}>
+        <h2 className="text-[17px] font-bold text-charcoal dark:text-white" style={{ margin: '0 0 8px' }}>
           Your manager will be notified
         </h2>
-        <p className="text-sm text-charcoal/50 leading-relaxed" style={{ margin: '0 0 24px' }}>
+        <p className="text-sm text-charcoal/50 dark:text-white/40 leading-relaxed" style={{ margin: '0 0 24px' }}>
           This change won't take effect until your manager reviews and approves it.
           Your original hours will remain until then.
         </p>
@@ -99,7 +99,7 @@ function ConfirmDialog({ onConfirm, onCancel, saving }) {
         <button
           onClick={onCancel}
           disabled={saving}
-          className="w-full text-sm font-medium text-charcoal/50 bg-transparent rounded-xl py-3 border-none cursor-pointer"
+          className="w-full text-sm font-medium text-charcoal/50 dark:text-white/40 bg-transparent rounded-xl py-3 border-none cursor-pointer"
         >
           Go back
         </button>
@@ -189,7 +189,7 @@ function EditSessionForm({ session, staffId, onSave, onCancel, isManagerEdit }) 
       body: `${authSession?.staffName ?? 'A staff member'} requested a change to their hours on ${formatLondon(session.clockInAt, 'd MMM')}`,
       url: '/timesheet',
       roles: ['manager', 'owner'],
-    }).catch(() => {})
+    })
 
     toast('Edit submitted — awaiting manager approval')
     setConfirming(false)
@@ -204,42 +204,42 @@ function EditSessionForm({ session, staffId, onSave, onCancel, isManagerEdit }) 
 
   return (
     <>
-      <div className="mt-3 pt-3 border-t border-charcoal/8 flex flex-col gap-3">
+      <div className="mt-3 pt-3 border-t border-charcoal/8 dark:border-white/8 flex flex-col gap-3">
         <div className="grid grid-cols-2 gap-3">
           <div className="flex flex-col gap-1">
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40">Clock In</label>
+            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">Clock In</label>
             <input type="time" value={clockIn} onChange={(e) => setClockIn(e.target.value)}
-              className="bg-charcoal/4 rounded-lg px-3 py-2 text-sm text-charcoal focus:outline-none focus:ring-2 focus:ring-brand/30" />
+              className="bg-charcoal/4 dark:bg-white/5 rounded-lg px-3 py-2 text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-brand/30" />
           </div>
           <div className="flex flex-col gap-1">
-            <label className="text-[11px] tracking-widests uppercase text-charcoal/40">Clock Out</label>
+            <label className="text-[11px] tracking-widests uppercase text-charcoal/40 dark:text-white/35">Clock Out</label>
             <input type="time" value={clockOut} onChange={(e) => setClockOut(e.target.value)}
-              className="bg-charcoal/4 rounded-lg px-3 py-2 text-sm text-charcoal focus:outline-none focus:ring-2 focus:ring-brand/30" />
+              className="bg-charcoal/4 dark:bg-white/5 rounded-lg px-3 py-2 text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-brand/30" />
           </div>
         </div>
         <div className="flex flex-col gap-1">
-          <label className="text-[11px] tracking-widests uppercase text-charcoal/40">Break</label>
+          <label className="text-[11px] tracking-widests uppercase text-charcoal/40 dark:text-white/35">Break</label>
           <select value={breakMin} onChange={(e) => setBreakMin(e.target.value)}
-            className="bg-charcoal/4 rounded-lg px-3 py-2 text-sm text-charcoal focus:outline-none focus:ring-2 focus:ring-brand/30">
+            className="bg-charcoal/4 dark:bg-white/5 rounded-lg px-3 py-2 text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-brand/30">
             {BREAK_OPTIONS.map((m) => <option key={m} value={String(m)}>{m === 0 ? 'No break' : `${m} min`}</option>)}
           </select>
         </div>
         {/* Reason field — only for staff (helps manager review) */}
         {!isManagerEdit && (
           <div className="flex flex-col gap-1">
-            <label className="text-[11px] tracking-widests uppercase text-charcoal/40">Reason <span className="normal-case">(optional)</span></label>
+            <label className="text-[11px] tracking-widests uppercase text-charcoal/40 dark:text-white/35">Reason <span className="normal-case">(optional)</span></label>
             <input
               type="text"
               value={reason}
               onChange={e => setReason(e.target.value)}
               placeholder="e.g. forgot to clock out"
-              className="bg-charcoal/4 rounded-lg px-3 py-2 text-sm text-charcoal focus:outline-none focus:ring-2 focus:ring-brand/30"
+              className="bg-charcoal/4 dark:bg-white/5 rounded-lg px-3 py-2 text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-brand/30"
             />
           </div>
         )}
         <div className="flex gap-2 pt-1">
           <button onClick={onCancel} disabled={saving}
-            className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-charcoal/60 bg-charcoal/6 hover:bg-charcoal/10 transition-colors disabled:opacity-40">
+            className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-charcoal/60 dark:text-white/50 bg-charcoal/6 dark:bg-white/8 hover:bg-charcoal/10 dark:hover:bg-white/10 transition-colors disabled:opacity-40">
             Cancel
           </button>
           <button onClick={handleSaveClick} disabled={saving}
@@ -273,18 +273,18 @@ function SessionRow({ session, staffId, onReload, isManagerEdit, pendingRequests
   const denied  = pendingRequests.find(r => r.clock_in_id === session.clockInId && r.status === 'denied')
 
   return (
-    <div className="py-3 border-t border-charcoal/6 first:border-0">
+    <div className="py-3 border-t border-charcoal/6 dark:border-white/8 first:border-0">
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
-          <p className="text-sm font-medium text-charcoal">{sessionDateLabel(session.date)}</p>
-          <p className="text-xs text-charcoal/40 mt-0.5">
+          <p className="text-sm font-medium text-charcoal dark:text-white">{sessionDateLabel(session.date)}</p>
+          <p className="text-xs text-charcoal/40 dark:text-white/35 mt-0.5">
             {formatLondon(session.clockInAt, 'HH:mm')}
             {' → '}
             {session.clockOutAt
               ? formatLondon(session.clockOutAt, 'HH:mm')
               : <span className="text-warning">active</span>}
             {session.breakMinutes > 0 && (
-              <span className="ml-1.5 text-charcoal/30">· {session.breakMinutes}m break</span>
+              <span className="ml-1.5 text-charcoal/30 dark:text-white/30">· {session.breakMinutes}m break</span>
             )}
           </p>
           {/* Status badges */}
@@ -303,7 +303,7 @@ function SessionRow({ session, staffId, onReload, isManagerEdit, pendingRequests
         </div>
         <div className="flex items-center gap-3 shrink-0">
           {durationMs !== null && (
-            <span className="font-mono text-sm text-charcoal/60 tabular-nums">
+            <span className="font-mono text-sm text-charcoal/60 dark:text-white/50 tabular-nums">
               {formatElapsed(durationMs)}
             </span>
           )}
@@ -408,7 +408,7 @@ function AddShiftForm({ staffId, onSave, onCancel, isManagerEdit = false }) {
       body: `${authSession?.staffName ?? 'A staff member'} reported a missed clock-in on ${date}`,
       url: '/timesheet',
       roles: ['manager', 'owner'],
-    }).catch(() => {})
+    })
 
     toast('Shift request submitted — awaiting manager approval')
     setConfirming(false)
@@ -423,48 +423,48 @@ function AddShiftForm({ staffId, onSave, onCancel, isManagerEdit = false }) {
 
   return (
     <>
-      <div className="mt-3 pt-3 border-t border-charcoal/8 flex flex-col gap-3">
+      <div className="mt-3 pt-3 border-t border-charcoal/8 dark:border-white/8 flex flex-col gap-3">
         <div className="flex flex-col gap-1">
-          <label className="text-[11px] tracking-widests uppercase text-charcoal/40">Date</label>
+          <label className="text-[11px] tracking-widests uppercase text-charcoal/40 dark:text-white/35">Date</label>
           <select value={date} onChange={(e) => setDate(e.target.value)}
-            className="bg-charcoal/4 rounded-lg px-3 py-2 text-sm text-charcoal focus:outline-none focus:ring-2 focus:ring-brand/30">
+            className="bg-charcoal/4 dark:bg-white/5 rounded-lg px-3 py-2 text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-brand/30">
             {dateOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
           </select>
         </div>
         <div className="grid grid-cols-2 gap-3">
           <div className="flex flex-col gap-1">
-            <label className="text-[11px] tracking-widests uppercase text-charcoal/40">Clock In</label>
+            <label className="text-[11px] tracking-widests uppercase text-charcoal/40 dark:text-white/35">Clock In</label>
             <input type="time" value={clockIn} onChange={(e) => setClockIn(e.target.value)}
-              className="bg-charcoal/4 rounded-lg px-3 py-2 text-sm text-charcoal focus:outline-none focus:ring-2 focus:ring-brand/30" />
+              className="bg-charcoal/4 dark:bg-white/5 rounded-lg px-3 py-2 text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-brand/30" />
           </div>
           <div className="flex flex-col gap-1">
-            <label className="text-[11px] tracking-widests uppercase text-charcoal/40">Clock Out</label>
+            <label className="text-[11px] tracking-widests uppercase text-charcoal/40 dark:text-white/35">Clock Out</label>
             <input type="time" value={clockOut} onChange={(e) => setClockOut(e.target.value)}
-              className="bg-charcoal/4 rounded-lg px-3 py-2 text-sm text-charcoal focus:outline-none focus:ring-2 focus:ring-brand/30" />
+              className="bg-charcoal/4 dark:bg-white/5 rounded-lg px-3 py-2 text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-brand/30" />
           </div>
         </div>
         <div className="flex flex-col gap-1">
-          <label className="text-[11px] tracking-widests uppercase text-charcoal/40">Break</label>
+          <label className="text-[11px] tracking-widests uppercase text-charcoal/40 dark:text-white/35">Break</label>
           <select value={breakMin} onChange={(e) => setBreakMin(e.target.value)}
-            className="bg-charcoal/4 rounded-lg px-3 py-2 text-sm text-charcoal focus:outline-none focus:ring-2 focus:ring-brand/30">
+            className="bg-charcoal/4 dark:bg-white/5 rounded-lg px-3 py-2 text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-brand/30">
             {BREAK_OPTIONS.map((m) => <option key={m} value={String(m)}>{m === 0 ? 'No break' : `${m} min`}</option>)}
           </select>
         </div>
         {!isManagerEdit && (
           <div className="flex flex-col gap-1">
-            <label className="text-[11px] tracking-widests uppercase text-charcoal/40">Reason <span className="normal-case">(optional)</span></label>
+            <label className="text-[11px] tracking-widests uppercase text-charcoal/40 dark:text-white/35">Reason <span className="normal-case">(optional)</span></label>
             <input
               type="text"
               value={reason}
               onChange={e => setReason(e.target.value)}
               placeholder="e.g. forgot to clock in"
-              className="bg-charcoal/4 rounded-lg px-3 py-2 text-sm text-charcoal focus:outline-none focus:ring-2 focus:ring-brand/30"
+              className="bg-charcoal/4 dark:bg-white/5 rounded-lg px-3 py-2 text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-brand/30"
             />
           </div>
         )}
         <div className="flex gap-2 pt-1">
           <button onClick={onCancel} disabled={saving}
-            className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-charcoal/60 bg-charcoal/6 hover:bg-charcoal/10 transition-colors disabled:opacity-40">
+            className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-charcoal/60 dark:text-white/50 bg-charcoal/6 dark:bg-white/8 hover:bg-charcoal/10 dark:hover:bg-white/10 transition-colors disabled:opacity-40">
             Cancel
           </button>
           <button onClick={handleAdd} disabled={saving}
@@ -508,7 +508,7 @@ export default function RecentShifts({ staffId, isManagerEdit = false, inline = 
   const body = (
     <>
       <div className="flex items-center justify-between mb-1">
-        {!inline && <p className="text-[11px] tracking-widests uppercase text-charcoal/40">Recent Shifts</p>}
+        {!inline && <p className="text-[11px] tracking-widests uppercase text-charcoal/40 dark:text-white/35">Recent Shifts</p>}
         {!adding && (
           <button
             onClick={() => setAdding(true)}
@@ -518,7 +518,7 @@ export default function RecentShifts({ staffId, isManagerEdit = false, inline = 
           </button>
         )}
       </div>
-      <p className="text-xs text-charcoal/30 mb-3">
+      <p className="text-xs text-charcoal/30 dark:text-white/30 mb-3">
         {isManagerEdit
           ? 'Edit sessions directly. Changes take effect immediately.'
           : 'Tap Edit to correct a mistake. Your manager will approve the change.'}
@@ -536,7 +536,7 @@ export default function RecentShifts({ staffId, isManagerEdit = false, inline = 
       {loading ? (
         <SkeletonList rows={3} />
       ) : sessions.length === 0 && !adding ? (
-        <p className="text-sm text-charcoal/35 italic py-2">No shifts recorded in the last 7 days.</p>
+        <p className="text-sm text-charcoal/35 dark:text-white/30 italic py-2">No shifts recorded in the last 7 days.</p>
       ) : (
         <div className="flex flex-col">
           {sessions.map((s) => (
@@ -555,5 +555,5 @@ export default function RecentShifts({ staffId, isManagerEdit = false, inline = 
   )
 
   if (inline) return body
-  return <div className="bg-white rounded-2xl p-5">{body}</div>
+  return <div className="bg-white dark:bg-paperDark rounded-2xl p-5">{body}</div>
 }

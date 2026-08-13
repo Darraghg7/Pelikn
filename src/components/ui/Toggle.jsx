@@ -30,7 +30,7 @@ export default function Toggle({ checked, onChange, disabled = false, size = 'md
     >
       <span
         className={[
-          'absolute top-0.5 rounded-full bg-white shadow-sm transition-all duration-200',
+          'absolute top-0.5 rounded-full bg-white dark:bg-paperDark shadow-sm transition-all duration-200',
           knob,
           checked ? 'right-0.5' : 'left-0.5',
         ].join(' ')}

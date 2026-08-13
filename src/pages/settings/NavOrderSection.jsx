@@ -42,18 +42,18 @@ export default function NavOrderSection({ isEnabled, venuePlan, complianceNavOrd
 
   return (
     <SettingsSection title="Navigation Order" subtitle={subtitle} locked={venuePlan !== PLANS.PRO}>
-      <p className="text-xs text-charcoal/40 mb-4">
+      <p className="text-xs text-charcoal/40 dark:text-white/35 mb-4">
         Reorder the items in the Checks navigation to suit your workflow.
       </p>
       <div className="flex flex-col gap-1.5">
         {orderedItems.map((item, i) => (
-          <div key={item.key} className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-charcoal/3 border border-charcoal/8">
-            <span className="flex-1 text-sm font-medium text-charcoal">{item.label}</span>
+          <div key={item.key} className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-charcoal/3 dark:bg-white/5 border border-charcoal/8 dark:border-white/8">
+            <span className="flex-1 text-sm font-medium text-charcoal dark:text-white">{item.label}</span>
             <div className="flex flex-col gap-0.5">
               <button
                 onClick={() => move(i, -1)}
                 disabled={i === 0}
-                className="p-2 text-charcoal/30 hover:text-charcoal disabled:opacity-20 transition-colors"
+                className="p-2 text-charcoal/30 dark:text-white/30 hover:text-charcoal dark:hover:text-white disabled:opacity-20 transition-colors"
                 aria-label="Move up"
               >
                 <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m18 15-6-6-6 6"/></svg>
@@ -61,7 +61,7 @@ export default function NavOrderSection({ isEnabled, venuePlan, complianceNavOrd
               <button
                 onClick={() => move(i, 1)}
                 disabled={i === orderedItems.length - 1}
-                className="p-2 text-charcoal/30 hover:text-charcoal disabled:opacity-20 transition-colors"
+                className="p-2 text-charcoal/30 dark:text-white/30 hover:text-charcoal dark:hover:text-white disabled:opacity-20 transition-colors"
                 aria-label="Move down"
               >
                 <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>

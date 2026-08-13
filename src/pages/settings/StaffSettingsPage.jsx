@@ -39,8 +39,8 @@ export default function StaffSettingsPage() {
               onClick={() => setTab(t.id)}
               className={`flex-1 px-3 py-2 rounded-lg text-[13px] font-medium transition-all whitespace-nowrap ${
                 tab === t.id
-                  ? 'bg-white dark:bg-paperDark text-charcoal shadow-sm'
-                  : 'text-charcoal/50 hover:text-charcoal'
+                  ? 'bg-white dark:bg-paperDark text-charcoal dark:text-white shadow-sm'
+                  : 'text-charcoal/50 dark:text-white/40 hover:text-charcoal dark:hover:text-white'
               }`}
             >{t.label}</button>
           ))}

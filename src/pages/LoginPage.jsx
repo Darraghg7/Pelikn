@@ -52,7 +52,7 @@ function initials(name) {
 function VenuePicker({ venues, currentSlug, onSelect }) {
   return (
     <div className="flex flex-col gap-4">
-      <p className="text-xs tracking-widest font-semibold text-charcoal/40 uppercase">
+      <p className="text-xs tracking-widest font-semibold text-charcoal/40 dark:text-white/35 uppercase">
         Where are you working today?
       </p>
       <div className="flex flex-col gap-2">
@@ -65,10 +65,10 @@ function VenuePicker({ venues, currentSlug, onSelect }) {
               'w-full flex items-center justify-between px-4 py-3 rounded-xl border text-left transition-all',
               v.slug === currentSlug
                 ? 'border-accent bg-accent/5 ring-1 ring-accent'
-                : 'border-charcoal/10 hover:border-charcoal/25 bg-white',
+                : 'border-charcoal/10 dark:border-white/10 hover:border-charcoal/25 dark:hover:border-white/25 bg-white dark:bg-paperDark',
             ].join(' ')}
           >
-            <span className="font-semibold text-charcoal text-sm">{v.name}</span>
+            <span className="font-semibold text-charcoal dark:text-white text-sm">{v.name}</span>
             {v.slug === currentSlug && (
               <span className="text-xs uppercase tracking-widest font-medium text-accent">Here</span>
             )}
@@ -130,17 +130,17 @@ function AddVenueModal({ currentDeviceVenues, onAdd, onClose }) {
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-charcoal/50 backdrop-blur-sm flex items-end sm:items-center justify-center p-4"
+      className="fixed inset-0 z-50 bg-charcoal/50 dark:bg-white/50 backdrop-blur-sm flex items-end sm:items-center justify-center p-4"
       onClick={e => { if (e.target === e.currentTarget) onClose() }}
     >
       <div
-        className="bg-white rounded-2xl w-full max-w-sm p-6 flex flex-col gap-4 shadow-2xl"
+        className="bg-white dark:bg-paperDark rounded-2xl w-full max-w-sm p-6 flex flex-col gap-4 shadow-2xl"
         style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}
       >
         <div>
-          <p className="text-xs tracking-widest uppercase font-semibold text-charcoal/40 mb-0.5">Add a venue</p>
-          <h2 className="text-lg font-bold text-charcoal">Enter venue code</h2>
-          <p className="text-xs text-charcoal/45 mt-1 leading-relaxed">
+          <p className="text-xs tracking-widest uppercase font-semibold text-charcoal/40 dark:text-white/35 mb-0.5">Add a venue</p>
+          <h2 className="text-lg font-bold text-charcoal dark:text-white">Enter venue code</h2>
+          <p className="text-xs text-charcoal/45 dark:text-white/40 mt-1 leading-relaxed">
             Ask your manager for your venue code or group code.
           </p>
         </div>
@@ -153,8 +153,8 @@ function AddVenueModal({ currentDeviceVenues, onAdd, onClose }) {
             onKeyDown={handleKey}
             placeholder="e.g. the-oak-tavern"
             className={[
-              'w-full px-4 py-3 rounded-xl border bg-white text-charcoal text-sm font-mono tracking-wider placeholder:tracking-normal placeholder:font-sans placeholder:text-charcoal/30 outline-none transition-colors',
-              status === 'error' ? 'border-danger' : 'border-charcoal/15 focus:border-brand',
+              'w-full px-4 py-3 rounded-xl border bg-white dark:bg-paperDark text-charcoal dark:text-white text-sm font-mono tracking-wider placeholder:tracking-normal placeholder:font-sans placeholder:text-charcoal/30 dark:placeholder:text-white/25 outline-none transition-colors',
+              status === 'error' ? 'border-danger' : 'border-charcoal/15 dark:border-white/15 focus:border-brand',
             ].join(' ')}
             autoCapitalize="none"
             autoCorrect="off"
@@ -166,17 +166,17 @@ function AddVenueModal({ currentDeviceVenues, onAdd, onClose }) {
         {status === 'found' && found.length > 0 && (
           <div className="flex flex-col gap-2">
             {found.length > 1 && (
-              <p className="text-xs tracking-widest uppercase text-charcoal/40 font-semibold">
+              <p className="text-xs tracking-widest uppercase text-charcoal/40 dark:text-white/35 font-semibold">
                 {found.length} venues found
               </p>
             )}
             {found.map(v => {
               const exists = existingSlugs.has(v.slug)
               return (
-                <div key={v.id} className={`flex items-center gap-3 px-3 py-2.5 rounded-xl border ${exists ? 'border-charcoal/8 bg-charcoal/2' : 'border-brand/20 bg-brand/4'}`}>
-                  <div className={`w-2 h-2 rounded-full shrink-0 ${exists ? 'bg-charcoal/20' : 'bg-brand'}`} />
-                  <span className={`flex-1 text-sm font-semibold ${exists ? 'text-charcoal/40' : 'text-charcoal'}`}>{v.name}</span>
-                  {exists && <span className="text-xs uppercase tracking-widest text-charcoal/30 font-semibold">Added</span>}
+                <div key={v.id} className={`flex items-center gap-3 px-3 py-2.5 rounded-xl border ${exists ? 'border-charcoal/8 dark:border-white/8 bg-charcoal/2 dark:bg-white/3' : 'border-brand/20 bg-brand/4'}`}>
+                  <div className={`w-2 h-2 rounded-full shrink-0 ${exists ? 'bg-charcoal/20 dark:bg-white/20' : 'bg-brand'}`} />
+                  <span className={`flex-1 text-sm font-semibold ${exists ? 'text-charcoal/40 dark:text-white/35' : 'text-charcoal dark:text-white'}`}>{v.name}</span>
+                  {exists && <span className="text-xs uppercase tracking-widest text-charcoal/30 dark:text-white/30 font-semibold">Added</span>}
                 </div>
               )
             })}
@@ -207,7 +207,7 @@ function AddVenueModal({ currentDeviceVenues, onAdd, onClose }) {
           )}
           <button
             onClick={onClose}
-            className="px-4 py-3 rounded-xl border border-charcoal/15 text-sm text-charcoal/50 hover:border-charcoal/30 transition-colors"
+            className="px-4 py-3 rounded-xl border border-charcoal/15 dark:border-white/15 text-sm text-charcoal/50 dark:text-white/40 hover:border-charcoal/30 dark:hover:border-white/30 transition-colors"
           >
             Cancel
           </button>
@@ -342,10 +342,10 @@ function Numpad({ onDigit, onDelete }) {
             type="button"
             onClick={() => k === '⌫' ? onDelete() : onDigit(String(k))}
             className={[
-              'h-14 rounded-xl border text-charcoal font-medium transition-all active:scale-95',
+              'h-14 rounded-xl border text-charcoal dark:text-white font-medium transition-all active:scale-95',
               k === '⌫'
-                ? 'text-charcoal/50 text-xl border-charcoal/8 bg-charcoal/4 hover:bg-charcoal/8'
-                : 'text-2xl border-charcoal/8 bg-charcoal/4 hover:bg-charcoal/8',
+                ? 'text-charcoal/50 dark:text-white/40 text-xl border-charcoal/8 dark:border-white/8 bg-charcoal/4 dark:bg-white/5 hover:bg-charcoal/8 dark:hover:bg-white/8'
+                : 'text-2xl border-charcoal/8 dark:border-white/8 bg-charcoal/4 dark:bg-white/5 hover:bg-charcoal/8 dark:hover:bg-white/8',
             ].join(' ')}
           >
             {k}
@@ -569,7 +569,7 @@ export default function LoginPage() {
         style={ready ? { animation: 'login-logo-enter 0.45s cubic-bezier(.22,.9,.28,1) both', willChange: 'transform, opacity' } : { opacity: 0 }}
       >
         <h1 className="font-bold text-brand text-4xl tracking-tight">Pelikn</h1>
-        <p className="text-xs tracking-widest text-charcoal/40 uppercase mt-1">Built for Hospitality</p>
+        <p className="text-xs tracking-widest text-charcoal/40 dark:text-white/35 uppercase mt-1">Built for Hospitality</p>
       </div>
 
       {/* Sliding venue tabs */}
@@ -589,13 +589,13 @@ export default function LoginPage() {
 
       {/* Login card */}
       <div
-        className="w-full max-w-sm bg-white rounded-2xl shadow-sm border border-charcoal/8 overflow-hidden"
+        className="w-full max-w-sm bg-white dark:bg-paperDark rounded-2xl shadow-sm border border-charcoal/8 dark:border-white/8 overflow-hidden"
         style={ready ? { animation: 'login-card-enter 0.5s 0.08s cubic-bezier(.34,1.15,.64,1) both', willChange: 'transform, opacity' } : { opacity: 0 }}
       >
         {/* Venue name — single-venue only */}
         {!showTabs && venueName && (
           <div className="px-5 pt-5 pb-0">
-            <p className="text-xl font-semibold text-charcoal">{venueName}</p>
+            <p className="text-xl font-semibold text-charcoal dark:text-white">{venueName}</p>
           </div>
         )}
 
@@ -608,7 +608,7 @@ export default function LoginPage() {
 
         {switching && (
           <div className="flex justify-center py-8">
-            <div className="w-5 h-5 rounded-full border-2 border-charcoal/15 border-t-brand animate-spin" />
+            <div className="w-5 h-5 rounded-full border-2 border-charcoal/15 dark:border-white/15 border-t-brand animate-spin" />
           </div>
         )}
 
@@ -616,14 +616,14 @@ export default function LoginPage() {
           <>
             {/* Staff list section */}
             <div className="px-5 pt-5 pb-3">
-              <p className="text-xs tracking-widest font-semibold text-charcoal/40 uppercase mb-3">
+              <p className="text-xs tracking-widest font-semibold text-charcoal/40 dark:text-white/35 uppercase mb-3">
                 Select Staff Member
               </p>
 
               {/* Search — only when >12 staff */}
               {staff.length > 12 && (
                 <div className="relative mb-2">
-                  <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-charcoal/30 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-charcoal/30 dark:text-white/30 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
                   </svg>
                   <input
@@ -631,11 +631,11 @@ export default function LoginPage() {
                     placeholder="Search name…"
                     value={staffQuery}
                     onChange={e => setStaffQuery(e.target.value)}
-                    className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-charcoal/10 bg-white text-sm text-charcoal placeholder:text-charcoal/30 focus:outline-none focus:ring-2 focus:ring-brand/25 focus:border-brand/40 transition-all"
+                    className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-charcoal/10 dark:border-white/10 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white placeholder:text-charcoal/30 dark:placeholder:text-white/25 focus:outline-none focus:ring-2 focus:ring-brand/25 focus:border-brand/40 transition-all"
                   />
                   {staffQuery && (
                     <button type="button" onClick={() => setStaffQuery('')}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-charcoal/30 hover:text-charcoal/60 transition-colors">
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-charcoal/30 dark:text-white/30 hover:text-charcoal/60 dark:hover:text-white/50 transition-colors">
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                     </button>
                   )}
@@ -643,17 +643,17 @@ export default function LoginPage() {
               )}
 
               {/* Staff rows */}
-              <div className="flex flex-col border border-charcoal/8 rounded-xl overflow-hidden">
+              <div className="flex flex-col border border-charcoal/8 dark:border-white/8 rounded-xl overflow-hidden">
                 {staffLoading && (
                   <div className="flex justify-center py-8">
-                    <div className="w-5 h-5 rounded-full border-2 border-charcoal/15 border-t-brand animate-spin" />
+                    <div className="w-5 h-5 rounded-full border-2 border-charcoal/15 dark:border-white/15 border-t-brand animate-spin" />
                   </div>
                 )}
                 {!staffLoading && staff.length === 0 && (
-                  <p className="text-sm text-charcoal/40 text-center py-6">No staff members found for this venue.</p>
+                  <p className="text-sm text-charcoal/40 dark:text-white/35 text-center py-6">No staff members found for this venue.</p>
                 )}
                 {!staffLoading && staff.length > 12 && staffQuery && filteredStaff.length === 0 && (
-                  <p className="text-sm text-charcoal/40 text-center py-6">No staff match "{staffQuery}"</p>
+                  <p className="text-sm text-charcoal/40 dark:text-white/35 text-center py-6">No staff match "{staffQuery}"</p>
                 )}
                 {filteredStaff.map((s, i) => {
                   const isSel = selected?.id === s.id
@@ -665,8 +665,8 @@ export default function LoginPage() {
                       onClick={() => selectStaff(s)}
                       className={[
                         'relative w-full flex items-center gap-3 px-4 py-3 text-left transition-all',
-                        i < filteredStaff.length - 1 ? 'border-b border-charcoal/6' : '',
-                        isSel ? 'bg-accent/5' : 'hover:bg-charcoal/3',
+                        i < filteredStaff.length - 1 ? 'border-b border-charcoal/6 dark:border-white/8' : '',
+                        isSel ? 'bg-accent/5' : 'hover:bg-charcoal/3 dark:hover:bg-white/5',
                       ].join(' ')}
                       style={ready ? { animation: `login-row-enter 0.38s ${0.14 + i * 0.045}s cubic-bezier(.22,.9,.28,1) both` } : { opacity: 0 }}
                     >
@@ -680,7 +680,7 @@ export default function LoginPage() {
                         <img
                           src={s.photo_url}
                           alt={s.name}
-                          className="w-9 h-9 rounded-full object-cover shrink-0 border border-charcoal/10"
+                          className="w-9 h-9 rounded-full object-cover shrink-0 border border-charcoal/10 dark:border-white/10"
                           loading="lazy"
                         />
                       ) : (
@@ -692,8 +692,8 @@ export default function LoginPage() {
                         </div>
                       )}
 
-                      <span className="flex-1 font-semibold text-charcoal text-sm">{s.name}</span>
-                      <span className={`text-xs uppercase tracking-widest font-semibold font-mono ${isSel ? 'text-accent' : 'text-charcoal/35'}`}>
+                      <span className="flex-1 font-semibold text-charcoal dark:text-white text-sm">{s.name}</span>
+                      <span className={`text-xs uppercase tracking-widest font-semibold font-mono ${isSel ? 'text-accent' : 'text-charcoal/35 dark:text-white/30'}`}>
                         {ROLE_LABEL[s.role] ?? s.role}
                       </span>
                     </button>
@@ -706,7 +706,7 @@ export default function LoginPage() {
             {selected && (
               <div
                 ref={pinSectionRef}
-                className="border-t border-charcoal/8 px-5 py-5 flex flex-col gap-4"
+                className="border-t border-charcoal/8 dark:border-white/8 px-5 py-5 flex flex-col gap-4"
               >
                 {/* Who's signing in header */}
                 {(() => {
@@ -715,7 +715,7 @@ export default function LoginPage() {
                     <div className="flex items-center gap-2.5">
                       {selected.photo_url ? (
                         <img src={selected.photo_url} alt={selected.name}
-                          className="w-8 h-8 shrink-0 object-cover border border-charcoal/10"
+                          className="w-8 h-8 shrink-0 object-cover border border-charcoal/10 dark:border-white/10"
                           style={{ borderRadius: 9 }} loading="lazy" />
                       ) : (
                         <div
@@ -726,13 +726,13 @@ export default function LoginPage() {
                         </div>
                       )}
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-bold text-charcoal tracking-[-0.01em] truncate">{selected.name}</p>
-                        <p className="text-xs uppercase tracking-[0.06em] font-mono text-charcoal/40">{ROLE_LABEL[selected.role] ?? selected.role}</p>
+                        <p className="text-sm font-bold text-charcoal dark:text-white tracking-[-0.01em] truncate">{selected.name}</p>
+                        <p className="text-xs uppercase tracking-[0.06em] font-mono text-charcoal/40 dark:text-white/35">{ROLE_LABEL[selected.role] ?? selected.role}</p>
                       </div>
                       <button
                         type="button"
                         onClick={() => { setSelected(null); setPin(''); setError('') }}
-                        className="flex items-center justify-center text-charcoal/30 hover:text-charcoal/60 transition-colors"
+                        className="flex items-center justify-center text-charcoal/30 dark:text-white/30 hover:text-charcoal/60 dark:hover:text-white/50 transition-colors"
                         style={{ width: 26, height: 26, borderRadius: 6, border: '1px solid rgba(28,47,42,0.12)', flexShrink: 0 }}
                       >
                         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -775,7 +775,7 @@ export default function LoginPage() {
               <div className="px-5 pb-5">
                 <button
                   onClick={() => setShowAddModal(true)}
-                  className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-dashed border-charcoal/15 text-[12px] font-semibold text-charcoal/35 hover:text-brand hover:border-brand/30 hover:bg-brand/3 transition-all"
+                  className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-dashed border-charcoal/15 dark:border-white/15 text-[12px] font-semibold text-charcoal/35 dark:text-white/30 hover:text-brand hover:border-brand/30 hover:bg-brand/3 transition-all"
                 >
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
@@ -795,7 +795,7 @@ export default function LoginPage() {
           await signOutVenue()
           navigate('/login', { replace: true })
         }}
-        className="mt-6 text-xs text-charcoal/30 hover:text-charcoal/60 transition-colors"
+        className="mt-6 text-xs text-charcoal/30 dark:text-white/30 hover:text-charcoal/60 dark:hover:text-white/50 transition-colors"
         style={ready ? { animation: 'login-fade-enter 0.4s 0.3s ease both' } : { opacity: 0 }}
       >
         Sign out of venue

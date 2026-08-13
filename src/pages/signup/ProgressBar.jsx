@@ -17,16 +17,16 @@ export default function ProgressBar({ step, hasExtraVenues }) {
               <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold transition-all duration-300 ${
                 done ? 'bg-brand text-cream'
                 : active ? 'bg-brand text-cream ring-4 ring-brand/20'
-                : 'bg-charcoal/10 text-charcoal/35'
+                : 'bg-charcoal/10 dark:bg-white/10 text-charcoal/35 dark:text-white/30'
               }`}>
                 {done ? <IconCheck size={13} color="white" /> : i + 1}
               </div>
-              <span className={`text-[11px] tracking-wide whitespace-nowrap transition-colors ${active ? 'text-brand font-medium' : 'text-charcoal/35'}`}>
+              <span className={`text-[11px] tracking-wide whitespace-nowrap transition-colors ${active ? 'text-brand font-medium' : 'text-charcoal/35 dark:text-white/30'}`}>
                 {label}
               </span>
             </div>
             {i < steps.length - 1 && (
-              <div className={`h-px flex-1 mx-1 mb-4 transition-colors ${done ? 'bg-brand' : 'bg-charcoal/10'}`} />
+              <div className={`h-px flex-1 mx-1 mb-4 transition-colors ${done ? 'bg-brand' : 'bg-charcoal/10 dark:bg-white/10'}`} />
             )}
           </React.Fragment>
         )

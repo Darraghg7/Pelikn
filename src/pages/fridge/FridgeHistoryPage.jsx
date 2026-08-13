@@ -10,7 +10,7 @@ import DateRangePresets, { presetToDates } from '../../components/ui/DateRangePr
 import { useToast } from '../../components/ui/Toast'
 
 function SectionLabel({ children }) {
-  return <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-3">{children}</p>
+  return <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-3">{children}</p>
 }
 
 const EXCEEDANCE_REASONS = [
@@ -75,18 +75,18 @@ export default function FridgeHistoryPage() {
     <div className="flex flex-col gap-6">
 
       <div className="flex items-center gap-4">
-        <Link to={`/v/${venueSlug}/fridge`} className="text-charcoal/40 hover:text-charcoal transition-colors text-lg">←</Link>
-        <h1 className="text-2xl font-bold text-charcoal">Temperature History</h1>
+        <Link to={`/v/${venueSlug}/fridge`} className="text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white transition-colors text-lg">←</Link>
+        <h1 className="text-2xl font-bold text-charcoal dark:text-white">Temperature History</h1>
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-2xl border-charcoal/10 p-5 flex flex-wrap gap-4 items-end">
+      <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-5 flex flex-wrap gap-4 items-end">
         <div>
           <SectionLabel>Fridge</SectionLabel>
           <select
             value={fridgeId}
             onChange={(e) => setFridgeId(e.target.value)}
-            className="px-3 py-2 rounded-lg border border-charcoal/15 bg-white text-sm text-charcoal focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+            className="px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
           >
             <option value="">All fridges</option>
             {fridges.map((f) => <option key={f.id} value={f.id}>{f.name}</option>)}
@@ -103,30 +103,30 @@ export default function FridgeHistoryPage() {
       </div>
 
       {/* Results */}
-      <div className="bg-white rounded-2xl border-charcoal/10 overflow-hidden">
+      <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 overflow-hidden">
         <div className="px-5 pt-5 flex items-center justify-between">
           <SectionLabel>Readings</SectionLabel>
           {isManager && (
-            <p className="text-[11px] text-charcoal/35 mb-3">Tap a red reading to add a reason and fix the score</p>
+            <p className="text-[11px] text-charcoal/35 dark:text-white/30 mb-3">Tap a red reading to add a reason and fix the score</p>
           )}
         </div>
 
         {loading ? (
           <SkeletonList rows={4} />
         ) : logs.length === 0 ? (
-          <p className="text-center text-sm text-charcoal/35 italic py-10 pb-8">
+          <p className="text-center text-sm text-charcoal/35 dark:text-white/30 italic py-10 pb-8">
             No readings found. Try adjusting your filters.
           </p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-t border-charcoal/8">
-                  <th className="text-left px-5 py-2.5 text-[11px] tracking-widest uppercase text-charcoal/40 font-medium">Fridge</th>
-                  <th className="text-left px-5 py-2.5 text-[11px] tracking-widest uppercase text-charcoal/40 font-medium">Temp</th>
-                  <th className="text-center px-3 py-2.5 text-[11px] tracking-widest uppercase text-charcoal/40 font-medium">AM/PM</th>
-                  <th className="text-left px-5 py-2.5 text-[11px] tracking-widest uppercase text-charcoal/40 font-medium hidden sm:table-cell">Logged by</th>
-                  <th className="text-left px-5 py-2.5 text-[11px] tracking-widest uppercase text-charcoal/40 font-medium">Date / Time</th>
+                <tr className="border-t border-charcoal/8 dark:border-white/8">
+                  <th className="text-left px-5 py-2.5 text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 font-medium">Fridge</th>
+                  <th className="text-left px-5 py-2.5 text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 font-medium">Temp</th>
+                  <th className="text-center px-3 py-2.5 text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 font-medium">AM/PM</th>
+                  <th className="text-left px-5 py-2.5 text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 font-medium hidden sm:table-cell">Logged by</th>
+                  <th className="text-left px-5 py-2.5 text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 font-medium">Date / Time</th>
                 </tr>
               </thead>
               <tbody>
@@ -143,17 +143,17 @@ export default function FridgeHistoryPage() {
                     <React.Fragment key={log.id}>
                       <tr
                         className={[
-                          'border-t border-charcoal/6',
+                          'border-t border-charcoal/6 dark:border-white/8',
                           oor && !explained ? 'bg-danger/4' : oor && explained ? 'bg-warning/4' : '',
                           isManager && oor && !isEditing ? 'cursor-pointer hover:bg-danger/8' : '',
                         ].join(' ')}
                         onClick={() => isManager && oor && !isEditing ? setEditingId(log.id) : null}
                       >
-                        <td className="px-5 py-3 text-charcoal">{log.fridge_name}</td>
+                        <td className="px-5 py-3 text-charcoal dark:text-white">{log.fridge_name}</td>
                         <td className="px-5 py-3">
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className={`font-mono font-semibold ${
-                              !oor ? 'text-charcoal' : explained ? 'text-warning' : 'text-danger'
+                              !oor ? 'text-charcoal dark:text-white' : explained ? 'text-warning' : 'text-danger'
                             }`}>
                               {formatTemp(log.temperature)}
                             </span>
@@ -169,7 +169,7 @@ export default function FridgeHistoryPage() {
                                 onClick={(e) => { e.stopPropagation(); setEditingId(log.id) }}
                                 className={`text-[11px] px-2 py-0.5 rounded-full border transition-colors ${
                                   explained
-                                    ? 'border-charcoal/15 text-charcoal/35 hover:border-charcoal/30 hover:text-charcoal/60'
+                                    ? 'border-charcoal/15 dark:border-white/15 text-charcoal/35 dark:text-white/30 hover:border-charcoal/30 dark:hover:border-white/30 hover:text-charcoal/60 dark:hover:text-white/50'
                                     : 'border-danger/25 text-danger/60 hover:border-danger/50 hover:text-danger'
                                 }`}
                               >
@@ -178,24 +178,24 @@ export default function FridgeHistoryPage() {
                             )}
                           </div>
                           {log.notes && (
-                            <p className="text-[11px] text-charcoal/40 mt-0.5 max-w-[220px] truncate">{log.notes}</p>
+                            <p className="text-[11px] text-charcoal/40 dark:text-white/35 mt-0.5 max-w-[220px] truncate">{log.notes}</p>
                           )}
                         </td>
                         <td className="text-center px-3 py-3">
-                          <span className="text-[11px] font-semibold tracking-wider uppercase text-charcoal/50">
+                          <span className="text-[11px] font-semibold tracking-wider uppercase text-charcoal/50 dark:text-white/40">
                             {log.check_period?.toUpperCase() ?? '—'}
                           </span>
                         </td>
-                        <td className="px-5 py-3 text-charcoal/60 hidden sm:table-cell">{log.logged_by_name ?? '—'}</td>
-                        <td className="px-5 py-3 text-charcoal/50 whitespace-nowrap">{formatDateTime(log.logged_at)}</td>
+                        <td className="px-5 py-3 text-charcoal/60 dark:text-white/50 hidden sm:table-cell">{log.logged_by_name ?? '—'}</td>
+                        <td className="px-5 py-3 text-charcoal/50 dark:text-white/40 whitespace-nowrap">{formatDateTime(log.logged_at)}</td>
                       </tr>
 
                       {/* Inline reason editor — expands below the row */}
                       {isEditing && (
                         <tr className="border-t-0">
-                          <td colSpan={5} className="px-5 pb-4 pt-1 bg-charcoal/3">
+                          <td colSpan={5} className="px-5 pb-4 pt-1 bg-charcoal/3 dark:bg-white/5">
                             <div className="flex flex-col gap-2">
-                              <p className="text-xs font-semibold text-charcoal/60">
+                              <p className="text-xs font-semibold text-charcoal/60 dark:text-white/50">
                                 Select a reason for this {formatTemp(log.temperature)} reading:
                               </p>
                               <div className="flex flex-wrap gap-2">
@@ -207,26 +207,26 @@ export default function FridgeHistoryPage() {
                                     className={[
                                       'flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium transition-all',
                                       log.exceedance_reason === r.id
-                                        ? 'bg-charcoal text-cream border-charcoal'
+                                        ? 'bg-charcoal text-cream border-charcoal dark:border-white'
                                         : r.explained
-                                          ? 'bg-success/8 border-success/25 text-charcoal hover:bg-success/15'
-                                          : 'bg-danger/6 border-danger/20 text-charcoal hover:bg-danger/12',
+                                          ? 'bg-success/8 border-success/25 text-charcoal dark:text-white hover:bg-success/15'
+                                          : 'bg-danger/6 border-danger/20 text-charcoal dark:text-white hover:bg-danger/12',
                                       isSaving ? 'opacity-40 cursor-not-allowed' : '',
                                     ].join(' ')}
                                   >
-                                    <span className="shrink-0 text-charcoal/50">{EXCEEDANCE_ICONS[r.id]}</span>
+                                    <span className="shrink-0 text-charcoal/50 dark:text-white/40">{EXCEEDANCE_ICONS[r.id]}</span>
                                     <span>{r.label}</span>
                                     {r.explained && <span className="text-[11px] text-success font-bold">NO PENALTY</span>}
                                   </button>
                                 ))}
                                 <button
                                   onClick={() => setEditingId(null)}
-                                  className="px-3 py-1.5 rounded-lg border border-charcoal/15 text-xs text-charcoal/40 hover:text-charcoal transition-colors"
+                                  className="px-3 py-1.5 rounded-lg border border-charcoal/15 dark:border-white/15 text-xs text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white transition-colors"
                                 >
                                   Cancel
                                 </button>
                               </div>
-                              {isSaving && <p className="text-[11px] text-charcoal/40 animate-pulse">Saving…</p>}
+                              {isSaving && <p className="text-[11px] text-charcoal/40 dark:text-white/35 animate-pulse">Saving…</p>}
                             </div>
                           </td>
                         </tr>

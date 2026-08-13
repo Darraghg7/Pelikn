@@ -88,20 +88,20 @@ function FeatureRow({ feature, venueSlug, locked }) {
   return (
     <div className={`flex items-start gap-3 px-3 py-3 rounded-xl border transition-colors ${
       locked
-        ? 'border-charcoal/6 bg-charcoal/[0.02] opacity-60'
-        : 'border-charcoal/8 bg-white hover:border-charcoal/15'
+        ? 'border-charcoal/6 dark:border-white/8 bg-charcoal/[0.02] opacity-60'
+        : 'border-charcoal/8 dark:border-white/8 bg-white dark:bg-paperDark hover:border-charcoal/15 dark:hover:border-white/15'
     }`}>
       <span className="text-base shrink-0 mt-0.5 w-5 text-center">{icon}</span>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
-          <p className="text-sm font-semibold text-charcoal">{feature.label}</p>
+          <p className="text-sm font-semibold text-charcoal dark:text-white">{feature.label}</p>
           {locked && (
             <span className="text-[11px] tracking-widest uppercase font-bold bg-accent/10 text-accent px-1.5 py-0.5 rounded-full shrink-0">
               Pro
             </span>
           )}
         </div>
-        <p className="text-xs text-charcoal/45 mt-0.5 leading-relaxed">{feature.description}</p>
+        <p className="text-xs text-charcoal/45 dark:text-white/40 mt-0.5 leading-relaxed">{feature.description}</p>
       </div>
       {!locked && route && (
         <Link
@@ -118,23 +118,23 @@ function FeatureRow({ feature, venueSlug, locked }) {
 function FaqRow({ q, a }) {
   const [open, setOpen] = useState(false)
   return (
-    <div className="border border-charcoal/8 rounded-xl overflow-hidden bg-white">
+    <div className="border border-charcoal/8 dark:border-white/8 rounded-xl overflow-hidden bg-white dark:bg-paperDark">
       <button
         type="button"
         onClick={() => setOpen(o => !o)}
         className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-charcoal/[0.02] transition-colors gap-3"
       >
-        <p className="text-sm font-medium text-charcoal">{q}</p>
+        <p className="text-sm font-medium text-charcoal dark:text-white">{q}</p>
         <svg
-          className={`w-4 h-4 text-charcoal/30 shrink-0 transition-transform ${open ? 'rotate-90' : ''}`}
+          className={`w-4 h-4 text-charcoal/30 dark:text-white/30 shrink-0 transition-transform ${open ? 'rotate-90' : ''}`}
           fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}
         >
           <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
         </svg>
       </button>
       {open && (
-        <div className="px-4 pb-4 pt-1 border-t border-charcoal/6">
-          <p className="text-sm text-charcoal/60 leading-relaxed">{a}</p>
+        <div className="px-4 pb-4 pt-1 border-t border-charcoal/6 dark:border-white/8">
+          <p className="text-sm text-charcoal/60 dark:text-white/50 leading-relaxed">{a}</p>
         </div>
       )}
     </div>
@@ -147,14 +147,14 @@ function FeatureGroup({ group, venueSlug, venuePlan }) {
   const proCount = group.features.filter(f => PRO_ONLY_FEATURE_IDS.includes(f.id)).length
 
   return (
-    <div className="border border-charcoal/8 rounded-xl overflow-hidden">
+    <div className="border border-charcoal/8 dark:border-white/8 rounded-xl overflow-hidden">
       <button
         type="button"
         onClick={() => setOpen(o => !o)}
         className="w-full flex items-center justify-between px-4 py-3 text-left bg-charcoal/[0.02] hover:bg-charcoal/[0.04] transition-colors gap-3"
       >
         <div className="flex items-center gap-2">
-          <p className="text-[11px] font-bold tracking-widest uppercase text-charcoal/60">
+          <p className="text-[11px] font-bold tracking-widest uppercase text-charcoal/60 dark:text-white/50">
             {GROUP_LABELS[group.id] ?? group.label}
           </p>
           {hasLockedFeatures && venuePlan === PLANS.STARTER && (
@@ -164,14 +164,14 @@ function FeatureGroup({ group, venueSlug, venuePlan }) {
           )}
         </div>
         <svg
-          className={`w-4 h-4 text-charcoal/30 shrink-0 transition-transform ${open ? 'rotate-90' : ''}`}
+          className={`w-4 h-4 text-charcoal/30 dark:text-white/30 shrink-0 transition-transform ${open ? 'rotate-90' : ''}`}
           fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}
         >
           <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
         </svg>
       </button>
       {open && (
-        <div className="px-3 pb-3 pt-2 border-t border-charcoal/6 flex flex-col gap-2">
+        <div className="px-3 pb-3 pt-2 border-t border-charcoal/6 dark:border-white/8 flex flex-col gap-2">
           {group.features.map(feature => (
             <FeatureRow
               key={feature.id}
@@ -203,7 +203,7 @@ export default function HelpSection() {
 
         {/* ── Feature guide ──────────────────────────────────────────────── */}
         <div>
-          <p className="text-[11px] tracking-widest uppercase font-bold text-charcoal/40 mb-3">
+          <p className="text-[11px] tracking-widest uppercase font-bold text-charcoal/40 dark:text-white/35 mb-3">
             Feature Guide
           </p>
           <div className="flex flex-col gap-2">
@@ -221,8 +221,8 @@ export default function HelpSection() {
         {/* ── Pro upsell (Starter only) ───────────────────────────────────── */}
         {isStarter && (
           <div className="bg-accent/5 border border-accent/20 rounded-xl px-4 py-4 flex flex-col gap-2">
-            <p className="text-sm font-semibold text-charcoal">Unlock the full platform</p>
-            <p className="text-xs text-charcoal/55 leading-relaxed">
+            <p className="text-sm font-semibold text-charcoal dark:text-white">Unlock the full platform</p>
+            <p className="text-xs text-charcoal/55 dark:text-white/45 leading-relaxed">
               Pro adds rota management, timesheets, staff training records, time-off requests, HACCP tools, and more — everything you need to run your team alongside your compliance.
             </p>
             <a
@@ -236,7 +236,7 @@ export default function HelpSection() {
 
         {/* ── FAQ ────────────────────────────────────────────────────────── */}
         <div>
-          <p className="text-[11px] tracking-widest uppercase font-bold text-charcoal/40 mb-3">
+          <p className="text-[11px] tracking-widest uppercase font-bold text-charcoal/40 dark:text-white/35 mb-3">
             Common Questions
           </p>
           <div className="flex flex-col gap-2">
@@ -247,10 +247,10 @@ export default function HelpSection() {
         </div>
 
         {/* ── Support footer ──────────────────────────────────────────────── */}
-        <div className="border-t border-charcoal/8 pt-4 flex flex-col gap-3">
+        <div className="border-t border-charcoal/8 dark:border-white/8 pt-4 flex flex-col gap-3">
           <div>
-            <p className="text-sm font-medium text-charcoal mb-1">Still need help?</p>
-            <p className="text-xs text-charcoal/45 mb-3">
+            <p className="text-sm font-medium text-charcoal dark:text-white mb-1">Still need help?</p>
+            <p className="text-xs text-charcoal/45 dark:text-white/40 mb-3">
               Drop us an email and we'll get back to you, usually same day.
             </p>
             <a
@@ -264,7 +264,7 @@ export default function HelpSection() {
               hello@pelikn.app
             </a>
           </div>
-          <p className="text-[11px] text-charcoal/25">
+          <p className="text-[11px] text-charcoal/25 dark:text-white/25">
             {isStarter ? `Starter plan · ${PRO_PRICE}/mo to upgrade` : 'Pro plan'} · Pelikn
           </p>
         </div>

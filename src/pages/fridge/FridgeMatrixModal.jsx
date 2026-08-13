@@ -111,35 +111,35 @@ function BackfillModal({ open, onClose, fridge, dateStr, period, onSaved }) {
   return (
     <Modal open={open} onClose={onClose} title="Record missed reading">
       <div className="flex flex-col gap-4">
-        <div className="rounded-2xl bg-white border border-charcoal/10 px-4 py-3">
-          <p className="text-[11px] tracking-widest uppercase text-charcoal/40">{period.toUpperCase()} check</p>
-          <p className="text-sm font-semibold text-charcoal mt-0.5">{fridge.name}</p>
-          <p className="text-xs text-charcoal/50 mt-0.5">{headerDate}</p>
-          <p className="text-[11px] text-charcoal/40 mt-0.5">Safe range: {fridge.min_temp}–{fridge.max_temp}°C</p>
+        <div className="rounded-2xl bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 px-4 py-3">
+          <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">{period.toUpperCase()} check</p>
+          <p className="text-sm font-semibold text-charcoal dark:text-white mt-0.5">{fridge.name}</p>
+          <p className="text-xs text-charcoal/50 dark:text-white/40 mt-0.5">{headerDate}</p>
+          <p className="text-[11px] text-charcoal/40 dark:text-white/35 mt-0.5">Safe range: {fridge.min_temp}–{fridge.max_temp}°C</p>
         </div>
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1.5">Temperature (°C)</label>
+            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1.5">Temperature (°C)</label>
             <input
               type="number" step="0.1" min="-30" max="60"
               value={temp}
               onChange={e => setTemp(e.target.value)}
               placeholder="e.g. 3.5"
               className={[
-                'w-full px-3 py-2.5 rounded-xl border bg-white focus:outline-none focus:ring-2',
-                'text-lg font-mono text-charcoal placeholder-charcoal/20',
-                outOfRange ? 'border-warning/50 focus:ring-warning/20' : 'border-charcoal/15 focus:ring-charcoal/20',
+                'w-full px-3 py-2.5 rounded-xl border bg-white dark:bg-paperDark focus:outline-none focus:ring-2',
+                'text-lg font-mono text-charcoal dark:text-white placeholder-charcoal/20 dark:placeholder-white/15',
+                outOfRange ? 'border-warning/50 focus:ring-warning/20' : 'border-charcoal/15 dark:border-white/15 focus:ring-charcoal/20 dark:focus:ring-white/20',
               ].join(' ')}
             />
           </div>
           <div>
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1.5">Time taken</label>
+            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1.5">Time taken</label>
             <input
               type="time"
               value={time}
               onChange={e => setTime(e.target.value)}
-              className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 bg-white text-sm text-charcoal focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+              className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
             />
           </div>
         </div>
@@ -153,7 +153,7 @@ function BackfillModal({ open, onClose, fridge, dateStr, period, onSaved }) {
                   <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
                 </svg>
               </span>
-              <p className="text-xs font-semibold text-charcoal">Above safe range — what's the reason?</p>
+              <p className="text-xs font-semibold text-charcoal dark:text-white">Above safe range — what's the reason?</p>
             </div>
             <div className="flex flex-col gap-1.5">
               {EXCEEDANCE_REASONS.map(r => (
@@ -165,9 +165,9 @@ function BackfillModal({ open, onClose, fridge, dateStr, period, onSaved }) {
                     'flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl border text-left text-xs font-medium transition-all',
                     reason === r.id
                       ? r.explained
-                        ? 'bg-warning/15 border-warning/40 text-charcoal'
-                        : 'bg-danger/8 border-danger/25 text-charcoal'
-                      : 'bg-white border-charcoal/12 text-charcoal/60 hover:border-charcoal/25 hover:text-charcoal',
+                        ? 'bg-warning/15 border-warning/40 text-charcoal dark:text-white'
+                        : 'bg-danger/8 border-danger/25 text-charcoal dark:text-white'
+                      : 'bg-white dark:bg-paperDark border-charcoal/12 dark:border-white/15 text-charcoal/60 dark:text-white/50 hover:border-charcoal/25 dark:hover:border-white/25 hover:text-charcoal dark:hover:text-white',
                   ].join(' ')}
                 >
                   <span>{r.label}</span>
@@ -181,7 +181,7 @@ function BackfillModal({ open, onClose, fridge, dateStr, period, onSaved }) {
                 onChange={e => setComment(e.target.value)}
                 placeholder="Describe the corrective action taken…"
                 rows={2}
-                className="w-full px-3 py-2 rounded-xl border border-charcoal/15 bg-white focus:outline-none focus:ring-2 focus:ring-danger/20 text-sm resize-none"
+                className="w-full px-3 py-2 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark focus:outline-none focus:ring-2 focus:ring-danger/20 text-sm resize-none"
               />
             )}
           </div>
@@ -197,13 +197,13 @@ function BackfillModal({ open, onClose, fridge, dateStr, period, onSaved }) {
           </button>
           <button
             onClick={onClose}
-            className="px-4 py-3 rounded-xl border border-charcoal/15 text-sm text-charcoal/50 hover:border-charcoal/30 transition-colors"
+            className="px-4 py-3 rounded-xl border border-charcoal/15 dark:border-white/15 text-sm text-charcoal/50 dark:text-white/40 hover:border-charcoal/30 dark:hover:border-white/30 transition-colors"
           >
             Cancel
           </button>
         </div>
 
-        <p className="text-[11px] text-charcoal/35 leading-relaxed">
+        <p className="text-[11px] text-charcoal/35 dark:text-white/30 leading-relaxed">
           Backfilled readings are flagged in your audit log with the time you choose above and the staff member currently signed in.
         </p>
       </div>
@@ -243,8 +243,8 @@ export default function FridgeMatrixModal({ open, onClose }) {
 
     if (!log && !required) {
       return (
-        <td className="text-center px-2 py-4 bg-charcoal/4 border-r border-charcoal/6 last:border-r-0">
-          <span className="text-[11px] tracking-widest uppercase text-charcoal/25 font-medium">Not req.</span>
+        <td className="text-center px-2 py-4 bg-charcoal/4 dark:bg-white/5 border-r border-charcoal/6 dark:border-white/8 last:border-r-0">
+          <span className="text-[11px] tracking-widest uppercase text-charcoal/25 dark:text-white/25 font-medium">Not req.</span>
         </td>
       )
     }
@@ -254,7 +254,7 @@ export default function FridgeMatrixModal({ open, onClose }) {
       const explained = log.exceedance_reason && ['delivery','defrost','service_access'].includes(log.exceedance_reason)
       const colour   = !oor ? 'text-success' : explained ? 'text-warning' : 'text-danger'
       return (
-        <td className="text-center px-2 py-4 border-r border-charcoal/6 last:border-r-0">
+        <td className="text-center px-2 py-4 border-r border-charcoal/6 dark:border-white/8 last:border-r-0">
           <button
             type="button"
             onClick={() => setBackfillTarget({ fridge, dateStr, period })}
@@ -272,14 +272,14 @@ export default function FridgeMatrixModal({ open, onClose }) {
 
     if (isFuture) {
       return (
-        <td className="text-center px-2 py-4 border-r border-charcoal/6 last:border-r-0">
-          <span className="text-charcoal/15 text-sm">—</span>
+        <td className="text-center px-2 py-4 border-r border-charcoal/6 dark:border-white/8 last:border-r-0">
+          <span className="text-charcoal/15 dark:text-white/15 text-sm">—</span>
         </td>
       )
     }
 
     return (
-      <td className="text-center px-2 py-4 bg-warning/4 border-r border-charcoal/6 last:border-r-0">
+      <td className="text-center px-2 py-4 bg-warning/4 border-r border-charcoal/6 dark:border-white/8 last:border-r-0">
         <button
           type="button"
           onClick={() => setBackfillTarget({ fridge, dateStr, period })}
@@ -298,10 +298,10 @@ export default function FridgeMatrixModal({ open, onClose }) {
 
           {/* Controls row */}
           <div className="flex items-center justify-between gap-4">
-            <p className="text-sm text-charcoal/50">
+            <p className="text-sm text-charcoal/50 dark:text-white/40">
               Click any missed reading to backfill. Days not required by the item settings are greyed out.
             </p>
-            <div className="flex items-center gap-1 bg-charcoal/6 rounded-full p-1 shrink-0">
+            <div className="flex items-center gap-1 bg-charcoal/6 dark:bg-white/8 rounded-full p-1 shrink-0">
               {RANGE_OPTIONS.map(o => (
                 <button
                   key={o.id}
@@ -310,7 +310,7 @@ export default function FridgeMatrixModal({ open, onClose }) {
                     'px-4 py-1.5 rounded-full text-xs font-semibold transition-all',
                     rangeDays === o.id
                       ? 'bg-charcoal text-cream shadow-sm'
-                      : 'text-charcoal/50 hover:text-charcoal',
+                      : 'text-charcoal/50 dark:text-white/40 hover:text-charcoal dark:hover:text-white',
                   ].join(' ')}
                 >
                   {o.label}
@@ -321,18 +321,18 @@ export default function FridgeMatrixModal({ open, onClose }) {
 
           {loading ? (
             <div className="py-12 text-center">
-              <div className="w-5 h-5 rounded-full border-2 border-charcoal/15 border-t-charcoal animate-spin mx-auto" />
+              <div className="w-5 h-5 rounded-full border-2 border-charcoal/15 dark:border-white/15 border-t-charcoal animate-spin mx-auto" />
             </div>
           ) : fridges.length === 0 ? (
-            <p className="text-sm text-charcoal/40 py-12 text-center">No fridges set up yet.</p>
+            <p className="text-sm text-charcoal/40 dark:text-white/35 py-12 text-center">No fridges set up yet.</p>
           ) : (
-            <div className="bg-white rounded-2xl border border-charcoal/10 overflow-hidden">
+            <div className="bg-white dark:bg-paperDark rounded-2xl border border-charcoal/10 dark:border-white/10 overflow-hidden">
               <div className="overflow-x-auto max-h-[55dvh] overflow-y-auto">
                 <table className="text-xs border-collapse w-full">
-                  <thead className="sticky top-0 bg-white z-10">
+                  <thead className="sticky top-0 bg-white dark:bg-paperDark z-10">
                     {/* Date row */}
-                    <tr className="border-b border-charcoal/8">
-                      <th className="text-left text-[11px] tracking-widest uppercase text-charcoal/40 font-medium py-3 px-5 sticky left-0 bg-white min-w-[160px]">
+                    <tr className="border-b border-charcoal/8 dark:border-white/8">
+                      <th className="text-left text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 font-medium py-3 px-5 sticky left-0 bg-white dark:bg-paperDark min-w-[160px]">
                         Fridge
                       </th>
                       {days.map(d => {
@@ -343,12 +343,12 @@ export default function FridgeMatrixModal({ open, onClose }) {
                           <th
                             key={dateStr}
                             colSpan={2}
-                            className={`text-center py-3 px-2 border-l border-charcoal/8 min-w-[100px] ${isClosed ? 'bg-charcoal/3' : ''}`}
+                            className={`text-center py-3 px-2 border-l border-charcoal/8 dark:border-white/8 min-w-[100px] ${isClosed ? 'bg-charcoal/3 dark:bg-white/5' : ''}`}
                           >
-                            <div className={`text-xs font-semibold ${isToday ? 'text-brand' : isClosed ? 'text-charcoal/30' : 'text-charcoal'}`}>
+                            <div className={`text-xs font-semibold ${isToday ? 'text-brand' : isClosed ? 'text-charcoal/30 dark:text-white/30' : 'text-charcoal dark:text-white'}`}>
                               {format(d, 'd MMM')}
                             </div>
-                            <div className={`text-[11px] mt-0.5 ${isClosed ? 'text-charcoal/25' : 'text-charcoal/40'}`}>
+                            <div className={`text-[11px] mt-0.5 ${isClosed ? 'text-charcoal/25 dark:text-white/25' : 'text-charcoal/40 dark:text-white/35'}`}>
                               {format(d, 'EEE')}
                             </div>
                           </th>
@@ -356,17 +356,17 @@ export default function FridgeMatrixModal({ open, onClose }) {
                       })}
                     </tr>
                     {/* AM / PM sub-header */}
-                    <tr className="border-b border-charcoal/8">
-                      <th className="sticky left-0 bg-white py-2 px-5" />
+                    <tr className="border-b border-charcoal/8 dark:border-white/8">
+                      <th className="sticky left-0 bg-white dark:bg-paperDark py-2 px-5" />
                       {days.map(d => {
                         const dateStr  = format(d, 'yyyy-MM-dd')
                         const isClosed = closedSet.has(dateStr)
                         return (
                           <React.Fragment key={dateStr + '-ampm'}>
-                            <th className={`text-[11px] tracking-widest uppercase text-charcoal/35 font-medium py-2 px-2 border-l border-charcoal/8 ${isClosed ? 'bg-charcoal/3' : ''}`}>
+                            <th className={`text-[11px] tracking-widest uppercase text-charcoal/35 dark:text-white/30 font-medium py-2 px-2 border-l border-charcoal/8 dark:border-white/8 ${isClosed ? 'bg-charcoal/3 dark:bg-white/5' : ''}`}>
                               AM
                             </th>
-                            <th className={`text-[11px] tracking-widest uppercase text-charcoal/35 font-medium py-2 px-2 border-r border-charcoal/8 ${isClosed ? 'bg-charcoal/3' : ''}`}>
+                            <th className={`text-[11px] tracking-widest uppercase text-charcoal/35 dark:text-white/30 font-medium py-2 px-2 border-r border-charcoal/8 dark:border-white/8 ${isClosed ? 'bg-charcoal/3 dark:bg-white/5' : ''}`}>
                               PM
                             </th>
                           </React.Fragment>
@@ -374,12 +374,12 @@ export default function FridgeMatrixModal({ open, onClose }) {
                       })}
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-charcoal/6">
+                  <tbody className="divide-y divide-charcoal/6 dark:divide-white/8">
                     {fridges.map(f => (
-                      <tr key={f.id} className="hover:bg-charcoal/1 transition-colors">
-                        <td className="px-5 py-4 sticky left-0 bg-white border-r border-charcoal/8">
-                          <p className="font-semibold text-charcoal text-sm whitespace-nowrap">{f.name}</p>
-                          <p className="text-[11px] text-charcoal/40 mt-0.5">{f.min_temp}–{f.max_temp}°C</p>
+                      <tr key={f.id} className="hover:bg-charcoal/1 dark:hover:bg-white/2 transition-colors">
+                        <td className="px-5 py-4 sticky left-0 bg-white dark:bg-paperDark border-r border-charcoal/8 dark:border-white/8">
+                          <p className="font-semibold text-charcoal dark:text-white text-sm whitespace-nowrap">{f.name}</p>
+                          <p className="text-[11px] text-charcoal/40 dark:text-white/35 mt-0.5">{f.min_temp}–{f.max_temp}°C</p>
                         </td>
                         {days.map(d => {
                           const dateStr = format(d, 'yyyy-MM-dd')
@@ -399,9 +399,9 @@ export default function FridgeMatrixModal({ open, onClose }) {
           )}
 
           {/* Legend */}
-          <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-charcoal/50">
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-charcoal/50 dark:text-white/40">
             <span className="flex items-center gap-2">
-              <span className="inline-block w-4 h-4 rounded-md bg-charcoal/5 border border-charcoal/10" />
+              <span className="inline-block w-4 h-4 rounded-md bg-charcoal/5 dark:bg-white/5 border border-charcoal/10 dark:border-white/10" />
               Closed
             </span>
             <span className="flex items-center gap-2">

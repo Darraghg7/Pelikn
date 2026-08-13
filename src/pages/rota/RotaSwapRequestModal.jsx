@@ -22,26 +22,26 @@ export default function RotaSwapRequestModal({
   if (!swapModal) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-charcoal/40 backdrop-blur-sm" onClick={onClose}>
-      <div onClick={(e) => e.stopPropagation()} className="bg-white rounded-2xl w-full max-w-md p-6 flex flex-col gap-5 shadow-2xl" style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-charcoal/40 dark:bg-white/40 backdrop-blur-sm" onClick={onClose}>
+      <div onClick={(e) => e.stopPropagation()} className="bg-white dark:bg-paperDark rounded-2xl w-full max-w-md p-6 flex flex-col gap-5 shadow-2xl" style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
 
         <div>
-          <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-1">Request Shift Swap</p>
-          <h3 className="font-semibold text-charcoal text-lg">
+          <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-1">Request Shift Swap</p>
+          <h3 className="font-semibold text-charcoal dark:text-white text-lg">
             {swapModal.shift.start_time?.slice(0,5) ?? ''} – {swapModal.shift.end_time?.slice(0,5) ?? ''}
           </h3>
-          <p className="text-sm text-charcoal/50 mt-0.5">
+          <p className="text-sm text-charcoal/50 dark:text-white/40 mt-0.5">
             {format(swapModal.date, 'EEEE d MMMM')} · {swapModal.shift.role_label}
           </p>
         </div>
 
         <div>
-          <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-2">
+          <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">
             Swap with <span className="text-danger">*</span>
           </label>
           <div className="flex flex-wrap gap-2">
             {swapCandidates.length === 0 ? (
-              <p className="text-sm text-charcoal/40 italic">No other staff members found.</p>
+              <p className="text-sm text-charcoal/40 dark:text-white/35 italic">No other staff members found.</p>
             ) : (
               swapCandidates.map((s) => (
                 <button
@@ -51,8 +51,8 @@ export default function RotaSwapRequestModal({
                   className={[
                     'px-4 py-2 rounded-lg border text-sm font-medium transition-all',
                     swapForm.targetStaffId === s.id
-                      ? 'bg-charcoal text-cream border-charcoal'
-                      : 'bg-white text-charcoal/60 border-charcoal/15 hover:border-charcoal/35',
+                      ? 'bg-charcoal text-cream border-charcoal dark:border-white'
+                      : 'bg-white dark:bg-paperDark text-charcoal/60 dark:text-white/50 border-charcoal/15 dark:border-white/15 hover:border-charcoal/35 dark:hover:border-white/35',
                   ].join(' ')}
                 >
                   {s.name}
@@ -63,7 +63,7 @@ export default function RotaSwapRequestModal({
         </div>
 
         <div>
-          <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-2">
+          <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">
             Message (optional)
           </label>
           <textarea
@@ -71,7 +71,7 @@ export default function RotaSwapRequestModal({
             onChange={(e) => setSwapForm((f) => ({ ...f, message: e.target.value }))}
             placeholder="e.g. I have a dentist appointment that morning…"
             rows={3}
-            className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm resize-none focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+            className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm resize-none focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
           />
         </div>
 
@@ -85,7 +85,7 @@ export default function RotaSwapRequestModal({
           </button>
           <button
             onClick={onClose}
-            className="px-4 py-2.5 rounded-lg border border-charcoal/15 text-sm text-charcoal/50 hover:text-charcoal transition-colors"
+            className="px-4 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 text-sm text-charcoal/50 dark:text-white/40 hover:text-charcoal dark:hover:text-white transition-colors"
           >
             Cancel
           </button>

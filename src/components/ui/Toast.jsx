@@ -34,7 +34,7 @@ export function ToastProvider({ children }) {
   }, [dismiss])
 
   const styles = {
-    success: 'bg-charcoal text-cream',
+    success: 'bg-charcoal text-cream dark:bg-white dark:text-charcoal',
     error:   'bg-danger text-white',
     warning: 'bg-warning text-white',
   }

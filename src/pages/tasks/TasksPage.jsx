@@ -31,14 +31,14 @@ function usePendingSignOffs(staffId, venueId) {
 }
 
 function SectionLabel({ children }) {
-  return <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-3">{children}</p>
+  return <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-3">{children}</p>
 }
 
 function RoleBadge({ role, customRoles }) {
   const found = customRoles?.find(r => r.value === role)
   const label = role === 'all' ? 'All Roles' : (found?.label ?? role)
   return (
-    <span className={`text-[11px] tracking-widest uppercase font-medium px-2 py-0.5 rounded ${found?.color ?? 'bg-charcoal/8 text-charcoal'}`}>
+    <span className={`text-[11px] tracking-widest uppercase font-medium px-2 py-0.5 rounded ${found?.color ?? 'bg-charcoal/8 dark:bg-white/8 text-charcoal dark:text-white'}`}>
       {label}
     </span>
   )
@@ -71,23 +71,23 @@ function ManagerTaskRow({ item, isTemplate, completions, onDelete, deleting }) {
   return (
     <div className="py-2.5 first:pt-0 last:pb-0 flex items-center justify-between gap-2">
       <div className="flex items-center gap-2.5 min-w-0">
-        <span className={`w-3.5 h-3.5 rounded border shrink-0 flex items-center justify-center text-[11px] ${comp ? 'bg-success border-success text-white' : 'border-charcoal/20'}`}>
+        <span className={`w-3.5 h-3.5 rounded border shrink-0 flex items-center justify-center text-[11px] ${comp ? 'bg-success border-success text-white' : 'border-charcoal/20 dark:border-white/20'}`}>
           {comp ? <svg className="w-2.5 h-2.5" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg> : ''}
         </span>
         <div className="min-w-0">
-          <p className={`text-sm truncate ${comp ? 'line-through text-charcoal/30' : 'text-charcoal'}`}>{item.title}</p>
+          <p className={`text-sm truncate ${comp ? 'line-through text-charcoal/30 dark:text-white/30' : 'text-charcoal dark:text-white'}`}>{item.title}</p>
           <div className="flex items-center gap-1.5 flex-wrap">
             {!isTemplate && item.assigned_to_name && (
               <span className="text-[11px] text-accent font-medium">→ {item.assigned_to_name}</span>
             )}
-            {comp && <p className="text-[11px] text-charcoal/30">{comp.completed_by_name}</p>}
+            {comp && <p className="text-[11px] text-charcoal/30 dark:text-white/30">{comp.completed_by_name}</p>}
           </div>
         </div>
       </div>
       <button
         onClick={() => onDelete(item.id)}
         disabled={deleting === item.id}
-        className="text-sm text-charcoal/35 hover:text-danger transition-colors shrink-0 px-2.5 py-1.5 rounded"
+        className="text-sm text-charcoal/35 dark:text-white/30 hover:text-danger transition-colors shrink-0 px-2.5 py-1.5 rounded"
         title="Remove task"
       >{deleting === item.id ? '…' : '×'}</button>
     </div>
@@ -105,18 +105,18 @@ function DeptColumn({ role, label, color, templates, oneOffs, completions, onDel
   const deptTotal = deptTemplates.length + deptOneOffs.length
 
   return (
-    <div className="flex-1 min-w-0 bg-white rounded-2xl border-charcoal/10 overflow-hidden">
+    <div className="flex-1 min-w-0 bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 overflow-hidden">
       {/* Column header */}
-      <div className={`px-4 py-3 border-b border-charcoal/8 flex items-center justify-between ${color}`}>
+      <div className={`px-4 py-3 border-b border-charcoal/8 dark:border-white/8 flex items-center justify-between ${color}`}>
         <p className="text-sm font-semibold">{label}</p>
         <span className="text-xs font-medium opacity-70">{deptDone}/{deptTotal}</span>
       </div>
 
-      <div className="p-4 flex flex-col gap-0 divide-y divide-charcoal/6">
+      <div className="p-4 flex flex-col gap-0 divide-y divide-charcoal/6 dark:divide-white/8">
         {/* Recurring */}
         {deptTemplates.length > 0 && (
           <div className="pb-3">
-            <p className="text-[11px] tracking-widest uppercase text-charcoal/30 mb-2">Recurring</p>
+            <p className="text-[11px] tracking-widest uppercase text-charcoal/30 dark:text-white/30 mb-2">Recurring</p>
             {deptTemplates.map(t => (
               <ManagerTaskRow key={t.id} item={t} isTemplate completions={completions} onDelete={onDeleteTemplate} deleting={deleting} />
             ))}
@@ -126,7 +126,7 @@ function DeptColumn({ role, label, color, templates, oneOffs, completions, onDel
         {/* One-offs */}
         {deptOneOffs.length > 0 && (
           <div className={deptTemplates.length > 0 ? 'pt-3' : ''}>
-            <p className="text-[11px] tracking-widest uppercase text-charcoal/30 mb-2">One-off</p>
+            <p className="text-[11px] tracking-widest uppercase text-charcoal/30 dark:text-white/30 mb-2">One-off</p>
             {deptOneOffs.map(o => (
               <ManagerTaskRow key={o.id} item={o} isTemplate={false} completions={completions} onDelete={onDeleteOneOff} deleting={deleting} />
             ))}
@@ -245,33 +245,33 @@ function ManagerTasksView() {
       <div className="flex gap-2">
         <button
           onClick={() => { setShowAddTemplate(v => !v); setShowAddOneOff(false) }}
-          className="text-[11px] tracking-widest uppercase text-charcoal/50 hover:text-charcoal transition-colors border-b border-charcoal/20"
+          className="text-[11px] tracking-widest uppercase text-charcoal/50 dark:text-white/40 hover:text-charcoal dark:hover:text-white transition-colors border-b border-charcoal/20 dark:border-white/20"
         >
           + Recurring Task
         </button>
-        <span className="text-charcoal/20 text-xs self-end pb-0.5">·</span>
+        <span className="text-charcoal/20 dark:text-white/20 text-xs self-end pb-0.5">·</span>
         <button
           onClick={() => { setShowAddOneOff(v => !v); setShowAddTemplate(false) }}
-          className="text-[11px] tracking-widest uppercase text-charcoal/50 hover:text-charcoal transition-colors border-b border-charcoal/20"
+          className="text-[11px] tracking-widest uppercase text-charcoal/50 dark:text-white/40 hover:text-charcoal dark:hover:text-white transition-colors border-b border-charcoal/20 dark:border-white/20"
         >
           + One-Off Task
         </button>
       </div>
 
       {showAddTemplate && (
-        <div className="p-4 rounded-2xl bg-white border border-charcoal/10 flex flex-col gap-3">
-          <p className="text-[11px] tracking-widest uppercase text-charcoal/40">New Recurring Task</p>
+        <div className="p-4 rounded-2xl bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 flex flex-col gap-3">
+          <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">New Recurring Task</p>
           <input
             value={tForm.title}
             onChange={(e) => setTForm((f) => ({ ...f, title: e.target.value }))}
             placeholder="e.g. Complete daily checklist"
-            className="px-4 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+            className="px-4 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
           />
           <div className="flex gap-2 flex-wrap">
             {[{ value: 'all', label: 'All Roles' }, ...customRoles].map((r) => (
               <button key={r.value} type="button" onClick={() => setTForm(f => ({ ...f, job_role: r.value }))}
                 className={['px-3 py-1.5 rounded-full text-xs font-medium border transition-all',
-                  tForm.job_role === r.value ? 'bg-charcoal text-cream border-charcoal' : 'bg-white text-charcoal/50 border-charcoal/15',
+                  tForm.job_role === r.value ? 'bg-charcoal text-cream border-charcoal dark:border-white' : 'bg-white dark:bg-paperDark text-charcoal/50 dark:text-white/40 border-charcoal/15 dark:border-white/15',
                 ].join(' ')}>
                 {r.label}
               </button>
@@ -282,7 +282,7 @@ function ManagerTasksView() {
               className="flex-1 bg-charcoal text-cream py-2 rounded-lg text-sm font-medium disabled:opacity-40">
               {saving ? 'Saving…' : 'Save Template →'}
             </button>
-            <button onClick={() => setShowAddTemplate(false)} className="px-4 py-2 rounded-lg border border-charcoal/15 text-sm text-charcoal/50">
+            <button onClick={() => setShowAddTemplate(false)} className="px-4 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 text-sm text-charcoal/50 dark:text-white/40">
               Cancel
             </button>
           </div>
@@ -290,27 +290,27 @@ function ManagerTasksView() {
       )}
 
       {showAddOneOff && (
-        <div className="p-4 rounded-2xl bg-white border border-charcoal/10 flex flex-col gap-3">
-          <p className="text-[11px] tracking-widest uppercase text-charcoal/40">New One-Off Task</p>
+        <div className="p-4 rounded-2xl bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 flex flex-col gap-3">
+          <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">New One-Off Task</p>
           <input
             value={oForm.title}
             onChange={(e) => setOForm((f) => ({ ...f, title: e.target.value }))}
             placeholder="e.g. Check delivery from supplier"
-            className="px-4 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+            className="px-4 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
           />
           <div className="flex items-center gap-2 flex-wrap">
-            <label className="text-[11px] text-charcoal/50 whitespace-nowrap">Due date:</label>
+            <label className="text-[11px] text-charcoal/50 dark:text-white/40 whitespace-nowrap">Due date:</label>
             <input type="date" value={oForm.due_date}
               onChange={(e) => setOForm(f => ({ ...f, due_date: e.target.value }))}
-              className="px-3 py-2 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+              className="px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
             />
           </div>
           <div>
-            <p className="text-[11px] text-charcoal/50 mb-2">Assign to:</p>
+            <p className="text-[11px] text-charcoal/50 dark:text-white/40 mb-2">Assign to:</p>
             <div className="flex flex-col gap-2">
               <select value={oForm.assigned_to_staff_id}
                 onChange={(e) => setOForm(f => ({ ...f, assigned_to_staff_id: e.target.value }))}
-                className="px-3 py-2 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20">
+                className="px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20">
                 <option value="">Specific person (optional)</option>
                 {staffList.map((s) => {
                   const roleLabel = customRoles.find(r => r.value === s.job_role)?.label ?? s.job_role
@@ -322,7 +322,7 @@ function ManagerTasksView() {
                   {[{ value: 'all', label: 'All Roles' }, ...customRoles].map((r) => (
                     <button key={r.value} type="button" onClick={() => setOForm(f => ({ ...f, job_role: r.value }))}
                       className={['px-3 py-1.5 rounded-full text-xs font-medium border transition-all',
-                        oForm.job_role === r.value ? 'bg-charcoal text-cream border-charcoal' : 'bg-white text-charcoal/50 border-charcoal/15',
+                        oForm.job_role === r.value ? 'bg-charcoal text-cream border-charcoal dark:border-white' : 'bg-white dark:bg-paperDark text-charcoal/50 dark:text-white/40 border-charcoal/15 dark:border-white/15',
                       ].join(' ')}>
                       {r.label}
                     </button>
@@ -336,7 +336,7 @@ function ManagerTasksView() {
               className="flex-1 bg-charcoal text-cream py-2 rounded-lg text-sm font-medium disabled:opacity-40">
               {saving ? 'Saving…' : 'Assign Task →'}
             </button>
-            <button onClick={() => setShowAddOneOff(false)} className="px-4 py-2 rounded-lg border border-charcoal/15 text-sm text-charcoal/50">
+            <button onClick={() => setShowAddOneOff(false)} className="px-4 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 text-sm text-charcoal/50 dark:text-white/40">
               Cancel
             </button>
           </div>
@@ -353,7 +353,7 @@ function ManagerTasksView() {
               key={role.value ?? i}
               role={role.value}
               label={role.label}
-              color={role.color?.replace('text-', 'text-').replace('bg-', 'bg-') ?? 'bg-charcoal/5 text-charcoal'}
+              color={role.color?.replace('text-', 'text-').replace('bg-', 'bg-') ?? 'bg-charcoal/5 dark:bg-white/5 text-charcoal dark:text-white'}
               templates={templates}
               oneOffs={oneOffs}
               completions={completions}
@@ -368,11 +368,11 @@ function ManagerTasksView() {
 
       {/* ── All-roles tasks ───────────────────────────────────────────────── */}
       {(allRolesTemplates.length > 0 || allRolesOneOffs.length > 0) && (
-        <div className="bg-white rounded-2xl border-charcoal/10 overflow-hidden">
-          <div className="px-4 py-3 border-b border-charcoal/8 bg-charcoal/3">
-            <p className="text-sm font-semibold text-charcoal">All Roles</p>
+        <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 overflow-hidden">
+          <div className="px-4 py-3 border-b border-charcoal/8 dark:border-white/8 bg-charcoal/3 dark:bg-white/5">
+            <p className="text-sm font-semibold text-charcoal dark:text-white">All Roles</p>
           </div>
-          <div className="p-4 flex flex-col divide-y divide-charcoal/6">
+          <div className="p-4 flex flex-col divide-y divide-charcoal/6 dark:divide-white/8">
             {[...allRolesTemplates, ...allRolesOneOffs].map((item) => {
               const isTemplate = !('due_date' in item)
               return (
@@ -418,11 +418,11 @@ function TaskItemRow({ item, assignmentId, toggleItem }) {
     <button
       onClick={handleToggle}
       disabled={busy}
-      className="min-h-11 flex items-center gap-3 w-full text-left py-2.5 px-4 group disabled:opacity-70 hover:bg-charcoal/3 transition-colors border-t border-charcoal/5 first:border-t-0"
+      className="min-h-11 flex items-center gap-3 w-full text-left py-2.5 px-4 group disabled:opacity-70 hover:bg-charcoal/3 dark:hover:bg-white/5 transition-colors border-t border-charcoal/5 dark:border-white/5 first:border-t-0"
     >
       <span className={[
         'w-[22px] h-[22px] rounded-md border-[1.5px] shrink-0 flex items-center justify-center transition-all',
-        item.completed ? 'bg-success border-success' : 'border-charcoal/25 group-hover:border-charcoal/45',
+        item.completed ? 'bg-success border-success' : 'border-charcoal/25 dark:border-white/25 group-hover:border-charcoal/45 dark:group-hover:border-white/45',
       ].join(' ')}>
         {item.completed && (
           <svg className="w-3 h-3 text-white" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -430,11 +430,11 @@ function TaskItemRow({ item, assignmentId, toggleItem }) {
           </svg>
         )}
       </span>
-      <span className={`text-[13.5px] leading-snug flex-1 font-medium ${item.completed ? 'line-through text-charcoal/35' : 'text-charcoal'}`}>
+      <span className={`text-[13.5px] leading-snug flex-1 font-medium ${item.completed ? 'line-through text-charcoal/35 dark:text-white/30' : 'text-charcoal dark:text-white'}`}>
         {item.title}
       </span>
       {!item.completed && (
-        <svg width="6" height="10" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="text-charcoal/25 shrink-0">
+        <svg width="6" height="10" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="text-charcoal/25 dark:text-white/25 shrink-0">
           <path d="M1 1l4 4-4 4"/>
         </svg>
       )}
@@ -448,19 +448,19 @@ function StaffDutyCard({ duty, toggleItem }) {
   const pct     = total > 0 ? Math.round((done / total) * 100) : 0
   const allDone = done === total && total > 0
   return (
-    <div className="bg-white rounded-[14px] border border-charcoal/8 overflow-hidden">
-      <div className="flex items-center justify-between px-4 pt-3.5 pb-3 border-b border-charcoal/6">
+    <div className="bg-white dark:bg-paperDark rounded-[14px] border border-charcoal/8 dark:border-white/8 overflow-hidden">
+      <div className="flex items-center justify-between px-4 pt-3.5 pb-3 border-b border-charcoal/6 dark:border-white/8">
         <div className="flex items-center gap-2 min-w-0">
-          <span className="font-mono text-[11px] text-charcoal/40 tracking-widest uppercase font-semibold shrink-0">Duty</span>
-          <span className="text-charcoal/25 text-xs">·</span>
-          <p className="text-[15px] font-semibold text-charcoal truncate">{duty.title}</p>
+          <span className="font-mono text-[11px] text-charcoal/40 dark:text-white/35 tracking-widest uppercase font-semibold shrink-0">Duty</span>
+          <span className="text-charcoal/25 dark:text-white/25 text-xs">·</span>
+          <p className="text-[15px] font-semibold text-charcoal dark:text-white truncate">{duty.title}</p>
         </div>
-        <span className={`text-[11px] font-mono font-semibold shrink-0 ml-2 ${allDone ? 'text-success' : 'text-charcoal/35'}`}>
+        <span className={`text-[11px] font-mono font-semibold shrink-0 ml-2 ${allDone ? 'text-success' : 'text-charcoal/35 dark:text-white/30'}`}>
           {done}/{total}
         </span>
       </div>
       {total > 0 && (
-        <div className="h-[3px] bg-charcoal/6">
+        <div className="h-[3px] bg-charcoal/6 dark:bg-white/8">
           <div className={`h-full transition-all ${allDone ? 'bg-success' : 'bg-warning'}`} style={{ width: `${Math.max(pct, 2)}%` }} />
         </div>
       )}
@@ -476,8 +476,8 @@ function StaffDutyCard({ duty, toggleItem }) {
 function DutiesTab({ duties, loading, toggleItem }) {
   if (loading) return <SkeletonList rows={3} />
   if (!duties.length) return (
-    <div className="bg-white rounded-[14px] border border-charcoal/8 p-8 text-center">
-      <p className="text-sm text-charcoal/40">No duties assigned for today</p>
+    <div className="bg-white dark:bg-paperDark rounded-[14px] border border-charcoal/8 dark:border-white/8 p-8 text-center">
+      <p className="text-sm text-charcoal/40 dark:text-white/35">No duties assigned for today</p>
     </div>
   )
   return (
@@ -490,14 +490,14 @@ function DutiesTab({ duties, loading, toggleItem }) {
 function CleaningTab({ tasks, loading, error }) {
   if (loading) return <SkeletonList rows={4} />
   if (error) return (
-    <div className="bg-white rounded-[14px] border border-danger/20 p-8 text-center">
+    <div className="bg-white dark:bg-paperDark rounded-[14px] border border-danger/20 p-8 text-center">
       <p className="text-sm text-danger/80">Could not load the cleaning schedule</p>
-      <p className="text-[11px] text-charcoal/40 mt-1">Pull to refresh, or tell your manager if it keeps happening.</p>
+      <p className="text-[11px] text-charcoal/40 dark:text-white/35 mt-1">Pull to refresh, or tell your manager if it keeps happening.</p>
     </div>
   )
   if (!tasks.length) return (
-    <div className="bg-white rounded-[14px] border border-charcoal/8 p-8 text-center">
-      <p className="text-sm text-charcoal/40">No cleaning tasks configured</p>
+    <div className="bg-white dark:bg-paperDark rounded-[14px] border border-charcoal/8 dark:border-white/8 p-8 text-center">
+      <p className="text-sm text-charcoal/40 dark:text-white/35">No cleaning tasks configured</p>
     </div>
   )
   // A task drops off everyone's list once it's ticked, and comes back only when
@@ -512,20 +512,20 @@ function CleaningTab({ tasks, loading, error }) {
       {pending.length > 0 && (
         <div>
           <div className="flex items-baseline justify-between px-1 mb-2">
-            <span className="text-[11px] font-mono tracking-widest uppercase text-charcoal/40 font-semibold">Pending</span>
-            <span className="text-[11px] font-mono text-charcoal/35">{done.length} / {tasks.length}</span>
+            <span className="text-[11px] font-mono tracking-widest uppercase text-charcoal/40 dark:text-white/35 font-semibold">Pending</span>
+            <span className="text-[11px] font-mono text-charcoal/35 dark:text-white/30">{done.length} / {tasks.length}</span>
           </div>
-          <div className="bg-white rounded-[14px] border border-charcoal/8 overflow-hidden">
-            <div className="h-[3px] bg-charcoal/6">
+          <div className="bg-white dark:bg-paperDark rounded-[14px] border border-charcoal/8 dark:border-white/8 overflow-hidden">
+            <div className="h-[3px] bg-charcoal/6 dark:bg-white/8">
               <div className="h-full bg-warning transition-all" style={{ width: `${Math.max(pct, 2)}%` }} />
             </div>
             {pending.map((t, i) => (
-              <div key={t.id} className={`px-4 py-3 flex items-center gap-3 ${i > 0 ? 'border-t border-charcoal/5' : ''}`}>
-                <span className="w-[22px] h-[22px] rounded-md border-[1.5px] border-charcoal/25 shrink-0" />
+              <div key={t.id} className={`px-4 py-3 flex items-center gap-3 ${i > 0 ? 'border-t border-charcoal/5 dark:border-white/5' : ''}`}>
+                <span className="w-[22px] h-[22px] rounded-md border-[1.5px] border-charcoal/25 dark:border-white/25 shrink-0" />
                 <div className="flex-1 min-w-0">
-                  <p className="text-[13.5px] font-medium text-charcoal">{t.title}</p>
+                  <p className="text-[13.5px] font-medium text-charcoal dark:text-white">{t.title}</p>
                 </div>
-                <span className="text-[11px] font-mono font-semibold px-2 py-0.5 rounded bg-charcoal/6 text-charcoal/40 uppercase tracking-wide">
+                <span className="text-[11px] font-mono font-semibold px-2 py-0.5 rounded bg-charcoal/6 dark:bg-white/8 text-charcoal/40 dark:text-white/35 uppercase tracking-wide">
                   {t.frequency}
                 </span>
               </div>
@@ -535,18 +535,18 @@ function CleaningTab({ tasks, loading, error }) {
       )}
       {done.length > 0 && (
         <div>
-          <span className="text-[11px] font-mono tracking-widest uppercase text-charcoal/35 font-semibold px-1 mb-2 block">Completed</span>
-          <div className="bg-white rounded-[14px] border border-charcoal/8 overflow-hidden">
+          <span className="text-[11px] font-mono tracking-widest uppercase text-charcoal/35 dark:text-white/30 font-semibold px-1 mb-2 block">Completed</span>
+          <div className="bg-white dark:bg-paperDark rounded-[14px] border border-charcoal/8 dark:border-white/8 overflow-hidden">
             {done.map((t, i) => (
-              <div key={t.id} className={`px-4 py-3 flex items-center gap-3 ${i > 0 ? 'border-t border-charcoal/5' : ''}`}>
+              <div key={t.id} className={`px-4 py-3 flex items-center gap-3 ${i > 0 ? 'border-t border-charcoal/5 dark:border-white/5' : ''}`}>
                 <span className="w-[22px] h-[22px] rounded-md bg-success border-success border-[1.5px] flex items-center justify-center shrink-0">
                   <svg className="w-3 h-3 text-white" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg>
                 </span>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[13.5px] text-charcoal/40 line-through">{t.title}</p>
+                  <p className="text-[13.5px] text-charcoal/40 dark:text-white/35 line-through">{t.title}</p>
                   {/* Says who cleared it, so nobody wonders why it's gone. */}
                   {t.lastCompletion?.completed_by_name && (
-                    <p className="text-[11px] text-charcoal/35 mt-0.5 no-underline">
+                    <p className="text-[11px] text-charcoal/35 dark:text-white/30 mt-0.5 no-underline">
                       {t.lastCompletion.completed_by_name} · {formatDistanceToNow(new Date(t.lastCompletion.completed_at), { addSuffix: true })}
                     </p>
                   )}
@@ -563,35 +563,35 @@ function CleaningTab({ tasks, loading, error }) {
 function AllergensTab({ venueSlug }) {
   return (
     <div className="flex flex-col gap-2.5">
-      <div className="bg-white rounded-[14px] border border-charcoal/8 overflow-hidden">
-        <div className="px-4 pt-3.5 pb-3 border-b border-charcoal/6">
-          <p className="text-[11px] font-mono tracking-widest uppercase text-charcoal/40 font-semibold">Today's acknowledgement</p>
+      <div className="bg-white dark:bg-paperDark rounded-[14px] border border-charcoal/8 dark:border-white/8 overflow-hidden">
+        <div className="px-4 pt-3.5 pb-3 border-b border-charcoal/6 dark:border-white/8">
+          <p className="text-[11px] font-mono tracking-widest uppercase text-charcoal/40 dark:text-white/35 font-semibold">Today's acknowledgement</p>
         </div>
         <Link
           to={`/v/${venueSlug}/allergens`}
-          className="flex items-center gap-3 px-4 py-3.5 hover:bg-charcoal/3 transition-colors"
+          className="flex items-center gap-3 px-4 py-3.5 hover:bg-charcoal/3 dark:hover:bg-white/5 transition-colors"
         >
-          <span className="w-[22px] h-[22px] rounded-md border-[1.5px] border-charcoal/25 shrink-0" />
-          <p className="text-[13.5px] font-medium text-charcoal flex-1">View and confirm today's allergen sheet</p>
-          <svg width="6" height="10" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="text-charcoal/25 shrink-0">
+          <span className="w-[22px] h-[22px] rounded-md border-[1.5px] border-charcoal/25 dark:border-white/25 shrink-0" />
+          <p className="text-[13.5px] font-medium text-charcoal dark:text-white flex-1">View and confirm today's allergen sheet</p>
+          <svg width="6" height="10" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="text-charcoal/25 dark:text-white/25 shrink-0">
             <path d="M1 1l4 4-4 4"/>
           </svg>
         </Link>
       </div>
 
-      <div className="bg-white rounded-[14px] border border-charcoal/8 overflow-hidden">
-        <div className="px-4 pt-3.5 pb-3 border-b border-charcoal/6">
-          <p className="text-[11px] font-mono tracking-widest uppercase text-charcoal/40 font-semibold">Reference</p>
+      <div className="bg-white dark:bg-paperDark rounded-[14px] border border-charcoal/8 dark:border-white/8 overflow-hidden">
+        <div className="px-4 pt-3.5 pb-3 border-b border-charcoal/6 dark:border-white/8">
+          <p className="text-[11px] font-mono tracking-widest uppercase text-charcoal/40 dark:text-white/35 font-semibold">Reference</p>
         </div>
         <Link
           to={`/v/${venueSlug}/allergens`}
-          className="flex items-center gap-3 px-4 py-3 hover:bg-charcoal/3 transition-colors"
+          className="flex items-center gap-3 px-4 py-3 hover:bg-charcoal/3 dark:hover:bg-white/5 transition-colors"
         >
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-charcoal/35 shrink-0">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-charcoal/35 dark:text-white/30 shrink-0">
             <circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/>
           </svg>
-          <span className="text-[13.5px] font-medium text-charcoal flex-1">Full allergen matrix</span>
-          <svg width="6" height="10" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="text-charcoal/25 shrink-0">
+          <span className="text-[13.5px] font-medium text-charcoal dark:text-white flex-1">Full allergen matrix</span>
+          <svg width="6" height="10" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="text-charcoal/25 dark:text-white/25 shrink-0">
             <path d="M1 1l4 4-4 4"/>
           </svg>
         </Link>
@@ -650,11 +650,11 @@ function StaffTasksView({ session }) {
       {/* Page header: mono label + large title + date picker */}
       <div className="flex items-start justify-between gap-3 px-0.5">
         <div>
-          <span className="text-[11px] font-mono tracking-widest uppercase text-charcoal/40 font-semibold block">Tasks</span>
-          <h1 className="text-[28px] font-bold text-charcoal leading-tight mt-0.5">{TAB_TITLE[activeTab]}</h1>
+          <span className="text-[11px] font-mono tracking-widest uppercase text-charcoal/40 dark:text-white/35 font-semibold block">Tasks</span>
+          <h1 className="text-[28px] font-bold text-charcoal dark:text-white leading-tight mt-0.5">{TAB_TITLE[activeTab]}</h1>
         </div>
         {/* Day selector */}
-        <div className="flex p-[3px] bg-white border border-charcoal/10 rounded-xl mt-1 shrink-0">
+        <div className="flex p-[3px] bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-xl mt-1 shrink-0">
           {[-1, 0, 1].map((offset) => (
             <button
               key={offset}
@@ -663,7 +663,7 @@ function StaffTasksView({ session }) {
                 'px-3 py-1.5 rounded-lg text-[12px] font-semibold transition-all',
                 dayOffset === offset
                   ? 'bg-charcoal text-cream shadow-sm'
-                  : 'text-charcoal/50 hover:text-charcoal/75',
+                  : 'text-charcoal/50 dark:text-white/40 hover:text-charcoal/75 dark:hover:text-white/62',
               ].join(' ')}
             >
               {dayLabel(offset)}
@@ -673,7 +673,7 @@ function StaffTasksView({ session }) {
       </div>
 
       {/* Tab switcher with counts */}
-      <div className="flex gap-1 p-[3px] bg-white border border-charcoal/10 rounded-[12px]">
+      <div className="flex gap-1 p-[3px] bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[12px]">
         {TABS.map(t => (
           <button
             key={t.id}
@@ -682,11 +682,11 @@ function StaffTasksView({ session }) {
               'flex-1 py-2 rounded-[9px] text-[13px] font-semibold transition-all flex items-center justify-center gap-1.5',
               activeTab === t.id
                 ? 'bg-charcoal text-cream shadow-sm'
-                : 'text-charcoal/55 hover:text-charcoal/80',
+                : 'text-charcoal/55 dark:text-white/45 hover:text-charcoal/80 dark:hover:text-white/68',
             ].join(' ')}
           >
             {t.label}
-            <span className={`text-[11px] font-mono tabular-nums ${activeTab === t.id ? 'text-cream/60' : 'text-charcoal/35'}`}>
+            <span className={`text-[11px] font-mono tabular-nums ${activeTab === t.id ? 'text-cream/60' : 'text-charcoal/35 dark:text-white/30'}`}>
               {t.count}
             </span>
           </button>
@@ -708,7 +708,7 @@ export default function TasksPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      {isManager && <h1 className="text-2xl font-bold text-charcoal">Task Manager</h1>}
+      {isManager && <h1 className="text-2xl font-bold text-charcoal dark:text-white">Task Manager</h1>}
       {isManager && (
         <div className="flex gap-1.5">
           {['tasks', 'duties'].map(t => (
@@ -719,7 +719,7 @@ export default function TasksPage() {
                 'px-4 py-1.5 rounded-full text-sm font-medium transition-all',
                 tab === t
                   ? 'bg-charcoal text-cream'
-                  : 'bg-charcoal/8 text-charcoal/50 hover:bg-charcoal/12 hover:text-charcoal/70',
+                  : 'bg-charcoal/8 dark:bg-white/8 text-charcoal/50 dark:text-white/40 hover:bg-charcoal/12 dark:hover:bg-white/15 hover:text-charcoal/70 dark:hover:text-white/60',
               ].join(' ')}
             >
               {t === 'tasks' ? 'Tasks' : 'Duties'}
