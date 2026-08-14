@@ -133,6 +133,7 @@ const ChecksWorklistPage = lazy(() => import('./pages/compliance/ChecksWorklistP
 
 // Team hub
 const TeamHubPage   = lazy(() => import('./pages/team/TeamHubPage'))
+const TeamAttendanceTodayPage = lazy(() => import('./pages/team/TeamAttendanceTodayPage'))
 const CalendarPage  = lazy(() => import('./pages/team/CalendarPage'))
 
 // HR
@@ -394,6 +395,7 @@ function VenueRoutes() {
             <Route path="cleaning"          element={wrap(CleaningPage)} />
             <Route path="opening-closing"   element={wrap(OpeningClosingPage)} />
             <Route path="team"              element={wrap(TeamHubPage,    RequireManager)} />
+            <Route path="team/attendance"   element={wrap(TeamAttendanceTodayPage, RequireManager)} />
             <Route path="calendar"          element={wrap(CalendarPage,   RequireManager)} />
             <Route path="hr"                element={wrap(HRHubPage,      RequireManager)} />
             <Route path="hr/:staffId"       element={wrap(EmployeeRecordPage, RequireManager)} />

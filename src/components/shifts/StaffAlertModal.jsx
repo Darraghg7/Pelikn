@@ -311,7 +311,7 @@ export default function StaffAlertModal({
     const result = await onVerifyManagerPin(selectedManager.id, pin)
     setPinLoading(false)
     if (result.ok) {
-      onAcknowledge(selectedReason)
+      onAcknowledge(selectedReason, selectedManager.id)
     } else {
       setPin('')
       setPinError(result.error ?? 'Incorrect PIN, try again')

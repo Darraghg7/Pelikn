@@ -253,7 +253,7 @@ export default function TeamHubPage() {
             onShift={data?.onShift ?? []}
             lateCount={data?.lateCount ?? 0}
             loading={loading}
-            onClick={() => navigate(vp('/timesheet'))}
+            onClick={() => navigate(vp('/team/attendance'))}
           />
         </div>
       )}

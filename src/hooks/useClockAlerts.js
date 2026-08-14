@@ -274,7 +274,7 @@ export function useClockAlerts({ staffId, status, breakStartAt, onEndBreak }) {
     }
   }, [staffId, venueId, breakStartAt, breakAllowanceMins, lateGraceMins, session?.staffRole, session?.staffName, toast])
 
-  const handleAcknowledge = useCallback(async (reason) => {
+  const handleAcknowledge = useCallback(async (reason, managerId) => {
     const current = alert
     setAlert(null) // always close immediately — never leave staff trapped
 
@@ -288,11 +288,12 @@ export function useClockAlerts({ staffId, status, breakStartAt, onEndBreak }) {
       p_mins_over:       current.minsOver,
       p_offence_type:    current.type,
       p_is_disciplinary: true,
+      p_manager_id:      managerId ?? null,
     })
     if (error) {
       supabase
         .from('clock_events')
-        .update({ acknowledged_at: new Date().toISOString() })
+        .update({ acknowledged_at: new Date().toISOString(), acknowledged_by: managerId ?? null })
         .eq('id', current.clockEventId)
         .then(
           ({ error: ackErr }) => { if (ackErr) captureSilent(ackErr, 'useClockAlerts:ack-clock-event') },

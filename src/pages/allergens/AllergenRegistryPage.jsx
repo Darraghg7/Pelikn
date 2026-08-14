@@ -105,19 +105,19 @@ export default function AllergenRegistryPage() {
     <div className="flex flex-col gap-6">
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-4">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
           <h1 className="text-2xl font-bold text-charcoal dark:text-white">Allergen Checklists</h1>
           {isManager && (
             <div className="flex gap-2">
               <Link
                 to={`/v/${venueSlug}/allergens/procedure`}
-                className="text-xs px-3 py-1.5 rounded-lg border border-charcoal/15 dark:border-white/15 text-charcoal/50 dark:text-white/40 hover:text-charcoal dark:hover:text-white hover:border-charcoal/30 dark:hover:border-white/30 transition-colors"
+                className="text-xs px-3 py-1.5 rounded-lg border border-charcoal/15 dark:border-white/15 text-charcoal/50 dark:text-white/40 hover:text-charcoal dark:hover:text-white hover:border-charcoal/30 dark:hover:border-white/30 transition-colors whitespace-nowrap"
               >
                 Procedure →
               </Link>
               <Link
                 to={`/v/${venueSlug}/allergens/ppds`}
-                className="text-xs px-3 py-1.5 rounded-lg border border-charcoal/15 dark:border-white/15 text-charcoal/50 dark:text-white/40 hover:text-charcoal dark:hover:text-white hover:border-charcoal/30 dark:hover:border-white/30 transition-colors"
+                className="text-xs px-3 py-1.5 rounded-lg border border-charcoal/15 dark:border-white/15 text-charcoal/50 dark:text-white/40 hover:text-charcoal dark:hover:text-white hover:border-charcoal/30 dark:hover:border-white/30 transition-colors whitespace-nowrap"
               >
                 PPDS / Natasha's Law →
               </Link>
