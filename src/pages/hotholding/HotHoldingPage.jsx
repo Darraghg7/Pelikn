@@ -235,7 +235,7 @@ export default function HotHoldingPage() {
             onClick={() => setTab(key)}
             className={[
               'px-4 py-2 rounded-lg text-sm font-medium transition-all',
-              tab === key ? 'bg-white dark:bg-paperDark text-charcoal dark:text-white shadow-sm' : 'text-charcoal/50 dark:text-white/40 hover:text-charcoal/75 dark:hover:text-white/62',
+              tab === key ? 'bg-white dark:bg-paperDark text-charcoal dark:text-white shadow-sm' : 'text-charcoal/50 dark:text-white/40 hover:text-charcoal/75 dark:hover:text-white/60',
             ].join(' ')}
           >
             {label}
