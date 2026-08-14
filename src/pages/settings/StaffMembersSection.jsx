@@ -883,8 +883,12 @@ export default function StaffMembersSection() {
       {/* Staff list */}
       <div className="flex flex-col gap-3">
         {staff.map((s, idx) => {
-          const initial   = (s.name || '?').charAt(0).toUpperCase()
-          const roleLabel = (staffRoleMap[s.id] ?? [])[0] ?? (customRoles.find(r => r.value === s.job_role)?.label ?? s.job_role)
+          const initial     = (s.name || '?').charAt(0).toUpperCase()
+          const jobRoleLabel = customRoles.find(r => r.value === s.job_role)?.label ?? s.job_role
+          const assignedRole = (staffRoleMap[s.id] ?? [])[0]
+          // Only show the assigned-role line when it's actually different info
+          // from the job-role pill above it — otherwise it's the same text twice.
+          const roleLabel = assignedRole && assignedRole !== jobRoleLabel ? assignedRole : null
           const isLocked = s.pin_locked_until && new Date(s.pin_locked_until) > new Date()
 
           return (
@@ -914,7 +918,7 @@ export default function StaffMembersSection() {
                     <p className="text-[15px] font-semibold text-charcoal dark:text-white leading-tight">{s.name}</p>
                     {s.job_role && (
                       <span className="text-[11px] font-semibold tracking-wider uppercase px-1.5 py-0.5 rounded-full bg-brand/8 text-brand">
-                        {customRoles.find(r => r.value === s.job_role)?.label ?? s.job_role}
+                        {jobRoleLabel}
                       </span>
                     )}
                     {isLocked && (
@@ -932,12 +936,14 @@ export default function StaffMembersSection() {
                       </span>
                     )}
                   </div>
-                  <p className="text-xs text-charcoal/45 dark:text-white/40 leading-tight mt-0.5">
-                    {roleLabel}
-                    {s.start_date && (
-                      <> · since {new Date(s.start_date).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })}</>
-                    )}
-                  </p>
+                  {(roleLabel || s.start_date) && (
+                    <p className="text-xs text-charcoal/45 dark:text-white/40 leading-tight mt-0.5">
+                      {roleLabel}
+                      {s.start_date && (
+                        <>{roleLabel ? ' · ' : ''}since {new Date(s.start_date).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })}</>
+                      )}
+                    </p>
+                  )}
 
                   {s.is_active && (
                     <div className="mt-2">

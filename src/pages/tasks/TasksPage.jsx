@@ -353,7 +353,7 @@ function ManagerTasksView() {
               key={role.value ?? i}
               role={role.value}
               label={role.label}
-              color={role.color?.replace('text-', 'text-').replace('bg-', 'bg-') ?? 'bg-charcoal/5 dark:bg-white/5 text-charcoal dark:text-white'}
+              color={role.color || 'bg-charcoal/5 dark:bg-white/5 text-charcoal dark:text-white'}
               templates={templates}
               oneOffs={oneOffs}
               completions={completions}
