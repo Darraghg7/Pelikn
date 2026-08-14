@@ -196,7 +196,7 @@ function BtnDefault({ onClick, children, className }) {
   return (
     <button
       onClick={onClick}
-      className={`inline-flex items-center gap-[7px] px-3.5 py-[9px] rounded-[10px] cursor-pointer text-[12.5px] font-semibold whitespace-nowrap bg-white dark:bg-paperDark text-charcoal/75 dark:text-white/62 border border-charcoal/10 dark:border-white/10 ${className ?? ''}`}
+      className={`inline-flex items-center gap-[7px] px-3.5 py-[9px] rounded-[10px] cursor-pointer text-[12.5px] font-semibold whitespace-nowrap bg-white dark:bg-paperDark text-charcoal/75 dark:text-white/60 border border-charcoal/10 dark:border-white/10 ${className ?? ''}`}
     >
       {children}
     </button>
@@ -395,7 +395,7 @@ function DocumentsTab({ staffId, venueId, onDocsCountChange }) {
                 <div className="flex gap-[7px] shrink-0">
                   <button
                     onClick={() => openHrAttachment(doc, toast)}
-                    className="inline-flex items-center gap-[7px] px-3 py-1.5 rounded-[10px] text-[11px] font-semibold whitespace-nowrap bg-white dark:bg-paperDark text-charcoal/75 dark:text-white/62 border border-charcoal/10 dark:border-white/10"
+                    className="inline-flex items-center gap-[7px] px-3 py-1.5 rounded-[10px] text-[11px] font-semibold whitespace-nowrap bg-white dark:bg-paperDark text-charcoal/75 dark:text-white/60 border border-charcoal/10 dark:border-white/10"
                   >
                     View
                   </button>
@@ -698,7 +698,7 @@ function DisciplinaryTab({ staffId, venueId, onStrikesCountChange }) {
                   {i + 1}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-[13px] font-semibold text-charcoal/75 dark:text-white/62">
+                  <div className="text-[13px] font-semibold text-charcoal/75 dark:text-white/60">
                     {item.minsLate >= 1 ? `${item.minsLate} min${item.minsLate !== 1 ? 's' : ''} late` : `${item.secsLate}s late`}
                     <span className="font-mono text-[11px] font-normal text-charcoal/30 dark:text-white/30 ml-2">
                       scheduled {item.scheduledTime.slice(0, 5)}
@@ -755,7 +755,7 @@ function DisciplinaryTab({ staffId, venueId, onStrikesCountChange }) {
                         </span>
                       </div>
                       {item.notes && (
-                        <p className="text-[13px] text-charcoal/75 dark:text-white/62 mt-2 leading-[1.5]">{item.notes}</p>
+                        <p className="text-[13px] text-charcoal/75 dark:text-white/60 mt-2 leading-[1.5]">{item.notes}</p>
                       )}
                       <div className="flex gap-3 mt-2 items-center flex-wrap">
                         {item.added_by_staff?.name && (
@@ -807,7 +807,7 @@ function DisciplinaryTab({ staffId, venueId, onStrikesCountChange }) {
                   {item.strike_number}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-[13px] font-semibold text-charcoal/75 dark:text-white/62">
+                  <div className="text-[13px] font-semibold text-charcoal/75 dark:text-white/60">
                     Strike {item.strike_number} — {OFFENCE_LABELS[item.offence_type] ?? item.offence_type}
                     {item.mins_over != null && (
                       <span className="font-mono text-[11px] text-charcoal/30 dark:text-white/30 font-normal ml-1.5">

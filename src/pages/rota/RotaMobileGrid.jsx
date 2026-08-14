@@ -308,7 +308,7 @@ function ShiftSheet({ shift, staffMember, day, venueId, roles, onClose, onSaved,
                 {roles.map((r) => {
                   const on = roleLabel === r.name
                   return (
-                    <button key={r.id} onClick={() => setRoleLabel(r.name)} className={`cursor-pointer text-xs font-medium px-3 py-[6px] rounded-full border ${on ? 'border-brand bg-brand text-white' : 'border-charcoal/10 dark:border-white/10 bg-white dark:bg-paperDark text-charcoal/75 dark:text-white/62'}`}>{r.name}</button>
+                    <button key={r.id} onClick={() => setRoleLabel(r.name)} className={`cursor-pointer text-xs font-medium px-3 py-[6px] rounded-full border ${on ? 'border-brand bg-brand text-white' : 'border-charcoal/10 dark:border-white/10 bg-white dark:bg-paperDark text-charcoal/75 dark:text-white/60'}`}>{r.name}</button>
                   )
                 })}
               </div>
@@ -392,9 +392,9 @@ function SwapSheet({ swaps, onClose, onResolved }) {
                   {swap.shift.shift_date} · {swap.shift.start_time?.slice(0, 5)}–{swap.shift.end_time?.slice(0, 5)}
                 </div>
               )}
-              {swap.message && <div className="text-[12.5px] text-charcoal/75 dark:text-white/62 italic mt-2">"{swap.message}"</div>}
+              {swap.message && <div className="text-[12.5px] text-charcoal/75 dark:text-white/60 italic mt-2">"{swap.message}"</div>}
               <div className="flex gap-2 mt-3">
-                <button onClick={() => decline(swap)} disabled={resolving === swap.id} className="flex-1 h-10 rounded-[10px] border border-charcoal/10 dark:border-white/10 bg-white dark:bg-paperDark text-charcoal/75 dark:text-white/62 font-semibold text-[13px] cursor-pointer">Decline</button>
+                <button onClick={() => decline(swap)} disabled={resolving === swap.id} className="flex-1 h-10 rounded-[10px] border border-charcoal/10 dark:border-white/10 bg-white dark:bg-paperDark text-charcoal/75 dark:text-white/60 font-semibold text-[13px] cursor-pointer">Decline</button>
                 <button onClick={() => approve(swap)} disabled={resolving === swap.id} className="flex-[2] h-10 rounded-[10px] border-none bg-success text-white font-semibold text-[13px] cursor-pointer">{resolving === swap.id ? '…' : 'Approve'}</button>
               </div>
             </div>

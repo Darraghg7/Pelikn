@@ -684,7 +684,7 @@ export default function MobileManagerDashboard({
 
         <div className="flex items-center gap-1.5 flex-wrap">
           {venueName && (
-            <span className="text-[13px] font-medium text-charcoal/75 dark:text-white/62">{venueName}</span>
+            <span className="text-[13px] font-medium text-charcoal/75 dark:text-white/60">{venueName}</span>
           )}
           <MobilePlanPill plan={venuePlan} />
           {checksText && (

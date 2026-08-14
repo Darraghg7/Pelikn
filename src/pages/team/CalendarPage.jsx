@@ -116,12 +116,12 @@ function DatePicker({ value, onChange, min }) {
     <div className="flex items-center gap-2">
       <button
         onClick={() => shift(-1)}
-        className="w-[34px] h-[34px] rounded-[9px] border border-charcoal/10 dark:border-white/10 bg-surface cursor-pointer flex items-center justify-center font-mono text-[18px] text-charcoal/75 dark:text-white/62 shrink-0"
+        className="w-[34px] h-[34px] rounded-[9px] border border-charcoal/10 dark:border-white/10 bg-surface cursor-pointer flex items-center justify-center font-mono text-[18px] text-charcoal/75 dark:text-white/60 shrink-0"
       >‹</button>
       <span className="text-[13px] font-medium text-charcoal dark:text-white min-w-[112px] text-center">{label}</span>
       <button
         onClick={() => shift(1)}
-        className="w-[34px] h-[34px] rounded-[9px] border border-charcoal/10 dark:border-white/10 bg-surface cursor-pointer flex items-center justify-center font-mono text-[18px] text-charcoal/75 dark:text-white/62 shrink-0"
+        className="w-[34px] h-[34px] rounded-[9px] border border-charcoal/10 dark:border-white/10 bg-surface cursor-pointer flex items-center justify-center font-mono text-[18px] text-charcoal/75 dark:text-white/60 shrink-0"
       >›</button>
     </div>
   )
@@ -140,7 +140,7 @@ function TimePicker({ value, onChange }) {
         onClick={() => shiftMin(-15)}
         className="w-[30px] h-[30px] rounded-lg border border-charcoal/10 dark:border-white/10 bg-surface cursor-pointer flex items-center justify-center font-mono text-[16px] text-charcoal/50 dark:text-white/40"
       >‹</button>
-      <span className="font-mono text-[13px] font-semibold text-charcoal/75 dark:text-white/62 min-w-[40px] text-center tabular-nums">{value}</span>
+      <span className="font-mono text-[13px] font-semibold text-charcoal/75 dark:text-white/60 min-w-[40px] text-center tabular-nums">{value}</span>
       <button
         onClick={() => shiftMin(15)}
         className="w-[30px] h-[30px] rounded-lg border border-charcoal/10 dark:border-white/10 bg-surface cursor-pointer flex items-center justify-center font-mono text-[16px] text-charcoal/50 dark:text-white/40"
@@ -186,7 +186,7 @@ function CalendarEventForm({ event, defaultDate, onSave, onDelete, onBack }) {
       <div className="flex items-center justify-between px-0.5 pb-[18px]">
         <button
           onClick={onBack}
-          className="flex items-center gap-1.5 bg-transparent border-none cursor-pointer text-charcoal/75 dark:text-white/62 text-sm font-medium p-0"
+          className="flex items-center gap-1.5 bg-transparent border-none cursor-pointer text-charcoal/75 dark:text-white/60 text-sm font-medium p-0"
         >
           <svg width="7" height="12" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M5 1L1 5l4 4"/></svg>
           Calendar
@@ -285,15 +285,15 @@ function CalendarEventForm({ event, defaultDate, onSave, onDelete, onBack }) {
               <div className="flex items-center bg-surface rounded-[11px] overflow-hidden border border-charcoal/10 dark:border-white/10">
                 <button
                   onClick={() => setReminderDays(Math.max(1, reminderDays - 1))}
-                  className="w-11 h-11 border-none bg-transparent cursor-pointer font-mono text-[22px] text-charcoal/75 dark:text-white/62 flex items-center justify-center"
+                  className="w-11 h-11 border-none bg-transparent cursor-pointer font-mono text-[22px] text-charcoal/75 dark:text-white/60 flex items-center justify-center"
                 >−</button>
                 <span className="font-mono text-[16px] font-bold text-charcoal dark:text-white min-w-[34px] text-center tabular-nums">{reminderDays}</span>
                 <button
                   onClick={() => setReminderDays(Math.min(30, reminderDays + 1))}
-                  className="w-11 h-11 border-none bg-transparent cursor-pointer font-mono text-[22px] text-charcoal/75 dark:text-white/62 flex items-center justify-center"
+                  className="w-11 h-11 border-none bg-transparent cursor-pointer font-mono text-[22px] text-charcoal/75 dark:text-white/60 flex items-center justify-center"
                 >+</button>
               </div>
-              <span className="text-sm text-charcoal/75 dark:text-white/62">{reminderDays === 1 ? 'day' : 'days'} before</span>
+              <span className="text-sm text-charcoal/75 dark:text-white/60">{reminderDays === 1 ? 'day' : 'days'} before</span>
             </div>
           </div>
           {/* Backup reminder */}
@@ -335,7 +335,7 @@ function CalendarEventForm({ event, defaultDate, onSave, onDelete, onBack }) {
               >Yes, delete</button>
               <button
                 onClick={() => setShowDelete(false)}
-                className="flex-1 h-11 rounded-[11px] border border-charcoal/10 dark:border-white/10 bg-white dark:bg-paperDark text-charcoal/75 dark:text-white/62 text-sm font-semibold cursor-pointer"
+                className="flex-1 h-11 rounded-[11px] border border-charcoal/10 dark:border-white/10 bg-white dark:bg-paperDark text-charcoal/75 dark:text-white/60 text-sm font-semibold cursor-pointer"
               >Cancel</button>
             </div>
           </div>
@@ -358,7 +358,7 @@ function CalendarDayView({ dateStr, dayMapItems, onBack, onAdd, onEdit }) {
       <div className="flex items-center justify-between px-0.5">
         <button
           onClick={onBack}
-          className="flex items-center gap-1.5 bg-transparent border-none cursor-pointer text-charcoal/75 dark:text-white/62 text-sm font-medium p-0"
+          className="flex items-center gap-1.5 bg-transparent border-none cursor-pointer text-charcoal/75 dark:text-white/60 text-sm font-medium p-0"
         >
           <svg width="7" height="12" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M5 1L1 5l4 4"/></svg>
           Calendar
@@ -410,7 +410,7 @@ function CalendarDayView({ dateStr, dayMapItems, onBack, onAdd, onEdit }) {
           {staffItems.map(sl => (
             <div key={sl.id} className="flex items-center gap-2.5 px-[14px] py-[11px] rounded-xl bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 mb-1.5">
               <span className="w-3 h-3 rounded-[3px] bg-charcoal/10 dark:bg-white/10 shrink-0" />
-              <span className="text-sm font-medium text-charcoal/75 dark:text-white/62">{sl.title}</span>
+              <span className="text-sm font-medium text-charcoal/75 dark:text-white/60">{sl.title}</span>
             </div>
           ))}
         </div>
@@ -720,7 +720,7 @@ export default function CalendarPage() {
               onClick={prevMonth}
               className="w-[34px] h-[34px] rounded-[9px] border border-charcoal/10 dark:border-white/10 bg-transparent cursor-pointer flex items-center justify-center"
             >
-              <svg width="7" height="12" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="text-charcoal/75 dark:text-white/62"><path d="M5 1L1 5l4 4"/></svg>
+              <svg width="7" height="12" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="text-charcoal/75 dark:text-white/60"><path d="M5 1L1 5l4 4"/></svg>
             </button>
             <button
               onClick={() => { setYear(now.getFullYear()); setMonth(now.getMonth()) }}
@@ -732,7 +732,7 @@ export default function CalendarPage() {
               onClick={nextMonth}
               className="w-[34px] h-[34px] rounded-[9px] border border-charcoal/10 dark:border-white/10 bg-transparent cursor-pointer flex items-center justify-center"
             >
-              <svg width="7" height="12" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="text-charcoal/75 dark:text-white/62"><path d="M1 1l4 4-4 4"/></svg>
+              <svg width="7" height="12" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="text-charcoal/75 dark:text-white/60"><path d="M1 1l4 4-4 4"/></svg>
             </button>
           </div>
           {isLoading

@@ -189,7 +189,7 @@ function PeriodChips({ period, onChange }) {
           <button
             key={p.key}
             onClick={() => onChange(p.key)}
-            className={`shrink-0 text-[13.5px] cursor-pointer px-[15px] py-[7px] rounded-full border transition-colors ${on ? 'font-semibold bg-brand text-white border-brand' : 'font-medium bg-white dark:bg-paperDark text-charcoal/75 dark:text-white/62 border-charcoal/10 dark:border-white/10'}`}
+            className={`shrink-0 text-[13.5px] cursor-pointer px-[15px] py-[7px] rounded-full border transition-colors ${on ? 'font-semibold bg-brand text-white border-brand' : 'font-medium bg-white dark:bg-paperDark text-charcoal/75 dark:text-white/60 border-charcoal/10 dark:border-white/10'}`}
           >
             {p.label}
           </button>
@@ -335,7 +335,7 @@ function EditSessionSheet({ staffName, dayLabel, session, onSave, onClose }) {
                 <button
                   key={b}
                   onClick={() => setBrk(b)}
-                  className={`font-mono text-xs font-semibold cursor-pointer px-[11px] py-[6px] rounded-[9px] border ${on ? 'border-brand bg-brand text-white' : 'border-charcoal/10 dark:border-white/10 bg-white dark:bg-paperDark text-charcoal/75 dark:text-white/62'}`}
+                  className={`font-mono text-xs font-semibold cursor-pointer px-[11px] py-[6px] rounded-[9px] border ${on ? 'border-brand bg-brand text-white' : 'border-charcoal/10 dark:border-white/10 bg-white dark:bg-paperDark text-charcoal/75 dark:text-white/60'}`}
                 >
                   {b === 0 ? 'None' : `${b}m`}
                 </button>
@@ -348,7 +348,7 @@ function EditSessionSheet({ staffName, dayLabel, session, onSave, onClose }) {
           <span className={`text-[12.5px] ${valid ? 'text-charcoal/50 dark:text-white/40' : 'text-danger'}`}>· {valid ? minsStr(worked(clockIn, clockOut, brk)) : 'clock out must be after in'}</span>
         </div>
         <div className="flex gap-2 mt-4">
-          <button onClick={onClose} className="w-[90px] h-[50px] rounded-[13px] border border-charcoal/10 dark:border-white/10 bg-white dark:bg-paperDark text-charcoal/75 dark:text-white/62 cursor-pointer text-sm font-semibold">Cancel</button>
+          <button onClick={onClose} className="w-[90px] h-[50px] rounded-[13px] border border-charcoal/10 dark:border-white/10 bg-white dark:bg-paperDark text-charcoal/75 dark:text-white/60 cursor-pointer text-sm font-semibold">Cancel</button>
           <button
             disabled={!valid}
             onClick={() => { onSave({ clockIn, clockOut, brk }); onClose() }}
@@ -408,7 +408,7 @@ function StaffHoursSheet({ t, station, periodDays, dailyGrid, periodLabel, onEdi
                 </div>
                 <button
                   onClick={() => has ? onEditDay({ dateStr, session }) : onAddDay(dateStr)}
-                  className="shrink-0 flex items-center gap-1 px-3 py-[7px] rounded-[9px] cursor-pointer text-xs font-semibold text-charcoal/75 dark:text-white/62 bg-surface border border-charcoal/10 dark:border-white/10"
+                  className="shrink-0 flex items-center gap-1 px-3 py-[7px] rounded-[9px] cursor-pointer text-xs font-semibold text-charcoal/75 dark:text-white/60 bg-surface border border-charcoal/10 dark:border-white/10"
                 >
                   {has
                     ? <><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Edit</>
@@ -652,7 +652,7 @@ export default function TimesheetPage() {
               <button
                 onClick={togglePayrollLock}
                 disabled={lockSaving}
-                className={`flex items-center gap-[5px] text-[11.5px] font-semibold bg-white dark:bg-paperDark rounded-[9px] px-[11px] py-[6px] cursor-pointer shrink-0 whitespace-nowrap transition-opacity ${isPeriodLocked ? 'text-success border border-success/[0.33]' : 'text-charcoal/75 dark:text-white/62 border border-charcoal/10 dark:border-white/10'} ${lockSaving ? 'opacity-40' : 'opacity-100'}`}
+                className={`flex items-center gap-[5px] text-[11.5px] font-semibold bg-white dark:bg-paperDark rounded-[9px] px-[11px] py-[6px] cursor-pointer shrink-0 whitespace-nowrap transition-opacity ${isPeriodLocked ? 'text-success border border-success/[0.33]' : 'text-charcoal/75 dark:text-white/60 border border-charcoal/10 dark:border-white/10'} ${lockSaving ? 'opacity-40' : 'opacity-100'}`}
               >
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d={isPeriodLocked ? 'M7 11V7a5 5 0 0 1 10 0v4' : 'M7 11V7a5 5 0 0 1 9.9-1'}/></svg>
                 {isPeriodLocked ? 'Locked' : lockSaving ? 'Locking…' : 'Lock for payroll'}

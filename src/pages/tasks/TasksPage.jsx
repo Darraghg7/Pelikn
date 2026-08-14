@@ -663,7 +663,7 @@ function StaffTasksView({ session }) {
                 'px-3 py-1.5 rounded-lg text-[12px] font-semibold transition-all',
                 dayOffset === offset
                   ? 'bg-charcoal text-cream shadow-sm'
-                  : 'text-charcoal/50 dark:text-white/40 hover:text-charcoal/75 dark:hover:text-white/62',
+                  : 'text-charcoal/50 dark:text-white/40 hover:text-charcoal/75 dark:hover:text-white/60',
               ].join(' ')}
             >
               {dayLabel(offset)}
