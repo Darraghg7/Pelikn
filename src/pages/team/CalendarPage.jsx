@@ -518,7 +518,7 @@ function StaffLeaveTypeGroup({ leaveType, entries }) {
       </div>
       <div className="flex flex-col gap-1">
         {entries.map((e, i) => (
-          <div key={i} className="text-[13px] text-charcoal/75 dark:text-white/62 font-medium">{fmtLeaveDate(e.startDate, e.endDate)}</div>
+          <div key={i} className="text-[13px] text-charcoal/75 dark:text-white/60 font-medium">{fmtLeaveDate(e.startDate, e.endDate)}</div>
         ))}
       </div>
     </div>
