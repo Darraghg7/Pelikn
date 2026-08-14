@@ -155,7 +155,7 @@ export function useTimesheetData(dateFrom: string, dateTo: string): {
     queryFn: async () => {
       let q = supabase
         .from('clock_events')
-        .select('id, staff_id, event_type, occurred_at, staff(name)')
+        .select('id, staff_id, event_type, occurred_at, staff:staff_id(name)')
         .gte('occurred_at', dateFrom)
         .lte('occurred_at', dateTo)
         .order('staff_id')
