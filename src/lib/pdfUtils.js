@@ -1,6 +1,23 @@
-import jsPDF from 'jspdf'
-import autoTable from 'jspdf-autotable'
 import { format } from 'date-fns'
+
+/**
+ * jsPDF + autotable are ~800 kB together and are only needed the moment
+ * somebody actually exports a report. Importing them at module scope pulled
+ * that weight into every page chunk that offers an export button — and, via
+ * the idle route preloader in lib/routePreload.js, into every cold app load.
+ *
+ * Loading them on first use instead keeps those page chunks small. The promise
+ * is memoised so a second export doesn't re-await the module registry.
+ */
+let _pdfLibs = null
+export function loadPdfLibs() {
+  if (!_pdfLibs) {
+    _pdfLibs = Promise.all([import('jspdf'), import('jspdf-autotable')])
+      .then(([pdf, table]) => ({ jsPDF: pdf.default, autoTable: table.default }))
+      .catch((err) => { _pdfLibs = null; throw err })  // let a retry re-attempt
+  }
+  return _pdfLibs
+}
 
 /**
  * buildPdfReport — shared PDF generation utility
@@ -14,8 +31,10 @@ import { format } from 'date-fns'
  * @param {Array[]} opts.rows        — table body rows (arrays of cell values)
  * @param {Function} [opts.didParseCell] — optional jspdf-autotable hook for custom cell styling
  * @param {string} opts.filename     — downloaded filename e.g. "cleaning-report.pdf"
+ * @returns {Promise<void>} resolves once the file has been handed to the browser
  */
-export function buildPdfReport({ title, subtitle, venueLabel, periodLabel, columns, rows, didParseCell, filename }) {
+export async function buildPdfReport({ title, subtitle, venueLabel, periodLabel, columns, rows, didParseCell, filename }) {
+  const { jsPDF, autoTable } = await loadPdfLibs()
   const doc = new jsPDF()
   const pageW = doc.internal.pageSize.getWidth()
 

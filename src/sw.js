@@ -30,6 +30,22 @@ registerRoute(new NavigationRoute(createHandlerBoundToURL('/index.html')))
 // Remove outdated caches from previous builds to free storage
 cleanupOutdatedCaches()
 
+// Hashed build assets that are deliberately kept out of the precache (the PDF
+// and OCR vendor chunks — see `injectManifest.globIgnores` in vite.config.js).
+// The filenames contain a content hash, so a hit can never be stale and
+// CacheFirst is safe. This is what gives those chunks offline availability
+// from the second use onwards without precaching them for everyone.
+registerRoute(
+  ({ url, request }) =>
+    request.destination === 'script' &&
+    url.origin === self.location.origin &&
+    /\/assets\/(pdf|ocr)-vendor-[^/]+\.js$/.test(url.pathname),
+  new CacheFirst({
+    cacheName: 'lazy-vendor-cache',
+    plugins: [new ExpirationPlugin({ maxEntries: 6, maxAgeSeconds: 60 * 60 * 24 * 30 })],
+  })
+)
+
 // Cache Google Fonts
 registerRoute(
   ({ url }) => url.origin === 'https://fonts.googleapis.com',

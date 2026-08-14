@@ -109,6 +109,36 @@ const DEFAULTS: AppSettings = {
   maxStaffOffCount: 1,
 }
 
+// ── Cold-start persistence ──────────────────────────────────────────────────
+// These settings gate what the dashboard shows, so returning DEFAULTS on a cold
+// open is not a harmless placeholder. `actionSchedules` and `closedDays` are
+// both inputs to useTodaySummary's cache key: render once with DEFAULTS and
+// again with the venue's real settings and the key changes, so the Today tiles
+// fetch their snapshot twice and visibly swap numbers on the way through.
+//
+// Seeding the first render from the last known settings makes the common case
+// (settings rarely change) a single fetch with the right gating. The entry
+// records the venue it was written for, so a venue switch reads as a miss
+// rather than showing the previous venue's configuration.
+const settingsStorageKey = (venueId: string) => `pelikn_settings_${venueId}`
+
+function readPersistedSettings(venueId: string | null): AppSettings | undefined {
+  if (!venueId) return undefined
+  try {
+    const raw = localStorage.getItem(settingsStorageKey(venueId))
+    if (!raw) return undefined
+    return JSON.parse(raw) as AppSettings
+  } catch {
+    return undefined
+  }
+}
+
+function writePersistedSettings(venueId: string, settings: AppSettings) {
+  try {
+    localStorage.setItem(settingsStorageKey(venueId), JSON.stringify(settings))
+  } catch { /* storage full or unavailable — cache is best-effort */ }
+}
+
 async function fetchAppSettings(venueId: string): Promise<AppSettings> {
   const { data } = await supabase
     .from('app_settings')
@@ -173,6 +203,7 @@ async function fetchAppSettings(venueId: string): Promise<AppSettings> {
     }
   }
 
+  writePersistedSettings(venueId, result)
   return result
 }
 
@@ -191,7 +222,9 @@ export function useAppSettings() {
     queryKey,
     queryFn: () => fetchAppSettings(venueId!),
     enabled: !!venueId,
-    placeholderData: DEFAULTS,
+    // Last known settings for *this* venue, falling back to DEFAULTS on a
+    // first-ever open — see the note above readPersistedSettings.
+    placeholderData: () => readPersistedSettings(venueId) ?? DEFAULTS,
     staleTime: 30_000,
   })
 

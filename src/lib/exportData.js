@@ -4,10 +4,10 @@
  * suitable for EHO inspections.
  */
 import { format, subDays } from 'date-fns'
-import jsPDF from 'jspdf'
-import autoTable from 'jspdf-autotable'
 import { supabase } from './supabase'
-import { buildPdfReport } from './pdfUtils'
+// jsPDF is loaded on demand — see the note in pdfUtils.js. Every exporter here
+// is already async, so awaiting the library costs nothing structurally.
+import { buildPdfReport, loadPdfLibs } from './pdfUtils'
 
 /* ── Shared colour helpers ─────────────────────────────────────────────── */
 const RED   = [180, 30,  30]
@@ -363,6 +363,7 @@ export async function exportEHOReport(venueId, venueName = '', days = 90) {
   const openPest = p.filter(x => x.status === 'open' && (x.log_type === 'sighting' || x.log_type === 'treatment')).length
 
   // ── Build PDF ─────────────────────────────────────────────────────────────
+  const { jsPDF, autoTable } = await loadPdfLibs()
   const doc     = new jsPDF()
   const pageW   = doc.internal.pageSize.getWidth()
   const R = [180, 30, 30], G = [22, 100, 46], O = [160, 100, 0]

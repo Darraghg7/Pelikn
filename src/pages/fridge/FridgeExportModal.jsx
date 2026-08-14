@@ -1,7 +1,6 @@
 import React, { useState } from 'react'
 import { format, subDays } from 'date-fns'
-import jsPDF from 'jspdf'
-import autoTable from 'jspdf-autotable'
+import { loadPdfLibs } from '../../lib/pdfUtils'
 import { supabase } from '../../lib/supabase'
 import { useFridges } from '../../hooks/useFridgeLogs'
 import { useVenue } from '../../contexts/VenueContext'
@@ -35,6 +34,7 @@ export default function FridgeExportModal({ open, onClose }) {
     if (error) { toast(error.message, 'error'); return }
     if (!data?.length) { toast('No records found for this period', 'error'); return }
 
+    const { jsPDF, autoTable } = await loadPdfLibs()
     const doc = new jsPDF()
     const pageW = doc.internal.pageSize.getWidth()
 
