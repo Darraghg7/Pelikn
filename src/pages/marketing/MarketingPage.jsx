@@ -731,7 +731,7 @@ export default function MarketingPage() {
           {/* Headline */}
           <h1 className="text-[56px] sm:text-[80px] lg:text-[104px] font-bold text-cream leading-[0.96] tracking-[-0.04em] mb-8" style={{ animation:'pkIn 0.75s 60ms cubic-bezier(.16,1,.3,1) both' }}>
             Ditch the<br />clipboard,<br />
-            <span style={{ backgroundImage:'linear-gradient(180deg,rgba(245,244,241,0.28) 0%,rgba(245,244,241,0.07) 100%)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text' }}>keep the compliance.</span>
+            <span style={{ backgroundImage:'linear-gradient(180deg,rgba(245,244,241,0.92) 0%,rgba(245,244,241,0.4) 100%)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text' }}>keep the compliance.</span>
           </h1>
           {/* Subtitle */}
           <p className="text-cream/60 text-[17px] sm:text-[18px] max-w-[480px] mx-auto leading-[1.7] mb-10" style={{ animation:'pkIn 0.75s 140ms cubic-bezier(.16,1,.3,1) both' }}>

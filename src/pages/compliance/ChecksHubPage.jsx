@@ -11,7 +11,7 @@ const STATUS_TONE = {
   overdue: { statusBg: 'bg-danger/10',  statusText: 'text-danger',  statusFg: 'bg-danger',  rank: 0 },
   due:     { statusBg: 'bg-warning/10', statusText: 'text-warning', statusFg: 'bg-warning', rank: 1 },
   done:    { statusBg: 'bg-success/10', statusText: 'text-success', statusFg: 'bg-success', rank: 3 },
-  na:      { statusBg: 'bg-charcoal/6 dark:bg-white/8', statusText: 'text-charcoal/50 dark:text-white/40', statusFg: 'bg-charcoal/50 dark:bg-white/50', rank: 4 },
+  na:      { statusBg: 'bg-surface dark:bg-white/8', statusText: 'text-charcoal/55 dark:text-white/40', statusFg: 'bg-charcoal/50 dark:bg-white/50', rank: 4 },
 }
 
 const CHECKS = [
@@ -79,7 +79,7 @@ function StatusPill({ status, text }) {
     overdue: { toneBg: 'bg-danger/10',  toneFg: 'text-danger' },
     due:     { toneBg: 'bg-warning/10', toneFg: 'text-warning' },
     done:    { toneBg: 'bg-success/10', toneFg: 'text-success' },
-    na:      { toneBg: 'bg-charcoal/6 dark:bg-white/8', toneFg: 'text-charcoal/50 dark:text-white/40' },
+    na:      { toneBg: 'bg-surface dark:bg-white/8', toneFg: 'text-charcoal/55 dark:text-white/40' },
   }
   const { toneBg, toneFg } = toneMap[status] ?? toneMap.na
   return (
@@ -214,9 +214,9 @@ export default function ChecksHubPage() {
         >
           <div className="flex-1 min-w-0">
             <div className="font-mono text-[11px] tracking-[0.1em] uppercase text-white/55 font-semibold">Today</div>
-            <div className="text-base font-semibold tracking-[-0.015em] mt-[3px]">
+            <div className="text-base font-semibold tracking-[-0.015em] mt-[3px] min-h-[19px]">
               {isLoading
-                ? 'Loading…'
+                ? <span className="inline-block h-[15px] w-32 rounded bg-white/20 animate-pulse align-middle" />
                 : total === 0
                   ? 'All checks up to date'
                   : `${total} ${total === 1 ? 'check needs' : 'checks need'} doing`}

@@ -10,7 +10,7 @@ const STATUS_TONE = {
   due:     { statusBg: 'bg-warning/10', statusText: 'text-warning', statusFg: 'bg-warning', rank: 1 },
   draft:   { statusBg: 'bg-[#faeee9]',  statusText: 'text-accent', statusFg: 'bg-accent', rank: 2 },
   done:    { statusBg: 'bg-success/10', statusText: 'text-success', statusFg: 'bg-success', rank: 3 },
-  na:      { statusBg: 'bg-charcoal/6 dark:bg-white/8', statusText: 'text-charcoal/50 dark:text-white/40', statusFg: 'bg-charcoal/50 dark:bg-white/50', rank: 4 },
+  na:      { statusBg: 'bg-surface dark:bg-white/8', statusText: 'text-charcoal/55 dark:text-white/40', statusFg: 'bg-charcoal/50 dark:bg-white/50', rank: 4 },
 }
 
 function CalIcon() {
@@ -65,9 +65,9 @@ function AttendanceHero({ onShift, lateCount, loading, onClick }) {
     >
       <div className="flex-1 min-w-0">
         <div className="font-mono text-[11px] tracking-[0.1em] uppercase text-white/55 font-semibold">On shift now</div>
-        <div className="text-base font-semibold tracking-[-0.015em] mt-[3px]">
+        <div className="text-base font-semibold tracking-[-0.015em] mt-[3px] min-h-[19px]">
           {loading
-            ? 'Loading…'
+            ? <span className="inline-block h-[15px] w-32 rounded bg-white/20 animate-pulse align-middle" />
             : onShift.length === 0
               ? 'No staff clocked in yet'
               : `${onShift.length} clocked in`}
@@ -261,7 +261,7 @@ export default function TeamHubPage() {
       {loading && !editMode ? (
         <div className="grid grid-cols-2 gap-2">
           {[0,1,2,3,4].map(i => (
-            <div key={i} className="h-[104px] rounded-[14px] bg-charcoal/6 dark:bg-white/8" />
+            <div key={i} className="h-[104px] rounded-[14px] bg-charcoal/6 dark:bg-white/8 border border-charcoal/10 dark:border-white/10 animate-pulse" />
           ))}
         </div>
       ) : (

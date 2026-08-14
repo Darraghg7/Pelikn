@@ -127,13 +127,10 @@ function AttentionCard({ actions, editMode }) {
     <div
       className={[
         'rounded-[16px] overflow-hidden transition-opacity duration-200',
-        isEmpty ? '' : 'bg-white dark:bg-paperDark',
+        isEmpty ? '' : 'bg-white dark:bg-paperDark border border-charcoal/8 dark:border-white/10',
         editMode ? 'opacity-45' : 'opacity-100',
       ].join(' ')}
-      style={isEmpty ? undefined : {
-        border: '1px solid rgba(23,35,29,0.08)',
-        boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-      }}
+      style={isEmpty ? undefined : { boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}
     >
       {isEmpty ? (
         <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[14px] flex items-center gap-[13px] p-[14px_16px]">
@@ -151,8 +148,8 @@ function AttentionCard({ actions, editMode }) {
         <div>
           <div className="flex items-center gap-[10px]" style={{ padding: '18px 20px 12px' }}>
             <span
-              className="font-mono uppercase"
-              style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.08em', color: 'rgba(23,35,29,0.55)' }}
+              className="font-mono uppercase text-charcoal/55 dark:text-white/55"
+              style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.08em' }}
             >
               Needs You
             </span>
@@ -173,25 +170,24 @@ function AttentionCard({ actions, editMode }) {
                 <Link
                   key={a.to}
                   to={a.to}
-                  className="flex items-center no-underline active:bg-charcoal/4 dark:active:bg-white/5 transition-colors"
-                  style={{
-                    gap: 12,
-                    padding: '15px 20px',
-                    borderTop: '1px solid rgba(23,35,29,0.1)',
-                    borderBottom: i === actions.length - 1 ? '1px solid rgba(23,35,29,0.1)' : undefined,
-                  }}
+                  className={[
+                    'flex items-center no-underline active:bg-charcoal/4 dark:active:bg-white/5 transition-colors',
+                    'border-t border-charcoal/10 dark:border-white/10',
+                    i === actions.length - 1 ? 'border-b border-charcoal/10 dark:border-white/10' : '',
+                  ].join(' ')}
+                  style={{ gap: 12, padding: '15px 20px' }}
                 >
                   <span
-                    className="shrink-0 rounded-full"
-                    style={{ width: 7, height: 7, background: isOverdue ? '#B23A2E' : '#17231D' }}
+                    className={['shrink-0 rounded-full', isOverdue ? 'bg-[#B23A2E]' : 'bg-charcoal dark:bg-white'].join(' ')}
+                    style={{ width: 7, height: 7 }}
                   />
                   <span
-                    className="flex-1"
-                    style={{ fontSize: 15.5, color: '#17231D', fontWeight: isOverdue ? 700 : 600 }}
+                    className="flex-1 text-charcoal dark:text-white"
+                    style={{ fontSize: 15.5, fontWeight: isOverdue ? 700 : 600 }}
                   >
                     {a.label}
                   </span>
-                  <span style={{ fontSize: 15, color: 'rgba(23,35,29,0.3)' }}>›</span>
+                  <span className="text-charcoal/30 dark:text-white/30" style={{ fontSize: 15 }}>›</span>
                 </Link>
               )
             })}
@@ -557,7 +553,7 @@ function MobileDraggableWidgetGrid({
             const Comp = widget.component
             return (
               <MobileSortableCard key={id} id={id} editMode={editMode}>
-                <Suspense fallback={<div className="h-[84px] rounded-[14px] bg-charcoal/6 animate-pulse" />}>
+                <Suspense fallback={<div className="h-[84px] rounded-[14px] bg-charcoal/6 dark:bg-white/8 border border-charcoal/10 dark:border-white/10 animate-pulse" />}>
                   <Comp />
                 </Suspense>
               </MobileSortableCard>
@@ -684,7 +680,7 @@ export default function MobileManagerDashboard({
 
         <div className="flex items-center gap-1.5 flex-wrap">
           {venueName && (
-            <span className="text-[13px] font-medium text-charcoal/75 dark:text-white/62">{venueName}</span>
+            <span className="text-[13px] font-medium text-charcoal/75 dark:text-white/75">{venueName}</span>
           )}
           <MobilePlanPill plan={venuePlan} />
           {checksText && (
@@ -714,7 +710,7 @@ export default function MobileManagerDashboard({
             {!summary ? (
               <div className="grid grid-cols-3 gap-2">
                 {[1,2,3,4,5,6].map(i => (
-                  <div key={i} className="h-[84px] rounded-xl bg-charcoal/6 dark:bg-white/8 animate-pulse" />
+                  <div key={i} className="h-[84px] rounded-xl bg-charcoal/6 dark:bg-white/8 border border-charcoal/10 dark:border-white/10 animate-pulse" />
                 ))}
               </div>
             ) : activeItems.length === 0 ? (

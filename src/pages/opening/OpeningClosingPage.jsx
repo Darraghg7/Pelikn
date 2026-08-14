@@ -313,7 +313,7 @@ function CheckSection({ type, label, checks, completions, onOK, onIssue, isManag
         })}
         {typeChecks.length === 0 && (
           <p className="text-sm text-charcoal/35 dark:text-white/30 italic px-5 py-4">
-            No {label.toLowerCase()} checks set up yet.
+            No {label.toLowerCase()} set up yet.
             {isManager && ' Click "+ Add Check" to get started.'}
           </p>
         )}

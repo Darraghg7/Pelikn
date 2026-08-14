@@ -652,14 +652,29 @@ html.dark .bg-cream\/50 {
 html.dark .text-charcoal {
   color: #e8e4dc !important;
 }
+html.dark .text-charcoal\/80 {
+  color: rgba(232, 228, 220, 0.8) !important;
+}
+html.dark .text-charcoal\/75 {
+  color: rgba(232, 228, 220, 0.75) !important;
+}
 html.dark .text-charcoal\/70 {
   color: rgba(232, 228, 220, 0.7) !important;
+}
+html.dark .text-charcoal\/65 {
+  color: rgba(232, 228, 220, 0.65) !important;
 }
 html.dark .text-charcoal\/60 {
   color: rgba(232, 228, 220, 0.6) !important;
 }
+html.dark .text-charcoal\/55 {
+  color: rgba(232, 228, 220, 0.55) !important;
+}
 html.dark .text-charcoal\/50 {
   color: rgba(232, 228, 220, 0.5) !important;
+}
+html.dark .text-charcoal\/45 {
+  color: rgba(232, 228, 220, 0.45) !important;
 }
 html.dark .text-charcoal\/40 {
   color: rgba(232, 228, 220, 0.4) !important;
@@ -670,11 +685,20 @@ html.dark .text-charcoal\/35 {
 html.dark .text-charcoal\/30 {
   color: rgba(232, 228, 220, 0.3) !important;
 }
+html.dark .text-charcoal\/28 {
+  color: rgba(232, 228, 220, 0.28) !important;
+}
 html.dark .text-charcoal\/25 {
   color: rgba(232, 228, 220, 0.25) !important;
 }
+html.dark .text-charcoal\/22 {
+  color: rgba(232, 228, 220, 0.22) !important;
+}
 html.dark .text-charcoal\/20 {
   color: rgba(232, 228, 220, 0.2) !important;
+}
+html.dark .text-charcoal\/16 {
+  color: rgba(232, 228, 220, 0.16) !important;
 }
 html.dark .text-charcoal\/15 {
   color: rgba(232, 228, 220, 0.15) !important;
@@ -687,13 +711,20 @@ html.dark .border-charcoal\/8,
 html.dark .border-charcoal\/10,
 html.dark .border-charcoal\/12,
 html.dark .border-charcoal\/15,
+html.dark .border-charcoal\/18,
 html.dark .border-charcoal\/20,
 html.dark .border-charcoal\/25,
-html.dark .border-charcoal\/30 {
+html.dark .border-charcoal\/30,
+html.dark .border-charcoal\/35,
+html.dark .border-charcoal\/40,
+html.dark .border-charcoal\/45,
+html.dark .border-charcoal\/50 {
   border-color: rgba(255, 255, 255, 0.1) !important;
 }
 
 /* Backgrounds with charcoal tints */
+html.dark .bg-charcoal\/1,
+html.dark .bg-charcoal\/2,
 html.dark .bg-charcoal\/3,
 html.dark .bg-charcoal\/4,
 html.dark .bg-charcoal\/5,
@@ -703,8 +734,18 @@ html.dark .bg-charcoal\/8 {
 }
 html.dark .bg-charcoal\/10,
 html.dark .bg-charcoal\/12,
+html.dark .bg-charcoal\/14,
 html.dark .bg-charcoal\/15 {
   background-color: rgba(255, 255, 255, 0.08) !important;
+}
+html.dark .bg-charcoal\/20,
+html.dark .bg-charcoal\/25,
+html.dark .bg-charcoal\/30 {
+  background-color: rgba(255, 255, 255, 0.14) !important;
+}
+html.dark .bg-charcoal\/40,
+html.dark .bg-charcoal\/50 {
+  background-color: rgba(255, 255, 255, 0.2) !important;
 }
 
 /* Hover states */
