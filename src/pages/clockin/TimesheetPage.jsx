@@ -182,7 +182,7 @@ function SumTile({ label, value, sub, subGood }) {
 
 function PeriodChips({ period, onChange }) {
   return (
-    <div className="flex gap-[6px] overflow-x-auto [scrollbar-width:none] [-webkit-overflow-scrolling:touch] pb-px">
+    <div className="flex gap-[6px] overflow-x-auto min-w-0 [scrollbar-width:none] [-webkit-overflow-scrolling:touch] pb-px">
       {PERIODS.map(p => {
         const on = period === p.key
         return (

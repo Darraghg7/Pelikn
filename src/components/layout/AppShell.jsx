@@ -632,7 +632,7 @@ export default function AppShell({ children }) {
           scroll container that fights the document scroll on iOS. `clip` stops the
           horizontal bleed without that side effect — same reasoning as the
           overflow-x:clip on <body> in index.css. */}
-      <div className={`flex-1 ${isSettingsRoute || panelCollapsed ? 'lg:ml-[80px]' : 'lg:ml-[340px]'} flex flex-col min-h-dvh overflow-x-clip ${bgClass}`}>
+      <div className={`flex-1 min-w-0 ${isSettingsRoute || panelCollapsed ? 'lg:ml-[80px]' : 'lg:ml-[340px]'} flex flex-col min-h-dvh overflow-x-clip ${bgClass}`}>
 
         {/* Mobile-only header (shown below lg breakpoint) */}
         <header

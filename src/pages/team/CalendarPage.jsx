@@ -496,37 +496,94 @@ function MonthGrid({ year, month, dayMap, selectedDate, onSelectDate }) {
   )
 }
 
-function StaffLeaveBar({ year, month, staffLeave }) {
-  const mStr = `${year}-${pad(month + 1)}`
-  const active = staffLeave.filter(sl =>
-    sl.startDate.startsWith(mStr) || sl.endDate.startsWith(mStr) ||
-    (sl.startDate < mStr + '-01' && sl.endDate > mStr + '-31')
-  )
-  if (!active.length) return null
+const LEAVE_TYPE_LABELS = {
+  annual: 'Annual Leave',
+  unpaid: 'Unpaid Leave',
+  other:  'Other',
+}
+const LEAVE_TYPE_ORDER = ['annual', 'unpaid', 'other']
+
+function fmtLeaveDate(startDate, endDate) {
+  const start = new Date(startDate + 'T00:00:00')
+  const end   = new Date(endDate   + 'T00:00:00')
+  const fmt   = d => d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+  return startDate === endDate ? fmt(start) : `${fmt(start)} – ${fmt(end)}`
+}
+
+function StaffLeaveTypeGroup({ leaveType, entries }) {
   return (
     <div>
-      <div className="font-mono text-[11px] text-charcoal/30 uppercase tracking-[0.08em] font-semibold mb-[9px]">Staff leave this month</div>
-      <div className="flex gap-1.5 flex-wrap">
-        {active.map(sl => {
-          const start = new Date(sl.startDate + 'T00:00:00')
-          const end   = new Date(sl.endDate   + 'T00:00:00')
-          const fmt   = d => d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
-          const label = sl.startDate === sl.endDate ? fmt(start) : `${fmt(start)} – ${fmt(end)}`
-          return (
-            <div
-              key={sl.name + sl.startDate}
-              className="inline-flex items-center gap-[7px] py-1.5 pr-3 pl-2 rounded-full bg-white dark:bg-paperDark border-[1.5px] border-charcoal/10"
-            >
-              <span className="w-6 h-6 rounded-[7px] bg-charcoal/6 flex items-center justify-center font-mono text-[11px] font-bold text-charcoal/50">
-                {sl.name.split(' ').map(w => w[0]).join('')}
-              </span>
-              <div>
-                <div className="text-[12.5px] font-semibold text-charcoal leading-none">{sl.name.split(' ')[0]}</div>
-                <div className="font-mono text-[11px] text-charcoal/30 mt-[1px]">{label}</div>
-              </div>
-            </div>
-          )
-        })}
+      <div className="font-mono text-[10.5px] text-charcoal/30 uppercase tracking-[0.08em] font-semibold mb-[6px]">
+        {LEAVE_TYPE_LABELS[leaveType] ?? 'Other'}
+      </div>
+      <div className="flex flex-col gap-1">
+        {entries.map((e, i) => (
+          <div key={i} className="text-[13px] text-charcoal/75 font-medium">{fmtLeaveDate(e.startDate, e.endDate)}</div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function StaffLeaveMemberGroup({ name, entries }) {
+  const [open, setOpen] = useState(false)
+  const byType = {}
+  for (const e of entries) {
+    const t = e.leaveType || 'other'
+    ;(byType[t] = byType[t] || []).push(e)
+  }
+  for (const t in byType) byType[t].sort((a, b) => a.startDate.localeCompare(b.startDate))
+  const typesPresent = LEAVE_TYPE_ORDER.filter(t => byType[t]?.length)
+
+  return (
+    <div className="border-b border-charcoal/8 last:border-b-0">
+      <button
+        onClick={() => setOpen(v => !v)}
+        className="w-full flex items-center gap-[10px] py-3 cursor-pointer bg-transparent border-none text-left"
+      >
+        <span className="w-8 h-8 rounded-[9px] bg-charcoal/6 flex items-center justify-center font-mono text-[11px] font-bold text-charcoal/50 shrink-0">
+          {name.split(' ').map(w => w[0]).slice(0, 2).join('')}
+        </span>
+        <div className="flex-1 min-w-0">
+          <div className="text-[14px] font-semibold text-charcoal leading-tight">{name}</div>
+          <div className="font-mono text-[11px] text-charcoal/40 mt-0.5">{entries.length} upcoming {entries.length === 1 ? 'entry' : 'entries'}</div>
+        </div>
+        <svg
+          className={`w-3.5 h-3.5 text-charcoal/30 transition-transform shrink-0 ${open ? 'rotate-180' : ''}`}
+          viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"
+        ><polyline points="6 9 12 15 18 9" /></svg>
+      </button>
+      {open && (
+        <div className="pb-3 pl-[42px] flex flex-col gap-3">
+          {typesPresent.map(t => (
+            <StaffLeaveTypeGroup key={t} leaveType={t} entries={byType[t]} />
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function StaffLeaveSection({ staffLeave }) {
+  const today = todayStr()
+  const upcoming = staffLeave.filter(sl => sl.endDate >= today)
+  const byStaff = {}
+  for (const sl of upcoming) {
+    const key = sl.staffId || sl.name
+    if (!byStaff[key]) byStaff[key] = { name: sl.name, entries: [] }
+    byStaff[key].entries.push(sl)
+  }
+  const groups = Object.values(byStaff).sort((a, b) => a.name.localeCompare(b.name))
+
+  if (!groups.length) return null
+
+  return (
+    <div>
+      <div className="font-mono text-[11px] text-charcoal/30 uppercase tracking-[0.08em] font-semibold mb-[9px]">Staff days off</div>
+      <div className="bg-white dark:bg-paperDark border border-charcoal/10 rounded-[14px] px-4">
+        {groups.map(g => (
+          <StaffLeaveMemberGroup key={g.name} name={g.name} entries={g.entries} />
+        ))}
       </div>
     </div>
   )
@@ -684,8 +741,8 @@ export default function CalendarPage() {
           }
         </div>
 
-        {/* Staff leave chips */}
-        <StaffLeaveBar year={year} month={month} staffLeave={staffLeave} />
+        {/* Staff leave, grouped by staff member */}
+        <StaffLeaveSection staffLeave={staffLeave} />
 
         {/* Event strip */}
         <div>

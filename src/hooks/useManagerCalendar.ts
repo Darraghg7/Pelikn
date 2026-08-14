@@ -19,9 +19,11 @@ export interface CalendarEvent {
 }
 
 export interface StaffLeaveEntry {
+  staffId: string
   name: string
   startDate: string
   endDate: string
+  leaveType: string
   type: 'leave'
 }
 
@@ -50,13 +52,15 @@ export default function useManagerCalendar() {
     queryFn: async () => {
       const { data } = await supabase
         .from('time_off_requests')
-        .select('staff_id, start_date, end_date, status, staff:staff_id(name)')
+        .select('staff_id, start_date, end_date, status, leave_type, staff:staff_id(name)')
         .eq('venue_id', venueId)
         .eq('status', 'approved')
       return ((data ?? []) as any[]).map(r => ({
+        staffId: r.staff_id,
         name: r.staff?.name ?? 'Staff',
         startDate: r.start_date,
         endDate: r.end_date,
+        leaveType: r.leave_type ?? 'other',
         type: 'leave' as const,
       }))
     },
