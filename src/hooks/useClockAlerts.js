@@ -132,13 +132,17 @@ export function useClockAlerts({ staffId, status, breakStartAt, onEndBreak }) {
     // ── Late clock-in ────────────────────────────────────────────────────────
     if (eventType === 'clock_in') {
       const today = londonToday()
-      const { data: shifts } = await supabase
+      const { data: shifts, error: shiftsError } = await supabase
         .from('shifts')
-        .select('start_time, end_time, staff:staff_id(name)')
+        .select('start_time, end_time')
         .eq('venue_id', venueId)
         .eq('staff_id', staffId)
         .eq('shift_date', today)
         .order('start_time')
+      // A failed lookup must never silently kill the alert — report it so a
+      // systemic break (RLS, schema drift, network) is visible instead of the
+      // late screen just quietly stopping for everyone.
+      if (shiftsError) { captureSilent(shiftsError, 'useClockAlerts:late-check-shift-lookup'); return }
       if (!shifts?.length) {
         // No rota row does not block clock-in — some venues don't run a rota
         // at all. Flag it instead: a warning to the person clocking in, and a
@@ -172,17 +176,24 @@ export function useClockAlerts({ staffId, status, breakStartAt, onEndBreak }) {
 
       const minsLate = Math.floor(msLate / 60000)
 
+      // Best-effort name for the push notification body only — must never
+      // block or suppress the alert itself if this lookup fails.
+      const staffName = await supabase
+        .from('staff').select('name').eq('id', staffId).single()
+        .then(({ data }) => data?.name ?? 'A staff member')
+        .catch(() => 'A staff member')
+
       // Notify managers (escalation level handled by strike count in the modal)
       sendPush({
         venueId,
         notificationType: 'late_clock_in',
         title: 'Late Clock-In',
         body:  minsLate >= 1
-          ? `${shift.staff?.name ?? 'A staff member'} clocked in ${minsLate} min late`
-          : `${shift.staff?.name ?? 'A staff member'} clocked in late`,
+          ? `${staffName} clocked in ${minsLate} min late`
+          : `${staffName} clocked in late`,
         url:   '/timesheet',
         roles: ['manager', 'owner'],
-      })
+      }).catch(() => {})
 
       // Never let a failed lookup suppress the alert — the staff member must
       // always see the late window (and manager approval if enabled).
@@ -202,10 +213,10 @@ export function useClockAlerts({ staffId, status, breakStartAt, onEndBreak }) {
           venueId,
           notificationType: 'repeat_offender',
           title: strikes >= 4 ? 'Disciplinary Review Triggered' : 'Repeat Late Clock-In',
-          body:  `${shift.staff?.name ?? 'A staff member'} — ${strikes} late clock-ins in 30 days`,
+          body:  `${staffName} — ${strikes} late clock-ins in 30 days`,
           url:   '/timesheet',
           roles: ['manager', 'owner'],
-        })
+        }).catch(() => {})
       }
 
       setAlert({
@@ -243,7 +254,7 @@ export function useClockAlerts({ staffId, status, breakStartAt, onEndBreak }) {
           body:  `${shift.staff?.name ?? 'A staff member'} clocked out ${minsEarly} min early`,
           url:   '/timesheet',
           roles: ['manager', 'owner'],
-        })
+        }).catch(() => {})
       }
       return
     }
