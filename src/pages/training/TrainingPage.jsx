@@ -118,55 +118,55 @@ function CreateSignOffModal({ staff, venueId, managerName, managerStaffId, onSav
 
   return (
     <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-black/40 p-4" onClick={e => e.target === e.currentTarget && onClose()}>
-      <div className="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto flex flex-col">
-        <div className="px-6 py-5 border-b border-charcoal/8 flex items-center justify-between sticky top-0 bg-white z-10">
+      <div className="bg-white dark:bg-paperDark rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto flex flex-col">
+        <div className="px-6 py-5 border-b border-charcoal/8 dark:border-white/8 flex items-center justify-between sticky top-0 bg-white dark:bg-paperDark z-10">
           <div>
-            <p className="font-semibold text-charcoal">New SC6 Training Record</p>
-            <p className="text-xs text-charcoal/40 mt-0.5">Induction &amp; on-the-job training sign-off</p>
+            <p className="font-semibold text-charcoal dark:text-white">New SC6 Training Record</p>
+            <p className="text-xs text-charcoal/40 dark:text-white/35 mt-0.5">Induction &amp; on-the-job training sign-off</p>
           </div>
-          <button onClick={onClose} className="text-charcoal/30 hover:text-charcoal text-xl leading-none">×</button>
+          <button onClick={onClose} className="text-charcoal/30 dark:text-white/30 hover:text-charcoal dark:hover:text-white text-xl leading-none">×</button>
         </div>
 
         <div className="p-6 flex flex-col gap-5">
           {/* Staff + date */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1">Employee *</label>
+              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Employee *</label>
               <select
                 value={form.staff_id}
                 onChange={e => setForm(f => ({ ...f, staff_id: e.target.value }))}
-                className="w-full px-3 py-2 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+                className="w-full px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
               >
                 <option value="">Select</option>
                 {staff.filter(s => s.id !== managerStaffId).map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
               </select>
             </div>
             <div>
-              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1">Training Date *</label>
+              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Training Date *</label>
               <input
                 type="date"
                 value={form.training_date}
                 onChange={e => setForm(f => ({ ...f, training_date: e.target.value }))}
-                className="w-full px-3 py-2 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+                className="w-full px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
               />
             </div>
           </div>
 
           {/* Trainer */}
           <div>
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1">Trainer Name *</label>
+            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Trainer Name *</label>
             <input
               value={form.trainer_name}
               onChange={e => setForm(f => ({ ...f, trainer_name: e.target.value }))}
               placeholder="Name of person delivering the training"
-              className="w-full px-3 py-2 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+              className="w-full px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
             />
           </div>
 
           {/* Topics */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label className="text-[11px] tracking-widest uppercase text-charcoal/40">Training Topics *</label>
+              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">Training Topics *</label>
               <button onClick={allTopics} className="text-[11px] text-accent hover:text-accent/70 transition-colors">Select all</button>
             </div>
             <div className="flex flex-col gap-2">
@@ -176,15 +176,15 @@ function CreateSignOffModal({ staff, venueId, managerName, managerStaffId, onSav
                     onClick={() => toggleTopic(t)}
                     className={`mt-0.5 w-4 h-4 rounded border shrink-0 flex items-center justify-center text-[11px] transition-colors ${
                       form.topics.includes(t)
-                        ? 'bg-charcoal border-charcoal text-cream'
-                        : 'border-charcoal/25 group-hover:border-charcoal/50'
+                        ? 'bg-charcoal border-charcoal dark:border-white text-cream'
+                        : 'border-charcoal/25 dark:border-white/25 group-hover:border-charcoal/50 dark:group-hover:border-white/50'
                     }`}
                   >
                     {form.topics.includes(t) ? <svg className="w-3 h-3" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg> : ''}
                   </span>
                   <span
                     onClick={() => toggleTopic(t)}
-                    className={`text-sm leading-snug ${form.topics.includes(t) ? 'text-charcoal' : 'text-charcoal/50'}`}
+                    className={`text-sm leading-snug ${form.topics.includes(t) ? 'text-charcoal dark:text-white' : 'text-charcoal/50 dark:text-white/40'}`}
                   >
                     {t}
                   </span>
@@ -195,19 +195,19 @@ function CreateSignOffModal({ staff, venueId, managerName, managerStaffId, onSav
 
           {/* Notes */}
           <div>
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1">Notes (optional)</label>
+            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Notes (optional)</label>
             <textarea
               value={form.notes}
               onChange={e => setForm(f => ({ ...f, notes: e.target.value }))}
               rows={2}
               placeholder="Any additional context about this training session"
-              className="w-full px-3 py-2 rounded-lg border border-charcoal/15 bg-white text-sm resize-none focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+              className="w-full px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm resize-none focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
             />
           </div>
 
           {/* Manager signature */}
           <div>
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-2">Manager / Trainer Signature *</label>
+            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">Manager / Trainer Signature *</label>
             <SignaturePad onChange={setManagerSig} />
           </div>
         </div>
@@ -220,7 +220,7 @@ function CreateSignOffModal({ staff, venueId, managerName, managerStaffId, onSav
           >
             {saving ? 'Saving…' : 'Send for Staff Signature →'}
           </button>
-          <button onClick={onClose} className="px-4 py-2.5 rounded-lg border border-charcoal/15 text-sm text-charcoal/50">
+          <button onClick={onClose} className="px-4 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 text-sm text-charcoal/50 dark:text-white/40">
             Cancel
           </button>
         </div>
@@ -252,23 +252,23 @@ function SignOffDetailModal({ record, venueId, onClose }) {
 
   return (
     <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-black/40 p-4" onClick={e => e.target === e.currentTarget && onClose()}>
-      <div className="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
-        <div className="px-6 py-5 border-b border-charcoal/8 flex items-center justify-between">
+      <div className="bg-white dark:bg-paperDark rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+        <div className="px-6 py-5 border-b border-charcoal/8 dark:border-white/8 flex items-center justify-between">
           <div>
-            <p className="font-semibold text-charcoal">{record.staff?.name}</p>
-            <p className="text-xs text-charcoal/40 mt-0.5">
+            <p className="font-semibold text-charcoal dark:text-white">{record.staff?.name}</p>
+            <p className="text-xs text-charcoal/40 dark:text-white/35 mt-0.5">
               {format(parseISO(record.training_date), 'd MMMM yyyy')} · Trainer: {record.trainer_name}
             </p>
           </div>
-          <button onClick={onClose} className="text-charcoal/30 hover:text-charcoal text-xl leading-none">×</button>
+          <button onClick={onClose} className="text-charcoal/30 dark:text-white/30 hover:text-charcoal dark:hover:text-white text-xl leading-none">×</button>
         </div>
 
         <div className="p-6 flex flex-col gap-5">
           <div>
-            <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-3">Topics Covered</p>
+            <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-3">Topics Covered</p>
             <ul className="flex flex-col gap-1.5">
               {record.topics.map(t => (
-                <li key={t} className="flex items-start gap-2 text-sm text-charcoal/70">
+                <li key={t} className="flex items-start gap-2 text-sm text-charcoal/70 dark:text-white/60">
                   <span className="text-success mt-0.5 shrink-0"><svg className="w-3.5 h-3.5" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg></span>{t}
                 </li>
               ))}
@@ -276,15 +276,15 @@ function SignOffDetailModal({ record, venueId, onClose }) {
           </div>
 
           {record.notes && (
-            <div className="bg-white rounded-lg px-4 py-3">
-              <p className="text-[11px] text-charcoal/40 uppercase tracking-widest mb-1">Notes</p>
-              <p className="text-sm text-charcoal/70 italic">{record.notes}</p>
+            <div className="bg-white dark:bg-paperDark rounded-lg px-4 py-3">
+              <p className="text-[11px] text-charcoal/40 dark:text-white/35 uppercase tracking-widest mb-1">Notes</p>
+              <p className="text-sm text-charcoal/70 dark:text-white/60 italic">{record.notes}</p>
             </div>
           )}
 
           {record.manager_signature && (
             <div>
-              <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-2">
+              <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-2">
                 Trainer Signature {record.manager_name ? `(${record.manager_name})` : ''}
               </p>
               <SignaturePad value={record.manager_signature} disabled />
@@ -293,7 +293,7 @@ function SignOffDetailModal({ record, venueId, onClose }) {
 
           {record.staff_acknowledged && record.staff_signature && (
             <div>
-              <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-2">
+              <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-2">
                 Employee Signature — acknowledged {format(new Date(record.staff_acknowledged_at), 'd MMM yyyy, HH:mm')}
               </p>
               <SignaturePad value={record.staff_signature} disabled />
@@ -365,7 +365,7 @@ function InductionTab({ venueId, isManager, session }) {
       {isManager && (
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-xs text-charcoal/40">
+            <p className="text-xs text-charcoal/40 dark:text-white/35">
               {records.filter(r => r.staff_acknowledged).length} signed · {records.filter(r => !r.staff_acknowledged).length} awaiting
             </p>
           </div>
@@ -391,18 +391,18 @@ function InductionTab({ venueId, isManager, session }) {
             <button
               key={r.id}
               onClick={() => isManager ? setViewRecord(r) : (r.staff_acknowledged ? setViewRecord(r) : setAckRecord(r))}
-              className="bg-white rounded-2xl border-charcoal/10 px-5 py-4 flex items-center gap-4 text-left hover:border-charcoal/25 transition-colors w-full"
+              className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 px-5 py-4 flex items-center gap-4 text-left hover:border-charcoal/25 dark:hover:border-white/25 transition-colors w-full"
             >
               {/* Avatar */}
-              <div className="w-9 h-9 rounded-full bg-charcoal/10 flex items-center justify-center shrink-0">
+              <div className="w-9 h-9 rounded-full bg-charcoal/10 dark:bg-white/10 flex items-center justify-center shrink-0">
                 {r.staff?.photo_url
                   ? <img src={r.staff.photo_url} alt="" className="w-9 h-9 rounded-full object-cover" loading="lazy" />
-                  : <span className="text-sm font-semibold text-charcoal/40">{initials(r.staff?.name)}</span>
+                  : <span className="text-sm font-semibold text-charcoal/40 dark:text-white/35">{initials(r.staff?.name)}</span>
                 }
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <p className="text-sm font-medium text-charcoal">{r.staff?.name ?? 'Unknown'}</p>
+                  <p className="text-sm font-medium text-charcoal dark:text-white">{r.staff?.name ?? 'Unknown'}</p>
                   {r.staff_acknowledged ? (
                     <span className="text-[11px] tracking-widest uppercase font-medium px-1.5 py-0.5 rounded bg-success/8 text-success">
                       <span className="inline-flex items-center gap-0.5">Signed <svg className="w-3 h-3" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg></span>
@@ -413,16 +413,16 @@ function InductionTab({ venueId, isManager, session }) {
                     </span>
                   )}
                 </div>
-                <p className="text-xs text-charcoal/40 mt-0.5">
+                <p className="text-xs text-charcoal/40 dark:text-white/35 mt-0.5">
                   {format(parseISO(r.training_date), 'd MMM yyyy')} · {r.topics.length} topic{r.topics.length !== 1 ? 's' : ''} · Trainer: {r.trainer_name}
                 </p>
                 {r.staff_acknowledged && r.staff_acknowledged_at && (
-                  <p className="text-[11px] text-charcoal/30 mt-0.5">
+                  <p className="text-[11px] text-charcoal/30 dark:text-white/30 mt-0.5">
                     Signed {format(new Date(r.staff_acknowledged_at), 'd MMM yyyy, HH:mm')}
                   </p>
                 )}
               </div>
-              <span className="text-charcoal/25 text-sm shrink-0">›</span>
+              <span className="text-charcoal/25 dark:text-white/25 text-sm shrink-0">›</span>
             </button>
           ))}
         </div>
@@ -553,49 +553,49 @@ function CertificatesTab({ venueId }) {
       </div>
 
       {showForm && (
-        <div className="bg-white rounded-2xl border-charcoal/10 p-6 flex flex-col gap-4">
-          <p className="text-sm font-semibold text-charcoal">New Training Certificate</p>
+        <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-6 flex flex-col gap-4">
+          <p className="text-sm font-semibold text-charcoal dark:text-white">New Training Certificate</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1">Staff Member *</label>
+              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Staff Member *</label>
               <select value={form.staff_id} onChange={e => setForm(f => ({ ...f, staff_id: e.target.value }))}
-                className="w-full px-3 py-2 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20">
+                className="w-full px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20">
                 <option value="">Select</option>
                 {staff.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
               </select>
             </div>
             <div>
-              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1">Category</label>
+              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Category</label>
               <select value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))}
-                className="w-full px-3 py-2 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20">
+                className="w-full px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20">
                 <option value="">Select</option>
                 {CERT_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
           </div>
           <div>
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1">Title *</label>
+            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Title *</label>
             <input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
               placeholder="e.g. Food Hygiene Level 2"
-              className="w-full px-3 py-2 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20" />
+              className="w-full px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20" />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1">Issued Date</label>
+              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Issued Date</label>
               <input type="date" value={form.issued_date} onChange={e => setForm(f => ({ ...f, issued_date: e.target.value }))}
-                className="w-full px-3 py-2 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20" />
+                className="w-full px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20" />
             </div>
             <div>
-              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1">Expiry Date</label>
+              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Expiry Date</label>
               <input type="date" value={form.expiry_date} onChange={e => setForm(f => ({ ...f, expiry_date: e.target.value }))}
-                className="w-full px-3 py-2 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20" />
+                className="w-full px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20" />
             </div>
           </div>
           <div>
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1">Certificate / Document</label>
+            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Certificate / Document</label>
             <input type="file" accept="image/*,.pdf,.doc,.docx"
               onChange={e => setFile(e.target.files[0] ?? null)}
-              className="w-full text-sm text-charcoal/60 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border file:border-charcoal/15 file:text-xs file:bg-white file:text-charcoal/60 hover:file:bg-cream" />
+              className="w-full text-sm text-charcoal/60 dark:text-white/50 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border file:border-charcoal/15 dark:file:border-white/15 file:text-xs file:bg-white dark:file:bg-paperDark file:text-charcoal/60 dark:file:text-white/50 hover:file:bg-cream" />
           </div>
           <button onClick={handleAdd} disabled={saving}
             className="bg-charcoal text-cream py-2.5 rounded-lg text-sm font-medium disabled:opacity-40 hover:bg-charcoal/90 transition-colors">
@@ -612,35 +612,35 @@ function CertificatesTab({ venueId }) {
         />
       ) : (
         Object.entries(byStaff).map(([name, recs]) => (
-          <div key={name} className="bg-white rounded-2xl border-charcoal/10 overflow-hidden">
-            <div className="px-5 py-3 bg-white border-b border-charcoal/8 flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-charcoal/10 flex items-center justify-center">
+          <div key={name} className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 overflow-hidden">
+            <div className="px-5 py-3 bg-white dark:bg-paperDark border-b border-charcoal/8 dark:border-white/8 flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full bg-charcoal/10 dark:bg-white/10 flex items-center justify-center">
                 {recs[0]?.staff?.photo_url
                   ? <img src={recs[0].staff.photo_url} alt={name} className="w-8 h-8 rounded-full object-cover" loading="lazy" />
-                  : <span className="text-sm font-semibold text-charcoal/40">{name.charAt(0)}</span>}
+                  : <span className="text-sm font-semibold text-charcoal/40 dark:text-white/35">{name.charAt(0)}</span>}
               </div>
               <div>
-                <p className="text-sm font-semibold text-charcoal">{name}</p>
-                <p className="text-[11px] tracking-widest uppercase text-charcoal/40">{recs.length} record{recs.length !== 1 ? 's' : ''}</p>
+                <p className="text-sm font-semibold text-charcoal dark:text-white">{name}</p>
+                <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">{recs.length} record{recs.length !== 1 ? 's' : ''}</p>
               </div>
             </div>
-            <ul className="divide-y divide-charcoal/6">
+            <ul className="divide-y divide-charcoal/6 dark:divide-white/8">
               {recs.map(r => {
                 const status = certStatus(r)
                 return (
                   <li key={r.id} className="px-5 py-3 flex items-start justify-between gap-3">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <p className="text-sm font-medium text-charcoal">{r.title}</p>
+                        <p className="text-sm font-medium text-charcoal dark:text-white">{r.title}</p>
                         <StatusBadge status={status} />
                         {r.category && (
-                          <span className="text-[11px] tracking-widest uppercase text-charcoal/30 border border-charcoal/10 px-1.5 py-0.5 rounded">{r.category}</span>
+                          <span className="text-[11px] tracking-widest uppercase text-charcoal/30 dark:text-white/30 border border-charcoal/10 dark:border-white/10 px-1.5 py-0.5 rounded">{r.category}</span>
                         )}
                       </div>
                       <div className="flex items-center gap-3 mt-1 flex-wrap">
-                        {r.issued_date && <p className="text-xs text-charcoal/40">Issued: {format(parseISO(r.issued_date), 'dd MMM yyyy')}</p>}
+                        {r.issued_date && <p className="text-xs text-charcoal/40 dark:text-white/35">Issued: {format(parseISO(r.issued_date), 'dd MMM yyyy')}</p>}
                         {r.expiry_date && (
-                          <p className={`text-xs ${status === 'expired' ? 'text-danger' : status === 'expiring' ? 'text-warning' : 'text-charcoal/40'}`}>
+                          <p className={`text-xs ${status === 'expired' ? 'text-danger' : status === 'expiring' ? 'text-warning' : 'text-charcoal/40 dark:text-white/35'}`}>
                             Expires: {format(parseISO(r.expiry_date), 'dd MMM yyyy')}
                           </p>
                         )}
@@ -651,10 +651,10 @@ function CertificatesTab({ venueId }) {
                           </button>
                         )}
                       </div>
-                      {r.notes && <p className="text-xs text-charcoal/40 mt-1 italic">{r.notes}</p>}
+                      {r.notes && <p className="text-xs text-charcoal/40 dark:text-white/35 mt-1 italic">{r.notes}</p>}
                     </div>
                     <button onClick={() => setDeleteTarget(r)}
-                      className="text-charcoal/25 hover:text-danger transition-colors shrink-0 mt-0.5"><svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+                      className="text-charcoal/25 dark:text-white/25 hover:text-danger transition-colors shrink-0 mt-0.5"><svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
                   </li>
                 )
               })}
@@ -742,21 +742,21 @@ function AllergenComplianceTab({ venueId }) {
       </div>
 
       {/* Per-staff table */}
-      <div className="bg-white rounded-2xl border border-charcoal/10 overflow-hidden">
+      <div className="bg-white dark:bg-paperDark rounded-2xl border border-charcoal/10 dark:border-white/10 overflow-hidden">
         {staff.length === 0 ? (
-          <p className="px-5 py-8 text-sm text-charcoal/40 text-center">No active staff found.</p>
+          <p className="px-5 py-8 text-sm text-charcoal/40 dark:text-white/35 text-center">No active staff found.</p>
         ) : staff.map((s, i) => {
           const cert   = certByStaff[s.id]
           const status = cert ? certStatus(cert) : null
           return (
-            <div key={s.id} className={`flex items-center gap-4 px-5 py-3.5 ${i > 0 ? 'border-t border-charcoal/6' : ''}`}>
-              <div className="w-8 h-8 rounded-full bg-charcoal/8 flex items-center justify-center text-xs font-semibold text-charcoal/50 shrink-0">
+            <div key={s.id} className={`flex items-center gap-4 px-5 py-3.5 ${i > 0 ? 'border-t border-charcoal/6 dark:border-white/8' : ''}`}>
+              <div className="w-8 h-8 rounded-full bg-charcoal/8 dark:bg-white/8 flex items-center justify-center text-xs font-semibold text-charcoal/50 dark:text-white/40 shrink-0">
                 {s.name?.charAt(0) ?? '?'}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-charcoal">{s.name}</p>
+                <p className="text-sm font-medium text-charcoal dark:text-white">{s.name}</p>
                 {cert ? (
-                  <p className="text-xs text-charcoal/40">
+                  <p className="text-xs text-charcoal/40 dark:text-white/35">
                     {cert.title}
                     {cert.issued_date && <> · Issued {format(parseISO(cert.issued_date), 'd MMM yyyy')}</>}
                     {cert.expiry_date && <> · Expires {format(parseISO(cert.expiry_date), 'd MMM yyyy')}</>}
@@ -773,7 +773,7 @@ function AllergenComplianceTab({ venueId }) {
               )}
               <button
                 onClick={() => openAdd(s)}
-                className="text-xs px-3 py-1.5 rounded-lg border border-charcoal/15 text-charcoal/50 hover:text-charcoal hover:border-charcoal/30 transition-colors shrink-0"
+                className="text-xs px-3 py-1.5 rounded-lg border border-charcoal/15 dark:border-white/15 text-charcoal/50 dark:text-white/40 hover:text-charcoal dark:hover:text-white hover:border-charcoal/30 dark:hover:border-white/30 transition-colors shrink-0"
               >
                 {cert ? 'Update' : '+ Add'}
               </button>
@@ -784,35 +784,35 @@ function AllergenComplianceTab({ venueId }) {
 
       {/* Add / update cert panel */}
       {addFor && (
-        <div className="bg-white rounded-2xl border border-charcoal/10 p-6 flex flex-col gap-4">
+        <div className="bg-white dark:bg-paperDark rounded-2xl border border-charcoal/10 dark:border-white/10 p-6 flex flex-col gap-4">
           <div className="flex items-center justify-between">
-            <p className="text-sm font-semibold text-charcoal">
+            <p className="text-sm font-semibold text-charcoal dark:text-white">
               Allergen Awareness Training — {addFor.name}
             </p>
-            <button onClick={() => setAddFor(null)} className="text-charcoal/30 hover:text-charcoal text-xl leading-none">×</button>
+            <button onClick={() => setAddFor(null)} className="text-charcoal/30 dark:text-white/30 hover:text-charcoal dark:hover:text-white text-xl leading-none">×</button>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1">Date issued</label>
+              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Date issued</label>
               <input type="date" value={form.issued_date} onChange={e => setForm(f => ({ ...f, issued_date: e.target.value }))}
-                className="w-full px-3 py-2 rounded-lg border border-charcoal/15 text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20" />
+                className="w-full px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20" />
             </div>
             <div>
-              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1">Expiry date (if applicable)</label>
+              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Expiry date (if applicable)</label>
               <input type="date" value={form.expiry_date} onChange={e => setForm(f => ({ ...f, expiry_date: e.target.value }))}
-                className="w-full px-3 py-2 rounded-lg border border-charcoal/15 text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20" />
+                className="w-full px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20" />
             </div>
           </div>
           <div>
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1">Upload certificate (optional)</label>
+            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Upload certificate (optional)</label>
             <input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={e => setFile(e.target.files[0] || null)}
-              className="text-sm text-charcoal/60" />
+              className="text-sm text-charcoal/60 dark:text-white/50" />
           </div>
           <div>
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1">Notes</label>
+            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Notes</label>
             <input value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))}
               placeholder="e.g. Online course via HighSpeed Training / in-house induction"
-              className="w-full px-3 py-2 rounded-lg border border-charcoal/15 text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20" />
+              className="w-full px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20" />
           </div>
           <button onClick={save} disabled={saving}
             className="bg-charcoal text-cream py-2.5 rounded-xl text-sm font-semibold hover:bg-charcoal/90 transition-colors disabled:opacity-40">
@@ -834,13 +834,13 @@ export default function TrainingPage() {
     <div className="flex flex-col gap-6">
       <div className="flex items-end justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-charcoal">Staff Training</h1>
-          <p className="text-sm text-charcoal/40 mt-1">SC6 induction records &amp; certificates</p>
+          <h1 className="text-2xl font-bold text-charcoal dark:text-white">Staff Training</h1>
+          <p className="text-sm text-charcoal/40 dark:text-white/35 mt-1">SC6 induction records &amp; certificates</p>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 bg-charcoal/5 rounded-xl p-1 w-fit">
+      <div className="flex gap-1 bg-charcoal/5 dark:bg-white/5 rounded-xl p-1 w-fit">
         {[
           { id: 'induction',    label: 'Induction Records' },
           { id: 'certificates', label: 'Certificates' },
@@ -850,7 +850,7 @@ export default function TrainingPage() {
             key={t.id}
             onClick={() => setTab(t.id)}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-              tab === t.id ? 'bg-white text-charcoal shadow-sm' : 'text-charcoal/50 hover:text-charcoal'
+              tab === t.id ? 'bg-white dark:bg-paperDark text-charcoal dark:text-white shadow-sm' : 'text-charcoal/50 dark:text-white/40 hover:text-charcoal dark:hover:text-white'
             }`}
           >
             {t.label}

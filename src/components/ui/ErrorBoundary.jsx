@@ -23,18 +23,18 @@ export default class ErrorBoundary extends React.Component {
               <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
             </svg>
           </div>
-          <p className="text-base font-semibold text-charcoal mb-1">Something went wrong</p>
-          <p className="text-sm text-charcoal/45 mb-6 max-w-xs">{this.state.error?.message ?? 'An unexpected error occurred. Please try again.'}</p>
+          <p className="text-base font-semibold text-charcoal dark:text-white mb-1">Something went wrong</p>
+          <p className="text-sm text-charcoal/45 dark:text-white/40 mb-6 max-w-xs">{this.state.error?.message ?? 'An unexpected error occurred. Please try again.'}</p>
           <div className="flex items-center gap-3">
             <button
               onClick={() => this.setState({ hasError: false, error: null })}
-              className="text-sm bg-charcoal text-cream px-4 py-2 rounded-xl hover:bg-charcoal/80 transition-colors font-medium"
+              className="text-sm bg-charcoal text-cream dark:bg-white dark:text-charcoal px-4 py-2 rounded-xl hover:bg-charcoal/80 dark:hover:bg-white/90 transition-colors font-medium"
             >
               Try again
             </button>
             <a
               href="/"
-              className="text-sm text-charcoal/50 hover:text-charcoal px-4 py-2 rounded-xl border border-charcoal/15 hover:border-charcoal/30 transition-colors"
+              className="text-sm text-charcoal/50 dark:text-white/40 hover:text-charcoal dark:hover:text-white px-4 py-2 rounded-xl border border-charcoal/15 dark:border-white/15 hover:border-charcoal/30 dark:hover:border-white/30 transition-colors"
             >
               Go to home
             </a>

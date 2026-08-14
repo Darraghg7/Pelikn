@@ -77,7 +77,7 @@ export default function SignaturePad({ onChange, disabled = false, value = null 
 
   return (
     <div className="flex flex-col gap-1.5">
-      <div className={`relative border rounded-lg overflow-hidden ${disabled ? 'bg-white border-charcoal/10' : 'bg-white border-charcoal/20'}`}>
+      <div className={`relative border rounded-lg overflow-hidden ${disabled ? 'bg-white dark:bg-paperDark border-charcoal/10 dark:border-white/15' : 'bg-white border-charcoal/20 dark:border-white/20'}`}>
         <canvas
           ref={canvasRef}
           width={600}
@@ -92,7 +92,7 @@ export default function SignaturePad({ onChange, disabled = false, value = null 
           onTouchEnd={endDraw}
         />
         {!hasSignature && !disabled && (
-          <p className="absolute inset-0 flex items-center justify-center text-charcoal/25 text-sm pointer-events-none select-none">
+          <p className="absolute inset-0 flex items-center justify-center text-charcoal/25 dark:text-white/25 text-sm pointer-events-none select-none">
             Sign here
           </p>
         )}
@@ -100,7 +100,7 @@ export default function SignaturePad({ onChange, disabled = false, value = null 
       {hasSignature && !disabled && (
         <button
           onClick={clear}
-          className="text-[11px] text-charcoal/40 hover:text-danger transition-colors self-start"
+          className="text-[11px] text-charcoal/40 dark:text-white/35 hover:text-danger transition-colors self-start"
         >
           Clear signature
         </button>

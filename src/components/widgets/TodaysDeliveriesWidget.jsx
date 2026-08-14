@@ -31,15 +31,15 @@ function TodaysDeliveriesWidget() {
   return (
     <WidgetShell title="Today's Deliveries" to="/deliveries" status={status !== 'neutral' ? status : undefined}>
       {data.total === 0 ? (
-        <p className="text-sm text-charcoal/30 italic py-2">No deliveries logged today</p>
+        <p className="text-sm text-charcoal/30 dark:text-white/30 italic py-2">No deliveries logged today</p>
       ) : (
         <>
           <MiniRow label="Deliveries" value={data.total} />
           <MiniRow label="Failed" value={data.fails} warn={data.fails > 0} />
-          <div className="mt-2 border-t border-charcoal/6 pt-2">
+          <div className="mt-2 border-t border-charcoal/6 dark:border-white/8 pt-2">
             {data.items.map(c => (
               <div key={c.id} className="flex items-center justify-between py-0.5">
-                <span className="text-xs text-charcoal/60 truncate">{c.supplier_name}</span>
+                <span className="text-xs text-charcoal/60 dark:text-white/50 truncate">{c.supplier_name}</span>
                 <span className={`text-[11px] font-medium ${c.overall_pass ? 'text-success' : 'text-danger'}`}>
                   {c.overall_pass ? 'PASS' : 'FAIL'}
                 </span>

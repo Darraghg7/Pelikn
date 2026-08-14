@@ -11,7 +11,7 @@ const STATUS = {
   green: { dotClass: 'bg-success',  label: 'All clear',       topBarClass: 'bg-success',  textClass: 'text-success'  },
   amber: { dotClass: 'bg-warning',  label: 'Needs attention', topBarClass: 'bg-warning',  textClass: 'text-warning'  },
   red:   { dotClass: 'bg-danger',   label: 'Checks missing',  topBarClass: 'bg-danger',   textClass: 'text-danger'   },
-  gray:  { dotClass: 'bg-charcoal/25', label: 'Loading…',     topBarClass: 'bg-charcoal/25', textClass: 'text-charcoal/40' },
+  gray:  { dotClass: 'bg-charcoal/25 dark:bg-white/25', label: 'Loading…',     topBarClass: 'bg-charcoal/25', textClass: 'text-charcoal/40 dark:text-white/35' },
 }
 
 function statusFor(result) {
@@ -28,7 +28,7 @@ function CheckDot({ done, label }) {
       ].join(' ')}>
         {done ? '✓' : '✕'}
       </div>
-      <span className="text-[11px] font-semibold text-charcoal/40 text-center leading-[1.2]">
+      <span className="text-[11px] font-semibold text-charcoal/40 dark:text-white/35 text-center leading-[1.2]">
         {label}
       </span>
     </div>
@@ -38,11 +38,11 @@ function CheckDot({ done, label }) {
 /* ── Footer stat cell ────────────────────────────────────────────────────────── */
 function StatCell({ value, label, colorClass, last }) {
   return (
-    <div className={`flex-1 pl-3.5 py-2.5 ${last ? '' : 'border-r border-charcoal/8'}`}>
-      <div className={`text-[17px] font-bold tabular-nums leading-none ${colorClass ?? 'text-charcoal'}`}>
+    <div className={`flex-1 pl-3.5 py-2.5 ${last ? '' : 'border-r border-charcoal/8 dark:border-white/8'}`}>
+      <div className={`text-[17px] font-bold tabular-nums leading-none ${colorClass ?? 'text-charcoal dark:text-white'}`}>
         {value}
       </div>
-      <div className="text-[11px] font-semibold text-charcoal/40 mt-[1px]">
+      <div className="text-[11px] font-semibold text-charcoal/40 dark:text-white/35 mt-[1px]">
         {label}
       </div>
     </div>
@@ -69,7 +69,7 @@ function VenueCard({ result, isHome, dimmed, onOpen }) {
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       onClick={() => !dimmed && onOpen(venue.slug)}
-      className="bg-white dark:bg-paperDark rounded-2xl border border-charcoal/8 overflow-hidden flex flex-col"
+      className="bg-white dark:bg-paperDark rounded-2xl border border-charcoal/8 dark:border-white/8 overflow-hidden flex flex-col"
       style={{
         cursor: dimmed ? 'default' : 'pointer',
         opacity: dimmed ? 0.20 : 1,
@@ -82,7 +82,7 @@ function VenueCard({ result, isHome, dimmed, onOpen }) {
       <div className={`h-[3px] rounded-t-2xl ${st.topBarClass}`} />
 
       <div className="p-[14px_16px_10px]">
-        <div className="text-sm font-bold text-charcoal overflow-hidden text-ellipsis whitespace-nowrap">
+        <div className="text-sm font-bold text-charcoal dark:text-white overflow-hidden text-ellipsis whitespace-nowrap">
           {venue.name}
         </div>
         <div className={`text-[11px] font-bold mt-0.5 ${st.textClass}`}>
@@ -99,17 +99,17 @@ function VenueCard({ result, isHome, dimmed, onOpen }) {
         >
           <button
             onClick={(e) => { e.stopPropagation(); onOpen(venue.slug) }}
-            className="text-[11px] font-semibold text-charcoal bg-transparent border border-charcoal/18 rounded-[7px] px-2.5 py-[3px] cursor-pointer"
+            className="text-[11px] font-semibold text-charcoal dark:text-white bg-transparent border border-charcoal/18 dark:border-white/20 rounded-[7px] px-2.5 py-[3px] cursor-pointer"
           >
             Open →
           </button>
         </div>
       </div>
 
-      <div className="px-4 pb-3 pt-1.5 border-b border-charcoal/8 flex gap-2">
+      <div className="px-4 pb-3 pt-1.5 border-b border-charcoal/8 dark:border-white/8 flex gap-2">
         {loading
           ? [0,1,2,3].map(i => (
-              <div key={i} className="w-[22px] h-[22px] rounded-full bg-charcoal/6 animate-pulse" />
+              <div key={i} className="w-[22px] h-[22px] rounded-full bg-charcoal/6 dark:bg-white/8 animate-pulse" />
             ))
           : checks.map(c => <CheckDot key={c.label} done={c.done} label={c.label} />)
         }
@@ -119,22 +119,22 @@ function VenueCard({ result, isHome, dimmed, onOpen }) {
         <StatCell
           value={loading ? '—' : (data?.clockedInCount ?? 0)}
           label="On shift"
-          colorClass={data?.clockedInCount > 0 ? 'text-success' : 'text-charcoal'}
+          colorClass={data?.clockedInCount > 0 ? 'text-success' : 'text-charcoal dark:text-white'}
         />
         <StatCell
           value="—"
           label="Flags"
-          colorClass="text-charcoal"
+          colorClass="text-charcoal dark:text-white"
         />
         <StatCell
           value={loading ? '—' : (pendingCount > 0 ? pendingCount : '—')}
           label="Pending"
-          colorClass={pendingCount > 0 ? 'text-warning' : 'text-charcoal/30'}
+          colorClass={pendingCount > 0 ? 'text-warning' : 'text-charcoal/30 dark:text-white/30'}
         />
         <StatCell
           value="—"
           label="Training"
-          colorClass="text-charcoal/30"
+          colorClass="text-charcoal/30 dark:text-white/30"
           last
         />
       </div>
@@ -159,8 +159,8 @@ function StripCell({ cell, value, isActive, onClick, loading, isLast }) {
       onMouseLeave={() => setHovered(false)}
       className={[
         'flex-1 p-[14px_18px_12px] text-left border-0 cursor-pointer relative transition-colors duration-100',
-        isLast ? '' : 'border-r border-charcoal/8',
-        isActive ? 'bg-charcoal/4' : hovered ? 'bg-charcoal/2' : 'bg-transparent',
+        isLast ? '' : 'border-r border-charcoal/8 dark:border-white/8',
+        isActive ? 'bg-charcoal/4 dark:bg-white/5' : hovered ? 'bg-charcoal/2 dark:bg-white/3' : 'bg-transparent',
       ].join(' ')}
     >
       {isActive && (
@@ -168,10 +168,10 @@ function StripCell({ cell, value, isActive, onClick, loading, isLast }) {
       )}
       <div className={`text-[28px] font-bold tracking-[-0.04em] tabular-nums leading-none ${cell.numClass}`}>
         {loading ? (
-          <span className="inline-block w-10 h-7 rounded-md bg-charcoal/6" />
+          <span className="inline-block w-10 h-7 rounded-md bg-charcoal/6 dark:bg-white/8" />
         ) : value}
       </div>
-      <div className="text-[11px] font-semibold text-charcoal/40 mt-[3px] uppercase tracking-[0.04em]">
+      <div className="text-[11px] font-semibold text-charcoal/40 dark:text-white/35 mt-[3px] uppercase tracking-[0.04em]">
         {cell.label}
       </div>
     </button>
@@ -240,15 +240,15 @@ export default function OverviewPage() {
     <div className="max-w-[1280px] mx-auto py-8">
 
       <div className="mb-6">
-        <h1 className="text-[26px] font-semibold tracking-[-0.028em] text-charcoal m-0">
+        <h1 className="text-[26px] font-semibold tracking-[-0.028em] text-charcoal dark:text-white m-0">
           {greeting}
         </h1>
-        <p className="text-[13px] text-charcoal/45 mt-1">
+        <p className="text-[13px] text-charcoal/45 dark:text-white/40 mt-1">
           {format(new Date(), 'EEEE, d MMMM')} · {allVenues.length} venue{allVenues.length !== 1 ? 's' : ''}
         </p>
       </div>
 
-      <div className="bg-white dark:bg-paperDark rounded-2xl border border-charcoal/8 flex overflow-hidden mb-4">
+      <div className="bg-white dark:bg-paperDark rounded-2xl border border-charcoal/8 dark:border-white/8 flex overflow-hidden mb-4">
         {STRIP_CELLS.map((cell, i) => (
           <StripCell
             key={cell.key}
@@ -263,14 +263,14 @@ export default function OverviewPage() {
       </div>
 
       {activeFilter && activeCell && (
-        <div className="bg-white dark:bg-paperDark rounded-xl border border-charcoal/8 px-3.5 py-[9px] flex items-center gap-2.5 mb-4 animate-[fadeSlideIn_150ms_ease]">
+        <div className="bg-white dark:bg-paperDark rounded-xl border border-charcoal/8 dark:border-white/8 px-3.5 py-[9px] flex items-center gap-2.5 mb-4 animate-[fadeSlideIn_150ms_ease]">
           <span className={`w-[7px] h-[7px] rounded-full shrink-0 ${activeCell.barClass}`} />
-          <span className="text-xs font-semibold text-charcoal flex-1">
+          <span className="text-xs font-semibold text-charcoal dark:text-white flex-1">
             {filterLabels[activeFilter]}
           </span>
           <button
             onClick={() => setActiveFilter(null)}
-            className="text-[11px] font-semibold text-charcoal/40 bg-transparent border-0 cursor-pointer hover:text-charcoal transition-colors duration-100"
+            className="text-[11px] font-semibold text-charcoal/40 dark:text-white/35 bg-transparent border-0 cursor-pointer hover:text-charcoal dark:hover:text-white transition-colors duration-100"
           >
             Clear ✕
           </button>
@@ -288,7 +288,7 @@ export default function OverviewPage() {
           />
         ))}
         {loading && results.length === 0 && allVenues.map(v => (
-          <div key={v.id} className="h-[220px] bg-white dark:bg-paperDark rounded-2xl border border-charcoal/8 animate-pulse" />
+          <div key={v.id} className="h-[220px] bg-white dark:bg-paperDark rounded-2xl border border-charcoal/8 dark:border-white/8 animate-pulse" />
         ))}
       </div>
 

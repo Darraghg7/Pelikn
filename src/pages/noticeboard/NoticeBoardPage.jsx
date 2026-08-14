@@ -16,7 +16,7 @@ function PostCard({ notice, isManager, onDelete }) {
   const [deleting, setDeleting] = useState(false)
 
   return (
-    <div className={`bg-white rounded-2xl p-5 flex flex-col gap-3 ${notice.pinned ? 'border-accent/30' : 'border-charcoal/10'}`}>
+    <div className={`bg-white dark:bg-paperDark rounded-2xl p-5 flex flex-col gap-3 ${notice.pinned ? 'border-accent/30' : 'border-charcoal/10 dark:border-white/10'}`}>
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-2 flex-wrap">
           {notice.pinned && (
@@ -24,13 +24,13 @@ function PostCard({ notice, isManager, onDelete }) {
               <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14v-1.76a2 2 0 00-1.11-1.79l-1.78-.9A2 2 0 0115 10.76V6h1a2 2 0 000-4H8a2 2 0 000 4h1v4.76a2 2 0 01-1.11 1.79l-1.78.9A2 2 0 005 15.24V17z"/></svg>
             </span>
           )}
-          <h3 className="font-semibold text-charcoal text-base leading-snug">{notice.title}</h3>
+          <h3 className="font-semibold text-charcoal dark:text-white text-base leading-snug">{notice.title}</h3>
         </div>
         {isManager && (
           <div className="shrink-0">
             {confirming ? (
               <div className="flex items-center gap-1.5">
-                <span className="text-xs text-charcoal/40">Delete?</span>
+                <span className="text-xs text-charcoal/40 dark:text-white/35">Delete?</span>
                 <button
                   onClick={async () => {
                     setDeleting(true)
@@ -45,7 +45,7 @@ function PostCard({ notice, isManager, onDelete }) {
                 </button>
                 <button
                   onClick={() => setConfirming(false)}
-                  className="text-xs text-charcoal/40 hover:text-charcoal transition-colors"
+                  className="text-xs text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white transition-colors"
                 >
                   No
                 </button>
@@ -53,7 +53,7 @@ function PostCard({ notice, isManager, onDelete }) {
             ) : (
               <button
                 onClick={() => setConfirming(true)}
-                className="text-xs text-charcoal/30 hover:text-danger transition-colors"
+                className="text-xs text-charcoal/30 dark:text-white/30 hover:text-danger transition-colors"
               >
                 Delete
               </button>
@@ -63,15 +63,15 @@ function PostCard({ notice, isManager, onDelete }) {
       </div>
 
       {notice.body && (
-        <p className="text-sm text-charcoal/70 leading-relaxed whitespace-pre-wrap">{notice.body}</p>
+        <p className="text-sm text-charcoal/70 dark:text-white/60 leading-relaxed whitespace-pre-wrap">{notice.body}</p>
       )}
 
-      <div className="flex items-center gap-2 pt-1 border-t border-charcoal/6">
+      <div className="flex items-center gap-2 pt-1 border-t border-charcoal/6 dark:border-white/8">
         {notice.created_by_name && (
-          <span className="text-[11px] text-charcoal/35">{notice.created_by_name}</span>
+          <span className="text-[11px] text-charcoal/35 dark:text-white/30">{notice.created_by_name}</span>
         )}
-        <span className="text-[11px] text-charcoal/25">·</span>
-        <span className="text-[11px] text-charcoal/35">
+        <span className="text-[11px] text-charcoal/25 dark:text-white/25">·</span>
+        <span className="text-[11px] text-charcoal/35 dark:text-white/30">
           {format(new Date(notice.created_at), 'd MMM yyyy, HH:mm')}
         </span>
       </div>
@@ -104,42 +104,42 @@ function NewPostForm({ venueId, staffName, onPosted, onCancel }) {
   }
 
   return (
-    <form onSubmit={submit} className="bg-white rounded-2xl border-charcoal/10 p-5 flex flex-col gap-4">
-      <p className="text-[11px] tracking-widest uppercase text-charcoal/40">New Notice</p>
+    <form onSubmit={submit} className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-5 flex flex-col gap-4">
+      <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">New Notice</p>
 
       <div className="flex flex-col gap-1.5">
-        <label className="text-[11px] tracking-widest uppercase text-charcoal/40">Title <span className="text-danger">*</span></label>
+        <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">Title <span className="text-danger">*</span></label>
         <input
           type="text"
           value={form.title}
           onChange={(e) => set('title', e.target.value)}
           placeholder="e.g. Staff meeting this Friday"
-          className="w-full px-3 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 placeholder-charcoal/25"
+          className="w-full px-3 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 placeholder-charcoal/25 dark:placeholder-white/20"
         />
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <label className="text-[11px] tracking-widest uppercase text-charcoal/40">Message</label>
+        <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">Message</label>
         <textarea
           value={form.body}
           onChange={(e) => set('body', e.target.value)}
           placeholder="Add more detail here…"
           rows={4}
-          className="w-full px-3 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm resize-none focus:outline-none focus:ring-2 focus:ring-charcoal/20 placeholder-charcoal/25"
+          className="w-full px-3 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm resize-none focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 placeholder-charcoal/25 dark:placeholder-white/20"
         />
       </div>
 
       <label className="flex items-center gap-3 cursor-pointer select-none">
         <div
           onClick={() => set('pinned', !form.pinned)}
-          className={`w-9 h-5 rounded-full transition-colors relative cursor-pointer ${form.pinned ? 'bg-accent' : 'bg-charcoal/20'}`}
+          className={`w-9 h-5 rounded-full transition-colors relative cursor-pointer ${form.pinned ? 'bg-accent' : 'bg-charcoal/20 dark:bg-white/20'}`}
         >
-          <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${form.pinned ? 'translate-x-4' : ''}`} />
+          <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white dark:bg-paperDark rounded-full shadow transition-transform ${form.pinned ? 'translate-x-4' : ''}`} />
         </div>
-        <span className="text-sm text-charcoal/70">Pin this notice to the top</span>
+        <span className="text-sm text-charcoal/70 dark:text-white/60">Pin this notice to the top</span>
       </label>
 
-      <div className="flex gap-2 pt-1 border-t border-charcoal/8">
+      <div className="flex gap-2 pt-1 border-t border-charcoal/8 dark:border-white/8">
         <Button type="submit" variant="primary" disabled={saving} className="flex-1">
           {saving ? 'Posting…' : 'Post Notice'}
         </Button>
@@ -168,7 +168,7 @@ export default function NoticeBoardPage() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-charcoal">Noticeboard</h1>
+        <h1 className="text-2xl font-bold text-charcoal dark:text-white">Noticeboard</h1>
         {isManager && !showForm && (
           <Button variant="primary" onClick={() => setShowForm(true)}>
             + Post Notice

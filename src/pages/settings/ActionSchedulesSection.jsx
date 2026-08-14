@@ -58,7 +58,7 @@ export default function ActionSchedulesSection({ schedules, onSave }) {
                         'px-2.5 py-1 rounded-md text-xs font-medium border transition-all',
                         active
                           ? 'bg-accent/10 text-accent border-accent/25'
-                          : 'bg-charcoal/5 text-charcoal/35 border-charcoal/10',
+                          : 'bg-charcoal/5 dark:bg-white/5 text-charcoal/35 dark:text-white/30 border-charcoal/10 dark:border-white/10',
                       ].join(' ')}
                     >
                       {day}
@@ -68,7 +68,7 @@ export default function ActionSchedulesSection({ schedules, onSave }) {
               </div>
             )}
             {ACTION_ITEMS[ACTION_ITEMS.length - 1].key !== key && (
-              <div className="border-t border-charcoal/8 mt-1" />
+              <div className="border-t border-charcoal/8 dark:border-white/8 mt-1" />
             )}
           </div>
         )

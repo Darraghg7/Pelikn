@@ -7,8 +7,8 @@ const CONTACT_EMAIL  = 'hello@pelikn.app'
 function Section({ title, children }) {
   return (
     <section className="mb-8">
-      <h2 className="text-base font-bold text-charcoal mb-3">{title}</h2>
-      <div className="text-sm text-charcoal/70 leading-relaxed space-y-3">
+      <h2 className="text-base font-bold text-charcoal dark:text-white mb-3">{title}</h2>
+      <div className="text-sm text-charcoal/70 dark:text-white/60 leading-relaxed space-y-3">
         {children}
       </div>
     </section>
@@ -19,18 +19,18 @@ export default function PrivacyPolicyPage() {
   return (
     <div className="min-h-screen bg-cream">
       {/* Header */}
-      <header className="border-b border-charcoal/8 bg-white">
+      <header className="border-b border-charcoal/8 dark:border-white/8 bg-white dark:bg-paperDark">
         <div className="max-w-2xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link to="/" className="text-sm font-bold tracking-tight text-charcoal">
+          <Link to="/" className="text-sm font-bold tracking-tight text-charcoal dark:text-white">
             Pelikn
           </Link>
-          <span className="text-xs text-charcoal/40">Privacy Policy</span>
+          <span className="text-xs text-charcoal/40 dark:text-white/35">Privacy Policy</span>
         </div>
       </header>
 
       <main className="max-w-2xl mx-auto px-6 py-12">
-        <h1 className="text-2xl font-bold text-charcoal mb-1">Privacy Policy</h1>
-        <p className="text-xs text-charcoal/40 mb-10">Effective date: {EFFECTIVE_DATE}</p>
+        <h1 className="text-2xl font-bold text-charcoal dark:text-white mb-1">Privacy Policy</h1>
+        <p className="text-xs text-charcoal/40 dark:text-white/35 mb-10">Effective date: {EFFECTIVE_DATE}</p>
 
         <Section title="Who we are">
           <p>
@@ -48,40 +48,40 @@ export default function PrivacyPolicyPage() {
           <p>We collect the following categories of data when you use Pelikn:</p>
           <ul className="list-disc pl-5 space-y-2">
             <li>
-              <strong className="text-charcoal font-semibold">Account data</strong> — name and email
+              <strong className="text-charcoal dark:text-white font-semibold">Account data</strong> — name and email
               address of venue managers who sign up.
             </li>
             <li>
-              <strong className="text-charcoal font-semibold">Staff data</strong> — first name, an
+              <strong className="text-charcoal dark:text-white font-semibold">Staff data</strong> — first name, an
               optional profile photo, and a 4-digit PIN for venue staff members. These are entered
               by the venue manager.
             </li>
             <li>
-              <strong className="text-charcoal font-semibold">Venue data</strong> — venue name,
+              <strong className="text-charcoal dark:text-white font-semibold">Venue data</strong> — venue name,
               type, and operational settings configured by the manager.
             </li>
             <li>
-              <strong className="text-charcoal font-semibold">Compliance logs</strong> — temperature
+              <strong className="text-charcoal dark:text-white font-semibold">Compliance logs</strong> — temperature
               readings, delivery records, cleaning completions, corrective actions, and other food
               safety records entered by staff during their shift.
             </li>
             <li>
-              <strong className="text-charcoal font-semibold">Fitness declarations</strong> —
+              <strong className="text-charcoal dark:text-white font-semibold">Fitness declarations</strong> —
               pre-shift wellness declarations (e.g. whether a staff member has symptoms that could
               affect food safety). These are recorded for regulatory compliance only and are not
               used for any other purpose.
             </li>
             <li>
-              <strong className="text-charcoal font-semibold">Attendance and scheduling data</strong>{' '}
+              <strong className="text-charcoal dark:text-white font-semibold">Attendance and scheduling data</strong>{' '}
               — clock-in/out times, shift assignments, rota entries, time-off requests, and
               timesheet records (Pro plan only).
             </li>
             <li>
-              <strong className="text-charcoal font-semibold">Training records</strong> — staff
+              <strong className="text-charcoal dark:text-white font-semibold">Training records</strong> — staff
               training completions and certifications (Pro plan only).
             </li>
             <li>
-              <strong className="text-charcoal font-semibold">Device tokens</strong> — push
+              <strong className="text-charcoal dark:text-white font-semibold">Device tokens</strong> — push
               notification tokens (APNs) if you grant notification permission on your device.
             </li>
           </ul>
@@ -112,16 +112,16 @@ export default function PrivacyPolicyPage() {
           </p>
           <ul className="list-disc pl-5 space-y-2">
             <li>
-              <strong className="text-charcoal font-semibold">Contract</strong> — processing
+              <strong className="text-charcoal dark:text-white font-semibold">Contract</strong> — processing
               necessary to provide the service you have signed up for.
             </li>
             <li>
-              <strong className="text-charcoal font-semibold">Legal obligation</strong> — food
+              <strong className="text-charcoal dark:text-white font-semibold">Legal obligation</strong> — food
               safety compliance logs are records your venue is legally required to keep under UK
               food hygiene law.
             </li>
             <li>
-              <strong className="text-charcoal font-semibold">Legitimate interests</strong> —
+              <strong className="text-charcoal dark:text-white font-semibold">Legitimate interests</strong> —
               service reliability, security monitoring, and fraud prevention.
             </li>
           </ul>
@@ -136,11 +136,11 @@ export default function PrivacyPolicyPage() {
           <p>We use the following sub-processors to operate the service:</p>
           <ul className="list-disc pl-5 space-y-2">
             <li>
-              <strong className="text-charcoal font-semibold">Supabase</strong> — cloud database
+              <strong className="text-charcoal dark:text-white font-semibold">Supabase</strong> — cloud database
               and authentication hosting (EU region).
             </li>
             <li>
-              <strong className="text-charcoal font-semibold">Apple</strong> — push notification
+              <strong className="text-charcoal dark:text-white font-semibold">Apple</strong> — push notification
               delivery via Apple Push Notification service (APNs).
             </li>
           </ul>
@@ -201,8 +201,8 @@ export default function PrivacyPolicyPage() {
           </p>
         </Section>
 
-        <div className="border-t border-charcoal/8 pt-8 mt-8">
-          <p className="text-xs text-charcoal/40">
+        <div className="border-t border-charcoal/8 dark:border-white/8 pt-8 mt-8">
+          <p className="text-xs text-charcoal/40 dark:text-white/35">
             Pelikn · <a href={`mailto:${CONTACT_EMAIL}`} className="underline">{CONTACT_EMAIL}</a>
             {' '}· United Kingdom
           </p>

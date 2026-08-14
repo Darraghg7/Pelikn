@@ -21,7 +21,7 @@ function nowLocal() {
 }
 
 function SectionLabel({ children }) {
-  return <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-3">{children}</p>
+  return <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-3">{children}</p>
 }
 
 function groupByDate(logs) {
@@ -121,11 +121,11 @@ export default function WasteLogPage() {
 
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-charcoal">Waste Log</h1>
+        <h1 className="text-2xl font-bold text-charcoal dark:text-white">Waste Log</h1>
         {isManager && (
           <button
             onClick={() => setShowExport(true)}
-            className="text-[11px] tracking-widest uppercase text-charcoal/40 hover:text-charcoal transition-colors border-b border-charcoal/20"
+            className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white transition-colors border-b border-charcoal/20 dark:border-white/20"
           >
             Export PDF
           </button>
@@ -137,14 +137,14 @@ export default function WasteLogPage() {
         <div className="flex flex-col gap-4">
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1.5">From</label>
+              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1.5">From</label>
               <input type="date" value={exportFrom} onChange={e => setExportFrom(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg border border-charcoal/15 bg-white text-sm text-charcoal focus:outline-none focus:ring-2 focus:ring-charcoal/20" />
+                className="w-full px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20" />
             </div>
             <div>
-              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1.5">To</label>
+              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1.5">To</label>
               <input type="date" value={exportTo} onChange={e => setExportTo(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg border border-charcoal/15 bg-white text-sm text-charcoal focus:outline-none focus:ring-2 focus:ring-charcoal/20" />
+                className="w-full px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20" />
             </div>
           </div>
           <button onClick={handleExportPdf} disabled={exporting}
@@ -155,33 +155,33 @@ export default function WasteLogPage() {
       </Modal>
 
       {/* Log form */}
-      <div className="bg-white rounded-2xl border-charcoal/10 p-5">
+      <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-5">
         <SectionLabel>Log Waste</SectionLabel>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
 
           <div>
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-2">Item Name</label>
+            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">Item Name</label>
             <input
               value={form.item_name}
               onChange={e => setForm(f => ({ ...f, item_name: e.target.value }))}
               placeholder="e.g. Chicken breast, Mixed salad"
-              className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+              className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-2">Quantity</label>
+              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">Quantity</label>
               <input
                 type="number" step="0.1" min="0"
                 value={form.quantity}
                 onChange={e => setForm(f => ({ ...f, quantity: e.target.value }))}
                 placeholder="0.0"
-                className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+                className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
               />
             </div>
             <div>
-              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-2">Unit</label>
+              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">Unit</label>
               <div className="flex flex-wrap gap-1.5">
                 {UNITS.map(u => (
                   <button key={u} type="button"
@@ -189,8 +189,8 @@ export default function WasteLogPage() {
                     className={[
                       'px-3 py-1.5 rounded-lg text-xs font-medium border transition-all',
                       form.unit === u
-                        ? 'bg-charcoal text-cream border-charcoal'
-                        : 'bg-white text-charcoal/50 border-charcoal/15 hover:border-charcoal/35',
+                        ? 'bg-charcoal text-cream border-charcoal dark:border-white'
+                        : 'bg-white dark:bg-paperDark text-charcoal/50 dark:text-white/40 border-charcoal/15 dark:border-white/15 hover:border-charcoal/35 dark:hover:border-white/35',
                     ].join(' ')}>
                     {u}
                   </button>
@@ -200,7 +200,7 @@ export default function WasteLogPage() {
           </div>
 
           <div>
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-2">Reason</label>
+            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">Reason</label>
             <div className="flex flex-wrap gap-1.5">
               {REASONS.map(r => (
                 <button key={r} type="button"
@@ -208,8 +208,8 @@ export default function WasteLogPage() {
                   className={[
                     'px-3 py-1.5 rounded-lg text-xs font-medium border transition-all',
                     form.reason === r
-                      ? 'bg-charcoal text-cream border-charcoal'
-                      : 'bg-white text-charcoal/50 border-charcoal/15 hover:border-charcoal/35',
+                      ? 'bg-charcoal text-cream border-charcoal dark:border-white'
+                      : 'bg-white dark:bg-paperDark text-charcoal/50 dark:text-white/40 border-charcoal/15 dark:border-white/15 hover:border-charcoal/35 dark:hover:border-white/35',
                   ].join(' ')}>
                   {REASON_LABELS[r]}
                 </button>
@@ -218,24 +218,24 @@ export default function WasteLogPage() {
           </div>
 
           <div>
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-2">Time of Waste</label>
+            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">Time of Waste</label>
             <input
               type="datetime-local"
               value={form.recorded_at}
               onChange={e => setForm(f => ({ ...f, recorded_at: e.target.value }))}
               max={nowLocal()}
-              className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm text-charcoal focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+              className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
             />
           </div>
 
           <div>
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-2">Notes <span className="normal-case text-charcoal/30">(optional)</span></label>
+            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">Notes <span className="normal-case text-charcoal/30 dark:text-white/30">(optional)</span></label>
             <textarea
               value={form.notes}
               onChange={e => setForm(f => ({ ...f, notes: e.target.value }))}
               placeholder="Any additional details"
               rows={2}
-              className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm resize-none focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+              className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm resize-none focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
             />
           </div>
 
@@ -254,25 +254,25 @@ export default function WasteLogPage() {
         <div className="flex flex-col gap-4">
           <SectionLabel>Recent Waste (last 7 days)</SectionLabel>
           {grouped.map(([date, entries]) => (
-            <div key={date} className="bg-white rounded-2xl border-charcoal/10 overflow-hidden">
-              <div className="px-5 py-3 border-b border-charcoal/8">
-                <p className="text-xs font-medium text-charcoal/50 uppercase tracking-widest">
+            <div key={date} className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 overflow-hidden">
+              <div className="px-5 py-3 border-b border-charcoal/8 dark:border-white/8">
+                <p className="text-xs font-medium text-charcoal/50 dark:text-white/40 uppercase tracking-widest">
                   {format(new Date(date + 'T12:00:00'), 'EEEE d MMMM')}
                 </p>
               </div>
-              <div className="divide-y divide-charcoal/6">
+              <div className="divide-y divide-charcoal/6 dark:divide-white/8">
                 {entries.map(log => (
                   <div key={log.id} className="flex items-center justify-between px-5 py-3 gap-4">
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-charcoal truncate">{log.item_name}</p>
-                      <p className="text-xs text-charcoal/40 mt-0.5">
+                      <p className="text-sm font-medium text-charcoal dark:text-white truncate">{log.item_name}</p>
+                      <p className="text-xs text-charcoal/40 dark:text-white/35 mt-0.5">
                         {REASON_LABELS[log.reason]} · {log.recorded_by_name}
                       </p>
-                      {log.notes && <p className="text-xs text-charcoal/35 italic mt-0.5">"{log.notes}"</p>}
+                      {log.notes && <p className="text-xs text-charcoal/35 dark:text-white/30 italic mt-0.5">"{log.notes}"</p>}
                     </div>
                     <div className="text-right shrink-0">
-                      <p className="font-mono text-sm font-semibold text-charcoal">{log.quantity} {log.unit}</p>
-                      <p className="text-xs text-charcoal/40">{format(new Date(log.recorded_at), 'HH:mm')}</p>
+                      <p className="font-mono text-sm font-semibold text-charcoal dark:text-white">{log.quantity} {log.unit}</p>
+                      <p className="text-xs text-charcoal/40 dark:text-white/35">{format(new Date(log.recorded_at), 'HH:mm')}</p>
                     </div>
                   </div>
                 ))}
@@ -283,8 +283,8 @@ export default function WasteLogPage() {
       )}
 
       {grouped.length === 0 && (
-        <div className="bg-white rounded-2xl border-charcoal/10 p-8 text-center">
-          <p className="text-charcoal/40 text-sm">No waste logged this week.</p>
+        <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-8 text-center">
+          <p className="text-charcoal/40 dark:text-white/35 text-sm">No waste logged this week.</p>
         </div>
       )}
     </div>

@@ -9,7 +9,7 @@ import { preloadRoute } from '../../lib/routePreload'
 
 /* ── SVG Icon components — thin outline, Revolut/Linear style ─────────────
    Active state: slightly bolder stroke + brand colour (via parent text-brand)
-   Inactive state: thin stroke + muted colour (via parent text-charcoal/35)
+   Inactive state: thin stroke + muted colour (via parent text-charcoal/35 dark:text-white/30)
    ───────────────────────────────────────────────────────────────────────── */
 function Ico({ active, children }) {
   return (
@@ -159,13 +159,13 @@ function NavReorderSheet({ items, onSave, onClose }) {
   return (
     <div className="fixed inset-0 z-[200] flex items-end" style={{ touchAction: 'none' }}>
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-      <div className="relative bg-white rounded-t-3xl w-full shadow-2xl" style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 20px)' }}>
-        <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-charcoal/8">
+      <div className="relative bg-white dark:bg-paperDark rounded-t-3xl w-full shadow-2xl" style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 20px)' }}>
+        <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-charcoal/8 dark:border-white/10">
           <div>
-            <p className="font-semibold text-charcoal text-base">Reorder tabs</p>
-            <p className="text-[12px] text-charcoal/45 mt-0.5">Drag to rearrange your nav</p>
+            <p className="font-semibold text-charcoal dark:text-white text-base">Reorder tabs</p>
+            <p className="text-[12px] text-charcoal/45 dark:text-white/40 mt-0.5">Drag to rearrange your nav</p>
           </div>
-          <button onClick={onClose} className="text-charcoal/40 hover:text-charcoal p-1">
+          <button onClick={onClose} className="text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white p-1">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </button>
         </div>
@@ -179,12 +179,12 @@ function NavReorderSheet({ items, onSave, onClose }) {
                 ref={el => { rowRefs.current[index] = el }}
                 className={[
                   'flex items-center gap-4 px-3 py-4 rounded-2xl my-1 select-none transition-colors',
-                  isDragging ? 'bg-charcoal/6 shadow-lg scale-[1.02]' : 'bg-transparent active:bg-charcoal/4',
+                  isDragging ? 'bg-charcoal/6 dark:bg-white/10 shadow-lg scale-[1.02]' : 'bg-transparent active:bg-charcoal/4 dark:active:bg-white/6',
                 ].join(' ')}
                 style={{ transform: isDragging ? 'scale(1.02)' : undefined, touchAction: 'none' }}
               >
                 <div
-                  className="touch-none cursor-grab active:cursor-grabbing p-1 text-charcoal/30 hover:text-charcoal/60"
+                  className="touch-none cursor-grab active:cursor-grabbing p-1 text-charcoal/30 dark:text-white/30 hover:text-charcoal/60 dark:hover:text-white/60"
                   onPointerDown={e => onPointerDown(e, index)}
                   style={{ touchAction: 'none' }}
                 >
@@ -195,10 +195,10 @@ function NavReorderSheet({ items, onSave, onClose }) {
                   </svg>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="w-9 h-9 rounded-xl bg-charcoal/6 flex items-center justify-center text-charcoal/50">
+                  <span className="w-9 h-9 rounded-xl bg-charcoal/6 dark:bg-white/8 flex items-center justify-center text-charcoal/50 dark:text-white/40">
                     <item.icon active={false} />
                   </span>
-                  <span className="text-sm font-semibold text-charcoal">{item.label}</span>
+                  <span className="text-sm font-semibold text-charcoal dark:text-white">{item.label}</span>
                 </div>
               </div>
             )
@@ -208,7 +208,7 @@ function NavReorderSheet({ items, onSave, onClose }) {
         <div className="px-5 pt-2 pb-1">
           <button
             onClick={() => { onSave(list.map(t => t.key)); onClose() }}
-            className="w-full bg-charcoal text-cream font-semibold text-sm rounded-2xl py-3.5 hover:bg-charcoal/90 transition-colors"
+            className="w-full bg-charcoal text-cream dark:bg-white dark:text-charcoal font-semibold text-sm rounded-2xl py-3.5 hover:bg-charcoal/90 dark:hover:bg-white/90 transition-colors"
           >
             Save order
           </button>
@@ -236,7 +236,7 @@ function SubNav({ items, currentPath }) {
   }, [currentPath])
 
   return (
-    <nav ref={scrollRef} className="lg:hidden relative flex gap-2 px-4 py-2.5 overflow-x-auto scrollbar-hide bg-white dark:bg-[#1a1a1a] border-b border-charcoal/8" aria-label="Section navigation" style={{ maskImage: 'linear-gradient(90deg, black 90%, transparent)', WebkitMaskImage: 'linear-gradient(90deg, black 90%, transparent)' }}>
+    <nav ref={scrollRef} className="lg:hidden relative flex gap-2 px-4 py-2.5 overflow-x-auto scrollbar-hide bg-white dark:bg-paperDark dark:bg-[#1a1a1a] border-b border-charcoal/8 dark:border-white/10" aria-label="Section navigation" style={{ maskImage: 'linear-gradient(90deg, black 90%, transparent)', WebkitMaskImage: 'linear-gradient(90deg, black 90%, transparent)' }}>
       {items.map(item => {
         const isActive = currentPath === item.to || currentPath.startsWith(item.to + '/')
         return (
@@ -253,7 +253,7 @@ function SubNav({ items, currentPath }) {
               'px-3.5 py-2 rounded-full text-[12px] font-semibold tracking-wide whitespace-nowrap transition-all shrink-0',
               isActive
                 ? 'bg-brand text-cream shadow-sm shadow-brand/20 dark:bg-cream dark:text-charcoal'
-                : 'text-charcoal/55 hover:text-charcoal/80',
+                : 'text-charcoal/55 dark:text-white/45 hover:text-charcoal/80 dark:hover:text-white/70',
             ].join(' ')}
           >
             {item.label}
@@ -431,13 +431,12 @@ export default function MobileNav() {
   return (
     <>
       {showBackRow && (
-        <div className="lg:hidden" style={{
-          background: '#fff', borderBottom: '1px solid #e5e7eb',
+        <div className="lg:hidden bg-white dark:bg-paperDark dark:bg-[#1a1a1a] border-b border-charcoal/8 dark:border-white/10" style={{
           padding: '8px 16px',
         }}>
           <NavLink
             to={backRoute}
-            className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-brand no-underline"
+            className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-brand dark:text-accent no-underline"
           >
             <svg width="7" height="12" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
               <path d="M5 1L1 5l4 4"/>
@@ -450,7 +449,7 @@ export default function MobileNav() {
       {createPortal(
         <>
           <nav
-            className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-[#1a1a1a] border-t border-charcoal/8 shadow-[0_-4px_20px_rgba(0,0,0,0.04)]"
+            className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-paperDark dark:bg-[#1a1a1a] border-t border-charcoal/8 dark:border-white/10 shadow-[0_-4px_20px_rgba(0,0,0,0.04)]"
             style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
             aria-label="Main navigation"
             role="tablist"
@@ -476,7 +475,7 @@ export default function MobileNav() {
                     aria-label={tab.label}
                     className={[
                       'flex flex-col items-center justify-center flex-1 gap-0.5 transition-colors relative focus-visible:outline-none',
-                      isActive ? 'text-brand dark:text-accent' : 'text-charcoal/40 active:text-charcoal/60',
+                      isActive ? 'text-brand dark:text-accent' : 'text-charcoal/40 dark:text-white/35 active:text-charcoal/60 dark:active:text-white/55',
                     ].join(' ')}
                   >
                     <span className={[

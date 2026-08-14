@@ -41,7 +41,7 @@ function Toggle({ on, onClick }) {
       style={{ background: on ? '#1a7a4c' : '#e4e6e2' }}
     >
       <span
-        className="absolute top-0.5 w-5 h-5 rounded-full bg-white transition-all duration-[180ms]"
+        className="absolute top-0.5 w-5 h-5 rounded-full bg-white dark:bg-paperDark transition-all duration-[180ms]"
         style={{ left: on ? 18 : 2, boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }}
       />
     </button>
@@ -50,10 +50,10 @@ function Toggle({ on, onClick }) {
 
 function Row({ label, sub, on, onToggle, last }) {
   return (
-    <div className={`flex items-center gap-3 px-[15px] py-[13px] ${last === false ? 'border-t border-charcoal/6' : ''}`}>
+    <div className={`flex items-center gap-3 px-[15px] py-[13px] ${last === false ? 'border-t border-charcoal/6 dark:border-white/8' : ''}`}>
       <div className="flex-1 min-w-0">
-        <div className="text-sm font-medium text-charcoal tracking-[-0.005em]">{label}</div>
-        {sub && <div className="text-[11.5px] text-charcoal/50 mt-0.5 leading-[1.4]">{sub}</div>}
+        <div className="text-sm font-medium text-charcoal dark:text-white tracking-[-0.005em]">{label}</div>
+        {sub && <div className="text-[11.5px] text-charcoal/50 dark:text-white/40 mt-0.5 leading-[1.4]">{sub}</div>}
       </div>
       <Toggle on={on} onClick={onToggle} />
     </div>
@@ -64,13 +64,13 @@ function Group({ label, children, foot }) {
   return (
     <div>
       {label && (
-        <div className="font-mono text-[11px] font-semibold tracking-[0.08em] uppercase text-charcoal/50 px-0.5 pb-1.5">{label}</div>
+        <div className="font-mono text-[11px] font-semibold tracking-[0.08em] uppercase text-charcoal/50 dark:text-white/40 px-0.5 pb-1.5">{label}</div>
       )}
-      <div className="bg-white dark:bg-paperDark border border-charcoal/10 rounded-[14px] overflow-hidden">
+      <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[14px] overflow-hidden">
         {children}
       </div>
       {foot && (
-        <div className="text-[11.5px] text-charcoal/50 px-1 pt-2 leading-[1.45]">{foot}</div>
+        <div className="text-[11.5px] text-charcoal/50 dark:text-white/40 px-1 pt-2 leading-[1.45]">{foot}</div>
       )}
     </div>
   )
@@ -132,15 +132,15 @@ export default function HubTilesPage() {
         </Group>
 
         <div>
-          <div className="font-mono text-[11px] font-semibold tracking-[0.08em] uppercase text-charcoal/50 px-0.5 pb-1.5">Modules</div>
-          <div className="bg-white dark:bg-paperDark border border-charcoal/10 rounded-[14px] overflow-hidden py-1">
+          <div className="font-mono text-[11px] font-semibold tracking-[0.08em] uppercase text-charcoal/50 dark:text-white/40 px-0.5 pb-1.5">Modules</div>
+          <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[14px] overflow-hidden py-1">
             <div className="px-[14px] py-2">
-              <div className="inline-flex bg-charcoal/6 rounded-[9px] p-[3px] gap-0.5 mb-3">
+              <div className="inline-flex bg-charcoal/6 dark:bg-white/8 rounded-[9px] p-[3px] gap-0.5 mb-3">
                 {['all', 'custom'].map(mode => (
                   <button
                     key={mode}
                     onClick={() => saveFeatures({ mode, enabled: mode === 'all' ? ALL_FEATURE_IDS : (featuresConfig.enabled ?? ALL_FEATURE_IDS) })}
-                    className={`px-[14px] py-[5px] rounded-[7px] border-0 cursor-pointer text-xs font-semibold transition-all duration-150 ${featuresConfig.mode === mode ? 'bg-white text-charcoal shadow-sm' : 'bg-transparent text-charcoal/50'}`}
+                    className={`px-[14px] py-[5px] rounded-[7px] border-0 cursor-pointer text-xs font-semibold transition-all duration-150 ${featuresConfig.mode === mode ? 'bg-white dark:bg-paperDark text-charcoal dark:text-white shadow-sm' : 'bg-transparent text-charcoal/50 dark:text-white/40'}`}
                   >{mode === 'all' ? 'All modules' : 'Custom'}</button>
                 ))}
               </div>
@@ -150,11 +150,11 @@ export default function HubTilesPage() {
                   {FEATURE_GROUPS.map(group => {
                     const allOn = group.features.every(f => featuresConfig.enabled?.includes(f.id))
                     return (
-                      <div key={group.id} className="border border-charcoal/10 rounded-xl overflow-hidden">
-                        <div className="flex items-center justify-between px-3 py-[9px] bg-charcoal/6 border-b border-charcoal/10">
+                      <div key={group.id} className="border border-charcoal/10 dark:border-white/10 rounded-xl overflow-hidden">
+                        <div className="flex items-center justify-between px-3 py-[9px] bg-charcoal/6 dark:bg-white/8 border-b border-charcoal/10 dark:border-white/10">
                           <div>
-                            <div className="text-[13px] font-semibold text-charcoal">{group.label}</div>
-                            <div className="text-[11px] text-charcoal/50 mt-px">{group.description}</div>
+                            <div className="text-[13px] font-semibold text-charcoal dark:text-white">{group.label}</div>
+                            <div className="text-[11px] text-charcoal/50 dark:text-white/40 mt-px">{group.description}</div>
                           </div>
                           <button
                             onClick={() => {
@@ -168,7 +168,7 @@ export default function HubTilesPage() {
                             style={{ background: allOn ? '#1a7a4c' : '#e4e6e2' }}
                             aria-pressed={allOn}
                           >
-                            <span className="absolute top-0.5 w-5 h-5 rounded-full bg-white transition-all duration-[180ms]" style={{ left: allOn ? 18 : 2, boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} />
+                            <span className="absolute top-0.5 w-5 h-5 rounded-full bg-white dark:bg-paperDark transition-all duration-[180ms]" style={{ left: allOn ? 18 : 2, boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} />
                           </button>
                         </div>
                         {group.features.map((feature, fi) => {
@@ -176,13 +176,13 @@ export default function HubTilesPage() {
                           const locked = isProOnly && venuePlan !== PLANS.PRO
                           const on = !locked && (featuresConfig.enabled?.includes(feature.id) ?? true)
                           return (
-                            <div key={feature.id} className={`flex items-center gap-2.5 px-3 py-[9px] ${fi === 0 ? '' : 'border-t border-charcoal/6'} ${locked ? 'opacity-50' : ''}`}>
+                            <div key={feature.id} className={`flex items-center gap-2.5 px-3 py-[9px] ${fi === 0 ? '' : 'border-t border-charcoal/6 dark:border-white/8'} ${locked ? 'opacity-50' : ''}`}>
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-1.5">
-                                  <div className={`text-[13px] font-medium ${on ? 'text-charcoal' : 'text-charcoal/50'}`}>{feature.label}</div>
+                                  <div className={`text-[13px] font-medium ${on ? 'text-charcoal dark:text-white' : 'text-charcoal/50 dark:text-white/40'}`}>{feature.label}</div>
                                   {locked && <span className="font-mono text-[11px] font-bold text-[#d97706] bg-[#fffbeb] px-[5px] py-0.5 rounded uppercase tracking-[0.04em]">Pro</span>}
                                 </div>
-                                <div className="text-[11px] text-charcoal/50 mt-px">{feature.description}</div>
+                                <div className="text-[11px] text-charcoal/50 dark:text-white/40 mt-px">{feature.description}</div>
                               </div>
                               <button
                                 onClick={locked ? undefined : () => {
@@ -195,7 +195,7 @@ export default function HubTilesPage() {
                                 style={{ background: on ? '#1a7a4c' : '#e4e6e2', cursor: locked ? 'default' : 'pointer' }}
                                 aria-pressed={on}
                               >
-                                <span className="absolute top-0.5 w-5 h-5 rounded-full bg-white transition-all duration-[180ms]" style={{ left: on ? 18 : 2, boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} />
+                                <span className="absolute top-0.5 w-5 h-5 rounded-full bg-white dark:bg-paperDark transition-all duration-[180ms]" style={{ left: on ? 18 : 2, boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} />
                               </button>
                             </div>
                           )
@@ -206,7 +206,7 @@ export default function HubTilesPage() {
                 </div>
               )}
               {featuresConfig.mode === 'all' && (
-                <div className="text-xs text-charcoal/30 italic mb-1">
+                <div className="text-xs text-charcoal/30 dark:text-white/30 italic mb-1">
                   All {ALL_FEATURE_IDS.length} modules are enabled. Switch to Custom to hide features that don't apply.
                 </div>
               )}
@@ -215,8 +215,8 @@ export default function HubTilesPage() {
         </div>
 
         <div>
-          <div className="font-mono text-[11px] font-semibold tracking-[0.08em] uppercase text-charcoal/50 px-0.5 pb-1.5">Navigation order</div>
-          <div className="bg-white dark:bg-paperDark border border-charcoal/10 rounded-[14px] overflow-hidden py-1">
+          <div className="font-mono text-[11px] font-semibold tracking-[0.08em] uppercase text-charcoal/50 dark:text-white/40 px-0.5 pb-1.5">Navigation order</div>
+          <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[14px] overflow-hidden py-1">
             <NavOrderSection
               isEnabled={isEnabled}
               venuePlan={venuePlan}

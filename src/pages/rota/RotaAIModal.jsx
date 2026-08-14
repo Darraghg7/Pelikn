@@ -7,7 +7,7 @@ import { fillRotaRequirements } from '../../lib/rotaBuilder'
 import { useToast } from '../../components/ui/Toast'
 
 function SectionLabel({ children }) {
-  return <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-2">{children}</p>
+  return <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-2">{children}</p>
 }
 
 const STAGES = { CONFIRM: 'confirm', LOADING: 'loading', PREVIEW: 'preview' }
@@ -97,9 +97,9 @@ export default function RotaAIModal({
         {stage === STAGES.CONFIRM && (
           <>
             <div className="rounded-xl bg-brand/6 border border-brand/12 px-5 py-4">
-              <p className="text-sm font-medium text-charcoal mb-1">Week of {weekLabel}</p>
+              <p className="text-sm font-medium text-charcoal dark:text-white mb-1">Week of {weekLabel}</p>
               {reqLoading ? (
-                <p className="text-xs text-charcoal/40 animate-pulse">Loading requirements…</p>
+                <p className="text-xs text-charcoal/40 dark:text-white/35 animate-pulse">Loading requirements…</p>
               ) : requirements.length === 0 ? (
                 <div className="flex items-start gap-2 mt-1">
                   <span className="text-warning shrink-0">
@@ -108,13 +108,13 @@ export default function RotaAIModal({
                       <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
                     </svg>
                   </span>
-                  <p className="text-xs text-charcoal/60">
+                  <p className="text-xs text-charcoal/60 dark:text-white/50">
                     No requirements configured. Use <strong>Configure</strong> to set the roles and shift times you need each day.
                   </p>
                 </div>
               ) : (
                 <>
-                  <p className="text-xs text-charcoal/50 mb-3">
+                  <p className="text-xs text-charcoal/50 dark:text-white/40 mb-3">
                     {totalSlots} staff slot{totalSlots !== 1 ? 's' : ''} across {daysWithReqs.length} day{daysWithReqs.length !== 1 ? 's' : ''}
                   </p>
                   <div className="flex flex-col gap-1.5">
@@ -124,8 +124,8 @@ export default function RotaAIModal({
                       const roles = [...new Set(slots.map(s => s.role_name ?? s.venue_roles?.name))].filter(Boolean).join(', ')
                       return (
                         <div key={d} className="flex items-start gap-2 text-xs">
-                          <span className="font-medium text-charcoal w-24 shrink-0">{DAY_NAMES[d - 1]}</span>
-                          <span className="text-charcoal/50">{total} staff — {roles}</span>
+                          <span className="font-medium text-charcoal dark:text-white w-24 shrink-0">{DAY_NAMES[d - 1]}</span>
+                          <span className="text-charcoal/50 dark:text-white/40">{total} staff — {roles}</span>
                         </div>
                       )
                     })}
@@ -148,12 +148,12 @@ export default function RotaAIModal({
                     className={[
                       'p-3 rounded-xl border text-left transition-all',
                       mode === opt.value
-                        ? 'bg-charcoal text-cream border-charcoal'
-                        : 'bg-white text-charcoal/60 border-charcoal/15 hover:border-charcoal/30',
+                        ? 'bg-charcoal text-cream border-charcoal dark:border-white'
+                        : 'bg-white dark:bg-paperDark text-charcoal/60 dark:text-white/50 border-charcoal/15 dark:border-white/15 hover:border-charcoal/30 dark:hover:border-white/30',
                     ].join(' ')}
                   >
                     <p className="text-sm font-medium">{opt.label}</p>
-                    <p className={`text-[11px] mt-0.5 ${mode === opt.value ? 'text-cream/60' : 'text-charcoal/35'}`}>
+                    <p className={`text-[11px] mt-0.5 ${mode === opt.value ? 'text-cream/60' : 'text-charcoal/35 dark:text-white/30'}`}>
                       {opt.desc}
                     </p>
                   </button>
@@ -179,8 +179,8 @@ export default function RotaAIModal({
           <div className="flex flex-col items-center justify-center py-12 gap-4">
             <div className="w-10 h-10 border-2 border-brand/20 border-t-brand rounded-full animate-spin" />
             <div className="text-center">
-              <p className="text-sm font-medium text-charcoal">Building your rota…</p>
-              <p className="text-xs text-charcoal/40 mt-1">Checking availability, roles and hours distribution</p>
+              <p className="text-sm font-medium text-charcoal dark:text-white">Building your rota…</p>
+              <p className="text-xs text-charcoal/40 dark:text-white/35 mt-1">Checking availability, roles and hours distribution</p>
             </div>
           </div>
         )}
@@ -195,9 +195,9 @@ export default function RotaAIModal({
                 { label: 'Slots filled',   value: `${result.meta?.shiftsFilled ?? 0}/${result.meta?.slotsRequested ?? 0}` },
                 { label: 'Gaps',           value: result.gaps?.length ?? 0, warn: (result.gaps?.length ?? 0) > 0 },
               ].map(s => (
-                <div key={s.label} className={`rounded-xl border p-3 text-center ${s.warn ? 'border-warning/30 bg-warning/6' : 'border-charcoal/10 bg-charcoal/2'}`}>
-                  <p className={`text-xl font-bold ${s.warn ? 'text-warning' : 'text-charcoal'}`}>{s.value}</p>
-                  <p className="text-[10px] tracking-wider uppercase text-charcoal/35 mt-0.5">{s.label}</p>
+                <div key={s.label} className={`rounded-xl border p-3 text-center ${s.warn ? 'border-warning/30 bg-warning/6' : 'border-charcoal/10 dark:border-white/10 bg-charcoal/2 dark:bg-white/3'}`}>
+                  <p className={`text-xl font-bold ${s.warn ? 'text-warning' : 'text-charcoal dark:text-white'}`}>{s.value}</p>
+                  <p className="text-[10px] tracking-wider uppercase text-charcoal/35 dark:text-white/30 mt-0.5">{s.label}</p>
                 </div>
               ))}
             </div>
@@ -205,7 +205,7 @@ export default function RotaAIModal({
             {/* Gaps warning */}
             {result.gaps?.length > 0 && (
               <div className="rounded-xl border border-warning/30 bg-warning/6 px-4 py-3 flex flex-col gap-1.5">
-                <p className="text-xs font-semibold text-charcoal">
+                <p className="text-xs font-semibold text-charcoal dark:text-white">
                   <span className="inline-flex items-center gap-1">
                     <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
@@ -215,7 +215,7 @@ export default function RotaAIModal({
                   </span>
                 </p>
                 {result.gaps.map((g, i) => (
-                  <p key={i} className="text-[11px] text-charcoal/60">
+                  <p key={i} className="text-[11px] text-charcoal/60 dark:text-white/50">
                     <span className="font-medium">{g.day_name} {g.shift_date}</span> — {g.role_label} {g.start_time}–{g.end_time}: {g.reason}
                   </p>
                 ))}
@@ -227,13 +227,13 @@ export default function RotaAIModal({
               <SectionLabel>Proposed shifts ({result.shifts.length}) — remove any you don't want</SectionLabel>
               <div className="flex flex-col gap-1.5 max-h-64 overflow-y-auto">
                 {result.shifts.length === 0 ? (
-                  <p className="text-sm text-charcoal/30 italic text-center py-4">No shifts generated.</p>
+                  <p className="text-sm text-charcoal/30 dark:text-white/30 italic text-center py-4">No shifts generated.</p>
                 ) : (
                   result.shifts.map((sh, i) => (
-                    <div key={i} className="flex items-center justify-between px-3 py-2 rounded-lg bg-charcoal/3 border border-charcoal/6">
+                    <div key={i} className="flex items-center justify-between px-3 py-2 rounded-lg bg-charcoal/3 dark:bg-white/5 border border-charcoal/6 dark:border-white/8">
                       <div>
-                        <p className="text-xs font-medium text-charcoal">{sh.staff_name}</p>
-                        <p className="text-[11px] text-charcoal/45">
+                        <p className="text-xs font-medium text-charcoal dark:text-white">{sh.staff_name}</p>
+                        <p className="text-[11px] text-charcoal/45 dark:text-white/40">
                           {sh.shift_date} · {sh.start_time}–{sh.end_time} · {sh.role_label}
                         </p>
                       </div>
@@ -262,7 +262,7 @@ export default function RotaAIModal({
               </button>
               <button
                 onClick={() => { setResult(null); setStage(STAGES.CONFIRM) }}
-                className="px-4 py-3 rounded-xl border border-charcoal/15 text-sm text-charcoal/50 hover:text-charcoal transition-colors whitespace-nowrap"
+                className="px-4 py-3 rounded-xl border border-charcoal/15 dark:border-white/15 text-sm text-charcoal/50 dark:text-white/40 hover:text-charcoal dark:hover:text-white transition-colors whitespace-nowrap"
               >
                 Try again
               </button>

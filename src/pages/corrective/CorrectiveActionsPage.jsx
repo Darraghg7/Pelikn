@@ -78,7 +78,7 @@ export default function CorrectiveActionsPage() {
       body: `${catLabel}: ${form.title.trim()}`,
       url: '/corrective',
       roles: ['manager', 'owner'],
-    }).catch(() => {})
+    })
 
     setForm(EMPTY_FORM)
     setShowForm(false)
@@ -112,7 +112,7 @@ export default function CorrectiveActionsPage() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-2xl font-bold text-charcoal">Corrective Actions</h1>
+        <h1 className="text-2xl font-bold text-charcoal dark:text-white">Corrective Actions</h1>
         <button
           onClick={() => setShowForm(true)}
           className="bg-charcoal text-cream px-4 py-2 rounded-lg text-sm font-medium hover:bg-charcoal/90 transition-colors self-start sm:self-auto"
@@ -123,17 +123,17 @@ export default function CorrectiveActionsPage() {
 
       {/* Summary */}
       <div className="grid grid-cols-3 gap-3">
-        <div className="bg-white rounded-2xl border-charcoal/10 p-4 text-center">
-          <p className="text-[11px] tracking-widest uppercase text-charcoal/40">Open</p>
-          <p className={`text-2xl font-bold ${openCount > 0 ? 'text-warning' : 'text-charcoal'}`}>{openCount}</p>
+        <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-4 text-center">
+          <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">Open</p>
+          <p className={`text-2xl font-bold ${openCount > 0 ? 'text-warning' : 'text-charcoal dark:text-white'}`}>{openCount}</p>
         </div>
-        <div className="bg-white rounded-2xl border-charcoal/10 p-4 text-center">
-          <p className="text-[11px] tracking-widest uppercase text-charcoal/40">Critical</p>
-          <p className={`text-2xl font-bold ${criticalOpen > 0 ? 'text-danger' : 'text-charcoal'}`}>{criticalOpen}</p>
+        <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-4 text-center">
+          <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">Critical</p>
+          <p className={`text-2xl font-bold ${criticalOpen > 0 ? 'text-danger' : 'text-charcoal dark:text-white'}`}>{criticalOpen}</p>
         </div>
-        <div className="bg-white rounded-2xl border-charcoal/10 p-4 text-center">
-          <p className="text-[11px] tracking-widest uppercase text-charcoal/40">Total</p>
-          <p className="text-2xl font-bold text-charcoal">{records.length}</p>
+        <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-4 text-center">
+          <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">Total</p>
+          <p className="text-2xl font-bold text-charcoal dark:text-white">{records.length}</p>
         </div>
       </div>
 
@@ -145,8 +145,8 @@ export default function CorrectiveActionsPage() {
             onClick={() => setFilterStatus(s)}
             className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
               filterStatus === s
-                ? 'bg-charcoal text-cream border-charcoal'
-                : 'bg-white text-charcoal/50 border-charcoal/15 hover:border-charcoal/30'
+                ? 'bg-charcoal text-cream border-charcoal dark:border-white'
+                : 'bg-white dark:bg-paperDark text-charcoal/50 dark:text-white/40 border-charcoal/15 dark:border-white/15 hover:border-charcoal/30 dark:hover:border-white/30'
             }`}
           >
             {s === 'all' ? 'All' : s.charAt(0).toUpperCase() + s.slice(1)}
@@ -155,7 +155,7 @@ export default function CorrectiveActionsPage() {
         <select
           value={filterCat}
           onChange={e => setFilterCat(e.target.value)}
-          className="px-3 py-1.5 rounded-lg text-xs border border-charcoal/15 bg-white text-charcoal/60 focus:outline-none"
+          className="px-3 py-1.5 rounded-lg text-xs border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-charcoal/60 dark:text-white/50 focus:outline-none"
         >
           <option value="all">All categories</option>
           {CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
@@ -176,28 +176,28 @@ export default function CorrectiveActionsPage() {
           {filtered.map(r => {
             const sev = sevConfig(r.severity)
             return (
-              <div key={r.id} className={`bg-white rounded-2xl p-4 ${
-                r.status === 'open' ? 'border-warning/25' : 'border-charcoal/10'
+              <div key={r.id} className={`bg-white dark:bg-paperDark rounded-2xl p-4 ${
+                r.status === 'open' ? 'border-warning/25' : 'border-charcoal/10 dark:border-white/10'
               }`}>
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <h3 className={`font-semibold text-sm ${r.status === 'resolved' ? 'text-charcoal/50 line-through' : 'text-charcoal'}`}>
+                      <h3 className={`font-semibold text-sm ${r.status === 'resolved' ? 'text-charcoal/50 dark:text-white/40 line-through' : 'text-charcoal dark:text-white'}`}>
                         {r.title}
                       </h3>
                       <span className={`text-[11px] tracking-wider uppercase font-medium px-2 py-0.5 rounded-full ${sev.color}`}>
                         {sev.label}
                       </span>
-                      <span className="text-[11px] tracking-wider uppercase font-medium px-2 py-0.5 rounded-full bg-charcoal/5 text-charcoal/40">
+                      <span className="text-[11px] tracking-wider uppercase font-medium px-2 py-0.5 rounded-full bg-charcoal/5 dark:bg-white/5 text-charcoal/40 dark:text-white/35">
                         {catLabel(r.category)}
                       </span>
                     </div>
-                    {r.description && <p className="text-sm text-charcoal/60 mt-1">{r.description}</p>}
-                    <div className="mt-2 rounded-lg bg-charcoal/4 px-3 py-2">
-                      <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-0.5">Action taken</p>
-                      <p className="text-sm text-charcoal/70">{r.action_taken}</p>
+                    {r.description && <p className="text-sm text-charcoal/60 dark:text-white/50 mt-1">{r.description}</p>}
+                    <div className="mt-2 rounded-lg bg-charcoal/4 dark:bg-white/5 px-3 py-2">
+                      <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-0.5">Action taken</p>
+                      <p className="text-sm text-charcoal/70 dark:text-white/60">{r.action_taken}</p>
                     </div>
-                    <div className="flex items-center gap-3 mt-2 text-xs text-charcoal/40">
+                    <div className="flex items-center gap-3 mt-2 text-xs text-charcoal/40 dark:text-white/35">
                       <span>Reported by {r.reporter?.name ?? 'Unknown'}</span>
                       <span>{formatDistanceToNow(new Date(r.reported_at), { addSuffix: true })}</span>
                       {r.status === 'resolved' && r.resolver && (
@@ -225,7 +225,7 @@ export default function CorrectiveActionsPage() {
       <Modal open={showForm} onClose={() => setShowForm(false)} title="Log Corrective Action">
         <div className="flex flex-col gap-4">
           <div>
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-2">Category</label>
+            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">Category</label>
             <div className="flex flex-wrap gap-2">
               {CATEGORIES.map(c => (
                 <button
@@ -234,8 +234,8 @@ export default function CorrectiveActionsPage() {
                   onClick={() => setForm(f => ({ ...f, category: c.value }))}
                   className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
                     form.category === c.value
-                      ? 'bg-charcoal text-cream border-charcoal'
-                      : 'bg-white text-charcoal/50 border-charcoal/15 hover:border-charcoal/30'
+                      ? 'bg-charcoal text-cream border-charcoal dark:border-white'
+                      : 'bg-white dark:bg-paperDark text-charcoal/50 dark:text-white/40 border-charcoal/15 dark:border-white/15 hover:border-charcoal/30 dark:hover:border-white/30'
                   }`}
                 >
                   {c.label}
@@ -245,7 +245,7 @@ export default function CorrectiveActionsPage() {
           </div>
 
           <div>
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-2">Severity</label>
+            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">Severity</label>
             <div className="grid grid-cols-3 gap-2">
               {SEVERITIES.map(s => (
                 <button
@@ -255,7 +255,7 @@ export default function CorrectiveActionsPage() {
                   className={`py-2 rounded-xl border text-xs font-medium transition-all text-center ${
                     form.severity === s.value
                       ? `${s.color} border-current`
-                      : 'bg-white text-charcoal/50 border-charcoal/15 hover:border-charcoal/30'
+                      : 'bg-white dark:bg-paperDark text-charcoal/50 dark:text-white/40 border-charcoal/15 dark:border-white/15 hover:border-charcoal/30 dark:hover:border-white/30'
                   }`}
                 >
                   {s.label}
@@ -265,7 +265,7 @@ export default function CorrectiveActionsPage() {
           </div>
 
           <div>
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1">
+            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">
               What happened? <span className="text-danger">*</span>
             </label>
             <input
@@ -273,23 +273,23 @@ export default function CorrectiveActionsPage() {
               value={form.title}
               onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
               placeholder="e.g. Fridge 2 above 8C"
-              className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+              className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
             />
           </div>
 
           <div>
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1">Details</label>
+            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Details</label>
             <textarea
               value={form.description}
               onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
               rows={2}
               placeholder="Any additional context..."
-              className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 bg-white text-sm resize-none focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+              className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm resize-none focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
             />
           </div>
 
           <div>
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1">
+            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">
               Action taken <span className="text-danger">*</span>
             </label>
             <textarea
@@ -297,7 +297,7 @@ export default function CorrectiveActionsPage() {
               onChange={e => setForm(f => ({ ...f, action_taken: e.target.value }))}
               rows={3}
               placeholder="e.g. Moved food to Fridge 1, called engineer, disposed of affected items"
-              className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 bg-white text-sm resize-none focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+              className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm resize-none focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
             />
           </div>
 

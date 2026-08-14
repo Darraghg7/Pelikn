@@ -133,14 +133,14 @@ function ComplianceScoreWidget() {
             </span>
           )}
         </div>
-        <p className="text-[11px] text-charcoal/35 mt-2 uppercase tracking-wide">{COMPLIANCE_RANGE_DAYS}-day average</p>
+        <p className="text-[11px] text-charcoal/35 dark:text-white/30 mt-2 uppercase tracking-wide">{COMPLIANCE_RANGE_DAYS}-day average</p>
       </div>
       {data.issueList?.length > 0 && (
-        <div className="mt-3 pt-3 border-t border-charcoal/8 flex flex-col gap-0.5">
+        <div className="mt-3 pt-3 border-t border-charcoal/8 dark:border-white/8 flex flex-col gap-0.5">
           {data.issueList.map(issue => {
             const content = (
-              <div className="flex items-center justify-between py-1.5 px-2 rounded-lg hover:bg-charcoal/4 transition-colors cursor-pointer">
-                <span className="text-xs text-charcoal/70">{issue.label}</span>
+              <div className="flex items-center justify-between py-1.5 px-2 rounded-lg hover:bg-charcoal/4 dark:hover:bg-white/5 transition-colors cursor-pointer">
+                <span className="text-xs text-charcoal/70 dark:text-white/60">{issue.label}</span>
                 <span className={`text-xs font-semibold ${issue.severity === 'bad' ? 'text-danger' : 'text-warning'}`}>
                   {issue.detail} →
                 </span>

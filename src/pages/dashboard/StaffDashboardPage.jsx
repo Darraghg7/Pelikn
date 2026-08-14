@@ -252,18 +252,18 @@ function QuickLogRow({ venueSlug, isEnabled, hasPermission }) {
 
   return (
     <div>
-      <p className="text-[11px] font-mono tracking-widest uppercase text-charcoal/40 px-1 mb-2">Log quickly</p>
+      <p className="text-[11px] font-mono tracking-widest uppercase text-charcoal/40 dark:text-white/35 px-1 mb-2">Log quickly</p>
       <div className="grid grid-cols-3 gap-2">
         {buttons.map(b => (
           <Link
             key={b.label}
             to={b.link}
-            className="flex flex-col items-center gap-2 p-3 rounded-xl bg-white border border-charcoal/8 hover:border-charcoal/20 transition-colors text-center"
+            className="flex flex-col items-center gap-2 p-3 rounded-xl bg-white dark:bg-paperDark border border-charcoal/8 dark:border-white/8 hover:border-charcoal/20 dark:hover:border-white/20 transition-colors text-center"
           >
             <span className="w-8 h-8 rounded-lg bg-brand/8 text-brand flex items-center justify-center">
               {b.icon}
             </span>
-            <span className="text-[12px] text-charcoal/70 font-medium leading-tight">{b.label}</span>
+            <span className="text-[12px] text-charcoal/70 dark:text-white/60 font-medium leading-tight">{b.label}</span>
           </Link>
         ))}
       </div>
@@ -291,13 +291,13 @@ function DutyItemRow({ item, assignmentId, toggleItem }) {
     <button
       onClick={handleToggle}
       disabled={busy}
-      className="min-h-11 flex items-center gap-3 w-full text-left py-2.5 px-4 group disabled:opacity-70 hover:bg-charcoal/3 transition-colors border-t border-charcoal/5 first:border-t-0"
+      className="min-h-11 flex items-center gap-3 w-full text-left py-2.5 px-4 group disabled:opacity-70 hover:bg-charcoal/3 dark:hover:bg-white/5 transition-colors border-t border-charcoal/5 dark:border-white/5 first:border-t-0"
     >
       <span className={[
         'w-[22px] h-[22px] rounded-md border-[1.5px] shrink-0 flex items-center justify-center transition-all',
         item.completed
           ? 'bg-success border-success'
-          : 'border-charcoal/25 group-hover:border-charcoal/45',
+          : 'border-charcoal/25 dark:border-white/25 group-hover:border-charcoal/45 dark:group-hover:border-white/45',
       ].join(' ')}>
         {item.completed && (
           <svg className="w-3 h-3 text-white" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -305,11 +305,11 @@ function DutyItemRow({ item, assignmentId, toggleItem }) {
           </svg>
         )}
       </span>
-      <span className={`text-[13.5px] leading-snug flex-1 ${item.completed ? 'line-through text-charcoal/35' : 'text-charcoal font-medium'}`}>
+      <span className={`text-[13.5px] leading-snug flex-1 ${item.completed ? 'line-through text-charcoal/35 dark:text-white/30' : 'text-charcoal dark:text-white font-medium'}`}>
         {item.title}
       </span>
       {!item.completed && (
-        <svg width="6" height="10" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="text-charcoal/25 shrink-0">
+        <svg width="6" height="10" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="text-charcoal/25 dark:text-white/25 shrink-0">
           <path d="M1 1l4 4-4 4"/>
         </svg>
       )}
@@ -324,22 +324,22 @@ function DutyCard({ duty, toggleItem }) {
   const allDone = done === total && total > 0
 
   return (
-    <div className="bg-white rounded-[14px] border border-charcoal/8 overflow-hidden">
+    <div className="bg-white dark:bg-paperDark rounded-[14px] border border-charcoal/8 dark:border-white/8 overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 pt-3.5 pb-3 border-b border-charcoal/6">
+      <div className="flex items-center justify-between px-4 pt-3.5 pb-3 border-b border-charcoal/6 dark:border-white/8">
         <div className="flex items-center gap-2 min-w-0">
-          <span className="font-mono text-[11px] text-charcoal/40 tracking-widest uppercase font-semibold shrink-0">Duty</span>
-          <span className="text-charcoal/25 text-xs">·</span>
-          <p className="text-[15px] font-semibold text-charcoal truncate">{duty.title}</p>
+          <span className="font-mono text-[11px] text-charcoal/40 dark:text-white/35 tracking-widest uppercase font-semibold shrink-0">Duty</span>
+          <span className="text-charcoal/25 dark:text-white/25 text-xs">·</span>
+          <p className="text-[15px] font-semibold text-charcoal dark:text-white truncate">{duty.title}</p>
         </div>
-        <span className={`text-[11px] font-mono font-semibold shrink-0 ml-2 ${allDone ? 'text-success' : 'text-charcoal/35'}`}>
+        <span className={`text-[11px] font-mono font-semibold shrink-0 ml-2 ${allDone ? 'text-success' : 'text-charcoal/35 dark:text-white/30'}`}>
           {done}/{total}
         </span>
       </div>
 
       {/* Progress bar */}
       {total > 0 && (
-        <div className="h-[3px] bg-charcoal/6">
+        <div className="h-[3px] bg-charcoal/6 dark:bg-white/8">
           <div
             className={`h-full transition-all ${allDone ? 'bg-success' : 'bg-warning'}`}
             style={{ width: `${Math.max(pct, 2)}%` }}
@@ -381,7 +381,7 @@ function PendingTrainingCard({ staffId, staffName, isManager }) {
 
   return (
     <>
-      <div className="bg-white rounded-2xl border border-accent/20 overflow-hidden">
+      <div className="bg-white dark:bg-paperDark rounded-2xl border border-accent/20 overflow-hidden">
         <div className="px-4 py-3 bg-accent/5 flex items-center gap-2.5">
           <svg className="w-4 h-4 text-accent shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>
@@ -390,12 +390,12 @@ function PendingTrainingCard({ staffId, staffName, isManager }) {
             {records.length === 1 ? 'Training record needs your signature' : `${records.length} training records need your signature`}
           </p>
         </div>
-        <div className="divide-y divide-charcoal/6">
+        <div className="divide-y divide-charcoal/6 dark:divide-white/8">
           {records.map(r => (
             <div key={r.id} className="flex items-center justify-between px-4 py-3 gap-3">
               <div className="min-w-0">
-                <p className="text-sm text-charcoal font-medium truncate">{r.trainer_name}</p>
-                <p className="text-xs text-charcoal/40 mt-0.5">
+                <p className="text-sm text-charcoal dark:text-white font-medium truncate">{r.trainer_name}</p>
+                <p className="text-xs text-charcoal/40 dark:text-white/35 mt-0.5">
                   {new Date(r.training_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
                   {' · '}{r.topics.length} topic{r.topics.length !== 1 ? 's' : ''}
                 </p>
@@ -428,7 +428,7 @@ function TodayDuties({ staffId }) {
   if (loading || !duties.length) return null
   return (
     <div className="flex flex-col gap-2.5">
-      <p className="text-[11px] font-mono tracking-widest uppercase text-charcoal/40 px-1">Your duties today</p>
+      <p className="text-[11px] font-mono tracking-widest uppercase text-charcoal/40 dark:text-white/35 px-1">Your duties today</p>
       {duties.map(d => (
         <DutyCard key={d.assignmentId} duty={d} toggleItem={toggleItem} />
       ))}
@@ -443,17 +443,17 @@ function NotificationsCard({ staffId, venueId }) {
     usePushNotifications(staffId, venueId)
 
   return (
-    <div className="bg-white rounded-[14px] border border-charcoal/8 p-4 flex items-center gap-3">
+    <div className="bg-white dark:bg-paperDark rounded-[14px] border border-charcoal/8 dark:border-white/8 p-4 flex items-center gap-3">
       <span className="shrink-0 w-8 h-8 rounded-full bg-brand/10 flex items-center justify-center">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-brand">
           <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
         </svg>
       </span>
       <div className="flex-1 min-w-0">
-        <p className="text-[13px] font-semibold text-charcoal">Notifications</p>
+        <p className="text-[13px] font-semibold text-charcoal dark:text-white">Notifications</p>
         {subscribed
           ? <p className="text-[11px] text-success mt-0.5 font-medium">Push notifications enabled</p>
-          : <p className="text-[11px] text-charcoal/45 mt-0.5">Get notified about rota changes and shift updates.</p>
+          : <p className="text-[11px] text-charcoal/45 dark:text-white/40 mt-0.5">Get notified about rota changes and shift updates.</p>
         }
       </div>
       {subscribed ? (
@@ -552,16 +552,16 @@ function TodayChecks({ venueId, venueSlug, staffName }) {
         onClick={() => !allDone && setOpen(v => !v)}
         className={`flex items-center justify-between w-full px-0.5 py-1 ${allDone ? 'cursor-default' : 'group'}`}
       >
-        <span className="text-[11px] font-mono tracking-widest uppercase text-charcoal/40 font-semibold">
+        <span className="text-[11px] font-mono tracking-widest uppercase text-charcoal/40 dark:text-white/35 font-semibold">
           {sessionType === 'opening' ? 'Opening Checks' : 'Closing Checks'}
         </span>
         <div className="flex items-center gap-2">
-          <span className={`text-[11px] font-mono ${allDone ? 'text-success font-semibold' : 'text-charcoal/35'}`}>
+          <span className={`text-[11px] font-mono ${allDone ? 'text-success font-semibold' : 'text-charcoal/35 dark:text-white/30'}`}>
             {done}/{total}
           </span>
           {!allDone && (
             <svg
-              className={`w-3.5 h-3.5 text-charcoal/30 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+              className={`w-3.5 h-3.5 text-charcoal/30 dark:text-white/30 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
               viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
               strokeLinecap="round" strokeLinejoin="round"
             >
@@ -572,7 +572,7 @@ function TodayChecks({ venueId, venueSlug, staffName }) {
       </button>
 
       {/* Progress bar — always visible */}
-      <div className="h-[3px] bg-charcoal/6 rounded-full overflow-hidden mx-0.5">
+      <div className="h-[3px] bg-charcoal/6 dark:bg-white/8 rounded-full overflow-hidden mx-0.5">
         <div
           className={`h-full rounded-full transition-all duration-300 ${allDone ? 'bg-success' : 'bg-brand/50'}`}
           style={{ width: total > 0 ? `${(done / total) * 100}%` : '0%' }}
@@ -594,21 +594,21 @@ function TodayChecks({ venueId, venueSlug, staffName }) {
 
       {/* Expandable pending check list */}
       {!allDone && open && (
-        <div className="bg-white rounded-[14px] border border-charcoal/8 overflow-hidden">
+        <div className="bg-white dark:bg-paperDark rounded-[14px] border border-charcoal/8 dark:border-white/8 overflow-hidden">
           {pendingChecks.map((check, i) => (
-            <div key={check.id} className={`px-4 py-3 flex items-center gap-3 ${i > 0 ? 'border-t border-charcoal/5' : ''}`}>
-              <p className="text-[13.5px] flex-1 font-medium text-charcoal">{check.title}</p>
+            <div key={check.id} className={`px-4 py-3 flex items-center gap-3 ${i > 0 ? 'border-t border-charcoal/5 dark:border-white/5' : ''}`}>
+              <p className="text-[13.5px] flex-1 font-medium text-charcoal dark:text-white">{check.title}</p>
               <div className="flex gap-1.5 shrink-0">
                 <button
                   onClick={() => markOk(check.id)}
                   disabled={!!saving}
-                  className="px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all bg-charcoal/6 text-charcoal/45 hover:bg-success/10 hover:text-success disabled:opacity-40"
+                  className="px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all bg-charcoal/6 dark:bg-white/8 text-charcoal/45 dark:text-white/40 hover:bg-success/10 hover:text-success disabled:opacity-40"
                 >
                   {saving === check.id ? '…' : '✓ OK'}
                 </button>
                 <a
                   href={`/v/${venueSlug}/opening-closing`}
-                  className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-charcoal/6 text-charcoal/45 hover:bg-warning/10 hover:text-warning transition-all"
+                  className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-charcoal/6 dark:bg-white/8 text-charcoal/45 dark:text-white/40 hover:bg-warning/10 hover:text-warning transition-all"
                 >
                   ⚠ Issue
                 </a>
@@ -617,7 +617,7 @@ function TodayChecks({ venueId, venueSlug, staffName }) {
           ))}
           <a
             href={`/v/${venueSlug}/opening-closing`}
-            className="flex items-center justify-between px-4 py-3 border-t border-charcoal/5 text-[12px] font-semibold text-brand hover:bg-brand/3 transition-colors"
+            className="flex items-center justify-between px-4 py-3 border-t border-charcoal/5 dark:border-white/5 text-[12px] font-semibold text-brand hover:bg-brand/3 transition-colors"
           >
             View full checks
             <svg width="6" height="10" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -756,8 +756,8 @@ export default function StaffDashboardPage() {
 
       {/* Page header */}
       <div className="flex items-baseline justify-between px-0.5">
-        <span className="text-[11px] font-mono tracking-widest uppercase text-charcoal/40 font-semibold">My Shift</span>
-        <span className="text-[11px] font-mono text-charcoal/35">{dateLabel}</span>
+        <span className="text-[11px] font-mono tracking-widest uppercase text-charcoal/40 dark:text-white/35 font-semibold">My Shift</span>
+        <span className="text-[11px] font-mono text-charcoal/35 dark:text-white/30">{dateLabel}</span>
       </div>
 
       {/* Greeting */}
@@ -766,7 +766,7 @@ export default function StaffDashboardPage() {
         const salutation = h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening'
         const first = session.staffName?.split(' ')[0]
         return (
-          <h1 className="text-[26px] font-medium tracking-[-0.025em] text-charcoal leading-tight px-0.5">
+          <h1 className="text-[26px] font-medium tracking-[-0.025em] text-charcoal dark:text-white leading-tight px-0.5">
             {salutation}{first ? `, ${first}` : ''}
           </h1>
         )

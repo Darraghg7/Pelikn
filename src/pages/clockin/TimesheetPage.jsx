@@ -173,8 +173,8 @@ function Avatar({ name, station, size = 34 }) {
 function SumTile({ label, value, sub, subGood }) {
   return (
     <div className="flex-1 bg-surface rounded-[11px] px-3 py-[10px]">
-      <div className="font-mono text-[11px] text-charcoal/50 uppercase tracking-[0.1em] font-semibold mb-[5px] leading-[1.3]">{label}</div>
-      <div className="font-mono text-[17px] font-semibold text-charcoal tracking-[-0.025em] tabular-nums leading-none">{value || '—'}</div>
+      <div className="font-mono text-[11px] text-charcoal/50 dark:text-white/40 uppercase tracking-[0.1em] font-semibold mb-[5px] leading-[1.3]">{label}</div>
+      <div className="font-mono text-[17px] font-semibold text-charcoal dark:text-white tracking-[-0.025em] tabular-nums leading-none">{value || '—'}</div>
       {sub && <div className={`font-mono text-[11px] font-semibold mt-[5px] ${subGood ? 'text-success' : 'text-warning'}`}>{sub}</div>}
     </div>
   )
@@ -189,7 +189,7 @@ function PeriodChips({ period, onChange }) {
           <button
             key={p.key}
             onClick={() => onChange(p.key)}
-            className={`shrink-0 text-[13.5px] cursor-pointer px-[15px] py-[7px] rounded-full border transition-colors ${on ? 'font-semibold bg-brand text-white border-brand' : 'font-medium bg-white dark:bg-paperDark text-charcoal/75 border-charcoal/10'}`}
+            className={`shrink-0 text-[13.5px] cursor-pointer px-[15px] py-[7px] rounded-full border transition-colors ${on ? 'font-semibold bg-brand text-white border-brand' : 'font-medium bg-white dark:bg-paperDark text-charcoal/75 dark:text-white/62 border-charcoal/10 dark:border-white/10'}`}
           >
             {p.label}
           </button>
@@ -209,17 +209,17 @@ function StaffRow({ t, station, last, onTap }) {
     >
       <Avatar name={t.name} station={station} size={38} />
       <div className="flex-1 min-w-0">
-        <div className="text-[14.5px] font-semibold text-charcoal tracking-[-0.01em] leading-[1.2]">{t.name}</div>
-        {t.hourlyRate > 0 && <div className="font-mono text-[11px] text-charcoal/50 mt-[3px]">£{Number(t.hourlyRate).toFixed(2)}/hr</div>}
+        <div className="text-[14.5px] font-semibold text-charcoal dark:text-white tracking-[-0.01em] leading-[1.2]">{t.name}</div>
+        {t.hourlyRate > 0 && <div className="font-mono text-[11px] text-charcoal/50 dark:text-white/40 mt-[3px]">£{Number(t.hourlyRate).toFixed(2)}/hr</div>}
       </div>
       <div className="flex items-center gap-2 shrink-0">
         <div className="text-right">
-          <div className={`font-mono text-[15px] font-semibold leading-none tabular-nums ${hasData ? 'text-charcoal' : 'text-charcoal/30'}`}>{minsStr(t.totalMinutes)}</div>
-          <div className={`font-mono text-[11px] mt-1 font-semibold ${hasData && pay > 0 ? 'text-success' : 'text-charcoal/30'}`}>
+          <div className={`font-mono text-[15px] font-semibold leading-none tabular-nums ${hasData ? 'text-charcoal dark:text-white' : 'text-charcoal/30 dark:text-white/30'}`}>{minsStr(t.totalMinutes)}</div>
+          <div className={`font-mono text-[11px] mt-1 font-semibold ${hasData && pay > 0 ? 'text-success' : 'text-charcoal/30 dark:text-white/30'}`}>
             {hasData && pay > 0 ? `£${pay.toFixed(2)}` : '—'}
           </div>
         </div>
-        <svg width="6" height="10" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="text-charcoal/30"><path d="M1 1l4 4-4 4" /></svg>
+        <svg width="6" height="10" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="text-charcoal/30 dark:text-white/30"><path d="M1 1l4 4-4 4" /></svg>
       </div>
     </button>
   )
@@ -273,7 +273,7 @@ function TsWheel({ values, value, onChange }) {
           )
         })}
       </div>
-      <div className="absolute left-0 right-0 pointer-events-none border-t border-b border-charcoal/10" style={{ top: pad, height: WH_IH, background: 'rgba(19,54,42,0.03)' }} />
+      <div className="absolute left-0 right-0 pointer-events-none border-t border-b border-charcoal/10 dark:border-white/10" style={{ top: pad, height: WH_IH, background: 'rgba(19,54,42,0.03)' }} />
       <div className="absolute left-0 right-0 top-0 pointer-events-none" style={{ height: pad, background: 'linear-gradient(#f3f3ef, #f3f3ef00)' }} />
       <div className="absolute left-0 right-0 bottom-0 pointer-events-none" style={{ height: pad, background: 'linear-gradient(#f3f3ef00, #f3f3ef)' }} />
     </div>
@@ -298,11 +298,11 @@ function EditSessionSheet({ staffName, dayLabel, session, onSave, onClose }) {
     <div className="fixed inset-0 z-[60] flex flex-col justify-end">
       <div onClick={onClose} className="absolute inset-0" style={{ background: 'rgba(9,18,13,0.52)' }} />
       <div className="relative bg-surface rounded-t-[22px] px-4 pb-[34px] pt-[10px] max-h-[90%] overflow-y-auto [-webkit-overflow-scrolling:touch]" style={{ boxShadow: '0 -12px 40px rgba(9,18,13,0.24)' }}>
-        <div className="w-[38px] h-1 rounded-sm bg-charcoal/10 mx-auto mb-4" />
+        <div className="w-[38px] h-1 rounded-sm bg-charcoal/10 dark:bg-white/10 mx-auto mb-4" />
         <div className="flex items-start justify-between mb-4">
           <div>
             <div className="text-[17px] font-semibold tracking-[-0.015em]">{dayLabel}</div>
-            <div className="text-xs text-charcoal/50 mt-0.5">{staffName}</div>
+            <div className="text-xs text-charcoal/50 dark:text-white/40 mt-0.5">{staffName}</div>
           </div>
           {session?.in && <span className="font-mono text-[11px] font-bold text-warning bg-warning/10 uppercase tracking-[0.05em] px-[9px] py-1 rounded-full">Editing</span>}
         </div>
@@ -315,19 +315,19 @@ function EditSessionSheet({ staffName, dayLabel, session, onSave, onClose }) {
                 onClick={() => setEdge(k)}
                 className={`flex-1 cursor-pointer border-none rounded-[9px] py-2 ${on ? 'bg-white dark:bg-paperDark shadow-[0_1px_3px_rgba(9,18,13,0.1)]' : 'bg-transparent'}`}
               >
-                <div className="font-mono text-[11px] text-charcoal/50 uppercase tracking-[0.06em] font-semibold">{label}</div>
-                <div className={`font-mono text-[17px] font-semibold mt-0.5 tabular-nums ${on ? 'text-brand' : 'text-charcoal/50'}`}>{val}</div>
+                <div className="font-mono text-[11px] text-charcoal/50 dark:text-white/40 uppercase tracking-[0.06em] font-semibold">{label}</div>
+                <div className={`font-mono text-[17px] font-semibold mt-0.5 tabular-nums ${on ? 'text-brand' : 'text-charcoal/50 dark:text-white/40'}`}>{val}</div>
               </button>
             )
           })}
         </div>
         <div className="flex items-center justify-center gap-1 mt-3">
           <TsWheel values={WH_HOURS} value={ch} onChange={(h) => setCur(h, cm)} />
-          <span className="font-mono text-[22px] font-semibold text-charcoal/50 pb-0.5">:</span>
+          <span className="font-mono text-[22px] font-semibold text-charcoal/50 dark:text-white/40 pb-0.5">:</span>
           <TsWheel values={WH_MINS}  value={cm} onChange={(m) => setCur(ch, m)} />
         </div>
         <div className="mt-2">
-          <div className="font-mono text-[11px] text-charcoal/50 tracking-[0.07em] uppercase font-semibold px-0.5 pb-[7px]">Unpaid break</div>
+          <div className="font-mono text-[11px] text-charcoal/50 dark:text-white/40 tracking-[0.07em] uppercase font-semibold px-0.5 pb-[7px]">Unpaid break</div>
           <div className="flex flex-wrap gap-[6px]">
             {WH_BREAKS.map(b => {
               const on = b === brk
@@ -335,7 +335,7 @@ function EditSessionSheet({ staffName, dayLabel, session, onSave, onClose }) {
                 <button
                   key={b}
                   onClick={() => setBrk(b)}
-                  className={`font-mono text-xs font-semibold cursor-pointer px-[11px] py-[6px] rounded-[9px] border ${on ? 'border-brand bg-brand text-white' : 'border-charcoal/10 bg-white dark:bg-paperDark text-charcoal/75'}`}
+                  className={`font-mono text-xs font-semibold cursor-pointer px-[11px] py-[6px] rounded-[9px] border ${on ? 'border-brand bg-brand text-white' : 'border-charcoal/10 dark:border-white/10 bg-white dark:bg-paperDark text-charcoal/75 dark:text-white/62'}`}
                 >
                   {b === 0 ? 'None' : `${b}m`}
                 </button>
@@ -345,14 +345,14 @@ function EditSessionSheet({ staffName, dayLabel, session, onSave, onClose }) {
         </div>
         <div className={`mt-[10px] px-[13px] py-[10px] rounded-[11px] flex items-center gap-2 ${valid ? 'bg-brand/8' : 'bg-danger/10'}`}>
           <span className="font-mono text-sm font-semibold tabular-nums">{clockIn} – {clockOut}</span>
-          <span className={`text-[12.5px] ${valid ? 'text-charcoal/50' : 'text-danger'}`}>· {valid ? minsStr(worked(clockIn, clockOut, brk)) : 'clock out must be after in'}</span>
+          <span className={`text-[12.5px] ${valid ? 'text-charcoal/50 dark:text-white/40' : 'text-danger'}`}>· {valid ? minsStr(worked(clockIn, clockOut, brk)) : 'clock out must be after in'}</span>
         </div>
         <div className="flex gap-2 mt-4">
-          <button onClick={onClose} className="w-[90px] h-[50px] rounded-[13px] border border-charcoal/10 bg-white dark:bg-paperDark text-charcoal/75 cursor-pointer text-sm font-semibold">Cancel</button>
+          <button onClick={onClose} className="w-[90px] h-[50px] rounded-[13px] border border-charcoal/10 dark:border-white/10 bg-white dark:bg-paperDark text-charcoal/75 dark:text-white/62 cursor-pointer text-sm font-semibold">Cancel</button>
           <button
             disabled={!valid}
             onClick={() => { onSave({ clockIn, clockOut, brk }); onClose() }}
-            className={`flex-1 h-[50px] rounded-[13px] border-none text-[15px] font-bold ${valid ? 'bg-brand text-white cursor-pointer' : 'bg-charcoal/10 text-charcoal/30 cursor-not-allowed'}`}
+            className={`flex-1 h-[50px] rounded-[13px] border-none text-[15px] font-bold ${valid ? 'bg-brand text-white cursor-pointer' : 'bg-charcoal/10 dark:bg-white/10 text-charcoal/30 dark:text-white/30 cursor-not-allowed'}`}
           >
             Save hours
           </button>
@@ -371,12 +371,12 @@ function StaffHoursSheet({ t, station, periodDays, dailyGrid, periodLabel, onEdi
     <div className="fixed inset-0 z-[55] flex flex-col justify-end">
       <div onClick={onClose} className="absolute inset-0" style={{ background: 'rgba(9,18,13,0.52)' }} />
       <div className="relative bg-surface rounded-t-[22px] px-4 pt-5 pb-[34px] max-h-[90%] overflow-y-auto [-webkit-overflow-scrolling:touch]" style={{ boxShadow: '0 -12px 40px rgba(9,18,13,0.24)' }}>
-        <div className="w-[38px] h-1 rounded-sm bg-charcoal/10 mx-auto mb-4" />
+        <div className="w-[38px] h-1 rounded-sm bg-charcoal/10 dark:bg-white/10 mx-auto mb-4" />
         <div className="flex items-center gap-3 mb-[14px]">
           <Avatar name={t.name} station={station} size={44} />
           <div className="flex-1 min-w-0">
             <div className="text-[17px] font-semibold tracking-[-0.015em]">{t.name}</div>
-            <div className="text-xs text-charcoal/50 mt-0.5">{periodLabel}</div>
+            <div className="text-xs text-charcoal/50 dark:text-white/40 mt-0.5">{periodLabel}</div>
           </div>
         </div>
         <div className="flex flex-col gap-[6px]">
@@ -390,25 +390,25 @@ function StaffHoursSheet({ t, station, periodDays, dailyGrid, periodLabel, onEdi
             const breakMins = has ? session.breaks.reduce((acc, b) =>
               (!b.start || !b.end) ? acc : acc + Math.round((new Date(b.end) - new Date(b.start)) / 60000), 0) : 0
             return (
-              <div key={i} className={`flex items-center gap-[10px] px-3 py-[10px] rounded-xl border ${has ? 'bg-white dark:bg-paperDark border-charcoal/10' : 'bg-surface border-charcoal/[0.06]'}`}>
-                <div className={`w-[42px] h-[46px] rounded-[9px] border border-charcoal/10 shrink-0 flex flex-col items-center justify-center gap-px ${has ? 'bg-surface' : 'bg-charcoal/[0.06]'}`}>
-                  <span className="font-mono text-[11px] text-charcoal/50 font-semibold tracking-[0.06em]">{format(d, 'EEE').toUpperCase()}</span>
-                  <span className={`font-mono text-[15px] font-semibold leading-none ${has ? 'text-charcoal' : 'text-charcoal/30'}`}>{format(d, 'd')}</span>
+              <div key={i} className={`flex items-center gap-[10px] px-3 py-[10px] rounded-xl border ${has ? 'bg-white dark:bg-paperDark border-charcoal/10 dark:border-white/10' : 'bg-surface border-charcoal/[0.06]'}`}>
+                <div className={`w-[42px] h-[46px] rounded-[9px] border border-charcoal/10 dark:border-white/10 shrink-0 flex flex-col items-center justify-center gap-px ${has ? 'bg-surface' : 'bg-charcoal/[0.06]'}`}>
+                  <span className="font-mono text-[11px] text-charcoal/50 dark:text-white/40 font-semibold tracking-[0.06em]">{format(d, 'EEE').toUpperCase()}</span>
+                  <span className={`font-mono text-[15px] font-semibold leading-none ${has ? 'text-charcoal dark:text-white' : 'text-charcoal/30 dark:text-white/30'}`}>{format(d, 'd')}</span>
                 </div>
                 <div className="flex-1 min-w-0">
                   {has ? (
                     <>
                       <div className="font-mono text-[13.5px] font-semibold tabular-nums">{inTime} – {outTime}</div>
                       <div className="flex items-center gap-[5px] mt-0.5">
-                        <span className="font-mono text-[11.5px] text-charcoal/50">{minsStr(dayData.minutes)}</span>
-                        {breakMins > 0 && <><span className="text-charcoal/30">·</span><span className="text-[11.5px] text-charcoal/50">{breakMins}m break</span></>}
+                        <span className="font-mono text-[11.5px] text-charcoal/50 dark:text-white/40">{minsStr(dayData.minutes)}</span>
+                        {breakMins > 0 && <><span className="text-charcoal/30 dark:text-white/30">·</span><span className="text-[11.5px] text-charcoal/50 dark:text-white/40">{breakMins}m break</span></>}
                       </div>
                     </>
-                  ) : <div className="text-[13px] text-charcoal/30">Off</div>}
+                  ) : <div className="text-[13px] text-charcoal/30 dark:text-white/30">Off</div>}
                 </div>
                 <button
                   onClick={() => has ? onEditDay({ dateStr, session }) : onAddDay(dateStr)}
-                  className="shrink-0 flex items-center gap-1 px-3 py-[7px] rounded-[9px] cursor-pointer text-xs font-semibold text-charcoal/75 bg-surface border border-charcoal/10"
+                  className="shrink-0 flex items-center gap-1 px-3 py-[7px] rounded-[9px] cursor-pointer text-xs font-semibold text-charcoal/75 dark:text-white/62 bg-surface border border-charcoal/10 dark:border-white/10"
                 >
                   {has
                     ? <><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Edit</>
@@ -418,20 +418,20 @@ function StaffHoursSheet({ t, station, periodDays, dailyGrid, periodLabel, onEdi
             )
           })}
         </div>
-        <div className="mt-[14px] px-[14px] py-[13px] bg-white dark:bg-paperDark rounded-xl border border-charcoal/10 flex items-center gap-5">
+        <div className="mt-[14px] px-[14px] py-[13px] bg-white dark:bg-paperDark rounded-xl border border-charcoal/10 dark:border-white/10 flex items-center gap-5">
           <div>
-            <div className="font-mono text-[11px] text-charcoal/50 tracking-[0.1em] uppercase font-semibold">Total</div>
-            <div className="font-mono text-[17px] font-semibold text-charcoal mt-[3px] tabular-nums">{minsStr(t.totalMinutes)}</div>
+            <div className="font-mono text-[11px] text-charcoal/50 dark:text-white/40 tracking-[0.1em] uppercase font-semibold">Total</div>
+            <div className="font-mono text-[17px] font-semibold text-charcoal dark:text-white mt-[3px] tabular-nums">{minsStr(t.totalMinutes)}</div>
           </div>
           {t.hourlyRate > 0 && (
             <div>
-              <div className="font-mono text-[11px] text-charcoal/50 tracking-[0.1em] uppercase font-semibold">Est. pay</div>
-              <div className={`font-mono text-[17px] font-semibold mt-[3px] tabular-nums ${pay > 0 ? 'text-success' : 'text-charcoal/30'}`}>{pay > 0 ? `£${pay.toFixed(2)}` : '—'}</div>
+              <div className="font-mono text-[11px] text-charcoal/50 dark:text-white/40 tracking-[0.1em] uppercase font-semibold">Est. pay</div>
+              <div className={`font-mono text-[17px] font-semibold mt-[3px] tabular-nums ${pay > 0 ? 'text-success' : 'text-charcoal/30 dark:text-white/30'}`}>{pay > 0 ? `£${pay.toFixed(2)}` : '—'}</div>
             </div>
           )}
           <div className="ml-auto">
-            <div className="font-mono text-[11px] text-charcoal/50 tracking-[0.1em] uppercase font-semibold">Rate</div>
-            <div className="font-mono text-xs font-semibold text-charcoal/50 mt-[3px]">£{Number(t.hourlyRate).toFixed(2)}/hr</div>
+            <div className="font-mono text-[11px] text-charcoal/50 dark:text-white/40 tracking-[0.1em] uppercase font-semibold">Rate</div>
+            <div className="font-mono text-xs font-semibold text-charcoal/50 dark:text-white/40 mt-[3px]">£{Number(t.hourlyRate).toFixed(2)}/hr</div>
           </div>
         </div>
         <button
@@ -616,7 +616,7 @@ export default function TimesheetPage() {
   const underLabel = under > 0 ? `£${Math.round(under).toLocaleString()} under` : under < 0 ? `£${Math.round(Math.abs(under)).toLocaleString()} over` : null
 
   return (
-    <div className="text-charcoal">
+    <div className="text-charcoal dark:text-white">
       {isManager && <ClockEditApprovalCard />}
 
       {/* Header */}
@@ -624,7 +624,7 @@ export default function TimesheetPage() {
         <h1 className="text-[28px] font-bold tracking-[-0.03em] leading-[1.05] m-0">Timesheets</h1>
         <div className="flex gap-4">
           {[['CSV', exportCsv], ['PDF', exportPdf]].map(([fmt, fn]) => (
-            <button key={fmt} onClick={fn} className="flex items-center gap-1 font-mono text-[11px] font-bold text-charcoal/50 tracking-[0.05em] uppercase bg-transparent border-none cursor-pointer p-0">
+            <button key={fmt} onClick={fn} className="flex items-center gap-1 font-mono text-[11px] font-bold text-charcoal/50 dark:text-white/40 tracking-[0.05em] uppercase bg-transparent border-none cursor-pointer p-0">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
               {fmt}
             </button>
@@ -633,26 +633,26 @@ export default function TimesheetPage() {
       </div>
 
       {/* Pay Period Summary card */}
-      <div className="bg-white dark:bg-paperDark border border-charcoal/10 rounded-[18px] px-[14px] pt-[15px] pb-4 flex flex-col gap-3 mb-[14px]">
-        <div className="font-mono text-[11px] text-charcoal/50 tracking-[0.12em] uppercase font-semibold">Pay Period Summary</div>
+      <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[18px] px-[14px] pt-[15px] pb-4 flex flex-col gap-3 mb-[14px]">
+        <div className="font-mono text-[11px] text-charcoal/50 dark:text-white/40 tracking-[0.12em] uppercase font-semibold">Pay Period Summary</div>
         <PeriodChips period={period} onChange={setPeriod} />
 
         {period === 'custom' && (
           <div className="flex items-center gap-2">
-            <input type="date" value={customFrom} onChange={e => setCustomFrom(e.target.value)} className="flex-1 px-[10px] py-[7px] rounded-[9px] border border-charcoal/10 text-[13px] bg-white dark:bg-paperDark text-charcoal outline-none focus:ring-2 focus:ring-charcoal/20 focus:border-charcoal/20" />
-            <span className="text-xs text-charcoal/30 shrink-0">to</span>
-            <input type="date" value={customTo} min={customFrom} onChange={e => setCustomTo(e.target.value)} className="flex-1 px-[10px] py-[7px] rounded-[9px] border border-charcoal/10 text-[13px] bg-white dark:bg-paperDark text-charcoal outline-none focus:ring-2 focus:ring-charcoal/20 focus:border-charcoal/20" />
+            <input type="date" value={customFrom} onChange={e => setCustomFrom(e.target.value)} className="flex-1 px-[10px] py-[7px] rounded-[9px] border border-charcoal/10 dark:border-white/10 text-[13px] bg-white dark:bg-paperDark text-charcoal dark:text-white outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 focus:border-charcoal/20 dark:focus:border-white/20" />
+            <span className="text-xs text-charcoal/30 dark:text-white/30 shrink-0">to</span>
+            <input type="date" value={customTo} min={customFrom} onChange={e => setCustomTo(e.target.value)} className="flex-1 px-[10px] py-[7px] rounded-[9px] border border-charcoal/10 dark:border-white/10 text-[13px] bg-white dark:bg-paperDark text-charcoal dark:text-white outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 focus:border-charcoal/20 dark:focus:border-white/20" />
           </div>
         )}
 
         {periodLabel && periodLabel !== '—' && (
           <div className="flex items-center justify-between gap-2">
-            <span className="text-[15px] font-semibold tracking-[-0.01em] text-charcoal">{periodLabel}</span>
+            <span className="text-[15px] font-semibold tracking-[-0.01em] text-charcoal dark:text-white">{periodLabel}</span>
             {isManager && periodFrom && periodTo && (
               <button
                 onClick={togglePayrollLock}
                 disabled={lockSaving}
-                className={`flex items-center gap-[5px] text-[11.5px] font-semibold bg-white dark:bg-paperDark rounded-[9px] px-[11px] py-[6px] cursor-pointer shrink-0 whitespace-nowrap transition-opacity ${isPeriodLocked ? 'text-success border border-success/[0.33]' : 'text-charcoal/75 border border-charcoal/10'} ${lockSaving ? 'opacity-40' : 'opacity-100'}`}
+                className={`flex items-center gap-[5px] text-[11.5px] font-semibold bg-white dark:bg-paperDark rounded-[9px] px-[11px] py-[6px] cursor-pointer shrink-0 whitespace-nowrap transition-opacity ${isPeriodLocked ? 'text-success border border-success/[0.33]' : 'text-charcoal/75 dark:text-white/62 border border-charcoal/10 dark:border-white/10'} ${lockSaving ? 'opacity-40' : 'opacity-100'}`}
               >
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d={isPeriodLocked ? 'M7 11V7a5 5 0 0 1 10 0v4' : 'M7 11V7a5 5 0 0 1 9.9-1'}/></svg>
                 {isPeriodLocked ? 'Locked' : lockSaving ? 'Locking…' : 'Lock for payroll'}
@@ -668,9 +668,9 @@ export default function TimesheetPage() {
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-danger"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
             <div className="flex-1 min-w-0">
               <div className="text-[13.5px] font-semibold text-danger leading-tight">Couldn't load hours</div>
-              <div className="text-[11.5px] text-charcoal/50 mt-[3px] leading-snug">The clock-in data failed to load — this can happen on an out-of-date app. Try again, or fully close and reopen the app.</div>
+              <div className="text-[11.5px] text-charcoal/50 dark:text-white/40 mt-[3px] leading-snug">The clock-in data failed to load — this can happen on an out-of-date app. Try again, or fully close and reopen the app.</div>
             </div>
-            <button onClick={reload} className="shrink-0 text-[12px] font-semibold text-charcoal bg-white dark:bg-paperDark border border-charcoal/10 rounded-[9px] px-[13px] py-[8px] cursor-pointer">Retry</button>
+            <button onClick={reload} className="shrink-0 text-[12px] font-semibold text-charcoal dark:text-white bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[9px] px-[13px] py-[8px] cursor-pointer">Retry</button>
           </div>
         ) : (
           <>
@@ -690,13 +690,13 @@ export default function TimesheetPage() {
       {!loading && !loadError && (
         <div>
           <div className="flex items-center justify-between px-0.5 pb-[9px]">
-            <span className="font-mono text-[11px] text-charcoal/50 tracking-[0.1em] uppercase font-semibold">Staff</span>
-            <span className="font-mono text-[11px] text-charcoal/50">{timesheets.length} members{totalMins > 0 ? ` · ${minsStr(totalMins)} total` : ''}</span>
+            <span className="font-mono text-[11px] text-charcoal/50 dark:text-white/40 tracking-[0.1em] uppercase font-semibold">Staff</span>
+            <span className="font-mono text-[11px] text-charcoal/50 dark:text-white/40">{timesheets.length} members{totalMins > 0 ? ` · ${minsStr(totalMins)} total` : ''}</span>
           </div>
           {timesheets.length === 0 ? (
             <EmptyState icon="users" title="No clock events" description="No clock events recorded for this period." className="py-6" />
           ) : (
-            <div className="bg-white dark:bg-paperDark border border-charcoal/10 rounded-2xl overflow-hidden">
+            <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-2xl overflow-hidden">
               {timesheets.map((t, i) => (
                 <StaffRow key={t.staffId} t={t} station={stationMap[t.staffId] ?? ''} last={i === timesheets.length - 1} onTap={() => setSelStaff(t)} />
               ))}

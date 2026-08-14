@@ -7,7 +7,7 @@ import { useAppSettings } from '../../hooks/useSettings'
 
 function GroupLabel({ label }) {
   return (
-    <div className="font-mono text-[11px] font-semibold tracking-[0.08em] uppercase text-charcoal/50 px-0.5 pt-3 pb-1.5">
+    <div className="font-mono text-[11px] font-semibold tracking-[0.08em] uppercase text-charcoal/50 dark:text-white/40 px-0.5 pt-3 pb-1.5">
       {label}
     </div>
   )
@@ -15,7 +15,7 @@ function GroupLabel({ label }) {
 
 function RowGroup({ children }) {
   return (
-    <div className="bg-white dark:bg-paperDark border border-charcoal/10 rounded-[14px] overflow-hidden">
+    <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[14px] overflow-hidden">
       {children}
     </div>
   )
@@ -25,7 +25,7 @@ function SRow({ icon, label, sub, value, attention, last, onClick, danger }) {
   return (
     <button
       onClick={onClick}
-      className={`w-full text-left flex items-center gap-[13px] px-[14px] min-h-[52px] border-b border-charcoal/6 last:border-0 hover:bg-charcoal/[0.02] transition-colors ${last ? 'border-b-0' : ''}`}
+      className={`w-full text-left flex items-center gap-[13px] px-[14px] min-h-[52px] border-b border-charcoal/6 dark:border-white/8 last:border-0 hover:bg-charcoal/[0.02] transition-colors ${last ? 'border-b-0' : ''}`}
     >
       <span className={`w-8 h-8 rounded-[9px] shrink-0 flex items-center justify-center ${attention ? 'bg-warning/10 text-warning' : danger ? 'bg-danger/10 text-danger' : 'bg-brand/8 text-brand'}`}>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
@@ -33,12 +33,12 @@ function SRow({ icon, label, sub, value, attention, last, onClick, danger }) {
         </svg>
       </span>
       <div className="flex-1 min-w-0 py-3">
-        <div className={`text-sm font-medium tracking-[-0.005em] leading-snug ${danger ? 'text-danger' : 'text-charcoal'}`}>{label}</div>
-        {sub && <div className={`font-mono text-[11px] mt-0.5 leading-[1.4] ${attention ? 'text-warning' : 'text-charcoal/50'}`}>{sub}</div>}
+        <div className={`text-sm font-medium tracking-[-0.005em] leading-snug ${danger ? 'text-danger' : 'text-charcoal dark:text-white'}`}>{label}</div>
+        {sub && <div className={`font-mono text-[11px] mt-0.5 leading-[1.4] ${attention ? 'text-warning' : 'text-charcoal/50 dark:text-white/40'}`}>{sub}</div>}
       </div>
-      {value && <span className="font-mono text-[11px] text-charcoal/50 shrink-0">{value}</span>}
+      {value && <span className="font-mono text-[11px] text-charcoal/50 dark:text-white/40 shrink-0">{value}</span>}
       {onClick && (
-        <svg width="6" height="10" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" className={`shrink-0 ${attention ? 'text-warning' : 'text-charcoal/30'}`}>
+        <svg width="6" height="10" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" className={`shrink-0 ${attention ? 'text-warning' : 'text-charcoal/30 dark:text-white/30'}`}>
           <path d="M1 1l4 4-4 4"/>
         </svg>
       )}
@@ -66,7 +66,7 @@ export default function SettingsHubPage() {
   return (
     <div className="pb-24">
 
-      <h1 className="text-[26px] font-semibold tracking-[-0.028em] mb-[14px] text-charcoal">Settings</h1>
+      <h1 className="text-[26px] font-semibold tracking-[-0.028em] mb-[14px] text-charcoal dark:text-white">Settings</h1>
 
       {/* Opens the signed-in manager's own staff record. Without a staffId
           there is nowhere to go, so the card renders inert rather than
@@ -173,7 +173,7 @@ export default function SettingsHubPage() {
         Sign out
       </button>
 
-      <div className="text-center font-mono text-[11px] text-charcoal/30 tracking-[0.08em] pt-3">
+      <div className="text-center font-mono text-[11px] text-charcoal/30 dark:text-white/30 tracking-[0.08em] pt-3">
         Pelikn
       </div>
     </div>

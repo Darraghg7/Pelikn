@@ -27,7 +27,7 @@ const CATEGORY_STYLES = {
   dairy:     'bg-yellow-50 text-yellow-700 border-yellow-200',
   produce:   'bg-green-50  text-green-700  border-green-200',
   dry_goods: 'bg-amber-50  text-amber-700  border-amber-200',
-  other:     'bg-charcoal/5 text-charcoal/60 border-charcoal/15',
+  other:     'bg-charcoal/5 dark:bg-white/5 text-charcoal/60 dark:text-white/50 border-charcoal/15 dark:border-white/15',
 }
 
 const APPROVAL_STYLES = {
@@ -138,26 +138,26 @@ function SupplierModal({ supplier, venueId, onSaved, onClose }) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-charcoal/40 backdrop-blur-sm" onClick={onClose}>
-      <div onClick={(e) => e.stopPropagation()} className="bg-white rounded-2xl w-full max-w-md flex flex-col shadow-2xl" style={{ maxHeight: '90dvh', paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
-        <div className="px-6 py-5 border-b border-charcoal/8 flex items-center justify-between">
-          <h2 className="font-semibold text-charcoal">{supplier ? 'Edit Supplier' : 'Add Supplier'}</h2>
-          <button onClick={onClose} className="text-charcoal/30 hover:text-charcoal transition-colors text-xl leading-none">×</button>
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-charcoal/40 dark:bg-white/40 backdrop-blur-sm" onClick={onClose}>
+      <div onClick={(e) => e.stopPropagation()} className="bg-white dark:bg-paperDark rounded-2xl w-full max-w-md flex flex-col shadow-2xl" style={{ maxHeight: '90dvh', paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
+        <div className="px-6 py-5 border-b border-charcoal/8 dark:border-white/8 flex items-center justify-between">
+          <h2 className="font-semibold text-charcoal dark:text-white">{supplier ? 'Edit Supplier' : 'Add Supplier'}</h2>
+          <button onClick={onClose} className="text-charcoal/30 dark:text-white/30 hover:text-charcoal dark:hover:text-white transition-colors text-xl leading-none">×</button>
         </div>
         <form onSubmit={submit} className="flex flex-col gap-4 p-6 overflow-y-auto">
           <div className="flex flex-col gap-1.5">
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40">Name <span className="text-danger">*</span></label>
+            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">Name <span className="text-danger">*</span></label>
             <input
               type="text"
               value={form.name}
               onChange={(e) => set('name', e.target.value)}
               placeholder="e.g. Fresh Fields Ltd"
-              className="w-full px-3 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+              className="w-full px-3 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
             />
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40">Category</label>
+            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">Category</label>
             <div className="flex flex-wrap gap-2">
               {CATEGORIES.map((cat) => (
                 <button
@@ -167,8 +167,8 @@ function SupplierModal({ supplier, venueId, onSaved, onClose }) {
                   className={[
                     'px-3 py-1.5 rounded-full text-xs font-medium border transition-all',
                     form.category === cat
-                      ? 'bg-charcoal text-cream border-charcoal'
-                      : 'bg-white text-charcoal/50 border-charcoal/15 hover:border-charcoal/30',
+                      ? 'bg-charcoal text-cream border-charcoal dark:border-white'
+                      : 'bg-white dark:bg-paperDark text-charcoal/50 dark:text-white/40 border-charcoal/15 dark:border-white/15 hover:border-charcoal/30 dark:hover:border-white/30',
                   ].join(' ')}
                 >
                   {CATEGORY_LABELS[cat] ?? cat}
@@ -179,7 +179,7 @@ function SupplierModal({ supplier, venueId, onSaved, onClose }) {
 
           {/* Approval status */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40">Approval Status</label>
+            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">Approval Status</label>
             <div className="flex gap-2">
               {['pending', 'approved', 'suspended'].map((s) => (
                 <button
@@ -192,7 +192,7 @@ function SupplierModal({ supplier, venueId, onSaved, onClose }) {
                       ? s === 'approved'  ? 'bg-success/10 text-success border-success/30'
                         : s === 'suspended' ? 'bg-danger/10 text-danger border-danger/30'
                         : 'bg-warning/10 text-warning border-warning/30'
-                      : 'bg-white text-charcoal/40 border-charcoal/12 hover:border-charcoal/30',
+                      : 'bg-white dark:bg-paperDark text-charcoal/40 dark:text-white/35 border-charcoal/12 dark:border-white/15 hover:border-charcoal/30 dark:hover:border-white/30',
                   ].join(' ')}
                 >
                   {s}
@@ -202,59 +202,59 @@ function SupplierModal({ supplier, venueId, onSaved, onClose }) {
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40">Contact Name</label>
+            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">Contact Name</label>
             <input
               type="text"
               value={form.contact_name}
               onChange={(e) => set('contact_name', e.target.value)}
               placeholder="e.g. James Brown"
-              className="w-full px-3 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+              className="w-full px-3 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1.5">
-              <label className="text-[11px] tracking-widest uppercase text-charcoal/40">Phone</label>
+              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">Phone</label>
               <input
                 type="tel"
                 value={form.phone}
                 onChange={(e) => set('phone', e.target.value)}
                 placeholder="07700 900000"
-                className="w-full px-3 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+                className="w-full px-3 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-[11px] tracking-widest uppercase text-charcoal/40">Email</label>
+              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">Email</label>
               <input
                 type="email"
                 value={form.email}
                 onChange={(e) => set('email', e.target.value)}
                 placeholder="orders@supplier.co.uk"
-                className="w-full px-3 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+                className="w-full px-3 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
               />
             </div>
           </div>
 
           {/* Food safety certificate */}
-          <div className="flex flex-col gap-2 p-4 bg-charcoal/3 rounded-xl border border-charcoal/8">
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40">Food Safety Certificate</label>
+          <div className="flex flex-col gap-2 p-4 bg-charcoal/3 dark:bg-white/5 rounded-xl border border-charcoal/8 dark:border-white/8">
+            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">Food Safety Certificate</label>
             <div className="grid grid-cols-2 gap-3">
               <div className="flex flex-col gap-1">
-                <label className="text-[11px] text-charcoal/35 uppercase tracking-wider">Expiry Date</label>
+                <label className="text-[11px] text-charcoal/35 dark:text-white/30 uppercase tracking-wider">Expiry Date</label>
                 <input
                   type="date"
                   value={form.food_safety_cert_expiry}
                   onChange={(e) => set('food_safety_cert_expiry', e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+                  className="w-full px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
                 />
               </div>
               <div className="flex flex-col gap-1">
-                <label className="text-[11px] text-charcoal/35 uppercase tracking-wider">Upload Certificate</label>
+                <label className="text-[11px] text-charcoal/35 dark:text-white/30 uppercase tracking-wider">Upload Certificate</label>
                 <input
                   type="file"
                   accept="image/*,.pdf,.doc,.docx"
                   onChange={(e) => { setCertFile(e.target.files[0] ?? null); setExistingCert(null) }}
-                  className="w-full text-xs text-charcoal/50 file:mr-2 file:py-1.5 file:px-2 file:rounded-lg file:border file:border-charcoal/15 file:text-xs file:bg-white file:text-charcoal/50 hover:file:bg-charcoal/5"
+                  className="w-full text-xs text-charcoal/50 dark:text-white/40 file:mr-2 file:py-1.5 file:px-2 file:rounded-lg file:border file:border-charcoal/15 dark:file:border-white/15 file:text-xs file:bg-white dark:file:bg-paperDark file:text-charcoal/50 dark:file:text-white/40 hover:file:bg-charcoal/5 dark:hover:file:bg-white/5"
                 />
               </div>
             </div>
@@ -266,17 +266,17 @@ function SupplierModal({ supplier, venueId, onSaved, onClose }) {
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40">Notes</label>
+            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">Notes</label>
             <textarea
               value={form.notes}
               onChange={(e) => set('notes', e.target.value)}
               placeholder="Delivery days, minimum order, etc."
               rows={3}
-              className="w-full px-3 py-2.5 rounded-lg border border-charcoal/15 bg-white text-sm resize-none focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+              className="w-full px-3 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm resize-none focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
             />
           </div>
 
-          <div className="flex gap-2 pt-1 border-t border-charcoal/8">
+          <div className="flex gap-2 pt-1 border-t border-charcoal/8 dark:border-white/8">
             <Button type="submit" variant="primary" disabled={saving} className="flex-1">
               {saving ? 'Saving…' : supplier ? 'Update Supplier' : 'Add Supplier'}
             </Button>
@@ -295,23 +295,23 @@ function SupplierCard({ supplier, onEdit, onArchive }) {
   const cs = certStatus(supplier.food_safety_cert_expiry)
 
   return (
-    <div className="bg-white rounded-2xl border-charcoal/10 p-5 flex flex-col gap-3">
+    <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-5 flex flex-col gap-3">
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-2 flex-wrap">
-          <h3 className="font-semibold text-charcoal">{supplier.name}</h3>
+          <h3 className="font-semibold text-charcoal dark:text-white">{supplier.name}</h3>
           <CategoryBadge category={supplier.category} />
           <ApprovalBadge status={supplier.approval_status} />
         </div>
         <div className="flex items-center gap-2 shrink-0">
           <button
             onClick={() => onEdit(supplier)}
-            className="text-xs text-charcoal/40 hover:text-charcoal transition-colors border-b border-charcoal/20"
+            className="text-xs text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white transition-colors border-b border-charcoal/20 dark:border-white/20"
           >
             Edit
           </button>
           {confirming ? (
             <div className="flex items-center gap-1.5">
-              <span className="text-xs text-charcoal/40">Archive?</span>
+              <span className="text-xs text-charcoal/40 dark:text-white/35">Archive?</span>
               <button
                 onClick={() => { onArchive(supplier.id); setConfirming(false) }}
                 className="text-sm text-danger font-medium hover:text-danger/80 transition-colors px-3 py-1.5"
@@ -320,7 +320,7 @@ function SupplierCard({ supplier, onEdit, onArchive }) {
               </button>
               <button
                 onClick={() => setConfirming(false)}
-                className="text-sm text-charcoal/40 hover:text-charcoal transition-colors px-3 py-1.5"
+                className="text-sm text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white transition-colors px-3 py-1.5"
               >
                 No
               </button>
@@ -328,7 +328,7 @@ function SupplierCard({ supplier, onEdit, onArchive }) {
           ) : (
             <button
               onClick={() => setConfirming(true)}
-              className="text-xs text-charcoal/30 hover:text-danger transition-colors"
+              className="text-xs text-charcoal/30 dark:text-white/30 hover:text-danger transition-colors"
             >
               Archive
             </button>
@@ -339,15 +339,15 @@ function SupplierCard({ supplier, onEdit, onArchive }) {
       {(supplier.contact_name || supplier.phone || supplier.email) && (
         <div className="flex flex-wrap gap-x-4 gap-y-1">
           {supplier.contact_name && (
-            <p className="text-xs text-charcoal/60">{supplier.contact_name}</p>
+            <p className="text-xs text-charcoal/60 dark:text-white/50">{supplier.contact_name}</p>
           )}
           {supplier.phone && (
-            <a href={`tel:${supplier.phone}`} className="text-xs text-charcoal/60 hover:text-accent transition-colors">
+            <a href={`tel:${supplier.phone}`} className="text-xs text-charcoal/60 dark:text-white/50 hover:text-accent transition-colors">
               {supplier.phone}
             </a>
           )}
           {supplier.email && (
-            <a href={`mailto:${supplier.email}`} className="text-xs text-charcoal/60 hover:text-accent transition-colors truncate">
+            <a href={`mailto:${supplier.email}`} className="text-xs text-charcoal/60 dark:text-white/50 hover:text-accent transition-colors truncate">
               {supplier.email}
             </a>
           )}
@@ -359,10 +359,10 @@ function SupplierCard({ supplier, onEdit, onArchive }) {
         <div className={`flex items-center gap-2 flex-wrap rounded-lg px-3 py-2 ${
           cs === 'expired'  ? 'bg-danger/6 border border-danger/15'  :
           cs === 'expiring' ? 'bg-warning/6 border border-warning/15' :
-          'bg-charcoal/4 border border-charcoal/8'
+          'bg-charcoal/4 dark:bg-white/5 border border-charcoal/8 dark:border-white/8'
         }`}>
-          <svg className={`w-3.5 h-3.5 shrink-0 ${cs === 'expired' ? 'text-danger' : cs === 'expiring' ? 'text-warning' : 'text-charcoal/40'}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-          <span className={`text-xs ${cs === 'expired' ? 'text-danger' : cs === 'expiring' ? 'text-warning' : 'text-charcoal/50'}`}>
+          <svg className={`w-3.5 h-3.5 shrink-0 ${cs === 'expired' ? 'text-danger' : cs === 'expiring' ? 'text-warning' : 'text-charcoal/40 dark:text-white/35'}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          <span className={`text-xs ${cs === 'expired' ? 'text-danger' : cs === 'expiring' ? 'text-warning' : 'text-charcoal/50 dark:text-white/40'}`}>
             Food safety cert
             {supplier.food_safety_cert_expiry && ` · expires ${format(parseISO(supplier.food_safety_cert_expiry), 'd MMM yyyy')}`}
             {cs === 'expired' && ' — EXPIRED'}
@@ -378,7 +378,7 @@ function SupplierCard({ supplier, onEdit, onArchive }) {
       )}
 
       {supplier.notes && (
-        <p className="text-xs text-charcoal/45 leading-relaxed">{supplier.notes}</p>
+        <p className="text-xs text-charcoal/45 dark:text-white/40 leading-relaxed">{supplier.notes}</p>
       )}
     </div>
   )
@@ -411,7 +411,7 @@ export default function SuppliersPage() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-charcoal">Suppliers</h1>
+        <h1 className="text-2xl font-bold text-charcoal dark:text-white">Suppliers</h1>
         <Button variant="primary" onClick={() => setModalSupplier(null)}>
           + Add Supplier
         </Button>
@@ -435,11 +435,11 @@ export default function SuppliersPage() {
         <div className="flex flex-col gap-2">
           {usedCats.length > 1 && (
             <div className="flex flex-wrap gap-2">
-              <button onClick={() => setFilterCat('all')} className={['px-3 py-1.5 rounded-full text-xs font-medium border transition-all', filterCat === 'all' ? 'bg-charcoal text-cream border-charcoal' : 'bg-white text-charcoal/50 border-charcoal/15 hover:border-charcoal/30'].join(' ')}>
+              <button onClick={() => setFilterCat('all')} className={['px-3 py-1.5 rounded-full text-xs font-medium border transition-all', filterCat === 'all' ? 'bg-charcoal text-cream border-charcoal dark:border-white' : 'bg-white dark:bg-paperDark text-charcoal/50 dark:text-white/40 border-charcoal/15 dark:border-white/15 hover:border-charcoal/30 dark:hover:border-white/30'].join(' ')}>
                 All ({suppliers.length})
               </button>
               {usedCats.map((cat) => (
-                <button key={cat} onClick={() => setFilterCat(cat)} className={['px-3 py-1.5 rounded-full text-xs font-medium border transition-all', filterCat === cat ? 'bg-charcoal text-cream border-charcoal' : 'bg-white text-charcoal/50 border-charcoal/15 hover:border-charcoal/30'].join(' ')}>
+                <button key={cat} onClick={() => setFilterCat(cat)} className={['px-3 py-1.5 rounded-full text-xs font-medium border transition-all', filterCat === cat ? 'bg-charcoal text-cream border-charcoal dark:border-white' : 'bg-white dark:bg-paperDark text-charcoal/50 dark:text-white/40 border-charcoal/15 dark:border-white/15 hover:border-charcoal/30 dark:hover:border-white/30'].join(' ')}>
                   {CATEGORY_LABELS[cat] ?? cat}
                 </button>
               ))}
@@ -447,7 +447,7 @@ export default function SuppliersPage() {
           )}
           <div className="flex flex-wrap gap-2">
             {['all', 'approved', 'pending', 'suspended'].map((s) => (
-              <button key={s} onClick={() => setFilterApproval(s)} className={['px-3 py-1.5 rounded-full text-xs font-medium border transition-all capitalize', filterApproval === s ? 'bg-charcoal text-cream border-charcoal' : 'bg-white text-charcoal/50 border-charcoal/15 hover:border-charcoal/30'].join(' ')}>
+              <button key={s} onClick={() => setFilterApproval(s)} className={['px-3 py-1.5 rounded-full text-xs font-medium border transition-all capitalize', filterApproval === s ? 'bg-charcoal text-cream border-charcoal dark:border-white' : 'bg-white dark:bg-paperDark text-charcoal/50 dark:text-white/40 border-charcoal/15 dark:border-white/15 hover:border-charcoal/30 dark:hover:border-white/30'].join(' ')}>
                 {s === 'all' ? 'All statuses' : s}
               </button>
             ))}

@@ -35,7 +35,7 @@ export default function RolesSection() {
     if (error) toast(error.message, 'error')
   }
 
-  if (loading) return <div className="py-4 text-center text-sm text-charcoal/30">Loading…</div>
+  if (loading) return <div className="py-4 text-center text-sm text-charcoal/30 dark:text-white/30">Loading…</div>
 
   return (
     <div className="flex flex-col gap-4">
@@ -48,14 +48,14 @@ export default function RolesSection() {
         onConfirm={confirmDelete}
         onClose={() => setDeleteTarget(null)}
       />
-      <p className="text-xs text-charcoal/45">
+      <p className="text-xs text-charcoal/45 dark:text-white/40">
         Define the roles in your business (e.g. Manager, Team Lead, Assistant). These are used by the AI rota builder
         to match staff to shifts based on their skills.
       </p>
 
       {/* Existing roles */}
       {roles.length > 0 && (
-        <div className="bg-white rounded-xl border border-charcoal/8 overflow-hidden divide-y divide-charcoal/5">
+        <div className="bg-white dark:bg-paperDark rounded-xl border border-charcoal/8 dark:border-white/8 overflow-hidden divide-y divide-charcoal/5 dark:divide-white/5">
           {roles.map(role => (
             <div key={role.id} className="grid items-center gap-3 py-2 px-3 grid-cols-[1fr_auto] hover:bg-charcoal/[0.025] transition-colors group">
               {editingId === role.id ? (
@@ -65,22 +65,22 @@ export default function RolesSection() {
                     value={editName}
                     onChange={e => setEditName(e.target.value)}
                     onKeyDown={e => e.key === 'Enter' && handleRename(role.id)}
-                    className="px-2 py-1 rounded-md border border-charcoal/20 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+                    className="px-2 py-1 rounded-md border border-charcoal/20 dark:border-white/20 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
                     autoFocus
                   />
                   <div className="flex gap-1">
                     <button onClick={() => handleRename(role.id)}  className="h-7 px-2.5 rounded-md bg-charcoal text-cream text-xs font-medium">Save</button>
-                    <button onClick={() => setEditingId(null)}      className="h-7 px-2.5 rounded-md text-xs text-charcoal/50">Cancel</button>
+                    <button onClick={() => setEditingId(null)}      className="h-7 px-2.5 rounded-md text-xs text-charcoal/50 dark:text-white/40">Cancel</button>
                   </div>
                 </>
               ) : (
                 <>
-                  <span className="text-sm font-medium text-charcoal">{role.name}</span>
+                  <span className="text-sm font-medium text-charcoal dark:text-white">{role.name}</span>
                   <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button onClick={() => { setEditingId(role.id); setEditName(role.name) }}
-                            className="h-7 px-2.5 rounded-md border border-charcoal/12 text-xs font-medium text-charcoal/60 hover:text-charcoal hover:border-charcoal/30 transition-colors">Rename</button>
+                            className="h-7 px-2.5 rounded-md border border-charcoal/12 dark:border-white/15 text-xs font-medium text-charcoal/60 dark:text-white/50 hover:text-charcoal dark:hover:text-white hover:border-charcoal/30 dark:hover:border-white/30 transition-colors">Rename</button>
                     <button onClick={() => setDeleteTarget({ id: role.id, name: role.name })}
-                            className="h-7 px-2.5 rounded-md border border-charcoal/12 text-xs font-medium text-charcoal/60 hover:text-danger hover:border-danger/30 transition-colors">Remove</button>
+                            className="h-7 px-2.5 rounded-md border border-charcoal/12 dark:border-white/15 text-xs font-medium text-charcoal/60 dark:text-white/50 hover:text-danger hover:border-danger/30 transition-colors">Remove</button>
                   </div>
                 </>
               )}
@@ -90,7 +90,7 @@ export default function RolesSection() {
       )}
 
       {roles.length === 0 && (
-        <p className="text-sm text-charcoal/30 italic">No roles yet — add your first role below.</p>
+        <p className="text-sm text-charcoal/30 dark:text-white/30 italic">No roles yet — add your first role below.</p>
       )}
 
       {/* Add new role */}
@@ -101,7 +101,7 @@ export default function RolesSection() {
           onChange={e => setNewName(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && handleAdd()}
           placeholder="Role name (e.g. Manager)"
-          className="flex-1 px-3 py-2.5 rounded-xl border border-charcoal/15 bg-white text-sm text-charcoal placeholder-charcoal/25 focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+          className="flex-1 px-3 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white placeholder-charcoal/25 dark:placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
         />
         <button
           onClick={handleAdd}
@@ -122,7 +122,7 @@ export function StaffRolesAssignment({ staffId }) {
 
   if (roles.length === 0) {
     return (
-      <p className="text-xs text-charcoal/35 italic">
+      <p className="text-xs text-charcoal/35 dark:text-white/30 italic">
         No roles configured yet. Add roles in the Roles &amp; Skills section first.
       </p>
     )
@@ -141,7 +141,7 @@ export function StaffRolesAssignment({ staffId }) {
               'px-3 py-1.5 rounded-lg border text-xs font-medium transition-all',
               active
                 ? 'bg-brand text-cream border-brand'
-                : 'bg-white text-charcoal/55 border-charcoal/15 hover:border-charcoal/30',
+                : 'bg-white dark:bg-paperDark text-charcoal/55 dark:text-white/45 border-charcoal/15 dark:border-white/15 hover:border-charcoal/30 dark:hover:border-white/30',
             ].join(' ')}
           >
             {active && <svg className="w-3 h-3 inline mr-1" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg>}{role.name}

@@ -7,11 +7,11 @@ export function WidgetShell({ title, to, children, status }) {
   const statusDot = { good: 'bg-success', warning: 'bg-warning', bad: 'bg-danger' }
   const href = to && venueSlug ? `/v/${venueSlug}${to}` : to
   return (
-    <div className="bg-white rounded-2xl overflow-hidden h-full flex flex-col">
+    <div className="bg-white dark:bg-paperDark rounded-2xl overflow-hidden h-full flex flex-col">
       <div className="flex items-center justify-between px-5 pt-4 pb-2 shrink-0">
         <div className="flex items-center gap-2">
-          {status && <span className={`w-2 h-2 rounded-full shrink-0 ${statusDot[status] ?? 'bg-charcoal/20'}`} />}
-          <p className="text-[11px] font-bold tracking-widest uppercase text-charcoal/50">{title}</p>
+          {status && <span className={`w-2 h-2 rounded-full shrink-0 ${statusDot[status] ?? 'bg-charcoal/20 dark:bg-white/20'}`} />}
+          <p className="text-[11px] font-bold tracking-widest uppercase text-charcoal/50 dark:text-white/40">{title}</p>
         </div>
         {href && (
           <Link to={href} className="text-[11px] font-bold tracking-wide text-brand/60 hover:text-brand transition-colors">
@@ -27,8 +27,8 @@ export function WidgetShell({ title, to, children, status }) {
 export function BigNumber({ value, label, alert }) {
   return (
     <div className="py-1">
-      <p className={`text-3xl font-bold ${alert ? 'text-danger' : 'text-charcoal'}`}>{value}</p>
-      {label && <p className="text-xs text-charcoal/40 mt-0.5">{label}</p>}
+      <p className={`text-3xl font-bold ${alert ? 'text-danger' : 'text-charcoal dark:text-white'}`}>{value}</p>
+      {label && <p className="text-xs text-charcoal/40 dark:text-white/35 mt-0.5">{label}</p>}
     </div>
   )
 }
@@ -36,8 +36,8 @@ export function BigNumber({ value, label, alert }) {
 export function MiniRow({ label, value, warn }) {
   return (
     <div className="flex items-center justify-between py-1">
-      <span className="text-sm text-charcoal/60">{label}</span>
-      <span className={`text-sm font-semibold ${warn ? 'text-danger' : 'text-charcoal'}`}>{value}</span>
+      <span className="text-sm text-charcoal/60 dark:text-white/50">{label}</span>
+      <span className={`text-sm font-semibold ${warn ? 'text-danger' : 'text-charcoal dark:text-white'}`}>{value}</span>
     </div>
   )
 }

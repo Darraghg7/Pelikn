@@ -29,18 +29,18 @@ export default function TodaySummaryCard({ venueId, closedDays, itemIds, actionS
 
   if (!loading && closedToday) {
     return (
-      <div className="bg-white rounded-2xl overflow-hidden">
+      <div className="bg-white dark:bg-paperDark rounded-2xl overflow-hidden">
         <div className="px-5 py-6 text-center">
-          <span className="text-charcoal/25 mb-3 flex justify-center"><svg className="w-10 h-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg></span>
-          <p className="text-xl font-bold text-charcoal">Venue closed today</p>
-          <p className="text-sm text-charcoal/45 mt-1">
+          <span className="text-charcoal/25 dark:text-white/25 mb-3 flex justify-center"><svg className="w-10 h-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg></span>
+          <p className="text-xl font-bold text-charcoal dark:text-white">Venue closed today</p>
+          <p className="text-sm text-charcoal/45 dark:text-white/40 mt-1">
             {typeof closedToday === 'string' ? closedToday : 'Enjoy the break!'}
           </p>
         </div>
         {summary && actions.length > 0 && (
-          <div className="border-t border-charcoal/6 divide-y divide-charcoal/6">
+          <div className="border-t border-charcoal/6 dark:border-white/8 divide-y divide-charcoal/6 dark:divide-white/8">
             {actions.map((a) => (
-              <Link key={a.to} to={a.to} className={`flex items-center border-l-[3px] ${urgencyBorder[a.urgency]} pl-4 pr-5 py-3.5 hover:bg-charcoal/3 transition-colors`}>
+              <Link key={a.to} to={a.to} className={`flex items-center border-l-[3px] ${urgencyBorder[a.urgency]} pl-4 pr-5 py-3.5 hover:bg-charcoal/3 dark:hover:bg-white/5 transition-colors`}>
                 <p className={`text-sm flex-1 font-medium ${urgencyText[a.urgency]}`}>{a.label}</p>
               </Link>
             ))}
@@ -51,13 +51,13 @@ export default function TodaySummaryCard({ venueId, closedDays, itemIds, actionS
   }
 
   return (
-    <div className="bg-white rounded-2xl overflow-hidden">
+    <div className="bg-white dark:bg-paperDark rounded-2xl overflow-hidden">
       <div className="px-4 pt-4 pb-3">
-        <p className="font-mono text-[11px] tracking-[0.08em] uppercase text-charcoal/40 mb-3">Today</p>
+        <p className="font-mono text-[11px] tracking-[0.08em] uppercase text-charcoal/40 dark:text-white/35 mb-3">Today</p>
         {loading || !summary ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
             {[1, 2, 3, 4, 5, 6].map((i) => (
-              <div key={i} className="h-[100px] rounded-xl bg-charcoal/5 animate-pulse" />
+              <div key={i} className="h-[100px] rounded-xl bg-charcoal/5 dark:bg-white/5 animate-pulse" />
             ))}
           </div>
         ) : (
@@ -73,8 +73,8 @@ export default function TodaySummaryCard({ venueId, closedDays, itemIds, actionS
             )}
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               {activeItems.length === 0 ? (
-                <div className="col-span-full rounded-xl border border-dashed border-charcoal/15 py-6 px-3 text-center">
-                  <p className="text-sm text-charcoal/35">No Today items selected</p>
+                <div className="col-span-full rounded-xl border border-dashed border-charcoal/15 dark:border-white/15 py-6 px-3 text-center">
+                  <p className="text-sm text-charcoal/35 dark:text-white/30">No Today items selected</p>
                 </div>
               ) : activeItems.map(item => {
                 const value = item.metric(summary) ?? 0
@@ -83,12 +83,12 @@ export default function TodaySummaryCard({ venueId, closedDays, itemIds, actionS
                 const Tag      = item.route ? Link : 'div'
                 const tagProps = item.route ? { to: vp(item.route) } : {}
                 return (
-                  <Tag key={item.id} {...tagProps} className="flex flex-col gap-2 border border-charcoal/10 rounded-xl p-4 min-h-[100px] no-underline hover:bg-charcoal/3 transition-colors">
+                  <Tag key={item.id} {...tagProps} className="flex flex-col gap-2 border border-charcoal/10 dark:border-white/10 rounded-xl p-4 min-h-[100px] no-underline hover:bg-charcoal/3 dark:hover:bg-white/5 transition-colors">
                     <div className="flex items-center gap-1.5">
-                      <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${isDanger ? 'bg-danger' : isGood ? 'bg-success' : 'bg-charcoal/20'}`} />
-                      <span className="font-mono text-[10px] text-charcoal/40 uppercase tracking-[0.08em] leading-none">{item.metricLabel}</span>
+                      <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${isDanger ? 'bg-danger' : isGood ? 'bg-success' : 'bg-charcoal/20 dark:bg-white/20'}`} />
+                      <span className="font-mono text-[10px] text-charcoal/40 dark:text-white/35 uppercase tracking-[0.08em] leading-none">{item.metricLabel}</span>
                     </div>
-                    <div className={`text-[34px] font-medium tracking-[-0.035em] leading-none tabular-nums ${isDanger ? 'text-danger' : 'text-charcoal'}`}>
+                    <div className={`text-[34px] font-medium tracking-[-0.035em] leading-none tabular-nums ${isDanger ? 'text-danger' : 'text-charcoal dark:text-white'}`}>
                       {value}
                     </div>
                   </Tag>
@@ -102,14 +102,14 @@ export default function TodaySummaryCard({ venueId, closedDays, itemIds, actionS
       {/* Action items */}
       {!loading && summary && (
         actions.length === 0 ? (
-          <div className="border-t border-charcoal/6 px-5 py-3.5 flex items-center gap-2">
+          <div className="border-t border-charcoal/6 dark:border-white/8 px-5 py-3.5 flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-success shrink-0" />
-            <p className="text-sm font-medium text-charcoal/50">All checks on track</p>
+            <p className="text-sm font-medium text-charcoal/50 dark:text-white/40">All checks on track</p>
           </div>
         ) : (
-          <div className="border-t border-charcoal/6 divide-y divide-charcoal/6">
+          <div className="border-t border-charcoal/6 dark:border-white/8 divide-y divide-charcoal/6 dark:divide-white/8">
             {actions.map((a) => (
-              <Link key={a.to} to={a.to} className={`flex items-center border-l-[3px] ${urgencyBorder[a.urgency]} pl-4 pr-5 py-3.5 hover:bg-charcoal/3 transition-colors`}>
+              <Link key={a.to} to={a.to} className={`flex items-center border-l-[3px] ${urgencyBorder[a.urgency]} pl-4 pr-5 py-3.5 hover:bg-charcoal/3 dark:hover:bg-white/5 transition-colors`}>
                 <p className={`text-sm flex-1 font-medium ${urgencyText[a.urgency]}`}>{a.label}</p>
               </Link>
             ))}

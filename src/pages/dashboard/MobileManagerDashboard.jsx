@@ -85,18 +85,18 @@ function MobileStatTile({ item, summary, vp }) {
   const tagProps = item.route ? { to: vp(item.route) } : {}
 
   return (
-    <Tag {...tagProps} className="bg-white dark:bg-paperDark border border-charcoal/10 rounded-[14px] p-[10px_11px_11px] flex flex-col gap-1 no-underline active:bg-charcoal/4 transition-colors">
+    <Tag {...tagProps} className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[14px] p-[10px_11px_11px] flex flex-col gap-1 no-underline active:bg-charcoal/4 dark:active:bg-white/6 transition-colors">
       <div className="flex items-center gap-1">
         <span className={`w-[5px] h-[5px] rounded-full shrink-0 ${isDanger ? 'bg-danger' : 'bg-success'}`} />
-        <span className="font-mono text-[9px] tracking-[0.07em] text-charcoal/60 uppercase leading-none">
+        <span className="font-mono text-[9px] tracking-[0.07em] text-charcoal/60 dark:text-white/50 uppercase leading-none">
           {item.metricLabel}
         </span>
       </div>
-      <span className={`font-mono text-[26px] font-semibold tracking-[-0.02em] leading-[1.1] ${isDanger ? 'text-danger' : 'text-charcoal'}`}>
+      <span className={`font-mono text-[26px] font-semibold tracking-[-0.02em] leading-[1.1] ${isDanger ? 'text-danger' : 'text-charcoal dark:text-white'}`}>
         {value}
       </span>
       {sub && (
-        <span className={`font-mono text-[11px] tracking-[0.03em] leading-none ${isDanger ? 'text-danger' : 'text-charcoal/50'}`}>
+        <span className={`font-mono text-[11px] tracking-[0.03em] leading-none ${isDanger ? 'text-danger' : 'text-charcoal/50 dark:text-white/40'}`}>
           {sub}
         </span>
       )}
@@ -107,7 +107,7 @@ function MobileStatTile({ item, summary, vp }) {
 // ── Section label (floating, mono-uppercase) ───────────────────────────────
 function SectionLabel({ children }) {
   return (
-    <span className="font-mono text-[11px] font-semibold tracking-[0.1em] uppercase text-charcoal/50 block mb-1.5">
+    <span className="font-mono text-[11px] font-semibold tracking-[0.1em] uppercase text-charcoal/50 dark:text-white/40 block mb-1.5">
       {children}
     </span>
   )
@@ -136,15 +136,15 @@ function AttentionCard({ actions, editMode }) {
       }}
     >
       {isEmpty ? (
-        <div className="bg-white dark:bg-paperDark border border-charcoal/10 rounded-[14px] flex items-center gap-[13px] p-[14px_16px]">
+        <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[14px] flex items-center gap-[13px] p-[14px_16px]">
           <div className="w-10 h-10 rounded-[11px] bg-goodBg flex items-center justify-center shrink-0">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-success">
               <polyline points="20 6 9 17 4 12"/>
             </svg>
           </div>
           <div>
-            <div className="text-[15px] font-semibold text-charcoal leading-[1.2]">All clear</div>
-            <div className="text-[12.5px] text-charcoal/50 mt-0.5">Nothing needs your attention right now.</div>
+            <div className="text-[15px] font-semibold text-charcoal dark:text-white leading-[1.2]">All clear</div>
+            <div className="text-[12.5px] text-charcoal/50 dark:text-white/40 mt-0.5">Nothing needs your attention right now.</div>
           </div>
         </div>
       ) : (
@@ -173,7 +173,7 @@ function AttentionCard({ actions, editMode }) {
                 <Link
                   key={a.to}
                   to={a.to}
-                  className="flex items-center no-underline active:bg-charcoal/4 transition-colors"
+                  className="flex items-center no-underline active:bg-charcoal/4 dark:active:bg-white/5 transition-colors"
                   style={{
                     gap: 12,
                     padding: '15px 20px',
@@ -393,7 +393,7 @@ function MobileClockCard({ staffId }) {
           <button
             onClick={() => record('clock_in')}
             disabled={submitting}
-            className={`w-full bg-white text-brand rounded-[11px] py-[13px] font-mono text-[13px] font-bold tracking-[0.02em] border-0 cursor-pointer ${submitting ? 'opacity-50 cursor-not-allowed' : ''}`}
+            className={`w-full bg-white dark:bg-paperDark text-brand rounded-[11px] py-[13px] font-mono text-[13px] font-bold tracking-[0.02em] border-0 cursor-pointer ${submitting ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
             Clock In
           </button>
@@ -409,7 +409,7 @@ function MobileClockCard({ staffId }) {
             <button
               onClick={() => record('clock_out')}
               disabled={submitting}
-              className={`flex-[2] bg-white text-brand rounded-[11px] py-[13px] font-mono text-[13px] font-bold border-0 cursor-pointer flex items-center justify-center gap-[7px] ${submitting ? 'opacity-50 cursor-not-allowed' : ''}`}
+              className={`flex-[2] bg-white dark:bg-paperDark text-brand rounded-[11px] py-[13px] font-mono text-[13px] font-bold border-0 cursor-pointer flex items-center justify-center gap-[7px] ${submitting ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
               <span className="inline-block w-[9px] h-[9px] bg-brand rounded-[2px]" />
               Clock out
@@ -419,7 +419,7 @@ function MobileClockCard({ staffId }) {
           <button
             onClick={() => record('break_end')}
             disabled={submitting}
-            className={`w-full bg-white text-brand rounded-[11px] py-[13px] font-mono text-[13px] font-bold border-0 cursor-pointer ${submitting ? 'opacity-50 cursor-not-allowed' : ''}`}
+            className={`w-full bg-white dark:bg-paperDark text-brand rounded-[11px] py-[13px] font-mono text-[13px] font-bold border-0 cursor-pointer ${submitting ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
             End Break
           </button>
@@ -462,7 +462,7 @@ function MobileSortableCard({ id, editMode, children }) {
         <div
           {...attributes}
           {...listeners}
-          className="absolute top-2.5 right-2.5 z-20 cursor-grab p-1.5 rounded-lg bg-white/92 backdrop-blur-sm shadow-sm text-charcoal/50 flex items-center justify-center"
+          className="absolute top-2.5 right-2.5 z-20 cursor-grab p-1.5 rounded-lg bg-white/92 backdrop-blur-sm shadow-sm text-charcoal/50 dark:text-white/40 flex items-center justify-center"
         >
           <GripIcon />
         </div>
@@ -662,7 +662,7 @@ export default function MobileManagerDashboard({
 
       <div className="pb-0.5">
         <div className="flex items-start justify-between gap-2">
-          <span className="font-mono text-[11px] tracking-[0.08em] uppercase text-charcoal/50 pt-[3px]">
+          <span className="font-mono text-[11px] tracking-[0.08em] uppercase text-charcoal/50 dark:text-white/40 pt-[3px]">
             {format(now, 'EEEE, d MMMM')} · {format(now, 'HH:mm')}
           </span>
           <button
@@ -671,24 +671,24 @@ export default function MobileManagerDashboard({
               'shrink-0 font-mono text-[11px] font-bold tracking-[0.07em] uppercase rounded-lg py-1 px-[11px] cursor-pointer whitespace-nowrap transition-all duration-150',
               editMode
                 ? 'text-success bg-goodBg border border-success/30'
-                : 'text-charcoal/50 bg-transparent border border-charcoal/10',
+                : 'text-charcoal/50 dark:text-white/40 bg-transparent border border-charcoal/10 dark:border-white/10',
             ].join(' ')}
           >
             {editMode ? 'Done' : 'Rearrange'}
           </button>
         </div>
 
-        <h1 className="text-[30px] font-bold tracking-[-0.03em] text-charcoal leading-[1.1] mt-[5px] mb-1.5">
+        <h1 className="text-[30px] font-bold tracking-[-0.03em] text-charcoal dark:text-white leading-[1.1] mt-[5px] mb-1.5">
           {greeting}{firstName ? `, ${firstName}` : ''}.
         </h1>
 
         <div className="flex items-center gap-1.5 flex-wrap">
           {venueName && (
-            <span className="text-[13px] font-medium text-charcoal/75">{venueName}</span>
+            <span className="text-[13px] font-medium text-charcoal/75 dark:text-white/62">{venueName}</span>
           )}
           <MobilePlanPill plan={venuePlan} />
           {checksText && (
-            <span className="font-mono text-[11px] text-charcoal/50 tracking-[0.01em]">
+            <span className="font-mono text-[11px] text-charcoal/50 dark:text-white/40 tracking-[0.01em]">
               {checksText}
             </span>
           )}
@@ -699,7 +699,7 @@ export default function MobileManagerDashboard({
       <AttentionCard actions={actions} editMode={editMode} vp={vp} />
 
       {editMode && (
-        <p className="font-mono text-center text-[11px] text-charcoal/30 tracking-[0.04em]">
+        <p className="font-mono text-center text-[11px] text-charcoal/30 dark:text-white/30 tracking-[0.04em]">
           Drag widgets to reorder · tap Done when finished
         </p>
       )}
@@ -714,12 +714,12 @@ export default function MobileManagerDashboard({
             {!summary ? (
               <div className="grid grid-cols-3 gap-2">
                 {[1,2,3,4,5,6].map(i => (
-                  <div key={i} className="h-[84px] rounded-xl bg-charcoal/6 animate-pulse" />
+                  <div key={i} className="h-[84px] rounded-xl bg-charcoal/6 dark:bg-white/8 animate-pulse" />
                 ))}
               </div>
             ) : activeItems.length === 0 ? (
-              <div className="bg-white dark:bg-paperDark border border-charcoal/10 rounded-[14px] p-[20px_16px] text-center">
-                <p className="text-[13px] text-charcoal/50">No Today items selected</p>
+              <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[14px] p-[20px_16px] text-center">
+                <p className="text-[13px] text-charcoal/50 dark:text-white/40">No Today items selected</p>
                 <button
                   onClick={onOpenPicker}
                   className="mt-2 text-xs font-semibold text-brand bg-transparent border-0 cursor-pointer"

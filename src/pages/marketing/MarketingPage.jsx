@@ -620,7 +620,7 @@ function Pricing() {
                 ))}
               </div>
               <ul className="flex flex-col gap-2.5 mb-7 flex-1">
-                {['Everything in Starter','Rota builder + AI auto-fill','Timesheets & payroll export','Clock in/out & break tracking','Training records & expiry alerts','Staff time off & shift swaps','Tip distribution','Multi-venue, unlimited staff'].map((f,i)=>(
+                {['Everything in Starter','Rota builder + smart auto-fill','Timesheets & payroll export','Clock in/out & break tracking','Training records & expiry alerts','Staff time off & shift swaps','Tip distribution','Multi-venue, unlimited staff'].map((f,i)=>(
                   <li key={f} className="flex items-start gap-2 text-xs text-charcoal/60">
                     <span className="mt-0.5 shrink-0"><Chk green={false}/></span>
                     {i===0?<strong className="text-charcoal/75">{f}</strong>:f}
@@ -749,7 +749,7 @@ export default function MarketingPage() {
           </div>
           {/* Trust badges */}
           <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 mb-20" style={{ animation:'pkIn 0.6s 280ms cubic-bezier(.16,1,.3,1) both' }}>
-            {['No card required','Cancel any time','ICO registered · UK GDPR'].map(t=>(
+            {['No card required','Cancel any time','UK-based data hosting'].map(t=>(
               <div key={t} className="flex items-center gap-2">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-cream/35"><polyline points="20 6 9 17 4 12"/></svg>
                 <span className="text-[13px] text-cream/40">{t}</span>
@@ -987,7 +987,7 @@ export default function MarketingPage() {
                 { q:'Does it work on iPhone, iPad and Android?', a:"Yes, all of them. Install from Safari on iOS/iPadOS, or Chrome on Android. The manager dashboard works in any desktop browser with no install needed." },
                 { q:"What's the difference between Starter and Pro?", a:"Starter covers everything on the compliance side: temperature logs, cleaning records, allergens, checklists, and exports. Pro adds the whole team layer: rotas, timesheets, clock in/out, training records, tips, and time off management." },
                 { q:'What counts as a venue?', a:"Each physical location is a venue. The first venue on Pro is £25/mo, each additional is £15/mo. Starter is £10/venue. You can add and remove venues at any time." },
-                { q:'Is my data secure?', a:"All data is stored in a UK-based database with row-level security, so staff only ever see their own venue's data. We're ICO registered under UK GDPR." },
+                { q:'Is my data secure?', a:"All data is stored in a UK-based database with row-level security, so staff only ever see their own venue's data. We handle personal data in line with UK GDPR." },
                 { q:'Can I cancel?', a:"Whenever you like. No contracts, no cancellation fees. Cancel in settings and you keep access until the end of the billing period." },
               ].map(({ q, a }) => <Faq key={q} q={q} a={a} />)}
             </div>
@@ -1032,7 +1032,7 @@ export default function MarketingPage() {
           </div>
         </div>
         <div className="border-t border-charcoal/5 py-3 text-center">
-          <p className="text-[11px] text-charcoal/16">© {new Date().getFullYear()} <span className="font-semibold tracking-[0.18em] uppercase">Pelikn</span> · ICO registered · UK GDPR compliant</p>
+          <p className="text-[11px] text-charcoal/16">© {new Date().getFullYear()} <span className="font-semibold tracking-[0.18em] uppercase">Pelikn</span> · UK-based data hosting</p>
         </div>
       </footer>
     </div>

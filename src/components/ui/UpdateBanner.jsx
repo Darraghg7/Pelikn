@@ -83,7 +83,10 @@ export default function UpdateBanner() {
 
   return (
     <div className="fixed bottom-20 lg:bottom-4 left-1/2 -translate-x-1/2 z-[9999] w-[calc(100%-2rem)] max-w-sm animate-slide-up">
-      <div className="bg-charcoal text-cream rounded-2xl shadow-2xl px-5 py-4 flex items-center gap-3">
+      {/* charcoal is nearly the same value as the dark-mode page background
+          (paperDark #1e1e1e), so a plain bg-charcoal card would vanish into
+          the page in dark mode — the ring gives it a visible edge there. */}
+      <div className="bg-charcoal text-cream dark:ring-1 dark:ring-white/12 rounded-2xl shadow-2xl px-5 py-4 flex items-center gap-3">
         <div className="shrink-0 text-cream/60">
           <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
         </div>
@@ -93,7 +96,7 @@ export default function UpdateBanner() {
         </div>
         <button
           onClick={applyUpdate}
-          className="bg-surface text-charcoal font-bold text-xs px-3 py-1.5 rounded-xl shrink-0 hover:bg-cream/90 transition-colors active:scale-95"
+          className="bg-surface text-charcoal dark:text-white font-bold text-xs px-3 py-1.5 rounded-xl shrink-0 hover:bg-cream/90 transition-colors active:scale-95"
         >
           Update
         </button>

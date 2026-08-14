@@ -40,7 +40,7 @@ function nowDatetimeLocal() {
 }
 
 function SectionLabel({ children }) {
-  return <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-3">{children}</p>
+  return <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-3">{children}</p>
 }
 
 function PassBadge({ pass }) {
@@ -51,11 +51,11 @@ function PassBadge({ pass }) {
 
 function PeriodBadge({ done, required = true }) {
   if (!required) {
-    return <span className="text-[11px] font-semibold tracking-wider uppercase bg-charcoal/5 text-charcoal/35 px-2.5 py-1 rounded-full">Not required</span>
+    return <span className="text-[11px] font-semibold tracking-wider uppercase bg-charcoal/5 dark:bg-white/5 text-charcoal/35 dark:text-white/30 px-2.5 py-1 rounded-full">Not required</span>
   }
   return done
     ? <span className="text-[11px] font-semibold tracking-wider uppercase bg-success/10 text-success px-2.5 py-1 rounded-full inline-flex items-center gap-1"><svg className="w-3 h-3" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg> Done</span>
-    : <span className="text-[11px] font-semibold tracking-wider uppercase bg-charcoal/8 text-charcoal/45 px-2.5 py-1 rounded-full">Pending</span>
+    : <span className="text-[11px] font-semibold tracking-wider uppercase bg-charcoal/8 dark:bg-white/8 text-charcoal/45 dark:text-white/40 px-2.5 py-1 rounded-full">Pending</span>
 }
 
 function SettingsButton({ onClick }) {
@@ -65,7 +65,7 @@ function SettingsButton({ onClick }) {
       onClick={onClick}
       aria-label="Edit settings"
       title="Edit settings"
-      className="w-8 h-8 rounded-full border border-charcoal/10 text-charcoal/35 hover:text-charcoal hover:border-charcoal/25 hover:bg-charcoal/5 transition-colors inline-flex items-center justify-center"
+      className="w-8 h-8 rounded-full border border-charcoal/10 dark:border-white/10 text-charcoal/35 dark:text-white/30 hover:text-charcoal dark:hover:text-white hover:border-charcoal/25 dark:hover:border-white/25 hover:bg-charcoal/5 dark:hover:bg-white/5 transition-colors inline-flex items-center justify-center"
     >
       <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <circle cx="12" cy="12" r="3" />
@@ -207,8 +207,8 @@ export default function HotHoldingPage() {
 
       {/* Page header */}
       <div>
-        <h1 className="text-2xl font-bold text-charcoal">Hot Holding</h1>
-        <p className="text-sm text-charcoal/45 mt-1">
+        <h1 className="text-2xl font-bold text-charcoal dark:text-white">Hot Holding</h1>
+        <p className="text-sm text-charcoal/45 dark:text-white/40 mt-1">
           Check food held hot for service on the days and periods configured for each item.
         </p>
       </div>
@@ -228,14 +228,14 @@ export default function HotHoldingPage() {
       />
 
       {/* Tab navigation */}
-      <div className="flex gap-1 bg-charcoal/5 rounded-xl p-1 w-fit">
+      <div className="flex gap-1 bg-charcoal/5 dark:bg-white/5 rounded-xl p-1 w-fit">
         {[['check', 'Today\'s Check'], ['history', 'History']].map(([key, label]) => (
           <button
             key={key}
             onClick={() => setTab(key)}
             className={[
               'px-4 py-2 rounded-lg text-sm font-medium transition-all',
-              tab === key ? 'bg-white text-charcoal shadow-sm' : 'text-charcoal/50 hover:text-charcoal/75',
+              tab === key ? 'bg-white dark:bg-paperDark text-charcoal dark:text-white shadow-sm' : 'text-charcoal/50 dark:text-white/40 hover:text-charcoal/75 dark:hover:text-white/62',
             ].join(' ')}
           >
             {label}
@@ -247,7 +247,7 @@ export default function HotHoldingPage() {
         <>
           {/* Today's status */}
           {!statusLoading && (
-            <div className="bg-white rounded-2xl border border-charcoal/10 p-5">
+            <div className="bg-white dark:bg-paperDark rounded-2xl border border-charcoal/10 dark:border-white/10 p-5">
               <SectionLabel>Today's Status</SectionLabel>
               <div className="grid grid-cols-2 gap-3">
                 {[['am', 'AM Check'], ['pm', 'PM Check']].map(([p, label]) => (
@@ -261,12 +261,12 @@ export default function HotHoldingPage() {
                     done
                       ? 'border-success/25 bg-success/5'
                       : required === false
-                        ? 'border-charcoal/10 bg-charcoal/3'
-                      : 'border-charcoal/10 bg-white'
+                        ? 'border-charcoal/10 dark:border-white/10 bg-charcoal/3 dark:bg-white/5'
+                      : 'border-charcoal/10 dark:border-white/10 bg-white dark:bg-paperDark'
                   }`}>
                     <div>
-                      <p className="text-sm font-semibold text-charcoal">{label}</p>
-                      <p className="text-[11px] text-charcoal/45 mt-0.5">
+                      <p className="text-sm font-semibold text-charcoal dark:text-white">{label}</p>
+                      <p className="text-[11px] text-charcoal/45 dark:text-white/40 mt-0.5">
                         {required === false
                           ? 'No items scheduled'
                           : `${logCount} reading${logCount === 1 ? '' : 's'}${missing?.length ? ` · ${missing.length} missing` : ''}`}
@@ -282,7 +282,7 @@ export default function HotHoldingPage() {
           )}
 
           {/* Period selector */}
-          <div className="bg-white rounded-2xl border border-charcoal/10 p-5">
+          <div className="bg-white dark:bg-paperDark rounded-2xl border border-charcoal/10 dark:border-white/10 p-5">
             <SectionLabel>Check Period</SectionLabel>
             <div className="flex gap-2">
               {[['am', 'AM'], ['pm', 'PM']].map(([p, label]) => (
@@ -292,8 +292,8 @@ export default function HotHoldingPage() {
                   className={[
                     'flex-1 py-3 rounded-xl border text-sm font-semibold tracking-wide transition-all',
                     period === p
-                      ? 'bg-charcoal text-cream border-charcoal'
-                      : 'bg-white text-charcoal/55 border-charcoal/15 hover:border-charcoal/30',
+                      ? 'bg-charcoal text-cream border-charcoal dark:border-white'
+                      : 'bg-white dark:bg-paperDark text-charcoal/55 dark:text-white/45 border-charcoal/15 dark:border-white/15 hover:border-charcoal/30 dark:hover:border-white/30',
                   ].join(' ')}
                 >
                   {label}
@@ -301,8 +301,8 @@ export default function HotHoldingPage() {
               ))}
             </div>
             {periodRequired === false ? (
-              <div className="mt-3 px-4 py-3 rounded-xl bg-charcoal/5 border border-charcoal/10">
-                <p className="text-sm text-charcoal/50 font-medium">
+              <div className="mt-3 px-4 py-3 rounded-xl bg-charcoal/5 dark:bg-white/5 border border-charcoal/10 dark:border-white/10">
+                <p className="text-sm text-charcoal/50 dark:text-white/40 font-medium">
                   No hot holding items are scheduled for this {period.toUpperCase()} check today.
                 </p>
               </div>
@@ -319,7 +319,7 @@ export default function HotHoldingPage() {
           {itemsLoading ? (
             <SkeletonList rows={4} />
           ) : items.length === 0 ? (
-            <div className="bg-white rounded-2xl border border-charcoal/10 p-8 text-center">
+            <div className="bg-white dark:bg-paperDark rounded-2xl border border-charcoal/10 dark:border-white/10 p-8 text-center">
               <EmptyState
                 icon="thermometer"
                 title="No hot holding items yet"
@@ -327,7 +327,7 @@ export default function HotHoldingPage() {
               />
             </div>
           ) : (
-            <div className="bg-white rounded-2xl border border-charcoal/10 p-5">
+            <div className="bg-white dark:bg-paperDark rounded-2xl border border-charcoal/10 dark:border-white/10 p-5">
               <SectionLabel>{period.toUpperCase()} Readings</SectionLabel>
               <div className="flex flex-col gap-3">
                 {items.map(item => {
@@ -342,17 +342,17 @@ export default function HotHoldingPage() {
                           ? 'border-danger/30 bg-danger/4'
                           : 'border-success/25 bg-success/5'
                         : !requiredForPeriod
-                          ? 'border-charcoal/8 bg-charcoal/3'
-                        : 'border-charcoal/10 bg-white'
+                          ? 'border-charcoal/8 dark:border-white/8 bg-charcoal/3 dark:bg-white/5'
+                        : 'border-charcoal/10 dark:border-white/10 bg-white dark:bg-paperDark'
                     }`}>
                       <div className="flex items-center gap-3">
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-charcoal">{item.name}</p>
-                          <p className="text-[11px] text-charcoal/35 mt-0.5">
+                          <p className="text-sm font-medium text-charcoal dark:text-white">{item.name}</p>
+                          <p className="text-[11px] text-charcoal/35 dark:text-white/30 mt-0.5">
                             {formatHotRange(item)} · {formatCheckDays(item.check_days)} · {formatRequiredPeriods(item.required_periods)}
                           </p>
                           {!requiredForPeriod && (
-                            <p className="text-[11px] text-charcoal/35 mt-0.5">Not required for this check.</p>
+                            <p className="text-[11px] text-charcoal/35 dark:text-white/30 mt-0.5">Not required for this check.</p>
                           )}
                           {hasTemp && (
                             <p className={`text-[11px] mt-0.5 font-medium ${fail ? 'text-danger' : 'text-success'}`}>
@@ -373,7 +373,7 @@ export default function HotHoldingPage() {
                               ? 'border-danger/30 bg-danger/5 text-danger focus:ring-danger/20'
                               : hasTemp
                                 ? 'border-success/30 bg-success/5 text-success focus:ring-success/20'
-                                : 'border-charcoal/15 bg-white text-charcoal focus:ring-charcoal/20',
+                                : 'border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-charcoal dark:text-white focus:ring-charcoal/20 dark:focus:ring-white/20',
                           ].join(' ')}
                         />
                         {hasTemp && <PassBadge pass={!fail} />}
@@ -384,7 +384,7 @@ export default function HotHoldingPage() {
                           value={comments[item.id] ?? ''}
                           onChange={e => setComments(c => ({ ...c, [item.id]: e.target.value }))}
                           placeholder="Corrective action taken (required)…"
-                          className="w-full mt-3 px-3 py-2 rounded-xl border border-danger/30 bg-danger/5 text-sm text-charcoal placeholder-charcoal/30 focus:outline-none focus:ring-2 focus:ring-danger/20"
+                          className="w-full mt-3 px-3 py-2 rounded-xl border border-danger/30 bg-danger/5 text-sm text-charcoal dark:text-white placeholder-charcoal/30 dark:placeholder-white/25 focus:outline-none focus:ring-2 focus:ring-danger/20"
                         />
                       )}
                     </div>
@@ -393,13 +393,13 @@ export default function HotHoldingPage() {
               </div>
 
               <div className="mt-4">
-                <label className="text-xs text-charcoal/50 mb-1 block">Check Date &amp; Time</label>
+                <label className="text-xs text-charcoal/50 dark:text-white/40 mb-1 block">Check Date &amp; Time</label>
                 <input
                   type="datetime-local"
                   value={loggedAt}
                   max={nowDatetimeLocal()}
                   onChange={e => setLoggedAt(e.target.value)}
-                  className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 bg-white text-sm text-charcoal focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+                  className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
                 />
               </div>
 
@@ -415,7 +415,7 @@ export default function HotHoldingPage() {
 
           {/* Manager: add/remove items */}
           {isManager && (
-            <div className="bg-white rounded-2xl border border-charcoal/10 p-5">
+            <div className="bg-white dark:bg-paperDark rounded-2xl border border-charcoal/10 dark:border-white/10 p-5">
               <SectionLabel>Manage Items</SectionLabel>
               <div className="flex gap-2 mb-4">
                 <input
@@ -424,7 +424,7 @@ export default function HotHoldingPage() {
                   onChange={e => setNewItemName(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && handleAddItem()}
                   placeholder="Add item (e.g. Soup, Gravy, Lasagne)…"
-                  className="flex-1 px-4 py-2.5 rounded-xl border border-charcoal/15 bg-white text-sm text-charcoal placeholder-charcoal/30 focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+                  className="flex-1 px-4 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white placeholder-charcoal/30 dark:placeholder-white/25 focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
                 />
                 <button
                   onClick={handleAddItem}
@@ -437,16 +437,16 @@ export default function HotHoldingPage() {
               {items.length > 0 && (
                 <div className="flex flex-col gap-1.5">
                   {items.map(item => (
-                    <div key={item.id} className="flex items-center justify-between px-4 py-2.5 rounded-xl border border-charcoal/8 bg-white">
+                    <div key={item.id} className="flex items-center justify-between px-4 py-2.5 rounded-xl border border-charcoal/8 dark:border-white/8 bg-white dark:bg-paperDark">
                       <div>
-                        <p className="text-sm text-charcoal">{item.name}</p>
-                        <p className="text-[11px] text-charcoal/35">{formatHotRange(item)} · {formatCheckDays(item.check_days)} · {formatRequiredPeriods(item.required_periods)}</p>
+                        <p className="text-sm text-charcoal dark:text-white">{item.name}</p>
+                        <p className="text-[11px] text-charcoal/35 dark:text-white/30">{formatHotRange(item)} · {formatCheckDays(item.check_days)} · {formatRequiredPeriods(item.required_periods)}</p>
                       </div>
                       <div className="flex items-center gap-1">
                         <SettingsButton onClick={() => setSettingsItem(item)} />
                         <button
                           onClick={() => setRemoveTarget(item)}
-                          className="text-[11px] text-charcoal/35 hover:text-danger transition-colors px-2"
+                          className="text-[11px] text-charcoal/35 dark:text-white/30 hover:text-danger transition-colors px-2"
                         >
                           Remove
                         </button>
@@ -461,7 +461,7 @@ export default function HotHoldingPage() {
       )}
 
       {tab === 'history' && (
-        <div className="bg-white rounded-2xl border border-charcoal/10 p-5">
+        <div className="bg-white dark:bg-paperDark rounded-2xl border border-charcoal/10 dark:border-white/10 p-5">
           <div className="flex flex-wrap items-start justify-between gap-3 mb-5">
             <SectionLabel>All Readings</SectionLabel>
             <DateRangePresets
@@ -481,34 +481,34 @@ export default function HotHoldingPage() {
             <div className="overflow-x-auto -mx-5">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-t border-charcoal/8">
-                    <th className="text-left px-5 py-2.5 text-[11px] tracking-widest uppercase text-charcoal/40 font-medium">Item</th>
-                    <th className="text-center px-3 py-2.5 text-[11px] tracking-widest uppercase text-charcoal/40 font-medium">Period</th>
-                    <th className="text-left px-4 py-2.5 text-[11px] tracking-widest uppercase text-charcoal/40 font-medium">Temp</th>
-                    <th className="text-center px-3 py-2.5 text-[11px] tracking-widest uppercase text-charcoal/40 font-medium">Status</th>
-                    <th className="text-left px-5 py-2.5 text-[11px] tracking-widest uppercase text-charcoal/40 font-medium hidden sm:table-cell">By</th>
-                    <th className="text-left px-5 py-2.5 text-[11px] tracking-widest uppercase text-charcoal/40 font-medium">When</th>
+                  <tr className="border-t border-charcoal/8 dark:border-white/8">
+                    <th className="text-left px-5 py-2.5 text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 font-medium">Item</th>
+                    <th className="text-center px-3 py-2.5 text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 font-medium">Period</th>
+                    <th className="text-left px-4 py-2.5 text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 font-medium">Temp</th>
+                    <th className="text-center px-3 py-2.5 text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 font-medium">Status</th>
+                    <th className="text-left px-5 py-2.5 text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 font-medium hidden sm:table-cell">By</th>
+                    <th className="text-left px-5 py-2.5 text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 font-medium">When</th>
                   </tr>
                 </thead>
                 <tbody>
                   {histLogs.map(log => {
                     const fail = isHotHoldingFail(log.temperature, log.hot_holding_items)
                     return (
-                      <tr key={log.id} className={`border-t border-charcoal/6 ${fail ? 'bg-danger/4' : ''}`}>
-                        <td className="px-5 py-3 text-charcoal font-medium">{log.item_name}</td>
+                      <tr key={log.id} className={`border-t border-charcoal/6 dark:border-white/8 ${fail ? 'bg-danger/4' : ''}`}>
+                        <td className="px-5 py-3 text-charcoal dark:text-white font-medium">{log.item_name}</td>
                         <td className="px-3 py-3 text-center">
-                          <span className="text-[11px] font-semibold tracking-wider uppercase text-charcoal/50">
+                          <span className="text-[11px] font-semibold tracking-wider uppercase text-charcoal/50 dark:text-white/40">
                             {log.check_period?.toUpperCase()}
                           </span>
                         </td>
-                        <td className={`px-4 py-3 font-mono font-semibold ${fail ? 'text-danger' : 'text-charcoal'}`}>
+                        <td className={`px-4 py-3 font-mono font-semibold ${fail ? 'text-danger' : 'text-charcoal dark:text-white'}`}>
                           {formatTemp(log.temperature)}
                         </td>
                         <td className="px-3 py-3 text-center">
                           <PassBadge pass={!fail} />
                         </td>
-                        <td className="px-5 py-3 text-charcoal/60 hidden sm:table-cell">{log.logged_by_name ?? '—'}</td>
-                        <td className="px-5 py-3 text-charcoal/50 whitespace-nowrap text-xs">{formatDateTime(log.logged_at)}</td>
+                        <td className="px-5 py-3 text-charcoal/60 dark:text-white/50 hidden sm:table-cell">{log.logged_by_name ?? '—'}</td>
+                        <td className="px-5 py-3 text-charcoal/50 dark:text-white/40 whitespace-nowrap text-xs">{formatDateTime(log.logged_at)}</td>
                       </tr>
                     )
                   })}

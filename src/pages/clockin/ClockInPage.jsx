@@ -27,7 +27,7 @@ function LiveElapsed({ clockInAt }) {
   }, [])
   if (!clockInAt) return null
   return (
-    <span className="font-mono text-xs tabular-nums text-charcoal/50">
+    <span className="font-mono text-xs tabular-nums text-charcoal/50 dark:text-white/40">
       {formatElapsed(now - new Date(clockInAt).getTime())}
     </span>
   )
@@ -39,23 +39,23 @@ function StaffClockRow({ staffMember }) {
   const STATUS = {
     clocked_in:  { label: 'Clocked In',  dot: 'bg-success',     text: 'text-success' },
     on_break:    { label: 'On Break',     dot: 'bg-warning',     text: 'text-warning' },
-    clocked_out: { label: 'Not in',       dot: 'bg-charcoal/25', text: 'text-charcoal/40' },
+    clocked_out: { label: 'Not in',       dot: 'bg-charcoal/25 dark:bg-white/25', text: 'text-charcoal/40 dark:text-white/35' },
   }
   const cfg = STATUS[status ?? 'clocked_out']
   return (
-    <div className="flex items-center justify-between py-3 border-t border-charcoal/6 first:border-0">
+    <div className="flex items-center justify-between py-3 border-t border-charcoal/6 dark:border-white/8 first:border-0">
       <div className="flex items-center gap-3">
         <span className={`w-2 h-2 rounded-full shrink-0 ${cfg.dot}`} />
         <div>
-          <p className="text-sm font-medium text-charcoal">{staffMember.name}</p>
+          <p className="text-sm font-medium text-charcoal dark:text-white">{staffMember.name}</p>
           {staffMember.role && (
-            <p className="text-[11px] text-charcoal/35 mt-0.5">{staffMember.role}</p>
+            <p className="text-[11px] text-charcoal/35 dark:text-white/30 mt-0.5">{staffMember.role}</p>
           )}
         </div>
       </div>
       <div className="flex items-center gap-3">
         {loading ? (
-          <span className="text-xs text-charcoal/30">…</span>
+          <span className="text-xs text-charcoal/30 dark:text-white/30">…</span>
         ) : (
           <>
             <span className={`text-[11px] tracking-widest uppercase font-medium ${cfg.text}`}>
@@ -71,7 +71,7 @@ function StaffClockRow({ staffMember }) {
 
 function ManagerOwnClock({ venueId }) {
   const { session } = useSession()
-  if (!session?.staffId) return <p className="text-sm text-charcoal/35 italic">No staff session.</p>
+  if (!session?.staffId) return <p className="text-sm text-charcoal/35 dark:text-white/30 italic">No staff session.</p>
   return <ClockPanel staffId={session.staffId} />
 }
 
@@ -95,8 +95,8 @@ function ManagerView({ venueId }) {
   return (
     <div className="flex flex-col gap-6">
       {/* Manager's own clock */}
-      <div className="bg-white rounded-2xl p-5">
-        <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-3">My Clock</p>
+      <div className="bg-white dark:bg-paperDark rounded-2xl p-5">
+        <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-3">My Clock</p>
         <ManagerOwnClock venueId={venueId} />
       </div>
 
@@ -106,12 +106,12 @@ function ManagerView({ venueId }) {
       )}
 
       {/* Team status */}
-      <div className="bg-white rounded-2xl p-5">
-        <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-3">Team Status</p>
+      <div className="bg-white dark:bg-paperDark rounded-2xl p-5">
+        <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-3">Team Status</p>
         {loading ? (
           <SkeletonList rows={3} />
         ) : staff.length === 0 ? (
-          <p className="text-sm text-charcoal/35 italic">No active staff found.</p>
+          <p className="text-sm text-charcoal/35 dark:text-white/30 italic">No active staff found.</p>
         ) : (
           <div className="flex flex-col">
             {staff.map((s) => <StaffClockRow key={s.id} staffMember={s} />)}
@@ -126,13 +126,13 @@ function ManagerView({ venueId }) {
 function StaffView({ staffId, staffName }) {
   return (
     <div className="flex flex-col gap-6">
-      <div className="bg-white rounded-2xl p-6">
+      <div className="bg-white dark:bg-paperDark rounded-2xl p-6">
         {staffName && (
-          <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-1">
+          <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-1">
             Hi, {staffName}
           </p>
         )}
-        <p className="text-xs text-charcoal/40 mb-5">
+        <p className="text-xs text-charcoal/40 dark:text-white/35 mb-5">
           {format(new Date(), 'EEEE, d MMMM yyyy')}
         </p>
         <ClockPanel staffId={staffId} />
@@ -150,7 +150,7 @@ export default function ClockInPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-2xl font-bold text-charcoal">Clock In / Out</h1>
+      <h1 className="text-2xl font-bold text-charcoal dark:text-white">Clock In / Out</h1>
       {isManager
         ? <ManagerView venueId={venueId} />
         : <StaffView staffId={session?.staffId} staffName={session?.staffName} />

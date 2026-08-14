@@ -106,30 +106,30 @@ function ReportIncidentModal({ venueId, reporterId, onSaved, onClose }) {
 
   return (
     <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-black/40 p-4" onClick={e => e.target === e.currentTarget && onClose()}>
-      <div className="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto flex flex-col">
-        <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-charcoal/8">
-          <h2 className="text-lg font-bold text-charcoal">Report Incident</h2>
-          <button onClick={onClose} className="text-charcoal/30 hover:text-charcoal text-xl leading-none">&times;</button>
+      <div className="bg-white dark:bg-paperDark rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto flex flex-col">
+        <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-charcoal/8 dark:border-white/8">
+          <h2 className="text-lg font-bold text-charcoal dark:text-white">Report Incident</h2>
+          <button onClick={onClose} className="text-charcoal/30 dark:text-white/30 hover:text-charcoal dark:hover:text-white text-xl leading-none">&times;</button>
         </div>
 
         <div className="px-5 py-4 flex flex-col gap-4">
           {/* Date / time & location */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-xs font-medium text-charcoal/50 mb-1 block">Date &amp; time</label>
+              <label className="text-xs font-medium text-charcoal/50 dark:text-white/40 mb-1 block">Date &amp; time</label>
               <input
                 type="datetime-local" value={form.incident_date}
                 onChange={e => updateForm('incident_date', e.target.value)}
-                className="w-full border border-charcoal/15 rounded-xl py-2.5 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30"
+                className="w-full border border-charcoal/15 dark:border-white/15 rounded-xl py-2.5 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30"
               />
             </div>
             <div>
-              <label className="text-xs font-medium text-charcoal/50 mb-1 block">Location</label>
+              <label className="text-xs font-medium text-charcoal/50 dark:text-white/40 mb-1 block">Location</label>
               <input
                 type="text" value={form.location}
                 onChange={e => updateForm('location', e.target.value)}
                 list="location-suggestions"
-                className="w-full border border-charcoal/15 rounded-xl py-2.5 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30"
+                className="w-full border border-charcoal/15 dark:border-white/15 rounded-xl py-2.5 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30"
                 placeholder="e.g. Kitchen"
               />
               <datalist id="location-suggestions">
@@ -140,7 +140,7 @@ function ReportIncidentModal({ venueId, reporterId, onSaved, onClose }) {
 
           {/* Severity */}
           <div>
-            <label className="text-xs font-medium text-charcoal/50 mb-2 block">Severity</label>
+            <label className="text-xs font-medium text-charcoal/50 dark:text-white/40 mb-2 block">Severity</label>
             <div className="flex gap-2 flex-wrap">
               {SEVERITIES.map(s => (
                 <button
@@ -148,7 +148,7 @@ function ReportIncidentModal({ venueId, reporterId, onSaved, onClose }) {
                   type="button"
                   onClick={() => updateForm('severity', s.value)}
                   className={`px-3 py-1.5 rounded-xl text-xs font-medium border transition-colors ${
-                    form.severity === s.value ? s.cls : 'border-charcoal/10 text-charcoal/40 hover:border-charcoal/25'
+                    form.severity === s.value ? s.cls : 'border-charcoal/10 dark:border-white/10 text-charcoal/40 dark:text-white/35 hover:border-charcoal/25 dark:hover:border-white/25'
                   }`}
                 >
                   {s.label}
@@ -160,7 +160,7 @@ function ReportIncidentModal({ venueId, reporterId, onSaved, onClose }) {
           {/* People involved */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label className="text-xs font-medium text-charcoal/50">People involved</label>
+              <label className="text-xs font-medium text-charcoal/50 dark:text-white/40">People involved</label>
               <button onClick={addPerson} className="text-xs text-brand font-medium hover:underline">+ Add person</button>
             </div>
             <div className="flex flex-col gap-2">
@@ -169,17 +169,17 @@ function ReportIncidentModal({ venueId, reporterId, onSaved, onClose }) {
                   <input
                     type="text" value={p.name} placeholder="Name"
                     onChange={e => updatePerson(i, 'name', e.target.value)}
-                    className="flex-1 border border-charcoal/15 rounded-lg py-1.5 px-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30"
+                    className="flex-1 border border-charcoal/15 dark:border-white/15 rounded-lg py-1.5 px-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30"
                   />
                   <select
                     value={p.type}
                     onChange={e => updatePerson(i, 'type', e.target.value)}
-                    className="border border-charcoal/15 rounded-lg py-1.5 px-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand/30"
+                    className="border border-charcoal/15 dark:border-white/15 rounded-lg py-1.5 px-2 text-sm bg-white dark:bg-paperDark focus:outline-none focus:ring-2 focus:ring-brand/30"
                   >
                     {PERSON_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
                   </select>
                   {people.length > 1 && (
-                    <button onClick={() => removePerson(i)} className="text-charcoal/25 hover:text-danger text-lg leading-none">&times;</button>
+                    <button onClick={() => removePerson(i)} className="text-charcoal/25 dark:text-white/25 hover:text-danger text-lg leading-none">&times;</button>
                   )}
                 </div>
               ))}
@@ -188,63 +188,63 @@ function ReportIncidentModal({ venueId, reporterId, onSaved, onClose }) {
 
           {/* Description */}
           <div>
-            <label className="text-xs font-medium text-charcoal/50 mb-1 block">Description *</label>
+            <label className="text-xs font-medium text-charcoal/50 dark:text-white/40 mb-1 block">Description *</label>
             <textarea
               value={form.description}
               onChange={e => updateForm('description', e.target.value)}
               rows={3}
-              className="w-full border border-charcoal/15 rounded-xl py-2.5 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30 resize-none"
+              className="w-full border border-charcoal/15 dark:border-white/15 rounded-xl py-2.5 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30 resize-none"
               placeholder="What happened?"
             />
           </div>
 
           {/* Optional fields */}
           <div>
-            <label className="text-xs font-medium text-charcoal/50 mb-1 block">Injury details (optional)</label>
+            <label className="text-xs font-medium text-charcoal/50 dark:text-white/40 mb-1 block">Injury details (optional)</label>
             <textarea
               value={form.injury_details}
               onChange={e => updateForm('injury_details', e.target.value)}
               rows={2}
-              className="w-full border border-charcoal/15 rounded-xl py-2.5 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30 resize-none"
+              className="w-full border border-charcoal/15 dark:border-white/15 rounded-xl py-2.5 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30 resize-none"
               placeholder="Nature and extent of any injuries"
             />
           </div>
 
           <div>
-            <label className="text-xs font-medium text-charcoal/50 mb-1 block">First aid given (optional)</label>
+            <label className="text-xs font-medium text-charcoal/50 dark:text-white/40 mb-1 block">First aid given (optional)</label>
             <textarea
               value={form.first_aid_given}
               onChange={e => updateForm('first_aid_given', e.target.value)}
               rows={2}
-              className="w-full border border-charcoal/15 rounded-xl py-2.5 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30 resize-none"
+              className="w-full border border-charcoal/15 dark:border-white/15 rounded-xl py-2.5 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30 resize-none"
               placeholder="Treatment administered"
             />
           </div>
 
           <div>
-            <label className="text-xs font-medium text-charcoal/50 mb-1 block">Witnesses (optional)</label>
+            <label className="text-xs font-medium text-charcoal/50 dark:text-white/40 mb-1 block">Witnesses (optional)</label>
             <input
               type="text" value={form.witnesses}
               onChange={e => updateForm('witnesses', e.target.value)}
-              className="w-full border border-charcoal/15 rounded-xl py-2.5 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30"
+              className="w-full border border-charcoal/15 dark:border-white/15 rounded-xl py-2.5 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30"
               placeholder="Names of any witnesses"
             />
           </div>
 
           <div>
-            <label className="text-xs font-medium text-charcoal/50 mb-1 block">Follow-up actions (optional)</label>
+            <label className="text-xs font-medium text-charcoal/50 dark:text-white/40 mb-1 block">Follow-up actions (optional)</label>
             <textarea
               value={form.follow_up_actions}
               onChange={e => updateForm('follow_up_actions', e.target.value)}
               rows={2}
-              className="w-full border border-charcoal/15 rounded-xl py-2.5 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30 resize-none"
+              className="w-full border border-charcoal/15 dark:border-white/15 rounded-xl py-2.5 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30 resize-none"
               placeholder="Steps taken or planned to prevent recurrence"
             />
           </div>
         </div>
 
         <div className="px-5 pb-5 pt-2 flex gap-3">
-          <button onClick={onClose} className="flex-1 border border-charcoal/15 text-charcoal/60 py-2.5 rounded-xl text-sm font-medium hover:bg-charcoal/5 transition-colors">
+          <button onClick={onClose} className="flex-1 border border-charcoal/15 dark:border-white/15 text-charcoal/60 dark:text-white/50 py-2.5 rounded-xl text-sm font-medium hover:bg-charcoal/5 dark:hover:bg-white/5 transition-colors">
             Cancel
           </button>
           <button
@@ -294,21 +294,21 @@ function IncidentDetailModal({ incident, venueName, onClose }) {
     if (!value) return null
     return (
       <div>
-        <p className="text-[11px] tracking-widest uppercase text-charcoal/35 mb-0.5">{label}</p>
-        <p className="text-sm text-charcoal/70 whitespace-pre-wrap">{value}</p>
+        <p className="text-[11px] tracking-widest uppercase text-charcoal/35 dark:text-white/30 mb-0.5">{label}</p>
+        <p className="text-sm text-charcoal/70 dark:text-white/60 whitespace-pre-wrap">{value}</p>
       </div>
     )
   }
 
   return (
     <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-black/40 p-4" onClick={e => e.target === e.currentTarget && onClose()}>
-      <div className="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto flex flex-col">
-        <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-charcoal/8">
+      <div className="bg-white dark:bg-paperDark rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto flex flex-col">
+        <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-charcoal/8 dark:border-white/8">
           <div className="flex items-center gap-2">
-            <h2 className="text-lg font-bold text-charcoal">Incident Report</h2>
+            <h2 className="text-lg font-bold text-charcoal dark:text-white">Incident Report</h2>
             <SeverityBadge severity={incident.severity} />
           </div>
-          <button onClick={onClose} className="text-charcoal/30 hover:text-charcoal text-xl leading-none">&times;</button>
+          <button onClick={onClose} className="text-charcoal/30 dark:text-white/30 hover:text-charcoal dark:hover:text-white text-xl leading-none">&times;</button>
         </div>
 
         <div className="px-5 py-4 flex flex-col gap-4">
@@ -320,11 +320,11 @@ function IncidentDetailModal({ incident, venueName, onClose }) {
 
           {people.length > 0 && (
             <div>
-              <p className="text-[11px] tracking-widest uppercase text-charcoal/35 mb-1.5">People involved</p>
+              <p className="text-[11px] tracking-widest uppercase text-charcoal/35 dark:text-white/30 mb-1.5">People involved</p>
               <div className="flex flex-wrap gap-1.5">
                 {people.map((p, i) => (
-                  <span key={i} className="text-xs bg-charcoal/5 text-charcoal/60 px-2 py-1 rounded-lg">
-                    {p.name} <span className="text-charcoal/35">({p.type})</span>
+                  <span key={i} className="text-xs bg-charcoal/5 dark:bg-white/5 text-charcoal/60 dark:text-white/50 px-2 py-1 rounded-lg">
+                    {p.name} <span className="text-charcoal/35 dark:text-white/30">({p.type})</span>
                   </span>
                 ))}
               </div>
@@ -339,7 +339,7 @@ function IncidentDetailModal({ incident, venueName, onClose }) {
         </div>
 
         <div className="px-5 pb-5 pt-2 flex gap-3">
-          <button onClick={onClose} className="flex-1 border border-charcoal/15 text-charcoal/60 py-2.5 rounded-xl text-sm font-medium hover:bg-charcoal/5 transition-colors">
+          <button onClick={onClose} className="flex-1 border border-charcoal/15 dark:border-white/15 text-charcoal/60 dark:text-white/50 py-2.5 rounded-xl text-sm font-medium hover:bg-charcoal/5 dark:hover:bg-white/5 transition-colors">
             Close
           </button>
           <button
@@ -362,21 +362,21 @@ function IncidentCard({ incident, onClick }) {
   return (
     <button
       onClick={onClick}
-      className="w-full bg-white rounded-2xl border border-charcoal/8 px-4 py-3.5 flex items-center gap-3 text-left hover:border-brand/20 transition-colors"
+      className="w-full bg-white dark:bg-paperDark rounded-2xl border border-charcoal/8 dark:border-white/8 px-4 py-3.5 flex items-center gap-3 text-left hover:border-brand/20 transition-colors"
     >
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-0.5">
-          <p className="text-sm font-semibold text-charcoal truncate">{incident.location}</p>
+          <p className="text-sm font-semibold text-charcoal dark:text-white truncate">{incident.location}</p>
           <SeverityBadge severity={incident.severity} />
         </div>
-        <p className="text-[11px] text-charcoal/40">
+        <p className="text-[11px] text-charcoal/40 dark:text-white/35">
           {format(parseISO(incident.incident_date), 'EEE d MMM yyyy, HH:mm')}
           {' '}&middot; {incident.reporter?.name || 'Unknown'}
           {people.length > 0 && <> &middot; {people.length} {people.length === 1 ? 'person' : 'people'}</>}
         </p>
-        <p className="text-xs text-charcoal/50 mt-1 line-clamp-2">{incident.description}</p>
+        <p className="text-xs text-charcoal/50 dark:text-white/40 mt-1 line-clamp-2">{incident.description}</p>
       </div>
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-charcoal/25 shrink-0">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-charcoal/25 dark:text-white/25 shrink-0">
         <polyline points="9 18 15 12 9 6"/>
       </svg>
     </button>
@@ -397,8 +397,8 @@ export default function IncidentsPage() {
     return (
       <div className="flex flex-col gap-6">
         <div>
-          <h1 className="text-2xl font-bold text-charcoal">Incidents</h1>
-          <p className="text-sm text-charcoal/40 mt-1">Only managers can view and report incidents.</p>
+          <h1 className="text-2xl font-bold text-charcoal dark:text-white">Incidents</h1>
+          <p className="text-sm text-charcoal/40 dark:text-white/35 mt-1">Only managers can view and report incidents.</p>
         </div>
       </div>
     )
@@ -412,8 +412,8 @@ export default function IncidentsPage() {
     <div className="flex flex-col gap-6">
       <div className="flex items-end justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-charcoal">Incidents</h1>
-          <p className="text-sm text-charcoal/40 mt-1">Workplace incident and accident records</p>
+          <h1 className="text-2xl font-bold text-charcoal dark:text-white">Incidents</h1>
+          <p className="text-sm text-charcoal/40 dark:text-white/35 mt-1">Workplace incident and accident records</p>
         </div>
         <button
           onClick={() => setShowReport(true)}
@@ -428,7 +428,7 @@ export default function IncidentsPage() {
         <button
           onClick={() => setSeverityFilter('all')}
           className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
-            severityFilter === 'all' ? 'bg-brand text-cream' : 'bg-charcoal/5 text-charcoal/50 hover:bg-charcoal/10'
+            severityFilter === 'all' ? 'bg-brand text-cream' : 'bg-charcoal/5 dark:bg-white/5 text-charcoal/50 dark:text-white/40 hover:bg-charcoal/10 dark:hover:bg-white/10'
           }`}
         >
           All
@@ -438,7 +438,7 @@ export default function IncidentsPage() {
             key={s.value}
             onClick={() => setSeverityFilter(s.value)}
             className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
-              severityFilter === s.value ? 'bg-brand text-cream' : 'bg-charcoal/5 text-charcoal/50 hover:bg-charcoal/10'
+              severityFilter === s.value ? 'bg-brand text-cream' : 'bg-charcoal/5 dark:bg-white/5 text-charcoal/50 dark:text-white/40 hover:bg-charcoal/10 dark:hover:bg-white/10'
             }`}
           >
             {s.label}

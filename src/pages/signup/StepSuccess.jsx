@@ -22,22 +22,22 @@ export default function StepSuccess({ venueName, venueSlug, plan, allVenues = []
       </div>
 
       <div>
-        <h1 className="text-2xl font-bold text-charcoal mb-2">You're all set!</h1>
-        <p className="text-sm text-charcoal/50 leading-relaxed">
+        <h1 className="text-2xl font-bold text-charcoal dark:text-white mb-2">You're all set!</h1>
+        <p className="text-sm text-charcoal/50 dark:text-white/40 leading-relaxed">
           {allVenues.length > 1
             ? `${allVenues.length} venues are ready on Pelikn.`
-            : <><strong className="text-charcoal">{venueName}</strong> is ready on Pelikn.</>
+            : <><strong className="text-charcoal dark:text-white">{venueName}</strong> is ready on Pelikn.</>
           }
           {' '}Your 7-day free trial has started, no payment needed yet.
         </p>
       </div>
 
       {/* Email verification nudge */}
-      <div className="w-full bg-charcoal/4 rounded-xl px-4 py-3 flex items-start gap-3 text-left">
+      <div className="w-full bg-charcoal/4 dark:bg-white/5 rounded-xl px-4 py-3 flex items-start gap-3 text-left">
         <svg className="shrink-0 mt-0.5" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#76817b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>
         </svg>
-        <p className="text-xs text-charcoal/50 leading-relaxed">
+        <p className="text-xs text-charcoal/50 dark:text-white/40 leading-relaxed">
           We've sent a verification email to your inbox. Click the link to confirm your account — you can still use Pelikn in the meantime.
         </p>
       </div>
@@ -54,19 +54,19 @@ export default function StepSuccess({ venueName, venueSlug, plan, allVenues = []
 
       {/* Venue URL(s) */}
       {allVenues.length > 1 ? (
-        <div className="w-full bg-charcoal/4 rounded-xl px-4 py-3 flex flex-col gap-2">
-          <p className="text-[11px] text-charcoal/40 tracking-widest uppercase mb-1">Your staff login URLs</p>
+        <div className="w-full bg-charcoal/4 dark:bg-white/5 rounded-xl px-4 py-3 flex flex-col gap-2">
+          <p className="text-[11px] text-charcoal/40 dark:text-white/35 tracking-widest uppercase mb-1">Your staff login URLs</p>
           {allVenues.map(v => (
             <div key={v.slug} className="flex items-center justify-between gap-2">
-              <p className="text-xs font-medium text-charcoal/70 truncate">{v.name}</p>
-              <p className="text-xs font-mono text-charcoal/50 shrink-0">pelikn.app/v/{v.slug}</p>
+              <p className="text-xs font-medium text-charcoal/70 dark:text-white/60 truncate">{v.name}</p>
+              <p className="text-xs font-mono text-charcoal/50 dark:text-white/40 shrink-0">pelikn.app/v/{v.slug}</p>
             </div>
           ))}
         </div>
       ) : (
-        <div className="w-full bg-charcoal/4 rounded-xl px-4 py-3">
-          <p className="text-[11px] text-charcoal/40 tracking-widest uppercase mb-1">Your staff login URL</p>
-          <p className="text-xs font-mono text-charcoal/60">pelikn.app/v/{venueSlug}</p>
+        <div className="w-full bg-charcoal/4 dark:bg-white/5 rounded-xl px-4 py-3">
+          <p className="text-[11px] text-charcoal/40 dark:text-white/35 tracking-widest uppercase mb-1">Your staff login URL</p>
+          <p className="text-xs font-mono text-charcoal/60 dark:text-white/50">pelikn.app/v/{venueSlug}</p>
         </div>
       )}
 
@@ -78,7 +78,7 @@ export default function StepSuccess({ venueName, venueSlug, plan, allVenues = []
           Go to your dashboard
           <IconArrow />
         </button>
-        <p className="text-[11px] text-charcoal/35">Redirecting automatically in a few seconds…</p>
+        <p className="text-[11px] text-charcoal/35 dark:text-white/30">Redirecting automatically in a few seconds…</p>
       </div>
     </div>
   )

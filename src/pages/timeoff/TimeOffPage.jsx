@@ -27,15 +27,15 @@ const LEAVE_TYPES = [
 
 const LEAVE_TYPE_COLOURS = {
   annual:  'bg-brand/10 text-brand',
-  unpaid:  'bg-charcoal/8 text-charcoal/50',
-  other:   'bg-charcoal/8 text-charcoal/50',
+  unpaid:  'bg-charcoal/8 dark:bg-white/8 text-charcoal/50 dark:text-white/40',
+  other:   'bg-charcoal/8 dark:bg-white/8 text-charcoal/50 dark:text-white/40',
 }
 
 const STATUS_COLOURS = {
   pending:   'bg-warning/10 text-warning border-warning/20',
   approved:  'bg-success/10 text-success border-success/20',
   rejected:  'bg-danger/10 text-danger border-danger/20',
-  cancelled: 'bg-charcoal/5 text-charcoal/45 border-charcoal/10',
+  cancelled: 'bg-charcoal/5 dark:bg-white/5 text-charcoal/45 dark:text-white/40 border-charcoal/10 dark:border-white/10',
 }
 
 const leaveTypeLabel = (value) => LEAVE_TYPES.find(t => t.value === value)?.label ?? value
@@ -175,16 +175,16 @@ function CalendarView({ month, requests, onDayClick }) {
   return (
     <div className="overflow-x-auto -mx-0">
       <div style={{ minWidth: '320px' }}>
-        <div className="grid grid-cols-7 gap-px bg-charcoal/8 rounded-t-xl overflow-hidden">
+        <div className="grid grid-cols-7 gap-px bg-charcoal/8 dark:bg-white/8 rounded-t-xl overflow-hidden">
           {DAY_LABELS.map(d => (
-            <div key={d} className="bg-white py-2 text-center text-[11px] tracking-widest uppercase text-charcoal/40 font-medium">
+            <div key={d} className="bg-white dark:bg-paperDark py-2 text-center text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 font-medium">
               {d}
             </div>
           ))}
         </div>
-        <div className="grid grid-cols-7 gap-px bg-charcoal/8 rounded-b-xl overflow-hidden">
+        <div className="grid grid-cols-7 gap-px bg-charcoal/8 dark:bg-white/8 rounded-b-xl overflow-hidden">
           {allCells.map((day, i) => {
-            if (!day) return <div key={`pad-${i}`} className="bg-charcoal/3 min-h-[60px] sm:min-h-[72px]" />
+            if (!day) return <div key={`pad-${i}`} className="bg-charcoal/3 dark:bg-white/5 min-h-[60px] sm:min-h-[72px]" />
             const dayRequests = getRequestsForDay(requests, day)
             const isToday     = isSameDay(day, today)
             const isPast      = isBefore(day, today) && !isToday
@@ -192,10 +192,10 @@ function CalendarView({ month, requests, onDayClick }) {
               <button
                 key={i}
                 onClick={() => onDayClick(day)}
-                className={`bg-white min-h-[60px] sm:min-h-[72px] p-1 text-left transition-colors hover:bg-charcoal/3 ${isPast ? 'opacity-50' : ''}`}
+                className={`bg-white dark:bg-paperDark min-h-[60px] sm:min-h-[72px] p-1 text-left transition-colors hover:bg-charcoal/3 dark:hover:bg-white/5 ${isPast ? 'opacity-50' : ''}`}
               >
                 <span className={`text-xs font-medium inline-flex items-center justify-center w-6 h-6 rounded-full ${
-                  isToday ? 'bg-charcoal text-cream' : 'text-charcoal/70'
+                  isToday ? 'bg-charcoal text-cream' : 'text-charcoal/70 dark:text-white/60'
                 }`}>
                   {format(day, 'd')}
                 </span>
@@ -215,7 +215,7 @@ function CalendarView({ month, requests, onDayClick }) {
                     </div>
                   ))}
                   {dayRequests.length > 2 && (
-                    <span className="text-[11px] text-charcoal/30">+{dayRequests.length - 2}</span>
+                    <span className="text-[11px] text-charcoal/30 dark:text-white/30">+{dayRequests.length - 2}</span>
                   )}
                 </div>
               </button>
@@ -230,7 +230,7 @@ function CalendarView({ month, requests, onDayClick }) {
 /* ── Balance pill ──────────────────────────────────────────────────────── */
 function BalancePill({ entitlement, used, remaining, isZeroHours, accrued, small }) {
   if (isZeroHours) return (
-    <span className={`inline-flex items-center gap-1 ${small ? 'text-[11px]' : 'text-xs'} font-medium text-charcoal/60 bg-charcoal/6 px-2 py-0.5 rounded-full`}>
+    <span className={`inline-flex items-center gap-1 ${small ? 'text-[11px]' : 'text-xs'} font-medium text-charcoal/60 dark:text-white/50 bg-charcoal/6 dark:bg-white/8 px-2 py-0.5 rounded-full`}>
       {accrued != null ? `${accrued} hrs accrued` : 'Calculating…'}
     </span>
   )
@@ -239,7 +239,7 @@ function BalancePill({ entitlement, used, remaining, isZeroHours, accrued, small
   return (
     <span className={`inline-flex items-center gap-1 ${small ? 'text-[11px]' : 'text-xs'} font-medium`}>
       <span className={colour}>{fmtDays(remaining)} left</span>
-      <span className="text-charcoal/30">({used}/{entitlement} used)</span>
+      <span className="text-charcoal/30 dark:text-white/30">({used}/{entitlement} used)</span>
     </span>
   )
 }
@@ -279,7 +279,7 @@ function ManualLeaveModal({ staff, venueId, managerId, onClose, onSaved }) {
 
         {/* Leave type */}
         <div>
-          <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-2">Leave Type</label>
+          <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">Leave Type</label>
           <div className="flex gap-2 flex-wrap">
             {LEAVE_TYPES.map(t => (
               <button
@@ -289,8 +289,8 @@ function ManualLeaveModal({ staff, venueId, managerId, onClose, onSaved }) {
                 className={[
                   'px-3 py-1.5 rounded-full text-xs font-medium border transition-all',
                   form.leaveType === t.value
-                    ? 'bg-charcoal text-cream border-charcoal'
-                    : 'bg-white text-charcoal/50 border-charcoal/15',
+                    ? 'bg-charcoal text-cream border-charcoal dark:border-white'
+                    : 'bg-white dark:bg-paperDark text-charcoal/50 dark:text-white/40 border-charcoal/15 dark:border-white/15',
                 ].join(' ')}
               >
                 {t.label}
@@ -302,39 +302,39 @@ function ManualLeaveModal({ staff, venueId, managerId, onClose, onSaved }) {
         {/* Date range */}
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="text-[11px] tracking-widests uppercase text-charcoal/40 block mb-1">Start date</label>
+            <label className="text-[11px] tracking-widests uppercase text-charcoal/40 dark:text-white/35 block mb-1">Start date</label>
             <input
               type="date"
               value={form.startDate}
               onChange={e => setForm(f => ({ ...f, startDate: e.target.value, endDate: f.endDate || e.target.value }))}
-              className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+              className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
             />
           </div>
           <div>
-            <label className="text-[11px] tracking-widests uppercase text-charcoal/40 block mb-1">End date</label>
+            <label className="text-[11px] tracking-widests uppercase text-charcoal/40 dark:text-white/35 block mb-1">End date</label>
             <input
               type="date"
               value={form.endDate}
               min={form.startDate}
               onChange={e => setForm(f => ({ ...f, endDate: e.target.value }))}
-              className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+              className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
             />
           </div>
         </div>
 
         {/* Optional note */}
         <div>
-          <label className="text-[11px] tracking-widests uppercase text-charcoal/40 block mb-1">Note (optional)</label>
+          <label className="text-[11px] tracking-widests uppercase text-charcoal/40 dark:text-white/35 block mb-1">Note (optional)</label>
           <input
             type="text"
             value={form.note}
             onChange={e => setForm(f => ({ ...f, note: e.target.value }))}
             placeholder="e.g. Summer holiday 2024"
-            className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+            className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
           />
         </div>
 
-        <p className="text-[11px] text-charcoal/35 -mt-2">
+        <p className="text-[11px] text-charcoal/35 dark:text-white/30 -mt-2">
           This will be recorded as approved leave and counted against {staff.name}'s annual balance.
         </p>
 
@@ -403,7 +403,7 @@ function EditRequestModal({ request, isManager, actorId, actorName, venueId, onC
           : `${actorName ?? 'A staff member'} changed their ${leaveTypeLabel(patch?.leave_type ?? request.leave_type)} to ${range}.`,
         url: '/time-off',
         roles: ['manager', 'owner'],
-      }).catch(() => {})
+      })
     } else if (request.staff_id) {
       sendPush({
         venueId,
@@ -414,7 +414,7 @@ function EditRequestModal({ request, isManager, actorId, actorName, venueId, onC
           : `Your time off was changed to ${range}.`,
         url: '/time-off',
         staffIds: [request.staff_id],
-      }).catch(() => {})
+      })
     }
   }
 
@@ -477,18 +477,18 @@ function EditRequestModal({ request, isManager, actorId, actorName, venueId, onC
           </div>
 
           {perms.lockedReason && (
-            <p className="text-xs text-charcoal/45">{perms.lockedReason}</p>
+            <p className="text-xs text-charcoal/45 dark:text-white/40">{perms.lockedReason}</p>
           )}
 
           {!perms.canEdit && !perms.lockedReason && (
-            <p className="text-xs text-charcoal/45">Only {request.staff?.name ?? 'this staff member'} or a manager can change this.</p>
+            <p className="text-xs text-charcoal/45 dark:text-white/40">Only {request.staff?.name ?? 'this staff member'} or a manager can change this.</p>
           )}
 
           {perms.canEdit && (
             <>
               {/* Leave type */}
               <div>
-                <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-2">Leave Type</label>
+                <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">Leave Type</label>
                 <div className="flex gap-2 flex-wrap">
                   {LEAVE_TYPES.map(t => (
                     <button
@@ -498,8 +498,8 @@ function EditRequestModal({ request, isManager, actorId, actorName, venueId, onC
                       className={[
                         'px-3 py-1.5 rounded-full text-xs font-medium border transition-all',
                         form.leaveType === t.value
-                          ? 'bg-charcoal text-cream border-charcoal'
-                          : 'bg-white text-charcoal/50 border-charcoal/15',
+                          ? 'bg-charcoal text-cream border-charcoal dark:border-white'
+                          : 'bg-white dark:bg-paperDark text-charcoal/50 dark:text-white/40 border-charcoal/15 dark:border-white/15',
                       ].join(' ')}
                     >
                       {t.label}
@@ -511,7 +511,7 @@ function EditRequestModal({ request, isManager, actorId, actorName, venueId, onC
               {/* Dates */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1">Start date</label>
+                  <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Start date</label>
                   <input
                     type="date"
                     value={form.startDate}
@@ -520,35 +520,35 @@ function EditRequestModal({ request, isManager, actorId, actorName, venueId, onC
                       startDate: e.target.value,
                       endDate: f.endDate < e.target.value ? e.target.value : f.endDate,
                     }))}
-                    className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+                    className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
                   />
                 </div>
                 <div>
-                  <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1">End date</label>
+                  <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">End date</label>
                   <input
                     type="date"
                     value={form.endDate}
                     min={form.startDate}
                     onChange={e => setForm(f => ({ ...f, endDate: e.target.value }))}
-                    className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+                    className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
                   />
                 </div>
               </div>
 
               {days != null && days > 0 && (
-                <p className="text-xs text-charcoal/50 -mt-2">
-                  Covers <span className="font-semibold text-charcoal">{fmtDays(days)}</span> of working days.
+                <p className="text-xs text-charcoal/50 dark:text-white/40 -mt-2">
+                  Covers <span className="font-semibold text-charcoal dark:text-white">{fmtDays(days)}</span> of working days.
                 </p>
               )}
 
               {/* Reason */}
               <div>
-                <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1">Reason (optional)</label>
+                <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Reason (optional)</label>
                 <textarea
                   value={form.reason}
                   onChange={e => setForm(f => ({ ...f, reason: e.target.value }))}
                   rows={2}
-                  className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 bg-white text-sm resize-none focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+                  className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm resize-none focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
                 />
               </div>
 
@@ -714,7 +714,7 @@ export default function TimeOffPage() {
       body:  `${session?.staffName ?? 'A staff member'} requested ${leaveTypeLabel(form.leaveType)}: ${form.startDate} – ${form.endDate}`,
       url:   '/time-off',
       roles: ['manager', 'owner'],
-    }).catch(() => {})
+    })
     setForm({ startDate: '', endDate: '', reason: '', leaveType: 'annual' })
     setShowRequest(false)
     refreshDependents()
@@ -741,7 +741,7 @@ export default function TimeOffPage() {
         body:  `Your ${leaveTypeLabel(req.leave_type)} (${req.start_date} – ${req.end_date}) has been approved.`,
         url:   '/time-off',
         staffIds: [req.staff_id],
-      }).catch(() => {})
+      })
     }
     refreshDependents()
   }
@@ -767,7 +767,7 @@ export default function TimeOffPage() {
         body:  `Your time off request (${req.start_date} – ${req.end_date}) was not approved.${managerNote.trim() ? ' Note: ' + managerNote.trim() : ''}`,
         url:   '/time-off',
         staffIds: [req.staff_id],
-      }).catch(() => {})
+      })
     }
     refreshDependents()
   }
@@ -799,13 +799,13 @@ export default function TimeOffPage() {
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-charcoal">Time Off</h1>
+          <h1 className="text-2xl font-bold text-charcoal dark:text-white">Time Off</h1>
           {/* Own balance pill shown below title for staff */}
           {ownBalance && (
             <div className="mt-0.5">
               <BalancePill {...ownBalance} accrued={ownAccrued} small />
               {!ownBalance.isZeroHours && ownBalance.entitlement != null && (
-                <span className="text-[11px] text-charcoal/30 ml-1">{currentYear} annual leave</span>
+                <span className="text-[11px] text-charcoal/30 dark:text-white/30 ml-1">{currentYear} annual leave</span>
               )}
             </div>
           )}
@@ -822,24 +822,24 @@ export default function TimeOffPage() {
       <div className="flex gap-4">
         <div className="flex items-center gap-1.5">
           <span className="w-3 h-3 rounded bg-warning/30" />
-          <span className="text-[11px] tracking-wider uppercase text-charcoal/40">Pending</span>
+          <span className="text-[11px] tracking-wider uppercase text-charcoal/40 dark:text-white/35">Pending</span>
         </div>
         <div className="flex items-center gap-1.5">
           <span className="w-3 h-3 rounded bg-success/30" />
-          <span className="text-[11px] tracking-wider uppercase text-charcoal/40">Approved</span>
+          <span className="text-[11px] tracking-wider uppercase text-charcoal/40 dark:text-white/35">Approved</span>
         </div>
         <div className="flex items-center gap-1.5">
           <span className="w-3 h-3 rounded bg-danger/20" />
-          <span className="text-[11px] tracking-wider uppercase text-charcoal/40">Rejected</span>
+          <span className="text-[11px] tracking-wider uppercase text-charcoal/40 dark:text-white/35">Rejected</span>
         </div>
       </div>
 
       {/* Calendar */}
-      <div className="bg-white rounded-2xl border-charcoal/10 overflow-hidden">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-charcoal/8">
-          <button onClick={prevMonth} className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-charcoal/8 text-charcoal/50 hover:text-charcoal transition-colors text-sm">‹</button>
-          <span className="text-sm font-medium text-charcoal">{format(month, 'MMMM yyyy')}</span>
-          <button onClick={nextMonth} className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-charcoal/8 text-charcoal/50 hover:text-charcoal transition-colors text-sm">›</button>
+      <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 overflow-hidden">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-charcoal/8 dark:border-white/8">
+          <button onClick={prevMonth} className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-charcoal/8 dark:hover:bg-white/8 text-charcoal/50 dark:text-white/40 hover:text-charcoal dark:hover:text-white transition-colors text-sm">‹</button>
+          <span className="text-sm font-medium text-charcoal dark:text-white">{format(month, 'MMMM yyyy')}</span>
+          <button onClick={nextMonth} className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-charcoal/8 dark:hover:bg-white/8 text-charcoal/50 dark:text-white/40 hover:text-charcoal dark:hover:text-white transition-colors text-sm">›</button>
         </div>
         {loading ? (
           <SkeletonList rows={4} />
@@ -856,13 +856,13 @@ export default function TimeOffPage() {
 
       {/* Manager: pending requests */}
       {isManager && pendingRequests.length > 0 && (
-        <div className="bg-white rounded-2xl overflow-hidden border border-warning/20">
+        <div className="bg-white dark:bg-paperDark rounded-2xl overflow-hidden border border-warning/20">
           <div className="px-5 py-3 border-b border-warning/10 bg-warning/5">
             <p className="text-[11px] tracking-widest uppercase text-warning font-medium">
               {pendingRequests.length} Pending Request{pendingRequests.length !== 1 ? 's' : ''}
             </p>
           </div>
-          <div className="flex flex-col divide-y divide-charcoal/6">
+          <div className="flex flex-col divide-y divide-charcoal/6 dark:divide-white/8">
             {pendingRequests.map(r => {
               const memberBalance = teamBalances.find(b => b.id === r.staff_id)
               const daysRequested = r.leave_type === 'annual'
@@ -873,27 +873,27 @@ export default function TimeOffPage() {
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <p className="font-semibold text-charcoal">{r.staff?.name}</p>
+                        <p className="font-semibold text-charcoal dark:text-white">{r.staff?.name}</p>
                         <span className={`text-[11px] font-medium px-1.5 py-0.5 rounded-full ${LEAVE_TYPE_COLOURS[r.leave_type] ?? LEAVE_TYPE_COLOURS.other}`}>
                           {LEAVE_TYPES.find(t => t.value === r.leave_type)?.label ?? r.leave_type}
                         </span>
                       </div>
-                      <p className="text-sm text-charcoal/50 mt-0.5">
+                      <p className="text-sm text-charcoal/50 dark:text-white/40 mt-0.5">
                         {format(parseISO(r.start_date), 'd MMM')} — {format(parseISO(r.end_date), 'd MMM yyyy')}
-                        {daysRequested != null && <span className="text-charcoal/35"> · {fmtDays(daysRequested)}</span>}
+                        {daysRequested != null && <span className="text-charcoal/35 dark:text-white/30"> · {fmtDays(daysRequested)}</span>}
                       </p>
-                      {r.reason && <p className="text-xs text-charcoal/40 mt-1 italic">"{r.reason}"</p>}
+                      {r.reason && <p className="text-xs text-charcoal/40 dark:text-white/35 mt-1 italic">"{r.reason}"</p>}
                       {/* Balance impact for annual leave */}
                       {r.leave_type === 'annual' && memberBalance && !memberBalance.isZeroHours && memberBalance.entitlement != null && daysRequested != null && (() => {
                         const afterApproval = memberBalance.remaining - daysRequested
                         return (
                           <>
-                            <p className="text-[11px] text-charcoal/40 mt-1">
+                            <p className="text-[11px] text-charcoal/40 dark:text-white/35 mt-1">
                               Balance after approval:
-                              <span className={`ml-1 font-medium ${afterApproval < 0 ? 'text-danger' : 'text-charcoal/60'}`}>
+                              <span className={`ml-1 font-medium ${afterApproval < 0 ? 'text-danger' : 'text-charcoal/60 dark:text-white/50'}`}>
                                 {fmtDays(Math.max(0, afterApproval))} remaining
                               </span>
-                              <span className="text-charcoal/25 ml-1">(currently {fmtDays(memberBalance.remaining)})</span>
+                              <span className="text-charcoal/25 dark:text-white/25 ml-1">(currently {fmtDays(memberBalance.remaining)})</span>
                             </p>
                             {afterApproval < 0 && (
                               <div className="mt-2 flex items-center gap-2 rounded-lg bg-danger/8 border border-danger/20 px-3 py-2">
@@ -917,7 +917,7 @@ export default function TimeOffPage() {
                     value={reviewing === r.id ? managerNote : ''}
                     onFocus={() => setReviewing(r.id)}
                     onChange={e => setManagerNote(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg border border-charcoal/15 bg-white text-xs focus:outline-none focus:ring-2 focus:ring-charcoal/20 placeholder-charcoal/25"
+                    className="w-full px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-xs focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 placeholder-charcoal/25 dark:placeholder-white/20"
                   />
                   <div className="flex gap-2">
                     <button
@@ -943,39 +943,39 @@ export default function TimeOffPage() {
 
       {/* Manager: team annual leave balances */}
       {isManager && (
-        <div className="bg-white rounded-2xl overflow-hidden">
+        <div className="bg-white dark:bg-paperDark rounded-2xl overflow-hidden">
           <button
             onClick={() => setShowTeamBalances(v => !v)}
             className="w-full flex items-center justify-between px-5 py-4 text-left"
           >
-            <p className="text-[11px] tracking-widests uppercase text-charcoal/40 font-medium">
+            <p className="text-[11px] tracking-widests uppercase text-charcoal/40 dark:text-white/35 font-medium">
               Team Annual Leave — {currentYear}
             </p>
-            <svg className={`w-4 h-4 text-charcoal/30 transition-transform ${showTeamBalances ? 'rotate-180' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            <svg className={`w-4 h-4 text-charcoal/30 dark:text-white/30 transition-transform ${showTeamBalances ? 'rotate-180' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
           </button>
           {showTeamBalances && (
-            <div className="border-t border-charcoal/8">
+            <div className="border-t border-charcoal/8 dark:border-white/8">
               {balancesLoading ? (
                 <SkeletonList rows={3} />
               ) : (
-                <div className="divide-y divide-charcoal/6">
+                <div className="divide-y divide-charcoal/6 dark:divide-white/8">
                   {teamBalances.length === 0 && (
-                    <p className="text-sm text-charcoal/35 italic px-5 py-4">No active staff.</p>
+                    <p className="text-sm text-charcoal/35 dark:text-white/30 italic px-5 py-4">No active staff.</p>
                   )}
                   {teamBalances.map(b => (
                     <div key={b.id} className="flex items-center justify-between px-5 py-3 gap-3">
                       <div className="min-w-0">
                         <div className="flex items-center gap-1 flex-wrap">
-                          <p className="text-sm font-medium text-charcoal truncate">{b.name}</p>
+                          <p className="text-sm font-medium text-charcoal dark:text-white truncate">{b.name}</p>
                           <button
                             onClick={() => setManualEntry(b)}
-                            className="text-[11px] text-charcoal/35 hover:text-charcoal/65 underline underline-offset-2 shrink-0"
+                            className="text-[11px] text-charcoal/35 dark:text-white/30 hover:text-charcoal/65 dark:hover:text-white/55 underline underline-offset-2 shrink-0"
                           >
                             + log past leave
                           </button>
                         </div>
                         {b.employment_type && (
-                          <p className="text-[11px] text-charcoal/35 capitalize mt-0.5">
+                          <p className="text-[11px] text-charcoal/35 dark:text-white/30 capitalize mt-0.5">
                             {b.employment_type.replace('_', '-')}
                           </p>
                         )}
@@ -990,7 +990,7 @@ export default function TimeOffPage() {
                           small
                         />
                         {!b.isZeroHours && b.entitlement != null && (
-                          <p className="text-[11px] text-charcoal/25 mt-0.5">{b.entitlement} days entitlement</p>
+                          <p className="text-[11px] text-charcoal/25 dark:text-white/25 mt-0.5">{b.entitlement} days entitlement</p>
                         )}
                       </div>
                     </div>
@@ -1005,7 +1005,7 @@ export default function TimeOffPage() {
       {/* My requests */}
       {myRequests.length > 0 && (
         <div>
-          <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-2">My Requests</p>
+          <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-2">My Requests</p>
           <div className="flex flex-col gap-2">
             {myRequests.map(r => {
               const actionable = canActOn(r)
@@ -1053,7 +1053,7 @@ export default function TimeOffPage() {
 
           {/* Leave type selector */}
           <div>
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-2">Leave Type</label>
+            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">Leave Type</label>
             <div className="flex gap-2 flex-wrap">
               {LEAVE_TYPES.map(t => (
                 <button
@@ -1063,8 +1063,8 @@ export default function TimeOffPage() {
                   className={[
                     'px-3 py-1.5 rounded-full text-xs font-medium border transition-all',
                     form.leaveType === t.value
-                      ? 'bg-charcoal text-cream border-charcoal'
-                      : 'bg-white text-charcoal/50 border-charcoal/15',
+                      ? 'bg-charcoal text-cream border-charcoal dark:border-white'
+                      : 'bg-white dark:bg-paperDark text-charcoal/50 dark:text-white/40 border-charcoal/15 dark:border-white/15',
                   ].join(' ')}
                 >
                   {t.label}
@@ -1075,10 +1075,10 @@ export default function TimeOffPage() {
 
           {/* Balance display for annual leave */}
           {form.leaveType === 'annual' && ownBalance && !ownBalance.isZeroHours && ownBalance.entitlement != null && (
-            <div className="rounded-xl bg-charcoal/4 px-4 py-3 flex items-center justify-between">
+            <div className="rounded-xl bg-charcoal/4 dark:bg-white/5 px-4 py-3 flex items-center justify-between">
               <div>
-                <p className="text-xs font-medium text-charcoal">{currentYear} Annual Leave</p>
-                <p className="text-[11px] text-charcoal/45 mt-0.5">
+                <p className="text-xs font-medium text-charcoal dark:text-white">{currentYear} Annual Leave</p>
+                <p className="text-[11px] text-charcoal/45 dark:text-white/40 mt-0.5">
                   {ownBalance.used} of {ownBalance.entitlement} days used
                 </p>
               </div>
@@ -1086,15 +1086,15 @@ export default function TimeOffPage() {
                 <p className={`text-sm font-bold ${ownBalance.remaining === 0 ? 'text-danger' : ownBalance.remaining <= 5 ? 'text-warning' : 'text-success'}`}>
                   {fmtDays(ownBalance.remaining)}
                 </p>
-                <p className="text-[11px] text-charcoal/30">remaining</p>
+                <p className="text-[11px] text-charcoal/30 dark:text-white/30">remaining</p>
               </div>
             </div>
           )}
           {form.leaveType === 'annual' && ownBalance?.isZeroHours && (
-            <div className="rounded-xl bg-charcoal/4 px-4 py-3 flex items-center justify-between">
+            <div className="rounded-xl bg-charcoal/4 dark:bg-white/5 px-4 py-3 flex items-center justify-between">
               <div>
-                <p className="text-xs font-medium text-charcoal">{currentYear} Holiday Accrual</p>
-                <p className="text-[11px] text-charcoal/45 mt-0.5">
+                <p className="text-xs font-medium text-charcoal dark:text-white">{currentYear} Holiday Accrual</p>
+                <p className="text-[11px] text-charcoal/45 dark:text-white/40 mt-0.5">
                   {ownUsedHours != null ? `~${ownUsedHours} h used · ` : ''}
                   {ownAccrued != null ? `${ownAccrued} h accrued (12.07%)` : 'Calculating…'}
                 </p>
@@ -1103,7 +1103,7 @@ export default function TimeOffPage() {
                 <p className={`text-sm font-bold ${ownRemainingHours === 0 ? 'text-danger' : ownRemainingHours != null && ownRemainingHours <= 4 ? 'text-warning' : 'text-success'}`}>
                   {ownRemainingHours != null ? `${ownRemainingHours} h` : '—'}
                 </p>
-                <p className="text-[11px] text-charcoal/30">remaining</p>
+                <p className="text-[11px] text-charcoal/30 dark:text-white/30">remaining</p>
               </div>
             </div>
           )}
@@ -1111,22 +1111,22 @@ export default function TimeOffPage() {
           {/* Dates */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1">Start date</label>
+              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Start date</label>
               <input
                 type="date"
                 value={form.startDate}
                 onChange={e => setForm(f => ({ ...f, startDate: e.target.value, endDate: f.endDate || e.target.value }))}
-                className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+                className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
               />
             </div>
             <div>
-              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1">End date</label>
+              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">End date</label>
               <input
                 type="date"
                 value={form.endDate}
                 min={form.startDate}
                 onChange={e => setForm(f => ({ ...f, endDate: e.target.value }))}
-                className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+                className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
               />
             </div>
           </div>
@@ -1143,8 +1143,8 @@ export default function TimeOffPage() {
 
           {/* Days / hours preview for annual leave */}
           {form.leaveType === 'annual' && previewDays != null && previewDays > 0 && !ownBalance?.isZeroHours && (
-            <p className="text-xs text-charcoal/50 -mt-2">
-              This request covers <span className="font-semibold text-charcoal">{fmtDays(previewDays)}</span> of your working days.
+            <p className="text-xs text-charcoal/50 dark:text-white/40 -mt-2">
+              This request covers <span className="font-semibold text-charcoal dark:text-white">{fmtDays(previewDays)}</span> of your working days.
               {ownBalance && ownBalance.remaining != null && (
                 <span className={(ownBalance.remaining - previewDays) < 0 ? ' text-danger font-medium' : ''}>
                   {(ownBalance.remaining - previewDays) < 0
@@ -1162,16 +1162,16 @@ export default function TimeOffPage() {
             const unpaidHours = Math.round(Math.max(0, reqHours - remaining) * 10) / 10
             const afterHours = Math.round(Math.max(0, remaining - reqHours) * 10) / 10
             return (
-              <div className={`-mt-2 rounded-xl px-4 py-3 text-xs ${unpaidHours > 0 ? 'bg-warning/8 border border-warning/20' : 'bg-charcoal/4'}`}>
-                <p className="text-charcoal/60">
-                  This request covers <span className="font-semibold text-charcoal">{fmtDays(previewDays)}</span> (~{reqHours} h based on your average shift length).
+              <div className={`-mt-2 rounded-xl px-4 py-3 text-xs ${unpaidHours > 0 ? 'bg-warning/8 border border-warning/20' : 'bg-charcoal/4 dark:bg-white/5'}`}>
+                <p className="text-charcoal/60 dark:text-white/50">
+                  This request covers <span className="font-semibold text-charcoal dark:text-white">{fmtDays(previewDays)}</span> (~{reqHours} h based on your average shift length).
                 </p>
                 {unpaidHours > 0 ? (
                   <p className="mt-1 font-medium text-warning">
                     ~{Math.round(paidHours * 10) / 10} h paid · ~{unpaidHours} h unpaid — you don't have enough accrued hours to cover this in full.
                   </p>
                 ) : (
-                  <p className="mt-1 text-charcoal/50">
+                  <p className="mt-1 text-charcoal/50 dark:text-white/40">
                     You'll have ~{afterHours} h remaining after this.
                   </p>
                 )}
@@ -1180,13 +1180,13 @@ export default function TimeOffPage() {
           })()}
 
           <div>
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1">Reason (optional)</label>
+            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Reason (optional)</label>
             <textarea
               value={form.reason}
               onChange={e => setForm(f => ({ ...f, reason: e.target.value }))}
               rows={2}
               placeholder="e.g. Holiday, family event, appointment..."
-              className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 bg-white text-sm resize-none focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+              className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm resize-none focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
             />
           </div>
 
@@ -1207,7 +1207,7 @@ export default function TimeOffPage() {
         title={showDayDetail ? format(showDayDetail, 'EEEE d MMMM yyyy') : ''}
       >
         {dayDetailRequests.length === 0 ? (
-          <p className="text-sm text-charcoal/30 italic py-4">No time-off requests for this day.</p>
+          <p className="text-sm text-charcoal/30 dark:text-white/30 italic py-4">No time-off requests for this day.</p>
         ) : (
           <div className="flex flex-col gap-3">
             {dayDetailRequests.map(r => {

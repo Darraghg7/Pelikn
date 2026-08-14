@@ -46,7 +46,7 @@ export default function AuthCallbackPage() {
     <div className="min-h-dvh bg-surface flex items-center justify-center px-5">
       <div className="text-center max-w-xs">
         <div className="w-12 h-12 rounded-full border-2 border-brand/20 border-t-brand animate-spin mx-auto mb-4" />
-        <p className="text-sm text-charcoal/60">{status}</p>
+        <p className="text-sm text-charcoal/60 dark:text-white/50">{status}</p>
         {status.includes('expired') && (
           <button
             onClick={() => navigate('/')}

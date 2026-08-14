@@ -47,7 +47,7 @@ function LogRow({ log }) {
   const fail = isCoolingTempFail(log.end_temp, log.target_temp)
   const method = COOLING_METHODS.find(m => m.value === log.cooling_method)?.label ?? log.cooling_method
   return (
-    <div className={`rounded-xl border p-4 ${fail ? 'border-danger/30 bg-danger/5' : 'border-charcoal/10 bg-white dark:bg-white/5 dark:border-white/10'}`}>
+    <div className={`rounded-xl border p-4 ${fail ? 'border-danger/30 bg-danger/5' : 'border-charcoal/10 dark:border-white/10 bg-white dark:bg-white/5'}`}>
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
           <p className="font-medium text-sm text-charcoal dark:text-white truncate">{log.food_item}</p>

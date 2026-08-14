@@ -113,43 +113,43 @@ function AddTipSplitModal({ staff, venueId, managerId, onSaved, onClose }) {
 
   return (
     <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-black/40 p-4" onClick={e => e.target === e.currentTarget && onClose()}>
-      <div className="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto flex flex-col">
-        <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-charcoal/8">
-          <h2 className="text-lg font-bold text-charcoal">Add Tip Split</h2>
-          <button onClick={onClose} className="text-charcoal/30 hover:text-charcoal text-xl leading-none">&times;</button>
+      <div className="bg-white dark:bg-paperDark rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto flex flex-col">
+        <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-charcoal/8 dark:border-white/8">
+          <h2 className="text-lg font-bold text-charcoal dark:text-white">Add Tip Split</h2>
+          <button onClick={onClose} className="text-charcoal/30 dark:text-white/30 hover:text-charcoal dark:hover:text-white text-xl leading-none">&times;</button>
         </div>
 
         <div className="px-5 py-4 flex flex-col gap-4">
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-xs font-medium text-charcoal/50 mb-1 block">Total tips</label>
+              <label className="text-xs font-medium text-charcoal/50 dark:text-white/40 mb-1 block">Total tips</label>
               <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-charcoal/40 text-sm">&pound;</span>
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-charcoal/40 dark:text-white/35 text-sm">&pound;</span>
                 <input
                   type="number" step="0.01" min="0" value={total}
                   onChange={e => setTotal(e.target.value)}
-                  className="w-full border border-charcoal/15 rounded-xl py-2.5 pl-7 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30"
+                  className="w-full border border-charcoal/15 dark:border-white/15 rounded-xl py-2.5 pl-7 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30"
                   placeholder="0.00"
                   autoFocus
                 />
               </div>
             </div>
             <div>
-              <label className="text-xs font-medium text-charcoal/50 mb-1 block">Date</label>
+              <label className="text-xs font-medium text-charcoal/50 dark:text-white/40 mb-1 block">Date</label>
               <input
                 type="date" value={date}
                 onChange={e => setDate(e.target.value)}
-                className="w-full border border-charcoal/15 rounded-xl py-2.5 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30"
+                className="w-full border border-charcoal/15 dark:border-white/15 rounded-xl py-2.5 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30"
               />
             </div>
           </div>
 
           <div>
-            <label className="text-xs font-medium text-charcoal/50 mb-1 block">Notes (optional)</label>
+            <label className="text-xs font-medium text-charcoal/50 dark:text-white/40 mb-1 block">Notes (optional)</label>
             <input
               type="text" value={notes}
               onChange={e => setNotes(e.target.value)}
-              className="w-full border border-charcoal/15 rounded-xl py-2.5 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30"
+              className="w-full border border-charcoal/15 dark:border-white/15 rounded-xl py-2.5 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30"
               placeholder="e.g. Friday evening service"
             />
           </div>
@@ -157,7 +157,7 @@ function AddTipSplitModal({ staff, venueId, managerId, onSaved, onClose }) {
           {totalNum > 0 && (
             <>
               <div className="flex items-center justify-between">
-                <p className="text-xs font-medium text-charcoal/50">Assign to staff</p>
+                <p className="text-xs font-medium text-charcoal/50 dark:text-white/40">Assign to staff</p>
                 <button onClick={splitEvenly} className="text-xs text-brand font-medium hover:underline">
                   Split evenly
                 </button>
@@ -167,16 +167,16 @@ function AddTipSplitModal({ staff, venueId, managerId, onSaved, onClose }) {
                 {staff.map(s => (
                   <div key={s.id} className="flex items-center gap-3">
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm text-charcoal truncate">{s.name}</p>
-                      {s.job_role && <p className="text-[11px] text-charcoal/40">{s.job_role}</p>}
+                      <p className="text-sm text-charcoal dark:text-white truncate">{s.name}</p>
+                      {s.job_role && <p className="text-[11px] text-charcoal/40 dark:text-white/35">{s.job_role}</p>}
                     </div>
                     <div className="relative w-24 shrink-0">
-                      <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-charcoal/40 text-xs">&pound;</span>
+                      <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-charcoal/40 dark:text-white/35 text-xs">&pound;</span>
                       <input
                         type="number" step="0.01" min="0"
                         value={amounts[s.id]}
                         onChange={e => setAmount(s.id, e.target.value)}
-                        className="w-full border border-charcoal/15 rounded-lg py-1.5 pl-6 pr-2 text-sm text-right focus:outline-none focus:ring-2 focus:ring-brand/30"
+                        className="w-full border border-charcoal/15 dark:border-white/15 rounded-lg py-1.5 pl-6 pr-2 text-sm text-right focus:outline-none focus:ring-2 focus:ring-brand/30"
                         placeholder="0.00"
                       />
                     </div>
@@ -197,7 +197,7 @@ function AddTipSplitModal({ staff, venueId, managerId, onSaved, onClose }) {
         </div>
 
         <div className="px-5 pb-5 pt-2 flex gap-3">
-          <button onClick={onClose} className="flex-1 border border-charcoal/15 text-charcoal/60 py-2.5 rounded-xl text-sm font-medium hover:bg-charcoal/5 transition-colors">
+          <button onClick={onClose} className="flex-1 border border-charcoal/15 dark:border-white/15 text-charcoal/60 dark:text-white/50 py-2.5 rounded-xl text-sm font-medium hover:bg-charcoal/5 dark:hover:bg-white/5 transition-colors">
             Cancel
           </button>
           <button
@@ -221,24 +221,24 @@ function TipSplitCard({ split }) {
   const createdBy = split.created_by_staff?.name || 'Unknown'
 
   return (
-    <div className="bg-white rounded-2xl border border-charcoal/8 overflow-hidden">
+    <div className="bg-white dark:bg-paperDark rounded-2xl border border-charcoal/8 dark:border-white/8 overflow-hidden">
       <button
         onClick={() => setExpanded(e => !e)}
         className="w-full flex items-center justify-between px-4 py-3.5 text-left"
       >
         <div>
-          <p className="text-sm font-semibold text-charcoal">
+          <p className="text-sm font-semibold text-charcoal dark:text-white">
             &pound;{parseFloat(split.total_amount).toFixed(2)}
           </p>
-          <p className="text-[11px] text-charcoal/40 mt-0.5">
+          <p className="text-[11px] text-charcoal/40 dark:text-white/35 mt-0.5">
             {format(parseISO(split.split_date), 'EEE d MMM yyyy')} &middot; {createdBy}
             {split.notes && <> &middot; {split.notes}</>}
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-[11px] text-charcoal/35">{allocations.length} staff</span>
+          <span className="text-[11px] text-charcoal/35 dark:text-white/30">{allocations.length} staff</span>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-            className={`text-charcoal/30 transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`}
+            className={`text-charcoal/30 dark:text-white/30 transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`}
           >
             <polyline points="6 9 12 15 18 9"/>
           </svg>
@@ -246,13 +246,13 @@ function TipSplitCard({ split }) {
       </button>
 
       {expanded && allocations.length > 0 && (
-        <div className="border-t border-charcoal/6 px-4 py-3 flex flex-col gap-1.5">
+        <div className="border-t border-charcoal/6 dark:border-white/8 px-4 py-3 flex flex-col gap-1.5">
           {allocations
             .sort((a, b) => b.amount - a.amount)
             .map(a => (
               <div key={a.id} className="flex items-center justify-between">
-                <span className="text-xs text-charcoal/60">{a.staff?.name || 'Unknown'}</span>
-                <span className="text-xs font-semibold text-charcoal/70">&pound;{parseFloat(a.amount).toFixed(2)}</span>
+                <span className="text-xs text-charcoal/60 dark:text-white/50">{a.staff?.name || 'Unknown'}</span>
+                <span className="text-xs font-semibold text-charcoal/70 dark:text-white/60">&pound;{parseFloat(a.amount).toFixed(2)}</span>
               </div>
             ))
           }
@@ -275,8 +275,8 @@ export default function TipsPage() {
     return (
       <div className="flex flex-col gap-6">
         <div>
-          <h1 className="text-2xl font-bold text-charcoal">Tips</h1>
-          <p className="text-sm text-charcoal/40 mt-1">Only managers can view tip distributions.</p>
+          <h1 className="text-2xl font-bold text-charcoal dark:text-white">Tips</h1>
+          <p className="text-sm text-charcoal/40 dark:text-white/35 mt-1">Only managers can view tip distributions.</p>
         </div>
       </div>
     )
@@ -286,8 +286,8 @@ export default function TipsPage() {
     <div className="flex flex-col gap-6">
       <div className="flex items-end justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-charcoal">Tips</h1>
-          <p className="text-sm text-charcoal/40 mt-1">Distribute and track tips across your team</p>
+          <h1 className="text-2xl font-bold text-charcoal dark:text-white">Tips</h1>
+          <p className="text-sm text-charcoal/40 dark:text-white/35 mt-1">Distribute and track tips across your team</p>
         </div>
         <button
           onClick={() => setShowAdd(true)}

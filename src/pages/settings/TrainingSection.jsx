@@ -72,7 +72,7 @@ export default function TrainingSection({ staffId }) {
   if (loading) return <div className="pt-2"><SkeletonList rows={2} /></div>
 
   return (
-    <div className="border-t border-charcoal/10 pt-4 mt-2">
+    <div className="border-t border-charcoal/10 dark:border-white/10 pt-4 mt-2">
       <ConfirmDialog
         open={!!deleteTarget}
         title="Delete training record?"
@@ -83,47 +83,47 @@ export default function TrainingSection({ staffId }) {
         onConfirm={() => { handleDelete(deleteTarget.id); setDeleteTarget(null) }}
       />
       <div className="flex items-center justify-between mb-3">
-        <p className="text-[11px] tracking-widest uppercase text-charcoal/40">Training Records</p>
+        <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">Training Records</p>
         <button
           type="button"
           onClick={() => setShowForm(f => !f)}
-          className="text-[11px] tracking-widest uppercase text-charcoal/40 hover:text-charcoal transition-colors border-b border-charcoal/20"
+          className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white transition-colors border-b border-charcoal/20 dark:border-white/20"
         >
           {showForm ? 'Cancel' : '+ Add Record'}
         </button>
       </div>
 
       {showForm && (
-        <div className="bg-white rounded-lg border border-charcoal/10 p-4 mb-3 flex flex-col gap-3">
+        <div className="bg-white dark:bg-paperDark rounded-lg border border-charcoal/10 dark:border-white/10 p-4 mb-3 flex flex-col gap-3">
           <div>
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1">Title *</label>
+            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Title *</label>
             <input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
               placeholder="e.g. Food Hygiene Level 2"
-              className="w-full px-3 py-2 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20" />
+              className="w-full px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20" />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1">Issued Date</label>
+              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Issued Date</label>
               <input type="date" value={form.issued_date} onChange={e => setForm(f => ({ ...f, issued_date: e.target.value }))}
-                className="w-full px-3 py-2 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20" />
+                className="w-full px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20" />
             </div>
             <div>
-              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1">Expiry Date</label>
+              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Expiry Date</label>
               <input type="date" value={form.expiry_date} onChange={e => setForm(f => ({ ...f, expiry_date: e.target.value }))}
-                className="w-full px-3 py-2 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20" />
+                className="w-full px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20" />
             </div>
           </div>
           <div>
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1">Notes</label>
+            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Notes</label>
             <textarea value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))}
               rows={2} placeholder="Optional notes"
-              className="w-full px-3 py-2 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 resize-none" />
+              className="w-full px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 resize-none" />
           </div>
           <div>
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1">Certificate / File</label>
+            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Certificate / File</label>
             <input type="file" accept="image/*,.pdf"
               onChange={e => setFile(e.target.files[0] ?? null)}
-              className="w-full text-sm text-charcoal/60 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border file:border-charcoal/15 file:text-xs file:bg-white file:text-charcoal/60 hover:file:bg-cream" />
+              className="w-full text-sm text-charcoal/60 dark:text-white/50 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border file:border-charcoal/15 dark:file:border-white/15 file:text-xs file:bg-white dark:file:bg-paperDark file:text-charcoal/60 dark:file:text-white/50 hover:file:bg-cream" />
           </div>
           <button onClick={handleAdd} disabled={saving}
             className="bg-charcoal text-cream py-2 rounded-lg text-sm font-medium disabled:opacity-40 hover:bg-charcoal/90 transition-colors">
@@ -133,7 +133,7 @@ export default function TrainingSection({ staffId }) {
       )}
 
       {records.length === 0 && !showForm && (
-        <p className="text-xs text-charcoal/30 italic">No training records yet.</p>
+        <p className="text-xs text-charcoal/30 dark:text-white/30 italic">No training records yet.</p>
       )}
 
       {records.length > 0 && (
@@ -141,18 +141,18 @@ export default function TrainingSection({ staffId }) {
           {records.map(r => {
             const expired = r.expiry_date && isPast(parseISO(r.expiry_date))
             return (
-              <li key={r.id} className="flex items-start justify-between gap-3 rounded-lg border border-charcoal/8 bg-white px-4 py-3">
+              <li key={r.id} className="flex items-start justify-between gap-3 rounded-lg border border-charcoal/8 dark:border-white/8 bg-white dark:bg-paperDark px-4 py-3">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <p className="text-sm font-medium text-charcoal">{r.title}</p>
+                    <p className="text-sm font-medium text-charcoal dark:text-white">{r.title}</p>
                     {expired && (
                       <span className="text-[11px] tracking-widest uppercase bg-danger/10 text-danger px-1.5 py-0.5 rounded font-medium">Expired</span>
                     )}
                   </div>
                   <div className="flex items-center gap-3 mt-0.5 flex-wrap">
-                    {r.issued_date && <p className="text-xs text-charcoal/40">Issued: {format(parseISO(r.issued_date), 'dd/MM/yyyy')}</p>}
+                    {r.issued_date && <p className="text-xs text-charcoal/40 dark:text-white/35">Issued: {format(parseISO(r.issued_date), 'dd/MM/yyyy')}</p>}
                     {r.expiry_date && (
-                      <p className={`text-xs ${expired ? 'text-danger/70' : 'text-charcoal/40'}`}>
+                      <p className={`text-xs ${expired ? 'text-danger/70' : 'text-charcoal/40 dark:text-white/35'}`}>
                         Expires: {format(parseISO(r.expiry_date), 'dd/MM/yyyy')}
                       </p>
                     )}
@@ -163,10 +163,10 @@ export default function TrainingSection({ staffId }) {
                       </button>
                     )}
                   </div>
-                  {r.notes && <p className="text-xs text-charcoal/40 mt-1 italic">{r.notes}</p>}
+                  {r.notes && <p className="text-xs text-charcoal/40 dark:text-white/35 mt-1 italic">{r.notes}</p>}
                 </div>
                 <button onClick={() => setDeleteTarget(r)}
-                  className="text-charcoal/25 hover:text-danger transition-colors shrink-0 mt-0.5"><svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+                  className="text-charcoal/25 dark:text-white/25 hover:text-danger transition-colors shrink-0 mt-0.5"><svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
               </li>
             )
           })}

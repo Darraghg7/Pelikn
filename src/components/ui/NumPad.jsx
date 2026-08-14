@@ -34,8 +34,8 @@ export default function NumPad({ value, onChange }) {
             'h-14 rounded-2xl text-lg font-semibold transition-all select-none',
             'active:scale-95',
             k === '⌫' || k === '±'
-              ? 'bg-charcoal/8 text-charcoal/50 active:bg-charcoal/15'
-              : 'bg-charcoal/6 text-charcoal active:bg-charcoal/15',
+              ? 'bg-charcoal/8 dark:bg-white/10 text-charcoal/50 dark:text-white/40 active:bg-charcoal/15 dark:active:bg-white/20'
+              : 'bg-charcoal/6 dark:bg-white/8 text-charcoal dark:text-white active:bg-charcoal/15 dark:active:bg-white/20',
           ].join(' ')}
         >
           {k}

@@ -148,8 +148,8 @@ export default function AllergenProcedurePage() {
 
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-charcoal">Allergen Management Procedure</h1>
-        <p className="text-sm text-charcoal/50 mt-1">
+        <h1 className="text-2xl font-bold text-charcoal dark:text-white">Allergen Management Procedure</h1>
+        <p className="text-sm text-charcoal/50 dark:text-white/40 mt-1">
           Written procedure for handling allergen requests during service — required by EHOs post-Natasha's Law.
         </p>
       </div>
@@ -169,20 +169,20 @@ export default function AllergenProcedurePage() {
       </div>
 
       {/* Key contacts */}
-      <div className="bg-white rounded-2xl border border-charcoal/10 p-5">
-        <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-3">Key Contacts</p>
+      <div className="bg-white dark:bg-paperDark rounded-2xl border border-charcoal/10 dark:border-white/10 p-5">
+        <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-3">Key Contacts</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {[
             { key: 'responsible_manager', label: 'Responsible manager', placeholder: 'Name of manager responsible for allergen compliance' },
             { key: 'eho_contact',         label: 'Local EHO contact',   placeholder: 'Name and phone of your local Environmental Health Officer' },
           ].map(f => (
             <div key={f.key} className="flex flex-col gap-1">
-              <label className="text-[11px] tracking-widest uppercase text-charcoal/30">{f.label}</label>
+              <label className="text-[11px] tracking-widest uppercase text-charcoal/30 dark:text-white/30">{f.label}</label>
               <input
                 value={meta[f.key]}
                 onChange={e => setMeta(m => ({ ...m, [f.key]: e.target.value }))}
                 placeholder={f.placeholder}
-                className="px-3 py-2 rounded-lg border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+                className="px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
               />
             </div>
           ))}
@@ -191,21 +191,21 @@ export default function AllergenProcedurePage() {
 
       {/* Procedure sections */}
       {PROC_SECTIONS.map(section => (
-        <div key={section.key} className="bg-white rounded-2xl border border-charcoal/10 p-5">
-          <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-0.5">{section.title}</p>
-          <p className="text-xs text-charcoal/40 mb-3">{section.desc}</p>
+        <div key={section.key} className="bg-white dark:bg-paperDark rounded-2xl border border-charcoal/10 dark:border-white/10 p-5">
+          <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-0.5">{section.title}</p>
+          <p className="text-xs text-charcoal/40 dark:text-white/35 mb-3">{section.desc}</p>
           <textarea
             value={sections[section.key] || ''}
             onChange={e => setSections(prev => ({ ...prev, [section.key]: e.target.value }))}
             rows={section.rows}
-            className="w-full px-4 py-3 rounded-lg border border-charcoal/15 bg-white text-charcoal text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-charcoal/20 resize-none"
+            className="w-full px-4 py-3 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-charcoal dark:text-white text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 resize-none"
           />
         </div>
       ))}
 
       {/* Last saved */}
       {procedure?.updated_at && (
-        <p className="text-[11px] text-charcoal/30 text-right -mt-2">
+        <p className="text-[11px] text-charcoal/30 dark:text-white/30 text-right -mt-2">
           Last saved {format(new Date(procedure.updated_at), 'd MMM yyyy, HH:mm')}
         </p>
       )}
@@ -221,7 +221,7 @@ export default function AllergenProcedurePage() {
         </button>
         <button
           onClick={() => window.print()}
-          className="px-5 py-3 rounded-xl border border-charcoal/15 text-sm text-charcoal/60 hover:border-charcoal/30 hover:text-charcoal transition-colors"
+          className="px-5 py-3 rounded-xl border border-charcoal/15 dark:border-white/15 text-sm text-charcoal/60 dark:text-white/50 hover:border-charcoal/30 dark:hover:border-white/30 hover:text-charcoal dark:hover:text-white transition-colors"
         >
           Print
         </button>

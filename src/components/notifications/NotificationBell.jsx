@@ -96,7 +96,7 @@ function SwipeableNotif({ n, venueSlug, onDismiss, onNavigate }) {
       {/* Notification row */}
       <div
         ref={itemRef}
-        className="relative bg-white transition-transform duration-150 group"
+        className="relative bg-white dark:bg-paperDark transition-transform duration-150 group"
         style={{ transform: `translateX(${offset}px)` }}
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
@@ -105,15 +105,15 @@ function SwipeableNotif({ n, venueSlug, onDismiss, onNavigate }) {
         <Link
           to={`/v/${venueSlug}${n.link}`}
           onClick={onNavigate}
-          className="flex items-start gap-3 px-4 py-3 hover:bg-charcoal/3 transition-colors pr-8"
+          className="flex items-start gap-3 px-4 py-3 hover:bg-charcoal/3 dark:hover:bg-white/5 transition-colors pr-8"
         >
-          <span className="mt-0.5 shrink-0 text-charcoal/50">{TYPE_ICON[n.type]}</span>
-          <p className="text-sm text-charcoal leading-snug">{n.message}</p>
+          <span className="mt-0.5 shrink-0 text-charcoal/50 dark:text-white/40">{TYPE_ICON[n.type]}</span>
+          <p className="text-sm text-charcoal dark:text-white leading-snug">{n.message}</p>
         </Link>
         {/* Desktop dismiss button — visible on hover */}
         <button
           onClick={(e) => { e.preventDefault(); animateOut() }}
-          className="absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center rounded-full text-charcoal/25 hover:text-charcoal/60 hover:bg-charcoal/8 transition-all opacity-0 group-hover:opacity-100"
+          className="absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center rounded-full text-charcoal/25 dark:text-white/25 hover:text-charcoal/60 dark:hover:text-white/50 hover:bg-charcoal/8 dark:hover:bg-white/8 transition-all opacity-0 group-hover:opacity-100"
           aria-label="Dismiss notification"
         >
           <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -182,7 +182,7 @@ export default function NotificationBell({ variant = 'light' }) {
     <div className="relative" ref={ref}>
       <button
         onClick={handleBellClick}
-        className={`relative flex items-center justify-center w-9 h-9 rounded-lg transition-colors ${hoverColor} ${count > 0 ? (variant === 'light' ? 'bg-cream/15' : 'bg-charcoal/10') : ''}`}
+        className={`relative flex items-center justify-center w-9 h-9 rounded-lg transition-colors ${hoverColor} ${count > 0 ? (variant === 'light' ? 'bg-cream/15' : 'bg-charcoal/10 dark:bg-white/10') : ''}`}
         aria-label={`Notifications${count > 0 ? ` (${count} unread)` : ''}`}
       >
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={iconColor}>
@@ -197,15 +197,15 @@ export default function NotificationBell({ variant = 'light' }) {
       </button>
 
       {open && popupPos && (
-        <div className="fixed w-80 bg-white rounded-2xl shadow-lg border border-charcoal/10 z-[200] overflow-hidden" style={{ top: popupPos.top, left: popupPos.left }}>
-          <div className="flex items-center justify-between px-4 py-3 border-b border-charcoal/8">
-            <p className="text-xs font-semibold tracking-widest uppercase text-charcoal/50">
+        <div className="fixed w-80 bg-white dark:bg-paperDark rounded-2xl shadow-lg border border-charcoal/10 dark:border-white/10 z-[200] overflow-hidden" style={{ top: popupPos.top, left: popupPos.left }}>
+          <div className="flex items-center justify-between px-4 py-3 border-b border-charcoal/8 dark:border-white/8">
+            <p className="text-xs font-semibold tracking-widest uppercase text-charcoal/50 dark:text-white/40">
               Notifications
             </p>
             {count > 0 && (
               <button
                 onClick={dismissAll}
-                className="text-[11px] tracking-widest uppercase text-charcoal/35 hover:text-charcoal/60 transition-colors"
+                className="text-[11px] tracking-widest uppercase text-charcoal/35 dark:text-white/30 hover:text-charcoal/60 dark:hover:text-white/50 transition-colors"
               >
                 Dismiss all
               </button>
@@ -214,11 +214,11 @@ export default function NotificationBell({ variant = 'light' }) {
 
           {visible.length === 0 ? (
             <div className="px-4 py-6 text-center">
-              <p className="text-sm text-charcoal/30">All clear — no alerts</p>
+              <p className="text-sm text-charcoal/30 dark:text-white/30">All clear — no alerts</p>
             </div>
           ) : (
             <>
-              <ul className="divide-y divide-charcoal/6 max-h-80 overflow-y-auto">
+              <ul className="divide-y divide-charcoal/6 dark:divide-white/8 max-h-80 overflow-y-auto">
                 {visible.map(n => (
                   <SwipeableNotif
                     key={n.id}
@@ -229,7 +229,7 @@ export default function NotificationBell({ variant = 'light' }) {
                   />
                 ))}
               </ul>
-              <p className="text-[11px] text-charcoal/25 text-center py-2 border-t border-charcoal/6">
+              <p className="text-[11px] text-charcoal/25 dark:text-white/25 text-center py-2 border-t border-charcoal/6 dark:border-white/8">
                 Swipe left to dismiss · Resets when new activity occurs
               </p>
             </>

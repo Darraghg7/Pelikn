@@ -21,20 +21,20 @@ function StatTile({ label, value, sub, tone, icon }) {
   const valueClass =
     tone === 'bad'  ? 'text-danger'  :
     tone === 'warn' ? 'text-warning' :
-    tone === 'good' ? 'text-success' : 'text-charcoal'
+    tone === 'good' ? 'text-success' : 'text-charcoal dark:text-white'
 
   const iconClass =
     tone === 'bad'  ? 'text-danger'  :
     tone === 'warn' ? 'text-warning' :
-    tone === 'good' ? 'text-success' : 'text-charcoal/30'
+    tone === 'good' ? 'text-success' : 'text-charcoal/30 dark:text-white/30'
 
   return (
-    <div className="bg-white dark:bg-paperDark border border-charcoal/10 rounded-2xl px-[17px] py-[15px] flex flex-col gap-0.5 relative overflow-hidden shadow-sm">
+    <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-2xl px-[17px] py-[15px] flex flex-col gap-0.5 relative overflow-hidden shadow-sm">
       {tone && (
         <span className={`absolute left-0 top-[14px] bottom-[14px] w-[3px] rounded-r-full ${accentClass}`} />
       )}
       <div className="flex items-center gap-2">
-        <span className="font-mono text-[11px] uppercase tracking-[0.08em] text-charcoal/50 font-semibold">
+        <span className="font-mono text-[11px] uppercase tracking-[0.08em] text-charcoal/50 dark:text-white/40 font-semibold">
           {label}
         </span>
         <span className={`ml-auto inline-flex ${iconClass}`}>
@@ -45,7 +45,7 @@ function StatTile({ label, value, sub, tone, icon }) {
         <span className={`font-mono text-[28px] font-medium tracking-[-0.03em] leading-none tabular-nums ${valueClass}`}>
           {value}
         </span>
-        <span className="text-xs text-charcoal/50">{sub}</span>
+        <span className="text-xs text-charcoal/50 dark:text-white/40">{sub}</span>
       </div>
     </div>
   )
@@ -70,12 +70,12 @@ function MobileRow({ s, actionIds, expiringIds, onClick }) {
   return (
     <button
       onClick={onClick}
-      className="flex items-center gap-[11px] w-full text-left cursor-pointer px-[14px] py-[10px] bg-transparent border-0 border-t border-charcoal/6 first:border-t-0"
+      className="flex items-center gap-[11px] w-full text-left cursor-pointer px-[14px] py-[10px] bg-transparent border-0 border-t border-charcoal/6 dark:border-white/8 first:border-t-0"
     >
       <Avatar name={s.name} size={38} />
       <div className="flex-1 min-w-0">
-        <div className="text-[13.5px] font-medium text-charcoal overflow-hidden text-ellipsis whitespace-nowrap">{s.name}</div>
-        <div className="font-mono text-[10px] text-charcoal/50 uppercase tracking-[0.03em] mt-px overflow-hidden text-ellipsis whitespace-nowrap">{s.job_role ?? 'No role'}</div>
+        <div className="text-[13.5px] font-medium text-charcoal dark:text-white overflow-hidden text-ellipsis whitespace-nowrap">{s.name}</div>
+        <div className="font-mono text-[10px] text-charcoal/50 dark:text-white/40 uppercase tracking-[0.03em] mt-px overflow-hidden text-ellipsis whitespace-nowrap">{s.job_role ?? 'No role'}</div>
       </div>
       {hasAttn ? (
         <span className={`inline-flex items-center gap-1 px-2 py-[3px] rounded-full text-[10px] font-mono font-semibold tracking-[0.04em] uppercase whitespace-nowrap shrink-0 ${isFormal ? 'text-danger bg-danger/10' : 'text-warning bg-warning/10'}`}>
@@ -85,7 +85,7 @@ function MobileRow({ s, actionIds, expiringIds, onClick }) {
       ) : (
         <span className="w-[6px] h-[6px] rounded-full bg-success shrink-0" />
       )}
-      <svg width="7" height="11" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="text-charcoal/25 shrink-0"><path d="M1 1l4 4-4 4"/></svg>
+      <svg width="7" height="11" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="text-charcoal/25 dark:text-white/25 shrink-0"><path d="M1 1l4 4-4 4"/></svg>
     </button>
   )
 }
@@ -103,15 +103,15 @@ function ListRow({ s, selected, actionIds, expiringIds, onClick }) {
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       className={`flex items-center gap-[11px] w-full text-left cursor-pointer px-[13px] py-2.5 rounded-xl border border-transparent transition-colors duration-[120ms] ${
-        isSel ? 'bg-brand/8' : hovered ? 'bg-charcoal/6' : 'bg-transparent'
+        isSel ? 'bg-brand/8' : hovered ? 'bg-charcoal/6 dark:bg-white/8' : 'bg-transparent'
       }`}
     >
       <Avatar name={s.name} size={36} />
       <div className="flex-1 min-w-0">
-        <div className={`text-[13.5px] text-charcoal overflow-hidden text-ellipsis whitespace-nowrap ${isSel ? 'font-bold' : 'font-medium'}`}>
+        <div className={`text-[13.5px] text-charcoal dark:text-white overflow-hidden text-ellipsis whitespace-nowrap ${isSel ? 'font-bold' : 'font-medium'}`}>
           {s.name}
         </div>
-        <div className="font-mono text-[11px] text-charcoal/50 uppercase tracking-[0.03em] mt-px overflow-hidden text-ellipsis whitespace-nowrap">
+        <div className="font-mono text-[11px] text-charcoal/50 dark:text-white/40 uppercase tracking-[0.03em] mt-px overflow-hidden text-ellipsis whitespace-nowrap">
           {s.job_role ?? 'No role'}
         </div>
       </div>
@@ -211,10 +211,10 @@ export default function HRHubPage() {
       {loading ? (
         <SkeletonList rows={5} />
       ) : staff.length === 0 ? (
-        <div className="text-center px-4 py-[60px] text-charcoal/30">
-          <div className="mb-1.5 font-mono text-[11px] tracking-[0.1em] uppercase text-charcoal/50">Manager · Team</div>
-          <h1 className="text-[28px] font-bold tracking-[-0.03em] text-charcoal mt-0 mb-2.5">HR Records</h1>
-          <p className="text-[13.5px] text-charcoal/50 mb-6">No active staff members found.</p>
+        <div className="text-center px-4 py-[60px] text-charcoal/30 dark:text-white/30">
+          <div className="mb-1.5 font-mono text-[11px] tracking-[0.1em] uppercase text-charcoal/50 dark:text-white/40">Manager · Team</div>
+          <h1 className="text-[28px] font-bold tracking-[-0.03em] text-charcoal dark:text-white mt-0 mb-2.5">HR Records</h1>
+          <p className="text-[13.5px] text-charcoal/50 dark:text-white/40 mb-6">No active staff members found.</p>
           <button
             onClick={() => navigate(vp('/settings'))}
             className="bg-brand text-white border-0 rounded-[11px] px-5 py-2.5 cursor-pointer text-[13px] font-semibold"
@@ -234,22 +234,22 @@ export default function HRHubPage() {
           {/* ── Mobile: single-column list, rows navigate to /hr/:id ── */}
           <div className="lg:hidden flex flex-col gap-[14px]">
             <div className="px-0.5">
-              <div className="font-mono text-[10.5px] tracking-[0.1em] uppercase text-charcoal/50 font-semibold">Manager · Team</div>
-              <h1 className="text-[24px] font-semibold tracking-[-0.025em] text-charcoal m-0 mt-[5px]">HR Records</h1>
+              <div className="font-mono text-[10.5px] tracking-[0.1em] uppercase text-charcoal/50 dark:text-white/40 font-semibold">Manager · Team</div>
+              <h1 className="text-[24px] font-semibold tracking-[-0.025em] text-charcoal dark:text-white m-0 mt-[5px]">HR Records</h1>
             </div>
 
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-charcoal/30 inline-flex pointer-events-none">{ICO.search}</span>
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-charcoal/30 dark:text-white/30 inline-flex pointer-events-none">{ICO.search}</span>
               <input
                 value={query}
                 onChange={e => setQuery(e.target.value)}
                 placeholder="Search staff…"
-                className="w-full py-[10px] pl-9 pr-3 rounded-[12px] border border-charcoal/10 text-[13.5px] outline-none focus:ring-2 focus:ring-charcoal/20 focus:border-charcoal/20 bg-white dark:bg-paperDark text-charcoal box-border"
+                className="w-full py-[10px] pl-9 pr-3 rounded-[12px] border border-charcoal/10 dark:border-white/10 text-[13.5px] outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 focus:border-charcoal/20 dark:focus:border-white/20 bg-white dark:bg-paperDark text-charcoal dark:text-white box-border"
               />
             </div>
 
             {filtered.length === 0 ? (
-              <div className="bg-white border border-charcoal/10 rounded-[14px] overflow-hidden px-4 py-8 text-center text-charcoal/30 text-[13px]">
+              <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[14px] overflow-hidden px-4 py-8 text-center text-charcoal/30 dark:text-white/30 text-[13px]">
                 No staff match your search
               </div>
             ) : (
@@ -259,7 +259,7 @@ export default function HRHubPage() {
                     <div className="font-mono text-[10.5px] text-danger tracking-[0.08em] uppercase font-semibold pb-[7px] px-0.5">
                       Needs attention · {attentionRows.length}
                     </div>
-                    <div className="bg-white border border-charcoal/10 rounded-[14px] overflow-hidden">
+                    <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[14px] overflow-hidden">
                       {attentionRows.map(s => (
                         <MobileRow key={s.id} s={s} actionIds={actionIds} expiringIds={expiringIds} onClick={() => navigate(vp('/hr/' + s.id))} />
                       ))}
@@ -267,10 +267,10 @@ export default function HRHubPage() {
                   </div>
                 )}
                 <div>
-                  <div className="font-mono text-[10.5px] text-charcoal/50 tracking-[0.08em] uppercase font-semibold pb-[7px] px-0.5">
+                  <div className="font-mono text-[10.5px] text-charcoal/50 dark:text-white/40 tracking-[0.08em] uppercase font-semibold pb-[7px] px-0.5">
                     All staff · {regularRows.length}
                   </div>
-                  <div className="bg-white border border-charcoal/10 rounded-[14px] overflow-hidden">
+                  <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[14px] overflow-hidden">
                     {regularRows.map(s => (
                       <MobileRow key={s.id} s={s} actionIds={actionIds} expiringIds={expiringIds} onClick={() => navigate(vp('/hr/' + s.id))} />
                     ))}
@@ -285,29 +285,29 @@ export default function HRHubPage() {
 
             <div className="sticky top-[76px] h-[calc(100vh-160px)] flex flex-col">
               <div className="mb-3.5">
-                <div className="font-mono text-[11px] tracking-[0.1em] uppercase text-charcoal/50 font-semibold">
+                <div className="font-mono text-[11px] tracking-[0.1em] uppercase text-charcoal/50 dark:text-white/40 font-semibold">
                   Manager · Team
                 </div>
-                <h1 className="text-[23px] font-bold tracking-[-0.025em] text-charcoal leading-[1.1] mt-1 mb-0">
+                <h1 className="text-[23px] font-bold tracking-[-0.025em] text-charcoal dark:text-white leading-[1.1] mt-1 mb-0">
                   HR Records
                 </h1>
               </div>
 
               <div className="relative mb-2.5">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-charcoal/30 inline-flex pointer-events-none">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-charcoal/30 dark:text-white/30 inline-flex pointer-events-none">
                   {ICO.search}
                 </span>
                 <input
                   value={query}
                   onChange={e => setQuery(e.target.value)}
                   placeholder="Search staff…"
-                  className="w-full py-[9px] pl-9 pr-3 rounded-[11px] border border-charcoal/10 text-[13px] outline-none focus:ring-2 focus:ring-charcoal/20 focus:border-charcoal/20 bg-white dark:bg-paperDark text-charcoal box-border"
+                  className="w-full py-[9px] pl-9 pr-3 rounded-[11px] border border-charcoal/10 dark:border-white/10 text-[13px] outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 focus:border-charcoal/20 dark:focus:border-white/20 bg-white dark:bg-paperDark text-charcoal dark:text-white box-border"
                 />
               </div>
 
               <button
                 onClick={() => navigate(vp('/settings'))}
-                className="flex items-center gap-[7px] w-full px-[13px] py-[9px] rounded-[11px] border border-charcoal/10 bg-transparent text-charcoal/50 cursor-pointer text-[13px] font-medium mb-3.5"
+                className="flex items-center gap-[7px] w-full px-[13px] py-[9px] rounded-[11px] border border-charcoal/10 dark:border-white/10 bg-transparent text-charcoal/50 dark:text-white/40 cursor-pointer text-[13px] font-medium mb-3.5"
               >
                 {ICO.plus}
                 <span>Add staff</span>
@@ -315,7 +315,7 @@ export default function HRHubPage() {
 
               <div className="flex-1 overflow-y-auto flex flex-col gap-px pr-0.5">
                 {filtered.length === 0 ? (
-                  <div className="text-center px-3 py-6 text-charcoal/30 font-mono text-[11px]">
+                  <div className="text-center px-3 py-6 text-charcoal/30 dark:text-white/30 font-mono text-[11px]">
                     No staff match your search
                   </div>
                 ) : (
@@ -330,7 +330,7 @@ export default function HRHubPage() {
                         ))}
                       </>
                     )}
-                    <div className="font-mono text-[11px] uppercase tracking-[0.08em] text-charcoal/50 font-bold px-3 pt-2.5 pb-[5px]">
+                    <div className="font-mono text-[11px] uppercase tracking-[0.08em] text-charcoal/50 dark:text-white/40 font-bold px-3 pt-2.5 pb-[5px]">
                       All staff · {regularRows.length}
                     </div>
                     {regularRows.map(s => (
@@ -341,7 +341,7 @@ export default function HRHubPage() {
               </div>
             </div>
 
-            <div className="border-l border-charcoal/10 pl-[22px] min-h-[calc(100vh-160px)]">
+            <div className="border-l border-charcoal/10 dark:border-white/10 pl-[22px] min-h-[calc(100vh-160px)]">
               <EmployeeRecordPanel
                 key={selected?.id}
                 staffId={selected?.id}

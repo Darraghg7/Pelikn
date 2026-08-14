@@ -63,30 +63,30 @@ export default function EditSessionModal({ open, onClose, session, venueId, onSa
       <div className="flex flex-col gap-4">
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1">Clock In</label>
+            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Clock In</label>
             <input
               type="time"
               value={form.clockIn}
               onChange={e => set('clockIn', e.target.value)}
-              className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+              className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
             />
           </div>
           <div>
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1">Clock Out</label>
+            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Clock Out</label>
             <input
               type="time"
               value={form.clockOut}
               onChange={e => set('clockOut', e.target.value)}
-              className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+              className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
             />
           </div>
         </div>
         <div>
-          <label className="text-[11px] tracking-widest uppercase text-charcoal/40 block mb-1">Break</label>
+          <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Break</label>
           <select
             value={breakMin}
             onChange={e => setBreakMin(e.target.value)}
-            className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 bg-white text-sm text-charcoal focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+            className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
           >
             {BREAK_OPTIONS.map(m => (
               <option key={m} value={String(m)}>{m === 0 ? 'No break' : `${m} min`}</option>

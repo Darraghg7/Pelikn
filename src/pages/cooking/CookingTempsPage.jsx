@@ -23,7 +23,7 @@ import { useCookingLogs, useTodayCookingLogs, isCookingTempFail, COOKING_TARGET_
 import { formatTemp, formatDateTime } from '../../lib/utils'
 
 function SectionLabel({ children }) {
-  return <p className="text-[11px] tracking-widest uppercase text-charcoal/40 mb-3">{children}</p>
+  return <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-3">{children}</p>
 }
 
 function PassBadge({ pass }) {
@@ -89,7 +89,7 @@ function LogForm({ checkType, onLogged }) {
           value={foodItem}
           onChange={e => setFoodItem(e.target.value)}
           placeholder={checkType === 'cooking' ? 'e.g. Chicken breast, Beef burger…' : 'e.g. Lasagne, Soup, Curry…'}
-          className="w-full px-4 py-3 rounded-xl border border-charcoal/15 bg-white text-sm text-charcoal placeholder-charcoal/30 focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+          className="w-full px-4 py-3 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white placeholder-charcoal/30 dark:placeholder-white/25 focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
           required
         />
       </div>
@@ -111,7 +111,7 @@ function LogForm({ checkType, onLogged }) {
                   ? isFail
                     ? 'border-danger/40 bg-danger/4 text-danger focus:ring-danger/20'
                     : 'border-success/40 bg-success/5 text-success focus:ring-success/20'
-                  : 'border-charcoal/15 bg-white text-charcoal focus:ring-charcoal/20',
+                  : 'border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-charcoal dark:text-white focus:ring-charcoal/20 dark:focus:ring-white/20',
               ].join(' ')}
             />
           </div>
@@ -129,7 +129,7 @@ function LogForm({ checkType, onLogged }) {
             type="datetime-local"
             value={loggedAt}
             onChange={e => setLoggedAt(e.target.value)}
-            className="w-full px-3 py-3 rounded-xl border border-charcoal/15 bg-white text-sm text-charcoal focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+            className="w-full px-3 py-3 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
           />
         </div>
       </div>
@@ -143,7 +143,7 @@ function LogForm({ checkType, onLogged }) {
             onChange={e => setComment(e.target.value)}
             placeholder="Describe the corrective action taken (min 5 characters)…"
             rows={2}
-            className="w-full px-4 py-3 rounded-xl border border-danger/30 bg-danger/4 text-sm text-charcoal placeholder-charcoal/30 focus:outline-none focus:ring-2 focus:ring-danger/20 resize-none"
+            className="w-full px-4 py-3 rounded-xl border border-danger/30 bg-danger/4 text-sm text-charcoal dark:text-white placeholder-charcoal/30 dark:placeholder-white/25 focus:outline-none focus:ring-2 focus:ring-danger/20 resize-none"
           />
         </div>
       )}
@@ -157,7 +157,7 @@ function LogForm({ checkType, onLogged }) {
             value={comment}
             onChange={e => setComment(e.target.value)}
             placeholder="Any additional notes…"
-            className="w-full px-4 py-3 rounded-xl border border-charcoal/15 bg-white text-sm text-charcoal placeholder-charcoal/30 focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+            className="w-full px-4 py-3 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white placeholder-charcoal/30 dark:placeholder-white/25 focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
           />
         </div>
       )}
@@ -183,34 +183,34 @@ function HistoryTable({ logs, loading }) {
     <div className="overflow-x-auto -mx-5">
       <table className="w-full text-sm">
         <thead>
-          <tr className="border-t border-charcoal/8">
-            <th className="text-left px-5 py-2.5 text-[11px] tracking-widest uppercase text-charcoal/40 font-medium">Food Item</th>
-            <th className="text-left px-4 py-2.5 text-[11px] tracking-widest uppercase text-charcoal/40 font-medium">Type</th>
-            <th className="text-left px-4 py-2.5 text-[11px] tracking-widest uppercase text-charcoal/40 font-medium">Temp</th>
-            <th className="text-center px-3 py-2.5 text-[11px] tracking-widest uppercase text-charcoal/40 font-medium">Status</th>
-            <th className="text-left px-5 py-2.5 text-[11px] tracking-widest uppercase text-charcoal/40 font-medium hidden sm:table-cell">By</th>
-            <th className="text-left px-5 py-2.5 text-[11px] tracking-widest uppercase text-charcoal/40 font-medium">When</th>
+          <tr className="border-t border-charcoal/8 dark:border-white/8">
+            <th className="text-left px-5 py-2.5 text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 font-medium">Food Item</th>
+            <th className="text-left px-4 py-2.5 text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 font-medium">Type</th>
+            <th className="text-left px-4 py-2.5 text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 font-medium">Temp</th>
+            <th className="text-center px-3 py-2.5 text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 font-medium">Status</th>
+            <th className="text-left px-5 py-2.5 text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 font-medium hidden sm:table-cell">By</th>
+            <th className="text-left px-5 py-2.5 text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 font-medium">When</th>
           </tr>
         </thead>
         <tbody>
           {logs.map(log => {
             const fail = isCookingTempFail(log.temperature, log.target_temp ?? COOKING_TARGET_TEMP)
             return (
-              <tr key={log.id} className={`border-t border-charcoal/6 ${fail ? 'bg-danger/4' : ''}`}>
-                <td className="px-5 py-3 text-charcoal font-medium">{log.food_item}</td>
+              <tr key={log.id} className={`border-t border-charcoal/6 dark:border-white/8 ${fail ? 'bg-danger/4' : ''}`}>
+                <td className="px-5 py-3 text-charcoal dark:text-white font-medium">{log.food_item}</td>
                 <td className="px-4 py-3">
-                  <span className="text-[11px] tracking-wider uppercase font-semibold text-charcoal/50 bg-charcoal/6 px-2 py-0.5 rounded-full">
+                  <span className="text-[11px] tracking-wider uppercase font-semibold text-charcoal/50 dark:text-white/40 bg-charcoal/6 dark:bg-white/8 px-2 py-0.5 rounded-full">
                     {log.check_type}
                   </span>
                 </td>
-                <td className={`px-4 py-3 font-mono font-semibold ${fail ? 'text-danger' : 'text-charcoal'}`}>
+                <td className={`px-4 py-3 font-mono font-semibold ${fail ? 'text-danger' : 'text-charcoal dark:text-white'}`}>
                   {formatTemp(log.temperature)}
                 </td>
                 <td className="px-3 py-3 text-center">
                   <PassBadge pass={!fail} />
                 </td>
-                <td className="px-5 py-3 text-charcoal/60 hidden sm:table-cell">{log.logged_by_name ?? '—'}</td>
-                <td className="px-5 py-3 text-charcoal/50 whitespace-nowrap text-xs">{formatDateTime(log.logged_at)}</td>
+                <td className="px-5 py-3 text-charcoal/60 dark:text-white/50 hidden sm:table-cell">{log.logged_by_name ?? '—'}</td>
+                <td className="px-5 py-3 text-charcoal/50 dark:text-white/40 whitespace-nowrap text-xs">{formatDateTime(log.logged_at)}</td>
               </tr>
             )
           })}
@@ -252,21 +252,21 @@ export default function CookingTempsPage() {
 
       {/* Page header */}
       <div>
-        <h1 className="text-2xl font-bold text-charcoal">Cooking Temperatures</h1>
-        <p className="text-sm text-charcoal/45 mt-1">
+        <h1 className="text-2xl font-bold text-charcoal dark:text-white">Cooking Temperatures</h1>
+        <p className="text-sm text-charcoal/45 dark:text-white/40 mt-1">
           Log core temperatures for cooking and reheating. UK minimum: <strong>≥{COOKING_TARGET_TEMP}°C</strong>.
         </p>
       </div>
 
       {/* Tab: Log / History */}
-      <div className="flex gap-1 bg-charcoal/5 rounded-xl p-1 w-fit">
+      <div className="flex gap-1 bg-charcoal/5 dark:bg-white/5 rounded-xl p-1 w-fit">
         {[['log', 'Log Reading'], ['history', 'History']].map(([key, label]) => (
           <button
             key={key}
             onClick={() => setTab(key)}
             className={[
               'px-4 py-2 rounded-lg text-sm font-medium transition-all',
-              tab === key ? 'bg-white text-charcoal shadow-sm' : 'text-charcoal/50 hover:text-charcoal/75',
+              tab === key ? 'bg-white dark:bg-paperDark text-charcoal dark:text-white shadow-sm' : 'text-charcoal/50 dark:text-white/40 hover:text-charcoal/75 dark:hover:text-white/62',
             ].join(' ')}
           >
             {label}
@@ -277,7 +277,7 @@ export default function CookingTempsPage() {
       {tab === 'log' && (
         <>
           {/* Check type selector */}
-          <div className="bg-white rounded-2xl border border-charcoal/10 p-5">
+          <div className="bg-white dark:bg-paperDark rounded-2xl border border-charcoal/10 dark:border-white/10 p-5">
             <SectionLabel>Check Type</SectionLabel>
             <div className="flex gap-2">
               {[['cooking', 'Cooking'], ['reheating', 'Reheating']].map(([key, label]) => (
@@ -287,8 +287,8 @@ export default function CookingTempsPage() {
                   className={[
                     'flex-1 py-3 rounded-xl border text-sm font-semibold tracking-wide transition-all',
                     checkType === key
-                      ? 'bg-charcoal text-cream border-charcoal'
-                      : 'bg-white text-charcoal/55 border-charcoal/15 hover:border-charcoal/30',
+                      ? 'bg-charcoal text-cream border-charcoal dark:border-white'
+                      : 'bg-white dark:bg-paperDark text-charcoal/55 dark:text-white/45 border-charcoal/15 dark:border-white/15 hover:border-charcoal/30 dark:hover:border-white/30',
                   ].join(' ')}
                 >
                   {label}
@@ -296,14 +296,14 @@ export default function CookingTempsPage() {
               ))}
             </div>
             {checkType === 'reheating' && (
-              <p className="text-[11px] text-charcoal/45 mt-3">
+              <p className="text-[11px] text-charcoal/45 dark:text-white/40 mt-3">
                 Previously cooked food must be reheated to ≥75°C before serving.
               </p>
             )}
           </div>
 
           {/* Log form */}
-          <div className="bg-white rounded-2xl border border-charcoal/10 p-5">
+          <div className="bg-white dark:bg-paperDark rounded-2xl border border-charcoal/10 dark:border-white/10 p-5">
             <SectionLabel>New Reading</SectionLabel>
             <LogForm
               key={`${checkType}-${logKey}`}
@@ -313,7 +313,7 @@ export default function CookingTempsPage() {
           </div>
 
           {/* Today's readings */}
-          <div className="bg-white rounded-2xl border border-charcoal/10 p-5">
+          <div className="bg-white dark:bg-paperDark rounded-2xl border border-charcoal/10 dark:border-white/10 p-5">
             <SectionLabel>Today's Readings</SectionLabel>
             {todayLoading ? (
               <SkeletonList rows={3} />
@@ -324,10 +324,10 @@ export default function CookingTempsPage() {
                 {todayLogs.map(log => {
                   const fail = isCookingTempFail(log.temperature, log.target_temp ?? COOKING_TARGET_TEMP)
                   return (
-                    <div key={log.id} className={`flex items-center gap-3 px-4 py-3 rounded-xl border ${fail ? 'border-danger/25 bg-danger/4' : 'border-charcoal/8 bg-white'}`}>
+                    <div key={log.id} className={`flex items-center gap-3 px-4 py-3 rounded-xl border ${fail ? 'border-danger/25 bg-danger/4' : 'border-charcoal/8 dark:border-white/8 bg-white dark:bg-paperDark'}`}>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-charcoal truncate">{log.food_item}</p>
-                        <p className="text-[11px] text-charcoal/45 mt-0.5">
+                        <p className="text-sm font-medium text-charcoal dark:text-white truncate">{log.food_item}</p>
+                        <p className="text-[11px] text-charcoal/45 dark:text-white/40 mt-0.5">
                           <span className="uppercase tracking-wider">{log.check_type}</span>
                           {' · '}{log.logged_by_name}
                           {' · '}{formatDateTime(log.logged_at)}
@@ -347,7 +347,7 @@ export default function CookingTempsPage() {
       )}
 
       {tab === 'history' && (
-        <div className="bg-white rounded-2xl border border-charcoal/10 p-5">
+        <div className="bg-white dark:bg-paperDark rounded-2xl border border-charcoal/10 dark:border-white/10 p-5">
           <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
             <SectionLabel>All Readings</SectionLabel>
             <DateRangePresets
