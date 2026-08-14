@@ -5,20 +5,7 @@ import { useSession } from '../../contexts/SessionContext'
 import { useAppSettings } from '../../hooks/useSettings'
 import NotificationsPanel from './NotificationsPanel'
 import SettingsSubHeader from '../../components/layout/SettingsSubHeader'
-
-function Toggle({ on, onClick }) {
-  return (
-    <button
-      onClick={onClick}
-      aria-pressed={on}
-      className={`w-[46px] h-[28px] rounded-full border-none shrink-0 relative p-0 transition-colors duration-[180ms] ${on ? 'bg-brand' : 'bg-charcoal/10 dark:bg-white/10'}`}
-    >
-      <span
-        className={`absolute top-[3px] w-[22px] h-[22px] rounded-full bg-white dark:bg-paperDark shadow-[0_1px_3px_rgba(9,18,13,0.25)] transition-[left] duration-[180ms] ${on ? 'left-[21px]' : 'left-[3px]'}`}
-      />
-    </button>
-  )
-}
+import Toggle from '../../components/ui/Toggle'
 
 export default function NotificationsSettingsPage() {
   const navigate = useNavigate()
@@ -41,14 +28,14 @@ export default function NotificationsSettingsPage() {
               <div className="text-sm font-medium text-charcoal dark:text-white tracking-[-0.005em]">Lateness escalation</div>
               <div className="text-[11.5px] text-charcoal/50 dark:text-white/40 mt-0.5 leading-[1.4]">Notify manager when an attendance strike threshold is reached</div>
             </div>
-            <Toggle on={pushToManager} onClick={() => savePushToManager(!pushToManager)} />
+            <Toggle checked={pushToManager} onChange={savePushToManager} />
           </div>
           <div className="flex items-center gap-3 px-[15px] py-[13px]">
             <div className="flex-1 min-w-0">
               <div className="text-sm font-medium text-charcoal dark:text-white tracking-[-0.005em]">Break overrun</div>
               <div className="text-[11.5px] text-charcoal/50 dark:text-white/40 mt-0.5 leading-[1.4]">Notify manager when a staff member exceeds their allowed break time</div>
             </div>
-            <Toggle on={notifyBreakOverrun} onClick={() => saveNotifyBreakOverrun(!notifyBreakOverrun)} />
+            <Toggle checked={notifyBreakOverrun} onChange={saveNotifyBreakOverrun} />
           </div>
         </div>
 
