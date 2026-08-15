@@ -351,7 +351,11 @@ export function useClockAlerts({ staffId, status, breakStartAt, onEndBreak }) {
     try {
       const res = await fetch(`${supabaseUrl}/functions/v1/pin-login`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', apikey: supabaseAnonKey },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${supabaseAnonKey}`,
+          apikey: supabaseAnonKey,
+        },
         body: JSON.stringify({ action: 'verify_pin', staff_id: managerId, pin, venue_id: venueId }),
         signal: AbortSignal.timeout(6000),
       })
