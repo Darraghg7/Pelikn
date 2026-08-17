@@ -12,18 +12,25 @@
  *   setTab     – setter for tab
  *   onUpload   – optional: called when header "Upload doc" button clicked (defaults to switching tab)
  */
-import React, { useEffect, useState, useCallback } from 'react'
+import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { format, parseISO, differenceInDays } from 'date-fns'
 import { calculateEntitlementDays, countWorkingDaysInRequest } from '../../hooks/useLeaveBalance'
-import { supabase } from '../../lib/supabase'
-import { londonDateStr, londonWallTimeToInstant } from '../../lib/time'
 import { HR_BUCKET, hrAttachmentPath, openHrAttachment } from '../../lib/hrDocuments'
 import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../../components/ui/Toast'
 import Modal from '../../components/ui/Modal'
 import ConfirmDialog from '../../components/ui/ConfirmDialog'
 import { PageSkeleton, SkeletonList } from '../../components/ui/Skeleton'
+import {
+  useStaffHeader, useHRDocuments, useDisciplinaryRecord,
+  useLeaveRequests, useStaffTrainingRecord, useStaffSessions,
+} from '../../hooks/useEmployeeRecord'
+import {
+  insertHRDocument, deleteHRDocumentRow, uploadHRAttachment, removeHRAttachment,
+  insertFormalAction, deleteFormalActionRow, dismissStrikeRow, dismissAllStrikesRows,
+  revokeStaffSessionRpc,
+} from '../../lib/api/hr'
 
 // ── Constants ────────────────────────────────────────────────────────────────
 export const TABS = ['Profile', 'Documents', 'Disciplinary', 'Leave', 'Training', 'Security']
@@ -276,31 +283,15 @@ function ProfileTab({ staff, docsCount, strikesCount, venueSlug }) {
 }
 
 // ── Documents Tab ────────────────────────────────────────────────────────────
-function DocumentsTab({ staffId, venueId, onDocsCountChange }) {
+function DocumentsTab({ staffId, venueId }) {
   const toast = useToast()
   const { session } = useSession()
-  const [docs,      setDocs]      = useState([])
-  const [loading,   setLoading]   = useState(true)
+  const { docs, loading, reload } = useHRDocuments(staffId)
   const [showModal, setShowModal] = useState(false)
   const [form,      setForm]      = useState({ title: '', category: 'contract', expiry_date: '', notes: '' })
   const [file,      setFile]      = useState(null)
   const [saving,    setSaving]    = useState(false)
   const [deleteTarget, setDeleteTarget] = useState(null)
-
-  const load = useCallback(async () => {
-    setLoading(true)
-    const { data } = await supabase
-      .from('staff_hr_documents')
-      .select('*')
-      .eq('staff_id', staffId)
-      .order('created_at', { ascending: false })
-    const rows = data ?? []
-    setDocs(rows)
-    setLoading(false)
-    onDocsCountChange?.(rows.length)
-  }, [staffId, onDocsCountChange])
-
-  useEffect(() => { load() }, [load])
 
   const resetModal = () => {
     setShowModal(false)
@@ -314,9 +305,9 @@ function DocumentsTab({ staffId, venueId, onDocsCountChange }) {
     if (file.size > 15 * 1024 * 1024) { toast('File must be under 15 MB', 'error'); return }
     setSaving(true)
     const path = hrAttachmentPath(venueId, staffId, file.name)
-    const { error: upErr } = await supabase.storage.from(HR_BUCKET).upload(path, file, { upsert: false })
+    const { error: upErr } = await uploadHRAttachment(HR_BUCKET, path, file)
     if (upErr) { toast('Upload failed: ' + upErr.message, 'error'); setSaving(false); return }
-    const { error: dbErr } = await supabase.from('staff_hr_documents').insert({
+    const { error: dbErr } = await insertHRDocument({
       venue_id:    venueId,
       staff_id:    staffId,
       title:       form.title.trim(),
@@ -332,16 +323,16 @@ function DocumentsTab({ staffId, venueId, onDocsCountChange }) {
     if (dbErr) { toast('Failed to save: ' + dbErr.message, 'error'); return }
     toast('Document uploaded')
     resetModal()
-    load()
+    reload()
   }
 
   const deleteDoc = async (doc) => {
-    await supabase.from('staff_hr_documents').delete().eq('id', doc.id)
+    await deleteHRDocumentRow(doc.id)
     // Drop the file too — deleting only the row left the contract sitting in
     // storage with nothing in the UI pointing at it.
-    if (doc.file_path) await supabase.storage.from(HR_BUCKET).remove([doc.file_path])
+    if (doc.file_path) await removeHRAttachment(HR_BUCKET, doc.file_path)
     toast('Document deleted')
-    load()
+    reload()
   }
 
   return (
@@ -505,13 +496,10 @@ function AttendanceStat({ label, total, active, dates, tone }) {
 }
 
 // ── Disciplinary Tab ─────────────────────────────────────────────────────────
-function DisciplinaryTab({ staffId, venueId, onStrikesCountChange }) {
+function DisciplinaryTab({ staffId, venueId }) {
   const toast = useToast()
   const { session } = useSession()
-  const [strikes,     setStrikes]    = useState([])
-  const [formals,     setFormals]    = useState([])
-  const [lateHistory, setLateHistory] = useState([]) // derived from clock_events + shifts
-  const [loading,    setLoading]   = useState(true)
+  const { strikes, formals, lateHistory, loading, reload } = useDisciplinaryRecord(staffId, venueId)
   const [showModal,  setShowModal] = useState(false)
   const [form,       setForm]      = useState({ action_type: 'verbal_warning', occurred_at: new Date().toISOString().slice(0, 10), notes: '' })
   const [file,       setFile]      = useState(null)
@@ -519,56 +507,6 @@ function DisciplinaryTab({ staffId, venueId, onStrikesCountChange }) {
   const [dismissing, setDismissing] = useState(null) // strike id or 'all'
   const [deleteFormalTarget, setDeleteFormalTarget] = useState(null)
   const [confirmClearAll, setConfirmClearAll] = useState(false)
-
-  const load = useCallback(async () => {
-    setLoading(true)
-    const [strikeRes, formalRes, clockRes, shiftRes] = await Promise.all([
-      supabase.from('staff_disciplinary_log')
-        .select('*, dismissed_by_staff:dismissed_by(name)')
-        .eq('staff_id', staffId)
-        .order('occurred_at', { ascending: false }),
-      supabase.from('hr_formal_actions').select('*, added_by_staff:added_by(name)').eq('staff_id', staffId).order('occurred_at', { ascending: false }),
-      supabase.from('clock_events')
-        .select('id, occurred_at')
-        .eq('staff_id', staffId)
-        .eq('venue_id', venueId)
-        .eq('event_type', 'clock_in')
-        .order('occurred_at', { ascending: false }),
-      supabase.from('shifts')
-        .select('shift_date, start_time')
-        .eq('staff_id', staffId)
-        .eq('venue_id', venueId),
-    ])
-
-    // Derive late clock-ins from raw clock data — the source of truth
-    const clockIns = clockRes.data ?? []
-    const shifts   = shiftRes.data ?? []
-    const shiftMap = {}
-    shifts.forEach(s => { shiftMap[s.shift_date] = s.start_time })
-
-    const late = clockIns.flatMap(ev => {
-      // Match the clock-in to its shift by UK calendar date, and compare against
-      // the scheduled start read as UK wall-clock — not the device timezone.
-      const date      = londonDateStr(ev.occurred_at)
-      const startTime = shiftMap[date]
-      if (!startTime) return []
-      const shiftStart = londonWallTimeToInstant(date, startTime)
-      const clockedIn  = new Date(ev.occurred_at)
-      const msLate     = clockedIn.getTime() - shiftStart.getTime()
-      if (msLate <= 0) return [] // on time or early
-      const minsLate = Math.floor(msLate / 60000)
-      return [{ id: ev.id, occurred_at: ev.occurred_at, minsLate, secsLate: Math.floor(msLate / 1000), scheduledTime: startTime }]
-    })
-    setLateHistory(late)
-
-    const rows = strikeRes.data ?? []
-    setStrikes(rows)
-    setFormals(formalRes.data ?? [])
-    setLoading(false)
-    onStrikesCountChange?.(late.length)
-  }, [staffId, onStrikesCountChange])
-
-  useEffect(() => { load() }, [load])
 
   const activeStrikes = strikes.filter(s => !s.dismissed_at)
 
@@ -583,12 +521,12 @@ function DisciplinaryTab({ staffId, venueId, onStrikesCountChange }) {
     if (file) {
       if (file.size > 15 * 1024 * 1024) { toast('File must be under 15 MB', 'error'); setSaving(false); return }
       const path = hrAttachmentPath(venueId, staffId, file.name)
-      const { error: upErr } = await supabase.storage.from(HR_BUCKET).upload(path, file, { upsert: false })
+      const { error: upErr } = await uploadHRAttachment(HR_BUCKET, path, file)
       if (upErr) { toast('File upload failed: ' + upErr.message, 'error'); setSaving(false); return }
       filePath = path
       fileName = file.name
     }
-    const { error } = await supabase.from('hr_formal_actions').insert({
+    const { error } = await insertFormalAction({
       venue_id:    venueId,
       staff_id:    staffId,
       action_type: form.action_type,
@@ -604,38 +542,33 @@ function DisciplinaryTab({ staffId, venueId, onStrikesCountChange }) {
     setShowModal(false)
     setForm({ action_type: 'verbal_warning', occurred_at: new Date().toISOString().slice(0, 10), notes: '' })
     setFile(null)
-    load()
+    reload()
   }
 
   const deleteFormal = async (record) => {
-    await supabase.from('hr_formal_actions').delete().eq('id', record.id)
+    await deleteFormalActionRow(record.id)
     // Remove the attachment as well, not just the row.
-    if (record.file_path) await supabase.storage.from(HR_BUCKET).remove([record.file_path])
+    if (record.file_path) await removeHRAttachment(HR_BUCKET, record.file_path)
     toast('Record deleted')
-    load()
+    reload()
   }
 
   const dismissStrike = async (strikeId) => {
     setDismissing(strikeId)
-    const { error } = await supabase.from('staff_disciplinary_log')
-      .update({ dismissed_at: new Date().toISOString(), dismissed_by: session?.staffId ?? null })
-      .eq('id', strikeId)
+    const { error } = await dismissStrikeRow(strikeId, session?.staffId ?? null)
     setDismissing(null)
     if (error) { toast(error.message, 'error'); return }
     toast('Strike dismissed')
-    load()
+    reload()
   }
 
   const dismissAllStrikes = async () => {
     setDismissing('all')
-    const { error } = await supabase.from('staff_disciplinary_log')
-      .update({ dismissed_at: new Date().toISOString(), dismissed_by: session?.staffId ?? null })
-      .eq('staff_id', staffId)
-      .is('dismissed_at', null)
+    const { error } = await dismissAllStrikesRows(staffId, session?.staffId ?? null)
     setDismissing(null)
     if (error) { toast(error.message, 'error'); return }
     toast('All strikes cleared')
-    load()
+    reload()
   }
 
   const OFFENCE_LABELS = { late_clock_in: 'Late clock-in', break_overrun: 'Break overrun' }
@@ -873,14 +806,8 @@ function DisciplinaryTab({ staffId, venueId, onStrikesCountChange }) {
 // ── Leave Tab ────────────────────────────────────────────────────────────────
 function LeaveTab({ staffId, venueSlug, staff }) {
   const navigate = useNavigate()
-  const [requests, setRequests] = useState([])
-  const [loading,  setLoading]  = useState(true)
+  const { requests, loading } = useLeaveRequests(staffId)
   const currentYear = new Date().getFullYear()
-
-  useEffect(() => {
-    supabase.from('time_off_requests').select('*').eq('staff_id', staffId).order('start_date', { ascending: false })
-      .then(({ data }) => { setRequests(data ?? []); setLoading(false) })
-  }, [staffId])
 
   const STATUS_TONE = {
     approved:  'good',
@@ -952,20 +879,7 @@ function LeaveTab({ staffId, venueSlug, staff }) {
 // ── Training Tab ─────────────────────────────────────────────────────────────
 function TrainingTab({ staffId, venueSlug }) {
   const navigate = useNavigate()
-  const [certs,      setCerts]      = useState([])
-  const [inductions, setInductions] = useState([])
-  const [loading,    setLoading]    = useState(true)
-
-  useEffect(() => {
-    Promise.all([
-      supabase.from('staff_training').select('*').eq('staff_id', staffId).order('expiry_date', { ascending: true }),
-      supabase.from('training_sign_offs').select('*').eq('staff_id', staffId).order('training_date', { ascending: false }),
-    ]).then(([certRes, indRes]) => {
-      setCerts(certRes.data ?? [])
-      setInductions(indRes.data ?? [])
-      setLoading(false)
-    })
-  }, [staffId])
+  const { certs, inductions, loading } = useStaffTrainingRecord(staffId)
 
   const certStatus = (expiry) => {
     if (!expiry) return { label: 'No expiry', tone: 'muted' }
@@ -1047,37 +961,21 @@ function SecurityTab({ staffId }) {
   const toast = useToast()
   const { session } = useSession()
   const token = session?.token
-  const [sessions, setSessions] = useState([])
-  const [loading,  setLoading]  = useState(true)
+  const { sessions, error, loading, removeFromCache } = useStaffSessions(staffId)
   const [revoking, setRevoking] = useState(null)
   const [revokeTarget, setRevokeTarget] = useState(null)
 
-  const load = useCallback(async () => {
-    if (!token) return
-    setLoading(true)
-    const { data, error } = await supabase.rpc('list_staff_sessions', {
-      p_session_token: token,
-      p_staff_id:      staffId,
-    })
-    if (error) toast(error.message, 'error')
-    setSessions(data ?? [])
-    setLoading(false)
-  }, [staffId, token, toast])
-
-  useEffect(() => { load() }, [load])
+  React.useEffect(() => { if (error) toast(error.message, 'error') }, [error, toast])
 
   const handleRevoke = async (targetToken) => {
     if (!token) return
     setRevoking(targetToken)
-    const { error } = await supabase.rpc('revoke_staff_session', {
-      p_session_token: token,
-      p_target_token:  targetToken,
-    })
-    if (error) {
-      toast(error.message, 'error')
+    const { error: revokeErr } = await revokeStaffSessionRpc(token, targetToken)
+    if (revokeErr) {
+      toast(revokeErr.message, 'error')
     } else {
       toast('Session revoked', 'success')
-      setSessions(s => s.filter(x => x.token !== targetToken))
+      removeFromCache(targetToken)
     }
     setRevoking(null)
   }
@@ -1128,34 +1026,7 @@ function SecurityTab({ staffId }) {
 // ── EmployeeRecordPanel (default export) ──────────────────────────────────────
 export default function EmployeeRecordPanel({ staffId, venueId, venueSlug, onBack, tab, setTab }) {
   const navigate = useNavigate()
-  const [staff,         setStaff]         = useState(null)
-  const [docsCount,     setDocsCount]     = useState(0)
-  const [strikesCount,  setStrikesCount]  = useState(0)
-  const [loading,       setLoading]       = useState(true)
-
-  useEffect(() => {
-    if (!staffId) return
-    setStaff(null)
-    setLoading(true)
-    Promise.all([
-      supabase.from('staff')
-        .select('id, name, job_role, employment_type, start_date, hourly_rate, contracted_hours, working_days, is_under_18, emergency_contact_name, emergency_contact_phone, holiday_pay_eligible')
-        .eq('id', staffId)
-        .maybeSingle(),
-      supabase.from('staff_hr_documents')
-        .select('*', { count: 'exact', head: true })
-        .eq('staff_id', staffId),
-      supabase.from('staff_disciplinary_log')
-        .select('*', { count: 'exact', head: true })
-        .eq('staff_id', staffId)
-        .is('dismissed_at', null),
-    ]).then(([staffRes, docsRes, strikesRes]) => {
-      setStaff(staffRes.data)
-      setDocsCount(docsRes.count ?? 0)
-      setStrikesCount(strikesRes.count ?? 0)
-      setLoading(false)
-    })
-  }, [staffId])
+  const { staff, docsCount, strikesCount, loading } = useStaffHeader(staffId)
 
   if (!staffId) {
     return (
@@ -1184,7 +1055,7 @@ export default function EmployeeRecordPanel({ staffId, venueId, venueSlug, onBac
           : <Avatar name={staff?.name ?? ''} size={52} />
         }
         <div className="flex-1 min-w-0">
-          <div className="text-[18px] lg:text-[23px] font-semibold lg:font-bold tracking-[-0.015em] lg:tracking-[-0.02em] text-charcoal dark:text-white leading-tight">
+          <div data-testid="record-panel-name" className="text-[18px] lg:text-[23px] font-semibold lg:font-bold tracking-[-0.015em] lg:tracking-[-0.02em] text-charcoal dark:text-white leading-tight">
             {loading ? <span className="text-charcoal/30 dark:text-white/30">Loading…</span> : (staff?.name ?? '—')}
           </div>
           {!loading && staff && (
@@ -1236,7 +1107,7 @@ export default function EmployeeRecordPanel({ staffId, venueId, venueSlug, onBac
       {/* Tab bar */}
       <div className="flex gap-0.5 lg:mb-5 bg-charcoal/6 dark:bg-white/8 rounded-[11px] p-[3px]">
         {TABS.map(t => (
-          <button key={t} onClick={() => setTab(t)}
+          <button key={t} data-testid={`record-tab-${t}`} onClick={() => setTab(t)}
             className={`flex-1 py-[7px] lg:py-2 px-0 border-0 cursor-pointer rounded-[8px] font-mono text-[10px] lg:text-[11px] tracking-[0] transition-all duration-150 ${
               tab === t
                 ? 'bg-white dark:bg-paperDark text-charcoal dark:text-white font-bold shadow-[0_1px_3px_rgba(13,26,20,0.10)]'
@@ -1249,8 +1120,8 @@ export default function EmployeeRecordPanel({ staffId, venueId, venueSlug, onBac
       </div>
 
       {tab === 'Profile'      && <ProfileTab      staff={staff} docsCount={docsCount} strikesCount={strikesCount} venueSlug={venueSlug} />}
-      {tab === 'Documents'    && <DocumentsTab    staffId={staffId} venueId={venueId} onDocsCountChange={setDocsCount} />}
-      {tab === 'Disciplinary' && <DisciplinaryTab staffId={staffId} venueId={venueId} onStrikesCountChange={setStrikesCount} />}
+      {tab === 'Documents'    && <DocumentsTab    staffId={staffId} venueId={venueId} />}
+      {tab === 'Disciplinary' && <DisciplinaryTab staffId={staffId} venueId={venueId} />}
       {tab === 'Leave'        && <LeaveTab        staffId={staffId} venueSlug={venueSlug} staff={staff} />}
       {tab === 'Training'     && <TrainingTab     staffId={staffId} venueSlug={venueSlug} />}
       {tab === 'Security'     && <SecurityTab     staffId={staffId} />}

@@ -5,9 +5,8 @@
  */
 import React, { useEffect, useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { addDays } from 'date-fns'
-import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
+import { useHRSummary } from '../../hooks/useHRSummary'
 import { SkeletonList } from '../../components/ui/Skeleton'
 import EmployeeRecordPanel, { Avatar, nameInitials } from './EmployeeRecordPanel'
 
@@ -128,65 +127,32 @@ export default function HRHubPage() {
   const { venueId, venueSlug } = useVenue()
   const vp = p => `/v/${venueSlug}${p}`
 
-  const [staff,   setStaff]   = useState([])
-  const [actions, setActions] = useState([])
-  const [docs,    setDocs]    = useState([])
-  const [loading, setLoading] = useState(true)
+  const { staff, formalActionStaffIds, expiringDocs, loading } = useHRSummary()
 
   const [query,    setQuery]    = useState('')
   const [selected, setSelected] = useState(null)
   const [tab,      setTab]      = useState('Profile')
 
+  const actionIds   = useMemo(() => new Set(formalActionStaffIds), [formalActionStaffIds])
+  const expiringIds = useMemo(() => new Set(expiringDocs.map(d => d.staff_id)), [expiringDocs])
+
+  // Auto-select the first flagged staff member once data loads (falls back to first staff).
   useEffect(() => {
-    if (!venueId) return
-    const since90 = new Date(Date.now() - 90 * 86400000).toISOString().slice(0, 10)
-    const in30    = addDays(new Date(), 30).toISOString().slice(0, 10)
-
-    Promise.all([
-      supabase.from('staff')
-        .select('id, name, job_role, employment_type, start_date')
-        .eq('venue_id', venueId)
-        .eq('is_active', true)
-        .order('name'),
-      supabase.from('hr_formal_actions')
-        .select('staff_id')
-        .eq('venue_id', venueId)
-        .gte('occurred_at', since90),
-      supabase.from('staff_hr_documents')
-        .select('staff_id, expiry_date')
-        .eq('venue_id', venueId)
-        .not('expiry_date', 'is', null)
-        .lte('expiry_date', in30),
-    ]).then(([staffRes, actRes, docsRes]) => {
-      const staffData = staffRes.data ?? []
-      const actData   = actRes.data   ?? []
-      const docsData  = docsRes.data  ?? []
-
-      setStaff(staffData)
-      setActions(actData)
-      setDocs(docsData)
-      setLoading(false)
-
-      const actionIds   = new Set(actData.map(a => a.staff_id))
-      const expiringIds = new Set(docsData.map(d => d.staff_id))
-      const firstFlagged = staffData.find(s => actionIds.has(s.id) || expiringIds.has(s.id))
-      setSelected(firstFlagged || staffData[0] || null)
-    })
-  }, [venueId])
-
-  const actionIds   = useMemo(() => new Set(actions.map(a => a.staff_id)), [actions])
-  const expiringIds = useMemo(() => new Set(docs.map(d => d.staff_id)),    [docs])
+    if (selected || staff.length === 0) return
+    const firstFlagged = staff.find(s => actionIds.has(s.id) || expiringIds.has(s.id))
+    setSelected(firstFlagged || staff[0])
+  }, [staff, actionIds, expiringIds, selected])
 
   const flaggedCount = useMemo(
     () => staff.filter(s => actionIds.has(s.id) || expiringIds.has(s.id)).length,
     [staff, actionIds, expiringIds],
   )
   const docsExpiringCount = useMemo(
-    () => new Set(docs.filter(d => {
+    () => new Set(expiringDocs.filter(d => {
       const ms = new Date(d.expiry_date).getTime() - Date.now()
       return ms >= 0
     }).map(d => d.staff_id)).size,
-    [docs],
+    [expiringDocs],
   )
 
   const q = query.toLowerCase()

@@ -1,5 +1,11 @@
 import React, { useState, useEffect } from 'react'
-import { supabase } from '../../lib/supabase'
+import {
+  fetchStaffVenueLinks, fetchStaffRoleAssignments, fetchStaffPermissionCounts, fetchStaffPermissionsFor,
+  uploadStaffPhotoFile, getStaffPhotoPublicUrl, updateStaffPhotoUrl,
+  linkStaffToVenue, unlinkStaffFromVenue,
+  createStaffMemberRpc, updateStaffMemberRpc, updateStaffExtraFields, findNewestStaffByName, updateStaffContractType,
+  deactivateStaffMemberRpc, reactivateStaffMemberRpc, deleteStaffRow, updateStaffSortOrder, resetStaffPinLockRpc,
+} from '../../lib/api/staffManagement'
 import { useSession } from '../../contexts/SessionContext'
 import { useVenue } from '../../contexts/VenueContext'
 import { useAuth } from '../../contexts/AuthContext'
@@ -171,10 +177,7 @@ export default function StaffMembersSection() {
       setVenueLinks(prev => (Object.keys(prev).length === 0 ? prev : {}))
       return
     }
-    const { data, error } = await supabase
-      .from('staff_venue_links')
-      .select('staff_id, venue_id')
-      .in('staff_id', staff.map(s => s.id))
+    const { data, error } = await fetchStaffVenueLinks(staff.map(s => s.id))
     if (!error && data) setVenueLinks(buildLinkMap(data))
   }
 
@@ -187,10 +190,7 @@ export default function StaffMembersSection() {
       return
     }
     const staffIds = staff.map(s => s.id)
-    supabase
-      .from('staff_role_assignments')
-      .select('staff_id, role_id')
-      .in('staff_id', staffIds)
+    fetchStaffRoleAssignments(staffIds)
       .then(({ data }) => {
         if (!data) return
         const map = {}
@@ -213,14 +213,10 @@ export default function StaffMembersSection() {
       setPermCounts(prev => (Object.keys(prev).length === 0 ? prev : {}))
       return
     }
-    supabase
-      .from('staff_permissions')
-      .select('staff_id, permission')
-      .eq('venue_id', venueId)
-      .in('staff_id', staffIds)
-      .then(({ data }) => {
+    fetchStaffPermissionCounts(venueId, staffIds)
+      .then((data) => {
         const counts = {}
-        for (const r of (data ?? [])) {
+        for (const r of data) {
           counts[r.staff_id] = (counts[r.staff_id] ?? 0) + 1
         }
         setPermCounts(counts)
@@ -232,14 +228,10 @@ export default function StaffMembersSection() {
     setUploadingPhoto(true)
     const ext  = file.name.split('.').pop()
     const path = `${venueId}/${staffId}.${ext}`
-    const { error: upErr } = await supabase.storage
-      .from('staff-photos')
-      .upload(path, file, { upsert: true })
+    const { error: upErr } = await uploadStaffPhotoFile(path, file)
     if (upErr) { toast('Photo upload failed: ' + upErr.message, 'error'); setUploadingPhoto(false); return }
-    const { data: urlData } = supabase.storage.from('staff-photos').getPublicUrl(path)
-    const { error: dbErr } = await supabase.from('staff')
-      .update({ photo_url: urlData.publicUrl + '?t=' + Date.now() })
-      .eq('id', staffId)
+    const { data: urlData } = getStaffPhotoPublicUrl(path)
+    const { error: dbErr } = await updateStaffPhotoUrl(staffId, urlData.publicUrl + '?t=' + Date.now())
     setUploadingPhoto(false)
     if (dbErr) { toast('Failed to save photo URL', 'error'); return }
     toast('Photo uploaded')
@@ -273,12 +265,8 @@ export default function StaffMembersSection() {
     setShowForm(true)
     // Load existing permissions for this staff member
     if (s.role === 'staff') {
-      const { data } = await supabase
-        .from('staff_permissions')
-        .select('permission')
-        .eq('staff_id', s.id)
-        .eq('venue_id', venueId)
-      setPermForm(new Set((data ?? []).map(r => r.permission)))
+      const data = await fetchStaffPermissionsFor(s.id, venueId)
+      setPermForm(new Set(data.map(r => r.permission)))
     } else {
       setPermForm(new Set(STAFF_PERMISSIONS.map(p => p.id)))
     }
@@ -288,12 +276,9 @@ export default function StaffMembersSection() {
   // Toggle a staff member's link to another owned venue
   const toggleVenueLink = async (staffId, targetVenueId, currentlyLinked) => {
     setSavingLinks(true)
-    const rpc = currentlyLinked ? 'unlink_staff_from_venue' : 'link_staff_to_venue'
-    const { error } = await supabase.rpc(rpc, {
-      p_session_token:   session.token,
-      p_staff_id:        staffId,
-      p_target_venue_id: targetVenueId,
-    })
+    const { error } = currentlyLinked
+      ? await unlinkStaffFromVenue(session.token, staffId, targetVenueId)
+      : await linkStaffToVenue(session.token, staffId, targetVenueId)
     if (error) { toast(error.message, 'error'); setSavingLinks(false); return }
     await refreshVenueLinks()
     setSavingLinks(false)
@@ -308,7 +293,7 @@ export default function StaffMembersSection() {
     let error
 
     if (editingId) {
-      const { error: e } = await supabase.rpc('update_staff_member', {
+      const { error: e } = await updateStaffMemberRpc({
         p_session_token:  session.token,
         p_staff_id:       editingId,
         p_name:           staffForm.name.trim(),
@@ -324,7 +309,7 @@ export default function StaffMembersSection() {
       })
       error = e
     } else {
-      const { error: e } = await supabase.rpc('create_staff_member', {
+      const { error: e } = await createStaffMemberRpc({
         p_session_token: session.token,
         p_name:          staffForm.name.trim(),
         p_job_role:      staffForm.job_role,
@@ -352,38 +337,23 @@ export default function StaffMembersSection() {
       holiday_pay_eligible:    staffForm.holiday_pay_eligible,
     }
     if (editingId) {
-      const { error: extraErr } = await supabase.from('staff').update(extraFields).eq('id', editingId)
+      const { error: extraErr } = await updateStaffExtraFields(editingId, extraFields)
       if (extraErr) { toast('Saved, but failed to update some fields: ' + extraErr.message, 'error') }
     } else {
       // Find the newly created staff member by name + venue
-      const { data: newRow } = await supabase
-        .from('staff')
-        .select('id')
-        .eq('venue_id', venueId)
-        .eq('name', staffForm.name.trim())
-        .order('created_at', { ascending: false })
-        .limit(1)
-      if (newRow?.[0]?.id) {
-        const { error: extraErr } = await supabase.from('staff').update({
+      const newId = await findNewestStaffByName(venueId, staffForm.name.trim())
+      if (newId) {
+        const { error: extraErr } = await updateStaffExtraFields(newId, {
           ...extraFields,
           colour: staffForm.colour || null,
-        }).eq('id', newRow[0].id)
+        })
         if (extraErr) { toast('Saved, but failed to update some fields: ' + extraErr.message, 'error') }
       }
     }
 
     // Save granular permissions for staff role
     if (staffForm.role === 'staff') {
-      const targetId = editingId || await (async () => {
-        const { data: newRow } = await supabase
-          .from('staff')
-          .select('id')
-          .eq('venue_id', venueId)
-          .eq('name', staffForm.name.trim())
-          .order('created_at', { ascending: false })
-          .limit(1)
-        return newRow?.[0]?.id
-      })()
+      const targetId = editingId || await findNewestStaffByName(venueId, staffForm.name.trim())
       if (targetId) {
         await saveStaffPermissions(targetId, venueId, [...permForm], session.token)
       }
@@ -398,27 +368,22 @@ export default function StaffMembersSection() {
 
   // ── Inline contract type save ────────────────────────────────────────────
   const saveContractType = async (staffId, employment_type, contracted_hours) => {
-    const { error } = await supabase
-      .from('staff')
-      .update({ employment_type, contracted_hours: contracted_hours ?? null })
-      .eq('id', staffId)
+    const { error } = await updateStaffContractType(staffId, employment_type, contracted_hours)
     if (error) { toast(error.message, 'error'); return }
     reloadStaff()
   }
 
   const toggleActive = async (s) => {
-    const fn = s.is_active ? 'deactivate_staff_member' : 'reactivate_staff_member'
-    const { error } = await supabase.rpc(fn, {
-      p_session_token: session.token,
-      p_staff_id:      s.id,
-    })
+    const { error } = s.is_active
+      ? await deactivateStaffMemberRpc(session.token, s.id)
+      : await reactivateStaffMemberRpc(session.token, s.id)
     if (error) { toast(error.message, 'error'); return }
     toast(s.is_active ? `${s.name} deactivated` : `${s.name} reactivated`)
     reloadStaff()
   }
 
   const confirmDeleteStaff = async () => {
-    const { error } = await supabase.from('staff').delete().eq('id', deleteTarget.id)
+    const { error } = await deleteStaffRow(deleteTarget.id)
     setDeleteTarget(null)
     if (error) { toast(error.message, 'error'); return }
     toast(`${deleteTarget.name} permanently deleted`)
@@ -432,9 +397,7 @@ export default function StaffMembersSection() {
     const swapIdx = direction === 'up' ? idx - 1 : idx + 1
     if (swapIdx < 0 || swapIdx >= list.length) return
     ;[list[idx], list[swapIdx]] = [list[swapIdx], list[idx]]
-    await Promise.all(list.map((s, i) =>
-      supabase.from('staff').update({ sort_order: i }).eq('id', s.id)
-    ))
+    await Promise.all(list.map((s, i) => updateStaffSortOrder(s.id, i)))
     reloadStaff()
   }
 
@@ -983,7 +946,7 @@ export default function StaffMembersSection() {
                   {isLocked && (
                     <Button
                       onClick={async () => {
-                        await supabase.rpc('reset_staff_pin_lock', { p_session_token: session.token, p_staff_id: s.id })
+                        await resetStaffPinLockRpc(session.token, s.id)
                         toast(`${s.name}'s PIN unlocked`)
                         reloadStaff()
                       }}

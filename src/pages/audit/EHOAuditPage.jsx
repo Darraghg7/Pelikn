@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import { format, subDays } from 'date-fns'
+import { format } from 'date-fns'
 import { useQueryClient } from '@tanstack/react-query'
-import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
 import { useToast } from '../../components/ui/Toast'
+import { useAuditSummary } from '../../hooks/useAuditSummary'
+import { resolveAuditRecord, resolveCorrectiveAction } from '../../lib/api/audit'
 import { SkeletonList } from '../../components/ui/Skeleton'
 import { exportTempLogs, exportCleaningRecords, exportDeliveryChecks, exportCorrectiveActions, exportProbeCalibrations, exportTrainingRecords, exportFullReport, exportEHOReport } from '../../lib/exportData'
 import { computeComplianceScore, COMPLIANCE_RANGE_DAYS } from '../../lib/compliance'
@@ -108,10 +109,10 @@ export default function EHOAuditPage() {
   // Default must stay in step with the widget's window, or the dashboard score
   // and this page's score disagree the moment you click through.
   const [range, setRange] = useState(COMPLIANCE_RANGE_DAYS)
-  const [loading, setLoading] = useState(true)
-  const [data, setData] = useState(null)
   const [openSection, setOpenSection] = useState(null)
   const [resolving, setResolving] = useState(null) // id of reading being resolved
+
+  const { data, loading, markResolvedInCache } = useAuditSummary(range)
 
   // Auto-open section from URL hash (e.g. /audit#temps)
   useEffect(() => {
@@ -123,142 +124,31 @@ export default function EHOAuditPage() {
     setOpenSection(prev => prev === id ? null : id)
   }, [])
 
-  // Generic resolve for tables with is_resolved column
-  const resolveRecord = useCallback(async (table, id, listKey, countKey) => {
+  // Generic resolve for tables with is_resolved column. rawKey is the key in
+  // the underlying cached dataset (temps/deliveries/calibrations/certs), not
+  // the derived stat shown on screen.
+  const resolveRecord = useCallback(async (table, id, rawKey) => {
     setResolving(id)
-    const { error } = await supabase
-      .from(table)
-      .update({ is_resolved: true, resolved_at: new Date().toISOString() })
-      .eq('id', id)
+    const { error } = await resolveAuditRecord(table, id)
     setResolving(null)
     if (error) { toast(error.message ?? 'Failed to resolve', 'error'); return }
     toast('Marked as resolved')
-    setData(prev => {
-      if (!prev) return prev
-      const newList = prev[listKey].filter(r => r.id !== id)
-      const extra = table === 'fridge_temperature_logs'
-        ? { tempPassRate: prev.tempTotal > 0 ? Math.round(((prev.tempTotal - newList.length) / prev.tempTotal) * 100) : 100 }
-        : {}
-      return { ...prev, [listKey]: newList, [countKey]: newList.length, ...extra }
-    })
+    // Match the DB write exactly — patch is_resolved in place rather than
+    // dropping the row, or *Total stats (array.length) shrink incorrectly.
+    markResolvedInCache(rawKey, id, { is_resolved: true, resolved_at: new Date().toISOString() })
     queryClient.invalidateQueries({ queryKey: ['widget', 'compliance_score', venueId] })
-  }, [toast, queryClient, venueId])
+  }, [toast, queryClient, venueId, markResolvedInCache])
 
   // Corrective actions use status field instead of is_resolved
   const resolveAction = useCallback(async (id) => {
     setResolving(id)
-    const { error } = await supabase
-      .from('corrective_actions')
-      .update({ status: 'resolved' })
-      .eq('id', id)
+    const { error } = await resolveCorrectiveAction(id)
     setResolving(null)
     if (error) { toast(error.message ?? 'Failed to resolve', 'error'); return }
     toast('Action marked resolved')
-    setData(prev => {
-      if (!prev) return prev
-      const newOpen = prev.openActions.filter(a => a.id !== id)
-      return { ...prev, openActions: newOpen, caOpen: newOpen.length, caCritical: newOpen.filter(a => a.severity === 'critical').length }
-    })
+    markResolvedInCache('actions', id, { status: 'resolved' })
     queryClient.invalidateQueries({ queryKey: ['widget', 'compliance_score', venueId] })
-  }, [toast, queryClient, venueId])
-
-  useEffect(() => {
-    if (!venueId) return
-    const load = async () => {
-      setLoading(true)
-      const sinceTs = subDays(new Date(), range).toISOString()
-
-      const [
-        tempLogs,
-        cleaningTasks,
-        cleaningCompletions,
-        deliveryChecks,
-        probeCalibrations,
-        correctiveActions,
-        training,
-        staff,
-      ] = await Promise.all([
-        supabase.from('fridge_temperature_logs')
-          .select('id, temperature, logged_at, exceedance_reason, logged_by_name, is_resolved, fridge:fridge_id(name, min_temp, max_temp)')
-          .eq('venue_id', venueId).gte('logged_at', sinceTs).order('logged_at', { ascending: false }),
-        supabase.from('cleaning_tasks')
-          .select('id, title, frequency').eq('venue_id', venueId).eq('is_active', true),
-        supabase.from('cleaning_completions')
-          .select('id, cleaning_task_id, completed_at').eq('venue_id', venueId).gte('completed_at', sinceTs),
-        supabase.from('delivery_checks')
-          .select('id, overall_pass, checked_at, supplier_name, temp_reading, temp_pass, packaging_ok, use_by_ok, notes, is_resolved')
-          .eq('venue_id', venueId).gte('checked_at', sinceTs).order('checked_at', { ascending: false }),
-        supabase.from('probe_calibrations')
-          .select('id, pass, calibrated_at, probe_name, expected_temp, actual_reading, is_resolved')
-          .eq('venue_id', venueId).gte('calibrated_at', sinceTs).order('calibrated_at', { ascending: false }),
-        supabase.from('corrective_actions')
-          .select('id, status, severity, reported_at, title, description')
-          .eq('venue_id', venueId).gte('reported_at', sinceTs).order('reported_at', { ascending: false }),
-        supabase.from('staff_training')
-          .select('id, expiry_date, title, is_resolved, staff:staff_id(name)').eq('venue_id', venueId).order('expiry_date'),
-        supabase.from('staff')
-          .select('id, name').eq('venue_id', venueId).eq('is_active', true),
-      ])
-
-      const temps        = tempLogs.data          ?? []
-      const tasks        = cleaningTasks.data      ?? []
-      const completions  = cleaningCompletions.data ?? []
-      const deliveries   = deliveryChecks.data     ?? []
-      const calibrations = probeCalibrations.data  ?? []
-      const actions      = correctiveActions.data  ?? []
-      const certs        = training.data           ?? []
-      const activeStaff  = staff.data              ?? []
-
-      const EXPLAINED = ['delivery', 'defrost', 'service_access']
-
-      // ── Temp analysis ──────────────────────────────────────────────────
-      const tempTotal = temps.length
-      const failedTemps = temps.filter(t =>
-        t.fridge &&
-        (t.temperature < t.fridge.min_temp || t.temperature > t.fridge.max_temp) &&
-        !EXPLAINED.includes(t.exceedance_reason) &&
-        !t.is_resolved
-      )
-      const tempFails = failedTemps.length
-      const tempPassRate = tempTotal > 0 ? Math.round(((tempTotal - tempFails) / tempTotal) * 100) : 100
-
-      // ── Delivery analysis ─────────────────────────────────────────────
-      const deliveryTotal = deliveries.length
-      const failedDeliveries = deliveries.filter(d => !d.overall_pass && !d.is_resolved)
-      const deliveryFails = failedDeliveries.length
-
-      // ── Probe analysis ────────────────────────────────────────────────
-      const probeTotal = calibrations.length
-      const failedProbes = calibrations.filter(p => !p.pass && !p.is_resolved)
-      const probeFails = failedProbes.length
-      const lastProbe = calibrations.length > 0
-        ? format(new Date(calibrations[0].calibrated_at), 'd MMM yyyy')
-        : 'Never'
-
-      // ── Corrective actions ────────────────────────────────────────────
-      const openActions = actions.filter(a => a.status === 'open')
-      const caOpen = openActions.length
-      const caCritical = openActions.filter(a => a.severity === 'critical').length
-
-      // ── Training ──────────────────────────────────────────────────────
-      const today = new Date()
-      const expiredCertsList = certs.filter(c => c.expiry_date && new Date(c.expiry_date) < today && !c.is_resolved)
-      const expiredCerts = expiredCertsList.length
-      const validCerts = certs.filter(c => !c.expiry_date || new Date(c.expiry_date) >= today).length
-
-      setData({
-        tempTotal, tempFails, tempPassRate, failedTemps: failedTemps.slice(0, 15),
-        cleaningTotal: completions.length, cleaningTaskCount: tasks.length,
-        deliveryTotal, deliveryFails, failedDeliveries: failedDeliveries.slice(0, 10),
-        probeTotal, probeFails, lastProbe, failedProbes: failedProbes.slice(0, 10),
-        caOpen, caCritical, caTotal: actions.length, openActions: openActions.slice(0, 10),
-        expiredCerts, validCerts, totalCerts: certs.length, expiredCertsList: expiredCertsList.slice(0, 10),
-        staffCount: activeStaff.length,
-      })
-      setLoading(false)
-    }
-    load()
-  }, [range, venueId])
+  }, [toast, queryClient, venueId, markResolvedInCache])
 
   const getOverallStatus = () => {
     if (!data) return 'neutral'
@@ -396,7 +286,7 @@ export default function EHOAuditPage() {
                       action: {
                         label: 'Resolved',
                         loading: resolving === t.id,
-                        fn: () => resolveRecord('fridge_temperature_logs', t.id, 'failedTemps', 'tempFails'),
+                        fn: () => resolveRecord('fridge_temperature_logs', t.id, 'temps'),
                       },
                     }))}
                   />
@@ -449,7 +339,7 @@ export default function EHOAuditPage() {
                         { text: d.use_by_ok ? 'PASS' : 'FAIL', color: d.use_by_ok ? 'text-success' : 'text-danger', bold: true },
                         { text: d.notes ?? '—' },
                       ],
-                      action: { label: 'Resolved', loading: resolving === d.id, fn: () => resolveRecord('delivery_checks', d.id, 'failedDeliveries', 'deliveryFails') },
+                      action: { label: 'Resolved', loading: resolving === d.id, fn: () => resolveRecord('delivery_checks', d.id, 'deliveries') },
                     }))}
                   />
                 </div>
@@ -471,7 +361,7 @@ export default function EHOAuditPage() {
             >
               <StatRow label="Calibrations" value={data.probeTotal} />
               <StatRow label="Failed" value={data.probeFails} warn={data.probeFails > 0} />
-              <StatRow label="Last calibration" value={data.lastProbe} />
+              <StatRow label="Last calibration" value={data.lastProbe ? format(new Date(data.lastProbe), 'd MMM yyyy') : 'Never'} />
               {data.probeTotal === 0 && (
                 <p className="text-xs text-warning mt-2">No calibrations on record. Probes should be checked regularly.</p>
               )}
@@ -487,7 +377,7 @@ export default function EHOAuditPage() {
                         { text: p.actual_reading != null ? `${p.actual_reading} °C` : '—' },
                         { text: 'FAIL', color: 'text-danger', bold: true },
                       ],
-                      action: { label: 'Resolved', loading: resolving === p.id, fn: () => resolveRecord('probe_calibrations', p.id, 'failedProbes', 'probeFails') },
+                      action: { label: 'Resolved', loading: resolving === p.id, fn: () => resolveRecord('probe_calibrations', p.id, 'calibrations') },
                     }))}
                   />
                 </div>
@@ -558,7 +448,7 @@ export default function EHOAuditPage() {
                         { text: c.title ?? '—' },
                         { text: format(new Date(c.expiry_date), 'dd/MM/yyyy'), color: 'text-danger', bold: true },
                       ],
-                      action: { label: 'Renewed', loading: resolving === c.id, fn: () => resolveRecord('staff_training', c.id, 'expiredCertsList', 'expiredCerts') },
+                      action: { label: 'Renewed', loading: resolving === c.id, fn: () => resolveRecord('staff_training', c.id, 'certs') },
                     }))}
                   />
                 </div>

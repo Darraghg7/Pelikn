@@ -1,7 +1,7 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react'
 import { format, addWeeks, subWeeks, isToday, differenceInCalendarWeeks } from 'date-fns'
 import { useNavigate } from 'react-router-dom'
-import { supabase } from '../../lib/supabase'
+import { updateShift, insertShift, deleteShift, updateShiftStaff, resolveShiftSwap, upsertRotaPublished, insertShifts } from '../../lib/api/shifts'
 import { sendPush } from '../../lib/sendPush'
 import { useVenue } from '../../contexts/VenueContext'
 import { useSession } from '../../contexts/SessionContext'
@@ -189,11 +189,11 @@ function ShiftSheet({ shift, staffMember, day, venueId, roles, onClose, onSaved,
         end_time:   existing.end_time,
         role_label: existing.role_label ?? null,
       }
-      const { error } = await supabase.from('shifts').update({ start_time: startTime, end_time: endTime, role_label: roleLabel || null }).eq('id', existing.id)
+      const { error } = await updateShift(existing.id, { start_time: startTime, end_time: endTime, role_label: roleLabel || null })
       if (error) { setSaving(false); toast(error.message, 'error'); return }
       change = { type: 'edit', before }
     } else {
-      const { data, error } = await supabase.from('shifts').insert(payload).select('id').single()
+      const { data, error } = await insertShift(payload)
       if (error) { setSaving(false); toast(error.message, 'error'); return }
       change = { type: 'add', id: data.id }
     }
@@ -206,7 +206,7 @@ function ShiftSheet({ shift, staffMember, day, venueId, roles, onClose, onSaved,
   const del = async () => {
     if (!existing) { onClose(); return }
     setDeleting(true)
-    const { error } = await supabase.from('shifts').delete().eq('id', existing.id)
+    const { error } = await deleteShift(existing.id)
     setDeleting(false)
     if (error) { toast(error.message, 'error'); return }
     toast('Shift removed')
@@ -347,9 +347,9 @@ function SwapSheet({ swaps, onClose, onResolved }) {
 
   const approve = async (swap) => {
     setResolving(swap.id)
-    const { error: shiftErr } = await supabase.from('shifts').update({ staff_id: swap.target_staff_id }).eq('id', swap.shift_id)
+    const { error: shiftErr } = await updateShiftStaff(swap.shift_id, swap.target_staff_id)
     if (shiftErr) { toast(shiftErr.message, 'error'); setResolving(null); return }
-    const { error } = await supabase.from('shift_swaps').update({ status: 'approved', resolved_at: new Date().toISOString() }).eq('id', swap.id)
+    const { error } = await resolveShiftSwap(swap.id, 'approved')
     setResolving(null)
     if (error) { toast(error.message, 'error'); return }
     toast('Swap approved ✓')
@@ -360,7 +360,7 @@ function SwapSheet({ swaps, onClose, onResolved }) {
 
   const decline = async (swap) => {
     setResolving(swap.id)
-    const { error } = await supabase.from('shift_swaps').update({ status: 'rejected', resolved_at: new Date().toISOString() }).eq('id', swap.id)
+    const { error } = await resolveShiftSwap(swap.id, 'rejected')
     setResolving(null)
     if (error) { toast(error.message, 'error'); return }
     toast('Swap declined')
@@ -422,7 +422,7 @@ function AISheet({ openShifts, staff, unavailability = {}, venueId, onClose, onF
       const oStation = stationFromRole(o.role_label)
       const suggested = free.find(s => stationFromRole(s.job_role) === oStation) || free[0]
       if (suggested) {
-        await supabase.from('shifts').update({ staff_id: suggested.id }).eq('id', o.id)
+        await updateShiftStaff(o.id, suggested.id)
       } else {
         skipped++
       }
@@ -661,7 +661,7 @@ export default function RotaMobileGrid() {
   const publish = async () => {
     setPublishing(true)
     const weekStartStr = format(weekStart, 'yyyy-MM-dd')
-    const { error } = await supabase.from('app_settings').upsert({ venue_id: venueId, key: `rota_published_${weekStartStr}`, value: new Date().toISOString() }, { onConflict: 'venue_id,key' })
+    const { error } = await upsertRotaPublished(venueId, weekStartStr, new Date().toISOString())
     if (error) { toast(error.message, 'error'); setPublishing(false); return }
     const staffIds = [...new Set(shifts.map(s => s.staff_id).filter(Boolean))]
     if (staffIds.length) {
@@ -680,12 +680,12 @@ export default function RotaMobileGrid() {
     setReverting(true)
     for (const ch of [...sessionChanges].reverse()) {
       if (ch.type === 'add') {
-        await supabase.from('shifts').delete().eq('id', ch.id)
+        await deleteShift(ch.id)
       } else if (ch.type === 'edit') {
         const b = ch.before
-        await supabase.from('shifts').update({ staff_id: b.staff_id, start_time: b.start_time, end_time: b.end_time, role_label: b.role_label }).eq('id', b.id)
+        await updateShift(b.id, { staff_id: b.staff_id, start_time: b.start_time, end_time: b.end_time, role_label: b.role_label })
       } else if (ch.type === 'delete') {
-        await supabase.from('shifts').insert(ch.before)
+        await insertShifts([ch.before])
       }
     }
     setSessionChanges([])

@@ -3,7 +3,11 @@ import { useSearchParams } from 'react-router-dom'
 import RotaMobileGrid from './RotaMobileGrid'
 import { format, addWeeks, eachDayOfInterval, parseISO, isBefore, startOfDay } from 'date-fns'
 import { useClockSessions } from '../../hooks/useClockSessions'
-import { supabase } from '../../lib/supabase'
+import {
+  fetchPayrollLocks, submitClockEditRequest, deleteVenueClosure, insertVenueClosures,
+  insertShift, updateShift, deleteShift as deleteShiftRow, deleteDutyAssignmentsForShift,
+  insertDutyAssignment, upsertRotaPublished, createSwapRequest, insertShifts, deleteShiftsForWeek,
+} from '../../lib/api/shifts'
 import { sendPush } from '../../lib/sendPush'
 import { useVenue } from '../../contexts/VenueContext'
 import { useShifts, useStaffList, shiftDurationHours, paidShiftHours, unpaidBreakMins } from '../../hooks/useShifts'
@@ -688,10 +692,7 @@ function StaffRotaView({ shifts, staff, loading, weekStart, prevWeek, nextWeek, 
   // Load payroll locks so staff can't submit corrections for locked periods
   React.useEffect(() => {
     if (!venueId) return
-    supabase.from('app_settings').select('value').eq('venue_id', venueId).eq('key', 'payroll_locks').maybeSingle()
-      .then(({ data }) => {
-        try { setPayrollLocks(JSON.parse(data?.value ?? '[]')) } catch { setPayrollLocks([]) }
-      })
+    fetchPayrollLocks(venueId).then(setPayrollLocks)
   }, [venueId])
 
   const isDateLocked = React.useCallback((date) => {
@@ -766,7 +767,7 @@ function StaffRotaView({ shifts, staff, loading, weekStart, prevWeek, nextWeek, 
     }
     const reqIn  = applyTimeToDate(clockSess.clockInAt,  data.start)
     const reqOut = applyTimeToDate(clockSess.clockOutAt ?? clockSess.clockInAt, data.end)
-    const { error } = await supabase.rpc('submit_clock_edit_request', {
+    const { error } = await submitClockEditRequest({
       p_venue_id:           venueId,
       p_staff_id:           session.staffId,
       p_clock_in_id:        clockSess.clockInId,
@@ -1093,10 +1094,10 @@ export default function RotaPage() {
     const toDelete = [...closedDates].filter(d => !pendingClosed.has(d))
     for (const dateStr of toDelete) {
       const existing = closures.find(c => c.start_date === dateStr && c.end_date === dateStr)
-      if (existing) await supabase.from('venue_closures').delete().eq('id', existing.id)
+      if (existing) await deleteVenueClosure(existing.id)
     }
     if (toAdd.length > 0) {
-      await supabase.from('venue_closures').insert(
+      await insertVenueClosures(
         toAdd.map(dateStr => ({ venue_id: venueId, start_date: dateStr, end_date: dateStr }))
       )
     }
@@ -1196,17 +1197,17 @@ export default function RotaPage() {
     }
     let shiftId = editShift?.id
     if (editShift) {
-      const { error } = await supabase.from('shifts').update(payload).eq('id', editShift.id)
+      const { error } = await updateShift(editShift.id, payload)
       if (error) { toast(error.message, 'error'); setSaving(false); return }
     } else {
-      const { data, error } = await supabase.from('shifts').insert(payload).select('id').single()
+      const { data, error } = await insertShift(payload)
       if (error) { toast(error.message, 'error'); setSaving(false); return }
       shiftId = data.id
     }
     if (shiftId) {
-      await supabase.from('duty_assignments').delete().eq('shift_id', shiftId)
+      await deleteDutyAssignmentsForShift(shiftId)
       if (assignDuty && selectedDutyId) {
-        await supabase.from('duty_assignments').insert({
+        await insertDutyAssignment({
           venue_id:             venueId,
           shift_id:             shiftId,
           duty_template_id:     selectedDutyId,
@@ -1222,7 +1223,7 @@ export default function RotaPage() {
   }
 
   const deleteShift = async (shiftId) => {
-    const { error } = await supabase.from('shifts').delete().eq('id', shiftId)
+    const { error } = await deleteShiftRow(shiftId)
     if (error) { toast(error.message, 'error'); return }
     toast('Shift removed')
     setModal(null)
@@ -1232,11 +1233,7 @@ export default function RotaPage() {
   const emailRota = async () => {
     setEmailing(true)
     const weekStartStr = format(weekStart, 'yyyy-MM-dd')
-    const { error: saveErr } = await supabase.from('app_settings').upsert({
-      venue_id: venueId,
-      key: `rota_published_${weekStartStr}`,
-      value: new Date().toISOString(),
-    }, { onConflict: 'venue_id,key' })
+    const { error: saveErr } = await upsertRotaPublished(venueId, weekStartStr, new Date().toISOString())
     if (saveErr) { toast('Failed to publish: ' + saveErr.message, 'error'); setEmailing(false); return }
     const staffIds = [...new Set(shifts.map(s => s.staff_id).filter(Boolean))]
     if (staffIds.length) {
@@ -1257,7 +1254,7 @@ export default function RotaPage() {
     if (!swapForm.targetStaffId) { toast('Please select a colleague to swap with', 'error'); return }
     setSwapSaving(true)
     const targetStaff = staff.find((s) => s.id === swapForm.targetStaffId)
-    const { error } = await supabase.rpc('create_swap_request', {
+    const { error } = await createSwapRequest({
       p_token:           session?.token,
       p_shift_id:        swapModal.shift.id,
       p_target_staff_id: swapForm.targetStaffId,
@@ -1387,7 +1384,7 @@ export default function RotaPage() {
 
     if (!newShifts.length) { toast('All shifts land on closed days — nothing to copy', 'error'); setCopyingWeek(false); return }
 
-    const { error: insertErr } = await supabase.from('shifts').insert(newShifts)
+    const { error: insertErr } = await insertShifts(newShifts)
     setCopyingWeek(false)
     if (insertErr) { toast(insertErr.message, 'error'); return }
     toast(`${newShifts.length} shift${newShifts.length !== 1 ? 's' : ''} copied from previous week ✓`)
@@ -1397,14 +1394,10 @@ export default function RotaPage() {
   const batchSaveShifts = async (newShifts, isRebuild) => {
     if (isRebuild) {
       const wsStr = format(weekStart, 'yyyy-MM-dd')
-      const { error: delErr } = await supabase
-        .from('shifts')
-        .delete()
-        .eq('venue_id', venueId)
-        .eq('week_start', wsStr)
+      const { error: delErr } = await deleteShiftsForWeek(venueId, wsStr)
       if (delErr) { toast(delErr.message, 'error'); return }
     }
-    const { error } = await supabase.from('shifts').insert(newShifts)
+    const { error } = await insertShifts(newShifts)
     if (error) { toast(error.message, 'error'); return }
     toast(`${newShifts.length} shifts created ✓`)
     reload()
