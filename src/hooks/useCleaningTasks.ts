@@ -18,7 +18,7 @@ function toDateStr(d: Date): string {
 }
 
 /** closedDays is Monday-first (0=Mon..6=Sun) — see the same conversion in useTodaySummary.js. */
-function isVenueClosedOn(date: Date, closedDays: number[], closures: { start_date: string; end_date: string }[]): boolean {
+export function isVenueClosedOn(date: Date, closedDays: number[], closures: { start_date: string; end_date: string }[]): boolean {
   const dow = (date.getDay() + 6) % 7
   if (closedDays.includes(dow)) return true
   const dateStr = toDateStr(date)

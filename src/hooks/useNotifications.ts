@@ -2,6 +2,9 @@ import { useQuery } from '@tanstack/react-query'
 import { format, subDays, parseISO } from 'date-fns'
 import { supabase } from '../lib/supabase'
 import { useVenue } from '../contexts/VenueContext'
+import { isCheckRequired } from '../lib/temperatureChecks'
+import { cleaningStatus, isVenueClosedOn } from './useCleaningTasks'
+import type { CleaningTask, CleaningCompletion } from '../lib/api/cleaning'
 
 type NotificationSeverity = 'critical' | 'warning' | 'info'
 
@@ -168,8 +171,8 @@ async function checkRepeatOffenders(items: AppNotification[], vid: string, now =
 const EXPLAINED_REASONS = ['delivery', 'defrost', 'service_access']
 
 async function checkFridgeAlerts(items: AppNotification[], today: string, vid: string, now = new Date()): Promise<void> {
-  const { data: logs } = await supabase.from('fridge_temperature_logs').select('id, fridge_id, temperature, exceedance_reason, is_resolved, fridge:fridge_id(name, min_temp, max_temp)').eq('venue_id', vid).gte('logged_at', today + 'T00:00:00')
-  const readings = (logs ?? []) as unknown as { fridge_id: string; temperature: number; exceedance_reason?: string; is_resolved?: boolean; fridge?: { name: string; min_temp: number; max_temp: number } | null }[]
+  const { data: logs } = await supabase.from('fridge_temperature_logs').select('id, fridge_id, check_period, temperature, exceedance_reason, is_resolved, fridge:fridge_id(name, min_temp, max_temp)').eq('venue_id', vid).gte('logged_at', today + 'T00:00:00')
+  const readings = (logs ?? []) as unknown as { fridge_id: string; check_period?: string; temperature: number; exceedance_reason?: string; is_resolved?: boolean; fridge?: { name: string; min_temp: number; max_temp: number } | null }[]
   const outOfRange = readings.filter(l =>
     l.fridge &&
     (l.temperature < l.fridge.min_temp || l.temperature > l.fridge.max_temp) &&
@@ -180,10 +183,26 @@ async function checkFridgeAlerts(items: AppNotification[], today: string, vid: s
     const fridgeNames = [...new Set(outOfRange.map(l => l.fridge?.name).filter(Boolean))] as string[]
     items.push({ id: 'fridge-alerts', type: 'fridge_alert', message: `${outOfRange.length} temp reading${outOfRange.length > 1 ? 's' : ''} out of range: ${fridgeNames.join(', ')}`, link: '/fridge', severity: 'critical' })
   }
-  const { data: fridges } = await supabase.from('fridges').select('id, name').eq('venue_id', vid).eq('is_active', true)
+  const { data: fridges } = await supabase.from('fridges').select('id, name, check_days, required_periods').eq('venue_id', vid).eq('is_active', true)
   if (fridges?.length && fridges.length > 0) {
-    const checkedIds = new Set((logs ?? []).map(l => (l as { fridge_id?: string }).fridge_id).filter(Boolean))
-    const unchecked = (fridges as { id: string; name: string }[]).filter(f => !checkedIds.has(f.id))
+    // Grouped by period, not just presence of any log — a fridge logged AM
+    // only still needs its PM reading if PM is a required period.
+    const loggedPeriodsByFridge = new Map<string, Set<string>>()
+    for (const l of readings) {
+      if (!l.fridge_id || !l.check_period) continue
+      if (!loggedPeriodsByFridge.has(l.fridge_id)) loggedPeriodsByFridge.set(l.fridge_id, new Set())
+      loggedPeriodsByFridge.get(l.fridge_id)!.add(l.check_period)
+    }
+    // "Unchecked" only counts a fridge on a day/period it's actually
+    // required for — a fridge whose check_days skips today (e.g. matching
+    // a venue's closed day) was previously flagged anyway, since this only
+    // asked "does any log exist today" without consulting the fridge's own
+    // schedule. Mirrors isCheckRequired() / the dashboard's fallback path.
+    type FridgeRow = { id: string; name: string; check_days?: number[] | null; required_periods?: string[] | null }
+    const unchecked = (fridges as FridgeRow[]).filter(f => {
+      const logged = loggedPeriodsByFridge.get(f.id) ?? new Set()
+      return ['am', 'pm'].some(period => isCheckRequired(f, now, period) && !logged.has(period))
+    })
     if (unchecked.length > 0 && now.getHours() >= 10) {
       items.push({ id: 'fridge-unchecked', type: 'fridge_unchecked', message: `${unchecked.length} fridge${unchecked.length > 1 ? 's' : ''} not checked today: ${unchecked.map(f => f.name).join(', ')}`, link: '/fridge', severity: 'warning' })
     }
@@ -203,13 +222,23 @@ async function checkExpiringTraining(items: AppNotification[], vid: string, now 
 async function checkOverdueCleaning(items: AppNotification[], vid: string, now = new Date()): Promise<void> {
   const { data: tasks } = await supabase.from('cleaning_tasks').select('id, title, frequency').eq('venue_id', vid).eq('is_active', true)
   if (!tasks?.length) return
+
+  // Nobody's on site to clean on a closed day — same rule as the dashboard
+  // tile and the /cleaning page (useCleaningTasks.ts). This used its own
+  // from-scratch overdue math with no closure check at all, so it kept
+  // nagging about tasks from whenever the venue was last open.
+  const [{ data: closedDaysRow }, { data: closures }] = await Promise.all([
+    supabase.from('app_settings').select('value').eq('venue_id', vid).eq('key', 'closed_days').maybeSingle(),
+    supabase.from('venue_closures').select('start_date, end_date').eq('venue_id', vid),
+  ])
+  const closedDays: number[] = closedDaysRow?.value ? JSON.parse(closedDaysRow.value as string) : []
+  if (isVenueClosedOn(now, closedDays, closures ?? [])) return
+
   const { data: completions } = await supabase.from('cleaning_completions').select('cleaning_task_id, completed_at').eq('venue_id', vid).order('completed_at', { ascending: false })
-  const freqDays: Record<string, number> = { daily: 1, weekly: 7, fortnightly: 14, monthly: 30, quarterly: 90 }
   const overdue: string[] = []
-  for (const t of tasks as { id: string; title: string; frequency: string }[]) {
-    const last = (completions as { cleaning_task_id: string; completed_at: string }[] | null)?.find(c => c.cleaning_task_id === t.id)
-    if (!last) { overdue.push(t.title); continue }
-    if ((now.getTime() - new Date(last.completed_at).getTime()) / 86400000 > (freqDays[t.frequency] ?? 1)) overdue.push(t.title)
+  for (const t of tasks as unknown as CleaningTask[]) {
+    const last = (completions as unknown as CleaningCompletion[] | null)?.find(c => c.cleaning_task_id === t.id) ?? null
+    if (cleaningStatus(t, last, now) === 'overdue') overdue.push(t.title)
   }
   if (overdue.length > 0) items.push({ id: 'cleaning-overdue', type: 'cleaning_overdue', message: `${overdue.length} cleaning task${overdue.length > 1 ? 's' : ''} overdue: ${overdue.slice(0, 3).join(', ')}${overdue.length > 3 ? '...' : ''}`, link: '/cleaning', severity: overdue.length > 3 ? 'critical' : 'warning' })
 }
