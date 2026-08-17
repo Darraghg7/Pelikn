@@ -400,8 +400,13 @@ export function useTodaySummary(venueId, closedDays = [], actionSchedules = {}) 
         const closedFast = closedDays.includes(todayDowFast) || snapshot.isClosed
           ? (snapshot.closureReason || true)
           : false
-        cacheSet(key, snapshot.summary, closedFast)
-        setSummary(snapshot.summary)
+        // Nobody's on site on a closed day, so cleaning tasks never nag as
+        // overdue then — the RPC has no idea about closedDays/venue_closures,
+        // it just counts "last done longer ago than the frequency allows".
+        // Same rule as the fallback path below and useCleaningTasks.ts.
+        const gatedSummary = closedFast ? { ...snapshot.summary, overdueClean: 0 } : snapshot.summary
+        cacheSet(key, gatedSummary, closedFast)
+        setSummary(gatedSummary)
         setClosedToday(closedFast)
         setLoading(false)
         revalidating.current = false

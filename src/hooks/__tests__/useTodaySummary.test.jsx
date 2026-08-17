@@ -79,6 +79,33 @@ describe('useTodaySummary — refreshing after a write', () => {
     expect(rpcCalls).toBe(1)
   })
 
+  it('zeroes overdueClean on a closed day even though the RPC does not know about closures', async () => {
+    // Regression: get_dashboard_snapshot (095) flags a cleaning task overdue
+    // purely from "last done longer ago than its frequency allows" — it has
+    // no idea the venue is shut today (weekly closedDays or a one-off
+    // venue_closures row), so a cafe closed for the day still got told it had
+    // overdue cleans, pointing at completions from whenever it was last open.
+    // useCleaningTasks.ts already caps status at 'done' on a closed day, so
+    // the /cleaning page the tile links to showed everything fine — the two
+    // screens disagreed about the exact same data.
+    serverSnapshot = snapshot({ overdueClean: 15, isClosed: true, closureReason: 'Bank holiday' })
+    const { result } = renderHook(() => useTodaySummary(VENUE, [], {}))
+
+    await waitFor(() => expect(result.current.summary).not.toBeNull())
+    expect(result.current.closedToday).toBe('Bank holiday')
+    expect(result.current.summary.overdueClean).toBe(0)
+  })
+
+  it('still reports overdueClean when closed via weekly closedDays instead of a venue_closures row', async () => {
+    serverSnapshot = snapshot({ overdueClean: 5 })
+    const todayDow = (new Date().getDay() + 6) % 7
+    const { result } = renderHook(() => useTodaySummary(VENUE, [todayDow], {}))
+
+    await waitFor(() => expect(result.current.summary).not.toBeNull())
+    expect(result.current.closedToday).toBe(true)
+    expect(result.current.summary.overdueClean).toBe(0)
+  })
+
   it('falls back to the multi-query path when the snapshot RPC is missing', async () => {
     // Databases without migration 095 have no get_dashboard_snapshot. The RPC
     // 404s and the original per-table queries run instead — that path has to

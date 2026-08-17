@@ -21,7 +21,7 @@ export default function TodaySummaryCard({ venueId, closedDays, itemIds, actionS
     })
 
   const actions = summary
-    ? activeItems.map(item => item.action?.(summary, vp)).filter(Boolean)
+    ? activeItems.map(item => item.action?.(summary, vp, closedToday)).filter(Boolean)
     : []
 
   const urgencyBorder = { warn: 'border-warning', danger: 'border-danger', info: 'border-accent' }
