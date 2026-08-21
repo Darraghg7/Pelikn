@@ -487,7 +487,41 @@ function DutiesTab({ duties, loading, toggleItem }) {
   )
 }
 
-function CleaningTab({ tasks, loading, error }) {
+function CleaningTaskRow({ task, onComplete, isFirst }) {
+  const [busy, setBusy] = useState(false)
+  const toast = useToast()
+  const handleTap = async () => {
+    if (busy) return
+    setBusy(true)
+    const { error } = await onComplete(task.id)
+    if (error) {
+      toast(error.message, 'error')
+      setBusy(false)
+    } else {
+      setBusy(false)
+    }
+  }
+  return (
+    <div className={`px-4 py-3 flex items-center gap-3 ${!isFirst ? 'border-t border-charcoal/5 dark:border-white/5' : ''}`}>
+      <button
+        onClick={handleTap}
+        disabled={busy}
+        aria-label="Mark done"
+        className="w-[22px] h-[22px] rounded-md border-[1.5px] border-charcoal/25 dark:border-white/25 shrink-0 grid place-items-center hover:border-success hover:bg-success/10 transition-colors disabled:opacity-50"
+      >
+        {busy && <span className="w-2.5 h-2.5 rounded-full border-2 border-success/25 border-t-success animate-spin" />}
+      </button>
+      <div className="flex-1 min-w-0">
+        <p className="text-[13.5px] font-medium text-charcoal dark:text-white">{task.title}</p>
+      </div>
+      <span className="text-[11px] font-mono font-semibold px-2 py-0.5 rounded bg-charcoal/6 dark:bg-white/8 text-charcoal/40 dark:text-white/35 uppercase tracking-wide">
+        {task.frequency}
+      </span>
+    </div>
+  )
+}
+
+function CleaningTab({ tasks, loading, error, session, reload }) {
   if (loading) return <SkeletonList rows={4} />
   if (error) return (
     <div className="bg-white dark:bg-paperDark rounded-[14px] border border-danger/20 p-8 text-center">
@@ -507,6 +541,16 @@ function CleaningTab({ tasks, loading, error }) {
   const done    = tasks.filter(t => t.status !== 'overdue')
   const pct     = tasks.length > 0 ? Math.round((done.length / tasks.length) * 100) : 0
 
+  const completeTask = async (taskId) => {
+    const { error } = await supabase.rpc('complete_cleaning_task', {
+      p_token: session?.token,
+      p_cleaning_task_id: taskId,
+      p_notes: null,
+    })
+    if (!error) reload?.()
+    return { error }
+  }
+
   return (
     <div className="flex flex-col gap-2.5">
       {pending.length > 0 && (
@@ -520,15 +564,7 @@ function CleaningTab({ tasks, loading, error }) {
               <div className="h-full bg-warning transition-all" style={{ width: `${Math.max(pct, 2)}%` }} />
             </div>
             {pending.map((t, i) => (
-              <div key={t.id} className={`px-4 py-3 flex items-center gap-3 ${i > 0 ? 'border-t border-charcoal/5 dark:border-white/5' : ''}`}>
-                <span className="w-[22px] h-[22px] rounded-md border-[1.5px] border-charcoal/25 dark:border-white/25 shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <p className="text-[13.5px] font-medium text-charcoal dark:text-white">{t.title}</p>
-                </div>
-                <span className="text-[11px] font-mono font-semibold px-2 py-0.5 rounded bg-charcoal/6 dark:bg-white/8 text-charcoal/40 dark:text-white/35 uppercase tracking-wide">
-                  {t.frequency}
-                </span>
-              </div>
+              <CleaningTaskRow key={t.id} task={t} onComplete={completeTask} isFirst={i === 0} />
             ))}
           </div>
         </div>
@@ -695,7 +731,7 @@ function StaffTasksView({ session }) {
 
       {/* Tab content */}
       {activeTab === 'duties'    && <DutiesTab duties={dutiesData.duties} loading={dutiesData.loading} toggleItem={dutiesData.toggleItem} />}
-      {activeTab === 'cleaning'  && <CleaningTab tasks={cleaningData.tasks} loading={cleaningData.loading} error={cleaningData.error} />}
+      {activeTab === 'cleaning'  && <CleaningTab tasks={cleaningData.tasks} loading={cleaningData.loading} error={cleaningData.error} session={session} reload={cleaningData.reload} />}
       {activeTab === 'allergens' && <AllergensTab venueSlug={venueSlug} />}
 
     </div>
