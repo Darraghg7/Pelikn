@@ -9,6 +9,7 @@ import {
   insertDutyAssignment, upsertRotaPublished, createSwapRequest, insertShifts, deleteShiftsForWeek,
 } from '../../lib/api/shifts'
 import { sendPush } from '../../lib/sendPush'
+import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
 import { useShifts, useStaffList, shiftDurationHours, paidShiftHours, unpaidBreakMins } from '../../hooks/useShifts'
 import { useCrossVenueShifts } from '../../hooks/useCrossVenueShifts'

@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useVenue } from '../contexts/VenueContext'
 import { useAppSettings } from './useSettings'
@@ -64,6 +65,16 @@ export function useCleaningTasks(
   const { closedDays } = useAppSettings()
   const { closures } = useVenueClosures()
 
+  // A tablet left open on this page never loses focus or remounts, so without
+  // this tick a task completed yesterday would read 'done' forever — nothing
+  // else forces a re-render to notice the calendar day (and so the due date)
+  // has rolled over.
+  const [now, setNow] = useState(() => new Date())
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 60_000)
+    return () => clearInterval(id)
+  }, [])
+
   const { data, isLoading, refetch, error } = useQuery({
     queryKey: ['cleaningTasks', venueId],
     queryFn: () => fetchCleaningTasks(venueId!),
@@ -76,7 +87,7 @@ export function useCleaningTasks(
   const matchesRole = roleMatcher(jobRole, knownRoles)
   const filtered = tasks.filter((t) => matchesRole(t.assigned_role))
 
-  const reference = asOf ?? new Date()
+  const reference = asOf ?? now
   // Completions logged after the day being viewed don't count towards it.
   const cutoff = new Date(
     reference.getFullYear(), reference.getMonth(), reference.getDate(), 23, 59, 59, 999,
