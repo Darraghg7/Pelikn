@@ -17,7 +17,6 @@ import { useIsDesktop } from '../../hooks/useMediaQuery'
 import TodaySummaryCard from './TodaySummaryCard'
 import WidgetPicker from './WidgetPicker'
 import PushBanner from './PushBanner'
-import TrialBanner from './TrialBanner'
 import GettingStartedCard from './GettingStartedCard'
 import MobileManagerDashboard from './MobileManagerDashboard'
 import {
@@ -330,7 +329,6 @@ export default function ManagerDashboardPage() {
       {/* Desktop layout */}
       {isDesktop && (
       <div className="flex flex-col gap-4">
-        <TrialBanner staffRole={session?.staffRole} venueId={venueId} venuePlan={venuePlan} />
         <GettingStartedCard venueId={venueId} venueSlug={venueSlug} />
 
         {summary?.overdueClean > 0 && (
