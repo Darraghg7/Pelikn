@@ -473,7 +473,7 @@ function MonthGrid({ year, month, dayMap, selectedDate, onSelectDate }) {
             <button
               key={i}
               onClick={() => onSelectDate(dateStr)}
-              className="flex flex-col items-center py-[6px] pb-[7px] rounded-[11px] border-none cursor-pointer transition-colors duration-[120ms]"
+              className="flex flex-col items-center py-[4px] rounded-[11px] border-none cursor-pointer transition-colors duration-[120ms]"
               style={{
                 background: isSelected ? '#13362a' : isToday ? '#eef4f0' : 'transparent',
               }}
@@ -714,7 +714,7 @@ export default function CalendarPage() {
         </div>
 
         {/* Month navigator */}
-        <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[14px] px-[14px] pt-[14px] pb-4">
+        <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[14px] px-3 pt-3 pb-3">
           <div className="flex items-center justify-between mb-3">
             <button
               onClick={prevMonth}

@@ -361,12 +361,20 @@ export function useTodaySummary(venueId, closedDays = [], actionSchedules = {}) 
       // The RPC always computes everything; the action-schedule gating stays
       // on the client because the schedules live in app settings, not the DB.
       // A check that isn't due today reads as zero, exactly as before.
+      //
+      // checksToday/closingChecksToday are the exception: they count actual
+      // completions, which are real regardless of whether today was
+      // "scheduled" for them (a schedule edited after the fact, or checks
+      // done ahead of the configured days, shouldn't make completed work
+      // disappear). Zeroing them here made the dashboard/Checks-hub card
+      // read "0/14" while the detail page — which never gates — correctly
+      // showed the checks that had actually been recorded.
       return {
         summary: {
           overdueClean:       due('cleaning_tasks') ? data.overdueClean       : 0,
           onShiftToday:       data.onShiftToday     ?? 0,
-          checksToday:        due('opening_checks') ? data.checksToday        : 0,
-          closingChecksToday: due('closing_checks') ? data.closingChecksToday : 0,
+          checksToday:        data.checksToday        ?? 0,
+          closingChecksToday: data.closingChecksToday ?? 0,
           uncheckedFridges:   due('fridge_checks')  ? data.uncheckedFridges   : 0,
           totalFridges:       due('fridge_checks')  ? data.totalFridges       : 0,
           totalChecks:        data.totalChecks      ?? 0,
@@ -437,16 +445,13 @@ export function useTodaySummary(venueId, closedDays = [], actionSchedules = {}) 
           ? supabase.from('cleaning_tasks').select('id, frequency').eq('venue_id', venueId).eq('is_active', true)
           : { data: [] },
         supabase.from('shifts').select('id', { count: 'exact', head: true }).eq('venue_id', venueId).eq('shift_date', todayStr),
-        due('opening_checks')
-          ? supabase.from('opening_closing_completions')
-              .select('id', { count: 'exact', head: true })
-              .eq('venue_id', venueId).eq('session_type', 'opening').gte('completed_at', dayStart).lte('completed_at', dayEnd)
-          : { count: 0 },
-        due('closing_checks')
-          ? supabase.from('opening_closing_completions')
-              .select('id', { count: 'exact', head: true })
-              .eq('venue_id', venueId).eq('session_type', 'closing').gte('completed_at', dayStart).lte('completed_at', dayEnd)
-          : { count: 0 },
+        // Not gated by due() — see the comment on checksToday in fetchViaSnapshot.
+        supabase.from('opening_closing_completions')
+          .select('id', { count: 'exact', head: true })
+          .eq('venue_id', venueId).eq('session_type', 'opening').gte('completed_at', dayStart).lte('completed_at', dayEnd),
+        supabase.from('opening_closing_completions')
+          .select('id', { count: 'exact', head: true })
+          .eq('venue_id', venueId).eq('session_type', 'closing').gte('completed_at', dayStart).lte('completed_at', dayEnd),
         due('fridge_checks')
           ? supabase.from('fridges').select('id, check_days, required_periods').eq('venue_id', venueId).eq('is_active', true)
           : { data: [] },

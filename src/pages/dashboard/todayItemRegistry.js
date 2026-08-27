@@ -7,7 +7,7 @@ export const TODAY_ITEM_REGISTRY = {
     description: 'How many staff are rotaed today',
     feature: 'rota',
     scheduleKey: null,
-    route: '/rota',
+    route: '/team/attendance',
     metric: summary => summary.onShiftToday,
     metricLabel: 'On shift',
   },

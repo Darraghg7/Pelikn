@@ -96,6 +96,7 @@ function ManagerTaskRow({ item, isTemplate, completions, onDelete, deleting }) {
 
 // ── Department column ─────────────────────────────────────────────────────────
 function DeptColumn({ role, label, color, templates, oneOffs, completions, onDeleteTemplate, onDeleteOneOff, deleting }) {
+  const [collapsed, setCollapsed] = useState(false)
   const deptTemplates = templates.filter(t => t.job_role === role)
   const deptOneOffs   = oneOffs.filter(o => o.job_role === role)
   const deptDone = completions.filter(c =>
@@ -105,38 +106,56 @@ function DeptColumn({ role, label, color, templates, oneOffs, completions, onDel
   const deptTotal = deptTemplates.length + deptOneOffs.length
 
   return (
-    <div className="flex-1 min-w-0 bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 overflow-hidden">
-      {/* Column header */}
-      <div className={`px-4 py-3 border-b border-charcoal/8 dark:border-white/8 flex items-center justify-between ${color}`}>
+    // w-full is load-bearing: the parent row uses items-start, which stretches
+    // children to equal width only once it's flex-row (sm:+). Stacked on
+    // mobile, cross-axis alignment is "start" (shrink-to-fit), so each column
+    // ends up sized to its own content — w-full forces the full row width
+    // regardless of direction.
+    <div className="flex-1 w-full min-w-0 bg-white dark:bg-paperDark rounded-2xl border border-charcoal/10 dark:border-white/10 overflow-hidden">
+      {/* Column header — tap to collapse */}
+      <button
+        type="button"
+        onClick={() => setCollapsed(v => !v)}
+        aria-expanded={!collapsed}
+        className={`w-full px-4 py-3 border-b border-charcoal/8 dark:border-white/8 flex items-center justify-between gap-2 text-left cursor-pointer border-none ${color}`}
+      >
         <p className="text-sm font-semibold">{label}</p>
-        <span className="text-xs font-medium opacity-70">{deptDone}/{deptTotal}</span>
-      </div>
+        <span className="flex items-center gap-2 shrink-0">
+          <span className="text-xs font-medium opacity-70">{deptDone}/{deptTotal}</span>
+          <svg
+            className={`w-3.5 h-3.5 transition-transform duration-150 ${collapsed ? '-rotate-90' : ''}`}
+            viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+          ><polyline points="6 9 12 15 18 9"/></svg>
+        </span>
+      </button>
 
-      <div className="p-4 flex flex-col gap-0 divide-y divide-charcoal/6 dark:divide-white/8">
-        {/* Recurring */}
-        {deptTemplates.length > 0 && (
-          <div className="pb-3">
-            <p className="text-[11px] tracking-widest uppercase text-charcoal/30 dark:text-white/30 mb-2">Recurring</p>
-            {deptTemplates.map(t => (
-              <ManagerTaskRow key={t.id} item={t} isTemplate completions={completions} onDelete={onDeleteTemplate} deleting={deleting} />
-            ))}
-          </div>
-        )}
+      {!collapsed && (
+        <div className="p-4 flex flex-col gap-0 divide-y divide-charcoal/6 dark:divide-white/8">
+          {/* Recurring */}
+          {deptTemplates.length > 0 && (
+            <div className="pb-3">
+              <p className="text-[11px] tracking-widest uppercase text-charcoal/30 dark:text-white/30 mb-2">Recurring</p>
+              {deptTemplates.map(t => (
+                <ManagerTaskRow key={t.id} item={t} isTemplate completions={completions} onDelete={onDeleteTemplate} deleting={deleting} />
+              ))}
+            </div>
+          )}
 
-        {/* One-offs */}
-        {deptOneOffs.length > 0 && (
-          <div className={deptTemplates.length > 0 ? 'pt-3' : ''}>
-            <p className="text-[11px] tracking-widest uppercase text-charcoal/30 dark:text-white/30 mb-2">One-off</p>
-            {deptOneOffs.map(o => (
-              <ManagerTaskRow key={o.id} item={o} isTemplate={false} completions={completions} onDelete={onDeleteOneOff} deleting={deleting} />
-            ))}
-          </div>
-        )}
+          {/* One-offs */}
+          {deptOneOffs.length > 0 && (
+            <div className={deptTemplates.length > 0 ? 'pt-3' : ''}>
+              <p className="text-[11px] tracking-widest uppercase text-charcoal/30 dark:text-white/30 mb-2">One-off</p>
+              {deptOneOffs.map(o => (
+                <ManagerTaskRow key={o.id} item={o} isTemplate={false} completions={completions} onDelete={onDeleteOneOff} deleting={deleting} />
+              ))}
+            </div>
+          )}
 
-        {deptTotal === 0 && (
-          <EmptyState icon="clipboard" title="No tasks" description="No tasks set up for this department yet." className="py-4" />
-        )}
-      </div>
+          {deptTotal === 0 && (
+            <EmptyState icon="clipboard" title="No tasks" description="No tasks set up for this department yet." className="py-4" />
+          )}
+        </div>
+      )}
     </div>
   )
 }
