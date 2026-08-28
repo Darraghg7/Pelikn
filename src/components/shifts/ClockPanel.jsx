@@ -67,7 +67,7 @@ function ElapsedTimer({ clockInAt, breakStartAt, totalBreakMs, status }) {
 export default function ClockPanel({ staffId, compact = false }) {
   const { venueId } = useVenue()
   const toast = useToast()
-  const { status, clockInAt, breakStartAt, totalBreakMs, loading, reload } = useClockStatus(staffId)
+  const { status, clockInAt, breakStartAt, totalBreakMs, loading, isError, reload } = useClockStatus(staffId)
   const [submitting, setSubmitting] = useState(false)
 
   // Late clock-in / break-overrun alerts live in a shared hook so that every
@@ -117,6 +117,23 @@ export default function ClockPanel({ staffId, compact = false }) {
 
   if (loading) {
     return <Skeleton className="h-24 w-full" />
+  }
+
+  // Don't render the clocked-out UI on a failed status check — someone who is
+  // actually clocked in could tap "Clock In" and stack a second open session
+  // on top of the one the check just failed to see.
+  if (isError) {
+    return (
+      <div className="flex flex-col gap-3">
+        <p className="text-sm text-danger">Couldn't check your clock status.</p>
+        <button
+          onClick={reload}
+          className="w-full bg-danger/10 text-danger border border-danger/25 py-3 rounded-xl text-sm font-semibold hover:bg-danger/15 transition-colors"
+        >
+          Retry
+        </button>
+      </div>
+    )
   }
 
   return (

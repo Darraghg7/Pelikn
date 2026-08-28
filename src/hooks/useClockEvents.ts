@@ -1,6 +1,30 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
 import { useVenue } from '../contexts/VenueContext'
+import { isNetworkError } from '../lib/offlineSupabase'
+import { getQueue } from '../lib/offlineQueue'
+
+/**
+ * True if this staff member has a clock event still sitting in the offline
+ * queue, not yet delivered to the server.
+ *
+ * Matters because a plain online status read can't see a write the server
+ * hasn't received yet — it will legitimately come back "no active session"
+ * and, left unchecked, overwrite the optimistic cache the queued write set,
+ * silently flipping someone from "clocked in" back to "clocked out" on their
+ * own device while the real write is still in flight.
+ */
+interface QueuedItem {
+  type: string
+  fnName?: string
+  args?: { p_staff_id?: string }
+}
+
+function hasQueuedClockEvent(staffId: string): boolean {
+  return (getQueue() as QueuedItem[]).some(item =>
+    item.type === 'rpc' && item.fnName === 'record_clock_event' && item.args?.p_staff_id === staffId
+  )
+}
 
 // ── Clock status cache (localStorage) ────────────────────────────────────────
 // Keeps the last known status so the app works offline without crashing.
@@ -48,13 +72,22 @@ function loadClockStatusCache(staffId: string): ClockStatusData | null {
  * Persists across logouts — queries the most recent events regardless of date.
  * Falls back to localStorage cache when offline so the app never crashes.
  */
-export function useClockStatus(staffId: string): ClockStatusData & { loading: boolean; reload: () => void } {
+export function useClockStatus(staffId: string): ClockStatusData & { loading: boolean; isError: boolean; reload: () => void } {
   const { venueId } = useVenue()
 
-  const { data, isLoading, refetch } = useQuery({
+  const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ['clockStatus', venueId, staffId],
     queryFn: async (): Promise<ClockStatusData> => {
       if (!staffId) return { status: 'clocked_out', clockInAt: null, breakStartAt: null, totalBreakMs: 0 }
+
+      // A queued-but-undelivered clock event exists for this person — the
+      // server genuinely doesn't know about it yet, so don't let a "clean"
+      // read overwrite the optimistic status the queue write already set.
+      // Trust the cache until the queue actually drains.
+      if (hasQueuedClockEvent(staffId)) {
+        const cached = loadClockStatusCache(staffId)
+        if (cached) return cached
+      }
 
       try {
         // Get the most recent clock_in or clock_out to determine if there's an active session
@@ -112,11 +145,20 @@ export function useClockStatus(staffId: string): ClockStatusData & { loading: bo
         const result: ClockStatusData = { status: currentStatus, clockInAt: clockInTime, breakStartAt: bs, totalBreakMs: breakMs }
         saveClockStatusCache(staffId, result)
         return result
-      } catch {
-        // Network error — use cached status so the app doesn't crash
-        const cached = loadClockStatusCache(staffId)
-        if (cached) return cached
-        return { status: 'clocked_out', clockInAt: null, breakStartAt: null, totalBreakMs: 0 }
+      } catch (err) {
+        // Only a genuine network/offline failure falls back to the cached status
+        // (or an honest "unknown, assume out") — that's the offline-resilience
+        // this hook exists for. Any other failure (RLS denial, bad query, 5xx)
+        // must NOT be swallowed into a fabricated 'clocked_out': that's exactly
+        // how a staff member who is actually clocked in loses their Clock Out
+        // button with zero trace of why. Let react-query surface it as isError
+        // instead — see useTimesheetData below, which surfaces for the same reason.
+        if (isNetworkError(err)) {
+          const cached = loadClockStatusCache(staffId)
+          if (cached) return cached
+          return { status: 'clocked_out', clockInAt: null, breakStartAt: null, totalBreakMs: 0 }
+        }
+        throw err
       }
     },
     enabled: !!staffId,
@@ -131,7 +173,7 @@ export function useClockStatus(staffId: string): ClockStatusData & { loading: bo
   const breakStartAt = data?.breakStartAt ?? null
   const totalBreakMs = data?.totalBreakMs ?? 0
 
-  return { status, clockInAt, breakStartAt, totalBreakMs, loading: isLoading, reload: refetch }
+  return { status, clockInAt, breakStartAt, totalBreakMs, loading: isLoading, isError, reload: refetch }
 }
 
 interface TimesheetRow {

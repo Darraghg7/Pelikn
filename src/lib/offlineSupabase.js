@@ -6,7 +6,7 @@
 import { supabase } from './supabase'
 import { enqueue, enqueueRpc, getQueue, dequeue } from './offlineQueue'
 
-function isNetworkError(error) {
+export function isNetworkError(error) {
   if (!error) return false
   const msg = (error.message || '').toLowerCase()
   return (

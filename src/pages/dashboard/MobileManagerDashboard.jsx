@@ -285,7 +285,7 @@ function useWeeklyHours(staffId, venueId) {
 function MobileClockCard({ staffId }) {
   const { venueId } = useVenue()
   const toast = useToast()
-  const { status, clockInAt, breakStartAt, totalBreakMs, loading, reload } = useClockStatus(staffId)
+  const { status, clockInAt, breakStartAt, totalBreakMs, loading, isError, reload } = useClockStatus(staffId)
   const [submitting, setSubmitting] = useState(false)
   const elapsed  = useShiftElapsed(clockInAt, breakStartAt, totalBreakMs, status)
   const weekHrs  = useWeeklyHours(staffId, venueId)
@@ -322,14 +322,16 @@ function MobileClockCard({ staffId }) {
 
   const onShift  = status === 'clocked_in'
   const onBreak  = status === 'on_break'
-  const badgeLabel = onBreak
-    ? `On Break${elapsed ? ' · ' + elapsed : ''}`
-    : onShift
-      ? `On Shift${elapsed ? ' · ' + elapsed : ''}`
-      : 'Not In'
+  const badgeLabel = isError
+    ? 'Status unknown'
+    : onBreak
+      ? `On Break${elapsed ? ' · ' + elapsed : ''}`
+      : onShift
+        ? `On Shift${elapsed ? ' · ' + elapsed : ''}`
+        : 'Not In'
 
-  const badgeBg  = onBreak ? 'rgba(168,93,18,0.25)' : onShift ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.10)'
-  const badgeDot = onBreak ? '#e8a34e' : onShift ? '#6fcfa0' : 'rgba(255,255,255,0.35)'
+  const badgeBg  = isError ? 'rgba(220,38,38,0.25)' : onBreak ? 'rgba(168,93,18,0.25)' : onShift ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.10)'
+  const badgeDot = isError ? '#dc2626' : onBreak ? '#e8a34e' : onShift ? '#6fcfa0' : 'rgba(255,255,255,0.35)'
 
   return (
     <div>
@@ -385,7 +387,14 @@ function MobileClockCard({ staffId }) {
           ))}
         </div>
 
-        {loading ? null : status === 'clocked_out' ? (
+        {loading ? null : isError ? (
+          <button
+            onClick={reload}
+            className="w-full bg-danger/15 text-white rounded-[11px] py-[13px] font-mono text-[13px] font-bold tracking-[0.02em] border border-danger/40 cursor-pointer"
+          >
+            Couldn't check status — Retry
+          </button>
+        ) : status === 'clocked_out' ? (
           <button
             onClick={() => record('clock_in')}
             disabled={submitting}

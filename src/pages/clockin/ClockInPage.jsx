@@ -35,13 +35,14 @@ function LiveElapsed({ clockInAt }) {
 
 /* ── Staff row in manager view ────────────────────────────────────── */
 function StaffClockRow({ staffMember }) {
-  const { status, clockInAt, loading } = useClockStatus(staffMember.id)
+  const { status, clockInAt, loading, isError } = useClockStatus(staffMember.id)
   const STATUS = {
     clocked_in:  { label: 'Clocked In',  dot: 'bg-success',     text: 'text-success' },
     on_break:    { label: 'On Break',     dot: 'bg-warning',     text: 'text-warning' },
     clocked_out: { label: 'Not in',       dot: 'bg-charcoal/25 dark:bg-white/25', text: 'text-charcoal/40 dark:text-white/35' },
+    unknown:     { label: 'Status unknown', dot: 'bg-danger',    text: 'text-danger' },
   }
-  const cfg = STATUS[status ?? 'clocked_out']
+  const cfg = STATUS[isError ? 'unknown' : (status ?? 'clocked_out')]
   return (
     <div className="flex items-center justify-between py-3 border-t border-charcoal/6 dark:border-white/8 first:border-0">
       <div className="flex items-center gap-3">
