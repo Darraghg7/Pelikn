@@ -56,6 +56,7 @@ export function VenueProvider({ children }) {
           localStorage.setItem(venueKey(slug), JSON.stringify(data))
           setVenue(data)
           setLoading(false)
+          setError(false) // clears the "not found" state if the 8s failsafe fired first
           return
         }
         // Retry without plan column (older DB schemas)
@@ -70,6 +71,7 @@ export function VenueProvider({ children }) {
               const v = { ...d2, plan: 'starter' }
               localStorage.setItem(venueKey(slug), JSON.stringify(v))
               setVenue(v)
+              setError(false) // clears the "not found" state if the 8s failsafe fired first
             } else if (!hasCache) {
               setError(true)
             }

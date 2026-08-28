@@ -359,10 +359,18 @@ function SplashScreen() {
 // ── Venue-scoped routes ─────────────────────────────────────────────────────
 
 function VenueRoutes() {
+  // SessionProvider wraps VenueProvider (not the other way round) so the two
+  // independent network round-trips it kicks off — session restore and venue
+  // lookup — start at the same time. VenueProvider blocks rendering its own
+  // children until the venue is resolved (see its `loading` gate below), so
+  // nesting it outside SessionProvider would hold session restore back until
+  // after the venue fetch finished, stacking two ~8s-capped fetches instead
+  // of overlapping them. SessionContext has no dependency on venue data — it
+  // reads everything it needs from localStorage — so this is safe.
   return (
     <ErrorBoundary>
-    <VenueProvider>
-      <SessionProvider>
+    <SessionProvider>
+      <VenueProvider>
         <ToastProvider>
           <Routes>
             {/* Staff PIN login — publicly accessible, no Supabase Auth needed.
@@ -444,8 +452,8 @@ function VenueRoutes() {
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </ToastProvider>
-      </SessionProvider>
-    </VenueProvider>
+      </VenueProvider>
+    </SessionProvider>
     </ErrorBoundary>
   )
 }
