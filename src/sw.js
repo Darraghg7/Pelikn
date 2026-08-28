@@ -18,6 +18,17 @@ self.addEventListener('message', event => {
   }
 })
 
+// clients.claim() here is safe precisely because skipWaiting() above is
+// gated on the user's explicit click — activate only fires early when they
+// asked for it. Without this, skipWaiting() lets the new SW become "active"
+// but it never takes control of the already-open tab, so `controllerchange`
+// on the client never fires, UpdateBanner's reload() never runs, and the
+// Update button silently does nothing (looks like a glitch/flash with no
+// effect since the button's own press animation is the only visible change).
+self.addEventListener('activate', event => {
+  event.waitUntil(self.clients.claim())
+})
+
 // Workbox precaching — manifest injected by vite-plugin-pwa
 precacheAndRoute(self.__WB_MANIFEST)
 
