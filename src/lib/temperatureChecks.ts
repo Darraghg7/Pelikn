@@ -36,6 +36,14 @@ export function isCheckRequired(item: CheckableItem, date: Date = new Date(), pe
   return dayRequired && getRequiredPeriods(item).includes(period)
 }
 
+// Which check periods have actually started, so "not logged yet" only flags a
+// period once it's due — not from midnight. Mirrors the am/pm split used
+// elsewhere (FridgeDashboardPage, FridgeLogFormPage): before noon only the AM
+// check is active, so a not-yet-started PM reading doesn't count as missing.
+export function getActivePeriods(date: Date = new Date()): string[] {
+  return date.getHours() < 12 ? ['am'] : ['am', 'pm']
+}
+
 export function formatCheckDays(days: number[] | null | undefined): string {
   const values = Array.isArray(days) && days.length > 0 ? days : [...DEFAULT_CHECK_DAYS]
   if (values.length === 7) return 'Every day'

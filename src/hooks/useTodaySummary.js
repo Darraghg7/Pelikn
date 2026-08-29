@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabase'
 import { readPersisted, writePersisted, clearPersisted } from '../lib/persistedCache'
 import { onDataWrite } from '../lib/cacheBus'
 import { captureSilent } from '../lib/reportError'
-import { isCheckRequired } from '../lib/temperatureChecks'
+import { isCheckRequired, getActivePeriods } from '../lib/temperatureChecks'
 
 // ── Module-level SWR cache ─────────────────────────────────────────────────
 // Survives component unmount/remount (single-page navigation), and is backed
@@ -348,10 +348,11 @@ export function useTodaySummary(venueId, closedDays = [], actionSchedules = {}) 
     const fetchViaSnapshot = async () => {
       const { data, error } = await fetchOnce(`snap:${key}`, () =>
         supabase.rpc('get_dashboard_snapshot', {
-          p_venue_id:  venueId,
-          p_date:      todayStr,
-          p_day_start: dayStart,
-          p_day_end:   dayEnd,
+          p_venue_id:       venueId,
+          p_date:           todayStr,
+          p_day_start:      dayStart,
+          p_day_end:        dayEnd,
+          p_active_periods: getActivePeriods(today),
         })
       )
       if (error || !data) return null
@@ -520,9 +521,10 @@ export function useTodaySummary(venueId, closedDays = [], actionSchedules = {}) 
         if (!loggedPeriodsByFridge.has(l.fridge_id)) loggedPeriodsByFridge.set(l.fridge_id, new Set())
         loggedPeriodsByFridge.get(l.fridge_id).add(l.check_period)
       }
+      const activePeriods = getActivePeriods(today)
       const uncheckedFridges = (fridges.data ?? []).filter(f => {
         const logged = loggedPeriodsByFridge.get(f.id) ?? new Set()
-        return ['am', 'pm'].some(period => isCheckRequired(f, today, period) && !logged.has(period))
+        return activePeriods.some(period => isCheckRequired(f, today, period) && !logged.has(period))
       }).length
       const totalFridges = fridges.data?.length ?? 0
 
