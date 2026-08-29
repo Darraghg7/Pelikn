@@ -3,6 +3,7 @@ import {
   getCheckDays,
   getRequiredPeriods,
   isCheckRequired,
+  getActivePeriods,
   formatCheckDays,
   formatRequiredPeriods,
   DEFAULT_CHECK_DAYS,
@@ -70,6 +71,18 @@ describe('isCheckRequired', () => {
     // Default is all days and all periods — Monday + am should be required
     expect(isCheckRequired({}, monday, 'am')).toBe(true)
     expect(isCheckRequired({}, monday, 'pm')).toBe(true)
+  })
+})
+
+describe('getActivePeriods', () => {
+  it('is AM-only before noon', () => {
+    expect(getActivePeriods(new Date('2024-06-10T09:00:00'))).toEqual(['am'])
+    expect(getActivePeriods(new Date('2024-06-10T11:59:00'))).toEqual(['am'])
+  })
+
+  it('includes PM from noon onward', () => {
+    expect(getActivePeriods(new Date('2024-06-10T12:00:00'))).toEqual(['am', 'pm'])
+    expect(getActivePeriods(new Date('2024-06-10T18:00:00'))).toEqual(['am', 'pm'])
   })
 })
 

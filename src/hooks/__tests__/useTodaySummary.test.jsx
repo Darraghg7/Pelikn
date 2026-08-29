@@ -202,6 +202,89 @@ describe('useTodaySummary — refreshing after a write', () => {
   })
 })
 
+describe('useTodaySummary — fridge active-period gating (fallback path)', () => {
+  afterEach(() => {
+    vi.useRealTimers()
+    invalidateSummaryCache(null)
+    localStorage.clear()
+    vi.restoreAllMocks()
+  })
+
+  it('does not flag a not-yet-due PM reading as unchecked before noon', async () => {
+    // Regression: uncheckedFridges checked both am and pm as soon as the day
+    // started, so a fridge logged AM-only at 9am already read as "not logged"
+    // for its PM reading — hours before the PM window even begins.
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date('2024-06-10T09:00:00'))
+    invalidateSummaryCache(null)
+    localStorage.clear()
+
+    global.fetch = vi.fn(async (url, options = {}) => {
+      const u = String(url)
+      const method = (options.method ?? 'GET').toUpperCase()
+      if (u.includes('/rpc/get_dashboard_snapshot')) {
+        return new Response(JSON.stringify({ message: 'function does not exist' }), {
+          status: 404, headers: { 'Content-Type': 'application/json' },
+        })
+      }
+      if (u.includes('/fridges?')) {
+        return json([{ id: 'f1', check_days: [], required_periods: [] }])
+      }
+      if (u.includes('/fridge_temperature_logs?')) {
+        return json([{ fridge_id: 'f1', check_period: 'am' }])
+      }
+      if (method === 'HEAD') {
+        return new Response(null, {
+          status: 200,
+          headers: { 'Content-Type': 'application/json', 'content-range': '*/0' },
+        })
+      }
+      return json([])
+    })
+
+    const { result } = renderHook(() => useTodaySummary(VENUE, [], {}))
+
+    await waitFor(() => expect(result.current.summary).not.toBeNull())
+    expect(result.current.summary.totalFridges).toBe(1)
+    expect(result.current.summary.uncheckedFridges).toBe(0)
+  })
+
+  it('flags the PM reading once its window has started', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date('2024-06-10T14:00:00'))
+    invalidateSummaryCache(null)
+    localStorage.clear()
+
+    global.fetch = vi.fn(async (url, options = {}) => {
+      const u = String(url)
+      const method = (options.method ?? 'GET').toUpperCase()
+      if (u.includes('/rpc/get_dashboard_snapshot')) {
+        return new Response(JSON.stringify({ message: 'function does not exist' }), {
+          status: 404, headers: { 'Content-Type': 'application/json' },
+        })
+      }
+      if (u.includes('/fridges?')) {
+        return json([{ id: 'f1', check_days: [], required_periods: [] }])
+      }
+      if (u.includes('/fridge_temperature_logs?')) {
+        return json([{ fridge_id: 'f1', check_period: 'am' }])
+      }
+      if (method === 'HEAD') {
+        return new Response(null, {
+          status: 200,
+          headers: { 'Content-Type': 'application/json', 'content-range': '*/0' },
+        })
+      }
+      return json([])
+    })
+
+    const { result } = renderHook(() => useTodaySummary(VENUE, [], {}))
+
+    await waitFor(() => expect(result.current.summary).not.toBeNull())
+    expect(result.current.summary.uncheckedFridges).toBe(1)
+  })
+})
+
 describe('useTodaySummary — action schedules', () => {
   let serverSnapshot
   let rpcCalls
