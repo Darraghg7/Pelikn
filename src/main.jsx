@@ -1,21 +1,9 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import * as Sentry from '@sentry/react'
 import './index.css'
 import App from './App'
 import { ThemeProvider } from './contexts/ThemeContext'
 import ErrorBoundary from './components/ui/ErrorBoundary'
-
-if (import.meta.env.VITE_SENTRY_DSN) {
-  Sentry.init({
-    dsn: import.meta.env.VITE_SENTRY_DSN,
-    environment: import.meta.env.MODE,
-    integrations: [Sentry.browserTracingIntegration()],
-    tracesSampleRate: 0.1,
-    // Don't send errors in dev — only production
-    enabled: import.meta.env.PROD,
-  })
-}
 
 function mountApp() {
   const root = document.getElementById('root')
@@ -35,6 +23,32 @@ function mountApp() {
   )
 
   initNative()
+  initSentry()
+}
+
+// Sentry pulls in ~140 kB (46 kB gzipped) of browser tracing code. Initializing
+// it eagerly at module scope put that on the render-blocking entry chunk —
+// fetched and parsed before the app could paint anything, on every cold load.
+// Error monitoring doesn't need to be on the critical path, so defer it to a
+// dynamic import once the app has mounted and the browser is idle.
+function initSentry() {
+  if (!import.meta.env.VITE_SENTRY_DSN) return
+
+  const run = () => {
+    import('@sentry/react').then((Sentry) => {
+      Sentry.init({
+        dsn: import.meta.env.VITE_SENTRY_DSN,
+        environment: import.meta.env.MODE,
+        integrations: [Sentry.browserTracingIntegration()],
+        tracesSampleRate: 0.1,
+        // Don't send errors in dev — only production
+        enabled: import.meta.env.PROD,
+      })
+    })
+  }
+
+  if ('requestIdleCallback' in window) window.requestIdleCallback(run, { timeout: 2000 })
+  else window.setTimeout(run, 500)
 }
 
 // Only register service worker in browser/PWA context — not inside Capacitor native shell
