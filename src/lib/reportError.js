@@ -11,18 +11,30 @@
  * @param {string|object} context  a label ('sendPush:rota_published') or an
  *                                  object of extra fields for the Sentry event
  */
-import * as Sentry from '@sentry/react'
+
+// AppShell (non-lazy, wraps almost every route) imports this module, so a
+// static `@sentry/react` import here put Sentry's ~140 kB on the same
+// render-blocking entry chunk as everything else. Load it on demand instead
+// — this path only ever runs from inside a catch block, so a dynamic import
+// costs nothing on the happy path.
+let sentryPromise = null
+function loadSentry() {
+  if (!sentryPromise) sentryPromise = import('@sentry/react')
+  return sentryPromise
+}
 
 export function captureSilent(error, context) {
-  try {
-    Sentry.captureException(
-      error instanceof Error ? error : new Error(String(error)),
-      {
-        tags: { silent: true },
-        extra: typeof context === 'string' ? { context } : (context ?? {}),
-      }
-    )
-  } catch {
-    /* error reporting must never itself throw */
-  }
+  loadSentry()
+    .then((Sentry) => {
+      Sentry.captureException(
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          tags: { silent: true },
+          extra: typeof context === 'string' ? { context } : (context ?? {}),
+        }
+      )
+    })
+    .catch(() => {
+      /* error reporting must never itself throw */
+    })
 }
