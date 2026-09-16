@@ -42,26 +42,33 @@ of a retried write.
 
 ```sql
 SELECT
-  s.name,
-  e.venue_id,
-  e.occurred_at AT TIME ZONE 'Europe/London' AS punched_at_london,
-  e.id          AS duplicate_event_id,
-  prev.id       AS kept_event_id,
-  EXTRACT(EPOCH FROM (e.occurred_at - prev.occurred_at))::int AS seconds_apart
-FROM clock_events e
+  s.name AS staff,
+  to_char(repeat.occurred_at AT TIME ZONE 'Europe/London', 'Dy DD Mon YYYY') AS shift_date,
+  to_char(orig.occurred_at   AT TIME ZONE 'Europe/London', 'HH24:MI:SS')     AS real_punch,
+  to_char(repeat.occurred_at AT TIME ZONE 'Europe/London', 'HH24:MI:SS')     AS repeat_punch,
+  EXTRACT(EPOCH FROM (repeat.occurred_at - orig.occurred_at))::int AS seconds_apart,
+  CASE
+    WHEN repeat.occurred_at - orig.occurred_at < interval '90 seconds'
+      THEN 'Retry echo — safe to remove'
+    ELSE 'Check against the rota first'
+  END AS verdict,
+  orig.id   AS keep_this,
+  repeat.id AS remove_this
+FROM clock_events repeat
 JOIN LATERAL (
   SELECT p.id, p.occurred_at
   FROM clock_events p
-  WHERE p.staff_id   = e.staff_id
+  WHERE p.staff_id   = repeat.staff_id
+    AND p.venue_id   = repeat.venue_id
     AND p.event_type = 'clock_in'
-    AND p.occurred_at < e.occurred_at
+    AND p.occurred_at < repeat.occurred_at
   ORDER BY p.occurred_at DESC
   LIMIT 1
-) prev ON true
-JOIN staff s ON s.id = e.staff_id
-WHERE e.event_type = 'clock_in'
-  AND e.occurred_at - prev.occurred_at < interval '2 minutes'
-ORDER BY e.occurred_at DESC;
+) orig ON true
+JOIN staff s ON s.id = repeat.staff_id
+WHERE repeat.event_type = 'clock_in'
+  AND repeat.occurred_at - orig.occurred_at < interval '2 minutes'
+ORDER BY repeat.occurred_at DESC;
 ```
 
 A companion query for the symptom rather than the cause — days where someone has
@@ -95,16 +102,20 @@ Once you're satisfied, delete by explicit id — not by a blanket `WHERE` clause
 
 ```sql
 DELETE FROM clock_events WHERE id IN (
-  '…',  -- duplicate_event_id values from the query above
+  '…',  -- remove_this values from the query above
   '…'
 );
 ```
 
-Deleting the *earlier* of a duplicate pair is usually right: the retry that
-carried the later timestamp is the one the `clock_out` got attached to, so
-removing the earlier orphan leaves a complete session. The first query returns
-`kept_event_id` (the earlier row) and `duplicate_event_id` (the later one) so
-you can see which is which — check the pairing before assuming.
+**Which of the pair to delete:** keep the *earlier* punch (`keep_this`) and
+remove the *later* one (`remove_this`). The earlier timestamp is the moment the
+person actually pressed the button; the later one is the retry echoing it back
+seconds afterwards, so keeping the earlier row is the more truthful record.
+
+Either choice happens to leave a valid session — with one of the two gone, the
+`clock_out` pairs with whichever `clock_in` remains, and the pair are seconds
+apart — so this is about which timestamp is *true*, not about avoiding damage.
+What you must not do is delete both.
 
 You do not have to delete anything for the display to be correct: the app now
 sets a dangling punch aside on its own and labels it "N duplicate punches
