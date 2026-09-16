@@ -13,7 +13,8 @@ import { SkeletonList } from '../../components/ui/Skeleton'
 import EmptyState from '../../components/ui/EmptyState'
 import AddSessionModal from './AddSessionModal'
 import ClockEditApprovalCard from '../../components/shifts/ClockEditApprovalCard'
-import { formatLondon, londonWallTimeToInstant } from '../../lib/time'
+import { formatLondon, resolveShiftInstants } from '../../lib/time'
+import { buildTimesheets, buildDailyGrid, partitionDaySessions, breakMinutes, sessionMinutes } from '../../lib/timesheet'
 import { offlineRpc } from '../../lib/offlineSupabase'
 
 function useBodyScrollLock() {
@@ -44,68 +45,6 @@ function minsStr(mins) {
   if (mins <= 0) return '0m'
   const h = Math.floor(mins / 60), m = Math.round(mins % 60)
   return m === 0 ? `${h}h` : `${h}h ${m}m`
-}
-
-function buildTimesheets(events, staffRates) {
-  const results = {}
-  for (const e of events) {
-    const sid = e.staff_id
-    if (!results[sid]) results[sid] = { staffId: sid, name: e.staff?.name ?? 'Unknown', hourlyRate: staffRates[sid] ?? 0, sessions: [], totalMinutes: 0 }
-    const r = results[sid]
-    if (e.event_type === 'clock_in')    r.sessions.push({ in: e.occurred_at, out: null, breaks: [] })
-    if (e.event_type === 'clock_out'   && r.sessions.length) r.sessions[r.sessions.length - 1].out = e.occurred_at
-    if (e.event_type === 'break_start' && r.sessions.length) r.sessions[r.sessions.length - 1].breaks.push({ start: e.occurred_at, end: null })
-    if (e.event_type === 'break_end'   && r.sessions.length) {
-      const br = r.sessions[r.sessions.length - 1].breaks
-      if (br.length) { const lb = br[br.length - 1]; if (!lb.end) lb.end = e.occurred_at }
-    }
-  }
-  for (const r of Object.values(results)) {
-    for (const s of r.sessions) {
-      if (!s.in || !s.out) continue
-      const worked = (new Date(s.out) - new Date(s.in)) / 60000
-      const breaks = s.breaks.reduce((acc, b) => (!b.start || !b.end) ? acc : acc + (new Date(b.end) - new Date(b.start)) / 60000, 0)
-      r.totalMinutes += Math.max(0, worked - breaks)
-    }
-  }
-  return Object.values(results).sort((a, b) => a.name.localeCompare(b.name))
-}
-
-function buildDailyGrid(events) {
-  const grid = {}
-  for (const e of events) {
-    const sid = e.staff_id
-    if (!grid[sid]) grid[sid] = { sessions: [] }
-    const r = grid[sid]
-    if (e.event_type === 'clock_in')
-      r.sessions.push({ in: e.occurred_at, inId: e.id, out: null, outId: null, breaks: [], date: e.occurred_at.slice(0, 10) })
-    if (e.event_type === 'clock_out' && r.sessions.length) {
-      const last = r.sessions[r.sessions.length - 1]; last.out = e.occurred_at; last.outId = e.id
-    }
-    if (e.event_type === 'break_start' && r.sessions.length)
-      r.sessions[r.sessions.length - 1].breaks.push({ start: e.occurred_at, startId: e.id, end: null, endId: null })
-    if (e.event_type === 'break_end' && r.sessions.length) {
-      const br = r.sessions[r.sessions.length - 1].breaks
-      if (br.length) { const lb = br[br.length - 1]; if (!lb.end) { lb.end = e.occurred_at; lb.endId = e.id } }
-    }
-  }
-  const result = {}
-  for (const [sid, r] of Object.entries(grid)) {
-    result[sid] = { staffId: sid, days: {} }
-    for (const s of r.sessions) {
-      if (!s.in) continue
-      const date = s.date
-      if (!result[sid].days[date]) result[sid].days[date] = { minutes: 0, sessions: [] }
-      const day = result[sid].days[date]
-      day.sessions.push({ in: s.in, inId: s.inId, out: s.out, outId: s.outId, breaks: s.breaks })
-      if (s.out) {
-        const worked = (new Date(s.out) - new Date(s.in)) / 60000
-        const brk = s.breaks.reduce((acc, b) => (!b.start || !b.end) ? acc : acc + (new Date(b.end) - new Date(b.start)) / 60000, 0)
-        day.minutes += Math.max(0, worked - brk)
-      }
-    }
-  }
-  return result
 }
 
 function calcHolidayMins(leaveReqs, staffId, profile, periodFrom, periodTo) {
@@ -285,7 +224,15 @@ function EditSessionSheet({ staffName, dayLabel, session, onSave, onClose }) {
   const toHM = (iso) => iso ? formatLondon(iso, 'HH:mm') : null
   const [clockIn,  setIn]  = useState(toHM(session?.in)  || '08:00')
   const [clockOut, setOut] = useState(toHM(session?.out) || '16:00')
-  const [brk,      setBrk] = useState(0)
+  // Prefill the break already on the session. Left at 0 this sheet silently
+  // erased it: saving routes through edit_clock_session, which replaces the
+  // break events with p_break_minutes, so opening the sheet to nudge a clock-out
+  // by five minutes also paid back every recorded break.
+  const [brk,      setBrk] = useState(() => {
+    const mins = (session?.breaks ?? []).reduce((acc, b) =>
+      (!b.start || !b.end) ? acc : acc + (new Date(b.end) - new Date(b.start)) / 60000, 0)
+    return Math.round(mins)
+  })
   const [edge,     setEdge]= useState('out')
   const [ch, cm] = (edge === 'in' ? clockIn : clockOut).split(':')
   const setCur = (h, m) => { const v = `${h}:${m}`; edge === 'in' ? setIn(v) : setOut(v) }
@@ -329,7 +276,10 @@ function EditSessionSheet({ staffName, dayLabel, session, onSave, onClose }) {
         <div className="mt-2">
           <div className="font-mono text-[11px] text-charcoal/50 dark:text-white/40 tracking-[0.07em] uppercase font-semibold px-0.5 pb-[7px]">Unpaid break</div>
           <div className="flex flex-wrap gap-[6px]">
-            {WH_BREAKS.map(b => {
+            {/* The recorded break is rarely a round number, so offer it as its
+                own chip — otherwise a 37m break renders with nothing selected
+                and reads as "no break". */}
+            {(WH_BREAKS.includes(brk) ? WH_BREAKS : [...WH_BREAKS, brk].sort((a, b) => a - b)).map(b => {
               const on = b === brk
               return (
                 <button
@@ -383,36 +333,51 @@ function StaffHoursSheet({ t, station, periodDays, dailyGrid, periodLabel, onEdi
           {periodDays.map((d, i) => {
             const dateStr = format(d, 'yyyy-MM-dd')
             const dayData = staffGrid?.days[dateStr]
-            const session = dayData?.sessions?.[0] || null
-            const has = !!(session?.in && session?.out)
-            const inTime  = has ? formatLondon(session.in,  'HH:mm') : null
-            const outTime = has ? formatLondon(session.out, 'HH:mm') : null
-            const breakMins = has ? session.breaks.reduce((acc, b) =>
-              (!b.start || !b.end) ? acc : acc + Math.round((new Date(b.end) - new Date(b.start)) / 60000), 0) : 0
+            // Every session of the day, not just the first — a split shift
+            // (lunch then dinner) is two, and showing only one hid the rest of
+            // the day's hours even though the totals below counted them.
+            const { real, orphans } = partitionDaySessions(dayData?.sessions ?? [])
+            const has = real.length > 0
             return (
               <div key={i} className={`flex items-center gap-[10px] px-3 py-[10px] rounded-xl border ${has ? 'bg-white dark:bg-paperDark border-charcoal/10 dark:border-white/10' : 'bg-surface border-charcoal/[0.06]'}`}>
                 <div className={`w-[42px] h-[46px] rounded-[9px] border border-charcoal/10 dark:border-white/10 shrink-0 flex flex-col items-center justify-center gap-px ${has ? 'bg-surface' : 'bg-charcoal/[0.06]'}`}>
                   <span className="font-mono text-[11px] text-charcoal/50 dark:text-white/40 font-semibold tracking-[0.06em]">{format(d, 'EEE').toUpperCase()}</span>
                   <span className={`font-mono text-[15px] font-semibold leading-none ${has ? 'text-charcoal dark:text-white' : 'text-charcoal/30 dark:text-white/30'}`}>{format(d, 'd')}</span>
                 </div>
-                <div className="flex-1 min-w-0">
-                  {has ? (
-                    <>
-                      <div className="font-mono text-[13.5px] font-semibold tabular-nums">{inTime} – {outTime}</div>
-                      <div className="flex items-center gap-[5px] mt-0.5">
-                        <span className="font-mono text-[11.5px] text-charcoal/50 dark:text-white/40">{minsStr(dayData.minutes)}</span>
-                        {breakMins > 0 && <><span className="text-charcoal/30 dark:text-white/30">·</span><span className="text-[11.5px] text-charcoal/50 dark:text-white/40">{breakMins}m break</span></>}
-                      </div>
-                    </>
-                  ) : <div className="text-[13px] text-charcoal/30 dark:text-white/30">Off</div>}
+                <div className="flex-1 min-w-0 flex flex-col gap-[3px]">
+                  {has ? real.map((session, si) => {
+                    const complete = !!(session.in && session.out)
+                    const breakMins = Math.round(breakMinutes(session.breaks))
+                    const mins = sessionMinutes(session)
+                    return (
+                      <button
+                        key={si}
+                        onClick={() => onEditDay({ dateStr, session })}
+                        className="text-left bg-transparent border-none p-0 cursor-pointer"
+                      >
+                        <div className="font-mono text-[13.5px] font-semibold tabular-nums">
+                          {formatLondon(session.in, 'HH:mm')} – {complete
+                            ? formatLondon(session.out, 'HH:mm')
+                            : <span className="text-warning">still in</span>}
+                        </div>
+                        <div className="flex items-center gap-[5px] mt-0.5">
+                          <span className="font-mono text-[11.5px] text-charcoal/50 dark:text-white/40">{complete ? minsStr(mins) : 'no clock out'}</span>
+                          {breakMins > 0 && <><span className="text-charcoal/30 dark:text-white/30">·</span><span className="text-[11.5px] text-charcoal/50 dark:text-white/40">{breakMins}m break</span></>}
+                        </div>
+                      </button>
+                    )
+                  }) : <div className="text-[13px] text-charcoal/30 dark:text-white/30">Off</div>}
+                  {orphans.length > 0 && (
+                    <div className="font-mono text-[11px] text-charcoal/40 dark:text-white/35">
+                      {orphans.length} duplicate punch{orphans.length > 1 ? 'es' : ''} ignored
+                    </div>
+                  )}
                 </div>
                 <button
-                  onClick={() => has ? onEditDay({ dateStr, session }) : onAddDay(dateStr)}
+                  onClick={() => onAddDay(dateStr)}
                   className="shrink-0 flex items-center gap-1 px-3 py-[7px] rounded-[9px] cursor-pointer text-xs font-semibold text-charcoal/75 dark:text-white/60 bg-surface border border-charcoal/10 dark:border-white/10"
                 >
-                  {has
-                    ? <><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Edit</>
-                    : <><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14"/></svg>Add</>}
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14"/></svg>Add
                 </button>
               </div>
             )
@@ -567,8 +532,14 @@ export default function TimesheetPage() {
   const saveEditedSession = useCallback(async ({ dateStr, session }, { clockIn, clockOut, brk }) => {
     // Interpret the edited times as UK wall-clock and store the resulting UTC
     // instant (ISO with offset) — a bare string would be read as UTC by Postgres.
-    const newIn  = londonWallTimeToInstant(dateStr, clockIn).toISOString()
-    const newOut = londonWallTimeToInstant(dateStr, clockOut).toISOString()
+    // resolveShiftInstants rolls the clock-out onto the next date when the shift
+    // ran past midnight (an 18:00–02:00 close). Pinning both to dateStr stored
+    // clock_out *before* clock_in, and every consumer clamps a negative duration
+    // to zero via Math.max(0, …) — so editing a late shift at all silently
+    // turned it into zero hours worked.
+    const { inAt, outAt } = resolveShiftInstants(dateStr, clockIn, clockOut)
+    const newIn  = inAt.toISOString()
+    const newOut = outAt.toISOString()
     // Routed through edit_clock_session (not a raw table update) so the break
     // duration picked in the sheet is actually replaced in clock_events —
     // this RPC also handles deleting/re-inserting break_start/break_end.

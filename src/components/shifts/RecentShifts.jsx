@@ -21,7 +21,7 @@ import { useClockSessions } from '../../hooks/useClockSessions'
 import { useToast } from '../ui/Toast'
 import { sendPush } from '../../lib/sendPush'
 import { captureSilent } from '../../lib/reportError'
-import { londonWallTimeToInstant, londonDateStr, formatLondon } from '../../lib/time'
+import { londonDateStr, formatLondon, resolveShiftInstants } from '../../lib/time'
 import { SkeletonList } from '../ui/Skeleton'
 
 /* ── Helpers ─────────────────────────────────────────────────────────── */
@@ -123,16 +123,16 @@ function EditSessionForm({ session, staffId, onSave, onCancel, isManagerEdit }) 
   const [confirming, setConfirming] = useState(false)
   const [saving,     setSaving]     = useState(false)
 
-  // Combine an edited HH:mm with the session's UK calendar date, interpreting
-  // the time as UK wall-clock (Europe/London) so the stored UTC instant is
-  // correct regardless of the editor's device timezone.
-  const parseTime = (timeStr, referenceDate) => {
-    return londonWallTimeToInstant(londonDateStr(referenceDate), timeStr)
+  // Both edited times belong to the shift's own start date, except a clock-out
+  // that reads earlier on the clock — that one is past midnight and belongs to
+  // the next day. See resolveShiftInstants.
+  const editedInstants = () => {
+    const { inAt, outAt } = resolveShiftInstants(londonDateStr(session.clockInAt), clockIn, clockOut)
+    return { newIn: inAt, newOut: clockOut ? outAt : null }
   }
 
   const validate = () => {
-    const newIn  = parseTime(clockIn, session.clockInAt)
-    const newOut = clockOut ? parseTime(clockOut, session.clockInAt) : null
+    const { newIn, newOut } = editedInstants()
     if (newOut && newOut <= newIn) {
       toast('Clock out must be after clock in', 'error')
       return false
@@ -144,8 +144,7 @@ function EditSessionForm({ session, staffId, onSave, onCancel, isManagerEdit }) 
   const saveManagerEdit = async () => {
     if (!validate()) return
     setSaving(true)
-    const newIn  = parseTime(clockIn, session.clockInAt)
-    const newOut = clockOut ? parseTime(clockOut, session.clockInAt) : null
+    const { newIn, newOut } = editedInstants()
     const { error } = await offlineRpc('edit_clock_session', {
       p_clock_in_id:    session.clockInId,
       p_clock_in_time:  newIn.toISOString(),
@@ -162,8 +161,7 @@ function EditSessionForm({ session, staffId, onSave, onCancel, isManagerEdit }) 
   // Staff path: submit pending request
   const submitRequest = async () => {
     setSaving(true)
-    const newIn  = parseTime(clockIn, session.clockInAt)
-    const newOut = clockOut ? parseTime(clockOut, session.clockInAt) : null
+    const { newIn, newOut } = editedInstants()
 
     const { error } = await supabase.rpc('submit_clock_edit_request', {
       p_venue_id:            venueId,
@@ -354,17 +352,21 @@ function AddShiftForm({ staffId, onSave, onCancel, isManagerEdit = false }) {
   const [saving,   setSaving]   = useState(false)
   const [confirming, setConfirming] = useState(false)
 
+  // An 18:00-02:00 close is a normal late shift, not an invalid entry —
+  // resolveShiftInstants rolls the clock-out onto the next date. Comparing two
+  // instants pinned to the same date rejected every overnight shift, so a
+  // missed evening punch could not be added or reported at all.
+  const instants = () => resolveShiftInstants(date, clockIn, clockOut)
+
   const validate = () => {
-    const newClockIn  = londonWallTimeToInstant(date, clockIn)
-    const newClockOut = londonWallTimeToInstant(date, clockOut)
-    if (newClockOut <= newClockIn) { toast('Clock out must be after clock in', 'error'); return false }
+    const { inAt, outAt } = instants()
+    if (outAt <= inAt) { toast('Clock out must be after clock in', 'error'); return false }
     return true
   }
 
   const saveManagerAdd = async () => {
     setSaving(true)
-    const newClockIn  = londonWallTimeToInstant(date, clockIn)
-    const newClockOut = londonWallTimeToInstant(date, clockOut)
+    const { inAt: newClockIn, outAt: newClockOut } = instants()
     const { data, error } = await supabase.rpc('add_clock_session', {
       p_staff_id:       staffId,
       p_venue_id:       venueId,
@@ -382,8 +384,7 @@ function AddShiftForm({ staffId, onSave, onCancel, isManagerEdit = false }) {
   // Staff submitting an "add missed shift" request — use the same pending flow
   const submitAddRequest = async () => {
     setSaving(true)
-    const newClockIn  = londonWallTimeToInstant(date, clockIn)
-    const newClockOut = londonWallTimeToInstant(date, clockOut)
+    const { inAt: newClockIn, outAt: newClockOut } = instants()
 
     // For an "add" we have no existing clock_in_id/clock_out_id
     const { error } = await supabase.rpc('submit_clock_edit_request', {

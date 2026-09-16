@@ -3,6 +3,8 @@ import {
   londonWallTimeToInstant,
   formatLondon,
   londonDateStr,
+  nextLondonDate,
+  resolveShiftInstants,
 } from '../time'
 
 /**
@@ -89,5 +91,61 @@ describe('late clock-in comparison (the reported bug)', () => {
   it('a genuinely late clock-in IS still flagged', () => {
     // Clocked in at 07:05 London (06:05 UTC) for a 07:00 shift
     expect(isLate('2026-07-05', '07:00:00', '2026-07-05T06:05:00.000Z')).toBe(true)
+  })
+})
+
+
+describe('nextLondonDate', () => {
+  it('advances a plain date', () => {
+    expect(nextLondonDate('2026-07-05')).toBe('2026-07-06')
+  })
+
+  it('rolls over month and year boundaries', () => {
+    expect(nextLondonDate('2026-07-31')).toBe('2026-08-01')
+    expect(nextLondonDate('2026-12-31')).toBe('2027-01-01')
+  })
+
+  it('handles a leap day', () => {
+    expect(nextLondonDate('2028-02-28')).toBe('2028-02-29')
+    expect(nextLondonDate('2028-02-29')).toBe('2028-03-01')
+  })
+})
+
+describe('resolveShiftInstants', () => {
+  it('keeps a same-day shift on its own date', () => {
+    const { inAt, outAt, overnight } = resolveShiftInstants('2026-07-05', '09:00', '17:00')
+    expect(overnight).toBe(false)
+    // BST: London 09:00 is 08:00 UTC.
+    expect(inAt.toISOString()).toBe('2026-07-05T08:00:00.000Z')
+    expect(outAt.toISOString()).toBe('2026-07-05T16:00:00.000Z')
+  })
+
+  it('rolls a past-midnight clock-out onto the next day', () => {
+    // The 18:00-02:00 close that the old same-date comparison rejected outright.
+    const { inAt, outAt, overnight } = resolveShiftInstants('2026-07-05', '18:00', '02:00')
+    expect(overnight).toBe(true)
+    expect(inAt.toISOString()).toBe('2026-07-05T17:00:00.000Z')
+    expect(outAt.toISOString()).toBe('2026-07-06T01:00:00.000Z')
+    expect(outAt.getTime()).toBeGreaterThan(inAt.getTime())
+  })
+
+  it('gives an overnight shift a positive duration', () => {
+    const { inAt, outAt } = resolveShiftInstants('2026-07-05', '18:00', '02:00')
+    expect((outAt - inAt) / 3600000).toBe(8)
+  })
+
+  it('treats equal times as a zero-length shift, not 24 hours', () => {
+    const { inAt, outAt, overnight } = resolveShiftInstants('2026-07-05', '09:00', '09:00')
+    expect(overnight).toBe(false)
+    expect(outAt.getTime()).toBe(inAt.getTime())
+  })
+
+  it('crosses the GMT->BST spring-forward boundary correctly', () => {
+    // 29 Mar 2026 01:00 UTC: clocks jump 01:00 -> 02:00 London. A shift running
+    // 22:00 Sat to 06:00 Sun is one hour shorter in wall-clock terms.
+    const { inAt, outAt } = resolveShiftInstants('2026-03-28', '22:00', '06:00')
+    expect(inAt.toISOString()).toBe('2026-03-28T22:00:00.000Z')
+    expect(outAt.toISOString()).toBe('2026-03-29T05:00:00.000Z')
+    expect((outAt - inAt) / 3600000).toBe(7)
   })
 })

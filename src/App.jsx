@@ -16,6 +16,7 @@ import PlanGate                from './components/ui/PlanGate'
 import UpdateBanner            from './components/ui/UpdateBanner'
 import ErrorBoundary           from './components/ui/ErrorBoundary'
 import { preloadAppRoutes }    from './lib/routePreload'
+import { SESSION_TOKEN_KEY }   from './lib/constants'
 
 // Auth
 const LoginPage = lazy(() => import('./pages/LoginPage'))
@@ -511,7 +512,16 @@ const queryClient = new QueryClient({
 
 export default function App() {
   React.useEffect(() => {
-    if (isConfigured) preloadAppRoutes()
+    // Only warm app routes for someone who is actually in the app. This used to
+    // run for every visitor, so opening the public marketing homepage downloaded
+    // the dashboard, rota, timesheets, settings and staff screens — measured at
+    // ~50 chunks / ~1.4 MB — before rendering a page that links to none of them.
+    if (!isConfigured) return
+    const inApp =
+      isNativeShell() ||
+      window.location.pathname.startsWith('/v/') ||
+      !!localStorage.getItem(SESSION_TOKEN_KEY)
+    if (inApp) preloadAppRoutes()
   }, [])
 
   if (!isConfigured) return <SetupPage />
