@@ -43,32 +43,32 @@ of a retried write.
 ```sql
 SELECT
   s.name AS staff,
-  to_char(repeat.occurred_at AT TIME ZONE 'Europe/London', 'Dy DD Mon YYYY') AS shift_date,
-  to_char(orig.occurred_at   AT TIME ZONE 'Europe/London', 'HH24:MI:SS')     AS real_punch,
-  to_char(repeat.occurred_at AT TIME ZONE 'Europe/London', 'HH24:MI:SS')     AS repeat_punch,
-  EXTRACT(EPOCH FROM (repeat.occurred_at - orig.occurred_at))::int AS seconds_apart,
+  to_char(dup.occurred_at AT TIME ZONE 'Europe/London', 'Dy DD Mon YYYY') AS shift_date,
+  to_char(orig.occurred_at AT TIME ZONE 'Europe/London', 'HH24:MI:SS') AS real_punch,
+  to_char(dup.occurred_at  AT TIME ZONE 'Europe/London', 'HH24:MI:SS') AS repeat_punch,
+  EXTRACT(EPOCH FROM (dup.occurred_at - orig.occurred_at))::int AS seconds_apart,
   CASE
-    WHEN repeat.occurred_at - orig.occurred_at < interval '90 seconds'
+    WHEN dup.occurred_at - orig.occurred_at < interval '90 seconds'
       THEN 'Retry echo — safe to remove'
     ELSE 'Check against the rota first'
   END AS verdict,
-  orig.id   AS keep_this,
-  repeat.id AS remove_this
-FROM clock_events repeat
+  orig.id AS keep_this,
+  dup.id  AS remove_this
+FROM clock_events dup
 JOIN LATERAL (
   SELECT p.id, p.occurred_at
   FROM clock_events p
-  WHERE p.staff_id   = repeat.staff_id
-    AND p.venue_id   = repeat.venue_id
+  WHERE p.staff_id   = dup.staff_id
+    AND p.venue_id   = dup.venue_id
     AND p.event_type = 'clock_in'
-    AND p.occurred_at < repeat.occurred_at
+    AND p.occurred_at < dup.occurred_at
   ORDER BY p.occurred_at DESC
   LIMIT 1
 ) orig ON true
-JOIN staff s ON s.id = repeat.staff_id
-WHERE repeat.event_type = 'clock_in'
-  AND repeat.occurred_at - orig.occurred_at < interval '2 minutes'
-ORDER BY repeat.occurred_at DESC;
+JOIN staff s ON s.id = dup.staff_id
+WHERE dup.event_type = 'clock_in'
+  AND dup.occurred_at - orig.occurred_at < interval '2 minutes'
+ORDER BY dup.occurred_at DESC;
 ```
 
 A companion query for the symptom rather than the cause — days where someone has
