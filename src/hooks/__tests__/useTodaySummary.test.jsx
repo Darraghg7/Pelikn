@@ -124,10 +124,21 @@ describe('useTodaySummary — refreshing after a write', () => {
         headers: { 'Content-Type': 'application/json', 'content-range': `*/${n}` },
       })
       if (method === 'HEAD') {
-        if (u.includes('/shifts')) return counted(6)
         if (u.includes('session_type=eq.opening')) return counted(4)
         if (u.includes('/time_off_requests')) return counted(2)
         return counted(0)
+      }
+      // onShiftToday counts who is actually clocked in, not who is rota'd, so
+      // it comes from clock_events and not from a /shifts count (105). Ana and
+      // Bo are still on site; Cal's last event is a clock_out, so 2 not 3.
+      if (u.includes('/clock_events')) {
+        return json([
+          { staff_id: 'ana', event_type: 'clock_in',    occurred_at: '2026-01-01T08:00:00Z' },
+          { staff_id: 'cal', event_type: 'clock_in',    occurred_at: '2026-01-01T08:05:00Z' },
+          { staff_id: 'bo',  event_type: 'clock_in',    occurred_at: '2026-01-01T09:00:00Z' },
+          { staff_id: 'bo',  event_type: 'break_start', occurred_at: '2026-01-01T12:00:00Z' },
+          { staff_id: 'cal', event_type: 'clock_out',   occurred_at: '2026-01-01T16:00:00Z' },
+        ])
       }
       return json([])
     })
@@ -136,7 +147,7 @@ describe('useTodaySummary — refreshing after a write', () => {
 
     await waitFor(() => expect(result.current.summary).not.toBeNull())
     expect(result.current.summary).toMatchObject({
-      onShiftToday: 6,
+      onShiftToday: 2,
       checksToday: 4,
       pendingLeave: 2,
     })

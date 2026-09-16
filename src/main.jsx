@@ -26,13 +26,23 @@ function mountApp() {
   initSentry()
 }
 
-// Sentry pulls in ~140 kB (46 kB gzipped) of browser tracing code. Initializing
-// it eagerly at module scope put that on the render-blocking entry chunk —
-// fetched and parsed before the app could paint anything, on every cold load.
-// Error monitoring doesn't need to be on the critical path, so defer it to a
-// dynamic import once the app has mounted and the browser is idle.
+// Sentry is the single largest download the app makes: 160 kB over the wire,
+// nearly as much as the entire critical path (entry + React + Supabase + CSS
+// ≈ 190 kB). It is already deferred off the render path via dynamic import —
+// initializing it at module scope used to put it on the render-blocking entry
+// chunk, fetched and parsed before the app could paint.
+//
+// Deferred is not the same as free, though: on mobile data those bytes still
+// compete with the data requests the user is waiting on. So skip it entirely on
+// a slow or metered connection. Losing error reports from the sessions that are
+// already struggling is a real cost, but it is smaller than making those
+// sessions struggle harder — and the same devices on WiFi still report.
 function initSentry() {
   if (!import.meta.env.VITE_SENTRY_DSN) return
+
+  const conn = navigator.connection
+  const constrained = !!conn && (conn.saveData || ['slow-2g', '2g', '3g'].includes(conn.effectiveType))
+  if (constrained) return
 
   const run = () => {
     import('@sentry/react').then((Sentry) => {

@@ -78,6 +78,41 @@ export function londonWallTimeToInstant(dateStr, timeStr) {
 }
 
 /**
+ * Resolve a shift's clock-in and clock-out, entered as wall-clock times against
+ * a single date, into the two UTC instants they actually mean.
+ *
+ * A clock-out that reads *earlier* on the clock than the clock-in is a shift
+ * that ran past midnight (18:00–02:00), not an invalid entry. Pinning both to
+ * the same date is a bug that shows up twice over: the form rejects a perfectly
+ * normal late shift as "clock out must be after clock in", and any code path
+ * that skips that check stores clock_out before clock_in, which every consumer
+ * clamps to zero minutes worked via `Math.max(0, …)`.
+ *
+ * Equal times are left alone — a zero-length shift is a real mistake, and
+ * reading it as "exactly 24 hours" would be worse than rejecting it.
+ *
+ * @param {string} dateStr  the shift's London calendar date, "yyyy-MM-dd"
+ * @param {string} inTime   "HH:mm"
+ * @param {string} outTime  "HH:mm"
+ * @returns {{ inAt: Date, outAt: Date, overnight: boolean }}
+ */
+export function resolveShiftInstants(dateStr, inTime, outTime) {
+  const overnight = !!inTime && !!outTime && outTime < inTime
+  const inAt = londonWallTimeToInstant(dateStr, inTime)
+  const outAt = londonWallTimeToInstant(overnight ? nextLondonDate(dateStr) : dateStr, outTime)
+  return { inAt, outAt, overnight }
+}
+
+/** The London calendar date after `dateStr`, as "yyyy-MM-dd". */
+export function nextLondonDate(dateStr) {
+  const [y, mo, d] = String(dateStr).split('-').map(Number)
+  const next = new Date(Date.UTC(y, mo - 1, d + 1))
+  const mm = String(next.getUTCMonth() + 1).padStart(2, '0')
+  const dd = String(next.getUTCDate()).padStart(2, '0')
+  return `${next.getUTCFullYear()}-${mm}-${dd}`
+}
+
+/**
  * Format a stored instant (Date | ISO string | ms) in London time.
  * @param {Date|string|number} instant
  * @param {string} fmt  a date-fns format token string, e.g. "HH:mm"

@@ -10,7 +10,7 @@ import { supabase } from '../../lib/supabase'
 import { isActionDueToday } from '../../hooks/useTodaySummary'
 import { TODAY_ITEM_REGISTRY } from './todayItemRegistry'
 import { WIDGET_REGISTRY } from '../../components/widgets/WidgetRegistry'
-import { useClockStatus } from '../../hooks/useClockEvents'
+import { useClockStatus, saveClockStatusCache } from '../../hooks/useClockEvents'
 import { useClockAlerts } from '../../hooks/useClockAlerts'
 import { offlineRpc } from '../../lib/offlineSupabase'
 import { useVenue } from '../../contexts/VenueContext'
@@ -314,9 +314,23 @@ function MobileClockCard({ staffId }) {
     })
     setSubmitting(false)
     if (error) { toast(error.message, 'error'); return }
+
+    // Mirror the offline cache write ClockPanel does. Without it a clock event
+    // saved offline from this card showed here and nowhere else: every other
+    // surface reads the cached status, so the card reverted to the old state as
+    // soon as anything refetched, and stayed wrong until the queue drained.
+    if (queued) {
+      let newStatus = status, newClockInAt = clockInAt, newBreakStartAt = breakStartAt, newTotalBreakMs = totalBreakMs
+      if (eventType === 'clock_in')    { newStatus = 'clocked_in';  newClockInAt = at }
+      if (eventType === 'clock_out')   { newStatus = 'clocked_out'; newClockInAt = null; newBreakStartAt = null; newTotalBreakMs = 0 }
+      if (eventType === 'break_start') { newStatus = 'on_break';    newBreakStartAt = at }
+      if (eventType === 'break_end')   { newStatus = 'clocked_in';  newTotalBreakMs += breakStartAt ? at - breakStartAt : 0; newBreakStartAt = null }
+      saveClockStatusCache(staffId, { status: newStatus, clockInAt: newClockInAt, breakStartAt: newBreakStartAt, totalBreakMs: newTotalBreakMs })
+    }
+
     reload()
     await onClockEvent(eventType, { queued, at })
-  }, [staffId, venueId, toast, reload, onClockEvent])
+  }, [staffId, venueId, toast, status, clockInAt, breakStartAt, totalBreakMs, reload, onClockEvent])
 
   recordRef.current = record
 

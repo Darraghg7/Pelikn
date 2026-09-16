@@ -88,7 +88,7 @@ const SUMMARY_TABLES = new Set([
   'cooking_temp_logs', 'hot_holding_logs', 'cooling_logs',
   'corrective_actions', 'time_off_requests',
   'shifts', 'duty_assignments', 'duty_item_completions', 'duty_template_items',
-  'venue_closures',
+  'venue_closures', 'clock_events',
 ])
 
 // Mounted hooks register here so a write refreshes the tiles in place — the
@@ -431,7 +431,7 @@ export function useTodaySummary(venueId, closedDays = [], actionSchedules = {}) 
       // On a closure day the other results are simply discarded.
       const [
         closures,
-        cleaning, rota, opening, closing, fridges, fridgeLogs,
+        cleaning, clockEvents, opening, closing, fridges, fridgeLogs,
         leaveReqs, critActions, cookingTemps, hotHoldingLogs,
         coolingLogs, dutyShifts, totalChecksRes, cleaningCompletions,
       ] = await Promise.all([
@@ -445,7 +445,14 @@ export function useTodaySummary(venueId, closedDays = [], actionSchedules = {}) 
         due('cleaning_tasks')
           ? supabase.from('cleaning_tasks').select('id, frequency').eq('venue_id', venueId).eq('is_active', true)
           : { data: [] },
-        supabase.from('shifts').select('id', { count: 'exact', head: true }).eq('venue_id', venueId).eq('shift_date', todayStr),
+        // Latest event per staff for today decides who's still on site — see
+        // onShiftCount below. Mirrors useTeamStatus.js's live-attendance logic.
+        supabase.from('clock_events')
+          .select('staff_id, event_type, occurred_at')
+          .eq('venue_id', venueId)
+          .gte('occurred_at', dayStart)
+          .lte('occurred_at', dayEnd)
+          .order('occurred_at', { ascending: true }),
         // Not gated by due() — see the comment on checksToday in fetchViaSnapshot.
         supabase.from('opening_closing_completions')
           .select('id', { count: 'exact', head: true })
@@ -550,9 +557,15 @@ export function useTodaySummary(venueId, closedDays = [], actionSchedules = {}) 
 
       if (cancelled) return
 
+      // On shift right now: last event per staff today. Anything but
+      // clock_out means they're still on site (clocked in or on a break).
+      const latestEventByStaff = new Map()
+      for (const ev of (clockEvents.data ?? [])) latestEventByStaff.set(ev.staff_id, ev.event_type)
+      const onShiftCount = [...latestEventByStaff.values()].filter(t => t !== 'clock_out').length
+
       const fresh = {
         overdueClean:       overdueCount,
-        onShiftToday:       rota.count ?? 0,
+        onShiftToday:       onShiftCount,
         checksToday:        opening.count ?? 0,
         closingChecksToday: closing.count ?? 0,
         uncheckedFridges,

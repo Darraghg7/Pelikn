@@ -4,7 +4,7 @@ export const TODAY_ITEM_REGISTRY = {
   on_shift: {
     id: 'on_shift',
     label: 'Staff on shift',
-    description: 'How many staff are rotaed today',
+    description: 'How many staff are clocked in right now',
     feature: 'rota',
     scheduleKey: null,
     route: '/team/attendance',

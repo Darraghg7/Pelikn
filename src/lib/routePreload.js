@@ -1,15 +1,11 @@
+// Warmed in the background on a cold start. Deliberately short: each entry
+// drags in its transitive chunks too, so this list is worth far more bytes than
+// it looks. Warming all eleven routes that used to be here pulled ~50 chunks /
+// ~1.4 MB on every cold load — most of it for screens the session never opens.
+// Everything else is warmed on navigation intent via preloadRoute().
 const routeModules = [
   () => import('../pages/DashboardPage'),
   () => import('../pages/tasks/TasksPage'),
-  () => import('../pages/settings/SettingsPage'),
-  () => import('../pages/opening/OpeningClosingPage'),
-  () => import('../pages/cleaning/CleaningPage'),
-  () => import('../pages/fridge/FridgeDashboardPage'),
-  () => import('../pages/rota/RotaPage'),
-  () => import('../pages/clockin/TimesheetPage'),
-  () => import('../pages/training/TrainingPage'),
-  () => import('../pages/timeoff/TimeOffPage'),
-  () => import('../pages/staff/StaffPage'),
 ]
 
 const routeImportBySegment = {
@@ -61,7 +57,24 @@ export function preloadRoute(path) {
   warm(routeImportBySegment[segment])
 }
 
+/**
+ * True when speculative background downloads would cost the user more than they
+ * save — a metered or slow connection. Warming a route is a bet that the user
+ * will open it; on a kitchen's 4G that bet is paid for out of the bandwidth the
+ * screen they *are* looking at needs to finish loading.
+ *
+ * `connection` is Chromium-only. Absent (Safari/iOS) we warm as before, since
+ * guessing "slow" from nothing would penalise every iPhone on good WiFi.
+ */
+function shouldSkipSpeculativeLoads() {
+  const c = navigator.connection
+  if (!c) return false
+  if (c.saveData) return true
+  return ['slow-2g', '2g', '3g'].includes(c.effectiveType)
+}
+
 export function preloadAppRoutes() {
+  if (shouldSkipSpeculativeLoads()) return
   const run = () => routeModules.forEach(warm)
   if ('requestIdleCallback' in window) {
     window.requestIdleCallback(run, { timeout: 1200 })

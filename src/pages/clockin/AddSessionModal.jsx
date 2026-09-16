@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../components/ui/Toast'
 import Modal from '../../components/ui/Modal'
-import { londonWallTimeToInstant } from '../../lib/time'
+import { londonWallTimeToInstant, resolveShiftInstants, nextLondonDate } from '../../lib/time'
 
 export default function AddSessionModal({ open, onClose, staffList, initialStaffId, initialDate, venueId, onSaved }) {
   const toast = useToast()
@@ -24,27 +24,42 @@ export default function AddSessionModal({ open, onClose, staffList, initialStaff
     if (!staffId)          { toast('Please select a staff member', 'error'); return }
     if (!date)             { toast('Please select a date', 'error'); return }
     if (!clockIn || !clockOut) { toast('Clock in and clock out are required', 'error'); return }
-    if (clockOut <= clockIn)   { toast('Clock out must be after clock in', 'error'); return }
+    if (clockOut === clockIn)  { toast('Clock out must be after clock in', 'error'); return }
+
+    // A clock-out earlier on the clock than the clock-in means the shift runs
+    // past midnight — an 18:00–02:00 close is the normal case in a late venue,
+    // not an error. The old string comparison rejected every one of them, so a
+    // manager could not add a missed punch for any evening shift at all.
+    // Times are UK wall-clock (Europe/London); what gets stored is UTC.
+    const { inAt, outAt, overnight } = resolveShiftInstants(date, clockIn, clockOut)
+    const at = (t, spillsOver) => londonWallTimeToInstant(spillsOver ? nextLondonDate(date) : date, t)
+
+    let breakStartAt = null, breakEndAt = null
     if (breakEnabled) {
-      if (!breakStart || !breakEnd)                             { toast('Fill in both break times', 'error'); return }
-      if (breakStart <= clockIn || breakEnd <= breakStart || breakEnd >= clockOut) {
+      if (!breakStart || !breakEnd) { toast('Fill in both break times', 'error'); return }
+      // On an overnight shift a break time before the clock-in is on the far
+      // side of midnight, same as the clock-out.
+      breakStartAt = at(breakStart, overnight && breakStart < clockIn)
+      breakEndAt   = at(breakEnd,   overnight && breakEnd   < clockIn)
+      if (breakStartAt <= inAt || breakEndAt <= breakStartAt || breakEndAt >= outAt) {
         toast('Break times must fall within the shift', 'error'); return
       }
     }
 
-    // Interpret entered times as UK wall-clock (Europe/London); store UTC.
-    const toISO = (t) => londonWallTimeToInstant(date, t).toISOString()
-    const events = [
-      { staff_id: staffId, event_type: 'clock_in',  occurred_at: toISO(clockIn),  venue_id: venueId },
-    ]
-    if (breakEnabled && breakStart && breakEnd) {
-      events.push({ staff_id: staffId, event_type: 'break_start', occurred_at: toISO(breakStart), venue_id: venueId })
-      events.push({ staff_id: staffId, event_type: 'break_end',   occurred_at: toISO(breakEnd),   venue_id: venueId })
-    }
-    events.push({ staff_id: staffId, event_type: 'clock_out', occurred_at: toISO(clockOut), venue_id: venueId })
-
     setSaving(true)
-    const { error } = await supabase.from('clock_events').insert(events)
+    // Via the SECURITY DEFINER RPC rather than a direct clock_events insert —
+    // the raw insert this used to do is the payload-manipulation path migration
+    // 038 added add_clock_session to close, and it is also the only write here
+    // that skips the server-side shift/break validation.
+    const { error } = await supabase.rpc('add_clock_session', {
+      p_staff_id:       staffId,
+      p_venue_id:       venueId,
+      p_clock_in_time:  inAt.toISOString(),
+      p_clock_out_time: outAt.toISOString(),
+      p_break_minutes:  0,
+      p_break_start:    breakStartAt?.toISOString() ?? null,
+      p_break_end:      breakEndAt?.toISOString()   ?? null,
+    })
     setSaving(false)
     if (error) { toast(error.message, 'error'); return }
     toast('Session added')
