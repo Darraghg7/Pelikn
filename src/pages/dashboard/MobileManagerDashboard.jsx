@@ -19,7 +19,6 @@ import StaffAlertModal from '../../components/shifts/StaffAlertModal'
 import ClosingChecklistGateModal from '../../components/shifts/ClosingChecklistGateModal'
 import { useClosingCheckoutGuard } from '../../hooks/useClosingCheckoutGuard'
 import PushBanner from './PushBanner'
-import TrialBanner from './TrialBanner'
 import {
   DndContext,
   DragOverlay,
@@ -687,7 +686,6 @@ export default function MobileManagerDashboard({
     <div className="flex flex-col gap-[13px]">
 
       <PushBanner staffId={session?.staffId} venueId={venueId} />
-      <TrialBanner staffRole={session?.staffRole} venueId={venueId} venuePlan={venuePlan} />
 
       <div className="pb-0.5">
         <div className="flex items-start justify-between gap-2">
