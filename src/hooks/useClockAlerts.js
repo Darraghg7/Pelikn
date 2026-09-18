@@ -20,7 +20,7 @@
  */
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { format, subDays } from 'date-fns'
-import { supabase, supabaseUrl, supabaseAnonKey } from '../lib/supabase'
+import { supabase } from '../lib/supabase'
 import { useVenue } from '../contexts/VenueContext'
 import { useSession } from '../contexts/SessionContext'
 import { useAppSettings } from './useSettings'
@@ -28,7 +28,7 @@ import { useToast } from '../components/ui/Toast'
 import { sendPush } from '../lib/sendPush'
 import { londonToday, londonWallTimeToInstant, londonDayStartInstant, formatLondon } from '../lib/time'
 import { captureSilent } from '../lib/reportError'
-import { hashPin, pinHashKey } from '../lib/offlinePin'
+import { useManagers, verifyManagerPin as verifyManagerPinShared } from './useManagers'
 
 /** Count active (non-dismissed) strikes of one offence type in the last 30 days, +1 for the current one */
 async function countStrikes(staffId, venueId, offenceType, now) {
@@ -317,69 +317,13 @@ export function useClockAlerts({ staffId, status, breakStartAt, onEndBreak }) {
     }
   }, [alert, onEndBreak])
 
-  // Manager list for the approval screen, from the staff cache populated at
-  // login (no extra fetch). Falls back to the DB when this device has no cache,
-  // so the approval screen always has managers to select.
-  const [managers, setManagers] = useState([])
-  useEffect(() => {
-    if (!venueId) { setManagers([]); return }
-    try {
-      const cached = localStorage.getItem(`pelikn_staff_${venueId}`)
-      const all = cached ? JSON.parse(cached) : []
-      const fromCache = all.filter(s => s.role === 'manager' || s.role === 'owner')
-      if (fromCache.length > 0) { setManagers(fromCache); return }
-    } catch { /* fall through to DB fetch */ }
-    let cancelled = false
-    supabase
-      .from('staff')
-      .select('id, name, role, photo_url')
-      .eq('venue_id', venueId)
-      .eq('is_active', true)
-      .in('role', ['manager', 'owner'])
-      .order('name')
-      .then(({ data }) => { if (!cancelled && data) setManagers(data) })
-    return () => { cancelled = true }
-  }, [venueId])
-
-  // Verify a manager's PIN — online first, offline hash fallback. The
-  // offline check reuses the hash SessionContext caches under
-  // pinHashKey(staffId) after that manager's last online login on this
-  // device, so it only works if they've signed in here before while
-  // online. `managers` is already pre-filtered to manager/owner roles
-  // (see above), so a hash match there is enough to confirm access.
-  const verifyManagerPin = useCallback(async (managerId, pin) => {
-    try {
-      const res = await fetch(`${supabaseUrl}/functions/v1/pin-login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${supabaseAnonKey}`,
-          apikey: supabaseAnonKey,
-        },
-        body: JSON.stringify({ action: 'verify_pin', staff_id: managerId, pin, venue_id: venueId }),
-        signal: AbortSignal.timeout(6000),
-      })
-      const data = await res.json()
-      if (res.ok && data.ok) {
-        if (!['manager', 'owner'].includes(data.role)) {
-          return { ok: false, error: "This account doesn't have manager access" }
-        }
-        return { ok: true }
-      }
-      if (res.status === 429) return { ok: false, error: 'Too many attempts — wait a moment' }
-      return { ok: false, error: 'Incorrect PIN, try again' }
-    } catch { /* network unreachable — fall through to the offline check */ }
-
-    const cachedHash = localStorage.getItem(pinHashKey(managerId))
-    if (!cachedHash) {
-      return { ok: false, error: "Couldn't reach the server — check your connection and try again" }
-    }
-    const enteredHash = await hashPin(managerId, pin)
-    if (!enteredHash || enteredHash !== cachedHash) {
-      return { ok: false, error: 'Incorrect PIN, try again' }
-    }
-    return { ok: true }
-  }, [venueId])
+  // Manager list + PIN verification for the approval screen — shared with the
+  // closing-checklist gate's manager override, see useManagers.ts.
+  const managers = useManagers(venueId)
+  const verifyManagerPin = useCallback(
+    (managerId, pin) => verifyManagerPinShared(venueId, managerId, pin),
+    [venueId],
+  )
 
   return {
     onClockEvent,

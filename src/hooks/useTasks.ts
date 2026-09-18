@@ -5,7 +5,7 @@ import { fetchTasksForRole, fetchAllTasks } from '../lib/api/tasks'
 import { roleMatcher } from '../lib/roleFilter'
 import type { TaskTemplate, TaskOneOff, TaskCompletion } from '../types'
 
-export function useTasksForRole(jobRole: string, staffId: string, knownRoles: readonly string[] = []): {
+export function useTasksForRole(viewerRoleIds: readonly string[] | null, staffId: string, knownRoleIds: readonly string[] = []): {
   templates: TaskTemplate[]
   oneOffs: TaskOneOff[]
   completions: TaskCompletion[]
@@ -16,7 +16,7 @@ export function useTasksForRole(jobRole: string, staffId: string, knownRoles: re
   const today = format(new Date(), 'yyyy-MM-dd')
 
   const { data, isLoading, refetch } = useQuery({
-    queryKey: ['tasksForRole', venueId, jobRole, staffId, today],
+    queryKey: ['tasksForRole', venueId, staffId, today],
     queryFn: () => fetchTasksForRole(venueId!, today),
     enabled: !!venueId,
   })
@@ -25,12 +25,12 @@ export function useTasksForRole(jobRole: string, staffId: string, knownRoles: re
   const rawOneOffs: TaskOneOff[] = (data as { oneOffs?: TaskOneOff[] })?.oneOffs ?? []
   const completions: TaskCompletion[] = (data as { completions?: TaskCompletion[] })?.completions ?? []
 
-  const matchesRole = roleMatcher(jobRole, knownRoles)
+  const matchesRole = roleMatcher(viewerRoleIds, knownRoleIds)
 
-  const templates = rawTemplates.filter((t) => matchesRole(t.job_role))
+  const templates = rawTemplates.filter((t) => matchesRole(t.role_id))
 
   const allOneOffs = rawOneOffs.filter(
-    (o) => matchesRole(o.job_role) || (!!staffId && o.assigned_to_staff_id === staffId)
+    (o) => matchesRole(o.role_id) || (!!staffId && o.assigned_to_staff_id === staffId)
   )
 
   const seen = new Set<string>()

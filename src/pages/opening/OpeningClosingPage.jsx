@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import { format, parseISO, isToday, isYesterday, subDays } from 'date-fns'
 import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
@@ -7,6 +7,8 @@ import { useToast } from '../../components/ui/Toast'
 import { PageSkeleton } from '../../components/ui/Skeleton'
 import ConfirmDialog from '../../components/ui/ConfirmDialog'
 import OpeningClosingExportModal from './OpeningClosingExportModal'
+import { useVenueRoles } from '../../hooks/useVenueRoles'
+import { useDepartments } from '../../hooks/useDepartments'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -31,7 +33,7 @@ function useChecks(venueId) {
     if (!venueId) return
     const { data } = await supabase
       .from('opening_closing_checks')
-      .select('id, title, type, sort_order, created_at')
+      .select('id, title, type, department_id, sort_order, created_at')
       .eq('venue_id', venueId)
       .eq('is_active', true)
       .order('sort_order')
@@ -197,7 +199,7 @@ function CheckRow({ check, completion, onOK, onIssue, readOnly, isManager, onRem
 
 // ── CheckSection ──────────────────────────────────────────────────────────────
 
-function CheckSection({ type, label, checks, completions, onOK, onIssue, isManager, onAddCheck, onRemoveCheck, venueId, readOnly, savingCheckId }) {
+function CheckSection({ type, label, departmentId, departmentName, checks, completions, onOK, onIssue, isManager, onAddCheck, onRemoveCheck, venueId, readOnly, savingCheckId }) {
   const toast = useToast()
   const typeChecks      = checks.filter(c => c.type === type)
   const typeCompletions = completions.filter(c => c.session_type === type)
@@ -215,6 +217,7 @@ function CheckSection({ type, label, checks, completions, onOK, onIssue, isManag
     const { error } = await supabase.from('opening_closing_checks').insert({
       title: newTitle.trim(),
       type,
+      department_id: departmentId,
       sort_order: typeChecks.length,
       venue_id: venueId,
     })
@@ -230,6 +233,9 @@ function CheckSection({ type, label, checks, completions, onOK, onIssue, isManag
       {/* Header */}
       <div className="flex items-center justify-between px-5 pt-4 pb-3">
         <div>
+          {departmentName && (
+            <p className="text-[10px] font-bold tracking-widest uppercase text-brand dark:text-accent mb-1">{departmentName}</p>
+          )}
           <p className="text-[11px] font-bold tracking-widest uppercase text-charcoal/50 dark:text-white/40">{label}</p>
           <p className="text-xs text-charcoal/40 dark:text-white/35 mt-0.5">
             {doneCount}/{typeChecks.length} recorded
@@ -389,6 +395,34 @@ export default function OpeningClosingPage() {
 
   const { checks, loading: checksLoading, reload: reloadChecks } = useChecks(venueId)
   const { completions, reload: reloadCompletions } = useCompletionsForDate(selectedDate, venueId)
+  const { roles } = useVenueRoles()
+  const { departments } = useDepartments()
+
+  // Which departments this staff member can see. Managers always see every
+  // department. A department is reachable via any role the staff holds — a
+  // deleted department (or a role with no department) is NULL on the FK side,
+  // which is already the fail-open case: visible to everyone.
+  const viewerDepartmentIds = useMemo(() => {
+    if (isManager) return null
+    const held = new Set(session?.roleIds ?? [])
+    return new Set(roles.filter(r => held.has(r.id) && r.department_id).map(r => r.department_id))
+  }, [isManager, session, roles])
+
+  const canSeeDepartment = (departmentId) =>
+    isManager || !departmentId || viewerDepartmentIds.has(departmentId)
+
+  // One (or two, opening+closing) section per department that either has
+  // checks already, or — for a manager — could have checks added to it.
+  // The ungrouped ("no department") section always shows, matching the
+  // page's original two-section layout for venues with no departments set up.
+  const departmentGroups = useMemo(() => {
+    const groups = [{ id: null, name: null }, ...departments]
+    return groups.filter(d => {
+      if (!canSeeDepartment(d.id)) return false
+      if (d.id === null) return true
+      return isManager || checks.some(c => c.department_id === d.id)
+    })
+  }, [departments, checks, isManager, viewerDepartmentIds])
 
   // Is the selected date strictly in the future? (tomorrow or later = read-only)
   const readOnly = selectedDate > todayStr()
@@ -508,37 +542,46 @@ export default function OpeningClosingPage() {
         )}
       </div>
 
-      {/* Check sections */}
-      <div className="grid md:grid-cols-2 gap-4">
-        <CheckSection
-          type="opening"
-          label="Opening Checks"
-          checks={checks}
-          completions={completions}
-          onOK={openOK}
-          onIssue={openIssue}
-          isManager={isManager}
-          onAddCheck={reloadChecks}
-          onRemoveCheck={(id) => setRemoveTarget(checks.find(c => c.id === id))}
-          venueId={venueId}
-          readOnly={readOnly}
-          savingCheckId={savingCheckId}
-        />
-        <CheckSection
-          type="closing"
-          label="Closing Checks"
-          checks={checks}
-          completions={completions}
-          onOK={openOK}
-          onIssue={openIssue}
-          isManager={isManager}
-          onAddCheck={reloadChecks}
-          onRemoveCheck={(id) => setRemoveTarget(checks.find(c => c.id === id))}
-          venueId={venueId}
-          readOnly={readOnly}
-          savingCheckId={savingCheckId}
-        />
-      </div>
+      {/* Check sections — one department at a time, opening then closing */}
+      {departmentGroups.map(dept => {
+        const deptChecks = checks.filter(c => (c.department_id ?? null) === dept.id)
+        return (
+          <div key={dept.id ?? 'ungrouped'} className="grid md:grid-cols-2 gap-4">
+            <CheckSection
+              type="opening"
+              label="Opening Checks"
+              departmentId={dept.id}
+              departmentName={dept.name}
+              checks={deptChecks}
+              completions={completions}
+              onOK={openOK}
+              onIssue={openIssue}
+              isManager={isManager}
+              onAddCheck={reloadChecks}
+              onRemoveCheck={(id) => setRemoveTarget(checks.find(c => c.id === id))}
+              venueId={venueId}
+              readOnly={readOnly}
+              savingCheckId={savingCheckId}
+            />
+            <CheckSection
+              type="closing"
+              label="Closing Checks"
+              departmentId={dept.id}
+              departmentName={dept.name}
+              checks={deptChecks}
+              completions={completions}
+              onOK={openOK}
+              onIssue={openIssue}
+              isManager={isManager}
+              onAddCheck={reloadChecks}
+              onRemoveCheck={(id) => setRemoveTarget(checks.find(c => c.id === id))}
+              venueId={venueId}
+              readOnly={readOnly}
+              savingCheckId={savingCheckId}
+            />
+          </div>
+        )
+      })}
     </div>
   )
 }

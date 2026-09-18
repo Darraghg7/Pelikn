@@ -14,7 +14,6 @@ import LoadingSpinner from '../../components/ui/LoadingSpinner'
 import { useVenueFeatures } from '../../hooks/useVenueFeatures'
 import { useVenueRoles } from '../../hooks/useVenueRoles'
 import useVenueSettings from '../../hooks/useVenueSettings'
-import { useAppSettings } from '../../hooks/useSettings'
 import Toggle from '../../components/ui/Toggle'
 import Button from '../../components/ui/Button'
 import Modal from '../../components/ui/Modal'
@@ -141,7 +140,6 @@ export default function StaffMembersSection() {
   const { venuePlan } = useVenueFeatures()
   const { settings } = useVenueSettings()
   const { roles: venueRoles } = useVenueRoles()
-  const { customRoles } = useAppSettings()
   const { session } = useSession()
   const [deleteTarget, setDeleteTarget] = useState(null)
   const { venueId } = useVenue()
@@ -585,31 +583,17 @@ export default function StaffMembersSection() {
           </p>
         </div>
 
-        {/* Job role select */}
+        {/* Roles — the one role list used everywhere: rota skill-matching,
+            Tasks, Cleaning, and department-scoped checks. */}
         <div>
-          <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">Job Role</label>
-          <select
-            value={staffForm.job_role}
-            onChange={e => setStaffForm(f => ({ ...f, job_role: e.target.value }))}
-            className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 text-charcoal dark:text-white"
-          >
-            <option value="">Not set</option>
-            {customRoles.map(r => (
-              <option key={r.value} value={r.value}>{r.label}</option>
-            ))}
-          </select>
-        </div>
-
-        {/* Skills / role assignment */}
-        <div>
-          <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">Skills</label>
+          <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">Roles</label>
           {editingId ? (
             <StaffRolesAssignment staffId={editingId} />
           ) : (
-            <p className="text-xs text-charcoal/35 dark:text-white/30 italic">Save this staff member first, then assign their skills.</p>
+            <p className="text-xs text-charcoal/35 dark:text-white/30 italic">Save this staff member first, then assign their roles.</p>
           )}
           <p className="text-[11px] text-charcoal/35 dark:text-white/30 mt-2">
-            Skills tell the AI rota builder which shifts this person can cover.
+            Roles decide which shifts this person can be auto-scheduled into, and which department-scoped Tasks, Cleaning and Checks they see. Set roles up in Settings → Roles.
           </p>
         </div>
       </div>
@@ -856,11 +840,7 @@ export default function StaffMembersSection() {
       <div className="flex flex-col gap-3">
         {staff.map((s, idx) => {
           const initial     = (s.name || '?').charAt(0).toUpperCase()
-          const jobRoleLabel = customRoles.find(r => r.value === s.job_role)?.label ?? s.job_role
-          const assignedRole = (staffRoleMap[s.id] ?? [])[0]
-          // Only show the assigned-role line when it's actually different info
-          // from the job-role pill above it — otherwise it's the same text twice.
-          const roleLabel = assignedRole && assignedRole !== jobRoleLabel ? assignedRole : null
+          const staffRoles  = staffRoleMap[s.id] ?? []
           const isLocked = s.pin_locked_until && new Date(s.pin_locked_until) > new Date()
 
           return (
@@ -888,11 +868,11 @@ export default function StaffMembersSection() {
                 <div className="min-w-[180px] flex-1">
                   <div className="flex items-center gap-1.5 flex-wrap">
                     <p className="text-[15px] font-semibold text-charcoal dark:text-white leading-tight">{s.name}</p>
-                    {s.job_role && (
-                      <span className="text-[11px] font-semibold tracking-wider uppercase px-1.5 py-0.5 rounded-full bg-brand/8 text-brand">
-                        {jobRoleLabel}
+                    {staffRoles.map(name => (
+                      <span key={name} className="text-[11px] font-semibold tracking-wider uppercase px-1.5 py-0.5 rounded-full bg-brand/8 text-brand">
+                        {name}
                       </span>
-                    )}
+                    ))}
                     {isLocked && (
                       <span className="inline-flex items-center gap-1 text-[11px] font-semibold tracking-wider uppercase px-1.5 py-0.5 rounded-full bg-danger/10 text-danger">
                         <svg className="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4">
@@ -917,12 +897,9 @@ export default function StaffMembersSection() {
                       </span>
                     )}
                   </div>
-                  {(roleLabel || s.start_date) && (
+                  {s.start_date && (
                     <p className="text-xs text-charcoal/45 dark:text-white/40 leading-tight mt-0.5">
-                      {roleLabel}
-                      {s.start_date && (
-                        <>{roleLabel ? ' · ' : ''}since {new Date(s.start_date).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })}</>
-                      )}
+                      since {new Date(s.start_date).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })}
                     </p>
                   )}
 

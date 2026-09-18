@@ -51,8 +51,8 @@ export function cleaningStatus(
 }
 
 export function useCleaningTasks(
-  jobRole: string | null = null,
-  knownRoles: readonly string[] = [],
+  viewerRoleIds: readonly string[] | null = null,
+  knownRoleIds: readonly string[] = [],
   asOf?: Date,
 ): {
   tasks: (CleaningTask & { lastCompletion: CleaningCompletion | null; status: CleaningStatus })[]
@@ -84,8 +84,8 @@ export function useCleaningTasks(
   const tasks: CleaningTask[] = data?.tasks ?? []
   const completions: CleaningCompletion[] = data?.completions ?? []
 
-  const matchesRole = roleMatcher(jobRole, knownRoles)
-  const filtered = tasks.filter((t) => matchesRole(t.assigned_role))
+  const matchesRole = roleMatcher(viewerRoleIds, knownRoleIds)
+  const filtered = tasks.filter((t) => matchesRole(t.role_id))
 
   const reference = asOf ?? now
   // Completions logged after the day being viewed don't count towards it.

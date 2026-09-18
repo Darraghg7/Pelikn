@@ -7,6 +7,8 @@ import { useVenue } from '../contexts/VenueContext'
 interface VenueRole {
   id: string
   name: string
+  color?: string
+  department_id?: string | null
   sort_order?: number
   venue_id: string
 }
@@ -18,6 +20,7 @@ export function useVenueRoles(): {
   addRole: (name: string) => Promise<{ error: unknown }>
   renameRole: (id: string, name: string) => Promise<{ error: unknown }>
   deleteRole: (id: string) => Promise<{ error: unknown }>
+  setRoleDepartment: (id: string, departmentId: string | null) => Promise<{ error: unknown }>
 } {
   const { venueId } = useVenue()
   const queryClient = useQueryClient()
@@ -27,7 +30,7 @@ export function useVenueRoles(): {
     queryFn: async () => {
       const { data } = await supabase
         .from('venue_roles')
-        .select('id, name, sort_order, venue_id')
+        .select('id, name, color, department_id, sort_order, venue_id')
         .eq('venue_id', venueId)
         .order('sort_order')
         .order('name')
@@ -60,7 +63,13 @@ export function useVenueRoles(): {
     return { error }
   }
 
-  return { roles, loading, reload: refetch, addRole, renameRole, deleteRole }
+  const setRoleDepartment = async (id: string, departmentId: string | null) => {
+    const { error } = await supabase.from('venue_roles').update({ department_id: departmentId }).eq('id', id)
+    if (!error) queryClient.invalidateQueries({ queryKey: ['venue_roles', venueId] })
+    return { error }
+  }
+
+  return { roles, loading, reload: refetch, addRole, renameRole, deleteRole, setRoleDepartment }
 }
 
 // ── Staff ↔ roles assignment ──────────────────────────────────────────────────

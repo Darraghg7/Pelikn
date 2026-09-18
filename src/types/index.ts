@@ -103,6 +103,7 @@ export interface TaskTemplate {
   id: string
   title: string
   job_role?: string
+  role_id?: string | null
   is_active: boolean
   venue_id: string
   created_at: string
@@ -112,6 +113,7 @@ export interface TaskOneOff {
   id: string
   title: string
   job_role?: string
+  role_id?: string | null
   due_date: string
   assigned_to_staff_id?: string
   venue_id: string

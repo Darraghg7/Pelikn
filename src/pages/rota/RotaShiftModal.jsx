@@ -89,7 +89,12 @@ export default function RotaShiftModal({
                         {fmtDuration(sh.start_time, sh.end_time)}
                       </span>
                     </p>
-                    <p className="text-xs text-charcoal/50 dark:text-white/40 mt-0.5">{sh.role_label}</p>
+                    <p className="text-xs text-charcoal/50 dark:text-white/40 mt-0.5 flex items-center gap-1.5">
+                      {sh.role_label}
+                      {sh.is_closing && (
+                        <span className="text-[10px] font-bold tracking-wide uppercase text-brand dark:text-accent">· Closing</span>
+                      )}
+                    </p>
                   </div>
                   <div className="flex gap-1.5">
                     <button onClick={() => openEdit(sh)} className="text-xs px-2.5 py-1.5 rounded-lg border border-charcoal/15 dark:border-white/15 text-charcoal/60 dark:text-white/50 hover:text-charcoal dark:hover:text-white hover:border-charcoal/30 dark:hover:border-white/30 transition-colors">Edit</button>
@@ -212,6 +217,20 @@ export default function RotaShiftModal({
             )}
           </div>
 
+          {/* Closing shift */}
+          <div className="border-t border-charcoal/8 dark:border-white/8 pt-4 flex items-start justify-between gap-3">
+            <div>
+              <p className="text-sm font-medium text-charcoal dark:text-white">Closing shift</p>
+              <p className="text-[11px] text-charcoal/40 dark:text-white/35 mt-0.5 max-w-[280px]">
+                Accountable for their department's closing checklist today — the first person closing that department completes it, anyone closing after has to accept it before clocking out.
+              </p>
+            </div>
+            <Toggle
+              checked={form.isClosing}
+              onChange={() => setForm((f) => ({ ...f, isClosing: !f.isClosing }))}
+            />
+          </div>
+
           {/* Duty assignment */}
           {dutyTemplates.length > 0 && (
             <div className="border-t border-charcoal/8 dark:border-white/8 pt-4">
@@ -275,7 +294,7 @@ export default function RotaShiftModal({
                   onClick={() => {
                     const lastRole = localStorage.getItem(`mise_last_role_${modal.staffMember.id}`) || venueRoles[0]?.name || ''
                     setEditShift(null)
-                    setForm({ staffId: modal.staffMember.id, startTime: '09:00', endTime: '17:00', roleLabel: lastRole })
+                    setForm({ staffId: modal.staffMember.id, startTime: '09:00', endTime: '17:00', roleLabel: lastRole, isClosing: false })
                     setAssignDuty(false)
                     setSelectedDutyId(null)
                   }}

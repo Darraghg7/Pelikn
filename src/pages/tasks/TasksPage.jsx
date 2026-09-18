@@ -8,7 +8,7 @@ import { useAllTasks, useTasksForRole } from '../../hooks/useTasks'
 import { useTodayDuties } from '../../hooks/useDuties'
 import { useCleaningTasks } from '../../hooks/useCleaningTasks'
 import { useToast } from '../../components/ui/Toast'
-import { useAppSettings } from '../../hooks/useSettings'
+import { useVenueRoles } from '../../hooks/useVenueRoles'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
 import EmptyState from '../../components/ui/EmptyState'
 import ConfirmDialog from '../../components/ui/ConfirmDialog'
@@ -94,11 +94,21 @@ function ManagerTaskRow({ item, isTemplate, completions, onDelete, deleting }) {
   )
 }
 
+// venue_roles.color is a hex string (e.g. '#1a3c2e'), unlike the old
+// customRoles palette of Tailwind class pairs — applied as an inline tint
+// rather than a className.
+function hexToRgba(hex, alpha) {
+  const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex || '')
+  if (!m) return `rgba(26,26,24,${alpha})`
+  const [r, g, b] = [m[1], m[2], m[3]].map(h => parseInt(h, 16))
+  return `rgba(${r},${g},${b},${alpha})`
+}
+
 // ── Department column ─────────────────────────────────────────────────────────
 function DeptColumn({ role, label, color, templates, oneOffs, completions, onDeleteTemplate, onDeleteOneOff, deleting }) {
   const [collapsed, setCollapsed] = useState(false)
-  const deptTemplates = templates.filter(t => t.job_role === role)
-  const deptOneOffs   = oneOffs.filter(o => o.job_role === role)
+  const deptTemplates = templates.filter(t => t.role_id === role)
+  const deptOneOffs   = oneOffs.filter(o => o.role_id === role)
   const deptDone = completions.filter(c =>
     deptTemplates.some(t => t.id === c.task_template_id) ||
     deptOneOffs.some(o => o.id === c.task_one_off_id)
@@ -117,7 +127,8 @@ function DeptColumn({ role, label, color, templates, oneOffs, completions, onDel
         type="button"
         onClick={() => setCollapsed(v => !v)}
         aria-expanded={!collapsed}
-        className={`w-full px-4 py-3 border-b border-charcoal/8 dark:border-white/8 flex items-center justify-between gap-2 text-left cursor-pointer border-none ${color}`}
+        style={{ backgroundColor: hexToRgba(color, 0.14) }}
+        className="w-full px-4 py-3 border-b border-charcoal/8 dark:border-white/8 flex items-center justify-between gap-2 text-left cursor-pointer border-none text-charcoal dark:text-white"
       >
         <p className="text-sm font-semibold">{label}</p>
         <span className="flex items-center gap-2 shrink-0">
@@ -167,15 +178,15 @@ function ManagerTasksView() {
   const today = new Date()
   const { templates, oneOffs, completions, loading, reload } = useAllTasks(today)
   const staffList = useStaffList()
-  const { customRoles = [] } = useAppSettings()
-  const jobRoleValues = customRoles.map(r => r.value)
+  const { roles = [] } = useVenueRoles()
+  const roleIdValues = roles.map(r => r.id)
 
   const [showAddTemplate, setShowAddTemplate] = useState(false)
   const [showAddOneOff, setShowAddOneOff]     = useState(false)
-  const [tForm, setTForm]   = useState({ title: '', job_role: 'all' })
+  const [tForm, setTForm]   = useState({ title: '', role_id: null })
   const [oForm, setOForm]   = useState({
     title: '',
-    job_role: 'all',
+    role_id: null,
     due_date: format(today, 'yyyy-MM-dd'),
     assigned_to_staff_id: '',
   })
@@ -183,20 +194,22 @@ function ManagerTasksView() {
   const [deleting, setDeleting] = useState(null)
   const [confirmDelete, setConfirmDelete] = useState(null) // { id, isTemplate }
 
-  // "All roles" items — tasks tagged 'all' or whose role doesn't match any configured role
-  const allRolesTemplates = templates.filter(t => t.job_role === 'all' || !jobRoleValues.includes(t.job_role))
-  const allRolesOneOffs   = oneOffs.filter(o => o.job_role === 'all' || !jobRoleValues.includes(o.job_role))
+  // "All roles" items — untargeted, or targeting a role this venue no longer
+  // has (fail-open — same rule as roleMatcher, applied here for the manager's
+  // display bucketing rather than a visibility gate).
+  const allRolesTemplates = templates.filter(t => !t.role_id || !roleIdValues.includes(t.role_id))
+  const allRolesOneOffs   = oneOffs.filter(o => !o.role_id || !roleIdValues.includes(o.role_id))
 
   const saveTemplate = async () => {
     if (!tForm.title.trim()) return
     setSaving(true)
     const { error } = await supabase.from('task_templates').insert({
-      title: tForm.title.trim(), job_role: tForm.job_role, venue_id: venueId,
+      title: tForm.title.trim(), role_id: tForm.role_id, venue_id: venueId,
     })
     setSaving(false)
     if (error) { toast(error.message, 'error'); return }
     toast('Task template added')
-    setTForm({ title: '', job_role: 'all' })
+    setTForm({ title: '', role_id: null })
     setShowAddTemplate(false)
     reload()
   }
@@ -209,7 +222,7 @@ function ManagerTasksView() {
       : null
     const { error } = await supabase.from('task_one_offs').insert({
       title:                oForm.title.trim(),
-      job_role:             assignee ? assignee.job_role : oForm.job_role,
+      role_id:              assignee ? null : oForm.role_id, // assigned-to-person tasks aren't role-targeted
       due_date:             oForm.due_date,
       venue_id:             venueId,
       assigned_to_staff_id: assignee?.id   ?? null,
@@ -218,7 +231,7 @@ function ManagerTasksView() {
     setSaving(false)
     if (error) { toast(error.message, 'error'); return }
     toast('One-off task added')
-    setOForm({ title: '', job_role: 'all', due_date: format(today, 'yyyy-MM-dd'), assigned_to_staff_id: '' })
+    setOForm({ title: '', role_id: null, due_date: format(today, 'yyyy-MM-dd'), assigned_to_staff_id: '' })
     setShowAddOneOff(false)
     reload()
   }
@@ -287,12 +300,12 @@ function ManagerTasksView() {
             className="px-4 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
           />
           <div className="flex gap-2 flex-wrap">
-            {[{ value: 'all', label: 'All Roles' }, ...customRoles].map((r) => (
-              <button key={r.value} type="button" onClick={() => setTForm(f => ({ ...f, job_role: r.value }))}
+            {[{ id: null, name: 'All Roles' }, ...roles].map((r) => (
+              <button key={r.id ?? 'all'} type="button" onClick={() => setTForm(f => ({ ...f, role_id: r.id }))}
                 className={['px-3 py-1.5 rounded-full text-xs font-medium border transition-all',
-                  tForm.job_role === r.value ? 'bg-charcoal text-cream border-charcoal dark:border-white' : 'bg-white dark:bg-paperDark text-charcoal/50 dark:text-white/40 border-charcoal/15 dark:border-white/15',
+                  tForm.role_id === r.id ? 'bg-charcoal text-cream border-charcoal dark:border-white' : 'bg-white dark:bg-paperDark text-charcoal/50 dark:text-white/40 border-charcoal/15 dark:border-white/15',
                 ].join(' ')}>
-                {r.label}
+                {r.name}
               </button>
             ))}
           </div>
@@ -331,19 +344,18 @@ function ManagerTasksView() {
                 onChange={(e) => setOForm(f => ({ ...f, assigned_to_staff_id: e.target.value }))}
                 className="px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20">
                 <option value="">Specific person (optional)</option>
-                {staffList.map((s) => {
-                  const roleLabel = customRoles.find(r => r.value === s.job_role)?.label ?? s.job_role
-                  return <option key={s.id} value={s.id}>{s.name}{s.job_role ? ` (${roleLabel})` : ''}</option>
-                })}
+                {staffList.map((s) => (
+                  <option key={s.id} value={s.id}>{s.name}</option>
+                ))}
               </select>
               {!oForm.assigned_to_staff_id && (
                 <div className="flex gap-2 flex-wrap">
-                  {[{ value: 'all', label: 'All Roles' }, ...customRoles].map((r) => (
-                    <button key={r.value} type="button" onClick={() => setOForm(f => ({ ...f, job_role: r.value }))}
+                  {[{ id: null, name: 'All Roles' }, ...roles].map((r) => (
+                    <button key={r.id ?? 'all'} type="button" onClick={() => setOForm(f => ({ ...f, role_id: r.id }))}
                       className={['px-3 py-1.5 rounded-full text-xs font-medium border transition-all',
-                        oForm.job_role === r.value ? 'bg-charcoal text-cream border-charcoal dark:border-white' : 'bg-white dark:bg-paperDark text-charcoal/50 dark:text-white/40 border-charcoal/15 dark:border-white/15',
+                        oForm.role_id === r.id ? 'bg-charcoal text-cream border-charcoal dark:border-white' : 'bg-white dark:bg-paperDark text-charcoal/50 dark:text-white/40 border-charcoal/15 dark:border-white/15',
                       ].join(' ')}>
-                      {r.label}
+                      {r.name}
                     </button>
                   ))}
                 </div>
@@ -363,16 +375,14 @@ function ManagerTasksView() {
       )}
 
       {/* ── Department columns ─────────────────────────────────────────────── */}
-      {customRoles.length > 0 && (
+      {roles.length > 0 && (
         <div className="flex flex-col sm:flex-row gap-3 items-start">
-          {customRoles.map((r, i) => {
-            const role = typeof r === 'string' ? { value: r.toLowerCase().replace(/\s+/g, '_'), label: r, color: null } : r
-            return (
+          {roles.map((role) => (
             <DeptColumn
-              key={role.value ?? i}
-              role={role.value}
-              label={role.label}
-              color={role.color || 'bg-charcoal/5 dark:bg-white/5 text-charcoal dark:text-white'}
+              key={role.id}
+              role={role.id}
+              label={role.name}
+              color={role.color}
               templates={templates}
               oneOffs={oneOffs}
               completions={completions}
@@ -380,8 +390,7 @@ function ManagerTasksView() {
               onDeleteOneOff={(id) => setConfirmDelete({ id, isTemplate: false })}
               deleting={deleting}
             />
-            )
-          })}
+          ))}
         </div>
       )}
 
@@ -658,7 +667,7 @@ function AllergensTab({ venueSlug }) {
 // ── Staff View ─────────────────────────────────────────────
 function StaffTasksView({ session }) {
   const { venueId, venueSlug } = useVenue()
-  const { customRoles = [] } = useAppSettings()
+  const { roles = [] } = useVenueRoles()
   const pendingSignOffs = usePendingSignOffs(session?.staffId, venueId)
 
   const [activeTab, setActiveTab] = useState('duties')
@@ -672,8 +681,8 @@ function StaffTasksView({ session }) {
   // Same role targeting as /cleaning, so a task assigned to one role doesn't
   // appear here and then vanish on the page where it gets ticked off. Unknown
   // roles fail open — see lib/roleFilter.
-  const knownRoles   = useMemo(() => customRoles.map(r => r.value), [customRoles])
-  const cleaningData = useCleaningTasks(session?.jobRole ?? null, knownRoles, targetDate)
+  const knownRoleIds = useMemo(() => roles.map(r => r.id), [roles])
+  const cleaningData = useCleaningTasks(session?.roleIds ?? null, knownRoleIds, targetDate)
   const cleaningDue  = cleaningData.tasks.filter(t => t.status === 'overdue').length
 
   const TAB_TITLE = { duties: 'Duties', cleaning: 'Cleaning', allergens: 'Allergens' }
