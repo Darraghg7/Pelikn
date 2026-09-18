@@ -337,11 +337,7 @@ export default function SettingsPage() {
                 locked={venuePlan !== PLANS.PRO}
                 defaultOpen
               >
-                <PermissionTitlesSection
-                  venueId={venueId}
-                  titles={settings.permission_titles}
-                  reloadSettings={reloadSettings}
-                />
+                <PermissionTitlesSection />
               </SettingsSection>
             </>
           )}

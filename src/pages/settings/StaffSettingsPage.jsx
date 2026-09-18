@@ -7,7 +7,6 @@ import VenueCodeSection from './VenueCodeSection'
 import RolesSection from './RolesSection'
 import PermissionTitlesSection from './PermissionTitlesSection'
 import DutiesSection from './DutiesSection'
-import useVenueSettings from '../../hooks/useVenueSettings'
 import SettingsSubHeader from '../../components/layout/SettingsSubHeader'
 
 const TABS = [
@@ -22,7 +21,6 @@ export default function StaffSettingsPage() {
   const navigate = useNavigate()
   const { venueId, venueSlug } = useVenue()
   const { session } = useSession()
-  const { settings, reload: reloadSettings } = useVenueSettings()
   const [tab, setTab] = useState('members')
 
   const vp = (path) => `/v/${venueSlug}${path}`
@@ -57,11 +55,7 @@ export default function StaffSettingsPage() {
         {tab === 'roles' && (
           <div className="flex flex-col gap-4">
             <RolesSection />
-            <PermissionTitlesSection
-              venueId={venueId}
-              titles={settings.permission_titles}
-              reloadSettings={reloadSettings}
-            />
+            <PermissionTitlesSection />
           </div>
         )}
 
