@@ -26,7 +26,7 @@ const COLOR_PALETTE = [
   'bg-stone-100 text-stone-800',
 ]
 
-const SETTINGS_KEYS = ['custom_roles', 'closed_days', 'break_duration_mins', 'cleanup_minutes', 'fridge_check_time', 'open_time', 'close_time', 'day_hours', 'compliance_nav_order', 'action_schedules', 'late_grace_mins', 'break_overrun_grace_mins', 'require_late_reason', 'require_manager_approval_for_late', 'notify_manager_at_strike', 'disciplinary_at_strike', 'counting_window_days', 'push_to_manager', 'notify_break_overrun', 'hidden_check_tiles', 'hidden_team_tiles', 'max_staff_off_enabled', 'max_staff_off_count']
+const SETTINGS_KEYS = ['custom_roles', 'closed_days', 'break_duration_mins', 'cleanup_minutes', 'fridge_check_time', 'open_time', 'close_time', 'day_hours', 'compliance_nav_order', 'action_schedules', 'late_grace_mins', 'break_overrun_grace_mins', 'require_late_reason', 'require_manager_approval_for_late', 'notify_manager_at_strike', 'disciplinary_at_strike', 'counting_window_days', 'push_to_manager', 'notify_break_overrun', 'hidden_check_tiles', 'hidden_team_tiles', 'max_staff_off_enabled', 'max_staff_off_count', 'enforce_closing_checklist']
 
 interface CustomRole {
   value: string
@@ -69,6 +69,8 @@ interface AppSettings {
   // Time-off staffing rule: max staff allowed off on the same day
   maxStaffOffEnabled: boolean
   maxStaffOffCount: number
+  // Closing-checklist clock-out gate — opt-in per venue, see useClosingGate.ts
+  enforceClosingChecklist: boolean
 }
 
 const ALL_DAYS = [0, 1, 2, 3, 4, 5, 6]
@@ -107,6 +109,7 @@ const DEFAULTS: AppSettings = {
   hiddenTeamTiles: [],
   maxStaffOffEnabled: false,
   maxStaffOffCount: 1,
+  enforceClosingChecklist: false,
 }
 
 // ── Cold-start persistence ──────────────────────────────────────────────────
@@ -199,6 +202,7 @@ async function fetchAppSettings(venueId: string): Promise<AppSettings> {
         if (row.key === 'hidden_team_tiles'  && Array.isArray(parsed)) result.hiddenTeamTiles = parsed
         if (row.key === 'max_staff_off_enabled' && typeof parsed === 'boolean') result.maxStaffOffEnabled = parsed
         if (row.key === 'max_staff_off_count'   && typeof parsed === 'number')  result.maxStaffOffCount = parsed
+        if (row.key === 'enforce_closing_checklist' && typeof parsed === 'boolean') result.enforceClosingChecklist = parsed
       } catch { /* ignore corrupt JSON — leave defaults */ }
     }
   }
@@ -266,6 +270,7 @@ export function useAppSettings() {
       hidden_team_tiles: 'hiddenTeamTiles',
       max_staff_off_enabled: 'maxStaffOffEnabled',
       max_staff_off_count: 'maxStaffOffCount',
+      enforce_closing_checklist: 'enforceClosingChecklist',
     }
 
     // Keep the pre-write snapshot so a failed save can be rolled back —
@@ -308,6 +313,7 @@ export function useAppSettings() {
   const saveHiddenTeamTiles = useCallback((ids: string[]) => saveSetting('hidden_team_tiles', ids), [saveSetting])
   const saveMaxStaffOffEnabled = useCallback((v: boolean) => saveSetting('max_staff_off_enabled', v), [saveSetting])
   const saveMaxStaffOffCount = useCallback((n: number) => saveSetting('max_staff_off_count', n), [saveSetting])
+  const saveEnforceClosingChecklist = useCallback((v: boolean) => saveSetting('enforce_closing_checklist', v), [saveSetting])
 
   /** Pick the next unused colour from the palette. Falls back to the least-used colour. */
   const nextColor = useCallback(() => {
@@ -348,12 +354,13 @@ export function useAppSettings() {
     hiddenTeamTiles: settings.hiddenTeamTiles,
     maxStaffOffEnabled: settings.maxStaffOffEnabled,
     maxStaffOffCount: settings.maxStaffOffCount,
+    enforceClosingChecklist: settings.enforceClosingChecklist,
     loading,
     saveCustomRoles, saveClosedDays, saveBreakDuration, saveCleanupMinutes, saveFridgeCheckTime,
     saveOpenTime, saveCloseTime, saveDayHours, saveComplianceNavOrder, saveActionSchedules,
     saveLateGraceMins, saveBreakOverrunGraceMins, saveRequireLateReason, saveRequireManagerApprovalForLate,
     saveNotifyManagerAtStrike, saveDisciplinaryAtStrike, saveCountingWindowDays, savePushToManager, saveNotifyBreakOverrun,
-    saveHiddenCheckTiles, saveHiddenTeamTiles, saveMaxStaffOffEnabled, saveMaxStaffOffCount,
+    saveHiddenCheckTiles, saveHiddenTeamTiles, saveMaxStaffOffEnabled, saveMaxStaffOffCount, saveEnforceClosingChecklist,
     nextColor, reload,
   }
 }

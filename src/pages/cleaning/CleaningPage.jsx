@@ -9,7 +9,7 @@ import { useToast } from '../../components/ui/Toast'
 import { PageSkeleton } from '../../components/ui/Skeleton'
 import ConfirmDialog from '../../components/ui/ConfirmDialog'
 import CleaningExportModal from './CleaningExportModal'
-import { useAppSettings } from '../../hooks/useSettings'
+import { useVenueRoles } from '../../hooks/useVenueRoles'
 
 const FREQ_OPTIONS = ['daily', 'weekly', 'fortnightly', 'monthly', 'quarterly']
 const FREQ_DAYS = { daily: 1, weekly: 7, fortnightly: 14, monthly: 30, quarterly: 90 }
@@ -69,17 +69,17 @@ export default function CleaningPage() {
   const toast = useToast()
   const { venueId } = useVenue()
   const { session, isManager } = useSession()
-  const { customRoles = [] } = useAppSettings()
-  const roleOptions = [{ value: 'all', label: 'All Roles' }, ...customRoles.map(r => ({ value: r.value, label: r.label }))]
-  const jobRole = isManager ? null : (session?.jobRole ?? null)
-  // Passed through so a task or job_role naming a deleted role stays visible
-  // rather than silently filtering the staff member out — see lib/roleFilter.
-  const knownRoles = useMemo(() => customRoles.map(r => r.value), [customRoles])
+  const { roles = [] } = useVenueRoles()
+  const roleOptions = [{ id: null, name: 'All Roles' }, ...roles]
+  const viewerRoleIds = isManager ? null : (session?.roleIds ?? null)
+  // Passed through so a task naming a deleted role stays visible rather than
+  // silently filtering the staff member out — see lib/roleFilter.
+  const knownRoleIds = useMemo(() => roles.map(r => r.id), [roles])
 
-  const { tasks, loading, reload } = useCleaningTasks(jobRole, knownRoles)
+  const { tasks, loading, reload } = useCleaningTasks(viewerRoleIds, knownRoleIds)
 
   const [showAdd, setShowAdd]   = useState(false)
-  const [form, setForm]         = useState({ title: '', frequency: 'daily', assigned_role: 'all' })
+  const [form, setForm]         = useState({ title: '', frequency: 'daily', role_id: null })
   const [saving, setSaving]     = useState(false)
   const [completing, setCompleting] = useState(null)
   const [completeModal, setCompleteModal] = useState(null) // { task }
@@ -94,13 +94,13 @@ export default function CleaningPage() {
     const { error } = await supabase.from('cleaning_tasks').insert({
       title: form.title.trim(),
       frequency: form.frequency,
-      assigned_role: form.assigned_role,
+      role_id: form.role_id,
       venue_id: venueId,
     })
     setSaving(false)
     if (error) { toast(error.message, 'error'); return }
     toast('Cleaning task added')
-    setForm({ title: '', frequency: 'daily', assigned_role: 'all' })
+    setForm({ title: '', frequency: 'daily', role_id: null })
     setShowAdd(false)
     reload()
   }
@@ -243,15 +243,15 @@ export default function CleaningPage() {
               <div className="flex flex-wrap gap-2">
                 {roleOptions.map((r) => (
                   <button
-                    key={r.value}
+                    key={r.id ?? 'all'}
                     type="button"
-                    onClick={() => setForm((prev) => ({ ...prev, assigned_role: r.value }))}
+                    onClick={() => setForm((prev) => ({ ...prev, role_id: r.id }))}
                     className={[
                       'px-3 py-1.5 rounded-full text-xs font-medium border transition-all',
-                      form.assigned_role === r.value ? 'bg-charcoal text-cream border-charcoal dark:border-white' : 'bg-white dark:bg-paperDark text-charcoal/50 dark:text-white/40 border-charcoal/15 dark:border-white/15',
+                      form.role_id === r.id ? 'bg-charcoal text-cream border-charcoal dark:border-white' : 'bg-white dark:bg-paperDark text-charcoal/50 dark:text-white/40 border-charcoal/15 dark:border-white/15',
                     ].join(' ')}
                   >
-                    {r.label}
+                    {r.name}
                   </button>
                 ))}
               </div>
@@ -303,7 +303,7 @@ export default function CleaningPage() {
             const done = t.status === 'done'
             const overdue = t.status === 'overdue'
             const urgency = urgencyLabel(t)
-            const roleLabel = roleOptions.find(r => r.value === t.assigned_role)?.label ?? t.assigned_role
+            const roleLabel = roleOptions.find(r => r.id === t.role_id)?.name ?? 'All Roles'
             return (
               <div key={t.id} className="flex items-center gap-[13px] py-3">
                 <CheckCircle status={t.status} onTap={() => openComplete(t)} />

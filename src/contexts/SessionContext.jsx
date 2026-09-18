@@ -25,6 +25,7 @@ import {
   SESSION_NAME_KEY,
   SESSION_ROLE_KEY,
   SESSION_JOB_ROLE_KEY,
+  SESSION_ROLE_IDS_KEY,
   SESSION_SHOW_TEMP_LOGS,
   SESSION_SHOW_ALLERGENS,
   SESSION_VENUE_ID_KEY,
@@ -55,6 +56,7 @@ const LS_KEYS = [
   SESSION_NAME_KEY,
   SESSION_ROLE_KEY,
   SESSION_JOB_ROLE_KEY,
+  SESSION_ROLE_IDS_KEY,
   SESSION_SHOW_TEMP_LOGS,
   SESSION_SHOW_ALLERGENS,
   SESSION_VENUE_ID_KEY,
@@ -106,12 +108,18 @@ function sessionFromStorage(token, verified = false) {
     const raw = localStorage.getItem(SESSION_PERMISSIONS_KEY)
     if (raw) permissions = JSON.parse(raw)
   } catch { /* corrupt cache */ }
+  let roleIds = []
+  try {
+    const raw = localStorage.getItem(SESSION_ROLE_IDS_KEY)
+    if (raw) roleIds = JSON.parse(raw)
+  } catch { /* corrupt cache */ }
   return {
     token,
     staffId:       id,
     staffName:     localStorage.getItem(SESSION_NAME_KEY)     ?? '',
     staffRole:     localStorage.getItem(SESSION_ROLE_KEY)     ?? 'staff',
     jobRole:       localStorage.getItem(SESSION_JOB_ROLE_KEY) ?? null,
+    roleIds,
     showTempLogs:  localStorage.getItem(SESSION_SHOW_TEMP_LOGS) === 'true',
     showAllergens: localStorage.getItem(SESSION_SHOW_ALLERGENS) === 'true',
     permissions,
@@ -184,8 +192,30 @@ async function fetchLiveRestriction(staffId, venueId, staffRole) {
   return !!data.is_restricted
 }
 
+/**
+ * Re-read a staff member's role assignments (staff_role_assignments), for
+ * the same reason fetchLivePermissions exists: a manager can assign a role
+ * — which now drives Task/Cleaning/Checks visibility, see roleFilter.ts —
+ * while the device stays logged in, and the change needs to reach it without
+ * a full re-login. Returns null when the answer can't be trusted (not staff,
+ * no staffId) — callers keep the cached list on null.
+ */
+async function fetchLiveRoleIds(staffId, staffRole) {
+  if (staffRole !== 'staff' || !staffId) return null
+
+  const { data, error } = await supabase
+    .from('staff_role_assignments')
+    .select('role_id')
+    .eq('staff_id', staffId)
+
+  if (error || !data) return null
+  return data.map(r => r.role_id)
+}
+
 const samePermissions = (a = [], b = []) =>
   a.length === b.length && [...a].sort().join(' ') === [...b].sort().join(' ')
+
+const sameRoleIds = samePermissions
 
 const sessDataKey = (id) => `pelikn_sess_${id}`
 
@@ -196,6 +226,7 @@ const DEV_SESSION = DEV_PREVIEW ? {
   staffName: 'Dev Manager',
   staffRole: 'manager',
   jobRole: 'Manager',
+  roleIds: [],
   showTempLogs: true,
   showAllergens: true,
   permissions: [],
@@ -218,29 +249,33 @@ export function SessionProvider({ children }) {
   // Let the Supabase client renew an expiring/rejected venue JWT on its own.
   useEffect(() => { registerJwtRefresher(issueVenueJwt) }, [])
 
-  // ── Pick up permission/restriction changes made while this device stayed logged in ───
+  // ── Pick up permission/restriction/role changes made while this device stayed logged in ───
   const refreshPermissions = useCallback(async (sess) => {
     if (!sess) return
-    const [fresh, freshRestricted] = await Promise.all([
+    const [fresh, freshRestricted, freshRoleIds] = await Promise.all([
       fetchLivePermissions(sess.staffId, sess.venueId, sess.staffRole),
       fetchLiveRestriction(sess.staffId, sess.venueId, sess.staffRole),
+      fetchLiveRoleIds(sess.staffId, sess.staffRole),
     ])
     const permsChanged      = fresh !== null && !samePermissions(sess.permissions, fresh)
     const restrictedChanged = freshRestricted !== null && freshRestricted !== sess.isRestricted
-    if (!permsChanged && !restrictedChanged) return
+    const roleIdsChanged    = freshRoleIds !== null && !sameRoleIds(sess.roleIds, freshRoleIds)
+    if (!permsChanged && !restrictedChanged && !roleIdsChanged) return
 
     const nextPermissions = permsChanged ? fresh : sess.permissions
     const nextRestricted  = restrictedChanged ? freshRestricted : sess.isRestricted
+    const nextRoleIds     = roleIdsChanged ? freshRoleIds : sess.roleIds
 
     localStorage.setItem(SESSION_PERMISSIONS_KEY, JSON.stringify(nextPermissions))
     localStorage.setItem(SESSION_IS_RESTRICTED_KEY, String(nextRestricted))
+    localStorage.setItem(SESSION_ROLE_IDS_KEY, JSON.stringify(nextRoleIds))
     try {
-      localStorage.setItem(sessDataKey(sess.staffId), JSON.stringify({ ...sess, permissions: nextPermissions, isRestricted: nextRestricted }))
+      localStorage.setItem(sessDataKey(sess.staffId), JSON.stringify({ ...sess, permissions: nextPermissions, isRestricted: nextRestricted, roleIds: nextRoleIds }))
     } catch { /* storage full — offline cache is best-effort */ }
 
     setSession(prev => (
       prev && prev.staffId === sess.staffId && prev.venueId === sess.venueId
-        ? { ...prev, permissions: nextPermissions, isRestricted: nextRestricted }
+        ? { ...prev, permissions: nextPermissions, isRestricted: nextRestricted, roleIds: nextRoleIds }
         : prev
     ))
   }, [])
@@ -483,12 +518,18 @@ export function SessionProvider({ children }) {
       }))
     }
 
+    // Not part of the login edge function's bundle yet — fetched separately
+    // regardless of the fast/slow path above. Managers bypass role-based
+    // filtering entirely, so this is only ever meaningful for staff.
+    const roleIds = row.role === 'staff' ? await fetchLiveRoleIds(staffId, row.role) ?? [] : []
+
     const newSession = {
       token,
       staffId,
       staffName:     row.name             ?? '',
       staffRole:     row.role             ?? 'staff',
       jobRole:       row.job_role         ?? null,
+      roleIds,
       showTempLogs:  row.show_temp_logs   ?? false,
       showAllergens: row.show_allergens   ?? false,
       permissions,
@@ -504,6 +545,7 @@ export function SessionProvider({ children }) {
     localStorage.setItem(SESSION_NAME_KEY,       newSession.staffName)
     localStorage.setItem(SESSION_ROLE_KEY,       newSession.staffRole)
     localStorage.setItem(SESSION_JOB_ROLE_KEY,   newSession.jobRole)
+    localStorage.setItem(SESSION_ROLE_IDS_KEY,   JSON.stringify(newSession.roleIds))
     localStorage.setItem(SESSION_SHOW_TEMP_LOGS, String(newSession.showTempLogs))
     localStorage.setItem(SESSION_SHOW_ALLERGENS, String(newSession.showAllergens))
     localStorage.setItem(SESSION_PERMISSIONS_KEY, JSON.stringify(permissions))

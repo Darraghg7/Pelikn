@@ -10,6 +10,8 @@ import { useToast } from '../ui/Toast'
 import Skeleton from '../ui/Skeleton'
 import StaffAlertModal from './StaffAlertModal'
 import { useClockAlerts } from '../../hooks/useClockAlerts'
+import { useClosingCheckoutGuard } from '../../hooks/useClosingCheckoutGuard'
+import ClosingChecklistGateModal from './ClosingChecklistGateModal'
 
 const STATUS_CONFIG = {
   clocked_out: { label: 'Not Clocked In', color: 'text-charcoal/50 dark:text-white/40', dot: 'bg-charcoal/25 dark:bg-white/25' },
@@ -113,6 +115,11 @@ export default function ClockPanel({ staffId, compact = false }) {
 
   recordRef.current = record
 
+  const closingGuard = useClosingCheckoutGuard({
+    staffId,
+    onProceed: useCallback(() => record('clock_out'), [record]),
+  })
+
   const cfg = STATUS_CONFIG[status] ?? STATUS_CONFIG.clocked_out
 
   if (loading) {
@@ -139,6 +146,7 @@ export default function ClockPanel({ staffId, compact = false }) {
   return (
     <>
       <StaffAlertModal {...alertModalProps} />
+      <ClosingChecklistGateModal {...closingGuard.modalProps} />
 
       <div className="flex flex-col gap-3">
         {/* Status badge — hidden in compact mode (hero card shows its own) */}
@@ -184,7 +192,7 @@ export default function ClockPanel({ staffId, compact = false }) {
               {submitting ? '…' : 'Start Break'}
             </button>
             <button
-              onClick={() => record('clock_out')}
+              onClick={closingGuard.guardClockOut}
               disabled={submitting}
               className={compact
                 ? 'flex-[1.4] bg-white dark:bg-paperDark text-brand py-3 rounded-xl text-sm font-bold hover:bg-white/90 transition-colors disabled:opacity-40'

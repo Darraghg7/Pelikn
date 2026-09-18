@@ -16,7 +16,10 @@ import { offlineRpc } from '../../lib/offlineSupabase'
 import { useVenue } from '../../contexts/VenueContext'
 import { useToast } from '../../components/ui/Toast'
 import StaffAlertModal from '../../components/shifts/StaffAlertModal'
+import ClosingChecklistGateModal from '../../components/shifts/ClosingChecklistGateModal'
+import { useClosingCheckoutGuard } from '../../hooks/useClosingCheckoutGuard'
 import PushBanner from './PushBanner'
+import TrialBanner from './TrialBanner'
 import {
   DndContext,
   DragOverlay,
@@ -334,6 +337,11 @@ function MobileClockCard({ staffId }) {
 
   recordRef.current = record
 
+  const closingGuard = useClosingCheckoutGuard({
+    staffId,
+    onProceed: useCallback(() => record('clock_out'), [record]),
+  })
+
   const onShift  = status === 'clocked_in'
   const onBreak  = status === 'on_break'
   const badgeLabel = isError
@@ -350,6 +358,7 @@ function MobileClockCard({ staffId }) {
   return (
     <div>
       <StaffAlertModal {...alertModalProps} />
+      <ClosingChecklistGateModal {...closingGuard.modalProps} />
       <SectionLabel>My Clock</SectionLabel>
       <div className="bg-brand rounded-[14px] p-[14px_16px_16px] flex flex-col gap-0">
         <div className="flex items-center justify-between mb-2.5">
@@ -426,7 +435,7 @@ function MobileClockCard({ staffId }) {
               Break
             </button>
             <button
-              onClick={() => record('clock_out')}
+              onClick={closingGuard.guardClockOut}
               disabled={submitting}
               className={`flex-[2] bg-white dark:bg-paperDark text-brand rounded-[11px] py-[13px] font-mono text-[13px] font-bold border-0 cursor-pointer flex items-center justify-center gap-[7px] ${submitting ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
@@ -678,6 +687,7 @@ export default function MobileManagerDashboard({
     <div className="flex flex-col gap-[13px]">
 
       <PushBanner staffId={session?.staffId} venueId={venueId} />
+      <TrialBanner staffRole={session?.staffRole} venueId={venueId} venuePlan={venuePlan} />
 
       <div className="pb-0.5">
         <div className="flex items-start justify-between gap-2">

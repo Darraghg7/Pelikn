@@ -20,7 +20,7 @@ export default function CleaningExportModal({ open, onClose }) {
     // Fetch all active cleaning tasks
     const { data: tasks } = await supabase
       .from('cleaning_tasks')
-      .select('id, title, frequency, assigned_role')
+      .select('id, title, frequency, assigned_role, role_id, venue_roles(name)')
       .eq('venue_id', venueId)
       .eq('is_active', true)
       .order('title')
@@ -39,6 +39,12 @@ export default function CleaningExportModal({ open, onClose }) {
     if (error) { toast(error.message, 'error'); return }
     if (!tasks?.length) { toast('No cleaning tasks found', 'error'); return }
 
+    // role_id (venue_roles.name) is the source of truth going forward;
+    // assigned_role is the pre-unification free-text fallback for tasks that
+    // predate it — see 108_task_cleaning_role_id.sql.
+    const roleLabel = (t) =>
+      t.venue_roles?.name ?? (t.assigned_role === 'all' ? 'All roles' : t.assigned_role) ?? 'All roles'
+
     // Build rows — one row per completion, with tasks that had no completions shown separately
     const rows = completions?.length
       ? completions.map(c => {
@@ -46,7 +52,7 @@ export default function CleaningExportModal({ open, onClose }) {
           return [
             task?.title ?? '—',
             task ? capitalize(task.frequency) : '—',
-            task ? capitalize(task.assigned_role === 'all' ? 'All roles' : task.assigned_role) : '—',
+            task ? capitalize(roleLabel(task)) : '—',
             c.completed_by_name ?? '—',
             format(new Date(c.completed_at), 'dd/MM/yyyy HH:mm'),
             c.notes ?? '',
@@ -58,7 +64,7 @@ export default function CleaningExportModal({ open, onClose }) {
     const completedTaskIds = new Set(completions?.map(c => c.cleaning_task_id) ?? [])
     const neverDone = tasks.filter(t => !completedTaskIds.has(t.id))
     for (const t of neverDone) {
-      rows.push([t.title, capitalize(t.frequency), capitalize(t.assigned_role === 'all' ? 'All roles' : t.assigned_role), 'NOT COMPLETED', '', ''])
+      rows.push([t.title, capitalize(t.frequency), capitalize(roleLabel(t)), 'NOT COMPLETED', '', ''])
     }
 
     buildPdfReport({

@@ -5,6 +5,7 @@ export interface CleaningTask {
   title: string
   frequency: string
   assigned_role?: string
+  role_id?: string | null
   is_active: boolean
   venue_id: string
 }
@@ -25,7 +26,7 @@ export interface CleaningResult {
 
 export async function fetchCleaningTasks(venueId: string): Promise<CleaningResult> {
   const [{ data: tData, error: tErr }, { data: cData, error: cErr }] = await Promise.all([
-    supabase.from('cleaning_tasks').select('id, title, frequency, assigned_role, is_active, venue_id').eq('venue_id', venueId).eq('is_active', true).order('title'),
+    supabase.from('cleaning_tasks').select('id, title, frequency, assigned_role, role_id, is_active, venue_id').eq('venue_id', venueId).eq('is_active', true).order('title'),
     supabase
       .from('cleaning_completions')
       .select('id, cleaning_task_id, completed_at, completed_by_staff_id, completed_by_name, venue_id')
