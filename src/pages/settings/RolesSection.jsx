@@ -199,9 +199,11 @@ export default function RolesSection() {
                 <>
                   <span className="flex items-center gap-2 min-w-0">
                     <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: role.color || '#1a3c2e' }} />
-                    <span className="text-sm font-medium text-charcoal dark:text-white truncate">{role.name}</span>
-                    <span className={`text-[10.5px] font-semibold tracking-wide uppercase shrink-0 ${dept ? 'text-charcoal/40 dark:text-white/35' : 'text-warning italic'}`}>
-                      {dept ? dept.name : 'No department'}
+                    <span className="flex flex-col min-w-0">
+                      <span className="text-sm font-medium text-charcoal dark:text-white truncate">{role.name}</span>
+                      <span className={`text-[10.5px] font-semibold tracking-wide uppercase truncate ${dept ? 'text-charcoal/40 dark:text-white/35' : 'text-warning italic'}`}>
+                        {dept ? dept.name : 'No department'}
+                      </span>
                     </span>
                   </span>
                   <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
