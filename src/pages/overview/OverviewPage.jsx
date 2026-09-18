@@ -237,7 +237,7 @@ export default function OverviewPage() {
   const activeCell = STRIP_CELLS.find(c => c.key === activeFilter)
 
   return (
-    <div className="max-w-[1280px] mx-auto py-8">
+    <div className="max-w-[1280px] mx-auto">
 
       <div className="mb-6">
         <h1 className="text-[26px] font-semibold tracking-[-0.028em] text-charcoal dark:text-white m-0">
