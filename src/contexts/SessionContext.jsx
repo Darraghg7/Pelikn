@@ -150,9 +150,15 @@ function activeJwtVenueId() {
  * granted in Settings → Staff Members never reached a device that stayed
  * logged in. They're venue-scoped too, so a venue switch has to re-read them.
  *
+ * A staff member with a permission_title_id gets that title's permissions —
+ * a live reference, not a copy, so editing a title in Settings → Roles
+ * changes everyone holding it without needing a re-login either. Only staff
+ * with no title assigned ("Custom") fall back to their individually-stored
+ * staff_permissions rows.
+ *
  * Returns null whenever the answer can't be trusted — not a staff role, or no
- * venue JWT for *this* venue. staff_permissions is under venue-scoped RLS, so
- * querying it without the matching JWT returns zero rows, which is
+ * venue JWT for *this* venue. Both tables are under venue-scoped RLS, so
+ * querying without the matching JWT returns zero rows, which is
  * indistinguishable from "no permissions granted". Callers keep the cached
  * list on null rather than wiping real permissions.
  */
@@ -160,6 +166,22 @@ async function fetchLivePermissions(staffId, venueId, staffRole) {
   // Managers/owners bypass granular permissions entirely.
   if (staffRole !== 'staff' || !staffId || !venueId) return null
   if (activeJwtVenueId() !== venueId) return null
+
+  const { data: staffRow } = await supabase
+    .from('staff')
+    .select('permission_title_id')
+    .eq('id', staffId)
+    .single()
+
+  if (staffRow?.permission_title_id) {
+    const { data: title, error: titleErr } = await supabase
+      .from('permission_titles')
+      .select('permissions')
+      .eq('id', staffRow.permission_title_id)
+      .single()
+    if (titleErr || !title) return null
+    return title.permissions ?? []
+  }
 
   const { data, error } = await supabase
     .from('staff_permissions')
@@ -492,7 +514,7 @@ export function SessionProvider({ children }) {
       const [staffRes, permsRes, linksRes] = await Promise.all([
         supabase
           .from('staff')
-          .select('name, role, job_role, show_temp_logs, show_allergens, is_restricted')
+          .select('name, role, job_role, permission_title_id, show_temp_logs, show_allergens, is_restricted')
           .eq('id', staffId)
           .single(),
         supabase
@@ -522,6 +544,20 @@ export function SessionProvider({ children }) {
     // regardless of the fast/slow path above. Managers bypass role-based
     // filtering entirely, so this is only ever meaningful for staff.
     const roleIds = row.role === 'staff' ? await fetchLiveRoleIds(staffId, row.role) ?? [] : []
+
+    // A permission title takes priority over whatever `permissions` got set
+    // to above — same "always check fresh, not just what the bundle gave us"
+    // reasoning as roleIds. Only relevant for staff; row.permission_title_id
+    // may already be populated from the fallback branch's own select, but a
+    // fresh single-column read here is cheap and keeps this path identical
+    // regardless of which branch ran above.
+    if (row.role === 'staff') {
+      const { data: titleRow } = await supabase.from('staff').select('permission_title_id').eq('id', staffId).single()
+      if (titleRow?.permission_title_id) {
+        const { data: title } = await supabase.from('permission_titles').select('permissions').eq('id', titleRow.permission_title_id).single()
+        if (title) permissions = title.permissions ?? []
+      }
+    }
 
     const newSession = {
       token,

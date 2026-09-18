@@ -13,7 +13,7 @@ import { useToast } from '../../components/ui/Toast'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
 import { useVenueFeatures } from '../../hooks/useVenueFeatures'
 import { useVenueRoles } from '../../hooks/useVenueRoles'
-import useVenueSettings from '../../hooks/useVenueSettings'
+import { usePermissionTitles } from '../../hooks/usePermissionTitles'
 import Toggle from '../../components/ui/Toggle'
 import Button from '../../components/ui/Button'
 import Modal from '../../components/ui/Modal'
@@ -22,7 +22,7 @@ import SettingsSection from './SettingsSection'
 import { StaffRolesAssignment } from './RolesSection'
 import TrainingSection from './TrainingSection'
 import ConfirmDialog from '../../components/ui/ConfirmDialog'
-import { PLANS, STAFF_COLOUR_PALETTE, STAFF_PERMISSIONS, PERMISSION_PRESETS, DEFAULT_STAFF_PERMISSIONS } from '../../lib/constants'
+import { PLANS, STAFF_COLOUR_PALETTE, STAFF_PERMISSIONS, DEFAULT_STAFF_PERMISSIONS } from '../../lib/constants'
 import { saveStaffPermissions } from '../../hooks/useStaffPermissions'
 
 const PERMISSION_ROLES  = ['staff', 'manager', 'owner']
@@ -126,7 +126,7 @@ function ContractTypeRow({ s, onSave }) {
 }
 
 const EMPTY_FORM = {
-  name: '', role: 'staff', job_role: '', pin: '', email: '', hourly_rate: '',
+  name: '', role: 'staff', job_role: '', permission_title_id: null, pin: '', email: '', hourly_rate: '',
   contracted_hours: '',
   show_temp_logs: false, show_allergens: false, skills: [], is_under_18: false,
   working_days: [], colour: '',
@@ -138,7 +138,7 @@ const DOW_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 export default function StaffMembersSection() {
   const { staff, loading: staffLoading, reload: reloadStaff } = useStaffManagement()
   const { venuePlan } = useVenueFeatures()
-  const { settings } = useVenueSettings()
+  const { titles: permissionTitles } = usePermissionTitles()
   const { roles: venueRoles } = useVenueRoles()
   const { session } = useSession()
   const [deleteTarget, setDeleteTarget] = useState(null)
@@ -243,6 +243,7 @@ export default function StaffMembersSection() {
       name:                    s.name,
       role:                    s.role ?? 'staff',
       job_role:                s.job_role ?? '',
+      permission_title_id:     s.permission_title_id ?? null,
       pin:                     '',
       email:                   s.email ?? '',
       hourly_rate:             s.hourly_rate?.toString() ?? '',
@@ -334,33 +335,54 @@ export default function StaffMembersSection() {
       emergency_contact_phone: staffForm.emergency_contact_phone.trim() || null,
       holiday_pay_eligible:    staffForm.holiday_pay_eligible,
     }
+    // Newly-created staff aren't in `staff` yet at this point in the function,
+    // so anything keyed on their id (extra fields, permissions, and — after
+    // this save — the Roles picker below) needs their id resolved once here.
+    const newId = editingId ? null : await findNewestStaffByName(venueId, staffForm.name.trim())
+    const targetId = editingId || newId
+
     if (editingId) {
       const { error: extraErr } = await updateStaffExtraFields(editingId, extraFields)
       if (extraErr) { toast('Saved, but failed to update some fields: ' + extraErr.message, 'error') }
-    } else {
-      // Find the newly created staff member by name + venue
-      const newId = await findNewestStaffByName(venueId, staffForm.name.trim())
-      if (newId) {
-        const { error: extraErr } = await updateStaffExtraFields(newId, {
-          ...extraFields,
-          colour: staffForm.colour || null,
-        })
-        if (extraErr) { toast('Saved, but failed to update some fields: ' + extraErr.message, 'error') }
-      }
+    } else if (newId) {
+      const { error: extraErr } = await updateStaffExtraFields(newId, {
+        ...extraFields,
+        colour: staffForm.colour || null,
+      })
+      if (extraErr) { toast('Saved, but failed to update some fields: ' + extraErr.message, 'error') }
     }
 
-    // Save granular permissions for staff role
-    if (staffForm.role === 'staff') {
-      const targetId = editingId || await findNewestStaffByName(venueId, staffForm.name.trim())
-      if (targetId) {
+    // Title carries its own permissions (looked up live, not copied) — see
+    // SessionContext.jsx's fetchLivePermissions. Only persist the manual
+    // checklist when no title is assigned ("Custom").
+    if (staffForm.role === 'staff' && targetId) {
+      const { error: titleErr } = await updateStaffExtraFields(targetId, {
+        permission_title_id: staffForm.permission_title_id,
+      })
+      if (titleErr) { toast('Saved, but failed to update permission title: ' + titleErr.message, 'error') }
+
+      if (!staffForm.permission_title_id) {
         await saveStaffPermissions(targetId, venueId, [...permForm], session.token)
       }
     }
 
     setSavingStaff(false)
-    toast(editingId ? 'Staff member updated' : 'Staff member added')
-    setShowForm(false)
-    setEditingId(null)
+    if (editingId) {
+      toast('Staff member updated')
+      setShowForm(false)
+      setEditingId(null)
+    } else if (newId) {
+      // Roles can only be assigned once the staff row exists (they're a
+      // join table, not a plain field) — keep the sheet open, now in edit
+      // mode for the person just created, so assigning a role doesn't need
+      // a separate "find them in the list and reopen" step.
+      toast('Staff member added — now assign their roles below')
+      setEditingId(newId)
+      setStaffForm(f => ({ ...f, pin: '' }))
+    } else {
+      toast('Staff member added')
+      setShowForm(false)
+    }
     reloadStaff()
   }
 
@@ -674,65 +696,92 @@ export default function StaffMembersSection() {
         </div>
       </div>
 
-      {/* Granular permissions (staff role only — managers get everything) */}
+      {/* Permissions (staff role only — managers get everything) */}
       {staffForm.role === 'staff' && (
         <div className="border-t border-charcoal/8 dark:border-white/8 pt-4">
-          <label className="text-[11px] font-bold tracking-widest uppercase text-charcoal/50 dark:text-white/40 block mb-2">Permissions</label>
+          <label className="text-[11px] font-bold tracking-widest uppercase text-charcoal/50 dark:text-white/40 block mb-2">Permission Title</label>
           <p className="text-[11px] text-charcoal/35 dark:text-white/30 mb-3">
-            Controls what this staff member can see and do in the app.
+            Controls what this staff member can see and do in the app. Assign a title, or pick Custom to set individual
+            permissions for just this person. Titles are edited in Settings → Roles → Permission Titles.
           </p>
 
-          {/* Quick presets */}
           <div className="flex gap-2 mb-4 flex-wrap">
-            {(settings.permission_titles?.length ? settings.permission_titles : PERMISSION_PRESETS).map(preset => {
-              const active = preset.permissions.length === permForm.size &&
-                preset.permissions.every(p => permForm.has(p))
-              return (
-                <button
-                  key={preset.id}
-                  type="button"
-                  onClick={() => setPermForm(new Set(preset.permissions))}
-                  className={[
-                    'px-3 py-1.5 rounded-full text-xs font-medium border transition-all',
-                    active ? 'bg-brand text-cream border-brand' : 'bg-white dark:bg-paperDark text-charcoal/50 dark:text-white/40 border-charcoal/15 dark:border-white/15 hover:border-charcoal/30 dark:hover:border-white/30',
-                  ].join(' ')}
-                >
-                  {preset.label}
-                </button>
-              )
-            })}
+            {permissionTitles.map(title => (
+              <button
+                key={title.id}
+                type="button"
+                onClick={() => setStaffForm(f => ({ ...f, permission_title_id: title.id }))}
+                className={['px-3 py-1.5 rounded-full text-xs font-medium border transition-all',
+                  staffForm.permission_title_id === title.id ? 'bg-brand text-cream border-brand' : 'bg-white dark:bg-paperDark text-charcoal/50 dark:text-white/40 border-charcoal/15 dark:border-white/15 hover:border-charcoal/30 dark:hover:border-white/30',
+                ].join(' ')}
+              >
+                {title.label}
+              </button>
+            ))}
+            <button
+              type="button"
+              onClick={() => setStaffForm(f => ({ ...f, permission_title_id: null }))}
+              className={['px-3 py-1.5 rounded-full text-xs font-medium border transition-all',
+                !staffForm.permission_title_id ? 'bg-brand text-cream border-brand' : 'bg-white dark:bg-paperDark text-charcoal/50 dark:text-white/40 border-charcoal/15 dark:border-white/15 hover:border-charcoal/30 dark:hover:border-white/30',
+              ].join(' ')}
+            >
+              Custom
+            </button>
           </div>
 
-          {/* Permission toggles by category */}
-          {['Compliance', 'Operations', 'Team'].map(category => {
-            const perms = STAFF_PERMISSIONS.filter(p => p.category === category)
-            return (
-              <div key={category} className="mb-3">
-                <p className="text-[11px] tracking-widest uppercase text-charcoal/30 dark:text-white/30 mb-1.5">{category}</p>
-                <div className="flex flex-col gap-1.5">
-                  {perms.map(perm => (
-                    <div key={perm.id} className="flex items-center justify-between py-1.5 px-3 rounded-lg hover:bg-charcoal/3 dark:hover:bg-white/5 transition-colors">
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm text-charcoal dark:text-white">{perm.label}</p>
-                        <p className="text-[11px] text-charcoal/35 dark:text-white/30">{perm.description}</p>
-                      </div>
-                      <Toggle
-                        checked={permForm.has(perm.id)}
-                        onChange={v => {
-                          setPermForm(prev => {
-                            const next = new Set(prev)
-                            v ? next.add(perm.id) : next.delete(perm.id)
-                            return next
-                          })
-                        }}
-                        size="sm"
-                      />
-                    </div>
-                  ))}
+          {staffForm.permission_title_id ? (
+            (() => {
+              const title = permissionTitles.find(t => t.id === staffForm.permission_title_id)
+              const granted = STAFF_PERMISSIONS.filter(p => title?.permissions.includes(p.id))
+              return (
+                <div className="rounded-xl border border-charcoal/10 dark:border-white/10 bg-charcoal/2 dark:bg-white/3 p-3">
+                  <p className="text-[11px] text-charcoal/45 dark:text-white/40 mb-2">
+                    "{title?.label}" grants:
+                  </p>
+                  {granted.length === 0 ? (
+                    <p className="text-xs text-charcoal/35 dark:text-white/30 italic">No permissions granted by this title.</p>
+                  ) : (
+                    <ul className="flex flex-col gap-1">
+                      {granted.map(p => (
+                        <li key={p.id} className="text-xs text-charcoal/65 dark:text-white/55">{p.label}</li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
-              </div>
-            )
-          })}
+              )
+            })()
+          ) : (
+            /* Permission toggles by category — Custom, this person only */
+            ['Compliance', 'Operations', 'Team'].map(category => {
+              const perms = STAFF_PERMISSIONS.filter(p => p.category === category)
+              return (
+                <div key={category} className="mb-3">
+                  <p className="text-[11px] tracking-widest uppercase text-charcoal/30 dark:text-white/30 mb-1.5">{category}</p>
+                  <div className="flex flex-col gap-1.5">
+                    {perms.map(perm => (
+                      <div key={perm.id} className="flex items-center justify-between py-1.5 px-3 rounded-lg hover:bg-charcoal/3 dark:hover:bg-white/5 transition-colors">
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm text-charcoal dark:text-white">{perm.label}</p>
+                          <p className="text-[11px] text-charcoal/35 dark:text-white/30">{perm.description}</p>
+                        </div>
+                        <Toggle
+                          checked={permForm.has(perm.id)}
+                          onChange={v => {
+                            setPermForm(prev => {
+                              const next = new Set(prev)
+                              v ? next.add(perm.id) : next.delete(perm.id)
+                              return next
+                            })
+                          }}
+                          size="sm"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )
+            })
+          )}
         </div>
       )}
 

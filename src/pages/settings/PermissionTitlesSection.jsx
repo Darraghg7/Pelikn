@@ -1,16 +1,17 @@
 import React, { useState, useEffect } from 'react'
-import { supabase } from '../../lib/supabase'
 import { useToast } from '../../components/ui/Toast'
 import Toggle from '../../components/ui/Toggle'
-import { PERMISSION_PRESETS, PERMISSION_TITLES_SETTING_KEY, STAFF_PERMISSIONS } from '../../lib/constants'
+import { usePermissionTitles } from '../../hooks/usePermissionTitles'
+import { PERMISSION_PRESETS, STAFF_PERMISSIONS } from '../../lib/constants'
 
-export default function PermissionTitlesSection({ venueId, titles, reloadSettings }) {
+export default function PermissionTitlesSection() {
   const toast = useToast()
-  const [draft, setDraft] = useState(() => titles?.length ? titles : PERMISSION_PRESETS)
+  const { titles, loading, saveTitles } = usePermissionTitles()
+  const [draft, setDraft] = useState(() => titles.length ? titles : PERMISSION_PRESETS)
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
-    setDraft(titles?.length ? titles : PERMISSION_PRESETS)
+    setDraft(titles.length ? titles : PERMISSION_PRESETS)
   }, [titles])
 
   const updateTitle = (id, patch) => {
@@ -34,10 +35,10 @@ export default function PermissionTitlesSection({ venueId, titles, reloadSetting
     setDraft(prev => prev.filter(title => title.id !== id))
   }
 
-  const saveTitles = async () => {
+  const saveDraft = async () => {
     const cleaned = draft
       .map(title => ({
-        ...title,
+        id: title.id,
         label: title.label.trim(),
         permissions: title.permissions.filter(id => STAFF_PERMISSIONS.some(p => p.id === id)),
       }))
@@ -45,21 +46,20 @@ export default function PermissionTitlesSection({ venueId, titles, reloadSetting
 
     if (!cleaned.length) { toast('Add at least one permission title', 'error'); return }
     setSaving(true)
-    const { error } = await supabase.from('app_settings').upsert({
-      venue_id: venueId,
-      key: PERMISSION_TITLES_SETTING_KEY,
-      value: JSON.stringify(cleaned),
-    }, { onConflict: 'venue_id,key' })
+    const { error } = await saveTitles(cleaned)
     setSaving(false)
     if (error) { toast(error.message, 'error'); return }
     toast('Permission titles saved')
-    reloadSettings()
   }
+
+  if (loading) return <div className="py-4 text-center text-sm text-charcoal/30 dark:text-white/30">Loading…</div>
 
   return (
     <div className="flex flex-col gap-4">
       <p className="text-xs text-charcoal/45 dark:text-white/40">
-        Create the access titles used when editing staff members. Each venue can keep its own set.
+        Create the titles you assign to staff on their profile — each one's permissions apply live, so editing a
+        title here changes everyone currently holding it. Owner and Manager are separate, fixed access levels and
+        aren't titles.
       </p>
 
       <div className="flex flex-col gap-3">
@@ -108,7 +108,7 @@ export default function PermissionTitlesSection({ venueId, titles, reloadSetting
           + Add Title
         </button>
         <button
-          onClick={saveTitles}
+          onClick={saveDraft}
           disabled={saving}
           className="bg-charcoal text-cream px-5 py-2 rounded-lg text-sm font-medium hover:bg-charcoal/90 transition-colors disabled:opacity-40"
         >
