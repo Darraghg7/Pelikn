@@ -45,7 +45,7 @@ export default function StaffSettingsPage() {
         </div>
       </div>
 
-      <div className={`${tab === 'members' ? 'pb-24' : 'px-4 pt-4 pb-24'} max-w-[480px] md:max-w-2xl lg:max-w-3xl mx-auto`}>
+      <div className="pb-24 max-w-[480px] md:max-w-2xl lg:max-w-3xl mx-auto">
         {tab === 'members' && <StaffMembersSection />}
 
         {tab === 'invite' && (
