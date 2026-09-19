@@ -12,6 +12,7 @@ import { useAvailability } from '../../hooks/useAvailability'
 import { useVenueRoles } from '../../hooks/useVenueRoles'
 import { getWeekStart, getWeekDays } from '../../lib/utils'
 import { useToast } from '../../components/ui/Toast'
+import Toggle from '../../components/ui/Toggle'
 import { useAuth } from '../../contexts/AuthContext'
 import NotificationBell from '../../components/notifications/NotificationBell'
 
@@ -50,12 +51,6 @@ const ROW_H   = 56
 // ── Time helpers ──────────────────────────────────────────────────────────────
 const HOURS   = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'))
 const MINUTES = ['00', '05', '10', '15', '20', '25', '30', '35', '40', '45', '50', '55']
-const PRESETS = [
-  { label: 'Open',   s: '07:00', e: '15:00' },
-  { label: 'Mid',    s: '11:00', e: '19:00' },
-  { label: 'Close',  s: '16:00', e: '23:30' },
-  { label: 'Double', s: '09:00', e: '21:00' },
-]
 
 function fmtT(t) { const [h, m] = t.split(':'); return m === '00' ? h : `${h}:${m}` }
 function fmtRange(s, e) { return `${fmtT(s)}–${fmtT(e)}` }
@@ -150,6 +145,7 @@ function ShiftSheet({ shift, staffMember, day, venueId, roles, onClose, onSaved,
     MINUTES.reduce((p, m) => Math.abs(+m - +(existing?.end_time?.slice(3, 5) ?? '0')) < Math.abs(+p - +(existing?.end_time?.slice(3, 5) ?? '0')) ? m : p, '00')
   )
   const [roleLabel, setRoleLabel] = useState(existing?.role_label ?? staffMember?.job_role ?? '')
+  const [isClosing, setIsClosing] = useState(existing?.is_closing ?? false)
   const [edge, setEdge] = useState('start')
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState(false)
@@ -165,11 +161,6 @@ function ShiftSheet({ shift, staffMember, day, venueId, roles, onClose, onSaved,
   const rate      = staffMember?.hourly_rate
   const cost      = (rate && valid) ? Math.round(paidShiftHours(startTime, endTime) * rate) : null
 
-  const applyPreset = (p) => {
-    setStartH(p.s.slice(0, 2)); setStartM(p.s.slice(3, 5))
-    setEndH(p.e.slice(0, 2));   setEndM(p.e.slice(3, 5))
-  }
-
   const save = async () => {
     setSaving(true)
     const payload = {
@@ -180,6 +171,7 @@ function ShiftSheet({ shift, staffMember, day, venueId, roles, onClose, onSaved,
       start_time: startTime,
       end_time:   endTime,
       role_label: roleLabel || null,
+      is_closing: isClosing,
     }
     let change
     if (existing) {
@@ -189,8 +181,9 @@ function ShiftSheet({ shift, staffMember, day, venueId, roles, onClose, onSaved,
         start_time: existing.start_time,
         end_time:   existing.end_time,
         role_label: existing.role_label ?? null,
+        is_closing: existing.is_closing ?? false,
       }
-      const { error } = await updateShift(existing.id, { start_time: startTime, end_time: endTime, role_label: roleLabel || null })
+      const { error } = await updateShift(existing.id, { start_time: startTime, end_time: endTime, role_label: roleLabel || null, is_closing: isClosing })
       if (error) { setSaving(false); toast(error.message, 'error'); return }
       change = { type: 'edit', before }
     } else {
@@ -222,6 +215,7 @@ function ShiftSheet({ shift, staffMember, day, venueId, roles, onClose, onSaved,
         start_time: existing.start_time,
         end_time:   existing.end_time,
         role_label: existing.role_label ?? null,
+        is_closing: existing.is_closing ?? false,
       },
     })
     onClose()
@@ -252,22 +246,15 @@ function ShiftSheet({ shift, staffMember, day, venueId, roles, onClose, onSaved,
             </button>
           </div>
 
-          {/* Presets */}
-          <div className="flex gap-[7px] mb-3">
-            {PRESETS.map((p) => {
-              const on = startTime === p.s && endTime === p.e
-              return (
-                <button
-                  key={p.label}
-                  onClick={() => applyPreset(p)}
-                  className="flex-1 cursor-pointer rounded-[10px] py-[7px] px-0.5 border"
-                  style={{ borderColor: on ? col : '#e4e6e2', background: on ? col : '#ffffff', color: on ? '#fff' : '#3d4a44' }}
-                >
-                  <div className="text-xs font-semibold">{p.label}</div>
-                  <div className="font-mono text-[8.5px] mt-px" style={{ opacity: on ? 0.8 : 0.5 }}>{fmtRange(p.s, p.e)}</div>
-                </button>
-              )
-            })}
+          {/* Closing shift */}
+          <div className="flex items-center justify-between gap-3 rounded-[10px] border border-charcoal/10 dark:border-white/10 px-3 py-2.5 mb-3">
+            <div className="min-w-0">
+              <div className="text-xs font-semibold text-charcoal dark:text-white">Closing shift</div>
+              <div className="text-[10.5px] text-charcoal/50 dark:text-white/40 mt-0.5 leading-snug">
+                They'll see their department's closing tasks — first to clock out checks them off, anyone after has to acknowledge it's done.
+              </div>
+            </div>
+            <Toggle checked={isClosing} onChange={() => setIsClosing((v) => !v)} />
           </div>
 
           {/* Start / End toggle */}
@@ -684,7 +671,7 @@ export default function RotaMobileGrid() {
         await deleteShift(ch.id)
       } else if (ch.type === 'edit') {
         const b = ch.before
-        await updateShift(b.id, { staff_id: b.staff_id, start_time: b.start_time, end_time: b.end_time, role_label: b.role_label })
+        await updateShift(b.id, { staff_id: b.staff_id, start_time: b.start_time, end_time: b.end_time, role_label: b.role_label, is_closing: b.is_closing })
       } else if (ch.type === 'delete') {
         await insertShifts([ch.before])
       }
