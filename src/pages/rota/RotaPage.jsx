@@ -1120,7 +1120,7 @@ export default function RotaPage() {
   // Shift modal state
   const [modal, setModal]         = useState(null)
   const [editShift, setEditShift] = useState(null)
-  const [form, setForm]           = useState({ staffId: '', startTime: '09:00', endTime: '17:00', roleLabel: 'Chef' })
+  const [form, setForm]           = useState({ staffId: '', startTime: '09:00', endTime: '17:00', roleLabel: 'Chef', isClosing: false })
   const [saving, setSaving]       = useState(false)
 
   const { templates: dutyTemplates } = useDutyTemplates()
@@ -1147,7 +1147,7 @@ export default function RotaPage() {
     if (effectiveClosedDates.has(dateStr)) return
     setModal({ staffMember, date, dayShifts })
     const lastRole = localStorage.getItem(`mise_last_role_${staffMember.id}`) || venueRoles[0]?.name || ''
-    setForm({ staffId: staffMember.id, startTime: '09:00', endTime: '17:00', roleLabel: lastRole })
+    setForm({ staffId: staffMember.id, startTime: '09:00', endTime: '17:00', roleLabel: lastRole, isClosing: false })
     setEditShift(null)
     setAssignDuty(false)
     setSelectedDutyId(null)
@@ -1168,6 +1168,7 @@ export default function RotaPage() {
       startTime: sh.start_time?.slice(0, 5) ?? '09:00',
       endTime:   sh.end_time?.slice(0, 5) ?? '17:00',
       roleLabel: sh.role_label,
+      isClosing: sh.is_closing ?? false,
     })
     const { data } = await supabase
       .from('duty_assignments')
@@ -1196,6 +1197,7 @@ export default function RotaPage() {
       start_time: form.startTime,
       end_time:   form.endTime,
       role_label: form.roleLabel,
+      is_closing: !!form.isClosing,
       venue_id:   venueId,
     }
     let shiftId = editShift?.id
