@@ -487,7 +487,7 @@ function CertificatesTab({ venueId }) {
     setSaving(false)
     if (error) {
       console.error('Training record insert failed:', error)
-      toast('Certificate could not be saved — please try again', 'error')
+      toast("Certificate didn't upload, try again", 'error')
       return
     }
     toast('Certificate added')
@@ -712,7 +712,7 @@ function AllergenComplianceTab({ venueId }) {
     setSaving(false)
     if (error) {
       console.error('Allergen cert insert failed:', error)
-      toast('Certificate could not be saved — please try again', 'error')
+      toast("Allergen cert didn't save, try again", 'error')
       return
     }
     toast(`Allergen cert added for ${addFor.name}`)

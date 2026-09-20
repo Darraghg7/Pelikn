@@ -52,7 +52,7 @@ export default function TrainingSection({ staffId }) {
     setSaving(false)
     if (error) {
       console.error('Training record insert failed:', error)
-      toast('Training record could not be saved — please try again', 'error')
+      toast("Couldn't save that training record, try again", 'error')
       return
     }
     toast('Training record added')

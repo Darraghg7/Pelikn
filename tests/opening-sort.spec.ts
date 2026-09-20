@@ -19,7 +19,7 @@ test.describe('Opening/closing — completed checks sort to bottom', () => {
   })
 
   test('page loads without errors', async ({ page }) => {
-    await expect(page.locator('body')).not.toContainText('Something went wrong')
+    await expect(page.locator('body')).not.toContainText('This screen hit a snag')
     await expect(page.locator('body')).not.toContainText('Cannot read properties')
   })
 
@@ -44,7 +44,7 @@ test.describe('Opening/closing — completed checks sort to bottom', () => {
     const okBtns     = await page.getByRole('button', { name: /^ok$/i }).count()
     const doneBadges = await page.getByText(/recorded|all clear|completed/i).count()
     expect(okBtns + doneBadges).toBeGreaterThanOrEqual(0)
-    await expect(page.locator('body')).not.toContainText('Something went wrong')
+    await expect(page.locator('body')).not.toContainText('This screen hit a snag')
   })
 
   test('completing a check removes its OK button', async ({ page }) => {
@@ -63,7 +63,7 @@ test.describe('Opening/closing — completed checks sort to bottom', () => {
     await page.waitForTimeout(800)
     const afterCount = await page.getByRole('button', { name: /^ok$/i }).count()
     expect(afterCount).toBeLessThanOrEqual(beforeCount)
-    await expect(page.locator('body')).not.toContainText('Something went wrong')
+    await expect(page.locator('body')).not.toContainText('This screen hit a snag')
   })
 
   test('incomplete checks appear before completed ones in opening section', async ({ page }) => {

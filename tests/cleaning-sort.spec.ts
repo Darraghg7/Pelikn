@@ -24,7 +24,7 @@ test.describe('Cleaning — completed tasks sort to bottom', () => {
   })
 
   test('page loads cleaning schedule', async ({ page }) => {
-    await expect(page.locator('body')).not.toContainText('Something went wrong')
+    await expect(page.locator('body')).not.toContainText('This screen hit a snag')
     // h1 on CleaningPage is "Cleaning Schedule"
     await expect(page.locator('h1').filter({ hasText: /cleaning/i }).first()).toBeVisible({ timeout: 15000 })
   })
@@ -35,7 +35,7 @@ test.describe('Cleaning — completed tasks sort to bottom', () => {
     const noTasks  = await page.getByText(/no cleaning tasks|no tasks/i)
       .first().isVisible({ timeout: 5000 }).catch(() => false)
     // Either tasks exist, or an empty state, or page loaded without crash
-    await expect(page.locator('body')).not.toContainText('Something went wrong')
+    await expect(page.locator('body')).not.toContainText('This screen hit a snag')
     expect(hasTasks || noTasks || true).toBe(true) // page loaded = pass
   })
 
@@ -76,7 +76,7 @@ test.describe('Cleaning — completed tasks sort to bottom', () => {
     }
 
     await page.waitForTimeout(1200)
-    await expect(page.locator('body')).not.toContainText('Something went wrong')
+    await expect(page.locator('body')).not.toContainText('This screen hit a snag')
   })
 
   test('filtering by "Done" shows only completed tasks (no Mark Done buttons)', async ({ page }) => {
@@ -100,6 +100,6 @@ test.describe('Cleaning — completed tasks sort to bottom', () => {
     // Done tasks (with checkmarks) should not appear in overdue filter
     const checkmarks = page.locator('polyline[points="20 6 9 17 4 12"]')
     await expect(checkmarks).toHaveCount(0, { timeout: 5000 })
-    await expect(page.locator('body')).not.toContainText('Something went wrong')
+    await expect(page.locator('body')).not.toContainText('This screen hit a snag')
   })
 })

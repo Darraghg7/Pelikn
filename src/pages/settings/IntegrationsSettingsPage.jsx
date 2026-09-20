@@ -57,7 +57,7 @@ export default function IntegrationsSettingsPage() {
           We're building native connections to payroll, rota, and comms tools. Want to vote on what comes first?
         </div>
         <a
-          href="mailto:hello@pelikn.com?subject=Integration request"
+          href="mailto:hello@get-pelikn.com?subject=Integration request"
           className="inline-flex items-center gap-1.5 mt-3 h-[34px] px-[14px] rounded-lg bg-brand text-white no-underline text-[13px] font-semibold"
         >
           Request an integration →

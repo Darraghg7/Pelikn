@@ -226,7 +226,7 @@ export default function HelpSection() {
               Pro adds rota management, timesheets, staff training records, time-off requests, HACCP tools, and more — everything you need to run your team alongside your compliance.
             </p>
             <a
-              href={`mailto:hello@pelikn.app?subject=Upgrade to Pro`}
+              href={`mailto:hello@get-pelikn.com?subject=Upgrade to Pro`}
               className="mt-1 inline-flex items-center gap-1.5 bg-accent text-white text-xs font-semibold px-4 py-2 rounded-lg hover:bg-accent/90 transition-colors self-start"
             >
               Upgrade to Pro — {PRO_PRICE}/mo →
@@ -254,14 +254,14 @@ export default function HelpSection() {
               Drop us an email and we'll get back to you, usually same day.
             </p>
             <a
-              href="mailto:hello@pelikn.app"
+              href="mailto:hello@get-pelikn.com"
               className="inline-flex items-center gap-1.5 bg-charcoal text-cream text-xs font-semibold px-4 py-2.5 rounded-lg hover:bg-charcoal/85 transition-colors"
             >
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
                 <polyline points="22,6 12,13 2,6"/>
               </svg>
-              hello@pelikn.app
+              hello@get-pelikn.com
             </a>
           </div>
           <p className="text-[11px] text-charcoal/25 dark:text-white/25">

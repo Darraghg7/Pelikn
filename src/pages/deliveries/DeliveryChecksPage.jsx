@@ -406,7 +406,7 @@ function DeliveryCheckModal({ open, onClose, suppliers, onSupplierAdded, onCompl
 
     if (error) {
       console.error('Delivery check insert failed:', error)
-      toast('Delivery check could not be saved — please try again', 'error')
+      toast("Delivery check didn't save, try again", 'error')
       setSaving(false)
       return
     }

@@ -20,7 +20,7 @@ test.describe('Setup wizard — venue type step', () => {
   })
 
   test('loads without errors', async ({ page }) => {
-    await expect(page.locator('body')).not.toContainText('Something went wrong')
+    await expect(page.locator('body')).not.toContainText('This screen hit a snag')
     await expect(page.locator('body')).not.toContainText('Cannot read properties')
   })
 
@@ -39,7 +39,7 @@ test.describe('Setup wizard — venue type step', () => {
     const card = page.getByText(/Cafe \/ Coffee Shop|Restaurant|Pub \/ Bar/i).first()
     if (await card.isVisible({ timeout: 8000 }).catch(() => false)) {
       await card.click()
-      await expect(page.locator('body')).not.toContainText('Something went wrong')
+      await expect(page.locator('body')).not.toContainText('This screen hit a snag')
     }
   })
 
@@ -68,7 +68,7 @@ test.describe('Setup wizard — feature toggles step', () => {
   })
 
   test('feature step renders without errors', async ({ page }) => {
-    await expect(page.locator('body')).not.toContainText('Something went wrong')
+    await expect(page.locator('body')).not.toContainText('This screen hit a snag')
   })
 
   test('feature toggles or module options are visible', async ({ page }) => {
@@ -115,7 +115,7 @@ test.describe('Setup wizard — per-day hours step', () => {
       if (await page.getByText(new RegExp(d, 'i')).first().isVisible({ timeout: 3000 }).catch(() => false)) found++
     }
     // Either day labels are visible, or we haven't reached the hours step — no crash either way
-    await expect(page.locator('body')).not.toContainText('Something went wrong')
+    await expect(page.locator('body')).not.toContainText('This screen hit a snag')
   })
 
   test('"Apply to all" button present on hours step', async ({ page }) => {
@@ -155,7 +155,7 @@ test.describe('Setup wizard — navigation', () => {
     const hasStep = await step.isVisible({ timeout: 5000 }).catch(() => false)
     const hasDots = await dots.first().isVisible({ timeout: 3000 }).catch(() => false)
     // Not all wizards show explicit step indicators — just confirm no crash
-    await expect(page.locator('body')).not.toContainText('Something went wrong')
+    await expect(page.locator('body')).not.toContainText('This screen hit a snag')
     void (hasStep || hasDots)
   })
 })

@@ -46,12 +46,12 @@ export default function PlanGate({ feature, children }) {
       <h2 className="text-xl font-bold text-charcoal dark:text-white mb-2">{label}</h2>
       <p className="text-sm text-charcoal/50 dark:text-white/40 max-w-sm leading-relaxed mb-8">
         This feature is included in Pelikn Pro. Upgrade to unlock rota management,
-        timesheets, training records, HACCP tools, and more.
+        timesheets, training records and HACCP tools.
       </p>
 
       <div className="flex flex-col sm:flex-row gap-3 w-full max-w-xs">
         <a
-          href="mailto:hello@pelikn.app?subject=Upgrade to Pro"
+          href="mailto:hello@get-pelikn.com?subject=Upgrade to Pro"
           className="flex-1 bg-accent text-cream py-3 rounded-xl text-sm font-semibold text-center hover:bg-accent/90 transition-colors"
         >
           Upgrade to Pro — {PRO_PRICE}/mo

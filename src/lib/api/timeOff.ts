@@ -17,8 +17,8 @@ export interface TimeOffRequest {
 
 /**
  * Statuses that still hold a staff member off the rota. Everything downstream
- * (useAvailability, generate-rota, the manager calendar, leave balances) filters
- * to these, so moving a request to 'cancelled' frees the staff member up.
+ * (useAvailability, the rota auto-fill, the manager calendar, leave balances)
+ * filters to these, so moving a request to 'cancelled' frees the staff member up.
  */
 export const BLOCKING_STATUSES: TimeOffStatus[] = ['pending', 'approved']
 

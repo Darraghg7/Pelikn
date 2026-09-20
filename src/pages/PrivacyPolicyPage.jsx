@@ -2,7 +2,7 @@ import React from 'react'
 import { Link } from 'react-router-dom'
 
 const EFFECTIVE_DATE = '1 May 2026'
-const CONTACT_EMAIL  = 'hello@pelikn.app'
+const CONTACT_EMAIL  = 'hello@get-pelikn.com'
 
 function Section({ title, children }) {
   return (

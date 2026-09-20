@@ -702,7 +702,7 @@ export default function RotaMobileGrid() {
               <span className="font-bold text-[15px] tracking-[0.08em] uppercase text-white overflow-hidden text-ellipsis whitespace-nowrap max-w-[160px]">{venueName || 'Pelikn'}</span>
               <NotificationBell />
             </div>
-            <button onClick={signOutVenue} className="text-[11px] font-bold tracking-[0.06em] uppercase text-white bg-transparent border border-white/30 rounded-lg px-3 py-[6px] cursor-pointer whitespace-nowrap shrink-0">Sign Out</button>
+            <button onClick={signOutVenue} className="text-[11px] font-bold tracking-[0.06em] uppercase text-white bg-transparent border border-white/30 rounded-lg px-3 py-[6px] cursor-pointer whitespace-nowrap shrink-0">Sign out</button>
           </div>
         </header>
 

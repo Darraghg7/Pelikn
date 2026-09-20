@@ -276,7 +276,7 @@ export default function LandingPage() {
               {error && <p className="pelikn-ios-error">{error}</p>}
               {notice && <p className="pelikn-ios-notice">{notice}</p>}
               <button type="submit" disabled={loading || !email.trim() || !password} className="pelikn-ios-primary">
-                {loading ? 'Signing in...' : 'Sign In'}
+                {loading ? 'Signing in...' : 'Sign in'}
               </button>
               <div className="pelikn-ios-divider"><span>or</span></div>
               <button type="button" onClick={openJoin} className="pelikn-ios-secondary">

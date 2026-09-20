@@ -1,4 +1,1 @@
 project_id = "djwgyyerxvxovicixxrp"
-
-[functions.generate-rota]
-verify_jwt = false
