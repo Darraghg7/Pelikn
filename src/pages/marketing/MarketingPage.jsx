@@ -914,7 +914,7 @@ export default function MarketingPage() {
               { icon:'M22 12h-4l-3 9L9 3l-3 9H2', title:'Probe calibration', desc:'Scheduled calibration records with pass/fail. Inspection-proof.' },
               { icon:'M5 12h14 M12 5l7 7-7 7', title:'Delivery checks',   desc:'Temp reading, condition notes, signed on arrival.' },
               { icon:'M3 4h18v18H3z M16 2v4 M8 2v4 M3 10h18', title:'Opening checklists', desc:'Start every shift the same way. Signed and consistent.' },
-              { icon:'M20 7H4a2 2 0 00-2 2v6a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16', title:'Allergen registry',  desc:"All 14 allergens. Natasha's Law compliant by design." },
+              { icon:'M20 7H4a2 2 0 00-2 2v6a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16', title:'Allergen registry',  desc:'Every dish, every allergen, always current.' },
               { icon:'M12 1v22 M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6', title:'Tip distribution',  desc:'Enter the pot, set the split, done. Full audit trail.' },
               { icon:'M5 8h14 M5 12h14 M5 16h6', title:'Clock in / out',    desc:'Staff clock on from their phone. Timesheets build automatically.' },
             ].map(({ icon, title, desc }, i) => (
@@ -1012,7 +1012,7 @@ export default function MarketingPage() {
               <Link to="/signup" className="bg-accent text-cream px-8 py-4 rounded-xl text-[15px] font-semibold hover:bg-[#b8431f] hover:shadow-[0_10px_36px_rgba(201,79,42,0.55)] hover:-translate-y-0.5 active:scale-[0.97] transition-all duration-200 text-center cursor-pointer shadow-[0_4px_24px_rgba(201,79,42,0.42)]">
                 Start free trial
               </Link>
-              <a href="mailto:hello@pelikn.app" className="border border-cream/14 text-cream/45 hover:text-cream/65 hover:border-cream/28 hover:-translate-y-0.5 px-8 py-4 rounded-xl text-[15px] font-medium transition-all duration-200 text-center cursor-pointer">
+              <a href="mailto:hello@get-pelikn.com" className="border border-cream/14 text-cream/45 hover:text-cream/65 hover:border-cream/28 hover:-translate-y-0.5 px-8 py-4 rounded-xl text-[15px] font-medium transition-all duration-200 text-center cursor-pointer">
                 Get in touch
               </a>
             </div>
@@ -1024,7 +1024,7 @@ export default function MarketingPage() {
       <footer className="bg-white border-t border-charcoal/8">
         <div className="max-w-5xl mx-auto px-6 sm:px-10 py-7 flex flex-col sm:flex-row items-center justify-between gap-4">
           <PeliknLogo />
-          <a href="mailto:hello@pelikn.app" className="text-xs text-charcoal/30 hover:text-charcoal transition-colors">hello@pelikn.app</a>
+          <a href="mailto:hello@get-pelikn.com" className="text-xs text-charcoal/30 hover:text-charcoal transition-colors">hello@get-pelikn.com</a>
           <div className="flex items-center gap-6">
             {[['Privacy','/privacy'],['Terms','/terms'],['Sign in','/login']].map(([l,h])=>(
               <Link key={l} to={h} className="text-xs text-charcoal/30 hover:text-charcoal transition-colors cursor-pointer">{l}</Link>

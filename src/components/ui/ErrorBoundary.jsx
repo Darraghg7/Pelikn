@@ -23,8 +23,8 @@ export default class ErrorBoundary extends React.Component {
               <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
             </svg>
           </div>
-          <p className="text-base font-semibold text-charcoal dark:text-white mb-1">Something went wrong</p>
-          <p className="text-sm text-charcoal/45 dark:text-white/40 mb-6 max-w-xs">{this.state.error?.message ?? 'An unexpected error occurred. Please try again.'}</p>
+          <p className="text-base font-semibold text-charcoal dark:text-white mb-1">This screen hit a snag</p>
+          <p className="text-sm text-charcoal/45 dark:text-white/40 mb-6 max-w-xs">{this.state.error?.message ?? 'Your data is safe — reload to try again.'}</p>
           <div className="flex items-center gap-3">
             <button
               onClick={() => this.setState({ hasError: false, error: null })}

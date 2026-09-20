@@ -15,7 +15,7 @@ test.describe('Staff Members settings — smoke (no real data, mocked auth only)
   })
 
   test('page renders without a crash or broken import', async ({ page }) => {
-    await expect(page.locator('body')).not.toContainText('Something went wrong')
+    await expect(page.locator('body')).not.toContainText('This screen hit a snag')
     await expect(page.locator('body')).not.toContainText('is not a function')
     await expect(page.locator('body')).not.toContainText('is not defined')
   })
@@ -24,7 +24,7 @@ test.describe('Staff Members settings — smoke (no real data, mocked auth only)
     const addBtn = page.getByRole('button', { name: /add staff|new staff|\+ staff/i }).first()
     if (await addBtn.isVisible({ timeout: 8000 }).catch(() => false)) {
       await addBtn.click()
-      await expect(page.locator('body')).not.toContainText('Something went wrong')
+      await expect(page.locator('body')).not.toContainText('This screen hit a snag')
     }
   })
 })

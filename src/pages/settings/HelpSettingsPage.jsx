@@ -50,7 +50,7 @@ export default function HelpSettingsPage() {
         <div className="font-mono text-[11px] font-semibold tracking-[0.08em] uppercase text-charcoal/50 dark:text-white/40 pt-[18px] pb-[7px] px-0.5">Get help</div>
         <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[14px] overflow-hidden">
           <a
-            href="mailto:hello@pelikn.com"
+            href="mailto:hello@get-pelikn.com"
             className="flex items-center gap-[13px] px-[14px] min-h-[58px] border-b border-charcoal/6 dark:border-white/8 no-underline"
           >
             <span className="w-8 h-8 rounded-[9px] shrink-0 bg-brand/8 text-brand flex items-center justify-center">

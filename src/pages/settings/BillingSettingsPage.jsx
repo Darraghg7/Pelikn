@@ -56,7 +56,7 @@ export default function BillingSettingsPage() {
               Unlock the rota, timesheets, training tracker, time-off and more for {PRO_PRICE}/mo.
             </div>
             <a
-              href="mailto:hello@pelikn.com?subject=Upgrade to Pro"
+              href="mailto:hello@get-pelikn.com?subject=Upgrade to Pro"
               className="inline-flex items-center gap-1.5 h-9 px-4 rounded-[9px] bg-warning text-white no-underline text-[13px] font-semibold"
             >
               Request upgrade →
@@ -70,7 +70,7 @@ export default function BillingSettingsPage() {
             Each additional venue is {EXTRA_VENUE_PRICE}/mo on your current plan.
           </div>
           <a
-            href="mailto:hello@pelikn.com?subject=Add another venue"
+            href="mailto:hello@get-pelikn.com?subject=Add another venue"
             className="inline-flex items-center gap-1.5 mt-3 h-[34px] px-[14px] rounded-lg bg-charcoal/6 dark:bg-white/8 text-charcoal/50 dark:text-white/40 no-underline text-[13px] font-medium"
           >
             Contact us →
@@ -79,7 +79,7 @@ export default function BillingSettingsPage() {
 
         <div className="font-mono text-[11px] text-charcoal/30 dark:text-white/30 text-center mt-5 leading-[1.5]">
           To cancel or modify your subscription, email{' '}
-          <a href="mailto:hello@pelikn.com" className="text-brand">hello@pelikn.com</a>
+          <a href="mailto:hello@get-pelikn.com" className="text-brand">hello@get-pelikn.com</a>
         </div>
 
       </div>

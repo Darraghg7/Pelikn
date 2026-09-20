@@ -27,8 +27,9 @@ const LandingPage = lazy(() => import('./pages/LandingPage'))
 // Marketing page
 const MarketingPage = lazy(() => import('./pages/marketing/MarketingPage'))
 
-// Privacy policy
+// Privacy policy / terms
 const PrivacyPolicyPage = lazy(() => import('./pages/PrivacyPolicyPage'))
+const TermsPage = lazy(() => import('./pages/TermsPage'))
 
 // Signup flow + auth callbacks
 const SignupFlowPage    = lazy(() => import('./pages/signup/SignupFlowPage'))
@@ -541,8 +542,9 @@ export default function App() {
           {/* Public: allergen matrix (no auth required, accessible via QR code) */}
           <Route path="/allergens/:venueSlug" element={<AllergenPublicPage />} />
 
-          {/* Public: privacy policy */}
+          {/* Public: privacy policy / terms */}
           <Route path="/privacy" element={<PrivacyPolicyPage />} />
+          <Route path="/terms" element={<TermsPage />} />
 
           {/* Sign up */}
           <Route path="/signup" element={<SignupFlowPage />} />

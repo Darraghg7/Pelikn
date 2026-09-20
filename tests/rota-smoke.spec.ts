@@ -18,7 +18,7 @@ test.describe('Rota — smoke (no real data, mocked auth only)', () => {
   })
 
   test('page renders without a crash or broken import', async ({ page }) => {
-    await expect(page.locator('body')).not.toContainText('Something went wrong')
+    await expect(page.locator('body')).not.toContainText('This screen hit a snag')
     await expect(page.locator('body')).not.toContainText('is not a function')
     await expect(page.locator('body')).not.toContainText('is not defined')
   })
@@ -28,7 +28,7 @@ test.describe('Rota — smoke (no real data, mocked auth only)', () => {
     // exercises "did the component tree mount cleanly", which is exactly
     // what a broken import from the write-relocation would break.
     await page.waitForTimeout(1500)
-    await expect(page.locator('body')).not.toContainText('Something went wrong')
+    await expect(page.locator('body')).not.toContainText('This screen hit a snag')
   })
 })
 
@@ -39,7 +39,7 @@ test.describe('Timesheet — clock-edit request path touches submitClockEditRequ
   })
 
   test('page renders without a crash or broken import', async ({ page }) => {
-    await expect(page.locator('body')).not.toContainText('Something went wrong')
+    await expect(page.locator('body')).not.toContainText('This screen hit a snag')
     await expect(page.locator('body')).not.toContainText('is not a function')
   })
 })

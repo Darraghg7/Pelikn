@@ -4,7 +4,7 @@ Potential features for future development, in no particular priority order.
 
 ---
 
-## 🤖 AI Features
+## AI Features
 
 ### AI Rota Builder
 - Replace the current rule-based `buildRota()` with a Claude API call
@@ -15,7 +15,7 @@ Potential features for future development, in no particular priority order.
 
 ---
 
-## 📋 Notes
+## Notes
 
 - Costs above are based on ~3,000 tokens per rota generation (input + output)
 - Pricing should be re-evaluated against current Anthropic API rates before implementation

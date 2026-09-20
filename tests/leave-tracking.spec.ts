@@ -13,7 +13,7 @@ test.describe('Time-off page', () => {
 
   test('loads without errors', async ({ page }) => {
     await expect(page).not.toHaveURL(/login/)
-    await expect(page.locator('body')).not.toContainText('Something went wrong')
+    await expect(page.locator('body')).not.toContainText('This screen hit a snag')
   })
 
   test('shows calendar month view with navigation arrows', async ({ page }) => {

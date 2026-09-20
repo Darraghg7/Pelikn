@@ -161,7 +161,7 @@ test.describe('HR hub', () => {
   })
 
   test('loads and shows the staff member', async ({ page }) => {
-    await expect(page.locator('body')).not.toContainText('Something went wrong')
+    await expect(page.locator('body')).not.toContainText('This screen hit a snag')
     await expect(page.getByTestId('record-panel-name')).toHaveText('Jamie Rivera', { timeout: 10000 })
   })
 

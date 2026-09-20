@@ -23,7 +23,7 @@ test.describe('Overview page', () => {
 
   test('loads without errors (or redirects cleanly for single-venue)', async ({ page }) => {
     // Either on overview or redirected to dashboard — no crash either way
-    await expect(page.locator('body')).not.toContainText('Something went wrong')
+    await expect(page.locator('body')).not.toContainText('This screen hit a snag')
     await expect(page.locator('body')).not.toContainText('Cannot read properties')
     await expect(page).toHaveURL(/\/v\//, { timeout: 5000 })
   })
@@ -65,7 +65,7 @@ test.describe('Overview page', () => {
     const cell = page.getByText(/need attention/i).first()
     if (await cell.isVisible({ timeout: 10000 }).catch(() => false)) {
       await cell.click()
-      await expect(page.locator('body')).not.toContainText('Something went wrong')
+      await expect(page.locator('body')).not.toContainText('This screen hit a snag')
     }
   })
 
@@ -80,7 +80,7 @@ test.describe('Overview page', () => {
       const clear = page.getByText(/clear|✕|×/i).first()
       if (await clear.isVisible({ timeout: 5000 }).catch(() => false)) {
         await clear.click()
-        await expect(page.locator('body')).not.toContainText('Something went wrong')
+        await expect(page.locator('body')).not.toContainText('This screen hit a snag')
       }
     }
   })
@@ -105,7 +105,7 @@ test.describe('Overview — nav panel entry point', () => {
   })
 
   test('no crash on dashboard load', async ({ page }) => {
-    await expect(page.locator('body')).not.toContainText('Something went wrong')
+    await expect(page.locator('body')).not.toContainText('This screen hit a snag')
     await expect(page).toHaveURL(/\/v\//)
   })
 
@@ -116,7 +116,7 @@ test.describe('Overview — nav panel entry point', () => {
     if (isVisible) {
       await overviewTile.click()
       await expect(page).toHaveURL(/overview|dashboard/, { timeout: 8000 })
-      await expect(page.locator('body')).not.toContainText('Something went wrong')
+      await expect(page.locator('body')).not.toContainText('This screen hit a snag')
     }
     // Not visible = single-venue account; pass silently
   })

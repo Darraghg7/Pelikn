@@ -41,7 +41,7 @@ test.describe('Rota builder', () => {
     // Click the › (next week) button
     const nextBtn = page.locator('button').filter({ hasText: '›' }).first()
     await nextBtn.click()
-    await expect(page.locator('body')).not.toContainText('Something went wrong')
+    await expect(page.locator('body')).not.toContainText('This screen hit a snag')
   })
 
   test('can open add shift modal', async ({ page }) => {
@@ -66,7 +66,7 @@ test.describe('Rota builder', () => {
     await copyBtn.click()
     // Wait for any async operation to settle, then verify no error state
     await page.waitForTimeout(2000)
-    await expect(page.locator('body')).not.toContainText('Something went wrong')
+    await expect(page.locator('body')).not.toContainText('This screen hit a snag')
     await expect(page.locator('body')).not.toContainText('404')
   })
 })

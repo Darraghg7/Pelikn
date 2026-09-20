@@ -436,7 +436,7 @@ function TaskItemRow({ item, assignmentId, toggleItem }) {
     setBusy(true)
     const { error } = await toggleItem(assignmentId, item.id, item.completed)
     if (error) {
-      toast('Could not save — please try again', 'error')
+      toast("Couldn't update that task, try again", 'error')
       setBusy(false)
     } else {
       setTimeout(() => setBusy(false), 150)

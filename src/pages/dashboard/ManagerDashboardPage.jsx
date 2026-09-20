@@ -47,7 +47,7 @@ function PlanBadge({ plan }) {
 function UpgradeButton() {
   return (
     <a
-      href="mailto:hello@pelikn.app?subject=Upgrade to Pro"
+      href="mailto:hello@get-pelikn.com?subject=Upgrade to Pro"
       className="relative inline-flex items-center gap-2 overflow-hidden rounded-xl px-4 py-2 text-xs font-semibold text-white shadow-md shadow-accent/30 transition-all hover:shadow-lg hover:shadow-accent/40 hover:scale-[1.02] active:scale-[0.98]"
       style={{
         background: 'linear-gradient(135deg, #c94f2a 0%, #e06535 50%, #c94f2a 100%)',
