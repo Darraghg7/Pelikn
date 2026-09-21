@@ -2,6 +2,7 @@
  * Shared navigation helpers and constants for all specs.
  */
 import { Page, expect } from '@playwright/test'
+import { injectManagerSession } from './auth-bypass'
 
 export const VENUE = process.env.TEST_VENUE_SLUG ?? 'brew-and-bloom'
 export const BASE  = `/v/${VENUE}`
@@ -10,8 +11,15 @@ export const BASE  = `/v/${VENUE}`
  * Navigate to a venue-scoped path and wait for the app to be fully ready.
  * SPAs make Supabase calls AFTER networkidle fires, so we also wait for the
  * FullPageLoader spinner to disappear before returning.
+ *
+ * Ensures a real manager session is injected first — most specs don't call
+ * injectManagerSession() themselves, and a venue-scoped route with no
+ * session at all can't render authenticated content regardless of what the
+ * auth-bypass helper does internally. Cheap to call redundantly for the
+ * specs that already inject their own session (see auth-bypass.ts caching).
  */
 export async function goto(page: Page, path: string) {
+  await injectManagerSession(page)
   await page.goto(`${BASE}${path}`)
   // networkidle can hang forever on pages with WebSocket/realtime subscriptions.
   // Use a short timeout so we don't block; the spinner wait below is the real gate.
