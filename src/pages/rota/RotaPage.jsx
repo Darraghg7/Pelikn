@@ -41,7 +41,6 @@ import GanttChart from './GanttChart'
    EDIT HOURS — helpers + sub-components (staff Rota only)
 ───────────────────────────────────────────────────────────────── */
 
-const BREAK_OPTIONS = [0, 5, 10, 15, 20, 30, 45, 60, 90]
 const EDIT_REASONS  = ['Forgot to clock out', 'Clocked in early', 'Wrong times', 'Other']
 
 /* scroll-snap wheel picker */
