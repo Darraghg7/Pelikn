@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import {
   format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, addMonths, subMonths,
-  isSameDay, isWithinInterval, isBefore, parseISO, startOfDay,
+  isSameDay, isBefore, parseISO, startOfDay,
 } from 'date-fns'
 import { supabase } from '../../lib/supabase'
 import { sendPush } from '../../lib/sendPush'
@@ -17,47 +17,10 @@ import { useZeroHoursAccrual, useTeamZeroHoursAccruals } from '../../hooks/useZe
 import { invalidateSummaryCache } from '../../hooks/useTodaySummary'
 import { cancelTimeOffRequest, updateTimeOffRequest, timeOffPermissions, isBlocking } from '../../lib/api/timeOff'
 import { useAppSettings } from '../../hooks/useSettings'
-
-/* ── Constants ─────────────────────────────────────────────────────────── */
-const LEAVE_TYPES = [
-  { value: 'annual',  label: 'Annual Leave' },
-  { value: 'unpaid',  label: 'Unpaid Leave' },
-  { value: 'other',   label: 'Other' },
-]
-
-const LEAVE_TYPE_COLOURS = {
-  annual:  'bg-brand/10 text-brand',
-  unpaid:  'bg-charcoal/8 dark:bg-white/8 text-charcoal/50 dark:text-white/40',
-  other:   'bg-charcoal/8 dark:bg-white/8 text-charcoal/50 dark:text-white/40',
-}
-
-const STATUS_COLOURS = {
-  pending:   'bg-warning/10 text-warning border-warning/20',
-  approved:  'bg-success/10 text-success border-success/20',
-  rejected:  'bg-danger/10 text-danger border-danger/20',
-  cancelled: 'bg-charcoal/5 dark:bg-white/5 text-charcoal/45 dark:text-white/40 border-charcoal/10 dark:border-white/10',
-}
-
-const leaveTypeLabel = (value) => LEAVE_TYPES.find(t => t.value === value)?.label ?? value
-
-/* ── Helpers ───────────────────────────────────────────────────────────── */
-function getRequestsForDay(requests, day) {
-  if (!day) return []
-  return requests.filter(r =>
-    isWithinInterval(day, { start: parseISO(r.start_date), end: parseISO(r.end_date) })
-  )
-}
-
-function fmtDays(n) {
-  if (n === null || n === undefined) return '—'
-  return n === 1 ? '1 day' : `${n} days`
-}
-
-function maxStaffOffInRange(requests, startDateStr, endDateStr) {
-  if (!startDateStr || !endDateStr) return 0
-  const days = eachDayOfInterval({ start: parseISO(startDateStr), end: parseISO(endDateStr) })
-  return days.reduce((max, day) => Math.max(max, getRequestsForDay(requests, day).length), 0)
-}
+import {
+  LEAVE_TYPES, LEAVE_TYPE_COLOURS, STATUS_COLOURS,
+  leaveTypeLabel, getRequestsForDay, fmtDays, maxStaffOffInRange,
+} from './timeOffConstants'
 
 /* ── Hooks ─────────────────────────────────────────────────────────────── */
 function useTimeOffRequests(venueId) {
