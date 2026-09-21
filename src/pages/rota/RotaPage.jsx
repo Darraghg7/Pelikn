@@ -31,15 +31,10 @@ import RotaSwapPanel from './RotaSwapPanel'
 import RotaSwapRequestModal from './RotaSwapRequestModal'
 import { SkeletonList } from '../../components/ui/Skeleton'
 import { useDutyTemplates } from '../../hooks/useDuties'
-
-function durationLabel(start, end) {
-  const [sh, sm] = start.split(':').map(Number)
-  const [eh, em] = end.split(':').map(Number)
-  let mins = eh * 60 + em - (sh * 60 + sm)
-  if (mins < 0) mins += 24 * 60
-  const h = Math.floor(mins / 60), m = mins % 60
-  return m ? `${h}h ${m}m` : `${h}h`
-}
+import {
+  durationLabel, ehWorkedMins, ehDurLabel, ehSignedLabel,
+  fmtHM, applyTimeToDate, timeDiffMins,
+} from './rotaTimeHelpers'
 
 function GanttChart({ shifts, staff, currentStaffId, nowMins, showNow }) {
   const winStart = 6 * 60, winEnd = 24 * 60, winSpan = winEnd - winStart
@@ -121,33 +116,6 @@ function GanttChart({ shifts, staff, currentStaffId, nowMins, showNow }) {
 const BREAK_OPTIONS = [0, 5, 10, 15, 20, 30, 45, 60, 90]
 const EDIT_REASONS  = ['Forgot to clock out', 'Clocked in early', 'Wrong times', 'Other']
 
-function ehWorkedMins(startStr, endStr, brkMins) {
-  const [sh, sm] = startStr.split(':').map(Number)
-  const [eh, em] = endStr.split(':').map(Number)
-  let d = (eh * 60 + em) - (sh * 60 + sm)
-  if (d < 0) d += 1440
-  return d - (brkMins || 0)
-}
-function ehDurLabel(mins) {
-  if (mins <= 0) return '0m'
-  const h = Math.floor(mins / 60), m = mins % 60
-  if (h && m) return `${h}h ${m}m`
-  return h ? `${h}h` : `${m}m`
-}
-function ehSignedLabel(mins) {
-  const abs = Math.abs(mins)
-  return (mins < 0 ? '−' : '+') + ehDurLabel(abs)
-}
-function fmtHM(date) {
-  return `${String(date.getHours()).padStart(2,'0')}:${String(date.getMinutes()).padStart(2,'0')}`
-}
-function applyTimeToDate(baseDate, timeStr) {
-  const d = new Date(baseDate)
-  const [h, m] = timeStr.split(':').map(Number)
-  d.setHours(h, m, 0, 0)
-  return d
-}
-
 /* scroll-snap wheel picker */
 const WHEEL_IH = 36, WHEEL_VIS = 5
 const WHEEL_HOURS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2,'0'))
@@ -222,14 +190,6 @@ function EHStatusPill({ status }) {
 }
 
 /* Fix-hours bottom sheet */
-function timeDiffMins(a, b) {
-  const [ah, am] = a.split(':').map(Number)
-  const [bh, bm] = b.split(':').map(Number)
-  let d = (bh * 60 + bm) - (ah * 60 + am)
-  if (d < 0) d += 1440
-  return d
-}
-
 function FixHoursSheet({ ctx, onClose, onSubmit }) {
   const [start, setStart]       = React.useState('')
   const [end, setEnd]           = React.useState('')
