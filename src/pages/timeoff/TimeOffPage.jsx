@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react'
+import React, { useState, useCallback, useMemo } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import {
   format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, addMonths, subMonths,
@@ -21,103 +21,9 @@ import {
   LEAVE_TYPES, LEAVE_TYPE_COLOURS, STATUS_COLOURS,
   leaveTypeLabel, getRequestsForDay, fmtDays, maxStaffOffInRange,
 } from './timeOffConstants'
-
-/* ── Hooks ─────────────────────────────────────────────────────────────── */
-function useTimeOffRequests(venueId) {
-  const [requests, setRequests] = useState([])
-  const [loading, setLoading]   = useState(true)
-  const [error, setError]       = useState(null)
-  const load = useCallback(async () => {
-    if (!venueId) return
-    setLoading(true)
-    setError(null)
-    const { data, error: err } = await supabase
-      .from('time_off_requests')
-      .select('*, staff:staff_id(name, working_days), reviewer:reviewed_by(name)')
-      .eq('venue_id', venueId)
-      .order('start_date', { ascending: true })
-    if (err) { setError(err.message); setLoading(false); return }
-    setRequests(data ?? [])
-    setLoading(false)
-  }, [venueId])
-  useEffect(() => { load() }, [load])
-  return { requests, loading, error, reload: load }
-}
-
-function useActiveStaff(venueId) {
-  const [staff, setStaff] = useState([])
-  useEffect(() => {
-    if (!venueId) return
-    supabase.from('staff')
-      .select('id, name, employment_type, working_days, holiday_pay_eligible')
-      .eq('venue_id', venueId)
-      .eq('is_active', true)
-      .order('name')
-      .then(({ data }) => setStaff(data ?? []))
-  }, [venueId])
-  return staff
-}
-
-function useOwnProfile(staffId) {
-  const [profile, setProfile] = useState(null)
-  useEffect(() => {
-    if (!staffId) return
-    supabase.from('staff')
-      .select('id, employment_type, working_days, holiday_pay_eligible')
-      .eq('id', staffId)
-      .maybeSingle()
-      .then(({ data }) => setProfile(data))
-  }, [staffId])
-  return profile
-}
-
-// Compute all staff leave balances in a single batch fetch
-function useTeamLeaveBalances(staff, leaveYear) {
-  const year = leaveYear ?? new Date().getFullYear()
-  const [approvedReqs, setApprovedReqs] = useState([])
-  const [overrides, setOverrides]       = useState({})
-  const [loading, setLoading]           = useState(true)
-  const [tick, setTick]                 = useState(0)
-
-  useEffect(() => {
-    if (!staff.length) { setLoading(false); return }
-    const ids = staff.map(s => s.id)
-    Promise.all([
-      supabase.from('time_off_requests')
-        .select('staff_id, start_date, end_date')
-        .in('staff_id', ids)
-        .eq('status', 'approved')
-        .eq('leave_type', 'annual')
-        .gte('start_date', `${year}-01-01`)
-        .lte('start_date', `${year}-12-31`),
-      supabase.from('leave_entitlements')
-        .select('staff_id, override_days')
-        .in('staff_id', ids)
-        .eq('leave_year', year),
-    ]).then(([reqRes, ovRes]) => {
-      setApprovedReqs(reqRes.data ?? [])
-      const map = {}
-      for (const o of (ovRes.data ?? [])) map[o.staff_id] = o.override_days
-      setOverrides(map)
-      setLoading(false)
-    })
-  }, [staff.length, year, tick]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  const reloadBalances = useCallback(() => setTick(t => t + 1), [])
-
-  const balances = useMemo(() => staff.map(s => {
-    const eligible    = s.holiday_pay_eligible !== false
-    const calculated  = eligible ? calculateEntitlementDays(s.employment_type, s.working_days) : null
-    const entitlement = eligible ? (overrides[s.id] ?? calculated) : null
-    const myReqs      = approvedReqs.filter(r => r.staff_id === s.id)
-    const used        = myReqs.reduce((sum, r) =>
-      sum + countWorkingDaysInRequest(r.start_date, r.end_date, s.working_days), 0)
-    const remaining   = entitlement != null ? Math.max(0, entitlement - used) : null
-    return { ...s, entitlement, used, remaining, isZeroHours: s.employment_type === 'zero_hours', isEligible: eligible }
-  }), [staff, approvedReqs, overrides])
-
-  return { balances, loading, reloadBalances }
-}
+import {
+  useTimeOffRequests, useActiveStaff, useOwnProfile, useTeamLeaveBalances,
+} from '../../hooks/useTimeOffData'
 
 /* ── Calendar ──────────────────────────────────────────────────────────── */
 const DAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
