@@ -45,7 +45,16 @@ export async function fetchStaffList(venueId: string): Promise<Staff[]> {
       .eq('venue_id', venueId),
   ])
 
-  const linkedStaff = (links ?? []).map((l: any) => ({ ...l.staff, role: l.role, _crossVenue: true }))
+  // Drop links whose embedded staff didn't come back. RLS filters an embedded
+  // join independently of the outer row, so a link can resolve to null — which
+  // is what happened when 113 scoped the staff table: `{ ...null }` spreads to
+  // `{}`, the list gained a nameless entry, and RotaWeekView's
+  // `s.name.split(' ')` took the whole rota page down with it. 114 restores the
+  // join, but a missing row must degrade to "that person isn't listed" rather
+  // than crash the page.
+  const linkedStaff = (links ?? [])
+    .filter((l: any) => l.staff?.id)
+    .map((l: any) => ({ ...l.staff, role: l.role, _crossVenue: true }))
   return [...(homeStaff ?? []), ...linkedStaff] as Staff[]
 }
 
