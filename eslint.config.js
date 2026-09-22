@@ -1,4 +1,5 @@
-// Lint config — the point of this file is `react-hooks/rules-of-hooks`.
+// Lint config. Two rules here are load-bearing and must stay clean:
+// `react-hooks/rules-of-hooks` and `no-undef` (see each for why).
 //
 // React error #310 ("Rendered more hooks than during the previous render") has
 // hit production three times, always the same shape: a hook sitting below an
@@ -64,13 +65,33 @@ export default [
   },
 
   // Tests run under vitest with jsdom, so they keep the browser globals above
-  // and add the vitest ones.
+  // and add the vitest ones. Node globals too — specs reach for `global`
+  // when stubbing (e.g. `global.fetch = vi.fn()`).
   {
     files: ['src/**/*.{test,spec}.{js,jsx,ts,tsx}', 'src/**/__tests__/**', 'src/test-setup.ts'],
     languageOptions: {
       globals: {
         ...globals.vitest,
+        ...globals.node,
       },
+    },
+  },
+
+  // `no-undef` for plain JS/JSX only.
+  //
+  // tsconfig sets `checkJs: false`, so tsc never type-checks .js/.jsx — and
+  // that is most of this codebase. A missing import in a .jsx file was
+  // therefore caught by nothing: not tsc, not lint. Rollup emits a warning
+  // ("X is not exported by Y") but still exits 0, so the build went green too.
+  // This closes that gap.
+  //
+  // Deliberately NOT applied to .ts/.tsx: tsc already checks those under
+  // `strict`, and typescript-eslint recommends against no-undef on TS files
+  // because type-only references trip it.
+  {
+    files: ['src/**/*.{js,jsx}'],
+    rules: {
+      'no-undef': 'error',
     },
   },
 ];
