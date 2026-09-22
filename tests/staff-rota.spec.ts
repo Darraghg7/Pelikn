@@ -51,6 +51,50 @@ async function mockMyShiftToday(page: Page, staffId: string) {
   })
 }
 
+/**
+ * A complete clock cycle today: in 08:00, break 12:00–12:30, out 16:00.
+ * Worked = 8h gross − 30m break = 7h 30m.
+ *
+ * Times are built in local time then serialised, so they round-trip back to
+ * the same wall-clock hours the components format with getHours().
+ */
+function clockEventsToday() {
+  const at = (h: number, m: number) => {
+    const d = new Date()
+    d.setHours(h, m, 0, 0)
+    return d.toISOString()
+  }
+  return [
+    { id: 'ce-in',    event_type: 'clock_in',    occurred_at: at(8, 0) },
+    { id: 'ce-bstart', event_type: 'break_start', occurred_at: at(12, 0) },
+    { id: 'ce-bend',   event_type: 'break_end',   occurred_at: at(12, 30) },
+    { id: 'ce-out',    event_type: 'clock_out',   occurred_at: at(16, 0) },
+  ]
+}
+
+/**
+ * Serve a worked day, with no edit requests and no payroll lock — so the
+ * row shows its "Fix" action rather than a status pill or "Locked".
+ */
+async function mockWorkedDay(page: Page) {
+  await page.route('**/rest/v1/clock_events*', route =>
+    route.request().method() !== 'GET' ? route.continue() : route.fulfill({
+      status: 200, contentType: 'application/json', body: JSON.stringify(clockEventsToday()),
+    })
+  )
+  await page.route('**/rest/v1/clock_edit_requests*', route =>
+    route.request().method() !== 'GET' ? route.continue() : route.fulfill({
+      status: 200, contentType: 'application/json', body: '[]',
+    })
+  )
+  // Only the payroll-lock lookup — other app_settings reads pass through.
+  await page.route('**/rest/v1/app_settings*', route => {
+    const url = route.request().url()
+    if (route.request().method() !== 'GET' || !url.includes('payroll_locks')) return route.continue()
+    return route.fulfill({ status: 200, contentType: 'application/json', body: 'null' })
+  })
+}
+
 test.describe('Staff rota view (?personal=1)', () => {
   test.beforeEach(async ({ page }) => {
     await goto(page, '/rota?personal=1')
@@ -107,5 +151,57 @@ test.describe('Staff rota view — with a shift today', () => {
     await expect(page.getByText('Kitchen').first()).toBeVisible()
     // 08:00–16:00 formatted by durationLabel().
     await expect(page.getByText(/\b8h\b/).first()).toBeVisible()
+  })
+})
+
+test.describe('Staff rota view — worked hours', () => {
+  test.beforeEach(async ({ page }) => {
+    await mockWorkedDay(page)
+    await injectManagerSession(page)
+    await goto(page, '/rota?personal=1')
+  })
+
+  test('shows the per-day worked card for the selected day', async ({ page }) => {
+    await expect(page.getByText(/hours worked/i)).toBeVisible()
+    await expect(page.getByText('08:00 — 16:00')).toBeVisible()
+    // Untouched sessions are labelled Recorded rather than carrying a request pill.
+    await expect(page.getByText('Recorded').first()).toBeVisible()
+  })
+
+  test('per-day card shows worked duration net of the break', async ({ page }) => {
+    // 08:00-16:00 less a 30m break, via ehWorkedMins + ehDurLabel.
+    await expect(page.getByText('7h 30m').first()).toBeVisible()
+    await expect(page.getByText('30m break').first()).toBeVisible()
+  })
+
+  test('shows the weekly worked section with a total', async ({ page }) => {
+    await expect(page.getByText(/this week · worked/i)).toBeVisible()
+    await expect(page.getByText(/1 logged/i)).toBeVisible()
+    await expect(page.getByText('Worked', { exact: true })).toBeVisible()
+  })
+
+  test('worked row offers a Fix action when the date is not payroll-locked', async ({ page }) => {
+    await expect(page.getByRole('button', { name: /^fix$/i })).toBeVisible()
+    await expect(page.getByText('Locked')).toHaveCount(0)
+  })
+
+  test('clicking Fix opens the fix-hours sheet', async ({ page }) => {
+    await page.getByRole('button', { name: /^fix$/i }).click()
+    await expect(page.getByText('Fix hours')).toBeVisible()
+    await expect(page.getByText(/on the clock/i)).toBeVisible()
+    await expect(page.getByText(/unpaid break/i)).toBeVisible()
+    // The recorded break is carried into the sheet, so it offers to remove it.
+    await expect(page.getByRole('button', { name: /remove break/i })).toBeVisible()
+  })
+
+  test('the sheet asks for a reason only once the hours actually change', async ({ page }) => {
+    await page.getByRole('button', { name: /^fix$/i }).click()
+    // Nothing edited yet — no reason required.
+    await expect(page.getByText(/reason for change/i)).toHaveCount(0)
+
+    // Dropping the 30m break changes worked time, which requires a reason.
+    await page.getByRole('button', { name: /remove break/i }).click()
+    await expect(page.getByText(/reason for change/i)).toBeVisible()
+    await expect(page.getByRole('button', { name: /forgot to clock out/i })).toBeVisible()
   })
 })
