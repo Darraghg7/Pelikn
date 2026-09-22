@@ -1,7 +1,7 @@
 /**
  * Fridge temperature logging — dashboard, log form, history.
  */
-import { test, expect } from '@playwright/test'
+import { test, expect } from './helpers/cleanup'
 import { goto, VENUE } from './helpers/nav'
 
 test.describe('Fridge dashboard', () => {

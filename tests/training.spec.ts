@@ -1,7 +1,7 @@
 /**
  * Training records, noticeboard, HACCP, EHO mock — Pro features.
  */
-import { test, expect } from '@playwright/test'
+import { test, expect, uniq } from './helpers/cleanup'
 import { goto } from './helpers/nav'
 
 test.describe('Training records', () => {
@@ -38,7 +38,10 @@ test.describe('Training records', () => {
 
     // Fill trainer name (required field)
     const trainerInput = page.getByPlaceholder(/name of person delivering/i).first()
-    if (await trainerInput.count() > 0) await trainerInput.fill('Test Trainer')
+    // Unique so a surviving row is traceable to the run that leaked it. The
+    // assertion below stays weak (the trainer name isn't rendered back), so
+    // this test still only proves the submit didn't 404.
+    if (await trainerInput.count() > 0) await trainerInput.fill(uniq('PW Trainer'))
 
     // Select all topics via the "Select all" button (topics use spans, not checkboxes)
     const selectAllBtn = page.getByRole('button', { name: /select all/i }).first()
@@ -61,10 +64,13 @@ test.describe('Noticeboard', () => {
     const addBtn = page.getByRole('button', { name: /post notice/i }).first()
     if (await addBtn.count() > 0) {
       await addBtn.click()
+      const notice = uniq('Playwright test notice')
       const textField = page.locator('textarea, input[type="text"]').first()
-      if (await textField.count() > 0) await textField.fill('Playwright test notice')
+      if (await textField.count() > 0) await textField.fill(notice)
       await page.getByRole('button', { name: /save|post|submit/i }).last().click()
-      await expect(page.locator('body')).not.toContainText('404')
+      // A noticeboard renders what was posted, so assert the notice itself
+      // rather than the old "page isn't a 404", which passes on any render.
+      await expect(page.getByText(notice)).toBeVisible({ timeout: 10000 })
     }
   })
 })

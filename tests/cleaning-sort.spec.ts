@@ -4,7 +4,7 @@
  * Verifies that after marking a task done, all incomplete tasks appear
  * before all completed tasks in the rendered list.
  */
-import { test, expect } from '@playwright/test'
+import { test, expect } from './helpers/cleanup'
 import { goto } from './helpers/nav'
 import { injectManagerSession } from './helpers/auth-bypass'
 

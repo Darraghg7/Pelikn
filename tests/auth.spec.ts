@@ -1,7 +1,8 @@
 /**
  * Auth flows — owner login, staff PIN login, permission gates, logout.
  */
-import { test, expect, type Page } from '@playwright/test'
+import { test, expect } from './helpers/cleanup'
+import type { Page } from '@playwright/test'
 import fs from 'fs'
 
 const VENUE = process.env.TEST_VENUE_SLUG ?? 'brew-and-bloom'

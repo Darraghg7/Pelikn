@@ -1,7 +1,7 @@
 /**
  * Delivery checks — list, new delivery, supplier selection.
  */
-import { test, expect } from '@playwright/test'
+import { test, expect, uniq } from './helpers/cleanup'
 import { goto } from './helpers/nav'
 
 /** Ensures at least one supplier exists in the delivery check modal.
@@ -20,7 +20,7 @@ async function ensureSupplierAndSelect(page: any): Promise<boolean> {
     // The AddSupplierModal is now the visible dialog
     const addDialog = page.locator('[role="dialog"]')
     await expect(addDialog).toBeVisible({ timeout: 5000 })
-    await addDialog.locator('input[type="text"]').fill('PW Test Supplier')
+    await addDialog.locator('input[type="text"]').fill(uniq('PW Test Supplier'))
     await addDialog.getByRole('button', { name: /add supplier/i }).click()
     // After saving: onAdded calls selectSupplier() → main modal jumps to checklist step
     return true

@@ -12,7 +12,8 @@
  * an ever-growing number of "previous week" clicks as real time moves on.
  * Fixtures are pinned to the current week instead, so this stays stable.
  */
-import { test, expect, type Page } from '@playwright/test'
+import { test, expect } from './helpers/cleanup'
+import type { Page } from '@playwright/test'
 import { format, startOfWeek } from 'date-fns'
 import { goto } from './helpers/nav'
 import { injectManagerSession, getTestSession } from './helpers/auth-bypass'

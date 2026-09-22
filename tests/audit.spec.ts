@@ -6,7 +6,8 @@
  * failing. Fixed by patching is_resolved/status in place instead of deleting
  * the row. This test locks that in.
  */
-import { test, expect, Page } from '@playwright/test'
+import { test, expect } from './helpers/cleanup'
+import type { Page } from '@playwright/test'
 import { goto } from './helpers/nav'
 import { injectManagerSession } from './helpers/auth-bypass'
 

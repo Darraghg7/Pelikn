@@ -7,7 +7,8 @@
  * (see project memory: EmployeeRecordPanel was HELD from Phase 4 until this
  * existed).
  */
-import { test, expect, Page } from '@playwright/test'
+import { test, expect } from './helpers/cleanup'
+import type { Page } from '@playwright/test'
 import { goto } from './helpers/nav'
 import { injectManagerSession } from './helpers/auth-bypass'
 

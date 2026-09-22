@@ -1,8 +1,10 @@
 /**
  * Waste log — view, create, filter entries.
  */
-import { test, expect } from '@playwright/test'
+import { test, expect, uniq } from './helpers/cleanup'
 import { goto } from './helpers/nav'
+
+const TEST_ITEM = uniq('PW Test Bread')
 
 test.describe('Waste log', () => {
   test.beforeEach(async ({ page }) => {
@@ -30,7 +32,7 @@ test.describe('Waste log', () => {
     // Item name input has no type attribute — target by placeholder
     const nameField = page.getByPlaceholder(/chicken breast|mixed salad/i).first()
     await expect(nameField).toBeVisible({ timeout: 5000 })
-    await nameField.fill('PW Test Bread')
+    await nameField.fill(TEST_ITEM)
 
     // Quantity spinbutton
     const qtyField = page.locator('[role="spinbutton"], input[type="number"]').first()
@@ -42,7 +44,9 @@ test.describe('Waste log', () => {
     // "Log Waste →" button enables once item name + reason are set
     await page.getByRole('button', { name: /log waste/i }).first().click()
 
-    // Verify the submitted entry appears in the list (use .first() for duplicate-safe matching)
-    await expect(page.getByText('PW Test Bread').first()).toBeVisible({ timeout: 10000 })
+    // The name is unique to this run, so this can only match the row just
+    // submitted — the old fixed string matched any of the 26 left behind by
+    // previous runs, whether or not this submission worked.
+    await expect(page.getByText(TEST_ITEM)).toBeVisible({ timeout: 10000 })
   })
 })

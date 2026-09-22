@@ -1,7 +1,7 @@
 /**
  * Dashboard — manager dashboard widgets, navigation, staff dashboard.
  */
-import { test, expect } from '@playwright/test'
+import { test, expect } from './helpers/cleanup'
 import { goto, VENUE } from './helpers/nav'
 
 test.describe('Manager dashboard', () => {

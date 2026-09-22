@@ -1,7 +1,7 @@
 /**
  * Daily tasks — view, create, complete, assign.
  */
-import { test, expect } from '@playwright/test'
+import { test, expect, uniq } from './helpers/cleanup'
 import { goto } from './helpers/nav'
 
 test.describe('Tasks', () => {
@@ -35,13 +35,17 @@ test.describe('Tasks', () => {
     // Fill the task description textbox (placeholder: "e.g. Check delivery from supplier")
     const titleField = page.getByPlaceholder(/check delivery|task/i).first()
     await expect(titleField).toBeVisible({ timeout: 5000 })
-    await titleField.fill('Playwright test task')
+    const title = uniq('Playwright test task')
+    await titleField.fill(title)
 
     // Submit with "Assign Task →" button (enables once text is entered)
     await page.getByRole('button', { name: /assign task/i }).first().click()
 
-    // Task should appear in list (use .first() to handle duplicate entries from previous runs)
-    await expect(page.getByText('Playwright test task').first()).toBeVisible({ timeout: 8000 })
+    // Unique per run. The comment this replaces said .first() was there "to
+    // handle duplicate entries from previous runs" — those 37 duplicates were
+    // the bug, and matching them is what let this pass without checking its
+    // own write.
+    await expect(page.getByText(title)).toBeVisible({ timeout: 8000 })
   })
 
   test('can mark a task as complete', async ({ page }) => {

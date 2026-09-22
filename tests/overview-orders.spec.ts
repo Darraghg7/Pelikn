@@ -1,7 +1,7 @@
 /**
  * Multi-venue overview dashboard and supplier orders — previously untested routes.
  */
-import { test, expect } from '@playwright/test'
+import { test, expect } from './helpers/cleanup'
 import { goto } from './helpers/nav'
 
 test.describe('Overview dashboard', () => {

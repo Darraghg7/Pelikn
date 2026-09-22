@@ -1,8 +1,10 @@
 /**
  * Settings — staff CRUD, roles, permissions, venue config.
  */
-import { test, expect } from '@playwright/test'
+import { test, expect, uniq } from './helpers/cleanup'
 import { goto } from './helpers/nav'
+
+const TEST_STAFF = uniq('Playwright Tester')
 
 test.describe('Settings hub', () => {
   test.beforeEach(async ({ page }) => {
@@ -49,12 +51,21 @@ test.describe('Staff management', () => {
   test('can create a new staff member', async ({ page }) => {
     await page.getByRole('button', { name: /add staff/i }).first().click()
 
-    await page.getByPlaceholder(/full name/i).first().fill('Playwright Tester')
+    await page.getByPlaceholder(/full name/i).first().fill(TEST_STAFF)
     await page.getByPlaceholder(/••••/i).first().fill('9876')
 
     await page.getByRole('button', { name: /save|add|create|submit/i }).last().click()
 
-    await expect(page.getByText('Playwright Tester').first()).toBeVisible({ timeout: 8000 })
+    // Unique per run. The old fixed "Playwright Tester" matched any of the 43
+    // staff rows earlier runs had already created in this venue, so the
+    // assertion passed whether or not the save actually worked.
+    //
+    // 15s rather than 8s because the list re-render is proportional to the
+    // staff count, and this venue is still carrying ~50 leftover test rows.
+    // The row was in the DOM at failure time, just past the old window. Once
+    // those rows are purged this can go back down — if it ever needs raising
+    // again, that is a signal the venue is filling up, not that the app slowed.
+    await expect(page.getByText(TEST_STAFF)).toBeVisible({ timeout: 15000 })
   })
 
   test('can edit a staff member', async ({ page }) => {
