@@ -1,7 +1,7 @@
 /**
  * Opening / closing checklists — view, complete items, export.
  */
-import { test, expect } from '@playwright/test'
+import { test, expect } from './helpers/cleanup'
 import { goto } from './helpers/nav'
 
 test.describe('Opening / closing checklists', () => {

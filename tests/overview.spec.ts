@@ -5,7 +5,7 @@
  * Single-venue managers are redirected to /dashboard.
  * Tests are written to gracefully handle both cases.
  */
-import { test, expect } from '@playwright/test'
+import { test, expect } from './helpers/cleanup'
 import { goto, VENUE } from './helpers/nav'
 import { injectManagerSession } from './helpers/auth-bypass'
 

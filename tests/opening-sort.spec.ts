@@ -4,7 +4,7 @@
  * Page heading: "Opening & Closing"
  * Section labels: "Opening Checks" / "Closing Checks"
  */
-import { test, expect } from '@playwright/test'
+import { test, expect } from './helpers/cleanup'
 import { goto } from './helpers/nav'
 import { injectManagerSession } from './helpers/auth-bypass'
 

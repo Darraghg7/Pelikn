@@ -2,7 +2,7 @@
  * Rota — weekly builder, shift creation, time-off requests, timesheet, clock-in.
  * These are Pro plan features; the demo venue (brew-and-bloom) is on Pro.
  */
-import { test, expect } from '@playwright/test'
+import { test, expect } from './helpers/cleanup'
 import { goto } from './helpers/nav'
 
 test.describe('Rota builder', () => {

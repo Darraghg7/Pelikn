@@ -7,7 +7,7 @@
  * deeper behaviour against real seeded data but needs real owner credentials
  * this environment doesn't have.
  */
-import { test, expect } from '@playwright/test'
+import { test, expect } from './helpers/cleanup'
 import { goto } from './helpers/nav'
 import { injectManagerSession } from './helpers/auth-bypass'
 

@@ -4,7 +4,7 @@
  * Tests: venue type cards, feature toggles, Pro feature locks, per-day hours,
  * job roles, and navigation (Next / Back).
  */
-import { test, expect } from '@playwright/test'
+import { test, expect } from './helpers/cleanup'
 import { goto } from './helpers/nav'
 import { injectManagerSession } from './helpers/auth-bypass'
 

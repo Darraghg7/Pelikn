@@ -1,7 +1,7 @@
 /**
  * Cleaning schedule — view tasks, mark complete, export.
  */
-import { test, expect } from '@playwright/test'
+import { test, expect } from './helpers/cleanup'
 import { goto } from './helpers/nav'
 
 test.describe('Cleaning schedule', () => {

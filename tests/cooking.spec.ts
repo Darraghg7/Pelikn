@@ -1,8 +1,10 @@
 /**
  * Cooking temperatures, hot holding, and cooling logs.
  */
-import { test, expect } from '@playwright/test'
+import { test, expect, uniq } from './helpers/cleanup'
 import { goto } from './helpers/nav'
+
+const TEST_FOOD = uniq('PW Chicken Test')
 
 test.describe('Cooking temperatures', () => {
   test.beforeEach(async ({ page }) => {
@@ -24,7 +26,7 @@ test.describe('Cooking temperatures', () => {
     // Form is already inline — fill food item text and temperature spinbutton
     const textInput = page.locator('input[type="text"], [placeholder*="Chicken"]').first()
     await expect(textInput).toBeVisible({ timeout: 5000 })
-    await textInput.fill('PW Chicken Test')
+    await textInput.fill(TEST_FOOD)
 
     const tempInput = page.locator('[role="spinbutton"], input[type="number"]').first()
     await expect(tempInput).toBeVisible({ timeout: 5000 })
@@ -32,8 +34,8 @@ test.describe('Cooking temperatures', () => {
 
     await page.getByRole('button', { name: /save|submit|add|log/i }).last().click()
 
-    // The submitted log entry should appear in the recent records on the page
-    await expect(page.getByText('PW Chicken Test').first()).toBeVisible({ timeout: 10000 })
+    // Unique per run, so only this test's own submission can satisfy it.
+    await expect(page.getByText(TEST_FOOD)).toBeVisible({ timeout: 10000 })
   })
 })
 
@@ -60,7 +62,12 @@ test.describe('Hot holding', () => {
     }
     // Complete the check period
     await page.getByRole('button', { name: /complete/i }).first().click()
-    await expect(page.locator('body')).not.toContainText('404')
+
+    // Was `not.toContainText('404')`, which resolved instantly — the test
+    // finished while the insert was still in flight. Wait for the toast the
+    // page emits on a successful write, which is also the only evidence here
+    // that the readings were actually logged.
+    await expect(page.getByText(/check completed .* reading/i)).toBeVisible({ timeout: 10000 })
   })
 })
 

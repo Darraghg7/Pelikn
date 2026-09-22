@@ -2,8 +2,10 @@
  * Corrective actions — list open actions, create, close.
  * Also covers probe calibration and EHO audit.
  */
-import { test, expect } from '@playwright/test'
+import { test, expect, uniq } from './helpers/cleanup'
 import { goto } from './helpers/nav'
+
+const TEST_ACTION = uniq('PW Fridge temp exceeded range')
 
 test.describe('Corrective actions', () => {
   test.beforeEach(async ({ page }) => {
@@ -37,7 +39,7 @@ test.describe('Corrective actions', () => {
     // "What happened?" field (required)
     const titleInput = page.locator('[role="dialog"]').locator('input[type="text"]').first()
     await expect(titleInput).toBeVisible({ timeout: 5000 })
-    await titleInput.fill('PW Fridge temp exceeded range')
+    await titleInput.fill(TEST_ACTION)
 
     // "Action taken" field (required — textarea)
     const actionTextarea = page.locator('[role="dialog"]').locator('textarea').last()
@@ -47,8 +49,8 @@ test.describe('Corrective actions', () => {
     // Submit — button enables once both required fields are filled
     await page.locator('[role="dialog"]').getByRole('button', { name: /log corrective/i }).click()
 
-    // Verify the action appears in the list after submission
-    await expect(page.getByText('PW Fridge temp exceeded range').first()).toBeVisible({ timeout: 10000 })
+    // Unique per run, so only this test's own submission can satisfy it.
+    await expect(page.getByText(TEST_ACTION)).toBeVisible({ timeout: 10000 })
   })
 })
 

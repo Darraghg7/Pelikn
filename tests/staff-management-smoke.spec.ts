@@ -4,7 +4,7 @@
  * dispatches, moved into lib/api/staffManagement.ts). Crash-test level, same
  * rationale as tests/rota-smoke.spec.ts: mechanical relocation, not new logic.
  */
-import { test, expect } from '@playwright/test'
+import { test, expect } from './helpers/cleanup'
 import { goto } from './helpers/nav'
 import { injectManagerSession } from './helpers/auth-bypass'
 

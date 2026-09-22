@@ -2,7 +2,7 @@
  * Allergen registry — list items, view detail, create/edit food items.
  * Also tests the public QR allergen page.
  */
-import { test, expect } from '@playwright/test'
+import { test, expect } from './helpers/cleanup'
 import { goto, VENUE } from './helpers/nav'
 import { getTestSession, SUPABASE_URL, ANON_KEY } from './helpers/auth-bypass'
 

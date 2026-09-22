@@ -5,7 +5,8 @@
  * These tests run without a pre-authenticated manager session because they
  * exercise the login screen itself.
  */
-import { test, expect, Page } from '@playwright/test'
+import { test, expect } from './helpers/cleanup'
+import type { Page } from '@playwright/test'
 
 const VENUE      = process.env.TEST_VENUE_SLUG  ?? 'brew-and-bloom'
 const VENUE2     = process.env.TEST_VENUE_SLUG2 ?? 'second-venue'

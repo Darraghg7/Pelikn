@@ -3,7 +3,7 @@
  * Covers features added in PRs #14 (leave tracking, contracted hours) and
  * #17 (holiday pay accuracy, UL badges, overage warnings).
  */
-import { test, expect } from '@playwright/test'
+import { test, expect } from './helpers/cleanup'
 import { goto } from './helpers/nav'
 
 test.describe('Time-off page', () => {
