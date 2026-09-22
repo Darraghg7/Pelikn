@@ -359,6 +359,35 @@ function Numpad({ onDigit, onDelete }) {
 // ── Role label ────────────────────────────────────────────────────────────────
 const ROLE_LABEL = { owner: 'Owner', manager: 'Manager', staff: 'Staff' }
 
+/**
+ * Staff picker list for the login screen, which runs with no session.
+ *
+ * The staff table used to carry `FOR SELECT USING (true)` purely so this
+ * screen could read it unauthenticated — which also made every venue's pay,
+ * emails, emergency contacts and minor status readable by anyone holding the
+ * anon key, since that key ships in this bundle. Migration 113 scopes the
+ * table and adds an RPC returning just the four columns rendered here.
+ *
+ * Tries the RPC first and falls back to the old table read, so the client and
+ * the migration can be deployed in either order without the picker ever going
+ * empty. Once 113 is applied the fallback stops returning rows on its own (the
+ * policy denies anon), so it costs nothing to leave in place — but it can be
+ * deleted once the migration is confirmed live.
+ */
+async function fetchLoginStaff(venueId) {
+  const { data, error } = await supabase.rpc('list_venue_staff_for_login', { p_venue_id: venueId })
+  if (!error && data) return data
+
+  const { data: rows } = await supabase
+    .from('staff')
+    .select('id, name, role, photo_url')
+    .eq('venue_id', venueId)
+    .eq('is_active', true)
+    .order('sort_order')
+    .order('name')
+  return rows
+}
+
 // ── Main page ─────────────────────────────────────────────────────────────────
 export default function LoginPage() {
   const { signIn, signOut, switchVenue, session, loading } = useSession()
@@ -450,14 +479,8 @@ export default function LoginPage() {
     } catch {}
 
     let cancelled = false
-    supabase
-      .from('staff')
-      .select('id, name, role, photo_url')
-      .eq('venue_id', venueId)
-      .eq('is_active', true)
-      .order('sort_order')
-      .order('name')
-      .then(({ data }) => {
+    fetchLoginStaff(venueId)
+      .then((data) => {
         if (cancelled || !data) return
         localStorage.setItem(cacheKey, JSON.stringify(data))
         setStaff(data)
