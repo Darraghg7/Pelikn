@@ -397,7 +397,9 @@ function VenueRoutes() {
         <ToastProvider>
           <Routes>
             {/* Staff PIN login — publicly accessible, no Supabase Auth needed.
-                venues + staff tables have public_read RLS policies. */}
+                venues still has a public read policy; staff does NOT — it is
+                venue-scoped (113), and the picker reads the four columns it
+                needs via list_venue_staff_for_login(). */}
             <Route index element={<LoginPage />} />
 
             {/* Onboarding wizard — shown once after signup */}

@@ -64,11 +64,27 @@ async function realLogin(page: Page): Promise<RealSession> {
   const [venue] = await venueRes.json()
   if (!venue?.id) throw new Error(`[auth-bypass] Test venue "${VENUE_SLUG}" not found`)
 
-  const staffRes = await page.request.get(
-    `${SUPABASE_URL}/rest/v1/staff?venue_id=eq.${venue.id}&name=eq.${encodeURIComponent(MANAGER_NAME)}&select=id`,
-    { headers: restHeaders }
-  )
-  const [staff] = await staffRes.json()
+  // Resolve the manager the same way the login screen does. Reading the staff
+  // table directly with the anon key stops working once migration 113 scopes
+  // it — that public SELECT policy was the cross-venue data leak. Falls back
+  // to the table read so the suite passes either side of the migration.
+  let staff: { id?: string } | undefined
+
+  const rpcRes = await page.request.post(`${SUPABASE_URL}/rest/v1/rpc/list_venue_staff_for_login`, {
+    headers: { ...restHeaders, 'Content-Type': 'application/json' },
+    data: { p_venue_id: venue.id },
+  })
+  if (rpcRes.ok()) {
+    const list = await rpcRes.json()
+    staff = Array.isArray(list) ? list.find((s: { name: string }) => s.name === MANAGER_NAME) : undefined
+  } else {
+    const staffRes = await page.request.get(
+      `${SUPABASE_URL}/rest/v1/staff?venue_id=eq.${venue.id}&name=eq.${encodeURIComponent(MANAGER_NAME)}&select=id`,
+      { headers: restHeaders }
+    )
+    const rows = await staffRes.json()
+    staff = Array.isArray(rows) ? rows[0] : undefined
+  }
   if (!staff?.id) throw new Error(`[auth-bypass] Test manager "${MANAGER_NAME}" not found in venue "${VENUE_SLUG}"`)
 
   const loginRes = await page.request.post(`${SUPABASE_URL}/functions/v1/pin-login`, {
