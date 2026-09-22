@@ -254,6 +254,12 @@ test.describe('Login page — sliding venue tabs (multi-venue device)', () => {
   })
 
   test('single-venue "Add another venue" button is hidden in multi-venue mode', async ({ page }) => {
-    await expect(page.getByRole('button', { name: /add another venue/i })).not.toBeVisible({ timeout: 5000 })
+    // Matched by visible text, not accessible name. Two different controls add
+    // a venue: this full-width labelled button (single-venue mode only) and the
+    // compact "+" in the tab strip, whose title attribute is also "Add another
+    // venue". getByRole matched both, so this asserted the "+" was hidden —
+    // which the test directly above requires to be visible. The product was
+    // right; the locator was too broad.
+    await expect(page.getByText('Add another venue')).not.toBeVisible({ timeout: 5000 })
   })
 })

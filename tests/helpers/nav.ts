@@ -39,6 +39,24 @@ export async function goto(page: Page, path: string) {
   } catch {
     // Spinner didn't clear — test will fail on its own assertion
   }
+
+  // Then wait for per-section skeletons to clear. The full-page spinner only
+  // covers auth/venue/session resolving; individual panels keep fetching
+  // after it goes, so a test asserting on content could race the data in and
+  // fail intermittently under load. `.animate-pulse` is used consistently
+  // across the app for skeletons and "Loading…"/"Saving…" placeholders, so
+  // its absence is a good "data has landed" signal.
+  //
+  // Shorter cap than the spinner: this is a best-effort settle, and some
+  // screens legitimately render no skeleton at all.
+  try {
+    await page.waitForFunction(
+      () => !document.querySelector('.animate-pulse'),
+      { timeout: 8000 }
+    )
+  } catch {
+    // Still loading — the test's own assertion will decide the outcome
+  }
 }
 
 /** Assert the page heading matches the given text (case-insensitive). */

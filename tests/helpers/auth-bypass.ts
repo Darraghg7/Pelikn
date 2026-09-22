@@ -30,9 +30,9 @@
 
 import { Page } from '@playwright/test'
 
-const SUPABASE_URL = 'https://djwgyyerxvxovicixxrp.supabase.co'
+export const SUPABASE_URL = 'https://djwgyyerxvxovicixxrp.supabase.co'
 // Public anon key — safe to embed; identical to the client-side fallback in src/lib/supabase.js.
-const ANON_KEY =
+export const ANON_KEY =
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRqd2d5eWVyeHZ4b3ZpY2l4eHJwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzNDIyMzEsImV4cCI6MjA4ODkxODIzMX0.PD3MydxFkVladSc7Trje7R3kPikE3axfqnIEkEM08Q8'
 
 const VENUE_SLUG   = process.env.TEST_VENUE_SLUG   ?? 'brew-and-bloom'

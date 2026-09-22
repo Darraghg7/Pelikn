@@ -38,9 +38,17 @@ setup('authenticate owner and manager', async ({ page }) => {
     fs.rmSync(MANAGER_STATE, { force: true })
   }
 
-  if (!OWNER_EMAIL || !OWNER_PASS) {
-    throw new Error('Set TEST_OWNER_EMAIL and TEST_OWNER_PASSWORD before running Playwright auth setup.')
-  }
+  // Skip rather than throw. These credentials are optional — the specs that
+  // need the generated state files skip themselves when the files are absent,
+  // and everything else authenticates via the PIN-login bypass. Throwing here
+  // meant an unconfigured checkout always showed one hard failure that looked
+  // like breakage but only meant "no owner credentials set".
+  setup.skip(
+    !OWNER_EMAIL || !OWNER_PASS,
+    'Set TEST_OWNER_EMAIL and TEST_OWNER_PASSWORD to generate real auth state files',
+  )
+  // skip() aborts above, but TypeScript can't see that — narrow explicitly.
+  if (!OWNER_EMAIL || !OWNER_PASS) return
 
   // ── 1. Owner Supabase login ──────────────────────────────────────────
   await page.goto(`${BASE_URL}/login`)

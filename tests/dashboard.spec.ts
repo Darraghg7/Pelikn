@@ -19,15 +19,15 @@ test.describe('Manager dashboard', () => {
     await expect(page.getByText(/compliance/i).first()).toBeVisible()
   })
 
+  // These used nth(1) for a mobile/desktop dual-render that no longer happens:
+  // each widget title is now in the DOM exactly once, so nth(1) never resolved
+  // and both failed on every run. first() is the visible widget.
   test('shows fridge alerts widget', async ({ page }) => {
-    // Both mobile (lg:hidden) and desktop (hidden lg:block) render Fridge Status.
-    // Mobile is nth(0) and hidden at desktop viewport; desktop is nth(1) and visible.
-    await expect(page.getByText(/fridge status/i).nth(1)).toBeVisible({ timeout: 8000 })
+    await expect(page.getByText(/fridge status/i).first()).toBeVisible({ timeout: 8000 })
   })
 
   test('shows today\'s cleaning tasks widget', async ({ page }) => {
-    // Same dual-render pattern — cleaning widget nth(1) is the visible desktop version.
-    await expect(page.getByText(/^cleaning$/i).nth(1)).toBeVisible({ timeout: 8000 })
+    await expect(page.getByText(/^cleaning$/i).first()).toBeVisible({ timeout: 8000 })
   })
 
   test('nav links are accessible', async ({ page }) => {

@@ -105,7 +105,9 @@ test.describe('Timesheet', () => {
     await goto(page, '/timesheet')
     await expect(page.getByRole('heading', { name: /timesheets/i })).toBeVisible()
     await expect(page.getByText(/pay period summary/i)).toBeVisible({ timeout: 8000 })
-    await expect(page.getByRole('button', { name: /export csv/i })).toBeVisible()
+    // The export controls are labelled just "CSV" and "PDF" — this asked for
+    // "export csv", which never matched, so it failed on every run.
+    await expect(page.getByRole('button', { name: /^csv$/i })).toBeVisible()
   })
 })
 

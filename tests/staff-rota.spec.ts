@@ -169,6 +169,12 @@ test.describe('Staff rota view — worked hours', () => {
   })
 
   test('per-day card shows worked duration net of the break', async ({ page }) => {
+    // Anchor on the card before reading its contents. The clock sessions are
+    // a secondary fetch that the skeleton wait in goto() does not cover, so
+    // asserting the duration directly could start polling before the card
+    // existed — this flaked once under full-suite load for exactly that
+    // reason, while passing 30/30 in isolation.
+    await expect(page.getByText(/hours worked/i)).toBeVisible({ timeout: 15000 })
     // 08:00-16:00 less a 30m break, via ehWorkedMins + ehDurLabel.
     await expect(page.getByText('7h 30m').first()).toBeVisible()
     await expect(page.getByText('30m break').first()).toBeVisible()

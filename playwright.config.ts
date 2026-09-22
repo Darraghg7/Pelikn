@@ -8,6 +8,14 @@ export default defineConfig({
   workers: 1,
   reporter: [['html', { outputFolder: 'playwright-report' }], ['list']],
 
+  // Assertions here are network-bound: nearly every one waits on content
+  // rendered from a live Supabase read. The default 5 s made expect() the
+  // tightest budget in the whole config — far tighter than actionTimeout
+  // (15 s) or navigationTimeout (25 s) — so under full-suite load a slow
+  // read would fail the assertion while everything else still had headroom.
+  // That was the main source of run-to-run flake.
+  expect: { timeout: 10000 },
+
   use: {
     baseURL: 'http://127.0.0.1:5173',
     trace: 'on-first-retry',
