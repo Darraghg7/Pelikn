@@ -5,13 +5,19 @@ import { test, expect } from '@playwright/test'
 import { goto } from './helpers/nav'
 
 test.describe('Overview dashboard', () => {
+  // /overview redirects to the dashboard for a single-venue account, so these
+  // assertions can never hold there. overview.spec.ts already guards for this;
+  // these two duplicated the coverage without the guard and so failed on every
+  // run. Skipping is the honest result — the page genuinely isn't reachable.
   test('loads the overview page', async ({ page }) => {
     await goto(page, '/overview')
+    test.skip(!page.url().includes('/overview'), 'single-venue account — no overview page')
     await expect(page.getByRole('heading', { name: /my venues/i })).toBeVisible({ timeout: 10000 })
   })
 
   test('shows compliance or venue summary content', async ({ page }) => {
     await goto(page, '/overview')
+    test.skip(!page.url().includes('/overview'), 'single-venue account — no overview page')
     await expect(page.getByRole('link', { name: /brew & bloom/i }).first()).toBeVisible({ timeout: 10000 })
   })
 })

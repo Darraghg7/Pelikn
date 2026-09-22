@@ -122,10 +122,18 @@ test.describe('Venue settings', () => {
 
 test.describe('Permission management', () => {
   test('can view staff permissions', async ({ page }) => {
-    // Permission levels are now under /settings/staff (PR #34)
+    // This had been failing for two compounding reasons: the feature was
+    // renamed from "Permission Levels" to "Permission Titles" in PR #110,
+    // and it lives under the Roles tab, while /settings/staff opens on
+    // Members — so the old text was never on screen to begin with.
+    //
+    // Asserting on the section's description rather than a heading because
+    // PermissionTitlesSection renders no heading of its own; the
+    // "Permission Titles" label belongs to the separate SettingsPage.
     await goto(page, '/settings/staff')
+    await page.getByRole('button', { name: /^roles$/i }).click()
     await expect(
-      page.getByText(/permission levels/i).first()
+      page.getByText(/titles you assign to staff/i).first()
     ).toBeVisible({ timeout: 6000 })
   })
 })

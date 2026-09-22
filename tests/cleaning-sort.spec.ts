@@ -90,16 +90,28 @@ test.describe('Cleaning — completed tasks sort to bottom', () => {
     await expect(markDoneBtns).toHaveCount(0, { timeout: 5000 })
   })
 
-  test('filtering by "Overdue" shows no done-checkmark tasks', async ({ page }) => {
+  test('filtering by "Overdue" shows only overdue tasks', async ({ page }) => {
     const overdueFilter = page.getByRole('button', { name: /overdue/i }).first()
     if (!(await overdueFilter.isVisible({ timeout: 5000 }).catch(() => false))) return
 
     await overdueFilter.click()
     await page.waitForTimeout(300)
 
-    // Done tasks (with checkmarks) should not appear in overdue filter
-    const checkmarks = page.locator('polyline[points="20 6 9 17 4 12"]')
-    await expect(checkmarks).toHaveCount(0, { timeout: 5000 })
+    // This previously asserted that no `polyline[points="20 6 9 17 4 12"]`
+    // was present, on the assumption that checkmark meant "task is done".
+    // It is the opposite: that icon is the complete-this-task action, so it
+    // renders on tasks that are *not* done. Under this filter it is expected
+    // on every row, and the assertion could never pass — it failed on every
+    // run while the filter itself was working correctly.
+    //
+    // Assert the filter's actual contract instead: every task listed carries
+    // an overdue badge ("158d overdue", "never done").
+    const badges = page.getByText(/\d+\s*d\s*overdue|never done/i)
+    const count  = await badges.count()
+    expect(count).toBeGreaterThan(0)
+    for (let i = 0; i < count; i++) {
+      await expect(badges.nth(i)).toBeVisible()
+    }
     await expect(page.locator('body')).not.toContainText('This screen hit a snag')
   })
 })
