@@ -95,6 +95,16 @@ async function realLogin(page: Page): Promise<RealSession> {
 }
 
 /**
+ * The resolved test session, for specs that need the real staff/venue ids
+ * (e.g. to build fixture rows that the page will treat as "mine"). Shares
+ * the same cache as injectManagerSession, so calling both costs one login.
+ */
+export async function getTestSession(page: Page): Promise<RealSession> {
+  if (!cached) cached = realLogin(page)
+  return cached
+}
+
+/**
  * Log in as the real test manager in the dedicated test venue, and inject
  * the resulting real session into localStorage. Call this BEFORE navigating
  * to the page under test.
