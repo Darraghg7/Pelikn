@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { format, endOfWeek, addWeeks, startOfMonth, endOfMonth, subMonths, parseISO, eachDayOfInterval } from 'date-fns'
 import { supabase } from '../../lib/supabase'
+import { fetchStaffPayRates } from '../../lib/api/staffPay'
 import { useVenue } from '../../contexts/VenueContext'
 import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../../components/ui/Toast'
@@ -479,13 +480,18 @@ export default function TimesheetPage() {
 
   useEffect(() => {
     if (!venueId) return
-    supabase.from('staff').select('id, hourly_rate, contracted_hours, working_days').eq('venue_id', venueId)
-      .then(({ data }) => {
-        if (!data) return
-        const rates = {}, profiles = {}
-        for (const s of data) { rates[s.id] = s.hourly_rate ?? 0; profiles[s.id] = { contractedHours: s.contracted_hours ?? null, workingDays: s.working_days ?? [] } }
-        setStaffRates(rates); setStaffProfiles(profiles)
-      })
+    // hourly_rate is no longer selectable from the table (117); it comes from
+    // staff_pay_rates, which returns the venue for a manager and just your own
+    // row otherwise. Timesheets are a manager screen, so this is the full set.
+    Promise.all([
+      supabase.from('staff').select('id, contracted_hours, working_days').eq('venue_id', venueId),
+      fetchStaffPayRates(),
+    ]).then(([{ data }, payRates]) => {
+      if (!data) return
+      const rates = {}, profiles = {}
+      for (const s of data) { rates[s.id] = payRates.get(s.id) ?? 0; profiles[s.id] = { contractedHours: s.contracted_hours ?? null, workingDays: s.working_days ?? [] } }
+      setStaffRates(rates); setStaffProfiles(profiles)
+    })
   }, [venueId])
 
   useEffect(() => {
