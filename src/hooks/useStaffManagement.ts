@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
+import { fetchStaffPayRates, withPayRates } from '../lib/api/staffPay'
 import { useVenue } from '../contexts/VenueContext'
 
 interface StaffMember {
@@ -42,11 +43,15 @@ export default function useStaffManagement(): {
     queryFn: async () => {
       const { data } = await supabase
         .from('staff')
-        .select('id, name, email, job_role, role, permission_title_id, hourly_rate, is_active, is_restricted, show_temp_logs, show_allergens, photo_url, skills, is_under_18, working_days, sort_order, pin_failed_attempts, pin_locked_until, employment_type, contracted_hours, start_date, emergency_contact_name, emergency_contact_phone, holiday_pay_eligible, colour')
+        .select('id, name, email, job_role, role, permission_title_id, is_active, is_restricted, show_temp_logs, show_allergens, photo_url, skills, is_under_18, working_days, sort_order, pin_failed_attempts, pin_locked_until, employment_type, contracted_hours, start_date, emergency_contact_name, emergency_contact_phone, holiday_pay_eligible, colour')
         .eq('venue_id', venueId)
         .order('sort_order')
         .order('name')
-      return (data ?? []) as StaffMember[]
+      // hourly_rate can no longer be selected from the table (117) — it comes
+      // from staff_pay_rates, which returns the whole venue to a manager and
+      // only your own row to anyone else. This page is manager-only, so in
+      // practice the merge is complete here.
+      return withPayRates((data ?? []) as StaffMember[], await fetchStaffPayRates())
     },
     enabled: !!venueId,
   })
