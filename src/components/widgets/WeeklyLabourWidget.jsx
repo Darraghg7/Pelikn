@@ -1,6 +1,7 @@
 import React, { memo } from 'react'
 import { format } from 'date-fns'
 import { supabase } from '../../lib/supabase'
+import { fetchStaffPayRates } from '../../lib/api/staffPay'
 import { useVenue } from '../../contexts/VenueContext'
 import { useWidgetQuery } from '../../hooks/useWidgetQuery'
 import LoadingSpinner from '../ui/LoadingSpinner'
@@ -19,11 +20,18 @@ function WeeklyLabourWidget() {
   const weekStart = weekStartStr()
 
   const { data } = useWidgetQuery('weekly_labour', [venueId, weekStart], async () => {
-      const { data: shifts } = await supabase
-        .from('shifts')
-        .select('start_time, end_time, staff:staff_id(hourly_rate)')
-        .eq('venue_id', venueId)
-        .eq('week_start', weekStart)
+      // hourly_rate is no longer readable from the staff table (117), so the
+      // rates come from staff_pay_rates instead. A non-manager gets only their
+      // own rate back, which means this widget shows them their own cost
+      // rather than the venue's — it is registered as a manager widget.
+      const [{ data: shifts }, rates] = await Promise.all([
+        supabase
+          .from('shifts')
+          .select('start_time, end_time, staff_id')
+          .eq('venue_id', venueId)
+          .eq('week_start', weekStart),
+        fetchStaffPayRates(),
+      ])
 
       const items = shifts ?? []
       let totalHrs = 0
@@ -34,7 +42,7 @@ function WeeklyLabourWidget() {
         const [eh, em] = s.end_time.split(':').map(Number)
         const hrs = Math.max(0, ((eh * 60 + em) - (sh * 60 + sm)) / 60)
         totalHrs += hrs
-        totalCost += hrs * (s.staff?.hourly_rate ?? 0)
+        totalCost += hrs * (rates.get(s.staff_id) ?? 0)
       }
 
       return { shifts: items.length, hours: totalHrs.toFixed(1), cost: totalCost.toFixed(2) }

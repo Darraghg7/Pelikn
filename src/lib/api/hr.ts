@@ -1,4 +1,5 @@
 import { supabase } from '../supabase'
+import { fetchStaffPayRates } from './staffPay'
 
 export interface HRStaffRow {
   id: string
@@ -50,16 +51,22 @@ export interface StaffHeaderData {
 
 /** Profile tab header: full staff row + doc count + open-strike count. One Promise.all per staff click, not three. */
 export async function fetchStaffHeader(staffId: string): Promise<StaffHeaderData> {
-  const [staffRes, docsRes, strikesRes] = await Promise.all([
+  // hourly_rate dropped from the select: 117 revoked it from the column grant,
+  // so asking for it fails the whole query rather than returning null. It is
+  // merged back from staff_pay_rates below.
+  const [staffRes, docsRes, strikesRes, rates] = await Promise.all([
     supabase.from('staff')
-      .select('id, name, job_role, employment_type, start_date, hourly_rate, contracted_hours, working_days, is_under_18, emergency_contact_name, emergency_contact_phone, holiday_pay_eligible')
+      .select('id, name, job_role, employment_type, start_date, contracted_hours, working_days, is_under_18, emergency_contact_name, emergency_contact_phone, holiday_pay_eligible')
       .eq('id', staffId)
       .maybeSingle(),
     supabase.from('staff_hr_documents').select('*', { count: 'exact', head: true }).eq('staff_id', staffId),
     supabase.from('staff_disciplinary_log').select('*', { count: 'exact', head: true }).eq('staff_id', staffId).is('dismissed_at', null),
+    fetchStaffPayRates(),
   ])
   return {
-    staff: staffRes.data,
+    staff: staffRes.data
+      ? { ...staffRes.data, hourly_rate: rates.get(staffId) }
+      : staffRes.data,
     docsCount: docsRes.count ?? 0,
     strikesCount: strikesRes.count ?? 0,
   }

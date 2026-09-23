@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import { format, addDays, startOfWeek } from 'date-fns'
 import { supabase } from '../../lib/supabase'
+import { fetchStaffPayRates } from '../../lib/api/staffPay'
 import { useVenue } from '../../contexts/VenueContext'
 import { useSession } from '../../contexts/SessionContext'
 import { useVenueFeatures } from '../../hooks/useVenueFeatures'
@@ -721,11 +722,13 @@ export default function StaffDashboardPage() {
             .select('id, start_time, end_time, role_label, shift_date')
             .eq('venue_id', venueId).eq('staff_id', session.staffId).eq('shift_date', today)
             .order('start_time').limit(1),
-          supabase.from('staff').select('hourly_rate').eq('id', session.staffId).single(),
+          fetchStaffPayRates(),
         ])
         if (cancelled) return
         setTodayShift(shiftRes.data?.[0] ?? null)
-        setHourlyRate(staffRes.data?.hourly_rate ?? 0)
+        // staff_pay_rates returns only your own row when you are not a
+        // manager, which is exactly what this screen wants.
+        setHourlyRate(staffRes.get(session.staffId) ?? 0)
       } catch { /* network error — leave defaults */ }
       finally { if (!cancelled) setLoading(false) }
     }
