@@ -1,5 +1,5 @@
 import { supabase } from '../supabase'
-import { fetchStaffPayRates } from './staffPay'
+import { fetchStaffPayRates, fetchStaffPrivateFields, withPrivateFields } from './staffRestricted'
 
 export interface HRStaffRow {
   id: string
@@ -17,9 +17,11 @@ export interface HRSummaryData {
 
 /** HR hub summary: active staff + last-90-day formal actions + docs expiring within 30 days. One Promise.all, not three sequential fetches per visit. */
 export async function fetchHRSummary(venueId: string, since90: string, in30: string): Promise<HRSummaryData> {
-  const [staffRes, actRes, docsRes] = await Promise.all([
+  // start_date left out of the select for the same reason as fetchStaffHeader:
+  // 118 revoked it, so requesting it fails the whole query. Merged back below.
+  const [staffRes, actRes, docsRes, priv] = await Promise.all([
     supabase.from('staff')
-      .select('id, name, job_role, employment_type, start_date')
+      .select('id, name, job_role, employment_type')
       .eq('venue_id', venueId)
       .eq('is_active', true)
       .order('name'),
@@ -32,10 +34,11 @@ export async function fetchHRSummary(venueId: string, since90: string, in30: str
       .eq('venue_id', venueId)
       .not('expiry_date', 'is', null)
       .lte('expiry_date', in30),
+    fetchStaffPrivateFields(),
   ])
 
   return {
-    staff: (staffRes.data ?? []) as unknown as HRStaffRow[],
+    staff: withPrivateFields((staffRes.data ?? []) as any[], priv) as unknown as HRStaffRow[],
     formalActionStaffIds: (actRes.data ?? []).map((a: any) => a.staff_id),
     expiringDocs: (docsRes.data ?? []) as unknown as { staff_id: string; expiry_date: string }[],
   }
@@ -51,21 +54,23 @@ export interface StaffHeaderData {
 
 /** Profile tab header: full staff row + doc count + open-strike count. One Promise.all per staff click, not three. */
 export async function fetchStaffHeader(staffId: string): Promise<StaffHeaderData> {
-  // hourly_rate dropped from the select: 117 revoked it from the column grant,
-  // so asking for it fails the whole query rather than returning null. It is
-  // merged back from staff_pay_rates below.
-  const [staffRes, docsRes, strikesRes, rates] = await Promise.all([
+  // hourly_rate (117) plus start_date, contracted_hours and the emergency
+  // contacts (118) are dropped from the select: both migrations revoked them
+  // from the column grant, so asking for them fails the whole query rather
+  // than returning null. They are merged back from the RPCs below.
+  const [staffRes, docsRes, strikesRes, rates, priv] = await Promise.all([
     supabase.from('staff')
-      .select('id, name, job_role, employment_type, start_date, contracted_hours, working_days, is_under_18, emergency_contact_name, emergency_contact_phone, holiday_pay_eligible')
+      .select('id, name, job_role, employment_type, working_days, is_under_18, holiday_pay_eligible')
       .eq('id', staffId)
       .maybeSingle(),
     supabase.from('staff_hr_documents').select('*', { count: 'exact', head: true }).eq('staff_id', staffId),
     supabase.from('staff_disciplinary_log').select('*', { count: 'exact', head: true }).eq('staff_id', staffId).is('dismissed_at', null),
     fetchStaffPayRates(),
+    fetchStaffPrivateFields(),
   ])
   return {
     staff: staffRes.data
-      ? { ...staffRes.data, hourly_rate: rates.get(staffId) }
+      ? { ...staffRes.data, hourly_rate: rates.get(staffId), ...(priv.get(staffId) ?? {}) }
       : staffRes.data,
     docsCount: docsRes.count ?? 0,
     strikesCount: strikesRes.count ?? 0,

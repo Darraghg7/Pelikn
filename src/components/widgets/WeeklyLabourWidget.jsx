@@ -1,7 +1,7 @@
 import React, { memo } from 'react'
 import { format } from 'date-fns'
 import { supabase } from '../../lib/supabase'
-import { fetchStaffPayRates } from '../../lib/api/staffPay'
+import { fetchStaffPayRates } from '../../lib/api/staffRestricted'
 import { useVenue } from '../../contexts/VenueContext'
 import { useWidgetQuery } from '../../hooks/useWidgetQuery'
 import LoadingSpinner from '../ui/LoadingSpinner'
