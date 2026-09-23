@@ -61,7 +61,7 @@ export default function StepDetails({ plan, extraVenues, qrAddon, onBack, onSubm
               />
               <div>
                 <div className="flex items-center rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark overflow-hidden focus-within:border-brand/40 focus-within:ring-2 focus-within:ring-brand/10 transition-all">
-                  <span className="px-3 text-xs text-charcoal/35 dark:text-white/30 font-mono border-r border-charcoal/10 dark:border-white/10 py-3 bg-charcoal/3 dark:bg-white/5 shrink-0">pelikn.app/v/</span>
+                  <span className="px-3 text-xs text-charcoal/35 dark:text-white/30 font-mono border-r border-charcoal/10 dark:border-white/10 py-3 bg-charcoal/3 dark:bg-white/5 shrink-0">get-pelikn.com/v/</span>
                   <input
                     type="text"
                     required

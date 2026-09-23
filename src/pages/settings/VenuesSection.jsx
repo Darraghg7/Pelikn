@@ -88,7 +88,7 @@ export default function VenuesSection() {
                   <span className="text-[11px] tracking-wider uppercase font-medium px-1.5 py-0.5 rounded bg-charcoal/[0.06] text-charcoal/55 dark:text-white/45">Primary</span>
                 )}
               </div>
-              <p className="text-[11px] text-charcoal/40 dark:text-white/35 mt-0.5 font-mono tracking-wide">pelikn.app/v/{v.slug}</p>
+              <p className="text-[11px] text-charcoal/40 dark:text-white/35 mt-0.5 font-mono tracking-wide">get-pelikn.com/v/{v.slug}</p>
             </div>
             <button
               onClick={() => handleOpenVenue(v.slug)}
