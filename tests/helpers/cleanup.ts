@@ -120,6 +120,7 @@ async function deleteCreated(page: Page, created: Created[]) {
     apikey: ANON_KEY,
     Authorization: `Bearer ${session.jwt}`,
     Prefer: 'return=representation',
+    'Content-Type': 'application/json',
   }
   const failed: string[] = []
 
@@ -127,13 +128,28 @@ async function deleteCreated(page: Page, created: Created[]) {
   // deleting the child first keeps a foreign key from blocking the parent.
   for (const { table, id } of [...created].reverse()) {
     try {
-      const res = await page.request.delete(
-        `${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}`, { headers }
-      )
+      // `staff` has no DELETE policy at all — RLS filters a plain REST DELETE
+      // to zero rows every time (see [[project_staff_delete_silent_noop]]).
+      // delete_staff_member (migration 115) is the SECURITY DEFINER RPC that
+      // can actually remove it, scoped to the session's own venue.
+      const res = table === 'staff'
+        ? await page.request.post(`${SUPABASE_URL}/rest/v1/rpc/delete_staff_member`, {
+            headers,
+            data: { p_session_token: session.token, p_staff_id: id },
+          })
+        : await page.request.delete(
+            `${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}`, { headers }
+          )
+
       if (!res.ok()) {
         failed.push(`${table}/${id} -> HTTP ${res.status()} ${(await res.text()).slice(0, 120)}`)
         continue
       }
+      // delete_staff_member RETURNS void — a RAISE EXCEPTION on a zero-row
+      // match already surfaced above as a non-2xx, so a 2xx here is the whole
+      // signal; there's no body to check.
+      if (table === 'staff') continue
+
       const removed = await res.json().catch(() => [])
       if (!Array.isArray(removed) || removed.length === 0) {
         failed.push(`${table}/${id} -> 0 rows removed (RLS forbids deleting from ${table}?)`)
