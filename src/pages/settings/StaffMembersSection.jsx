@@ -3,8 +3,8 @@ import {
   fetchStaffVenueLinks, fetchStaffRoleAssignments, fetchStaffPermissionCounts, fetchStaffPermissionsFor,
   uploadStaffPhotoFile, getStaffPhotoPublicUrl, updateStaffPhotoUrl,
   linkStaffToVenue, unlinkStaffFromVenue,
-  createStaffMemberRpc, updateStaffMemberRpc, updateStaffExtraFields, findNewestStaffByName, updateStaffContractType,
-  deactivateStaffMemberRpc, reactivateStaffMemberRpc, restrictStaffMemberRpc, unrestrictStaffMemberRpc, deleteStaffRow, updateStaffSortOrder, resetStaffPinLockRpc,
+  createStaffMemberRpc, updateStaffMemberRpc, updateStaffFields, findNewestStaffByName, updateStaffContractType,
+  deactivateStaffMemberRpc, reactivateStaffMemberRpc, restrictStaffMemberRpc, unrestrictStaffMemberRpc, deleteStaffMember, reorderVenueStaff, resetStaffPinLockRpc,
 } from '../../lib/api/staffManagement'
 import { useSession } from '../../contexts/SessionContext'
 import { useVenue } from '../../contexts/VenueContext'
@@ -229,7 +229,7 @@ export default function StaffMembersSection() {
     const { error: upErr } = await uploadStaffPhotoFile(path, file)
     if (upErr) { toast('Photo upload failed: ' + upErr.message, 'error'); setUploadingPhoto(false); return }
     const { data: urlData } = getStaffPhotoPublicUrl(path)
-    const { error: dbErr } = await updateStaffPhotoUrl(staffId, urlData.publicUrl + '?t=' + Date.now())
+    const { error: dbErr } = await updateStaffPhotoUrl(session.token, staffId, urlData.publicUrl + '?t=' + Date.now())
     setUploadingPhoto(false)
     if (dbErr) { toast('Failed to save photo URL', 'error'); return }
     toast('Photo uploaded')
@@ -342,10 +342,10 @@ export default function StaffMembersSection() {
     const targetId = editingId || newId
 
     if (editingId) {
-      const { error: extraErr } = await updateStaffExtraFields(editingId, extraFields)
+      const { error: extraErr } = await updateStaffFields(session.token, editingId, extraFields)
       if (extraErr) { toast('Saved, but failed to update some fields: ' + extraErr.message, 'error') }
     } else if (newId) {
-      const { error: extraErr } = await updateStaffExtraFields(newId, {
+      const { error: extraErr } = await updateStaffFields(session.token, newId, {
         ...extraFields,
         colour: staffForm.colour || null,
       })
@@ -356,7 +356,7 @@ export default function StaffMembersSection() {
     // SessionContext.jsx's fetchLivePermissions. Only persist the manual
     // checklist when no title is assigned ("Custom").
     if (staffForm.role === 'staff' && targetId) {
-      const { error: titleErr } = await updateStaffExtraFields(targetId, {
+      const { error: titleErr } = await updateStaffFields(session.token, targetId, {
         permission_title_id: staffForm.permission_title_id,
       })
       if (titleErr) { toast('Saved, but failed to update permission title: ' + titleErr.message, 'error') }
@@ -388,7 +388,7 @@ export default function StaffMembersSection() {
 
   // ── Inline contract type save ────────────────────────────────────────────
   const saveContractType = async (staffId, employment_type, contracted_hours) => {
-    const { error } = await updateStaffContractType(staffId, employment_type, contracted_hours)
+    const { error } = await updateStaffContractType(session.token, staffId, employment_type, contracted_hours)
     if (error) { toast(error.message, 'error'); return }
     reloadStaff()
   }
@@ -412,7 +412,7 @@ export default function StaffMembersSection() {
   }
 
   const confirmDeleteStaff = async () => {
-    const { error } = await deleteStaffRow(deleteTarget.id)
+    const { error } = await deleteStaffMember(session.token, deleteTarget.id)
     setDeleteTarget(null)
     if (error) { toast(error.message, 'error'); return }
     toast(`${deleteTarget.name} permanently deleted`)
@@ -426,7 +426,8 @@ export default function StaffMembersSection() {
     const swapIdx = direction === 'up' ? idx - 1 : idx + 1
     if (swapIdx < 0 || swapIdx >= list.length) return
     ;[list[idx], list[swapIdx]] = [list[swapIdx], list[idx]]
-    await Promise.all(list.map((s, i) => updateStaffSortOrder(s.id, i)))
+    const { error: orderErr } = await reorderVenueStaff(session.token, list.map(s => s.id))
+    if (orderErr) { toast(orderErr.message, 'error'); return }
     reloadStaff()
   }
 
