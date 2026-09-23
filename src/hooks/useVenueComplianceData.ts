@@ -46,7 +46,7 @@ async function fetchVenueCompliance(venueId: string): Promise<VenueComplianceDat
 
     supabase
       .from('time_off_requests')
-      .select('id, start_date, end_date, reason, staff(name)')
+      .select('id, start_date, end_date, staff(name)')  // no `reason`: 119 withholds it, and these rows are only ever counted
       .eq('venue_id', venueId)
       .eq('status', 'pending'),
 

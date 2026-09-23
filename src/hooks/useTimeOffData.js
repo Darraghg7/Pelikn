@@ -8,6 +8,7 @@
  */
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { supabase } from '../lib/supabase'
+import { fetchTimeOffPrivateFields, withTimeOffPrivate } from '../lib/api/timeOffPrivate'
 import { calculateEntitlementDays, countWorkingDaysInRequest } from './useLeaveBalance'
 
 export function useTimeOffRequests(venueId) {
@@ -18,13 +19,19 @@ export function useTimeOffRequests(venueId) {
     if (!venueId) return
     setLoading(true)
     setError(null)
-    const { data, error: err } = await supabase
-      .from('time_off_requests')
-      .select('*, staff:staff_id(name, working_days), reviewer:reviewed_by(name)')
-      .eq('venue_id', venueId)
-      .order('start_date', { ascending: true })
+    // Was select('*'). 119 withholds reason/manager_note, and a star select
+    // asks for every column — so it fails the whole query rather than omitting
+    // them. Columns are named explicitly and the two are merged back below.
+    const [{ data, error: err }, priv] = await Promise.all([
+      supabase
+        .from('time_off_requests')
+        .select('id, staff_id, venue_id, start_date, end_date, status, leave_type, reviewed_by, reviewed_at, cancelled_at, cancelled_by, created_at, staff:staff_id(name, working_days), reviewer:reviewed_by(name)')
+        .eq('venue_id', venueId)
+        .order('start_date', { ascending: true }),
+      fetchTimeOffPrivateFields(),
+    ])
     if (err) { setError(err.message); setLoading(false); return }
-    setRequests(data ?? [])
+    setRequests(withTimeOffPrivate(data ?? [], priv))
     setLoading(false)
   }, [venueId])
   useEffect(() => { load() }, [load])

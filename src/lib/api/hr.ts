@@ -1,5 +1,6 @@
 import { supabase } from '../supabase'
 import { fetchStaffPayRates, fetchStaffPrivateFields, withPrivateFields } from './staffRestricted'
+import { fetchTimeOffPrivateFields, withTimeOffPrivate } from './timeOffPrivate'
 
 export interface HRStaffRow {
   id: string
@@ -134,8 +135,12 @@ export function dismissAllStrikesRows(staffId: string, dismissedBy: string | nul
 
 /** Leave tab. */
 export async function fetchStaffLeaveRequests(staffId: string) {
-  const { data } = await supabase.from('time_off_requests').select('*').eq('staff_id', staffId).order('start_date', { ascending: false })
-  return data ?? []
+  // select('*') fails under 119's column grant — see useTimeOffData.
+  const [{ data }, priv] = await Promise.all([
+    supabase.from('time_off_requests').select('id, staff_id, venue_id, start_date, end_date, status, leave_type, reviewed_by, reviewed_at, cancelled_at, cancelled_by, created_at').eq('staff_id', staffId).order('start_date', { ascending: false }),
+    fetchTimeOffPrivateFields(),
+  ])
+  return withTimeOffPrivate(data ?? [], priv)
 }
 
 /** Training tab: certificates + induction sign-offs. */
