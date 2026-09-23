@@ -123,21 +123,47 @@ async function deleteCreated(page: Page, created: Created[]) {
   }
   const failed: string[] = []
 
+  // `staff` has no DELETE policy at all — since 091 every write to it is
+  // denied, which is why 55 "Playwright Tester" rows survived this fixture
+  // and had to be cleared by hand. Migration 115 added a manager-scoped RPC,
+  // and getTestSession already holds a real manager token, so the rows this
+  // suite creates can finally be reclaimed the same way the app deletes them.
+  const deleteRow = async (table: string, id: string) => {
+    if (table === 'staff') {
+      const res = await page.request.post(`${SUPABASE_URL}/rest/v1/rpc/delete_staff_member`, {
+        headers: { ...headers, 'Content-Type': 'application/json' },
+        data: { p_session_token: session.token, p_staff_id: id },
+      })
+      // The RPC raises when it matches no row, so a non-ok response here is a
+      // real failure rather than the silent 204 a blocked DELETE would give.
+      return { ok: res.ok(), status: res.status(), body: await res.text() }
+    }
+    const res = await page.request.delete(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}`, { headers })
+    const body = await res.text()
+    const removed = (() => { try { return JSON.parse(body) } catch { return [] } })()
+    return { ok: res.ok() && Array.isArray(removed) && removed.length > 0, status: res.status(), body }
+  }
+
   // Reverse order: a row created later may reference an earlier one, and
   // deleting the child first keeps a foreign key from blocking the parent.
   for (const { table, id } of [...created].reverse()) {
     try {
-      const res = await page.request.delete(
-        `${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}`, { headers }
+      const { ok, status, body } = await deleteRow(table, id)
+      if (ok) continue
+
+      // Removing nothing is not automatically a leak: several specs delete
+      // their own row in a `finally`, so by the time the fixture runs it is
+      // already gone. Warning on those made the output noisy and trained the
+      // reader to ignore it — which defeats the point of warning at all.
+      // Ask whether the row still exists and only complain if it does.
+      const check = await page.request.get(
+        `${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}&select=id`,
+        { headers: { apikey: ANON_KEY, Authorization: `Bearer ${session.jwt}` } }
       )
-      if (!res.ok()) {
-        failed.push(`${table}/${id} -> HTTP ${res.status()} ${(await res.text()).slice(0, 120)}`)
-        continue
-      }
-      const removed = await res.json().catch(() => [])
-      if (!Array.isArray(removed) || removed.length === 0) {
-        failed.push(`${table}/${id} -> 0 rows removed (RLS forbids deleting from ${table}?)`)
-      }
+      const still = check.ok() ? await check.json().catch(() => []) : []
+      if (Array.isArray(still) && still.length === 0) continue  // already gone
+
+      failed.push(`${table}/${id} -> still present after delete (HTTP ${status}) ${body.slice(0, 120)}`)
     } catch (err) {
       failed.push(`${table}/${id} -> ${(err as Error).message}`)
     }
