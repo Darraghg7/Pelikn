@@ -1,5 +1,22 @@
 import { supabase } from '../supabase'
 
+// The staff write RPCs live in migration 115. If the app is deployed before
+// that migration is applied, PostgREST answers PGRST202 ("no function matches")
+// and the raw message is unhelpful to whoever is standing in a kitchen trying
+// to save a staff record. Rewrite it into something that names the cause.
+//
+// Deliberately NOT falling back to a direct table write here: that is exactly
+// what 115 exists to replace, and it would fail silently again.
+function explainMissingRpc<E extends { code?: string; message?: string } | null>(error: E): E {
+  if (error?.code === 'PGRST202') {
+    return {
+      ...error,
+      message: 'Staff changes need a database update that has not been applied yet (migration 115). Nothing was saved.',
+    } as E
+  }
+  return error
+}
+
 // ── Reads (supplementary to useStaffManagement's own staff-list query) ───────
 
 export async function fetchStaffVenueLinks(staffIds: string[]) {
@@ -30,8 +47,8 @@ export function uploadStaffPhotoFile(path: string, file: File) {
 export function getStaffPhotoPublicUrl(path: string) {
   return supabase.storage.from('staff-photos').getPublicUrl(path)
 }
-export function updateStaffPhotoUrl(staffId: string, photoUrl: string) {
-  return supabase.from('staff').update({ photo_url: photoUrl }).eq('id', staffId)
+export function updateStaffPhotoUrl(sessionToken: string, staffId: string, photoUrl: string) {
+  return updateStaffFields(sessionToken, staffId, { photo_url: photoUrl })
 }
 
 // ── Venue link toggle (explicit named RPCs, not a dynamic string) ────────────
@@ -51,16 +68,33 @@ export function createStaffMemberRpc(params: Record<string, unknown>) {
 export function updateStaffMemberRpc(params: Record<string, unknown>) {
   return supabase.rpc('update_staff_member', params)
 }
-export function updateStaffExtraFields(staffId: string, fields: Record<string, unknown>) {
-  return supabase.from('staff').update(fields).eq('id', staffId)
+// Was `supabase.from('staff').update(fields)`. That has been a no-op since 091
+// removed every write policy on `staff` — a blocked UPDATE matches zero rows
+// and PostgREST reports 204, so the UI said "Staff member updated" while
+// nothing changed. Goes through the 115 RPC now, which raises if it matches
+// no row. See supabase/migrations/115_staff_write_rpcs.sql.
+export async function updateStaffFields(
+  sessionToken: string,
+  staffId: string,
+  fields: Record<string, unknown>,
+) {
+  const res = await supabase.rpc('update_staff_fields', {
+    p_session_token: sessionToken,
+    p_staff_id:      staffId,
+    p_fields:        fields,
+  })
+  return { ...res, error: explainMissingRpc(res.error) }
 }
 export async function findNewestStaffByName(venueId: string, name: string) {
   const { data } = await supabase.from('staff').select('id').eq('venue_id', venueId).eq('name', name).order('created_at', { ascending: false }).limit(1)
   return data?.[0]?.id as string | undefined
 }
 
-export function updateStaffContractType(staffId: string, employmentType: string, contractedHours: number | null) {
-  return supabase.from('staff').update({ employment_type: employmentType, contracted_hours: contractedHours ?? null }).eq('id', staffId)
+export function updateStaffContractType(sessionToken: string, staffId: string, employmentType: string, contractedHours: number | null) {
+  return updateStaffFields(sessionToken, staffId, {
+    employment_type:  employmentType,
+    contracted_hours: contractedHours ?? null,
+  })
 }
 
 // ── Activate / deactivate / delete (explicit named RPCs, not a dynamic string) ─
@@ -77,11 +111,25 @@ export function restrictStaffMemberRpc(sessionToken: string, staffId: string) {
 export function unrestrictStaffMemberRpc(sessionToken: string, staffId: string) {
   return supabase.rpc('unrestrict_staff_member', { p_session_token: sessionToken, p_staff_id: staffId })
 }
-export function deleteStaffRow(staffId: string) {
-  return supabase.from('staff').delete().eq('id', staffId)
+// Same no-op problem as the updates, with worse consequences: the UI reported
+// "<name> permanently deleted" on a DELETE that RLS had filtered to zero rows,
+// so an erasure request could be recorded as honoured without being honoured.
+export async function deleteStaffMember(sessionToken: string, staffId: string) {
+  const res = await supabase.rpc('delete_staff_member', {
+    p_session_token: sessionToken,
+    p_staff_id:      staffId,
+  })
+  return { ...res, error: explainMissingRpc(res.error) }
 }
-export function updateStaffSortOrder(staffId: string, sortOrder: number) {
-  return supabase.from('staff').update({ sort_order: sortOrder }).eq('id', staffId)
+
+// Replaces updateStaffSortOrder, which the caller invoked once per row on
+// every move. One call for the whole ordering instead of N.
+export async function reorderVenueStaff(sessionToken: string, staffIds: string[]) {
+  const res = await supabase.rpc('reorder_venue_staff', {
+    p_session_token: sessionToken,
+    p_staff_ids:     staffIds,
+  })
+  return { ...res, error: explainMissingRpc(res.error) }
 }
 export function resetStaffPinLockRpc(sessionToken: string, staffId: string) {
   return supabase.rpc('reset_staff_pin_lock', { p_session_token: sessionToken, p_staff_id: staffId })
