@@ -57,7 +57,8 @@ async function fetchVenueData(venueId: string): Promise<VenueData> {
     supabase.from('fridge_temperature_logs').select('check_period').eq('venue_id', venueId).gte('logged_at', today).lt('logged_at', tomorrow),
     supabase.from('cooking_temp_logs').select('id').eq('venue_id', venueId).gte('logged_at', today).lt('logged_at', tomorrow),
     supabase.from('hot_holding_logs').select('check_period').eq('venue_id', venueId).gte('logged_at', today).lt('logged_at', tomorrow),
-    supabase.from('time_off_requests').select('id, start_date, end_date, reason, staff(name)').eq('venue_id', venueId).eq('status', 'pending'),
+    // no `reason`: 119 withholds it, and these rows are only ever counted
+    supabase.from('time_off_requests').select('id, start_date, end_date, staff(name)').eq('venue_id', venueId).eq('status', 'pending'),
     supabase.from('clock_events').select('staff_id, event_type').eq('venue_id', venueId).gte('occurred_at', today).lt('occurred_at', tomorrow).order('occurred_at'),
   ])
 

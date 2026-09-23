@@ -2,6 +2,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useCallback } from 'react'
 import { format, addWeeks, addDays, eachDayOfInterval, parseISO } from 'date-fns'
 import { supabase } from '../lib/supabase'
+import { fetchTimeOffPrivateFields } from '../lib/api/timeOffPrivate'
 import { useVenue } from '../contexts/VenueContext'
 
 interface AvailabilityEntry {
@@ -47,12 +48,17 @@ export function useAvailability(weekStart: Date, numWeeks = 1): {
           .lte('date', endStr),
         supabase
           .from('time_off_requests')
-          .select('staff_id, start_date, end_date, reason')
+          // `reason` is withheld by 119 — it was being read here for EVERY
+          // approved request in the venue and written into the rota day note,
+          // which staff can see. `id` is selected so the reasons the caller is
+          // allowed to see can be merged back below.
+          .select('id, staff_id, start_date, end_date')
           .eq('venue_id', venueId)
           .eq('status', 'approved')
           .lte('start_date', endStr)
           .gte('end_date', startStr),
       ])
+      const timeOffPrivate = await fetchTimeOffPrivateFields()
 
       // Manual entries
       for (const row of (manualRes.data ?? []) as { staff_id: string; date: string; note?: string; availability_type?: string }[]) {
@@ -61,7 +67,7 @@ export function useAvailability(weekStart: Date, numWeeks = 1): {
       }
 
       // Approved time-off — expand date ranges into individual days
-      for (const req of (timeOffRes.data ?? []) as { staff_id: string; start_date: string; end_date: string; reason?: string }[]) {
+      for (const req of (timeOffRes.data ?? []) as { id: string; staff_id: string; start_date: string; end_date: string }[]) {
         const s = parseISO(req.start_date)
         const e = parseISO(req.end_date)
         const days = eachDayOfInterval({ start: s, end: e })
@@ -69,7 +75,8 @@ export function useAvailability(weekStart: Date, numWeeks = 1): {
           const dayStr = format(day, 'yyyy-MM-dd')
           if (dayStr >= startStr && dayStr <= endStr) {
             const key = `${req.staff_id}:${dayStr}`
-            map[key] = { type: 'time_off', note: req.reason }
+            // undefined for a colleague's request unless you are a manager
+            map[key] = { type: 'time_off', note: timeOffPrivate.get(req.id)?.reason ?? undefined }
           }
         }
       }

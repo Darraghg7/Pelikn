@@ -1,6 +1,7 @@
 import React, { memo } from 'react'
 import { format } from 'date-fns'
 import { supabase } from '../../lib/supabase'
+import { fetchTimeOffPrivateFields, withTimeOffPrivate } from '../../lib/api/timeOffPrivate'
 import { useVenue } from '../../contexts/VenueContext'
 import { useWidgetQuery } from '../../hooks/useWidgetQuery'
 import LoadingSpinner from '../ui/LoadingSpinner'
@@ -13,7 +14,7 @@ function StaffNotificationsWidget() {
     const [{ data: leave }, { data: swaps }, { count: trainCount }] = await Promise.all([
       supabase
         .from('time_off_requests')
-        .select('id, start_date, end_date, reason, staff:staff_id(name)')
+        .select('id, start_date, end_date, staff:staff_id(name)')
         .eq('venue_id', venueId)
         .eq('status', 'pending')
         .order('created_at', { ascending: false })
@@ -30,8 +31,11 @@ function StaffNotificationsWidget() {
         .eq('venue_id', venueId)
         .eq('staff_acknowledged', false),
     ])
+    // 119 withholds `reason`; a manager gets the venue's, anyone else only
+    // their own, so this widget still reads as it did for the people it is for.
+    const leaveWithReasons = withTimeOffPrivate(leave ?? [], await fetchTimeOffPrivateFields())
     return {
-      leave:      leave  ?? [],
+      leave:      leaveWithReasons,
       swaps:      swaps  ?? [],
       trainCount: trainCount ?? 0,
     }
