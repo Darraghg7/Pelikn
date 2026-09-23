@@ -950,7 +950,7 @@ export default function MarketingPage() {
             <div className="flex flex-col gap-0">
               {[
                 { n:'01', title:'Sign up', desc:'Create your account and set up your venue. Name, location, your first team members. About five minutes.' },
-                { n:'02', title:'Install on any device', desc:"Open app.pelikn.app in Safari or Chrome. Tap 'Add to Home Screen'. It lands on your home screen like any other app." },
+                { n:'02', title:'Install on any device', desc:"Open get-pelikn.com in Safari or Chrome. Tap 'Add to Home Screen'. It lands on your home screen like any other app." },
                 { n:'03', title:'Invite your team', desc:"Send invite links. Staff install the app and they're ready to log checks, see their rota and clock in." },
               ].map(({ n, title, desc }, i) => (
                 <FadeUp key={n} delay={i * 65}>

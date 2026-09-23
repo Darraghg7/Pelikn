@@ -51,7 +51,7 @@ export default function HelpSettingsPage() {
         <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[14px] overflow-hidden">
           <a
             href="mailto:hello@get-pelikn.com"
-            className="flex items-center gap-[13px] px-[14px] min-h-[58px] border-b border-charcoal/6 dark:border-white/8 no-underline"
+            className="flex items-center gap-[13px] px-[14px] min-h-[58px] no-underline"
           >
             <span className="w-8 h-8 rounded-[9px] shrink-0 bg-brand/8 text-brand flex items-center justify-center">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
@@ -61,26 +61,6 @@ export default function HelpSettingsPage() {
             <div className="flex-1 min-w-0">
               <div className="text-[15px] font-medium text-charcoal dark:text-white">Chat with support</div>
               <div className="font-mono text-[11px] text-charcoal/50 dark:text-white/40 mt-0.5">Usually responds in under an hour</div>
-            </div>
-            <svg width="6" height="10" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" className="text-charcoal/30 dark:text-white/30">
-              <path d="M1 1l4 4-4 4"/>
-            </svg>
-          </a>
-          <a
-            href="https://docs.pelikn.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-[13px] px-[14px] min-h-[58px] no-underline"
-          >
-            <span className="w-8 h-8 rounded-[9px] shrink-0 bg-brand/8 text-brand flex items-center justify-center">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                <path d="M14 2v6h6M9 13h6M9 17h4"/>
-              </svg>
-            </span>
-            <div className="flex-1 min-w-0">
-              <div className="text-[15px] font-medium text-charcoal dark:text-white">View documentation</div>
-              <div className="font-mono text-[11px] text-charcoal/50 dark:text-white/40 mt-0.5">Guides, tutorials, release notes</div>
             </div>
             <svg width="6" height="10" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" className="text-charcoal/30 dark:text-white/30">
               <path d="M1 1l4 4-4 4"/>

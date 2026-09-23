@@ -59,14 +59,14 @@ export default function StepSuccess({ venueName, venueSlug, plan, allVenues = []
           {allVenues.map(v => (
             <div key={v.slug} className="flex items-center justify-between gap-2">
               <p className="text-xs font-medium text-charcoal/70 dark:text-white/60 truncate">{v.name}</p>
-              <p className="text-xs font-mono text-charcoal/50 dark:text-white/40 shrink-0">pelikn.app/v/{v.slug}</p>
+              <p className="text-xs font-mono text-charcoal/50 dark:text-white/40 shrink-0">get-pelikn.com/v/{v.slug}</p>
             </div>
           ))}
         </div>
       ) : (
         <div className="w-full bg-charcoal/4 dark:bg-white/5 rounded-xl px-4 py-3">
           <p className="text-[11px] text-charcoal/40 dark:text-white/35 tracking-widest uppercase mb-1">Your staff login URL</p>
-          <p className="text-xs font-mono text-charcoal/60 dark:text-white/50">pelikn.app/v/{venueSlug}</p>
+          <p className="text-xs font-mono text-charcoal/60 dark:text-white/50">get-pelikn.com/v/{venueSlug}</p>
         </div>
       )}
 

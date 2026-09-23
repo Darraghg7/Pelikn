@@ -162,6 +162,13 @@ export function AuthProvider({ children }) {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) return { error, slug: null, venues: [] }
 
+    // These look like stale branding, but they are account identifiers in
+    // Supabase auth, not links — the domains deliberately stay as-is even
+    // though pelikn.app/saveserv.com no longer resolve. Password login never
+    // sends mail, so a dead domain is harmless here; renaming the strings
+    // would NOT rename the accounts, it would just stop them being recognised
+    // as demo (dropping the seed below and the demo-venue guard further down).
+    // To change these, rename the users in Supabase auth first.
     const DEMO_EMAILS = ['demo@pelikn.app', 'demo@saveserv.com', 'demopro@pelikn.com']
     const DEMO_SLUGS  = ['brew-and-bloom', 'the-corner-cup']
     const isDemo      = DEMO_EMAILS.includes(data.user?.email)
