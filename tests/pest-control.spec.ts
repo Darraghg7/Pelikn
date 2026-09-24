@@ -15,41 +15,39 @@ test.describe('Pest control', () => {
     await expect(page.getByText(/pest/i).first()).toBeVisible()
   })
 
-  test('shows inspection history or add button', async ({ page }) => {
-    // "Log Entry" tab button is always visible
-    await expect(
-      page.getByRole('button', { name: /log entry/i }).first()
-    ).toBeVisible({ timeout: 8000 })
+  test('shows the log entry tab', async ({ page }) => {
+    await expect(page.getByRole('tab', { name: /log entry/i })).toBeVisible({ timeout: 8000 })
   })
 
-  test('can open new pest sighting / inspection form', async ({ page }) => {
-    // The log form is shown inline on the "Log Entry" tab (default tab)
-    // No modal — just check the form fields are visible
-    await expect(
-      page.getByPlaceholder(/kitchen store|back yard|near bins/i).first()
-    ).toBeVisible({ timeout: 5000 })
-  })
-
-  test('can submit a pest sighting', async ({ page }) => {
-    // Fill Location field (required)
-    await page.getByPlaceholder(/kitchen store|back yard|near bins/i).first().fill(TEST_LOCATION)
-
-    // Fill Description textarea (required)
-    const textarea = page.locator('textarea').first()
-    await expect(textarea).toBeVisible({ timeout: 3000 })
-    await textarea.fill('PW test sighting — ants near back door')
-
-    // Submit
-    await page.getByRole('button', { name: /save|submit|log|record/i }).last().click()
-
-    // Was `not.toContainText('404')`, which passes on any page that renders at
-    // all — including one where the submit silently failed.
-    //
-    // Asserting the sighting text doesn't work either: the form sits on the
-    // "log" tab and the saved row only shows under "open"/"history", so it is
-    // never rendered back here. The success toast is what the page actually
-    // emits on a successful insert, and waiting for it also stops the test
-    // ending while the POST is still in flight.
+  test('can save an all-clear routine inspection', async ({ page }) => {
+    // Routine inspection + All clear are the defaults — only a location is needed
+    await page.getByLabel('Location').fill(TEST_LOCATION)
+    await page.getByRole('button', { name: /save entry/i }).click()
     await expect(page.getByText(/pest control log saved/i)).toBeVisible({ timeout: 10000 })
+  })
+
+  test('can log a sighting and resolve it with a follow-up', async ({ page }) => {
+    const finding = uniq('PW ants near back door')
+
+    await page.getByRole('button', { name: /pest sighting/i }).first().click()
+    await page.getByRole('button', { name: /^ant$/i }).click()
+    await page.getByLabel('Location').fill(TEST_LOCATION)
+    await page.getByLabel(/what did you see/i).fill(finding)
+    await page.getByRole('button', { name: /save entry/i }).click()
+    await expect(page.getByText(/pest control log saved/i)).toBeVisible({ timeout: 10000 })
+
+    // It's now an open issue; a follow-up links to it and shows in its timeline
+    await page.getByRole('tab', { name: /open issues/i }).click()
+    const card = page.locator('div', { hasText: finding }).filter({ has: page.getByRole('button', { name: /^resolve$/i }) }).last()
+    await card.getByRole('button', { name: /log follow-up/i }).click()
+    await page.getByLabel(/what did you find/i).fill('PW bait untouched')
+    await page.getByRole('button', { name: /save entry/i }).click()
+    await expect(page.getByText(/pest control log saved/i).last()).toBeVisible({ timeout: 10000 })
+
+    // Resolve closes it
+    await page.getByRole('tab', { name: /open issues/i }).click()
+    await card.getByRole('button', { name: /^resolve$/i }).click()
+    await page.getByRole('dialog').getByRole('button', { name: /^resolve$/i }).click()
+    await expect(page.getByText(finding)).toHaveCount(0, { timeout: 10000 })
   })
 })

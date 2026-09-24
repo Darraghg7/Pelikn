@@ -1,4 +1,5 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { format } from 'date-fns'
 import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
@@ -9,30 +10,12 @@ import { useToast } from '../../components/ui/Toast'
 import { PageSkeleton } from '../../components/ui/Skeleton'
 import ConfirmDialog from '../../components/ui/ConfirmDialog'
 import FridgeExportModal from './FridgeExportModal'
-import FridgeMatrixModal from './FridgeMatrixModal'
+import FridgeHistoryTab from './FridgeHistoryTab'
 import TemperatureItemSettingsModal from '../../components/temperature/TemperatureItemSettingsModal'
-import { formatCheckDays, formatRequiredPeriods, isCheckRequired } from '../../lib/temperatureChecks'
-
-function SectionLabel({ children }) {
-  return <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-3">{children}</p>
-}
-
-function SettingsButton({ onClick }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-label="Edit settings"
-      title="Edit settings"
-      className="w-8 h-8 rounded-full border border-charcoal/10 dark:border-white/10 text-charcoal/35 dark:text-white/30 hover:text-charcoal dark:hover:text-white hover:border-charcoal/25 dark:hover:border-white/25 hover:bg-charcoal/5 dark:hover:bg-white/5 transition-colors inline-flex items-center justify-center"
-    >
-      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="12" r="3" />
-        <path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .6 1.7 1.7 0 0 0-.4 1.1V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-.4-1.1 1.7 1.7 0 0 0-1-.6 1.7 1.7 0 0 0-1.88.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-.6-1 1.7 1.7 0 0 0-1.1-.4H3a2 2 0 1 1 0-4h.09a1.7 1.7 0 0 0 1.1-.4 1.7 1.7 0 0 0 .6-1 1.7 1.7 0 0 0-.34-1.88l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-.6 1.7 1.7 0 0 0 .4-1.1V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 .4 1.1 1.7 1.7 0 0 0 1 .6 1.7 1.7 0 0 0 1.88-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.7 1.7 0 0 0 19.4 9c.38.17.73.38 1 .6.3.27.6.66.6 1V11a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.1.4c-.27.22-.47.57-.6.95Z" />
-      </svg>
-    </button>
-  )
-}
+import {
+  CARD, FRIDGE_ICON, PageHeader, TabBar, AddDashedButton, PeriodChip, ItemHeading, ReadingInput, ItemSettingsRow,
+} from '../../components/temperature/TempPageParts'
+import { formatCheckDaysCompact, formatRequiredPeriods, isCheckRequired } from '../../lib/temperatureChecks'
 
 // Reasons that are "explained" — reading is recorded honestly but no compliance penalty
 const EXCEEDANCE_REASONS = [
@@ -42,6 +25,7 @@ const EXCEEDANCE_REASONS = [
   { id: 'equipment',      label: 'Equipment concern',       explained: false },
   { id: 'other',          label: 'Other reason',            explained: false },
 ]
+const EXPLAINED_IDS = EXCEEDANCE_REASONS.filter(r => r.explained).map(r => r.id)
 
 const EXCEEDANCE_ICONS = {
   delivery:       <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>,
@@ -51,14 +35,30 @@ const EXCEEDANCE_ICONS = {
   other:          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>,
 }
 
-/* ── Per-fridge inline card ───────────────────────────────────────────────── */
-function FridgeCard({ fridge, session, venueId, isManager, onSaved, onSettings }) {
+const NEW_FRIDGE = { name: '', min_temp: '', max_temp: '' }
+
+function rangeLabel(fridge) {
+  return `${fridge.min_temp}–${fridge.max_temp}°C`
+}
+
+// "AM 6.0°" chip for a logged reading, or "AM missed"; nothing otherwise
+function ReadingChip({ period, log, fridge, missed }) {
+  if (!log) return missed ? <PeriodChip period={period} value="missed" tone="missed" /> : null
+  let tone = 'ok'
+  if (isTempOutOfRange(log.temperature, fridge.min_temp, fridge.max_temp)) {
+    tone = EXPLAINED_IDS.includes(log.exceedance_reason) ? 'explained' : 'bad'
+  }
+  return <PeriodChip period={period} value={`${Number(log.temperature).toFixed(1)}°`} tone={tone} />
+}
+
+/* ── One fridge in the Log tab ───────────────────────────────────────────── */
+function FridgeLogRow({ fridge, status, session, venueId, canLog, onSaved }) {
   const toast = useToast()
   const [temp, setTemp]         = useState('')
   const [reason, setReason]     = useState(null)
   const [comment, setComment]   = useState('')
   const [saving, setSaving]     = useState(false)
-  const [savedLog, setSavedLog] = useState(null)
+  const [logAgain, setLogAgain] = useState(false)
   const commentRef              = useRef(null)
 
   // Follow-up reminder — persisted to localStorage so it survives page reloads
@@ -77,9 +77,11 @@ function FridgeCard({ fridge, session, venueId, isManager, onSaved, onSettings }
     } catch { return null }
   })
 
-  const outOfRange     = temp !== '' && isTempOutOfRange(temp, fridge.min_temp, fridge.max_temp)
   const currentPeriod  = new Date().getHours() < 12 ? 'am' : 'pm'
   const requiredNow    = isCheckRequired(fridge, new Date(), currentPeriod)
+  const currentLog     = status?.[currentPeriod] ?? null
+  const showInput      = canLog && (!currentLog || logAgain)
+  const outOfRange     = temp !== '' && isTempOutOfRange(temp, fridge.min_temp, fridge.max_temp)
   const selectedReason = EXCEEDANCE_REASONS.find(r => r.id === reason)
   const isExplained    = selectedReason?.explained ?? false
   const needsNote      = reason !== null && !isExplained
@@ -87,6 +89,8 @@ function FridgeCard({ fridge, session, venueId, isManager, onSaved, onSettings }
     !outOfRange ||
     (reason !== null && (isExplained || comment.trim().length >= 5))
   )
+  // AM counts as missed once the PM window opens without a reading
+  const amMissed = currentPeriod === 'pm' && !status?.am && status?.amRequired
 
   // Reset reason/comment when temp changes to in-range
   useEffect(() => {
@@ -128,66 +132,41 @@ function FridgeCard({ fridge, session, venueId, isManager, onSaved, onSettings }
       setFollowUp(null)
     }
 
-    setSavedLog({ temp: parsedTemp, outOfRange, isExplained, time: now })
+    toast(
+      outOfRange && !isExplained
+        ? `${fridge.name}: ${formatTemp(parsedTemp)} logged — action required`
+        : `${fridge.name}: ${formatTemp(parsedTemp)} logged`,
+      outOfRange && !isExplained ? 'error' : undefined,
+    )
     setTemp('')
     setReason(null)
     setComment('')
+    setLogAgain(false)
     onSaved()
   }, [canSave, saving, temp, comment, reason, fridge, session, venueId,
       outOfRange, isExplained, onSaved, toast, FOLLOWUP_KEY])
 
-  const handleTempKeyDown = (e) => {
-    if (e.key === 'Enter') { e.preventDefault(); if (!outOfRange) save() }
-  }
-  const handleTempBlur = () => { if (temp !== '' && !outOfRange) save() }
   const handleCommentKeyDown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); save() }
   }
-  const handleCommentBlur = () => { if (comment.trim().length >= 5) save() }
-
-  const reset = () => { setSavedLog(null); setTemp(''); setReason(null); setComment('') }
   const dismissFollowUp = () => { localStorage.removeItem(FOLLOWUP_KEY); setFollowUp(null) }
 
   return (
-    <div className={[
-      'bg-white dark:bg-paperDark rounded-2xl p-5 flex flex-col gap-3 transition-colors',
-      savedLog
-        ? savedLog.outOfRange && !savedLog.isExplained ? 'border-danger/25 bg-danger/2'
-          : savedLog.outOfRange ? 'border-warning/30 bg-warning/3'
-          : 'border-success/30 bg-success/2'
-        : outOfRange ? 'border-warning/40'
-        : 'border-charcoal/10 dark:border-white/10',
-    ].join(' ')}>
-
-      {/* Header */}
-      <div className="flex items-start justify-between gap-2">
-        <div>
-          <p className="font-semibold text-charcoal dark:text-white text-sm">{fridge.name}</p>
-          <p className="text-[11px] text-charcoal/35 dark:text-white/30 mt-0.5">Safe: {fridge.min_temp}–{fridge.max_temp}°C</p>
-          <p className="text-[11px] text-charcoal/35 dark:text-white/30 mt-0.5">
-            Checks: {formatCheckDays(fridge.check_days)} · {formatRequiredPeriods(fridge.required_periods)}
-          </p>
-        </div>
-        {isManager && <SettingsButton onClick={onSettings} />}
-        {saving && <span className="text-[11px] text-charcoal/30 dark:text-white/30 animate-pulse">Saving…</span>}
-        {savedLog && !saving && (
-          <span className={`text-[11px] font-semibold ${
-            savedLog.outOfRange && !savedLog.isExplained ? 'text-danger' :
-            savedLog.outOfRange ? 'text-warning' : 'text-success'
-          }`}>
-            {savedLog.outOfRange && !savedLog.isExplained
-              ? <span className="flex items-center gap-1"><svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Action required</span>
-              : savedLog.outOfRange
-              ? <span className="flex items-center gap-1"><svg className="w-3.5 h-3.5" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg> Explained</span>
-              : <span className="flex items-center gap-1"><svg className="w-3.5 h-3.5" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg> Saved</span>
-          }
-          </span>
-        )}
-      </div>
+    <div className="px-4 sm:px-5 py-4 flex flex-col gap-3">
+      <ItemHeading
+        name={fridge.name}
+        range={rangeLabel(fridge)}
+        schedule={formatCheckDaysCompact(fridge.check_days)}
+        note={!requiredNow && !currentLog ? `Not due this ${currentPeriod.toUpperCase()}` : null}
+        chips={<>
+          <ReadingChip period="am" log={status?.am} fridge={fridge} missed={amMissed} />
+          <ReadingChip period="pm" log={status?.pm} fridge={fridge} />
+        </>}
+      />
 
       {/* Follow-up reminder */}
       {followUp && (
-        <div className="rounded-lg border border-warning/35 bg-warning/8 px-3 py-2.5 flex items-start gap-2">
+        <div className="rounded-xl border border-warning/35 bg-warning/8 px-3 py-2.5 flex items-start gap-2">
           <span className="shrink-0 mt-0.5 text-warning">
             <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
           </span>
@@ -199,71 +178,39 @@ function FridgeCard({ fridge, session, venueId, isManager, onSaved, onSettings }
               Last reading was {formatTemp(followUp.temp)} — log a new reading to confirm the temperature has recovered.
             </p>
           </div>
-          <button onClick={dismissFollowUp} className="text-charcoal/25 dark:text-white/25 hover:text-charcoal dark:hover:text-white shrink-0 text-sm leading-none mt-0.5">×</button>
+          <button onClick={dismissFollowUp} aria-label="Dismiss" className="text-charcoal/25 dark:text-white/25 hover:text-charcoal dark:hover:text-white shrink-0 text-sm leading-none mt-0.5">×</button>
         </div>
       )}
 
-      {/* Saved confirmation */}
-      {savedLog && !saving ? (
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <p className={`text-2xl font-mono font-bold ${
-              savedLog.outOfRange && !savedLog.isExplained ? 'text-danger'
-              : savedLog.outOfRange ? 'text-warning' : 'text-success'
-            }`}>
-              {formatTemp(savedLog.temp)}
-            </p>
-            <p className="text-[11px] text-charcoal/35 dark:text-white/30 mt-0.5">
-              {format(savedLog.time, 'HH:mm')} · {savedLog.time.getHours() < 12 ? 'AM' : 'PM'} check
-              {savedLog.isExplained && ' · Follow-up due in 30 min'}
-            </p>
-          </div>
-          <button
-            onClick={reset}
-            className="text-xs text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white border border-charcoal/15 dark:border-white/15 hover:border-charcoal/30 dark:hover:border-white/30 px-3 py-1.5 rounded-lg transition-colors shrink-0"
-          >
-            + Log another
-          </button>
-        </div>
+      {!canLog ? null : !showInput ? (
+        <button
+          type="button"
+          onClick={() => setLogAgain(true)}
+          className="self-start text-xs font-medium text-ink3 dark:text-white/45 hover:text-ink dark:hover:text-white transition-colors"
+        >
+          + Log another reading
+        </button>
       ) : (
         <>
-          {/* Temperature input */}
-          <div>
-            <p className="text-[11px] tracking-widest uppercase text-charcoal/35 dark:text-white/30 mb-1.5">
-              Temperature (°C){!outOfRange && ' — press Enter to save'}
-            </p>
-            {!requiredNow && (
-              <p className="text-[11px] text-charcoal/35 dark:text-white/30 mb-2">
-                Not required for this {currentPeriod.toUpperCase()} check, but you can still log a reading.
-              </p>
-            )}
-            <input
-              type="number" step="0.1" min="-30" max="60"
-              value={temp}
-              onChange={(e) => { setTemp(e.target.value); setSavedLog(null) }}
-              onKeyDown={handleTempKeyDown}
-              onBlur={handleTempBlur}
-              placeholder="e.g. 3.5"
-              disabled={saving}
-              autoComplete="off"
-              inputMode="decimal"
-              className={[
-                'w-full px-4 py-3 rounded-lg border bg-white dark:bg-paperDark focus:outline-none focus:ring-2',
-                'text-2xl font-mono text-charcoal dark:text-white placeholder-charcoal/20 dark:placeholder-white/15 transition-colors',
-                outOfRange ? 'border-warning/50 bg-warning/5 focus:ring-warning/20' : 'border-charcoal/15 dark:border-white/15 focus:ring-charcoal/20 dark:focus:ring-white/20',
-                saving ? 'opacity-50' : '',
-              ].join(' ')}
-            />
-          </div>
+          <ReadingInput
+            value={temp}
+            onChange={setTemp}
+            onSubmit={save}
+            canSubmit={canSave}
+            saving={saving}
+            warn={outOfRange}
+            placeholder={`${currentPeriod.toUpperCase()} reading`}
+            ariaLabel={`${fridge.name} ${currentPeriod.toUpperCase()} reading in °C`}
+          />
 
           {/* Out-of-range: reason picker */}
           {outOfRange && (
-            <div className="rounded-lg border border-warning/30 bg-warning/5 p-3 flex flex-col gap-3">
+            <div className="rounded-xl border border-warning/30 bg-warning/5 p-3 flex flex-col gap-3">
               <div className="flex items-center gap-1.5">
                 <span className="text-warning">
                   <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
                 </span>
-                <p className="text-xs font-semibold text-charcoal dark:text-white">Above safe range — what's the reason?</p>
+                <p className="text-xs font-semibold text-charcoal dark:text-white">Outside safe range — what's the reason?</p>
               </div>
 
               <div className="flex flex-col gap-1.5">
@@ -313,25 +260,14 @@ function FridgeCard({ fridge, session, venueId, isManager, onSaved, onSettings }
                     value={comment}
                     onChange={(e) => setComment(e.target.value)}
                     onKeyDown={handleCommentKeyDown}
-                    onBlur={handleCommentBlur}
                     placeholder="Describe the corrective action taken…"
                     rows={2}
                     className="w-full px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark focus:outline-none focus:ring-2 focus:ring-danger/20 text-sm resize-none"
                   />
                   <p className="text-[11px] text-charcoal/35 dark:text-white/30">
-                    {comment.trim().length < 5 ? `${5 - comment.trim().length} more characters needed` : 'Press Enter or tab away to save'}
+                    {comment.trim().length < 5 ? `${5 - comment.trim().length} more characters needed` : 'Tap Log to save'}
                   </p>
                 </div>
-              )}
-
-              {canSave && (
-                <button
-                  onClick={save}
-                  disabled={saving}
-                  className="w-full bg-charcoal text-cream py-2 rounded-lg text-xs font-semibold tracking-wide hover:bg-charcoal/90 transition-colors disabled:opacity-40"
-                >
-                  {saving ? 'Saving…' : 'Save Reading'}
-                </button>
               )}
             </div>
           )}
@@ -341,90 +277,102 @@ function FridgeCard({ fridge, session, venueId, isManager, onSaved, onSettings }
   )
 }
 
+const FRIDGE_RANGE_HINT = {
+  min: '0',
+  max: '5',
+  note: 'Suggested chilled range: 0-5°C. For freezers, set the safe max to -18°C or colder.',
+}
+
 /* ── Main page ────────────────────────────────────────────────────────────── */
 export default function FridgeDashboardPage() {
   const toast = useToast()
-  const { venueId } = useVenue()
+  const { venueId, venueSlug } = useVenue()
   const { fridges, loading: fridgesLoading, reload: reloadFridges } = useFridges()
   const { status: checkStatus, loading: dashLoading, reload: reloadDash } = useTodayCheckStatus()
-  const { session, isManager } = useSession()
+  const { session, isManager, hasPermission } = useSession()
+  const canLog = hasPermission('log_temps')
+  const [searchParams, setSearchParams] = useSearchParams()
 
-  const [showManage, setShowManage] = useState(false)
-  const [fridgeForm, setFridgeForm] = useState({ name: '', min_temp: '', max_temp: '' })
-  const [savingFridge, setSavingFridge] = useState(false)
-  const [showExport, setShowExport] = useState(false)
-  const [showMatrix, setShowMatrix] = useState(false)
-  const [settingsFridge, setSettingsFridge] = useState(null)
+  const [showExport, setShowExport]   = useState(false)
+  const [showAdd, setShowAdd]         = useState(false)
+  const [openFridgeId, setOpenFridgeId] = useState(null)
   const [removeTarget, setRemoveTarget] = useState(null)
 
-  const addFridge = async () => {
-    if (!fridgeForm.name.trim()) { toast('Name is required', 'error'); return }
-    const min = parseFloat(fridgeForm.min_temp)
-    const max = parseFloat(fridgeForm.max_temp)
-    if (isNaN(min) || isNaN(max)) { toast('Enter valid temperature ranges', 'error'); return }
-    if (min >= max) { toast('Min must be less than max', 'error'); return }
-    setSavingFridge(true)
-    const { error } = await supabase.from('fridges').insert({
-      name: fridgeForm.name.trim(), min_temp: min, max_temp: max, venue_id: venueId,
-    })
-    setSavingFridge(false)
+  const tabs = isManager ? ['log', 'fridges', 'history'] : ['log', 'history']
+  const tab  = tabs.includes(searchParams.get('tab')) ? searchParams.get('tab') : 'log'
+  const setTab = (next) => setSearchParams(next === 'log' ? {} : { tab: next }, { replace: true })
+
+  const reloadAll = () => { reloadFridges(); reloadDash() }
+
+  const addFridge = async (values) => {
+    const { error } = await supabase.from('fridges').insert({ ...values, venue_id: venueId })
     if (error) { toast(error.message, 'error'); return }
-    toast(`${fridgeForm.name.trim()} added`)
-    setFridgeForm({ name: '', min_temp: '', max_temp: '' })
-    reloadFridges()
-    reloadDash()
+    toast(`${values.name} added`)
+    setShowAdd(false)
+    reloadAll()
   }
 
   const removeFridge = async (id, name) => {
     const { error } = await supabase.from('fridges').update({ is_active: false }).eq('id', id)
     if (error) { toast(error.message, 'error'); return }
     toast(`${name} removed`)
-    reloadFridges()
-    reloadDash()
+    setOpenFridgeId(null)
+    reloadAll()
   }
 
-  const saveFridgeSettings = async (values) => {
-    if (!settingsFridge) return
+  const saveFridgeSettings = async (fridge, values) => {
     const { error } = await supabase
       .from('fridges')
       .update(values)
       .eq('venue_id', venueId)
-      .eq('id', settingsFridge.id)
+      .eq('id', fridge.id)
     if (error) { toast(error.message, 'error'); return }
     toast(`${values.name} settings saved`)
-    setSettingsFridge(null)
-    reloadFridges()
-    reloadDash()
+    setOpenFridgeId(null)
+    reloadAll()
   }
 
   if (fridgesLoading || dashLoading) {
     return <PageSkeleton />
   }
 
-  return (
-    <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-charcoal dark:text-white">Temperature Logs</h1>
-        <div className="flex items-center gap-3">
-          {isManager && (
-            <button onClick={() => setShowManage(v => !v)}
-              className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white transition-colors border-b border-charcoal/20 dark:border-white/20">
-              {showManage ? 'Done' : 'Manage Fridges'}
-            </button>
-          )}
-          {isManager && (
-            <button onClick={() => setShowMatrix(true)}
-              className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white transition-colors border-b border-charcoal/20 dark:border-white/20">
-              View History
-            </button>
-          )}
-          <button onClick={() => setShowExport(true)}
-            className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white transition-colors border-b border-charcoal/20 dark:border-white/20">
-            Export PDF
-          </button>
-        </div>
-      </div>
+  const now           = new Date()
+  const currentPeriod = now.getHours() < 12 ? 'am' : 'pm'
+  const statusById    = Object.fromEntries(checkStatus.map(s => [s.id, s]))
+  const totalToday    = checkStatus.filter(f => f.amRequired).length + checkStatus.filter(f => f.pmRequired).length
+  const doneToday     = checkStatus.filter(f => f.amRequired && f.am).length + checkStatus.filter(f => f.pmRequired && f.pm).length
+  const dueNow        = checkStatus.filter(f => f[`${currentPeriod}Required`] && !f[currentPeriod]).length
 
+  const tabMeta = {
+    log:     { label: 'Log',     count: dueNow || null },
+    fridges: { label: 'Fridges', count: fridges.length || null },
+    history: { label: 'History', count: null },
+  }
+
+  return (
+    <div className="flex flex-col gap-4 max-w-3xl">
+      <PageHeader
+        title="Fridge Temperatures"
+        backTo={isManager ? `/v/${venueSlug}/checks` : null}
+        onExport={() => setShowExport(true)}
+      />
+
+      <TabBar
+        tabs={tabs.map(id => ({ id, ...tabMeta[id] }))}
+        active={tab}
+        onChange={setTab}
+      />
+
+      <FridgeExportModal open={showExport} onClose={() => setShowExport(false)} />
+      <TemperatureItemSettingsModal
+        open={showAdd}
+        item={NEW_FRIDGE}
+        title="Add fridge or freezer"
+        saveLabel="Add"
+        suggestedRange={FRIDGE_RANGE_HINT}
+        onClose={() => setShowAdd(false)}
+        onSave={addFridge}
+      />
       <ConfirmDialog
         open={!!removeTarget}
         title="Remove fridge?"
@@ -434,148 +382,88 @@ export default function FridgeDashboardPage() {
         onClose={() => setRemoveTarget(null)}
         onConfirm={() => { removeFridge(removeTarget.id, removeTarget.name); setRemoveTarget(null) }}
       />
-      <FridgeExportModal open={showExport} onClose={() => setShowExport(false)} />
-      <FridgeMatrixModal open={showMatrix} onClose={() => { setShowMatrix(false); reloadDash() }} />
-      <TemperatureItemSettingsModal
-        open={Boolean(settingsFridge)}
-        item={settingsFridge}
-        title="Fridge settings"
-        suggestedRange={{
-          min: '0',
-          max: '5',
-          note: 'Suggested chilled range: 0-5°C. For freezers, set the safe max to -18°C or colder.',
-        }}
-        onClose={() => setSettingsFridge(null)}
-        onSave={saveFridgeSettings}
-      />
 
-      {/* Manage Fridges panel */}
-      {showManage && isManager && (
-        <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-5 flex flex-col gap-5">
-          <SectionLabel>Manage Fridges &amp; Freezers</SectionLabel>
-          <div className="flex flex-col gap-3">
-            <p className="text-xs font-medium text-charcoal/60 dark:text-white/50">Add new</p>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-              <input value={fridgeForm.name} onChange={e => setFridgeForm(f => ({ ...f, name: e.target.value }))}
-                placeholder="Name (e.g. Walk-in Fridge)"
-                className="px-3 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20" />
-              <input type="number" step="0.5" value={fridgeForm.min_temp} onChange={e => setFridgeForm(f => ({ ...f, min_temp: e.target.value }))}
-                placeholder="Suggested: 0°C"
-                className="px-3 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm placeholder-charcoal/25 dark:placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20" />
-              <input type="number" step="0.5" value={fridgeForm.max_temp} onChange={e => setFridgeForm(f => ({ ...f, max_temp: e.target.value }))}
-                placeholder="Suggested: 5°C"
-                className="px-3 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm placeholder-charcoal/25 dark:placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20" />
-            </div>
-            <p className="text-[11px] text-charcoal/35 dark:text-white/30">
-              Suggested chilled range is 0-5°C. For a freezer, use a safe max of -18°C or colder.
-            </p>
-            <button onClick={addFridge} disabled={savingFridge}
-              className="self-start bg-charcoal text-cream px-4 py-2 rounded-lg text-sm font-medium hover:bg-charcoal/90 transition-colors disabled:opacity-40">
-              {savingFridge ? 'Adding…' : '+ Add Fridge / Freezer'}
-            </button>
+      {/* ── Log tab ── */}
+      {tab === 'log' && (
+        fridges.length === 0 ? (
+          <div className={`${CARD} p-8 text-center flex flex-col items-center gap-4`}>
+            <p className="text-sm text-ink3 dark:text-white/45">No fridges set up yet.</p>
+            {isManager && <AddDashedButton label="Add fridge or freezer" onClick={() => setShowAdd(true)} />}
           </div>
-          {fridges.length > 0 && (
-            <div className="border-t border-charcoal/8 dark:border-white/8 pt-4 flex flex-col divide-y divide-charcoal/6 dark:divide-white/8">
-              {fridges.map(f => (
-                <div key={f.id} className="flex items-center justify-between py-2.5">
-                  <div>
-                    <p className="text-sm font-medium text-charcoal dark:text-white">{f.name}</p>
-                    <p className="text-xs text-charcoal/40 dark:text-white/35">Safe range: {f.min_temp}°C to {f.max_temp}°C</p>
-                    <p className="text-xs text-charcoal/35 dark:text-white/30">Checks: {formatCheckDays(f.check_days)} · {formatRequiredPeriods(f.required_periods)}</p>
-                  </div>
-                  <button onClick={() => setRemoveTarget(f)}
-                    className="min-h-[40px] inline-flex items-center text-xs text-charcoal/25 dark:text-white/25 hover:text-danger transition-colors px-3">Remove</button>
+        ) : (
+          <>
+            {totalToday > 0 && (
+              <div className={`${CARD} px-4 sm:px-5 py-3.5`}>
+                <div className="flex items-center gap-3">
+                  <span className="shrink-0 px-2 py-1 rounded-md bg-brand text-white font-mono text-xs font-bold">{currentPeriod.toUpperCase()}</span>
+                  <p className="flex-1 min-w-0 text-[15px] font-semibold text-ink dark:text-white truncate">
+                    Today's checks · {format(now, 'EEE d MMM')}
+                  </p>
+                  <span className="shrink-0 font-mono text-[15px] font-semibold text-ink2 dark:text-white/70">{doneToday}/{totalToday}</span>
                 </div>
+                <div className="mt-3 h-1.5 rounded-full bg-line2 dark:bg-white/10 overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-good transition-[width] duration-500"
+                    style={{ width: `${Math.round((doneToday / totalToday) * 100)}%` }}
+                  />
+                </div>
+              </div>
+            )}
+
+            <div className={`${CARD} divide-y divide-line dark:divide-white/10`}>
+              {fridges.map(fridge => (
+                <FridgeLogRow
+                  key={fridge.id}
+                  fridge={fridge}
+                  status={statusById[fridge.id]}
+                  session={session}
+                  venueId={venueId}
+                  canLog={canLog}
+                  onSaved={reloadDash}
+                />
               ))}
             </div>
-          )}
-        </div>
+
+            {isManager && <AddDashedButton label="Add fridge or freezer" onClick={() => setShowAdd(true)} />}
+          </>
+        )
       )}
 
-      {/* Fridge cards */}
-      {fridges.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {fridges.map(fridge => (
-            <FridgeCard
-              key={fridge.id}
-              fridge={fridge}
-              session={session}
-              venueId={venueId}
-              isManager={isManager}
-              onSettings={() => setSettingsFridge(fridge)}
-              onSaved={reloadDash}
-            />
-          ))}
-        </div>
-      ) : !showManage && (
-        <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-8 text-center">
-          <p className="text-charcoal/40 dark:text-white/35 text-sm">No fridges set up yet.</p>
-          {isManager && (
-            <button onClick={() => setShowManage(true)}
-              className="mt-3 text-xs text-charcoal/50 dark:text-white/40 hover:text-charcoal dark:hover:text-white underline underline-offset-2 transition-colors">
-              Add your first fridge →
-            </button>
+      {/* ── Fridges tab (managers) ── */}
+      {tab === 'fridges' && isManager && (
+        <>
+          {fridges.length > 0 && (
+            <>
+              <p className="text-sm text-ink3 dark:text-white/45 px-1">Tap a unit to edit its safe range and check schedule.</p>
+              <div className={`${CARD} divide-y divide-line dark:divide-white/10 overflow-hidden`}>
+                {fridges.map(fridge => (
+                  <ItemSettingsRow
+                    key={fridge.id}
+                    icon={FRIDGE_ICON}
+                    name={fridge.name}
+                    subline={<>
+                      <span className="font-mono text-ink2 dark:text-white/65">{rangeLabel(fridge)}</span>
+                      {' · '}{formatCheckDaysCompact(fridge.check_days)} · {formatRequiredPeriods(fridge.required_periods)}
+                    </>}
+                    open={openFridgeId === fridge.id}
+                    onToggle={() => setOpenFridgeId(id => (id === fridge.id ? null : fridge.id))}
+                    onRemove={() => setRemoveTarget(fridge)}
+                    formProps={{
+                      item: fridge,
+                      suggestedRange: FRIDGE_RANGE_HINT,
+                      onSave: (values) => saveFridgeSettings(fridge, values),
+                    }}
+                  />
+                ))}
+              </div>
+            </>
           )}
-        </div>
+          <AddDashedButton label="Add fridge or freezer" onClick={() => setShowAdd(true)} />
+        </>
       )}
 
-      {/* Today's AM/PM status */}
-      {checkStatus.length > 0 && (
-        <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-5">
-          <SectionLabel>Today's Checks</SectionLabel>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">
-                  <th className="text-left pb-3 font-medium">Fridge / Freezer</th>
-                  <th className="text-center pb-3 font-medium w-24">AM</th>
-                  <th className="text-center pb-3 font-medium w-24">PM</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-charcoal/6 dark:divide-white/8">
-                {checkStatus.map(f => {
-                  const renderCell = (log, required) => {
-                    if (!required) return <span className="text-[11px] text-charcoal/30 dark:text-white/30">Not required</span>
-                    if (!log) return <span className="text-charcoal/25 dark:text-white/25">—</span>
-                    const oor      = isTempOutOfRange(log.temperature, f.min_temp, f.max_temp)
-                    const explained = log.exceedance_reason &&
-                      ['delivery', 'defrost', 'service_access'].includes(log.exceedance_reason)
-                    return (
-                      <div className="flex flex-col items-center gap-0.5">
-                        <span className={`font-mono font-semibold ${!oor ? 'text-success' : explained ? 'text-warning' : 'text-danger'}`}>
-                          {formatTemp(log.temperature)}
-                        </span>
-                        {oor && explained && (
-                          <span className="text-[11px] tracking-wide text-warning/80 font-semibold uppercase">Explained</span>
-                        )}
-                      </div>
-                    )
-                  }
-                  return (
-                    <tr key={f.id}>
-                      <td className="py-3">
-                        <p className="font-medium text-charcoal dark:text-white">{f.name}</p>
-                        <p className="text-[11px] text-charcoal/35 dark:text-white/30">{f.min_temp}–{f.max_temp}°C</p>
-                      </td>
-                      <td className={`text-center py-3 ${f.am || !f.amRequired ? '' : 'bg-warning/5'}`}>{renderCell(f.am, f.amRequired)}</td>
-                      <td className={`text-center py-3 ${f.pm || !f.pmRequired ? '' : 'bg-warning/5'}`}>{renderCell(f.pm, f.pmRequired)}</td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
-          {(() => {
-            const total = checkStatus.filter(f => f.amRequired).length + checkStatus.filter(f => f.pmRequired).length
-            const done  = checkStatus.filter(f => f.amRequired && f.am).length + checkStatus.filter(f => f.pmRequired && f.pm).length
-            return (
-              <p className="text-[11px] text-charcoal/35 dark:text-white/30 mt-3 pt-2 border-t border-charcoal/6 dark:border-white/8">
-                {done}/{total} checks completed today
-              </p>
-            )
-          })()}
-        </div>
-      )}
+      {/* ── History tab ── */}
+      {tab === 'history' && <FridgeHistoryTab canLog={canLog} />}
     </div>
   )
 }

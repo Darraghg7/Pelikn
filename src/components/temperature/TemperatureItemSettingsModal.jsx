@@ -14,7 +14,35 @@ export default function TemperatureItemSettingsModal({
   title,
   maxRequired = true,
   suggestedRange = null,
+  saveLabel,
   onClose,
+  onSave,
+}) {
+  if (!item) return null
+  return (
+    <Modal open={open} onClose={onClose} title={title} size="lg">
+      <TemperatureItemSettingsForm
+        item={item}
+        active={open}
+        maxRequired={maxRequired}
+        suggestedRange={suggestedRange}
+        saveLabel={saveLabel}
+        onCancel={onClose}
+        onSave={onSave}
+      />
+    </Modal>
+  )
+}
+
+// The form body on its own, so it can also sit inline (e.g. an expanded row).
+export function TemperatureItemSettingsForm({
+  item,
+  active = true,
+  maxRequired = true,
+  suggestedRange = null,
+  saveLabel = 'Save settings',
+  secondaryAction = null,
+  onCancel,
   onSave,
 }) {
   const [form, setForm] = useState({
@@ -27,7 +55,7 @@ export default function TemperatureItemSettingsModal({
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
-    if (!item || !open) return
+    if (!item || !active) return
     setForm({
       name: item.name ?? '',
       min_temp: item.min_temp ?? '',
@@ -35,7 +63,7 @@ export default function TemperatureItemSettingsModal({
       check_days: Array.isArray(item.check_days) && item.check_days.length > 0 ? item.check_days : DEFAULT_CHECK_DAYS,
       required_periods: Array.isArray(item.required_periods) && item.required_periods.length > 0 ? item.required_periods : DEFAULT_CHECK_PERIODS,
     })
-  }, [item, open])
+  }, [item, active])
 
   if (!item) return null
 
@@ -103,110 +131,109 @@ export default function TemperatureItemSettingsModal({
     form.required_periods.length > 0
 
   return (
-    <Modal open={open} onClose={onClose} title={title} size="lg">
-      <div className="flex flex-col gap-5">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <label className="sm:col-span-3">
-            <span className="block text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-1.5">Name</span>
-            <input
-              value={form.name}
-              onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-              className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
-            />
-          </label>
-          <label>
-            <span className="block text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-1.5">Safe min °C</span>
-            <input
-              type="number"
-              step="0.1"
-              value={form.min_temp}
-              onChange={e => setForm(f => ({ ...f, min_temp: e.target.value }))}
-              placeholder={suggestions.min}
-              className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white placeholder-charcoal/25 dark:placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
-            />
-          </label>
-          <label>
-            <span className="block text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-1.5">Safe max °C</span>
-            <input
-              type="number"
-              step="0.1"
-              value={form.max_temp ?? ''}
-              onChange={e => setForm(f => ({ ...f, max_temp: e.target.value }))}
-              placeholder={suggestions.max}
-              className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white placeholder-charcoal/25 dark:placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
-            />
-          </label>
-          <p className="sm:col-span-3 text-[11px] text-charcoal/35 dark:text-white/30 -mt-1">
-            {suggestions.note}
-          </p>
-        </div>
+    <div className="flex flex-col gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <label className="sm:col-span-3">
+          <span className="block text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-1.5">Name</span>
+          <input
+            value={form.name}
+            onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+            className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
+          />
+        </label>
+        <label>
+          <span className="block text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-1.5">Safe min °C</span>
+          <input
+            type="number"
+            step="0.1"
+            value={form.min_temp}
+            onChange={e => setForm(f => ({ ...f, min_temp: e.target.value }))}
+            placeholder={suggestions.min}
+            className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white placeholder-charcoal/25 dark:placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
+          />
+        </label>
+        <label>
+          <span className="block text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-1.5">Safe max °C</span>
+          <input
+            type="number"
+            step="0.1"
+            value={form.max_temp ?? ''}
+            onChange={e => setForm(f => ({ ...f, max_temp: e.target.value }))}
+            placeholder={suggestions.max}
+            className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white placeholder-charcoal/25 dark:placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
+          />
+        </label>
+        <p className="sm:col-span-3 text-[11px] text-charcoal/35 dark:text-white/30 -mt-1">
+          {suggestions.note}
+        </p>
+      </div>
 
-        <div>
-          <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-2">Days to check</p>
-          <div className="grid grid-cols-2 sm:grid-cols-7 gap-2">
-            {CHECK_DAYS.map(day => {
-              const active = form.check_days.includes(day.value)
-              return (
-                <button
-                  key={day.value}
-                  type="button"
-                  onClick={() => toggleDay(day.value)}
-                  className={[
-                    'px-3 py-2 rounded-xl border text-xs font-semibold transition-all',
-                    active
-                      ? 'bg-charcoal text-cream border-charcoal dark:border-white'
-                      : 'bg-white dark:bg-paperDark text-charcoal/50 dark:text-white/40 border-charcoal/15 dark:border-white/15 hover:border-charcoal/30 dark:hover:border-white/30',
-                  ].join(' ')}
-                >
-                  {day.short}
-                </button>
-              )
-            })}
-          </div>
-        </div>
-
-        <div>
-          <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-2">Required checks</p>
-          <div className="grid grid-cols-2 gap-2">
-            {CHECK_PERIODS.map(period => {
-              const active = form.required_periods.includes(period.value)
-              return (
-                <button
-                  key={period.value}
-                  type="button"
-                  onClick={() => togglePeriod(period.value)}
-                  className={[
-                    'py-2.5 rounded-xl border text-sm font-semibold transition-all',
-                    active
-                      ? 'bg-charcoal text-cream border-charcoal dark:border-white'
-                      : 'bg-white dark:bg-paperDark text-charcoal/50 dark:text-white/40 border-charcoal/15 dark:border-white/15 hover:border-charcoal/30 dark:hover:border-white/30',
-                  ].join(' ')}
-                >
-                  {period.label}
-                </button>
-              )
-            })}
-          </div>
-        </div>
-
-        <div className="flex items-center justify-end gap-2 pt-2">
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-4 py-2 rounded-xl border border-charcoal/15 dark:border-white/15 text-sm font-medium text-charcoal/60 dark:text-white/50 hover:text-charcoal dark:hover:text-white hover:border-charcoal/30 dark:hover:border-white/30 transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            onClick={handleSave}
-            disabled={!canSave || saving}
-            className="px-4 py-2 rounded-xl bg-charcoal text-cream text-sm font-semibold disabled:opacity-40 hover:bg-charcoal/85 transition-colors"
-          >
-            {saving ? 'Saving...' : 'Save settings'}
-          </button>
+      <div>
+        <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-2">Days to check</p>
+        <div className="grid grid-cols-2 sm:grid-cols-7 gap-2">
+          {CHECK_DAYS.map(day => {
+            const active = form.check_days.includes(day.value)
+            return (
+              <button
+                key={day.value}
+                type="button"
+                onClick={() => toggleDay(day.value)}
+                className={[
+                  'px-3 py-2 rounded-xl border text-xs font-semibold transition-all',
+                  active
+                    ? 'bg-charcoal text-cream border-charcoal dark:border-white'
+                    : 'bg-white dark:bg-paperDark text-charcoal/50 dark:text-white/40 border-charcoal/15 dark:border-white/15 hover:border-charcoal/30 dark:hover:border-white/30',
+                ].join(' ')}
+              >
+                {day.short}
+              </button>
+            )
+          })}
         </div>
       </div>
-    </Modal>
+
+      <div>
+        <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-2">Required checks</p>
+        <div className="grid grid-cols-2 gap-2">
+          {CHECK_PERIODS.map(period => {
+            const active = form.required_periods.includes(period.value)
+            return (
+              <button
+                key={period.value}
+                type="button"
+                onClick={() => togglePeriod(period.value)}
+                className={[
+                  'py-2.5 rounded-xl border text-sm font-semibold transition-all',
+                  active
+                    ? 'bg-charcoal text-cream border-charcoal dark:border-white'
+                    : 'bg-white dark:bg-paperDark text-charcoal/50 dark:text-white/40 border-charcoal/15 dark:border-white/15 hover:border-charcoal/30 dark:hover:border-white/30',
+                ].join(' ')}
+              >
+                {period.label}
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
+      <div className="flex items-center justify-end gap-2 pt-2">
+        {secondaryAction && <div className="mr-auto">{secondaryAction}</div>}
+        <button
+          type="button"
+          onClick={onCancel}
+          className="px-4 py-2 rounded-xl border border-charcoal/15 dark:border-white/15 text-sm font-medium text-charcoal/60 dark:text-white/50 hover:text-charcoal dark:hover:text-white hover:border-charcoal/30 dark:hover:border-white/30 transition-colors"
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          onClick={handleSave}
+          disabled={!canSave || saving}
+          className="px-4 py-2 rounded-xl bg-charcoal text-cream text-sm font-semibold disabled:opacity-40 hover:bg-charcoal/85 transition-colors"
+        >
+          {saving ? 'Saving...' : saveLabel}
+        </button>
+      </div>
+    </div>
   )
 }
