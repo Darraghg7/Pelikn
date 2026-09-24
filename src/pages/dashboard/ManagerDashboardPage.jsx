@@ -187,7 +187,7 @@ function StatTile({ label, value, variant = 'neutral', to }) {
   return to ? <Link to={to} className="hover:opacity-80 transition-opacity">{inner}</Link> : inner
 }
 
-function DesktopStatGrid({ summary, venueSlug, isEnabled }) {
+function DesktopStatGrid({ summary, venueSlug, isEnabled, closedToday }) {
   const vp = (p) => `/v/${venueSlug}${p}`
 
   if (!summary) {
@@ -212,8 +212,8 @@ function DesktopStatGrid({ summary, venueSlug, isEnabled }) {
       />
       <StatTile
         label="Checks Done"
-        value={totalChecks > 0 ? `${checks}/${totalChecks}` : '—'}
-        variant={totalChecks > 0 && checks >= totalChecks ? 'good' : 'neutral'}
+        value={closedToday ? 'Closed' : totalChecks > 0 ? `${checks}/${totalChecks}` : '—'}
+        variant={closedToday ? 'neutral' : totalChecks > 0 && checks >= totalChecks ? 'good' : 'neutral'}
         to={isEnabled('opening_closing') ? vp('/opening-closing') : undefined}
       />
       <StatTile
@@ -285,7 +285,7 @@ export default function ManagerDashboardPage() {
           )}
           {summary && (
             <p className="hidden lg:block text-sm text-charcoal/40 dark:text-white/35 mt-0.5">
-              {summary.checksToday} of {summary.totalChecks} daily checks complete
+              {closedToday ? 'Venue closed today' : `${summary.checksToday} of ${summary.totalChecks} daily checks complete`}
             </p>
           )}
         </div>
@@ -349,7 +349,7 @@ export default function ManagerDashboardPage() {
         )}
 
         <div className="grid grid-cols-[1fr_280px] gap-4 items-start">
-          <DesktopStatGrid summary={summary} venueSlug={venueSlug} isEnabled={isEnabled} />
+          <DesktopStatGrid summary={summary} venueSlug={venueSlug} isEnabled={isEnabled} closedToday={closedToday} />
           <div className="bg-white dark:bg-paperDark rounded-2xl p-5">
             <p className="text-[11px] tracking-widest uppercase font-semibold text-charcoal/40 dark:text-white/35 mb-3">My Clock</p>
             <ClockPanel staffId={session?.staffId} />
