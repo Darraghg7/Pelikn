@@ -53,21 +53,18 @@ test.describe('Hot holding', () => {
   })
 
   test('can log a hot holding temperature', async ({ page }) => {
-    // Hot holding shows food items with spinbuttons inline — fill them all
-    const spinbuttons = page.locator('[role="spinbutton"], input[type="number"]')
-    await expect(spinbuttons.first()).toBeVisible({ timeout: 5000 })
-    const count = await spinbuttons.count()
-    for (let i = 0; i < count; i++) {
-      await spinbuttons.nth(i).fill('65')
+    // Each item due in the current period has its own reading box + Log button.
+    // If the first item is already logged this period, reopen it via Edit.
+    const input = page.locator('input[inputmode="decimal"]').first()
+    if (!(await input.isVisible().catch(() => false))) {
+      await page.getByRole('button', { name: /^edit$/i }).first().click()
     }
-    // Complete the check period
-    await page.getByRole('button', { name: /complete/i }).first().click()
+    await expect(input).toBeVisible({ timeout: 5000 })
+    await input.fill('65')
+    await page.getByRole('button', { name: /^log$/i }).first().click()
 
-    // Was `not.toContainText('404')`, which resolved instantly — the test
-    // finished while the insert was still in flight. Wait for the toast the
-    // page emits on a successful write, which is also the only evidence here
-    // that the readings were actually logged.
-    await expect(page.getByText(/check completed .* reading/i)).toBeVisible({ timeout: 10000 })
+    // The page toasts only after the insert succeeds.
+    await expect(page.getByText(/65\.0°C logged/i)).toBeVisible({ timeout: 10000 })
   })
 })
 
@@ -77,13 +74,22 @@ test.describe('Cooling logs', () => {
     await expect(page.getByText(/cooling/i).first()).toBeVisible()
   })
 
-  test('can open a new cooling log form', async ({ page }) => {
+  test('can start a cooling batch and finish it', async ({ page }) => {
+    const batch = uniq('PW Cooling Test')
     await goto(page, '/cooling-logs')
-    const addBtn = page.getByRole('button', { name: /add|new|log|record/i }).first()
-    if (await addBtn.isVisible()) await addBtn.click()
 
-    await expect(
-      page.locator('input').first()
-    ).toBeVisible({ timeout: 5000 })
+    await page.getByLabel(/food item/i).fill(batch)
+    await page.getByPlaceholder('75').fill('78')
+    await page.getByRole('button', { name: /start cooling timer/i }).click()
+    await expect(page.getByText(/cooling timer started/i)).toBeVisible({ timeout: 10000 })
+
+    // The running batch appears under "Cooling now" with its own end-temp box
+    const endTemp = page.getByLabel(new RegExp(`${batch} end temperature`, 'i'))
+    await expect(endTemp).toBeVisible({ timeout: 10000 })
+    await endTemp.fill('5')
+    await page.getByRole('button', { name: /^finish$/i }).first().click()
+
+    await expect(page.getByText(/cooled in/i)).toBeVisible({ timeout: 10000 })
+    await expect(page.getByText(/completed today/i)).toBeVisible({ timeout: 10000 })
   })
 })

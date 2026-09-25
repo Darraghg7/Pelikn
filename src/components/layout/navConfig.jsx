@@ -257,7 +257,7 @@ export function buildStaffCats({ isEnabled, isPlanLocked, hasPermission, overdue
       label: 'Compliance',
       icon: <IcoShieldNav />,
       items: [
-        ...(isEnabled('fridge')     && hasPermission('view_temp_logs')   ? [{ id: 'fridge',     label: 'Temp Logs',  sub: 'Fridge & cooking temps', icon: PanelIcons.therm,    route: vp('/fridge') }] : []),
+        ...(isEnabled('fridge')     && (hasPermission('log_temps') || hasPermission('view_temp_logs')) ? [{ id: 'fridge',     label: 'Temp Logs',  sub: 'Fridge & cooking temps', icon: PanelIcons.therm,    route: vp('/fridge') }] : []),
         ...(isEnabled('cleaning')   && hasPermission('manage_cleaning')  ? [{ id: 'clean',      label: 'Cleaning',   sub: 'Daily tasks',             icon: PanelIcons.broom,    route: vp('/cleaning') }] : []),
         ...(isEnabled('allergens')  && hasPermission('manage_allergens') ? [{ id: 'allergen',   label: 'Allergens',  sub: 'Allergen records',        icon: PanelIcons.allergen, route: vp('/allergens') }] : []),
         ...(isEnabled('deliveries') && hasPermission('log_deliveries')   ? [{ id: 'deliveries', label: 'Deliveries', sub: 'Incoming deliveries',     icon: PanelIcons.truck,    route: vp('/deliveries') }] : []),

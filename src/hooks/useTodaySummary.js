@@ -475,7 +475,7 @@ export function useTodaySummary(venueId, closedDays = [], actionSchedules = {}) 
           ? supabase.from('hot_holding_logs').select('id', { count: 'exact', head: true }).eq('venue_id', venueId).gte('logged_at', dayStart).lte('logged_at', dayEnd)
           : { count: 0 },
         due('cooling_logs')
-          ? supabase.from('cooling_logs').select('id', { count: 'exact', head: true }).eq('venue_id', venueId).gte('logged_at', dayStart).lte('logged_at', dayEnd)
+          ? supabase.from('cooling_logs').select('id', { count: 'exact', head: true }).eq('venue_id', venueId).not('end_temp', 'is', null).gte('logged_at', dayStart).lte('logged_at', dayEnd)
           : { count: 0 },
         // Fetch shifts with IDs so duty_assignments query can happen in the second round-trip
         supabase.from('shifts').select('id').eq('venue_id', venueId).eq('shift_date', todayStr),

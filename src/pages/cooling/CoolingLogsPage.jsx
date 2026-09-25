@@ -1,308 +1,565 @@
-import React, { useState } from 'react'
-import { format } from 'date-fns'
+/**
+ * CoolingLogsPage — cook-chill records. UK guidance: cooked food must drop to
+ * 8°C or below within 90 minutes.
+ *
+ * A batch is started when it goes into the chiller (start temp, time, method)
+ * and finished when the end temperature is taken. Batches still cooling live in
+ * the database with no end_temp (migration 120), so every device in the
+ * kitchen sees the same timers and anyone can finish one.
+ *
+ * Tabs:
+ *   - Log: batches cooling now, the start form, and today's finished batches
+ *   - History: pass rate, average time and failures, one card per day
+ */
+import React, { useEffect, useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
+import { format, parseISO, subDays, isToday, isYesterday } from 'date-fns'
 import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
 import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../../components/ui/Toast'
-import DateRangePresets, { presetToDates } from '../../components/ui/DateRangePresets'
-import EmptyState from '../../components/ui/EmptyState'
+import { PageSkeleton } from '../../components/ui/Skeleton'
+import ConfirmDialog from '../../components/ui/ConfirmDialog'
+import { useCoolingLogs, useCoolingInProgress, useFrequentCoolingItems } from '../../hooks/useCoolingLogs'
 import {
-  useCoolingLogs,
-  useTodayCoolingLogs,
-  isCoolingTempFail,
-  COOLING_TARGET_TEMP,
-  COOLING_METHODS,
-} from '../../hooks/useCoolingLogs'
+  COOLING_TARGET_TEMP, COOLING_TARGET_MINUTES, COOLING_METHODS,
+  coolingMethodLabel, coolingOutcome, formatCoolingMinutes,
+} from '../../lib/cooling'
+import { CARD, TONE, PageHeader, TabBar, ReadingInput } from '../../components/temperature/TempPageParts'
+import { HistoryRangePills, StatStrip, formatPct, historyDateFrom } from '../../components/temperature/TempHistoryView'
+import CoolingExportModal from './CoolingExportModal'
 
-function nowDatetimeLocal() {
-  const d = new Date()
-  d.setSeconds(0, 0)
-  return d.toISOString().slice(0, 16)
-}
+const NEW_METHODS = COOLING_METHODS.filter(m => !m.legacy)
 
-const TABS = ['log', 'history']
+const FIELD_LABEL = 'block text-[13px] font-semibold tracking-[0.08em] uppercase text-ink3 dark:text-white/45 mb-2'
+const TEXT_FIELD  = 'w-full h-12 px-4 rounded-xl border border-line dark:border-white/10 bg-cream dark:bg-white/5 text-[15px] text-ink dark:text-white placeholder:text-ink4 dark:placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand/40 focus:bg-white dark:focus:bg-white/10 transition-colors'
+const NUMBER_RESET = '[appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none'
 
-const EMPTY_FORM = {
-  foodItem: '',
-  startTemp: '',
-  endTemp: '',
-  coolingMethod: 'ambient',
-  startedAt: '',  // will be set to nowDatetimeLocal() on mount
-  notes: '',
-}
-
-function PassBadge({ endTemp }) {
-  if (endTemp === '' || isNaN(Number(endTemp))) return null
-  const fail = isCoolingTempFail(endTemp)
+function SectionHeading({ children, aside }) {
   return (
-    <span className={`text-[11px] font-bold tracking-widest uppercase px-2 py-0.5 rounded-full ${
-      fail ? 'bg-danger/10 text-danger' : 'bg-success/10 text-success'
-    }`}>
-      {fail ? `FAIL >8°C` : 'PASS ≤8°C'}
-    </span>
+    <div className="flex items-baseline justify-between gap-3 px-1 -mb-1">
+      <p className="text-[13px] font-semibold tracking-[0.08em] uppercase text-ink3 dark:text-white/45">{children}</p>
+      {aside && <p className="text-[13px] text-ink3 dark:text-white/45 text-right">{aside}</p>}
+    </div>
   )
 }
 
-function LogRow({ log }) {
-  const fail = isCoolingTempFail(log.end_temp, log.target_temp)
-  const method = COOLING_METHODS.find(m => m.value === log.cooling_method)?.label ?? log.cooling_method
+function StopwatchIcon({ className = 'w-5 h-5' }) {
   return (
-    <div className={`rounded-xl border p-4 ${fail ? 'border-danger/30 bg-danger/5' : 'border-charcoal/10 dark:border-white/10 bg-white dark:bg-white/5'}`}>
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="14" r="8" /><polyline points="12 10 12 14 14.5 15.5" /><line x1="10" y1="2" x2="14" y2="2" />
+    </svg>
+  )
+}
+
+function temp(value) {
+  return `${Number(value).toFixed(1).replace(/\.0$/, '')}°`
+}
+
+// "from 20:05", or "from Wed 20:05" for a batch started on an earlier day
+function startedLabel(startedAt) {
+  const d = new Date(startedAt)
+  return isToday(d) ? format(d, 'HH:mm') : format(d, 'EEE HH:mm')
+}
+
+/* ── A batch that's cooling right now ─────────────────────────────────────── */
+function CoolingBatchCard({ batch, now, canDiscard, onChanged, onDiscard }) {
+  const toast = useToast()
+  const [endTemp, setEndTemp] = useState('')
+  const [note, setNote]       = useState('')
+  const [saving, setSaving]   = useState(false)
+
+  const elapsed  = Math.max(0, Math.floor((now - new Date(batch.started_at).getTime()) / 60000))
+  const pct      = Math.min(100, (elapsed / COOLING_TARGET_MINUTES) * 100)
+  const timeTone = elapsed > COOLING_TARGET_MINUTES ? 'bad' : elapsed > COOLING_TARGET_MINUTES - 15 ? 'explained' : 'ok'
+  const barTone  = { ok: 'bg-good', explained: 'bg-warn', bad: 'bg-bad' }[timeTone]
+
+  const hasTemp = endTemp !== '' && !Number.isNaN(parseFloat(endTemp))
+  const tooWarm = hasTemp && parseFloat(endTemp) > (batch.target_temp ?? COOLING_TARGET_TEMP)
+  const tooSlow = elapsed > COOLING_TARGET_MINUTES
+  const needsNote = hasTemp && (tooWarm || tooSlow)
+  const canFinish = hasTemp && (!needsNote || note.trim().length > 0)
+
+  const finish = async () => {
+    if (!canFinish || saving) return
+    setSaving(true)
+    const notes = [batch.notes, needsNote ? note.trim() : null].filter(Boolean).join('\n') || null
+    // Guard on end_temp IS NULL so two devices can't both finish the same batch
+    const { data, error } = await supabase
+      .from('cooling_logs')
+      .update({ end_temp: parseFloat(endTemp), finished_at: new Date().toISOString(), notes })
+      .eq('id', batch.id)
+      .is('end_temp', null)
+      .select('id')
+    setSaving(false)
+    if (error) { toast(error.message, 'error'); return }
+    if (!data?.length) { toast(`${batch.food_item} was already finished on another device`, 'error'); onChanged(); return }
+    toast(`${batch.food_item} · ${needsNote ? 'failed — corrective action recorded' : `cooled in ${formatCoolingMinutes(elapsed)}`}`)
+    onChanged()
+  }
+
+  return (
+    <div className={`${CARD} px-4 sm:px-5 py-4 flex flex-col gap-3`}>
       <div className="flex items-start justify-between gap-3">
-        <div className="flex-1 min-w-0">
-          <p className="font-medium text-sm text-charcoal dark:text-white truncate">{log.food_item}</p>
-          <p className="text-[11px] text-charcoal/50 dark:text-white/40 mt-0.5">{method}</p>
-        </div>
-        <div className="text-right shrink-0">
-          <p className="text-sm font-semibold font-mono text-charcoal dark:text-white">
-            {log.start_temp}°C → <span className={fail ? 'text-danger' : 'text-success'}>{log.end_temp}°C</span>
+        <div className="min-w-0">
+          <p className="text-[17px] font-semibold text-ink dark:text-white truncate">{batch.food_item}</p>
+          <p className="text-sm text-ink3 dark:text-white/45 mt-0.5">
+            <span className="font-mono text-ink2 dark:text-white/65">{Number(batch.start_temp).toFixed(0)}°C</span>
+            {' · '}{coolingMethodLabel(batch.cooling_method)} · from {startedLabel(batch.started_at)}
           </p>
-          <PassBadge endTemp={log.end_temp} />
+        </div>
+        <span className={`shrink-0 h-8 px-3 rounded-full inline-flex items-center font-mono text-[14px] font-semibold ${TONE[timeTone]}`}>
+          {elapsed}m / {COOLING_TARGET_MINUTES}m
+        </span>
+      </div>
+
+      <div className="h-1.5 rounded-full bg-line2 dark:bg-white/10 overflow-hidden">
+        <div className={`h-full rounded-full ${barTone} transition-[width] duration-700`} style={{ width: `${pct}%` }} />
+      </div>
+
+      <ReadingInput
+        value={endTemp}
+        onChange={setEndTemp}
+        onSubmit={finish}
+        canSubmit={canFinish}
+        saving={saving}
+        warn={needsNote}
+        placeholder="End temp"
+        ariaLabel={`${batch.food_item} end temperature in °C`}
+        submitLabel="Finish"
+      />
+
+      {needsNote && (
+        <div className="rounded-xl border border-bad/25 bg-badBg/60 dark:bg-bad/15 p-3 flex flex-col gap-2">
+          <p className="text-sm font-semibold text-bad dark:text-[#f19a86]">
+            {tooSlow
+              ? `Took longer than ${COOLING_TARGET_MINUTES} minutes. What did you do?`
+              : `Still above ${batch.target_temp ?? COOLING_TARGET_TEMP}°C. Keep cooling, or record what you did.`}
+          </p>
+          <textarea
+            value={note}
+            onChange={e => setNote(e.target.value)}
+            rows={2}
+            placeholder="e.g. Moved to blast chiller, 4.8°C by 16:25"
+            className="w-full px-3 py-2 rounded-lg border border-bad/25 bg-white dark:bg-paperDark text-sm text-ink dark:text-white placeholder:text-ink4 focus:outline-none focus:ring-2 focus:ring-bad/20 resize-none"
+          />
+        </div>
+      )}
+
+      {batch.notes && (
+        <p className="text-sm text-ink3 dark:text-white/45"><span className="font-semibold text-ink2 dark:text-white/65">Note</span> · {batch.notes}</p>
+      )}
+
+      {canDiscard && (
+        <button
+          type="button"
+          onClick={onDiscard}
+          className="self-start text-xs font-medium text-ink3 dark:text-white/45 hover:text-bad transition-colors"
+        >
+          Started by mistake? Discard
+        </button>
+      )}
+    </div>
+  )
+}
+
+/* ── Start a batch ────────────────────────────────────────────────────────── */
+function StartBatchForm({ session, venueId, onStarted }) {
+  const toast = useToast()
+  const frequent = useFrequentCoolingItems(4)
+  const [foodItem, setFoodItem]   = useState('')
+  const [startTemp, setStartTemp] = useState('')
+  const [time, setTime]           = useState(() => format(new Date(), 'HH:mm'))
+  const [timeTouched, setTimeTouched] = useState(false)
+  const [method, setMethod]       = useState('blast_chiller')
+  const [showNote, setShowNote]   = useState(false)
+  const [note, setNote]           = useState('')
+  const [saving, setSaving]       = useState(false)
+
+  // Keep the default start time current until someone changes it
+  useEffect(() => {
+    if (timeTouched) return
+    const id = setInterval(() => setTime(format(new Date(), 'HH:mm')), 30_000)
+    return () => clearInterval(id)
+  }, [timeTouched])
+
+  // A time later than now means the batch went in before midnight
+  const startedAt = useMemo(() => {
+    const [hh, mm] = time.split(':').map(Number)
+    const d = new Date()
+    d.setHours(hh || 0, mm || 0, 0, 0)
+    if (d.getTime() > Date.now() + 60_000) d.setDate(d.getDate() - 1)
+    return d
+  }, [time])
+  const startedDay = isToday(startedAt) ? 'Today' : 'Yesterday'
+
+  const hasTemp  = startTemp !== '' && !Number.isNaN(parseFloat(startTemp))
+  const canStart = foodItem.trim() && hasTemp && time
+
+  const start = async () => {
+    if (!canStart || saving) return
+    setSaving(true)
+    const { error } = await supabase.from('cooling_logs').insert({
+      venue_id:       venueId,
+      food_item:      foodItem.trim(),
+      start_temp:     parseFloat(startTemp),
+      end_temp:       null,
+      target_temp:    COOLING_TARGET_TEMP,
+      cooling_method: method,
+      started_at:     startedAt.toISOString(),
+      logged_by:      session?.staffId ?? null,
+      logged_by_name: session?.staffName ?? 'Unknown',
+      notes:          note.trim() || null,
+    })
+    setSaving(false)
+    if (error) { toast(error.message, 'error'); return }
+    toast(`${foodItem.trim()} · cooling timer started`)
+    setFoodItem('')
+    setStartTemp('')
+    setNote('')
+    setShowNote(false)
+    setTimeTouched(false)
+    setTime(format(new Date(), 'HH:mm'))
+    onStarted()
+  }
+
+  return (
+    <div className={`${CARD} px-4 sm:px-5 py-5 flex flex-col gap-4`}>
+      <p className="text-[19px] font-semibold text-ink dark:text-white">Start cooling a batch</p>
+
+      <div className="flex flex-col gap-2.5">
+        <input
+          type="text"
+          value={foodItem}
+          onChange={e => setFoodItem(e.target.value)}
+          placeholder="Food item, e.g. Chicken stock"
+          aria-label="Food item"
+          className={TEXT_FIELD}
+        />
+        {frequent.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {frequent.map(name => (
+              <button
+                key={name}
+                type="button"
+                onClick={() => setFoodItem(name)}
+                className={[
+                  'h-9 px-3.5 rounded-full border text-[15px] transition-colors',
+                  foodItem.trim().toLowerCase() === name.toLowerCase()
+                    ? 'bg-brand-tint border-brand/40 text-brand dark:bg-white/10 dark:text-white dark:border-white/30'
+                    : 'bg-white dark:bg-paperDark border-line dark:border-white/10 text-ink2 dark:text-white/75 hover:border-ink4',
+                ].join(' ')}
+              >
+                {name}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <label className="min-w-0">
+          <span className={FIELD_LABEL}>Start temp</span>
+          <span className="relative block">
+            <input
+              type="number" step="0.1" min="0" max="120" inputMode="decimal"
+              value={startTemp}
+              onChange={e => setStartTemp(e.target.value)}
+              placeholder="75"
+              className={`${TEXT_FIELD} ${NUMBER_RESET} pr-11 font-mono text-lg`}
+            />
+            <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 font-mono text-base text-ink3 dark:text-white/40">°C</span>
+          </span>
+        </label>
+        <label className="min-w-0">
+          <span className={FIELD_LABEL}>Started</span>
+          <span className="relative block">
+            <input
+              type="time"
+              value={time}
+              onChange={e => { setTime(e.target.value); setTimeTouched(true) }}
+              className={`${TEXT_FIELD} pr-4 font-mono text-lg font-semibold [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0 [&::-webkit-calendar-picker-indicator]:w-full`}
+            />
+            <span className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 inline-flex items-center gap-1.5 text-sm text-ink3 dark:text-white/45">
+              <svg className="w-4 h-4 text-ink2 dark:text-white/65" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9" /><polyline points="12 7 12 12 15 14" /></svg>
+              <span className="hidden min-[400px]:inline">{startedDay}</span>
+            </span>
+          </span>
+        </label>
+      </div>
+
+      <div>
+        <span className={FIELD_LABEL}>Method</span>
+        <div className="grid grid-cols-2 gap-2.5">
+          {NEW_METHODS.map(m => (
+            <button
+              key={m.value}
+              type="button"
+              aria-pressed={method === m.value}
+              onClick={() => setMethod(m.value)}
+              className={[
+                'h-12 rounded-xl border text-[15px] font-semibold transition-colors',
+                method === m.value
+                  ? 'bg-brand border-brand text-white'
+                  : 'bg-white dark:bg-paperDark border-line dark:border-white/10 text-ink2 dark:text-white/75 hover:border-ink4',
+              ].join(' ')}
+            >
+              {m.label}
+            </button>
+          ))}
         </div>
       </div>
-      <div className="flex items-center justify-between mt-2 pt-2 border-t border-charcoal/6 dark:border-white/8">
-        <span className="text-[11px] text-charcoal/40 dark:text-white/35">
-          {format(new Date(log.logged_at), 'd MMM, HH:mm')} · {log.logged_by_name ?? 'Staff'}
-        </span>
-        {log.notes && <span className="text-[11px] text-charcoal/40 dark:text-white/35 italic truncate max-w-[180px]">{log.notes}</span>}
+
+      {showNote && (
+        <textarea
+          value={note}
+          onChange={e => setNote(e.target.value)}
+          rows={2}
+          autoFocus
+          placeholder="Anything worth noting, e.g. split into shallow trays"
+          className="w-full px-4 py-3 rounded-xl border border-line dark:border-white/10 bg-cream dark:bg-white/5 text-[15px] text-ink dark:text-white placeholder:text-ink4 focus:outline-none focus:ring-2 focus:ring-brand/15 resize-none"
+        />
+      )}
+
+      <div className="flex items-center gap-3">
+        <button
+          type="button"
+          onClick={() => setShowNote(v => !v)}
+          className="shrink-0 px-3 h-12 text-[15px] font-semibold text-ink2 dark:text-white/75 hover:text-ink dark:hover:text-white"
+        >
+          {showNote ? 'No note' : '+ Note'}
+        </button>
+        <button
+          type="button"
+          onClick={start}
+          disabled={!canStart || saving}
+          className="flex-1 h-12 rounded-xl bg-brand text-white text-[16px] font-semibold inline-flex items-center justify-center gap-2 transition-colors hover:bg-brand/90 disabled:bg-ink3/70 dark:disabled:bg-white/15 disabled:cursor-not-allowed"
+        >
+          <StopwatchIcon />
+          {saving ? 'Starting…' : 'Start cooling timer'}
+        </button>
       </div>
     </div>
   )
 }
 
-export default function CoolingLogsPage() {
-  const { venueId } = useVenue()
-  const { session } = useSession()
-  const toast = useToast()
+/* ── A finished batch ─────────────────────────────────────────────────────── */
+function FinishedBatchRow({ log, compact = false }) {
+  const { fail, reason, minutes } = coolingOutcome(log)
+  const verdict = fail ? (reason === 'too_slow' ? 'Too slow' : 'Too warm') : 'Pass'
+  const timeRange = log.finished_at
+    ? `${format(new Date(log.started_at), 'HH:mm')}–${format(new Date(log.finished_at), 'HH:mm')}`
+    : format(new Date(log.started_at), 'HH:mm')
 
-  const [tab, setTab] = useState('log')
-  const [form, setForm] = useState(() => ({ ...EMPTY_FORM, startedAt: nowDatetimeLocal() }))
-  const [submitting, setSubmitting] = useState(false)
-
-  const [preset, setPreset] = useState('today')
-  const [dateFrom, setDateFrom] = useState(presetToDates('today').dateFrom)
-  const [dateTo, setDateTo]     = useState(presetToDates('today').dateTo)
-
-  const { logs: todayLogs, loading: todayLoading, reload: reloadToday } = useTodayCoolingLogs()
-  const { logs: historyLogs, loading: historyLoading } = useCoolingLogs(
-    tab === 'history' ? dateFrom : null,
-    tab === 'history' ? dateTo   : null,
+  return (
+    <div className="px-4 sm:px-5 py-3.5">
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-[17px] font-semibold text-ink dark:text-white truncate">{log.food_item}</p>
+          <p className="text-sm text-ink3 dark:text-white/45 mt-0.5 truncate">
+            {coolingMethodLabel(log.cooling_method)}{compact ? '' : ` · ${timeRange}`}
+          </p>
+        </div>
+        {compact ? (
+          <div className="shrink-0 flex items-center gap-2.5">
+            <span className="font-mono text-sm sm:text-[15px] text-ink2 dark:text-white/70 whitespace-nowrap">
+              {temp(log.start_temp)} → {temp(log.end_temp)}
+            </span>
+            <span className={`h-8 px-2.5 rounded-lg inline-flex items-center font-mono text-sm font-semibold whitespace-nowrap ${fail ? TONE.bad : TONE.ok}`}>
+              {minutes === null ? verdict : formatCoolingMinutes(minutes)}
+            </span>
+          </div>
+        ) : (
+          <div className="shrink-0 flex flex-col items-end gap-1.5">
+            <span className="font-mono text-[16px] font-semibold text-ink2 dark:text-white/70 whitespace-nowrap">
+              {temp(log.start_temp)} → <span className={fail ? 'text-bad dark:text-[#f19a86]' : 'text-good dark:text-[#7fd1a4]'}>{temp(log.end_temp)}</span>
+            </span>
+            <span className={`h-7 px-3 rounded-full inline-flex items-center text-[13px] font-semibold whitespace-nowrap ${fail ? TONE.bad : TONE.ok}`}>
+              {verdict}{minutes !== null && ` · ${formatCoolingMinutes(minutes)}`}
+            </span>
+          </div>
+        )}
+      </div>
+      {fail && log.notes && (
+        <p className="mt-2.5 px-3 py-2.5 rounded-lg bg-badBg dark:bg-bad/20 text-sm text-ink2 dark:text-white/75">
+          {compact && <><span className="font-semibold text-bad dark:text-[#f19a86]">Corrective action</span> · </>}
+          {log.notes}
+        </p>
+      )}
+    </div>
   )
+}
 
-  const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
+/* ── History tab ──────────────────────────────────────────────────────────── */
+function CoolingHistory() {
+  const [range, setRange] = useState(7)
+  const todayStr = format(new Date(), 'yyyy-MM-dd')
+  const { logs, loading } = useCoolingLogs(historyDateFrom(range), todayStr)
 
-  const endFail = form.endTemp !== '' && !isNaN(Number(form.endTemp)) && isCoolingTempFail(form.endTemp)
+  const outcomes = logs.map(log => coolingOutcome(log))
+  const passed   = outcomes.filter(o => !o.fail).length
+  const timed    = outcomes.filter(o => o.minutes !== null)
+  const avg      = timed.length ? Math.round(timed.reduce((sum, o) => sum + o.minutes, 0) / timed.length) : null
+  const failures = logs.length - passed
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    if (!form.foodItem.trim()) { toast('Enter the food item name', 'error'); return }
-    if (form.startTemp === '' || isNaN(Number(form.startTemp))) { toast('Enter a valid start temperature', 'error'); return }
-    if (form.endTemp   === '' || isNaN(Number(form.endTemp)))   { toast('Enter a valid end temperature', 'error'); return }
-    if (endFail && !form.notes.trim()) { toast('Add a corrective action note for failed cooling', 'error'); return }
+  // Grouped by the day the batch went in to cool, newest first
+  const days = useMemo(() => {
+    const groups = new Map()
+    for (const log of logs) {
+      const key = format(new Date(log.started_at), 'yyyy-MM-dd')
+      if (!groups.has(key)) groups.set(key, [])
+      groups.get(key).push(log)
+    }
+    return [...groups.entries()]
+  }, [logs])
 
-    setSubmitting(true)
-    const startedAt = form.startedAt ? new Date(form.startedAt).toISOString() : new Date().toISOString()
-
-    const { error } = await supabase.from('cooling_logs').insert({
-      venue_id:       venueId,
-      food_item:      form.foodItem.trim(),
-      start_temp:     Number(form.startTemp),
-      end_temp:       Number(form.endTemp),
-      target_temp:    COOLING_TARGET_TEMP,
-      cooling_method: form.coolingMethod,
-      started_at:     startedAt,
-      logged_by:      session?.staffId   ?? null,
-      logged_by_name: session?.staffName ?? null,
-      notes:          form.notes.trim() || null,
-    })
-
-    setSubmitting(false)
-    if (error) { toast(error.message, 'error'); return }
-    toast('Cooling log saved', 'success')
-    setForm({ ...EMPTY_FORM, startedAt: nowDatetimeLocal() })
-    reloadToday()
+  const dayLabel = (dateStr) => {
+    const d = parseISO(dateStr)
+    const base = format(d, 'EEE d MMM')
+    if (isToday(d)) return `Today · ${base}`
+    if (isYesterday(d)) return `Yesterday · ${base}`
+    return base
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-xl font-bold text-charcoal dark:text-white tracking-tight">Cooling Logs</h1>
-        <p className="text-sm text-charcoal/50 dark:text-white/40 mt-1">
-          Record food cooling temperatures — target ≤8°C (UK food safety regs)
-        </p>
-      </div>
+    <div className="flex flex-col gap-4">
+      <HistoryRangePills range={range} onRange={setRange} />
 
-      {/* Tabs */}
-      <div className="flex gap-1 bg-charcoal/6 dark:bg-white/8 rounded-xl p-1 w-fit">
-        {TABS.map(t => (
-          <button key={t} onClick={() => setTab(t)}
-            className={`px-5 py-2 rounded-lg text-sm font-medium transition-all capitalize ${
-              tab === t
-                ? 'bg-white dark:bg-white/15 text-charcoal dark:text-white shadow-sm'
-                : 'text-charcoal/50 dark:text-white/40 hover:text-charcoal dark:hover:text-white'
-            }`}>
-            {t === 'log' ? 'Log Reading' : 'History'}
-          </button>
-        ))}
-      </div>
+      {loading ? (
+        <div className="py-12 text-center">
+          <div className="w-5 h-5 rounded-full border-2 border-charcoal/15 dark:border-white/15 border-t-charcoal animate-spin mx-auto" />
+        </div>
+      ) : (
+        <>
+          <StatStrip stats={[
+            { value: logs.length ? formatPct((passed / logs.length) * 100) : '–', label: 'Passed', tone: 'good' },
+            { value: formatCoolingMinutes(avg), label: 'Avg time', tone: null },
+            { value: failures, label: failures === 1 ? 'Failure' : 'Failures', tone: failures ? 'bad' : null },
+          ]} />
+
+          {days.length === 0 ? (
+            <p className="text-sm text-ink3 dark:text-white/40 py-10 text-center">No batches cooled in this period.</p>
+          ) : days.map(([dateStr, dayLogs]) => (
+            <div key={dateStr} className={`${CARD} overflow-hidden`}>
+              <div className="flex items-center justify-between gap-2 px-4 sm:px-5 py-3 bg-cream dark:bg-white/5 border-b border-line dark:border-white/10">
+                <p className="text-sm font-semibold text-ink dark:text-white truncate">{dayLabel(dateStr)}</p>
+                <span className="shrink-0 font-mono text-sm text-ink3 dark:text-white/45">
+                  {dayLogs.length} {dayLogs.length === 1 ? 'batch' : 'batches'}
+                </span>
+              </div>
+              <div className="divide-y divide-line dark:divide-white/10">
+                {dayLogs.map(log => <FinishedBatchRow key={log.id} log={log} compact />)}
+              </div>
+            </div>
+          ))}
+        </>
+      )}
+    </div>
+  )
+}
+
+/* ── Main page ────────────────────────────────────────────────────────────── */
+export default function CoolingLogsPage() {
+  const toast = useToast()
+  const { venueId, venueSlug } = useVenue()
+  const { session, isManager } = useSession()
+  const [searchParams, setSearchParams] = useSearchParams()
+
+  const tab = searchParams.get('tab') === 'history' ? 'history' : 'log'
+  const setTab = (next) => setSearchParams(next === 'log' ? {} : { tab: next }, { replace: true })
+
+  const { batches, loading: batchesLoading, reload: reloadBatches } = useCoolingInProgress()
+  const todayStr     = format(new Date(), 'yyyy-MM-dd')
+  const yesterdayStr = format(subDays(new Date(), 1), 'yyyy-MM-dd')
+  const { logs: recent, loading: recentLoading, reload: reloadRecent } = useCoolingLogs(yesterdayStr, todayStr)
+
+  const [showExport, setShowExport]       = useState(false)
+  const [discardTarget, setDiscardTarget] = useState(null)
+
+  // Tick the cooling timers
+  const [now, setNow] = useState(() => Date.now())
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 30_000)
+    return () => clearInterval(id)
+  }, [])
+
+  const reloadAll = () => { reloadBatches(); reloadRecent() }
+
+  const discard = async (batch) => {
+    const { error } = await supabase.from('cooling_logs').delete().eq('id', batch.id).is('end_temp', null)
+    if (error) { toast(error.message, 'error'); return }
+    toast(`${batch.food_item} discarded`)
+    reloadBatches()
+  }
+
+  if (batchesLoading || recentLoading) {
+    return <PageSkeleton />
+  }
+
+  // Finished today (legacy rows without a finish time count by start time)
+  const completedToday = recent.filter(log => isToday(new Date(log.finished_at ?? log.started_at)))
+  const passedToday    = completedToday.filter(log => !coolingOutcome(log).fail).length
+
+  return (
+    <div className="flex flex-col gap-4 max-w-3xl">
+      <PageHeader
+        title="Cooling logs"
+        backTo={isManager ? `/v/${venueSlug}/checks` : null}
+        onExport={() => setShowExport(true)}
+      />
+
+      <TabBar
+        tabs={[
+          { id: 'log', label: 'Log', count: batches.length },
+          { id: 'history', label: 'History' },
+        ]}
+        active={tab}
+        onChange={setTab}
+      />
+
+      <CoolingExportModal open={showExport} onClose={() => setShowExport(false)} />
+      <ConfirmDialog
+        open={!!discardTarget}
+        title="Discard this batch?"
+        message={discardTarget ? `Remove "${discardTarget.food_item}" from the cooling list? Only do this if it was started by mistake — a batch that went wrong should be finished with a corrective action instead.` : ''}
+        confirmLabel="Discard"
+        danger
+        onClose={() => setDiscardTarget(null)}
+        onConfirm={() => { discard(discardTarget); setDiscardTarget(null) }}
+      />
 
       {tab === 'log' && (
-        <div className="space-y-6">
-          {/* Form */}
-          <div className="bg-white dark:bg-white/5 rounded-2xl border border-charcoal/10 dark:border-white/10 p-5 space-y-4">
-            <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 font-semibold">New Cooling Entry</p>
-
-            {/* Food item */}
-            <div>
-              <label className="text-xs text-charcoal/60 dark:text-white/50 mb-1 block">Food Item</label>
-              <input
-                type="text"
-                value={form.foodItem}
-                onChange={e => set('foodItem', e.target.value)}
-                placeholder="e.g. Chicken stock, Beef bolognese"
-                className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-white/8 text-sm text-charcoal dark:text-white placeholder:text-charcoal/30 dark:placeholder:text-white/25 outline-none focus:border-accent dark:focus:border-accent"
-              />
-            </div>
-
-            {/* Temps */}
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-xs text-charcoal/60 dark:text-white/50 mb-1 block">Start Temp (°C)</label>
-                <input
-                  type="number" step="0.1"
-                  value={form.startTemp}
-                  onChange={e => set('startTemp', e.target.value)}
-                  placeholder="e.g. 75"
-                  className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-white/8 text-sm text-charcoal dark:text-white placeholder:text-charcoal/30 dark:placeholder:text-white/25 outline-none focus:border-accent dark:focus:border-accent font-mono"
+        <>
+          {batches.length > 0 && (
+            <>
+              <SectionHeading aside={`Target ≤${COOLING_TARGET_TEMP}°C within ${COOLING_TARGET_MINUTES} min`}>Cooling now</SectionHeading>
+              {batches.map(batch => (
+                <CoolingBatchCard
+                  key={batch.id}
+                  batch={batch}
+                  now={now}
+                  canDiscard={isManager || batch.logged_by === session?.staffId}
+                  onChanged={reloadAll}
+                  onDiscard={() => setDiscardTarget(batch)}
                 />
-                <p className="text-[11px] text-charcoal/35 dark:text-white/30 mt-1">When cooling started</p>
-              </div>
-              <div>
-                <label className="text-xs text-charcoal/60 dark:text-white/50 mb-1 flex items-center gap-2">
-                  End Temp (°C) <PassBadge endTemp={form.endTemp} />
-                </label>
-                <input
-                  type="number" step="0.1"
-                  value={form.endTemp}
-                  onChange={e => set('endTemp', e.target.value)}
-                  placeholder="e.g. 6"
-                  className={`w-full px-4 py-2.5 rounded-xl border text-sm font-mono outline-none transition-colors bg-white dark:bg-white/8 text-charcoal dark:text-white placeholder:text-charcoal/30 dark:placeholder:text-white/25 ${
-                    endFail
-                      ? 'border-danger focus:border-danger bg-danger/5'
-                      : 'border-charcoal/15 dark:border-white/15 focus:border-accent'
-                  }`}
-                />
-                <p className="text-[11px] text-charcoal/35 dark:text-white/30 mt-1">Target ≤8°C</p>
-              </div>
-            </div>
-
-            {/* Method + time */}
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-xs text-charcoal/60 dark:text-white/50 mb-1 block">Cooling Method</label>
-                <select
-                  value={form.coolingMethod}
-                  onChange={e => set('coolingMethod', e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-white/8 text-sm text-charcoal dark:text-white outline-none focus:border-accent appearance-none"
-                >
-                  {COOLING_METHODS.map(m => (
-                    <option key={m.value} value={m.value}>{m.label}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="text-xs text-charcoal/60 dark:text-white/50 mb-1 block">Date &amp; Time Started</label>
-                <input
-                  type="datetime-local"
-                  value={form.startedAt}
-                  max={nowDatetimeLocal()}
-                  onChange={e => set('startedAt', e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-white/8 text-sm text-charcoal dark:text-white outline-none focus:border-accent"
-                />
-              </div>
-            </div>
-
-            {/* Corrective note — required on fail */}
-            {endFail && (
-              <div className="rounded-xl bg-danger/8 border border-danger/20 p-3">
-                <p className="text-xs font-semibold text-danger mb-2">
-                  <span className="inline-flex items-center gap-1"><svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Temperature above 8°C — corrective action required</span>
-                </p>
-                <textarea
-                  value={form.notes}
-                  onChange={e => set('notes', e.target.value)}
-                  placeholder="Describe what corrective action was taken (e.g. food discarded, returned to rapid chill)"
-                  rows={3}
-                  className="w-full px-3 py-2 rounded-lg border border-danger/30 bg-white dark:bg-white/8 text-sm text-charcoal dark:text-white placeholder:text-charcoal/30 dark:placeholder:text-white/25 outline-none focus:border-danger resize-none"
-                />
-              </div>
-            )}
-
-            {/* Optional notes when passing */}
-            {!endFail && (
-              <div>
-                <label className="text-xs text-charcoal/60 dark:text-white/50 mb-1 block">Notes (optional)</label>
-                <input
-                  type="text"
-                  value={form.notes}
-                  onChange={e => set('notes', e.target.value)}
-                  placeholder="Any additional notes"
-                  className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-white/8 text-sm text-charcoal dark:text-white placeholder:text-charcoal/30 dark:placeholder:text-white/25 outline-none focus:border-accent"
-                />
-              </div>
-            )}
-
-            <button
-              onClick={handleSubmit}
-              disabled={submitting}
-              className="w-full bg-charcoal dark:bg-white text-cream dark:text-charcoal py-3 rounded-xl text-sm font-semibold tracking-wide hover:bg-charcoal/85 dark:hover:bg-white/85 transition-colors disabled:opacity-40"
-            >
-              {submitting ? 'Saving…' : 'Save Cooling Log'}
-            </button>
-          </div>
-
-          {/* Today's logs */}
-          <div>
-            <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 font-semibold mb-3">Today's Logs</p>
-            {todayLoading ? (
-              <p className="text-sm text-charcoal/40 dark:text-white/35">Loading…</p>
-            ) : todayLogs.length === 0 ? (
-              <EmptyState icon="thermometer" title="No logs yet" description="No cooling logs recorded today." className="py-6" />
-            ) : (
-              <div className="space-y-3">
-                {todayLogs.map(log => <LogRow key={log.id} log={log} />)}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {tab === 'history' && (
-        <div className="space-y-4">
-          <DateRangePresets
-            preset={preset} onPreset={(key) => {
-              setPreset(key)
-              if (key !== 'custom') {
-                const { dateFrom: df, dateTo: dt } = presetToDates(key)
-                setDateFrom(df)
-                setDateTo(dt)
-              }
-            }}
-            dateFrom={dateFrom} dateTo={dateTo}
-            onDateChange={({ dateFrom: df, dateTo: dt }) => { setDateFrom(df); setDateTo(dt) }}
-          />
-          {historyLoading ? (
-            <p className="text-sm text-charcoal/40 dark:text-white/35">Loading…</p>
-          ) : historyLogs.length === 0 ? (
-            <EmptyState icon="thermometer" title="No records found" description="No cooling logs for this period." />
-          ) : (
-            <div className="space-y-3">
-              {historyLogs.map(log => <LogRow key={log.id} log={log} />)}
-            </div>
+              ))}
+            </>
           )}
-        </div>
+
+          <StartBatchForm session={session} venueId={venueId} onStarted={reloadBatches} />
+
+          {completedToday.length > 0 && (
+            <>
+              <SectionHeading aside={<span className="font-mono">{passedToday}/{completedToday.length} passed</span>}>Completed today</SectionHeading>
+              <div className={`${CARD} divide-y divide-line dark:divide-white/10`}>
+                {completedToday.map(log => <FinishedBatchRow key={log.id} log={log} />)}
+              </div>
+            </>
+          )}
+        </>
       )}
+
+      {tab === 'history' && <CoolingHistory />}
     </div>
   )
 }

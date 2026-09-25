@@ -4,6 +4,7 @@
  * Venues should check twice daily: AM and PM.
  */
 import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { format } from 'date-fns'
 import { supabase } from '../lib/supabase'
 import { useVenue } from '../contexts/VenueContext'
 import { isCheckRequired } from '../lib/temperatureChecks'
@@ -31,6 +32,7 @@ interface HotHoldingLog {
   check_period: 'am' | 'pm'
   logged_at: string
   logged_by_name?: string
+  notes?: string | null
   venue_id: string
   hot_holding_items?: { min_temp: number; max_temp: number | null } | null
 }
@@ -213,4 +215,53 @@ export function useHotHoldingLogs(dateFrom: string | null = null, dateTo: string
   const reload = () => queryClient.invalidateQueries({ queryKey })
 
   return { logs, loading, reload }
+}
+
+/**
+ * useHotHoldingMatrix — items plus their readings grouped for the History tab:
+ * { [itemId]: { [yyyy-MM-dd]: { am?: log, pm?: log } } }, latest reading per slot.
+ * Days are the device's local date, so an evening check never lands on tomorrow.
+ */
+export function useHotHoldingMatrix(dateFrom: string, dateTo: string): {
+  items: HotHoldingItem[]
+  matrix: Record<string, Record<string, Record<string, HotHoldingLog>>>
+  loading: boolean
+  reload: () => void
+} {
+  const { venueId } = useVenue()
+  const queryClient = useQueryClient()
+
+  const queryKey = ['hot_holding_matrix', venueId, dateFrom, dateTo]
+
+  const { data, isLoading: loading } = useQuery({
+    queryKey,
+    queryFn: async () => {
+      const [items, { data: logs }] = await Promise.all([
+        fetchActiveHotHoldingItems(venueId!),
+        supabase
+          .from('hot_holding_logs')
+          .select('id, item_id, temperature, check_period, logged_at, logged_by_name, notes, venue_id')
+          .eq('venue_id', venueId)
+          .gte('logged_at', new Date(`${dateFrom}T00:00:00`).toISOString())
+          .lte('logged_at', new Date(`${dateTo}T23:59:59`).toISOString())
+          .order('logged_at', { ascending: false })
+          .limit(5000),
+      ])
+
+      const matrix: Record<string, Record<string, Record<string, HotHoldingLog>>> = {}
+      for (const log of (logs ?? []) as HotHoldingLog[]) {
+        const day = format(new Date(log.logged_at), 'yyyy-MM-dd')
+        const period = log.check_period === 'pm' ? 'pm' : 'am'
+        matrix[log.item_id] ??= {}
+        matrix[log.item_id][day] ??= {}
+        matrix[log.item_id][day][period] ??= log
+      }
+      return { items, matrix }
+    },
+    enabled: !!venueId && !!dateFrom && !!dateTo,
+  })
+
+  const reload = () => queryClient.invalidateQueries({ queryKey })
+
+  return { items: data?.items ?? [], matrix: data?.matrix ?? {}, loading, reload }
 }
