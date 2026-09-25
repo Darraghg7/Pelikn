@@ -250,6 +250,12 @@ export default function RolesSection() {
 export function StaffRolesAssignment({ staffId }) {
   const { roles } = useVenueRoles()
   const { roleIds, toggleRole } = useStaffRoleAssignments(staffId)
+  const toast = useToast()
+
+  const onToggle = async (roleId) => {
+    const { error } = await toggleRole(roleId)
+    if (error) toast('Could not update role: ' + (error.message ?? 'unknown error'), 'error')
+  }
 
   if (roles.length === 0) {
     return (
@@ -267,7 +273,7 @@ export function StaffRolesAssignment({ staffId }) {
           <button
             key={role.id}
             type="button"
-            onClick={() => toggleRole(role.id)}
+            onClick={() => onToggle(role.id)}
             className={[
               'px-3 py-1.5 rounded-lg border text-xs font-medium transition-all',
               active

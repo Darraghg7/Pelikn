@@ -77,10 +77,11 @@ export function useVenueRoles(): {
 export function useStaffRoleAssignments(staffId: string): {
   roleIds: string[]
   loading: boolean
-  toggleRole: (roleId: string) => Promise<void>
-  setRoles: (newRoleIds: string[]) => Promise<void>
+  toggleRole: (roleId: string) => Promise<{ error: unknown }>
+  setRoles: (newRoleIds: string[]) => Promise<{ error: unknown }>
   reload: () => void
 } {
+  const { venueId } = useVenue()
   const queryClient = useQueryClient()
 
   const { data: roleIds = [], isLoading: loading, refetch } = useQuery({
@@ -95,26 +96,32 @@ export function useStaffRoleAssignments(staffId: string): {
     enabled: !!staffId,
   })
 
+  // venue_id is required: the live RLS policy on staff_role_assignments is
+  // has_venue_access(venue_id) (091), so a row inserted without it is
+  // rejected with 42501 and the role silently never saves.
   const toggleRole = async (roleId: string) => {
-    if (roleIds.includes(roleId)) {
-      await supabase.from('staff_role_assignments')
-        .delete().eq('staff_id', staffId).eq('role_id', roleId)
-    } else {
-      await supabase.from('staff_role_assignments')
-        .insert({ staff_id: staffId, role_id: roleId })
-    }
+    const { error } = roleIds.includes(roleId)
+      ? await supabase.from('staff_role_assignments')
+          .delete().eq('staff_id', staffId).eq('role_id', roleId)
+      : await supabase.from('staff_role_assignments')
+          .insert({ staff_id: staffId, role_id: roleId, venue_id: venueId })
     queryClient.invalidateQueries({ queryKey: ['staff_role_assignments', staffId] })
+    return { error }
   }
 
   const setRoles = async (newRoleIds: string[]) => {
-    // Replace all assignments for this staff member
-    await supabase.from('staff_role_assignments').delete().eq('staff_id', staffId)
+    // Replace this venue's assignments for this staff member
+    const { error: delErr } = await supabase.from('staff_role_assignments')
+      .delete().eq('staff_id', staffId).eq('venue_id', venueId)
+    if (delErr) return { error: delErr }
+    let error: unknown = null
     if (newRoleIds.length > 0) {
-      await supabase.from('staff_role_assignments').insert(
-        newRoleIds.map(rid => ({ staff_id: staffId, role_id: rid }))
-      )
+      ;({ error } = await supabase.from('staff_role_assignments').insert(
+        newRoleIds.map(rid => ({ staff_id: staffId, role_id: rid, venue_id: venueId }))
+      ))
     }
     queryClient.invalidateQueries({ queryKey: ['staff_role_assignments', staffId] })
+    return { error }
   }
 
   return { roleIds, loading, toggleRole, setRoles, reload: refetch }
