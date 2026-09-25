@@ -13,6 +13,13 @@ test.describe('Training records', () => {
     await expect(page.getByText(/training/i).first()).toBeVisible()
   })
 
+  test('switches between induction, certificates and allergens', async ({ page }) => {
+    await page.getByRole('tab', { name: /^certificates$/i }).click()
+    await expect(page.getByRole('tab', { name: /^certificates$/i })).toHaveAttribute('aria-selected', 'true')
+    await page.getByRole('tab', { name: /^allergens$/i }).click()
+    await expect(page.getByText(/\d+\/\d+ trained/)).toBeVisible({ timeout: 8000 })
+  })
+
   test('shows staff training records', async ({ page }) => {
     await expect(
       page.locator('[class*="record"], [class*="item"], [class*="card"], li, tr, button').first()
@@ -20,8 +27,8 @@ test.describe('Training records', () => {
   })
 
   test('can open add training record form', async ({ page }) => {
-    // "+ New Record" opens a custom fullscreen modal (not role="dialog")
-    await page.getByRole('button', { name: /new record/i }).first().click()
+    // "New" on the Induction tab opens the SC6 record form
+    await page.getByRole('button', { name: /^new$/i }).click()
     // Modal heading is "New SC6 Training Record"
     await expect(
       page.getByText(/new sc6 training record/i).first()
@@ -29,7 +36,7 @@ test.describe('Training records', () => {
   })
 
   test('can add a training record', async ({ page }) => {
-    await page.getByRole('button', { name: /new record/i }).first().click()
+    await page.getByRole('button', { name: /^new$/i }).click()
     await expect(page.getByText(/new sc6 training record/i).first()).toBeVisible({ timeout: 5000 })
 
     // Select staff member

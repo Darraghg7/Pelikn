@@ -86,7 +86,12 @@ export async function fetchAllergenCerts(venueId: string): Promise<CertRecord[]>
     .from('staff_training')
     .select('*, staff:staff_id(id, name)')
     .eq('venue_id', venueId)
-    .eq('category', 'allergen_awareness')
+    // Allergen training is recorded three ways: the allergen tab saves
+    // category 'allergen_awareness'; the Certificates tab saves the label
+    // 'Allergen Awareness' — or no category at all, since it's optional. Match
+    // on the title too, or a certificate named "Allergen Awareness Level 2"
+    // added via Certificates never counts towards allergen compliance.
+    .or('category.in.("allergen_awareness","Allergen Awareness"),title.ilike.*allergen*')
     .order('issued_date', { ascending: false, nullsFirst: false })
   return (data ?? []) as unknown as CertRecord[]
 }
