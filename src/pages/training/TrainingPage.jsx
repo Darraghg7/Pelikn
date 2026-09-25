@@ -313,8 +313,8 @@ function SignOffDetailModal({ record, venueId, onClose }) {
 
 // ── Shared bits ───────────────────────────────────────────────────────────────
 const FIELD_LABEL = 'block text-[12px] font-semibold tracking-[0.08em] uppercase text-ink3 dark:text-white/45 mb-2'
-const TEXT_FIELD  = 'w-full h-10 px-4 rounded-xl border border-line dark:border-white/10 bg-cream dark:bg-white/5 text-[13px] text-ink dark:text-white placeholder:text-ink4 dark:placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand/40 focus:bg-white dark:focus:bg-white/10 transition-colors'
-const PRIMARY_BTN = 'w-full h-11 rounded-2xl bg-brand text-white text-[15px] font-semibold transition-colors hover:bg-brand/90 disabled:bg-ink3/70 dark:disabled:bg-white/15 disabled:cursor-not-allowed'
+const TEXT_FIELD  = 'w-full h-9 px-3.5 rounded-xl border border-line dark:border-white/10 bg-cream dark:bg-white/5 text-[13px] text-ink dark:text-white placeholder:text-ink4 dark:placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand/40 focus:bg-white dark:focus:bg-white/10 transition-colors'
+const PRIMARY_BTN = 'w-full h-10 rounded-2xl bg-brand text-white text-[14px] font-semibold transition-colors hover:bg-brand/90 disabled:bg-ink3/70 dark:disabled:bg-white/15 disabled:cursor-not-allowed'
 
 const PILL = {
   signed:    { label: 'Signed',    cls: TONE.ok },
@@ -340,7 +340,7 @@ function nameInitials(name = '') {
 
 function Avatar({ name, photo, letters }) {
   return (
-    <span className="shrink-0 w-11 h-11 rounded-full bg-line2 dark:bg-white/10 inline-flex items-center justify-center overflow-hidden text-[15px] font-semibold text-ink2 dark:text-white/80">
+    <span className="shrink-0 w-10 h-10 rounded-full bg-line2 dark:bg-white/10 inline-flex items-center justify-center overflow-hidden text-[14px] font-semibold text-ink2 dark:text-white/80">
       {photo ? <img src={photo} alt="" className="w-full h-full object-cover" loading="lazy" /> : (letters ?? nameInitials(name))}
     </span>
   )
@@ -353,7 +353,7 @@ function FilterPill({ active, label, count, onClick }) {
       aria-pressed={active}
       onClick={onClick}
       className={[
-        'h-9 px-4 rounded-full border inline-flex items-center gap-2 text-[13px] font-semibold transition-colors',
+        'h-8 px-3.5 rounded-full border inline-flex items-center gap-2 text-[13px] font-semibold transition-colors',
         active ? 'bg-brand border-brand text-white' : 'bg-white dark:bg-paperDark border-line dark:border-white/10 text-ink2 dark:text-white/75 hover:border-ink4',
       ].join(' ')}
     >
@@ -365,8 +365,8 @@ function FilterPill({ active, label, count, onClick }) {
 
 function EmptyCard({ title, body }) {
   return (
-    <div className={`${CARD} px-4 py-10 text-center`}>
-      <p className="text-[15px] font-semibold text-ink dark:text-white">{title}</p>
+    <div className={`${CARD} px-3.5 py-10 text-center`}>
+      <p className="text-[14px] font-semibold text-ink dark:text-white">{title}</p>
       {body && <p className="text-[13px] text-ink3 dark:text-white/45 mt-1">{body}</p>}
     </div>
   )
@@ -380,7 +380,7 @@ function FileField({ label, onFile, accept }) {
         type="file"
         accept={accept}
         onChange={e => onFile(e.target.files?.[0] ?? null)}
-        className="w-full text-[13px] text-ink2 dark:text-white/70 file:mr-3 file:h-9 file:px-4 file:rounded-xl file:border file:border-line dark:file:border-white/15 file:bg-white dark:file:bg-paperDark file:text-[13px] file:font-semibold file:text-ink2 dark:file:text-white/80"
+        className="w-full text-[13px] text-ink2 dark:text-white/70 file:mr-3 file:h-8 file:px-3.5 file:rounded-xl file:border file:border-line dark:file:border-white/15 file:bg-white dark:file:bg-paperDark file:text-[13px] file:font-semibold file:text-ink2 dark:file:text-white/80"
       />
     </label>
   )
@@ -403,14 +403,14 @@ function InductionTab({ venueId, isManager, session, showCreate, onCloseCreate }
   const awaitingCount = visible.length - signedCount
   const shown = visible.filter(r => filter === 'all' || (filter === 'signed' ? r.staff_acknowledged : !r.staff_acknowledged))
 
-  if (loading) return <SkeletonList rows={4} className="py-3" />
+  if (loading) return <SkeletonList rows={4} className="py-2.5" />
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-2.5">
       {!isManager && pending.length > 0 && (
-        <div className="rounded-2xl bg-warnBg dark:bg-warn/20 px-4 sm:px-4 py-3 flex items-center justify-between gap-3">
+        <div className="rounded-2xl bg-warnBg dark:bg-warn/20 px-3.5 sm:px-3.5 py-2.5 flex items-center justify-between gap-2.5">
           <div className="min-w-0">
-            <p className="text-[14px] font-semibold text-ink dark:text-white">Training record awaiting your signature</p>
+            <p className="text-[13px] font-semibold text-ink dark:text-white">Training record awaiting your signature</p>
             <p className="text-[13px] text-ink2 dark:text-white/70 mt-0.5">
               {pending.length === 1
                 ? `${pending[0].trainer_name} recorded training on ${format(parseISO(pending[0].training_date), 'd MMM yyyy')}`
@@ -420,7 +420,7 @@ function InductionTab({ venueId, isManager, session, showCreate, onCloseCreate }
           <button
             type="button"
             onClick={() => setAckRecord(pending[0])}
-            className="shrink-0 h-9 px-4 rounded-xl bg-brand text-white text-[13px] font-semibold hover:bg-brand/90"
+            className="shrink-0 h-8 px-3.5 rounded-xl bg-brand text-white text-[13px] font-semibold hover:bg-brand/90"
           >
             Sign now
           </button>
@@ -449,11 +449,11 @@ function InductionTab({ venueId, isManager, session, showCreate, onCloseCreate }
               key={r.id}
               type="button"
               onClick={() => isManager ? setViewRecord(r) : (r.staff_acknowledged ? setViewRecord(r) : setAckRecord(r))}
-              className="w-full flex items-center gap-3 px-4 sm:px-4 py-3 text-left hover:bg-cream/60 dark:hover:bg-white/5 transition-colors"
+              className="w-full flex items-center gap-2.5 px-3.5 sm:px-3.5 py-2.5 text-left hover:bg-cream/60 dark:hover:bg-white/5 transition-colors"
             >
               <Avatar name={r.staff?.name ?? ''} photo={r.staff?.photo_url} />
               <span className="flex-1 min-w-0">
-                <span className="block text-[16px] font-semibold text-ink dark:text-white truncate">{r.staff?.name ?? 'Unknown'}</span>
+                <span className="block text-[15px] font-semibold text-ink dark:text-white truncate">{r.staff?.name ?? 'Unknown'}</span>
                 <span className="block text-[13px] text-ink3 dark:text-white/45 mt-0.5 truncate">
                   {format(parseISO(r.training_date), 'd MMM yyyy')} · {r.topics.length} topic{r.topics.length !== 1 ? 's' : ''} · {r.trainer_name}
                 </span>
@@ -542,7 +542,7 @@ function CertificatesTab({ venueId, showCreate, onCloseCreate }) {
     reload()
   }
 
-  if (loading) return <SkeletonList rows={4} className="py-3" />
+  if (loading) return <SkeletonList rows={4} className="py-2.5" />
 
   // Expired first, then expiring soonest, then the rest by name
   const sorted = [...records].sort((a, b) => {
@@ -553,7 +553,7 @@ function CertificatesTab({ venueId, showCreate, onCloseCreate }) {
   })
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-2.5">
       <ConfirmDialog
         open={!!deleteTarget}
         title="Delete certificate?"
@@ -575,11 +575,11 @@ function CertificatesTab({ venueId, showCreate, onCloseCreate }) {
                 key={r.id}
                 type="button"
                 onClick={() => setViewing(r)}
-                className="w-full flex items-center gap-3 px-4 sm:px-4 py-3 text-left hover:bg-cream/60 dark:hover:bg-white/5 transition-colors"
+                className="w-full flex items-center gap-2.5 px-3.5 sm:px-3.5 py-2.5 text-left hover:bg-cream/60 dark:hover:bg-white/5 transition-colors"
               >
                 <Avatar name={name} photo={r.staff?.photo_url} letters={name.charAt(0).toUpperCase()} />
                 <span className="flex-1 min-w-0">
-                  <span className="block text-[15px] min-[420px]:text-[16px] leading-snug font-semibold text-ink dark:text-white line-clamp-2 break-words">{r.title}</span>
+                  <span className="block text-[14px] min-[420px]:text-[15px] leading-snug font-semibold text-ink dark:text-white line-clamp-2 break-words">{r.title}</span>
                   <span className="block text-[13px] text-ink3 dark:text-white/45 mt-0.5">
                     {name} · {r.expiry_date ? `expires ${format(parseISO(r.expiry_date), 'MMM yyyy')}` : 'no expiry'}
                   </span>
@@ -594,22 +594,22 @@ function CertificatesTab({ venueId, showCreate, onCloseCreate }) {
       {/* One certificate */}
       <Modal open={!!viewing} onClose={() => setViewing(null)} title={viewing?.title ?? ''}>
         {viewing && (
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-2.5">
             <div className="flex items-center gap-2 flex-wrap -mt-2">
               <Pill kind={certStatus(viewing)} />
               {viewing.category && <span className="text-[13px] text-ink3 dark:text-white/45">{viewing.category}</span>}
             </div>
-            <dl className="grid grid-cols-2 gap-3 text-[13px]">
+            <dl className="grid grid-cols-2 gap-2.5 text-[13px]">
               <div><dt className={FIELD_LABEL}>Staff</dt><dd className="text-ink dark:text-white -mt-1">{viewing.staff?.name ?? 'Unknown'}</dd></div>
               <div><dt className={FIELD_LABEL}>Issued</dt><dd className="text-ink dark:text-white -mt-1">{viewing.issued_date ? format(parseISO(viewing.issued_date), 'd MMM yyyy') : '—'}</dd></div>
               <div><dt className={FIELD_LABEL}>Expires</dt><dd className="text-ink dark:text-white -mt-1">{viewing.expiry_date ? format(parseISO(viewing.expiry_date), 'd MMM yyyy') : 'No expiry'}</dd></div>
             </dl>
             {viewing.notes && <p className="text-[13px] text-ink2 dark:text-white/70">{viewing.notes}</p>}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-2.5">
               <button
                 type="button"
                 onClick={() => setDeleteTarget(viewing)}
-                className="h-10 rounded-xl border border-line dark:border-white/15 bg-white dark:bg-paperDark text-[14px] font-semibold text-bad dark:text-[#f19a86] hover:border-bad/40"
+                className="h-9 rounded-xl border border-line dark:border-white/15 bg-white dark:bg-paperDark text-[13px] font-semibold text-bad dark:text-[#f19a86] hover:border-bad/40"
               >
                 Delete
               </button>
@@ -617,12 +617,12 @@ function CertificatesTab({ venueId, showCreate, onCloseCreate }) {
                 <button
                   type="button"
                   onClick={() => openTrainingFile(viewing, toast)}
-                  className="h-10 rounded-xl bg-brand text-white text-[14px] font-semibold hover:bg-brand/90"
+                  className="h-9 rounded-xl bg-brand text-white text-[13px] font-semibold hover:bg-brand/90"
                 >
                   View certificate
                 </button>
               ) : (
-                <span className="h-10 rounded-xl bg-cream dark:bg-white/5 inline-flex items-center justify-center text-[13px] text-ink3 dark:text-white/45">No file attached</span>
+                <span className="h-9 rounded-xl bg-cream dark:bg-white/5 inline-flex items-center justify-center text-[13px] text-ink3 dark:text-white/45">No file attached</span>
               )}
             </div>
           </div>
@@ -650,7 +650,7 @@ function CertificatesTab({ venueId, showCreate, onCloseCreate }) {
               {CERT_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
           </label>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-2.5">
             <label>
               <span className={FIELD_LABEL}>Issued</span>
               <input type="date" value={form.issued_date} onChange={e => setForm(f => ({ ...f, issued_date: e.target.value }))} className={TEXT_FIELD} />
@@ -732,18 +732,18 @@ function AllergenComplianceTab({ venueId, showCreate, onCloseCreate }) {
     reload()
   }
 
-  if (loading) return <SkeletonList rows={4} className="py-3" />
+  if (loading) return <SkeletonList rows={4} className="py-2.5" />
 
   const pct = staff.length ? (compliantCount / staff.length) * 100 : 0
 
   return (
-    <div className="flex flex-col gap-3">
-      <div className={`${CARD} px-4 sm:px-4 py-3`}>
-        <div className="flex items-center justify-between gap-3">
-          <p className="text-[15px] font-semibold text-ink dark:text-white">Allergen training</p>
-          <p className="font-mono text-[15px] font-semibold text-ink2 dark:text-white/80">{compliantCount}/{staff.length} trained</p>
+    <div className="flex flex-col gap-2.5">
+      <div className={`${CARD} px-3.5 sm:px-3.5 py-2.5`}>
+        <div className="flex items-center justify-between gap-2.5">
+          <p className="text-[14px] font-semibold text-ink dark:text-white">Allergen training</p>
+          <p className="font-mono text-[14px] font-semibold text-ink2 dark:text-white/80">{compliantCount}/{staff.length} trained</p>
         </div>
-        <div className="mt-3 h-2 rounded-full bg-line2 dark:bg-white/10 overflow-hidden">
+        <div className="mt-2 h-2 rounded-full bg-line2 dark:bg-white/10 overflow-hidden">
           <div className="h-full rounded-full bg-good" style={{ width: `${pct}%` }} />
         </div>
         {compliantCount < staff.length && (
@@ -765,10 +765,10 @@ function AllergenComplianceTab({ venueId, showCreate, onCloseCreate }) {
                 key={s.id}
                 type="button"
                 onClick={() => openAdd(s)}
-                className="w-full flex items-center gap-3 px-4 sm:px-4 py-3 text-left hover:bg-cream/60 dark:hover:bg-white/5 transition-colors"
+                className="w-full flex items-center gap-2.5 px-3.5 sm:px-3.5 py-2.5 text-left hover:bg-cream/60 dark:hover:bg-white/5 transition-colors"
               >
                 <span className="flex-1 min-w-0">
-                  <span className="block text-[16px] font-semibold text-ink dark:text-white truncate">{s.name}</span>
+                  <span className="block text-[15px] font-semibold text-ink dark:text-white truncate">{s.name}</span>
                   <span className="block text-[13px] text-ink3 dark:text-white/45 mt-0.5">
                     {!cert
                       ? 'Not completed'
@@ -801,7 +801,7 @@ function AllergenComplianceTab({ venueId, showCreate, onCloseCreate }) {
               {certByStaff[addFor.id].expiry_date && `, expires ${format(parseISO(certByStaff[addFor.id].expiry_date), 'd MMM yyyy')}`}. Saving adds a newer record.
             </p>
           )}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-2.5">
             <label>
               <span className={FIELD_LABEL}>Completed</span>
               <input type="date" value={form.issued_date} onChange={e => setForm(f => ({ ...f, issued_date: e.target.value }))} className={TEXT_FIELD} />
@@ -844,7 +844,7 @@ export default function TrainingPage() {
   const closeCreate = () => setCreating(null)
 
   return (
-    <div className="flex flex-col gap-3 max-w-3xl">
+    <div className="flex flex-col gap-2.5 max-w-3xl">
       <div className="flex flex-col gap-1">
         {/* On mobile the shell's back row already links to Team */}
         <Link
@@ -854,16 +854,16 @@ export default function TrainingPage() {
           <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6" /></svg>
           Team
         </Link>
-        <div className="flex items-start justify-between gap-3">
+        <div className="flex items-start justify-between gap-2.5">
           <div className="min-w-0">
-            <h1 className="text-[22px] min-[420px]:text-[22px] sm:text-[26px] leading-tight font-bold tracking-tight text-ink dark:text-white">Staff training</h1>
+            <h1 className="text-[20px] sm:text-[22px] leading-tight font-bold tracking-tight text-ink dark:text-white">Staff training</h1>
             <p className="text-[13px] text-ink3 dark:text-white/45 mt-0.5">SC6 induction records &amp; certificates</p>
           </div>
           {canCreate && (
             <button
               type="button"
               onClick={() => setCreating(tab)}
-              className="shrink-0 mt-1 h-9 px-4 rounded-xl bg-brand text-white text-[14px] font-semibold hover:bg-brand/90 transition-colors"
+              className="shrink-0 mt-1 h-8 px-3.5 rounded-xl bg-brand text-white text-[13px] font-semibold hover:bg-brand/90 transition-colors"
             >
               New
             </button>

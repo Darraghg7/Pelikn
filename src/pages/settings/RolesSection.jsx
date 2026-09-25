@@ -270,7 +270,7 @@ export function StaffRolesAssignment({ staffId }) {
             onClick={() => toggleRole(role.id)}
             aria-pressed={active}
             className={[
-              'h-9 px-4 rounded-full border text-[13px] font-semibold transition-colors',
+              'h-8 px-3.5 rounded-full border text-[13px] font-semibold transition-colors',
               active
                 ? 'bg-brand border-brand text-white'
                 : 'bg-white dark:bg-paperDark border-line dark:border-white/10 text-ink2 dark:text-white/75 hover:border-ink4',

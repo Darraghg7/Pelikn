@@ -61,7 +61,7 @@ function CleaningOverdueWidget() {
           const threshold = FREQ_DAYS[t.frequency] ?? 1
           const overBy = days !== null ? days - threshold : null
           return (
-            <div key={t.id} className="flex items-center gap-3 px-4 sm:px-4 py-2.5">
+            <div key={t.id} className="flex items-center gap-2.5 px-3.5 sm:px-3.5 py-2">
               <button
                 type="button"
                 onClick={(e) => { e.preventDefault(); completeTask(t.id) }}
@@ -77,7 +77,7 @@ function CleaningOverdueWidget() {
                   ? <span className="w-3.5 h-3.5 rounded-full border-2 border-good/25 border-t-good animate-spin" />
                   : <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>}
               </button>
-              <p className="flex-1 min-w-0 text-[14px] min-[420px]:text-[15px] leading-snug text-ink dark:text-white line-clamp-2 break-words">{t.title}</p>
+              <p className="flex-1 min-w-0 text-[13px] min-[420px]:text-[14px] leading-snug text-ink dark:text-white line-clamp-2 break-words">{t.title}</p>
               <span className="shrink-0 font-mono text-[13px] font-semibold text-bad dark:text-[#f19a86] whitespace-nowrap">
                 {overBy !== null ? `${overBy}d overdue` : 'never done'}
               </span>
@@ -86,7 +86,7 @@ function CleaningOverdueWidget() {
         })}
       </div>
       {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-6 py-3 border-t border-line dark:border-white/10">
+        <div className="flex items-center justify-center gap-6 py-2.5 border-t border-line dark:border-white/10">
           <button
             type="button"
             onClick={() => setPage(p => Math.max(0, p - 1))}

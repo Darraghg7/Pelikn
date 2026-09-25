@@ -86,14 +86,14 @@ function MobileStatTile({ item, summary, vp }) {
   const tagProps = item.route ? { to: vp(item.route) } : {}
 
   return (
-    <Tag {...tagProps} className="min-w-0 bg-white dark:bg-paperDark border border-line dark:border-white/10 rounded-2xl px-2.5 min-[420px]:px-3 pt-3 pb-3 flex flex-col gap-1.5 no-underline active:bg-cream dark:active:bg-white/5 transition-colors">
+    <Tag {...tagProps} className="min-w-0 bg-white dark:bg-paperDark border border-line dark:border-white/10 rounded-2xl px-2.5 min-[420px]:px-3 pt-2.5 pb-2.5 flex flex-col gap-1.5 no-underline active:bg-cream dark:active:bg-white/5 transition-colors">
       <span className="flex items-start gap-1.5 min-w-0 min-h-[30px] min-[420px]:min-h-0">
         <span className={`w-2 h-2 mt-1 rounded-full shrink-0 ${isDanger ? 'bg-bad' : 'bg-good'}`} />
         <span className="text-[12px] min-[420px]:text-[13px] text-ink2 dark:text-white/70 leading-tight break-words">
           {TILE_LABELS[item.id] ?? item.metricLabel}
         </span>
       </span>
-      <span className={`font-mono text-[24px] font-semibold leading-none ${isDanger ? 'text-bad dark:text-[#f19a86]' : 'text-ink dark:text-white'}`}>
+      <span className={`font-mono text-[20px] font-semibold leading-none ${isDanger ? 'text-bad dark:text-[#f19a86]' : 'text-ink dark:text-white'}`}>
         {value}
       </span>
       {sub && (
@@ -131,20 +131,20 @@ function AttentionCard({ actions, editMode }) {
       ].join(' ')}
     >
       {isEmpty ? (
-        <div className="flex items-center gap-3.5 px-4 sm:px-4 py-3">
-          <div className="w-9 h-9 rounded-xl bg-goodBg dark:bg-good/20 flex items-center justify-center shrink-0">
+        <div className="flex items-center gap-3.5 px-3.5 sm:px-3.5 py-2.5">
+          <div className="w-9 h-8 rounded-xl bg-goodBg dark:bg-good/20 flex items-center justify-center shrink-0">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-good dark:text-[#7fd1a4]">
               <polyline points="20 6 9 17 4 12"/>
             </svg>
           </div>
           <div>
-            <div className="text-[15px] font-semibold text-ink dark:text-white">All clear</div>
+            <div className="text-[14px] font-semibold text-ink dark:text-white">All clear</div>
             <div className="text-[13px] text-ink3 dark:text-white/45 mt-0.5">Nothing needs your attention right now.</div>
           </div>
         </div>
       ) : (
         <div>
-          <div className="flex items-center gap-2.5 px-4 sm:px-4 py-2.5">
+          <div className="flex items-center gap-2 px-3.5 sm:px-3.5 py-2">
             <span className="text-[12px] font-semibold tracking-[0.08em] uppercase text-ink3 dark:text-white/45">Needs you</span>
             <span className="min-w-[24px] h-6 px-1.5 rounded-full bg-bad text-white text-[12px] font-bold inline-flex items-center justify-center">
               {actions.length}
@@ -158,11 +158,11 @@ function AttentionCard({ actions, editMode }) {
                 <Row
                   key={a.to ?? a.label}
                   {...(a.to ? { to: a.to } : {})}
-                  className="flex items-center gap-3.5 px-4 sm:px-4 py-2.5 no-underline active:bg-cream dark:active:bg-white/5 transition-colors"
+                  className="flex items-center gap-3.5 px-3.5 sm:px-3.5 py-2 no-underline active:bg-cream dark:active:bg-white/5 transition-colors"
                 >
                   <span className={`shrink-0 w-2.5 h-2.5 rounded-full ${isOverdue ? 'bg-bad' : 'bg-warn'}`} />
                   <span className="flex-1 min-w-0">
-                    <span className="block text-[15px] font-semibold text-ink dark:text-white">{a.label}</span>
+                    <span className="block text-[14px] font-semibold text-ink dark:text-white">{a.label}</span>
                     {a.detail && <span className="block text-[13px] text-ink3 dark:text-white/45 mt-0.5">{a.detail}</span>}
                   </span>
                   {a.to && (
@@ -345,16 +345,16 @@ function MobileClockCard({ staffId }) {
           : '—' },
     { label: 'Last in', value: clockInAt ? format(clockInAt, 'EEE HH:mm') : '—' },
   ]
-  const primaryBtn = `w-full h-11 rounded-2xl bg-white text-brand text-[15px] font-semibold border-0 cursor-pointer ${submitting ? 'opacity-50 cursor-not-allowed' : ''}`
+  const primaryBtn = `w-full h-10 rounded-2xl bg-white text-brand text-[14px] font-semibold border-0 cursor-pointer ${submitting ? 'opacity-50 cursor-not-allowed' : ''}`
 
   return (
     <div>
       <StaffAlertModal {...alertModalProps} />
       <ClosingChecklistGateModal {...closingGuard.modalProps} />
-      <div className="bg-brand rounded-2xl px-4 sm:px-4 pt-3 pb-4">
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-baseline gap-3 min-w-0">
-            <span className="font-mono text-[30px] min-[420px]:text-[34px] font-semibold tracking-tight text-white leading-none">
+      <div className="bg-brand rounded-2xl px-3.5 sm:px-3.5 pt-2.5 pb-3">
+        <div className="flex items-center justify-between gap-2.5">
+          <div className="flex items-baseline gap-2.5 min-w-0">
+            <span className="font-mono text-[26px] min-[420px]:text-[28px] font-semibold tracking-tight text-white leading-none">
               {format(now, 'HH:mm')}
             </span>
             <span className="text-[12px] min-[420px]:text-[12px] font-semibold tracking-[0.06em] uppercase text-white/60 whitespace-nowrap">My clock</span>
@@ -368,11 +368,11 @@ function MobileClockCard({ staffId }) {
           <p className="text-[13px] text-white/60 mt-1.5">Since {format(clockInAt, 'HH:mm')}</p>
         )}
 
-        <div className="grid grid-cols-3 gap-3 mt-4 mb-4">
+        <div className="grid grid-cols-3 gap-2.5 mt-4 mb-4">
           {stats.map(({ label, value }) => (
             <div key={label} className="min-w-0">
               <div className="text-[13px] text-white/60 mb-1">{label}</div>
-              <div className="font-mono text-[15px] font-semibold text-white truncate">{value}</div>
+              <div className="font-mono text-[14px] font-semibold text-white truncate">{value}</div>
             </div>
           ))}
         </div>
@@ -380,7 +380,7 @@ function MobileClockCard({ staffId }) {
         {loading ? null : isError ? (
           <button
             onClick={reload}
-            className="w-full h-11 rounded-2xl bg-bad/20 text-white text-[14px] font-semibold border border-bad/50 cursor-pointer"
+            className="w-full h-10 rounded-2xl bg-bad/20 text-white text-[13px] font-semibold border border-bad/50 cursor-pointer"
           >
             Couldn't check status — retry
           </button>
@@ -389,11 +389,11 @@ function MobileClockCard({ staffId }) {
             Clock in
           </button>
         ) : status === 'clocked_in' ? (
-          <div className="flex gap-2.5">
+          <div className="flex gap-2">
             <button
               onClick={() => record('break_start')}
               disabled={submitting}
-              className={`flex-1 h-11 rounded-2xl bg-white/12 text-white border border-white/25 text-[15px] font-semibold cursor-pointer ${submitting ? 'opacity-50 cursor-not-allowed' : ''}`}
+              className={`flex-1 h-10 rounded-2xl bg-white/12 text-white border border-white/25 text-[14px] font-semibold cursor-pointer ${submitting ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
               Break
             </button>
@@ -523,7 +523,7 @@ function MobileDraggableWidgetGrid({
       onDragEnd={handleDragEnd}
     >
       <SortableContext items={ids} strategy={rectSortingStrategy}>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-2.5">
           {ids.map(id => {
             if (id === 'stats') return (
               <MobileSortableCard key="stats" id="stats" editMode={editMode}>
@@ -644,12 +644,12 @@ export default function MobileManagerDashboard({
   }
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-2.5">
 
       <PushBanner staffId={session?.staffId} venueId={venueId} />
 
       <div>
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center justify-between gap-2.5">
           <span className="min-w-0 font-mono text-[12px] min-[420px]:text-[13px] text-ink3 dark:text-white/45 whitespace-nowrap truncate">
             {format(now, 'EEEE, d MMMM')} · {format(now, 'HH:mm')}
           </span>
@@ -657,7 +657,7 @@ export default function MobileManagerDashboard({
             type="button"
             onClick={() => setEditMode(v => !v)}
             className={[
-              'shrink-0 h-9 px-4 rounded-xl border text-[13px] font-semibold cursor-pointer transition-colors',
+              'shrink-0 h-8 px-3.5 rounded-xl border text-[13px] font-semibold cursor-pointer transition-colors',
               editMode
                 ? 'bg-goodBg text-good border-good/30 dark:bg-good/20 dark:text-[#7fd1a4]'
                 : 'bg-white dark:bg-paperDark text-ink2 dark:text-white/80 border-line dark:border-white/10 hover:border-ink4',
@@ -667,7 +667,7 @@ export default function MobileManagerDashboard({
           </button>
         </div>
 
-        <h1 className="text-[24px] min-[420px]:text-[28px] font-bold tracking-tight text-ink dark:text-white leading-tight mt-2">
+        <h1 className="text-[20px] sm:text-[22px] font-bold tracking-tight text-ink dark:text-white leading-tight mt-2">
           {greeting}{firstName ? `, ${firstName}` : ''}.
         </h1>
       </div>
@@ -679,7 +679,7 @@ export default function MobileManagerDashboard({
         <button
           type="button"
           onClick={onOpenPicker}
-          className="self-center h-9 px-4 rounded-xl border border-line dark:border-white/10 bg-white dark:bg-paperDark text-[13px] font-semibold text-ink2 dark:text-white/80 hover:border-ink4"
+          className="self-center h-8 px-3.5 rounded-xl border border-line dark:border-white/10 bg-white dark:bg-paperDark text-[13px] font-semibold text-ink2 dark:text-white/80 hover:border-ink4"
         >
           Choose Needs you items
         </button>
@@ -700,7 +700,7 @@ export default function MobileManagerDashboard({
             {!summary ? (
               <div className="grid grid-cols-4 gap-2">
                 {[1,2,3,4].map(i => (
-                  <div key={i} className="h-[84px] rounded-2xl bg-line2 dark:bg-white/8 border border-line dark:border-white/10 animate-pulse" />
+                  <div key={i} className="h-[72px] rounded-2xl bg-line2 dark:bg-white/8 border border-line dark:border-white/10 animate-pulse" />
                 ))}
               </div>
             ) : glanceItems.length === 0 ? null : (

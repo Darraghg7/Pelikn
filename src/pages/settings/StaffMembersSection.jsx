@@ -369,12 +369,12 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
           <button
             type="button"
             onClick={() => onOpen?.(s.id)}
-            className="flex-1 min-w-0 flex items-center gap-3 px-4 sm:px-4 py-2.5 text-left hover:bg-cream/60 dark:hover:bg-white/5 transition-colors"
+            className="flex-1 min-w-0 flex items-center gap-2.5 px-3.5 sm:px-3.5 py-2 text-left hover:bg-cream/60 dark:hover:bg-white/5 transition-colors"
           >
             <StaffAvatar staff={s} size="md" />
             <span className="flex-1 min-w-0">
               <span className="flex items-center gap-2 min-w-0">
-                <span className="text-[15px] font-semibold text-ink dark:text-white truncate">{s.name}</span>
+                <span className="text-[14px] font-semibold text-ink dark:text-white truncate">{s.name}</span>
                 {isLocked && <Tag tone="bad">PIN locked</Tag>}
                 {s.is_restricted && <Tag tone="warn">Restricted</Tag>}
               </span>
@@ -394,7 +394,7 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
     }
 
     return (
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-2.5">
         <div className="relative">
           <svg className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-ink3 dark:text-white/45" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="7" /><line x1="16.5" y1="16.5" x2="21" y2="21" /></svg>
           <input
@@ -403,13 +403,13 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
             onChange={e => setSearch(e.target.value)}
             placeholder="Search staff"
             aria-label="Search staff"
-            className="w-full h-11 pl-12 pr-4 rounded-2xl border border-line dark:border-white/10 bg-white dark:bg-paperDark text-[14px] text-ink dark:text-white placeholder:text-ink4 dark:placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand/40"
+            className="w-full h-10 pl-12 pr-4 rounded-2xl border border-line dark:border-white/10 bg-white dark:bg-paperDark text-[13px] text-ink dark:text-white placeholder:text-ink4 dark:placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand/40"
           />
         </div>
 
         {staff.length === 0 ? (
-          <div className={`${CARD} px-4 py-10 text-center`}>
-            <p className="text-[15px] font-semibold text-ink dark:text-white">No staff members yet</p>
+          <div className={`${CARD} px-3.5 py-10 text-center`}>
+            <p className="text-[14px] font-semibold text-ink dark:text-white">No staff members yet</p>
             <p className="text-[13px] text-ink3 dark:text-white/45 mt-1">Tap Add staff to set up your team.</p>
           </div>
         ) : (
@@ -443,14 +443,14 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
     : CONTRACT_BTNS
 
   return (
-    <div className="flex flex-col gap-3 pb-28">
+    <div className="flex flex-col gap-2.5 pb-28">
       <button type="button" onClick={cancelEdit} className="self-start inline-flex items-center gap-1 text-[13px] font-semibold text-brand dark:text-white/80 hover:opacity-75">
         <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6" /></svg>
         {backLabel}
       </button>
 
       {/* Header */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2.5">
         <div className="relative shrink-0">
           <StaffAvatar staff={{ ...(current ?? {}), name: staffForm.name || 'New', colour: staffForm.colour || current?.colour }} size="lg" />
           {!isNew && (
@@ -469,7 +469,7 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
           )}
         </div>
         <div className="min-w-0">
-          <h1 className="text-[22px] min-[420px]:text-[24px] leading-tight font-bold tracking-tight text-ink dark:text-white break-words">
+          <h1 className="text-[19px] min-[420px]:text-[20px] leading-tight font-bold tracking-tight text-ink dark:text-white break-words">
             {isNew ? (staffForm.name.trim() || 'New staff member') : staffForm.name || current?.name}
           </h1>
           <div className="flex flex-wrap gap-2 mt-1.5">
@@ -483,7 +483,7 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
 
       {/* Contact */}
       <SectionLabel>Contact</SectionLabel>
-      <div className={`${CARD} p-4 sm:p-5 grid grid-cols-1 min-[420px]:grid-cols-2 gap-3`}>
+      <div className={`${CARD} p-3 sm:p-5 grid grid-cols-1 min-[420px]:grid-cols-2 gap-2.5`}>
         <Field label="Name">
           <input value={staffForm.name} onChange={e => set('name', e.target.value)} placeholder="Full name" className={INPUT} />
         </Field>
@@ -509,7 +509,7 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
 
       {/* Employment */}
       <SectionLabel>Employment</SectionLabel>
-      <div className={`${CARD} p-4 sm:p-5 flex flex-col gap-3`}>
+      <div className={`${CARD} p-3 sm:p-5 flex flex-col gap-2.5`}>
         <Field label="Contract" group>
           <Segmented
             options={contractOptions}
@@ -540,7 +540,7 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
                         const next = cur.includes(dow) ? cur.filter(d => d !== dow) : [...cur, dow].sort((a, b) => a - b)
                         set('working_days', next.length === 7 ? [] : next)
                       }}
-                      className={`h-9 min-w-[48px] px-2 rounded-xl border text-[13px] font-semibold transition-colors ${on ? 'bg-brand border-brand text-white' : 'bg-cream dark:bg-white/5 border-line dark:border-white/10 text-ink3 dark:text-white/45'}`}
+                      className={`h-8 min-w-[48px] px-2 rounded-xl border text-[13px] font-semibold transition-colors ${on ? 'bg-brand border-brand text-white' : 'bg-cream dark:bg-white/5 border-line dark:border-white/10 text-ink3 dark:text-white/45'}`}
                     >
                       {day}
                     </button>
@@ -551,7 +551,7 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
           </>
         )}
 
-        <div className="grid grid-cols-1 min-[420px]:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 min-[420px]:grid-cols-2 gap-2.5">
           <Field label="Start date">
             <input type="date" value={staffForm.start_date} onChange={e => set('start_date', e.target.value)} className={INPUT} />
           </Field>
@@ -563,7 +563,7 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
           </Field>
         </div>
 
-        <div className="border-t border-line dark:border-white/10 -mx-4 sm:-mx-5 px-4 sm:px-4 pt-3 flex flex-col divide-y divide-line dark:divide-white/10">
+        <div className="border-t border-line dark:border-white/10 -mx-4 sm:-mx-5 px-3.5 sm:px-3.5 pt-2.5 flex flex-col divide-y divide-line dark:divide-white/10">
           <ToggleRow
             title="Eligible for holiday pay"
             hint={staffForm.employment_type === 'zero_hours' ? 'Leave accrues per hour worked' : `${entitlementDays} days a year (5.6 weeks)`}
@@ -581,7 +581,7 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
 
       {/* Access & roles */}
       <SectionLabel>Access &amp; roles</SectionLabel>
-      <div className={`${CARD} p-4 sm:p-5 flex flex-col gap-3`}>
+      <div className={`${CARD} p-3 sm:p-5 flex flex-col gap-2.5`}>
         <Field label="Permission level" group>
           <Segmented
             options={PERMISSION_ROLES.map(r => ({ value: r, label: PERMISSION_LABELS[r] }))}
@@ -609,7 +609,7 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
         <>
           <SectionLabel>Permissions</SectionLabel>
           <div className={`${CARD} overflow-hidden`}>
-            <div className="p-4 sm:p-5">
+            <div className="p-3 sm:p-5">
               <Field label="Title" group>
                 <div className="flex gap-2 flex-wrap">
                   {permissionTitles.map(title => (
@@ -619,7 +619,7 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
                 </div>
               </Field>
             </div>
-            <div className="border-t border-line dark:border-white/10 px-4 sm:px-4 py-3">
+            <div className="border-t border-line dark:border-white/10 px-3.5 sm:px-3.5 py-2.5">
               {staffForm.permission_title_id ? (() => {
                 const title   = permissionTitles.find(t => t.id === staffForm.permission_title_id)
                 const granted = STAFF_PERMISSIONS.filter(p => title?.permissions.includes(p.id))
@@ -638,7 +638,7 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
                         ))}
                       </ul>
                     )}
-                    <p className="text-[13px] text-ink3 dark:text-white/45 mt-3">Pick Custom to set permissions for just this person.</p>
+                    <p className="text-[13px] text-ink3 dark:text-white/45 mt-2">Pick Custom to set permissions for just this person.</p>
                   </>
                 )
               })() : (
@@ -670,8 +670,8 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
 
       {/* Rota colour */}
       <SectionLabel>Rota colour</SectionLabel>
-      <div className={`${CARD} p-4 sm:p-5`}>
-        <div className="flex items-center gap-2.5 flex-wrap">
+      <div className={`${CARD} p-3 sm:p-5`}>
+        <div className="flex items-center gap-2 flex-wrap">
           {STAFF_COLOUR_PALETTE.map(hex => (
             <button
               key={hex}
@@ -680,12 +680,12 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
               aria-pressed={staffForm.colour === hex}
               onClick={() => set('colour', staffForm.colour === hex ? '' : hex)}
               style={{ backgroundColor: hex }}
-              className={`w-9 h-9 rounded-full transition-transform ${staffForm.colour === hex ? 'ring-2 ring-offset-2 ring-ink dark:ring-white dark:ring-offset-paperDark' : 'hover:scale-105'}`}
+              className={`w-9 h-8 rounded-full transition-transform ${staffForm.colour === hex ? 'ring-2 ring-offset-2 ring-ink dark:ring-white dark:ring-offset-paperDark' : 'hover:scale-105'}`}
             />
           ))}
           <Chip active={!staffForm.colour} onClick={() => set('colour', '')}>Auto</Chip>
         </div>
-        <p className="text-[13px] text-ink3 dark:text-white/45 mt-3">Identifies this person on the rota.</p>
+        <p className="text-[13px] text-ink3 dark:text-white/45 mt-2">Identifies this person on the rota.</p>
       </div>
 
       {/* Venue access — multi-venue owners, existing staff only */}
@@ -694,7 +694,7 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
         return (
           <>
             <SectionLabel>{isMgr ? 'Venue access' : 'Works at'}</SectionLabel>
-            <div className={`${CARD} p-4 sm:p-5`}>
+            <div className={`${CARD} p-3 sm:p-5`}>
               <div className="flex gap-2 flex-wrap">
                 {venues.map(v => {
                   const isHome   = v.id === venueId
@@ -711,7 +711,7 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
                   )
                 })}
               </div>
-              <p className="text-[13px] text-ink3 dark:text-white/45 mt-3">
+              <p className="text-[13px] text-ink3 dark:text-white/45 mt-2">
                 {isMgr
                   ? 'Which venues this manager sees in their All Venues overview, and can be rostered at.'
                   : 'Turning a venue on shows this person on that venue’s rota.'}
@@ -734,7 +734,7 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
                 <button
                   type="button"
                   onClick={async () => { await resetStaffPinLockRpc(session.token, current.id); toast(`${current.name}'s PIN unlocked`); reloadStaff() }}
-                  className="h-9 px-4 rounded-xl border border-line dark:border-white/15 bg-white dark:bg-paperDark text-[13px] font-semibold text-ink dark:text-white hover:border-ink4"
+                  className="h-8 px-3.5 rounded-xl border border-line dark:border-white/15 bg-white dark:bg-paperDark text-[13px] font-semibold text-ink dark:text-white hover:border-ink4"
                 >
                   Unlock PIN
                 </button>
@@ -743,7 +743,7 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
             {current.is_active ? (
               <>
                 {current.role === 'staff' && (
-                  <div className="px-4 sm:px-4">
+                  <div className="px-3.5 sm:px-3.5">
                     <ToggleRow
                       title="Restrict account"
                       hint="Can sign in and clock in, but can't complete checks or tasks"
@@ -756,7 +756,7 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
                   <button
                     type="button"
                     onClick={() => toggleActive(current)}
-                    className="h-9 px-4 rounded-xl border-[1.5px] border-bad/60 bg-white dark:bg-paperDark text-[13px] font-semibold text-bad dark:text-[#f19a86] hover:bg-badBg/50"
+                    className="h-8 px-3.5 rounded-xl border-[1.5px] border-bad/60 bg-white dark:bg-paperDark text-[13px] font-semibold text-bad dark:text-[#f19a86] hover:bg-badBg/50"
                   >
                     Deactivate
                   </button>
@@ -768,18 +768,18 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
                   <button
                     type="button"
                     onClick={() => toggleActive(current)}
-                    className="h-9 px-4 rounded-xl border border-line dark:border-white/15 bg-white dark:bg-paperDark text-[13px] font-semibold text-ink dark:text-white hover:border-ink4"
+                    className="h-8 px-3.5 rounded-xl border border-line dark:border-white/15 bg-white dark:bg-paperDark text-[13px] font-semibold text-ink dark:text-white hover:border-ink4"
                   >
                     Reactivate
                   </button>
                 </ActionRow>
-                <div className="px-4 sm:px-4 py-3 bg-badBg/70 dark:bg-bad/15">
-                  <p className="text-[15px] font-semibold text-bad dark:text-[#f19a86]">Delete staff member</p>
+                <div className="px-3.5 sm:px-3.5 py-2.5 bg-badBg/70 dark:bg-bad/15">
+                  <p className="text-[14px] font-semibold text-bad dark:text-[#f19a86]">Delete staff member</p>
                   <p className="text-[13px] text-ink2 dark:text-white/70 mt-0.5">Permanently wipe this person and their records from the venue.</p>
                   <button
                     type="button"
                     onClick={() => setDeleteTarget(current)}
-                    className="mt-3 w-full h-10 rounded-xl bg-bad text-white text-[14px] font-semibold hover:bg-bad/90"
+                    className="mt-2 w-full h-9 rounded-xl bg-bad text-white text-[13px] font-semibold hover:bg-bad/90"
                   >
                     Delete staff member
                   </button>
@@ -792,11 +792,11 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
 
       {/* Save bar */}
       <div className="fixed left-0 right-0 bottom-[calc(56px+env(safe-area-inset-bottom,0px))] lg:bottom-0 z-40 bg-surface/95 dark:bg-[#111111]/95 backdrop-blur border-t border-line dark:border-white/10">
-        <div className="max-w-[480px] md:max-w-2xl lg:max-w-3xl mx-auto px-4 py-3 flex gap-2.5 lg:pl-[340px] lg:max-w-none">
-          <button type="button" onClick={cancelEdit} className="h-10 px-4 rounded-xl border border-line dark:border-white/15 bg-white dark:bg-paperDark text-[14px] font-semibold text-ink2 dark:text-white/80">
+        <div className="max-w-[480px] md:max-w-2xl lg:max-w-3xl mx-auto px-3.5 py-2.5 flex gap-2 lg:pl-[340px] lg:max-w-none">
+          <button type="button" onClick={cancelEdit} className="h-9 px-3.5 rounded-xl border border-line dark:border-white/15 bg-white dark:bg-paperDark text-[13px] font-semibold text-ink2 dark:text-white/80">
             Cancel
           </button>
-          <button type="button" onClick={saveStaff} disabled={savingStaff} className="flex-1 h-10 rounded-xl bg-brand text-white text-[14px] font-semibold hover:bg-brand/90 disabled:opacity-50">
+          <button type="button" onClick={saveStaff} disabled={savingStaff} className="flex-1 h-9 rounded-xl bg-brand text-white text-[13px] font-semibold hover:bg-brand/90 disabled:opacity-50">
             {savingStaff ? 'Saving…' : isNew ? 'Add staff member' : 'Save changes'}
           </button>
         </div>
@@ -853,7 +853,7 @@ function Chip({ active, disabled, onClick, children }) {
       disabled={disabled}
       onClick={onClick}
       className={[
-        'h-9 px-4 rounded-full border text-[13px] font-semibold transition-colors',
+        'h-8 px-3.5 rounded-full border text-[13px] font-semibold transition-colors',
         active ? 'bg-brand border-brand text-white' : 'bg-white dark:bg-paperDark border-line dark:border-white/10 text-ink2 dark:text-white/75 hover:border-ink4',
         disabled ? 'opacity-70 cursor-default' : '',
       ].join(' ')}
@@ -873,7 +873,7 @@ function Segmented({ options, value, onChange }) {
           role="radio"
           aria-checked={value === o.value}
           onClick={() => onChange(o.value)}
-          className={`flex-1 h-9 px-2 rounded-xl text-[13px] font-semibold whitespace-nowrap transition-colors ${value === o.value ? 'bg-brand text-white' : 'text-ink2 dark:text-white/70 hover:text-ink dark:hover:text-white'}`}
+          className={`flex-1 h-8 px-2 rounded-xl text-[13px] font-semibold whitespace-nowrap transition-colors ${value === o.value ? 'bg-brand text-white' : 'text-ink2 dark:text-white/70 hover:text-ink dark:hover:text-white'}`}
         >
           {o.label}
         </button>
@@ -884,9 +884,9 @@ function Segmented({ options, value, onChange }) {
 
 function ToggleRow({ title, hint, checked, onChange }) {
   return (
-    <div className="flex items-center justify-between gap-3 py-3">
+    <div className="flex items-center justify-between gap-2.5 py-2.5">
       <div className="min-w-0">
-        <p className="text-[15px] font-semibold text-ink dark:text-white">{title}</p>
+        <p className="text-[14px] font-semibold text-ink dark:text-white">{title}</p>
         {hint && <p className="text-[13px] text-ink3 dark:text-white/45 mt-0.5">{hint}</p>}
       </div>
       <Toggle checked={checked} onChange={onChange} size="lg" />
@@ -896,9 +896,9 @@ function ToggleRow({ title, hint, checked, onChange }) {
 
 function ActionRow({ title, hint, children }) {
   return (
-    <div className="flex items-center justify-between gap-3 px-4 sm:px-4 py-3">
+    <div className="flex items-center justify-between gap-2.5 px-3.5 sm:px-3.5 py-2.5">
       <div className="min-w-0">
-        <p className="text-[15px] font-semibold text-ink dark:text-white">{title}</p>
+        <p className="text-[14px] font-semibold text-ink dark:text-white">{title}</p>
         {hint && <p className="text-[13px] text-ink3 dark:text-white/45 mt-0.5">{hint}</p>}
       </div>
       <div className="shrink-0">{children}</div>
@@ -908,7 +908,7 @@ function ActionRow({ title, hint, children }) {
 
 /** Photo, or initials on the person's rota colour (neutral when unset). */
 function StaffAvatar({ staff: s, size }) {
-  const dims = size === 'lg' ? 'w-16 h-16 text-[22px]' : 'w-11 h-11 text-[15px]'
+  const dims = size === 'lg' ? 'w-14 h-14 text-[19px]' : 'w-10 h-10 text-[14px]'
   if (s.photo_url) return <img src={s.photo_url} alt="" className={`${dims} rounded-full object-cover shrink-0`} loading="lazy" />
   const parts = (s.name || '?').trim().split(/\s+/)
   const letters = parts.length > 1 ? parts[0][0] + parts[parts.length - 1][0] : parts[0][0]

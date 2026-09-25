@@ -133,9 +133,9 @@ function Avatar({ name, station, size = 34 }) {
 
 function SumCell({ label, value }) {
   return (
-    <div className="px-4 sm:px-4 py-3 min-w-0">
+    <div className="px-3.5 sm:px-3.5 py-2.5 min-w-0">
       <p className="text-[13px] text-ink3 dark:text-white/45">{label}</p>
-      <p className="font-mono text-[22px] min-[420px]:text-[24px] leading-tight font-semibold text-ink dark:text-white mt-1 truncate tabular-nums">{value}</p>
+      <p className="font-mono text-[19px] min-[420px]:text-[20px] leading-tight font-semibold text-ink dark:text-white mt-1 truncate tabular-nums">{value}</p>
     </div>
   )
 }
@@ -153,22 +153,22 @@ function StaffRow({ t, onTap }) {
     <button
       type="button"
       onClick={onTap}
-      className="w-full flex items-center gap-3 px-4 sm:px-4 py-3 text-left hover:bg-cream/60 dark:hover:bg-white/5 transition-colors"
+      className="w-full flex items-center gap-2.5 px-3.5 sm:px-3.5 py-2.5 text-left hover:bg-cream/60 dark:hover:bg-white/5 transition-colors"
     >
-      <span className="shrink-0 w-11 h-11 rounded-2xl bg-brand-tint dark:bg-white/10 inline-flex items-center justify-center text-[15px] font-semibold text-ink dark:text-white">
+      <span className="shrink-0 w-10 h-10 rounded-2xl bg-brand-tint dark:bg-white/10 inline-flex items-center justify-center text-[14px] font-semibold text-ink dark:text-white">
         {staffInitials(t.name)}
       </span>
       <span className="flex-1 min-w-0">
-        <span className="block text-[16px] font-semibold text-ink dark:text-white truncate">{t.name}</span>
+        <span className="block text-[15px] font-semibold text-ink dark:text-white truncate">{t.name}</span>
         {t.hourlyRate > 0 && <span className="block font-mono text-[13px] text-ink3 dark:text-white/45 mt-0.5">£{Number(t.hourlyRate).toFixed(2)}/hr</span>}
       </span>
       {hasData ? (
         <span className="shrink-0 text-right">
-          <span className="block font-mono text-[16px] font-semibold text-ink dark:text-white tabular-nums">{hm(t.totalMinutes)}</span>
+          <span className="block font-mono text-[15px] font-semibold text-ink dark:text-white tabular-nums">{hm(t.totalMinutes)}</span>
           {pay > 0 && <span className="block font-mono text-[13px] font-semibold text-good dark:text-[#7fd1a4] mt-0.5 tabular-nums">{fmtGBP(pay)}</span>}
         </span>
       ) : (
-        <span className="shrink-0 font-mono text-[16px] text-ink4 dark:text-white/30" aria-label="No hours">–</span>
+        <span className="shrink-0 font-mono text-[15px] text-ink4 dark:text-white/30" aria-label="No hours">–</span>
       )}
     </button>
   )
@@ -254,7 +254,7 @@ function EditSessionSheet({ staffName, dayLabel, session, onSave, onClose }) {
   return (
     <div className="fixed inset-0 z-[60] flex flex-col justify-end">
       <div onClick={onClose} className="absolute inset-0" style={{ background: 'rgba(9,18,13,0.52)' }} />
-      <div className="relative bg-surface rounded-t-[22px] px-4 pb-[34px] pt-[10px] max-h-[90%] overflow-y-auto [-webkit-overflow-scrolling:touch]" style={{ boxShadow: '0 -12px 40px rgba(9,18,13,0.24)' }}>
+      <div className="relative bg-surface rounded-t-[22px] px-3.5 pb-[34px] pt-[10px] max-h-[90%] overflow-y-auto [-webkit-overflow-scrolling:touch]" style={{ boxShadow: '0 -12px 40px rgba(9,18,13,0.24)' }}>
         <div className="w-[38px] h-1 rounded-sm bg-charcoal/10 dark:bg-white/10 mx-auto mb-4" />
         <div className="flex items-start justify-between mb-4">
           <div>
@@ -263,7 +263,7 @@ function EditSessionSheet({ staffName, dayLabel, session, onSave, onClose }) {
           </div>
           {session?.in && <span className="font-mono text-[11px] font-bold text-warning bg-warning/10 uppercase tracking-[0.05em] px-[9px] py-1 rounded-full">Editing</span>}
         </div>
-        <div className="flex gap-2 bg-charcoal/[0.06] p-1 rounded-xl mb-3">
+        <div className="flex gap-2 bg-charcoal/[0.06] p-1 rounded-xl mb-2">
           {[['in', 'Clock in', clockIn], ['out', 'Clock out', clockOut]].map(([k, label, val]) => {
             const on = edge === k
             return (
@@ -278,9 +278,9 @@ function EditSessionSheet({ staffName, dayLabel, session, onSave, onClose }) {
             )
           })}
         </div>
-        <div className="flex items-center justify-center gap-1 mt-3">
+        <div className="flex items-center justify-center gap-1 mt-2">
           <TsWheel values={WH_HOURS} value={ch} onChange={(h) => setCur(h, cm)} />
-          <span className="font-mono text-[22px] font-semibold text-charcoal/50 dark:text-white/40 pb-0.5">:</span>
+          <span className="font-mono text-[19px] font-semibold text-charcoal/50 dark:text-white/40 pb-0.5">:</span>
           <TsWheel values={WH_MINS}  value={cm} onChange={(m) => setCur(ch, m)} />
         </div>
         <div className="mt-2">
@@ -312,7 +312,7 @@ function EditSessionSheet({ staffName, dayLabel, session, onSave, onClose }) {
           <button
             disabled={!valid}
             onClick={() => { onSave({ clockIn, clockOut, brk }); onClose() }}
-            className={`flex-1 h-[50px] rounded-[13px] border-none text-[15px] font-bold ${valid ? 'bg-brand text-white cursor-pointer' : 'bg-charcoal/10 dark:bg-white/10 text-charcoal/30 dark:text-white/30 cursor-not-allowed'}`}
+            className={`flex-1 h-[50px] rounded-[13px] border-none text-[14px] font-bold ${valid ? 'bg-brand text-white cursor-pointer' : 'bg-charcoal/10 dark:bg-white/10 text-charcoal/30 dark:text-white/30 cursor-not-allowed'}`}
           >
             Save hours
           </button>
@@ -330,9 +330,9 @@ function StaffHoursSheet({ t, station, periodDays, dailyGrid, periodLabel, onEdi
   return (
     <div className="fixed inset-0 z-[55] flex flex-col justify-end">
       <div onClick={onClose} className="absolute inset-0" style={{ background: 'rgba(9,18,13,0.52)' }} />
-      <div className="relative bg-surface rounded-t-[22px] px-4 pt-5 pb-[34px] max-h-[90%] overflow-y-auto [-webkit-overflow-scrolling:touch]" style={{ boxShadow: '0 -12px 40px rgba(9,18,13,0.24)' }}>
+      <div className="relative bg-surface rounded-t-[22px] px-3.5 pt-5 pb-[34px] max-h-[90%] overflow-y-auto [-webkit-overflow-scrolling:touch]" style={{ boxShadow: '0 -12px 40px rgba(9,18,13,0.24)' }}>
         <div className="w-[38px] h-1 rounded-sm bg-charcoal/10 dark:bg-white/10 mx-auto mb-4" />
-        <div className="flex items-center gap-3 mb-[14px]">
+        <div className="flex items-center gap-2.5 mb-[14px]">
           <Avatar name={t.name} station={station} size={44} />
           <div className="flex-1 min-w-0">
             <div className="text-[17px] font-semibold tracking-[-0.015em]">{t.name}</div>
@@ -352,7 +352,7 @@ function StaffHoursSheet({ t, station, periodDays, dailyGrid, periodLabel, onEdi
               <div key={i} className={`flex items-center gap-[10px] px-3 py-[10px] rounded-xl border ${has ? 'bg-white dark:bg-paperDark border-charcoal/10 dark:border-white/10' : 'bg-surface border-charcoal/[0.06]'}`}>
                 <div className={`w-[42px] h-[46px] rounded-[9px] border border-charcoal/10 dark:border-white/10 shrink-0 flex flex-col items-center justify-center gap-px ${has ? 'bg-surface' : 'bg-charcoal/[0.06]'}`}>
                   <span className="font-mono text-[11px] text-charcoal/50 dark:text-white/40 font-semibold tracking-[0.06em]">{format(d, 'EEE').toUpperCase()}</span>
-                  <span className={`font-mono text-[15px] font-semibold leading-none ${has ? 'text-charcoal dark:text-white' : 'text-charcoal/30 dark:text-white/30'}`}>{format(d, 'd')}</span>
+                  <span className={`font-mono text-[14px] font-semibold leading-none ${has ? 'text-charcoal dark:text-white' : 'text-charcoal/30 dark:text-white/30'}`}>{format(d, 'd')}</span>
                 </div>
                 <div className="flex-1 min-w-0 flex flex-col gap-[3px]">
                   {has ? real.map((session, si) => {
@@ -622,7 +622,7 @@ export default function TimesheetPage() {
   const isOtherPeriod = OTHER_PERIODS.some(p => p.key === period)
 
   return (
-    <div className="flex flex-col gap-3 max-w-3xl text-ink dark:text-white">
+    <div className="flex flex-col gap-2.5 max-w-3xl text-ink dark:text-white">
       {isManager && <ClockEditApprovalCard />}
 
       {/* Header */}
@@ -635,9 +635,9 @@ export default function TimesheetPage() {
           <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6" /></svg>
           Team
         </Link>
-        <div className="flex items-start justify-between gap-3">
+        <div className="flex items-start justify-between gap-2.5">
           <div className="min-w-0">
-            <h1 className="text-[22px] min-[420px]:text-[22px] sm:text-[26px] leading-tight font-bold tracking-tight">Timesheets</h1>
+            <h1 className="text-[20px] sm:text-[22px] leading-tight font-bold tracking-tight">Timesheets</h1>
             <p className="text-[13px] text-ink3 dark:text-white/45 mt-0.5">Hours worked and wage bill</p>
           </div>
           <div className="shrink-0 flex gap-2 mt-1">
@@ -647,7 +647,7 @@ export default function TimesheetPage() {
                 type="button"
                 onClick={fn}
                 disabled={loading || (totalMins <= 0 && totalHolidayPay <= 0)}
-                className="h-9 px-4 rounded-xl bg-white dark:bg-paperDark border border-line dark:border-white/10 text-[13px] font-semibold text-ink2 dark:text-white/80 hover:border-ink4 transition-colors disabled:opacity-40"
+                className="h-8 px-3.5 rounded-xl bg-white dark:bg-paperDark border border-line dark:border-white/10 text-[13px] font-semibold text-ink2 dark:text-white/80 hover:border-ink4 transition-colors disabled:opacity-40"
               >
                 {fmt}
               </button>
@@ -680,16 +680,16 @@ export default function TimesheetPage() {
                 type="button"
                 aria-pressed={period === p.key}
                 onClick={() => setPeriod(p.key)}
-                className={`h-9 px-4 rounded-full border text-[13px] font-semibold transition-colors ${period === p.key ? 'bg-brand border-brand text-white' : 'bg-white dark:bg-paperDark border-line dark:border-white/10 text-ink2 dark:text-white/75 hover:border-ink4'}`}
+                className={`h-8 px-3.5 rounded-full border text-[13px] font-semibold transition-colors ${period === p.key ? 'bg-brand border-brand text-white' : 'bg-white dark:bg-paperDark border-line dark:border-white/10 text-ink2 dark:text-white/75 hover:border-ink4'}`}
               >
                 {p.label}
               </button>
             ))}
             {period === 'custom' && (
               <span className="flex items-center gap-2 w-full sm:w-auto">
-                <input type="date" aria-label="From" value={customFrom} onChange={e => setCustomFrom(e.target.value)} className="flex-1 h-9 px-3 rounded-xl border border-line dark:border-white/10 bg-white dark:bg-paperDark text-[13px]" />
+                <input type="date" aria-label="From" value={customFrom} onChange={e => setCustomFrom(e.target.value)} className="flex-1 h-8 px-3 rounded-xl border border-line dark:border-white/10 bg-white dark:bg-paperDark text-[13px]" />
                 <span className="text-[13px] text-ink3">to</span>
-                <input type="date" aria-label="To" value={customTo} min={customFrom} onChange={e => setCustomTo(e.target.value)} className="flex-1 h-9 px-3 rounded-xl border border-line dark:border-white/10 bg-white dark:bg-paperDark text-[13px]" />
+                <input type="date" aria-label="To" value={customTo} min={customFrom} onChange={e => setCustomTo(e.target.value)} className="flex-1 h-8 px-3 rounded-xl border border-line dark:border-white/10 bg-white dark:bg-paperDark text-[13px]" />
               </span>
             )}
           </div>
@@ -698,14 +698,14 @@ export default function TimesheetPage() {
 
       {/* Summary */}
       <div className={`${CARD} overflow-hidden`}>
-        <div className="flex items-center justify-between gap-3 px-4 sm:px-4 py-2.5 border-b border-line dark:border-white/10">
-          <p className="font-mono text-[13px] min-[420px]:text-[15px] font-semibold text-ink dark:text-white whitespace-nowrap">{periodLabel}</p>
+        <div className="flex items-center justify-between gap-2.5 px-3.5 sm:px-3.5 py-2 border-b border-line dark:border-white/10">
+          <p className="font-mono text-[13px] min-[420px]:text-[14px] font-semibold text-ink dark:text-white whitespace-nowrap">{periodLabel}</p>
           {isManager && periodFrom && periodTo && (
             <button
               type="button"
               onClick={togglePayrollLock}
               disabled={lockSaving}
-              className={`shrink-0 inline-flex items-center gap-2 h-9 px-3 min-[420px]:px-4 rounded-xl border text-[13px] min-[420px]:text-[13px] font-semibold transition-colors disabled:opacity-40 ${isPeriodLocked ? 'border-good/40 bg-goodBg text-good dark:bg-good/20 dark:text-[#7fd1a4]' : 'border-line dark:border-white/10 bg-white dark:bg-paperDark text-ink2 dark:text-white/80 hover:border-ink4'}`}
+              className={`shrink-0 inline-flex items-center gap-2 h-8 px-3 min-[420px]:px-3.5 rounded-xl border text-[13px] min-[420px]:text-[13px] font-semibold transition-colors disabled:opacity-40 ${isPeriodLocked ? 'border-good/40 bg-goodBg text-good dark:bg-good/20 dark:text-[#7fd1a4]' : 'border-line dark:border-white/10 bg-white dark:bg-paperDark text-ink2 dark:text-white/80 hover:border-ink4'}`}
             >
               <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d={isPeriodLocked ? 'M7 11V7a5 5 0 0 1 10 0v4' : 'M7 11V7a5 5 0 0 1 9.9-1'}/></svg>
               {isPeriodLocked ? 'Locked for payroll' : lockSaving ? 'Locking…' : 'Lock for payroll'}
@@ -716,12 +716,12 @@ export default function TimesheetPage() {
         {loading ? (
           <SkeletonList rows={2} />
         ) : loadError ? (
-          <div className="flex items-center gap-3 bg-badBg dark:bg-bad/20 px-4 sm:px-4 py-3">
+          <div className="flex items-center gap-2.5 bg-badBg dark:bg-bad/20 px-3.5 sm:px-3.5 py-2.5">
             <div className="flex-1 min-w-0">
               <p className="text-[13px] font-semibold text-bad dark:text-[#f19a86]">Couldn't load hours</p>
               <p className="text-[13px] text-ink2 dark:text-white/70 mt-0.5">The clock-in data failed to load — this can happen on an out-of-date app. Try again, or fully close and reopen the app.</p>
             </div>
-            <button type="button" onClick={reload} className="shrink-0 h-9 px-4 rounded-xl bg-white dark:bg-paperDark border border-line dark:border-white/10 text-[13px] font-semibold">Retry</button>
+            <button type="button" onClick={reload} className="shrink-0 h-8 px-3.5 rounded-xl bg-white dark:bg-paperDark border border-line dark:border-white/10 text-[13px] font-semibold">Retry</button>
           </div>
         ) : (
           <>
@@ -734,7 +734,7 @@ export default function TimesheetPage() {
               <SumCell label="Scheduled cost" value={periodScheduled.totalCost > 0 ? money(periodScheduled.totalCost) : '–'} />
             </div>
             {variance !== null && Math.abs(variance) >= 0.01 && (
-              <p className={`px-4 sm:px-4 py-3 text-[13px] font-semibold ${variance > 0 ? 'bg-goodBg text-good dark:bg-good/20 dark:text-[#7fd1a4]' : 'bg-badBg text-bad dark:bg-bad/20 dark:text-[#f19a86]'}`}>
+              <p className={`px-3.5 sm:px-3.5 py-2.5 text-[13px] font-semibold ${variance > 0 ? 'bg-goodBg text-good dark:bg-good/20 dark:text-[#7fd1a4]' : 'bg-badBg text-bad dark:bg-bad/20 dark:text-[#f19a86]'}`}>
                 {money(Math.abs(variance))} {variance > 0 ? 'under' : 'over'} scheduled cost
               </p>
             )}
@@ -745,15 +745,15 @@ export default function TimesheetPage() {
       {/* Staff list */}
       {!loading && !loadError && (
         <>
-          <div className="flex items-baseline justify-between gap-3 px-1 -mb-1">
+          <div className="flex items-baseline justify-between gap-2.5 px-1 -mb-1">
             <p className="text-[12px] font-semibold tracking-[0.08em] uppercase text-ink3 dark:text-white/45">Staff</p>
             <p className="font-mono text-[12px] text-ink3 dark:text-white/45">
               {timesheets.length} staff{totalMins > 0 ? ` · ${hm(totalMins)}` : ''}
             </p>
           </div>
           {timesheets.length === 0 ? (
-            <div className={`${CARD} px-4 py-8 text-center`}>
-              <p className="text-[15px] font-semibold text-ink dark:text-white">No hours recorded</p>
+            <div className={`${CARD} px-3.5 py-8 text-center`}>
+              <p className="text-[14px] font-semibold text-ink dark:text-white">No hours recorded</p>
               <p className="text-[13px] text-ink3 dark:text-white/45 mt-1">Nobody clocked in during this period.</p>
             </div>
           ) : (

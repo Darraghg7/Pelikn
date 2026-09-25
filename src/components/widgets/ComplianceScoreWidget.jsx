@@ -111,7 +111,7 @@ function ComplianceScoreWidget() {
 
   if (!data) return (
     <WidgetShell title="Compliance" to="/audit">
-      <div className="flex justify-center py-3"><LoadingSpinner /></div>
+      <div className="flex justify-center py-2.5"><LoadingSpinner /></div>
     </WidgetShell>
   )
 
@@ -120,13 +120,13 @@ function ComplianceScoreWidget() {
   return (
     <WidgetShell title="Compliance" to="/audit">
       <div className="py-1">
-        <p className="font-mono text-[32px] min-[420px]:text-[34px] font-semibold leading-none tracking-tight" style={{ color: tier.color }}>{data.score}%</p>
+        <p className="font-mono text-[26px] min-[420px]:text-[28px] font-semibold leading-none tracking-tight" style={{ color: tier.color }}>{data.score}%</p>
         {data.issues > 0 ? (
-          <p className="mt-3 text-[13px] font-semibold text-bad dark:text-[#f19a86]">
+          <p className="mt-2 text-[13px] font-semibold text-bad dark:text-[#f19a86]">
             ↓ {data.issues} item{data.issues !== 1 ? 's' : ''} need attention
           </p>
         ) : (
-          <p className="mt-3 text-[13px] font-semibold text-good dark:text-[#7fd1a4] inline-flex items-center gap-1.5">
+          <p className="mt-2 text-[13px] font-semibold text-good dark:text-[#7fd1a4] inline-flex items-center gap-1.5">
             <svg className="w-4 h-4 shrink-0" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg>
             On track · {COMPLIANCE_RANGE_DAYS}-day avg
           </p>
@@ -134,7 +134,7 @@ function ComplianceScoreWidget() {
         {data.issues > 0 && <p className="text-[13px] text-ink3 dark:text-white/45 mt-1">{COMPLIANCE_RANGE_DAYS}-day average</p>}
       </div>
       {data.issueList?.length > 0 && (
-        <div className="mt-3 pt-3 border-t border-line dark:border-white/10 flex flex-col gap-0.5">
+        <div className="mt-2 pt-2.5 border-t border-line dark:border-white/10 flex flex-col gap-0.5">
           {data.issueList.map(issue => {
             const content = (
               <div className="flex flex-wrap items-baseline justify-between gap-x-2 gap-y-0.5 py-1.5 px-2 -mx-2 rounded-lg hover:bg-cream dark:hover:bg-white/5 transition-colors cursor-pointer">

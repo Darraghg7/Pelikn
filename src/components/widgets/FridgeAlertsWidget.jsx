@@ -41,7 +41,7 @@ function FridgeAlertsWidget() {
       }
   })
 
-  if (!raw) return <WidgetShell title="Fridges" to="/fridge"><div className="flex justify-center py-3"><LoadingSpinner /></div></WidgetShell>
+  if (!raw) return <WidgetShell title="Fridges" to="/fridge"><div className="flex justify-center py-2.5"><LoadingSpinner /></div></WidgetShell>
 
   // Fridge checks run on their own action_schedule and aren't blanked out by
   // trading closure — staff can still be scheduled to record them on a day
