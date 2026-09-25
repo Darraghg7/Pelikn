@@ -6,6 +6,8 @@ import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../../components/ui/Toast'
 import EmptyState from '../../components/ui/EmptyState'
 import { SkeletonList } from '../../components/ui/Skeleton'
+import { insertWithAttachment } from '../../lib/attachments'
+import { VENUE_DOCS_BUCKET, venueDocumentPath, openVenueDocument } from '../../lib/venueDocuments'
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
@@ -86,11 +88,10 @@ function UploadDocumentModal({ venueId, uploaderId, onSaved, onClose }) {
     if (file.size > MAX_FILE_SIZE) { toast('File must be under 10 MB', 'error'); return }
 
     setSaving(true)
-    const ext = file.name.split('.').pop()
-    const path = `${venueId}/${Date.now()}-${crypto.randomUUID().slice(0, 8)}.${ext}`
+    const path = venueDocumentPath(venueId, file.name)
 
     const { error: uploadErr } = await supabase.storage
-      .from('venue-documents')
+      .from(VENUE_DOCS_BUCKET)
       .upload(path, file, { upsert: false })
 
     if (uploadErr) {
@@ -99,19 +100,17 @@ function UploadDocumentModal({ venueId, uploaderId, onSaved, onClose }) {
       return
     }
 
-    const { data: urlData } = supabase.storage.from('venue-documents').getPublicUrl(path)
-
-    const { error } = await supabase.from('documents').insert({
+    // Stores the storage key; a signed URL is minted when the file is opened.
+    const { error } = await insertWithAttachment(row => supabase.from('documents').insert(row), {
       venue_id: venueId,
       title: title.trim(),
       category,
-      file_url: urlData.publicUrl,
       file_name: file.name,
       file_size: file.size,
       expiry_date: expiryDate || null,
       notes: notes.trim() || null,
       uploaded_by: uploaderId,
-    })
+    }, { bucket: VENUE_DOCS_BUCKET, path, pathColumn: 'file_path', urlColumn: 'file_url' })
 
     setSaving(false)
     if (error) { toast(error.message, 'error'); return }
@@ -202,6 +201,7 @@ function UploadDocumentModal({ venueId, uploaderId, onSaved, onClose }) {
 // ── Document Card ────────────────────────────────────────────────────────────
 
 function DocumentCard({ doc }) {
+  const toast = useToast()
   const status = docStatus(doc)
 
   return (
@@ -223,19 +223,19 @@ function DocumentCard({ doc }) {
           {doc.file_size ? <> &middot; {formatFileSize(doc.file_size)}</> : null}
         </p>
       </div>
-      <a
-        href={doc.file_url}
-        target="_blank"
-        rel="noreferrer"
+      <button
+        type="button"
+        onClick={() => openVenueDocument(doc, toast)}
         className="shrink-0 text-brand hover:text-brand/70 transition-colors"
         title="Download"
+        aria-label={`Download ${doc.title}`}
       >
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
           <polyline points="7 10 12 15 17 10"/>
           <line x1="12" y1="15" x2="12" y2="3"/>
         </svg>
-      </a>
+      </button>
     </div>
   )
 }
