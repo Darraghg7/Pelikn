@@ -5,6 +5,8 @@ import { useVenue } from '../../contexts/VenueContext'
 import { useSuppliers } from '../../hooks/useSuppliers'
 import { insertSupplier, updateSupplier, deactivateSupplier } from '../../lib/api/suppliers'
 import { useToast } from '../../components/ui/Toast'
+import { insertWithAttachment } from '../../lib/attachments'
+import { VENUE_DOCS_BUCKET, supplierCertPath, openSupplierCert, hasSupplierCert } from '../../lib/venueDocuments'
 import Button from '../../components/ui/Button'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
 import EmptyState from '../../components/ui/EmptyState'
@@ -87,7 +89,7 @@ function SupplierModal({ supplier, venueId, onSaved, onClose }) {
     food_safety_cert_expiry: supplier.food_safety_cert_expiry ?? '',
   } : { ...EMPTY_FORM })
   const [certFile, setCertFile]   = useState(null)
-  const [existingCert, setExistingCert] = useState(supplier?.food_safety_cert_url ? { url: supplier.food_safety_cert_url, name: supplier.food_safety_cert_name } : null)
+  const [hasExistingCert, setHasExistingCert] = useState(hasSupplierCert(supplier))
   const [saving, setSaving]       = useState(false)
 
   useEffect(() => {
@@ -103,16 +105,11 @@ function SupplierModal({ supplier, venueId, onSaved, onClose }) {
     if (!form.name.trim()) { toast('Supplier name is required', 'error'); return }
     setSaving(true)
 
-    let certUrl  = existingCert?.url  ?? null
-    let certName = existingCert?.name ?? null
+    let certPath = null
     if (certFile) {
-      const ext  = certFile.name.split('.').pop()
-      const path = `${venueId}/suppliers/${Date.now()}-${certFile.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`
-      const { error: uploadErr } = await supabase.storage.from('venue-documents').upload(path, certFile, { upsert: false })
+      certPath = supplierCertPath(venueId, certFile.name)
+      const { error: uploadErr } = await supabase.storage.from(VENUE_DOCS_BUCKET).upload(certPath, certFile, { upsert: false })
       if (uploadErr) { toast('File upload failed: ' + uploadErr.message, 'error'); setSaving(false); return }
-      const { data: urlData } = supabase.storage.from('venue-documents').getPublicUrl(path)
-      certUrl  = urlData.publicUrl
-      certName = certFile.name
     }
 
     const payload = {
@@ -125,12 +122,19 @@ function SupplierModal({ supplier, venueId, onSaved, onClose }) {
       notes:                   form.notes.trim() || null,
       approval_status:         form.approval_status,
       food_safety_cert_expiry: form.food_safety_cert_expiry || null,
-      food_safety_cert_url:    certUrl,
-      food_safety_cert_name:   certName,
     }
-    const { error } = supplier
-      ? await updateSupplier(supplier.id, payload)
-      : await insertSupplier(payload)
+    // Cert columns are only written when a new file replaces the old one, so an
+    // edit without an upload leaves the stored certificate untouched. The
+    // legacy public URL is cleared: it stops resolving once the bucket is private.
+    if (certFile) {
+      payload.food_safety_cert_name = certFile.name
+      payload.food_safety_cert_url  = null
+    }
+    const write = supplier ? (row) => updateSupplier(supplier.id, row) : insertSupplier
+    const { error } = await insertWithAttachment(write, payload, {
+      bucket: VENUE_DOCS_BUCKET, path: certPath,
+      pathColumn: 'food_safety_cert_path', urlColumn: 'food_safety_cert_url',
+    })
     setSaving(false)
     if (error) { toast(error.message, 'error'); return }
     toast(supplier ? 'Supplier updated ✓' : 'Supplier added ✓')
@@ -253,15 +257,15 @@ function SupplierModal({ supplier, venueId, onSaved, onClose }) {
                 <input
                   type="file"
                   accept="image/*,.pdf,.doc,.docx"
-                  onChange={(e) => { setCertFile(e.target.files[0] ?? null); setExistingCert(null) }}
+                  onChange={(e) => { setCertFile(e.target.files[0] ?? null); setHasExistingCert(false) }}
                   className="w-full text-xs text-charcoal/50 dark:text-white/40 file:mr-2 file:py-1.5 file:px-2 file:rounded-lg file:border file:border-charcoal/15 dark:file:border-white/15 file:text-xs file:bg-white dark:file:bg-paperDark file:text-charcoal/50 dark:file:text-white/40 hover:file:bg-charcoal/5 dark:hover:file:bg-white/5"
                 />
               </div>
             </div>
-            {existingCert?.url && (
-              <a href={existingCert.url} target="_blank" rel="noreferrer" className="text-xs text-accent underline underline-offset-2 hover:opacity-70 transition-opacity truncate">
-                {existingCert.name ?? 'View existing certificate'}
-              </a>
+            {hasExistingCert && (
+              <button type="button" onClick={() => openSupplierCert(supplier, toast)} className="self-start text-left text-xs text-accent underline underline-offset-2 hover:opacity-70 transition-opacity truncate max-w-full">
+                {supplier.food_safety_cert_name ?? 'View existing certificate'}
+              </button>
             )}
           </div>
 
@@ -291,6 +295,7 @@ function SupplierModal({ supplier, venueId, onSaved, onClose }) {
 }
 
 function SupplierCard({ supplier, onEdit, onArchive }) {
+  const toast = useToast()
   const [confirming, setConfirming] = useState(false)
   const cs = certStatus(supplier.food_safety_cert_expiry)
 
@@ -355,7 +360,7 @@ function SupplierCard({ supplier, onEdit, onArchive }) {
       )}
 
       {/* Food safety cert */}
-      {(supplier.food_safety_cert_url || supplier.food_safety_cert_expiry) && (
+      {(hasSupplierCert(supplier) || supplier.food_safety_cert_expiry) && (
         <div className={`flex items-center gap-2 flex-wrap rounded-lg px-3 py-2 ${
           cs === 'expired'  ? 'bg-danger/6 border border-danger/15'  :
           cs === 'expiring' ? 'bg-warning/6 border border-warning/15' :
@@ -368,11 +373,11 @@ function SupplierCard({ supplier, onEdit, onArchive }) {
             {cs === 'expired' && ' — EXPIRED'}
             {cs === 'expiring' && ' — expiring soon'}
           </span>
-          {supplier.food_safety_cert_url && (
-            <a href={supplier.food_safety_cert_url} target="_blank" rel="noreferrer"
+          {hasSupplierCert(supplier) && (
+            <button type="button" onClick={() => openSupplierCert(supplier, toast)}
               className="text-xs text-accent underline underline-offset-2 hover:opacity-70 transition-opacity ml-auto">
               View
-            </a>
+            </button>
           )}
         </div>
       )}

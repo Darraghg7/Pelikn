@@ -14,6 +14,8 @@ import { PageSkeleton } from '../../components/ui/Skeleton'
 import Modal from '../../components/ui/Modal'
 import { CARD, TONE, PageHeader } from '../../components/temperature/TempPageParts'
 import { useDocuments, documentStatus, DOCUMENT_CATEGORIES, EXPIRY_WARNING_DAYS } from '../../hooks/useDocuments'
+import { insertWithAttachment } from '../../lib/attachments'
+import { VENUE_DOCS_BUCKET, venueDocumentPath, openVenueDocument } from '../../lib/venueDocuments'
 
 const CATEGORY_LABEL = Object.fromEntries(DOCUMENT_CATEGORIES.map(c => [c.value, c.label]))
 const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
@@ -89,24 +91,22 @@ function UploadDocumentModal({ open, onClose, onSaved }) {
   const save = async () => {
     if (!canSave) return
     setSaving(true)
-    const ext = file.name.split('.').pop()
-    const path = `${venueId}/${Date.now()}-${crypto.randomUUID().slice(0, 8)}.${ext}`
+    const path = venueDocumentPath(venueId, file.name)
 
-    const { error: uploadErr } = await supabase.storage.from('venue-documents').upload(path, file, { upsert: false })
+    const { error: uploadErr } = await supabase.storage.from(VENUE_DOCS_BUCKET).upload(path, file, { upsert: false })
     if (uploadErr) { setSaving(false); toast('File upload failed: ' + uploadErr.message, 'error'); return }
 
-    const { data: urlData } = supabase.storage.from('venue-documents').getPublicUrl(path)
-    const { error } = await supabase.from('documents').insert({
+    // Stores the storage key; a signed URL is minted when the file is opened.
+    const { error } = await insertWithAttachment(row => supabase.from('documents').insert(row), {
       venue_id:    venueId,
       title:       title.trim(),
       category,
-      file_url:    urlData.publicUrl,
       file_name:   file.name,
       file_size:   file.size,
       expiry_date: expiryDate || null,
       notes:       notes.trim() || null,
       uploaded_by: session?.staffId ?? null,
-    })
+    }, { bucket: VENUE_DOCS_BUCKET, path, pathColumn: 'file_path', urlColumn: 'file_url' })
     setSaving(false)
     if (error) { toast(error.message, 'error'); return }
     toast(`${title.trim()} uploaded`)
@@ -198,6 +198,7 @@ function UploadDocumentModal({ open, onClose, onSaved }) {
 export default function DocumentsPage() {
   const { venueSlug } = useVenue()
   const { isManager } = useSession()
+  const toast = useToast()
   const { docs, loading, reload } = useDocuments()
 
   const [search, setSearch]       = useState('')
@@ -301,12 +302,11 @@ export default function DocumentsPage() {
       ) : (
         <div className={`${CARD} divide-y divide-line dark:divide-white/10 overflow-hidden`}>
           {visible.map(({ doc, status, daysLeft }) => (
-            <a
+            <button
+              type="button"
               key={doc.id}
-              href={doc.file_url}
-              target="_blank"
-              rel="noreferrer"
-              className="flex items-center gap-3 min-[420px]:gap-4 px-4 sm:px-5 py-4 hover:bg-cream/60 dark:hover:bg-white/5 transition-colors"
+              onClick={() => openVenueDocument(doc, toast)}
+              className="w-full text-left flex items-center gap-3 min-[420px]:gap-4 px-4 sm:px-5 py-4 hover:bg-cream/60 dark:hover:bg-white/5 transition-colors"
             >
               <span className="shrink-0 w-11 h-11 min-[420px]:w-12 min-[420px]:h-12 rounded-xl bg-cream dark:bg-white/10 border border-line dark:border-white/10 flex items-end justify-center pb-1.5 font-mono text-[11px] font-bold text-ink2 dark:text-white/70">
                 {fileExt(doc)}
@@ -320,7 +320,7 @@ export default function DocumentsPage() {
                 </span>
               </span>
               <StatusPill status={status} daysLeft={daysLeft} />
-            </a>
+            </button>
           ))}
         </div>
       )}

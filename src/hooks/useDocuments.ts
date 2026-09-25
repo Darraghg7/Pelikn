@@ -18,7 +18,8 @@ export interface VenueDocument {
   venue_id: string
   title: string
   category: string
-  file_url: string
+  file_url: string | null   // legacy public URL, pre-123
+  file_path: string | null  // storage key in the private venue-documents bucket
   file_name: string
   file_size: number | null
   expiry_date: string | null
@@ -48,7 +49,7 @@ export function useDocuments(): { docs: VenueDocument[]; loading: boolean; reloa
     queryFn: async () => {
       const { data: rows } = await supabase
         .from('documents')
-        .select('id, venue_id, title, category, file_url, file_name, file_size, expiry_date, notes, uploaded_by, created_at')
+        .select('id, venue_id, title, category, file_url, file_path, file_name, file_size, expiry_date, notes, uploaded_by, created_at')
         .eq('venue_id', venueId)
         .order('created_at', { ascending: false })
       return (rows ?? []) as VenueDocument[]
