@@ -5,6 +5,7 @@
  */
 import { format, subDays } from 'date-fns'
 import { supabase } from './supabase'
+import { coolingOutcome, formatCoolingMinutes, COOLING_TARGET_MINUTES } from './cooling'
 // jsPDF is loaded on demand — see the note in pdfUtils.js. Every exporter here
 // is already async, so awaiting the library costs nothing structurally.
 import { buildPdfReport, loadPdfLibs } from './pdfUtils'
@@ -323,9 +324,10 @@ export async function exportEHOReport(venueId, venueName = '', days = 90) {
       supabase.from('staff_training')
         .select('title, expiry_date, staff:staff_id(name)')
         .eq('venue_id', venueId).order('expiry_date'),
+      // Batches still cooling (no end temp yet) aren't records yet
       supabase.from('cooling_logs')
-        .select('food_item, start_temp, end_temp, target_temp, logged_at, logged_by_name')
-        .eq('venue_id', venueId).gte('logged_at', since).order('logged_at', { ascending: false }),
+        .select('food_item, start_temp, end_temp, target_temp, started_at, finished_at, logged_at, logged_by_name')
+        .eq('venue_id', venueId).not('end_temp', 'is', null).gte('logged_at', since).order('logged_at', { ascending: false }),
       supabase.from('hot_holding_logs')
         .select('item_name, temperature, logged_at, logged_by_name')
         .eq('venue_id', venueId).gte('logged_at', since).order('logged_at', { ascending: false }),
@@ -357,7 +359,7 @@ export async function exportEHOReport(venueId, venueName = '', days = 90) {
   const expiredCerts = tr.filter(x => x.expiry_date && new Date(x.expiry_date) < now).length
 
   const cl = cooling.data ?? []
-  const coolingFails = cl.filter(x => Number(x.end_temp) > Number(x.target_temp ?? 8)).length
+  const coolingFails = cl.filter(x => coolingOutcome(x).fail).length
 
   const p = pest.data ?? []
   const openPest = p.filter(x => x.status === 'open' && (x.log_type === 'sighting' || x.log_type === 'treatment')).length
@@ -501,22 +503,23 @@ export async function exportEHOReport(venueId, venueName = '', days = 90) {
     sectionHead('COOLING RECORDS')
     autoTable(doc, {
       startY: y,
-      head: [['Date', 'Food Item', 'Start (°C)', 'End (°C)', 'Target', 'Result']],
+      head: [['Date', 'Food Item', 'Start (°C)', 'End (°C)', 'Time', 'Target', 'Result']],
       body: cl.map(r => {
-        const fail = Number(r.end_temp) > Number(r.target_temp ?? 8)
+        const { fail, minutes } = coolingOutcome(r)
         return [
-          format(new Date(r.logged_at), 'dd/MM/yy'),
+          format(new Date(r.started_at ?? r.logged_at), 'dd/MM/yy'),
           r.food_item ?? '-',
           Number(r.start_temp).toFixed(1),
           Number(r.end_temp).toFixed(1),
-          `≤${r.target_temp ?? 8}°C`,
+          formatCoolingMinutes(minutes),
+          `≤${r.target_temp ?? 8}°C in ${COOLING_TARGET_MINUTES}m`,
           fail ? 'EXCEEDED' : 'PASS',
         ]
       }),
       headStyles: { fillColor: [40, 40, 40], textColor: 255, fontSize: 8 },
       bodyStyles: { fontSize: 7 },
       didParseCell(hook) {
-        if (hook.section === 'body' && hook.column.index === 5) {
+        if (hook.section === 'body' && hook.column.index === 6) {
           hook.cell.styles.textColor = hook.cell.raw === 'PASS' ? G : R
           hook.cell.styles.fontStyle = 'bold'
         }

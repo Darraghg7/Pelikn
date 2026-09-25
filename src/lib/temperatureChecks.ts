@@ -50,6 +50,17 @@ export function formatCheckDays(days: number[] | null | undefined): string {
   return CHECK_DAYS.filter(day => values.includes(day.value)).map(day => day.short).join(', ')
 }
 
+// Compact form for tight rows: a run of consecutive days (Mon-first) becomes
+// "Wed–Sun"; anything else falls back to the comma list.
+export function formatCheckDaysCompact(days: number[] | null | undefined): string {
+  const values = Array.isArray(days) && days.length > 0 ? days : [...DEFAULT_CHECK_DAYS]
+  if (values.length === 7) return 'Daily'
+  const idx = CHECK_DAYS.map((day, i) => (values.includes(day.value) ? i : -1)).filter(i => i >= 0)
+  const contiguous = idx.length >= 3 && idx[idx.length - 1] - idx[0] === idx.length - 1
+  if (contiguous) return `${CHECK_DAYS[idx[0]].short}–${CHECK_DAYS[idx[idx.length - 1]].short}`
+  return idx.map(i => CHECK_DAYS[i].short).join(', ')
+}
+
 export function formatRequiredPeriods(periods: string[] | null | undefined): string {
   const values = Array.isArray(periods) && periods.length > 0 ? periods : [...DEFAULT_CHECK_PERIODS]
   if (values.includes('am') && values.includes('pm')) return 'AM/PM'

@@ -1,43 +1,30 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
 import { useVenue } from '../contexts/VenueContext'
+import type { CoolingLog } from '../lib/cooling'
 
-export const COOLING_TARGET_TEMP = 8  // ≤8°C required by UK food safety regs
+export {
+  COOLING_TARGET_TEMP, COOLING_TARGET_MINUTES, COOLING_METHODS,
+  coolingMethodLabel, isCoolingTempFail, coolingMinutes, coolingOutcome, formatCoolingMinutes,
+} from '../lib/cooling'
+export type { CoolingLog } from '../lib/cooling'
 
-export const COOLING_METHODS = [
-  { value: 'ambient',       label: 'Ambient (room temp)' },
-  { value: 'ice_bath',      label: 'Ice bath' },
-  { value: 'blast_chiller', label: 'Blast chiller' },
-  { value: 'cold_water',    label: 'Cold running water' },
-  { value: 'other',         label: 'Other' },
-]
-
-interface CoolingLog {
-  id: string
-  food_item: string
-  start_temp: number
-  end_temp: number
-  target_temp: number
-  cooling_method: string
-  started_at: string
-  logged_at: string
-  logged_by_name?: string
-  notes?: string
-  venue_id: string
-}
-
-// Matches the cooling_logs table. There is no stored pass flag or end
-// timestamp — pass is derived from end_temp vs target_temp (isCoolingTempFail),
-// and the corrective action a failed cool needs is written to `notes`.
+// There is no stored pass flag — see coolingOutcome. The corrective action a
+// failed cool needs is written to `notes`.
 const COOLING_COLUMNS =
-  'id, food_item, start_temp, end_temp, target_temp, cooling_method, started_at, logged_at, logged_by_name, notes, venue_id'
+  'id, food_item, start_temp, end_temp, target_temp, cooling_method, started_at, finished_at, logged_at, logged_by, logged_by_name, notes, venue_id'
+// Before migration 120 there is no finished_at column
+const LEGACY_COOLING_COLUMNS =
+  'id, food_item, start_temp, end_temp, target_temp, cooling_method, started_at, logged_at, logged_by, logged_by_name, notes, venue_id'
 
-/** Returns true if the end temperature is above the safe threshold */
-export function isCoolingTempFail(endTemp: number | string, targetTemp = COOLING_TARGET_TEMP): boolean {
-  return Number(endTemp) > targetTemp
+async function selectWithFallback(build: (columns: string) => PromiseLike<{ data: unknown; error: unknown }>): Promise<CoolingLog[]> {
+  const { data, error } = await build(COOLING_COLUMNS)
+  if (!error) return (data ?? []) as CoolingLog[]
+  const { data: legacy } = await build(LEGACY_COOLING_COLUMNS)
+  return (legacy ?? []) as CoolingLog[]
 }
 
-/** Filtered history hook — pass date strings 'yyyy-MM-dd' */
+/** Finished batches between two local dates ('yyyy-MM-dd'), newest first. */
 export function useCoolingLogs(dateFrom: string | null, dateTo: string | null): {
   logs: CoolingLog[]
   loading: boolean
@@ -50,48 +37,79 @@ export function useCoolingLogs(dateFrom: string | null, dateTo: string | null): 
 
   const { data: logs = [], isLoading: loading } = useQuery({
     queryKey,
-    queryFn: async () => {
+    queryFn: () => selectWithFallback((columns) => {
       let q = supabase
         .from('cooling_logs')
-        .select(COOLING_COLUMNS)
+        .select(columns)
         .eq('venue_id', venueId)
-        .order('logged_at', { ascending: false })
-        .limit(200)
+        .not('end_temp', 'is', null)
+        .order('started_at', { ascending: false })
+        .limit(1000)
 
-      if (dateFrom) q = q.gte('logged_at', dateFrom)
-      if (dateTo)   q = q.lte('logged_at', dateTo + 'T23:59:59')
-
-      const { data } = await q
-      return (data ?? []) as CoolingLog[]
-    },
+      if (dateFrom) q = q.gte('started_at', new Date(`${dateFrom}T00:00:00`).toISOString())
+      if (dateTo)   q = q.lte('started_at', new Date(`${dateTo}T23:59:59`).toISOString())
+      return q
+    }),
     enabled: !!venueId,
   })
 
-  const reload = () => queryClient.invalidateQueries({ queryKey })
+  const reload = () => queryClient.invalidateQueries({ queryKey: ['cooling_logs', venueId] })
 
   return { logs, loading, reload }
 }
 
-/** Today's logs only — for dashboard / summary */
-export function useTodayCoolingLogs(): { logs: CoolingLog[]; loading: boolean } {
+/** Batches still cooling (no end temperature yet), oldest first. */
+export function useCoolingInProgress(): { batches: CoolingLog[]; loading: boolean; reload: () => void } {
   const { venueId } = useVenue()
+  const queryClient = useQueryClient()
 
-  const queryKey = ['cooling_logs_today', venueId]
+  const queryKey = ['cooling_in_progress', venueId]
 
-  const { data: logs = [], isLoading: loading } = useQuery({
+  const { data: batches = [], isLoading: loading } = useQuery({
     queryKey,
-    queryFn: async () => {
-      const today = new Date().toISOString().slice(0, 10)
-      const { data } = await supabase
-        .from('cooling_logs')
-        .select(COOLING_COLUMNS)
-        .eq('venue_id', venueId)
-        .gte('logged_at', today)
-        .order('logged_at', { ascending: false })
-      return (data ?? []) as CoolingLog[]
-    },
+    queryFn: () => selectWithFallback((columns) => supabase
+      .from('cooling_logs')
+      .select(columns)
+      .eq('venue_id', venueId)
+      .is('end_temp', null)
+      .order('started_at', { ascending: true })),
     enabled: !!venueId,
+    refetchInterval: 60_000, // pick up batches started or finished on another device
   })
 
-  return { logs, loading }
+  const reload = () => queryClient.invalidateQueries({ queryKey })
+
+  return { batches, loading, reload }
+}
+
+/** Most-logged food items over the last 60 days, for quick-pick chips. */
+export function useFrequentCoolingItems(limit = 4): string[] {
+  const { venueId } = useVenue()
+
+  const { data = [] } = useQuery({
+    queryKey: ['cooling_frequent_items', venueId],
+    queryFn: async () => {
+      const since = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString()
+      const { data: rows } = await supabase
+        .from('cooling_logs')
+        .select('food_item')
+        .eq('venue_id', venueId)
+        .gte('started_at', since)
+        .limit(500)
+      const counts = new Map<string, { name: string; n: number }>()
+      for (const row of (rows ?? []) as { food_item: string }[]) {
+        const name = row.food_item?.trim()
+        if (!name) continue
+        const key = name.toLowerCase()
+        const entry = counts.get(key) ?? { name, n: 0 }
+        entry.n++
+        counts.set(key, entry)
+      }
+      return [...counts.values()].sort((a, b) => b.n - a.n).map(e => e.name)
+    },
+    enabled: !!venueId,
+    staleTime: 5 * 60_000,
+  })
+
+  return data.slice(0, limit)
 }

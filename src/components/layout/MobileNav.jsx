@@ -343,7 +343,8 @@ function getStaffTabs(session, vp, isEnabled, isRestricted) {
   const taskChildren = [
     ...(isEnabled('opening_closing') ? [{ to: vp('/opening-closing'), label: 'Checks' }] : []),
     ...(isEnabled('cleaning')        ? [{ to: vp('/cleaning'),        label: 'Cleaning' }] : []),
-    ...(isEnabled('fridge') && session?.showTempLogs ? [
+    // Legacy show_temp_logs flag kept so nobody loses access; the Log temperatures permission is the real switch
+    ...(isEnabled('fridge') && (session?.showTempLogs || session?.permissions?.includes('log_temps')) ? [
       { to: vp('/fridge'),        label: 'Fridge Temps' },
       { to: vp('/cooking-temps'), label: 'Cooking Temps' },
       { to: vp('/hot-holding'),   label: 'Hot Holding' },

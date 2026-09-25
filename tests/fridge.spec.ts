@@ -10,7 +10,7 @@ test.describe('Fridge dashboard', () => {
   })
 
   test('loads fridge dashboard', async ({ page }) => {
-    await expect(page.getByRole('heading', { name: /temperature logs/i })).toBeVisible()
+    await expect(page.getByRole('heading', { name: /fridge temperatures/i })).toBeVisible()
   })
 
   test('shows AM / PM period buttons or status', async ({ page }) => {
