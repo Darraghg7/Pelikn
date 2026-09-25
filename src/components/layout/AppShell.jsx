@@ -8,6 +8,7 @@ import NotificationBell from '../notifications/NotificationBell'
 import OfflineBanner from '../ui/OfflineBanner'
 import MobileNav from './MobileNav'
 import { useVenueFeatures } from '../../hooks/useVenueFeatures'
+import { useCleaningTasks } from '../../hooks/useCleaningTasks'
 import { useIsDesktop } from '../../hooks/useMediaQuery'
 import { preloadRoute } from '../../lib/routePreload'
 import { captureSilent } from '../../lib/reportError'
@@ -18,56 +19,12 @@ import { routeToNav, buildManagerCats, buildStaffCats, IcoOverview, PanelIcons }
 
 // Per-venue cache — busted automatically after TTL or on app restart
 const CACHE_TTL = 60_000 // 1 minute
-const _cache = { cleaning: {}, swaps: {} }
+const _cache = { swaps: {} }
 
 /** True if a cache entry exists and is still within the TTL window. */
 function isFresh(bucket, key) {
   const ts = _cache[bucket][key + '_ts']
   return ts && Date.now() - ts < CACHE_TTL
-}
-
-function useOverdueCleaning(venueId) {
-  const [count, setCount] = useState(0)
-  useEffect(() => {
-    if (!venueId) { setCount(0); return }
-    if (isFresh('cleaning', venueId)) {
-      setCount(_cache.cleaning[venueId] ?? 0)
-      return
-    }
-    setCount(0) // reset while fetching for the new venue
-    let cancelled = false
-    const load = async () => {
-      try {
-        // Both in parallel, and completions only for the last 90 days: the
-        // longest frequency is quarterly (90 days), so a task whose latest
-        // completion is older than that is overdue either way — fetching the
-        // venue's entire completion history changed nothing but the payload.
-        const since = new Date(Date.now() - 90 * 86400000).toISOString()
-        const [{ data: tasks }, { data: completions }] = await Promise.all([
-          supabase.from('cleaning_tasks').select('id, frequency').eq('venue_id', venueId).eq('is_active', true),
-          supabase.from('cleaning_completions').select('cleaning_task_id, completed_at')
-            .eq('venue_id', venueId)
-            .gte('completed_at', since)
-            .order('completed_at', { ascending: false }),
-        ])
-        if (!tasks?.length || cancelled) return
-        const freqDays = { daily: 1, weekly: 7, fortnightly: 14, monthly: 30, quarterly: 90 }
-        const now = new Date()
-        let overdue = 0
-        for (const t of tasks) {
-          const last = completions?.find(c => c.cleaning_task_id === t.id)
-          if (!last) { overdue++; continue }
-          if ((now - new Date(last.completed_at)) / 86400000 > freqDays[t.frequency]) overdue++
-        }
-        _cache.cleaning[venueId] = overdue
-        _cache.cleaning[venueId + '_ts'] = Date.now()
-        setCount(overdue)
-      } catch { /* network error — leave count at 0 */ }
-    }
-    load()
-    return () => { cancelled = true }
-  }, [venueId])
-  return count
 }
 
 function usePendingSwaps(venueId) {
@@ -467,7 +424,9 @@ export default function AppShell({ children }) {
   // rail only exists on desktop. Passing null on phones skips both fetches —
   // they used to run on every cold open for a sidebar nobody could see.
   const isDesktop    = useIsDesktop()
-  const overdueCount = useOverdueCleaning(isDesktop ? venueId : null)
+  // Same hook as /cleaning, so the badge can't disagree with the page and
+  // updates live when staff tick a task off on their own phones.
+  const { overdueCount } = useCleaningTasks(null, [], undefined, { enabled: isDesktop })
   const pendingSwaps = usePendingSwaps(isDesktop ? venueId : null)
 
   const { isEnabled, isPlanLocked } = useVenueFeatures()

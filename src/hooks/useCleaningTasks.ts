@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query'
+import { supabase } from '../lib/supabase'
 import { useVenue } from '../contexts/VenueContext'
 import { useAppSettings } from './useSettings'
 import useVenueClosures from './useVenueClosures'
@@ -51,10 +52,68 @@ export function cleaningStatus(
   return 'overdue'
 }
 
+// ── Live updates ────────────────────────────────────────────────────────────
+// Staff tick tasks off on their own phones, so the manager's screen only learns
+// about it from the server. Without this the cached list only refetched on a
+// remount — a manager with /cleaning open on a tablet never saw a tick land.
+// One channel per venue, shared by every mounted consumer (sidebar badge,
+// page, widget), since they all read the same query.
+const LIVE_TABLES = ['cleaning_completions', 'cleaning_tasks']
+const POLL_WHEN_DOWN_MS = 60_000
+
+const _live = {
+  venueId: null as string | null,
+  channel: null as ReturnType<typeof supabase.channel> | null,
+  refs: 0,
+  connected: false,
+}
+
+function teardownLive() {
+  if (_live.channel) {
+    try { supabase.removeChannel(_live.channel) } catch { /* already gone */ }
+  }
+  _live.venueId = null
+  _live.channel = null
+  _live.refs = 0
+  _live.connected = false
+}
+
+function acquireLive(venueId: string, queryClient: QueryClient): () => void {
+  if (_live.venueId !== venueId) teardownLive()
+  _live.venueId = venueId
+  _live.refs += 1
+
+  if (!_live.channel) {
+    try {
+      const refresh = () => queryClient.invalidateQueries({ queryKey: ['cleaningTasks', venueId] })
+      const channel = supabase.channel(`cleaning:${venueId}`)
+      for (const table of LIVE_TABLES) {
+        channel.on(
+          'postgres_changes' as never,
+          { event: '*', schema: 'public', table, filter: `venue_id=eq.${venueId}` },
+          refresh,
+        )
+      }
+      channel.subscribe((status: string) => { _live.connected = status === 'SUBSCRIBED' })
+      _live.channel = channel
+    } catch {
+      // No realtime here — the poll below keeps the list current instead.
+      _live.connected = false
+    }
+  }
+
+  return () => {
+    if (_live.venueId !== venueId) return
+    _live.refs -= 1
+    if (_live.refs <= 0) teardownLive()
+  }
+}
+
 export function useCleaningTasks(
   viewerRoleIds: readonly string[] | null = null,
   knownRoleIds: readonly string[] = [],
   asOf?: Date,
+  { enabled = true }: { enabled?: boolean } = {},
 ): {
   tasks: (CleaningTask & { lastCompletion: CleaningCompletion | null; status: CleaningStatus })[]
   loading: boolean
@@ -77,10 +136,21 @@ export function useCleaningTasks(
     return () => clearInterval(id)
   }, [])
 
+  const active = !!venueId && gateOpen && enabled
+  const queryClient = useQueryClient()
+  useEffect(() => {
+    if (!active) return
+    return acquireLive(venueId!, queryClient)
+  }, [active, venueId, queryClient])
+
   const { data, isLoading, refetch, error } = useQuery({
     queryKey: ['cleaningTasks', venueId],
     queryFn: () => fetchCleaningTasks(venueId!),
-    enabled: !!venueId && gateOpen,
+    enabled: active,
+    // Realtime is the live path; this only kicks in while the channel is down.
+    refetchInterval: () => (_live.connected ? false : POLL_WHEN_DOWN_MS),
+    // A tablet woken from sleep has missed every event while it was suspended.
+    refetchOnWindowFocus: true,
   })
 
   const tasks: CleaningTask[] = data?.tasks ?? []
