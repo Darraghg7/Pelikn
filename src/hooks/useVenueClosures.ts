@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
 import { useVenue } from '../contexts/VenueContext'
+import { useWidgetFetchGate } from './useWidgetFetchGate'
 
 interface VenueClosure {
   id: string
@@ -16,6 +17,7 @@ export default function useVenueClosures(): {
   reload: () => void
 } {
   const { venueId } = useVenue()
+  const gateOpen = useWidgetFetchGate()
 
   const { data: closures = [], isLoading: loading, refetch } = useQuery({
     queryKey: ['venue_closures', venueId],
@@ -27,7 +29,7 @@ export default function useVenueClosures(): {
         .order('start_date')
       return (data ?? []) as VenueClosure[]
     },
-    enabled: !!venueId,
+    enabled: !!venueId && gateOpen,
   })
 
   return { closures, loading, reload: refetch }
