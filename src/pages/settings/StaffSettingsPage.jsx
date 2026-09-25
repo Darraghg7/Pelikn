@@ -1,5 +1,5 @@
-import React, { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import React from 'react'
+import { Link, useSearchParams } from 'react-router-dom'
 import { useVenue } from '../../contexts/VenueContext'
 import { useSession } from '../../contexts/SessionContext'
 import StaffMembersSection from './StaffMembersSection'
@@ -7,7 +7,7 @@ import VenueCodeSection from './VenueCodeSection'
 import RolesSection from './RolesSection'
 import PermissionTitlesSection from './PermissionTitlesSection'
 import DutiesSection from './DutiesSection'
-import SettingsSubHeader from '../../components/layout/SettingsSubHeader'
+import { TabBar } from '../../components/temperature/TempPageParts'
 
 const TABS = [
   { id: 'members', label: 'Members' },
@@ -16,51 +16,71 @@ const TABS = [
   { id: 'duties',  label: 'Duties' },
 ]
 
-
+/**
+ * Staff & roles. The tab and the person being edited live in the URL
+ * (?tab=roles, ?staff=<id>|new) so the phone's back button steps out of a
+ * person's page to the list, and a refresh stays where you were.
+ */
 export default function StaffSettingsPage() {
-  const navigate = useNavigate()
   const { venueId, venueSlug } = useVenue()
   const { session } = useSession()
-  const [tab, setTab] = useState('members')
+  const [params, setParams] = useSearchParams()
 
-  const vp = (path) => `/v/${venueSlug}${path}`
+  const tab      = TABS.some(t => t.id === params.get('tab')) ? params.get('tab') : 'members'
+  const detailId = tab === 'members' ? params.get('staff') : null
+
+  const setTab    = (id) => setParams(id === 'members' ? {} : { tab: id }, { replace: true })
+  const openStaff = (id) => setParams({ staff: id }, { replace: !!detailId })   // new entry from the list, replace within a person
+  // Replace, so Back from the list doesn't reopen the person just closed
+  const closeStaff = () => setParams({}, { replace: true })
 
   return (
-    <div>
-      <SettingsSubHeader title="Staff & Roles" onBack={() => navigate(vp('/settings/hub'))} />
-
-      <div className="sticky top-[49px] z-[9] bg-surface dark:bg-[#111111] pt-3 pb-2">
-        <div className="max-w-[480px] md:max-w-2xl lg:max-w-3xl mx-auto flex bg-charcoal/[0.05] dark:bg-white/5 rounded-xl p-1 gap-1">
-          {TABS.map(t => (
-            <button
-              key={t.id}
-              onClick={() => setTab(t.id)}
-              className={`flex-1 px-3 py-2 rounded-lg text-[13px] font-medium transition-all whitespace-nowrap ${
-                tab === t.id
-                  ? 'bg-white dark:bg-paperDark text-charcoal dark:text-white shadow-sm'
-                  : 'text-charcoal/50 dark:text-white/40 hover:text-charcoal dark:hover:text-white'
-              }`}
-            >{t.label}</button>
-          ))}
-        </div>
-      </div>
-
-      <div className="pb-24 max-w-[480px] md:max-w-2xl lg:max-w-3xl mx-auto">
-        {tab === 'members' && <StaffMembersSection />}
-
-        {tab === 'invite' && (
-          <VenueCodeSection venueId={venueId} sessionToken={session?.token} />
-        )}
-
-        {tab === 'roles' && (
-          <div className="flex flex-col gap-4">
-            <RolesSection />
-            <PermissionTitlesSection />
+    <div className={`${detailId ? 'pb-8' : ''} max-w-[480px] md:max-w-2xl lg:max-w-3xl mx-auto flex flex-col gap-2.5`}>
+      {!detailId && (
+        <>
+          <div className="flex flex-col gap-1 pt-1">
+            <Link
+              to={`/v/${venueSlug}/settings/hub`}
+              className="self-start inline-flex items-center gap-1 text-[13px] font-semibold text-brand dark:text-white/80 hover:opacity-75"
+            >
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6" /></svg>
+              Settings
+            </Link>
+            <div className="flex items-center justify-between gap-2.5">
+              <h1 className="text-[20px] min-[420px]:text-[22px] leading-tight font-bold tracking-tight text-ink dark:text-white whitespace-nowrap">Staff &amp; roles</h1>
+              {tab === 'members' && (
+                <button
+                  type="button"
+                  onClick={() => openStaff('new')}
+                  className="shrink-0 inline-flex items-center gap-2 h-8 px-3.5 rounded-xl bg-brand text-white text-[13px] min-[420px]:text-[13px] font-semibold hover:bg-brand/90 transition-colors"
+                >
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
+                  Add staff
+                </button>
+              )}
+            </div>
           </div>
-        )}
 
-        {tab === 'duties' && <DutiesSection />}
-      </div>
+          <TabBar tabs={TABS} size="sm" active={tab} onChange={setTab} />
+        </>
+      )}
+
+      {tab === 'members' && (
+        <StaffMembersSection detailId={detailId} onOpen={openStaff} onClose={closeStaff} />
+      )}
+
+      {tab === 'invite' && (
+        <VenueCodeSection venueId={venueId} sessionToken={session?.token} />
+      )}
+
+      {tab === 'roles' && (
+        <div className="flex flex-col gap-2.5">
+          <RolesSection />
+          <PermissionTitlesSection />
+        </div>
+      )}
+
+      {tab === 'duties' && <DutiesSection />}
     </div>
   )
 }

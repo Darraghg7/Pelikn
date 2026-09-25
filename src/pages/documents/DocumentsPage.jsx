@@ -20,8 +20,8 @@ import { VENUE_DOCS_BUCKET, venueDocumentPath, openVenueDocument } from '../../l
 const CATEGORY_LABEL = Object.fromEntries(DOCUMENT_CATEGORIES.map(c => [c.value, c.label]))
 const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
 
-const FIELD_LABEL = 'block text-[13px] font-semibold tracking-[0.08em] uppercase text-ink3 dark:text-white/45 mb-2'
-const TEXT_FIELD  = 'w-full h-12 px-4 rounded-xl border border-line dark:border-white/10 bg-cream dark:bg-white/5 text-[15px] text-ink dark:text-white placeholder:text-ink4 dark:placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand/40 focus:bg-white dark:focus:bg-white/10 transition-colors'
+const FIELD_LABEL = 'block text-[12px] font-semibold tracking-[0.08em] uppercase text-ink3 dark:text-white/45 mb-2'
+const TEXT_FIELD  = 'w-full h-9 px-3.5 rounded-xl border border-line dark:border-white/10 bg-cream dark:bg-white/5 text-[13px] text-ink dark:text-white placeholder:text-ink4 dark:placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand/40 focus:bg-white dark:focus:bg-white/10 transition-colors'
 
 // Expired first, then expiring soonest-first, then the rest A–Z, undated last
 const STATUS_RANK = { expired: 0, expiring: 1, valid: 2, none: 3 }
@@ -39,7 +39,7 @@ function StatusPill({ status, daysLeft }) {
     none:     { label: 'No expiry', cls: 'bg-line2 text-ink3 dark:bg-white/10 dark:text-white/50' },
   }[status]
   return (
-    <span className={`shrink-0 h-8 px-3 min-[420px]:px-3.5 rounded-full inline-flex items-center text-sm font-semibold whitespace-nowrap ${pill.cls}`}>
+    <span className={`shrink-0 h-7 px-3 min-[420px]:px-3.5 rounded-full inline-flex items-center text-[13px] font-semibold whitespace-nowrap ${pill.cls}`}>
       {pill.label}
     </span>
   )
@@ -52,14 +52,14 @@ function FilterChip({ active, label, count, onClick }) {
       aria-pressed={active}
       onClick={onClick}
       className={[
-        'h-11 px-4 rounded-full border inline-flex items-center gap-2 text-[15px] font-semibold transition-colors',
+        'h-8 px-3.5 rounded-full border inline-flex items-center gap-2 text-[13px] font-semibold transition-colors',
         active
           ? 'bg-brand border-brand text-white'
           : 'bg-white dark:bg-paperDark border-line dark:border-white/10 text-ink2 dark:text-white/75 hover:border-ink4',
       ].join(' ')}
     >
       {label}
-      <span className={`font-mono text-sm ${active ? 'text-white/70' : 'text-ink4 dark:text-white/35'}`}>{count}</span>
+      <span className={`font-mono text-[13px] ${active ? 'text-white/70' : 'text-ink4 dark:text-white/35'}`}>{count}</span>
     </button>
   )
 }
@@ -116,10 +116,10 @@ function UploadDocumentModal({ open, onClose, onSaved }) {
 
   return (
     <Modal open={open} onClose={() => { reset(); onClose() }} title="Upload document">
-      <div className="flex flex-col gap-5">
+      <div className="flex flex-col gap-4">
         <label
           className={[
-            'flex flex-col items-center justify-center gap-1.5 rounded-2xl border-[1.5px] border-dashed px-4 py-6 text-center cursor-pointer transition-colors',
+            'flex flex-col items-center justify-center gap-1.5 rounded-2xl border-[1.5px] border-dashed px-3.5 py-6 text-center cursor-pointer transition-colors',
             file ? 'border-brand/40 bg-brand-tint dark:bg-white/10' : 'border-ink4/70 dark:border-white/20 hover:border-ink3',
           ].join(' ')}
           onDragOver={e => e.preventDefault()}
@@ -133,13 +133,13 @@ function UploadDocumentModal({ open, onClose, onSaved }) {
           />
           {file ? (
             <>
-              <span className="text-[15px] font-semibold text-ink dark:text-white break-all">{file.name}</span>
-              <span className="text-sm text-ink3 dark:text-white/45">Tap to choose a different file</span>
+              <span className="text-[13px] font-semibold text-ink dark:text-white break-all">{file.name}</span>
+              <span className="text-[13px] text-ink3 dark:text-white/45">Tap to choose a different file</span>
             </>
           ) : (
             <>
-              <span className="text-[15px] font-semibold text-ink dark:text-white">Choose a file</span>
-              <span className="text-sm text-ink3 dark:text-white/45">PDF, photo or Word document · up to 10 MB</span>
+              <span className="text-[13px] font-semibold text-ink dark:text-white">Choose a file</span>
+              <span className="text-[13px] text-ink3 dark:text-white/45">PDF, photo or Word document · up to 10 MB</span>
             </>
           )}
         </label>
@@ -159,7 +159,7 @@ function UploadDocumentModal({ open, onClose, onSaved }) {
                 aria-pressed={category === c.value}
                 onClick={() => setCategory(c.value)}
                 className={[
-                  'h-10 px-4 rounded-full border text-[15px] transition-colors',
+                  'h-8 px-3.5 rounded-full border text-[13px] transition-colors',
                   category === c.value
                     ? 'bg-brand-tint border-brand/40 text-brand font-semibold dark:bg-white/10 dark:text-white dark:border-white/30'
                     : 'bg-white dark:bg-paperDark border-line dark:border-white/10 text-ink2 dark:text-white/75 hover:border-ink4',
@@ -185,7 +185,7 @@ function UploadDocumentModal({ open, onClose, onSaved }) {
           type="button"
           onClick={save}
           disabled={!canSave}
-          className="w-full h-[52px] rounded-2xl bg-brand text-white text-[17px] font-semibold transition-colors hover:bg-brand/90 disabled:bg-ink3/70 dark:disabled:bg-white/15 disabled:cursor-not-allowed"
+          className="w-full h-10 rounded-2xl bg-brand text-white text-[14px] font-semibold transition-colors hover:bg-brand/90 disabled:bg-ink3/70 dark:disabled:bg-white/15 disabled:cursor-not-allowed"
         >
           {saving ? 'Uploading…' : 'Upload'}
         </button>
@@ -237,7 +237,7 @@ export default function DocumentsPage() {
   ].filter(Boolean).join(' · ')
 
   return (
-    <div className="flex flex-col gap-4 max-w-3xl">
+    <div className="flex flex-col gap-2.5 max-w-3xl">
       <PageHeader
         title="Documents"
         backTo={`/v/${venueSlug}/checks`}
@@ -245,7 +245,7 @@ export default function DocumentsPage() {
           <button
             type="button"
             onClick={() => setShowUpload(true)}
-            className="shrink-0 inline-flex items-center gap-2 h-11 px-4 sm:px-5 rounded-xl bg-brand text-white text-[15px] sm:text-[16px] font-semibold hover:bg-brand/90 transition-colors"
+            className="shrink-0 inline-flex items-center gap-2 h-8 px-3.5 sm:px-3.5 rounded-xl bg-brand text-white text-[13px] sm:text-[13px] font-semibold hover:bg-brand/90 transition-colors"
           >
             <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="19" x2="12" y2="5" /><polyline points="5 12 12 5 19 12" /></svg>
             Upload
@@ -262,7 +262,7 @@ export default function DocumentsPage() {
           onChange={e => setSearch(e.target.value)}
           placeholder="Search documents"
           aria-label="Search documents"
-          className="w-full h-14 pl-12 pr-4 rounded-2xl border border-line dark:border-white/10 bg-white dark:bg-paperDark text-[16px] text-ink dark:text-white placeholder:text-ink4 dark:placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand/40"
+          className="w-full h-10 pl-12 pr-4 rounded-2xl border border-line dark:border-white/10 bg-white dark:bg-paperDark text-[13px] text-ink dark:text-white placeholder:text-ink4 dark:placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand/40"
         />
       </div>
 
@@ -279,21 +279,21 @@ export default function DocumentsPage() {
         <button
           type="button"
           onClick={() => setAttention(v => !v)}
-          className="w-full flex items-center gap-3 rounded-2xl bg-warnBg dark:bg-warn/20 px-4 sm:px-5 py-3.5 text-left"
+          className="w-full flex items-center gap-2.5 rounded-2xl bg-warnBg dark:bg-warn/20 px-3.5 sm:px-3.5 py-2 text-left"
         >
           <svg className="shrink-0 w-5 h-5 text-warn dark:text-[#e8b06a]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="14" r="8" /><polyline points="12 10 12 14 14.5 15.5" /><line x1="10" y1="2" x2="14" y2="2" /></svg>
-          <span className="flex-1 min-w-0 text-[15px] min-[420px]:text-[17px] font-semibold text-ink dark:text-white">{bannerText}</span>
-          <span className="shrink-0 text-[15px] min-[420px]:text-[17px] font-semibold text-warn dark:text-[#e8b06a]">{attention ? 'Show all' : 'Review'}</span>
+          <span className="flex-1 min-w-0 text-[13px] min-[420px]:text-[14px] font-semibold text-ink dark:text-white">{bannerText}</span>
+          <span className="shrink-0 text-[13px] min-[420px]:text-[14px] font-semibold text-warn dark:text-[#e8b06a]">{attention ? 'Show all' : 'Review'}</span>
         </button>
       )}
 
       {/* List */}
       {visible.length === 0 ? (
-        <div className={`${CARD} px-5 py-10 text-center`}>
-          <p className="text-[17px] font-semibold text-ink dark:text-white">
+        <div className={`${CARD} px-3.5 py-10 text-center`}>
+          <p className="text-[14px] font-semibold text-ink dark:text-white">
             {docs.length === 0 ? 'No documents yet' : 'No matching documents'}
           </p>
-          <p className="text-sm text-ink3 dark:text-white/45 mt-1">
+          <p className="text-[13px] text-ink3 dark:text-white/45 mt-1">
             {docs.length === 0
               ? (isManager ? 'Upload your licences, insurance and safety records so they’re ready for an inspection.' : 'Nothing has been uploaded yet.')
               : 'Try a different search or category.'}
@@ -306,14 +306,14 @@ export default function DocumentsPage() {
               type="button"
               key={doc.id}
               onClick={() => openVenueDocument(doc, toast)}
-              className="w-full text-left flex items-center gap-3 min-[420px]:gap-4 px-4 sm:px-5 py-4 hover:bg-cream/60 dark:hover:bg-white/5 transition-colors"
+              className="w-full text-left flex items-center gap-2.5 min-[420px]:gap-2.5 px-3.5 sm:px-3.5 py-2.5 hover:bg-cream/60 dark:hover:bg-white/5 transition-colors"
             >
-              <span className="shrink-0 w-11 h-11 min-[420px]:w-12 min-[420px]:h-12 rounded-xl bg-cream dark:bg-white/10 border border-line dark:border-white/10 flex items-end justify-center pb-1.5 font-mono text-[11px] font-bold text-ink2 dark:text-white/70">
+              <span className="shrink-0 w-9 h-8 min-[420px]:w-9 min-[420px]:h-9 rounded-xl bg-cream dark:bg-white/10 border border-line dark:border-white/10 flex items-end justify-center pb-1.5 font-mono text-[11px] font-bold text-ink2 dark:text-white/70">
                 {fileExt(doc)}
               </span>
               <span className="flex-1 min-w-0">
-                <span className="block text-[16px] min-[420px]:text-[17px] leading-snug font-semibold text-ink dark:text-white line-clamp-2 break-words">{doc.title}</span>
-                <span className="block text-sm text-ink3 dark:text-white/45 mt-0.5">
+                <span className="block text-[13px] min-[420px]:text-[14px] leading-snug font-semibold text-ink dark:text-white line-clamp-2 break-words">{doc.title}</span>
+                <span className="block text-[13px] text-ink3 dark:text-white/45 mt-0.5">
                   {CATEGORY_LABEL[doc.category] ?? doc.category} · {doc.expiry_date
                     ? `Expires ${format(parseISO(doc.expiry_date), 'd MMM yyyy')}`
                     : `Added ${format(new Date(doc.created_at), 'd MMM yyyy')}`}
