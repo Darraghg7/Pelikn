@@ -110,7 +110,7 @@ function ComplianceScoreWidget() {
   })
 
   if (!data) return (
-    <WidgetShell title="Compliance Score" to="/audit">
+    <WidgetShell title="Compliance" to="/audit">
       <div className="flex justify-center py-4"><LoadingSpinner /></div>
     </WidgetShell>
   )
@@ -118,30 +118,28 @@ function ComplianceScoreWidget() {
   const tier = getScoreTier(data.score)
 
   return (
-    <WidgetShell title="Compliance Score" to="/audit" status={data.status}>
+    <WidgetShell title="Compliance" to="/audit">
       <div className="py-1">
-        <p className="text-5xl font-bold leading-none" style={{ color: tier.color }}>{data.score}%</p>
-        <div className="mt-3">
-          {data.issues > 0 ? (
-            <span className="inline-flex items-center gap-1 bg-danger/10 text-danger text-xs font-semibold px-2.5 py-1 rounded-full">
-              ↓ {data.issues} item{data.issues !== 1 ? 's' : ''} need attention
-            </span>
-          ) : (
-            <span className="inline-flex items-center gap-1 bg-success/10 text-success text-xs font-semibold px-2.5 py-1 rounded-full">
-              <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg>
-              All checks on track
-            </span>
-          )}
-        </div>
-        <p className="text-[11px] text-charcoal/35 dark:text-white/30 mt-2 uppercase tracking-wide">{COMPLIANCE_RANGE_DAYS}-day average</p>
+        <p className="font-mono text-[40px] min-[420px]:text-[44px] font-semibold leading-none tracking-tight" style={{ color: tier.color }}>{data.score}%</p>
+        {data.issues > 0 ? (
+          <p className="mt-3 text-[15px] font-semibold text-bad dark:text-[#f19a86]">
+            ↓ {data.issues} item{data.issues !== 1 ? 's' : ''} need attention
+          </p>
+        ) : (
+          <p className="mt-3 text-[15px] font-semibold text-good dark:text-[#7fd1a4] inline-flex items-center gap-1.5">
+            <svg className="w-4 h-4 shrink-0" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg>
+            On track · {COMPLIANCE_RANGE_DAYS}-day avg
+          </p>
+        )}
+        {data.issues > 0 && <p className="text-sm text-ink3 dark:text-white/45 mt-1">{COMPLIANCE_RANGE_DAYS}-day average</p>}
       </div>
       {data.issueList?.length > 0 && (
-        <div className="mt-3 pt-3 border-t border-charcoal/8 dark:border-white/8 flex flex-col gap-0.5">
+        <div className="mt-3 pt-3 border-t border-line dark:border-white/10 flex flex-col gap-0.5">
           {data.issueList.map(issue => {
             const content = (
-              <div className="flex items-center justify-between py-1.5 px-2 rounded-lg hover:bg-charcoal/4 dark:hover:bg-white/5 transition-colors cursor-pointer">
-                <span className="text-xs text-charcoal/70 dark:text-white/60">{issue.label}</span>
-                <span className={`text-xs font-semibold ${issue.severity === 'bad' ? 'text-danger' : 'text-warning'}`}>
+              <div className="flex flex-wrap items-baseline justify-between gap-x-2 gap-y-0.5 py-1.5 px-2 -mx-2 rounded-lg hover:bg-cream dark:hover:bg-white/5 transition-colors cursor-pointer">
+                <span className="text-sm text-ink2 dark:text-white/70">{issue.label}</span>
+                <span className={`text-sm font-semibold ${issue.severity === 'bad' ? 'text-bad dark:text-[#f19a86]' : 'text-warn dark:text-[#e8b06a]'}`}>
                   {issue.detail} →
                 </span>
               </div>
