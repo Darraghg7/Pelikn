@@ -501,6 +501,13 @@ export function SessionProvider({ children }) {
       jwt   = null
     }
 
+    // Activate the venue-scoped JWT BEFORE the reads below. Since 113 the
+    // anon key can't see any staff row, so reading the staff row (fallback
+    // branch), role assignments or the permission title as anon returns
+    // nothing — and the fallback's `.single()` turned that into a login
+    // error the page showed as "Incorrect PIN" for a correct PIN.
+    if (jwt) setSessionJwt(jwt)
+
     // ── Resolve staff row, permissions and linked venues ──────────────────
     // Fast path: they arrived with the login response above (one round trip).
     // Fallback: fetch them here — but in parallel, not chained, so a stale
@@ -525,7 +532,7 @@ export function SessionProvider({ children }) {
         supabase.rpc('get_staff_venue_links', { p_session_token: token }),
       ])
 
-      if (staffRes.error) return { error: staffRes.error }
+      if (staffRes.error) { clearSessionJwt(); return { error: staffRes.error } }
 
       row = staffRes.data
       // Managers/owners bypass granular permissions entirely.
@@ -589,11 +596,8 @@ export function SessionProvider({ children }) {
     localStorage.setItem(SESSION_VENUE_ID_KEY,   venueId)
     localStorage.setItem(SESSION_VENUE_SLUG_KEY, venueSlug ?? '')
 
-    // Activate the venue-scoped JWT for all subsequent PostgREST calls
-    if (jwt) {
-      localStorage.setItem(SESSION_JWT_KEY, jwt)
-      setSessionJwt(jwt)
-    }
+    // Persist the venue-scoped JWT (already active in memory from above)
+    if (jwt) localStorage.setItem(SESSION_JWT_KEY, jwt)
 
     // Linked venues (for the overview dashboard — cross-venue managers)
     localStorage.setItem(SESSION_LINKED_VENUES, JSON.stringify(venues))
