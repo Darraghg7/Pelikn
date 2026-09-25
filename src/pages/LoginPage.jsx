@@ -512,8 +512,14 @@ export default function LoginPage() {
         setError(msg.replace('Too many failed attempts — try again after', 'Account locked, try again at'))
       } else if (/inactive/i.test(msg)) {
         setError('This account has been deactivated. Contact your manager.')
-      } else {
+      } else if (/incorrect pin|invalid credentials/i.test(msg)) {
         setError('Incorrect PIN, try again')
+      } else if (err.code === 'CONNECTION') {
+        setError(msg)
+      } else {
+        // Anything else is not the PIN's fault. Saying "Incorrect PIN" here
+        // is what hid the Sep 2026 login outage behind a wrong-PIN message.
+        setError("Couldn't sign in. Please try again.")
       }
       setPin('')
       setSubmitting(false)

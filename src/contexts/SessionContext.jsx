@@ -69,16 +69,29 @@ const LS_KEYS = [
 const clearStorage = () => LS_KEYS.forEach(k => localStorage.removeItem(k))
 
 /**
+ * Fire an RPC without waiting for it. Supabase query builders are thenables
+ * with no .catch method, so the `supabase.rpc(...).catch(...)` this replaces
+ * threw a TypeError before the request was ever sent — venue switching
+ * crashed, sign-out never ended the session server-side, and sessions were
+ * never extended. `.then(ok, fail)` both sends it and swallows failures.
+ */
+const fireAndForgetRpc = (fn, args) => { supabase.rpc(fn, args).then(() => {}, () => {}) }
+
+/**
  * Re-issue a venue-scoped JWT from the currently-stored staff session token.
  * Registered with the Supabase client as the JWT refresher, so an expiring or
  * rejected venue JWT is renewed automatically without forcing a re-login.
  * Reads token/venue from localStorage each call, so it always reflects the
  * active session (including after a venue switch). Returns null on any failure
  * — the caller then falls back to the anon key.
+ *
+ * signIn passes the token and venue explicitly, because it needs a JWT for a
+ * session that isn't in localStorage yet.
  */
-async function issueVenueJwt() {
-  const token   = localStorage.getItem(SESSION_TOKEN_KEY)
-  const venueId = localStorage.getItem(SESSION_VENUE_ID_KEY)
+async function issueVenueJwt(
+  token   = localStorage.getItem(SESSION_TOKEN_KEY),
+  venueId = localStorage.getItem(SESSION_VENUE_ID_KEY),
+) {
   if (!token || !venueId) return null
   try {
     const res = await fetch(`${supabaseUrl}/functions/v1/pin-login`, {
@@ -342,7 +355,7 @@ export function SessionProvider({ children }) {
           } catch { /* corrupt cache */ }
           // Opportunistically extend the session while we have a confirmed
           // valid token — fire-and-forget, failure is non-critical
-          supabase.rpc('refresh_staff_session', { p_token: token }).catch(() => {})
+          fireAndForgetRpc('refresh_staff_session', { p_token: token })
           // Permissions are cached from sign-in; pick up any granted since.
           refreshPermissions(validated).catch(() => {})
         } else if (error) {
@@ -389,7 +402,7 @@ export function SessionProvider({ children }) {
 
     const TWELVE_HOURS = 12 * 60 * 60 * 1000
     const id = setInterval(() => {
-      supabase.rpc('refresh_staff_session', { p_token: session.token }).catch(() => {})
+      fireAndForgetRpc('refresh_staff_session', { p_token: session.token })
     }, TWELVE_HOURS)
 
     return () => clearInterval(id)
@@ -404,7 +417,7 @@ export function SessionProvider({ children }) {
     const token = session.token
     const handleVisibility = () => {
       if (document.visibilityState === 'visible') {
-        supabase.rpc('refresh_staff_session', { p_token: token }).catch(() => {})
+        fireAndForgetRpc('refresh_staff_session', { p_token: token })
       }
     }
     document.addEventListener('visibilitychange', handleVisibility)
@@ -449,7 +462,7 @@ export function SessionProvider({ children }) {
     // Try the pin-login edge function first — it returns a venue-scoped JWT
     // alongside the session token, enabling RLS enforcement without a paid plan.
     // If the edge function is unavailable or errors for any reason, fall through
-    // to the direct RPC so logins are never blocked by an edge function issue.
+    // to the direct RPC, which checks the PIN and then retries for a JWT.
     let token, jwt, bundle = null
     try {
       const res = await fetch(`${supabaseUrl}/functions/v1/pin-login`, {
@@ -483,8 +496,7 @@ export function SessionProvider({ children }) {
         return { error: new Error(msg || 'Incorrect PIN') }
       }
       // Any other non-OK response (e.g. SUPABASE_JWT_SECRET not yet set, 5xx)
-      // falls through to the RPC below — logins are never blocked by an edge
-      // function issue, just done without a JWT.
+      // falls through to the RPC below.
     } catch {
       // Network error or CORS — falls through to RPC below.
     }
@@ -498,7 +510,25 @@ export function SessionProvider({ children }) {
       )
       if (rpcErr || !rpcToken) return { error: rpcErr || new Error('Incorrect PIN') }
       token = rpcToken
-      jwt   = null
+
+      // The RPC proves the PIN but can't sign a JWT — only the edge function
+      // holds the secret. Without one, venue-scoped RLS (091) shows this
+      // device nothing, and the refresher in lib/supabase only renews a JWT
+      // that already exists — so the session would open an empty app for its
+      // whole life. Ask the edge function once more (the first failure may
+      // have been a blip), then give up cleanly rather than half-log-in.
+      jwt = await issueVenueJwt(token, venueId)
+      if (!jwt) {
+        await new Promise(r => setTimeout(r, 1000))
+        jwt = await issueVenueJwt(token, venueId)
+      }
+      if (!jwt) {
+        fireAndForgetRpc('invalidate_staff_session', { p_token: token })
+        localStorage.removeItem(SESSION_JWT_KEY)
+        const err = new Error("Couldn't reach Pelikn. Check your connection and try again.")
+        err.code = 'CONNECTION'
+        return { error: err }
+      }
     }
 
     // Activate the venue-scoped JWT BEFORE the reads below. Since 113 the
@@ -532,7 +562,11 @@ export function SessionProvider({ children }) {
         supabase.rpc('get_staff_venue_links', { p_session_token: token }),
       ])
 
-      if (staffRes.error) { clearSessionJwt(); return { error: staffRes.error } }
+      if (staffRes.error) {
+        clearSessionJwt()
+        localStorage.removeItem(SESSION_JWT_KEY)
+        return { error: staffRes.error }
+      }
 
       row = staffRes.data
       // Managers/owners bypass granular permissions entirely.
@@ -635,7 +669,7 @@ export function SessionProvider({ children }) {
     if (error || !newToken) return { error: error ?? new Error('Switch failed') }
 
     // Invalidate the old token now that a new one is active — fire-and-forget
-    supabase.rpc('invalidate_staff_session', { p_token: token }).catch(() => {})
+    fireAndForgetRpc('invalidate_staff_session', { p_token: token })
 
     localStorage.setItem(SESSION_TOKEN_KEY,      newToken)
     localStorage.setItem(SESSION_VENUE_ID_KEY,   targetVenueId)
@@ -690,7 +724,7 @@ export function SessionProvider({ children }) {
     clearSessionJwt()
     setSession(null)
     if (token) {
-      supabase.rpc('invalidate_staff_session', { p_token: token }).catch(() => {})
+      fireAndForgetRpc('invalidate_staff_session', { p_token: token })
     }
   }, [session])
 
