@@ -8,6 +8,7 @@ import NotificationBell from '../notifications/NotificationBell'
 import OfflineBanner from '../ui/OfflineBanner'
 import MobileNav from './MobileNav'
 import { useVenueFeatures } from '../../hooks/useVenueFeatures'
+import { useIsDesktop } from '../../hooks/useMediaQuery'
 import { preloadRoute } from '../../lib/routePreload'
 import { captureSilent } from '../../lib/reportError'
 import Rail from './RailNav'
@@ -37,14 +38,19 @@ function useOverdueCleaning(venueId) {
     let cancelled = false
     const load = async () => {
       try {
-        const { data: tasks } = await supabase
-          .from('cleaning_tasks').select('id, frequency').eq('venue_id', venueId).eq('is_active', true)
+        // Both in parallel, and completions only for the last 90 days: the
+        // longest frequency is quarterly (90 days), so a task whose latest
+        // completion is older than that is overdue either way — fetching the
+        // venue's entire completion history changed nothing but the payload.
+        const since = new Date(Date.now() - 90 * 86400000).toISOString()
+        const [{ data: tasks }, { data: completions }] = await Promise.all([
+          supabase.from('cleaning_tasks').select('id, frequency').eq('venue_id', venueId).eq('is_active', true),
+          supabase.from('cleaning_completions').select('cleaning_task_id, completed_at')
+            .eq('venue_id', venueId)
+            .gte('completed_at', since)
+            .order('completed_at', { ascending: false }),
+        ])
         if (!tasks?.length || cancelled) return
-        const { data: completions } = await supabase
-          .from('cleaning_completions').select('cleaning_task_id, completed_at')
-          .eq('venue_id', venueId)
-          .order('completed_at', { ascending: false })
-        if (cancelled) return
         const freqDays = { daily: 1, weekly: 7, fortnightly: 14, monthly: 30, quarterly: 90 }
         const now = new Date()
         let overdue = 0
@@ -457,8 +463,12 @@ export default function AppShell({ children }) {
   const { venues, selectVenue } = useAuth()
   const location     = useLocation()
   const navigate     = useNavigate()
-  const overdueCount = useOverdueCleaning(venueId)
-  const pendingSwaps = usePendingSwaps(venueId)
+  // The rail/panel badges are the only consumers of these two counts, and the
+  // rail only exists on desktop. Passing null on phones skips both fetches —
+  // they used to run on every cold open for a sidebar nobody could see.
+  const isDesktop    = useIsDesktop()
+  const overdueCount = useOverdueCleaning(isDesktop ? venueId : null)
+  const pendingSwaps = usePendingSwaps(isDesktop ? venueId : null)
 
   const { isEnabled, isPlanLocked } = useVenueFeatures()
 
@@ -573,8 +583,10 @@ export default function AppShell({ children }) {
         Skip to content
       </a>
 
-      {/* ── Desktop rail + panel (hidden below lg) ─────────────────────────── */}
-      <div className="hidden lg:block">
+      {/* ── Desktop rail + panel ──────────────────────────────────────────────
+          Rendered only on desktop, not just hidden: hidden, it still mounted
+          (and fetched) on every phone. */}
+      {isDesktop && <div className="hidden lg:block">
         <Rail
           cats={allCats}
           browseCat={browseCat}
@@ -624,7 +636,7 @@ export default function AppShell({ children }) {
             </svg>
           </button>
         )}
-      </div>
+      </div>}
 
       {/* ── Content area (offset by rail + panel on desktop) ───────────────── */}
       {/* overflow-x-clip, not -hidden: `overflow-x:hidden` forces overflow-y to

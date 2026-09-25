@@ -37,6 +37,24 @@ export async function fetchSignOffs(venueId: string): Promise<SignOffRecord[]> {
   return (data ?? []) as unknown as SignOffRecord[]
 }
 
+/** How many training sign-offs at the venue are still waiting for a staff signature. */
+export async function fetchUnsignedTrainingCount(venueId: string): Promise<number> {
+  const { count } = await supabase
+    .from('training_sign_offs')
+    .select('id', { count: 'exact', head: true })
+    .eq('venue_id', venueId)
+    .eq('staff_acknowledged', false)
+  return count ?? 0
+}
+
+/**
+ * Shared React Query key for fetchUnsignedTrainingCount. The mobile manager
+ * dashboard and the Staff Notifications widget both show this number on the
+ * same screen; going through one key makes that one request instead of two.
+ */
+export const unsignedTrainingKey = (venueId: string | null | undefined) =>
+  ['unsignedTrainingCount', venueId] as const
+
 /** Certificate/training records for a venue, soonest expiry first. */
 export async function fetchCertRecords(venueId: string): Promise<CertRecord[]> {
   const { data } = await supabase

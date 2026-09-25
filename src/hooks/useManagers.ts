@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { supabase, supabaseUrl, supabaseAnonKey } from '../lib/supabase'
 import { hashPin, pinHashKey } from '../lib/offlinePin'
 
@@ -17,29 +17,41 @@ export interface ManagerOption {
  * screen (the closing-checklist gate) doesn't reimplement it a second time.
  */
 export function useManagers(venueId: string | null | undefined): ManagerOption[] {
-  const [managers, setManagers] = useState<ManagerOption[]>([])
+  // A shared query key rather than per-component state: useClockAlerts and
+  // useClosingCheckoutGuard both call this on the same dashboard, and each
+  // used to fire its own identical request. staleTime Infinity keeps the old
+  // fetch-once-per-mount-tree behaviour — the list only feeds a PIN picker.
+  const { data } = useQuery({
+    queryKey: ['managers', venueId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('staff')
+        .select('id, name, role, photo_url')
+        .eq('venue_id', venueId!)
+        .eq('is_active', true)
+        .in('role', ['manager', 'owner'])
+        .order('name')
+      return (data ?? []) as ManagerOption[]
+    },
+    enabled: !!venueId,
+    initialData: () => managersFromCache(venueId),
+    staleTime: Infinity,
+  })
 
-  useEffect(() => {
-    if (!venueId) { setManagers([]); return }
-    try {
-      const cached = localStorage.getItem(`pelikn_staff_${venueId}`)
-      const all = cached ? JSON.parse(cached) : []
-      const fromCache = all.filter((s: ManagerOption) => s.role === 'manager' || s.role === 'owner')
-      if (fromCache.length > 0) { setManagers(fromCache); return }
-    } catch { /* fall through to DB fetch */ }
-    let cancelled = false
-    supabase
-      .from('staff')
-      .select('id, name, role, photo_url')
-      .eq('venue_id', venueId)
-      .eq('is_active', true)
-      .in('role', ['manager', 'owner'])
-      .order('name')
-      .then(({ data }) => { if (!cancelled && data) setManagers(data as ManagerOption[]) })
-    return () => { cancelled = true }
-  }, [venueId])
+  return venueId ? data ?? [] : []
+}
 
-  return managers
+/** Managers from the staff list cached at login, or undefined to fetch. */
+function managersFromCache(venueId: string | null | undefined): ManagerOption[] | undefined {
+  if (!venueId) return undefined
+  try {
+    const cached = localStorage.getItem(`pelikn_staff_${venueId}`)
+    const all = cached ? JSON.parse(cached) : []
+    const fromCache = all.filter((s: ManagerOption) => s.role === 'manager' || s.role === 'owner')
+    return fromCache.length > 0 ? fromCache : undefined
+  } catch {
+    return undefined
+  }
 }
 
 /**
