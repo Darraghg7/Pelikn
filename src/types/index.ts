@@ -116,6 +116,7 @@ export interface TaskOneOff {
   role_id?: string | null
   due_date: string
   assigned_to_staff_id?: string
+  assigned_to_name?: string | null
   venue_id: string
   created_at: string
 }

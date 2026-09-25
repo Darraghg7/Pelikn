@@ -17,7 +17,7 @@ export async function fetchTasksForRole(venueId: string, today: string): Promise
       .order('created_at'),
     supabase
       .from('task_one_offs')
-      .select('id, title, job_role, role_id, due_date, assigned_to_staff_id, venue_id, created_at')
+      .select('id, title, job_role, role_id, due_date, assigned_to_staff_id, assigned_to_name, venue_id, created_at')
       .eq('venue_id', venueId)
       .eq('due_date', today)
       .order('created_at'),
@@ -38,7 +38,7 @@ export async function fetchTasksForRole(venueId: string, today: string): Promise
 export async function fetchAllTasks(venueId: string, dateStr: string): Promise<TasksResult> {
   const [{ data: tData }, { data: oData }, { data: cData }] = await Promise.all([
     supabase.from('task_templates').select('id, title, job_role, role_id, is_active, venue_id, created_at').eq('venue_id', venueId).eq('is_active', true).order('job_role').order('created_at'),
-    supabase.from('task_one_offs').select('id, title, job_role, role_id, due_date, assigned_to_staff_id, venue_id, created_at').eq('venue_id', venueId).eq('due_date', dateStr).order('created_at'),
+    supabase.from('task_one_offs').select('id, title, job_role, role_id, due_date, assigned_to_staff_id, assigned_to_name, venue_id, created_at').eq('venue_id', venueId).eq('due_date', dateStr).order('created_at'),
     supabase.from('task_completions').select('id, task_template_id, task_one_off_id, completion_date, completed_by_staff_id, completed_by_name, venue_id').eq('venue_id', venueId).eq('completion_date', dateStr),
   ])
 
