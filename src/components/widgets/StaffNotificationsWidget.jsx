@@ -100,21 +100,20 @@ function StaffNotificationsWidget() {
       ) : (
         <div className="divide-y divide-line dark:divide-white/10">
           {data.leave.map(r => (
-            <div key={r.id} className="flex flex-wrap items-center gap-x-3 gap-y-2.5 px-3.5 sm:px-3.5 py-2">
+            <div key={r.id} className="flex items-center gap-2.5 px-3.5 py-2">
               <Dot tone="warn" />
-              {/* Buttons drop below the text when the card is too narrow for both */}
-              <Link to={`/v/${venueSlug}/time-off`} className="flex-1 min-w-[170px]">
-                <p className="text-[13px] leading-snug font-semibold text-ink dark:text-white">{r.staff?.name ?? 'Staff'} · leave request</p>
-                <p className="text-[13px] text-ink3 dark:text-white/45 mt-0.5">
+              <Link to={`/v/${venueSlug}/time-off`} className="flex-1 min-w-0">
+                <p className="text-[13px] leading-snug font-semibold text-ink dark:text-white truncate">{r.staff?.name ?? 'Staff'}</p>
+                <p className="text-[12px] leading-snug text-ink3 dark:text-white/45 mt-0.5 line-clamp-2">
                   {LEAVE_NAMES[r.leave_type] ?? 'Leave'} · {leaveDates(r)}{r.reason ? ` · ${r.reason}` : ''}
                 </p>
               </Link>
-              <div className="shrink-0 flex gap-2 ml-auto">
+              <div className="shrink-0 flex gap-1.5">
                 <button
                   type="button"
                   onClick={() => decide(r, 'rejected')}
                   disabled={deciding === r.id}
-                  className="h-8 px-2.5 min-[420px]:px-3 rounded-xl border border-line dark:border-white/15 bg-white dark:bg-paperDark text-[13px] min-[420px]:text-[13px] font-semibold text-bad dark:text-[#f19a86] hover:border-bad/40 disabled:opacity-40"
+                  className="h-8 px-2.5 rounded-lg border border-line dark:border-white/15 bg-white dark:bg-paperDark text-[12px] font-semibold text-bad dark:text-[#f19a86] hover:border-bad/40 disabled:opacity-40"
                 >
                   Reject
                 </button>
@@ -122,7 +121,7 @@ function StaffNotificationsWidget() {
                   type="button"
                   onClick={() => decide(r, 'approved')}
                   disabled={deciding === r.id}
-                  className="h-8 px-2.5 min-[420px]:px-3 rounded-xl bg-brand text-white text-[13px] min-[420px]:text-[13px] font-semibold hover:bg-brand/90 disabled:opacity-40"
+                  className="h-8 px-2.5 rounded-lg bg-brand text-white text-[12px] font-semibold hover:bg-brand/90 disabled:opacity-40"
                 >
                   Approve
                 </button>
