@@ -45,3 +45,18 @@ export function maxStaffOffInRange(requests, startDateStr, endDateStr) {
   const days = eachDayOfInterval({ start: parseISO(startDateStr), end: parseISO(endDateStr) })
   return days.reduce((max, day) => Math.max(max, getRequestsForDay(requests, day).length), 0)
 }
+
+/** "Eve Turbitt" → "ET", "Sarah" → "SA" (two letters so single names stay distinct) */
+export function initials(name) {
+  const parts = (name ?? '').trim().split(/\s+/).filter(Boolean)
+  if (parts.length === 0) return '?'
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase()
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+}
+
+const EMPLOYMENT_LABELS = { full_time: 'Full time', part_time: 'Part time', zero_hours: 'Zero hours' }
+
+export function employmentLabel(type) {
+  if (!type) return null
+  return EMPLOYMENT_LABELS[type] ?? type.replace(/_/g, ' ').replace(/^./, c => c.toUpperCase())
+}

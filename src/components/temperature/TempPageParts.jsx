@@ -20,7 +20,7 @@ export const TONE = {
 }
 
 /** action: optional custom button to show instead of Export PDF */
-export function PageHeader({ title, backTo, onExport, action }) {
+export function PageHeader({ title, subtitle, backTo, backLabel = 'Checks', onExport, action }) {
   return (
     <div className="flex flex-col gap-1">
       {/* On mobile the shell's back row already links to Checks */}
@@ -30,11 +30,14 @@ export function PageHeader({ title, backTo, onExport, action }) {
           className="hidden self-start lg:inline-flex items-center gap-1 text-[15px] font-semibold text-brand dark:text-white/80 hover:opacity-75 transition-opacity"
         >
           <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6" /></svg>
-          Checks
+          {backLabel}
         </Link>
       )}
       <div className="flex items-center justify-between gap-3">
-        <h1 className="text-2xl min-[420px]:text-[26px] sm:text-[32px] leading-tight font-bold tracking-tight text-ink dark:text-white whitespace-nowrap">{title}</h1>
+        <div className="min-w-0">
+          <h1 className="text-2xl min-[420px]:text-[26px] sm:text-[32px] leading-tight font-bold tracking-tight text-ink dark:text-white whitespace-nowrap">{title}</h1>
+          {subtitle && <p className="text-[15px] text-ink3 dark:text-white/45 mt-0.5">{subtitle}</p>}
+        </div>
         {action}
         {!action && onExport && (
           <button
