@@ -68,7 +68,7 @@ function PeriodCard({ period, selected, done, total, currentPeriod, onSelect }) 
       onClick={onSelect}
       aria-pressed={selected}
       className={[
-        'text-left rounded-2xl bg-white dark:bg-paperDark px-3.5 min-[420px]:px-4 py-3.5 transition-colors',
+        'text-left rounded-2xl bg-white dark:bg-paperDark px-3.5 min-[420px]:px-3.5 py-2 transition-colors',
         selected ? 'border-2 border-brand dark:border-white/70' : 'border-2 border-line dark:border-white/10 hover:border-ink4/60',
       ].join(' ')}
     >
@@ -76,13 +76,13 @@ function PeriodCard({ period, selected, done, total, currentPeriod, onSelect }) 
         <span className={`px-2 py-1 rounded-md font-mono text-xs font-bold ${selected ? 'bg-brand text-white' : 'bg-line2 text-ink2 dark:bg-white/10 dark:text-white/70'}`}>
           {period.toUpperCase()}
         </span>
-        <span className={`px-2.5 py-1 rounded-full text-xs sm:text-[13px] font-semibold whitespace-nowrap ${pill.cls}`}>{pill.label}</span>
+        <span className={`px-2.5 py-1 rounded-full text-xs sm:text-[12px] font-semibold whitespace-nowrap ${pill.cls}`}>{pill.label}</span>
       </div>
-      <div className="mt-3 flex items-center justify-between gap-2">
-        <p className="text-sm min-[420px]:text-[15px] font-semibold text-ink dark:text-white truncate">{PERIOD_NAMES[period]}</p>
-        <span className="shrink-0 font-mono text-sm min-[420px]:text-[15px] font-semibold text-ink2 dark:text-white/70">{done}/{total}</span>
+      <div className="mt-2 flex items-center justify-between gap-2">
+        <p className="text-[13px] min-[420px]:text-[13px] font-semibold text-ink dark:text-white truncate">{PERIOD_NAMES[period]}</p>
+        <span className="shrink-0 font-mono text-[13px] min-[420px]:text-[13px] font-semibold text-ink2 dark:text-white/70">{done}/{total}</span>
       </div>
-      <div className="mt-3 h-1.5 rounded-full bg-line2 dark:bg-white/10 overflow-hidden">
+      <div className="mt-2 h-1.5 rounded-full bg-line2 dark:bg-white/10 overflow-hidden">
         <div className="h-full rounded-full bg-good transition-[width] duration-500" style={{ width: total ? `${Math.round((done / total) * 100)}%` : '0%' }} />
       </div>
     </button>
@@ -137,7 +137,7 @@ function HotHoldingRow({ item, period, log, otherLog, otherRequired, session, ve
   const logFail = log && isHotHoldingFail(log.temperature, item)
 
   return (
-    <div className="px-4 sm:px-5 py-4 flex flex-col gap-3">
+    <div className="px-3.5 sm:px-3.5 py-2.5 flex flex-col gap-2.5">
       <ItemHeading
         name={item.name}
         range={rangeLabel(item)}
@@ -146,15 +146,15 @@ function HotHoldingRow({ item, period, log, otherLog, otherRequired, session, ve
       />
 
       {!showForm ? (
-        <div className={`flex items-center gap-3 rounded-xl px-4 sm:px-5 py-3.5 ${logFail ? TONE.bad : TONE.ok}`}>
-          <span className="font-mono text-[26px] leading-none font-semibold">{Number(log.temperature).toFixed(1)}°C</span>
-          <span className="flex-1 min-w-0 text-sm font-semibold truncate">
+        <div className={`flex items-center gap-2.5 rounded-xl px-3.5 sm:px-3.5 py-2 ${logFail ? TONE.bad : TONE.ok}`}>
+          <span className="font-mono text-[19px] leading-none font-semibold">{Number(log.temperature).toFixed(1)}°C</span>
+          <span className="flex-1 min-w-0 text-[13px] font-semibold truncate">
             {logFail ? failLabel(log.temperature, item) : 'Safe'} · {format(new Date(log.logged_at), 'HH:mm')}
           </span>
           <button
             type="button"
             onClick={() => setEditing(true)}
-            className="shrink-0 px-2 py-1 text-[15px] font-semibold text-ink2 dark:text-white/80 hover:text-ink dark:hover:text-white"
+            className="shrink-0 px-2 py-1 text-[13px] font-semibold text-ink2 dark:text-white/80 hover:text-ink dark:hover:text-white"
           >
             Edit
           </button>
@@ -173,8 +173,8 @@ function HotHoldingRow({ item, period, log, otherLog, otherRequired, session, ve
             ariaLabel={`${item.name} ${period.toUpperCase()} reading in °C`}
           />
           {fail && (
-            <div className="rounded-xl border border-bad/25 bg-badBg/60 dark:bg-bad/15 p-3 flex flex-col gap-2">
-              <p className="text-sm font-semibold text-bad dark:text-[#f19a86]">
+            <div className="rounded-xl border border-bad/25 bg-badBg/60 dark:bg-bad/15 p-2.5 flex flex-col gap-2">
+              <p className="text-[13px] font-semibold text-bad dark:text-[#f19a86]">
                 {failLabel(temp, item)} — outside the safe {rangeLabel(item)} range. What did you do?
               </p>
               <textarea
@@ -182,7 +182,7 @@ function HotHoldingRow({ item, period, log, otherLog, otherRequired, session, ve
                 onChange={e => setNote(e.target.value)}
                 rows={2}
                 placeholder="e.g. Reheated to 75°C and returned to hot hold"
-                className="w-full px-3 py-2 rounded-lg border border-bad/25 bg-white dark:bg-paperDark text-sm text-ink dark:text-white placeholder:text-ink4 focus:outline-none focus:ring-2 focus:ring-bad/20 resize-none"
+                className="w-full px-3 py-2 rounded-lg border border-bad/25 bg-white dark:bg-paperDark text-[13px] text-ink dark:text-white placeholder:text-ink4 focus:outline-none focus:ring-2 focus:ring-bad/20 resize-none"
               />
             </div>
           )}
@@ -314,7 +314,7 @@ export default function HotHoldingPage() {
   const periodItems = dueFor(period)
 
   return (
-    <div className="flex flex-col gap-4 max-w-3xl">
+    <div className="flex flex-col gap-2.5 max-w-3xl">
       <PageHeader
         title="Hot holding"
         backTo={isManager ? `/v/${venueSlug}/checks` : null}
@@ -345,15 +345,15 @@ export default function HotHoldingPage() {
       {/* ── Today's check ── */}
       {tab === 'today' && (
         items.length === 0 ? (
-          <div className={`${CARD} p-8 text-center flex flex-col items-center gap-4`}>
-            <p className="text-sm text-ink3 dark:text-white/45">
+          <div className={`${CARD} p-8 text-center flex flex-col items-center gap-2.5`}>
+            <p className="text-[13px] text-ink3 dark:text-white/45">
               {isManager ? 'No hot holding items yet.' : 'No hot holding items yet — ask your manager to add them.'}
             </p>
             {isManager && <AddDashedButton label="Add hot holding item" onClick={goAddItem} />}
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-2.5">
               {['am', 'pm'].map(p => (
                 <PeriodCard
                   key={p}
@@ -368,7 +368,7 @@ export default function HotHoldingPage() {
             </div>
 
             {periodItems.length === 0 ? (
-              <p className={`${CARD} px-5 py-6 text-sm text-center text-ink3 dark:text-white/45`}>
+              <p className={`${CARD} px-3.5 py-6 text-[13px] text-center text-ink3 dark:text-white/45`}>
                 Nothing is scheduled for the {PERIOD_NAMES[period].toLowerCase()} today.
               </p>
             ) : (
@@ -400,7 +400,7 @@ export default function HotHoldingPage() {
       {/* ── Items (managers) ── */}
       {tab === 'items' && isManager && (
         <>
-          <div className="flex gap-2.5">
+          <div className="flex gap-2">
             <input
               ref={addInputRef}
               type="text"
@@ -409,13 +409,13 @@ export default function HotHoldingPage() {
               onKeyDown={e => e.key === 'Enter' && handleAddItem()}
               placeholder="Add item, e.g. Soup, Gravy"
               aria-label="New hot holding item"
-              className="flex-1 min-w-0 h-12 px-4 rounded-xl border border-line dark:border-white/10 bg-white dark:bg-paperDark text-[15px] text-ink dark:text-white placeholder:text-ink4 dark:placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand/40"
+              className="flex-1 min-w-0 h-9 px-3.5 rounded-xl border border-line dark:border-white/10 bg-white dark:bg-paperDark text-[13px] text-ink dark:text-white placeholder:text-ink4 dark:placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand/40"
             />
             <button
               type="button"
               onClick={handleAddItem}
               disabled={!newItemName.trim() || addingItem}
-              className="h-12 px-5 rounded-xl bg-brand text-white text-[15px] font-semibold transition-colors hover:bg-brand/90 disabled:bg-ink3/70 dark:disabled:bg-white/15 disabled:cursor-not-allowed"
+              className="h-9 px-3.5 rounded-xl bg-brand text-white text-[13px] font-semibold transition-colors hover:bg-brand/90 disabled:bg-ink3/70 dark:disabled:bg-white/15 disabled:cursor-not-allowed"
             >
               {addingItem ? '…' : 'Add'}
             </button>

@@ -41,7 +41,7 @@ function FridgeAlertsWidget() {
       }
   })
 
-  if (!raw) return <WidgetShell title="Fridges" to="/fridge"><div className="flex justify-center py-4"><LoadingSpinner /></div></WidgetShell>
+  if (!raw) return <WidgetShell title="Fridges" to="/fridge"><div className="flex justify-center py-2.5"><LoadingSpinner /></div></WidgetShell>
 
   // Fridge checks run on their own action_schedule and aren't blanked out by
   // trading closure — staff can still be scheduled to record them on a day
@@ -60,8 +60,8 @@ function FridgeAlertsWidget() {
           to={`/v/${venueSlug}/fridge/history`}
           className="flex items-center justify-between gap-2 py-1.5 border-t border-line dark:border-white/10 group"
         >
-          <span className="text-sm text-ink2 dark:text-white/70 truncate group-hover:text-ink dark:group-hover:text-white transition-colors">{l.fridge?.name ?? 'Unknown'}</span>
-          <span className="font-mono text-sm font-semibold text-bad dark:text-[#f19a86]">{Number(l.temperature).toFixed(1)}°C</span>
+          <span className="text-[13px] text-ink2 dark:text-white/70 truncate group-hover:text-ink dark:group-hover:text-white transition-colors">{l.fridge?.name ?? 'Unknown'}</span>
+          <span className="font-mono text-[13px] font-semibold text-bad dark:text-[#f19a86]">{Number(l.temperature).toFixed(1)}°C</span>
         </Link>
       ))}
     </WidgetShell>

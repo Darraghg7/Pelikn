@@ -89,16 +89,16 @@ function CoolingBatchCard({ batch, now, canDiscard, onChanged, onDiscard }) {
   }
 
   return (
-    <div className={`${CARD} px-4 sm:px-5 py-4 flex flex-col gap-3`}>
-      <div className="flex items-start justify-between gap-3">
+    <div className={`${CARD} px-3.5 sm:px-3.5 py-2.5 flex flex-col gap-2.5`}>
+      <div className="flex items-start justify-between gap-2.5">
         <div className="min-w-0">
-          <p className="text-[17px] font-semibold text-ink dark:text-white truncate">{batch.food_item}</p>
-          <p className="text-sm text-ink3 dark:text-white/45 mt-0.5">
+          <p className="text-[14px] font-semibold text-ink dark:text-white truncate">{batch.food_item}</p>
+          <p className="text-[13px] text-ink3 dark:text-white/45 mt-0.5">
             <span className="font-mono text-ink2 dark:text-white/65">{Number(batch.start_temp).toFixed(0)}°C</span>
             {' · '}{coolingMethodLabel(batch.cooling_method)} · from {startedLabel(batch.started_at)}
           </p>
         </div>
-        <span className={`shrink-0 h-8 px-3 rounded-full inline-flex items-center font-mono text-[14px] font-semibold ${TONE[timeTone]}`}>
+        <span className={`shrink-0 h-7 px-3 rounded-full inline-flex items-center font-mono text-[13px] font-semibold ${TONE[timeTone]}`}>
           {elapsed}m / {COOLING_TARGET_MINUTES}m
         </span>
       </div>
@@ -120,8 +120,8 @@ function CoolingBatchCard({ batch, now, canDiscard, onChanged, onDiscard }) {
       />
 
       {needsNote && (
-        <div className="rounded-xl border border-bad/25 bg-badBg/60 dark:bg-bad/15 p-3 flex flex-col gap-2">
-          <p className="text-sm font-semibold text-bad dark:text-[#f19a86]">
+        <div className="rounded-xl border border-bad/25 bg-badBg/60 dark:bg-bad/15 p-2.5 flex flex-col gap-2">
+          <p className="text-[13px] font-semibold text-bad dark:text-[#f19a86]">
             {tooSlow
               ? `Took longer than ${COOLING_TARGET_MINUTES} minutes. What did you do?`
               : `Still above ${batch.target_temp ?? COOLING_TARGET_TEMP}°C. Keep cooling, or record what you did.`}
@@ -131,13 +131,13 @@ function CoolingBatchCard({ batch, now, canDiscard, onChanged, onDiscard }) {
             onChange={e => setNote(e.target.value)}
             rows={2}
             placeholder="e.g. Moved to blast chiller, 4.8°C by 16:25"
-            className="w-full px-3 py-2 rounded-lg border border-bad/25 bg-white dark:bg-paperDark text-sm text-ink dark:text-white placeholder:text-ink4 focus:outline-none focus:ring-2 focus:ring-bad/20 resize-none"
+            className="w-full px-3 py-2 rounded-lg border border-bad/25 bg-white dark:bg-paperDark text-[13px] text-ink dark:text-white placeholder:text-ink4 focus:outline-none focus:ring-2 focus:ring-bad/20 resize-none"
           />
         </div>
       )}
 
       {batch.notes && (
-        <p className="text-sm text-ink3 dark:text-white/45"><span className="font-semibold text-ink2 dark:text-white/65">Note</span> · {batch.notes}</p>
+        <p className="text-[13px] text-ink3 dark:text-white/45"><span className="font-semibold text-ink2 dark:text-white/65">Note</span> · {batch.notes}</p>
       )}
 
       {canDiscard && (
@@ -195,10 +195,10 @@ function StartBatchForm({ session, venueId, onStarted }) {
   }
 
   return (
-    <div className={`${CARD} px-4 sm:px-5 py-5 flex flex-col gap-4`}>
-      <p className="text-[19px] font-semibold text-ink dark:text-white">Start cooling a batch</p>
+    <div className={`${CARD} px-3.5 sm:px-3.5 py-4 flex flex-col gap-2.5`}>
+      <p className="text-[15px] font-semibold text-ink dark:text-white">Start cooling a batch</p>
 
-      <div className="flex flex-col gap-2.5">
+      <div className="flex flex-col gap-2">
         <input
           type="text"
           value={foodItem}
@@ -210,14 +210,14 @@ function StartBatchForm({ session, venueId, onStarted }) {
         <QuickPicks options={frequent} value={foodItem} onPick={setFoodItem} />
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-2.5">
         <TempField label="Start temp" value={startTemp} onChange={setStartTemp} placeholder="75" />
         <TimeOfDayField label="Started" clock={clock} />
       </div>
 
       <div>
         <span className={FIELD_LABEL}>Method</span>
-        <div className="grid grid-cols-2 gap-2.5">
+        <div className="grid grid-cols-2 gap-2">
           {NEW_METHODS.map(m => (
             <button
               key={m.value}
@@ -225,7 +225,7 @@ function StartBatchForm({ session, venueId, onStarted }) {
               aria-pressed={method === m.value}
               onClick={() => setMethod(m.value)}
               className={[
-                'h-12 rounded-xl border text-[15px] font-semibold transition-colors',
+                'h-9 rounded-xl border text-[13px] font-semibold transition-colors',
                 method === m.value
                   ? 'bg-brand border-brand text-white'
                   : 'bg-white dark:bg-paperDark border-line dark:border-white/10 text-ink2 dark:text-white/75 hover:border-ink4',
@@ -244,15 +244,15 @@ function StartBatchForm({ session, venueId, onStarted }) {
           rows={2}
           autoFocus
           placeholder="Anything worth noting, e.g. split into shallow trays"
-          className="w-full px-4 py-3 rounded-xl border border-line dark:border-white/10 bg-cream dark:bg-white/5 text-[15px] text-ink dark:text-white placeholder:text-ink4 focus:outline-none focus:ring-2 focus:ring-brand/15 resize-none"
+          className="w-full px-3.5 py-2.5 rounded-xl border border-line dark:border-white/10 bg-cream dark:bg-white/5 text-[13px] text-ink dark:text-white placeholder:text-ink4 focus:outline-none focus:ring-2 focus:ring-brand/15 resize-none"
         />
       )}
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2.5">
         <button
           type="button"
           onClick={() => setShowNote(v => !v)}
-          className="shrink-0 px-3 h-12 text-[15px] font-semibold text-ink2 dark:text-white/75 hover:text-ink dark:hover:text-white"
+          className="shrink-0 px-3 h-9 text-[13px] font-semibold text-ink2 dark:text-white/75 hover:text-ink dark:hover:text-white"
         >
           {showNote ? 'No note' : '+ Note'}
         </button>
@@ -260,7 +260,7 @@ function StartBatchForm({ session, venueId, onStarted }) {
           type="button"
           onClick={start}
           disabled={!canStart || saving}
-          className="flex-1 h-12 rounded-xl bg-brand text-white text-[16px] font-semibold inline-flex items-center justify-center gap-2 transition-colors hover:bg-brand/90 disabled:bg-ink3/70 dark:disabled:bg-white/15 disabled:cursor-not-allowed"
+          className="flex-1 h-9 rounded-xl bg-brand text-white text-[13px] font-semibold inline-flex items-center justify-center gap-2 transition-colors hover:bg-brand/90 disabled:bg-ink3/70 dark:disabled:bg-white/15 disabled:cursor-not-allowed"
         >
           <StopwatchIcon />
           {saving ? 'Starting…' : 'Start cooling timer'}
@@ -279,36 +279,36 @@ function FinishedBatchRow({ log, compact = false }) {
     : format(new Date(log.started_at), 'HH:mm')
 
   return (
-    <div className="px-4 sm:px-5 py-3.5">
-      <div className="flex items-center justify-between gap-3">
+    <div className="px-3.5 sm:px-3.5 py-2">
+      <div className="flex items-center justify-between gap-2.5">
         <div className="min-w-0">
-          <p className="text-[17px] font-semibold text-ink dark:text-white truncate">{log.food_item}</p>
-          <p className="text-sm text-ink3 dark:text-white/45 mt-0.5 truncate">
+          <p className="text-[14px] font-semibold text-ink dark:text-white truncate">{log.food_item}</p>
+          <p className="text-[13px] text-ink3 dark:text-white/45 mt-0.5 truncate">
             {coolingMethodLabel(log.cooling_method)}{compact ? '' : ` · ${timeRange}`}
           </p>
         </div>
         {compact ? (
-          <div className="shrink-0 flex items-center gap-2.5">
-            <span className="font-mono text-sm sm:text-[15px] text-ink2 dark:text-white/70 whitespace-nowrap">
+          <div className="shrink-0 flex items-center gap-2">
+            <span className="font-mono text-[13px] sm:text-[13px] text-ink2 dark:text-white/70 whitespace-nowrap">
               {temp(log.start_temp)} → {temp(log.end_temp)}
             </span>
-            <span className={`h-8 px-2.5 rounded-lg inline-flex items-center font-mono text-sm font-semibold whitespace-nowrap ${fail ? TONE.bad : TONE.ok}`}>
+            <span className={`h-7 px-2.5 rounded-lg inline-flex items-center font-mono text-[13px] font-semibold whitespace-nowrap ${fail ? TONE.bad : TONE.ok}`}>
               {minutes === null ? verdict : formatCoolingMinutes(minutes)}
             </span>
           </div>
         ) : (
           <div className="shrink-0 flex flex-col items-end gap-1.5">
-            <span className="font-mono text-[16px] font-semibold text-ink2 dark:text-white/70 whitespace-nowrap">
+            <span className="font-mono text-[13px] font-semibold text-ink2 dark:text-white/70 whitespace-nowrap">
               {temp(log.start_temp)} → <span className={fail ? 'text-bad dark:text-[#f19a86]' : 'text-good dark:text-[#7fd1a4]'}>{temp(log.end_temp)}</span>
             </span>
-            <span className={`h-7 px-3 rounded-full inline-flex items-center text-[13px] font-semibold whitespace-nowrap ${fail ? TONE.bad : TONE.ok}`}>
+            <span className={`h-7 px-3 rounded-full inline-flex items-center text-[12px] font-semibold whitespace-nowrap ${fail ? TONE.bad : TONE.ok}`}>
               {verdict}{minutes !== null && ` · ${formatCoolingMinutes(minutes)}`}
             </span>
           </div>
         )}
       </div>
       {fail && log.notes && (
-        <p className="mt-2.5 px-3 py-2.5 rounded-lg bg-badBg dark:bg-bad/20 text-sm text-ink2 dark:text-white/75">
+        <p className="mt-2.5 px-3 py-2 rounded-lg bg-badBg dark:bg-bad/20 text-[13px] text-ink2 dark:text-white/75">
           {compact && <><span className="font-semibold text-bad dark:text-[#f19a86]">Corrective action</span> · </>}
           {log.notes}
         </p>
@@ -333,7 +333,7 @@ function CoolingHistory() {
   const days = useMemo(() => groupByDay(logs, log => log.started_at), [logs])
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-2.5">
       <HistoryRangePills range={range} onRange={setRange} />
 
       {loading ? (
@@ -349,7 +349,7 @@ function CoolingHistory() {
           ]} />
 
           {days.length === 0 ? (
-            <p className="text-sm text-ink3 dark:text-white/40 py-10 text-center">No batches cooled in this period.</p>
+            <p className="text-[13px] text-ink3 dark:text-white/40 py-10 text-center">No batches cooled in this period.</p>
           ) : days.map(([dateStr, dayLogs]) => (
             <DayCard key={dateStr} dateStr={dateStr} count={dayLogs.length} noun="batch" plural="batches">
               {dayLogs.map(log => <FinishedBatchRow key={log.id} log={log} compact />)}
@@ -404,7 +404,7 @@ export default function CoolingLogsPage() {
   const passedToday    = completedToday.filter(log => !coolingOutcome(log).fail).length
 
   return (
-    <div className="flex flex-col gap-4 max-w-3xl">
+    <div className="flex flex-col gap-2.5 max-w-3xl">
       <PageHeader
         title="Cooling logs"
         backTo={isManager ? `/v/${venueSlug}/checks` : null}

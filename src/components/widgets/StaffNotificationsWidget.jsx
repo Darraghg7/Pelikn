@@ -85,27 +85,27 @@ function StaffNotificationsWidget() {
   if (!data) {
     return (
       <WidgetShell title="Staff notifications" to="/time-off">
-        <div className="flex justify-center py-4"><LoadingSpinner /></div>
+        <div className="flex justify-center py-2.5"><LoadingSpinner /></div>
       </WidgetShell>
     )
   }
 
   const total = data.leave.length + data.swaps.length + (data.trainCount > 0 ? 1 : 0)
-  const aside = total > 0 && <span className="shrink-0 font-mono text-[15px] text-ink3 dark:text-white/45">{total} new</span>
+  const aside = total > 0 && <span className="shrink-0 font-mono text-[13px] text-ink3 dark:text-white/45">{total} new</span>
 
   return (
     <WidgetShell title="Staff notifications" aside={aside} flush={total > 0}>
       {total === 0 ? (
-        <p className="text-[15px] text-ink3 dark:text-white/45 py-2">No pending notifications</p>
+        <p className="text-[13px] text-ink3 dark:text-white/45 py-2">No pending notifications</p>
       ) : (
         <div className="divide-y divide-line dark:divide-white/10">
           {data.leave.map(r => (
-            <div key={r.id} className="flex flex-wrap items-center gap-x-3 gap-y-2.5 px-4 sm:px-5 py-3.5">
+            <div key={r.id} className="flex flex-wrap items-center gap-x-3 gap-y-2.5 px-3.5 sm:px-3.5 py-2">
               <Dot tone="warn" />
               {/* Buttons drop below the text when the card is too narrow for both */}
               <Link to={`/v/${venueSlug}/time-off`} className="flex-1 min-w-[170px]">
-                <p className="text-[16px] leading-snug font-semibold text-ink dark:text-white">{r.staff?.name ?? 'Staff'} · leave request</p>
-                <p className="text-sm text-ink3 dark:text-white/45 mt-0.5">
+                <p className="text-[13px] leading-snug font-semibold text-ink dark:text-white">{r.staff?.name ?? 'Staff'} · leave request</p>
+                <p className="text-[13px] text-ink3 dark:text-white/45 mt-0.5">
                   {LEAVE_NAMES[r.leave_type] ?? 'Leave'} · {leaveDates(r)}{r.reason ? ` · ${r.reason}` : ''}
                 </p>
               </Link>
@@ -114,7 +114,7 @@ function StaffNotificationsWidget() {
                   type="button"
                   onClick={() => decide(r, 'rejected')}
                   disabled={deciding === r.id}
-                  className="h-10 px-2.5 min-[420px]:px-3 rounded-xl border border-line dark:border-white/15 bg-white dark:bg-paperDark text-sm min-[420px]:text-[15px] font-semibold text-bad dark:text-[#f19a86] hover:border-bad/40 disabled:opacity-40"
+                  className="h-8 px-2.5 min-[420px]:px-3 rounded-xl border border-line dark:border-white/15 bg-white dark:bg-paperDark text-[13px] min-[420px]:text-[13px] font-semibold text-bad dark:text-[#f19a86] hover:border-bad/40 disabled:opacity-40"
                 >
                   Reject
                 </button>
@@ -122,7 +122,7 @@ function StaffNotificationsWidget() {
                   type="button"
                   onClick={() => decide(r, 'approved')}
                   disabled={deciding === r.id}
-                  className="h-10 px-2.5 min-[420px]:px-3 rounded-xl bg-brand text-white text-sm min-[420px]:text-[15px] font-semibold hover:bg-brand/90 disabled:opacity-40"
+                  className="h-8 px-2.5 min-[420px]:px-3 rounded-xl bg-brand text-white text-[13px] min-[420px]:text-[13px] font-semibold hover:bg-brand/90 disabled:opacity-40"
                 >
                   Approve
                 </button>
@@ -130,23 +130,23 @@ function StaffNotificationsWidget() {
             </div>
           ))}
           {data.swaps.map(s => (
-            <Link key={s.id} to={`/v/${venueSlug}/rota`} className="flex items-center gap-3 px-4 sm:px-5 py-3.5 hover:bg-cream/60 dark:hover:bg-white/5">
+            <Link key={s.id} to={`/v/${venueSlug}/rota`} className="flex items-center gap-2.5 px-3.5 sm:px-3.5 py-2 hover:bg-cream/60 dark:hover:bg-white/5">
               <Dot tone="info" />
               <span className="flex-1 min-w-0">
-                <span className="block text-[16px] leading-snug font-semibold text-ink dark:text-white">{s.requester_name} wants to swap a shift</span>
-                <span className="block text-sm text-ink3 dark:text-white/45 mt-0.5">With {s.target_staff_name} · needs approval on the rota</span>
+                <span className="block text-[13px] leading-snug font-semibold text-ink dark:text-white">{s.requester_name} wants to swap a shift</span>
+                <span className="block text-[13px] text-ink3 dark:text-white/45 mt-0.5">With {s.target_staff_name} · needs approval on the rota</span>
               </span>
               <svg className="shrink-0 w-4 h-4 text-ink3 dark:text-white/45" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
             </Link>
           ))}
           {data.trainCount > 0 && (
-            <Link to={`/v/${venueSlug}/training`} className="flex items-center gap-3 px-4 sm:px-5 py-3.5 hover:bg-cream/60 dark:hover:bg-white/5">
+            <Link to={`/v/${venueSlug}/training`} className="flex items-center gap-2.5 px-3.5 sm:px-3.5 py-2 hover:bg-cream/60 dark:hover:bg-white/5">
               <Dot tone="muted" />
               <span className="flex-1 min-w-0">
-                <span className="block text-[16px] font-semibold text-ink dark:text-white">
+                <span className="block text-[13px] font-semibold text-ink dark:text-white">
                   {data.trainCount} training record{data.trainCount !== 1 ? 's' : ''} unsigned
                 </span>
-                <span className="block text-sm text-ink3 dark:text-white/45">Awaiting employee signature</span>
+                <span className="block text-[13px] text-ink3 dark:text-white/45">Awaiting employee signature</span>
               </span>
               <svg className="shrink-0 w-4 h-4 text-ink3 dark:text-white/45" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
             </Link>

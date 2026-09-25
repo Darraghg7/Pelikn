@@ -60,7 +60,7 @@ export function HistoryRangePills({ range, onRange, ranges = HISTORY_RANGES }) {
           type="button"
           onClick={() => onRange(r.id)}
           className={[
-            'h-10 px-4 rounded-full border text-sm font-semibold transition-colors',
+            'h-8 px-3.5 rounded-full border text-[13px] font-semibold transition-colors',
             range === r.id
               ? 'bg-brand border-brand text-white'
               : 'bg-white dark:bg-paperDark border-line dark:border-white/10 text-ink2 dark:text-white/70 hover:border-ink4',
@@ -84,9 +84,9 @@ export function StatStrip({ stats }) {
   return (
     <div className={`grid grid-cols-3 ${CARD} divide-x divide-line dark:divide-white/10`}>
       {stats.map(s => (
-        <div key={s.label} className="px-4 py-3 min-w-0">
-          <p className={`font-mono text-2xl font-semibold truncate ${STAT_TONE[s.tone] ?? 'text-ink dark:text-white'}`}>{s.value}</p>
-          <p className="text-sm text-ink3 dark:text-white/45">{s.label}</p>
+        <div key={s.label} className="px-3.5 py-2.5 min-w-0">
+          <p className={`font-mono text-[19px] font-semibold truncate ${STAT_TONE[s.tone] ?? 'text-ink dark:text-white'}`}>{s.value}</p>
+          <p className="text-[13px] text-ink3 dark:text-white/45">{s.label}</p>
         </div>
       ))}
     </div>
@@ -116,9 +116,9 @@ export function groupByDay(records, getDate) {
 export function DayCard({ dateStr, count, noun, plural = `${noun}s`, children }) {
   return (
     <div className={`${CARD} overflow-hidden`}>
-      <div className="flex items-center justify-between gap-2 px-4 sm:px-5 py-3 bg-cream dark:bg-white/5 border-b border-line dark:border-white/10">
-        <p className="text-sm font-semibold text-ink dark:text-white truncate">{dayLabel(dateStr)}</p>
-        <span className="shrink-0 font-mono text-sm text-ink3 dark:text-white/45">
+      <div className="flex items-center justify-between gap-2 px-3.5 sm:px-3.5 py-2.5 bg-cream dark:bg-white/5 border-b border-line dark:border-white/10">
+        <p className="text-[13px] font-semibold text-ink dark:text-white truncate">{dayLabel(dateStr)}</p>
+        <span className="shrink-0 font-mono text-[13px] text-ink3 dark:text-white/45">
           {count} {count === 1 ? noun : plural}
         </span>
       </div>
@@ -133,7 +133,7 @@ export function formatPct(value) {
   return `${Number.isInteger(rounded) ? rounded : rounded.toFixed(1)}%`
 }
 
-const CELL_BASE = 'w-[4.5rem] sm:w-24 h-9 rounded-lg inline-flex items-center justify-center font-mono text-sm font-semibold'
+const CELL_BASE = 'w-[4.5rem] sm:w-24 h-8 rounded-lg inline-flex items-center justify-center font-mono text-[13px] font-semibold'
 
 export default function TempHistoryView({
   items,
@@ -207,7 +207,7 @@ export default function TempHistoryView({
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-2.5">
       <HistoryRangePills range={range} onRange={onRange} />
 
       {loading ? (
@@ -215,7 +215,7 @@ export default function TempHistoryView({
           <div className="w-5 h-5 rounded-full border-2 border-charcoal/15 dark:border-white/15 border-t-charcoal animate-spin mx-auto" />
         </div>
       ) : items.length === 0 ? (
-        <p className="text-sm text-ink3 dark:text-white/40 py-12 text-center">{emptyText}</p>
+        <p className="text-[13px] text-ink3 dark:text-white/40 py-12 text-center">{emptyText}</p>
       ) : (
         <>
           <StatStrip stats={[
@@ -225,11 +225,11 @@ export default function TempHistoryView({
           ]} />
 
           {days.length === 0 ? (
-            <p className="text-sm text-ink3 dark:text-white/40 py-10 text-center">No checks were due in this period.</p>
+            <p className="text-[13px] text-ink3 dark:text-white/40 py-10 text-center">No checks were due in this period.</p>
           ) : days.map(dateStr => (
             <div key={dateStr} className={`${CARD} overflow-hidden`}>
-              <div className="flex items-center gap-2 px-4 py-3 bg-cream dark:bg-white/5 border-b border-line dark:border-white/10">
-                <p className="flex-1 min-w-0 text-sm font-semibold text-ink dark:text-white truncate">{dayLabel(dateStr)}</p>
+              <div className="flex items-center gap-2 px-3.5 py-2.5 bg-cream dark:bg-white/5 border-b border-line dark:border-white/10">
+                <p className="flex-1 min-w-0 text-[13px] font-semibold text-ink dark:text-white truncate">{dayLabel(dateStr)}</p>
                 <span className="w-[4.5rem] sm:w-24 text-center text-xs font-semibold text-ink3 dark:text-white/45">AM</span>
                 <span className="w-[4.5rem] sm:w-24 text-center text-xs font-semibold text-ink3 dark:text-white/45">PM</span>
               </div>
@@ -241,14 +241,14 @@ export default function TempHistoryView({
                         .map(log => noteOf(log, item)).filter(Boolean)
                     : []
                   return (
-                    <div key={item.id} className="px-4 py-2.5">
+                    <div key={item.id} className="px-3.5 py-2">
                       <div className="flex items-center gap-2">
-                        <p className="flex-1 min-w-0 text-[15px] text-ink dark:text-white truncate">{item.name}</p>
+                        <p className="flex-1 min-w-0 text-[13px] text-ink dark:text-white truncate">{item.name}</p>
                         {renderCell(item, dateStr, 'am')}
                         {renderCell(item, dateStr, 'pm')}
                       </div>
                       {notes.map((note, i) => (
-                        <p key={i} className="mt-2 px-3 py-2 rounded-lg bg-badBg dark:bg-bad/20 text-sm text-ink2 dark:text-white/75">
+                        <p key={i} className="mt-2 px-3 py-2 rounded-lg bg-badBg dark:bg-bad/20 text-[13px] text-ink2 dark:text-white/75">
                           <span className="font-semibold text-bad dark:text-[#f19a86]">Corrective action</span> · {note}
                         </p>
                       ))}
