@@ -11,6 +11,7 @@ import { supabase } from '../../lib/supabase'
 import { isActionDueToday } from '../../hooks/useTodaySummary'
 import { TODAY_ITEM_REGISTRY } from './todayItemRegistry'
 import { WIDGET_REGISTRY } from '../../components/widgets/WidgetRegistry'
+import { FetchWhenNearViewport } from '../../hooks/useWidgetFetchGate'
 import { useClockStatus, saveClockStatusCache } from '../../hooks/useClockEvents'
 import { useClockAlerts } from '../../hooks/useClockAlerts'
 import { offlineRpc } from '../../lib/offlineSupabase'
@@ -586,9 +587,13 @@ function MobileDraggableWidgetGrid({
             const Comp = widget.component
             return (
               <MobileSortableCard key={id} id={id} editMode={editMode}>
-                <Suspense fallback={<div className="h-[84px] rounded-[14px] bg-charcoal/6 dark:bg-white/8 border border-charcoal/10 dark:border-white/10 animate-pulse" />}>
-                  <Comp />
-                </Suspense>
+                {/* Below-the-fold cards wait to fetch until they're nearly on
+                    screen, keeping them out of the cold-open request burst. */}
+                <FetchWhenNearViewport>
+                  <Suspense fallback={<div className="h-[84px] rounded-[14px] bg-charcoal/6 dark:bg-white/8 border border-charcoal/10 dark:border-white/10 animate-pulse" />}>
+                    <Comp />
+                  </Suspense>
+                </FetchWhenNearViewport>
               </MobileSortableCard>
             )
           })}

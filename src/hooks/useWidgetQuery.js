@@ -13,6 +13,7 @@
  * day or a venue switch never shows another scope's stale numbers.
  */
 import { useQuery } from '@tanstack/react-query'
+import { useWidgetFetchGate } from './useWidgetFetchGate'
 
 const storageKey = (name) => `pelikn_w_${name}`
 
@@ -30,7 +31,10 @@ function readPersisted(name, scopeStr) {
 
 export function useWidgetQuery(name, scope, queryFn, options = {}) {
   const scopeStr = scope.join('|')
-  const enabled = options.enabled ?? scope.every(s => s !== null && s !== undefined && s !== '')
+  // Held back while the widget is still off screen on a dashboard that
+  // defers below-the-fold fetches; the placeholder keeps showing meanwhile.
+  const gateOpen = useWidgetFetchGate()
+  const enabled = (options.enabled ?? scope.every(s => s !== null && s !== undefined && s !== '')) && gateOpen
 
   return useQuery({
     queryKey: ['widget', name, ...scope],

@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useVenue } from '../contexts/VenueContext'
 import { useAppSettings } from './useSettings'
 import useVenueClosures from './useVenueClosures'
+import { useWidgetFetchGate } from './useWidgetFetchGate'
 import { fetchCleaningTasks, type CleaningTask, type CleaningCompletion } from '../lib/api/cleaning'
 import { roleMatcher } from '../lib/roleFilter'
 
@@ -62,6 +63,7 @@ export function useCleaningTasks(
   overdueCount: number
 } {
   const { venueId } = useVenue()
+  const gateOpen = useWidgetFetchGate()
   const { closedDays } = useAppSettings()
   const { closures } = useVenueClosures()
 
@@ -78,7 +80,7 @@ export function useCleaningTasks(
   const { data, isLoading, refetch, error } = useQuery({
     queryKey: ['cleaningTasks', venueId],
     queryFn: () => fetchCleaningTasks(venueId!),
-    enabled: !!venueId,
+    enabled: !!venueId && gateOpen,
   })
 
   const tasks: CleaningTask[] = data?.tasks ?? []
