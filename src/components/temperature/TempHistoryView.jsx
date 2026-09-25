@@ -93,6 +93,40 @@ export function StatStrip({ stats }) {
   )
 }
 
+/** "Today · Fri 25 Sep" / "Yesterday · Thu 24 Sep" / "Wed 23 Sep" */
+export function dayLabel(dateStr, now = new Date()) {
+  const base = format(parseISO(dateStr), 'EEE d MMM')
+  if (dateStr === format(now, 'yyyy-MM-dd')) return `Today · ${base}`
+  if (dateStr === format(subDays(now, 1), 'yyyy-MM-dd')) return `Yesterday · ${base}`
+  return base
+}
+
+/** Group records into [yyyy-MM-dd, records[]] by local day, keeping their order. */
+export function groupByDay(records, getDate) {
+  const groups = new Map()
+  for (const record of records) {
+    const key = format(new Date(getDate(record)), 'yyyy-MM-dd')
+    if (!groups.has(key)) groups.set(key, [])
+    groups.get(key).push(record)
+  }
+  return [...groups.entries()]
+}
+
+/** One day's card: header with the date and a count, then rows. */
+export function DayCard({ dateStr, count, noun, plural = `${noun}s`, children }) {
+  return (
+    <div className={`${CARD} overflow-hidden`}>
+      <div className="flex items-center justify-between gap-2 px-4 sm:px-5 py-3 bg-cream dark:bg-white/5 border-b border-line dark:border-white/10">
+        <p className="text-sm font-semibold text-ink dark:text-white truncate">{dayLabel(dateStr)}</p>
+        <span className="shrink-0 font-mono text-sm text-ink3 dark:text-white/45">
+          {count} {count === 1 ? noun : plural}
+        </span>
+      </div>
+      <div className="divide-y divide-line dark:divide-white/10">{children}</div>
+    </div>
+  )
+}
+
 // 98% stays "98%", 95.83 becomes "95.8%"
 export function formatPct(value) {
   const rounded = Math.round(value * 10) / 10
@@ -146,13 +180,6 @@ export default function TempHistoryView({
         }
       }
     }
-  }
-
-  const dayLabel = (dateStr) => {
-    const base = format(parseISO(dateStr), 'EEE d MMM')
-    if (dateStr === todayStr) return `Today · ${base}`
-    if (dateStr === format(subDays(now, 1), 'yyyy-MM-dd')) return `Yesterday · ${base}`
-    return base
   }
 
   const renderCell = (item, dateStr, period) => {

@@ -2,8 +2,9 @@
  * Shared building blocks for the temperature-check pages (fridge, hot holding):
  * header, tab bar, reading input, item settings rows, and status chips.
  */
-import React from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { format, isToday } from 'date-fns'
 import { TemperatureItemSettingsForm } from './TemperatureItemSettingsModal'
 
 export const CARD = 'bg-white dark:bg-paperDark rounded-2xl border border-line dark:border-white/10'
@@ -225,3 +226,115 @@ export const THERMOMETER_ICON = (
     <path d="M14 14.76V4.5a2 2 0 0 0-4 0v10.26a4 4 0 1 0 4 0Z" />
   </svg>
 )
+
+/* ── Form fields shared by the log-a-reading pages (cooking, cooling) ─────── */
+export const FIELD_LABEL  = 'block text-[13px] font-semibold tracking-[0.08em] uppercase text-ink3 dark:text-white/45 mb-2'
+export const TEXT_FIELD   = 'w-full h-12 px-4 rounded-xl border border-line dark:border-white/10 bg-cream dark:bg-white/5 text-[15px] text-ink dark:text-white placeholder:text-ink4 dark:placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand/40 focus:bg-white dark:focus:bg-white/10 transition-colors'
+export const NUMBER_RESET = '[appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none'
+
+/** "COOLING NOW ········ Target ≤8°C within 90 min" */
+export function SectionHeading({ children, aside }) {
+  return (
+    <div className="flex items-baseline justify-between gap-3 px-1 -mb-1">
+      <p className="text-[13px] font-semibold tracking-[0.08em] uppercase text-ink3 dark:text-white/45">{children}</p>
+      {aside && <p className="text-[13px] text-ink3 dark:text-white/45 text-right">{aside}</p>}
+    </div>
+  )
+}
+
+/** Tappable suggestions under a text box; the one matching `value` is highlighted. */
+export function QuickPicks({ options, value, onPick }) {
+  if (!options.length) return null
+  return (
+    <div className="flex flex-wrap gap-2">
+      {options.map(name => (
+        <button
+          key={name}
+          type="button"
+          onClick={() => onPick(name)}
+          className={[
+            'h-9 px-3.5 rounded-full border text-[15px] transition-colors',
+            value.trim().toLowerCase() === name.toLowerCase()
+              ? 'bg-brand-tint border-brand/40 text-brand dark:bg-white/10 dark:text-white dark:border-white/30'
+              : 'bg-white dark:bg-paperDark border-line dark:border-white/10 text-ink2 dark:text-white/75 hover:border-ink4',
+          ].join(' ')}
+        >
+          {name}
+        </button>
+      ))}
+    </div>
+  )
+}
+
+/** Labelled temperature box with a °C suffix. */
+export function TempField({ label, value, onChange, placeholder, warn, ariaLabel }) {
+  return (
+    <label className="min-w-0">
+      <span className={FIELD_LABEL}>{label}</span>
+      <span className="relative block">
+        <input
+          type="number" step="0.1" min="-30" max="120" inputMode="decimal"
+          value={value}
+          onChange={e => onChange(e.target.value)}
+          placeholder={placeholder}
+          aria-label={ariaLabel ?? label}
+          className={`${TEXT_FIELD} ${NUMBER_RESET} pr-11 font-mono text-lg ${warn ? '!border-bad/50 !bg-badBg/40 text-bad' : ''}`}
+        />
+        <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 font-mono text-base text-ink3 dark:text-white/40">°C</span>
+      </span>
+    </label>
+  )
+}
+
+/**
+ * A time of day that defaults to now and keeps ticking until someone edits it.
+ * A time later than now is taken as yesterday (e.g. logged just after midnight).
+ */
+export function useTimeOfDay() {
+  const [time, setTimeState] = useState(() => format(new Date(), 'HH:mm'))
+  const [touched, setTouched] = useState(false)
+
+  useEffect(() => {
+    if (touched) return
+    const id = setInterval(() => setTimeState(format(new Date(), 'HH:mm')), 30_000)
+    return () => clearInterval(id)
+  }, [touched])
+
+  const at = useMemo(() => {
+    const [hh, mm] = time.split(':').map(Number)
+    const d = new Date()
+    d.setHours(hh || 0, mm || 0, 0, 0)
+    if (d.getTime() > Date.now() + 60_000) d.setDate(d.getDate() - 1)
+    return d
+  }, [time])
+
+  return {
+    time,
+    at,
+    dayLabel: isToday(at) ? 'Today' : 'Yesterday',
+    setTime: (value) => { setTimeState(value); setTouched(true) },
+    reset: () => { setTouched(false); setTimeState(format(new Date(), 'HH:mm')) },
+  }
+}
+
+/** Time box with a clock icon and "Today"/"Yesterday"; pair with useTimeOfDay. */
+export function TimeOfDayField({ label, clock }) {
+  return (
+    <label className="min-w-0">
+      <span className={FIELD_LABEL}>{label}</span>
+      <span className="relative block">
+        <input
+          type="time"
+          value={clock.time}
+          onChange={e => clock.setTime(e.target.value)}
+          aria-label={label}
+          className={`${TEXT_FIELD} pr-4 font-mono text-lg font-semibold [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0 [&::-webkit-calendar-picker-indicator]:w-full`}
+        />
+        <span className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 inline-flex items-center gap-1.5 text-sm text-ink3 dark:text-white/45">
+          <svg className="w-4 h-4 text-ink2 dark:text-white/65" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9" /><polyline points="12 7 12 12 15 14" /></svg>
+          <span className="hidden min-[400px]:inline">{clock.dayLabel}</span>
+        </span>
+      </span>
+    </label>
+  )
+}

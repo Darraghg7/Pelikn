@@ -13,7 +13,7 @@
  */
 import React, { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { format, parseISO, subDays, isToday, isYesterday } from 'date-fns'
+import { format, subDays, isToday } from 'date-fns'
 import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
 import { useSession } from '../../contexts/SessionContext'
@@ -25,24 +25,14 @@ import {
   COOLING_TARGET_TEMP, COOLING_TARGET_MINUTES, COOLING_METHODS,
   coolingMethodLabel, coolingOutcome, formatCoolingMinutes,
 } from '../../lib/cooling'
-import { CARD, TONE, PageHeader, TabBar, ReadingInput } from '../../components/temperature/TempPageParts'
-import { HistoryRangePills, StatStrip, formatPct, historyDateFrom } from '../../components/temperature/TempHistoryView'
+import {
+  CARD, TONE, PageHeader, TabBar, ReadingInput, SectionHeading, QuickPicks, TempField, TimeOfDayField, useTimeOfDay,
+  FIELD_LABEL, TEXT_FIELD,
+} from '../../components/temperature/TempPageParts'
+import { HistoryRangePills, StatStrip, DayCard, formatPct, historyDateFrom, groupByDay } from '../../components/temperature/TempHistoryView'
 import CoolingExportModal from './CoolingExportModal'
 
 const NEW_METHODS = COOLING_METHODS.filter(m => !m.legacy)
-
-const FIELD_LABEL = 'block text-[13px] font-semibold tracking-[0.08em] uppercase text-ink3 dark:text-white/45 mb-2'
-const TEXT_FIELD  = 'w-full h-12 px-4 rounded-xl border border-line dark:border-white/10 bg-cream dark:bg-white/5 text-[15px] text-ink dark:text-white placeholder:text-ink4 dark:placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand/40 focus:bg-white dark:focus:bg-white/10 transition-colors'
-const NUMBER_RESET = '[appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none'
-
-function SectionHeading({ children, aside }) {
-  return (
-    <div className="flex items-baseline justify-between gap-3 px-1 -mb-1">
-      <p className="text-[13px] font-semibold tracking-[0.08em] uppercase text-ink3 dark:text-white/45">{children}</p>
-      {aside && <p className="text-[13px] text-ink3 dark:text-white/45 text-right">{aside}</p>}
-    </div>
-  )
-}
 
 function StopwatchIcon({ className = 'w-5 h-5' }) {
   return (
@@ -169,32 +159,14 @@ function StartBatchForm({ session, venueId, onStarted }) {
   const frequent = useFrequentCoolingItems(4)
   const [foodItem, setFoodItem]   = useState('')
   const [startTemp, setStartTemp] = useState('')
-  const [time, setTime]           = useState(() => format(new Date(), 'HH:mm'))
-  const [timeTouched, setTimeTouched] = useState(false)
+  const clock = useTimeOfDay()
   const [method, setMethod]       = useState('blast_chiller')
   const [showNote, setShowNote]   = useState(false)
   const [note, setNote]           = useState('')
   const [saving, setSaving]       = useState(false)
 
-  // Keep the default start time current until someone changes it
-  useEffect(() => {
-    if (timeTouched) return
-    const id = setInterval(() => setTime(format(new Date(), 'HH:mm')), 30_000)
-    return () => clearInterval(id)
-  }, [timeTouched])
-
-  // A time later than now means the batch went in before midnight
-  const startedAt = useMemo(() => {
-    const [hh, mm] = time.split(':').map(Number)
-    const d = new Date()
-    d.setHours(hh || 0, mm || 0, 0, 0)
-    if (d.getTime() > Date.now() + 60_000) d.setDate(d.getDate() - 1)
-    return d
-  }, [time])
-  const startedDay = isToday(startedAt) ? 'Today' : 'Yesterday'
-
   const hasTemp  = startTemp !== '' && !Number.isNaN(parseFloat(startTemp))
-  const canStart = foodItem.trim() && hasTemp && time
+  const canStart = foodItem.trim() && hasTemp && clock.time
 
   const start = async () => {
     if (!canStart || saving) return
@@ -206,7 +178,7 @@ function StartBatchForm({ session, venueId, onStarted }) {
       end_temp:       null,
       target_temp:    COOLING_TARGET_TEMP,
       cooling_method: method,
-      started_at:     startedAt.toISOString(),
+      started_at:     clock.at.toISOString(),
       logged_by:      session?.staffId ?? null,
       logged_by_name: session?.staffName ?? 'Unknown',
       notes:          note.trim() || null,
@@ -218,8 +190,7 @@ function StartBatchForm({ session, venueId, onStarted }) {
     setStartTemp('')
     setNote('')
     setShowNote(false)
-    setTimeTouched(false)
-    setTime(format(new Date(), 'HH:mm'))
+    clock.reset()
     onStarted()
   }
 
@@ -236,56 +207,12 @@ function StartBatchForm({ session, venueId, onStarted }) {
           aria-label="Food item"
           className={TEXT_FIELD}
         />
-        {frequent.length > 0 && (
-          <div className="flex flex-wrap gap-2">
-            {frequent.map(name => (
-              <button
-                key={name}
-                type="button"
-                onClick={() => setFoodItem(name)}
-                className={[
-                  'h-9 px-3.5 rounded-full border text-[15px] transition-colors',
-                  foodItem.trim().toLowerCase() === name.toLowerCase()
-                    ? 'bg-brand-tint border-brand/40 text-brand dark:bg-white/10 dark:text-white dark:border-white/30'
-                    : 'bg-white dark:bg-paperDark border-line dark:border-white/10 text-ink2 dark:text-white/75 hover:border-ink4',
-                ].join(' ')}
-              >
-                {name}
-              </button>
-            ))}
-          </div>
-        )}
+        <QuickPicks options={frequent} value={foodItem} onPick={setFoodItem} />
       </div>
 
       <div className="grid grid-cols-2 gap-3">
-        <label className="min-w-0">
-          <span className={FIELD_LABEL}>Start temp</span>
-          <span className="relative block">
-            <input
-              type="number" step="0.1" min="0" max="120" inputMode="decimal"
-              value={startTemp}
-              onChange={e => setStartTemp(e.target.value)}
-              placeholder="75"
-              className={`${TEXT_FIELD} ${NUMBER_RESET} pr-11 font-mono text-lg`}
-            />
-            <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 font-mono text-base text-ink3 dark:text-white/40">°C</span>
-          </span>
-        </label>
-        <label className="min-w-0">
-          <span className={FIELD_LABEL}>Started</span>
-          <span className="relative block">
-            <input
-              type="time"
-              value={time}
-              onChange={e => { setTime(e.target.value); setTimeTouched(true) }}
-              className={`${TEXT_FIELD} pr-4 font-mono text-lg font-semibold [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0 [&::-webkit-calendar-picker-indicator]:w-full`}
-            />
-            <span className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 inline-flex items-center gap-1.5 text-sm text-ink3 dark:text-white/45">
-              <svg className="w-4 h-4 text-ink2 dark:text-white/65" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9" /><polyline points="12 7 12 12 15 14" /></svg>
-              <span className="hidden min-[400px]:inline">{startedDay}</span>
-            </span>
-          </span>
-        </label>
+        <TempField label="Start temp" value={startTemp} onChange={setStartTemp} placeholder="75" />
+        <TimeOfDayField label="Started" clock={clock} />
       </div>
 
       <div>
@@ -403,23 +330,7 @@ function CoolingHistory() {
   const failures = logs.length - passed
 
   // Grouped by the day the batch went in to cool, newest first
-  const days = useMemo(() => {
-    const groups = new Map()
-    for (const log of logs) {
-      const key = format(new Date(log.started_at), 'yyyy-MM-dd')
-      if (!groups.has(key)) groups.set(key, [])
-      groups.get(key).push(log)
-    }
-    return [...groups.entries()]
-  }, [logs])
-
-  const dayLabel = (dateStr) => {
-    const d = parseISO(dateStr)
-    const base = format(d, 'EEE d MMM')
-    if (isToday(d)) return `Today · ${base}`
-    if (isYesterday(d)) return `Yesterday · ${base}`
-    return base
-  }
+  const days = useMemo(() => groupByDay(logs, log => log.started_at), [logs])
 
   return (
     <div className="flex flex-col gap-4">
@@ -440,17 +351,9 @@ function CoolingHistory() {
           {days.length === 0 ? (
             <p className="text-sm text-ink3 dark:text-white/40 py-10 text-center">No batches cooled in this period.</p>
           ) : days.map(([dateStr, dayLogs]) => (
-            <div key={dateStr} className={`${CARD} overflow-hidden`}>
-              <div className="flex items-center justify-between gap-2 px-4 sm:px-5 py-3 bg-cream dark:bg-white/5 border-b border-line dark:border-white/10">
-                <p className="text-sm font-semibold text-ink dark:text-white truncate">{dayLabel(dateStr)}</p>
-                <span className="shrink-0 font-mono text-sm text-ink3 dark:text-white/45">
-                  {dayLogs.length} {dayLogs.length === 1 ? 'batch' : 'batches'}
-                </span>
-              </div>
-              <div className="divide-y divide-line dark:divide-white/10">
-                {dayLogs.map(log => <FinishedBatchRow key={log.id} log={log} compact />)}
-              </div>
-            </div>
+            <DayCard key={dateStr} dateStr={dateStr} count={dayLogs.length} noun="batch" plural="batches">
+              {dayLogs.map(log => <FinishedBatchRow key={log.id} log={log} compact />)}
+            </DayCard>
           ))}
         </>
       )}
