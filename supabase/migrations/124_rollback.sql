@@ -1,8 +1,8 @@
 -- Rollback for 124: editing documents goes back to any venue member (123's rule).
+-- If it times out on the lock, nothing changed: run it again.
 
-DROP POLICY IF EXISTS "documents_update" ON documents;
+SET lock_timeout = '3s';
 
-CREATE POLICY "documents_update" ON documents
-  FOR UPDATE
+ALTER POLICY "documents_update" ON documents
   USING      (has_venue_access(venue_id))
   WITH CHECK (has_venue_access(venue_id));

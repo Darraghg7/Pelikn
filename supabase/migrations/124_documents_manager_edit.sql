@@ -15,9 +15,13 @@
 -- the client's isManager. Reading and adding stay venue-wide.
 -- ============================================================================
 
-DROP POLICY IF EXISTS "documents_update" ON documents;
+-- ALTER rather than DROP + CREATE: one statement, one lock, and no moment
+-- where the table has no UPDATE policy. The first attempt (DROP + CREATE,
+-- 25 Sep 2026) hit a deadlock with live app traffic and rolled back cleanly.
+-- lock_timeout makes a busy table fail fast instead of queueing behind — and
+-- blocking — every app query; if it times out, nothing changed: run it again.
+SET lock_timeout = '3s';
 
-CREATE POLICY "documents_update" ON documents
-  FOR UPDATE
+ALTER POLICY "documents_update" ON documents
   USING      (is_venue_hr_manager(venue_id))
   WITH CHECK (is_venue_hr_manager(venue_id));
