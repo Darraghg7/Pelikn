@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { DEFAULT_WIDGETS } from '../components/widgets/WidgetRegistry'
+import { takeBootstrap } from '../lib/api/bootstrap'
 
 // Last-known widget layout per staff+venue, so the dashboard renders the right
 // widgets immediately instead of showing defaults and re-shuffling after fetch.
@@ -29,12 +30,19 @@ export function useWidgetPreferences(staffId: string | null, venueId: string | n
 
     setWidgetIds(readCachedLayout(staffId, venueId))
 
-    supabase
-      .from('dashboard_widgets')
-      .select('widget_id, position')
-      .eq('venue_id', venueId)
-      .eq('staff_id', staffId)
-      .order('position')
+    // First load comes from the startup bundle when it's available (126).
+    const load = async (): Promise<{ data: { widget_id: string }[] | null }> => {
+      const boot = await takeBootstrap(venueId, 'widgetLayout', staffId)
+      if (boot) return { data: boot.widget_layout }
+      const { data } = await supabase
+        .from('dashboard_widgets')
+        .select('widget_id, position')
+        .eq('venue_id', venueId)
+        .eq('staff_id', staffId)
+        .order('position')
+      return { data }
+    }
+    load()
       .then(({ data }) => {
         if (cancelled) return
         const ids = data && data.length > 0 ? data.map(d => (d as { widget_id: string }).widget_id) : DEFAULT_WIDGETS

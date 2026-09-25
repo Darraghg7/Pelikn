@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
 import { useVenue } from '../contexts/VenueContext'
 import { londonToday } from '../lib/time'
+import { takeBootstrap } from '../lib/api/bootstrap'
 
 export interface ClosingDepartmentStatus {
   departmentId: string
@@ -40,10 +41,16 @@ export function useClosingGate(staffId: string | null | undefined) {
     queryFn: async (): Promise<ClosingDepartmentStatus[]> => {
       if (!staffId || !venueId) return []
 
-      const [{ data: shiftRows }, { data: roleRows }] = await Promise.all([
-        supabase.from('shifts').select('is_closing').eq('venue_id', venueId).eq('staff_id', staffId).eq('shift_date', today),
-        supabase.from('staff_role_assignments').select('role_id').eq('staff_id', staffId),
-      ])
+      // First load's opening pair comes from the startup bundle when it's
+      // available (126) — for most people, on most days, that's the whole
+      // answer: not closing today, so nothing further is fetched.
+      const boot = await takeBootstrap(venueId, 'closingGate', staffId)
+      const [{ data: shiftRows }, { data: roleRows }] = boot
+        ? [{ data: boot.closing_shifts }, { data: boot.my_role_ids }]
+        : await Promise.all([
+          supabase.from('shifts').select('is_closing').eq('venue_id', venueId).eq('staff_id', staffId).eq('shift_date', today),
+          supabase.from('staff_role_assignments').select('role_id').eq('staff_id', staffId),
+        ])
 
       const isClosingToday = (shiftRows ?? []).some((s) => s.is_closing)
       if (!isClosingToday || !roleRows?.length) return []

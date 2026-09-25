@@ -3,6 +3,7 @@ import { format, subDays } from 'date-fns'
 import { supabase } from '../lib/supabase'
 import { useVenue } from '../contexts/VenueContext'
 import { londonToday, londonWallTimeToInstant } from '../lib/time'
+import { takeBootstrap, type AppBootstrap } from '../lib/api/bootstrap'
 
 type NotificationSeverity = 'critical' | 'warning' | 'info'
 
@@ -40,10 +41,13 @@ async function loadStaffNotifications(staffId: string, venueId: string): Promise
   const items: StaffNotification[] = []
   const since = format(subDays(new Date(), 7), 'yyyy-MM-dd')
 
+  // First load comes from the startup bundle when it's available (126).
+  const boot = await takeBootstrap(venueId, 'staffNotifications', staffId)
+
   await Promise.all([
-    checkMySwapUpdates(items, staffId, venueId, since),
-    checkMyTimeOffUpdates(items, staffId, venueId, since),
-    checkMyUpcomingShift(items, staffId, venueId),
+    checkMySwapUpdates(items, staffId, venueId, since, boot),
+    checkMyTimeOffUpdates(items, staffId, venueId, since, boot),
+    checkMyUpcomingShift(items, staffId, venueId, boot),
   ])
 
   const sevOrder: Record<NotificationSeverity, number> = { critical: 0, warning: 1, info: 2 }
@@ -51,8 +55,8 @@ async function loadStaffNotifications(staffId: string, venueId: string): Promise
   return items
 }
 
-async function checkMySwapUpdates(items: StaffNotification[], staffId: string, venueId: string, since: string): Promise<void> {
-  const { data } = await supabase
+async function checkMySwapUpdates(items: StaffNotification[], staffId: string, venueId: string, since: string, boot?: AppBootstrap): Promise<void> {
+  const { data } = boot ? { data: boot.my_swaps } : await supabase
     .from('shift_swaps')
     // resolved_at is stamped when a swap is approved or rejected — there is no
     // updated_at on this table.
@@ -75,8 +79,8 @@ async function checkMySwapUpdates(items: StaffNotification[], staffId: string, v
   }
 }
 
-async function checkMyTimeOffUpdates(items: StaffNotification[], staffId: string, venueId: string, since: string): Promise<void> {
-  const { data } = await supabase
+async function checkMyTimeOffUpdates(items: StaffNotification[], staffId: string, venueId: string, since: string, boot?: AppBootstrap): Promise<void> {
+  const { data } = boot ? { data: boot.my_time_off } : await supabase
     .from('time_off_requests')
     // reviewed_at is stamped when a manager approves or rejects the request.
     .select('id, status, start_date, end_date, reviewed_at')
@@ -101,11 +105,11 @@ async function checkMyTimeOffUpdates(items: StaffNotification[], staffId: string
   }
 }
 
-async function checkMyUpcomingShift(items: StaffNotification[], staffId: string, venueId: string): Promise<void> {
+async function checkMyUpcomingShift(items: StaffNotification[], staffId: string, venueId: string, boot?: AppBootstrap): Promise<void> {
   const now = new Date()
   const today = londonToday()
 
-  const { data } = await supabase
+  const { data } = boot ? { data: boot.my_shifts_today } : await supabase
     .from('shifts')
     .select('id, shift_date, start_time, end_time')
     .eq('venue_id', venueId)

@@ -16,6 +16,7 @@ import { useClockStatus, saveClockStatusCache } from '../../hooks/useClockEvents
 import { useClockAlerts } from '../../hooks/useClockAlerts'
 import { offlineRpc } from '../../lib/offlineSupabase'
 import { fetchUnsignedTrainingCount, unsignedTrainingKey } from '../../lib/api/training'
+import { takeBootstrap } from '../../lib/api/bootstrap'
 import { useVenue } from '../../contexts/VenueContext'
 import { useToast } from '../../components/ui/Toast'
 import StaffAlertModal from '../../components/shifts/StaffAlertModal'
@@ -259,14 +260,18 @@ function useWeeklyHours(staffId, venueId) {
   useEffect(() => {
     if (!staffId || !venueId) return
     const since = startOfWeek(new Date(), { weekStartsOn: 1 }).toISOString()
-    supabase
-      .from('clock_events')
-      .select('event_type, occurred_at')
-      .eq('staff_id', staffId)
-      .eq('venue_id', venueId)
-      .in('event_type', ['clock_in', 'clock_out'])
-      .gte('occurred_at', since)
-      .order('occurred_at', { ascending: true })
+    // First load comes from the startup bundle when it's available (126).
+    takeBootstrap(venueId, 'weeklyHours', staffId)
+      .then(boot => boot
+        ? { data: boot.week_clock }
+        : supabase
+          .from('clock_events')
+          .select('event_type, occurred_at')
+          .eq('staff_id', staffId)
+          .eq('venue_id', venueId)
+          .in('event_type', ['clock_in', 'clock_out'])
+          .gte('occurred_at', since)
+          .order('occurred_at', { ascending: true }))
       .then(({ data }) => {
         if (!data) return
         let total = 0, lastIn = null
@@ -638,13 +643,17 @@ export default function MobileManagerDashboard({
 
   useEffect(() => {
     if (!venueId) return
-    supabase
-      .from('staff_disciplinary_log')
-      .select('id, offence_type, strike_number, occurred_at, staff:staff_id(name)')
-      .eq('venue_id', venueId)
-      .eq('strike_number', 4)
-      .gte('occurred_at', new Date(Date.now() - 7 * 86400000).toISOString())
-      .order('occurred_at', { ascending: false })
+    // First load comes from the startup bundle when it's available (126).
+    takeBootstrap(venueId, 'disciplinary')
+      .then(boot => boot
+        ? { data: boot.disciplinary }
+        : supabase
+          .from('staff_disciplinary_log')
+          .select('id, offence_type, strike_number, occurred_at, staff:staff_id(name)')
+          .eq('venue_id', venueId)
+          .eq('strike_number', 4)
+          .gte('occurred_at', new Date(Date.now() - 7 * 86400000).toISOString())
+          .order('occurred_at', { ascending: false }))
       .then(({ data }) => {
         setDisciplinaryAlerts(
           (data ?? []).map(d => ({ ...d, staff_name: d.staff?.name ?? null }))

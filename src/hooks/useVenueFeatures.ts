@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
 import { useVenue } from '../contexts/VenueContext'
 import { PLANS } from '../lib/constants'
+import { takeBootstrapSettings } from '../lib/api/bootstrap'
 
 const FEATURES_UPDATED_EVENT = 'pelikn:features-updated'
 
@@ -105,12 +106,16 @@ interface FeatureConfig {
 const DEFAULT_CONFIG: FeatureConfig = { mode: 'all', enabled: ALL_FEATURE_IDS }
 
 async function fetchFeatures(venueId: string): Promise<FeatureConfig> {
-  const { data } = await supabase
-    .from('app_settings')
-    .select('value')
-    .eq('venue_id', venueId)
-    .eq('key', 'features')
-    .single()
+  // First load comes from the startup bundle when it's available (126).
+  const boot = await takeBootstrapSettings(venueId, 'features', ['features'])
+  const { data } = boot
+    ? { data: boot[0] ?? null }
+    : await supabase
+      .from('app_settings')
+      .select('value')
+      .eq('venue_id', venueId)
+      .eq('key', 'features')
+      .single()
 
   if (data?.value) {
     try {
