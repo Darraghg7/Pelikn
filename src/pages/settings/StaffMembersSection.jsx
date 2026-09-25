@@ -10,120 +10,26 @@ import { useSession } from '../../contexts/SessionContext'
 import { useVenue } from '../../contexts/VenueContext'
 import { useAuth } from '../../contexts/AuthContext'
 import { useToast } from '../../components/ui/Toast'
-import LoadingSpinner from '../../components/ui/LoadingSpinner'
-import { useVenueFeatures } from '../../hooks/useVenueFeatures'
 import { useVenueRoles } from '../../hooks/useVenueRoles'
 import { usePermissionTitles } from '../../hooks/usePermissionTitles'
 import Toggle from '../../components/ui/Toggle'
-import Button from '../../components/ui/Button'
-import Modal from '../../components/ui/Modal'
 import useStaffManagement from '../../hooks/useStaffManagement'
-import SettingsSection from './SettingsSection'
 import { StaffRolesAssignment } from './RolesSection'
 import TrainingSection from './TrainingSection'
 import ConfirmDialog from '../../components/ui/ConfirmDialog'
-import { PLANS, STAFF_COLOUR_PALETTE, STAFF_PERMISSIONS, DEFAULT_STAFF_PERMISSIONS } from '../../lib/constants'
+import { STAFF_COLOUR_PALETTE, STAFF_PERMISSIONS, DEFAULT_STAFF_PERMISSIONS } from '../../lib/constants'
 import { saveStaffPermissions } from '../../hooks/useStaffPermissions'
+import { CARD } from '../../components/temperature/TempPageParts'
 
 const PERMISSION_ROLES  = ['staff', 'manager', 'owner']
 const PERMISSION_LABELS = { staff: 'Staff', manager: 'Manager', owner: 'Owner' }
-const EMPLOYMENT_TYPES = [
-  { value: 'full_time',   label: 'Full-time' },
-  { value: 'part_time',   label: 'Part-time' },
-  { value: 'zero_hours',  label: 'Zero-hours' },
-  { value: 'fixed_term',  label: 'Fixed-term' },
-]
-
 const CONTRACT_BTNS = [
-  { value: 'full_time',  label: 'Full Time' },
-  { value: 'part_time',  label: 'Part Time' },
-  { value: 'zero_hours', label: 'Zero Hours' },
+  { value: 'full_time',  label: 'Full time' },
+  { value: 'part_time',  label: 'Part time' },
+  { value: 'zero_hours', label: 'Zero hours' },
 ]
-
-// Module-level component so hooks are stable across renders
-function ContractTypeRow({ s, onSave }) {
-  const [localHours, setLocalHours] = useState(s.contracted_hours?.toString() ?? '')
-  const [saving, setSaving]         = useState(false)
-  const needsHours = s.employment_type === 'full_time' || s.employment_type === 'part_time'
-
-  // Keep localHours in sync when parent reloads staff data
-  React.useEffect(() => {
-    setLocalHours(s.contracted_hours?.toString() ?? '')
-  }, [s.contracted_hours])
-
-  const handleType = async (type) => {
-    setSaving(true)
-    const hours = type === 'zero_hours' ? null : (parseFloat(localHours) || null)
-    await onSave(s.id, type, hours)
-    setSaving(false)
-  }
-
-  const handleHoursBlur = async () => {
-    if (!needsHours) return
-    const hours = parseFloat(localHours) || null
-    setSaving(true)
-    await onSave(s.id, s.employment_type, hours)
-    setSaving(false)
-  }
-
-  // Annual leave entitlement preview (UK statutory: 5.6 weeks)
-  const daysPerWeek = s.working_days?.length > 0 ? Math.min(s.working_days.length, 7) : 5
-  const entitlementDays = Math.round(5.6 * daysPerWeek * 2) / 2
-
-  return (
-    <div className="flex items-center gap-1.5 flex-wrap mt-1.5 pb-1">
-      {CONTRACT_BTNS.map(btn => {
-        const active = s.employment_type === btn.value
-        return (
-          <button
-            key={btn.value}
-            type="button"
-            disabled={saving}
-            onClick={() => handleType(btn.value)}
-            className={[
-              'text-[11px] font-semibold tracking-wider uppercase px-2 py-0.5 rounded-full border transition-colors',
-              active
-                ? 'bg-brand text-white border-brand'
-                : 'bg-transparent text-charcoal/45 dark:text-white/40 border-charcoal/15 dark:border-white/15 hover:border-charcoal/35 dark:hover:border-white/35 hover:text-charcoal/70 dark:hover:text-white/60',
-              saving ? 'opacity-50 cursor-not-allowed' : '',
-            ].filter(Boolean).join(' ')}
-          >
-            {btn.label}
-          </button>
-        )
-      })}
-
-      {/* Contracted hours — shown for full/part time */}
-      {needsHours && (
-        <div className="flex items-center gap-1">
-          <input
-            type="number"
-            min="1"
-            max="60"
-            step="0.5"
-            value={localHours}
-            onChange={e => setLocalHours(e.target.value)}
-            onBlur={handleHoursBlur}
-            onKeyDown={e => e.key === 'Enter' && e.target.blur()}
-            placeholder="hrs/wk"
-            className="w-16 px-1.5 py-0.5 text-[11px] rounded border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-charcoal dark:text-white focus:outline-none focus:ring-1 focus:ring-brand/30 focus:border-brand/40"
-          />
-          <span className="text-[11px] text-charcoal/40 dark:text-white/35">hrs/wk</span>
-        </div>
-      )}
-
-      {/* Leave entitlement preview */}
-      {s.employment_type && s.employment_type !== 'zero_hours' && (
-        <span className="text-[11px] text-charcoal/30 dark:text-white/30">
-          · {entitlementDays}d leave/yr
-        </span>
-      )}
-      {s.employment_type === 'zero_hours' && (
-        <span className="text-[11px] text-charcoal/30 dark:text-white/30">· Leave accrues per hour worked</span>
-      )}
-    </div>
-  )
-}
+const CONTRACT_LABELS = { full_time: 'Full time', part_time: 'Part time', zero_hours: 'Zero hours', fixed_term: 'Fixed term' }
+const INPUT = 'w-full h-12 px-4 rounded-xl border border-line dark:border-white/10 bg-cream dark:bg-white/5 text-[16px] text-ink dark:text-white placeholder:text-ink4 dark:placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand/40 focus:bg-white dark:focus:bg-white/10 transition-colors'
 
 const EMPTY_FORM = {
   name: '', role: 'staff', job_role: '', permission_title_id: null, pin: '', email: '', hourly_rate: '',
@@ -135,9 +41,8 @@ const EMPTY_FORM = {
 }
 const DOW_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
-export default function StaffMembersSection() {
+export default function StaffMembersSection({ detailId = null, onOpen, onClose, backLabel = 'Staff & roles' }) {
   const { staff, loading: staffLoading, reload: reloadStaff } = useStaffManagement()
-  const { venuePlan } = useVenueFeatures()
   const { titles: permissionTitles } = usePermissionTitles()
   const { roles: venueRoles } = useVenueRoles()
   const { session } = useSession()
@@ -150,14 +55,13 @@ export default function StaffMembersSection() {
   const [venueLinks, setVenueLinks] = useState({})
   const [savingLinks, setSavingLinks] = useState(false)
 
-  const [showForm, setShowForm]             = useState(false)
   const [editingId, setEditingId]           = useState(null)
   const [staffForm, setStaffForm]           = useState(EMPTY_FORM)
   const [savingStaff, setSavingStaff]       = useState(false)
-  const [photoFile, setPhotoFile]           = useState(null)
   const [uploadingPhoto, setUploadingPhoto] = useState(false)
   const [staffRoleMap, setStaffRoleMap]     = useState({})
   const [permForm, setPermForm]             = useState(new Set(DEFAULT_STAFF_PERMISSIONS))
+  const [search, setSearch]                 = useState('')
 
   // Build { staffId -> [venueId, ...] } map from raw rows
   const buildLinkMap = (rows) => {
@@ -233,12 +137,11 @@ export default function StaffMembersSection() {
     setUploadingPhoto(false)
     if (dbErr) { toast('Failed to save photo URL', 'error'); return }
     toast('Photo uploaded')
-    setPhotoFile(null)
     reloadStaff()
   }
 
-  const openAdd = () => { setStaffForm(EMPTY_FORM); setEditingId(null); setPermForm(new Set(DEFAULT_STAFF_PERMISSIONS)); setShowForm(true) }
-  const openEdit = async (s) => {
+  const startNew = () => { setStaffForm(EMPTY_FORM); setEditingId(null); setPermForm(new Set(DEFAULT_STAFF_PERMISSIONS)) }
+  const loadForm = async (s) => {
     setStaffForm({
       name:                    s.name,
       role:                    s.role ?? 'staff',
@@ -261,7 +164,6 @@ export default function StaffMembersSection() {
       holiday_pay_eligible:    s.holiday_pay_eligible ?? true,
     })
     setEditingId(s.id)
-    setShowForm(true)
     // Load existing permissions for this staff member
     if (s.role === 'staff') {
       const data = await fetchStaffPermissionsFor(s.id, venueId)
@@ -270,7 +172,22 @@ export default function StaffMembersSection() {
       setPermForm(new Set(STAFF_PERMISSIONS.map(p => p.id)))
     }
   }
-  const cancelEdit = () => { setShowForm(false); setEditingId(null) }
+  const cancelEdit = () => { setEditingId(null); onClose?.() }
+
+  // The page opens one person (or a blank form for "new") by id. Load their
+  // details once per id — and only once they're in the list, which a
+  // just-created person may not be until the reload lands.
+  const loadedFor = React.useRef(null)
+  useEffect(() => {
+    if (!detailId) { loadedFor.current = null; return }
+    if (loadedFor.current === detailId) return
+    if (detailId === 'new') { startNew(); loadedFor.current = 'new'; return }
+    const s = staff.find(m => m.id === detailId)
+    if (!s) return
+    loadForm(s)
+    loadedFor.current = detailId
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [detailId, staff])
 
   // Toggle a staff member's link to another owned venue
   const toggleVenueLink = async (staffId, targetVenueId, currentlyLinked) => {
@@ -369,8 +286,8 @@ export default function StaffMembersSection() {
     setSavingStaff(false)
     if (editingId) {
       toast('Staff member updated')
-      setShowForm(false)
       setEditingId(null)
+      onClose?.()
     } else if (newId) {
       // Roles can only be assigned once the staff row exists (they're a
       // join table, not a plain field) — keep the sheet open, now in edit
@@ -379,17 +296,12 @@ export default function StaffMembersSection() {
       toast('Staff member added — now assign their roles below')
       setEditingId(newId)
       setStaffForm(f => ({ ...f, pin: '' }))
+      loadedFor.current = newId   // the form already holds what was just saved
+      onOpen?.(newId)
     } else {
       toast('Staff member added')
-      setShowForm(false)
+      onClose?.()
     }
-    reloadStaff()
-  }
-
-  // ── Inline contract type save ────────────────────────────────────────────
-  const saveContractType = async (staffId, employment_type, contracted_hours) => {
-    const { error } = await updateStaffContractType(session.token, staffId, employment_type, contracted_hours)
-    if (error) { toast(error.message, 'error'); return }
     reloadStaff()
   }
 
@@ -416,6 +328,8 @@ export default function StaffMembersSection() {
     setDeleteTarget(null)
     if (error) { toast(error.message, 'error'); return }
     toast(`${deleteTarget.name} permanently deleted`)
+    setEditingId(null)
+    onClose?.()
     reloadStaff()
   }
 
@@ -433,626 +347,577 @@ export default function StaffMembersSection() {
 
   if (staffLoading) return null
 
-  const activeStaffCount = staff.filter(s => s.is_active).length
+  const current = editingId ? staff.find(m => m.id === editingId) : null
 
-  const renderFormPanel = () => (
-    <div className="flex flex-col gap-5">
-      {/* Photo upload (edit only) */}
-      {editingId && (() => {
-        const s = staff.find(m => m.id === editingId)
-        return (
-          <div className="flex items-center gap-4">
-            {s?.photo_url ? (
-              <img src={s.photo_url} alt={s.name}
-                className="w-14 h-14 rounded-full object-cover border border-charcoal/10 dark:border-white/10" loading="lazy" />
-            ) : (
-              <div className="w-14 h-14 rounded-full bg-charcoal/10 dark:bg-white/10 flex items-center justify-center">
-                <span className="text-xl font-semibold text-charcoal/40 dark:text-white/35">{staffForm.name.charAt(0) || '?'}</span>
-              </div>
-            )}
-            <div className="flex flex-col gap-1.5">
-              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">Photo</label>
-              <input type="file" accept="image/*"
-                onChange={e => setPhotoFile(e.target.files[0] ?? null)}
-                className="text-xs text-charcoal/60 dark:text-white/50 file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border file:border-charcoal/15 dark:file:border-white/15 file:text-xs file:bg-white dark:file:bg-paperDark file:text-charcoal/60 dark:file:text-white/50 hover:file:bg-cream" />
-              {photoFile && (
-                <Button type="button"
-                  onClick={() => uploadStaffPhoto(editingId, photoFile)}
-                  disabled={uploadingPhoto}
-                  variant="secondary" size="sm" className="self-start">
-                  {uploadingPhoto ? 'Uploading…' : 'Upload Photo'}
-                </Button>
+  // ── Staff list ──────────────────────────────────────────────────────────
+  if (!detailId) {
+    const q = search.trim().toLowerCase()
+    const matches = (s) => !q || [s.name, s.email, ...(staffRoleMap[s.id] ?? [])].some(v => v?.toLowerCase().includes(q))
+    const active   = staff.filter(s => s.is_active && matches(s))
+    const inactive = staff.filter(s => !s.is_active && matches(s))
+
+    const row = (s) => {
+      const isLocked = s.pin_locked_until && new Date(s.pin_locked_until) > new Date()
+      const subline = [
+        ...(staffRoleMap[s.id] ?? []),
+        s.role !== 'staff' && PERMISSION_LABELS[s.role],
+        CONTRACT_LABELS[s.employment_type],
+      ].filter(Boolean)
+      const idx = staff.findIndex(m => m.id === s.id)
+      return (
+        <div key={s.id} className={`group flex items-center ${s.is_active ? '' : 'opacity-60'}`}>
+          <button
+            type="button"
+            onClick={() => onOpen?.(s.id)}
+            className="flex-1 min-w-0 flex items-center gap-3 px-4 sm:px-4 py-2.5 text-left hover:bg-cream/60 dark:hover:bg-white/5 transition-colors"
+          >
+            <StaffAvatar staff={s} size="md" />
+            <span className="flex-1 min-w-0">
+              <span className="flex items-center gap-2 min-w-0">
+                <span className="text-[15px] font-semibold text-ink dark:text-white truncate">{s.name}</span>
+                {isLocked && <Tag tone="bad">PIN locked</Tag>}
+                {s.is_restricted && <Tag tone="warn">Restricted</Tag>}
+              </span>
+              {subline.length > 0 && (
+                <span className="block text-[13px] text-ink3 dark:text-white/45 mt-0.5 truncate">{subline.join(' · ')}</span>
               )}
-            </div>
+            </span>
+            <svg className="shrink-0 w-4 h-4 text-ink4 dark:text-white/35" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
+          </button>
+          {/* Rota order — desktop, on hover (as before) */}
+          <div className="hidden sm:flex flex-col pr-2 opacity-0 group-hover:opacity-100 transition-opacity">
+            <button type="button" aria-label={`Move ${s.name} up`} onClick={() => moveStaff(s.id, 'up')} disabled={idx === 0} className="w-6 h-5 flex items-center justify-center text-ink3 hover:text-ink disabled:opacity-0 text-[11px]">▲</button>
+            <button type="button" aria-label={`Move ${s.name} down`} onClick={() => moveStaff(s.id, 'down')} disabled={idx === staff.length - 1} className="w-6 h-5 flex items-center justify-center text-ink3 hover:text-ink disabled:opacity-0 text-[11px]">▼</button>
           </div>
-        )
-      })()}
+        </div>
+      )
+    }
 
-      <div>
-        <p className="text-[11px] font-bold tracking-widest uppercase text-charcoal/50 dark:text-white/40 mb-3">Contact Details</p>
-        <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1.5">Name *</label>
+    return (
+      <div className="flex flex-col gap-3">
+        <div className="relative">
+          <svg className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-ink3 dark:text-white/45" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="7" /><line x1="16.5" y1="16.5" x2="21" y2="21" /></svg>
           <input
-            value={staffForm.name}
-            onChange={e => setStaffForm(f => ({ ...f, name: e.target.value }))}
-            placeholder="Full name"
-            className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
+            type="search"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Search staff"
+            aria-label="Search staff"
+            className="w-full h-11 pl-12 pr-4 rounded-2xl border border-line dark:border-white/10 bg-white dark:bg-paperDark text-[14px] text-ink dark:text-white placeholder:text-ink4 dark:placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand/40"
           />
         </div>
-        <div>
-          <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1.5">Email</label>
-          <input
-            type="email"
-            value={staffForm.email}
-            onChange={e => setStaffForm(f => ({ ...f, email: e.target.value }))}
-            placeholder="staff@example.com"
-            className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
-          />
+
+        {staff.length === 0 ? (
+          <div className={`${CARD} px-4 py-10 text-center`}>
+            <p className="text-[15px] font-semibold text-ink dark:text-white">No staff members yet</p>
+            <p className="text-[13px] text-ink3 dark:text-white/45 mt-1">Tap Add staff to set up your team.</p>
+          </div>
+        ) : (
+          <>
+            <SectionLabel>Active · {active.length}</SectionLabel>
+            {active.length > 0 ? (
+              <div className={`${CARD} divide-y divide-line dark:divide-white/10 overflow-hidden`}>{active.map(row)}</div>
+            ) : (
+              <p className="px-1 text-[13px] text-ink3 dark:text-white/45">No one matches “{search}”.</p>
+            )}
+            {inactive.length > 0 && (
+              <>
+                <SectionLabel>Inactive · {inactive.length}</SectionLabel>
+                <div className={`${CARD} divide-y divide-line dark:divide-white/10 overflow-hidden`}>{inactive.map(row)}</div>
+              </>
+            )}
+          </>
+        )}
+      </div>
+    )
+  }
+
+  // ── One person (or a new one) ───────────────────────────────────────────
+  const isNew    = !editingId
+  const isLocked = current?.pin_locked_until && new Date(current.pin_locked_until) > new Date()
+  const set = (key, value) => setStaffForm(f => ({ ...f, [key]: value }))
+  const daysPerWeek     = staffForm.working_days?.length > 0 ? Math.min(staffForm.working_days.length, 7) : 5
+  const entitlementDays = Math.round(5.6 * daysPerWeek * 2) / 2
+  const contractOptions = staffForm.employment_type === 'fixed_term'
+    ? [...CONTRACT_BTNS, { value: 'fixed_term', label: 'Fixed term' }]
+    : CONTRACT_BTNS
+
+  return (
+    <div className="flex flex-col gap-3 pb-28">
+      <button type="button" onClick={cancelEdit} className="self-start inline-flex items-center gap-1 text-[13px] font-semibold text-brand dark:text-white/80 hover:opacity-75">
+        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6" /></svg>
+        {backLabel}
+      </button>
+
+      {/* Header */}
+      <div className="flex items-center gap-3">
+        <div className="relative shrink-0">
+          <StaffAvatar staff={{ ...(current ?? {}), name: staffForm.name || 'New', colour: staffForm.colour || current?.colour }} size="lg" />
+          {!isNew && (
+            <label className="absolute -bottom-1 -right-1 w-9 h-8 rounded-full bg-white dark:bg-paperDark border border-line dark:border-white/15 shadow-sm inline-flex items-center justify-center cursor-pointer text-ink2 dark:text-white/80" title="Change photo">
+              {uploadingPhoto
+                ? <span className="w-3.5 h-3.5 rounded-full border-2 border-ink4 border-t-ink2 animate-spin" />
+                : <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>}
+              <input
+                type="file"
+                accept="image/*"
+                className="sr-only"
+                aria-label="Change photo"
+                onChange={e => { const f = e.target.files?.[0]; if (f) uploadStaffPhoto(editingId, f); e.target.value = '' }}
+              />
+            </label>
+          )}
         </div>
-        <div>
-          <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1.5">
-            PIN {editingId && <span className="normal-case text-charcoal/30 dark:text-white/30">— blank to keep current</span>}
-          </label>
+        <div className="min-w-0">
+          <h1 className="text-[22px] min-[420px]:text-[24px] leading-tight font-bold tracking-tight text-ink dark:text-white break-words">
+            {isNew ? (staffForm.name.trim() || 'New staff member') : staffForm.name || current?.name}
+          </h1>
+          <div className="flex flex-wrap gap-2 mt-1.5">
+            {!isNew && <Tag tone={current?.is_active ? 'good' : 'muted'} big>{current?.is_active ? 'Active' : 'Inactive'}</Tag>}
+            <Tag tone="muted" big>{PERMISSION_LABELS[staffForm.role]}</Tag>
+            {current?.is_restricted && <Tag tone="warn" big>Restricted</Tag>}
+            {isLocked && <Tag tone="bad" big>PIN locked</Tag>}
+          </div>
+        </div>
+      </div>
+
+      {/* Contact */}
+      <SectionLabel>Contact</SectionLabel>
+      <div className={`${CARD} p-4 sm:p-5 grid grid-cols-1 min-[420px]:grid-cols-2 gap-3`}>
+        <Field label="Name">
+          <input value={staffForm.name} onChange={e => set('name', e.target.value)} placeholder="Full name" className={INPUT} />
+        </Field>
+        <Field label="Email">
+          <input type="email" value={staffForm.email} onChange={e => set('email', e.target.value)} placeholder="staff@example.com" className={INPUT} />
+        </Field>
+        <Field label="PIN">
           <input
             type="password"
             inputMode="numeric"
             maxLength={4}
             value={staffForm.pin}
-            onChange={e => setStaffForm(f => ({ ...f, pin: e.target.value.replace(/\D/g, '').slice(0, 4) }))}
-            placeholder="••••"
-            className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 tracking-widest"
+            onChange={e => set('pin', e.target.value.replace(/\D/g, '').slice(0, 4))}
+            placeholder={isNew ? '4 digits' : 'Keep current'}
+            autoComplete="new-password"
+            className={`${INPUT} tracking-[0.3em] placeholder:tracking-normal`}
           />
-        </div>
-        <div>
-          <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1.5">Hourly Rate (£)</label>
-          <input
-            type="number" step="0.01" min="0"
-            value={staffForm.hourly_rate}
-            onChange={e => setStaffForm(f => ({ ...f, hourly_rate: e.target.value }))}
-            placeholder="e.g. 12.50"
-            className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
-          />
-        </div>
-        </div>
+        </Field>
+        <Field label="Hourly rate (£)">
+          <input type="number" step="0.01" min="0" value={staffForm.hourly_rate} onChange={e => set('hourly_rate', e.target.value)} placeholder="e.g. 12.50" className={INPUT} />
+        </Field>
       </div>
 
-      {/* Employment details */}
-      <div className="border-t border-charcoal/8 dark:border-white/8 pt-4">
-        <p className="text-[11px] font-bold tracking-widest uppercase text-charcoal/50 dark:text-white/40 mb-3">Employment</p>
-        <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1.5">Employment Type</label>
-          <select
+      {/* Employment */}
+      <SectionLabel>Employment</SectionLabel>
+      <div className={`${CARD} p-4 sm:p-5 flex flex-col gap-3`}>
+        <Field label="Contract" group>
+          <Segmented
+            options={contractOptions}
             value={staffForm.employment_type}
-            onChange={e => setStaffForm(f => ({ ...f, employment_type: e.target.value }))}
-            className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 text-charcoal dark:text-white"
-          >
-            <option value="">Not set</option>
-            {EMPLOYMENT_TYPES.map(t => (
-              <option key={t.value} value={t.value}>{t.label}</option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1.5">Start Date</label>
-          <input
-            type="date"
-            value={staffForm.start_date}
-            onChange={e => setStaffForm(f => ({ ...f, start_date: e.target.value }))}
-            className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
+            onChange={v => set('employment_type', v)}
           />
-        </div>
-        <div>
-          <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1.5">Emergency Contact</label>
-          <input
-            value={staffForm.emergency_contact_name}
-            onChange={e => setStaffForm(f => ({ ...f, emergency_contact_name: e.target.value }))}
-            placeholder="Contact name"
-            className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
-          />
-        </div>
-        <div>
-          <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1.5">Emergency Phone</label>
-          <input
-            type="tel"
-            value={staffForm.emergency_contact_phone}
-            onChange={e => setStaffForm(f => ({ ...f, emergency_contact_phone: e.target.value }))}
-            placeholder="+44 7700 900000"
-            className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
-          />
-        </div>
-        </div>
+        </Field>
 
-        {/* Holiday pay eligibility */}
-        <div className="flex items-center justify-between rounded-xl border border-charcoal/10 dark:border-white/10 px-4 py-3 bg-charcoal/2 dark:bg-white/3 mt-4">
-          <div>
-            <p className="text-sm font-medium text-charcoal dark:text-white">Eligible for holiday pay</p>
-            <p className="text-[11px] text-charcoal/45 dark:text-white/40 mt-0.5">
-              Entitles this staff member to annual leave accrual and balance tracking
-            </p>
-          </div>
-          <Toggle
-            checked={staffForm.holiday_pay_eligible}
-            onChange={v => setStaffForm(f => ({ ...f, holiday_pay_eligible: v }))}
-          />
-        </div>
-      </div>
-
-      {/* Access: permission level, job role, skills */}
-      <div className="border-t border-charcoal/8 dark:border-white/8 pt-4 flex flex-col gap-4">
-        <p className="text-[11px] font-bold tracking-widest uppercase text-charcoal/50 dark:text-white/40">Access &amp; Role</p>
-
-        {/* Permission level chips */}
-        <div>
-          <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">Permission Level</label>
-          <div className="flex gap-2 flex-wrap">
-            {PERMISSION_ROLES.map(r => (
-              <button
-                key={r} type="button"
-                onClick={() => setStaffForm(f => ({ ...f, role: r }))}
-                className={['px-3 py-1.5 rounded-full text-xs font-medium border transition-all',
-                  staffForm.role === r ? 'bg-charcoal text-cream border-charcoal dark:border-white' : 'bg-white dark:bg-paperDark text-charcoal/50 dark:text-white/40 border-charcoal/15 dark:border-white/15',
-                ].join(' ')}
-              >
-                {PERMISSION_LABELS[r]}
-              </button>
-            ))}
-          </div>
-          <p className="text-[11px] text-charcoal/40 dark:text-white/35 mt-1.5">
-            {staffForm.role === 'owner'   && 'Full access: same as Manager plus cannot be deactivated.'}
-            {staffForm.role === 'manager' && 'Can manage rota, settings, and all staff operations.'}
-            {staffForm.role === 'staff'   && 'Standard access: tasks, cleaning, temp logs and allergens (if enabled).'}
-          </p>
-        </div>
-
-        {/* Roles — the one role list used everywhere: rota skill-matching,
-            Tasks, Cleaning, and department-scoped checks. */}
-        <div>
-          <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">Roles</label>
-          {editingId ? (
-            <StaffRolesAssignment staffId={editingId} />
-          ) : (
-            <p className="text-xs text-charcoal/35 dark:text-white/30 italic">Save this staff member first, then assign their roles.</p>
-          )}
-          <p className="text-[11px] text-charcoal/35 dark:text-white/30 mt-2">
-            Roles decide which shifts this person can be auto-scheduled into, and which department-scoped Tasks, Cleaning and Checks they see. Set roles up in Settings → Roles.
-          </p>
-        </div>
-      </div>
-
-      {/* Weekly schedule & working pattern */}
-      <div className="border-t border-charcoal/8 dark:border-white/8 pt-4 flex flex-col gap-4">
-        <p className="text-[11px] font-bold tracking-widest uppercase text-charcoal/50 dark:text-white/40">Weekly Schedule</p>
-
-        {/* Weekly schedule — hidden for zero-hours (no contracted pattern) */}
+        {/* Contracted hours and working pattern — not for zero-hours */}
         {staffForm.employment_type !== 'zero_hours' && (
-          <div className="flex flex-col gap-3">
-            {/* Contracted hours */}
-            <div>
-              <label className="text-[11px] text-charcoal/45 dark:text-white/40 block mb-1.5">Contracted hours / week</label>
-              <input
-                type="number" step="0.5" min="0"
-                value={staffForm.contracted_hours}
-                onChange={e => setStaffForm(f => ({ ...f, contracted_hours: e.target.value }))}
-                placeholder="e.g. 37.5"
-                className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
-              />
-            </div>
-
-            {/* Working days */}
-            <div>
-              <label className="text-[11px] text-charcoal/45 dark:text-white/40 block mb-1.5">Regular working days</label>
+          <>
+            <Field label="Contracted hours / week">
+              <input type="number" step="0.5" min="0" value={staffForm.contracted_hours} onChange={e => set('contracted_hours', e.target.value)} placeholder="e.g. 37.5" className={INPUT} />
+            </Field>
+            <Field label="Regular working days" group>
               <div className="flex gap-1.5 flex-wrap">
                 {DOW_LABELS.map((day, i) => {
                   const dow    = i + 1
                   const allOn  = staffForm.working_days.length === 0
-                  const active = allOn || staffForm.working_days.includes(dow)
+                  const on     = allOn || staffForm.working_days.includes(dow)
                   return (
                     <button
                       key={dow}
                       type="button"
+                      aria-pressed={on}
                       onClick={() => {
-                        const current = staffForm.working_days.length === 0
-                          ? [1, 2, 3, 4, 5, 6, 7]
-                          : [...staffForm.working_days]
-                        const next = current.includes(dow)
-                          ? current.filter(d => d !== dow)
-                          : [...current, dow].sort((a, b) => a - b)
-                        setStaffForm(f => ({ ...f, working_days: next.length === 7 ? [] : next }))
+                        const cur  = staffForm.working_days.length === 0 ? [1, 2, 3, 4, 5, 6, 7] : [...staffForm.working_days]
+                        const next = cur.includes(dow) ? cur.filter(d => d !== dow) : [...cur, dow].sort((a, b) => a - b)
+                        set('working_days', next.length === 7 ? [] : next)
                       }}
-                      className={[
-                        'px-2.5 py-1.5 rounded-lg text-xs font-medium border transition-all',
-                        active
-                          ? 'bg-brand text-cream border-brand'
-                          : 'bg-charcoal/4 dark:bg-white/5 text-charcoal/30 dark:text-white/30 border-charcoal/10 dark:border-white/10',
-                      ].join(' ')}
+                      className={`h-9 min-w-[48px] px-2 rounded-xl border text-[13px] font-semibold transition-colors ${on ? 'bg-brand border-brand text-white' : 'bg-cream dark:bg-white/5 border-line dark:border-white/10 text-ink3 dark:text-white/45'}`}
                     >
                       {day}
                     </button>
                   )
                 })}
               </div>
-              {staffForm.working_days.length > 0 && staffForm.working_days.length < 7 && (
-                <p className="text-[11px] text-brand mt-1.5">
-                  Works: {staffForm.working_days.map(d => DOW_LABELS[d - 1]).join(', ')} only
-                </p>
-              )}
-            </div>
-          </div>
+            </Field>
+          </>
         )}
 
-        {/* Under-18 toggle */}
-        <div className="flex items-center justify-between rounded-xl border border-charcoal/10 dark:border-white/10 px-4 py-3 bg-charcoal/2 dark:bg-white/3">
-          <div>
-            <p className="text-sm font-medium text-charcoal dark:text-white">Under 18</p>
-            <p className="text-[11px] text-charcoal/45 dark:text-white/40 mt-0.5">
-              Applies 30-min unpaid break for shifts over 4.5h (UK law)
-            </p>
-          </div>
-          <Toggle
+        <div className="grid grid-cols-1 min-[420px]:grid-cols-2 gap-3">
+          <Field label="Start date">
+            <input type="date" value={staffForm.start_date} onChange={e => set('start_date', e.target.value)} className={INPUT} />
+          </Field>
+          <Field label="Emergency contact">
+            <input value={staffForm.emergency_contact_name} onChange={e => set('emergency_contact_name', e.target.value)} placeholder="Contact name" className={INPUT} />
+          </Field>
+          <Field label="Emergency phone">
+            <input type="tel" value={staffForm.emergency_contact_phone} onChange={e => set('emergency_contact_phone', e.target.value)} placeholder="+44 7700 900000" className={INPUT} />
+          </Field>
+        </div>
+
+        <div className="border-t border-line dark:border-white/10 -mx-4 sm:-mx-5 px-4 sm:px-4 pt-3 flex flex-col divide-y divide-line dark:divide-white/10">
+          <ToggleRow
+            title="Eligible for holiday pay"
+            hint={staffForm.employment_type === 'zero_hours' ? 'Leave accrues per hour worked' : `${entitlementDays} days a year (5.6 weeks)`}
+            checked={staffForm.holiday_pay_eligible}
+            onChange={v => set('holiday_pay_eligible', v)}
+          />
+          <ToggleRow
+            title="Under 18"
+            hint="30-min unpaid break on shifts over 4.5h"
             checked={staffForm.is_under_18}
-            onChange={v => setStaffForm(f => ({ ...f, is_under_18: v }))}
+            onChange={v => set('is_under_18', v)}
           />
         </div>
       </div>
 
-      {/* Permissions (staff role only — managers get everything) */}
-      {staffForm.role === 'staff' && (
-        <div className="border-t border-charcoal/8 dark:border-white/8 pt-4">
-          <label className="text-[11px] font-bold tracking-widest uppercase text-charcoal/50 dark:text-white/40 block mb-2">Permission Title</label>
-          <p className="text-[11px] text-charcoal/35 dark:text-white/30 mb-3">
-            Controls what this staff member can see and do in the app. Assign a title, or pick Custom to set individual
-            permissions for just this person. Titles are edited in Settings → Roles → Permission Titles.
+      {/* Access & roles */}
+      <SectionLabel>Access &amp; roles</SectionLabel>
+      <div className={`${CARD} p-4 sm:p-5 flex flex-col gap-3`}>
+        <Field label="Permission level" group>
+          <Segmented
+            options={PERMISSION_ROLES.map(r => ({ value: r, label: PERMISSION_LABELS[r] }))}
+            value={staffForm.role}
+            onChange={v => set('role', v)}
+          />
+          <p className="text-[13px] text-ink3 dark:text-white/45 mt-2">
+            {staffForm.role === 'owner'   && 'Everything a manager can do, and can’t be deactivated.'}
+            {staffForm.role === 'manager' && 'Runs the rota, settings and all staff operations.'}
+            {staffForm.role === 'staff'   && 'Tasks, cleaning, temp logs and allergens.'}
           </p>
-
-          <div className="flex gap-2 mb-4 flex-wrap">
-            {permissionTitles.map(title => (
-              <button
-                key={title.id}
-                type="button"
-                onClick={() => setStaffForm(f => ({ ...f, permission_title_id: title.id }))}
-                className={['px-3 py-1.5 rounded-full text-xs font-medium border transition-all',
-                  staffForm.permission_title_id === title.id ? 'bg-brand text-cream border-brand' : 'bg-white dark:bg-paperDark text-charcoal/50 dark:text-white/40 border-charcoal/15 dark:border-white/15 hover:border-charcoal/30 dark:hover:border-white/30',
-                ].join(' ')}
-              >
-                {title.label}
-              </button>
-            ))}
-            <button
-              type="button"
-              onClick={() => setStaffForm(f => ({ ...f, permission_title_id: null }))}
-              className={['px-3 py-1.5 rounded-full text-xs font-medium border transition-all',
-                !staffForm.permission_title_id ? 'bg-brand text-cream border-brand' : 'bg-white dark:bg-paperDark text-charcoal/50 dark:text-white/40 border-charcoal/15 dark:border-white/15 hover:border-charcoal/30 dark:hover:border-white/30',
-              ].join(' ')}
-            >
-              Custom
-            </button>
-          </div>
-
-          {staffForm.permission_title_id ? (
-            (() => {
-              const title = permissionTitles.find(t => t.id === staffForm.permission_title_id)
-              const granted = STAFF_PERMISSIONS.filter(p => title?.permissions.includes(p.id))
-              return (
-                <div className="rounded-xl border border-charcoal/10 dark:border-white/10 bg-charcoal/2 dark:bg-white/3 p-3">
-                  <p className="text-[11px] text-charcoal/45 dark:text-white/40 mb-2">
-                    "{title?.label}" grants:
-                  </p>
-                  {granted.length === 0 ? (
-                    <p className="text-xs text-charcoal/35 dark:text-white/30 italic">No permissions granted by this title.</p>
-                  ) : (
-                    <ul className="flex flex-col gap-1">
-                      {granted.map(p => (
-                        <li key={p.id} className="text-xs text-charcoal/65 dark:text-white/55">{p.label}</li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-              )
-            })()
+        </Field>
+        <Field label="Roles" group>
+          {editingId ? (
+            <StaffRolesAssignment staffId={editingId} />
           ) : (
-            /* Permission toggles by category — Custom, this person only */
-            ['Compliance', 'Operations', 'Team'].map(category => {
-              const perms = STAFF_PERMISSIONS.filter(p => p.category === category)
-              return (
-                <div key={category} className="mb-3">
-                  <p className="text-[11px] tracking-widest uppercase text-charcoal/30 dark:text-white/30 mb-1.5">{category}</p>
-                  <div className="flex flex-col gap-1.5">
-                    {perms.map(perm => (
-                      <div key={perm.id} className="flex items-center justify-between py-1.5 px-3 rounded-lg hover:bg-charcoal/3 dark:hover:bg-white/5 transition-colors">
-                        <div className="min-w-0 flex-1">
-                          <p className="text-sm text-charcoal dark:text-white">{perm.label}</p>
-                          <p className="text-[11px] text-charcoal/35 dark:text-white/30">{perm.description}</p>
-                        </div>
-                        <Toggle
-                          checked={permForm.has(perm.id)}
-                          onChange={v => {
-                            setPermForm(prev => {
-                              const next = new Set(prev)
-                              v ? next.add(perm.id) : next.delete(perm.id)
-                              return next
-                            })
-                          }}
-                          size="sm"
-                        />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )
-            })
+            <p className="text-[13px] text-ink3 dark:text-white/45">Save this person first, then pick their roles.</p>
           )}
-        </div>
+          <p className="text-[13px] text-ink3 dark:text-white/45 mt-2">Roles decide which shifts they can be auto-scheduled into, and which department Tasks, Cleaning and Checks they see.</p>
+        </Field>
+      </div>
+
+      {/* Permissions — staff only; managers and owners get everything */}
+      {staffForm.role === 'staff' && (
+        <>
+          <SectionLabel>Permissions</SectionLabel>
+          <div className={`${CARD} overflow-hidden`}>
+            <div className="p-4 sm:p-5">
+              <Field label="Title" group>
+                <div className="flex gap-2 flex-wrap">
+                  {permissionTitles.map(title => (
+                    <Chip key={title.id} active={staffForm.permission_title_id === title.id} onClick={() => set('permission_title_id', title.id)}>{title.label}</Chip>
+                  ))}
+                  <Chip active={!staffForm.permission_title_id} onClick={() => set('permission_title_id', null)}>Custom</Chip>
+                </div>
+              </Field>
+            </div>
+            <div className="border-t border-line dark:border-white/10 px-4 sm:px-4 py-3">
+              {staffForm.permission_title_id ? (() => {
+                const title   = permissionTitles.find(t => t.id === staffForm.permission_title_id)
+                const granted = STAFF_PERMISSIONS.filter(p => title?.permissions.includes(p.id))
+                return (
+                  <>
+                    <p className="text-[13px] text-ink3 dark:text-white/45 mb-2">“{title?.label}” lets them:</p>
+                    {granted.length === 0 ? (
+                      <p className="text-[13px] text-ink3 dark:text-white/45">Nothing yet — edit the title under Roles.</p>
+                    ) : (
+                      <ul className="flex flex-col gap-1.5">
+                        {granted.map(p => (
+                          <li key={p.id} className="flex items-center gap-2 text-[13px] text-ink dark:text-white">
+                            <svg className="w-4 h-4 text-good shrink-0" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg>
+                            {p.label}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                    <p className="text-[13px] text-ink3 dark:text-white/45 mt-3">Pick Custom to set permissions for just this person.</p>
+                  </>
+                )
+              })() : (
+                ['Compliance', 'Operations', 'Team'].map(category => (
+                  <div key={category} className="mb-2 last:mb-0">
+                    <p className="text-[12px] font-semibold tracking-[0.08em] uppercase text-ink4 dark:text-white/35 mb-1">{category}</p>
+                    <div className="flex flex-col divide-y divide-line dark:divide-white/10">
+                      {STAFF_PERMISSIONS.filter(p => p.category === category).map(perm => (
+                        <ToggleRow
+                          key={perm.id}
+                          title={perm.label}
+                          hint={perm.description}
+                          checked={permForm.has(perm.id)}
+                          onChange={v => setPermForm(prev => {
+                            const next = new Set(prev)
+                            v ? next.add(perm.id) : next.delete(perm.id)
+                            return next
+                          })}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </>
       )}
 
-      {/* Rota colour picker */}
-      <div className="border-t border-charcoal/8 dark:border-white/8 pt-4">
-        <label className="text-[11px] font-bold tracking-widest uppercase text-charcoal/50 dark:text-white/40 block mb-2">Rota Colour</label>
-        <div className="flex items-center gap-2 flex-wrap">
+      {/* Rota colour */}
+      <SectionLabel>Rota colour</SectionLabel>
+      <div className={`${CARD} p-4 sm:p-5`}>
+        <div className="flex items-center gap-2.5 flex-wrap">
           {STAFF_COLOUR_PALETTE.map(hex => (
             <button
               key={hex}
               type="button"
-              onClick={() => setStaffForm(f => ({ ...f, colour: f.colour === hex ? '' : hex }))}
+              aria-label={`Colour ${hex}`}
+              aria-pressed={staffForm.colour === hex}
+              onClick={() => set('colour', staffForm.colour === hex ? '' : hex)}
               style={{ backgroundColor: hex }}
-              className={[
-                'w-7 h-7 rounded-full border-2 transition-all',
-                staffForm.colour === hex ? 'border-charcoal dark:border-white scale-110 shadow-sm' : 'border-transparent opacity-80 hover:opacity-100 hover:scale-105',
-              ].join(' ')}
-              title={hex}
+              className={`w-9 h-9 rounded-full transition-transform ${staffForm.colour === hex ? 'ring-2 ring-offset-2 ring-ink dark:ring-white dark:ring-offset-paperDark' : 'hover:scale-105'}`}
             />
           ))}
-          {staffForm.colour && (
-            <button
-              type="button"
-              onClick={() => setStaffForm(f => ({ ...f, colour: '' }))}
-              className="text-[11px] text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white transition-colors border border-charcoal/15 dark:border-white/15 rounded-full px-2 py-0.5"
-            >
-              Auto
-            </button>
-          )}
+          <Chip active={!staffForm.colour} onClick={() => set('colour', '')}>Auto</Chip>
         </div>
-        <p className="text-[11px] text-charcoal/35 dark:text-white/30 mt-1">
-          Colour used to identify this person on the rota. Leave unset for automatic assignment.
-        </p>
+        <p className="text-[13px] text-ink3 dark:text-white/45 mt-3">Identifies this person on the rota.</p>
       </div>
 
-      {/* Venue assignment — only shown to multi-venue owners, edit mode only */}
+      {/* Venue access — multi-venue owners, existing staff only */}
       {editingId && venues.length > 1 && (() => {
-        const isManager = staffForm.role === 'manager' || staffForm.role === 'owner'
+        const isMgr = staffForm.role === 'manager' || staffForm.role === 'owner'
         return (
-          <div className="border-t border-charcoal/8 dark:border-white/8 pt-4">
-            <label className="text-[11px] font-bold tracking-widest uppercase text-charcoal/50 dark:text-white/40 block mb-1.5">
-              {isManager ? 'Venue Access' : 'Works At'}
-            </label>
-            <p className="text-[11px] text-charcoal/35 dark:text-white/30 mb-2">
-              {isManager
-                ? 'Controls which venues this manager sees in their All Venues overview dashboard. Also determines which venues they can be rostered at.'
-                : 'Toggling a venue on makes this staff member visible in that venue\'s rota.'}
-            </p>
-            <div className="flex gap-2 flex-wrap">
-              {venues.map(v => {
-                const isHome   = v.id === venueId
-                const isLinked = isHome || (venueLinks[editingId] ?? []).includes(v.id)
-                return (
-                  <button
-                    key={v.id}
-                    type="button"
-                    disabled={isHome || savingLinks}
-                    onClick={() => !isHome && toggleVenueLink(editingId, v.id, (venueLinks[editingId] ?? []).includes(v.id))}
-                    className={[
-                      'px-3 py-1.5 rounded-full text-xs font-medium border transition-all',
-                      isLinked ? 'bg-brand text-cream border-brand' : 'bg-white dark:bg-paperDark text-charcoal/50 dark:text-white/40 border-charcoal/15 dark:border-white/15',
-                      isHome ? 'opacity-60 cursor-default' : 'hover:border-brand/40',
-                    ].join(' ')}
-                  >
-                    {isLinked && <svg className="w-3 h-3 inline mr-1" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg>}{v.name}{isHome ? ' (home)' : ''}
-                  </button>
-                )
-              })}
+          <>
+            <SectionLabel>{isMgr ? 'Venue access' : 'Works at'}</SectionLabel>
+            <div className={`${CARD} p-4 sm:p-5`}>
+              <div className="flex gap-2 flex-wrap">
+                {venues.map(v => {
+                  const isHome   = v.id === venueId
+                  const isLinked = isHome || (venueLinks[editingId] ?? []).includes(v.id)
+                  return (
+                    <Chip
+                      key={v.id}
+                      active={isLinked}
+                      disabled={isHome || savingLinks}
+                      onClick={() => !isHome && toggleVenueLink(editingId, v.id, (venueLinks[editingId] ?? []).includes(v.id))}
+                    >
+                      {v.name}{isHome ? ' (home)' : ''}
+                    </Chip>
+                  )
+                })}
+              </div>
+              <p className="text-[13px] text-ink3 dark:text-white/45 mt-3">
+                {isMgr
+                  ? 'Which venues this manager sees in their All Venues overview, and can be rostered at.'
+                  : 'Turning a venue on shows this person on that venue’s rota.'}
+              </p>
             </div>
-          </div>
+          </>
         )
       })()}
 
-      <div className="flex gap-2 border-t border-charcoal/8 dark:border-white/8 pt-4">
-        <Button onClick={saveStaff} disabled={savingStaff} variant="primary" size="md" className="flex-1">
-          {savingStaff ? 'Saving…' : editingId ? 'Update Staff Member' : 'Add Staff Member'}
-        </Button>
-        <Button onClick={cancelEdit} variant="secondary" size="md">
-          Cancel
-        </Button>
-      </div>
+      {/* Training records */}
+      {editingId && <TrainingSection staffId={editingId} />}
 
-      {editingId && (
-        <div className="border-t border-charcoal/8 dark:border-white/8 pt-4">
-          <TrainingSection staffId={editingId} />
-        </div>
-      )}
-    </div>
-  )
-
-  return (
-    <div>
-      {/* Add staff button */}
-      <div className="flex justify-between items-center mb-4">
-        <p className="text-sm text-charcoal/40 dark:text-white/35">
-          {activeStaffCount} active staff member{activeStaffCount === 1 ? '' : 's'}
-        </p>
-        <Button onClick={openAdd} variant="primary" size="sm">
-          <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          Add Staff
-        </Button>
-      </div>
-
-      {/* Staff list */}
-      <div className="flex flex-col gap-3">
-        {staff.map((s, idx) => {
-          const initial     = (s.name || '?').charAt(0).toUpperCase()
-          const staffRoles  = staffRoleMap[s.id] ?? []
-          const isLocked = s.pin_locked_until && new Date(s.pin_locked_until) > new Date()
-
-          return (
-            <div
-              key={s.id}
-              className={[
-                'group rounded-2xl border border-charcoal/10 dark:border-white/10 bg-white dark:bg-paperDark p-4 shadow-sm hover:shadow-md hover:border-charcoal/15 dark:hover:border-white/15 transition-all',
-                !s.is_active && 'opacity-55',
-              ].filter(Boolean).join(' ')}
-            >
-              <div className="flex items-start gap-3 flex-wrap sm:flex-nowrap">
-                {/* Avatar */}
-                {s.photo_url ? (
-                  <img src={s.photo_url} alt={s.name} className="w-11 h-11 rounded-full object-cover shrink-0" loading="lazy" />
-                ) : (
-                  <div
-                    className="w-11 h-11 rounded-full flex items-center justify-center text-white font-semibold text-sm shrink-0"
-                    style={{ backgroundColor: s.colour || '#1a3c2e' }}
-                  >
-                    {initial}
+      {/* Account access */}
+      {current && (
+        <>
+          <p className="px-1 -mb-1 text-[12px] font-semibold tracking-[0.08em] uppercase text-bad dark:text-[#f19a86]">Account access</p>
+          <div className={`${CARD} overflow-hidden divide-y divide-line dark:divide-white/10`}>
+            {isLocked && (
+              <ActionRow title="PIN locked" hint="Too many wrong PIN attempts. Unlock so they can sign in again.">
+                <button
+                  type="button"
+                  onClick={async () => { await resetStaffPinLockRpc(session.token, current.id); toast(`${current.name}'s PIN unlocked`); reloadStaff() }}
+                  className="h-9 px-4 rounded-xl border border-line dark:border-white/15 bg-white dark:bg-paperDark text-[13px] font-semibold text-ink dark:text-white hover:border-ink4"
+                >
+                  Unlock PIN
+                </button>
+              </ActionRow>
+            )}
+            {current.is_active ? (
+              <>
+                {current.role === 'staff' && (
+                  <div className="px-4 sm:px-4">
+                    <ToggleRow
+                      title="Restrict account"
+                      hint="Can sign in and clock in, but can't complete checks or tasks"
+                      checked={!!current.is_restricted}
+                      onChange={() => toggleRestricted(current)}
+                    />
                   </div>
                 )}
-
-                {/* Name + role + tags */}
-                <div className="min-w-[180px] flex-1">
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    <p className="text-[15px] font-semibold text-charcoal dark:text-white leading-tight">{s.name}</p>
-                    {staffRoles.map(name => (
-                      <span key={name} className="text-[11px] font-semibold tracking-wider uppercase px-1.5 py-0.5 rounded-full bg-brand/8 text-brand">
-                        {name}
-                      </span>
-                    ))}
-                    {isLocked && (
-                      <span className="inline-flex items-center gap-1 text-[11px] font-semibold tracking-wider uppercase px-1.5 py-0.5 rounded-full bg-danger/10 text-danger">
-                        <svg className="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4">
-                          <rect x="3" y="11" width="18" height="11" rx="2" />
-                          <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                        </svg>
-                        PIN locked
-                      </span>
-                    )}
-                    {!s.is_active && (
-                      <span className="text-[11px] font-semibold tracking-wider uppercase px-1.5 py-0.5 rounded-full bg-charcoal/8 dark:bg-white/8 text-charcoal/40 dark:text-white/35">
-                        Inactive
-                      </span>
-                    )}
-                    {s.is_restricted && (
-                      <span className="inline-flex items-center gap-1 text-[11px] font-semibold tracking-wider uppercase px-1.5 py-0.5 rounded-full bg-warning/10 text-warning">
-                        <svg className="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4">
-                          <rect x="3" y="11" width="18" height="11" rx="2" />
-                          <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                        </svg>
-                        Restricted
-                      </span>
-                    )}
-                  </div>
-                  {s.start_date && (
-                    <p className="text-xs text-charcoal/45 dark:text-white/40 leading-tight mt-0.5">
-                      since {new Date(s.start_date).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })}
-                    </p>
-                  )}
-
-                  {s.is_active && (
-                    <div className="mt-2">
-                      <ContractTypeRow s={s} onSave={saveContractType} />
-                    </div>
-                  )}
-                </div>
-
-                {/* Actions */}
-                <div className="flex items-center gap-1.5 shrink-0 ml-auto sm:ml-0">
-                  {s.email && (
-                    <a
-                      href={`mailto:${s.email}`}
-                      title={s.email}
-                      className="hidden sm:grid place-items-center w-8 h-8 rounded-lg text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white hover:bg-charcoal/5 dark:hover:bg-white/5 transition-colors"
-                    >
-                      <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
-                        <rect x="2" y="4" width="20" height="16" rx="2" />
-                        <path d="m22 6-10 7L2 6" />
-                      </svg>
-                    </a>
-                  )}
-                  {s.emergency_contact_phone && (
-                    <a
-                      href={`tel:${s.emergency_contact_phone}`}
-                      title={`Emergency: ${s.emergency_contact_name || s.emergency_contact_phone}`}
-                      className="hidden sm:grid place-items-center w-8 h-8 rounded-lg text-warning/55 hover:text-warning hover:bg-warning/5 transition-colors"
-                    >
-                      <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
-                        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
-                      </svg>
-                    </a>
-                  )}
-
-                  <Button onClick={() => openEdit(s)} variant="secondary" size="sm">View</Button>
-
-                  {isLocked && (
-                    <Button
-                      onClick={async () => {
-                        await resetStaffPinLockRpc(session.token, s.id)
-                        toast(`${s.name}'s PIN unlocked`)
-                        reloadStaff()
-                      }}
-                      variant="danger" size="sm"
-                    >
-                      Unlock PIN
-                    </Button>
-                  )}
-
-                  {s.role === 'staff' && (
-                    <Button
-                      onClick={() => toggleRestricted(s)}
-                      variant={s.is_restricted ? 'success' : 'secondary'} size="sm"
-                      title="Restricted accounts can only view My Shifts, read-only"
-                    >
-                      {s.is_restricted ? 'Unrestrict' : 'Restrict account'}
-                    </Button>
-                  )}
-
-                  <Button
-                    onClick={() => toggleActive(s)}
-                    variant={s.is_active ? 'secondary' : 'success'} size="sm"
+                <ActionRow title="Deactivate" hint="Signs them out and removes them from the rota. Records are kept.">
+                  <button
+                    type="button"
+                    onClick={() => toggleActive(current)}
+                    className="h-9 px-4 rounded-xl border-[1.5px] border-bad/60 bg-white dark:bg-paperDark text-[13px] font-semibold text-bad dark:text-[#f19a86] hover:bg-badBg/50"
                   >
-                    {s.is_active ? 'Deactivate' : 'Reactivate'}
-                  </Button>
-
-                  {/* Reorder collapses to keyboard-only on hover */}
-                  <div className="hidden sm:flex flex-col opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button onClick={() => moveStaff(s.id, 'up')}   disabled={idx === 0}             className="w-5 h-3.5 flex items-center justify-center text-charcoal/30 dark:text-white/30 hover:text-charcoal dark:hover:text-white disabled:opacity-0 text-[11px]">▲</button>
-                    <button onClick={() => moveStaff(s.id, 'down')} disabled={idx === staff.length-1} className="w-5 h-3.5 flex items-center justify-center text-charcoal/30 dark:text-white/30 hover:text-charcoal dark:hover:text-white disabled:opacity-0 text-[11px]">▼</button>
-                  </div>
+                    Deactivate
+                  </button>
+                </ActionRow>
+              </>
+            ) : (
+              <>
+                <ActionRow title="Reactivate" hint="Restores sign-in and rota access.">
+                  <button
+                    type="button"
+                    onClick={() => toggleActive(current)}
+                    className="h-9 px-4 rounded-xl border border-line dark:border-white/15 bg-white dark:bg-paperDark text-[13px] font-semibold text-ink dark:text-white hover:border-ink4"
+                  >
+                    Reactivate
+                  </button>
+                </ActionRow>
+                <div className="px-4 sm:px-4 py-3 bg-badBg/70 dark:bg-bad/15">
+                  <p className="text-[15px] font-semibold text-bad dark:text-[#f19a86]">Delete staff member</p>
+                  <p className="text-[13px] text-ink2 dark:text-white/70 mt-0.5">Permanently wipe this person and their records from the venue.</p>
+                  <button
+                    type="button"
+                    onClick={() => setDeleteTarget(current)}
+                    className="mt-3 w-full h-10 rounded-xl bg-bad text-white text-[14px] font-semibold hover:bg-bad/90"
+                  >
+                    Delete staff member
+                  </button>
                 </div>
-              </div>
-            </div>
-          )
-        })}
-        {staff.length === 0 && (
-          <p className="text-sm text-charcoal/35 dark:text-white/30 italic py-6 text-center rounded-2xl border border-dashed border-charcoal/15 dark:border-white/15">
-            No staff members yet.
-          </p>
-        )}
-      </div>
+              </>
+            )}
+          </div>
+        </>
+      )}
 
-      <Modal
-        open={showForm}
-        onClose={cancelEdit}
-        title={editingId ? 'Edit Staff Member' : 'New Staff Member'}
-        size="lg"
-      >
-        {renderFormPanel()}
-      </Modal>
+      {/* Save bar */}
+      <div className="fixed left-0 right-0 bottom-[calc(56px+env(safe-area-inset-bottom,0px))] lg:bottom-0 z-40 bg-surface/95 dark:bg-[#111111]/95 backdrop-blur border-t border-line dark:border-white/10">
+        <div className="max-w-[480px] md:max-w-2xl lg:max-w-3xl mx-auto px-4 py-3 flex gap-2.5 lg:pl-[340px] lg:max-w-none">
+          <button type="button" onClick={cancelEdit} className="h-10 px-4 rounded-xl border border-line dark:border-white/15 bg-white dark:bg-paperDark text-[14px] font-semibold text-ink2 dark:text-white/80">
+            Cancel
+          </button>
+          <button type="button" onClick={saveStaff} disabled={savingStaff} className="flex-1 h-10 rounded-xl bg-brand text-white text-[14px] font-semibold hover:bg-brand/90 disabled:opacity-50">
+            {savingStaff ? 'Saving…' : isNew ? 'Add staff member' : 'Save changes'}
+          </button>
+        </div>
+      </div>
 
       <ConfirmDialog
         open={!!deleteTarget}
         title="Delete staff member?"
-        message={`Permanently delete ${deleteTarget?.name}? This will remove them from the PIN screen and delete all their associated shifts, time off and training records. This cannot be undone.`}
+        message={`Permanently delete ${deleteTarget?.name}? This removes them from the PIN screen and deletes their shifts, time off and training records. This can't be undone.`}
         confirmLabel="Delete"
         danger
         onConfirm={confirmDeleteStaff}
         onClose={() => setDeleteTarget(null)}
       />
     </div>
+  )
+}
+
+/* ── Pieces ─────────────────────────────────────────────────────────────── */
+function SectionLabel({ children }) {
+  return <p className="px-1 -mb-1 text-[12px] font-semibold tracking-[0.08em] uppercase text-ink3 dark:text-white/45">{children}</p>
+}
+
+/**
+ * Labelled field. `group` is for a set of buttons (segmented control, chips):
+ * wrapping those in a <label> would send every click to the first button and
+ * give them all the label's text as their accessible name.
+ */
+function Field({ label, group = false, children }) {
+  const Tag = group ? 'div' : 'label'
+  return (
+    <Tag className="block min-w-0" {...(group ? { role: 'group', 'aria-label': label } : {})}>
+      <span className="block text-[13px] font-semibold text-ink3 dark:text-white/50 mb-2">{label}</span>
+      {children}
+    </Tag>
+  )
+}
+
+function Tag({ tone, big = false, children }) {
+  const cls = {
+    good:  'bg-goodBg text-good dark:bg-good/20 dark:text-[#7fd1a4]',
+    warn:  'bg-warnBg text-warn dark:bg-warn/20 dark:text-[#e8b06a]',
+    bad:   'bg-badBg text-bad dark:bg-bad/25 dark:text-[#f19a86]',
+    muted: 'bg-line2 text-ink2 dark:bg-white/10 dark:text-white/70',
+  }[tone]
+  return <span className={`shrink-0 rounded-full inline-flex items-center font-semibold ${big ? 'h-7 px-3.5 text-[13px]' : 'h-6 px-2 text-xs'} ${cls}`}>{children}</span>
+}
+
+function Chip({ active, disabled, onClick, children }) {
+  return (
+    <button
+      type="button"
+      aria-pressed={active}
+      disabled={disabled}
+      onClick={onClick}
+      className={[
+        'h-9 px-4 rounded-full border text-[13px] font-semibold transition-colors',
+        active ? 'bg-brand border-brand text-white' : 'bg-white dark:bg-paperDark border-line dark:border-white/10 text-ink2 dark:text-white/75 hover:border-ink4',
+        disabled ? 'opacity-70 cursor-default' : '',
+      ].join(' ')}
+    >
+      {children}
+    </button>
+  )
+}
+
+function Segmented({ options, value, onChange }) {
+  return (
+    <div className="flex p-1 gap-1 rounded-2xl bg-cream dark:bg-white/5 border border-line dark:border-white/10" role="radiogroup">
+      {options.map(o => (
+        <button
+          key={o.value}
+          type="button"
+          role="radio"
+          aria-checked={value === o.value}
+          onClick={() => onChange(o.value)}
+          className={`flex-1 h-9 px-2 rounded-xl text-[13px] font-semibold whitespace-nowrap transition-colors ${value === o.value ? 'bg-brand text-white' : 'text-ink2 dark:text-white/70 hover:text-ink dark:hover:text-white'}`}
+        >
+          {o.label}
+        </button>
+      ))}
+    </div>
+  )
+}
+
+function ToggleRow({ title, hint, checked, onChange }) {
+  return (
+    <div className="flex items-center justify-between gap-3 py-3">
+      <div className="min-w-0">
+        <p className="text-[15px] font-semibold text-ink dark:text-white">{title}</p>
+        {hint && <p className="text-[13px] text-ink3 dark:text-white/45 mt-0.5">{hint}</p>}
+      </div>
+      <Toggle checked={checked} onChange={onChange} size="lg" />
+    </div>
+  )
+}
+
+function ActionRow({ title, hint, children }) {
+  return (
+    <div className="flex items-center justify-between gap-3 px-4 sm:px-4 py-3">
+      <div className="min-w-0">
+        <p className="text-[15px] font-semibold text-ink dark:text-white">{title}</p>
+        {hint && <p className="text-[13px] text-ink3 dark:text-white/45 mt-0.5">{hint}</p>}
+      </div>
+      <div className="shrink-0">{children}</div>
+    </div>
+  )
+}
+
+/** Photo, or initials on the person's rota colour (neutral when unset). */
+function StaffAvatar({ staff: s, size }) {
+  const dims = size === 'lg' ? 'w-16 h-16 text-[22px]' : 'w-11 h-11 text-[15px]'
+  if (s.photo_url) return <img src={s.photo_url} alt="" className={`${dims} rounded-full object-cover shrink-0`} loading="lazy" />
+  const parts = (s.name || '?').trim().split(/\s+/)
+  const letters = parts.length > 1 ? parts[0][0] + parts[parts.length - 1][0] : parts[0][0]
+  return (
+    <span
+      className={`${dims} rounded-full shrink-0 inline-flex items-center justify-center font-semibold ${s.colour ? 'text-white' : 'bg-line2 text-ink2 dark:bg-white/10 dark:text-white/80'}`}
+      style={s.colour ? { backgroundColor: s.colour } : undefined}
+    >
+      {(letters ?? '?').toUpperCase()}
+    </span>
   )
 }

@@ -253,8 +253,8 @@ export function StaffRolesAssignment({ staffId }) {
 
   if (roles.length === 0) {
     return (
-      <p className="text-xs text-charcoal/35 dark:text-white/30 italic">
-        No roles configured yet. Add roles in the Roles &amp; Skills section first.
+      <p className="text-[13px] text-ink3 dark:text-white/45">
+        No roles set up yet. Add them under the Roles tab first.
       </p>
     )
   }
@@ -268,14 +268,15 @@ export function StaffRolesAssignment({ staffId }) {
             key={role.id}
             type="button"
             onClick={() => toggleRole(role.id)}
+            aria-pressed={active}
             className={[
-              'px-3 py-1.5 rounded-lg border text-xs font-medium transition-all',
+              'h-9 px-4 rounded-full border text-[13px] font-semibold transition-colors',
               active
-                ? 'bg-brand text-cream border-brand'
-                : 'bg-white dark:bg-paperDark text-charcoal/55 dark:text-white/45 border-charcoal/15 dark:border-white/15 hover:border-charcoal/30 dark:hover:border-white/30',
+                ? 'bg-brand border-brand text-white'
+                : 'bg-white dark:bg-paperDark border-line dark:border-white/10 text-ink2 dark:text-white/75 hover:border-ink4',
             ].join(' ')}
           >
-            {active && <svg className="w-3 h-3 inline mr-1" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg>}{role.name}
+            {role.name}
           </button>
         )
       })}

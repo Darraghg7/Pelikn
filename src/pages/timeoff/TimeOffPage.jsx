@@ -234,17 +234,18 @@ export default function TimeOffPage() {
   const selectedIsFuture = selectedDay && !isBefore(selectedDay, startOfDay(new Date()))
 
   return (
-    <div className="flex flex-col gap-4 max-w-3xl">
+    <div className="flex flex-col gap-3 max-w-3xl">
       <PageHeader
         title="Time off"
         subtitle="Requests, approvals and balances"
+        compact
         backTo={isManager ? `/v/${venueSlug}/team` : null}
         backLabel="Team"
         action={(
           <button
             type="button"
             onClick={() => setShowRequest(true)}
-            className="shrink-0 self-start mt-1 inline-flex items-center h-11 px-5 rounded-xl bg-brand text-white text-[16px] font-semibold hover:bg-brand/90 transition-colors"
+            className="shrink-0 self-start mt-1 inline-flex items-center h-9 px-4 rounded-xl bg-brand text-white text-[14px] font-semibold hover:bg-brand/90 transition-colors"
           >
             Request
           </button>
@@ -263,7 +264,7 @@ export default function TimeOffPage() {
       {/* Manager: pending requests */}
       {isManager && pendingRequests.length > 0 && (
         <div className={`${CARD} overflow-hidden`}>
-          <p className="px-4 sm:px-5 py-3 bg-warnBg dark:bg-warn/20 text-[13px] font-semibold tracking-[0.08em] uppercase text-warn dark:text-[#e8b06a]">
+          <p className="px-4 sm:px-4 py-3 bg-warnBg dark:bg-warn/20 text-[12px] font-semibold tracking-[0.08em] uppercase text-warn dark:text-[#e8b06a]">
             {pendingRequests.length} pending request{pendingRequests.length !== 1 ? 's' : ''}
           </p>
           <div className="divide-y divide-line dark:divide-white/10">
@@ -285,7 +286,7 @@ export default function TimeOffPage() {
 
       {/* Calendar */}
       {error ? (
-        <p className={`${CARD} text-center text-sm text-bad py-10`}>{error}</p>
+        <p className={`${CARD} text-center text-[13px] text-bad py-10`}>{error}</p>
       ) : (
         <CalendarView
           month={month}
@@ -300,12 +301,12 @@ export default function TimeOffPage() {
       {/* Who's off on the selected day */}
       {selectedDay && (
         <div className={`${CARD} overflow-hidden`}>
-          <div className="flex items-center justify-between gap-2 px-4 sm:px-5 py-3 bg-cream dark:bg-white/5 border-b border-line dark:border-white/10">
-            <p className="text-[17px] font-semibold text-ink dark:text-white">{format(selectedDay, 'EEE d MMM')}</p>
-            <span className="font-mono text-sm text-ink3 dark:text-white/45">{dayRequests.length} off</span>
+          <div className="flex items-center justify-between gap-2 px-4 sm:px-4 py-3 bg-cream dark:bg-white/5 border-b border-line dark:border-white/10">
+            <p className="text-[15px] font-semibold text-ink dark:text-white">{format(selectedDay, 'EEE d MMM')}</p>
+            <span className="font-mono text-[13px] text-ink3 dark:text-white/45">{dayRequests.length} off</span>
           </div>
           {dayRequests.length === 0 ? (
-            <p className="px-4 sm:px-5 py-4 text-[15px] text-ink3 dark:text-white/45">Nobody is off.</p>
+            <p className="px-4 sm:px-4 py-3 text-[13px] text-ink3 dark:text-white/45">Nobody is off.</p>
           ) : (
             <div className="divide-y divide-line dark:divide-white/10">
               {dayRequests.map(r => {
@@ -315,12 +316,12 @@ export default function TimeOffPage() {
                   <Row
                     key={r.id}
                     {...(actionable ? { type: 'button', onClick: () => setEditing(r) } : {})}
-                    className={`w-full flex items-center gap-3 px-4 sm:px-5 py-3 text-left ${actionable ? 'hover:bg-cream/60 dark:hover:bg-white/5' : ''}`}
+                    className={`w-full flex items-center gap-3 px-4 sm:px-4 py-3 text-left ${actionable ? 'hover:bg-cream/60 dark:hover:bg-white/5' : ''}`}
                   >
-                    <span className="shrink-0 w-11 h-11 rounded-full bg-brand-tint dark:bg-white/10 inline-flex items-center justify-center font-mono text-sm font-bold text-ink2 dark:text-white/80">
+                    <span className="shrink-0 w-9 h-9 rounded-full bg-brand-tint dark:bg-white/10 inline-flex items-center justify-center font-mono text-[13px] font-bold text-ink2 dark:text-white/80">
                       {initials(r.staff?.name)}
                     </span>
-                    <span className="flex-1 min-w-0 text-[17px] truncate">
+                    <span className="flex-1 min-w-0 text-[15px] truncate">
                       <span className="font-semibold text-ink dark:text-white">{r.staff?.name ?? 'Someone'}</span>
                       <span className="text-ink3 dark:text-white/45"> · {leaveName(r.leave_type)}</span>
                     </span>
@@ -331,7 +332,7 @@ export default function TimeOffPage() {
             </div>
           )}
           {selectedIsFuture && (
-            <div className="px-4 sm:px-5 py-3 border-t border-line dark:border-white/10">
+            <div className="px-4 sm:px-4 py-3 border-t border-line dark:border-white/10">
               <button
                 type="button"
                 onClick={() => {
@@ -339,7 +340,7 @@ export default function TimeOffPage() {
                   setForm(f => ({ ...f, startDate: dateStr, endDate: dateStr }))
                   setShowRequest(true)
                 }}
-                className="text-[15px] font-semibold text-brand dark:text-white hover:underline underline-offset-2"
+                className="text-[13px] font-semibold text-brand dark:text-white hover:underline underline-offset-2"
               >
                 + Request this day off
               </button>
@@ -355,9 +356,9 @@ export default function TimeOffPage() {
             type="button"
             onClick={() => setShowTeamBalances(v => !v)}
             aria-expanded={showTeamBalances}
-            className="w-full flex items-center justify-between px-4 sm:px-5 py-4 text-left"
+            className="w-full flex items-center justify-between px-4 sm:px-4 py-3 text-left"
           >
-            <span className="text-[13px] font-semibold tracking-[0.08em] uppercase text-ink3 dark:text-white/45">Team annual leave · {currentYear}</span>
+            <span className="text-[12px] font-semibold tracking-[0.08em] uppercase text-ink3 dark:text-white/45">Team annual leave · {currentYear}</span>
             <svg className={`w-5 h-5 text-ink3 dark:text-white/45 transition-transform ${showTeamBalances ? 'rotate-180' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
           </button>
           {showTeamBalances && (
@@ -365,7 +366,7 @@ export default function TimeOffPage() {
               {balancesLoading ? (
                 <SkeletonList rows={3} />
               ) : teamBalances.length === 0 ? (
-                <p className="text-[15px] text-ink3 dark:text-white/45 px-4 sm:px-5 py-4">No active staff.</p>
+                <p className="text-[13px] text-ink3 dark:text-white/45 px-4 sm:px-4 py-3">No active staff.</p>
               ) : (
                 <div className="divide-y divide-line dark:divide-white/10">
                   {teamBalances.map(b => (
@@ -386,7 +387,7 @@ export default function TimeOffPage() {
       {/* My requests */}
       {myRequests.length > 0 && (
         <>
-          <p className="px-1 -mb-1 text-[13px] font-semibold tracking-[0.08em] uppercase text-ink3 dark:text-white/45">My requests</p>
+          <p className="px-1 -mb-1 text-[12px] font-semibold tracking-[0.08em] uppercase text-ink3 dark:text-white/45">My requests</p>
           <div className={`${CARD} divide-y divide-line dark:divide-white/10 overflow-hidden`}>
             {myRequests.map(r => {
               const actionable = canActOn(r)
@@ -395,18 +396,18 @@ export default function TimeOffPage() {
                 <Row
                   key={r.id}
                   {...(actionable ? { type: 'button', onClick: () => setEditing(r) } : {})}
-                  className={`w-full block px-4 sm:px-5 py-3.5 text-left ${actionable ? 'hover:bg-cream/60 dark:hover:bg-white/5' : ''}`}
+                  className={`w-full block px-4 sm:px-4 py-2.5 text-left ${actionable ? 'hover:bg-cream/60 dark:hover:bg-white/5' : ''}`}
                 >
                   <span className="flex items-start justify-between gap-3">
                     <span className="min-w-0">
-                      <span className="block text-[16px] font-semibold text-ink dark:text-white">{leaveName(r.leave_type)}</span>
-                      <span className="block text-[15px] text-ink3 dark:text-white/45 mt-0.5">{dateRange(r)}</span>
+                      <span className="block text-[14px] font-semibold text-ink dark:text-white">{leaveName(r.leave_type)}</span>
+                      <span className="block text-[13px] text-ink3 dark:text-white/45 mt-0.5">{dateRange(r)}</span>
                     </span>
                     <StatusPill status={r.status} />
                   </span>
-                  {r.reason && <span className="block text-sm text-ink2 dark:text-white/70 mt-1.5">{r.reason}</span>}
-                  {r.manager_note && <span className="block text-sm text-ink3 dark:text-white/50 mt-1">Manager: {r.manager_note}</span>}
-                  {actionable && <span className="block text-sm font-semibold text-brand dark:text-white mt-1.5">Edit or withdraw</span>}
+                  {r.reason && <span className="block text-[13px] text-ink2 dark:text-white/70 mt-1.5">{r.reason}</span>}
+                  {r.manager_note && <span className="block text-[13px] text-ink3 dark:text-white/50 mt-1">Manager: {r.manager_note}</span>}
+                  {actionable && <span className="block text-[13px] font-semibold text-brand dark:text-white mt-1.5">Edit or withdraw</span>}
                 </Row>
               )
             })}
@@ -416,7 +417,7 @@ export default function TimeOffPage() {
 
       {/* Request modal */}
       <Modal open={showRequest} onClose={() => setShowRequest(false)} title="Request time off">
-        <div className="flex flex-col gap-5">
+        <div className="flex flex-col gap-4">
           <div>
             <span className={FIELD_LABEL}>Leave type</span>
             <div className="flex gap-2 flex-wrap">
@@ -427,7 +428,7 @@ export default function TimeOffPage() {
                   aria-pressed={form.leaveType === t.value}
                   onClick={() => setForm(f => ({ ...f, leaveType: t.value }))}
                   className={[
-                    'h-10 px-4 rounded-full border text-[15px] transition-colors',
+                    'h-9 px-4 rounded-full border text-[13px] transition-colors',
                     form.leaveType === t.value
                       ? 'bg-brand-tint border-brand/40 text-brand font-semibold dark:bg-white/10 dark:text-white dark:border-white/30'
                       : 'bg-white dark:bg-paperDark border-line dark:border-white/10 text-ink2 dark:text-white/75 hover:border-ink4',
@@ -443,10 +444,10 @@ export default function TimeOffPage() {
           {form.leaveType === 'annual' && ownBalance && !ownBalance.isZeroHours && ownBalance.entitlement != null && (
             <div className="rounded-xl bg-cream dark:bg-white/5 px-4 py-3 flex items-center justify-between">
               <div>
-                <p className="text-[15px] font-semibold text-ink dark:text-white">{currentYear} annual leave</p>
-                <p className="text-sm text-ink3 dark:text-white/45 mt-0.5">{ownBalance.used} of {ownBalance.entitlement} days used</p>
+                <p className="text-[13px] font-semibold text-ink dark:text-white">{currentYear} annual leave</p>
+                <p className="text-[13px] text-ink3 dark:text-white/45 mt-0.5">{ownBalance.used} of {ownBalance.entitlement} days used</p>
               </div>
-              <p className={`font-mono text-[17px] font-semibold ${ownBalance.remaining === 0 ? 'text-bad' : ownBalance.remaining <= 5 ? 'text-warn' : 'text-good'}`}>
+              <p className={`font-mono text-[15px] font-semibold ${ownBalance.remaining === 0 ? 'text-bad' : ownBalance.remaining <= 5 ? 'text-warn' : 'text-good'}`}>
                 {fmtDays(ownBalance.remaining)} left
               </p>
             </div>
@@ -454,13 +455,13 @@ export default function TimeOffPage() {
           {form.leaveType === 'annual' && ownBalance?.isZeroHours && (
             <div className="rounded-xl bg-cream dark:bg-white/5 px-4 py-3 flex items-center justify-between">
               <div>
-                <p className="text-[15px] font-semibold text-ink dark:text-white">{currentYear} holiday accrual</p>
-                <p className="text-sm text-ink3 dark:text-white/45 mt-0.5">
+                <p className="text-[13px] font-semibold text-ink dark:text-white">{currentYear} holiday accrual</p>
+                <p className="text-[13px] text-ink3 dark:text-white/45 mt-0.5">
                   {ownUsedHours != null ? `~${ownUsedHours} h used · ` : ''}
                   {ownAccrued != null ? `${ownAccrued} h accrued (12.07%)` : 'Calculating…'}
                 </p>
               </div>
-              <p className={`font-mono text-[17px] font-semibold ${ownRemainingHours === 0 ? 'text-bad' : ownRemainingHours != null && ownRemainingHours <= 4 ? 'text-warn' : 'text-good'}`}>
+              <p className={`font-mono text-[15px] font-semibold ${ownRemainingHours === 0 ? 'text-bad' : ownRemainingHours != null && ownRemainingHours <= 4 ? 'text-warn' : 'text-good'}`}>
                 {ownRemainingHours != null ? `${ownRemainingHours} h` : '—'}
               </p>
             </div>
@@ -491,8 +492,8 @@ export default function TimeOffPage() {
           {/* Staffing limit warning — informational only, submit is never blocked */}
           {overStaffOffLimit && (
             <div className="rounded-xl bg-badBg dark:bg-bad/20 px-4 py-3">
-              <p className="text-[15px] font-semibold text-bad dark:text-[#f19a86]">Maximum number of staff already off</p>
-              <p className="text-sm text-ink2 dark:text-white/70 mt-1">
+              <p className="text-[13px] font-semibold text-bad dark:text-[#f19a86]">Maximum number of staff already off</p>
+              <p className="text-[13px] text-ink2 dark:text-white/70 mt-1">
                 {staffAlreadyOff} staff {staffAlreadyOff === 1 ? 'is' : 'are'} already off on at least one of these days (limit: {maxStaffOffCount}). You can still submit if this has been pre-cleared with your manager.
               </p>
             </div>
@@ -500,7 +501,7 @@ export default function TimeOffPage() {
 
           {/* Days / hours preview for annual leave */}
           {form.leaveType === 'annual' && previewDays != null && previewDays > 0 && !ownBalance?.isZeroHours && (
-            <p className="text-sm text-ink2 dark:text-white/70 -mt-2">
+            <p className="text-[13px] text-ink2 dark:text-white/70 -mt-2">
               This request covers <span className="font-semibold text-ink dark:text-white">{fmtDays(previewDays)}</span> of your working days.
               {ownBalance && ownBalance.remaining != null && (
                 <span className={(ownBalance.remaining - previewDays) < 0 ? ' text-bad font-semibold' : ''}>
@@ -519,7 +520,7 @@ export default function TimeOffPage() {
             const unpaidHours = Math.round(Math.max(0, reqHours - remaining) * 10) / 10
             const afterHours = Math.round(Math.max(0, remaining - reqHours) * 10) / 10
             return (
-              <div className={`-mt-2 rounded-xl px-4 py-3 text-sm ${unpaidHours > 0 ? 'bg-warnBg dark:bg-warn/20' : 'bg-cream dark:bg-white/5'}`}>
+              <div className={`-mt-2 rounded-xl px-4 py-3 text-[13px] ${unpaidHours > 0 ? 'bg-warnBg dark:bg-warn/20' : 'bg-cream dark:bg-white/5'}`}>
                 <p className="text-ink2 dark:text-white/70">
                   This request covers <span className="font-semibold text-ink dark:text-white">{fmtDays(previewDays)}</span> (~{reqHours} h based on your average shift length).
                 </p>
@@ -541,7 +542,7 @@ export default function TimeOffPage() {
               onChange={e => setForm(f => ({ ...f, reason: e.target.value }))}
               rows={2}
               placeholder="e.g. Holiday, family event, appointment"
-              className="w-full px-4 py-3 rounded-xl border border-line dark:border-white/10 bg-cream dark:bg-white/5 text-[15px] text-ink dark:text-white placeholder:text-ink4 dark:placeholder:text-white/30 resize-none focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand/40"
+              className="w-full px-4 py-3 rounded-xl border border-line dark:border-white/10 bg-cream dark:bg-white/5 text-[13px] text-ink dark:text-white placeholder:text-ink4 dark:placeholder:text-white/30 resize-none focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand/40"
             />
           </label>
 
@@ -549,7 +550,7 @@ export default function TimeOffPage() {
             type="button"
             onClick={submitRequest}
             disabled={saving || !form.startDate || !form.endDate}
-            className="w-full h-[52px] rounded-2xl bg-brand text-white text-[17px] font-semibold transition-colors hover:bg-brand/90 disabled:bg-ink3/70 dark:disabled:bg-white/15 disabled:cursor-not-allowed"
+            className="w-full h-11 rounded-2xl bg-brand text-white text-[15px] font-semibold transition-colors hover:bg-brand/90 disabled:bg-ink3/70 dark:disabled:bg-white/15 disabled:cursor-not-allowed"
           >
             {saving ? 'Submitting…' : 'Submit request'}
           </button>
@@ -598,7 +599,7 @@ const STATUS_PILL = {
 
 function StatusPill({ status }) {
   const pill = STATUS_PILL[status] ?? STATUS_PILL.pending
-  return <span className={`shrink-0 h-8 px-3.5 rounded-full inline-flex items-center text-sm font-semibold ${pill.cls}`}>{pill.label}</span>
+  return <span className={`shrink-0 h-7 px-3.5 rounded-full inline-flex items-center text-[13px] font-semibold ${pill.cls}`}>{pill.label}</span>
 }
 
 // "12 Dec 2026" for one day, "12–14 Dec 2026" within a month, otherwise "30 Dec – 2 Jan 2027"
@@ -613,13 +614,13 @@ function dateRange(r) {
 function OwnBalanceCard({ balance, year, accrued, remainingHours }) {
   if (balance.isZeroHours) {
     return (
-      <div className={`${CARD} px-4 sm:px-5 py-4`}>
+      <div className={`${CARD} px-4 sm:px-4 py-3`}>
         <div className="flex items-baseline justify-between gap-3 flex-wrap">
           <p className="flex items-baseline gap-2">
-            <span className="font-mono text-[36px] leading-none font-semibold text-good dark:text-[#7fd1a4]">{remainingHours ?? accrued ?? '—'}</span>
-            <span className="text-[17px] font-semibold text-ink dark:text-white">hrs left</span>
+            <span className="font-mono text-[28px] leading-none font-semibold text-good dark:text-[#7fd1a4]">{remainingHours ?? accrued ?? '—'}</span>
+            <span className="text-[15px] font-semibold text-ink dark:text-white">hrs left</span>
           </p>
-          <p className="text-sm text-ink3 dark:text-white/45">{accrued != null ? `${accrued} hrs accrued` : 'Calculating…'} · {year} holiday</p>
+          <p className="text-[13px] text-ink3 dark:text-white/45">{accrued != null ? `${accrued} hrs accrued` : 'Calculating…'} · {year} holiday</p>
         </div>
       </div>
     )
@@ -628,13 +629,13 @@ function OwnBalanceCard({ balance, year, accrued, remainingHours }) {
   const pct  = balance.entitlement ? Math.min(100, (balance.used / balance.entitlement) * 100) : 0
   const tone = balance.remaining === 0 ? 'text-bad' : balance.remaining <= 5 ? 'text-warn' : 'text-good dark:text-[#7fd1a4]'
   return (
-    <div className={`${CARD} px-4 sm:px-5 py-4`}>
+    <div className={`${CARD} px-4 sm:px-4 py-3`}>
       <div className="flex items-baseline justify-between gap-3 flex-wrap">
         <p className="flex items-baseline gap-2">
-          <span className={`font-mono text-[36px] leading-none font-semibold ${tone}`}>{balance.remaining}</span>
-          <span className="text-[17px] font-semibold text-ink dark:text-white">{balance.remaining === 1 ? 'day' : 'days'} left</span>
+          <span className={`font-mono text-[28px] leading-none font-semibold ${tone}`}>{balance.remaining}</span>
+          <span className="text-[15px] font-semibold text-ink dark:text-white">{balance.remaining === 1 ? 'day' : 'days'} left</span>
         </p>
-        <p className="text-sm text-ink3 dark:text-white/45">{balance.used} of {balance.entitlement} used · {year} annual leave</p>
+        <p className="text-[13px] text-ink3 dark:text-white/45">{balance.used} of {balance.entitlement} used · {year} annual leave</p>
       </div>
       <div className="mt-3 h-2 rounded-full bg-line2 dark:bg-white/10 overflow-hidden">
         <div className="h-full rounded-full bg-good" style={{ width: `${pct}%` }} />
@@ -652,17 +653,17 @@ function PendingRequest({ request: r, balance, note, onNote, busy, onApprove, on
     : null
 
   return (
-    <div className="px-4 sm:px-5 py-4 flex flex-col gap-3">
+    <div className="px-4 sm:px-4 py-3 flex flex-col gap-3">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-[19px] font-semibold text-ink dark:text-white">{r.staff?.name ?? 'Someone'}</p>
-          <p className="text-[15px] text-ink3 dark:text-white/45 mt-0.5">
+          <p className="text-[16px] font-semibold text-ink dark:text-white">{r.staff?.name ?? 'Someone'}</p>
+          <p className="text-[13px] text-ink3 dark:text-white/45 mt-0.5">
             {leaveName(r.leave_type)} · <span className="font-mono text-ink2 dark:text-white/70">{dateRange(r)}</span>
             {daysRequested != null && ` · ${fmtDays(daysRequested)}`}
           </p>
-          {r.reason && <p className="text-sm text-ink2 dark:text-white/70 mt-1">“{r.reason}”</p>}
+          {r.reason && <p className="text-[13px] text-ink2 dark:text-white/70 mt-1">“{r.reason}”</p>}
           {afterApproval != null && (
-            <p className={`text-sm mt-1 ${afterApproval < 0 ? 'text-bad font-semibold' : 'text-ink3 dark:text-white/45'}`}>
+            <p className={`text-[13px] mt-1 ${afterApproval < 0 ? 'text-bad font-semibold' : 'text-ink3 dark:text-white/45'}`}>
               {afterApproval < 0
                 ? `Exceeds their entitlement by ${fmtDays(Math.abs(afterApproval))}`
                 : `${fmtDays(afterApproval)} left after approval (currently ${fmtDays(balance.remaining)})`}
@@ -684,7 +685,7 @@ function PendingRequest({ request: r, balance, note, onNote, busy, onApprove, on
           type="button"
           onClick={onReject}
           disabled={busy}
-          className="h-12 rounded-xl border border-line dark:border-white/15 bg-white dark:bg-paperDark text-[16px] font-semibold text-bad dark:text-[#f19a86] hover:border-bad/40 transition-colors disabled:opacity-50"
+          className="h-10 rounded-xl border border-line dark:border-white/15 bg-white dark:bg-paperDark text-[14px] font-semibold text-bad dark:text-[#f19a86] hover:border-bad/40 transition-colors disabled:opacity-50"
         >
           Reject
         </button>
@@ -692,7 +693,7 @@ function PendingRequest({ request: r, balance, note, onNote, busy, onApprove, on
           type="button"
           onClick={onApprove}
           disabled={busy}
-          className="h-12 rounded-xl bg-brand text-white text-[16px] font-semibold hover:bg-brand/90 transition-colors disabled:opacity-50"
+          className="h-10 rounded-xl bg-brand text-white text-[14px] font-semibold hover:bg-brand/90 transition-colors disabled:opacity-50"
         >
           Approve
         </button>
@@ -709,24 +710,24 @@ function TeamBalanceRow({ balance: b, accrued, onLogPast }) {
   const tone = b.remaining === 0 ? 'text-bad' : b.remaining != null && b.remaining <= 5 ? 'text-warn' : 'text-good dark:text-[#7fd1a4]'
 
   return (
-    <div className="flex items-center gap-3 px-4 sm:px-5 py-3.5">
+    <div className="flex items-center gap-3 px-4 sm:px-4 py-2.5">
       <div className="flex-1 min-w-0">
-        <p className="text-[17px] font-semibold text-ink dark:text-white truncate">{b.name}</p>
-        {subline && <p className="text-sm text-ink3 dark:text-white/45 mt-0.5">{subline}</p>}
+        <p className="text-[15px] font-semibold text-ink dark:text-white truncate">{b.name}</p>
+        {subline && <p className="text-[13px] text-ink3 dark:text-white/45 mt-0.5">{subline}</p>}
       </div>
       <div className="shrink-0 text-right">
         {b.isZeroHours ? (
           <>
-            <p className="font-mono text-[17px] font-semibold text-ink dark:text-white">{accrued != null ? `${accrued} hrs` : '…'}</p>
-            <p className="text-sm text-ink3 dark:text-white/45">accrued</p>
+            <p className="font-mono text-[15px] font-semibold text-ink dark:text-white">{accrued != null ? `${accrued} hrs` : '…'}</p>
+            <p className="text-[13px] text-ink3 dark:text-white/45">accrued</p>
           </>
         ) : b.entitlement != null ? (
           <>
-            <p className={`font-mono text-[17px] font-semibold ${tone}`}>{fmtDays(b.remaining)}</p>
-            <p className="text-sm text-ink3 dark:text-white/45">{b.used}/{b.entitlement} used</p>
+            <p className={`font-mono text-[15px] font-semibold ${tone}`}>{fmtDays(b.remaining)}</p>
+            <p className="text-[13px] text-ink3 dark:text-white/45">{b.used}/{b.entitlement} used</p>
           </>
         ) : (
-          <p className="text-sm text-ink3 dark:text-white/45">No entitlement</p>
+          <p className="text-[13px] text-ink3 dark:text-white/45">No entitlement</p>
         )}
       </div>
       <button
@@ -734,7 +735,7 @@ function TeamBalanceRow({ balance: b, accrued, onLogPast }) {
         onClick={onLogPast}
         aria-label={`Log past leave for ${b.name}`}
         title="Log past leave"
-        className="shrink-0 w-11 h-11 rounded-xl border border-line dark:border-white/15 inline-flex items-center justify-center text-ink2 dark:text-white/75 hover:border-ink4"
+        className="shrink-0 w-9 h-9 rounded-xl border border-line dark:border-white/15 inline-flex items-center justify-center text-ink2 dark:text-white/75 hover:border-ink4"
       >
         <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
       </button>

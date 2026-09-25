@@ -51,6 +51,8 @@ function useLiveTime() {
   return now
 }
 
+const GLANCE_TILES = ['on_shift', 'opening_checks', 'fridge_checks', 'critical_actions']
+
 // ── Stat tile (4 across, with sub-label) ───────────────────────────────────
 // Short names so four fit across a phone; the picker keeps the full labels.
 const TILE_LABELS = {
@@ -84,18 +86,18 @@ function MobileStatTile({ item, summary, vp }) {
   const tagProps = item.route ? { to: vp(item.route) } : {}
 
   return (
-    <Tag {...tagProps} className="min-w-0 bg-white dark:bg-paperDark border border-line dark:border-white/10 rounded-2xl px-2.5 min-[420px]:px-3 pt-3 pb-3.5 flex flex-col gap-1.5 no-underline active:bg-cream dark:active:bg-white/5 transition-colors">
+    <Tag {...tagProps} className="min-w-0 bg-white dark:bg-paperDark border border-line dark:border-white/10 rounded-2xl px-2.5 min-[420px]:px-3 pt-3 pb-3 flex flex-col gap-1.5 no-underline active:bg-cream dark:active:bg-white/5 transition-colors">
       <span className="flex items-start gap-1.5 min-w-0 min-h-[30px] min-[420px]:min-h-0">
         <span className={`w-2 h-2 mt-1 rounded-full shrink-0 ${isDanger ? 'bg-bad' : 'bg-good'}`} />
-        <span className="text-[12px] min-[420px]:text-[14px] text-ink2 dark:text-white/70 leading-tight break-words">
+        <span className="text-[12px] min-[420px]:text-[13px] text-ink2 dark:text-white/70 leading-tight break-words">
           {TILE_LABELS[item.id] ?? item.metricLabel}
         </span>
       </span>
-      <span className={`font-mono text-[30px] font-semibold leading-none ${isDanger ? 'text-bad dark:text-[#f19a86]' : 'text-ink dark:text-white'}`}>
+      <span className={`font-mono text-[24px] font-semibold leading-none ${isDanger ? 'text-bad dark:text-[#f19a86]' : 'text-ink dark:text-white'}`}>
         {value}
       </span>
       {sub && (
-        <span className={`text-[12px] min-[420px]:text-[14px] leading-tight ${isDanger ? 'text-bad dark:text-[#f19a86]' : 'text-ink3 dark:text-white/45'}`}>
+        <span className={`text-[12px] min-[420px]:text-[13px] leading-tight ${isDanger ? 'text-bad dark:text-[#f19a86]' : 'text-ink3 dark:text-white/45'}`}>
           {sub}
         </span>
       )}
@@ -106,7 +108,7 @@ function MobileStatTile({ item, summary, vp }) {
 // ── Section label (floating, mono-uppercase) ───────────────────────────────
 function SectionLabel({ children }) {
   return (
-    <span className="text-[13px] font-semibold tracking-[0.08em] uppercase text-ink3 dark:text-white/45 block mb-2 px-1">
+    <span className="text-[12px] font-semibold tracking-[0.08em] uppercase text-ink3 dark:text-white/45 block mb-2 px-1">
       {children}
     </span>
   )
@@ -129,22 +131,22 @@ function AttentionCard({ actions, editMode }) {
       ].join(' ')}
     >
       {isEmpty ? (
-        <div className="flex items-center gap-3.5 px-4 sm:px-5 py-4">
-          <div className="w-11 h-11 rounded-xl bg-goodBg dark:bg-good/20 flex items-center justify-center shrink-0">
+        <div className="flex items-center gap-3.5 px-4 sm:px-4 py-3">
+          <div className="w-9 h-9 rounded-xl bg-goodBg dark:bg-good/20 flex items-center justify-center shrink-0">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-good dark:text-[#7fd1a4]">
               <polyline points="20 6 9 17 4 12"/>
             </svg>
           </div>
           <div>
-            <div className="text-[17px] font-semibold text-ink dark:text-white">All clear</div>
-            <div className="text-[15px] text-ink3 dark:text-white/45 mt-0.5">Nothing needs your attention right now.</div>
+            <div className="text-[15px] font-semibold text-ink dark:text-white">All clear</div>
+            <div className="text-[13px] text-ink3 dark:text-white/45 mt-0.5">Nothing needs your attention right now.</div>
           </div>
         </div>
       ) : (
         <div>
-          <div className="flex items-center gap-2.5 px-4 sm:px-5 py-3.5">
-            <span className="text-[13px] font-semibold tracking-[0.08em] uppercase text-ink3 dark:text-white/45">Needs you</span>
-            <span className="min-w-[24px] h-6 px-1.5 rounded-full bg-bad text-white text-[13px] font-bold inline-flex items-center justify-center">
+          <div className="flex items-center gap-2.5 px-4 sm:px-4 py-2.5">
+            <span className="text-[12px] font-semibold tracking-[0.08em] uppercase text-ink3 dark:text-white/45">Needs you</span>
+            <span className="min-w-[24px] h-6 px-1.5 rounded-full bg-bad text-white text-[12px] font-bold inline-flex items-center justify-center">
               {actions.length}
             </span>
           </div>
@@ -156,12 +158,12 @@ function AttentionCard({ actions, editMode }) {
                 <Row
                   key={a.to ?? a.label}
                   {...(a.to ? { to: a.to } : {})}
-                  className="flex items-center gap-3.5 px-4 sm:px-5 py-3.5 no-underline active:bg-cream dark:active:bg-white/5 transition-colors"
+                  className="flex items-center gap-3.5 px-4 sm:px-4 py-2.5 no-underline active:bg-cream dark:active:bg-white/5 transition-colors"
                 >
                   <span className={`shrink-0 w-2.5 h-2.5 rounded-full ${isOverdue ? 'bg-bad' : 'bg-warn'}`} />
                   <span className="flex-1 min-w-0">
-                    <span className="block text-[17px] font-semibold text-ink dark:text-white">{a.label}</span>
-                    {a.detail && <span className="block text-[15px] text-ink3 dark:text-white/45 mt-0.5">{a.detail}</span>}
+                    <span className="block text-[15px] font-semibold text-ink dark:text-white">{a.label}</span>
+                    {a.detail && <span className="block text-[13px] text-ink3 dark:text-white/45 mt-0.5">{a.detail}</span>}
                   </span>
                   {a.to && (
                     <svg className="shrink-0 w-4 h-4 text-ink4 dark:text-white/35" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
@@ -198,7 +200,7 @@ function DisciplinaryStrip({ alerts, editMode, venueSlug }) {
           to={`/v/${venueSlug}/timesheet`}
           className="flex items-center gap-2 bg-white/10 rounded-[10px] p-[9px_12px] no-underline"
         >
-          <span className="flex-1 text-[13px] text-white font-medium leading-[1.35]">
+          <span className="flex-1 text-[12px] text-white font-medium leading-[1.35]">
             {a.staff_name ?? 'Staff member'} —{' '}
             {a.offence_type === 'late_clock_in' ? 'late clock-in' : 'break overrun'},{' '}
             strike {a.strike_number}
@@ -343,34 +345,34 @@ function MobileClockCard({ staffId }) {
           : '—' },
     { label: 'Last in', value: clockInAt ? format(clockInAt, 'EEE HH:mm') : '—' },
   ]
-  const primaryBtn = `w-full h-14 rounded-2xl bg-white text-brand text-[17px] font-semibold border-0 cursor-pointer ${submitting ? 'opacity-50 cursor-not-allowed' : ''}`
+  const primaryBtn = `w-full h-11 rounded-2xl bg-white text-brand text-[15px] font-semibold border-0 cursor-pointer ${submitting ? 'opacity-50 cursor-not-allowed' : ''}`
 
   return (
     <div>
       <StaffAlertModal {...alertModalProps} />
       <ClosingChecklistGateModal {...closingGuard.modalProps} />
-      <div className="bg-brand rounded-[20px] px-4 sm:px-5 pt-4 pb-5">
+      <div className="bg-brand rounded-2xl px-4 sm:px-4 pt-3 pb-4">
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-baseline gap-3 min-w-0">
-            <span className="font-mono text-[38px] min-[420px]:text-[44px] font-semibold tracking-tight text-white leading-none">
+            <span className="font-mono text-[30px] min-[420px]:text-[34px] font-semibold tracking-tight text-white leading-none">
               {format(now, 'HH:mm')}
             </span>
-            <span className="text-[12px] min-[420px]:text-[13px] font-semibold tracking-[0.06em] uppercase text-white/60 whitespace-nowrap">My clock</span>
+            <span className="text-[12px] min-[420px]:text-[12px] font-semibold tracking-[0.06em] uppercase text-white/60 whitespace-nowrap">My clock</span>
           </div>
-          <span className="shrink-0 flex items-center gap-2 rounded-full h-9 px-3" style={{ background: badgeBg }}>
+          <span className="shrink-0 flex items-center gap-2 rounded-full h-8 px-3" style={{ background: badgeBg }}>
             <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: badgeDot }} />
-            <span className="text-[15px] font-semibold text-white whitespace-nowrap">{badgeLabel}</span>
+            <span className="text-[13px] font-semibold text-white whitespace-nowrap">{badgeLabel}</span>
           </span>
         </div>
         {(onShift || onBreak) && clockInAt && (
-          <p className="text-sm text-white/60 mt-1.5">Since {format(clockInAt, 'HH:mm')}</p>
+          <p className="text-[13px] text-white/60 mt-1.5">Since {format(clockInAt, 'HH:mm')}</p>
         )}
 
         <div className="grid grid-cols-3 gap-3 mt-4 mb-4">
           {stats.map(({ label, value }) => (
             <div key={label} className="min-w-0">
-              <div className="text-[15px] text-white/60 mb-1">{label}</div>
-              <div className="font-mono text-[18px] font-semibold text-white truncate">{value}</div>
+              <div className="text-[13px] text-white/60 mb-1">{label}</div>
+              <div className="font-mono text-[15px] font-semibold text-white truncate">{value}</div>
             </div>
           ))}
         </div>
@@ -378,7 +380,7 @@ function MobileClockCard({ staffId }) {
         {loading ? null : isError ? (
           <button
             onClick={reload}
-            className="w-full h-14 rounded-2xl bg-bad/20 text-white text-[16px] font-semibold border border-bad/50 cursor-pointer"
+            className="w-full h-11 rounded-2xl bg-bad/20 text-white text-[14px] font-semibold border border-bad/50 cursor-pointer"
           >
             Couldn't check status — retry
           </button>
@@ -391,7 +393,7 @@ function MobileClockCard({ staffId }) {
             <button
               onClick={() => record('break_start')}
               disabled={submitting}
-              className={`flex-1 h-14 rounded-2xl bg-white/12 text-white border border-white/25 text-[17px] font-semibold cursor-pointer ${submitting ? 'opacity-50 cursor-not-allowed' : ''}`}
+              className={`flex-1 h-11 rounded-2xl bg-white/12 text-white border border-white/25 text-[15px] font-semibold cursor-pointer ${submitting ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
               Break
             </button>
@@ -624,6 +626,12 @@ export default function MobileManagerDashboard({
       return true
     })
 
+  // Today at a glance is a fixed four; the rest of the Today items surface in
+  // Needs you when they need attention.
+  const glanceItems = GLANCE_TILES
+    .map(id => TODAY_ITEM_REGISTRY[id])
+    .filter(item => item && (!item.feature || isEnabled(item.feature)))
+
   const actions = summary
     ? activeItems.map(item => item.action?.(summary, vp, closedToday)).filter(Boolean)
     : []
@@ -636,20 +644,20 @@ export default function MobileManagerDashboard({
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-3">
 
       <PushBanner staffId={session?.staffId} venueId={venueId} />
 
       <div>
         <div className="flex items-center justify-between gap-3">
-          <span className="min-w-0 font-mono text-[13px] min-[420px]:text-[15px] text-ink3 dark:text-white/45 whitespace-nowrap truncate">
+          <span className="min-w-0 font-mono text-[12px] min-[420px]:text-[13px] text-ink3 dark:text-white/45 whitespace-nowrap truncate">
             {format(now, 'EEEE, d MMMM')} · {format(now, 'HH:mm')}
           </span>
           <button
             type="button"
             onClick={() => setEditMode(v => !v)}
             className={[
-              'shrink-0 h-11 px-4 rounded-xl border text-[15px] font-semibold cursor-pointer transition-colors',
+              'shrink-0 h-9 px-4 rounded-xl border text-[13px] font-semibold cursor-pointer transition-colors',
               editMode
                 ? 'bg-goodBg text-good border-good/30 dark:bg-good/20 dark:text-[#7fd1a4]'
                 : 'bg-white dark:bg-paperDark text-ink2 dark:text-white/80 border-line dark:border-white/10 hover:border-ink4',
@@ -659,7 +667,7 @@ export default function MobileManagerDashboard({
           </button>
         </div>
 
-        <h1 className="text-[30px] min-[420px]:text-[34px] font-bold tracking-tight text-ink dark:text-white leading-tight mt-2">
+        <h1 className="text-[24px] min-[420px]:text-[28px] font-bold tracking-tight text-ink dark:text-white leading-tight mt-2">
           {greeting}{firstName ? `, ${firstName}` : ''}.
         </h1>
       </div>
@@ -667,8 +675,17 @@ export default function MobileManagerDashboard({
       <DisciplinaryStrip alerts={disciplinaryAlerts} editMode={editMode} venueSlug={venueSlug} />
       <AttentionCard actions={actions} editMode={editMode} vp={vp} />
 
+      {editMode && onOpenPicker && (
+        <button
+          type="button"
+          onClick={onOpenPicker}
+          className="self-center h-9 px-4 rounded-xl border border-line dark:border-white/10 bg-white dark:bg-paperDark text-[13px] font-semibold text-ink2 dark:text-white/80 hover:border-ink4"
+        >
+          Choose Needs you items
+        </button>
+      )}
       {editMode && (
-        <p className="text-center text-sm text-ink3 dark:text-white/45">
+        <p className="text-center text-[13px] text-ink3 dark:text-white/45">
           Drag cards to reorder · tap Done when finished
         </p>
       )}
@@ -683,22 +700,12 @@ export default function MobileManagerDashboard({
             {!summary ? (
               <div className="grid grid-cols-4 gap-2">
                 {[1,2,3,4].map(i => (
-                  <div key={i} className="h-[104px] rounded-2xl bg-line2 dark:bg-white/8 border border-line dark:border-white/10 animate-pulse" />
+                  <div key={i} className="h-[84px] rounded-2xl bg-line2 dark:bg-white/8 border border-line dark:border-white/10 animate-pulse" />
                 ))}
               </div>
-            ) : activeItems.length === 0 ? (
-              <div className="bg-white dark:bg-paperDark border border-line dark:border-white/10 rounded-2xl px-4 py-5 text-center">
-                <p className="text-[15px] text-ink3 dark:text-white/45">No Today items selected</p>
-                <button
-                  onClick={onOpenPicker}
-                  className="mt-2 text-[15px] font-semibold text-brand dark:text-white bg-transparent border-0 cursor-pointer"
-                >
-                  + Add items
-                </button>
-              </div>
-            ) : (
+            ) : glanceItems.length === 0 ? null : (
               <div className="grid grid-cols-4 gap-2">
-                {activeItems.map(item => (
+                {glanceItems.map(item => (
                   <MobileStatTile key={item.id} item={item} summary={summary} vp={vp} />
                 ))}
               </div>

@@ -20,7 +20,7 @@ export const TONE = {
 }
 
 /** action: optional custom button to show instead of Export PDF */
-export function PageHeader({ title, subtitle, backTo, backLabel = 'Checks', onExport, action }) {
+export function PageHeader({ title, subtitle, backTo, backLabel = 'Checks', onExport, action, compact = false }) {
   return (
     <div className="flex flex-col gap-1">
       {/* On mobile the shell's back row already links to Checks */}
@@ -35,8 +35,8 @@ export function PageHeader({ title, subtitle, backTo, backLabel = 'Checks', onEx
       )}
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0">
-          <h1 className="text-2xl min-[420px]:text-[26px] sm:text-[32px] leading-tight font-bold tracking-tight text-ink dark:text-white whitespace-nowrap">{title}</h1>
-          {subtitle && <p className="text-[15px] text-ink3 dark:text-white/45 mt-0.5">{subtitle}</p>}
+          <h1 className={`${compact ? 'text-[22px] sm:text-[26px]' : 'text-2xl min-[420px]:text-[26px] sm:text-[32px]'} leading-tight font-bold tracking-tight text-ink dark:text-white whitespace-nowrap`}>{title}</h1>
+          {subtitle && <p className={`${compact ? 'text-[13px]' : 'text-[15px]'} text-ink3 dark:text-white/45 mt-0.5`}>{subtitle}</p>}
         </div>
         {action}
         {!action && onExport && (
@@ -65,10 +65,11 @@ function CountBadge({ count, active, tone }) {
   )
 }
 
-/** tabs: [{ id, label, count?, countTone?: 'bad' }] */
-export function TabBar({ tabs, active, onChange }) {
+/** tabs: [{ id, label, count?, countTone?: 'bad' }]; size 'sm' for the denser pages */
+export function TabBar({ tabs, active, onChange, size = 'md' }) {
+  const sm = size === 'sm'
   return (
-    <div role="tablist" className={`${CARD} p-1.5 flex gap-1`}>
+    <div role="tablist" className={`${CARD} ${sm ? 'p-1' : 'p-1.5'} flex gap-1`}>
       {tabs.map(t => {
         const isActive = active === t.id
         return (
@@ -80,7 +81,9 @@ export function TabBar({ tabs, active, onChange }) {
             onClick={() => onChange(t.id)}
             className={[
               // Grow from content width so a long label ("Today's check 3") never clips
-              'flex-auto h-11 px-3 rounded-xl inline-flex items-center justify-center gap-2 text-sm min-[420px]:text-[15px] font-semibold whitespace-nowrap transition-colors',
+              sm
+                ? 'flex-auto h-9 px-2.5 rounded-xl inline-flex items-center justify-center gap-1.5 text-[13px] font-semibold whitespace-nowrap transition-colors'
+                : 'flex-auto h-11 px-3 rounded-xl inline-flex items-center justify-center gap-2 text-sm min-[420px]:text-[15px] font-semibold whitespace-nowrap transition-colors',
               isActive ? 'bg-brand text-white' : 'text-ink2 dark:text-white/65 hover:text-ink dark:hover:text-white',
             ].join(' ')}
           >
