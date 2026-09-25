@@ -17,13 +17,13 @@ test.describe('Time-off page', () => {
   })
 
   test('shows calendar month view with navigation arrows', async ({ page }) => {
-    // Month navigation uses ‹ and › single guillemet buttons
-    await expect(
-      page.locator('button').filter({ hasText: '‹' }).first()
-    ).toBeVisible({ timeout: 8000 })
-    await expect(
-      page.locator('button').filter({ hasText: '›' }).first()
-    ).toBeVisible()
+    await expect(page.getByRole('button', { name: /previous month/i })).toBeVisible({ timeout: 8000 })
+    await expect(page.getByRole('button', { name: /next month/i })).toBeVisible()
+  })
+
+  test('selecting a day lists who is off that day', async ({ page }) => {
+    // Today is selected on load; its card says how many are off
+    await expect(page.getByText(/^\d+ off$/).first()).toBeVisible({ timeout: 8000 })
   })
 
   test('shows request list or empty state', async ({ page }) => {
@@ -35,8 +35,8 @@ test.describe('Time-off page', () => {
     expect(hasRequests + hasEmpty).toBeGreaterThanOrEqual(0) // always true — real check is no crash
   })
 
-  test('has a "+ Request" button to open the request modal', async ({ page }) => {
-    await expect(page.getByRole('button', { name: /\+ request/i })).toBeVisible({ timeout: 8000 })
+  test('has a "Request" button to open the request modal', async ({ page }) => {
+    await expect(page.getByRole('button', { name: /^request$/i })).toBeVisible({ timeout: 8000 })
   })
 })
 
@@ -44,7 +44,7 @@ test.describe('Leave request form', () => {
   test.beforeEach(async ({ page }) => {
     await goto(page, '/time-off')
     // Open the request modal
-    await page.getByRole('button', { name: /\+ request/i }).click()
+    await page.getByRole('button', { name: /^request$/i }).click()
     await expect(page.getByText(/request time off/i).first()).toBeVisible({ timeout: 5000 })
   })
 
