@@ -5,6 +5,7 @@
  */
 import React, { Suspense, useCallback, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import { format, startOfWeek } from 'date-fns'
 import { supabase } from '../../lib/supabase'
 import { isActionDueToday } from '../../hooks/useTodaySummary'
@@ -13,6 +14,7 @@ import { WIDGET_REGISTRY } from '../../components/widgets/WidgetRegistry'
 import { useClockStatus, saveClockStatusCache } from '../../hooks/useClockEvents'
 import { useClockAlerts } from '../../hooks/useClockAlerts'
 import { offlineRpc } from '../../lib/offlineSupabase'
+import { fetchUnsignedTrainingCount, unsignedTrainingKey } from '../../lib/api/training'
 import { useVenue } from '../../contexts/VenueContext'
 import { useToast } from '../../components/ui/Toast'
 import StaffAlertModal from '../../components/shifts/StaffAlertModal'
@@ -626,7 +628,6 @@ export default function MobileManagerDashboard({
   const now     = useLiveTime()
   const [editMode, setEditMode]               = useState(false)
   const [disciplinaryAlerts, setDisciplinaryAlerts] = useState([])
-  const [unsignedTraining, setUnsignedTraining] = useState(0)
 
   const vp = (p) => `/v/${venueSlug}${p}`
 
@@ -648,15 +649,13 @@ export default function MobileManagerDashboard({
 
   // Training records awaiting a staff signature — surfaced in Needs You
   // alongside the customizable Today items, same as disciplinary alerts.
-  useEffect(() => {
-    if (!venueId) return
-    supabase
-      .from('training_sign_offs')
-      .select('id', { count: 'exact', head: true })
-      .eq('venue_id', venueId)
-      .eq('staff_acknowledged', false)
-      .then(({ count }) => setUnsignedTraining(count ?? 0))
-  }, [venueId])
+  // Shared key with the Staff Notifications widget, which shows the same count.
+  const { data: unsignedTraining = 0 } = useQuery({
+    queryKey: unsignedTrainingKey(venueId),
+    queryFn: () => fetchUnsignedTrainingCount(venueId),
+    enabled: !!venueId,
+    staleTime: 60_000,
+  })
 
   const activeItems = (todayItemIds ?? [])
     .map(id => TODAY_ITEM_REGISTRY[id])

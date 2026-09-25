@@ -1,7 +1,9 @@
 import React, { memo } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { format } from 'date-fns'
 import { supabase } from '../../lib/supabase'
 import { fetchTimeOffPrivateFields, withTimeOffPrivate } from '../../lib/api/timeOffPrivate'
+import { fetchUnsignedTrainingCount, unsignedTrainingKey } from '../../lib/api/training'
 import { useVenue } from '../../contexts/VenueContext'
 import { useWidgetQuery } from '../../hooks/useWidgetQuery'
 import LoadingSpinner from '../ui/LoadingSpinner'
@@ -9,9 +11,10 @@ import { WidgetShell } from './shared'
 
 function StaffNotificationsWidget() {
   const { venueId, venueSlug } = useVenue()
+  const queryClient = useQueryClient()
 
   const { data } = useWidgetQuery('staff_notifications', [venueId], async () => {
-    const [{ data: leave }, { data: swaps }, { count: trainCount }] = await Promise.all([
+    const [{ data: leave }, { data: swaps }, trainCount] = await Promise.all([
       supabase
         .from('time_off_requests')
         .select('id, start_date, end_date, staff:staff_id(name)')
@@ -25,11 +28,13 @@ function StaffNotificationsWidget() {
         .eq('venue_id', venueId)
         .eq('status', 'pending')
         .limit(5),
-      supabase
-        .from('training_sign_offs')
-        .select('id', { count: 'exact', head: true })
-        .eq('venue_id', venueId)
-        .eq('staff_acknowledged', false),
+      // Through the shared query key: the mobile dashboard shows the same
+      // count, so whichever asks first fetches and the other reuses it.
+      queryClient.fetchQuery({
+        queryKey: unsignedTrainingKey(venueId),
+        queryFn: () => fetchUnsignedTrainingCount(venueId),
+        staleTime: 60_000,
+      }),
     ])
     // 119 withholds `reason`; a manager gets the venue's, anyone else only
     // their own, so this widget still reads as it did for the people it is for.
