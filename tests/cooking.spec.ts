@@ -15,11 +15,18 @@ test.describe('Cooking temperatures', () => {
     await expect(page.getByText(/cooking|temp/i).first()).toBeVisible()
   })
 
-  test('shows log form or add button', async ({ page }) => {
-    // Page has an inline form with a "Log Reading" tab button and the form below
-    await expect(
-      page.getByRole('button', { name: /log reading/i }).first()
-    ).toBeVisible()
+  test('shows the log reading tab and form', async ({ page }) => {
+    await expect(page.getByRole('tab', { name: /log reading/i })).toBeVisible()
+    await expect(page.getByRole('button', { name: /^log temperature$/i })).toBeVisible()
+  })
+
+  test('a reading below 75°C needs a corrective action', async ({ page }) => {
+    await page.getByPlaceholder(/chicken breast/i).fill('PW undercooked check')
+    await page.getByLabel(/core temp/i).fill('70')
+    const logButton = page.getByRole('button', { name: /^log temperature$/i })
+    await expect(logButton).toBeDisabled()
+    await page.getByLabel(/corrective action/i).fill('Back on grill, re-probed at 78°C')
+    await expect(logButton).toBeEnabled()
   })
 
   test('can log a cooking temperature and it appears in the history', async ({ page }) => {
@@ -35,7 +42,8 @@ test.describe('Cooking temperatures', () => {
     await page.getByRole('button', { name: /save|submit|add|log/i }).last().click()
 
     // Unique per run, so only this test's own submission can satisfy it.
-    await expect(page.getByText(TEST_FOOD)).toBeVisible({ timeout: 10000 })
+    // exact: the confirmation toast also contains the name, so match the list row itself
+    await expect(page.getByText(TEST_FOOD, { exact: true })).toBeVisible({ timeout: 10000 })
   })
 })
 
