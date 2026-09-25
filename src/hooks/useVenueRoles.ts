@@ -1,6 +1,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
 import { useVenue } from '../contexts/VenueContext'
+import { readPersisted, writePersisted } from '../lib/persistedCache'
 
 // ── Venue roles (Barista, Chef, FOH…) ────────────────────────────────────────
 
@@ -34,8 +35,12 @@ export function useVenueRoles(): {
         .eq('venue_id', venueId)
         .order('sort_order')
         .order('name')
-      return (data ?? []) as VenueRole[]
+      const roles = (data ?? []) as VenueRole[]
+      writePersisted('venue_roles', venueId, roles)
+      return roles
     },
+    // Last-known roles render immediately on a cold open; fresh ones replace them.
+    placeholderData: () => (readPersisted('venue_roles', venueId) as VenueRole[] | null) ?? undefined,
     enabled: !!venueId,
   })
 

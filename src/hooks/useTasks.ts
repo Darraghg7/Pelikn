@@ -3,6 +3,7 @@ import { useVenue } from '../contexts/VenueContext'
 import { format } from 'date-fns'
 import { fetchTasksForRole, fetchAllTasks } from '../lib/api/tasks'
 import { roleMatcher } from '../lib/roleFilter'
+import { readPersisted, writePersisted } from '../lib/persistedCache'
 import type { TaskTemplate, TaskOneOff, TaskCompletion } from '../types'
 
 export function useTasksForRole(viewerRoleIds: readonly string[] | null, staffId: string, knownRoleIds: readonly string[] = []): {
@@ -49,9 +50,17 @@ export function useAllTasks(selectedDate?: Date | null): {
   const { venueId } = useVenue()
   const dateStr = selectedDate ? format(selectedDate, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd')
 
+  // Last result is kept on disk and shown on the next cold open while the
+  // fresh one loads, so the Tasks tab isn't a skeleton on every visit.
+  const persistKey = `${venueId}|${dateStr}`
   const { data, isLoading, refetch } = useQuery({
     queryKey: ['allTasks', venueId, dateStr],
-    queryFn: () => fetchAllTasks(venueId!, dateStr),
+    queryFn: async () => {
+      const result = await fetchAllTasks(venueId!, dateStr)
+      writePersisted('allTasks', persistKey, result)
+      return result
+    },
+    placeholderData: () => readPersisted('allTasks', persistKey) ?? undefined,
     enabled: !!venueId,
   })
 

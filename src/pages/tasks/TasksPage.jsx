@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import { format, addDays, formatDistanceToNow } from 'date-fns'
 import { Link } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
 import { useSession } from '../../contexts/SessionContext'
@@ -46,21 +47,49 @@ function RoleBadge({ role, customRoles }) {
 
 // ── Staff picker hook ──────────────────────────────────────────────────────────
 
-function useStaffList() {
+// Only the one-off form needs this, so it isn't fetched until that opens —
+// one less request competing with the task list on page load.
+function useStaffList(enabled) {
   const { venueId } = useVenue()
-  const [staff, setStaff] = useState([])
-  const load = useCallback(async () => {
-    if (!venueId) return
-    const { data } = await supabase
-      .from('staff')
-      .select('id, name, job_role')
-      .eq('venue_id', venueId)
-      .eq('is_active', true)
-      .order('name')
-    setStaff(data ?? [])
-  }, [venueId])
-  useEffect(() => { load() }, [load])
-  return staff
+  const { data } = useQuery({
+    queryKey: ['tasksStaffPicker', venueId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('staff')
+        .select('id, name, job_role')
+        .eq('venue_id', venueId)
+        .eq('is_active', true)
+        .order('name')
+      return data ?? []
+    },
+    enabled: !!venueId && enabled,
+  })
+  return data ?? []
+}
+
+// Remembers which department cards a manager has collapsed, per venue, so
+// the choice survives leaving the page and reopening the app.
+function useCollapsedDepts(venueId) {
+  const key = `pelikn_tasks_collapsed_${venueId}`
+  const [collapsed, setCollapsed] = useState(() => readCollapsed(key))
+  useEffect(() => { setCollapsed(readCollapsed(key)) }, [key])
+  const toggle = useCallback((roleId) => {
+    setCollapsed(prev => {
+      const next = prev.includes(roleId) ? prev.filter(id => id !== roleId) : [...prev, roleId]
+      try { localStorage.setItem(key, JSON.stringify(next)) } catch { /* best-effort */ }
+      return next
+    })
+  }, [key])
+  return [collapsed, toggle]
+}
+
+function readCollapsed(key) {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(key) ?? '[]')
+    return Array.isArray(parsed) ? parsed : []
+  } catch {
+    return []
+  }
 }
 
 // ── Shared task row used in manager columns ─────────────────────────────────
@@ -105,8 +134,7 @@ function hexToRgba(hex, alpha) {
 }
 
 // ── Department column ─────────────────────────────────────────────────────────
-function DeptColumn({ role, label, color, templates, oneOffs, completions, onDeleteTemplate, onDeleteOneOff, deleting }) {
-  const [collapsed, setCollapsed] = useState(false)
+function DeptColumn({ role, label, color, templates, oneOffs, completions, onDeleteTemplate, onDeleteOneOff, deleting, collapsed, onToggle }) {
   const deptTemplates = templates.filter(t => t.role_id === role)
   const deptOneOffs   = oneOffs.filter(o => o.role_id === role)
   const deptDone = completions.filter(c =>
@@ -125,7 +153,7 @@ function DeptColumn({ role, label, color, templates, oneOffs, completions, onDel
       {/* Column header — tap to collapse */}
       <button
         type="button"
-        onClick={() => setCollapsed(v => !v)}
+        onClick={onToggle}
         aria-expanded={!collapsed}
         style={{ backgroundColor: hexToRgba(color, 0.14) }}
         className="w-full px-4 py-3 border-b border-charcoal/8 dark:border-white/8 flex items-center justify-between gap-2 text-left cursor-pointer border-none text-charcoal dark:text-white"
@@ -177,12 +205,13 @@ function ManagerTasksView() {
   const { venueId } = useVenue()
   const today = new Date()
   const { templates, oneOffs, completions, loading, reload } = useAllTasks(today)
-  const staffList = useStaffList()
-  const { roles = [] } = useVenueRoles()
+  const { roles = [], loading: rolesLoading } = useVenueRoles()
   const roleIdValues = roles.map(r => r.id)
+  const [collapsedDepts, toggleDept] = useCollapsedDepts(venueId)
 
   const [showAddTemplate, setShowAddTemplate] = useState(false)
   const [showAddOneOff, setShowAddOneOff]     = useState(false)
+  const staffList = useStaffList(showAddOneOff)
   const [tForm, setTForm]   = useState({ title: '', role_id: null })
   const [oForm, setOForm]   = useState({
     title: '',
@@ -254,7 +283,9 @@ function ManagerTasksView() {
     reload()
   }
 
-  if (loading) return <SkeletonList rows={4} className="py-4" />
+  // Roles decide which column each task lands in — rendering before they
+  // arrive would briefly pile every task into "All Roles".
+  if (loading || rolesLoading) return <SkeletonList rows={4} className="py-4" />
 
   return (
     <div className="flex flex-col gap-6">
@@ -389,6 +420,8 @@ function ManagerTasksView() {
               onDeleteTemplate={(id) => setConfirmDelete({ id, isTemplate: true })}
               onDeleteOneOff={(id) => setConfirmDelete({ id, isTemplate: false })}
               deleting={deleting}
+              collapsed={collapsedDepts.includes(role.id)}
+              onToggle={() => toggleDept(role.id)}
             />
           ))}
         </div>
