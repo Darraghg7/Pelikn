@@ -669,7 +669,7 @@ export default function CalendarPage() {
 
   if (calView === 'day' && selectedDate) {
     return (
-      <div className="px-4 pb-24">
+      <div className="pb-24">
         <CalendarDayView
           dateStr={selectedDate}
           dayMapItems={dayMap[selectedDate] || []}
@@ -683,7 +683,7 @@ export default function CalendarPage() {
 
   if (calView === 'add' || calView === 'edit') {
     return (
-      <div className="px-4 pb-24">
+      <div className="pb-24">
         <CalendarEventForm
           event={calView === 'edit' ? editEvent : null}
           defaultDate={selectedDate}
@@ -696,7 +696,7 @@ export default function CalendarPage() {
   }
 
   return (
-    <div className="px-4 pb-24">
+    <div className="pb-24">
       <div className="flex flex-col gap-4">
         {/* Header */}
         <div className="px-0.5 flex items-start justify-between">
