@@ -515,6 +515,21 @@ function DutiesTab({ duties, loading, toggleItem }) {
   )
 }
 
+const DUE_TONE = {
+  danger:  'text-danger',
+  warning: 'text-warning',
+  muted:   'text-charcoal/40 dark:text-white/35',
+}
+
+/** "3d overdue" / "Due today" / "Due Fri" — see cleaningDueLabel(). */
+function DueLabel({ due, className = '' }) {
+  return (
+    <span className={`font-mono text-[11px] font-bold tracking-wide uppercase ${DUE_TONE[due.tone]} ${className}`}>
+      {due.text}
+    </span>
+  )
+}
+
 function CleaningTaskRow({ task, onComplete, isFirst }) {
   const [busy, setBusy] = useState(false)
   const toast = useToast()
@@ -541,6 +556,7 @@ function CleaningTaskRow({ task, onComplete, isFirst }) {
       </button>
       <div className="flex-1 min-w-0">
         <p className="text-[13.5px] font-medium text-charcoal dark:text-white">{task.title}</p>
+        {task.due && <DueLabel due={task.due} className="mt-0.5 block" />}
       </div>
       <span className="text-[11px] font-mono font-semibold px-2 py-0.5 rounded bg-charcoal/6 dark:bg-white/8 text-charcoal/40 dark:text-white/35 uppercase tracking-wide">
         {task.frequency}
@@ -609,9 +625,14 @@ function CleaningTab({ tasks, loading, error, session, reload }) {
                 <div className="flex-1 min-w-0">
                   <p className="text-[13.5px] text-charcoal/40 dark:text-white/35 line-through">{t.title}</p>
                   {/* Says who cleared it, so nobody wonders why it's gone. */}
-                  {t.lastCompletion?.completed_by_name && (
+                  {(t.lastCompletion?.completed_by_name || t.due) && (
                     <p className="text-[11px] text-charcoal/35 dark:text-white/30 mt-0.5 no-underline">
-                      {t.lastCompletion.completed_by_name} · {formatDistanceToNow(new Date(t.lastCompletion.completed_at), { addSuffix: true })}
+                      {t.lastCompletion?.completed_by_name && (
+                        <>{t.lastCompletion.completed_by_name} · {formatDistanceToNow(new Date(t.lastCompletion.completed_at), { addSuffix: true })}</>
+                      )}
+                      {/* When it comes back round, so nobody has to work it out. */}
+                      {t.lastCompletion?.completed_by_name && t.due && ' · '}
+                      {t.due && <DueLabel due={t.due} />}
                     </p>
                   )}
                 </div>

@@ -10,7 +10,7 @@ vi.mock('../../contexts/VenueContext', () => ({ useVenue: () => ({ venueId: 'ven
 vi.mock('../useSettings', () => ({ useAppSettings: () => ({ closedDays: [] }) }))
 vi.mock('../useVenueClosures', () => ({ default: () => ({ closures: [] }) }))
 
-const { useCleaningTasks } = await import('../useCleaningTasks')
+const { useCleaningTasks, cleaningStatus, cleaningDueLabel } = await import('../useCleaningTasks')
 
 const json = (body) =>
   new Response(JSON.stringify(body), {
@@ -110,5 +110,43 @@ describe('useCleaningTasks — live updates', () => {
     expect(channelNames).toHaveLength(0)
     expect(h.result.current.overdueCount).toBe(0)
     h.unmount()
+  })
+})
+
+describe('cleaningDueLabel', () => {
+  // Friday 25 Sep 2026, mid-afternoon.
+  const NOW = new Date(2026, 8, 25, 15, 0)
+  const task = (frequency) => ({ ...TASK, frequency })
+  const done = (y, m, d, h = 10) => ({ id: 'c', cleaning_task_id: 't1', completed_at: new Date(y, m, d, h).toISOString(), venue_id: VENUE })
+  const label = (frequency, completion) => {
+    const t = task(frequency)
+    return cleaningDueLabel(t, completion, cleaningStatus(t, completion, NOW), NOW)
+  }
+
+  it('flags a task that has never been done', () => {
+    expect(label('weekly', null)).toEqual({ text: 'Never done', tone: 'danger' })
+  })
+
+  it('says a daily task is due today, not overdue, until the day is out', () => {
+    expect(label('daily', done(2026, 8, 24))).toEqual({ text: 'Due today', tone: 'warning' })
+    expect(label('daily', done(2026, 8, 22))).toEqual({ text: '2d overdue', tone: 'danger' })
+    expect(label('daily', done(2026, 8, 25))).toEqual({ text: 'Due tomorrow', tone: 'muted' })
+  })
+
+  it('counts weekly tasks from the day they fell due', () => {
+    // Done Thu 17 Sep: due Thu 24 Sep, so a day overdue on Fri 25.
+    expect(label('weekly', done(2026, 8, 17))).toEqual({ text: '1d overdue', tone: 'danger' })
+    // Done Fri 18 Sep: due today.
+    expect(label('weekly', done(2026, 8, 18, 16))).toEqual({ text: 'Due today', tone: 'warning' })
+    // Done Mon 21 Sep: due Mon 28 Sep.
+    expect(label('weekly', done(2026, 8, 21))).toEqual({ text: 'Due Mon', tone: 'muted' })
+  })
+
+  it('gives a date once the due day is more than a week out', () => {
+    expect(label('monthly', done(2026, 8, 20))).toEqual({ text: 'Due 20 Oct', tone: 'muted' })
+  })
+
+  it('says nothing when a closed day capped an overdue task at done', () => {
+    expect(cleaningDueLabel(task('weekly'), done(2026, 8, 10), 'done', NOW)).toBeNull()
   })
 })

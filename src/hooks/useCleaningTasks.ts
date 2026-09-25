@@ -52,6 +52,44 @@ export function cleaningStatus(
   return 'overdue'
 }
 
+const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+
+export interface CleaningDueLabel {
+  text: string
+  tone: 'danger' | 'warning' | 'muted'
+}
+
+/**
+ * "3d overdue" / "Due today" / "Due tomorrow" / "Due Fri" / "Due 12 Oct".
+ * The due day follows the same model as cleaningStatus(): a daily task is due
+ * the day after it was last done, anything else `threshold` days after.
+ * Null when there's nothing useful to say — a closed day capped the status at
+ * 'done' while the task itself is past due.
+ */
+export function cleaningDueLabel(
+  task: CleaningTask,
+  lastCompletion: CleaningCompletion | null,
+  status: CleaningStatus,
+  asOf: Date = new Date(),
+): CleaningDueLabel | null {
+  if (!lastCompletion) return status === 'overdue' ? { text: 'Never done', tone: 'danger' } : null
+
+  const completedAt = new Date(lastCompletion.completed_at)
+  const dueAt = new Date(completedAt)
+  dueAt.setDate(dueAt.getDate() + (FREQ_DAYS[task.frequency] ?? 1))
+
+  const daysPastDue = calendarDaysBetween(dueAt, asOf)
+  if (status === 'done' && daysPastDue >= 0) return null
+  if (daysPastDue > 0) return { text: `${daysPastDue}d overdue`, tone: 'danger' }
+  if (daysPastDue === 0) return { text: 'Due today', tone: 'warning' }
+
+  const tone = status === 'due_soon' ? 'warning' : 'muted'
+  if (daysPastDue === -1) return { text: 'Due tomorrow', tone }
+  if (daysPastDue >= -6)  return { text: `Due ${WEEKDAYS[dueAt.getDay()]}`, tone }
+  return { text: `Due ${dueAt.getDate()} ${MONTHS[dueAt.getMonth()]}`, tone }
+}
+
 // ── Live updates ────────────────────────────────────────────────────────────
 // Staff tick tasks off on their own phones, so the manager's screen only learns
 // about it from the server. Without this the cached list only refetched on a
@@ -115,7 +153,7 @@ export function useCleaningTasks(
   asOf?: Date,
   { enabled = true }: { enabled?: boolean } = {},
 ): {
-  tasks: (CleaningTask & { lastCompletion: CleaningCompletion | null; status: CleaningStatus })[]
+  tasks: (CleaningTask & { lastCompletion: CleaningCompletion | null; status: CleaningStatus; due: CleaningDueLabel | null })[]
   loading: boolean
   error: unknown
   reload: () => void
@@ -175,7 +213,7 @@ export function useCleaningTasks(
       c.cleaning_task_id === t.id && new Date(c.completed_at).getTime() <= cutoff
     ) ?? null
     const status = closedOnReference ? 'done' : cleaningStatus(t, last, reference)
-    return { ...t, lastCompletion: last, status }
+    return { ...t, lastCompletion: last, status, due: cleaningDueLabel(t, last, status, reference) }
   })
 
   const overdueCount = enriched.filter((t) => t.status === 'overdue').length
