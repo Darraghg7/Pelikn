@@ -3,7 +3,7 @@ import { supabase } from '../../lib/supabase'
 import { useCleaningTasks } from '../../hooks/useCleaningTasks'
 import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../ui/Toast'
-import { WidgetShell, BigNumber } from './shared'
+import { WidgetShell, BigNumber, TitleBadge } from './shared'
 
 export const CLEANING_PAGE_SIZE = 3
 export const FREQ_DAYS = { daily: 1, weekly: 7, fortnightly: 14, monthly: 30, quarterly: 90 }
@@ -39,16 +39,21 @@ function CleaningOverdueWidget() {
 
   if (overdueCount === 0) {
     return (
-      <WidgetShell title="Cleaning" to="/cleaning" status={status}>
-        <BigNumber value={0} label="All on track" alert={false} />
+      <WidgetShell title="Cleaning" to="/cleaning" linkLabel="View all">
+        <BigNumber value={0} label="All on track" />
       </WidgetShell>
     )
   }
 
   return (
-    <WidgetShell title="Cleaning" to="/cleaning" status={status}>
-      <p className="text-xs font-semibold text-danger mb-2">{overdueCount} task{overdueCount !== 1 ? 's' : ''} overdue</p>
-      <div className="flex flex-col gap-1">
+    <WidgetShell
+      title="Cleaning"
+      badge={<TitleBadge tone={status === 'bad' ? 'bad' : 'warn'}>{overdueCount} overdue</TitleBadge>}
+      to="/cleaning"
+      linkLabel="View all"
+      flush
+    >
+      <div className="divide-y divide-line dark:divide-white/10">
         {pageItems.map(t => {
           const days = t.lastCompletion
             ? Math.floor((Date.now() - new Date(t.lastCompletion.completed_at)) / 86400000)
@@ -56,46 +61,50 @@ function CleaningOverdueWidget() {
           const threshold = FREQ_DAYS[t.frequency] ?? 1
           const overBy = days !== null ? days - threshold : null
           return (
-            <div key={t.id} className="flex items-center justify-between gap-2 py-2 border-b border-charcoal/6 dark:border-white/8 last:border-0">
+            <div key={t.id} className="flex items-center gap-4 px-4 sm:px-5 py-3.5">
               <button
+                type="button"
                 onClick={(e) => { e.preventDefault(); completeTask(t.id) }}
                 disabled={completing === t.id}
-                aria-label="Mark done"
+                aria-label={`Mark "${t.title}" done`}
                 className={[
-                  'w-[26px] h-[26px] rounded-full shrink-0 p-0 grid place-items-center border-2 cursor-pointer',
-                  'text-transparent hover:bg-success hover:border-success hover:text-white transition-colors',
+                  'w-9 h-9 rounded-full shrink-0 p-0 grid place-items-center border-2 cursor-pointer',
+                  'border-bad text-transparent hover:bg-good hover:border-good hover:text-white transition-colors',
                   'disabled:opacity-40 disabled:cursor-wait',
-                  'border-danger bg-danger/8',
                 ].join(' ')}
               >
                 {completing === t.id
-                  ? <span className="w-3 h-3 rounded-full border-2 border-success/25 border-t-success animate-spin" />
-                  : <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>}
+                  ? <span className="w-3.5 h-3.5 rounded-full border-2 border-good/25 border-t-good animate-spin" />
+                  : <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>}
               </button>
-              <p className="text-xs text-charcoal dark:text-white truncate flex-1">{t.title}</p>
-              <span className="text-[11px] text-danger/70 whitespace-nowrap shrink-0">
-                {overBy !== null ? `${overBy}d overdue` : 'Never done'}
+              <p className="flex-1 min-w-0 text-[16px] min-[420px]:text-[17px] leading-snug text-ink dark:text-white line-clamp-2 break-words">{t.title}</p>
+              <span className="shrink-0 font-mono text-sm font-semibold text-bad dark:text-[#f19a86] whitespace-nowrap">
+                {overBy !== null ? `${overBy}d overdue` : 'never done'}
               </span>
             </div>
           )
         })}
       </div>
       {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-3 mt-2 pt-1 border-t border-charcoal/6 dark:border-white/8">
+        <div className="flex items-center justify-center gap-6 py-3 border-t border-line dark:border-white/10">
           <button
+            type="button"
             onClick={() => setPage(p => Math.max(0, p - 1))}
             disabled={page === 0}
-            className="text-[11px] text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white disabled:opacity-20"
+            aria-label="Previous tasks"
+            className="w-9 h-9 inline-flex items-center justify-center rounded-full text-ink2 dark:text-white/70 hover:bg-cream dark:hover:bg-white/10 disabled:opacity-25"
           >
-            ‹
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6" /></svg>
           </button>
-          <span className="text-[11px] text-charcoal/30 dark:text-white/30">{page + 1}/{totalPages}</span>
+          <span className="font-mono text-[15px] text-ink3 dark:text-white/45">{page + 1}/{totalPages}</span>
           <button
+            type="button"
             onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
             disabled={page >= totalPages - 1}
-            className="text-[11px] text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white disabled:opacity-20"
+            aria-label="More tasks"
+            className="w-9 h-9 inline-flex items-center justify-center rounded-full text-ink2 dark:text-white/70 hover:bg-cream dark:hover:bg-white/10 disabled:opacity-25"
           >
-            ›
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
           </button>
         </div>
       )}

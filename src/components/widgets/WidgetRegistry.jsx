@@ -37,9 +37,10 @@ export {
    REGISTRY — maps widget IDs to components + metadata
    ═══════════════════════════════════════════════════════════════════════════ */
 
+// mobileHalf: shown half-width, side by side, on the phone dashboard
 export const WIDGET_REGISTRY = {
-  compliance_score:   { id: 'compliance_score',   label: 'Compliance Score',      description: 'Overall compliance percentage based on all checks', component: ComplianceScoreWidget },
-  fridge_alerts:      { id: 'fridge_alerts',      label: 'Fridge Status',         description: 'Today\'s readings, out-of-range alerts, unchecked fridges', component: FridgeAlertsWidget },
+  compliance_score:   { id: 'compliance_score',   label: 'Compliance Score',      description: 'Overall compliance percentage based on all checks', component: ComplianceScoreWidget, mobileHalf: true },
+  fridge_alerts:      { id: 'fridge_alerts',      label: 'Fridge Status',         description: 'Today\'s readings, out-of-range alerts, unchecked fridges', component: FridgeAlertsWidget, mobileHalf: true },
   cleaning_overdue:   { id: 'cleaning_overdue',   label: 'Cleaning',              description: 'Number of overdue cleaning tasks', component: CleaningOverdueWidget },
   staff_on_shift:     { id: 'staff_on_shift',     label: 'Staff On Shift',        description: 'Who\'s working today with shift times', component: StaffOnShiftWidget },
   open_actions:       { id: 'open_actions',       label: 'Open Actions',          description: 'Unresolved corrective actions by severity', component: OpenActionsWidget },

@@ -1,23 +1,46 @@
-import React, { memo } from 'react'
+import React, { memo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
-import { format } from 'date-fns'
+import { format, parseISO } from 'date-fns'
 import { supabase } from '../../lib/supabase'
 import { fetchTimeOffPrivateFields, withTimeOffPrivate } from '../../lib/api/timeOffPrivate'
 import { fetchUnsignedTrainingCount, unsignedTrainingKey } from '../../lib/api/training'
+import { decideTimeOff } from '../../lib/api/timeOffDecisions'
+import { invalidateSummaryCache } from '../../hooks/useTodaySummary'
 import { useVenue } from '../../contexts/VenueContext'
+import { useSession } from '../../contexts/SessionContext'
+import { useToast } from '../ui/Toast'
 import { useWidgetQuery } from '../../hooks/useWidgetQuery'
 import LoadingSpinner from '../ui/LoadingSpinner'
 import { WidgetShell } from './shared'
 
+const LEAVE_NAMES = { annual: 'Annual leave', unpaid: 'Unpaid leave', other: 'Other leave' }
+
+// "12 Dec 2026" for one day, "12–14 Dec 2026" within a month, else "30 Dec – 2 Jan 2027"
+function leaveDates(r) {
+  const start = parseISO(r.start_date), end = parseISO(r.end_date)
+  if (r.start_date === r.end_date) return format(start, 'd MMM yyyy')
+  if (format(start, 'MMM yyyy') === format(end, 'MMM yyyy')) return `${format(start, 'd')}–${format(end, 'd MMM yyyy')}`
+  return `${format(start, 'd MMM')} – ${format(end, 'd MMM yyyy')}`
+}
+
+function Dot({ tone }) {
+  const cls = { warn: 'bg-warn', info: 'bg-info', muted: 'bg-ink4' }[tone]
+  return <span className={`shrink-0 w-2.5 h-2.5 rounded-full ${cls}`} />
+}
+
 function StaffNotificationsWidget() {
   const { venueId, venueSlug } = useVenue()
+  const { session } = useSession()
+  const toast = useToast()
   const queryClient = useQueryClient()
+  const [deciding, setDeciding] = useState(null)   // request id being saved
 
   const { data } = useWidgetQuery('staff_notifications', [venueId], async () => {
     const [{ data: leave }, { data: swaps }, trainCount] = await Promise.all([
       supabase
         .from('time_off_requests')
-        .select('id, start_date, end_date, staff:staff_id(name)')
+        .select('id, staff_id, start_date, end_date, leave_type, staff:staff_id(name)')
         .eq('venue_id', venueId)
         .eq('status', 'pending')
         .order('created_at', { ascending: false })
@@ -46,69 +69,87 @@ function StaffNotificationsWidget() {
     }
   })
 
+  const decide = async (request, decision) => {
+    setDeciding(request.id)
+    const { error } = await decideTimeOff({ request, decision, reviewerId: session?.staffId, venueId })
+    setDeciding(null)
+    if (error) { toast(error.message, 'error'); return }
+    toast(`${request.staff?.name ?? 'Leave'} ${decision === 'approved' ? 'approved' : 'rejected'}`)
+    // Time off drives availability elsewhere — refresh what reads it
+    queryClient.invalidateQueries({ queryKey: ['widget', 'staff_notifications'] })
+    queryClient.invalidateQueries({ queryKey: ['availability'] })
+    queryClient.invalidateQueries({ queryKey: ['calendar_staff_leave'] })
+    invalidateSummaryCache(venueId)
+  }
+
   if (!data) {
     return (
-      <WidgetShell title="Staff Notifications" to="/time-off">
+      <WidgetShell title="Staff notifications" to="/time-off">
         <div className="flex justify-center py-4"><LoadingSpinner /></div>
       </WidgetShell>
     )
   }
 
-  const total = data.leave.length + data.swaps.length + data.trainCount
-  const status = total > 0 ? 'warning' : undefined
+  const total = data.leave.length + data.swaps.length + (data.trainCount > 0 ? 1 : 0)
+  const aside = total > 0 && <span className="shrink-0 font-mono text-[15px] text-ink3 dark:text-white/45">{total} new</span>
 
   return (
-    <WidgetShell title="Staff Notifications" status={status}>
+    <WidgetShell title="Staff notifications" aside={aside} flush={total > 0}>
       {total === 0 ? (
-        <p className="text-sm text-charcoal/30 dark:text-white/30 italic py-2">No pending notifications</p>
+        <p className="text-[15px] text-ink3 dark:text-white/45 py-2">No pending notifications</p>
       ) : (
-        <div className="flex flex-col gap-2 pt-1">
+        <div className="divide-y divide-line dark:divide-white/10">
           {data.leave.map(r => (
-            <a
-              key={r.id}
-              href={`/v/${venueSlug}/time-off`}
-              className="flex items-start gap-2 group"
-            >
-              <span className="text-warning text-xs mt-0.5 shrink-0">●</span>
-              <div className="min-w-0">
-                <p className="text-sm font-medium text-charcoal dark:text-white truncate group-hover:text-accent transition-colors">
-                  {r.staff?.name ?? 'Staff'}: Leave Request
+            <div key={r.id} className="flex flex-wrap items-center gap-x-3 gap-y-2.5 px-4 sm:px-5 py-3.5">
+              <Dot tone="warn" />
+              {/* Buttons drop below the text when the card is too narrow for both */}
+              <Link to={`/v/${venueSlug}/time-off`} className="flex-1 min-w-[170px]">
+                <p className="text-[16px] leading-snug font-semibold text-ink dark:text-white">{r.staff?.name ?? 'Staff'} · leave request</p>
+                <p className="text-sm text-ink3 dark:text-white/45 mt-0.5">
+                  {LEAVE_NAMES[r.leave_type] ?? 'Leave'} · {leaveDates(r)}{r.reason ? ` · ${r.reason}` : ''}
                 </p>
-                <p className="text-[11px] text-charcoal/40 dark:text-white/35">
-                  {format(new Date(r.start_date), 'd MMM')} – {format(new Date(r.end_date), 'd MMM yyyy')}
-                  {r.reason ? ` · ${r.reason}` : ''}
-                </p>
+              </Link>
+              <div className="shrink-0 flex gap-2 ml-auto">
+                <button
+                  type="button"
+                  onClick={() => decide(r, 'rejected')}
+                  disabled={deciding === r.id}
+                  className="h-10 px-2.5 min-[420px]:px-3 rounded-xl border border-line dark:border-white/15 bg-white dark:bg-paperDark text-sm min-[420px]:text-[15px] font-semibold text-bad dark:text-[#f19a86] hover:border-bad/40 disabled:opacity-40"
+                >
+                  Reject
+                </button>
+                <button
+                  type="button"
+                  onClick={() => decide(r, 'approved')}
+                  disabled={deciding === r.id}
+                  className="h-10 px-2.5 min-[420px]:px-3 rounded-xl bg-brand text-white text-sm min-[420px]:text-[15px] font-semibold hover:bg-brand/90 disabled:opacity-40"
+                >
+                  Approve
+                </button>
               </div>
-            </a>
+            </div>
           ))}
           {data.swaps.map(s => (
-            <a
-              key={s.id}
-              href={`/v/${venueSlug}/rota`}
-              className="flex items-start gap-2 group"
-            >
-              <span className="text-accent text-xs mt-0.5 shrink-0">●</span>
-              <div className="min-w-0">
-                <p className="text-sm font-medium text-charcoal dark:text-white truncate group-hover:text-accent transition-colors">
-                  Swap: {s.requester_name} → {s.target_staff_name}
-                </p>
-                <p className="text-[11px] text-charcoal/40 dark:text-white/35">Shift swap pending approval</p>
-              </div>
-            </a>
+            <Link key={s.id} to={`/v/${venueSlug}/rota`} className="flex items-center gap-3 px-4 sm:px-5 py-3.5 hover:bg-cream/60 dark:hover:bg-white/5">
+              <Dot tone="info" />
+              <span className="flex-1 min-w-0">
+                <span className="block text-[16px] leading-snug font-semibold text-ink dark:text-white">{s.requester_name} wants to swap a shift</span>
+                <span className="block text-sm text-ink3 dark:text-white/45 mt-0.5">With {s.target_staff_name} · needs approval on the rota</span>
+              </span>
+              <svg className="shrink-0 w-4 h-4 text-ink3 dark:text-white/45" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
+            </Link>
           ))}
           {data.trainCount > 0 && (
-            <a
-              href={`/v/${venueSlug}/training`}
-              className="flex items-start gap-2 group"
-            >
-              <span className="text-charcoal/40 dark:text-white/35 text-xs mt-0.5 shrink-0">●</span>
-              <div className="min-w-0">
-                <p className="text-sm font-medium text-charcoal dark:text-white group-hover:text-accent transition-colors">
+            <Link to={`/v/${venueSlug}/training`} className="flex items-center gap-3 px-4 sm:px-5 py-3.5 hover:bg-cream/60 dark:hover:bg-white/5">
+              <Dot tone="muted" />
+              <span className="flex-1 min-w-0">
+                <span className="block text-[16px] font-semibold text-ink dark:text-white">
                   {data.trainCount} training record{data.trainCount !== 1 ? 's' : ''} unsigned
-                </p>
-                <p className="text-[11px] text-charcoal/40 dark:text-white/35">Awaiting employee signature</p>
-              </div>
-            </a>
+                </span>
+                <span className="block text-sm text-ink3 dark:text-white/45">Awaiting employee signature</span>
+              </span>
+              <svg className="shrink-0 w-4 h-4 text-ink3 dark:text-white/45" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
+            </Link>
           )}
         </div>
       )}
