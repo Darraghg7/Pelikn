@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { supabase, supabaseUrl, supabaseAnonKey } from '../lib/supabase'
 import { hashPin, pinHashKey } from '../lib/offlinePin'
+import { takeBootstrap } from '../lib/api/bootstrap'
 
 export interface ManagerOption {
   id: string
@@ -24,6 +25,9 @@ export function useManagers(venueId: string | null | undefined): ManagerOption[]
   const { data } = useQuery({
     queryKey: ['managers', venueId],
     queryFn: async () => {
+      // First load comes from the startup bundle when it's available (126).
+      const boot = await takeBootstrap(venueId, 'managers')
+      if (boot) return boot.managers as ManagerOption[]
       const { data } = await supabase
         .from('staff')
         .select('id, name, role, photo_url')

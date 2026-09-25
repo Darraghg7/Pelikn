@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
+import { takeBootstrapSettings } from '../lib/api/bootstrap'
 
 interface VenueBranding {
   venueName: string
@@ -9,11 +10,15 @@ interface VenueBranding {
 const DEFAULT_BRANDING: VenueBranding = { venueName: '', logoUrl: '' }
 
 async function fetchBranding(venueId: string): Promise<VenueBranding> {
-  const { data } = await supabase
-    .from('app_settings')
-    .select('key, value')
-    .eq('venue_id', venueId)
-    .in('key', ['venue_name', 'logo_url'])
+  // First load comes from the startup bundle when it's available (126).
+  const boot = await takeBootstrapSettings(venueId, 'branding', ['venue_name', 'logo_url'])
+  const { data } = boot
+    ? { data: boot }
+    : await supabase
+      .from('app_settings')
+      .select('key, value')
+      .eq('venue_id', venueId)
+      .in('key', ['venue_name', 'logo_url'])
 
   if (!data) return DEFAULT_BRANDING
   const map = Object.fromEntries((data as { key: string; value: string }[]).map(r => [r.key, r.value]))

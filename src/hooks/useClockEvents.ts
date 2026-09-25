@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase'
 import { useVenue } from '../contexts/VenueContext'
 import { isNetworkError } from '../lib/offlineSupabase'
 import { getQueue } from '../lib/offlineQueue'
+import { takeBootstrap } from '../lib/api/bootstrap'
 
 /**
  * True if this staff member has a clock event still sitting in the offline
@@ -90,18 +91,29 @@ export function useClockStatus(staffId: string): ClockStatusData & { loading: bo
       }
 
       try {
-        // Get the most recent clock_in or clock_out to determine if there's an active session
-        let q = supabase
-          .from('clock_events')
-          .select('event_type, occurred_at')
-          .eq('staff_id', staffId)
-          .in('event_type', ['clock_in', 'clock_out'])
-          .order('occurred_at', { ascending: false })
-          .limit(1)
-        if (venueId) q = q.eq('venue_id', venueId)
+        // First load comes from the startup bundle when it's available (126):
+        // it carries the same two reads below — the latest boundary event and,
+        // if that opened a session, every event since.
+        const boot = await takeBootstrap(venueId, 'clockStatus', staffId)
 
-        const { data: lastBoundary, error: e1 } = await q
-        if (e1) throw e1
+        // Get the most recent clock_in or clock_out to determine if there's an active session
+        let lastBoundary: { event_type: string; occurred_at: string }[] | null
+        if (boot) {
+          lastBoundary = boot.clock_last
+        } else {
+          let q = supabase
+            .from('clock_events')
+            .select('event_type, occurred_at')
+            .eq('staff_id', staffId)
+            .in('event_type', ['clock_in', 'clock_out'])
+            .order('occurred_at', { ascending: false })
+            .limit(1)
+          if (venueId) q = q.eq('venue_id', venueId)
+
+          const { data, error: e1 } = await q
+          if (e1) throw e1
+          lastBoundary = data
+        }
 
         const lastEvent = lastBoundary?.[0]
 
@@ -114,16 +126,22 @@ export function useClockStatus(staffId: string): ClockStatusData & { loading: bo
         // Active session — fetch all events since that clock_in
         const clockInTime = new Date(lastEvent.occurred_at)
 
-        let sq = supabase
-          .from('clock_events')
-          .select('event_type, occurred_at')
-          .eq('staff_id', staffId)
-          .gte('occurred_at', lastEvent.occurred_at)
-          .order('occurred_at')
-        if (venueId) sq = sq.eq('venue_id', venueId)
+        let sessionEvents: { event_type: string; occurred_at: string }[] | null
+        if (boot) {
+          sessionEvents = boot.clock_session
+        } else {
+          let sq = supabase
+            .from('clock_events')
+            .select('event_type, occurred_at')
+            .eq('staff_id', staffId)
+            .gte('occurred_at', lastEvent.occurred_at)
+            .order('occurred_at')
+          if (venueId) sq = sq.eq('venue_id', venueId)
 
-        const { data: sessionEvents, error: e2 } = await sq
-        if (e2) throw e2
+          const { data, error: e2 } = await sq
+          if (e2) throw e2
+          sessionEvents = data
+        }
 
         // Calculate break time and current status
         let breakMs = 0

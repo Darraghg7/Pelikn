@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { DEFAULT_TODAY_ITEMS } from '../pages/dashboard/todayItemRegistry'
+import { takeBootstrap } from '../lib/api/bootstrap'
 
 function prefsKey(staffId: string | null, venueId: string | null): string {
   return `pelikn_today_items_${venueId ?? 'venue'}_${staffId ?? 'staff'}`
@@ -18,12 +19,19 @@ export function useTodayPreferences(staffId: string | null, venueId: string | nu
     if (!staffId || !venueId) return
     let cancelled = false
 
-    supabase
-      .from('staff_dashboard_today_items')
-      .select('item_id, position')
-      .eq('venue_id', venueId)
-      .eq('staff_id', staffId)
-      .order('position')
+    // First load comes from the startup bundle when it's available (126).
+    const load = async (): Promise<{ data: { item_id: string }[] | null; error: unknown }> => {
+      const boot = await takeBootstrap(venueId, 'todayItems', staffId)
+      if (boot) return { data: boot.today_items, error: null }
+      const { data, error } = await supabase
+        .from('staff_dashboard_today_items')
+        .select('item_id, position')
+        .eq('venue_id', venueId)
+        .eq('staff_id', staffId)
+        .order('position')
+      return { data, error }
+    }
+    load()
       .then(({ data, error }) => {
         if (cancelled) return
         if (error) {
@@ -34,7 +42,7 @@ export function useTodayPreferences(staffId: string | null, venueId: string | nu
             setItemIds(DEFAULT_TODAY_ITEMS)
           }
         } else {
-          setItemIds(data?.length > 0 ? data.map(d => (d as { item_id: string }).item_id) : DEFAULT_TODAY_ITEMS)
+          setItemIds(data && data.length > 0 ? data.map(d => d.item_id) : DEFAULT_TODAY_ITEMS)
         }
         setLoading(false)
       })

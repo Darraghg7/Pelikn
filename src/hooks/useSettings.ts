@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
 import { useVenue } from '../contexts/VenueContext'
 import { useToast } from '../components/ui/Toast'
+import { takeBootstrapSettings } from '../lib/api/bootstrap'
 
 // New venues start with no roles — each venue configures their own in Settings
 const DEFAULT_ROLES: CustomRole[] = []
@@ -26,7 +27,7 @@ const COLOR_PALETTE = [
   'bg-stone-100 text-stone-800',
 ]
 
-const SETTINGS_KEYS = ['custom_roles', 'closed_days', 'break_duration_mins', 'cleanup_minutes', 'fridge_check_time', 'open_time', 'close_time', 'day_hours', 'compliance_nav_order', 'action_schedules', 'late_grace_mins', 'break_overrun_grace_mins', 'require_late_reason', 'require_manager_approval_for_late', 'notify_manager_at_strike', 'disciplinary_at_strike', 'counting_window_days', 'push_to_manager', 'notify_break_overrun', 'hidden_check_tiles', 'hidden_team_tiles', 'max_staff_off_enabled', 'max_staff_off_count', 'enforce_closing_checklist']
+export const SETTINGS_KEYS = ['custom_roles', 'closed_days', 'break_duration_mins', 'cleanup_minutes', 'fridge_check_time', 'open_time', 'close_time', 'day_hours', 'compliance_nav_order', 'action_schedules', 'late_grace_mins', 'break_overrun_grace_mins', 'require_late_reason', 'require_manager_approval_for_late', 'notify_manager_at_strike', 'disciplinary_at_strike', 'counting_window_days', 'push_to_manager', 'notify_break_overrun', 'hidden_check_tiles', 'hidden_team_tiles', 'max_staff_off_enabled', 'max_staff_off_count', 'enforce_closing_checklist']
 
 interface CustomRole {
   value: string
@@ -143,11 +144,16 @@ function writePersistedSettings(venueId: string, settings: AppSettings) {
 }
 
 async function fetchAppSettings(venueId: string): Promise<AppSettings> {
-  const { data } = await supabase
-    .from('app_settings')
-    .select('key, value')
-    .eq('venue_id', venueId)
-    .in('key', SETTINGS_KEYS)
+  // First load comes from the startup bundle when it's available (126).
+  let data = await takeBootstrapSettings(venueId, 'appSettings', SETTINGS_KEYS)
+  if (!data) {
+    const res = await supabase
+      .from('app_settings')
+      .select('key, value')
+      .eq('venue_id', venueId)
+      .in('key', SETTINGS_KEYS)
+    data = res.data ?? undefined
+  }
 
   const result: AppSettings = { ...DEFAULTS }
 

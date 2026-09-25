@@ -1,6 +1,7 @@
 import { supabase } from '../supabase'
 import { insertWithAttachment } from '../attachments'
 import { TRAINING_BUCKET } from '../trainingFiles'
+import { takeBootstrap } from './bootstrap'
 
 export interface StaffLite {
   id: string
@@ -39,6 +40,9 @@ export async function fetchSignOffs(venueId: string): Promise<SignOffRecord[]> {
 
 /** How many training sign-offs at the venue are still waiting for a staff signature. */
 export async function fetchUnsignedTrainingCount(venueId: string): Promise<number> {
+  // First load comes from the startup bundle when it's available (126).
+  const boot = await takeBootstrap(venueId, 'unsignedTraining')
+  if (boot) return boot.unsigned_training ?? 0
   const { count } = await supabase
     .from('training_sign_offs')
     .select('id', { count: 'exact', head: true })
