@@ -96,6 +96,7 @@ function HotHoldingRow({ item, period, log, otherLog, otherRequired, session, ve
   const [temp, setTemp]       = useState('')
   const [note, setNote]       = useState('')
   const [saving, setSaving]   = useState(false)
+  const savingRef             = useRef(false)
 
   const other    = period === 'am' ? 'pm' : 'am'
   const hasTemp  = temp !== '' && !Number.isNaN(parseFloat(temp))
@@ -105,7 +106,9 @@ function HotHoldingRow({ item, period, log, otherLog, otherRequired, session, ve
 
   // A correction is a new reading, not an overwrite, so the audit trail keeps both
   const save = async () => {
-    if (!canSave || saving) return
+    // Auto-save can fire from blur, idle timer and the button at once — save once
+    if (!canSave || savingRef.current) return
+    savingRef.current = true
     setSaving(true)
     const value = parseFloat(temp)
     const { error } = await supabase.from('hot_holding_logs').insert({
@@ -119,6 +122,7 @@ function HotHoldingRow({ item, period, log, otherLog, otherRequired, session, ve
       logged_at:      new Date().toISOString(),
       notes:          note.trim() || null,
     })
+    savingRef.current = false
     setSaving(false)
     if (error) { toast(error.message, 'error'); return }
     toast(`${item.name} · ${value.toFixed(1)}°C logged`)
@@ -168,6 +172,7 @@ function HotHoldingRow({ item, period, log, otherLog, otherRequired, session, ve
             canSubmit={canSave}
             saving={saving}
             warn={fail}
+            autoSave
             autoFocus={editing}
             placeholder={`${period.toUpperCase()} reading`}
             ariaLabel={`${item.name} ${period.toUpperCase()} reading in °C`}
@@ -180,6 +185,7 @@ function HotHoldingRow({ item, period, log, otherLog, otherRequired, session, ve
               <textarea
                 value={note}
                 onChange={e => setNote(e.target.value)}
+                onBlur={save}
                 rows={2}
                 placeholder="e.g. Reheated to 75°C and returned to hot hold"
                 className="w-full px-3 py-2 rounded-lg border border-bad/25 bg-white dark:bg-paperDark text-[13px] text-ink dark:text-white placeholder:text-ink4 focus:outline-none focus:ring-2 focus:ring-bad/20 resize-none"

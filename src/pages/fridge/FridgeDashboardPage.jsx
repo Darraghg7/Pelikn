@@ -58,6 +58,7 @@ function FridgeLogRow({ fridge, status, session, venueId, canLog, onSaved }) {
   const [reason, setReason]     = useState(null)
   const [comment, setComment]   = useState('')
   const [saving, setSaving]     = useState(false)
+  const savingRef               = useRef(false)
   const [logAgain, setLogAgain] = useState(false)
   const commentRef              = useRef(null)
 
@@ -98,7 +99,9 @@ function FridgeLogRow({ fridge, status, session, venueId, canLog, onSaved }) {
   }, [outOfRange])
 
   const save = useCallback(async () => {
-    if (!canSave || saving) return
+    // Auto-save can fire from blur, idle timer and the button at once — save once
+    if (!canSave || savingRef.current) return
+    savingRef.current = true
     setSaving(true)
     const now = new Date()
     const followUpDueAt = isExplained ? new Date(now.getTime() + 30 * 60 * 1000) : null
@@ -117,6 +120,7 @@ function FridgeLogRow({ fridge, status, session, venueId, canLog, onSaved }) {
       follow_up_due_at:  followUpDueAt?.toISOString() ?? null,
     })
 
+    savingRef.current = false
     setSaving(false)
     if (error) { toast(error.message, 'error'); return }
 
@@ -143,8 +147,14 @@ function FridgeLogRow({ fridge, status, session, venueId, canLog, onSaved }) {
     setComment('')
     setLogAgain(false)
     onSaved()
-  }, [canSave, saving, temp, comment, reason, fridge, session, venueId,
+  }, [canSave, temp, comment, reason, fridge, session, venueId,
       outOfRange, isExplained, onSaved, toast, FOLLOWUP_KEY])
+
+  // Picking an explained reason is the last step for that reading, so save it
+  useEffect(() => {
+    if (reason && isExplained) save()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reason])
 
   const handleCommentKeyDown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); save() }
@@ -198,6 +208,7 @@ function FridgeLogRow({ fridge, status, session, venueId, canLog, onSaved }) {
             onSubmit={save}
             canSubmit={canSave}
             saving={saving}
+            autoSave
             warn={outOfRange}
             placeholder={`${currentPeriod.toUpperCase()} reading`}
             ariaLabel={`${fridge.name} ${currentPeriod.toUpperCase()} reading in °C`}
@@ -260,12 +271,13 @@ function FridgeLogRow({ fridge, status, session, venueId, canLog, onSaved }) {
                     value={comment}
                     onChange={(e) => setComment(e.target.value)}
                     onKeyDown={handleCommentKeyDown}
+                    onBlur={save}
                     placeholder="Describe the corrective action taken…"
                     rows={2}
                     className="w-full px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark focus:outline-none focus:ring-2 focus:ring-danger/20 text-[13px] resize-none"
                   />
                   <p className="text-[11px] text-charcoal/35 dark:text-white/30">
-                    {comment.trim().length < 5 ? `${5 - comment.trim().length} more characters needed` : 'Tap Log to save'}
+                    {comment.trim().length < 5 ? `${5 - comment.trim().length} more characters needed` : 'Saves when you tap away'}
                   </p>
                 </div>
               )}
