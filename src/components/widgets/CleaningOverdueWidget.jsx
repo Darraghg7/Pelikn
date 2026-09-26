@@ -1,15 +1,17 @@
 import React, { memo, useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useCleaningTasks } from '../../hooks/useCleaningTasks'
+import { useViewerDepartments } from '../../hooks/useDepartments'
 import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../ui/Toast'
 import { WidgetShell, BigNumber, TitleBadge } from './shared'
 
 export const CLEANING_PAGE_SIZE = 3
-export const FREQ_DAYS = { daily: 1, weekly: 7, fortnightly: 14, monthly: 30, quarterly: 90 }
 
 function CleaningOverdueWidget() {
-  const { tasks, overdueCount, reload } = useCleaningTasks()
+  // Follows the department the manager is viewing, like the counts above it.
+  const { viewerDepartmentIds, knownDepartmentIds } = useViewerDepartments()
+  const { tasks, overdueCount, reload } = useCleaningTasks(viewerDepartmentIds, knownDepartmentIds)
   const { session } = useSession()
   const toast = useToast()
   const [page, setPage] = useState(0)
@@ -55,11 +57,6 @@ function CleaningOverdueWidget() {
     >
       <div className="divide-y divide-line dark:divide-white/10">
         {pageItems.map(t => {
-          const days = t.lastCompletion
-            ? Math.floor((Date.now() - new Date(t.lastCompletion.completed_at)) / 86400000)
-            : null
-          const threshold = FREQ_DAYS[t.frequency] ?? 1
-          const overBy = days !== null ? days - threshold : null
           return (
             <div key={t.id} className="flex items-center gap-2.5 px-3.5 sm:px-3.5 py-2">
               <button
@@ -79,7 +76,8 @@ function CleaningOverdueWidget() {
               </button>
               <p className="flex-1 min-w-0 text-[13px] min-[420px]:text-[14px] leading-snug text-ink dark:text-white line-clamp-2 break-words">{t.title}</p>
               <span className="shrink-0 font-mono text-[13px] font-semibold text-bad dark:text-[#f19a86] whitespace-nowrap">
-                {overBy !== null ? `${overBy}d overdue` : 'never done'}
+                {/* Same wording as the Cleaning page — cleaningDueLabel() */}
+                {t.due?.text ?? 'Overdue'}
               </span>
             </div>
           )

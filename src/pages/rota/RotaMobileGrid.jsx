@@ -3,7 +3,6 @@ import { format, addWeeks, subWeeks, isToday, differenceInCalendarWeeks } from '
 import { useNavigate } from 'react-router-dom'
 import { updateShift, insertShift, deleteShift, updateShiftStaff, resolveShiftSwap, upsertRotaPublished, insertShifts } from '../../lib/api/shifts'
 import { sendPush } from '../../lib/sendPush'
-import { roleForJob } from './roleForJob'
 import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
 import { useSession } from '../../contexts/SessionContext'
@@ -145,7 +144,7 @@ function ShiftSheet({ shift, staffMember, day, venueId, roles, onClose, onSaved,
   const [endM, setEndM] = useState(
     MINUTES.reduce((p, m) => Math.abs(+m - +(existing?.end_time?.slice(3, 5) ?? '0')) < Math.abs(+p - +(existing?.end_time?.slice(3, 5) ?? '0')) ? m : p, '00')
   )
-  const [roleLabel, setRoleLabel] = useState(existing?.role_label ?? roleForJob(roles, staffMember?.job_role) ?? staffMember?.job_role ?? '')
+  const [roleLabel, setRoleLabel] = useState(existing?.role_label ?? staffMember?.job_title ?? '')
   const [isClosing, setIsClosing] = useState(existing?.is_closing ?? false)
   const [edge, setEdge] = useState('start')
   const [saving, setSaving] = useState(false)
@@ -240,7 +239,7 @@ function ShiftSheet({ shift, staffMember, day, venueId, roles, onClose, onSaved,
             <Avatar name={staffMember?.name} station={station} size={44} />
             <div className="flex-1 min-w-0">
               <div className="text-[17px] font-semibold tracking-[-0.015em] text-charcoal dark:text-white">{staffMember?.name ?? 'Unassigned'}</div>
-              <div className="text-xs text-charcoal/50 dark:text-white/40 mt-px">{roleLabel || staffMember?.job_role || ''} · {format(day, 'EEE d MMM')}</div>
+              <div className="text-xs text-charcoal/50 dark:text-white/40 mt-px">{roleLabel || staffMember?.job_title || ''} · {format(day, 'EEE d MMM')}</div>
             </div>
             <button onClick={onClose} className="bg-charcoal/[0.06] border-none rounded-full w-8 h-8 flex items-center justify-center cursor-pointer shrink-0 text-charcoal/50 dark:text-white/40">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -417,7 +416,7 @@ function AISheet({ openShifts, staff, unavailability = {}, venueId, onClose, onF
       // Never suggest someone who has booked the day off.
       const free = staff.filter(s => !unavailability[`${s.id}:${dateStr}`])
       const oStation = stationFromRole(o.role_label)
-      const suggested = free.find(s => stationFromRole(s.job_role) === oStation) || free[0]
+      const suggested = free.find(s => stationFromRole(s.job_title) === oStation) || free[0]
       if (suggested) {
         await updateShiftStaff(o.id, suggested.id)
       } else {
@@ -815,7 +814,7 @@ export default function RotaMobileGrid() {
 
                     {/* Staff rows */}
                     {staff.map((member, ri) => {
-                      const station = stationFromRole(member.job_role)
+                      const station = stationFromRole(member.job_title)
                       return (
                         <div key={member.id} className="flex" style={{ borderBottom: ri === staff.length - 1 ? 'none' : '1px solid #eef0ec' }}>
                           <div

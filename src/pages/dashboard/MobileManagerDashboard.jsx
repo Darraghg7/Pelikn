@@ -574,6 +574,7 @@ export default function MobileManagerDashboard({
   firstName,
   summary,
   closedToday,
+  departmentFilter,
   widgetIds,
   onReorder,
   todayItemIds,
@@ -671,6 +672,8 @@ export default function MobileManagerDashboard({
           {greeting}{firstName ? `, ${firstName}` : ''}.
         </h1>
       </div>
+
+      {departmentFilter}
 
       <DisciplinaryStrip alerts={disciplinaryAlerts} editMode={editMode} venueSlug={venueSlug} />
       <AttentionCard actions={actions} editMode={editMode} vp={vp} />

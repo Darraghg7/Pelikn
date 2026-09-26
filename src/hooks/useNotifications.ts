@@ -269,7 +269,7 @@ function checkIncompleteTasks(items: AppNotification[], d: NotificationData): vo
   if (!templates?.length) return
   const completedIds = new Set((d.task_completions_yesterday ?? []).map(c => c.task_template_id))
   const missed = templates.filter(t => !completedIds.has(t.id))
-  if (missed.length > 0) items.push({ id: 'incomplete-yesterday', type: 'incomplete_tasks', message: `${missed.length} task${missed.length > 1 ? 's' : ''} not completed yesterday`, link: '/opening-closing', severity: 'warning' })
+  if (missed.length > 0) items.push({ id: 'incomplete-yesterday', type: 'incomplete_tasks', message: `${missed.length} task${missed.length > 1 ? 's' : ''} not completed yesterday`, link: '/tasks', severity: 'warning' })
 }
 
 function checkRepeatOffenders(items: AppNotification[], d: NotificationData): void {

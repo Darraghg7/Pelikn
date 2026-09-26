@@ -28,7 +28,7 @@ export function useAttendanceToday(venueId) {
 
       const [shiftsRes, clockRes] = await Promise.all([
         supabase.from('shifts')
-          .select('id, staff_id, start_time, end_time, role_label, staff:staff_id(id, name, job_role)')
+          .select('id, staff_id, start_time, end_time, role_label, staff:staff_id(id, name)')
           .eq('venue_id', venueId)
           .eq('shift_date', todayStr)
           .order('start_time'),
@@ -76,7 +76,7 @@ export function useAttendanceToday(venueId) {
           shiftId: sh.id,
           staffId: sh.staff_id,
           name: sh.staff?.name ?? 'Unknown',
-          role: sh.role_label || sh.staff?.job_role || '',
+          role: sh.role_label || '',
           startTime: sh.start_time,
           endTime: sh.end_time,
           status,

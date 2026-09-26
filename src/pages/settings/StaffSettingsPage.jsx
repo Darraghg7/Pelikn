@@ -5,7 +5,6 @@ import { useSession } from '../../contexts/SessionContext'
 import StaffMembersSection from './StaffMembersSection'
 import VenueCodeSection from './VenueCodeSection'
 import RolesSection from './RolesSection'
-import PermissionTitlesSection from './PermissionTitlesSection'
 import DutiesSection from './DutiesSection'
 import { TabBar } from '../../components/temperature/TempPageParts'
 
@@ -76,8 +75,6 @@ export default function StaffSettingsPage() {
       {tab === 'roles' && (
         <div className="flex flex-col gap-2.5">
           <RolesSection />
-          <p className="text-[11px] font-bold tracking-widest uppercase text-charcoal/40 dark:text-white/35 mt-4">Permission titles</p>
-          <PermissionTitlesSection />
         </div>
       )}
 

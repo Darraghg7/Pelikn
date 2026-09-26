@@ -5,7 +5,7 @@ import { useQuery } from '@tanstack/react-query'
 import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
 import { useSession } from '../../contexts/SessionContext'
-import { useAllTasks } from '../../hooks/useTasks'
+import { useAllTasks, useTasksForStaff } from '../../hooks/useTasks'
 import { useTodayDuties } from '../../hooks/useDuties'
 import { useCleaningTasks } from '../../hooks/useCleaningTasks'
 import { useToast } from '../../components/ui/Toast'
@@ -691,6 +691,91 @@ function CleaningTab({ tasks, loading, error, session, reload, departmentFor }) 
   )
 }
 
+// ── Tasks tab ─────────────────────────────────────────────
+// Recurring tasks come round every day; one-offs only on their due date.
+// A task is shared: once anyone ticks it, it's done for the whole team.
+function StaffTaskRow({ item, completion, onComplete, canTick, isFirst }) {
+  const [busy, setBusy] = useState(false)
+  const toast = useToast()
+  const done = !!completion
+  const handleTap = async () => {
+    if (busy || done || !canTick) return
+    setBusy(true)
+    const { error } = await onComplete(item)
+    setBusy(false)
+    if (error) toast("Couldn't tick that task, try again", 'error')
+  }
+  return (
+    <button
+      type="button"
+      onClick={handleTap}
+      disabled={busy || done || !canTick}
+      className={`min-h-11 w-full text-left px-4 py-3 flex items-center gap-3 disabled:cursor-default ${!isFirst ? 'border-t border-charcoal/5 dark:border-white/5' : ''}`}
+    >
+      <span className={[
+        'w-[22px] h-[22px] rounded-md border-[1.5px] shrink-0 grid place-items-center transition-colors',
+        done ? 'bg-success border-success' : 'border-charcoal/25 dark:border-white/25',
+      ].join(' ')}>
+        {done && <svg className="w-3 h-3 text-white" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg>}
+        {busy && <span className="w-2.5 h-2.5 rounded-full border-2 border-success/25 border-t-success animate-spin" />}
+      </span>
+      <span className="flex-1 min-w-0">
+        <span className={`block text-[13.5px] font-medium ${done ? 'line-through text-charcoal/40 dark:text-white/35' : 'text-charcoal dark:text-white'}`}>{item.title}</span>
+        {done && completion.completed_by_name && (
+          <span className="block text-[11px] text-charcoal/35 dark:text-white/30 mt-0.5">{completion.completed_by_name}</span>
+        )}
+      </span>
+      {item.assigned_to_staff_id && (
+        <span className="text-[11px] font-mono font-semibold px-2 py-0.5 rounded bg-accent/10 text-accent uppercase tracking-wide shrink-0">For you</span>
+      )}
+    </button>
+  )
+}
+
+function TasksTab({ templates, oneOffs, completions, loading, canTick, session, reload }) {
+  if (loading) return <SkeletonList rows={3} />
+  const items = [...templates, ...oneOffs]
+  if (!items.length) return (
+    <div className="bg-white dark:bg-paperDark rounded-[14px] border border-charcoal/8 dark:border-white/8 p-8 text-center">
+      <p className="text-sm text-charcoal/40 dark:text-white/35">No tasks for this day</p>
+    </div>
+  )
+  const completionFor = (item) => completions.find(c =>
+    'due_date' in item ? c.task_one_off_id === item.id : c.task_template_id === item.id)
+  const doneCount = items.filter(completionFor).length
+  const pct = Math.round((doneCount / items.length) * 100)
+
+  const completeTask = async (item) => {
+    const isOneOff = 'due_date' in item
+    const { error } = await supabase.rpc('complete_task', {
+      p_token:       session?.token,
+      p_template_id: isOneOff ? null : item.id,
+      p_one_off_id:  isOneOff ? item.id : null,
+    })
+    if (!error) reload?.()
+    return { error }
+  }
+
+  return (
+    <div>
+      <div className="flex items-baseline justify-between px-1 mb-2">
+        <span className="text-[11px] font-mono tracking-widest uppercase text-charcoal/40 dark:text-white/35 font-semibold">
+          {canTick ? 'Today' : 'Read only'}
+        </span>
+        <span className="text-[11px] font-mono text-charcoal/35 dark:text-white/30">{doneCount} / {items.length}</span>
+      </div>
+      <div className="bg-white dark:bg-paperDark rounded-[14px] border border-charcoal/8 dark:border-white/8 overflow-hidden">
+        <div className="h-[3px] bg-charcoal/6 dark:bg-white/8">
+          <div className={`h-full transition-all ${doneCount === items.length ? 'bg-success' : 'bg-warning'}`} style={{ width: `${Math.max(pct, 2)}%` }} />
+        </div>
+        {items.map((item, i) => (
+          <StaffTaskRow key={item.id} item={item} completion={completionFor(item)} onComplete={completeTask} canTick={canTick} isFirst={i === 0} />
+        ))}
+      </div>
+    </div>
+  )
+}
+
 function AllergensTab({ venueSlug }) {
   return (
     <div className="flex flex-col gap-2.5">
@@ -749,6 +834,10 @@ function StaffTasksView({ session }) {
   // then vanish on the page where it gets ticked off. Unknown departments
   // fail open — see lib/roleFilter.
   const cleaningData = useCleaningTasks(viewerDepartmentIds, knownDepartmentIds, targetDate)
+  const tasksData    = useTasksForStaff(viewerDepartmentIds, session?.staffId, knownDepartmentIds, targetDate)
+  const tasksLeft    = [...tasksData.templates, ...tasksData.oneOffs].filter(item =>
+    !tasksData.completions.some(c => 'due_date' in item ? c.task_one_off_id === item.id : c.task_template_id === item.id)
+  ).length
   const cleaningDue  = cleaningData.tasks.filter(t => t.status === 'overdue').length
   // With the full schedule on show, say whose each task is.
   const { cleaningVisibleToAll } = useAppSettings()
@@ -756,10 +845,11 @@ function StaffTasksView({ session }) {
     ? (departmentId) => departmentName(departmentId) ?? 'Everyone'
     : undefined
 
-  const TAB_TITLE = { duties: 'Duties', cleaning: 'Cleaning', allergens: 'Allergens' }
+  const TAB_TITLE = { duties: 'Duties', tasks: 'Tasks', cleaning: 'Cleaning', allergens: 'Allergens' }
 
   const TABS = [
     { id: 'duties',   label: 'Duties',   count: dutiesData.duties.length },
+    { id: 'tasks',    label: 'Tasks',    count: tasksLeft },
     // Outstanding, not total — the badge is "what's left to do".
     { id: 'cleaning', label: 'Cleaning', count: cleaningDue },
     { id: 'allergens', label: 'Allergens', count: 1 },
@@ -830,6 +920,7 @@ function StaffTasksView({ session }) {
 
       {/* Tab content */}
       {activeTab === 'duties'    && <DutiesTab duties={dutiesData.duties} loading={dutiesData.loading} toggleItem={dutiesData.toggleItem} />}
+      {activeTab === 'tasks'     && <TasksTab {...tasksData} canTick={dayOffset === 0} session={session} />}
       {activeTab === 'cleaning'  && <CleaningTab tasks={cleaningData.tasks} loading={cleaningData.loading} error={cleaningData.error} session={session} reload={cleaningData.reload} departmentFor={departmentFor} />}
       {activeTab === 'allergens' && <AllergensTab venueSlug={venueSlug} />}
 

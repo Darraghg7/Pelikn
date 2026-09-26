@@ -7,6 +7,10 @@ export interface Staff {
   email?: string
   role?: string
   job_role?: string
+  /** Job titles held (venue_roles), in Settings order — see useStaffJobTitles. */
+  job_titles?: string[]
+  /** The first of job_titles, for single-label places. */
+  job_title?: string | null
   hourly_rate?: number
   skills?: string[]
   is_under_18?: boolean
@@ -76,12 +80,6 @@ export interface StaffPermission {
   label: string
   category: string
   description: string
-}
-
-export interface PermissionPreset {
-  id: string
-  label: string
-  permissions: string[]
 }
 
 export interface VenuePreset {

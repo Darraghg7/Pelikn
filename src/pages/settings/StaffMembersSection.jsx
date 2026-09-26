@@ -11,7 +11,6 @@ import { useVenue } from '../../contexts/VenueContext'
 import { useAuth } from '../../contexts/AuthContext'
 import { useToast } from '../../components/ui/Toast'
 import { useVenueRoles } from '../../hooks/useVenueRoles'
-import { usePermissionTitles } from '../../hooks/usePermissionTitles'
 import Toggle from '../../components/ui/Toggle'
 import useStaffManagement from '../../hooks/useStaffManagement'
 import { StaffRolesAssignment, StaffDepartmentsAssignment } from './RolesSection'
@@ -43,7 +42,6 @@ const DOW_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
 export default function StaffMembersSection({ detailId = null, onOpen, onClose, backLabel = 'Staff & roles' }) {
   const { staff, loading: staffLoading, reload: reloadStaff } = useStaffManagement()
-  const { titles: permissionTitles } = usePermissionTitles()
   const { roles: venueRoles } = useVenueRoles()
   const { session } = useSession()
   const [deleteTarget, setDeleteTarget] = useState(null)
@@ -269,18 +267,15 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
       if (extraErr) { toast('Saved, but failed to update some fields: ' + extraErr.message, 'error') }
     }
 
-    // Title carries its own permissions (looked up live, not copied) — see
-    // SessionContext.jsx's fetchLivePermissions. Only persist the manual
-    // checklist when no title is assigned ("Custom").
+    // Permission titles are gone: a title, if anyone still had one, would
+    // override this checklist at sign-in (SessionContext's
+    // fetchLivePermissions), so clear it the first time they're saved.
     if (staffForm.role === 'staff' && targetId) {
-      const { error: titleErr } = await updateStaffFields(session.token, targetId, {
-        permission_title_id: staffForm.permission_title_id,
-      })
-      if (titleErr) { toast('Saved, but failed to update permission title: ' + titleErr.message, 'error') }
-
-      if (!staffForm.permission_title_id) {
-        await saveStaffPermissions(targetId, venueId, [...permForm], session.token)
+      if (staffForm.permission_title_id) {
+        const { error: titleErr } = await updateStaffFields(session.token, targetId, { permission_title_id: null })
+        if (titleErr) { toast('Saved, but failed to clear old permission title: ' + titleErr.message, 'error') }
       }
+      await saveStaffPermissions(targetId, venueId, [...permForm], session.token)
     }
 
     setSavingStaff(false)
@@ -621,40 +616,8 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
         <>
           <SectionLabel>Permissions</SectionLabel>
           <div className={`${CARD} overflow-hidden`}>
-            <div className="p-3 sm:p-5">
-              <Field label="Title" group>
-                <div className="flex gap-2 flex-wrap">
-                  {permissionTitles.map(title => (
-                    <Chip key={title.id} active={staffForm.permission_title_id === title.id} onClick={() => set('permission_title_id', title.id)}>{title.label}</Chip>
-                  ))}
-                  <Chip active={!staffForm.permission_title_id} onClick={() => set('permission_title_id', null)}>Custom</Chip>
-                </div>
-              </Field>
-            </div>
-            <div className="border-t border-line dark:border-white/10 px-3.5 sm:px-3.5 py-2.5">
-              {staffForm.permission_title_id ? (() => {
-                const title   = permissionTitles.find(t => t.id === staffForm.permission_title_id)
-                const granted = STAFF_PERMISSIONS.filter(p => title?.permissions.includes(p.id))
-                return (
-                  <>
-                    <p className="text-[13px] text-ink3 dark:text-white/45 mb-2">“{title?.label}” lets them:</p>
-                    {granted.length === 0 ? (
-                      <p className="text-[13px] text-ink3 dark:text-white/45">Nothing yet — edit the title under Roles.</p>
-                    ) : (
-                      <ul className="flex flex-col gap-1.5">
-                        {granted.map(p => (
-                          <li key={p.id} className="flex items-center gap-2 text-[13px] text-ink dark:text-white">
-                            <svg className="w-4 h-4 text-good shrink-0" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg>
-                            {p.label}
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                    <p className="text-[13px] text-ink3 dark:text-white/45 mt-2">Pick Custom to set permissions for just this person.</p>
-                  </>
-                )
-              })() : (
-                ['Compliance', 'Operations', 'Team'].map(category => (
+            <div className="px-3.5 sm:px-3.5 py-2.5">
+              {['Compliance', 'Operations', 'Team'].map(category => (
                   <div key={category} className="mb-2 last:mb-0">
                     <p className="text-[12px] font-semibold tracking-[0.08em] uppercase text-ink4 dark:text-white/35 mb-1">{category}</p>
                     <div className="flex flex-col divide-y divide-line dark:divide-white/10">
@@ -674,7 +637,7 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
                     </div>
                   </div>
                 ))
-              )}
+              }
             </div>
           </div>
         </>

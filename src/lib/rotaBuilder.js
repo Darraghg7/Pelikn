@@ -157,7 +157,7 @@ export function fillRotaRequirements({
  * Constraint-based rota builder — pure function, no React, no API calls.
  *
  * @param {Object} config
- * @param {Array}  config.staff              — [{ id, name, job_role, hourly_rate, skills }]
+ * @param {Array}  config.staff              — [{ id, name, job_titles, job_title, hourly_rate, skills }]
  * @param {Array}  config.days               — [Date, Date, ...] (7 dates for the week)
  * @param {Object} config.unavailability     — { "staffId:yyyy-MM-dd": { type, subtype? } }
  * @param {Array}  config.existingShifts     — current shifts for the week
@@ -236,7 +236,7 @@ export function buildRota(config) {
       .filter(s => {
         if (!isAvailable(s.id, dayIdx, includeBreakCover)) return false
         if (assignedPerDay[dayIdx].has(s.id)) return false
-        if (roleFilter && s.job_role?.toLowerCase() !== roleFilter.toLowerCase()) return false
+        if (roleFilter && !(s.job_titles ?? []).some(t => t.toLowerCase() === roleFilter.toLowerCase())) return false
         if (skillFilter && !(s.skills ?? []).includes(skillFilter)) return false
         return true
       })
@@ -252,7 +252,7 @@ export function buildRota(config) {
       week_start: weekStart,
       start_time: startTime,
       end_time: endTime,
-      role_label: role || staffMember.job_role || 'Staff',
+      role_label: role || staffMember.job_title || 'Staff',
       _staffName: staffMember.name, // for preview display only
     })
     hoursAssigned[staffMember.id] += hrs
@@ -279,12 +279,13 @@ export function buildRota(config) {
       const needed = req.min - filled
       if (needed <= 0) continue
 
-      // Try staff with matching skills first, then any available staff
+      // People who hold the job title first, then matching skills, then
+      // anyone available
+      const titleMatch = getAvailableStaff(di, { roleFilter: req.role })
       const skillMatch = getAvailableStaff(di, { skillFilter: req.role.toLowerCase().replace(/\s+/g, '_') })
       const allCandidates = getAvailableStaff(di)
-      // Deduplicate: skill matches first, then others
-      const seen = new Set(skillMatch.map(s => s.id))
-      const candidates = [...skillMatch, ...allCandidates.filter(s => !seen.has(s.id))]
+      const seen = new Set()
+      const candidates = [...titleMatch, ...skillMatch, ...allCandidates].filter(s => !seen.has(s.id) && seen.add(s.id))
 
       for (let i = 0; i < needed && i < candidates.length; i++) {
         assignShift(candidates[i], di, req.role)
@@ -331,7 +332,7 @@ export function buildRota(config) {
 
       const candidates = getAvailableStaff(di, { skillFilter: req.skill })
       for (let i = 0; i < needed && i < candidates.length; i++) {
-        assignShift(candidates[i], di, candidates[i].job_role || null)
+        assignShift(candidates[i], di, candidates[i].job_title || null)
       }
 
       if (candidates.length < needed) {
@@ -356,7 +357,7 @@ export function buildRota(config) {
 
     const candidates = getAvailableStaff(di)
     for (let i = 0; i < needed && i < candidates.length; i++) {
-      assignShift(candidates[i], di, candidates[i].job_role || 'Staff')
+      assignShift(candidates[i], di, candidates[i].job_title || 'Staff')
     }
 
     if (candidates.length < needed) {

@@ -37,6 +37,22 @@ test.describe.serial('Departments', () => {
     await page.close()
   })
 
+  test('Settings has no permission titles any more', async ({ page }) => {
+    await goto(page, '/settings/staff?tab=roles')
+    await expect(page.getByText('Job titles', { exact: true })).toBeVisible()
+    await expect(page.getByText(/permission titles?/i)).toHaveCount(0)
+  })
+
+  test('closing sign-off lives in Compliance, with its state shown on Opening & Closing', async ({ page }) => {
+    await goto(page, '/settings/compliance')
+    await expect(page.getByText('Closers sign off before clocking out')).toBeVisible()
+    await goto(page, '/settings/attendance')
+    await expect(page.getByText(/sign-off to clock out|Closers sign off/)).toHaveCount(0)
+    await goto(page, '/opening-closing')
+    await page.getByRole('link', { name: 'Change' }).click()
+    await expect(page).toHaveURL(/settings\/compliance/)
+  })
+
   test('departments in Settings appear as ticks on the staff page', async ({ page }) => {
     await goto(page, '/settings/staff?tab=roles')
     await expect(page.getByText(DEPT)).toBeVisible()
@@ -52,7 +68,7 @@ test.describe.serial('Departments', () => {
     if (SHOTS) await page.screenshot({ path: `${SHOTS}/2-staff-departments.png` })
   })
 
-  for (const [path, name] of [['/cleaning', 'cleaning'], ['/tasks', 'tasks'], ['/opening-closing', 'opening']] as const) {
+  for (const [path, name] of [['/cleaning', 'cleaning'], ['/tasks', 'tasks'], ['/opening-closing', 'opening'], ['/dashboard', 'dashboard']] as const) {
     test(`manager can switch ${name} between departments`, async ({ page }) => {
       await goto(page, path)
       const filter = page.getByRole('group', { name: 'Department' })

@@ -61,10 +61,10 @@ export default function AttendanceSettingsPage() {
   const {
     lateGraceMins, breakDurationMins, breakOverrunGraceMins, cleanupMinutes,
     requireLateReason, requireManagerApprovalForLate, notifyManagerAtStrike, disciplinaryAtStrike,
-    countingWindowDays, pushToManager, maxStaffOffEnabled, maxStaffOffCount, enforceClosingChecklist,
+    countingWindowDays, pushToManager, maxStaffOffEnabled, maxStaffOffCount,
     saveLateGraceMins, saveBreakDuration, saveBreakOverrunGraceMins, saveCleanupMinutes,
     saveRequireLateReason, saveRequireManagerApprovalForLate, saveNotifyManagerAtStrike, saveDisciplinaryAtStrike,
-    saveCountingWindowDays, savePushToManager, saveMaxStaffOffEnabled, saveMaxStaffOffCount, saveEnforceClosingChecklist,
+    saveCountingWindowDays, savePushToManager, saveMaxStaffOffEnabled, saveMaxStaffOffCount,
   } = settings
 
   const vp = (path) => `/v/${venueSlug}${path}`
@@ -189,20 +189,6 @@ export default function AttendanceSettingsPage() {
               control={<Stepper value={maxStaffOffCount} onChange={saveMaxStaffOffCount} min={1} max={20} />}
             />
           )}
-        </Group>
-
-        <Group
-          label="Closing checklist"
-          foot={enforceClosingChecklist
-            ? "The first person closing a department must finish its closing checklist before clocking out; anyone closing after them has to accept it. A manager PIN can always override."
-            : 'Off — closing checks are logged, but clocking out is never blocked.'}
-        >
-          <Row
-            label="Require sign-off to clock out"
-            sub="Only applies to shifts flagged as closing on the rota"
-            last={false}
-            control={<Toggle checked={enforceClosingChecklist} onChange={saveEnforceClosingChecklist} />}
-          />
         </Group>
 
       </div>

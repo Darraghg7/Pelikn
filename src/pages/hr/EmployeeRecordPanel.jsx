@@ -22,6 +22,7 @@ import { useToast } from '../../components/ui/Toast'
 import Modal from '../../components/ui/Modal'
 import ConfirmDialog from '../../components/ui/ConfirmDialog'
 import { PageSkeleton, SkeletonList } from '../../components/ui/Skeleton'
+import { useStaffJobTitles } from '../../hooks/useVenueRoles'
 import {
   useStaffHeader, useHRDocuments, useDisciplinaryRecord,
   useLeaveRequests, useStaffTrainingRecord, useStaffSessions,
@@ -226,7 +227,7 @@ const Ico = {
 }
 
 // ── Profile Tab ──────────────────────────────────────────────────────────────
-function ProfileTab({ staff, docsCount, strikesCount, venueSlug }) {
+function ProfileTab({ staff, jobTitle, docsCount, strikesCount, venueSlug }) {
   if (!staff) return <PageSkeleton rows={4} />
 
   const strikeTone =
@@ -246,7 +247,7 @@ function ProfileTab({ staff, docsCount, strikesCount, venueSlug }) {
       <SectionCard>
         <CardHead>Employment</CardHead>
         <DataRow label="Full name"    value={staff.name} />
-        <DataRow label="Job role"     value={staff.job_role?.toUpperCase()} />
+        <DataRow label="Job title"    value={jobTitle || null} />
         <DataRow label="Contract"     value={EMPLOYMENT_LABELS[staff.employment_type] ?? staff.employment_type} />
         <DataRow label="Start date"   value={staff.start_date ? format(parseISO(staff.start_date), 'd MMMM yyyy') : null} />
         <DataRow label="Hourly rate"  value={staff.hourly_rate != null ? `£${Number(staff.hourly_rate).toFixed(2)} / hr` : null} />
@@ -1027,6 +1028,8 @@ function SecurityTab({ staffId }) {
 export default function EmployeeRecordPanel({ staffId, venueId, venueSlug, onBack, tab, setTab }) {
   const navigate = useNavigate()
   const { staff, docsCount, strikesCount, loading } = useStaffHeader(staffId)
+  const { labelFor } = useStaffJobTitles()
+  const jobTitle = labelFor(staffId)
 
   if (!staffId) {
     return (
@@ -1062,11 +1065,15 @@ export default function EmployeeRecordPanel({ staffId, venueId, venueSlug, onBac
             <>
               {/* Mobile: compact single-line */}
               <div className="lg:hidden text-[12.5px] text-charcoal/50 dark:text-white/40 mt-[2px] overflow-hidden text-ellipsis whitespace-nowrap">
-                {staff.job_role?.toUpperCase()}{staff.employment_type ? ` · ${EMPLOYMENT_LABELS[staff.employment_type] ?? staff.employment_type}` : ''}{staff.start_date ? ` · ${tenure(staff.start_date)}` : ''}
+                {[
+                  jobTitle.toUpperCase(),
+                  staff.employment_type ? (EMPLOYMENT_LABELS[staff.employment_type] ?? staff.employment_type) : null,
+                  staff.start_date ? tenure(staff.start_date) : null,
+                ].filter(Boolean).join(' · ')}
               </div>
               {/* Desktop: multi-line */}
               <div className="hidden lg:flex items-center gap-[11px] mt-[5px] flex-wrap">
-                <span className="text-[13.5px] text-charcoal/50 dark:text-white/40">{staff.job_role?.toUpperCase()}</span>
+                <span className="text-[13.5px] text-charcoal/50 dark:text-white/40">{jobTitle.toUpperCase()}</span>
                 {staff.employment_type && (
                   <>
                     <span className="w-px h-3 bg-charcoal/10 dark:bg-white/10" />
@@ -1119,7 +1126,7 @@ export default function EmployeeRecordPanel({ staffId, venueId, venueSlug, onBac
         ))}
       </div>
 
-      {tab === 'Profile'      && <ProfileTab      staff={staff} docsCount={docsCount} strikesCount={strikesCount} venueSlug={venueSlug} />}
+      {tab === 'Profile'      && <ProfileTab      staff={staff} jobTitle={jobTitle} docsCount={docsCount} strikesCount={strikesCount} venueSlug={venueSlug} />}
       {tab === 'Documents'    && <DocumentsTab    staffId={staffId} venueId={venueId} />}
       {tab === 'Disciplinary' && <DisciplinaryTab staffId={staffId} venueId={venueId} />}
       {tab === 'Leave'        && <LeaveTab        staffId={staffId} venueSlug={venueSlug} staff={staff} />}

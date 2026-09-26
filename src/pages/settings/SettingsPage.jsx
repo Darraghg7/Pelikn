@@ -24,7 +24,6 @@ import HelpSection from './HelpSection'
 import AppIconPicker from './AppIconPicker'
 import VenueTypeIndicator from './VenueTypeIndicator'
 import VenueCodeSection from './VenueCodeSection'
-import PermissionTitlesSection from './PermissionTitlesSection'
 import NavOrderSection from './NavOrderSection'
 import ActionSchedulesSection from './ActionSchedulesSection'
 
@@ -330,14 +329,6 @@ export default function SettingsPage() {
                 defaultOpen
               >
                 <RolesSection />
-              </SettingsSection>
-              <SettingsSection
-                title="Permission Titles"
-                subtitle="Create reusable access levels for this venue"
-                locked={venuePlan !== PLANS.PRO}
-                defaultOpen
-              >
-                <PermissionTitlesSection />
               </SettingsSection>
             </>
           )}

@@ -7,7 +7,6 @@ import {
   STAFF_PERMISSIONS,
   STAFF_PERMISSION_IDS,
   DEFAULT_STAFF_PERMISSIONS,
-  PERMISSION_PRESETS,
   STAFF_COLOUR_PALETTE,
   PLANS,
   EXPLAINED_EXCEEDANCE_REASONS,
@@ -97,38 +96,6 @@ describe('DEFAULT_STAFF_PERMISSIONS', () => {
     expect(DEFAULT_STAFF_PERMISSIONS.length).toBeGreaterThan(0)
     for (const id of DEFAULT_STAFF_PERMISSIONS) {
       expect(STAFF_PERMISSION_IDS).toContain(id)
-    }
-  })
-})
-
-describe('PERMISSION_PRESETS', () => {
-  it('contains daily, senior, and full presets', () => {
-    const ids = PERMISSION_PRESETS.map(p => p.id)
-    expect(ids).toContain('daily')
-    expect(ids).toContain('senior')
-    expect(ids).toContain('full')
-  })
-
-  it('full preset contains every permission', () => {
-    const full = PERMISSION_PRESETS.find(p => p.id === 'full')
-    for (const id of STAFF_PERMISSION_IDS) {
-      expect(full.permissions).toContain(id)
-    }
-  })
-
-  it('every permission in every preset exists in STAFF_PERMISSION_IDS', () => {
-    for (const preset of PERMISSION_PRESETS) {
-      for (const permId of preset.permissions) {
-        expect(STAFF_PERMISSION_IDS).toContain(permId)
-      }
-    }
-  })
-
-  it('senior preset is a proper subset of full preset', () => {
-    const full   = PERMISSION_PRESETS.find(p => p.id === 'full')
-    const senior = PERMISSION_PRESETS.find(p => p.id === 'senior')
-    for (const id of senior.permissions) {
-      expect(full.permissions).toContain(id)
     }
   })
 })

@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import { format, parseISO, isToday, isYesterday, subDays } from 'date-fns'
 import { supabase } from '../../lib/supabase'
@@ -8,6 +9,7 @@ import { PageSkeleton } from '../../components/ui/Skeleton'
 import ConfirmDialog from '../../components/ui/ConfirmDialog'
 import OpeningClosingExportModal from './OpeningClosingExportModal'
 import { useViewerDepartments } from '../../hooks/useDepartments'
+import { useAppSettings } from '../../hooks/useSettings'
 import { departmentMatcher } from '../../lib/roleFilter'
 import DepartmentFilter from '../../components/ui/DepartmentFilter'
 
@@ -397,8 +399,9 @@ function DateSelector({ value, onChange }) {
 
 export default function OpeningClosingPage() {
   const toast = useToast()
-  const { venueId } = useVenue()
+  const { venueId, venueSlug } = useVenue()
   const { session, isManager } = useSession()
+  const { enforceClosingChecklist } = useAppSettings()
 
   const [selectedDate, setSelectedDate] = useState(todayStr())
   const [showExport, setShowExport]     = useState(false)
@@ -535,6 +538,16 @@ export default function OpeningClosingPage() {
       </div>
 
       {isManager && <DepartmentFilter departments={departments} value={deptFilter} onChange={setDeptFilter} />}
+
+      {/* The clock-out sign-off is set in Compliance settings; say here, where
+          the checklist is built, whether it's switched on. */}
+      {isManager && (
+        <p className="text-[12px] text-charcoal/50 dark:text-white/40 px-1">
+          Closers sign off before clocking out: <span className="font-semibold text-charcoal/70 dark:text-white/60">{enforceClosingChecklist ? 'On' : 'Off'}</span>
+          {' · '}
+          <Link to={`/v/${venueSlug}/settings/compliance#closing-checklist`} className="underline underline-offset-2 hover:text-charcoal dark:hover:text-white">Change</Link>
+        </p>
+      )}
 
       {/* Date selector */}
       <div className="flex flex-col gap-2">

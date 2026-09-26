@@ -12,6 +12,9 @@ import { useAppSettings } from '../../hooks/useSettings'
 import { useWidgetPreferences } from '../../hooks/useWidgetPreferences'
 import { useTodayPreferences } from '../../hooks/useTodayPreferences'
 import { useTodaySummary } from '../../hooks/useTodaySummary'
+import { useDepartmentSummary } from '../../hooks/useDepartmentSummary'
+import { useViewerDepartments } from '../../hooks/useDepartments'
+import DepartmentFilter from '../../components/ui/DepartmentFilter'
 import { useVenueFeatures } from '../../hooks/useVenueFeatures'
 import { useIsDesktop } from '../../hooks/useMediaQuery'
 import TodaySummaryCard from './TodaySummaryCard'
@@ -259,7 +262,11 @@ export default function ManagerDashboardPage() {
   const { todayItemIds, save: saveToday } = useTodayPreferences(session?.staffId, venueId)
   const { closedDays, actionSchedules } = useAppSettings()
   const { isEnabled } = useVenueFeatures()
-  const { summary, closedToday } = useTodaySummary(venueId, closedDays, actionSchedules)
+  const { summary: venueSummary, closedToday } = useTodaySummary(venueId, closedDays, actionSchedules)
+  // Cleaning and check counts follow the department the manager is viewing.
+  const { summary } = useDepartmentSummary(venueSummary, actionSchedules)
+  const { departments, filter: deptFilter, setFilter: setDeptFilter } = useViewerDepartments()
+  const departmentFilter = <DepartmentFilter departments={departments} value={deptFilter} onChange={setDeptFilter} />
   const [showPicker, setShowPicker] = useState(false)
 
   const vp = (p) => `/v/${venueSlug}${p}`
@@ -301,6 +308,8 @@ export default function ManagerDashboardPage() {
       </div>
       )}
 
+      {isDesktop && departmentFilter}
+
       {/* Mobile layout — rendered only below `lg`. Previously this was
           `lg:hidden`, which merely hid it: the whole mobile dashboard still
           mounted on desktop (and the desktop one on phones), so every hook in
@@ -315,6 +324,7 @@ export default function ManagerDashboardPage() {
           firstName={firstName}
           summary={summary}
           closedToday={closedToday}
+          departmentFilter={departmentFilter}
           widgetIds={widgetIds}
           onReorder={(newIds) => { save(newIds) }}
           todayItemIds={todayItemIds}

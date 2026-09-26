@@ -3,6 +3,7 @@ import { format, parseISO } from 'date-fns'
 import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
 import { useSession } from '../../contexts/SessionContext'
+import { useStaffJobTitles } from '../../hooks/useVenueRoles'
 import { useToast } from '../../components/ui/Toast'
 import EmptyState from '../../components/ui/EmptyState'
 import { SkeletonList } from '../../components/ui/Skeleton'
@@ -35,7 +36,7 @@ function useActiveStaff(venueId) {
     if (!venueId) return
     supabase
       .from('staff')
-      .select('id, name, job_role')
+      .select('id, name')
       .eq('venue_id', venueId)
       .eq('is_active', true)
       .order('name')
@@ -48,6 +49,7 @@ function useActiveStaff(venueId) {
 // ── Add Tip Split Modal ──────────────────────────────────────────────────────
 
 function AddTipSplitModal({ staff, venueId, managerId, onSaved, onClose }) {
+  const { labelFor } = useStaffJobTitles()
   const toast = useToast()
   const [total, setTotal] = useState('')
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10))
@@ -171,7 +173,7 @@ function AddTipSplitModal({ staff, venueId, managerId, onSaved, onClose }) {
                   <div key={s.id} className="flex items-center gap-3">
                     <div className="flex-1 min-w-0">
                       <p className="text-sm text-charcoal dark:text-white truncate">{s.name}</p>
-                      {s.job_role && <p className="text-[11px] text-charcoal/40 dark:text-white/35">{s.job_role}</p>}
+                      {labelFor(s.id) && <p className="text-[11px] text-charcoal/40 dark:text-white/35">{labelFor(s.id)}</p>}
                     </div>
                     <div className="relative w-24 shrink-0">
                       <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-charcoal/40 dark:text-white/35 text-xs">&pound;</span>

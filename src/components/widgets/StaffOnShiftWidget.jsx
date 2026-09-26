@@ -13,7 +13,7 @@ function StaffOnShiftWidget() {
 
   const { data } = useWidgetQuery('staff_on_shift', [venueId, today], async () => {
     const { data: rows } = await supabase.from('shifts')
-      .select('id, start_time, end_time, role_label, staff:staff_id(name, job_role)')
+      .select('id, start_time, end_time, role_label, staff:staff_id(name)')
       .eq('venue_id', venueId)
       .eq('shift_date', today)
       .order('start_time')
