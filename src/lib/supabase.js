@@ -13,8 +13,10 @@ export const isConfigured = !!(supabaseUrl && supabaseAnonKey)
 // Set after PIN login (staff) or venue selection (owner). Injected as the
 // Authorization bearer on every PostgREST (/rest/v1) request so venue-scoped
 // RLS can read (auth.jwt() ->> 'venue_id'). The anon key stays as the apikey.
-// Auth (/auth/v1), Edge Functions (/functions/v1) and Storage are never
-// overridden — they keep the anon key / Supabase-Auth token.
+// Also injected on the venue-scoped private Storage buckets (see
+// VENUE_SCOPED_BUCKETS). Auth (/auth/v1), Edge Functions (/functions/v1) and
+// every other bucket are never overridden — they keep the anon key /
+// Supabase-Auth token.
 //
 // Safety rules that keep this from repeating the 2026 "EC key mismatch" outage:
 //   • Only a well-formed, non-expired JWT is ever injected. An expired or
@@ -74,6 +76,22 @@ function urlIsRest(url) {
   return u.includes('/rest/v1/')
 }
 
+// Private buckets whose storage policies check the venue JWT claim
+// (has_venue_access / is_venue_hr_manager — 085, 086, 123). Without the venue
+// JWT a PIN session reaches Storage as anon, so uploads fail RLS and signed
+// URLs come back "Object not found". Other buckets (app-assets, staff-photos)
+// have dashboard-made policies and keep the anon / Supabase-Auth token.
+const VENUE_SCOPED_BUCKETS = ['venue-documents', 'hr-documents', 'training-files']
+
+function urlIsVenueStorage(url) {
+  const u = typeof url === 'string' ? url : (url?.url ?? '')
+  const at = u.indexOf('/storage/v1/object/')
+  if (at === -1) return false
+  // …/object/<bucket>/…, …/object/sign/<bucket>/…, …/object/list/<bucket>, etc.
+  const segments = u.slice(at + '/storage/v1/object/'.length).split(/[?#]/)[0].split('/')
+  return segments.slice(0, 2).some(s => VENUE_SCOPED_BUCKETS.includes(s))
+}
+
 /**
  * PostgREST table a data request targets, e.g.
  * `…/rest/v1/fridge_temperature_logs?on_conflict=…` → `fridge_temperature_logs`.
@@ -90,6 +108,22 @@ function restTable(url) {
   if (at === -1) return null
   const name = u.slice(at + '/rest/v1/'.length).split(/[?#/]/)[0]
   return !name || name === 'rpc' ? null : name
+}
+
+// RPCs are POSTs whether they read or write, so restTable() never names one.
+// Those that change data are announced by name, matched on a leading write
+// verb (record_clock_event, complete_cleaning_task, save_staff_permissions…).
+// Reads (get_/list_/validate_/…_fields) never match, and the background
+// refresh_staff_session / register_apns_token are left out on purpose — they
+// fire on timers and would refresh every cached list for nothing.
+const WRITE_RPC = /^(accept|acknowledge|add|approve|cancel|complete|create|deactivate|delete|deny|edit|link|log|mark|reactivate|record|regenerate|reorder|replace|reset|restrict|revoke|save|submit|unlink|unrestrict|update|upsert)_/
+
+function writeRpcName(url) {
+  const u = typeof url === 'string' ? url : (url?.url ?? '')
+  const at = u.indexOf('/rest/v1/rpc/')
+  if (at === -1) return null
+  const name = u.slice(at + '/rest/v1/rpc/'.length).split(/[?#/]/)[0]
+  return WRITE_RPC.test(name) ? name : null
 }
 
 function withBearer(options, jwt) {
@@ -130,9 +164,10 @@ function makeRetryFetch(timeoutMs = 20_000, maxWriteRetries = 2) {
     const method = (options.method ?? 'GET').toUpperCase()
     const isWrite = !['GET', 'HEAD'].includes(method)
     const isRest = urlIsRest(url)
+    const needsVenueJwt = isRest || urlIsVenueStorage(url)
 
     // Proactively refresh a venue JWT that is missing/expiring before a data call.
-    if (isRest && _sessionJwt && !jwtUsable() && _jwtRefresher) {
+    if (needsVenueJwt && _sessionJwt && !jwtUsable() && _jwtRefresher) {
       try {
         const fresh = await _jwtRefresher()
         if (fresh) setSessionJwt(fresh)
@@ -141,7 +176,7 @@ function makeRetryFetch(timeoutMs = 20_000, maxWriteRetries = 2) {
 
     // Inject the venue-scoped JWT on data requests when it is usable.
     let injected = false
-    if (isRest && jwtUsable()) {
+    if (needsVenueJwt && jwtUsable()) {
       options = withBearer(options, _sessionJwt)
       injected = true
     }
@@ -166,7 +201,10 @@ function makeRetryFetch(timeoutMs = 20_000, maxWriteRetries = 2) {
 
         // Announce successful data writes so the SWR caches can drop what they
         // are holding. Only 2xx counts — a rejected write changed nothing.
-        if (isWrite && isRest && response.ok) emitDataWrite(restTable(url))
+        if (isWrite && isRest && response.ok) {
+          const rpc = writeRpcName(url)
+          emitDataWrite(rpc ? `rpc:${rpc}` : restTable(url))
+        }
 
         return response
       } catch (err) {

@@ -6,7 +6,8 @@ import { useVenue } from '../../contexts/VenueContext'
 import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../../components/ui/Toast'
 import { useTimesheetData } from '../../hooks/useClockEvents'
-import { useStaffList } from '../../hooks/useShifts'
+import { useStaffList, paidShiftHours } from '../../hooks/useShifts'
+import { useAppSettings } from '../../hooks/useSettings'
 import { formatMinutes, getWeekStart, downloadCsv } from '../../lib/utils'
 import { buildPdfReport } from '../../lib/pdfUtils'
 import { countWorkingDaysInRequest } from '../../hooks/useLeaveBalance'
@@ -439,6 +440,7 @@ export default function TimesheetPage() {
   const { isManager } = useSession()
   const toast         = useToast()
   const { staff: staffList } = useStaffList()
+  const { breakDurationMins } = useAppSettings()
 
   const { dateFrom, dateTo, label: periodLabel } = useMemo(
     () => periodToDates(period, customFrom, customTo),
@@ -467,16 +469,18 @@ export default function TimesheetPage() {
   }, 0), [timesheets, periodLeave, staffProfiles, dateFrom, dateTo])
 
   const periodScheduled = useMemo(() => {
+    // Paid hours, same as the rota's cost: the unpaid break is deducted
+    // (30 min under-18 >4.5h; the venue's adult break >6h). This counted the
+    // full span, so a 09:00–17:00 shift cost £91.52 here and £85.80 on the rota.
+    const under18 = Object.fromEntries((staffList ?? []).map(s => [s.id, !!s.is_under_18]))
     let totalM = 0, totalCost = 0
     for (const sh of periodShifts) {
-      const [sh_h, sh_m] = sh.start_time.split(':').map(Number)
-      const [eh, em]     = sh.end_time.split(':').map(Number)
-      const mins = (eh * 60 + em) - (sh_h * 60 + sh_m)
-      totalM    += mins
-      totalCost += (mins / 60) * (staffRates[sh.staff_id] ?? 0)
+      const hours = paidShiftHours(sh.start_time, sh.end_time, under18[sh.staff_id] ?? false, breakDurationMins)
+      totalM    += hours * 60
+      totalCost += hours * (staffRates[sh.staff_id] ?? 0)
     }
     return { totalMins: totalM, totalCost }
-  }, [periodShifts, staffRates])
+  }, [periodShifts, staffRates, staffList, breakDurationMins])
 
   const stationMap = useMemo(() => {
     const map = {}

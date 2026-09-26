@@ -70,7 +70,8 @@ function ComplianceScoreWidget() {
         supabase.from('fridge_temperature_logs').select('id, temperature, exceedance_reason, is_resolved, fridge:fridge_id(min_temp, max_temp)').eq('venue_id', venueId).gte('logged_at', since),
         supabase.from('delivery_checks').select('id, overall_pass, is_resolved').eq('venue_id', venueId).gte('checked_at', since),
         supabase.from('probe_calibrations').select('id, pass, is_resolved').eq('venue_id', venueId).gte('calibrated_at', since),
-        supabase.from('corrective_actions').select('id, status, severity').eq('venue_id', venueId).gte('reported_at', since),
+        // Open actions count however old they are — see fetchAuditData
+        supabase.from('corrective_actions').select('id, status, severity').eq('venue_id', venueId).or(`reported_at.gte."${since}",status.eq.open`),
         supabase.from('staff_training').select('id, expiry_date, is_resolved').eq('venue_id', venueId),
       ])
 

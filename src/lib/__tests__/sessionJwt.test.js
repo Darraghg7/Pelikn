@@ -79,4 +79,22 @@ describe('venue JWT injection', () => {
       expect(authHeaderOf(authCall)).not.toBe(`Bearer ${makeJwt(FUTURE)}`)
     }
   })
+  it('injects the JWT on venue-scoped private buckets (upload + signed URL)', async () => {
+    const jwt = makeJwt(FUTURE)
+    setSessionJwt(jwt)
+    await supabase.storage.from('venue-documents').upload('v-123/a.pdf', new Blob(['x']))
+    await supabase.storage.from('hr-documents').createSignedUrl('v-123/s/a.pdf', 60)
+    await supabase.storage.from('training-files').upload('v-123/b.pdf', new Blob(['x']))
+    const calls = global.fetch.mock.calls.filter(c => String(c[0]).includes('/storage/v1/'))
+    expect(calls).toHaveLength(3)
+    for (const c of calls) expect(authHeaderOf(c)).toBe(`Bearer ${jwt}`)
+  })
+
+  it('leaves other storage buckets on the anon/user token', async () => {
+    const jwt = makeJwt(FUTURE)
+    setSessionJwt(jwt)
+    await supabase.storage.from('app-assets').upload('logo.png', new Blob(['x']))
+    const call = global.fetch.mock.calls.find(c => String(c[0]).includes('/storage/v1/'))
+    expect(authHeaderOf(call)).not.toBe(`Bearer ${jwt}`)
+  })
 })

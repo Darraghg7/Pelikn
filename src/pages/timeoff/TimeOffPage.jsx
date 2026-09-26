@@ -122,12 +122,20 @@ export default function TimeOffPage() {
   // Days this form request would consume (for annual leave preview)
   const previewDays = useMemo(() => {
     if (form.leaveType !== 'annual' || !form.startDate || !form.endDate) return null
+    // Reversed dates used to preview as "5 days" while submit refused them
+    if (form.endDate < form.startDate) return null
     return countWorkingDaysInRequest(form.startDate, form.endDate, ownProfile?.working_days)
   }, [form.startDate, form.endDate, form.leaveType, ownProfile?.working_days])
 
   const submitRequest = async () => {
     if (!form.startDate || !form.endDate) { toast('Please select start and end dates', 'error'); return }
     if (form.endDate < form.startDate)    { toast('End date must be after start date', 'error'); return }
+    // Staff request leave ahead; leave already taken is recorded by a manager
+    // with "+ log past leave" on the team list.
+    if (!isManager && form.startDate < format(new Date(), 'yyyy-MM-dd')) {
+      toast('Leave can only be requested from today onwards — ask your manager to record past leave', 'error')
+      return
+    }
     setSaving(true)
     const { error: err } = await supabase.from('time_off_requests').insert({
       staff_id:   session?.staffId,
@@ -473,6 +481,7 @@ export default function TimeOffPage() {
               <input
                 type="date"
                 value={form.startDate}
+                min={isManager ? undefined : format(new Date(), 'yyyy-MM-dd')}
                 onChange={e => setForm(f => ({ ...f, startDate: e.target.value, endDate: f.endDate || e.target.value }))}
                 className={TEXT_FIELD}
               />
@@ -488,6 +497,10 @@ export default function TimeOffPage() {
               />
             </label>
           </div>
+
+          {form.startDate && form.endDate && form.endDate < form.startDate && (
+            <p className="text-[13px] text-bad dark:text-[#f19a86] -mt-1">End date is before the start date.</p>
+          )}
 
           {/* Staffing limit warning — informational only, submit is never blocked */}
           {overStaffOffLimit && (
@@ -661,6 +674,13 @@ function PendingRequest({ request: r, balance, note, onNote, busy, onApprove, on
             {leaveName(r.leave_type)} · <span className="font-mono text-ink2 dark:text-white/70">{dateRange(r)}</span>
             {daysRequested != null && ` · ${fmtDays(daysRequested)}`}
           </p>
+          {/* Still worth deciding — approving records leave that was taken —
+              but it shouldn't look like an upcoming request. */}
+          {r.end_date < format(new Date(), 'yyyy-MM-dd') && (
+            <p className="text-[13px] font-semibold text-warn dark:text-[#e8b06a] mt-1">
+              These dates have passed — approve to record the leave as taken, or reject.
+            </p>
+          )}
           {r.reason && <p className="text-[13px] text-ink2 dark:text-white/70 mt-1">“{r.reason}”</p>}
           {afterApproval != null && (
             <p className={`text-[13px] mt-1 ${afterApproval < 0 ? 'text-bad font-semibold' : 'text-ink3 dark:text-white/45'}`}>

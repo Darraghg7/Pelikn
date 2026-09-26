@@ -38,7 +38,7 @@ export interface NotificationData {
   fridge_logs_today: { fridge_id: string; check_period?: string; temperature: number; exceedance_reason?: string | null; is_resolved?: boolean; fridge?: { name: string; min_temp: number; max_temp: number } | null }[]
   fridges: { id: string; name: string; check_days?: number[] | null; required_periods?: string[] | null }[]
   training: { title: string; expiry_date: string; staff?: StaffRef }[]
-  cleaning_tasks: { id: string; title: string; frequency: string }[]
+  cleaning_tasks: { id: string; title: string; frequency: string; created_at?: string }[]
   venue_closures: { start_date: string; end_date: string }[]
   /** Latest completion per task only. */
   cleaning_last: { cleaning_task_id: string; completed_at: string }[]
@@ -145,7 +145,7 @@ async function fetchViaQueries(vid: string, now: Date): Promise<NotificationData
     supabase.from('fridge_temperature_logs').select('id, fridge_id, check_period, temperature, exceedance_reason, is_resolved, fridge:fridge_id(name, min_temp, max_temp)').eq('venue_id', vid).gte('logged_at', w.dayStart),
     supabase.from('fridges').select('id, name, check_days, required_periods').eq('venue_id', vid).eq('is_active', true),
     supabase.from('staff_training').select('id, title, expiry_date, staff:staff_id(name)').eq('venue_id', vid).not('expiry_date', 'is', null).lte('expiry_date', w.trainingUntil).order('expiry_date'),
-    supabase.from('cleaning_tasks').select('id, title, frequency').eq('venue_id', vid).eq('is_active', true),
+    supabase.from('cleaning_tasks').select('id, title, frequency, created_at').eq('venue_id', vid).eq('is_active', true),
     supabase.from('venue_closures').select('start_date, end_date').eq('venue_id', vid),
     supabase.from('cleaning_completions').select('cleaning_task_id, completed_at').eq('venue_id', vid).order('completed_at', { ascending: false }),
     supabase.from('corrective_actions').select('id, title, severity').eq('venue_id', vid).eq('status', 'open'),

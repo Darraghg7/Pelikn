@@ -1,5 +1,25 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { format } from 'date-fns'
 import Button from '../../components/ui/Button'
+import { useVenue } from '../../contexts/VenueContext'
+import { useSession } from '../../contexts/SessionContext'
+import { useToast } from '../../components/ui/Toast'
+import { fetchMockInspections, insertMockInspection, MockInspectionsUnavailable } from '../../lib/api/mockInspections'
+
+// In-progress answers are kept on this device so leaving the page part-way
+// doesn't lose them (they used to live in component state only). Per-viewer
+// convenience, not a record — the submitted result is saved to the database.
+const draftKey = (venueId) => `pelikn_mock_draft_${venueId}`
+function loadDraft(venueId) {
+  try { return JSON.parse(localStorage.getItem(draftKey(venueId)) ?? '{}') ?? {} } catch { return {} }
+}
+function saveDraft(venueId, answers) {
+  try {
+    if (Object.keys(answers).length) localStorage.setItem(draftKey(venueId), JSON.stringify(answers))
+    else localStorage.removeItem(draftKey(venueId))
+  } catch { /* storage blocked — the draft just won't survive leaving the page */ }
+}
 
 const SECTIONS = [
   {
@@ -78,8 +98,29 @@ function scoreBg(pct) {
 }
 
 export default function EHOMockPage() {
-  const [answers, setAnswers] = useState({})
+  const { venueId } = useVenue()
+  const { session } = useSession()
+  const toast = useToast()
+  const queryClient = useQueryClient()
+
+  const [draft, setDraft]         = useState(() => loadDraft(venueId))
   const [submitted, setSubmitted] = useState(false)
+  const [saving, setSaving]       = useState(false)
+  // A past result opened from the history list — shown read-only.
+  const [viewing, setViewing]     = useState(null)
+
+  const history = useQuery({
+    queryKey: ['mockInspections', venueId],
+    queryFn: () => fetchMockInspections(venueId),
+    enabled: !!venueId,
+    retry: (count, err) => !(err instanceof MockInspectionsUnavailable) && count < 1,
+  })
+  const unavailable = history.error instanceof MockInspectionsUnavailable
+
+  useEffect(() => { if (!submitted && !viewing) saveDraft(venueId, draft) }, [venueId, draft, submitted, viewing])
+
+  const answers  = viewing ? viewing.answers : draft
+  const readOnly = submitted || !!viewing
 
   const allQuestions = SECTIONS.flatMap((s) => s.questions)
 
@@ -99,7 +140,41 @@ export default function EHOMockPage() {
   const { label: scoreLabel_, color: scoreColor } = scoreLabel(pct)
 
   const setAnswer = (qId, value) => {
-    setAnswers((prev) => ({ ...prev, [qId]: value }))
+    setDraft((prev) => ({ ...prev, [qId]: value }))
+  }
+
+  const submit = async () => {
+    setSaving(true)
+    try {
+      await insertMockInspection({
+        venue_id:          venueId,
+        completed_by:      session?.staffId ?? null,
+        completed_by_name: session?.staffName ?? null,
+        answers:           draft,
+        score:             pct,
+      })
+      queryClient.invalidateQueries({ queryKey: ['mockInspections', venueId] })
+      toast('Mock inspection saved')
+    } catch (err) {
+      toast(err instanceof MockInspectionsUnavailable ? err.message : `Could not save: ${err.message}`, 'error')
+    }
+    setSaving(false)
+    setSubmitted(true)
+    saveDraft(venueId, {})
+  }
+
+  // Leaving a past result goes back to whatever was in progress; otherwise
+  // start a fresh inspection.
+  const startOver = () => {
+    if (viewing) { setViewing(null); return }
+    setDraft({}); setSubmitted(false)
+  }
+
+  const openPast = (row) => {
+    // A just-submitted inspection is saved — don't reopen it as a draft later.
+    if (submitted) { setDraft({}); setSubmitted(false) }
+    setViewing(row)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   const failedQuestions = allQuestions.filter((q) => {
@@ -125,10 +200,12 @@ export default function EHOMockPage() {
           <div>
             <h1 className="text-2xl font-bold text-charcoal dark:text-white">EHO Mock Inspection</h1>
             <p className="text-sm text-charcoal/40 dark:text-white/35 mt-1">
-              Food Standards Agency-style self-assessment checklist
+              {viewing
+                ? `Saved result · ${format(new Date(viewing.created_at), 'd MMM yyyy, HH:mm')}${viewing.completed_by_name ? ` · ${viewing.completed_by_name}` : ''}`
+                : 'Food Standards Agency-style self-assessment checklist'}
             </p>
           </div>
-          {submitted && (
+          {readOnly && (
             <button
               onClick={handlePrint}
               className="no-print text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white transition-colors border-b border-charcoal/20 dark:border-white/20"
@@ -139,16 +216,16 @@ export default function EHOMockPage() {
         </div>
 
         {/* Live score bar */}
-        <div className={`rounded-2xl border p-5 ${submitted ? scoreBg(pct) : 'bg-white dark:bg-paperDark border-charcoal/10 dark:border-white/10'}`}>
+        <div className={`rounded-2xl border p-5 ${readOnly ? scoreBg(pct) : 'bg-white dark:bg-paperDark border-charcoal/10 dark:border-white/10'}`}>
           <div className="flex items-center justify-between mb-2">
             <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">
-              {submitted
+              {readOnly
               ? `Final Score${naCount > 0 ? ` · ${naCount} N/A` : ''}`
               : `Progress · ${answeredCount}/${allQuestions.length} answered${naCount > 0 ? ` · ${naCount} N/A` : ''}`
             }
             </p>
-            <p className={`text-xl font-bold font-semibold ${submitted ? scoreColor : 'text-charcoal dark:text-white'}`}>
-              {submitted ? `${pct}/100` : `${pct}%`}
+            <p className={`text-xl font-bold font-semibold ${readOnly ? scoreColor : 'text-charcoal dark:text-white'}`}>
+              {readOnly ? `${pct}/100` : `${pct}%`}
             </p>
           </div>
           <div className="h-2 rounded-full bg-charcoal/10 dark:bg-white/10 overflow-hidden">
@@ -157,7 +234,7 @@ export default function EHOMockPage() {
               style={{ width: `${pct}%` }}
             />
           </div>
-          {submitted && (
+          {readOnly && (
             <p className={`text-sm font-semibold mt-2 ${scoreColor}`}>{scoreLabel_}</p>
           )}
         </div>
@@ -178,8 +255,8 @@ export default function EHOMockPage() {
                       {ANSWER_OPTIONS.map((opt) => (
                         <button
                           key={opt.value}
-                          onClick={() => !submitted && setAnswer(q.id, opt.value)}
-                          disabled={submitted}
+                          onClick={() => !readOnly && setAnswer(q.id, opt.value)}
+                          disabled={readOnly}
                           className={[
                             'px-3 py-1.5 rounded-lg text-xs font-medium border transition-all',
                             current === opt.value
@@ -199,15 +276,15 @@ export default function EHOMockPage() {
         ))}
 
         {/* Submit / Results */}
-        {!submitted ? (
+        {!readOnly ? (
           <div className="no-print">
             <Button
               variant="primary"
-              onClick={() => setSubmitted(true)}
-              disabled={!allAnswered}
+              onClick={submit}
+              disabled={!allAnswered || saving}
               className="w-full sm:w-auto"
             >
-              {allAnswered ? 'Submit Inspection →' : `Answer all questions (${answeredCount}/${allQuestions.length})`}
+              {saving ? 'Saving…' : allAnswered ? 'Submit Inspection →' : `Answer all questions (${answeredCount}/${allQuestions.length})`}
             </Button>
           </div>
         ) : (
@@ -264,14 +341,53 @@ export default function EHOMockPage() {
                 Print Result
               </button>
               <button
-                onClick={() => { setAnswers({}); setSubmitted(false) }}
+                onClick={startOver}
                 className="px-4 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 text-sm text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white hover:border-charcoal/30 dark:hover:border-white/30 transition-colors"
               >
-                Start Over
+                {viewing ? 'New inspection' : 'Start Over'}
               </button>
             </div>
           </div>
         )}
+
+        {/* History */}
+        <div className="no-print bg-white dark:bg-paperDark rounded-2xl border border-charcoal/10 dark:border-white/10 overflow-hidden">
+          <div className="px-5 py-4 border-b border-charcoal/8 dark:border-white/8">
+            <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">Previous inspections</p>
+          </div>
+          {unavailable ? (
+            <p className="px-5 py-4 text-sm text-danger">
+              Results can't be saved yet — database migration 131 (mock_inspections) needs applying.
+            </p>
+          ) : history.isLoading ? (
+            <p className="px-5 py-4 text-sm text-charcoal/40 dark:text-white/35">Loading…</p>
+          ) : history.error ? (
+            <p className="px-5 py-4 text-sm text-danger">Couldn't load previous inspections — {history.error.message}</p>
+          ) : !history.data?.length ? (
+            <p className="px-5 py-4 text-sm text-charcoal/40 dark:text-white/35">No saved inspections yet. Submit one to start a history.</p>
+          ) : (
+            <div className="flex flex-col divide-y divide-charcoal/6 dark:divide-white/8">
+              {history.data.map((row) => {
+                const tone = scoreLabel(row.score)
+                return (
+                  <button
+                    key={row.id}
+                    type="button"
+                    onClick={() => openPast(row)}
+                    className={`px-5 py-3 flex items-center gap-3 text-left hover:bg-charcoal/3 dark:hover:bg-white/5 transition-colors ${viewing?.id === row.id ? 'bg-charcoal/4 dark:bg-white/5' : ''}`}
+                  >
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-charcoal dark:text-white">{format(new Date(row.created_at), 'd MMM yyyy, HH:mm')}</p>
+                      {row.completed_by_name && <p className="text-xs text-charcoal/40 dark:text-white/35">{row.completed_by_name}</p>}
+                    </div>
+                    <span className={`text-xs font-semibold ${tone.color}`}>{tone.label}</span>
+                    <span className={`font-mono text-sm font-semibold ${tone.color}`}>{row.score}/100</span>
+                  </button>
+                )
+              })}
+            </div>
+          )}
+        </div>
       </div>
     </>
   )

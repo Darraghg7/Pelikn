@@ -47,6 +47,12 @@ function useChecks(venueId) {
 
 function useCompletionsForDate(sessionDate, venueId) {
   const [completions, setCompletions] = useState([])
+  // Which checks were already done when this day's list first loaded. Rows are
+  // ordered by this, not by live state: re-sorting on every tick slid the next
+  // check under the finger that had just tapped "Mark OK", so a quick
+  // double-tap could record a check nobody did. Ticked-this-visit rows stay
+  // put (shown as done) and drop to the bottom next load or day switch.
+  const [doneAtLoad, setDoneAtLoad] = useState({ date: null, ids: new Set() })
   const load = useCallback(async () => {
     if (!venueId || !sessionDate) return
     const { data } = await supabase
@@ -54,10 +60,12 @@ function useCompletionsForDate(sessionDate, venueId) {
       .select('id, check_id, session_date, session_type, completed_at, staff_name, corrective_action')
       .eq('venue_id', venueId)
       .eq('session_date', sessionDate)
-    setCompletions(data ?? [])
+    const rows = data ?? []
+    setCompletions(rows)
+    setDoneAtLoad(prev => prev.date === sessionDate ? prev : { date: sessionDate, ids: new Set(rows.map(r => r.check_id)) })
   }, [sessionDate, venueId])
   useEffect(() => { load() }, [load])
-  return { completions, reload: load }
+  return { completions, doneAtLoad: doneAtLoad.ids, reload: load }
 }
 
 // ── IssueModal ────────────────────────────────────────────────────────────────
@@ -199,7 +207,7 @@ function CheckRow({ check, completion, onOK, onIssue, readOnly, isManager, onRem
 
 // ── CheckSection ──────────────────────────────────────────────────────────────
 
-function CheckSection({ type, label, departmentId, departmentName, checks, completions, onOK, onIssue, isManager, onAddCheck, onRemoveCheck, venueId, readOnly, savingCheckId }) {
+function CheckSection({ type, label, departmentId, departmentName, checks, completions, doneAtLoad, onOK, onIssue, isManager, onAddCheck, onRemoveCheck, venueId, readOnly, savingCheckId }) {
   const toast = useToast()
   const typeChecks      = checks.filter(c => c.type === type)
   const typeCompletions = completions.filter(c => c.session_type === type)
@@ -298,8 +306,9 @@ function CheckSection({ type, label, departmentId, departmentName, checks, compl
       {/* Rows */}
       <div className="flex flex-col divide-y divide-charcoal/6 dark:divide-white/8">
         {typeChecks.slice().sort((a, b) => {
-          const aDone = typeCompletions.some(c => c.check_id === a.id) ? 1 : 0
-          const bDone = typeCompletions.some(c => c.check_id === b.id) ? 1 : 0
+          // Order as of page load — see useCompletionsForDate
+          const aDone = doneAtLoad.has(a.id) ? 1 : 0
+          const bDone = doneAtLoad.has(b.id) ? 1 : 0
           return aDone - bDone
         }).map(check => {
           const completion = typeCompletions.find(c => c.check_id === check.id) ?? null
@@ -394,7 +403,7 @@ export default function OpeningClosingPage() {
   const [showExport, setShowExport]     = useState(false)
 
   const { checks, loading: checksLoading, reload: reloadChecks } = useChecks(venueId)
-  const { completions, reload: reloadCompletions } = useCompletionsForDate(selectedDate, venueId)
+  const { completions, doneAtLoad, reload: reloadCompletions } = useCompletionsForDate(selectedDate, venueId)
   const { roles } = useVenueRoles()
   const { departments } = useDepartments()
 
@@ -554,6 +563,7 @@ export default function OpeningClosingPage() {
               departmentName={dept.name}
               checks={deptChecks}
               completions={completions}
+              doneAtLoad={doneAtLoad}
               onOK={openOK}
               onIssue={openIssue}
               isManager={isManager}
@@ -570,6 +580,7 @@ export default function OpeningClosingPage() {
               departmentName={dept.name}
               checks={deptChecks}
               completions={completions}
+              doneAtLoad={doneAtLoad}
               onOK={openOK}
               onIssue={openIssue}
               isManager={isManager}

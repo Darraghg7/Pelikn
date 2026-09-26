@@ -27,9 +27,13 @@ export async function fetchAuditData(venueId: string, sinceTs: string): Promise<
     supabase.from('probe_calibrations')
       .select('id, pass, calibrated_at, probe_name, expected_temp, actual_reading, is_resolved')
       .eq('venue_id', venueId).gte('calibrated_at', sinceTs).order('calibrated_at', { ascending: false }),
+    // Reported in the window OR still open: an issue raised before the window
+    // and never fixed is still open, and dropping it made the score go up just
+    // because it got old (the dashboard said "1 open" beside 20 on /corrective).
     supabase.from('corrective_actions')
       .select('id, status, severity, reported_at, title, description')
-      .eq('venue_id', venueId).gte('reported_at', sinceTs).order('reported_at', { ascending: false }),
+      .eq('venue_id', venueId).or(`reported_at.gte."${sinceTs}",status.eq.open`)
+      .order('reported_at', { ascending: false }),
     supabase.from('staff_training')
       .select('id, expiry_date, title, is_resolved, staff:staff_id(name)').eq('venue_id', venueId).order('expiry_date'),
     supabase.from('staff')

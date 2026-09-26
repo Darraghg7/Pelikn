@@ -187,7 +187,7 @@ export function buildManagerCats({ isEnabled, isPlanLocked, overdueCount, pendin
       icon: <IcoShieldNav />,
       alert: overdueCount || null,
       items: [
-        ...(isEnabled('fridge')               ? [{ id: 'fridge',     label: 'Fridge Temps',  sub: 'Daily logs',             icon: PanelIcons.therm,    route: vp('/fridge'),              badge: overdueCount > 0 ? overdueCount : undefined, warn: overdueCount > 0 }] : []),
+        ...(isEnabled('fridge')               ? [{ id: 'fridge',     label: 'Fridge Temps',  sub: 'Daily logs',             icon: PanelIcons.therm,    route: vp('/fridge') }] : []),
         ...(isEnabled('cooking_temps')        ? [{ id: 'cook',       label: 'Cooking Temps', sub: 'Core temp readings',      icon: PanelIcons.flame,    route: vp('/cooking-temps') }] : []),
         ...(isEnabled('hot_holding')          ? [{ id: 'hothold',    label: 'Hot Holding',   sub: 'Holding temperature',     icon: PanelIcons.snow,     route: vp('/hot-holding') }] : []),
         ...(isEnabled('cooling_logs')         ? [{ id: 'cooling',    label: 'Cooling Logs',  sub: 'Cook → chill tracking',   icon: PanelIcons.snow,     route: vp('/cooling-logs') }] : []),

@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Capacitor } from '@capacitor/core'
 
 import { isConfigured }        from './lib/supabase'
+import { onDataWrite }         from './lib/cacheBus'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { SessionProvider, useSession } from './contexts/SessionContext'
 import { VenueProvider }       from './contexts/VenueContext'
@@ -509,6 +510,23 @@ const queryClient = new QueryClient({
       refetchOnWindowFocus: false,
     },
   },
+})
+
+// A successful write can change what any list shows, and most pages write
+// without invalidating their own list — so a dish you'd just added (or a
+// time-off request you'd just submitted) stayed hidden until staleTime ran
+// out or you reloaded. Query keys don't follow table names, so match nothing:
+// mark every query stale (inactive ones refetch when next mounted) and refetch
+// only what's on screen. Same rule as the bootstrap cache in lib/api/bootstrap.
+// Debounced so a burst of writes (a delivery + its items) is one refresh.
+// Unchanged data keeps its identity (structural sharing), so forms don't reset.
+let writeRefreshTimer = null
+onDataWrite(() => {
+  if (writeRefreshTimer) return
+  writeRefreshTimer = setTimeout(() => {
+    writeRefreshTimer = null
+    queryClient.invalidateQueries()
+  }, 250)
 })
 
 // ── App root ─────────────────────────────────────────────────────────────────
