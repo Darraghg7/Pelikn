@@ -234,6 +234,30 @@ async function fetchLiveRoleIds(staffId, staffRole) {
   return data.map(r => r.role_id)
 }
 
+/**
+ * Permissions from the staff member's permission title, or null when they
+ * have no title. One request — the title is embedded through the
+ * staff.permission_title_id foreign key (112) — with the old two-step read
+ * as a fallback so an embed PostgREST refuses can't drop someone's title.
+ */
+async function fetchTitlePermissions(staffId) {
+  const { data, error } = await supabase
+    .from('staff')
+    .select('permission_title_id, permission_titles(permissions)')
+    .eq('id', staffId)
+    .single()
+
+  if (!error) {
+    if (!data?.permission_title_id) return null
+    if (data.permission_titles) return data.permission_titles.permissions ?? []
+  }
+
+  const { data: titleRow } = await supabase.from('staff').select('permission_title_id').eq('id', staffId).single()
+  if (!titleRow?.permission_title_id) return null
+  const { data: title } = await supabase.from('permission_titles').select('permissions').eq('id', titleRow.permission_title_id).single()
+  return title ? title.permissions ?? [] : null
+}
+
 const samePermissions = (a = [], b = []) =>
   a.length === b.length && [...a].sort().join(' ') === [...b].sort().join(' ')
 
@@ -508,6 +532,14 @@ export function SessionProvider({ children }) {
     // error the page showed as "Incorrect PIN" for a correct PIN.
     if (jwt) setSessionJwt(jwt)
 
+    // Role assignments and the permission title aren't in the login bundle.
+    // Start them now, alongside the reads below, rather than chaining them
+    // after — they don't depend on the staff row, and each chained read was a
+    // full round trip on the way to the dashboard. The role isn't known yet,
+    // so they're fetched for managers too and simply ignored.
+    const roleIdsPromise    = fetchLiveRoleIds(staffId, 'staff')
+    const titlePermsPromise = fetchTitlePermissions(staffId)
+
     // ── Resolve staff row, permissions and linked venues ──────────────────
     // Fast path: they arrived with the login response above (one round trip).
     // Fallback: fetch them here — but in parallel, not chained, so a stale
@@ -547,24 +579,12 @@ export function SessionProvider({ children }) {
       }))
     }
 
-    // Not part of the login edge function's bundle yet — fetched separately
-    // regardless of the fast/slow path above. Managers bypass role-based
-    // filtering entirely, so this is only ever meaningful for staff.
-    const roleIds = row.role === 'staff' ? await fetchLiveRoleIds(staffId, row.role) ?? [] : []
-
-    // A permission title takes priority over whatever `permissions` got set
-    // to above — same "always check fresh, not just what the bundle gave us"
-    // reasoning as roleIds. Only relevant for staff; row.permission_title_id
-    // may already be populated from the fallback branch's own select, but a
-    // fresh single-column read here is cheap and keeps this path identical
-    // regardless of which branch ran above.
-    if (row.role === 'staff') {
-      const { data: titleRow } = await supabase.from('staff').select('permission_title_id').eq('id', staffId).single()
-      if (titleRow?.permission_title_id) {
-        const { data: title } = await supabase.from('permission_titles').select('permissions').eq('id', titleRow.permission_title_id).single()
-        if (title) permissions = title.permissions ?? []
-      }
-    }
+    // Managers bypass role-based filtering and granular permissions entirely,
+    // so both are only ever meaningful for staff. A permission title takes
+    // priority over whatever `permissions` got set to above.
+    const [liveRoleIds, titlePerms] = await Promise.all([roleIdsPromise, titlePermsPromise])
+    const roleIds = row.role === 'staff' ? liveRoleIds ?? [] : []
+    if (row.role === 'staff' && titlePerms) permissions = titlePerms
 
     const newSession = {
       token,
