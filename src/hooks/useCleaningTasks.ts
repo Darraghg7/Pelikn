@@ -178,7 +178,7 @@ export function useCleaningTasks(
 } {
   const { venueId } = useVenue()
   const gateOpen = useWidgetFetchGate()
-  const { closedDays } = useAppSettings()
+  const { closedDays, cleaningVisibleToAll } = useAppSettings()
   const { closures } = useVenueClosures()
 
   // A tablet left open on this page never loses focus or remounts, so without
@@ -211,7 +211,10 @@ export function useCleaningTasks(
   const tasks: CleaningTask[] = data?.tasks ?? []
   const completions: CleaningCompletion[] = data?.completions ?? []
 
-  const matchesRole = roleMatcher(viewerRoleIds, knownRoleIds)
+  // A venue can opt out of department targeting so every staff member sees the
+  // whole schedule (Settings → Compliance). Role labels still show which
+  // department each task belongs to.
+  const matchesRole = roleMatcher(cleaningVisibleToAll ? null : viewerRoleIds, knownRoleIds)
   const filtered = tasks.filter((t) => matchesRole(t.role_id))
 
   const reference = asOf ?? now

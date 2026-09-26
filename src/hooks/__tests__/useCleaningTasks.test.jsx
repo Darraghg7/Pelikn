@@ -7,7 +7,8 @@ import { supabase } from '../../lib/supabase'
 const VENUE = 'venue-1'
 
 vi.mock('../../contexts/VenueContext', () => ({ useVenue: () => ({ venueId: 'venue-1' }) }))
-vi.mock('../useSettings', () => ({ useAppSettings: () => ({ closedDays: [] }) }))
+const settings = { closedDays: [], cleaningVisibleToAll: false }
+vi.mock('../useSettings', () => ({ useAppSettings: () => settings }))
 vi.mock('../useVenueClosures', () => ({ default: () => ({ closures: [] }) }))
 
 const { useCleaningTasks, cleaningStatus, cleaningDueLabel } = await import('../useCleaningTasks')
@@ -148,5 +149,43 @@ describe('cleaningDueLabel', () => {
 
   it('says nothing when a closed day capped an overdue task at done', () => {
     expect(cleaningDueLabel(task('weekly'), done(2026, 8, 10), 'done', NOW)).toBeNull()
+  })
+})
+
+describe('useCleaningTasks — department visibility', () => {
+  let client
+  const wrapper = ({ children }) => <QueryClientProvider client={client}>{children}</QueryClientProvider>
+  const KITCHEN = { ...TASK, id: 'k1', title: 'Degrease fryer', role_id: 'kitchen' }
+  const FOH     = { ...TASK, id: 'f1', title: 'Wipe tables',    role_id: 'foh' }
+
+  beforeEach(() => {
+    client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+    global.fetch = vi.fn(async (url) => {
+      const u = typeof url === 'string' ? url : url?.url ?? ''
+      if (u.includes('/rest/v1/cleaning_tasks')) return json([KITCHEN, FOH])
+      return json([])
+    })
+    vi.spyOn(supabase, 'channel').mockImplementation(() => {
+      const ch = { on: () => ch, subscribe: () => ch }
+      return ch
+    })
+    vi.spyOn(supabase, 'removeChannel').mockImplementation(() => {})
+  })
+  afterEach(() => {
+    settings.cleaningVisibleToAll = false
+    client.clear()
+    vi.restoreAllMocks()
+  })
+
+  it('shows staff only their own department by default', async () => {
+    const h = renderHook(() => useCleaningTasks(['foh'], ['kitchen', 'foh']), { wrapper })
+    await waitFor(() => expect(h.result.current.loading).toBe(false))
+    expect(h.result.current.tasks.map(t => t.id)).toEqual(['f1'])
+  })
+
+  it('shows staff every department when the venue opts in', async () => {
+    settings.cleaningVisibleToAll = true
+    const h = renderHook(() => useCleaningTasks(['foh'], ['kitchen', 'foh']), { wrapper })
+    await waitFor(() => expect(h.result.current.tasks).toHaveLength(2))
   })
 })
