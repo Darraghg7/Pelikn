@@ -7,8 +7,9 @@ import { useToast } from '../../components/ui/Toast'
 import { PageSkeleton } from '../../components/ui/Skeleton'
 import ConfirmDialog from '../../components/ui/ConfirmDialog'
 import OpeningClosingExportModal from './OpeningClosingExportModal'
-import { useVenueRoles } from '../../hooks/useVenueRoles'
-import { useDepartments } from '../../hooks/useDepartments'
+import { useViewerDepartments } from '../../hooks/useDepartments'
+import { departmentMatcher } from '../../lib/roleFilter'
+import DepartmentFilter from '../../components/ui/DepartmentFilter'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -404,21 +405,13 @@ export default function OpeningClosingPage() {
 
   const { checks, loading: checksLoading, reload: reloadChecks } = useChecks(venueId)
   const { completions, doneAtLoad, reload: reloadCompletions } = useCompletionsForDate(selectedDate, venueId)
-  const { roles } = useVenueRoles()
-  const { departments } = useDepartments()
-
-  // Which departments this staff member can see. Managers always see every
-  // department. A department is reachable via any role the staff holds — a
-  // deleted department (or a role with no department) is NULL on the FK side,
-  // which is already the fail-open case: visible to everyone.
-  const viewerDepartmentIds = useMemo(() => {
-    if (isManager) return null
-    const held = new Set(session?.roleIds ?? [])
-    return new Set(roles.filter(r => held.has(r.id) && r.department_id).map(r => r.department_id))
-  }, [isManager, session, roles])
-
-  const canSeeDepartment = (departmentId) =>
-    isManager || !departmentId || viewerDepartmentIds.has(departmentId)
+  // Staff see the departments they're in (none = all of them); managers pick
+  // one department or all. Same rule as cleaning and Tasks — lib/roleFilter.
+  const {
+    departments, viewerDepartmentIds, knownDepartmentIds,
+    filter: deptFilter, setFilter: setDeptFilter,
+  } = useViewerDepartments()
+  const canSeeDepartment = departmentMatcher(viewerDepartmentIds, knownDepartmentIds)
 
   // One (or two, opening+closing) section per department that either has
   // checks already, or — for a manager — could have checks added to it.
@@ -431,7 +424,7 @@ export default function OpeningClosingPage() {
       if (d.id === null) return true
       return isManager || checks.some(c => c.department_id === d.id)
     })
-  }, [departments, checks, isManager, viewerDepartmentIds])
+  }, [departments, checks, isManager, canSeeDepartment])
 
   // Is the selected date strictly in the future? (tomorrow or later = read-only)
   const readOnly = selectedDate > todayStr()
@@ -540,6 +533,8 @@ export default function OpeningClosingPage() {
           </button>
         )}
       </div>
+
+      {isManager && <DepartmentFilter departments={departments} value={deptFilter} onChange={setDeptFilter} />}
 
       {/* Date selector */}
       <div className="flex flex-col gap-2">

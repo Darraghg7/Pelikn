@@ -12,7 +12,7 @@ import { TabBar } from '../../components/temperature/TempPageParts'
 const TABS = [
   { id: 'members', label: 'Members' },
   { id: 'invite',  label: 'Invite' },
-  { id: 'roles',   label: 'Roles' },
+  { id: 'roles',   label: 'Departments' },
   { id: 'duties',  label: 'Duties' },
 ]
 
@@ -47,7 +47,7 @@ export default function StaffSettingsPage() {
               Settings
             </Link>
             <div className="flex items-center justify-between gap-2.5">
-              <h1 className="text-[20px] min-[420px]:text-[22px] leading-tight font-bold tracking-tight text-ink dark:text-white whitespace-nowrap">Staff &amp; roles</h1>
+              <h1 className="text-[20px] min-[420px]:text-[22px] leading-tight font-bold tracking-tight text-ink dark:text-white whitespace-nowrap">Staff &amp; departments</h1>
               {tab === 'members' && (
                 <button
                   type="button"
@@ -76,6 +76,7 @@ export default function StaffSettingsPage() {
       {tab === 'roles' && (
         <div className="flex flex-col gap-2.5">
           <RolesSection />
+          <p className="text-[11px] font-bold tracking-widest uppercase text-charcoal/40 dark:text-white/35 mt-4">Permission titles</p>
           <PermissionTitlesSection />
         </div>
       )}

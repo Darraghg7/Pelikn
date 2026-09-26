@@ -14,7 +14,7 @@ import { useVenueRoles } from '../../hooks/useVenueRoles'
 import { usePermissionTitles } from '../../hooks/usePermissionTitles'
 import Toggle from '../../components/ui/Toggle'
 import useStaffManagement from '../../hooks/useStaffManagement'
-import { StaffRolesAssignment } from './RolesSection'
+import { StaffRolesAssignment, StaffDepartmentsAssignment } from './RolesSection'
 import TrainingSection from './TrainingSection'
 import ConfirmDialog from '../../components/ui/ConfirmDialog'
 import { STAFF_COLOUR_PALETTE, STAFF_PERMISSIONS, DEFAULT_STAFF_PERMISSIONS } from '../../lib/constants'
@@ -293,7 +293,7 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
       // join table, not a plain field) — keep the sheet open, now in edit
       // mode for the person just created, so assigning a role doesn't need
       // a separate "find them in the list and reopen" step.
-      toast('Staff member added — now assign their roles below')
+      toast('Staff member added — now pick their departments below')
       setEditingId(newId)
       setStaffForm(f => ({ ...f, pin: '' }))
       loadedFor.current = newId   // the form already holds what was just saved
@@ -580,7 +580,7 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
       </div>
 
       {/* Access & roles */}
-      <SectionLabel>Access &amp; roles</SectionLabel>
+      <SectionLabel>Access &amp; departments</SectionLabel>
       <div className={`${CARD} p-3 sm:p-5 flex flex-col gap-2.5`}>
         <Field label="Permission level" group>
           <Segmented
@@ -594,13 +594,25 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
             {staffForm.role === 'staff'   && 'Tasks, cleaning, temp logs and allergens.'}
           </p>
         </Field>
-        <Field label="Roles" group>
+        <Field label="Departments" group>
+          {editingId ? (
+            <StaffDepartmentsAssignment staffId={editingId} />
+          ) : (
+            <p className="text-[13px] text-ink3 dark:text-white/45">Save this person first, then pick their departments.</p>
+          )}
+          <p className="text-[13px] text-ink3 dark:text-white/45 mt-2">
+            {staffForm.role === 'staff'
+              ? 'They only see the Cleaning, Tasks and Checks for these departments. To let them see everything, leave all departments unticked.'
+              : 'Their Cleaning, Tasks and Checks open on this department, and they can switch to any other. To open on everything, leave all departments unticked.'}
+          </p>
+        </Field>
+        <Field label="Job titles" group>
           {editingId ? (
             <StaffRolesAssignment staffId={editingId} />
           ) : (
-            <p className="text-[13px] text-ink3 dark:text-white/45">Save this person first, then pick their roles.</p>
+            <p className="text-[13px] text-ink3 dark:text-white/45">Save this person first, then pick their job titles.</p>
           )}
-          <p className="text-[13px] text-ink3 dark:text-white/45 mt-2">Roles decide which shifts they can be auto-scheduled into, and which department Tasks, Cleaning and Checks they see.</p>
+          <p className="text-[13px] text-ink3 dark:text-white/45 mt-2">Used by the rota builder to fill shifts.</p>
         </Field>
       </div>
 

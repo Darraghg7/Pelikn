@@ -49,7 +49,7 @@ export default function ComplianceSettingsPage() {
         <div className="text-[11.5px] text-charcoal/50 dark:text-white/40 pt-2 px-1 leading-[1.45]">
           {cleaningVisibleToAll
             ? 'On — every staff member sees the full cleaning schedule, labelled by department. Checklists are not affected.'
-            : 'Off — staff only see cleaning tasks for their own roles, plus tasks set to All Roles. Checklists are not affected.'}
+            : 'Off — staff only see cleaning tasks for their own departments, plus tasks set to Everyone. Checklists are not affected.'}
         </div>
 
         <div className="font-mono text-[11px] font-semibold tracking-[0.08em] uppercase text-charcoal/50 dark:text-white/40 pt-[18px] pb-[7px] px-0.5">Daily action schedules</div>

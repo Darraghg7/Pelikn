@@ -20,7 +20,7 @@ export interface ClosingDepartmentStatus {
 
 /**
  * Resolves whether `staffId` is on the hook for a closing checklist today,
- * for every department their roles cover, and what state each is in.
+ * for every department they work in, and what state each is in.
  *
  * "Cleared" deliberately isn't the same as "did nothing" — a person who
  * personally ticked off at least one of today's closing checks has already
@@ -45,25 +45,22 @@ export function useClosingGate(staffId: string | null | undefined) {
       // available (126) — for most people, on most days, that's the whole
       // answer: not closing today, so nothing further is fetched.
       const boot = await takeBootstrap(venueId, 'closingGate', staffId)
-      const [{ data: shiftRows }, { data: roleRows }] = boot
-        ? [{ data: boot.closing_shifts }, { data: boot.my_role_ids }]
-        : await Promise.all([
-          supabase.from('shifts').select('is_closing').eq('venue_id', venueId).eq('staff_id', staffId).eq('shift_date', today),
-          supabase.from('staff_role_assignments').select('role_id').eq('staff_id', staffId),
-        ])
+      const { data: shiftRows } = boot
+        ? { data: boot.closing_shifts }
+        : await supabase.from('shifts').select('is_closing').eq('venue_id', venueId).eq('staff_id', staffId).eq('shift_date', today)
 
       const isClosingToday = (shiftRows ?? []).some((s) => s.is_closing)
-      if (!isClosingToday || !roleRows?.length) return []
+      if (!isClosingToday) return []
 
-      const roleIds = roleRows.map((r) => r.role_id)
-      const { data: venueRoleRows } = await supabase
-        .from('venue_roles')
+      // The departments this person works in (Settings → Staff).
+      const { data: myDepartmentRows } = await supabase
+        .from('staff_departments')
         .select('department_id, departments(id, name)')
-        .in('id', roleIds)
-        .not('department_id', 'is', null)
+        .eq('staff_id', staffId)
+        .eq('venue_id', venueId)
 
       const departmentsById = new Map<string, string>()
-      for (const r of venueRoleRows ?? []) {
+      for (const r of myDepartmentRows ?? []) {
         const dept = (r as unknown as { departments?: { id: string; name: string } | null }).departments
         if (dept) departmentsById.set(dept.id, dept.name)
       }
