@@ -1,11 +1,9 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react'
-import { format, addWeeks, subWeeks, isToday, differenceInCalendarWeeks } from 'date-fns'
-import { useNavigate } from 'react-router-dom'
+import { format, addWeeks, isToday, differenceInCalendarWeeks } from 'date-fns'
 import { updateShift, insertShift, deleteShift, updateShiftStaff, resolveShiftSwap, upsertRotaPublished, insertShifts } from '../../lib/api/shifts'
 import { sendPush } from '../../lib/sendPush'
 import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
-import { useSession } from '../../contexts/SessionContext'
 import { useShifts, useStaffList, shiftDurationHours, paidShiftHours } from '../../hooks/useShifts'
 import { useShiftSwaps } from '../../hooks/useShiftSwaps'
 import { useAvailability } from '../../hooks/useAvailability'
@@ -13,8 +11,6 @@ import { useVenueRoles } from '../../hooks/useVenueRoles'
 import { getWeekStart, getWeekDays } from '../../lib/utils'
 import { useToast } from '../../components/ui/Toast'
 import Toggle from '../../components/ui/Toggle'
-import { useAuth } from '../../contexts/AuthContext'
-import NotificationBell from '../../components/notifications/NotificationBell'
 
 const STATION_COLOR = { Kitchen: '#b5701f', FOH: '#2d7d6e', Bar: '#7a5ea8', KP: '#4f6d8a' }
 const STATION_AVATAR = {
@@ -31,12 +27,9 @@ function stationFromRole(role) {
   if (r.includes('kitchen') || r.includes('chef') || r.includes('cook')) return 'Kitchen'
   if (r.includes('kp') || r.includes('porter')) return 'KP'
   if (r.includes('bar') || r.includes('barista')) return 'Bar'
-  if (r.includes('foh') || r.includes('floor') || r.includes('server') || r.includes('host') || r.includes('supervisor')) return 'FOH'
+  if (r.includes('foh') || r.includes('front') || r.includes('floor') || r.includes('server') || r.includes('host') || r.includes('supervisor')) return 'FOH'
   return role.charAt(0).toUpperCase() + role.slice(1)
 }
-
-// Column widths — matches design exactly
-const NAME_W = 118
 
 /** "Darragh Guy" → "Darragh G." — disambiguates staff who share a first name. */
 function shortName(name) {
@@ -45,8 +38,6 @@ function shortName(name) {
   if (parts.length < 2) return parts[0] ?? '—'
   return `${parts[0]} ${parts[parts.length - 1][0]}.`
 }
-const DAY_COL = 76
-const ROW_H   = 56
 
 // ── Time helpers ──────────────────────────────────────────────────────────────
 const HOURS   = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'))
@@ -144,7 +135,8 @@ function ShiftSheet({ shift, staffMember, day, venueId, roles, onClose, onSaved,
   const [endM, setEndM] = useState(
     MINUTES.reduce((p, m) => Math.abs(+m - +(existing?.end_time?.slice(3, 5) ?? '0')) < Math.abs(+p - +(existing?.end_time?.slice(3, 5) ?? '0')) ? m : p, '00')
   )
-  const [roleLabel, setRoleLabel] = useState(existing?.role_label ?? staffMember?.job_title ?? '')
+  // role_label is NOT NULL in the DB, so always start with one picked
+  const [roleLabel, setRoleLabel] = useState(existing?.role_label || staffMember?.job_title || roles[0]?.name || '')
   const [isClosing, setIsClosing] = useState(existing?.is_closing ?? false)
   const [edge, setEdge] = useState('start')
   const [saving, setSaving] = useState(false)
@@ -157,7 +149,7 @@ function ShiftSheet({ shift, staffMember, day, venueId, roles, onClose, onSaved,
   const station   = stationFromRole(roleLabel)
   const col       = station ? STATION_COLOR[station] : '#13362a'
   const hrs       = shiftDurationHours(startTime, endTime)
-  const valid     = hrs > 0
+  const valid     = hrs > 0 && !!roleLabel
   const rate      = staffMember?.hourly_rate
   const cost      = (rate && valid) ? Math.round(paidShiftHours(startTime, endTime) * rate) : null
 
@@ -170,7 +162,7 @@ function ShiftSheet({ shift, staffMember, day, venueId, roles, onClose, onSaved,
       week_start: format(getWeekStart(day), 'yyyy-MM-dd'),
       start_time: startTime,
       end_time:   endTime,
-      role_label: roleLabel || null,
+      role_label: roleLabel,
       is_closing: isClosing,
     }
     let change
@@ -284,7 +276,7 @@ function ShiftSheet({ shift, staffMember, day, venueId, roles, onClose, onSaved,
           {/* Summary */}
           <div className="px-[13px] py-[11px] rounded-[11px] flex items-center gap-2 justify-center flex-wrap mb-[14px]" style={{ background: col + '14' }}>
             <span className="font-mono text-sm font-semibold text-charcoal dark:text-white tabular-nums">{startTime}–{endTime}</span>
-            <span className={`text-[12.5px] ${valid ? 'text-charcoal/50 dark:text-white/40' : 'text-danger'}`}>· {valid ? durLabel(startTime, endTime) + (endTime < startTime ? ' · ends next day' : '') : 'start and end are the same'}</span>
+            <span className={`text-[12.5px] ${hrs > 0 ? 'text-charcoal/50 dark:text-white/40' : 'text-danger'}`}>· {hrs > 0 ? durLabel(startTime, endTime) + (endTime < startTime ? ' · ends next day' : '') : 'start and end are the same'}</span>
             {valid && cost != null && <span className="font-mono text-[12.5px] text-charcoal/50 dark:text-white/40">· ~£{cost}</span>}
           </div>
 
@@ -479,129 +471,310 @@ function AISheet({ openShifts, staff, unavailability = {}, venueId, onClose, onF
   )
 }
 
-// ── Grid cell ─────────────────────────────────────────────────────────────────
-function GridCell({ shift, isToday: todayCol, onTap, onLeave }) {
-  const baseStyle = {
-    width: DAY_COL, minWidth: DAY_COL, height: ROW_H,
-  }
-  // Approved time off blocks the slot, same as the desktop grid: no tap target,
-  // so nobody gets rota'd onto a day they have booked off.
+// ── Shared bits ───────────────────────────────────────────────────────────────
+const CARD = 'bg-white dark:bg-paperDark rounded-2xl border border-line dark:border-white/10'
+const SECTION = 'font-mono text-[12px] font-semibold tracking-[0.08em] uppercase text-ink3 dark:text-white/45 px-1'
+
+/** 16.1 → "16.1h", 16 → "16h" */
+function hrs(n) { return `${Math.round(n * 10) / 10}h` }
+function money(n) { return `£${Math.round(n)}` }
+
+function stationColor(roleLabel) {
+  const station = stationFromRole(roleLabel)
+  return (station && STATION_COLOR[station]) || '#13362a'
+}
+
+function Segmented({ options, value, onChange, label }) {
+  return (
+    <div role="radiogroup" aria-label={label} className={`${CARD} p-1 flex gap-1 shrink-0`}>
+      {options.map(([v, text]) => {
+        const on = value === v
+        return (
+          <button
+            key={String(v)}
+            type="button"
+            role="radio"
+            aria-checked={on}
+            onClick={() => onChange(v)}
+            className={`h-8 px-3 rounded-[10px] text-[13px] font-semibold transition-colors ${on ? 'bg-brand text-white' : 'text-ink2 dark:text-white/65 hover:text-ink dark:hover:text-white'}`}
+          >
+            {text}
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
+const CHEVRON_L = <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6" /></svg>
+const CHEVRON_R = <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
+const PLUS = <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
+
+// ── Week grid cell ────────────────────────────────────────────────────────────
+function WeekCell({ shift, onLeave, onTap, label }) {
+  // Approved time off blocks the slot: no tap target, so nobody gets rota'd
+  // onto a day they have booked off.
   if (!shift && onLeave) {
     return (
-      <div
-        className="flex items-center justify-center font-mono p-[5px_4px] shrink-0"
-        style={{ ...baseStyle, background: todayCol ? 'rgba(19,54,42,0.04)' : 'transparent' }}
-      >
-        <span className="w-full h-full rounded-[10px] flex items-center justify-center bg-charcoal/[0.06]">
-          <span className="font-mono text-[8.5px] font-semibold uppercase tracking-[0.06em] text-charcoal/40 dark:text-white/35">Leave</span>
-        </span>
+      <div className="flex-1 min-w-0 p-[3px]">
+        <div className="h-[46px] rounded-[10px] bg-line2 dark:bg-white/10 flex items-center justify-center">
+          <span className="font-mono text-[9px] font-semibold tracking-[0.04em] uppercase text-ink3 dark:text-white/45">Leave</span>
+        </div>
       </div>
     )
   }
   if (!shift) {
     return (
-      <button
-        className="flex items-center justify-center cursor-pointer font-mono p-[5px_4px] relative border-none shrink-0"
-        style={{ ...baseStyle, background: todayCol ? 'rgba(19,54,42,0.04)' : 'transparent' }}
-        onClick={onTap}
-      >
-        <span className="w-[22px] h-[22px] rounded-[7px] border border-dashed border-charcoal/10 dark:border-white/10 flex items-center justify-center text-charcoal/30 dark:text-white/30">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+      <button type="button" onClick={onTap} aria-label={`Add shift, ${label}`} className="flex-1 min-w-0 p-[3px] group">
+        <span className="h-[46px] flex items-center justify-center">
+          <span className="w-6 h-6 rounded-[7px] border border-dashed border-ink4/70 dark:border-white/25 text-ink4 dark:text-white/35 flex items-center justify-center group-hover:border-ink3 group-hover:text-ink3">
+            {PLUS}
+          </span>
         </span>
       </button>
     )
   }
-  const station = stationFromRole(shift.role_label)
-  const col = station ? STATION_COLOR[station] : '#13362a'
-  const dur = Math.round(shiftDurationHours(shift.start_time, shift.end_time))
-  const hasSwap = shift._hasSwap
+  const col = stationColor(shift.role_label)
+  const start = fmtT(shift.start_time.slice(0, 5))
+  const end   = fmtT(shift.end_time.slice(0, 5))
   return (
-    <button
-      className="flex items-center justify-center cursor-pointer font-mono p-[5px_4px] relative border-none shrink-0"
-      style={{ ...baseStyle, background: todayCol ? 'rgba(19,54,42,0.04)' : 'transparent' }}
-      onClick={onTap}
-    >
-      <span className="w-full h-full rounded-[10px] flex flex-col items-center justify-center gap-0.5 relative" style={{ background: col + '1a' }}>
-        <span className="font-mono text-xs font-bold tabular-nums leading-none tracking-[-0.02em]" style={{ color: col }}>{fmtRange(shift.start_time.slice(0,5), shift.end_time.slice(0,5))}</span>
-        <span className="font-mono text-[8.5px] font-medium" style={{ color: col, opacity: 0.7 }}>{dur}h</span>
-        {hasSwap && <span className="absolute top-[3px] right-1 w-[7px] h-[7px] rounded-[4px] bg-warning border-[1.5px] border-white" />}
+    <button type="button" onClick={onTap} aria-label={`${label}, ${start} to ${end}`} className="flex-1 min-w-0 p-[3px]">
+      <span className="relative h-[46px] rounded-[10px] flex flex-col items-center justify-center leading-none" style={{ background: col + '1f', color: col }}>
+        <span className="font-mono text-[12px] font-bold tabular-nums tracking-[-0.03em]">{start}</span>
+        <span className="font-mono text-[11px] font-medium tabular-nums tracking-[-0.03em] opacity-75 mt-[3px]">{end}</span>
+        {shift._hasSwap && <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-warn" title="Swap requested" />}
       </span>
     </button>
   )
 }
 
-// ── Station legend ────────────────────────────────────────────────────────────
+// ── Week view ─────────────────────────────────────────────────────────────────
+function WeekGrid({ days, staff, shiftMap, unavailability, dayTotals, personTotal, showCost, onTap }) {
+  return (
+    <div className={`${CARD} overflow-hidden`}>
+      <div className="flex border-b border-line dark:border-white/10 px-1">
+        <div className="w-[68px] shrink-0" />
+        {days.map((day, i) => {
+          const today = isToday(day)
+          return (
+            <div key={i} className="flex-1 min-w-0 p-[3px]">
+              <div className={`rounded-[10px] py-1.5 text-center ${today ? 'bg-line2 dark:bg-white/10' : ''}`}>
+                <div className="font-mono text-[10px] font-semibold tracking-[0.04em] uppercase text-ink3 dark:text-white/45">{format(day, 'EEE')}</div>
+                <div className={`text-[16px] font-bold leading-tight mt-0.5 ${today ? 'text-accent' : 'text-ink dark:text-white'}`}>{format(day, 'd')}</div>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      {staff.map((member) => (
+        <div key={member.id} className="flex items-center border-b border-line dark:border-white/10 px-1">
+          <div className="w-[68px] shrink-0 pl-2 pr-1 min-w-0">
+            <div className="text-[13px] font-semibold text-ink dark:text-white truncate" title={member.name}>{shortName(member.name)}</div>
+            <div className="font-mono text-[11px] text-ink3 dark:text-white/45 mt-0.5">{showCost ? money(personTotal(member).cost) : hrs(personTotal(member).hours)}</div>
+          </div>
+          {days.map((day, di) => {
+            const dateStr = format(day, 'yyyy-MM-dd')
+            return (
+              <WeekCell
+                key={di}
+                shift={shiftMap[`${member.id}|${dateStr}`] ?? null}
+                onLeave={unavailability[`${member.id}:${dateStr}`]?.type === 'time_off'}
+                label={`${member.name}, ${format(day, 'EEEE d MMMM')}`}
+                onTap={() => onTap(shiftMap[`${member.id}|${dateStr}`] ?? null, member, day)}
+              />
+            )
+          })}
+        </div>
+      ))}
+
+      <div className="flex items-center bg-cream/60 dark:bg-white/5 px-1 py-2">
+        <div className="w-[68px] shrink-0 pl-2 font-mono text-[11px] font-semibold tracking-[0.06em] uppercase text-ink3 dark:text-white/45">{showCost ? 'Cost' : 'Hours'}</div>
+        {dayTotals.map((t, i) => (
+          <div key={i} className="flex-1 min-w-0 text-center">
+            <div className="text-[13px] font-bold text-ink dark:text-white tabular-nums">{showCost ? money(t.cost) : `${t.hours}h`}</div>
+            <div className="font-mono text-[10px] uppercase text-ink3 dark:text-white/45 mt-0.5">{t.count} on</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// ── Day view ──────────────────────────────────────────────────────────────────
+function DayView({ days, dayIndex, setDayIndex, staff, shifts, unavailability, dayTotals, personTotal, showCost, onTap }) {
+  const day = days[dayIndex]
+  const dateStr = format(day, 'yyyy-MM-dd')
+  const onShift = shifts
+    .filter(s => s.shift_date === dateStr && s.staff_id)
+    .sort((a, b) => a.start_time.localeCompare(b.start_time))
+  const scheduledIds = new Set(onShift.map(s => s.staff_id))
+  const onLeave = staff.filter(m => !scheduledIds.has(m.id) && unavailability[`${m.id}:${dateStr}`]?.type === 'time_off')
+  const leaveIds = new Set(onLeave.map(m => m.id))
+  const free = staff.filter(m => !scheduledIds.has(m.id) && !leaveIds.has(m.id))
+  const dayHours = onShift.reduce((a, s) => a + shiftDurationHours(s.start_time, s.end_time), 0)
+  const dayCost  = onShift.reduce((a, s) => a + (s.staff ? paidShiftHours(s.start_time, s.end_time) * (s.staff.hourly_rate ?? 0) : 0), 0)
+
+  return (
+    <>
+      <div className="flex gap-1.5">
+        {days.map((d, i) => {
+          const on = i === dayIndex
+          return (
+            <button
+              key={i}
+              type="button"
+              onClick={() => setDayIndex(i)}
+              aria-pressed={on}
+              aria-label={format(d, 'EEEE d MMMM')}
+              className={`flex-1 min-w-0 rounded-xl border py-2 text-center transition-colors ${on ? 'bg-brand border-brand text-white' : 'bg-white dark:bg-paperDark border-line dark:border-white/10 text-ink dark:text-white'}`}
+            >
+              <div className={`font-mono text-[10px] font-semibold uppercase tracking-[0.04em] ${on ? 'text-white/70' : 'text-ink3 dark:text-white/45'}`}>{format(d, 'EEE')}</div>
+              <div className="text-[16px] font-bold leading-tight mt-0.5">{format(d, 'd')}</div>
+              <div className={`font-mono text-[10px] mt-0.5 ${on ? 'text-white/70' : 'text-ink3 dark:text-white/45'}`}>{showCost ? money(dayTotals[i].cost) : `${dayTotals[i].hours}h`}</div>
+            </button>
+          )
+        })}
+      </div>
+
+      <div className="flex items-baseline justify-between px-1 pt-1">
+        <h2 className="text-[16px] font-bold text-ink dark:text-white">{format(day, 'EEEE d MMM')}</h2>
+        <span className="text-[12px] text-ink3 dark:text-white/45">{onShift.length} on · {showCost ? money(dayCost) : hrs(dayHours)}</span>
+      </div>
+
+      {onShift.length === 0 ? (
+        <div className={`${CARD} px-4 py-5 text-center text-[13px] text-ink3 dark:text-white/45`}>Nobody on yet. Add a shift below.</div>
+      ) : (
+        <div className={`${CARD} overflow-hidden divide-y divide-line dark:divide-white/10`}>
+          {onShift.map(s => {
+            const member = staff.find(m => m.id === s.staff_id) ?? s.staff ?? { id: s.staff_id, name: 'Staff' }
+            const col = stationColor(s.role_label)
+            const start = fmtT(s.start_time.slice(0, 5))
+            const end   = fmtT(s.end_time.slice(0, 5))
+            return (
+              <button key={s.id} type="button" onClick={() => onTap(s, member, day)} className="w-full flex items-center gap-3 px-3.5 py-2.5 text-left hover:bg-cream/60 dark:hover:bg-white/5">
+                <span className="w-[3px] self-stretch rounded-full shrink-0" style={{ background: col }} />
+                <span className="flex-1 min-w-0">
+                  <span className="block text-[14px] font-semibold text-ink dark:text-white truncate">{member.name}</span>
+                  <span className="block text-[12px] text-ink3 dark:text-white/45 mt-0.5 truncate">{s.role_label || member.job_title || '—'}</span>
+                </span>
+                <span className="shrink-0 rounded-[10px] px-2.5 py-1.5 text-right" style={{ background: col + '1f', color: col }}>
+                  <span className="block font-mono text-[13px] font-bold tabular-nums tracking-[-0.02em]">{start}–{end}</span>
+                  <span className="block font-mono text-[11px] opacity-75 mt-0.5">{showCost && member.hourly_rate ? money(paidShiftHours(s.start_time, s.end_time) * member.hourly_rate) : hrs(shiftDurationHours(s.start_time, s.end_time))}</span>
+                </span>
+                {s._hasSwap && <span className="w-1.5 h-1.5 rounded-full bg-warn shrink-0" title="Swap requested" />}
+              </button>
+            )
+          })}
+        </div>
+      )}
+
+      {onLeave.length > 0 && (
+        <>
+          <p className={`${SECTION} pt-1`}>On leave</p>
+          <div className={`${CARD} overflow-hidden divide-y divide-line dark:divide-white/10`}>
+            {onLeave.map(m => (
+              <div key={m.id} className="flex items-center justify-between gap-3 px-3.5 py-2.5">
+                <span className="text-[14px] font-semibold text-ink dark:text-white truncate">{m.name}</span>
+                <span className="shrink-0 h-6 px-2.5 rounded-full bg-line2 dark:bg-white/10 inline-flex items-center text-[12px] font-semibold text-ink2 dark:text-white/65">Leave</span>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
+      {free.length > 0 && (
+        <>
+          <p className={`${SECTION} pt-1`}>Not scheduled · {free.length}</p>
+          <div className={`${CARD} overflow-hidden divide-y divide-line dark:divide-white/10`}>
+            {free.map(m => (
+              <div key={m.id} className="flex items-center gap-3 px-3.5 py-2">
+                <span className="w-8 h-8 rounded-full bg-line2 dark:bg-white/10 inline-flex items-center justify-center text-[11px] font-bold text-ink2 dark:text-white/70 shrink-0">
+                  {(m.name ?? '?').split(/\s+/).map(w => w[0]).slice(0, 2).join('').toUpperCase()}
+                </span>
+                <span className="flex-1 min-w-0">
+                  <span className="block text-[14px] font-semibold text-ink dark:text-white truncate">{shortName(m.name)}</span>
+                  <span className="block text-[12px] text-ink3 dark:text-white/45 mt-0.5">{showCost ? `${money(personTotal(m).cost)} this week` : `${hrs(personTotal(m).hours)} this week`}</span>
+                </span>
+                <button
+                  type="button"
+                  onClick={() => onTap(null, m, day)}
+                  aria-label={`Add shift for ${m.name}`}
+                  className="shrink-0 h-8 px-3 rounded-[10px] border border-dashed border-ink4/70 dark:border-white/25 inline-flex items-center gap-1.5 text-[13px] font-semibold text-ink dark:text-white hover:border-ink3"
+                >
+                  {PLUS} Shift
+                </button>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+    </>
+  )
+}
+
+// ── Open (unassigned) shifts ──────────────────────────────────────────────────
+function OpenShifts({ openShifts, onFill }) {
+  if (!openShifts.length) return null
+  return (
+    <>
+      <p className={`${SECTION} pt-1 !text-bad`}>{openShifts.length} {openShifts.length === 1 ? 'shift needs' : 'shifts need'} filling</p>
+      <div className={`${CARD} overflow-hidden divide-y divide-line dark:divide-white/10`}>
+        {openShifts.map((o, idx) => {
+          const col = stationColor(o.role_label)
+          return (
+            <div key={o.id ?? idx} className="flex items-center gap-3 px-3.5 py-2.5">
+              <span className="w-[3px] self-stretch rounded-full shrink-0" style={{ background: col }} />
+              <span className="flex-1 min-w-0">
+                <span className="block text-[14px] font-semibold text-ink dark:text-white truncate">{o.role_label || 'Shift'} · {fmtRange(o.start_time.slice(0, 5), o.end_time.slice(0, 5))}</span>
+                <span className="block text-[12px] text-ink3 dark:text-white/45 mt-0.5">{format(o._day, 'EEE d MMM')} · unassigned</span>
+              </span>
+              <button type="button" onClick={() => onFill(o)} className="shrink-0 h-8 px-3.5 rounded-[10px] bg-brand text-white text-[13px] font-semibold">Fill</button>
+            </div>
+          )
+        })}
+      </div>
+    </>
+  )
+}
+
 function StationLegend() {
   return (
-    <div className="flex items-center gap-3 px-1 py-0.5 flex-wrap">
+    <div className="flex items-center gap-4 px-1 flex-wrap">
       {STATION_ORDER.map((s) => (
-        <span key={s} className="inline-flex items-center gap-[5px] font-mono text-[9.5px] text-charcoal/50 dark:text-white/40 uppercase tracking-[0.04em]">
-          <span className="w-[9px] h-[9px] rounded-[3px]" style={{ background: STATION_COLOR[s] + '22', borderLeft: `2.5px solid ${STATION_COLOR[s]}` }} />{s}
+        <span key={s} className="inline-flex items-center gap-1.5 text-[12px] text-ink3 dark:text-white/45">
+          <span className="w-2 h-2 rounded-full" style={{ background: STATION_COLOR[s] }} />{s}
         </span>
       ))}
     </div>
   )
 }
 
-// ── Gaps strip ────────────────────────────────────────────────────────────────
-function GapsStrip({ openShifts, days, onFill }) {
-  if (!openShifts.length) return null
-  return (
-    <div>
-      <div className="flex items-center gap-[7px] px-0.5 pb-[9px]">
-        <span className="w-[6px] h-[6px] rounded-[3px] bg-danger shrink-0" />
-        <span className="font-mono text-[10.5px] text-danger tracking-[0.07em] uppercase font-semibold">{openShifts.length} {openShifts.length === 1 ? 'shift needs' : 'shifts need'} filling</span>
-      </div>
-      <div className="flex flex-col gap-2">
-        {openShifts.map((o, idx) => {
-          const station = stationFromRole(o.role_label)
-          const col = station ? STATION_COLOR[station] : '#13362a'
-          return (
-            <div key={o.id ?? idx} className="flex items-center gap-[13px] px-[13px] py-[11px] bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[13px]">
-              <span className="w-[38px] h-[38px] rounded-[11px] flex items-center justify-center shrink-0" style={{ background: col + '1c', color: col }}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14"/></svg>
-              </span>
-              <div className="flex-1 min-w-0">
-                <div className="text-sm font-semibold text-charcoal dark:text-white tracking-[-0.01em]">{o.role_label} · {fmtRange(o.start_time.slice(0,5), o.end_time.slice(0,5))}</div>
-                <div className="text-[11.5px] text-charcoal/50 dark:text-white/40 mt-0.5">{format(o._day, 'EEE d MMM')} · unassigned</div>
-              </div>
-              <button onClick={() => onFill(o)} className="text-[12.5px] font-semibold text-white bg-brand px-[15px] py-2 rounded-[9px] border-none cursor-pointer">Fill</button>
-            </div>
-          )
-        })}
-      </div>
-    </div>
-  )
-}
-
 // ── RotaMobileGrid ────────────────────────────────────────────────────────────
 export default function RotaMobileGrid() {
-  const { venueId, venueName } = useVenue()
-  const { session } = useSession()
-  const { signOutVenue } = useAuth()
-  const navigate = useNavigate()
+  const { venueId } = useVenue()
   const toast = useToast()
 
-  const [weekOffset, setWeekOffset] = useState(0)
   const [weekStart, setWeekStart] = useState(() => getWeekStart())
   const days = getWeekDays(weekStart)
-  const weekLabel = `${format(days[0], 'd MMM')}–${format(days[6], 'd MMM')}`.toUpperCase()
+  const weekOffset = differenceInCalendarWeeks(weekStart, getWeekStart(), { weekStartsOn: 1 })
+  const weekTitle = weekOffset === 0 ? 'This week'
+    : weekOffset === 1 ? 'Next week'
+    : weekOffset === -1 ? 'Last week'
+    : weekOffset > 1 ? `In ${weekOffset} weeks` : `${-weekOffset} weeks ago`
 
-  const weekTitle = weekOffset === 0
-    ? 'This week'
-    : weekOffset < 0 ? `${-weekOffset}w ago`
-    : `In ${weekOffset}w`
-
+  const [view, setView]         = useState('week')
+  const [dayIndex, setDayIndex] = useState(() => { const i = getWeekDays(getWeekStart()).findIndex(d => isToday(d)); return i < 0 ? 0 : i })
   const [shiftSheet, setShiftSheet] = useState(null)
   const [showSwaps, setShowSwaps]   = useState(false)
   const [showAI, setShowAI]         = useState(false)
   const [showCost, setShowCost]     = useState(false)
-  // Unpublished edits made this session, newest last. Each entry lets Cancel
+  // Unpublished edits made this session, newest last. Each entry lets Discard
   // undo the change: { type: 'add', id } | { type: 'edit', before } | { type: 'delete', before }
   const [sessionChanges, setSessionChanges] = useState([])
   const [publishing, setPublishing] = useState(false)
   const [reverting, setReverting]   = useState(false)
-  const [dbPublished, setDbPublished] = useState(false)
+  const [dbPublished, setDbPublished] = useState(null)   // null until loaded
   const pendingChanges = sessionChanges.length
 
   const { shifts, loading, reload } = useShifts(weekStart, 1)
@@ -612,7 +785,7 @@ export default function RotaMobileGrid() {
 
   useEffect(() => {
     if (!venueId) return
-    setDbPublished(false)
+    setDbPublished(null)
     const weekStartStr = format(weekStart, 'yyyy-MM-dd')
     supabase
       .from('app_settings')
@@ -623,17 +796,20 @@ export default function RotaMobileGrid() {
       .then(({ data }) => setDbPublished(!!data?.value))
   }, [venueId, weekStart])
 
-  const prevWeek = () => { const w = subWeeks(weekStart, 1); setWeekStart(w); setWeekOffset(o => o - 1); setSessionChanges([]) }
-  const nextWeek = () => { const w = addWeeks(weekStart, 1); setWeekStart(w); setWeekOffset(o => o + 1); setSessionChanges([]) }
+  const goWeek = (n) => {
+    const w = addWeeks(weekStart, n)
+    setWeekStart(w)
+    setSessionChanges([])
+    const i = getWeekDays(w).findIndex(d => isToday(d))
+    setDayIndex(i < 0 ? 0 : i)
+  }
 
   const shiftMap = {}
   const swapShiftIds = new Set(swaps.filter(s => s.status === 'pending').map(s => s.shift_id))
-  for (const s of shifts) {
-    const key = `${s.staff_id}|${s.shift_date}`
-    shiftMap[key] = { ...s, _hasSwap: swapShiftIds.has(s.id) }
-  }
+  const weekShifts = shifts.map(s => ({ ...s, _hasSwap: swapShiftIds.has(s.id) }))
+  for (const s of weekShifts) shiftMap[`${s.staff_id}|${s.shift_date}`] = s
 
-  const openShifts = shifts
+  const openShifts = weekShifts
     .filter(s => !s.staff_id)
     .map(s => ({ ...s, _day: days.find(d => format(d, 'yyyy-MM-dd') === s.shift_date) ?? days[0] }))
 
@@ -649,12 +825,22 @@ export default function RotaMobileGrid() {
   const weekHours = dayTotals.reduce((a, t) => a + t.hours, 0)
   const weekCost  = dayTotals.reduce((a, t) => a + t.cost, 0)
 
-  const managerInitials = (session?.staffName ?? 'MG').split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase()
-  const isDraft      = pendingChanges > 0
-  const isPublished  = dbPublished && pendingChanges === 0
-  const showPublishBar = shifts.length > 0 && !isPublished
+  const personTotals = {}
+  for (const s of shifts) {
+    if (!s.staff_id) continue
+    const t = personTotals[s.staff_id] ?? (personTotals[s.staff_id] = { hours: 0, cost: 0 })
+    t.hours += shiftDurationHours(s.start_time, s.end_time)
+    t.cost  += s.staff ? paidShiftHours(s.start_time, s.end_time) * (s.staff.hourly_rate ?? 0) : 0
+  }
+  const personTotal = (m) => personTotals[m.id] ?? { hours: 0, cost: 0 }
+
+  // Publishing is only possible when there is something new for staff to see:
+  // unpublished edits this session, or a week with shifts that was never published.
+  const neverPublished = dbPublished === false && shifts.length > 0
+  const canPublish = pendingChanges > 0 || neverPublished
 
   const publish = async () => {
+    if (!canPublish) return
     setPublishing(true)
     const weekStartStr = format(weekStart, 'yyyy-MM-dd')
     const { error } = await upsertRotaPublished(venueId, weekStartStr, new Date().toISOString())
@@ -671,7 +857,7 @@ export default function RotaMobileGrid() {
 
   // Discard every unpublished change this session by reversing each in LIFO order:
   // added shifts are deleted, edits are restored, deletions are re-inserted.
-  const cancelChanges = async () => {
+  const discardChanges = async () => {
     if (reverting || sessionChanges.length === 0) return
     setReverting(true)
     for (const ch of [...sessionChanges].reverse()) {
@@ -690,253 +876,152 @@ export default function RotaMobileGrid() {
     toast('Changes discarded')
   }
 
-  const handleSaved   = (change) => { if (change) setSessionChanges(c => [...c, change]); reload() }
-  const handleDeleted = (change) => { if (change) setSessionChanges(c => [...c, change]); reload() }
+  const handleChange = (change) => { if (change) setSessionChanges(c => [...c, change]); reload() }
+  const openSheet = (shift, staffMember, day) => setShiftSheet({ shift, staffMember, day })
   const isLoading = loading || staffLoading
 
+  const publishLabel = publishing ? 'Publishing…' : canPublish ? 'Publish' : dbPublished ? 'Published' : 'Publish'
+
   return (
-    <>
+    <div className="flex flex-col gap-2.5">
       <style>{`
         @keyframes sheetUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
         @keyframes fadeIn  { from { opacity: 0; }                 to { opacity: 1; } }
       `}</style>
 
-      <div className="fixed inset-0 z-[51] flex flex-col bg-surface text-charcoal dark:text-white overflow-hidden">
-
-        {/* ── Header: matches AppShell mobile header ── */}
-        <header className="bg-brand text-white shrink-0" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
-          <div className="px-4 h-14 flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2 min-w-0 flex-1">
-              <span className="font-bold text-[15px] tracking-[0.08em] uppercase text-white overflow-hidden text-ellipsis whitespace-nowrap max-w-[160px]">{venueName || 'Pelikn'}</span>
-              <NotificationBell />
-            </div>
-            <button onClick={signOutVenue} className="text-[11px] font-bold tracking-[0.06em] uppercase text-white bg-transparent border border-white/30 rounded-lg px-3 py-[6px] cursor-pointer whitespace-nowrap shrink-0">Sign out</button>
-          </div>
-        </header>
-
-        {/* ── Back bar — matches the shared MobileNav back-row ── */}
-        <div style={{ background: '#fff', borderBottom: '1px solid #e5e7eb', padding: '8px 16px' }}>
-          <button onClick={() => navigate(-1)} className="inline-flex items-center gap-1.5 bg-transparent border-none cursor-pointer p-0 text-brand text-[13px] font-semibold">
-            <svg width="7" height="12" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M5 1L1 5l4 4"/></svg>
-            Team
+      {/* Header — Publish lives top right and only wakes up when there's something to send */}
+      <div className="flex items-center justify-between gap-3">
+        <h1 className="text-[20px] sm:text-[22px] leading-tight font-bold tracking-tight text-ink dark:text-white">Rota</h1>
+        <div className="flex items-center gap-2">
+          {pendingChanges > 0 && (
+            <button
+              type="button"
+              onClick={discardChanges}
+              disabled={publishing || reverting}
+              className="h-9 px-2.5 text-[13px] font-semibold text-ink3 dark:text-white/50 hover:text-ink dark:hover:text-white disabled:opacity-40"
+            >
+              {reverting ? 'Undoing…' : 'Discard'}
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={publish}
+            disabled={!canPublish || publishing || reverting}
+            title={canPublish ? (pendingChanges ? `${pendingChanges} unpublished ${pendingChanges === 1 ? 'change' : 'changes'}` : 'Staff can’t see this week yet') : undefined}
+            className={`h-9 px-3.5 rounded-xl inline-flex items-center gap-2 text-[13px] font-semibold transition-colors ${canPublish ? 'bg-brand text-white hover:bg-brand/90' : 'bg-white dark:bg-paperDark border border-line dark:border-white/10 text-ink4 dark:text-white/35 cursor-default'}`}
+          >
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4z" /></svg>
+            {publishLabel}
+            {pendingChanges > 0 && !publishing && <span className="min-w-[20px] h-5 px-1.5 rounded-full bg-white/20 inline-flex items-center justify-center text-[11px] font-bold">{pendingChanges}</span>}
           </button>
         </div>
-
-        {/* ── Cream sub-header: status pill + week nav ── */}
-        <div className="px-[14px] pt-3 pb-2 bg-surface shrink-0">
-          <div className="flex justify-end items-center px-1 pb-2">
-            <span
-              className={`inline-flex items-center gap-[5px] font-mono text-[9.5px] font-bold px-2 py-[3px] rounded-full tracking-[0.05em] uppercase border ${isDraft ? 'text-warning bg-warning/10 border-warning' : isPublished ? 'text-success bg-success/10 border-success' : 'text-charcoal/50 dark:text-white/40 bg-charcoal/[0.06] border-charcoal/10 dark:border-white/10'}`}
-            >
-              <span className="w-[5px] h-[5px] rounded-[3px] bg-current" />
-              {isDraft ? `Draft · ${pendingChanges} change${pendingChanges !== 1 ? 's' : ''}` : isPublished ? 'Published' : 'Not published'}
-            </span>
-          </div>
-          <div className="flex items-center gap-1">
-            <button onClick={prevWeek} className="w-8 flex items-center justify-center shrink-0 bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[9px] text-charcoal/50 dark:text-white/40 cursor-pointer" style={{ height: 60 }}>
-              <svg width="10" height="14" viewBox="0 0 10 14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M7 1L1 7l6 6"/></svg>
-            </button>
-            <div className="flex-1 bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[9px] flex flex-col items-center justify-center gap-0.5" style={{ height: 60 }}>
-              <span className="text-[15px] font-semibold tracking-[-0.015em] text-charcoal dark:text-white">{weekTitle}</span>
-              <span className="font-mono text-[10px] text-charcoal/50 dark:text-white/40 tracking-[0.06em] uppercase">{weekLabel}</span>
-            </div>
-            <button onClick={nextWeek} className="w-8 flex items-center justify-center shrink-0 bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[9px] text-charcoal/50 dark:text-white/40 cursor-pointer" style={{ height: 60 }}>
-              <svg width="10" height="14" viewBox="0 0 10 14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 1l6 6-6 6"/></svg>
-            </button>
-          </div>
-        </div>
-
-        {/* ── Action bar ── */}
-        <div className="flex items-center justify-between gap-2 px-[14px] py-[10px] bg-surface border-b border-charcoal/10 dark:border-white/10 shrink-0">
-          <div className="flex items-baseline gap-[6px] shrink-0">
-            <span className="font-mono text-[9.5px] text-charcoal/50 dark:text-white/40 uppercase tracking-[0.07em] font-semibold">Week</span>
-            <span className="font-mono text-[15px] font-semibold text-charcoal dark:text-white tabular-nums">{showCost ? `£${weekCost}` : `${weekHours}h`}</span>
-          </div>
-          <div className="flex items-center gap-2">
-            {/* Hours / £ toggle */}
-            <div className="flex bg-charcoal/[0.06] rounded-[9px] p-[3px]">
-              {[['Hours', false], ['£', true]].map(([lbl, val]) => {
-                const on = showCost === val
-                return (
-                  <button key={lbl} onClick={() => setShowCost(val)} className={`cursor-pointer border-none rounded-[7px] px-[11px] py-[5px] text-xs font-semibold ${on ? 'bg-white dark:bg-paperDark text-charcoal dark:text-white shadow-[0_1px_2px_rgba(9,18,13,0.1)]' : 'bg-transparent text-charcoal/50 dark:text-white/40'}`}>{lbl}</button>
-                )
-              })}
-            </div>
-            {/* Auto-fill */}
-            <button onClick={() => setShowAI(true)} title="Auto-fill gaps" className="flex items-center gap-[5px] text-[12.5px] font-semibold border-none rounded-[9px] px-[11px] py-[7px] cursor-pointer" style={{ color: '#c94f2a', background: 'rgba(201,79,42,0.10)' }}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg>
-              Auto-fill
-            </button>
-          </div>
-        </div>
-
-        {/* ── Scrollable content ── */}
-        <div className="flex-1 overflow-y-auto overflow-x-hidden [-webkit-overflow-scrolling:touch]">
-          {isLoading ? (
-            <div className="flex items-center justify-center h-[200px] text-charcoal/50 dark:text-white/40 text-sm">Loading…</div>
-          ) : (
-            <div className="px-[13px] pt-[13px] flex flex-col gap-[13px]">
-
-              {/* Swap banner */}
-              {pendingCount > 0 && (
-                <button onClick={() => setShowSwaps(true)} className="w-full text-left cursor-pointer flex items-center gap-[11px] px-[14px] py-3 border-none rounded-[13px]" style={{ background: '#fbeedc' }}>
-                  <span className="w-[30px] h-[30px] rounded-[9px] flex items-center justify-center shrink-0" style={{ background: 'rgba(168,93,18,0.16)', color: '#a85d12' }}>
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3l4 4-4 4M21 7H8M7 21l-4-4 4-4M3 17h13"/></svg>
-                  </span>
-                  <span className="flex-1 text-[13.5px] font-semibold text-warning">{pendingCount} swap {pendingCount === 1 ? 'request' : 'requests'} pending</span>
-                  <span className="font-mono text-[10px] font-bold text-warning uppercase tracking-[0.05em] flex items-center gap-1">
-                    Review
-                    <svg width="6" height="10" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M1 1l4 4-4 4"/></svg>
-                  </span>
-                </button>
-              )}
-
-              {/* Week grid — wrapped in card */}
-              <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-2xl overflow-hidden">
-                <div className="overflow-x-auto [-webkit-overflow-scrolling:touch]">
-                  <div style={{ minWidth: NAME_W + DAY_COL * 7 }}>
-
-                    {/* Header row */}
-                    <div className="flex border-b border-charcoal/10 dark:border-white/10">
-                      <div className="shrink-0 sticky left-0 z-[3] bg-white dark:bg-paperDark" style={{ width: NAME_W, minWidth: NAME_W }} />
-                      {days.map((day, i) => {
-                        const today = isToday(day)
-                        return (
-                          <div key={i} className="shrink-0 text-center pt-[11px] pb-[9px]" style={{ width: DAY_COL, minWidth: DAY_COL, background: today ? 'rgba(19,54,42,0.04)' : 'transparent' }}>
-                            <div className="font-mono text-[9px] tracking-[0.06em] uppercase text-charcoal/50 dark:text-white/40 font-semibold">{format(day, 'EEE')}</div>
-                            <div className="mt-1 w-[26px] h-[26px] rounded-full flex items-center justify-center mx-auto" style={{ background: today ? '#13362a' : 'transparent' }}>
-                              <span className="font-mono text-[13px] font-semibold" style={{ color: today ? '#fff' : '#0d1a14' }}>{format(day, 'd')}</span>
-                            </div>
-                          </div>
-                        )
-                      })}
-                    </div>
-
-                    {/* Staff rows */}
-                    {staff.map((member, ri) => {
-                      const station = stationFromRole(member.job_title)
-                      return (
-                        <div key={member.id} className="flex" style={{ borderBottom: ri === staff.length - 1 ? 'none' : '1px solid #eef0ec' }}>
-                          <div
-                            className="shrink-0 sticky left-0 z-[2] bg-white dark:bg-paperDark border-r border-charcoal/[0.06] flex items-center gap-2 px-[9px]"
-                            style={{ width: NAME_W, minWidth: NAME_W }}
-                          >
-                            <span className="relative shrink-0">
-                              <Avatar name={member.name} station={station} size={28} />
-                              {station && <span className="absolute -bottom-px -right-px w-2 h-2 rounded-[4px] border-[1.5px] border-white" style={{ background: STATION_COLOR[station] }} />}
-                            </span>
-                            <span className="text-[12.5px] font-semibold text-charcoal dark:text-white tracking-[-0.01em] whitespace-nowrap overflow-hidden text-ellipsis" title={member.name}>
-                              {shortName(member.name)}
-                            </span>
-                          </div>
-                          {days.map((day, di) => {
-                            const dateStr = format(day, 'yyyy-MM-dd')
-                            const shift = shiftMap[`${member.id}|${dateStr}`] ?? null
-                            const onLeave = unavailability[`${member.id}:${dateStr}`]?.type === 'time_off'
-                            return (
-                              <GridCell
-                                key={di}
-                                shift={shift}
-                                onLeave={onLeave}
-                                isToday={isToday(day)}
-                                onTap={() => setShiftSheet({ shift, staffMember: member, day })}
-                              />
-                            )
-                          })}
-                        </div>
-                      )
-                    })}
-
-                    {/* Totals row */}
-                    <div className="flex bg-surface border-t border-charcoal/10 dark:border-white/10">
-                      <div
-                        className="shrink-0 sticky left-0 z-[2] bg-surface border-r border-charcoal/[0.06] flex items-center px-[9px]"
-                        style={{ width: NAME_W, minWidth: NAME_W }}
-                      >
-                        <span className="font-mono text-[9px] font-semibold text-charcoal/50 dark:text-white/40 uppercase tracking-[0.06em]">{showCost ? 'Cost' : 'Hours'}</span>
-                      </div>
-                      {dayTotals.map((t, i) => (
-                        <div key={i} className="shrink-0 text-center py-[11px]" style={{ width: DAY_COL, minWidth: DAY_COL, background: isToday(days[i]) ? 'rgba(19,54,42,0.04)' : 'transparent' }}>
-                          <div className="font-mono text-xs font-semibold text-charcoal dark:text-white tabular-nums">{showCost ? `£${t.cost}` : `${t.hours}h`}</div>
-                          <div className="font-mono text-[8px] text-charcoal/30 dark:text-white/30 mt-0.5 uppercase tracking-[0.04em]">{t.count} on</div>
-                        </div>
-                      ))}
-                    </div>
-
-                  </div>
-                </div>
-              </div>
-
-              {/* Gaps strip */}
-              <GapsStrip openShifts={openShifts} days={days} onFill={(o) => setShiftSheet({ shift: o, staffMember: null, day: o._day })} />
-
-              {/* Station legend */}
-              <StationLegend />
-
-            </div>
-          )}
-          <div style={{ height: showPublishBar ? 150 : 96 }} />
-        </div>
-
-        {/* ── Publish bar ── */}
-        {showPublishBar && (
-          <div className="absolute bottom-4 left-3 right-3 z-[30] bg-charcoal text-white rounded-[15px] px-[14px] py-3 flex items-center gap-3" style={{ boxShadow: '0 10px 30px rgba(9,18,13,0.34)' }}>
-            <div className="flex-1 min-w-0">
-              <div className="text-[13.5px] font-semibold">{isDraft ? `${pendingChanges} unpublished ${pendingChanges === 1 ? 'change' : 'changes'}` : 'Rota not published'}</div>
-              <div className="font-mono text-[9.5px] text-white/60 uppercase tracking-[0.04em] mt-0.5">{isDraft ? "Staff won't see them yet" : "Staff can't see this week yet"}</div>
-            </div>
-            {isDraft && (
-              <button onClick={cancelChanges} disabled={publishing || reverting} className="h-10 px-[14px] rounded-[11px] border border-white/25 cursor-pointer bg-transparent text-white/75 text-[13.5px] font-semibold">
-                {reverting ? 'Undoing…' : 'Cancel'}
-              </button>
-            )}
-            <button onClick={publish} disabled={publishing || reverting} className="h-10 px-[18px] rounded-[11px] border-none cursor-pointer bg-white dark:bg-paperDark text-charcoal dark:text-white text-[13.5px] font-bold flex items-center gap-[7px]">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4z"/></svg>
-              {publishing ? 'Publishing…' : 'Publish'}
-            </button>
-          </div>
-        )}
-
-        {/* ── Sheets ── */}
-        {shiftSheet && (
-          <ShiftSheet
-            shift={shiftSheet.shift}
-            staffMember={shiftSheet.staffMember}
-            day={shiftSheet.day}
-            venueId={venueId}
-            roles={roles}
-            onClose={() => setShiftSheet(null)}
-            onSaved={handleSaved}
-            onDeleted={handleDeleted}
-          />
-        )}
-        {showSwaps && (
-          <SwapSheet
-            swaps={swaps}
-            onClose={() => setShowSwaps(false)}
-            onResolved={() => { reloadSwaps(); reload() }}
-          />
-        )}
-        {showAI && (
-          <AISheet
-            openShifts={openShifts}
-            staff={staff}
-            unavailability={unavailability}
-            days={days}
-            venueId={venueId}
-            onClose={() => setShowAI(false)}
-            onFilled={() => {
-              // Auto-fill assigns staff to previously-open shifts; record each as an
-              // edit so Cancel can unassign them (revert staff_id back to null).
-              const changes = openShifts
-                .filter(o => o.id)
-                .map(o => ({ type: 'edit', before: { id: o.id, staff_id: null, start_time: o.start_time, end_time: o.end_time, role_label: o.role_label ?? null } }))
-              setSessionChanges(c => [...c, ...changes])
-              reload()
-            }}
-          />
-        )}
       </div>
-    </>
+
+      {/* Week nav */}
+      <div className="flex items-stretch gap-2">
+        <button type="button" onClick={() => goWeek(-1)} aria-label="Previous week" className={`${CARD} w-11 shrink-0 flex items-center justify-center text-ink2 dark:text-white/70 hover:text-ink`}>{CHEVRON_L}</button>
+        <div className={`${CARD} flex-1 min-w-0 py-2 text-center`}>
+          <div className="text-[15px] font-bold text-ink dark:text-white">{weekTitle}</div>
+          <div className="font-mono text-[11px] tracking-[0.06em] uppercase text-ink3 dark:text-white/45 mt-0.5">
+            {format(days[0], 'd MMM')} – {format(days[6], 'd MMM')} · {showCost ? money(weekCost) : `${weekHours}h`}
+          </div>
+        </div>
+        <button type="button" onClick={() => goWeek(1)} aria-label="Next week" className={`${CARD} w-11 shrink-0 flex items-center justify-center text-ink2 dark:text-white/70 hover:text-ink`}>{CHEVRON_R}</button>
+      </div>
+
+      {/* Controls */}
+      <div className="flex items-center gap-2">
+        <Segmented label="View" options={[['week', 'Week'], ['day', 'Day']]} value={view} onChange={setView} />
+        <div className="flex-1" />
+        <Segmented label="Show" options={[[false, 'Hours'], [true, '£']]} value={showCost} onChange={setShowCost} />
+        <button
+          type="button"
+          onClick={() => setShowAI(true)}
+          className="h-10 px-3 rounded-xl bg-brand-tint dark:bg-white/10 inline-flex items-center gap-1.5 text-[13px] font-semibold text-brand dark:text-white shrink-0"
+        >
+          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z" /></svg>
+          Auto-fill
+        </button>
+      </div>
+
+      {/* Swap requests */}
+      {pendingCount > 0 && (
+        <button type="button" onClick={() => setShowSwaps(true)} className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-2xl bg-warnBg dark:bg-warn/15 text-left">
+          <span className="w-2 h-2 rounded-full bg-warn shrink-0" />
+          <span className="flex-1 text-[13px] font-semibold text-warn">{pendingCount} swap {pendingCount === 1 ? 'request' : 'requests'} pending</span>
+          <span className="text-[13px] font-semibold text-warn inline-flex items-center gap-0.5">Review {CHEVRON_R}</span>
+        </button>
+      )}
+
+      {isLoading ? (
+        <div className={`${CARD} h-[240px] animate-pulse`} />
+      ) : view === 'week' ? (
+        <WeekGrid
+          days={days}
+          staff={staff}
+          shiftMap={shiftMap}
+          unavailability={unavailability}
+          dayTotals={dayTotals}
+          personTotal={personTotal}
+          showCost={showCost}
+          onTap={openSheet}
+        />
+      ) : (
+        <DayView
+          days={days}
+          dayIndex={dayIndex}
+          setDayIndex={setDayIndex}
+          staff={staff}
+          shifts={weekShifts}
+          unavailability={unavailability}
+          dayTotals={dayTotals}
+          personTotal={personTotal}
+          showCost={showCost}
+          onTap={openSheet}
+        />
+      )}
+
+      {!isLoading && <OpenShifts openShifts={openShifts} onFill={(o) => openSheet(o, null, o._day)} />}
+      {!isLoading && <StationLegend />}
+
+      {/* ── Sheets ── */}
+      {shiftSheet && (
+        <ShiftSheet
+          shift={shiftSheet.shift}
+          staffMember={shiftSheet.staffMember}
+          day={shiftSheet.day}
+          venueId={venueId}
+          roles={roles}
+          onClose={() => setShiftSheet(null)}
+          onSaved={handleChange}
+          onDeleted={handleChange}
+        />
+      )}
+      {showSwaps && (
+        <SwapSheet
+          swaps={swaps}
+          onClose={() => setShowSwaps(false)}
+          onResolved={() => { reloadSwaps(); reload() }}
+        />
+      )}
+      {showAI && (
+        <AISheet
+          openShifts={openShifts}
+          staff={staff}
+          unavailability={unavailability}
+          venueId={venueId}
+          onClose={() => setShowAI(false)}
+          onFilled={() => {
+            // Auto-fill assigns staff to previously-open shifts; record each as an
+            // edit so Discard can unassign them (revert staff_id back to null).
+            const changes = openShifts
+              .filter(o => o.id)
+              .map(o => ({ type: 'edit', before: { id: o.id, staff_id: null, start_time: o.start_time, end_time: o.end_time, role_label: o.role_label ?? null } }))
+            setSessionChanges(c => [...c, ...changes])
+            reload()
+          }}
+        />
+      )}
+    </div>
   )
 }
