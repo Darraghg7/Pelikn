@@ -11,8 +11,8 @@ export default function ComplianceSettingsPage() {
   const navigate = useNavigate()
   const { venueSlug } = useVenue()
   const {
-    actionSchedules, fridgeCheckTime, cleaningVisibleToAll,
-    saveActionSchedules, saveFridgeCheckTime, saveCleaningVisibleToAll,
+    actionSchedules, fridgeCheckTime, cleaningVisibleToAll, enforceClosingChecklist,
+    saveActionSchedules, saveFridgeCheckTime, saveCleaningVisibleToAll, saveEnforceClosingChecklist,
   } = useAppSettings()
 
   const vp = (path) => `/v/${venueSlug}${path}`
@@ -50,6 +50,22 @@ export default function ComplianceSettingsPage() {
           {cleaningVisibleToAll
             ? 'On — every staff member sees the full cleaning schedule, labelled by department. Checklists are not affected.'
             : 'Off — staff only see cleaning tasks for their own departments, plus tasks set to Everyone. Checklists are not affected.'}
+        </div>
+
+        <div id="closing-checklist" className="font-mono text-[11px] font-semibold tracking-[0.08em] uppercase text-charcoal/50 dark:text-white/40 pt-[18px] pb-[7px] px-0.5">Closing checklist</div>
+        <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[14px] overflow-hidden">
+          <div className="flex items-center gap-3 px-[15px] py-[13px]">
+            <div className="flex-1 min-w-0">
+              <div className="text-sm font-medium text-charcoal dark:text-white tracking-[-0.005em]">Closers sign off before clocking out</div>
+              <div className="text-[11.5px] text-charcoal/50 dark:text-white/40 mt-0.5 leading-[1.4]">Only for shifts marked as closing on the rota</div>
+            </div>
+            <Toggle checked={enforceClosingChecklist} onChange={saveEnforceClosingChecklist} />
+          </div>
+        </div>
+        <div className="text-[11.5px] text-charcoal/50 dark:text-white/40 pt-2 px-1 leading-[1.45]">
+          {enforceClosingChecklist
+            ? "On — closers can't clock out until the closing checks for their departments (and any set to Everyone) are done. Anyone in no department answers for all of them. If they didn't tick any themselves, they confirm with Accept. A manager PIN can always override."
+            : 'Off — closing checks are logged, but clocking out is never blocked.'}
         </div>
 
         <div className="font-mono text-[11px] font-semibold tracking-[0.08em] uppercase text-charcoal/50 dark:text-white/40 pt-[18px] pb-[7px] px-0.5">Daily action schedules</div>

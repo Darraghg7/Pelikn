@@ -1,12 +1,23 @@
 import { useQuery } from '@tanstack/react-query'
 import { useVenue } from '../contexts/VenueContext'
 import { format } from 'date-fns'
-import { fetchTasksForRole, fetchAllTasks } from '../lib/api/tasks'
+import { fetchAllTasks } from '../lib/api/tasks'
 import { departmentMatcher } from '../lib/roleFilter'
 import { readPersisted, writePersisted } from '../lib/persistedCache'
 import type { TaskTemplate, TaskOneOff, TaskCompletion } from '../types'
 
-export function useTasksForStaff(viewerDepartmentIds: readonly string[] | null, staffId: string, knownDepartmentIds: readonly string[] = []): {
+/**
+ * Tasks for one staff member on one day: recurring and one-off tasks for the
+ * departments they're in (fail-open — see lib/roleFilter), plus one-offs
+ * assigned to them by name. A one-off assigned to someone else is theirs
+ * alone, whatever its department.
+ */
+export function useTasksForStaff(
+  viewerDepartmentIds: readonly string[] | null,
+  staffId: string | null | undefined,
+  knownDepartmentIds: readonly string[] = [],
+  date: Date = new Date(),
+): {
   templates: TaskTemplate[]
   oneOffs: TaskOneOff[]
   completions: TaskCompletion[]
@@ -14,30 +25,21 @@ export function useTasksForStaff(viewerDepartmentIds: readonly string[] | null, 
   reload: () => void
 } {
   const { venueId } = useVenue()
-  const today = format(new Date(), 'yyyy-MM-dd')
+  const dateStr = format(date, 'yyyy-MM-dd')
 
   const { data, isLoading, refetch } = useQuery({
-    queryKey: ['tasksForRole', venueId, staffId, today],
-    queryFn: () => fetchTasksForRole(venueId!, today),
+    queryKey: ['allTasks', venueId, dateStr],
+    queryFn: () => fetchAllTasks(venueId!, dateStr),
     enabled: !!venueId,
   })
 
-  const rawTemplates: TaskTemplate[] = (data as { templates?: TaskTemplate[] })?.templates ?? []
-  const rawOneOffs: TaskOneOff[] = (data as { oneOffs?: TaskOneOff[] })?.oneOffs ?? []
-  const completions: TaskCompletion[] = (data as { completions?: TaskCompletion[] })?.completions ?? []
-
   const matchesDepartment = departmentMatcher(viewerDepartmentIds, knownDepartmentIds)
-
-  const templates = rawTemplates.filter((t) => matchesDepartment(t.department_id))
-
-  const allOneOffs = rawOneOffs.filter(
-    (o) => matchesDepartment(o.department_id) || (!!staffId && o.assigned_to_staff_id === staffId)
+  const templates = (data?.templates ?? []).filter((t) => matchesDepartment(t.department_id))
+  const oneOffs = (data?.oneOffs ?? []).filter((o) =>
+    o.assigned_to_staff_id ? o.assigned_to_staff_id === staffId : matchesDepartment(o.department_id),
   )
 
-  const seen = new Set<string>()
-  const oneOffs = allOneOffs.filter(o => { if (seen.has(o.id)) return false; seen.add(o.id); return true })
-
-  return { templates, oneOffs, completions, loading: isLoading, reload: refetch }
+  return { templates, oneOffs, completions: data?.completions ?? [], loading: isLoading, reload: refetch }
 }
 
 export function useAllTasks(selectedDate?: Date | null): {

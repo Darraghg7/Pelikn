@@ -1,4 +1,4 @@
-import type { StaffPermission, PermissionPreset, VenuePreset } from '../types'
+import type { StaffPermission, VenuePreset } from '../types'
 
 export const EU_ALLERGENS = [
   'Celery', 'Gluten', 'Crustaceans', 'Eggs', 'Fish', 'Lupin', 'Milk',
@@ -99,14 +99,6 @@ export const STAFF_PERMISSION_IDS = STAFF_PERMISSIONS.map(p => p.id)
 /** Default permissions granted to new staff members (basic daily duties). */
 export const DEFAULT_STAFF_PERMISSIONS = ['log_temps', 'manage_cleaning', 'manage_tasks', 'manage_opening']
 
-/** Preset bundles for quick assignment in the staff edit form. */
-export const PERMISSION_PRESETS: PermissionPreset[] = [
-  { id: 'daily',  label: 'Daily Staff',  permissions: ['log_temps', 'manage_cleaning', 'manage_tasks', 'manage_opening'] },
-  { id: 'senior', label: 'Senior Staff', permissions: ['log_temps', 'view_temp_logs', 'manage_cleaning', 'manage_allergens', 'log_deliveries', 'manage_tasks', 'manage_opening', 'log_waste', 'approve_swaps', 'view_timesheet'] },
-  { id: 'full',   label: 'Full Access',  permissions: STAFF_PERMISSIONS.map(p => p.id) },
-]
-
-export const PERMISSION_TITLES_SETTING_KEY = 'permission_titles'
 
 // ── Venue type presets (onboarding) ─────────────────────────────────────────
 

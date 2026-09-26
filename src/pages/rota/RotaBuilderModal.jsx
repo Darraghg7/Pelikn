@@ -17,7 +17,7 @@ export default function RotaBuilderModal({
   shifts,
   unavailability,
   onSave,
-  customRoles = [],
+  jobTitles = [],
   closedDays = [],
   breakDurationMins = 30,
 }) {
@@ -27,17 +27,17 @@ export default function RotaBuilderModal({
   const [defaultStart, setDefaultStart] = useState('09:00')
   const [defaultEnd, setDefaultEnd] = useState('17:00')
   const [requiredRoles, setRequiredRoles] = useState(
-    customRoles.map(r => ({ role: r.label, min: 0 }))
+    jobTitles.map(t => ({ role: t, min: 0 }))
   )
 
   // Preview state
   const [result, setResult] = useState(null)
   const [saving, setSaving] = useState(false)
 
-  // Sync roles when customRoles change (e.g. on first load)
-  const syncedRoles = customRoles.map(r => {
-    const existing = requiredRoles.find(rr => rr.role === r.label)
-    return { role: r.label, min: existing?.min ?? 0 }
+  // Sync when job titles change (e.g. on first load)
+  const syncedRoles = jobTitles.map(t => {
+    const existing = requiredRoles.find(rr => rr.role === t)
+    return { role: t, min: existing?.min ?? 0 }
   })
 
   const updateRoleMin = (role, val) => {
@@ -186,26 +186,25 @@ export default function RotaBuilderModal({
 
             {/* Required Roles per Day */}
             <div>
-              <SectionLabel>Required Roles per Day</SectionLabel>
+              <SectionLabel>Required Job Titles per Day</SectionLabel>
               <p className="text-[11px] text-charcoal/30 dark:text-white/30 mb-2">
-                Set minimum count for each role needed daily. Leave 0 to skip.
+                Set how many of each job title you need each day. Leave 0 to skip.
               </p>
-              {customRoles.length === 0 ? (
-                <p className="text-xs text-charcoal/30 dark:text-white/30 italic">No roles configured. Add roles in Settings.</p>
+              {jobTitles.length === 0 ? (
+                <p className="text-xs text-charcoal/30 dark:text-white/30 italic">No job titles yet. Add them in Settings → Staff → Departments.</p>
               ) : (
                 <div className="grid grid-cols-2 gap-2">
-                  {customRoles.map(r => {
-                    const current = syncedRoles.find(sr => sr.role === r.label)
+                  {jobTitles.map(t => {
+                    const current = syncedRoles.find(sr => sr.role === t)
                     return (
-                      <div key={r.value} className="flex items-center gap-2 rounded-lg border border-charcoal/10 dark:border-white/10 px-3 py-2">
-                        <span className={`w-2 h-2 rounded-full ${r.color?.split(' ')[0] ?? 'bg-charcoal/20 dark:bg-white/20'}`} />
-                        <span className="text-xs text-charcoal/70 dark:text-white/60 flex-1 truncate">{r.label}</span>
+                      <div key={t} className="flex items-center gap-2 rounded-lg border border-charcoal/10 dark:border-white/10 px-3 py-2">
+                        <span className="text-xs text-charcoal/70 dark:text-white/60 flex-1 truncate">{t}</span>
                         <input
                           type="number"
                           min={0}
                           max={staff.length}
                           value={current?.min ?? 0}
-                          onChange={e => updateRoleMin(r.label, e.target.value)}
+                          onChange={e => updateRoleMin(t, e.target.value)}
                           className="w-12 px-1 py-1 rounded border border-charcoal/15 dark:border-white/15 text-xs text-center focus:outline-none focus:ring-1 focus:ring-charcoal/20 dark:focus:ring-white/20"
                         />
                       </div>

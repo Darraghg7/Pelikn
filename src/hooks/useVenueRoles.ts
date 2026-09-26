@@ -1,3 +1,4 @@
+import { useCallback } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
 import { useVenue } from '../contexts/VenueContext'
@@ -104,6 +105,7 @@ export function useStaffRoleAssignments(staffId: string): {
       : await supabase.from('staff_role_assignments')
           .insert({ staff_id: staffId, role_id: roleId, venue_id: venueId })
     queryClient.invalidateQueries({ queryKey: ['staff_role_assignments', staffId] })
+    queryClient.invalidateQueries({ queryKey: ['staff_job_titles', venueId] })
     return { error }
   }
 
@@ -119,6 +121,7 @@ export function useStaffRoleAssignments(staffId: string): {
       ))
     }
     queryClient.invalidateQueries({ queryKey: ['staff_role_assignments', staffId] })
+    queryClient.invalidateQueries({ queryKey: ['staff_job_titles', venueId] })
     return { error }
   }
 
@@ -179,4 +182,44 @@ export async function loadAllStaffRolesForVenue(
   }
 
   return result
+}
+
+// ── Job titles per person (display + rota) ──────────────────────────────────
+//
+// Job titles are venue_roles held via staff_role_assignments. They replace the
+// old free-text staff.job_role everywhere it was shown: HR, Tips, the rota.
+
+export function useStaffJobTitles(): {
+  titlesFor: (staffId: string | null | undefined) => string[]
+  labelFor: (staffId: string | null | undefined) => string
+  loading: boolean
+} {
+  const { venueId } = useVenue()
+  const { roles } = useVenueRoles()
+
+  const { data: rows = [], isLoading: loading } = useQuery({
+    queryKey: ['staff_job_titles', venueId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('staff_role_assignments')
+        .select('staff_id, role_id')
+        .eq('venue_id', venueId)
+      if (error) throw error
+      return (data ?? []) as { staff_id: string; role_id: string }[]
+    },
+    enabled: !!venueId,
+  })
+
+  // Ordered as in Settings, so someone's "first" title is stable.
+  const titlesFor = useCallback((staffId: string | null | undefined) => {
+    if (!staffId) return []
+    const held = new Set(rows.filter((r) => r.staff_id === staffId).map((r) => r.role_id))
+    return roles.filter((r) => held.has(r.id)).map((r) => r.name)
+  }, [rows, roles])
+  const labelFor = useCallback(
+    (staffId: string | null | undefined) => titlesFor(staffId).join(', '),
+    [titlesFor],
+  )
+
+  return { titlesFor, labelFor, loading }
 }

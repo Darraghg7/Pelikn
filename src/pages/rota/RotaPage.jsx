@@ -19,7 +19,6 @@ import { getWeekStart, getWeekDays } from '../../lib/utils'
 import { useToast } from '../../components/ui/Toast'
 import { useAppSettings } from '../../hooks/useSettings'
 import { useVenueRoles, loadAllStaffRolesForVenue } from '../../hooks/useVenueRoles'
-import { roleForJob } from './roleForJob'
 import RotaWeekView from './RotaWeekView'
 import { shareRotaImage } from '../../lib/rotaImageExport'
 import RotaBuilderModal from './RotaBuilderModal'
@@ -46,7 +45,7 @@ export default function RotaPage() {
   const crossShifts = useCrossVenueShifts(staff, weekStart, numWeeks, venueId)
   const { swaps, loading: swapsLoading, reload: reloadSwaps, pendingCount } = useShiftSwaps()
   const { unavailability, toggleAvailability } = useAvailability(weekStart, numWeeks)
-  const { customRoles, closedDays, breakDurationMins } = useAppSettings()
+  const { closedDays, breakDurationMins } = useAppSettings()
   const { roles: venueRoles } = useVenueRoles()
 
   // ── Staff roles map (for auto-fill) ──
@@ -161,7 +160,7 @@ export default function RotaPage() {
     if (effectiveClosedDates.has(dateStr)) return
     setModal({ staffMember, date, dayShifts })
     const lastRole = localStorage.getItem(`mise_last_role_${staffMember.id}`)
-      || roleForJob(venueRoles, staffMember.job_role)
+      || staffMember.job_title
       || venueRoles[0]?.name || ''
     setForm({ staffId: staffMember.id, startTime: '09:00', endTime: '17:00', roleLabel: lastRole, isClosing: false })
     setEditShift(null)
@@ -662,7 +661,7 @@ export default function RotaPage() {
           shifts={shifts.filter(sh => sh.week_start === format(weekStart, 'yyyy-MM-dd'))}
           unavailability={unavailability}
           onSave={batchSaveShifts}
-          customRoles={customRoles}
+          jobTitles={venueRoles.map(r => r.name)}
           closedDays={closedDays}
           breakDurationMins={breakDurationMins}
         />

@@ -7,6 +7,7 @@ import React, { useEffect, useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useVenue } from '../../contexts/VenueContext'
 import { useHRSummary } from '../../hooks/useHRSummary'
+import { useStaffJobTitles } from '../../hooks/useVenueRoles'
 import { SkeletonList } from '../../components/ui/Skeleton'
 import EmployeeRecordPanel, { Avatar, nameInitials } from './EmployeeRecordPanel'
 
@@ -74,7 +75,7 @@ function MobileRow({ s, actionIds, expiringIds, onClick }) {
       <Avatar name={s.name} size={38} />
       <div className="flex-1 min-w-0">
         <div className="text-[13.5px] font-medium text-charcoal dark:text-white overflow-hidden text-ellipsis whitespace-nowrap">{s.name}</div>
-        <div className="font-mono text-[10px] text-charcoal/50 dark:text-white/40 uppercase tracking-[0.03em] mt-px overflow-hidden text-ellipsis whitespace-nowrap">{s.job_role ?? 'No role'}</div>
+        <div className="font-mono text-[10px] text-charcoal/50 dark:text-white/40 uppercase tracking-[0.03em] mt-px overflow-hidden text-ellipsis whitespace-nowrap">{s.job_title || 'No job title'}</div>
       </div>
       {hasAttn ? (
         <span className={`inline-flex items-center gap-1 px-2 py-[3px] rounded-full text-[10px] font-mono font-semibold tracking-[0.04em] uppercase whitespace-nowrap shrink-0 ${isFormal ? 'text-danger bg-danger/10' : 'text-warning bg-warning/10'}`}>
@@ -111,7 +112,7 @@ function ListRow({ s, selected, actionIds, expiringIds, onClick }) {
           {s.name}
         </div>
         <div className="font-mono text-[11px] text-charcoal/50 dark:text-white/40 uppercase tracking-[0.03em] mt-px overflow-hidden text-ellipsis whitespace-nowrap">
-          {s.job_role ?? 'No role'}
+          {s.job_title || 'No job title'}
         </div>
       </div>
       {dotCol && (
@@ -127,7 +128,9 @@ export default function HRHubPage() {
   const { venueId, venueSlug } = useVenue()
   const vp = p => `/v/${venueSlug}${p}`
 
-  const { staff, formalActionStaffIds, expiringDocs, loading } = useHRSummary()
+  const { staff: staffRows, formalActionStaffIds, expiringDocs, loading } = useHRSummary()
+  const { labelFor } = useStaffJobTitles()
+  const staff = useMemo(() => staffRows.map(s => ({ ...s, job_title: labelFor(s.id) })), [staffRows, labelFor])
 
   const [query,    setQuery]    = useState('')
   const [selected, setSelected] = useState(null)
@@ -157,7 +160,7 @@ export default function HRHubPage() {
 
   const q = query.toLowerCase()
   const filtered = useMemo(() => staff.filter(s =>
-    !q || s.name.toLowerCase().includes(q) || (s.job_role ?? '').toLowerCase().includes(q),
+    !q || s.name.toLowerCase().includes(q) || (s.job_title ?? '').toLowerCase().includes(q),
   ), [staff, q])
 
   const attentionRows = filtered.filter(s => actionIds.has(s.id) || expiringIds.has(s.id))

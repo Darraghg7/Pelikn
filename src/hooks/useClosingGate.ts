@@ -5,7 +5,11 @@ import { useVenue } from '../contexts/VenueContext'
 import { londonToday } from '../lib/time'
 import { takeBootstrap } from '../lib/api/bootstrap'
 
+/** Stands in for closing checks set to Everyone (no department). */
+export const EVERYONE = 'everyone'
+
 export interface ClosingDepartmentStatus {
+  /** A department id, or EVERYONE for checks with no department. */
   departmentId: string
   departmentName: string
   totalChecks: number
@@ -20,7 +24,8 @@ export interface ClosingDepartmentStatus {
 
 /**
  * Resolves whether `staffId` is on the hook for a closing checklist today,
- * for every department they work in, and what state each is in.
+ * for every department they work in (all of them if they're in none) plus
+ * checks set to Everyone, and what state each group is in.
  *
  * "Cleared" deliberately isn't the same as "did nothing" — a person who
  * personally ticked off at least one of today's closing checks has already
@@ -52,30 +57,26 @@ export function useClosingGate(staffId: string | null | undefined) {
       const isClosingToday = (shiftRows ?? []).some((s) => s.is_closing)
       if (!isClosingToday) return []
 
-      // The departments this person works in (Settings → Staff).
-      const { data: myDepartmentRows } = await supabase
-        .from('staff_departments')
-        .select('department_id, departments(id, name)')
-        .eq('staff_id', staffId)
-        .eq('venue_id', venueId)
-
-      const departmentsById = new Map<string, string>()
-      for (const r of myDepartmentRows ?? []) {
-        const dept = (r as unknown as { departments?: { id: string; name: string } | null }).departments
-        if (dept) departmentsById.set(dept.id, dept.name)
-      }
-      if (departmentsById.size === 0) return []
-
-      const departmentIds = [...departmentsById.keys()]
-
-      const [{ data: checks }, { data: myAcceptances }] = await Promise.all([
+      // Every active closing check, plus this person's departments and
+      // today's sign-offs. Which checks are theirs follows the same rule as
+      // everywhere else: their departments plus anything set to Everyone, and
+      // someone in no department answers for all of it — they're locking up.
+      const [{ data: checks }, { data: myDepartmentRows }, { data: allDepartments }, { data: myAcceptances }] = await Promise.all([
         supabase
           .from('opening_closing_checks')
           .select('id, department_id')
           .eq('venue_id', venueId)
           .eq('type', 'closing')
-          .eq('is_active', true)
-          .in('department_id', departmentIds),
+          .eq('is_active', true),
+        supabase
+          .from('staff_departments')
+          .select('department_id')
+          .eq('staff_id', staffId)
+          .eq('venue_id', venueId),
+        supabase
+          .from('departments')
+          .select('id, name')
+          .eq('venue_id', venueId),
         supabase
           .from('closing_acceptances')
           .select('department_id')
@@ -84,7 +85,20 @@ export function useClosingGate(staffId: string | null | undefined) {
           .eq('staff_id', staffId),
       ])
 
-      const checkIds = (checks ?? []).map((c) => c.id)
+      const namesById = new Map((allDepartments ?? []).map((d) => [d.id as string, d.name as string]))
+      const mine = (myDepartmentRows ?? []).map((r) => r.department_id as string).filter((id) => namesById.has(id))
+      // A check whose department no longer exists is treated as Everyone.
+      const groupOf = (departmentId: string | null) =>
+        departmentId && namesById.has(departmentId) ? departmentId : EVERYONE
+
+      const groups = new Set((checks ?? []).map((c) => groupOf(c.department_id)))
+      const departmentIds = [...groups]
+        .filter((g) => g === EVERYONE || mine.length === 0 || mine.includes(g))
+        // Departments in name order, Everyone last
+        .sort((x, y) => (x === EVERYONE ? 1 : y === EVERYONE ? -1 : (namesById.get(x) ?? '').localeCompare(namesById.get(y) ?? '')))
+      if (departmentIds.length === 0) return []
+
+      const checkIds = (checks ?? []).filter((c) => departmentIds.includes(groupOf(c.department_id))).map((c) => c.id)
       const { data: completions } = checkIds.length
         ? await supabase
             .from('opening_closing_completions')
@@ -95,11 +109,11 @@ export function useClosingGate(staffId: string | null | undefined) {
             .in('check_id', checkIds)
         : { data: [] as { check_id: string; staff_id: string | null }[] }
 
-      const acceptedDeptIds = new Set((myAcceptances ?? []).map((a) => a.department_id))
+      const acceptedDeptIds = new Set((myAcceptances ?? []).map((a) => a.department_id ?? EVERYONE))
       const doneCheckIds = new Set((completions ?? []).map((c) => c.check_id))
 
       return departmentIds.map((deptId) => {
-        const deptChecks = (checks ?? []).filter((c) => c.department_id === deptId)
+        const deptChecks = (checks ?? []).filter((c) => groupOf(c.department_id) === deptId)
         const doneCount = deptChecks.filter((c) => doneCheckIds.has(c.id)).length
         const isComplete = deptChecks.length === 0 || doneCount === deptChecks.length
         const selfContributed = (completions ?? []).some(
@@ -107,7 +121,7 @@ export function useClosingGate(staffId: string | null | undefined) {
         )
         return {
           departmentId: deptId,
-          departmentName: departmentsById.get(deptId) ?? '',
+          departmentName: deptId === EVERYONE ? 'Everyone' : (namesById.get(deptId) ?? ''),
           totalChecks: deptChecks.length,
           doneChecks: doneCount,
           isComplete,
@@ -127,7 +141,7 @@ export function useClosingGate(staffId: string | null | undefined) {
       const { error } = await supabase.rpc('accept_closing_checklist', {
         p_token: token,
         p_venue_slug: venueSlug,
-        p_department_id: departmentId,
+        p_department_id: departmentId === EVERYONE ? null : departmentId,
         p_session_date: today,
       })
       if (!error) queryClient.invalidateQueries({ queryKey })

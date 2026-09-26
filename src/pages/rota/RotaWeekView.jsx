@@ -316,7 +316,7 @@ function MobileDayView({ days, shifts, shiftIndex, staff, onCellClick, currentSt
                     <span className="text-[9px] tracking-widest uppercase bg-indigo-50 text-indigo-400 px-1.5 py-0.5 rounded-full font-medium shrink-0">Visiting</span>
                   )}
                 </div>
-                <p className="text-[11px] tracking-widest uppercase text-charcoal/35 dark:text-white/30 mt-0.5">{s.job_role ?? s.role}</p>
+                <p className="text-[11px] tracking-widest uppercase text-charcoal/35 dark:text-white/30 mt-0.5">{s.job_title ?? s.role}</p>
               </div>
 
               <div className="shrink-0 flex flex-col items-end gap-1">
@@ -431,7 +431,7 @@ function DesktopWeekTable({ days, shifts, shiftIndex, staff, onCellClick, onTogg
                     )}
                     <div>
                       <p className="font-medium text-charcoal dark:text-white text-sm">{s.name}</p>
-                      <p className="text-[11px] tracking-widest uppercase text-charcoal/30 dark:text-white/30">{s.job_role ?? s.role}</p>
+                      <p className="text-[11px] tracking-widest uppercase text-charcoal/30 dark:text-white/30">{s.job_title ?? s.role}</p>
                     </div>
                     {isOwnStaff && (
                       <span className="text-[9px] tracking-widest uppercase bg-accent/15 text-accent px-1.5 py-0.5 rounded-full font-medium">You</span>

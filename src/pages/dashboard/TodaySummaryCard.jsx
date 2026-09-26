@@ -4,11 +4,13 @@ import { useVenue } from '../../contexts/VenueContext'
 import { useVenueFeatures } from '../../hooks/useVenueFeatures'
 import { isActionDueToday, useTodaySummary } from '../../hooks/useTodaySummary'
 import { TODAY_ITEM_REGISTRY, DEFAULT_TODAY_ITEMS } from './todayItemRegistry'
+import { useDepartmentSummary } from '../../hooks/useDepartmentSummary'
 
 export default function TodaySummaryCard({ venueId, closedDays, itemIds, actionSchedules }) {
   const { venueSlug } = useVenue()
   const { isEnabled } = useVenueFeatures()
-  const { summary, loading, closedToday } = useTodaySummary(venueId, closedDays, actionSchedules)
+  const { summary: venueSummary, loading, closedToday } = useTodaySummary(venueId, closedDays, actionSchedules)
+  const { summary } = useDepartmentSummary(venueSummary, actionSchedules)
   const vp = (p) => `/v/${venueSlug}${p}`
 
   const activeItems = (itemIds?.length ? itemIds : DEFAULT_TODAY_ITEMS)

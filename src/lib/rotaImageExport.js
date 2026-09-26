@@ -195,7 +195,7 @@ export function buildRotaCanvas({ venueName, weekStart, days, shifts, staff, clo
     ctx.fillText(nameStr, tableLeft + 12, rowY + CHIP_PAD + CHIP_H / 2 + 4)
 
     // Role label
-    const roleStr = (s.job_role ?? s.role ?? '').toUpperCase().slice(0, 16)
+    const roleStr = (s.job_title ?? s.role ?? '').toUpperCase().slice(0, 16)
     if (roleStr) {
       ctx.fillStyle = C.muted
       ctx.font = `500 9px system-ui,-apple-system,sans-serif`

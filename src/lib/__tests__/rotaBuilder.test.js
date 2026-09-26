@@ -8,9 +8,9 @@ const WEEK_START = new Date('2024-06-10') // Monday
 const DAYS = Array.from({ length: 7 }, (_, i) => addDays(WEEK_START, i))
 
 const makeStaff = (overrides = []) => [
-  { id: 'alice',   name: 'Alice',   job_role: 'Chef',           hourly_rate: 15, skills: ['food_hygiene'], is_under_18: false },
-  { id: 'bob',     name: 'Bob',     job_role: 'Front of House', hourly_rate: 12, skills: [],               is_under_18: false },
-  { id: 'charlie', name: 'Charlie', job_role: 'Chef',           hourly_rate: 14, skills: ['food_hygiene'], is_under_18: false },
+  { id: 'alice',   name: 'Alice',   job_titles: ['Chef'],           job_title: 'Chef',           hourly_rate: 15, skills: ['food_hygiene'], is_under_18: false },
+  { id: 'bob',     name: 'Bob',     job_titles: ['Front of House'], job_title: 'Front of House', hourly_rate: 12, skills: [],               is_under_18: false },
+  { id: 'charlie', name: 'Charlie', job_titles: ['Chef'],           job_title: 'Chef',           hourly_rate: 14, skills: ['food_hygiene'], is_under_18: false },
   ...overrides,
 ]
 
@@ -74,7 +74,7 @@ describe('minimum staffing (Pass 2)', () => {
   it('produces an understaffed warning when not enough staff are available', () => {
     // Only 1 staff member, minStaffPerDay = 3
     const { warnings } = buildRota({
-      staff: [{ id: 'solo', name: 'Solo', job_role: 'Staff', hourly_rate: 10, skills: [], is_under_18: false }],
+      staff: [{ id: 'solo', name: 'Solo', job_titles: ['Staff'], job_title: 'Staff', hourly_rate: 10, skills: [], is_under_18: false }],
       days: DAYS,
       unavailability: {},
       existingShifts: [],
@@ -200,6 +200,26 @@ describe('role fulfillment', () => {
     expect(chefShifts.length).toBeGreaterThanOrEqual(1)
   })
 
+  it('fills a job-title slot with someone who holds that title first', () => {
+    // Bob (Front of House) is listed first and everyone has 0 hours, so
+    // without the title preference he'd be picked for the Chef slot.
+    const [alice, bob, charlie] = makeStaff()
+    const { generatedShifts } = buildRota({
+      staff: [bob, alice, charlie],
+      days: [DAYS[0]],
+      unavailability: {},
+      existingShifts: [],
+      weekStart: '2024-06-10',
+      preferences: defaultPrefs({
+        requiredRoles: [{ role: 'Chef', min: 1 }],
+        minStaffPerDay: 0,
+        closedDays: [1, 2, 3, 4, 5, 6],
+      }),
+    })
+    const chef = generatedShifts.find(s => s.role_label === 'Chef')
+    expect(['alice', 'charlie']).toContain(chef.staff_id)
+  })
+
   it('does not warn when required roles are already filled', () => {
     const { warnings } = buildRota({
       staff: makeStaff(),
@@ -222,7 +242,7 @@ describe('role fulfillment', () => {
 describe('skill fulfillment', () => {
   it('generates a skill_unfilled warning when no staff have the skill', () => {
     const { warnings } = buildRota({
-      staff: [{ id: 'x', name: 'X', job_role: 'Staff', hourly_rate: 10, skills: [], is_under_18: false }],
+      staff: [{ id: 'x', name: 'X', job_titles: ['Staff'], job_title: 'Staff', hourly_rate: 10, skills: [], is_under_18: false }],
       days: DAYS,
       unavailability: {},
       existingShifts: [],
