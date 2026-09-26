@@ -334,7 +334,7 @@ export default function OnboardingPage() {
       const assignedRoles = roleAssignments[member.name] ?? []
       for (const roleName of assignedRoles) {
         const roleId = roleByName[roleName]
-        if (roleId) assignments.push({ staff_id: member.id, role_id: roleId })
+        if (roleId) assignments.push({ staff_id: member.id, role_id: roleId, venue_id: venueId })
       }
     }
     if (assignments.length > 0) {

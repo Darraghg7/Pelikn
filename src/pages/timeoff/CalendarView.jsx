@@ -1,74 +1,83 @@
 import React from 'react'
 import {
-  format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, isSameDay, isBefore,
+  format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, isSameDay, isBefore, startOfDay,
 } from 'date-fns'
-import { getRequestsForDay } from './timeOffConstants'
+import { getRequestsForDay, initials } from './timeOffConstants'
 
-const DAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+const DAY_LETTERS = ['M', 'T', 'W', 'T', 'F', 'S', 'S']
+const DAY_NAMES   = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 
-export default function CalendarView({ month, requests, onDayClick }) {
+const CHIP = {
+  approved: 'bg-goodBg text-good dark:bg-good/20 dark:text-[#7fd1a4]',
+  pending:  'bg-warnBg text-warn dark:bg-warn/20 dark:text-[#e8b06a]',
+}
+
+/**
+ * Month grid. Each day shows who's off as initials chips (green = approved,
+ * amber = pending); tapping a day selects it so the page can list who's off.
+ */
+export default function CalendarView({ month, requests, selected, onSelect, onPrev, onNext }) {
   const start = startOfMonth(month)
-  const end   = endOfMonth(month)
-  const days  = eachDayOfInterval({ start, end })
+  const days  = eachDayOfInterval({ start, end: endOfMonth(month) })
 
-  const startDow     = getDay(start)
-  const mondayOffset = startDow === 0 ? 6 : startDow - 1
-  const padBefore    = Array.from({ length: mondayOffset }, () => null)
-  const allCells     = [...padBefore, ...days]
-  while (allCells.length % 7 !== 0) allCells.push(null)
+  const startDow = getDay(start)
+  const cells    = [...Array.from({ length: startDow === 0 ? 6 : startDow - 1 }, () => null), ...days]
+  while (cells.length % 7 !== 0) cells.push(null)
 
-  const today = new Date()
+  const today = startOfDay(new Date())
 
   return (
-    <div className="overflow-x-auto -mx-0">
-      <div style={{ minWidth: '320px' }}>
-        <div className="grid grid-cols-7 gap-px bg-charcoal/8 dark:bg-white/8 rounded-t-xl overflow-hidden">
-          {DAY_LABELS.map(d => (
-            <div key={d} className="bg-white dark:bg-paperDark py-2 text-center text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 font-medium">
-              {d}
-            </div>
-          ))}
-        </div>
-        <div className="grid grid-cols-7 gap-px bg-charcoal/8 dark:bg-white/8 rounded-b-xl overflow-hidden">
-          {allCells.map((day, i) => {
-            if (!day) return <div key={`pad-${i}`} className="bg-charcoal/3 dark:bg-white/5 min-h-[60px] sm:min-h-[72px]" />
-            const dayRequests = getRequestsForDay(requests, day)
-            const isToday     = isSameDay(day, today)
-            const isPast      = isBefore(day, today) && !isToday
-            return (
-              <button
-                key={i}
-                onClick={() => onDayClick(day)}
-                className={`bg-white dark:bg-paperDark min-h-[60px] sm:min-h-[72px] p-1 text-left transition-colors hover:bg-charcoal/3 dark:hover:bg-white/5 ${isPast ? 'opacity-50' : ''}`}
-              >
-                <span className={`text-xs font-medium inline-flex items-center justify-center w-6 h-6 rounded-full ${
-                  isToday ? 'bg-charcoal text-cream' : 'text-charcoal/70 dark:text-white/60'
-                }`}>
-                  {format(day, 'd')}
-                </span>
-                <div className="flex flex-col gap-0.5 mt-0.5">
-                  {dayRequests.slice(0, 2).map(r => (
-                    <div
-                      key={r.id}
-                      className={`rounded px-1 py-0.5 text-[11px] sm:text-[11px] font-medium truncate ${
-                        r.status === 'approved'
-                          ? 'bg-success/15 text-success'
-                          : r.status === 'pending'
-                            ? 'bg-warning/15 text-warning'
-                            : 'bg-danger/10 text-danger/60 line-through'
-                      }`}
-                    >
-                      {r.staff?.name?.split(' ')[0] ?? '?'}
-                    </div>
-                  ))}
-                  {dayRequests.length > 2 && (
-                    <span className="text-[11px] text-charcoal/30 dark:text-white/30">+{dayRequests.length - 2}</span>
-                  )}
-                </div>
-              </button>
-            )
-          })}
-        </div>
+    <div className="bg-white dark:bg-paperDark rounded-2xl border border-line dark:border-white/10 px-3 sm:px-3.5 pt-2.5 pb-2.5">
+      <div className="flex items-center justify-between px-1 mb-2">
+        <button type="button" onClick={onPrev} aria-label="Previous month" className="w-9 h-8 rounded-full inline-flex items-center justify-center text-ink2 dark:text-white/70 hover:bg-cream dark:hover:bg-white/10">
+          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6" /></svg>
+        </button>
+        <p className="text-[15px] font-semibold text-ink dark:text-white">{format(month, 'MMMM yyyy')}</p>
+        <button type="button" onClick={onNext} aria-label="Next month" className="w-9 h-8 rounded-full inline-flex items-center justify-center text-ink2 dark:text-white/70 hover:bg-cream dark:hover:bg-white/10">
+          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
+        </button>
+      </div>
+
+      <div className="grid grid-cols-7">
+        {DAY_LETTERS.map((d, i) => (
+          <div key={i} aria-label={DAY_NAMES[i]} className="text-center font-mono text-[13px] font-semibold text-ink3 dark:text-white/45 pb-2">{d}</div>
+        ))}
+        {cells.map((day, i) => {
+          if (!day) return <div key={`pad-${i}`} />
+          const off        = getRequestsForDay(requests, day)
+          const isToday    = isSameDay(day, today)
+          const isPast     = isBefore(day, today)
+          const isSelected = selected && isSameDay(day, selected)
+          return (
+            <button
+              key={i}
+              type="button"
+              onClick={() => onSelect(day)}
+              aria-pressed={!!isSelected}
+              aria-label={`${format(day, 'EEEE d MMMM')}${off.length ? `, ${off.length} off` : ''}`}
+              className={`min-h-[46px] rounded-xl flex flex-col items-center gap-1 pt-1.5 pb-1 transition-colors ${isSelected ? 'bg-brand-tint dark:bg-white/10 ring-1 ring-brand/30' : 'hover:bg-cream dark:hover:bg-white/5'}`}
+            >
+              <span className={[
+                'w-8 h-7 rounded-full inline-flex items-center justify-center text-[14px] font-medium',
+                isToday ? 'bg-brand text-white font-semibold' : isPast ? 'text-ink4 dark:text-white/30' : 'text-ink dark:text-white',
+              ].join(' ')}>
+                {format(day, 'd')}
+              </span>
+              <span className="flex flex-wrap justify-center gap-0.5 px-0.5">
+                {off.slice(0, 2).map(r => (
+                  <span
+                    key={r.id}
+                    title={`${r.staff?.name ?? 'Someone'} · ${r.status}`}
+                    className={`min-w-[26px] h-[22px] px-1 rounded-full inline-flex items-center justify-center font-mono text-[11px] font-bold ${CHIP[r.status] ?? CHIP.approved}`}
+                  >
+                    {initials(r.staff?.name)}
+                  </span>
+                ))}
+                {off.length > 2 && <span className="text-[11px] font-semibold text-ink3 dark:text-white/45">+{off.length - 2}</span>}
+              </span>
+            </button>
+          )
+        })}
       </div>
     </div>
   )

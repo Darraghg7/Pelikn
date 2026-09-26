@@ -8,10 +8,10 @@ import NotificationBell from '../notifications/NotificationBell'
 import OfflineBanner from '../ui/OfflineBanner'
 import MobileNav from './MobileNav'
 import { useVenueFeatures } from '../../hooks/useVenueFeatures'
+import { useCleaningTasks } from '../../hooks/useCleaningTasks'
 import { useIsDesktop } from '../../hooks/useMediaQuery'
 import { preloadRoute } from '../../lib/routePreload'
 import { captureSilent } from '../../lib/reportError'
-import { cleaningStatus } from '../../hooks/useCleaningTasks'
 import Rail from './RailNav'
 import NavPanel from './NavPanel'
 import NavTopbar from './NavTopbar'
@@ -19,57 +19,12 @@ import { routeToNav, buildManagerCats, buildStaffCats, IcoOverview, PanelIcons }
 
 // Per-venue cache — busted automatically after TTL or on app restart
 const CACHE_TTL = 60_000 // 1 minute
-const _cache = { cleaning: {}, swaps: {} }
+const _cache = { swaps: {} }
 
 /** True if a cache entry exists and is still within the TTL window. */
 function isFresh(bucket, key) {
   const ts = _cache[bucket][key + '_ts']
   return ts && Date.now() - ts < CACHE_TTL
-}
-
-function useOverdueCleaning(venueId) {
-  const [count, setCount] = useState(0)
-  useEffect(() => {
-    if (!venueId) { setCount(0); return }
-    if (isFresh('cleaning', venueId)) {
-      setCount(_cache.cleaning[venueId] ?? 0)
-      return
-    }
-    setCount(0) // reset while fetching for the new venue
-    let cancelled = false
-    const load = async () => {
-      try {
-        // Both in parallel, and completions only for the last 90 days: the
-        // longest frequency is quarterly (90 days), so a task whose latest
-        // completion is older than that is overdue either way — fetching the
-        // venue's entire completion history changed nothing but the payload.
-        const since = new Date(Date.now() - 90 * 86400000).toISOString()
-        const [{ data: tasks }, { data: completions }] = await Promise.all([
-          supabase.from('cleaning_tasks').select('id, frequency, created_at').eq('venue_id', venueId).eq('is_active', true),
-          supabase.from('cleaning_completions').select('cleaning_task_id, completed_at')
-            .eq('venue_id', venueId)
-            .gte('completed_at', since)
-            .order('completed_at', { ascending: false }),
-        ])
-        if (!tasks?.length || cancelled) return
-        // Same rule as the Cleaning page and the dashboard snapshot — this used
-        // a rolling 24h for daily tasks, so a task done last night showed on
-        // the page as overdue but not in this badge.
-        const now = new Date()
-        let overdue = 0
-        for (const t of tasks) {
-          const last = completions?.find(c => c.cleaning_task_id === t.id) ?? null
-          if (cleaningStatus(t, last, now) === 'overdue') overdue++
-        }
-        _cache.cleaning[venueId] = overdue
-        _cache.cleaning[venueId + '_ts'] = Date.now()
-        setCount(overdue)
-      } catch { /* network error — leave count at 0 */ }
-    }
-    load()
-    return () => { cancelled = true }
-  }, [venueId])
-  return count
 }
 
 function usePendingSwaps(venueId) {
@@ -469,7 +424,9 @@ export default function AppShell({ children }) {
   // rail only exists on desktop. Passing null on phones skips both fetches —
   // they used to run on every cold open for a sidebar nobody could see.
   const isDesktop    = useIsDesktop()
-  const overdueCount = useOverdueCleaning(isDesktop ? venueId : null)
+  // Same hook as /cleaning, so the badge can't disagree with the page and
+  // updates live when staff tick a task off on their own phones.
+  const { overdueCount } = useCleaningTasks(null, [], undefined, { enabled: isDesktop })
   const pendingSwaps = usePendingSwaps(isDesktop ? venueId : null)
 
   const { isEnabled, isPlanLocked } = useVenueFeatures()
@@ -700,7 +657,7 @@ export default function AppShell({ children }) {
         <main
           id="main-content"
           role="main"
-          className={`flex-1 ${maxW} mx-auto w-full px-4 lg:px-6 py-5 lg:py-6 pb-[max(5.5rem,calc(4.5rem+env(safe-area-inset-bottom)))] lg:pb-6`}
+          className={`flex-1 ${maxW} mx-auto w-full px-4 lg:px-6 py-4 lg:py-6 pb-[max(5.5rem,calc(4.5rem+env(safe-area-inset-bottom)))] lg:pb-6`}
         >
           {/* Remounting on pathname change retriggers the fade-in keyframe,
               giving every navigation a soft crossfade instead of a hard swap. */}

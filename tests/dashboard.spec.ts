@@ -23,7 +23,7 @@ test.describe('Manager dashboard', () => {
   // each widget title is now in the DOM exactly once, so nth(1) never resolved
   // and both failed on every run. first() is the visible widget.
   test('shows fridge alerts widget', async ({ page }) => {
-    await expect(page.getByText(/fridge status/i).first()).toBeVisible({ timeout: 8000 })
+    await expect(page.getByText(/^fridges$/i).first()).toBeVisible({ timeout: 8000 })
   })
 
   test('shows today\'s cleaning tasks widget', async ({ page }) => {

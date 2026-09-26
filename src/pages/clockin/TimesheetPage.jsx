@@ -12,12 +12,13 @@ import { formatMinutes, getWeekStart, downloadCsv } from '../../lib/utils'
 import { buildPdfReport } from '../../lib/pdfUtils'
 import { countWorkingDaysInRequest } from '../../hooks/useLeaveBalance'
 import { SkeletonList } from '../../components/ui/Skeleton'
-import EmptyState from '../../components/ui/EmptyState'
 import AddSessionModal from './AddSessionModal'
 import ClockEditApprovalCard from '../../components/shifts/ClockEditApprovalCard'
 import { formatLondon, resolveShiftInstants } from '../../lib/time'
 import { buildTimesheets, buildDailyGrid, partitionDaySessions, breakMinutes, sessionMinutes } from '../../lib/timesheet'
 import { offlineRpc } from '../../lib/offlineSupabase'
+import { Link } from 'react-router-dom'
+import { CARD, TabBar } from '../../components/temperature/TempPageParts'
 
 function useBodyScrollLock() {
   useEffect(() => {
@@ -43,6 +44,24 @@ const WH_IH = 36, WH_VIS = 5
 // ── Data helpers ───────────────────────────────────────────────────────────────
 function fmtGBP(n) { return `£${Number(n).toFixed(2)}` }
 
+// £1,270.96 — thousands separators for the summary figures
+function money(n) {
+  return `£${Number(n).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+}
+
+// 89h 51m / 220h 00m / 8h 03m — fixed-width minutes so columns line up
+function hm(mins) {
+  const total = Math.max(0, Math.round(mins))
+  return `${Math.floor(total / 60)}h ${String(total % 60).padStart(2, '0')}m`
+}
+
+// "21 – 27 Sep 2026", "29 Sep – 5 Oct 2026", "30 Dec 2026 – 5 Jan 2027"
+function rangeLabel(from, to) {
+  if (format(from, 'yyyy') !== format(to, 'yyyy')) return `${format(from, 'd MMM yyyy')} – ${format(to, 'd MMM yyyy')}`
+  if (format(from, 'MMM') !== format(to, 'MMM')) return `${format(from, 'd MMM')} – ${format(to, 'd MMM yyyy')}`
+  return `${format(from, 'd')} – ${format(to, 'd MMM yyyy')}`
+}
+
 function minsStr(mins) {
   if (mins <= 0) return '0m'
   const h = Math.floor(mins / 60), m = Math.round(mins % 60)
@@ -65,22 +84,24 @@ function calcHolidayMins(leaveReqs, staffId, profile, periodFrom, periodTo) {
 
 const END_OF_DAY_MS = 86_399_999
 
-const PERIODS = [
-  { key: 'this_week',  label: 'This Week'  },
-  { key: 'last_week',  label: 'Last Week'  },
-  { key: 'this_month', label: 'This Month' },
-  { key: 'last_month', label: 'Last Month' },
-  { key: 'custom',     label: 'Custom'     },
+const PERIOD_TABS  = [
+  { id: 'this_week',  label: 'This week'  },
+  { id: 'last_week',  label: 'Last week'  },
+  { id: 'this_month', label: 'This month' },
+]
+const OTHER_PERIODS = [
+  { key: 'last_month', label: 'Last month' },
+  { key: 'custom',     label: 'Custom dates' },
 ]
 
 function periodToDates(period, customFrom, customTo) {
   const now = new Date()
   const thisWeekStart = getWeekStart(now)
   const thisWeekEnd   = endOfWeek(thisWeekStart, { weekStartsOn: 1 })
-  if (period === 'this_week') return { dateFrom: thisWeekStart.toISOString(), dateTo: thisWeekEnd.toISOString(), label: `${format(thisWeekStart, 'd MMM')} – ${format(thisWeekEnd, 'd MMM yyyy')}` }
+  if (period === 'this_week') return { dateFrom: thisWeekStart.toISOString(), dateTo: thisWeekEnd.toISOString(), label: rangeLabel(thisWeekStart, thisWeekEnd) }
   if (period === 'last_week') {
     const start = addWeeks(thisWeekStart, -1), end = endOfWeek(start, { weekStartsOn: 1 })
-    return { dateFrom: start.toISOString(), dateTo: end.toISOString(), label: `${format(start, 'd MMM')} – ${format(end, 'd MMM yyyy')}` }
+    return { dateFrom: start.toISOString(), dateTo: end.toISOString(), label: rangeLabel(start, end) }
   }
   if (period === 'this_month') {
     const start = startOfMonth(now), end = endOfMonth(now)
@@ -92,7 +113,7 @@ function periodToDates(period, customFrom, customTo) {
   }
   if (customFrom && customTo) {
     const start = parseISO(customFrom), end = parseISO(customTo)
-    return { dateFrom: start.toISOString(), dateTo: new Date(end.getTime() + END_OF_DAY_MS).toISOString(), label: `${format(start, 'd MMM yyyy')} – ${format(end, 'd MMM yyyy')}` }
+    return { dateFrom: start.toISOString(), dateTo: new Date(end.getTime() + END_OF_DAY_MS).toISOString(), label: rangeLabel(start, end) }
   }
   return { dateFrom: '', dateTo: '', label: '—' }
 }
@@ -111,57 +132,45 @@ function Avatar({ name, station, size = 34 }) {
   )
 }
 
-function SumTile({ label, value, sub, subGood }) {
+function SumCell({ label, value }) {
   return (
-    <div className="flex-1 bg-surface rounded-[11px] px-3 py-[10px]">
-      <div className="font-mono text-[11px] text-charcoal/50 dark:text-white/40 uppercase tracking-[0.1em] font-semibold mb-[5px] leading-[1.3]">{label}</div>
-      <div className="font-mono text-[17px] font-semibold text-charcoal dark:text-white tracking-[-0.025em] tabular-nums leading-none">{value || '—'}</div>
-      {sub && <div className={`font-mono text-[11px] font-semibold mt-[5px] ${subGood ? 'text-success' : 'text-warning'}`}>{sub}</div>}
+    <div className="px-3.5 sm:px-3.5 py-2.5 min-w-0">
+      <p className="text-[13px] text-ink3 dark:text-white/45">{label}</p>
+      <p className="font-mono text-[19px] min-[420px]:text-[20px] leading-tight font-semibold text-ink dark:text-white mt-1 truncate tabular-nums">{value}</p>
     </div>
   )
 }
 
-function PeriodChips({ period, onChange }) {
-  return (
-    <div className="flex gap-[6px] overflow-x-auto min-w-0 [scrollbar-width:none] [-webkit-overflow-scrolling:touch] pb-px">
-      {PERIODS.map(p => {
-        const on = period === p.key
-        return (
-          <button
-            key={p.key}
-            onClick={() => onChange(p.key)}
-            className={`shrink-0 text-[13.5px] cursor-pointer px-[15px] py-[7px] rounded-full border transition-colors ${on ? 'font-semibold bg-brand text-white border-brand' : 'font-medium bg-white dark:bg-paperDark text-charcoal/75 dark:text-white/60 border-charcoal/10 dark:border-white/10'}`}
-          >
-            {p.label}
-          </button>
-        )
-      })}
-    </div>
-  )
+function staffInitials(name) {
+  const parts = (name ?? '').trim().split(/\s+/).filter(Boolean)
+  if (parts.length === 0) return '?'
+  return parts.length === 1 ? parts[0][0].toUpperCase() : (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
 }
 
-function StaffRow({ t, station, last, onTap }) {
+function StaffRow({ t, onTap }) {
   const hasData = t.totalMinutes > 0
   const pay = (t.totalMinutes / 60) * t.hourlyRate
   return (
     <button
+      type="button"
       onClick={onTap}
-      className={`flex items-center gap-[11px] px-[14px] py-3 w-full text-left cursor-pointer bg-transparent border-none ${last ? '' : 'border-b border-charcoal/[0.06]'}`}
+      className="w-full flex items-center gap-2.5 px-3.5 sm:px-3.5 py-2.5 text-left hover:bg-cream/60 dark:hover:bg-white/5 transition-colors"
     >
-      <Avatar name={t.name} station={station} size={38} />
-      <div className="flex-1 min-w-0">
-        <div className="text-[14.5px] font-semibold text-charcoal dark:text-white tracking-[-0.01em] leading-[1.2]">{t.name}</div>
-        {t.hourlyRate > 0 && <div className="font-mono text-[11px] text-charcoal/50 dark:text-white/40 mt-[3px]">£{Number(t.hourlyRate).toFixed(2)}/hr</div>}
-      </div>
-      <div className="flex items-center gap-2 shrink-0">
-        <div className="text-right">
-          <div className={`font-mono text-[15px] font-semibold leading-none tabular-nums ${hasData ? 'text-charcoal dark:text-white' : 'text-charcoal/30 dark:text-white/30'}`}>{minsStr(t.totalMinutes)}</div>
-          <div className={`font-mono text-[11px] mt-1 font-semibold ${hasData && pay > 0 ? 'text-success' : 'text-charcoal/30 dark:text-white/30'}`}>
-            {hasData && pay > 0 ? `£${pay.toFixed(2)}` : '—'}
-          </div>
-        </div>
-        <svg width="6" height="10" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="text-charcoal/30 dark:text-white/30"><path d="M1 1l4 4-4 4" /></svg>
-      </div>
+      <span className="shrink-0 w-10 h-10 rounded-2xl bg-brand-tint dark:bg-white/10 inline-flex items-center justify-center text-[14px] font-semibold text-ink dark:text-white">
+        {staffInitials(t.name)}
+      </span>
+      <span className="flex-1 min-w-0">
+        <span className="block text-[15px] font-semibold text-ink dark:text-white truncate">{t.name}</span>
+        {t.hourlyRate > 0 && <span className="block font-mono text-[13px] text-ink3 dark:text-white/45 mt-0.5">£{Number(t.hourlyRate).toFixed(2)}/hr</span>}
+      </span>
+      {hasData ? (
+        <span className="shrink-0 text-right">
+          <span className="block font-mono text-[15px] font-semibold text-ink dark:text-white tabular-nums">{hm(t.totalMinutes)}</span>
+          {pay > 0 && <span className="block font-mono text-[13px] font-semibold text-good dark:text-[#7fd1a4] mt-0.5 tabular-nums">{fmtGBP(pay)}</span>}
+        </span>
+      ) : (
+        <span className="shrink-0 font-mono text-[15px] text-ink4 dark:text-white/30" aria-label="No hours">–</span>
+      )}
     </button>
   )
 }
@@ -246,7 +255,7 @@ function EditSessionSheet({ staffName, dayLabel, session, onSave, onClose }) {
   return (
     <div className="fixed inset-0 z-[60] flex flex-col justify-end">
       <div onClick={onClose} className="absolute inset-0" style={{ background: 'rgba(9,18,13,0.52)' }} />
-      <div className="relative bg-surface rounded-t-[22px] px-4 pb-[34px] pt-[10px] max-h-[90%] overflow-y-auto [-webkit-overflow-scrolling:touch]" style={{ boxShadow: '0 -12px 40px rgba(9,18,13,0.24)' }}>
+      <div className="relative bg-surface rounded-t-[22px] px-3.5 pb-[34px] pt-[10px] max-h-[90%] overflow-y-auto [-webkit-overflow-scrolling:touch]" style={{ boxShadow: '0 -12px 40px rgba(9,18,13,0.24)' }}>
         <div className="w-[38px] h-1 rounded-sm bg-charcoal/10 dark:bg-white/10 mx-auto mb-4" />
         <div className="flex items-start justify-between mb-4">
           <div>
@@ -255,7 +264,7 @@ function EditSessionSheet({ staffName, dayLabel, session, onSave, onClose }) {
           </div>
           {session?.in && <span className="font-mono text-[11px] font-bold text-warning bg-warning/10 uppercase tracking-[0.05em] px-[9px] py-1 rounded-full">Editing</span>}
         </div>
-        <div className="flex gap-2 bg-charcoal/[0.06] p-1 rounded-xl mb-3">
+        <div className="flex gap-2 bg-charcoal/[0.06] p-1 rounded-xl mb-2">
           {[['in', 'Clock in', clockIn], ['out', 'Clock out', clockOut]].map(([k, label, val]) => {
             const on = edge === k
             return (
@@ -270,9 +279,9 @@ function EditSessionSheet({ staffName, dayLabel, session, onSave, onClose }) {
             )
           })}
         </div>
-        <div className="flex items-center justify-center gap-1 mt-3">
+        <div className="flex items-center justify-center gap-1 mt-2">
           <TsWheel values={WH_HOURS} value={ch} onChange={(h) => setCur(h, cm)} />
-          <span className="font-mono text-[22px] font-semibold text-charcoal/50 dark:text-white/40 pb-0.5">:</span>
+          <span className="font-mono text-[19px] font-semibold text-charcoal/50 dark:text-white/40 pb-0.5">:</span>
           <TsWheel values={WH_MINS}  value={cm} onChange={(m) => setCur(ch, m)} />
         </div>
         <div className="mt-2">
@@ -304,7 +313,7 @@ function EditSessionSheet({ staffName, dayLabel, session, onSave, onClose }) {
           <button
             disabled={!valid}
             onClick={() => { onSave({ clockIn, clockOut, brk }); onClose() }}
-            className={`flex-1 h-[50px] rounded-[13px] border-none text-[15px] font-bold ${valid ? 'bg-brand text-white cursor-pointer' : 'bg-charcoal/10 dark:bg-white/10 text-charcoal/30 dark:text-white/30 cursor-not-allowed'}`}
+            className={`flex-1 h-[50px] rounded-[13px] border-none text-[14px] font-bold ${valid ? 'bg-brand text-white cursor-pointer' : 'bg-charcoal/10 dark:bg-white/10 text-charcoal/30 dark:text-white/30 cursor-not-allowed'}`}
           >
             Save hours
           </button>
@@ -322,9 +331,9 @@ function StaffHoursSheet({ t, station, periodDays, dailyGrid, periodLabel, onEdi
   return (
     <div className="fixed inset-0 z-[55] flex flex-col justify-end">
       <div onClick={onClose} className="absolute inset-0" style={{ background: 'rgba(9,18,13,0.52)' }} />
-      <div className="relative bg-surface rounded-t-[22px] px-4 pt-5 pb-[34px] max-h-[90%] overflow-y-auto [-webkit-overflow-scrolling:touch]" style={{ boxShadow: '0 -12px 40px rgba(9,18,13,0.24)' }}>
+      <div className="relative bg-surface rounded-t-[22px] px-3.5 pt-5 pb-[34px] max-h-[90%] overflow-y-auto [-webkit-overflow-scrolling:touch]" style={{ boxShadow: '0 -12px 40px rgba(9,18,13,0.24)' }}>
         <div className="w-[38px] h-1 rounded-sm bg-charcoal/10 dark:bg-white/10 mx-auto mb-4" />
-        <div className="flex items-center gap-3 mb-[14px]">
+        <div className="flex items-center gap-2.5 mb-[14px]">
           <Avatar name={t.name} station={station} size={44} />
           <div className="flex-1 min-w-0">
             <div className="text-[17px] font-semibold tracking-[-0.015em]">{t.name}</div>
@@ -344,7 +353,7 @@ function StaffHoursSheet({ t, station, periodDays, dailyGrid, periodLabel, onEdi
               <div key={i} className={`flex items-center gap-[10px] px-3 py-[10px] rounded-xl border ${has ? 'bg-white dark:bg-paperDark border-charcoal/10 dark:border-white/10' : 'bg-surface border-charcoal/[0.06]'}`}>
                 <div className={`w-[42px] h-[46px] rounded-[9px] border border-charcoal/10 dark:border-white/10 shrink-0 flex flex-col items-center justify-center gap-px ${has ? 'bg-surface' : 'bg-charcoal/[0.06]'}`}>
                   <span className="font-mono text-[11px] text-charcoal/50 dark:text-white/40 font-semibold tracking-[0.06em]">{format(d, 'EEE').toUpperCase()}</span>
-                  <span className={`font-mono text-[15px] font-semibold leading-none ${has ? 'text-charcoal dark:text-white' : 'text-charcoal/30 dark:text-white/30'}`}>{format(d, 'd')}</span>
+                  <span className={`font-mono text-[14px] font-semibold leading-none ${has ? 'text-charcoal dark:text-white' : 'text-charcoal/30 dark:text-white/30'}`}>{format(d, 'd')}</span>
                 </div>
                 <div className="flex-1 min-w-0 flex flex-col gap-[3px]">
                   {has ? real.map((session, si) => {
@@ -427,7 +436,7 @@ export default function TimesheetPage() {
   const [editCtx,       setEditCtx]       = useState(null)
   const [addTarget,     setAddTarget]     = useState(null)
 
-  const { venueId }   = useVenue()
+  const { venueId, venueSlug } = useVenue()
   const { isManager } = useSession()
   const toast         = useToast()
   const { staff: staffList } = useStaffList()
@@ -440,7 +449,16 @@ export default function TimesheetPage() {
 
   const { rows, loading, error: loadError, reload } = useTimesheetData(dateFrom, dateTo)
 
-  const timesheets   = useMemo(() => buildTimesheets(rows, staffRates), [rows, staffRates])
+  const clockedIn    = useMemo(() => buildTimesheets(rows, staffRates), [rows, staffRates])
+  // Everyone on the team is listed, not just who clocked in — a row with no
+  // hours is where a manager taps to add a missed shift.
+  const timesheets   = useMemo(() => {
+    const seen = new Set(clockedIn.map(t => t.staffId))
+    const idle = (staffList ?? [])
+      .filter(s => !seen.has(s.id))
+      .map(s => ({ staffId: s.id, name: s.name ?? 'Unknown', hourlyRate: staffRates[s.id] ?? 0, sessions: [], totalMinutes: 0 }))
+    return [...clockedIn, ...idle].sort((a, b) => a.name.localeCompare(b.name))
+  }, [clockedIn, staffList, staffRates])
   const dailyGrid    = useMemo(() => buildDailyGrid(rows), [rows])
   const totalMins    = useMemo(() => timesheets.reduce((a, t) => a + t.totalMinutes, 0), [timesheets])
   const totalWage    = useMemo(() => timesheets.reduce((a, t) => a + (t.totalMinutes / 60) * t.hourlyRate, 0), [timesheets])
@@ -579,8 +597,9 @@ export default function TimesheetPage() {
       const worked = ((t.totalMinutes / 60) * t.hourlyRate).toFixed(2)
       const profile = staffProfiles[t.staffId] ?? { contractedHours: null, workingDays: [] }
       const holPay  = ((calcHolidayMins(periodLeave, t.staffId, profile, pFrom, pTo) / 60) * t.hourlyRate).toFixed(2)
+      if (t.totalMinutes <= 0 && parseFloat(holPay) <= 0) return null  // nothing to pay
       return [t.name, `${hrs} hrs`, rate > 0 ? `£${rate}/hr` : '—', worked > 0 ? `£${worked}` : '—', holPay > 0 ? `£${holPay}` : '—', `£${(parseFloat(worked) + parseFloat(holPay)).toFixed(2)}`]
-    })
+    }).filter(Boolean)
     pdfRows.push(['TOTAL', `${(totalMins / 60).toFixed(2)} hrs`, '', totalWage > 0 ? fmtGBP(totalWage) : '—', totalHolidayPay > 0 ? fmtGBP(totalHolidayPay) : '—', fmtGBP(totalWage + totalHolidayPay)])
     buildPdfReport({ title: 'Pelikn', subtitle: 'Timesheet Report', periodLabel, columns: ['Staff Member', 'Hours Worked', 'Hourly Rate', 'Worked Pay', 'Holiday Pay', 'Total Pay'], rows: pdfRows, didParseCell(h) { if (h.section === 'body' && h.row.index === pdfRows.length - 1) { h.cell.styles.fontStyle = 'bold'; h.cell.styles.fillColor = [240, 240, 240] } }, filename: `timesheet-${dateFrom.slice(0, 10)}.pdf` })
   }
@@ -594,102 +613,161 @@ export default function TimesheetPage() {
       const worked = ((t.totalMinutes / 60) * t.hourlyRate).toFixed(2)
       const profile = staffProfiles[t.staffId] ?? { contractedHours: null, workingDays: [] }
       const holPay  = ((calcHolidayMins(periodLeave, t.staffId, profile, pFrom, pTo) / 60) * t.hourlyRate).toFixed(2)
+      if (t.totalMinutes <= 0 && parseFloat(holPay) <= 0) return null  // nothing to pay
       return [t.name, hrs, rate, worked, holPay, (parseFloat(worked) + parseFloat(holPay)).toFixed(2)].map(esc).join(',')
-    })
+    }).filter(Boolean)
     downloadCsv([header, ...dataRows, ['TOTAL', (totalMins / 60).toFixed(2), '', totalWage.toFixed(2), totalHolidayPay.toFixed(2), (totalWage + totalHolidayPay).toFixed(2)].map(esc).join(',')].join('\n'), `payroll-${periodFrom}-to-${periodTo}.csv`)
   }
 
-  const under = totalWage > 0 ? periodScheduled.totalCost - totalWage : 0
-  const underLabel = under > 0 ? `£${Math.round(under).toLocaleString()} under` : under < 0 ? `£${Math.round(Math.abs(under)).toLocaleString()} over` : null
+  // Actual wage bill includes holiday pay, so compare that against the rota's cost
+  const actualBill = totalWage + totalHolidayPay
+  const variance   = totalWage > 0 && periodScheduled.totalCost > 0 ? periodScheduled.totalCost - actualBill : null
+  const [showOther, setShowOther] = useState(false)
+  const isOtherPeriod = OTHER_PERIODS.some(p => p.key === period)
 
   return (
-    <div className="text-charcoal dark:text-white">
+    <div className="flex flex-col gap-2.5 max-w-3xl text-ink dark:text-white">
       {isManager && <ClockEditApprovalCard />}
 
       {/* Header */}
-      <div className="flex items-center justify-between mb-4">
-        <h1 className="text-[28px] font-bold tracking-[-0.03em] leading-[1.05] m-0">Timesheets</h1>
-        <div className="flex gap-4">
-          {[['CSV', exportCsv], ['PDF', exportPdf]].map(([fmt, fn]) => (
-            <button key={fmt} onClick={fn} className="flex items-center gap-1 font-mono text-[11px] font-bold text-charcoal/50 dark:text-white/40 tracking-[0.05em] uppercase bg-transparent border-none cursor-pointer p-0">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-              {fmt}
-            </button>
-          ))}
+      <div className="flex flex-col gap-1">
+        {/* On mobile the shell's back row already links to Team */}
+        <Link
+          to={`/v/${venueSlug}/team`}
+          className="hidden self-start lg:inline-flex items-center gap-1 text-[13px] font-semibold text-brand dark:text-white/80 hover:opacity-75 transition-opacity"
+        >
+          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6" /></svg>
+          Team
+        </Link>
+        <div className="flex items-start justify-between gap-2.5">
+          <div className="min-w-0">
+            <h1 className="text-[20px] sm:text-[22px] leading-tight font-bold tracking-tight">Timesheets</h1>
+            <p className="text-[13px] text-ink3 dark:text-white/45 mt-0.5">Hours worked and wage bill</p>
+          </div>
+          <div className="shrink-0 flex gap-2 mt-1">
+            {[['CSV', exportCsv], ['PDF', exportPdf]].map(([fmt, fn]) => (
+              <button
+                key={fmt}
+                type="button"
+                onClick={fn}
+                disabled={loading || (totalMins <= 0 && totalHolidayPay <= 0)}
+                className="h-8 px-3.5 rounded-xl bg-white dark:bg-paperDark border border-line dark:border-white/10 text-[13px] font-semibold text-ink2 dark:text-white/80 hover:border-ink4 transition-colors disabled:opacity-40"
+              >
+                {fmt}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* Pay Period Summary card */}
-      <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[18px] px-[14px] pt-[15px] pb-4 flex flex-col gap-3 mb-[14px]">
-        <div className="font-mono text-[11px] text-charcoal/50 dark:text-white/40 tracking-[0.12em] uppercase font-semibold">Pay Period Summary</div>
-        <PeriodChips period={period} onChange={setPeriod} />
-
-        {period === 'custom' && (
-          <div className="flex items-center gap-2">
-            <input type="date" value={customFrom} onChange={e => setCustomFrom(e.target.value)} className="flex-1 px-[10px] py-[7px] rounded-[9px] border border-charcoal/10 dark:border-white/10 text-[13px] bg-white dark:bg-paperDark text-charcoal dark:text-white outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 focus:border-charcoal/20 dark:focus:border-white/20" />
-            <span className="text-xs text-charcoal/30 dark:text-white/30 shrink-0">to</span>
-            <input type="date" value={customTo} min={customFrom} onChange={e => setCustomTo(e.target.value)} className="flex-1 px-[10px] py-[7px] rounded-[9px] border border-charcoal/10 dark:border-white/10 text-[13px] bg-white dark:bg-paperDark text-charcoal dark:text-white outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 focus:border-charcoal/20 dark:focus:border-white/20" />
-          </div>
-        )}
-
-        {periodLabel && periodLabel !== '—' && (
-          <div className="flex items-center justify-between gap-2">
-            <span className="text-[15px] font-semibold tracking-[-0.01em] text-charcoal dark:text-white">{periodLabel}</span>
-            {isManager && periodFrom && periodTo && (
+      {/* Period */}
+      <TabBar
+        tabs={PERIOD_TABS}
+        size="sm"
+        active={isOtherPeriod ? null : period}
+        onChange={(id) => { setPeriod(id); setShowOther(false) }}
+      />
+      <div className="flex flex-col gap-2 -mt-1">
+        <button
+          type="button"
+          aria-expanded={showOther || isOtherPeriod}
+          onClick={() => setShowOther(v => !v)}
+          className="self-start px-1 text-[13px] font-semibold text-ink3 dark:text-white/50 hover:text-ink dark:hover:text-white"
+        >
+          {isOtherPeriod ? `Showing ${OTHER_PERIODS.find(p => p.key === period).label.toLowerCase()}` : 'Other dates'} ▾
+        </button>
+        {(showOther || isOtherPeriod) && (
+          <div className="flex flex-wrap items-center gap-2">
+            {OTHER_PERIODS.map(p => (
               <button
-                onClick={togglePayrollLock}
-                disabled={lockSaving}
-                className={`flex items-center gap-[5px] text-[11.5px] font-semibold bg-white dark:bg-paperDark rounded-[9px] px-[11px] py-[6px] cursor-pointer shrink-0 whitespace-nowrap transition-opacity ${isPeriodLocked ? 'text-success border border-success/[0.33]' : 'text-charcoal/75 dark:text-white/60 border border-charcoal/10 dark:border-white/10'} ${lockSaving ? 'opacity-40' : 'opacity-100'}`}
+                key={p.key}
+                type="button"
+                aria-pressed={period === p.key}
+                onClick={() => setPeriod(p.key)}
+                className={`h-8 px-3.5 rounded-full border text-[13px] font-semibold transition-colors ${period === p.key ? 'bg-brand border-brand text-white' : 'bg-white dark:bg-paperDark border-line dark:border-white/10 text-ink2 dark:text-white/75 hover:border-ink4'}`}
               >
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d={isPeriodLocked ? 'M7 11V7a5 5 0 0 1 10 0v4' : 'M7 11V7a5 5 0 0 1 9.9-1'}/></svg>
-                {isPeriodLocked ? 'Locked' : lockSaving ? 'Locking…' : 'Lock for payroll'}
+                {p.label}
               </button>
+            ))}
+            {period === 'custom' && (
+              <span className="flex items-center gap-2 w-full sm:w-auto">
+                <input type="date" aria-label="From" value={customFrom} onChange={e => setCustomFrom(e.target.value)} className="flex-1 h-8 px-3 rounded-xl border border-line dark:border-white/10 bg-white dark:bg-paperDark text-[13px]" />
+                <span className="text-[13px] text-ink3">to</span>
+                <input type="date" aria-label="To" value={customTo} min={customFrom} onChange={e => setCustomTo(e.target.value)} className="flex-1 h-8 px-3 rounded-xl border border-line dark:border-white/10 bg-white dark:bg-paperDark text-[13px]" />
+              </span>
             )}
           </div>
         )}
+      </div>
+
+      {/* Summary */}
+      <div className={`${CARD} overflow-hidden`}>
+        <div className="flex items-center justify-between gap-2.5 px-3.5 sm:px-3.5 py-2 border-b border-line dark:border-white/10">
+          <p className="font-mono text-[13px] min-[420px]:text-[14px] font-semibold text-ink dark:text-white whitespace-nowrap">{periodLabel}</p>
+          {isManager && periodFrom && periodTo && (
+            <button
+              type="button"
+              onClick={togglePayrollLock}
+              disabled={lockSaving}
+              className={`shrink-0 inline-flex items-center gap-2 h-8 px-3 min-[420px]:px-3.5 rounded-xl border text-[13px] min-[420px]:text-[13px] font-semibold transition-colors disabled:opacity-40 ${isPeriodLocked ? 'border-good/40 bg-goodBg text-good dark:bg-good/20 dark:text-[#7fd1a4]' : 'border-line dark:border-white/10 bg-white dark:bg-paperDark text-ink2 dark:text-white/80 hover:border-ink4'}`}
+            >
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d={isPeriodLocked ? 'M7 11V7a5 5 0 0 1 10 0v4' : 'M7 11V7a5 5 0 0 1 9.9-1'}/></svg>
+              {isPeriodLocked ? 'Locked for payroll' : lockSaving ? 'Locking…' : 'Lock for payroll'}
+            </button>
+          )}
+        </div>
 
         {loading ? (
-          <SkeletonList rows={4} />
+          <SkeletonList rows={2} />
         ) : loadError ? (
-          <div className="flex items-center gap-3 bg-danger/10 rounded-[11px] px-[13px] py-[11px]">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-danger"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <div className="flex items-center gap-2.5 bg-badBg dark:bg-bad/20 px-3.5 sm:px-3.5 py-2.5">
             <div className="flex-1 min-w-0">
-              <div className="text-[13.5px] font-semibold text-danger leading-tight">Couldn't load hours</div>
-              <div className="text-[11.5px] text-charcoal/50 dark:text-white/40 mt-[3px] leading-snug">The clock-in data failed to load — this can happen on an out-of-date app. Try again, or fully close and reopen the app.</div>
+              <p className="text-[13px] font-semibold text-bad dark:text-[#f19a86]">Couldn't load hours</p>
+              <p className="text-[13px] text-ink2 dark:text-white/70 mt-0.5">The clock-in data failed to load — this can happen on an out-of-date app. Try again, or fully close and reopen the app.</p>
             </div>
-            <button onClick={reload} className="shrink-0 text-[12px] font-semibold text-charcoal dark:text-white bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[9px] px-[13px] py-[8px] cursor-pointer">Retry</button>
+            <button type="button" onClick={reload} className="shrink-0 h-8 px-3.5 rounded-xl bg-white dark:bg-paperDark border border-line dark:border-white/10 text-[13px] font-semibold">Retry</button>
           </div>
         ) : (
           <>
-            <div className="flex gap-[7px]">
-              <SumTile label={`Actual hours · ${timesheets.length} staff`} value={totalMins > 0 ? minsStr(totalMins) : null} />
-              <SumTile label="Scheduled hours" value={periodScheduled.totalMins > 0 ? minsStr(periodScheduled.totalMins) : null} />
+            <div className="grid grid-cols-2 divide-x divide-line dark:divide-white/10 border-b border-line dark:border-white/10">
+              <SumCell label="Actual hours" value={totalMins > 0 ? hm(totalMins) : '–'} />
+              <SumCell label="Scheduled hours" value={periodScheduled.totalMins > 0 ? hm(periodScheduled.totalMins) : '–'} />
             </div>
-            <div className="flex gap-[7px]">
-              <SumTile label="Actual wage bill" value={totalWage > 0 ? fmtGBP(totalWage + totalHolidayPay) : null} />
-              <SumTile label="Scheduled cost" value={periodScheduled.totalCost > 0 ? fmtGBP(periodScheduled.totalCost) : null} sub={underLabel} subGood={under > 0} />
+            <div className="grid grid-cols-2 divide-x divide-line dark:divide-white/10">
+              <SumCell label="Actual wage bill" value={totalWage > 0 ? money(actualBill) : '–'} />
+              <SumCell label="Scheduled cost" value={periodScheduled.totalCost > 0 ? money(periodScheduled.totalCost) : '–'} />
             </div>
+            {variance !== null && Math.abs(variance) >= 0.01 && (
+              <p className={`px-3.5 sm:px-3.5 py-2.5 text-[13px] font-semibold ${variance > 0 ? 'bg-goodBg text-good dark:bg-good/20 dark:text-[#7fd1a4]' : 'bg-badBg text-bad dark:bg-bad/20 dark:text-[#f19a86]'}`}>
+                {money(Math.abs(variance))} {variance > 0 ? 'under' : 'over'} scheduled cost
+              </p>
+            )}
           </>
         )}
       </div>
 
       {/* Staff list */}
       {!loading && !loadError && (
-        <div>
-          <div className="flex items-center justify-between px-0.5 pb-[9px]">
-            <span className="font-mono text-[11px] text-charcoal/50 dark:text-white/40 tracking-[0.1em] uppercase font-semibold">Staff</span>
-            <span className="font-mono text-[11px] text-charcoal/50 dark:text-white/40">{timesheets.length} members{totalMins > 0 ? ` · ${minsStr(totalMins)} total` : ''}</span>
+        <>
+          <div className="flex items-baseline justify-between gap-2.5 px-1 -mb-1">
+            <p className="text-[12px] font-semibold tracking-[0.08em] uppercase text-ink3 dark:text-white/45">Staff</p>
+            <p className="font-mono text-[12px] text-ink3 dark:text-white/45">
+              {timesheets.length} staff{totalMins > 0 ? ` · ${hm(totalMins)}` : ''}
+            </p>
           </div>
           {timesheets.length === 0 ? (
-            <EmptyState icon="users" title="No clock events" description="No clock events recorded for this period." className="py-6" />
+            <div className={`${CARD} px-3.5 py-8 text-center`}>
+              <p className="text-[14px] font-semibold text-ink dark:text-white">No hours recorded</p>
+              <p className="text-[13px] text-ink3 dark:text-white/45 mt-1">Nobody clocked in during this period.</p>
+            </div>
           ) : (
-            <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-2xl overflow-hidden">
-              {timesheets.map((t, i) => (
-                <StaffRow key={t.staffId} t={t} station={stationMap[t.staffId] ?? ''} last={i === timesheets.length - 1} onTap={() => setSelStaff(t)} />
+            <div className={`${CARD} divide-y divide-line dark:divide-white/10 overflow-hidden`}>
+              {timesheets.map(t => (
+                <StaffRow key={t.staffId} t={t} onTap={() => setSelStaff(t)} />
               ))}
             </div>
           )}
-        </div>
+        </>
       )}
 
       {/* Staff hours bottom sheet */}

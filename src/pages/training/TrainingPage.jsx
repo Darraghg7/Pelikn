@@ -4,10 +4,11 @@ import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
 import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../../components/ui/Toast'
-import LoadingSpinner from '../../components/ui/LoadingSpinner'
-import EmptyState from '../../components/ui/EmptyState'
 import ConfirmDialog from '../../components/ui/ConfirmDialog'
 import { SkeletonList } from '../../components/ui/Skeleton'
+import Modal from '../../components/ui/Modal'
+import { Link } from 'react-router-dom'
+import { CARD, TONE, TabBar } from '../../components/temperature/TempPageParts'
 import SignaturePad from '../../components/ui/SignaturePad'
 import AcknowledgeModal from '../../components/training/AcknowledgeModal'
 import { sendPush } from '../../lib/sendPush'
@@ -45,19 +46,6 @@ function certStatus(record) {
   return 'valid'
 }
 
-function StatusBadge({ status }) {
-  const styles = { expired: 'bg-danger/8 text-danger', expiring: 'bg-warning/8 text-warning', valid: 'bg-success/8 text-success' }
-  const labels = { expired: 'Expired', expiring: 'Expiring Soon', valid: 'Valid' }
-  return (
-    <span className={`text-[11px] tracking-widest uppercase font-medium px-1.5 py-0.5 rounded ${styles[status]}`}>
-      {labels[status]}
-    </span>
-  )
-}
-
-function initials(name = '') {
-  return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)
-}
 
 
 // ── Create SC6 record modal ───────────────────────────────────────────────────
@@ -323,120 +311,167 @@ function SignOffDetailModal({ record, venueId, onClose }) {
   )
 }
 
-// ── SC6 Induction Records tab ─────────────────────────────────────────────────
-function InductionTab({ venueId, isManager, session }) {
-  const toast = useToast()
+// ── Shared bits ───────────────────────────────────────────────────────────────
+const FIELD_LABEL = 'block text-[12px] font-semibold tracking-[0.08em] uppercase text-ink3 dark:text-white/45 mb-2'
+const TEXT_FIELD  = 'w-full h-9 px-3.5 rounded-xl border border-line dark:border-white/10 bg-cream dark:bg-white/5 text-[13px] text-ink dark:text-white placeholder:text-ink4 dark:placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand/40 focus:bg-white dark:focus:bg-white/10 transition-colors'
+const PRIMARY_BTN = 'w-full h-10 rounded-2xl bg-brand text-white text-[14px] font-semibold transition-colors hover:bg-brand/90 disabled:bg-ink3/70 dark:disabled:bg-white/15 disabled:cursor-not-allowed'
+
+const PILL = {
+  signed:    { label: 'Signed',    cls: TONE.ok },
+  awaiting:  { label: 'Awaiting',  cls: TONE.explained },
+  valid:     { label: 'Valid',     cls: TONE.ok },
+  expiring:  { label: 'Expiring',  cls: TONE.explained },
+  expired:   { label: 'Expired',   cls: TONE.bad },
+  compliant: { label: 'Compliant', cls: TONE.ok },
+  due:       { label: 'Due',       cls: TONE.bad },
+}
+
+function Pill({ kind }) {
+  const p = PILL[kind]
+  return <span className={`shrink-0 h-7 px-3.5 rounded-full inline-flex items-center text-[13px] font-semibold ${p.cls}`}>{p.label}</span>
+}
+
+// "Eve Turbitt" → "ET", "Sarah" → "S"
+function nameInitials(name = '') {
+  const parts = name.trim().split(/\s+/).filter(Boolean)
+  if (!parts.length) return '?'
+  return parts.length === 1 ? parts[0][0].toUpperCase() : (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+}
+
+function Avatar({ name, photo, letters }) {
+  return (
+    <span className="shrink-0 w-10 h-10 rounded-full bg-line2 dark:bg-white/10 inline-flex items-center justify-center overflow-hidden text-[14px] font-semibold text-ink2 dark:text-white/80">
+      {photo ? <img src={photo} alt="" className="w-full h-full object-cover" loading="lazy" /> : (letters ?? nameInitials(name))}
+    </span>
+  )
+}
+
+function FilterPill({ active, label, count, onClick }) {
+  return (
+    <button
+      type="button"
+      aria-pressed={active}
+      onClick={onClick}
+      className={[
+        'h-8 px-3.5 rounded-full border inline-flex items-center gap-2 text-[13px] font-semibold transition-colors',
+        active ? 'bg-brand border-brand text-white' : 'bg-white dark:bg-paperDark border-line dark:border-white/10 text-ink2 dark:text-white/75 hover:border-ink4',
+      ].join(' ')}
+    >
+      {label}
+      <span className={`font-mono text-[13px] ${active ? 'text-white/70' : 'text-ink4 dark:text-white/35'}`}>{count}</span>
+    </button>
+  )
+}
+
+function EmptyCard({ title, body }) {
+  return (
+    <div className={`${CARD} px-3.5 py-10 text-center`}>
+      <p className="text-[14px] font-semibold text-ink dark:text-white">{title}</p>
+      {body && <p className="text-[13px] text-ink3 dark:text-white/45 mt-1">{body}</p>}
+    </div>
+  )
+}
+
+function FileField({ label, onFile, accept }) {
+  return (
+    <label>
+      <span className={FIELD_LABEL}>{label}</span>
+      <input
+        type="file"
+        accept={accept}
+        onChange={e => onFile(e.target.files?.[0] ?? null)}
+        className="w-full text-[13px] text-ink2 dark:text-white/70 file:mr-3 file:h-8 file:px-3.5 file:rounded-xl file:border file:border-line dark:file:border-white/15 file:bg-white dark:file:bg-paperDark file:text-[13px] file:font-semibold file:text-ink2 dark:file:text-white/80"
+      />
+    </label>
+  )
+}
+
+// ── Induction (SC6) tab ───────────────────────────────────────────────────────
+function InductionTab({ venueId, isManager, session, showCreate, onCloseCreate }) {
   const { records, loading, reload } = useSignOffs()
-  const staff    = useActiveStaff()
-  const [showCreate, setShowCreate]   = useState(false)
-  const [viewRecord, setViewRecord]   = useState(null)
-  const [ackRecord, setAckRecord]     = useState(null)
+  const staff = useActiveStaff()
+  const [filter, setFilter]         = useState('all')
+  const [viewRecord, setViewRecord] = useState(null)
+  const [ackRecord, setAckRecord]   = useState(null)
 
-  // For staff: show their pending sign-offs
+  // Staff see their own records and any awaiting their signature
   const staffId = session?.staffId
-  const pending  = records.filter(r => r.staff_id === staffId && !r.staff_acknowledged)
-  const myRecords = records.filter(r => r.staff_id === staffId)
+  const pending = records.filter(r => r.staff_id === staffId && !r.staff_acknowledged)
+  const visible = isManager ? records : records.filter(r => r.staff_id === staffId)
 
-  if (loading) return <SkeletonList rows={4} className="py-4" />
+  const signedCount   = visible.filter(r => r.staff_acknowledged).length
+  const awaitingCount = visible.length - signedCount
+  const shown = visible.filter(r => filter === 'all' || (filter === 'signed' ? r.staff_acknowledged : !r.staff_acknowledged))
+
+  if (loading) return <SkeletonList rows={4} className="py-2.5" />
 
   return (
-    <div className="flex flex-col gap-5">
-      {/* Staff: pending banner */}
+    <div className="flex flex-col gap-2.5">
       {!isManager && pending.length > 0 && (
-        <div className="bg-accent/10 border border-accent/20 rounded-xl px-5 py-4 flex items-center justify-between gap-4">
-          <div>
-            <p className="text-sm font-semibold text-accent">Training record awaiting your signature</p>
-            <p className="text-xs text-accent/70 mt-0.5">
+        <div className="rounded-2xl bg-warnBg dark:bg-warn/20 px-3.5 sm:px-3.5 py-2.5 flex items-center justify-between gap-2.5">
+          <div className="min-w-0">
+            <p className="text-[13px] font-semibold text-ink dark:text-white">Training record awaiting your signature</p>
+            <p className="text-[13px] text-ink2 dark:text-white/70 mt-0.5">
               {pending.length === 1
                 ? `${pending[0].trainer_name} recorded training on ${format(parseISO(pending[0].training_date), 'd MMM yyyy')}`
                 : `${pending.length} records need your signature`}
             </p>
           </div>
           <button
+            type="button"
             onClick={() => setAckRecord(pending[0])}
-            className="bg-accent text-white px-4 py-2 rounded-lg text-xs font-medium shrink-0 hover:bg-accent/90 transition-colors"
+            className="shrink-0 h-8 px-3.5 rounded-xl bg-brand text-white text-[13px] font-semibold hover:bg-brand/90"
           >
-            Sign now →
+            Sign now
           </button>
         </div>
       )}
 
-      {/* Manager controls */}
-      {isManager && (
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-xs text-charcoal/40 dark:text-white/35">
-              {records.filter(r => r.staff_acknowledged).length} signed · {records.filter(r => !r.staff_acknowledged).length} awaiting
-            </p>
-          </div>
-          <button
-            onClick={() => setShowCreate(true)}
-            className="bg-charcoal text-cream px-4 py-2 rounded-lg text-sm font-medium hover:bg-charcoal/90 transition-colors"
-          >
-            + New Record
-          </button>
+      {visible.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          <FilterPill active={filter === 'all'} label="All" count={visible.length} onClick={() => setFilter('all')} />
+          <FilterPill active={filter === 'awaiting'} label="Awaiting" count={awaitingCount} onClick={() => setFilter('awaiting')} />
+          <FilterPill active={filter === 'signed'} label="Signed" count={signedCount} onClick={() => setFilter('signed')} />
         </div>
       )}
 
-      {/* Records list */}
-      {(isManager ? records : myRecords).length === 0 ? (
-        <EmptyState
-          icon="clipboard"
-          title="No training records"
-          description={isManager ? 'Create the first training record to get started.' : 'No training records on your account yet.'}
+      {visible.length === 0 ? (
+        <EmptyCard
+          title="No induction records"
+          body={isManager ? 'Tap New to record someone’s SC6 induction training.' : 'No training records on your account yet.'}
         />
+      ) : shown.length === 0 ? (
+        <EmptyCard title={filter === 'signed' ? 'Nothing signed yet' : 'Nothing awaiting signature'} />
       ) : (
-        <div className="flex flex-col gap-3">
-          {(isManager ? records : myRecords).map(r => (
+        <div className={`${CARD} divide-y divide-line dark:divide-white/10 overflow-hidden`}>
+          {shown.map(r => (
             <button
               key={r.id}
+              type="button"
               onClick={() => isManager ? setViewRecord(r) : (r.staff_acknowledged ? setViewRecord(r) : setAckRecord(r))}
-              className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 px-5 py-4 flex items-center gap-4 text-left hover:border-charcoal/25 dark:hover:border-white/25 transition-colors w-full"
+              className="w-full flex items-center gap-2.5 px-3.5 sm:px-3.5 py-2.5 text-left hover:bg-cream/60 dark:hover:bg-white/5 transition-colors"
             >
-              {/* Avatar */}
-              <div className="w-9 h-9 rounded-full bg-charcoal/10 dark:bg-white/10 flex items-center justify-center shrink-0">
-                {r.staff?.photo_url
-                  ? <img src={r.staff.photo_url} alt="" className="w-9 h-9 rounded-full object-cover" loading="lazy" />
-                  : <span className="text-sm font-semibold text-charcoal/40 dark:text-white/35">{initials(r.staff?.name)}</span>
-                }
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <p className="text-sm font-medium text-charcoal dark:text-white">{r.staff?.name ?? 'Unknown'}</p>
-                  {r.staff_acknowledged ? (
-                    <span className="text-[11px] tracking-widest uppercase font-medium px-1.5 py-0.5 rounded bg-success/8 text-success">
-                      <span className="inline-flex items-center gap-0.5">Signed <svg className="w-3 h-3" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg></span>
-                    </span>
-                  ) : (
-                    <span className="text-[11px] tracking-widest uppercase font-medium px-1.5 py-0.5 rounded bg-warning/8 text-warning">
-                      Awaiting Signature
-                    </span>
-                  )}
-                </div>
-                <p className="text-xs text-charcoal/40 dark:text-white/35 mt-0.5">
-                  {format(parseISO(r.training_date), 'd MMM yyyy')} · {r.topics.length} topic{r.topics.length !== 1 ? 's' : ''} · Trainer: {r.trainer_name}
-                </p>
-                {r.staff_acknowledged && r.staff_acknowledged_at && (
-                  <p className="text-[11px] text-charcoal/30 dark:text-white/30 mt-0.5">
-                    Signed {format(new Date(r.staff_acknowledged_at), 'd MMM yyyy, HH:mm')}
-                  </p>
-                )}
-              </div>
-              <span className="text-charcoal/25 dark:text-white/25 text-sm shrink-0">›</span>
+              <Avatar name={r.staff?.name ?? ''} photo={r.staff?.photo_url} />
+              <span className="flex-1 min-w-0">
+                <span className="block text-[15px] font-semibold text-ink dark:text-white truncate">{r.staff?.name ?? 'Unknown'}</span>
+                <span className="block text-[13px] text-ink3 dark:text-white/45 mt-0.5 truncate">
+                  {format(parseISO(r.training_date), 'd MMM yyyy')} · {r.topics.length} topic{r.topics.length !== 1 ? 's' : ''} · {r.trainer_name}
+                </span>
+              </span>
+              <Pill kind={r.staff_acknowledged ? 'signed' : 'awaiting'} />
             </button>
           ))}
         </div>
       )}
 
-      {/* Modals */}
-      {showCreate && (
+      {showCreate && isManager && (
         <CreateSignOffModal
           staff={staff}
           venueId={venueId}
           managerName={session?.staffName}
           managerStaffId={session?.staffId}
-          onSaved={() => { setShowCreate(false); reload() }}
-          onClose={() => setShowCreate(false)}
+          onSaved={() => { onCloseCreate(); reload() }}
+          onClose={onCloseCreate}
         />
       )}
       {viewRecord && (
@@ -454,18 +489,22 @@ function InductionTab({ venueId, isManager, session }) {
   )
 }
 
-// ── Certificates tab (existing feature) ───────────────────────────────────────
-function CertificatesTab({ venueId }) {
-  const toast   = useToast()
+// ── Certificates tab ──────────────────────────────────────────────────────────
+const CERT_RANK = { expired: 0, expiring: 1, valid: 2 }
+
+function CertificatesTab({ venueId, showCreate, onCloseCreate }) {
+  const toast = useToast()
   const { records, loading, reload } = useCertRecords()
-  const staff   = useActiveStaff()
+  const staff = useActiveStaff()
 
   const EMPTY_FORM = { staff_id: '', title: '', category: '', issued_date: '', expiry_date: '', notes: '' }
-  const [showForm, setShowForm] = useState(false)
-  const [form, setForm]         = useState(EMPTY_FORM)
-  const [file, setFile]         = useState(null)
-  const [saving, setSaving]     = useState(false)
+  const [form, setForm]     = useState(EMPTY_FORM)
+  const [file, setFile]     = useState(null)
+  const [saving, setSaving] = useState(false)
+  const [viewing, setViewing]           = useState(null)
   const [deleteTarget, setDeleteTarget] = useState(null)
+
+  const closeForm = () => { setForm(EMPTY_FORM); setFile(null); onCloseCreate() }
 
   const handleAdd = async () => {
     if (!form.staff_id)     { toast('Select a staff member', 'error'); return }
@@ -491,379 +530,358 @@ function CertificatesTab({ venueId }) {
       return
     }
     toast('Certificate added')
-    setForm(EMPTY_FORM); setFile(null); setShowForm(false); reload()
+    closeForm()
+    reload()
   }
 
   const handleDelete = async (id) => {
     const { error } = await deleteTrainingRecord(id, venueId)
     if (error) { toast(error.message, 'error'); return }
-    toast('Record deleted'); reload()
+    toast('Certificate deleted')
+    setViewing(null)
+    reload()
   }
 
-  if (loading) return <SkeletonList rows={4} className="py-4" />
+  if (loading) return <SkeletonList rows={4} className="py-2.5" />
 
-  const byStaff = {}
-  for (const r of records) {
-    const name = r.staff?.name ?? 'Unknown'
-    if (!byStaff[name]) byStaff[name] = []
-    byStaff[name].push(r)
-  }
-
-  const expiredCount  = records.filter(r => certStatus(r) === 'expired').length
-  const expiringCount = records.filter(r => certStatus(r) === 'expiring').length
+  // Expired first, then expiring soonest, then the rest by name
+  const sorted = [...records].sort((a, b) => {
+    const sa = certStatus(a), sb = certStatus(b)
+    return CERT_RANK[sa] - CERT_RANK[sb]
+      || (sa !== 'valid' ? (a.expiry_date ?? '').localeCompare(b.expiry_date ?? '') : 0)
+      || (a.staff?.name ?? '').localeCompare(b.staff?.name ?? '')
+  })
 
   return (
-    <div className="flex flex-col gap-5">
-
+    <div className="flex flex-col gap-2.5">
       <ConfirmDialog
         open={!!deleteTarget}
         title="Delete certificate?"
-        message={deleteTarget ? `Delete "${deleteTarget.title}"? This can't be undone.` : ''}
+        message={deleteTarget ? `Delete "${deleteTarget.title}" for ${deleteTarget.staff?.name ?? 'this person'}? This can't be undone.` : ''}
         confirmLabel="Delete"
         danger
         onClose={() => setDeleteTarget(null)}
         onConfirm={() => { handleDelete(deleteTarget.id); setDeleteTarget(null) }}
       />
 
-      {/* Expiry alert banner */}
-      {(expiredCount > 0 || expiringCount > 0) && (
-        <div className={`rounded-xl px-5 py-4 flex items-start gap-3 border ${expiredCount > 0 ? 'bg-danger/8 border-danger/20' : 'bg-warning/8 border-warning/20'}`}>
-          <svg className={`w-4 h-4 mt-0.5 shrink-0 ${expiredCount > 0 ? 'text-danger' : 'text-warning'}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-          <div>
-            <p className={`text-sm font-semibold ${expiredCount > 0 ? 'text-danger' : 'text-warning'}`}>
-              {[
-                expiredCount  > 0 && `${expiredCount} certificate${expiredCount  !== 1 ? 's' : ''} expired`,
-                expiringCount > 0 && `${expiringCount} expiring within 30 days`,
-              ].filter(Boolean).join(' · ')}
-            </p>
-            <p className={`text-xs mt-0.5 ${expiredCount > 0 ? 'text-danger/70' : 'text-warning/70'}`}>
-              Renew certificates below to ensure EHO records are up to date.
-            </p>
-          </div>
+      {sorted.length === 0 ? (
+        <EmptyCard title="No certificates" body="Tap New to add someone’s food hygiene, first aid or other certificate." />
+      ) : (
+        <div className={`${CARD} divide-y divide-line dark:divide-white/10 overflow-hidden`}>
+          {sorted.map(r => {
+            const name = r.staff?.name ?? 'Unknown'
+            return (
+              <button
+                key={r.id}
+                type="button"
+                onClick={() => setViewing(r)}
+                className="w-full flex items-center gap-2.5 px-3.5 sm:px-3.5 py-2.5 text-left hover:bg-cream/60 dark:hover:bg-white/5 transition-colors"
+              >
+                <Avatar name={name} photo={r.staff?.photo_url} letters={name.charAt(0).toUpperCase()} />
+                <span className="flex-1 min-w-0">
+                  <span className="block text-[14px] min-[420px]:text-[15px] leading-snug font-semibold text-ink dark:text-white line-clamp-2 break-words">{r.title}</span>
+                  <span className="block text-[13px] text-ink3 dark:text-white/45 mt-0.5">
+                    {name} · {r.expiry_date ? `expires ${format(parseISO(r.expiry_date), 'MMM yyyy')}` : 'no expiry'}
+                  </span>
+                </span>
+                <Pill kind={certStatus(r)} />
+              </button>
+            )
+          })}
         </div>
       )}
 
-      <div className="flex justify-end">
-        <button
-          onClick={() => setShowForm(f => !f)}
-          className="bg-charcoal text-cream px-4 py-2 rounded-lg text-sm font-medium hover:bg-charcoal/90 transition-colors"
-        >
-          {showForm ? 'Cancel' : '+ Add Certificate'}
-        </button>
-      </div>
+      {/* One certificate */}
+      <Modal open={!!viewing} onClose={() => setViewing(null)} title={viewing?.title ?? ''}>
+        {viewing && (
+          <div className="flex flex-col gap-2.5">
+            <div className="flex items-center gap-2 flex-wrap -mt-2">
+              <Pill kind={certStatus(viewing)} />
+              {viewing.category && <span className="text-[13px] text-ink3 dark:text-white/45">{viewing.category}</span>}
+            </div>
+            <dl className="grid grid-cols-2 gap-2.5 text-[13px]">
+              <div><dt className={FIELD_LABEL}>Staff</dt><dd className="text-ink dark:text-white -mt-1">{viewing.staff?.name ?? 'Unknown'}</dd></div>
+              <div><dt className={FIELD_LABEL}>Issued</dt><dd className="text-ink dark:text-white -mt-1">{viewing.issued_date ? format(parseISO(viewing.issued_date), 'd MMM yyyy') : '—'}</dd></div>
+              <div><dt className={FIELD_LABEL}>Expires</dt><dd className="text-ink dark:text-white -mt-1">{viewing.expiry_date ? format(parseISO(viewing.expiry_date), 'd MMM yyyy') : 'No expiry'}</dd></div>
+            </dl>
+            {viewing.notes && <p className="text-[13px] text-ink2 dark:text-white/70">{viewing.notes}</p>}
+            <div className="grid grid-cols-2 gap-2.5">
+              <button
+                type="button"
+                onClick={() => setDeleteTarget(viewing)}
+                className="h-9 rounded-xl border border-line dark:border-white/15 bg-white dark:bg-paperDark text-[13px] font-semibold text-bad dark:text-[#f19a86] hover:border-bad/40"
+              >
+                Delete
+              </button>
+              {(viewing.file_path || viewing.file_url) ? (
+                <button
+                  type="button"
+                  onClick={() => openTrainingFile(viewing, toast)}
+                  className="h-9 rounded-xl bg-brand text-white text-[13px] font-semibold hover:bg-brand/90"
+                >
+                  View certificate
+                </button>
+              ) : (
+                <span className="h-9 rounded-xl bg-cream dark:bg-white/5 inline-flex items-center justify-center text-[13px] text-ink3 dark:text-white/45">No file attached</span>
+              )}
+            </div>
+          </div>
+        )}
+      </Modal>
 
-      {showForm && (
-        <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-6 flex flex-col gap-4">
-          <p className="text-sm font-semibold text-charcoal dark:text-white">New Training Certificate</p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Staff Member *</label>
-              <select value={form.staff_id} onChange={e => setForm(f => ({ ...f, staff_id: e.target.value }))}
-                className="w-full px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20">
-                <option value="">Select</option>
-                {staff.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Category</label>
-              <select value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))}
-                className="w-full px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20">
-                <option value="">Select</option>
-                {CERT_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
-              </select>
-            </div>
+      {/* Add a certificate */}
+      <Modal open={showCreate} onClose={closeForm} title="New certificate">
+        <div className="flex flex-col gap-4">
+          <label>
+            <span className={FIELD_LABEL}>Staff member</span>
+            <select value={form.staff_id} onChange={e => setForm(f => ({ ...f, staff_id: e.target.value }))} className={TEXT_FIELD}>
+              <option value="">Select</option>
+              {staff.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+            </select>
+          </label>
+          <label>
+            <span className={FIELD_LABEL}>Title</span>
+            <input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} placeholder="e.g. Food Hygiene Level 2" className={TEXT_FIELD} />
+          </label>
+          <label>
+            <span className={FIELD_LABEL}>Category</span>
+            <select value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))} className={TEXT_FIELD}>
+              <option value="">Select</option>
+              {CERT_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+          </label>
+          <div className="grid grid-cols-2 gap-2.5">
+            <label>
+              <span className={FIELD_LABEL}>Issued</span>
+              <input type="date" value={form.issued_date} onChange={e => setForm(f => ({ ...f, issued_date: e.target.value }))} className={TEXT_FIELD} />
+            </label>
+            <label>
+              <span className={FIELD_LABEL}>Expires</span>
+              <input type="date" value={form.expiry_date} onChange={e => setForm(f => ({ ...f, expiry_date: e.target.value }))} className={TEXT_FIELD} />
+            </label>
           </div>
-          <div>
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Title *</label>
-            <input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
-              placeholder="e.g. Food Hygiene Level 2"
-              className="w-full px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20" />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Issued Date</label>
-              <input type="date" value={form.issued_date} onChange={e => setForm(f => ({ ...f, issued_date: e.target.value }))}
-                className="w-full px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20" />
-            </div>
-            <div>
-              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Expiry Date</label>
-              <input type="date" value={form.expiry_date} onChange={e => setForm(f => ({ ...f, expiry_date: e.target.value }))}
-                className="w-full px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20" />
-            </div>
-          </div>
-          <div>
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Certificate / Document</label>
-            <input type="file" accept="image/*,.pdf,.doc,.docx"
-              onChange={e => setFile(e.target.files[0] ?? null)}
-              className="w-full text-sm text-charcoal/60 dark:text-white/50 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border file:border-charcoal/15 dark:file:border-white/15 file:text-xs file:bg-white dark:file:bg-paperDark file:text-charcoal/60 dark:file:text-white/50 hover:file:bg-cream" />
-          </div>
-          <button onClick={handleAdd} disabled={saving}
-            className="bg-charcoal text-cream py-2.5 rounded-lg text-sm font-medium disabled:opacity-40 hover:bg-charcoal/90 transition-colors">
-            {saving ? 'Saving…' : 'Save Certificate →'}
+          <FileField label="Certificate (optional)" accept="image/*,.pdf,.doc,.docx" onFile={setFile} />
+          <button type="button" onClick={handleAdd} disabled={saving || !form.staff_id || !form.title.trim()} className={PRIMARY_BTN}>
+            {saving ? 'Saving…' : 'Save certificate'}
           </button>
         </div>
-      )}
-
-      {Object.keys(byStaff).length === 0 ? (
-        <EmptyState
-          icon="clipboard"
-          title="No certificates"
-          description="Add the first certificate above to start tracking."
-        />
-      ) : (
-        Object.entries(byStaff).map(([name, recs]) => (
-          <div key={name} className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 overflow-hidden">
-            <div className="px-5 py-3 bg-white dark:bg-paperDark border-b border-charcoal/8 dark:border-white/8 flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-charcoal/10 dark:bg-white/10 flex items-center justify-center">
-                {recs[0]?.staff?.photo_url
-                  ? <img src={recs[0].staff.photo_url} alt={name} className="w-8 h-8 rounded-full object-cover" loading="lazy" />
-                  : <span className="text-sm font-semibold text-charcoal/40 dark:text-white/35">{name.charAt(0)}</span>}
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-charcoal dark:text-white">{name}</p>
-                <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">{recs.length} record{recs.length !== 1 ? 's' : ''}</p>
-              </div>
-            </div>
-            <ul className="divide-y divide-charcoal/6 dark:divide-white/8">
-              {recs.map(r => {
-                const status = certStatus(r)
-                return (
-                  <li key={r.id} className="px-5 py-3 flex items-start justify-between gap-3">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <p className="text-sm font-medium text-charcoal dark:text-white">{r.title}</p>
-                        <StatusBadge status={status} />
-                        {r.category && (
-                          <span className="text-[11px] tracking-widest uppercase text-charcoal/30 dark:text-white/30 border border-charcoal/10 dark:border-white/10 px-1.5 py-0.5 rounded">{r.category}</span>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-3 mt-1 flex-wrap">
-                        {r.issued_date && <p className="text-xs text-charcoal/40 dark:text-white/35">Issued: {format(parseISO(r.issued_date), 'dd MMM yyyy')}</p>}
-                        {r.expiry_date && (
-                          <p className={`text-xs ${status === 'expired' ? 'text-danger' : status === 'expiring' ? 'text-warning' : 'text-charcoal/40 dark:text-white/35'}`}>
-                            Expires: {format(parseISO(r.expiry_date), 'dd MMM yyyy')}
-                          </p>
-                        )}
-                        {(r.file_path || r.file_url) && (
-                          <button onClick={() => openTrainingFile(r, toast)}
-                            className="text-xs text-accent underline underline-offset-2 hover:opacity-70 transition-opacity truncate max-w-[200px] text-left">
-                            {r.file_name ?? 'View certificate'}
-                          </button>
-                        )}
-                      </div>
-                      {r.notes && <p className="text-xs text-charcoal/40 dark:text-white/35 mt-1 italic">{r.notes}</p>}
-                    </div>
-                    <button onClick={() => setDeleteTarget(r)}
-                      className="text-charcoal/25 dark:text-white/25 hover:text-danger transition-colors shrink-0 mt-0.5"><svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
-                  </li>
-                )
-              })}
-            </ul>
-          </div>
-        ))
-      )}
+      </Modal>
     </div>
   )
 }
 
-// ── Allergen compliance tab ───────────────────────────────────────────────────
-
-function AllergenComplianceTab({ venueId }) {
+// ── Allergen training tab ─────────────────────────────────────────────────────
+function AllergenComplianceTab({ venueId, showCreate, onCloseCreate }) {
   const toast = useToast()
   const staff = useActiveStaff()
   const { certs, loading, reload } = useAllergenCerts()
-  const [addFor, setAddFor]   = useState(null)
-  const [form, setForm]       = useState({ issued_date: '', expiry_date: '', notes: '' })
-  const [file, setFile]       = useState(null)
-  const [saving, setSaving]   = useState(false)
+  const [addFor, setAddFor] = useState(null)   // staff member, or {} to pick one
+  const [pickedId, setPickedId] = useState('')
+  const [form, setForm]     = useState({ issued_date: '', expiry_date: '', notes: '' })
+  const [file, setFile]     = useState(null)
+  const [saving, setSaving] = useState(false)
 
   // Latest cert per staff member
   const certByStaff = {}
   for (const c of certs) {
     if (!certByStaff[c.staff_id]) certByStaff[c.staff_id] = c
   }
+  const isCompliant = (s) => { const c = certByStaff[s.id]; return !!c && certStatus(c) !== 'expired' }
+  const compliantCount = staff.filter(isCompliant).length
 
-  const compliantCount = staff.filter(s => {
-    const c = certByStaff[s.id]
-    return c && certStatus(c) !== 'expired'
-  }).length
-  const isFullyCompliant = staff.length > 0 && compliantCount === staff.length
+  // Due first, then compliant; alphabetical within each
+  const rows = [...staff].sort((a, b) => (isCompliant(a) - isCompliant(b)) || (a.name ?? '').localeCompare(b.name ?? ''))
 
   const openAdd = (s) => {
     setAddFor(s)
+    setPickedId(s.id ?? '')
     setForm({ issued_date: format(new Date(), 'yyyy-MM-dd'), expiry_date: '', notes: '' })
     setFile(null)
   }
+  // The page's New button opens the form without a person chosen
+  useEffect(() => {
+    if (showCreate) openAdd({})
+  }, [showCreate])
+  const closeAdd = () => { setAddFor(null); onCloseCreate() }
+
+  const target = addFor?.id ? addFor : staff.find(s => s.id === pickedId)
 
   const save = async () => {
+    if (!target) { toast('Select a staff member', 'error'); return }
     setSaving(true)
     let file_path = null, file_name = null
     if (file) {
-      const path = trainingFilePath(venueId, addFor.id, file.name)
+      const path = trainingFilePath(venueId, target.id, file.name)
       const { error: uploadErr } = await supabase.storage.from(TRAINING_BUCKET).upload(path, file, { upsert: false })
       if (uploadErr) { toast('Upload failed: ' + uploadErr.message, 'error'); setSaving(false); return }
       file_path = path; file_name = file.name
     }
     const { error } = await insertTrainingRecord({
-      staff_id: addFor.id, title: 'Allergen Awareness Training', category: 'allergen_awareness',
+      staff_id: target.id, title: 'Allergen Awareness Training', category: 'allergen_awareness',
       issued_date: form.issued_date || null, expiry_date: form.expiry_date || null,
       notes: form.notes.trim() || null, file_name, venue_id: venueId,
     }, file_path)
     setSaving(false)
     if (error) {
       console.error('Allergen cert insert failed:', error)
-      toast("Allergen cert didn't save, try again", 'error')
+      toast("Allergen training didn't save, try again", 'error')
       return
     }
-    toast(`Allergen cert added for ${addFor.name}`)
-    setAddFor(null); reload()
+    toast(`Allergen training recorded for ${target.name}`)
+    closeAdd()
+    reload()
   }
 
-  if (loading) return <SkeletonList rows={4} className="py-4" />
+  if (loading) return <SkeletonList rows={4} className="py-2.5" />
+
+  const pct = staff.length ? (compliantCount / staff.length) * 100 : 0
 
   return (
-    <div className="flex flex-col gap-5">
-
-      {/* Compliance banner */}
-      <div className={`rounded-xl px-5 py-4 border flex items-center gap-5 ${
-        isFullyCompliant ? 'bg-success/8 border-success/20' : 'bg-danger/8 border-danger/20'
-      }`}>
-        <div className={`text-3xl font-bold tabular-nums ${isFullyCompliant ? 'text-success' : 'text-danger'}`}>
-          {compliantCount}/{staff.length}
+    <div className="flex flex-col gap-2.5">
+      <div className={`${CARD} px-3.5 sm:px-3.5 py-2.5`}>
+        <div className="flex items-center justify-between gap-2.5">
+          <p className="text-[14px] font-semibold text-ink dark:text-white">Allergen training</p>
+          <p className="font-mono text-[14px] font-semibold text-ink2 dark:text-white/80">{compliantCount}/{staff.length} trained</p>
         </div>
-        <div>
-          <p className={`text-sm font-semibold ${isFullyCompliant ? 'text-success' : 'text-danger'}`}>
-            {isFullyCompliant ? 'All staff have valid allergen training ✓' : 'Allergen training incomplete'}
-          </p>
-          <p className={`text-xs mt-0.5 ${isFullyCompliant ? 'text-success/60' : 'text-danger/60'}`}>
-            EHOs require a valid allergen awareness certificate for every food-handling staff member — post Natasha's Law (Oct 2021).
-          </p>
+        <div className="mt-2 h-2 rounded-full bg-line2 dark:bg-white/10 overflow-hidden">
+          <div className="h-full rounded-full bg-good" style={{ width: `${pct}%` }} />
         </div>
+        {compliantCount < staff.length && (
+          <p className="text-[13px] text-ink3 dark:text-white/45 mt-2.5">
+            EHOs expect every food handler to have allergen awareness training (Natasha's Law, 2021).
+          </p>
+        )}
       </div>
 
-      {/* Per-staff table */}
-      <div className="bg-white dark:bg-paperDark rounded-2xl border border-charcoal/10 dark:border-white/10 overflow-hidden">
-        {staff.length === 0 ? (
-          <p className="px-5 py-8 text-sm text-charcoal/40 dark:text-white/35 text-center">No active staff found.</p>
-        ) : staff.map((s, i) => {
-          const cert   = certByStaff[s.id]
-          const status = cert ? certStatus(cert) : null
-          return (
-            <div key={s.id} className={`flex items-center gap-4 px-5 py-3.5 ${i > 0 ? 'border-t border-charcoal/6 dark:border-white/8' : ''}`}>
-              <div className="w-8 h-8 rounded-full bg-charcoal/8 dark:bg-white/8 flex items-center justify-center text-xs font-semibold text-charcoal/50 dark:text-white/40 shrink-0">
-                {s.name?.charAt(0) ?? '?'}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-charcoal dark:text-white">{s.name}</p>
-                {cert ? (
-                  <p className="text-xs text-charcoal/40 dark:text-white/35">
-                    {cert.title}
-                    {cert.issued_date && <> · Issued {format(parseISO(cert.issued_date), 'd MMM yyyy')}</>}
-                    {cert.expiry_date && <> · Expires {format(parseISO(cert.expiry_date), 'd MMM yyyy')}</>}
-                  </p>
-                ) : (
-                  <p className="text-xs text-danger/70">No allergen awareness training on record</p>
-                )}
-              </div>
-              {cert && <StatusBadge status={status} />}
-              {!cert && (
-                <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full border bg-danger/8 text-danger border-danger/20">
-                  Missing
-                </span>
-              )}
+      {staff.length === 0 ? (
+        <EmptyCard title="No active staff" />
+      ) : (
+        <div className={`${CARD} divide-y divide-line dark:divide-white/10 overflow-hidden`}>
+          {rows.map(s => {
+            const cert = certByStaff[s.id]
+            const expired = cert && certStatus(cert) === 'expired'
+            return (
               <button
+                key={s.id}
+                type="button"
                 onClick={() => openAdd(s)}
-                className="text-xs px-3 py-1.5 rounded-lg border border-charcoal/15 dark:border-white/15 text-charcoal/50 dark:text-white/40 hover:text-charcoal dark:hover:text-white hover:border-charcoal/30 dark:hover:border-white/30 transition-colors shrink-0"
+                className="w-full flex items-center gap-2.5 px-3.5 sm:px-3.5 py-2.5 text-left hover:bg-cream/60 dark:hover:bg-white/5 transition-colors"
               >
-                {cert ? 'Update' : '+ Add'}
+                <span className="flex-1 min-w-0">
+                  <span className="block text-[15px] font-semibold text-ink dark:text-white truncate">{s.name}</span>
+                  <span className="block text-[13px] text-ink3 dark:text-white/45 mt-0.5">
+                    {!cert
+                      ? 'Not completed'
+                      : expired
+                        ? `Expired ${format(parseISO(cert.expiry_date), 'd MMM yyyy')}`
+                        : cert.issued_date ? `Completed ${format(parseISO(cert.issued_date), 'd MMM yyyy')}` : 'Completed'}
+                  </span>
+                </span>
+                {expired ? <Pill kind="expired" /> : <Pill kind={cert ? 'compliant' : 'due'} />}
               </button>
-            </div>
-          )
-        })}
-      </div>
-
-      {/* Add / update cert panel */}
-      {addFor && (
-        <div className="bg-white dark:bg-paperDark rounded-2xl border border-charcoal/10 dark:border-white/10 p-6 flex flex-col gap-4">
-          <div className="flex items-center justify-between">
-            <p className="text-sm font-semibold text-charcoal dark:text-white">
-              Allergen Awareness Training — {addFor.name}
-            </p>
-            <button onClick={() => setAddFor(null)} className="text-charcoal/30 dark:text-white/30 hover:text-charcoal dark:hover:text-white text-xl leading-none">×</button>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Date issued</label>
-              <input type="date" value={form.issued_date} onChange={e => setForm(f => ({ ...f, issued_date: e.target.value }))}
-                className="w-full px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20" />
-            </div>
-            <div>
-              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Expiry date (if applicable)</label>
-              <input type="date" value={form.expiry_date} onChange={e => setForm(f => ({ ...f, expiry_date: e.target.value }))}
-                className="w-full px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20" />
-            </div>
-          </div>
-          <div>
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Upload certificate (optional)</label>
-            <input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={e => setFile(e.target.files[0] || null)}
-              className="text-sm text-charcoal/60 dark:text-white/50" />
-          </div>
-          <div>
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Notes</label>
-            <input value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))}
-              placeholder="e.g. Online course via HighSpeed Training / in-house induction"
-              className="w-full px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20" />
-          </div>
-          <button onClick={save} disabled={saving}
-            className="bg-charcoal text-cream py-2.5 rounded-xl text-sm font-semibold hover:bg-charcoal/90 transition-colors disabled:opacity-40">
-            {saving ? 'Saving…' : 'Save Certificate'}
-          </button>
+            )
+          })}
         </div>
       )}
+
+      <Modal open={!!addFor} onClose={closeAdd} title={addFor?.id ? `Allergen training · ${addFor.name}` : 'Allergen training'}>
+        <div className="flex flex-col gap-4">
+          {!addFor?.id && (
+            <label>
+              <span className={FIELD_LABEL}>Staff member</span>
+              <select value={pickedId} onChange={e => setPickedId(e.target.value)} className={TEXT_FIELD}>
+                <option value="">Select</option>
+                {staff.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+              </select>
+            </label>
+          )}
+          {addFor?.id && certByStaff[addFor.id] && (
+            <p className="text-[13px] text-ink2 dark:text-white/70 -mt-1">
+              On record: {certByStaff[addFor.id].issued_date ? `completed ${format(parseISO(certByStaff[addFor.id].issued_date), 'd MMM yyyy')}` : 'completed'}
+              {certByStaff[addFor.id].expiry_date && `, expires ${format(parseISO(certByStaff[addFor.id].expiry_date), 'd MMM yyyy')}`}. Saving adds a newer record.
+            </p>
+          )}
+          <div className="grid grid-cols-2 gap-2.5">
+            <label>
+              <span className={FIELD_LABEL}>Completed</span>
+              <input type="date" value={form.issued_date} onChange={e => setForm(f => ({ ...f, issued_date: e.target.value }))} className={TEXT_FIELD} />
+            </label>
+            <label>
+              <span className={FIELD_LABEL}>Expires</span>
+              <input type="date" value={form.expiry_date} onChange={e => setForm(f => ({ ...f, expiry_date: e.target.value }))} className={TEXT_FIELD} />
+            </label>
+          </div>
+          <FileField label="Certificate (optional)" accept=".pdf,.jpg,.jpeg,.png" onFile={setFile} />
+          <label>
+            <span className={FIELD_LABEL}>Notes</span>
+            <input value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} placeholder="e.g. Online course, in-house induction" className={TEXT_FIELD} />
+          </label>
+          <button type="button" onClick={save} disabled={saving || !target} className={PRIMARY_BTN}>
+            {saving ? 'Saving…' : 'Save training'}
+          </button>
+        </div>
+      </Modal>
     </div>
   )
 }
 
 // ── Page ──────────────────────────────────────────────────────────────────────
+const TABS = [
+  { id: 'induction',    label: 'Induction' },
+  { id: 'certificates', label: 'Certificates' },
+  { id: 'allergen',     label: 'Allergens' },
+]
+
 export default function TrainingPage() {
-  const { venueId } = useVenue()
+  const { venueId, venueSlug } = useVenue()
   const { session, isManager } = useSession()
   const [tab, setTab] = useState('induction')
+  const [creating, setCreating] = useState(null)   // tab id whose "New" form is open
+
+  // Only managers create induction records; certificate/allergen entry follows
+  // the page permission, same as before
+  const canCreate = tab !== 'induction' || isManager
+  const closeCreate = () => setCreating(null)
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex items-end justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-charcoal dark:text-white">Staff Training</h1>
-          <p className="text-sm text-charcoal/40 dark:text-white/35 mt-1">SC6 induction records &amp; certificates</p>
+    <div className="flex flex-col gap-2.5 max-w-3xl">
+      <div className="flex flex-col gap-1">
+        {/* On mobile the shell's back row already links to Team */}
+        <Link
+          to={`/v/${venueSlug}/team`}
+          className="hidden self-start lg:inline-flex items-center gap-1 text-[13px] font-semibold text-brand dark:text-white/80 hover:opacity-75 transition-opacity"
+        >
+          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6" /></svg>
+          Team
+        </Link>
+        <div className="flex items-start justify-between gap-2.5">
+          <div className="min-w-0">
+            <h1 className="text-[20px] sm:text-[22px] leading-tight font-bold tracking-tight text-ink dark:text-white">Staff training</h1>
+            <p className="text-[13px] text-ink3 dark:text-white/45 mt-0.5">SC6 induction records &amp; certificates</p>
+          </div>
+          {canCreate && (
+            <button
+              type="button"
+              onClick={() => setCreating(tab)}
+              className="shrink-0 mt-1 h-8 px-3.5 rounded-xl bg-brand text-white text-[13px] font-semibold hover:bg-brand/90 transition-colors"
+            >
+              New
+            </button>
+          )}
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="flex gap-1 bg-charcoal/5 dark:bg-white/5 rounded-xl p-1 w-fit">
-        {[
-          { id: 'induction',    label: 'Induction Records' },
-          { id: 'certificates', label: 'Certificates' },
-          { id: 'allergen',     label: 'Allergen Compliance' },
-        ].map(t => (
-          <button
-            key={t.id}
-            onClick={() => setTab(t.id)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-              tab === t.id ? 'bg-white dark:bg-paperDark text-charcoal dark:text-white shadow-sm' : 'text-charcoal/50 dark:text-white/40 hover:text-charcoal dark:hover:text-white'
-            }`}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
+      <TabBar tabs={TABS} size="sm" active={tab} onChange={(id) => { setTab(id); setCreating(null) }} />
 
-      {tab === 'induction'
-        ? <InductionTab venueId={venueId} isManager={isManager} session={session} />
-        : tab === 'certificates'
-        ? <CertificatesTab venueId={venueId} />
-        : <AllergenComplianceTab venueId={venueId} />
-      }
+      {tab === 'induction' && (
+        <InductionTab venueId={venueId} isManager={isManager} session={session} showCreate={creating === 'induction'} onCloseCreate={closeCreate} />
+      )}
+      {tab === 'certificates' && (
+        <CertificatesTab venueId={venueId} showCreate={creating === 'certificates'} onCloseCreate={closeCreate} />
+      )}
+      {tab === 'allergen' && (
+        <AllergenComplianceTab venueId={venueId} showCreate={creating === 'allergen'} onCloseCreate={closeCreate} />
+      )}
     </div>
   )
 }

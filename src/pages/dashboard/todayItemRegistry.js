@@ -20,7 +20,7 @@ export const TODAY_ITEM_REGISTRY = {
     route: '/opening-closing',
     metric: summary => summary.checksToday,
     metricLabel: 'Checks done',
-    action: (summary, vp, closedToday) => !closedToday && summary.checksToday === 0 && { label: 'Opening checks not done', to: vp('/opening-closing'), urgency: 'warn' },
+    action: (summary, vp, closedToday) => !closedToday && summary.checksToday === 0 && { label: 'Opening checks not done', detail: 'Not started today', to: vp('/opening-closing'), urgency: 'warn' },
   },
   closing_checks: {
     id: 'closing_checks',
@@ -31,7 +31,7 @@ export const TODAY_ITEM_REGISTRY = {
     route: '/opening-closing',
     metric: summary => summary.closingChecksToday,
     metricLabel: 'Closing done',
-    action: (summary, vp, closedToday) => !closedToday && summary.closingChecksToday === 0 && { label: 'Closing checks not done', to: vp('/opening-closing'), urgency: 'warn' },
+    action: (summary, vp, closedToday) => !closedToday && summary.closingChecksToday === 0 && { label: 'Closing checks not done', detail: 'Not started today', to: vp('/opening-closing'), urgency: 'warn' },
   },
   fridge_checks: {
     id: 'fridge_checks',
@@ -43,7 +43,7 @@ export const TODAY_ITEM_REGISTRY = {
     metric: summary => summary.uncheckedFridges,
     metricLabel: 'Fridges due',
     dangerWhenPositive: true,
-    action: (summary, vp) => summary.uncheckedFridges > 0 && { label: `${summary.uncheckedFridges} fridge${summary.uncheckedFridges > 1 ? 's' : ''} not logged today`, to: vp('/fridge'), urgency: 'warn' },
+    action: (summary, vp) => summary.uncheckedFridges > 0 && { label: `${summary.uncheckedFridges} fridge${summary.uncheckedFridges > 1 ? 's' : ''} not logged today`, detail: 'Readings still needed', to: vp('/fridge'), urgency: 'warn' },
   },
   cooking_temps: {
     id: 'cooking_temps',
@@ -54,7 +54,7 @@ export const TODAY_ITEM_REGISTRY = {
     route: '/cooking-temps',
     metric: summary => summary.cookingTempsToday,
     metricLabel: 'Cooking logs',
-    action: (summary, vp) => summary.cookingTempsToday === 0 && { label: 'Cooking temps not recorded today', to: vp('/cooking-temps'), urgency: 'warn' },
+    action: (summary, vp) => summary.cookingTempsToday === 0 && { label: 'Cooking temps not recorded today', detail: 'Nothing logged yet', to: vp('/cooking-temps'), urgency: 'warn' },
   },
   hot_holding: {
     id: 'hot_holding',
@@ -65,7 +65,7 @@ export const TODAY_ITEM_REGISTRY = {
     route: '/hot-holding',
     metric: summary => summary.hotHoldingToday,
     metricLabel: 'Hot hold logs',
-    action: (summary, vp) => summary.hotHoldingToday === 0 && { label: 'Hot holding not recorded today', to: vp('/hot-holding'), urgency: 'warn' },
+    action: (summary, vp) => summary.hotHoldingToday === 0 && { label: 'Hot holding not recorded today', detail: 'Nothing logged yet', to: vp('/hot-holding'), urgency: 'warn' },
   },
   cooling_logs: {
     id: 'cooling_logs',
@@ -76,7 +76,7 @@ export const TODAY_ITEM_REGISTRY = {
     route: '/cooling-logs',
     metric: summary => summary.coolingLogsToday,
     metricLabel: 'Cooling logs',
-    action: (summary, vp) => summary.coolingLogsToday === 0 && { label: 'Cooling logs not recorded today', to: vp('/cooling-logs'), urgency: 'warn' },
+    action: (summary, vp) => summary.coolingLogsToday === 0 && { label: 'Cooling logs not recorded today', detail: 'Nothing logged yet', to: vp('/cooling-logs'), urgency: 'warn' },
   },
   cleaning_tasks: {
     id: 'cleaning_tasks',
@@ -88,7 +88,7 @@ export const TODAY_ITEM_REGISTRY = {
     metric: summary => summary.overdueClean,
     metricLabel: 'Overdue cleans',
     dangerWhenPositive: true,
-    action: (summary, vp) => summary.overdueClean > 0 && { label: `${summary.overdueClean} cleaning task${summary.overdueClean > 1 ? 's' : ''} overdue`, to: vp('/cleaning'), urgency: 'danger' },
+    action: (summary, vp) => summary.overdueClean > 0 && { label: `${summary.overdueClean} cleaning task${summary.overdueClean > 1 ? 's' : ''} overdue`, detail: 'Tap a task to clear it', to: vp('/cleaning'), urgency: 'danger' },
   },
   critical_actions: {
     id: 'critical_actions',
@@ -100,7 +100,7 @@ export const TODAY_ITEM_REGISTRY = {
     metric: summary => summary.criticalActions,
     metricLabel: 'Critical',
     dangerWhenPositive: true,
-    action: (summary, vp) => summary.criticalActions > 0 && { label: `${summary.criticalActions} critical action${summary.criticalActions > 1 ? 's' : ''} open`, to: vp('/corrective'), urgency: 'danger' },
+    action: (summary, vp) => summary.criticalActions > 0 && { label: `${summary.criticalActions} critical action${summary.criticalActions > 1 ? 's' : ''} open`, detail: 'Needs resolving', to: vp('/corrective'), urgency: 'danger' },
   },
   pending_leave: {
     id: 'pending_leave',
@@ -111,7 +111,7 @@ export const TODAY_ITEM_REGISTRY = {
     route: '/time-off',
     metric: summary => summary.pendingLeave,
     metricLabel: 'Leave',
-    action: (summary, vp) => summary.pendingLeave > 0 && { label: `${summary.pendingLeave} leave request${summary.pendingLeave > 1 ? 's' : ''} pending`, to: vp('/time-off'), urgency: 'info' },
+    action: (summary, vp) => summary.pendingLeave > 0 && { label: `${summary.pendingLeave} leave request${summary.pendingLeave > 1 ? 's' : ''} pending`, detail: 'Approve or reject', to: vp('/time-off'), urgency: 'info' },
   },
   duties: {
     id: 'duties',

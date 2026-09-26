@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react'
-import { format, formatDistanceToNow, differenceInCalendarDays } from 'date-fns'
+import { format, formatDistanceToNow } from 'date-fns'
 import { supabase } from '../../lib/supabase'
 import { capitalize } from '../../lib/utils'
 import { useVenue } from '../../contexts/VenueContext'
@@ -12,32 +12,15 @@ import CleaningExportModal from './CleaningExportModal'
 import { useVenueRoles } from '../../hooks/useVenueRoles'
 
 const FREQ_OPTIONS = ['daily', 'weekly', 'fortnightly', 'monthly', 'quarterly']
-const FREQ_DAYS = { daily: 1, weekly: 7, fortnightly: 14, monthly: 30, quarterly: 90 }
 
 function SectionLabel({ children }) {
   return <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-3">{children}</p>
 }
 
-/** Bold, coloured urgency chip for the meta line — "3d overdue" / "Due in 2d" / null when on-schedule. */
-function urgencyLabel(t) {
-  if (!t.lastCompletion) {
-    if (t.status === 'overdue') return 'Never done'
-    if (t.status === 'due_soon' && t.created_at) {
-      const left = (FREQ_DAYS[t.frequency] ?? 1) - differenceInCalendarDays(new Date(), new Date(t.created_at))
-      return `New · due in ${Math.max(left, 0)}d`
-    }
-    return null
-  }
-  const daysSince = differenceInCalendarDays(new Date(), new Date(t.lastCompletion.completed_at))
-  const threshold = FREQ_DAYS[t.frequency] ?? 1
-  if (t.status === 'overdue') {
-    const overdueBy = t.frequency === 'daily' ? daysSince : daysSince - threshold
-    return `${Math.max(overdueBy, 1)}d overdue`
-  }
-  if (t.status === 'due_soon') {
-    return `Due in ${Math.max(threshold - daysSince, 0)}d`
-  }
-  return null
+const DUE_TONE = {
+  danger:  'text-danger',
+  warning: 'text-warning',
+  muted:   'text-charcoal/40 dark:text-white/35',
 }
 
 /** Leading tap-to-complete circle — this IS the action, no separate button. */
@@ -308,8 +291,7 @@ export default function CleaningPage() {
         <div className="flex flex-col divide-y divide-charcoal/6 dark:divide-white/8">
           {filtered.map((t) => {
             const done = t.status === 'done'
-            const overdue = t.status === 'overdue'
-            const urgency = urgencyLabel(t)
+            const urgency = t.due
             const roleLabel = roleOptions.find(r => r.id === t.role_id)?.name ?? 'All Roles'
             return (
               <div key={t.id} className="flex items-center gap-[13px] py-3">
@@ -321,8 +303,8 @@ export default function CleaningPage() {
                   </div>
                   <div className="flex items-center gap-1.5 mt-1 min-w-0 whitespace-nowrap overflow-hidden">
                     {urgency && (
-                      <span className={`font-mono text-[10px] font-bold tracking-wide uppercase shrink-0 ${overdue ? 'text-danger' : 'text-warning'}`}>
-                        {urgency}
+                      <span className={`font-mono text-[10px] font-bold tracking-wide uppercase shrink-0 ${DUE_TONE[urgency.tone]}`}>
+                        {urgency.text}
                       </span>
                     )}
                     {urgency && <span className="text-charcoal/20 dark:text-white/20 text-[10px] shrink-0">·</span>}

@@ -45,16 +45,16 @@ test.describe('Staff management', () => {
     // Labels are "Name *" and "PIN" as text nodes, not <label for="...">
     // Target by placeholder instead
     await expect(page.getByPlaceholder(/full name/i).first()).toBeVisible({ timeout: 5000 })
-    await expect(page.getByPlaceholder(/••••/i).first()).toBeVisible({ timeout: 5000 })
+    await expect(page.getByLabel(/^pin$/i).first()).toBeVisible({ timeout: 5000 })
   })
 
   test('can create a new staff member', async ({ page }) => {
     await page.getByRole('button', { name: /add staff/i }).first().click()
 
     await page.getByPlaceholder(/full name/i).first().fill(TEST_STAFF)
-    await page.getByPlaceholder(/••••/i).first().fill('9876')
+    await page.getByLabel(/^pin$/i).first().fill('9876')
 
-    await page.getByRole('button', { name: /save|add|create|submit/i }).last().click()
+    await page.getByRole('button', { name: /^add staff member$/i }).click()
 
     // Unique per run. The old fixed "Playwright Tester" matched any of the 43
     // staff rows earlier runs had already created in this venue, so the
@@ -98,13 +98,16 @@ test.describe('Staff management', () => {
     }
   })
 
-  test('staff form has employment type dropdown (PR #14)', async ({ page }) => {
+  test('staff form has contract type choice (PR #14)', async ({ page }) => {
     await page.getByRole('button', { name: /add staff/i }).first().click()
     await expect(page.getByPlaceholder(/full name/i).first()).toBeVisible({ timeout: 5000 })
-    // Label text: "Employment Type" with a <select> containing Full-time / Part-time / Zero-hours
-    await expect(page.getByText(/employment type/i).first()).toBeVisible({ timeout: 5000 })
-    const select = page.locator('select').filter({ has: page.locator('option', { hasText: /full.?time/i }) })
-    await expect(select).toBeVisible({ timeout: 5000 })
+    // Contract is a Full time / Part time / Zero hours segmented control
+    for (const label of [/^full time$/i, /^part time$/i, /^zero hours$/i]) {
+      await expect(page.getByRole('radio', { name: label })).toBeVisible({ timeout: 5000 })
+    }
+    // Zero hours hides the contracted-hours pattern
+    await page.getByRole('radio', { name: /^zero hours$/i }).click()
+    await expect(page.getByText(/contracted hours/i)).toHaveCount(0)
   })
 })
 
@@ -142,7 +145,7 @@ test.describe('Permission management', () => {
     // PermissionTitlesSection renders no heading of its own; the
     // "Permission Titles" label belongs to the separate SettingsPage.
     await goto(page, '/settings/staff')
-    await page.getByRole('button', { name: /^roles$/i }).click()
+    await page.getByRole('tab', { name: /^roles$/i }).click()
     await expect(
       page.getByText(/titles you assign to staff/i).first()
     ).toBeVisible({ timeout: 6000 })

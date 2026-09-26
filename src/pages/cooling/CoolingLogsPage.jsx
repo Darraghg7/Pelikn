@@ -13,7 +13,7 @@
  */
 import React, { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { format, parseISO, subDays, isToday, isYesterday } from 'date-fns'
+import { format, subDays, isToday } from 'date-fns'
 import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
 import { useSession } from '../../contexts/SessionContext'
@@ -25,24 +25,14 @@ import {
   COOLING_TARGET_TEMP, COOLING_TARGET_MINUTES, COOLING_METHODS,
   coolingMethodLabel, coolingOutcome, formatCoolingMinutes, coolingMinutes,
 } from '../../lib/cooling'
-import { CARD, TONE, PageHeader, TabBar, ReadingInput } from '../../components/temperature/TempPageParts'
-import { HistoryRangePills, StatStrip, formatPct, historyDateFrom } from '../../components/temperature/TempHistoryView'
+import {
+  CARD, TONE, PageHeader, TabBar, ReadingInput, SectionHeading, QuickPicks, TempField, TimeOfDayField, useTimeOfDay,
+  FIELD_LABEL, TEXT_FIELD,
+} from '../../components/temperature/TempPageParts'
+import { HistoryRangePills, StatStrip, DayCard, formatPct, historyDateFrom, groupByDay } from '../../components/temperature/TempHistoryView'
 import CoolingExportModal from './CoolingExportModal'
 
 const NEW_METHODS = COOLING_METHODS.filter(m => !m.legacy)
-
-const FIELD_LABEL = 'block text-[13px] font-semibold tracking-[0.08em] uppercase text-ink3 dark:text-white/45 mb-2'
-const TEXT_FIELD  = 'w-full h-12 px-4 rounded-xl border border-line dark:border-white/10 bg-cream dark:bg-white/5 text-[15px] text-ink dark:text-white placeholder:text-ink4 dark:placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand/40 focus:bg-white dark:focus:bg-white/10 transition-colors'
-const NUMBER_RESET = '[appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none'
-
-function SectionHeading({ children, aside }) {
-  return (
-    <div className="flex items-baseline justify-between gap-3 px-1 -mb-1">
-      <p className="text-[13px] font-semibold tracking-[0.08em] uppercase text-ink3 dark:text-white/45">{children}</p>
-      {aside && <p className="text-[13px] text-ink3 dark:text-white/45 text-right">{aside}</p>}
-    </div>
-  )
-}
 
 function StopwatchIcon({ className = 'w-5 h-5' }) {
   return (
@@ -114,16 +104,16 @@ function CoolingBatchCard({ batch, now, canDiscard, onChanged, onDiscard }) {
   }
 
   return (
-    <div className={`${CARD} px-4 sm:px-5 py-4 flex flex-col gap-3`}>
-      <div className="flex items-start justify-between gap-3">
+    <div className={`${CARD} px-3.5 sm:px-3.5 py-2.5 flex flex-col gap-2.5`}>
+      <div className="flex items-start justify-between gap-2.5">
         <div className="min-w-0">
-          <p className="text-[17px] font-semibold text-ink dark:text-white truncate">{batch.food_item}</p>
-          <p className="text-sm text-ink3 dark:text-white/45 mt-0.5">
+          <p className="text-[14px] font-semibold text-ink dark:text-white truncate">{batch.food_item}</p>
+          <p className="text-[13px] text-ink3 dark:text-white/45 mt-0.5">
             <span className="font-mono text-ink2 dark:text-white/65">{Number(batch.start_temp).toFixed(0)}°C</span>
             {' · '}{coolingMethodLabel(batch.cooling_method)} · from {startedLabel(batch.started_at)}
           </p>
         </div>
-        <span className={`shrink-0 h-8 px-3 rounded-full inline-flex items-center font-mono text-[14px] font-semibold ${TONE[timeTone]}`}>
+        <span className={`shrink-0 h-7 px-3 rounded-full inline-flex items-center font-mono text-[13px] font-semibold ${TONE[timeTone]}`}>
           {elapsed}m / {COOLING_TARGET_MINUTES}m
         </span>
       </div>
@@ -145,8 +135,8 @@ function CoolingBatchCard({ batch, now, canDiscard, onChanged, onDiscard }) {
       />
 
       {needsNote && (
-        <div className="rounded-xl border border-bad/25 bg-badBg/60 dark:bg-bad/15 p-3 flex flex-col gap-2">
-          <p className="text-sm font-semibold text-bad dark:text-[#f19a86]">
+        <div className="rounded-xl border border-bad/25 bg-badBg/60 dark:bg-bad/15 p-2.5 flex flex-col gap-2">
+          <p className="text-[13px] font-semibold text-bad dark:text-[#f19a86]">
             {tooSlow
               ? `Took longer than ${COOLING_TARGET_MINUTES} minutes. What did you do?`
               : `Still above ${batch.target_temp ?? COOLING_TARGET_TEMP}°C. Keep cooling, or record what you did.`}
@@ -156,13 +146,13 @@ function CoolingBatchCard({ batch, now, canDiscard, onChanged, onDiscard }) {
             onChange={e => setNote(e.target.value)}
             rows={2}
             placeholder="e.g. Moved to blast chiller, 4.8°C by 16:25"
-            className="w-full px-3 py-2 rounded-lg border border-bad/25 bg-white dark:bg-paperDark text-sm text-ink dark:text-white placeholder:text-ink4 focus:outline-none focus:ring-2 focus:ring-bad/20 resize-none"
+            className="w-full px-3 py-2 rounded-lg border border-bad/25 bg-white dark:bg-paperDark text-[13px] text-ink dark:text-white placeholder:text-ink4 focus:outline-none focus:ring-2 focus:ring-bad/20 resize-none"
           />
         </div>
       )}
 
       {batch.notes && (
-        <p className="text-sm text-ink3 dark:text-white/45"><span className="font-semibold text-ink2 dark:text-white/65">Note</span> · {batch.notes}</p>
+        <p className="text-[13px] text-ink3 dark:text-white/45"><span className="font-semibold text-ink2 dark:text-white/65">Note</span> · {batch.notes}</p>
       )}
 
       {canDiscard && (
@@ -184,32 +174,14 @@ function StartBatchForm({ session, venueId, onStarted }) {
   const frequent = useFrequentCoolingItems(4)
   const [foodItem, setFoodItem]   = useState('')
   const [startTemp, setStartTemp] = useState('')
-  const [time, setTime]           = useState(() => format(new Date(), 'HH:mm'))
-  const [timeTouched, setTimeTouched] = useState(false)
+  const clock = useTimeOfDay()
   const [method, setMethod]       = useState('blast_chiller')
   const [showNote, setShowNote]   = useState(false)
   const [note, setNote]           = useState('')
   const [saving, setSaving]       = useState(false)
 
-  // Keep the default start time current until someone changes it
-  useEffect(() => {
-    if (timeTouched) return
-    const id = setInterval(() => setTime(format(new Date(), 'HH:mm')), 30_000)
-    return () => clearInterval(id)
-  }, [timeTouched])
-
-  // A time later than now means the batch went in before midnight
-  const startedAt = useMemo(() => {
-    const [hh, mm] = time.split(':').map(Number)
-    const d = new Date()
-    d.setHours(hh || 0, mm || 0, 0, 0)
-    if (d.getTime() > Date.now() + 60_000) d.setDate(d.getDate() - 1)
-    return d
-  }, [time])
-  const startedDay = isToday(startedAt) ? 'Today' : 'Yesterday'
-
   const hasTemp  = startTemp !== '' && !Number.isNaN(parseFloat(startTemp))
-  const canStart = foodItem.trim() && hasTemp && time
+  const canStart = foodItem.trim() && hasTemp && clock.time
 
   const start = async () => {
     if (!canStart || saving) return
@@ -221,7 +193,7 @@ function StartBatchForm({ session, venueId, onStarted }) {
       end_temp:       null,
       target_temp:    COOLING_TARGET_TEMP,
       cooling_method: method,
-      started_at:     startedAt.toISOString(),
+      started_at:     clock.at.toISOString(),
       logged_by:      session?.staffId ?? null,
       logged_by_name: session?.staffName ?? 'Unknown',
       notes:          note.trim() || null,
@@ -233,16 +205,15 @@ function StartBatchForm({ session, venueId, onStarted }) {
     setStartTemp('')
     setNote('')
     setShowNote(false)
-    setTimeTouched(false)
-    setTime(format(new Date(), 'HH:mm'))
+    clock.reset()
     onStarted()
   }
 
   return (
-    <div className={`${CARD} px-4 sm:px-5 py-5 flex flex-col gap-4`}>
-      <p className="text-[19px] font-semibold text-ink dark:text-white">Start cooling a batch</p>
+    <div className={`${CARD} px-3.5 sm:px-3.5 py-4 flex flex-col gap-2.5`}>
+      <p className="text-[15px] font-semibold text-ink dark:text-white">Start cooling a batch</p>
 
-      <div className="flex flex-col gap-2.5">
+      <div className="flex flex-col gap-2">
         <input
           type="text"
           value={foodItem}
@@ -251,61 +222,17 @@ function StartBatchForm({ session, venueId, onStarted }) {
           aria-label="Food item"
           className={TEXT_FIELD}
         />
-        {frequent.length > 0 && (
-          <div className="flex flex-wrap gap-2">
-            {frequent.map(name => (
-              <button
-                key={name}
-                type="button"
-                onClick={() => setFoodItem(name)}
-                className={[
-                  'h-9 px-3.5 rounded-full border text-[15px] transition-colors',
-                  foodItem.trim().toLowerCase() === name.toLowerCase()
-                    ? 'bg-brand-tint border-brand/40 text-brand dark:bg-white/10 dark:text-white dark:border-white/30'
-                    : 'bg-white dark:bg-paperDark border-line dark:border-white/10 text-ink2 dark:text-white/75 hover:border-ink4',
-                ].join(' ')}
-              >
-                {name}
-              </button>
-            ))}
-          </div>
-        )}
+        <QuickPicks options={frequent} value={foodItem} onPick={setFoodItem} />
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        <label className="min-w-0">
-          <span className={FIELD_LABEL}>Start temp</span>
-          <span className="relative block">
-            <input
-              type="number" step="0.1" min="0" max="120" inputMode="decimal"
-              value={startTemp}
-              onChange={e => setStartTemp(e.target.value)}
-              placeholder="75"
-              className={`${TEXT_FIELD} ${NUMBER_RESET} pr-11 font-mono text-lg`}
-            />
-            <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 font-mono text-base text-ink3 dark:text-white/40">°C</span>
-          </span>
-        </label>
-        <label className="min-w-0">
-          <span className={FIELD_LABEL}>Started</span>
-          <span className="relative block">
-            <input
-              type="time"
-              value={time}
-              onChange={e => { setTime(e.target.value); setTimeTouched(true) }}
-              className={`${TEXT_FIELD} pr-4 font-mono text-lg font-semibold [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0 [&::-webkit-calendar-picker-indicator]:w-full`}
-            />
-            <span className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 inline-flex items-center gap-1.5 text-sm text-ink3 dark:text-white/45">
-              <svg className="w-4 h-4 text-ink2 dark:text-white/65" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9" /><polyline points="12 7 12 12 15 14" /></svg>
-              <span className="hidden min-[400px]:inline">{startedDay}</span>
-            </span>
-          </span>
-        </label>
+      <div className="grid grid-cols-2 gap-2.5">
+        <TempField label="Start temp" value={startTemp} onChange={setStartTemp} placeholder="75" />
+        <TimeOfDayField label="Started" clock={clock} />
       </div>
 
       <div>
         <span className={FIELD_LABEL}>Method</span>
-        <div className="grid grid-cols-2 gap-2.5">
+        <div className="grid grid-cols-2 gap-2">
           {NEW_METHODS.map(m => (
             <button
               key={m.value}
@@ -313,7 +240,7 @@ function StartBatchForm({ session, venueId, onStarted }) {
               aria-pressed={method === m.value}
               onClick={() => setMethod(m.value)}
               className={[
-                'h-12 rounded-xl border text-[15px] font-semibold transition-colors',
+                'h-9 rounded-xl border text-[13px] font-semibold transition-colors',
                 method === m.value
                   ? 'bg-brand border-brand text-white'
                   : 'bg-white dark:bg-paperDark border-line dark:border-white/10 text-ink2 dark:text-white/75 hover:border-ink4',
@@ -332,15 +259,15 @@ function StartBatchForm({ session, venueId, onStarted }) {
           rows={2}
           autoFocus
           placeholder="Anything worth noting, e.g. split into shallow trays"
-          className="w-full px-4 py-3 rounded-xl border border-line dark:border-white/10 bg-cream dark:bg-white/5 text-[15px] text-ink dark:text-white placeholder:text-ink4 focus:outline-none focus:ring-2 focus:ring-brand/15 resize-none"
+          className="w-full px-3.5 py-2.5 rounded-xl border border-line dark:border-white/10 bg-cream dark:bg-white/5 text-[13px] text-ink dark:text-white placeholder:text-ink4 focus:outline-none focus:ring-2 focus:ring-brand/15 resize-none"
         />
       )}
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2.5">
         <button
           type="button"
           onClick={() => setShowNote(v => !v)}
-          className="shrink-0 px-3 h-12 text-[15px] font-semibold text-ink2 dark:text-white/75 hover:text-ink dark:hover:text-white"
+          className="shrink-0 px-3 h-9 text-[13px] font-semibold text-ink2 dark:text-white/75 hover:text-ink dark:hover:text-white"
         >
           {showNote ? 'No note' : '+ Note'}
         </button>
@@ -348,7 +275,7 @@ function StartBatchForm({ session, venueId, onStarted }) {
           type="button"
           onClick={start}
           disabled={!canStart || saving}
-          className="flex-1 h-12 rounded-xl bg-brand text-white text-[16px] font-semibold inline-flex items-center justify-center gap-2 transition-colors hover:bg-brand/90 disabled:bg-ink3/70 dark:disabled:bg-white/15 disabled:cursor-not-allowed"
+          className="flex-1 h-9 rounded-xl bg-brand text-white text-[13px] font-semibold inline-flex items-center justify-center gap-2 transition-colors hover:bg-brand/90 disabled:bg-ink3/70 dark:disabled:bg-white/15 disabled:cursor-not-allowed"
         >
           <StopwatchIcon />
           {saving ? 'Starting…' : 'Start cooling timer'}
@@ -367,36 +294,36 @@ function FinishedBatchRow({ log, compact = false }) {
     : format(new Date(log.started_at), 'HH:mm')
 
   return (
-    <div className="px-4 sm:px-5 py-3.5">
-      <div className="flex items-center justify-between gap-3">
+    <div className="px-3.5 sm:px-3.5 py-2">
+      <div className="flex items-center justify-between gap-2.5">
         <div className="min-w-0">
-          <p className="text-[17px] font-semibold text-ink dark:text-white truncate">{log.food_item}</p>
-          <p className="text-sm text-ink3 dark:text-white/45 mt-0.5 truncate">
+          <p className="text-[14px] font-semibold text-ink dark:text-white truncate">{log.food_item}</p>
+          <p className="text-[13px] text-ink3 dark:text-white/45 mt-0.5 truncate">
             {coolingMethodLabel(log.cooling_method)}{compact ? '' : ` · ${timeRange}`}
           </p>
         </div>
         {compact ? (
-          <div className="shrink-0 flex items-center gap-2.5">
-            <span className="font-mono text-sm sm:text-[15px] text-ink2 dark:text-white/70 whitespace-nowrap">
+          <div className="shrink-0 flex items-center gap-2">
+            <span className="font-mono text-[13px] sm:text-[13px] text-ink2 dark:text-white/70 whitespace-nowrap">
               {temp(log.start_temp)} → {temp(log.end_temp)}
             </span>
-            <span className={`h-8 px-2.5 rounded-lg inline-flex items-center font-mono text-sm font-semibold whitespace-nowrap ${fail ? TONE.bad : TONE.ok}`}>
+            <span className={`h-7 px-2.5 rounded-lg inline-flex items-center font-mono text-[13px] font-semibold whitespace-nowrap ${fail ? TONE.bad : TONE.ok}`}>
               {minutes === null ? verdict : formatCoolingMinutes(minutes)}
             </span>
           </div>
         ) : (
           <div className="shrink-0 flex flex-col items-end gap-1.5">
-            <span className="font-mono text-[16px] font-semibold text-ink2 dark:text-white/70 whitespace-nowrap">
+            <span className="font-mono text-[13px] font-semibold text-ink2 dark:text-white/70 whitespace-nowrap">
               {temp(log.start_temp)} → <span className={fail ? 'text-bad dark:text-[#f19a86]' : 'text-good dark:text-[#7fd1a4]'}>{temp(log.end_temp)}</span>
             </span>
-            <span className={`h-7 px-3 rounded-full inline-flex items-center text-[13px] font-semibold whitespace-nowrap ${fail ? TONE.bad : TONE.ok}`}>
+            <span className={`h-7 px-3 rounded-full inline-flex items-center text-[12px] font-semibold whitespace-nowrap ${fail ? TONE.bad : TONE.ok}`}>
               {verdict}{minutes !== null && ` · ${formatCoolingMinutes(minutes)}`}
             </span>
           </div>
         )}
       </div>
       {fail && log.notes && (
-        <p className="mt-2.5 px-3 py-2.5 rounded-lg bg-badBg dark:bg-bad/20 text-sm text-ink2 dark:text-white/75">
+        <p className="mt-2.5 px-3 py-2 rounded-lg bg-badBg dark:bg-bad/20 text-[13px] text-ink2 dark:text-white/75">
           {compact && <><span className="font-semibold text-bad dark:text-[#f19a86]">Corrective action</span> · </>}
           {log.notes}
         </p>
@@ -418,26 +345,10 @@ function CoolingHistory() {
   const failures = logs.length - passed
 
   // Grouped by the day the batch went in to cool, newest first
-  const days = useMemo(() => {
-    const groups = new Map()
-    for (const log of logs) {
-      const key = format(new Date(log.started_at), 'yyyy-MM-dd')
-      if (!groups.has(key)) groups.set(key, [])
-      groups.get(key).push(log)
-    }
-    return [...groups.entries()]
-  }, [logs])
-
-  const dayLabel = (dateStr) => {
-    const d = parseISO(dateStr)
-    const base = format(d, 'EEE d MMM')
-    if (isToday(d)) return `Today · ${base}`
-    if (isYesterday(d)) return `Yesterday · ${base}`
-    return base
-  }
+  const days = useMemo(() => groupByDay(logs, log => log.started_at), [logs])
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-2.5">
       <HistoryRangePills range={range} onRange={setRange} />
 
       {loading ? (
@@ -453,19 +364,11 @@ function CoolingHistory() {
           ]} />
 
           {days.length === 0 ? (
-            <p className="text-sm text-ink3 dark:text-white/40 py-10 text-center">No batches cooled in this period.</p>
+            <p className="text-[13px] text-ink3 dark:text-white/40 py-10 text-center">No batches cooled in this period.</p>
           ) : days.map(([dateStr, dayLogs]) => (
-            <div key={dateStr} className={`${CARD} overflow-hidden`}>
-              <div className="flex items-center justify-between gap-2 px-4 sm:px-5 py-3 bg-cream dark:bg-white/5 border-b border-line dark:border-white/10">
-                <p className="text-sm font-semibold text-ink dark:text-white truncate">{dayLabel(dateStr)}</p>
-                <span className="shrink-0 font-mono text-sm text-ink3 dark:text-white/45">
-                  {dayLogs.length} {dayLogs.length === 1 ? 'batch' : 'batches'}
-                </span>
-              </div>
-              <div className="divide-y divide-line dark:divide-white/10">
-                {dayLogs.map(log => <FinishedBatchRow key={log.id} log={log} compact />)}
-              </div>
-            </div>
+            <DayCard key={dateStr} dateStr={dateStr} count={dayLogs.length} noun="batch" plural="batches">
+              {dayLogs.map(log => <FinishedBatchRow key={log.id} log={log} compact />)}
+            </DayCard>
           ))}
         </>
       )}
@@ -516,7 +419,7 @@ export default function CoolingLogsPage() {
   const passedToday    = completedToday.filter(log => !coolingOutcome(log).fail).length
 
   return (
-    <div className="flex flex-col gap-4 max-w-3xl">
+    <div className="flex flex-col gap-2.5 max-w-3xl">
       <PageHeader
         title="Cooling logs"
         backTo={isManager ? `/v/${venueSlug}/checks` : null}

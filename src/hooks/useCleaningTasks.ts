@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query'
+import { supabase } from '../lib/supabase'
 import { useVenue } from '../contexts/VenueContext'
 import { useAppSettings } from './useSettings'
 import useVenueClosures from './useVenueClosures'
@@ -63,12 +64,113 @@ export function cleaningStatus(
   return 'overdue'
 }
 
+const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+
+export interface CleaningDueLabel {
+  text: string
+  tone: 'danger' | 'warning' | 'muted'
+}
+
+/**
+ * "3d overdue" / "Due today" / "Due tomorrow" / "Due Fri" / "Due 12 Oct".
+ * The due day follows the same model as cleaningStatus(): a daily task is due
+ * the day after it was last done, anything else `threshold` days after.
+ * Null when there's nothing useful to say — a closed day capped the status at
+ * 'done' while the task itself is past due.
+ */
+export function cleaningDueLabel(
+  task: CleaningTask,
+  lastCompletion: CleaningCompletion | null,
+  status: CleaningStatus,
+  asOf: Date = new Date(),
+): CleaningDueLabel | null {
+  if (!lastCompletion) {
+    if (status === 'overdue') return { text: 'Never done', tone: 'danger' }
+    // Still in its first cycle (see cleaningStatus) — due one cycle after creation
+    if (!task.created_at) return null
+  }
+  // Never-done tasks count from creation; `new` marks them in the label
+  const isNew = !lastCompletion
+  const from  = new Date(lastCompletion?.completed_at ?? (task.created_at as string))
+  const dueAt = new Date(from)
+  dueAt.setDate(dueAt.getDate() + (FREQ_DAYS[task.frequency] ?? 1))
+
+  const daysPastDue = calendarDaysBetween(dueAt, asOf)
+  if (status === 'done' && daysPastDue >= 0) return null
+  if (daysPastDue > 0) return { text: `${daysPastDue}d overdue`, tone: 'danger' }
+  const tone = status === 'due_soon' ? 'warning' : 'muted'
+  const pre  = isNew ? 'New · d' : 'D'
+  if (daysPastDue === 0) return { text: `${pre}ue today`, tone: 'warning' }
+  if (daysPastDue === -1) return { text: `${pre}ue tomorrow`, tone }
+  if (daysPastDue >= -6)  return { text: `${pre}ue ${WEEKDAYS[dueAt.getDay()]}`, tone }
+  return { text: `${pre}ue ${dueAt.getDate()} ${MONTHS[dueAt.getMonth()]}`, tone }
+}
+
+// ── Live updates ────────────────────────────────────────────────────────────
+// Staff tick tasks off on their own phones, so the manager's screen only learns
+// about it from the server. Without this the cached list only refetched on a
+// remount — a manager with /cleaning open on a tablet never saw a tick land.
+// One channel per venue, shared by every mounted consumer (sidebar badge,
+// page, widget), since they all read the same query.
+const LIVE_TABLES = ['cleaning_completions', 'cleaning_tasks']
+const POLL_WHEN_DOWN_MS = 60_000
+
+const _live = {
+  venueId: null as string | null,
+  channel: null as ReturnType<typeof supabase.channel> | null,
+  refs: 0,
+  connected: false,
+}
+
+function teardownLive() {
+  if (_live.channel) {
+    try { supabase.removeChannel(_live.channel) } catch { /* already gone */ }
+  }
+  _live.venueId = null
+  _live.channel = null
+  _live.refs = 0
+  _live.connected = false
+}
+
+function acquireLive(venueId: string, queryClient: QueryClient): () => void {
+  if (_live.venueId !== venueId) teardownLive()
+  _live.venueId = venueId
+  _live.refs += 1
+
+  if (!_live.channel) {
+    try {
+      const refresh = () => queryClient.invalidateQueries({ queryKey: ['cleaningTasks', venueId] })
+      const channel = supabase.channel(`cleaning:${venueId}`)
+      for (const table of LIVE_TABLES) {
+        channel.on(
+          'postgres_changes' as never,
+          { event: '*', schema: 'public', table, filter: `venue_id=eq.${venueId}` },
+          refresh,
+        )
+      }
+      channel.subscribe((status: string) => { _live.connected = status === 'SUBSCRIBED' })
+      _live.channel = channel
+    } catch {
+      // No realtime here — the poll below keeps the list current instead.
+      _live.connected = false
+    }
+  }
+
+  return () => {
+    if (_live.venueId !== venueId) return
+    _live.refs -= 1
+    if (_live.refs <= 0) teardownLive()
+  }
+}
+
 export function useCleaningTasks(
   viewerRoleIds: readonly string[] | null = null,
   knownRoleIds: readonly string[] = [],
   asOf?: Date,
+  { enabled = true }: { enabled?: boolean } = {},
 ): {
-  tasks: (CleaningTask & { lastCompletion: CleaningCompletion | null; status: CleaningStatus })[]
+  tasks: (CleaningTask & { lastCompletion: CleaningCompletion | null; status: CleaningStatus; due: CleaningDueLabel | null })[]
   loading: boolean
   error: unknown
   reload: () => void
@@ -89,10 +191,21 @@ export function useCleaningTasks(
     return () => clearInterval(id)
   }, [])
 
+  const active = !!venueId && gateOpen && enabled
+  const queryClient = useQueryClient()
+  useEffect(() => {
+    if (!active) return
+    return acquireLive(venueId!, queryClient)
+  }, [active, venueId, queryClient])
+
   const { data, isLoading, refetch, error } = useQuery({
     queryKey: ['cleaningTasks', venueId],
     queryFn: () => fetchCleaningTasks(venueId!),
-    enabled: !!venueId && gateOpen,
+    enabled: active,
+    // Realtime is the live path; this only kicks in while the channel is down.
+    refetchInterval: () => (_live.connected ? false : POLL_WHEN_DOWN_MS),
+    // A tablet woken from sleep has missed every event while it was suspended.
+    refetchOnWindowFocus: true,
   })
 
   const tasks: CleaningTask[] = data?.tasks ?? []
@@ -117,7 +230,7 @@ export function useCleaningTasks(
       c.cleaning_task_id === t.id && new Date(c.completed_at).getTime() <= cutoff
     ) ?? null
     const status = closedOnReference ? 'done' : cleaningStatus(t, last, reference)
-    return { ...t, lastCompletion: last, status }
+    return { ...t, lastCompletion: last, status, due: cleaningDueLabel(t, last, status, reference) }
   })
 
   const overdueCount = enriched.filter((t) => t.status === 'overdue').length

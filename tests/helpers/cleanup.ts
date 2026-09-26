@@ -78,9 +78,17 @@ async function trackWrites(page: Page, created: Created[]) {
       .concat('return=representation')
       .join(',')
 
+    // Ask for just the id back unless the app chose its own columns. Tables
+    // with column-level SELECT grants (time_off_requests since 119: reason and
+    // manager_note are hidden) refuse a full-row `RETURNING *` with 42501 —
+    // which failed every insert under this fixture while the real app, which
+    // asks for nothing back, worked fine.
+    const url = new URL(req.url())
+    if (!isRpc && !url.searchParams.has('select')) url.searchParams.set('select', 'id')
+
     let response
     try {
-      response = await route.fetch({ headers: { ...req.headers(), prefer } })
+      response = await route.fetch({ url: url.toString(), headers: { ...req.headers(), prefer } })
     } catch {
       // The page can close with a write still in flight — a test whose last
       // assertion doesn't wait for the save will end mid-request. Nothing to
@@ -138,7 +146,8 @@ async function deleteCreated(page: Page, created: Created[]) {
       // real failure rather than the silent 204 a blocked DELETE would give.
       return { ok: res.ok(), status: res.status(), body: await res.text() }
     }
-    const res = await page.request.delete(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}`, { headers })
+    // select=id for the same column-grant reason as the insert above
+    const res = await page.request.delete(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}&select=id`, { headers })
     const body = await res.text()
     const removed = (() => { try { return JSON.parse(body) } catch { return [] } })()
     return { ok: res.ok() && Array.isArray(removed) && removed.length > 0, status: res.status(), body }

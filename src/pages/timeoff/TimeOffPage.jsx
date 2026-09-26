@@ -1,12 +1,12 @@
 import React, { useState, useCallback, useMemo } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
-import { format, addMonths, subMonths, isBefore, parseISO, startOfDay } from 'date-fns'
+import { format, addMonths, subMonths, isBefore, parseISO, startOfDay, isSameMonth } from 'date-fns'
 import { supabase } from '../../lib/supabase'
 import { sendPush } from '../../lib/sendPush'
 import { useVenue } from '../../contexts/VenueContext'
 import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../../components/ui/Toast'
-import { SkeletonList } from '../../components/ui/Skeleton'
+import { SkeletonList, PageSkeleton } from '../../components/ui/Skeleton'
 import Modal from '../../components/ui/Modal'
 import { calculateEntitlementDays, countWorkingDaysInRequest } from '../../hooks/useLeaveBalance'
 import { useZeroHoursAccrual, useTeamZeroHoursAccruals } from '../../hooks/useZeroHoursAccrual'
@@ -14,19 +14,23 @@ import { invalidateSummaryCache } from '../../hooks/useTodaySummary'
 import { timeOffPermissions, isBlocking } from '../../lib/api/timeOff'
 import { useAppSettings } from '../../hooks/useSettings'
 import {
-  LEAVE_TYPES, LEAVE_TYPE_COLOURS, STATUS_COLOURS,
-  leaveTypeLabel, getRequestsForDay, fmtDays, maxStaffOffInRange,
+  LEAVE_TYPES,
+  leaveTypeLabel, getRequestsForDay, fmtDays, maxStaffOffInRange, initials, employmentLabel,
 } from './timeOffConstants'
 import {
   useTimeOffRequests, useActiveStaff, useOwnProfile, useTeamLeaveBalances,
 } from '../../hooks/useTimeOffData'
 import CalendarView from './CalendarView'
-import BalancePill from './BalancePill'
 import ManualLeaveModal from './ManualLeaveModal'
 import EditRequestModal from './EditRequestModal'
+import { CARD, TONE, PageHeader } from '../../components/temperature/TempPageParts'
+
+const FIELD_LABEL = 'block text-[13px] font-semibold tracking-[0.08em] uppercase text-ink3 dark:text-white/45 mb-2'
+const TEXT_FIELD  = 'w-full h-12 px-4 rounded-xl border border-line dark:border-white/10 bg-cream dark:bg-white/5 text-[15px] text-ink dark:text-white placeholder:text-ink4 dark:placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand/40 focus:bg-white dark:focus:bg-white/10 transition-colors'
 
 /* ── Main page ─────────────────────────────────────────────────────────── */
 export default function TimeOffPage() {
+  const { venueSlug } = useVenue()
   const toast = useToast()
   const queryClient = useQueryClient()
   const { venueId }          = useVenue()
@@ -100,17 +104,20 @@ export default function TimeOffPage() {
 
   const [month, setMonth]           = useState(new Date())
   const [showRequest, setShowRequest] = useState(false)
-  const [showDayDetail, setShowDayDetail] = useState(null)
+  const [selectedDay, setSelectedDay] = useState(() => startOfDay(new Date()))
   const [form, setForm]             = useState({ startDate: '', endDate: '', reason: '', leaveType: 'annual' })
   const [saving, setSaving]         = useState(false)
   const [showTeamBalances, setShowTeamBalances] = useState(true)
 
   // Manager review state
   const [reviewing, setReviewing]   = useState(null)
-  const [managerNote, setManagerNote] = useState('')
+  const [notes, setNotes]           = useState({})  // pending request id → manager note
+  const noteFor = (id) => (notes[id] ?? '').trim()
+  const clearNote = (id) => setNotes(n => { const next = { ...n }; delete next[id]; return next })
 
   const prevMonth = () => setMonth(m => subMonths(m, 1))
   const nextMonth = () => setMonth(m => addMonths(m, 1))
+  const selectDay = (day) => { setSelectedDay(day); if (!isSameMonth(day, month)) setMonth(day) }
 
   // Days this form request would consume (for annual leave preview)
   const previewDays = useMemo(() => {
@@ -161,11 +168,11 @@ export default function TimeOffPage() {
       status:       'approved',
       reviewed_by:  session?.staffId,
       reviewed_at:  new Date().toISOString(),
-      manager_note: managerNote.trim() || null,
+      manager_note: noteFor(id) || null,
     }).eq('id', id)
     setReviewing(null)
-    setManagerNote('')
     if (err) { toast(err.message, 'error'); return }
+    clearNote(id)
     toast('Time off approved')
     if (req?.staff_id) {
       sendPush({
@@ -187,18 +194,19 @@ export default function TimeOffPage() {
       status:       'rejected',
       reviewed_by:  session?.staffId,
       reviewed_at:  new Date().toISOString(),
-      manager_note: managerNote.trim() || null,
+      manager_note: noteFor(id) || null,
     }).eq('id', id)
     setReviewing(null)
-    setManagerNote('')
     if (err) { toast(err.message, 'error'); return }
+    const note = noteFor(id)
+    clearNote(id)
     toast('Time off rejected')
     if (req?.staff_id) {
       sendPush({
         venueId,
         notificationType: 'time_off_decision',
         title: 'Time Off Rejected',
-        body:  `Your time off request (${req.start_date} – ${req.end_date}) was not approved.${managerNote.trim() ? ' Note: ' + managerNote.trim() : ''}`,
+        body:  `Your time off request (${req.start_date} – ${req.end_date}) was not approved.${note ? ' Note: ' + note : ''}`,
         url:   '/time-off',
         staffIds: [req.staff_id],
       })
@@ -211,7 +219,7 @@ export default function TimeOffPage() {
   // Withdrawn and rejected requests no longer hold anyone off the rota, so they
   // stay off the calendar — the staff member still sees them in "My Requests".
   const bookedRequests  = useMemo(() => requests.filter(r => isBlocking(r.status)), [requests])
-  const dayDetailRequests = useMemo(() => getRequestsForDay(bookedRequests, showDayDetail), [bookedRequests, showDayDetail])
+  const dayRequests = useMemo(() => getRequestsForDay(bookedRequests, selectedDay), [bookedRequests, selectedDay])
 
   // Staffing limit: how many staff are already off on the busiest day of the
   // requested range, before this request is added.
@@ -229,212 +237,153 @@ export default function TimeOffPage() {
     [session?.staffId, isManager],
   )
 
+  if (loading && requests.length === 0) return <PageSkeleton />
+
+  const selectedIsFuture = selectedDay && !isBefore(selectedDay, startOfDay(new Date()))
+
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-charcoal dark:text-white">Time Off</h1>
-          {/* Own balance pill shown below title for staff */}
-          {ownBalance && (
-            <div className="mt-0.5">
-              <BalancePill {...ownBalance} accrued={ownAccrued} small />
-              {!ownBalance.isZeroHours && ownBalance.entitlement != null && (
-                <span className="text-[11px] text-charcoal/30 dark:text-white/30 ml-1">{currentYear} annual leave</span>
-              )}
-            </div>
-          )}
-        </div>
-        <button
-          onClick={() => setShowRequest(true)}
-          className="bg-charcoal text-cream px-4 py-2 rounded-lg text-sm font-medium hover:bg-charcoal/90 transition-colors"
-        >
-          + Request
-        </button>
-      </div>
-
-      {/* Legend */}
-      <div className="flex gap-4">
-        <div className="flex items-center gap-1.5">
-          <span className="w-3 h-3 rounded bg-warning/30" />
-          <span className="text-[11px] tracking-wider uppercase text-charcoal/40 dark:text-white/35">Pending</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <span className="w-3 h-3 rounded bg-success/30" />
-          <span className="text-[11px] tracking-wider uppercase text-charcoal/40 dark:text-white/35">Approved</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <span className="w-3 h-3 rounded bg-danger/20" />
-          <span className="text-[11px] tracking-wider uppercase text-charcoal/40 dark:text-white/35">Rejected</span>
-        </div>
-      </div>
-
-      {/* Calendar */}
-      <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 overflow-hidden">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-charcoal/8 dark:border-white/8">
-          <button onClick={prevMonth} className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-charcoal/8 dark:hover:bg-white/8 text-charcoal/50 dark:text-white/40 hover:text-charcoal dark:hover:text-white transition-colors text-sm">‹</button>
-          <span className="text-sm font-medium text-charcoal dark:text-white">{format(month, 'MMMM yyyy')}</span>
-          <button onClick={nextMonth} className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-charcoal/8 dark:hover:bg-white/8 text-charcoal/50 dark:text-white/40 hover:text-charcoal dark:hover:text-white transition-colors text-sm">›</button>
-        </div>
-        {loading ? (
-          <SkeletonList rows={4} />
-        ) : error ? (
-          <p className="text-center text-sm text-danger/70 py-10">{error}</p>
-        ) : (
-          <CalendarView
-            month={month}
-            requests={bookedRequests}
-            onDayClick={setShowDayDetail}
-          />
+    <div className="flex flex-col gap-2.5 max-w-3xl">
+      <PageHeader
+        title="Time off"
+        subtitle="Requests, approvals and balances"
+        compact
+        backTo={isManager ? `/v/${venueSlug}/team` : null}
+        backLabel="Team"
+        action={(
+          <button
+            type="button"
+            onClick={() => setShowRequest(true)}
+            className="shrink-0 self-start mt-1 inline-flex items-center h-8 px-3.5 rounded-xl bg-brand text-white text-[13px] font-semibold hover:bg-brand/90 transition-colors"
+          >
+            Request
+          </button>
         )}
-      </div>
+      />
+
+      {ownBalance && (
+        <OwnBalanceCard
+          balance={ownBalance}
+          year={currentYear}
+          accrued={ownAccrued}
+          remainingHours={ownRemainingHours}
+        />
+      )}
 
       {/* Manager: pending requests */}
       {isManager && pendingRequests.length > 0 && (
-        <div className="bg-white dark:bg-paperDark rounded-2xl overflow-hidden border border-warning/20">
-          <div className="px-5 py-3 border-b border-warning/10 bg-warning/5">
-            <p className="text-[11px] tracking-widest uppercase text-warning font-medium">
-              {pendingRequests.length} Pending Request{pendingRequests.length !== 1 ? 's' : ''}
-            </p>
-          </div>
-          <div className="flex flex-col divide-y divide-charcoal/6 dark:divide-white/8">
-            {pendingRequests.map(r => {
-              const memberBalance = teamBalances.find(b => b.id === r.staff_id)
-              const daysRequested = r.leave_type === 'annual'
-                ? countWorkingDaysInRequest(r.start_date, r.end_date, r.staff?.working_days)
-                : null
-              return (
-                <div key={r.id} className="p-4 flex flex-col gap-3">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <p className="font-semibold text-charcoal dark:text-white">{r.staff?.name}</p>
-                        <span className={`text-[11px] font-medium px-1.5 py-0.5 rounded-full ${LEAVE_TYPE_COLOURS[r.leave_type] ?? LEAVE_TYPE_COLOURS.other}`}>
-                          {LEAVE_TYPES.find(t => t.value === r.leave_type)?.label ?? r.leave_type}
-                        </span>
-                      </div>
-                      <p className="text-sm text-charcoal/50 dark:text-white/40 mt-0.5">
-                        {format(parseISO(r.start_date), 'd MMM')} — {format(parseISO(r.end_date), 'd MMM yyyy')}
-                        {daysRequested != null && <span className="text-charcoal/35 dark:text-white/30"> · {fmtDays(daysRequested)}</span>}
-                      </p>
-                      {/* Still worth deciding — approving records leave that was taken —
-                          but it shouldn't look like an upcoming request. */}
-                      {r.end_date < format(new Date(), 'yyyy-MM-dd') && (
-                        <p className="text-[11px] font-medium text-warning mt-1">
-                          These dates have passed — approve to record the leave as taken, or reject.
-                        </p>
-                      )}
-                      {r.reason && <p className="text-xs text-charcoal/40 dark:text-white/35 mt-1 italic">"{r.reason}"</p>}
-                      {/* Balance impact for annual leave */}
-                      {r.leave_type === 'annual' && memberBalance && !memberBalance.isZeroHours && memberBalance.entitlement != null && daysRequested != null && (() => {
-                        const afterApproval = memberBalance.remaining - daysRequested
-                        return (
-                          <>
-                            <p className="text-[11px] text-charcoal/40 dark:text-white/35 mt-1">
-                              Balance after approval:
-                              <span className={`ml-1 font-medium ${afterApproval < 0 ? 'text-danger' : 'text-charcoal/60 dark:text-white/50'}`}>
-                                {fmtDays(Math.max(0, afterApproval))} remaining
-                              </span>
-                              <span className="text-charcoal/25 dark:text-white/25 ml-1">(currently {fmtDays(memberBalance.remaining)})</span>
-                            </p>
-                            {afterApproval < 0 && (
-                              <div className="mt-2 flex items-center gap-2 rounded-lg bg-danger/8 border border-danger/20 px-3 py-2">
-                                <svg className="w-3.5 h-3.5 text-danger shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
-                                <p className="text-[11px] text-danger font-medium">
-                                  Approval exceeds entitlement by {fmtDays(Math.abs(afterApproval))}
-                                </p>
-                              </div>
-                            )}
-                          </>
-                        )
-                      })()}
-                    </div>
-                    <span className="text-[11px] tracking-wider uppercase font-medium px-2 py-0.5 rounded-full bg-warning/15 text-warning shrink-0">
-                      Pending
-                    </span>
-                  </div>
-                  <input
-                    type="text"
-                    placeholder="Optional note..."
-                    value={reviewing === r.id ? managerNote : ''}
-                    onFocus={() => setReviewing(r.id)}
-                    onChange={e => setManagerNote(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-xs focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 placeholder-charcoal/25 dark:placeholder-white/20"
-                  />
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => approve(r.id)}
-                      disabled={reviewing === r.id}
-                      className="flex-1 py-2 rounded-lg bg-success text-white text-xs font-medium hover:bg-success/90 transition-colors"
-                    >
-                      Approve
-                    </button>
-                    <button
-                      onClick={() => reject(r.id)}
-                      className="flex-1 py-2 rounded-lg border border-danger/25 text-danger text-xs font-medium hover:bg-danger/5 transition-colors"
-                    >
-                      Reject
-                    </button>
-                  </div>
-                </div>
-              )
-            })}
+        <div className={`${CARD} overflow-hidden`}>
+          <p className="px-3.5 sm:px-3.5 py-2.5 bg-warnBg dark:bg-warn/20 text-[12px] font-semibold tracking-[0.08em] uppercase text-warn dark:text-[#e8b06a]">
+            {pendingRequests.length} pending request{pendingRequests.length !== 1 ? 's' : ''}
+          </p>
+          <div className="divide-y divide-line dark:divide-white/10">
+            {pendingRequests.map(r => (
+              <PendingRequest
+                key={r.id}
+                request={r}
+                balance={teamBalances.find(b => b.id === r.staff_id)}
+                note={notes[r.id] ?? ''}
+                onNote={(value) => setNotes(n => ({ ...n, [r.id]: value }))}
+                busy={reviewing === r.id}
+                onApprove={() => approve(r.id)}
+                onReject={() => reject(r.id)}
+              />
+            ))}
           </div>
         </div>
       )}
 
-      {/* Manager: team annual leave balances */}
+      {/* Calendar */}
+      {error ? (
+        <p className={`${CARD} text-center text-[13px] text-bad py-10`}>{error}</p>
+      ) : (
+        <CalendarView
+          month={month}
+          requests={bookedRequests}
+          selected={selectedDay}
+          onSelect={selectDay}
+          onPrev={prevMonth}
+          onNext={nextMonth}
+        />
+      )}
+
+      {/* Who's off on the selected day */}
+      {selectedDay && (
+        <div className={`${CARD} overflow-hidden`}>
+          <div className="flex items-center justify-between gap-2 px-3.5 sm:px-3.5 py-2.5 bg-cream dark:bg-white/5 border-b border-line dark:border-white/10">
+            <p className="text-[14px] font-semibold text-ink dark:text-white">{format(selectedDay, 'EEE d MMM')}</p>
+            <span className="font-mono text-[13px] text-ink3 dark:text-white/45">{dayRequests.length} off</span>
+          </div>
+          {dayRequests.length === 0 ? (
+            <p className="px-3.5 sm:px-3.5 py-2.5 text-[13px] text-ink3 dark:text-white/45">Nobody is off.</p>
+          ) : (
+            <div className="divide-y divide-line dark:divide-white/10">
+              {dayRequests.map(r => {
+                const actionable = canActOn(r)
+                const Row = actionable ? 'button' : 'div'
+                return (
+                  <Row
+                    key={r.id}
+                    {...(actionable ? { type: 'button', onClick: () => setEditing(r) } : {})}
+                    className={`w-full flex items-center gap-2.5 px-3.5 sm:px-3.5 py-2.5 text-left ${actionable ? 'hover:bg-cream/60 dark:hover:bg-white/5' : ''}`}
+                  >
+                    <span className="shrink-0 w-9 h-8 rounded-full bg-brand-tint dark:bg-white/10 inline-flex items-center justify-center font-mono text-[13px] font-bold text-ink2 dark:text-white/80">
+                      {initials(r.staff?.name)}
+                    </span>
+                    <span className="flex-1 min-w-0 text-[14px] truncate">
+                      <span className="font-semibold text-ink dark:text-white">{r.staff?.name ?? 'Someone'}</span>
+                      <span className="text-ink3 dark:text-white/45"> · {leaveName(r.leave_type)}</span>
+                    </span>
+                    <StatusPill status={r.status} />
+                  </Row>
+                )
+              })}
+            </div>
+          )}
+          {selectedIsFuture && (
+            <div className="px-3.5 sm:px-3.5 py-2.5 border-t border-line dark:border-white/10">
+              <button
+                type="button"
+                onClick={() => {
+                  const dateStr = format(selectedDay, 'yyyy-MM-dd')
+                  setForm(f => ({ ...f, startDate: dateStr, endDate: dateStr }))
+                  setShowRequest(true)
+                }}
+                className="text-[13px] font-semibold text-brand dark:text-white hover:underline underline-offset-2"
+              >
+                + Request this day off
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Manager: team annual leave */}
       {isManager && (
-        <div className="bg-white dark:bg-paperDark rounded-2xl overflow-hidden">
+        <div className={`${CARD} overflow-hidden`}>
           <button
+            type="button"
             onClick={() => setShowTeamBalances(v => !v)}
-            className="w-full flex items-center justify-between px-5 py-4 text-left"
+            aria-expanded={showTeamBalances}
+            className="w-full flex items-center justify-between px-3.5 sm:px-3.5 py-2.5 text-left"
           >
-            <p className="text-[11px] tracking-widests uppercase text-charcoal/40 dark:text-white/35 font-medium">
-              Team Annual Leave — {currentYear}
-            </p>
-            <svg className={`w-4 h-4 text-charcoal/30 dark:text-white/30 transition-transform ${showTeamBalances ? 'rotate-180' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            <span className="text-[12px] font-semibold tracking-[0.08em] uppercase text-ink3 dark:text-white/45">Team annual leave · {currentYear}</span>
+            <svg className={`w-5 h-5 text-ink3 dark:text-white/45 transition-transform ${showTeamBalances ? 'rotate-180' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
           </button>
           {showTeamBalances && (
-            <div className="border-t border-charcoal/8 dark:border-white/8">
+            <div className="border-t border-line dark:border-white/10">
               {balancesLoading ? (
                 <SkeletonList rows={3} />
+              ) : teamBalances.length === 0 ? (
+                <p className="text-[13px] text-ink3 dark:text-white/45 px-3.5 sm:px-3.5 py-2.5">No active staff.</p>
               ) : (
-                <div className="divide-y divide-charcoal/6 dark:divide-white/8">
-                  {teamBalances.length === 0 && (
-                    <p className="text-sm text-charcoal/35 dark:text-white/30 italic px-5 py-4">No active staff.</p>
-                  )}
+                <div className="divide-y divide-line dark:divide-white/10">
                   {teamBalances.map(b => (
-                    <div key={b.id} className="flex items-center justify-between px-5 py-3 gap-3">
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-1 flex-wrap">
-                          <p className="text-sm font-medium text-charcoal dark:text-white truncate">{b.name}</p>
-                          <button
-                            onClick={() => setManualEntry(b)}
-                            className="text-[11px] text-charcoal/35 dark:text-white/30 hover:text-charcoal/65 dark:hover:text-white/55 underline underline-offset-2 shrink-0"
-                          >
-                            + log past leave
-                          </button>
-                        </div>
-                        {b.employment_type && (
-                          <p className="text-[11px] text-charcoal/35 dark:text-white/30 capitalize mt-0.5">
-                            {b.employment_type.replace('_', '-')}
-                          </p>
-                        )}
-                      </div>
-                      <div className="text-right shrink-0">
-                        <BalancePill
-                          entitlement={b.entitlement}
-                          used={b.used}
-                          remaining={b.remaining}
-                          isZeroHours={b.isZeroHours}
-                          accrued={b.isZeroHours ? zeroHoursMap[b.id] : undefined}
-                          small
-                        />
-                        {!b.isZeroHours && b.entitlement != null && (
-                          <p className="text-[11px] text-charcoal/25 dark:text-white/25 mt-0.5">{b.entitlement} days entitlement</p>
-                        )}
-                      </div>
-                    </div>
+                    <TeamBalanceRow
+                      key={b.id}
+                      balance={b}
+                      accrued={b.isZeroHours ? zeroHoursMap[b.id] : undefined}
+                      onLogPast={() => setManualEntry(b)}
+                    />
                   ))}
                 </div>
               )}
@@ -445,9 +394,9 @@ export default function TimeOffPage() {
 
       {/* My requests */}
       {myRequests.length > 0 && (
-        <div>
-          <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-2">My Requests</p>
-          <div className="flex flex-col gap-2">
+        <>
+          <p className="px-1 -mb-1 text-[12px] font-semibold tracking-[0.08em] uppercase text-ink3 dark:text-white/45">My requests</p>
+          <div className={`${CARD} divide-y divide-line dark:divide-white/10 overflow-hidden`}>
             {myRequests.map(r => {
               const actionable = canActOn(r)
               const Row = actionable ? 'button' : 'div'
@@ -455,57 +404,42 @@ export default function TimeOffPage() {
                 <Row
                   key={r.id}
                   {...(actionable ? { type: 'button', onClick: () => setEditing(r) } : {})}
-                  className={`w-full text-left rounded-2xl border px-4 py-3 ${STATUS_COLOURS[r.status]} ${
-                    actionable ? 'hover:brightness-[0.98] transition-[filter]' : ''
-                  }`}
+                  className={`w-full block px-3.5 sm:px-3.5 py-2 text-left ${actionable ? 'hover:bg-cream/60 dark:hover:bg-white/5' : ''}`}
                 >
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <p className="text-sm font-medium">
-                          {format(parseISO(r.start_date), 'd MMM')} — {format(parseISO(r.end_date), 'd MMM yyyy')}
-                        </p>
-                        <span className={`text-[11px] font-medium px-1.5 py-0.5 rounded-full ${LEAVE_TYPE_COLOURS[r.leave_type] ?? LEAVE_TYPE_COLOURS.other}`}>
-                          {leaveTypeLabel(r.leave_type)}
-                        </span>
-                      </div>
-                      {r.reason       && <p className="text-xs opacity-70 mt-0.5">{r.reason}</p>}
-                      {r.manager_note && <p className="text-xs opacity-60 mt-0.5 italic">Note: {r.manager_note}</p>}
-                      {actionable && (
-                        <p className="text-[11px] opacity-60 mt-1 underline underline-offset-2">
-                          Edit or remove
-                        </p>
-                      )}
-                    </div>
-                    <span className="text-[11px] tracking-wider uppercase font-semibold shrink-0">
-                      {r.status}
+                  <span className="flex items-start justify-between gap-2.5">
+                    <span className="min-w-0">
+                      <span className="block text-[13px] font-semibold text-ink dark:text-white">{leaveName(r.leave_type)}</span>
+                      <span className="block text-[13px] text-ink3 dark:text-white/45 mt-0.5">{dateRange(r)}</span>
                     </span>
-                  </div>
+                    <StatusPill status={r.status} />
+                  </span>
+                  {r.reason && <span className="block text-[13px] text-ink2 dark:text-white/70 mt-1.5">{r.reason}</span>}
+                  {r.manager_note && <span className="block text-[13px] text-ink3 dark:text-white/50 mt-1">Manager: {r.manager_note}</span>}
+                  {actionable && <span className="block text-[13px] font-semibold text-brand dark:text-white mt-1.5">Edit or withdraw</span>}
                 </Row>
               )
             })}
           </div>
-        </div>
+        </>
       )}
 
       {/* Request modal */}
-      <Modal open={showRequest} onClose={() => setShowRequest(false)} title="Request Time Off">
+      <Modal open={showRequest} onClose={() => setShowRequest(false)} title="Request time off">
         <div className="flex flex-col gap-4">
-
-          {/* Leave type selector */}
           <div>
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">Leave Type</label>
+            <span className={FIELD_LABEL}>Leave type</span>
             <div className="flex gap-2 flex-wrap">
               {LEAVE_TYPES.map(t => (
                 <button
                   key={t.value}
                   type="button"
+                  aria-pressed={form.leaveType === t.value}
                   onClick={() => setForm(f => ({ ...f, leaveType: t.value }))}
                   className={[
-                    'px-3 py-1.5 rounded-full text-xs font-medium border transition-all',
+                    'h-8 px-3.5 rounded-full border text-[13px] transition-colors',
                     form.leaveType === t.value
-                      ? 'bg-charcoal text-cream border-charcoal dark:border-white'
-                      : 'bg-white dark:bg-paperDark text-charcoal/50 dark:text-white/40 border-charcoal/15 dark:border-white/15',
+                      ? 'bg-brand-tint border-brand/40 text-brand font-semibold dark:bg-white/10 dark:text-white dark:border-white/30'
+                      : 'bg-white dark:bg-paperDark border-line dark:border-white/10 text-ink2 dark:text-white/75 hover:border-ink4',
                   ].join(' ')}
                 >
                   {t.label}
@@ -514,84 +448,76 @@ export default function TimeOffPage() {
             </div>
           </div>
 
-          {/* Balance display for annual leave */}
+          {/* Balance for annual leave */}
           {form.leaveType === 'annual' && ownBalance && !ownBalance.isZeroHours && ownBalance.entitlement != null && (
-            <div className="rounded-xl bg-charcoal/4 dark:bg-white/5 px-4 py-3 flex items-center justify-between">
+            <div className="rounded-xl bg-cream dark:bg-white/5 px-3.5 py-2.5 flex items-center justify-between">
               <div>
-                <p className="text-xs font-medium text-charcoal dark:text-white">{currentYear} Annual Leave</p>
-                <p className="text-[11px] text-charcoal/45 dark:text-white/40 mt-0.5">
-                  {ownBalance.used} of {ownBalance.entitlement} days used
-                </p>
+                <p className="text-[13px] font-semibold text-ink dark:text-white">{currentYear} annual leave</p>
+                <p className="text-[13px] text-ink3 dark:text-white/45 mt-0.5">{ownBalance.used} of {ownBalance.entitlement} days used</p>
               </div>
-              <div className="text-right">
-                <p className={`text-sm font-bold ${ownBalance.remaining === 0 ? 'text-danger' : ownBalance.remaining <= 5 ? 'text-warning' : 'text-success'}`}>
-                  {fmtDays(ownBalance.remaining)}
-                </p>
-                <p className="text-[11px] text-charcoal/30 dark:text-white/30">remaining</p>
-              </div>
+              <p className={`font-mono text-[14px] font-semibold ${ownBalance.remaining === 0 ? 'text-bad' : ownBalance.remaining <= 5 ? 'text-warn' : 'text-good'}`}>
+                {fmtDays(ownBalance.remaining)} left
+              </p>
             </div>
           )}
           {form.leaveType === 'annual' && ownBalance?.isZeroHours && (
-            <div className="rounded-xl bg-charcoal/4 dark:bg-white/5 px-4 py-3 flex items-center justify-between">
+            <div className="rounded-xl bg-cream dark:bg-white/5 px-3.5 py-2.5 flex items-center justify-between">
               <div>
-                <p className="text-xs font-medium text-charcoal dark:text-white">{currentYear} Holiday Accrual</p>
-                <p className="text-[11px] text-charcoal/45 dark:text-white/40 mt-0.5">
+                <p className="text-[13px] font-semibold text-ink dark:text-white">{currentYear} holiday accrual</p>
+                <p className="text-[13px] text-ink3 dark:text-white/45 mt-0.5">
                   {ownUsedHours != null ? `~${ownUsedHours} h used · ` : ''}
                   {ownAccrued != null ? `${ownAccrued} h accrued (12.07%)` : 'Calculating…'}
                 </p>
               </div>
-              <div className="text-right">
-                <p className={`text-sm font-bold ${ownRemainingHours === 0 ? 'text-danger' : ownRemainingHours != null && ownRemainingHours <= 4 ? 'text-warning' : 'text-success'}`}>
-                  {ownRemainingHours != null ? `${ownRemainingHours} h` : '—'}
-                </p>
-                <p className="text-[11px] text-charcoal/30 dark:text-white/30">remaining</p>
-              </div>
+              <p className={`font-mono text-[14px] font-semibold ${ownRemainingHours === 0 ? 'text-bad' : ownRemainingHours != null && ownRemainingHours <= 4 ? 'text-warn' : 'text-good'}`}>
+                {ownRemainingHours != null ? `${ownRemainingHours} h` : '—'}
+              </p>
             </div>
           )}
 
-          {/* Dates */}
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Start date</label>
+          <div className="grid grid-cols-2 gap-2.5">
+            <label>
+              <span className={FIELD_LABEL}>Start date</span>
               <input
                 type="date"
                 value={form.startDate}
                 min={isManager ? undefined : format(new Date(), 'yyyy-MM-dd')}
                 onChange={e => setForm(f => ({ ...f, startDate: e.target.value, endDate: f.endDate || e.target.value }))}
-                className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
+                className={TEXT_FIELD}
               />
-            </div>
-            <div>
-              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">End date</label>
+            </label>
+            <label>
+              <span className={FIELD_LABEL}>End date</span>
               <input
                 type="date"
                 value={form.endDate}
                 min={form.startDate}
                 onChange={e => setForm(f => ({ ...f, endDate: e.target.value }))}
-                className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
+                className={TEXT_FIELD}
               />
-            </div>
+            </label>
           </div>
+
+          {form.startDate && form.endDate && form.endDate < form.startDate && (
+            <p className="text-[13px] text-bad dark:text-[#f19a86] -mt-1">End date is before the start date.</p>
+          )}
 
           {/* Staffing limit warning — informational only, submit is never blocked */}
           {overStaffOffLimit && (
-            <div className="rounded-xl bg-danger/8 border border-danger/20 px-4 py-3">
-              <p className="text-xs font-semibold text-danger">Maximum number of staff already off</p>
-              <p className="text-[11.5px] text-charcoal/60 mt-1 leading-[1.4]">
+            <div className="rounded-xl bg-badBg dark:bg-bad/20 px-3.5 py-2.5">
+              <p className="text-[13px] font-semibold text-bad dark:text-[#f19a86]">Maximum number of staff already off</p>
+              <p className="text-[13px] text-ink2 dark:text-white/70 mt-1">
                 {staffAlreadyOff} staff {staffAlreadyOff === 1 ? 'is' : 'are'} already off on at least one of these days (limit: {maxStaffOffCount}). You can still submit if this has been pre-cleared with your manager.
               </p>
             </div>
           )}
 
           {/* Days / hours preview for annual leave */}
-          {form.startDate && form.endDate && form.endDate < form.startDate && (
-            <p className="text-xs text-danger -mt-1">End date is before the start date.</p>
-          )}
           {form.leaveType === 'annual' && previewDays != null && previewDays > 0 && !ownBalance?.isZeroHours && (
-            <p className="text-xs text-charcoal/50 dark:text-white/40 -mt-2">
-              This request covers <span className="font-semibold text-charcoal dark:text-white">{fmtDays(previewDays)}</span> of your working days.
+            <p className="text-[13px] text-ink2 dark:text-white/70 -mt-2">
+              This request covers <span className="font-semibold text-ink dark:text-white">{fmtDays(previewDays)}</span> of your working days.
               {ownBalance && ownBalance.remaining != null && (
-                <span className={(ownBalance.remaining - previewDays) < 0 ? ' text-danger font-medium' : ''}>
+                <span className={(ownBalance.remaining - previewDays) < 0 ? ' text-bad font-semibold' : ''}>
                   {(ownBalance.remaining - previewDays) < 0
                     ? ` You only have ${fmtDays(ownBalance.remaining)} remaining — this exceeds your balance.`
                     : ` You'll have ${fmtDays(ownBalance.remaining - previewDays)} left after this.`}
@@ -607,107 +533,41 @@ export default function TimeOffPage() {
             const unpaidHours = Math.round(Math.max(0, reqHours - remaining) * 10) / 10
             const afterHours = Math.round(Math.max(0, remaining - reqHours) * 10) / 10
             return (
-              <div className={`-mt-2 rounded-xl px-4 py-3 text-xs ${unpaidHours > 0 ? 'bg-warning/8 border border-warning/20' : 'bg-charcoal/4 dark:bg-white/5'}`}>
-                <p className="text-charcoal/60 dark:text-white/50">
-                  This request covers <span className="font-semibold text-charcoal dark:text-white">{fmtDays(previewDays)}</span> (~{reqHours} h based on your average shift length).
+              <div className={`-mt-2 rounded-xl px-3.5 py-2.5 text-[13px] ${unpaidHours > 0 ? 'bg-warnBg dark:bg-warn/20' : 'bg-cream dark:bg-white/5'}`}>
+                <p className="text-ink2 dark:text-white/70">
+                  This request covers <span className="font-semibold text-ink dark:text-white">{fmtDays(previewDays)}</span> (~{reqHours} h based on your average shift length).
                 </p>
                 {unpaidHours > 0 ? (
-                  <p className="mt-1 font-medium text-warning">
+                  <p className="mt-1 font-semibold text-warn dark:text-[#e8b06a]">
                     ~{Math.round(paidHours * 10) / 10} h paid · ~{unpaidHours} h unpaid — you don't have enough accrued hours to cover this in full.
                   </p>
                 ) : (
-                  <p className="mt-1 text-charcoal/50 dark:text-white/40">
-                    You'll have ~{afterHours} h remaining after this.
-                  </p>
+                  <p className="mt-1 text-ink3 dark:text-white/50">You'll have ~{afterHours} h remaining after this.</p>
                 )}
               </div>
             )
           })()}
 
-          <div>
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Reason (optional)</label>
+          <label>
+            <span className={FIELD_LABEL}>Reason <span className="normal-case tracking-normal font-normal">(optional)</span></span>
             <textarea
               value={form.reason}
               onChange={e => setForm(f => ({ ...f, reason: e.target.value }))}
               rows={2}
-              placeholder="e.g. Holiday, family event, appointment..."
-              className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm resize-none focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
+              placeholder="e.g. Holiday, family event, appointment"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-line dark:border-white/10 bg-cream dark:bg-white/5 text-[13px] text-ink dark:text-white placeholder:text-ink4 dark:placeholder:text-white/30 resize-none focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand/40"
             />
-          </div>
+          </label>
 
           <button
+            type="button"
             onClick={submitRequest}
             disabled={saving || !form.startDate || !form.endDate}
-            className="bg-charcoal text-cream py-3 rounded-xl text-sm font-medium hover:bg-charcoal/90 transition-colors disabled:opacity-40"
+            className="w-full h-10 rounded-2xl bg-brand text-white text-[14px] font-semibold transition-colors hover:bg-brand/90 disabled:bg-ink3/70 dark:disabled:bg-white/15 disabled:cursor-not-allowed"
           >
-            {saving ? 'Submitting...' : 'Submit Request'}
+            {saving ? 'Submitting…' : 'Submit request'}
           </button>
         </div>
-      </Modal>
-
-      {/* Day detail modal */}
-      <Modal
-        open={!!showDayDetail}
-        onClose={() => setShowDayDetail(null)}
-        title={showDayDetail ? format(showDayDetail, 'EEEE d MMMM yyyy') : ''}
-      >
-        {dayDetailRequests.length === 0 ? (
-          <p className="text-sm text-charcoal/30 dark:text-white/30 italic py-4">No time-off requests for this day.</p>
-        ) : (
-          <div className="flex flex-col gap-3">
-            {dayDetailRequests.map(r => {
-              const actionable = canActOn(r)
-              const Row = actionable ? 'button' : 'div'
-              return (
-                <Row
-                  key={r.id}
-                  {...(actionable
-                    ? { type: 'button', onClick: () => { setShowDayDetail(null); setEditing(r) } }
-                    : {})}
-                  className={`w-full text-left rounded-2xl border px-4 py-3 ${STATUS_COLOURS[r.status]} ${
-                    actionable ? 'hover:brightness-[0.98] transition-[filter]' : ''
-                  }`}
-                >
-                  <div className="flex items-center justify-between gap-2">
-                    <div>
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <p className="font-semibold text-sm">{r.staff?.name}</p>
-                        <span className={`text-[11px] font-medium px-1.5 py-0.5 rounded-full ${LEAVE_TYPE_COLOURS[r.leave_type] ?? LEAVE_TYPE_COLOURS.other}`}>
-                          {leaveTypeLabel(r.leave_type)}
-                        </span>
-                      </div>
-                      <p className="text-xs opacity-70 mt-0.5">
-                        {format(parseISO(r.start_date), 'd MMM')} — {format(parseISO(r.end_date), 'd MMM')}
-                      </p>
-                      {r.reason && <p className="text-xs opacity-60 mt-0.5">{r.reason}</p>}
-                      {actionable && (
-                        <p className="text-[11px] opacity-60 mt-1 underline underline-offset-2">
-                          Edit or remove
-                        </p>
-                      )}
-                    </div>
-                    <span className="text-[11px] tracking-wider uppercase font-semibold shrink-0">
-                      {r.status}
-                    </span>
-                  </div>
-                </Row>
-              )
-            })}
-          </div>
-        )}
-        {showDayDetail && !isBefore(showDayDetail, startOfDay(new Date())) && (
-          <button
-            onClick={() => {
-              const dateStr = format(showDayDetail, 'yyyy-MM-dd')
-              setForm(f => ({ ...f, startDate: dateStr, endDate: dateStr }))
-              setShowDayDetail(null)
-              setShowRequest(true)
-            }}
-            className="mt-4 w-full bg-charcoal text-cream py-2.5 rounded-xl text-sm font-medium hover:bg-charcoal/90 transition-colors"
-          >
-            + Request this day off
-          </button>
-        )}
       </Modal>
 
       {/* Manual leave entry modal */}
@@ -733,6 +593,172 @@ export default function TimeOffPage() {
           onSaved={refreshDependents}
         />
       )}
+    </div>
+  )
+}
+
+// "Unpaid Leave" → "Unpaid leave" for lists (push messages keep the stored label)
+function leaveName(type) {
+  return leaveTypeLabel(type).replace(/ Leave$/, ' leave')
+}
+
+/* ── Pieces ───────────────────────────────────────────────────────────────── */
+const STATUS_PILL = {
+  pending:   { label: 'Pending',   cls: TONE.explained },
+  approved:  { label: 'Approved',  cls: TONE.ok },
+  rejected:  { label: 'Rejected',  cls: TONE.bad },
+  cancelled: { label: 'Withdrawn', cls: 'bg-line2 text-ink3 dark:bg-white/10 dark:text-white/50' },
+}
+
+function StatusPill({ status }) {
+  const pill = STATUS_PILL[status] ?? STATUS_PILL.pending
+  return <span className={`shrink-0 h-7 px-3.5 rounded-full inline-flex items-center text-[13px] font-semibold ${pill.cls}`}>{pill.label}</span>
+}
+
+// "12 Dec 2026" for one day, "12–14 Dec 2026" within a month, otherwise "30 Dec – 2 Jan 2027"
+function dateRange(r) {
+  const start = parseISO(r.start_date)
+  const end   = parseISO(r.end_date)
+  if (r.start_date === r.end_date) return format(start, 'd MMM yyyy')
+  if (format(start, 'MMM yyyy') === format(end, 'MMM yyyy')) return `${format(start, 'd')}–${format(end, 'd MMM yyyy')}`
+  return `${format(start, 'd MMM')} – ${format(end, 'd MMM yyyy')}`
+}
+
+function OwnBalanceCard({ balance, year, accrued, remainingHours }) {
+  if (balance.isZeroHours) {
+    return (
+      <div className={`${CARD} px-3.5 sm:px-3.5 py-2.5`}>
+        <div className="flex items-baseline justify-between gap-2.5 flex-wrap">
+          <p className="flex items-baseline gap-2">
+            <span className="font-mono text-[24px] leading-none font-semibold text-good dark:text-[#7fd1a4]">{remainingHours ?? accrued ?? '—'}</span>
+            <span className="text-[14px] font-semibold text-ink dark:text-white">hrs left</span>
+          </p>
+          <p className="text-[13px] text-ink3 dark:text-white/45">{accrued != null ? `${accrued} hrs accrued` : 'Calculating…'} · {year} holiday</p>
+        </div>
+      </div>
+    )
+  }
+  if (balance.entitlement == null) return null
+  const pct  = balance.entitlement ? Math.min(100, (balance.used / balance.entitlement) * 100) : 0
+  const tone = balance.remaining === 0 ? 'text-bad' : balance.remaining <= 5 ? 'text-warn' : 'text-good dark:text-[#7fd1a4]'
+  return (
+    <div className={`${CARD} px-3.5 sm:px-3.5 py-2.5`}>
+      <div className="flex items-baseline justify-between gap-2.5 flex-wrap">
+        <p className="flex items-baseline gap-2">
+          <span className={`font-mono text-[24px] leading-none font-semibold ${tone}`}>{balance.remaining}</span>
+          <span className="text-[14px] font-semibold text-ink dark:text-white">{balance.remaining === 1 ? 'day' : 'days'} left</span>
+        </p>
+        <p className="text-[13px] text-ink3 dark:text-white/45">{balance.used} of {balance.entitlement} used · {year} annual leave</p>
+      </div>
+      <div className="mt-2 h-2 rounded-full bg-line2 dark:bg-white/10 overflow-hidden">
+        <div className="h-full rounded-full bg-good" style={{ width: `${pct}%` }} />
+      </div>
+    </div>
+  )
+}
+
+function PendingRequest({ request: r, balance, note, onNote, busy, onApprove, onReject }) {
+  const daysRequested = r.leave_type === 'annual'
+    ? countWorkingDaysInRequest(r.start_date, r.end_date, r.staff?.working_days)
+    : null
+  const afterApproval = r.leave_type === 'annual' && balance && !balance.isZeroHours && balance.entitlement != null && daysRequested != null
+    ? balance.remaining - daysRequested
+    : null
+
+  return (
+    <div className="px-3.5 sm:px-3.5 py-2.5 flex flex-col gap-2.5">
+      <div className="flex items-start justify-between gap-2.5">
+        <div className="min-w-0">
+          <p className="text-[15px] font-semibold text-ink dark:text-white">{r.staff?.name ?? 'Someone'}</p>
+          <p className="text-[13px] text-ink3 dark:text-white/45 mt-0.5">
+            {leaveName(r.leave_type)} · <span className="font-mono text-ink2 dark:text-white/70">{dateRange(r)}</span>
+            {daysRequested != null && ` · ${fmtDays(daysRequested)}`}
+          </p>
+          {/* Still worth deciding — approving records leave that was taken —
+              but it shouldn't look like an upcoming request. */}
+          {r.end_date < format(new Date(), 'yyyy-MM-dd') && (
+            <p className="text-[13px] font-semibold text-warn dark:text-[#e8b06a] mt-1">
+              These dates have passed — approve to record the leave as taken, or reject.
+            </p>
+          )}
+          {r.reason && <p className="text-[13px] text-ink2 dark:text-white/70 mt-1">“{r.reason}”</p>}
+          {afterApproval != null && (
+            <p className={`text-[13px] mt-1 ${afterApproval < 0 ? 'text-bad font-semibold' : 'text-ink3 dark:text-white/45'}`}>
+              {afterApproval < 0
+                ? `Exceeds their entitlement by ${fmtDays(Math.abs(afterApproval))}`
+                : `${fmtDays(afterApproval)} left after approval (currently ${fmtDays(balance.remaining)})`}
+            </p>
+          )}
+        </div>
+        <StatusPill status="pending" />
+      </div>
+      <input
+        type="text"
+        value={note}
+        onChange={e => onNote(e.target.value)}
+        placeholder="Note (optional)"
+        aria-label={`Note for ${r.staff?.name ?? 'this request'}`}
+        className={TEXT_FIELD}
+      />
+      <div className="grid grid-cols-2 gap-2.5">
+        <button
+          type="button"
+          onClick={onReject}
+          disabled={busy}
+          className="h-9 rounded-xl border border-line dark:border-white/15 bg-white dark:bg-paperDark text-[13px] font-semibold text-bad dark:text-[#f19a86] hover:border-bad/40 transition-colors disabled:opacity-50"
+        >
+          Reject
+        </button>
+        <button
+          type="button"
+          onClick={onApprove}
+          disabled={busy}
+          className="h-9 rounded-xl bg-brand text-white text-[13px] font-semibold hover:bg-brand/90 transition-colors disabled:opacity-50"
+        >
+          Approve
+        </button>
+      </div>
+    </div>
+  )
+}
+
+function TeamBalanceRow({ balance: b, accrued, onLogPast }) {
+  const kind = employmentLabel(b.employment_type)
+  const subline = b.isZeroHours
+    ? [kind ?? 'Zero hours', 'accrues hourly'].join(' · ')
+    : [kind, b.entitlement != null && `${b.entitlement} days`].filter(Boolean).join(' · ')
+  const tone = b.remaining === 0 ? 'text-bad' : b.remaining != null && b.remaining <= 5 ? 'text-warn' : 'text-good dark:text-[#7fd1a4]'
+
+  return (
+    <div className="flex items-center gap-2.5 px-3.5 sm:px-3.5 py-2">
+      <div className="flex-1 min-w-0">
+        <p className="text-[14px] font-semibold text-ink dark:text-white truncate">{b.name}</p>
+        {subline && <p className="text-[13px] text-ink3 dark:text-white/45 mt-0.5">{subline}</p>}
+      </div>
+      <div className="shrink-0 text-right">
+        {b.isZeroHours ? (
+          <>
+            <p className="font-mono text-[14px] font-semibold text-ink dark:text-white">{accrued != null ? `${accrued} hrs` : '…'}</p>
+            <p className="text-[13px] text-ink3 dark:text-white/45">accrued</p>
+          </>
+        ) : b.entitlement != null ? (
+          <>
+            <p className={`font-mono text-[14px] font-semibold ${tone}`}>{fmtDays(b.remaining)}</p>
+            <p className="text-[13px] text-ink3 dark:text-white/45">{b.used}/{b.entitlement} used</p>
+          </>
+        ) : (
+          <p className="text-[13px] text-ink3 dark:text-white/45">No entitlement</p>
+        )}
+      </div>
+      <button
+        type="button"
+        onClick={onLogPast}
+        aria-label={`Log past leave for ${b.name}`}
+        title="Log past leave"
+        className="shrink-0 w-9 h-8 rounded-xl border border-line dark:border-white/15 inline-flex items-center justify-center text-ink2 dark:text-white/75 hover:border-ink4"
+      >
+        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
+      </button>
     </div>
   )
 }

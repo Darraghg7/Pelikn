@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import { format, addDays, formatDistanceToNow } from 'date-fns'
 import { Link } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
 import { useSession } from '../../contexts/SessionContext'
@@ -46,21 +47,49 @@ function RoleBadge({ role, customRoles }) {
 
 // ── Staff picker hook ──────────────────────────────────────────────────────────
 
-function useStaffList() {
+// Only the one-off form needs this, so it isn't fetched until that opens —
+// one less request competing with the task list on page load.
+function useStaffList(enabled) {
   const { venueId } = useVenue()
-  const [staff, setStaff] = useState([])
-  const load = useCallback(async () => {
-    if (!venueId) return
-    const { data } = await supabase
-      .from('staff')
-      .select('id, name, job_role')
-      .eq('venue_id', venueId)
-      .eq('is_active', true)
-      .order('name')
-    setStaff(data ?? [])
-  }, [venueId])
-  useEffect(() => { load() }, [load])
-  return staff
+  const { data } = useQuery({
+    queryKey: ['tasksStaffPicker', venueId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('staff')
+        .select('id, name, job_role')
+        .eq('venue_id', venueId)
+        .eq('is_active', true)
+        .order('name')
+      return data ?? []
+    },
+    enabled: !!venueId && enabled,
+  })
+  return data ?? []
+}
+
+// Remembers which department cards a manager has collapsed, per venue, so
+// the choice survives leaving the page and reopening the app.
+function useCollapsedDepts(venueId) {
+  const key = `pelikn_tasks_collapsed_${venueId}`
+  const [collapsed, setCollapsed] = useState(() => readCollapsed(key))
+  useEffect(() => { setCollapsed(readCollapsed(key)) }, [key])
+  const toggle = useCallback((roleId) => {
+    setCollapsed(prev => {
+      const next = prev.includes(roleId) ? prev.filter(id => id !== roleId) : [...prev, roleId]
+      try { localStorage.setItem(key, JSON.stringify(next)) } catch { /* best-effort */ }
+      return next
+    })
+  }, [key])
+  return [collapsed, toggle]
+}
+
+function readCollapsed(key) {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(key) ?? '[]')
+    return Array.isArray(parsed) ? parsed : []
+  } catch {
+    return []
+  }
 }
 
 // ── Shared task row used in manager columns ─────────────────────────────────
@@ -105,8 +134,7 @@ function hexToRgba(hex, alpha) {
 }
 
 // ── Department column ─────────────────────────────────────────────────────────
-function DeptColumn({ role, label, color, templates, oneOffs, completions, onDeleteTemplate, onDeleteOneOff, deleting }) {
-  const [collapsed, setCollapsed] = useState(false)
+function DeptColumn({ role, label, color, templates, oneOffs, completions, onDeleteTemplate, onDeleteOneOff, deleting, collapsed, onToggle }) {
   const deptTemplates = templates.filter(t => t.role_id === role)
   const deptOneOffs   = oneOffs.filter(o => o.role_id === role)
   const deptDone = completions.filter(c =>
@@ -125,7 +153,7 @@ function DeptColumn({ role, label, color, templates, oneOffs, completions, onDel
       {/* Column header — tap to collapse */}
       <button
         type="button"
-        onClick={() => setCollapsed(v => !v)}
+        onClick={onToggle}
         aria-expanded={!collapsed}
         style={{ backgroundColor: hexToRgba(color, 0.14) }}
         className="w-full px-4 py-3 border-b border-charcoal/8 dark:border-white/8 flex items-center justify-between gap-2 text-left cursor-pointer border-none text-charcoal dark:text-white"
@@ -177,12 +205,13 @@ function ManagerTasksView() {
   const { venueId } = useVenue()
   const today = new Date()
   const { templates, oneOffs, completions, loading, reload } = useAllTasks(today)
-  const staffList = useStaffList()
-  const { roles = [] } = useVenueRoles()
+  const { roles = [], loading: rolesLoading } = useVenueRoles()
   const roleIdValues = roles.map(r => r.id)
+  const [collapsedDepts, toggleDept] = useCollapsedDepts(venueId)
 
   const [showAddTemplate, setShowAddTemplate] = useState(false)
   const [showAddOneOff, setShowAddOneOff]     = useState(false)
+  const staffList = useStaffList(showAddOneOff)
   const [tForm, setTForm]   = useState({ title: '', role_id: null })
   const [oForm, setOForm]   = useState({
     title: '',
@@ -254,7 +283,9 @@ function ManagerTasksView() {
     reload()
   }
 
-  if (loading) return <SkeletonList rows={4} className="py-4" />
+  // Roles decide which column each task lands in — rendering before they
+  // arrive would briefly pile every task into "All Roles".
+  if (loading || rolesLoading) return <SkeletonList rows={4} className="py-4" />
 
   return (
     <div className="flex flex-col gap-6">
@@ -389,6 +420,8 @@ function ManagerTasksView() {
               onDeleteTemplate={(id) => setConfirmDelete({ id, isTemplate: true })}
               onDeleteOneOff={(id) => setConfirmDelete({ id, isTemplate: false })}
               deleting={deleting}
+              collapsed={collapsedDepts.includes(role.id)}
+              onToggle={() => toggleDept(role.id)}
             />
           ))}
         </div>
@@ -515,6 +548,21 @@ function DutiesTab({ duties, loading, toggleItem }) {
   )
 }
 
+const DUE_TONE = {
+  danger:  'text-danger',
+  warning: 'text-warning',
+  muted:   'text-charcoal/40 dark:text-white/35',
+}
+
+/** "3d overdue" / "Due today" / "Due Fri" — see cleaningDueLabel(). */
+function DueLabel({ due, className = '' }) {
+  return (
+    <span className={`font-mono text-[11px] font-bold tracking-wide uppercase ${DUE_TONE[due.tone]} ${className}`}>
+      {due.text}
+    </span>
+  )
+}
+
 function CleaningTaskRow({ task, onComplete, isFirst }) {
   const [busy, setBusy] = useState(false)
   const toast = useToast()
@@ -541,6 +589,7 @@ function CleaningTaskRow({ task, onComplete, isFirst }) {
       </button>
       <div className="flex-1 min-w-0">
         <p className="text-[13.5px] font-medium text-charcoal dark:text-white">{task.title}</p>
+        {task.due && <DueLabel due={task.due} className="mt-0.5 block" />}
       </div>
       <span className="text-[11px] font-mono font-semibold px-2 py-0.5 rounded bg-charcoal/6 dark:bg-white/8 text-charcoal/40 dark:text-white/35 uppercase tracking-wide">
         {task.frequency}
@@ -558,9 +607,14 @@ function DoneCleaningRow({ task, isFirst }) {
       <div className="flex-1 min-w-0">
         <p className="text-[13.5px] text-charcoal/40 dark:text-white/35 line-through">{task.title}</p>
         {/* Says who cleared it, so nobody wonders why it's gone. */}
-        {task.lastCompletion?.completed_by_name && (
+        {(task.lastCompletion?.completed_by_name || task.due) && (
           <p className="text-[11px] text-charcoal/35 dark:text-white/30 mt-0.5 no-underline">
-            {task.lastCompletion.completed_by_name} · {formatDistanceToNow(new Date(task.lastCompletion.completed_at), { addSuffix: true })}
+            {task.lastCompletion?.completed_by_name && (
+              <>{task.lastCompletion.completed_by_name} · {formatDistanceToNow(new Date(task.lastCompletion.completed_at), { addSuffix: true })}</>
+            )}
+            {/* When it comes back round, so nobody has to work it out. */}
+            {task.lastCompletion?.completed_by_name && task.due && ' · '}
+            {task.due && <DueLabel due={task.due} />}
           </p>
         )}
       </div>

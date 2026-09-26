@@ -310,8 +310,6 @@ export default function ManagerDashboardPage() {
         <MobileManagerDashboard
           session={session}
           venueId={venueId}
-          venueName={venueName}
-          venuePlan={venuePlan}
           venueSlug={venueSlug}
           greeting={greeting}
           firstName={firstName}

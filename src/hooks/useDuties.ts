@@ -136,55 +136,38 @@ export function useTodayDuties(staffId: string): {
       if (!venueId || !staffId) return []
       const todayStr = format(new Date(), 'yyyy-MM-dd')
 
-      // Find shifts for this staff member today, then their duty assignments
-      const { data: shifts } = await supabase
-        .from('shifts')
-        .select('id')
-        .eq('venue_id', venueId)
-        .eq('staff_id', staffId)
-        .eq('shift_date', todayStr)
-
-      if (!shifts?.length) return []
-
-      const shiftIds = shifts.map(s => (s as { id: string }).id)
-      const { data: assignments } = await supabase
+      // One round trip: today's assignments on this person's shifts, with the
+      // template's items and what's been ticked. Items hang off the template —
+      // duty_assignments has no direct link to duty_template_items, and asking
+      // for one 400'd, so staff always saw "No duties assigned".
+      const { data: assignments, error } = await supabase
         .from('duty_assignments')
         .select(`
           id,
-          shift_id,
           duty_template_id,
-          duty_templates ( id, title ),
-          duty_template_items ( id, title, sort_order )
+          duty_templates ( title, duty_template_items ( id, title, sort_order ) ),
+          duty_item_completions ( duty_template_item_id ),
+          shifts!inner ( staff_id, shift_date )
         `)
-        .in('shift_id', shiftIds)
+        .eq('venue_id', venueId)
+        .eq('shifts.staff_id', staffId)
+        .eq('shifts.shift_date', todayStr)
 
+      if (error) throw error
       if (!assignments?.length) return []
-
-      // Fetch completions for these assignments
-      const assignmentIds = assignments.map(a => (a as { id: string }).id)
-      const { data: completions } = await supabase
-        .from('duty_item_completions')
-        .select('duty_assignment_id, duty_template_item_id')
-        .in('duty_assignment_id', assignmentIds)
-
-      const completedSet = new Set(
-        (completions ?? []).map(c => `${(c as { duty_assignment_id: string; duty_template_item_id: string }).duty_assignment_id}:${(c as { duty_assignment_id: string; duty_template_item_id: string }).duty_template_item_id}`)
-      )
 
       return assignments.map(a => {
         // PostgREST returns to-one joins as objects; the untyped client infers arrays.
         const aTyped = a as unknown as {
           id: string
           duty_template_id: string
-          duty_templates?: { title: string } | null
-          duty_template_items?: DutyTemplateItem[]
+          duty_templates?: { title: string; duty_template_items?: DutyTemplateItem[] } | null
+          duty_item_completions?: { duty_template_item_id: string }[]
         }
-        const items = (aTyped.duty_template_items ?? [])
+        const completedSet = new Set((aTyped.duty_item_completions ?? []).map(c => c.duty_template_item_id))
+        const items = [...(aTyped.duty_templates?.duty_template_items ?? [])]
           .sort((x, y) => (x.sort_order ?? 0) - (y.sort_order ?? 0))
-          .map(item => ({
-            ...item,
-            completed: completedSet.has(`${aTyped.id}:${item.id}`),
-          }))
+          .map(item => ({ ...item, completed: completedSet.has(item.id) }))
         return {
           assignmentId: aTyped.id,
           templateId:   aTyped.duty_template_id,

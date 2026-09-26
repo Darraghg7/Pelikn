@@ -41,7 +41,7 @@ function FridgeAlertsWidget() {
       }
   })
 
-  if (!raw) return <WidgetShell title="Fridge Status" to="/fridge"><div className="flex justify-center py-4"><LoadingSpinner /></div></WidgetShell>
+  if (!raw) return <WidgetShell title="Fridges" to="/fridge"><div className="flex justify-center py-2.5"><LoadingSpinner /></div></WidgetShell>
 
   // Fridge checks run on their own action_schedule and aren't blanked out by
   // trading closure — staff can still be scheduled to record them on a day
@@ -49,21 +49,19 @@ function FridgeAlertsWidget() {
   const unchecked = Math.max(0, raw.fridgeCount - raw.checkedCount)
   const data = { ...raw, unchecked }
 
-  const status = data.alerts > 0 ? 'bad' : data.unchecked > 0 ? 'warning' : 'good'
-
   return (
-    <WidgetShell title="Fridge Status" to="/fridge" status={status}>
+    <WidgetShell title="Fridges" to="/fridge">
       <MiniRow label="Readings today" value={data.total} />
-      <MiniRow label="Out of range" value={data.alerts} warn={data.alerts > 0} />
-      <MiniRow label="Not yet checked" value={data.unchecked} warn={data.unchecked > 0} />
+      <MiniRow label="Out of range" value={data.alerts} warn={data.alerts > 0} good={data.alerts === 0} />
+      <MiniRow label="Not checked" value={data.unchecked} warn={data.unchecked > 0} good={data.unchecked === 0} />
       {data.alerts > 0 && data.alertItems?.map((l) => (
         <Link
           key={l.id}
           to={`/v/${venueSlug}/fridge/history`}
-          className="flex items-center justify-between py-1 border-t border-charcoal/5 dark:border-white/5 group"
+          className="flex items-center justify-between gap-2 py-1.5 border-t border-line dark:border-white/10 group"
         >
-          <span className="text-xs text-charcoal/60 dark:text-white/50 truncate group-hover:text-charcoal dark:group-hover:text-white transition-colors">{l.fridge?.name ?? 'Unknown'}</span>
-          <span className="text-xs font-semibold text-danger">{Number(l.temperature).toFixed(1)} °C</span>
+          <span className="text-[13px] text-ink2 dark:text-white/70 truncate group-hover:text-ink dark:group-hover:text-white transition-colors">{l.fridge?.name ?? 'Unknown'}</span>
+          <span className="font-mono text-[13px] font-semibold text-bad dark:text-[#f19a86]">{Number(l.temperature).toFixed(1)}°C</span>
         </Link>
       ))}
     </WidgetShell>
