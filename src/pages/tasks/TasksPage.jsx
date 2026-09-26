@@ -10,6 +10,7 @@ import { useTodayDuties } from '../../hooks/useDuties'
 import { useCleaningTasks } from '../../hooks/useCleaningTasks'
 import { useToast } from '../../components/ui/Toast'
 import { useVenueRoles } from '../../hooks/useVenueRoles'
+import { useAppSettings } from '../../hooks/useSettings'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
 import EmptyState from '../../components/ui/EmptyState'
 import ConfirmDialog from '../../components/ui/ConfirmDialog'
@@ -563,7 +564,7 @@ function DueLabel({ due, className = '' }) {
   )
 }
 
-function CleaningTaskRow({ task, onComplete, isFirst }) {
+function CleaningTaskRow({ task, onComplete, isFirst, roleLabel }) {
   const [busy, setBusy] = useState(false)
   const toast = useToast()
   const handleTap = async () => {
@@ -590,6 +591,7 @@ function CleaningTaskRow({ task, onComplete, isFirst }) {
       <div className="flex-1 min-w-0">
         <p className="text-[13.5px] font-medium text-charcoal dark:text-white">{task.title}</p>
         {task.due && <DueLabel due={task.due} className="mt-0.5 block" />}
+        {roleLabel && <span className="text-[11px] text-charcoal/40 dark:text-white/35 mt-0.5 block">{roleLabel}</span>}
       </div>
       <span className="text-[11px] font-mono font-semibold px-2 py-0.5 rounded bg-charcoal/6 dark:bg-white/8 text-charcoal/40 dark:text-white/35 uppercase tracking-wide">
         {task.frequency}
@@ -598,7 +600,7 @@ function CleaningTaskRow({ task, onComplete, isFirst }) {
   )
 }
 
-function CleaningTab({ tasks, loading, error, session, reload }) {
+function CleaningTab({ tasks, loading, error, session, reload, roleNameFor }) {
   if (loading) return <SkeletonList rows={4} />
   if (error) return (
     <div className="bg-white dark:bg-paperDark rounded-[14px] border border-danger/20 p-8 text-center">
@@ -641,7 +643,7 @@ function CleaningTab({ tasks, loading, error, session, reload }) {
               <div className="h-full bg-warning transition-all" style={{ width: `${Math.max(pct, 2)}%` }} />
             </div>
             {pending.map((t, i) => (
-              <CleaningTaskRow key={t.id} task={t} onComplete={completeTask} isFirst={i === 0} />
+              <CleaningTaskRow key={t.id} task={t} onComplete={completeTask} isFirst={i === 0} roleLabel={roleNameFor?.(t.role_id)} />
             ))}
           </div>
         </div>
@@ -738,6 +740,11 @@ function StaffTasksView({ session }) {
   const knownRoleIds = useMemo(() => roles.map(r => r.id), [roles])
   const cleaningData = useCleaningTasks(session?.roleIds ?? null, knownRoleIds, targetDate)
   const cleaningDue  = cleaningData.tasks.filter(t => t.status === 'overdue').length
+  // With the full schedule on show, say whose each task is.
+  const { cleaningVisibleToAll } = useAppSettings()
+  const roleNameFor = cleaningVisibleToAll
+    ? (roleId) => roles.find(r => r.id === roleId)?.name ?? 'All roles'
+    : undefined
 
   const TAB_TITLE = { duties: 'Duties', cleaning: 'Cleaning', allergens: 'Allergens' }
 
@@ -813,7 +820,7 @@ function StaffTasksView({ session }) {
 
       {/* Tab content */}
       {activeTab === 'duties'    && <DutiesTab duties={dutiesData.duties} loading={dutiesData.loading} toggleItem={dutiesData.toggleItem} />}
-      {activeTab === 'cleaning'  && <CleaningTab tasks={cleaningData.tasks} loading={cleaningData.loading} error={cleaningData.error} session={session} reload={cleaningData.reload} />}
+      {activeTab === 'cleaning'  && <CleaningTab tasks={cleaningData.tasks} loading={cleaningData.loading} error={cleaningData.error} session={session} reload={cleaningData.reload} roleNameFor={roleNameFor} />}
       {activeTab === 'allergens' && <AllergensTab venueSlug={venueSlug} />}
 
     </div>

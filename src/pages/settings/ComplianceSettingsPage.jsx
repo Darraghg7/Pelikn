@@ -5,11 +5,15 @@ import { useAppSettings } from '../../hooks/useSettings'
 import ActionSchedulesSection from './ActionSchedulesSection'
 import TimeSelect from '../../components/ui/TimeSelect'
 import SettingsSubHeader from '../../components/layout/SettingsSubHeader'
+import Toggle from '../../components/ui/Toggle'
 
 export default function ComplianceSettingsPage() {
   const navigate = useNavigate()
   const { venueSlug } = useVenue()
-  const { actionSchedules, fridgeCheckTime, saveActionSchedules, saveFridgeCheckTime } = useAppSettings()
+  const {
+    actionSchedules, fridgeCheckTime, cleaningVisibleToAll,
+    saveActionSchedules, saveFridgeCheckTime, saveCleaningVisibleToAll,
+  } = useAppSettings()
 
   const vp = (path) => `/v/${venueSlug}${path}`
 
@@ -30,6 +34,22 @@ export default function ComplianceSettingsPage() {
               <TimeSelect value={fridgeCheckTime} onChange={saveFridgeCheckTime} />
             </div>
           </div>
+        </div>
+
+        <div className="font-mono text-[11px] font-semibold tracking-[0.08em] uppercase text-charcoal/50 dark:text-white/40 pt-[18px] pb-[7px] px-0.5">Cleaning</div>
+        <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[14px] overflow-hidden">
+          <div className="flex items-center gap-3 px-[15px] py-[13px]">
+            <div className="flex-1 min-w-0">
+              <div className="text-sm font-medium text-charcoal dark:text-white tracking-[-0.005em]">Everyone sees every cleaning task</div>
+              <div className="text-[11.5px] text-charcoal/50 dark:text-white/40 mt-0.5 leading-[1.4]">Staff can see and tick off other departments' cleaning</div>
+            </div>
+            <Toggle checked={cleaningVisibleToAll} onChange={saveCleaningVisibleToAll} />
+          </div>
+        </div>
+        <div className="text-[11.5px] text-charcoal/50 dark:text-white/40 pt-2 px-1 leading-[1.45]">
+          {cleaningVisibleToAll
+            ? 'On — every staff member sees the full cleaning schedule, labelled by department. Checklists are not affected.'
+            : 'Off — staff only see cleaning tasks for their own roles, plus tasks set to All Roles. Checklists are not affected.'}
         </div>
 
         <div className="font-mono text-[11px] font-semibold tracking-[0.08em] uppercase text-charcoal/50 dark:text-white/40 pt-[18px] pb-[7px] px-0.5">Daily action schedules</div>

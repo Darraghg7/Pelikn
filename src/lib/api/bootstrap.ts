@@ -44,7 +44,7 @@ export const BOOTSTRAP_SETTING_KEYS = [
   'require_manager_approval_for_late', 'notify_manager_at_strike', 'disciplinary_at_strike',
   'counting_window_days', 'push_to_manager', 'notify_break_overrun', 'hidden_check_tiles',
   'hidden_team_tiles', 'max_staff_off_enabled', 'max_staff_off_count', 'enforce_closing_checklist',
-  'features', 'venue_name', 'logo_url',
+  'cleaning_visible_to_all', 'features', 'venue_name', 'logo_url',
 ]
 
 type ClockRow = { event_type: string; occurred_at: string }
