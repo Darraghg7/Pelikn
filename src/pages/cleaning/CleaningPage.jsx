@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect } from 'react'
 import { format, formatDistanceToNow } from 'date-fns'
 import { supabase } from '../../lib/supabase'
 import { capitalize } from '../../lib/utils'
@@ -9,7 +9,8 @@ import { useToast } from '../../components/ui/Toast'
 import { PageSkeleton } from '../../components/ui/Skeleton'
 import ConfirmDialog from '../../components/ui/ConfirmDialog'
 import CleaningExportModal from './CleaningExportModal'
-import { useVenueRoles } from '../../hooks/useVenueRoles'
+import { useViewerDepartments } from '../../hooks/useDepartments'
+import DepartmentFilter from '../../components/ui/DepartmentFilter'
 
 const FREQ_OPTIONS = ['daily', 'weekly', 'fortnightly', 'monthly', 'quarterly']
 
@@ -59,17 +60,18 @@ export default function CleaningPage() {
   const toast = useToast()
   const { venueId } = useVenue()
   const { session, isManager } = useSession()
-  const { roles = [] } = useVenueRoles()
-  const roleOptions = [{ id: null, name: 'All Roles' }, ...roles]
-  const viewerRoleIds = isManager ? null : (session?.roleIds ?? null)
-  // Passed through so a task naming a deleted role stays visible rather than
-  // silently filtering the staff member out — see lib/roleFilter.
-  const knownRoleIds = useMemo(() => roles.map(r => r.id), [roles])
+  // Staff see the departments they're in; managers pick one or all. A task in
+  // a department that no longer exists stays visible — see lib/roleFilter.
+  const {
+    departments, viewerDepartmentIds, knownDepartmentIds, departmentName,
+    filter: deptFilter, setFilter: setDeptFilter, defaultDepartmentId,
+  } = useViewerDepartments()
+  const departmentOptions = [{ id: null, name: 'Everyone' }, ...departments]
 
-  const { tasks, loading, error: loadError, reload } = useCleaningTasks(viewerRoleIds, knownRoleIds)
+  const { tasks, loading, error: loadError, reload } = useCleaningTasks(viewerDepartmentIds, knownDepartmentIds)
 
   const [showAdd, setShowAdd]   = useState(false)
-  const [form, setForm]         = useState({ title: '', frequency: 'daily', role_id: null })
+  const [form, setForm]         = useState({ title: '', frequency: 'daily', department_id: null })
   const [saving, setSaving]     = useState(false)
   const [completing, setCompleting] = useState(null)
   const [completeModal, setCompleteModal] = useState(null) // { task }
@@ -84,14 +86,20 @@ export default function CleaningPage() {
     const { error } = await supabase.from('cleaning_tasks').insert({
       title: form.title.trim(),
       frequency: form.frequency,
-      role_id: form.role_id,
+      department_id: form.department_id,
       venue_id: venueId,
     })
     setSaving(false)
     if (error) { toast(error.message, 'error'); return }
     toast('Cleaning task added')
-    setForm({ title: '', frequency: 'daily', role_id: null })
+    setForm({ title: '', frequency: 'daily', department_id: null })
     setShowAdd(false)
+    reload()
+  }
+
+  const setTaskDepartment = async (id, departmentId) => {
+    const { error } = await supabase.from('cleaning_tasks').update({ department_id: departmentId }).eq('id', id)
+    if (error) { toast(error.message, 'error'); return }
     reload()
   }
 
@@ -169,7 +177,11 @@ export default function CleaningPage() {
           )}
           {isManager && (
           <button
-            onClick={() => setShowAdd((v) => !v)}
+            onClick={() => {
+              // A kitchen manager adding a task is almost always adding a kitchen one.
+              if (!showAdd) setForm((f) => ({ ...f, department_id: defaultDepartmentId }))
+              setShowAdd((v) => !v)
+            }}
             className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white transition-colors border-b border-charcoal/20 dark:border-white/20"
           >
             + Add Task
@@ -229,16 +241,16 @@ export default function CleaningPage() {
               </div>
             </div>
             <div>
-              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">Assigned To</label>
+              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">Department</label>
               <div className="flex flex-wrap gap-2">
-                {roleOptions.map((r) => (
+                {departmentOptions.map((r) => (
                   <button
                     key={r.id ?? 'all'}
                     type="button"
-                    onClick={() => setForm((prev) => ({ ...prev, role_id: r.id }))}
+                    onClick={() => setForm((prev) => ({ ...prev, department_id: r.id }))}
                     className={[
                       'px-3 py-1.5 rounded-full text-xs font-medium border transition-all',
-                      form.role_id === r.id ? 'bg-charcoal text-cream border-charcoal dark:border-white' : 'bg-white dark:bg-paperDark text-charcoal/50 dark:text-white/40 border-charcoal/15 dark:border-white/15',
+                      form.department_id === r.id ? 'bg-charcoal text-cream border-charcoal dark:border-white' : 'bg-white dark:bg-paperDark text-charcoal/50 dark:text-white/40 border-charcoal/15 dark:border-white/15',
                     ].join(' ')}
                   >
                     {r.name}
@@ -261,6 +273,8 @@ export default function CleaningPage() {
           </div>
         </div>
       )}
+
+      {isManager && <DepartmentFilter departments={departments} value={deptFilter} onChange={setDeptFilter} className="-mb-3" />}
 
       {/* Status filter */}
       <div className="flex gap-2 flex-wrap">
@@ -292,7 +306,7 @@ export default function CleaningPage() {
           {filtered.map((t) => {
             const done = t.status === 'done'
             const urgency = t.due
-            const roleLabel = roleOptions.find(r => r.id === t.role_id)?.name ?? 'All Roles'
+            const deptLabel = departmentName(t.department_id) ?? 'Everyone'
             return (
               <div key={t.id} className="flex items-center gap-[13px] py-3">
                 <CheckCircle status={t.status} onTap={() => openComplete(t)} />
@@ -310,7 +324,25 @@ export default function CleaningPage() {
                     {urgency && <span className="text-charcoal/20 dark:text-white/20 text-[10px] shrink-0">·</span>}
                     <span className="font-mono text-[10px] font-medium tracking-wide uppercase text-charcoal/40 dark:text-white/35 shrink-0">{capitalize(t.frequency)}</span>
                     <span className="text-charcoal/20 dark:text-white/20 text-[10px] shrink-0">·</span>
-                    <span className="font-mono text-[10px] font-medium tracking-wide uppercase text-charcoal/40 dark:text-white/35 shrink-0">{roleLabel}</span>
+                    {isManager && departments.length > 0 ? (
+                      // Managers re-file a task in place — the only way to fix
+                      // one that landed in the wrong department (or none). The
+                      // select sits invisibly over the label so the row keeps
+                      // the label's width, not the longest department name's.
+                      <span className="relative shrink-0 group/dept">
+                        <span className="font-mono text-[10px] font-medium tracking-wide uppercase text-charcoal/40 dark:text-white/35 underline decoration-dotted underline-offset-2 group-hover/dept:text-charcoal dark:group-hover/dept:text-white">{deptLabel}</span>
+                        <select
+                          value={t.department_id ?? ''}
+                          onChange={(e) => setTaskDepartment(t.id, e.target.value || null)}
+                          aria-label={`Department for ${t.title}`}
+                          className="absolute inset-0 w-full opacity-0 cursor-pointer"
+                        >
+                          {departmentOptions.map((d) => <option key={d.id ?? 'all'} value={d.id ?? ''}>{d.name}</option>)}
+                        </select>
+                      </span>
+                    ) : (
+                      <span className="font-mono text-[10px] font-medium tracking-wide uppercase text-charcoal/40 dark:text-white/35 shrink-0">{deptLabel}</span>
+                    )}
                     <span className="text-charcoal/20 dark:text-white/20 text-[10px] shrink-0">·</span>
                     <span className="text-[11.5px] text-charcoal/35 dark:text-white/30 overflow-hidden text-ellipsis min-w-0">
                       {t.lastCompletion

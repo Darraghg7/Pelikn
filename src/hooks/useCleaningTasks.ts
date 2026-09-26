@@ -6,7 +6,7 @@ import { useAppSettings } from './useSettings'
 import useVenueClosures from './useVenueClosures'
 import { useWidgetFetchGate } from './useWidgetFetchGate'
 import { fetchCleaningTasks, type CleaningTask, type CleaningCompletion } from '../lib/api/cleaning'
-import { roleMatcher } from '../lib/roleFilter'
+import { departmentMatcher } from '../lib/roleFilter'
 
 const FREQ_DAYS: Record<string, number> = { daily: 1, weekly: 7, fortnightly: 14, monthly: 30, quarterly: 90 }
 
@@ -165,8 +165,8 @@ function acquireLive(venueId: string, queryClient: QueryClient): () => void {
 }
 
 export function useCleaningTasks(
-  viewerRoleIds: readonly string[] | null = null,
-  knownRoleIds: readonly string[] = [],
+  viewerDepartmentIds: readonly string[] | null = null,
+  knownDepartmentIds: readonly string[] = [],
   asOf?: Date,
   { enabled = true }: { enabled?: boolean } = {},
 ): {
@@ -212,10 +212,9 @@ export function useCleaningTasks(
   const completions: CleaningCompletion[] = data?.completions ?? []
 
   // A venue can opt out of department targeting so every staff member sees the
-  // whole schedule (Settings → Compliance). Role labels still show which
-  // department each task belongs to.
-  const matchesRole = roleMatcher(cleaningVisibleToAll ? null : viewerRoleIds, knownRoleIds)
-  const filtered = tasks.filter((t) => matchesRole(t.role_id))
+  // whole schedule (Settings → Compliance). Each row then names its department.
+  const matchesDepartment = departmentMatcher(cleaningVisibleToAll ? null : viewerDepartmentIds, knownDepartmentIds)
+  const filtered = tasks.filter((t) => matchesDepartment(t.department_id))
 
   const reference = asOf ?? now
   // Completions logged after the day being viewed don't count towards it.

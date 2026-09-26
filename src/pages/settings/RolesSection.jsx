@@ -1,17 +1,21 @@
 import React, { useState } from 'react'
 import { useToast } from '../../components/ui/Toast'
 import { useVenueRoles, useStaffRoleAssignments } from '../../hooks/useVenueRoles'
-import { useDepartments } from '../../hooks/useDepartments'
+import { useDepartments, useStaffDepartments } from '../../hooks/useDepartments'
 import ConfirmDialog from '../../components/ui/ConfirmDialog'
 
-/* ── Departments: group roles for check/task visibility ────────────────────── */
-function DepartmentsSection({ roles, setRoleDepartment }) {
+/* ── Departments: where people work ─────────────────────────────────────────── */
+// People are ticked into departments on their staff page; cleaning tasks,
+// Tasks and checks are assigned to one. New departments show up in both
+// places straight away (they read the same query).
+function DepartmentsSection() {
   const toast = useToast()
-  const { departments, loading, addDepartment, deleteDepartment } = useDepartments()
+  const { departments, loading, addDepartment, renameDepartment, deleteDepartment } = useDepartments()
   const [newName, setNewName]   = useState('')
   const [saving, setSaving]     = useState(false)
+  const [editingId, setEditingId] = useState(null)
+  const [editName, setEditName]   = useState('')
   const [deleteTarget, setDeleteTarget] = useState(null)
-  const [pickerFor, setPickerFor] = useState(null) // department id currently showing its role picker
 
   const handleAdd = async () => {
     if (!newName.trim()) return
@@ -22,13 +26,18 @@ function DepartmentsSection({ roles, setRoleDepartment }) {
     setNewName('')
   }
 
+  const handleRename = async (id) => {
+    if (!editName.trim()) return
+    const { error } = await renameDepartment(id, editName)
+    if (error) { toast(error.message, 'error'); return }
+    setEditingId(null)
+  }
+
   const confirmDelete = async () => {
     const { error } = await deleteDepartment(deleteTarget.id)
     setDeleteTarget(null)
     if (error) toast(error.message, 'error')
   }
-
-  const unassignedRoles = roles.filter(r => !r.department_id)
 
   if (loading) return null
 
@@ -37,58 +46,51 @@ function DepartmentsSection({ roles, setRoleDepartment }) {
       <ConfirmDialog
         open={!!deleteTarget}
         title="Remove department?"
-        message={`Remove "${deleteTarget?.name}"? Its roles and checks stay put, just ungrouped — nothing gets hidden or deleted.`}
+        message={`Remove "${deleteTarget?.name}"? Its cleaning tasks, Tasks and checks switch to Everyone, and nobody is in it any more. Nothing gets deleted.`}
         confirmLabel="Remove"
         danger
         onConfirm={confirmDelete}
         onClose={() => setDeleteTarget(null)}
       />
 
-      {departments.map(dept => {
-        const deptRoles = roles.filter(r => r.department_id === dept.id)
-        const pickerOpen = pickerFor === dept.id
-        return (
-          <div key={dept.id} className="bg-white dark:bg-paperDark rounded-xl border border-charcoal/8 dark:border-white/8 p-3 flex flex-col gap-2.5">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-semibold text-charcoal dark:text-white">{dept.name}</span>
-              <button
-                onClick={() => setDeleteTarget({ id: dept.id, name: dept.name })}
-                className="text-xs text-charcoal/40 dark:text-white/35 hover:text-danger transition-colors"
-              >Remove</button>
+      {departments.length > 0 && (
+        <div className="bg-white dark:bg-paperDark rounded-xl border border-charcoal/8 dark:border-white/8 overflow-hidden divide-y divide-charcoal/5 dark:divide-white/5">
+          {departments.map(dept => (
+            <div key={dept.id} className="grid items-center gap-3 py-2 px-3 grid-cols-[1fr_auto] hover:bg-charcoal/[0.025] transition-colors group">
+              {editingId === dept.id ? (
+                <>
+                  <input
+                    type="text"
+                    value={editName}
+                    onChange={e => setEditName(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && handleRename(dept.id)}
+                    className="px-2 py-1 rounded-md border border-charcoal/20 dark:border-white/20 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
+                    autoFocus
+                  />
+                  <div className="flex gap-1">
+                    <button onClick={() => handleRename(dept.id)} className="h-7 px-2.5 rounded-md bg-charcoal text-cream text-xs font-medium">Save</button>
+                    <button onClick={() => setEditingId(null)}     className="h-7 px-2.5 rounded-md text-xs text-charcoal/50 dark:text-white/40">Cancel</button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <span className="text-sm font-medium text-charcoal dark:text-white truncate">{dept.name}</span>
+                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
+                    <button onClick={() => { setEditingId(dept.id); setEditName(dept.name) }}
+                            className="h-7 px-2.5 rounded-md border border-charcoal/12 dark:border-white/15 text-xs font-medium text-charcoal/60 dark:text-white/50 hover:text-charcoal dark:hover:text-white hover:border-charcoal/30 dark:hover:border-white/30 transition-colors">Rename</button>
+                    <button onClick={() => setDeleteTarget({ id: dept.id, name: dept.name })}
+                            className="h-7 px-2.5 rounded-md border border-charcoal/12 dark:border-white/15 text-xs font-medium text-charcoal/60 dark:text-white/50 hover:text-danger hover:border-danger/30 transition-colors">Remove</button>
+                  </div>
+                </>
+              )}
             </div>
-            <div className="flex flex-wrap gap-1.5">
-              {deptRoles.map(role => (
-                <span key={role.id} className="inline-flex items-center gap-1.5 pl-2.5 pr-1.5 py-1 rounded-full bg-charcoal/[0.06] dark:bg-white/[0.08] text-xs font-medium text-charcoal dark:text-white">
-                  <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: role.color || '#1a3c2e' }} />
-                  {role.name}
-                  <button
-                    onClick={() => setRoleDepartment(role.id, null)}
-                    aria-label={`Remove ${role.name} from ${dept.name}`}
-                    className="text-charcoal/35 dark:text-white/30 hover:text-danger px-0.5"
-                  >×</button>
-                </span>
-              ))}
-              <button
-                onClick={() => setPickerFor(pickerOpen ? null : dept.id)}
-                className="px-2.5 py-1 rounded-full text-xs font-semibold border border-dashed border-charcoal/20 dark:border-white/20 text-charcoal/45 dark:text-white/40 hover:border-charcoal/40 dark:hover:border-white/40 transition-colors"
-              >+ Add role</button>
-            </div>
-            {pickerOpen && (
-              <div className="flex flex-wrap gap-1.5 pt-1 border-t border-charcoal/6 dark:border-white/8">
-                {unassignedRoles.length === 0 ? (
-                  <p className="text-xs text-charcoal/35 dark:text-white/30 italic py-1">Every role is already in a department.</p>
-                ) : unassignedRoles.map(role => (
-                  <button
-                    key={role.id}
-                    onClick={() => { setRoleDepartment(role.id, dept.id); setPickerFor(null) }}
-                    className="px-2.5 py-1 rounded-full text-xs font-medium border border-charcoal/15 dark:border-white/15 text-charcoal/60 dark:text-white/50 hover:border-charcoal/30 dark:hover:border-white/30 transition-colors"
-                  >{role.name}</button>
-                ))}
-              </div>
-            )}
-          </div>
-        )
-      })}
+          ))}
+        </div>
+      )}
+
+      {departments.length === 0 && (
+        <p className="text-sm text-charcoal/30 dark:text-white/30 italic">No departments yet. Until you add some, everyone sees everything.</p>
+      )}
 
       <div className="flex gap-2">
         <input
@@ -107,21 +109,14 @@ function DepartmentsSection({ roles, setRoleDepartment }) {
           {saving ? '…' : '+ Add'}
         </button>
       </div>
-
-      {unassignedRoles.length > 0 && departments.length > 0 && (
-        <p className="text-[11px] text-charcoal/35 dark:text-white/30 italic">
-          {unassignedRoles.length} role{unassignedRoles.length === 1 ? '' : 's'} not in a department yet — visible to everyone until sorted.
-        </p>
-      )}
     </div>
   )
 }
 
-/* ── Rota roles section ─────────────────────────────────────────────────────── */
+/* ── Departments + job titles ─────────────────────────────────────────────── */
 export default function RolesSection() {
   const toast = useToast()
-  const { roles, loading, addRole, renameRole, deleteRole, setRoleDepartment } = useVenueRoles()
-  const { departments } = useDepartments()
+  const { roles, loading, addRole, renameRole, deleteRole } = useVenueRoles()
   const [newName, setNewName]         = useState('')
   const [editingId, setEditingId]     = useState(null)
   const [editName, setEditName]       = useState('')
@@ -156,28 +151,30 @@ export default function RolesSection() {
     <div className="flex flex-col gap-4">
       <ConfirmDialog
         open={!!deleteTarget}
-        title="Remove role?"
-        message={`Remove "${deleteTarget?.name}"? This will unassign it from all staff.`}
+        title="Remove job title?"
+        message={`Remove "${deleteTarget?.name}"? Anyone with it loses it, and the rota builder stops using it.`}
         confirmLabel="Remove"
         danger
         onConfirm={confirmDelete}
         onClose={() => setDeleteTarget(null)}
       />
-      <p className="text-xs text-charcoal/45 dark:text-white/40">
-        Define the roles in your business (e.g. Manager, Team Lead, Assistant). This is the one role list Pelikn
-        uses everywhere — the AI rota builder's skill-matching, and which staff see which Tasks, Cleaning items and Checks.
-      </p>
-
       <p className="text-[11px] font-bold tracking-widest uppercase text-charcoal/40 dark:text-white/35">Departments</p>
-      <DepartmentsSection roles={roles} setRoleDepartment={setRoleDepartment} />
+      <p className="text-xs text-charcoal/45 dark:text-white/40 -mt-2">
+        Where people work. Tick each person into their departments on their staff page. Cleaning, Tasks and Checks are
+        assigned to a department, so people only see their own. Managers can switch between departments or view all.
+        Anyone who should see everything, like a general manager, shouldn't be given a department.
+      </p>
+      <DepartmentsSection />
 
-      <p className="text-[11px] font-bold tracking-widest uppercase text-charcoal/40 dark:text-white/35 mt-1">All roles</p>
+      <p className="text-[11px] font-bold tracking-widest uppercase text-charcoal/40 dark:text-white/35 mt-1">Job titles</p>
+      <p className="text-xs text-charcoal/45 dark:text-white/40 -mt-2">
+        What people do (e.g. Barista, Chef). Used by the rota builder to fill shifts. Job titles don't change what anyone sees.
+      </p>
 
       {/* Existing roles */}
       {roles.length > 0 && (
         <div className="bg-white dark:bg-paperDark rounded-xl border border-charcoal/8 dark:border-white/8 overflow-hidden divide-y divide-charcoal/5 dark:divide-white/5">
           {roles.map(role => {
-            const dept = departments.find(d => d.id === role.department_id)
             return (
             <div key={role.id} className="grid items-center gap-3 py-2 px-3 grid-cols-[1fr_auto] hover:bg-charcoal/[0.025] transition-colors group">
               {editingId === role.id ? (
@@ -199,12 +196,7 @@ export default function RolesSection() {
                 <>
                   <span className="flex items-center gap-2 min-w-0">
                     <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: role.color || '#1a3c2e' }} />
-                    <span className="flex flex-col min-w-0">
-                      <span className="text-sm font-medium text-charcoal dark:text-white truncate">{role.name}</span>
-                      <span className={`text-[10.5px] font-semibold tracking-wide uppercase truncate ${dept ? 'text-charcoal/40 dark:text-white/35' : 'text-warning italic'}`}>
-                        {dept ? dept.name : 'No department'}
-                      </span>
-                    </span>
+                    <span className="text-sm font-medium text-charcoal dark:text-white truncate">{role.name}</span>
                   </span>
                   <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button onClick={() => { setEditingId(role.id); setEditName(role.name) }}
@@ -221,7 +213,7 @@ export default function RolesSection() {
       )}
 
       {roles.length === 0 && (
-        <p className="text-sm text-charcoal/30 dark:text-white/30 italic">No roles yet — add your first role below.</p>
+        <p className="text-sm text-charcoal/30 dark:text-white/30 italic">No job titles yet — add your first below.</p>
       )}
 
       {/* Add new role */}
@@ -231,7 +223,7 @@ export default function RolesSection() {
           value={newName}
           onChange={e => setNewName(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && handleAdd()}
-          placeholder="Role name (e.g. Manager)"
+          placeholder="Job title (e.g. Barista)"
           className="flex-1 px-3 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white placeholder-charcoal/25 dark:placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
         />
         <button
@@ -246,7 +238,51 @@ export default function RolesSection() {
   )
 }
 
-/* ── Staff role assignment (shown in staff edit form) ───────────────────────── */
+/* ── Staff department ticks (shown in staff edit form) ─────────────────────── */
+export function StaffDepartmentsAssignment({ staffId }) {
+  const { departments } = useDepartments()
+  const { departmentIds, toggleDepartment } = useStaffDepartments(staffId)
+  const toast = useToast()
+
+  const onToggle = async (departmentId) => {
+    const { error } = await toggleDepartment(departmentId)
+    if (error) toast('Could not update department: ' + (error.message ?? 'unknown error'), 'error')
+  }
+
+  if (departments.length === 0) {
+    return (
+      <p className="text-[13px] text-ink3 dark:text-white/45">
+        No departments set up yet. Add them under the Departments tab first.
+      </p>
+    )
+  }
+
+  return (
+    <div className="flex flex-wrap gap-2">
+      {departments.map(dept => {
+        const active = departmentIds.includes(dept.id)
+        return (
+          <button
+            key={dept.id}
+            type="button"
+            onClick={() => onToggle(dept.id)}
+            aria-pressed={active}
+            className={[
+              'h-8 px-3.5 rounded-full border text-[13px] font-semibold transition-colors',
+              active
+                ? 'bg-brand border-brand text-white'
+                : 'bg-white dark:bg-paperDark border-line dark:border-white/10 text-ink2 dark:text-white/75 hover:border-ink4',
+            ].join(' ')}
+          >
+            {dept.name}
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
+/* ── Staff job titles (shown in staff edit form) ───────────────────────────── */
 export function StaffRolesAssignment({ staffId }) {
   const { roles } = useVenueRoles()
   const { roleIds, toggleRole } = useStaffRoleAssignments(staffId)
@@ -260,7 +296,7 @@ export function StaffRolesAssignment({ staffId }) {
   if (roles.length === 0) {
     return (
       <p className="text-[13px] text-ink3 dark:text-white/45">
-        No roles set up yet. Add them under the Roles tab first.
+        No job titles set up yet. Add them under the Departments tab first.
       </p>
     )
   }

@@ -1,15 +1,16 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { format, addDays, formatDistanceToNow } from 'date-fns'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
 import { useSession } from '../../contexts/SessionContext'
-import { useAllTasks, useTasksForRole } from '../../hooks/useTasks'
+import { useAllTasks } from '../../hooks/useTasks'
 import { useTodayDuties } from '../../hooks/useDuties'
 import { useCleaningTasks } from '../../hooks/useCleaningTasks'
 import { useToast } from '../../components/ui/Toast'
-import { useVenueRoles } from '../../hooks/useVenueRoles'
+import { useDepartments, useViewerDepartments } from '../../hooks/useDepartments'
+import DepartmentFilter from '../../components/ui/DepartmentFilter'
 import { useAppSettings } from '../../hooks/useSettings'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
 import EmptyState from '../../components/ui/EmptyState'
@@ -34,16 +35,6 @@ function usePendingSignOffs(staffId, venueId) {
 
 function SectionLabel({ children }) {
   return <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-3">{children}</p>
-}
-
-function RoleBadge({ role, customRoles }) {
-  const found = customRoles?.find(r => r.value === role)
-  const label = role === 'all' ? 'All Roles' : (found?.label ?? role)
-  return (
-    <span className={`text-[11px] tracking-widest uppercase font-medium px-2 py-0.5 rounded ${found?.color ?? 'bg-charcoal/8 dark:bg-white/8 text-charcoal dark:text-white'}`}>
-      {label}
-    </span>
-  )
 }
 
 // ── Staff picker hook ──────────────────────────────────────────────────────────
@@ -124,20 +115,10 @@ function ManagerTaskRow({ item, isTemplate, completions, onDelete, deleting }) {
   )
 }
 
-// venue_roles.color is a hex string (e.g. '#1a3c2e'), unlike the old
-// customRoles palette of Tailwind class pairs — applied as an inline tint
-// rather than a className.
-function hexToRgba(hex, alpha) {
-  const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex || '')
-  if (!m) return `rgba(26,26,24,${alpha})`
-  const [r, g, b] = [m[1], m[2], m[3]].map(h => parseInt(h, 16))
-  return `rgba(${r},${g},${b},${alpha})`
-}
-
 // ── Department column ─────────────────────────────────────────────────────────
-function DeptColumn({ role, label, color, templates, oneOffs, completions, onDeleteTemplate, onDeleteOneOff, deleting, collapsed, onToggle }) {
-  const deptTemplates = templates.filter(t => t.role_id === role)
-  const deptOneOffs   = oneOffs.filter(o => o.role_id === role)
+function DeptColumn({ departmentId, label, templates, oneOffs, completions, onDeleteTemplate, onDeleteOneOff, deleting, collapsed, onToggle }) {
+  const deptTemplates = templates.filter(t => t.department_id === departmentId)
+  const deptOneOffs   = oneOffs.filter(o => o.department_id === departmentId)
   const deptDone = completions.filter(c =>
     deptTemplates.some(t => t.id === c.task_template_id) ||
     deptOneOffs.some(o => o.id === c.task_one_off_id)
@@ -156,8 +137,7 @@ function DeptColumn({ role, label, color, templates, oneOffs, completions, onDel
         type="button"
         onClick={onToggle}
         aria-expanded={!collapsed}
-        style={{ backgroundColor: hexToRgba(color, 0.14) }}
-        className="w-full px-4 py-3 border-b border-charcoal/8 dark:border-white/8 flex items-center justify-between gap-2 text-left cursor-pointer border-none text-charcoal dark:text-white"
+        className="w-full px-4 py-3 bg-charcoal/[0.05] dark:bg-white/[0.06] border-b border-charcoal/8 dark:border-white/8 flex items-center justify-between gap-2 text-left cursor-pointer border-none text-charcoal dark:text-white"
       >
         <p className="text-sm font-semibold">{label}</p>
         <span className="flex items-center gap-2 shrink-0">
@@ -206,17 +186,21 @@ function ManagerTasksView() {
   const { venueId } = useVenue()
   const today = new Date()
   const { templates, oneOffs, completions, loading, reload } = useAllTasks(today)
-  const { roles = [], loading: rolesLoading } = useVenueRoles()
-  const roleIdValues = roles.map(r => r.id)
+  const { loading: departmentsLoading } = useDepartments()
+  const { departments, filter: deptFilter, setFilter: setDeptFilter, defaultDepartmentId } = useViewerDepartments()
+  const departmentIds = departments.map(d => d.id)
+  // A department picked in the filter narrows the columns to just that one.
+  const shownDepartments = deptFilter === 'all' ? departments : departments.filter(d => d.id === deptFilter)
+  const departmentOptions = [{ id: null, name: 'Everyone' }, ...departments]
   const [collapsedDepts, toggleDept] = useCollapsedDepts(venueId)
 
   const [showAddTemplate, setShowAddTemplate] = useState(false)
   const [showAddOneOff, setShowAddOneOff]     = useState(false)
   const staffList = useStaffList(showAddOneOff)
-  const [tForm, setTForm]   = useState({ title: '', role_id: null })
+  const [tForm, setTForm]   = useState({ title: '', department_id: null })
   const [oForm, setOForm]   = useState({
     title: '',
-    role_id: null,
+    department_id: null,
     due_date: format(today, 'yyyy-MM-dd'),
     assigned_to_staff_id: '',
   })
@@ -224,22 +208,22 @@ function ManagerTasksView() {
   const [deleting, setDeleting] = useState(null)
   const [confirmDelete, setConfirmDelete] = useState(null) // { id, isTemplate }
 
-  // "All roles" items — untargeted, or targeting a role this venue no longer
-  // has (fail-open — same rule as roleMatcher, applied here for the manager's
-  // display bucketing rather than a visibility gate).
-  const allRolesTemplates = templates.filter(t => !t.role_id || !roleIdValues.includes(t.role_id))
-  const allRolesOneOffs   = oneOffs.filter(o => !o.role_id || !roleIdValues.includes(o.role_id))
+  // "Everyone" items — no department, or one this venue no longer has
+  // (fail-open — same rule as departmentMatcher, applied here for the
+  // manager's display bucketing rather than a visibility gate).
+  const everyoneTemplates = templates.filter(t => !t.department_id || !departmentIds.includes(t.department_id))
+  const everyoneOneOffs   = oneOffs.filter(o => !o.department_id || !departmentIds.includes(o.department_id))
 
   const saveTemplate = async () => {
     if (!tForm.title.trim()) return
     setSaving(true)
     const { error } = await supabase.from('task_templates').insert({
-      title: tForm.title.trim(), role_id: tForm.role_id, venue_id: venueId,
+      title: tForm.title.trim(), department_id: tForm.department_id, venue_id: venueId,
     })
     setSaving(false)
     if (error) { toast(error.message, 'error'); return }
     toast('Task template added')
-    setTForm({ title: '', role_id: null })
+    setTForm({ title: '', department_id: null })
     setShowAddTemplate(false)
     reload()
   }
@@ -252,7 +236,7 @@ function ManagerTasksView() {
       : null
     const { error } = await supabase.from('task_one_offs').insert({
       title:                oForm.title.trim(),
-      role_id:              assignee ? null : oForm.role_id, // assigned-to-person tasks aren't role-targeted
+      department_id:        assignee ? null : oForm.department_id, // assigned-to-person tasks aren't department-targeted
       due_date:             oForm.due_date,
       venue_id:             venueId,
       assigned_to_staff_id: assignee?.id   ?? null,
@@ -261,7 +245,7 @@ function ManagerTasksView() {
     setSaving(false)
     if (error) { toast(error.message, 'error'); return }
     toast('One-off task added')
-    setOForm({ title: '', role_id: null, due_date: format(today, 'yyyy-MM-dd'), assigned_to_staff_id: '' })
+    setOForm({ title: '', department_id: null, due_date: format(today, 'yyyy-MM-dd'), assigned_to_staff_id: '' })
     setShowAddOneOff(false)
     reload()
   }
@@ -284,9 +268,9 @@ function ManagerTasksView() {
     reload()
   }
 
-  // Roles decide which column each task lands in — rendering before they
-  // arrive would briefly pile every task into "All Roles".
-  if (loading || rolesLoading) return <SkeletonList rows={4} className="py-4" />
+  // Departments decide which column each task lands in — rendering before
+  // they arrive would briefly pile every task into "Everyone".
+  if (loading || departmentsLoading) return <SkeletonList rows={4} className="py-4" />
 
   return (
     <div className="flex flex-col gap-6">
@@ -308,14 +292,20 @@ function ManagerTasksView() {
       {/* ── Add forms ─────────────────────────────────────────────────────── */}
       <div className="flex gap-2">
         <button
-          onClick={() => { setShowAddTemplate(v => !v); setShowAddOneOff(false) }}
+          onClick={() => {
+            if (!showAddTemplate) setTForm(f => ({ ...f, department_id: defaultDepartmentId }))
+            setShowAddTemplate(v => !v); setShowAddOneOff(false)
+          }}
           className="text-[11px] tracking-widest uppercase text-charcoal/50 dark:text-white/40 hover:text-charcoal dark:hover:text-white transition-colors border-b border-charcoal/20 dark:border-white/20"
         >
           + Recurring Task
         </button>
         <span className="text-charcoal/20 dark:text-white/20 text-xs self-end pb-0.5">·</span>
         <button
-          onClick={() => { setShowAddOneOff(v => !v); setShowAddTemplate(false) }}
+          onClick={() => {
+            if (!showAddOneOff) setOForm(f => ({ ...f, department_id: defaultDepartmentId }))
+            setShowAddOneOff(v => !v); setShowAddTemplate(false)
+          }}
           className="text-[11px] tracking-widest uppercase text-charcoal/50 dark:text-white/40 hover:text-charcoal dark:hover:text-white transition-colors border-b border-charcoal/20 dark:border-white/20"
         >
           + One-Off Task
@@ -332,10 +322,10 @@ function ManagerTasksView() {
             className="px-4 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
           />
           <div className="flex gap-2 flex-wrap">
-            {[{ id: null, name: 'All Roles' }, ...roles].map((r) => (
-              <button key={r.id ?? 'all'} type="button" onClick={() => setTForm(f => ({ ...f, role_id: r.id }))}
+            {departmentOptions.map((r) => (
+              <button key={r.id ?? 'all'} type="button" onClick={() => setTForm(f => ({ ...f, department_id: r.id }))}
                 className={['px-3 py-1.5 rounded-full text-xs font-medium border transition-all',
-                  tForm.role_id === r.id ? 'bg-charcoal text-cream border-charcoal dark:border-white' : 'bg-white dark:bg-paperDark text-charcoal/50 dark:text-white/40 border-charcoal/15 dark:border-white/15',
+                  tForm.department_id === r.id ? 'bg-charcoal text-cream border-charcoal dark:border-white' : 'bg-white dark:bg-paperDark text-charcoal/50 dark:text-white/40 border-charcoal/15 dark:border-white/15',
                 ].join(' ')}>
                 {r.name}
               </button>
@@ -382,10 +372,10 @@ function ManagerTasksView() {
               </select>
               {!oForm.assigned_to_staff_id && (
                 <div className="flex gap-2 flex-wrap">
-                  {[{ id: null, name: 'All Roles' }, ...roles].map((r) => (
-                    <button key={r.id ?? 'all'} type="button" onClick={() => setOForm(f => ({ ...f, role_id: r.id }))}
+                  {departmentOptions.map((r) => (
+                    <button key={r.id ?? 'all'} type="button" onClick={() => setOForm(f => ({ ...f, department_id: r.id }))}
                       className={['px-3 py-1.5 rounded-full text-xs font-medium border transition-all',
-                        oForm.role_id === r.id ? 'bg-charcoal text-cream border-charcoal dark:border-white' : 'bg-white dark:bg-paperDark text-charcoal/50 dark:text-white/40 border-charcoal/15 dark:border-white/15',
+                        oForm.department_id === r.id ? 'bg-charcoal text-cream border-charcoal dark:border-white' : 'bg-white dark:bg-paperDark text-charcoal/50 dark:text-white/40 border-charcoal/15 dark:border-white/15',
                       ].join(' ')}>
                       {r.name}
                     </button>
@@ -407,35 +397,36 @@ function ManagerTasksView() {
       )}
 
       {/* ── Department columns ─────────────────────────────────────────────── */}
-      {roles.length > 0 && (
+      <DepartmentFilter departments={departments} value={deptFilter} onChange={setDeptFilter} />
+
+      {shownDepartments.length > 0 && (
         <div className="flex flex-col sm:flex-row gap-3 items-start">
-          {roles.map((role) => (
+          {shownDepartments.map((dept) => (
             <DeptColumn
-              key={role.id}
-              role={role.id}
-              label={role.name}
-              color={role.color}
+              key={dept.id}
+              departmentId={dept.id}
+              label={dept.name}
               templates={templates}
               oneOffs={oneOffs}
               completions={completions}
               onDeleteTemplate={(id) => setConfirmDelete({ id, isTemplate: true })}
               onDeleteOneOff={(id) => setConfirmDelete({ id, isTemplate: false })}
               deleting={deleting}
-              collapsed={collapsedDepts.includes(role.id)}
-              onToggle={() => toggleDept(role.id)}
+              collapsed={collapsedDepts.includes(dept.id)}
+              onToggle={() => toggleDept(dept.id)}
             />
           ))}
         </div>
       )}
 
-      {/* ── All-roles tasks ───────────────────────────────────────────────── */}
-      {(allRolesTemplates.length > 0 || allRolesOneOffs.length > 0) && (
+      {/* ── Everyone tasks ────────────────────────────────────────────────── */}
+      {(everyoneTemplates.length > 0 || everyoneOneOffs.length > 0) && (
         <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 overflow-hidden">
           <div className="px-4 py-3 border-b border-charcoal/8 dark:border-white/8 bg-charcoal/3 dark:bg-white/5">
-            <p className="text-sm font-semibold text-charcoal dark:text-white">All Roles</p>
+            <p className="text-sm font-semibold text-charcoal dark:text-white">Everyone</p>
           </div>
           <div className="p-4 flex flex-col divide-y divide-charcoal/6 dark:divide-white/8">
-            {[...allRolesTemplates, ...allRolesOneOffs].map((item) => {
+            {[...everyoneTemplates, ...everyoneOneOffs].map((item) => {
               const isTemplate = !('due_date' in item)
               return (
                 <ManagerTaskRow
@@ -564,7 +555,7 @@ function DueLabel({ due, className = '' }) {
   )
 }
 
-function CleaningTaskRow({ task, onComplete, isFirst, roleLabel }) {
+function CleaningTaskRow({ task, onComplete, isFirst, departmentLabel }) {
   const [busy, setBusy] = useState(false)
   const toast = useToast()
   const handleTap = async () => {
@@ -591,7 +582,7 @@ function CleaningTaskRow({ task, onComplete, isFirst, roleLabel }) {
       <div className="flex-1 min-w-0">
         <p className="text-[13.5px] font-medium text-charcoal dark:text-white">{task.title}</p>
         {task.due && <DueLabel due={task.due} className="mt-0.5 block" />}
-        {roleLabel && <span className="text-[11px] text-charcoal/40 dark:text-white/35 mt-0.5 block">{roleLabel}</span>}
+        {departmentLabel && <span className="text-[11px] text-charcoal/40 dark:text-white/35 mt-0.5 block">{departmentLabel}</span>}
       </div>
       <span className="text-[11px] font-mono font-semibold px-2 py-0.5 rounded bg-charcoal/6 dark:bg-white/8 text-charcoal/40 dark:text-white/35 uppercase tracking-wide">
         {task.frequency}
@@ -624,7 +615,7 @@ function DoneCleaningRow({ task, isFirst }) {
   )
 }
 
-function CleaningTab({ tasks, loading, error, session, reload, roleNameFor }) {
+function CleaningTab({ tasks, loading, error, session, reload, departmentFor }) {
   // Tasks ticked during this visit keep their place in Pending, shown as done,
   // instead of jumping to Completed: the next task used to slide under the
   // finger that had just tapped, so a double-tap ticked one nobody cleaned.
@@ -683,7 +674,7 @@ function CleaningTab({ tasks, loading, error, session, reload, roleNameFor }) {
             {pending.map((t, i) => (
               tickedThisVisit.has(t.id) && t.status !== 'overdue'
                 ? <DoneCleaningRow key={t.id} task={t} isFirst={i === 0} />
-                : <CleaningTaskRow key={t.id} task={t} onComplete={completeTask} isFirst={i === 0} roleLabel={roleNameFor?.(t.role_id)} />
+                : <CleaningTaskRow key={t.id} task={t} onComplete={completeTask} isFirst={i === 0} departmentLabel={departmentFor?.(t.department_id)} />
             ))}
           </div>
         </div>
@@ -743,7 +734,7 @@ function AllergensTab({ venueSlug }) {
 // ── Staff View ─────────────────────────────────────────────
 function StaffTasksView({ session }) {
   const { venueId, venueSlug } = useVenue()
-  const { roles = [] } = useVenueRoles()
+  const { viewerDepartmentIds, knownDepartmentIds, departmentName } = useViewerDepartments()
   const pendingSignOffs = usePendingSignOffs(session?.staffId, venueId)
 
   const [activeTab, setActiveTab] = useState('duties')
@@ -754,16 +745,15 @@ function StaffTasksView({ session }) {
   const dayLabel = (offset) => offset === 0 ? 'Today' : format(addDays(new Date(), offset), 'EEE')
 
   const dutiesData   = useTodayDuties(session?.staffId)
-  // Same role targeting as /cleaning, so a task assigned to one role doesn't
-  // appear here and then vanish on the page where it gets ticked off. Unknown
-  // roles fail open — see lib/roleFilter.
-  const knownRoleIds = useMemo(() => roles.map(r => r.id), [roles])
-  const cleaningData = useCleaningTasks(session?.roleIds ?? null, knownRoleIds, targetDate)
+  // Same department targeting as /cleaning, so a task doesn't appear here and
+  // then vanish on the page where it gets ticked off. Unknown departments
+  // fail open — see lib/roleFilter.
+  const cleaningData = useCleaningTasks(viewerDepartmentIds, knownDepartmentIds, targetDate)
   const cleaningDue  = cleaningData.tasks.filter(t => t.status === 'overdue').length
   // With the full schedule on show, say whose each task is.
   const { cleaningVisibleToAll } = useAppSettings()
-  const roleNameFor = cleaningVisibleToAll
-    ? (roleId) => roles.find(r => r.id === roleId)?.name ?? 'All roles'
+  const departmentFor = cleaningVisibleToAll
+    ? (departmentId) => departmentName(departmentId) ?? 'Everyone'
     : undefined
 
   const TAB_TITLE = { duties: 'Duties', cleaning: 'Cleaning', allergens: 'Allergens' }
@@ -840,7 +830,7 @@ function StaffTasksView({ session }) {
 
       {/* Tab content */}
       {activeTab === 'duties'    && <DutiesTab duties={dutiesData.duties} loading={dutiesData.loading} toggleItem={dutiesData.toggleItem} />}
-      {activeTab === 'cleaning'  && <CleaningTab tasks={cleaningData.tasks} loading={cleaningData.loading} error={cleaningData.error} session={session} reload={cleaningData.reload} roleNameFor={roleNameFor} />}
+      {activeTab === 'cleaning'  && <CleaningTab tasks={cleaningData.tasks} loading={cleaningData.loading} error={cleaningData.error} session={session} reload={cleaningData.reload} departmentFor={departmentFor} />}
       {activeTab === 'allergens' && <AllergensTab venueSlug={venueSlug} />}
 
     </div>

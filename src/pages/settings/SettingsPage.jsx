@@ -324,8 +324,8 @@ export default function SettingsPage() {
           {active === 'roles' && (
             <>
               <SettingsSection
-                title="Roles & Skills"
-                subtitle="Define the roles in your business, assign them to staff and use them in the rota builder"
+                title="Departments & Job Titles"
+                subtitle="Where people work (decides what they see) and what they do (used by the rota builder)"
                 locked={venuePlan !== PLANS.PRO}
                 defaultOpen
               >

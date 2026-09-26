@@ -18,7 +18,7 @@ const json = (body) =>
     status: 200, headers: { 'Content-Type': 'application/json' },
   })
 
-const TASK = { id: 't1', title: 'Clean microwave', frequency: 'daily', role_id: null, is_active: true, venue_id: VENUE }
+const TASK = { id: 't1', title: 'Clean microwave', frequency: 'daily', department_id: null, is_active: true, venue_id: VENUE }
 
 describe('useCleaningTasks — live updates', () => {
   let completions
@@ -155,8 +155,8 @@ describe('cleaningDueLabel', () => {
 describe('useCleaningTasks — department visibility', () => {
   let client
   const wrapper = ({ children }) => <QueryClientProvider client={client}>{children}</QueryClientProvider>
-  const KITCHEN = { ...TASK, id: 'k1', title: 'Degrease fryer', role_id: 'kitchen' }
-  const FOH     = { ...TASK, id: 'f1', title: 'Wipe tables',    role_id: 'foh' }
+  const KITCHEN = { ...TASK, id: 'k1', title: 'Degrease fryer', department_id: 'kitchen' }
+  const FOH     = { ...TASK, id: 'f1', title: 'Wipe tables',    department_id: 'foh' }
 
   beforeEach(() => {
     client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
@@ -187,5 +187,11 @@ describe('useCleaningTasks — department visibility', () => {
     settings.cleaningVisibleToAll = true
     const h = renderHook(() => useCleaningTasks(['foh'], ['kitchen', 'foh']), { wrapper })
     await waitFor(() => expect(h.result.current.tasks).toHaveLength(2))
+  })
+
+  it('shows staff with no department the whole schedule', async () => {
+    const h = renderHook(() => useCleaningTasks([], ['kitchen', 'foh']), { wrapper })
+    await waitFor(() => expect(h.result.current.loading).toBe(false))
+    expect(h.result.current.tasks).toHaveLength(2)
   })
 })

@@ -21,7 +21,6 @@ export function useVenueRoles(): {
   addRole: (name: string) => Promise<{ error: unknown }>
   renameRole: (id: string, name: string) => Promise<{ error: unknown }>
   deleteRole: (id: string) => Promise<{ error: unknown }>
-  setRoleDepartment: (id: string, departmentId: string | null) => Promise<{ error: unknown }>
 } {
   const { venueId } = useVenue()
   const queryClient = useQueryClient()
@@ -68,13 +67,7 @@ export function useVenueRoles(): {
     return { error }
   }
 
-  const setRoleDepartment = async (id: string, departmentId: string | null) => {
-    const { error } = await supabase.from('venue_roles').update({ department_id: departmentId }).eq('id', id)
-    if (!error) queryClient.invalidateQueries({ queryKey: ['venue_roles', venueId] })
-    return { error }
-  }
-
-  return { roles, loading, reload: refetch, addRole, renameRole, deleteRole, setRoleDepartment }
+  return { roles, loading, reload: refetch, addRole, renameRole, deleteRole }
 }
 
 // ── Staff ↔ roles assignment ──────────────────────────────────────────────────

@@ -2,11 +2,11 @@ import { useQuery } from '@tanstack/react-query'
 import { useVenue } from '../contexts/VenueContext'
 import { format } from 'date-fns'
 import { fetchTasksForRole, fetchAllTasks } from '../lib/api/tasks'
-import { roleMatcher } from '../lib/roleFilter'
+import { departmentMatcher } from '../lib/roleFilter'
 import { readPersisted, writePersisted } from '../lib/persistedCache'
 import type { TaskTemplate, TaskOneOff, TaskCompletion } from '../types'
 
-export function useTasksForRole(viewerRoleIds: readonly string[] | null, staffId: string, knownRoleIds: readonly string[] = []): {
+export function useTasksForStaff(viewerDepartmentIds: readonly string[] | null, staffId: string, knownDepartmentIds: readonly string[] = []): {
   templates: TaskTemplate[]
   oneOffs: TaskOneOff[]
   completions: TaskCompletion[]
@@ -26,12 +26,12 @@ export function useTasksForRole(viewerRoleIds: readonly string[] | null, staffId
   const rawOneOffs: TaskOneOff[] = (data as { oneOffs?: TaskOneOff[] })?.oneOffs ?? []
   const completions: TaskCompletion[] = (data as { completions?: TaskCompletion[] })?.completions ?? []
 
-  const matchesRole = roleMatcher(viewerRoleIds, knownRoleIds)
+  const matchesDepartment = departmentMatcher(viewerDepartmentIds, knownDepartmentIds)
 
-  const templates = rawTemplates.filter((t) => matchesRole(t.role_id))
+  const templates = rawTemplates.filter((t) => matchesDepartment(t.department_id))
 
   const allOneOffs = rawOneOffs.filter(
-    (o) => matchesRole(o.role_id) || (!!staffId && o.assigned_to_staff_id === staffId)
+    (o) => matchesDepartment(o.department_id) || (!!staffId && o.assigned_to_staff_id === staffId)
   )
 
   const seen = new Set<string>()
