@@ -461,7 +461,9 @@ export default function AppShell({ children }) {
 
   // All venues the current user can switch to.
   // For staff: linkedVenues now includes primary + linked (migration 054), so use it directly.
-  const allSwitchableVenues = isManager ? venues : linkedVenues
+  // A manager signed in by PIN has no Supabase-Auth account, so `venues` is
+  // empty for them — fall back to the venues linked to the PIN session.
+  const allSwitchableVenues = isManager && venues.length ? venues : linkedVenues
 
   const navInfo = routeToNav(localPath)
   const mainCat  = navInfo.cat

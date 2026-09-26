@@ -14,10 +14,10 @@ import { insertDeliveryCheck } from '../../lib/api/deliveries'
 import { TRAINING_BUCKET, deliveryPhotoPath } from '../../lib/trainingFiles'
 // tesseract.js is ~7 MB — dynamically imported only when OCR is actually used
 
+// Local wall-clock time for a datetime-local input. toISOString() is UTC, so
+// during BST the default read an hour behind and records were saved an hour early.
 function nowDatetimeLocal() {
-  const d = new Date()
-  d.setSeconds(0, 0)
-  return d.toISOString().slice(0, 16)
+  return format(new Date(), "yyyy-MM-dd'T'HH:mm")
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════

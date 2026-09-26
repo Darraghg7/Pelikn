@@ -87,7 +87,7 @@ function AddTipSplitModal({ staff, venueId, managerId, onSaved, onClose }) {
       .single()
 
     if (error || !split) {
-      toast.error('Failed to save tip split')
+      toast('Failed to save tip split', 'error')
       setSaving(false)
       return
     }
@@ -103,10 +103,13 @@ function AddTipSplitModal({ staff, venueId, managerId, onSaved, onClose }) {
       .insert(allocations)
 
     if (allocError) {
-      toast.error('Split created but failed to save allocations')
-    } else {
-      toast.success('Tip split saved')
+      // Don't leave a split with nobody paid — undo it so the manager can retry.
+      await supabase.from('tip_splits').delete().eq('id', split.id).eq('venue_id', venueId)
+      toast('Could not save the tip split — please try again', 'error')
+      setSaving(false)
+      return
     }
+    toast('Tip split saved')
     setSaving(false)
     onSaved()
   }

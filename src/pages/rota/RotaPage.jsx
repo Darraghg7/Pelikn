@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import RotaMobileGrid from './RotaMobileGrid'
-import { format, addWeeks, eachDayOfInterval, parseISO } from 'date-fns'
+import { format, addDays, addWeeks, eachDayOfInterval, parseISO } from 'date-fns'
 import {
   deleteVenueClosure, insertVenueClosures,
   insertShift, updateShift, deleteShift as deleteShiftRow, deleteDutyAssignmentsForShift,
@@ -19,6 +19,7 @@ import { getWeekStart, getWeekDays } from '../../lib/utils'
 import { useToast } from '../../components/ui/Toast'
 import { useAppSettings } from '../../hooks/useSettings'
 import { useVenueRoles, loadAllStaffRolesForVenue } from '../../hooks/useVenueRoles'
+import { roleForJob } from './roleForJob'
 import RotaWeekView from './RotaWeekView'
 import { shareRotaImage } from '../../lib/rotaImageExport'
 import RotaBuilderModal from './RotaBuilderModal'
@@ -159,7 +160,9 @@ export default function RotaPage() {
     const dateStr = format(date, 'yyyy-MM-dd')
     if (effectiveClosedDates.has(dateStr)) return
     setModal({ staffMember, date, dayShifts })
-    const lastRole = localStorage.getItem(`mise_last_role_${staffMember.id}`) || venueRoles[0]?.name || ''
+    const lastRole = localStorage.getItem(`mise_last_role_${staffMember.id}`)
+      || roleForJob(venueRoles, staffMember.job_role)
+      || venueRoles[0]?.name || ''
     setForm({ staffId: staffMember.id, startTime: '09:00', endTime: '17:00', roleLabel: lastRole, isClosing: false })
     setEditShift(null)
     setAssignDuty(false)
@@ -322,25 +325,28 @@ export default function RotaPage() {
     reload()
   }
 
-  const rejectSwap = async (swap) => {
+  // `presetNote` is used when dismissing a swap for a shift that has already
+  // passed, so the requester is told why rather than just "not approved".
+  const rejectSwap = async (swap, presetNote) => {
+    const note = presetNote ?? rejectNote[swap.id]?.trim() ?? ''
     setResolving(swap.id)
     const { error } = await supabase
       .from('shift_swaps')
       .update({
         status:       'rejected',
-        manager_note: rejectNote[swap.id]?.trim() || null,
+        manager_note: note || null,
         resolved_at:  new Date().toISOString(),
       })
       .eq('id', swap.id)
     setResolving(null)
     if (error) { toast(error.message, 'error'); return }
-    toast('Swap request rejected')
+    toast(presetNote ? 'Expired swap request dismissed' : 'Swap request rejected')
     if (swap.requester_id) {
       sendPush({
         venueId,
         notificationType: 'shift_swap_decision',
         title: 'Shift Swap Rejected',
-        body:  `Your shift swap request was not approved.${rejectNote[swap.id]?.trim() ? ' Note: ' + rejectNote[swap.id].trim() : ''}`,
+        body:  `Your shift swap request was not approved.${note ? ' Note: ' + note : ''}`,
         url:   '/rota',
         staffIds: [swap.requester_id],
       })
@@ -583,7 +589,8 @@ export default function RotaPage() {
               <div className="flex items-center justify-between px-5 py-4 border-b border-charcoal/8 dark:border-white/8">
                 <button onClick={prevWeek} className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-charcoal/8 dark:hover:bg-white/8 text-charcoal/50 dark:text-white/40 hover:text-charcoal dark:hover:text-white transition-colors text-sm">‹</button>
                 <span className="text-sm font-medium text-charcoal dark:text-white">
-                  {format(weekStart, 'd MMM')} – {format(addWeeks(weekStart, numWeeks), 'd MMM yyyy')}
+                  {/* Last day shown is the Sunday before the next Monday */}
+                  {format(weekStart, 'd MMM')} – {format(addDays(addWeeks(weekStart, numWeeks), -1), 'd MMM yyyy')}
                 </span>
                 <button onClick={nextWeek} className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-charcoal/8 dark:hover:bg-white/8 text-charcoal/50 dark:text-white/40 hover:text-charcoal dark:hover:text-white transition-colors text-sm">›</button>
               </div>

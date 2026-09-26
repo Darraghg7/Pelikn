@@ -598,7 +598,37 @@ function CleaningTaskRow({ task, onComplete, isFirst }) {
   )
 }
 
+function DoneCleaningRow({ task, isFirst }) {
+  return (
+    <div className={`px-4 py-3 flex items-center gap-3 ${!isFirst ? 'border-t border-charcoal/5 dark:border-white/5' : ''}`}>
+      <span className="w-[22px] h-[22px] rounded-md bg-success border-success border-[1.5px] flex items-center justify-center shrink-0">
+        <svg className="w-3 h-3 text-white" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg>
+      </span>
+      <div className="flex-1 min-w-0">
+        <p className="text-[13.5px] text-charcoal/40 dark:text-white/35 line-through">{task.title}</p>
+        {/* Says who cleared it, so nobody wonders why it's gone. */}
+        {(task.lastCompletion?.completed_by_name || task.due) && (
+          <p className="text-[11px] text-charcoal/35 dark:text-white/30 mt-0.5 no-underline">
+            {task.lastCompletion?.completed_by_name && (
+              <>{task.lastCompletion.completed_by_name} · {formatDistanceToNow(new Date(task.lastCompletion.completed_at), { addSuffix: true })}</>
+            )}
+            {/* When it comes back round, so nobody has to work it out. */}
+            {task.lastCompletion?.completed_by_name && task.due && ' · '}
+            {task.due && <DueLabel due={task.due} />}
+          </p>
+        )}
+      </div>
+    </div>
+  )
+}
+
 function CleaningTab({ tasks, loading, error, session, reload }) {
+  // Tasks ticked during this visit keep their place in Pending, shown as done,
+  // instead of jumping to Completed: the next task used to slide under the
+  // finger that had just tapped, so a double-tap ticked one nobody cleaned.
+  // They move down on the next visit. (Declared before the early returns.)
+  const [tickedThisVisit, setTickedThisVisit] = useState(() => new Set())
+
   if (loading) return <SkeletonList rows={4} />
   if (error) return (
     <div className="bg-white dark:bg-paperDark rounded-[14px] border border-danger/20 p-8 text-center">
@@ -614,8 +644,13 @@ function CleaningTab({ tasks, loading, error, session, reload }) {
   // A task drops off everyone's list once it's ticked, and comes back only when
   // its frequency brings it round again — a weekly task done on Monday is
   // nobody's job until the next Monday, whoever ticked it.
-  const pending = tasks.filter(t => t.status === 'overdue')
-  const done    = tasks.filter(t => t.status !== 'overdue')
+  //
+  // A task nobody has ever done stays in Pending even while it's in its first
+  // cycle ('due_soon' with no completion) — otherwise a brand-new task showed
+  // struck through under Completed, as if someone had cleaned it.
+  const isPending = t => t.status === 'overdue' || !t.lastCompletion || tickedThisVisit.has(t.id)
+  const pending = tasks.filter(isPending)
+  const done    = tasks.filter(t => !isPending(t))
   const pct     = tasks.length > 0 ? Math.round((done.length / tasks.length) * 100) : 0
 
   const completeTask = async (taskId) => {
@@ -624,7 +659,10 @@ function CleaningTab({ tasks, loading, error, session, reload }) {
       p_cleaning_task_id: taskId,
       p_notes: null,
     })
-    if (!error) reload?.()
+    if (!error) {
+      setTickedThisVisit(prev => new Set(prev).add(taskId))
+      reload?.()
+    }
     return { error }
   }
 
@@ -641,7 +679,9 @@ function CleaningTab({ tasks, loading, error, session, reload }) {
               <div className="h-full bg-warning transition-all" style={{ width: `${Math.max(pct, 2)}%` }} />
             </div>
             {pending.map((t, i) => (
-              <CleaningTaskRow key={t.id} task={t} onComplete={completeTask} isFirst={i === 0} />
+              tickedThisVisit.has(t.id) && t.status !== 'overdue'
+                ? <DoneCleaningRow key={t.id} task={t} isFirst={i === 0} />
+                : <CleaningTaskRow key={t.id} task={t} onComplete={completeTask} isFirst={i === 0} />
             ))}
           </div>
         </div>
@@ -650,27 +690,7 @@ function CleaningTab({ tasks, loading, error, session, reload }) {
         <div>
           <span className="text-[11px] font-mono tracking-widest uppercase text-charcoal/35 dark:text-white/30 font-semibold px-1 mb-2 block">Completed</span>
           <div className="bg-white dark:bg-paperDark rounded-[14px] border border-charcoal/8 dark:border-white/8 overflow-hidden">
-            {done.map((t, i) => (
-              <div key={t.id} className={`px-4 py-3 flex items-center gap-3 ${i > 0 ? 'border-t border-charcoal/5 dark:border-white/5' : ''}`}>
-                <span className="w-[22px] h-[22px] rounded-md bg-success border-success border-[1.5px] flex items-center justify-center shrink-0">
-                  <svg className="w-3 h-3 text-white" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg>
-                </span>
-                <div className="flex-1 min-w-0">
-                  <p className="text-[13.5px] text-charcoal/40 dark:text-white/35 line-through">{t.title}</p>
-                  {/* Says who cleared it, so nobody wonders why it's gone. */}
-                  {(t.lastCompletion?.completed_by_name || t.due) && (
-                    <p className="text-[11px] text-charcoal/35 dark:text-white/30 mt-0.5 no-underline">
-                      {t.lastCompletion?.completed_by_name && (
-                        <>{t.lastCompletion.completed_by_name} · {formatDistanceToNow(new Date(t.lastCompletion.completed_at), { addSuffix: true })}</>
-                      )}
-                      {/* When it comes back round, so nobody has to work it out. */}
-                      {t.lastCompletion?.completed_by_name && t.due && ' · '}
-                      {t.due && <DueLabel due={t.due} />}
-                    </p>
-                  )}
-                </div>
-              </div>
-            ))}
+            {done.map((t, i) => <DoneCleaningRow key={t.id} task={t} isFirst={i === 0} />)}
           </div>
         </div>
       )}

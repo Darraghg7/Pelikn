@@ -511,10 +511,17 @@ function useShiftCompletions(venueId, dateStr, sessionType) {
 function TodayChecks({ venueId, venueSlug, staffName }) {
   const today = format(new Date(), 'yyyy-MM-dd')
   const sessionType = new Date().getHours() < 14 ? 'opening' : 'closing'
-  const { checks, loading } = useChecksForShift(venueId)
+  const { checks: allChecks, loading } = useChecksForShift(venueId)
+  // Only this session's checks. Unfiltered, the morning "Opening Checks" card
+  // also listed the closing checks (0/8 for 4+4), and ticking one there saved
+  // it as an opening completion.
+  const checks = allChecks.filter(c => c.type === sessionType)
   const { completions, reload } = useShiftCompletions(venueId, today, sessionType)
   const [saving, setSaving] = useState(null)
   const [open, setOpen] = useState(false)
+  // Ticked this visit: stays in the list as "Done" so the next check doesn't
+  // slide under the finger that just tapped ✓ OK.
+  const [tickedThisVisit, setTickedThisVisit] = useState(() => new Set())
   const toast = useToast()
 
   if (loading) return null
@@ -523,7 +530,7 @@ function TodayChecks({ venueId, venueSlug, staffName }) {
   const done = completions.length
   const total = checks.length
   const allDone = done === total && total > 0
-  const pendingChecks = checks.filter(c => !completions.find(comp => comp.check_id === c.id))
+  const pendingChecks = checks.filter(c => tickedThisVisit.has(c.id) || !completions.find(comp => comp.check_id === c.id))
 
   const markOk = async (checkId) => {
     if (saving) return
@@ -542,6 +549,7 @@ function TodayChecks({ venueId, venueSlug, staffName }) {
       toast('Check could not be saved — please try again', 'error')
       return
     }
+    setTickedThisVisit(prev => new Set(prev).add(checkId))
     invalidateChecksStatusCache(venueId)
     reload()
   }
@@ -598,7 +606,10 @@ function TodayChecks({ venueId, venueSlug, staffName }) {
         <div className="bg-white dark:bg-paperDark rounded-[14px] border border-charcoal/8 dark:border-white/8 overflow-hidden">
           {pendingChecks.map((check, i) => (
             <div key={check.id} className={`px-4 py-3 flex items-center gap-3 ${i > 0 ? 'border-t border-charcoal/5 dark:border-white/5' : ''}`}>
-              <p className="text-[13.5px] flex-1 font-medium text-charcoal dark:text-white">{check.title}</p>
+              <p className={`text-[13.5px] flex-1 font-medium ${tickedThisVisit.has(check.id) ? 'text-charcoal/40 dark:text-white/35 line-through' : 'text-charcoal dark:text-white'}`}>{check.title}</p>
+              {tickedThisVisit.has(check.id) ? (
+                <span className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-success/10 text-success shrink-0">✓ Done</span>
+              ) : (
               <div className="flex gap-1.5 shrink-0">
                 <button
                   onClick={() => markOk(check.id)}
@@ -614,6 +625,7 @@ function TodayChecks({ venueId, venueSlug, staffName }) {
                   ⚠ Issue
                 </a>
               </div>
+              )}
             </div>
           ))}
           <a

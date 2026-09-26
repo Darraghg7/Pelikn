@@ -6,7 +6,7 @@ import { fetchAuditData, type AuditRawData } from '../lib/api/audit'
 
 const EXPLAINED = ['delivery', 'defrost', 'service_access']
 
-function deriveAuditStats(raw: AuditRawData) {
+function deriveAuditStats(raw: AuditRawData, sinceTs: string) {
   const { temps, cleaningTasks, cleaningCompletions, deliveries, calibrations, actions, certs, activeStaff } = raw
 
   // ── Temp analysis ──────────────────────────────────────────────────
@@ -47,7 +47,9 @@ function deriveAuditStats(raw: AuditRawData) {
     cleaningTotal: cleaningCompletions.length, cleaningTaskCount: cleaningTasks.length,
     deliveryTotal, deliveryFails, failedDeliveries: failedDeliveries.slice(0, 10),
     probeTotal, probeFails, lastProbe, failedProbes: failedProbes.slice(0, 10),
-    caOpen, caCritical, caTotal: actions.length, openActions: openActions.slice(0, 10),
+    caOpen, caCritical,
+    // Logged in the window — the query also returns older rows that are still open
+    caTotal: actions.filter((a: any) => new Date(a.reported_at) >= new Date(sinceTs)).length, openActions: openActions.slice(0, 10),
     expiredCerts, validCerts, totalCerts: certs.length, expiredCertsList: expiredCertsList.slice(0, 10),
     staffCount: activeStaff.length,
   }
@@ -70,7 +72,7 @@ export function useAuditSummary(range: number) {
     staleTime: 60_000,
   })
 
-  const data = useMemo(() => (raw ? deriveAuditStats(raw) : null), [raw])
+  const data = useMemo(() => (raw ? deriveAuditStats(raw, sinceTs) : null), [raw, sinceTs])
 
   /**
    * Patch a record's resolution fields in the cache in place, without a full

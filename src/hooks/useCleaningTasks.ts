@@ -36,7 +36,19 @@ export function cleaningStatus(
   lastCompletion: CleaningCompletion | null,
   asOf: Date = new Date(),
 ): CleaningStatus {
-  if (!lastCompletion) return 'overdue'
+  if (!lastCompletion) {
+    // A task nobody has done yet gets its first cycle, counted from when it was
+    // created, before it goes red — otherwise a weekly task added this morning
+    // was "overdue" (and dragged the overdue count up) the moment it was saved.
+    // Daily keeps the calendar-day rule: not done today means flagged.
+    // Must match get_dashboard_snapshot's cleaning CTE (migration 130).
+    const threshold = FREQ_DAYS[task.frequency]
+    if (task.frequency !== 'daily' && threshold && task.created_at) {
+      const daysSinceCreated = (asOf.getTime() - new Date(task.created_at).getTime()) / 86400000
+      if (daysSinceCreated <= threshold) return 'due_soon'
+    }
+    return 'overdue'
+  }
   const completedAt = new Date(lastCompletion.completed_at)
 
   if (task.frequency === 'daily' || !FREQ_DAYS[task.frequency]) {
@@ -73,21 +85,26 @@ export function cleaningDueLabel(
   status: CleaningStatus,
   asOf: Date = new Date(),
 ): CleaningDueLabel | null {
-  if (!lastCompletion) return status === 'overdue' ? { text: 'Never done', tone: 'danger' } : null
-
-  const completedAt = new Date(lastCompletion.completed_at)
-  const dueAt = new Date(completedAt)
+  if (!lastCompletion) {
+    if (status === 'overdue') return { text: 'Never done', tone: 'danger' }
+    // Still in its first cycle (see cleaningStatus) — due one cycle after creation
+    if (!task.created_at) return null
+  }
+  // Never-done tasks count from creation; `new` marks them in the label
+  const isNew = !lastCompletion
+  const from  = new Date(lastCompletion?.completed_at ?? (task.created_at as string))
+  const dueAt = new Date(from)
   dueAt.setDate(dueAt.getDate() + (FREQ_DAYS[task.frequency] ?? 1))
 
   const daysPastDue = calendarDaysBetween(dueAt, asOf)
   if (status === 'done' && daysPastDue >= 0) return null
   if (daysPastDue > 0) return { text: `${daysPastDue}d overdue`, tone: 'danger' }
-  if (daysPastDue === 0) return { text: 'Due today', tone: 'warning' }
-
   const tone = status === 'due_soon' ? 'warning' : 'muted'
-  if (daysPastDue === -1) return { text: 'Due tomorrow', tone }
-  if (daysPastDue >= -6)  return { text: `Due ${WEEKDAYS[dueAt.getDay()]}`, tone }
-  return { text: `Due ${dueAt.getDate()} ${MONTHS[dueAt.getMonth()]}`, tone }
+  const pre  = isNew ? 'New · d' : 'D'
+  if (daysPastDue === 0) return { text: `${pre}ue today`, tone: 'warning' }
+  if (daysPastDue === -1) return { text: `${pre}ue tomorrow`, tone }
+  if (daysPastDue >= -6)  return { text: `${pre}ue ${WEEKDAYS[dueAt.getDay()]}`, tone }
+  return { text: `${pre}ue ${dueAt.getDate()} ${MONTHS[dueAt.getMonth()]}`, tone }
 }
 
 // ── Live updates ────────────────────────────────────────────────────────────

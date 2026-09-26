@@ -8,6 +8,7 @@ import { useToast } from '../../components/ui/Toast'
 import Modal from '../../components/ui/Modal'
 import { PageSkeleton } from '../../components/ui/Skeleton'
 import { buildPdfReport } from '../../lib/pdfUtils'
+import { useLiveDatetimeLocal } from '../../hooks/useLiveDatetimeLocal'
 
 const UNITS   = ['kg', 'portions', 'items', 'litres']
 const REASONS = ['expired', 'spoiled', 'preparation', 'overproduction', 'other']
@@ -45,8 +46,10 @@ export default function WasteLogPage() {
   const { logs, loading, reload } = useWasteLogs(weekAgo, today)
 
   // Form state
+  // Time of waste stays "now" until the user picks one (see useLiveDatetimeLocal)
+  const recordedTime = useLiveDatetimeLocal()
   const [form, setForm] = useState({
-    item_name: '', quantity: '', unit: 'kg', reason: 'expired', notes: '', recorded_at: nowLocal(),
+    item_name: '', quantity: '', unit: 'kg', reason: 'expired', notes: '',
   })
   const [submitting, setSubmitting] = useState(false)
 
@@ -70,13 +73,14 @@ export default function WasteLogPage() {
       notes:            form.notes.trim() || null,
       recorded_by:      session?.staffId,
       recorded_by_name: session?.staffName ?? 'Unknown',
-      recorded_at:      new Date(form.recorded_at).toISOString(),
+      recorded_at:      recordedTime.instant().toISOString(),
       venue_id:         venueId,
     })
     setSubmitting(false)
     if (error) { toast(error.message, 'error'); return }
     toast('Waste logged')
-    setForm({ item_name: '', quantity: '', unit: 'kg', reason: 'expired', notes: '', recorded_at: nowLocal() })
+    setForm({ item_name: '', quantity: '', unit: 'kg', reason: 'expired', notes: '' })
+    recordedTime.reset()
     reload()
   }
 
@@ -221,8 +225,8 @@ export default function WasteLogPage() {
             <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">Time of Waste</label>
             <input
               type="datetime-local"
-              value={form.recorded_at}
-              onChange={e => setForm(f => ({ ...f, recorded_at: e.target.value }))}
+              value={recordedTime.value}
+              onChange={e => recordedTime.setByUser(e.target.value)}
               max={nowLocal()}
               className="w-full px-4 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
             />

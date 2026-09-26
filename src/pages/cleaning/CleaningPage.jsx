@@ -66,7 +66,7 @@ export default function CleaningPage() {
   // silently filtering the staff member out — see lib/roleFilter.
   const knownRoleIds = useMemo(() => roles.map(r => r.id), [roles])
 
-  const { tasks, loading, reload } = useCleaningTasks(viewerRoleIds, knownRoleIds)
+  const { tasks, loading, error: loadError, reload } = useCleaningTasks(viewerRoleIds, knownRoleIds)
 
   const [showAdd, setShowAdd]   = useState(false)
   const [form, setForm]         = useState({ title: '', frequency: 'daily', role_id: null })
@@ -336,7 +336,15 @@ export default function CleaningPage() {
               </div>
             )
           })}
-          {filtered.length === 0 && (
+          {/* A failed load used to read "No cleaning tasks set up yet." —
+              easy to take as the schedule having been deleted. */}
+          {filtered.length === 0 && loadError && (
+            <div className="py-6 text-center">
+              <p className="text-sm text-danger/80">Couldn't load the cleaning schedule — check your connection.</p>
+              <button onClick={reload} className="mt-2 text-xs underline text-charcoal/50 dark:text-white/40 hover:text-charcoal dark:hover:text-white">Try again</button>
+            </div>
+          )}
+          {filtered.length === 0 && !loadError && (
             <p className="text-sm text-charcoal/35 dark:text-white/30 italic py-6 text-center">
               {tasks.length === 0 ? 'No cleaning tasks set up yet.' : 'No tasks match this filter.'}
             </p>

@@ -36,6 +36,21 @@ const EMPTY = {
 
 // ── Complaint modal ───────────────────────────────────────────────────────────
 
+
+// Module level, not inside the modal: a component declared in the render body
+// is a new type every render, so everything wrapped in it (the inputs) remounts
+// on each keystroke and focus is lost after the first character.
+function Field({ label, required, children }) {
+  return (
+    <div className="flex flex-col gap-1">
+      <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">
+        {label}{required && <span className="text-danger ml-0.5">*</span>}
+      </label>
+      {children}
+    </div>
+  )
+}
+
 function ComplaintModal({ open, onClose, editItem, venueId, onSaved }) {
   const toast = useToast()
   const [form, setForm]     = useState(EMPTY)
@@ -71,14 +86,6 @@ function ComplaintModal({ open, onClose, editItem, venueId, onSaved }) {
     onSaved()
   }
 
-  const Field = ({ label, required, children }) => (
-    <div className="flex flex-col gap-1">
-      <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">
-        {label}{required && <span className="text-danger ml-0.5">*</span>}
-      </label>
-      {children}
-    </div>
-  )
   const inp = 'px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20'
   const ta  = `${inp} resize-none`
 

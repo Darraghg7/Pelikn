@@ -13,6 +13,28 @@ describe('cleaningStatus', () => {
     expect(cleaningStatus(task('weekly'), null, at(MONDAY))).toBe('overdue')
   })
 
+  // The reported bug: a weekly task added this morning was "overdue" the
+  // moment it was saved. It gets its first cycle, counted from creation.
+  describe('a new task nobody has done yet', () => {
+    const created = (frequency, iso) => ({ ...task(frequency), created_at: iso })
+
+    it('is due soon, not overdue, on the day it was added', () => {
+      expect(cleaningStatus(created('weekly', MONDAY), null, at('2026-07-06T15:00:00.000Z'))).toBe('due_soon')
+    })
+
+    it('is still due soon at the end of its first week', () => {
+      expect(cleaningStatus(created('weekly', MONDAY), null, at('2026-07-13T08:00:00.000Z'))).toBe('due_soon')
+    })
+
+    it('goes overdue once its first cycle has passed', () => {
+      expect(cleaningStatus(created('weekly', MONDAY), null, at('2026-07-13T10:00:00.000Z'))).toBe('overdue')
+    })
+
+    it('keeps the daily rule — not done today is flagged, even if new', () => {
+      expect(cleaningStatus(created('daily', MONDAY), null, at('2026-07-06T15:00:00.000Z'))).toBe('overdue')
+    })
+  })
+
   // The reported bug: a weekly task ticked by one person reappeared on
   // everyone else's list the next day.
   describe('a weekly task ticked on Monday', () => {

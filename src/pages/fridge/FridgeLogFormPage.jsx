@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { format } from 'date-fns'
+import { useLiveDatetimeLocal } from '../../hooks/useLiveDatetimeLocal'
 import { supabase } from '../../lib/supabase'
 import { sendPush } from '../../lib/sendPush'
 import { useVenue } from '../../contexts/VenueContext'
@@ -46,7 +47,8 @@ export default function FridgeLogFormPage() {
   const [temp, setTemp]             = useState('')
   const [reason, setReason]         = useState(null)
   const [comment, setComment]       = useState('')
-  const [loggedAt, setLoggedAt]     = useState(nowDatetimeLocal())
+  const loggedTime = useLiveDatetimeLocal()
+  const loggedAt   = loggedTime.value
   const [submitting, setSubmitting] = useState(false)
 
   const selectedFridge  = fridges.find((f) => f.id === fridgeId)
@@ -57,7 +59,8 @@ export default function FridgeLogFormPage() {
   const selectedReason  = EXCEEDANCE_REASONS.find(r => r.id === reason)
   const isExplained     = selectedReason?.explained ?? false
   const needsNote       = reason !== null && !isExplained
-  const isPastEntry     = loggedAt < nowDatetimeLocal().slice(0, 16)
+  // Only a time the user set themselves can be a backdated entry
+  const isPastEntry     = loggedTime.edited && loggedAt < nowDatetimeLocal().slice(0, 16)
 
   const canSubmit = fridgeId && temp !== '' && (
     !outOfRange ||
@@ -69,7 +72,7 @@ export default function FridgeLogFormPage() {
     if (!canSubmit) return
     setSubmitting(true)
 
-    const ts           = new Date(loggedAt)
+    const ts           = loggedTime.instant()
     const checkPeriod  = ts.getHours() < 12 ? 'am' : 'pm'
     const followUpDueAt = isExplained && !isPastEntry
       ? new Date(ts.getTime() + 30 * 60 * 1000).toISOString()
@@ -152,7 +155,7 @@ export default function FridgeLogFormPage() {
             type="datetime-local"
             value={loggedAt}
             max={nowDatetimeLocal()}
-            onChange={(e) => setLoggedAt(e.target.value)}
+            onChange={(e) => loggedTime.setByUser(e.target.value)}
             className="px-3 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
           />
           {isPastEntry && (

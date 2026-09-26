@@ -1,6 +1,6 @@
 import React, { useMemo, memo } from 'react'
 import { format } from 'date-fns'
-import { unpaidBreakMins } from '../../hooks/useShifts'
+import { unpaidBreakMins, shiftDurationHours } from '../../hooks/useShifts'
 import { formatMinutes } from '../../lib/utils'
 import { formatLondon } from '../../lib/time'
 
@@ -68,9 +68,8 @@ const DrillDownPanel = memo(function DrillDownPanel({
         const dayShifts = shiftsByDate[dateStr] ?? []
         const actual    = dayData?.minutes ?? 0
         const expected  = dayShifts.reduce((acc, sh) => {
-          const [sh_h, sh_m] = sh.start_time.split(':').map(Number)
-          const [eh, em]     = sh.end_time.split(':').map(Number)
-          const rawMins = (eh * 60 + em) - (sh_h * 60 + sh_m)
+          // shiftDurationHours handles shifts that finish after midnight
+          const rawMins = shiftDurationHours(sh.start_time, sh.end_time) * 60
           return acc + rawMins - unpaidBreakMins(rawMins / 60, isUnder18, breakDurationMins)
         }, 0)
         const status = discrepancyStatus(actual, expected || undefined, cleanupMinutes)
