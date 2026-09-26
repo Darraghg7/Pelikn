@@ -496,7 +496,7 @@ function Segmented({ options, value, onChange, label }) {
             role="radio"
             aria-checked={on}
             onClick={() => onChange(v)}
-            className={`h-8 px-3 rounded-[10px] text-[13px] font-semibold transition-colors ${on ? 'bg-brand text-white' : 'text-ink2 dark:text-white/65 hover:text-ink dark:hover:text-white'}`}
+            className={`h-7 px-3 rounded-[9px] text-[13px] font-semibold transition-colors ${on ? 'bg-brand text-white' : 'text-ink2 dark:text-white/65 hover:text-ink dark:hover:text-white'}`}
           >
             {text}
           </button>
@@ -560,7 +560,7 @@ function WeekGrid({ days, staff, shiftMap, unavailability, dayTotals, personTota
             <div key={i} className="flex-1 min-w-0 p-[3px]">
               <div className={`rounded-[10px] py-1.5 text-center ${today ? 'bg-line2 dark:bg-white/10' : ''}`}>
                 <div className="font-mono text-[10px] font-semibold tracking-[0.04em] uppercase text-ink3 dark:text-white/45">{format(day, 'EEE')}</div>
-                <div className={`text-[16px] font-bold leading-tight mt-0.5 ${today ? 'text-accent' : 'text-ink dark:text-white'}`}>{format(day, 'd')}</div>
+                <div className={`text-[15px] font-bold leading-tight mt-0.5 ${today ? 'text-accent' : 'text-ink dark:text-white'}`}>{format(day, 'd')}</div>
               </div>
             </div>
           )
@@ -630,7 +630,7 @@ function DayView({ days, dayIndex, setDayIndex, staff, shifts, unavailability, d
               className={`flex-1 min-w-0 rounded-xl border py-2 text-center transition-colors ${on ? 'bg-brand border-brand text-white' : 'bg-white dark:bg-paperDark border-line dark:border-white/10 text-ink dark:text-white'}`}
             >
               <div className={`font-mono text-[10px] font-semibold uppercase tracking-[0.04em] ${on ? 'text-white/70' : 'text-ink3 dark:text-white/45'}`}>{format(d, 'EEE')}</div>
-              <div className="text-[16px] font-bold leading-tight mt-0.5">{format(d, 'd')}</div>
+              <div className="text-[15px] font-bold leading-tight mt-0.5">{format(d, 'd')}</div>
               <div className={`font-mono text-[10px] mt-0.5 ${on ? 'text-white/70' : 'text-ink3 dark:text-white/45'}`}>{showCost ? money(dayTotals[i].cost) : `${dayTotals[i].hours}h`}</div>
             </button>
           )
@@ -638,7 +638,7 @@ function DayView({ days, dayIndex, setDayIndex, staff, shifts, unavailability, d
       </div>
 
       <div className="flex items-baseline justify-between px-1 pt-1">
-        <h2 className="text-[16px] font-bold text-ink dark:text-white">{format(day, 'EEEE d MMM')}</h2>
+        <h2 className="text-[15px] font-bold text-ink dark:text-white">{format(day, 'EEEE d MMM')}</h2>
         <span className="text-[12px] text-ink3 dark:text-white/45">{onShift.length} on · {showCost ? money(dayCost) : hrs(dayHours)}</span>
       </div>
 
@@ -652,10 +652,10 @@ function DayView({ days, dayIndex, setDayIndex, staff, shifts, unavailability, d
             const start = fmtT(s.start_time.slice(0, 5))
             const end   = fmtT(s.end_time.slice(0, 5))
             return (
-              <button key={s.id} type="button" onClick={() => onTap(s, member, day)} className="w-full flex items-center gap-3 px-3.5 py-2.5 text-left hover:bg-cream/60 dark:hover:bg-white/5">
+              <button key={s.id} type="button" onClick={() => onTap(s, member, day)} className="w-full flex items-center gap-3 px-3.5 py-2 text-left hover:bg-cream/60 dark:hover:bg-white/5">
                 <span className="w-[3px] self-stretch rounded-full shrink-0" style={{ background: col }} />
                 <span className="flex-1 min-w-0">
-                  <span className="block text-[14px] font-semibold text-ink dark:text-white truncate">{member.name}</span>
+                  <span className="block text-[13px] font-semibold text-ink dark:text-white truncate">{member.name}</span>
                   <span className="block text-[12px] text-ink3 dark:text-white/45 mt-0.5 truncate">{s.role_label || member.job_title || '—'}</span>
                 </span>
                 <span className="shrink-0 rounded-[10px] px-2.5 py-1.5 text-right" style={{ background: col + '1f', color: col }}>
@@ -674,8 +674,8 @@ function DayView({ days, dayIndex, setDayIndex, staff, shifts, unavailability, d
           <p className={`${SECTION} pt-1`}>On leave</p>
           <div className={`${CARD} overflow-hidden divide-y divide-line dark:divide-white/10`}>
             {onLeave.map(m => (
-              <div key={m.id} className="flex items-center justify-between gap-3 px-3.5 py-2.5">
-                <span className="text-[14px] font-semibold text-ink dark:text-white truncate">{m.name}</span>
+              <div key={m.id} className="flex items-center justify-between gap-3 px-3.5 py-2">
+                <span className="text-[13px] font-semibold text-ink dark:text-white truncate">{m.name}</span>
                 <span className="shrink-0 h-6 px-2.5 rounded-full bg-line2 dark:bg-white/10 inline-flex items-center text-[12px] font-semibold text-ink2 dark:text-white/65">Leave</span>
               </div>
             ))}
@@ -693,7 +693,7 @@ function DayView({ days, dayIndex, setDayIndex, staff, shifts, unavailability, d
                   {(m.name ?? '?').split(/\s+/).map(w => w[0]).slice(0, 2).join('').toUpperCase()}
                 </span>
                 <span className="flex-1 min-w-0">
-                  <span className="block text-[14px] font-semibold text-ink dark:text-white truncate">{shortName(m.name)}</span>
+                  <span className="block text-[13px] font-semibold text-ink dark:text-white truncate">{shortName(m.name)}</span>
                   <span className="block text-[12px] text-ink3 dark:text-white/45 mt-0.5">{showCost ? `${money(personTotal(m).cost)} this week` : `${hrs(personTotal(m).hours)} this week`}</span>
                 </span>
                 <button
@@ -723,10 +723,10 @@ function OpenShifts({ openShifts, onFill }) {
         {openShifts.map((o, idx) => {
           const col = stationColor(o.role_label)
           return (
-            <div key={o.id ?? idx} className="flex items-center gap-3 px-3.5 py-2.5">
+            <div key={o.id ?? idx} className="flex items-center gap-3 px-3.5 py-2">
               <span className="w-[3px] self-stretch rounded-full shrink-0" style={{ background: col }} />
               <span className="flex-1 min-w-0">
-                <span className="block text-[14px] font-semibold text-ink dark:text-white truncate">{o.role_label || 'Shift'} · {fmtRange(o.start_time.slice(0, 5), o.end_time.slice(0, 5))}</span>
+                <span className="block text-[13px] font-semibold text-ink dark:text-white truncate">{o.role_label || 'Shift'} · {fmtRange(o.start_time.slice(0, 5), o.end_time.slice(0, 5))}</span>
                 <span className="block text-[12px] text-ink3 dark:text-white/45 mt-0.5">{format(o._day, 'EEE d MMM')} · unassigned</span>
               </span>
               <button type="button" onClick={() => onFill(o)} className="shrink-0 h-8 px-3.5 rounded-[10px] bg-brand text-white text-[13px] font-semibold">Fill</button>
@@ -937,7 +937,7 @@ export default function RotaMobileGrid() {
         <button
           type="button"
           onClick={() => setShowAI(true)}
-          className="h-10 px-3 rounded-xl bg-brand-tint dark:bg-white/10 inline-flex items-center gap-1.5 text-[13px] font-semibold text-brand dark:text-white shrink-0"
+          className="h-[38px] px-3 rounded-xl bg-brand-tint dark:bg-white/10 inline-flex items-center gap-1.5 text-[13px] font-semibold text-brand dark:text-white shrink-0"
         >
           <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z" /></svg>
           Auto-fill
@@ -946,7 +946,7 @@ export default function RotaMobileGrid() {
 
       {/* Swap requests */}
       {pendingCount > 0 && (
-        <button type="button" onClick={() => setShowSwaps(true)} className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-2xl bg-warnBg dark:bg-warn/15 text-left">
+        <button type="button" onClick={() => setShowSwaps(true)} className="w-full flex items-center gap-3 px-3.5 py-2 rounded-2xl bg-warnBg dark:bg-warn/15 text-left">
           <span className="w-2 h-2 rounded-full bg-warn shrink-0" />
           <span className="flex-1 text-[13px] font-semibold text-warn">{pendingCount} swap {pendingCount === 1 ? 'request' : 'requests'} pending</span>
           <span className="text-[13px] font-semibold text-warn inline-flex items-center gap-0.5">Review {CHEVRON_R}</span>
