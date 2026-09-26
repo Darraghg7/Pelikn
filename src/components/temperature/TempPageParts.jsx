@@ -2,7 +2,7 @@
  * Shared building blocks for the temperature-check pages (fridge, hot holding):
  * header, tab bar, reading input, item settings rows, and status chips.
  */
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { format, isToday } from 'date-fns'
 import { TemperatureItemSettingsForm } from './TemperatureItemSettingsModal'
@@ -137,8 +137,38 @@ export function ItemHeading({ name, range, schedule, note, chips }) {
   )
 }
 
-/** Temperature box with "°C" suffix and a Log button. */
-export function ReadingInput({ value, onChange, onSubmit, placeholder, ariaLabel, canSubmit, saving, warn, autoFocus, submitLabel = 'Log' }) {
+// Idle time after the last keystroke before an auto-save reading is saved
+const AUTO_SAVE_IDLE_MS = 3000
+// Short grace after leaving the field, so tapping Cancel (which unmounts this) wins
+const AUTO_SAVE_BLUR_MS = 250
+
+/**
+ * Temperature entry with a Log button. With `autoSave`, a valid reading also
+ * saves itself when the field loses focus or after a few seconds' pause, so
+ * staff don't have to tap Log. `canSubmit` still gates it — out-of-range
+ * readings wait for their reason / corrective action as before.
+ */
+export function ReadingInput({ value, onChange, onSubmit, placeholder, ariaLabel, canSubmit, saving, warn, autoFocus, autoSave = false, submitLabel = 'Log' }) {
+  // Timers fire after later renders, so read the latest submit state through a ref
+  const latest = useRef({ onSubmit, canSubmit })
+  latest.current = { onSubmit, canSubmit }
+  const timer = useRef(null)
+
+  const schedule = (ms) => {
+    clearTimeout(timer.current)
+    timer.current = setTimeout(() => {
+      if (latest.current.canSubmit) latest.current.onSubmit()
+    }, ms)
+  }
+
+  useEffect(() => () => clearTimeout(timer.current), [])
+  useEffect(() => {
+    if (autoSave && value !== '') schedule(AUTO_SAVE_IDLE_MS)
+    else clearTimeout(timer.current)
+  }, [autoSave, value])
+
+  const submitNow = () => { clearTimeout(timer.current); if (canSubmit) onSubmit() }
+
   return (
     <div className="flex gap-2">
       <div className="relative flex-1 min-w-0">
@@ -146,7 +176,8 @@ export function ReadingInput({ value, onChange, onSubmit, placeholder, ariaLabel
           type="number" step="0.1" min="-30" max="120"
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); if (canSubmit) onSubmit() } }}
+          onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); submitNow() } }}
+          onBlur={autoSave ? () => { if (value !== '') schedule(AUTO_SAVE_BLUR_MS) } : undefined}
           placeholder={placeholder}
           aria-label={ariaLabel}
           disabled={saving}
@@ -166,7 +197,7 @@ export function ReadingInput({ value, onChange, onSubmit, placeholder, ariaLabel
       </div>
       <button
         type="button"
-        onClick={onSubmit}
+        onClick={submitNow}
         disabled={!canSubmit || saving}
         className="h-10 px-3.5 min-w-[52px] rounded-xl bg-brand text-white text-[13px] font-semibold transition-colors hover:bg-brand/90 disabled:bg-ink3/70 dark:disabled:bg-white/15 disabled:cursor-not-allowed"
       >
