@@ -115,7 +115,9 @@ async function fetchFeatures(venueId: string): Promise<FeatureConfig> {
       .select('value')
       .eq('venue_id', venueId)
       .eq('key', 'features')
-      .single()
+      // No row is normal (a venue on defaults) — .single() turned that into a
+      // 406 error in the console on every page load.
+      .maybeSingle()
 
   if (data?.value) {
     try {

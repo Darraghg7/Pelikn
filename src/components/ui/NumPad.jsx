@@ -1,6 +1,9 @@
 import React from 'react'
 
-const KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '±', '0', '⌫']
+// Digits in a 3-wide grid; the bottom row is 4 wide so both '±' (freezers)
+// and '.' (e.g. 3.5°C) fit — '.' was dropped when '±' took its slot.
+const DIGIT_KEYS  = ['1', '2', '3', '4', '5', '6', '7', '8', '9']
+const BOTTOM_KEYS = ['±', '0', '.', '⌫']
 
 export default function NumPad({ value, onChange }) {
   const handle = (key) => {
@@ -13,6 +16,11 @@ export default function NumPad({ value, onChange }) {
       return
     }
     if (key === '.' && value.includes('.')) return
+    // "." on an empty or sign-only entry becomes "0." / "-0." so it parses
+    if (key === '.' && (value === '' || value === '-')) {
+      onChange(value + '0.')
+      return
+    }
     // Max 1 decimal place
     if (value.includes('.') && (value.split('.')[1]?.length ?? 0) >= 1) return
     // No leading zeros unless "0."
@@ -23,24 +31,28 @@ export default function NumPad({ value, onChange }) {
     onChange(value + key)
   }
 
+  const renderKey = (k) => (
+    <button
+      key={k}
+      type="button"
+      aria-label={k === '⌫' ? 'Delete' : k === '±' ? 'Toggle minus' : k === '.' ? 'Decimal point' : k}
+      onPointerDown={(e) => { e.preventDefault(); handle(k) }}
+      className={[
+        'h-14 rounded-2xl text-lg font-semibold transition-all select-none',
+        'active:scale-95',
+        k === '⌫' || k === '±'
+          ? 'bg-charcoal/8 dark:bg-white/10 text-charcoal/50 dark:text-white/40 active:bg-charcoal/15 dark:active:bg-white/20'
+          : 'bg-charcoal/6 dark:bg-white/8 text-charcoal dark:text-white active:bg-charcoal/15 dark:active:bg-white/20',
+      ].join(' ')}
+    >
+      {k}
+    </button>
+  )
+
   return (
-    <div className="grid grid-cols-3 gap-2">
-      {KEYS.map(k => (
-        <button
-          key={k}
-          type="button"
-          onPointerDown={(e) => { e.preventDefault(); handle(k) }}
-          className={[
-            'h-14 rounded-2xl text-lg font-semibold transition-all select-none',
-            'active:scale-95',
-            k === '⌫' || k === '±'
-              ? 'bg-charcoal/8 dark:bg-white/10 text-charcoal/50 dark:text-white/40 active:bg-charcoal/15 dark:active:bg-white/20'
-              : 'bg-charcoal/6 dark:bg-white/8 text-charcoal dark:text-white active:bg-charcoal/15 dark:active:bg-white/20',
-          ].join(' ')}
-        >
-          {k}
-        </button>
-      ))}
+    <div className="flex flex-col gap-2">
+      <div className="grid grid-cols-3 gap-2">{DIGIT_KEYS.map(renderKey)}</div>
+      <div className="grid grid-cols-4 gap-2">{BOTTOM_KEYS.map(renderKey)}</div>
     </div>
   )
 }

@@ -23,7 +23,7 @@ import ConfirmDialog from '../../components/ui/ConfirmDialog'
 import { useCoolingLogs, useCoolingInProgress, useFrequentCoolingItems } from '../../hooks/useCoolingLogs'
 import {
   COOLING_TARGET_TEMP, COOLING_TARGET_MINUTES, COOLING_METHODS,
-  coolingMethodLabel, coolingOutcome, formatCoolingMinutes,
+  coolingMethodLabel, coolingOutcome, formatCoolingMinutes, coolingMinutes,
 } from '../../lib/cooling'
 import { CARD, TONE, PageHeader, TabBar, ReadingInput } from '../../components/temperature/TempPageParts'
 import { HistoryRangePills, StatStrip, formatPct, historyDateFrom } from '../../components/temperature/TempHistoryView'
@@ -68,33 +68,48 @@ function CoolingBatchCard({ batch, now, canDiscard, onChanged, onDiscard }) {
   const [endTemp, setEndTemp] = useState('')
   const [note, setNote]       = useState('')
   const [saving, setSaving]   = useState(false)
+  // Set when Finish finds the batch crossed 90 min since the last clock tick,
+  // so the corrective-action box shows straight away rather than up to 30s later.
+  const [lateAtFinish, setLateAtFinish] = useState(false)
 
-  const elapsed  = Math.max(0, Math.floor((now - new Date(batch.started_at).getTime()) / 60000))
+  // Same rounding as the saved record (coolingMinutes) — floor-vs-round made
+  // the toast say "0m" beside a card saying "1m".
+  const elapsed  = coolingMinutes({ started_at: batch.started_at, finished_at: new Date(now).toISOString() }) ?? 0
   const pct      = Math.min(100, (elapsed / COOLING_TARGET_MINUTES) * 100)
   const timeTone = elapsed > COOLING_TARGET_MINUTES ? 'bad' : elapsed > COOLING_TARGET_MINUTES - 15 ? 'explained' : 'ok'
   const barTone  = { ok: 'bg-good', explained: 'bg-warn', bad: 'bg-bad' }[timeTone]
 
   const hasTemp = endTemp !== '' && !Number.isNaN(parseFloat(endTemp))
   const tooWarm = hasTemp && parseFloat(endTemp) > (batch.target_temp ?? COOLING_TARGET_TEMP)
-  const tooSlow = elapsed > COOLING_TARGET_MINUTES
+  const tooSlow = elapsed > COOLING_TARGET_MINUTES || lateAtFinish
   const needsNote = hasTemp && (tooWarm || tooSlow)
   const canFinish = hasTemp && (!needsNote || note.trim().length > 0)
 
   const finish = async () => {
     if (!canFinish || saving) return
+    // `now` ticks every 30s, so re-judge at the real finish time: a batch that
+    // crossed 90 minutes since the last tick would otherwise save as a fail
+    // with no corrective action, having looked on-time on screen.
+    const finishedAt = new Date()
+    const minutes    = coolingMinutes({ started_at: batch.started_at, finished_at: finishedAt.toISOString() }) ?? 0
+    if (minutes > COOLING_TARGET_MINUTES && !note.trim()) {
+      setLateAtFinish(true)
+      toast(`${batch.food_item} is now over ${COOLING_TARGET_MINUTES} minutes — add the corrective action taken`, 'error')
+      return
+    }
     setSaving(true)
-    const notes = [batch.notes, needsNote ? note.trim() : null].filter(Boolean).join('\n') || null
+    const notes = [batch.notes, note.trim() || null].filter(Boolean).join('\n') || null
     // Guard on end_temp IS NULL so two devices can't both finish the same batch
     const { data, error } = await supabase
       .from('cooling_logs')
-      .update({ end_temp: parseFloat(endTemp), finished_at: new Date().toISOString(), notes })
+      .update({ end_temp: parseFloat(endTemp), finished_at: finishedAt.toISOString(), notes })
       .eq('id', batch.id)
       .is('end_temp', null)
       .select('id')
     setSaving(false)
     if (error) { toast(error.message, 'error'); return }
     if (!data?.length) { toast(`${batch.food_item} was already finished on another device`, 'error'); onChanged(); return }
-    toast(`${batch.food_item} · ${needsNote ? 'failed — corrective action recorded' : `cooled in ${formatCoolingMinutes(elapsed)}`}`)
+    toast(`${batch.food_item} · ${needsNote || minutes > COOLING_TARGET_MINUTES ? 'failed — corrective action recorded' : `cooled in ${formatCoolingMinutes(minutes)}`}`)
     onChanged()
   }
 

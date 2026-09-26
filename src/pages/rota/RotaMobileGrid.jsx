@@ -3,6 +3,7 @@ import { format, addWeeks, subWeeks, isToday, differenceInCalendarWeeks } from '
 import { useNavigate } from 'react-router-dom'
 import { updateShift, insertShift, deleteShift, updateShiftStaff, resolveShiftSwap, upsertRotaPublished, insertShifts } from '../../lib/api/shifts'
 import { sendPush } from '../../lib/sendPush'
+import { roleForJob } from './roleForJob'
 import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
 import { useSession } from '../../contexts/SessionContext'
@@ -144,7 +145,7 @@ function ShiftSheet({ shift, staffMember, day, venueId, roles, onClose, onSaved,
   const [endM, setEndM] = useState(
     MINUTES.reduce((p, m) => Math.abs(+m - +(existing?.end_time?.slice(3, 5) ?? '0')) < Math.abs(+p - +(existing?.end_time?.slice(3, 5) ?? '0')) ? m : p, '00')
   )
-  const [roleLabel, setRoleLabel] = useState(existing?.role_label ?? staffMember?.job_role ?? '')
+  const [roleLabel, setRoleLabel] = useState(existing?.role_label ?? roleForJob(roles, staffMember?.job_role) ?? staffMember?.job_role ?? '')
   const [isClosing, setIsClosing] = useState(existing?.is_closing ?? false)
   const [edge, setEdge] = useState('start')
   const [saving, setSaving] = useState(false)
@@ -284,7 +285,7 @@ function ShiftSheet({ shift, staffMember, day, venueId, roles, onClose, onSaved,
           {/* Summary */}
           <div className="px-[13px] py-[11px] rounded-[11px] flex items-center gap-2 justify-center flex-wrap mb-[14px]" style={{ background: col + '14' }}>
             <span className="font-mono text-sm font-semibold text-charcoal dark:text-white tabular-nums">{startTime}–{endTime}</span>
-            <span className={`text-[12.5px] ${valid ? 'text-charcoal/50 dark:text-white/40' : 'text-danger'}`}>· {valid ? durLabel(startTime, endTime) : 'end must be after start'}</span>
+            <span className={`text-[12.5px] ${valid ? 'text-charcoal/50 dark:text-white/40' : 'text-danger'}`}>· {valid ? durLabel(startTime, endTime) + (endTime < startTime ? ' · ends next day' : '') : 'start and end are the same'}</span>
             {valid && cost != null && <span className="font-mono text-[12.5px] text-charcoal/50 dark:text-white/40">· ~£{cost}</span>}
           </div>
 
@@ -377,14 +378,22 @@ function SwapSheet({ swaps, onClose, onResolved }) {
               <div className="text-[13.5px] font-semibold text-charcoal dark:text-white">{swap.requester_name ?? 'Staff'} → {swap.target_staff_name ?? 'Staff'}</div>
               {swap.shift && (
                 <div className="font-mono text-[10px] text-charcoal/50 dark:text-white/40 uppercase tracking-[0.03em] mt-1">
-                  {swap.shift.shift_date} · {swap.shift.start_time?.slice(0, 5)}–{swap.shift.end_time?.slice(0, 5)}
+                  {format(new Date(swap.shift.shift_date + 'T00:00:00'), 'EEE d MMM')} · {swap.shift.start_time?.slice(0, 5)}–{swap.shift.end_time?.slice(0, 5)}
+                  {swap.shift.shift_date < format(new Date(), 'yyyy-MM-dd') && ' · shift has passed'}
                 </div>
               )}
               {swap.message && <div className="text-[12.5px] text-charcoal/75 dark:text-white/60 italic mt-2">"{swap.message}"</div>}
-              <div className="flex gap-2 mt-3">
-                <button onClick={() => decline(swap)} disabled={resolving === swap.id} className="flex-1 h-10 rounded-[10px] border border-charcoal/10 dark:border-white/10 bg-white dark:bg-paperDark text-charcoal/75 dark:text-white/60 font-semibold text-[13px] cursor-pointer">Decline</button>
-                <button onClick={() => approve(swap)} disabled={resolving === swap.id} className="flex-[2] h-10 rounded-[10px] border-none bg-success text-white font-semibold text-[13px] cursor-pointer">{resolving === swap.id ? '…' : 'Approve'}</button>
-              </div>
+              {/* A swap for a shift that has already happened can only be dismissed */}
+              {swap.shift?.shift_date && swap.shift.shift_date < format(new Date(), 'yyyy-MM-dd') ? (
+                <div className="flex gap-2 mt-3">
+                  <button onClick={() => decline(swap)} disabled={resolving === swap.id} className="flex-1 h-10 rounded-[10px] border border-charcoal/10 dark:border-white/10 bg-white dark:bg-paperDark text-charcoal/75 dark:text-white/60 font-semibold text-[13px] cursor-pointer">{resolving === swap.id ? '…' : 'Dismiss'}</button>
+                </div>
+              ) : (
+                <div className="flex gap-2 mt-3">
+                  <button onClick={() => decline(swap)} disabled={resolving === swap.id} className="flex-1 h-10 rounded-[10px] border border-charcoal/10 dark:border-white/10 bg-white dark:bg-paperDark text-charcoal/75 dark:text-white/60 font-semibold text-[13px] cursor-pointer">Decline</button>
+                  <button onClick={() => approve(swap)} disabled={resolving === swap.id} className="flex-[2] h-10 rounded-[10px] border-none bg-success text-white font-semibold text-[13px] cursor-pointer">{resolving === swap.id ? '…' : 'Approve'}</button>
+                </div>
+              )}
             </div>
           ))}
         </div>

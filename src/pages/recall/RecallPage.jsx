@@ -104,6 +104,38 @@ const EMPTY_LOG = {
   notes:           '',
 }
 
+// Defined at module level, not inside LogModal: a component declared in the
+// render body is a new type every render, so React remounts the input on each
+// keystroke and focus is lost after the first character.
+function Field({ label, required, children }) {
+  return (
+    <div className="flex flex-col gap-1">
+      <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">
+        {label}{required && <span className="text-danger ml-0.5">*</span>}
+      </label>
+      {children}
+    </div>
+  )
+}
+
+const INPUT_CLS = 'w-full px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white placeholder-charcoal/25 dark:placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20'
+
+function Input({ value, onChange, ...rest }) {
+  return <input value={value} onChange={e => onChange(e.target.value)} className={INPUT_CLS} {...rest} />
+}
+
+function Textarea({ value, onChange, rows = 3, ...rest }) {
+  return (
+    <textarea
+      value={value}
+      onChange={e => onChange(e.target.value)}
+      rows={rows}
+      className={`${INPUT_CLS} resize-none`}
+      {...rest}
+    />
+  )
+}
+
 function LogModal({ open, onClose, onSaved, venueId, editLog }) {
   const toast = useToast()
   const [form, setForm] = useState(EMPTY_LOG)
@@ -148,68 +180,40 @@ function LogModal({ open, onClose, onSaved, venueId, editLog }) {
     onSaved()
   }
 
-  const Field = ({ label, required, children }) => (
-    <div className="flex flex-col gap-1">
-      <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">
-        {label}{required && <span className="text-danger ml-0.5">*</span>}
-      </label>
-      {children}
-    </div>
-  )
-
-  const Input = ({ k, ...rest }) => (
-    <input
-      value={form[k]}
-      onChange={e => set(k, e.target.value)}
-      className="w-full px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white placeholder-charcoal/25 dark:placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
-      {...rest}
-    />
-  )
-
-  const Textarea = ({ k, rows = 3, ...rest }) => (
-    <textarea
-      value={form[k]}
-      onChange={e => set(k, e.target.value)}
-      rows={rows}
-      className="w-full px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white placeholder-charcoal/25 dark:placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 resize-none"
-      {...rest}
-    />
-  )
-
   return (
     <Modal open={open} onClose={onClose} title={editLog ? 'Edit Recall Log' : 'New Recall / Withdrawal'}>
       <div className="flex flex-col gap-4 p-5">
 
         <Field label="Date identified" required>
-          <Input k="date_identified" type="date" />
+          <Input value={form.date_identified} onChange={v => set('date_identified', v)} type="date" />
         </Field>
 
         <Field label="Product name" required>
-          <Input k="product_name" placeholder="e.g. Chicken caesar wraps" />
+          <Input value={form.product_name} onChange={v => set('product_name', v)} placeholder="e.g. Chicken caesar wraps" />
         </Field>
 
         <Field label="Batch / lot number">
-          <Input k="batch_lot_number" placeholder="From packaging or delivery note (if known)" />
+          <Input value={form.batch_lot_number} onChange={v => set('batch_lot_number', v)} placeholder="From packaging or delivery note (if known)" />
         </Field>
 
         <Field label="Reason for recall / withdrawal" required>
-          <Textarea k="reason" placeholder="e.g. Supplier notified undeclared sesame allergen in bread rolls. / Cooking temperature not achieved." />
+          <Textarea value={form.reason} onChange={v => set('reason', v)} placeholder="e.g. Supplier notified undeclared sesame allergen in bread rolls. / Cooking temperature not achieved." />
         </Field>
 
         <Field label="Action taken" required>
-          <Textarea k="action_taken" placeholder="e.g. Product removed from sale. Remaining stock quarantined. EHO contacted. Supplier advised." />
+          <Textarea value={form.action_taken} onChange={v => set('action_taken', v)} placeholder="e.g. Product removed from sale. Remaining stock quarantined. EHO contacted. Supplier advised." />
         </Field>
 
         <Field label="Who was notified">
-          <Input k="who_notified" placeholder="e.g. EHO, FSA, supplier, customers via booking system" />
+          <Input value={form.who_notified} onChange={v => set('who_notified', v)} placeholder="e.g. EHO, FSA, supplier, customers via booking system" />
         </Field>
 
         <Field label="Notes">
-          <Textarea k="notes" placeholder="Any additional context, customer complaints, staff involved…" />
+          <Textarea value={form.notes} onChange={v => set('notes', v)} placeholder="Any additional context, customer complaints, staff involved…" />
         </Field>
 
         <Field label="Resolved on">
-          <Input k="resolved_at" type="date" />
+          <Input value={form.resolved_at} onChange={v => set('resolved_at', v)} type="date" />
         </Field>
 
         <button

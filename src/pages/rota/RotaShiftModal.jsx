@@ -5,7 +5,7 @@ import TimeSelect from '../../components/ui/TimeSelect'
 import Toggle from '../../components/ui/Toggle'
 import { SHIFT_PRESETS } from '../../lib/constants'
 import { format } from 'date-fns'
-import { shiftDurationHours, paidShiftHours, unpaidBreakMins } from '../../hooks/useShifts'
+import { shiftDurationHours, paidShiftHours, unpaidBreakMins, isOvernightShift } from '../../hooks/useShifts'
 
 function SectionLabel({ children }) {
   return <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-1">{children}</p>
@@ -163,7 +163,12 @@ export default function RotaShiftModal({
                     <span className="text-lg">⏱</span>
                     <div>
                       <p className="text-xs text-charcoal/50 dark:text-white/40">Shift duration</p>
-                      <p className="font-semibold text-charcoal dark:text-white">{duration}</p>
+                      <p className="font-semibold text-charcoal dark:text-white">
+                        {duration}
+                        {isOvernightShift(form.startTime, form.endTime) && (
+                          <span className="ml-1.5 text-xs font-medium text-warning">· ends next day</span>
+                        )}
+                      </p>
                     </div>
                   </div>
                   {shiftWage && (
@@ -272,7 +277,7 @@ export default function RotaShiftModal({
           {/* Validation message */}
           {!duration && (
             <p className="text-xs text-danger/70 -mt-2">
-              End time must be after start time to save this shift.
+              Start and end can't be the same time.
             </p>
           )}
 

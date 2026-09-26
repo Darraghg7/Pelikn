@@ -1,5 +1,11 @@
 import React from 'react'
+import { format, parseISO } from 'date-fns'
 import { SkeletonList } from '../../components/ui/Skeleton'
+
+// A swap for a shift that has already happened can't be approved in any
+// meaningful way — it used to sit as "Pending" with Approve/Reject for months.
+const todayStr = () => format(new Date(), 'yyyy-MM-dd')
+const isExpired = (swap) => !!swap.shift?.shift_date && swap.shift.shift_date < todayStr()
 
 export default function RotaSwapPanel({
   showSwaps,
@@ -35,7 +41,9 @@ export default function RotaSwapPanel({
       ) : (
         <div className="flex flex-col divide-y divide-charcoal/6 dark:divide-white/8">
           {/* Pending first */}
-          {pendingSwaps.map((swap) => (
+          {pendingSwaps.map((swap) => {
+            const expired = isExpired(swap)
+            return (
             <div key={swap.id} className="p-5 flex flex-col gap-3">
               <div className="flex items-start justify-between gap-4">
                 <div>
@@ -43,13 +51,20 @@ export default function RotaSwapPanel({
                     <span className="font-semibold text-charcoal dark:text-white text-sm">{swap.requester_name}</span>
                     <span className="text-charcoal/30 dark:text-white/30 text-xs">→ swap with</span>
                     <span className="font-semibold text-charcoal dark:text-white text-sm">{swap.target_staff_name}</span>
-                    <span className="text-[11px] tracking-widest uppercase px-2 py-0.5 rounded-full bg-warning/15 text-warning font-medium">
-                      Pending
-                    </span>
+                    {expired ? (
+                      <span className="text-[11px] tracking-widest uppercase px-2 py-0.5 rounded-full bg-charcoal/8 dark:bg-white/10 text-charcoal/50 dark:text-white/45 font-medium">
+                        Expired
+                      </span>
+                    ) : (
+                      <span className="text-[11px] tracking-widest uppercase px-2 py-0.5 rounded-full bg-warning/15 text-warning font-medium">
+                        Pending
+                      </span>
+                    )}
                   </div>
                   {swap.shift && (
                     <p className="text-xs text-charcoal/50 dark:text-white/40 mt-1">
-                      Shift: {swap.shift.shift_date} · {swap.shift.start_time?.slice(0,5)}–{swap.shift.end_time?.slice(0,5)}
+                      Shift: {format(parseISO(swap.shift.shift_date), 'EEE d MMM yyyy')} · {swap.shift.start_time?.slice(0,5)}–{swap.shift.end_time?.slice(0,5)}
+                      {expired && <span className="text-charcoal/40 dark:text-white/35"> · this shift has already passed</span>}
                     </p>
                   )}
                   {swap.message && (
@@ -57,33 +72,44 @@ export default function RotaSwapPanel({
                   )}
                 </div>
               </div>
-              <div className="flex flex-col gap-2">
-                <input
-                  type="text"
-                  placeholder="Optional note for rejection…"
-                  value={rejectNote[swap.id] ?? ''}
-                  onChange={(e) => setRejectNote((n) => ({ ...n, [swap.id]: e.target.value }))}
-                  className="w-full px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-xs focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 placeholder-charcoal/25 dark:placeholder-white/20"
-                />
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => approveSwap(swap)}
-                    disabled={resolving === swap.id}
-                    className="flex-1 py-2 rounded-lg bg-success text-white text-xs font-medium hover:bg-success/90 transition-colors disabled:opacity-40"
-                  >
-                    {resolving === swap.id ? '…' : <span className="inline-flex items-center gap-1"><svg className="w-3 h-3" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg> Approve</span>}
-                  </button>
-                  <button
-                    onClick={() => rejectSwap(swap)}
-                    disabled={resolving === swap.id}
-                    className="flex-1 py-2 rounded-lg border border-danger/25 text-danger text-xs font-medium hover:bg-danger/5 transition-colors disabled:opacity-40"
-                  >
-                    {resolving === swap.id ? '…' : <span className="inline-flex items-center gap-1"><svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Reject</span>}
-                  </button>
+              {expired ? (
+                <button
+                  onClick={() => rejectSwap(swap, 'Shift had already passed')}
+                  disabled={resolving === swap.id}
+                  className="py-2 rounded-lg border border-charcoal/15 dark:border-white/15 text-charcoal/60 dark:text-white/50 text-xs font-medium hover:bg-charcoal/4 dark:hover:bg-white/5 transition-colors disabled:opacity-40"
+                >
+                  {resolving === swap.id ? '…' : 'Dismiss'}
+                </button>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  <input
+                    type="text"
+                    placeholder="Optional note for rejection…"
+                    value={rejectNote[swap.id] ?? ''}
+                    onChange={(e) => setRejectNote((n) => ({ ...n, [swap.id]: e.target.value }))}
+                    className="w-full px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-xs focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 placeholder-charcoal/25 dark:placeholder-white/20"
+                  />
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => approveSwap(swap)}
+                      disabled={resolving === swap.id}
+                      className="flex-1 py-2 rounded-lg bg-success text-white text-xs font-medium hover:bg-success/90 transition-colors disabled:opacity-40"
+                    >
+                      {resolving === swap.id ? '…' : <span className="inline-flex items-center gap-1"><svg className="w-3 h-3" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg> Approve</span>}
+                    </button>
+                    <button
+                      onClick={() => rejectSwap(swap)}
+                      disabled={resolving === swap.id}
+                      className="flex-1 py-2 rounded-lg border border-danger/25 text-danger text-xs font-medium hover:bg-danger/5 transition-colors disabled:opacity-40"
+                    >
+                      {resolving === swap.id ? '…' : <span className="inline-flex items-center gap-1"><svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Reject</span>}
+                    </button>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
-          ))}
+            )
+          })}
 
           {/* Resolved requests */}
           {resolvedSwaps.length > 0 && (

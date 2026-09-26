@@ -4,6 +4,8 @@ import { supabase } from '../../lib/supabase'
 import { fetchStaffPayRates } from '../../lib/api/staffRestricted'
 import { useVenue } from '../../contexts/VenueContext'
 import { useWidgetQuery } from '../../hooks/useWidgetQuery'
+import { useAppSettings } from '../../hooks/useSettings'
+import { paidShiftHours } from '../../hooks/useShifts'
 import LoadingSpinner from '../ui/LoadingSpinner'
 import { WidgetShell } from './shared'
 
@@ -18,8 +20,9 @@ function weekStartStr() {
 function WeeklyLabourWidget() {
   const { venueId } = useVenue()
   const weekStart = weekStartStr()
+  const { breakDurationMins } = useAppSettings()
 
-  const { data } = useWidgetQuery('weekly_labour', [venueId, weekStart], async () => {
+  const { data } = useWidgetQuery('weekly_labour', [venueId, weekStart, breakDurationMins], async () => {
       // hourly_rate is no longer readable from the staff table (117), so the
       // rates come from staff_pay_rates instead. A non-manager gets only their
       // own rate back, which means this widget shows them their own cost
@@ -27,7 +30,7 @@ function WeeklyLabourWidget() {
       const [{ data: shifts }, rates] = await Promise.all([
         supabase
           .from('shifts')
-          .select('start_time, end_time, staff_id')
+          .select('start_time, end_time, staff_id, staff:staff_id(is_under_18)')
           .eq('venue_id', venueId)
           .eq('week_start', weekStart),
         fetchStaffPayRates(),
@@ -38,9 +41,10 @@ function WeeklyLabourWidget() {
       let totalCost = 0
       for (const s of items) {
         if (!s.start_time || !s.end_time) continue
-        const [sh, sm] = s.start_time.split(':').map(Number)
-        const [eh, em] = s.end_time.split(':').map(Number)
-        const hrs = Math.max(0, ((eh * 60 + em) - (sh * 60 + sm)) / 60)
+        // Paid hours, as on the rota and timesheets: unpaid break deducted,
+        // and shifts that finish after midnight counted (this used to clamp
+        // them to 0 and count the full span including the break).
+        const hrs = paidShiftHours(s.start_time, s.end_time, s.staff?.is_under_18 ?? false, breakDurationMins)
         totalHrs += hrs
         totalCost += hrs * (rates.get(s.staff_id) ?? 0)
       }

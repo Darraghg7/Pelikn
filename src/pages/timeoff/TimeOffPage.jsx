@@ -115,12 +115,20 @@ export default function TimeOffPage() {
   // Days this form request would consume (for annual leave preview)
   const previewDays = useMemo(() => {
     if (form.leaveType !== 'annual' || !form.startDate || !form.endDate) return null
+    // Reversed dates used to preview as "5 days" while submit refused them
+    if (form.endDate < form.startDate) return null
     return countWorkingDaysInRequest(form.startDate, form.endDate, ownProfile?.working_days)
   }, [form.startDate, form.endDate, form.leaveType, ownProfile?.working_days])
 
   const submitRequest = async () => {
     if (!form.startDate || !form.endDate) { toast('Please select start and end dates', 'error'); return }
     if (form.endDate < form.startDate)    { toast('End date must be after start date', 'error'); return }
+    // Staff request leave ahead; leave already taken is recorded by a manager
+    // with "+ log past leave" on the team list.
+    if (!isManager && form.startDate < format(new Date(), 'yyyy-MM-dd')) {
+      toast('Leave can only be requested from today onwards — ask your manager to record past leave', 'error')
+      return
+    }
     setSaving(true)
     const { error: err } = await supabase.from('time_off_requests').insert({
       staff_id:   session?.staffId,
@@ -308,6 +316,13 @@ export default function TimeOffPage() {
                         {format(parseISO(r.start_date), 'd MMM')} — {format(parseISO(r.end_date), 'd MMM yyyy')}
                         {daysRequested != null && <span className="text-charcoal/35 dark:text-white/30"> · {fmtDays(daysRequested)}</span>}
                       </p>
+                      {/* Still worth deciding — approving records leave that was taken —
+                          but it shouldn't look like an upcoming request. */}
+                      {r.end_date < format(new Date(), 'yyyy-MM-dd') && (
+                        <p className="text-[11px] font-medium text-warning mt-1">
+                          These dates have passed — approve to record the leave as taken, or reject.
+                        </p>
+                      )}
                       {r.reason && <p className="text-xs text-charcoal/40 dark:text-white/35 mt-1 italic">"{r.reason}"</p>}
                       {/* Balance impact for annual leave */}
                       {r.leave_type === 'annual' && memberBalance && !memberBalance.isZeroHours && memberBalance.entitlement != null && daysRequested != null && (() => {
@@ -541,6 +556,7 @@ export default function TimeOffPage() {
               <input
                 type="date"
                 value={form.startDate}
+                min={isManager ? undefined : format(new Date(), 'yyyy-MM-dd')}
                 onChange={e => setForm(f => ({ ...f, startDate: e.target.value, endDate: f.endDate || e.target.value }))}
                 className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
               />
@@ -568,6 +584,9 @@ export default function TimeOffPage() {
           )}
 
           {/* Days / hours preview for annual leave */}
+          {form.startDate && form.endDate && form.endDate < form.startDate && (
+            <p className="text-xs text-danger -mt-1">End date is before the start date.</p>
+          )}
           {form.leaveType === 'annual' && previewDays != null && previewDays > 0 && !ownBalance?.isZeroHours && (
             <p className="text-xs text-charcoal/50 dark:text-white/40 -mt-2">
               This request covers <span className="font-semibold text-charcoal dark:text-white">{fmtDays(previewDays)}</span> of your working days.

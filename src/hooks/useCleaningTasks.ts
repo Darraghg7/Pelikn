@@ -35,7 +35,19 @@ export function cleaningStatus(
   lastCompletion: CleaningCompletion | null,
   asOf: Date = new Date(),
 ): CleaningStatus {
-  if (!lastCompletion) return 'overdue'
+  if (!lastCompletion) {
+    // A task nobody has done yet gets its first cycle, counted from when it was
+    // created, before it goes red — otherwise a weekly task added this morning
+    // was "overdue" (and dragged the overdue count up) the moment it was saved.
+    // Daily keeps the calendar-day rule: not done today means flagged.
+    // Must match get_dashboard_snapshot's cleaning CTE (migration 130).
+    const threshold = FREQ_DAYS[task.frequency]
+    if (task.frequency !== 'daily' && threshold && task.created_at) {
+      const daysSinceCreated = (asOf.getTime() - new Date(task.created_at).getTime()) / 86400000
+      if (daysSinceCreated <= threshold) return 'due_soon'
+    }
+    return 'overdue'
+  }
   const completedAt = new Date(lastCompletion.completed_at)
 
   if (task.frequency === 'daily' || !FREQ_DAYS[task.frequency]) {

@@ -11,7 +11,7 @@
  *   - History tab with date range presets
  */
 import React, { useState } from 'react'
-import { format } from 'date-fns'
+import { useLiveDatetimeLocal } from '../../hooks/useLiveDatetimeLocal'
 import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
 import { useSession } from '../../contexts/SessionContext'
@@ -32,11 +32,6 @@ function PassBadge({ pass }) {
     : <span className="text-[11px] font-semibold tracking-wider uppercase bg-danger/10 text-danger px-2 py-0.5 rounded-full">Fail</span>
 }
 
-function nowLocal() {
-  const d = new Date()
-  return format(d, "yyyy-MM-dd'T'HH:mm")
-}
-
 /* ── Log Form ─────────────────────────────────────────────────────────────── */
 function LogForm({ checkType, onLogged }) {
   const toast = useToast()
@@ -46,7 +41,8 @@ function LogForm({ checkType, onLogged }) {
   const [foodItem, setFoodItem] = useState('')
   const [temp, setTemp]         = useState('')
   const [comment, setComment]   = useState('')
-  const [loggedAt, setLoggedAt] = useState(nowLocal())
+  const loggedTime = useLiveDatetimeLocal()
+  const loggedAt   = loggedTime.value
   const [submitting, setSubmitting] = useState(false)
 
   const tempNum   = parseFloat(temp)
@@ -66,7 +62,7 @@ function LogForm({ checkType, onLogged }) {
       target_temp:    COOKING_TARGET_TEMP,
       logged_by:      session?.staffId ?? null,
       logged_by_name: session?.staffName ?? 'Unknown',
-      logged_at:      new Date(loggedAt).toISOString(),
+      logged_at:      loggedTime.instant().toISOString(),
       notes:          comment.trim() || null,
     })
     setSubmitting(false)
@@ -75,7 +71,7 @@ function LogForm({ checkType, onLogged }) {
     setFoodItem('')
     setTemp('')
     setComment('')
-    setLoggedAt(nowLocal())
+    loggedTime.reset()
     onLogged?.()
   }
 
@@ -128,7 +124,7 @@ function LogForm({ checkType, onLogged }) {
           <input
             type="datetime-local"
             value={loggedAt}
-            onChange={e => setLoggedAt(e.target.value)}
+            onChange={e => loggedTime.setByUser(e.target.value)}
             className="w-full px-3 py-3 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
           />
         </div>

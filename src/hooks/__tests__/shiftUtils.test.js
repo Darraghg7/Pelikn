@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { shiftDurationHours, unpaidBreakMins, paidShiftHours } from '../useShifts'
+import { shiftDurationHours, unpaidBreakMins, paidShiftHours, isOvernightShift } from '../useShifts'
 
 // ── shiftDurationHours ────────────────────────────────────────────────────────
 
@@ -26,8 +26,25 @@ describe('shiftDurationHours', () => {
     expect(shiftDurationHours('09:00', '')).toBe(0)
   })
 
-  it('returns 0 when end is before start (no overnight support)', () => {
-    expect(shiftDurationHours('22:00', '06:00')).toBe(0)
+  // Late venues close past midnight: an end before the start is the next day.
+  it('treats an end before the start as finishing the next day', () => {
+    expect(shiftDurationHours('22:00', '06:00')).toBe(8)
+    expect(shiftDurationHours('18:00', '02:30')).toBe(8.5)
+  })
+
+  it('counts a shift ending exactly at midnight', () => {
+    expect(shiftDurationHours('17:00', '00:00')).toBe(7)
+  })
+
+  it('deducts the unpaid break from an overnight shift too', () => {
+    expect(paidShiftHours('18:00', '02:00', false)).toBe(7.5)
+  })
+
+  it('flags overnight shifts', () => {
+    expect(isOvernightShift('18:00', '02:00')).toBe(true)
+    expect(isOvernightShift('18:00:00', '02:00:00')).toBe(true)
+    expect(isOvernightShift('09:00', '17:00')).toBe(false)
+    expect(isOvernightShift('09:00', '09:00')).toBe(false)
   })
 
   it('handles break-cover lunchtime shift (11:00–14:00)', () => {

@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
+import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../../components/ui/Toast'
 import { supabase } from '../../lib/supabase'
 import SettingsSection from './SettingsSection'
@@ -10,7 +11,13 @@ import { EXTRA_VENUE_PRICE } from '../../lib/pricing'
 import { slugify } from '../../lib/utils'
 
 export default function VenuesSection() {
-  const { venues, refreshVenues, selectVenue } = useAuth()
+  const { user, venues: accountVenues, refreshVenues, selectVenue } = useAuth()
+  const { linkedVenues, switchVenue } = useSession()
+  // Signed in by PIN there is no owner account, so the account's venue list is
+  // empty ("0 venues") — show the venues this sign-in can open instead.
+  // Adding a venue needs the owner's email sign-in (create_additional_venue).
+  const pinOnly = !user
+  const venues  = pinOnly ? linkedVenues : accountVenues
   const { venuePlan } = useVenueFeatures()
   const toast = useToast()
   const navigate = useNavigate()
@@ -62,8 +69,15 @@ export default function VenuesSection() {
     navigate(`/v/${newSlug}/dashboard`, { replace: true })
   }
 
-  const handleOpenVenue = (slug) => {
-    selectVenue(slug)
+  const handleOpenVenue = async (slug) => {
+    if (pinOnly) {
+      const target = linkedVenues.find(v => v.slug === slug)
+      if (!target) return
+      const { error } = await switchVenue(target.id, target.slug)
+      if (error) { toast('Could not open that venue', 'error'); return }
+    } else {
+      selectVenue(slug)
+    }
     navigate(`/v/${slug}/dashboard`, { replace: true })
   }
 
@@ -83,7 +97,7 @@ export default function VenuesSection() {
             <div className="min-w-0">
               <div className="flex items-center gap-1.5 flex-wrap">
                 <p className="text-sm font-semibold text-charcoal dark:text-white">{v.name}</p>
-                <span className="text-[11px] font-semibold tracking-wider uppercase px-1.5 py-0.5 rounded bg-brand/8 text-brand">{v.plan}</span>
+                {v.plan && <span className="text-[11px] font-semibold tracking-wider uppercase px-1.5 py-0.5 rounded bg-brand/8 text-brand">{v.plan}</span>}
                 {i === 0 && (
                   <span className="text-[11px] tracking-wider uppercase font-medium px-1.5 py-0.5 rounded bg-charcoal/[0.06] text-charcoal/55 dark:text-white/45">Primary</span>
                 )}
@@ -101,7 +115,11 @@ export default function VenuesSection() {
       </div>
 
       {/* Add venue form */}
-      {showForm ? (
+      {pinOnly ? (
+        <p className="text-xs text-charcoal/45 dark:text-white/40">
+          To add a venue, sign in with the owner's email and password.
+        </p>
+      ) : showForm ? (
         <div className="p-4 rounded-2xl bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 flex flex-col gap-3.5">
           <p className="text-sm font-semibold text-charcoal dark:text-white">Add New Venue</p>
 

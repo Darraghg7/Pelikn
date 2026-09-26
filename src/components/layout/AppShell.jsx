@@ -11,6 +11,7 @@ import { useVenueFeatures } from '../../hooks/useVenueFeatures'
 import { useIsDesktop } from '../../hooks/useMediaQuery'
 import { preloadRoute } from '../../lib/routePreload'
 import { captureSilent } from '../../lib/reportError'
+import { cleaningStatus } from '../../hooks/useCleaningTasks'
 import Rail from './RailNav'
 import NavPanel from './NavPanel'
 import NavTopbar from './NavTopbar'
@@ -44,20 +45,21 @@ function useOverdueCleaning(venueId) {
         // venue's entire completion history changed nothing but the payload.
         const since = new Date(Date.now() - 90 * 86400000).toISOString()
         const [{ data: tasks }, { data: completions }] = await Promise.all([
-          supabase.from('cleaning_tasks').select('id, frequency').eq('venue_id', venueId).eq('is_active', true),
+          supabase.from('cleaning_tasks').select('id, frequency, created_at').eq('venue_id', venueId).eq('is_active', true),
           supabase.from('cleaning_completions').select('cleaning_task_id, completed_at')
             .eq('venue_id', venueId)
             .gte('completed_at', since)
             .order('completed_at', { ascending: false }),
         ])
         if (!tasks?.length || cancelled) return
-        const freqDays = { daily: 1, weekly: 7, fortnightly: 14, monthly: 30, quarterly: 90 }
+        // Same rule as the Cleaning page and the dashboard snapshot — this used
+        // a rolling 24h for daily tasks, so a task done last night showed on
+        // the page as overdue but not in this badge.
         const now = new Date()
         let overdue = 0
         for (const t of tasks) {
-          const last = completions?.find(c => c.cleaning_task_id === t.id)
-          if (!last) { overdue++; continue }
-          if ((now - new Date(last.completed_at)) / 86400000 > freqDays[t.frequency]) overdue++
+          const last = completions?.find(c => c.cleaning_task_id === t.id) ?? null
+          if (cleaningStatus(t, last, now) === 'overdue') overdue++
         }
         _cache.cleaning[venueId] = overdue
         _cache.cleaning[venueId + '_ts'] = Date.now()
@@ -502,7 +504,9 @@ export default function AppShell({ children }) {
 
   // All venues the current user can switch to.
   // For staff: linkedVenues now includes primary + linked (migration 054), so use it directly.
-  const allSwitchableVenues = isManager ? venues : linkedVenues
+  // A manager signed in by PIN has no Supabase-Auth account, so `venues` is
+  // empty for them — fall back to the venues linked to the PIN session.
+  const allSwitchableVenues = isManager && venues.length ? venues : linkedVenues
 
   const navInfo = routeToNav(localPath)
   const mainCat  = navInfo.cat
