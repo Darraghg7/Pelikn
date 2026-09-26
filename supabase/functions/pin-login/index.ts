@@ -31,6 +31,15 @@ const ALLOWED_ORIGINS = [
   'http://localhost:4173',
 ]
 
+// Vercel preview deploys (one per branch). Without this the browser blocks
+// the call on every preview, so preview logins always took the no-JWT
+// fallback. Pinned to this Vercel team's suffix so another account's
+// "pelikn-…" project can't match.
+const PREVIEW_ORIGIN = /^https:\/\/pelikn-[a-z0-9-]+-darraghguy1-4932s-projects\.vercel\.app$/
+
+const originAllowed = (origin: string) =>
+  ALLOWED_ORIGINS.includes(origin) || PREVIEW_ORIGIN.test(origin)
+
 // ── JWT signing ───────────────────────────────────────────────────────────────
 
 function b64url(data: string | Uint8Array): string {
@@ -78,7 +87,7 @@ function makeJwt(staffId: string, venueId: string, sessionToken: string): Promis
 Deno.serve(async (req) => {
   const origin = req.headers.get('origin') ?? ''
   const cors = {
-    'Access-Control-Allow-Origin':  ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0],
+    'Access-Control-Allow-Origin':  originAllowed(origin) ? origin : ALLOWED_ORIGINS[0],
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   }
 
@@ -197,11 +206,15 @@ Deno.serve(async (req) => {
       const { session_token, venue_id } = body
       if (!session_token || !venue_id) return json({ error: 'session_token, venue_id required' }, 400)
 
+      // staff_sessions has no is_active column (see 077) — filtering on it
+      // made this query error, so issue_jwt returned 401 for every session:
+      // JWT refresh, venue switching and the login fallback never got a JWT.
+      // A signed-out session is deleted by invalidate_staff_session, so
+      // existence plus expires_at is the whole validity check.
       const { data: row } = await db
         .from('staff_sessions')
         .select('staff_id, venue_id, expires_at')
         .eq('token', session_token)
-        .eq('is_active', true)
         .single()
 
       if (!row) return json({ error: 'Invalid or expired session' }, 401)
