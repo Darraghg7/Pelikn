@@ -374,6 +374,10 @@ const ROLE_LABEL = { owner: 'Owner', manager: 'Manager', staff: 'Staff' }
  * policy denies anon), so it costs nothing to leave in place — but it can be
  * deleted once the migration is confirmed live.
  */
+// How long a PIN sign-in may spin before the page stops waiting and tells the
+// user to try again (see doSignIn).
+const SIGN_IN_TIMEOUT_MS = 20_000
+
 async function fetchLoginStaff(venueId) {
   const { data, error } = await supabase.rpc('list_venue_staff_for_login', { p_venue_id: venueId })
   if (!error && data) return data
@@ -505,7 +509,27 @@ export default function LoginPage() {
     if (!selected || pinValue.length < 4 || submitting) return
     setSubmitting(true)
     setError('')
-    const { error: err, linkedVenues } = await signIn(selected.id, pinValue, venueId, venueSlug)
+
+    // signIn has no overall deadline: the pin-login call has no timeout, and
+    // each follow-up read can take up to 20 s. When the database jammed
+    // (26 Sep 2026) that left staff on a spinner indefinitely. Give up on
+    // waiting after SIGN_IN_TIMEOUT_MS so they can retry. The attempt itself
+    // isn't cancelled: if it succeeds late, the session effect above still
+    // moves them to the dashboard, and a late error is simply dropped.
+    let timer
+    const timedOut = new Promise(resolve => {
+      timer = setTimeout(() => resolve({ timedOut: true }), SIGN_IN_TIMEOUT_MS)
+    })
+    const result = await Promise.race([signIn(selected.id, pinValue, venueId, venueSlug), timedOut])
+    clearTimeout(timer)
+    if (result.timedOut) {
+      setError("Couldn't reach the server, please try again")
+      setPin('')
+      setSubmitting(false)
+      return
+    }
+
+    const { error: err, linkedVenues } = result
     if (err) {
       const msg = err.message ?? ''
       if (/too many failed/i.test(msg)) {
