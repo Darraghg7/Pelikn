@@ -40,6 +40,62 @@ export function invalidateChecksStatusCache(venueId) {
 }
 
 /**
+ * The four tile lookups the day snapshot doesn't cover. One request
+ * (get_checks_status, migration 136) — a cold database slows down with every
+ * extra request that arrives at once. Falls back to the per-table queries
+ * while 136 isn't applied, or if the call fails. Results keep the shape of
+ * the old per-table responses, so the status logic below is unchanged.
+ */
+let checksRpcMissing = false
+
+async function fetchChecksRaw(venueId, dayStart, dayEnd) {
+  if (!checksRpcMissing) {
+    const { data, error } = await supabase.rpc('get_checks_status', {
+      p_venue_id: venueId, p_day_start: dayStart, p_day_end: dayEnd,
+    })
+    if (!error && data) {
+      return {
+        fitnessRes:  { count: data.fitness_count ?? 0 },
+        probeRes:    { data: data.last_calibrated_at ? [{ calibrated_at: data.last_calibrated_at }] : [] },
+        deliveryRes: { count: data.delivery_count ?? 0 },
+        incidentRes: { count: data.open_incidents ?? 0 },
+      }
+    }
+    if (error?.code === 'PGRST202') checksRpcMissing = true
+  }
+
+  const [fitnessRes, probeRes, deliveryRes, incidentRes] = await Promise.all([
+    supabase
+      .from('fitness_declarations')
+      .select('id', { count: 'exact', head: true })
+      .eq('venue_id', venueId)
+      .gte('declared_at', dayStart)
+      .lte('declared_at', dayEnd),
+
+    supabase
+      .from('probe_calibrations')
+      .select('calibrated_at')
+      .eq('venue_id', venueId)
+      .order('calibrated_at', { ascending: false })
+      .limit(1),
+
+    supabase
+      .from('delivery_checks')
+      .select('id', { count: 'exact', head: true })
+      .eq('venue_id', venueId)
+      .gte('checked_at', dayStart)
+      .lte('checked_at', dayEnd),
+
+    supabase
+      .from('incidents')
+      .select('id', { count: 'exact', head: true })
+      .eq('venue_id', venueId)
+      .eq('status', 'open'),
+  ])
+  return { fitnessRes, probeRes, deliveryRes, incidentRes }
+}
+
+/**
  * Derives live status for each of the 14 compliance categories.
  * Queries that don't depend on summary (fitness, probe, delivery, incidents)
  * start immediately in parallel with useTodaySummary — no waterfall.
@@ -80,34 +136,7 @@ export function useChecksStatus(venueId, summary, summaryLoading, closedToday = 
 
     if (!entry) setRawLoading(true)
 
-    Promise.all([
-      supabase
-        .from('fitness_declarations')
-        .select('id', { count: 'exact', head: true })
-        .eq('venue_id', venueId)
-        .gte('declared_at', dayStart)
-        .lte('declared_at', dayEnd),
-
-      supabase
-        .from('probe_calibrations')
-        .select('calibrated_at')
-        .eq('venue_id', venueId)
-        .order('calibrated_at', { ascending: false })
-        .limit(1),
-
-      supabase
-        .from('delivery_checks')
-        .select('id', { count: 'exact', head: true })
-        .eq('venue_id', venueId)
-        .gte('checked_at', dayStart)
-        .lte('checked_at', dayEnd),
-
-      supabase
-        .from('incidents')
-        .select('id', { count: 'exact', head: true })
-        .eq('venue_id', venueId)
-        .eq('status', 'open'),
-    ]).then(([fitnessRes, probeRes, deliveryRes, incidentRes]) => {
+    fetchChecksRaw(venueId, dayStart, dayEnd).then(({ fitnessRes, probeRes, deliveryRes, incidentRes }) => {
       if (cancelled) return
       const fresh = { fitnessRes, probeRes, deliveryRes, incidentRes, today }
       rawCacheSet(key, fresh)
