@@ -99,8 +99,8 @@ export function useChecksStatus(venueId, summary, summaryLoading, closedToday = 
         .from('delivery_checks')
         .select('id', { count: 'exact', head: true })
         .eq('venue_id', venueId)
-        .gte('delivered_at', dayStart)
-        .lte('delivered_at', dayEnd),
+        .gte('checked_at', dayStart)
+        .lte('checked_at', dayEnd),
 
       supabase
         .from('incidents')
