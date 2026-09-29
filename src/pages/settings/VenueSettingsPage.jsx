@@ -53,8 +53,16 @@ export default function VenueSettingsPage() {
   const [logoFile, setLogoFile] = useState(null)
   const [uploadingLogo, setUploadingLogo] = useState(false)
 
+  const [fhrs, setFhrs] = useState({ rating: null, rated_at: '' })
+  const [savingFhrs, setSavingFhrs] = useState(false)
+  const [fhrsSaveSuccess, setFhrsSaveSuccess] = useState(false)
+
   useEffect(() => {
     if (!sLoading) setForm({ venue_name: settings.venue_name, manager_email: settings.manager_email })
+  }, [sLoading, settings])
+
+  useEffect(() => {
+    if (!sLoading) setFhrs({ rating: settings.fhrs_rating, rated_at: settings.fhrs_rated_at ?? '' })
   }, [sLoading, settings])
 
   const saveDetails = async () => {
@@ -80,6 +88,18 @@ export default function VenueSettingsPage() {
     await supabase.from('app_settings').upsert({ venue_id: venueId, key: 'logo_url', value: urlData.publicUrl + '?t=' + Date.now() }, { onConflict: 'venue_id,key' })
     setUploadingLogo(false)
     setLogoFile(null)
+    reloadSettings()
+  }
+
+  const saveFhrs = async () => {
+    setSavingFhrs(true)
+    await Promise.all([
+      supabase.from('app_settings').upsert({ venue_id: venueId, key: 'fhrs_rating', value: fhrs.rating == null ? '' : String(fhrs.rating) }, { onConflict: 'venue_id,key' }),
+      supabase.from('app_settings').upsert({ venue_id: venueId, key: 'fhrs_rated_at', value: fhrs.rated_at }, { onConflict: 'venue_id,key' }),
+    ])
+    setSavingFhrs(false)
+    setFhrsSaveSuccess(true)
+    setTimeout(() => setFhrsSaveSuccess(false), 2000)
     reloadSettings()
   }
 
@@ -122,6 +142,42 @@ export default function VenueSettingsPage() {
               className={`self-start h-9 px-4 rounded-[9px] border-0 text-[13px] font-semibold text-white transition-colors duration-200 ${saving ? 'opacity-60 cursor-default' : 'cursor-pointer'} ${saveSuccess ? 'bg-success' : 'bg-brand'}`}
             >
               {saving ? 'Saving…' : saveSuccess ? '✓ Saved' : 'Save changes'}
+            </button>
+          </div>
+        </Group>
+
+        <Group label="Food hygiene rating" foot="Your venue's official FSA/FHRS rating from its last real EHO inspection — shown next to your mock inspection score so you can compare the two.">
+          <div className="px-[15px] py-[13px] flex flex-col gap-3">
+            <div>
+              <div className="font-mono text-[11px] font-semibold tracking-[0.06em] uppercase text-charcoal/50 dark:text-white/40 mb-1.5">Rating (0–5)</div>
+              <div className="flex gap-1.5 flex-wrap">
+                {[0, 1, 2, 3, 4, 5].map((n) => (
+                  <button
+                    key={n}
+                    type="button"
+                    onClick={() => setFhrs((f) => ({ ...f, rating: f.rating === n ? null : n }))}
+                    className={`w-9 h-9 rounded-[9px] text-sm font-semibold border transition-colors ${fhrs.rating === n ? 'bg-brand text-white border-brand' : 'bg-transparent text-charcoal/60 dark:text-white/50 border-charcoal/15 dark:border-white/15 hover:border-charcoal/30 dark:hover:border-white/30'}`}
+                  >
+                    {n}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <div className="font-mono text-[11px] font-semibold tracking-[0.06em] uppercase text-charcoal/50 dark:text-white/40 mb-1.5">Date of last inspection</div>
+              <input
+                type="date"
+                value={fhrs.rated_at}
+                onChange={(e) => setFhrs((f) => ({ ...f, rated_at: e.target.value }))}
+                className="w-full px-3 py-2.5 rounded-[10px] border border-charcoal/10 dark:border-white/10 text-sm text-charcoal dark:text-white outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 focus:border-charcoal/20 dark:focus:border-white/20 box-border"
+              />
+            </div>
+            <button
+              onClick={saveFhrs}
+              disabled={savingFhrs}
+              className={`self-start h-9 px-4 rounded-[9px] border-0 text-[13px] font-semibold text-white transition-colors duration-200 ${savingFhrs ? 'opacity-60 cursor-default' : 'cursor-pointer'} ${fhrsSaveSuccess ? 'bg-success' : 'bg-brand'}`}
+            >
+              {savingFhrs ? 'Saving…' : fhrsSaveSuccess ? '✓ Saved' : 'Save rating'}
             </button>
           </div>
         </Group>
