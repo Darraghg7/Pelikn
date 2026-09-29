@@ -198,9 +198,17 @@ export function useCleaningTasks(
     return acquireLive(venueId!, queryClient)
   }, [active, venueId, queryClient])
 
+  // Viewing a past day (Tasks page) needs each task's last completion as of
+  // that day, not today — a separate query with a cutoff. Today and future
+  // days share the uncut one. Realtime invalidates both (key prefix).
+  const asOfEnd = asOf
+    ? new Date(asOf.getFullYear(), asOf.getMonth(), asOf.getDate(), 23, 59, 59, 999)
+    : null
+  const before = asOfEnd && asOfEnd.getTime() < Date.now() ? asOfEnd.toISOString() : null
+
   const { data, isLoading, refetch, error } = useQuery({
-    queryKey: ['cleaningTasks', venueId],
-    queryFn: () => fetchCleaningTasks(venueId!),
+    queryKey: ['cleaningTasks', venueId, before],
+    queryFn: () => fetchCleaningTasks(venueId!, before),
     enabled: active,
     // Realtime is the live path; this only kicks in while the channel is down.
     refetchInterval: () => (_live.connected ? false : POLL_WHEN_DOWN_MS),

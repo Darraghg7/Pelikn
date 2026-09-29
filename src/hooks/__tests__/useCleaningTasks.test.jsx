@@ -112,6 +112,43 @@ describe('useCleaningTasks — live updates', () => {
     expect(h.result.current.overdueCount).toBe(0)
     h.unmount()
   })
+
+  it('reads tasks and each latest completion from get_cleaning_state when it exists', async () => {
+    // A monthly task last done 20 days ago must read as done even when that
+    // completion is older than the newest 1,000 — the old query's blind spot.
+    const MONTHLY = { ...TASK, id: 't2', title: 'Descale ice machine', frequency: 'monthly' }
+    const bodies = []
+    global.fetch = vi.fn(async (url, init) => {
+      const u = typeof url === 'string' ? url : url?.url ?? ''
+      if (u.includes('/rpc/get_cleaning_state')) {
+        bodies.push(JSON.parse(init?.body ?? '{}'))
+        return json({
+          tasks: [TASK, MONTHLY],
+          completions: [{
+            id: 'c9', cleaning_task_id: 't2', venue_id: VENUE, completed_by_name: 'Helen',
+            completed_at: new Date(Date.now() - 20 * 86400000).toISOString(),
+          }],
+        })
+      }
+      return json([])
+    })
+
+    const h = renderHook(() => useCleaningTasks(), { wrapper })
+    await waitFor(() => expect(h.result.current.tasks).toHaveLength(2))
+    const byId = Object.fromEntries(h.result.current.tasks.map(t => [t.id, t]))
+    expect(byId.t2.status).toBe('done')
+    expect(byId.t1.status).toBe('overdue')
+    expect(bodies[0]).toEqual({ p_venue_id: VENUE, p_before: null })
+    const urls = global.fetch.mock.calls.map(([u]) => String(u))
+    expect(urls.some(u => u.includes('/rest/v1/cleaning_completions'))).toBe(false)
+
+    // A past day asks for completions up to the end of that day.
+    const past = new Date(Date.now() - 10 * 86400000)
+    const p = renderHook(() => useCleaningTasks(null, [], past), { wrapper })
+    await waitFor(() => expect(p.result.current.tasks).toHaveLength(2))
+    const cut = new Date(past.getFullYear(), past.getMonth(), past.getDate(), 23, 59, 59, 999).toISOString()
+    expect(bodies.some(b => b.p_before === cut)).toBe(true)
+  })
 })
 
 describe('cleaningDueLabel', () => {

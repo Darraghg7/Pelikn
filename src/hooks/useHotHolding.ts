@@ -124,7 +124,12 @@ export function useHotHoldingTodayStatus(): { status: HotHoldingTodayStatus; loa
     queryFn: async (): Promise<HotHoldingTodayStatus> => {
       const today = new Date().toISOString().slice(0, 10)
       const [items, { data }] = await Promise.all([
-        fetchActiveHotHoldingItems(venueId!),
+        // Same cache as useHotHoldingItems, so the list isn't fetched twice.
+        queryClient.fetchQuery({
+          queryKey: ['hot_holding_items', venueId],
+          queryFn: () => fetchActiveHotHoldingItems(venueId!),
+          staleTime: 30_000,
+        }),
         supabase
           .from('hot_holding_logs')
           .select('id, item_id, temperature, check_period, logged_at, logged_by_name, venue_id')
