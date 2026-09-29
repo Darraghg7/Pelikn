@@ -56,10 +56,11 @@ export async function fetchFridgeDashboard(venueId: string): Promise<FridgeWithL
 export async function fetchTodayCheckStatus(
   venueId: string,
   isCheckRequired: (item: Fridge, date: Date, period: string) => boolean,
+  loadFridges: () => Promise<Fridge[]> = () => fetchActiveFridges(venueId),
 ): Promise<FridgeTodayStatus[]> {
   const today = new Date().toISOString().slice(0, 10)
   const [fridges, { data: logs }] = await Promise.all([
-    fetchActiveFridges(venueId),
+    loadFridges(),
     supabase.from('fridge_temperature_logs')
       .select('id, fridge_id, temperature, logged_at, check_period, exceedance_reason, is_resolved, logged_by, logged_by_name, venue_id')
       .eq('venue_id', venueId)
