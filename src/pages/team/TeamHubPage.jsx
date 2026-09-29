@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom'
 import { useVenue } from '../../contexts/VenueContext'
 import { useTeamStatus } from '../../hooks/useTeamStatus'
 import { useAppSettings } from '../../hooks/useSettings'
-import useManagerCalendar from '../../hooks/useManagerCalendar'
 
 const STATUS_TONE = {
   overdue: { statusBg: 'bg-danger/10',  statusText: 'text-danger',  statusFg: 'bg-danger',  rank: 0 },
@@ -141,7 +140,7 @@ export default function TeamHubPage() {
 
   const { data, loading } = useTeamStatus(venueId)
   const { hiddenTeamTiles, saveHiddenTeamTiles } = useAppSettings()
-  const { upcomingCount } = useManagerCalendar()
+  const upcomingCount = data?.calendarUpcoming ?? 0
 
   const [editMode, setEditMode] = useState(false)
   const [localHidden, setLocalHidden] = useState([])
