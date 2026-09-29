@@ -29,7 +29,11 @@ import RotaShiftModal from './RotaShiftModal'
 import RotaSwapPanel from './RotaSwapPanel'
 import { SkeletonList } from '../../components/ui/Skeleton'
 import { useDutyTemplates } from '../../hooks/useDuties'
+import useVenueClosures from '../../hooks/useVenueClosures'
+import { useQuery } from '@tanstack/react-query'
 import StaffRotaView from './StaffRotaView'
+
+const EMPTY_ROLES = {}
 
 export default function RotaPage() {
   const toast = useToast()
@@ -49,24 +53,21 @@ export default function RotaPage() {
   const { roles: venueRoles } = useVenueRoles()
 
   // ── Staff roles map (for auto-fill) ──
-  const [staffRoles, setStaffRoles] = useState({})
-  useEffect(() => {
-    if (!venueId) return
-    const crossVenueIds = staff.filter(s => s._crossVenue).map(s => s.id)
-    loadAllStaffRolesForVenue(venueId, crossVenueIds).then(setStaffRoles)
-  }, [venueId, staff])
+  // Only the AI auto-fill reads this, so it loads when that modal opens.
+  // Keyed on the cross-venue ids, not the staff array: that array is rebuilt
+  // on most renders, and depending on it re-ran these queries in a loop.
+  const crossVenueKey = staff.filter(s => s._crossVenue).map(s => s.id).sort().join(',')
+  const [showAI, setShowAI] = useState(false)
+  const { data: staffRoles = EMPTY_ROLES } = useQuery({
+    queryKey: ['staff_roles_for_autofill', venueId, crossVenueKey],
+    queryFn: () => loadAllStaffRolesForVenue(venueId, crossVenueKey ? crossVenueKey.split(',') : []),
+    enabled: !!venueId && showAI,
+    staleTime: 5 * 60_000,
+  })
 
   // ── Venue closures ──
-  const [closures, setClosures] = useState([])
-  const loadClosures = useCallback(async () => {
-    if (!venueId) return
-    const { data } = await supabase
-      .from('venue_closures')
-      .select('id, start_date, end_date')
-      .eq('venue_id', venueId)
-    setClosures(data ?? [])
-  }, [venueId])
-  useEffect(() => { loadClosures() }, [loadClosures])
+  // Shared cache with the rest of the app, so this isn't fetched twice.
+  const { closures, reload: loadClosures } = useVenueClosures()
 
   const closedDates = React.useMemo(() => {
     const set = new Set()
@@ -127,7 +128,6 @@ export default function RotaPage() {
   const effectiveClosedDates = closureMode && pendingClosed != null ? pendingClosed : closedDates
 
   const [showBuilder, setShowBuilder] = useState(false)
-  const [showAI, setShowAI]           = useState(false)
   const [showConfig, setShowConfig]   = useState(false)
 
   // Shift modal state

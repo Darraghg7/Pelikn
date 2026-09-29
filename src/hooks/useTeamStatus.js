@@ -178,7 +178,9 @@ export function useTeamStatus(venueId) {
     }
 
     fetch()
-    const interval = setInterval(fetch, STALE_MS)
+    // Live "on shift" refresh. Skipped while the app is backgrounded — each
+    // tick is 8 queries against the shared database, for a screen nobody sees.
+    const interval = setInterval(() => { if (!document.hidden) fetch() }, STALE_MS)
     return () => { cancelled = true; clearInterval(interval) }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [venueId])

@@ -6,6 +6,12 @@ import { readPersisted, writePersisted } from '../lib/persistedCache'
 
 // ── Venue roles (Barista, Chef, FOH…) ────────────────────────────────────────
 
+// Stable empties. A fresh `= []` default on every render while a query loads
+// changes the identity of everything derived from it, which re-ran effects
+// downstream (the rota refetched job roles in a loop while it loaded).
+const NO_ROLES: never[] = []
+const NO_ROWS: never[] = []
+
 interface VenueRole {
   id: string
   name: string
@@ -26,7 +32,7 @@ export function useVenueRoles(): {
   const { venueId } = useVenue()
   const queryClient = useQueryClient()
 
-  const { data: roles = [], isLoading: loading, refetch } = useQuery({
+  const { data: roles = NO_ROLES, isLoading: loading, refetch } = useQuery({
     queryKey: ['venue_roles', venueId],
     queryFn: async () => {
       const { data } = await supabase
@@ -197,7 +203,7 @@ export function useStaffJobTitles(): {
   const { venueId } = useVenue()
   const { roles } = useVenueRoles()
 
-  const { data: rows = [], isLoading: loading } = useQuery({
+  const { data: rows = NO_ROWS, isLoading: loading } = useQuery({
     queryKey: ['staff_job_titles', venueId],
     queryFn: async () => {
       const { data, error } = await supabase

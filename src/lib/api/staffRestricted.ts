@@ -44,9 +44,24 @@ function sessionToken(): string | null {
   try { return localStorage.getItem(SESSION_TOKEN_KEY) } catch { return null }
 }
 
-export async function fetchStaffPayRates(): Promise<PayRates> {
+// Shifts and the staff list both need pay rates and load side by side, so
+// concurrent callers share one request. Cleared as soon as it settles —
+// this dedupes a burst, it is not a cache.
+let payRatesInFlight: { token: string; promise: Promise<PayRates> } | null = null
+
+export function fetchStaffPayRates(): Promise<PayRates> {
   const token = sessionToken()
-  if (!token) return new Map()
+  if (!token) return Promise.resolve(new Map())
+  if (payRatesInFlight?.token === token) return payRatesInFlight.promise
+
+  const promise = loadStaffPayRates(token).finally(() => {
+    if (payRatesInFlight?.promise === promise) payRatesInFlight = null
+  })
+  payRatesInFlight = { token, promise }
+  return promise
+}
+
+async function loadStaffPayRates(token: string): Promise<PayRates> {
 
   const { data, error } = await supabase.rpc('staff_pay_rates', { p_session_token: token })
 
