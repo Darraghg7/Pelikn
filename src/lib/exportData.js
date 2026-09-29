@@ -9,6 +9,8 @@ import { coolingOutcome, formatCoolingMinutes, COOLING_TARGET_MINUTES } from './
 // jsPDF is loaded on demand — see the note in pdfUtils.js. Every exporter here
 // is already async, so awaiting the library costs nothing structurally.
 import { buildPdfReport, loadPdfLibs } from './pdfUtils'
+import { fetchMockInspections } from './api/mockInspections'
+import { documentStatus } from '../hooks/useDocuments'
 
 /* ── Shared colour helpers ─────────────────────────────────────────────── */
 const RED   = [180, 30,  30]
@@ -301,13 +303,27 @@ export async function exportFullReport(venueId, days = 90) {
   ])
 }
 
+/* ── FHRS rating (venue's official EHO result, stored in app_settings) ──── */
+async function fetchFhrsRating(venueId) {
+  const { data } = await supabase
+    .from('app_settings')
+    .select('key, value')
+    .eq('venue_id', venueId)
+    .in('key', ['fhrs_rating', 'fhrs_rated_at'])
+  const map = Object.fromEntries((data ?? []).map(r => [r.key, r.value]))
+  return {
+    rating:  map.fhrs_rating != null && map.fhrs_rating !== '' ? Number(map.fhrs_rating) : null,
+    ratedAt: map.fhrs_rated_at || null,
+  }
+}
+
 /* ── EHO Inspection Report (single comprehensive PDF) ─────────────────── */
 export async function exportEHOReport(venueId, venueName = '', days = 90) {
   const since = subDays(new Date(), days).toISOString()
   const now   = new Date()
 
   // Fetch all data in parallel
-  const [temps, deliveries, probes, actions, training, cooling, hotHolding, pest, cleaning] =
+  const [temps, deliveries, probes, actions, training, cooling, hotHolding, pest, cleaning, mockInspections, fhrs, documents] =
     await Promise.all([
       supabase.from('fridge_temperature_logs')
         .select('temperature, logged_at, exceedance_reason, is_resolved, fridge:fridge_id(name, min_temp, max_temp), logged_by_name')
@@ -337,6 +353,12 @@ export async function exportEHOReport(venueId, venueName = '', days = 90) {
       supabase.from('cleaning_completions')
         .select('completed_at, completed_by_name, task:cleaning_task_id(title)')
         .eq('venue_id', venueId).gte('completed_at', since).order('completed_at', { ascending: false }),
+      // Self-assessment history — not date-windowed, an inspector wants the full trend
+      fetchMockInspections(venueId).catch(() => []),
+      fetchFhrsRating(venueId).catch(() => ({ rating: null, ratedAt: null })),
+      supabase.from('documents')
+        .select('title, category, expiry_date, file_name, created_at')
+        .eq('venue_id', venueId).order('category').order('created_at', { ascending: false }),
     ])
 
   // ── Compute summary stats ────────────────────────────────────────────────
@@ -364,6 +386,12 @@ export async function exportEHOReport(venueId, venueName = '', days = 90) {
   const p = pest.data ?? []
   const openPest = p.filter(x => x.status === 'open' && (x.log_type === 'sighting' || x.log_type === 'treatment')).length
 
+  const mi = mockInspections ?? []
+  const latestMock = mi[0] ?? null
+
+  const docs = documents.data ?? []
+  const expiredDocs = docs.filter(x => documentStatus(x, now).status === 'expired').length
+
   // ── Build PDF ─────────────────────────────────────────────────────────────
   const { jsPDF, autoTable } = await loadPdfLibs()
   const doc     = new jsPDF()
@@ -378,10 +406,17 @@ export async function exportEHOReport(venueId, venueName = '', days = 90) {
   if (venueName) { doc.text(venueName, 14, 28) }
   doc.text(`Period: ${periodLabel}`, 14, venueName ? 34 : 28)
   doc.text(`Generated: ${format(now, 'dd/MM/yyyy HH:mm')}`, 14, venueName ? 40 : 34)
+  let headerY = venueName ? 40 : 34
+  if (fhrs.rating != null) {
+    headerY += 6
+    doc.setFont('helvetica', 'bold'); doc.setTextColor(...(fhrs.rating >= 4 ? G : fhrs.rating >= 3 ? O : R))
+    doc.text(`Official FHRS Rating: ${fhrs.rating}/5${fhrs.ratedAt ? ` (rated ${format(new Date(fhrs.ratedAt), 'dd/MM/yyyy')})` : ''}`, 14, headerY)
+    doc.setFont('helvetica', 'normal')
+  }
   doc.setTextColor(0)
 
   // Helper: section heading band
-  let y = venueName ? 50 : 44
+  let y = headerY + 10
   const sectionHead = (label) => {
     doc.setFillColor(40, 40, 40)
     doc.rect(14, y, pageW - 28, 8, 'F')
@@ -408,6 +443,8 @@ export async function exportEHOReport(venueId, venueName = '', days = 90) {
       ['Hot Holding',            (hotHolding.data ?? []).length, 0, (hotHolding.data ?? []).length > 0 ? 'GOOD' : 'NO DATA'],
       ['Pest Control',           p.length, openPest, openPest === 0 ? 'GOOD' : 'ACTION REQUIRED'],
       ['Cleaning Records',       (cleaning.data ?? []).length, 0, (cleaning.data ?? []).length > 0 ? 'GOOD' : 'NO DATA'],
+      ['Mock EHO Inspections',   mi.length, 0, !latestMock ? 'NO DATA' : latestMock.score >= 80 ? 'GOOD' : latestMock.score >= 60 ? 'REVIEW' : 'ACTION REQUIRED'],
+      ['Documents on File',      docs.length, expiredDocs, expiredDocs === 0 ? 'GOOD' : 'ACTION REQUIRED'],
     ],
     headStyles: { fillColor: [40, 40, 40], textColor: 255, fontSize: 8 },
     bodyStyles: { fontSize: 8 },
@@ -422,6 +459,58 @@ export async function exportEHOReport(venueId, venueName = '', days = 90) {
     },
   })
   nextY()
+
+  // ── 1b. Mock EHO inspections ────────────────────────────────────────────────
+  if (mi.length > 0) {
+    sectionHead('MOCK EHO INSPECTIONS (SELF-ASSESSMENT HISTORY)')
+    autoTable(doc, {
+      startY: y,
+      head: [['Date', 'Score', 'Result', 'Completed By']],
+      body: mi.slice(0, 12).map(r => [
+        format(new Date(r.created_at), 'dd/MM/yy HH:mm'),
+        `${r.score}/100`,
+        r.score >= 80 ? 'Good' : r.score >= 60 ? 'Needs Improvement' : 'Urgent Action Required',
+        r.completed_by_name ?? '-',
+      ]),
+      headStyles: { fillColor: [40, 40, 40], textColor: 255, fontSize: 8 },
+      bodyStyles: { fontSize: 7 },
+      didParseCell(hook) {
+        if (hook.section !== 'body' || hook.column.index !== 2) return
+        if (hook.cell.raw === 'Good')                     { hook.cell.styles.textColor = G; hook.cell.styles.fontStyle = 'bold' }
+        if (hook.cell.raw === 'Urgent Action Required')   { hook.cell.styles.textColor = R; hook.cell.styles.fontStyle = 'bold' }
+        if (hook.cell.raw === 'Needs Improvement')        { hook.cell.styles.textColor = O; hook.cell.styles.fontStyle = 'bold' }
+      },
+    })
+    nextY()
+  }
+
+  // ── 1c. Documents on file ───────────────────────────────────────────────────
+  if (docs.length > 0) {
+    sectionHead('DOCUMENTS ON FILE')
+    autoTable(doc, {
+      startY: y,
+      head: [['Title', 'Category', 'Expiry', 'Status']],
+      body: docs.map(r => {
+        const { status } = documentStatus(r, now)
+        const label = status === 'expired' ? 'EXPIRED' : status === 'expiring' ? 'EXPIRING SOON' : status === 'valid' ? 'VALID' : 'NO EXPIRY'
+        return [
+          r.title ?? r.file_name ?? '-',
+          (r.category ?? '-').replace(/_/g, ' '),
+          r.expiry_date ? format(new Date(r.expiry_date), 'dd/MM/yyyy') : '-',
+          label,
+        ]
+      }),
+      headStyles: { fillColor: [40, 40, 40], textColor: 255, fontSize: 8 },
+      bodyStyles: { fontSize: 7 },
+      didParseCell(hook) {
+        if (hook.section !== 'body' || hook.column.index !== 3) return
+        if (hook.cell.raw === 'EXPIRED')        { hook.cell.styles.textColor = R; hook.cell.styles.fontStyle = 'bold' }
+        if (hook.cell.raw === 'EXPIRING SOON')  { hook.cell.styles.textColor = O; hook.cell.styles.fontStyle = 'bold' }
+        if (hook.cell.raw === 'VALID')          { hook.cell.styles.textColor = G; hook.cell.styles.fontStyle = 'bold' }
+      },
+    })
+    nextY()
+  }
 
   // ── 2. Temperature logs ────────────────────────────────────────────────────
   if (t.length > 0) {

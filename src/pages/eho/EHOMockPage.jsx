@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useNavigate } from 'react-router-dom'
 import { format } from 'date-fns'
 import Button from '../../components/ui/Button'
 import { useVenue } from '../../contexts/VenueContext'
 import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../../components/ui/Toast'
+import useVenueSettings from '../../hooks/useVenueSettings'
 import { fetchMockInspections, insertMockInspection, MockInspectionsUnavailable } from '../../lib/api/mockInspections'
 
 // In-progress answers are kept on this device so leaving the page part-way
@@ -98,10 +100,12 @@ function scoreBg(pct) {
 }
 
 export default function EHOMockPage() {
-  const { venueId } = useVenue()
+  const { venueId, venueSlug } = useVenue()
   const { session } = useSession()
   const toast = useToast()
   const queryClient = useQueryClient()
+  const navigate = useNavigate()
+  const { settings: venueSettings } = useVenueSettings()
 
   const [draft, setDraft]         = useState(() => loadDraft(venueId))
   const [submitted, setSubmitted] = useState(false)
@@ -213,6 +217,24 @@ export default function EHOMockPage() {
               Print Result
             </button>
           )}
+        </div>
+
+        {/* Official rating, for comparison against the mock score below */}
+        <div className="no-print rounded-2xl border border-charcoal/10 dark:border-white/10 bg-white dark:bg-paperDark p-5 flex items-center justify-between gap-3">
+          <div>
+            <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">Official FHRS Rating</p>
+            <p className="text-sm text-charcoal dark:text-white mt-1">
+              {venueSettings.fhrs_rating != null
+                ? <>Rated <span className="font-semibold">{venueSettings.fhrs_rating}/5</span>{venueSettings.fhrs_rated_at ? ` on ${format(new Date(venueSettings.fhrs_rated_at), 'd MMM yyyy')}` : ''}</>
+                : 'Not recorded yet — add it in Venue Settings'}
+            </p>
+          </div>
+          <button
+            onClick={() => navigate(`/v/${venueSlug}/settings/venue`)}
+            className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white transition-colors border-b border-charcoal/20 dark:border-white/20 shrink-0"
+          >
+            {venueSettings.fhrs_rating != null ? 'Update' : 'Add rating'}
+          </button>
         </div>
 
         {/* Live score bar */}
