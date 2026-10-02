@@ -12,7 +12,7 @@ import { isActionDueToday } from '../../hooks/useTodaySummary'
 import { TODAY_ITEM_REGISTRY } from './todayItemRegistry'
 import { WIDGET_REGISTRY } from '../../components/widgets/WidgetRegistry'
 import { FetchWhenNearViewport } from '../../hooks/useWidgetFetchGate'
-import { useClockStatus, saveClockStatusCache } from '../../hooks/useClockEvents'
+import { useClockStatus, nextClockStatus } from '../../hooks/useClockEvents'
 import { useClockAlerts } from '../../hooks/useClockAlerts'
 import { offlineRpc } from '../../lib/offlineSupabase'
 import { fetchUnsignedTrainingCount, unsignedTrainingKey } from '../../lib/api/training'
@@ -269,7 +269,7 @@ function useWeeklyHours(staffId, venueId) {
 function MobileClockCard({ staffId }) {
   const { venueId } = useVenue()
   const toast = useToast()
-  const { status, clockInAt, breakStartAt, totalBreakMs, loading, isError, reload } = useClockStatus(staffId)
+  const { status, clockInAt, breakStartAt, totalBreakMs, loading, isError, reload, setStatus } = useClockStatus(staffId)
   const [submitting, setSubmitting] = useState(false)
   const elapsed  = useShiftElapsed(clockInAt, breakStartAt, totalBreakMs, status)
   const weekHrs  = useWeeklyHours(staffId, venueId)
@@ -299,22 +299,13 @@ function MobileClockCard({ staffId }) {
     setSubmitting(false)
     if (error) { toast(error.message, 'error'); return }
 
-    // Mirror the offline cache write ClockPanel does. Without it a clock event
-    // saved offline from this card showed here and nowhere else: every other
-    // surface reads the cached status, so the card reverted to the old state as
-    // soon as anything refetched, and stayed wrong until the queue drained.
-    if (queued) {
-      let newStatus = status, newClockInAt = clockInAt, newBreakStartAt = breakStartAt, newTotalBreakMs = totalBreakMs
-      if (eventType === 'clock_in')    { newStatus = 'clocked_in';  newClockInAt = at }
-      if (eventType === 'clock_out')   { newStatus = 'clocked_out'; newClockInAt = null; newBreakStartAt = null; newTotalBreakMs = 0 }
-      if (eventType === 'break_start') { newStatus = 'on_break';    newBreakStartAt = at }
-      if (eventType === 'break_end')   { newStatus = 'clocked_in';  newTotalBreakMs += breakStartAt ? at - breakStartAt : 0; newBreakStartAt = null }
-      saveClockStatusCache(staffId, { status: newStatus, clockInAt: newClockInAt, breakStartAt: newBreakStartAt, totalBreakMs: newTotalBreakMs })
-    }
-
+    // Show the new state now, online or queued — same as ClockPanel. Writing
+    // the shared status cache also keeps an offline tap consistent on every
+    // other surface until the queue drains.
+    await setStatus(nextClockStatus(eventType, { status, clockInAt, breakStartAt, totalBreakMs }, at))
     reload()
     await onClockEvent(eventType, { queued, at })
-  }, [staffId, venueId, toast, status, clockInAt, breakStartAt, totalBreakMs, reload, onClockEvent])
+  }, [staffId, venueId, toast, status, clockInAt, breakStartAt, totalBreakMs, reload, setStatus, onClockEvent])
 
   recordRef.current = record
 
