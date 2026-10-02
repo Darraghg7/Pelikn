@@ -142,6 +142,29 @@ describe('syncQueue', () => {
     expect(getQueue()).toHaveLength(1)
   })
 
+  it('keeps a clock event the server refused as not-allowed (42501) for the next sync', async () => {
+    enqueueRpc('record_clock_event', { p_staff_id: 's1', p_event_type: 'clock_in', p_venue_id: 'v1' })
+    mockRpc.mockResolvedValue({ error: { code: '42501', message: 'Not signed in to this venue' } })
+    const result = await syncQueue()
+    expect(result).toEqual({ synced: 0, failed: 0 })
+    expect(getQueue()).toHaveLength(1)
+
+    // Once the venue JWT is renewed the same item replays and clears.
+    mockRpc.mockResolvedValue({ data: 'event-id', error: null })
+    expect(await syncQueue()).toEqual({ synced: 1, failed: 0 })
+    expect(getQueue()).toHaveLength(0)
+  })
+
+  it('drops a not-allowed item once it is over a week old', async () => {
+    enqueueRpc('record_clock_event', { p_staff_id: 's1', p_event_type: 'clock_in' })
+    const q = getQueue()
+    q[0].timestamp = new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString()
+    localStorage.setItem('pelikn_offline_queue', JSON.stringify(q))
+    mockRpc.mockResolvedValue({ error: { code: '42501', message: 'Not signed in to this venue' } })
+    expect(await syncQueue()).toEqual({ synced: 0, failed: 1 })
+    expect(getQueue()).toHaveLength(0)
+  })
+
   it('handles a mix of successful, failed, and still-offline items', async () => {
     enqueue('table_a', 'insert', {})
     enqueue('table_b', 'insert', {})
