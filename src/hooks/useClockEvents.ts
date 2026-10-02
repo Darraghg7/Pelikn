@@ -1,3 +1,4 @@
+import { useCallback } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
 import { useVenue } from '../contexts/VenueContext'
@@ -66,6 +67,27 @@ function loadClockStatusCache(staffId: string): ClockStatusData | null {
   } catch { return null }
 }
 
+/**
+ * The status a clock event moves someone to, given where they were and when
+ * the button was tapped. Used to show the new state the moment a tap is
+ * accepted, rather than waiting for the status to be read back.
+ */
+export function nextClockStatus(eventType: string, current: ClockStatusData, at: Date): ClockStatusData {
+  const { clockInAt, breakStartAt, totalBreakMs } = current
+  switch (eventType) {
+    case 'clock_in':    return { status: 'clocked_in',  clockInAt: at, breakStartAt: null, totalBreakMs: 0 }
+    case 'clock_out':   return { status: 'clocked_out', clockInAt: null, breakStartAt: null, totalBreakMs: 0 }
+    case 'break_start': return { status: 'on_break',    clockInAt, breakStartAt: at, totalBreakMs }
+    case 'break_end':   return {
+      status: 'clocked_in',
+      clockInAt,
+      breakStartAt: null,
+      totalBreakMs: totalBreakMs + (breakStartAt ? at.getTime() - breakStartAt.getTime() : 0),
+    }
+    default: return current
+  }
+}
+
 // ── Hook ──────────────────────────────────────────────────────────────────────
 
 /**
@@ -73,8 +95,14 @@ function loadClockStatusCache(staffId: string): ClockStatusData | null {
  * Persists across logouts — queries the most recent events regardless of date.
  * Falls back to localStorage cache when offline so the app never crashes.
  */
-export function useClockStatus(staffId: string): ClockStatusData & { loading: boolean; isError: boolean; reload: () => void } {
+export function useClockStatus(staffId: string): ClockStatusData & {
+  loading: boolean
+  isError: boolean
+  reload: () => void
+  setStatus: (next: ClockStatusData) => Promise<void>
+} {
   const { venueId } = useVenue()
+  const queryClient = useQueryClient()
 
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ['clockStatus', venueId, staffId],
@@ -191,7 +219,22 @@ export function useClockStatus(staffId: string): ClockStatusData & { loading: bo
   const breakStartAt = data?.breakStartAt ?? null
   const totalBreakMs = data?.totalBreakMs ?? 0
 
-  return { status, clockInAt, breakStartAt, totalBreakMs, loading: isLoading, isError, reload: refetch }
+  // Show a clock event the moment it is accepted. Waiting for the read-back
+  // made Start Break look broken: the write lands, then every on-screen query
+  // refetches together (App.jsx's write refresh) and the status read queues
+  // behind them — seconds on mobile data — with the button still saying
+  // "Start Break", so people tapped again. The read-back still runs and
+  // corrects this if the server disagrees. A read already in flight started
+  // before the write, so it is cancelled first or it would land on top.
+  const setStatus = useCallback(async (next: ClockStatusData) => {
+    if (!staffId) return
+    const key = ['clockStatus', venueId, staffId]
+    await queryClient.cancelQueries({ queryKey: key })
+    queryClient.setQueryData(key, next)
+    saveClockStatusCache(staffId, next)
+  }, [queryClient, venueId, staffId])
+
+  return { status, clockInAt, breakStartAt, totalBreakMs, loading: isLoading, isError, reload: refetch, setStatus }
 }
 
 interface TimesheetRow {
