@@ -6,7 +6,7 @@ import {
 } from '../../lib/pricing'
 import { slugify } from '../../lib/utils'
 import { IconCheck } from './SignupIcons'
-import { STARTER_FEATURES, PRO_FEATURES } from './StepPlan'
+import { STARTER_FEATURES, PRO_FEATURES } from '../../lib/plans'
 
 export default function StepDetails({ plan, extraVenues, qrAddon, onBack, onSubmit, loading, error }) {
   const [form, setForm] = useState({
@@ -204,7 +204,7 @@ export default function StepDetails({ plan, extraVenues, qrAddon, onBack, onSubm
           {/* Trial badge */}
           <div className="bg-success/8 border border-success/20 rounded-xl px-4 py-3 mb-3">
             <p className="text-xs text-brand font-medium inline-flex items-center gap-1"><svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg> 7-day free trial</p>
-            <p className="text-[11px] text-brand/60 mt-0.5">No card required today. You'll only be charged after your trial ends.</p>
+            <p className="text-[11px] text-brand/60 mt-0.5">No card needed today. Add one in Plan & Billing whenever you're ready. You won't be charged until your trial ends.</p>
           </div>
 
           {/* Feature highlights */}

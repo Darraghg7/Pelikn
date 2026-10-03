@@ -2,7 +2,7 @@
  * VenueContext — resolves venue from URL slug and provides venueId to the app.
  * Caches venue data in localStorage so the app works offline after first load.
  */
-import React, { createContext, useContext, useEffect, useMemo, useState } from 'react'
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { FullPageLoader } from '../components/ui/LoadingSpinner'
@@ -88,9 +88,24 @@ export function VenueProvider({ children }) {
     return () => { cancelled = true; clearTimeout(timeoutId) }
   }, [venueSlug])
 
+  // Re-read the venue row after something changes it (a plan change in Plan &
+  // Billing), without remounting the app.
+  const refreshVenue = useCallback(async () => {
+    if (!venueSlug) return
+    const slug = venueSlug.toLowerCase()
+    const { data, error: err } = await supabase
+      .from('venues')
+      .select('id, name, slug, plan')
+      .eq('slug', slug)
+      .single()
+    if (err || !data) return
+    try { localStorage.setItem(venueKey(slug), JSON.stringify(data)) } catch { /* storage full/blocked */ }
+    setVenue(data)
+  }, [venueSlug])
+
   const value = useMemo(() => !venue ? null : {
-    venueId: venue.id, venueSlug: venue.slug, venueName: venue.name, venuePlan: venue.plan ?? 'starter'
-  }, [venue])
+    venueId: venue.id, venueSlug: venue.slug, venueName: venue.name, venuePlan: venue.plan ?? 'starter', refreshVenue,
+  }, [venue, refreshVenue])
 
   if (loading) return <FullPageLoader />
 
@@ -113,6 +128,6 @@ export function VenueProvider({ children }) {
 
 export function useVenue() {
   const ctx = useContext(VenueContext)
-  if (!ctx) return { venueId: null, venueSlug: null, venueName: null, venuePlan: 'starter' }
+  if (!ctx) return { venueId: null, venueSlug: null, venueName: null, venuePlan: 'starter', refreshVenue: async () => {} }
   return ctx
 }

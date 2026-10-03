@@ -3,10 +3,12 @@ import { Link } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { format } from 'date-fns'
 import { useVenue } from '../../contexts/VenueContext'
+import { PRO_PRICE } from '../../lib/pricing'
 import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../../components/ui/Toast'
 import { WIDGET_REGISTRY } from '../../components/widgets/WidgetRegistry'
 import ClockPanel from '../../components/shifts/ClockPanel'
+import TrialBanner from '../../components/billing/TrialBanner'
 import { useVenueBranding } from '../../hooks/useVenueBranding'
 import { useAppSettings } from '../../hooks/useSettings'
 import { useWidgetPreferences } from '../../hooks/useWidgetPreferences'
@@ -47,10 +49,10 @@ function PlanBadge({ plan }) {
   )
 }
 
-function UpgradeButton() {
+function UpgradeButton({ to }) {
   return (
-    <a
-      href="mailto:hello@get-pelikn.com?subject=Upgrade to Pro"
+    <Link
+      to={to}
       className="relative inline-flex items-center gap-2 overflow-hidden rounded-xl px-4 py-2 text-xs font-semibold text-white shadow-md shadow-accent/30 transition-all hover:shadow-lg hover:shadow-accent/40 hover:scale-[1.02] active:scale-[0.98]"
       style={{
         background: 'linear-gradient(135deg, #c94f2a 0%, #e06535 50%, #c94f2a 100%)',
@@ -69,8 +71,8 @@ function UpgradeButton() {
         <path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z" />
       </svg>
       <span className="relative">Upgrade to Pro</span>
-      <span className="relative font-normal opacity-75">· £25/mo</span>
-    </a>
+      <span className="relative font-normal opacity-75">· {PRO_PRICE}/mo</span>
+    </Link>
   )
 }
 
@@ -297,7 +299,7 @@ export default function ManagerDashboardPage() {
           )}
         </div>
         <div className="flex flex-col items-end gap-2 shrink-0">
-          {venuePlan === 'starter' && <UpgradeButton />}
+          {venuePlan === 'starter' && <UpgradeButton to={`/v/${venueSlug}/settings/billing`} />}
           <button
             onClick={() => setShowPicker(true)}
             className="text-[11px] font-semibold tracking-wider uppercase text-charcoal/40 dark:text-white/35 hover:text-charcoal/70 dark:hover:text-white/60 border border-charcoal/15 dark:border-white/15 hover:border-charcoal/30 dark:hover:border-white/30 px-3 py-1.5 rounded-lg transition-colors"
@@ -307,6 +309,8 @@ export default function ManagerDashboardPage() {
         </div>
       </div>
       )}
+
+      <TrialBanner venueSlug={venueSlug} />
 
       {isDesktop && departmentFilter}
 

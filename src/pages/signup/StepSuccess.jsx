@@ -28,7 +28,7 @@ export default function StepSuccess({ venueName, venueSlug, plan, allVenues = []
             ? `${allVenues.length} venues are ready on Pelikn.`
             : <><strong className="text-charcoal dark:text-white">{venueName}</strong> is ready on Pelikn.</>
           }
-          {' '}Your 7-day free trial has started, no payment needed yet.
+          {' '}Your 7-day free trial has started. Add a card in Plan & Billing whenever you're ready.
         </p>
       </div>
 

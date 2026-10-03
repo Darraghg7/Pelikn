@@ -6,6 +6,7 @@ import {
   STARTER_ANNUAL, PRO_ANNUAL, EXTRA_VENUE_ANNUAL,
   PRO_ANNUAL_NUM, EXTRA_VENUE_ANNUAL_NUM,
 } from '../../lib/pricing'
+import { STARTER_FEATURES, PRO_FEATURES } from '../../lib/plans'
 
 /* ─── Keyframes ─────────────────────────────────────────────────────────── */
 function GlobalCSS() {
@@ -620,7 +621,7 @@ function Pricing() {
                 ))}
               </div>
               <ul className="flex flex-col gap-2.5 mb-7 flex-1">
-                {['Everything in Starter','Rota builder + smart auto-fill','Timesheets & payroll export','Clock in/out & break tracking','Training records & expiry alerts','Staff time off & shift swaps','Tip distribution','Multi-venue, unlimited staff'].map((f,i)=>(
+                {PRO_FEATURES.map((f,i)=>(
                   <li key={f} className="flex items-start gap-2 text-xs text-charcoal/60">
                     <span className="mt-0.5 shrink-0"><Chk green={false}/></span>
                     {i===0?<strong className="text-charcoal/75">{f}</strong>:f}
@@ -639,11 +640,11 @@ function Pricing() {
                 <span className="text-4xl font-bold text-charcoal">{sp}</span>
                 <span className="text-charcoal/35 text-sm">{sfx}</span>
               </div>
-              <p className="text-xs text-charcoal/35 mb-1">per venue</p>
+              <p className="text-xs text-charcoal/35 mb-1">one venue</p>
               {annual && <p className="text-xs font-medium text-brand mb-1">Save £20 vs monthly</p>}
               <p className="text-xs text-charcoal/50 leading-relaxed my-5">Everything you need to stay compliant and get off paper.</p>
               <ul className="flex flex-col gap-2.5 mb-7 flex-1">
-                {['Temperature logs (fridge, cooking, hot-holding)','Cleaning schedules & records',"Allergen registry (Natasha's Law)",'Delivery checks','Opening & closing checklists','Document vault','Compliance PDF exports'].map(f=>(
+                {STARTER_FEATURES.map(f=>(
                   <li key={f} className="flex items-start gap-2 text-xs text-charcoal/60">
                     <span className="mt-0.5 shrink-0"><Chk green={true}/></span>
                     {f}
@@ -985,10 +986,10 @@ export default function MarketingPage() {
               {[
                 { q:'Is this on the App Store?', a:"No, intentionally. Pelikn is a Progressive Web App. Install it from Safari or Chrome in about 30 seconds. It lives on your home screen, works offline, and behaves like any native app. No app store approval, no mandatory updates." },
                 { q:'Does it work on iPhone, iPad and Android?', a:"Yes, all of them. Install from Safari on iOS/iPadOS, or Chrome on Android. The manager dashboard works in any desktop browser with no install needed." },
-                { q:"What's the difference between Starter and Pro?", a:"Starter covers everything on the compliance side: temperature logs, cleaning records, allergens, checklists, and exports. Pro adds the whole team layer: rotas, timesheets, clock in/out, training records, tips, and time off management." },
-                { q:'What counts as a venue?', a:"Each physical location is a venue. The first venue on Pro is £25/mo, each additional is £15/mo. Starter is £10/venue. You can add and remove venues at any time." },
+                { q:"What's the difference between Starter and Pro?", a:"Starter covers everything on the compliance side: temperature logs, cleaning records, allergens, checklists and exports, for one venue and up to 5 staff. Pro adds the whole team layer: rotas, timesheets, clock in/out, training records, tips and time off, with unlimited staff and multiple venues." },
+                { q:'What counts as a venue?', a:"Each physical location is a venue. Starter covers one venue. On Pro, your first venue is £25/mo and each extra one is £15/mo. Add a venue whenever you like and your bill updates automatically." },
                 { q:'Is my data secure?', a:"All data is stored in a UK-based database with row-level security, so staff only ever see their own venue's data. We handle personal data in line with UK GDPR." },
-                { q:'Can I cancel?', a:"Whenever you like. No contracts, no cancellation fees. Cancel in settings and you keep access until the end of the billing period." },
+                { q:'Can I cancel?', a:"Whenever you like. No contracts, no cancellation fees. Cancel from Plan & Billing in Settings and you keep access until the end of the period you've paid for." },
               ].map(({ q, a }) => <Faq key={q} q={q} a={a} />)}
             </div>
           </FadeUp>

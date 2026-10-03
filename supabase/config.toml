@@ -1,1 +1,6 @@
 project_id = "djwgyyerxvxovicixxrp"
+
+# Called by Stripe, not a signed-in user: the Stripe-Signature check inside
+# the function is its auth.
+[functions.stripe-webhook]
+verify_jwt = false
