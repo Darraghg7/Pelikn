@@ -4,7 +4,7 @@
  */
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { offlineRpc } from '../../lib/offlineSupabase'
-import { useClockStatus, saveClockStatusCache } from '../../hooks/useClockEvents'
+import { useClockStatus, nextClockStatus } from '../../hooks/useClockEvents'
 import { useVenue } from '../../contexts/VenueContext'
 import { useToast } from '../ui/Toast'
 import Skeleton from '../ui/Skeleton'
@@ -69,7 +69,7 @@ function ElapsedTimer({ clockInAt, breakStartAt, totalBreakMs, status }) {
 export default function ClockPanel({ staffId, compact = false }) {
   const { venueId } = useVenue()
   const toast = useToast()
-  const { status, clockInAt, breakStartAt, totalBreakMs, loading, isError, reload } = useClockStatus(staffId)
+  const { status, clockInAt, breakStartAt, totalBreakMs, loading, isError, reload, setStatus } = useClockStatus(staffId)
   const [submitting, setSubmitting] = useState(false)
 
   // Late clock-in / break-overrun alerts live in a shared hook so that every
@@ -100,18 +100,12 @@ export default function ClockPanel({ staffId, compact = false }) {
     const labels = { clock_in: 'Clocked in', clock_out: 'Clocked out', break_start: 'Break started', break_end: 'Break ended' }
     toast(queued ? `${labels[eventType]} (saved offline)` : labels[eventType])
 
-    if (queued) {
-      let newStatus = status, newClockInAt = clockInAt, newBreakStartAt = breakStartAt, newTotalBreakMs = totalBreakMs
-      if (eventType === 'clock_in')     { newStatus = 'clocked_in';  newClockInAt = at }
-      if (eventType === 'clock_out')    { newStatus = 'clocked_out'; newClockInAt = null; newBreakStartAt = null; newTotalBreakMs = 0 }
-      if (eventType === 'break_start')  { newStatus = 'on_break';    newBreakStartAt = at }
-      if (eventType === 'break_end')    { newStatus = 'clocked_in';  newTotalBreakMs += breakStartAt ? at - breakStartAt : 0; newBreakStartAt = null }
-      saveClockStatusCache(staffId, { status: newStatus, clockInAt: newClockInAt, breakStartAt: newBreakStartAt, totalBreakMs: newTotalBreakMs })
-    }
-
+    // Show the new state now, online or queued — the read-back below (and the
+    // app-wide refresh every write triggers) can take seconds on mobile data.
+    await setStatus(nextClockStatus(eventType, { status, clockInAt, breakStartAt, totalBreakMs }, at))
     reload()
     await onClockEvent(eventType, { queued, at })
-  }, [staffId, venueId, toast, status, clockInAt, breakStartAt, totalBreakMs, reload, onClockEvent])
+  }, [staffId, venueId, toast, status, clockInAt, breakStartAt, totalBreakMs, reload, setStatus, onClockEvent])
 
   recordRef.current = record
 
