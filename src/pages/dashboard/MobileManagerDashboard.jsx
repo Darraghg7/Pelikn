@@ -270,7 +270,7 @@ function MobileClockCard({ staffId }) {
   const { venueId } = useVenue()
   const toast = useToast()
   const { status, clockInAt, breakStartAt, totalBreakMs, loading, isError, reload, setStatus } = useClockStatus(staffId)
-  const [submitting, setSubmitting] = useState(false)
+  const inFlightRef = useRef(false)
   const elapsed  = useShiftElapsed(clockInAt, breakStartAt, totalBreakMs, status)
   const weekHrs  = useWeeklyHours(staffId, venueId)
   const now      = useLiveTime()
@@ -287,22 +287,47 @@ function MobileClockCard({ staffId }) {
   })
 
   const record = useCallback(async (eventType) => {
+    // One punch at a time: the buttons swap the moment a tap lands, so a
+    // quick second tap would otherwise race the first request to the server.
+    if (inFlightRef.current) return
+    inFlightRef.current = true
+
     // Captured before the RPC so a slow round trip can't make a punctual
     // clock-in look late.
     const at = new Date()
-    setSubmitting(true)
-    const { error, queued } = await offlineRpc('record_clock_event', {
-      p_staff_id:   staffId,
-      p_event_type: eventType,
-      p_venue_id:   venueId,
-    })
-    setSubmitting(false)
-    if (error) { toast(error.message, 'error'); return }
+    const before = { status, clockInAt, breakStartAt, totalBreakMs }
+    const after  = nextClockStatus(eventType, before, at)
 
-    // Show the new state now, online or queued — same as ClockPanel. Writing
-    // the shared status cache also keeps an offline tap consistent on every
-    // other surface until the queue drains.
-    await setStatus(nextClockStatus(eventType, { status, clockInAt, breakStartAt, totalBreakMs }, at))
+    // Show the new state on the tap itself, not when the server answers —
+    // that round trip is ~0.5 s on wifi and seconds on mobile data. Put back
+    // below if the server refuses.
+    await setStatus(after)
+
+    let result
+    try {
+      result = await offlineRpc('record_clock_event', {
+        p_staff_id:   staffId,
+        p_event_type: eventType,
+        p_venue_id:   venueId,
+      })
+    } catch (err) {
+      result = { error: err }
+    } finally {
+      inFlightRef.current = false
+    }
+    const { error, queued } = result
+    if (error) {
+      await setStatus(before)
+      toast(error.message ?? 'Could not save — try again', 'error')
+      return
+    }
+
+    const labels = { clock_in: 'Clocked in', clock_out: 'Clocked out', break_start: 'Break started', break_end: 'Break ended' }
+    toast(queued ? `${labels[eventType]} (saved offline)` : labels[eventType])
+
+    // Again, in case a status read that started before the write landed while
+    // it was in flight. The read-back then confirms against the server.
+    await setStatus(after)
     reload()
     await onClockEvent(eventType, { queued, at })
   }, [staffId, venueId, toast, status, clockInAt, breakStartAt, totalBreakMs, reload, setStatus, onClockEvent])
@@ -336,7 +361,7 @@ function MobileClockCard({ staffId }) {
           : '—' },
     { label: 'Last in', value: clockInAt ? format(clockInAt, 'EEE HH:mm') : '—' },
   ]
-  const primaryBtn = `w-full h-10 rounded-2xl bg-white text-brand text-[14px] font-semibold border-0 cursor-pointer ${submitting ? 'opacity-50 cursor-not-allowed' : ''}`
+  const primaryBtn = `w-full h-10 rounded-2xl bg-white text-brand text-[14px] font-semibold border-0 cursor-pointer`
 
   return (
     <div>
@@ -376,25 +401,25 @@ function MobileClockCard({ staffId }) {
             Couldn't check status — retry
           </button>
         ) : status === 'clocked_out' ? (
-          <button onClick={() => record('clock_in')} disabled={submitting} className={primaryBtn}>
+          <button onClick={() => record('clock_in')} className={primaryBtn}>
             Clock in
           </button>
         ) : status === 'clocked_in' ? (
           <div className="flex gap-2">
             <button
               onClick={() => record('break_start')}
-              disabled={submitting}
-              className={`flex-1 h-10 rounded-2xl bg-white/12 text-white border border-white/25 text-[14px] font-semibold cursor-pointer ${submitting ? 'opacity-50 cursor-not-allowed' : ''}`}
+             
+              className={`flex-1 h-10 rounded-2xl bg-white/12 text-white border border-white/25 text-[14px] font-semibold cursor-pointer`}
             >
               Break
             </button>
-            <button onClick={closingGuard.guardClockOut} disabled={submitting} className={`${primaryBtn} flex-[2] flex items-center justify-center gap-2`}>
+            <button onClick={closingGuard.guardClockOut} className={`${primaryBtn} flex-[2] flex items-center justify-center gap-2`}>
               <span className="inline-block w-2.5 h-2.5 bg-brand rounded-[2px]" />
               Clock out
             </button>
           </div>
         ) : status === 'on_break' ? (
-          <button onClick={() => record('break_end')} disabled={submitting} className={primaryBtn}>
+          <button onClick={() => record('break_end')} className={primaryBtn}>
             End break
           </button>
         ) : null}
