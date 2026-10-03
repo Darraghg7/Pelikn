@@ -72,6 +72,25 @@ export async function offlineUpdate(table, recordId, payload, idColumn = 'id') {
   }
 }
 
+// A write the server refused as "not allowed" (SQLSTATE 42501: an RLS denial,
+// a revoked function, or a clock RPC's caller check — migration 139). When a
+// queued write replays, that usually means the device's venue JWT had lapsed
+// and couldn't be renewed yet, not that the write is wrong — so it stays
+// queued for the next sync instead of being thrown away. A clock punch is a
+// payroll record; dropping it silently is worse than retrying it.
+const AUTH_REFUSED = '42501'
+
+// …but not forever: something still refused after a week is never going to
+// be allowed (the person left, the venue was unlinked), and a stuck clock
+// event would keep useClockStatus showing a stale state on this device.
+const AUTH_RETRY_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000
+
+function shouldKeepRefused(item, error) {
+  if (error?.code !== AUTH_REFUSED) return false
+  const queuedAt = Date.parse(item.timestamp)
+  return Number.isFinite(queuedAt) && Date.now() - queuedAt < AUTH_RETRY_MAX_AGE_MS
+}
+
 /** Retry all queued operations */
 export async function syncQueue() {
   const queue = getQueue()
@@ -98,11 +117,11 @@ export async function syncQueue() {
       if (!result?.error) {
         dequeue(item.id)
         synced++
-      } else if (!isNetworkError(result.error)) {
+      } else if (!isNetworkError(result.error) && !shouldKeepRefused(item, result.error)) {
         dequeue(item.id)
         failed++
       }
-      // Still a network error — leave in queue
+      // Still a network error, or refused while signed out — leave in queue
     } catch (err) {
       if (!isNetworkError(err)) {
         dequeue(item.id)
