@@ -12,6 +12,18 @@ export default class ErrorBoundary extends React.Component {
 
   componentDidCatch(error, info) {
     console.error('ErrorBoundary caught:', error, info)
+    // An error caught here never reaches window.onerror, so Sentry's global
+    // handler can't see it — report it explicitly. Loaded on demand (same
+    // reason as reportError.js); a no-op if main.jsx skipped Sentry.init.
+    import('@sentry/react')
+      .then((Sentry) => {
+        Sentry.captureException(error, {
+          contexts: { react: { componentStack: info?.componentStack } },
+        })
+      })
+      .catch(() => {
+        /* error reporting must never itself throw */
+      })
   }
 
   render() {
