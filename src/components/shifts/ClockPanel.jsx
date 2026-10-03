@@ -70,7 +70,7 @@ export default function ClockPanel({ staffId, compact = false }) {
   const { venueId } = useVenue()
   const toast = useToast()
   const { status, clockInAt, breakStartAt, totalBreakMs, loading, isError, reload, setStatus } = useClockStatus(staffId)
-  const [submitting, setSubmitting] = useState(false)
+  const inFlightRef = useRef(false)
 
   // Late clock-in / break-overrun alerts live in a shared hook so that every
   // clock surface behaves identically — see useClockAlerts. Ending a break from
@@ -85,24 +85,47 @@ export default function ClockPanel({ staffId, compact = false }) {
   })
 
   const record = useCallback(async (eventType) => {
+    // One punch at a time: the buttons swap the moment a tap lands, so a
+    // quick second tap would otherwise race the first request to the server.
+    if (inFlightRef.current) return
+    inFlightRef.current = true
+
     // Captured before the RPC so a slow round trip can't make a punctual
     // clock-in look late.
     const at = new Date()
-    setSubmitting(true)
-    const { error, queued } = await offlineRpc('record_clock_event', {
-      p_staff_id:   staffId,
-      p_event_type: eventType,
-      p_venue_id:   venueId,
-    })
-    setSubmitting(false)
-    if (error) { toast(error.message, 'error'); return }
+    const before = { status, clockInAt, breakStartAt, totalBreakMs }
+    const after  = nextClockStatus(eventType, before, at)
+
+    // Show the new state on the tap itself, not when the server answers —
+    // that round trip is ~0.5 s on wifi and seconds on mobile data. Put back
+    // below if the server refuses.
+    await setStatus(after)
+
+    let result
+    try {
+      result = await offlineRpc('record_clock_event', {
+        p_staff_id:   staffId,
+        p_event_type: eventType,
+        p_venue_id:   venueId,
+      })
+    } catch (err) {
+      result = { error: err }
+    } finally {
+      inFlightRef.current = false
+    }
+    const { error, queued } = result
+    if (error) {
+      await setStatus(before)
+      toast(error.message ?? 'Could not save — try again', 'error')
+      return
+    }
 
     const labels = { clock_in: 'Clocked in', clock_out: 'Clocked out', break_start: 'Break started', break_end: 'Break ended' }
     toast(queued ? `${labels[eventType]} (saved offline)` : labels[eventType])
 
-    // Show the new state now, online or queued — the read-back below (and the
-    // app-wide refresh every write triggers) can take seconds on mobile data.
-    await setStatus(nextClockStatus(eventType, { status, clockInAt, breakStartAt, totalBreakMs }, at))
+    // Again, in case a status read that started before the write landed while
+    // it was in flight. The read-back then confirms against the server.
+    await setStatus(after)
     reload()
     await onClockEvent(eventType, { queued, at })
   }, [staffId, venueId, toast, status, clockInAt, breakStartAt, totalBreakMs, reload, setStatus, onClockEvent])
@@ -165,12 +188,11 @@ export default function ClockPanel({ staffId, compact = false }) {
         {status === 'clocked_out' && (
           <button
             onClick={() => record('clock_in')}
-            disabled={submitting}
             className={compact
               ? 'w-full bg-white dark:bg-paperDark text-brand py-3 rounded-xl text-sm font-bold hover:bg-white/90 transition-colors disabled:opacity-40'
               : 'w-full bg-charcoal text-cream py-3 rounded-xl text-sm font-semibold hover:bg-charcoal/90 transition-colors disabled:opacity-40'}
           >
-            {submitting ? '…' : 'Clock In'}
+            Clock In
           </button>
         )}
 
@@ -178,21 +200,19 @@ export default function ClockPanel({ staffId, compact = false }) {
           <div className="flex gap-2">
             <button
               onClick={() => record('break_start')}
-              disabled={submitting}
               className={compact
                 ? 'flex-1 bg-white/10 text-white border border-white/25 py-3 rounded-xl text-sm font-semibold hover:bg-white/15 transition-colors disabled:opacity-40'
                 : 'flex-1 bg-warning/15 text-warning py-3 rounded-xl text-sm font-semibold hover:bg-warning/25 transition-colors disabled:opacity-40'}
             >
-              {submitting ? '…' : 'Start Break'}
+              Start Break
             </button>
             <button
               onClick={closingGuard.guardClockOut}
-              disabled={submitting}
               className={compact
                 ? 'flex-[1.4] bg-white dark:bg-paperDark text-brand py-3 rounded-xl text-sm font-bold hover:bg-white/90 transition-colors disabled:opacity-40'
                 : 'flex-1 bg-charcoal text-cream py-3 rounded-xl text-sm font-semibold hover:bg-charcoal/90 transition-colors disabled:opacity-40'}
             >
-              {submitting ? '…' : 'Clock Out'}
+              Clock Out
             </button>
           </div>
         )}
@@ -200,12 +220,11 @@ export default function ClockPanel({ staffId, compact = false }) {
         {status === 'on_break' && (
           <button
             onClick={() => record('break_end')}
-            disabled={submitting}
             className={compact
               ? 'w-full bg-white dark:bg-paperDark text-brand py-3 rounded-xl text-sm font-bold hover:bg-white/90 transition-colors disabled:opacity-40'
               : 'w-full bg-charcoal text-cream py-3 rounded-xl text-sm font-semibold hover:bg-charcoal/90 transition-colors disabled:opacity-40'}
           >
-            {submitting ? '…' : 'End Break'}
+            End Break
           </button>
         )}
       </div>
