@@ -225,12 +225,12 @@ export default function HelpSection() {
             <p className="text-xs text-charcoal/55 dark:text-white/45 leading-relaxed">
               Pro adds rota management, timesheets, staff training records, time-off requests, HACCP tools, and more — everything you need to run your team alongside your compliance.
             </p>
-            <a
-              href={`mailto:hello@get-pelikn.com?subject=Upgrade to Pro`}
+            <Link
+              to={`/v/${venueSlug}/settings/billing`}
               className="mt-1 inline-flex items-center gap-1.5 bg-accent text-white text-xs font-semibold px-4 py-2 rounded-lg hover:bg-accent/90 transition-colors self-start"
             >
               Upgrade to Pro — {PRO_PRICE}/mo →
-            </a>
+            </Link>
           </div>
         )}
 

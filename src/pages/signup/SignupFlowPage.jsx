@@ -6,6 +6,7 @@ import StepDetails from './StepDetails'
 import StepExtraVenues from './StepExtraVenues'
 import StepSuccess from './StepSuccess'
 import ProgressBar from './ProgressBar'
+import { setTrialPlan } from '../../lib/api/billing'
 import { IconLock } from './SignupIcons'
 
 // steps: 0=plan, 1=details, 2=extraVenues (only if extraVenues>0), 3=success
@@ -61,11 +62,10 @@ export default function SignupFlowPage() {
       })
       if (venueErr) throw new Error(venueErr.message)
 
-      // 3. Set plan, QR add-on, extra venue count
-      const { error: planErr } = await supabase
-        .from('venues')
-        .update({ plan, qr_addon: qrAddon, additional_venues: extraVenues })
-        .eq('id', venueId)
+      // 3. Set the trial plan, QR add-on and extra venue count. Goes through
+      //    an RPC: venues has no client UPDATE policy, so a direct update
+      //    silently matched zero rows and every venue stayed on Starter.
+      const { error: planErr } = await setTrialPlan(venueId, plan, { qrAddon, additionalVenues: extraVenues })
       if (planErr) console.warn('Could not set plan:', planErr.message)
 
       setCreatedSlug(slug)

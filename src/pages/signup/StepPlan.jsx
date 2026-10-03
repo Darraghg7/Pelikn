@@ -4,28 +4,7 @@ import {
   PRO_PRICE_NUM, EXTRA_VENUE_PRICE_NUM,
 } from '../../lib/pricing'
 import { IconCheck, IconQR, IconSpark, IconArrow, IconLock } from './SignupIcons'
-
-const STARTER_FEATURES = [
-  'Temperature logs (fridge, cooking, hot holding)',
-  'Cleaning schedules & records',
-  'Allergen registry (Natasha\'s Law)',
-  'Delivery checks & probe calibration',
-  'Opening & closing checklists',
-  'Pest control & corrective actions',
-  'EHO audit-ready compliance reports',
-]
-const PRO_FEATURES = [
-  'Everything in Starter',
-  'Rota & shift management with AI builder',
-  'Timesheets & payroll CSV export',
-  'Staff training records & expiry alerts',
-  'Clock in / out & time off management',
-  'HACCP generator & EHO Mock Inspection',
-  'Supplier orders & waste logging',
-  'Unlimited staff · multi-venue',
-]
-
-export { STARTER_FEATURES, PRO_FEATURES }
+import { STARTER_FEATURES, PRO_FEATURES } from '../../lib/plans'
 
 export default function StepPlan({ selected, onSelect, extraVenues, onExtraVenues, qrAddon, onQrAddon, onNext }) {
   return (
@@ -56,7 +35,7 @@ export default function StepPlan({ selected, onSelect, extraVenues, onExtraVenue
             <span className="text-2xl font-bold text-charcoal dark:text-white">{STARTER_PRICE}</span>
             <span className="text-charcoal/40 dark:text-white/35 text-sm">/month</span>
           </div>
-          <p className="text-[11px] text-charcoal/40 dark:text-white/35 mb-4">per venue</p>
+          <p className="text-[11px] text-charcoal/40 dark:text-white/35 mb-4">one venue</p>
           <p className="text-xs text-charcoal/50 dark:text-white/40 mb-4 leading-relaxed">
             Digital compliance essentials — everything you need to pass an EHO inspection.
           </p>
@@ -193,7 +172,7 @@ export default function StepPlan({ selected, onSelect, extraVenues, onExtraVenue
         </button>
         <div className="flex items-center justify-center gap-1.5 text-[11px] text-charcoal/35 dark:text-white/30 mt-3">
           <IconLock />
-          <span>7-day free trial · No card required · Cancel anytime</span>
+          <span>7-day free trial · No card required · Cancel any time</span>
         </div>
       </div>
     </div>

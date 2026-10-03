@@ -6,6 +6,7 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
 import { useVenue } from '../../contexts/VenueContext'
+import { useSession } from '../../contexts/SessionContext'
 import { STARTER_PRICE, PRO_PRICE } from '../../lib/pricing'
 import { PLANS } from '../../lib/constants'
 
@@ -25,7 +26,8 @@ const FEATURE_LABELS = {
 }
 
 export default function PlanGate({ feature, children }) {
-  const { venuePlan } = useVenue()
+  const { venuePlan, venueSlug } = useVenue()
+  const { isManager } = useSession()
 
   if (venuePlan === PLANS.PRO) return children
 
@@ -50,12 +52,16 @@ export default function PlanGate({ feature, children }) {
       </p>
 
       <div className="flex flex-col sm:flex-row gap-3 w-full max-w-xs">
-        <a
-          href="mailto:hello@get-pelikn.com?subject=Upgrade to Pro"
-          className="flex-1 bg-accent text-cream py-3 rounded-xl text-sm font-semibold text-center hover:bg-accent/90 transition-colors"
-        >
-          Upgrade to Pro — {PRO_PRICE}/mo
-</a>
+        {isManager ? (
+          <Link
+            to={`/v/${venueSlug}/settings/billing`}
+            className="flex-1 bg-accent text-cream py-3 rounded-xl text-sm font-semibold text-center hover:bg-accent/90 transition-colors"
+          >
+            Upgrade to Pro — {PRO_PRICE}/mo
+          </Link>
+        ) : (
+          <p className="flex-1 text-xs text-charcoal/50 dark:text-white/40 self-center">Ask your manager about upgrading.</p>
+        )}
         <Link
           to="../dashboard"
           relative="path"

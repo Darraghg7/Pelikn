@@ -9,6 +9,8 @@ import { useVenueFeatures } from '../../hooks/useVenueFeatures'
 import { PLANS } from '../../lib/constants'
 import { EXTRA_VENUE_PRICE } from '../../lib/pricing'
 import { slugify } from '../../lib/utils'
+import { syncBillingVenues } from '../../lib/api/billing'
+import { useVenue } from '../../contexts/VenueContext'
 
 export default function VenuesSection() {
   const { user, venues: accountVenues, refreshVenues, selectVenue } = useAuth()
@@ -19,6 +21,7 @@ export default function VenuesSection() {
   const pinOnly = !user
   const venues  = pinOnly ? linkedVenues : accountVenues
   const { venuePlan } = useVenueFeatures()
+  const { venueId } = useVenue()
   const toast = useToast()
   const navigate = useNavigate()
 
@@ -56,6 +59,13 @@ export default function VenuesSection() {
         : error.message, 'error')
       return
     }
+
+    // Venue count drives the subscription's extra-venue quantity. No-op for
+    // owners not yet subscribed (checkout counts venues when they subscribe).
+    syncBillingVenues(venueId).catch((err) => {
+      console.warn('[VenuesSection] billing sync failed:', err)
+      toast('Venue added, but we could not update your bill. Email hello@get-pelikn.com and we will sort it.', 'error')
+    })
 
     // Refresh venue list in context, then switch to the new venue.
     // DashboardPage will detect that onboarding_complete is not set for
@@ -152,7 +162,7 @@ export default function VenuesSection() {
               <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
             </span>
             <span>
-              Adding a venue costs <strong>{EXTRA_VENUE_PRICE}/mo</strong> and will be reflected on your next billing cycle.
+              Adding a venue costs <strong>{EXTRA_VENUE_PRICE}/mo</strong>, added to your subscription and charged pro rata.
             </span>
           </div>
 
