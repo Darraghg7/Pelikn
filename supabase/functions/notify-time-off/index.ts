@@ -32,7 +32,9 @@ serve(async (req) => {
   }
 
   try {
-    const { managerEmail, venueName, staffName, startDate, endDate, reason } = await req.json()
+    // The staff member's reason is deliberately not read or emailed: it is often
+    // medical, and only managers should see it, inside Pelikn (see migration 119).
+    const { managerEmail, venueName, staffName, startDate, endDate } = await req.json()
 
     if (!managerEmail) {
       return new Response(JSON.stringify({ error: 'managerEmail is required' }), { status: 400 })
@@ -59,11 +61,6 @@ serve(async (req) => {
             <td style="padding: 8px 0; color: #888;">To</td>
             <td style="padding: 8px 0;">${formattedEnd}</td>
           </tr>
-          ${reason ? `
-          <tr>
-            <td style="padding: 8px 0; color: #888;">Reason</td>
-            <td style="padding: 8px 0; font-style: italic;">"${reason}"</td>
-          </tr>` : ''}
         </table>
 
         <div style="margin-top: 24px; padding: 16px; background: #f5f1ec; border-radius: 8px; font-size: 13px; color: #666;">

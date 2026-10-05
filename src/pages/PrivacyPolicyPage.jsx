@@ -203,8 +203,8 @@ export default function PrivacyPolicyPage() {
             </li>
             <li>
               <Term>Resend</Term> — sends Pelikn's emails. Sees the recipient's email address and
-              the email content, which can include rotas, weekly venue reports, and leave requests
-              with the reason given.
+              the email content, such as rotas and weekly venue reports. Leave reasons are never
+              included in emails.
             </li>
             <li>
               <Term>Sentry</Term> — error monitoring (EU region). When something breaks, it receives
