@@ -438,9 +438,9 @@ function VenueRoutes() {
             <Route path="opening-closing"   element={wrap(OpeningClosingPage)} />
             <Route path="team"              element={wrap(TeamHubPage,    RequireManager)} />
             <Route path="team/attendance"   element={wrap(TeamAttendanceTodayPage, RequireManager)} />
-            <Route path="calendar"          element={wrap(CalendarPage,   RequireManager)} />
-            <Route path="hr"                element={wrap(HRHubPage,      RequireManager)} />
-            <Route path="hr/:staffId"       element={wrap(EmployeeRecordPage, RequireManager)} />
+            <Route path="calendar"          element={wrapPro(CalendarPage, RequireManager, 'calendar')} />
+            <Route path="hr"                element={wrapPro(HRHubPage,   RequireManager, 'hr')} />
+            <Route path="hr/:staffId"       element={wrapPro(EmployeeRecordPage, RequireManager, 'hr')} />
             <Route path="rota"              element={wrapPro(RotaPage,    RequireAuth, 'rota')} />
             <Route path="time-off"          element={wrapPro(TimeOffPage, RequireAuth, 'time-off')} />
 
@@ -448,7 +448,7 @@ function VenueRoutes() {
             <Route path="haccp"              element={wrapPro(HACCPWizardPage,      RequireManager, 'haccp')} />
             <Route path="recall"             element={wrap(RecallPage,              RequireManager)} />
             <Route path="complaints"         element={wrap(ComplaintsPage,          RequireManager)} />
-            <Route path="suppliers"          element={wrap(SuppliersPage,          RequireManager)} />
+            <Route path="suppliers"          element={wrapPro(SuppliersPage,       RequireManager, 'suppliers')} />
             <Route path="eho-mock"           element={wrapPro(EHOMockPage,         RequireManager, 'eho-mock')} />
             <Route path="fitness"            element={wrap(FitnessPage,            RequireManager)} />
             <Route path="cooking-temps"      element={wrapPerm(CookingTempsPage,   'log_temps')} />
@@ -480,7 +480,7 @@ function VenueRoutes() {
             <Route path="staff"             element={wrap(StaffPage,              RequireManager)} />
             <Route path="tips"              element={wrapPro(TipsPage,            RequireManager, 'tips')} />
             <Route path="documents"              element={wrap(DocumentsPage,               RequireManager)} />
-            <Route path="incidents"              element={wrap(IncidentsPage,               RequireManager)} />
+            <Route path="incidents"              element={wrapPro(IncidentsPage,            RequireManager, 'incidents')} />
             <Route path="date-labelling"         element={wrapPerm(DateLabellingPage,        'log_food_dates')} />
             <Route path="equipment-maintenance"  element={wrapPerm(EquipmentMaintenancePage, 'log_equipment')} />
 

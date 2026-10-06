@@ -24,6 +24,10 @@ const FEATURE_LABELS = {
   'clock-in':  'Clock In / Out',
   noticeboard: 'Team Noticeboard',
   tips:        'Tip Distribution',
+  hr:          'HR Records',
+  incidents:   'Incident Log',
+  suppliers:   'Supplier Directory',
+  calendar:    'Team Calendar',
 }
 
 export default function PlanGate({ feature, children }) {

@@ -44,10 +44,12 @@ export const PRO_ONLY: ProFeature[] = [
   { label: 'Clock in/out & break tracking',      gates: ['clock-in'] },
   { label: 'Training records & expiry alerts',   gates: ['training'] },
   { label: 'Time off & shift swaps',             gates: ['time-off', 'time_off'] },
-  { label: 'Team noticeboard',                   gates: ['noticeboard'] },
+  { label: 'Team noticeboard & calendar',        gates: ['noticeboard', 'calendar'] },
+  { label: 'HR records & staff files',           gates: ['hr'] },
+  { label: 'Incident & accident log',            gates: ['incidents'] },
   { label: 'Tip distribution',                   gates: ['tips'] },
   { label: 'HACCP generator & EHO mock inspection', gates: ['haccp', 'eho-mock'] },
-  { label: 'Supplier orders & waste logging',    gates: ['orders', 'waste'] },
+  { label: 'Supplier directory, orders & waste logging', gates: ['suppliers', 'orders', 'waste'] },
 ]
 
 export const PRO_FEATURES = [

@@ -200,7 +200,7 @@ export function buildManagerCats({ isEnabled, isPlanLocked, overdueCount, pendin
         ...(isEnabled('date_labelling')       ? [{ id: 'datelabel',  label: 'Date Labels',   sub: 'Label printing',          icon: PanelIcons.label,    route: vp('/date-labelling') }] : []),
         ...(isEnabled('equipment_maintenance')? [{ id: 'equipment',  label: 'Equipment',     sub: 'Maintenance logs',        icon: PanelIcons.wrench,   route: vp('/equipment-maintenance') }] : []),
         { id: 'docs',     label: 'Documents',        sub: 'Policies & SOPs',              icon: PanelIcons.doc,     route: vp('/documents') },
-        { id: 'incident', label: 'Incidents',         sub: 'Logbook',                      icon: PanelIcons.alert,   route: vp('/incidents') },
+        ...(!isPlanLocked('incidents') ? [{ id: 'incident', label: 'Incidents', sub: 'Logbook', icon: PanelIcons.alert, route: vp('/incidents') }] : []),
         { id: 'haccp',    label: 'HACCP',             sub: '7-step food safety plan',      icon: PanelIcons.doc,     route: vp('/haccp') },
         { id: 'recall',      label: 'Recall & Withdrawal',  sub: 'Procedure & incident log',   icon: PanelIcons.alert,  route: vp('/recall') },
         { id: 'complaints',  label: 'Complaints',           sub: 'Food safety complaint log',   icon: PanelIcons.alert,  route: vp('/complaints') },
@@ -213,7 +213,7 @@ export function buildManagerCats({ isEnabled, isPlanLocked, overdueCount, pendin
       label: 'Operations',
       icon: <IcoTruckNav />,
       items: [
-        { id: 'supp', label: 'Suppliers',   sub: 'Vendors & contacts',   icon: PanelIcons.supplier, route: vp('/suppliers') },
+        ...(!isPlanLocked('suppliers') ? [{ id: 'supp', label: 'Suppliers', sub: 'Vendors & contacts', icon: PanelIcons.supplier, route: vp('/suppliers') }] : []),
         ...(!isPlanLocked('noticeboard') ? [{ id: 'note', label: 'Noticeboard', sub: 'Team announcements', icon: PanelIcons.board, route: vp('/noticeboard') }] : []),
         ...(!isPlanLocked('tips') && isEnabled('tips') ? [{ id: 'tip', label: 'Tips', sub: 'Pool & distribution', icon: PanelIcons.coins, route: vp('/tips') }] : []),
       ],
@@ -230,7 +230,7 @@ export function buildManagerCats({ isEnabled, isPlanLocked, overdueCount, pendin
         ...(!isPlanLocked('training') && isEnabled('training')  ? [{ id: 'train', label: 'Training',        sub: 'Assigned docs & quizzes', icon: PanelIcons.book,   route: vp('/training') }] : []),
         ...(!isPlanLocked('time_off') && isEnabled('time_off')  ? [{ id: 'off',   label: 'Time Off',        sub: 'Requests & approvals',  icon: PanelIcons.timeoff,  route: vp('/time-off') }] : []),
         { id: 'clock',  label: 'Clock In / Out',  sub: "Today's attendance",     icon: PanelIcons.clock,    route: vp('/clock-in') },
-        { id: 'hr',     label: 'HR Records',       sub: 'Staff files & disciplinary', icon: PanelIcons.hr,    route: vp('/hr') },
+        ...(!isPlanLocked('hr') ? [{ id: 'hr', label: 'HR Records', sub: 'Staff files & disciplinary', icon: PanelIcons.hr, route: vp('/hr') }] : []),
       ],
     },
   ]

@@ -65,10 +65,14 @@ describe('the gate matches the Pro feature list', () => {
   })
 
   it('Starter compliance pages are not locked', () => {
-    for (const id of ['date_labelling', 'equipment_maintenance', 'probe', 'pest_control', 'corrective']) {
+    for (const id of ['date_labelling', 'equipment_maintenance', 'probe', 'pest_control', 'corrective', 'recall', 'complaints', 'fitness', 'documents', 'audit']) {
       expect(isProFeature(id)).toBe(false)
     }
     expect(PRO_ONLY_FEATURE_IDS).toEqual(['waste', 'orders', 'rota', 'timesheet', 'training', 'time_off', 'tips'])
+  })
+
+  it('non-food-hygiene records are Pro (Starter is the hygiene minimum)', () => {
+    for (const id of ['hr', 'incidents', 'suppliers', 'calendar']) expect(isProFeature(id), id).toBe(true)
   })
 
   it('every Pro line appears in the Pro copy', () => {
