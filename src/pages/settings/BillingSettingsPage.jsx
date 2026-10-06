@@ -6,13 +6,13 @@ import { useAuth } from '../../contexts/AuthContext'
 import { useToast } from '../../components/ui/Toast'
 import useBilling from '../../hooks/useBilling'
 import { PLANS } from '../../lib/constants'
-import { STARTER_FEATURES, PRO_FEATURES } from '../../lib/plans'
+import { STARTER_FEATURES, PLAN_DETAILS, PLAN_ORDER } from '../../lib/plans'
 import { STARTER_STAFF_LIMIT } from '../../lib/billing'
 import { EXTRA_VENUE_PRICE, planTotal } from '../../lib/pricing'
 import { changePlan, openBillingPortal, setTrialPlan, startCheckout } from '../../lib/api/billing'
 import SettingsSubHeader from '../../components/layout/SettingsSubHeader'
 
-const PLAN_NAME = { [PLANS.STARTER]: 'Starter', [PLANS.PRO]: 'Pro' }
+const PLAN_NAME = { [PLANS.STARTER]: PLAN_DETAILS.starter.name, [PLANS.PRO]: PLAN_DETAILS.pro.name }
 const fmtDate = (iso) => format(new Date(iso), 'd MMM yyyy')
 
 function statusLine(access, billing) {
@@ -140,7 +140,7 @@ export default function BillingSettingsPage() {
     window.location.href = url
   })
 
-  const features = isPro ? PRO_FEATURES : STARTER_FEATURES
+  const features = PLAN_DETAILS[plan]?.features ?? STARTER_FEATURES
   const status = statusLine(access, billing)
   const sfx = period === 'year' ? '/yr' : '/mo'
   const currentPrice = planTotal(plan, billing?.billing_interval === 'year' ? 'year' : 'month', venueCount)
@@ -242,8 +242,9 @@ export default function BillingSettingsPage() {
             </div>
 
             <div className="flex gap-2 mb-3">
-              <PlanOption plan={PLANS.STARTER} selected={choice} onSelect={setChoice} price={planTotal(PLANS.STARTER, period, venueCount)} sfx={sfx} />
-              <PlanOption plan={PLANS.PRO} selected={choice} onSelect={setChoice} price={planTotal(PLANS.PRO, period, venueCount)} sfx={sfx} />
+              {PLAN_ORDER.map(p => (
+                <PlanOption key={p} plan={p} selected={choice} onSelect={setChoice} price={planTotal(p, period, venueCount)} sfx={sfx} />
+              ))}
             </div>
             {venueCount > 1 && (
               <p className="text-xs text-charcoal/45 dark:text-white/35 mb-3">Prices cover all {venueCount} of your venues.</p>

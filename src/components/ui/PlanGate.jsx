@@ -1,7 +1,8 @@
 /**
  * PlanGate — wraps a Pro-only page.
- * If the venue is on Starter, renders an upgrade prompt instead of the page.
- * If the venue is on Pro, renders children normally.
+ * If the venue is on Starter and `feature` is in the Pro list (lib/plans.ts),
+ * renders an upgrade prompt instead of the page. Anything the Pro list doesn't
+ * name passes straight through, so the gate can't drift from the pricing copy.
  */
 import React from 'react'
 import { Link } from 'react-router-dom'
@@ -9,6 +10,7 @@ import { useVenue } from '../../contexts/VenueContext'
 import { useSession } from '../../contexts/SessionContext'
 import { STARTER_PRICE, PRO_PRICE } from '../../lib/pricing'
 import { PLANS } from '../../lib/constants'
+import { isProFeature } from '../../lib/plans'
 
 const FEATURE_LABELS = {
   rota:        'Rota & Shift Management',
@@ -19,17 +21,16 @@ const FEATURE_LABELS = {
   orders:      'Supplier Orders',
   haccp:       'HACCP Generator',
   'eho-mock':  'EHO Mock Inspection',
-  staff:       'Staff Management',
   'clock-in':  'Clock In / Out',
-  noticeboard: 'Noticeboard',
-  'shift-swaps': 'Shift Swaps',
+  noticeboard: 'Team Noticeboard',
+  tips:        'Tip Distribution',
 }
 
 export default function PlanGate({ feature, children }) {
   const { venuePlan, venueSlug } = useVenue()
   const { isManager } = useSession()
 
-  if (venuePlan === PLANS.PRO) return children
+  if (venuePlan === PLANS.PRO || !isProFeature(feature)) return children
 
   const label = FEATURE_LABELS[feature] ?? 'This feature'
 

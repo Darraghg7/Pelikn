@@ -240,7 +240,10 @@ function wrapPerm(Component, permission, feature) {
   return wrap(Component, Guard)
 }
 
-/** Like wrap(), but gates the page behind PlanGate for Pro-only features. */
+/**
+ * Like wrap(), but gates the page behind PlanGate. `feature` must be one of the
+ * Pro gates in lib/plans.ts (plans.test.ts checks), or the page stays open.
+ */
 function wrapPro(Component, Guard = RequireAuth, feature) {
   return (
     <Guard>
@@ -478,8 +481,8 @@ function VenueRoutes() {
             <Route path="tips"              element={wrapPro(TipsPage,            RequireManager, 'tips')} />
             <Route path="documents"              element={wrap(DocumentsPage,               RequireManager)} />
             <Route path="incidents"              element={wrap(IncidentsPage,               RequireManager)} />
-            <Route path="date-labelling"         element={wrapPerm(DateLabellingPage,        'log_food_dates',   'date_labelling')} />
-            <Route path="equipment-maintenance"  element={wrapPerm(EquipmentMaintenancePage, 'log_equipment',    'equipment_maintenance')} />
+            <Route path="date-labelling"         element={wrapPerm(DateLabellingPage,        'log_food_dates')} />
+            <Route path="equipment-maintenance"  element={wrapPerm(EquipmentMaintenancePage, 'log_equipment')} />
 
             <Route path="*" element={<NotFoundPage />} />
           </Routes>

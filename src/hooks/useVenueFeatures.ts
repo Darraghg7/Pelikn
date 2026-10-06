@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
 import { useVenue } from '../contexts/VenueContext'
 import { PLANS } from '../lib/constants'
+import { isProFeature } from '../lib/plans'
 import { takeBootstrapSettings } from '../lib/api/bootstrap'
 
 const FEATURES_UPDATED_EVENT = 'pelikn:features-updated'
@@ -78,25 +79,10 @@ export const FEATURE_GROUPS: FeatureGroup[] = [
 export const ALL_FEATURE_IDS = FEATURE_GROUPS.flatMap(g => g.features.map(f => f.id))
 
 // ── Plan feature split ────────────────────────────────────────────────────────
-// Starter: core compliance — everything a venue needs to pass an EHO inspection
-// Pro: team management + advanced ops on top of everything in Starter
-export const STARTER_FEATURE_IDS = [
-  'fridge', 'cooking_temps', 'hot_holding', 'cooling_logs',   // temperature
-  'deliveries', 'probe', 'allergens', 'pest_control',          // food safety
-  'opening_closing', 'cleaning', 'corrective',                 // daily ops
-  'date_labelling', 'equipment_maintenance',                   // EHO compliance
-]
-
-export const PRO_ONLY_FEATURE_IDS = [
-  'rota', 'timesheet', 'training', 'time_off', 'tips',         // team
-  'waste', 'orders',                                           // advanced ops
-]
-
-// Routes/pages that are Pro-only but aren't in the feature-toggle system
-export const PRO_ONLY_ROUTES = new Set([
-  'rota', 'timesheet', 'time-off', 'training', 'waste', 'orders',
-  'haccp', 'eho-mock', 'clock-in', 'noticeboard', 'tips',
-])
+// Which plan a feature belongs to is decided in lib/plans.ts (PRO_GATES), the
+// same list the pricing copy is built from. These are derived views of it.
+export const PRO_ONLY_FEATURE_IDS = ALL_FEATURE_IDS.filter(isProFeature)
+export const STARTER_FEATURE_IDS  = ALL_FEATURE_IDS.filter(id => !isProFeature(id))
 
 interface FeatureConfig {
   mode: 'all' | 'custom'
@@ -167,7 +153,7 @@ export function useVenueFeatures() {
   /** True if the feature requires Pro and the venue is on Starter. */
   const isPlanLocked = useCallback((featureId: string): boolean => {
     if (venuePlan === PLANS.PRO) return false
-    return PRO_ONLY_FEATURE_IDS.includes(featureId) || PRO_ONLY_ROUTES.has(featureId)
+    return isProFeature(featureId)
   }, [venuePlan])
 
   /** Returns true if the feature should be visible.

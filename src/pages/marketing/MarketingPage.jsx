@@ -6,7 +6,8 @@ import {
   STARTER_ANNUAL, PRO_ANNUAL, EXTRA_VENUE_ANNUAL,
   PRO_ANNUAL_NUM, EXTRA_VENUE_ANNUAL_NUM,
 } from '../../lib/pricing'
-import { STARTER_FEATURES, PRO_FEATURES } from '../../lib/plans'
+import { STARTER_FEATURES, PRO_FEATURES, PLAN_ORDER, PLAN_DETAILS, STARTER_STAFF_LIMIT } from '../../lib/plans'
+import { PLANS } from '../../lib/constants'
 
 /* ─── Keyframes ─────────────────────────────────────────────────────────── */
 function GlobalCSS() {
@@ -588,7 +589,7 @@ function Pricing() {
       <div className="max-w-4xl mx-auto px-6 sm:px-10 py-20 sm:py-28">
         <FadeUp>
           <h2 className="text-4xl sm:text-5xl font-bold text-charcoal tracking-tight leading-tight mb-2">One price. No surprises.</h2>
-          <p className="text-charcoal/45 text-base mb-8 max-w-xs leading-relaxed">No per-user fees. No hidden charges. Cancel any time.</p>
+          <p className="text-charcoal/45 text-base mb-8 max-w-xs leading-relaxed">Priced per venue, not per head. No hidden charges. Cancel any time.</p>
         </FadeUp>
         <FadeUp delay={50}>
           <div className="inline-flex items-center bg-white rounded-xl p-1 gap-1 mb-8 shadow-sm border border-charcoal/8">
@@ -601,61 +602,63 @@ function Pricing() {
           </div>
         </FadeUp>
         <div className="grid sm:grid-cols-2 gap-5 max-w-2xl">
-          <FadeUp delay={70}>
-            <div className="bg-white rounded-xl border-2 border-brand shadow-[0_8px_24px_rgba(19,54,42,0.10)] p-7 flex flex-col h-full relative">
-              <span className="absolute -top-3.5 left-6 bg-brand text-cream text-[10px] tracking-widest uppercase font-semibold px-3 py-1 rounded-full">Most popular</span>
-              <p className="text-[10px] tracking-widest uppercase text-brand font-semibold mb-4 mt-1">Pro</p>
-              <div className="flex items-baseline gap-1 mb-1">
-                <span className="text-4xl font-bold text-charcoal">{pp}</span>
-                <span className="text-charcoal/35 text-sm">{sfx}</span>
-              </div>
-              <p className="text-xs text-charcoal/35 mb-1">first venue · {ep}{sfx} each extra</p>
-              {annual && <p className="text-xs font-medium text-brand mb-1">Save £50 vs monthly</p>}
-              <div className="bg-[#f5f4f1] rounded-xl p-4 my-5">
-                <p className="text-[10px] tracking-widest uppercase text-charcoal/30 mb-3">As you grow</p>
-                {[1,2,3,5].map(n=>(
-                  <div key={n} className="flex justify-between py-1">
-                    <span className="text-xs text-charcoal/45">{n} venue{n>1?'s':''}</span>
-                    <span className="text-xs font-semibold text-charcoal">£{ppn+(n-1)*epn}{sfx}</span>
+          {PLAN_ORDER.map((id, idx) => (
+            <FadeUp key={id} delay={70 + idx * 60}>
+              {id === PLANS.PRO ? (
+                <div className="bg-white rounded-xl border-2 border-brand shadow-[0_8px_24px_rgba(19,54,42,0.10)] p-7 flex flex-col h-full">
+                  <p className="text-[10px] tracking-widest uppercase text-brand font-semibold mb-4">{PLAN_DETAILS.pro.name}</p>
+                  <div className="flex items-baseline gap-1 mb-1">
+                    <span className="text-4xl font-bold text-charcoal">{pp}</span>
+                    <span className="text-charcoal/35 text-sm">{sfx}</span>
                   </div>
-                ))}
-              </div>
-              <ul className="flex flex-col gap-2.5 mb-7 flex-1">
-                {PRO_FEATURES.map((f,i)=>(
-                  <li key={f} className="flex items-start gap-2 text-xs text-charcoal/60">
-                    <span className="mt-0.5 shrink-0"><Chk green={false}/></span>
-                    {i===0?<strong className="text-charcoal/75">{f}</strong>:f}
-                  </li>
-                ))}
-              </ul>
-              <Link to="/signup?plan=pro" className="block text-center bg-accent text-cream py-3.5 rounded-xl text-sm font-semibold hover:bg-accent/90 active:scale-[0.98] transition-all cursor-pointer">
-                Start free trial
-              </Link>
-            </div>
-          </FadeUp>
-          <FadeUp delay={130}>
-            <div className="bg-white rounded-xl border border-charcoal/12 shadow-[0_4px_12px_rgba(0,0,0,0.04)] p-7 flex flex-col h-full">
-              <p className="text-[10px] tracking-widest uppercase text-brand font-semibold mb-4">Starter</p>
-              <div className="flex items-baseline gap-1 mb-1">
-                <span className="text-4xl font-bold text-charcoal">{sp}</span>
-                <span className="text-charcoal/35 text-sm">{sfx}</span>
-              </div>
-              <p className="text-xs text-charcoal/35 mb-1">one venue</p>
-              {annual && <p className="text-xs font-medium text-brand mb-1">Save £20 vs monthly</p>}
-              <p className="text-xs text-charcoal/50 leading-relaxed my-5">Everything you need to stay compliant and get off paper.</p>
-              <ul className="flex flex-col gap-2.5 mb-7 flex-1">
-                {STARTER_FEATURES.map(f=>(
-                  <li key={f} className="flex items-start gap-2 text-xs text-charcoal/60">
-                    <span className="mt-0.5 shrink-0"><Chk green={true}/></span>
-                    {f}
-                  </li>
-                ))}
-              </ul>
-              <Link to="/signup?plan=starter" className="block text-center border-2 border-brand/25 text-brand py-3.5 rounded-xl text-sm font-semibold hover:bg-brand hover:text-cream transition-all cursor-pointer">
-                Start free trial
-              </Link>
-            </div>
-          </FadeUp>
+                  <p className="text-xs text-charcoal/35 mb-1">{PLAN_DETAILS.pro.venueNote} · {ep}{sfx} each extra</p>
+                  {annual && <p className="text-xs font-medium text-brand mb-1">Save £50 vs monthly</p>}
+                  <div className="bg-[#f5f4f1] rounded-xl p-4 my-5">
+                    <p className="text-[10px] tracking-widest uppercase text-charcoal/30 mb-3">As you grow</p>
+                    {[1,2,3,5].map(n=>(
+                      <div key={n} className="flex justify-between py-1">
+                        <span className="text-xs text-charcoal/45">{n} venue{n>1?'s':''}</span>
+                        <span className="text-xs font-semibold text-charcoal">£{ppn+(n-1)*epn}{sfx}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <ul className="flex flex-col gap-2.5 mb-7 flex-1">
+                    {PRO_FEATURES.map((f,i)=>(
+                      <li key={f} className="flex items-start gap-2 text-xs text-charcoal/60">
+                        <span className="mt-0.5 shrink-0"><Chk green={false}/></span>
+                        {i===0?<strong className="text-charcoal/75">{f}</strong>:f}
+                      </li>
+                    ))}
+                  </ul>
+                  <Link to="/signup?plan=pro" className="block text-center bg-accent text-cream py-3.5 rounded-xl text-sm font-semibold hover:bg-accent/90 active:scale-[0.98] transition-all cursor-pointer">
+                    Start free trial
+                  </Link>
+                </div>
+              ) : (
+                <div className="bg-white rounded-xl border border-charcoal/12 shadow-[0_4px_12px_rgba(0,0,0,0.04)] p-7 flex flex-col h-full">
+                  <p className="text-[10px] tracking-widest uppercase text-brand font-semibold mb-4">{PLAN_DETAILS.starter.name}</p>
+                  <div className="flex items-baseline gap-1 mb-1">
+                    <span className="text-4xl font-bold text-charcoal">{sp}</span>
+                    <span className="text-charcoal/35 text-sm">{sfx}</span>
+                  </div>
+                  <p className="text-xs text-charcoal/35 mb-1">{PLAN_DETAILS.starter.venueNote}</p>
+                  {annual && <p className="text-xs font-medium text-brand mb-1">Save £20 vs monthly</p>}
+                  <p className="text-xs text-charcoal/50 leading-relaxed my-5">Everything you need to stay compliant and get off paper.</p>
+                  <ul className="flex flex-col gap-2.5 mb-7 flex-1">
+                    {STARTER_FEATURES.map(f=>(
+                      <li key={f} className="flex items-start gap-2 text-xs text-charcoal/60">
+                        <span className="mt-0.5 shrink-0"><Chk green={true}/></span>
+                        {f}
+                      </li>
+                    ))}
+                  </ul>
+                  <Link to="/signup?plan=starter" className="block text-center border-2 border-brand/25 text-brand py-3.5 rounded-xl text-sm font-semibold hover:bg-brand hover:text-cream transition-all cursor-pointer">
+                    Start free trial
+                  </Link>
+                </div>
+              )}
+            </FadeUp>
+          ))}
         </div>
         <p className="text-xs text-charcoal/30 mt-5">7-day free trial · No card required to start</p>
       </div>
@@ -986,7 +989,7 @@ export default function MarketingPage() {
               {[
                 { q:'Is this on the App Store?', a:"No, intentionally. Pelikn is a Progressive Web App. Install it from Safari or Chrome in about 30 seconds. It lives on your home screen, works offline, and behaves like any native app. No app store approval, no mandatory updates." },
                 { q:'Does it work on iPhone, iPad and Android?', a:"Yes, all of them. Install from Safari on iOS/iPadOS, or Chrome on Android. The manager dashboard works in any desktop browser with no install needed." },
-                { q:"What's the difference between Starter and Pro?", a:"Starter covers everything on the compliance side: temperature logs, cleaning records, allergens, checklists and exports, for one venue and up to 5 staff. Pro adds the whole team layer: rotas, timesheets, clock in/out, training records, tips and time off, with unlimited staff and multiple venues." },
+                { q:"What's the difference between Starter and Pro?", a:`Starter covers everything on the compliance side: temperature logs, cleaning records, allergens, checklists and exports, for one venue and up to ${STARTER_STAFF_LIMIT} staff. Pro adds the whole team layer: rotas, timesheets, clock in/out, training records, tips and time off, with unlimited staff and multiple venues.` },
                 { q:'What counts as a venue?', a:"Each physical location is a venue. Starter covers one venue. On Pro, your first venue is £25/mo and each extra one is £15/mo. Add a venue whenever you like and your bill updates automatically." },
                 { q:'Is my data secure?', a:"All data is stored in a UK-based database with row-level security, so staff only ever see their own venue's data. We handle personal data in line with UK GDPR." },
                 { q:'Can I cancel?', a:"Whenever you like. No contracts, no cancellation fees. Cancel from Plan & Billing in Settings and you keep access until the end of the period you've paid for." },
