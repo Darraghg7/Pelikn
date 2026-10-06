@@ -12,6 +12,16 @@ import { describeItems, type PriceTable } from './billingPlan.ts'
 
 export const STRIPE_API_VERSION = '2024-06-20'
 
+/**
+ * The Stripe SDK throws at construction when the secret key is empty, so
+ * creating the client at module load took the whole function down (every
+ * request, even CORS preflight, answered WORKER_ERROR). Call this per request
+ * instead, after checking stripeConfigured().
+ */
+export function stripeConfigured(): boolean {
+  return !!Deno.env.get('STRIPE_SECRET_KEY')
+}
+
 export function stripeClient(): Stripe {
   return new Stripe(Deno.env.get('STRIPE_SECRET_KEY') ?? '', {
     // Pinned: current_period_end still lives on the subscription in this version.

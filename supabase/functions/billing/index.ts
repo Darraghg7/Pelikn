@@ -25,7 +25,7 @@ import {
   buildLineItems, priceTableFromEnv, safeReturnPath, trialDaysLeft, LIVE_STATUSES,
   type Interval, type Plan,
 } from '../_shared/billingPlan.ts'
-import { stripeClient, syncSubscription } from '../_shared/stripeSync.ts'
+import { stripeClient, stripeConfigured, syncSubscription } from '../_shared/stripeSync.ts'
 
 const SUPABASE_URL     = Deno.env.get('SUPABASE_URL') ?? ''
 const SUPABASE_SERVICE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
@@ -40,7 +40,6 @@ const ALLOWED_ORIGINS = [
 ]
 
 const prices = priceTableFromEnv(name => Deno.env.get(name))
-const stripe = stripeClient()
 
 class HttpError extends Error {
   constructor(public status: number, message: string) { super(message) }
@@ -64,6 +63,12 @@ Deno.serve(async (req) => {
     const body = await req.json()
     const { action, venueId } = body ?? {}
     if (!venueId || typeof action !== 'string') throw new HttpError(400, 'Invalid request')
+
+    if (!stripeConfigured()) {
+      console.error('billing: STRIPE_SECRET_KEY is not set')
+      throw new HttpError(503, "Payments aren't switched on yet. Email hello@get-pelikn.com and we'll sort it.")
+    }
+    const stripe = stripeClient()
 
     const db = createClient(SUPABASE_URL, SUPABASE_SERVICE)
 
