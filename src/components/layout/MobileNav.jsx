@@ -265,7 +265,7 @@ function SubNav({ items, currentPath }) {
 }
 
 /* ── Tab configurations ─────────────────────────────────────────────────── */
-function getManagerTabs(vp, isEnabled, complianceNavOrder = []) {
+function getManagerTabs(vp, isEnabled, isPlanLocked, complianceNavOrder = []) {
   const complianceChildren = [
     { key: 'opening-closing', to: vp('/opening-closing'), label: 'Checks',       feature: 'opening_closing' },
     { key: 'fitness',         to: vp('/fitness'),         label: 'Fitness',       feature: null },
@@ -279,9 +279,9 @@ function getManagerTabs(vp, isEnabled, complianceNavOrder = []) {
     { key: 'cleaning',        to: vp('/cleaning'),        label: 'Cleaning',      feature: 'cleaning' },
     { key: 'corrective',      to: vp('/corrective'),      label: 'Actions',       feature: 'corrective' },
     { key: 'documents',       to: vp('/documents'),       label: 'Documents',     feature: null },
-    { key: 'incidents',       to: vp('/incidents'),       label: 'Incidents',     feature: null },
+    { key: 'incidents',       to: vp('/incidents'),       label: 'Incidents',     feature: null, pro: 'incidents' },
   ]
-    .filter(c => c.feature === null || isEnabled(c.feature))
+    .filter(c => (c.feature === null || isEnabled(c.feature)) && !(c.pro && isPlanLocked(c.pro)))
     .sort((a, b) => {
       if (!complianceNavOrder.length) return 0
       const ai = complianceNavOrder.indexOf(a.key)
@@ -395,7 +395,7 @@ export default function MobileNav() {
   const { session, isManager, isRestricted } = useSession()
   const { venueSlug, venueId } = useVenue()
   const { pathname } = useLocation()
-  const { isEnabled } = useVenueFeatures()
+  const { isEnabled, isPlanLocked } = useVenueFeatures()
   const { complianceNavOrder } = useAppSettings()
   const [savedOrder, saveOrder] = useNavOrder(venueId)
   const [showReorder, setShowReorder] = useState(false)
@@ -408,7 +408,7 @@ export default function MobileNav() {
     ? (pathname.slice(base.length) || '/')
     : pathname
 
-  const rawTabs = isManager ? getManagerTabs(vp, isEnabled, complianceNavOrder) : getStaffTabs(session, vp, isEnabled, isRestricted)
+  const rawTabs = isManager ? getManagerTabs(vp, isEnabled, isPlanLocked, complianceNavOrder) : getStaffTabs(session, vp, isEnabled, isRestricted)
   const tabs = isManager ? applyOrder(rawTabs, savedOrder) : rawTabs
 
   const activeTab = tabs.find(t => t.match.some(m => localPath === m || (m !== '/dashboard' && localPath.startsWith(m))))

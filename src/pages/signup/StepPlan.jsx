@@ -3,8 +3,8 @@ import {
   STARTER_PRICE, PRO_PRICE, EXTRA_VENUE_PRICE, QR_ADDON_PRICE,
   PRO_PRICE_NUM, EXTRA_VENUE_PRICE_NUM,
 } from '../../lib/pricing'
-import { IconCheck, IconQR, IconSpark, IconArrow, IconLock } from './SignupIcons'
-import { STARTER_FEATURES, PRO_FEATURES } from '../../lib/plans'
+import { IconCheck, IconQR, IconArrow, IconLock } from './SignupIcons'
+import { STARTER_FEATURES, PRO_FEATURES, PLAN_DETAILS } from '../../lib/plans'
 
 export default function StepPlan({ selected, onSelect, extraVenues, onExtraVenues, qrAddon, onQrAddon, onNext }) {
   return (
@@ -14,7 +14,7 @@ export default function StepPlan({ selected, onSelect, extraVenues, onExtraVenue
         <p className="text-sm text-charcoal/50 dark:text-white/40">Start with a 7-day free trial. No card required.</p>
       </div>
 
-      {/* Plan cards */}
+      {/* Plan cards — Starter then Pro, matching PLAN_ORDER (plans.test.ts checks) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {/* Starter */}
         <button
@@ -30,12 +30,12 @@ export default function StepPlan({ selected, onSelect, extraVenues, onExtraVenue
               <IconCheck size={12} color="white" />
             </span>
           )}
-          <p className="text-[11px] tracking-widest uppercase font-semibold text-brand mb-2">Starter</p>
+          <p className="text-[11px] tracking-widest uppercase font-semibold text-brand mb-2">{PLAN_DETAILS.starter.name}</p>
           <div className="flex items-baseline gap-1 mb-1">
             <span className="text-2xl font-bold text-charcoal dark:text-white">{STARTER_PRICE}</span>
             <span className="text-charcoal/40 dark:text-white/35 text-sm">/month</span>
           </div>
-          <p className="text-[11px] text-charcoal/40 dark:text-white/35 mb-4">one venue</p>
+          <p className="text-[11px] text-charcoal/40 dark:text-white/35 mb-4">{PLAN_DETAILS.starter.venueNote}</p>
           <p className="text-xs text-charcoal/50 dark:text-white/40 mb-4 leading-relaxed">
             Digital compliance essentials — everything you need to pass an EHO inspection.
           </p>
@@ -58,26 +58,18 @@ export default function StepPlan({ selected, onSelect, extraVenues, onExtraVenue
               : 'border-accent/30 bg-white dark:bg-paperDark hover:border-accent/50 hover:shadow-sm'
           }`}
         >
-          {/* Most popular badge */}
-          <div className="absolute -top-3 left-0 right-0 flex justify-center">
-            <span className="inline-flex items-center gap-1 bg-accent text-cream text-[11px] tracking-widest uppercase font-semibold px-3 py-0.5 rounded-full">
-              <IconSpark />
-              Most Popular
-            </span>
-          </div>
-
           {selected === 'pro' && (
             <span className="absolute top-4 right-4 w-6 h-6 rounded-full bg-accent flex items-center justify-center">
               <IconCheck size={12} color="white" />
             </span>
           )}
 
-          <p className="text-[11px] tracking-widest uppercase font-semibold text-accent mb-2 mt-2">Pro</p>
+          <p className="text-[11px] tracking-widest uppercase font-semibold text-accent mb-2">{PLAN_DETAILS.pro.name}</p>
           <div className="flex items-baseline gap-1 mb-1">
             <span className="text-2xl font-bold text-accent">{PRO_PRICE}</span>
             <span className="text-charcoal/40 dark:text-white/35 text-sm">/month</span>
           </div>
-          <p className="text-[11px] text-charcoal/40 dark:text-white/35 mb-4">first venue · {EXTRA_VENUE_PRICE}/mo each additional</p>
+          <p className="text-[11px] text-charcoal/40 dark:text-white/35 mb-4">{PLAN_DETAILS.pro.venueNote} · {EXTRA_VENUE_PRICE}/mo each additional</p>
           <p className="text-xs text-charcoal/50 dark:text-white/40 mb-4 leading-relaxed">
             Full compliance plus rota, timesheets, training records & team management — all in one place.
           </p>
