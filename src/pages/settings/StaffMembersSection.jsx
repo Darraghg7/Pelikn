@@ -13,6 +13,8 @@ import { useToast } from '../../components/ui/Toast'
 import { useVenueRoles } from '../../hooks/useVenueRoles'
 import Toggle from '../../components/ui/Toggle'
 import useStaffManagement from '../../hooks/useStaffManagement'
+import useBilling from '../../hooks/useBilling'
+import StaffLimitNotice from '../../components/billing/StaffLimitNotice'
 import { StaffRolesAssignment, StaffDepartmentsAssignment } from './RolesSection'
 import TrainingSection from './TrainingSection'
 import ConfirmDialog from '../../components/ui/ConfirmDialog'
@@ -60,6 +62,7 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
   const [staffRoleMap, setStaffRoleMap]     = useState({})
   const [permForm, setPermForm]             = useState(new Set(DEFAULT_STAFF_PERMISSIONS))
   const [search, setSearch]                 = useState('')
+  const { reload: reloadBilling }           = useBilling()  // keeps the Starter "x of 5 staff" count current
 
   // Build { staffId -> [venueId, ...] } map from raw rows
   const buildLinkMap = (rows) => {
@@ -298,6 +301,7 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
       onClose?.()
     }
     reloadStaff()
+    reloadBilling()
   }
 
   const toggleActive = async (s) => {
@@ -307,6 +311,7 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
     if (error) { toast(error.message, 'error'); return }
     toast(s.is_active ? `${s.name} deactivated` : `${s.name} reactivated`)
     reloadStaff()
+    reloadBilling()
   }
 
   const toggleRestricted = async (s) => {
@@ -326,6 +331,7 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
     setEditingId(null)
     onClose?.()
     reloadStaff()
+    reloadBilling()
   }
 
   const moveStaff = async (id, direction) => {
@@ -390,6 +396,7 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
 
     return (
       <div className="flex flex-col gap-2.5">
+        <StaffLimitNotice />
         <div className="relative">
           <svg className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-ink3 dark:text-white/45" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="7" /><line x1="16.5" y1="16.5" x2="21" y2="21" /></svg>
           <input

@@ -14,6 +14,7 @@ import AppShell                from './components/layout/AppShell'
 import { FullPageLoader }      from './components/ui/LoadingSpinner'
 import AppSkeleton              from './components/ui/AppSkeleton'
 import PlanGate                from './components/ui/PlanGate'
+import RequireBilling          from './components/billing/RequireBilling'
 import UpdateBanner            from './components/ui/UpdateBanner'
 import ErrorBoundary           from './components/ui/ErrorBoundary'
 import { preloadAppRoutes }    from './lib/routePreload'
@@ -222,9 +223,11 @@ function wrap(Component, Guard = RequireAuth) {
   return (
     <Guard>
       <RequireNotRestricted>
-        <AppShell>
-          <Component />
-        </AppShell>
+        <RequireBilling>
+          <AppShell>
+            <Component />
+          </AppShell>
+        </RequireBilling>
       </RequireNotRestricted>
     </Guard>
   )
@@ -242,11 +245,13 @@ function wrapPro(Component, Guard = RequireAuth, feature) {
   return (
     <Guard>
       <RequireNotRestricted>
-        <AppShell>
-          <PlanGate feature={feature}>
-            <Component />
-          </PlanGate>
-        </AppShell>
+        <RequireBilling>
+          <AppShell>
+            <PlanGate feature={feature}>
+              <Component />
+            </PlanGate>
+          </AppShell>
+        </RequireBilling>
       </RequireNotRestricted>
     </Guard>
   )
