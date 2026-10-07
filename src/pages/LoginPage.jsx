@@ -7,6 +7,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { FullPageLoader } from '../components/ui/LoadingSpinner'
 import { DEVICE_VENUES_KEY } from '../lib/constants'
 import { captureSilent } from '../lib/reportError'
+import { staffListState } from '../lib/loginScreenState'
 
 // ── Device venue helpers ──────────────────────────────────────────────────────
 function readDeviceVenues() {
@@ -356,47 +357,66 @@ function Numpad({ onDigit, onDelete }) {
   )
 }
 
+// ── Staff list states ─────────────────────────────────────────────────────────
+// Placeholder rows shaped like the real ones, so the card doesn't jump when
+// names arrive.
+function StaffListSkeleton() {
+  return (
+    <div aria-busy="true" aria-label="Loading team">
+      {[0, 1, 2].map(i => (
+        <div
+          key={i}
+          className={`flex items-center gap-3 px-4 py-3 ${i < 2 ? 'border-b border-charcoal/10 dark:border-white/10' : ''}`}
+        >
+          <div className="w-9 h-9 rounded-full bg-charcoal/10 dark:bg-white/10 animate-pulse shrink-0" />
+          <div className="h-3 rounded bg-charcoal/10 dark:bg-white/10 animate-pulse" style={{ width: `${[46, 38, 52][i]}%` }} />
+          <div className="ml-auto h-2.5 w-10 rounded bg-charcoal/5 dark:bg-white/5 animate-pulse" />
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function ListMessage({ title, body, action }) {
+  return (
+    <div className="px-4 py-5 text-center" role="status">
+      <p className="text-sm font-semibold text-charcoal dark:text-white">{title}</p>
+      <p className="text-[12px] leading-relaxed text-charcoal/60 dark:text-white/55 mt-1 mb-4">{body}</p>
+      {action}
+    </div>
+  )
+}
+
 // ── Role label ────────────────────────────────────────────────────────────────
 const ROLE_LABEL = { owner: 'Owner', manager: 'Manager', staff: 'Staff' }
 
-/**
- * Staff picker list for the login screen, which runs with no session.
- *
- * The staff table used to carry `FOR SELECT USING (true)` purely so this
- * screen could read it unauthenticated — which also made every venue's pay,
- * emails, emergency contacts and minor status readable by anyone holding the
- * anon key, since that key ships in this bundle. Migration 113 scopes the
- * table and adds an RPC returning just the four columns rendered here.
- *
- * Tries the RPC first and falls back to the old table read, so the client and
- * the migration can be deployed in either order without the picker ever going
- * empty. Once 113 is applied the fallback stops returning rows on its own (the
- * policy denies anon), so it costs nothing to leave in place — but it can be
- * deleted once the migration is confirmed live.
- */
 // How long a PIN sign-in may spin before the page stops waiting and tells the
 // user to try again (see doSignIn).
 const SIGN_IN_TIMEOUT_MS = 20_000
 
+/**
+ * Staff picker list for the login screen, which runs with no session.
+ *
+ * Any device can load it: list_venue_staff_for_login() (113) is callable by
+ * the anon key and returns only id, name, role and photo_url for one venue's
+ * active staff. No manager sign-in is needed to set a device up first.
+ *
+ * There used to be a fallback to a direct `staff` table read for while 113
+ * was being rolled out. Since 113 and 116 are live, anon can't read that
+ * table at all, so the fallback only ever turned a failed RPC into a silent
+ * empty list. Errors now throw so the screen can offer a retry.
+ */
 async function fetchLoginStaff(venueId) {
   const { data, error } = await supabase.rpc('list_venue_staff_for_login', { p_venue_id: venueId })
-  if (!error && data) return data
-
-  const { data: rows } = await supabase
-    .from('staff')
-    .select('id, name, role, photo_url')
-    .eq('venue_id', venueId)
-    .eq('is_active', true)
-    .order('sort_order')
-    .order('name')
-  return rows
+  if (error) throw error
+  return data ?? []
 }
 
 // ── Main page ─────────────────────────────────────────────────────────────────
 export default function LoginPage() {
   const { signIn, signOut, switchVenue, session, loading } = useSession()
   const { venueId, venueSlug, venueName } = useVenue()
-  const { signOutVenue } = useAuth()
+  const { user: authUser, authLoading, signOutVenue } = useAuth()
   const navigate = useNavigate()
 
   // Entrance animation
@@ -453,6 +473,8 @@ export default function LoginPage() {
   // ── Staff list ────────────────────────────────────────────────────────────
   const [staff, setStaff]               = useState([])
   const [staffLoading, setStaffLoading] = useState(true)
+  const [staffFailed, setStaffFailed]   = useState(false)
+  const [staffAttempt, setStaffAttempt] = useState(0)
   const [staffQuery, setStaffQuery]     = useState('')
   const [selected, setSelected]         = useState(null)
   const [pin, setPin]                   = useState('')
@@ -472,6 +494,7 @@ export default function LoginPage() {
     if (!venueId) { setStaffLoading(false); return }
     setStaff([])
     setStaffLoading(true)
+    setStaffFailed(false)
     setSelected(null)
     setPin('')
     setError('')
@@ -485,14 +508,20 @@ export default function LoginPage() {
     let cancelled = false
     fetchLoginStaff(venueId)
       .then((data) => {
-        if (cancelled || !data) return
-        localStorage.setItem(cacheKey, JSON.stringify(data))
+        if (cancelled) return
+        try { localStorage.setItem(cacheKey, JSON.stringify(data)) } catch {}
         setStaff(data)
       })
-      .catch((e) => captureSilent(e, 'LoginPage:staff-list-refresh'))
+      .catch((e) => {
+        if (cancelled) return
+        // A cached list stays on screen (see staffListState); with no cache
+        // this shows the retry state instead of an empty box.
+        setStaffFailed(true)
+        captureSilent(e, 'LoginPage:staff-list-refresh')
+      })
       .finally(() => { if (!cancelled) setStaffLoading(false) })
     return () => { cancelled = true }
-  }, [venueId])
+  }, [venueId, staffAttempt])
 
   const selectStaff = (member) => {
     setSelected(s => s?.id === member.id ? null : member)
@@ -587,6 +616,11 @@ export default function LoginPage() {
   if (loading) return <FullPageLoader />
 
   const showTabs     = deviceVenues.length > 1
+  const listState    = staffListState({ loading: staffLoading, failed: staffFailed, staff })
+  // Only a manager/owner email sign-in on this device has anything to sign
+  // out of here: a staff PIN session never sees this screen (it redirects to
+  // the dashboard above).
+  const showSignOut  = !authLoading && !!authUser
   const filteredStaff = staffQuery
     ? staff.filter(s => s.name.toLowerCase().includes(staffQuery.toLowerCase()))
     : staff
@@ -602,7 +636,7 @@ export default function LoginPage() {
       <style>{`
         @keyframes login-logo-enter  { from { opacity:0; transform:translate3d(0,-16px,0) } to { opacity:1; transform:translate3d(0,0,0) } }
         @keyframes login-card-enter  { from { opacity:0; transform:translate3d(0,24px,0) }  to { opacity:1; transform:translate3d(0,0,0) } }
-        @keyframes login-row-enter   { from { opacity:0; transform:translate3d(-10px,0,0) } to { opacity:1; transform:translate3d(0,0,0) } }
+        @keyframes login-row-enter   { from { transform:translate3d(-10px,0,0) } to { transform:translate3d(0,0,0) } }
         @keyframes login-fade-enter  { from { opacity:0 } to { opacity:1 } }
         .scrollbar-hide { -ms-overflow-style:none; scrollbar-width:none }
         .scrollbar-hide::-webkit-scrollbar { display:none }
@@ -697,15 +731,40 @@ export default function LoginPage() {
 
               {/* Staff rows */}
               <div className="flex flex-col border border-charcoal/8 dark:border-white/8 rounded-xl overflow-hidden">
-                {staffLoading && (
-                  <div className="flex justify-center py-8">
-                    <div className="w-5 h-5 rounded-full border-2 border-charcoal/15 dark:border-white/15 border-t-brand animate-spin" />
-                  </div>
+                {listState === 'loading' && <StaffListSkeleton />}
+                {listState === 'error' && (
+                  <ListMessage
+                    title="Couldn’t load your team"
+                    body={typeof navigator !== 'undefined' && navigator.onLine === false
+                      ? 'This device is offline. Reconnect to the internet, then try again.'
+                      : 'We couldn’t reach Pelikn. Check your connection and try again.'}
+                    action={
+                      <button
+                        type="button"
+                        onClick={() => setStaffAttempt(a => a + 1)}
+                        className="w-full bg-brand text-cream py-2.5 rounded-xl text-sm font-semibold hover:bg-brand/90 transition-colors"
+                      >
+                        Try again
+                      </button>
+                    }
+                  />
                 )}
-                {!staffLoading && staff.length === 0 && (
-                  <p className="text-sm text-charcoal/40 dark:text-white/35 text-center py-6">No staff members found for this venue.</p>
+                {listState === 'empty' && (
+                  <ListMessage
+                    title="No team members yet"
+                    body={`Nobody at ${venueName ?? 'this venue'} can sign in with a PIN yet. A manager needs to add the team in Pelikn first.`}
+                    action={
+                      <button
+                        type="button"
+                        onClick={() => navigate('/login')}
+                        className="w-full py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 text-sm font-semibold text-charcoal dark:text-white hover:border-brand/40 hover:text-brand transition-colors"
+                      >
+                        Manager sign in
+                      </button>
+                    }
+                  />
                 )}
-                {!staffLoading && staff.length > 12 && staffQuery && filteredStaff.length === 0 && (
+                {listState === 'ready' && staff.length > 12 && staffQuery && filteredStaff.length === 0 && (
                   <p className="text-sm text-charcoal/40 dark:text-white/35 text-center py-6">No staff match "{staffQuery}"</p>
                 )}
                 {filteredStaff.map((s, i) => {
@@ -841,18 +900,20 @@ export default function LoginPage() {
         )}
       </div>
 
-      {/* Sign out */}
-      <button
-        onClick={async () => {
-          signOut()
-          await signOutVenue()
-          navigate('/login', { replace: true })
-        }}
-        className="mt-6 text-xs text-charcoal/30 dark:text-white/30 hover:text-charcoal/60 dark:hover:text-white/50 transition-colors"
-        style={ready ? { animation: 'login-fade-enter 0.4s 0.3s ease both' } : { opacity: 0 }}
-      >
-        Sign out of venue
-      </button>
+      {/* Sign out — only when a manager/owner is signed in on this device */}
+      {showSignOut && (
+        <button
+          onClick={async () => {
+            signOut()
+            await signOutVenue()
+            navigate('/login', { replace: true })
+          }}
+          className="mt-6 text-xs text-charcoal/30 dark:text-white/30 hover:text-charcoal/60 dark:hover:text-white/50 transition-colors"
+          style={ready ? { animation: 'login-fade-enter 0.4s 0.3s ease both' } : { opacity: 0 }}
+        >
+          Sign out of venue
+        </button>
+      )}
     </div>
   )
 }
