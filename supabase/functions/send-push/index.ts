@@ -14,19 +14,12 @@
 
 import webpush from 'npm:web-push'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { allowOrigin } from '../_shared/cors.ts'
 
 const VAPID_PUBLIC_KEY  = 'BBDUCYpy030Ejbra3lzqTxIo663ciiqK_H-qCDmMQZ1wNwt9icOCYvjqhcyYAIyTIKorp4gpsS81MOp5InvjJDc'
 const VAPID_PRIVATE_KEY = Deno.env.get('VAPID_PRIVATE_KEY') ?? ''
 const SUPABASE_URL      = Deno.env.get('SUPABASE_URL') ?? ''
 const SUPABASE_SERVICE  = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-
-const DEV_ORIGIN = Deno.env.get('DEV_ORIGIN')
-const ALLOWED_ORIGINS = [
-  'https://pelikn.app',
-  'capacitor://localhost',
-  'ionic://localhost',
-  ...(DEV_ORIGIN ? [DEV_ORIGIN] : []),
-]
 
 webpush.setVapidDetails(
   'mailto:hello@pelikn.app',
@@ -58,9 +51,8 @@ async function applyNotificationPreferences(db: any, staffIds: string[], venueId
 }
 
 Deno.serve(async (req) => {
-  const origin = req.headers.get('origin') ?? ''
   const corsHeaders = {
-    'Access-Control-Allow-Origin':  ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0],
+    'Access-Control-Allow-Origin':  allowOrigin(req),
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   }
   if (req.method === 'OPTIONS') {
