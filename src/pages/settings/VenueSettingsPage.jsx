@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { format, parseISO } from 'date-fns'
 import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
 import { useAppSettings } from '../../hooks/useSettings'
 import { useTheme } from '../../contexts/ThemeContext'
 import useVenueSettings from '../../hooks/useVenueSettings'
+import useVenueClosures from '../../hooks/useVenueClosures'
+import { useToast } from '../../components/ui/Toast'
+import ConfirmDialog from '../../components/ui/ConfirmDialog'
 import TimeSelect from '../../components/ui/TimeSelect'
 import VenuesSection from './VenuesSection'
 import SettingsSubHeader from '../../components/layout/SettingsSubHeader'
@@ -34,6 +38,106 @@ function Row({ label, sub, children, last }) {
       </div>
       {children}
     </div>
+  )
+}
+
+const fieldClass = 'w-full px-3 py-2.5 rounded-[10px] border border-charcoal/10 dark:border-white/10 bg-transparent text-sm text-charcoal dark:text-white outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 focus:border-charcoal/20 dark:focus:border-white/20 box-border'
+
+function fmtRange(c) {
+  const start = format(parseISO(c.start_date), 'd MMM yyyy')
+  return c.start_date === c.end_date ? start : `${start} – ${format(parseISO(c.end_date), 'd MMM yyyy')}`
+}
+
+// Writes venue_closures directly — the list checks, cleaning and the dashboard
+// read — so every plan can mark closures, not just venues with My Calendar.
+// Rows linked to a calendar event (migration 140) are the same closure; removing
+// one here removes the event too.
+function ClosedPeriodsGroup({ venueId }) {
+  const toast = useToast()
+  const { closures, reload } = useVenueClosures()
+  const [form, setForm] = useState({ start_date: '', end_date: '', reason: '' })
+  const [saving, setSaving] = useState(false)
+  const [removeTarget, setRemoveTarget] = useState(null)
+
+  const today = format(new Date(), 'yyyy-MM-dd')
+  const upcoming = closures.filter(c => c.end_date >= today)
+
+  const add = async () => {
+    if (!form.start_date || !form.end_date) return
+    if (form.end_date < form.start_date) { toast('End date must be on or after start date', 'error'); return }
+    setSaving(true)
+    const { error } = await supabase.from('venue_closures').insert({
+      venue_id:   venueId,
+      start_date: form.start_date,
+      end_date:   form.end_date,
+      reason:     form.reason.trim() || null,
+    })
+    setSaving(false)
+    if (error) { toast('Could not add closed period — please try again', 'error'); return }
+    toast('Closed period added')
+    setForm({ start_date: '', end_date: '', reason: '' })
+    reload()
+  }
+
+  const remove = async (c) => {
+    const { error } = await supabase.from('venue_closures').delete().eq('id', c.id)
+    if (error) { toast('Could not remove closed period — please try again', 'error'); return }
+    toast('Closed period removed')
+    reload()
+  }
+
+  return (
+    <>
+      <ConfirmDialog
+        open={!!removeTarget}
+        title="Remove closed period?"
+        message={removeTarget ? `Checks will be expected again on ${fmtRange(removeTarget)}.${removeTarget.calendar_event_id ? ' This also removes it from My Calendar.' : ''}` : ''}
+        confirmLabel="Remove"
+        danger
+        onClose={() => setRemoveTarget(null)}
+        onConfirm={() => { remove(removeTarget); setRemoveTarget(null) }}
+      />
+      <Group
+        label="Closed periods"
+        foot="Holidays, refits, one-off closures. Checks and cleaning aren't expected on these days. Closures added in the Rota or My Calendar show here too."
+      >
+        {upcoming.map((c, i) => (
+          <div key={c.id} className={`flex items-center gap-3 px-[15px] py-[13px] ${i === 0 ? '' : 'border-t border-charcoal/6 dark:border-white/8'}`}>
+            <div className="flex-1 min-w-0">
+              <div className="text-sm font-medium text-charcoal dark:text-white">{fmtRange(c)}</div>
+              {c.reason && <div className="text-[11.5px] text-charcoal/50 dark:text-white/40 mt-0.5">{c.reason}</div>}
+            </div>
+            <button
+              onClick={() => setRemoveTarget(c)}
+              className="shrink-0 h-7 px-2.5 rounded-[7px] text-[11.5px] font-semibold cursor-pointer border-0 bg-charcoal/6 dark:bg-white/8 text-charcoal/50 dark:text-white/40 hover:text-danger transition-colors"
+            >Remove</button>
+          </div>
+        ))}
+        <div className={`px-[15px] py-[13px] flex flex-col gap-3 ${upcoming.length ? 'border-t border-charcoal/6 dark:border-white/8' : ''}`}>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <div className="font-mono text-[11px] font-semibold tracking-[0.06em] uppercase text-charcoal/50 dark:text-white/40 mb-1.5">From</div>
+              <input type="date" value={form.start_date} onChange={e => setForm(f => ({ ...f, start_date: e.target.value, end_date: f.end_date && f.end_date >= e.target.value ? f.end_date : e.target.value }))} className={fieldClass} />
+            </div>
+            <div>
+              <div className="font-mono text-[11px] font-semibold tracking-[0.06em] uppercase text-charcoal/50 dark:text-white/40 mb-1.5">To</div>
+              <input type="date" value={form.end_date} min={form.start_date} onChange={e => setForm(f => ({ ...f, end_date: e.target.value }))} className={fieldClass} />
+            </div>
+          </div>
+          <div>
+            <div className="font-mono text-[11px] font-semibold tracking-[0.06em] uppercase text-charcoal/50 dark:text-white/40 mb-1.5">Reason (optional)</div>
+            <input value={form.reason} onChange={e => setForm(f => ({ ...f, reason: e.target.value }))} placeholder="e.g. Christmas, refit" className={fieldClass} />
+          </div>
+          <button
+            onClick={add}
+            disabled={saving || !form.start_date || !form.end_date}
+            className={`self-start h-9 px-4 rounded-[9px] border-0 text-[13px] font-semibold text-white bg-brand transition-colors duration-200 ${saving || !form.start_date || !form.end_date ? 'opacity-60 cursor-default' : 'cursor-pointer'}`}
+          >
+            {saving ? 'Saving…' : 'Add closed period'}
+          </button>
+        </div>
+      </Group>
+    </>
   )
 }
 
@@ -211,18 +315,7 @@ export default function VenueSettingsPage() {
           })}
         </Group>
 
-        <Group label="Closed periods">
-          <button
-            onClick={() => navigate(vp('/calendar'))}
-            className="w-full flex items-center justify-between gap-3 px-[15px] py-[14px] bg-transparent border-0 cursor-pointer text-left"
-          >
-            <div>
-              <div className="text-sm font-medium text-charcoal dark:text-white">Manage in My Calendar</div>
-              <div className="text-xs text-charcoal/50 dark:text-white/40 mt-0.5">Closed periods are now created as calendar events under Team → My Calendar</div>
-            </div>
-            <svg width="6" height="10" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-charcoal/30 dark:text-white/30"><path d="M1 1l4 4-4 4"/></svg>
-          </button>
-        </Group>
+        <ClosedPeriodsGroup venueId={venueId} />
 
         <Group label="Branding">
           <div className="px-[15px] py-[13px] flex flex-col gap-2.5">
