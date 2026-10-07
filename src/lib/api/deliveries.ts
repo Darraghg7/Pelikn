@@ -7,8 +7,11 @@ export interface DeliveryCheck {
   venue_id: string
   checked_at: string
   supplier_id?: string
+  supplier_name: string
+  items_desc?: string | null
   checked_by?: string
-  temperature?: number
+  temp_reading?: number | null
+  overall_pass?: boolean | null
   notes?: string
   checker?: { name: string }
   supplier?: { name: string }

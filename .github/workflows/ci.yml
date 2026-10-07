@@ -29,6 +29,9 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      # Two checks: strict tsc over the .ts files, then the .js/.jsx files
+      # against typecheck-js-baseline.json (fails on any new error in a JS file).
+      # See "Type checking" in README.md.
       - name: Typecheck
         run: npm run typecheck
 
