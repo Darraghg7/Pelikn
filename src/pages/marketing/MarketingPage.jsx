@@ -83,29 +83,6 @@ function FadeUp({ children, delay = 0, className = '', dir = 'up' }) {
   )
 }
 
-/* ─── CountUp ───────────────────────────────────────────────────────────── */
-function CountUp({ to, suffix = '', duration = 1600 }) {
-  const [val, setVal] = useState(0)
-  const ref = useRef(null), done = useRef(false)
-  useEffect(() => {
-    const el = ref.current; if (!el) return
-    const ob = new IntersectionObserver(([e]) => {
-      if (e.isIntersecting && !done.current) {
-        done.current = true; ob.disconnect()
-        const t0 = performance.now()
-        const tick = now => {
-          const p = Math.min((now - t0) / duration, 1)
-          setVal(Math.round((1 - Math.pow(1 - p, 3)) * to))
-          if (p < 1) requestAnimationFrame(tick)
-        }
-        requestAnimationFrame(tick)
-      }
-    }, { threshold: 0.5 })
-    ob.observe(el); return () => ob.disconnect()
-  }, [to, duration])
-  return <span ref={ref}>{val}{suffix}</span>
-}
-
 /* ─── Logo ──────────────────────────────────────────────────────────────── */
 function PeliknLogo({ light = false }) {
   return (
@@ -254,32 +231,140 @@ function MockDashboard() {
   )
 }
 
-/* Mobile staff home */
-function MockMobileHome() {
-  const navIcons = [
-    { label:'Home',   d:'M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z M9 22V12h6v10', active:true },
-    { label:'Checks', d:'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2 M9 3h6v4H9z', active:false },
-    { label:'Team',   d:'M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2 M9 7a4 4 0 100 8 4 4 0 000-8z M23 21v-2a4 4 0 00-3-3.87 M16 3.13a4 4 0 010 7.75', active:false },
-    { label:'Tasks',  d:'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2 M9 3h6v4H9z M9 12h6 M9 16h4', active:false },
-    { label:'Settings',d:'M12 15a3 3 0 100-6 3 3 0 000 6z M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z', active:false },
-  ]
+/* Mobile app chrome shared by the phone mocks */
+function MockAppHeader() {
   return (
-    <div className="bg-[#f0efec] flex flex-col" style={{ width:272, height:572, overflow:'hidden' }}>
-      {/* Header */}
-      <div className="bg-brand px-4 pt-14 pb-3 shrink-0">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-[11px] font-bold text-cream tracking-widest">DEPOT</span>
-            <div className="relative">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-cream/60"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
-              <div className="absolute -top-1 -right-1.5 w-3.5 h-3.5 bg-accent rounded-full flex items-center justify-center">
-                <span className="text-[7px] font-bold text-white">6</span>
-              </div>
+    <div className="bg-brand px-4 pt-14 pb-3 shrink-0">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <span className="text-[11px] font-bold text-cream tracking-widest">DEPOT</span>
+          <div className="relative">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-cream/60"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+            <div className="absolute -top-1 -right-1.5 w-3.5 h-3.5 bg-accent rounded-full flex items-center justify-center">
+              <span className="text-[7px] font-bold text-white">6</span>
             </div>
           </div>
-          <span className="text-[9px] text-cream/40 border border-cream/20 px-2 py-0.5 rounded">Sign Out</span>
+        </div>
+        <span className="text-[9px] text-cream/40 border border-cream/20 px-2 py-0.5 rounded">Sign Out</span>
+      </div>
+    </div>
+  )
+}
+
+const MOCK_NAV = [
+  { label:'Home',     d:'M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z M9 22V12h6v10' },
+  { label:'Checks',   d:'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2 M9 3h6v4H9z' },
+  { label:'Team',     d:'M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2 M9 7a4 4 0 100 8 4 4 0 000-8z M23 21v-2a4 4 0 00-3-3.87 M16 3.13a4 4 0 010 7.75' },
+  { label:'Tasks',    d:'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2 M9 3h6v4H9z M9 12h6 M9 16h4' },
+  { label:'Settings', d:'M12 15a3 3 0 100-6 3 3 0 000 6z M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z' },
+]
+
+function MockBottomNav({ active }) {
+  return (
+    <div className="bg-white border-t border-charcoal/8 flex justify-around px-1 pt-2 pb-3 shrink-0">
+      {MOCK_NAV.map(({ label, d }) => {
+        const on = label === active
+        return (
+          <div key={label} className="flex flex-col items-center gap-0.5">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={on?2.25:1.75} strokeLinecap="round" strokeLinejoin="round" className={on?'text-brand':'text-charcoal/30'}><path d={d}/></svg>
+            <span className={`text-[7px] font-medium ${on?'text-brand':'text-charcoal/30'}`}>{label}</span>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+/* Mobile checks hub — mirrors src/pages/compliance/ChecksHubPage.jsx (tiles sorted overdue → due → done) */
+const MOCK_CHECK_TONE = {
+  overdue: { icon:'bg-danger/10 text-danger',   text:'text-danger',       dot:'bg-danger' },
+  due:     { icon:'bg-warning/10 text-warning', text:'text-warning',      dot:'bg-warning' },
+  done:    { icon:'bg-success/10 text-success', text:'text-success',      dot:'bg-success' },
+  na:      { icon:'bg-surface text-charcoal/55', text:'text-charcoal/55', dot:null },
+}
+
+function MockChecksHub() {
+  const tiles = [
+    { label:'Cleaning',       status:'overdue', sub:'2 overdue',      count:2, d:'M19.4 5 11 13.4M14 6l4 4M9.5 11.5 4 17v3h3l5.5-5.5' },
+    { label:'Opening Checks', status:'due',     sub:'5/8 done',       count:3, d:'M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z M9 22V12h6v10' },
+    { label:'Fridge Temps',   status:'due',     sub:'1 unchecked',    count:1, d:'M7 2h10a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z M5 10h14 M9 5v2 M9 13v3' },
+    { label:'Deliveries',     status:'done',    sub:'2 logged',             d:'M1 3h15v13H1z M16 8h4l3 3v5h-7z M5.5 21a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z M18.5 21a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z' },
+    { label:'Cooking Temps',  status:'done',    sub:'3 logged',             d:'M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z' },
+    { label:'Allergens',      status:'na',      sub:'Up to date',           d:'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z M12 8v4 M12 16h.01' },
+  ]
+  return (
+    <div className="bg-bg flex flex-col" style={{ width:272, height:572, overflow:'hidden' }}>
+      <MockAppHeader />
+
+      <div className="flex-1 overflow-hidden px-3 pt-3">
+        {/* Title */}
+        <div className="flex items-center justify-between">
+          <span className="font-mono text-[8px] tracking-[0.08em] uppercase text-charcoal/50">Checks</span>
+          <span className="font-mono text-[8px] font-semibold text-charcoal/50">Edit</span>
+        </div>
+        <p className="text-[19px] font-semibold tracking-[-0.028em] text-charcoal leading-tight mt-0.5 mb-2">Today's checks</p>
+
+        {/* Today banner */}
+        <div className="bg-brand rounded-xl px-3 py-2.5 mb-2.5 flex items-center gap-2">
+          <div className="flex-1 min-w-0">
+            <p className="font-mono text-[7px] tracking-[0.1em] uppercase text-white/55 font-semibold">Today</p>
+            <p className="text-[12px] font-semibold text-white tracking-[-0.015em] mt-0.5">6 checks need doing</p>
+            <div className="flex items-center gap-2 mt-1">
+              <span className="inline-flex items-center gap-1 font-mono text-[7px] font-semibold text-[#ffb4a6]"><span className="w-1 h-1 rounded-full bg-current"/>2 overdue</span>
+              <span className="inline-flex items-center gap-1 font-mono text-[7px] font-semibold text-[#f2c48f]"><span className="w-1 h-1 rounded-full bg-current"/>4 due now</span>
+            </div>
+          </div>
+          <span className="font-mono text-[7px] tracking-[0.06em] uppercase font-semibold text-white/85">View all ›</span>
+        </div>
+
+        {/* Tile grid */}
+        <div className="grid grid-cols-2 gap-1.5">
+          {tiles.map(({ label, status, sub, count, d }) => {
+            const t = MOCK_CHECK_TONE[status]
+            return (
+              <div key={label} className={`bg-paper border rounded-lg p-2 flex flex-col gap-1.5 min-h-[60px] ${status==='overdue'?'border-danger/30':'border-charcoal/10'}`}>
+                <div className="flex items-start justify-between">
+                  <span className={`w-[22px] h-[22px] rounded-md flex items-center justify-center ${t.icon}`}>
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d={d}/></svg>
+                  </span>
+                  {count ? (
+                    <span className={`min-w-[15px] h-[15px] px-1 rounded-full flex items-center justify-center font-mono text-[8px] font-semibold text-white ${t.dot}`}>{count}</span>
+                  ) : status === 'done' ? (
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" className={t.text}><polyline points="20 6 9 17 4 12"/></svg>
+                  ) : null}
+                </div>
+                <div className="mt-auto">
+                  <p className="text-[10px] font-semibold tracking-[-0.01em] text-charcoal leading-tight">{label}</p>
+                  <p className={`font-mono text-[7px] font-semibold uppercase tracking-[0.02em] mt-0.5 ${t.text}`}>{sub}</p>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+
+        {/* EHO audit */}
+        <div className="mt-2 bg-paper border border-charcoal/10 rounded-lg px-2.5 py-2 flex items-center gap-2">
+          <span className="w-[22px] h-[22px] rounded-md bg-surface text-charcoal/75 flex items-center justify-center shrink-0">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h4"/></svg>
+          </span>
+          <div className="flex-1 min-w-0">
+            <p className="text-[10px] font-semibold text-charcoal">EHO Audit</p>
+            <p className="text-[8px] text-charcoal/50">Compliance summary &amp; export</p>
+          </div>
+          <span className="text-charcoal/30 text-[10px]">›</span>
         </div>
       </div>
+
+      <MockBottomNav active="Checks" />
+    </div>
+  )
+}
+
+/* Mobile staff home */
+function MockMobileHome() {
+  return (
+    <div className="bg-[#f0efec] flex flex-col" style={{ width:272, height:572, overflow:'hidden' }}>
+      <MockAppHeader />
 
       {/* Scrollable content */}
       <div className="flex-1 overflow-hidden">
@@ -361,21 +446,13 @@ function MockMobileHome() {
         </div>
       </div>
 
-      {/* Bottom nav */}
-      <div className="bg-white border-t border-charcoal/8 flex justify-around px-1 pt-2 pb-3 shrink-0">
-        {navIcons.map(({ label, d, active }) => (
-          <div key={label} className="flex flex-col items-center gap-0.5">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active?2.25:1.75} strokeLinecap="round" strokeLinejoin="round" className={active?'text-brand':'text-charcoal/30'}><path d={d}/></svg>
-            <span className={`text-[7px] font-medium ${active?'text-brand':'text-charcoal/30'}`}>{label}</span>
-          </div>
-        ))}
-      </div>
+      <MockBottomNav active="Home" />
     </div>
   )
 }
 
 /* Mobile team hub */
-function MockChecksGrid() {
+function MockTeamHub() {
   const tiles = [
     { iBg:'#fef0e8', iCol:'#c94f2a', icon:'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z',      label:'My Shifts',     sub:'3 SWAPS PENDING',        sCol:'#c94f2a',              badge:'3', bCol:'#c94f2a', check:false },
     { iBg:'#fef0e8', iCol:'#c94f2a', icon:'M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14',                label:'Time Off',      sub:'1 PENDING',              sCol:'#c94f2a',              badge:'1', bCol:'#c94f2a', check:false },
@@ -385,30 +462,9 @@ function MockChecksGrid() {
     { iBg:'#f0efec', iCol:'#9ca3af', icon:'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z', label:'Staff Members', sub:'11 ACTIVE', sCol:'rgba(26,26,24,0.35)', badge:null, bCol:null, check:false },
     { iBg:'#f0efec', iCol:'#9ca3af', icon:'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z',      label:'My Calendar',   sub:'NO UPCOMING EVENTS',     sCol:'rgba(26,26,24,0.35)',  badge:null,bCol:null,    check:false },
   ]
-  const navIcons = [
-    { label:'Home',     d:'M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z M9 22V12h6v10', active:false },
-    { label:'Checks',   d:'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2 M9 3h6v4H9z', active:false },
-    { label:'Team',     d:'M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2 M9 7a4 4 0 100 8 4 4 0 000-8z M23 21v-2a4 4 0 00-3-3.87 M16 3.13a4 4 0 010 7.75', active:true },
-    { label:'Tasks',    d:'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2 M9 3h6v4H9z M9 12h6 M9 16h4', active:false },
-    { label:'Settings', d:'M12 15a3 3 0 100-6 3 3 0 000 6z M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z', active:false },
-  ]
   return (
     <div className="bg-[#f0efec] flex flex-col" style={{ width:272, height:572, overflow:'hidden' }}>
-      {/* Header */}
-      <div className="bg-brand px-4 pt-14 pb-3 shrink-0">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-[11px] font-bold text-cream tracking-widest">DEPOT</span>
-            <div className="relative">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-cream/60"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
-              <div className="absolute -top-1 -right-1.5 w-3.5 h-3.5 bg-accent rounded-full flex items-center justify-center">
-                <span className="text-[7px] font-bold text-white">6</span>
-              </div>
-            </div>
-          </div>
-          <span className="text-[9px] text-cream/40 border border-cream/20 px-2 py-0.5 rounded">Sign Out</span>
-        </div>
-      </div>
+      <MockAppHeader />
 
       {/* Scrollable content */}
       <div className="flex-1 overflow-hidden px-3 pt-3">
@@ -453,15 +509,7 @@ function MockChecksGrid() {
         </div>
       </div>
 
-      {/* Bottom nav */}
-      <div className="bg-white border-t border-charcoal/8 flex justify-around px-1 pt-2 pb-3 shrink-0">
-        {navIcons.map(({ label, d, active }) => (
-          <div key={label} className="flex flex-col items-center gap-0.5">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active?2.25:1.75} strokeLinecap="round" strokeLinejoin="round" className={active?'text-brand':'text-charcoal/30'}><path d={d}/></svg>
-            <span className={`text-[7px] font-medium ${active?'text-brand':'text-charcoal/30'}`}>{label}</span>
-          </div>
-        ))}
-      </div>
+      <MockBottomNav active="Team" />
     </div>
   )
 }
@@ -766,7 +814,7 @@ export default function MarketingPage() {
               <IPhoneFrame><MockMobileHome /></IPhoneFrame>
             </div>
             <div style={{ animation:'pkRise 1s 420ms cubic-bezier(.16,1,.3,1) both' }}>
-              <IPhoneFrame><MockChecksGrid /></IPhoneFrame>
+              <IPhoneFrame><MockTeamHub /></IPhoneFrame>
             </div>
           </div>
         </div>
@@ -836,7 +884,7 @@ export default function MarketingPage() {
                 </div>
                 <div>
                   <p className="text-[11px] tracking-[0.1em] uppercase text-charcoal/35 font-medium text-center mb-4">Checks hub</p>
-                  <IPhoneFrame><MockChecksGrid /></IPhoneFrame>
+                  <IPhoneFrame><MockChecksHub /></IPhoneFrame>
                 </div>
               </div>
             </FadeUp>
@@ -887,16 +935,15 @@ export default function MarketingPage() {
       {/* ── Stats ────────────────────────────────────────────────────────── */}
       <section className="bg-brand">
         <div className="max-w-5xl mx-auto px-6 sm:px-10 py-24 sm:py-28">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-12 sm:gap-0 sm:divide-x sm:divide-cream/12">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 lg:gap-0 lg:divide-x lg:divide-cream/12">
             {[
-              { to:15, suffix:' min', label:'Average setup time',  sub:'From sign-up to first check logged', delay:0 },
-              { to:5,  suffix:' apps', label:'Replaced by one',    sub:'Rota, compliance, timesheets, training, tips', delay:80 },
-              { to:100,suffix:'%',    label:'On your phone',       sub:'No app store. Install from your browser in seconds', delay:160 },
-            ].map(({ to, suffix, label, sub, delay }) => (
-              <FadeUp key={label} delay={delay} className="sm:px-12 first:pl-0 last:pr-0">
-                <p className="text-[72px] sm:text-[80px] font-bold text-cream mb-3 tabular-nums tracking-[-0.03em] leading-none"><CountUp to={to} suffix={suffix} duration={1300}/></p>
-                <p className="text-[15px] font-semibold text-cream/65 mb-1.5">{label}</p>
-                <p className="text-[14px] text-cream/40 leading-[1.6]">{sub}</p>
+              { value:'An afternoon', sub:'From sign-up to your first check logged.', delay:0 },
+              { value:'One app',      sub:'Checks, rotas, timesheets, training and tips.', delay:80 },
+              { value:'Any device',   sub:'Phone, tablet and desktop. Staff use their own phones.', delay:160 },
+            ].map(({ value, sub, delay }) => (
+              <FadeUp key={value} delay={delay} className="lg:px-8 first:pl-0 last:pr-0">
+                <p className="text-[44px] lg:text-[40px] font-bold text-cream mb-3 tracking-[-0.03em] leading-none whitespace-nowrap">{value}</p>
+                <p className="text-[15px] text-cream/55 leading-[1.6] max-w-xs">{sub}</p>
               </FadeUp>
             ))}
           </div>
@@ -942,9 +989,9 @@ export default function MarketingPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-20 items-center">
             <FadeUp>
               <span className="inline-block text-[11px] tracking-[0.12em] uppercase text-brand font-semibold bg-brand/8 px-3.5 py-1.5 rounded-full mb-6">Setup</span>
-              <h2 className="text-[40px] sm:text-[52px] lg:text-[56px] font-bold text-charcoal tracking-[-0.025em] leading-[1.05] mb-6">Live in 15 minutes.</h2>
+              <h2 className="text-[40px] sm:text-[52px] lg:text-[56px] font-bold text-charcoal tracking-[-0.025em] leading-[1.05] mb-6">Live this afternoon.</h2>
               <p className="text-charcoal/55 text-[17px] leading-[1.75] mb-8 max-w-sm">
-                No app store. No IT department. Open in your browser, install to your home screen and it works like any other app. Offline included.
+                No IT department needed. Open Pelikn in your browser, add it to your home screen and it works like any other app. Offline included.
               </p>
               <Link to="/signup" className="inline-flex items-center gap-2 bg-brand text-cream px-6 py-3.5 rounded-xl text-[15px] font-semibold hover:bg-brand/85 hover:shadow-[0_6px_20px_rgba(19,54,42,0.25)] hover:-translate-y-0.5 transition-all duration-200 cursor-pointer">
                 Get started free
@@ -1010,7 +1057,7 @@ export default function MarketingPage() {
               Ditch the clipboard.<br />Keep the compliance.
             </h2>
             <p className="text-cream/50 text-[17px] leading-[1.7] mb-10 max-w-xs">
-              7 days free. No card. 15 minutes to set up.
+              7 days free. No card. Set up in an afternoon.
             </p>
             <div className="flex flex-col sm:flex-row items-start gap-4">
               <Link to="/signup" className="bg-accent text-cream px-8 py-4 rounded-xl text-[15px] font-semibold hover:bg-[#b8431f] hover:shadow-[0_10px_36px_rgba(201,79,42,0.55)] hover:-translate-y-0.5 active:scale-[0.97] transition-all duration-200 text-center cursor-pointer shadow-[0_4px_24px_rgba(201,79,42,0.42)]">
