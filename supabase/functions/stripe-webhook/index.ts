@@ -17,14 +17,15 @@
 import Stripe from 'npm:stripe@17.7.0'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { priceTableFromEnv } from '../_shared/billingPlan.ts'
-import { ownerForSubscription, stripeClient, syncSubscription } from '../_shared/stripeSync.ts'
+import { ownerForSubscription, stripeClient, stripeConfigured, syncSubscription } from '../_shared/stripeSync.ts'
 
 const SUPABASE_URL          = Deno.env.get('SUPABASE_URL') ?? ''
 const SUPABASE_SERVICE      = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
 const STRIPE_WEBHOOK_SECRET = Deno.env.get('STRIPE_WEBHOOK_SECRET') ?? ''
 
 const prices = priceTableFromEnv(name => Deno.env.get(name))
-const stripe = stripeClient()
+// Signature checks need only the webhook secret, not the API key.
+const cryptoProvider = Stripe.createSubtleCryptoProvider()
 
 Deno.serve(async (req) => {
   if (req.method !== 'POST') return new Response('ok', { status: 200 })
@@ -32,8 +33,8 @@ Deno.serve(async (req) => {
   const body = await req.text()
   let event: Stripe.Event
   try {
-    event = await stripe.webhooks.constructEventAsync(
-      body, req.headers.get('stripe-signature') ?? '', STRIPE_WEBHOOK_SECRET,
+    event = await Stripe.webhooks.constructEventAsync(
+      body, req.headers.get('stripe-signature') ?? '', STRIPE_WEBHOOK_SECRET, undefined, cryptoProvider,
     )
   } catch (err) {
     console.error('stripe-webhook: signature verification failed', err)
@@ -56,6 +57,12 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ received: true, ignored: event.type }), { status: 200 })
   }
   if (!subscriptionId) return new Response(JSON.stringify({ received: true }), { status: 200 })
+
+  if (!stripeConfigured()) {
+    console.error('stripe-webhook: STRIPE_SECRET_KEY is not set; Stripe will retry this event')
+    return new Response('Stripe secret key not configured', { status: 500 })
+  }
+  const stripe = stripeClient()
 
   const db = createClient(SUPABASE_URL, SUPABASE_SERVICE)
   try {
