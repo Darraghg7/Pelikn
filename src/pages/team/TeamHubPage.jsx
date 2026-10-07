@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useVenue } from '../../contexts/VenueContext'
 import { useTeamStatus } from '../../hooks/useTeamStatus'
 import { useAppSettings } from '../../hooks/useSettings'
+import { useVenueFeatures } from '../../hooks/useVenueFeatures'
 
 const STATUS_TONE = {
   overdue: { statusBg: 'bg-danger/10',  statusText: 'text-danger',  statusFg: 'bg-danger',  rank: 0 },
@@ -10,6 +11,18 @@ const STATUS_TONE = {
   draft:   { statusBg: 'bg-[#faeee9]',  statusText: 'text-accent', statusFg: 'bg-accent', rank: 2 },
   done:    { statusBg: 'bg-success/10', statusText: 'text-success', statusFg: 'bg-success', rank: 3 },
   na:      { statusBg: 'bg-surface dark:bg-white/8', statusText: 'text-charcoal/55 dark:text-white/40', statusFg: 'bg-charcoal/50 dark:bg-white/50', rank: 4 },
+  locked:  { statusBg: 'bg-surface dark:bg-white/8', statusText: 'text-charcoal/55 dark:text-white/40', statusFg: 'bg-charcoal/50 dark:bg-white/50', rank: 5 },
+}
+
+/** Tile id → plans.ts gate key. Tiles not listed (Staff) are on every plan. */
+const TILE_GATE = {
+  'team-rota': 'rota',
+  rota: 'rota',
+  timesheet: 'timesheet',
+  training: 'training',
+  'time-off': 'time-off',
+  hr: 'hr',
+  calendar: 'calendar',
 }
 
 function CalIcon() {
@@ -110,6 +123,10 @@ function TeamCard({ label, icon: Icon, status, statusText, count, onClick, editM
               </svg>
             )}
           </span>
+        ) : status === 'locked' ? (
+          <span className="h-5 px-1.5 rounded-md inline-flex items-center font-mono text-[11px] font-semibold tracking-[0.04em] uppercase bg-brand/10 text-brand dark:bg-white/10 dark:text-white/70">
+            Pro
+          </span>
         ) : count && status !== 'done' && status !== 'na' ? (
           <span className={`min-w-[20px] h-5 px-1.5 rounded-full flex items-center justify-center font-mono text-[11px] font-semibold text-white ${statusFg}`}>
             {count}
@@ -140,6 +157,7 @@ export default function TeamHubPage() {
 
   const { data, loading } = useTeamStatus(venueId)
   const { hiddenTeamTiles, saveHiddenTeamTiles } = useAppSettings()
+  const { isPlanLocked } = useVenueFeatures()
   const upcomingCount = data?.calendarUpcoming ?? 0
 
   const [editMode, setEditMode] = useState(false)
@@ -213,7 +231,11 @@ export default function TeamHubPage() {
         ? { status: 'due', statusText: `${upcomingCount} upcoming`, count: upcomingCount }
         : { status: 'na', statusText: 'No upcoming events' }),
     },
-  ]
+  ].map(c => TILE_GATE[c.id] && isPlanLocked(TILE_GATE[c.id])
+    // Starter: keep the tile, but say it's Pro. Tapping still opens the
+    // route, where PlanGate shows the upgrade screen.
+    ? { ...c, status: 'locked', statusText: 'Upgrade to unlock', count: undefined }
+    : c)
 
   const ordered = editMode
     ? ALL_CARDS
