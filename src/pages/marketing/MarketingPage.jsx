@@ -990,7 +990,7 @@ export default function MarketingPage() {
               { icon:'M5 12h14 M12 5l7 7-7 7', title:'Delivery checks',   desc:'Temp reading, condition notes, signed on arrival.' },
               { icon:'M3 4h18v18H3z M16 2v4 M8 2v4 M3 10h18', title:'Opening checklists', desc:'Start every shift the same way. Signed and consistent.' },
               { icon:'M20 7H4a2 2 0 00-2 2v6a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16', title:'Allergen registry',  desc:'Every dish, every allergen, always current.' },
-              { icon:'M12 1v22 M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6', title:'Tip distribution',  desc:'Enter the pot, set the split, done. Full audit trail.' },
+              { icon:'M18 7c0-5.333-8-5.333-8 0 M10 7v14 M6 21h12 M6 13h10', title:'Tip distribution',  desc:'Enter the pot, set the split, done. Full audit trail.' },
               { icon:'M5 8h14 M5 12h14 M5 16h6', title:'Clock in / out',    desc:'Staff clock on from their phone. Timesheets build automatically.' },
             ].map(({ icon, title, desc }, i) => (
               <FadeUp key={title} delay={i * 30}>
@@ -1058,7 +1058,7 @@ export default function MarketingPage() {
           <FadeUp delay={50}>
             <div className="border-t border-charcoal/8">
               {[
-                { q:'Is this on the App Store?', a:"No, intentionally. Pelikn is a Progressive Web App. Install it from Safari or Chrome in about 30 seconds. It lives on your home screen, works offline, and behaves like any native app. No app store approval, no mandatory updates." },
+                { q:'Is this on the App Store?', a:"Not yet. Today Pelikn runs in your browser. Add it to your home screen in about 30 seconds and it opens like any other app, even when the signal drops. iPhone and Android apps are on the way." },
                 { q:'Does it work on iPhone, iPad and Android?', a:"Yes, all of them. Install from Safari on iOS/iPadOS, or Chrome on Android. The manager dashboard works in any desktop browser with no install needed." },
                 { q:"What's the difference between Starter and Pro?", a:`Starter covers everything on the compliance side: temperature logs, cleaning records, allergens, checklists and exports, for one venue and up to ${STARTER_STAFF_LIMIT} staff. Pro adds the whole team layer: rotas, timesheets, clock in/out, training records, tips and time off, with unlimited staff and multiple venues.` },
                 { q:'What counts as a venue?', a:"Each physical location is a venue. Starter covers one venue. On Pro, your first venue is £25/mo and each extra one is £15/mo. Add a venue whenever you like and your bill updates automatically." },
