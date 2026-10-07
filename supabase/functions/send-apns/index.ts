@@ -24,6 +24,7 @@
  */
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { allowOrigin } from '../_shared/cors.ts'
 
 const APNS_KEY_ID     = Deno.env.get('APNS_KEY_ID')     ?? ''
 const APNS_TEAM_ID    = Deno.env.get('APNS_TEAM_ID')    ?? ''
@@ -31,14 +32,6 @@ const APNS_PRIVATE_KEY = Deno.env.get('APNS_PRIVATE_KEY') ?? ''
 const APNS_BUNDLE_ID  = Deno.env.get('APNS_BUNDLE_ID')  ?? 'app.pelikn'
 const SUPABASE_URL    = Deno.env.get('SUPABASE_URL')    ?? ''
 const SUPABASE_SERVICE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-
-const DEV_ORIGIN = Deno.env.get('DEV_ORIGIN')
-const ALLOWED_ORIGINS = [
-  'https://pelikn.app',
-  'capacitor://localhost',
-  'ionic://localhost',
-  ...(DEV_ORIGIN ? [DEV_ORIGIN] : []),
-]
 
 function jsonResponse(body: unknown, status: number, headers: Record<string, string>) {
   return new Response(JSON.stringify(body), {
@@ -159,9 +152,8 @@ async function sendOne(token: string, jwt: string, notification: {
 // ── Handler ───────────────────────────────────────────────────────────────────
 
 Deno.serve(async (req) => {
-  const origin = req.headers.get('origin') ?? ''
   const corsHeaders = {
-    'Access-Control-Allow-Origin':  ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0],
+    'Access-Control-Allow-Origin':  allowOrigin(req),
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   }
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })

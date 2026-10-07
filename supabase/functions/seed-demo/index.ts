@@ -1,18 +1,15 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { allowOrigin } from '../_shared/cors.ts'
 
 const DEMO_EMAIL      = 'demo@pelikn.app'
 const SUPABASE_URL    = Deno.env.get('SUPABASE_URL')    ?? ''
 const SUPABASE_ANON   = Deno.env.get('SUPABASE_ANON_KEY') ?? ''
 const SUPABASE_SERVICE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
 
-const DEV_ORIGIN = Deno.env.get('DEV_ORIGIN')
-const ALLOWED_ORIGINS = ['https://pelikn.app', 'capacitor://localhost', 'ionic://localhost', ...(DEV_ORIGIN ? [DEV_ORIGIN] : [])]
-
 serve(async (req) => {
-  const origin = req.headers.get('origin') ?? ''
   const corsHeaders = {
-    'Access-Control-Allow-Origin':  ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0],
+    'Access-Control-Allow-Origin':  allowOrigin(req),
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   }
   if (req.method === 'OPTIONS') {
