@@ -34,13 +34,9 @@ export default function AllergenPublicPage() {
         return
       }
       // Fetch logo and food items in parallel
-      const [{ data: settingsData }, { data: foodItems }] = await Promise.all([
-        supabase
-          .from('app_settings')
-          .select('value')
-          .eq('venue_id', venueData.id)
-          .eq('key', 'logo_url')
-          .maybeSingle(),
+      const [{ data: logoUrl }, { data: foodItems }] = await Promise.all([
+        // app_settings is members-only (142); the logo comes from a narrow RPC.
+        supabase.rpc('get_public_venue_logo', { p_slug: venueSlug }),
         supabase
           .from('food_items')
           .select('id, name, description, may_contain_allergens, verbal_confirmation_note, food_allergens(allergen)')
@@ -50,7 +46,7 @@ export default function AllergenPublicPage() {
       ])
 
       if (!cancelled) {
-        setVenue({ ...venueData, logo_url: settingsData?.value ?? null })
+        setVenue({ ...venueData, logo_url: logoUrl ?? null })
         setItems(foodItems ?? [])
         setLoading(false)
       }
