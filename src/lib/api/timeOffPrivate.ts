@@ -53,6 +53,6 @@ export async function fetchTimeOffPrivateFields(): Promise<Map<string, TimeOffPr
 export function withTimeOffPrivate<T extends { id?: string }>(
   rows: T[],
   fields: Map<string, TimeOffPrivateFields>,
-): T[] {
+): Array<T & TimeOffPrivateFields> {
   return rows.map(r => (r.id && fields.has(r.id) ? { ...r, ...fields.get(r.id) } : r))
 }

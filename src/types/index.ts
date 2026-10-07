@@ -57,6 +57,9 @@ export interface FridgeLog {
   logged_by_name?: string
   notes?: string
   venue_id?: string
+  fridge_name?: string
+  /** Embedded by fetchFridgeHistory's `fridges(name, min_temp, max_temp)` join. */
+  fridges?: { name: string; min_temp: number; max_temp: number } | null
 }
 
 export interface FridgeWithLastLog extends Fridge {

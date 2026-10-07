@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import { useVenue } from '../../contexts/VenueContext'
 import { useSession } from '../../contexts/SessionContext'
 import { useAppSettings } from '../../hooks/useSettings'
+import useVenueSettings from '../../hooks/useVenueSettings'
+import { useToast } from '../../components/ui/Toast'
 import NotificationsPanel from './NotificationsPanel'
 import SettingsSubHeader from '../../components/layout/SettingsSubHeader'
 import Toggle from '../../components/ui/Toggle'
@@ -12,6 +14,8 @@ export default function NotificationsSettingsPage() {
   const { venueSlug } = useVenue()
   const { session } = useSession()
   const { pushToManager, savePushToManager, notifyBreakOverrun, saveNotifyBreakOverrun } = useAppSettings()
+  const { settings } = useVenueSettings()
+  const toast = useToast()
 
   const vp = (path) => `/v/${venueSlug}${path}`
 
@@ -41,7 +45,7 @@ export default function NotificationsSettingsPage() {
 
         <div className="font-mono text-[11px] font-semibold tracking-[0.08em] uppercase text-charcoal/50 dark:text-white/40 pt-[14px] pb-[7px] px-0.5">Push notification preferences</div>
         <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[14px] overflow-hidden px-4 py-[14px]">
-          <NotificationsPanel session={session} settings={{}} />
+          <NotificationsPanel session={session} toast={toast} settings={settings} />
         </div>
 
       </div>

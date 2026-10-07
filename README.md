@@ -52,7 +52,7 @@ Production env vars live in Vercel → Project → Settings → Environment Vari
 | `npm run dev` | Vite dev server |
 | `npm run build` / `npm run preview` | Production build to `dist/` / serve it locally |
 | `npm run lint` | ESLint over `src/` (rules-of-hooks is an error) |
-| `npm run typecheck` | `tsc --noEmit` |
+| `npm run typecheck` | Both type checks: `typecheck:ts` (strict, `.ts` files) and `typecheck:js` (`.js`/`.jsx` against a baseline; see Conventions) |
 | `npm run test:unit` | Vitest unit tests (`test:unit:watch`, `test:unit:coverage` also exist) |
 | `npm test` | Playwright end-to-end tests (`test:ui`, `test:headed`, `test:report`) |
 | `npm run cap:sync` | Build and copy into the native projects |
@@ -185,6 +185,7 @@ ios/  android/          Capacitor native projects
 
 - **Data fetching**: the target pattern is a query function in `src/lib/api/<domain>.ts`, wrapped in a React Query hook in `src/hooks/`, keyed by `venueId`, with `invalidateQueries` after writes. `useSuppliers.ts` is a small example. **Many older pages and components (about 55 files) still call `supabase.from` / `.rpc` directly.** They are being migrated a few at a time. Use the target pattern in new code, and move code over when you substantially change an older page.
 - **Select real columns**: PostgREST returns a 400 for an unknown column, and a page that ignores the error shows a misleading empty state. Handle `error` and check column names against the migrations.
+- **Type checking**: `.ts` files are checked strictly (`tsconfig.json`). The `.js`/`.jsx` files, which is most of the UI, are checked leniently by `npm run typecheck:js` (`tsconfig.checkjs.json` + `scripts/typecheck-js.mjs`) against `typecheck-js-baseline.json`, a per-file count of known errors. CI fails if a file gets *more* errors than its baseline, or if a file not in the baseline gets any. To fix a file: run `npx tsc --noEmit -p tsconfig.checkjs.json`, fix that file's errors (fix real bugs; for noise, a small JSDoc type or a type in `src/lib/api` or `src/types` is usually enough), then run `npm run typecheck:js -- --update` and commit the lowered baseline. The check also fails when counts drop until you do this, so the baseline only goes down. Never raise a count to get a PR through.
 - **Rules of Hooks**: call every hook unconditionally, before any early `return`. ESLint enforces `react-hooks/rules-of-hooks` as an error in CI (this crash reached production three times before it was gated). `exhaustive-deps` is a warning.
 - **Design**: follow `.impeccable.md`. Use the colour tokens in `tailwind.config.js`, never hardcoded hex. Type floor: 11px for mono uppercase micro-labels, 12px (`text-xs`) for body text. Dense grids (dashboard stat tiles, rota week grid) are an intentional exception.
 - **Dark mode**: Tailwind `darkMode: 'class'`, toggled by `ThemeContext`.

@@ -14,6 +14,10 @@ import { supabase } from './supabase'
 import { SESSION_TOKEN_KEY } from './constants'
 import { captureSilent } from './reportError'
 
+/**
+ * @param {{ venueId?: string, notificationType?: string, title?: string, body?: string,
+ *           url?: string, roles?: string[], staffIds?: string[] }} [opts]
+ */
 export async function sendPush({ venueId, notificationType, title, body, url = '/', roles, staffIds } = {}) {
   if (!venueId || !title || !body) return
 

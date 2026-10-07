@@ -1,0 +1,16 @@
+{
+  // JS/JSX type check — run via `npm run typecheck:js` (scripts/typecheck-js.mjs).
+  // Deliberately lenient: the app's .js/.jsx files have no type annotations, so
+  // strict mode and implicit-any would only produce noise. What's left still
+  // catches wrong prop and argument names, missing functions, misspelled
+  // properties on typed data, and bad supabase-js call shapes.
+  // The .ts files are held to full strict by tsconfig.json (`npm run typecheck`).
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "checkJs": true,
+    "strict": false,
+    "noImplicitAny": false,
+    "types": ["node", "vite/client", "vitest/globals"]
+  },
+  "include": ["src/**/*"]
+}

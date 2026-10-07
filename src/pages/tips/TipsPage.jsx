@@ -303,7 +303,7 @@ export default function TipsPage() {
       </div>
 
       {loading ? (
-        <SkeletonList count={3} />
+        <SkeletonList rows={3} />
       ) : splits.length === 0 ? (
         <EmptyState
           title="No tip splits yet"
