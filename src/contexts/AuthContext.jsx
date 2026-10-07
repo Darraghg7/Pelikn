@@ -18,33 +18,13 @@ export function AuthProvider({ children }) {
   const [authLoading, setAuthLoading] = useState(true)
 
   // ── Resolve all venues this user owns ─────────────────────────────────
-  // Strategy 1: get_owner_venues() RPC — all new accounts
-  // Strategy 2: manager_email in app_settings — legacy single-venue fallback
-  const resolveVenues = async (email, userId) => {
-    if (userId) {
-      const { data: owned } = await supabase.rpc('get_owner_venues')
-      if (owned?.length) return owned
-    }
-
-    // Legacy fallback — manager_email in app_settings (returns at most 1 venue)
-    if (!email) return []
-    const { data: setting } = await supabase
-      .from('app_settings')
-      .select('venue_id')
-      .eq('key', 'manager_email')
-      .eq('value', email)
-      .limit(1)
-      .maybeSingle()
-
-    if (!setting?.venue_id) return []
-
-    const { data: venue } = await supabase
-      .from('venues')
-      .select('id, name, slug, plan, qr_addon, additional_venues')
-      .eq('id', setting.venue_id)
-      .single()
-
-    return venue ? [venue] : []
+  // get_owner_venues() RPC. The old manager_email-in-app_settings fallback was
+  // removed in 142: app_settings is members-only now, so it could only ever
+  // find venues the RPC already returns.
+  const resolveVenues = async (_email, userId) => {
+    if (!userId) return []
+    const { data: owned } = await supabase.rpc('get_owner_venues')
+    return owned ?? []
   }
 
   const resolveVenuesSafe = (email, userId, ms = 5000) =>
