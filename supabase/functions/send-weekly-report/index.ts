@@ -31,6 +31,15 @@ function settingValue(value: unknown) {
   try { return JSON.parse(value) } catch { return value }
 }
 
+// The demo venues' login is shared publicly, so anyone could point their
+// manager email at a stranger. They never send reports.
+const DEMO_VENUE_SLUGS = ['brew-and-bloom', 'the-corner-cup']
+
+const EMAIL_SHAPE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+const normaliseEmail = (value: unknown) =>
+  typeof value === 'string' ? value.trim().toLowerCase() : ''
+
 serve(async (req) => {
   const corsHeaders = {
     'Access-Control-Allow-Origin':  allowOrigin(req),
@@ -40,7 +49,6 @@ serve(async (req) => {
 
   try {
     const { to, venueId, sessionToken } = await req.json().catch(() => ({}))
-    if (!to) return jsonResponse({ error: 'No recipient' }, 400, corsHeaders)
     if (!venueId) return jsonResponse({ error: 'No venueId' }, 400, corsHeaders)
     if (!sessionToken) return jsonResponse({ error: 'Missing session token' }, 401, corsHeaders)
 
@@ -51,6 +59,29 @@ serve(async (req) => {
     })
     if (authErr) throw authErr
     if (!allowed) return jsonResponse({ error: 'Unauthorized' }, 403, corsHeaders)
+
+    // The report only ever goes to the venue's own saved manager email. `to`
+    // is accepted for older clients but must match it; a free-text address
+    // would let any manager session mail venue data to anyone.
+    const [venueRowRes, managerEmailRes] = await Promise.all([
+      db.from('venues').select('slug').eq('id', venueId).maybeSingle(),
+      db.from('app_settings').select('value').eq('venue_id', venueId).eq('key', 'manager_email').maybeSingle(),
+    ])
+    if (venueRowRes.error) throw venueRowRes.error
+    if (managerEmailRes.error) throw managerEmailRes.error
+
+    const slug = String(venueRowRes.data?.slug ?? '').toLowerCase()
+    if (DEMO_VENUE_SLUGS.includes(slug)) {
+      return jsonResponse({ error: 'Reports are not sent from demo venues' }, 403, corsHeaders)
+    }
+
+    const recipient = normaliseEmail(settingValue(managerEmailRes.data?.value))
+    if (!EMAIL_SHAPE.test(recipient)) {
+      return jsonResponse({ error: 'Set a manager email in Venue Settings first' }, 400, corsHeaders)
+    }
+    if (to && normaliseEmail(to) !== recipient) {
+      return jsonResponse({ error: "Reports can only be sent to the venue's manager email" }, 403, corsHeaders)
+    }
 
     const now       = new Date()
     const weekAgo   = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
@@ -188,7 +219,7 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         from: 'Pelikn Reports <reports@get-pelikn.com>',
-        to: [to],
+        to: [recipient],
         subject: `${venueName} — Weekly Report (${fmt(weekAgo)} – ${fmt(now)})`,
         html,
       }),

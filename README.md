@@ -103,7 +103,6 @@ Deployed with `supabase functions deploy <name>`. CI does not deploy them.
 | `signup-guard` | IP rate limit on new account signups (stores hashed IPs) |
 | `send-push` | Web Push notifications |
 | `send-apns` | Native iOS push via APNs |
-| `send-rota-email` | Emails the published rota (Resend) |
 | `send-weekly-report` | Weekly compliance report email (Resend) |
 | `seed-demo` | Resets data for the demo account |
 | `billing` | Owner-only Stripe actions: checkout, plan changes, billing portal |
