@@ -60,7 +60,7 @@ test.describe.serial('Departments', () => {
     if (SHOTS) await page.screenshot({ path: `${SHOTS}/1-settings-departments.png`, fullPage: true })
 
     const s = await getTestSession(page)
-    await goto(page, `/settings/staff?staff=${s.staffId}`)
+    await goto(page, `/staff?staff=${s.staffId}`)
     const tick = page.getByRole('button', { name: DEPT })
     await expect(tick).toBeVisible()
     await expect(page.getByText(/leave all departments unticked/)).toBeVisible()

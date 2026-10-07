@@ -1089,7 +1089,7 @@ export default function EmployeeRecordPanel({ staffId, venueId, venueSlug, onBac
         </div>
         {/* Desktop: inline buttons */}
         <div className="hidden lg:flex gap-2 shrink-0">
-          <BtnDefault onClick={() => navigate(`/v/${venueSlug}/settings/staff?staff=${staffId}`)}>
+          <BtnDefault onClick={() => navigate(`/v/${venueSlug}/staff?staff=${staffId}`)}>
             {Ico.edit} Edit
           </BtnDefault>
           <BtnPrimary onClick={() => setTab('Documents')}>
@@ -1100,7 +1100,7 @@ export default function EmployeeRecordPanel({ staffId, venueId, venueSlug, onBac
 
       {/* Mobile: full-width action buttons */}
       <div className="flex lg:hidden gap-2">
-        <BtnDefault onClick={() => navigate(`/v/${venueSlug}/settings/staff?staff=${staffId}`)} className="flex-1 justify-center">
+        <BtnDefault onClick={() => navigate(`/v/${venueSlug}/staff?staff=${staffId}`)} className="flex-1 justify-center">
           {Ico.edit} Edit
         </BtnDefault>
         <button

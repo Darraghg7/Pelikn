@@ -1,7 +1,7 @@
 import { useSearchParams } from 'react-router-dom'
 import StaffMembersSection from '../settings/StaffMembersSection'
 
-/** Team → Staff Members. Same list and person page as Settings → Staff & roles. */
+/** Team → Staff: the one place people are added and edited (Settings → Team setup holds only invite code, departments and duties). */
 export default function StaffPage() {
   const [params, setParams] = useSearchParams()
   const detailId = params.get('staff')
@@ -26,7 +26,7 @@ export default function StaffPage() {
           </button>
         </div>
       )}
-      <StaffMembersSection detailId={detailId} onOpen={openStaff} onClose={closeStaff} backLabel="Staff" />
+      <StaffMembersSection detailId={detailId} onOpen={openStaff} onClose={closeStaff} />
     </div>
   )
 }

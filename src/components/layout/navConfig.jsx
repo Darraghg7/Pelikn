@@ -226,7 +226,7 @@ export function buildManagerCats({ isEnabled, isPlanLocked, overdueCount, pendin
       items: [
         ...(!isPlanLocked('rota') && isEnabled('rota')         ? [{ id: 'rota',  label: 'Rota',            sub: 'Weekly schedule',       icon: PanelIcons.calendar, route: vp('/rota'),      badge: pendingSwaps > 0 ? pendingSwaps : undefined }] : []),
         ...(!isPlanLocked('timesheet') && isEnabled('timesheet')? [{ id: 'hours', label: 'Hours',           sub: 'Timesheets & exports',  icon: PanelIcons.clock,    route: vp('/timesheet') }] : []),
-        { id: 'staff',  label: 'Staff Members',   sub: 'Team directory',         icon: PanelIcons.staff,    route: vp('/staff') },
+        { id: 'staff',  label: 'Staff',           sub: 'Add and manage people',         icon: PanelIcons.staff,    route: vp('/staff') },
         ...(!isPlanLocked('training') && isEnabled('training')  ? [{ id: 'train', label: 'Training',        sub: 'Assigned docs & quizzes', icon: PanelIcons.book,   route: vp('/training') }] : []),
         ...(!isPlanLocked('time_off') && isEnabled('time_off')  ? [{ id: 'off',   label: 'Time Off',        sub: 'Requests & approvals',  icon: PanelIcons.timeoff,  route: vp('/time-off') }] : []),
         { id: 'clock',  label: 'Clock In / Out',  sub: "Today's attendance",     icon: PanelIcons.clock,    route: vp('/clock-in') },

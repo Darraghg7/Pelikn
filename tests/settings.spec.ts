@@ -16,7 +16,7 @@ test.describe('Settings hub', () => {
 
   test('shows every sub-page row', async ({ page }) => {
     await goto(page, '/settings/hub')
-    for (const name of [/^venue/i, /^staff & roles/i, /^attendance/i, /^compliance/i, /^notifications/i, /^features/i, /^help & support/i]) {
+    for (const name of [/^venue/i, /^team setup/i, /^attendance/i, /^compliance/i, /^notifications/i, /^features/i, /^help & support/i]) {
       await expect(page.getByRole('button', { name }).first()).toBeVisible({ timeout: 8000 })
     }
   })
@@ -132,18 +132,31 @@ test.describe('Venue settings', () => {
 
 test.describe('Permission management', () => {
   test('can view staff permissions', async ({ page }) => {
-    // This had been failing for two compounding reasons: the feature was
-    // renamed from "Permission Levels" to "Permission Titles" in PR #110,
-    // and it lives under the Roles tab, while /settings/staff opens on
-    // Members — so the old text was never on screen to begin with.
-    //
-    // Asserting on the section's description rather than a heading because
-    // PermissionTitlesSection renders no heading of its own; the
-    // "Permission Titles" label belonged to the old, since-retired SettingsPage.
+    // Permission titles were retired; each staff member now has their own
+    // permission checklist on their page under Team → Staff (staff role only).
+    await goto(page, '/staff?staff=new')
+    await expect(page.getByText(/^permissions$/i).first()).toBeVisible({ timeout: 6000 })
+    await expect(page.getByText(/^compliance$/i).first()).toBeVisible()
+  })
+})
+
+test.describe('Team setup — old Members links forward to Staff', () => {
+  test('?staff=new opens the add form on /staff', async ({ page }) => {
+    await goto(page, '/settings/staff?staff=new')
+    await expect(page).toHaveURL(/\/staff\?staff=new$/)
+    await expect(page.getByRole('button', { name: /add staff member/i })).toBeVisible({ timeout: 15000 })
+  })
+
+  test('?tab=members opens the staff list', async ({ page }) => {
+    await goto(page, '/settings/staff?tab=members')
+    await expect(page).toHaveURL(/\/staff$/)
+    await expect(page.getByRole('searchbox', { name: /search staff/i })).toBeVisible({ timeout: 15000 })
+  })
+
+  test('Team setup opens on the invite code with no Members tab', async ({ page }) => {
     await goto(page, '/settings/staff')
-    await page.getByRole('tab', { name: /^roles$/i }).click()
-    await expect(
-      page.getByText(/titles you assign to staff/i).first()
-    ).toBeVisible({ timeout: 6000 })
+    await expect(page.getByRole('heading', { name: 'Team setup' })).toBeVisible({ timeout: 6000 })
+    await expect(page.getByRole('tab', { name: /^members$/i })).toHaveCount(0)
+    await expect(page.getByRole('link', { name: /manage staff/i })).toBeVisible()
   })
 })

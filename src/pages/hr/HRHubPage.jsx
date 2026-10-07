@@ -185,10 +185,10 @@ export default function HRHubPage() {
           <h1 className="text-[28px] font-bold tracking-[-0.03em] text-charcoal dark:text-white mt-0 mb-2.5">HR Records</h1>
           <p className="text-[13.5px] text-charcoal/50 dark:text-white/40 mb-6">No active staff members found.</p>
           <button
-            onClick={() => navigate(vp('/settings/staff?staff=new'))}
+            onClick={() => navigate(vp('/staff?staff=new'))}
             className="bg-brand text-white border-0 rounded-[11px] px-5 py-2.5 cursor-pointer text-[13px] font-semibold"
           >
-            Add staff in Settings
+            Add staff
           </button>
         </div>
       ) : (
@@ -275,7 +275,7 @@ export default function HRHubPage() {
               </div>
 
               <button
-                onClick={() => navigate(vp('/settings/staff?staff=new'))}
+                onClick={() => navigate(vp('/staff?staff=new'))}
                 className="flex items-center gap-[7px] w-full px-[13px] py-[9px] rounded-[11px] border border-charcoal/10 dark:border-white/10 bg-transparent text-charcoal/50 dark:text-white/40 cursor-pointer text-[13px] font-medium mb-3.5"
               >
                 {ICO.plus}

@@ -1,5 +1,5 @@
 /**
- * Staff Members settings section — smoke coverage for the write-relocation
+ * Team → Staff (StaffMembersSection) — smoke coverage for the write-relocation
  * refactor (raw supabase.from()/.rpc() calls, including two dynamic-RPC-name
  * dispatches, moved into lib/api/staffManagement.ts). Crash-test level, same
  * rationale as tests/rota-smoke.spec.ts: mechanical relocation, not new logic.
@@ -8,10 +8,10 @@ import { test, expect } from './helpers/cleanup'
 import { goto } from './helpers/nav'
 import { injectManagerSession } from './helpers/auth-bypass'
 
-test.describe('Staff Members settings — smoke (no real data, mocked auth only)', () => {
+test.describe('Staff — smoke (no real data, mocked auth only)', () => {
   test.beforeEach(async ({ page }) => {
     await injectManagerSession(page)
-    await goto(page, '/settings/staff')
+    await goto(page, '/staff')
   })
 
   test('page renders without a crash or broken import', async ({ page }) => {

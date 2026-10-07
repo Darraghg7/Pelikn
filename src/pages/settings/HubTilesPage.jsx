@@ -30,7 +30,7 @@ const TEAM_TILES = [
   { id: 'timesheet', label: 'Hours',        sub: 'Timesheets & clock records' },
   { id: 'training',  label: 'Training',     sub: 'Staff training & certifications' },
   { id: 'time-off',  label: 'Time Off',     sub: 'Holiday & absence requests' },
-  { id: 'staff',     label: 'Staff Members',sub: 'Staff list & roles' },
+  { id: 'staff',     label: 'Staff',        sub: 'Add and manage people' },
 ]
 
 function Toggle({ on, onClick }) {
