@@ -878,7 +878,7 @@ export default function MarketingPage() {
               <div className="flex flex-col gap-7">
                 {[
                   { title:'Temperature logs',   desc:'Fridge, cooking, reheating and hot holding. Automatic pass/fail detection against your thresholds.' },
-                  { title:'Cleaning schedules',  desc:'Daily, weekly and ad-hoc tasks assigned to staff. Live completion status at a glance.' },
+                  { title:'Cleaning & opening checks', desc:'Cleaning rotas plus opening and closing checklists, assigned to staff. Live completion status at a glance.' },
                   { title:'Allergen registry',   desc:"All 14 allergens across every dish on your menu. Natasha's Law compliant by design." },
                   { title:'Audit-ready exports', desc:'One tap to a full compliance PDF. Timestamped, signed, formatted for inspection.' },
                 ].map(({ title, desc }, i) => (
@@ -983,15 +983,12 @@ export default function MarketingPage() {
           </FadeUp>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
             {[
-              { icon:'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z', title:'Document vault',     desc:'Certificates, policies and insurance in one organised place.' },
-              { icon:'M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2 M9 7a4 4 0 100 8 4 4 0 000-8z', title:'Staff profiles',    desc:'Contact details, roles, certs and notes for every team member.' },
-              { icon:'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2 M9 3h6v4H9z', title:'Incident log',      desc:'Record anything that happens. Timestamped, signed, searchable.' },
-              { icon:'M22 12h-4l-3 9L9 3l-3 9H2', title:'Probe calibration', desc:'Scheduled calibration records with pass/fail. Inspection-proof.' },
-              { icon:'M5 12h14 M12 5l7 7-7 7', title:'Delivery checks',   desc:'Temp reading, condition notes, signed on arrival.' },
-              { icon:'M3 4h18v18H3z M16 2v4 M8 2v4 M3 10h18', title:'Opening checklists', desc:'Start every shift the same way. Signed and consistent.' },
-              { icon:'M20 7H4a2 2 0 00-2 2v6a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16', title:'Allergen registry',  desc:'Every dish, every allergen, always current.' },
-              { icon:'M18 7c0-5.333-8-5.333-8 0 M10 7v14 M6 21h12 M6 13h10', title:'Tip distribution',  desc:'Enter the pot, set the split, done. Full audit trail.' },
-              { icon:'M5 8h14 M5 12h14 M5 16h6', title:'Clock in / out',    desc:'Staff clock on from their phone. Timesheets build automatically.' },
+              { icon:'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2 M9 3h6v4H9z M9 12h6 M9 16h4', title:'HACCP plan builder', desc:'Work through your plan step by step and finish with a HACCP summary PDF.' },
+              { icon:'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z M9 12l2 2 4-4', title:'Mock EHO inspection', desc:"Answer the questions an inspector asks and see where you'd lose marks." },
+              { icon:'M12 20c-3.3 0-6-2.7-6-6v-3a4 4 0 014-4h4a4 4 0 014 4v3c0 3.3-2.7 6-6 6z M12 20v-9 M9 7.13v-1a3 3 0 016 0v1 M6 13H2 M22 13h-4 M6.53 9C4.6 8.8 3 7.1 3 5 M21 5c0 2.1-1.6 3.8-3.5 4', title:'Pest control log', desc:'Inspections, sightings and treatments, each issue tracked until it\'s closed.' },
+              { icon:'M1 3h15v13H1z M16 8h4l3 3v5h-7z M5.5 21a2.5 2.5 0 100-5 2.5 2.5 0 000 5z M18.5 21a2.5 2.5 0 100-5 2.5 2.5 0 000 5z', title:'Deliveries & probes', desc:'Goods-in temperature and condition checks, plus probe calibration with pass/fail.' },
+              { icon:'M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z M12 9v4 M12 17h.01', title:'Incident log', desc:'Record anything that happens. Timestamped, signed, searchable.' },
+              { icon:'M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z', title:'Document vault', desc:'Certificates, policies and insurance in one organised place.' },
             ].map(({ icon, title, desc }, i) => (
               <FadeUp key={title} delay={i * 30}>
                 <div className="bg-white rounded-2xl border border-charcoal/8 p-6 hover:border-brand/20 hover:shadow-[0_12px_40px_rgba(19,54,42,0.09)] hover:-translate-y-1.5 transition-all duration-300 ease-[cubic-bezier(.16,1,.3,1)] h-full group cursor-default">
