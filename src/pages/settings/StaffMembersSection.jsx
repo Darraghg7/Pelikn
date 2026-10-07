@@ -43,7 +43,7 @@ const EMPTY_FORM = {
 const DOW_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
 export default function StaffMembersSection({ detailId = null, onOpen, onClose, backLabel = 'Staff' }) {
-  const { staff, loading: staffLoading, reload: reloadStaff } = useStaffManagement()
+  const { staff, loading: staffLoading, reload: reloadStaff, applySaved: applySavedStaff } = useStaffManagement()
   const { roles: venueRoles } = useVenueRoles()
   const { session } = useSession()
   const [deleteTarget, setDeleteTarget] = useState(null)
@@ -259,9 +259,24 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
     const newId = editingId ? null : await findNewestStaffByName(venueId, staffForm.name.trim())
     const targetId = editingId || newId
 
+    // What actually reached the database, for the cached list (see below).
+    let savedFields = null
     if (editingId) {
+      savedFields = {
+        name:           staffForm.name.trim(),
+        job_role:       staffForm.job_role,
+        role:           staffForm.role,
+        email:          staffForm.email.trim() || null,
+        hourly_rate:    parseFloat(staffForm.hourly_rate) || 0,
+        show_temp_logs: staffForm.show_temp_logs,
+        show_allergens: staffForm.show_allergens,
+        skills:         staffForm.skills || [],
+        colour:         staffForm.colour || null,
+        permission_title_id: staffForm.permission_title_id,
+      }
       const { error: extraErr } = await updateStaffFields(session.token, editingId, extraFields)
       if (extraErr) { toast('Saved, but failed to update some fields: ' + extraErr.message, 'error') }
+      else savedFields = { ...savedFields, ...extraFields }
     } else if (newId) {
       const { error: extraErr } = await updateStaffFields(session.token, newId, {
         ...extraFields,
@@ -277,9 +292,16 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
       if (staffForm.permission_title_id) {
         const { error: titleErr } = await updateStaffFields(session.token, targetId, { permission_title_id: null })
         if (titleErr) { toast('Saved, but failed to clear old permission title: ' + titleErr.message, 'error') }
+        else if (savedFields) savedFields.permission_title_id = null
       }
       await saveStaffPermissions(targetId, venueId, [...permForm], session.token)
     }
+
+    // The list refetch takes a moment; reopening this person before it
+    // lands used to fill the form with their pre-save details (pay back to
+    // the old rate, ready to be saved over the new one). Put the saved values
+    // into the cached list before the form closes so a reopen shows them.
+    if (savedFields) await applySavedStaff(editingId, savedFields)
 
     setSavingStaff(false)
     if (editingId) {
@@ -300,7 +322,7 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
       toast('Staff member added')
       onClose?.()
     }
-    reloadStaff()
+    if (!savedFields) reloadStaff()
     reloadBilling()
   }
 

@@ -1,4 +1,5 @@
-import { useQuery } from '@tanstack/react-query'
+import { useCallback } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
 import { fetchStaffPayRates, withPayRates, fetchStaffPrivateFields, withPrivateFields } from '../lib/api/staffRestricted'
 import { useVenue } from '../contexts/VenueContext'
@@ -35,11 +36,14 @@ export default function useStaffManagement(): {
   staff: StaffMember[]
   loading: boolean
   reload: () => void
+  applySaved: (staffId: string, fields: Partial<StaffMember>) => Promise<void>
 } {
   const { venueId } = useVenue()
+  const queryClient = useQueryClient()
+  const queryKey = ['staff_management', venueId]
 
   const { data: staff = [], isLoading: loading, refetch } = useQuery({
-    queryKey: ['staff_management', venueId],
+    queryKey,
     queryFn: async () => {
       const { data } = await supabase
         .from('staff')
@@ -57,5 +61,18 @@ export default function useStaffManagement(): {
     enabled: !!venueId,
   })
 
-  return { staff, loading, reload: refetch }
+  // After a save, write what was saved straight into the cached list so that
+  // reopening the same person shows it at once, instead of the pre-save copy
+  // the background refetch hasn't replaced yet. Any fetch already in flight
+  // started before the save, so it's cancelled rather than allowed to land
+  // on top; the refetch afterwards confirms against the database.
+  const applySaved = useCallback(async (staffId: string, fields: Partial<StaffMember>) => {
+    await queryClient.cancelQueries({ queryKey })
+    queryClient.setQueryData<StaffMember[]>(queryKey, old =>
+      old?.map(s => (s.id === staffId ? { ...s, ...fields } : s)))
+    refetch()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [queryClient, venueId, refetch])
+
+  return { staff, loading, reload: refetch, applySaved }
 }
