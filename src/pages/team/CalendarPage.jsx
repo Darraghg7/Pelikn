@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import useManagerCalendar from '../../hooks/useManagerCalendar'
+import { useToast } from '../../components/ui/Toast'
 
 const DAYS_SHORT = ['M', 'T', 'W', 'T', 'F', 'S', 'S']
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December']
@@ -45,11 +46,17 @@ function datesInRange(startStr, endStr) {
   return out
 }
 
-function buildDayMap(events, staffLeave) {
+function buildDayMap(events, staffLeave, otherClosures) {
   const map = {}
   const add = (date, item) => { (map[date] = map[date] || []).push(item) }
   events.forEach(ev => {
     datesInRange(ev.start_date, ev.end_date).forEach(d => add(d, { ...ev, _staff: false }))
+  })
+  // Closures set in the Rota or Venue Settings: shown, but edited where they were made
+  otherClosures.forEach(c => {
+    datesInRange(c.start_date, c.end_date).forEach(d =>
+      add(d, { id: 'vc-' + c.id, title: c.title, type: 'closed', colour: 'rust', all_day: true, _staff: false, _readonly: true })
+    )
   })
   staffLeave.forEach(sl => {
     datesInRange(sl.startDate, sl.endDate).forEach(d =>
@@ -384,6 +391,21 @@ function CalendarDayView({ dateStr, dayMapItems, onBack, onAdd, onEdit }) {
       {ownEvents.map(ev => {
         const col = colourById(ev.colour)
         const et  = EVENT_TYPES.find(t => t.id === ev.type)
+        if (ev._readonly) return (
+          <div
+            key={ev.id}
+            className="w-full px-[15px] py-[14px] rounded-[14px] flex items-center gap-3"
+            style={{ background: col.soft }}
+          >
+            <span className="w-[14px] h-[14px] rounded-[4px] shrink-0" style={{ background: col.bg }} />
+            <div className="flex-1 min-w-0">
+              <div className="text-[15px] font-semibold text-charcoal dark:text-white">{ev.title}</div>
+              <div className="font-mono text-[11px] text-charcoal/50 dark:text-white/40 mt-[3px] uppercase tracking-[0.04em]">
+                {et?.label} · Set in Rota or Venue Settings
+              </div>
+            </div>
+          </div>
+        )
         return (
           <button
             key={ev.id}
@@ -637,7 +659,8 @@ function EventStrip({ year, month, dayMap, onSelectDate }) {
 }
 
 export default function CalendarPage() {
-  const { events, staffLeave, isLoading, save, remove } = useManagerCalendar()
+  const { events, staffLeave, otherClosures, isLoading, save, remove } = useManagerCalendar()
+  const toast = useToast()
 
   const now = new Date()
   const [year,  setYear]  = useState(now.getFullYear())
@@ -647,7 +670,7 @@ export default function CalendarPage() {
   const [selectedDate, setSelectedDate] = useState(null)
   const [editEvent,    setEditEvent]    = useState(null)
 
-  const dayMap = buildDayMap(events, staffLeave)
+  const dayMap = buildDayMap(events, staffLeave, otherClosures)
 
   function prevMonth() { if (month === 0) { setYear(y => y - 1); setMonth(11) } else setMonth(m => m - 1) }
   function nextMonth() { if (month === 11) { setYear(y => y + 1); setMonth(0) } else setMonth(m => m + 1) }
@@ -659,11 +682,11 @@ export default function CalendarPage() {
   function goBackFromForm() { selectedDate ? setCalView('day') : setCalView('month') }
 
   async function handleSave(ev) {
-    await save(ev)
+    try { await save(ev) } catch { toast('Could not save — please try again', 'error'); return }
     selectedDate ? setCalView('day') : setCalView('month')
   }
   async function handleDelete(id) {
-    await remove(id)
+    try { await remove(id) } catch { toast('Could not delete — please try again', 'error'); return }
     setCalView('month')
   }
 

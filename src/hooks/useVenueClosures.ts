@@ -3,12 +3,14 @@ import { supabase } from '../lib/supabase'
 import { useVenue } from '../contexts/VenueContext'
 import { useWidgetFetchGate } from './useWidgetFetchGate'
 
-interface VenueClosure {
+export interface VenueClosure {
   id: string
   start_date: string
   end_date: string
   reason?: string
   venue_id: string
+  /** Set when the closure belongs to a My Calendar event (migration 140). */
+  calendar_event_id?: string | null
 }
 
 export default function useVenueClosures(): {
@@ -24,7 +26,7 @@ export default function useVenueClosures(): {
     queryFn: async () => {
       const { data } = await supabase
         .from('venue_closures')
-        .select('id, start_date, end_date, reason, venue_id')
+        .select('*')
         .eq('venue_id', venueId)
         .order('start_date')
       return (data ?? []) as VenueClosure[]
