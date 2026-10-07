@@ -68,11 +68,12 @@ export default function SettingsHubPage() {
 
       <h1 className="text-[26px] font-semibold tracking-[-0.028em] mb-[14px] text-charcoal dark:text-white">Settings</h1>
 
-      {/* Opens the signed-in manager's own staff record. Without a staffId
+      {/* Opens the signed-in manager's own Team → Staff page (every plan; HR is
+          Pro-only so it can't be the target). Without a staffId
           there is nowhere to go, so the card renders inert rather than
           navigating to the page it already sits on. */}
       <button
-        onClick={staffId ? () => navigate(vp(`/hr/${staffId}`)) : undefined}
+        onClick={staffId ? () => navigate(vp(`/staff?staff=${staffId}`)) : undefined}
         disabled={!staffId}
         className={`w-full text-left bg-brand text-white rounded-[14px] p-4 flex items-center gap-[13px] mb-1 transition-colors ${staffId ? 'hover:bg-brand/90 cursor-pointer' : 'cursor-default'}`}
       >
