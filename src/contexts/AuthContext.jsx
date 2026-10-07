@@ -7,6 +7,7 @@
  */
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { supabase } from '../lib/supabase'
+import { visibleVenuesFor } from '../lib/demoAccounts'
 
 const AuthContext = createContext(null)
 
@@ -162,28 +163,16 @@ export function AuthProvider({ children }) {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) return { error, slug: null, venues: [] }
 
-    // These look like stale branding, but they are account identifiers in
-    // Supabase auth, not links — the domains deliberately stay as-is even
-    // though pelikn.app/saveserv.com no longer resolve. Password login never
-    // sends mail, so a dead domain is harmless here; renaming the strings
-    // would NOT rename the accounts, it would just stop them being recognised
-    // as demo (dropping the seed below and the demo-venue guard further down).
-    // To change these, rename the users in Supabase auth first.
-    const DEMO_EMAILS = ['demo@pelikn.app', 'demo@saveserv.com', 'demopro@pelikn.com']
-    const DEMO_SLUGS  = ['brew-and-bloom', 'the-corner-cup']
-    const isDemo      = DEMO_EMAILS.includes(data.user?.email)
-
+    // No auth account has this email today, so the reset never runs (see the
+    // seed-demo function). Left as-is: pointing it at the live demo login
+    // would wipe the demo under anyone already using it.
     if (data.user?.email === 'demo@pelikn.app') {
       await supabase.functions.invoke('seed-demo')
     }
 
-    let list = await resolveVenuesSafe(email, data.user.id, 10000)
-
-    // Guard: demo accounts must only ever see demo venues,
-    // never a real customer's venue regardless of DB state.
-    if (isDemo) {
-      list = list.filter(v => DEMO_SLUGS.includes(v.slug))
-    }
+    // Demo logins only get demo venues in the picker. The database enforces
+    // the real rule (migration 141); this just keeps the list tidy.
+    const list = visibleVenuesFor(data.user?.email, await resolveVenuesSafe(email, data.user.id, 10000))
     if (!list.length) {
       // Keep the user authenticated — they need to complete venue setup
       return { error: null, slug: null, venues: [], needsOnboarding: true }
