@@ -136,7 +136,7 @@ export function VenueProvider({ children }) {
 function VenueLookupProblem({ slug, kind, onRetry }) {
   const notFound = kind === 'not-found'
   return (
-    <div className="min-h-dvh bg-surface flex flex-col items-center justify-center px-4 font-sans">
+    <div className="min-h-dvh bg-surface dark:bg-[#111111] flex flex-col items-center justify-center px-4 font-sans">
       <div className="w-full max-w-sm bg-white dark:bg-paperDark rounded-2xl border border-charcoal/8 dark:border-white/8 shadow-sm p-6 text-center">
         <p className="text-[11px] tracking-widest font-semibold uppercase text-charcoal/50 dark:text-white/45 mb-2">
           {notFound ? 'Venue not found' : 'Can’t connect'}
