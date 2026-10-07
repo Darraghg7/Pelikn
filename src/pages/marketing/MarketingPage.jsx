@@ -32,7 +32,45 @@ function GlobalCSS() {
       }
       .pk-ticker-track { animation: pkTicker 28s linear infinite; }
       .pk-ticker-track:hover { animation-play-state: paused; }
+      /* Reduced motion: no scrolling — show one wrapped, static list instead */
+      @media (prefers-reduced-motion: reduce) {
+        .pk-ticker-track { animation: none; white-space: normal; }
+        .pk-ticker-pass { flex-shrink: 1; flex-wrap: wrap; gap: 4px 20px; padding-right: 24px; }
+        .pk-ticker-pass > li { margin: 0; }
+        .pk-ticker-dup { display: none; }
+        .pk-ticker-label { box-shadow: none; }
+      }
     `}</style>
+  )
+}
+
+/* ─── "Replaces" strip ──────────────────────────────────────────────────── */
+const REPLACED_TOOLS = ['Rota spreadsheets','WhatsApp groups','Paper temp logs','Training folders','Tip calculators','Compliance binders','Shift-swap texts','Clocking-in sheets']
+
+// Things Pelikn replaces, not features: a "Replaces" label and struck-through
+// items, never ticks. The second pass only exists for the seamless loop, so it
+// is hidden from screen readers.
+function ReplacesStrip() {
+  return (
+    <div className="bg-[#f0efec] border-y border-charcoal/8 py-4 select-none flex items-center">
+      <span aria-hidden="true" className="pk-ticker-label relative z-10 shrink-0 pl-6 sm:pl-10 pr-4 sm:pr-6 font-mono text-[11px] tracking-[0.12em] uppercase font-semibold text-charcoal/55 bg-[#f0efec] shadow-[12px_0_12px_#f0efec]">Replaces</span>
+      <div className="overflow-hidden flex-1">
+        <div className="flex pk-ticker-track whitespace-nowrap">
+          {[0, 1].map(pass => (
+            <ul
+              key={pass}
+              className={`pk-ticker-pass flex items-center shrink-0 ${pass === 1 ? 'pk-ticker-dup' : ''}`}
+              aria-label={pass === 0 ? 'What Pelikn replaces' : undefined}
+              aria-hidden={pass === 1 ? 'true' : undefined}
+            >
+              {REPLACED_TOOLS.map(item => (
+                <li key={item} className="mx-7 text-[14px] font-medium text-charcoal/45 line-through decoration-charcoal/30">{item}</li>
+              ))}
+            </ul>
+          ))}
+        </div>
+      </div>
+    </div>
   )
 }
 
@@ -821,21 +859,7 @@ export default function MarketingPage() {
         <div className="h-24 sm:h-32" />
       </section>
 
-      {/* ── Replaces — scrolling ticker ──────────────────────────────────── */}
-      <div className="bg-[#f0efec] border-y border-charcoal/8 overflow-hidden py-4 select-none">
-        <div className="flex pk-ticker-track whitespace-nowrap" aria-hidden>
-          {[...Array(2)].map((_, pass) => (
-            <div key={pass} className="flex items-center shrink-0">
-              {['Rota spreadsheets','WhatsApp groups','Paper temp logs','Training folders','Tip calculators','Compliance binders','Shift-swap texts','Clocking-in sheets'].map(item => (
-                <div key={item} className="inline-flex items-center gap-3 mx-8">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-brand/50 shrink-0"><polyline points="20 6 9 17 4 12"/></svg>
-                  <span className="text-[14px] font-medium text-charcoal/50">{item}</span>
-                </div>
-              ))}
-            </div>
-          ))}
-        </div>
-      </div>
+      <ReplacesStrip />
 
       {/* ── Compliance ───────────────────────────────────────────────────── */}
       <section id="compliance" className="bg-white">
