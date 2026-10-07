@@ -199,7 +199,7 @@ export default function TeamHubPage() {
         : { status: 'done', statusText: 'No requests' }),
     },
     {
-      id: 'staff', label: 'Staff Members', icon: UsersIcon, route: '/staff',
+      id: 'staff', label: 'Staff', icon: UsersIcon, route: '/staff',
       status: 'na',
       statusText: loading ? '…' : `${data?.totalStaff ?? 0} active`,
     },

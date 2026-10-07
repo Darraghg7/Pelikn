@@ -42,7 +42,7 @@ const EMPTY_FORM = {
 }
 const DOW_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
-export default function StaffMembersSection({ detailId = null, onOpen, onClose, backLabel = 'Staff & roles' }) {
+export default function StaffMembersSection({ detailId = null, onOpen, onClose, backLabel = 'Staff' }) {
   const { staff, loading: staffLoading, reload: reloadStaff } = useStaffManagement()
   const { roles: venueRoles } = useVenueRoles()
   const { session } = useSession()
