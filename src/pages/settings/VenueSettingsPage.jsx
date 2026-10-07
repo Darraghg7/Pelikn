@@ -11,6 +11,7 @@ import { useToast } from '../../components/ui/Toast'
 import ConfirmDialog from '../../components/ui/ConfirmDialog'
 import TimeSelect from '../../components/ui/TimeSelect'
 import VenuesSection from './VenuesSection'
+import AppIconPicker from './AppIconPicker'
 import SettingsSubHeader from '../../components/layout/SettingsSubHeader'
 
 const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
@@ -365,6 +366,8 @@ export default function VenueSettingsPage() {
               ))}
             </div>
           </div>
+          {/* Renders nothing outside the native iOS/Android app */}
+          <AppIconPicker />
         </Group>
 
         <div>

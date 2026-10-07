@@ -2,14 +2,19 @@ import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useVenue } from '../../contexts/VenueContext'
 import SettingsSubHeader from '../../components/layout/SettingsSubHeader'
+import FeatureGuide from './FeatureGuide'
 
 const FAQS = [
   { q: 'How do I publish the rota?', a: 'Once all shifts are added, tap "Publish rota" — staff are notified immediately via push.' },
   { q: 'Can staff see their own shifts?', a: 'Yes. Staff see their own schedule and logged hours. Managers see the full team view with costs.' },
   { q: 'How does auto-fill work?', a: 'Auto-fill assigns available staff to open shifts based on role and station. Always review before publishing.' },
+  { q: 'How do I add a new staff member?', a: 'Go to Settings → Staff & Roles and tap "Add staff". Give them a name and a 4-digit PIN. They can then log in from the venue login screen using that PIN.' },
   { q: 'How do I reset a staff PIN?', a: 'Go to Staff & Roles → tap the person → Reset PIN. They set a new one on next login.' },
   { q: 'Can I manage multiple venues?', a: 'Yes on the Pro plan. Switch venues from the account menu at the top.' },
   { q: 'How do compliance checks work?', a: 'Checks appear on the dashboard each day based on your action schedule. Staff complete them during their shift and results are logged automatically.' },
+  { q: 'How do I prepare for an EHO inspection?', a: 'Open the Audit section from the compliance menu. You\'ll see a live readiness score, any gaps in your records, and a one-tap button to export a PDF covering all your logs — exactly what an EHO officer will want to see.' },
+  { q: 'How do I export a compliance report?', a: 'Go to the Audit section. Tap "Export PDF" to download a report covering temperature logs, cleaning records, delivery checks, and corrective actions for any date range you choose.' },
+  { q: 'What does the allergen QR code do?', a: 'When you add food items and tag their allergens in the Allergens section, Pelikn generates a QR code that customers can scan at their table. It shows a live allergen matrix for your full menu, no printing required.' },
 ]
 
 export default function HelpSettingsPage() {
@@ -46,6 +51,8 @@ export default function HelpSettingsPage() {
             </div>
           ))}
         </div>
+
+        <FeatureGuide />
 
         <div className="font-mono text-[11px] font-semibold tracking-[0.08em] uppercase text-charcoal/50 dark:text-white/40 pt-[18px] pb-[7px] px-0.5">Get help</div>
         <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[14px] overflow-hidden">

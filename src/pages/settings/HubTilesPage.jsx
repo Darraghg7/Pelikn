@@ -5,6 +5,7 @@ import { useAppSettings } from '../../hooks/useSettings'
 import { useVenueFeatures, FEATURE_GROUPS, ALL_FEATURE_IDS, PRO_ONLY_FEATURE_IDS } from '../../hooks/useVenueFeatures'
 import { PLANS } from '../../lib/constants'
 import NavOrderSection from './NavOrderSection'
+import VenueTypeIndicator from './VenueTypeIndicator'
 import SettingsSubHeader from '../../components/layout/SettingsSubHeader'
 
 const CHECK_TILES = [
@@ -135,6 +136,7 @@ export default function HubTilesPage() {
           <div className="font-mono text-[11px] font-semibold tracking-[0.08em] uppercase text-charcoal/50 dark:text-white/40 px-0.5 pb-1.5">Modules</div>
           <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[14px] overflow-hidden py-1">
             <div className="px-[14px] py-2">
+              <VenueTypeIndicator venueId={venueId} venueSlug={venueSlug} />
               <div className="inline-flex bg-charcoal/6 dark:bg-white/8 rounded-[9px] p-[3px] gap-0.5 mb-3">
                 {['all', 'custom'].map(mode => (
                   <button

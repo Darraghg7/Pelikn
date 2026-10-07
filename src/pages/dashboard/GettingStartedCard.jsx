@@ -85,10 +85,10 @@ export default function GettingStartedCard({ venueId, venueSlug }) {
 
   const items = [
     { id: 'venueType', label: 'Choose your venue type',      link: `/v/${venueSlug}/setup`,         done: checks.venueType },
-    { id: 'hours',     label: 'Set your operating hours',    link: `/v/${venueSlug}/settings`,      done: checks.hours },
-    { id: 'staff',     label: 'Add your first staff member', link: `/v/${venueSlug}/settings`,      done: checks.staff },
-    { id: 'fridge',    label: 'Add a fridge',                link: `/v/${venueSlug}/settings`,      done: checks.fridge,    show: isEnabled('fridge') },
-    { id: 'cleaning',  label: 'Add cleaning tasks',          link: `/v/${venueSlug}/settings`,      done: checks.cleaning,  show: isEnabled('cleaning') },
+    { id: 'hours',     label: 'Set your operating hours',    link: `/v/${venueSlug}/settings/venue`, done: checks.hours },
+    { id: 'staff',     label: 'Add your first staff member', link: `/v/${venueSlug}/settings/staff?staff=new`, done: checks.staff },
+    { id: 'fridge',    label: 'Add a fridge',                link: `/v/${venueSlug}/fridge`,        done: checks.fridge,    show: isEnabled('fridge') },
+    { id: 'cleaning',  label: 'Add cleaning tasks',          link: `/v/${venueSlug}/cleaning`,      done: checks.cleaning,  show: isEnabled('cleaning') },
     { id: 'rota',      label: "Create this week's rota",     link: `/v/${venueSlug}/rota`,          done: checks.rota,      show: isEnabled('rota') },
     { id: 'allergens', label: 'Add food items & allergens',  link: `/v/${venueSlug}/allergens`,     done: checks.allergens, show: isEnabled('allergens') },
   ].filter(item => item.show !== false)

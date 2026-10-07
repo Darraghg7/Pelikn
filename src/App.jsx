@@ -96,8 +96,6 @@ const SupplierOrdersPage = lazy(() => import('./pages/orders/SupplierOrdersPage'
 // Time Off
 const TimeOffPage = lazy(() => import('./pages/timeoff/TimeOffPage'))
 
-// Settings
-const SettingsPage = lazy(() => import('./pages/settings/SettingsPage'))
 
 // Fitness to Work (SC7)
 const FitnessPage = lazy(() => import('./pages/fitness/FitnessPage'))
@@ -280,6 +278,11 @@ function LandingRoute() {
 function LegacyRedirect() {
   const path = window.location.pathname
   return <Navigate to={`/v/default${path}`} replace />
+}
+
+function SettingsRedirect() {
+  const { venueSlug } = useParams()
+  return <Navigate to={`/v/${venueSlug}/settings/hub`} replace />
 }
 
 function RootRoute() {
@@ -465,7 +468,9 @@ function VenueRoutes() {
             <Route path="training"           element={wrapPerm(TrainingPage,       'manage_training', 'training')} />
             <Route path="waste"              element={wrapPerm(WasteLogPage,       'log_waste', 'waste')} />
             <Route path="orders"             element={wrapPerm(SupplierOrdersPage, 'log_deliveries', 'orders')} />
-            <Route path="settings"                element={wrap(SettingsPage,            RequireManager)} />
+            {/* The old all-in-one settings page is gone; bookmarks, home-screen
+                shortcuts and old links land on the hub instead. */}
+            <Route path="settings"                element={<SettingsRedirect />} />
             <Route path="settings/hub"            element={wrap(SettingsHubPage,              RequireManager)} />
             <Route path="settings/attendance"     element={wrap(AttendanceSettingsPage,       RequireManager)} />
             <Route path="settings/hub-tiles"      element={wrap(HubTilesPage,                 RequireManager)} />

@@ -7,18 +7,18 @@ import { goto } from './helpers/nav'
 const TEST_STAFF = uniq('Playwright Tester')
 
 test.describe('Settings hub', () => {
-  test.beforeEach(async ({ page }) => {
+  test('old /settings address redirects to the hub', async ({ page }) => {
+    // The all-in-one settings page was retired; bookmarks and old links
+    // must still land somewhere sensible.
     await goto(page, '/settings')
+    await expect(page).toHaveURL(/\/settings\/hub$/, { timeout: 8000 })
   })
 
-  test('loads settings page', async ({ page }) => {
-    await expect(page.getByText(/settings/i).first()).toBeVisible()
-  })
-
-  test('shows navigation tabs / sections', async ({ page }) => {
-    await expect(
-      page.getByRole('button', { name: /venue|roles|shifts|notifications|modules/i }).first()
-    ).toBeVisible({ timeout: 8000 })
+  test('shows every sub-page row', async ({ page }) => {
+    await goto(page, '/settings/hub')
+    for (const name of [/^venue/i, /^staff & roles/i, /^attendance/i, /^compliance/i, /^notifications/i, /^features/i, /^help & support/i]) {
+      await expect(page.getByRole('button', { name }).first()).toBeVisible({ timeout: 8000 })
+    }
   })
 })
 
@@ -113,14 +113,10 @@ test.describe('Staff management', () => {
 
 test.describe('Roles management', () => {
   test('shows roles section', async ({ page }) => {
-    await goto(page, '/settings')
-    const rolesBtn = page.getByRole('button', { name: /roles.*skills|roles/i }).first()
-    if (await rolesBtn.count() > 0) {
-      await rolesBtn.click()
-      await expect(
-        page.getByText(/chef|kitchen|foh|barista/i).first()
-      ).toBeVisible({ timeout: 6000 })
-    }
+    await goto(page, '/settings/staff?tab=roles')
+    await expect(
+      page.getByText(/chef|kitchen|foh|barista/i).first()
+    ).toBeVisible({ timeout: 6000 })
   })
 })
 
@@ -143,7 +139,7 @@ test.describe('Permission management', () => {
     //
     // Asserting on the section's description rather than a heading because
     // PermissionTitlesSection renders no heading of its own; the
-    // "Permission Titles" label belongs to the separate SettingsPage.
+    // "Permission Titles" label belonged to the old, since-retired SettingsPage.
     await goto(page, '/settings/staff')
     await page.getByRole('tab', { name: /^roles$/i }).click()
     await expect(
