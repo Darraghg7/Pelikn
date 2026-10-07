@@ -62,6 +62,14 @@ export default {
         warning:  { DEFAULT: '#a85d12', light: '#fbeedc' },
         success:  { DEFAULT: '#1a7a4c', light: '#e3f0e7' },
       },
+      // Tailwind's default scale only has 5-step opacities (5, 10, 15 …), so
+      // classes like bg-charcoal/8 or border-charcoal/12 silently generated no
+      // CSS. These are the extra steps used across src/ — add any new one here.
+      opacity: {
+        2: '0.02', 3: '0.03', 4: '0.04', 6: '0.06', 7: '0.07', 8: '0.08',
+        9: '0.09', 12: '0.12', 14: '0.14', 16: '0.16', 18: '0.18', 22: '0.22',
+        28: '0.28', 38: '0.38', 68: '0.68', 87: '0.87', 88: '0.88', 92: '0.92',
+      },
       fontFamily: {
         sans:  ['Geist', '-apple-system', 'system-ui', 'sans-serif'],
         mono:  ['Geist Mono', 'ui-monospace', 'monospace'],
