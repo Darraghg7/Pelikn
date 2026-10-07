@@ -524,7 +524,6 @@ export default function AppShell({ children }) {
     items: [
       { id: 'overview',    label: 'Group Overview', sub: `All ${venues.length} venues at a glance`, icon: PanelIcons.dashboard, route: vp('/overview') },
       { id: 'noticeboard', label: 'Noticeboard',    sub: 'Group-wide announcements',                icon: PanelIcons.board,    route: vp('/noticeboard') },
-      { id: 'allstaff',    label: 'All Staff',       sub: 'Across all venues',                       icon: PanelIcons.staff,    route: vp('/staff') },
     ],
   } : null
 
