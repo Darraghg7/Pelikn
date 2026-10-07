@@ -554,7 +554,7 @@ export default function AppShell({ children }) {
           mainCat={mainCat}
           onPickCat={handlePickCat}
           onClickBrand={() => navigate(vp('/'))}
-          onOpenSettings={() => navigate(vp('/settings'))}
+          onOpenSettings={() => navigate(vp('/settings/hub'))}
           venueName={venueName}
           initials={initials}
           onSignOut={handleSignOut}
