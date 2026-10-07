@@ -8,6 +8,7 @@ import {
 } from '../../lib/pricing'
 import { STARTER_FEATURES, PRO_FEATURES, PLAN_ORDER, PLAN_DETAILS, STARTER_STAFF_LIMIT } from '../../lib/plans'
 import { PLANS } from '../../lib/constants'
+import DesktopDashboardMock, { BrowserFrame, ScaledCanvas } from './DesktopDashboardMock'
 
 /* ─── Keyframes ─────────────────────────────────────────────────────────── */
 function GlobalCSS() {
@@ -39,6 +40,7 @@ function GlobalCSS() {
         .pk-ticker-pass > li { margin: 0; }
         .pk-ticker-dup { display: none; }
         .pk-ticker-label { box-shadow: none; }
+        .pk-hero-visual { animation: none !important; }
       }
     `}</style>
   )
@@ -810,25 +812,30 @@ export default function MarketingPage() {
         {/* Bottom gradient fade into next section */}
         <div className="absolute bottom-0 left-0 right-0 h-40 pointer-events-none" aria-hidden style={{ background:'linear-gradient(to bottom, transparent, rgba(19,54,42,0.6))' }} />
 
-        <div className="max-w-4xl mx-auto px-6 sm:px-10 pt-20 sm:pt-32 pb-0 relative text-center">
+        {/* Mobile/tablet: centred text with the phones below. Desktop (lg+):
+            text on the left, lined up with the nav logo, and the product on
+            the right running out to the edge of the window, so it is visible
+            without scrolling. */}
+        <div className="max-w-4xl lg:max-w-5xl mx-auto px-6 sm:px-10 pt-20 sm:pt-32 lg:pt-14 xl:pt-16 min-[1600px]:pt-24 pb-0 relative text-center lg:text-left lg:grid lg:grid-cols-[minmax(0,430px)_minmax(0,1fr)] lg:gap-14 lg:items-center">
+          <div>
           {/* Pill badge */}
           <div style={{ animation:'pkIn 0.55s cubic-bezier(.16,1,.3,1) both' }}>
-            <div className="inline-flex items-center gap-2.5 bg-cream/6 border border-cream/10 rounded-full px-4 py-2 mb-10">
+            <div className="inline-flex items-center gap-2.5 bg-cream/6 border border-cream/10 rounded-full px-4 py-2 mb-10 lg:mb-7">
               <div className="w-1.5 h-1.5 rounded-full bg-[#4ade80]" style={{ animation:'pkPulse 2.4s ease-in-out infinite' }} />
               <span className="text-[12px] font-semibold text-cream/70 tracking-[0.12em] uppercase">Always inspection-ready</span>
             </div>
           </div>
           {/* Headline */}
-          <h1 className="text-[56px] sm:text-[80px] lg:text-[104px] font-bold text-cream leading-[0.96] tracking-[-0.04em] mb-8" style={{ animation:'pkIn 0.75s 60ms cubic-bezier(.16,1,.3,1) both' }}>
+          <h1 className="text-[56px] sm:text-[80px] lg:text-[56px] xl:text-[64px] min-[1600px]:text-[76px] font-bold text-cream leading-[0.96] tracking-[-0.04em] mb-8 lg:mb-6" style={{ animation:'pkIn 0.75s 60ms cubic-bezier(.16,1,.3,1) both' }}>
             Ditch the<br />clipboard,<br />
             <span style={{ backgroundImage:'linear-gradient(180deg,rgba(245,244,241,0.92) 0%,rgba(245,244,241,0.4) 100%)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text' }}>keep the compliance.</span>
           </h1>
           {/* Subtitle */}
-          <p className="text-cream/60 text-[17px] sm:text-[18px] max-w-[480px] mx-auto leading-[1.7] mb-10" style={{ animation:'pkIn 0.75s 140ms cubic-bezier(.16,1,.3,1) both' }}>
+          <p className="text-cream/60 text-[17px] sm:text-[18px] max-w-[480px] mx-auto lg:mx-0 leading-[1.7] mb-10 lg:mb-8" style={{ animation:'pkIn 0.75s 140ms cubic-bezier(.16,1,.3,1) both' }}>
             One app for food safety records, rotas, timesheets and team management. EHO-ready from day one, on any device, for the whole team.
           </p>
           {/* CTAs */}
-          <div className="flex flex-wrap justify-center items-center gap-4 mb-7" style={{ animation:'pkIn 0.65s 210ms cubic-bezier(.16,1,.3,1) both' }}>
+          <div className="flex flex-wrap justify-center lg:justify-start items-center gap-4 mb-7 lg:mb-6" style={{ animation:'pkIn 0.65s 210ms cubic-bezier(.16,1,.3,1) both' }}>
             <Link to="/signup" className="bg-accent text-cream px-8 py-4 rounded-xl text-[15px] font-semibold hover:bg-[#b8431f] hover:shadow-[0_10px_32px_rgba(201,79,42,0.55)] active:scale-[0.97] transition-all duration-200 cursor-pointer shadow-[0_4px_20px_rgba(201,79,42,0.45)]">
               Start free for 7 days
             </Link>
@@ -838,7 +845,7 @@ export default function MarketingPage() {
             </a>
           </div>
           {/* Trust badges */}
-          <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 mb-20" style={{ animation:'pkIn 0.6s 280ms cubic-bezier(.16,1,.3,1) both' }}>
+          <div className="flex flex-wrap justify-center lg:justify-start gap-x-6 gap-y-2 mb-20 lg:mb-0" style={{ animation:'pkIn 0.6s 280ms cubic-bezier(.16,1,.3,1) both' }}>
             {['No card required','Cancel any time','EU data hosting'].map(t=>(
               <div key={t} className="flex items-center gap-2">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-cream/35"><polyline points="20 6 9 17 4 12"/></svg>
@@ -846,8 +853,25 @@ export default function MarketingPage() {
               </div>
             ))}
           </div>
+          </div>
+
+          {/* Desktop product shot: the web dashboard with the phone app over it.
+              Plain CSS animation (not FadeUp), so it shows on first paint. */}
+          <div className="pk-hero-visual hidden lg:block relative pl-8 pb-8 lg:mr-[calc(472px-50vw)] lg:pr-10" style={{ animation:'pkIn 0.8s 120ms cubic-bezier(.16,1,.3,1) both' }}>
+            <BrowserFrame>
+              <ScaledCanvas width={1280} height={800} label="The Pelikn manager dashboard on a computer: today's checks, overdue cleans, fridge temps and who is on shift">
+                <DesktopDashboardMock />
+              </ScaledCanvas>
+            </BrowserFrame>
+            <div className="absolute left-0 bottom-0 w-[24%] min-w-[124px] max-w-[190px]">
+              <ScaledCanvas width={300} height={600} clip={false} label="The Pelikn app on a phone">
+                <IPhoneFrame><MockMobileHome /></IPhoneFrame>
+              </ScaledCanvas>
+            </div>
+          </div>
+
           {/* Hero phones — staggered rise */}
-          <div className="flex justify-center gap-5 sm:gap-10 items-end">
+          <div className="flex justify-center gap-5 sm:gap-10 items-end lg:hidden">
             <div className="hidden sm:block" style={{ transform:'translateY(48px)', animation:'pkRise 1s 350ms cubic-bezier(.16,1,.3,1) both' }}>
               <IPhoneFrame><MockMobileHome /></IPhoneFrame>
             </div>
@@ -856,7 +880,7 @@ export default function MarketingPage() {
             </div>
           </div>
         </div>
-        <div className="h-24 sm:h-32" />
+        <div className="h-24 sm:h-32 lg:h-20" />
       </section>
 
       <ReplacesStrip />
