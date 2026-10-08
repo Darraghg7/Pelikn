@@ -6,7 +6,19 @@
 -- ║  Ship the app change (PR "Revoked devices go back to the PIN screen")    ║
 -- ║  first, or at the same time: without it a revoked device shows load      ║
 -- ║  errors instead of returning to the PIN screen.                          ║
+-- ║                                                                          ║
+-- ║  RE-APPLYING (rolled back 8 Oct 2026): only once the app fix "A signed-  ║
+-- ║  out device no longer shows its venue as Starter" is live. Without it a  ║
+-- ║  device whose session has ended shows a Pro venue as Starter until the   ║
+-- ║  app is reopened, which is what happened at Nomad.                       ║
 -- ╚══════════════════════════════════════════════════════════════════════════╝
+--
+-- Rolled back 8 Oct 2026, the first time it was applied: Nomad showed as
+-- Starter with Pro screens locked. The "Starter" came from the app: when a
+-- device's session ended, the venue lookup retried without the plan and
+-- cached "starter". That retry is gone, and every sign-out is now reported to
+-- Sentry with its reason ('supabase:session-ended'), so if a live session is
+-- ever refused it shows up there.
 --
 -- What was wrong: a PIN sign-in gives the device a venue JWT (pin-login, 30
 -- days) that carries the staff_sessions token it was issued for. Every table

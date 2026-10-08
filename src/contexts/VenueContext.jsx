@@ -48,39 +48,41 @@ export function VenueProvider({ children }) {
       })
     }, 8000)
 
-    supabase
+    const readVenue = () => supabase
       .from('venues')
       .select('id, name, slug, plan')
       .eq('slug', slug)
       .single()
+
+    const applyVenueRow = (data) => {
+      localStorage.setItem(venueKey(slug), JSON.stringify(data))
+      setVenue(data)
+      setFailure(null) // clears the error state if the 8s failsafe fired first
+    }
+
+    readVenue()
       .then(({ data, error: err }) => {
         if (cancelled) { clearTimeout(timeoutId); return }
         clearTimeout(timeoutId)
         if (!err && data) {
-          localStorage.setItem(venueKey(slug), JSON.stringify(data))
-          setVenue(data)
+          applyVenueRow(data)
           setLoading(false)
-          setFailure(null) // clears the error state if the 8s failsafe fired first
           return
         }
-        // Retry without plan column (older DB schemas)
-        return supabase
-          .from('venues')
-          .select('id, name, slug')
-          .eq('slug', slug)
-          .single()
-          .then(({ data: d2, error: err2 }) => {
-            if (cancelled) return
-            if (!err2 && d2) {
-              const v = { ...d2, plan: 'starter' }
-              localStorage.setItem(venueKey(slug), JSON.stringify(v))
-              setVenue(v)
-              setFailure(null) // clears the error state if the 8s failsafe fired first
-            } else if (!hasCache) {
-              setFailure(venueLookupFailure(err2))
-            }
-            setLoading(false)
-          })
+        // Try the same read once more. The usual reason the first one fails
+        // is that this device's session ended under it (146): the venue JWT
+        // is dropped and SessionContext goes back to the PIN screen, and the
+        // retry then reads the row like any signed-out device. This used to
+        // retry WITHOUT the plan column ("older schemas") and fill in
+        // 'starter', which wrote Starter into the cache and showed a Pro
+        // venue as Starter until the next reload (Nomad, 8 Oct 2026). A
+        // failed read never decides the plan: the cached row stays.
+        return readVenue().then(({ data: d2, error: err2 }) => {
+          if (cancelled) return
+          if (!err2 && d2) applyVenueRow(d2)
+          else if (!hasCache) setFailure(venueLookupFailure(err2))
+          setLoading(false)
+        })
       })
       .catch(() => {
         if (cancelled) return

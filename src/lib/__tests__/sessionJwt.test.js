@@ -6,6 +6,17 @@ import {
 } from '../supabase'
 import { requestVenueJwt, refreshVenueJwt } from '../venueJwt'
 import { SESSION_TOKEN_KEY, SESSION_VENUE_ID_KEY, SESSION_JWT_KEY } from '../constants'
+import { attachSentry, __resetForTests } from '../reportError'
+
+// The setup file has already loaded the real client, so reports are observed
+// through a stand-in Sentry rather than a module mock.
+function captureReports() {
+  __resetForTests()
+  vi.spyOn(console, 'warn').mockImplementation(() => {})
+  const sentry = { captureException: vi.fn() }
+  attachSentry(sentry)
+  return sentry.captureException
+}
 
 // Build a syntactically-valid JWT with the given exp (seconds since epoch).
 function makeJwt(exp, extra = {}) {
@@ -168,6 +179,79 @@ describe('session ended (146)', () => {
     expect(global.fetch).toHaveBeenCalledTimes(2)
   })
 
+  it('reports why the session ended: what the database and pin-login said', async () => {
+    const reports = captureReports()
+    registerSessionEndedHandler(() => true)
+    registerJwtRefresher(vi.fn(async () => {
+      throw new SessionEndedError('tok-1', { status: 403, reason: 'Venue mismatch', venueId: 'v-999' })
+    }))
+    setSessionJwt(makeJwt(FUTURE, { sub: 'staff-1' }))
+    global.fetch = vi.fn(async () => ended401())
+
+    await supabase.from('venues').select('id')
+
+    expect(reports).toHaveBeenCalledWith(
+      expect.objectContaining({ name: 'SessionEndedError' }),
+      expect.objectContaining({ extra: {
+        context: 'supabase:session-ended',
+        via: 'refused-jwt',
+        path: '/rest/v1/venues',
+        dbCode: 'PK401',
+        pinLoginStatus: 403,
+        pinLoginReason: 'Venue mismatch',
+        jwtVenueId: 'v-123',
+        jwtStaffId: 'staff-1',
+        storedVenueId: 'v-999',
+        replacedSession: false,
+      } }),
+    )
+    // Never the session token itself.
+    expect(JSON.stringify(reports.mock.calls[0][1])).not.toContain('tok-1')
+  })
+
+  it('a late answer about a replaced session keeps the new JWT and retries with it', async () => {
+    const replacement = makeJwt(FUTURE, { session_token: 'tok-2' })
+    const onEnded = vi.fn(() => false)   // SessionContext: not the current session
+    registerSessionEndedHandler(onEnded)
+    // The device switched venue while pin-login was answering about tok-1.
+    registerJwtRefresher(vi.fn(async () => {
+      setSessionJwt(replacement)
+      throw new SessionEndedError('tok-1')
+    }))
+    setSessionJwt(makeJwt(FUTURE, { session_token: 'tok-1' }))
+    global.fetch = vi.fn()
+      .mockResolvedValueOnce(ended401())
+      .mockResolvedValueOnce(okJson())
+
+    const { error } = await supabase.from('fridges').select('id')
+
+    expect(onEnded).toHaveBeenCalledWith('tok-1')
+    expect(error).toBeNull()
+    expect(authHeaderOf(fetchCalls()[1])).toBe(`Bearer ${replacement}`)
+    // …and it is still the JWT on the next request.
+    global.fetch = vi.fn(async () => okJson())
+    await supabase.from('fridges').select('id')
+    expect(authHeaderOf(fetchCalls()[0])).toBe(`Bearer ${replacement}`)
+  })
+
+  it('reports the database refusing a JWT pin-login has just re-issued', async () => {
+    const reports = captureReports()
+    registerJwtRefresher(vi.fn(async () => makeJwt(FUTURE, { refreshed: true })))
+    setSessionJwt(makeJwt(FUTURE))
+    global.fetch = vi.fn(async () => ended401())
+
+    const { error } = await supabase.from('staff').select('id')
+
+    expect(error?.code).toBe('PK401')
+    expect(global.fetch).toHaveBeenCalledTimes(2)
+    expect(reports).toHaveBeenCalledWith(
+      expect.any(Error),
+      expect.objectContaining({
+        extra: expect.objectContaining({ context: 'supabase:session-check-disagrees', path: '/rest/v1/staff' }),
+      }),
+    )
+  })
+
   it('concurrent 401s share one refresh', async () => {
     const fresh = makeJwt(FUTURE, { refreshed: true })
     let release = () => {}
@@ -203,9 +287,11 @@ describe('venueJwt: pin-login issue_jwt answers', () => {
     expect(localStorage.getItem(SESSION_JWT_KEY)).toBe('new.jwt')
   })
 
-  it.each([401, 403])('%i → the session is gone (SessionEndedError carrying the token)', async (status) => {
+  it.each([401, 403])('%i → the session is gone (SessionEndedError carrying the token and why)', async (status) => {
     global.fetch = reply(status, { error: 'Invalid or expired session' })
-    await expect(refreshVenueJwt()).rejects.toMatchObject({ name: 'SessionEndedError', token: 'tok-1' })
+    await expect(refreshVenueJwt()).rejects.toMatchObject({
+      name: 'SessionEndedError', token: 'tok-1', status, reason: 'Invalid or expired session', venueId: 'v-123',
+    })
   })
 
   it.each([500, 503])('%i → try later, not a sign-out', async (status) => {
