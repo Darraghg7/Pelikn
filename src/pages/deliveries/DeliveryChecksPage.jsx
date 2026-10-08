@@ -7,6 +7,7 @@ import { useToast } from '../../components/ui/Toast'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
 import { SkeletonList } from '../../components/ui/Skeleton'
 import Modal from '../../components/ui/Modal'
+import { reportError } from '../../lib/reportError'
 import useDeliveryChecks from '../../hooks/useDeliveryChecks'
 import { useSuppliers } from '../../hooks/useSuppliers'
 import { insertSupplier } from '../../lib/api/suppliers'
@@ -30,13 +31,15 @@ function useSupplierItems(supplierId) {
   const load = useCallback(async () => {
     if (!supplierId) { setItems([]); return }
     setLoading(true)
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('supplier_items')
       .select('id, name, temp_required, min_temp, max_temp, category')
       .eq('supplier_id', supplierId)
       .eq('is_active', true)
       .order('name')
-    setItems(data ?? [])
+    // The supplier's saved items are a shortcut; items can still be typed in.
+    if (error) reportError(error, 'DeliveryChecksPage:supplier-items')
+    else setItems(data ?? [])
     setLoading(false)
   }, [supplierId])
   useEffect(() => { load() }, [load])

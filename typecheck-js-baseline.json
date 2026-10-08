@@ -59,7 +59,7 @@
   "src/pages/cooling/CoolingExportModal.jsx": 1,
   "src/pages/cooling/CoolingLogsPage.jsx": 3,
   "src/pages/corrective/CorrectiveActionsPage.jsx": 5,
-  "src/pages/dashboard/MobileManagerDashboard.jsx": 10,
+  "src/pages/dashboard/MobileManagerDashboard.jsx": 6,
   "src/pages/dashboard/StaffDashboardPage.jsx": 3,
   "src/pages/dashboard/TodaySummaryCard.jsx": 1,
   "src/pages/DashboardPage.jsx": 1,

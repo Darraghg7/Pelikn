@@ -186,11 +186,13 @@ async function fetchLivePermissions(staffId, venueId, staffRole) {
   if (staffRole !== 'staff' || !staffId || !venueId) return null
   if (activeJwtVenueId() !== venueId) return null
 
-  const { data: staffRow } = await supabase
+  const { data: staffRow, error: staffErr } = await supabase
     .from('staff')
     .select('permission_title_id')
     .eq('id', staffId)
     .single()
+  // Can't tell whether a title applies, so the answer below can't be trusted.
+  if (staffErr) { reportError(staffErr, 'SessionContext:live-permissions'); return null }
 
   if (staffRow?.permission_title_id) {
     const { data: title, error: titleErr } = await supabase
@@ -271,9 +273,11 @@ async function fetchTitlePermissions(staffId) {
     if (data.permission_titles) return data.permission_titles.permissions ?? []
   }
 
-  const { data: titleRow } = await supabase.from('staff').select('permission_title_id').eq('id', staffId).single()
+  const { data: titleRow, error: rowErr } = await supabase.from('staff').select('permission_title_id').eq('id', staffId).single()
+  if (rowErr) { reportError(rowErr, 'SessionContext:title-permissions'); return null }
   if (!titleRow?.permission_title_id) return null
-  const { data: title } = await supabase.from('permission_titles').select('permissions').eq('id', titleRow.permission_title_id).single()
+  const { data: title, error: titleErr } = await supabase.from('permission_titles').select('permissions').eq('id', titleRow.permission_title_id).single()
+  if (titleErr) { reportError(titleErr, 'SessionContext:title-permissions'); return null }
   return title ? title.permissions ?? [] : null
 }
 
@@ -606,6 +610,10 @@ export function SessionProvider({ children }) {
         localStorage.removeItem(SESSION_JWT_KEY)
         return { error: staffRes.error }
       }
+
+      // Sign-in still goes ahead on these two; report so a broken read shows up.
+      if (permsRes.error) reportError(permsRes.error, 'SessionContext:sign-in-permissions')
+      if (linksRes.error) reportError(linksRes.error, 'SessionContext:sign-in-venue-links')
 
       row = staffRes.data
       // Managers/owners bypass granular permissions entirely.

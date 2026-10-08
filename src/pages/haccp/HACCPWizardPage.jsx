@@ -5,6 +5,8 @@ import { useVenue } from '../../contexts/VenueContext'
 import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../../components/ui/Toast'
 import { PageSkeleton } from '../../components/ui/Skeleton'
+import { reportError } from '../../lib/reportError'
+import LoadError from '../../components/ui/LoadError'
 
 // ── HACCP 7 Principles ────────────────────────────────────────────────────────
 
@@ -189,21 +191,24 @@ All records are available for inspection by an Environmental Health Officer on r
 function useHACCPPlan(venueId) {
   const [plan, setPlan]       = useState(null)
   const [loading, setLoading] = useState(true)
+  const [failed, setFailed]   = useState(false)
 
   const load = useCallback(async () => {
     if (!venueId) return
     setLoading(true)
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('haccp_plans')
       .select('*')
       .eq('venue_id', venueId)
       .maybeSingle()
-    setPlan(data)
+    if (error) reportError(error, 'HACCPWizardPage:load')
+    else setPlan(data)
+    setFailed(!!error)
     setLoading(false)
   }, [venueId])
 
   useEffect(() => { load() }, [load])
-  return { plan, loading, reload: load }
+  return { plan, loading, failed, reload: load }
 }
 
 // ── Step indicator ────────────────────────────────────────────────────────────
@@ -294,7 +299,7 @@ export default function HACCPWizardPage() {
   const { venueId, venueName } = useVenue()
   const { session } = useSession()
   const toast = useToast()
-  const { plan, loading, reload } = useHACCPPlan(venueId)
+  const { plan, loading, failed, reload } = useHACCPPlan(venueId)
 
   const [step, setStep]         = useState(0)
   const [answers, setAnswers]   = useState({})
@@ -362,6 +367,8 @@ export default function HACCPWizardPage() {
   }
 
   if (loading) return <PageSkeleton />
+  // A blank wizard on a failed read could be saved over the real plan.
+  if (failed && !plan) return <LoadError what="your HACCP plan" onRetry={reload} />
 
   // ── Review / print screen
   if (reviewing) {

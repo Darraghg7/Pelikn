@@ -4,6 +4,8 @@ import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
 import { useToast } from '../../components/ui/Toast'
 import { PageSkeleton } from '../../components/ui/Skeleton'
+import { reportError } from '../../lib/reportError'
+import LoadError from '../../components/ui/LoadError'
 
 // ── Procedure sections ────────────────────────────────────────────────────────
 
@@ -80,21 +82,24 @@ const DEFAULT_SECTIONS = Object.fromEntries(PROC_SECTIONS.map(s => [s.key, s.def
 function useAllergenProcedure(venueId) {
   const [procedure, setProcedure] = useState(null)
   const [loading, setLoading]     = useState(true)
+  const [failed, setFailed]       = useState(false)
 
   const load = useCallback(async () => {
     if (!venueId) return
     setLoading(true)
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('allergen_procedures')
       .select('*')
       .eq('venue_id', venueId)
       .maybeSingle()
-    setProcedure(data)
+    if (error) reportError(error, 'AllergenProcedurePage:load')
+    else setProcedure(data)
+    setFailed(!!error)
     setLoading(false)
   }, [venueId])
 
   useEffect(() => { load() }, [load])
-  return { procedure, loading, reload: load }
+  return { procedure, loading, failed, reload: load }
 }
 
 // ── Page ──────────────────────────────────────────────────────────────────────
@@ -102,7 +107,7 @@ function useAllergenProcedure(venueId) {
 export default function AllergenProcedurePage() {
   const { venueId }                         = useVenue()
   const toast                               = useToast()
-  const { procedure, loading, reload }      = useAllergenProcedure(venueId)
+  const { procedure, loading, failed, reload } = useAllergenProcedure(venueId)
   const [sections, setSections]             = useState(DEFAULT_SECTIONS)
   const [meta, setMeta]                     = useState({ responsible_manager: '', eho_contact: '' })
   const [saving, setSaving]                 = useState(false)
@@ -142,6 +147,9 @@ export default function AllergenProcedurePage() {
   }
 
   if (loading) return <PageSkeleton />
+  // Showing the blank template on a failed read invites saving it over the
+  // venue's real procedure.
+  if (failed && !procedure) return <LoadError what="your allergen procedure" onRetry={reload} />
 
   return (
     <div className="flex flex-col gap-5">

@@ -7,6 +7,8 @@ import { useClockStatus } from '../../hooks/useClockEvents'
 import { SkeletonList } from '../../components/ui/Skeleton'
 import RecentShifts from '../../components/shifts/RecentShifts'
 import { format } from 'date-fns'
+import { reportError } from '../../lib/reportError'
+import LoadError from '../../components/ui/LoadError'
 
 /* ── Live HH:MM:SS elapsed timer ────────────────────────────────────── */
 function formatElapsed(ms) {
@@ -81,6 +83,8 @@ function ManagerView({ venueId }) {
   const { session } = useSession()
   const [staff, setStaff]   = useState([])
   const [loading, setLoading] = useState(true)
+  const [failed, setFailed]   = useState(false)
+  const [attempt, setAttempt] = useState(0)
 
   useEffect(() => {
     if (!venueId) return
@@ -90,8 +94,13 @@ function ManagerView({ venueId }) {
       .eq('venue_id', venueId)
       .eq('is_active', true)
       .order('name')
-      .then(({ data }) => { setStaff(data ?? []); setLoading(false) })
-  }, [venueId])
+      .then(({ data, error }) => {
+        if (error) reportError(error, 'ClockInPage:team')
+        else setStaff(data ?? [])
+        setFailed(!!error)
+        setLoading(false)
+      })
+  }, [venueId, attempt])
 
   return (
     <div className="flex flex-col gap-6">
@@ -111,6 +120,8 @@ function ManagerView({ venueId }) {
         <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-3">Team Status</p>
         {loading ? (
           <SkeletonList rows={3} />
+        ) : failed && staff.length === 0 ? (
+          <LoadError what="the team" onRetry={() => setAttempt(a => a + 1)} />
         ) : staff.length === 0 ? (
           <p className="text-sm text-charcoal/35 dark:text-white/30 italic">No active staff found.</p>
         ) : (

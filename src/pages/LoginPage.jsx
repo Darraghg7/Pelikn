@@ -97,10 +97,18 @@ function AddVenueModal({ currentDeviceVenues, onAdd, onClose }) {
     setErrorMsg('')
     setFound([])
 
-    const { data: groupVenues } = await supabase
+    // A failed lookup isn't "no such venue" — don't tell staff their code is wrong.
+    const lookupFailed = (error) => {
+      captureSilent(error, 'LoginPage:venue-code-lookup')
+      setErrorMsg('We couldn’t reach Pelikn. Check your connection and try again.')
+      setStatus('error')
+    }
+
+    const { data: groupVenues, error: groupError } = await supabase
       .from('venues')
       .select('id, slug, name')
       .eq('group_code', trimmed)
+    if (groupError) { lookupFailed(groupError); return }
 
     if (groupVenues?.length) {
       setFound(groupVenues)
@@ -108,11 +116,12 @@ function AddVenueModal({ currentDeviceVenues, onAdd, onClose }) {
       return
     }
 
-    const { data: slugVenue } = await supabase
+    const { data: slugVenue, error: slugError } = await supabase
       .from('venues')
       .select('id, slug, name')
       .eq('slug', trimmed)
       .maybeSingle()
+    if (slugError) { lookupFailed(slugError); return }
 
     if (slugVenue) {
       setFound([slugVenue])

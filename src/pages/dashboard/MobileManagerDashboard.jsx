@@ -8,6 +8,7 @@ import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { format, startOfWeek } from 'date-fns'
 import { supabase } from '../../lib/supabase'
+import { reportError } from '../../lib/reportError'
 import { isActionDueToday } from '../../hooks/useTodaySummary'
 import { TODAY_ITEM_REGISTRY } from './todayItemRegistry'
 import { WIDGET_REGISTRY } from '../../components/widgets/WidgetRegistry'
@@ -235,18 +236,21 @@ function useWeeklyHours(staffId, venueId) {
     if (!staffId || !venueId) return
     const since = startOfWeek(new Date(), { weekStartsOn: 1 }).toISOString()
     // First load comes from the startup bundle when it's available (126).
-    takeBootstrap(venueId, 'weeklyHours', staffId)
-      .then(boot => boot
-        ? { data: boot.week_clock }
-        : supabase
-          .from('clock_events')
-          .select('event_type, occurred_at')
-          .eq('staff_id', staffId)
-          .eq('venue_id', venueId)
-          .in('event_type', ['clock_in', 'clock_out'])
-          .gte('occurred_at', since)
-          .order('occurred_at', { ascending: true }))
-      .then(({ data }) => {
+    const load = async () => {
+      const boot = await takeBootstrap(venueId, 'weeklyHours', staffId)
+      if (boot) return { data: boot.week_clock, error: null }
+      return supabase
+        .from('clock_events')
+        .select('event_type, occurred_at')
+        .eq('staff_id', staffId)
+        .eq('venue_id', venueId)
+        .in('event_type', ['clock_in', 'clock_out'])
+        .gte('occurred_at', since)
+        .order('occurred_at', { ascending: true })
+    }
+    load()
+      .then(({ data, error }) => {
+        if (error) { reportError(error, 'MobileManagerDashboard:weekly-hours'); return }
         if (!data) return
         let total = 0, lastIn = null
         for (const ev of data) {
@@ -607,17 +611,21 @@ export default function MobileManagerDashboard({
   useEffect(() => {
     if (!venueId) return
     // First load comes from the startup bundle when it's available (126).
-    takeBootstrap(venueId, 'disciplinary')
-      .then(boot => boot
-        ? { data: boot.disciplinary }
-        : supabase
-          .from('staff_disciplinary_log')
-          .select('id, offence_type, strike_number, occurred_at, staff:staff_id(name)')
-          .eq('venue_id', venueId)
-          .eq('strike_number', 4)
-          .gte('occurred_at', new Date(Date.now() - 7 * 86400000).toISOString())
-          .order('occurred_at', { ascending: false }))
-      .then(({ data }) => {
+    const load = async () => {
+      const boot = await takeBootstrap(venueId, 'disciplinary')
+      if (boot) return { data: boot.disciplinary, error: null }
+      return supabase
+        .from('staff_disciplinary_log')
+        .select('id, offence_type, strike_number, occurred_at, staff:staff_id(name)')
+        .eq('venue_id', venueId)
+        .eq('strike_number', 4)
+        .gte('occurred_at', new Date(Date.now() - 7 * 86400000).toISOString())
+        .order('occurred_at', { ascending: false })
+    }
+    load()
+      .then(({ data, error }) => {
+        // Feeds the Needs You list; a failed read keeps the alerts already shown.
+        if (error) { reportError(error, 'MobileManagerDashboard:disciplinary'); return }
         setDisciplinaryAlerts(
           (data ?? []).map(d => ({ ...d, staff_name: d.staff?.name ?? null }))
         )

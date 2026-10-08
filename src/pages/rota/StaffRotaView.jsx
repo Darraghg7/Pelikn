@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react'
 import { format, parseISO } from 'date-fns'
 import { useClockSessions } from '../../hooks/useClockSessions'
 import { fetchPayrollLocks, submitClockEditRequest } from '../../lib/api/shifts'
+import { reportError } from '../../lib/reportError'
 import { sendPush } from '../../lib/sendPush'
 import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
@@ -62,7 +63,9 @@ export default function StaffRotaView({ shifts, staff, loading, weekStart, prevW
   // Load payroll locks so staff can't submit corrections for locked periods
   React.useEffect(() => {
     if (!venueId) return
-    fetchPayrollLocks(venueId).then(setPayrollLocks)
+    fetchPayrollLocks(venueId)
+      .then(setPayrollLocks)
+      .catch(e => reportError(e, 'StaffRotaView:payroll-locks'))
   }, [venueId])
 
   const isDateLocked = React.useCallback((date) => {
@@ -80,7 +83,9 @@ export default function StaffRotaView({ shifts, staff, loading, weekStart, prevW
       .eq('venue_id', venueId)
       .in('status', ['pending', 'denied', 'approved'])
       .order('created_at', { ascending: false })
-      .then(({ data }) => {
+      .then(({ data, error }) => {
+        // Only the "pending"/"denied" labels on worked shifts — report, keep the rota.
+        if (error) { reportError(error, 'StaffRotaView:edit-requests'); return }
         if (!data) return
         const map = {}
         for (const r of data) {

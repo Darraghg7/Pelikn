@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
+import { reportError } from '../../lib/reportError'
 
 const ALL_ALLERGENS = [
   'Celery', 'Gluten', 'Crustaceans', 'Eggs', 'Fish', 'Lupin',
@@ -14,6 +15,7 @@ export default function AllergenPublicPage() {
   const [items, setItems]   = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError]   = useState(null)
+  const itemsShown = useRef(false)
 
   useEffect(() => {
     if (!venueSlug) return
@@ -34,7 +36,7 @@ export default function AllergenPublicPage() {
         return
       }
       // Fetch logo and food items in parallel
-      const [{ data: logoUrl }, { data: foodItems }] = await Promise.all([
+      const [{ data: logoUrl, error: logoErr }, { data: foodItems, error: itemsErr }] = await Promise.all([
         // app_settings is members-only (142); the logo comes from a narrow RPC.
         supabase.rpc('get_public_venue_logo', { p_slug: venueSlug }),
         supabase
@@ -45,9 +47,16 @@ export default function AllergenPublicPage() {
           .order('name'),
       ])
 
+      if (logoErr) reportError(logoErr, 'AllergenPublicPage:logo')
+      if (itemsErr) reportError(itemsErr, 'AllergenPublicPage:food-items')
+
       if (!cancelled) {
         setVenue({ ...venueData, logo_url: logoUrl ?? null })
-        setItems(foodItems ?? [])
+        // Customers read this to decide what's safe to eat: an empty menu on a
+        // failed read would look like "nothing to declare". A failed live
+        // refresh keeps the dishes already shown.
+        if (!itemsErr) { setItems(foodItems ?? []); itemsShown.current = true }
+        else if (!itemsShown.current) setError('The allergen menu couldn’t load. Please refresh, or ask a member of staff.')
         setLoading(false)
       }
 

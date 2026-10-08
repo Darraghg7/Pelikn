@@ -6,6 +6,8 @@ import { useVenue } from '../../contexts/VenueContext'
 import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../../components/ui/Toast'
 import { PageSkeleton } from '../../components/ui/Skeleton'
+import { reportError } from '../../lib/reportError'
+import LoadError from '../../components/ui/LoadError'
 import ConfirmDialog from '../../components/ui/ConfirmDialog'
 import OpeningClosingExportModal from './OpeningClosingExportModal'
 import { useViewerDepartments } from '../../hooks/useDepartments'
@@ -32,20 +34,23 @@ function todayStr() { return format(new Date(), 'yyyy-MM-dd') }
 function useChecks(venueId) {
   const [checks, setChecks]   = useState([])
   const [loading, setLoading] = useState(true)
+  const [failed, setFailed]   = useState(false)
   const load = useCallback(async () => {
     if (!venueId) return
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('opening_closing_checks')
       .select('id, title, type, department_id, sort_order, created_at')
       .eq('venue_id', venueId)
       .eq('is_active', true)
       .order('sort_order')
       .order('created_at')
-    setChecks(data ?? [])
+    if (error) reportError(error, 'OpeningClosingPage:checks')
+    else setChecks(data ?? [])
+    setFailed(!!error)
     setLoading(false)
   }, [venueId])
   useEffect(() => { load() }, [load])
-  return { checks, loading, reload: load }
+  return { checks, loading, failed, reload: load }
 }
 
 function useCompletionsForDate(sessionDate, venueId) {
@@ -58,11 +63,13 @@ function useCompletionsForDate(sessionDate, venueId) {
   const [doneAtLoad, setDoneAtLoad] = useState({ date: null, ids: new Set() })
   const load = useCallback(async () => {
     if (!venueId || !sessionDate) return
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('opening_closing_completions')
       .select('id, check_id, session_date, session_type, completed_at, staff_name, corrective_action')
       .eq('venue_id', venueId)
       .eq('session_date', sessionDate)
+    // An empty list would show done checks as still to do.
+    if (error) { reportError(error, 'OpeningClosingPage:completions'); return }
     const rows = data ?? []
     setCompletions(rows)
     setDoneAtLoad(prev => prev.date === sessionDate ? prev : { date: sessionDate, ids: new Set(rows.map(r => r.check_id)) })
@@ -406,7 +413,7 @@ export default function OpeningClosingPage() {
   const [selectedDate, setSelectedDate] = useState(todayStr())
   const [showExport, setShowExport]     = useState(false)
 
-  const { checks, loading: checksLoading, reload: reloadChecks } = useChecks(venueId)
+  const { checks, loading: checksLoading, failed: checksFailed, reload: reloadChecks } = useChecks(venueId)
   const { completions, doneAtLoad, reload: reloadCompletions } = useCompletionsForDate(selectedDate, venueId)
   // Staff see the departments they're in (none = all of them); managers pick
   // one department or all. Same rule as cleaning and Tasks — lib/roleFilter.
@@ -488,6 +495,9 @@ export default function OpeningClosingPage() {
 
   if (checksLoading) {
     return <PageSkeleton />
+  }
+  if (checksFailed && checks.length === 0) {
+    return <LoadError what="your opening and closing checks" onRetry={reloadChecks} />
   }
 
   const dateLabel = isToday(parseISO(selectedDate))

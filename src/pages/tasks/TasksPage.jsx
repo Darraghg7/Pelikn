@@ -16,6 +16,7 @@ import LoadingSpinner from '../../components/ui/LoadingSpinner'
 import EmptyState from '../../components/ui/EmptyState'
 import ConfirmDialog from '../../components/ui/ConfirmDialog'
 import { SkeletonList } from '../../components/ui/Skeleton'
+import { reportError } from '../../lib/reportError'
 import DutiesSection from '../settings/DutiesSection'
 
 function usePendingSignOffs(staffId, venueId) {
@@ -46,12 +47,14 @@ function useStaffList(enabled) {
   const { data } = useQuery({
     queryKey: ['tasksStaffPicker', venueId],
     queryFn: async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('staff')
         .select('id, name, job_role')
         .eq('venue_id', venueId)
         .eq('is_active', true)
         .order('name')
+      // Only fills the one-off task's "assign to" picker — report, don't block.
+      if (error) { reportError(error, 'TasksPage:staff-picker'); throw error }
       return data ?? []
     },
     enabled: !!venueId && enabled,

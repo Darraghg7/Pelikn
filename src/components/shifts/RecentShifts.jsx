@@ -503,7 +503,12 @@ export default function RecentShifts({ staffId, isManagerEdit = false, inline = 
       .eq('venue_id', venueId)
       .in('status', ['pending', 'denied'])
       .order('created_at', { ascending: false })
-      .then(({ data }) => setPending(data ?? []))
+      .then(({ data, error }) => {
+        // Only drives the "pending"/"denied" badges — the shifts list itself
+        // still shows, so report rather than block the screen.
+        if (error) { captureSilent(error, 'RecentShifts:edit-requests'); return }
+        setPending(data ?? [])
+      })
   }, [staffId, venueId, loading]) // re-fetch when sessions reload
 
   const body = (

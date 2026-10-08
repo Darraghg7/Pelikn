@@ -11,8 +11,7 @@ import { useVenue } from '../../contexts/VenueContext'
 import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../ui/Toast'
 import { useWidgetQuery } from '../../hooks/useWidgetQuery'
-import LoadingSpinner from '../ui/LoadingSpinner'
-import { WidgetShell } from './shared'
+import { WidgetShell, WidgetPending } from './shared'
 
 const LEAVE_NAMES = { annual: 'Annual leave', unpaid: 'Unpaid leave', other: 'Other leave' }
 
@@ -36,8 +35,8 @@ function StaffNotificationsWidget() {
   const queryClient = useQueryClient()
   const [deciding, setDeciding] = useState(null)   // request id being saved
 
-  const { data } = useWidgetQuery('staff_notifications', [venueId], async () => {
-    const [{ data: leave }, { data: swaps }, trainCount] = await Promise.all([
+  const { data, isError, refetch } = useWidgetQuery('staff_notifications', [venueId], async () => {
+    const [{ data: leave, error: leaveError }, { data: swaps, error: swapsError }, trainCount] = await Promise.all([
       supabase
         .from('time_off_requests')
         .select('id, staff_id, start_date, end_date, leave_type, staff:staff_id(name)')
@@ -59,6 +58,7 @@ function StaffNotificationsWidget() {
         staleTime: 60_000,
       }),
     ])
+    if (leaveError || swapsError) throw leaveError ?? swapsError
     // 119 withholds `reason`; a manager gets the venue's, anyone else only
     // their own, so this widget still reads as it did for the people it is for.
     const leaveWithReasons = withTimeOffPrivate(leave ?? [], await fetchTimeOffPrivateFields())
@@ -85,7 +85,7 @@ function StaffNotificationsWidget() {
   if (!data) {
     return (
       <WidgetShell title="Staff notifications" to="/time-off">
-        <div className="flex justify-center py-2.5"><LoadingSpinner /></div>
+        <WidgetPending isError={isError} onRetry={refetch} className="py-2.5" />
       </WidgetShell>
     )
   }

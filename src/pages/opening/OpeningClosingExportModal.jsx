@@ -16,7 +16,7 @@ export default function OpeningClosingExportModal({ open, onClose }) {
   const handleExport = async () => {
     setLoading(true)
 
-    const { data: checks } = await supabase
+    const { data: checks, error: checksError } = await supabase
       .from('opening_closing_checks')
       .select('id, title, type')
       .eq('venue_id', venueId)
@@ -33,7 +33,8 @@ export default function OpeningClosingExportModal({ open, onClose }) {
 
     setLoading(false)
 
-    if (error) { toast(error.message, 'error'); return }
+    // An export missing its check/task names would be an incomplete record.
+    if (checksError || error) { toast((checksError ?? error).message, 'error'); return }
     if (!completions?.length && !checks?.length) { toast('No records found', 'error'); return }
 
     const rows = completions?.length

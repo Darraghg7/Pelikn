@@ -5,25 +5,30 @@ import { useVenue } from '../../contexts/VenueContext'
 import { useToast } from '../../components/ui/Toast'
 import { SkeletonList } from '../../components/ui/Skeleton'
 import ConfirmDialog from '../../components/ui/ConfirmDialog'
+import { reportError } from '../../lib/reportError'
+import LoadError from '../../components/ui/LoadError'
 
 function usePPDSItems(venueId) {
   const [items, setItems]   = useState([])
   const [loading, setLoading] = useState(true)
+  const [failed, setFailed]   = useState(false)
 
   const load = useCallback(async () => {
     if (!venueId) return
     setLoading(true)
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('ppds_items')
       .select('id, name, description, ingredients, may_contain_allergens, is_active')
       .eq('venue_id', venueId)
       .order('name')
-    setItems(data ?? [])
+    if (error) reportError(error, 'PPDSItemsPage:load')
+    else setItems(data ?? [])
+    setFailed(!!error)
     setLoading(false)
   }, [venueId])
 
   useEffect(() => { load() }, [load])
-  return { items, loading, reload: load }
+  return { items, loading, failed, reload: load }
 }
 
 function AllergenSummary({ ingredients, mayContain }) {
@@ -46,7 +51,7 @@ function AllergenSummary({ ingredients, mayContain }) {
 export default function PPDSItemsPage() {
   const { venueId, venueSlug } = useVenue()
   const toast = useToast()
-  const { items, loading, reload } = usePPDSItems(venueId)
+  const { items, loading, failed, reload } = usePPDSItems(venueId)
   const [deleting, setDeleting] = useState(null)
   const [deleteTarget, setDeleteTarget] = useState(null)
 
@@ -114,6 +119,8 @@ export default function PPDSItemsPage() {
       <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 overflow-hidden">
         {loading ? (
           <SkeletonList rows={4} />
+        ) : failed && items.length === 0 ? (
+          <LoadError what="PPDS items" onRetry={reload} />
         ) : items.length === 0 ? (
           <div className="px-6 py-10 text-center">
             <p className="text-sm text-charcoal/35 dark:text-white/30 font-medium">No PPDS items yet</p>

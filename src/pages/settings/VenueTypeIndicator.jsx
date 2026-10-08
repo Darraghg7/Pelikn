@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { VENUE_PRESETS } from '../../lib/constants'
+import { reportError } from '../../lib/reportError'
 
 const VENUE_TYPE_ICONS = {
   cafe:       <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>,
@@ -17,7 +18,10 @@ export default function VenueTypeIndicator({ venueId, venueSlug }) {
   useEffect(() => {
     if (!venueId) return
     supabase.from('app_settings').select('value').eq('venue_id', venueId).eq('key', 'venue_type').maybeSingle()
-      .then(({ data }) => { if (data?.value) setVenueType(data.value) })
+      .then(({ data, error }) => {
+        if (error) { reportError(error, 'VenueTypeIndicator'); return }
+        if (data?.value) setVenueType(data.value)
+      })
   }, [venueId])
 
   const reopenSetup = useCallback(() => {

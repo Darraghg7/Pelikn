@@ -4,16 +4,15 @@ import { format } from 'date-fns'
 import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
 import { useWidgetQuery } from '../../hooks/useWidgetQuery'
-import LoadingSpinner from '../ui/LoadingSpinner'
-import { WidgetShell, MiniRow } from './shared'
+import { WidgetShell, MiniRow, WidgetPending } from './shared'
 import { EXPLAINED_EXCEEDANCE_REASONS } from '../../lib/constants'
 
 function FridgeAlertsWidget() {
   const { venueId, venueSlug } = useVenue()
   const today = format(new Date(), 'yyyy-MM-dd')
 
-  const { data: raw } = useWidgetQuery('fridge_alerts', [venueId, today], async () => {
-      const [{ data: logs }, { data: fridges }] = await Promise.all([
+  const { data: raw, isError, refetch } = useWidgetQuery('fridge_alerts', [venueId, today], async () => {
+      const [{ data: logs, error: logsError }, { data: fridges, error: fridgesError }] = await Promise.all([
         supabase
           .from('fridge_temperature_logs')
           .select('id, temperature, exceedance_reason, is_resolved, fridge:fridge_id(name, min_temp, max_temp)')
@@ -22,6 +21,7 @@ function FridgeAlertsWidget() {
           .order('logged_at', { ascending: false }),
         supabase.from('fridges').select('id, name').eq('venue_id', venueId).eq('is_active', true),
       ])
+      if (logsError || fridgesError) throw logsError ?? fridgesError
 
       const items = logs ?? []
       const outOfRange = items.filter(l =>
@@ -41,7 +41,7 @@ function FridgeAlertsWidget() {
       }
   })
 
-  if (!raw) return <WidgetShell title="Fridges" to="/fridge"><div className="flex justify-center py-2.5"><LoadingSpinner /></div></WidgetShell>
+  if (!raw) return <WidgetShell title="Fridges" to="/fridge"><WidgetPending isError={isError} onRetry={refetch} className="py-2.5" /></WidgetShell>
 
   // Fridge checks run on their own action_schedule and aren't blanked out by
   // trading closure — staff can still be scheduled to record them on a day

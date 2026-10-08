@@ -4,6 +4,8 @@ import { format } from 'date-fns'
 import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
 import { PageSkeleton } from '../../components/ui/Skeleton'
+import { reportError } from '../../lib/reportError'
+import LoadError from '../../components/ui/LoadError'
 
 export default function PPDSLabelPage() {
   const { id }              = useParams()
@@ -13,6 +15,8 @@ export default function PPDSLabelPage() {
   const [loading, setLoading] = useState(true)
   const [madeOn, setMadeOn] = useState(format(new Date(), 'yyyy-MM-dd'))
   const [useBy, setUseBy]   = useState('')
+  const [failed, setFailed] = useState(false)
+  const [attempt, setAttempt] = useState(0)
 
   useEffect(() => {
     if (!id || !venueId) return
@@ -22,10 +26,17 @@ export default function PPDSLabelPage() {
       .eq('id', id)
       .eq('venue_id', venueId)
       .single()
-      .then(({ data }) => { setItem(data); setLoading(false) })
-  }, [id, venueId])
+      .then(({ data, error }) => {
+        // .single() answers PGRST116 when the row doesn't exist — that alone
+        // is "not found"; anything else means we couldn't check.
+        if (error && error.code !== 'PGRST116') { reportError(error, 'PPDSLabelPage:load'); setFailed(true) }
+        setItem(data)
+        setLoading(false)
+      })
+  }, [id, venueId, attempt])
 
   if (loading) return <PageSkeleton />
+  if (failed)  return <LoadError what="this item" onRetry={() => { setFailed(false); setLoading(true); setAttempt(a => a + 1) }} />
   if (!item)   return <div className="pt-10 text-center text-charcoal/40 dark:text-white/35 text-sm">Item not found.</div>
 
   const ingredients   = item.ingredients ?? []

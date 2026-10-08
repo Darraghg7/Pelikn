@@ -93,7 +93,8 @@ export function insertDutyAssignment(payload: Record<string, unknown>) {
 // ── Rota publish state + payroll locks (both stored in app_settings) ─────────
 
 export async function fetchPayrollLocks(venueId: string): Promise<string[]> {
-  const { data } = await supabase.from('app_settings').select('value').eq('venue_id', venueId).eq('key', 'payroll_locks').maybeSingle()
+  const { data, error } = await supabase.from('app_settings').select('value').eq('venue_id', venueId).eq('key', 'payroll_locks').maybeSingle()
+  if (error) throw error
   try { return JSON.parse(data?.value ?? '[]') } catch { return [] }
 }
 export function upsertRotaPublished(venueId: string, weekStartStr: string, value: string) {
