@@ -87,11 +87,11 @@ Migrations live in `supabase/migrations/` as `NNN_description.sql`, numbered in 
 
 - **They are applied by hand** in the Supabase dashboard → SQL Editor, in order. Never run `supabase db push` against this project. Code that depends on a new migration should be merged only once the migration has been run, or written so it still works before then.
 - **Rollbacks**: newer migrations come with an `NNN_rollback.sql` that reverses them. Write one for every new migration.
-- **Numbering quirks**: `085` and `086` each have two unrelated files. Go by the filename, not the number. A few early files have letter suffixes (`023b`, `031b`, `059b`). Renumbering is a separate cleanup.
+- **Numbering quirks**: `085` and `086` each have two unrelated files, and a few early files have letter suffixes. See [`supabase/migrations/README.md`](supabase/migrations/README.md). A unit test stops new clashes.
 - **Busy tables**: start migrations that alter policies on busy tables with `SET lock_timeout`. Prefer `ALTER POLICY` to drop-and-recreate.
 - **Per-migration runbooks** are in `docs/` (for example `apply-migration-091.md`, `apply-private-training-files.md`, `clock-event-duplicates.md`).
 
-`supabase/seed/` and `seed_demo.sql` hold demo-data scripts. `supabase/config.toml` holds edge-function settings only.
+`supabase/seed/demo_seed_function.sql` is a reference copy of the demo-account rebuild function (read its header, don't run it as-is). `supabase/config.toml` holds edge-function settings only.
 
 ### Edge functions (`supabase/functions/`)
 
