@@ -101,7 +101,7 @@ export default function LandingPage() {
     // Safety net only — see the matching note in LoginPage. Was 5200 ms.
     const fallback = setTimeout(() => setReady(true), 800)
     return () => { window.removeEventListener('pk-splash-done', onDone); clearTimeout(fallback) }
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [ready])
 
   const [email, setEmail]               = useState('')
   const [password, setPassword]         = useState('')

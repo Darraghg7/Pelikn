@@ -83,7 +83,7 @@ export default function BillingSettingsPage() {
     const next = new URLSearchParams(params)
     next.delete('billing')
     setParams(next, { replace: true })
-  }, [checkoutResult]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [checkoutResult]) // eslint-disable-line react-hooks/exhaustive-deps -- one-shot per return from Stripe: the effect strips ?billing= itself, and re-running on params/toast identity changes could fire the thank-you toast twice
 
   const subscribed = !!billing?.has_subscription
   useEffect(() => {

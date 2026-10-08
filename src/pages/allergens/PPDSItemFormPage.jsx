@@ -38,7 +38,7 @@ export default function PPDSItemFormPage() {
         setMayContain(data.may_contain_allergens ?? [])
         setLoading(false)
       })
-  }, [id, venueId, isEdit]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [id, venueId, isEdit]) // eslint-disable-line react-hooks/exhaustive-deps -- load the saved item once per id/venue; toast/navigate/venueSlug are only used on the not-found path, and re-running would overwrite unsaved edits in the form
 
   // ── Ingredient list helpers ──────────────────────────────────────────────────
 

@@ -302,7 +302,7 @@ export default function StaffAlertModal({
       const t = setTimeout(() => setVisible(false), 250)
       return () => clearTimeout(t)
     }
-  }, [open]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [open]) // eslint-disable-line react-hooks/exhaustive-deps -- reset + alert tone must fire once per opening; `visible` is set here, so depending on it would replay the tone and cancel the exit timer
 
   const handleManagerApprove = async () => {
     if (!selectedManager || pin.length !== 4 || pinLoading) return
@@ -329,7 +329,7 @@ export default function StaffAlertModal({
     if (phase === 'manager_pin' && pin.length === 4) {
       handleManagerApprove()
     }
-  }, [pin]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [pin]) // eslint-disable-line react-hooks/exhaustive-deps -- submit once when the 4th digit lands; handleManagerApprove is rebuilt every render, so listing it would re-submit on every render
 
   // No Escape key close — intentionally non-dismissible
   if (!visible) return null

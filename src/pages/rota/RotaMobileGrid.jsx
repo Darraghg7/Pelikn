@@ -65,7 +65,7 @@ function Wheel({ values, value, onChange, accent }) {
   const setNode = useCallback((node) => {
     ref.current = node
     if (node) node.scrollTop = Math.max(0, values.indexOf(value)) * IH
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps -- a callback ref must keep one identity or React detaches/reattaches it each change; it only sets the starting scroll, the effect below follows `value`
 
   useEffect(() => {
     const el = ref.current; if (!el) return

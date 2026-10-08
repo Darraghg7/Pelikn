@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { reportError } from '../lib/reportError'
 
@@ -73,17 +73,20 @@ export function useZeroHoursAccrual(staffId, leaveYear) {
 // Returns a map of staffId → accrued hours.
 export function useTeamZeroHoursAccruals(staffIds, leaveYear) {
   const year = leaveYear ?? new Date().getFullYear()
+  // Callers pass a fresh array each render; key on its contents instead so the
+  // effect only re-runs when the actual set of ids changes.
   const key  = staffIds.join(',')
+  const ids  = useMemo(() => (key ? key.split(',') : []), [key])
   const [map, setMap]       = useState({})
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (!staffIds.length) { setMap({}); setLoading(false); return }
+    if (!ids.length) { setMap({}); setLoading(false); return }
     let cancelled = false
     supabase
       .from('clock_events')
       .select('staff_id, event_type, occurred_at')
-      .in('staff_id', staffIds)
+      .in('staff_id', ids)
       .gte('occurred_at', `${year}-01-01T00:00:00Z`)
       .lt('occurred_at',  `${year + 1}-01-01T00:00:00Z`)
       .order('occurred_at', { ascending: true })
@@ -99,7 +102,7 @@ export function useTeamZeroHoursAccruals(staffIds, leaveYear) {
         }
         // Compute accrued hours per person
         const result = {}
-        for (const sid of staffIds) {
+        for (const sid of ids) {
           const evs = grouped[sid] ?? []
           let total = 0, clockIn = null
           for (const ev of evs) {
@@ -115,7 +118,7 @@ export function useTeamZeroHoursAccruals(staffIds, leaveYear) {
         setLoading(false)
       })
     return () => { cancelled = true }
-  }, [key, year]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [ids, year])
 
   return { map, loading }
 }

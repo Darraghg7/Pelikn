@@ -188,9 +188,9 @@ function TsWheel({ values, value, onChange }) {
   const setNode = useCallback((node) => {
     ref.current = node
     if (node) node.scrollTop = idx * WH_IH
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps -- a callback ref must keep one identity or React detaches/reattaches it each change; it only sets the starting scroll, the effect below follows `idx`
 
-  useEffect(() => { const el = ref.current; if (el) el.scrollTop = idx * WH_IH }, [strVal]) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { const el = ref.current; if (el) el.scrollTop = idx * WH_IH }, [idx])
 
   const onScroll = useCallback(() => {
     clearTimeout(timer.current)

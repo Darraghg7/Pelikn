@@ -203,7 +203,7 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
     if (!s) return
     loadForm(s)
     loadedFor.current = detailId
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- loads once per id (loadedFor guards it); startNew/loadForm are rebuilt every render and only read when the id or staff list changes
   }, [detailId, staff])
 
   // Toggle a staff member's link to another owned venue

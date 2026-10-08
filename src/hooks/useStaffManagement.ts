@@ -1,4 +1,4 @@
-import { useCallback } from 'react'
+import { useCallback, useMemo } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
 import { fetchStaffPayRates, withPayRates, fetchStaffPrivateFields, withPrivateFields } from '../lib/api/staffRestricted'
@@ -40,7 +40,7 @@ export default function useStaffManagement(): {
 } {
   const { venueId } = useVenue()
   const queryClient = useQueryClient()
-  const queryKey = ['staff_management', venueId]
+  const queryKey = useMemo(() => ['staff_management', venueId], [venueId])
 
   const { data: staff = [], isLoading: loading, refetch } = useQuery({
     queryKey,
@@ -72,8 +72,7 @@ export default function useStaffManagement(): {
     queryClient.setQueryData<StaffMember[]>(queryKey, old =>
       old?.map(s => (s.id === staffId ? { ...s, ...fields } : s)))
     refetch()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [queryClient, venueId, refetch])
+  }, [queryClient, queryKey, refetch])
 
   return { staff, loading, reload: refetch, applySaved }
 }
