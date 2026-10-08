@@ -444,7 +444,7 @@ export default function LoginPage() {
     // is exactly what happened on web where the splash never runs.
     const fallback = setTimeout(() => setReady(true), 800)
     return () => { window.removeEventListener('pk-splash-done', onDone); clearTimeout(fallback) }
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [ready])
 
   // ── Device venue list ──────────────────────────────────────────────────────
   const [deviceVenues, setDeviceVenues] = useState(() => readDeviceVenues())
@@ -605,6 +605,12 @@ export default function LoginPage() {
     navigate(`/v/${venue.slug}/dashboard`, { replace: true })
   }
 
+  // doSignIn is rebuilt every render; the numpad calls it through a ref so the
+  // 4th digit always signs in with the current person and venue, even though
+  // handleDigit itself stays stable.
+  const doSignInRef = useRef(doSignIn)
+  doSignInRef.current = doSignIn
+
   // Numpad handlers
   const handleDigit = useCallback((d) => {
     if (submitting) return
@@ -612,10 +618,10 @@ export default function LoginPage() {
     setPin(prev => {
       if (prev.length >= 4) return prev
       const next = prev + d
-      if (next.length === 4) setTimeout(() => doSignIn(next), 80)
+      if (next.length === 4) setTimeout(() => doSignInRef.current(next), 80)
       return next
     })
-  }, [submitting, selected]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [submitting])
 
   const handleDelete = useCallback(() => {
     setPin(prev => prev.slice(0, -1))

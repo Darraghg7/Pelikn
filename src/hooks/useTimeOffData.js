@@ -81,9 +81,15 @@ export function useTeamLeaveBalances(staff, leaveYear) {
   const [failed, setFailed]             = useState(false)
   const [tick, setTick]                 = useState(0)
 
+  // Keyed on the ids themselves, not staff.length: a venue switch or a
+  // leaver-plus-joiner keeps the count the same but needs a fresh fetch.
+  // (Callers also pass a new [] each render, so the array can't be the key.)
+  const idsKey = staff.map(s => s.id).join(',')
+  const ids    = useMemo(() => (idsKey ? idsKey.split(',') : []), [idsKey])
+
   useEffect(() => {
-    if (!staff.length) { setLoading(false); return }
-    const ids = staff.map(s => s.id)
+    if (!ids.length) { setLoading(false); return }
+    let cancelled = false
     Promise.all([
       supabase.from('time_off_requests')
         .select('staff_id, start_date, end_date')
@@ -97,6 +103,7 @@ export function useTeamLeaveBalances(staff, leaveYear) {
         .in('staff_id', ids)
         .eq('leave_year', year),
     ]).then(([reqRes, ovRes]) => {
+      if (cancelled) return
       // Without both reads every balance would show as a full, untouched
       // allowance — so fail the list instead of showing wrong numbers.
       const error = reqRes.error ?? ovRes.error
@@ -108,7 +115,8 @@ export function useTeamLeaveBalances(staff, leaveYear) {
       setOverrides(map)
       setLoading(false)
     })
-  }, [staff.length, year, tick]) // eslint-disable-line react-hooks/exhaustive-deps
+    return () => { cancelled = true }
+  }, [ids, year, tick])
 
   const reloadBalances = useCallback(() => setTick(t => t + 1), [])
 

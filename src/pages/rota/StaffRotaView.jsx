@@ -30,10 +30,13 @@ export default function StaffRotaView({ shifts, staff, loading, weekStart, prevW
     return todayInWeek ?? weekDays[0]
   })
 
+  // Jump to today (or the Monday) when the week changes. Derived from
+  // weekStart inside the effect: weekDays is a new array every render.
   React.useEffect(() => {
-    const todayInWeek = weekDays.find(d => format(d, 'yyyy-MM-dd') === today)
-    setSelectedDate(todayInWeek ?? weekDays[0])
-  }, [weekStart]) // eslint-disable-line react-hooks/exhaustive-deps
+    const days = getWeekDays(weekStart)
+    const todayStr = format(new Date(), 'yyyy-MM-dd')
+    setSelectedDate(days.find(d => format(d, 'yyyy-MM-dd') === todayStr) ?? days[0])
+  }, [weekStart])
 
   const selectedDateStr = format(selectedDate, 'yyyy-MM-dd')
   const myShifts = shifts.filter(s => s.staff_id === session?.staffId)
@@ -104,10 +107,10 @@ export default function StaffRotaView({ shifts, staff, loading, weekStart, prevW
   }, [session?.staffId, venueId])
 
   // Filter clock sessions to the current week
-  const weekDateStrs = weekDays.map(d => format(d, 'yyyy-MM-dd'))
   const weekClockSessions = React.useMemo(() => {
+    const weekDateStrs = getWeekDays(weekStart).map(d => format(d, 'yyyy-MM-dd'))
     return clockSessions.filter(s => s.clockOutAt && weekDateStrs.includes(format(s.date, 'yyyy-MM-dd')))
-  }, [clockSessions, weekStart]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [clockSessions, weekStart])
 
   // Build worked rows with display data
   const workedRows = React.useMemo(() => {
@@ -175,7 +178,9 @@ export default function StaffRotaView({ shifts, staff, loading, weekStart, prevW
     }))
     ehToast('Sent to your manager for approval ✓')
     reloadClockSessions()
-  }, [venueId, session, me, ehToast, reloadClockSessions]) // eslint-disable-line react-hooks/exhaustive-deps
+  // isDateLocked was missing here, so payroll locks that loaded after the
+  // first render were never checked on submit.
+  }, [venueId, session, me, ehToast, reloadClockSessions, isDateLocked])
 
   return (
     <div className="flex flex-col gap-4">

@@ -235,8 +235,9 @@ export function useTeamStatus(venueId) {
     // tick is 8 queries against the shared database, for a screen nobody sees.
     const interval = setInterval(() => { if (!document.hidden) fetch() }, STALE_MS)
     return () => { cancelled = true; clearInterval(interval) }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [venueId])
+  // dateStr only changes at midnight; without it a dashboard left open
+  // overnight kept filing the new day's numbers under yesterday's cache key.
+  }, [venueId, dateStr])
 
   return { data, loading }
 }

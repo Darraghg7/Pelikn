@@ -309,10 +309,21 @@ export function useTodaySummary(venueId, closedDays = [], actionSchedules = {}) 
   const summaryRef = useRef(summary)
   summaryRef.current = summary
 
+  // closedDays and actionSchedules arrive as fresh arrays/objects every
+  // render, so the fetch effect is keyed on their contents (closedKey,
+  // gating) and reads the latest values through these refs.
+  const closedKey = closedDays.join(',')
+  const closedDaysRef = useRef(closedDays)
+  closedDaysRef.current = closedDays
+  const actionSchedulesRef = useRef(actionSchedules)
+  actionSchedulesRef.current = actionSchedules
+
   useEffect(() => {
     if (!venueId) return
 
     const key = `${venueId}:${todayStr}:${gating}`
+    const closedDays      = closedDaysRef.current
+    const actionSchedules = actionSchedulesRef.current
 
     const entry = cacheGet(key)
     const age   = entry ? Date.now() - entry.ts : Infinity
@@ -606,8 +617,7 @@ export function useTodaySummary(venueId, closedDays = [], actionSchedules = {}) 
     }
     fetchAll()
     return () => { cancelled = true }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [venueId, closedDays.join(','), todayStr, gating, refreshTick])
+  }, [venueId, closedKey, todayStr, gating, refreshTick])
 
   return { summary, loading, closedToday }
 }

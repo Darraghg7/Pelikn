@@ -156,8 +156,9 @@ export function useChecksStatus(venueId, summary, summaryLoading, closedToday = 
     })
 
     return () => { cancelled = true }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [venueId])
+  // dateStr is a primitive that only changes at midnight, so a page left open
+  // overnight fetches the new day's checks on its next render.
+  }, [venueId, dateStr])
 
   // Phase 2: compute all statuses once both raw data and summary are ready
   useEffect(() => {
