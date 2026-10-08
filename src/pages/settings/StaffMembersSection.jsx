@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import {
   fetchStaffVenueLinks, fetchStaffRoleAssignments, fetchStaffPermissionCounts, fetchStaffPermissionsFor,
   uploadStaffPhotoFile, getStaffPhotoPublicUrl, updateStaffPhotoUrl,
@@ -44,6 +44,16 @@ const EMPTY_FORM = {
 }
 const DOW_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
+// Build { staffId -> [venueId, ...] } map from raw rows
+function buildLinkMap(rows) {
+  const map = {}
+  for (const row of rows) {
+    if (!map[row.staff_id]) map[row.staff_id] = []
+    map[row.staff_id].push(row.venue_id)
+  }
+  return map
+}
+
 export default function StaffMembersSection({ detailId = null, onOpen, onClose, backLabel = 'Staff' }) {
   const { staff, loading: staffLoading, reload: reloadStaff, applySaved: applySavedStaff } = useStaffManagement()
   const { roles: venueRoles } = useVenueRoles()
@@ -69,28 +79,18 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
   const [search, setSearch]                 = useState('')
   const { reload: reloadBilling }           = useBilling()  // keeps the Starter "x of 5 staff" count current
 
-  // Build { staffId -> [venueId, ...] } map from raw rows
-  const buildLinkMap = (rows) => {
-    const map = {}
-    for (const row of rows) {
-      if (!map[row.staff_id]) map[row.staff_id] = []
-      map[row.staff_id].push(row.venue_id)
-    }
-    return map
-  }
-
   // Reload cross-venue links for all current staff
-  const refreshVenueLinks = async () => {
+  const refreshVenueLinks = useCallback(async () => {
     if (!staff.length || venues.length <= 1) {
       setVenueLinks(prev => (Object.keys(prev).length === 0 ? prev : {}))
       return
     }
     const { data, error } = await fetchStaffVenueLinks(staff.map(s => s.id))
     if (!error && data) setVenueLinks(buildLinkMap(data))
-  }
+  }, [staff, venues])
 
   // Load cross-venue links on mount / when staff or venues change
-  useEffect(() => { refreshVenueLinks() }, [staff, venues])
+  useEffect(() => { refreshVenueLinks() }, [refreshVenueLinks])
 
   useEffect(() => {
     if (!staff.length || !venueRoles.length) {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useMemo } from 'react'
 import { format, isToday } from 'date-fns'
 import { getWeekDays, staffColour } from '../../lib/utils'
 import { shiftDurationHours, paidShiftHours, unpaidBreakMins } from '../../hooks/useShifts'
@@ -185,11 +185,14 @@ function MobileDayView({ days, shifts, shiftIndex, staff, onCellClick, currentSt
   const todayIdx = days.findIndex(d => isToday(d))
   const [selectedDay, setSelectedDay] = useState(todayIdx >= 0 ? todayIdx : 0)
 
-  // When week changes, reset to today if in week
-  useEffect(() => {
-    const idx = days.findIndex(d => isToday(d))
-    setSelectedDay(idx >= 0 ? idx : 0)
-  }, [days[0]?.toISOString()])
+  // When the week changes, reset to today if it's in the new week. Done during
+  // render rather than in an effect, so the old day never flashes up first.
+  const weekKey = days[0]?.toISOString()
+  const [shownWeek, setShownWeek] = useState(weekKey)
+  if (shownWeek !== weekKey) {
+    setShownWeek(weekKey)
+    setSelectedDay(todayIdx >= 0 ? todayIdx : 0)
+  }
 
   const day      = days[selectedDay]
   const dateStr  = format(day, 'yyyy-MM-dd')

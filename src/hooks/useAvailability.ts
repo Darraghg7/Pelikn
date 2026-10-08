@@ -14,6 +14,10 @@ interface AvailabilityEntry {
 
 type AvailabilityMap = Record<string, AvailabilityEntry>
 
+// One shared empty map, so `unavailability` keeps the same identity while the
+// query has no data and toggleAvailability isn't rebuilt every render.
+const EMPTY_MAP: AvailabilityMap = {}
+
 /**
  * Fetches manual unavailability + approved time-off for visible weeks.
  * Returns a lookup map keyed by "staffId:yyyy-MM-dd" -> { type, subtype?, note? }
@@ -88,7 +92,7 @@ export function useAvailability(weekStart: Date, numWeeks = 1): {
     enabled: !!venueId,
   })
 
-  const unavailability = data ?? {}
+  const unavailability = data ?? EMPTY_MAP
 
   /**
    * Three-state toggle cycle:

@@ -670,14 +670,17 @@ function TodayChecks({ venueId, venueSlug, staffName }) {
 
 function useTodaySummary({ staffId, venueId, isEnabled, hasPermission, closedDays }) {
   const [data, setData] = useState({ fridgesUnchecked: 0, loaded: false, closedToday: false })
+  // A yes/no rather than the array: settings load after first render, so this
+  // must re-run when they arrive, but the array itself can be a fresh copy on
+  // every render while settings are still loading.
+  const closedBySchedule = closedDays.includes((new Date().getDay() + 6) % 7)
 
   useEffect(() => {
     if (!staffId || !venueId) return
     let cancelled = false
     const today = format(new Date(), 'yyyy-MM-dd')
-    const todayDow = (new Date().getDay() + 6) % 7
 
-    if (closedDays.includes(todayDow)) {
+    if (closedBySchedule) {
       setData({ fridgesUnchecked: 0, loaded: true, closedToday: true })
       return
     }
@@ -737,7 +740,7 @@ function useTodaySummary({ staffId, venueId, isEnabled, hasPermission, closedDay
     }
 
     return () => { cancelled = true }
-  }, [staffId, venueId, isEnabled, hasPermission])
+  }, [staffId, venueId, isEnabled, hasPermission, closedBySchedule])
 
   return data
 }

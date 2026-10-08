@@ -419,7 +419,7 @@ export function SessionProvider({ children }) {
         } else clearStorage()
         if (!restored) setLoading(false)
       })
-  }, [])
+  }, [refreshPermissions])
 
   // ── Periodic session refresh (every 12 h while app is open) ─────────────
   // Keeps 30-day sessions alive on active devices without requiring re-login.

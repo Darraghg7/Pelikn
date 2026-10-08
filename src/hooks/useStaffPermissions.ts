@@ -30,7 +30,7 @@ export function useStaffPermissions(staffId: string, staffRole: string): {
   const queryClient = useQueryClient()
   const isManager = staffRole === 'manager' || staffRole === 'owner'
 
-  const queryKey = ['staff-permissions', staffId, venueId]
+  const queryKey = useMemo(() => ['staff-permissions', staffId, venueId], [staffId, venueId])
 
   const { data: permissionsList, isLoading, refetch } = useQuery({
     queryKey,

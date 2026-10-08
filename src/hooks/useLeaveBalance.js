@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { reportError } from '../lib/reportError'
 import { parseISO, getDay, eachDayOfInterval } from 'date-fns'
 import { supabase } from '../lib/supabase'
@@ -37,7 +37,7 @@ export function calculateEntitlementDays(employment_type, working_days) {
 export function useLeaveBalance(staff, leaveYear) {
   const year = leaveYear ?? new Date().getFullYear()
   const [overrideDays, setOverrideDays] = useState(null)
-  const [usedDays, setUsedDays]         = useState(0)
+  const [approvedLeave, setApprovedLeave] = useState([])
   const [loading, setLoading]           = useState(true)
 
   useEffect(() => {
@@ -76,18 +76,24 @@ export function useLeaveBalance(staff, leaveYear) {
       }
 
       setOverrideDays(entRow?.override_days ?? null)
-      setUsedDays(
-        (reqs ?? []).reduce(
-          (sum, r) => sum + countWorkingDaysInRequest(r.start_date, r.end_date, staff.working_days),
-          0
-        )
-      )
+      setApprovedLeave(reqs ?? [])
       setLoading(false)
     }
 
     run()
     return () => { cancelled = true }
-  }, [staff?.id, staff?.employment_type, year])
+  }, [staff?.id, year])
+
+  // Counted here rather than in the fetch, so a change to the working pattern
+  // re-counts straight away instead of showing the old figure until a reload.
+  const workingDays = staff?.working_days
+  const usedDays = useMemo(
+    () => approvedLeave.reduce(
+      (sum, r) => sum + countWorkingDaysInRequest(r.start_date, r.end_date, workingDays),
+      0
+    ),
+    [approvedLeave, workingDays]
+  )
 
   const eligible     = staff?.holiday_pay_eligible !== false
   const calculated   = eligible ? calculateEntitlementDays(staff?.employment_type, staff?.working_days) : null
