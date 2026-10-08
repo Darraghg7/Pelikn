@@ -4,6 +4,7 @@ import { useVenue } from '../../contexts/VenueContext'
 import { useAppSettings } from '../../hooks/useSettings'
 import { useVenueFeatures, FEATURE_GROUPS, ALL_FEATURE_IDS, PRO_ONLY_FEATURE_IDS } from '../../hooks/useVenueFeatures'
 import { PLANS } from '../../lib/constants'
+import { EXTRA_FEATURES, checkTileEnabled } from '../../lib/features'
 import NavOrderSection from './NavOrderSection'
 import VenueTypeIndicator from './VenueTypeIndicator'
 import SettingsSubHeader from '../../components/layout/SettingsSubHeader'
@@ -33,12 +34,13 @@ const TEAM_TILES = [
   { id: 'staff',     label: 'Staff',        sub: 'Add and manage people' },
 ]
 
-function Toggle({ on, onClick }) {
+function Toggle({ on, onClick = undefined, disabled = false }) {
   return (
     <button
       onClick={onClick}
+      disabled={disabled}
       aria-pressed={on}
-      className="relative w-10 h-6 rounded-full border-0 cursor-pointer shrink-0 transition-colors duration-[180ms] p-0"
+      className="relative w-10 h-6 rounded-full border-0 cursor-pointer disabled:cursor-default shrink-0 transition-colors duration-[180ms] p-0"
       style={{ background: on ? '#1a7a4c' : '#e4e6e2' }}
     >
       <span
@@ -49,14 +51,19 @@ function Toggle({ on, onClick }) {
   )
 }
 
-function Row({ label, sub, on, onToggle, last }) {
+function Row({ label, sub, on, onToggle, last, locked = false }) {
   return (
-    <div className={`flex items-center gap-3 px-[15px] py-[13px] ${last === false ? 'border-t border-charcoal/6 dark:border-white/8' : ''}`}>
+    <div className={`flex items-center gap-3 px-[15px] py-[13px] ${last === false ? 'border-t border-charcoal/6 dark:border-white/8' : ''} ${locked ? 'opacity-50' : ''}`}>
       <div className="flex-1 min-w-0">
-        <div className="text-sm font-medium text-charcoal dark:text-white tracking-[-0.005em]">{label}</div>
+        <div className="flex items-center gap-1.5">
+          <div className="text-sm font-medium text-charcoal dark:text-white tracking-[-0.005em]">{label}</div>
+          {locked && <span className="font-mono text-[11px] font-bold text-[#d97706] bg-[#fffbeb] px-[5px] py-0.5 rounded uppercase tracking-[0.04em]">Pro</span>}
+        </div>
         {sub && <div className="text-[11.5px] text-charcoal/50 dark:text-white/40 mt-0.5 leading-[1.4]">{sub}</div>}
       </div>
-      <Toggle on={on} onClick={onToggle} />
+      {locked
+        ? <Toggle on={false} disabled />
+        : <Toggle on={on} onClick={onToggle} />}
     </div>
   )
 }
@@ -81,7 +88,8 @@ export default function HubTilesPage() {
   const navigate = useNavigate()
   const { venueId, venueSlug, venuePlan } = useVenue()
   const { hiddenCheckTiles, hiddenTeamTiles, saveHiddenCheckTiles, saveHiddenTeamTiles, complianceNavOrder, saveComplianceNavOrder } = useAppSettings()
-  const { config: featuresConfig, save: saveFeatures, isEnabled } = useVenueFeatures()
+  const { config: featuresConfig, save: saveFeatures, isEnabled, isSwitchedOn, isPlanLocked, setExtra } = useVenueFeatures()
+  const checkTiles = CHECK_TILES.filter(t => checkTileEnabled(t.id, isEnabled))
 
   const vp = (path) => `/v/${venueSlug}${path}`
 
@@ -106,8 +114,25 @@ export default function HubTilesPage() {
       <div className="pb-24 max-w-[480px] mx-auto">
       <div className="flex flex-col gap-4">
 
+        <Group
+          label="Optional extras"
+          foot="Off for new venues. Switching one off hides it from the menus for everyone at this venue — nothing is deleted, and turning it back on brings all its records back."
+        >
+          {EXTRA_FEATURES.map((f, i) => (
+            <Row
+              key={f.id}
+              label={f.label}
+              sub={f.description}
+              on={isSwitchedOn(f.id)}
+              locked={isPlanLocked(f.id)}
+              onToggle={() => setExtra(f.id, !isSwitchedOn(f.id))}
+              last={i === 0 ? undefined : false}
+            />
+          ))}
+        </Group>
+
         <Group label="Checks hub" foot="Hidden tiles won't show on the Checks hub but their pages remain accessible from the menu.">
-          {CHECK_TILES.map((t, i) => (
+          {checkTiles.map((t, i) => (
             <Row
               key={t.id}
               label={t.label}
@@ -138,7 +163,7 @@ export default function HubTilesPage() {
             <div className="px-[14px] py-2">
               <VenueTypeIndicator venueId={venueId} venueSlug={venueSlug} />
               <div className="inline-flex bg-charcoal/6 dark:bg-white/8 rounded-[9px] p-[3px] gap-0.5 mb-3">
-                {['all', 'custom'].map(mode => (
+                {/** @type {const} */ (['all', 'custom']).map(mode => (
                   <button
                     key={mode}
                     onClick={() => saveFeatures({ mode, enabled: mode === 'all' ? ALL_FEATURE_IDS : (featuresConfig.enabled ?? ALL_FEATURE_IDS) })}
@@ -164,7 +189,7 @@ export default function HubTilesPage() {
                               const next = allOn
                                 ? (featuresConfig.enabled ?? ALL_FEATURE_IDS).filter(id => !groupIds.includes(id))
                                 : [...new Set([...(featuresConfig.enabled ?? []), ...groupIds])]
-                              saveFeatures({ ...featuresConfig, enabled: next })
+                              saveFeatures({ enabled: next })
                             }}
                             className="relative w-10 h-6 rounded-full border-0 cursor-pointer shrink-0 p-0 transition-colors duration-[180ms]"
                             style={{ background: allOn ? '#1a7a4c' : '#e4e6e2' }}
@@ -190,7 +215,7 @@ export default function HubTilesPage() {
                                 onClick={locked ? undefined : () => {
                                   const current = featuresConfig.enabled ?? ALL_FEATURE_IDS
                                   const next = current.includes(feature.id) ? current.filter(id => id !== feature.id) : [...current, feature.id]
-                                  saveFeatures({ ...featuresConfig, enabled: next })
+                                  saveFeatures({ enabled: next })
                                 }}
                                 disabled={locked}
                                 className="relative w-10 h-6 rounded-full border-0 shrink-0 p-0 transition-colors duration-[180ms]"

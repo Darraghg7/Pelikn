@@ -523,7 +523,7 @@ export default function AppShell({ children }) {
     icon: <IcoOverview />,
     items: [
       { id: 'overview',    label: 'Group Overview', sub: `All ${venues.length} venues at a glance`, icon: PanelIcons.dashboard, route: vp('/overview') },
-      { id: 'noticeboard', label: 'Noticeboard',    sub: 'Group-wide announcements',                icon: PanelIcons.board,    route: vp('/noticeboard') },
+      ...(isEnabled('noticeboard') ? [{ id: 'noticeboard', label: 'Noticeboard', sub: 'Group-wide announcements', icon: PanelIcons.board, route: vp('/noticeboard') }] : []),
     ],
   } : null
 

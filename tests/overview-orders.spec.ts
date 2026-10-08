@@ -3,6 +3,10 @@
  */
 import { test, expect } from './helpers/cleanup'
 import { goto } from './helpers/nav'
+import { switchOnAllExtras } from './helpers/features'
+
+// These pages are optional extras — switch them on (in the browser only).
+test.beforeEach(async ({ page }) => { await switchOnAllExtras(page) })
 
 test.describe('Overview dashboard', () => {
   // /overview redirects to the dashboard for a single-venue account, so these

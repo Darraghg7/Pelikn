@@ -268,7 +268,7 @@ function SubNav({ items, currentPath }) {
 function getManagerTabs(vp, isEnabled, isPlanLocked, complianceNavOrder = []) {
   const complianceChildren = [
     { key: 'opening-closing', to: vp('/opening-closing'), label: 'Checks',       feature: 'opening_closing' },
-    { key: 'fitness',         to: vp('/fitness'),         label: 'Fitness',       feature: null },
+    { key: 'fitness',         to: vp('/fitness'),         label: 'Fitness',       feature: 'fitness' },
     { key: 'fridge',          to: vp('/fridge'),          label: 'Fridge Temps',  feature: 'fridge' },
     { key: 'cooking-temps',   to: vp('/cooking-temps'),   label: 'Cooking Temps', feature: null },
     { key: 'hot-holding',     to: vp('/hot-holding'),     label: 'Hot Holding',   feature: null },

@@ -4,6 +4,10 @@
  */
 import { test, expect, uniq } from './helpers/cleanup'
 import { goto } from './helpers/nav'
+import { switchOnAllExtras } from './helpers/features'
+
+// These pages are optional extras — switch them on (in the browser only).
+test.beforeEach(async ({ page }) => { await switchOnAllExtras(page) })
 
 const TEST_ACTION = uniq('PW Fridge temp exceeded range')
 

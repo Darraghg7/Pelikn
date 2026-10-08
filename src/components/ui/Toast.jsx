@@ -51,7 +51,7 @@ export function ToastProvider({ children }) {
           <div
             key={t.id}
             onClick={() => dismiss(t.id)}
-            className={`flex items-center gap-2.5 px-5 py-3 rounded-2xl shadow-lg text-sm font-medium whitespace-nowrap animate-slide-up cursor-pointer select-none ${styles[t.type] ?? styles.success}`}
+            className={`flex items-center gap-2.5 px-5 py-3 rounded-2xl shadow-lg text-sm font-medium w-max max-w-[calc(100vw-2rem)] animate-slide-up cursor-pointer select-none ${styles[t.type] ?? styles.success}`}
           >
             {icons[t.type] ?? icons.success}
             {t.message}

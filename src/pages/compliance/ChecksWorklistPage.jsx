@@ -11,6 +11,8 @@ import { useAppSettings } from '../../hooks/useSettings'
 import { useTodaySummary } from '../../hooks/useTodaySummary'
 import { useChecksStatus } from '../../hooks/useChecksStatus'
 import { SkeletonList } from '../../components/ui/Skeleton'
+import { useVenueFeatures } from '../../hooks/useVenueFeatures'
+import { checkTileEnabled } from '../../lib/features'
 
 const STATUS_TONE = {
   overdue: { fg: 'text-danger',  bg: 'bg-danger/10',  rank: 0, label: 'Overdue' },
@@ -128,6 +130,7 @@ export default function ChecksWorklistPage() {
   const navigate = useNavigate()
   const { venueId, venueSlug } = useVenue()
   const { actionSchedules, closedDays, hiddenCheckTiles } = useAppSettings()
+  const { isEnabled } = useVenueFeatures()
   const { summary, loading: summaryLoading, closedToday } = useTodaySummary(venueId, closedDays, actionSchedules)
   const { statuses, loading: statusLoading } = useChecksStatus(venueId, summary, summaryLoading, closedToday, actionSchedules)
 
@@ -135,7 +138,7 @@ export default function ChecksWorklistPage() {
   const vp = (path) => `/v/${venueSlug}${path}`
   const isLoading = summaryLoading || statusLoading
 
-  const allItems = CHECKS.map(c => ({
+  const allItems = CHECKS.filter(c => checkTileEnabled(c.id, isEnabled)).map(c => ({
     ...c,
     statusInfo: statuses[c.id] ?? { status: 'na', statusText: isLoading ? '…' : '—' },
   })).sort((a, b) => {

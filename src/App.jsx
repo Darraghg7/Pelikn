@@ -14,6 +14,7 @@ import AppShell                from './components/layout/AppShell'
 import { FullPageLoader }      from './components/ui/LoadingSpinner'
 import AppSkeleton              from './components/ui/AppSkeleton'
 import PlanGate                from './components/ui/PlanGate'
+import FeatureGate             from './components/ui/FeatureGate'
 import RequireBilling          from './components/billing/RequireBilling'
 import UpdateBanner            from './components/ui/UpdateBanner'
 import ErrorBoundary           from './components/ui/ErrorBoundary'
@@ -217,13 +218,17 @@ function RequirePermission({ permission, children }) {
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
+// FeatureGate (inside AppShell, so after sign-in — app_settings is
+// members-only since 142) bounces switched-off optional extras to the dashboard.
 function wrap(Component, Guard = RequireAuth) {
   return (
     <Guard>
       <RequireNotRestricted>
         <RequireBilling>
           <AppShell>
-            <Component />
+            <FeatureGate>
+              <Component />
+            </FeatureGate>
           </AppShell>
         </RequireBilling>
       </RequireNotRestricted>
@@ -248,9 +253,11 @@ function wrapPro(Component, Guard = RequireAuth, feature) {
       <RequireNotRestricted>
         <RequireBilling>
           <AppShell>
-            <PlanGate feature={feature}>
-              <Component />
-            </PlanGate>
+            <FeatureGate>
+              <PlanGate feature={feature}>
+                <Component />
+              </PlanGate>
+            </FeatureGate>
           </AppShell>
         </RequireBilling>
       </RequireNotRestricted>
