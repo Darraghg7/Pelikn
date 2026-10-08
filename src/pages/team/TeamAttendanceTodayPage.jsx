@@ -3,6 +3,7 @@ import { useSession } from '../../contexts/SessionContext'
 import { useVenue } from '../../contexts/VenueContext'
 import { useAttendanceToday } from '../../hooks/useAttendanceToday'
 import { useToast } from '../../components/ui/Toast'
+import LoadError from '../../components/ui/LoadError'
 
 const STATUS_TONE = {
   not_started: { bg: 'bg-surface dark:bg-white/8', text: 'text-charcoal/55 dark:text-white/40', label: 'Not started' },
@@ -73,7 +74,7 @@ export default function TeamAttendanceTodayPage() {
   const { venueId } = useVenue()
   const { session } = useSession()
   const toast = useToast()
-  const { data, loading, acknowledgeLate } = useAttendanceToday(venueId)
+  const { data, loading, error, refresh, acknowledgeLate } = useAttendanceToday(venueId)
   const [acknowledgingId, setAcknowledgingId] = React.useState(null)
 
   const now = new Date()
@@ -105,7 +106,7 @@ export default function TeamAttendanceTodayPage() {
         <h1 className="text-[26px] font-semibold tracking-[-0.028em] leading-[1.12] mt-1 mb-0 text-charcoal dark:text-white">
           {dayStr}
         </h1>
-        {!loading && (
+        {!loading && !error && (
           <p className="text-[13px] text-charcoal/45 dark:text-white/35 mt-1">
             {roster.length === 0
               ? 'No one scheduled today'
@@ -120,6 +121,8 @@ export default function TeamAttendanceTodayPage() {
             <div key={i} className="h-[60px] rounded-xl bg-charcoal/6 dark:bg-white/8 animate-pulse" />
           ))}
         </div>
+      ) : error ? (
+        <LoadError what="today’s attendance" onRetry={refresh} />
       ) : (
         <>
           <div className="mb-5">

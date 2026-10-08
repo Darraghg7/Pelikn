@@ -11,6 +11,7 @@ import Button from '../../components/ui/Button'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
 import EmptyState from '../../components/ui/EmptyState'
 import { SkeletonList } from '../../components/ui/Skeleton'
+import LoadError from '../../components/ui/LoadError'
 
 const CATEGORIES = ['meat', 'fish', 'dairy', 'produce', 'dry_goods', 'other']
 
@@ -392,7 +393,7 @@ function SupplierCard({ supplier, onEdit, onArchive }) {
 export default function SuppliersPage() {
   const { venueId } = useVenue()
   const toast = useToast()
-  const { suppliers, loading, reload } = useSuppliers()
+  const { suppliers, loading, isError, reload } = useSuppliers()
   const [modalSupplier, setModalSupplier] = useState(undefined) // undefined = closed, null = new
   const [filterCat, setFilterCat]         = useState('all')
   const [filterApproval, setFilterApproval] = useState('all')
@@ -462,7 +463,7 @@ export default function SuppliersPage() {
 
       {loading ? (
         <SkeletonList rows={4} className="py-4" />
-      ) : grouped.length === 0 ? (
+      ) : isError ? (<LoadError what="suppliers" onRetry={reload} />) : grouped.length === 0 ? (
         <EmptyState
           icon="list"
           title={suppliers.length === 0 ? 'No suppliers yet' : 'No suppliers in this category'}

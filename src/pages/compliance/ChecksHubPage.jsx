@@ -5,7 +5,8 @@ import { useSession } from '../../contexts/SessionContext'
 import { useAppSettings } from '../../hooks/useSettings'
 import { useTodaySummary } from '../../hooks/useTodaySummary'
 import { useChecksStatus } from '../../hooks/useChecksStatus'
-import { exportEHOReport } from '../../lib/exportData'
+import { exportEHOReport, runExport } from '../../lib/exportData'
+import { useToast } from '../../components/ui/Toast'
 import { useVenueFeatures } from '../../hooks/useVenueFeatures'
 import { checkTileEnabled } from '../../lib/features'
 import ExtrasLinks from '../../components/ui/ExtrasLinks'
@@ -146,6 +147,7 @@ function HubCard({ check, statusInfo, onClick, editMode, isHidden, onToggle }) {
 
 export default function ChecksHubPage() {
   const navigate = useNavigate()
+  const toast = useToast()
   const { venueId, venueSlug, venueName } = useVenue()
   const { session } = useSession()
   const { actionSchedules, closedDays, hiddenCheckTiles, saveHiddenCheckTiles } = useAppSettings()
@@ -291,7 +293,7 @@ export default function ChecksHubPage() {
           </button>
           <div className="border-t border-charcoal/6 dark:border-white/8 px-[14px] py-[10px]">
             <button
-              onClick={() => exportEHOReport(venueId, venueName, 90)}
+              onClick={() => runExport(() => exportEHOReport(venueId, venueName, 90), toast)}
               className="inline-flex items-center gap-1.5 font-mono text-[11px] font-semibold tracking-[0.04em] uppercase text-charcoal/75 dark:text-white/60 bg-surface border-none rounded-[7px] px-2.5 py-1.5 cursor-pointer hover:bg-charcoal/8 dark:hover:bg-white/8 transition-colors"
             >
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">

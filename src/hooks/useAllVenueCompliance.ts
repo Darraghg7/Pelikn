@@ -48,11 +48,11 @@ async function fetchVenueData(venueId: string): Promise<VenueData> {
   const tomorrow = format(addDays(new Date(), 1), 'yyyy-MM-dd')
 
   const [
-    { data: fridgeLogs },
-    { data: cookingLogs },
-    { data: hotLogs },
-    { data: timeOffRows },
-    { data: clockEvents },
+    { data: fridgeLogs, error: fridgeLogsErr },
+    { data: cookingLogs, error: cookingLogsErr },
+    { data: hotLogs, error: hotLogsErr },
+    { data: timeOffRows, error: timeOffRowsErr },
+    { data: clockEvents, error: clockEventsErr },
   ] = await Promise.all([
     supabase.from('fridge_temperature_logs').select('check_period').eq('venue_id', venueId).gte('logged_at', today).lt('logged_at', tomorrow),
     supabase.from('cooking_temp_logs').select('id').eq('venue_id', venueId).gte('logged_at', today).lt('logged_at', tomorrow),
@@ -61,6 +61,8 @@ async function fetchVenueData(venueId: string): Promise<VenueData> {
     supabase.from('time_off_requests').select('id, start_date, end_date, staff(name)').eq('venue_id', venueId).eq('status', 'pending'),
     supabase.from('clock_events').select('staff_id, event_type').eq('venue_id', venueId).gte('occurred_at', today).lt('occurred_at', tomorrow).order('occurred_at'),
   ])
+  const failed = fridgeLogsErr ?? cookingLogsErr ?? hotLogsErr ?? timeOffRowsErr ?? clockEventsErr
+  if (failed) throw failed
 
   const sessions: Record<string, { status: string }> = {}
   for (const e of clockEvents ?? []) {

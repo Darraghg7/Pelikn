@@ -3,6 +3,7 @@ import { useCallback } from 'react'
 import { format, addWeeks, addDays, eachDayOfInterval, parseISO } from 'date-fns'
 import { supabase } from '../lib/supabase'
 import { fetchTimeOffPrivateFields } from '../lib/api/timeOffPrivate'
+import { throwIfError } from '../lib/queryErrors'
 import { useVenue } from '../contexts/VenueContext'
 
 interface AvailabilityEntry {
@@ -58,6 +59,7 @@ export function useAvailability(weekStart: Date, numWeeks = 1): {
           .lte('start_date', endStr)
           .gte('end_date', startStr),
       ])
+      throwIfError(manualRes, timeOffRes)
       const timeOffPrivate = await fetchTimeOffPrivateFields()
 
       // Manual entries

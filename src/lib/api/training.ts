@@ -30,11 +30,12 @@ export interface CertRecord {
 
 /** Training sign-offs for a venue, newest first, with the signed-off staff joined. */
 export async function fetchSignOffs(venueId: string): Promise<SignOffRecord[]> {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('training_sign_offs')
     .select('*, staff:staff_id(id, name, job_role, photo_url)')
     .eq('venue_id', venueId)
     .order('created_at', { ascending: false })
+  if (error) throw error
   return (data ?? []) as unknown as SignOffRecord[]
 }
 
@@ -43,11 +44,12 @@ export async function fetchUnsignedTrainingCount(venueId: string): Promise<numbe
   // First load comes from the startup bundle when it's available (126).
   const boot = await takeBootstrap(venueId, 'unsignedTraining')
   if (boot) return boot.unsigned_training ?? 0
-  const { count } = await supabase
+  const { count, error } = await supabase
     .from('training_sign_offs')
     .select('id', { count: 'exact', head: true })
     .eq('venue_id', venueId)
     .eq('staff_acknowledged', false)
+  if (error) throw error
   return count ?? 0
 }
 
@@ -61,28 +63,30 @@ export const unsignedTrainingKey = (venueId: string | null | undefined) =>
 
 /** Certificate/training records for a venue, soonest expiry first. */
 export async function fetchCertRecords(venueId: string): Promise<CertRecord[]> {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('staff_training')
     .select('*, staff:staff_id(id, name, job_role, photo_url)')
     .eq('venue_id', venueId)
     .order('expiry_date', { ascending: true, nullsFirst: false })
+  if (error) throw error
   return (data ?? []) as unknown as CertRecord[]
 }
 
 /** Active staff for a venue (name/role/photo), for the training assignment pickers. */
 export async function fetchActiveStaff(venueId: string): Promise<StaffLite[]> {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('staff')
     .select('id, name, job_role, photo_url')
     .eq('venue_id', venueId)
     .eq('is_active', true)
     .order('name')
+  if (error) throw error
   return (data ?? []) as StaffLite[]
 }
 
 /** Allergen-awareness training records for a venue, newest issue date first. */
 export async function fetchAllergenCerts(venueId: string): Promise<CertRecord[]> {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('staff_training')
     .select('*, staff:staff_id(id, name)')
     .eq('venue_id', venueId)
@@ -93,6 +97,7 @@ export async function fetchAllergenCerts(venueId: string): Promise<CertRecord[]>
     // added via Certificates never counts towards allergen compliance.
     .or('category.in.("allergen_awareness","Allergen Awareness"),title.ilike.*allergen*')
     .order('issued_date', { ascending: false, nullsFirst: false })
+  if (error) throw error
   return (data ?? []) as unknown as CertRecord[]
 }
 

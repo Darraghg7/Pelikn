@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { format, startOfDay, endOfDay, subDays } from 'date-fns'
 import { supabase } from '../lib/supabase'
+import { throwIfError } from '../lib/queryErrors'
 import { readPersisted, writePersisted, clearPersisted } from '../lib/persistedCache'
 import { onDataWrite } from '../lib/cacheBus'
 import { captureSilent } from '../lib/reportError'
@@ -489,6 +490,12 @@ export function useTodaySummary(venueId, closedDays = [], actionSchedules = {}) 
               .order('completed_at', { ascending: false })
           : { data: [] },
       ])
+      // Thrown to the catch below, which reports it.
+      throwIfError(
+        closures, cleaning, clockEvents, opening, closing, fridges, fridgeLogs,
+        leaveReqs, critActions, cookingTemps, hotHoldingLogs,
+        coolingLogs, dutyShifts, totalChecksRes, cleaningCompletions,
+      )
 
       if (cancelled) return
 
@@ -540,10 +547,11 @@ export function useTodaySummary(venueId, closedDays = [], actionSchedules = {}) 
       const todayShiftIds = (dutyShifts.data ?? []).map(s => s.id)
       if (todayShiftIds.length) {
         // Fetch duty_assignments with completions embedded — single query instead of two
-        const { data: dutyAssignments } = await supabase
+        const { data: dutyAssignments, error: dutyAssignmentsErr } = await supabase
           .from('duty_assignments')
           .select('id, duty_template_id, duty_template_items!duty_template_id(id), duty_item_completions(duty_template_item_id)')
           .in('shift_id', todayShiftIds)
+        if (dutyAssignmentsErr) throw dutyAssignmentsErr
 
         if (!cancelled && dutyAssignments?.length) {
           dutiesAssigned = dutyAssignments.length

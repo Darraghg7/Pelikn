@@ -155,6 +155,9 @@ async function fetchAppSettings(venueId: string): Promise<AppSettings> {
       .select('key, value')
       .eq('venue_id', venueId)
       .in('key', SETTINGS_KEYS)
+    // Thrown rather than falling back to DEFAULTS: a failed read would
+    // otherwise silently swap the venue's real settings for the defaults.
+    if (res.error) throw res.error
     data = res.data ?? undefined
   }
 

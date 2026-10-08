@@ -9,6 +9,7 @@ import Modal from '../../components/ui/Modal'
 import { PageSkeleton } from '../../components/ui/Skeleton'
 import { buildPdfReport } from '../../lib/pdfUtils'
 import { useLiveDatetimeLocal } from '../../hooks/useLiveDatetimeLocal'
+import LoadError from '../../components/ui/LoadError'
 
 const UNITS   = ['kg', 'portions', 'items', 'litres']
 const REASONS = ['expired', 'spoiled', 'preparation', 'overproduction', 'other']
@@ -43,7 +44,7 @@ export default function WasteLogPage() {
   const today   = format(new Date(), 'yyyy-MM-dd')
   const weekAgo = format(subDays(new Date(), 7), 'yyyy-MM-dd')
 
-  const { logs, loading, reload } = useWasteLogs(weekAgo, today)
+  const { logs, loading, isError, reload } = useWasteLogs(weekAgo, today)
 
   // Form state
   // Time of waste stays "now" until the user picks one (see useLiveDatetimeLocal)
@@ -286,7 +287,9 @@ export default function WasteLogPage() {
         </div>
       )}
 
-      {grouped.length === 0 && (
+      {isError && <LoadError what="waste logs" onRetry={reload} />}
+
+      {!isError && grouped.length === 0 && (
         <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-8 text-center">
           <p className="text-charcoal/40 dark:text-white/35 text-sm">No waste logged this week.</p>
         </div>

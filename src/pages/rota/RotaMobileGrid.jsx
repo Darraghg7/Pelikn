@@ -12,6 +12,7 @@ import { useVenueRoles } from '../../hooks/useVenueRoles'
 import { getWeekStart, getWeekDays } from '../../lib/utils'
 import { useToast } from '../../components/ui/Toast'
 import Toggle from '../../components/ui/Toggle'
+import LoadError from '../../components/ui/LoadError'
 
 const STATION_COLOR = { Kitchen: '#b5701f', FOH: '#2d7d6e', Bar: '#7a5ea8', KP: '#4f6d8a' }
 const STATION_AVATAR = {
@@ -778,8 +779,8 @@ export default function RotaMobileGrid() {
   const [dbPublished, setDbPublished] = useState(null)   // null until loaded
   const pendingChanges = sessionChanges.length
 
-  const { shifts, loading, reload } = useShifts(weekStart, 1)
-  const { staff, loading: staffLoading } = useStaffList()
+  const { shifts, loading, isError: shiftsFailed, reload } = useShifts(weekStart, 1)
+  const { staff, loading: staffLoading, isError: staffFailed, reload: reloadStaff } = useStaffList()
   const { unavailability } = useAvailability(weekStart, 1)
   const { swaps, pendingCount, reload: reloadSwaps } = useShiftSwaps()
   const { roles } = useVenueRoles()
@@ -884,6 +885,8 @@ export default function RotaMobileGrid() {
   const handleChange = (change) => { if (change) setSessionChanges(c => [...c, change]); reload() }
   const openSheet = (shift, staffMember, day) => setShiftSheet({ shift, staffMember, day })
   const isLoading = loading || staffLoading
+  // An empty grid from a failed read looks like a week with nothing on it.
+  const loadFailed = shiftsFailed || staffFailed
 
   const publishLabel = publishing ? 'Publishing…' : canPublish ? 'Publish' : dbPublished ? 'Published' : 'Publish'
 
@@ -960,6 +963,8 @@ export default function RotaMobileGrid() {
 
       {isLoading ? (
         <div className={`${CARD} h-[240px] animate-pulse`} />
+      ) : loadFailed ? (
+        <LoadError what="the rota" onRetry={() => { reload(); reloadStaff() }} className={CARD} />
       ) : view === 'week' ? (
         <WeekGrid
           days={days}
@@ -986,7 +991,7 @@ export default function RotaMobileGrid() {
         />
       )}
 
-      {!isLoading && <OpenShifts openShifts={openShifts} onFill={(o) => openSheet(o, null, o._day)} />}
+      {!isLoading && !loadFailed && <OpenShifts openShifts={openShifts} onFill={(o) => openSheet(o, null, o._day)} />}
       {!isLoading && <StationLegend />}
 
       {/* ── Sheets ── */}

@@ -22,6 +22,7 @@ import {
   typeLabel, severityOf, isRiddor, isOpen, incidentTitle, riddorDeadline, dueText,
 } from '../../lib/incidents'
 import { CARD, TONE, PageHeader, TabBar } from '../../components/temperature/TempPageParts'
+import LoadError from '../../components/ui/LoadError'
 
 const LOCATION_SUGGESTIONS = ['Kitchen', 'Bar', 'Dining area', 'Storeroom', 'Toilets', 'Outside']
 
@@ -454,7 +455,7 @@ function IncidentDetailModal({ incident, onClose, onChanged }) {
 /* ── Main page ────────────────────────────────────────────────────────────── */
 export default function IncidentsPage() {
   const { venueSlug } = useVenue()
-  const { incidents, loading, reload } = useIncidents()
+  const { incidents, loading, isError, reload } = useIncidents()
   const [searchParams, setSearchParams] = useSearchParams()
 
   const [severityFilter, setSeverityFilter] = useState('all')
@@ -556,7 +557,7 @@ export default function IncidentsPage() {
         </button>
       ))}
 
-      {visible.length === 0 ? (
+      {isError ? (<LoadError what="incidents" onRetry={reload} />) : visible.length === 0 ? (
         <div className={`${CARD} px-3.5 py-10 text-center`}>
           <p className="text-[14px] font-semibold text-ink dark:text-white">
             {incidents.length === 0 ? 'No incidents recorded' : tab === 'open' ? 'No open incidents' : 'Nothing matches'}

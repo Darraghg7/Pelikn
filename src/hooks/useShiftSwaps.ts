@@ -22,11 +22,12 @@ export function useShiftSwaps(): {
   const { data: swaps = [], isLoading: loading, refetch } = useQuery({
     queryKey: ['shift_swaps', venueId],
     queryFn: async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('shift_swaps')
         .select('*, shift:shift_id(*)')
         .eq('venue_id', venueId)
         .order('created_at', { ascending: false })
+      if (error) throw error
       return (data ?? []) as ShiftSwap[]
     },
     enabled: !!venueId,

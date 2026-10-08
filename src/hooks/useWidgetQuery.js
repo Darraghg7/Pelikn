@@ -14,7 +14,6 @@
  */
 import { useQuery } from '@tanstack/react-query'
 import { useWidgetFetchGate } from './useWidgetFetchGate'
-import { reportError } from '../lib/reportError'
 
 const storageKey = (name) => `pelikn_w_${name}`
 
@@ -41,15 +40,9 @@ export function useWidgetQuery(name, scope, queryFn, options = {}) {
     queryKey: ['widget', name, ...scope],
     // A widget's queryFn throws its Supabase error instead of returning
     // zeros, so the widget can show a retry (WidgetPending) rather than a
-    // reassuring "0 open issues". Reported here once for every widget.
+    // reassuring "0 open issues". App.jsx's QueryCache reports the error.
     queryFn: async () => {
-      let data
-      try {
-        data = await queryFn()
-      } catch (e) {
-        reportError(e, `widget:${name}`)
-        throw e
-      }
+      const data = await queryFn()
       try {
         localStorage.setItem(storageKey(name), JSON.stringify({ k: scopeStr, data }))
       } catch { /* storage full or unavailable — cache is best-effort */ }

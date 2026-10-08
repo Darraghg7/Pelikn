@@ -53,11 +53,12 @@ export default function useManagerCalendar() {
   const { data: events = [], isLoading } = useQuery({
     queryKey: key,
     queryFn: async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('manager_calendar_events')
         .select('*')
         .eq('venue_id', venueId)
         .order('start_date')
+      if (error) throw error
       return (data ?? []) as CalendarEvent[]
     },
     enabled: !!venueId,
@@ -67,11 +68,12 @@ export default function useManagerCalendar() {
   const { data: staffLeave = [] } = useQuery({
     queryKey: leaveKey,
     queryFn: async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('time_off_requests')
         .select('staff_id, start_date, end_date, status, leave_type, staff:staff_id(name)')
         .eq('venue_id', venueId)
         .eq('status', 'approved')
+      if (error) throw error
       return ((data ?? []) as any[]).map(r => ({
         staffId: r.staff_id,
         name: r.staff?.name ?? 'Staff',

@@ -1,4 +1,5 @@
 import { supabase } from '../supabase'
+import { throwIfError } from '../queryErrors'
 
 export interface AuditRawData {
   temps: any[]
@@ -39,6 +40,8 @@ export async function fetchAuditData(venueId: string, sinceTs: string): Promise<
     supabase.from('staff')
       .select('id, name').eq('venue_id', venueId).eq('is_active', true),
   ])
+  // A failed read must not look like "no temperature logs" on an EHO report.
+  throwIfError(tempLogs, cleaningTasks, cleaningCompletions, deliveryChecks, probeCalibrations, correctiveActions, training, staff)
 
   return {
     temps: tempLogs.data ?? [],

@@ -9,6 +9,7 @@ import Button from '../../components/ui/Button'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
 import EmptyState from '../../components/ui/EmptyState'
 import { SkeletonList } from '../../components/ui/Skeleton'
+import LoadError from '../../components/ui/LoadError'
 
 
 function PostCard({ notice, isManager, onDelete }) {
@@ -155,7 +156,7 @@ export default function NoticeBoardPage() {
   const { venueId } = useVenue()
   const { session, isManager } = useSession()
   const toast = useToast()
-  const { notices, loading, reload } = useNotices()
+  const { notices, loading, isError, reload } = useNotices()
   const [showForm, setShowForm] = useState(false)
 
   const handleDeleteNotice = async (id) => {
@@ -187,7 +188,7 @@ export default function NoticeBoardPage() {
 
       {loading ? (
         <SkeletonList rows={3} className="py-4" />
-      ) : notices.length === 0 ? (
+      ) : isError ? (<LoadError what="notices" onRetry={reload} />) : notices.length === 0 ? (
         <EmptyState
           icon="list"
           title="No notices yet"

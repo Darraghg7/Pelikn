@@ -5,6 +5,8 @@
  */
 import { format, subDays } from 'date-fns'
 import { supabase } from './supabase'
+import { throwIfError } from './queryErrors'
+import { reportError } from './reportError'
 import { coolingOutcome, formatCoolingMinutes, COOLING_TARGET_MINUTES } from './cooling'
 // jsPDF is loaded on demand — see the note in pdfUtils.js. Every exporter here
 // is already async, so awaiting the library costs nothing structurally.
@@ -27,15 +29,32 @@ function passFailCell(hookData, colIndex, passValue = 'PASS') {
   }
 }
 
+/**
+ * Runs an exporter from a button. Every exporter throws when one of its reads
+ * fails — a PDF with an empty section would read as "no records" to an EHO —
+ * so the failure becomes a toast instead of a misleading download.
+ * @param {() => Promise<unknown>} exporter
+ * @param {(message: string, type?: string) => void} toast
+ */
+export async function runExport(exporter, toast) {
+  try {
+    await exporter()
+  } catch (err) {
+    reportError(err, 'exportData')
+    toast('Couldn’t create the report — check your connection and try again.', 'error')
+  }
+}
+
 /* ── Temperature logs ──────────────────────────────────────────────────── */
 export async function exportTempLogs(venueId, days = 90) {
   const since = subDays(new Date(), days).toISOString()
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('fridge_temperature_logs')
     .select('temperature, logged_at, notes, exceedance_reason, check_period, fridge:fridge_id(name, min_temp, max_temp), logged_by_name')
     .eq('venue_id', venueId)
     .gte('logged_at', since)
     .order('logged_at', { ascending: false })
+  if (error) throw error
 
   const EXPLAINED = ['delivery', 'defrost', 'service_access']
   const REASON_LABELS = {
@@ -91,12 +110,13 @@ export async function exportTempLogs(venueId, days = 90) {
 /* ── Cleaning records ──────────────────────────────────────────────────── */
 export async function exportCleaningRecords(venueId, days = 90) {
   const since = subDays(new Date(), days).toISOString()
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('cleaning_completions')
     .select('completed_at, notes, completed_by_name, task:cleaning_task_id(title, frequency)')
     .eq('venue_id', venueId)
     .gte('completed_at', since)
     .order('completed_at', { ascending: false })
+  if (error) throw error
 
   const rows = (data ?? []).map(r => [
     format(new Date(r.completed_at), 'dd/MM/yyyy'),
@@ -120,12 +140,13 @@ export async function exportCleaningRecords(venueId, days = 90) {
 /* ── Delivery checks ───────────────────────────────────────────────────── */
 export async function exportDeliveryChecks(venueId, days = 90) {
   const since = subDays(new Date(), days).toISOString()
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('delivery_checks')
     .select('supplier_name, items_desc, temp_reading, temp_pass, packaging_ok, use_by_ok, overall_pass, notes, checked_at, checker:staff!checked_by(name)')
     .eq('venue_id', venueId)
     .gte('checked_at', since)
     .order('checked_at', { ascending: false })
+  if (error) throw error
 
   const yn = (v) => v ? 'PASS' : 'FAIL'
 
@@ -162,12 +183,13 @@ export async function exportDeliveryChecks(venueId, days = 90) {
 /* ── Corrective actions ────────────────────────────────────────────────── */
 export async function exportCorrectiveActions(venueId, days = 90) {
   const since = subDays(new Date(), days).toISOString()
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('corrective_actions')
     .select('title, category, severity, status, description, action_taken, reported_at, resolved_at, reporter:staff!reported_by(name), resolver:staff!resolved_by(name)')
     .eq('venue_id', venueId)
     .gte('reported_at', since)
     .order('reported_at', { ascending: false })
+  if (error) throw error
 
   const rows = (data ?? []).map(r => [
     format(new Date(r.reported_at), 'dd/MM/yyyy'),
@@ -218,12 +240,13 @@ export async function exportCorrectiveActions(venueId, days = 90) {
 /* ── Probe calibrations ────────────────────────────────────────────────── */
 export async function exportProbeCalibrations(venueId, days = 90) {
   const since = subDays(new Date(), days).toISOString()
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('probe_calibrations')
     .select('probe_name, method, expected_temp, actual_reading, tolerance, pass, calibrated_at, notes, calibrator:staff!calibrated_by(name)')
     .eq('venue_id', venueId)
     .gte('calibrated_at', since)
     .order('calibrated_at', { ascending: false })
+  if (error) throw error
 
   const rows = (data ?? []).map(r => [
     format(new Date(r.calibrated_at), 'dd/MM/yyyy'),
@@ -250,11 +273,12 @@ export async function exportProbeCalibrations(venueId, days = 90) {
 
 /* ── Training records ──────────────────────────────────────────────────── */
 export async function exportTrainingRecords(venueId) {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('staff_training')
     .select('title, category, issued_date, expiry_date, notes, staff:staff_id(name)')
     .eq('venue_id', venueId)
     .order('expiry_date')
+  if (error) throw error
 
   const now = new Date()
   const rows = (data ?? []).map(r => {
@@ -305,11 +329,12 @@ export async function exportFullReport(venueId, days = 90) {
 
 /* ── FHRS rating (venue's official EHO result, stored in app_settings) ──── */
 async function fetchFhrsRating(venueId) {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('app_settings')
     .select('key, value')
     .eq('venue_id', venueId)
     .in('key', ['fhrs_rating', 'fhrs_rated_at'])
+  if (error) throw error
   const map = Object.fromEntries((data ?? []).map(r => [r.key, r.value]))
   return {
     rating:  map.fhrs_rating != null && map.fhrs_rating !== '' ? Number(map.fhrs_rating) : null,
@@ -360,6 +385,9 @@ export async function exportEHOReport(venueId, venueName = '', days = 90) {
         .select('title, category, expiry_date, file_name, created_at')
         .eq('venue_id', venueId).order('category').order('created_at', { ascending: false }),
     ])
+  // A failed read would print an EHO report that says "no records" for that
+  // section — fail the export instead (the caller shows a toast).
+  throwIfError(temps, deliveries, probes, actions, training, cooling, hotHolding, pest, cleaning, documents)
 
   // ── Compute summary stats ────────────────────────────────────────────────
   const EXPLAINED = ['delivery', 'defrost', 'service_access']

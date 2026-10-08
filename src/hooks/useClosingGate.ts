@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase'
 import { useVenue } from '../contexts/VenueContext'
 import { londonToday } from '../lib/time'
 import { takeBootstrap } from '../lib/api/bootstrap'
+import { throwIfError } from '../lib/queryErrors'
 
 /** Stands in for closing checks set to Everyone (no department). */
 export const EVERYONE = 'everyone'
@@ -50,9 +51,13 @@ export function useClosingGate(staffId: string | null | undefined) {
       // available (126) — for most people, on most days, that's the whole
       // answer: not closing today, so nothing further is fetched.
       const boot = await takeBootstrap(venueId, 'closingGate', staffId)
-      const { data: shiftRows } = boot
-        ? { data: boot.closing_shifts }
+      const { data: shiftRows, error: shiftErr } = boot
+        ? { data: boot.closing_shifts, error: null }
         : await supabase.from('shifts').select('is_closing').eq('venue_id', venueId).eq('staff_id', staffId).eq('shift_date', today)
+      // A failed read throws rather than reading as "not closing today". The
+      // gate still opens (no data = not blocked) — nobody gets stuck unable to
+      // clock out — but the failure is reported instead of looking normal.
+      if (shiftErr) throw shiftErr
 
       const isClosingToday = (shiftRows ?? []).some((s) => s.is_closing)
       if (!isClosingToday) return []
@@ -61,7 +66,7 @@ export function useClosingGate(staffId: string | null | undefined) {
       // today's sign-offs. Which checks are theirs follows the same rule as
       // everywhere else: their departments plus anything set to Everyone, and
       // someone in no department answers for all of it — they're locking up.
-      const [{ data: checks }, { data: myDepartmentRows }, { data: allDepartments }, { data: myAcceptances }] = await Promise.all([
+      const [checksRes, myDepartmentsRes, allDepartmentsRes, myAcceptancesRes] = await Promise.all([
         supabase
           .from('opening_closing_checks')
           .select('id, department_id')
@@ -84,6 +89,11 @@ export function useClosingGate(staffId: string | null | undefined) {
           .eq('session_date', today)
           .eq('staff_id', staffId),
       ])
+      throwIfError(checksRes, myDepartmentsRes, allDepartmentsRes, myAcceptancesRes)
+      const checks = checksRes.data
+      const myDepartmentRows = myDepartmentsRes.data
+      const allDepartments = allDepartmentsRes.data
+      const myAcceptances = myAcceptancesRes.data
 
       const namesById = new Map((allDepartments ?? []).map((d) => [d.id as string, d.name as string]))
       const mine = (myDepartmentRows ?? []).map((r) => r.department_id as string).filter((id) => namesById.has(id))
@@ -99,7 +109,7 @@ export function useClosingGate(staffId: string | null | undefined) {
       if (departmentIds.length === 0) return []
 
       const checkIds = (checks ?? []).filter((c) => departmentIds.includes(groupOf(c.department_id))).map((c) => c.id)
-      const { data: completions } = checkIds.length
+      const { data: completions, error: completionsErr } = checkIds.length
         ? await supabase
             .from('opening_closing_completions')
             .select('check_id, staff_id')
@@ -107,7 +117,8 @@ export function useClosingGate(staffId: string | null | undefined) {
             .eq('session_date', today)
             .eq('session_type', 'closing')
             .in('check_id', checkIds)
-        : { data: [] as { check_id: string; staff_id: string | null }[] }
+        : { data: [] as { check_id: string; staff_id: string | null }[], error: null }
+      if (completionsErr) throw completionsErr
 
       const acceptedDeptIds = new Set((myAcceptances ?? []).map((a) => a.department_id ?? EVERYONE))
       const doneCheckIds = new Set((completions ?? []).map((c) => c.check_id))

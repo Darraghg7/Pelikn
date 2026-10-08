@@ -8,23 +8,24 @@ import { useStaffJobTitles } from './useVenueRoles'
 export function useShifts(weekStart: Date | null, numWeeks = 1): {
   shifts: Shift[]
   loading: boolean
+  isError: boolean
   reload: () => void
 } {
   const { venueId } = useVenue()
 
-  const { data, isLoading, refetch } = useQuery({
+  const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ['shifts', venueId, weekStart?.toISOString(), numWeeks],
     queryFn: () => fetchShifts(venueId!, weekStart!, numWeeks),
     enabled: !!weekStart && !!venueId,
   })
 
-  return { shifts: (data ?? []) as Shift[], loading: isLoading, reload: refetch }
+  return { shifts: (data ?? []) as Shift[], loading: isLoading, isError, reload: refetch }
 }
 
-export function useStaffList(): { staff: Staff[]; loading: boolean } {
+export function useStaffList(): { staff: Staff[]; loading: boolean; isError: boolean; reload: () => void } {
   const { venueId } = useVenue()
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ['staffList', venueId],
     queryFn: () => fetchStaffList(venueId!),
     enabled: !!venueId,
@@ -39,7 +40,7 @@ export function useStaffList(): { staff: Staff[]; loading: boolean } {
     return { ...s, job_titles, job_title: job_titles[0] ?? null }
   }), [data, titlesFor])
 
-  return { staff, loading: isLoading }
+  return { staff, loading: isLoading, isError, reload: refetch }
 }
 
 /** Compute shift duration in decimal hours from HH:mm strings. */
