@@ -7,6 +7,7 @@ import { useWidgetQuery } from '../../hooks/useWidgetQuery'
 import { useAppSettings } from '../../hooks/useSettings'
 import { paidShiftHours } from '../../hooks/useShifts'
 import LoadingSpinner from '../ui/LoadingSpinner'
+import RestrictedFieldsNotice from '../ui/RestrictedFieldsNotice'
 import { WidgetShell } from './shared'
 
 function weekStartStr() {
@@ -60,6 +61,7 @@ function WeeklyLabourWidget() {
         <p className="text-2xl font-bold font-bold text-charcoal dark:text-white font-mono">&pound;{data.cost}</p>
         <p className="text-xs text-charcoal/40 dark:text-white/35 mt-0.5">{data.hours}h across {data.shifts} shifts</p>
       </div>
+      <RestrictedFieldsNotice fields={['pay']} className="mt-2" />
     </WidgetShell>
   )
 }
