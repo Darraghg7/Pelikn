@@ -584,7 +584,7 @@ function MockRota() {
           <span className="text-[8px] font-semibold bg-accent/10 text-accent px-2 py-0.5 rounded-full">3 shift swap requests pending</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <button className="text-[8px] font-semibold text-charcoal/45 border border-charcoal/15 px-2 py-1 rounded">✦ AUTO-FILL</button>
+          <button className="text-[8px] font-semibold text-charcoal/45 border border-charcoal/15 px-2 py-1 rounded">AUTO-FILL</button>
           <button className="text-[8px] font-semibold bg-brand text-cream px-2.5 py-1 rounded">Send notification</button>
         </div>
       </div>

@@ -7,7 +7,7 @@ import FeatureGuide from './FeatureGuide'
 const FAQS = [
   { q: 'How do I publish the rota?', a: 'Once all shifts are added, tap "Publish rota" — staff are notified immediately via push.' },
   { q: 'Can staff see their own shifts?', a: 'Yes. Staff see their own schedule and logged hours. Managers see the full team view with costs.' },
-  { q: 'How does auto-fill work?', a: 'Auto-fill assigns available staff to open shifts based on role and station. Always review before publishing.' },
+  { q: 'How does auto-fill work?', a: 'Auto-fill follows simple rules: it puts staff who are free that day into empty shifts that match their role, using the staffing needs you set in Configure. Always review before publishing.' },
   { q: 'How do I add a new staff member?', a: 'Go to Team → Staff and tap "Add staff". Give them a name and a 4-digit PIN. They can then log in from the venue login screen using that PIN.' },
   { q: 'How do I reset a staff PIN?', a: 'Go to Team → Staff → tap the person, type a new 4-digit PIN and save. If they\'re locked out after wrong attempts, tap Unlock PIN.' },
   { q: 'Can I manage multiple venues?', a: 'Yes on the Pro plan. Switch venues from the account menu at the top.' },
