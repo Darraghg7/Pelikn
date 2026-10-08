@@ -12,6 +12,7 @@ import { useAppSettings } from '../../hooks/useSettings'
 import { useTodayDuties } from '../../hooks/useDuties'
 import { useCleaningTasks } from '../../hooks/useCleaningTasks'
 import ClockPanel from '../../components/shifts/ClockPanel'
+import RestrictedFieldsNotice from '../../components/ui/RestrictedFieldsNotice'
 import { PageSkeleton } from '../../components/ui/Skeleton'
 import AcknowledgeModal from '../../components/training/AcknowledgeModal'
 import { useToast } from '../../components/ui/Toast'
@@ -824,6 +825,7 @@ export default function StaffDashboardPage() {
       <NotificationsCard staffId={session.staffId} venueId={venueId} />
 
       {/* Hero card */}
+      {!isPlanLocked('clock-in') && <RestrictedFieldsNotice fields={['pay']} />}
       {!isPlanLocked('clock-in') && (
         <ShiftHeroCard
           todayShift={todayShift}

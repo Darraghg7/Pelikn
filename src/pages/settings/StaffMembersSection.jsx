@@ -22,6 +22,7 @@ import { STAFF_COLOUR_PALETTE, STAFF_PERMISSIONS, DEFAULT_STAFF_PERMISSIONS } fr
 import { saveStaffPermissions } from '../../hooks/useStaffPermissions'
 import { CARD } from '../../components/temperature/TempPageParts'
 import { reportError } from '../../lib/reportError'
+import RestrictedFieldsNotice from '../../components/ui/RestrictedFieldsNotice'
 
 const PERMISSION_ROLES  = ['staff', 'manager', 'owner']
 const PERMISSION_LABELS = { staff: 'Staff', manager: 'Manager', owner: 'Owner' }
@@ -454,6 +455,7 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
     return (
       <div className="flex flex-col gap-2.5">
         <StaffLimitNotice />
+        <RestrictedFieldsNotice fields={['pay', 'private']} />
         <div className="relative">
           <svg className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-ink3 dark:text-white/45" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="7" /><line x1="16.5" y1="16.5" x2="21" y2="21" /></svg>
           <input
@@ -507,6 +509,8 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
         <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6" /></svg>
         {backLabel}
       </button>
+
+      <RestrictedFieldsNotice fields={['pay', 'private']} />
 
       {/* Header */}
       <div className="flex items-center gap-2.5">
