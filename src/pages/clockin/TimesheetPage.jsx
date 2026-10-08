@@ -18,6 +18,7 @@ import RestrictedFieldsNotice from '../../components/ui/RestrictedFieldsNotice'
 import { formatLondon, resolveShiftInstants } from '../../lib/time'
 import { buildTimesheets, buildDailyGrid, partitionDaySessions, breakMinutes, sessionMinutes } from '../../lib/timesheet'
 import { offlineRpc } from '../../lib/offlineSupabase'
+import { reportError } from '../../lib/reportError'
 import { Link } from 'react-router-dom'
 import { CARD, TabBar } from '../../components/temperature/TempPageParts'
 
@@ -432,6 +433,7 @@ export default function TimesheetPage() {
   const [periodLeave,   setPeriodLeave]   = useState([])
   const [periodShifts,  setPeriodShifts]  = useState([])
   const [payrollLocks,  setPayrollLocks]  = useState([])
+  const [locksFailed,   setLocksFailed]   = useState(false)
   const [lockSaving,    setLockSaving]    = useState(false)
   const [selStaff,      setSelStaff]      = useState(null)
   const [editCtx,       setEditCtx]       = useState(null)
@@ -512,7 +514,8 @@ export default function TimesheetPage() {
       supabase.from('staff').select('id, working_days').eq('venue_id', venueId),
       fetchStaffPayRates(),
       fetchStaffPrivateFields(),
-    ]).then(([{ data }, payRates, priv]) => {
+    ]).then(([{ data, error }, payRates, priv]) => {
+      if (error) { reportError(error, 'TimesheetPage:staff-profiles'); return }
       if (!data) return
       const rates = {}, profiles = {}
       for (const s of data) {
@@ -528,20 +531,32 @@ export default function TimesheetPage() {
     supabase.from('time_off_requests').select('staff_id, start_date, end_date')
       .eq('venue_id', venueId).eq('status', 'approved').eq('leave_type', 'annual')
       .lte('start_date', dateTo.slice(0, 10)).gte('end_date', dateFrom.slice(0, 10))
-      .then(({ data }) => setPeriodLeave(data ?? []))
+      .then(({ data, error }) => {
+        if (error) { reportError(error, 'TimesheetPage:period-leave'); return }
+        setPeriodLeave(data ?? [])
+      })
   }, [venueId, dateFrom, dateTo])
 
   useEffect(() => {
     if (!venueId || !periodFrom || !periodTo) return
     supabase.from('shifts').select('staff_id, start_time, end_time, shift_date')
       .eq('venue_id', venueId).gte('shift_date', periodFrom).lte('shift_date', periodTo)
-      .then(({ data }) => setPeriodShifts(data ?? []))
+      .then(({ data, error }) => {
+        if (error) { reportError(error, 'TimesheetPage:period-shifts'); return }
+        setPeriodShifts(data ?? [])
+      })
   }, [venueId, periodFrom, periodTo])
 
   useEffect(() => {
     if (!venueId) return
     supabase.from('app_settings').select('value').eq('venue_id', venueId).eq('key', 'payroll_locks').maybeSingle()
-      .then(({ data }) => { try { setPayrollLocks(JSON.parse(data?.value ?? '[]')) } catch { setPayrollLocks([]) } })
+      .then(({ data, error }) => {
+        // Locks are saved as a whole list, so locking a period after a failed
+        // read would wipe every other lock — togglePayrollLock refuses instead.
+        setLocksFailed(!!error)
+        if (error) { reportError(error, 'TimesheetPage:payroll-locks'); return }
+        try { setPayrollLocks(JSON.parse(data?.value ?? '[]')) } catch { setPayrollLocks([]) }
+      })
   }, [venueId])
 
   useEffect(() => { reload() }, [reload])
@@ -556,6 +571,7 @@ export default function TimesheetPage() {
 
   const togglePayrollLock = useCallback(async () => {
     if (!periodFrom || !periodTo || periodFrom > periodTo) return
+    if (locksFailed) { toast("Couldn't load the existing payroll locks — reload the page and try again", 'error'); return }
     setLockSaving(true)
     if (isPeriodLocked) {
       const error = await saveLocks(payrollLocks.filter(l => !(l.from === periodFrom && l.to === periodTo)))
@@ -567,7 +583,7 @@ export default function TimesheetPage() {
       else toast('Period locked for payroll')
     }
     setLockSaving(false)
-  }, [isPeriodLocked, payrollLocks, periodFrom, periodTo, saveLocks, toast])
+  }, [isPeriodLocked, locksFailed, payrollLocks, periodFrom, periodTo, saveLocks, toast])
 
   const saveEditedSession = useCallback(async ({ dateStr, session }, { clockIn, clockOut, brk }) => {
     // Interpret the edited times as UK wall-clock and store the resulting UTC

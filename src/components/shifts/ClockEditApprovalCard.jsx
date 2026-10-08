@@ -11,6 +11,8 @@ import { useVenue } from '../../contexts/VenueContext'
 import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../ui/Toast'
 import { formatLondon } from '../../lib/time'
+import { reportError } from '../../lib/reportError'
+import LoadError from '../ui/LoadError'
 
 function fmt(iso) {
   if (!iso) return '—'
@@ -90,6 +92,7 @@ export default function ClockEditApprovalCard({ compact = false }) {
   const toast         = useToast()
   const [requests, setRequests] = useState([])
   const [loading, setLoading]   = useState(true)
+  const [loadFailed, setLoadFailed] = useState(false)
   const [denyTarget, setDenyTarget] = useState(null) // request id
 
   const load = useCallback(() => {
@@ -105,7 +108,14 @@ export default function ClockEditApprovalCard({ compact = false }) {
       .eq('venue_id', venueId)
       .eq('status', 'pending')
       .order('created_at', { ascending: false })
-      .then(({ data }) => { setRequests(data ?? []); setLoading(false) })
+      .then(({ data, error }) => {
+        // On failure keep whatever requests were already listed; the card
+        // shows a retry instead of quietly disappearing.
+        if (error) reportError(error, 'ClockEditApprovalCard:load')
+        else setRequests(data ?? [])
+        setLoadFailed(!!error)
+        setLoading(false)
+      })
   }, [venueId])
 
   useEffect(() => { load() }, [load])
@@ -132,7 +142,17 @@ export default function ClockEditApprovalCard({ compact = false }) {
     load()
   }
 
-  if (loading || requests.length === 0) return null
+  if (loading) return null
+  // The card normally hides when nothing is pending — but if the read failed
+  // we don't know that, and a hidden card means edits sit unapproved.
+  if (loadFailed && requests.length === 0) {
+    return (
+      <div className="bg-white dark:bg-paperDark rounded-[14px] border border-charcoal/10 dark:border-white/10">
+        <LoadError what="hour edit requests" onRetry={load} />
+      </div>
+    )
+  }
+  if (requests.length === 0) return null
 
   return (
     <>

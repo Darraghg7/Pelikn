@@ -18,6 +18,8 @@ import AcknowledgeModal from '../../components/training/AcknowledgeModal'
 import { useToast } from '../../components/ui/Toast'
 import { invalidateChecksStatusCache } from '../../hooks/useChecksStatus'
 import { londonWallTimeToInstant, londonToday } from '../../lib/time'
+import { reportError } from '../../lib/reportError'
+import LoadError from '../../components/ui/LoadError'
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
@@ -368,12 +370,14 @@ function PendingTrainingCard({ staffId, staffName, isManager }) {
 
   const load = useCallback(async () => {
     if (!staffId || isManager) return
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('training_sign_offs')
       .select('id, training_date, trainer_name, topics, notes, manager_name, manager_signature')
       .eq('staff_id', staffId)
       .eq('staff_acknowledged', false)
       .order('created_at', { ascending: false })
+    // A reminder card, not the screen — keep what's shown and report.
+    if (error) { reportError(error, 'StaffDashboard:pending-training'); return }
     setRecords(data ?? [])
   }, [staffId, isManager])
 
@@ -479,6 +483,8 @@ function NotificationsCard({ staffId, venueId }) {
 function useChecksForShift(venueId) {
   const [checks, setChecks] = useState([])
   const [loading, setLoading] = useState(true)
+  const [failed, setFailed] = useState(false)
+  const [attempt, setAttempt] = useState(0)
   useEffect(() => {
     if (!venueId) return
     supabase
@@ -488,21 +494,29 @@ function useChecksForShift(venueId) {
       .eq('is_active', true)
       .order('sort_order')
       .order('created_at')
-      .then(({ data }) => { setChecks(data ?? []); setLoading(false) })
-  }, [venueId])
-  return { checks, loading }
+      .then(({ data, error }) => {
+        if (error) reportError(error, 'StaffDashboard:shift-checks')
+        else setChecks(data ?? [])
+        setFailed(!!error)
+        setLoading(false)
+      })
+  }, [venueId, attempt])
+  const retry = useCallback(() => setAttempt(a => a + 1), [])
+  return { checks, loading, failed, retry }
 }
 
 function useShiftCompletions(venueId, dateStr, sessionType) {
   const [completions, setCompletions] = useState([])
   const load = useCallback(async () => {
     if (!venueId || !dateStr) return
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('opening_closing_completions')
       .select('id, check_id, corrective_action, staff_name, completed_at')
       .eq('venue_id', venueId)
       .eq('session_date', dateStr)
       .eq('session_type', sessionType)
+    // Keep the ticks already shown — an empty list would re-offer done checks.
+    if (error) { reportError(error, 'StaffDashboard:shift-completions'); return }
     setCompletions(data ?? [])
   }, [venueId, dateStr, sessionType])
   useEffect(() => { load() }, [load])
@@ -512,7 +526,7 @@ function useShiftCompletions(venueId, dateStr, sessionType) {
 function TodayChecks({ venueId, venueSlug, staffName }) {
   const today = format(new Date(), 'yyyy-MM-dd')
   const sessionType = new Date().getHours() < 14 ? 'opening' : 'closing'
-  const { checks: allChecks, loading } = useChecksForShift(venueId)
+  const { checks: allChecks, loading, failed: checksFailed, retry: retryChecks } = useChecksForShift(venueId)
   // Only this session's checks. Unfiltered, the morning "Opening Checks" card
   // also listed the closing checks (0/8 for 4+4), and ticking one there saved
   // it as an opening completion.
@@ -526,6 +540,14 @@ function TodayChecks({ venueId, venueSlug, staffName }) {
   const toast = useToast()
 
   if (loading) return null
+  // Hiding the card on a failed read would look like "no checks today".
+  if (checksFailed && !allChecks.length) {
+    return (
+      <div className="bg-white dark:bg-paperDark rounded-2xl">
+        <LoadError what={`today’s ${sessionType} checks`} onRetry={retryChecks} />
+      </div>
+    )
+  }
   if (!checks.length) return null
 
   const done = completions.length
@@ -669,7 +691,10 @@ function useTodaySummary({ staffId, venueId, isEnabled, hasPermission, closedDay
         supabase.from('venue_closures')
           .select('id, reason').eq('venue_id', venueId)
           .lte('start_date', today).gte('end_date', today).limit(1)
-          .then(({ data }) => ({ type: 'closures', rows: data ?? [] })),
+          .then(({ data, error }) => {
+            if (error) reportError(error, 'StaffDashboard:closures')
+            return { type: 'closures', rows: data ?? [] }
+          }),
       ]
 
       // Cleaning is counted by useCleaningTasks below — it has to respect each
@@ -678,11 +703,18 @@ function useTodaySummary({ staffId, venueId, isEnabled, hasPermission, closedDay
       if (isEnabled('fridge') && hasPermission('log_temps')) {
         promises.push(
           supabase.from('fridges').select('id', { count: 'exact', head: true }).eq('venue_id', venueId).eq('is_active', true)
-            .then(({ count }) => ({ type: 'total_fridges', count: count ?? 0 }))
+            .then(({ count, error }) => {
+              if (error) reportError(error, 'StaffDashboard:fridge-count')
+              return { type: 'total_fridges', count: count ?? 0 }
+            })
         )
         promises.push(
           supabase.from('fridge_temperature_logs').select('fridge_id').eq('venue_id', venueId).gte('logged_at', today + 'T00:00:00')
-            .then(({ data }) => ({ type: 'checked_fridges', count: new Set((data ?? []).map(r => r.fridge_id)).size }))
+            .then(({ data, error }) => {
+              // Unknown: count none as unchecked rather than nagging about all of them.
+              if (error) { reportError(error, 'StaffDashboard:fridge-logs'); return { type: 'checked_fridges', count: Infinity } }
+              return { type: 'checked_fridges', count: new Set((data ?? []).map(r => r.fridge_id)).size }
+            })
         )
       }
 
@@ -738,6 +770,7 @@ export default function StaffDashboardPage() {
           fetchStaffPayRates(),
         ])
         if (cancelled) return
+        if (shiftRes.error) reportError(shiftRes.error, 'StaffDashboard:today-shift')
         setTodayShift(shiftRes.data?.[0] ?? null)
         // staff_pay_rates returns only your own row when you are not a
         // manager, which is exactly what this screen wants.

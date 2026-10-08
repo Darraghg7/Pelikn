@@ -184,11 +184,20 @@ export default function RotaPage() {
       roleLabel: sh.role_label,
       isClosing: sh.is_closing ?? false,
     })
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('duty_assignments')
       .select('duty_template_id')
       .eq('shift_id', sh.id)
       .maybeSingle()
+    // Saving rewrites the shift's duty from this form, so editing on a failed
+    // read would silently remove the duty — close the editor instead.
+    if (error) {
+      reportError(error, 'RotaPage:shift-duty')
+      toast("Couldn't load this shift — please try again", 'error')
+      setEditShift(null)
+      setModal(null)
+      return
+    }
     if (data) {
       setAssignDuty(true)
       setSelectedDutyId(data.duty_template_id)

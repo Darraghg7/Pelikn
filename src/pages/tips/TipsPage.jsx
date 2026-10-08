@@ -7,6 +7,7 @@ import { useStaffJobTitles } from '../../hooks/useVenueRoles'
 import { useToast } from '../../components/ui/Toast'
 import { reportError } from '../../lib/reportError'
 import EmptyState from '../../components/ui/EmptyState'
+import LoadError from '../../components/ui/LoadError'
 import { SkeletonList } from '../../components/ui/Skeleton'
 
 // ── Hooks ────────────────────────────────────────────────────────────────────
@@ -14,20 +15,23 @@ import { SkeletonList } from '../../components/ui/Skeleton'
 function useTipSplits(venueId) {
   const [splits, setSplits] = useState([])
   const [loading, setLoading] = useState(true)
+  const [failed, setFailed] = useState(false)
 
   const load = useCallback(async () => {
     if (!venueId) return
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('tip_splits')
       .select('*, created_by_staff:created_by(id, name), tip_allocations(id, staff_id, amount, staff:staff_id(id, name))')
       .eq('venue_id', venueId)
       .order('split_date', { ascending: false })
-    setSplits(data ?? [])
+    if (error) reportError(error, 'TipsPage:splits')
+    else setSplits(data ?? [])
+    setFailed(!!error)
     setLoading(false)
   }, [venueId])
 
   useEffect(() => { load() }, [load])
-  return { splits, loading, reload: load }
+  return { splits, loading, failed, reload: load }
 }
 
 function useActiveStaff(venueId) {
@@ -41,7 +45,11 @@ function useActiveStaff(venueId) {
       .eq('venue_id', venueId)
       .eq('is_active', true)
       .order('name')
-      .then(({ data }) => setStaff(data ?? []))
+      .then(({ data, error }) => {
+        // Only fills the "Add tip split" picker; the page itself still loads.
+        if (error) { reportError(error, 'TipsPage:staff'); return }
+        setStaff(data ?? [])
+      })
   }, [venueId])
 
   return staff
@@ -280,7 +288,7 @@ function TipSplitCard({ split }) {
 export default function TipsPage() {
   const { venueId } = useVenue()
   const { session, isManager } = useSession()
-  const { splits, loading, reload } = useTipSplits(venueId)
+  const { splits, loading, failed, reload } = useTipSplits(venueId)
   const staff = useActiveStaff(venueId)
   const [showAdd, setShowAdd] = useState(false)
 
@@ -312,6 +320,8 @@ export default function TipsPage() {
 
       {loading ? (
         <SkeletonList rows={3} />
+      ) : failed && splits.length === 0 ? (
+        <LoadError what="tip splits" onRetry={reload} />
       ) : splits.length === 0 ? (
         <EmptyState
           title="No tip splits yet"

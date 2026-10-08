@@ -34,7 +34,11 @@ export default function DashboardPage() {
       .eq('venue_id', venueId)
       .eq('key', 'onboarding_complete')
       .maybeSingle()
-      .then(async ({ data }) => {
+      .then(async ({ data, error }) => {
+        // A failed read isn't "never onboarded" — without this an established
+        // venue's manager was sent into the setup wizard. The catch below
+        // reports it and shows the dashboard.
+        if (error) throw error
         if (data?.value === 'true') {
           // Wizard already completed for this venue — proceed normally.
           localStorage.setItem(onboardedKey(venueId), 'true')
@@ -45,10 +49,11 @@ export default function DashboardPage() {
         // Before sending them through the wizard, check whether this is a
         // pre-existing venue that was simply created before the wizard existed
         // (≥2 staff members means it was already set up manually).
-        const { count } = await supabase
+        const { count, error: countErr } = await supabase
           .from('staff')
           .select('id', { count: 'exact', head: true })
           .eq('venue_id', venueId)
+        if (countErr) throw countErr
         if (typeof count === 'number' && count > 1) {
           // Existing venue — mark complete silently so it never prompts again.
           // This device remembers via localStorage either way; a failed write

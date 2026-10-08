@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../components/ui/Toast'
 import SettingsSection from './SettingsSection'
+import LoadError from '../../components/ui/LoadError'
+import { reportError } from '../../lib/reportError'
 
 export default function VenueCodeSection({ venueId, sessionToken }) {
   const toast = useToast()
@@ -9,14 +11,20 @@ export default function VenueCodeSection({ venueId, sessionToken }) {
   const [loading, setLoading]       = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [copied, setCopied]         = useState(false)
+  const [failed, setFailed]         = useState(false)
+  const [attempt, setAttempt]       = useState(0)
   const copyTimer                   = useRef(null)
 
   useEffect(() => {
     if (!venueId) return
     supabase.from('venues').select('join_code').eq('id', venueId).single()
-      .then(({ data }) => { if (data?.join_code) setCode(data.join_code) })
+      .then(({ data, error }) => {
+        if (error) reportError(error, 'VenueCodeSection:load')
+        else if (data?.join_code) setCode(data.join_code)
+        setFailed(!!error)
+      })
       .finally(() => setLoading(false))
-  }, [venueId])
+  }, [venueId, attempt])
 
   const copy = () => {
     if (!code) return
@@ -54,6 +62,8 @@ export default function VenueCodeSection({ venueId, sessionToken }) {
 
         {loading ? (
           <div className="h-14 bg-charcoal/5 dark:bg-white/5 rounded-xl animate-pulse" />
+        ) : failed && !code ? (
+          <LoadError what="your venue code" onRetry={() => setAttempt(a => a + 1)} />
         ) : (
           <div className="flex items-center gap-3 px-5 py-4 rounded-xl bg-brand/5 border border-brand/20">
             <span className="font-mono text-2xl font-bold tracking-[0.25em] text-brand dark:text-accent flex-1">

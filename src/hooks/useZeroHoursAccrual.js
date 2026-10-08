@@ -1,16 +1,18 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
+import { reportError } from '../lib/reportError'
 
 // Compute total worked hours and distinct worked days from clock_events for a staff member in a calendar year.
 // Pairs clock_in → clock_out, subtracts break time.
 async function fetchWorkedStats(staffId, year) {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('clock_events')
     .select('event_type, occurred_at')
     .eq('staff_id', staffId)
     .gte('occurred_at', `${year}-01-01T00:00:00Z`)
     .lt('occurred_at',  `${year + 1}-01-01T00:00:00Z`)
     .order('occurred_at', { ascending: true })
+  if (error) throw error
   if (!data?.length) return { totalHours: 0, distinctDays: 0 }
 
   let total = 0, clockIn = null
@@ -56,6 +58,10 @@ export function useZeroHoursAccrual(staffId, leaveYear) {
         setAvgDaily(distinctDays >= 3 ? Math.round((totalHours / distinctDays) * 10) / 10 : 7.6)
         setLoading(false)
       }
+    }).catch((e) => {
+      // Accrued stays null (shown as unknown), not 0h.
+      reportError(e, 'useZeroHoursAccrual')
+      if (!cancelled) setLoading(false)
     })
     return () => { cancelled = true }
   }, [staffId, year])
@@ -81,8 +87,10 @@ export function useTeamZeroHoursAccruals(staffIds, leaveYear) {
       .gte('occurred_at', `${year}-01-01T00:00:00Z`)
       .lt('occurred_at',  `${year + 1}-01-01T00:00:00Z`)
       .order('occurred_at', { ascending: true })
-      .then(({ data }) => {
+      .then(({ data, error }) => {
         if (cancelled) return
+        // Accrual is a hint beside each balance — leave it blank, not 0h.
+        if (error) { reportError(error, 'useTeamZeroHoursAccruals'); setLoading(false); return }
         // Group events by staff_id
         const grouped = {}
         for (const ev of (data ?? [])) {

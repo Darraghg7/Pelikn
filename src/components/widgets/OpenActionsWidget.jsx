@@ -3,25 +3,25 @@ import { Link } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
 import { useWidgetQuery } from '../../hooks/useWidgetQuery'
-import LoadingSpinner from '../ui/LoadingSpinner'
-import { WidgetShell, BigNumber } from './shared'
+import { WidgetShell, BigNumber, WidgetPending } from './shared'
 
 function OpenActionsWidget() {
   const { venueId, venueSlug } = useVenue()
 
-  const { data } = useWidgetQuery('open_actions', [venueId], async () => {
-    const { data: actions } = await supabase.from('corrective_actions')
+  const { data, isError, refetch } = useWidgetQuery('open_actions', [venueId], async () => {
+    const { data: actions, error } = await supabase.from('corrective_actions')
       .select('id, severity, status, title, reported_at')
       .eq('venue_id', venueId)
       .eq('status', 'open')
       .order('severity')
+    if (error) throw error
     const items = actions ?? []
     const critical = items.filter(a => a.severity === 'critical').length
     const major = items.filter(a => a.severity === 'major').length
     return { total: items.length, critical, major, items }
   })
 
-  if (!data) return <WidgetShell title="Open Actions" to="/corrective"><div className="flex justify-center py-4"><LoadingSpinner /></div></WidgetShell>
+  if (!data) return <WidgetShell title="Open Actions" to="/corrective"><WidgetPending isError={isError} onRetry={refetch} /></WidgetShell>
 
   const status = data.critical > 0 ? 'bad' : data.total > 0 ? 'warning' : 'good'
 

@@ -21,6 +21,7 @@ import ConfirmDialog from '../../components/ui/ConfirmDialog'
 import { STAFF_COLOUR_PALETTE, STAFF_PERMISSIONS, DEFAULT_STAFF_PERMISSIONS } from '../../lib/constants'
 import { saveStaffPermissions } from '../../hooks/useStaffPermissions'
 import { CARD } from '../../components/temperature/TempPageParts'
+import { reportError } from '../../lib/reportError'
 import RestrictedFieldsNotice from '../../components/ui/RestrictedFieldsNotice'
 
 const PERMISSION_ROLES  = ['staff', 'manager', 'owner']
@@ -95,7 +96,9 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
     }
     const staffIds = staff.map(s => s.id)
     fetchStaffRoleAssignments(staffIds)
-      .then(({ data }) => {
+      .then(({ data, error }) => {
+        // Job-title labels on the staff list only; the list itself still shows.
+        if (error) { reportError(error, 'StaffMembersSection:role-assignments'); return }
         if (!data) return
         const map = {}
         for (const a of data) {

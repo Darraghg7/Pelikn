@@ -24,6 +24,7 @@ import CalendarView from './CalendarView'
 import ManualLeaveModal from './ManualLeaveModal'
 import EditRequestModal from './EditRequestModal'
 import { CARD, TONE, PageHeader } from '../../components/temperature/TempPageParts'
+import LoadError from '../../components/ui/LoadError'
 
 const FIELD_LABEL = 'block text-[13px] font-semibold tracking-[0.08em] uppercase text-ink3 dark:text-white/45 mb-2'
 const TEXT_FIELD  = 'w-full h-12 px-4 rounded-xl border border-line dark:border-white/10 bg-cream dark:bg-white/5 text-[15px] text-ink dark:text-white placeholder:text-ink4 dark:placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand/40 focus:bg-white dark:focus:bg-white/10 transition-colors'
@@ -41,7 +42,7 @@ export default function TimeOffPage() {
   const ownProfile = useOwnProfile(session?.staffId)
 
   const currentYear = new Date().getFullYear()
-  const { balances: teamBalances, loading: balancesLoading, reloadBalances } = useTeamLeaveBalances(
+  const { balances: teamBalances, loading: balancesLoading, failed: balancesFailed, reloadBalances } = useTeamLeaveBalances(
     isManager ? staff : [],
     currentYear
   )
@@ -373,6 +374,8 @@ export default function TimeOffPage() {
             <div className="border-t border-line dark:border-white/10">
               {balancesLoading ? (
                 <SkeletonList rows={3} />
+              ) : balancesFailed ? (
+                <LoadError what="leave balances" onRetry={reloadBalances} />
               ) : teamBalances.length === 0 ? (
                 <p className="text-[13px] text-ink3 dark:text-white/45 px-3.5 sm:px-3.5 py-2.5">No active staff.</p>
               ) : (

@@ -3,6 +3,7 @@ import { format, addWeeks, isToday, differenceInCalendarWeeks } from 'date-fns'
 import { updateShift, insertShift, deleteShift, updateShiftStaff, resolveShiftSwap, upsertRotaPublished, insertShifts } from '../../lib/api/shifts'
 import { sendPush } from '../../lib/sendPush'
 import { supabase } from '../../lib/supabase'
+import { reportError } from '../../lib/reportError'
 import { useVenue } from '../../contexts/VenueContext'
 import { useShifts, useStaffList, shiftDurationHours, paidShiftHours } from '../../hooks/useShifts'
 import { useShiftSwaps } from '../../hooks/useShiftSwaps'
@@ -793,7 +794,11 @@ export default function RotaMobileGrid() {
       .eq('venue_id', venueId)
       .eq('key', `rota_published_${weekStartStr}`)
       .maybeSingle()
-      .then(({ data }) => setDbPublished(!!data?.value))
+      .then(({ data, error }) => {
+        // Left as null (unknown) on failure, so no false "never published" warning.
+        if (error) { reportError(error, 'RotaMobileGrid:published-state'); return }
+        setDbPublished(!!data?.value)
+      })
   }, [venueId, weekStart])
 
   const goWeek = (n) => {

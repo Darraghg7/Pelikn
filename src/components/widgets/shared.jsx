@@ -1,6 +1,7 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
 import { useVenue } from '../../contexts/VenueContext'
+import LoadingSpinner from '../ui/LoadingSpinner'
 
 /**
  * Card frame shared by every dashboard widget.
@@ -68,4 +69,23 @@ export function MiniRow({ label, value, warn, good }) {
       <span className={`font-mono text-[13px] font-semibold ${tone}`}>{value}</span>
     </div>
   )
+}
+
+/**
+ * Body for a widget with no data yet: a spinner while loading, or a retry
+ * once the read has failed (useWidgetQuery reports the error). Without this a
+ * failed read either spun forever or, worse, rendered as zeros.
+ */
+export function WidgetPending({ isError, onRetry, className = 'py-4' }) {
+  if (isError) {
+    return (
+      <div role="alert" className="py-2 text-center">
+        <p className="text-sm text-danger/80">Couldn’t load this.</p>
+        <button type="button" onClick={() => onRetry?.()} className="mt-1 text-xs underline text-charcoal/50 dark:text-white/40 hover:text-charcoal dark:hover:text-white">
+          Try again
+        </button>
+      </div>
+    )
+  }
+  return <div className={`flex justify-center ${className}`}><LoadingSpinner /></div>
 }

@@ -8,6 +8,7 @@
  */
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { supabase } from '../lib/supabase'
+import { reportError } from '../lib/reportError'
 import { fetchTimeOffPrivateFields, withTimeOffPrivate } from '../lib/api/timeOffPrivate'
 import { calculateEntitlementDays, countWorkingDaysInRequest } from './useLeaveBalance'
 
@@ -47,7 +48,10 @@ export function useActiveStaff(venueId) {
       .eq('venue_id', venueId)
       .eq('is_active', true)
       .order('name')
-      .then(({ data }) => setStaff(data ?? []))
+      .then(({ data, error }) => {
+        if (error) { reportError(error, 'useActiveStaff'); return }
+        setStaff(data ?? [])
+      })
   }, [venueId])
   return staff
 }
@@ -60,7 +64,10 @@ export function useOwnProfile(staffId) {
       .select('id, employment_type, working_days, holiday_pay_eligible')
       .eq('id', staffId)
       .maybeSingle()
-      .then(({ data }) => setProfile(data))
+      .then(({ data, error }) => {
+        if (error) { reportError(error, 'useOwnProfile'); return }
+        setProfile(data)
+      })
   }, [staffId])
   return profile
 }
@@ -71,6 +78,7 @@ export function useTeamLeaveBalances(staff, leaveYear) {
   const [approvedReqs, setApprovedReqs] = useState([])
   const [overrides, setOverrides]       = useState({})
   const [loading, setLoading]           = useState(true)
+  const [failed, setFailed]             = useState(false)
   const [tick, setTick]                 = useState(0)
 
   useEffect(() => {
@@ -89,6 +97,11 @@ export function useTeamLeaveBalances(staff, leaveYear) {
         .in('staff_id', ids)
         .eq('leave_year', year),
     ]).then(([reqRes, ovRes]) => {
+      // Without both reads every balance would show as a full, untouched
+      // allowance — so fail the list instead of showing wrong numbers.
+      const error = reqRes.error ?? ovRes.error
+      setFailed(!!error)
+      if (error) { reportError(error, 'useTeamLeaveBalances'); setLoading(false); return }
       setApprovedReqs(reqRes.data ?? [])
       const map = {}
       for (const o of (ovRes.data ?? [])) map[o.staff_id] = o.override_days
@@ -110,5 +123,5 @@ export function useTeamLeaveBalances(staff, leaveYear) {
     return { ...s, entitlement, used, remaining, isZeroHours: s.employment_type === 'zero_hours', isEligible: eligible }
   }), [staff, approvedReqs, overrides])
 
-  return { balances, loading, reloadBalances }
+  return { balances, loading, failed, reloadBalances }
 }
