@@ -13,6 +13,7 @@
 
 import { Capacitor } from '@capacitor/core'
 import { supabase } from '../lib/supabase'
+import { reportError } from '../lib/reportError'
 import { SESSION_TOKEN_KEY } from '../lib/constants'
 
 let listenersRegistered = false
@@ -42,21 +43,23 @@ export async function registerNativePush(staffId: string, venueId: string, navig
       await PushNotifications.addListener('registration', async ({ value: token }) => {
         if (!token) return
         try {
-          await supabase.rpc('register_apns_token', {
+          const { error } = await supabase.rpc('register_apns_token', {
             p_session_token: localStorage.getItem(SESSION_TOKEN_KEY),
             p_staff_id:      staffId,
             p_venue_id:      venueId,
             p_token:         token,
           })
+          if (error) throw error
           console.info('[push] APNs token registered')
         } catch (err) {
-          console.warn('[push] failed to store token:', err)
+          // This device won't get push alerts until the next sign-in retries.
+          reportError(err, 'useNativePush:register_apns_token')
         }
       })
 
       // Token error
       await PushNotifications.addListener('registrationError', ({ error }) => {
-        console.warn('[push] registration error:', error)
+        reportError(error, 'useNativePush:registrationError')
       })
 
       // Notification received while app is open — show it as foreground notification
@@ -74,7 +77,7 @@ export async function registerNativePush(staffId: string, venueId: string, navig
       })
     }
   } catch (err) {
-    console.warn('[push] native push setup failed:', err)
+    reportError(err, 'useNativePush:setup')
   }
 }
 
@@ -84,15 +87,18 @@ export async function unregisterNativePush(staffId: string): Promise<void> {
   try {
     const { PushNotifications } = await import('@capacitor/push-notifications')
     const result = await PushNotifications.getDeliveredNotifications()
-    await supabase.rpc('unregister_apns_tokens', {
+    const { error } = await supabase.rpc('unregister_apns_tokens', {
       p_session_token: localStorage.getItem(SESSION_TOKEN_KEY),
       p_staff_id:      staffId,
     })
+    // A stale token means this phone may still get alerts for whoever signed
+    // out — sign-out itself must not fail over it, but we want to know.
+    if (error) reportError(error, 'useNativePush:unregister_apns_tokens')
     // Remove all delivered notifications from the notification centre
     await PushNotifications.removeAllDeliveredNotifications()
     listenersRegistered = false
     void result
-  } catch (_) {
-    // ignore
+  } catch (err) {
+    reportError(err, 'useNativePush:unregister')
   }
 }

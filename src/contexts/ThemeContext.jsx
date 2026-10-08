@@ -25,7 +25,7 @@ export function ThemeProvider({ children }) {
 
   const setMode = useCallback((m) => {
     setModeRaw(m)
-    try { localStorage.setItem(STORAGE_KEY, m) } catch {}
+    try { localStorage.setItem(STORAGE_KEY, m) } catch { /* storage unavailable (private mode / quota) — preference just won't persist */ }
   }, [])
 
   const toggle = useCallback(() => {

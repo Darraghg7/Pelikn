@@ -488,7 +488,7 @@ function MobileDraggableWidgetGrid({
         const extras = widgetIds.filter(id => !saved.includes(id))
         return [...saved.filter(id => id === 'stats' || id === 'clock' || widgetIds.includes(id)), ...extras]
       }
-    } catch (_) {}
+    } catch { /* storage unavailable or corrupt — fall back to the default */ }
     return [...DEFAULT_FIXED, ...widgetIds]
   })
 
@@ -517,7 +517,7 @@ function MobileDraggableWidgetGrid({
     if (!over || active.id === over.id) return
     setIds(prev => {
       const next = arrayMove(prev, prev.indexOf(active.id), prev.indexOf(over.id))
-      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(next)) } catch (_) {}
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(next)) } catch { /* storage unavailable (private mode / quota) — preference just won't persist */ }
       onReorder(next.filter(id => id !== 'stats' && id !== 'clock'))
       return next
     })

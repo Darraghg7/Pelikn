@@ -35,6 +35,7 @@ import {
   SESSION_IS_RESTRICTED_KEY,
 } from '../lib/constants'
 import { hashPin, pinHashKey } from '../lib/offlinePin'
+import { reportError } from '../lib/reportError'
 
 const SessionContext = createContext(null)
 
@@ -75,7 +76,12 @@ const clearStorage = () => LS_KEYS.forEach(k => localStorage.removeItem(k))
  * crashed, sign-out never ended the session server-side, and sessions were
  * never extended. `.then(ok, fail)` both sends it and swallows failures.
  */
-const fireAndForgetRpc = (fn, args) => { supabase.rpc(fn, args).then(() => {}, () => {}) }
+const fireAndForgetRpc = (fn, args) => {
+  supabase.rpc(fn, args).then(
+    ({ error }) => { if (error) reportError(error, `SessionContext:${fn}`) },
+    (e) => reportError(e, `SessionContext:${fn}`),
+  )
+}
 
 /**
  * Re-issue a venue-scoped JWT from the currently-stored staff session token.
@@ -381,7 +387,8 @@ export function SessionProvider({ children }) {
           // valid token — fire-and-forget, failure is non-critical
           fireAndForgetRpc('refresh_staff_session', { p_token: token })
           // Permissions are cached from sign-in; pick up any granted since.
-          refreshPermissions(validated).catch(() => {})
+          // Background refresh: the cached permissions keep working if it fails.
+          refreshPermissions(validated).catch((e) => reportError(e, 'SessionContext:refreshPermissions'))
         } else if (error) {
           // API error (e.g. brief Supabase outage, RLS issue) — treat the same
           // as a network timeout: restore from localStorage rather than clearing,
@@ -667,12 +674,12 @@ export function SessionProvider({ children }) {
     localStorage.setItem(sessDataKey(staffId), JSON.stringify(newSession))
     hashPin(staffId, pin).then(hash => {
       if (hash) localStorage.setItem(pinHashKey(staffId), hash)
-    }).catch(() => {})
+    }).catch((e) => reportError(e, 'SessionContext:cache-offline-pin'))
 
     // Register for native iOS push notifications (no-op on web)
     import('../hooks/useNativePush').then(({ registerNativePush }) => {
       registerNativePush(newSession.staffId, newSession.venueId)
-    }).catch(() => {})
+    }).catch((e) => reportError(e, 'SessionContext:load-native-push'))
 
     return { error: null, linkedVenues: venues }
   }, [])
@@ -731,7 +738,7 @@ export function SessionProvider({ children }) {
       } catch { /* storage full — offline cache is best-effort */ }
       // Permissions are per-venue — the ones carried over belong to the venue
       // we just left. No-ops if the new venue JWT above didn't come through.
-      refreshPermissions(switched).catch(() => {})
+      refreshPermissions(switched).catch((e) => reportError(e, 'SessionContext:refreshPermissions'))
     }
 
     return { error: null }

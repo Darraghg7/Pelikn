@@ -46,7 +46,7 @@ export function useDutyTemplates(): {
   reload: () => void
   addTemplate: (title: string, itemTitles: string[]) => Promise<{ error: unknown }>
   deleteTemplate: (id: string) => Promise<{ error: unknown }>
-  updateItems: (templateId: string, itemTitles: string[]) => Promise<void>
+  updateItems: (templateId: string, itemTitles: string[]) => Promise<{ error: unknown }>
 } {
   const { venueId } = useVenue()
   const queryClient = useQueryClient()
@@ -91,28 +91,41 @@ export function useDutyTemplates(): {
       const rows = itemTitles
         .filter(t => t.trim())
         .map((t, i) => ({ duty_template_id: (tmpl as { id: string }).id, title: t.trim(), sort_order: i }))
-      if (rows.length) await supabase.from('duty_template_items').insert(rows)
+      if (rows.length) {
+        // The template row exists by now; report a failed item insert rather
+        // than toasting "Duty created" over an empty checklist.
+        const { error: itemsError } = await supabase.from('duty_template_items').insert(rows)
+        if (itemsError) { await refetch(); return { error: itemsError } }
+      }
     }
     await refetch()
     return { error: null }
   }, [venueId, refetch])
 
   const deleteTemplate = useCallback(async (id: string) => {
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('duty_templates')
       .update({ is_active: false })
       .eq('id', id)
-    if (!error) await refetch()
-    return { error }
+      .select('id')
+    if (error) return { error }
+    // RLS can filter the row out and still return success — nothing removed.
+    if (!data?.length) return { error: new Error("Couldn't remove that duty. You may not have permission.") }
+    await refetch()
+    return { error: null }
   }, [refetch])
 
   const updateItems = useCallback(async (templateId: string, itemTitles: string[]) => {
-    await supabase.from('duty_template_items').delete().eq('duty_template_id', templateId)
+    const { error: deleteError } = await supabase.from('duty_template_items').delete().eq('duty_template_id', templateId)
+    if (deleteError) return { error: deleteError }
     const rows = itemTitles
       .filter(t => t.trim())
       .map((t, i) => ({ duty_template_id: templateId, title: t.trim(), sort_order: i }))
-    if (rows.length) await supabase.from('duty_template_items').insert(rows)
+    const { error } = rows.length
+      ? await supabase.from('duty_template_items').insert(rows)
+      : { error: null }
     await refetch()
+    return { error }
   }, [refetch])
 
   return { templates: data ?? [], loading: isLoading, reload: refetch, addTemplate, deleteTemplate, updateItems }

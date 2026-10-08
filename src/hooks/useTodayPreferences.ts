@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
+import { reportError } from '../lib/reportError'
 import { DEFAULT_TODAY_ITEMS } from '../pages/dashboard/todayItemRegistry'
 import { takeBootstrap } from '../lib/api/bootstrap'
 
@@ -60,11 +61,14 @@ export function useTodayPreferences(staffId: string | null, venueId: string | nu
       .delete()
       .eq('staff_id', staffId)
       .eq('venue_id', venueId)
-    if (error) return
+    // A layout preference: this device already has it (state + localStorage),
+    // so a failed sync only matters on other devices. Report, don't interrupt.
+    if (error) { reportError(error, 'useTodayPreferences:clear'); return }
 
     if (newIds.length > 0) {
       const rows = newIds.map((id, i) => ({ staff_id: staffId, item_id: id, position: i, venue_id: venueId }))
-      await supabase.from('staff_dashboard_today_items').insert(rows)
+      const { error: insertError } = await supabase.from('staff_dashboard_today_items').insert(rows)
+      if (insertError) reportError(insertError, 'useTodayPreferences:insert')
     }
   }, [staffId, venueId])
 

@@ -33,15 +33,17 @@ function useUpdateReady() {
       })
 
       // Proactively check for updates on page load and every 30 minutes
-      reg.update().catch(() => {})
-      interval = setInterval(() => reg.update().catch(() => {}), 30 * 60 * 1000)
+      // Update checks fail whenever the device is offline; the next check (or
+      // the next foregrounding) retries, so there is nothing to report.
+      reg.update().catch(() => { /* offline — retried on the next check */ })
+      interval = setInterval(() => reg.update().catch(() => { /* offline — retried on the next check */ }), 30 * 60 * 1000)
     })
 
     // Also check for updates when the app comes back to the foreground
     const onVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
         navigator.serviceWorker.getRegistration().then(reg => {
-          reg?.update().catch(() => {})
+          reg?.update().catch(() => { /* offline — retried on the next check */ })
         })
       }
     }

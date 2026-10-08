@@ -72,7 +72,7 @@ describe('venue JWT injection', () => {
   it('leaves non-data (/auth/v1) requests on the anon/user token', async () => {
     setSessionJwt(makeJwt(FUTURE))
     // hit an auth endpoint via the client
-    await supabase.auth.getUser().catch(() => {})
+    await supabase.auth.getUser().catch(() => { /* only the outgoing request matters here */ })
     const authCall = global.fetch.mock.calls.find(c =>
       String(c[0]).includes('/auth/v1/'))
     if (authCall) {

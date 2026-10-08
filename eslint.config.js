@@ -1,5 +1,6 @@
-// Lint config. Two rules here are load-bearing and must stay clean:
-// `react-hooks/rules-of-hooks` and `no-undef` (see each for why).
+// Lint config. Three rules here are load-bearing and must stay clean:
+// `react-hooks/rules-of-hooks`, `no-undef`, and the no-silent-catch pair
+// (see each for why).
 //
 // React error #310 ("Rendered more hooks than during the previous render") has
 // hit production three times, always the same shape: a hook sitting below an
@@ -14,6 +15,7 @@
 import reactHooks from 'eslint-plugin-react-hooks';
 import tsParser from '@typescript-eslint/parser';
 import globals from 'globals';
+import noSilentCatch from './eslint-rules/no-silent-catch.js';
 
 export default [
   {
@@ -47,10 +49,19 @@ export default [
     },
     plugins: {
       'react-hooks': reactHooks,
+      local: { rules: { 'no-silent-catch': noSilentCatch } },
     },
     rules: {
       'react-hooks/rules-of-hooks': 'error',
       'react-hooks/exhaustive-deps': 'warn',
+      // No silently swallowed errors. A failed save that looks like it worked
+      // is worse than a crash — it is how compliance records go missing
+      // without anyone knowing. An empty catch must hold a comment saying why
+      // ignoring is safe; otherwise report it (src/lib/reportError.js) or show
+      // it to the user. `no-empty` covers try/catch, `local/no-silent-catch`
+      // covers `.catch(() => {})` and friends.
+      'no-empty': ['error', { allowEmptyCatch: false }],
+      'local/no-silent-catch': 'error',
     },
   },
 

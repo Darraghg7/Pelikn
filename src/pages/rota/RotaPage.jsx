@@ -17,6 +17,7 @@ import { useAvailability } from '../../hooks/useAvailability'
 import { useSession } from '../../contexts/SessionContext'
 import { getWeekStart, getWeekDays } from '../../lib/utils'
 import { useToast } from '../../components/ui/Toast'
+import { reportError } from '../../lib/reportError'
 import { useAppSettings } from '../../hooks/useSettings'
 import { useVenueRoles, loadAllStaffRolesForVenue } from '../../hooks/useVenueRoles'
 import RotaWeekView from './RotaWeekView'
@@ -607,7 +608,10 @@ export default function RotaPage() {
                 shifts={thisWeekShifts}
                 staff={staff}
                 onCellClick={openStaffCell}
-                onToggleAvailability={(staffId, date) => toggleAvailability(staffId, date)}
+                onToggleAvailability={(staffId, date) => toggleAvailability(staffId, date).catch((e) => {
+                  reportError(e, 'RotaPage:toggle-availability')
+                  toast("Couldn't update availability. Please try again.", 'error')
+                })}
                 currentStaffId={session?.staffId ?? null}
                 isManager={isManager}
                 unavailability={unavailability}

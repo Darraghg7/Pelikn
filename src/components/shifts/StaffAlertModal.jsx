@@ -132,8 +132,8 @@ function playAlertTone() {
     beep(880, 0,    0.28)
     beep(660, 0.34, 0.28)
     beep(880, 0.68, 0.42)
-    if (ctx.state === 'suspended') ctx.resume().catch(() => {})
-    setTimeout(() => { ctx.close().catch(() => {}) }, 2000)
+    if (ctx.state === 'suspended') ctx.resume().catch(() => { /* autoplay blocked — the alert is still on screen */ })
+    setTimeout(() => { ctx.close().catch(() => { /* already closed — nothing to clean up */ }) }, 2000)
   } catch { /* audio unavailable — alert still shows */ }
 }
 

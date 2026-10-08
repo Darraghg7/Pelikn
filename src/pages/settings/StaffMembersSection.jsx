@@ -261,6 +261,9 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
 
     // What actually reached the database, for the cached list (see below).
     let savedFields = null
+    // Set when the main save worked but a follow-up write didn't. Each one
+    // toasts its own error; the "updated" toast must not then cover it up.
+    let partialFailure = false
     if (editingId) {
       savedFields = {
         name:           staffForm.name.trim(),
@@ -275,14 +278,14 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
         permission_title_id: staffForm.permission_title_id,
       }
       const { error: extraErr } = await updateStaffFields(session.token, editingId, extraFields)
-      if (extraErr) { toast('Saved, but failed to update some fields: ' + extraErr.message, 'error') }
+      if (extraErr) { partialFailure = true; toast('Saved, but failed to update some fields: ' + extraErr.message, 'error') }
       else savedFields = { ...savedFields, ...extraFields }
     } else if (newId) {
       const { error: extraErr } = await updateStaffFields(session.token, newId, {
         ...extraFields,
         colour: staffForm.colour || null,
       })
-      if (extraErr) { toast('Saved, but failed to update some fields: ' + extraErr.message, 'error') }
+      if (extraErr) { partialFailure = true; toast('Saved, but failed to update some fields: ' + extraErr.message, 'error') }
     }
 
     // Permission titles are gone: a title, if anyone still had one, would
@@ -291,10 +294,15 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
     if (staffForm.role === 'staff' && targetId) {
       if (staffForm.permission_title_id) {
         const { error: titleErr } = await updateStaffFields(session.token, targetId, { permission_title_id: null })
-        if (titleErr) { toast('Saved, but failed to clear old permission title: ' + titleErr.message, 'error') }
+        if (titleErr) { partialFailure = true; toast('Saved, but failed to clear old permission title: ' + titleErr.message, 'error') }
         else if (savedFields) savedFields.permission_title_id = null
       }
-      await saveStaffPermissions(targetId, venueId, [...permForm], session.token)
+      try {
+        await saveStaffPermissions(targetId, venueId, [...permForm], session.token)
+      } catch (permErr) {
+        partialFailure = true
+        toast("Saved, but their permissions didn't update: " + (permErr?.message ?? 'please try again'), 'error')
+      }
     }
 
     // The list refetch takes a moment; reopening this person before it
@@ -305,6 +313,8 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
 
     setSavingStaff(false)
     if (editingId) {
+      // Leave the form open on a partial failure so the manager can retry.
+      if (partialFailure) return
       toast('Staff member updated')
       setEditingId(null)
       onClose?.()
@@ -313,7 +323,7 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
       // join table, not a plain field) — keep the sheet open, now in edit
       // mode for the person just created, so assigning a role doesn't need
       // a separate "find them in the list and reopen" step.
-      toast('Staff member added — now pick their departments below')
+      if (!partialFailure) toast('Staff member added — now pick their departments below')
       setEditingId(newId)
       setStaffForm(f => ({ ...f, pin: '' }))
       loadedFor.current = newId   // the form already holds what was just saved

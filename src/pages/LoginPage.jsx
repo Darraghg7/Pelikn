@@ -18,7 +18,7 @@ function readDeviceVenues() {
 }
 
 function writeDeviceVenues(venues) {
-  try { localStorage.setItem(DEVICE_VENUES_KEY, JSON.stringify(venues)) } catch {}
+  try { localStorage.setItem(DEVICE_VENUES_KEY, JSON.stringify(venues)) } catch { /* storage unavailable (private mode / quota) — preference just won't persist */ }
 }
 
 // ── Avatar colour palette (deterministic by staff id) ────────────────────────
@@ -503,13 +503,13 @@ export default function LoginPage() {
     try {
       const cached = localStorage.getItem(cacheKey)
       if (cached) { setStaff(JSON.parse(cached)); setStaffLoading(false) }
-    } catch {}
+    } catch { /* no usable cache — the fetch below fills the list */ }
 
     let cancelled = false
     fetchLoginStaff(venueId)
       .then((data) => {
         if (cancelled) return
-        try { localStorage.setItem(cacheKey, JSON.stringify(data)) } catch {}
+        try { localStorage.setItem(cacheKey, JSON.stringify(data)) } catch { /* storage full — the offline cache is best-effort */ }
         setStaff(data)
       })
       .catch((e) => {

@@ -1,6 +1,7 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useVenue } from '../../contexts/VenueContext'
+import { useToast } from '../../components/ui/Toast'
 import { useAppSettings } from '../../hooks/useSettings'
 import { useVenueFeatures, FEATURE_GROUPS, ALL_FEATURE_IDS, PRO_ONLY_FEATURE_IDS } from '../../hooks/useVenueFeatures'
 import { PLANS } from '../../lib/constants'
@@ -88,7 +89,15 @@ export default function HubTilesPage() {
   const navigate = useNavigate()
   const { venueId, venueSlug, venuePlan } = useVenue()
   const { hiddenCheckTiles, hiddenTeamTiles, saveHiddenCheckTiles, saveHiddenTeamTiles, complianceNavOrder, saveComplianceNavOrder } = useAppSettings()
-  const { config: featuresConfig, save: saveFeatures, isEnabled, isSwitchedOn, isPlanLocked, setExtra } = useVenueFeatures()
+  const { config: featuresConfig, save: saveFeaturesRaw, isEnabled, isSwitchedOn, isPlanLocked, setExtra: setExtraRaw } = useVenueFeatures()
+  const toast = useToast()
+  // The toggle flips straight away and flips back if the save fails — say so,
+  // or it just looks like the switch didn't take.
+  const toastIfFailed = (pending) => pending.then((err) => {
+    if (err) toast("Couldn't save that change. Check your connection and try again.", 'error')
+  })
+  const saveFeatures = (changes) => toastIfFailed(saveFeaturesRaw(changes))
+  const setExtra = (id, on) => toastIfFailed(setExtraRaw(id, on))
   const checkTiles = CHECK_TILES.filter(t => checkTileEnabled(t.id, isEnabled))
 
   const vp = (path) => `/v/${venueSlug}${path}`

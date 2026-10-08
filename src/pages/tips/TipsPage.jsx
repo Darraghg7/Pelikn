@@ -5,6 +5,7 @@ import { useVenue } from '../../contexts/VenueContext'
 import { useSession } from '../../contexts/SessionContext'
 import { useStaffJobTitles } from '../../hooks/useVenueRoles'
 import { useToast } from '../../components/ui/Toast'
+import { reportError } from '../../lib/reportError'
 import EmptyState from '../../components/ui/EmptyState'
 import { SkeletonList } from '../../components/ui/Skeleton'
 
@@ -106,8 +107,15 @@ function AddTipSplitModal({ staff, venueId, managerId, onSaved, onClose }) {
 
     if (allocError) {
       // Don't leave a split with nobody paid — undo it so the manager can retry.
-      await supabase.from('tip_splits').delete().eq('id', split.id).eq('venue_id', venueId)
-      toast('Could not save the tip split — please try again', 'error')
+      const { error: undoError } = await supabase.from('tip_splits').delete().eq('id', split.id).eq('venue_id', venueId)
+      // The undo failing leaves an empty split in the list — tell the manager
+      // so they delete it rather than pay out against it.
+      if (undoError) {
+        reportError(undoError, 'TipsPage:undo-split')
+        toast('Could not save the tip allocations. An empty split was left behind — please delete it and try again.', 'error')
+      } else {
+        toast('Could not save the tip split — please try again', 'error')
+      }
       setSaving(false)
       return
     }

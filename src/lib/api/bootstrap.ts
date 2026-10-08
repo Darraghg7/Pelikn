@@ -113,7 +113,11 @@ function request(venueId: string): Promise<AppBootstrap | null> {
       return null
     }
     return (data ?? null) as AppBootstrap | null
-  }).catch(() => null)
+  }).catch(() => {
+    // Network failure: every consumer falls back to its own query, which will
+    // surface (or report) the real problem — the bundle is only a shortcut.
+    return null
+  })
 }
 
 /**

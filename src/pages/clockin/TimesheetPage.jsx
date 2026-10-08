@@ -545,20 +545,25 @@ export default function TimesheetPage() {
 
   useEffect(() => { reload() }, [reload])
 
+  // Returns the error rather than updating the screen: a period shown as
+  // locked for payroll that isn't locked in the database can still be edited.
   const saveLocks = useCallback(async (locks) => {
-    await supabase.from('app_settings').upsert({ venue_id: venueId, key: 'payroll_locks', value: JSON.stringify(locks) }, { onConflict: 'venue_id,key' })
-    setPayrollLocks(locks)
+    const { error } = await supabase.from('app_settings').upsert({ venue_id: venueId, key: 'payroll_locks', value: JSON.stringify(locks) }, { onConflict: 'venue_id,key' })
+    if (!error) setPayrollLocks(locks)
+    return error
   }, [venueId])
 
   const togglePayrollLock = useCallback(async () => {
     if (!periodFrom || !periodTo || periodFrom > periodTo) return
     setLockSaving(true)
     if (isPeriodLocked) {
-      await saveLocks(payrollLocks.filter(l => !(l.from === periodFrom && l.to === periodTo)))
-      toast('Period unlocked')
+      const error = await saveLocks(payrollLocks.filter(l => !(l.from === periodFrom && l.to === periodTo)))
+      if (error) toast("Couldn't unlock the period: " + error.message, 'error')
+      else toast('Period unlocked')
     } else {
-      await saveLocks([...payrollLocks, { from: periodFrom, to: periodTo }])
-      toast('Period locked for payroll')
+      const error = await saveLocks([...payrollLocks, { from: periodFrom, to: periodTo }])
+      if (error) toast("Couldn't lock the period: " + error.message, 'error')
+      else toast('Period locked for payroll')
     }
     setLockSaving(false)
   }, [isPeriodLocked, payrollLocks, periodFrom, periodTo, saveLocks, toast])

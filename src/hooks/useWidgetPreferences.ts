@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
+import { reportError } from '../lib/reportError'
 import { DEFAULT_WIDGETS } from '../components/widgets/WidgetRegistry'
 import { takeBootstrap } from '../lib/api/bootstrap'
 
@@ -58,10 +59,14 @@ export function useWidgetPreferences(staffId: string | null, venueId: string | n
     if (!staffId || !venueId) return
     setWidgetIds(newIds)
     try { localStorage.setItem(layoutKey(staffId, venueId), JSON.stringify(newIds)) } catch { /* best-effort */ }
-    await supabase.from('dashboard_widgets').delete().eq('staff_id', staffId).eq('venue_id', venueId)
+    // A layout preference: this device already has it (state + localStorage),
+    // so a failed sync only matters on other devices. Report, don't interrupt.
+    const { error } = await supabase.from('dashboard_widgets').delete().eq('staff_id', staffId).eq('venue_id', venueId)
+    if (error) { reportError(error, 'useWidgetPreferences:clear'); return }
     if (newIds.length > 0) {
       const rows = newIds.map((id, i) => ({ staff_id: staffId, widget_id: id, position: i, venue_id: venueId }))
-      await supabase.from('dashboard_widgets').insert(rows)
+      const { error: insertError } = await supabase.from('dashboard_widgets').insert(rows)
+      if (insertError) reportError(insertError, 'useWidgetPreferences:insert')
     }
   }, [staffId, venueId])
 

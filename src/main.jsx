@@ -4,6 +4,7 @@ import './index.css'
 import App from './App'
 import { ThemeProvider } from './contexts/ThemeContext'
 import ErrorBoundary from './components/ui/ErrorBoundary'
+import { attachSentry } from './lib/reportError'
 
 function mountApp() {
   const root = document.getElementById('root')
@@ -54,6 +55,11 @@ function initSentry() {
         // Don't send errors in dev — only production
         enabled: import.meta.env.PROD,
       })
+      attachSentry(Sentry)
+    }).catch((e) => {
+      /* chunk failed to load (offline / deploy race) — the app works without
+         error reporting, and there is nowhere left to report this to */
+      if (import.meta.env.DEV) console.warn('Sentry failed to load', e)
     })
   }
 
@@ -75,9 +81,10 @@ async function initNative() {
     // platforms that don't support them (e.g. background colour is Android
     // only); a failure here must not block app start, so it stays silent.
     StatusBar.setStyle({ style: Style.Dark })
-    StatusBar.setOverlaysWebView({ overlay: true }).catch(() => {})
-    StatusBar.setBackgroundColor({ color: '#1a3c2e' }).catch(() => {}) // Android only
-    SplashScreen.hide({ fadeOutDuration: 0 }).catch(() => {})
+    const unsupported = () => { /* not available on this platform — cosmetic only */ }
+    StatusBar.setOverlaysWebView({ overlay: true }).catch(unsupported)
+    StatusBar.setBackgroundColor({ color: '#1a3c2e' }).catch(unsupported) // Android only
+    SplashScreen.hide({ fadeOutDuration: 0 }).catch(unsupported)
 
     // Android hardware back button: go back in history or exit app
     CapApp.addListener('backButton', ({ canGoBack }) => {

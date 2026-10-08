@@ -8,6 +8,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { visibleVenuesFor } from '../lib/demoAccounts'
+import { reportError } from '../lib/reportError'
 
 const AuthContext = createContext(null)
 
@@ -23,7 +24,10 @@ export function AuthProvider({ children }) {
   // find venues the RPC already returns.
   const resolveVenues = async (_email, userId) => {
     if (!userId) return []
-    const { data: owned } = await supabase.rpc('get_owner_venues')
+    const { data: owned, error } = await supabase.rpc('get_owner_venues')
+    // Same outcome as the timeout below (the cached slug carries on), but an
+    // owner whose venue list silently comes back empty needs to be visible.
+    if (error) reportError(error, 'AuthContext:get_owner_venues')
     return owned ?? []
   }
 
@@ -40,7 +44,7 @@ export function AuthProvider({ children }) {
     try {
       const last = localStorage.getItem('pelikn_last_venue')
       if (last && venueList.some(v => v.slug === last)) return last
-    } catch {}
+    } catch { /* storage unavailable or corrupt — fall back to the default */ }
     return venueList[0].slug
   }
 
@@ -54,7 +58,7 @@ export function AuthProvider({ children }) {
   // ── Select a venue (called by venue switcher / picker) ─────────────────
   const selectVenue = useCallback((slug) => {
     setVenueSlug(slug)
-    try { localStorage.setItem('pelikn_last_venue', slug) } catch {}
+    try { localStorage.setItem('pelikn_last_venue', slug) } catch { /* storage unavailable (private mode / quota) — preference just won't persist */ }
   }, [])
 
   // ── Listen for auth state changes ─────────────────────────────────────
@@ -77,7 +81,7 @@ export function AuthProvider({ children }) {
           try {
             cachedSlug = localStorage.getItem('pelikn_last_venue')
             if (cachedSlug) setVenueSlug(cachedSlug)
-          } catch {}
+          } catch { /* storage unavailable or corrupt — fall back to the default */ }
 
           // Do not block startup on venue resolution. Native WebViews can take
           // seconds to reach Supabase on cold launch; the cached slug is enough
@@ -102,7 +106,7 @@ export function AuthProvider({ children }) {
           try {
             const cachedSlug = localStorage.getItem('pelikn_last_venue')
             if (cachedSlug) setVenueSlug(cachedSlug)
-          } catch {}
+          } catch { /* storage unavailable or corrupt — fall back to the default */ }
           setAuthLoading(false)
         }
       })
@@ -114,7 +118,7 @@ export function AuthProvider({ children }) {
             setUser(session.user)
             if (event === 'SIGNED_IN') {
               let cachedSlug = null
-              try { cachedSlug = localStorage.getItem('pelikn_last_venue') } catch {}
+              try { cachedSlug = localStorage.getItem('pelikn_last_venue') } catch { /* storage unavailable or corrupt — fall back to the default */ }
               if (cachedSlug) setVenueSlug(cachedSlug)
               const list = await resolveVenuesSafe(session.user.email, session.user.id)
               setVenues(list)
@@ -179,7 +183,9 @@ export function AuthProvider({ children }) {
     setUser(null)
     setVenues([])
     setVenueSlug(null)
-    supabase.auth.signOut().catch(() => {})
+    // The local session is already cleared; a failed server-side revoke only
+    // leaves the refresh token valid until it expires — worth knowing about.
+    supabase.auth.signOut().catch((e) => reportError(e, 'AuthContext:signOut'))
   }, [])
 
   const value = useMemo(() => ({

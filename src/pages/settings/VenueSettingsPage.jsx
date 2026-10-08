@@ -143,6 +143,7 @@ function ClosedPeriodsGroup({ venueId }) {
 }
 
 export default function VenueSettingsPage() {
+  const toast = useToast()
   const navigate = useNavigate()
   const { venueId, venueSlug } = useVenue()
   const { settings, loading: sLoading, reload: reloadSettings } = useVenueSettings()
@@ -172,11 +173,13 @@ export default function VenueSettingsPage() {
 
   const saveDetails = async () => {
     setSaving(true)
-    await Promise.all([
+    const results = await Promise.all([
       supabase.from('app_settings').upsert({ venue_id: venueId, key: 'venue_name',    value: form.venue_name },    { onConflict: 'venue_id,key' }),
       supabase.from('app_settings').upsert({ venue_id: venueId, key: 'manager_email', value: form.manager_email }, { onConflict: 'venue_id,key' }),
     ])
     setSaving(false)
+    const failed = results.find(r => r.error)?.error
+    if (failed) { toast("Couldn't save venue details: " + failed.message, 'error'); reloadSettings(); return }
     setSaveSuccess(true)
     setTimeout(() => setSaveSuccess(false), 2000)
     reloadSettings()
@@ -188,21 +191,24 @@ export default function VenueSettingsPage() {
     const ext  = file.name.split('.').pop()
     const path = `${venueId}/logo/venue-logo.${ext}`
     const { error: upErr } = await supabase.storage.from('app-assets').upload(path, file, { upsert: true })
-    if (upErr) { setUploadingLogo(false); return }
+    if (upErr) { setUploadingLogo(false); toast("Couldn't upload the logo: " + upErr.message, 'error'); return }
     const { data: urlData } = supabase.storage.from('app-assets').getPublicUrl(path)
-    await supabase.from('app_settings').upsert({ venue_id: venueId, key: 'logo_url', value: urlData.publicUrl + '?t=' + Date.now() }, { onConflict: 'venue_id,key' })
+    const { error: saveErr } = await supabase.from('app_settings').upsert({ venue_id: venueId, key: 'logo_url', value: urlData.publicUrl + '?t=' + Date.now() }, { onConflict: 'venue_id,key' })
     setUploadingLogo(false)
+    if (saveErr) { toast("Logo uploaded but couldn't be saved — please try again", 'error'); return }
     setLogoFile(null)
     reloadSettings()
   }
 
   const saveFhrs = async () => {
     setSavingFhrs(true)
-    await Promise.all([
+    const results = await Promise.all([
       supabase.from('app_settings').upsert({ venue_id: venueId, key: 'fhrs_rating', value: fhrs.rating == null ? '' : String(fhrs.rating) }, { onConflict: 'venue_id,key' }),
       supabase.from('app_settings').upsert({ venue_id: venueId, key: 'fhrs_rated_at', value: fhrs.rated_at }, { onConflict: 'venue_id,key' }),
     ])
     setSavingFhrs(false)
+    const failed = results.find(r => r.error)?.error
+    if (failed) { toast("Couldn't save the hygiene rating: " + failed.message, 'error'); reloadSettings(); return }
     setFhrsSaveSuccess(true)
     setTimeout(() => setFhrsSaveSuccess(false), 2000)
     reloadSettings()

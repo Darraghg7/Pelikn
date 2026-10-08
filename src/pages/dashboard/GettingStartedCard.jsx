@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
+import { reportError } from '../../lib/reportError'
 import { useVenueFeatures } from '../../hooks/useVenueFeatures'
 
 const CheckIcon = () => (
@@ -73,7 +74,9 @@ export default function GettingStartedCard({ venueId, venueSlug }) {
 
   useEffect(() => {
     const handler = () => {
-      supabase.from('app_settings').delete().eq('venue_id', venueId).eq('key', 'setup_dismissed').then(() => {})
+      // Device-local state flips regardless; a failed write only affects other devices.
+      supabase.from('app_settings').delete().eq('venue_id', venueId).eq('key', 'setup_dismissed')
+        .then(({ error }) => { if (error) reportError(error, 'GettingStartedCard:reopen') })
       localStorage.removeItem(doneKey(venueId))
       setDismissed(false)
     }
@@ -97,7 +100,9 @@ export default function GettingStartedCard({ venueId, venueSlug }) {
   if (items.every(i => i.done)) return null
 
   const dismiss = () => {
-    supabase.from('app_settings').upsert({ venue_id: venueId, key: 'setup_dismissed', value: 'true' }, { onConflict: 'venue_id,key' }).then(() => {})
+    // Device-local state flips regardless; a failed write only affects other devices.
+    supabase.from('app_settings').upsert({ venue_id: venueId, key: 'setup_dismissed', value: 'true' }, { onConflict: 'venue_id,key' })
+      .then(({ error }) => { if (error) reportError(error, 'GettingStartedCard:dismiss') })
     localStorage.setItem(doneKey(venueId), 'true')
     setDismissed(true)
   }

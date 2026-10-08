@@ -74,14 +74,17 @@ export function useStaffPermissions(staffId: string, staffRole: string): {
  * Save permissions for a staff member — replaces all existing permissions.
  * Goes through the save_staff_permissions SECURITY DEFINER RPC so the anon
  * role never writes directly to staff_permissions.
- * Dispatches an event so other hook instances refresh.
+ * Dispatches an event so other hook instances refresh. Throws on failure.
  */
 export async function saveStaffPermissions(staffId: string, venueId: string, permissionIds: string[], sessionToken: string): Promise<void> {
-  await supabase.rpc('save_staff_permissions', {
+  const { error } = await supabase.rpc('save_staff_permissions', {
     p_session_token: sessionToken,
     p_staff_id:      staffId,
     p_permissions:   permissionIds,
   })
+  // Throws so the caller can't report "updated" over permissions that never
+  // changed — what staff can see and do depends on this row set.
+  if (error) throw error
 
   // Notify other instances
   window.dispatchEvent(new CustomEvent(PERMISSIONS_UPDATED_EVENT, { detail: { staffId, venueId } }))
