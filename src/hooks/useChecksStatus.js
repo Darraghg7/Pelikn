@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import { startOfDay, endOfDay, format } from 'date-fns'
 import { supabase } from '../lib/supabase'
+import { throwIfError } from '../lib/queryErrors'
+import { reportError } from '../lib/reportError'
 import { readPersisted, writePersisted, clearPersisted } from '../lib/persistedCache'
 import { isActionDueToday } from './useTodaySummary'
 
@@ -92,6 +94,9 @@ async function fetchChecksRaw(venueId, dayStart, dayEnd) {
       .eq('venue_id', venueId)
       .eq('status', 'open'),
   ])
+  // Thrown so the caller keeps its cached statuses (or none) instead of
+  // reading a failed probe query as "Never done".
+  throwIfError(fitnessRes, probeRes, deliveryRes, incidentRes)
   return { fitnessRes, probeRes, deliveryRes, incidentRes }
 }
 
@@ -142,7 +147,8 @@ export function useChecksStatus(venueId, summary, summaryLoading, closedToday = 
       rawCacheSet(key, fresh)
       setRawData(fresh)
       setRawLoading(false)
-    }).catch(() => {
+    }).catch((err) => {
+      reportError(err, 'useChecksStatus:fetch')
       if (!cancelled && !entry) {
         setRawData(null)
         setRawLoading(false)

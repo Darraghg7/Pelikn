@@ -62,6 +62,9 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
   const [uploadingPhoto, setUploadingPhoto] = useState(false)
   const [staffRoleMap, setStaffRoleMap]     = useState({})
   const [permForm, setPermForm]             = useState(new Set(DEFAULT_STAFF_PERMISSIONS))
+  // Set when this person's saved permissions failed to load: the checklist is
+  // then only a guess, so saving must not write it over their real ones.
+  const permsUnknown = React.useRef(false)
   const [search, setSearch]                 = useState('')
   const { reload: reloadBilling }           = useBilling()  // keeps the Starter "x of 5 staff" count current
 
@@ -127,6 +130,8 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
         }
         setPermCounts(counts)
       })
+      // Only a count beside each name — leave the previous counts showing.
+      .catch((err) => reportError(err, 'StaffMembersSection:permission-counts'))
   }, [staff, venueId])
 
   const uploadStaffPhoto = async (staffId, file) => {
@@ -144,7 +149,7 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
     reloadStaff()
   }
 
-  const startNew = () => { setStaffForm(EMPTY_FORM); setEditingId(null); setPermForm(new Set(DEFAULT_STAFF_PERMISSIONS)) }
+  const startNew = () => { setStaffForm(EMPTY_FORM); setEditingId(null); setPermForm(new Set(DEFAULT_STAFF_PERMISSIONS)); permsUnknown.current = false }
   const loadForm = async (s) => {
     setStaffForm({
       name:                    s.name,
@@ -169,9 +174,16 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
     })
     setEditingId(s.id)
     // Load existing permissions for this staff member
+    permsUnknown.current = false
     if (s.role === 'staff') {
-      const data = await fetchStaffPermissionsFor(s.id, venueId)
-      setPermForm(new Set(data.map(r => r.permission)))
+      try {
+        const data = await fetchStaffPermissionsFor(s.id, venueId)
+        setPermForm(new Set(data.map(r => r.permission)))
+      } catch (err) {
+        reportError(err, 'StaffMembersSection:load-permissions')
+        permsUnknown.current = true
+        toast("Couldn't load their permissions — saving won't change them.", 'error')
+      }
     } else {
       setPermForm(new Set(STAFF_PERMISSIONS.map(p => p.id)))
     }
@@ -259,14 +271,22 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
     // Newly-created staff aren't in `staff` yet at this point in the function,
     // so anything keyed on their id (extra fields, permissions, and — after
     // this save — the Roles picker below) needs their id resolved once here.
+    let newIdFailed = false
     const newId = editingId ? null : await findNewestStaffByName(venueId, staffForm.name.trim())
+      .catch((err) => {
+        // They were created; only the follow-up writes below are skipped.
+        reportError(err, 'StaffMembersSection:find-new-staff')
+        toast("Added, but couldn't finish their setup — open them again to check their details.", 'error')
+        newIdFailed = true
+        return undefined
+      })
     const targetId = editingId || newId
 
     // What actually reached the database, for the cached list (see below).
     let savedFields = null
     // Set when the main save worked but a follow-up write didn't. Each one
     // toasts its own error; the "updated" toast must not then cover it up.
-    let partialFailure = false
+    let partialFailure = newIdFailed
     if (editingId) {
       savedFields = {
         name:           staffForm.name.trim(),
@@ -300,11 +320,13 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
         if (titleErr) { partialFailure = true; toast('Saved, but failed to clear old permission title: ' + titleErr.message, 'error') }
         else if (savedFields) savedFields.permission_title_id = null
       }
-      try {
-        await saveStaffPermissions(targetId, venueId, [...permForm], session.token)
-      } catch (permErr) {
-        partialFailure = true
-        toast("Saved, but their permissions didn't update: " + (permErr?.message ?? 'please try again'), 'error')
+      if (!permsUnknown.current) {
+        try {
+          await saveStaffPermissions(targetId, venueId, [...permForm], session.token)
+        } catch (permErr) {
+          partialFailure = true
+          toast("Saved, but their permissions didn't update: " + (permErr?.message ?? 'please try again'), 'error')
+        }
       }
     }
 

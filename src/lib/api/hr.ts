@@ -1,6 +1,7 @@
 import { supabase } from '../supabase'
 import { fetchStaffPayRates, fetchStaffPrivateFields, withPrivateFields } from './staffRestricted'
 import { fetchTimeOffPrivateFields, withTimeOffPrivate } from './timeOffPrivate'
+import { throwIfError } from '../queryErrors'
 
 export interface HRStaffRow {
   id: string
@@ -37,6 +38,7 @@ export async function fetchHRSummary(venueId: string, since90: string, in30: str
       .lte('expiry_date', in30),
     fetchStaffPrivateFields(),
   ])
+  throwIfError(staffRes, actRes, docsRes)
 
   return {
     staff: withPrivateFields((staffRes.data ?? []) as any[], priv) as unknown as HRStaffRow[],
@@ -69,6 +71,7 @@ export async function fetchStaffHeader(staffId: string): Promise<StaffHeaderData
     fetchStaffPayRates(),
     fetchStaffPrivateFields(),
   ])
+  throwIfError(staffRes, docsRes, strikesRes)
   return {
     staff: staffRes.data
       ? { ...staffRes.data, hourly_rate: rates.get(staffId), ...(priv.get(staffId) ?? {}) }
@@ -80,7 +83,8 @@ export async function fetchStaffHeader(staffId: string): Promise<StaffHeaderData
 
 /** Documents tab. */
 export async function fetchHRDocuments(staffId: string) {
-  const { data } = await supabase.from('staff_hr_documents').select('*').eq('staff_id', staffId).order('created_at', { ascending: false })
+  const { data, error } = await supabase.from('staff_hr_documents').select('*').eq('staff_id', staffId).order('created_at', { ascending: false })
+  if (error) throw error
   return data ?? []
 }
 export function insertHRDocument(payload: Record<string, unknown>) {
@@ -110,6 +114,7 @@ export async function fetchDisciplinaryData(staffId: string, venueId: string): P
     supabase.from('clock_events').select('id, occurred_at').eq('staff_id', staffId).eq('venue_id', venueId).eq('event_type', 'clock_in').order('occurred_at', { ascending: false }),
     supabase.from('shifts').select('shift_date, start_time').eq('staff_id', staffId).eq('venue_id', venueId),
   ])
+  throwIfError(strikeRes, formalRes, clockRes, shiftRes)
   return {
     strikes: strikeRes.data ?? [],
     formals: formalRes.data ?? [],
@@ -136,10 +141,11 @@ export function dismissAllStrikesRows(staffId: string, dismissedBy: string | nul
 /** Leave tab. */
 export async function fetchStaffLeaveRequests(staffId: string) {
   // select('*') fails under 119's column grant — see useTimeOffData.
-  const [{ data }, priv] = await Promise.all([
+  const [{ data, error }, priv] = await Promise.all([
     supabase.from('time_off_requests').select('id, staff_id, venue_id, start_date, end_date, status, leave_type, reviewed_by, reviewed_at, cancelled_at, cancelled_by, created_at').eq('staff_id', staffId).order('start_date', { ascending: false }),
     fetchTimeOffPrivateFields(),
   ])
+  if (error) throw error
   return withTimeOffPrivate(data ?? [], priv)
 }
 
@@ -149,6 +155,7 @@ export async function fetchStaffTrainingRecord(staffId: string) {
     supabase.from('staff_training').select('*').eq('staff_id', staffId).order('expiry_date', { ascending: true }),
     supabase.from('training_sign_offs').select('*').eq('staff_id', staffId).order('training_date', { ascending: false }),
   ])
+  throwIfError(certRes, indRes)
   return { certs: certRes.data ?? [], inductions: indRes.data ?? [] }
 }
 

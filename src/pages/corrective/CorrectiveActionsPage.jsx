@@ -11,6 +11,7 @@ import LoadingSpinner from '../../components/ui/LoadingSpinner'
 import EmptyState from '../../components/ui/EmptyState'
 import { SkeletonList } from '../../components/ui/Skeleton'
 import Modal from '../../components/ui/Modal'
+import LoadError from '../../components/ui/LoadError'
 
 
 const CATEGORIES = [
@@ -42,7 +43,7 @@ export default function CorrectiveActionsPage() {
   const toast = useToast()
   const { venueId } = useVenue()
   const { session, isManager } = useSession()
-  const { records, loading, reload } = useCorrectiveActions(venueId)
+  const { records, loading, isError, reload } = useCorrectiveActions(venueId)
   const queryClient = useQueryClient()
 
   const [showForm, setShowForm] = useState(false)
@@ -165,7 +166,7 @@ export default function CorrectiveActionsPage() {
       {/* Records */}
       {loading ? (
         <SkeletonList rows={4} className="py-4" />
-      ) : filtered.length === 0 ? (
+      ) : isError ? (<LoadError what="corrective actions" onRetry={reload} />) : filtered.length === 0 ? (
         <EmptyState
           icon="clipboard"
           title="No corrective actions"

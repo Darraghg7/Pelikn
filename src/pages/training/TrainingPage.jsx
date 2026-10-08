@@ -15,6 +15,7 @@ import { sendPush } from '../../lib/sendPush'
 import { useSignOffs, useCertRecords, useActiveStaff, useAllergenCerts } from '../../hooks/useTraining'
 import { TRAINING_BUCKET, trainingFilePath, openTrainingFile } from '../../lib/trainingFiles'
 import { insertSignOff, insertTrainingRecord, deleteTrainingRecord } from '../../lib/api/training'
+import LoadError from '../../components/ui/LoadError'
 
 // ── SC6 topic list (standard food safety induction) ───────────────────────────
 const SC6_TOPICS = [
@@ -388,7 +389,7 @@ function FileField({ label, onFile, accept }) {
 
 // ── Induction (SC6) tab ───────────────────────────────────────────────────────
 function InductionTab({ venueId, isManager, session, showCreate, onCloseCreate }) {
-  const { records, loading, reload } = useSignOffs()
+  const { records, loading, isError, reload } = useSignOffs()
   const staff = useActiveStaff()
   const [filter, setFilter]         = useState('all')
   const [viewRecord, setViewRecord] = useState(null)
@@ -404,6 +405,7 @@ function InductionTab({ venueId, isManager, session, showCreate, onCloseCreate }
   const shown = visible.filter(r => filter === 'all' || (filter === 'signed' ? r.staff_acknowledged : !r.staff_acknowledged))
 
   if (loading) return <SkeletonList rows={4} className="py-2.5" />
+  if (isError) return <LoadError what="induction records" onRetry={reload} />
 
   return (
     <div className="flex flex-col gap-2.5">
@@ -494,7 +496,7 @@ const CERT_RANK = { expired: 0, expiring: 1, valid: 2 }
 
 function CertificatesTab({ venueId, showCreate, onCloseCreate }) {
   const toast = useToast()
-  const { records, loading, reload } = useCertRecords()
+  const { records, loading, isError, reload } = useCertRecords()
   const staff = useActiveStaff()
 
   const EMPTY_FORM = { staff_id: '', title: '', category: '', issued_date: '', expiry_date: '', notes: '' }
@@ -543,6 +545,7 @@ function CertificatesTab({ venueId, showCreate, onCloseCreate }) {
   }
 
   if (loading) return <SkeletonList rows={4} className="py-2.5" />
+  if (isError) return <LoadError what="training records" onRetry={reload} />
 
   // Expired first, then expiring soonest, then the rest by name
   const sorted = [...records].sort((a, b) => {

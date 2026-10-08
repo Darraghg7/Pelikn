@@ -14,8 +14,10 @@ import {
 } from '../../lib/api/fitness'
 import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../../components/ui/Toast'
+import { reportError } from '../../lib/reportError'
 import { PageSkeleton, SkeletonList } from '../../components/ui/Skeleton'
 import EmptyState from '../../components/ui/EmptyState'
+import LoadError from '../../components/ui/LoadError'
 
 // ── Hook: today's declarations ────────────────────────────────────────────────
 
@@ -281,7 +283,7 @@ function DeclarationSummary({ declaration }) {
 
 function ManagerDeclarationsView({ venueId }) {
   const [viewDate, setViewDate] = useState(format(new Date(), 'yyyy-MM-dd'))
-  const { declarations, loading, reload } = useDeclarations(viewDate)
+  const { declarations, loading, isError, reload } = useDeclarations(viewDate)
 
   const fitCount   = declarations.filter(d => d.is_fit).length
   const unfitCount = declarations.filter(d => !d.is_fit).length
@@ -334,7 +336,7 @@ function ManagerDeclarationsView({ venueId }) {
       <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 overflow-hidden">
         {loading ? (
           <SkeletonList rows={4} />
-        ) : declarations.length === 0 ? (
+        ) : isError ? (<LoadError what="declarations" onRetry={reload} />) : declarations.length === 0 ? (
           <EmptyState icon="clipboard" title="No declarations" description="No declarations recorded for this date." />
         ) : (
           <div className="divide-y divide-charcoal/6 dark:divide-white/8">
@@ -524,8 +526,13 @@ export default function FitnessPage() {
 
   const checkOwnDeclaration = useCallback(async () => {
     if (!venueId || !session?.staffId) { setCheckingOwn(false); return }
-    const data = await fetchOwnDeclaration(venueId, session.staffId, today)
-    setMyDeclaration(data ?? null)
+    try {
+      const data = await fetchOwnDeclaration(venueId, session.staffId, today)
+      setMyDeclaration(data ?? null)
+    } catch (err) {
+      // Falls through to the declaration form; declaring twice is harmless.
+      reportError(err, 'FitnessPage:own-declaration')
+    }
     setCheckingOwn(false)
   }, [venueId, session?.staffId, today])
 

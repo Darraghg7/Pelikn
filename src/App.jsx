@@ -1,10 +1,11 @@
 import React, { lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, useParams, useLocation } from 'react-router-dom'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { QueryCache, QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Capacitor } from '@capacitor/core'
 
 import { isConfigured }        from './lib/supabase'
 import { onDataWrite }         from './lib/cacheBus'
+import { reportQueryError }    from './lib/queryErrors'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { SessionProvider, useSession } from './contexts/SessionContext'
 import { VenueProvider }       from './contexts/VenueContext'
@@ -521,7 +522,11 @@ function VenueRoutesKeyed() {
 
 // ── Query client ────────────────────────────────────────────────────────────
 
+// Every queryFn throws its Supabase error (see lib/queryErrors), so a failed
+// read reaches the screen as isError rather than an empty list. This reports
+// each one once, after retries, so the hooks themselves don't have to.
 const queryClient = new QueryClient({
+  queryCache: new QueryCache({ onError: reportQueryError }),
   defaultOptions: {
     queries: {
       staleTime: 30_000,

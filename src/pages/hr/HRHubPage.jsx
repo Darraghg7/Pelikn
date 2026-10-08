@@ -10,6 +10,7 @@ import { useHRSummary } from '../../hooks/useHRSummary'
 import { useStaffJobTitles } from '../../hooks/useVenueRoles'
 import { SkeletonList } from '../../components/ui/Skeleton'
 import EmployeeRecordPanel, { Avatar, nameInitials } from './EmployeeRecordPanel'
+import LoadError from '../../components/ui/LoadError'
 
 // ── Stat tile ─────────────────────────────────────────────────────────────────
 function StatTile({ label, value, sub, tone, icon }) {
@@ -128,7 +129,7 @@ export default function HRHubPage() {
   const { venueId, venueSlug } = useVenue()
   const vp = p => `/v/${venueSlug}${p}`
 
-  const { staff: staffRows, formalActionStaffIds, expiringDocs, loading } = useHRSummary()
+  const { staff: staffRows, formalActionStaffIds, expiringDocs, loading, isError, reload } = useHRSummary()
   const { labelFor } = useStaffJobTitles()
   const staff = useMemo(() => staffRows.map(s => ({ ...s, job_title: labelFor(s.id) })), [staffRows, labelFor])
 
@@ -179,7 +180,7 @@ export default function HRHubPage() {
     <div className="pb-24">
       {loading ? (
         <SkeletonList rows={5} />
-      ) : staff.length === 0 ? (
+      ) : isError ? (<LoadError what="staff" onRetry={reload} />) : staff.length === 0 ? (
         <div className="text-center px-4 py-[60px] text-charcoal/30 dark:text-white/30">
           <div className="mb-1.5 font-mono text-[11px] tracking-[0.1em] uppercase text-charcoal/50 dark:text-white/40">Manager · Team</div>
           <h1 className="text-[28px] font-bold tracking-[-0.03em] text-charcoal dark:text-white mt-0 mb-2.5">HR Records</h1>

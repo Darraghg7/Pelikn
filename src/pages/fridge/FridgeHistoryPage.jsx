@@ -8,6 +8,7 @@ import { isTempOutOfRange, formatTemp, formatDateTime } from '../../lib/utils'
 import { SkeletonList } from '../../components/ui/Skeleton'
 import DateRangePresets, { presetToDates } from '../../components/ui/DateRangePresets'
 import { useToast } from '../../components/ui/Toast'
+import LoadError from '../../components/ui/LoadError'
 
 function SectionLabel({ children }) {
   return <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-3">{children}</p>
@@ -52,7 +53,7 @@ export default function FridgeHistoryPage() {
     ? { dateFrom: customFrom, dateTo: customTo }
     : presetToDates(preset)
 
-  const { logs, loading, reload } = useFridgeHistory(fridgeId || null, dateFrom || null, dateTo || null)
+  const { logs, loading, isError, reload } = useFridgeHistory(fridgeId || null, dateFrom || null, dateTo || null)
 
   // Inline reason editing (manager only)
   const [editingId, setEditingId]   = useState(null)
@@ -113,7 +114,7 @@ export default function FridgeHistoryPage() {
 
         {loading ? (
           <SkeletonList rows={4} />
-        ) : logs.length === 0 ? (
+        ) : isError ? (<LoadError what="fridge history" onRetry={reload} />) : logs.length === 0 ? (
           <p className="text-center text-sm text-charcoal/35 dark:text-white/30 italic py-10 pb-8">
             No readings found. Try adjusting your filters.
           </p>

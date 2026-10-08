@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { londonToday, londonWallTimeToInstant, formatLondon } from '../lib/time'
+import { reportError } from '../lib/reportError'
 
 /**
  * Today's rota + live clock status per staff member, for the Team > Attendance
@@ -11,6 +12,7 @@ import { londonToday, londonWallTimeToInstant, formatLondon } from '../lib/time'
 export function useAttendanceToday(venueId) {
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
   const [refreshIndex, setRefreshIndex] = useState(0)
 
   const refresh = useCallback(() => setRefreshIndex(i => i + 1), [])
@@ -41,6 +43,16 @@ export function useAttendanceToday(venueId) {
       ])
 
       if (cancelled) return
+
+      // A failed read would show "nobody on the rota today" — show an error instead.
+      const failed = shiftsRes.error || clockRes.error
+      if (failed) {
+        reportError(failed, 'useAttendanceToday:load')
+        setError(failed)
+        setLoading(false)
+        return
+      }
+      setError(null)
 
       const shifts = shiftsRes.data ?? []
       const events = clockRes.data ?? []
@@ -119,5 +131,5 @@ export function useAttendanceToday(venueId) {
     return { error }
   }, [refresh])
 
-  return { data, loading, refresh, acknowledgeLate }
+  return { data, loading, error, refresh, acknowledgeLate }
 }

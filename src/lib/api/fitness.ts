@@ -23,21 +23,23 @@ const DECLARATION_COLUMNS =
 
 /** Fitness-to-work declarations for a venue on a given date, newest first. */
 export async function fetchDeclarations(venueId: string, date: string): Promise<FitnessDeclaration[]> {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('fitness_declarations')
     .select(DECLARATION_COLUMNS)
     .eq('venue_id', venueId)
     .eq('declaration_date', date)
     .order('declared_at', { ascending: false })
+  if (error) throw error
   return (data ?? []) as unknown as FitnessDeclaration[]
 }
 
 export async function fetchIllnessPolicy(venueId: string): Promise<IllnessPolicy | null> {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('illness_exclusion_policies')
     .select('*')
     .eq('venue_id', venueId)
     .maybeSingle()
+  if (error) throw error
   return (data ?? null) as IllnessPolicy | null
 }
 
@@ -45,7 +47,7 @@ export async function fetchIllnessPolicy(venueId: string): Promise<IllnessPolicy
 export async function fetchOwnDeclaration(
   venueId: string, staffId: string, date: string,
 ): Promise<FitnessDeclaration | null> {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('fitness_declarations')
     .select('id, is_fit, declared_at, shift_type, has_dv_symptoms, has_skin_infection, has_other_illness, illness_details, confirm_handwashing, confirm_clean_uniform, confirm_no_jewellery')
     .eq('venue_id', venueId)
@@ -54,6 +56,7 @@ export async function fetchOwnDeclaration(
     .order('declared_at', { ascending: false })
     .limit(1)
     .maybeSingle()
+  if (error) throw error
   return (data ?? null) as FitnessDeclaration | null
 }
 

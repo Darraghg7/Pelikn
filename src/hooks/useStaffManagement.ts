@@ -45,12 +45,13 @@ export default function useStaffManagement(): {
   const { data: staff = [], isLoading: loading, refetch } = useQuery({
     queryKey,
     queryFn: async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('staff')
         .select('id, name, job_role, role, permission_title_id, is_active, is_restricted, show_temp_logs, show_allergens, photo_url, skills, is_under_18, working_days, sort_order, pin_failed_attempts, pin_locked_until, employment_type, holiday_pay_eligible, colour')
         .eq('venue_id', venueId)
         .order('sort_order')
         .order('name')
+      if (error) throw error
       // hourly_rate (117) plus email, emergency contacts, start_date and
       // contracted_hours (118) can no longer be selected from the table. Both
       // RPCs return the whole venue to a manager and only your own row to

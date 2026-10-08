@@ -28,6 +28,7 @@ import ConfirmDialog from '../../components/ui/ConfirmDialog'
 import { CARD, TONE, PageHeader, TabBar } from '../../components/temperature/TempPageParts'
 import { HistoryRangePills, StatStrip, historyDateFrom } from '../../components/temperature/TempHistoryView'
 import PestExportModal from './PestExportModal'
+import LoadError from '../../components/ui/LoadError'
 
 const ALL_CLEAR_TEXT = 'All clear — no activity, traps checked and reset.'
 
@@ -539,7 +540,7 @@ function historyPill(log) {
 function PestHistory({ openCount }) {
   const [range, setRange] = useState(30)
   const todayStr = format(new Date(), 'yyyy-MM-dd')
-  const { logs, loading } = usePestControlLogs(historyDateFrom(range), todayStr)
+  const { logs, loading, isError, reload } = usePestControlLogs(historyDateFrom(range), todayStr)
 
   const inspections = logs.filter(l => l.log_type === 'inspection').length
   const sightings   = logs.filter(l => l.log_type === 'sighting').length
@@ -552,6 +553,8 @@ function PestHistory({ openCount }) {
         <div className="py-12 text-center">
           <div className="w-5 h-5 rounded-full border-2 border-charcoal/15 dark:border-white/15 border-t-charcoal animate-spin mx-auto" />
         </div>
+      ) : isError ? (
+        <LoadError what="pest control history" onRetry={reload} />
       ) : (
         <>
           <StatStrip stats={[

@@ -12,6 +12,7 @@ import { SkeletonList } from '../../components/ui/Skeleton'
 import { useVenueBranding } from '../../hooks/useVenueBranding'
 import ConfirmDialog from '../../components/ui/ConfirmDialog'
 import Toggle from '../../components/ui/Toggle'
+import LoadError from '../../components/ui/LoadError'
 
 function SectionLabel({ children, action }) {
   return (
@@ -24,7 +25,7 @@ function SectionLabel({ children, action }) {
 
 export default function AllergenRegistryPage() {
   const [search, setSearch] = useState('')
-  const { items, loading, reload } = useFoodItems(search, { includeInactive: true })
+  const { items, loading, isError, reload } = useFoodItems(search, { includeInactive: true })
   const { venueId, venueSlug, venueName } = useVenue()
   const { isManager } = useSession()
   const toast                     = useToast()
@@ -206,7 +207,7 @@ export default function AllergenRegistryPage() {
 
         {loading ? (
           <SkeletonList rows={5} className="py-4" />
-        ) : items.length === 0 ? (
+        ) : isError ? (<LoadError what="dishes" onRetry={reload} />) : items.length === 0 ? (
           <EmptyState
             icon={search ? 'search' : 'utensils'}
             title={search ? 'No results' : 'No menu items yet'}

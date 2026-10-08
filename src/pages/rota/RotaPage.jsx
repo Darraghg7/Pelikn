@@ -32,6 +32,7 @@ import { useDutyTemplates } from '../../hooks/useDuties'
 import useVenueClosures from '../../hooks/useVenueClosures'
 import { useQuery } from '@tanstack/react-query'
 import StaffRotaView from './StaffRotaView'
+import LoadError from '../../components/ui/LoadError'
 
 const EMPTY_ROLES = {}
 
@@ -44,8 +45,8 @@ export default function RotaPage() {
 
   const [weekStart, setWeekStart] = useState(() => getWeekStart())
   const [numWeeks, setNumWeeks]   = useState(1)
-  const { shifts, loading, reload } = useShifts(weekStart, (isManager && !personalView) ? numWeeks : 2)
-  const { staff, loading: staffLoading } = useStaffList()
+  const { shifts, loading, isError: shiftsFailed, reload } = useShifts(weekStart, (isManager && !personalView) ? numWeeks : 2)
+  const { staff, loading: staffLoading, isError: staffFailed, reload: reloadStaff } = useStaffList()
   const crossShifts = useCrossVenueShifts(staff, weekStart, numWeeks, venueId)
   const { swaps, loading: swapsLoading, reload: reloadSwaps, pendingCount } = useShiftSwaps()
   const { unavailability, toggleAvailability } = useAvailability(weekStart, numWeeks)
@@ -611,6 +612,9 @@ export default function RotaPage() {
             )}
             {loading || staffLoading ? (
               <SkeletonList rows={4} />
+            ) : shiftsFailed || staffFailed ? (
+              // An empty grid from a failed read looks like a week with no shifts.
+              <LoadError what="the rota" onRetry={() => { reload(); reloadStaff() }} />
             ) : (
               <RotaWeekView
                 weekStart={thisWeekStart}

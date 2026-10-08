@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { reportError } from '../lib/reportError'
 import { parseISO, getDay, eachDayOfInterval } from 'date-fns'
 import { supabase } from '../lib/supabase'
 
@@ -47,7 +48,7 @@ export function useLeaveBalance(staff, leaveYear) {
       setLoading(true)
 
       // Check for a manager-set entitlement override
-      const { data: entRow } = await supabase
+      const { data: entRow, error: entErr } = await supabase
         .from('leave_entitlements')
         .select('override_days')
         .eq('staff_id', staff.id)
@@ -55,7 +56,7 @@ export function useLeaveBalance(staff, leaveYear) {
         .maybeSingle()
 
       // Count approved annual leave days taken this year
-      const { data: reqs } = await supabase
+      const { data: reqs, error: reqsErr } = await supabase
         .from('time_off_requests')
         .select('start_date, end_date')
         .eq('staff_id', staff.id)
@@ -65,6 +66,14 @@ export function useLeaveBalance(staff, leaveYear) {
         .lte('start_date', `${year}-12-31`)
 
       if (cancelled) return
+
+      // Without both reads the balance would show as a full, untouched
+      // allowance — leave the numbers alone and report it instead.
+      if (entErr || reqsErr) {
+        reportError(entErr ?? reqsErr, 'useLeaveBalance')
+        setLoading(false)
+        return
+      }
 
       setOverrideDays(entRow?.override_days ?? null)
       setUsedDays(

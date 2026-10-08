@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { useToast } from '../../components/ui/Toast'
 import { useDutyTemplates } from '../../hooks/useDuties'
 import ConfirmDialog from '../../components/ui/ConfirmDialog'
+import LoadError from '../../components/ui/LoadError'
 
 function ItemInput({ value, onChange, onRemove, onKeyDown, autoFocus }) {
   return (
@@ -162,7 +163,7 @@ function TemplateRow({ template, onDelete }) {
 
 export default function DutiesSection() {
   const toast = useToast()
-  const { templates, loading, addTemplate, deleteTemplate } = useDutyTemplates()
+  const { templates, loading, isError, reload, addTemplate, deleteTemplate } = useDutyTemplates()
   const [adding, setAdding] = useState(false)
   const [deleteTarget, setDeleteTarget] = useState(null)
 
@@ -181,6 +182,7 @@ export default function DutiesSection() {
   }
 
   if (loading) return <div className="py-4 text-center text-sm text-charcoal/30 dark:text-white/30">Loading…</div>
+  if (isError) return <LoadError what="duties" onRetry={reload} />
 
   return (
     <div className="flex flex-col gap-4">

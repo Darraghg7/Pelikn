@@ -6,11 +6,12 @@ import { useVenue } from '../contexts/VenueContext'
 const PERMISSIONS_UPDATED_EVENT = 'pelikn:permissions-updated'
 
 async function fetchPermissions(staffId: string, venueId: string): Promise<string[]> {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('staff_permissions')
     .select('permission')
     .eq('staff_id', staffId)
     .eq('venue_id', venueId)
+  if (error) throw error
 
   return (data ?? []).map((r: { permission: string }) => r.permission)
 }

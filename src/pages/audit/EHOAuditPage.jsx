@@ -6,7 +6,7 @@ import { useToast } from '../../components/ui/Toast'
 import { useAuditSummary } from '../../hooks/useAuditSummary'
 import { resolveAuditRecord, resolveCorrectiveAction } from '../../lib/api/audit'
 import { SkeletonList } from '../../components/ui/Skeleton'
-import { exportTempLogs, exportCleaningRecords, exportDeliveryChecks, exportCorrectiveActions, exportProbeCalibrations, exportTrainingRecords, exportFullReport, exportEHOReport } from '../../lib/exportData'
+import { exportTempLogs, exportCleaningRecords, exportDeliveryChecks, exportCorrectiveActions, exportProbeCalibrations, exportTrainingRecords, exportFullReport, exportEHOReport, runExport } from '../../lib/exportData'
 import { computeComplianceScore, COMPLIANCE_RANGE_DAYS } from '../../lib/compliance'
 
 const RANGE_OPTIONS = [
@@ -464,7 +464,7 @@ export default function EHOAuditPage() {
             <p className="text-[11px] font-bold tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-1">EHO Inspection Report</p>
             <p className="text-xs text-charcoal/45 dark:text-white/40 mb-3">One comprehensive PDF covering all compliance areas — ready to show an EHO inspector.</p>
             <button
-              onClick={() => exportEHOReport(venueId, venueName, range)}
+              onClick={() => runExport(() => exportEHOReport(venueId, venueName, range), toast)}
               className="w-full px-4 py-3 rounded-xl bg-brand text-white text-xs font-bold hover:bg-brand/90 transition-colors"
             >
               ↓ Download EHO Inspection Report
@@ -483,13 +483,13 @@ export default function EHOAuditPage() {
                 { label: 'Probe Cal.', fn: () => exportProbeCalibrations(venueId, range) },
                 { label: 'Training',   fn: () => exportTrainingRecords(venueId) },
               ].map(btn => (
-                <button key={btn.label} onClick={btn.fn}
+                <button key={btn.label} onClick={() => runExport(btn.fn, toast)}
                   className="px-3 py-2 rounded-xl border border-charcoal/15 dark:border-white/15 text-xs font-semibold text-charcoal/60 dark:text-white/50 hover:text-charcoal dark:hover:text-white hover:border-charcoal/30 dark:hover:border-white/30 transition-colors">
                   ↓ {btn.label}
                 </button>
               ))}
             </div>
-            <button onClick={() => exportFullReport(venueId, range)}
+            <button onClick={() => runExport(() => exportFullReport(venueId, range), toast)}
               className="w-full mt-3 px-4 py-2.5 rounded-xl bg-charcoal text-white text-xs font-bold hover:bg-charcoal/90 transition-colors">
               ↓ Download All Reports (PDF)
             </button>

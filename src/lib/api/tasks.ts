@@ -8,11 +8,14 @@ interface TasksResult {
 }
 
 export async function fetchAllTasks(venueId: string, dateStr: string): Promise<TasksResult> {
-  const [{ data: tData }, { data: oData }, { data: cData }] = await Promise.all([
+  const [{ data: tData, error: tErr }, { data: oData, error: oErr }, { data: cData, error: cErr }] = await Promise.all([
     supabase.from('task_templates').select('id, title, department_id, is_active, venue_id, created_at').eq('venue_id', venueId).eq('is_active', true).order('created_at'),
     supabase.from('task_one_offs').select('id, title, department_id, due_date, assigned_to_staff_id, assigned_to_name, venue_id, created_at').eq('venue_id', venueId).eq('due_date', dateStr).order('created_at'),
     supabase.from('task_completions').select('id, task_template_id, task_one_off_id, completion_date, completed_by_staff_id, completed_by_name, venue_id').eq('venue_id', venueId).eq('completion_date', dateStr),
   ])
+  if (tErr) throw tErr
+  if (oErr) throw oErr
+  if (cErr) throw cErr
 
   return {
     templates:   (tData ?? []) as TaskTemplate[],
