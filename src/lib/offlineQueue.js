@@ -50,6 +50,11 @@ export function dequeue(id) {
   saveQueue(queue)
 }
 
+/** Merge fields into one queued item (e.g. to note it has been reported). */
+export function updateQueueItem(id, patch) {
+  saveQueue(getQueue().map(item => item.id === id ? { ...item, ...patch } : item))
+}
+
 /** Clear entire queue */
 export function clearQueue() {
   saveQueue([])

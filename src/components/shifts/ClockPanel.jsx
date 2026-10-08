@@ -4,7 +4,7 @@
  */
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { offlineRpc } from '../../lib/offlineSupabase'
-import { useClockStatus, nextClockStatus } from '../../hooks/useClockEvents'
+import { useClockStatus, nextClockStatus, useQueuedClockEvent } from '../../hooks/useClockEvents'
 import { useVenue } from '../../contexts/VenueContext'
 import { useToast } from '../ui/Toast'
 import Skeleton from '../ui/Skeleton'
@@ -70,6 +70,7 @@ export default function ClockPanel({ staffId, compact = false }) {
   const { venueId } = useVenue()
   const toast = useToast()
   const { status, clockInAt, breakStartAt, totalBreakMs, loading, isError, reload, setStatus } = useClockStatus(staffId)
+  const notSent = useQueuedClockEvent(staffId)
   const inFlightRef = useRef(false)
 
   // Late clock-in / break-overrun alerts live in a shared hook so that every
@@ -104,9 +105,12 @@ export default function ClockPanel({ staffId, compact = false }) {
     let result
     try {
       result = await offlineRpc('record_clock_event', {
-        p_staff_id:   staffId,
-        p_event_type: eventType,
-        p_venue_id:   venueId,
+        p_staff_id:    staffId,
+        p_event_type:  eventType,
+        p_venue_id:    venueId,
+        // The tap time, so a punch held on the device (no signal) still lands
+        // at the moment it happened, not when it finally gets through (144).
+        p_occurred_at: at.toISOString(),
       })
     } catch (err) {
       result = { error: err }
@@ -226,6 +230,12 @@ export default function ClockPanel({ staffId, compact = false }) {
           >
             End Break
           </button>
+        )}
+
+        {notSent && (
+          <p role="status" className={`text-[12px] font-medium ${compact ? 'text-white/80' : 'text-warning'}`}>
+            Not sent yet. This device will keep trying.
+          </p>
         )}
       </div>
     </>

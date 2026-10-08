@@ -1,12 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 // vi.hoisted ensures these are defined before the vi.mock factory runs
-const { mockInsert, mockUpdate, mockUpsert, mockRpc } = vi.hoisted(() => ({
+const { mockInsert, mockUpdate, mockUpsert, mockRpc, mockReport } = vi.hoisted(() => ({
   mockInsert: vi.fn(),
   mockUpdate: vi.fn(),
   mockUpsert: vi.fn(),
   mockRpc:    vi.fn(),
+  mockReport: vi.fn(),
 }))
+
+vi.mock('../reportError', () => ({ reportError: mockReport }))
 
 vi.mock('../supabase', () => ({
   supabase: {
@@ -181,5 +184,56 @@ describe('syncQueue', () => {
     expect(result.failed).toBe(1)
     expect(getQueue()).toHaveLength(1)
     expect(getQueue()[0].type).toBe('rpc')
+  })
+})
+
+// ── Clock punches (144) ───────────────────────────────────────────────────────
+
+describe('clock punches', () => {
+  const punch = { p_staff_id: 's1', p_event_type: 'break_start', p_venue_id: 'v1', p_occurred_at: '2026-10-08T10:15:00.000Z' }
+
+  it('retries without the tap time when 144 is not applied yet', async () => {
+    mockRpc
+      .mockResolvedValueOnce({ data: null, error: { code: 'PGRST202', message: 'Could not find the function' } })
+      .mockResolvedValueOnce({ data: 'event-id', error: null })
+    const result = await offlineRpc('record_clock_event', punch)
+    expect(result).toEqual({ data: 'event-id', error: null })
+    const { p_occurred_at: _t, ...withoutTime } = punch
+    expect(mockRpc).toHaveBeenLastCalledWith('record_clock_event', withoutTime)
+  })
+
+  it('reports a punch that has to wait on the device', async () => {
+    mockRpc.mockResolvedValue({ data: null, error: { message: 'Failed to fetch' } })
+    expect(await offlineRpc('record_clock_event', punch)).toMatchObject({ queued: true })
+    expect(getQueue()[0].args.p_occurred_at).toBe(punch.p_occurred_at)
+    expect(mockReport).toHaveBeenCalledTimes(1)
+    expect(mockReport.mock.calls[0][1]).toMatchObject({ context: 'offlineRpc:clock-event-queued', event_type: 'break_start' })
+  })
+
+  it('keeps a queued punch through any refusal, reporting it once', async () => {
+    enqueueRpc('record_clock_event', punch)
+    mockRpc.mockResolvedValue({ error: { code: 'P0001', message: 'something unexpected' } })
+    expect(await syncQueue()).toEqual({ synced: 0, failed: 0 })
+    expect(await syncQueue()).toEqual({ synced: 0, failed: 0 })
+    expect(getQueue()).toHaveLength(1)
+    expect(mockReport).toHaveBeenCalledTimes(1)
+    expect(mockReport.mock.calls[0][1]).toMatchObject({ context: 'syncQueue:clock-event-refused' })
+  })
+
+  it('replays a queued punch with its tap time', async () => {
+    enqueueRpc('record_clock_event', punch)
+    mockRpc.mockResolvedValue({ data: 'event-id', error: null })
+    expect(await syncQueue()).toEqual({ synced: 1, failed: 0 })
+    expect(mockRpc).toHaveBeenCalledWith('record_clock_event', punch)
+  })
+
+  it('reports giving up on a punch over a week old', async () => {
+    enqueueRpc('record_clock_event', punch)
+    const q = getQueue()
+    q[0].timestamp = new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString()
+    localStorage.setItem('pelikn_offline_queue', JSON.stringify(q))
+    mockRpc.mockResolvedValue({ error: { code: '22023', message: 'Clock event is more than 7 days old' } })
+    expect(await syncQueue()).toEqual({ synced: 0, failed: 1 })
+    expect(mockReport.mock.calls[0][1]).toMatchObject({ context: 'syncQueue:clock-event-dropped' })
   })
 })

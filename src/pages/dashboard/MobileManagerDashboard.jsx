@@ -12,7 +12,7 @@ import { isActionDueToday } from '../../hooks/useTodaySummary'
 import { TODAY_ITEM_REGISTRY } from './todayItemRegistry'
 import { WIDGET_REGISTRY } from '../../components/widgets/WidgetRegistry'
 import { FetchWhenNearViewport } from '../../hooks/useWidgetFetchGate'
-import { useClockStatus, nextClockStatus } from '../../hooks/useClockEvents'
+import { useClockStatus, nextClockStatus, useQueuedClockEvent } from '../../hooks/useClockEvents'
 import { useClockAlerts } from '../../hooks/useClockAlerts'
 import { offlineRpc } from '../../lib/offlineSupabase'
 import { fetchUnsignedTrainingCount, unsignedTrainingKey } from '../../lib/api/training'
@@ -270,6 +270,7 @@ function MobileClockCard({ staffId }) {
   const { venueId } = useVenue()
   const toast = useToast()
   const { status, clockInAt, breakStartAt, totalBreakMs, loading, isError, reload, setStatus } = useClockStatus(staffId)
+  const notSent = useQueuedClockEvent(staffId)
   const inFlightRef = useRef(false)
   const elapsed  = useShiftElapsed(clockInAt, breakStartAt, totalBreakMs, status)
   const weekHrs  = useWeeklyHours(staffId, venueId)
@@ -306,9 +307,12 @@ function MobileClockCard({ staffId }) {
     let result
     try {
       result = await offlineRpc('record_clock_event', {
-        p_staff_id:   staffId,
-        p_event_type: eventType,
-        p_venue_id:   venueId,
+        p_staff_id:    staffId,
+        p_event_type:  eventType,
+        p_venue_id:    venueId,
+        // The tap time, so a punch held on the device (no signal) still lands
+        // at the moment it happened, not when it finally gets through (144).
+        p_occurred_at: at.toISOString(),
       })
     } catch (err) {
       result = { error: err }
@@ -423,6 +427,11 @@ function MobileClockCard({ staffId }) {
             End break
           </button>
         ) : null}
+        {notSent && (
+          <p role="status" className="text-[12px] font-medium text-white/80 mt-2">
+            Not sent yet. This device will keep trying.
+          </p>
+        )}
       </div>
     </div>
   )
