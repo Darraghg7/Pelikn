@@ -5,6 +5,8 @@ import {
   partitionDaySessions,
   sessionMinutes,
   breakMinutes,
+  latePunch,
+  LATE_PUNCH_THRESHOLD_MS,
 } from '../timesheet'
 
 /**
@@ -158,5 +160,47 @@ describe('partitionDaySessions', () => {
   it('handles a day with nothing on it', () => {
     expect(partitionDaySessions([])).toEqual({ real: [], orphans: [] })
     expect(partitionDaySessions(undefined)).toEqual({ real: [], orphans: [] })
+  })
+})
+
+describe('latePunch', () => {
+  const at = (occurred_at, recorded_at) =>
+    ({ id: 'p1', staff_id: 'ana', event_type: 'clock_in', occurred_at, recorded_at })
+
+  it('ignores a punch that arrived within ten minutes', () => {
+    expect(latePunch(at('2026-10-08T09:00:00Z', '2026-10-08T09:00:02Z'))).toBeNull()
+    expect(latePunch(at('2026-10-08T09:00:00Z', '2026-10-08T09:10:00Z'))).toBeNull()
+  })
+
+  it('flags a punch that arrived more than ten minutes after the tap', () => {
+    expect(LATE_PUNCH_THRESHOLD_MS).toBe(10 * 60 * 1000)
+    expect(latePunch(at('2026-10-08T09:00:00Z', '2026-10-08T09:10:01Z'))).toEqual({
+      id: 'p1', type: 'clock_in', occurredAt: '2026-10-08T09:00:00Z', recordedAt: '2026-10-08T09:10:01Z',
+    })
+  })
+
+  it('never flags rows from before migration 144', () => {
+    expect(latePunch(at('2026-10-08T09:00:00Z', null))).toBeNull()
+    expect(latePunch(at('2026-10-08T09:00:00Z', undefined))).toBeNull()
+  })
+
+  it('does not flag clock skew the other way', () => {
+    expect(latePunch(at('2026-10-08T09:30:00Z', '2026-10-08T09:00:00Z'))).toBeNull()
+  })
+
+  it('collects late punches onto the session they belong to', () => {
+    const grid = buildDailyGrid([
+      { ...ev('ana', 'clock_in', '2026-10-08T08:00:00Z'), recorded_at: '2026-10-08T08:00:01Z' },
+      { ...ev('ana', 'break_start', '2026-10-08T12:00:00Z'), recorded_at: '2026-10-08T13:05:00Z' },
+      { ...ev('ana', 'break_end', '2026-10-08T12:30:00Z'), recorded_at: '2026-10-08T13:05:00Z' },
+      ev('ana', 'clock_out', '2026-10-08T16:00:00Z'),
+    ])
+    const [session] = grid.ana.days['2026-10-08'].sessions
+    expect(session.late.map(p => p.type)).toEqual(['break_start', 'break_end'])
+
+    const [t] = buildTimesheets([
+      { ...ev('ana', 'clock_in', '2026-10-08T08:00:00Z'), recorded_at: '2026-10-10T08:00:00Z' },
+    ])
+    expect(t.sessions[0].late).toHaveLength(1)
   })
 })

@@ -323,6 +323,47 @@ function EditSessionSheet({ staffName, dayLabel, session, onSave, onClose }) {
   )
 }
 
+// ── Late-punch tag ─────────────────────────────────────────────────────────────
+const PUNCH_LABEL = { clock_in: 'Clock in', clock_out: 'Clock out', break_start: 'Break start', break_end: 'Break end' }
+
+// "14:32", or "Wed 8 Oct 14:32" when it arrived on a different day to the tap.
+function arrivalTime(p) {
+  const sameDay = formatLondon(p.recordedAt, 'yyyy-MM-dd') === formatLondon(p.occurredAt, 'yyyy-MM-dd')
+  return formatLondon(p.recordedAt, sameDay ? 'HH:mm' : 'EEE d MMM HH:mm')
+}
+
+function lateLine(p) {
+  return `${PUNCH_LABEL[p.type] ?? p.type} ${formatLondon(p.occurredAt, 'HH:mm')} · sent ${arrivalTime(p)}`
+}
+
+// A punch that reached the server well after its tap time — queued offline,
+// or sent backdated. Hover shows both times; tap opens them inline (phones).
+function LateTag({ late }) {
+  const [open, setOpen] = useState(false)
+  if (!late?.length) return null
+  const lines = late.map(lateLine)
+  return (
+    <div className="mt-1">
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        title={lines.join('\n')}
+        aria-expanded={open}
+        className="font-mono text-[11px] font-semibold text-warning bg-warning/10 uppercase tracking-[0.05em] px-[7px] py-[2px] rounded-full border-none cursor-pointer"
+      >
+        Sent late{late.length > 1 ? ` ×${late.length}` : ''}
+      </button>
+      {open && (
+        <div className="mt-1 flex flex-col gap-px">
+          {lines.map((line, i) => (
+            <span key={i} className="font-mono text-[11px] text-charcoal/50 dark:text-white/40">{line}</span>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ── Staff hours bottom sheet ───────────────────────────────────────────────────
 function StaffHoursSheet({ t, station, periodDays, dailyGrid, periodLabel, onEditDay, onAddDay, onClose }) {
   const staffGrid = dailyGrid[t.staffId] || null
@@ -361,21 +402,23 @@ function StaffHoursSheet({ t, station, periodDays, dailyGrid, periodLabel, onEdi
                     const breakMins = Math.round(breakMinutes(session.breaks))
                     const mins = sessionMinutes(session)
                     return (
-                      <button
-                        key={si}
-                        onClick={() => onEditDay({ dateStr, session })}
-                        className="text-left bg-transparent border-none p-0 cursor-pointer"
-                      >
-                        <div className="font-mono text-[13.5px] font-semibold tabular-nums">
-                          {formatLondon(session.in, 'HH:mm')} – {complete
-                            ? formatLondon(session.out, 'HH:mm')
-                            : <span className="text-warning">still in</span>}
-                        </div>
-                        <div className="flex items-center gap-[5px] mt-0.5">
-                          <span className="font-mono text-[11.5px] text-charcoal/50 dark:text-white/40">{complete ? minsStr(mins) : 'no clock out'}</span>
-                          {breakMins > 0 && <><span className="text-charcoal/30 dark:text-white/30">·</span><span className="text-[11.5px] text-charcoal/50 dark:text-white/40">{breakMins}m break</span></>}
-                        </div>
-                      </button>
+                      <div key={si}>
+                        <button
+                          onClick={() => onEditDay({ dateStr, session })}
+                          className="text-left bg-transparent border-none p-0 cursor-pointer"
+                        >
+                          <div className="font-mono text-[13.5px] font-semibold tabular-nums">
+                            {formatLondon(session.in, 'HH:mm')} – {complete
+                              ? formatLondon(session.out, 'HH:mm')
+                              : <span className="text-warning">still in</span>}
+                          </div>
+                          <div className="flex items-center gap-[5px] mt-0.5">
+                            <span className="font-mono text-[11.5px] text-charcoal/50 dark:text-white/40">{complete ? minsStr(mins) : 'no clock out'}</span>
+                            {breakMins > 0 && <><span className="text-charcoal/30 dark:text-white/30">·</span><span className="text-[11.5px] text-charcoal/50 dark:text-white/40">{breakMins}m break</span></>}
+                          </div>
+                        </button>
+                        <LateTag late={session.late} />
+                      </div>
                     )
                   }) : <div className="text-[13px] text-charcoal/30 dark:text-white/30">Off</div>}
                   {orphans.length > 0 && (

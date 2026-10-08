@@ -45,7 +45,6 @@
   "src/lib/routePreload.js": 1,
   "src/lib/sendPush.js": 4,
   "src/lib/time.js": 17,
-  "src/lib/timesheet.js": 2,
   "src/main.jsx": 1,
   "src/pages/allergens/AllergenRegistryPage.jsx": 1,
   "src/pages/allergens/FoodItemDetailPage.jsx": 5,
