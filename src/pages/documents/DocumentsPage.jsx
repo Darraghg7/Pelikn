@@ -16,6 +16,7 @@ import { CARD, TONE, PageHeader } from '../../components/temperature/TempPagePar
 import { useDocuments, documentStatus, DOCUMENT_CATEGORIES, EXPIRY_WARNING_DAYS } from '../../hooks/useDocuments'
 import { insertWithAttachment } from '../../lib/attachments'
 import { VENUE_DOCS_BUCKET, venueDocumentPath, openVenueDocument } from '../../lib/venueDocuments'
+import LoadError from '../../components/ui/LoadError'
 
 const CATEGORY_LABEL = Object.fromEntries(DOCUMENT_CATEGORIES.map(c => [c.value, c.label]))
 const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
@@ -199,7 +200,7 @@ export default function DocumentsPage() {
   const { venueSlug } = useVenue()
   const { isManager } = useSession()
   const toast = useToast()
-  const { docs, loading, reload } = useDocuments()
+  const { docs, loading, isError, reload } = useDocuments()
 
   const [search, setSearch]       = useState('')
   const [category, setCategory]   = useState('all')
@@ -288,7 +289,7 @@ export default function DocumentsPage() {
       )}
 
       {/* List */}
-      {visible.length === 0 ? (
+      {isError ? (<LoadError what="documents" onRetry={reload} />) : visible.length === 0 ? (
         <div className={`${CARD} px-3.5 py-10 text-center`}>
           <p className="text-[14px] font-semibold text-ink dark:text-white">
             {docs.length === 0 ? 'No documents yet' : 'No matching documents'}

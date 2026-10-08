@@ -6,6 +6,8 @@ import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../../components/ui/Toast'
 import { SkeletonList } from '../../components/ui/Skeleton'
 import Modal from '../../components/ui/Modal'
+import { reportError } from '../../lib/reportError'
+import LoadError from '../../components/ui/LoadError'
 
 // Local wall-clock time for a datetime-local input. toISOString() is UTC, so
 // during BST the default read an hour behind and records were saved an hour early.
@@ -16,20 +18,23 @@ function nowDatetimeLocal() {
 function useCalibrations(venueId) {
   const [records, setRecords] = useState([])
   const [loading, setLoading] = useState(true)
+  const [failed, setFailed]   = useState(false)
   const load = useCallback(async () => {
     if (!venueId) return
     setLoading(true)
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('probe_calibrations')
       .select('*, calibrator:staff!calibrated_by(name)')
       .eq('venue_id', venueId)
       .order('calibrated_at', { ascending: false })
       .limit(100)
-    setRecords(data ?? [])
+    if (error) reportError(error, 'ProbeCalibrationPage:load')
+    else setRecords(data ?? [])
+    setFailed(!!error)
     setLoading(false)
   }, [venueId])
   useEffect(() => { load() }, [load])
-  return { records, loading, reload: load }
+  return { records, loading, failed, reload: load }
 }
 
 const METHODS = [
@@ -50,7 +55,7 @@ export default function ProbeCalibrationPage() {
   const toast = useToast()
   const { venueId } = useVenue()
   const { session } = useSession()
-  const { records, loading, reload } = useCalibrations(venueId)
+  const { records, loading, failed, reload } = useCalibrations(venueId)
 
   const [showForm, setShowForm] = useState(false)
   const [form, setForm] = useState(() => ({ ...EMPTY_FORM, calibrated_at: nowDatetimeLocal() }))
@@ -136,6 +141,8 @@ export default function ProbeCalibrationPage() {
       {/* Records */}
       {loading ? (
         <SkeletonList rows={4} />
+      ) : failed && records.length === 0 ? (
+        <LoadError what="calibration records" onRetry={reload} />
       ) : records.length === 0 ? (
         <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-10 text-center">
           <p className="text-charcoal/30 dark:text-white/30 text-sm">No calibration records yet.</p>

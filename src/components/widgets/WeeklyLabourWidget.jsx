@@ -6,8 +6,8 @@ import { useVenue } from '../../contexts/VenueContext'
 import { useWidgetQuery } from '../../hooks/useWidgetQuery'
 import { useAppSettings } from '../../hooks/useSettings'
 import { paidShiftHours } from '../../hooks/useShifts'
-import LoadingSpinner from '../ui/LoadingSpinner'
-import { WidgetShell } from './shared'
+import RestrictedFieldsNotice from '../ui/RestrictedFieldsNotice'
+import { WidgetShell, WidgetPending } from './shared'
 
 function weekStartStr() {
   const now = new Date()
@@ -22,12 +22,12 @@ function WeeklyLabourWidget() {
   const weekStart = weekStartStr()
   const { breakDurationMins } = useAppSettings()
 
-  const { data } = useWidgetQuery('weekly_labour', [venueId, weekStart, breakDurationMins], async () => {
+  const { data, isError, refetch } = useWidgetQuery('weekly_labour', [venueId, weekStart, breakDurationMins], async () => {
       // hourly_rate is no longer readable from the staff table (117), so the
       // rates come from staff_pay_rates instead. A non-manager gets only their
       // own rate back, which means this widget shows them their own cost
       // rather than the venue's — it is registered as a manager widget.
-      const [{ data: shifts }, rates] = await Promise.all([
+      const [{ data: shifts, error }, rates] = await Promise.all([
         supabase
           .from('shifts')
           .select('start_time, end_time, staff_id, staff:staff_id(is_under_18)')
@@ -35,6 +35,7 @@ function WeeklyLabourWidget() {
           .eq('week_start', weekStart),
         fetchStaffPayRates(),
       ])
+      if (error) throw error
 
       const items = shifts ?? []
       let totalHrs = 0
@@ -52,7 +53,7 @@ function WeeklyLabourWidget() {
       return { shifts: items.length, hours: totalHrs.toFixed(1), cost: totalCost.toFixed(2) }
   })
 
-  if (!data) return <WidgetShell title="Weekly Labour" to="/rota"><div className="flex justify-center py-4"><LoadingSpinner /></div></WidgetShell>
+  if (!data) return <WidgetShell title="Weekly Labour" to="/rota"><WidgetPending isError={isError} onRetry={refetch} /></WidgetShell>
 
   return (
     <WidgetShell title="Weekly Labour" to="/rota">
@@ -60,6 +61,7 @@ function WeeklyLabourWidget() {
         <p className="text-2xl font-bold font-bold text-charcoal dark:text-white font-mono">&pound;{data.cost}</p>
         <p className="text-xs text-charcoal/40 dark:text-white/35 mt-0.5">{data.hours}h across {data.shifts} shifts</p>
       </div>
+      <RestrictedFieldsNotice fields={['pay']} className="mt-2" />
     </WidgetShell>
   )
 }

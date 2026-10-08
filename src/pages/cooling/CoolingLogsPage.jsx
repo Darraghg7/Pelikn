@@ -31,6 +31,7 @@ import {
 } from '../../components/temperature/TempPageParts'
 import { HistoryRangePills, StatStrip, DayCard, formatPct, historyDateFrom, groupByDay } from '../../components/temperature/TempHistoryView'
 import CoolingExportModal from './CoolingExportModal'
+import LoadError from '../../components/ui/LoadError'
 
 const NEW_METHODS = COOLING_METHODS.filter(m => !m.legacy)
 
@@ -336,7 +337,7 @@ function FinishedBatchRow({ log, compact = false }) {
 function CoolingHistory() {
   const [range, setRange] = useState(7)
   const todayStr = format(new Date(), 'yyyy-MM-dd')
-  const { logs, loading } = useCoolingLogs(historyDateFrom(range), todayStr)
+  const { logs, loading, isError, reload } = useCoolingLogs(historyDateFrom(range), todayStr)
 
   const outcomes = logs.map(log => coolingOutcome(log))
   const passed   = outcomes.filter(o => !o.fail).length
@@ -355,6 +356,8 @@ function CoolingHistory() {
         <div className="py-12 text-center">
           <div className="w-5 h-5 rounded-full border-2 border-charcoal/15 dark:border-white/15 border-t-charcoal animate-spin mx-auto" />
         </div>
+      ) : isError ? (
+        <LoadError what="cooling history" onRetry={reload} />
       ) : (
         <>
           <StatStrip stats={[

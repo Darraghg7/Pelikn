@@ -56,7 +56,7 @@ async function loadStaffNotifications(staffId: string, venueId: string): Promise
 }
 
 async function checkMySwapUpdates(items: StaffNotification[], staffId: string, venueId: string, since: string, boot?: AppBootstrap): Promise<void> {
-  const { data } = boot ? { data: boot.my_swaps } : await supabase
+  const { data, error } = boot ? { data: boot.my_swaps, error: null } : await supabase
     .from('shift_swaps')
     // resolved_at is stamped when a swap is approved or rejected — there is no
     // updated_at on this table.
@@ -67,6 +67,7 @@ async function checkMySwapUpdates(items: StaffNotification[], staffId: string, v
     .gte('resolved_at', since + 'T00:00:00')
     .order('resolved_at', { ascending: false })
     .limit(10)
+  if (error) throw error
 
   for (const swap of (data ?? []) as { id: string; status: string }[]) {
     items.push({
@@ -80,7 +81,7 @@ async function checkMySwapUpdates(items: StaffNotification[], staffId: string, v
 }
 
 async function checkMyTimeOffUpdates(items: StaffNotification[], staffId: string, venueId: string, since: string, boot?: AppBootstrap): Promise<void> {
-  const { data } = boot ? { data: boot.my_time_off } : await supabase
+  const { data, error } = boot ? { data: boot.my_time_off, error: null } : await supabase
     .from('time_off_requests')
     // reviewed_at is stamped when a manager approves or rejects the request.
     .select('id, status, start_date, end_date, reviewed_at')
@@ -90,6 +91,7 @@ async function checkMyTimeOffUpdates(items: StaffNotification[], staffId: string
     .gte('reviewed_at', since + 'T00:00:00')
     .order('reviewed_at', { ascending: false })
     .limit(10)
+  if (error) throw error
 
   for (const req of (data ?? []) as { id: string; status: string; start_date: string; end_date: string }[]) {
     const dateRange = req.start_date === req.end_date
@@ -109,7 +111,7 @@ async function checkMyUpcomingShift(items: StaffNotification[], staffId: string,
   const now = new Date()
   const today = londonToday()
 
-  const { data } = boot ? { data: boot.my_shifts_today } : await supabase
+  const { data, error } = boot ? { data: boot.my_shifts_today, error: null } : await supabase
     .from('shifts')
     .select('id, shift_date, start_time, end_time')
     .eq('venue_id', venueId)
@@ -117,6 +119,7 @@ async function checkMyUpcomingShift(items: StaffNotification[], staffId: string,
     .eq('shift_date', today)
     .order('start_time')
     .limit(5)
+  if (error) throw error
 
   for (const shift of (data ?? []) as { id: string; shift_date: string; start_time: string; end_time: string }[]) {
     // Scheduled start is UK wall-clock (Europe/London), not the device tz.

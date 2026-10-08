@@ -35,6 +35,7 @@ export function isCookingTempFail(temperature: number | string, targetTemp = COO
 export function useCookingLogs(checkType: string | null = null, dateFrom: string | null = null, dateTo: string | null = null): {
   logs: CookingLog[]
   loading: boolean
+  isError: boolean
   reload: () => void
 } {
   const { venueId } = useVenue()
@@ -42,7 +43,7 @@ export function useCookingLogs(checkType: string | null = null, dateFrom: string
 
   const queryKey = ['cooking_logs', venueId, checkType, dateFrom, dateTo]
 
-  const { data: logs = [], isLoading: loading } = useQuery({
+  const { data: logs = [], isLoading: loading, isError } = useQuery({
     queryKey,
     queryFn: async () => {
       let q = supabase
@@ -66,7 +67,7 @@ export function useCookingLogs(checkType: string | null = null, dateFrom: string
 
   const reload = () => queryClient.invalidateQueries({ queryKey })
 
-  return { logs, loading, reload }
+  return { logs, loading, isError, reload }
 }
 
 /**
@@ -82,13 +83,14 @@ export function useTodayCookingLogs(): { logs: CookingLog[]; loading: boolean; r
     queryKey,
     queryFn: async () => {
       const today = format(new Date(), 'yyyy-MM-dd')
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('cooking_temp_logs')
         .select('id, food_item, temperature, target_temp, check_type, notes, logged_at, logged_by_name, venue_id')
         .eq('venue_id', venueId)
         .gte('logged_at', new Date(`${today}T00:00:00`).toISOString())
         .lte('logged_at', new Date(`${today}T23:59:59`).toISOString())
         .order('logged_at', { ascending: false })
+      if (error) throw error
       return (data ?? []) as CookingLog[]
     },
     enabled: !!venueId,
@@ -107,12 +109,13 @@ export function useFrequentCookingItems(limit = 4): string[] {
     queryKey: ['cooking_frequent_items', venueId],
     queryFn: async () => {
       const since = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString()
-      const { data: rows } = await supabase
+      const { data: rows, error: rowsErr } = await supabase
         .from('cooking_temp_logs')
         .select('food_item')
         .eq('venue_id', venueId)
         .gte('logged_at', since)
         .limit(500)
+      if (rowsErr) throw rowsErr
       const counts = new Map<string, { name: string; n: number }>()
       for (const row of (rows ?? []) as { food_item: string }[]) {
         const name = row.food_item?.trim()

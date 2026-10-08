@@ -46,12 +46,15 @@ function useStaffList(enabled) {
   const { data } = useQuery({
     queryKey: ['tasksStaffPicker', venueId],
     queryFn: async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('staff')
         .select('id, name, job_role')
         .eq('venue_id', venueId)
         .eq('is_active', true)
         .order('name')
+      // Only fills the one-off task's "assign to" picker — App.jsx's QueryCache
+      // reports it; the picker just stays empty.
+      if (error) throw error
       return data ?? []
     },
     enabled: !!venueId && enabled,

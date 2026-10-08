@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react'
 import { format, parseISO } from 'date-fns'
 import { useClockSessions } from '../../hooks/useClockSessions'
 import { fetchPayrollLocks, submitClockEditRequest } from '../../lib/api/shifts'
+import { reportError } from '../../lib/reportError'
 import { sendPush } from '../../lib/sendPush'
 import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
@@ -29,10 +30,13 @@ export default function StaffRotaView({ shifts, staff, loading, weekStart, prevW
     return todayInWeek ?? weekDays[0]
   })
 
+  // Jump to today (or the Monday) when the week changes. Derived from
+  // weekStart inside the effect: weekDays is a new array every render.
   React.useEffect(() => {
-    const todayInWeek = weekDays.find(d => format(d, 'yyyy-MM-dd') === today)
-    setSelectedDate(todayInWeek ?? weekDays[0])
-  }, [weekStart]) // eslint-disable-line react-hooks/exhaustive-deps
+    const days = getWeekDays(weekStart)
+    const todayStr = format(new Date(), 'yyyy-MM-dd')
+    setSelectedDate(days.find(d => format(d, 'yyyy-MM-dd') === todayStr) ?? days[0])
+  }, [weekStart])
 
   const selectedDateStr = format(selectedDate, 'yyyy-MM-dd')
   const myShifts = shifts.filter(s => s.staff_id === session?.staffId)
@@ -62,7 +66,9 @@ export default function StaffRotaView({ shifts, staff, loading, weekStart, prevW
   // Load payroll locks so staff can't submit corrections for locked periods
   React.useEffect(() => {
     if (!venueId) return
-    fetchPayrollLocks(venueId).then(setPayrollLocks)
+    fetchPayrollLocks(venueId)
+      .then(setPayrollLocks)
+      .catch(e => reportError(e, 'StaffRotaView:payroll-locks'))
   }, [venueId])
 
   const isDateLocked = React.useCallback((date) => {
@@ -80,7 +86,9 @@ export default function StaffRotaView({ shifts, staff, loading, weekStart, prevW
       .eq('venue_id', venueId)
       .in('status', ['pending', 'denied', 'approved'])
       .order('created_at', { ascending: false })
-      .then(({ data }) => {
+      .then(({ data, error }) => {
+        // Only the "pending"/"denied" labels on worked shifts — report, keep the rota.
+        if (error) { reportError(error, 'StaffRotaView:edit-requests'); return }
         if (!data) return
         const map = {}
         for (const r of data) {
@@ -96,13 +104,13 @@ export default function StaffRotaView({ shifts, staff, loading, weekStart, prevW
         }
         setReqs(map)
       })
-  }, [session?.staffId, venueId]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [session?.staffId, venueId])
 
   // Filter clock sessions to the current week
-  const weekDateStrs = weekDays.map(d => format(d, 'yyyy-MM-dd'))
   const weekClockSessions = React.useMemo(() => {
+    const weekDateStrs = getWeekDays(weekStart).map(d => format(d, 'yyyy-MM-dd'))
     return clockSessions.filter(s => s.clockOutAt && weekDateStrs.includes(format(s.date, 'yyyy-MM-dd')))
-  }, [clockSessions, weekStart]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [clockSessions, weekStart])
 
   // Build worked rows with display data
   const workedRows = React.useMemo(() => {
@@ -170,7 +178,9 @@ export default function StaffRotaView({ shifts, staff, loading, weekStart, prevW
     }))
     ehToast('Sent to your manager for approval ✓')
     reloadClockSessions()
-  }, [venueId, session, me, ehToast, reloadClockSessions]) // eslint-disable-line react-hooks/exhaustive-deps
+  // isDateLocked was missing here, so payroll locks that loaded after the
+  // first render were never checked on submit.
+  }, [venueId, session, me, ehToast, reloadClockSessions, isDateLocked])
 
   return (
     <div className="flex flex-col gap-4">

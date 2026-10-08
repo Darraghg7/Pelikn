@@ -3,28 +3,28 @@ import { format } from 'date-fns'
 import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
 import { useWidgetQuery } from '../../hooks/useWidgetQuery'
-import LoadingSpinner from '../ui/LoadingSpinner'
-import { WidgetShell, MiniRow } from './shared'
+import { WidgetShell, MiniRow, WidgetPending } from './shared'
 
 function TodaysDeliveriesWidget() {
   const { venueId } = useVenue()
   const todayStr = format(new Date(), 'yyyy-MM-dd')
 
-  const { data } = useWidgetQuery('todays_deliveries', [venueId, todayStr], async () => {
+  const { data, isError, refetch } = useWidgetQuery('todays_deliveries', [venueId, todayStr], async () => {
     const today = new Date()
     today.setHours(0, 0, 0, 0)
-    const { data: checks } = await supabase.from('delivery_checks')
+    const { data: checks, error } = await supabase.from('delivery_checks')
       .select('id, supplier_name, overall_pass, checked_at')
       .eq('venue_id', venueId)
       .gte('checked_at', today.toISOString())
       .order('checked_at', { ascending: false })
       .limit(5)
+    if (error) throw error
     const items = checks ?? []
     const fails = items.filter(c => !c.overall_pass).length
     return { total: items.length, fails, items }
   })
 
-  if (!data) return <WidgetShell title="Today's Deliveries" to="/deliveries"><div className="flex justify-center py-4"><LoadingSpinner /></div></WidgetShell>
+  if (!data) return <WidgetShell title="Today's Deliveries" to="/deliveries"><WidgetPending isError={isError} onRetry={refetch} /></WidgetShell>
 
   const status = data.fails > 0 ? 'bad' : data.total > 0 ? 'good' : 'neutral'
 

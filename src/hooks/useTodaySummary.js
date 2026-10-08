@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { format, startOfDay, endOfDay, subDays } from 'date-fns'
 import { supabase } from '../lib/supabase'
+import { throwIfError } from '../lib/queryErrors'
 import { readPersisted, writePersisted, clearPersisted } from '../lib/persistedCache'
 import { onDataWrite } from '../lib/cacheBus'
 import { captureSilent } from '../lib/reportError'
@@ -308,10 +309,21 @@ export function useTodaySummary(venueId, closedDays = [], actionSchedules = {}) 
   const summaryRef = useRef(summary)
   summaryRef.current = summary
 
+  // closedDays and actionSchedules arrive as fresh arrays/objects every
+  // render, so the fetch effect is keyed on their contents (closedKey,
+  // gating) and reads the latest values through these refs.
+  const closedKey = closedDays.join(',')
+  const closedDaysRef = useRef(closedDays)
+  closedDaysRef.current = closedDays
+  const actionSchedulesRef = useRef(actionSchedules)
+  actionSchedulesRef.current = actionSchedules
+
   useEffect(() => {
     if (!venueId) return
 
     const key = `${venueId}:${todayStr}:${gating}`
+    const closedDays      = closedDaysRef.current
+    const actionSchedules = actionSchedulesRef.current
 
     const entry = cacheGet(key)
     const age   = entry ? Date.now() - entry.ts : Infinity
@@ -489,6 +501,12 @@ export function useTodaySummary(venueId, closedDays = [], actionSchedules = {}) 
               .order('completed_at', { ascending: false })
           : { data: [] },
       ])
+      // Thrown to the catch below, which reports it.
+      throwIfError(
+        closures, cleaning, clockEvents, opening, closing, fridges, fridgeLogs,
+        leaveReqs, critActions, cookingTemps, hotHoldingLogs,
+        coolingLogs, dutyShifts, totalChecksRes, cleaningCompletions,
+      )
 
       if (cancelled) return
 
@@ -540,10 +558,11 @@ export function useTodaySummary(venueId, closedDays = [], actionSchedules = {}) 
       const todayShiftIds = (dutyShifts.data ?? []).map(s => s.id)
       if (todayShiftIds.length) {
         // Fetch duty_assignments with completions embedded — single query instead of two
-        const { data: dutyAssignments } = await supabase
+        const { data: dutyAssignments, error: dutyAssignmentsErr } = await supabase
           .from('duty_assignments')
           .select('id, duty_template_id, duty_template_items!duty_template_id(id), duty_item_completions(duty_template_item_id)')
           .in('shift_id', todayShiftIds)
+        if (dutyAssignmentsErr) throw dutyAssignmentsErr
 
         if (!cancelled && dutyAssignments?.length) {
           dutiesAssigned = dutyAssignments.length
@@ -598,8 +617,7 @@ export function useTodaySummary(venueId, closedDays = [], actionSchedules = {}) 
     }
     fetchAll()
     return () => { cancelled = true }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [venueId, closedDays.join(','), todayStr, gating, refreshTick])
+  }, [venueId, closedKey, todayStr, gating, refreshTick])
 
   return { summary, loading, closedToday }
 }

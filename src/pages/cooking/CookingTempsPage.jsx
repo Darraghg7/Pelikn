@@ -25,6 +25,7 @@ import {
   FIELD_LABEL, TEXT_FIELD,
 } from '../../components/temperature/TempPageParts'
 import { HistoryRangePills, StatStrip, DayCard, formatPct, historyDateFrom, groupByDay } from '../../components/temperature/TempHistoryView'
+import LoadError from '../../components/ui/LoadError'
 
 const CHECK_TYPES = [
   { value: 'cooking',   label: 'Cooking' },
@@ -210,7 +211,7 @@ function LogReadingForm({ onLogged }) {
 /* ── History tab ──────────────────────────────────────────────────────────── */
 function CookingHistory() {
   const [range, setRange] = useState(7)
-  const { logs, loading } = useCookingLogs(null, historyDateFrom(range), format(new Date(), 'yyyy-MM-dd'))
+  const { logs, loading, isError, reload } = useCookingLogs(null, historyDateFrom(range), format(new Date(), 'yyyy-MM-dd'))
 
   const passed   = logs.filter(log => !failed(log)).length
   const failures = logs.length - passed
@@ -225,6 +226,8 @@ function CookingHistory() {
         <div className="py-12 text-center">
           <div className="w-5 h-5 rounded-full border-2 border-charcoal/15 dark:border-white/15 border-t-charcoal animate-spin mx-auto" />
         </div>
+      ) : isError ? (
+        <LoadError what="cooking history" onRetry={reload} />
       ) : (
         <>
           <StatStrip stats={[

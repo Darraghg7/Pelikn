@@ -6,6 +6,7 @@ import { insertComplaint, updateComplaint } from '../../lib/api/complaints'
 import { useToast } from '../../components/ui/Toast'
 import { SkeletonList } from '../../components/ui/Skeleton'
 import Modal from '../../components/ui/Modal'
+import LoadError from '../../components/ui/LoadError'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -215,7 +216,7 @@ function ComplaintCard({ item, onEdit }) {
 
 export default function ComplaintsPage() {
   const { venueId }                       = useVenue()
-  const { complaints, loading, reload }   = useComplaints()
+  const { complaints, loading, isError, reload } = useComplaints()
   const [showModal, setShowModal]         = useState(false)
   const [editItem, setEditItem]           = useState(null)
   const [filter, setFilter]              = useState('all')
@@ -286,7 +287,7 @@ export default function ComplaintsPage() {
       {/* List */}
       {loading ? (
         <SkeletonList rows={4} />
-      ) : filtered.length === 0 ? (
+      ) : isError ? (<LoadError what="complaints" onRetry={reload} />) : filtered.length === 0 ? (
         <div className="bg-white dark:bg-paperDark rounded-2xl border border-charcoal/10 dark:border-white/10 px-5 py-12 text-center">
           <p className="text-charcoal/40 dark:text-white/35 text-sm">
             {filter === 'open' ? 'No open complaints.' : filter === 'resolved' ? 'No resolved complaints yet.' : 'No complaints logged yet.'}

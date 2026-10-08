@@ -18,7 +18,7 @@ export default function CleaningExportModal({ open, onClose }) {
     setLoading(true)
 
     // Fetch all active cleaning tasks
-    const { data: tasks } = await supabase
+    const { data: tasks, error: tasksError } = await supabase
       .from('cleaning_tasks')
       .select('id, title, frequency, departments(name)')
       .eq('venue_id', venueId)
@@ -36,7 +36,8 @@ export default function CleaningExportModal({ open, onClose }) {
 
     setLoading(false)
 
-    if (error) { toast(error.message, 'error'); return }
+    // An export missing its check/task names would be an incomplete record.
+    if (tasksError || error) { toast((tasksError ?? error).message, 'error'); return }
     if (!tasks?.length) { toast('No cleaning tasks found', 'error'); return }
 
     const departmentLabel = (t) => t.departments?.name ?? 'Everyone'

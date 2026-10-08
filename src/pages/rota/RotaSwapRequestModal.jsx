@@ -14,10 +14,10 @@ export default function RotaSwapRequestModal({
 
   useEffect(() => {
     if (!swapModal) return
-    const handler = (e) => { if (e.key === 'Escape') onClose() }
+    const handler = (e) => { if (e.key === 'Escape') setSwapModal(null) }
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
-  }, [swapModal]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [swapModal, setSwapModal])
 
   if (!swapModal) return null
 

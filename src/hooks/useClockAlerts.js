@@ -81,18 +81,24 @@ export function useClockAlerts({ staffId, status, breakStartAt, onEndBreak }) {
   const [alert, setAlert] = useState(null)
   const breakAlertShownRef = useRef(false)
 
+  // breakStartAt is a fresh Date object after every status refetch, so key the
+  // effects below on its timestamp — otherwise each refetch would look like a
+  // new break and reset the guard / restart the 15s timer.
+  const breakStartMs = breakStartAt ? breakStartAt.getTime() : null
+
   // Reset the break-alert guard when a new break starts
   useEffect(() => {
     if (status === 'on_break') breakAlertShownRef.current = false
-  }, [breakStartAt]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [status, breakStartMs])
 
   // Live break-overrun detection — check every 15s while on break
   useEffect(() => {
-    if (status !== 'on_break' || !breakStartAt || !venueId) return
+    if (status !== 'on_break' || breakStartMs == null || !venueId) return
+    const startedAt = new Date(breakStartMs)
 
     const check = async () => {
       if (breakAlertShownRef.current) return
-      const elapsedMins = (Date.now() - breakStartAt.getTime()) / 60000
+      const elapsedMins = (Date.now() - startedAt.getTime()) / 60000
       if (elapsedMins < breakAllowanceMins) return
 
       breakAlertShownRef.current = true
@@ -107,7 +113,7 @@ export function useClockAlerts({ staffId, status, breakStartAt, onEndBreak }) {
         type: 'break_overrun',
         minsOver,
         strikeCount: strikes,
-        breakStartTime: formatLondon(breakStartAt, 'HH:mm'),
+        breakStartTime: formatLondon(startedAt, 'HH:mm'),
         takenMins: Math.floor(elapsedMins),
         breakAllowanceMins,
         clockEventId: ev.id,
@@ -118,7 +124,7 @@ export function useClockAlerts({ staffId, status, breakStartAt, onEndBreak }) {
     check()
     const id = setInterval(check, 15000)
     return () => clearInterval(id)
-  }, [status, breakStartAt, breakAllowanceMins, staffId, venueId])
+  }, [status, breakStartMs, breakAllowanceMins, staffId, venueId])
 
   /**
    * Run the post-event checks. Call after `record_clock_event` succeeds.

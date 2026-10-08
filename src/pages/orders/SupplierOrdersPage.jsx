@@ -9,6 +9,7 @@ import { insertSupplier, deactivateSupplier } from '../../lib/api/suppliers'
 import { useToast } from '../../components/ui/Toast'
 import Modal from '../../components/ui/Modal'
 import { PageSkeleton } from '../../components/ui/Skeleton'
+import LoadError from '../../components/ui/LoadError'
 
 const STATUS_CONFIG = {
   submitted: { label: 'Pending',  bg: 'bg-warning/10',  text: 'text-warning' },
@@ -37,7 +38,7 @@ export default function SupplierOrdersPage() {
   const { venueId } = useVenue()
   const { session, isManager } = useSession()
   const { suppliers, loading: suppLoading, reload: reloadSuppliers } = useSuppliers()
-  const { orders, loading: ordersLoading, reload: reloadOrders }     = useSupplierOrders()
+  const { orders, loading: ordersLoading, failed: ordersFailed, reload: reloadOrders } = useSupplierOrders()
 
   // Filter tab
   const [tab, setTab] = useState('all')
@@ -281,7 +282,11 @@ export default function SupplierOrdersPage() {
         </div>
       )}
 
-      {filteredOrders.length === 0 && suppliers.length > 0 && (
+      {ordersFailed && orders.length === 0 && (
+        <LoadError what="orders" onRetry={reloadOrders} />
+      )}
+
+      {!ordersFailed && filteredOrders.length === 0 && suppliers.length > 0 && (
         <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-8 text-center">
           <p className="text-charcoal/40 dark:text-white/35 text-sm">No {tab !== 'all' ? tab : ''} orders yet.</p>
         </div>

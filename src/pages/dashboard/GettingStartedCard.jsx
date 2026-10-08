@@ -47,7 +47,12 @@ export default function GettingStartedCard({ venueId, venueSlug }) {
       supabase.from('cleaning_tasks').select('id', { count: 'exact', head: true }).eq('venue_id', venueId),
       supabase.from('shifts').select('id', { count: 'exact', head: true }).eq('venue_id', venueId).gte('shift_date', weekStart),
       supabase.from('food_items').select('id', { count: 'exact', head: true }).eq('venue_id', venueId),
-    ]).then(([settingsRes, staffRes, fridgesRes, cleaningRes, shiftsRes, foodRes]) => {
+    ]).then((results) => {
+      // A failed count would read as "step not done" and re-show finished
+      // setup steps (or a dismissed card) — skip the card this time instead.
+      const failed = results.find(r => r.error)
+      if (failed) { reportError(failed.error, 'GettingStartedCard:progress'); return }
+      const [settingsRes, staffRes, fridgesRes, cleaningRes, shiftsRes, foodRes] = results
       const rows = settingsRes.data ?? []
       const dismissed = rows.find(r => r.key === 'setup_dismissed')?.value === 'true'
       const hasVenueType = !!rows.find(r => r.key === 'venue_type')?.value

@@ -22,7 +22,7 @@ export default function Modal({ open, onClose, title, children, size = 'md' }) {
       const timer = setTimeout(() => setVisible(false), 200)
       return () => clearTimeout(timer)
     }
-  }, [open]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [open]) // eslint-disable-line react-hooks/exhaustive-deps -- animation runs only on open/close; `visible` is set here, so depending on it would cancel the exit timer
 
   useEffect(() => {
     if (!open) return

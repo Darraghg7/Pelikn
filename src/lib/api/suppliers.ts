@@ -38,8 +38,9 @@ export async function fetchSuppliers(venueId: string): Promise<Supplier[]> {
   // Migration 123 adds food_safety_cert_path and is applied by hand. Without
   // this retry a database that lacks it would render an empty supplier list.
   if (isMissingColumn(error, 'food_safety_cert_path')) {
-    ({ data } = await querySuppliers(venueId, BASE_COLUMNS))
+    ({ data, error } = await querySuppliers(venueId, BASE_COLUMNS))
   }
+  if (error) throw error
   // Column list is a runtime string, so supabase-js can't infer the row type.
   return (data ?? []) as unknown as Supplier[]
 }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import {
   fetchStaffVenueLinks, fetchStaffRoleAssignments, fetchStaffPermissionCounts, fetchStaffPermissionsFor,
   uploadStaffPhotoFile, getStaffPhotoPublicUrl, updateStaffPhotoUrl,
@@ -21,6 +21,8 @@ import ConfirmDialog from '../../components/ui/ConfirmDialog'
 import { STAFF_COLOUR_PALETTE, STAFF_PERMISSIONS, DEFAULT_STAFF_PERMISSIONS } from '../../lib/constants'
 import { saveStaffPermissions } from '../../hooks/useStaffPermissions'
 import { CARD } from '../../components/temperature/TempPageParts'
+import { reportError } from '../../lib/reportError'
+import RestrictedFieldsNotice from '../../components/ui/RestrictedFieldsNotice'
 
 const PERMISSION_ROLES  = ['staff', 'manager', 'owner']
 const PERMISSION_LABELS = { staff: 'Staff', manager: 'Manager', owner: 'Owner' }
@@ -42,6 +44,16 @@ const EMPTY_FORM = {
 }
 const DOW_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
+// Build { staffId -> [venueId, ...] } map from raw rows
+function buildLinkMap(rows) {
+  const map = {}
+  for (const row of rows) {
+    if (!map[row.staff_id]) map[row.staff_id] = []
+    map[row.staff_id].push(row.venue_id)
+  }
+  return map
+}
+
 export default function StaffMembersSection({ detailId = null, onOpen, onClose, backLabel = 'Staff' }) {
   const { staff, loading: staffLoading, reload: reloadStaff, applySaved: applySavedStaff } = useStaffManagement()
   const { roles: venueRoles } = useVenueRoles()
@@ -61,31 +73,24 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
   const [uploadingPhoto, setUploadingPhoto] = useState(false)
   const [staffRoleMap, setStaffRoleMap]     = useState({})
   const [permForm, setPermForm]             = useState(new Set(DEFAULT_STAFF_PERMISSIONS))
+  // Set when this person's saved permissions failed to load: the checklist is
+  // then only a guess, so saving must not write it over their real ones.
+  const permsUnknown = React.useRef(false)
   const [search, setSearch]                 = useState('')
   const { reload: reloadBilling }           = useBilling()  // keeps the Starter "x of 5 staff" count current
 
-  // Build { staffId -> [venueId, ...] } map from raw rows
-  const buildLinkMap = (rows) => {
-    const map = {}
-    for (const row of rows) {
-      if (!map[row.staff_id]) map[row.staff_id] = []
-      map[row.staff_id].push(row.venue_id)
-    }
-    return map
-  }
-
   // Reload cross-venue links for all current staff
-  const refreshVenueLinks = async () => {
+  const refreshVenueLinks = useCallback(async () => {
     if (!staff.length || venues.length <= 1) {
       setVenueLinks(prev => (Object.keys(prev).length === 0 ? prev : {}))
       return
     }
     const { data, error } = await fetchStaffVenueLinks(staff.map(s => s.id))
     if (!error && data) setVenueLinks(buildLinkMap(data))
-  }
+  }, [staff, venues])
 
   // Load cross-venue links on mount / when staff or venues change
-  useEffect(() => { refreshVenueLinks() }, [staff, venues])
+  useEffect(() => { refreshVenueLinks() }, [refreshVenueLinks])
 
   useEffect(() => {
     if (!staff.length || !venueRoles.length) {
@@ -94,7 +99,9 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
     }
     const staffIds = staff.map(s => s.id)
     fetchStaffRoleAssignments(staffIds)
-      .then(({ data }) => {
+      .then(({ data, error }) => {
+        // Job-title labels on the staff list only; the list itself still shows.
+        if (error) { reportError(error, 'StaffMembersSection:role-assignments'); return }
         if (!data) return
         const map = {}
         for (const a of data) {
@@ -124,6 +131,8 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
         }
         setPermCounts(counts)
       })
+      // Only a count beside each name — leave the previous counts showing.
+      .catch((err) => reportError(err, 'StaffMembersSection:permission-counts'))
   }, [staff, venueId])
 
   const uploadStaffPhoto = async (staffId, file) => {
@@ -141,7 +150,7 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
     reloadStaff()
   }
 
-  const startNew = () => { setStaffForm(EMPTY_FORM); setEditingId(null); setPermForm(new Set(DEFAULT_STAFF_PERMISSIONS)) }
+  const startNew = () => { setStaffForm(EMPTY_FORM); setEditingId(null); setPermForm(new Set(DEFAULT_STAFF_PERMISSIONS)); permsUnknown.current = false }
   const loadForm = async (s) => {
     setStaffForm({
       name:                    s.name,
@@ -166,9 +175,16 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
     })
     setEditingId(s.id)
     // Load existing permissions for this staff member
+    permsUnknown.current = false
     if (s.role === 'staff') {
-      const data = await fetchStaffPermissionsFor(s.id, venueId)
-      setPermForm(new Set(data.map(r => r.permission)))
+      try {
+        const data = await fetchStaffPermissionsFor(s.id, venueId)
+        setPermForm(new Set(data.map(r => r.permission)))
+      } catch (err) {
+        reportError(err, 'StaffMembersSection:load-permissions')
+        permsUnknown.current = true
+        toast("Couldn't load their permissions — saving won't change them.", 'error')
+      }
     } else {
       setPermForm(new Set(STAFF_PERMISSIONS.map(p => p.id)))
     }
@@ -187,7 +203,7 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
     if (!s) return
     loadForm(s)
     loadedFor.current = detailId
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- loads once per id (loadedFor guards it); startNew/loadForm are rebuilt every render and only read when the id or staff list changes
   }, [detailId, staff])
 
   // Toggle a staff member's link to another owned venue
@@ -256,14 +272,22 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
     // Newly-created staff aren't in `staff` yet at this point in the function,
     // so anything keyed on their id (extra fields, permissions, and — after
     // this save — the Roles picker below) needs their id resolved once here.
+    let newIdFailed = false
     const newId = editingId ? null : await findNewestStaffByName(venueId, staffForm.name.trim())
+      .catch((err) => {
+        // They were created; only the follow-up writes below are skipped.
+        reportError(err, 'StaffMembersSection:find-new-staff')
+        toast("Added, but couldn't finish their setup — open them again to check their details.", 'error')
+        newIdFailed = true
+        return undefined
+      })
     const targetId = editingId || newId
 
     // What actually reached the database, for the cached list (see below).
     let savedFields = null
     // Set when the main save worked but a follow-up write didn't. Each one
     // toasts its own error; the "updated" toast must not then cover it up.
-    let partialFailure = false
+    let partialFailure = newIdFailed
     if (editingId) {
       savedFields = {
         name:           staffForm.name.trim(),
@@ -297,11 +321,13 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
         if (titleErr) { partialFailure = true; toast('Saved, but failed to clear old permission title: ' + titleErr.message, 'error') }
         else if (savedFields) savedFields.permission_title_id = null
       }
-      try {
-        await saveStaffPermissions(targetId, venueId, [...permForm], session.token)
-      } catch (permErr) {
-        partialFailure = true
-        toast("Saved, but their permissions didn't update: " + (permErr?.message ?? 'please try again'), 'error')
+      if (!permsUnknown.current) {
+        try {
+          await saveStaffPermissions(targetId, venueId, [...permForm], session.token)
+        } catch (permErr) {
+          partialFailure = true
+          toast("Saved, but their permissions didn't update: " + (permErr?.message ?? 'please try again'), 'error')
+        }
       }
     }
 
@@ -429,6 +455,7 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
     return (
       <div className="flex flex-col gap-2.5">
         <StaffLimitNotice />
+        <RestrictedFieldsNotice fields={['pay', 'private']} />
         <div className="relative">
           <svg className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-ink3 dark:text-white/45" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="7" /><line x1="16.5" y1="16.5" x2="21" y2="21" /></svg>
           <input
@@ -482,6 +509,8 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
         <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6" /></svg>
         {backLabel}
       </button>
+
+      <RestrictedFieldsNotice fields={['pay', 'private']} />
 
       {/* Header */}
       <div className="flex items-center gap-2.5">

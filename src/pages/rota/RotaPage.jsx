@@ -32,6 +32,7 @@ import { useDutyTemplates } from '../../hooks/useDuties'
 import useVenueClosures from '../../hooks/useVenueClosures'
 import { useQuery } from '@tanstack/react-query'
 import StaffRotaView from './StaffRotaView'
+import LoadError from '../../components/ui/LoadError'
 
 const EMPTY_ROLES = {}
 
@@ -44,8 +45,8 @@ export default function RotaPage() {
 
   const [weekStart, setWeekStart] = useState(() => getWeekStart())
   const [numWeeks, setNumWeeks]   = useState(1)
-  const { shifts, loading, reload } = useShifts(weekStart, (isManager && !personalView) ? numWeeks : 2)
-  const { staff, loading: staffLoading } = useStaffList()
+  const { shifts, loading, isError: shiftsFailed, reload } = useShifts(weekStart, (isManager && !personalView) ? numWeeks : 2)
+  const { staff, loading: staffLoading, isError: staffFailed, reload: reloadStaff } = useStaffList()
   const crossShifts = useCrossVenueShifts(staff, weekStart, numWeeks, venueId)
   const { swaps, loading: swapsLoading, reload: reloadSwaps, pendingCount } = useShiftSwaps()
   const { unavailability, toggleAvailability } = useAvailability(weekStart, numWeeks)
@@ -184,11 +185,20 @@ export default function RotaPage() {
       roleLabel: sh.role_label,
       isClosing: sh.is_closing ?? false,
     })
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('duty_assignments')
       .select('duty_template_id')
       .eq('shift_id', sh.id)
       .maybeSingle()
+    // Saving rewrites the shift's duty from this form, so editing on a failed
+    // read would silently remove the duty — close the editor instead.
+    if (error) {
+      reportError(error, 'RotaPage:shift-duty')
+      toast("Couldn't load this shift — please try again", 'error')
+      setEditShift(null)
+      setModal(null)
+      return
+    }
     if (data) {
       setAssignDuty(true)
       setSelectedDutyId(data.duty_template_id)
@@ -602,6 +612,9 @@ export default function RotaPage() {
             )}
             {loading || staffLoading ? (
               <SkeletonList rows={4} />
+            ) : shiftsFailed || staffFailed ? (
+              // An empty grid from a failed read looks like a week with no shifts.
+              <LoadError what="the rota" onRetry={() => { reload(); reloadStaff() }} />
             ) : (
               <RotaWeekView
                 weekStart={thisWeekStart}

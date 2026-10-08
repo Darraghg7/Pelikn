@@ -153,7 +153,7 @@ function FridgeLogRow({ fridge, status, session, venueId, canLog, onSaved }) {
   // Picking an explained reason is the last step for that reading, so save it
   useEffect(() => {
     if (reason && isExplained) save()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- save once when a reason is picked; save is rebuilt on every keystroke, so listing it (or isExplained) would log duplicate readings
   }, [reason])
 
   const handleCommentKeyDown = (e) => {

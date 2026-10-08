@@ -15,7 +15,7 @@ function EHWheel({ values, value, onChange }) {
   const ref   = React.useRef(null)
   const timer = React.useRef(null)
   const idx   = Math.max(0, values.indexOf(value))
-  React.useLayoutEffect(() => { if (ref.current) ref.current.scrollTop = idx * WHEEL_IH }, [value]) // eslint-disable-line react-hooks/exhaustive-deps
+  React.useLayoutEffect(() => { if (ref.current) ref.current.scrollTop = idx * WHEEL_IH }, [idx])
   const onScroll = () => {
     clearTimeout(timer.current)
     timer.current = setTimeout(() => {

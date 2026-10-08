@@ -31,12 +31,13 @@ export function useDepartments(): {
   const { data: departments = [], isLoading: loading, refetch } = useQuery({
     queryKey: ['departments', venueId],
     queryFn: async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('departments')
         .select('id, name, sort_order, venue_id')
         .eq('venue_id', venueId)
         .order('sort_order')
         .order('name')
+      if (error) throw error
       return (data ?? []) as Department[]
     },
     enabled: !!venueId,

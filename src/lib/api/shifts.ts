@@ -18,7 +18,7 @@ export async function fetchShifts(venueId: string, weekStart: Date, numWeeks = 1
 
   // Rates come from the RPC in parallel with the shifts themselves, so this
   // stays one round trip's worth of latency rather than two.
-  const [{ data }, rates] = await Promise.all([
+  const [{ data, error }, rates] = await Promise.all([
     supabase
       .from('shifts')
       .select(SHIFT_SELECT)
@@ -28,12 +28,13 @@ export async function fetchShifts(venueId: string, weekStart: Date, numWeeks = 1
       .order('start_time'),
     fetchStaffPayRates(),
   ])
+  if (error) throw error
 
   return withEmbeddedPayRates((data ?? []) as Shift[], rates)
 }
 
 export async function fetchStaffList(venueId: string): Promise<Staff[]> {
-  const [{ data: homeStaff }, { data: links }, rates] = await Promise.all([
+  const [{ data: homeStaff, error: staffErr }, { data: links, error: linksErr }, rates] = await Promise.all([
     supabase
       .from('staff')
       .select(STAFF_SELECT)
@@ -46,6 +47,8 @@ export async function fetchStaffList(venueId: string): Promise<Staff[]> {
       .eq('venue_id', venueId),
     fetchStaffPayRates(),
   ])
+  if (staffErr) throw staffErr
+  if (linksErr) throw linksErr
 
   // Drop links whose embedded staff didn't come back. RLS filters an embedded
   // join independently of the outer row, so a link can resolve to null — which
@@ -93,7 +96,8 @@ export function insertDutyAssignment(payload: Record<string, unknown>) {
 // ── Rota publish state + payroll locks (both stored in app_settings) ─────────
 
 export async function fetchPayrollLocks(venueId: string): Promise<string[]> {
-  const { data } = await supabase.from('app_settings').select('value').eq('venue_id', venueId).eq('key', 'payroll_locks').maybeSingle()
+  const { data, error } = await supabase.from('app_settings').select('value').eq('venue_id', venueId).eq('key', 'payroll_locks').maybeSingle()
+  if (error) throw error
   try { return JSON.parse(data?.value ?? '[]') } catch { return [] }
 }
 export function upsertRotaPublished(venueId: string, weekStartStr: string, value: string) {

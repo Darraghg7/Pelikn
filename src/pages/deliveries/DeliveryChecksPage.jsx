@@ -7,11 +7,13 @@ import { useToast } from '../../components/ui/Toast'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
 import { SkeletonList } from '../../components/ui/Skeleton'
 import Modal from '../../components/ui/Modal'
+import { reportError } from '../../lib/reportError'
 import useDeliveryChecks from '../../hooks/useDeliveryChecks'
 import { useSuppliers } from '../../hooks/useSuppliers'
 import { insertSupplier } from '../../lib/api/suppliers'
 import { insertDeliveryCheck } from '../../lib/api/deliveries'
 import { TRAINING_BUCKET, deliveryPhotoPath } from '../../lib/trainingFiles'
+import LoadError from '../../components/ui/LoadError'
 // tesseract.js is ~7 MB — dynamically imported only when OCR is actually used
 
 // Local wall-clock time for a datetime-local input. toISOString() is UTC, so
@@ -30,13 +32,15 @@ function useSupplierItems(supplierId) {
   const load = useCallback(async () => {
     if (!supplierId) { setItems([]); return }
     setLoading(true)
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('supplier_items')
       .select('id, name, temp_required, min_temp, max_temp, category')
       .eq('supplier_id', supplierId)
       .eq('is_active', true)
       .order('name')
-    setItems(data ?? [])
+    // The supplier's saved items are a shortcut; items can still be typed in.
+    if (error) reportError(error, 'DeliveryChecksPage:supplier-items')
+    else setItems(data ?? [])
     setLoading(false)
   }, [supplierId])
   useEffect(() => { load() }, [load])
@@ -669,7 +673,7 @@ function DeliveryCheckModal({ open, onClose, suppliers, onSupplierAdded, onCompl
 
 export default function DeliveryChecksPage() {
   const { venueId } = useVenue()
-  const { checks, loading, reload } = useDeliveryChecks(venueId)
+  const { checks, loading, isError, reload } = useDeliveryChecks(venueId)
   const { suppliers, reload: reloadSuppliers } = useSuppliers()
   const [showCheck, setShowCheck] = useState(false)
   const [filter, setFilter] = useState('all')
@@ -729,7 +733,7 @@ export default function DeliveryChecksPage() {
       {/* Records */}
       {loading ? (
         <SkeletonList rows={4} />
-      ) : filtered.length === 0 ? (
+      ) : isError ? (<LoadError what="deliveries" onRetry={reload} />) : filtered.length === 0 ? (
         <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-10 text-center">
           <p className="text-charcoal/30 dark:text-white/30 text-sm">No delivery checks recorded yet.</p>
           <p className="text-charcoal/20 dark:text-white/20 text-xs mt-1">Tap "+ Check Delivery" to log your first one.</p>

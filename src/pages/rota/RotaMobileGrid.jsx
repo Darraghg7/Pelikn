@@ -3,6 +3,7 @@ import { format, addWeeks, isToday, differenceInCalendarWeeks } from 'date-fns'
 import { updateShift, insertShift, deleteShift, updateShiftStaff, resolveShiftSwap, upsertRotaPublished, insertShifts } from '../../lib/api/shifts'
 import { sendPush } from '../../lib/sendPush'
 import { supabase } from '../../lib/supabase'
+import { reportError } from '../../lib/reportError'
 import { useVenue } from '../../contexts/VenueContext'
 import { useShifts, useStaffList, shiftDurationHours, paidShiftHours } from '../../hooks/useShifts'
 import { useShiftSwaps } from '../../hooks/useShiftSwaps'
@@ -11,6 +12,7 @@ import { useVenueRoles } from '../../hooks/useVenueRoles'
 import { getWeekStart, getWeekDays } from '../../lib/utils'
 import { useToast } from '../../components/ui/Toast'
 import Toggle from '../../components/ui/Toggle'
+import LoadError from '../../components/ui/LoadError'
 
 const STATION_COLOR = { Kitchen: '#b5701f', FOH: '#2d7d6e', Bar: '#7a5ea8', KP: '#4f6d8a' }
 const STATION_AVATAR = {
@@ -63,7 +65,7 @@ function Wheel({ values, value, onChange, accent }) {
   const setNode = useCallback((node) => {
     ref.current = node
     if (node) node.scrollTop = Math.max(0, values.indexOf(value)) * IH
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps -- a callback ref must keep one identity or React detaches/reattaches it each change; it only sets the starting scroll, the effect below follows `value`
 
   useEffect(() => {
     const el = ref.current; if (!el) return
@@ -777,8 +779,8 @@ export default function RotaMobileGrid() {
   const [dbPublished, setDbPublished] = useState(null)   // null until loaded
   const pendingChanges = sessionChanges.length
 
-  const { shifts, loading, reload } = useShifts(weekStart, 1)
-  const { staff, loading: staffLoading } = useStaffList()
+  const { shifts, loading, isError: shiftsFailed, reload } = useShifts(weekStart, 1)
+  const { staff, loading: staffLoading, isError: staffFailed, reload: reloadStaff } = useStaffList()
   const { unavailability } = useAvailability(weekStart, 1)
   const { swaps, pendingCount, reload: reloadSwaps } = useShiftSwaps()
   const { roles } = useVenueRoles()
@@ -793,7 +795,11 @@ export default function RotaMobileGrid() {
       .eq('venue_id', venueId)
       .eq('key', `rota_published_${weekStartStr}`)
       .maybeSingle()
-      .then(({ data }) => setDbPublished(!!data?.value))
+      .then(({ data, error }) => {
+        // Left as null (unknown) on failure, so no false "never published" warning.
+        if (error) { reportError(error, 'RotaMobileGrid:published-state'); return }
+        setDbPublished(!!data?.value)
+      })
   }, [venueId, weekStart])
 
   const goWeek = (n) => {
@@ -879,6 +885,8 @@ export default function RotaMobileGrid() {
   const handleChange = (change) => { if (change) setSessionChanges(c => [...c, change]); reload() }
   const openSheet = (shift, staffMember, day) => setShiftSheet({ shift, staffMember, day })
   const isLoading = loading || staffLoading
+  // An empty grid from a failed read looks like a week with nothing on it.
+  const loadFailed = shiftsFailed || staffFailed
 
   const publishLabel = publishing ? 'Publishing…' : canPublish ? 'Publish' : dbPublished ? 'Published' : 'Publish'
 
@@ -955,6 +963,8 @@ export default function RotaMobileGrid() {
 
       {isLoading ? (
         <div className={`${CARD} h-[240px] animate-pulse`} />
+      ) : loadFailed ? (
+        <LoadError what="the rota" onRetry={() => { reload(); reloadStaff() }} className={CARD} />
       ) : view === 'week' ? (
         <WeekGrid
           days={days}
@@ -981,7 +991,7 @@ export default function RotaMobileGrid() {
         />
       )}
 
-      {!isLoading && <OpenShifts openShifts={openShifts} onFill={(o) => openSheet(o, null, o._day)} />}
+      {!isLoading && !loadFailed && <OpenShifts openShifts={openShifts} onFill={(o) => openSheet(o, null, o._day)} />}
       {!isLoading && <StationLegend />}
 
       {/* ── Sheets ── */}

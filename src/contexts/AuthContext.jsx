@@ -12,41 +12,45 @@ import { reportError } from '../lib/reportError'
 
 const AuthContext = createContext(null)
 
+// Module-level helpers: they read no component state, so keeping them out of
+// the component means the hooks below don't depend on them.
+
+// ── Resolve all venues this user owns ─────────────────────────────────
+// get_owner_venues() RPC. The old manager_email-in-app_settings fallback was
+// removed in 142: app_settings is members-only now, so it could only ever
+// find venues the RPC already returns.
+async function resolveVenues(_email, userId) {
+  if (!userId) return []
+  const { data: owned, error } = await supabase.rpc('get_owner_venues')
+  // Same outcome as the timeout below (the cached slug carries on), but an
+  // owner whose venue list silently comes back empty needs to be visible.
+  if (error) reportError(error, 'AuthContext:get_owner_venues')
+  return owned ?? []
+}
+
+function resolveVenuesSafe(email, userId, ms = 5000) {
+  return Promise.race([
+    resolveVenues(email, userId),
+    new Promise(resolve => setTimeout(() => resolve([]), ms)),
+  ])
+}
+
+// ── Pick the best slug from a list ────────────────────────────────────
+// Prefer the one stored in localStorage (last visited), else first in list
+function pickSlug(venueList) {
+  if (!venueList?.length) return null
+  try {
+    const last = localStorage.getItem('pelikn_last_venue')
+    if (last && venueList.some(v => v.slug === last)) return last
+  } catch { /* storage unavailable or corrupt — fall back to the default */ }
+  return venueList[0].slug
+}
+
 export function AuthProvider({ children }) {
   const [user, setUser]               = useState(null)
   const [venues, setVenues]           = useState([])   // all owned venues
   const [venueSlug, setVenueSlug]     = useState(null) // currently active slug
   const [authLoading, setAuthLoading] = useState(true)
-
-  // ── Resolve all venues this user owns ─────────────────────────────────
-  // get_owner_venues() RPC. The old manager_email-in-app_settings fallback was
-  // removed in 142: app_settings is members-only now, so it could only ever
-  // find venues the RPC already returns.
-  const resolveVenues = async (_email, userId) => {
-    if (!userId) return []
-    const { data: owned, error } = await supabase.rpc('get_owner_venues')
-    // Same outcome as the timeout below (the cached slug carries on), but an
-    // owner whose venue list silently comes back empty needs to be visible.
-    if (error) reportError(error, 'AuthContext:get_owner_venues')
-    return owned ?? []
-  }
-
-  const resolveVenuesSafe = (email, userId, ms = 5000) =>
-    Promise.race([
-      resolveVenues(email, userId),
-      new Promise(resolve => setTimeout(() => resolve([]), ms)),
-    ])
-
-  // ── Pick the best slug from a list ────────────────────────────────────
-  // Prefer the one stored in localStorage (last visited), else first in list
-  const pickSlug = (venueList) => {
-    if (!venueList?.length) return null
-    try {
-      const last = localStorage.getItem('pelikn_last_venue')
-      if (last && venueList.some(v => v.slug === last)) return last
-    } catch { /* storage unavailable or corrupt — fall back to the default */ }
-    return venueList[0].slug
-  }
 
   // ── Refresh venue list (called after adding a venue in Settings) ───────
   const refreshVenues = useCallback(async () => {

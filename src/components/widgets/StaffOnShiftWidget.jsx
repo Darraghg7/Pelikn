@@ -3,20 +3,20 @@ import { format } from 'date-fns'
 import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
 import { useWidgetQuery } from '../../hooks/useWidgetQuery'
-import LoadingSpinner from '../ui/LoadingSpinner'
-import { WidgetShell } from './shared'
+import { WidgetShell, WidgetPending } from './shared'
 import { londonToday } from '../../lib/time'
 
 function StaffOnShiftWidget() {
   const { venueId } = useVenue()
   const today = londonToday()
 
-  const { data } = useWidgetQuery('staff_on_shift', [venueId, today], async () => {
-    const { data: rows } = await supabase.from('shifts')
+  const { data, isError, refetch } = useWidgetQuery('staff_on_shift', [venueId, today], async () => {
+    const { data: rows, error } = await supabase.from('shifts')
       .select('id, start_time, end_time, role_label, staff:staff_id(name)')
       .eq('venue_id', venueId)
       .eq('shift_date', today)
       .order('start_time')
+    if (error) throw error
     return rows ?? []
   })
 
@@ -29,7 +29,7 @@ function StaffOnShiftWidget() {
   return (
     <WidgetShell title={title} to="/rota" linkLabel="Rota" flush={!loading && shifts.length > 0}>
       {loading ? (
-        <div className="flex justify-center py-2.5"><LoadingSpinner /></div>
+        <WidgetPending isError={isError} onRetry={refetch} className="py-2.5" />
       ) : shifts.length === 0 ? (
         <p className="text-[13px] text-ink3 dark:text-white/45 py-2">No shifts today</p>
       ) : (

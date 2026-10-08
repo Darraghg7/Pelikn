@@ -7,6 +7,7 @@ import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../../components/ui/Toast'
 import { PageSkeleton, SkeletonList } from '../../components/ui/Skeleton'
 import Modal from '../../components/ui/Modal'
+import LoadError from '../../components/ui/LoadError'
 
 // ── Procedure sections definition ─────────────────────────────────────────────
 
@@ -396,7 +397,7 @@ function ProcedureTab({ venueId }) {
 // ── Log tab ───────────────────────────────────────────────────────────────────
 
 function LogTab({ venueId }) {
-  const { logs, loading, reload } = useRecallLogs()
+  const { logs, loading, isError, reload } = useRecallLogs()
   const [showModal, setShowModal] = useState(false)
   const [editLog, setEditLog]     = useState(null)
   const [filter, setFilter]       = useState('all') // all | open | resolved
@@ -470,7 +471,7 @@ function LogTab({ venueId }) {
         {/* List */}
         {loading ? (
           <SkeletonList rows={4} />
-        ) : filtered.length === 0 ? (
+        ) : isError ? (<LoadError what="recall logs" onRetry={reload} />) : filtered.length === 0 ? (
           <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 px-6 py-10 text-center">
             <p className="text-sm text-charcoal/35 dark:text-white/30 font-medium">
               {logs.length === 0

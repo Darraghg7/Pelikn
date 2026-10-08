@@ -1,4 +1,4 @@
-import { useCallback } from 'react'
+import { useCallback, useMemo } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
 import { useVenue } from '../contexts/VenueContext'
@@ -17,7 +17,8 @@ interface VenueSettingsData {
 const EMPTY_SETTINGS: VenueSettingsData = { venue_name: '', manager_email: '', logo_url: '', fhrs_rating: null, fhrs_rated_at: null }
 
 async function fetchVenueSettings(venueId: string): Promise<VenueSettingsData> {
-  const { data } = await supabase.from('app_settings').select('key, value, venue_id').eq('venue_id', venueId)
+  const { data, error } = await supabase.from('app_settings').select('key, value, venue_id').eq('venue_id', venueId)
+  if (error) throw error
   if (!data) return EMPTY_SETTINGS
   const map = Object.fromEntries(data.map((r: { key: string; value: string }) => [r.key, r.value]))
   return {
@@ -37,7 +38,7 @@ export default function useVenueSettings(): {
   const { venueId } = useVenue()
   const queryClient = useQueryClient()
 
-  const queryKey = ['venue-settings', venueId]
+  const queryKey = useMemo(() => ['venue-settings', venueId], [venueId])
 
   const { data: settings, isLoading: loading } = useQuery({
     queryKey,
