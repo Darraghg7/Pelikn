@@ -1,4 +1,4 @@
-import { useCallback } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
 import { useVenue } from '../contexts/VenueContext'
@@ -22,10 +22,29 @@ interface QueuedItem {
   args?: { p_staff_id?: string }
 }
 
-function hasQueuedClockEvent(staffId: string): boolean {
+export function hasQueuedClockEvent(staffId: string): boolean {
   return (getQueue() as QueuedItem[]).some(item =>
     item.type === 'rpc' && item.fnName === 'record_clock_event' && item.args?.p_staff_id === staffId
   )
+}
+
+/**
+ * True while a punch for this person is still waiting on this device. The
+ * clock buttons show the new state on the tap, so without this a punch that
+ * never reached the server looked exactly like one that did — until a later
+ * read from the server quietly put it back. Polled because the queue lives in
+ * localStorage and drains in the background (OfflineBanner's sync).
+ */
+export function useQueuedClockEvent(staffId: string | null | undefined): boolean {
+  const [queued, setQueued] = useState(() => !!staffId && hasQueuedClockEvent(staffId))
+  useEffect(() => {
+    if (!staffId) { setQueued(false); return }
+    const check = () => setQueued(hasQueuedClockEvent(staffId))
+    check()
+    const id = setInterval(check, 3000)
+    return () => clearInterval(id)
+  }, [staffId])
+  return queued
 }
 
 // ── Clock status cache (localStorage) ────────────────────────────────────────
