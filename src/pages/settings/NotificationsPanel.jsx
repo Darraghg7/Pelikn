@@ -3,6 +3,7 @@ import { supabase } from '../../lib/supabase'
 import { usePushNotifications } from '../../hooks/usePushNotifications'
 import { useVenue } from '../../contexts/VenueContext'
 import { NOTIFICATION_TYPES } from '../../lib/notificationTypes'
+import { reportError } from '../../lib/reportError'
 
 function PreferenceToggle({ type, enabled, saving, onToggle }) {
   return (
@@ -47,6 +48,8 @@ export default function NotificationsPanel({ session, toast, settings }) {
       .then(({ data, error }) => {
         if (cancelled) return
         if (error) {
+          // Shows the defaults; a toggle still saves. Worth knowing about.
+          reportError(error, 'NotificationsPanel:load-preferences')
           setPreferences(defaultPreferences)
           return
         }

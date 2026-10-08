@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
+import { reportError } from '../lib/reportError'
 import { format, addWeeks } from 'date-fns'
 import type { Staff } from '../types'
 
@@ -36,12 +37,15 @@ export function useCrossVenueShifts(
   const { data } = useQuery({
     queryKey: ['cross-venue-shifts', staffIds.sort().join(','), dateFrom, dateTo, currentVenueId],
     queryFn: async () => {
-      const { data } = await supabase.rpc('get_staff_cross_venue_shifts', {
+      const { data, error } = await supabase.rpc('get_staff_cross_venue_shifts', {
         p_staff_ids:        staffIds,
         p_date_from:        dateFrom,
         p_date_to:          dateTo,
         p_exclude_venue_id: currentVenueId,
       })
+      // Read-only overlay on the rota: without it, shifts at other venues just
+      // don't show. Not worth interrupting the manager, but worth knowing.
+      if (error) reportError(error, 'useCrossVenueShifts')
       return (data ?? []) as CrossVenueShift[]
     },
     enabled: staffIds.length > 0 && !!weekStart && !!currentVenueId,

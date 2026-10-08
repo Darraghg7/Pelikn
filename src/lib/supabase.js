@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { emitDataWrite } from './cacheBus'
+import { reportError } from './reportError'
 
 export const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
   || 'https://djwgyyerxvxovicixxrp.supabase.co'
@@ -49,7 +50,7 @@ function jwtExpSeconds(jwt) {
 function syncRealtimeAuth(jwt) {
   try {
     // Async in supabase-js v2, and nothing downstream waits on it.
-    Promise.resolve(supabase.realtime.setAuth(jwt ?? null)).catch(() => {})
+    Promise.resolve(supabase.realtime.setAuth(jwt ?? null)).catch((e) => reportError(e, 'supabase:realtime-setAuth'))
   } catch { /* no realtime in this environment — REST is unaffected */ }
 }
 

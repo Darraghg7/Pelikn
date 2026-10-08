@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase'
 import { useVenue } from '../contexts/VenueContext'
 import { PLANS } from '../lib/constants'
 import { takeBootstrapSettings } from '../lib/api/bootstrap'
+import { reportError } from '../lib/reportError'
 import {
   EXTRA_FEATURE_IDS, featureNeedsPro, isSwitchedOn, withExtra, type FeatureConfig,
 } from '../lib/features'
@@ -154,8 +155,8 @@ export function useVenueFeatures() {
    * and mustn't wipe them). Saves run one at a time so quick toggles don't
    * overwrite each other.
    */
-  const save = useCallback((changes: ConfigChanges): Promise<void> => {
-    if (!venueId) return Promise.resolve()
+  const save = useCallback((changes: ConfigChanges): Promise<Error | null> => {
+    if (!venueId) return Promise.resolve(null)
     const apply = (base: FeatureConfig): FeatureConfig =>
       ({ ...base, ...(typeof changes === 'function' ? changes(base) : changes) })
 
@@ -163,19 +164,27 @@ export function useVenueFeatures() {
     const cached = queryClient.getQueryData<FeatureConfig>(queryKey)
     if (cached && !isPlaceholderData) queryClient.setQueryData(queryKey, apply(cached))
 
-    saveChain = saveChain.then(async () => {
-      const saved = await fetchFeatures(venueId).catch(() => null)
-      if (!saved) { queryClient.invalidateQueries({ queryKey }); return }
+    // Resolves to the failure (or null) rather than rejecting, so callers that
+    // don't await can't leak an unhandled rejection — but they can still tell
+    // the user. On any failure the optimistic change is rolled back.
+    const result = saveChain.then(async (): Promise<Error | null> => {
+      const saved = await fetchFeatures(venueId)
       const newConfig = apply(saved)
       queryClient.setQueryData(queryKey, newConfig)
       const { error } = await supabase
         .from('app_settings')
         .upsert({ venue_id: venueId, key: 'features', value: JSON.stringify(newConfig) })
-      if (error) queryClient.invalidateQueries({ queryKey })
+      if (error) throw error
       // Tell the other hook instances (AppShell, MobileNav…) once it's stored.
       window.dispatchEvent(new CustomEvent(FEATURES_UPDATED_EVENT, { detail: { venueId } }))
-    }).catch(() => { queryClient.invalidateQueries({ queryKey }) })
-    return saveChain
+      return null
+    }).catch((e: unknown) => {
+      queryClient.invalidateQueries({ queryKey })
+      reportError(e, 'useVenueFeatures:save')
+      return e instanceof Error ? e : new Error(String((e as { message?: string })?.message ?? e))
+    })
+    saveChain = result.then(() => { /* never rejects — the chain only orders saves */ })
+    return result
   }, [venueId, queryClient, queryKey, isPlaceholderData])
 
   /** True if the feature requires Pro and the venue is on Starter. */

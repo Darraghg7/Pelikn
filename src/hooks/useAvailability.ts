@@ -101,24 +101,35 @@ export function useAvailability(weekStart: Date, numWeeks = 1): {
 
     const current = unavailability[key]
 
+    // Throws on failure so the caller can tell the user — an availability
+    // change that silently didn't save means a rota built on the wrong days.
+    // `.select()` on update/delete: RLS can filter the row out, which
+    // PostgREST reports as success with nothing changed.
+    let result
     if (!current) {
-      await supabase
+      result = await supabase
         .from('staff_availability')
         .insert({ staff_id: staffId, date: dateStr, availability_type: 'unavailable', venue_id: venueId })
+        .select('staff_id')
     } else if (current.subtype === 'unavailable') {
-      await supabase
+      result = await supabase
         .from('staff_availability')
         .update({ availability_type: 'break_cover' })
         .eq('staff_id', staffId)
         .eq('date', dateStr)
+        .select('staff_id')
     } else {
-      await supabase
+      result = await supabase
         .from('staff_availability')
         .delete()
         .eq('staff_id', staffId)
         .eq('date', dateStr)
+        .select('staff_id')
     }
 
+    refetch()
+    if (result.error) throw result.error
+    if (!result.data?.length) throw new Error('Availability change was not saved')
     refetch()
   }, [venueId, unavailability, refetch])
 

@@ -7,6 +7,7 @@ import { useVenueFeatures, FEATURE_GROUPS, ALL_FEATURE_IDS, PRO_ONLY_FEATURE_IDS
 import { VENUE_PRESETS, DEFAULT_STAFF_PERMISSIONS } from '../../lib/constants'
 import Toggle from '../../components/ui/Toggle'
 import { useToast } from '../../components/ui/Toast'
+import { reportError } from '../../lib/reportError'
 
 /* ── Icons ───────────────────────────────────────────────────────────────────── */
 const VENUE_ICONS = {
@@ -276,9 +277,19 @@ export default function OnboardingPage() {
     setStaffEntries(prev => prev.filter((_, i) => i !== idx))
   }
 
+  // The wizard writes a dozen things in one go. Each failure is collected
+  // here (and reported) so finishing can say what didn't save instead of
+  // landing on the dashboard as if everything had.
+  const failedSteps = new Set()
+  const track = (label, error) => {
+    if (!error) return
+    failedSteps.add(label)
+    reportError(error, `OnboardingPage:${label}`)
+  }
+
   const saveModules = async () => {
     const enabled = [...enabledFeatures].filter(id => !PRO_ONLY_FEATURE_IDS.includes(id) || isPro)
-    await saveFeatures({ mode: 'custom', enabled })
+    track('modules', await saveFeatures({ mode: 'custom', enabled }))
   }
 
   const saveTeam = async () => {
@@ -298,14 +309,16 @@ export default function OnboardingPage() {
       if (error) {
         toast(`Failed to add ${entry.name}: ${error.message}`, 'error')
       } else {
-        const { data: newRow } = await supabase
+        const { data: newRow, error: lookupErr } = await supabase
           .from('staff').select('id')
           .eq('venue_id', venueId).eq('name', entry.name.trim())
           .order('created_at', { ascending: false }).limit(1)
+        track('staff permissions', lookupErr)
         if (newRow?.[0]?.id) {
-          await supabase.from('staff_permissions').insert(
+          const { error: permErr } = await supabase.from('staff_permissions').insert(
             DEFAULT_STAFF_PERMISSIONS.map(p => ({ staff_id: newRow[0].id, venue_id: venueId, permission: p }))
           )
+          track('staff permissions', permErr)
           created.push({ id: newRow[0].id, name: entry.name.trim() })
         }
       }
@@ -325,6 +338,7 @@ export default function OnboardingPage() {
         .select('id, name')
         .single()
       if (!error && data) insertedRoles.push(data)
+      else track('rota roles', error ?? new Error(`venue_roles insert returned no row for ${roleName}`))
     }
 
     // 2. Assign roles to staff
@@ -338,7 +352,8 @@ export default function OnboardingPage() {
       }
     }
     if (assignments.length > 0) {
-      await supabase.from('staff_role_assignments').insert(assignments)
+      const { error } = await supabase.from('staff_role_assignments').insert(assignments)
+      track('role assignments', error)
     }
 
     // 3. Create rota requirements for each open day × each role
@@ -362,37 +377,49 @@ export default function OnboardingPage() {
       }
     })
     if (requirements.length > 0) {
-      await supabase.from('rota_requirements').insert(requirements)
+      const { error } = await supabase.from('rota_requirements').insert(requirements)
+      track('rota requirements', error)
     }
   }
 
   const finishSetup = async () => {
     setSaving(true)
+    failedSteps.clear()
     if (selectedPreset) {
-      await supabase.from('app_settings').upsert({ venue_id: venueId, key: 'venue_type', value: selectedPreset.id }, { onConflict: 'venue_id,key' })
+      const { error } = await supabase.from('app_settings').upsert({ venue_id: venueId, key: 'venue_type', value: selectedPreset.id }, { onConflict: 'venue_id,key' })
+      track('venue type', error)
     }
-    await Promise.all([
+    const [, dayHoursRes] = await Promise.all([
       saveModules(),
       supabase.from('app_settings').upsert({ venue_id: venueId, key: 'day_hours', value: JSON.stringify(dayHours) }, { onConflict: 'venue_id,key' }),
     ])
+    track('opening hours', dayHoursRes.error)
     // Backward compat: write legacy open_time / close_time / closed_days
     const firstOpen = dayHours.find(d => d.open)
     if (firstOpen) {
-      await Promise.all([
+      const legacy = await Promise.all([
         supabase.from('app_settings').upsert({ venue_id: venueId, key: 'open_time',   value: JSON.stringify(firstOpen.start) }, { onConflict: 'venue_id,key' }),
         supabase.from('app_settings').upsert({ venue_id: venueId, key: 'close_time',  value: JSON.stringify(firstOpen.end) },   { onConflict: 'venue_id,key' }),
         supabase.from('app_settings').upsert({ venue_id: venueId, key: 'closed_days', value: JSON.stringify(dayHours.map((d, i) => d.open ? null : i).filter(x => x !== null)) }, { onConflict: 'venue_id,key' }),
       ])
+      for (const { error } of legacy) track('opening hours', error)
     }
     const createdStaff = await saveTeam()
     if (hasRotaStep) await saveRotaStep(createdStaff)
-    await supabase.from('app_settings').upsert({ venue_id: venueId, key: 'onboarding_complete', value: 'true' }, { onConflict: 'venue_id,key' })
+    const { error: completeErr } = await supabase.from('app_settings').upsert({ venue_id: venueId, key: 'onboarding_complete', value: 'true' }, { onConflict: 'venue_id,key' })
+    // Not shown to the user: the worst case is the wizard offering itself again.
+    if (completeErr) reportError(completeErr, 'OnboardingPage:onboarding_complete')
     setSaving(false)
+    if (failedSteps.size > 0) {
+      toast(`Setup finished, but some parts didn't save (${[...failedSteps].join(', ')}). You can set them in Settings.`, 'warning')
+    }
     navigate(`/v/${venueSlug}/dashboard`)
   }
 
   const skipSetup = async () => {
-    await supabase.from('app_settings').upsert({ venue_id: venueId, key: 'onboarding_complete', value: 'true' }, { onConflict: 'venue_id,key' })
+    const { error } = await supabase.from('app_settings').upsert({ venue_id: venueId, key: 'onboarding_complete', value: 'true' }, { onConflict: 'venue_id,key' })
+    // Not shown to the user: the worst case is the wizard offering itself again.
+    if (error) reportError(error, 'OnboardingPage:skip')
     navigate(`/v/${venueSlug}/dashboard`, { replace: true })
   }
 

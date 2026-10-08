@@ -26,7 +26,7 @@ export default function AppIconPicker() {
   useEffect(() => {
     import('@capacitor/core').then(({ Capacitor }) => {
       setIsNative(Capacitor.isNativePlatform())
-    }).catch(() => {})
+    }).catch(() => { /* chunk failed to load — treat as web, so the picker stays hidden */ })
   }, [])
 
   if (!isNative) return null

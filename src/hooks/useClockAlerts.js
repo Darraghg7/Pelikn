@@ -193,7 +193,7 @@ export function useClockAlerts({ staffId, status, breakStartAt, onEndBreak }) {
           : `${staffName} clocked in late`,
         url:   '/timesheet',
         roles: ['manager', 'owner'],
-      }).catch(() => {})
+      }).catch(() => { /* sendPush reports its own failures and never rejects */ })
 
       // Never let a failed lookup suppress the alert — the staff member must
       // always see the late window (and manager approval if enabled).
@@ -216,7 +216,7 @@ export function useClockAlerts({ staffId, status, breakStartAt, onEndBreak }) {
           body:  `${staffName} — ${strikes} late clock-ins in 30 days`,
           url:   '/timesheet',
           roles: ['manager', 'owner'],
-        }).catch(() => {})
+        }).catch(() => { /* sendPush reports its own failures and never rejects */ })
       }
 
       setAlert({
@@ -234,13 +234,14 @@ export function useClockAlerts({ staffId, status, breakStartAt, onEndBreak }) {
     // ── Early clock-out ──────────────────────────────────────────────────────
     if (eventType === 'clock_out') {
       const today = londonToday()
-      const { data: shifts } = await supabase
+      const { data: shifts, error: shiftsError } = await supabase
         .from('shifts')
         .select('end_time, staff:staff_id(name)')
         .eq('venue_id', venueId)
         .eq('staff_id', staffId)
         .eq('shift_date', today)
         .order('start_time')
+      if (shiftsError) { captureSilent(shiftsError, 'useClockAlerts:early-check-shift-lookup'); return }
       if (!shifts?.length) return
 
       const shift     = closestShift(shifts, today, at, 'end_time')
@@ -254,7 +255,7 @@ export function useClockAlerts({ staffId, status, breakStartAt, onEndBreak }) {
           body:  `${shift.staff?.name ?? 'A staff member'} clocked out ${minsEarly} min early`,
           url:   '/timesheet',
           roles: ['manager', 'owner'],
-        }).catch(() => {})
+        }).catch(() => { /* sendPush reports its own failures and never rejects */ })
       }
       return
     }

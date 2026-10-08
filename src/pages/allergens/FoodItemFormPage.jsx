@@ -63,10 +63,18 @@ export default function FoodItemFormPage() {
         p_allergens:     allergens,
       })
       if (itemErr) { toast(itemErr.message, 'error'); setSubmitting(false); return }
-      await supabase.from('food_items').update({
+      // Allergen information: a "may contain" list that silently didn't save
+      // is a food-safety problem, so never say "updated" unless it did.
+      // `.select('id')` because RLS filtering the row out returns no error.
+      const { data: updated, error: mayErr } = await supabase.from('food_items').update({
         may_contain_allergens:    mayContain.length > 0 ? mayContain : null,
         verbal_confirmation_note: verbalNote.trim() || null,
-      }).eq('id', id).eq('venue_id', venueId)
+      }).eq('id', id).eq('venue_id', venueId).select('id')
+      if (mayErr || !updated?.length) {
+        toast('Allergens saved, but "may contain" and the verbal note did not — please try again', 'error')
+        setSubmitting(false)
+        return
+      }
       toast('Item updated')
       navigate(`/v/${venueSlug}/allergens/${id}`)
     } else {

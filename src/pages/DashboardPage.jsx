@@ -10,6 +10,7 @@ import { useSession } from '../contexts/SessionContext'
 import { useVenue } from '../contexts/VenueContext'
 import StaffDashboardPage  from './dashboard/StaffDashboardPage'
 import ManagerDashboardPage from './dashboard/ManagerDashboardPage'
+import { reportError } from '../lib/reportError'
 
 // Once a venue is confirmed onboarded, remember it locally — the answer never
 // changes back, so later visits can skip the network check entirely and
@@ -50,9 +51,12 @@ export default function DashboardPage() {
           .eq('venue_id', venueId)
         if (typeof count === 'number' && count > 1) {
           // Existing venue — mark complete silently so it never prompts again.
-          await supabase.from('app_settings').upsert({
+          // This device remembers via localStorage either way; a failed write
+          // only means another device re-runs this same check.
+          const { error: markErr } = await supabase.from('app_settings').upsert({
             venue_id: venueId, key: 'onboarding_complete', value: 'true',
           }, { onConflict: 'venue_id,key' })
+          if (markErr) reportError(markErr, 'DashboardPage:mark-onboarded')
           localStorage.setItem(onboardedKey(venueId), 'true')
           setChecked(true)
         } else {
@@ -60,7 +64,7 @@ export default function DashboardPage() {
           navigate(`/v/${venueSlug}/setup`, { replace: true })
         }
       })
-      .catch((err) => { console.error('Onboarding check failed:', err); setChecked(true) })
+      .catch((err) => { reportError(err, 'DashboardPage:onboarding-check'); setChecked(true) })
   }, [isManager, venueId, venueSlug, navigate])
 
   if (!checked) return null

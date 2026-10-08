@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { VAPID_PUBLIC_KEY } from '../lib/constants'
+import { reportError } from '../lib/reportError'
+import { useToast } from '../components/ui/Toast'
 
 function urlBase64ToUint8Array(base64String: string): Uint8Array<ArrayBuffer> {
   const padding = '='.repeat((4 - (base64String.length % 4)) % 4)
@@ -22,6 +24,7 @@ export function usePushNotifications(staffId: string, venueId: string): {
   const [permission,  setPermission]  = useState<NotificationPermission | 'default'>('default')
   const [subscribed,  setSubscribed]  = useState(false)
   const [subscribing, setSubscribing] = useState(false)
+  const toast = useToast() as ((message: string, type?: string) => void) | null
 
   useEffect(() => {
     if ('Notification' in window && 'serviceWorker' in navigator && 'PushManager' in window) {
@@ -53,20 +56,24 @@ export function usePushNotifications(staffId: string, venueId: string): {
       })
 
       const { endpoint, keys } = sub.toJSON() as { endpoint?: string; keys?: { p256dh: string; auth: string } }
-      await supabase.from('push_subscriptions').upsert({
+      const { error } = await supabase.from('push_subscriptions').upsert({
         staff_id: staffId,
         venue_id: venueId,
         endpoint,
         p256dh:   keys?.p256dh,
         auth_key: keys?.auth,
       }, { onConflict: 'staff_id,endpoint' })
+      // Without the stored subscription the server has nowhere to send alerts,
+      // so don't show "on" — the browser side alone does nothing.
+      if (error) throw error
 
       setSubscribed(true)
     } catch (err) {
-      console.warn('Push subscription failed:', err)
+      reportError(err, 'usePushNotifications:subscribe')
+      toast?.("Couldn't turn on notifications. Please try again.", 'error')
     }
     setSubscribing(false)
-  }, [supported, staffId, venueId])
+  }, [supported, staffId, venueId, toast])
 
   const unsubscribe = useCallback(async () => {
     if (!supported) return
@@ -74,10 +81,13 @@ export function usePushNotifications(staffId: string, venueId: string): {
     const sub = await reg.pushManager.getSubscription()
     if (sub) {
       await sub.unsubscribe()
-      await supabase.from('push_subscriptions')
+      // The browser subscription is gone, so this device gets nothing either
+      // way; a leftover row only means failed sends server-side. Report it.
+      const { error } = await supabase.from('push_subscriptions')
         .delete()
         .eq('staff_id', staffId)
         .eq('endpoint', sub.endpoint)
+      if (error) reportError(error, 'usePushNotifications:unsubscribe')
     }
     setSubscribed(false)
   }, [supported, staffId])

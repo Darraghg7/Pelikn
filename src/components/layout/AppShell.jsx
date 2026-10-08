@@ -388,7 +388,7 @@ function useSidebarSections(venueId, localPath) {
     try {
       const stored = localStorage.getItem(storageKey)
       if (stored) return JSON.parse(stored)
-    } catch {}
+    } catch { /* storage unavailable or corrupt — fall back to the default */ }
     return defaultSections()
   })
 
@@ -404,7 +404,7 @@ function useSidebarSections(venueId, localPath) {
   const toggle = useCallback((section) => {
     setSections(prev => {
       const next = { ...prev, [section]: !prev[section] }
-      try { localStorage.setItem(storageKey, JSON.stringify(next)) } catch {}
+      try { localStorage.setItem(storageKey, JSON.stringify(next)) } catch { /* storage unavailable (private mode / quota) — preference just won't persist */ }
       return next
     })
   }, [storageKey])
@@ -479,7 +479,7 @@ export default function AppShell({ children }) {
     try { return localStorage.getItem('navc.panelCollapsed') === '1' } catch { return false }
   })
   useEffect(() => {
-    try { localStorage.setItem('navc.panelCollapsed', panelCollapsed ? '1' : '0') } catch {}
+    try { localStorage.setItem('navc.panelCollapsed', panelCollapsed ? '1' : '0') } catch { /* storage unavailable (private mode / quota) — preference just won't persist */ }
   }, [panelCollapsed])
 
   // ⌘\ / Ctrl+\ toggles panel

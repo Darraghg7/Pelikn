@@ -1,4 +1,5 @@
 import React from 'react'
+import { reportError } from '../../lib/reportError'
 
 export default class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -13,17 +14,9 @@ export default class ErrorBoundary extends React.Component {
   componentDidCatch(error, info) {
     console.error('ErrorBoundary caught:', error, info)
     // An error caught here never reaches window.onerror, so Sentry's global
-    // handler can't see it — report it explicitly. Loaded on demand (same
-    // reason as reportError.js); a no-op if main.jsx skipped Sentry.init.
-    import('@sentry/react')
-      .then((Sentry) => {
-        Sentry.captureException(error, {
-          contexts: { react: { componentStack: info?.componentStack } },
-        })
-      })
-      .catch(() => {
-        /* error reporting must never itself throw */
-      })
+    // handler can't see it — report it explicitly. Not tagged silent: the
+    // user is looking at the fallback screen.
+    reportError(error, { componentStack: info?.componentStack }, { silent: false })
   }
 
   render() {
