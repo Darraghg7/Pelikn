@@ -80,13 +80,18 @@ export async function offlineUpdate(table, recordId, payload, idColumn = 'id') {
 // payroll record; dropping it silently is worse than retrying it.
 const AUTH_REFUSED = '42501'
 
+// The device's session ended under it (migration 146: revoked, signed out,
+// expired). The app goes back to the PIN screen; once someone signs in again
+// the punch replays under the new session, so it is kept like a refusal.
+const SESSION_ENDED = 'PK401'
+
 // …but not forever: something still refused after a week is never going to
 // be allowed (the person left, the venue was unlinked), and a stuck clock
 // event would keep useClockStatus showing a stale state on this device.
 const AUTH_RETRY_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000
 
 function shouldKeepRefused(item, error) {
-  if (error?.code !== AUTH_REFUSED) return false
+  if (error?.code !== AUTH_REFUSED && error?.code !== SESSION_ENDED) return false
   const queuedAt = Date.parse(item.timestamp)
   return Number.isFinite(queuedAt) && Date.now() - queuedAt < AUTH_RETRY_MAX_AGE_MS
 }

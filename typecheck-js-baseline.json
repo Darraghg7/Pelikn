@@ -34,7 +34,6 @@
   "src/lib/__tests__/loginScreenState.test.js": 1,
   "src/lib/__tests__/offlineSupabase.test.js": 4,
   "src/lib/__tests__/plans.test.jsx": 2,
-  "src/lib/__tests__/sessionJwt.test.js": 8,
   "src/lib/__tests__/time.test.js": 4,
   "src/lib/__tests__/timeOff.test.js": 8,
   "src/lib/__tests__/venueDocuments.test.js": 1,

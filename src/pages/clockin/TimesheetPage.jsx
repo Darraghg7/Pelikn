@@ -14,6 +14,7 @@ import { countWorkingDaysInRequest } from '../../hooks/useLeaveBalance'
 import { SkeletonList } from '../../components/ui/Skeleton'
 import AddSessionModal from './AddSessionModal'
 import ClockEditApprovalCard from '../../components/shifts/ClockEditApprovalCard'
+import RestrictedFieldsNotice from '../../components/ui/RestrictedFieldsNotice'
 import { formatLondon, resolveShiftInstants } from '../../lib/time'
 import { buildTimesheets, buildDailyGrid, partitionDaySessions, breakMinutes, sessionMinutes } from '../../lib/timesheet'
 import { offlineRpc } from '../../lib/offlineSupabase'
@@ -649,6 +650,7 @@ export default function TimesheetPage() {
   return (
     <div className="flex flex-col gap-2.5 max-w-3xl text-ink dark:text-white">
       {isManager && <ClockEditApprovalCard />}
+      <RestrictedFieldsNotice fields={['pay', 'private']} />
 
       {/* Header */}
       <div className="flex flex-col gap-1">
