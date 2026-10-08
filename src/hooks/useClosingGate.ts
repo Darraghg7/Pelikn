@@ -1,4 +1,4 @@
-import { useCallback } from 'react'
+import { useCallback, useMemo } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
 import { useVenue } from '../contexts/VenueContext'
@@ -40,7 +40,7 @@ export function useClosingGate(staffId: string | null | undefined) {
   const queryClient = useQueryClient()
   const today = londonToday()
 
-  const queryKey = ['closingGate', venueId, staffId, today]
+  const queryKey = useMemo(() => ['closingGate', venueId, staffId, today], [venueId, staffId, today])
 
   const { data, isLoading, refetch } = useQuery({
     queryKey,

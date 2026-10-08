@@ -23,9 +23,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # Gates react-hooks/rules-of-hooks, which is an error. React #310 shipped
-      # to production three times before this step existed. exhaustive-deps is a
-      # warning and does not fail the build — see eslint.config.js.
+      # Gates react-hooks/rules-of-hooks (React #310 shipped to production three
+      # times before this step existed) and react-hooks/exhaustive-deps (stale
+      # data until reload). Both are errors — see eslint.config.js.
       - name: Lint
         run: npm run lint
 

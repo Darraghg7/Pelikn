@@ -1,4 +1,4 @@
-import { useCallback } from 'react'
+import { useCallback, useMemo } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
 import { useVenue } from '../contexts/VenueContext'
@@ -233,7 +233,7 @@ export function useAppSettings() {
   const queryClient = useQueryClient()
   const toast = useToast() as ((message: string, type?: string) => void) | null
 
-  const queryKey = ['app-settings', venueId]
+  const queryKey = useMemo(() => ['app-settings', venueId], [venueId])
 
   const { data, isLoading: loading } = useQuery({
     queryKey,

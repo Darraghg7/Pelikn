@@ -101,7 +101,7 @@ export default function StaffRotaView({ shifts, staff, loading, weekStart, prevW
         }
         setReqs(map)
       })
-  }, [session?.staffId, venueId]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [session?.staffId, venueId])
 
   // Filter clock sessions to the current week
   const weekDateStrs = weekDays.map(d => format(d, 'yyyy-MM-dd'))
