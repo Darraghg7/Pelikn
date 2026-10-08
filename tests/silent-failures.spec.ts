@@ -3,12 +3,12 @@
  * layer (so nothing reaches the real test venue) and checks the user sees an
  * error toast — and no success message.
  */
-import { test, expect } from '@playwright/test'
+import { test, expect, type Page, type Route } from '@playwright/test'
 import { goto } from './helpers/nav'
 import { SUPABASE_URL } from './helpers/auth-bypass'
 
-const failAppSettingsWrites = async (page) => {
-  await page.route(`${SUPABASE_URL}/rest/v1/app_settings**`, (route) => {
+const failAppSettingsWrites = async (page: Page) => {
+  await page.route(`${SUPABASE_URL}/rest/v1/app_settings**`, (route: Route) => {
     if (route.request().method() === 'GET') return route.continue()
     return route.fulfill({
       status: 500,

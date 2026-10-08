@@ -49,7 +49,7 @@ describe('useVenueFeatures.save', () => {
     let outcome
     await act(async () => { outcome = await result.current.setExtra('recall', true) })
     expect(outcome).toBeInstanceOf(Error)
-    expect(outcome.message).toMatch(/row-level security/)
+    expect(String(outcome)).toMatch(/row-level security/)
     // Rolled back: the extra is not shown as on.
     await waitFor(() => expect(result.current.isSwitchedOn('recall')).toBe(false))
   })
