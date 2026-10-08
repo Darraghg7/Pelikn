@@ -211,14 +211,29 @@ Deno.serve(async (req) => {
       // JWT refresh, venue switching and the login fallback never got a JWT.
       // A signed-out session is deleted by invalidate_staff_session, so
       // existence plus expires_at is the whole validity check.
-      const { data: row } = await db
+      //
+      // Since 146 the app treats a 401 or 403 here as "this session is over"
+      // and returns to the PIN screen, so those mean exactly that. A database
+      // fault is a 503: try again later, nobody gets signed out over a blip.
+      const { data: row, error: rowErr } = await db
         .from('staff_sessions')
-        .select('staff_id, venue_id, expires_at')
+        .select('staff_id, venue_id, expires_at, staff(is_active)')
         .eq('token', session_token)
-        .single()
+        .maybeSingle()
 
+      // 22P02: the token isn't even a uuid — no such session, not a fault.
+      if (rowErr?.code === '22P02') return json({ error: 'Invalid or expired session' }, 401)
+      if (rowErr) {
+        console.error('pin-login: issue_jwt session lookup failed', rowErr)
+        return json({ error: 'Session check unavailable' }, 503)
+      }
       if (!row) return json({ error: 'Invalid or expired session' }, 401)
       if (new Date(row.expires_at) < new Date()) return json({ error: 'Session expired' }, 401)
+      // Same rule as current_venue_id() (146): a deactivated person's session
+      // no longer opens the venue, so don't hand out a JWT the database will
+      // refuse anyway.
+      const staffRow = Array.isArray(row.staff) ? row.staff[0] : row.staff
+      if (staffRow?.is_active === false) return json({ error: 'Account inactive' }, 401)
 
       // The session's venue_id must match the requested venue_id
       // (switch_staff_venue already updated this before calling issue_jwt)

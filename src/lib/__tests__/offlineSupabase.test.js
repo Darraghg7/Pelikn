@@ -155,6 +155,13 @@ describe('syncQueue', () => {
     expect(getQueue()).toHaveLength(0)
   })
 
+  it('keeps a clock event refused because the session ended (PK401, 146) for after the next sign-in', async () => {
+    enqueueRpc('record_clock_event', { p_staff_id: 's1', p_event_type: 'clock_in', p_venue_id: 'v1' })
+    mockRpc.mockResolvedValue({ error: { code: 'PK401', message: 'Session ended' } })
+    expect(await syncQueue()).toEqual({ synced: 0, failed: 0 })
+    expect(getQueue()).toHaveLength(1)
+  })
+
   it('drops a not-allowed item once it is over a week old', async () => {
     enqueueRpc('record_clock_event', { p_staff_id: 's1', p_event_type: 'clock_in' })
     const q = getQueue()
