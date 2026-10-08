@@ -39,7 +39,7 @@ interface ProFeature {
 }
 
 export const PRO_ONLY: ProFeature[] = [
-  { label: 'Rota builder with smart auto-fill',  gates: ['rota'] },
+  { label: 'Rota builder with auto-fill from your staffing needs', gates: ['rota'] },
   { label: 'Timesheets & payroll export',        gates: ['timesheet'] },
   { label: 'Clock in/out & break tracking',      gates: ['clock-in'] },
   { label: 'Training records & expiry alerts',   gates: ['training'] },

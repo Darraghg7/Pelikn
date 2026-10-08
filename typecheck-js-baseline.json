@@ -79,7 +79,7 @@
   "src/pages/overview/OverviewPage.jsx": 3,
   "src/pages/pestcontrol/PestControlPage.jsx": 1,
   "src/pages/recall/RecallPage.jsx": 8,
-  "src/pages/rota/RotaAIModal.jsx": 1,
+  "src/pages/rota/RotaAutoFillModal.jsx": 1,
   "src/pages/rota/RotaBuilderModal.jsx": 1,
   "src/pages/rota/RotaConfigModal.jsx": 3,
   "src/pages/rota/RotaMobileGrid.jsx": 1,

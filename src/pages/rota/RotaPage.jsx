@@ -22,7 +22,7 @@ import { useVenueRoles, loadAllStaffRolesForVenue } from '../../hooks/useVenueRo
 import RotaWeekView from './RotaWeekView'
 import { shareRotaImage } from '../../lib/rotaImageExport'
 import RotaBuilderModal from './RotaBuilderModal'
-import RotaAIModal from './RotaAIModal'
+import RotaAutoFillModal from './RotaAutoFillModal'
 import RotaConfigModal from './RotaConfigModal'
 import RotaToolbar from './RotaToolbar'
 import RotaShiftModal from './RotaShiftModal'
@@ -53,15 +53,15 @@ export default function RotaPage() {
   const { roles: venueRoles } = useVenueRoles()
 
   // ── Staff roles map (for auto-fill) ──
-  // Only the AI auto-fill reads this, so it loads when that modal opens.
+  // Only the auto-fill reads this, so it loads when that modal opens.
   // Keyed on the cross-venue ids, not the staff array: that array is rebuilt
   // on most renders, and depending on it re-ran these queries in a loop.
   const crossVenueKey = staff.filter(s => s._crossVenue).map(s => s.id).sort().join(',')
-  const [showAI, setShowAI] = useState(false)
+  const [showAutoFill, setShowAutoFill] = useState(false)
   const { data: staffRoles = EMPTY_ROLES } = useQuery({
     queryKey: ['staff_roles_for_autofill', venueId, crossVenueKey],
     queryFn: () => loadAllStaffRolesForVenue(venueId, crossVenueKey ? crossVenueKey.split(',') : []),
-    enabled: !!venueId && showAI,
+    enabled: !!venueId && showAutoFill,
     staleTime: 5 * 60_000,
   })
 
@@ -467,7 +467,7 @@ export default function RotaPage() {
           closureMode={closureMode}
           showConfig={showConfig}
           setShowConfig={setShowConfig}
-          setShowAI={setShowAI}
+          setShowAutoFill={setShowAutoFill}
           emailRota={emailRota}
           emailing={emailing}
           shiftsCount={shifts.length}
@@ -667,10 +667,10 @@ export default function RotaPage() {
         />
       )}
 
-      {/* ── AI auto-fill modal ── */}
-      <RotaAIModal
-        open={showAI}
-        onClose={() => setShowAI(false)}
+      {/* ── Auto-fill modal ── */}
+      <RotaAutoFillModal
+        open={showAutoFill}
+        onClose={() => setShowAutoFill(false)}
         weekStart={weekStart}
         onSave={batchSaveShifts}
         staff={staff}

@@ -12,7 +12,7 @@ function SectionLabel({ children }) {
 
 const STAGES = { CONFIRM: 'confirm', LOADING: 'loading', PREVIEW: 'preview' }
 
-export default function RotaAIModal({
+export default function RotaAutoFillModal({
   open,
   onClose,
   weekStart,
@@ -90,13 +90,14 @@ export default function RotaAIModal({
   }
 
   return (
-    <Modal open={open} onClose={handleClose} title="Auto-fill Rota">
+    <Modal open={open} onClose={handleClose} title="Auto-fill rota">
       <div className="flex flex-col gap-5 max-h-[80vh] overflow-y-auto">
 
         {/* ── Stage: Confirm ── */}
         {stage === STAGES.CONFIRM && (
           <>
             <div className="rounded-xl bg-brand/6 border border-brand/12 px-5 py-4">
+              <p className="text-xs text-charcoal/60 dark:text-white/50 mb-3">Fills empty shifts from your staffing needs and who's available. You can check every shift before saving.</p>
               <p className="text-sm font-medium text-charcoal dark:text-white mb-1">Week of {weekLabel}</p>
               {reqLoading ? (
                 <p className="text-xs text-charcoal/40 dark:text-white/35 animate-pulse">Loading requirements…</p>
@@ -167,9 +168,9 @@ export default function RotaAIModal({
               className="bg-brand text-cream py-3.5 rounded-xl text-sm font-semibold hover:bg-brand/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+                <path d="M8 2v4"/><path d="M16 2v4"/><path d="M21 13V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8"/><path d="M3 10h18"/><path d="M16 19h6"/><path d="M19 16v6"/>
               </svg>
-              Auto-fill Rota
+              Auto-fill rota
             </button>
           </>
         )}

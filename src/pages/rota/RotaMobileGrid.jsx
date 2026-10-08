@@ -393,8 +393,8 @@ function SwapSheet({ swaps, onClose, onResolved }) {
   )
 }
 
-// ── AI Sheet ──────────────────────────────────────────────────────────────────
-function AISheet({ openShifts, staff, unavailability = {}, venueId, onClose, onFilled }) {
+// ── Auto-fill Sheet ────────────────────────────────────────────────────────────
+function AutoFillSheet({ openShifts, staff, unavailability = {}, venueId, onClose, onFilled }) {
   const [filling, setFilling] = useState(false)
   const toast = useToast()
 
@@ -433,11 +433,11 @@ function AISheet({ openShifts, staff, unavailability = {}, venueId, onClose, onF
         <div className="w-[38px] h-1 rounded-sm bg-charcoal/10 dark:bg-white/10 mx-auto mb-[14px]" />
         <div className="flex items-center gap-[11px]">
           <span className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'rgba(201,79,42,0.10)', color: '#c94f2a' }}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><path d="M21 13V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8"/><path d="M3 10h18"/><path d="M16 19h6"/><path d="M19 16v6"/></svg>
           </span>
           <div className="flex-1 min-w-0">
             <div className="text-[17px] font-semibold tracking-[-0.015em] text-charcoal dark:text-white">Auto-fill gaps</div>
-            <div className="text-xs text-charcoal/50 dark:text-white/40 mt-px">Suggests staff for uncovered shifts</div>
+            <div className="text-xs text-charcoal/50 dark:text-white/40 mt-px">Matches free staff to empty shifts by role</div>
           </div>
         </div>
         <div className="mt-[14px] font-mono text-[9.5px] text-charcoal/50 dark:text-white/40 uppercase tracking-[0.07em] font-semibold">{openShifts.length} gaps to cover</div>
@@ -462,7 +462,7 @@ function AISheet({ openShifts, staff, unavailability = {}, venueId, onClose, onF
           className="mt-4 w-full h-[50px] rounded-[13px] border-none flex items-center justify-center gap-2 text-[15px] font-bold"
           style={{ cursor: openShifts.length ? 'pointer' : 'default', background: openShifts.length ? '#c94f2a' : '#e4e6e2', color: openShifts.length ? '#fff' : '#b3b9b5' }}
         >
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg>
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><path d="M21 13V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8"/><path d="M3 10h18"/><path d="M16 19h6"/><path d="M19 16v6"/></svg>
           {filling ? 'Filling…' : `Draft ${openShifts.length || ''} suggestions`}
         </button>
         <div className="font-mono text-[10px] text-charcoal/30 dark:text-white/30 text-center mt-[9px] tracking-[0.02em]">Added to draft — nothing sent until you publish</div>
@@ -767,7 +767,7 @@ export default function RotaMobileGrid() {
   const [dayIndex, setDayIndex] = useState(() => { const i = getWeekDays(getWeekStart()).findIndex(d => isToday(d)); return i < 0 ? 0 : i })
   const [shiftSheet, setShiftSheet] = useState(null)
   const [showSwaps, setShowSwaps]   = useState(false)
-  const [showAI, setShowAI]         = useState(false)
+  const [showAutoFill, setShowAutoFill] = useState(false)
   const [showCost, setShowCost]     = useState(false)
   // Unpublished edits made this session, newest last. Each entry lets Discard
   // undo the change: { type: 'add', id } | { type: 'edit', before } | { type: 'delete', before }
@@ -936,10 +936,10 @@ export default function RotaMobileGrid() {
         <Segmented label="Show" options={[[false, 'Hours'], [true, '£']]} value={showCost} onChange={setShowCost} />
         <button
           type="button"
-          onClick={() => setShowAI(true)}
+          onClick={() => setShowAutoFill(true)}
           className="h-[38px] px-3 rounded-xl bg-brand-tint dark:bg-white/10 inline-flex items-center gap-1.5 text-[13px] font-semibold text-brand dark:text-white shrink-0"
         >
-          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z" /></svg>
+          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><path d="M21 13V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8"/><path d="M3 10h18"/><path d="M16 19h6"/><path d="M19 16v6" /></svg>
           Auto-fill
         </button>
       </div>
@@ -1004,13 +1004,13 @@ export default function RotaMobileGrid() {
           onResolved={() => { reloadSwaps(); reload() }}
         />
       )}
-      {showAI && (
-        <AISheet
+      {showAutoFill && (
+        <AutoFillSheet
           openShifts={openShifts}
           staff={staff}
           unavailability={unavailability}
           venueId={venueId}
-          onClose={() => setShowAI(false)}
+          onClose={() => setShowAutoFill(false)}
           onFilled={() => {
             // Auto-fill assigns staff to previously-open shifts; record each as an
             // edit so Discard can unassign them (revert staff_id back to null).
