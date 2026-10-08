@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import ExtrasLinks from '../../components/ui/ExtrasLinks'
 import { useVenue } from '../../contexts/VenueContext'
 import { useTeamStatus } from '../../hooks/useTeamStatus'
 import { useAppSettings } from '../../hooks/useSettings'
@@ -303,6 +304,8 @@ export default function TeamHubPage() {
           ))}
         </div>
       )}
+
+      {!editMode && <ExtrasLinks ids={['tips', 'noticeboard']} className="mt-4" />}
     </div>
   )
 }

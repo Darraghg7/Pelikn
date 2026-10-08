@@ -4,7 +4,7 @@ import { PLANS } from '../../lib/constants'
 
 const COMPLIANCE_NAV_ITEMS = [
   { key: 'opening-closing', label: 'Opening & Closing Checks', feature: 'opening_closing' },
-  { key: 'fitness',         label: 'Fitness to Work',          feature: null },
+  { key: 'fitness',         label: 'Fitness to Work',          feature: 'fitness' },
   { key: 'fridge',          label: 'Fridge Temps',             feature: 'fridge' },
   { key: 'cooking-temps',   label: 'Cooking Temps',            feature: null },
   { key: 'hot-holding',     label: 'Hot Holding',              feature: null },

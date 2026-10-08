@@ -4,6 +4,10 @@ import { useVenue } from '../../contexts/VenueContext'
 import { useVenueFeatures, FEATURE_GROUPS, PRO_ONLY_FEATURE_IDS } from '../../hooks/useVenueFeatures'
 import { PLANS } from '../../lib/constants'
 import { PRO_PRICE } from '../../lib/pricing'
+import { EXTRA_FEATURES, getExtraFeature } from '../../lib/features'
+
+// Optional extras (off until switched on in Settings → Features) get their own group.
+const EXTRAS_GROUP = { id: 'extras', label: 'Optional extras', description: '', features: EXTRA_FEATURES }
 
 /**
  * Feature guide for Settings → Help & Support: every module grouped, with a
@@ -47,6 +51,15 @@ const FEATURE_ICONS = {
   corrective:      '📋',
   waste:           '🗑️',
   orders:          '🛒',
+  fitness:         '💪',
+  recall:          '↩️',
+  complaints:      '💬',
+  haccp:           '🗂️',
+  eho_mock:        '🔍',
+  equipment_maintenance: '🔧',
+  date_labelling:  '🏷️',
+  tips:            '💷',
+  noticeboard:     '📌',
   rota:            '📅',
   timesheet:       '⏱️',
   training:        '🎓',
@@ -61,7 +74,7 @@ const GROUP_LABELS = {
 }
 
 function FeatureRow({ feature, venueSlug, locked, first }) {
-  const route = FEATURE_ROUTES[feature.id]
+  const route = FEATURE_ROUTES[feature.id] ?? getExtraFeature(feature.id)?.path.slice(1)
   const icon  = FEATURE_ICONS[feature.id] ?? '✦'
 
   return (
@@ -145,7 +158,7 @@ export default function FeatureGuide() {
     <>
       <div className="font-mono text-[11px] font-semibold tracking-[0.08em] uppercase text-charcoal/50 dark:text-white/40 pt-[18px] pb-[7px] px-0.5">Feature guide</div>
       <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[14px] overflow-hidden">
-        {FEATURE_GROUPS.map((group, i) => (
+        {[...FEATURE_GROUPS, EXTRAS_GROUP].map((group, i) => (
           <FeatureGroup key={group.id} group={group} venueSlug={venueSlug} venuePlan={venuePlan} first={i === 0} />
         ))}
       </div>

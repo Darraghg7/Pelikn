@@ -6,6 +6,12 @@ import { useAppSettings } from '../../hooks/useSettings'
 import { useTodaySummary } from '../../hooks/useTodaySummary'
 import { useChecksStatus } from '../../hooks/useChecksStatus'
 import { exportEHOReport } from '../../lib/exportData'
+import { useVenueFeatures } from '../../hooks/useVenueFeatures'
+import { checkTileEnabled } from '../../lib/features'
+import ExtrasLinks from '../../components/ui/ExtrasLinks'
+
+// Switched-on extras that don't have a tile above (fitness and HACCP do).
+const CHECKS_EXTRAS = ['recall', 'complaints', 'eho_mock', 'equipment_maintenance', 'date_labelling', 'waste', 'orders']
 
 const STATUS_TONE = {
   overdue: { statusBg: 'bg-danger/10',  statusText: 'text-danger',  statusFg: 'bg-danger',  rank: 0 },
@@ -143,6 +149,9 @@ export default function ChecksHubPage() {
   const { venueId, venueSlug, venueName } = useVenue()
   const { session } = useSession()
   const { actionSchedules, closedDays, hiddenCheckTiles, saveHiddenCheckTiles } = useAppSettings()
+  const { isEnabled } = useVenueFeatures()
+  // Tiles for switched-off features don't exist here at all (not even in Edit).
+  const checks = CHECKS.filter(c => checkTileEnabled(c.id, isEnabled))
 
   const [editMode, setEditMode] = useState(false)
   const [localHidden, setLocalHidden] = useState([])
@@ -168,8 +177,8 @@ export default function ChecksHubPage() {
   }
 
   const ordered = editMode
-    ? CHECKS.map(c => ({ ...c, statusInfo: statuses[c.id] ?? { status: 'na', statusText: isLoading ? '…' : '—' } }))
-    : CHECKS
+    ? checks.map(c => ({ ...c, statusInfo: statuses[c.id] ?? { status: 'na', statusText: isLoading ? '…' : '—' } }))
+    : checks
         .filter(c => !(hiddenCheckTiles ?? []).includes(c.id))
         .map(c => ({ ...c, statusInfo: statuses[c.id] ?? { status: 'na', statusText: isLoading ? '…' : '—' } }))
         .sort((a, b) => (STATUS_TONE[a.statusInfo.status]?.rank ?? 4) - (STATUS_TONE[b.statusInfo.status]?.rank ?? 4))
@@ -293,6 +302,8 @@ export default function ChecksHubPage() {
           </div>
         </div>
       )}
+
+      {!editMode && <ExtrasLinks ids={CHECKS_EXTRAS} className="mt-4" />}
     </div>
   )
 }

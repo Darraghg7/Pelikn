@@ -68,7 +68,7 @@ describe('the gate matches the Pro feature list', () => {
     for (const id of ['date_labelling', 'equipment_maintenance', 'probe', 'pest_control', 'corrective', 'recall', 'complaints', 'fitness', 'documents', 'audit']) {
       expect(isProFeature(id)).toBe(false)
     }
-    expect(PRO_ONLY_FEATURE_IDS).toEqual(['waste', 'orders', 'rota', 'timesheet', 'training', 'time_off', 'tips'])
+    expect(PRO_ONLY_FEATURE_IDS).toEqual(['rota', 'timesheet', 'training', 'time_off', 'haccp', 'eho_mock', 'tips', 'noticeboard', 'waste', 'orders'])
   })
 
   it('non-food-hygiene records are Pro (Starter is the hygiene minimum)', () => {
