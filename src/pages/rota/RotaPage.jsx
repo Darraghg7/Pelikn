@@ -21,7 +21,6 @@ import { useAppSettings } from '../../hooks/useSettings'
 import { useVenueRoles, loadAllStaffRolesForVenue } from '../../hooks/useVenueRoles'
 import RotaWeekView from './RotaWeekView'
 import { shareRotaImage } from '../../lib/rotaImageExport'
-import RotaBuilderModal from './RotaBuilderModal'
 import RotaAutoFillModal from './RotaAutoFillModal'
 import RotaConfigModal from './RotaConfigModal'
 import RotaToolbar from './RotaToolbar'
@@ -127,7 +126,6 @@ export default function RotaPage() {
 
   const effectiveClosedDates = closureMode && pendingClosed != null ? pendingClosed : closedDates
 
-  const [showBuilder, setShowBuilder] = useState(false)
   const [showConfig, setShowConfig]   = useState(false)
 
   // Shift modal state
@@ -647,23 +645,6 @@ export default function RotaPage() {
           setAssignDuty={setAssignDuty}
           selectedDutyId={selectedDutyId}
           setSelectedDutyId={setSelectedDutyId}
-        />
-      )}
-
-      {/* ── Manager: rota builder modal ── */}
-      {isManager && (
-        <RotaBuilderModal
-          open={showBuilder}
-          onClose={() => setShowBuilder(false)}
-          weekStart={weekStart}
-          days={getWeekDays(weekStart)}
-          staff={staff}
-          shifts={shifts.filter(sh => sh.week_start === format(weekStart, 'yyyy-MM-dd'))}
-          unavailability={unavailability}
-          onSave={batchSaveShifts}
-          jobTitles={venueRoles.map(r => r.name)}
-          closedDays={closedDays}
-          breakDurationMins={breakDurationMins}
         />
       )}
 
