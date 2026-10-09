@@ -292,18 +292,24 @@ export function SessionProvider({ children }) {
   // it was signed out elsewhere, it expired, or the person was deactivated):
   // since 146 the database refuses the JWT, and pin-login won't re-issue it.
   // Go back to the PIN screen rather than leave every screen erroring.
+  //
+  // Only the PIN layer is dropped. An owner signed in by email keeps their
+  // Supabase Auth login and lands on this venue's PIN screen, which is where
+  // every route without a PIN session goes (RequireAuth).
   useEffect(() => {
     registerSessionEndedHandler((endedToken) => {
       const current = localStorage.getItem(SESSION_TOKEN_KEY)
       // A late answer about a session that has since been replaced (signed in
-      // again, switched venue) must not sign the new one out.
-      if (endedToken && current !== endedToken) return
+      // again, switched venue) must not sign the new one out — and false tells
+      // the Supabase client to keep the new session's JWT, too.
+      if (endedToken && current !== endedToken) return false
       const staffId = localStorage.getItem(SESSION_ID_KEY)
       clearStorage()
       // The offline sign-in cache holds the dead token; offline PIN entry
       // would only bring it back. The next online sign-in rebuilds it.
       if (staffId) localStorage.removeItem(sessDataKey(staffId))
       setSession(null)
+      return true
     })
     return () => registerSessionEndedHandler(null)
   }, [])

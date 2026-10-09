@@ -44,19 +44,28 @@ let _onSessionEnded = null  // (token) => void
  * handler can ignore an answer about a session that has since been replaced.
  */
 export class SessionEndedError extends Error {
-  constructor(token) {
+  constructor(token, { status = null, reason = null, venueId = null } = {}) {
     super('Session ended')
-    this.name  = 'SessionEndedError'
-    this.token = token ?? null
+    this.name    = 'SessionEndedError'
+    this.token   = token ?? null
+    // What pin-login said (401/403 and its message) and for which venue —
+    // reported with the sign-out, never the token itself.
+    this.status  = status
+    this.reason  = reason
+    this.venueId = venueId
   }
 }
 
-function jwtExpSeconds(jwt) {
+function jwtClaims(jwt) {
   try {
     const payload = jwt.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')
-    const claims = JSON.parse(atob(payload))
-    return typeof claims.exp === 'number' ? claims.exp : 0
-  } catch { return 0 }
+    return JSON.parse(atob(payload)) ?? {}
+  } catch { return {} }
+}
+
+function jwtExpSeconds(jwt) {
+  const { exp } = jwtClaims(jwt)
+  return typeof exp === 'number' ? exp : 0
 }
 
 /**
@@ -91,7 +100,9 @@ export const clearSessionJwt = () => {
 export const registerJwtRefresher = (fn) => { _jwtRefresher = fn }
 
 // SessionContext registers what to do when the session is over: clear it and
-// show the PIN screen.
+// show the PIN screen. It returns false when the answer is about a session
+// this device has already replaced (signed in again, switched venue); the
+// JWT in memory then belongs to the new session and is kept.
 export const registerSessionEndedHandler = (fn) => { _onSessionEnded = fn }
 
 // One refresh at a time: a screen that fires ten queries at once and gets ten
@@ -105,9 +116,46 @@ function refreshJwt() {
   return _refreshing
 }
 
-function endSession(err) {
-  clearSessionJwt()
-  try { _onSessionEnded?.(err.token) } catch (e) { reportError(e, 'supabase:session-ended') }
+/**
+ * pin-login says the session behind the venue JWT is gone. Returns true when
+ * that is this device's current session (JWT dropped, back to the PIN screen)
+ * and false for a late answer about a replaced one (nothing dropped).
+ *
+ * Each sign-out is reported with why: which request saw it, what the database
+ * answered and what pin-login said. 146 was rolled back on 8 Oct 2026 because
+ * a device was signed out and nobody could tell afterwards why.
+ */
+function endSession(err, { url, dbCode = null, via }) {
+  const sent = jwtClaims(_sessionJwt)
+  let current = true
+  try {
+    if (_onSessionEnded) current = _onSessionEnded(err.token) !== false
+  } catch (e) { reportError(e, 'supabase:session-ended-handler') }
+  reportError(err, {
+    context:      'supabase:session-ended',
+    via,                                   // 'expired-jwt' | 'refused-jwt'
+    path:         restPath(url),
+    dbCode,                                // PK401 = 146 refused the JWT
+    pinLoginStatus: err.status,            // 401 gone/expired/inactive, 403 venue mismatch
+    pinLoginReason: err.reason,
+    jwtVenueId:   sent.venue_id ?? null,
+    jwtStaffId:   sent.sub ?? null,
+    storedVenueId: err.venueId,
+    replacedSession: !current,
+  })
+  if (current) clearSessionJwt()
+  return current
+}
+
+/** `/rest/v1/venues` from a request URL — no query string, nothing private. */
+function restPath(url) {
+  const u = typeof url === 'string' ? url : (url?.url ?? '')
+  try { return new URL(u).pathname } catch { return null }
+}
+
+/** PostgREST error code from a refused response, without consuming it. */
+async function errorCodeOf(response) {
+  try { return (await response.clone().json())?.code ?? null } catch { return null }
 }
 
 // What a data call gets when its session ended before it was sent: the same
@@ -221,11 +269,11 @@ function makeRetryFetch(timeoutMs = 20_000, maxWriteRetries = 2) {
         const fresh = await refreshJwt()
         if (fresh) setSessionJwt(fresh)
       } catch (err) {
-        if (err instanceof SessionEndedError) {
-          endSession(err)
+        if (err instanceof SessionEndedError && endSession(err, { url, via: 'expired-jwt' })) {
           return sessionEndedResponse()
         }
-        /* couldn't reach pin-login — fall back to anon below */
+        /* couldn't reach pin-login, or the answer was about a session already
+           replaced — use whatever JWT is current (or anon) below */
       }
     }
 
@@ -248,18 +296,35 @@ function makeRetryFetch(timeoutMs = 20_000, maxWriteRetries = 2) {
         // here and hand back the 401.
         if (injected && !didAuthRetry && response.status === 401 && _jwtRefresher) {
           didAuthRetry = true
+          const sentJwt = options.headers.get('Authorization')
           try {
             const fresh = await refreshJwt()
             if (fresh) { setSessionJwt(fresh); options = withBearer(options, fresh) }
             else injected = false
           } catch (err) {
-            if (err instanceof SessionEndedError) {
-              endSession(err)
-              return response
-            }
-            injected = false
+            if (!(err instanceof SessionEndedError)) { injected = false; continue }
+            const dbCode = await errorCodeOf(response)
+            if (endSession(err, { url, dbCode, via: 'refused-jwt' })) return response
+            // A late answer about a replaced session: retry with the new
+            // session's JWT if there is one.
+            if (!jwtUsable() || sentJwt === `Bearer ${_sessionJwt}`) return response
+            options = withBearer(options, _sessionJwt)
           }
           continue
+        }
+
+        // The database refused a JWT pin-login had just re-issued: the two
+        // disagree about whether this session is alive. Nothing the device can
+        // fix, so the error goes back to the caller, but it must be visible.
+        if (injected && didAuthRetry && response.status === 401) {
+          const dbCode = await errorCodeOf(response)
+          if (dbCode === 'PK401') {
+            const sent = jwtClaims(_sessionJwt)
+            reportError(new Error('Venue JWT refused right after re-issue'), {
+              context: 'supabase:session-check-disagrees',
+              path: restPath(url), jwtVenueId: sent.venue_id ?? null, jwtStaffId: sent.sub ?? null,
+            })
+          }
         }
 
         // Announce successful data writes so the SWR caches can drop what they

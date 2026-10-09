@@ -26,7 +26,12 @@ export async function requestVenueJwt(token, venueId) {
       },
       body: JSON.stringify({ action: 'issue_jwt', session_token: token, venue_id: venueId }),
     })
-    if (res.status === 401 || res.status === 403) return { jwt: null, ended: true }
+    if (res.status === 401 || res.status === 403) {
+      // pin-login's reason ('Session expired', 'Venue mismatch'…) goes into
+      // the session-ended report, so a sign-out can be explained afterwards.
+      const { error: reason } = await res.json().catch(() => ({}))
+      return { jwt: null, ended: true, status: res.status, reason: reason ?? null }
+    }
     if (!res.ok) return { jwt: null, ended: false }
     const { jwt } = await res.json()
     if (jwt) localStorage.setItem(SESSION_JWT_KEY, jwt)
@@ -52,7 +57,8 @@ export async function issueVenueJwt(token, venueId) {
  */
 export async function refreshVenueJwt() {
   const token = localStorage.getItem(SESSION_TOKEN_KEY)
-  const { jwt, ended } = await requestVenueJwt(token, localStorage.getItem(SESSION_VENUE_ID_KEY))
-  if (ended) throw new SessionEndedError(token)
+  const venueId = localStorage.getItem(SESSION_VENUE_ID_KEY)
+  const { jwt, ended, status, reason } = await requestVenueJwt(token, venueId)
+  if (ended) throw new SessionEndedError(token, { status, reason, venueId })
   return jwt
 }
