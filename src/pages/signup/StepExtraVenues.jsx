@@ -41,7 +41,7 @@ export default function StepExtraVenues({ count, onBack, onSubmit, loading, erro
           <div key={i} className="p-4 rounded-2xl bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 flex flex-col gap-3">
             <p className="text-xs font-semibold text-charcoal/60 dark:text-white/50 tracking-widest uppercase">Venue {i + 2}</p>
             <div>
-              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1.5">Venue Name *</label>
+              <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1.5">Venue Name *</label>
               <input
                 value={v.name}
                 onChange={e => updateVenue(i, 'name', e.target.value)}
@@ -50,7 +50,7 @@ export default function StepExtraVenues({ count, onBack, onSubmit, loading, erro
               />
             </div>
             <div>
-              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1.5">URL Slug *</label>
+              <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1.5">URL Slug *</label>
               <div className="flex items-center rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark overflow-hidden focus-within:ring-2 focus-within:ring-brand/20">
                 <span className="pl-3 text-xs text-charcoal/30 dark:text-white/30 whitespace-nowrap font-mono">/v/</span>
                 <input

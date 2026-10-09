@@ -35,7 +35,7 @@ function VenuePicker({ venues, onSelect }) {
               <p className="text-sm font-semibold text-charcoal dark:text-white group-hover:text-brand transition-colors">
                 {v.name}
               </p>
-              <p className="text-[11px] text-charcoal/40 dark:text-white/35 mt-0.5">get-pelikn.com/v/{v.slug}</p>
+              <p className="text-caption text-charcoal/40 dark:text-white/35 mt-0.5">get-pelikn.com/v/{v.slug}</p>
             </div>
             <span className="text-charcoal/25 dark:text-white/25 group-hover:text-brand transition-colors text-lg leading-none">→</span>
           </button>

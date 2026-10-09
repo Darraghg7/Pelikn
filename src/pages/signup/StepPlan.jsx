@@ -31,12 +31,12 @@ export default function StepPlan({ selected, onSelect, extraVenues, onExtraVenue
               <IconCheck size={12} color="white" />
             </span>
           )}
-          <p className="text-[11px] tracking-widest uppercase font-semibold text-brand mb-2">{PLAN_DETAILS.starter.name}</p>
+          <p className="text-micro tracking-widest uppercase font-semibold text-brand mb-2">{PLAN_DETAILS.starter.name}</p>
           <div className="flex items-baseline gap-1 mb-1">
             <span className="text-2xl font-bold text-charcoal dark:text-white">{STARTER_PRICE}</span>
             <span className="text-charcoal/40 dark:text-white/35 text-sm">/month</span>
           </div>
-          <p className="text-[11px] text-charcoal/40 dark:text-white/35 mb-4">{PLAN_DETAILS.starter.venueNote}</p>
+          <p className="text-caption text-charcoal/40 dark:text-white/35 mb-4">{PLAN_DETAILS.starter.venueNote}</p>
           <p className="text-xs text-charcoal/50 dark:text-white/40 mb-4 leading-relaxed">
             Digital compliance essentials — everything you need to pass an EHO inspection.
           </p>
@@ -65,12 +65,12 @@ export default function StepPlan({ selected, onSelect, extraVenues, onExtraVenue
             </span>
           )}
 
-          <p className="text-[11px] tracking-widest uppercase font-semibold text-accent mb-2">{PLAN_DETAILS.pro.name}</p>
+          <p className="text-micro tracking-widest uppercase font-semibold text-accent mb-2">{PLAN_DETAILS.pro.name}</p>
           <div className="flex items-baseline gap-1 mb-1">
             <span className="text-2xl font-bold text-accent">{PRO_PRICE}</span>
             <span className="text-charcoal/40 dark:text-white/35 text-sm">/month</span>
           </div>
-          <p className="text-[11px] text-charcoal/40 dark:text-white/35 mb-4">{PLAN_DETAILS.pro.venueNote} · {EXTRA_VENUE_PRICE}/mo each additional</p>
+          <p className="text-caption text-charcoal/40 dark:text-white/35 mb-4">{PLAN_DETAILS.pro.venueNote} · {EXTRA_VENUE_PRICE}/mo each additional</p>
           <p className="text-xs text-charcoal/50 dark:text-white/40 mb-4 leading-relaxed">
             Full compliance plus rota, timesheets, training records & team management — all in one place.
           </p>
@@ -92,7 +92,7 @@ export default function StepPlan({ selected, onSelect, extraVenues, onExtraVenue
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs font-medium text-charcoal/70 dark:text-white/60">How many venues?</p>
-                  <p className="text-[11px] text-charcoal/40 dark:text-white/35 mt-0.5">
+                  <p className="text-caption text-charcoal/40 dark:text-white/35 mt-0.5">
                     {extraVenues === 0 ? 'Just 1 for now, add more later' : `${extraVenues + 1} venues · £${PRO_PRICE_NUM + extraVenues * EXTRA_VENUE_PRICE_NUM}/mo`}
                   </p>
                 </div>
@@ -136,7 +136,7 @@ export default function StepPlan({ selected, onSelect, extraVenues, onExtraVenue
             <div>
               <div className="flex items-center gap-2 mb-0.5">
                 <p className="text-sm font-semibold text-charcoal dark:text-white">QR Table Cards</p>
-                <span className="text-[11px] tracking-widest uppercase font-semibold text-brand bg-brand/8 px-2 py-0.5 rounded-full">Add-on</span>
+                <span className="text-micro tracking-widest uppercase font-semibold text-brand bg-brand/8 px-2 py-0.5 rounded-full">Add-on</span>
               </div>
               <p className="text-xs text-charcoal/50 dark:text-white/40 leading-relaxed">
                 Generate printable allergen QR cards for your tables. Customers scan to view your live allergen matrix — with your logo.
@@ -163,7 +163,7 @@ export default function StepPlan({ selected, onSelect, extraVenues, onExtraVenue
           Continue with {selected === 'pro' ? 'Pro' : 'Starter'}
           <IconArrow />
         </Button>
-        <div className="flex items-center justify-center gap-1.5 text-[11px] text-charcoal/35 dark:text-white/30 mt-3">
+        <div className="flex items-center justify-center gap-1.5 text-micro text-charcoal/35 dark:text-white/30 mt-3">
           <IconLock />
           <span>7-day free trial · No card required · Cancel any time</span>
         </div>

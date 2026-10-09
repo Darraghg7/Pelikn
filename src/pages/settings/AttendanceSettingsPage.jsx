@@ -27,9 +27,9 @@ function Row({ label, sub, warnText, control, last }) {
     <div className={`flex items-center gap-3 px-[15px] py-[13px] ${last === false ? 'border-t border-charcoal/6 dark:border-white/8' : ''}`}>
       <div className="flex-1 min-w-0">
         <div className="text-sm font-medium text-charcoal dark:text-white tracking-[-0.005em]">{label}</div>
-        {sub && <div className="text-[11.5px] text-charcoal/50 dark:text-white/40 mt-0.5 leading-[1.4]">{sub}</div>}
+        {sub && <div className="text-caption text-charcoal/50 dark:text-white/40 mt-0.5 leading-[1.4]">{sub}</div>}
         {warnText && (
-          <div className="font-mono text-[11px] text-warning mt-1 uppercase tracking-[0.04em] font-semibold">{warnText}</div>
+          <div className="font-mono text-micro text-warning mt-1 uppercase tracking-[0.04em] font-semibold">{warnText}</div>
         )}
       </div>
       {control}
@@ -41,13 +41,13 @@ function Group({ label, children, foot }) {
   return (
     <div>
       {label && (
-        <div className="font-mono text-[11px] font-semibold tracking-[0.08em] uppercase text-charcoal/50 dark:text-white/40 px-0.5 pt-[18px] pb-1.5">{label}</div>
+        <div className="font-mono text-micro font-semibold tracking-[0.08em] uppercase text-charcoal/50 dark:text-white/40 px-0.5 pt-[18px] pb-1.5">{label}</div>
       )}
       <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[14px] overflow-hidden">
         {children}
       </div>
       {foot && (
-        <div className="text-[11.5px] text-charcoal/50 dark:text-white/40 px-1 pt-2 leading-[1.45]">{foot}</div>
+        <div className="text-caption text-charcoal/50 dark:text-white/40 px-1 pt-2 leading-[1.45]">{foot}</div>
       )}
     </div>
   )

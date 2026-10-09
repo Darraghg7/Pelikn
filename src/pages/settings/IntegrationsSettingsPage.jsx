@@ -53,12 +53,12 @@ export default function IntegrationsSettingsPage() {
 
       <div className="bg-brand/8 border border-brand/[0.13] rounded-[14px] px-4 py-[14px] mb-4">
         <div className="text-sm font-semibold text-brand mb-1">Integrations launching soon</div>
-        <div className="text-[13px] text-charcoal/50 dark:text-white/40 leading-[1.5]">
+        <div className="text-body-sm text-charcoal/50 dark:text-white/40 leading-[1.5]">
           We're building native connections to payroll, rota, and comms tools. Want to vote on what comes first?
         </div>
         <a
           href="mailto:hello@get-pelikn.com?subject=Integration request"
-          className="inline-flex items-center gap-1.5 mt-3 h-[34px] px-[14px] rounded-lg bg-brand text-white no-underline text-[13px] font-semibold"
+          className="inline-flex items-center gap-1.5 mt-3 h-[34px] px-[14px] rounded-lg bg-brand text-white no-underline text-body-sm font-semibold"
         >
           Request an integration →
         </a>
@@ -70,12 +70,12 @@ export default function IntegrationsSettingsPage() {
             key={item.id}
             className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[14px] px-[15px] py-[14px] flex items-center gap-[13px] opacity-65"
           >
-            <span className="text-[28px] shrink-0 leading-none">{item.icon}</span>
+            <span className="text-display shrink-0 leading-none">{item.icon}</span>
             <div className="flex-1 min-w-0">
               <div className="text-sm font-semibold text-charcoal dark:text-white">{item.name}</div>
               <div className="text-xs text-charcoal/50 dark:text-white/40 mt-0.5 leading-[1.4]">{item.description}</div>
             </div>
-            <span className="shrink-0 py-[3px] px-[9px] rounded-full bg-charcoal/6 dark:bg-white/8 font-mono text-[11px] font-semibold text-charcoal/30 dark:text-white/30 tracking-[0.05em] uppercase">Soon</span>
+            <span className="shrink-0 py-[3px] px-[9px] rounded-full bg-charcoal/6 dark:bg-white/8 font-mono text-micro font-semibold text-charcoal/30 dark:text-white/30 tracking-[0.05em] uppercase">Soon</span>
           </div>
         ))}
       </div>

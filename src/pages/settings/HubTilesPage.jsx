@@ -62,9 +62,9 @@ function Row({ label, sub, on, onToggle, last, locked = false }) {
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5">
           <div className="text-sm font-medium text-charcoal dark:text-white tracking-[-0.005em]">{label}</div>
-          {locked && <span className="font-mono text-[11px] font-bold text-warn bg-warnBg px-[5px] py-0.5 rounded uppercase tracking-[0.04em]">Pro</span>}
+          {locked && <span className="font-mono text-micro font-bold text-warn bg-warnBg px-[5px] py-0.5 rounded uppercase tracking-[0.04em]">Pro</span>}
         </div>
-        {sub && <div className="text-[11.5px] text-charcoal/50 dark:text-white/40 mt-0.5 leading-[1.4]">{sub}</div>}
+        {sub && <div className="text-caption text-charcoal/50 dark:text-white/40 mt-0.5 leading-[1.4]">{sub}</div>}
       </div>
       {locked
         ? <Toggle on={false} disabled />
@@ -77,13 +77,13 @@ function Group({ label, children, foot }) {
   return (
     <div>
       {label && (
-        <div className="font-mono text-[11px] font-semibold tracking-[0.08em] uppercase text-charcoal/50 dark:text-white/40 px-0.5 pb-1.5">{label}</div>
+        <div className="font-mono text-micro font-semibold tracking-[0.08em] uppercase text-charcoal/50 dark:text-white/40 px-0.5 pb-1.5">{label}</div>
       )}
       <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[14px] overflow-hidden">
         {children}
       </div>
       {foot && (
-        <div className="text-[11.5px] text-charcoal/50 dark:text-white/40 px-1 pt-2 leading-[1.45]">{foot}</div>
+        <div className="text-caption text-charcoal/50 dark:text-white/40 px-1 pt-2 leading-[1.45]">{foot}</div>
       )}
     </div>
   )
@@ -171,7 +171,7 @@ export default function HubTilesPage() {
         </Group>
 
         <div>
-          <div className="font-mono text-[11px] font-semibold tracking-[0.08em] uppercase text-charcoal/50 dark:text-white/40 px-0.5 pb-1.5">Modules</div>
+          <div className="font-mono text-micro font-semibold tracking-[0.08em] uppercase text-charcoal/50 dark:text-white/40 px-0.5 pb-1.5">Modules</div>
           <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[14px] overflow-hidden py-1">
             <div className="px-[14px] py-2">
               <VenueTypeIndicator venueId={venueId} venueSlug={venueSlug} />
@@ -193,8 +193,8 @@ export default function HubTilesPage() {
                       <div key={group.id} className="border border-charcoal/10 dark:border-white/10 rounded-xl overflow-hidden">
                         <div className="flex items-center justify-between px-3 py-[9px] bg-charcoal/6 dark:bg-white/8 border-b border-charcoal/10 dark:border-white/10">
                           <div>
-                            <div className="text-[13px] font-semibold text-charcoal dark:text-white">{group.label}</div>
-                            <div className="text-[11px] text-charcoal/50 dark:text-white/40 mt-px">{group.description}</div>
+                            <div className="text-body-sm font-semibold text-charcoal dark:text-white">{group.label}</div>
+                            <div className="text-micro text-charcoal/50 dark:text-white/40 mt-px">{group.description}</div>
                           </div>
                           <button
                             onClick={() => {
@@ -218,10 +218,10 @@ export default function HubTilesPage() {
                             <div key={feature.id} className={`flex items-center gap-2.5 px-3 py-[9px] ${fi === 0 ? '' : 'border-t border-charcoal/6 dark:border-white/8'} ${locked ? 'opacity-50' : ''}`}>
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-1.5">
-                                  <div className={`text-[13px] font-medium ${on ? 'text-charcoal dark:text-white' : 'text-charcoal/50 dark:text-white/40'}`}>{feature.label}</div>
-                                  {locked && <span className="font-mono text-[11px] font-bold text-warn bg-warnBg px-[5px] py-0.5 rounded uppercase tracking-[0.04em]">Pro</span>}
+                                  <div className={`text-body-sm font-medium ${on ? 'text-charcoal dark:text-white' : 'text-charcoal/50 dark:text-white/40'}`}>{feature.label}</div>
+                                  {locked && <span className="font-mono text-micro font-bold text-warn bg-warnBg px-[5px] py-0.5 rounded uppercase tracking-[0.04em]">Pro</span>}
                                 </div>
-                                <div className="text-[11px] text-charcoal/50 dark:text-white/40 mt-px">{feature.description}</div>
+                                <div className="text-micro text-charcoal/50 dark:text-white/40 mt-px">{feature.description}</div>
                               </div>
                               <button
                                 onClick={locked ? undefined : () => {
@@ -254,7 +254,7 @@ export default function HubTilesPage() {
         </div>
 
         <div>
-          <div className="font-mono text-[11px] font-semibold tracking-[0.08em] uppercase text-charcoal/50 dark:text-white/40 px-0.5 pb-1.5">Navigation order</div>
+          <div className="font-mono text-micro font-semibold tracking-[0.08em] uppercase text-charcoal/50 dark:text-white/40 px-0.5 pb-1.5">Navigation order</div>
           <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[14px] overflow-hidden py-1">
             <NavOrderSection
               isEnabled={isEnabled}

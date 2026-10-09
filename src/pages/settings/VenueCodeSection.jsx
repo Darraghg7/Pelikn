@@ -104,7 +104,7 @@ export default function VenueCodeSection({ venueId, sessionToken }) {
             {refreshing ? 'Refreshing…' : 'New code'}
           </Button>
         </div>
-        <p className="text-[11px] text-charcoal/35 dark:text-white/35">
+        <p className="text-caption text-charcoal/35 dark:text-white/35">
           Tap "New code" if a staff member leaves. The old code stops working immediately.
         </p>
     </div>

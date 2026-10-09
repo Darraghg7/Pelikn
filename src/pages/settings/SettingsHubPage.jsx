@@ -9,7 +9,7 @@ import Button from '../../components/ui/Button'
 
 function GroupLabel({ label }) {
   return (
-    <div className="font-mono text-[11px] font-semibold tracking-[0.08em] uppercase text-charcoal/50 dark:text-white/40 px-0.5 pt-3 pb-1.5">
+    <div className="font-mono text-micro font-semibold tracking-[0.08em] uppercase text-charcoal/50 dark:text-white/40 px-0.5 pt-3 pb-1.5">
       {label}
     </div>
   )
@@ -36,9 +36,9 @@ function SRow({ icon, label, sub, value, attention, last, onClick, danger }) {
       </span>
       <div className="flex-1 min-w-0 py-3">
         <div className={`text-sm font-medium tracking-[-0.005em] leading-snug ${danger ? 'text-danger' : 'text-charcoal dark:text-white'}`}>{label}</div>
-        {sub && <div className={`font-mono text-[11px] mt-0.5 leading-[1.4] ${attention ? 'text-warning' : 'text-charcoal/50 dark:text-white/40'}`}>{sub}</div>}
+        {sub && <div className={`font-mono text-micro mt-0.5 leading-[1.4] ${attention ? 'text-warning' : 'text-charcoal/50 dark:text-white/40'}`}>{sub}</div>}
       </div>
-      {value && <span className="font-mono text-[11px] text-charcoal/50 dark:text-white/40 shrink-0">{value}</span>}
+      {value && <span className="font-mono text-micro text-charcoal/50 dark:text-white/40 shrink-0">{value}</span>}
       {onClick && (
         <svg width="6" height="10" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" className={`shrink-0 ${attention ? 'text-warning' : 'text-charcoal/30 dark:text-white/30'}`}>
           <path d="M1 1l4 4-4 4"/>
@@ -67,7 +67,7 @@ export default function SettingsHubPage() {
   return (
     <div className="pb-24">
 
-      <h1 className="text-[26px] font-semibold tracking-[-0.028em] mb-[14px] text-charcoal dark:text-white">Settings</h1>
+      <h1 className="text-display font-semibold tracking-[-0.028em] mb-[14px] text-charcoal dark:text-white">Settings</h1>
 
       {/* Opens the signed-in manager's own Team → Staff page (every plan; HR is
           Pro-only so it can't be the target). Without a staffId
@@ -80,8 +80,8 @@ export default function SettingsHubPage() {
       >
         <Avatar name={staffName} id={staffId} tone="onDark" size="2xl" decorative />
         <div className="flex-1 min-w-0">
-          <div className="text-[17px] font-semibold tracking-[-0.015em]">{staffName}</div>
-          <div className="font-mono text-[11px] text-white/65 mt-0.5">
+          <div className="text-title-sm font-semibold tracking-[-0.015em]">{staffName}</div>
+          <div className="font-mono text-micro text-white/65 mt-0.5">
             {role}{venueName ? ` · ${venueName}` : ''}
           </div>
         </div>
@@ -182,7 +182,7 @@ export default function SettingsHubPage() {
         Sign out
       </Button>
 
-      <div className="text-center font-mono text-[11px] text-charcoal/30 dark:text-white/30 tracking-[0.08em] pt-3">
+      <div className="text-center font-mono text-micro text-charcoal/30 dark:text-white/30 tracking-[0.08em] pt-3">
         Pelikn
       </div>
     </div>

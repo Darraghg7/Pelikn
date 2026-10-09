@@ -103,7 +103,7 @@ function TimeSelect({ value, onChange }) {
     <select
       value={value}
       onChange={e => onChange(e.target.value)}
-      className="px-2 py-1.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-[12.5px] text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-brand/20 appearance-none cursor-pointer min-w-[80px]"
+      className="px-2 py-1.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-body-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-brand/20 appearance-none cursor-pointer min-w-[80px]"
     >
       {TIMES.map(t => <option key={t} value={t}>{t}</option>)}
     </select>
@@ -131,12 +131,12 @@ function UpgradeModal({ featureLabel, onClose }) {
         <div className="w-12 h-12 rounded-[14px] bg-accent/10 text-accent flex items-center justify-center mx-auto mb-3.5">
           <StarIcon size={22} />
         </div>
-        <h2 className="text-[16px] font-bold text-center mb-1.5">Upgrade to Pro</h2>
-        <p className="text-[12.5px] text-charcoal/45 dark:text-white/40 text-center leading-relaxed mb-3.5">
+        <h2 className="text-title-sm font-bold text-center mb-1.5">Upgrade to Pro</h2>
+        <p className="text-body-sm text-charcoal/45 dark:text-white/40 text-center leading-relaxed mb-3.5">
           This feature requires Pelikn Pro — the full plan for team management, rotas, training records and more alongside your compliance tools.
         </p>
         {featureLabel && (
-          <div className="text-[12px] font-bold text-accent text-center py-2 px-3 bg-accent/6 rounded-[10px] mb-4">
+          <div className="text-caption font-bold text-accent text-center py-2 px-3 bg-accent/6 rounded-[10px] mb-4">
             {featureLabel}
           </div>
         )}
@@ -449,12 +449,12 @@ export default function OnboardingPage() {
 
       {/* Topbar */}
       <div className="sticky top-0 z-10 bg-white dark:bg-paperDark border-b border-charcoal/8 dark:border-white/8 h-[52px] flex items-center justify-between px-5 shrink-0">
-        <span className="font-extrabold text-[16px] text-brand dark:text-white tracking-tight">Pelikn</span>
+        <span className="font-extrabold text-title-sm text-brand dark:text-white tracking-tight">Pelikn</span>
         <div className="flex items-center gap-2.5">
-          <span className={`text-[11px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-md ${isPro ? 'bg-accent/12 text-accent' : 'bg-brand/9 text-brand dark:bg-white/10 dark:text-white'}`}>
+          <span className={`text-micro font-bold tracking-widest uppercase px-2.5 py-1 rounded-md ${isPro ? 'bg-accent/12 text-accent' : 'bg-brand/9 text-brand dark:bg-white/10 dark:text-white'}`}>
             {isPro ? 'Pro' : 'Starter'}
           </span>
-          <div className="flex items-center gap-1 text-charcoal/30 dark:text-white/30 font-mono text-[11px]">
+          <div className="flex items-center gap-1 text-charcoal/30 dark:text-white/30 font-mono text-micro">
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
             Secure setup
           </div>
@@ -472,7 +472,7 @@ export default function OnboardingPage() {
                   <button
                     onClick={() => { if (i < step) setStep(i) }}
                     className={[
-                      'w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold font-mono border-none shrink-0 transition-all',
+                      'w-6 h-6 rounded-full flex items-center justify-center text-micro font-bold font-mono border-none shrink-0 transition-all',
                       state === 'done' ? 'bg-brand text-white cursor-pointer' :
                       state === 'cur'  ? 'bg-brand text-white shadow-[0_0_0_4px_theme(colors.brand/15%)]' :
                                          'bg-charcoal/12 dark:bg-white/15 text-charcoal/40 dark:text-white/35 cursor-default',
@@ -483,7 +483,7 @@ export default function OnboardingPage() {
                       : i + 1
                     }
                   </button>
-                  <span className={`text-[11px] font-semibold tracking-wider uppercase hidden sm:block whitespace-nowrap ${state === 'todo' ? 'text-charcoal/30 dark:text-white/30' : 'text-brand dark:text-white/80'}`}>
+                  <span className={`text-micro font-semibold tracking-wider uppercase hidden sm:block whitespace-nowrap ${state === 'todo' ? 'text-charcoal/30 dark:text-white/30' : 'text-brand dark:text-white/80'}`}>
                     {label}
                   </span>
                 </div>
@@ -503,8 +503,8 @@ export default function OnboardingPage() {
           {/* Step 0: Venue Type */}
           {step === 0 && (
             <div>
-              <h1 className="text-[19px] font-bold text-charcoal dark:text-white mb-1 tracking-tight">What kind of venue are you?</h1>
-              <p className="text-[12.5px] text-charcoal/45 dark:text-white/40 mb-[18px] leading-relaxed">
+              <h1 className="text-title-sm font-bold text-charcoal dark:text-white mb-1 tracking-tight">What kind of venue are you?</h1>
+              <p className="text-body-sm text-charcoal/45 dark:text-white/40 mb-[18px] leading-relaxed">
                 We'll pre-select the right modules for your business. You can change this any time in Settings.
               </p>
               <div className="grid grid-cols-2 gap-2.5">
@@ -521,8 +521,8 @@ export default function OnboardingPage() {
                   >
                     <div>{VENUE_ICONS[preset.icon]}</div>
                     <div>
-                      <p className="font-bold text-[13px] text-charcoal dark:text-white mb-0.5">{preset.label}</p>
-                      <p className="text-[11px] text-charcoal/40 dark:text-white/35 leading-[1.4]">{preset.description}</p>
+                      <p className="font-bold text-body-sm text-charcoal dark:text-white mb-0.5">{preset.label}</p>
+                      <p className="text-caption text-charcoal/40 dark:text-white/35 leading-[1.4]">{preset.description}</p>
                     </div>
                   </button>
                 ))}
@@ -533,8 +533,8 @@ export default function OnboardingPage() {
           {/* Step 1: Modules */}
           {step === 1 && (
             <div>
-              <h1 className="text-[19px] font-bold text-charcoal dark:text-white mb-1 tracking-tight">Choose your modules</h1>
-              <p className="text-[12.5px] text-charcoal/45 dark:text-white/40 mb-[18px] leading-relaxed">
+              <h1 className="text-title-sm font-bold text-charcoal dark:text-white mb-1 tracking-tight">Choose your modules</h1>
+              <p className="text-body-sm text-charcoal/45 dark:text-white/40 mb-[18px] leading-relaxed">
                 Pre-selected based on your venue type. Toggle what you need{!isPro ? ' — Pro features can be unlocked with an upgrade.' : '.'}
               </p>
               {FEATURE_GROUPS.map(group => {
@@ -543,9 +543,9 @@ export default function OnboardingPage() {
                 if (allPro && !isPro) {
                   return (
                     <div key={group.id} className="mb-5">
-                      <p className="font-mono text-[11px] tracking-[0.12em] uppercase text-charcoal/40 dark:text-white/35 mb-1.5 flex items-center gap-2 px-0.5">
+                      <p className="font-mono text-micro tracking-[0.12em] uppercase text-charcoal/40 dark:text-white/35 mb-1.5 flex items-center gap-2 px-0.5">
                         {group.label}
-                        <span className="text-[11px] font-bold tracking-widest uppercase px-1.5 py-0.5 rounded bg-accent/12 text-accent">Pro only</span>
+                        <span className="text-micro font-bold tracking-widest uppercase px-1.5 py-0.5 rounded bg-accent/12 text-accent">Pro only</span>
                       </p>
                       <div className="bg-white dark:bg-paperDark rounded-2xl border border-charcoal/10 dark:border-white/10 overflow-hidden">
                         <div className="flex items-center gap-3 px-4 py-3 bg-accent/[0.06] border-b border-accent/10">
@@ -553,8 +553,8 @@ export default function OnboardingPage() {
                             <StarIcon size={14} />
                           </div>
                           <div className="flex-1">
-                            <p className="text-[12px] font-bold text-charcoal dark:text-white">Available on Pro</p>
-                            <p className="text-[11px] text-charcoal/40 dark:text-white/35 mt-0.5">Unlock {group.label} for £25/mo</p>
+                            <p className="text-caption font-bold text-charcoal dark:text-white">Available on Pro</p>
+                            <p className="text-caption text-charcoal/40 dark:text-white/35 mt-0.5">Unlock {group.label} for £25/mo</p>
                           </div>
                           <Button
                             variant="accent"
@@ -568,11 +568,11 @@ export default function OnboardingPage() {
                           <div key={feature.id} className="flex items-center justify-between px-4 py-3 border-b border-charcoal/5 dark:border-white/5 last:border-b-0 bg-charcoal/[0.018] opacity-70">
                             <div className="min-w-0 flex-1">
                               <p className="text-sm text-charcoal/50 dark:text-white/40">{feature.label}</p>
-                              <p className="text-[11px] text-charcoal/25 dark:text-white/25 mt-0.5">{feature.description}</p>
+                              <p className="text-caption text-charcoal/25 dark:text-white/25 mt-0.5">{feature.description}</p>
                             </div>
                             <button
                               onClick={() => setUpgradeFeature(feature.id)}
-                              className="flex items-center gap-1.5 text-[11px] font-bold text-accent bg-accent/8 border border-accent/18 px-2.5 py-1 rounded-lg ml-3 shrink-0 hover:bg-accent/14 transition-colors"
+                              className="flex items-center gap-1.5 text-micro font-bold text-accent bg-accent/8 border border-accent/18 px-2.5 py-1 rounded-lg ml-3 shrink-0 hover:bg-accent/14 transition-colors"
                             >
                               <LockIcon size={10} />
                               Pro
@@ -586,7 +586,7 @@ export default function OnboardingPage() {
 
                 return (
                   <div key={group.id} className="mb-5">
-                    <p className="font-mono text-[11px] tracking-[0.12em] uppercase text-charcoal/40 dark:text-white/35 mb-1.5 px-0.5">
+                    <p className="font-mono text-micro tracking-[0.12em] uppercase text-charcoal/40 dark:text-white/35 mb-1.5 px-0.5">
                       {group.label}
                     </p>
                     <div className="bg-white dark:bg-paperDark rounded-2xl border border-charcoal/10 dark:border-white/10 overflow-hidden">
@@ -601,19 +601,19 @@ export default function OnboardingPage() {
                               <p className={`text-sm ${isProLocked ? 'text-charcoal/40 dark:text-white/35' : 'text-charcoal dark:text-white'}`}>
                                 {feature.label}
                                 {isProLocked && (
-                                  <span className="font-mono ml-1.5 text-[11px] font-bold tracking-widest uppercase text-accent">
+                                  <span className="font-mono ml-1.5 text-micro font-bold tracking-widest uppercase text-accent">
                                     PRO
                                   </span>
                                 )}
                               </p>
-                              <p className={`text-[11px] mt-0.5 ${isProLocked ? 'text-charcoal/25 dark:text-white/25' : 'text-charcoal/35 dark:text-white/30'}`}>
+                              <p className={`text-caption mt-0.5 ${isProLocked ? 'text-charcoal/25 dark:text-white/25' : 'text-charcoal/35 dark:text-white/30'}`}>
                                 {feature.description}
                               </p>
                             </div>
                             {isProLocked ? (
                               <button
                                 onClick={() => setUpgradeFeature(feature.id)}
-                                className="flex items-center gap-1.5 text-[11px] font-bold text-accent bg-accent/8 border border-accent/18 px-2.5 py-1 rounded-lg ml-3 shrink-0 hover:bg-accent/14 transition-colors"
+                                className="flex items-center gap-1.5 text-micro font-bold text-accent bg-accent/8 border border-accent/18 px-2.5 py-1 rounded-lg ml-3 shrink-0 hover:bg-accent/14 transition-colors"
                               >
                                 <LockIcon size={10} />
                                 Pro
@@ -638,8 +638,8 @@ export default function OnboardingPage() {
           {/* Step 2: Hours */}
           {step === 2 && (
             <div>
-              <h1 className="text-[19px] font-bold text-charcoal dark:text-white mb-1 tracking-tight">When are you open?</h1>
-              <p className="text-[12.5px] text-charcoal/45 dark:text-white/40 mb-[18px] leading-relaxed">
+              <h1 className="text-title-sm font-bold text-charcoal dark:text-white mb-1 tracking-tight">When are you open?</h1>
+              <p className="text-body-sm text-charcoal/45 dark:text-white/40 mb-[18px] leading-relaxed">
                 Set hours per day — used for rota planning, clock-in, and compliance schedules.
               </p>
               <div className="bg-white dark:bg-paperDark rounded-2xl border border-charcoal/10 dark:border-white/10 overflow-hidden">
@@ -649,7 +649,7 @@ export default function OnboardingPage() {
                     className={`flex items-center gap-3 px-4 py-3 border-b border-charcoal/5 dark:border-white/5 last:border-b-0 ${!d.open ? 'bg-charcoal/[0.018]' : ''}`}
                   >
                     <div className="flex items-center gap-2 w-[100px] shrink-0">
-                      <span className="text-[13px] font-semibold text-charcoal dark:text-white w-9">{d.day.slice(0, 3)}</span>
+                      <span className="text-body-sm font-semibold text-charcoal dark:text-white w-9">{d.day.slice(0, 3)}</span>
                       <MiniToggle checked={d.open} onChange={v => updateDay(i, { open: v })} />
                     </div>
                     {d.open ? (
@@ -659,7 +659,7 @@ export default function OnboardingPage() {
                         <TimeSelect value={d.end} onChange={v => updateDay(i, { end: v })} />
                       </div>
                     ) : (
-                      <span className="text-charcoal/35 dark:text-white/30 text-[11.5px] italic flex-1 text-right">Closed</span>
+                      <span className="text-charcoal/35 dark:text-white/30 text-caption italic flex-1 text-right">Closed</span>
                     )}
                   </div>
                 ))}
@@ -678,11 +678,11 @@ export default function OnboardingPage() {
           {/* Step 3: Team */}
           {step === 3 && (
             <div>
-              <h1 className="text-[19px] font-bold text-charcoal dark:text-white mb-1 tracking-tight">Add your team</h1>
-              <p className="text-[12.5px] text-charcoal/45 dark:text-white/40 mb-[18px] leading-relaxed">
+              <h1 className="text-title-sm font-bold text-charcoal dark:text-white mb-1 tracking-tight">Add your team</h1>
+              <p className="text-body-sm text-charcoal/45 dark:text-white/40 mb-[18px] leading-relaxed">
                 Add a few staff members to get started.
               </p>
-              <div className="flex items-start gap-2 p-3 rounded-xl bg-white dark:bg-paperDark border border-charcoal/8 dark:border-white/8 mb-4 text-[11.5px] text-charcoal/50 dark:text-white/40 leading-relaxed">
+              <div className="flex items-start gap-2 p-3 rounded-xl bg-white dark:bg-paperDark border border-charcoal/8 dark:border-white/8 mb-4 text-caption text-charcoal/50 dark:text-white/40 leading-relaxed">
                 <InfoIcon className="w-3.5 h-3.5 mt-0.5 shrink-0 text-charcoal/30 dark:text-white/30" />
                 <span>You can add more staff, set permissions, and assign roles in <strong className="text-charcoal/60 dark:text-white/50">Settings → Staff</strong> at any time.</span>
               </div>
@@ -694,7 +694,7 @@ export default function OnboardingPage() {
                         value={entry.name}
                         onChange={e => updateStaff(idx, 'name', e.target.value)}
                         placeholder="Name"
-                        className="w-full min-w-0 px-3 py-2.5 rounded-[9px] border border-charcoal/12 dark:border-white/15 bg-white dark:bg-paperDark text-[13px] text-charcoal dark:text-white placeholder:text-charcoal/35 dark:placeholder:text-white/25 focus:outline-none focus:border-brand focus:ring-[3px] focus:ring-brand/10 transition-all"
+                        className="w-full min-w-0 px-3 py-2.5 rounded-[9px] border border-charcoal/12 dark:border-white/15 bg-white dark:bg-paperDark text-body-sm text-charcoal dark:text-white placeholder:text-charcoal/35 dark:placeholder:text-white/25 focus:outline-none focus:border-brand focus:ring-[3px] focus:ring-brand/10 transition-all"
                       />
                       <input
                         type="password"
@@ -703,14 +703,14 @@ export default function OnboardingPage() {
                         value={entry.pin}
                         onChange={e => updateStaff(idx, 'pin', e.target.value.replace(/\D/g, '').slice(0, 4))}
                         placeholder="PIN"
-                        className="w-full min-w-0 px-3 py-2.5 rounded-[9px] border border-charcoal/12 dark:border-white/15 bg-white dark:bg-paperDark text-[13px] text-charcoal dark:text-white tracking-widest placeholder:text-charcoal/35 dark:placeholder:text-white/25 focus:outline-none focus:border-brand focus:ring-[3px] focus:ring-brand/10 transition-all"
+                        className="w-full min-w-0 px-3 py-2.5 rounded-[9px] border border-charcoal/12 dark:border-white/15 bg-white dark:bg-paperDark text-body-sm text-charcoal dark:text-white tracking-widest placeholder:text-charcoal/35 dark:placeholder:text-white/25 focus:outline-none focus:border-brand focus:ring-[3px] focus:ring-brand/10 transition-all"
                       />
                       <input
                         type="text"
                         value={entry.jobRole}
                         onChange={e => updateStaff(idx, 'jobRole', e.target.value)}
                         placeholder="Role (e.g. Manager)"
-                        className="col-span-2 sm:col-span-1 w-full min-w-0 px-3 py-2.5 rounded-[9px] border border-charcoal/12 dark:border-white/15 bg-white dark:bg-paperDark text-[13px] text-charcoal dark:text-white placeholder:text-charcoal/35 dark:placeholder:text-white/25 focus:outline-none focus:border-brand focus:ring-[3px] focus:ring-brand/10 transition-all"
+                        className="col-span-2 sm:col-span-1 w-full min-w-0 px-3 py-2.5 rounded-[9px] border border-charcoal/12 dark:border-white/15 bg-white dark:bg-paperDark text-body-sm text-charcoal dark:text-white placeholder:text-charcoal/35 dark:placeholder:text-white/25 focus:outline-none focus:border-brand focus:ring-[3px] focus:ring-brand/10 transition-all"
                       />
                     </div>
                     <CloseButton label="Remove staff member" className="mt-1" onClick={() => removeStaffRow(idx)} />
@@ -736,8 +736,8 @@ export default function OnboardingPage() {
               <div className="flex flex-col gap-6">
                 {/* Section A: Define roles */}
                 <div>
-                  <h2 className="text-[17px] font-bold text-charcoal dark:text-white mb-0.5">What roles do you have?</h2>
-                  <p className="text-[12.5px] text-charcoal/45 dark:text-white/40 mb-4">Used to match staff to the right shifts when auto-filling your rota.</p>
+                  <h2 className="text-title-sm font-bold text-charcoal dark:text-white mb-0.5">What roles do you have?</h2>
+                  <p className="text-body-sm text-charcoal/45 dark:text-white/40 mb-4">Used to match staff to the right shifts when auto-filling your rota.</p>
                   <div className="flex flex-wrap gap-2 mb-3">
                     {presetRoles.map(role => {
                       const active = rolesInput.includes(role)
@@ -746,7 +746,7 @@ export default function OnboardingPage() {
                           key={role}
                           onClick={() => toggleRole(role)}
                           className={[
-                            'px-3 py-1.5 rounded-full text-[12.5px] font-semibold border transition-all',
+                            'px-3 py-1.5 rounded-full text-body-sm font-semibold border transition-all',
                             active
                               ? 'bg-brand text-white border-brand'
                               : 'bg-white dark:bg-paperDark text-charcoal/60 dark:text-white/50 border-charcoal/15 dark:border-white/15 hover:border-charcoal/30 dark:hover:border-white/30',
@@ -764,7 +764,7 @@ export default function OnboardingPage() {
                       onChange={e => setCustomRoleText(e.target.value)}
                       onKeyDown={e => e.key === 'Enter' && addCustomRole()}
                       placeholder="Add custom role…"
-                      className="flex-1 px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-[12.5px] text-charcoal dark:text-white placeholder-charcoal/30 dark:placeholder-white/25 focus:outline-none focus:ring-2 focus:ring-brand/20"
+                      className="flex-1 px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-body-sm text-charcoal dark:text-white placeholder-charcoal/30 dark:placeholder-white/25 focus:outline-none focus:ring-2 focus:ring-brand/20"
                     />
                     <Button
                       variant="secondary"
@@ -777,7 +777,7 @@ export default function OnboardingPage() {
                   {rolesInput.length > 0 && (
                     <div className="flex flex-wrap gap-1.5 mt-2">
                       {rolesInput.filter(r => !presetRoles.includes(r)).map(role => (
-                        <span key={role} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-brand/8 text-brand dark:bg-white/10 dark:text-white text-[11.5px] font-semibold">
+                        <span key={role} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-brand/8 text-brand dark:bg-white/10 dark:text-white text-caption font-semibold">
                           {role}
                           <button onClick={() => toggleRole(role)} className="ml-0.5 opacity-60 hover:opacity-100">×</button>
                         </span>
@@ -789,14 +789,14 @@ export default function OnboardingPage() {
                 {/* Section B: Assign roles to staff */}
                 {rolesInput.length > 0 && validStaff.length > 0 && (
                   <div>
-                    <h3 className="text-[13.5px] font-bold text-charcoal dark:text-white mb-0.5">Who can work each role?</h3>
-                    <p className="text-[12px] text-charcoal/40 dark:text-white/35 mb-3">Tick the roles each team member is qualified to cover.</p>
+                    <h3 className="text-body font-bold text-charcoal dark:text-white mb-0.5">Who can work each role?</h3>
+                    <p className="text-caption text-charcoal/40 dark:text-white/35 mb-3">Tick the roles each team member is qualified to cover.</p>
                     <div className="flex flex-col gap-2">
                       {validStaff.map(member => {
                         const assigned = roleAssignments[member.name] ?? []
                         return (
                           <div key={member.name} className="bg-white dark:bg-paperDark rounded-xl border border-charcoal/8 dark:border-white/8 px-4 py-3">
-                            <p className="text-[12.5px] font-semibold text-charcoal dark:text-white mb-2">{member.name}</p>
+                            <p className="text-body-sm font-semibold text-charcoal dark:text-white mb-2">{member.name}</p>
                             <div className="flex flex-wrap gap-2">
                               {rolesInput.map(role => {
                                 const checked = assigned.includes(role)
@@ -805,7 +805,7 @@ export default function OnboardingPage() {
                                     key={role}
                                     onClick={() => toggleStaffRole(member.name, role)}
                                     className={[
-                                      'px-2.5 py-1 rounded-lg text-[11.5px] font-medium border transition-all',
+                                      'px-2.5 py-1 rounded-lg text-caption font-medium border transition-all',
                                       checked
                                         ? 'bg-brand/10 text-brand border-brand/25 dark:bg-white/10 dark:text-white dark:border-white/30'
                                         : 'bg-charcoal/3 dark:bg-white/5 text-charcoal/45 dark:text-white/40 border-charcoal/10 dark:border-white/10 hover:border-charcoal/25 dark:hover:border-white/25',
@@ -826,18 +826,18 @@ export default function OnboardingPage() {
                 {/* Section C: Daily counts */}
                 {rolesInput.length > 0 && (
                   <div>
-                    <h3 className="text-[13.5px] font-bold text-charcoal dark:text-white mb-0.5">How many of each role per day?</h3>
-                    <p className="text-[12px] text-charcoal/40 dark:text-white/35 mb-3">Applied to all open days when auto-filling your rota.</p>
+                    <h3 className="text-body font-bold text-charcoal dark:text-white mb-0.5">How many of each role per day?</h3>
+                    <p className="text-caption text-charcoal/40 dark:text-white/35 mb-3">Applied to all open days when auto-filling your rota.</p>
                     <div className="flex flex-col gap-2">
                       {rolesInput.map(role => (
                         <div key={role} className="flex items-center justify-between bg-white dark:bg-paperDark rounded-xl border border-charcoal/8 dark:border-white/8 px-4 py-3">
-                          <span className="text-[13px] font-medium text-charcoal dark:text-white">{role}</span>
+                          <span className="text-body-sm font-medium text-charcoal dark:text-white">{role}</span>
                           <div className="flex items-center gap-2">
                             <button
                               onClick={() => setDailyCounts(prev => ({ ...prev, [role]: Math.max(1, (prev[role] ?? 1) - 1) }))}
                               className="w-7 h-7 rounded-lg border border-charcoal/15 dark:border-white/15 text-charcoal/50 dark:text-white/40 hover:text-charcoal dark:hover:text-white hover:border-charcoal/30 dark:hover:border-white/30 transition-all flex items-center justify-center text-base font-medium"
                             >−</button>
-                            <span className="w-6 text-center text-[13px] font-semibold text-charcoal dark:text-white tabular-nums">{dailyCounts[role] ?? 1}</span>
+                            <span className="w-6 text-center text-body-sm font-semibold text-charcoal dark:text-white tabular-nums">{dailyCounts[role] ?? 1}</span>
                             <button
                               onClick={() => setDailyCounts(prev => ({ ...prev, [role]: (prev[role] ?? 1) + 1 }))}
                               className="w-7 h-7 rounded-lg border border-charcoal/15 dark:border-white/15 text-charcoal/50 dark:text-white/40 hover:text-charcoal dark:hover:text-white hover:border-charcoal/30 dark:hover:border-white/30 transition-all flex items-center justify-center text-base font-medium"
@@ -851,7 +851,7 @@ export default function OnboardingPage() {
 
                 {rolesInput.length === 0 && (
                   <div className="bg-charcoal/3 dark:bg-white/5 rounded-xl border border-charcoal/8 dark:border-white/8 px-4 py-6 text-center">
-                    <p className="text-[12.5px] text-charcoal/40 dark:text-white/35">Select at least one role above, or skip this step and configure later in Settings.</p>
+                    <p className="text-body-sm text-charcoal/40 dark:text-white/35">Select at least one role above, or skip this step and configure later in Settings.</p>
                   </div>
                 )}
               </div>
@@ -866,18 +866,18 @@ export default function OnboardingPage() {
                   <polyline points="20 6 9 17 4 12"/>
                 </svg>
               </div>
-              <h1 className="text-[19px] font-bold text-charcoal dark:text-white mb-1.5 tracking-tight">You're all set</h1>
-              <p className="text-[12.5px] text-charcoal/45 dark:text-white/40 mb-4 max-w-sm mx-auto leading-relaxed">
+              <h1 className="text-title-sm font-bold text-charcoal dark:text-white mb-1.5 tracking-tight">You're all set</h1>
+              <p className="text-body-sm text-charcoal/45 dark:text-white/40 mb-4 max-w-sm mx-auto leading-relaxed">
                 Your venue is configured and ready to go. Everything can be adjusted in Settings at any time.
               </p>
               {selectedPreset && (
                 <div className="inline-flex items-center gap-2 px-4 py-2 rounded-[10px] bg-brand/7 border border-brand/14 dark:bg-white/[0.06] dark:border-white/15 mb-1">
                   {VENUE_ICONS[selectedPreset.icon]}
-                  <span className="text-[13px] font-bold text-brand dark:text-white">{selectedPreset.label}</span>
+                  <span className="text-body-sm font-bold text-brand dark:text-white">{selectedPreset.label}</span>
                 </div>
               )}
               <div className="bg-white dark:bg-paperDark rounded-[14px] border border-charcoal/8 dark:border-white/8 p-[18px] mt-[18px] text-left">
-                <p className="font-mono text-[11px] tracking-[0.12em] uppercase text-charcoal/40 dark:text-white/35 mb-2.5">
+                <p className="font-mono text-micro tracking-[0.12em] uppercase text-charcoal/40 dark:text-white/35 mb-2.5">
                   Setup summary
                 </p>
                 {[
@@ -889,8 +889,8 @@ export default function OnboardingPage() {
                     <div className="w-6 h-6 rounded-[7px] bg-success/10 text-success flex items-center justify-center shrink-0">
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                     </div>
-                    <span className="text-[13px] font-medium text-charcoal dark:text-white flex-1">{row.label}</span>
-                    <span className="text-[11.5px] text-charcoal/40 dark:text-white/35">{row.value}</span>
+                    <span className="text-body-sm font-medium text-charcoal dark:text-white flex-1">{row.label}</span>
+                    <span className="text-caption text-charcoal/40 dark:text-white/35">{row.value}</span>
                   </div>
                 ))}
               </div>
@@ -900,8 +900,8 @@ export default function OnboardingPage() {
                     <StarIcon size={15} />
                   </div>
                   <div className="flex-1">
-                    <p className="text-[12.5px] font-bold text-accent">Unlock Pro features</p>
-                    <p className="text-[11px] text-charcoal/40 dark:text-white/35 mt-0.5">Rota, timesheets, training records, time off and more</p>
+                    <p className="text-body-sm font-bold text-accent">Unlock Pro features</p>
+                    <p className="text-caption text-charcoal/40 dark:text-white/35 mt-0.5">Rota, timesheets, training records, time off and more</p>
                   </div>
                   <Button
                     variant="accent"

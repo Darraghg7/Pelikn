@@ -34,7 +34,7 @@ const CONTRACT_BTNS = [
   { value: 'zero_hours', label: 'Zero hours' },
 ]
 const CONTRACT_LABELS = { full_time: 'Full time', part_time: 'Part time', zero_hours: 'Zero hours', fixed_term: 'Fixed term' }
-const INPUT = 'w-full h-12 px-4 rounded-xl border border-line dark:border-white/10 bg-cream dark:bg-white/5 text-[16px] text-ink dark:text-white placeholder:text-ink4 dark:placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand/40 focus:bg-white dark:focus:bg-white/10 transition-colors'
+const INPUT = 'w-full h-12 px-4 rounded-xl border border-line dark:border-white/10 bg-cream dark:bg-white/5 text-base text-ink dark:text-white placeholder:text-ink4 dark:placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand/40 focus:bg-white dark:focus:bg-white/10 transition-colors'
 
 const EMPTY_FORM = {
   name: '', role: 'staff', job_role: '', permission_title_id: null, pin: '', email: '', hourly_rate: '',
@@ -435,20 +435,20 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
             <Avatar name={s.name} id={s.id} colour={s.colour} photoUrl={s.photo_url} size="lg" decorative />
             <span className="flex-1 min-w-0">
               <span className="flex items-center gap-2 min-w-0">
-                <span className="text-[14px] font-semibold text-ink dark:text-white truncate">{s.name}</span>
+                <span className="text-body font-semibold text-ink dark:text-white truncate">{s.name}</span>
                 {isLocked && <Tag tone="bad">PIN locked</Tag>}
                 {s.is_restricted && <Tag tone="warn">Restricted</Tag>}
               </span>
               {subline.length > 0 && (
-                <span className="block text-[13px] text-ink3 dark:text-white/45 mt-0.5 truncate">{subline.join(' · ')}</span>
+                <span className="block text-body-sm text-ink3 dark:text-white/45 mt-0.5 truncate">{subline.join(' · ')}</span>
               )}
             </span>
             <svg className="shrink-0 w-4 h-4 text-ink4 dark:text-white/35" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
           </button>
           {/* Rota order — desktop, on hover (as before) */}
           <div className="hidden sm:flex flex-col pr-2 opacity-0 group-hover:opacity-100 transition-opacity">
-            <button type="button" aria-label={`Move ${s.name} up`} onClick={() => moveStaff(s.id, 'up')} disabled={idx === 0} className="w-6 h-5 flex items-center justify-center text-ink3 hover:text-ink disabled:opacity-0 text-[11px]">▲</button>
-            <button type="button" aria-label={`Move ${s.name} down`} onClick={() => moveStaff(s.id, 'down')} disabled={idx === staff.length - 1} className="w-6 h-5 flex items-center justify-center text-ink3 hover:text-ink disabled:opacity-0 text-[11px]">▼</button>
+            <button type="button" aria-label={`Move ${s.name} up`} onClick={() => moveStaff(s.id, 'up')} disabled={idx === 0} className="w-6 h-5 flex items-center justify-center text-ink3 hover:text-ink disabled:opacity-0 text-micro">▲</button>
+            <button type="button" aria-label={`Move ${s.name} down`} onClick={() => moveStaff(s.id, 'down')} disabled={idx === staff.length - 1} className="w-6 h-5 flex items-center justify-center text-ink3 hover:text-ink disabled:opacity-0 text-micro">▼</button>
           </div>
         </div>
       )
@@ -466,14 +466,14 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
             onChange={e => setSearch(e.target.value)}
             placeholder="Search staff"
             aria-label="Search staff"
-            className="w-full h-10 pl-12 pr-4 rounded-2xl border border-line dark:border-white/10 bg-white dark:bg-paperDark text-[13px] text-ink dark:text-white placeholder:text-ink4 dark:placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand/40"
+            className="w-full h-10 pl-12 pr-4 rounded-2xl border border-line dark:border-white/10 bg-white dark:bg-paperDark text-body-sm text-ink dark:text-white placeholder:text-ink4 dark:placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand/40"
           />
         </div>
 
         {staff.length === 0 ? (
           <div className={`${CARD} px-3.5 py-10 text-center`}>
-            <p className="text-[14px] font-semibold text-ink dark:text-white">No staff members yet</p>
-            <p className="text-[13px] text-ink3 dark:text-white/45 mt-1">Tap Add staff to set up your team.</p>
+            <p className="text-body font-semibold text-ink dark:text-white">No staff members yet</p>
+            <p className="text-body-sm text-ink3 dark:text-white/45 mt-1">Tap Add staff to set up your team.</p>
           </div>
         ) : (
           <>
@@ -481,7 +481,7 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
             {active.length > 0 ? (
               <div className={`${CARD} divide-y divide-line dark:divide-white/10 overflow-hidden`}>{active.map(row)}</div>
             ) : (
-              <p className="px-1 text-[13px] text-ink3 dark:text-white/45">No one matches “{search}”.</p>
+              <p className="px-1 text-body-sm text-ink3 dark:text-white/45">No one matches “{search}”.</p>
             )}
             {inactive.length > 0 && (
               <>
@@ -544,7 +544,7 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
           )}
         </div>
         <div className="min-w-0">
-          <h1 className="text-[19px] min-[420px]:text-[20px] leading-tight font-bold tracking-tight text-ink dark:text-white break-words">
+          <h1 className="text-title-sm min-[420px]:text-title leading-tight font-bold tracking-tight text-ink dark:text-white break-words">
             {isNew ? (staffForm.name.trim() || 'New staff member') : staffForm.name || current?.name}
           </h1>
           <div className="flex flex-wrap gap-2 mt-1.5">
@@ -615,7 +615,7 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
                         const next = cur.includes(dow) ? cur.filter(d => d !== dow) : [...cur, dow].sort((a, b) => a - b)
                         set('working_days', next.length === 7 ? [] : next)
                       }}
-                      className={`h-8 min-w-[48px] px-2 rounded-xl border text-[13px] font-semibold transition-colors ${on ? 'bg-brand border-brand text-white' : 'bg-cream dark:bg-white/5 border-line dark:border-white/10 text-ink3 dark:text-white/45'}`}
+                      className={`h-8 min-w-[48px] px-2 rounded-xl border text-body-sm font-semibold transition-colors ${on ? 'bg-brand border-brand text-white' : 'bg-cream dark:bg-white/5 border-line dark:border-white/10 text-ink3 dark:text-white/45'}`}
                     >
                       {day}
                     </button>
@@ -663,7 +663,7 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
             value={staffForm.role}
             onChange={v => set('role', v)}
           />
-          <p className="text-[13px] text-ink3 dark:text-white/45 mt-2">
+          <p className="text-body-sm text-ink3 dark:text-white/45 mt-2">
             {staffForm.role === 'owner'   && 'Everything a manager can do, and can’t be deactivated.'}
             {staffForm.role === 'manager' && 'Runs the rota, settings and all staff operations.'}
             {staffForm.role === 'staff'   && 'Tasks, cleaning, temp logs and allergens.'}
@@ -673,9 +673,9 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
           {editingId ? (
             <StaffDepartmentsAssignment staffId={editingId} />
           ) : (
-            <p className="text-[13px] text-ink3 dark:text-white/45">Save this person first, then pick their departments.</p>
+            <p className="text-body-sm text-ink3 dark:text-white/45">Save this person first, then pick their departments.</p>
           )}
-          <p className="text-[13px] text-ink3 dark:text-white/45 mt-2">
+          <p className="text-body-sm text-ink3 dark:text-white/45 mt-2">
             {staffForm.role === 'staff'
               ? 'They only see the Cleaning, Tasks and Checks for these departments. To let them see everything, leave all departments unticked.'
               : 'Their Cleaning, Tasks and Checks open on this department, and they can switch to any other. To open on everything, leave all departments unticked.'}
@@ -685,9 +685,9 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
           {editingId ? (
             <StaffRolesAssignment staffId={editingId} />
           ) : (
-            <p className="text-[13px] text-ink3 dark:text-white/45">Save this person first, then pick their job titles.</p>
+            <p className="text-body-sm text-ink3 dark:text-white/45">Save this person first, then pick their job titles.</p>
           )}
-          <p className="text-[13px] text-ink3 dark:text-white/45 mt-2">Used by the rota builder to fill shifts.</p>
+          <p className="text-body-sm text-ink3 dark:text-white/45 mt-2">Used by the rota builder to fill shifts.</p>
         </Field>
       </div>
 
@@ -699,7 +699,7 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
             <div className="px-3.5 sm:px-3.5 py-2.5">
               {['Compliance', 'Operations', 'Team'].map(category => (
                   <div key={category} className="mb-2 last:mb-0">
-                    <p className="text-[12px] font-semibold tracking-[0.08em] uppercase text-ink4 dark:text-white/35 mb-1">{category}</p>
+                    <p className="text-caption font-semibold tracking-[0.08em] uppercase text-ink4 dark:text-white/35 mb-1">{category}</p>
                     <div className="flex flex-col divide-y divide-line dark:divide-white/10">
                       {STAFF_PERMISSIONS.filter(p => p.category === category).map(perm => (
                         <ToggleRow
@@ -740,7 +740,7 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
           ))}
           <Chip active={!staffForm.colour} onClick={() => set('colour', '')}>Auto</Chip>
         </div>
-        <p className="text-[13px] text-ink3 dark:text-white/45 mt-2">Identifies this person on the rota.</p>
+        <p className="text-body-sm text-ink3 dark:text-white/45 mt-2">Identifies this person on the rota.</p>
       </div>
 
       {/* Venue access — multi-venue owners, existing staff only */}
@@ -766,7 +766,7 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
                   )
                 })}
               </div>
-              <p className="text-[13px] text-ink3 dark:text-white/45 mt-2">
+              <p className="text-body-sm text-ink3 dark:text-white/45 mt-2">
                 {isMgr
                   ? 'Which venues this manager sees in their All Venues overview, and can be rostered at.'
                   : 'Turning a venue on shows this person on that venue’s rota.'}
@@ -782,7 +782,7 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
       {/* Account access */}
       {current && (
         <>
-          <p className="px-1 -mb-1 text-[12px] font-semibold tracking-[0.08em] uppercase text-bad dark:text-badDark">Account access</p>
+          <p className="px-1 -mb-1 text-caption font-semibold tracking-[0.08em] uppercase text-bad dark:text-badDark">Account access</p>
           <div className={`${CARD} overflow-hidden divide-y divide-line dark:divide-white/10`}>
             {isLocked && (
               <ActionRow title="PIN locked" hint="Too many wrong PIN attempts. Unlock so they can sign in again.">
@@ -829,8 +829,8 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
                   </Button>
                 </ActionRow>
                 <div className="px-3.5 sm:px-3.5 py-2.5 bg-badBg/70 dark:bg-bad/15">
-                  <p className="text-[14px] font-semibold text-bad dark:text-badDark">Delete staff member</p>
-                  <p className="text-[13px] text-ink2 dark:text-white/70 mt-0.5">Permanently wipe this person and their records from the venue.</p>
+                  <p className="text-body font-semibold text-bad dark:text-badDark">Delete staff member</p>
+                  <p className="text-body-sm text-ink2 dark:text-white/70 mt-0.5">Permanently wipe this person and their records from the venue.</p>
                   <Button
                     variant="danger"
                     size="sm"
@@ -874,7 +874,7 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
 
 /* ── Pieces ─────────────────────────────────────────────────────────────── */
 function SectionLabel({ children }) {
-  return <p className="px-1 -mb-1 text-[12px] font-semibold tracking-[0.08em] uppercase text-ink3 dark:text-white/45">{children}</p>
+  return <p className="px-1 -mb-1 text-caption font-semibold tracking-[0.08em] uppercase text-ink3 dark:text-white/45">{children}</p>
 }
 
 /**
@@ -886,7 +886,7 @@ function Field({ label, group = false, children }) {
   const Tag = group ? 'div' : 'label'
   return (
     <Tag className="block min-w-0" {...(group ? { role: 'group', 'aria-label': label } : {})}>
-      <span className="block text-[13px] font-semibold text-ink3 dark:text-white/50 mb-2">{label}</span>
+      <span className="block text-body-sm font-semibold text-ink3 dark:text-white/50 mb-2">{label}</span>
       {children}
     </Tag>
   )
@@ -899,7 +899,7 @@ function Tag({ tone, big = false, children }) {
     bad:   'bg-badBg text-bad dark:bg-bad/25 dark:text-badDark',
     muted: 'bg-line2 text-ink2 dark:bg-white/10 dark:text-white/70',
   }[tone]
-  return <span className={`shrink-0 rounded-full inline-flex items-center font-semibold ${big ? 'h-7 px-3.5 text-[13px]' : 'h-6 px-2 text-xs'} ${cls}`}>{children}</span>
+  return <span className={`shrink-0 rounded-full inline-flex items-center font-semibold ${big ? 'h-7 px-3.5 text-body-sm' : 'h-6 px-2 text-xs'} ${cls}`}>{children}</span>
 }
 
 function Chip({ active, disabled, onClick, children }) {
@@ -910,7 +910,7 @@ function Chip({ active, disabled, onClick, children }) {
       disabled={disabled}
       onClick={onClick}
       className={[
-        'h-8 px-3.5 rounded-full border text-[13px] font-semibold transition-colors',
+        'h-8 px-3.5 rounded-full border text-body-sm font-semibold transition-colors',
         active ? 'bg-brand border-brand text-white' : 'bg-white dark:bg-paperDark border-line dark:border-white/10 text-ink2 dark:text-white/75 hover:border-ink4',
         disabled ? 'opacity-70 cursor-default' : '',
       ].join(' ')}
@@ -930,7 +930,7 @@ function Segmented({ options, value, onChange }) {
           role="radio"
           aria-checked={value === o.value}
           onClick={() => onChange(o.value)}
-          className={`flex-1 h-8 px-2 rounded-xl text-[13px] font-semibold whitespace-nowrap transition-colors ${value === o.value ? 'bg-brand text-white' : 'text-ink2 dark:text-white/70 hover:text-ink dark:hover:text-white'}`}
+          className={`flex-1 h-8 px-2 rounded-xl text-body-sm font-semibold whitespace-nowrap transition-colors ${value === o.value ? 'bg-brand text-white' : 'text-ink2 dark:text-white/70 hover:text-ink dark:hover:text-white'}`}
         >
           {o.label}
         </button>
@@ -943,8 +943,8 @@ function ToggleRow({ title, hint, checked, onChange }) {
   return (
     <div className="flex items-center justify-between gap-2.5 py-2.5">
       <div className="min-w-0">
-        <p className="text-[14px] font-semibold text-ink dark:text-white">{title}</p>
-        {hint && <p className="text-[13px] text-ink3 dark:text-white/45 mt-0.5">{hint}</p>}
+        <p className="text-body font-semibold text-ink dark:text-white">{title}</p>
+        {hint && <p className="text-body-sm text-ink3 dark:text-white/45 mt-0.5">{hint}</p>}
       </div>
       <Toggle checked={checked} onChange={onChange} size="lg" />
     </div>
@@ -955,8 +955,8 @@ function ActionRow({ title, hint, children }) {
   return (
     <div className="flex items-center justify-between gap-2.5 px-3.5 sm:px-3.5 py-2.5">
       <div className="min-w-0">
-        <p className="text-[14px] font-semibold text-ink dark:text-white">{title}</p>
-        {hint && <p className="text-[13px] text-ink3 dark:text-white/45 mt-0.5">{hint}</p>}
+        <p className="text-body font-semibold text-ink dark:text-white">{title}</p>
+        {hint && <p className="text-body-sm text-ink3 dark:text-white/45 mt-0.5">{hint}</p>}
       </div>
       <div className="shrink-0">{children}</div>
     </div>

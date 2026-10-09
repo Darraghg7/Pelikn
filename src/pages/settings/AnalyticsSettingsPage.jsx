@@ -25,7 +25,7 @@ export default function AnalyticsSettingsPage() {
 
       <div className="pb-24 max-w-[480px] mx-auto">
 
-        <div className="font-mono text-[11px] font-semibold tracking-[0.08em] uppercase text-charcoal/50 dark:text-white/40 pt-[18px] pb-[7px] px-0.5">
+        <div className="font-mono text-micro font-semibold tracking-[0.08em] uppercase text-charcoal/50 dark:text-white/40 pt-[18px] pb-[7px] px-0.5">
           Last login · {loading ? '—' : rows.length}
         </div>
 
@@ -44,11 +44,11 @@ export default function AnalyticsSettingsPage() {
               >
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-medium text-charcoal dark:text-white tracking-[-0.005em]">{r.staff_name}</div>
-                  <div className="font-mono text-[11px] text-charcoal/40 dark:text-white/35 mt-0.5">
+                  <div className="font-mono text-micro text-charcoal/40 dark:text-white/35 mt-0.5">
                     {ROLE_LABELS[r.role] ?? r.role}
                   </div>
                 </div>
-                <span className="font-mono text-[11.5px] text-charcoal/50 dark:text-white/40 shrink-0 text-right">
+                <span className="font-mono text-caption text-charcoal/50 dark:text-white/40 shrink-0 text-right">
                   {r.last_login ? format(parseISO(r.last_login), 'd MMM yyyy, HH:mm') : 'Never logged in'}
                 </span>
               </div>
@@ -56,7 +56,7 @@ export default function AnalyticsSettingsPage() {
           </div>
         )}
 
-        <div className="text-[11.5px] text-charcoal/50 dark:text-white/40 pt-2 px-1 leading-[1.45]">
+        <div className="text-caption text-charcoal/50 dark:text-white/40 pt-2 px-1 leading-[1.45]">
           Shows when each staff member last signed in to this venue on any device.
         </div>
 

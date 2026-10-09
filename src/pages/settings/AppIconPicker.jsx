@@ -52,7 +52,7 @@ export default function AppIconPicker() {
   return (
     <div className="border-t border-charcoal/6 dark:border-white/8 px-[15px] py-[13px]">
       <div className="text-sm font-medium text-charcoal dark:text-white tracking-[-0.005em]">App icon</div>
-      <div className="text-[11.5px] text-charcoal/50 dark:text-white/40 mt-0.5 mb-3 leading-[1.4]">Choose the icon shown on your home screen.</div>
+      <div className="text-caption text-charcoal/50 dark:text-white/40 mt-0.5 mb-3 leading-[1.4]">Choose the icon shown on your home screen.</div>
       <div className="flex gap-3">
         {ICON_VARIANTS.map(v => (
           <button
@@ -72,7 +72,7 @@ export default function AppIconPicker() {
                 <MortarSVG fg={v.fg} />
               </span>
             </span>
-            <span className={`text-[11px] font-medium ${active === v.id ? 'text-charcoal dark:text-white' : 'text-charcoal/40 dark:text-white/35'}`}>
+            <span className={`text-micro font-medium ${active === v.id ? 'text-charcoal dark:text-white' : 'text-charcoal/40 dark:text-white/35'}`}>
               {v.label}
             </span>
           </button>

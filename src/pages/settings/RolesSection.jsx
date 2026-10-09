@@ -160,7 +160,7 @@ export default function RolesSection() {
         onConfirm={confirmDelete}
         onClose={() => setDeleteTarget(null)}
       />
-      <p className="text-[11px] font-bold tracking-widest uppercase text-charcoal/40 dark:text-white/35">Departments</p>
+      <p className="text-micro font-bold tracking-widest uppercase text-charcoal/40 dark:text-white/35">Departments</p>
       <p className="text-xs text-charcoal/45 dark:text-white/40 -mt-2">
         Where people work. Tick each person into their departments on their staff page. Cleaning, Tasks and Checks are
         assigned to a department, so people only see their own. Managers can switch between departments or view all.
@@ -168,7 +168,7 @@ export default function RolesSection() {
       </p>
       <DepartmentsSection />
 
-      <p className="text-[11px] font-bold tracking-widest uppercase text-charcoal/40 dark:text-white/35 mt-1">Job titles</p>
+      <p className="text-micro font-bold tracking-widest uppercase text-charcoal/40 dark:text-white/35 mt-1">Job titles</p>
       <p className="text-xs text-charcoal/45 dark:text-white/40 -mt-2">
         What people do (e.g. Barista, Chef). Used by the rota builder to fill shifts. Job titles don't change what anyone sees.
       </p>
@@ -253,7 +253,7 @@ export function StaffDepartmentsAssignment({ staffId }) {
 
   if (departments.length === 0) {
     return (
-      <p className="text-[13px] text-ink3 dark:text-white/45">
+      <p className="text-body-sm text-ink3 dark:text-white/45">
         No departments set up yet. Add them under the Departments tab first.
       </p>
     )
@@ -270,7 +270,7 @@ export function StaffDepartmentsAssignment({ staffId }) {
             onClick={() => onToggle(dept.id)}
             aria-pressed={active}
             className={[
-              'h-8 px-3.5 rounded-full border text-[13px] font-semibold transition-colors',
+              'h-8 px-3.5 rounded-full border text-body-sm font-semibold transition-colors',
               active
                 ? 'bg-brand border-brand text-white'
                 : 'bg-white dark:bg-paperDark border-line dark:border-white/10 text-ink2 dark:text-white/75 hover:border-ink4',
@@ -297,7 +297,7 @@ export function StaffRolesAssignment({ staffId }) {
 
   if (roles.length === 0) {
     return (
-      <p className="text-[13px] text-ink3 dark:text-white/45">
+      <p className="text-body-sm text-ink3 dark:text-white/45">
         No job titles set up yet. Add them under the Departments tab first.
       </p>
     )
@@ -314,7 +314,7 @@ export function StaffRolesAssignment({ staffId }) {
             onClick={() => onToggle(role.id)}
             aria-pressed={active}
             className={[
-              'h-8 px-3.5 rounded-full border text-[13px] font-semibold transition-colors',
+              'h-8 px-3.5 rounded-full border text-body-sm font-semibold transition-colors',
               active
                 ? 'bg-brand border-brand text-white'
                 : 'bg-white dark:bg-paperDark border-line dark:border-white/10 text-ink2 dark:text-white/75 hover:border-ink4',
