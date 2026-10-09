@@ -14,7 +14,7 @@ function PanelItem({ item, isActive, onClick }) {
       aria-disabled={isDisabled || undefined}
       onMouseEnter={() => !isDisabled && setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      className={['font-sans text-[13px] text-left transition-[background,color] duration-100', isDisabled ? 'cursor-not-allowed' : 'cursor-pointer', isActive ? 'font-medium' : 'font-[450]'].join(' ')}
+      className={['font-sans text-body-sm text-left transition-[background,color] duration-100', isDisabled ? 'cursor-not-allowed' : 'cursor-pointer', isActive ? 'font-medium' : 'font-[450]'].join(' ')}
       style={{
         display: 'flex', alignItems: 'center', gap: 10,
         width: 'calc(100% - 16px)', margin: '1px 8px',
@@ -41,7 +41,7 @@ function PanelItem({ item, isActive, onClick }) {
         </span>
         {item.sub && (
           <span
-            className="block text-[11px] overflow-hidden text-ellipsis whitespace-nowrap"
+            className="block text-micro overflow-hidden text-ellipsis whitespace-nowrap"
             style={{ color: isActive ? alpha(colors.cream, 0.55) : T.inkFaint, marginTop: 1 }}
           >
             {item.sub}
@@ -50,7 +50,7 @@ function PanelItem({ item, isActive, onClick }) {
       </span>
       {item.badge > 0 && (
         <span
-          className="font-mono text-[11px] font-bold grid place-items-center"
+          className="font-mono text-micro font-bold grid place-items-center"
           style={{
             minWidth: 18, height: 17, padding: '0 5px', borderRadius: 8,
             background: isWarn ? T.warnBg : white(0.12),
@@ -109,7 +109,7 @@ function PanelVenueSwitcher({ venues, currentSlug, onSelect, onOverview }) {
         onClick={() => setOpen(v => !v)}
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
-        className="font-sans text-[11.5px] font-semibold cursor-pointer transition-[background,color,border-color] duration-[120ms] flex items-center gap-[7px] w-full"
+        className="font-sans text-caption font-semibold cursor-pointer transition-[background,color,border-color] duration-[120ms] flex items-center gap-[7px] w-full"
         style={{
           padding: '7px 10px', borderRadius: 8,
           background: open ? white(0.16) : hovered ? white(0.14) : white(0.09),
@@ -122,7 +122,7 @@ function PanelVenueSwitcher({ venues, currentSlug, onSelect, onOverview }) {
         </svg>
         <span style={{ flex: 1, textAlign: 'left' }}>Switch venue</span>
         <span
-          className="text-[11px] opacity-55 inline-block transition-transform duration-200"
+          className="text-micro opacity-55 inline-block transition-transform duration-200"
           style={{ transform: open ? 'rotate(180deg)' : 'rotate(0deg)' }}
         >▾</span>
       </button>
@@ -141,7 +141,7 @@ function PanelVenueSwitcher({ venues, currentSlug, onSelect, onOverview }) {
         pointerEvents: open ? 'auto' : 'none',
       }}>
         <p
-          className="font-mono text-[11px] font-semibold uppercase tracking-[0.12em]"
+          className="font-mono text-micro font-semibold uppercase tracking-[0.12em]"
           style={{ padding: '9px 12px 6px', color: alpha(colors.ink, 0.40) }}
         >
           Your venues
@@ -149,7 +149,7 @@ function PanelVenueSwitcher({ venues, currentSlug, onSelect, onOverview }) {
         {/* Group Overview link */}
         <button
           onClick={() => { setOpen(false); onOverview?.() }}
-          className="font-sans block w-full text-left text-[12.5px] font-bold cursor-pointer border-none"
+          className="font-sans block w-full text-left text-body-sm font-bold cursor-pointer border-none"
           style={{ padding: '8px 12px', color: colors.brand.DEFAULT, background: 'none' }}
           onMouseEnter={e => e.currentTarget.style.background = alpha(colors.brand.DEFAULT, 0.06)}
           onMouseLeave={e => e.currentTarget.style.background = 'none'}
@@ -163,7 +163,7 @@ function PanelVenueSwitcher({ venues, currentSlug, onSelect, onOverview }) {
             <button
               key={v.id}
               onClick={() => { setOpen(false); onSelect(v.slug) }}
-              className={['font-sans flex items-center gap-2 w-full text-left text-[12.5px] border-none cursor-pointer transition-[background] duration-100', isCurrent ? 'font-bold' : 'font-[450]'].join(' ')}
+              className={['font-sans flex items-center gap-2 w-full text-left text-body-sm border-none cursor-pointer transition-[background] duration-100', isCurrent ? 'font-bold' : 'font-[450]'].join(' ')}
               style={{
                 padding: '8px 12px',
                 color: isCurrent ? colors.brand.DEFAULT : alpha(colors.ink, 0.65),
@@ -244,7 +244,7 @@ export default function NavPanel({
       <header style={{ padding: '18px 18px 14px', borderBottom: `1px solid ${T.divider}` }}>
         {/* Category mono label row */}
         <div
-          className="font-mono text-[11px] font-semibold uppercase tracking-[0.12em] flex items-center gap-[7px]"
+          className="font-mono text-micro font-semibold uppercase tracking-[0.12em] flex items-center gap-[7px]"
           style={{ color: T.inkFaint, marginBottom: 6 }}
         >
           <span style={{ width: 11, height: 11, display: 'inline-flex', opacity: 0.7 }}>
@@ -253,7 +253,7 @@ export default function NavPanel({
           {cat.label}
           {isPreview && (
             <span
-              className="font-mono text-[11px] font-bold tracking-[0.08em] ml-auto"
+              className="font-mono text-micro font-bold tracking-[0.08em] ml-auto"
               style={{ padding: '2px 7px', borderRadius: 5, background: alpha(colors.accent, 0.18), color: T.warn }}
             >
               Browsing
@@ -264,14 +264,14 @@ export default function NavPanel({
 
         {/* Title */}
         <div
-          className="text-[19px] font-semibold tracking-[-0.015em] leading-[1.15]"
+          className="text-title-sm font-semibold tracking-[-0.015em] leading-[1.15]"
           style={{ color: T.inkBright }}
         >
           {panelTitle}
         </div>
 
         {/* Subtitle */}
-        <div className="text-[11.5px]" style={{ color: T.inkMuted, marginTop: 3 }}>
+        <div className="text-caption" style={{ color: T.inkMuted, marginTop: 3 }}>
           {panelSubtitle}
         </div>
 

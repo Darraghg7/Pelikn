@@ -30,8 +30,8 @@ function OpenActionsWidget() {
       <BigNumber value={data.total} label={data.total === 0 ? 'No open issues' : 'unresolved'} alert={data.critical > 0} />
       {data.total > 0 && (
         <div className="flex justify-center gap-3 mt-1">
-          {data.critical > 0 && <span className="text-[11px] text-danger font-medium">{data.critical} critical</span>}
-          {data.major > 0 && <span className="text-[11px] text-orange-600 font-medium">{data.major} major</span>}
+          {data.critical > 0 && <span className="text-micro text-danger font-medium">{data.critical} critical</span>}
+          {data.major > 0 && <span className="text-micro text-orange-600 font-medium">{data.major} major</span>}
         </div>
       )}
       {data.total > 0 && data.items.slice(0, 4).map(a => (
@@ -41,7 +41,7 @@ function OpenActionsWidget() {
           className="flex items-center justify-between py-1.5 border-t border-charcoal/5 dark:border-white/5 group"
         >
           <span className="text-xs text-charcoal/70 dark:text-white/60 truncate flex-1 group-hover:text-charcoal dark:group-hover:text-white transition-colors">{a.title ?? 'Untitled'}</span>
-          <span className={`text-[11px] font-semibold shrink-0 ml-2 ${
+          <span className={`text-micro font-semibold shrink-0 ml-2 ${
             a.severity === 'critical' ? 'text-danger' :
             a.severity === 'major' ? 'text-warning' : 'text-charcoal/40 dark:text-white/35'
           }`}>{a.severity?.toUpperCase()}</span>

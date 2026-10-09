@@ -184,7 +184,7 @@ export default function NotificationBell({ variant = 'light' }) {
           <path d="M13.73 21a2 2 0 0 1-3.46 0" />
         </svg>
         {count > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 min-w-[17px] h-[17px] bg-danger text-white text-[11px] font-bold rounded-full flex items-center justify-center px-0.5 shadow-sm ring-1 ring-white dark:ring-charcoal">
+          <span className="absolute -top-0.5 -right-0.5 min-w-[17px] h-[17px] bg-danger text-white text-micro font-bold rounded-full flex items-center justify-center px-0.5 shadow-sm ring-1 ring-white dark:ring-charcoal">
             {count > 9 ? '9+' : count}
           </span>
         )}
@@ -223,7 +223,7 @@ export default function NotificationBell({ variant = 'light' }) {
                   />
                 ))}
               </ul>
-              <p className="text-[11px] text-charcoal/25 dark:text-white/25 text-center py-2 border-t border-charcoal/6 dark:border-white/8">
+              <p className="text-caption text-charcoal/25 dark:text-white/25 text-center py-2 border-t border-charcoal/6 dark:border-white/8">
                 Swipe left to dismiss · Resets when new activity occurs
               </p>
             </>

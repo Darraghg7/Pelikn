@@ -58,7 +58,7 @@ export default function ClosingChecklistGateModal({
         {!showOverride ? (
           <>
             <div>
-              <p className="text-[11px] tracking-widest uppercase text-danger mb-1">Closing checklist not finished</p>
+              <p className="text-micro tracking-widest uppercase text-danger mb-1">Closing checklist not finished</p>
               <h3 className="font-semibold text-charcoal dark:text-white text-lg">Before you clock out</h3>
             </div>
 
@@ -115,7 +115,7 @@ export default function ClosingChecklistGateModal({
         ) : (
           <>
             <div>
-              <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-1">Manager Override</p>
+              <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-1">Manager Override</p>
               <h3 className="font-semibold text-charcoal dark:text-white text-lg">Clock out anyway</h3>
               <p className="text-xs text-charcoal/40 dark:text-white/35 mt-1">
                 A manager confirms this clock-out without the closing checklist being finished. This is logged.

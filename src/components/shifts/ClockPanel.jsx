@@ -49,17 +49,17 @@ function ElapsedTimer({ clockInAt, breakStartAt, totalBreakMs, status }) {
   return (
     <div className="flex items-baseline gap-3">
       <div>
-        <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">Shift</p>
+        <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">Shift</p>
         <p className="font-mono text-2xl text-charcoal dark:text-white tabular-nums">{formatElapsed(workingMs)}</p>
       </div>
       {status === 'on_break' && breakStartAt && (
         <div>
-          <p className="text-[11px] tracking-widest uppercase text-warning/60">Break</p>
+          <p className="text-micro tracking-widest uppercase text-warning/60">Break</p>
           <p className="font-mono text-lg text-warning tabular-nums">{formatElapsed(currentBreakMs)}</p>
         </div>
       )}
       {totalBreakMs > 0 && status !== 'on_break' && (
-        <p className="text-[11px] text-charcoal/30 dark:text-white/30">
+        <p className="text-caption text-charcoal/30 dark:text-white/30">
           {formatElapsed(totalBreakMs)} on breaks
         </p>
       )}
@@ -235,7 +235,7 @@ export default function ClockPanel({ staffId, compact = false }) {
         )}
 
         {notSent && (
-          <p role="status" className={`text-[12px] font-medium ${compact ? 'text-white/80' : 'text-warning'}`}>
+          <p role="status" className={`text-caption font-medium ${compact ? 'text-white/80' : 'text-warning'}`}>
             Not sent yet. This device will keep trying.
           </p>
         )}

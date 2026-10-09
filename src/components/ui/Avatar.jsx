@@ -24,12 +24,12 @@ import { colors } from '../../lib/tokens'
  */
 
 const SIZES = {
-  xs:   'w-7 h-7 text-[11px]',
-  sm:   'w-8 h-8 text-[12px]',
-  md:   'w-9 h-9 text-[13px]',
-  lg:   'w-10 h-10 text-[14px]',
-  xl:   'w-11 h-11 text-[15px]',
-  '2xl': 'w-14 h-14 text-[19px]',
+  xs:   'w-7 h-7 text-micro',
+  sm:   'w-8 h-8 text-caption',
+  md:   'w-9 h-9 text-body-sm',
+  lg:   'w-10 h-10 text-body',
+  xl:   'w-11 h-11 text-body-lg',
+  '2xl': 'w-14 h-14 text-title-sm',
 }
 
 const TONES = {

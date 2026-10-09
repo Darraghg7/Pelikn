@@ -147,7 +147,7 @@ function ReasonChips({ type, selected, onSelect }) {
   const reasons = type === 'late_clock_in' ? LATE_REASONS : BREAK_REASONS
   return (
     <div className="flex flex-col gap-2">
-      <p className={`text-[12px] font-medium ${INK3}`}>
+      <p className={`text-caption font-medium ${INK3}`}>
         Select a reason
       </p>
       <div className="flex flex-wrap gap-2">
@@ -156,7 +156,7 @@ function ReasonChips({ type, selected, onSelect }) {
             key={r}
             type="button"
             onClick={() => onSelect(selected === r ? null : r)}
-            className={`text-[13px] font-medium cursor-pointer transition-all duration-150 border-[1.5px] ${selected === r
+            className={`text-body-sm font-medium cursor-pointer transition-all duration-150 border-[1.5px] ${selected === r
               ? 'border-ink2 bg-ink text-white dark:border-white dark:bg-white dark:text-ink'
               : `${LINE} bg-transparent ${INK2}`}`}
             style={{ borderRadius: 20, padding: '6px 14px' }}
@@ -423,28 +423,28 @@ export default function StaffAlertModal({
                 </div>
                 <div className="flex flex-col items-end gap-1.5">
                   <StrikePips count={strikeCount} tone={tone} />
-                  <p className={`font-mono text-[11px] tracking-widest uppercase ${INK3}`}>
+                  <p className={`font-mono text-micro tracking-widest uppercase ${INK3}`}>
                     {ordinal(strikeCount)} in 30 days
                   </p>
                 </div>
               </div>
 
               {/* Eyebrow */}
-              <p className={`font-mono text-[11px] tracking-[0.12em] uppercase font-medium ${tone.fg}`}>
+              <p className={`font-mono text-micro tracking-[0.12em] uppercase font-medium ${tone.fg}`}>
                 {eyebrow}
               </p>
 
               {/* H1 */}
-              <h1 className={`text-[22px] font-semibold tracking-[-0.022em] leading-[1.2] ${INK}`} style={{ margin: 0 }}>
+              <h1 className={`text-title font-semibold tracking-[-0.022em] leading-[1.2] ${INK}`} style={{ margin: 0 }}>
                 {heading}
               </h1>
 
               {/* Big mono number */}
               <div>
-                <span className={`font-mono text-[34px] font-medium leading-none ${tone.fg}`}>
+                <span className={`font-mono text-stat font-medium leading-none ${tone.fg}`}>
                   {minsOver >= 1 ? `${minsOver} min` : '< 1 min'}
                 </span>
-                <span className={`font-mono text-[13px] ml-2 ${INK3}`}>
+                <span className={`font-mono text-body-sm ml-2 ${INK3}`}>
                   {isLate ? 'after your start time' : 'over your allowance'}
                 </span>
               </div>
@@ -466,7 +466,7 @@ export default function StaffAlertModal({
               </div>
 
               {/* Body line */}
-              <p className={`text-[13.5px] leading-relaxed ${INK2}`} style={{ margin: 0 }}>
+              <p className={`text-body leading-relaxed ${INK2}`} style={{ margin: 0 }}>
                 {isLate
                   ? `Your shift starts at ${scheduledTime}. Any clock-in after your start time is logged as late.`
                   : `Your break allowance is ${breakAllowanceMins} minutes. Time over your allowance is logged on your timesheet.`
@@ -476,7 +476,7 @@ export default function StaffAlertModal({
               {/* Escalation banner */}
               {showBanner && (
                 <div
-                  className={`text-[13px] font-semibold ${bannerSevere ? 'bg-severe text-white' : `${TONES.bad.bg} ${TONES.bad.fg}`}`}
+                  className={`text-body-sm font-semibold ${bannerSevere ? 'bg-severe text-white' : `${TONES.bad.bg} ${TONES.bad.fg}`}`}
                   style={{ borderRadius: 10, padding: '10px 14px' }}
                 >
                   {bannerSevere
@@ -523,7 +523,7 @@ export default function StaffAlertModal({
               </Button>
 
               {/* Footnote */}
-              <p className={`font-mono text-center text-[11px] ${INK3}`} style={{ margin: 0 }}>
+              <p className={`font-mono text-center text-micro ${INK3}`} style={{ margin: 0 }}>
                 {requireManagerApproval
                   ? 'A manager on shift must approve this late clock-in.'
                   : 'Clock-in times are recorded on your timesheet.'
@@ -547,13 +547,13 @@ export default function StaffAlertModal({
 
               {/* Header */}
               <div className="flex flex-col gap-1">
-                <p className={`font-mono text-[11px] tracking-[0.12em] uppercase font-medium ${tone.fg}`}>
+                <p className={`font-mono text-micro tracking-[0.12em] uppercase font-medium ${tone.fg}`}>
                   MANAGER APPROVAL
                 </p>
-                <h1 className={`text-[20px] font-semibold tracking-[-0.02em] leading-[1.2] ${INK}`} style={{ margin: 0 }}>
+                <h1 className={`text-title font-semibold tracking-[-0.02em] leading-[1.2] ${INK}`} style={{ margin: 0 }}>
                   Hand to manager on shift
                 </h1>
-                <p className={`text-[13px] leading-relaxed ${INK2}`} style={{ marginTop: 2 }}>
+                <p className={`text-body-sm leading-relaxed ${INK2}`} style={{ marginTop: 2 }}>
                   The manager needs to select their name and enter their PIN to approve this late clock-in.
                 </p>
               </div>
@@ -561,7 +561,7 @@ export default function StaffAlertModal({
               {/* Manager list */}
               {managers.length === 0 ? (
                 <div
-                  className={`text-[13px] text-center bg-line2 dark:bg-white/5 ${INK3}`}
+                  className={`text-body-sm text-center bg-line2 dark:bg-white/5 ${INK3}`}
                   style={{ padding: '14px', borderRadius: 10 }}
                 >
                   No managers found for this venue.
@@ -584,8 +584,8 @@ export default function StaffAlertModal({
                         decorative
                       />
                       <div className="flex-1 min-w-0">
-                        <p className={`text-[14px] font-semibold ${INK}`} style={{ margin: 0 }}>{m.name}</p>
-                        <p className={`text-[11px] capitalize ${INK3}`} style={{ margin: 0 }}>{m.role}</p>
+                        <p className={`text-body font-semibold ${INK}`} style={{ margin: 0 }}>{m.name}</p>
+                        <p className={`text-caption capitalize ${INK3}`} style={{ margin: 0 }}>{m.role}</p>
                       </div>
                       {selectedManager?.id === m.id && (
                         <div className="text-good dark:text-goodDark"><CheckIcon /></div>
@@ -598,12 +598,12 @@ export default function StaffAlertModal({
               {/* PIN entry — only shown once a manager is selected */}
               {selectedManager && (
                 <div className="flex flex-col gap-3">
-                  <p className={`text-[12px] font-medium text-center ${INK3}`}>
+                  <p className={`text-caption font-medium text-center ${INK3}`}>
                     {selectedManager.name} — enter your PIN
                   </p>
                   <PinDots length={pin.length} shake={shake} />
                   {pinError && (
-                    <p className={`text-[12px] font-semibold text-center ${TONES.bad.fg}`}>
+                    <p className={`text-caption font-semibold text-center ${TONES.bad.fg}`}>
                       {pinError}
                     </p>
                   )}
@@ -620,7 +620,7 @@ export default function StaffAlertModal({
                 </div>
               )}
 
-              <p className={`font-mono text-center text-[11px] ${INK3}`} style={{ margin: 0 }}>
+              <p className={`font-mono text-center text-micro ${INK3}`} style={{ margin: 0 }}>
                 Manager approval is logged against this late clock-in.
               </p>
             </div>
@@ -637,10 +637,10 @@ function CompRow({ label, value, tinted, tone }) {
       className={`border-t first:border-t-0 ${LINE2} ${tinted ? tone.soft : 'bg-transparent'}`}
       style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px' }}
     >
-      <span className={`font-mono text-[11px] tracking-widest uppercase ${INK3}`}>
+      <span className={`font-mono text-micro tracking-widest uppercase ${INK3}`}>
         {label}
       </span>
-      <span className={`font-mono text-[14px] font-medium tabular-nums ${tinted ? tone.fg : INK}`}>
+      <span className={`font-mono text-body font-medium tabular-nums ${tinted ? tone.fg : INK}`}>
         {value}
       </span>
     </div>

@@ -164,7 +164,7 @@ function NavReorderSheet({ items, onSave, onClose }) {
         <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-charcoal/8 dark:border-white/10">
           <div>
             <p className="font-semibold text-charcoal dark:text-white text-base">Reorder tabs</p>
-            <p className="text-[12px] text-charcoal/45 dark:text-white/40 mt-0.5">Drag to rearrange your nav</p>
+            <p className="text-caption text-charcoal/45 dark:text-white/40 mt-0.5">Drag to rearrange your nav</p>
           </div>
           <CloseButton className="-mr-2" onClick={onClose} />
         </div>
@@ -250,7 +250,7 @@ function SubNav({ items, currentPath }) {
             onFocus={() => preloadRoute(item.to)}
             aria-current={isActive ? 'page' : undefined}
             className={[
-              'px-3.5 py-2 rounded-full text-[12px] font-semibold tracking-wide whitespace-nowrap transition-all shrink-0',
+              'px-3.5 py-2 rounded-full text-caption font-semibold tracking-wide whitespace-nowrap transition-all shrink-0',
               isActive
                 ? 'bg-brand text-cream shadow-sm shadow-brand/20 dark:bg-cream dark:text-charcoal'
                 : 'text-charcoal/55 dark:text-white/45 hover:text-charcoal/80 dark:hover:text-white/70',
@@ -442,7 +442,7 @@ export default function MobileNav() {
         }}>
           <NavLink
             to={backRoute}
-            className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-brand dark:text-accent no-underline"
+            className="inline-flex items-center gap-1.5 text-body-sm font-semibold text-brand dark:text-accent no-underline"
           >
             <svg width="7" height="12" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
               <path d="M5 1L1 5l4 4"/>
@@ -475,7 +475,7 @@ export default function MobileNav() {
                     >
                       <span className="flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl">
                         <Icon active={false} />
-                        <span className="text-[11px] leading-none tracking-wide font-medium">
+                        <span className="text-micro leading-none tracking-wide font-medium">
                           {tab.label}
                         </span>
                       </span>
@@ -507,7 +507,7 @@ export default function MobileNav() {
                       isActive ? 'bg-navpill dark:bg-brand/30' : '',
                     ].join(' ')}>
                       <Icon active={isActive} />
-                      <span className={['text-[11px] leading-none tracking-wide', isActive ? 'font-semibold' : 'font-medium'].join(' ')}>
+                      <span className={['text-micro leading-none tracking-wide', isActive ? 'font-semibold' : 'font-medium'].join(' ')}>
                         {tab.label}
                       </span>
                     </span>

@@ -1,4 +1,4 @@
-import { colors, alpha } from './src/lib/tokens.js'
+import { colors, alpha, fontSize } from './src/lib/tokens.js'
 
 /** @type {import('tailwindcss').Config} */
 export default {
@@ -19,6 +19,8 @@ export default {
         9: '0.09', 12: '0.12', 14: '0.14', 16: '0.16', 18: '0.18', 22: '0.22',
         28: '0.28', 38: '0.38', 68: '0.68', 87: '0.87', 88: '0.88', 92: '0.92',
       },
+      // The type scale (text-micro … text-stat) also lives in src/lib/tokens.js.
+      fontSize,
       fontFamily: {
         sans:  ['Geist', '-apple-system', 'system-ui', 'sans-serif'],
         mono:  ['Geist Mono', 'ui-monospace', 'monospace'],

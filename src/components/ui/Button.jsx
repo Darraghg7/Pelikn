@@ -48,7 +48,7 @@ export const BUTTON_VARIANTS = {
   // Inline text action that sits in a sentence. Ignores `size` padding.
   link:      'text-brand dark:text-white underline-offset-2 hover:underline idle-disabled:opacity-40',
   // Small uppercase underlined action in a page header (EXPORT PDF, + ADD TASK). Ignores 'size' padding.
-  label:     'text-[11px] tracking-widest uppercase text-ink3 dark:text-white/55 hover:text-ink dark:hover:text-white border-b border-ink4/70 dark:border-white/25 hover:border-ink3 dark:hover:border-white/50 idle-disabled:opacity-40',
+  label:     'text-micro tracking-widest uppercase text-ink3 dark:text-white/55 hover:text-ink dark:hover:text-white border-b border-ink4/70 dark:border-white/25 hover:border-ink3 dark:hover:border-white/50 idle-disabled:opacity-40',
   // On a dark brand-green card (the dashboard clock card).
   // bg-paper, not bg-white: index.css forces .bg-white dark in dark mode, which
   // left the old Clock in button dark-green-on-dark.
@@ -65,9 +65,9 @@ export const BUTTON_VARIANTS = {
 const HIT_AREA = 'btn-hit'
 
 const SIZES = {
-  sm: { text: `h-9 px-3 gap-1.5 text-[13px] ${HIT_AREA}`, icon: `h-9 w-9 ${HIT_AREA}`, svg: '[&_svg]:w-4 [&_svg]:h-4' },
+  sm: { text: `h-9 px-3 gap-1.5 text-body-sm ${HIT_AREA}`, icon: `h-9 w-9 ${HIT_AREA}`, svg: '[&_svg]:w-4 [&_svg]:h-4' },
   md: { text: 'h-11 sm:h-10 px-4 gap-2 text-sm', icon: 'h-11 w-11 sm:h-10 sm:w-10', svg: '[&_svg]:w-[18px] [&_svg]:h-[18px]' },
-  lg: { text: 'h-12 px-5 gap-2 text-[15px]', icon: 'h-12 w-12', svg: '[&_svg]:w-5 [&_svg]:h-5' },
+  lg: { text: 'h-12 px-5 gap-2 text-body-lg', icon: 'h-12 w-12', svg: '[&_svg]:w-5 [&_svg]:h-5' },
 }
 SIZES.xl = SIZES.lg // old name, kept for existing callers
 

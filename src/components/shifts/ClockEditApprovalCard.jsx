@@ -45,7 +45,7 @@ function DenySheet({ onDeny, onCancel }) {
         }}
         onClick={e => e.stopPropagation()}
       >
-        <p className="text-[15px] font-bold text-charcoal dark:text-white" style={{ marginBottom: 12 }}>
+        <p className="text-body-lg font-bold text-charcoal dark:text-white" style={{ marginBottom: 12 }}>
           Deny this request
         </p>
         <textarea
@@ -161,10 +161,10 @@ export default function ClockEditApprovalCard({ compact = false }) {
           display: 'flex', alignItems: 'center', gap: 8,
           padding: '12px 16px 8px',
         }}>
-          <span className="font-mono text-[11px] tracking-[0.1em] uppercase font-semibold text-ink3 dark:text-white/50">
+          <span className="font-mono text-micro tracking-[0.1em] uppercase font-semibold text-ink3 dark:text-white/50">
             Hour Edit Requests
           </span>
-          <span className="text-[11px] font-bold text-white flex items-center justify-center bg-warn"
+          <span className="text-micro font-bold text-white flex items-center justify-center bg-warn"
             style={{ minWidth: 18, height: 18, borderRadius: 999, padding: '0 5px' }}
           >
             {requests.length}
@@ -183,7 +183,7 @@ export default function ClockEditApprovalCard({ compact = false }) {
               <span className="text-sm font-semibold text-charcoal dark:text-white">
                 {r.staff?.name ?? 'Staff member'}
               </span>
-              <span className="font-mono text-[11px] tracking-[0.05em] text-ink4 dark:text-white/35">
+              <span className="font-mono text-micro tracking-[0.05em] text-ink4 dark:text-white/35">
                 {fmtDate(r.requested_clock_in)}
               </span>
             </div>
@@ -192,7 +192,7 @@ export default function ClockEditApprovalCard({ compact = false }) {
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: r.reason ? 6 : 10, flexWrap: 'wrap' }}>
               {/* Original */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                <span className="text-[11px] text-ink4 dark:text-white/35">Was</span>
+                <span className="text-micro text-ink4 dark:text-white/35">Was</span>
                 <span className="font-mono text-xs line-through text-ink3 dark:text-white/50">
                   {fmt(r.original_clock_in)} → {fmt(r.original_clock_out)}
                 </span>
@@ -203,7 +203,7 @@ export default function ClockEditApprovalCard({ compact = false }) {
               </svg>
               {/* Requested */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                <span className="text-[11px] text-ink3 dark:text-white/50">Wants</span>
+                <span className="text-micro text-ink3 dark:text-white/50">Wants</span>
                 <span className="font-mono text-xs font-semibold text-charcoal dark:text-white">
                   {fmt(r.requested_clock_in)} → {fmt(r.requested_clock_out)}
                   {r.break_minutes > 0 && (

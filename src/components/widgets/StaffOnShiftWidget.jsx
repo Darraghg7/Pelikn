@@ -32,7 +32,7 @@ function StaffOnShiftWidget() {
       {loading ? (
         <WidgetPending isError={isError} onRetry={refetch} className="py-2.5" />
       ) : shifts.length === 0 ? (
-        <p className="text-[13px] text-ink3 dark:text-white/45 py-2">No shifts today</p>
+        <p className="text-body-sm text-ink3 dark:text-white/45 py-2">No shifts today</p>
       ) : (
         <div className="divide-y divide-line dark:divide-white/10">
           {shifts.slice(0, 5).map(s => {
@@ -48,15 +48,15 @@ function StaffOnShiftWidget() {
                   <span className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white dark:border-paperDark ${dot}`} title={active ? 'On shift now' : now > end ? 'Finished' : 'Later today'} />
                 </Avatar>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[14px] font-semibold text-ink dark:text-white truncate">{name}</p>
-                  {s.role_label && <p className="text-[13px] text-ink3 dark:text-white/45 truncate">{s.role_label}</p>}
+                  <p className="text-body font-semibold text-ink dark:text-white truncate">{name}</p>
+                  {s.role_label && <p className="text-body-sm text-ink3 dark:text-white/45 truncate">{s.role_label}</p>}
                 </div>
-                <p className="shrink-0 font-mono text-[13px] font-semibold text-ink2 dark:text-white/75">{start}–{end}</p>
+                <p className="shrink-0 font-mono text-body-sm font-semibold text-ink2 dark:text-white/75">{start}–{end}</p>
               </div>
             )
           })}
           {shifts.length > 5 && (
-            <p className="text-[13px] text-ink3 dark:text-white/45 px-3.5 sm:px-3.5 py-2.5">+{shifts.length - 5} more on the rota</p>
+            <p className="text-body-sm text-ink3 dark:text-white/45 px-3.5 sm:px-3.5 py-2.5">+{shifts.length - 5} more on the rota</p>
           )}
         </div>
       )}
