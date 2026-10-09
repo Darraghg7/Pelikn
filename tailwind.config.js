@@ -47,6 +47,7 @@ export default {
         warnBg:  '#fbeedc',
         bad:     '#b3331c',
         badBg:   '#fbeae6',
+        badDark: '#f19a86',  // bad text on dark surfaces (was dark:text-[#f19a86])
         severe:  '#7a1d0c',
         info:    '#2c4577',
         infoBg:  '#e7edf6',
@@ -100,5 +101,11 @@ export default {
       },
     },
   },
-  plugins: [],
+  plugins: [
+    // `idle-disabled:` = disabled but not loading. Button keeps its colour while
+    // a save is in flight (aria-busy) and only greys out when truly unavailable.
+    function ({ addVariant }) {
+      addVariant('idle-disabled', '&:disabled:not([aria-busy])')
+    },
+  ],
 }
