@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { initials } from '../../lib/names'
 import { staffColour } from '../../lib/utils'
 import { STAFF_COLOUR_PALETTE } from '../../lib/constants'
+import { colors } from '../../lib/tokens'
 
 /**
  * A person's avatar: their photo, or their initials on their rota colour.
@@ -70,10 +71,10 @@ export function avatarBaseColour({ id, colour, name }) {
  */
 export function avatarPalette(base) {
   return {
-    '--av-bg':      mix(base, '#ffffff', 0.84),
-    '--av-fg':      mix(base, '#000000', 0.45),
-    '--av-bg-dark': mix(base, '#1e1e1e', 0.72),
-    '--av-fg-dark': mix(base, '#ffffff', 0.55),
+    '--av-bg':      mix(base, colors.paper, 0.84),
+    '--av-fg':      mix(base, colors.print.ink, 0.45),
+    '--av-bg-dark': mix(base, colors.paperDark, 0.72),
+    '--av-fg-dark': mix(base, colors.paper, 0.55),
   }
 }
 

@@ -18,6 +18,7 @@ import NavTopbar from './NavTopbar'
 import { routeToNav, buildManagerCats, buildStaffCats, IcoOverview, PanelIcons } from './navConfig'
 import { initials } from '../../lib/names'
 import Button from '../ui/Button'
+import { colors, alpha, white } from '../../lib/tokens'
 
 // Per-venue cache — busted automatically after TTL or on app restart
 const CACHE_TTL = 60_000 // 1 minute
@@ -536,7 +537,7 @@ export default function AppShell({ children }) {
   const browseCatObj   = allCats.find(c => c.id === browseCat) || allCats[0]
   const panelActiveItem = browseCat === mainCat ? mainItem : null
 
-  const bgClass = 'bg-surface dark:bg-[#111111]'
+  const bgClass = 'bg-surface dark:bg-bgDark'
   const maxW    = isManager ? 'max-w-[1280px]' : 'max-w-[860px]'
 
   return (
@@ -586,14 +587,14 @@ export default function AppShell({ children }) {
             style={{
               position: 'fixed', left: 80, top: '50%', transform: 'translateY(-50%)',
               width: 18, height: 56, borderRadius: '0 6px 6px 0',
-              background: '#243a34', color: 'rgba(239,234,222,0.50)',
-              border: 'none', borderLeft: '1px solid rgba(255,255,255,0.07)',
+              background: colors.sidebar.panel, color: alpha(colors.cream, 0.50),
+              border: 'none', borderLeft: `1px solid ${white(0.07)}`,
               cursor: 'pointer', zIndex: 39,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               transition: 'color .12s, width .12s',
             }}
-            onMouseEnter={e => { e.currentTarget.style.color = '#f3ede0'; e.currentTarget.style.width = '22px' }}
-            onMouseLeave={e => { e.currentTarget.style.color = 'rgba(239,234,222,0.50)'; e.currentTarget.style.width = '18px' }}
+            onMouseEnter={e => { e.currentTarget.style.color = colors.cream; e.currentTarget.style.width = '22px' }}
+            onMouseLeave={e => { e.currentTarget.style.color = alpha(colors.cream, 0.50); e.currentTarget.style.width = '18px' }}
           >
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="9 6 15 12 9 18"/>

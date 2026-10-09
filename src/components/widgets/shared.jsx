@@ -47,15 +47,15 @@ export function WidgetShell({ title, badge, to, linkLabel, aside, flush = false,
 /** Small red/amber pill after a widget title, e.g. "21 overdue". */
 export function TitleBadge({ tone = 'bad', children }) {
   const cls = tone === 'bad'
-    ? 'bg-badBg text-bad dark:bg-bad/25 dark:text-[#f19a86]'
-    : 'bg-warnBg text-warn dark:bg-warn/20 dark:text-[#e8b06a]'
+    ? 'bg-badBg text-bad dark:bg-bad/25 dark:text-badDark'
+    : 'bg-warnBg text-warn dark:bg-warn/20 dark:text-warnDark'
   return <span className={`shrink-0 h-7 px-2.5 rounded-full inline-flex items-center text-[13px] font-semibold normal-case tracking-normal ${cls}`}>{children}</span>
 }
 
 export function BigNumber({ value, label, alert }) {
   return (
     <div className="py-1">
-      <p className={`font-mono text-[24px] leading-tight font-semibold ${alert ? 'text-bad dark:text-[#f19a86]' : 'text-ink dark:text-white'}`}>{value}</p>
+      <p className={`font-mono text-[24px] leading-tight font-semibold ${alert ? 'text-bad dark:text-badDark' : 'text-ink dark:text-white'}`}>{value}</p>
       {label && <p className="text-[13px] text-ink3 dark:text-white/45 mt-0.5">{label}</p>}
     </div>
   )
@@ -63,7 +63,7 @@ export function BigNumber({ value, label, alert }) {
 
 /** Label / value line. warn = red value; good = green value (e.g. a reassuring 0). */
 export function MiniRow({ label, value, warn, good }) {
-  const tone = warn ? 'text-bad dark:text-[#f19a86]' : good ? 'text-good dark:text-[#7fd1a4]' : 'text-ink dark:text-white'
+  const tone = warn ? 'text-bad dark:text-badDark' : good ? 'text-good dark:text-goodDark' : 'text-ink dark:text-white'
   return (
     <div className="flex items-center justify-between gap-2.5 py-1.5">
       <span className="text-[13px] text-ink2 dark:text-white/75">{label}</span>

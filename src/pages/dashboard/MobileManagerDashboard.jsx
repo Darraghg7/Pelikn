@@ -95,11 +95,11 @@ function MobileStatTile({ item, summary, vp }) {
           {TILE_LABELS[item.id] ?? item.metricLabel}
         </span>
       </span>
-      <span className={`font-mono text-[20px] font-semibold leading-none ${isDanger ? 'text-bad dark:text-[#f19a86]' : 'text-ink dark:text-white'}`}>
+      <span className={`font-mono text-[20px] font-semibold leading-none ${isDanger ? 'text-bad dark:text-badDark' : 'text-ink dark:text-white'}`}>
         {value}
       </span>
       {sub && (
-        <span className={`text-[12px] min-[420px]:text-[13px] leading-tight ${isDanger ? 'text-bad dark:text-[#f19a86]' : 'text-ink3 dark:text-white/45'}`}>
+        <span className={`text-[12px] min-[420px]:text-[13px] leading-tight ${isDanger ? 'text-bad dark:text-badDark' : 'text-ink3 dark:text-white/45'}`}>
           {sub}
         </span>
       )}
@@ -135,7 +135,7 @@ function AttentionCard({ actions, editMode }) {
       {isEmpty ? (
         <div className="flex items-center gap-3.5 px-3.5 sm:px-3.5 py-2.5">
           <div className="w-9 h-8 rounded-xl bg-goodBg dark:bg-good/20 flex items-center justify-center shrink-0">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-good dark:text-[#7fd1a4]">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-good dark:text-goodDark">
               <polyline points="20 6 9 17 4 12"/>
             </svg>
           </div>
@@ -696,7 +696,7 @@ export default function MobileManagerDashboard({
             className={[
               'shrink-0 h-8 px-3.5 rounded-xl border text-[13px] font-semibold cursor-pointer transition-colors',
               editMode
-                ? 'bg-goodBg text-good border-good/30 dark:bg-good/20 dark:text-[#7fd1a4]'
+                ? 'bg-goodBg text-good border-good/30 dark:bg-good/20 dark:text-goodDark'
                 : 'bg-white dark:bg-paperDark text-ink2 dark:text-white/80 border-line dark:border-white/10 hover:border-ink4',
             ].join(' ')}
           >

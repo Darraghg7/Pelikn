@@ -59,13 +59,13 @@ function StatePill({ clockStatus, todayShift }) {
 
     if (clockStatus === 'clocked_in' && now > shiftEnd) {
       label = 'OVERRUN'
-      pillClass = 'bg-[rgba(252,188,80,0.22)] text-[#f7c473]'
+      pillClass = 'bg-warnDark/20 text-warnDark'
     } else if (clockStatus === 'clocked_in') {
       label = 'ON SHIFT'
-      pillClass = 'bg-[rgba(83,212,131,0.18)] text-[#7eecaa]'
+      pillClass = 'bg-goodDark/20 text-goodDark'
     } else if (clockStatus === 'on_break') {
       label = 'ON BREAK'
-      pillClass = 'bg-[rgba(252,188,80,0.22)] text-[#f7c473]'
+      pillClass = 'bg-warnDark/20 text-warnDark'
     } else if (now < shiftStart) {
       label = 'STARTING SOON'
       pillClass = 'bg-white/14 text-white'

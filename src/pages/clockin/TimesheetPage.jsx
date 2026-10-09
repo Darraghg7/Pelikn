@@ -142,7 +142,7 @@ function StaffRow({ t, person, onTap }) {
       {hasData ? (
         <span className="shrink-0 text-right">
           <span className="block font-mono text-[15px] font-semibold text-ink dark:text-white tabular-nums">{hm(t.totalMinutes)}</span>
-          {pay > 0 && <span className="block font-mono text-[13px] font-semibold text-good dark:text-[#7fd1a4] mt-0.5 tabular-nums">{fmtGBP(pay)}</span>}
+          {pay > 0 && <span className="block font-mono text-[13px] font-semibold text-good dark:text-goodDark mt-0.5 tabular-nums">{fmtGBP(pay)}</span>}
         </span>
       ) : (
         <span className="shrink-0 font-mono text-[15px] text-ink4 dark:text-white/30" aria-label="No hours">–</span>
@@ -247,7 +247,7 @@ function EditSessionSheet({ staffName, dayLabel, session, onSave, onClose }) {
               <button
                 key={k}
                 onClick={() => setEdge(k)}
-                className={`flex-1 cursor-pointer border-none rounded-[9px] py-2 ${on ? 'bg-white dark:bg-paperDark shadow-[0_1px_3px_rgba(9,18,13,0.1)]' : 'bg-transparent'}`}
+                className={`flex-1 cursor-pointer border-none rounded-[9px] py-2 ${on ? 'bg-white dark:bg-paperDark shadow-[0_1px_3px_theme(colors.ink/10%)]' : 'bg-transparent'}`}
               >
                 <div className="font-mono text-[11px] text-charcoal/50 dark:text-white/40 uppercase tracking-[0.06em] font-semibold">{label}</div>
                 <div className={`font-mono text-[17px] font-semibold mt-0.5 tabular-nums ${on ? 'text-brand' : 'text-charcoal/50 dark:text-white/40'}`}>{val}</div>
@@ -711,7 +711,7 @@ export default function TimesheetPage() {
               type="button"
               onClick={togglePayrollLock}
               disabled={lockSaving}
-              className={`shrink-0 inline-flex items-center gap-2 h-8 px-3 min-[420px]:px-3.5 rounded-xl border text-[13px] min-[420px]:text-[13px] font-semibold transition-colors disabled:opacity-40 ${isPeriodLocked ? 'border-good/40 bg-goodBg text-good dark:bg-good/20 dark:text-[#7fd1a4]' : 'border-line dark:border-white/10 bg-white dark:bg-paperDark text-ink2 dark:text-white/80 hover:border-ink4'}`}
+              className={`shrink-0 inline-flex items-center gap-2 h-8 px-3 min-[420px]:px-3.5 rounded-xl border text-[13px] min-[420px]:text-[13px] font-semibold transition-colors disabled:opacity-40 ${isPeriodLocked ? 'border-good/40 bg-goodBg text-good dark:bg-good/20 dark:text-goodDark' : 'border-line dark:border-white/10 bg-white dark:bg-paperDark text-ink2 dark:text-white/80 hover:border-ink4'}`}
             >
               <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d={isPeriodLocked ? 'M7 11V7a5 5 0 0 1 10 0v4' : 'M7 11V7a5 5 0 0 1 9.9-1'}/></svg>
               {isPeriodLocked ? 'Locked for payroll' : lockSaving ? 'Locking…' : 'Lock for payroll'}
@@ -724,7 +724,7 @@ export default function TimesheetPage() {
         ) : loadError ? (
           <div className="flex items-center gap-2.5 bg-badBg dark:bg-bad/20 px-3.5 sm:px-3.5 py-2.5">
             <div className="flex-1 min-w-0">
-              <p className="text-[13px] font-semibold text-bad dark:text-[#f19a86]">Couldn't load hours</p>
+              <p className="text-[13px] font-semibold text-bad dark:text-badDark">Couldn't load hours</p>
               <p className="text-[13px] text-ink2 dark:text-white/70 mt-0.5">The clock-in data failed to load — this can happen on an out-of-date app. Try again, or fully close and reopen the app.</p>
             </div>
             <Button variant="secondary" size="sm" onClick={reload}>Retry</Button>
@@ -740,7 +740,7 @@ export default function TimesheetPage() {
               <SumCell label="Scheduled cost" value={periodScheduled.totalCost > 0 ? money(periodScheduled.totalCost) : '–'} />
             </div>
             {variance !== null && Math.abs(variance) >= 0.01 && (
-              <p className={`px-3.5 sm:px-3.5 py-2.5 text-[13px] font-semibold ${variance > 0 ? 'bg-goodBg text-good dark:bg-good/20 dark:text-[#7fd1a4]' : 'bg-badBg text-bad dark:bg-bad/20 dark:text-[#f19a86]'}`}>
+              <p className={`px-3.5 sm:px-3.5 py-2.5 text-[13px] font-semibold ${variance > 0 ? 'bg-goodBg text-good dark:bg-good/20 dark:text-goodDark' : 'bg-badBg text-bad dark:bg-bad/20 dark:text-badDark'}`}>
                 {money(Math.abs(variance))} {variance > 0 ? 'under' : 'over'} scheduled cost
               </p>
             )}

@@ -74,9 +74,9 @@ export function HistoryRangePills({ range, onRange, ranges = HISTORY_RANGES }) {
 }
 
 const STAT_TONE = {
-  good: 'text-good dark:text-[#7fd1a4]',
-  bad:  'text-bad dark:text-[#f19a86]',
-  warn: 'text-warn dark:text-[#e8b06a]',
+  good: 'text-good dark:text-goodDark',
+  bad:  'text-bad dark:text-badDark',
+  warn: 'text-warn dark:text-warnDark',
 }
 
 /** Three-up stats card. stats: [{ value, label, tone: 'good' | 'bad' | 'warn' | null }] */
@@ -249,7 +249,7 @@ export default function TempHistoryView({
                       </div>
                       {notes.map((note, i) => (
                         <p key={i} className="mt-2 px-3 py-2 rounded-lg bg-badBg dark:bg-bad/20 text-[13px] text-ink2 dark:text-white/75">
-                          <span className="font-semibold text-bad dark:text-[#f19a86]">Corrective action</span> · {note}
+                          <span className="font-semibold text-bad dark:text-badDark">Corrective action</span> · {note}
                         </p>
                       ))}
                     </div>

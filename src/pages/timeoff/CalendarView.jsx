@@ -10,8 +10,8 @@ const DAY_LETTERS = ['M', 'T', 'W', 'T', 'F', 'S', 'S']
 const DAY_NAMES   = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 
 const CHIP = {
-  approved: 'bg-goodBg text-good dark:bg-good/20 dark:text-[#7fd1a4]',
-  pending:  'bg-warnBg text-warn dark:bg-warn/20 dark:text-[#e8b06a]',
+  approved: 'bg-goodBg text-good dark:bg-good/20 dark:text-goodDark',
+  pending:  'bg-warnBg text-warn dark:bg-warn/20 dark:text-warnDark',
 }
 
 /**

@@ -58,7 +58,7 @@ function ReadingRow({ log, withStaff = false, compact = false }) {
       </div>
       {fail && log.notes && (
         <p className="mt-2.5 px-3 py-2 rounded-lg bg-badBg dark:bg-bad/20 text-[13px] text-ink2 dark:text-white/75">
-          {compact && <><span className="font-semibold text-bad dark:text-[#f19a86]">Corrective action</span> · </>}
+          {compact && <><span className="font-semibold text-bad dark:text-badDark">Corrective action</span> · </>}
           {log.notes}
         </p>
       )}
@@ -154,7 +154,7 @@ function LogReadingForm({ onLogged }) {
 
       {isFail && (
         <div className="rounded-xl border border-bad/25 bg-badBg/60 dark:bg-bad/15 p-2.5 flex flex-col gap-2 -mt-1">
-          <p className="text-[13px] font-semibold text-bad dark:text-[#f19a86]">
+          <p className="text-[13px] font-semibold text-bad dark:text-badDark">
             Below {COOKING_TARGET_TEMP}°C. Keep cooking and re-probe, and say what you did.
           </p>
           <textarea

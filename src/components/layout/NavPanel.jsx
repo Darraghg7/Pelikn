@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { T } from './navConfig'
+import { colors, alpha, white, black } from '../../lib/tokens'
 
 function PanelItem({ item, isActive, onClick }) {
   const [hovered, setHovered] = useState(false)
@@ -19,7 +20,7 @@ function PanelItem({ item, isActive, onClick }) {
         width: 'calc(100% - 16px)', margin: '1px 8px',
         padding: '8px 10px', borderRadius: 8,
         background: isDisabled ? 'transparent' : isActive ? T.bgActive : hovered ? T.bgHover : 'transparent',
-        border: !isDisabled && isActive ? `1px solid rgba(255,255,255,0.10)` : '1px solid transparent',
+        border: !isDisabled && isActive ? `1px solid ${white(0.10)}` : '1px solid transparent',
         color: isDisabled ? T.inkFaint : isActive ? T.inkBright : isWarn ? T.warn : T.ink,
         opacity: isDisabled ? 0.5 : 1,
       }}
@@ -41,7 +42,7 @@ function PanelItem({ item, isActive, onClick }) {
         {item.sub && (
           <span
             className="block text-[11px] overflow-hidden text-ellipsis whitespace-nowrap"
-            style={{ color: isActive ? 'rgba(243,237,224,0.55)' : T.inkFaint, marginTop: 1 }}
+            style={{ color: isActive ? alpha(colors.cream, 0.55) : T.inkFaint, marginTop: 1 }}
           >
             {item.sub}
           </span>
@@ -52,7 +53,7 @@ function PanelItem({ item, isActive, onClick }) {
           className="font-mono text-[11px] font-bold grid place-items-center"
           style={{
             minWidth: 18, height: 17, padding: '0 5px', borderRadius: 8,
-            background: isWarn ? T.warnBg : 'rgba(255,255,255,0.12)',
+            background: isWarn ? T.warnBg : white(0.12),
             color: isWarn ? T.warn : T.inkBright,
           }}
         >
@@ -74,7 +75,7 @@ function CollapseChevronButton({ onClick, isPreview }) {
       style={{
         marginLeft: isPreview ? 6 : 'auto',
         width: 22, height: 22, borderRadius: 5, padding: 0,
-        background: hovered ? 'rgba(255,255,255,0.07)' : 'transparent',
+        background: hovered ? white(0.07) : 'transparent',
         border: 'none', cursor: 'pointer',
         color: hovered ? T.inkBright : T.inkMuted,
         display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
@@ -111,9 +112,9 @@ function PanelVenueSwitcher({ venues, currentSlug, onSelect, onOverview }) {
         className="font-sans text-[11.5px] font-semibold cursor-pointer transition-[background,color,border-color] duration-[120ms] flex items-center gap-[7px] w-full"
         style={{
           padding: '7px 10px', borderRadius: 8,
-          background: open ? 'rgba(255,255,255,0.16)' : hovered ? 'rgba(255,255,255,0.14)' : 'rgba(255,255,255,0.09)',
-          border: open ? '1px solid rgba(255,255,255,0.22)' : '1px solid rgba(255,255,255,0.12)',
-          color: hovered || open ? T.inkBright : 'rgba(239,234,222,0.80)',
+          background: open ? white(0.16) : hovered ? white(0.14) : white(0.09),
+          border: open ? `1px solid ${white(0.22)}` : `1px solid ${white(0.12)}`,
+          color: hovered || open ? T.inkBright : alpha(colors.cream, 0.80),
         }}
       >
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
@@ -129,10 +130,10 @@ function PanelVenueSwitcher({ venues, currentSlug, onSelect, onOverview }) {
       {/* Dropdown */}
       <div style={{
         position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0,
-        background: '#ffffff',
+        background: white(),
         borderRadius: 10, overflow: 'hidden',
-        border: '1px solid rgba(14,20,17,0.08)',
-        boxShadow: '0 4px 20px rgba(0,0,0,0.14)',
+        border: `1px solid ${alpha(colors.ink, 0.08)}`,
+        boxShadow: `0 4px 20px ${black(0.14)}`,
         zIndex: 50,
         maxHeight: open ? 320 : 0,
         opacity: open ? 1 : 0,
@@ -141,7 +142,7 @@ function PanelVenueSwitcher({ venues, currentSlug, onSelect, onOverview }) {
       }}>
         <p
           className="font-mono text-[11px] font-semibold uppercase tracking-[0.12em]"
-          style={{ padding: '9px 12px 6px', color: 'rgba(14,20,17,0.40)' }}
+          style={{ padding: '9px 12px 6px', color: alpha(colors.ink, 0.40) }}
         >
           Your venues
         </p>
@@ -149,13 +150,13 @@ function PanelVenueSwitcher({ venues, currentSlug, onSelect, onOverview }) {
         <button
           onClick={() => { setOpen(false); onOverview?.() }}
           className="font-sans block w-full text-left text-[12.5px] font-bold cursor-pointer border-none"
-          style={{ padding: '8px 12px', color: '#2D4F45', background: 'none' }}
-          onMouseEnter={e => e.currentTarget.style.background = 'rgba(45,79,69,0.06)'}
+          style={{ padding: '8px 12px', color: colors.brand.DEFAULT, background: 'none' }}
+          onMouseEnter={e => e.currentTarget.style.background = alpha(colors.brand.DEFAULT, 0.06)}
           onMouseLeave={e => e.currentTarget.style.background = 'none'}
         >
           Group Overview
         </button>
-        <div style={{ height: 1, background: 'rgba(14,20,17,0.06)', margin: '2px 0' }} />
+        <div style={{ height: 1, background: alpha(colors.ink, 0.06), margin: '2px 0' }} />
         {venues.map(v => {
           const isCurrent = v.slug === currentSlug
           return (
@@ -165,15 +166,15 @@ function PanelVenueSwitcher({ venues, currentSlug, onSelect, onOverview }) {
               className={['font-sans flex items-center gap-2 w-full text-left text-[12.5px] border-none cursor-pointer transition-[background] duration-100', isCurrent ? 'font-bold' : 'font-[450]'].join(' ')}
               style={{
                 padding: '8px 12px',
-                color: isCurrent ? '#2D4F45' : 'rgba(14,20,17,0.65)',
-                background: isCurrent ? 'rgba(45,79,69,0.06)' : 'none',
+                color: isCurrent ? colors.brand.DEFAULT : alpha(colors.ink, 0.65),
+                background: isCurrent ? alpha(colors.brand.DEFAULT, 0.06) : 'none',
               }}
-              onMouseEnter={e => { if (!isCurrent) e.currentTarget.style.background = 'rgba(14,20,17,0.04)' }}
+              onMouseEnter={e => { if (!isCurrent) e.currentTarget.style.background = alpha(colors.ink, 0.04) }}
               onMouseLeave={e => { if (!isCurrent) e.currentTarget.style.background = 'none' }}
             >
               <span style={{
                 width: 7, height: 7, borderRadius: '50%', flexShrink: 0,
-                background: isCurrent ? '#2D4F45' : 'rgba(14,20,17,0.20)',
+                background: isCurrent ? colors.brand.DEFAULT : alpha(colors.ink, 0.20),
               }} />
               <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{v.name}</span>
               {isCurrent && (
@@ -233,7 +234,7 @@ export default function NavPanel({
       style={{
         width: 260, background: T.bgPanel, color: T.ink,
         display: 'flex', flexDirection: 'column',
-        borderRight: '1px solid rgba(0,0,0,0.12)',
+        borderRight: `1px solid ${black(0.12)}`,
         flexShrink: 0,
         position: 'fixed', top: 0, height: '100vh', left: 80,
         zIndex: 39,
@@ -253,7 +254,7 @@ export default function NavPanel({
           {isPreview && (
             <span
               className="font-mono text-[11px] font-bold tracking-[0.08em] ml-auto"
-              style={{ padding: '2px 7px', borderRadius: 5, background: 'rgba(196,99,64,0.18)', color: T.warn }}
+              style={{ padding: '2px 7px', borderRadius: 5, background: alpha(colors.accent, 0.18), color: T.warn }}
             >
               Browsing
             </span>

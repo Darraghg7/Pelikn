@@ -236,13 +236,13 @@ export default function ChecksHubPage() {
             {!summaryLoading && !statusLoading && total > 0 && (
               <div className="flex items-center gap-2 mt-[7px]">
                 {overdueCount > 0 && (
-                  <span className="inline-flex items-center gap-[5px] font-mono text-[11px] font-semibold text-[#ffb4a6]">
+                  <span className="inline-flex items-center gap-[5px] font-mono text-[11px] font-semibold text-badDark">
                     <span className="w-[5px] h-[5px] rounded-full bg-current" />
                     {overdueCount} overdue
                   </span>
                 )}
                 {dueCount > 0 && (
-                  <span className="inline-flex items-center gap-[5px] font-mono text-[11px] font-semibold text-[#f2c48f]">
+                  <span className="inline-flex items-center gap-[5px] font-mono text-[11px] font-semibold text-warnDark">
                     <span className="w-[5px] h-[5px] rounded-full bg-current" />
                     {dueCount} due now
                   </span>

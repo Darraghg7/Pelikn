@@ -29,14 +29,14 @@ export function ComplianceGauge({ score }) {
   const offset = circ - (circ * score / 100)
 
   return (
-    <svg width="112" height="112" viewBox="0 0 112 112" style={{ flexShrink: 0 }} fontFamily="Geist,ui-sans-serif,sans-serif">
+    <svg width="112" height="112" viewBox="0 0 112 112" style={{ flexShrink: 0 }} className={tier.cls} fontFamily="Geist,ui-sans-serif,sans-serif">
       {/* Track */}
-      <circle cx={cx} cy={cy} r={r} fill="none" stroke="rgba(26,26,24,0.07)" strokeWidth="11" />
+      <circle cx={cx} cy={cy} r={r} fill="none" stroke="currentColor" className="text-charcoal/7 dark:text-white/10" strokeWidth="11" />
       {/* Progress arc */}
       <circle
         cx={cx} cy={cy} r={r}
         fill="none"
-        stroke={tier.color}
+        stroke="currentColor"
         strokeWidth="11"
         strokeLinecap="round"
         strokeDasharray={circ}
@@ -46,12 +46,12 @@ export function ComplianceGauge({ score }) {
       />
       {/* Score number */}
       <text x={cx} y={cy - 2} textAnchor="middle" dominantBaseline="middle"
-        fontSize="24" fontWeight="700" fill={tier.color}>
+        fontSize="24" fontWeight="700" fill="currentColor">
         {score}
       </text>
       {/* /100 sub-label */}
       <text x={cx} y={cy + 17} textAnchor="middle" dominantBaseline="middle"
-        fontSize="10" fill="rgba(26,26,24,0.35)">
+        fontSize="10" fill="currentColor" className="text-charcoal/35">
         /100
       </text>
     </svg>
@@ -121,13 +121,13 @@ function ComplianceScoreWidget() {
   return (
     <WidgetShell title="Compliance" to="/audit">
       <div className="py-1">
-        <p className="font-mono text-[26px] min-[420px]:text-[28px] font-semibold leading-none tracking-tight" style={{ color: tier.color }}>{data.score}%</p>
+        <p className={`font-mono text-[26px] min-[420px]:text-[28px] font-semibold leading-none tracking-tight ${tier.cls}`}>{data.score}%</p>
         {data.issues > 0 ? (
-          <p className="mt-2 text-[13px] font-semibold text-bad dark:text-[#f19a86]">
+          <p className="mt-2 text-[13px] font-semibold text-bad dark:text-badDark">
             ↓ {data.issues} item{data.issues !== 1 ? 's' : ''} need attention
           </p>
         ) : (
-          <p className="mt-2 text-[13px] font-semibold text-good dark:text-[#7fd1a4] inline-flex items-center gap-1.5">
+          <p className="mt-2 text-[13px] font-semibold text-good dark:text-goodDark inline-flex items-center gap-1.5">
             <svg className="w-4 h-4 shrink-0" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg>
             On track · {COMPLIANCE_RANGE_DAYS}-day avg
           </p>
@@ -140,7 +140,7 @@ function ComplianceScoreWidget() {
             const content = (
               <div className="flex flex-wrap items-baseline justify-between gap-x-2 gap-y-0.5 py-1.5 px-2 -mx-2 rounded-lg hover:bg-cream dark:hover:bg-white/5 transition-colors cursor-pointer">
                 <span className="text-[13px] text-ink2 dark:text-white/70">{issue.label}</span>
-                <span className={`text-[13px] font-semibold ${issue.severity === 'bad' ? 'text-bad dark:text-[#f19a86]' : 'text-warn dark:text-[#e8b06a]'}`}>
+                <span className={`text-[13px] font-semibold ${issue.severity === 'bad' ? 'text-bad dark:text-badDark' : 'text-warn dark:text-warnDark'}`}>
                   {issue.detail} →
                 </span>
               </div>

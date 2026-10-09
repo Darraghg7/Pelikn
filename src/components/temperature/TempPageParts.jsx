@@ -12,10 +12,10 @@ export const CARD = 'bg-white dark:bg-paperDark rounded-2xl border border-line d
 
 // Status tones shared by chips, history cells and logged-reading blocks
 export const TONE = {
-  ok:        'bg-goodBg text-good dark:bg-good/20 dark:text-[#7fd1a4]',
-  explained: 'bg-warnBg text-warn dark:bg-warn/20 dark:text-[#e8b06a]',
-  bad:       'bg-badBg text-bad dark:bg-bad/25 dark:text-[#f19a86]',
-  missed:    'bg-warnBg text-warn dark:bg-warn/20 dark:text-[#e8b06a]',
+  ok:        'bg-goodBg text-good dark:bg-good/20 dark:text-goodDark',
+  explained: 'bg-warnBg text-warn dark:bg-warn/20 dark:text-warnDark',
+  bad:       'bg-badBg text-bad dark:bg-bad/25 dark:text-badDark',
+  missed:    'bg-warnBg text-warn dark:bg-warn/20 dark:text-warnDark',
   pending:   'bg-cream text-ink4 dark:bg-white/5 dark:text-white/25',
   off:       'text-ink4 dark:text-white/20',
 }

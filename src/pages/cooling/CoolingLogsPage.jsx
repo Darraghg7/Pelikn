@@ -138,7 +138,7 @@ function CoolingBatchCard({ batch, now, canDiscard, onChanged, onDiscard }) {
 
       {needsNote && (
         <div className="rounded-xl border border-bad/25 bg-badBg/60 dark:bg-bad/15 p-2.5 flex flex-col gap-2">
-          <p className="text-[13px] font-semibold text-bad dark:text-[#f19a86]">
+          <p className="text-[13px] font-semibold text-bad dark:text-badDark">
             {tooSlow
               ? `Took longer than ${COOLING_TARGET_MINUTES} minutes. What did you do?`
               : `Still above ${batch.target_temp ?? COOLING_TARGET_TEMP}°C. Keep cooling, or record what you did.`}
@@ -319,7 +319,7 @@ function FinishedBatchRow({ log, compact = false }) {
         ) : (
           <div className="shrink-0 flex flex-col items-end gap-1.5">
             <span className="font-mono text-[13px] font-semibold text-ink2 dark:text-white/70 whitespace-nowrap">
-              {temp(log.start_temp)} → <span className={fail ? 'text-bad dark:text-[#f19a86]' : 'text-good dark:text-[#7fd1a4]'}>{temp(log.end_temp)}</span>
+              {temp(log.start_temp)} → <span className={fail ? 'text-bad dark:text-badDark' : 'text-good dark:text-goodDark'}>{temp(log.end_temp)}</span>
             </span>
             <span className={`h-7 px-3 rounded-full inline-flex items-center text-[12px] font-semibold whitespace-nowrap ${fail ? TONE.bad : TONE.ok}`}>
               {verdict}{minutes !== null && ` · ${formatCoolingMinutes(minutes)}`}
@@ -329,7 +329,7 @@ function FinishedBatchRow({ log, compact = false }) {
       </div>
       {fail && log.notes && (
         <p className="mt-2.5 px-3 py-2 rounded-lg bg-badBg dark:bg-bad/20 text-[13px] text-ink2 dark:text-white/75">
-          {compact && <><span className="font-semibold text-bad dark:text-[#f19a86]">Corrective action</span> · </>}
+          {compact && <><span className="font-semibold text-bad dark:text-badDark">Corrective action</span> · </>}
           {log.notes}
         </p>
       )}

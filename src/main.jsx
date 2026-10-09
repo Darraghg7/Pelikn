@@ -5,6 +5,7 @@ import App from './App'
 import { ThemeProvider } from './contexts/ThemeContext'
 import ErrorBoundary from './components/ui/ErrorBoundary'
 import { attachSentry } from './lib/reportError'
+import { colors } from './lib/tokens'
 
 function mountApp() {
   const root = document.getElementById('root')
@@ -83,7 +84,7 @@ async function initNative() {
     StatusBar.setStyle({ style: Style.Dark })
     const unsupported = () => { /* not available on this platform — cosmetic only */ }
     StatusBar.setOverlaysWebView({ overlay: true }).catch(unsupported)
-    StatusBar.setBackgroundColor({ color: '#1a3c2e' }).catch(unsupported) // Android only
+    StatusBar.setBackgroundColor({ color: colors.brand.DEFAULT }).catch(unsupported) // Android only
     SplashScreen.hide({ fadeOutDuration: 0 }).catch(unsupported)
 
     // Android hardware back button: go back in history or exit app

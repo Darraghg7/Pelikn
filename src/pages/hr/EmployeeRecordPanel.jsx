@@ -94,7 +94,7 @@ function badgeClasses(tone) {
     case 'good':     return 'text-success bg-success/10'
     case 'warn':     return 'text-warning bg-warning/10'
     case 'bad':      return 'text-danger bg-danger/10'
-    case 'dark-red': return 'text-[#7a1212] bg-danger/10'
+    case 'dark-red': return 'text-severe bg-danger/10'
     case 'inverse':  return 'text-white bg-charcoal'
     case 'muted':    return 'text-charcoal/50 dark:text-white/40 bg-charcoal/6 dark:bg-white/8'
     default:         return 'text-charcoal/50 dark:text-white/40 bg-charcoal/6 dark:bg-white/8'
@@ -1100,7 +1100,7 @@ export default function EmployeeRecordPanel({ staffId, venueId, venueSlug, onBac
           <button key={t} data-testid={`record-tab-${t}`} onClick={() => setTab(t)}
             className={`flex-1 py-[7px] lg:py-2 px-0 border-0 cursor-pointer rounded-[8px] font-mono text-[10px] lg:text-[11px] tracking-[0] transition-all duration-150 ${
               tab === t
-                ? 'bg-white dark:bg-paperDark text-charcoal dark:text-white font-bold shadow-[0_1px_3px_rgba(13,26,20,0.10)]'
+                ? 'bg-white dark:bg-paperDark text-charcoal dark:text-white font-bold shadow-[0_1px_3px_theme(colors.ink/10%)]'
                 : 'bg-transparent text-charcoal/50 dark:text-white/40 font-semibold'
             }`}
           >

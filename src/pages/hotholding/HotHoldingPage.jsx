@@ -181,7 +181,7 @@ function HotHoldingRow({ item, period, log, otherLog, otherRequired, session, ve
           />
           {fail && (
             <div className="rounded-xl border border-bad/25 bg-badBg/60 dark:bg-bad/15 p-2.5 flex flex-col gap-2">
-              <p className="text-[13px] font-semibold text-bad dark:text-[#f19a86]">
+              <p className="text-[13px] font-semibold text-bad dark:text-badDark">
                 {failLabel(temp, item)} — outside the safe {rangeLabel(item)} range. What did you do?
               </p>
               <textarea

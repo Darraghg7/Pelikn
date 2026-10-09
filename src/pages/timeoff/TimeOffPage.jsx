@@ -275,7 +275,7 @@ export default function TimeOffPage() {
       {/* Manager: pending requests */}
       {isManager && pendingRequests.length > 0 && (
         <div className={`${CARD} overflow-hidden`}>
-          <p className="px-3.5 sm:px-3.5 py-2.5 bg-warnBg dark:bg-warn/20 text-[12px] font-semibold tracking-[0.08em] uppercase text-warn dark:text-[#e8b06a]">
+          <p className="px-3.5 sm:px-3.5 py-2.5 bg-warnBg dark:bg-warn/20 text-[12px] font-semibold tracking-[0.08em] uppercase text-warn dark:text-warnDark">
             {pendingRequests.length} pending request{pendingRequests.length !== 1 ? 's' : ''}
           </p>
           <div className="divide-y divide-line dark:divide-white/10">
@@ -502,13 +502,13 @@ export default function TimeOffPage() {
           </div>
 
           {form.startDate && form.endDate && form.endDate < form.startDate && (
-            <p className="text-[13px] text-bad dark:text-[#f19a86] -mt-1">End date is before the start date.</p>
+            <p className="text-[13px] text-bad dark:text-badDark -mt-1">End date is before the start date.</p>
           )}
 
           {/* Staffing limit warning — informational only, submit is never blocked */}
           {overStaffOffLimit && (
             <div className="rounded-xl bg-badBg dark:bg-bad/20 px-3.5 py-2.5">
-              <p className="text-[13px] font-semibold text-bad dark:text-[#f19a86]">Maximum number of staff already off</p>
+              <p className="text-[13px] font-semibold text-bad dark:text-badDark">Maximum number of staff already off</p>
               <p className="text-[13px] text-ink2 dark:text-white/70 mt-1">
                 {staffAlreadyOff} staff {staffAlreadyOff === 1 ? 'is' : 'are'} already off on at least one of these days (limit: {maxStaffOffCount}). You can still submit if this has been pre-cleared with your manager.
               </p>
@@ -541,7 +541,7 @@ export default function TimeOffPage() {
                   This request covers <span className="font-semibold text-ink dark:text-white">{fmtDays(previewDays)}</span> (~{reqHours} h based on your average shift length).
                 </p>
                 {unpaidHours > 0 ? (
-                  <p className="mt-1 font-semibold text-warn dark:text-[#e8b06a]">
+                  <p className="mt-1 font-semibold text-warn dark:text-warnDark">
                     ~{Math.round(paidHours * 10) / 10} h paid · ~{unpaidHours} h unpaid — you don't have enough accrued hours to cover this in full.
                   </p>
                 ) : (
@@ -633,7 +633,7 @@ function OwnBalanceCard({ balance, year, accrued, remainingHours }) {
       <div className={`${CARD} px-3.5 sm:px-3.5 py-2.5`}>
         <div className="flex items-baseline justify-between gap-2.5 flex-wrap">
           <p className="flex items-baseline gap-2">
-            <span className="font-mono text-[24px] leading-none font-semibold text-good dark:text-[#7fd1a4]">{remainingHours ?? accrued ?? '—'}</span>
+            <span className="font-mono text-[24px] leading-none font-semibold text-good dark:text-goodDark">{remainingHours ?? accrued ?? '—'}</span>
             <span className="text-[14px] font-semibold text-ink dark:text-white">hrs left</span>
           </p>
           <p className="text-[13px] text-ink3 dark:text-white/45">{accrued != null ? `${accrued} hrs accrued` : 'Calculating…'} · {year} holiday</p>
@@ -643,7 +643,7 @@ function OwnBalanceCard({ balance, year, accrued, remainingHours }) {
   }
   if (balance.entitlement == null) return null
   const pct  = balance.entitlement ? Math.min(100, (balance.used / balance.entitlement) * 100) : 0
-  const tone = balance.remaining === 0 ? 'text-bad' : balance.remaining <= 5 ? 'text-warn' : 'text-good dark:text-[#7fd1a4]'
+  const tone = balance.remaining === 0 ? 'text-bad' : balance.remaining <= 5 ? 'text-warn' : 'text-good dark:text-goodDark'
   return (
     <div className={`${CARD} px-3.5 sm:px-3.5 py-2.5`}>
       <div className="flex items-baseline justify-between gap-2.5 flex-wrap">
@@ -680,7 +680,7 @@ function PendingRequest({ request: r, balance, note, onNote, busy, onApprove, on
           {/* Still worth deciding — approving records leave that was taken —
               but it shouldn't look like an upcoming request. */}
           {r.end_date < format(new Date(), 'yyyy-MM-dd') && (
-            <p className="text-[13px] font-semibold text-warn dark:text-[#e8b06a] mt-1">
+            <p className="text-[13px] font-semibold text-warn dark:text-warnDark mt-1">
               These dates have passed — approve to record the leave as taken, or reject.
             </p>
           )}
@@ -729,7 +729,7 @@ function TeamBalanceRow({ balance: b, accrued, onLogPast }) {
   const subline = b.isZeroHours
     ? [kind ?? 'Zero hours', 'accrues hourly'].join(' · ')
     : [kind, b.entitlement != null && `${b.entitlement} days`].filter(Boolean).join(' · ')
-  const tone = b.remaining === 0 ? 'text-bad' : b.remaining != null && b.remaining <= 5 ? 'text-warn' : 'text-good dark:text-[#7fd1a4]'
+  const tone = b.remaining === 0 ? 'text-bad' : b.remaining != null && b.remaining <= 5 ? 'text-warn' : 'text-good dark:text-goodDark'
 
   return (
     <div className="flex items-center gap-2.5 px-3.5 sm:px-3.5 py-2">

@@ -58,7 +58,7 @@ function Row({ label, sub, on, onToggle, last, locked = false }) {
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5">
           <div className="text-sm font-medium text-charcoal dark:text-white tracking-[-0.005em]">{label}</div>
-          {locked && <span className="font-mono text-[11px] font-bold text-[#d97706] bg-[#fffbeb] px-[5px] py-0.5 rounded uppercase tracking-[0.04em]">Pro</span>}
+          {locked && <span className="font-mono text-[11px] font-bold text-warn bg-warnBg px-[5px] py-0.5 rounded uppercase tracking-[0.04em]">Pro</span>}
         </div>
         {sub && <div className="text-[11.5px] text-charcoal/50 dark:text-white/40 mt-0.5 leading-[1.4]">{sub}</div>}
       </div>
@@ -216,7 +216,7 @@ export default function HubTilesPage() {
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-1.5">
                                   <div className={`text-[13px] font-medium ${on ? 'text-charcoal dark:text-white' : 'text-charcoal/50 dark:text-white/40'}`}>{feature.label}</div>
-                                  {locked && <span className="font-mono text-[11px] font-bold text-[#d97706] bg-[#fffbeb] px-[5px] py-0.5 rounded uppercase tracking-[0.04em]">Pro</span>}
+                                  {locked && <span className="font-mono text-[11px] font-bold text-warn bg-warnBg px-[5px] py-0.5 rounded uppercase tracking-[0.04em]">Pro</span>}
                                 </div>
                                 <div className="text-[11px] text-charcoal/50 dark:text-white/40 mt-px">{feature.description}</div>
                               </div>

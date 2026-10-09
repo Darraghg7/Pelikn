@@ -280,7 +280,7 @@ function LogEntryForm({ issues, followUpIssueId, onFollowUpIssue, onSaved }) {
       {/* Follow-up: which issue */}
       {logType === 'follow_up' && (
         issues.length === 0 ? (
-          <p className="rounded-xl bg-goodBg dark:bg-good/15 px-3.5 py-2 text-[13px] text-good dark:text-[#7fd1a4] font-semibold">
+          <p className="rounded-xl bg-goodBg dark:bg-good/15 px-3.5 py-2 text-[13px] text-good dark:text-goodDark font-semibold">
             No open issues to follow up.
           </p>
         ) : (
@@ -533,7 +533,7 @@ function historyPill(log) {
   }
   return {
     inspection: { label: 'Inspection', cls: TONE.ok },
-    treatment:  { label: 'Treatment',  cls: 'bg-infoBg text-info dark:bg-info/30 dark:text-[#a9bfe8]' },
+    treatment:  { label: 'Treatment',  cls: 'bg-infoBg text-info dark:bg-info/30 dark:text-infoDark' },
     sighting:   { label: 'Sighting',   cls: TONE.bad },
   }[log.log_type] ?? { label: typeLabel(log.log_type), cls: TONE.pending }
 }
@@ -671,7 +671,7 @@ export default function PestControlPage() {
                   ? `1 open issue · ${issueSummary(issues[0])}`
                   : `${issues.length} open issues${high ? ` · ${high} high severity` : ` · latest: ${issueSummary(issues[0])}`}`}
               </span>
-              <span className="shrink-0 text-[13px] min-[420px]:text-[14px] font-semibold text-bad dark:text-[#f19a86]">View</span>
+              <span className="shrink-0 text-[13px] min-[420px]:text-[14px] font-semibold text-bad dark:text-badDark">View</span>
             </button>
           )}
           <LogEntryForm
@@ -687,7 +687,7 @@ export default function PestControlPage() {
       {tab === 'open' && (
         issues.length === 0 ? (
           <div className={`${CARD} px-3.5 py-8 text-center`}>
-            <p className="text-[14px] font-semibold text-good dark:text-[#7fd1a4]">No open pest issues</p>
+            <p className="text-[14px] font-semibold text-good dark:text-goodDark">No open pest issues</p>
             <p className="text-[13px] text-ink3 dark:text-white/45 mt-1">Every sighting and treatment has been followed up and resolved.</p>
           </div>
         ) : (
