@@ -418,7 +418,7 @@ function VenueRoutes() {
           <Routes>
             {/* Staff PIN login — publicly accessible, no Supabase Auth needed.
                 venues still has a public read policy; staff does NOT — it is
-                venue-scoped (113), and the picker reads the four columns it
+                venue-scoped (113), and the picker reads the few columns it
                 needs via list_venue_staff_for_login(). */}
             <Route index element={<LoginPage />} />
 
