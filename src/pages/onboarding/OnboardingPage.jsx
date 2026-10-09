@@ -689,12 +689,12 @@ export default function OnboardingPage() {
               <div className="flex flex-col gap-2">
                 {staffEntries.map((entry, idx) => (
                   <div key={idx} className="flex items-start gap-2">
-                    <div className="flex-1 grid grid-cols-[1fr_76px_120px] gap-1.5 staff-fields">
+                    <div className="flex-1 min-w-0 grid grid-cols-2 sm:grid-cols-[1fr_76px_120px] gap-1.5">
                       <input
                         value={entry.name}
                         onChange={e => updateStaff(idx, 'name', e.target.value)}
                         placeholder="Name"
-                        className="px-3 py-2.5 rounded-[9px] border border-charcoal/12 dark:border-white/15 bg-white dark:bg-paperDark text-[13px] text-charcoal dark:text-white placeholder:text-charcoal/35 dark:placeholder:text-white/25 focus:outline-none focus:border-brand focus:ring-[3px] focus:ring-brand/10 transition-all"
+                        className="w-full min-w-0 px-3 py-2.5 rounded-[9px] border border-charcoal/12 dark:border-white/15 bg-white dark:bg-paperDark text-[13px] text-charcoal dark:text-white placeholder:text-charcoal/35 dark:placeholder:text-white/25 focus:outline-none focus:border-brand focus:ring-[3px] focus:ring-brand/10 transition-all"
                       />
                       <input
                         type="password"
@@ -703,14 +703,14 @@ export default function OnboardingPage() {
                         value={entry.pin}
                         onChange={e => updateStaff(idx, 'pin', e.target.value.replace(/\D/g, '').slice(0, 4))}
                         placeholder="PIN"
-                        className="px-3 py-2.5 rounded-[9px] border border-charcoal/12 dark:border-white/15 bg-white dark:bg-paperDark text-[13px] tracking-widest placeholder:text-charcoal/35 dark:placeholder:text-white/25 focus:outline-none focus:border-brand focus:ring-[3px] focus:ring-brand/10 transition-all"
+                        className="w-full min-w-0 px-3 py-2.5 rounded-[9px] border border-charcoal/12 dark:border-white/15 bg-white dark:bg-paperDark text-[13px] text-charcoal dark:text-white tracking-widest placeholder:text-charcoal/35 dark:placeholder:text-white/25 focus:outline-none focus:border-brand focus:ring-[3px] focus:ring-brand/10 transition-all"
                       />
                       <input
                         type="text"
                         value={entry.jobRole}
                         onChange={e => updateStaff(idx, 'jobRole', e.target.value)}
                         placeholder="Role (e.g. Manager)"
-                        className="px-3 py-2.5 rounded-[9px] border border-charcoal/12 dark:border-white/15 bg-white dark:bg-paperDark text-[13px] text-charcoal dark:text-white placeholder:text-charcoal/35 dark:placeholder:text-white/25 focus:outline-none focus:border-brand focus:ring-[3px] focus:ring-brand/10 transition-all"
+                        className="col-span-2 sm:col-span-1 w-full min-w-0 px-3 py-2.5 rounded-[9px] border border-charcoal/12 dark:border-white/15 bg-white dark:bg-paperDark text-[13px] text-charcoal dark:text-white placeholder:text-charcoal/35 dark:placeholder:text-white/25 focus:outline-none focus:border-brand focus:ring-[3px] focus:ring-brand/10 transition-all"
                       />
                     </div>
                     <CloseButton label="Remove staff member" className="mt-1" onClick={() => removeStaffRow(idx)} />
@@ -966,10 +966,6 @@ export default function OnboardingPage() {
       </div>
 
       <style>{`
-        @media (max-width: 480px) {
-          .staff-fields { grid-template-columns: 1fr 1fr !important; }
-          .staff-fields .role-select { grid-column: span 2; }
-        }
         @keyframes modalIn {
           from { opacity: 0; transform: scale(.94) translateY(8px); }
           to   { opacity: 1; transform: none; }
