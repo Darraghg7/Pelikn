@@ -33,6 +33,7 @@ import useVenueClosures from '../../hooks/useVenueClosures'
 import { useQuery } from '@tanstack/react-query'
 import StaffRotaView from './StaffRotaView'
 import LoadError from '../../components/ui/LoadError'
+import Button from '../../components/ui/Button'
 
 const EMPTY_ROLES = {}
 
@@ -595,12 +596,12 @@ export default function RotaPage() {
           <div key={format(thisWeekStart, 'yyyy-MM-dd')} className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 overflow-hidden">
             {wi === 0 && (
               <div className="flex items-center justify-between px-5 py-4 border-b border-charcoal/8 dark:border-white/8">
-                <button onClick={prevWeek} className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-charcoal/8 dark:hover:bg-white/8 text-charcoal/50 dark:text-white/40 hover:text-charcoal dark:hover:text-white transition-colors text-sm">‹</button>
+                <Button variant="secondary" size="sm" iconOnly aria-label="Previous week" onClick={prevWeek}>‹</Button>
                 <span className="text-sm font-medium text-charcoal dark:text-white">
                   {/* Last day shown is the Sunday before the next Monday */}
                   {format(weekStart, 'd MMM')} – {format(addDays(addWeeks(weekStart, numWeeks), -1), 'd MMM yyyy')}
                 </span>
-                <button onClick={nextWeek} className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-charcoal/8 dark:hover:bg-white/8 text-charcoal/50 dark:text-white/40 hover:text-charcoal dark:hover:text-white transition-colors text-sm">›</button>
+                <Button variant="secondary" size="sm" iconOnly aria-label="Next week" onClick={nextWeek}>›</Button>
               </div>
             )}
             {numWeeks > 1 && (

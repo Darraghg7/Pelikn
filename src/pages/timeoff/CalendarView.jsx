@@ -4,6 +4,7 @@ import {
 } from 'date-fns'
 import { getRequestsForDay } from './timeOffConstants'
 import { initials } from '../../lib/names'
+import Button from '../../components/ui/Button'
 
 const DAY_LETTERS = ['M', 'T', 'W', 'T', 'F', 'S', 'S']
 const DAY_NAMES   = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
@@ -30,13 +31,13 @@ export default function CalendarView({ month, requests, selected, onSelect, onPr
   return (
     <div className="bg-white dark:bg-paperDark rounded-2xl border border-line dark:border-white/10 px-3 sm:px-3.5 pt-2.5 pb-2.5">
       <div className="flex items-center justify-between px-1 mb-2">
-        <button type="button" onClick={onPrev} aria-label="Previous month" className="w-9 h-8 rounded-full inline-flex items-center justify-center text-ink2 dark:text-white/70 hover:bg-cream dark:hover:bg-white/10">
+        <Button variant="secondary" size="sm" iconOnly onClick={onPrev} aria-label="Previous month">
           <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6" /></svg>
-        </button>
+        </Button>
         <p className="text-[15px] font-semibold text-ink dark:text-white">{format(month, 'MMMM yyyy')}</p>
-        <button type="button" onClick={onNext} aria-label="Next month" className="w-9 h-8 rounded-full inline-flex items-center justify-center text-ink2 dark:text-white/70 hover:bg-cream dark:hover:bg-white/10">
+        <Button variant="secondary" size="sm" iconOnly onClick={onNext} aria-label="Next month">
           <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
-        </button>
+        </Button>
       </div>
 
       <div className="grid grid-cols-7">

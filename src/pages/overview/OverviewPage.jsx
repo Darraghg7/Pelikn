@@ -5,6 +5,7 @@ import { useVenue } from '../../contexts/VenueContext'
 import { useAuth } from '../../contexts/AuthContext'
 import { useAllVenueCompliance } from '../../hooks/useAllVenueCompliance'
 import { Navigate, useNavigate } from 'react-router-dom'
+import Button from '../../components/ui/Button'
 
 /* ── Status helpers ──────────────────────────────────────────────────────────── */
 const STATUS = {
@@ -97,12 +98,13 @@ function VenueCard({ result, isHome, dimmed, onOpen }) {
           className="mt-1.5"
           style={{ opacity: hovered ? 1 : 0, transition: 'opacity 150ms' }}
         >
-          <button
+          <Button
+            variant="secondary"
+            size="sm"
             onClick={(e) => { e.stopPropagation(); onOpen(venue.slug) }}
-            className="text-[11px] font-semibold text-charcoal dark:text-white bg-transparent border border-charcoal/18 dark:border-white/20 rounded-[7px] px-2.5 py-[3px] cursor-pointer"
           >
             Open →
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -268,12 +270,13 @@ export default function OverviewPage() {
           <span className="text-xs font-semibold text-charcoal dark:text-white flex-1">
             {filterLabels[activeFilter]}
           </span>
-          <button
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => setActiveFilter(null)}
-            className="text-[11px] font-semibold text-charcoal/40 dark:text-white/35 bg-transparent border-0 cursor-pointer hover:text-charcoal dark:hover:text-white transition-colors duration-100"
           >
             Clear ✕
-          </button>
+          </Button>
         </div>
       )}
 

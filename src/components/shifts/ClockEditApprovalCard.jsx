@@ -13,6 +13,7 @@ import { useToast } from '../ui/Toast'
 import { formatLondon } from '../../lib/time'
 import { reportError } from '../../lib/reportError'
 import LoadError from '../ui/LoadError'
+import Button from '../ui/Button'
 
 function fmt(iso) {
   if (!iso) return '—'
@@ -58,28 +59,22 @@ function DenySheet({ onDeny, onCancel }) {
           }}
         />
         <div style={{ display: 'flex', gap: 8 }}>
-          <button
+          <Button
+            variant="secondary"
             onClick={onCancel}
-            className="text-sm font-medium cursor-pointer border-none"
-            style={{
-              flex: 1, padding: '12px 0', borderRadius: 11,
-              background: '#f3f3ef', color: '#76817b',
-            }}
+            className="flex-1"
           >
             Cancel
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="danger"
+            loading={saving}
             disabled={saving}
             onClick={async () => { setSaving(true); await onDeny(note); setSaving(false) }}
-            className="text-sm font-semibold text-white border-none disabled:opacity-60"
-            style={{
-              flex: 1, padding: '12px 0', borderRadius: 11,
-              background: '#b3331c',
-              cursor: saving ? 'not-allowed' : 'pointer',
-            }}
+            className="flex-1"
           >
             {saving ? 'Denying…' : 'Deny'}
-          </button>
+          </Button>
         </div>
       </div>
     </div>
@@ -231,27 +226,21 @@ export default function ClockEditApprovalCard({ compact = false }) {
 
             {/* Action buttons */}
             <div style={{ display: 'flex', gap: 8 }}>
-              <button
+              <Button
+                variant="secondary"
+                size="sm"
                 onClick={() => setDenyTarget(r.id)}
-                className="text-[13px] font-medium cursor-pointer"
-                style={{
-                  flex: 1, padding: '9px 0', borderRadius: 9,
-                  border: '1px solid #e4e6e2', background: '#fff',
-                  color: '#76817b',
-                }}
+                className="flex-1"
               >
                 Deny
-              </button>
-              <button
+              </Button>
+              <Button
+                size="sm"
                 onClick={() => approve(r.id)}
-                className="text-[13px] font-semibold text-white cursor-pointer border-none"
-                style={{
-                  flex: 2, padding: '9px 0', borderRadius: 9,
-                  background: '#13362a',
-                }}
+                className="flex-[2]"
               >
                 Approve
-              </button>
+              </Button>
             </div>
           </div>
         ))}

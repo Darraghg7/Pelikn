@@ -5,6 +5,7 @@ import { useVenue } from '../../contexts/VenueContext'
 import { useRotaRequirements, DAY_NAMES } from '../../hooks/useRotaRequirements'
 import { fillRotaRequirements } from '../../lib/rotaBuilder'
 import { useToast } from '../../components/ui/Toast'
+import Button, { CloseButton } from '../../components/ui/Button'
 
 function SectionLabel({ children }) {
   return <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-2">{children}</p>
@@ -162,16 +163,16 @@ export default function RotaAutoFillModal({
               </div>
             </div>
 
-            <button
+            <Button
+              size="lg"
               onClick={handleGenerate}
               disabled={reqLoading || requirements.length === 0}
-              className="bg-brand text-cream py-3.5 rounded-xl text-sm font-semibold hover:bg-brand/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M8 2v4"/><path d="M16 2v4"/><path d="M21 13V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8"/><path d="M3 10h18"/><path d="M16 19h6"/><path d="M19 16v6"/>
               </svg>
               Auto-fill rota
-            </button>
+            </Button>
           </>
         )}
 
@@ -238,14 +239,7 @@ export default function RotaAutoFillModal({
                           {sh.shift_date} · {sh.start_time}–{sh.end_time} · {sh.role_label}
                         </p>
                       </div>
-                      <button
-                        onClick={() => removeShift(i)}
-                        className="text-danger/40 hover:text-danger transition-colors px-2 py-1"
-                      >
-                        <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-                        </svg>
-                      </button>
+                      <CloseButton label="Remove shift" onClick={() => removeShift(i)} />
                     </div>
                   ))
                 )}
@@ -254,19 +248,20 @@ export default function RotaAutoFillModal({
 
             {/* Actions */}
             <div className="flex gap-2">
-              <button
+              <Button
+                loading={saving}
                 onClick={handleSave}
                 disabled={saving || result.shifts.length === 0}
-                className="flex-1 bg-brand text-cream py-3 rounded-xl text-sm font-semibold hover:bg-brand/90 transition-colors disabled:opacity-40"
+                className="flex-1"
               >
                 {saving ? 'Saving…' : `Apply ${result.shifts.length} shift${result.shifts.length !== 1 ? 's' : ''} →`}
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="secondary"
                 onClick={() => { setResult(null); setStage(STAGES.CONFIRM) }}
-                className="px-4 py-3 rounded-xl border border-charcoal/15 dark:border-white/15 text-sm text-charcoal/50 dark:text-white/40 hover:text-charcoal dark:hover:text-white transition-colors whitespace-nowrap"
               >
                 Try again
-              </button>
+              </Button>
             </div>
           </>
         )}

@@ -7,6 +7,7 @@ import ConfirmDialog from '../../components/ui/ConfirmDialog'
 import { countWorkingDaysInRequest } from '../../hooks/useLeaveBalance'
 import { cancelTimeOffRequest, updateTimeOffRequest, timeOffPermissions } from '../../lib/api/timeOff'
 import { LEAVE_TYPES, STATUS_COLOURS, leaveTypeLabel, fmtDays } from './timeOffConstants'
+import Button from '../../components/ui/Button'
 
 /**
  * Opened from a calendar day or the "My Requests" list. Staff manage their own
@@ -217,24 +218,24 @@ export default function EditRequestModal({ request, isManager, actorId, actorNam
                 </div>
               )}
 
-              <button
+              <Button
+                loading={saving}
                 onClick={save}
                 disabled={saving || !changed}
-                className="bg-charcoal text-cream py-3 rounded-xl text-sm font-medium hover:bg-charcoal/90 transition-colors disabled:opacity-40"
               >
                 {saving ? 'Saving…' : 'Save changes'}
-              </button>
+              </Button>
             </>
           )}
 
           {perms.canCancel && (
-            <button
+            <Button
+              variant="danger-ghost"
               onClick={() => setConfirm(true)}
               disabled={saving}
-              className="py-2.5 rounded-xl border border-danger/25 text-danger text-sm font-medium hover:bg-danger/5 transition-colors disabled:opacity-40"
             >
               {request.status === 'approved' ? 'Remove this time off' : 'Withdraw request'}
-            </button>
+            </Button>
           )}
         </div>
       </Modal>

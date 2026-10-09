@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react'
 import { format } from 'date-fns'
+import Button from '../../components/ui/Button'
 
 export default function RotaSwapRequestModal({
   swapModal,
@@ -76,19 +77,20 @@ export default function RotaSwapRequestModal({
         </div>
 
         <div className="flex gap-2">
-          <button
+          <Button
+            loading={swapSaving}
             onClick={submitSwapRequest}
             disabled={swapSaving || !swapForm.targetStaffId}
-            className="flex-1 bg-charcoal text-cream py-2.5 rounded-lg text-sm font-medium hover:bg-charcoal/90 transition-colors disabled:opacity-40"
+            className="flex-1"
           >
             {swapSaving ? 'Sending…' : 'Request Swap →'}
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="secondary"
             onClick={onClose}
-            className="px-4 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 text-sm text-charcoal/50 dark:text-white/40 hover:text-charcoal dark:hover:text-white transition-colors"
           >
             Cancel
-          </button>
+          </Button>
         </div>
       </div>
     </div>

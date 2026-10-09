@@ -8,6 +8,7 @@ import { SkeletonList } from '../../components/ui/Skeleton'
 import Modal from '../../components/ui/Modal'
 import { reportError } from '../../lib/reportError'
 import LoadError from '../../components/ui/LoadError'
+import Button from '../../components/ui/Button'
 
 // Local wall-clock time for a datetime-local input. toISOString() is UTC, so
 // during BST the default read an hour behind and records were saved an hour early.
@@ -102,12 +103,11 @@ export default function ProbeCalibrationPage() {
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-charcoal dark:text-white">Probe Calibration</h1>
-        <button
+        <Button
           onClick={() => setShowForm(true)}
-          className="bg-charcoal text-cream px-4 py-2 rounded-lg text-sm font-medium hover:bg-charcoal/90 transition-colors"
         >
           + Calibrate
-        </button>
+        </Button>
       </div>
 
       {/* Summary */}
@@ -273,13 +273,13 @@ export default function ProbeCalibrationPage() {
             />
           </div>
 
-          <button
+          <Button
+            loading={saving}
             onClick={save}
             disabled={saving || !hasReading}
-            className="bg-charcoal text-cream py-3 rounded-xl text-sm font-medium hover:bg-charcoal/90 transition-colors disabled:opacity-40"
           >
             {saving ? 'Saving...' : 'Record Calibration'}
-          </button>
+          </Button>
         </div>
       </Modal>
     </div>

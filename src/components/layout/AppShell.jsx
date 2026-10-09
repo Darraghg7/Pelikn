@@ -17,6 +17,7 @@ import NavPanel from './NavPanel'
 import NavTopbar from './NavTopbar'
 import { routeToNav, buildManagerCats, buildStaffCats, IcoOverview, PanelIcons } from './navConfig'
 import { initials } from '../../lib/names'
+import Button from '../ui/Button'
 
 // Per-venue cache — busted automatically after TTL or on app restart
 const CACHE_TTL = 60_000 // 1 minute
@@ -331,16 +332,18 @@ function VenueSwitcher({ venues, currentSlug, onSelect }) {
 
   return (
     <div className="relative" ref={ref}>
-      <button
+      <Button
+        variant="inverse-secondary"
+        size="sm"
+        iconOnly
         onClick={() => setOpen(v => !v)}
-        className="w-7 h-7 rounded-lg border border-white/10 bg-white/5 flex items-center justify-center text-white/40 hover:text-white/70 hover:bg-white/10 hover:border-white/20 transition-all"
         aria-label="Switch venue"
         title="Switch venue"
       >
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
           <path d="M8 9l4-4 4 4M16 15l-4 4-4-4"/>
         </svg>
-      </button>
+      </Button>
       {open && (
         <div className="absolute top-full left-0 mt-2 w-52 bg-brand-800 rounded-xl shadow-dropdown border border-white/10 overflow-hidden z-50 animate-fade-in">
           <p className="px-3 pt-2.5 pb-1.5 text-[11px] tracking-[0.12em] uppercase text-white/30 font-semibold">Your venues</p>
@@ -626,12 +629,13 @@ export default function AppShell({ children }) {
               )}
             </div>
             <div className="flex items-center gap-2 shrink-0">
-              <button
+              <Button
+                variant="inverse-secondary"
+                size="sm"
                 onClick={handleSignOut}
-                className="text-[11px] font-semibold tracking-wider uppercase text-white border border-white/30 rounded-lg px-3 py-1.5 hover:bg-white/10 whitespace-nowrap transition-colors"
               >
                 Sign out
-              </button>
+              </Button>
             </div>
           </div>
         </header>

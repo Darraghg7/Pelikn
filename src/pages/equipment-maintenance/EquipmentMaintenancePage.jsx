@@ -8,6 +8,7 @@ import { useToast } from '../../components/ui/Toast'
 import Modal from '../../components/ui/Modal'
 import { PageSkeleton } from '../../components/ui/Skeleton'
 import { buildPdfReport } from '../../lib/pdfUtils'
+import Button from '../../components/ui/Button'
 
 const SERVICE_TYPES = ['service', 'repair', 'calibration', 'inspection', 'other']
 const SERVICE_TYPE_LABELS = {
@@ -128,12 +129,12 @@ export default function EquipmentMaintenancePage() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-charcoal dark:text-white">Equipment Maintenance</h1>
         {isManager && (
-          <button
+          <Button
+            variant="label"
             onClick={() => setShowExport(true)}
-            className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white transition-colors border-b border-charcoal/20 dark:border-white/20"
           >
             Export PDF
-          </button>
+          </Button>
         )}
       </div>
 
@@ -152,10 +153,9 @@ export default function EquipmentMaintenancePage() {
                 className="w-full px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20" />
             </div>
           </div>
-          <button onClick={handleExportPdf} disabled={exporting}
-            className="w-full bg-charcoal text-cream py-2.5 rounded-lg text-sm font-medium hover:bg-charcoal/90 transition-colors disabled:opacity-40">
+          <Button fullWidth loading={exporting} onClick={handleExportPdf} disabled={exporting}>
             {exporting ? 'Generating…' : 'Export PDF →'}
-          </button>
+          </Button>
         </div>
       </Modal>
 
@@ -240,13 +240,14 @@ export default function EquipmentMaintenancePage() {
             />
           </div>
 
-          <button
+          <Button
+            loading={submitting}
             type="submit"
             disabled={!canSubmit || submitting}
-            className="bg-charcoal text-cream px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-charcoal/90 transition-colors disabled:opacity-30 disabled:cursor-not-allowed self-start"
+            className="self-start"
           >
-            {submitting ? '…' : 'Log Service →'}
-          </button>
+            Log Service →
+          </Button>
         </form>
       </div>
 

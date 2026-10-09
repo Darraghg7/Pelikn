@@ -9,6 +9,7 @@ import { SkeletonList } from '../../components/ui/Skeleton'
 import DateRangePresets, { presetToDates } from '../../components/ui/DateRangePresets'
 import { useToast } from '../../components/ui/Toast'
 import LoadError from '../../components/ui/LoadError'
+import Button from '../../components/ui/Button'
 
 function SectionLabel({ children }) {
   return <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-3">{children}</p>
@@ -220,12 +221,13 @@ export default function FridgeHistoryPage() {
                                     {r.explained && <span className="text-[11px] text-success font-bold">NO PENALTY</span>}
                                   </button>
                                 ))}
-                                <button
+                                <Button
+                                  variant="secondary"
+                                  size="sm"
                                   onClick={() => setEditingId(null)}
-                                  className="px-3 py-1.5 rounded-lg border border-charcoal/15 dark:border-white/15 text-xs text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white transition-colors"
                                 >
                                   Cancel
-                                </button>
+                                </Button>
                               </div>
                               {isSaving && <p className="text-[11px] text-charcoal/40 dark:text-white/35 animate-pulse">Saving…</p>}
                             </div>

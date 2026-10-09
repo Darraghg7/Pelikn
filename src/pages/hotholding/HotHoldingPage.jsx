@@ -33,6 +33,7 @@ import {
 } from '../../components/temperature/TempPageParts'
 import TempHistoryView, { historyDateFrom, buildClosedDateSet } from '../../components/temperature/TempHistoryView'
 import HotHoldingExportModal from './HotHoldingExportModal'
+import Button from '../../components/ui/Button'
 
 const PERIOD_NAMES = { am: 'Morning check', pm: 'Evening check' }
 
@@ -155,13 +156,14 @@ function HotHoldingRow({ item, period, log, otherLog, otherRequired, session, ve
           <span className="flex-1 min-w-0 text-[13px] font-semibold truncate">
             {logFail ? failLabel(log.temperature, item) : 'Safe'} · {format(new Date(log.logged_at), 'HH:mm')}
           </span>
-          <button
-            type="button"
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => setEditing(true)}
-            className="shrink-0 px-2 py-1 text-[13px] font-semibold text-ink2 dark:text-white/80 hover:text-ink dark:hover:text-white"
+            className="shrink-0"
           >
             Edit
-          </button>
+          </Button>
         </div>
       ) : (
         <>
@@ -193,13 +195,14 @@ function HotHoldingRow({ item, period, log, otherLog, otherRequired, session, ve
             </div>
           )}
           {editing && (
-            <button
-              type="button"
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => { setEditing(false); setTemp(''); setNote('') }}
-              className="self-start text-xs font-medium text-ink3 dark:text-white/45 hover:text-ink dark:hover:text-white"
+              className="self-start -ml-3"
             >
               Cancel — keep {Number(log.temperature).toFixed(1)}°C
-            </button>
+            </Button>
           )}
         </>
       )}
@@ -417,14 +420,14 @@ export default function HotHoldingPage() {
               aria-label="New hot holding item"
               className="flex-1 min-w-0 h-9 px-3.5 rounded-xl border border-line dark:border-white/10 bg-white dark:bg-paperDark text-[13px] text-ink dark:text-white placeholder:text-ink4 dark:placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand/40"
             />
-            <button
-              type="button"
+            <Button
+              size="sm"
+              loading={addingItem}
               onClick={handleAddItem}
               disabled={!newItemName.trim() || addingItem}
-              className="h-9 px-3.5 rounded-xl bg-brand text-white text-[13px] font-semibold transition-colors hover:bg-brand/90 disabled:bg-ink3/70 dark:disabled:bg-white/15 disabled:cursor-not-allowed"
             >
-              {addingItem ? '…' : 'Add'}
-            </button>
+              Add
+            </Button>
           </div>
 
           {items.length > 0 && (

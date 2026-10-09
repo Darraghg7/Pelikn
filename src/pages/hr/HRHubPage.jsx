@@ -12,6 +12,7 @@ import { SkeletonList } from '../../components/ui/Skeleton'
 import EmployeeRecordPanel from './EmployeeRecordPanel'
 import Avatar from '../../components/ui/Avatar'
 import LoadError from '../../components/ui/LoadError'
+import Button from '../../components/ui/Button'
 
 // ── Stat tile ─────────────────────────────────────────────────────────────────
 function StatTile({ label, value, sub, tone, icon }) {
@@ -186,12 +187,11 @@ export default function HRHubPage() {
           <div className="mb-1.5 font-mono text-[11px] tracking-[0.1em] uppercase text-charcoal/50 dark:text-white/40">Manager · Team</div>
           <h1 className="text-[28px] font-bold tracking-[-0.03em] text-charcoal dark:text-white mt-0 mb-2.5">HR Records</h1>
           <p className="text-[13.5px] text-charcoal/50 dark:text-white/40 mb-6">No active staff members found.</p>
-          <button
+          <Button
             onClick={() => navigate(vp('/staff?staff=new'))}
-            className="bg-brand text-white border-0 rounded-[11px] px-5 py-2.5 cursor-pointer text-[13px] font-semibold"
           >
             Add staff
-          </button>
+          </Button>
         </div>
       ) : (
         <>
@@ -276,13 +276,15 @@ export default function HRHubPage() {
                 />
               </div>
 
-              <button
+              <Button
+                variant="secondary"
+                fullWidth
                 onClick={() => navigate(vp('/staff?staff=new'))}
-                className="flex items-center gap-[7px] w-full px-[13px] py-[9px] rounded-[11px] border border-charcoal/10 dark:border-white/10 bg-transparent text-charcoal/50 dark:text-white/40 cursor-pointer text-[13px] font-medium mb-3.5"
+                className="mb-3.5"
               >
                 {ICO.plus}
                 <span>Add staff</span>
-              </button>
+              </Button>
 
               <div className="flex-1 overflow-y-auto flex flex-col gap-px pr-0.5">
                 {filtered.length === 0 ? (

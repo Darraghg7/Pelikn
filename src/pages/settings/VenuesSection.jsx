@@ -11,6 +11,7 @@ import { EXTRA_VENUE_PRICE } from '../../lib/pricing'
 import { slugify } from '../../lib/utils'
 import { syncBillingVenues } from '../../lib/api/billing'
 import { useVenue } from '../../contexts/VenueContext'
+import Button from '../../components/ui/Button'
 
 export default function VenuesSection() {
   const { user, venues: accountVenues, refreshVenues, selectVenue } = useAuth()
@@ -114,12 +115,13 @@ export default function VenuesSection() {
               </div>
               <p className="text-[11px] text-charcoal/40 dark:text-white/35 mt-0.5 font-mono tracking-wide">get-pelikn.com/v/{v.slug}</p>
             </div>
-            <button
+            <Button
+              variant="secondary"
+              size="sm"
               onClick={() => handleOpenVenue(v.slug)}
-              className="h-7 px-2.5 rounded-md border border-charcoal/12 dark:border-white/15 text-xs font-medium text-charcoal/60 dark:text-white/50 hover:text-charcoal dark:hover:text-white hover:border-charcoal/30 dark:hover:border-white/30 transition-colors"
             >
               Open →
-            </button>
+            </Button>
           </div>
         ))}
       </div>
@@ -167,29 +169,30 @@ export default function VenuesSection() {
           </div>
 
           <div className="flex gap-2">
-            <button
+            <Button
+              loading={saving}
               onClick={handleAdd}
               disabled={saving || !form.name.trim() || !form.slug.trim()}
-              className="flex-1 bg-charcoal text-cream py-2.5 rounded-lg text-sm font-medium disabled:opacity-40 hover:bg-charcoal/90 transition-colors"
+              className="flex-1"
             >
               {saving ? 'Creating…' : 'Create Venue →'}
-            </button>
-            <button
+            </Button>
+            <Button
+              variant="secondary"
               onClick={() => { setShowForm(false); setForm({ name: '', slug: '' }); setSlugEdited(false) }}
-              className="px-4 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 text-sm text-charcoal/50 dark:text-white/40 hover:border-charcoal/30 dark:hover:border-white/30 transition-colors"
             >
               Cancel
-            </button>
+            </Button>
           </div>
         </div>
       ) : (
         <div className="flex justify-end">
-          <button
+          <Button
+            variant="label"
             onClick={() => setShowForm(true)}
-            className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white transition-colors border-b border-charcoal/20 dark:border-white/20"
           >
             + Add Venue
-          </button>
+          </Button>
         </div>
       )}
     </SettingsSection>

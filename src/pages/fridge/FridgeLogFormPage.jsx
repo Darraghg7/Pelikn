@@ -11,6 +11,7 @@ import { isTempOutOfRange } from '../../lib/utils'
 import { useToast } from '../../components/ui/Toast'
 import { PageSkeleton } from '../../components/ui/Skeleton'
 import NumPad from '../../components/ui/NumPad'
+import Button from '../../components/ui/Button'
 
 function SectionLabel({ children }) {
   return <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-3">{children}</p>
@@ -274,13 +275,13 @@ export default function FridgeLogFormPage() {
           )}
         </div>
 
-        <button
+        <Button
+          loading={submitting}
           type="submit"
           disabled={submitting || !canSubmit}
-          className="bg-charcoal text-cream py-3 rounded-xl text-sm font-semibold tracking-wide hover:bg-charcoal/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
         >
           {submitting ? 'Saving…' : isPastEntry ? `Save Past Reading (${format(new Date(loggedAt), 'd MMM, HH:mm')}) →` : 'Save Reading →'}
-        </button>
+        </Button>
       </form>
     </div>
   )

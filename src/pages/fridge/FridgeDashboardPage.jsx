@@ -16,6 +16,7 @@ import {
   CARD, FRIDGE_ICON, PageHeader, TabBar, AddDashedButton, PeriodChip, ItemHeading, ReadingInput, ItemSettingsRow,
 } from '../../components/temperature/TempPageParts'
 import { formatCheckDaysCompact, formatRequiredPeriods, isCheckRequired } from '../../lib/temperatureChecks'
+import Button, { CloseButton } from '../../components/ui/Button'
 
 // Reasons that are "explained" — reading is recorded honestly but no compliance penalty
 const EXCEEDANCE_REASONS = [
@@ -188,18 +189,19 @@ function FridgeLogRow({ fridge, status, session, venueId, canLog, onSaved }) {
               Last reading was {formatTemp(followUp.temp)} — log a new reading to confirm the temperature has recovered.
             </p>
           </div>
-          <button onClick={dismissFollowUp} aria-label="Dismiss" className="text-charcoal/25 dark:text-white/25 hover:text-charcoal dark:hover:text-white shrink-0 text-[13px] leading-none mt-0.5">×</button>
+          <CloseButton label="Dismiss" className="shrink-0 -mt-1.5 -mr-2" onClick={dismissFollowUp} />
         </div>
       )}
 
       {!canLog ? null : !showInput ? (
-        <button
-          type="button"
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={() => setLogAgain(true)}
-          className="self-start text-xs font-medium text-ink3 dark:text-white/45 hover:text-ink dark:hover:text-white transition-colors"
+          className="self-start -ml-3"
         >
           + Log another reading
-        </button>
+        </Button>
       ) : (
         <>
           <ReadingInput

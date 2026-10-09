@@ -7,6 +7,7 @@ import { useToast } from '../../components/ui/Toast'
 import { SkeletonList } from '../../components/ui/Skeleton'
 import Modal from '../../components/ui/Modal'
 import LoadError from '../../components/ui/LoadError'
+import Button from '../../components/ui/Button'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -139,10 +140,9 @@ function ComplaintModal({ open, onClose, editItem, venueId, onSaved }) {
           <input type="date" value={form.resolved_at} onChange={e => set('resolved_at', e.target.value)} className={inp} />
         </Field>
 
-        <button onClick={save} disabled={saving}
-          className="w-full bg-charcoal text-cream py-2.5 rounded-xl text-sm font-semibold hover:bg-charcoal/90 transition-colors disabled:opacity-40">
+        <Button fullWidth loading={saving} onClick={save} disabled={saving}>
           {saving ? 'Saving…' : editItem ? 'Save Changes' : 'Log Complaint'}
-        </button>
+        </Button>
       </div>
     </Modal>
   )
@@ -172,10 +172,10 @@ function ComplaintCard({ item, onEdit }) {
               {item.product_involved && <> · {item.product_involved}</>}
             </p>
           </div>
-          <button onClick={() => onEdit(item)}
-            className="text-xs text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white border border-charcoal/12 dark:border-white/15 hover:border-charcoal/25 dark:hover:border-white/25 px-3 py-1.5 rounded-lg transition-colors shrink-0">
+          <Button variant="secondary" size="sm" onClick={() => onEdit(item)}
+            className="shrink-0">
             Edit
-          </button>
+          </Button>
         </div>
 
         <p className="text-sm text-charcoal dark:text-white leading-relaxed">{item.description}</p>
@@ -244,10 +244,10 @@ export default function ComplaintsPage() {
             Log and investigate illness reports, allergen reactions, and foreign body complaints
           </p>
         </div>
-        <button onClick={openNew}
-          className="bg-charcoal text-cream px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-charcoal/90 transition-colors shrink-0">
+        <Button onClick={openNew}
+          className="shrink-0">
           + Log Complaint
-        </button>
+        </Button>
       </div>
 
       {/* Open alert banner */}
@@ -293,10 +293,10 @@ export default function ComplaintsPage() {
             {filter === 'open' ? 'No open complaints.' : filter === 'resolved' ? 'No resolved complaints yet.' : 'No complaints logged yet.'}
           </p>
           {filter === 'all' && (
-            <button onClick={openNew}
-              className="mt-4 text-sm text-charcoal/50 dark:text-white/40 hover:text-charcoal dark:hover:text-white border border-charcoal/15 dark:border-white/15 px-4 py-2 rounded-xl transition-colors">
+            <Button variant="secondary" onClick={openNew}
+              className="mt-4">
               + Log first complaint
-            </button>
+            </Button>
           )}
         </div>
       ) : (
