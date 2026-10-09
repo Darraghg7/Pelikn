@@ -211,8 +211,8 @@ function ReportIncidentModal({ open, onClose, onSaved }) {
               <span className="block text-[13px] font-semibold text-ink dark:text-white">Reportable under RIDDOR</span>
               <span className="block text-[13px] text-ink3 dark:text-white/50 mt-0.5">Serious injuries, over-7-day absences, public taken to hospital</span>
             </span>
-            <span className={`shrink-0 w-[52px] h-7 rounded-full p-1 transition-colors ${form.riddor ? 'bg-bad' : 'bg-ink4/70 dark:bg-white/20'}`}>
-              <span className={`block w-6 h-6 rounded-full bg-white shadow transition-transform ${form.riddor ? 'translate-x-5' : ''}`} />
+            <span className={`shrink-0 w-[52px] h-7 rounded-full p-1 transition-colors ${form.riddor ? 'bg-bad dark:bg-badDark' : 'bg-ink4/70 dark:bg-transparent dark:ring-[1.5px] dark:ring-inset dark:ring-white/50'}`}>
+              <span className={`block w-6 h-6 rounded-full bg-paper shadow transition-transform ${form.riddor ? 'translate-x-5' : 'dark:bg-white/70'}`} />
             </span>
           </button>
           {form.riddor && (

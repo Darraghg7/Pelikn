@@ -82,10 +82,10 @@ function MiniToggle({ checked, onChange }) {
     <button
       type="button"
       onClick={() => onChange(!checked)}
-      className={`relative w-8 h-[18px] rounded-full border-none transition-colors duration-200 ${checked ? 'bg-brand' : 'bg-charcoal/15 dark:bg-white/15'}`}
+      className={`relative w-8 h-[18px] rounded-full border-none transition-colors duration-200 ${checked ? 'bg-brand dark:bg-brand-400' : 'bg-charcoal/15 dark:bg-transparent dark:ring-[1.5px] dark:ring-inset dark:ring-white/50'}`}
     >
       <span
-        className={`absolute top-[3px] w-3 h-3 rounded-full bg-white dark:bg-paperDark shadow transition-all duration-200 ${checked ? 'left-[17px]' : 'left-[3px]'}`}
+        className={`absolute top-[3px] w-3 h-3 rounded-full bg-paper shadow transition-all duration-200 ${checked ? 'left-[17px]' : 'left-[3px] dark:bg-white/70'}`}
       />
     </button>
   )

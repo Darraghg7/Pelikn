@@ -133,9 +133,9 @@ function NewPostForm({ venueId, staffName, onPosted, onCancel }) {
       <label className="flex items-center gap-3 cursor-pointer select-none">
         <div
           onClick={() => set('pinned', !form.pinned)}
-          className={`w-9 h-5 rounded-full transition-colors relative cursor-pointer ${form.pinned ? 'bg-accent' : 'bg-charcoal/20 dark:bg-white/20'}`}
+          className={`w-9 h-5 rounded-full transition-colors relative cursor-pointer ${form.pinned ? 'bg-accent' : 'bg-charcoal/20 dark:bg-transparent dark:ring-[1.5px] dark:ring-inset dark:ring-white/50'}`}
         >
-          <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white dark:bg-paperDark rounded-full shadow transition-transform ${form.pinned ? 'translate-x-4' : ''}`} />
+          <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-paper rounded-full shadow transition-transform ${form.pinned ? 'translate-x-4' : 'dark:bg-white/70'}`} />
         </div>
         <span className="text-sm text-charcoal/70 dark:text-white/60">Pin this notice to the top</span>
       </label>
