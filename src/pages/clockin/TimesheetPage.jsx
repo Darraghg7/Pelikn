@@ -191,17 +191,17 @@ function TsWheel({ values, value, onChange }) {
             <div
               key={v}
               onClick={() => { ref.current?.scrollTo({ top: i * WH_IH, behavior: 'smooth' }); onChange(v) }}
-              className="flex items-center justify-center [scroll-snap-align:center] cursor-pointer font-mono tabular-nums transition-[font-size,color] duration-100"
-              style={{ height: WH_IH, fontSize: on ? 23 : 18, fontWeight: on ? 600 : 500, color: on ? '#0d1a14' : '#b3b9b5' }}
+              className={`flex items-center justify-center [scroll-snap-align:center] cursor-pointer font-mono tabular-nums transition-[font-size,color] duration-100 ${on ? 'text-ink dark:text-white' : 'text-ink4 dark:text-white/30'}`}
+              style={{ height: WH_IH, fontSize: on ? 23 : 18, fontWeight: on ? 600 : 500 }}
             >
               {v}
             </div>
           )
         })}
       </div>
-      <div className="absolute left-0 right-0 pointer-events-none border-t border-b border-charcoal/10 dark:border-white/10" style={{ top: pad, height: WH_IH, background: 'rgba(19,54,42,0.03)' }} />
-      <div className="absolute left-0 right-0 top-0 pointer-events-none" style={{ height: pad, background: 'linear-gradient(#f3f3ef, #f3f3ef00)' }} />
-      <div className="absolute left-0 right-0 bottom-0 pointer-events-none" style={{ height: pad, background: 'linear-gradient(#f3f3ef00, #f3f3ef)' }} />
+      <div className="absolute left-0 right-0 pointer-events-none border-t border-b border-charcoal/10 dark:border-white/10 bg-brand/3 dark:bg-white/5" style={{ top: pad, height: WH_IH }} />
+      <div className="absolute left-0 right-0 top-0 pointer-events-none bg-gradient-to-b from-surface to-surface/0 dark:from-paperDark dark:to-paperDark/0" style={{ height: pad }} />
+      <div className="absolute left-0 right-0 bottom-0 pointer-events-none bg-gradient-to-t from-surface to-surface/0 dark:from-paperDark dark:to-paperDark/0" style={{ height: pad }} />
     </div>
   )
 }
@@ -230,8 +230,8 @@ function EditSessionSheet({ staffName, dayLabel, session, onSave, onClose }) {
   useBodyScrollLock()
   return (
     <div className="fixed inset-0 z-[60] flex flex-col justify-end">
-      <div onClick={onClose} className="absolute inset-0" style={{ background: 'rgba(9,18,13,0.52)' }} />
-      <div className="relative bg-surface rounded-t-[22px] px-3.5 pb-[34px] pt-[10px] max-h-[90%] overflow-y-auto [-webkit-overflow-scrolling:touch]" style={{ boxShadow: '0 -12px 40px rgba(9,18,13,0.24)' }}>
+      <div onClick={onClose} className="absolute inset-0 bg-ink/45" />
+      <div className="relative bg-surface dark:bg-paperDark rounded-t-[22px] px-3.5 pb-[34px] pt-[10px] max-h-[90%] overflow-y-auto [-webkit-overflow-scrolling:touch] shadow-[0_-12px_40px_theme(colors.ink/24%)]">
         <div className="w-[38px] h-1 rounded-sm bg-charcoal/10 dark:bg-white/10 mx-auto mb-4" />
         <div className="flex items-start justify-between mb-4">
           <div>
@@ -240,17 +240,17 @@ function EditSessionSheet({ staffName, dayLabel, session, onSave, onClose }) {
           </div>
           {session?.in && <span className="font-mono text-[11px] font-bold text-warning bg-warning/10 uppercase tracking-[0.05em] px-[9px] py-1 rounded-full">Editing</span>}
         </div>
-        <div className="flex gap-2 bg-charcoal/[0.06] p-1 rounded-xl mb-2">
+        <div className="flex gap-2 bg-charcoal/[0.06] dark:bg-white/8 p-1 rounded-xl mb-2">
           {[['in', 'Clock in', clockIn], ['out', 'Clock out', clockOut]].map(([k, label, val]) => {
             const on = edge === k
             return (
               <button
                 key={k}
                 onClick={() => setEdge(k)}
-                className={`flex-1 cursor-pointer border-none rounded-[9px] py-2 ${on ? 'bg-white dark:bg-paperDark shadow-[0_1px_3px_theme(colors.ink/10%)]' : 'bg-transparent'}`}
+                className={`flex-1 cursor-pointer border-none rounded-[9px] py-2 ${on ? 'bg-paper dark:bg-white/15 shadow-[0_1px_3px_theme(colors.ink/10%)]' : 'bg-transparent'}`}
               >
                 <div className="font-mono text-[11px] text-charcoal/50 dark:text-white/40 uppercase tracking-[0.06em] font-semibold">{label}</div>
-                <div className={`font-mono text-[17px] font-semibold mt-0.5 tabular-nums ${on ? 'text-brand' : 'text-charcoal/50 dark:text-white/40'}`}>{val}</div>
+                <div className={`font-mono text-[17px] font-semibold mt-0.5 tabular-nums ${on ? 'text-brand dark:text-white' : 'text-charcoal/50 dark:text-white/40'}`}>{val}</div>
               </button>
             )
           })}
@@ -272,7 +272,7 @@ function EditSessionSheet({ staffName, dayLabel, session, onSave, onClose }) {
                 <button
                   key={b}
                   onClick={() => setBrk(b)}
-                  className={`font-mono text-xs font-semibold cursor-pointer px-[11px] py-[6px] rounded-[9px] border ${on ? 'border-brand bg-brand text-white' : 'border-charcoal/10 dark:border-white/10 bg-white dark:bg-paperDark text-charcoal/75 dark:text-white/60'}`}
+                  className={`font-mono text-xs font-semibold cursor-pointer px-[11px] py-[6px] rounded-[9px] border ${on ? 'border-brand bg-brand text-white' : 'border-charcoal/10 dark:border-white/10 bg-paper dark:bg-white/5 text-charcoal/75 dark:text-white/60'}`}
                 >
                   {b === 0 ? 'None' : `${b}m`}
                 </button>
@@ -307,8 +307,8 @@ function StaffHoursSheet({ t, person, periodDays, dailyGrid, periodLabel, onEdit
   useBodyScrollLock()
   return (
     <div className="fixed inset-0 z-[55] flex flex-col justify-end">
-      <div onClick={onClose} className="absolute inset-0" style={{ background: 'rgba(9,18,13,0.52)' }} />
-      <div className="relative bg-surface rounded-t-[22px] px-3.5 pt-5 pb-[34px] max-h-[90%] overflow-y-auto [-webkit-overflow-scrolling:touch]" style={{ boxShadow: '0 -12px 40px rgba(9,18,13,0.24)' }}>
+      <div onClick={onClose} className="absolute inset-0 bg-ink/45" />
+      <div className="relative bg-surface dark:bg-paperDark rounded-t-[22px] px-3.5 pt-5 pb-[34px] max-h-[90%] overflow-y-auto [-webkit-overflow-scrolling:touch] shadow-[0_-12px_40px_theme(colors.ink/24%)]">
         <div className="w-[38px] h-1 rounded-sm bg-charcoal/10 dark:bg-white/10 mx-auto mb-4" />
         <div className="flex items-center gap-2.5 mb-[14px]">
           <Avatar name={t.name} id={t.staffId} colour={person?.colour} photoUrl={person?.photo_url} size="xl" decorative />
@@ -327,8 +327,8 @@ function StaffHoursSheet({ t, person, periodDays, dailyGrid, periodLabel, onEdit
             const { real, orphans } = partitionDaySessions(dayData?.sessions ?? [])
             const has = real.length > 0
             return (
-              <div key={i} className={`flex items-center gap-[10px] px-3 py-[10px] rounded-xl border ${has ? 'bg-white dark:bg-paperDark border-charcoal/10 dark:border-white/10' : 'bg-surface border-charcoal/[0.06]'}`}>
-                <div className={`w-[42px] h-[46px] rounded-[9px] border border-charcoal/10 dark:border-white/10 shrink-0 flex flex-col items-center justify-center gap-px ${has ? 'bg-surface' : 'bg-charcoal/[0.06]'}`}>
+              <div key={i} className={`flex items-center gap-[10px] px-3 py-[10px] rounded-xl border ${has ? 'bg-paper dark:bg-white/5 border-charcoal/10 dark:border-white/10' : 'bg-surface dark:bg-transparent border-charcoal/[0.06] dark:border-white/5'}`}>
+                <div className={`w-[42px] h-[46px] rounded-[9px] border border-charcoal/10 dark:border-white/10 shrink-0 flex flex-col items-center justify-center gap-px ${has ? 'bg-surface dark:bg-white/5' : 'bg-charcoal/[0.06] dark:bg-white/5'}`}>
                   <span className="font-mono text-[11px] text-charcoal/50 dark:text-white/40 font-semibold tracking-[0.06em]">{format(d, 'EEE').toUpperCase()}</span>
                   <span className={`font-mono text-[14px] font-semibold leading-none ${has ? 'text-charcoal dark:text-white' : 'text-charcoal/30 dark:text-white/30'}`}>{format(d, 'd')}</span>
                 </div>

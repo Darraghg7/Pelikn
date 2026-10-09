@@ -17,8 +17,10 @@ import Avatar from '../../components/ui/Avatar'
 import { shortName } from '../../lib/names'
 import Button, { CloseButton } from '../../components/ui/Button'
 import { useTheme } from '../../contexts/ThemeContext'
+import { colors, white } from '../../lib/tokens'
 
-const STATION_COLOR = { Kitchen: '#b5701f', FOH: '#2d7d6e', Bar: '#7a5ea8', KP: '#4f6d8a' }
+// Same category colours as calendar events (src/lib/tokens.js)
+const STATION_COLOR = { Kitchen: colors.warn, FOH: colors.category.teal, Bar: colors.category.plum, KP: colors.category.slate }
 const STATION_ORDER = ['Kitchen', 'FOH', 'Bar', 'KP']
 
 function stationFromRole(role) {
@@ -87,15 +89,15 @@ function Wheel({ values, value, onChange, accent }) {
             <div
               key={v}
               onClick={() => { ref.current?.scrollTo({ top: i * IH, behavior: 'smooth' }); onChange(v) }}
-              className="flex items-center justify-center [scroll-snap-align:center] cursor-pointer font-mono tabular-nums tracking-[-0.02em] transition-[font-size,color] duration-100"
-              style={{ height: IH, fontSize: active ? 25 : 19, fontWeight: active ? 600 : 500, color: active ? (accent || '#0d1a14') : '#b3b9b5' }}
+              className={`flex items-center justify-center [scroll-snap-align:center] cursor-pointer font-mono tabular-nums tracking-[-0.02em] transition-[font-size,color] duration-100 ${active ? 'text-ink dark:text-white' : 'text-ink4 dark:text-white/30'}`}
+              style={{ height: IH, fontSize: active ? 25 : 19, fontWeight: active ? 600 : 500, color: active && accent ? accent : undefined }}
             >
               {v}
             </div>
           )
         })}
       </div>
-      <div className="absolute left-0 right-0 pointer-events-none border-t border-b border-charcoal/10 dark:border-white/10" style={{ top: pad, height: IH, background: 'rgba(19,54,42,0.03)' }} />
+      <div className="absolute left-0 right-0 pointer-events-none border-t border-b border-charcoal/10 dark:border-white/10 bg-brand/3 dark:bg-white/5" style={{ top: pad, height: IH }} />
       {/* Fade to the sheet colour (surface, or paperDark in dark mode) */}
       <div className="absolute left-0 right-0 top-0 pointer-events-none bg-gradient-to-b from-surface to-surface/0 dark:from-paperDark dark:to-paperDark/0" style={{ height: pad }} />
       <div className="absolute left-0 right-0 bottom-0 pointer-events-none bg-gradient-to-t from-surface to-surface/0 dark:from-paperDark dark:to-paperDark/0" style={{ height: pad }} />
@@ -128,7 +130,7 @@ function ShiftSheet({ shift, staffMember, day, venueId, roles, onClose, onSaved,
   const station   = stationFromRole(roleLabel)
   const { dark } = useTheme()
   // No station: brand green, which is unreadable on the dark sheet, so white there
-  const col       = station ? STATION_COLOR[station] : (dark ? '#ffffff' : '#13362a')
+  const col       = station ? STATION_COLOR[station] : (dark ? white() : colors.brand.DEFAULT)
   const hrs       = shiftDurationHours(startTime, endTime)
   const valid     = hrs > 0 && !!roleLabel
   const rate      = staffMember?.hourly_rate
@@ -200,8 +202,8 @@ function ShiftSheet({ shift, staffMember, day, venueId, roles, onClose, onSaved,
 
   return (
     <>
-      <div onClick={onClose} className="fixed inset-0 z-[52] [animation:fadeIn_.2s_ease_both]" style={{ background: 'rgba(9,18,13,0.42)' }} />
-      <div className="fixed bottom-0 left-0 right-0 z-[53] bg-surface dark:bg-paperDark rounded-t-[22px] max-h-[90%] flex flex-col [animation:sheetUp_.32s_cubic-bezier(0.16,1,0.3,1)_both]" style={{ boxShadow: '0 -12px 40px rgba(9,18,13,0.22)' }}>
+      <div onClick={onClose} className="fixed inset-0 z-[52] bg-ink/45 [animation:fadeIn_.2s_ease_both]" />
+      <div className="fixed bottom-0 left-0 right-0 z-[53] bg-surface dark:bg-paperDark rounded-t-[22px] max-h-[90%] flex flex-col [animation:sheetUp_.32s_cubic-bezier(0.16,1,0.3,1)_both] shadow-[0_-12px_40px_theme(colors.ink/22%)]">
 
         {/* Scrollable form body */}
         <div className="overflow-y-auto px-4 pt-[10px] pb-1 flex-1">
@@ -236,10 +238,10 @@ function ShiftSheet({ shift, staffMember, day, venueId, roles, onClose, onSaved,
                 <button
                   key={k}
                   onClick={() => setEdge(k)}
-                  className={`flex-1 cursor-pointer border-none rounded-[9px] py-[7px] ${on ? 'bg-white dark:bg-paperDark shadow-[0_1px_3px_theme(colors.ink/10%)]' : 'bg-transparent'}`}
+                  className={`flex-1 cursor-pointer border-none rounded-[9px] py-[7px] ${on ? 'bg-paper dark:bg-white/15 shadow-[0_1px_3px_theme(colors.ink/10%)]' : 'bg-transparent'}`}
                 >
                   <div className="font-mono text-[9px] text-charcoal/50 dark:text-white/40 uppercase tracking-[0.06em] font-semibold">{lbl}</div>
-                  <div className="font-mono text-[17px] font-semibold mt-0.5 tabular-nums" style={{ color: on ? col : '#76817b' }}>{val}</div>
+                  <div className={`font-mono text-[17px] font-semibold mt-0.5 tabular-nums ${on ? '' : 'text-ink3 dark:text-white/45'}`} style={{ color: on ? col : undefined }}>{val}</div>
                 </button>
               )
             })}
@@ -330,8 +332,8 @@ function SwapSheet({ swaps, onClose, onResolved }) {
 
   return (
     <>
-      <div onClick={onClose} className="fixed inset-0 z-[52] [animation:fadeIn_.2s_ease_both]" style={{ background: 'rgba(9,18,13,0.42)' }} />
-      <div className="fixed bottom-0 left-0 right-0 z-[53] bg-surface dark:bg-paperDark rounded-t-[22px] max-h-[80%] flex flex-col [animation:sheetUp_.32s_cubic-bezier(0.16,1,0.3,1)_both]" style={{ boxShadow: '0 -12px 40px rgba(9,18,13,0.22)' }}>
+      <div onClick={onClose} className="fixed inset-0 z-[52] bg-ink/45 [animation:fadeIn_.2s_ease_both]" />
+      <div className="fixed bottom-0 left-0 right-0 z-[53] bg-surface dark:bg-paperDark rounded-t-[22px] max-h-[80%] flex flex-col [animation:sheetUp_.32s_cubic-bezier(0.16,1,0.3,1)_both] shadow-[0_-12px_40px_theme(colors.ink/22%)]">
         <div className="px-4 pt-[10px]">
           <div className="w-[38px] h-1 rounded-sm bg-charcoal/10 dark:bg-white/10 mx-auto mb-[14px]" />
           <div className="text-[18px] font-semibold tracking-[-0.015em] text-charcoal dark:text-white">Swap requests</div>
@@ -409,11 +411,11 @@ function AutoFillSheet({ openShifts, staff, unavailability = {}, venueId, onClos
 
   return (
     <>
-      <div onClick={onClose} className="fixed inset-0 z-[52] [animation:fadeIn_.2s_ease_both]" style={{ background: 'rgba(9,18,13,0.42)' }} />
-      <div className="fixed bottom-0 left-0 right-0 z-[53] bg-surface dark:bg-paperDark rounded-t-[22px] px-4 pb-8 pt-[10px] max-h-[90%] overflow-y-auto [animation:sheetUp_.32s_cubic-bezier(0.16,1,0.3,1)_both]" style={{ boxShadow: '0 -12px 40px rgba(9,18,13,0.22)' }}>
+      <div onClick={onClose} className="fixed inset-0 z-[52] bg-ink/45 [animation:fadeIn_.2s_ease_both]" />
+      <div className="fixed bottom-0 left-0 right-0 z-[53] bg-surface dark:bg-paperDark rounded-t-[22px] px-4 pb-8 pt-[10px] max-h-[90%] overflow-y-auto [animation:sheetUp_.32s_cubic-bezier(0.16,1,0.3,1)_both] shadow-[0_-12px_40px_theme(colors.ink/22%)]">
         <div className="w-[38px] h-1 rounded-sm bg-charcoal/10 dark:bg-white/10 mx-auto mb-[14px]" />
         <div className="flex items-center gap-[11px]">
-          <span className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'rgba(201,79,42,0.10)', color: '#c94f2a' }}>
+          <span className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-accent/10 text-accent">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><path d="M21 13V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8"/><path d="M3 10h18"/><path d="M16 19h6"/><path d="M19 16v6"/></svg>
           </span>
           <div className="flex-1 min-w-0">
@@ -425,7 +427,7 @@ function AutoFillSheet({ openShifts, staff, unavailability = {}, venueId, onClos
         <div className="flex flex-col gap-2 mt-[9px]">
           {openShifts.length === 0 && <div className="py-5 text-center text-charcoal/50 dark:text-white/40 text-[13px]">Week is fully covered.</div>}
           {openShifts.map((o, idx) => {
-            const col = STATION_COLOR[stationFromRole(o.role_label)] || '#13362a'
+            const col = STATION_COLOR[stationFromRole(o.role_label)] || colors.brand.DEFAULT
             return (
               <div key={o.id ?? idx} className="flex items-center gap-[11px] px-[13px] py-[11px] bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-xl">
                 <span className="w-[9px] h-8 rounded-[4px] shrink-0" style={{ background: col + '26', borderLeft: `3px solid ${col}` }} />
@@ -464,7 +466,7 @@ function money(n) { return `£${Math.round(n)}` }
 
 function stationColor(roleLabel) {
   const station = stationFromRole(roleLabel)
-  return (station && STATION_COLOR[station]) || '#13362a'
+  return (station && STATION_COLOR[station]) || colors.brand.DEFAULT
 }
 
 function Segmented({ options, value, onChange, label }) {
