@@ -8,6 +8,7 @@ import ConfirmDialog from '../../components/ui/ConfirmDialog'
 import { useStaffTraining } from '../../hooks/useTraining'
 import { TRAINING_BUCKET, trainingFilePath, openTrainingFile } from '../../lib/trainingFiles'
 import { insertTrainingRecord } from '../../lib/api/training'
+import Button, { CloseButton } from '../../components/ui/Button'
 
 const EMPTY_TRAINING = { title: '', issued_date: '', expiry_date: '', notes: '' }
 
@@ -84,13 +85,14 @@ export default function TrainingSection({ staffId }) {
       />
       <div className="flex items-center justify-between px-1 -mb-1">
         <p className="text-[12px] font-semibold tracking-[0.08em] uppercase text-ink3 dark:text-white/45">Training records</p>
-        <button
-          type="button"
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={() => setShowForm(f => !f)}
-          className="text-[13px] font-semibold text-ink dark:text-white hover:opacity-70"
+          className="-mr-3"
         >
           {showForm ? 'Cancel' : '+ Add record'}
-        </button>
+        </Button>
       </div>
 
       {showForm && (
@@ -125,10 +127,9 @@ export default function TrainingSection({ staffId }) {
               onChange={e => setFile(e.target.files[0] ?? null)}
               className="w-full text-[13px] text-charcoal/60 dark:text-white/50 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border file:border-charcoal/15 dark:file:border-white/15 file:text-xs file:bg-white dark:file:bg-paperDark file:text-charcoal/60 dark:file:text-white/50 hover:file:bg-cream" />
           </div>
-          <button onClick={handleAdd} disabled={saving}
-            className="bg-charcoal text-cream py-2 rounded-lg text-[13px] font-medium disabled:opacity-40 hover:bg-charcoal/90 transition-colors">
+          <Button size="sm" loading={saving} onClick={handleAdd} disabled={saving}>
             {saving ? 'Saving…' : 'Save Record →'}
-          </button>
+          </Button>
         </div>
       )}
 
@@ -157,16 +158,15 @@ export default function TrainingSection({ staffId }) {
                       </p>
                     )}
                     {(r.file_path || r.file_url) && (
-                      <button onClick={() => openTrainingFile(r, toast)}
-                        className="text-xs text-accent underline underline-offset-2 hover:opacity-70 transition-opacity truncate max-w-[200px] text-left">
-                        {r.file_name ?? 'View file'}
-                      </button>
+                      <Button variant="link" onClick={() => openTrainingFile(r, toast)}
+                        className="max-w-[200px]">
+                        <span className="truncate">{r.file_name ?? 'View file'}</span>
+                      </Button>
                     )}
                   </div>
                   {r.notes && <p className="text-xs text-charcoal/40 dark:text-white/35 mt-1 italic">{r.notes}</p>}
                 </div>
-                <button onClick={() => setDeleteTarget(r)}
-                  className="text-charcoal/25 dark:text-white/25 hover:text-danger transition-colors shrink-0 mt-0.5"><svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+                <CloseButton label="Delete training record" className="shrink-0 -mt-1.5 -mr-2" onClick={() => setDeleteTarget(r)} />
               </li>
             )
           })}

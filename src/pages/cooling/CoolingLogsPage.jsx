@@ -32,6 +32,7 @@ import {
 import { HistoryRangePills, StatStrip, DayCard, formatPct, historyDateFrom, groupByDay } from '../../components/temperature/TempHistoryView'
 import CoolingExportModal from './CoolingExportModal'
 import LoadError from '../../components/ui/LoadError'
+import Button from '../../components/ui/Button'
 
 const NEW_METHODS = COOLING_METHODS.filter(m => !m.legacy)
 
@@ -157,13 +158,14 @@ function CoolingBatchCard({ batch, now, canDiscard, onChanged, onDiscard }) {
       )}
 
       {canDiscard && (
-        <button
-          type="button"
+        <Button
+          variant="danger-ghost"
+          size="sm"
           onClick={onDiscard}
-          className="self-start text-xs font-medium text-ink3 dark:text-white/45 hover:text-bad transition-colors"
+          className="self-start -ml-3"
         >
           Started by mistake? Discard
-        </button>
+        </Button>
       )}
     </div>
   )
@@ -265,22 +267,24 @@ function StartBatchForm({ session, venueId, onStarted }) {
       )}
 
       <div className="flex items-center gap-2.5">
-        <button
-          type="button"
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={() => setShowNote(v => !v)}
-          className="shrink-0 px-3 h-9 text-[13px] font-semibold text-ink2 dark:text-white/75 hover:text-ink dark:hover:text-white"
+          className="shrink-0"
         >
           {showNote ? 'No note' : '+ Note'}
-        </button>
-        <button
-          type="button"
+        </Button>
+        <Button
+          size="sm"
+          loading={saving}
+          leadingIcon={<StopwatchIcon />}
           onClick={start}
           disabled={!canStart || saving}
-          className="flex-1 h-9 rounded-xl bg-brand text-white text-[13px] font-semibold inline-flex items-center justify-center gap-2 transition-colors hover:bg-brand/90 disabled:bg-ink3/70 dark:disabled:bg-white/15 disabled:cursor-not-allowed"
+          className="flex-1"
         >
-          <StopwatchIcon />
           {saving ? 'Starting…' : 'Start cooling timer'}
-        </button>
+        </Button>
       </div>
     </div>
   )

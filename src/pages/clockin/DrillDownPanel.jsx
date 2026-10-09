@@ -3,6 +3,7 @@ import { format } from 'date-fns'
 import { unpaidBreakMins, shiftDurationHours } from '../../hooks/useShifts'
 import { formatMinutes } from '../../lib/utils'
 import { formatLondon } from '../../lib/time'
+import Button from '../../components/ui/Button'
 
 function fmtTime(iso) {
   if (!iso) return '?'
@@ -49,12 +50,13 @@ const DrillDownPanel = memo(function DrillDownPanel({
       <div className="mx-4 mb-2 p-3 rounded-xl bg-charcoal/3 dark:bg-white/5 text-xs text-charcoal/35 dark:text-white/30 italic flex items-center justify-between">
         <span>No clock events or scheduled shifts this week.</span>
         {adminMode && (
-          <button
+          <Button
+            variant="link"
             onClick={() => onAddForPerson(person.staffId, '')}
-            className="text-[11px] text-brand/70 hover:text-brand transition-colors font-medium shrink-0"
+            className="shrink-0"
           >
             + Add Session
-          </button>
+          </Button>
         )}
       </div>
     )
@@ -170,12 +172,13 @@ const DrillDownPanel = memo(function DrillDownPanel({
 
             {/* Per-day add button (admin mode) */}
             {adminMode && (
-              <button
+              <Button
+                variant="link"
                 onClick={() => onAddForPerson(person.staffId, dateStr)}
-                className="mt-2 text-[11px] text-brand/60 hover:text-brand transition-colors"
+                className="mt-2"
               >
                 + Add session for this day
-              </button>
+              </Button>
             )}
           </div>
         )

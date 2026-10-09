@@ -1,6 +1,7 @@
 import React from 'react'
 import { format, parseISO } from 'date-fns'
 import { SkeletonList } from '../../components/ui/Skeleton'
+import Button, { CloseButton } from '../../components/ui/Button'
 
 // A swap for a shift that has already happened can't be approved in any
 // meaningful way — it used to sit as "Pending" with Approve/Reject for months.
@@ -26,12 +27,7 @@ export default function RotaSwapPanel({
     <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 overflow-hidden">
       <div className="px-5 py-4 border-b border-charcoal/8 dark:border-white/8 flex items-center justify-between">
         <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">Shift Swap Requests</p>
-        <button
-          onClick={() => setShowSwaps(false)}
-          className="text-xs text-charcoal/30 dark:text-white/30 hover:text-charcoal dark:hover:text-white transition-colors"
-        >
-          Close ×
-        </button>
+        <CloseButton label="Close swap requests" onClick={() => setShowSwaps(false)} />
       </div>
 
       {swapsLoading ? (
@@ -73,13 +69,15 @@ export default function RotaSwapPanel({
                 </div>
               </div>
               {expired ? (
-                <button
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  loading={resolving === swap.id}
                   onClick={() => rejectSwap(swap, 'Shift had already passed')}
                   disabled={resolving === swap.id}
-                  className="py-2 rounded-lg border border-charcoal/15 dark:border-white/15 text-charcoal/60 dark:text-white/50 text-xs font-medium hover:bg-charcoal/4 dark:hover:bg-white/5 transition-colors disabled:opacity-40"
                 >
-                  {resolving === swap.id ? '…' : 'Dismiss'}
-                </button>
+                  Dismiss
+                </Button>
               ) : (
                 <div className="flex flex-col gap-2">
                   <input
@@ -90,20 +88,28 @@ export default function RotaSwapPanel({
                     className="w-full px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-xs focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 placeholder-charcoal/25 dark:placeholder-white/20"
                   />
                   <div className="flex gap-2">
-                    <button
+                    <Button
+                      variant="success"
+                      size="sm"
+                      loading={resolving === swap.id}
+                      leadingIcon={<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg>}
                       onClick={() => approveSwap(swap)}
                       disabled={resolving === swap.id}
-                      className="flex-1 py-2 rounded-lg bg-success text-white text-xs font-medium hover:bg-success/90 transition-colors disabled:opacity-40"
+                      className="flex-1"
                     >
-                      {resolving === swap.id ? '…' : <span className="inline-flex items-center gap-1"><svg className="w-3 h-3" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg> Approve</span>}
-                    </button>
-                    <button
+                      Approve
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      loading={resolving === swap.id}
+                      leadingIcon={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>}
                       onClick={() => rejectSwap(swap)}
                       disabled={resolving === swap.id}
-                      className="flex-1 py-2 rounded-lg border border-danger/25 text-danger text-xs font-medium hover:bg-danger/5 transition-colors disabled:opacity-40"
+                      className="flex-1"
                     >
-                      {resolving === swap.id ? '…' : <span className="inline-flex items-center gap-1"><svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Reject</span>}
-                    </button>
+                      Reject
+                    </Button>
                   </div>
                 </div>
               )}

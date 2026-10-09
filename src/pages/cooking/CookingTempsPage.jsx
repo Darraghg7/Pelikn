@@ -27,6 +27,7 @@ import {
 import { HistoryRangePills, StatStrip, DayCard, formatPct, historyDateFrom, groupByDay } from '../../components/temperature/TempHistoryView'
 import LoadError from '../../components/ui/LoadError'
 import { shortName } from '../../lib/names'
+import Button from '../../components/ui/Button'
 
 const CHECK_TYPES = [
   { value: 'cooking',   label: 'Cooking' },
@@ -181,22 +182,23 @@ function LogReadingForm({ onLogged }) {
 
       <div className="flex items-center gap-2.5">
         {!isFail && (
-          <button
-            type="button"
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => setShowNote(v => !v)}
-            className="shrink-0 px-3 h-9 text-[13px] font-semibold text-ink2 dark:text-white/75 hover:text-ink dark:hover:text-white"
+            className="shrink-0"
           >
             {showNote ? 'No note' : '+ Note'}
-          </button>
+          </Button>
         )}
-        <button
-          type="button"
+        <Button
+          loading={saving}
           onClick={save}
           disabled={!canLog}
-          className="flex-1 h-10 rounded-2xl bg-brand text-white text-[14px] font-semibold transition-colors hover:bg-brand/90 disabled:bg-ink3/70 dark:disabled:bg-white/15 disabled:cursor-not-allowed"
+          className="flex-1"
         >
           {saving ? 'Saving…' : 'Log temperature'}
-        </button>
+        </Button>
       </div>
     </div>
   )

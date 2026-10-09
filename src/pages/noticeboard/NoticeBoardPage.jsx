@@ -32,7 +32,10 @@ function PostCard({ notice, isManager, onDelete }) {
             {confirming ? (
               <div className="flex items-center gap-1.5">
                 <span className="text-xs text-charcoal/40 dark:text-white/35">Delete?</span>
-                <button
+                <Button
+                  variant="danger-ghost"
+                  size="sm"
+                  loading={deleting}
                   onClick={async () => {
                     setDeleting(true)
                     await onDelete(notice.id)
@@ -40,24 +43,25 @@ function PostCard({ notice, isManager, onDelete }) {
                     setConfirming(false)
                   }}
                   disabled={deleting}
-                  className="text-xs text-danger font-medium hover:text-danger/80 transition-colors"
                 >
-                  {deleting ? '…' : 'Yes'}
-                </button>
-                <button
+                  Yes
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
                   onClick={() => setConfirming(false)}
-                  className="text-xs text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white transition-colors"
                 >
                   No
-                </button>
+                </Button>
               </div>
             ) : (
-              <button
+              <Button
+                variant="danger-ghost"
+                size="sm"
                 onClick={() => setConfirming(true)}
-                className="text-xs text-charcoal/30 dark:text-white/30 hover:text-danger transition-colors"
               >
                 Delete
-              </button>
+              </Button>
             )}
           </div>
         )}

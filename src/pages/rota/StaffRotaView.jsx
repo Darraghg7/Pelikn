@@ -15,6 +15,7 @@ import GanttChart from './GanttChart'
 import FixHoursSheet from './FixHoursSheet'
 import { DayWorkedCard, WorkedSection } from './WorkedHours'
 import { durationLabel, ehWorkedMins, fmtHM, applyTimeToDate } from './rotaTimeHelpers'
+import Button from '../../components/ui/Button'
 
 /*
  * The staff-facing rota: their own week, worked hours, and the fix-hours
@@ -315,17 +316,19 @@ export default function StaffRotaView({ shifts, staff, loading, weekStart, prevW
                       </div>
                     </div>
                     {!readOnly && (
-                      <button
+                      <Button
+                        variant="secondary"
+                        size="sm"
                         onClick={() => {
                           const staffMember = staff.find(s => s.id === shift.staff_id)
                           setSwapModal({ staffMember, date: parseISO(shift.shift_date), shift })
                           setSwapForm({ targetStaffId: '', message: '' })
                         }}
-                        className="shrink-0 flex items-center gap-1 px-3 py-1.5 rounded-lg border border-charcoal/15 dark:border-white/15 text-charcoal/60 dark:text-white/50 text-[11.5px] font-semibold hover:border-charcoal/30 dark:hover:border-white/30 hover:text-charcoal dark:hover:text-white transition-colors"
+                        className="shrink-0"
                       >
                         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 1l4 4-4 4M3 11V9a4 4 0 014-4h14M7 23l-4-4 4-4M21 13v2a4 4 0 01-4 4H3"/></svg>
                         Swap
-                      </button>
+                      </Button>
                     )}
                   </div>
                 ))}

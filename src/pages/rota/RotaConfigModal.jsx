@@ -5,6 +5,7 @@ import TimeSelect from '../../components/ui/TimeSelect'
 import { useVenueRoles } from '../../hooks/useVenueRoles'
 import { useRotaRequirements, DAY_NAMES, DAY_SHORT } from '../../hooks/useRotaRequirements'
 import { useToast } from '../../components/ui/Toast'
+import Button from '../../components/ui/Button'
 
 function SectionLabel({ children }) {
   return <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-2">{children}</p>
@@ -78,22 +79,24 @@ function SlotRow({ slot, roles, onDelete, onSave, isNew = false }) {
       {/* Row 3: Actions */}
       <div className="flex items-center justify-between gap-2">
         {!isNew ? (
-          <button
+          <Button
+            variant="danger-ghost"
+            size="sm"
             onClick={onDelete}
-            className="text-[11px] text-danger/50 hover:text-danger transition-colors px-2 py-1"
           >
             Remove
-          </button>
+          </Button>
         ) : <span />}
 
         {(isNew || changed) && (
-          <button
+          <Button
+            size="sm"
+            loading={saving}
             onClick={handleSave}
             disabled={saving || !form.role_id}
-            className="text-[11px] bg-charcoal text-cream px-3 py-1.5 rounded-lg hover:bg-charcoal/90 transition-colors disabled:opacity-40"
           >
             {saving ? 'Saving…' : isNew ? '+ Add slot' : 'Save'}
-          </button>
+          </Button>
         )}
       </div>
     </div>
