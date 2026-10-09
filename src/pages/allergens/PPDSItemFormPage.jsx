@@ -5,6 +5,7 @@ import { useVenue } from '../../contexts/VenueContext'
 import { useToast } from '../../components/ui/Toast'
 import { PageSkeleton } from '../../components/ui/Skeleton'
 import { EU_ALLERGENS } from '../../lib/constants'
+import Button, { CloseButton } from '../../components/ui/Button'
 
 const EMPTY_INGREDIENT = { name: '', allergen: null }
 
@@ -193,25 +194,19 @@ export default function PPDSItemFormPage() {
               </select>
 
               {/* Remove */}
-              <button
-                type="button"
-                onClick={() => removeIngredient(idx)}
-                disabled={ingredients.length === 1}
-                className="mt-1 w-7 h-7 flex items-center justify-center text-charcoal/25 dark:text-white/25 hover:text-danger transition-colors disabled:opacity-20 shrink-0"
-              >
-                ×
-              </button>
+              <CloseButton label="Remove ingredient" className="shrink-0" onClick={() => removeIngredient(idx)} disabled={ingredients.length === 1} />
             </div>
           ))}
         </div>
 
-        <button
-          type="button"
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={addIngredient}
-          className="self-start text-xs text-accent hover:text-accent/70 transition-colors font-medium"
+          className="self-start -ml-3"
         >
           + Add ingredient
-        </button>
+        </Button>
 
         {/* Live preview */}
         {ingredients.some(r => r.name.trim()) && (
@@ -271,13 +266,14 @@ export default function PPDSItemFormPage() {
         >
           Cancel
         </Link>
-        <button
+        <Button
+          loading={saving}
           onClick={save}
           disabled={saving}
-          className="flex-1 bg-charcoal text-cream py-3 rounded-xl text-sm font-semibold hover:bg-charcoal/90 transition-colors disabled:opacity-40"
+          className="flex-1"
         >
           {saving ? 'Saving…' : isEdit ? 'Save Changes' : 'Create PPDS Item'}
-        </button>
+        </Button>
       </div>
     </div>
   )

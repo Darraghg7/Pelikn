@@ -210,12 +210,13 @@ export default function EHOMockPage() {
             </p>
           </div>
           {readOnly && (
-            <button
+            <Button
+              variant="label"
               onClick={handlePrint}
-              className="no-print text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white transition-colors border-b border-charcoal/20 dark:border-white/20"
+              className="no-print"
             >
               Print Result
-            </button>
+            </Button>
           )}
         </div>
 
@@ -229,12 +230,13 @@ export default function EHOMockPage() {
                 : 'Not recorded yet — add it in Venue Settings'}
             </p>
           </div>
-          <button
+          <Button
+            variant="label"
             onClick={() => navigate(`/v/${venueSlug}/settings/venue`)}
-            className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white transition-colors border-b border-charcoal/20 dark:border-white/20 shrink-0"
+            className="shrink-0"
           >
             {venueSettings.fhrs_rating != null ? 'Update' : 'Add rating'}
-          </button>
+          </Button>
         </div>
 
         {/* Live score bar */}
@@ -356,18 +358,18 @@ export default function EHOMockPage() {
             )}
 
             <div className="no-print flex gap-3">
-              <button
+              <Button
+                variant="secondary"
                 onClick={handlePrint}
-                className="px-4 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 text-sm text-charcoal/60 dark:text-white/50 hover:text-charcoal dark:hover:text-white hover:border-charcoal/30 dark:hover:border-white/30 transition-colors"
               >
                 Print Result
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="secondary"
                 onClick={startOver}
-                className="px-4 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 text-sm text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white hover:border-charcoal/30 dark:hover:border-white/30 transition-colors"
               >
                 {viewing ? 'New inspection' : 'Start Over'}
-              </button>
+              </Button>
             </div>
           </div>
         )}

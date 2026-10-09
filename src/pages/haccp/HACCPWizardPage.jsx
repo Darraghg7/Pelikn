@@ -7,6 +7,7 @@ import { useToast } from '../../components/ui/Toast'
 import { PageSkeleton } from '../../components/ui/Skeleton'
 import { reportError } from '../../lib/reportError'
 import LoadError from '../../components/ui/LoadError'
+import Button from '../../components/ui/Button'
 
 // ── HACCP 7 Principles ────────────────────────────────────────────────────────
 
@@ -382,7 +383,7 @@ export default function HACCPWizardPage() {
         />
         <div className="flex flex-col gap-6 max-w-2xl">
           <div className="flex items-center gap-4">
-            <button onClick={() => setReviewing(false)} className="text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white transition-colors text-lg">←</button>
+            <Button variant="ghost" size="sm" iconOnly aria-label="Back to the steps" onClick={() => setReviewing(false)} className="-ml-2">←</Button>
             <div>
               <h1 className="text-2xl font-bold text-charcoal dark:text-white">HACCP Plan Review</h1>
               <p className="text-sm text-charcoal/40 dark:text-white/35 mt-0.5">Check all 7 principles, then print or save as PDF</p>
@@ -429,12 +430,13 @@ export default function HACCPWizardPage() {
                   <span className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">{s.principle}</span>
                   <p className="font-semibold text-charcoal dark:text-white text-sm">{s.title}</p>
                 </div>
-                <button
+                <Button
+                  variant="link"
+                  size="sm"
                   onClick={() => { setReviewing(false); setStep(i) }}
-                  className="text-xs text-accent hover:text-accent/70 transition-colors"
                 >
                   Edit
-                </button>
+                </Button>
               </div>
               <div className="px-5 py-4">
                 <pre className="text-xs text-charcoal/70 dark:text-white/60 whitespace-pre-wrap font-sans leading-relaxed">
@@ -445,13 +447,14 @@ export default function HACCPWizardPage() {
           ))}
 
           <div className="flex gap-3">
-            <button
+            <Button
+              loading={saving}
               onClick={handlePrint}
               disabled={saving}
-              className="flex-1 bg-charcoal text-cream py-3 rounded-xl text-sm font-semibold hover:bg-charcoal/90 transition-colors disabled:opacity-40"
+              className="flex-1"
             >
               {saving ? 'Saving…' : 'Save & Generate PDF →'}
-            </button>
+            </Button>
           </div>
         </div>
       </>
@@ -481,12 +484,14 @@ export default function HACCPWizardPage() {
             </p>
           </div>
           {completedCount > 0 && (
-            <button
+            <Button
+              variant="link"
+              size="sm"
               onClick={() => setReviewing(true)}
-              className="shrink-0 text-sm font-medium text-accent hover:text-accent/70 transition-colors"
+              className="shrink-0"
             >
               Review all →
-            </button>
+            </Button>
           )}
         </div>
 
@@ -509,13 +514,13 @@ export default function HACCPWizardPage() {
           <div className="flex items-center justify-between mb-2">
             <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">Your notes for this principle</label>
             {!currentAnswer && (
-              <button
-                type="button"
+              <Button
+                variant="link"
+                size="sm"
                 onClick={() => setCurrentAnswer(currentStep.default)}
-                className="text-[11px] text-accent hover:text-accent/70 transition-colors"
               >
                 Use suggested text
-              </button>
+              </Button>
             )}
           </div>
           <textarea
@@ -536,30 +541,33 @@ export default function HACCPWizardPage() {
         {/* Navigation */}
         <div className="flex gap-3">
           {step > 0 && (
-            <button
+            <Button
+              variant="secondary"
               onClick={handlePrev}
               disabled={saving}
-              className="px-5 py-3 rounded-xl border border-charcoal/15 dark:border-white/15 text-sm text-charcoal/50 dark:text-white/40 hover:border-charcoal/30 dark:hover:border-white/30 hover:text-charcoal dark:hover:text-white transition-colors disabled:opacity-40"
             >
-              {saving ? '…' : '← Previous'}
-            </button>
+              ← Previous
+            </Button>
           )}
           {step < STEPS.length - 1 ? (
-            <button
+            <Button
+              loading={saving}
               onClick={handleNext}
               disabled={saving}
-              className="flex-1 bg-charcoal text-cream py-3 rounded-xl text-sm font-semibold hover:bg-charcoal/90 transition-colors disabled:opacity-40"
+              className="flex-1"
             >
               {saving ? 'Saving…' : `Save & Continue → (${step + 2} of ${STEPS.length})`}
-            </button>
+            </Button>
           ) : (
-            <button
+            <Button
+              variant="success"
+              loading={saving}
               onClick={() => { save(false).then(() => setReviewing(true)) }}
               disabled={saving}
-              className="flex-1 bg-success text-white py-3 rounded-xl text-sm font-semibold hover:bg-success/90 transition-colors disabled:opacity-40"
+              className="flex-1"
             >
               {saving ? 'Saving…' : 'Complete & Review Plan →'}
-            </button>
+            </Button>
           )}
         </div>
 

@@ -12,6 +12,7 @@ import EmptyState from '../../components/ui/EmptyState'
 import { SkeletonList } from '../../components/ui/Skeleton'
 import Modal from '../../components/ui/Modal'
 import LoadError from '../../components/ui/LoadError'
+import Button from '../../components/ui/Button'
 
 
 const CATEGORIES = [
@@ -114,12 +115,12 @@ export default function CorrectiveActionsPage() {
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-2xl font-bold text-charcoal dark:text-white">Corrective Actions</h1>
-        <button
+        <Button
           onClick={() => setShowForm(true)}
-          className="bg-charcoal text-cream px-4 py-2 rounded-lg text-sm font-medium hover:bg-charcoal/90 transition-colors self-start sm:self-auto"
+          className="self-start sm:self-auto"
         >
           + Log Issue
-        </button>
+        </Button>
       </div>
 
       {/* Summary */}
@@ -207,13 +208,16 @@ export default function CorrectiveActionsPage() {
                     </div>
                   </div>
                   {r.status === 'open' && isManager && (
-                    <button
+                    <Button
+                      variant="success"
+                      size="sm"
+                      loading={resolving === r.id}
                       onClick={() => resolve(r.id)}
                       disabled={resolving === r.id}
-                      className="shrink-0 px-3 py-1.5 rounded-lg bg-success text-white text-xs font-medium hover:bg-success/90 transition-colors disabled:opacity-40"
+                      className="shrink-0"
                     >
-                      {resolving === r.id ? '...' : 'Resolve'}
-                    </button>
+                      Resolve
+                    </Button>
                   )}
                 </div>
               </div>
@@ -302,13 +306,14 @@ export default function CorrectiveActionsPage() {
             />
           </div>
 
-          <button
+          <Button
+            fullWidth
+            loading={saving}
             onClick={save}
             disabled={saving || !form.title.trim() || !form.action_taken.trim()}
-            className="bg-charcoal text-cream py-3 rounded-xl text-sm font-medium hover:bg-charcoal/90 transition-colors disabled:opacity-40"
           >
             {saving ? 'Saving...' : 'Log Corrective Action'}
-          </button>
+          </Button>
         </div>
       </Modal>
     </div>

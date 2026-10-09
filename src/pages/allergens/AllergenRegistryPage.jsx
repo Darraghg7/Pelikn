@@ -13,6 +13,7 @@ import { useVenueBranding } from '../../hooks/useVenueBranding'
 import ConfirmDialog from '../../components/ui/ConfirmDialog'
 import Toggle from '../../components/ui/Toggle'
 import LoadError from '../../components/ui/LoadError'
+import Button, { CloseButton } from '../../components/ui/Button'
 
 function SectionLabel({ children, action }) {
   return (
@@ -142,12 +143,14 @@ export default function AllergenRegistryPage() {
               <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">Customer Allergen QR Code</p>
               <p className="text-xs text-charcoal/45 dark:text-white/40 mt-0.5">Customers can scan this to see your live allergen matrix — no login required.</p>
             </div>
-            <button
+            <Button
+              variant="secondary"
+              size="sm"
               onClick={() => setShowQR(v => !v)}
-              className="text-xs px-3 py-1.5 rounded-lg border border-charcoal/15 dark:border-white/15 text-charcoal/55 dark:text-white/45 hover:text-charcoal dark:hover:text-white hover:border-charcoal/30 dark:hover:border-white/30 transition-colors shrink-0 ml-4"
+              className="shrink-0 ml-4"
             >
               {showQR ? 'Hide QR' : 'Show QR'}
-            </button>
+            </Button>
           </div>
           {showQR && (
             <div className="mt-4 flex flex-col sm:flex-row items-start gap-5">
@@ -158,24 +161,26 @@ export default function AllergenRegistryPage() {
                 <p className="text-[11px] tracking-widest uppercase text-charcoal/35 dark:text-white/30">Public URL</p>
                 <p className="text-xs font-mono text-charcoal/60 dark:text-white/50 break-all bg-charcoal/4 dark:bg-white/5 px-3 py-2 rounded-lg">{publicUrl}</p>
                 <div className="flex flex-wrap gap-2 mt-1">
-                  <button
+                  <Button
+                    variant="secondary"
+                    size="sm"
                     onClick={() => { navigator.clipboard.writeText(publicUrl); toast('URL copied') }}
-                    className="text-xs px-3 py-1.5 rounded-lg border border-charcoal/15 dark:border-white/15 text-charcoal/55 dark:text-white/45 hover:text-charcoal dark:hover:text-white hover:border-charcoal/30 dark:hover:border-white/30 transition-colors"
                   >
                     Copy URL
-                  </button>
-                  <button
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    size="sm"
                     onClick={downloadQR}
-                    className="text-xs px-3 py-1.5 rounded-lg border border-charcoal/15 dark:border-white/15 text-charcoal/55 dark:text-white/45 hover:text-charcoal dark:hover:text-white hover:border-charcoal/30 dark:hover:border-white/30 transition-colors"
                   >
                     Download PNG
-                  </button>
-                  <button
+                  </Button>
+                  <Button
+                    size="sm"
                     onClick={printCard}
-                    className="text-xs px-3 py-1.5 rounded-lg bg-brand text-cream hover:bg-brand/90 transition-colors"
                   >
                     Print Table Card
-                  </button>
+                  </Button>
                 </div>
                 <p className="text-[11px] text-charcoal/35 dark:text-white/30 mt-1">
                   <strong className="text-charcoal/50 dark:text-white/40">Print Table Card</strong> opens a ready-to-print card with your venue logo, QR code and instructions — place on tables or counters.
@@ -275,13 +280,7 @@ export default function AllergenRegistryPage() {
                           >
                             Edit
                           </Link>
-                          <button
-                            onClick={(e) => { e.stopPropagation(); setDeleteTarget({ id: item.id, name: item.name }) }}
-                            disabled={deleting === item.id}
-                            className="text-xs text-charcoal/35 dark:text-white/30 hover:text-danger border border-charcoal/12 dark:border-white/15 px-2.5 py-1.5 rounded-md hover:border-danger/30 transition-colors"
-                          >
-                            ×
-                          </button>
+                          <CloseButton label={`Delete ${item.name}`} onClick={(e) => { e.stopPropagation(); setDeleteTarget({ id: item.id, name: item.name }) }} disabled={deleting === item.id} />
                         </>
                       )}
                     </div>
@@ -312,13 +311,15 @@ export default function AllergenRegistryPage() {
                           >
                             Edit
                           </Link>
-                          <button
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            loading={deleting === item.id}
                             onClick={() => setDeleteTarget({ id: item.id, name: item.name })}
                             disabled={deleting === item.id}
-                            className="text-xs text-charcoal/35 dark:text-white/30 hover:text-danger border border-charcoal/12 dark:border-white/15 px-3 py-2 rounded-md hover:border-danger/30 transition-colors"
                           >
                             Remove
-                          </button>
+                          </Button>
                         </>
                       )}
                     </div>

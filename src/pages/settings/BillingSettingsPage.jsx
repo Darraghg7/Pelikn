@@ -11,6 +11,7 @@ import { STARTER_STAFF_LIMIT } from '../../lib/billing'
 import { EXTRA_VENUE_PRICE, planTotal } from '../../lib/pricing'
 import { changePlan, openBillingPortal, setTrialPlan, startCheckout } from '../../lib/api/billing'
 import SettingsSubHeader from '../../components/layout/SettingsSubHeader'
+import Button from '../../components/ui/Button'
 
 const PLAN_NAME = { [PLANS.STARTER]: PLAN_DETAILS.starter.name, [PLANS.PRO]: PLAN_DETAILS.pro.name }
 const fmtDate = (iso) => format(new Date(iso), 'd MMM yyyy')
@@ -146,9 +147,6 @@ export default function BillingSettingsPage() {
   const currentPrice = planTotal(plan, billing?.billing_interval === 'year' ? 'year' : 'month', venueCount)
   const currentSfx = billing?.billing_interval === 'year' ? '/yr' : '/mo'
 
-  const btnPrimary = 'inline-flex items-center justify-center gap-1.5 h-10 px-4 rounded-[10px] bg-brand text-cream text-[13px] font-semibold disabled:opacity-60'
-  const btnSecondary = 'inline-flex items-center justify-center gap-1.5 h-10 px-4 rounded-[10px] bg-charcoal/6 dark:bg-white/8 text-charcoal/70 dark:text-white/60 text-[13px] font-medium disabled:opacity-60'
-
   return (
     <div>
       <SettingsSubHeader title="Plan & Billing" onBack={() => navigate(vp('/settings/hub'))} />
@@ -198,21 +196,21 @@ export default function BillingSettingsPage() {
             <div className="flex flex-col sm:flex-row gap-2">
               {access.state === 'past_due' ? (
                 <>
-                  <button type="button" onClick={handlePortal} disabled={!!busy} className={btnPrimary}>
+                  <Button loading={busy === 'portal'} onClick={handlePortal} disabled={!!busy}>
                     {busy === 'portal' ? 'Opening…' : 'Update card'}
-                  </button>
-                  <button type="button" onClick={handleChangePlan} disabled={!!busy} className={btnSecondary}>
+                  </Button>
+                  <Button variant="secondary" loading={busy === 'change'} onClick={handleChangePlan} disabled={!!busy}>
                     {busy === 'change' ? 'Switching…' : isPro ? 'Switch to Starter' : 'Upgrade to Pro'}
-                  </button>
+                  </Button>
                 </>
               ) : (
                 <>
-                  <button type="button" onClick={handleChangePlan} disabled={!!busy} className={btnPrimary}>
+                  <Button loading={busy === 'change'} onClick={handleChangePlan} disabled={!!busy}>
                     {busy === 'change' ? 'Switching…' : isPro ? 'Switch to Starter' : 'Upgrade to Pro'}
-                  </button>
-                  <button type="button" onClick={handlePortal} disabled={!!busy} className={btnSecondary}>
+                  </Button>
+                  <Button variant="secondary" loading={busy === 'portal'} onClick={handlePortal} disabled={!!busy}>
                     {busy === 'portal' ? 'Opening…' : 'Card, invoices & cancelling'}
-                  </button>
+                  </Button>
                 </>
               )}
             </div>
@@ -251,13 +249,13 @@ export default function BillingSettingsPage() {
             )}
 
             <div className="flex flex-col gap-2">
-              <button type="button" onClick={handleCheckout} disabled={!!busy} className={btnPrimary}>
+              <Button loading={busy === 'checkout'} onClick={handleCheckout} disabled={!!busy}>
                 {busy === 'checkout' ? 'Opening secure checkout…' : `Add card · ${PLAN_NAME[choice]} £${planTotal(choice, period, venueCount)}${sfx}`}
-              </button>
+              </Button>
               {access.state === 'trial' && choice !== plan && (
-                <button type="button" onClick={handleTrialSwitch} disabled={!!busy} className={btnSecondary}>
+                <Button variant="secondary" loading={busy === 'trial'} onClick={handleTrialSwitch} disabled={!!busy}>
                   {busy === 'trial' ? 'Switching…' : `Try ${PLAN_NAME[choice]} for the rest of your trial`}
-                </button>
+                </Button>
               )}
             </div>
             <p className="text-xs text-charcoal/45 dark:text-white/35 mt-3 leading-[1.5]">

@@ -9,7 +9,7 @@ import { DEVICE_VENUES_KEY } from '../lib/constants'
 import { captureSilent } from '../lib/reportError'
 import { staffListState } from '../lib/loginScreenState'
 import Avatar from '../components/ui/Avatar'
-import Button from '../components/ui/Button'
+import Button, { CloseButton } from '../components/ui/Button'
 
 // ── Device venue helpers ──────────────────────────────────────────────────────
 function readDeviceVenues() {
@@ -712,10 +712,10 @@ export default function LoginPage() {
                     className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-charcoal/10 dark:border-white/10 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white placeholder:text-charcoal/30 dark:placeholder:text-white/25 focus:outline-none focus:ring-2 focus:ring-brand/25 focus:border-brand/40 transition-all"
                   />
                   {staffQuery && (
-                    <button type="button" onClick={() => setStaffQuery('')}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-charcoal/30 dark:text-white/30 hover:text-charcoal/60 dark:hover:text-white/50 transition-colors">
+                    <Button variant="ghost" size="sm" iconOnly aria-label="Clear search" onClick={() => setStaffQuery('')}
+                      className="absolute right-1 top-1/2 -translate-y-1/2">
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                    </button>
+                    </Button>
                   )}
                 </div>
               )}
@@ -804,16 +804,7 @@ export default function LoginPage() {
                         <p className="text-sm font-bold text-charcoal dark:text-white tracking-[-0.01em] truncate">{selected.name}</p>
                         <p className="text-xs uppercase tracking-[0.06em] font-mono text-charcoal/40 dark:text-white/35">{ROLE_LABEL[selected.role] ?? selected.role}</p>
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => { setSelected(null); setPin(''); setError('') }}
-                        className="flex items-center justify-center text-charcoal/30 dark:text-white/30 hover:text-charcoal/60 dark:hover:text-white/50 transition-colors"
-                        style={{ width: 26, height: 26, borderRadius: 6, border: '1px solid rgba(28,47,42,0.12)', flexShrink: 0 }}
-                      >
-                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-                        </svg>
-                      </button>
+                      <CloseButton label="Choose someone else" onClick={() => { setSelected(null); setPin(''); setError('') }} />
                     </div>
                   )
                 })()}
@@ -848,15 +839,17 @@ export default function LoginPage() {
             {/* Add venue button — single-venue mode only */}
             {!showTabs && (
               <div className="px-5 pb-5">
-                <button
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  fullWidth
                   onClick={() => setShowAddModal(true)}
-                  className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-dashed border-charcoal/15 dark:border-white/15 text-[12px] font-semibold text-charcoal/35 dark:text-white/30 hover:text-brand hover:border-brand/30 hover:bg-brand/3 transition-all"
                 >
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
                   </svg>
                   Add another venue
-                </button>
+                </Button>
               </div>
             )}
           </>
@@ -865,17 +858,19 @@ export default function LoginPage() {
 
       {/* Sign out — only when a manager/owner is signed in on this device */}
       {showSignOut && (
-        <button
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={async () => {
             signOut()
             await signOutVenue()
             navigate('/login', { replace: true })
           }}
-          className="mt-6 text-xs text-charcoal/30 dark:text-white/30 hover:text-charcoal/60 dark:hover:text-white/50 transition-colors"
+          className="mt-6"
           style={ready ? { animation: 'login-fade-enter 0.4s 0.3s ease both' } : { opacity: 0 }}
         >
           Sign out of venue
-        </button>
+        </Button>
       )}
     </div>
   )

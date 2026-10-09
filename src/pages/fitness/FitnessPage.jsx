@@ -18,6 +18,7 @@ import { reportError } from '../../lib/reportError'
 import { PageSkeleton, SkeletonList } from '../../components/ui/Skeleton'
 import EmptyState from '../../components/ui/EmptyState'
 import LoadError from '../../components/ui/LoadError'
+import Button from '../../components/ui/Button'
 
 // ── Hook: today's declarations ────────────────────────────────────────────────
 
@@ -169,19 +170,21 @@ function StaffDeclarationForm({ session, venueId, onSaved }) {
             </div>
 
             <div className="flex gap-2">
-              <button
+              <Button
+                variant="danger"
+                loading={saving}
                 onClick={submit}
                 disabled={saving || !canSubmitIllness}
-                className="flex-1 bg-danger text-white py-2.5 rounded-lg text-sm font-medium disabled:opacity-40 hover:bg-danger/90 transition-colors"
+                className="flex-1"
               >
                 {saving ? 'Saving…' : 'Submit Declaration →'}
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="secondary"
                 onClick={() => { setIsFit(null); setStep('fitness') }}
-                className="px-4 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 text-sm text-charcoal/50 dark:text-white/40"
               >
                 Back
-              </button>
+              </Button>
             </div>
           </div>
         )}
@@ -211,19 +214,21 @@ function StaffDeclarationForm({ session, venueId, onSaved }) {
             ))}
 
             <div className="flex gap-2">
-              <button
+              <Button
+                variant="success"
+                loading={saving}
                 onClick={submit}
                 disabled={saving || !canSubmitHygiene}
-                className="flex-1 bg-success text-white py-2.5 rounded-lg text-sm font-medium disabled:opacity-40 hover:bg-success/90 transition-colors"
+                className="flex-1"
               >
                 {saving ? 'Saving…' : 'Confirm & Start Shift →'}
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="secondary"
                 onClick={() => { setIsFit(null); setStep('fitness') }}
-                className="px-4 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 text-sm text-charcoal/50 dark:text-white/40"
               >
                 Back
-              </button>
+              </Button>
             </div>
           </div>
         )}
@@ -501,14 +506,13 @@ function IllnessPolicyTab({ venueId }) {
       )}
 
       <div className="flex gap-3">
-        <button onClick={save} disabled={saving}
-          className="flex-1 bg-charcoal text-cream py-3 rounded-xl text-sm font-semibold hover:bg-charcoal/90 transition-colors disabled:opacity-40">
+        <Button loading={saving} onClick={save} disabled={saving}
+          className="flex-1">
           {saving ? 'Saving…' : 'Save Policy'}
-        </button>
-        <button onClick={() => window.print()}
-          className="px-5 py-3 rounded-xl border border-charcoal/15 dark:border-white/15 text-sm text-charcoal/60 dark:text-white/50 hover:border-charcoal/30 dark:hover:border-white/30 hover:text-charcoal dark:hover:text-white transition-colors">
+        </Button>
+        <Button variant="secondary" onClick={() => window.print()}>
           Print
-        </button>
+        </Button>
       </div>
     </div>
   )

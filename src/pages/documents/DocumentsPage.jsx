@@ -17,6 +17,7 @@ import { useDocuments, documentStatus, DOCUMENT_CATEGORIES, EXPIRY_WARNING_DAYS 
 import { insertWithAttachment } from '../../lib/attachments'
 import { VENUE_DOCS_BUCKET, venueDocumentPath, openVenueDocument } from '../../lib/venueDocuments'
 import LoadError from '../../components/ui/LoadError'
+import Button from '../../components/ui/Button'
 
 const CATEGORY_LABEL = Object.fromEntries(DOCUMENT_CATEGORIES.map(c => [c.value, c.label]))
 const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
@@ -182,14 +183,14 @@ function UploadDocumentModal({ open, onClose, onSaved }) {
           <input type="text" value={notes} onChange={e => setNotes(e.target.value)} placeholder="Any extra context" className={TEXT_FIELD} />
         </label>
 
-        <button
-          type="button"
+        <Button
+          fullWidth
+          loading={saving}
           onClick={save}
           disabled={!canSave}
-          className="w-full h-10 rounded-2xl bg-brand text-white text-[14px] font-semibold transition-colors hover:bg-brand/90 disabled:bg-ink3/70 dark:disabled:bg-white/15 disabled:cursor-not-allowed"
         >
           {saving ? 'Uploading…' : 'Upload'}
-        </button>
+        </Button>
       </div>
     </Modal>
   )
@@ -243,14 +244,14 @@ export default function DocumentsPage() {
         title="Documents"
         backTo={`/v/${venueSlug}/checks`}
         action={isManager && (
-          <button
-            type="button"
+          <Button
+            size="sm"
             onClick={() => setShowUpload(true)}
-            className="shrink-0 inline-flex items-center gap-2 h-8 px-3.5 sm:px-3.5 rounded-xl bg-brand text-white text-[13px] sm:text-[13px] font-semibold hover:bg-brand/90 transition-colors"
+            className="shrink-0"
           >
             <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="19" x2="12" y2="5" /><polyline points="5 12 12 5 19 12" /></svg>
             Upload
-          </button>
+          </Button>
         )}
       />
 

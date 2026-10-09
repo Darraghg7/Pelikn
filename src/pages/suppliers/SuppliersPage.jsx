@@ -7,7 +7,7 @@ import { insertSupplier, updateSupplier, deactivateSupplier } from '../../lib/ap
 import { useToast } from '../../components/ui/Toast'
 import { insertWithAttachment } from '../../lib/attachments'
 import { VENUE_DOCS_BUCKET, supplierCertPath, openSupplierCert, hasSupplierCert } from '../../lib/venueDocuments'
-import Button from '../../components/ui/Button'
+import Button, { CloseButton } from '../../components/ui/Button'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
 import EmptyState from '../../components/ui/EmptyState'
 import { SkeletonList } from '../../components/ui/Skeleton'
@@ -147,7 +147,7 @@ function SupplierModal({ supplier, venueId, onSaved, onClose }) {
       <div onClick={(e) => e.stopPropagation()} className="bg-white dark:bg-paperDark rounded-2xl w-full max-w-md flex flex-col shadow-2xl" style={{ maxHeight: '90dvh', paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
         <div className="px-6 py-5 border-b border-charcoal/8 dark:border-white/8 flex items-center justify-between">
           <h2 className="font-semibold text-charcoal dark:text-white">{supplier ? 'Edit Supplier' : 'Add Supplier'}</h2>
-          <button onClick={onClose} className="text-charcoal/30 dark:text-white/30 hover:text-charcoal dark:hover:text-white transition-colors text-xl leading-none">×</button>
+          <CloseButton onClick={onClose} />
         </div>
         <form onSubmit={submit} className="flex flex-col gap-4 p-6 overflow-y-auto">
           <div className="flex flex-col gap-1.5">
@@ -264,9 +264,9 @@ function SupplierModal({ supplier, venueId, onSaved, onClose }) {
               </div>
             </div>
             {hasExistingCert && (
-              <button type="button" onClick={() => openSupplierCert(supplier, toast)} className="self-start text-left text-xs text-accent underline underline-offset-2 hover:opacity-70 transition-opacity truncate max-w-full">
+              <Button variant="link" size="sm" onClick={() => openSupplierCert(supplier, toast)} className="self-start max-w-full truncate">
                 {supplier.food_safety_cert_name ?? 'View existing certificate'}
-              </button>
+              </Button>
             )}
           </div>
 
@@ -309,35 +309,39 @@ function SupplierCard({ supplier, onEdit, onArchive }) {
           <ApprovalBadge status={supplier.approval_status} />
         </div>
         <div className="flex items-center gap-2 shrink-0">
-          <button
+          <Button
+            variant="link"
+            size="sm"
             onClick={() => onEdit(supplier)}
-            className="text-xs text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white transition-colors border-b border-charcoal/20 dark:border-white/20"
           >
             Edit
-          </button>
+          </Button>
           {confirming ? (
             <div className="flex items-center gap-1.5">
               <span className="text-xs text-charcoal/40 dark:text-white/35">Archive?</span>
-              <button
+              <Button
+                variant="danger-ghost"
+                size="sm"
                 onClick={() => { onArchive(supplier.id); setConfirming(false) }}
-                className="text-sm text-danger font-medium hover:text-danger/80 transition-colors px-3 py-1.5"
               >
                 Yes
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={() => setConfirming(false)}
-                className="text-sm text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white transition-colors px-3 py-1.5"
               >
                 No
-              </button>
+              </Button>
             </div>
           ) : (
-            <button
+            <Button
+              variant="danger-ghost"
+              size="sm"
               onClick={() => setConfirming(true)}
-              className="text-xs text-charcoal/30 dark:text-white/30 hover:text-danger transition-colors"
             >
               Archive
-            </button>
+            </Button>
           )}
         </div>
       </div>
@@ -375,10 +379,10 @@ function SupplierCard({ supplier, onEdit, onArchive }) {
             {cs === 'expiring' && ' — expiring soon'}
           </span>
           {hasSupplierCert(supplier) && (
-            <button type="button" onClick={() => openSupplierCert(supplier, toast)}
-              className="text-xs text-accent underline underline-offset-2 hover:opacity-70 transition-opacity ml-auto">
+            <Button variant="link" size="sm" onClick={() => openSupplierCert(supplier, toast)}
+              className="ml-auto">
               View
-            </button>
+            </Button>
           )}
         </div>
       )}

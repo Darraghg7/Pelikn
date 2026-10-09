@@ -8,6 +8,7 @@ import { useToast } from '../../components/ui/Toast'
 import { PageSkeleton, SkeletonList } from '../../components/ui/Skeleton'
 import Modal from '../../components/ui/Modal'
 import LoadError from '../../components/ui/LoadError'
+import Button from '../../components/ui/Button'
 
 // ── Procedure sections definition ─────────────────────────────────────────────
 
@@ -217,13 +218,14 @@ function LogModal({ open, onClose, onSaved, venueId, editLog }) {
           <Input value={form.resolved_at} onChange={v => set('resolved_at', v)} type="date" />
         </Field>
 
-        <button
+        <Button
+          fullWidth
+          loading={saving}
           onClick={save}
           disabled={saving}
-          className="w-full bg-charcoal text-cream py-2.5 rounded-xl text-sm font-semibold hover:bg-charcoal/90 transition-colors disabled:opacity-40"
         >
           {saving ? 'Saving…' : editLog ? 'Save Changes' : 'Log Recall'}
-        </button>
+        </Button>
       </div>
     </Modal>
   )
@@ -254,12 +256,14 @@ function LogCard({ log, onEdit }) {
               {log.batch_lot_number && <> · Batch: <span className="font-mono">{log.batch_lot_number}</span></>}
             </p>
           </div>
-          <button
+          <Button
+            variant="secondary"
+            size="sm"
             onClick={() => onEdit(log)}
-            className="text-xs text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white border border-charcoal/12 dark:border-white/15 hover:border-charcoal/25 dark:hover:border-white/25 px-3 py-1.5 rounded-lg transition-colors shrink-0"
+            className="shrink-0"
           >
             Edit
-          </button>
+          </Button>
         </div>
 
         <div className="mt-3 flex flex-col gap-2">
@@ -376,19 +380,20 @@ function ProcedureTab({ venueId }) {
       ))}
 
       <div className="flex gap-3">
-        <button
+        <Button
+          loading={saving}
           onClick={save}
           disabled={saving}
-          className="flex-1 bg-charcoal text-cream py-3 rounded-xl text-sm font-semibold hover:bg-charcoal/90 transition-colors disabled:opacity-40"
+          className="flex-1"
         >
           {saving ? 'Saving…' : 'Save Procedure'}
-        </button>
-        <button
+        </Button>
+        <Button
+          variant="secondary"
           onClick={() => window.print()}
-          className="px-5 py-3 rounded-xl border border-charcoal/15 dark:border-white/15 text-sm text-charcoal/60 dark:text-white/50 hover:border-charcoal/30 dark:hover:border-white/30 hover:text-charcoal dark:hover:text-white transition-colors"
         >
           Print
-        </button>
+        </Button>
       </div>
     </div>
   )
@@ -460,12 +465,11 @@ function LogTab({ venueId }) {
               </button>
             ))}
           </div>
-          <button
+          <Button
             onClick={handleNew}
-            className="px-4 py-2 bg-charcoal text-cream rounded-xl text-sm font-semibold hover:bg-charcoal/90 transition-colors"
           >
             + Log Recall
-          </button>
+          </Button>
         </div>
 
         {/* List */}
