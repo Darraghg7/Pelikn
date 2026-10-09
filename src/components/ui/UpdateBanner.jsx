@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import Button from './Button'
 
 /** Detects a waiting service worker and offers a one-tap update. */
 // After this long still waiting on activation, say so — a slow/dropped
@@ -125,21 +126,25 @@ export default function UpdateBanner() {
                 : 'Tap Update to get the latest features'}
           </p>
         </div>
-        <button
+        <Button
+          variant="inverse"
+          size="sm"
+          loading={applying}
           onClick={applyUpdate}
           disabled={applying}
-          className="bg-surface text-charcoal dark:text-white font-bold text-xs px-3 py-1.5 rounded-xl shrink-0 hover:bg-cream/90 transition-colors active:scale-95 disabled:opacity-60"
         >
           {applying ? 'Updating…' : 'Update'}
-        </button>
-        <button
+        </Button>
+        <Button
+          variant="inverse-secondary"
+          size="sm"
+          iconOnly
           onClick={() => setDismissed(true)}
           disabled={applying}
-          className="text-cream/40 hover:text-cream/70 transition-colors text-lg leading-none shrink-0 disabled:opacity-40"
           aria-label="Remind me later"
         >
-          ×
-        </button>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+        </Button>
       </div>
     </div>
   )

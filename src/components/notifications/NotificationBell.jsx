@@ -106,13 +106,14 @@ function SwipeableNotif({ n, venueSlug, onDismiss, onNavigate }) {
         <Link
           to={`/v/${venueSlug}${n.link}`}
           onClick={onNavigate}
-          className="flex items-start gap-3 px-4 py-3 hover:bg-charcoal/3 dark:hover:bg-white/5 transition-colors pr-8"
+          className="flex items-start gap-3 px-4 py-3 hover:bg-charcoal/3 dark:hover:bg-white/5 transition-colors pr-12"
         >
           <span className="mt-0.5 shrink-0 text-charcoal/50 dark:text-white/40">{TYPE_ICON[n.type]}</span>
           <p className="text-sm text-charcoal dark:text-white leading-snug">{n.message}</p>
         </Link>
-        {/* Desktop dismiss button — visible on hover */}
-        <CloseButton label="Dismiss notification" className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 focus-visible:opacity-100" onClick={(e) => { e.preventDefault(); animateOut() }} />
+        {/* Dismiss button — always shown on touch screens (no hover there),
+            revealed on hover with a mouse. pr-12 on the row keeps text clear of it. */}
+        <CloseButton label="Dismiss notification" className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 [@media(hover:none)]:opacity-100" onClick={(e) => { e.preventDefault(); animateOut() }} />
       </div>
     </li>
   )

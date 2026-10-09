@@ -7,6 +7,7 @@ import { SkeletonList } from '../../components/ui/Skeleton'
 import ConfirmDialog from '../../components/ui/ConfirmDialog'
 import { reportError } from '../../lib/reportError'
 import LoadError from '../../components/ui/LoadError'
+import Button, { CloseButton } from '../../components/ui/Button'
 
 function usePPDSItems(venueId) {
   const [items, setItems]   = useState([])
@@ -161,25 +162,25 @@ export default function PPDSItemsPage() {
 
                 {/* Actions */}
                 <div className="flex items-center gap-1.5 shrink-0 flex-wrap">
-                  <Link
+                  <Button
                     to={`/v/${venueSlug}/allergens/ppds/${item.id}/label`}
-                    className="text-xs text-charcoal/50 dark:text-white/40 hover:text-charcoal dark:hover:text-white border border-charcoal/15 dark:border-white/15 px-3 py-1.5 rounded-md hover:border-charcoal/30 dark:hover:border-white/30 transition-colors"
+                    variant="secondary"
+                    size="sm"
                   >
                     Label
-                  </Link>
-                  <Link
+                  </Button>
+                  <Button
                     to={`/v/${venueSlug}/allergens/ppds/${item.id}/edit`}
-                    className="text-xs text-charcoal/50 dark:text-white/40 hover:text-charcoal dark:hover:text-white border border-charcoal/15 dark:border-white/15 px-3 py-1.5 rounded-md hover:border-charcoal/30 dark:hover:border-white/30 transition-colors"
+                    variant="secondary"
+                    size="sm"
                   >
                     Edit
-                  </Link>
-                  <button
+                  </Button>
+                  <CloseButton
+                    label={`Delete ${item.name}`}
                     onClick={() => setDeleteTarget(item)}
-                    disabled={deleting === item.id}
-                    className="text-xs text-charcoal/30 dark:text-white/30 hover:text-danger border border-charcoal/12 dark:border-white/15 px-2.5 py-1.5 rounded-md hover:border-danger/30 transition-colors"
-                  >
-                    ×
-                  </button>
+                    loading={deleting === item.id}
+                  />
                 </div>
               </div>
             ))}

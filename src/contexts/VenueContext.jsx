@@ -7,6 +7,7 @@ import { useParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { FullPageLoader } from '../components/ui/LoadingSpinner'
 import { venueLookupFailure } from '../lib/loginScreenState'
+import Button from '../components/ui/Button'
 
 const VenueContext = createContext(null)
 
@@ -159,13 +160,12 @@ function VenueLookupProblem({ slug, kind, onRetry }) {
             Manager sign in
           </a>
         ) : (
-          <button
-            type="button"
+          <Button
+            fullWidth
             onClick={onRetry}
-            className="w-full bg-brand text-cream py-3 rounded-xl text-sm font-semibold hover:bg-brand/90 transition-colors"
           >
             Try again
-          </button>
+          </Button>
         )}
       </div>
       <a href="/" className="mt-6 text-xs text-charcoal/50 dark:text-white/45 hover:text-charcoal/70 dark:hover:text-white/65 transition-colors">

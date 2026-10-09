@@ -82,10 +82,10 @@ function MiniToggle({ checked, onChange }) {
     <button
       type="button"
       onClick={() => onChange(!checked)}
-      className={`relative w-8 h-[18px] rounded-full border-none transition-colors duration-200 ${checked ? 'bg-brand' : 'bg-charcoal/15 dark:bg-white/15'}`}
+      className={`relative w-8 h-[18px] rounded-full border-none transition-colors duration-200 ${checked ? 'bg-brand dark:bg-brand-400' : 'bg-charcoal/15 dark:bg-transparent dark:ring-[1.5px] dark:ring-inset dark:ring-white/50'}`}
     >
       <span
-        className={`absolute top-[3px] w-3 h-3 rounded-full bg-white dark:bg-paperDark shadow transition-all duration-200 ${checked ? 'left-[17px]' : 'left-[3px]'}`}
+        className={`absolute top-[3px] w-3 h-3 rounded-full bg-paper shadow transition-all duration-200 ${checked ? 'left-[17px]' : 'left-[3px] dark:bg-white/70'}`}
       />
     </button>
   )
@@ -689,12 +689,12 @@ export default function OnboardingPage() {
               <div className="flex flex-col gap-2">
                 {staffEntries.map((entry, idx) => (
                   <div key={idx} className="flex items-start gap-2">
-                    <div className="flex-1 grid grid-cols-[1fr_76px_120px] gap-1.5 staff-fields">
+                    <div className="flex-1 min-w-0 grid grid-cols-2 sm:grid-cols-[1fr_76px_120px] gap-1.5">
                       <input
                         value={entry.name}
                         onChange={e => updateStaff(idx, 'name', e.target.value)}
                         placeholder="Name"
-                        className="px-3 py-2.5 rounded-[9px] border border-charcoal/12 dark:border-white/15 bg-white dark:bg-paperDark text-[13px] text-charcoal dark:text-white placeholder:text-charcoal/35 dark:placeholder:text-white/25 focus:outline-none focus:border-brand focus:ring-[3px] focus:ring-brand/10 transition-all"
+                        className="w-full min-w-0 px-3 py-2.5 rounded-[9px] border border-charcoal/12 dark:border-white/15 bg-white dark:bg-paperDark text-[13px] text-charcoal dark:text-white placeholder:text-charcoal/35 dark:placeholder:text-white/25 focus:outline-none focus:border-brand focus:ring-[3px] focus:ring-brand/10 transition-all"
                       />
                       <input
                         type="password"
@@ -703,14 +703,14 @@ export default function OnboardingPage() {
                         value={entry.pin}
                         onChange={e => updateStaff(idx, 'pin', e.target.value.replace(/\D/g, '').slice(0, 4))}
                         placeholder="PIN"
-                        className="px-3 py-2.5 rounded-[9px] border border-charcoal/12 dark:border-white/15 bg-white dark:bg-paperDark text-[13px] tracking-widest placeholder:text-charcoal/35 dark:placeholder:text-white/25 focus:outline-none focus:border-brand focus:ring-[3px] focus:ring-brand/10 transition-all"
+                        className="w-full min-w-0 px-3 py-2.5 rounded-[9px] border border-charcoal/12 dark:border-white/15 bg-white dark:bg-paperDark text-[13px] text-charcoal dark:text-white tracking-widest placeholder:text-charcoal/35 dark:placeholder:text-white/25 focus:outline-none focus:border-brand focus:ring-[3px] focus:ring-brand/10 transition-all"
                       />
                       <input
                         type="text"
                         value={entry.jobRole}
                         onChange={e => updateStaff(idx, 'jobRole', e.target.value)}
                         placeholder="Role (e.g. Manager)"
-                        className="px-3 py-2.5 rounded-[9px] border border-charcoal/12 dark:border-white/15 bg-white dark:bg-paperDark text-[13px] text-charcoal dark:text-white placeholder:text-charcoal/35 dark:placeholder:text-white/25 focus:outline-none focus:border-brand focus:ring-[3px] focus:ring-brand/10 transition-all"
+                        className="col-span-2 sm:col-span-1 w-full min-w-0 px-3 py-2.5 rounded-[9px] border border-charcoal/12 dark:border-white/15 bg-white dark:bg-paperDark text-[13px] text-charcoal dark:text-white placeholder:text-charcoal/35 dark:placeholder:text-white/25 focus:outline-none focus:border-brand focus:ring-[3px] focus:ring-brand/10 transition-all"
                       />
                     </div>
                     <CloseButton label="Remove staff member" className="mt-1" onClick={() => removeStaffRow(idx)} />
@@ -918,8 +918,9 @@ export default function OnboardingPage() {
         </div>
       </div>
 
-      {/* Sticky footer nav */}
-      <div className="sticky bottom-0 left-0 right-0 bg-surface/90 dark:bg-[#111111]/90 backdrop-blur-sm border-t border-charcoal/8 dark:border-white/8 p-3 z-10 shrink-0">
+      {/* Sticky footer nav — on phones it sits on top of the MobileNav bar
+          (h-14 + iOS safe area), matching the Staff save bar */}
+      <div className="sticky bottom-[calc(56px+env(safe-area-inset-bottom,0px))] lg:bottom-0 left-0 right-0 bg-surface/90 dark:bg-[#111111]/90 backdrop-blur-sm border-t border-charcoal/8 dark:border-white/8 p-3 z-10 shrink-0">
         <div className="flex gap-2 max-w-[540px] mx-auto">
           {step > 0 && step < STEPS.length - 1 && (
             <Button
@@ -965,10 +966,6 @@ export default function OnboardingPage() {
       </div>
 
       <style>{`
-        @media (max-width: 480px) {
-          .staff-fields { grid-template-columns: 1fr 1fr !important; }
-          .staff-fields .role-select { grid-column: span 2; }
-        }
         @keyframes modalIn {
           from { opacity: 0; transform: scale(.94) translateY(8px); }
           to   { opacity: 1; transform: none; }

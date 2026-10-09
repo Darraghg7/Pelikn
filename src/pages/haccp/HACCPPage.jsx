@@ -258,12 +258,14 @@ export default function HACCPPage() {
               <p className="text-sm text-charcoal/50 dark:text-white/40">
                 Edit the Hazard Control Points below before printing.
               </p>
-              <button
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={() => setShowDoc(false)}
-                className="text-xs text-charcoal/30 dark:text-white/30 hover:text-charcoal dark:hover:text-white transition-colors"
+                className="-mr-3"
               >
                 Reset
-              </button>
+              </Button>
             </div>
 
             {/* Printable document */}

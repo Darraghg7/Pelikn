@@ -5,6 +5,7 @@ import { useViewerDepartments } from '../../hooks/useDepartments'
 import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../ui/Toast'
 import { WidgetShell, BigNumber, TitleBadge } from './shared'
+import Button from '../ui/Button'
 
 export const CLEANING_PAGE_SIZE = 3
 
@@ -85,25 +86,27 @@ function CleaningOverdueWidget() {
       </div>
       {totalPages > 1 && (
         <div className="flex items-center justify-center gap-6 py-2.5 border-t border-line dark:border-white/10">
-          <button
-            type="button"
+          <Button
+            variant="secondary"
+            size="sm"
+            iconOnly
             onClick={() => setPage(p => Math.max(0, p - 1))}
             disabled={page === 0}
             aria-label="Previous tasks"
-            className="w-9 h-8 inline-flex items-center justify-center rounded-full text-ink2 dark:text-white/70 hover:bg-cream dark:hover:bg-white/10 disabled:opacity-25"
           >
             <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6" /></svg>
-          </button>
+          </Button>
           <span className="font-mono text-[13px] text-ink3 dark:text-white/45">{page + 1}/{totalPages}</span>
-          <button
-            type="button"
+          <Button
+            variant="secondary"
+            size="sm"
+            iconOnly
             onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
             disabled={page >= totalPages - 1}
             aria-label="More tasks"
-            className="w-9 h-8 inline-flex items-center justify-center rounded-full text-ink2 dark:text-white/70 hover:bg-cream dark:hover:bg-white/10 disabled:opacity-25"
           >
             <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
-          </button>
+          </Button>
         </div>
       )}
     </WidgetShell>

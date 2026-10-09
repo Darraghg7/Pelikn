@@ -5,6 +5,7 @@ import { useVenue } from '../../contexts/VenueContext'
 import Modal from '../../components/ui/Modal'
 import { useToast } from '../../components/ui/Toast'
 import { buildPdfReport } from '../../lib/pdfUtils'
+import Button from '../../components/ui/Button'
 
 export default function OpeningClosingExportModal({ open, onClose }) {
   const { venueId } = useVenue()
@@ -79,13 +80,14 @@ export default function OpeningClosingExportModal({ open, onClose }) {
               className="w-full px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20" />
           </div>
         </div>
-        <button
+        <Button
+          fullWidth
+          loading={loading}
           onClick={handleExport}
           disabled={loading}
-          className="w-full bg-charcoal text-cream py-2.5 rounded-lg text-sm font-medium hover:bg-charcoal/90 transition-colors disabled:opacity-40"
         >
           {loading ? 'Generating…' : 'Export PDF →'}
-        </button>
+        </Button>
       </div>
     </Modal>
   )
