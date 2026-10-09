@@ -918,8 +918,9 @@ export default function OnboardingPage() {
         </div>
       </div>
 
-      {/* Sticky footer nav */}
-      <div className="sticky bottom-0 left-0 right-0 bg-surface/90 dark:bg-[#111111]/90 backdrop-blur-sm border-t border-charcoal/8 dark:border-white/8 p-3 z-10 shrink-0">
+      {/* Sticky footer nav — on phones it sits on top of the MobileNav bar
+          (h-14 + iOS safe area), matching the Staff save bar */}
+      <div className="sticky bottom-[calc(56px+env(safe-area-inset-bottom,0px))] lg:bottom-0 left-0 right-0 bg-surface/90 dark:bg-[#111111]/90 backdrop-blur-sm border-t border-charcoal/8 dark:border-white/8 p-3 z-10 shrink-0">
         <div className="flex gap-2 max-w-[540px] mx-auto">
           {step > 0 && step < STEPS.length - 1 && (
             <Button
