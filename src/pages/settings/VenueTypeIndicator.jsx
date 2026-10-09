@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { VENUE_PRESETS } from '../../lib/constants'
 import { reportError } from '../../lib/reportError'
+import Button from '../../components/ui/Button'
 
 const VENUE_TYPE_ICONS = {
   cafe:       <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>,
@@ -42,12 +43,13 @@ export default function VenueTypeIndicator({ venueId, venueSlug }) {
       ) : (
         <span className="text-sm text-charcoal/50 dark:text-white/40">No venue type set</span>
       )}
-      <button
+      <Button
+        variant="link"
         onClick={reopenSetup}
-        className="text-[11px] text-brand/60 hover:text-brand transition-colors ml-auto underline underline-offset-2"
+        className="ml-auto"
       >
         Re-run setup wizard
-      </button>
+      </Button>
     </div>
   )
 }

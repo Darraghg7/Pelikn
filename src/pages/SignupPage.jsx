@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { slugify } from '../lib/utils'
+import Button from '../components/ui/Button'
 
 export default function SignupPage() {
   const navigate = useNavigate()
@@ -115,10 +116,10 @@ export default function SignupPage() {
 
         {error && <p className="text-danger text-xs">{error}</p>}
 
-        <button type="submit" disabled={loading}
-          className="w-full bg-charcoal text-cream py-3 rounded-xl text-sm font-semibold tracking-wide hover:bg-charcoal/85 transition-colors disabled:opacity-40">
+        <Button fullWidth loading={loading} type="submit" disabled={loading}
+        >
           {loading ? 'Creating…' : 'Create Venue'}
-        </button>
+        </Button>
 
         <p className="text-center text-xs text-charcoal/40 dark:text-white/35">
           Already have a venue? <Link to="/" className="text-accent hover:underline">Sign in</Link>

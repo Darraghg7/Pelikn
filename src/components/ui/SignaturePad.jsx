@@ -1,4 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react'
+import Button from './Button'
 
 /**
  * Canvas-based signature pad.
@@ -98,12 +99,14 @@ export default function SignaturePad({ onChange, disabled = false, value = null 
         )}
       </div>
       {hasSignature && !disabled && (
-        <button
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={clear}
-          className="text-[11px] text-charcoal/40 dark:text-white/35 hover:text-danger transition-colors self-start"
+          className="self-start -ml-3"
         >
           Clear signature
-        </button>
+        </Button>
       )}
     </div>
   )

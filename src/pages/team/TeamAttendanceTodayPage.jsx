@@ -5,6 +5,7 @@ import { useAttendanceToday } from '../../hooks/useAttendanceToday'
 import { useToast } from '../../components/ui/Toast'
 import LoadError from '../../components/ui/LoadError'
 import Avatar from '../../components/ui/Avatar'
+import Button from '../../components/ui/Button'
 
 const STATUS_TONE = {
   not_started: { bg: 'bg-surface dark:bg-white/8', text: 'text-charcoal/55 dark:text-white/40', label: 'Not started' },
@@ -56,13 +57,16 @@ function LateRow({ entry, onAcknowledge, acknowledging }) {
           Acknowledged by {entry.acknowledgedByName}
         </div>
       ) : (
-        <button
+        <Button
+          variant="secondary"
+          size="sm"
+          loading={acknowledging}
           onClick={() => onAcknowledge(entry)}
           disabled={acknowledging}
-          className="self-start font-mono text-[11px] font-semibold text-brand bg-brand/8 border-none rounded-full px-3 py-1.5 cursor-pointer disabled:opacity-50"
+          className="self-start"
         >
           {acknowledging ? 'Acknowledging…' : 'Acknowledge'}
-        </button>
+        </Button>
       )}
     </div>
   )

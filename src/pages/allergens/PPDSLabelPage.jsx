@@ -6,6 +6,7 @@ import { useVenue } from '../../contexts/VenueContext'
 import { PageSkeleton } from '../../components/ui/Skeleton'
 import { reportError } from '../../lib/reportError'
 import LoadError from '../../components/ui/LoadError'
+import Button from '../../components/ui/Button'
 
 export default function PPDSLabelPage() {
   const { id }              = useParams()
@@ -122,12 +123,12 @@ export default function PPDSLabelPage() {
             </p>
           </div>
 
-          <button
+          <Button
+            fullWidth
             onClick={() => window.print()}
-            className="w-full bg-charcoal text-cream py-3 rounded-xl text-sm font-semibold hover:bg-charcoal/90 transition-colors"
           >
             Print Label →
-          </button>
+          </Button>
         </div>
 
         {/* ── Printable label (always in DOM, shown on print) ── */}

@@ -6,6 +6,7 @@ import { useVenue } from '../../contexts/VenueContext'
 import { useVenueFeatures } from '../../hooks/useVenueFeatures'
 import { useAppSettings } from '../../hooks/useSettings'
 import { preloadRoute } from '../../lib/routePreload'
+import Button, { CloseButton } from '../ui/Button'
 
 /* ── SVG Icon components — thin outline, Revolut/Linear style ─────────────
    Active state: slightly bolder stroke + brand colour (via parent text-brand)
@@ -165,9 +166,7 @@ function NavReorderSheet({ items, onSave, onClose }) {
             <p className="font-semibold text-charcoal dark:text-white text-base">Reorder tabs</p>
             <p className="text-[12px] text-charcoal/45 dark:text-white/40 mt-0.5">Drag to rearrange your nav</p>
           </div>
-          <button onClick={onClose} className="text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white p-1">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-          </button>
+          <CloseButton className="-mr-2" onClick={onClose} />
         </div>
 
         <div className="px-4 py-2" onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerCancel={onPointerUp}>
@@ -206,12 +205,13 @@ function NavReorderSheet({ items, onSave, onClose }) {
         </div>
 
         <div className="px-5 pt-2 pb-1">
-          <button
+          <Button
+            size="lg"
+            fullWidth
             onClick={() => { onSave(list.map(t => t.key)); onClose() }}
-            className="w-full bg-charcoal text-cream dark:bg-white dark:text-charcoal font-semibold text-sm rounded-2xl py-3.5 hover:bg-charcoal/90 dark:hover:bg-white/90 transition-colors"
           >
             Save order
-          </button>
+          </Button>
         </div>
       </div>
     </div>

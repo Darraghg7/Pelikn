@@ -8,6 +8,7 @@ import { EU_ALLERGENS } from '../../lib/constants'
 import { useToast } from '../../components/ui/Toast'
 import { PageSkeleton } from '../../components/ui/Skeleton'
 import ConfirmDialog from '../../components/ui/ConfirmDialog'
+import Button from '../../components/ui/Button'
 
 function SectionLabel({ children }) {
   return <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-3">{children}</p>
@@ -78,18 +79,16 @@ export default function FoodItemDetailPage() {
         </div>
         {isManager && (
           <div className="flex gap-2">
-            <Link
-              to={`/v/${venueSlug}/allergens/${id}/edit`}
-              className="text-xs text-charcoal/50 dark:text-white/40 hover:text-charcoal dark:hover:text-white border border-charcoal/15 dark:border-white/15 px-3 py-1.5 rounded-lg hover:border-charcoal/30 dark:hover:border-white/30 transition-colors"
-            >
+            <Button to={`/v/${venueSlug}/allergens/${id}/edit`} variant="secondary" size="sm">
               Edit
-            </Link>
-            <button
+            </Button>
+            <Button
+              variant="danger-ghost"
+              size="sm"
               onClick={() => setConfirmDelete(true)}
-              className="text-xs text-danger/70 hover:text-danger border border-danger/20 px-3 py-1.5 rounded-lg hover:border-danger/40 transition-colors"
             >
               Delete
-            </button>
+            </Button>
           </div>
         )}
       </div>

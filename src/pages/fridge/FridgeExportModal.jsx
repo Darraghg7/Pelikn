@@ -6,6 +6,7 @@ import { useFridges } from '../../hooks/useFridgeLogs'
 import { useVenue } from '../../contexts/VenueContext'
 import Modal from '../../components/ui/Modal'
 import { useToast } from '../../components/ui/Toast'
+import Button from '../../components/ui/Button'
 
 export default function FridgeExportModal({ open, onClose }) {
   const { venueId } = useVenue()
@@ -126,13 +127,14 @@ export default function FridgeExportModal({ open, onClose }) {
           </select>
         </div>
 
-        <button
+        <Button
+          fullWidth
+          loading={loading}
           onClick={handleExport}
           disabled={loading}
-          className="w-full bg-charcoal text-cream py-2.5 rounded-lg text-sm font-medium hover:bg-charcoal/90 transition-colors disabled:opacity-40"
         >
           {loading ? 'Generating…' : 'Export PDF →'}
-        </button>
+        </Button>
       </div>
     </Modal>
   )
