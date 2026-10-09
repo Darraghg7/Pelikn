@@ -3,6 +3,7 @@ import { format } from 'date-fns'
 import {
   ehWorkedMins, ehDurLabel, ehSignedLabel, fmtHM, timeDiffMins,
 } from './rotaTimeHelpers'
+import Button from '../../components/ui/Button'
 
 const EDIT_REASONS  = ['Forgot to clock out', 'Clocked in early', 'Wrong times', 'Other']
 
@@ -304,16 +305,17 @@ export default function FixHoursSheet({ ctx, onClose, onSubmit }) {
 
         {/* actions */}
         <div className="flex gap-2 mt-3.5">
-          <button onClick={onClose} className="w-24 h-12 rounded-xl border border-charcoal/10 dark:border-white/10 bg-white dark:bg-paperDark text-[14px] font-semibold text-charcoal/70 dark:text-white/60" style={{ cursor:'pointer' }}>
+          <Button variant="secondary" size="lg" onClick={onClose} className="w-24">
             Cancel
-          </button>
-          <button
+          </Button>
+          <Button
+            size="lg"
             disabled={!canSubmit || submitting}
             onClick={() => setConfirming(true)}
-            className="flex-1 h-12 rounded-xl text-[14.5px] font-bold transition-colors"
-            style={{ border:'none', cursor: canSubmit ? 'pointer' : 'not-allowed', background: canSubmit ? '#13362a' : '#e4e6e2', color: canSubmit ? '#fff' : '#b3b9b5' }}>
+            className="flex-1"
+          >
             Submit for approval
-          </button>
+          </Button>
         </div>
 
         {/* confirm sub-sheet */}
@@ -331,16 +333,14 @@ export default function FixHoursSheet({ ctx, onClose, onSubmit }) {
                 <strong className="text-charcoal/70 dark:text-white/60">{ehDurLabel(newMins)}</strong> ({ehSignedLabel(delta)}).
                 This won't change your pay until it's approved.
               </p>
-              <button onClick={doSubmit} disabled={submitting}
-                className="w-full h-12 rounded-xl text-[14.5px] font-bold text-white mb-2"
-                style={{ background:'#13362a', border:'none', cursor:'pointer' }}>
+              <Button size="lg" fullWidth loading={submitting} onClick={doSubmit} disabled={submitting}
+                className="mb-2"
+              >
                 {submitting ? 'Sending…' : 'Submit for approval'}
-              </button>
-              <button onClick={() => setConfirming(false)}
-                className="w-full h-[42px] rounded-xl text-[13.5px] font-semibold text-charcoal/50 dark:text-white/40"
-                style={{ background:'transparent', border:'none', cursor:'pointer' }}>
+              </Button>
+              <Button variant="ghost" fullWidth onClick={() => setConfirming(false)}>
                 Go back
-              </button>
+              </Button>
             </div>
           </div>
         )}

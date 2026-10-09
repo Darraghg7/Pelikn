@@ -6,6 +6,7 @@ import Toggle from '../../components/ui/Toggle'
 import { SHIFT_PRESETS } from '../../lib/constants'
 import { format } from 'date-fns'
 import { shiftDurationHours, paidShiftHours, unpaidBreakMins, isOvernightShift } from '../../hooks/useShifts'
+import Button from '../../components/ui/Button'
 
 function SectionLabel({ children }) {
   return <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-1">{children}</p>
@@ -97,8 +98,8 @@ export default function RotaShiftModal({
                     </p>
                   </div>
                   <div className="flex gap-1.5">
-                    <button onClick={() => openEdit(sh)} className="text-xs px-2.5 py-1.5 rounded-lg border border-charcoal/15 dark:border-white/15 text-charcoal/60 dark:text-white/50 hover:text-charcoal dark:hover:text-white hover:border-charcoal/30 dark:hover:border-white/30 transition-colors">Edit</button>
-                    <button onClick={() => setConfirmDeleteId(sh.id)} className="text-xs px-2.5 py-1.5 rounded-lg border border-danger/20 text-danger/60 hover:text-danger hover:border-danger/40 transition-colors">Remove</button>
+                    <Button variant="secondary" size="sm" onClick={() => openEdit(sh)}>Edit</Button>
+                    <Button variant="danger-ghost" size="sm" onClick={() => setConfirmDeleteId(sh.id)}>Remove</Button>
                   </div>
                 </div>
               ))}
@@ -284,18 +285,20 @@ export default function RotaShiftModal({
           {/* Action buttons */}
           <div className="flex items-center justify-between pt-1 border-t border-charcoal/8 dark:border-white/8">
             {editShift ? (
-              <button
+              <Button
+                variant="danger-ghost"
+                size="sm"
                 onClick={() => setConfirmDeleteId(editShift.id)}
-                className="text-xs text-danger/60 hover:text-danger transition-colors"
               >
                 Delete shift
-              </button>
+              </Button>
             ) : (
               <div />
             )}
             <div className="flex gap-2">
               {editShift && (
-                <button
+                <Button
+                  variant="secondary"
                   onClick={() => {
                     const lastRole = localStorage.getItem(`mise_last_role_${modal.staffMember.id}`) || venueRoles[0]?.name || ''
                     setEditShift(null)
@@ -303,18 +306,17 @@ export default function RotaShiftModal({
                     setAssignDuty(false)
                     setSelectedDutyId(null)
                   }}
-                  className="px-4 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 text-sm text-charcoal/60 dark:text-white/50 hover:text-charcoal dark:hover:text-white hover:border-charcoal/30 dark:hover:border-white/30 transition-colors"
                 >
                   Cancel Edit
-                </button>
+                </Button>
               )}
-              <button
+              <Button
+                loading={saving}
                 onClick={saveShift}
                 disabled={saving || !duration}
-                className="bg-charcoal text-cream px-6 py-2.5 rounded-lg text-sm font-medium hover:bg-charcoal/90 transition-colors disabled:opacity-40"
               >
                 {saving ? 'Saving…' : editShift ? 'Update Shift' : 'Add Shift →'}
-              </button>
+              </Button>
             </div>
           </div>
 

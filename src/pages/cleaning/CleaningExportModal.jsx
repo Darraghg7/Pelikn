@@ -6,6 +6,7 @@ import { useVenue } from '../../contexts/VenueContext'
 import Modal from '../../components/ui/Modal'
 import { useToast } from '../../components/ui/Toast'
 import { buildPdfReport } from '../../lib/pdfUtils'
+import Button from '../../components/ui/Button'
 
 export default function CleaningExportModal({ open, onClose }) {
   const { venueId } = useVenue()
@@ -99,13 +100,13 @@ export default function CleaningExportModal({ open, onClose }) {
           </div>
         </div>
         <p className="text-xs text-charcoal/40 dark:text-white/35">Tasks with no completions in this period will appear highlighted in red.</p>
-        <button
+        <Button
+          fullWidth
           onClick={handleExport}
           disabled={loading}
-          className="w-full bg-charcoal text-cream py-2.5 rounded-lg text-sm font-medium hover:bg-charcoal/90 transition-colors disabled:opacity-40"
         >
           {loading ? 'Generating…' : 'Export PDF →'}
-        </button>
+        </Button>
       </div>
     </Modal>
   )

@@ -23,6 +23,7 @@ import { sendPush } from '../../lib/sendPush'
 import { captureSilent } from '../../lib/reportError'
 import { londonDateStr, formatLondon, resolveShiftInstants } from '../../lib/time'
 import { SkeletonList } from '../ui/Skeleton'
+import Button from '../ui/Button'
 
 /* ── Helpers ─────────────────────────────────────────────────────────── */
 function sessionDateLabel(date) {
@@ -88,21 +89,24 @@ function ConfirmDialog({ onConfirm, onCancel, saving }) {
           Your original hours will remain until then.
         </p>
 
-        <button
+        <Button
+          size="lg"
+          fullWidth
+          loading={saving}
           onClick={onConfirm}
           disabled={saving}
-          className="w-full text-[15px] font-semibold text-white bg-brand rounded-xl py-3.5 border-none disabled:opacity-60 disabled:cursor-not-allowed mb-2.5"
-          style={{ cursor: saving ? 'not-allowed' : 'pointer' }}
+          className="mb-2.5"
         >
           {saving ? 'Submitting…' : 'Submit for approval'}
-        </button>
-        <button
+        </Button>
+        <Button
+          variant="ghost"
+          fullWidth
           onClick={onCancel}
           disabled={saving}
-          className="w-full text-sm font-medium text-charcoal/50 dark:text-white/40 bg-transparent rounded-xl py-3 border-none cursor-pointer"
         >
           Go back
-        </button>
+        </Button>
       </div>
     </div>
   )
@@ -236,14 +240,14 @@ function EditSessionForm({ session, staffId, onSave, onCancel, isManagerEdit }) 
           </div>
         )}
         <div className="flex gap-2 pt-1">
-          <button onClick={onCancel} disabled={saving}
-            className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-charcoal/60 dark:text-white/50 bg-charcoal/6 dark:bg-white/8 hover:bg-charcoal/10 dark:hover:bg-white/10 transition-colors disabled:opacity-40">
+          <Button variant="secondary" onClick={onCancel} disabled={saving}
+            className="flex-1">
             Cancel
-          </button>
-          <button onClick={handleSaveClick} disabled={saving}
-            className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white bg-brand hover:bg-brand/90 transition-colors disabled:opacity-40">
+          </Button>
+          <Button onClick={handleSaveClick} disabled={saving}
+            className="flex-1">
             {saving ? 'Saving…' : isManagerEdit ? 'Save' : 'Request change'}
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -307,12 +311,13 @@ function SessionRow({ session, staffId, onReload, isManagerEdit, pendingRequests
           )}
           {/* Don't allow another edit while one is pending */}
           {!pending && (
-            <button
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => setEditing((v) => !v)}
-              className="text-xs font-medium text-brand/70 hover:text-brand transition-colors px-2 py-1 rounded-lg hover:bg-brand/8"
             >
               {editing ? 'Close' : 'Edit'}
-            </button>
+            </Button>
           )}
         </div>
       </div>
@@ -464,14 +469,14 @@ function AddShiftForm({ staffId, onSave, onCancel, isManagerEdit = false }) {
           </div>
         )}
         <div className="flex gap-2 pt-1">
-          <button onClick={onCancel} disabled={saving}
-            className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-charcoal/60 dark:text-white/50 bg-charcoal/6 dark:bg-white/8 hover:bg-charcoal/10 dark:hover:bg-white/10 transition-colors disabled:opacity-40">
+          <Button variant="secondary" onClick={onCancel} disabled={saving}
+            className="flex-1">
             Cancel
-          </button>
-          <button onClick={handleAdd} disabled={saving}
-            className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white bg-brand hover:bg-brand/90 transition-colors disabled:opacity-40">
+          </Button>
+          <Button onClick={handleAdd} disabled={saving}
+            className="flex-1">
             {saving ? 'Saving…' : isManagerEdit ? 'Add Shift' : 'Request shift'}
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -516,12 +521,13 @@ export default function RecentShifts({ staffId, isManagerEdit = false, inline = 
       <div className="flex items-center justify-between mb-1">
         {!inline && <p className="text-[11px] tracking-widests uppercase text-charcoal/40 dark:text-white/35">Recent Shifts</p>}
         {!adding && (
-          <button
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => setAdding(true)}
-            className="text-xs font-medium text-brand/70 hover:text-brand transition-colors px-2 py-1 rounded-lg hover:bg-brand/8"
           >
             + Add shift
-          </button>
+          </Button>
         )}
       </div>
       <p className="text-xs text-charcoal/30 dark:text-white/30 mb-3">

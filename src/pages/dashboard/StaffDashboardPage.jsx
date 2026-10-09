@@ -20,6 +20,7 @@ import { invalidateChecksStatusCache } from '../../hooks/useChecksStatus'
 import { londonWallTimeToInstant, londonToday } from '../../lib/time'
 import { reportError } from '../../lib/reportError'
 import LoadError from '../../components/ui/LoadError'
+import Button from '../../components/ui/Button'
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
@@ -406,12 +407,14 @@ function PendingTrainingCard({ staffId, staffName, isManager }) {
                   {' · '}{r.topics.length} topic{r.topics.length !== 1 ? 's' : ''}
                 </p>
               </div>
-              <button
+              <Button
+                variant="accent"
+                size="sm"
                 onClick={() => setAckRecord(r)}
-                className="shrink-0 bg-accent text-cream text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-accent/90 transition-colors"
+                className="shrink-0"
               >
                 Sign now
-              </button>
+              </Button>
             </div>
           ))}
         </div>
@@ -469,10 +472,10 @@ function NotificationsCard({ staffId, venueId }) {
           </svg>
         </span>
       ) : supported && permission !== 'denied' ? (
-        <button onClick={subscribe} disabled={subscribing}
-          className="shrink-0 bg-charcoal text-cream rounded-lg text-[12px] font-semibold px-3 py-1.5 hover:bg-charcoal/85 transition-colors disabled:opacity-40">
+        <Button size="sm" loading={subscribing} onClick={subscribe} disabled={subscribing}
+          className="shrink-0">
           {subscribing ? 'Enabling…' : 'Enable'}
-        </button>
+        </Button>
       ) : null}
     </div>
   )

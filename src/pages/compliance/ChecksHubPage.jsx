@@ -10,6 +10,7 @@ import { useToast } from '../../components/ui/Toast'
 import { useVenueFeatures } from '../../hooks/useVenueFeatures'
 import { checkTileEnabled } from '../../lib/features'
 import ExtrasLinks from '../../components/ui/ExtrasLinks'
+import Button from '../../components/ui/Button'
 
 // Switched-on extras that don't have a tile above (fitness and HACCP do).
 const CHECKS_EXTRAS = ['recall', 'complaints', 'eho_mock', 'equipment_maintenance', 'date_labelling', 'waste', 'orders']
@@ -292,15 +293,16 @@ export default function ChecksHubPage() {
             </svg>
           </button>
           <div className="border-t border-charcoal/6 dark:border-white/8 px-[14px] py-[10px]">
-            <button
+            <Button
+              variant="secondary"
+              size="sm"
               onClick={() => runExport(() => exportEHOReport(venueId, venueName, 90), toast)}
-              className="inline-flex items-center gap-1.5 font-mono text-[11px] font-semibold tracking-[0.04em] uppercase text-charcoal/75 dark:text-white/60 bg-surface border-none rounded-[7px] px-2.5 py-1.5 cursor-pointer hover:bg-charcoal/8 dark:hover:bg-white/8 transition-colors"
             >
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
               </svg>
               Export Report
-            </button>
+            </Button>
           </div>
         </div>
       )}

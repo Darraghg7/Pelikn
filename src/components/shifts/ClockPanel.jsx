@@ -12,6 +12,7 @@ import StaffAlertModal from './StaffAlertModal'
 import { useClockAlerts } from '../../hooks/useClockAlerts'
 import { useClosingCheckoutGuard } from '../../hooks/useClosingCheckoutGuard'
 import ClosingChecklistGateModal from './ClosingChecklistGateModal'
+import Button from '../ui/Button'
 
 const STATUS_CONFIG = {
   clocked_out: { label: 'Not Clocked In', color: 'text-charcoal/50 dark:text-white/40', dot: 'bg-charcoal/25 dark:bg-white/25' },
@@ -154,12 +155,13 @@ export default function ClockPanel({ staffId, compact = false }) {
     return (
       <div className="flex flex-col gap-3">
         <p className="text-sm text-danger">Couldn't check your clock status.</p>
-        <button
+        <Button
+          variant="danger-ghost"
+          fullWidth
           onClick={reload}
-          className="w-full bg-danger/10 text-danger border border-danger/25 py-3 rounded-xl text-sm font-semibold hover:bg-danger/15 transition-colors"
         >
           Retry
-        </button>
+        </Button>
       </div>
     )
   }
@@ -190,46 +192,46 @@ export default function ClockPanel({ staffId, compact = false }) {
 
         {/* Action buttons — compact=true renders on-dark variants for the hero card */}
         {status === 'clocked_out' && (
-          <button
+          <Button
+            size="lg"
+            fullWidth
+            variant={compact ? 'inverse' : 'primary'}
             onClick={() => record('clock_in')}
-            className={compact
-              ? 'w-full bg-white dark:bg-paperDark text-brand py-3 rounded-xl text-sm font-bold hover:bg-white/90 transition-colors disabled:opacity-40'
-              : 'w-full bg-charcoal text-cream py-3 rounded-xl text-sm font-semibold hover:bg-charcoal/90 transition-colors disabled:opacity-40'}
           >
             Clock In
-          </button>
+          </Button>
         )}
 
         {status === 'clocked_in' && (
           <div className="flex gap-2">
-            <button
+            <Button
+              size="lg"
+              variant={compact ? 'inverse-secondary' : 'secondary'}
               onClick={() => record('break_start')}
-              className={compact
-                ? 'flex-1 bg-white/10 text-white border border-white/25 py-3 rounded-xl text-sm font-semibold hover:bg-white/15 transition-colors disabled:opacity-40'
-                : 'flex-1 bg-warning/15 text-warning py-3 rounded-xl text-sm font-semibold hover:bg-warning/25 transition-colors disabled:opacity-40'}
+              className="flex-1"
             >
               Start Break
-            </button>
-            <button
+            </Button>
+            <Button
+              size="lg"
+              variant={compact ? 'inverse' : 'primary'}
               onClick={closingGuard.guardClockOut}
-              className={compact
-                ? 'flex-[1.4] bg-white dark:bg-paperDark text-brand py-3 rounded-xl text-sm font-bold hover:bg-white/90 transition-colors disabled:opacity-40'
-                : 'flex-1 bg-charcoal text-cream py-3 rounded-xl text-sm font-semibold hover:bg-charcoal/90 transition-colors disabled:opacity-40'}
+              className={compact ? 'flex-[1.4]' : 'flex-1'}
             >
               Clock Out
-            </button>
+            </Button>
           </div>
         )}
 
         {status === 'on_break' && (
-          <button
+          <Button
+            size="lg"
+            fullWidth
+            variant={compact ? 'inverse' : 'primary'}
             onClick={() => record('break_end')}
-            className={compact
-              ? 'w-full bg-white dark:bg-paperDark text-brand py-3 rounded-xl text-sm font-bold hover:bg-white/90 transition-colors disabled:opacity-40'
-              : 'w-full bg-charcoal text-cream py-3 rounded-xl text-sm font-semibold hover:bg-charcoal/90 transition-colors disabled:opacity-40'}
           >
             End Break
-          </button>
+          </Button>
         )}
 
         {notSent && (

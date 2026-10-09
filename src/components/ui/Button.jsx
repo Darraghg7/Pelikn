@@ -14,6 +14,7 @@ import { Link } from 'react-router-dom'
  *   <Button iconOnly aria-label="Close" variant="ghost" leadingIcon={<XIcon />} />
  *   <Button to="/settings" variant="secondary">Settings</Button>   // router link
  *   <Button href="https://…" variant="link">Help</Button>          // plain link
+ *   <Button variant="label" onClick={exportPdf}>Export PDF</Button> // header micro-action
  *
  * - `type` defaults to "button". Pass type="submit" for the button that
  *   submits a form; a raw <button> inside a form submits by default, so check
@@ -46,6 +47,13 @@ export const BUTTON_VARIANTS = {
   accent:    `bg-accent text-white hover:brightness-95 shadow-sm shadow-accent/15 ${FILLED_DISABLED}`,
   // Inline text action that sits in a sentence. Ignores `size` padding.
   link:      'text-brand dark:text-white underline-offset-2 hover:underline idle-disabled:opacity-40',
+  // Small uppercase underlined action in a page header (EXPORT PDF, + ADD TASK). Ignores 'size' padding.
+  label:     'text-[11px] tracking-widest uppercase text-ink3 dark:text-white/55 hover:text-ink dark:hover:text-white border-b border-ink4/70 dark:border-white/25 hover:border-ink3 dark:hover:border-white/50 idle-disabled:opacity-40',
+  // On a dark brand-green card (the dashboard clock card).
+  // bg-paper, not bg-white: index.css forces .bg-white dark in dark mode, which
+  // left the old Clock in button dark-green-on-dark.
+  inverse:   'bg-paper text-brand hover:bg-paper/90 idle-disabled:opacity-50',
+  'inverse-secondary': 'bg-white/12 text-white border border-white/25 hover:bg-white/20 idle-disabled:opacity-50',
   // Kept for existing callers.
   success:   `bg-good text-white hover:bg-good/90 ${FILLED_DISABLED}`,
   warning:   `bg-warn text-white hover:bg-warn/90 ${FILLED_DISABLED}`,
@@ -65,7 +73,7 @@ SIZES.xl = SIZES.lg // old name, kept for existing callers
 
 const BASE = [
   'inline-flex items-center justify-center shrink-0 select-none whitespace-nowrap',
-  'rounded-xl font-semibold leading-none',
+  'leading-none',
   'transition-[background-color,border-color,color,box-shadow,transform] duration-150 active:scale-[0.98]',
   'disabled:cursor-not-allowed disabled:active:scale-100 aria-busy:cursor-progress',
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 focus-visible:ring-offset-2 focus-visible:ring-offset-surface',
@@ -84,12 +92,13 @@ function Spinner() {
 /** Class string for things that must look like a Button but can't be one (e.g. a <label> for a file input). */
 export function buttonClasses({ variant = 'primary', size = 'md', iconOnly = false, fullWidth = false, className = '' } = {}) {
   const s = SIZES[size] ?? SIZES.md
-  const isLink = variant === 'link'
   return [
     BASE,
     BUTTON_VARIANTS[variant] ?? BUTTON_VARIANTS.primary,
-    isLink ? 'gap-1.5 text-sm h-auto px-0 rounded-md' : iconOnly ? s.icon : s.text,
-    s.svg,
+    variant === 'link' ? 'gap-1.5 text-sm font-semibold rounded-md'
+      : variant === 'label' ? 'gap-1 pb-0.5 font-medium'
+      : `rounded-xl font-semibold ${iconOnly ? s.icon : s.text}`,
+    variant === 'label' ? '[&_svg]:w-3 [&_svg]:h-3' : s.svg,
     fullWidth ? 'w-full' : '',
     className,
   ].filter(Boolean).join(' ')
@@ -97,7 +106,7 @@ export function buttonClasses({ variant = 'primary', size = 'md', iconOnly = fal
 
 /**
  * @typedef {Object} ButtonOwnProps
- * @property {'primary'|'secondary'|'ghost'|'danger'|'danger-ghost'|'accent'|'link'|'success'|'warning'} [variant]
+ * @property {'primary'|'secondary'|'ghost'|'danger'|'danger-ghost'|'accent'|'link'|'label'|'inverse'|'inverse-secondary'|'success'|'warning'} [variant]
  * @property {'sm'|'md'|'lg'|'xl'} [size]
  * @property {'button'|'submit'|'reset'} [type]
  * @property {boolean} [iconOnly]

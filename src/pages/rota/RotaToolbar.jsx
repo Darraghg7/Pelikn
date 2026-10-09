@@ -1,4 +1,5 @@
 import React from 'react'
+import Button from '../../components/ui/Button'
 
 export default function RotaToolbar({
   isManager,
@@ -27,38 +28,38 @@ export default function RotaToolbar({
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
           {!closureMode && (
             <>
-              <button
+              <Button
+                variant="label"
                 onClick={copyWeek}
                 disabled={copyingWeek}
-                className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white transition-colors border-b border-charcoal/20 dark:border-white/20 hover:border-charcoal/40 dark:hover:border-white/40 disabled:opacity-40"
               >
                 <span className="inline-flex items-center gap-1">
                   <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
                   {copyingWeek ? 'Copying…' : 'Copy Prev Week'}
                 </span>
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="label"
                 onClick={() => setShowConfig(true)}
-                className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white transition-colors border-b border-charcoal/20 dark:border-white/20 hover:border-charcoal/40 dark:hover:border-white/40"
               >
                 <span className="inline-flex items-center gap-1"><svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg> Configure</span>
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="label"
                 onClick={() => setShowAutoFill(true)}
-                className="text-[11px] tracking-widest uppercase text-accent/70 hover:text-accent transition-colors border-b border-accent/30 hover:border-accent/50"
               >
                 <span className="inline-flex items-center gap-1"><svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><path d="M21 13V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8"/><path d="M3 10h18"/><path d="M16 19h6"/><path d="M19 16v6"/></svg> Auto-fill</span>
-              </button>
-              <button
+              </Button>
+              <Button
+                size="sm"
                 onClick={emailRota}
                 disabled={emailing || shiftsCount === 0}
-                className="inline-flex items-center gap-1.5 bg-charcoal text-cream text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-charcoal/85 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
               >
                 <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
                 </svg>
                 {emailing ? 'Sending…' : 'Send notification'}
-              </button>
+              </Button>
               <button
                 onClick={shareViaWhatsApp}
                 disabled={shiftsCount === 0 || sharing}
@@ -70,29 +71,30 @@ export default function RotaToolbar({
                 </svg>
                 {sharing ? 'Exporting…' : 'WhatsApp'}
               </button>
-              <button
+              <Button
+                variant="label"
                 onClick={enterClosureMode}
-                className="text-[11px] tracking-widest uppercase text-danger/60 hover:text-danger transition-colors border-b border-danger/25 hover:border-danger/40"
               >
                 Mark Closed
-              </button>
+              </Button>
             </>
           )}
           {closureMode && (
             <div className="flex items-center gap-2">
-              <button
+              <Button
+                variant="label"
                 onClick={cancelClosureMode}
-                className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white transition-colors border-b border-charcoal/20 dark:border-white/20"
               >
                 Cancel
-              </button>
-              <button
+              </Button>
+              <Button
+                size="sm"
+                loading={savingClosures}
                 onClick={saveClosures}
                 disabled={savingClosures}
-                className="text-[11px] tracking-widest uppercase bg-brand text-cream border border-brand/80 px-3 py-1.5 rounded-lg hover:bg-brand/90 transition-colors font-medium disabled:opacity-50"
               >
                 {savingClosures ? 'Saving…' : 'Save'}
-              </button>
+              </Button>
             </div>
           )}
         </div>

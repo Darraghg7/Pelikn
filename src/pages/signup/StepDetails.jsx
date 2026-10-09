@@ -7,6 +7,7 @@ import {
 import { slugify } from '../../lib/utils'
 import { IconCheck } from './SignupIcons'
 import { STARTER_FEATURES, PRO_FEATURES } from '../../lib/plans'
+import Button from '../../components/ui/Button'
 
 export default function StepDetails({ plan, extraVenues, qrAddon, onBack, onSubmit, loading, error }) {
   const [form, setForm] = useState({
@@ -34,12 +35,12 @@ export default function StepDetails({ plan, extraVenues, qrAddon, onBack, onSubm
 
       {/* Form */}
       <div className="flex-1 min-w-0">
-        <button onClick={onBack} className="flex items-center gap-1.5 text-xs text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white mb-6 transition-colors group">
+        <Button variant="ghost" size="sm" onClick={onBack} className="self-start -ml-3 mb-6 group">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="group-hover:-translate-x-0.5 transition-transform">
             <line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" />
           </svg>
           Change plan
-        </button>
+        </Button>
 
         <h2 className="text-xl font-bold sm:text-3xl text-brand mb-6">Your details</h2>
 
@@ -136,10 +137,12 @@ export default function StepDetails({ plan, extraVenues, qrAddon, onBack, onSubm
             </div>
           )}
 
-          <button
+          <Button
+            variant="accent"
+            size="lg"
+            fullWidth
             type="submit"
             disabled={loading}
-            className="w-full bg-accent text-cream py-3.5 rounded-xl text-sm font-semibold hover:bg-accent/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {loading ? (
               <>
@@ -149,7 +152,7 @@ export default function StepDetails({ plan, extraVenues, qrAddon, onBack, onSubm
             ) : (
               <>Create my account · £{monthly}/mo</>
             )}
-          </button>
+          </Button>
 
           <p className="text-center text-[11px] text-charcoal/35 dark:text-white/30 leading-relaxed">
             By creating an account you agree to our terms of service.<br />

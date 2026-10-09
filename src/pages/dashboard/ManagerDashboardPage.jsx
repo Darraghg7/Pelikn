@@ -34,6 +34,7 @@ import {
   useSortable, sortableKeyboardCoordinates, arrayMove,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
+import Button from '../../components/ui/Button'
 
 const PLAN_CONFIG = {
   starter: { label: 'Starter', bg: 'bg-success/8',   text: 'text-brand', border: 'border-success/30'  },
@@ -300,12 +301,13 @@ export default function ManagerDashboardPage() {
         </div>
         <div className="flex flex-col items-end gap-2 shrink-0">
           {venuePlan === 'starter' && <UpgradeButton to={`/v/${venueSlug}/settings/billing`} />}
-          <button
+          <Button
+            variant="secondary"
+            size="sm"
             onClick={() => setShowPicker(true)}
-            className="text-[11px] font-semibold tracking-wider uppercase text-charcoal/40 dark:text-white/35 hover:text-charcoal/70 dark:hover:text-white/60 border border-charcoal/15 dark:border-white/15 hover:border-charcoal/30 dark:hover:border-white/30 px-3 py-1.5 rounded-lg transition-colors"
           >
             Customise
-          </button>
+          </Button>
         </div>
       </div>
       )}
@@ -387,12 +389,11 @@ export default function ManagerDashboardPage() {
         {!widgetsLoading && widgetIds.length === 0 && (
           <div className="bg-white dark:bg-paperDark rounded-2xl border border-dashed border-charcoal/20 dark:border-white/20 p-10 text-center">
             <p className="text-charcoal/30 dark:text-white/30 text-sm mb-3">No widgets on your dashboard</p>
-            <button
+            <Button
               onClick={() => setShowPicker(true)}
-              className="bg-charcoal text-cream px-4 py-2 rounded-xl text-sm font-semibold hover:bg-charcoal/90 transition-colors"
             >
               + Add Widgets
-            </button>
+            </Button>
           </div>
         )}
       </div>

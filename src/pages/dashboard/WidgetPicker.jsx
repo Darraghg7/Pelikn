@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { WIDGET_REGISTRY, ALL_WIDGET_IDS } from '../../components/widgets/WidgetRegistry'
 import Modal from '../../components/ui/Modal'
 import { TODAY_ITEM_REGISTRY, ALL_TODAY_ITEM_IDS } from './todayItemRegistry'
+import Button from '../../components/ui/Button'
 
 export default function WidgetPicker({ open, onClose, activeIds, todayIds, onSave, onSaveToday }) {
   const [selected, setSelected] = useState([])
@@ -106,12 +107,13 @@ export default function WidgetPicker({ open, onClose, activeIds, todayIds, onSav
                     <p className="text-sm font-medium text-charcoal dark:text-white truncate">{item.label}</p>
                     <p className="text-[11px] text-charcoal/40 dark:text-white/35 truncate">{item.description}</p>
                   </div>
-                  <button
+                  <Button
+                    variant="danger-ghost"
+                    size="sm"
                     onClick={() => toggleToday(id)}
-                    className="text-danger/50 hover:text-danger text-xs px-2 py-1 shrink-0"
                   >
                     Remove
-                  </button>
+                  </Button>
                 </div>
               )
             })}
@@ -168,12 +170,13 @@ export default function WidgetPicker({ open, onClose, activeIds, todayIds, onSav
                       <p className="text-sm font-medium text-charcoal dark:text-white truncate">{w.label}</p>
                       <p className="text-[11px] text-charcoal/40 dark:text-white/35 truncate">{w.description}</p>
                     </div>
-                    <button
+                    <Button
+                      variant="danger-ghost"
+                      size="sm"
                       onClick={() => toggleWidget(id)}
-                      className="text-danger/50 hover:text-danger text-xs px-2 py-1 shrink-0"
                     >
                       Remove
-                    </button>
+                    </Button>
                   </div>
                 )
               })}
@@ -212,18 +215,18 @@ export default function WidgetPicker({ open, onClose, activeIds, todayIds, onSav
 
         {/* Save */}
         <div className="flex gap-2 pt-2 border-t border-charcoal/8 dark:border-white/8">
-          <button
+          <Button
             onClick={() => { onSave(selected); onSaveToday(selectedToday); onClose() }}
-            className="flex-1 bg-charcoal text-cream py-2.5 rounded-xl text-sm font-medium hover:bg-charcoal/90 transition-colors"
+            className="flex-1"
           >
             Save Customisation
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="secondary"
             onClick={onClose}
-            className="px-4 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 text-sm text-charcoal/50 dark:text-white/40 hover:text-charcoal dark:hover:text-white transition-colors"
           >
             Cancel
-          </button>
+          </Button>
         </div>
       </div>
     </Modal>

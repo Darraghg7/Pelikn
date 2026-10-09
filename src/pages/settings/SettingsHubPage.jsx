@@ -5,6 +5,7 @@ import { useSession } from '../../contexts/SessionContext'
 import { useAuth } from '../../contexts/AuthContext'
 import { useAppSettings } from '../../hooks/useSettings'
 import Avatar from '../../components/ui/Avatar'
+import Button from '../../components/ui/Button'
 
 function GroupLabel({ label }) {
   return (
@@ -168,15 +169,18 @@ export default function SettingsHubPage() {
         />
       </RowGroup>
 
-      <button
+      <Button
+        variant="danger-ghost"
+        size="lg"
+        fullWidth
         onClick={signOutVenue}
-        className="w-full h-[50px] mt-3.5 rounded-[13px] border border-danger/20 bg-danger/8 text-danger text-[15px] font-semibold flex items-center justify-center gap-2 hover:bg-danger/[0.12] transition-colors"
+        className="mt-3.5"
       >
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>
         </svg>
         Sign out
-      </button>
+      </Button>
 
       <div className="text-center font-mono text-[11px] text-charcoal/30 dark:text-white/30 tracking-[0.08em] pt-3">
         Pelikn

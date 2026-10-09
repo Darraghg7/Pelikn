@@ -24,6 +24,7 @@ import { CARD } from '../../components/temperature/TempPageParts'
 import { reportError } from '../../lib/reportError'
 import RestrictedFieldsNotice from '../../components/ui/RestrictedFieldsNotice'
 import Avatar from '../../components/ui/Avatar'
+import Button from '../../components/ui/Button'
 
 const PERMISSION_ROLES  = ['staff', 'manager', 'owner']
 const PERMISSION_LABELS = { staff: 'Staff', manager: 'Manager', owner: 'Owner' }
@@ -506,10 +507,10 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
 
   return (
     <div className="flex flex-col gap-2.5 pb-28">
-      <button type="button" onClick={cancelEdit} className="self-start inline-flex items-center gap-1 text-[13px] font-semibold text-brand dark:text-white/80 hover:opacity-75">
+      <Button variant="ghost" size="sm" onClick={cancelEdit} className="self-start -ml-3">
         <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6" /></svg>
         {backLabel}
-      </button>
+      </Button>
 
       <RestrictedFieldsNotice fields={['pay', 'private']} />
 
@@ -785,13 +786,13 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
           <div className={`${CARD} overflow-hidden divide-y divide-line dark:divide-white/10`}>
             {isLocked && (
               <ActionRow title="PIN locked" hint="Too many wrong PIN attempts. Unlock so they can sign in again.">
-                <button
-                  type="button"
+                <Button
+                  variant="secondary"
+                  size="sm"
                   onClick={async () => { await resetStaffPinLockRpc(session.token, current.id); toast(`${current.name}'s PIN unlocked`); reloadStaff() }}
-                  className="h-8 px-3.5 rounded-xl border border-line dark:border-white/15 bg-white dark:bg-paperDark text-[13px] font-semibold text-ink dark:text-white hover:border-ink4"
                 >
                   Unlock PIN
-                </button>
+                </Button>
               </ActionRow>
             )}
             {current.is_active ? (
@@ -807,36 +808,38 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
                   </div>
                 )}
                 <ActionRow title="Deactivate" hint="Signs them out and removes them from the rota. Records are kept.">
-                  <button
-                    type="button"
+                  <Button
+                    variant="danger-ghost"
+                    size="sm"
                     onClick={() => toggleActive(current)}
-                    className="h-8 px-3.5 rounded-xl border-[1.5px] border-bad/60 bg-white dark:bg-paperDark text-[13px] font-semibold text-bad dark:text-[#f19a86] hover:bg-badBg/50"
                   >
                     Deactivate
-                  </button>
+                  </Button>
                 </ActionRow>
               </>
             ) : (
               <>
                 <ActionRow title="Reactivate" hint="Restores sign-in and rota access.">
-                  <button
-                    type="button"
+                  <Button
+                    variant="secondary"
+                    size="sm"
                     onClick={() => toggleActive(current)}
-                    className="h-8 px-3.5 rounded-xl border border-line dark:border-white/15 bg-white dark:bg-paperDark text-[13px] font-semibold text-ink dark:text-white hover:border-ink4"
                   >
                     Reactivate
-                  </button>
+                  </Button>
                 </ActionRow>
                 <div className="px-3.5 sm:px-3.5 py-2.5 bg-badBg/70 dark:bg-bad/15">
                   <p className="text-[14px] font-semibold text-bad dark:text-[#f19a86]">Delete staff member</p>
                   <p className="text-[13px] text-ink2 dark:text-white/70 mt-0.5">Permanently wipe this person and their records from the venue.</p>
-                  <button
-                    type="button"
+                  <Button
+                    variant="danger"
+                    size="sm"
+                    fullWidth
                     onClick={() => setDeleteTarget(current)}
-                    className="mt-2 w-full h-9 rounded-xl bg-bad text-white text-[13px] font-semibold hover:bg-bad/90"
+                    className="mt-2"
                   >
                     Delete staff member
-                  </button>
+                  </Button>
                 </div>
               </>
             )}
@@ -847,12 +850,12 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
       {/* Save bar */}
       <div className="fixed left-0 right-0 bottom-[calc(56px+env(safe-area-inset-bottom,0px))] lg:bottom-0 z-40 bg-surface/95 dark:bg-[#111111]/95 backdrop-blur border-t border-line dark:border-white/10">
         <div className="max-w-[480px] md:max-w-2xl lg:max-w-3xl mx-auto px-3.5 py-2.5 flex gap-2 lg:pl-[340px] lg:max-w-none">
-          <button type="button" onClick={cancelEdit} className="h-9 px-3.5 rounded-xl border border-line dark:border-white/15 bg-white dark:bg-paperDark text-[13px] font-semibold text-ink2 dark:text-white/80">
+          <Button variant="secondary" size="sm" onClick={cancelEdit}>
             Cancel
-          </button>
-          <button type="button" onClick={saveStaff} disabled={savingStaff} className="flex-1 h-9 rounded-xl bg-brand text-white text-[13px] font-semibold hover:bg-brand/90 disabled:opacity-50">
+          </Button>
+          <Button size="sm" loading={savingStaff} onClick={saveStaff} disabled={savingStaff} className="flex-1">
             {savingStaff ? 'Saving…' : isNew ? 'Add staff member' : 'Save changes'}
-          </button>
+          </Button>
         </div>
       </div>
 

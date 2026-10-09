@@ -6,6 +6,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { format, isToday } from 'date-fns'
 import { TemperatureItemSettingsForm } from './TemperatureItemSettingsModal'
+import Button from '../ui/Button'
 
 export const CARD = 'bg-white dark:bg-paperDark rounded-2xl border border-line dark:border-white/10'
 
@@ -40,14 +41,15 @@ export function PageHeader({ title, subtitle, backTo, backLabel = 'Checks', onEx
         </div>
         {action}
         {!action && onExport && (
-          <button
-            type="button"
+          <Button
+            variant="secondary"
+            size="sm"
             onClick={onExport}
-            className="shrink-0 inline-flex items-center gap-1.5 h-9 px-3 rounded-xl bg-white dark:bg-paperDark border border-line dark:border-white/10 text-[13px] font-semibold text-ink2 dark:text-white/80 hover:border-ink4 transition-colors"
+            className="shrink-0"
           >
             <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 4v11" /><polyline points="7 10 12 15 17 10" /><line x1="5" y1="20" x2="19" y2="20" /></svg>
             Export PDF
-          </button>
+          </Button>
         )}
       </div>
     </div>
@@ -195,14 +197,14 @@ export function ReadingInput({ value, onChange, onSubmit, placeholder, ariaLabel
         />
         <span className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 font-mono text-[13px] text-ink3 dark:text-white/40">°C</span>
       </div>
-      <button
-        type="button"
+      <Button
+        loading={saving}
         onClick={submitNow}
         disabled={!canSubmit || saving}
-        className="h-10 px-3.5 min-w-[52px] rounded-xl bg-brand text-white text-[13px] font-semibold transition-colors hover:bg-brand/90 disabled:bg-ink3/70 dark:disabled:bg-white/15 disabled:cursor-not-allowed"
+        className="min-w-[52px]"
       >
-        {saving ? '…' : submitLabel}
-      </button>
+        {submitLabel}
+      </Button>
     </div>
   )
 }
@@ -234,13 +236,13 @@ export function ItemSettingsRow({ icon, name, subline, open, onToggle, formProps
             {...formProps}
             onCancel={onToggle}
             secondaryAction={(
-              <button
-                type="button"
+              <Button
+                variant="danger-ghost"
+                size="sm"
                 onClick={onRemove}
-                className="px-3 py-2 text-[13px] font-medium text-bad/80 hover:text-bad transition-colors"
               >
                 Remove
-              </button>
+              </Button>
             )}
           />
         </div>
