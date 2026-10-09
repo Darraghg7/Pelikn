@@ -3,6 +3,7 @@ import { supabase } from '../../lib/supabase'
 import { useToast } from '../../components/ui/Toast'
 import Modal from '../../components/ui/Modal'
 import { LEAVE_TYPES } from './timeOffConstants'
+import Button from '../../components/ui/Button'
 
 export default function ManualLeaveModal({ staff, venueId, managerId, onClose, onSaved }) {
   const toast = useToast()
@@ -97,13 +98,14 @@ export default function ManualLeaveModal({ staff, venueId, managerId, onClose, o
           This will be recorded as approved leave and counted against {staff.name}'s annual balance.
         </p>
 
-        <button
+        <Button
+          fullWidth
+          loading={saving}
           onClick={save}
           disabled={saving || !form.startDate || !form.endDate}
-          className="bg-charcoal text-cream py-3 rounded-xl text-sm font-medium hover:bg-charcoal/90 transition-colors disabled:opacity-40"
         >
           {saving ? 'Saving…' : 'Log Leave'}
-        </button>
+        </Button>
       </div>
     </Modal>
   )

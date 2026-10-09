@@ -6,6 +6,7 @@ import { useToast } from '../../components/ui/Toast'
 import { PageSkeleton } from '../../components/ui/Skeleton'
 import { reportError } from '../../lib/reportError'
 import LoadError from '../../components/ui/LoadError'
+import Button from '../../components/ui/Button'
 
 // ── Procedure sections ────────────────────────────────────────────────────────
 
@@ -220,19 +221,20 @@ export default function AllergenProcedurePage() {
 
       {/* Actions */}
       <div className="flex gap-3">
-        <button
+        <Button
+          loading={saving}
           onClick={save}
           disabled={saving}
-          className="flex-1 bg-charcoal text-cream py-3 rounded-xl text-sm font-semibold hover:bg-charcoal/90 transition-colors disabled:opacity-40"
+          className="flex-1"
         >
           {saving ? 'Saving…' : 'Save Procedure'}
-        </button>
-        <button
+        </Button>
+        <Button
+          variant="secondary"
           onClick={() => window.print()}
-          className="px-5 py-3 rounded-xl border border-charcoal/15 dark:border-white/15 text-sm text-charcoal/60 dark:text-white/50 hover:border-charcoal/30 dark:hover:border-white/30 hover:text-charcoal dark:hover:text-white transition-colors"
         >
           Print
-        </button>
+        </Button>
       </div>
 
       {/* Print styles */}

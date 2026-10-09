@@ -1,5 +1,6 @@
 import React from 'react'
 import { ehWorkedMins, ehDurLabel, fmtHM } from './rotaTimeHelpers'
+import Button from '../../components/ui/Button'
 
 /*
  * Worked-hours display for the staff rota: a per-day card and the weekly
@@ -121,12 +122,10 @@ export function WorkedSection({ rows, reqs, hourlyRate, onFix, isDateLocked }) {
                   Locked
                 </span>
               ) : onFix ? (
-                <button onClick={() => onFix(r.session, r.role)}
-                  className="shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded-[9px] border border-charcoal/15 dark:border-white/15 text-charcoal/60 dark:text-white/50 text-[11.5px] font-semibold"
-                  style={{ background:'#fff', cursor:'pointer' }}>
+                <Button variant="secondary" size="sm" onClick={() => onFix(r.session, r.role)}>
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
                   Fix
-                </button>
+                </Button>
               ) : null}
             </div>
           )

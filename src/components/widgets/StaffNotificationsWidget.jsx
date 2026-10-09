@@ -12,6 +12,7 @@ import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../ui/Toast'
 import { useWidgetQuery } from '../../hooks/useWidgetQuery'
 import { WidgetShell, WidgetPending } from './shared'
+import Button from '../ui/Button'
 
 const LEAVE_NAMES = { annual: 'Annual leave', unpaid: 'Unpaid leave', other: 'Other leave' }
 
@@ -109,22 +110,22 @@ function StaffNotificationsWidget() {
                 </p>
               </Link>
               <div className="shrink-0 flex gap-1.5">
-                <button
-                  type="button"
+                <Button
+                  variant="secondary"
+                  size="sm"
                   onClick={() => decide(r, 'rejected')}
                   disabled={deciding === r.id}
-                  className="h-8 px-2.5 rounded-lg border border-line dark:border-white/15 bg-white dark:bg-paperDark text-[12px] font-semibold text-bad dark:text-[#f19a86] hover:border-bad/40 disabled:opacity-40"
                 >
                   Reject
-                </button>
-                <button
-                  type="button"
+                </Button>
+                <Button
+                  variant="success"
+                  size="sm"
                   onClick={() => decide(r, 'approved')}
                   disabled={deciding === r.id}
-                  className="h-8 px-2.5 rounded-lg bg-brand text-white text-[12px] font-semibold hover:bg-brand/90 disabled:opacity-40"
                 >
                   Approve
-                </button>
+                </Button>
               </div>
             </div>
           ))}

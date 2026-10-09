@@ -2,6 +2,7 @@ import React from 'react'
 import { Link } from 'react-router-dom'
 import { useVenue } from '../../contexts/VenueContext'
 import LoadingSpinner from '../ui/LoadingSpinner'
+import Button from '../ui/Button'
 
 /**
  * Card frame shared by every dashboard widget.
@@ -81,9 +82,9 @@ export function WidgetPending({ isError, onRetry, className = 'py-4' }) {
     return (
       <div role="alert" className="py-2 text-center">
         <p className="text-sm text-danger/80">Couldn’t load this.</p>
-        <button type="button" onClick={() => onRetry?.()} className="mt-1 text-xs underline text-charcoal/50 dark:text-white/40 hover:text-charcoal dark:hover:text-white">
+        <Button variant="link" size="sm" onClick={() => onRetry?.()} className="mt-1">
           Try again
-        </button>
+        </Button>
       </div>
     )
   }

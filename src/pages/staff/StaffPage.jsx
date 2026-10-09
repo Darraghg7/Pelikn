@@ -1,5 +1,6 @@
 import { useSearchParams } from 'react-router-dom'
 import StaffMembersSection from '../settings/StaffMembersSection'
+import Button from '../../components/ui/Button'
 
 /** Team → Staff: the one place people are added and edited (Settings → Team setup holds only invite code, departments and duties). */
 export default function StaffPage() {
@@ -16,14 +17,13 @@ export default function StaffPage() {
             <h1 className="text-[20px] min-[420px]:text-[22px] leading-tight font-bold tracking-tight text-ink dark:text-white">Staff</h1>
             <p className="text-[13px] text-ink3 dark:text-white/45 mt-0.5">Manage team members</p>
           </div>
-          <button
-            type="button"
+          <Button
+            size="sm"
             onClick={() => openStaff('new')}
-            className="shrink-0 inline-flex items-center gap-2 h-8 px-3.5 rounded-xl bg-brand text-white text-[13px] min-[420px]:text-[13px] font-semibold hover:bg-brand/90 transition-colors"
           >
             <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
             Add staff
-          </button>
+          </Button>
         </div>
       )}
       <StaffMembersSection detailId={detailId} onOpen={openStaff} onClose={closeStaff} />
