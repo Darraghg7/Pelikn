@@ -77,9 +77,11 @@ function ReplacesStrip() {
 }
 
 /* ─── iPhone frame ──────────────────────────────────────────────────────── */
+// The phone mock-ups are pictures: hidden from screen readers, nothing focusable.
 function IPhoneFrame({ children }) {
   return (
     <div
+      aria-hidden="true"
       className="relative shrink-0 transition-transform duration-500 ease-[cubic-bezier(.16,1,.3,1)] hover:-translate-y-2"
       style={{ width:300, background:'#141414', borderRadius:52, padding:14, boxShadow:'0 40px 80px rgba(0,0,0,0.4), inset 0 0 0 1.5px rgba(255,255,255,0.13)' }}
     >
@@ -149,7 +151,7 @@ const Ico = ({ d, size = 18, cls = '' }) => (
 /* Desktop dashboard */
 function MockDashboard() {
   return (
-    <div className="flex bg-[#f3f3ef]" style={{ minHeight: 360, fontSize: 10 }}>
+    <div aria-hidden="true" className="flex bg-[#f3f3ef]" style={{ minHeight: 360, fontSize: 10 }}>
       {/* Icon rail */}
       <div className="bg-brand flex flex-col items-center pt-3 pb-3 gap-3.5 shrink-0" style={{ width: 50 }}>
         <div className="w-7 h-7 rounded-lg bg-cream/15 flex items-center justify-center mb-1">
@@ -200,7 +202,7 @@ function MockDashboard() {
               <span className="text-[7px] text-charcoal/30">· 0 of 14 daily checks complete</span>
             </div>
           </div>
-          <button className="text-[7px] font-medium text-charcoal/40 border border-charcoal/15 px-2 py-1 rounded">Export</button>
+          <span className="text-center text-[7px] font-medium text-charcoal/40 border border-charcoal/15 px-2 py-1 rounded">Export</span>
         </div>
         {/* Alert */}
         <div className="flex items-center gap-1.5 bg-[#fff3ee] border border-accent/20 rounded-lg px-2.5 py-1.5 mb-2.5">
@@ -219,7 +221,7 @@ function MockDashboard() {
               <p className="text-[6px] tracking-widest uppercase text-charcoal/28 mb-1">{l}</p>
               {v !== null
                 ? <p className={`text-lg font-bold ${c} tabular-nums leading-none`}>{v}</p>
-                : <div><p className="text-[7px] text-charcoal/35 mb-1">Not Clocked In</p><button className="w-full bg-charcoal text-cream text-[7px] font-semibold py-0.5 rounded">Clock In</button></div>
+                : <div><p className="text-[7px] text-charcoal/35 mb-1">Not Clocked In</p><span className="inline-block text-center w-full bg-charcoal text-cream text-[7px] font-semibold py-0.5 rounded">Clock In</span></div>
               }
             </div>
           ))}
@@ -573,7 +575,7 @@ function MockRota() {
     { n:'Dan',    r:'FOH',     cost:'—',        shifts:[null, null, null, { t:'TIME OFF', c:'off' }, { t:'TIME OFF', c:'off' }, { t:'TIME OFF', c:'off' }, null] },
   ]
   return (
-    <div className="bg-white rounded-2xl overflow-hidden shadow-[0_32px_80px_rgba(0,0,0,0.22)] ring-1 ring-charcoal/8">
+    <div aria-hidden="true" className="bg-white rounded-2xl overflow-hidden shadow-[0_32px_80px_rgba(0,0,0,0.22)] ring-1 ring-charcoal/8">
       {/* Header */}
       <div className="bg-[#f8f8f6] border-b border-charcoal/8 px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -584,8 +586,8 @@ function MockRota() {
           <span className="text-[8px] font-semibold bg-accent/10 text-accent px-2 py-0.5 rounded-full">3 shift swap requests pending</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <button className="text-[8px] font-semibold text-charcoal/45 border border-charcoal/15 px-2 py-1 rounded">AUTO-FILL</button>
-          <button className="text-[8px] font-semibold bg-brand text-cream px-2.5 py-1 rounded">Send notification</button>
+          <span className="text-center text-[8px] font-semibold text-charcoal/45 border border-charcoal/15 px-2 py-1 rounded">AUTO-FILL</span>
+          <span className="text-center text-[8px] font-semibold bg-brand text-cream px-2.5 py-1 rounded">Send notification</span>
         </div>
       </div>
       {/* Legend */}
