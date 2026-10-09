@@ -45,7 +45,7 @@ const PLAN_CONFIG = {
 function PlanBadge({ plan }) {
   const cfg = PLAN_CONFIG[plan] ?? PLAN_CONFIG.starter
   return (
-    <span className={`text-[11px] tracking-widest uppercase font-semibold px-2 py-0.5 rounded border ${cfg.bg} ${cfg.text} ${cfg.border}`}>
+    <span className={`text-micro tracking-widest uppercase font-semibold px-2 py-0.5 rounded border ${cfg.bg} ${cfg.text} ${cfg.border}`}>
       {cfg.label}
     </span>
   )
@@ -184,9 +184,9 @@ function StatTile({ label, value, variant = 'neutral', to }) {
     <div className="flex flex-col gap-2 bg-white dark:bg-paperDark rounded-2xl p-4 min-h-[100px]">
       <div className="flex items-center gap-1.5">
         <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${dot[variant]}`} />
-        <span className="font-mono text-[11px] text-charcoal/40 dark:text-white/35 uppercase tracking-[0.08em] leading-none">{label}</span>
+        <span className="font-mono text-micro text-charcoal/40 dark:text-white/35 uppercase tracking-[0.08em] leading-none">{label}</span>
       </div>
-      <div className={`text-[34px] font-medium tracking-[-0.035em] leading-none tabular-nums ${num[variant]}`}>
+      <div className={`text-stat font-medium tracking-[-0.035em] leading-none tabular-nums ${num[variant]}`}>
         {value}
       </div>
     </div>
@@ -284,8 +284,8 @@ export default function ManagerDashboardPage() {
       {isDesktop && (
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
-          <p className="font-mono text-[11px] tracking-[0.08em] uppercase text-charcoal/40 dark:text-white/35">{format(new Date(), 'EEEE, d MMMM')}</p>
-          <h1 className="text-[30px] font-medium tracking-[-0.028em] text-charcoal dark:text-white leading-tight mt-0.5">
+          <p className="font-mono text-micro tracking-[0.08em] uppercase text-charcoal/40 dark:text-white/35">{format(new Date(), 'EEEE, d MMMM')}</p>
+          <h1 className="text-display font-medium tracking-[-0.028em] text-charcoal dark:text-white leading-tight mt-0.5">
             {greeting}{firstName ? `, ${firstName}` : ''}
           </h1>
           {venueName && (
@@ -366,7 +366,7 @@ export default function ManagerDashboardPage() {
         <div className="grid grid-cols-[1fr_280px] gap-4 items-start">
           <DesktopStatGrid summary={summary} venueSlug={venueSlug} isEnabled={isEnabled} closedToday={closedToday} />
           <div className="bg-white dark:bg-paperDark rounded-2xl p-5">
-            <p className="text-[11px] tracking-widest uppercase font-semibold text-charcoal/40 dark:text-white/35 mb-3">My Clock</p>
+            <p className="text-micro tracking-widest uppercase font-semibold text-charcoal/40 dark:text-white/35 mb-3">My Clock</p>
             <ClockPanel staffId={session?.staffId} />
           </div>
         </div>

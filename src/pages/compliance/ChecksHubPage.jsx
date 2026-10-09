@@ -91,7 +91,7 @@ function StatusPill({ status, text }) {
   }
   const { toneBg, toneFg } = toneMap[status] ?? toneMap.na
   return (
-    <span className={`inline-flex items-center gap-1 px-[7px] py-[2px] rounded-full font-mono text-[11px] font-semibold tracking-[0.04em] uppercase whitespace-nowrap ${toneBg} ${toneFg}`}>
+    <span className={`inline-flex items-center gap-1 px-[7px] py-[2px] rounded-full font-mono text-micro font-semibold tracking-[0.04em] uppercase whitespace-nowrap ${toneBg} ${toneFg}`}>
       {status !== 'na' && <span className="w-[5px] h-[5px] rounded-full bg-current shrink-0" />}
       {text}
     </span>
@@ -124,7 +124,7 @@ function HubCard({ check, statusInfo, onClick, editMode, isHidden, onToggle }) {
             )}
           </span>
         ) : count && status !== 'done' && status !== 'na' ? (
-          <span className={`min-w-[20px] h-5 px-1.5 rounded-full flex items-center justify-center font-mono text-[11px] font-semibold text-white ${statusFg}`}>
+          <span className={`min-w-[20px] h-5 px-1.5 rounded-full flex items-center justify-center font-mono text-micro font-semibold text-white ${statusFg}`}>
             {count}
           </span>
         ) : status === 'done' ? (
@@ -138,7 +138,7 @@ function HubCard({ check, statusInfo, onClick, editMode, isHidden, onToggle }) {
 
       <div className="mt-auto">
         <div className="text-sm font-semibold tracking-[-0.01em] text-charcoal dark:text-white">{check.label}</div>
-        <div className={`font-mono text-[11px] mt-0.5 font-semibold tracking-[0.02em] uppercase ${statusTextClass}`}>
+        <div className={`font-mono text-micro mt-0.5 font-semibold tracking-[0.02em] uppercase ${statusTextClass}`}>
           {editMode ? (isHidden ? 'Hidden' : 'Visible') : statusText}
         </div>
       </div>
@@ -201,15 +201,15 @@ export default function ChecksHubPage() {
 
       <div className="mb-[10px]">
         <div className="flex justify-between items-center">
-          <span className="font-mono text-[11px] text-charcoal/50 dark:text-white/40 tracking-[0.08em] uppercase">Checks</span>
+          <span className="font-mono text-micro text-charcoal/50 dark:text-white/40 tracking-[0.08em] uppercase">Checks</span>
           <button
             onClick={editMode ? handleDone : handleEdit}
-            className={`font-mono text-[11.5px] font-semibold tracking-[0.04em] bg-transparent border-none cursor-pointer py-0.5 px-0 ${editMode ? 'text-success' : 'text-charcoal/50 dark:text-white/40'}`}
+            className={`font-mono text-caption font-semibold tracking-[0.04em] bg-transparent border-none cursor-pointer py-0.5 px-0 ${editMode ? 'text-success' : 'text-charcoal/50 dark:text-white/40'}`}
           >
             {editMode ? 'Done' : 'Edit'}
           </button>
         </div>
-        <h1 className="text-[26px] font-semibold tracking-[-0.028em] leading-[1.12] mt-1 mb-0 text-charcoal dark:text-white">
+        <h1 className="text-display font-semibold tracking-[-0.028em] leading-[1.12] mt-1 mb-0 text-charcoal dark:text-white">
           Today's checks
         </h1>
         {editMode && (
@@ -225,7 +225,7 @@ export default function ChecksHubPage() {
           className="w-full text-left bg-brand text-white rounded-[14px] px-4 py-3.5 flex items-center gap-3.5 mb-3.5 hover:bg-brand/90 transition-colors border-none cursor-pointer"
         >
           <div className="flex-1 min-w-0">
-            <div className="font-mono text-[11px] tracking-[0.1em] uppercase text-white/55 font-semibold">Today</div>
+            <div className="font-mono text-micro tracking-[0.1em] uppercase text-white/55 font-semibold">Today</div>
             <div className="text-base font-semibold tracking-[-0.015em] mt-[3px] min-h-[19px]">
               {isLoading
                 ? <span className="inline-block h-[15px] w-32 rounded bg-white/20 animate-pulse align-middle" />
@@ -236,13 +236,13 @@ export default function ChecksHubPage() {
             {!summaryLoading && !statusLoading && total > 0 && (
               <div className="flex items-center gap-2 mt-[7px]">
                 {overdueCount > 0 && (
-                  <span className="inline-flex items-center gap-[5px] font-mono text-[11px] font-semibold text-badDark">
+                  <span className="inline-flex items-center gap-[5px] font-mono text-micro font-semibold text-badDark">
                     <span className="w-[5px] h-[5px] rounded-full bg-current" />
                     {overdueCount} overdue
                   </span>
                 )}
                 {dueCount > 0 && (
-                  <span className="inline-flex items-center gap-[5px] font-mono text-[11px] font-semibold text-warnDark">
+                  <span className="inline-flex items-center gap-[5px] font-mono text-micro font-semibold text-warnDark">
                     <span className="w-[5px] h-[5px] rounded-full bg-current" />
                     {dueCount} due now
                   </span>
@@ -250,7 +250,7 @@ export default function ChecksHubPage() {
               </div>
             )}
           </div>
-          <span className="shrink-0 inline-flex items-center gap-1.5 font-mono text-[11px] tracking-[0.06em] uppercase font-semibold text-white/85">
+          <span className="shrink-0 inline-flex items-center gap-1.5 font-mono text-micro tracking-[0.06em] uppercase font-semibold text-white/85">
             View all
             <svg width="6" height="10" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
               <path d="M1 1l4 4-4 4"/>
@@ -286,7 +286,7 @@ export default function ChecksHubPage() {
             </span>
             <div className="flex-1 min-w-0">
               <div className="text-sm font-semibold text-charcoal dark:text-white tracking-[-0.01em]">EHO Audit</div>
-              <div className="text-[11.5px] text-charcoal/50 dark:text-white/40 mt-[1px]">Compliance summary &amp; export</div>
+              <div className="text-caption text-charcoal/50 dark:text-white/40 mt-[1px]">Compliance summary &amp; export</div>
             </div>
             <svg width="6" height="10" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="text-charcoal/30 dark:text-white/30">
               <path d="M1 1l4 4-4 4"/>

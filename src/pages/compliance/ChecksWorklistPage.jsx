@@ -57,11 +57,11 @@ function FilterChip({ label, count, active, onClick }) {
   return (
     <button
       onClick={onClick}
-      className={`inline-flex items-center gap-[5px] px-[13px] py-1.5 rounded-full border-[1.5px] text-[13px] font-semibold cursor-pointer whitespace-nowrap transition-all ${active ? 'border-brand bg-brand text-white' : 'border-charcoal/10 dark:border-white/10 bg-white dark:bg-paperDark text-charcoal/50 dark:text-white/40'}`}
+      className={`inline-flex items-center gap-[5px] px-[13px] py-1.5 rounded-full border-[1.5px] text-body-sm font-semibold cursor-pointer whitespace-nowrap transition-all ${active ? 'border-brand bg-brand text-white' : 'border-charcoal/10 dark:border-white/10 bg-white dark:bg-paperDark text-charcoal/50 dark:text-white/40'}`}
     >
       {label}
       {count != null && (
-        <span className={`min-w-[18px] h-[18px] px-[5px] rounded-full font-mono text-[11px] font-semibold inline-flex items-center justify-center ${active ? 'bg-white/22 text-white' : 'bg-charcoal/6 dark:bg-white/8 text-charcoal/50 dark:text-white/40'}`}>
+        <span className={`min-w-[18px] h-[18px] px-[5px] rounded-full font-mono text-micro font-semibold inline-flex items-center justify-center ${active ? 'bg-white/22 text-white' : 'bg-charcoal/6 dark:bg-white/8 text-charcoal/50 dark:text-white/40'}`}>
           {count}
         </span>
       )}
@@ -88,11 +88,11 @@ function WorklistRow({ check, statusInfo, onClick }) {
           {check.label}
         </div>
         <div className="flex items-center gap-1.5 mt-0.5">
-          <span className="font-mono text-[11px] text-charcoal/30 dark:text-white/30 tracking-[0.04em]">
+          <span className="font-mono text-micro text-charcoal/30 dark:text-white/30 tracking-[0.04em]">
             {check.area}
           </span>
           <span className="w-0.5 h-0.5 rounded-full bg-charcoal/30 dark:bg-white/30" />
-          <span className="font-mono text-[11px] text-charcoal/30 dark:text-white/30 tracking-[0.04em]">
+          <span className="font-mono text-micro text-charcoal/30 dark:text-white/30 tracking-[0.04em]">
             {check.cadence}
           </span>
         </div>
@@ -106,12 +106,12 @@ function WorklistRow({ check, statusInfo, onClick }) {
             </svg>
           </span>
         ) : status !== 'na' ? (
-          <span className={`inline-flex items-center gap-1 font-mono text-[11px] font-semibold tracking-[0.04em] uppercase ${fg}`}>
+          <span className={`inline-flex items-center gap-1 font-mono text-micro font-semibold tracking-[0.04em] uppercase ${fg}`}>
             <span className="w-[5px] h-[5px] rounded-full bg-current" />
             {statusInfo?.statusText ?? STATUS_TONE[status].label}
           </span>
         ) : (
-          <span className="font-mono text-[11px] text-charcoal/30 dark:text-white/30">—</span>
+          <span className="font-mono text-micro text-charcoal/30 dark:text-white/30">—</span>
         )}
       </div>
 
@@ -161,12 +161,12 @@ export default function ChecksWorklistPage() {
     <div className="pb-24">
 
       <div className="mb-[10px]">
-        <span className="font-mono text-[11px] text-charcoal/50 dark:text-white/40 tracking-[0.08em] uppercase">Checks</span>
-        <h1 className="text-[26px] font-semibold tracking-[-0.028em] leading-[1.12] mt-1 mb-0 text-charcoal dark:text-white">
+        <span className="font-mono text-micro text-charcoal/50 dark:text-white/40 tracking-[0.08em] uppercase">Checks</span>
+        <h1 className="text-display font-semibold tracking-[-0.028em] leading-[1.12] mt-1 mb-0 text-charcoal dark:text-white">
           All checks
         </h1>
         {!isLoading && (
-          <p className="font-mono text-[11px] text-charcoal/50 dark:text-white/40 mt-[5px] mb-0">
+          <p className="font-mono text-micro text-charcoal/50 dark:text-white/40 mt-[5px] mb-0">
             {counts.Overdue > 0 && `${counts.Overdue} overdue · `}
             {counts.Due > 0 && `${counts.Due} due · `}
             {counts.Done} done

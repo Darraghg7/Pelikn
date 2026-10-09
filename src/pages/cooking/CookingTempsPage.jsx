@@ -35,7 +35,7 @@ const CHECK_TYPES = [
 ]
 const CHECK_LABEL = Object.fromEntries(CHECK_TYPES.map(t => [t.value, t.label]))
 
-const TEXT_AREA = 'w-full px-3.5 py-2.5 rounded-xl border border-line dark:border-white/10 bg-cream dark:bg-white/5 text-[13px] text-ink dark:text-white placeholder:text-ink4 dark:placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand/40 focus:bg-white dark:focus:bg-white/10 resize-none transition-colors'
+const TEXT_AREA = 'w-full px-3.5 py-2.5 rounded-xl border border-line dark:border-white/10 bg-cream dark:bg-white/5 text-body-sm text-ink dark:text-white placeholder:text-ink4 dark:placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand/40 focus:bg-white dark:focus:bg-white/10 resize-none transition-colors'
 
 const failed = (log) => isCookingTempFail(log.temperature, log.target_temp ?? COOKING_TARGET_TEMP)
 
@@ -49,15 +49,15 @@ function ReadingRow({ log, withStaff = false, compact = false }) {
     <div className="px-3.5 sm:px-3.5 py-2">
       <div className="flex items-center justify-between gap-2.5">
         <div className="min-w-0">
-          <p className="text-[14px] font-semibold text-ink dark:text-white truncate">{log.food_item}</p>
-          <p className="text-[13px] text-ink3 dark:text-white/45 mt-0.5 truncate">{meta}</p>
+          <p className="text-body font-semibold text-ink dark:text-white truncate">{log.food_item}</p>
+          <p className="text-body-sm text-ink3 dark:text-white/45 mt-0.5 truncate">{meta}</p>
         </div>
-        <span className={`shrink-0 h-8 px-3.5 rounded-lg inline-flex items-center font-mono text-[13px] font-semibold ${fail ? TONE.bad : TONE.ok}`}>
+        <span className={`shrink-0 h-8 px-3.5 rounded-lg inline-flex items-center font-mono text-body-sm font-semibold ${fail ? TONE.bad : TONE.ok}`}>
           {compact ? `${temp}°` : `${temp}°C`}
         </span>
       </div>
       {fail && log.notes && (
-        <p className="mt-2.5 px-3 py-2 rounded-lg bg-badBg dark:bg-bad/20 text-[13px] text-ink2 dark:text-white/75">
+        <p className="mt-2.5 px-3 py-2 rounded-lg bg-badBg dark:bg-bad/20 text-body-sm text-ink2 dark:text-white/75">
           {compact && <><span className="font-semibold text-bad dark:text-badDark">Corrective action</span> · </>}
           {log.notes}
         </p>
@@ -122,7 +122,7 @@ function LogReadingForm({ onLogged }) {
             aria-pressed={checkType === t.value}
             onClick={() => setCheckType(t.value)}
             className={[
-              'h-10 rounded-2xl border-2 text-[14px] font-semibold transition-colors',
+              'h-10 rounded-2xl border-2 text-body font-semibold transition-colors',
               checkType === t.value
                 ? 'border-brand bg-brand-tint text-ink dark:bg-white/10 dark:border-white/70 dark:text-white'
                 : 'border-line dark:border-white/10 bg-white dark:bg-paperDark text-ink2 dark:text-white/75 hover:border-ink4/60',
@@ -154,7 +154,7 @@ function LogReadingForm({ onLogged }) {
 
       {isFail && (
         <div className="rounded-xl border border-bad/25 bg-badBg/60 dark:bg-bad/15 p-2.5 flex flex-col gap-2 -mt-1">
-          <p className="text-[13px] font-semibold text-bad dark:text-badDark">
+          <p className="text-body-sm font-semibold text-bad dark:text-badDark">
             Below {COOKING_TARGET_TEMP}°C. Keep cooking and re-probe, and say what you did.
           </p>
           <textarea
@@ -163,7 +163,7 @@ function LogReadingForm({ onLogged }) {
             rows={2}
             placeholder="e.g. Back on grill 2 min, re-probed at 77.6°C"
             aria-label="Corrective action"
-            className="w-full px-3 py-2 rounded-lg border border-bad/25 bg-white dark:bg-paperDark text-[13px] text-ink dark:text-white placeholder:text-ink4 focus:outline-none focus:ring-2 focus:ring-bad/20 resize-none"
+            className="w-full px-3 py-2 rounded-lg border border-bad/25 bg-white dark:bg-paperDark text-body-sm text-ink dark:text-white placeholder:text-ink4 focus:outline-none focus:ring-2 focus:ring-bad/20 resize-none"
           />
         </div>
       )}
@@ -233,7 +233,7 @@ function CookingHistory() {
           ]} />
 
           {days.length === 0 ? (
-            <p className="text-[13px] text-ink3 dark:text-white/40 py-10 text-center">No readings in this period.</p>
+            <p className="text-body-sm text-ink3 dark:text-white/40 py-10 text-center">No readings in this period.</p>
           ) : days.map(([dateStr, dayLogs]) => (
             <DayCard key={dateStr} dateStr={dateStr} count={dayLogs.length} noun="reading">
               {dayLogs.map(log => <ReadingRow key={log.id} log={log} compact />)}
@@ -264,7 +264,7 @@ export default function CookingTempsPage() {
       <PageHeader
         title="Cooking temps"
         backTo={isManager ? `/v/${venueSlug}/checks` : null}
-        action={<span className="shrink-0 self-end pb-1 font-mono text-[13px] text-ink3 dark:text-white/45 whitespace-nowrap">UK min ≥{COOKING_TARGET_TEMP}°C</span>}
+        action={<span className="shrink-0 self-end pb-1 font-mono text-body-sm text-ink3 dark:text-white/45 whitespace-nowrap">UK min ≥{COOKING_TARGET_TEMP}°C</span>}
       />
 
       <TabBar

@@ -92,15 +92,15 @@ function MobileStatTile({ item, summary, vp }) {
     <Tag {...tagProps} className="min-w-0 bg-white dark:bg-paperDark border border-line dark:border-white/10 rounded-2xl px-2.5 min-[420px]:px-3 pt-2.5 pb-2.5 flex flex-col gap-1.5 no-underline active:bg-cream dark:active:bg-white/5 transition-colors">
       <span className="flex items-start gap-1.5 min-w-0 min-h-[30px] min-[420px]:min-h-0">
         <span className={`w-2 h-2 mt-1 rounded-full shrink-0 ${isDanger ? 'bg-bad' : 'bg-good'}`} />
-        <span className="text-[12px] min-[420px]:text-[13px] text-ink2 dark:text-white/70 leading-tight break-words">
+        <span className="text-caption min-[420px]:text-body-sm text-ink2 dark:text-white/70 leading-tight break-words">
           {TILE_LABELS[item.id] ?? item.metricLabel}
         </span>
       </span>
-      <span className={`font-mono text-[20px] font-semibold leading-none ${isDanger ? 'text-bad dark:text-badDark' : 'text-ink dark:text-white'}`}>
+      <span className={`font-mono text-title font-semibold leading-none ${isDanger ? 'text-bad dark:text-badDark' : 'text-ink dark:text-white'}`}>
         {value}
       </span>
       {sub && (
-        <span className={`text-[12px] min-[420px]:text-[13px] leading-tight ${isDanger ? 'text-bad dark:text-badDark' : 'text-ink3 dark:text-white/45'}`}>
+        <span className={`text-caption min-[420px]:text-body-sm leading-tight ${isDanger ? 'text-bad dark:text-badDark' : 'text-ink3 dark:text-white/45'}`}>
           {sub}
         </span>
       )}
@@ -111,7 +111,7 @@ function MobileStatTile({ item, summary, vp }) {
 // ── Section label (floating, mono-uppercase) ───────────────────────────────
 function SectionLabel({ children }) {
   return (
-    <span className="text-[12px] font-semibold tracking-[0.08em] uppercase text-ink3 dark:text-white/45 block mb-2 px-1">
+    <span className="text-caption font-semibold tracking-[0.08em] uppercase text-ink3 dark:text-white/45 block mb-2 px-1">
       {children}
     </span>
   )
@@ -141,15 +141,15 @@ function AttentionCard({ actions, editMode }) {
             </svg>
           </div>
           <div>
-            <div className="text-[14px] font-semibold text-ink dark:text-white">All clear</div>
-            <div className="text-[13px] text-ink3 dark:text-white/45 mt-0.5">Nothing needs your attention right now.</div>
+            <div className="text-body font-semibold text-ink dark:text-white">All clear</div>
+            <div className="text-body-sm text-ink3 dark:text-white/45 mt-0.5">Nothing needs your attention right now.</div>
           </div>
         </div>
       ) : (
         <div>
           <div className="flex items-center gap-2 px-3.5 sm:px-3.5 py-2">
-            <span className="text-[12px] font-semibold tracking-[0.08em] uppercase text-ink3 dark:text-white/45">Needs you</span>
-            <span className="min-w-[24px] h-6 px-1.5 rounded-full bg-bad text-white text-[12px] font-bold inline-flex items-center justify-center">
+            <span className="text-caption font-semibold tracking-[0.08em] uppercase text-ink3 dark:text-white/45">Needs you</span>
+            <span className="min-w-[24px] h-6 px-1.5 rounded-full bg-bad text-white text-caption font-bold inline-flex items-center justify-center">
               {actions.length}
             </span>
           </div>
@@ -165,8 +165,8 @@ function AttentionCard({ actions, editMode }) {
                 >
                   <span className={`shrink-0 w-2.5 h-2.5 rounded-full ${isOverdue ? 'bg-bad' : 'bg-warn'}`} />
                   <span className="flex-1 min-w-0">
-                    <span className="block text-[14px] font-semibold text-ink dark:text-white">{a.label}</span>
-                    {a.detail && <span className="block text-[13px] text-ink3 dark:text-white/45 mt-0.5">{a.detail}</span>}
+                    <span className="block text-body font-semibold text-ink dark:text-white">{a.label}</span>
+                    {a.detail && <span className="block text-body-sm text-ink3 dark:text-white/45 mt-0.5">{a.detail}</span>}
                   </span>
                   {a.to && (
                     <svg className="shrink-0 w-4 h-4 text-ink4 dark:text-white/35" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
@@ -190,10 +190,10 @@ function DisciplinaryStrip({ alerts, editMode, venueSlug }) {
       editMode ? 'opacity-45' : 'opacity-100',
     ].join(' ')}>
       <div className="flex items-center gap-1.5">
-        <span className="font-mono text-[11px] tracking-[0.1em] uppercase text-white/65 font-semibold">
+        <span className="font-mono text-micro tracking-[0.1em] uppercase text-white/65 font-semibold">
           Disciplinary Review
         </span>
-        <span className="min-w-[18px] h-[18px] rounded-full bg-white/20 text-white text-[11px] font-bold flex items-center justify-center px-[5px]">
+        <span className="min-w-[18px] h-[18px] rounded-full bg-white/20 text-white text-micro font-bold flex items-center justify-center px-[5px]">
           {alerts.length}
         </span>
       </div>
@@ -203,12 +203,12 @@ function DisciplinaryStrip({ alerts, editMode, venueSlug }) {
           to={`/v/${venueSlug}/timesheet`}
           className="flex items-center gap-2 bg-white/10 rounded-[10px] p-[9px_12px] no-underline"
         >
-          <span className="flex-1 text-[12px] text-white font-medium leading-[1.35]">
+          <span className="flex-1 text-caption text-white font-medium leading-[1.35]">
             {a.staff_name ?? 'Staff member'} —{' '}
             {a.offence_type === 'late_clock_in' ? 'late clock-in' : 'break overrun'},{' '}
             strike {a.strike_number}
           </span>
-          <span className="font-mono text-[12px] text-white/50">›</span>
+          <span className="font-mono text-caption text-white/50">›</span>
         </Link>
       ))}
     </div>
@@ -371,7 +371,7 @@ function MobileClockCard({ staffId }) {
           : '—' },
     { label: 'Last in', value: clockInAt ? format(clockInAt, 'EEE HH:mm') : '—' },
   ]
-  const primaryBtn = `w-full h-10 rounded-2xl bg-white text-brand text-[14px] font-semibold border-0 cursor-pointer`
+  const primaryBtn = `w-full h-10 rounded-2xl bg-white text-brand text-body font-semibold border-0 cursor-pointer`
 
   return (
     <div>
@@ -380,25 +380,25 @@ function MobileClockCard({ staffId }) {
       <div className="bg-brand rounded-2xl px-3.5 sm:px-3.5 pt-2.5 pb-3">
         <div className="flex items-center justify-between gap-2.5">
           <div className="flex items-baseline gap-2.5 min-w-0">
-            <span className="font-mono text-[26px] min-[420px]:text-[28px] font-semibold tracking-tight text-white leading-none">
+            <span className="font-mono text-display font-semibold tracking-tight text-white leading-none">
               {format(now, 'HH:mm')}
             </span>
-            <span className="text-[12px] min-[420px]:text-[12px] font-semibold tracking-[0.06em] uppercase text-white/60 whitespace-nowrap">My clock</span>
+            <span className="text-caption font-semibold tracking-[0.06em] uppercase text-white/60 whitespace-nowrap">My clock</span>
           </div>
           <span className="shrink-0 flex items-center gap-2 rounded-full h-8 px-3" style={{ background: badgeBg }}>
             <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: badgeDot }} />
-            <span className="text-[13px] font-semibold text-white whitespace-nowrap">{badgeLabel}</span>
+            <span className="text-body-sm font-semibold text-white whitespace-nowrap">{badgeLabel}</span>
           </span>
         </div>
         {(onShift || onBreak) && clockInAt && (
-          <p className="text-[13px] text-white/60 mt-1.5">Since {format(clockInAt, 'HH:mm')}</p>
+          <p className="text-body-sm text-white/60 mt-1.5">Since {format(clockInAt, 'HH:mm')}</p>
         )}
 
         <div className="grid grid-cols-3 gap-2.5 mt-4 mb-4">
           {stats.map(({ label, value }) => (
             <div key={label} className="min-w-0">
-              <div className="text-[13px] text-white/60 mb-1">{label}</div>
-              <div className="font-mono text-[14px] font-semibold text-white truncate">{value}</div>
+              <div className="text-body-sm text-white/60 mb-1">{label}</div>
+              <div className="font-mono text-body font-semibold text-white truncate">{value}</div>
             </div>
           ))}
         </div>
@@ -436,7 +436,7 @@ function MobileClockCard({ staffId }) {
           </Button>
         ) : null}
         {notSent && (
-          <p role="status" className="text-[12px] font-medium text-white/80 mt-2">
+          <p role="status" className="text-caption font-medium text-white/80 mt-2">
             Not sent yet. This device will keep trying.
           </p>
         )}
@@ -688,14 +688,14 @@ export default function MobileManagerDashboard({
 
       <div>
         <div className="flex items-center justify-between gap-2.5">
-          <span className="min-w-0 font-mono text-[12px] min-[420px]:text-[13px] text-ink3 dark:text-white/45 whitespace-nowrap truncate">
+          <span className="min-w-0 font-mono text-caption min-[420px]:text-body-sm text-ink3 dark:text-white/45 whitespace-nowrap truncate">
             {format(now, 'EEEE, d MMMM')} · {format(now, 'HH:mm')}
           </span>
           <button
             type="button"
             onClick={() => setEditMode(v => !v)}
             className={[
-              'shrink-0 h-8 px-3.5 rounded-xl border text-[13px] font-semibold cursor-pointer transition-colors',
+              'shrink-0 h-8 px-3.5 rounded-xl border text-body-sm font-semibold cursor-pointer transition-colors',
               editMode
                 ? 'bg-goodBg text-good border-good/30 dark:bg-good/20 dark:text-goodDark'
                 : 'bg-white dark:bg-paperDark text-ink2 dark:text-white/80 border-line dark:border-white/10 hover:border-ink4',
@@ -705,7 +705,7 @@ export default function MobileManagerDashboard({
           </button>
         </div>
 
-        <h1 className="text-[20px] sm:text-[22px] font-bold tracking-tight text-ink dark:text-white leading-tight mt-2">
+        <h1 className="text-title font-bold tracking-tight text-ink dark:text-white leading-tight mt-2">
           {greeting}{firstName ? `, ${firstName}` : ''}.
         </h1>
       </div>
@@ -726,7 +726,7 @@ export default function MobileManagerDashboard({
         </Button>
       )}
       {editMode && (
-        <p className="text-center text-[13px] text-ink3 dark:text-white/45">
+        <p className="text-center text-body-sm text-ink3 dark:text-white/45">
           Drag cards to reorder · tap Done when finished
         </p>
       )}

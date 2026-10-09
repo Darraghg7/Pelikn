@@ -25,12 +25,12 @@ function CheckDot({ done, label }) {
   return (
     <div className="flex flex-col items-center gap-[3px]">
       <div className={[
-        'w-[22px] h-[22px] rounded-full flex items-center justify-center text-[11px] font-bold',
+        'w-[22px] h-[22px] rounded-full flex items-center justify-center text-micro font-bold',
         done ? 'bg-success/10 text-success' : 'bg-danger/10 text-danger',
       ].join(' ')}>
         {done ? '✓' : '✕'}
       </div>
-      <span className="text-[11px] font-semibold text-charcoal/40 dark:text-white/35 text-center leading-[1.2]">
+      <span className="text-micro font-semibold text-charcoal/40 dark:text-white/35 text-center leading-[1.2]">
         {label}
       </span>
     </div>
@@ -41,10 +41,10 @@ function CheckDot({ done, label }) {
 function StatCell({ value, label, colorClass, last }) {
   return (
     <div className={`flex-1 pl-3.5 py-2.5 ${last ? '' : 'border-r border-charcoal/8 dark:border-white/8'}`}>
-      <div className={`text-[17px] font-bold tabular-nums leading-none ${colorClass ?? 'text-charcoal dark:text-white'}`}>
+      <div className={`text-title-sm font-bold tabular-nums leading-none ${colorClass ?? 'text-charcoal dark:text-white'}`}>
         {value}
       </div>
-      <div className="text-[11px] font-semibold text-charcoal/40 dark:text-white/35 mt-[1px]">
+      <div className="text-micro font-semibold text-charcoal/40 dark:text-white/35 mt-[1px]">
         {label}
       </div>
     </div>
@@ -87,11 +87,11 @@ function VenueCard({ result, isHome, dimmed, onOpen }) {
         <div className="text-sm font-bold text-charcoal dark:text-white overflow-hidden text-ellipsis whitespace-nowrap">
           {venue.name}
         </div>
-        <div className={`text-[11px] font-bold mt-0.5 ${st.textClass}`}>
+        <div className={`text-micro font-bold mt-0.5 ${st.textClass}`}>
           {loading ? 'Loading…' : st.label}
         </div>
         {isHome && (
-          <span className="inline-block mt-1 text-[11px] font-bold uppercase tracking-[0.08em] text-brand bg-brand/9 px-1.5 py-[2px] rounded">
+          <span className="inline-block mt-1 text-micro font-bold uppercase tracking-[0.08em] text-brand bg-brand/9 px-1.5 py-[2px] rounded">
             Home
           </span>
         )}
@@ -169,12 +169,12 @@ function StripCell({ cell, value, isActive, onClick, loading, isLast }) {
       {isActive && (
         <span className={`absolute bottom-0 left-0 right-0 h-[2.5px] rounded-t-sm ${cell.barClass}`} />
       )}
-      <div className={`text-[28px] font-bold tracking-[-0.04em] tabular-nums leading-none ${cell.numClass}`}>
+      <div className={`text-display font-bold tracking-[-0.04em] tabular-nums leading-none ${cell.numClass}`}>
         {loading ? (
           <span className="inline-block w-10 h-7 rounded-md bg-charcoal/6 dark:bg-white/8" />
         ) : value}
       </div>
-      <div className="text-[11px] font-semibold text-charcoal/40 dark:text-white/35 mt-[3px] uppercase tracking-[0.04em]">
+      <div className="text-micro font-semibold text-charcoal/40 dark:text-white/35 mt-[3px] uppercase tracking-[0.04em]">
         {cell.label}
       </div>
     </button>
@@ -243,10 +243,10 @@ export default function OverviewPage() {
     <div className="max-w-[1280px] mx-auto">
 
       <div className="mb-6">
-        <h1 className="text-[26px] font-semibold tracking-[-0.028em] text-charcoal dark:text-white m-0">
+        <h1 className="text-display font-semibold tracking-[-0.028em] text-charcoal dark:text-white m-0">
           {greeting}
         </h1>
-        <p className="text-[13px] text-charcoal/45 dark:text-white/40 mt-1">
+        <p className="text-body-sm text-charcoal/45 dark:text-white/40 mt-1">
           {format(new Date(), 'EEEE, d MMMM')} · {allVenues.length} venue{allVenues.length !== 1 ? 's' : ''}
         </p>
       </div>

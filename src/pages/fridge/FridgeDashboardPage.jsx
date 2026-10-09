@@ -185,7 +185,7 @@ function FridgeLogRow({ fridge, status, session, venueId, canLog, onSaved }) {
             <p className="text-xs font-semibold text-charcoal dark:text-white">
               Follow-up check due {format(new Date(followUp.dueAt), 'HH:mm')}
             </p>
-            <p className="text-[11px] text-charcoal/50 dark:text-white/40 mt-0.5">
+            <p className="text-caption text-charcoal/50 dark:text-white/40 mt-0.5">
               Last reading was {formatTemp(followUp.temp)} — log a new reading to confirm the temperature has recovered.
             </p>
           </div>
@@ -244,7 +244,7 @@ function FridgeLogRow({ fridge, status, session, venueId, canLog, onSaved }) {
                     <span className="shrink-0 text-charcoal/50 dark:text-white/40">{EXCEEDANCE_ICONS[r.id]}</span>
                     <span className="flex-1">{r.label}</span>
                     {r.explained && (
-                      <span className="text-[11px] tracking-wide text-success font-semibold">No penalty</span>
+                      <span className="text-micro tracking-wide text-success font-semibold">No penalty</span>
                     )}
                   </button>
                 ))}
@@ -258,7 +258,7 @@ function FridgeLogRow({ fridge, status, session, venueId, canLog, onSaved }) {
                   </span>
                   <div>
                     <p className="text-xs font-medium text-charcoal dark:text-white">Explained exceedance — no compliance penalty</p>
-                    <p className="text-[11px] text-charcoal/50 dark:text-white/40 mt-0.5">
+                    <p className="text-caption text-charcoal/50 dark:text-white/40 mt-0.5">
                       The reading is recorded honestly in your audit log. A 30‑minute follow‑up reminder will appear to confirm the temperature recovers.
                     </p>
                   </div>
@@ -276,9 +276,9 @@ function FridgeLogRow({ fridge, status, session, venueId, canLog, onSaved }) {
                     onBlur={save}
                     placeholder="Describe the corrective action taken…"
                     rows={2}
-                    className="w-full px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark focus:outline-none focus:ring-2 focus:ring-danger/20 text-[13px] resize-none"
+                    className="w-full px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark focus:outline-none focus:ring-2 focus:ring-danger/20 text-body-sm resize-none"
                   />
-                  <p className="text-[11px] text-charcoal/35 dark:text-white/30">
+                  <p className="text-caption text-charcoal/35 dark:text-white/30">
                     {comment.trim().length < 5 ? `${5 - comment.trim().length} more characters needed` : 'Saves when you tap away'}
                   </p>
                 </div>
@@ -401,7 +401,7 @@ export default function FridgeDashboardPage() {
       {tab === 'log' && (
         fridges.length === 0 ? (
           <div className={`${CARD} p-8 text-center flex flex-col items-center gap-2.5`}>
-            <p className="text-[13px] text-ink3 dark:text-white/45">No fridges set up yet.</p>
+            <p className="text-body-sm text-ink3 dark:text-white/45">No fridges set up yet.</p>
             {isManager && <AddDashedButton label="Add fridge or freezer" onClick={() => setShowAdd(true)} />}
           </div>
         ) : (
@@ -410,10 +410,10 @@ export default function FridgeDashboardPage() {
               <div className={`${CARD} px-3.5 sm:px-3.5 py-2`}>
                 <div className="flex items-center gap-2.5">
                   <span className="shrink-0 px-2 py-1 rounded-md bg-brand text-white font-mono text-xs font-bold">{currentPeriod.toUpperCase()}</span>
-                  <p className="flex-1 min-w-0 text-[13px] font-semibold text-ink dark:text-white truncate">
+                  <p className="flex-1 min-w-0 text-body-sm font-semibold text-ink dark:text-white truncate">
                     Today's checks · {format(now, 'EEE d MMM')}
                   </p>
-                  <span className="shrink-0 font-mono text-[13px] font-semibold text-ink2 dark:text-white/70">{doneToday}/{totalToday}</span>
+                  <span className="shrink-0 font-mono text-body-sm font-semibold text-ink2 dark:text-white/70">{doneToday}/{totalToday}</span>
                 </div>
                 <div className="mt-2 h-1.5 rounded-full bg-line2 dark:bg-white/10 overflow-hidden">
                   <div
@@ -448,7 +448,7 @@ export default function FridgeDashboardPage() {
         <>
           {fridges.length > 0 && (
             <>
-              <p className="text-[13px] text-ink3 dark:text-white/45 px-1">Tap a unit to edit its safe range and check schedule.</p>
+              <p className="text-body-sm text-ink3 dark:text-white/45 px-1">Tap a unit to edit its safe range and check schedule.</p>
               <div className={`${CARD} divide-y divide-line dark:divide-white/10 overflow-hidden`}>
                 {fridges.map(fridge => (
                   <ItemSettingsRow

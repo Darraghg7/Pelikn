@@ -9,7 +9,7 @@ import { useToast } from '../../components/ui/Toast'
 import Button from '../../components/ui/Button'
 
 const FIELD = 'w-full px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20'
-const LABEL = 'text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1.5'
+const LABEL = 'text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1.5'
 
 export default function HotHoldingExportModal({ open, onClose }) {
   const { venueId } = useVenue()

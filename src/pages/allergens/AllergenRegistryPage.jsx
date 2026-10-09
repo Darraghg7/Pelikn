@@ -19,7 +19,7 @@ import { colors } from '../../lib/tokens'
 function SectionLabel({ children, action }) {
   return (
     <div className="flex items-center justify-between mb-3">
-      <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">{children}</p>
+      <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">{children}</p>
       {action}
     </div>
   )
@@ -141,7 +141,7 @@ export default function AllergenRegistryPage() {
         <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 px-5 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">Customer Allergen QR Code</p>
+              <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">Customer Allergen QR Code</p>
               <p className="text-xs text-charcoal/45 dark:text-white/40 mt-0.5">Customers can scan this to see your live allergen matrix — no login required.</p>
             </div>
             <Button
@@ -159,7 +159,7 @@ export default function AllergenRegistryPage() {
                 <QRCodeCanvas value={publicUrl} size={140} />
               </div>
               <div className="flex flex-col gap-2 min-w-0 flex-1">
-                <p className="text-[11px] tracking-widest uppercase text-charcoal/35 dark:text-white/30">Public URL</p>
+                <p className="text-micro tracking-widest uppercase text-charcoal/35 dark:text-white/30">Public URL</p>
                 <p className="text-xs font-mono text-charcoal/60 dark:text-white/50 break-all bg-charcoal/4 dark:bg-white/5 px-3 py-2 rounded-lg">{publicUrl}</p>
                 <div className="flex flex-wrap gap-2 mt-1">
                   <Button
@@ -183,7 +183,7 @@ export default function AllergenRegistryPage() {
                     Print Table Card
                   </Button>
                 </div>
-                <p className="text-[11px] text-charcoal/35 dark:text-white/30 mt-1">
+                <p className="text-caption text-charcoal/35 dark:text-white/30 mt-1">
                   <strong className="text-charcoal/50 dark:text-white/40">Print Table Card</strong> opens a ready-to-print card with your venue logo, QR code and instructions — place on tables or counters.
                   {!logoUrl && <span className="block mt-0.5 text-accent/70">Add your logo in Settings to include it on the card.</span>}
                 </p>
@@ -239,7 +239,7 @@ export default function AllergenRegistryPage() {
                       <div className="flex items-center gap-2 min-w-0 flex-wrap">
                         <p className={`font-medium text-sm break-words sm:truncate ${item.is_active ? 'text-charcoal dark:text-white' : 'text-charcoal/35 dark:text-white/30'}`}>{item.name}</p>
                         {!item.is_active && (
-                          <span className="text-[11px] uppercase tracking-widest text-charcoal/30 dark:text-white/30 border border-charcoal/10 dark:border-white/10 rounded-full px-1.5 py-0.5 shrink-0">Off QR</span>
+                          <span className="text-micro uppercase tracking-widest text-charcoal/30 dark:text-white/30 border border-charcoal/10 dark:border-white/10 rounded-full px-1.5 py-0.5 shrink-0">Off QR</span>
                         )}
                       </div>
                       <p className="text-xs text-charcoal/40 dark:text-white/35 truncate mt-0.5">
@@ -254,7 +254,7 @@ export default function AllergenRegistryPage() {
                         onClick={(e) => e.stopPropagation()}
                         className="flex items-center gap-1.5 shrink-0"
                       >
-                        <span className="text-[11px] text-charcoal/35 dark:text-white/30 hidden sm:inline">QR</span>
+                        <span className="text-micro text-charcoal/35 dark:text-white/30 hidden sm:inline">QR</span>
                         <Toggle
                           checked={item.is_active}
                           onChange={() => toggleItemActive(item)}

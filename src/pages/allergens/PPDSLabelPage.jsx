@@ -80,10 +80,10 @@ export default function PPDSLabelPage() {
           </div>
 
           <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-5 flex flex-col gap-4">
-            <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">Label dates</p>
+            <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">Label dates</p>
             <div className="grid grid-cols-2 gap-3">
               <div className="flex flex-col gap-1">
-                <label className="text-[11px] tracking-widest uppercase text-charcoal/30 dark:text-white/30">Made on</label>
+                <label className="text-micro tracking-widest uppercase text-charcoal/30 dark:text-white/30">Made on</label>
                 <input
                   type="date"
                   value={madeOn}
@@ -92,7 +92,7 @@ export default function PPDSLabelPage() {
                 />
               </div>
               <div className="flex flex-col gap-1">
-                <label className="text-[11px] tracking-widest uppercase text-charcoal/30 dark:text-white/30">Use by</label>
+                <label className="text-micro tracking-widest uppercase text-charcoal/30 dark:text-white/30">Use by</label>
                 <input
                   type="date"
                   value={useBy}
@@ -105,7 +105,7 @@ export default function PPDSLabelPage() {
 
           {/* Label preview */}
           <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-5">
-            <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-4">Label preview</p>
+            <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-4">Label preview</p>
             <LabelContent
               item={item}
               venueName={venueName}

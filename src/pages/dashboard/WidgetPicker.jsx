@@ -80,7 +80,7 @@ export default function WidgetPicker({ open, onClose, activeIds, todayIds, onSav
         </p>
 
         <div>
-          <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-2">Today view</p>
+          <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-2">Today view</p>
           <div className="flex flex-col gap-1.5">
             {selectedToday.map((id, idx) => {
               const item = TODAY_ITEM_REGISTRY[id]
@@ -105,7 +105,7 @@ export default function WidgetPicker({ open, onClose, activeIds, todayIds, onSav
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-charcoal dark:text-white truncate">{item.label}</p>
-                    <p className="text-[11px] text-charcoal/40 dark:text-white/35 truncate">{item.description}</p>
+                    <p className="text-caption text-charcoal/40 dark:text-white/35 truncate">{item.description}</p>
                   </div>
                   <Button
                     variant="danger-ghost"
@@ -131,7 +131,7 @@ export default function WidgetPicker({ open, onClose, activeIds, todayIds, onSav
                     <span className="text-charcoal/20 dark:text-white/20 text-lg shrink-0">+</span>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-charcoal/60 dark:text-white/50 truncate">{item.label}</p>
-                      <p className="text-[11px] text-charcoal/35 dark:text-white/30 truncate">{item.description}</p>
+                      <p className="text-caption text-charcoal/35 dark:text-white/30 truncate">{item.description}</p>
                     </div>
                   </button>
                 )
@@ -143,7 +143,7 @@ export default function WidgetPicker({ open, onClose, activeIds, todayIds, onSav
         {/* Active widgets — reorderable */}
         {selected.length > 0 && (
           <div>
-            <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-2">Your widgets</p>
+            <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-2">Your widgets</p>
             <div className="flex flex-col gap-1.5">
               {selected.map((id, idx) => {
                 const w = WIDGET_REGISTRY[id]
@@ -168,7 +168,7 @@ export default function WidgetPicker({ open, onClose, activeIds, todayIds, onSav
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-charcoal dark:text-white truncate">{w.label}</p>
-                      <p className="text-[11px] text-charcoal/40 dark:text-white/35 truncate">{w.description}</p>
+                      <p className="text-caption text-charcoal/40 dark:text-white/35 truncate">{w.description}</p>
                     </div>
                     <Button
                       variant="danger-ghost"
@@ -190,7 +190,7 @@ export default function WidgetPicker({ open, onClose, activeIds, todayIds, onSav
           if (available.length === 0) return null
           return (
             <div>
-              <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-2">Available widgets</p>
+              <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-2">Available widgets</p>
               <div className="flex flex-col gap-1.5">
                 {available.map(id => {
                   const w = WIDGET_REGISTRY[id]
@@ -203,7 +203,7 @@ export default function WidgetPicker({ open, onClose, activeIds, todayIds, onSav
                       <span className="text-charcoal/20 dark:text-white/20 text-lg shrink-0">+</span>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-charcoal/60 dark:text-white/50 truncate">{w.label}</p>
-                        <p className="text-[11px] text-charcoal/35 dark:text-white/30 truncate">{w.description}</p>
+                        <p className="text-caption text-charcoal/35 dark:text-white/30 truncate">{w.description}</p>
                       </div>
                     </button>
                   )
