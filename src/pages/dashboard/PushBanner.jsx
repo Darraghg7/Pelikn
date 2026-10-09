@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { usePushNotifications } from '../../hooks/usePushNotifications'
+import Button, { CloseButton } from '../../components/ui/Button'
 
 function pushDismissKey(staffId) { return `pelikn_push_dismissed_${staffId ?? 'anon'}` }
 
@@ -24,18 +25,13 @@ export default function PushBanner({ staffId, venueId }) {
         Enable notifications to get alerts for overdue checks
       </p>
       <div className="flex items-center gap-2 shrink-0">
-        <button
+        <Button
+          size="sm"
           onClick={subscribe}
-          className="text-[11px] font-bold tracking-wide bg-brand text-white px-3 py-1.5 rounded-lg hover:bg-brand/90 transition-colors"
         >
           Enable
-        </button>
-        <button
-          onClick={() => { localStorage.setItem(pushDismissKey(staffId), '1'); setDismissed(true) }}
-          className="text-charcoal/30 dark:text-white/30 hover:text-charcoal/60 dark:hover:text-white/50 transition-colors p-1"
-        >
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
-        </button>
+        </Button>
+        <CloseButton label="Dismiss" onClick={() => { localStorage.setItem(pushDismissKey(staffId), '1'); setDismissed(true) }} />
       </div>
     </div>
   )

@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { IconSpark, IconArrow } from './SignupIcons'
+import Button from '../../components/ui/Button'
 
 export default function StepSuccess({ venueName, venueSlug, plan, allVenues = [] }) {
   const navigate = useNavigate()
@@ -71,13 +72,14 @@ export default function StepSuccess({ venueName, venueSlug, plan, allVenues = []
       )}
 
       <div className="flex flex-col gap-2 w-full">
-        <button
+        <Button
+          size="lg"
+          fullWidth
           onClick={() => navigate(`/v/${venueSlug}`)}
-          className="w-full bg-brand text-cream py-3.5 rounded-xl text-sm font-semibold hover:bg-brand/90 transition-colors flex items-center justify-center gap-2"
         >
           Go to your dashboard
           <IconArrow />
-        </button>
+        </Button>
         <p className="text-[11px] text-charcoal/35 dark:text-white/30">Redirecting automatically in a few seconds…</p>
       </div>
     </div>

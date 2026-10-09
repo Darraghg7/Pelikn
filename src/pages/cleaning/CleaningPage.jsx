@@ -11,6 +11,7 @@ import ConfirmDialog from '../../components/ui/ConfirmDialog'
 import CleaningExportModal from './CleaningExportModal'
 import { useViewerDepartments } from '../../hooks/useDepartments'
 import DepartmentFilter from '../../components/ui/DepartmentFilter'
+import Button from '../../components/ui/Button'
 
 const FREQ_OPTIONS = ['daily', 'weekly', 'fortnightly', 'monthly', 'quarterly']
 
@@ -168,24 +169,24 @@ export default function CleaningPage() {
         <h1 className="text-2xl font-bold text-charcoal dark:text-white">Cleaning Schedule</h1>
         <div className="flex items-center gap-3">
           {isManager && (
-            <button
+            <Button
+              variant="label"
               onClick={() => setShowExport(true)}
-              className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white transition-colors border-b border-charcoal/20 dark:border-white/20"
             >
               Export PDF
-            </button>
+            </Button>
           )}
           {isManager && (
-          <button
+          <Button
+            variant="label"
             onClick={() => {
               // A kitchen manager adding a task is almost always adding a kitchen one.
               if (!showAdd) setForm((f) => ({ ...f, department_id: defaultDepartmentId }))
               setShowAdd((v) => !v)
             }}
-            className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white transition-colors border-b border-charcoal/20 dark:border-white/20"
           >
             + Add Task
-          </button>
+          </Button>
           )}
         </div>
       </div>
@@ -260,16 +261,17 @@ export default function CleaningPage() {
             </div>
           </div>
           <div className="flex gap-2 pt-1">
-            <button
+            <Button
+              loading={saving}
               onClick={saveTask}
               disabled={saving || !form.title.trim()}
-              className="flex-1 bg-charcoal text-cream py-2.5 rounded-lg text-sm font-medium disabled:opacity-40"
+              className="flex-1"
             >
               {saving ? 'Saving…' : 'Save Task →'}
-            </button>
-            <button onClick={() => setShowAdd(false)} className="px-4 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 text-sm text-charcoal/50 dark:text-white/40">
+            </Button>
+            <Button variant="secondary" onClick={() => setShowAdd(false)}>
               Cancel
-            </button>
+            </Button>
           </div>
         </div>
       )}
@@ -355,15 +357,17 @@ export default function CleaningPage() {
                 </div>
 
                 {isManager && (
-                  <button
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    iconOnly
                     onClick={() => setRemoveTarget(t)}
                     aria-label="Remove task"
-                    className="shrink-0 w-7 h-7 rounded-lg grid place-items-center text-charcoal/30 dark:text-white/30 hover:text-danger hover:bg-danger/8 transition-colors"
                   >
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M18 6 6 18M6 6l12 12" />
                     </svg>
-                  </button>
+                  </Button>
                 )}
               </div>
             )
@@ -373,7 +377,7 @@ export default function CleaningPage() {
           {filtered.length === 0 && loadError && (
             <div className="py-6 text-center">
               <p className="text-sm text-danger/80">Couldn't load the cleaning schedule — check your connection.</p>
-              <button onClick={reload} className="mt-2 text-xs underline text-charcoal/50 dark:text-white/40 hover:text-charcoal dark:hover:text-white">Try again</button>
+              <Button variant="link" onClick={reload} className="mt-2">Try again</Button>
             </div>
           )}
           {filtered.length === 0 && !loadError && (
@@ -405,19 +409,22 @@ export default function CleaningPage() {
               />
             </div>
             <div className="flex gap-2">
-              <button
+              <Button
+                size="lg"
+                loading={!!completing}
                 onClick={submitComplete}
                 disabled={!!completing}
-                className="min-h-12 flex-1 bg-charcoal text-cream py-3 rounded-xl text-sm font-semibold disabled:opacity-40"
+                className="flex-1"
               >
                 {completing ? 'Saving…' : 'Confirm Complete →'}
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="secondary"
+                size="lg"
                 onClick={() => setCompleteModal(null)}
-                className="px-4 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 text-sm text-charcoal/50 dark:text-white/40"
               >
                 Cancel
-              </button>
+              </Button>
             </div>
           </div>
         </div>

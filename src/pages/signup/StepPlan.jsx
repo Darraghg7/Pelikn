@@ -5,6 +5,7 @@ import {
 } from '../../lib/pricing'
 import { IconCheck, IconQR, IconArrow, IconLock } from './SignupIcons'
 import { STARTER_FEATURES, PRO_FEATURES, PLAN_DETAILS } from '../../lib/plans'
+import Button from '../../components/ui/Button'
 
 export default function StepPlan({ selected, onSelect, extraVenues, onExtraVenues, qrAddon, onQrAddon, onNext }) {
   return (
@@ -155,13 +156,13 @@ export default function StepPlan({ selected, onSelect, extraVenues, onExtraVenue
       </div>
 
       <div className="text-center">
-        <button
+        <Button
+          size="lg"
           onClick={onNext}
-          className="inline-flex items-center gap-2 bg-brand text-cream px-8 py-3.5 rounded-xl text-sm font-semibold hover:bg-brand/90 transition-colors"
         >
           Continue with {selected === 'pro' ? 'Pro' : 'Starter'}
           <IconArrow />
-        </button>
+        </Button>
         <div className="flex items-center justify-center gap-1.5 text-[11px] text-charcoal/35 dark:text-white/30 mt-3">
           <IconLock />
           <span>7-day free trial · No card required · Cancel any time</span>

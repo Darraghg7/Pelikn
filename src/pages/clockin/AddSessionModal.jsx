@@ -3,6 +3,7 @@ import { supabase } from '../../lib/supabase'
 import { useToast } from '../../components/ui/Toast'
 import Modal from '../../components/ui/Modal'
 import { londonWallTimeToInstant, resolveShiftInstants, nextLondonDate } from '../../lib/time'
+import Button from '../../components/ui/Button'
 
 export default function AddSessionModal({ open, onClose, staffList, initialStaffId, initialDate, venueId, onSaved }) {
   const toast = useToast()
@@ -151,13 +152,14 @@ export default function AddSessionModal({ open, onClose, staffList, initialStaff
           </div>
         )}
 
-        <button
+        <Button
+          loading={saving}
           onClick={save}
           disabled={saving}
-          className="bg-charcoal text-cream py-3 rounded-xl text-sm font-medium hover:bg-charcoal/90 transition-colors disabled:opacity-40 mt-1"
+          className="mt-1"
         >
           {saving ? 'Saving…' : 'Add Session →'}
-        </button>
+        </Button>
       </div>
     </Modal>
   )

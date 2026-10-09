@@ -41,6 +41,7 @@ import {
   arrayMove,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
+import Button from '../../components/ui/Button'
 
 // ── Live time (updates every minute) ──────────────────────────────────────
 function useLiveTime() {
@@ -402,34 +403,36 @@ function MobileClockCard({ staffId }) {
         </div>
 
         {loading ? null : isError ? (
-          <button
+          <Button
+            variant="inverse-secondary"
+            fullWidth
             onClick={reload}
-            className="w-full h-10 rounded-2xl bg-bad/20 text-white text-[13px] font-semibold border border-bad/50 cursor-pointer"
           >
             Couldn't check status — retry
-          </button>
+          </Button>
         ) : status === 'clocked_out' ? (
-          <button onClick={() => record('clock_in')} className={primaryBtn}>
+          <Button variant="inverse" fullWidth onClick={() => record('clock_in')}>
             Clock in
-          </button>
+          </Button>
         ) : status === 'clocked_in' ? (
           <div className="flex gap-2">
-            <button
+            <Button
+              variant="inverse-secondary"
               onClick={() => record('break_start')}
              
-              className={`flex-1 h-10 rounded-2xl bg-white/12 text-white border border-white/25 text-[14px] font-semibold cursor-pointer`}
+              className="flex-1"
             >
               Break
-            </button>
-            <button onClick={closingGuard.guardClockOut} className={`${primaryBtn} flex-[2] flex items-center justify-center gap-2`}>
+            </Button>
+            <Button variant="inverse" onClick={closingGuard.guardClockOut} className="flex-[2]">
               <span className="inline-block w-2.5 h-2.5 bg-brand rounded-[2px]" />
               Clock out
-            </button>
+            </Button>
           </div>
         ) : status === 'on_break' ? (
-          <button onClick={() => record('break_end')} className={primaryBtn}>
+          <Button variant="inverse" fullWidth onClick={() => record('break_end')}>
             End break
-          </button>
+          </Button>
         ) : null}
         {notSent && (
           <p role="status" className="text-[12px] font-medium text-white/80 mt-2">
@@ -712,13 +715,14 @@ export default function MobileManagerDashboard({
       <AttentionCard actions={actions} editMode={editMode} vp={vp} />
 
       {editMode && onOpenPicker && (
-        <button
-          type="button"
+        <Button
+          variant="secondary"
+          size="sm"
           onClick={onOpenPicker}
-          className="self-center h-8 px-3.5 rounded-xl border border-line dark:border-white/10 bg-white dark:bg-paperDark text-[13px] font-semibold text-ink2 dark:text-white/80 hover:border-ink4"
+          className="self-center"
         >
           Choose Needs you items
-        </button>
+        </Button>
       )}
       {editMode && (
         <p className="text-center text-[13px] text-ink3 dark:text-white/45">

@@ -9,6 +9,7 @@ import { DEVICE_VENUES_KEY } from '../lib/constants'
 import { captureSilent } from '../lib/reportError'
 import { staffListState } from '../lib/loginScreenState'
 import Avatar from '../components/ui/Avatar'
+import Button from '../components/ui/Button'
 
 // ── Device venue helpers ──────────────────────────────────────────────────────
 function readDeviceVenues() {
@@ -168,10 +169,10 @@ function AddVenueModal({ currentDeviceVenues, onAdd, onClose }) {
 
         <div className="flex gap-2">
           {status !== 'found' || newVenues.length === 0 ? (
-            <button
+            <Button
               onClick={lookup}
               disabled={!code.trim() || status === 'loading'}
-              className="flex-1 bg-brand text-white py-3 rounded-xl text-sm font-semibold hover:bg-brand/90 transition-colors disabled:opacity-40"
+              className="flex-1"
             >
               {status === 'loading' ? (
                 <span className="flex items-center justify-center gap-2">
@@ -179,21 +180,21 @@ function AddVenueModal({ currentDeviceVenues, onAdd, onClose }) {
                   Looking up…
                 </span>
               ) : 'Look up code'}
-            </button>
+            </Button>
           ) : (
-            <button
+            <Button
               onClick={() => onAdd(newVenues)}
-              className="flex-1 bg-brand text-white py-3 rounded-xl text-sm font-semibold hover:bg-brand/90 transition-colors"
+              className="flex-1"
             >
               Add {newVenues.length === 1 ? newVenues[0].name : `${newVenues.length} venues`} →
-            </button>
+            </Button>
           )}
-          <button
+          <Button
+            variant="secondary"
             onClick={onClose}
-            className="px-4 py-3 rounded-xl border border-charcoal/15 dark:border-white/15 text-sm text-charcoal/50 dark:text-white/40 hover:border-charcoal/30 dark:hover:border-white/30 transition-colors"
           >
             Cancel
-          </button>
+          </Button>
         </div>
       </div>
     </div>
@@ -729,13 +730,12 @@ export default function LoginPage() {
                       ? 'This device is offline. Reconnect to the internet, then try again.'
                       : 'We couldn’t reach Pelikn. Check your connection and try again.'}
                     action={
-                      <button
-                        type="button"
+                      <Button
+                        fullWidth
                         onClick={() => setStaffAttempt(a => a + 1)}
-                        className="w-full bg-brand text-cream py-2.5 rounded-xl text-sm font-semibold hover:bg-brand/90 transition-colors"
                       >
                         Try again
-                      </button>
+                      </Button>
                     }
                   />
                 )}
@@ -744,13 +744,13 @@ export default function LoginPage() {
                     title="No team members yet"
                     body={`Nobody at ${venueName ?? 'this venue'} can sign in with a PIN yet. A manager needs to add the team in Pelikn first.`}
                     action={
-                      <button
-                        type="button"
+                      <Button
+                        variant="secondary"
+                        fullWidth
                         onClick={() => navigate('/login')}
-                        className="w-full py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 text-sm font-semibold text-charcoal dark:text-white hover:border-brand/40 hover:text-brand transition-colors"
                       >
                         Manager sign in
-                      </button>
+                      </Button>
                     }
                   />
                 )}
@@ -829,11 +829,11 @@ export default function LoginPage() {
                 <Numpad onDigit={handleDigit} onDelete={handleDelete} />
 
                 {/* Sign in button */}
-                <button
-                  type="button"
+                <Button
+                  size="lg"
+                  fullWidth
                   onClick={() => doSignIn(pin)}
                   disabled={pin.length < 4 || submitting}
-                  className="w-full bg-brand text-cream py-3.5 rounded-xl text-sm font-semibold tracking-wide hover:bg-brand/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   {submitting ? (
                     <span className="flex items-center justify-center gap-2">
@@ -841,7 +841,7 @@ export default function LoginPage() {
                       Signing in…
                     </span>
                   ) : 'Sign In'}
-                </button>
+                </Button>
               </div>
             )}
 
