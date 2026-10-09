@@ -613,7 +613,7 @@ export default function LoginPage() {
 
   return (
     <div
-      className="min-h-dvh bg-surface flex flex-col items-center justify-start sm:justify-center px-4 py-6 sm:px-5 sm:py-10 font-sans overflow-y-auto"
+      className="min-h-dvh bg-surface dark:bg-bgDark flex flex-col items-center justify-start sm:justify-center px-4 py-6 sm:px-5 sm:py-10 font-sans overflow-y-auto"
       style={{
         paddingTop: 'max(1.5rem, env(safe-area-inset-top))',
         paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))',
@@ -641,7 +641,7 @@ export default function LoginPage() {
         className="mb-5 sm:mb-8 text-center shrink-0"
         style={ready ? { animation: 'login-logo-enter 0.45s cubic-bezier(.22,.9,.28,1) both', willChange: 'transform, opacity' } : { opacity: 0 }}
       >
-        <h1 className="font-bold text-brand text-4xl tracking-tight">Pelikn</h1>
+        <h1 className="font-bold text-brand dark:text-white text-4xl tracking-tight">Pelikn</h1>
         <p className="text-xs tracking-widest text-charcoal/40 dark:text-white/35 uppercase mt-1">Built for Hospitality</p>
       </div>
 
