@@ -256,7 +256,7 @@ export default function StaffRotaView({ shifts, staff, loading, weekStart, prevW
               req={reqs[selectedDaySession.session.clockInId]}
             />
           ) : selectedShift ? (
-            <div className="rounded-2xl p-4 text-white" style={{ background: '#13362a' }}>
+            <div className="rounded-2xl p-4 text-white bg-brand">
               <div className="flex items-center justify-between">
                 <span className="font-mono text-[10.5px] text-white/55 tracking-[0.1em] uppercase">Your shift</span>
               </div>

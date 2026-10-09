@@ -35,7 +35,7 @@ export function DayWorkedCard({ session, role, req }) {
   const status    = req?.status
   const showReq   = status === 'pending' || status === 'approved'
   return (
-    <div className="bg-white dark:bg-paperDark rounded-2xl p-4" style={{ border:'1px solid rgba(13,26,20,0.20)', boxShadow:'0 1px 3px rgba(13,26,20,0.05)' }}>
+    <div className="bg-white dark:bg-paperDark rounded-2xl p-4 border border-ink/20 dark:border-white/10 shadow-[0_1px_3px_theme(colors.ink/5%)]">
       <div className="flex items-center justify-between">
         <span className="font-mono text-[10.5px] text-charcoal/50 dark:text-white/40 tracking-[0.1em] uppercase">Hours worked</span>
         {status ? <EHStatusPill status={status} /> : (
@@ -53,12 +53,11 @@ export function DayWorkedCard({ session, role, req }) {
         {role && <><span className="text-charcoal/25 dark:text-white/25">·</span><span>{role}</span></>}
       </div>
       {showReq && req?.start && (
-        <div className="mt-2.5 flex items-center justify-between px-3 py-2 rounded-[11px]"
-          style={{ background: status === 'approved' ? '#e3f0e7' : '#fbeedc' }}>
-          <span className="text-[11.5px] font-semibold" style={{ color: status === 'approved' ? '#1a7a4c' : '#a85d12' }}>
+        <div className={`mt-2.5 flex items-center justify-between px-3 py-2 rounded-[11px] ${status === 'approved' ? 'bg-goodBg text-good dark:bg-good/20 dark:text-goodDark' : 'bg-warnBg text-warn dark:bg-warn/20 dark:text-warnDark'}`}>
+          <span className="text-[11.5px] font-semibold">
             {status === 'approved' ? 'Updated to' : 'Requested'}
           </span>
-          <span className="font-mono text-[12.5px] font-bold tabular-nums" style={{ color: status === 'approved' ? '#1a7a4c' : '#a85d12' }}>
+          <span className="font-mono text-[12.5px] font-bold tabular-nums">
             {req.start}–{req.end} · {ehDurLabel(req.newMins ?? 0)}
           </span>
         </div>
@@ -84,15 +83,14 @@ export function WorkedSection({ rows, reqs, hourlyRate, onFix, isDateLocked }) {
         <span className="font-mono text-[10.5px] text-charcoal/50 dark:text-white/40 tracking-[0.08em] uppercase font-semibold">This week · worked</span>
         <span className="font-mono text-[11px] text-charcoal/50 dark:text-white/40">{rows.length} logged · so far</span>
       </div>
-      <div className="rounded-2xl overflow-hidden" style={{ background:'#fff', border:'1px solid rgba(13,26,20,0.20)', boxShadow:'0 1px 3px rgba(13,26,20,0.05)' }}>
+      <div className="rounded-2xl overflow-hidden bg-white dark:bg-paperDark border border-ink/20 dark:border-white/10 shadow-[0_1px_3px_theme(colors.ink/5%)]">
         {rows.map((r, i) => {
           const req    = reqs[r.session.clockInId]
           const status = req?.status
           const showReq = status === 'pending' || status === 'approved'
           return (
             <div key={r.session.clockInId}
-              className="flex items-center gap-3 px-3.5 py-3"
-              style={{ borderTop: i === 0 ? 'none' : '1px solid #eef0ec' }}>
+              className={`flex items-center gap-3 px-3.5 py-3 ${i === 0 ? '' : 'border-t border-line2 dark:border-white/5'}`}>
               {/* date chip */}
               <div className="w-11 h-12 rounded-[9px] bg-charcoal/4 dark:bg-white/5 border border-charcoal/10 dark:border-white/10 shrink-0 flex flex-col items-center justify-center gap-0.5">
                 <span className="font-mono text-[9px] text-charcoal/50 dark:text-white/40 tracking-[0.06em] font-semibold">{r.dow}</span>
@@ -131,7 +129,7 @@ export function WorkedSection({ rows, reqs, hourlyRate, onFix, isDateLocked }) {
           )
         })}
         {/* footer */}
-        <div className="flex items-center gap-4 px-3.5 py-3 bg-charcoal/3 dark:bg-white/5" style={{ borderTop:'1px solid #eef0ec' }}>
+        <div className="flex items-center gap-4 px-3.5 py-3 bg-charcoal/3 dark:bg-white/5 border-t border-line2 dark:border-white/5">
           <div>
             <div className="font-mono text-[9.5px] text-charcoal/50 dark:text-white/40 tracking-[0.06em] uppercase">Worked</div>
             <div className="font-mono text-[14px] font-semibold mt-0.5">{ehDurLabel(total)}</div>

@@ -1,15 +1,17 @@
 import { format } from 'date-fns'
 import { staffColour } from './utils'
+import { colors, alpha, white } from './tokens'
 
+// The exported rota image is always light, whatever the app theme.
 const C = {
-  charcoal:  '#1a1a18',
-  cream:     '#f5f4f1',
-  accent:    '#c94f2a',
-  border:    '#e5e3df',
-  muted:     '#a09e9a',
-  closedBg:  '#f2f1ee',
-  rowAlt:    'rgba(26,26,24,0.018)',
-  white:     '#ffffff',
+  charcoal:  colors.charcoal,
+  cream:     colors.cream,
+  accent:    colors.accent,
+  border:    colors.line,
+  muted:     colors.ink4,
+  closedBg:  colors.surface,
+  rowAlt:    alpha(colors.charcoal, 0.018),
+  white:     colors.paper,
 }
 
 const DPR      = 2
@@ -24,13 +26,6 @@ const CHIP_PAD = 10
 const FOOTER_H = 32
 
 const DAYS = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN']
-
-function rgba(hex, a) {
-  const r = parseInt(hex.slice(1, 3), 16)
-  const g = parseInt(hex.slice(3, 5), 16)
-  const b = parseInt(hex.slice(5, 7), 16)
-  return `rgba(${r},${g},${b},${a})`
-}
 
 function roundRect(ctx, x, y, w, h, r) {
   ctx.beginPath()
@@ -106,13 +101,13 @@ export function buildRotaCanvas({ venueName, weekStart, days, shifts, staff, clo
   ctx.fillText(nameText, PAD + 4, PAD + 38)
 
   // Week label
-  ctx.fillStyle = rgba(C.cream, 0.55)
+  ctx.fillStyle = alpha(C.cream, 0.55)
   ctx.font = `400 12px system-ui,-apple-system,sans-serif`
   ctx.fillText(`Rota: Week of ${format(weekStart, 'EEE d MMM yyyy')}`, PAD + 4, PAD + 58)
 
   // Shift count top-right
   if (shifts.length > 0) {
-    ctx.fillStyle = rgba(C.cream, 0.3)
+    ctx.fillStyle = alpha(C.cream, 0.3)
     ctx.font = `400 11px system-ui,-apple-system,sans-serif`
     ctx.textAlign = 'right'
     ctx.fillText(`${shifts.length} shift${shifts.length !== 1 ? 's' : ''}`, W - PAD - 4, PAD + 38)
@@ -125,11 +120,11 @@ export function buildRotaCanvas({ venueName, weekStart, days, shifts, staff, clo
 
   // ── Day header row ──────────────────────────────────────────────────────────
   // Background
-  ctx.fillStyle = rgba(C.charcoal, 0.04)
+  ctx.fillStyle = alpha(C.charcoal, 0.04)
   ctx.fillRect(tableLeft, tableTop, tableW, DAY_HDR_H)
 
   // "STAFF" column label
-  ctx.fillStyle = rgba(C.charcoal, 0.35)
+  ctx.fillStyle = alpha(C.charcoal, 0.35)
   ctx.font = `600 9px system-ui,-apple-system,sans-serif`
   ctx.fillText('STAFF', tableLeft + 12, tableTop + DAY_HDR_H / 2 + 4)
 
@@ -139,22 +134,22 @@ export function buildRotaCanvas({ venueName, weekStart, days, shifts, staff, clo
     const x = tableLeft + NAME_W + i * DAY_W
 
     if (isClosed) {
-      ctx.fillStyle = rgba(C.charcoal, 0.06)
+      ctx.fillStyle = alpha(C.charcoal, 0.06)
       ctx.fillRect(x, tableTop, DAY_W, DAY_HDR_H)
     }
 
     const dimmed = isClosed ? 0.25 : 0.5
-    ctx.fillStyle = rgba(C.charcoal, dimmed)
+    ctx.fillStyle = alpha(C.charcoal, dimmed)
     ctx.font = `600 9px system-ui,-apple-system,sans-serif`
     ctx.textAlign = 'center'
     ctx.fillText(DAYS[i], x + DAY_W / 2, tableTop + 17)
 
-    ctx.fillStyle = isClosed ? rgba(C.charcoal, 0.25) : C.charcoal
+    ctx.fillStyle = isClosed ? alpha(C.charcoal, 0.25) : C.charcoal
     ctx.font = `500 13px system-ui,-apple-system,sans-serif`
     ctx.fillText(format(d, 'd MMM'), x + DAY_W / 2, tableTop + 35)
 
     if (isClosed) {
-      ctx.fillStyle = rgba(C.charcoal, 0.2)
+      ctx.fillStyle = alpha(C.charcoal, 0.2)
       ctx.font = `600 8px system-ui,-apple-system,sans-serif`
       ctx.fillText('CLOSED', x + DAY_W / 2, tableTop + 46)
     }
@@ -210,7 +205,7 @@ export function buildRotaCanvas({ venueName, weekStart, days, shifts, staff, clo
       const dayShifts = shiftIndex[`${s.id}:${dateStr}`] ?? []
 
       if (isClosed) {
-        ctx.fillStyle = rgba(C.charcoal, 0.04)
+        ctx.fillStyle = alpha(C.charcoal, 0.04)
         ctx.fillRect(cellX, rowY, DAY_W, rowH)
       }
 
@@ -226,7 +221,7 @@ export function buildRotaCanvas({ venueName, weekStart, days, shifts, staff, clo
         ctx.fill()
 
         const timeStr = `${sh.start_time?.slice(0, 5) ?? ''}–${sh.end_time?.slice(0, 5) ?? ''}`
-        ctx.fillStyle = 'rgba(255,255,255,0.95)'
+        ctx.fillStyle = white(0.95)
         ctx.font = `600 11px system-ui,-apple-system,sans-serif`
         ctx.textAlign = 'center'
         ctx.fillText(timeStr, chipX + chipW / 2, chipY + 14)
@@ -258,7 +253,7 @@ export function buildRotaCanvas({ venueName, weekStart, days, shifts, staff, clo
   // Between day columns
   for (let i = 1; i < 7; i++) {
     const x = tableLeft + NAME_W + i * DAY_W
-    ctx.strokeStyle = rgba(C.border, 0.6)
+    ctx.strokeStyle = alpha(C.border, 0.6)
     ctx.lineWidth = 0.5
     ctx.beginPath()
     ctx.moveTo(x, tableTop)
@@ -273,7 +268,7 @@ export function buildRotaCanvas({ venueName, weekStart, days, shifts, staff, clo
   ctx.stroke()
 
   // ── Footer ──────────────────────────────────────────────────────────────────
-  ctx.fillStyle = rgba(C.charcoal, 0.25)
+  ctx.fillStyle = alpha(C.charcoal, 0.25)
   ctx.font = `400 10px system-ui,-apple-system,sans-serif`
   ctx.textAlign = 'center'
   ctx.fillText('Generated by Pelikn', W / 2, rowY + FOOTER_H / 2 + 4)

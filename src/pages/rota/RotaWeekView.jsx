@@ -73,7 +73,7 @@ function MobileWeekGrid({ days, shifts, shiftIndex, staff, onCellClick, currentS
                   {DAY_LABELS[i]}
                 </div>
                 {today ? (
-                  <div className="w-7 h-7 rounded-full mx-auto flex items-center justify-center" style={{ background: '#13362a' }}>
+                  <div className="w-7 h-7 rounded-full mx-auto flex items-center justify-center bg-brand">
                     <span className="text-[13px] font-bold text-white leading-none">{format(d, 'd')}</span>
                   </div>
                 ) : (
@@ -303,8 +303,7 @@ function DesktopWeekTable({ days, shifts, shiftIndex, staff, onCellClick, onTogg
                       {dayShifts.length === 0 ? (
                         crossShift ? (
                           <div
-                            className="h-10 flex flex-col items-center justify-center rounded border border-indigo-200/60 px-1"
-                            style={{ background: 'repeating-linear-gradient(-45deg, transparent, transparent 3px, rgba(99,102,241,0.08) 3px, rgba(99,102,241,0.08) 6px)' }}
+                            className="h-10 flex flex-col items-center justify-center rounded border border-indigo-200/60 px-1 bg-[repeating-linear-gradient(-45deg,transparent,transparent_3px,theme(colors.indigo.500/8%)_3px,theme(colors.indigo.500/8%)_6px)]"
                           >
                             <span className="text-[8px] tracking-widest uppercase text-indigo-400 font-semibold leading-tight">Busy</span>
                             <span className="text-[8px] text-indigo-300 truncate max-w-full px-1">{crossShift.venue_name}</span>

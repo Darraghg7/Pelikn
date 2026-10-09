@@ -38,27 +38,32 @@ function EHWheel({ values, value, onChange }) {
           return (
             <div key={v}
               onClick={() => { ref.current.scrollTo({ top: i * WHEEL_IH, behavior: 'smooth' }); onChange(v) }}
-              className="font-mono tabular-nums"
+              className={`font-mono tabular-nums ${on ? 'text-ink dark:text-white' : 'text-ink4 dark:text-white/30'}`}
               style={{
                 height: WHEEL_IH, display: 'flex', alignItems: 'center', justifyContent: 'center',
                 scrollSnapAlign: 'center', cursor: 'pointer',
                 fontVariantNumeric: 'tabular-nums',
                 fontSize: on ? 23 : 18, fontWeight: on ? 600 : 500,
-                color: on ? '#0d1a14' : '#b3b9b5', transition: 'font-size .1s, color .1s',
+                transition: 'font-size .1s, color .1s',
               }}
             >{v}</div>
           )
         })}
       </div>
       {/* centre band */}
-      <div style={{ position:'absolute', left:0, right:0, top: pad, height: WHEEL_IH, pointerEvents:'none', borderTop:'1px solid #e4e6e2', borderBottom:'1px solid #e4e6e2', background:'rgba(19,54,42,0.03)' }} />
+      <div className="border-y border-line dark:border-white/10 bg-brand/3 dark:bg-white/5" style={{ position:'absolute', left:0, right:0, top: pad, height: WHEEL_IH, pointerEvents:'none' }} />
       {/* top fade */}
-      <div style={{ position:'absolute', left:0, right:0, top:0, height: pad, pointerEvents:'none', background:'linear-gradient(#f3f3ef,#f3f3ef00)' }} />
+      <div className="bg-gradient-to-b from-surface to-surface/0 dark:from-paperDark dark:to-paperDark/0" style={{ position:'absolute', left:0, right:0, top:0, height: pad, pointerEvents:'none' }} />
       {/* bottom fade */}
-      <div style={{ position:'absolute', left:0, right:0, bottom:0, height: pad, pointerEvents:'none', background:'linear-gradient(#f3f3ef00,#f3f3ef)' }} />
+      <div className="bg-gradient-to-t from-surface to-surface/0 dark:from-paperDark dark:to-paperDark/0" style={{ position:'absolute', left:0, right:0, bottom:0, height: pad, pointerEvents:'none' }} />
     </div>
   )
 }
+
+// Clock in / clock out segmented control
+const SEG_ON      = 'bg-paper dark:bg-white/15 shadow-[0_1px_3px_theme(colors.ink/10%)]'
+const SEG_VAL_ON  = 'text-brand dark:text-white'
+const SEG_VAL_OFF = 'text-ink3 dark:text-white/45'
 
 /* Fix-hours bottom sheet */
 export default function FixHoursSheet({ ctx, onClose, onSubmit }) {
@@ -143,16 +148,17 @@ export default function FixHoursSheet({ ctx, onClose, onSubmit }) {
   }
 
   return (
-    <div style={{ position:'fixed', inset:0, zIndex:50, display:'flex', flexDirection:'column', justifyContent:'flex-end' }}>
-      <div onClick={onClose} style={{ position:'absolute', inset:0, background:'rgba(9,18,13,0.42)' }} />
-      <div style={{
-        position:'relative', background:'#f3f3ef', borderRadius:'22px 22px 0 0',
+    // z-[60]: MobileNav is portaled at z-50 and would swallow taps on a z-50 sheet
+    <div className="z-[60]" style={{ position:'fixed', inset:0, display:'flex', flexDirection:'column', justifyContent:'flex-end' }}>
+      <div onClick={onClose} className="bg-ink/45" style={{ position:'absolute', inset:0 }} />
+      <div className="bg-surface dark:bg-paperDark text-ink dark:text-white" style={{
+        position:'relative', borderRadius:'22px 22px 0 0',
         padding:'10px 16px env(safe-area-inset-bottom,24px)', maxHeight:'92dvh', overflowY:'auto',
         animation:'ehSlideUp 0.32s cubic-bezier(0.16,1,0.3,1) both',
       }}>
         <style>{`@keyframes ehSlideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}`}</style>
         {/* grab handle */}
-        <div style={{ width:38, height:4, borderRadius:2, background:'#e4e6e2', margin:'0 auto 16px' }} />
+        <div className="bg-line dark:bg-white/15" style={{ width:38, height:4, borderRadius:2, margin:'0 auto 16px' }} />
 
         {/* header */}
         <div className="flex items-center gap-3">
@@ -176,10 +182,10 @@ export default function FixHoursSheet({ ctx, onClose, onSubmit }) {
           {[['start','Clock in', start], ['end','Clock out', end]].map(([k, label, val]) => {
             const on = edge === k
             return (
-              <button key={k} onClick={() => setEdge(k)} className="flex-1 rounded-[9px] py-2 transition-all"
-                style={{ background: on ? '#fff' : 'transparent', boxShadow: on ? '0 1px 3px rgba(9,18,13,0.1)' : 'none', border:'none', cursor:'pointer' }}>
+              <button key={k} onClick={() => setEdge(k)} className={`flex-1 rounded-[9px] py-2 transition-all ${on ? SEG_ON : 'bg-transparent'}`}
+                style={{ border:'none', cursor:'pointer' }}>
                 <div className="font-mono text-[9px] text-charcoal/50 dark:text-white/40 uppercase tracking-[0.06em] font-semibold">{label}</div>
-                <div className="font-mono text-[17px] font-semibold tabular-nums mt-0.5" style={{ color: on ? '#13362a' : '#76817b' }}>{val}</div>
+                <div className={`font-mono text-[17px] font-semibold tabular-nums mt-0.5 ${on ? SEG_VAL_ON : SEG_VAL_OFF}`}>{val}</div>
               </button>
             )
           })}
@@ -218,8 +224,10 @@ export default function FixHoursSheet({ ctx, onClose, onSubmit }) {
                   setEdge('brkStart')
                 }
               }}
-              className="font-mono text-[11px] font-semibold px-2.5 py-1 rounded-full transition-colors"
-              style={{ border: `1px solid ${hasBreak ? '#b3331c' : '#e4e6e2'}`, background: hasBreak ? '#fbeae6' : '#fff', color: hasBreak ? '#b3331c' : '#76817b', cursor: 'pointer' }}
+              className={`font-mono text-[11px] font-semibold px-2.5 py-1 rounded-full border transition-colors ${hasBreak
+                ? 'border-bad bg-badBg text-bad dark:border-badDark/40 dark:bg-bad/25 dark:text-badDark'
+                : 'border-line bg-paper text-ink3 dark:border-white/10 dark:bg-white/5 dark:text-white/50'}`}
+              style={{ cursor: 'pointer' }}
             >
               {hasBreak ? 'Remove break' : '+ Add break'}
             </button>
@@ -230,10 +238,10 @@ export default function FixHoursSheet({ ctx, onClose, onSubmit }) {
                 {[['brkStart', 'Break start', brkStart], ['brkEnd', 'Break end', brkEnd]].map(([k, label, val]) => {
                   const on = edge === k
                   return (
-                    <button key={k} onClick={() => setEdge(k)} className="flex-1 rounded-[9px] py-2 transition-all"
-                      style={{ background: on ? '#fff' : 'transparent', boxShadow: on ? '0 1px 3px rgba(9,18,13,0.1)' : 'none', border: 'none', cursor: 'pointer' }}>
+                    <button key={k} onClick={() => setEdge(k)} className={`flex-1 rounded-[9px] py-2 transition-all ${on ? SEG_ON : 'bg-transparent'}`}
+                      style={{ border: 'none', cursor: 'pointer' }}>
                       <div className="font-mono text-[9px] text-charcoal/50 dark:text-white/40 uppercase tracking-[0.06em] font-semibold">{label}</div>
-                      <div className="font-mono text-[17px] font-semibold tabular-nums mt-0.5" style={{ color: on ? '#13362a' : '#76817b' }}>{val || '--:--'}</div>
+                      <div className={`font-mono text-[17px] font-semibold tabular-nums mt-0.5 ${on ? SEG_VAL_ON : SEG_VAL_OFF}`}>{val || '--:--'}</div>
                     </button>
                   )
                 })}
@@ -256,16 +264,17 @@ export default function FixHoursSheet({ ctx, onClose, onSubmit }) {
         </div>
 
         {/* live delta strip */}
-        <div className="mt-3 flex items-center justify-between px-3 py-2.5 rounded-xl"
-          style={{ background: invalid ? '#fbeae6' : changed ? '#eef4f0' : '#fff', border: `1px solid ${invalid ? '#b3331c40' : '#e4e6e2'}` }}>
+        <div className={`mt-3 flex items-center justify-between px-3 py-2.5 rounded-xl border ${invalid
+          ? 'bg-badBg border-bad/25 dark:bg-bad/25'
+          : changed ? 'bg-brand-tint border-line dark:bg-white/10 dark:border-white/10' : 'bg-paper border-line dark:bg-white/5 dark:border-white/10'}`}>
           <div className="flex items-baseline gap-2">
             <span className="font-mono text-[15px] font-bold tabular-nums text-charcoal dark:text-white">{start}–{end}</span>
-            <span className="text-[12.5px]" style={{ color: invalid ? '#b3331c' : '#76817b' }}>
+            <span className={`text-[12.5px] ${invalid ? 'text-bad dark:text-badDark' : 'text-ink3 dark:text-white/45'}`}>
               {invalid ? (newMins <= 0 ? 'clock-out must be after clock-in' : 'invalid break times') : ehDurLabel(newMins)}
             </span>
           </div>
           {!invalid && changed && (
-            <span className="font-mono text-[12.5px] font-bold" style={{ color: delta < 0 ? '#b3331c' : '#1a7a4c' }}>
+            <span className={`font-mono text-[12.5px] font-bold ${delta < 0 ? 'text-bad dark:text-badDark' : 'text-good dark:text-goodDark'}`}>
               {ehSignedLabel(delta)}
             </span>
           )}
@@ -280,8 +289,10 @@ export default function FixHoursSheet({ ctx, onClose, onSubmit }) {
                 const on = r === reason
                 return (
                   <button key={r} onClick={() => setReason(r)}
-                    className="text-[12px] font-semibold px-3 py-1.5 rounded-full transition-colors"
-                    style={{ border: `1px solid ${on ? '#13362a' : '#e4e6e2'}`, background: on ? '#eef4f0' : '#fff', color: on ? '#13362a' : '#3d4a44', cursor:'pointer' }}>
+                    className={`text-[12px] font-semibold px-3 py-1.5 rounded-full border transition-colors ${on
+                      ? 'border-brand bg-brand-tint text-brand dark:border-white/40 dark:bg-white/15 dark:text-white'
+                      : 'border-line bg-paper text-ink2 dark:border-white/10 dark:bg-white/5 dark:text-white/70'}`}
+                    style={{ cursor:'pointer' }}>
                     {r}
                   </button>
                 )
@@ -297,7 +308,7 @@ export default function FixHoursSheet({ ctx, onClose, onSubmit }) {
 
         {/* approval info */}
         <div className="mt-3 flex gap-2 items-start px-0.5">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#76817b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mt-0.5 shrink-0"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mt-0.5 shrink-0 text-ink3 dark:text-white/40"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
           <span className="text-[11.5px] text-charcoal/50 dark:text-white/40 leading-snug">
             Your manager reviews this before it changes your pay. Recorded hours stay until approved.
           </span>
@@ -321,10 +332,10 @@ export default function FixHoursSheet({ ctx, onClose, onSubmit }) {
         {/* confirm sub-sheet */}
         {confirming && (
           <div style={{ position:'absolute', inset:0, zIndex:10, display:'flex', flexDirection:'column', justifyContent:'flex-end' }}>
-            <div onClick={() => setConfirming(false)} style={{ position:'absolute', inset:0, background:'rgba(9,18,13,0.45)' }} />
-            <div style={{ position:'relative', background:'#fff', borderRadius:'20px 20px 0 0', padding:'24px 22px 28px', animation:'ehSlideUp 0.28s cubic-bezier(0.16,1,0.3,1) both' }}>
+            <div onClick={() => setConfirming(false)} className="bg-ink/45" style={{ position:'absolute', inset:0 }} />
+            <div className="bg-paper dark:bg-paperDark" style={{ position:'relative', borderRadius:'20px 20px 0 0', padding:'24px 22px 28px', animation:'ehSlideUp 0.28s cubic-bezier(0.16,1,0.3,1) both' }}>
               <div className="w-11 h-11 rounded-[13px] bg-warning/10 grid place-items-center mb-3.5">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#a85d12" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="text-warn dark:text-warnDark" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
               </div>
               <div className="text-[17px] font-bold tracking-[-0.015em]">Send to your manager</div>
               <p className="text-[13.5px] text-charcoal/50 dark:text-white/40 leading-relaxed mt-2 mb-4">

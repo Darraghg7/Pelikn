@@ -46,36 +46,37 @@ const BREAK_OPTIONS = [0, 5, 10, 15, 20, 30, 45, 60, 90]
 function ConfirmDialog({ onConfirm, onCancel, saving }) {
   return (
     <div
+      className="bg-ink/45"
       style={{
         // height:100dvh as well as inset:0 — on iOS `inset:0` resolves against the
         // *layout* viewport, so with the keyboard up (the Reason field is focused
         // right before this opens) the bottom-aligned sheet lands behind the
         // keyboard and its buttons become untappable. dvh tracks the visible area.
         position: 'fixed', inset: 0, height: '100dvh', zIndex: 9999,
-        background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(2px)',
+        backdropFilter: 'blur(2px)',
         display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
         padding: '0 0 env(safe-area-inset-bottom)',
       }}
       onClick={onCancel}
     >
       <div
+        className="bg-paper dark:bg-paperDark shadow-[0_-8px_32px_theme(colors.black/15%)]"
         style={{
-          background: '#fff', borderRadius: '20px 20px 0 0',
+          borderRadius: '20px 20px 0 0',
           padding: '28px 24px 32px', width: '100%', maxWidth: 480,
           // Without these the sheet overflows off the *top* of the screen when it
           // is taller than the viewport, and nothing scrolls — the confirm button
           // is then unreachable.
           maxHeight: '92dvh', overflowY: 'auto',
-          boxShadow: '0 -8px 32px rgba(0,0,0,0.15)',
         }}
         onClick={e => e.stopPropagation()}
       >
         {/* Icon */}
-        <div style={{
+        <div className="bg-warnBg dark:bg-warn/25 text-warn dark:text-warnDark" style={{
           width: 48, height: 48, borderRadius: 14, marginBottom: 16,
-          background: '#fbeedc', display: 'flex', alignItems: 'center', justifyContent: 'center',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#a85d12" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/>
             <path d="M12 8v4M12 16h.01"/>
           </svg>
