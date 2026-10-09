@@ -225,11 +225,11 @@ function SlidingVenueTabs({ venues, activeSlug, onSelect, onAdd }) {
       {/* Scrollable track */}
       <div
         ref={trackRef}
-        className="flex-1 relative flex items-center rounded-xl p-[3px] overflow-x-auto scrollbar-hide"
-        style={{ background: 'rgba(28,47,42,0.05)' }}
+        className="flex-1 relative flex items-center rounded-xl p-[3px] overflow-x-auto scrollbar-hide bg-brand/5 dark:bg-white/5"
       >
         {/* Sliding pill */}
         <div
+          className="bg-brand dark:bg-brand-400 shadow-[0_1px_6px_theme(colors.brand.DEFAULT/20%)]"
           style={{
             position: 'absolute',
             top: 3,
@@ -237,8 +237,6 @@ function SlidingVenueTabs({ venues, activeSlug, onSelect, onAdd }) {
             left: pill.left,
             width: pill.width || 0,
             borderRadius: 9,
-            background: '#13362a',
-            boxShadow: '0 1px 6px rgba(19,54,42,0.2)',
             transition: 'left 0.22s cubic-bezier(0.34,1.4,0.64,1), width 0.15s ease',
             pointerEvents: 'none',
             zIndex: 0,
@@ -251,13 +249,11 @@ function SlidingVenueTabs({ venues, activeSlug, onSelect, onAdd }) {
               key={v.slug}
               ref={el => { btnRefs.current[v.slug] = el }}
               onClick={() => onSelect(v.slug)}
-              className="relative flex-shrink-0 border-none whitespace-nowrap font-semibold transition-colors text-[12.5px] cursor-pointer"
+              className={`relative flex-shrink-0 border-none whitespace-nowrap font-semibold transition-colors text-[12.5px] cursor-pointer bg-transparent ${isActive ? 'text-white' : 'text-brand/50 dark:text-white/45'}`}
               style={{
                 zIndex: 1,
                 padding: '7px 14px',
                 borderRadius: 9,
-                background: 'transparent',
-                color: isActive ? '#ffffff' : 'rgba(28,47,42,0.5)',
                 transition: 'color 0.18s',
               }}
             >
@@ -271,13 +267,10 @@ function SlidingVenueTabs({ venues, activeSlug, onSelect, onAdd }) {
       <button
         onClick={onAdd}
         title="Add another venue"
-        className="flex-shrink-0 flex items-center justify-center transition-all"
+        className="flex-shrink-0 flex items-center justify-center transition-all bg-transparent border border-brand/10 text-brand/30 dark:border-white/10 dark:text-white/35"
         style={{
           width: 32, height: 32,
           borderRadius: 9,
-          border: '1px solid rgba(28,47,42,0.10)',
-          background: 'transparent',
-          color: 'rgba(28,47,42,0.30)',
           cursor: 'pointer',
         }}
       >
@@ -298,11 +291,13 @@ function PINDots({ length, error }) {
         return (
           <div
             key={i}
+            className={`border-2 ${error
+              ? 'border-bad dark:border-badDark bg-transparent'
+              : filled
+                ? 'bg-brand border-brand dark:bg-white dark:border-white shadow-[0_0_6px_theme(colors.brand.DEFAULT/20%)]'
+                : 'bg-transparent border-brand/20 dark:border-white/25'}`}
             style={{
               width: 12, height: 12, borderRadius: 6,
-              background: filled && !error ? '#13362a' : 'transparent',
-              border: `2px solid ${error ? '#b3331c' : filled ? '#13362a' : 'rgba(28,47,42,0.18)'}`,
-              boxShadow: filled && !error ? '0 0 6px rgba(19,54,42,0.2)' : 'none',
               transition: 'all 0.12s',
               transform: filled ? 'scale(1.1)' : 'scale(1)',
             }}
@@ -618,7 +613,7 @@ export default function LoginPage() {
 
   return (
     <div
-      className="min-h-dvh bg-surface flex flex-col items-center justify-start sm:justify-center px-4 py-6 sm:px-5 sm:py-10 font-sans overflow-y-auto"
+      className="min-h-dvh bg-surface dark:bg-bgDark flex flex-col items-center justify-start sm:justify-center px-4 py-6 sm:px-5 sm:py-10 font-sans overflow-y-auto"
       style={{
         paddingTop: 'max(1.5rem, env(safe-area-inset-top))',
         paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))',
@@ -646,7 +641,7 @@ export default function LoginPage() {
         className="mb-5 sm:mb-8 text-center shrink-0"
         style={ready ? { animation: 'login-logo-enter 0.45s cubic-bezier(.22,.9,.28,1) both', willChange: 'transform, opacity' } : { opacity: 0 }}
       >
-        <h1 className="font-bold text-brand text-4xl tracking-tight">Pelikn</h1>
+        <h1 className="font-bold text-brand dark:text-white text-4xl tracking-tight">Pelikn</h1>
         <p className="text-xs tracking-widest text-charcoal/40 dark:text-white/35 uppercase mt-1">Built for Hospitality</p>
       </div>
 

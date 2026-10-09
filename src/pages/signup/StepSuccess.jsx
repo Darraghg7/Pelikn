@@ -17,7 +17,7 @@ export default function StepSuccess({ venueName, venueSlug, plan, allVenues = []
     <div className="flex flex-col items-center text-center max-w-sm mx-auto gap-6">
       {/* Success icon */}
       <div className="w-20 h-20 rounded-full bg-success/8 border-4 border-success/20 flex items-center justify-center">
-        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#14b8a6" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="text-good dark:text-goodDark" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
           <polyline points="20 6 9 17 4 12" />
         </svg>
       </div>
@@ -35,7 +35,7 @@ export default function StepSuccess({ venueName, venueSlug, plan, allVenues = []
 
       {/* Email verification nudge */}
       <div className="w-full bg-charcoal/4 dark:bg-white/5 rounded-xl px-4 py-3 flex items-start gap-3 text-left">
-        <svg className="shrink-0 mt-0.5" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#76817b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg className="shrink-0 mt-0.5 text-ink3 dark:text-white/50" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>
         </svg>
         <p className="text-xs text-charcoal/50 dark:text-white/40 leading-relaxed">

@@ -10,13 +10,13 @@ import { reportError } from './reportError'
 import { coolingOutcome, formatCoolingMinutes, COOLING_TARGET_MINUTES } from './cooling'
 // jsPDF is loaded on demand — see the note in pdfUtils.js. Every exporter here
 // is already async, so awaiting the library costs nothing structurally.
-import { buildPdfReport, loadPdfLibs } from './pdfUtils'
+import { buildPdfReport, loadPdfLibs, PDF } from './pdfUtils'
 import { fetchMockInspections } from './api/mockInspections'
 import { documentStatus } from '../hooks/useDocuments'
 
 /* ── Shared colour helpers ─────────────────────────────────────────────── */
-const RED   = [180, 30,  30]
-const GREEN = [22,  100, 46]
+const RED   = PDF.bad
+const GREEN = PDF.good
 
 function passFailCell(hookData, colIndex, passValue = 'PASS') {
   if (hookData.section !== 'body' || hookData.column.index !== colIndex) return
@@ -99,7 +99,7 @@ export async function exportTempLogs(venueId, days = 90) {
         hookData.cell.styles.textColor = RED
         hookData.cell.styles.fontStyle = 'bold'
       } else if (hookData.cell.raw === 'EXPLAINED') {
-        hookData.cell.styles.textColor = [160, 100, 0]
+        hookData.cell.styles.textColor = PDF.warn
         hookData.cell.styles.fontStyle = 'bold'
       }
     },
@@ -218,7 +218,7 @@ export async function exportCorrectiveActions(venueId, days = 90) {
           hookData.cell.styles.textColor = RED
           hookData.cell.styles.fontStyle = 'bold'
         } else if (hookData.cell.raw === 'HIGH') {
-          hookData.cell.styles.textColor = [180, 90, 0]
+          hookData.cell.styles.textColor = PDF.warn
           hookData.cell.styles.fontStyle = 'bold'
         }
       }
@@ -424,13 +424,13 @@ export async function exportEHOReport(venueId, venueName = '', days = 90) {
   const { jsPDF, autoTable } = await loadPdfLibs()
   const doc     = new jsPDF()
   const pageW   = doc.internal.pageSize.getWidth()
-  const R = [180, 30, 30], G = [22, 100, 46], O = [160, 100, 0]
+  const R = PDF.bad, G = PDF.good, O = PDF.warn
   const periodLabel = `Last ${days} days (${format(subDays(now, days), 'dd/MM/yyyy')} – ${format(now, 'dd/MM/yyyy')})`
 
   // Cover header
   doc.setFont('helvetica', 'bold'); doc.setFontSize(20)
   doc.text('EHO Compliance Report', 14, 20)
-  doc.setFont('helvetica', 'normal'); doc.setFontSize(10); doc.setTextColor(100)
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(10); doc.setTextColor(...PDF.muted)
   if (venueName) { doc.text(venueName, 14, 28) }
   doc.text(`Period: ${periodLabel}`, 14, venueName ? 34 : 28)
   doc.text(`Generated: ${format(now, 'dd/MM/yyyy HH:mm')}`, 14, venueName ? 40 : 34)
@@ -441,16 +441,16 @@ export async function exportEHOReport(venueId, venueName = '', days = 90) {
     doc.text(`Official FHRS Rating: ${fhrs.rating}/5${fhrs.ratedAt ? ` (rated ${format(new Date(fhrs.ratedAt), 'dd/MM/yyyy')})` : ''}`, 14, headerY)
     doc.setFont('helvetica', 'normal')
   }
-  doc.setTextColor(0)
+  doc.setTextColor(...PDF.ink)
 
   // Helper: section heading band
   let y = headerY + 10
   const sectionHead = (label) => {
-    doc.setFillColor(40, 40, 40)
+    doc.setFillColor(...PDF.head)
     doc.rect(14, y, pageW - 28, 8, 'F')
-    doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor(255, 255, 255)
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor(...PDF.white)
     doc.text(label, 17, y + 5.5)
-    doc.setTextColor(0, 0, 0); doc.setFont('helvetica', 'normal')
+    doc.setTextColor(...PDF.ink); doc.setFont('helvetica', 'normal')
     y += 8
   }
 
@@ -474,7 +474,7 @@ export async function exportEHOReport(venueId, venueName = '', days = 90) {
       ['Mock EHO Inspections',   mi.length, 0, !latestMock ? 'NO DATA' : latestMock.score >= 80 ? 'GOOD' : latestMock.score >= 60 ? 'REVIEW' : 'ACTION REQUIRED'],
       ['Documents on File',      docs.length, expiredDocs, expiredDocs === 0 ? 'GOOD' : 'ACTION REQUIRED'],
     ],
-    headStyles: { fillColor: [40, 40, 40], textColor: 255, fontSize: 8 },
+    headStyles: { fillColor: PDF.head, textColor: PDF.white, fontSize: 8 },
     bodyStyles: { fontSize: 8 },
     columnStyles: { 1: { halign: 'center' }, 2: { halign: 'center' } },
     didParseCell(hook) {
@@ -500,7 +500,7 @@ export async function exportEHOReport(venueId, venueName = '', days = 90) {
         r.score >= 80 ? 'Good' : r.score >= 60 ? 'Needs Improvement' : 'Urgent Action Required',
         r.completed_by_name ?? '-',
       ]),
-      headStyles: { fillColor: [40, 40, 40], textColor: 255, fontSize: 8 },
+      headStyles: { fillColor: PDF.head, textColor: PDF.white, fontSize: 8 },
       bodyStyles: { fontSize: 7 },
       didParseCell(hook) {
         if (hook.section !== 'body' || hook.column.index !== 2) return
@@ -528,7 +528,7 @@ export async function exportEHOReport(venueId, venueName = '', days = 90) {
           label,
         ]
       }),
-      headStyles: { fillColor: [40, 40, 40], textColor: 255, fontSize: 8 },
+      headStyles: { fillColor: PDF.head, textColor: PDF.white, fontSize: 8 },
       bodyStyles: { fontSize: 7 },
       didParseCell(hook) {
         if (hook.section !== 'body' || hook.column.index !== 3) return
@@ -557,7 +557,7 @@ export async function exportEHOReport(venueId, venueName = '', days = 90) {
           r.logged_by_name ?? '-',
         ]
       }),
-      headStyles: { fillColor: [40, 40, 40], textColor: 255, fontSize: 8 },
+      headStyles: { fillColor: PDF.head, textColor: PDF.white, fontSize: 8 },
       bodyStyles: { fontSize: 7 },
       didParseCell(hook) {
         if (hook.section !== 'body' || hook.column.index !== 3) return
@@ -580,7 +580,7 @@ export async function exportEHOReport(venueId, venueName = '', days = 90) {
         r.supplier_name ?? '-',
         r.overall_pass ? 'PASS' : 'FAIL',
       ]),
-      headStyles: { fillColor: [40, 40, 40], textColor: 255, fontSize: 8 },
+      headStyles: { fillColor: PDF.head, textColor: PDF.white, fontSize: 8 },
       bodyStyles: { fontSize: 7 },
       didParseCell(hook) {
         if (hook.section === 'body' && hook.column.index === 2) {
@@ -603,7 +603,7 @@ export async function exportEHOReport(venueId, venueName = '', days = 90) {
         r.probe_name ?? '-',
         r.pass ? 'PASS' : 'FAIL',
       ]),
-      headStyles: { fillColor: [40, 40, 40], textColor: 255, fontSize: 8 },
+      headStyles: { fillColor: PDF.head, textColor: PDF.white, fontSize: 8 },
       bodyStyles: { fontSize: 7 },
       didParseCell(hook) {
         if (hook.section === 'body' && hook.column.index === 2) {
@@ -633,7 +633,7 @@ export async function exportEHOReport(venueId, venueName = '', days = 90) {
           fail ? 'EXCEEDED' : 'PASS',
         ]
       }),
-      headStyles: { fillColor: [40, 40, 40], textColor: 255, fontSize: 8 },
+      headStyles: { fillColor: PDF.head, textColor: PDF.white, fontSize: 8 },
       bodyStyles: { fontSize: 7 },
       didParseCell(hook) {
         if (hook.section === 'body' && hook.column.index === 6) {
@@ -661,7 +661,7 @@ export async function exportEHOReport(venueId, venueName = '', days = 90) {
           pass ? 'PASS' : 'BELOW 63°C',
         ]
       }),
-      headStyles: { fillColor: [40, 40, 40], textColor: 255, fontSize: 8 },
+      headStyles: { fillColor: PDF.head, textColor: PDF.white, fontSize: 8 },
       bodyStyles: { fontSize: 7 },
       didParseCell(hook) {
         if (hook.section === 'body' && hook.column.index === 3) {
@@ -687,7 +687,7 @@ export async function exportEHOReport(venueId, venueName = '', days = 90) {
         r.action_taken ?? '-',
         r.resolved_at ? format(new Date(r.resolved_at), 'dd/MM/yy') : '-',
       ]),
-      headStyles: { fillColor: [40, 40, 40], textColor: 255, fontSize: 8 },
+      headStyles: { fillColor: PDF.head, textColor: PDF.white, fontSize: 8 },
       bodyStyles: { fontSize: 7 },
       columnStyles: { 4: { cellWidth: 45 } },
       didParseCell(hook) {
@@ -721,7 +721,7 @@ export async function exportEHOReport(venueId, venueName = '', days = 90) {
           status,
         ]
       }),
-      headStyles: { fillColor: [40, 40, 40], textColor: 255, fontSize: 8 },
+      headStyles: { fillColor: PDF.head, textColor: PDF.white, fontSize: 8 },
       bodyStyles: { fontSize: 7 },
       didParseCell(hook) {
         if (hook.section === 'body' && hook.column.index === 3) {
@@ -746,7 +746,7 @@ export async function exportEHOReport(venueId, venueName = '', days = 90) {
         (r.severity ?? '-').toUpperCase(),
         (r.status ?? '-').toUpperCase(),
       ]),
-      headStyles: { fillColor: [40, 40, 40], textColor: 255, fontSize: 8 },
+      headStyles: { fillColor: PDF.head, textColor: PDF.white, fontSize: 8 },
       bodyStyles: { fontSize: 7 },
       didParseCell(hook) {
         if (hook.section === 'body' && hook.column.index === 4) {
@@ -770,7 +770,7 @@ export async function exportEHOReport(venueId, venueName = '', days = 90) {
         r.task?.title ?? '-',
         r.completed_by_name ?? '-',
       ]),
-      headStyles: { fillColor: [40, 40, 40], textColor: 255, fontSize: 8 },
+      headStyles: { fillColor: PDF.head, textColor: PDF.white, fontSize: 8 },
       bodyStyles: { fontSize: 7 },
     })
   }
@@ -779,7 +779,7 @@ export async function exportEHOReport(venueId, venueName = '', days = 90) {
   const pageCount = doc.internal.getNumberOfPages()
   for (let i = 1; i <= pageCount; i++) {
     doc.setPage(i)
-    doc.setFontSize(7); doc.setTextColor(150)
+    doc.setFontSize(7); doc.setTextColor(...PDF.faint)
     doc.text(
       `${venueName || 'Pelikn'} · EHO Compliance Report · Generated ${format(now, 'dd/MM/yyyy HH:mm')} · Page ${i} of ${pageCount}`,
       pageW / 2,

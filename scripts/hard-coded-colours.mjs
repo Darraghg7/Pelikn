@@ -28,8 +28,9 @@ const update = process.argv.includes('--update')
 const ALLOWED = new Set(['src/lib/tokens.js'])
 
 // #abc #abcd #aabbcc #aabbccdd not followed by more word characters (so ids
-// like #bowlCut and HTML entities don't count), and colour functions.
-const COLOUR = /#(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{3,4})(?![\w-])|\b(?:rgba?|hsla?)\(/g
+// like #bowlCut and HTML entities don't count), and colour functions given
+// literal numbers — rgb(colors.ink) from tokens.js is a token, not a colour.
+const COLOUR = /#(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{3,4})(?![\w-])|\b(?:rgba?|hsla?)\(\s*[\d.]/g
 
 function walk(dir, out = []) {
   for (const name of readdirSync(dir)) {

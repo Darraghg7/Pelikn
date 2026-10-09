@@ -4,6 +4,7 @@ import { useVenueRoles, useStaffRoleAssignments } from '../../hooks/useVenueRole
 import { useDepartments, useStaffDepartments } from '../../hooks/useDepartments'
 import ConfirmDialog from '../../components/ui/ConfirmDialog'
 import Button from '../../components/ui/Button'
+import { colors } from '../../lib/tokens'
 
 /* ── Departments: where people work ─────────────────────────────────────────── */
 // People are ticked into departments on their staff page; cleaning tasks,
@@ -196,7 +197,7 @@ export default function RolesSection() {
               ) : (
                 <>
                   <span className="flex items-center gap-2 min-w-0">
-                    <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: role.color || '#1a3c2e' }} />
+                    <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: role.color || colors.brand.DEFAULT }} />
                     <span className="text-sm font-medium text-charcoal dark:text-white truncate">{role.name}</span>
                   </span>
                   <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">

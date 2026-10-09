@@ -1,5 +1,6 @@
 import React, { useLayoutEffect, useRef, useState } from 'react'
 import { T, IcoHome, IcoShieldNav, IcoTruckNav, IcoUsersNav, IcoCogNav, PanelIcons } from '../../components/layout/navConfig'
+import { colors, alpha, white, black } from '../../lib/tokens'
 
 /*
  * Marketing-only mock of the desktop manager dashboard (rail + Today panel +
@@ -141,7 +142,7 @@ export default function DesktopDashboardMock() {
       </div>
 
       {/* Today panel */}
-      <div className="flex flex-col shrink-0" style={{ width: 260, background: T.bgPanel, color: T.ink, borderRight: '1px solid rgba(0,0,0,0.12)' }}>
+      <div className="flex flex-col shrink-0" style={{ width: 260, background: T.bgPanel, color: T.ink, borderRight: `1px solid ${black(0.12)}` }}>
         <div style={{ padding: '18px 18px 14px', borderBottom: `1px solid ${T.divider}` }}>
           <div className="font-mono text-[11px] font-semibold uppercase tracking-[0.12em] flex items-center gap-[7px] mb-1.5" style={{ color: T.inkFaint }}>
             <span className="inline-flex" style={{ width: 11, height: 11, opacity: 0.7 }}><IcoHome /></span>Today
@@ -151,11 +152,11 @@ export default function DesktopDashboardMock() {
         </div>
         <div style={{ padding: '6px 0 12px' }}>
           {PANEL_ITEMS.map(it => (
-            <div key={it.label} className={`flex items-center gap-2.5 text-[13px] ${it.active ? 'font-medium' : 'font-[450]'}`} style={{ margin: '1px 8px', padding: '8px 10px', borderRadius: 8, background: it.active ? T.bgActive : 'transparent', border: it.active ? '1px solid rgba(255,255,255,0.10)' : '1px solid transparent', color: it.active ? T.inkBright : T.ink }}>
+            <div key={it.label} className={`flex items-center gap-2.5 text-[13px] ${it.active ? 'font-medium' : 'font-[450]'}`} style={{ margin: '1px 8px', padding: '8px 10px', borderRadius: 8, background: it.active ? T.bgActive : 'transparent', border: it.active ? `1px solid ${white(0.10)}` : '1px solid transparent', color: it.active ? T.inkBright : T.ink }}>
               <span className="inline-flex shrink-0" style={{ width: 15, height: 15, opacity: it.active ? 1 : 0.78 }}>{it.icon}</span>
               <span className="min-w-0">
                 <span className="block">{it.label}</span>
-                <span className="block text-[11px] mt-px" style={{ color: it.active ? 'rgba(243,237,224,0.55)' : T.inkFaint }}>{it.sub}</span>
+                <span className="block text-[11px] mt-px" style={{ color: it.active ? alpha(colors.cream, 0.55) : T.inkFaint }}>{it.sub}</span>
               </span>
             </div>
           ))}

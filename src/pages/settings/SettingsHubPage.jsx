@@ -86,7 +86,7 @@ export default function SettingsHubPage() {
           </div>
         </div>
         {staffId && (
-          <svg width="6" height="10" viewBox="0 0 6 10" fill="none" stroke="rgba(255,255,255,0.45)" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="6" height="10" viewBox="0 0 6 10" fill="none" stroke="currentColor" className="text-white/45" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
             <path d="M1 1l4 4-4 4"/>
           </svg>
         )}

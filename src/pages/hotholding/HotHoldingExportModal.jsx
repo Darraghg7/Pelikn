@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { format, subDays } from 'date-fns'
-import { loadPdfLibs } from '../../lib/pdfUtils'
+import { loadPdfLibs, PDF } from '../../lib/pdfUtils'
 import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
 import { useHotHoldingItems, isHotHoldingFail } from '../../hooks/useHotHolding'
@@ -47,14 +47,14 @@ export default function HotHoldingExportModal({ open, onClose }) {
     doc.text('Pelikn', 14, 18)
     doc.setFont('helvetica', 'normal')
     doc.setFontSize(10)
-    doc.setTextColor(100)
+    doc.setTextColor(...PDF.muted)
     doc.text('Hot Holding Report', 14, 25)
     doc.text(`Period: ${dateFrom} – ${dateTo}`, 14, 31)
     if (itemId) {
       const item = items.find(i => i.id === itemId)
       doc.text(`Item: ${item?.name ?? itemId}`, 14, 37)
     }
-    doc.setTextColor(0)
+    doc.setTextColor(...PDF.ink)
 
     autoTable(doc, {
       startY: itemId ? 43 : 37,
@@ -69,22 +69,22 @@ export default function HotHoldingExportModal({ open, onClose }) {
         row.logged_by_name ?? '—',
         row.notes ?? '',
       ]),
-      headStyles: { fillColor: [40, 40, 40], textColor: 255, fontSize: 9 },
+      headStyles: { fillColor: PDF.head, textColor: PDF.white, fontSize: 9 },
       bodyStyles: { fontSize: 8 },
       columnStyles: { 5: { fontStyle: 'bold' } },
       didParseCell(hookData) {
         if (hookData.section === 'body' && hookData.column.index === 5 && hookData.cell.raw === 'FAIL') {
-          hookData.cell.styles.textColor = [180, 30, 30]
+          hookData.cell.styles.textColor = PDF.bad
         }
       },
-      alternateRowStyles: { fillColor: [248, 248, 248] },
+      alternateRowStyles: { fillColor: PDF.rowAlt },
     })
 
     const pageCount = doc.internal.getNumberOfPages()
     for (let i = 1; i <= pageCount; i++) {
       doc.setPage(i)
       doc.setFontSize(7)
-      doc.setTextColor(150)
+      doc.setTextColor(...PDF.faint)
       doc.text(
         `Generated ${format(new Date(), 'dd/MM/yyyy HH:mm')} · Page ${i} of ${pageCount}`,
         pageW / 2, doc.internal.pageSize.getHeight() - 8,

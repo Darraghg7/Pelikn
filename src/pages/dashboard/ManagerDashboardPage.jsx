@@ -35,6 +35,7 @@ import {
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import Button from '../../components/ui/Button'
+import { colors, white } from '../../lib/tokens'
 
 const PLAN_CONFIG = {
   starter: { label: 'Starter', bg: 'bg-success/8',   text: 'text-brand', border: 'border-success/30'  },
@@ -56,7 +57,7 @@ function UpgradeButton({ to }) {
       to={to}
       className="relative inline-flex items-center gap-2 overflow-hidden rounded-xl px-4 py-2 text-xs font-semibold text-white shadow-md shadow-accent/30 transition-all hover:shadow-lg hover:shadow-accent/40 hover:scale-[1.02] active:scale-[0.98]"
       style={{
-        background: 'linear-gradient(135deg, #c94f2a 0%, #e06535 50%, #c94f2a 100%)',
+        background: colors.accent,
         backgroundSize: '200% 100%',
       }}
     >
@@ -64,7 +65,7 @@ function UpgradeButton({ to }) {
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 animate-[shimmer_2.5s_ease-in-out_infinite]"
         style={{
-          background: 'linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.18) 50%, transparent 60%)',
+          background: `linear-gradient(105deg, transparent 40%, ${white(0.18)} 50%, transparent 60%)`,
           backgroundSize: '200% 100%',
         }}
       />
