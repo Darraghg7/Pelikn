@@ -16,6 +16,7 @@
     "typecheck:js": "node scripts/typecheck-js.mjs",
     "lint": "eslint src && npm run lint:buttons && npm run lint:colours",
     "lint:colours": "node scripts/hard-coded-colours.mjs",
+    "colours:sync": "node scripts/outside-colours.mjs --write",
     "lint:buttons": "node scripts/raw-buttons.mjs",
     "test:unit": "vitest run",
     "test:unit:watch": "vitest",
