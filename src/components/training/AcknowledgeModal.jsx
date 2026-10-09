@@ -4,6 +4,7 @@ import { supabase } from '../../lib/supabase'
 import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../ui/Toast'
 import SignaturePad from '../ui/SignaturePad'
+import Button, { CloseButton } from '../ui/Button'
 
 export default function AcknowledgeModal({ record, staffName, onSaved, onClose }) {
   const toast = useToast()
@@ -35,7 +36,7 @@ export default function AcknowledgeModal({ record, staffName, onSaved, onClose }
               {format(parseISO(record.training_date), 'd MMMM yyyy')} · Trainer: {record.trainer_name}
             </p>
           </div>
-          <button onClick={onClose} className="text-charcoal/30 dark:text-white/30 hover:text-charcoal dark:hover:text-white text-xl leading-none">×</button>
+          <CloseButton onClick={onClose} />
         </div>
 
         <div className="p-6 flex flex-col gap-5">
@@ -81,13 +82,14 @@ export default function AcknowledgeModal({ record, staffName, onSaved, onClose }
         </div>
 
         <div className="px-6 pb-6">
-          <button
+          <Button
+            fullWidth
+            loading={saving}
             onClick={handleSubmit}
             disabled={saving || !staffSig}
-            className="w-full bg-charcoal text-cream py-2.5 rounded-lg text-sm font-medium disabled:opacity-40 hover:bg-charcoal/90 transition-colors"
           >
             {saving ? 'Saving…' : 'I confirm I have received this training →'}
-          </button>
+          </Button>
         </div>
       </div>
     </div>

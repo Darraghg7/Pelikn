@@ -1,4 +1,5 @@
 import React from 'react'
+import Button from './Button'
 
 const ICONS = {
   list: (
@@ -63,12 +64,11 @@ export default function EmptyState({
         <p className="text-sm text-charcoal/45 dark:text-white/45 max-w-xs mb-5">{description}</p>
       )}
       {actionLabel && onAction && (
-        <button
+        <Button
           onClick={onAction}
-          className="text-sm font-medium bg-brand text-cream px-5 py-2.5 rounded-xl hover:bg-brand/90 transition-colors"
         >
           {actionLabel}
-        </button>
+        </Button>
       )}
     </div>
   )

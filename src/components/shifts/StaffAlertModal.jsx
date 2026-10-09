@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
 import Avatar from '../ui/Avatar'
+import Button from '../ui/Button'
 
 // ── Colour tokens (per spec — not in tailwind config) ────────────────────────
 const TONES = {
@@ -521,16 +522,11 @@ export default function StaffAlertModal({
               style={{ flexShrink: 0, borderTop: `1px solid ${LINE2}`, background: '#fff' }}
             >
               {/* CTA button — locked until a reason is selected when reasons are required */}
-              <button
-                type="button"
+              <Button
+                size="lg"
+                fullWidth
                 onClick={handleSubmitClick}
                 disabled={reasonMissing}
-                className="w-full flex items-center justify-center gap-2 text-[15px] font-bold text-white bg-brand border-none cursor-pointer"
-                style={{
-                  height: 50, borderRadius: 13,
-                  opacity: reasonMissing ? 0.4 : 1,
-                  cursor: reasonMissing ? 'not-allowed' : 'pointer',
-                }}
               >
                 {requireManagerApproval ? (
                   <>
@@ -543,7 +539,7 @@ export default function StaffAlertModal({
                     {isLate ? 'I understand' : 'End break now'}
                   </>
                 )}
-              </button>
+              </Button>
 
               {/* Footnote */}
               <p className="font-mono text-center text-[11px]" style={{ color: INK3, margin: 0 }}>
@@ -559,14 +555,14 @@ export default function StaffAlertModal({
             <div className="px-5 pt-4 pb-2 flex flex-col gap-4" style={{ overflowY: 'auto', flex: '1 1 auto', minHeight: 0 }}>
 
               {/* Back button */}
-              <button
-                type="button"
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={() => { setPhase('alert'); setPin(''); setPinError('') }}
-                className="flex items-center gap-1 text-[13px] font-medium border-none bg-transparent cursor-pointer self-start"
-                style={{ color: INK3, padding: 0 }}
+                className="self-start -ml-3"
               >
                 <BackIcon /> Back
-              </button>
+              </Button>
 
               {/* Header */}
               <div className="flex flex-col gap-1">
@@ -635,20 +631,15 @@ export default function StaffAlertModal({
                     </p>
                   )}
                   <ManagerNumpad pin={pin} onChange={(p) => { setPinError(''); setPin(p) }} />
-                  <button
-                    type="button"
+                  <Button
+                    size="lg"
+                    fullWidth
+                    loading={pinLoading}
                     onClick={handleManagerApprove}
                     disabled={pin.length !== 4 || pinLoading}
-                    className="w-full flex items-center justify-center gap-2 text-[15px] font-bold text-white border-none cursor-pointer"
-                    style={{
-                      height: 50, borderRadius: 13,
-                      background: pin.length === 4 && !pinLoading ? '#1a6644' : LINE,
-                      color: pin.length === 4 && !pinLoading ? '#fff' : INK3,
-                      transition: 'background 0.15s',
-                    }}
                   >
                     {pinLoading ? 'Verifying…' : 'Approve'}
-                  </button>
+                  </Button>
                 </div>
               )}
 

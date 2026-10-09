@@ -51,7 +51,7 @@ Production env vars live in Vercel → Project → Settings → Environment Vari
 |---|---|
 | `npm run dev` | Vite dev server |
 | `npm run build` / `npm run preview` | Production build to `dist/` / serve it locally |
-| `npm run lint` | ESLint over `src/` (rules-of-hooks is an error) |
+| `npm run lint` | ESLint over `src/` (rules-of-hooks is an error), then `lint:buttons` (raw `<button>` ratchet; see Conventions) |
 | `npm run typecheck` | Both type checks: `typecheck:ts` (strict, `.ts` files) and `typecheck:js` (`.js`/`.jsx` against a baseline; see Conventions) |
 | `npm run test:unit` | Vitest unit tests (`test:unit:watch`, `test:unit:coverage` also exist) |
 | `npm test` | Playwright end-to-end tests (`test:ui`, `test:headed`, `test:report`) |
@@ -188,6 +188,7 @@ ios/  android/          Capacitor native projects
 - **Type checking**: `.ts` files are checked strictly (`tsconfig.json`). The `.js`/`.jsx` files, which is most of the UI, are checked leniently by `npm run typecheck:js` (`tsconfig.checkjs.json` + `scripts/typecheck-js.mjs`) against `typecheck-js-baseline.json`, a per-file count of known errors. CI fails if a file gets *more* errors than its baseline, or if a file not in the baseline gets any. To fix a file: run `npx tsc --noEmit -p tsconfig.checkjs.json`, fix that file's errors (fix real bugs; for noise, a small JSDoc type or a type in `src/lib/api` or `src/types` is usually enough), then run `npm run typecheck:js -- --update` and commit the lowered baseline. The check also fails when counts drop until you do this, so the baseline only goes down. Never raise a count to get a PR through.
 - **Rules of Hooks**: call every hook unconditionally, before any early `return`. ESLint enforces `react-hooks/rules-of-hooks` as an error in CI (this crash reached production three times before it was gated). `exhaustive-deps` is a warning.
 - **Design**: follow `.impeccable.md`. Use the colour tokens in `tailwind.config.js`, never hardcoded hex. Type floor: 11px for mono uppercase micro-labels, 12px (`text-xs`) for body text. Dense grids (dashboard stat tiles, rota week grid) are an intentional exception.
+- **Buttons**: draw buttons with `<Button>` from `src/components/ui/Button.jsx` (variants `primary`, `secondary`, `ghost`, `danger`, `danger-ghost`, `accent`, `link`; sizes `sm`/`md`/`lg`; `iconOnly` needs an `aria-label`; `loading` shows a spinner and blocks a second tap; `CloseButton` for ×). `type` defaults to `"button"`, so pass `type="submit"` for a form's submit button. Use `className` only for layout (`flex-1`, `mt-2`), never to restyle. `npm run lint:buttons` (part of `npm run lint`, so CI runs it) counts hand-written `<button>`s per file against `raw-buttons-baseline.json`: a file may not gain any, and when you remove some, run `npm run lint:buttons -- --update` and commit the lowered baseline. Whole-row tap targets, tabs, segmented controls, toggles and the number pad can stay raw.
 - **Dark mode**: Tailwind `darkMode: 'class'`, toggled by `ThemeContext`.
 - **Modals and sheets** use `z-[60]` or above. `MobileNav` is portaled at `z-50`, so a `z-50` sheet can lose taps to it.
 - **Mobile vs desktop**: some screens have separate mobile and desktop components (for example the rota and the manager dashboard). Check both when changing behaviour.

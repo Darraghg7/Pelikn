@@ -1,5 +1,6 @@
 import React from 'react'
 import { reportError } from '../../lib/reportError'
+import Button from './Button'
 
 export default class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -31,18 +32,12 @@ export default class ErrorBoundary extends React.Component {
           <p className="text-base font-semibold text-charcoal dark:text-white mb-1">This screen hit a snag</p>
           <p className="text-sm text-charcoal/45 dark:text-white/40 mb-6 max-w-xs">{this.state.error?.message ?? 'Your data is safe — reload to try again.'}</p>
           <div className="flex items-center gap-3">
-            <button
+            <Button
               onClick={() => this.setState({ hasError: false, error: null })}
-              className="text-sm bg-charcoal text-cream dark:bg-white dark:text-charcoal px-4 py-2 rounded-xl hover:bg-charcoal/80 dark:hover:bg-white/90 transition-colors font-medium"
             >
               Try again
-            </button>
-            <a
-              href="/"
-              className="text-sm text-charcoal/50 dark:text-white/40 hover:text-charcoal dark:hover:text-white px-4 py-2 rounded-xl border border-charcoal/15 dark:border-white/15 hover:border-charcoal/30 dark:hover:border-white/30 transition-colors"
-            >
-              Go to home
-            </a>
+            </Button>
+            <Button href="/" variant="secondary">Go to home</Button>
           </div>
         </div>
       )

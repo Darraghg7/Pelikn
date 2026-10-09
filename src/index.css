@@ -2,6 +2,15 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Small buttons (<Button size="sm">) look 36px tall but take a 44px tap on
+   phones. In the components layer so an `absolute`/`fixed` utility on the
+   button still wins over the `relative` here. */
+@layer components {
+  .btn-hit { position: relative; }
+  .btn-hit::before { content: ''; position: absolute; inset: -4px; }
+  @media (min-width: 640px) { .btn-hit::before { display: none; } }
+}
+
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html {
   font-size: 16px;

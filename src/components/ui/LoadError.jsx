@@ -1,4 +1,5 @@
 import React from 'react'
+import Button from './Button'
 
 /**
  * Shown in place of an empty state when a list failed to load.
@@ -13,13 +14,13 @@ export default function LoadError({ what = 'this', onRetry, className = '' }) {
     <div role="alert" className={`py-6 px-4 text-center ${className}`}>
       <p className="text-sm text-danger/80">Couldn’t load {what} — check your connection.</p>
       {onRetry && (
-        <button
-          type="button"
+        <Button
+          variant="link"
           onClick={onRetry}
-          className="mt-2 text-xs underline text-charcoal/50 dark:text-white/40 hover:text-charcoal dark:hover:text-white"
+          className="mt-2"
         >
           Try again
-        </button>
+        </Button>
       )}
     </div>
   )
