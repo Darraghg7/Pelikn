@@ -19,8 +19,8 @@ function PreferenceToggle({ type, enabled, saving, onToggle }) {
         <span className="block text-sm font-medium text-charcoal dark:text-white">{type.label}</span>
         <span className="block text-xs text-charcoal/40 dark:text-white/35 mt-0.5">{type.description}</span>
       </span>
-      <span className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${enabled ? 'bg-accent' : 'bg-charcoal/20 dark:bg-white/20'}`}>
-        <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white dark:bg-paperDark shadow transition-transform ${enabled ? 'translate-x-5' : 'translate-x-0.5'}`} />
+      <span className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${enabled ? 'bg-accent' : 'bg-charcoal/20 dark:bg-transparent dark:ring-[1.5px] dark:ring-inset dark:ring-white/50'}`}>
+        <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-paper shadow transition-transform ${enabled ? 'translate-x-5' : 'translate-x-0.5 dark:bg-white/70'}`} />
       </span>
     </button>
   )

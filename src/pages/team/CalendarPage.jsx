@@ -72,15 +72,11 @@ function CalToggle({ on, onClick }) {
   return (
     <button
       onClick={onClick}
-      className="shrink-0 relative border-none cursor-pointer transition-colors duration-200 rounded-[14px]"
-      style={{
-        width: 48, height: 28,
-        padding: 3,
-        background: on ? '#13362a' : '#e4e6e2',
-      }}
+      className={`shrink-0 relative border-none cursor-pointer transition-colors duration-200 rounded-[14px] ${on ? 'bg-brand dark:bg-brand-400' : 'bg-line dark:bg-transparent dark:ring-[1.5px] dark:ring-inset dark:ring-white/50'}`}
+      style={{ width: 48, height: 28, padding: 3 }}
     >
       <span
-        className="block rounded-full bg-white dark:bg-paperDark"
+        className={`block rounded-full bg-paper ${on ? '' : 'dark:bg-white/70'}`}
         style={{
           width: 22, height: 22,
           boxShadow: '0 1px 4px rgba(0,0,0,0.22)',

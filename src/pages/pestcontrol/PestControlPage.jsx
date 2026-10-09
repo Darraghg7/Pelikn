@@ -140,8 +140,8 @@ function ToggleRow({ title, hint, checked, onChange }) {
         <span className="block text-[14px] font-semibold text-ink dark:text-white">{title}</span>
         {hint && <span className="block text-[13px] text-ink3 dark:text-white/50 mt-0.5">{hint}</span>}
       </span>
-      <span className={`shrink-0 w-[52px] h-7 rounded-full p-1 transition-colors ${checked ? 'bg-accent' : 'bg-ink4/70 dark:bg-white/20'}`}>
-        <span className={`block w-6 h-6 rounded-full bg-white shadow transition-transform ${checked ? 'translate-x-5' : ''}`} />
+      <span className={`shrink-0 w-[52px] h-7 rounded-full p-1 transition-colors ${checked ? 'bg-accent' : 'bg-ink4/70 dark:bg-transparent dark:ring-[1.5px] dark:ring-inset dark:ring-white/50'}`}>
+        <span className={`block w-6 h-6 rounded-full bg-paper shadow transition-transform ${checked ? 'translate-x-5' : 'dark:bg-white/70'}`} />
       </span>
     </button>
   )
