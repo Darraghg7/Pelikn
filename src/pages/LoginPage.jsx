@@ -380,8 +380,10 @@ const SIGN_IN_TIMEOUT_MS = 20_000
  * Staff picker list for the login screen, which runs with no session.
  *
  * Any device can load it: list_venue_staff_for_login() (113) is callable by
- * the anon key and returns only id, name, role and photo_url for one venue's
- * active staff. No manager sign-in is needed to set a device up first.
+ * the anon key and returns only id, name, role, photo_url and (from 147)
+ * rota colour for one venue's active staff. Before 147 is applied colour is
+ * missing and Avatar falls back to the default colour. No manager sign-in is
+ * needed to set a device up first.
  *
  * There used to be a fallback to a direct `staff` table read for while 113
  * was being rolled out. Since 113 and 116 are live, anon can't read that
@@ -775,7 +777,7 @@ export default function LoginPage() {
                       )}
 
                       {/* Avatar */}
-                      <Avatar name={s.name} id={s.id} photoUrl={s.photo_url} size="md" decorative />
+                      <Avatar name={s.name} id={s.id} colour={s.colour} photoUrl={s.photo_url} size="md" decorative />
 
                       <span className="flex-1 font-semibold text-charcoal dark:text-white text-sm">{s.name}</span>
                       <span className={`text-xs uppercase tracking-widest font-semibold font-mono ${isSel ? 'text-accent' : 'text-charcoal/35 dark:text-white/30'}`}>
@@ -797,7 +799,7 @@ export default function LoginPage() {
                 {(() => {
                   return (
                     <div className="flex items-center gap-2.5">
-                      <Avatar name={selected.name} id={selected.id} photoUrl={selected.photo_url} size="sm" decorative />
+                      <Avatar name={selected.name} id={selected.id} colour={selected.colour} photoUrl={selected.photo_url} size="sm" decorative />
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-bold text-charcoal dark:text-white tracking-[-0.01em] truncate">{selected.name}</p>
                         <p className="text-xs uppercase tracking-[0.06em] font-mono text-charcoal/40 dark:text-white/35">{ROLE_LABEL[selected.role] ?? selected.role}</p>
