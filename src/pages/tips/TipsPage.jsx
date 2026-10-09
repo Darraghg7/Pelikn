@@ -9,6 +9,7 @@ import { reportError } from '../../lib/reportError'
 import EmptyState from '../../components/ui/EmptyState'
 import LoadError from '../../components/ui/LoadError'
 import { SkeletonList } from '../../components/ui/Skeleton'
+import Button, { CloseButton } from '../../components/ui/Button'
 
 // ── Hooks ────────────────────────────────────────────────────────────────────
 
@@ -137,7 +138,7 @@ function AddTipSplitModal({ staff, venueId, managerId, onSaved, onClose }) {
       <div className="bg-white dark:bg-paperDark rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto flex flex-col">
         <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-charcoal/8 dark:border-white/8">
           <h2 className="text-lg font-bold text-charcoal dark:text-white">Add Tip Split</h2>
-          <button onClick={onClose} className="text-charcoal/30 dark:text-white/30 hover:text-charcoal dark:hover:text-white text-xl leading-none">&times;</button>
+          <CloseButton onClick={onClose} />
         </div>
 
         <div className="px-5 py-4 flex flex-col gap-4">
@@ -179,9 +180,9 @@ function AddTipSplitModal({ staff, venueId, managerId, onSaved, onClose }) {
             <>
               <div className="flex items-center justify-between">
                 <p className="text-xs font-medium text-charcoal/50 dark:text-white/40">Assign to staff</p>
-                <button onClick={splitEvenly} className="text-xs text-brand font-medium hover:underline">
+                <Button variant="link" size="sm" onClick={splitEvenly}>
                   Split evenly
-                </button>
+                </Button>
               </div>
 
               <div className="flex flex-col gap-2 max-h-52 overflow-y-auto">
@@ -218,16 +219,17 @@ function AddTipSplitModal({ staff, venueId, managerId, onSaved, onClose }) {
         </div>
 
         <div className="px-5 pb-5 pt-2 flex gap-3">
-          <button onClick={onClose} className="flex-1 border border-charcoal/15 dark:border-white/15 text-charcoal/60 dark:text-white/50 py-2.5 rounded-xl text-sm font-medium hover:bg-charcoal/5 dark:hover:bg-white/5 transition-colors">
+          <Button variant="secondary" onClick={onClose} className="flex-1">
             Cancel
-          </button>
-          <button
+          </Button>
+          <Button
+            loading={saving}
             onClick={handleSave}
             disabled={!canSave || saving}
-            className="flex-1 bg-brand text-cream py-2.5 rounded-xl text-sm font-semibold hover:bg-brand/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            className="flex-1"
           >
             {saving ? 'Saving…' : 'Save'}
-          </button>
+          </Button>
         </div>
       </div>
     </div>
@@ -310,12 +312,11 @@ export default function TipsPage() {
           <h1 className="text-2xl font-bold text-charcoal dark:text-white">Tips</h1>
           <p className="text-sm text-charcoal/40 dark:text-white/35 mt-1">Distribute and track tips across your team</p>
         </div>
-        <button
+        <Button
           onClick={() => setShowAdd(true)}
-          className="bg-accent text-cream px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-accent/90 transition-colors"
         >
           + Add Tip Split
-        </button>
+        </Button>
       </div>
 
       {loading ? (

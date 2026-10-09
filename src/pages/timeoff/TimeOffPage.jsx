@@ -26,6 +26,7 @@ import EditRequestModal from './EditRequestModal'
 import { CARD, TONE, PageHeader } from '../../components/temperature/TempPageParts'
 import LoadError from '../../components/ui/LoadError'
 import Avatar from '../../components/ui/Avatar'
+import Button from '../../components/ui/Button'
 
 const FIELD_LABEL = 'block text-[13px] font-semibold tracking-[0.08em] uppercase text-ink3 dark:text-white/45 mb-2'
 const TEXT_FIELD  = 'w-full h-12 px-4 rounded-xl border border-line dark:border-white/10 bg-cream dark:bg-white/5 text-[15px] text-ink dark:text-white placeholder:text-ink4 dark:placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand/40 focus:bg-white dark:focus:bg-white/10 transition-colors'
@@ -252,13 +253,13 @@ export default function TimeOffPage() {
         backTo={isManager ? `/v/${venueSlug}/team` : null}
         backLabel="Team"
         action={(
-          <button
-            type="button"
+          <Button
+            size="sm"
             onClick={() => setShowRequest(true)}
-            className="shrink-0 self-start mt-1 inline-flex items-center h-8 px-3.5 rounded-xl bg-brand text-white text-[13px] font-semibold hover:bg-brand/90 transition-colors"
+            className="self-start mt-1"
           >
             Request
-          </button>
+          </Button>
         )}
       />
 
@@ -341,17 +342,17 @@ export default function TimeOffPage() {
           )}
           {selectedIsFuture && (
             <div className="px-3.5 sm:px-3.5 py-2.5 border-t border-line dark:border-white/10">
-              <button
-                type="button"
+              <Button
+                variant="link"
+                size="sm"
                 onClick={() => {
                   const dateStr = format(selectedDay, 'yyyy-MM-dd')
                   setForm(f => ({ ...f, startDate: dateStr, endDate: dateStr }))
                   setShowRequest(true)
                 }}
-                className="text-[13px] font-semibold text-brand dark:text-white hover:underline underline-offset-2"
               >
                 + Request this day off
-              </button>
+              </Button>
             </div>
           )}
         </div>
@@ -561,14 +562,14 @@ export default function TimeOffPage() {
             />
           </label>
 
-          <button
-            type="button"
+          <Button
+            fullWidth
+            loading={saving}
             onClick={submitRequest}
             disabled={saving || !form.startDate || !form.endDate}
-            className="w-full h-10 rounded-2xl bg-brand text-white text-[14px] font-semibold transition-colors hover:bg-brand/90 disabled:bg-ink3/70 dark:disabled:bg-white/15 disabled:cursor-not-allowed"
           >
             {saving ? 'Submitting…' : 'Submit request'}
-          </button>
+          </Button>
         </div>
       </Modal>
 
@@ -703,22 +704,21 @@ function PendingRequest({ request: r, balance, note, onNote, busy, onApprove, on
         className={TEXT_FIELD}
       />
       <div className="grid grid-cols-2 gap-2.5">
-        <button
-          type="button"
+        <Button
+          variant="secondary"
+          size="sm"
           onClick={onReject}
           disabled={busy}
-          className="h-9 rounded-xl border border-line dark:border-white/15 bg-white dark:bg-paperDark text-[13px] font-semibold text-bad dark:text-[#f19a86] hover:border-bad/40 transition-colors disabled:opacity-50"
         >
           Reject
-        </button>
-        <button
-          type="button"
+        </Button>
+        <Button
+          size="sm"
           onClick={onApprove}
           disabled={busy}
-          className="h-9 rounded-xl bg-brand text-white text-[13px] font-semibold hover:bg-brand/90 transition-colors disabled:opacity-50"
         >
           Approve
-        </button>
+        </Button>
       </div>
     </div>
   )
@@ -752,15 +752,17 @@ function TeamBalanceRow({ balance: b, accrued, onLogPast }) {
           <p className="text-[13px] text-ink3 dark:text-white/45">No entitlement</p>
         )}
       </div>
-      <button
-        type="button"
+      <Button
+        variant="secondary"
+        size="sm"
+        iconOnly
         onClick={onLogPast}
         aria-label={`Log past leave for ${b.name}`}
         title="Log past leave"
-        className="shrink-0 w-9 h-8 rounded-xl border border-line dark:border-white/15 inline-flex items-center justify-center text-ink2 dark:text-white/75 hover:border-ink4"
+        className="shrink-0"
       >
         <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
-      </button>
+      </Button>
     </div>
   )
 }

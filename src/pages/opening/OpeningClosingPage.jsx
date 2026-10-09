@@ -14,6 +14,7 @@ import { useViewerDepartments } from '../../hooks/useDepartments'
 import { useAppSettings } from '../../hooks/useSettings'
 import { departmentMatcher } from '../../lib/roleFilter'
 import DepartmentFilter from '../../components/ui/DepartmentFilter'
+import Button, { CloseButton } from '../../components/ui/Button'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -110,19 +111,21 @@ function IssueModal({ check, onConfirm, onCancel, saving }) {
           />
         </div>
         <div className="flex gap-2">
-          <button
+          <Button
+            variant="warning"
+            loading={saving}
             onClick={() => onConfirm(action.trim())}
             disabled={saving || !action.trim()}
-            className="flex-1 bg-warning text-white py-2.5 rounded-lg text-sm font-medium disabled:opacity-40 hover:bg-warning/90 transition-colors"
+            className="flex-1"
           >
             {saving ? 'Saving…' : 'Save Issue →'}
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="secondary"
             onClick={onCancel}
-            className="px-4 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 text-sm text-charcoal/50 dark:text-white/40 hover:border-charcoal/30 dark:hover:border-white/30 transition-colors"
           >
             Cancel
-          </button>
+          </Button>
         </div>
       </div>
     </div>
@@ -193,13 +196,7 @@ function CheckRow({ check, completion, onOK, onIssue, readOnly, isManager, onRem
         </button>
       )}
       {isManager && !readOnly && (
-        <button
-          onClick={() => onRemove(check.id)}
-          aria-label="Remove check"
-          className="opacity-0 group-hover:opacity-100 shrink-0 w-7 h-7 rounded-lg grid place-items-center text-charcoal/25 dark:text-white/25 hover:text-danger hover:bg-danger/8 transition-colors"
-        >
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18M6 6l12 12" /></svg>
-        </button>
+        <CloseButton label="Remove check" className="opacity-0 group-hover:opacity-100 focus-visible:opacity-100 shrink-0" onClick={() => onRemove(check.id)} />
       )}
     </div>
   )
@@ -264,12 +261,13 @@ function CheckSection({ type, label, departmentId, departmentName, checks, compl
             </span>
           )}
           {isManager && !readOnly && (
-            <button
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => setShowAdd(v => !v)}
-              className="text-[11px] font-semibold text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white transition-colors"
             >
               {showAdd ? 'Cancel' : '+ Add'}
-            </button>
+            </Button>
           )}
         </div>
       </div>
@@ -293,13 +291,13 @@ function CheckSection({ type, label, departmentId, departmentName, checks, compl
             autoFocus
             className="flex-1 px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
           />
-          <button
+          <Button
+            loading={saving}
             onClick={handleAdd}
             disabled={saving || !newTitle.trim()}
-            className="bg-charcoal text-cream px-4 py-2 rounded-lg text-sm font-medium disabled:opacity-40 hover:bg-charcoal/90 transition-colors whitespace-nowrap"
           >
-            {saving ? '…' : 'Add →'}
-          </button>
+            Add →
+          </Button>
         </div>
       )}
 
@@ -527,13 +525,14 @@ export default function OpeningClosingPage() {
           <h1 className="text-2xl font-bold text-charcoal dark:text-white mt-0.5">Opening &amp; Closing</h1>
         </div>
         {isManager && (
-          <button
+          <Button
+            size="sm"
             onClick={() => setShowExport(true)}
-            className="flex items-center gap-1.5 bg-brand text-white text-[11px] font-bold tracking-wide px-3 py-2 rounded-xl hover:bg-brand/90 transition-colors shrink-0"
+            className="shrink-0"
           >
             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0-3-3m3 3 3-3m2 8H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5.586a1 1 0 0 1 .707.293l5.414 5.414a1 1 0 0 1 .293.707V19a2 2 0 0 1-2 2z" /></svg>
             PDF
-          </button>
+          </Button>
         )}
       </div>
 

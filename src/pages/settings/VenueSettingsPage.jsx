@@ -13,6 +13,7 @@ import TimeSelect from '../../components/ui/TimeSelect'
 import VenuesSection from './VenuesSection'
 import AppIconPicker from './AppIconPicker'
 import SettingsSubHeader from '../../components/layout/SettingsSubHeader'
+import Button from '../../components/ui/Button'
 
 const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
@@ -108,10 +109,12 @@ function ClosedPeriodsGroup({ venueId }) {
               <div className="text-sm font-medium text-charcoal dark:text-white">{fmtRange(c)}</div>
               {c.reason && <div className="text-[11.5px] text-charcoal/50 dark:text-white/40 mt-0.5">{c.reason}</div>}
             </div>
-            <button
+            <Button
+              variant="danger-ghost"
+              size="sm"
               onClick={() => setRemoveTarget(c)}
-              className="shrink-0 h-7 px-2.5 rounded-[7px] text-[11.5px] font-semibold cursor-pointer border-0 bg-charcoal/6 dark:bg-white/8 text-charcoal/50 dark:text-white/40 hover:text-danger transition-colors"
-            >Remove</button>
+              className="shrink-0"
+            >Remove</Button>
           </div>
         ))}
         <div className={`px-[15px] py-[13px] flex flex-col gap-3 ${upcoming.length ? 'border-t border-charcoal/6 dark:border-white/8' : ''}`}>
@@ -129,13 +132,15 @@ function ClosedPeriodsGroup({ venueId }) {
             <div className="font-mono text-[11px] font-semibold tracking-[0.06em] uppercase text-charcoal/50 dark:text-white/40 mb-1.5">Reason (optional)</div>
             <input value={form.reason} onChange={e => setForm(f => ({ ...f, reason: e.target.value }))} placeholder="e.g. Christmas, refit" className={fieldClass} />
           </div>
-          <button
+          <Button
+            size="sm"
+            loading={saving}
             onClick={add}
             disabled={saving || !form.start_date || !form.end_date}
-            className={`self-start h-9 px-4 rounded-[9px] border-0 text-[13px] font-semibold text-white bg-brand transition-colors duration-200 ${saving || !form.start_date || !form.end_date ? 'opacity-60 cursor-default' : 'cursor-pointer'}`}
+            className="self-start"
           >
             {saving ? 'Saving…' : 'Add closed period'}
-          </button>
+          </Button>
         </div>
       </Group>
     </>
@@ -247,13 +252,16 @@ export default function VenueSettingsPage() {
                 className="w-full px-3 py-2.5 rounded-[10px] border border-charcoal/10 dark:border-white/10 text-sm text-charcoal dark:text-white outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 focus:border-charcoal/20 dark:focus:border-white/20 box-border"
               />
             </div>
-            <button
+            <Button
+              size="sm"
+              loading={saving}
+              variant={saveSuccess ? 'success' : 'primary'}
               onClick={saveDetails}
               disabled={saving}
-              className={`self-start h-9 px-4 rounded-[9px] border-0 text-[13px] font-semibold text-white transition-colors duration-200 ${saving ? 'opacity-60 cursor-default' : 'cursor-pointer'} ${saveSuccess ? 'bg-success' : 'bg-brand'}`}
+              className="self-start"
             >
               {saving ? 'Saving…' : saveSuccess ? '✓ Saved' : 'Save changes'}
-            </button>
+            </Button>
           </div>
         </Group>
 
@@ -283,13 +291,16 @@ export default function VenueSettingsPage() {
                 className="w-full px-3 py-2.5 rounded-[10px] border border-charcoal/10 dark:border-white/10 text-sm text-charcoal dark:text-white outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 focus:border-charcoal/20 dark:focus:border-white/20 box-border"
               />
             </div>
-            <button
+            <Button
+              size="sm"
+              loading={savingFhrs}
+              variant={fhrsSaveSuccess ? 'success' : 'primary'}
               onClick={saveFhrs}
               disabled={savingFhrs}
-              className={`self-start h-9 px-4 rounded-[9px] border-0 text-[13px] font-semibold text-white transition-colors duration-200 ${savingFhrs ? 'opacity-60 cursor-default' : 'cursor-pointer'} ${fhrsSaveSuccess ? 'bg-success' : 'bg-brand'}`}
+              className="self-start"
             >
               {savingFhrs ? 'Saving…' : fhrsSaveSuccess ? '✓ Saved' : 'Save rating'}
-            </button>
+            </Button>
           </div>
         </Group>
 
@@ -337,13 +348,14 @@ export default function VenueSettingsPage() {
                 className="text-[13px] text-charcoal/50 dark:text-white/40"
               />
               {logoFile && (
-                <button
+                <Button
+                  size="sm"
+                  loading={uploadingLogo}
                   onClick={() => uploadLogo(logoFile)}
                   disabled={uploadingLogo}
-                  className={`h-[34px] px-[14px] rounded-lg border-0 cursor-pointer bg-brand text-white text-[13px] font-semibold ${uploadingLogo ? 'opacity-50' : ''}`}
                 >
                   {uploadingLogo ? 'Uploading…' : 'Upload'}
-                </button>
+                </Button>
               )}
             </div>
             <div className="text-[11.5px] text-charcoal/30 dark:text-white/30">PNG or SVG recommended. Shown in the app header.</div>

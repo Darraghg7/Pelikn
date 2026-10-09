@@ -14,6 +14,7 @@ import { insertSupplier } from '../../lib/api/suppliers'
 import { insertDeliveryCheck } from '../../lib/api/deliveries'
 import { TRAINING_BUCKET, deliveryPhotoPath } from '../../lib/trainingFiles'
 import LoadError from '../../components/ui/LoadError'
+import Button from '../../components/ui/Button'
 // tesseract.js is ~7 MB — dynamically imported only when OCR is actually used
 
 // Local wall-clock time for a datetime-local input. toISOString() is UTC, so
@@ -136,13 +137,14 @@ function AddSupplierModal({ open, onClose, onAdded, venueId }) {
           className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
           autoFocus
         />
-        <button
+        <Button
+          fullWidth
+          loading={saving}
           onClick={save}
           disabled={saving || !name.trim()}
-          className="bg-charcoal text-cream py-2.5 rounded-xl text-sm font-medium hover:bg-charcoal/90 transition-colors disabled:opacity-40"
         >
           {saving ? 'Saving...' : 'Add Supplier'}
-        </button>
+        </Button>
       </div>
     </Modal>
   )
@@ -172,18 +174,20 @@ function ItemCategoryPicker({ itemName, onSave, onSkip }) {
         ))}
       </div>
       <div className="flex gap-2 mt-1">
-        <button
+        <Button
+          size="sm"
           onClick={() => onSave(category, cat.temp)}
-          className="flex-1 bg-charcoal text-cream py-1.5 rounded-lg text-xs font-medium"
+          className="flex-1"
         >
           Save
-        </button>
-        <button
+        </Button>
+        <Button
+          variant="secondary"
+          size="sm"
           onClick={onSkip}
-          className="px-3 py-1.5 rounded-lg border border-charcoal/15 dark:border-white/15 text-xs text-charcoal/40 dark:text-white/35"
         >
           Skip
-        </button>
+        </Button>
       </div>
     </div>
   )
@@ -461,12 +465,13 @@ function DeliveryCheckModal({ open, onClose, suppliers, onSupplierAdded, onCompl
                 </button>
               ))
             )}
-            <button
+            <Button
+              variant="secondary"
+              fullWidth
               onClick={() => setShowAddSupplier(true)}
-              className="px-4 py-3 rounded-xl border border-dashed border-charcoal/20 dark:border-white/20 text-sm text-charcoal/40 dark:text-white/35 hover:text-charcoal/60 dark:hover:text-white/50 hover:border-charcoal/35 dark:hover:border-white/35 transition-all"
             >
               + Add New Supplier
-            </button>
+            </Button>
           </div>
         )}
 
@@ -643,13 +648,14 @@ function DeliveryCheckModal({ open, onClose, suppliers, onSupplierAdded, onCompl
             </div>
 
             {/* Submit */}
-            <button
+            <Button
+              fullWidth
+              loading={saving}
               onClick={saveDelivery}
               disabled={saving}
-              className="bg-charcoal text-cream py-3 rounded-xl text-sm font-medium hover:bg-charcoal/90 transition-colors disabled:opacity-40"
             >
               {saving ? 'Saving...' : 'Complete Delivery Check'}
-            </button>
+            </Button>
           </div>
         )}
       </Modal>
@@ -691,12 +697,11 @@ export default function DeliveryChecksPage() {
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-charcoal dark:text-white">Delivery Checks</h1>
-        <button
+        <Button
           onClick={() => setShowCheck(true)}
-          className="bg-charcoal text-cream px-4 py-2 rounded-lg text-sm font-medium hover:bg-charcoal/90 transition-colors"
         >
           + Check Delivery
-        </button>
+        </Button>
       </div>
 
       {/* Summary */}

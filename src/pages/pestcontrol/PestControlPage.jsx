@@ -29,6 +29,7 @@ import { CARD, TONE, PageHeader, TabBar } from '../../components/temperature/Tem
 import { HistoryRangePills, StatStrip, historyDateFrom } from '../../components/temperature/TempHistoryView'
 import PestExportModal from './PestExportModal'
 import LoadError from '../../components/ui/LoadError'
+import Button from '../../components/ui/Button'
 
 const ALL_CLEAR_TEXT = 'All clear — no activity, traps checked and reset.'
 
@@ -400,9 +401,9 @@ function LogEntryForm({ issues, followUpIssueId, onFollowUpIssue, onSaved }) {
           {logType === 'inspection' && (
             <p className="text-[13px] text-ink3 dark:text-white/45 mt-2">
               Found signs of pests?{' '}
-              <button type="button" onClick={() => setLogType('sighting')} className="font-semibold text-brand dark:text-white underline underline-offset-2">
+              <Button variant="link" size="sm" onClick={() => setLogType('sighting')}>
                 Log a pest sighting
-              </button>{' '}
+              </Button>{' '}
               instead, so it stays open until it's dealt with.
             </p>
           )}
@@ -432,24 +433,25 @@ function LogEntryForm({ issues, followUpIssueId, onFollowUpIssue, onSaved }) {
           </label>
         </div>
       ) : (
-        <button
-          type="button"
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={() => setShowExtra(true)}
-          className="self-start inline-flex items-center gap-2 text-[13px] font-semibold text-ink2 dark:text-white/75 hover:text-ink dark:hover:text-white"
+          className="self-start -ml-3"
         >
           <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
           Action taken, contractor
-        </button>
+        </Button>
       )}
 
-      <button
-        type="button"
+      <Button
+        fullWidth
+        loading={saving}
         onClick={save}
         disabled={!valid || saving}
-        className="w-full h-10 rounded-2xl bg-brand text-white text-[14px] font-semibold transition-colors hover:bg-brand/90 disabled:bg-ink3/70 dark:disabled:bg-white/15 disabled:cursor-not-allowed"
       >
         {saving ? 'Saving…' : 'Save entry'}
-      </button>
+      </Button>
     </div>
   )
 }
@@ -504,20 +506,19 @@ function OpenIssueCard({ issue, onFollowUp, onResolve }) {
       </div>
 
       <div className="grid grid-cols-2 gap-2.5">
-        <button
-          type="button"
+        <Button
+          variant="secondary"
+          size="sm"
           onClick={onFollowUp}
-          className="h-9 rounded-xl border border-line dark:border-white/15 bg-white dark:bg-paperDark text-[13px] font-semibold text-ink dark:text-white hover:border-ink4 transition-colors"
         >
           Log follow-up
-        </button>
-        <button
-          type="button"
+        </Button>
+        <Button
+          size="sm"
           onClick={onResolve}
-          className="h-9 rounded-xl bg-brand text-white text-[13px] font-semibold hover:bg-brand/90 transition-colors"
         >
           Resolve
-        </button>
+        </Button>
       </div>
     </div>
   )
