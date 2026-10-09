@@ -7,6 +7,7 @@ import { PageSkeleton } from '../../components/ui/Skeleton'
 import { reportError } from '../../lib/reportError'
 import LoadError from '../../components/ui/LoadError'
 import Button from '../../components/ui/Button'
+import { colors } from '../../lib/tokens'
 
 export default function PPDSLabelPage() {
   const { id }              = useParams()
@@ -138,8 +139,8 @@ export default function PPDSLabelPage() {
             display: 'none',
             fontFamily: 'Arial, Helvetica, sans-serif',
             fontSize: '9pt',
-            color: '#000',
-            border: '1px solid #000',
+            color: colors.print.ink,
+            border: `1px solid ${colors.print.ink}`,
             padding: '6mm',
             maxWidth: '74mm',
             lineHeight: '1.4',
@@ -162,8 +163,8 @@ export default function PPDSLabelPage() {
         style={{
           fontFamily: 'Arial, Helvetica, sans-serif',
           fontSize: '9pt',
-          color: '#000',
-          border: '2px solid #000',
+          color: colors.print.ink,
+          border: `2px solid ${colors.print.ink}`,
           padding: '6mm',
           width: '74mm',
           boxSizing: 'border-box',
@@ -171,8 +172,8 @@ export default function PPDSLabelPage() {
         }}
       >
         <p style={{ fontWeight: 'bold', fontSize: '11pt', marginBottom: '4px' }}>{item.name}</p>
-        {item.description && <p style={{ fontSize: '8pt', color: '#444', marginBottom: '4px' }}>{item.description}</p>}
-        <p style={{ fontWeight: 'bold', fontSize: '8pt', marginBottom: '2px', borderTop: '1px solid #000', paddingTop: '4px' }}>
+        {item.description && <p style={{ fontSize: '8pt', color: colors.print.muted, marginBottom: '4px' }}>{item.description}</p>}
+        <p style={{ fontWeight: 'bold', fontSize: '8pt', marginBottom: '2px', borderTop: `1px solid ${colors.print.ink}`, paddingTop: '4px' }}>
           Prepared by {venueName}
         </p>
 
@@ -196,12 +197,12 @@ export default function PPDSLabelPage() {
         )}
 
         {hasAllergens && (
-          <p style={{ fontSize: '7.5pt', color: '#333', borderTop: '1px solid #ccc', paddingTop: '3px', marginTop: '4px' }}>
+          <p style={{ fontSize: '7.5pt', color: colors.print.ink, borderTop: `1px solid ${colors.print.rule}`, paddingTop: '3px', marginTop: '4px' }}>
             Allergens shown in <strong><u>bold and underlined</u></strong>.
           </p>
         )}
 
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '6px', paddingTop: '4px', borderTop: '1px solid #000', fontSize: '8.5pt' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '6px', paddingTop: '4px', borderTop: `1px solid ${colors.print.ink}`, fontSize: '8.5pt' }}>
           <span><strong>Made on:</strong> {formatDate(madeOn) || '___________'}</span>
           <span><strong>Use by:</strong> {formatDate(useBy) || '___________'}</span>
         </div>
@@ -217,26 +218,26 @@ function LabelContent({ item, venueName, madeOn, useBy, formatIngredients, forma
     <div
       style={{
         fontFamily: 'Arial, Helvetica, sans-serif',
-        border: '2px solid #1a1a1a',
+        border: `2px solid ${colors.charcoal}`,
         borderRadius: '4px',
         padding: '12px',
         fontSize: '11px',
         lineHeight: '1.6',
-        color: '#000',
-        background: '#fff',
+        color: colors.print.ink,
+        background: colors.paper,
         maxWidth: '300px',
       }}
     >
       <p style={{ fontWeight: 'bold', fontSize: '14px', marginBottom: '2px' }}>{item.name || 'Product Name'}</p>
-      {item.description && <p style={{ fontSize: '10px', color: '#555', marginBottom: '4px' }}>{item.description}</p>}
-      <p style={{ fontWeight: 'bold', fontSize: '10px', borderTop: '1px solid #000', paddingTop: '5px', marginBottom: '6px' }}>
+      {item.description && <p style={{ fontSize: '10px', color: colors.print.muted, marginBottom: '4px' }}>{item.description}</p>}
+      <p style={{ fontWeight: 'bold', fontSize: '10px', borderTop: `1px solid ${colors.print.ink}`, paddingTop: '5px', marginBottom: '6px' }}>
         Prepared by {venueName}
       </p>
 
       <p style={{ marginBottom: '5px' }}>
         <strong>INGREDIENTS: </strong>
         {formatIngredients().length === 0
-          ? <span style={{ color: '#999', fontStyle: 'italic' }}>Add ingredients above…</span>
+          ? <span style={{ color: colors.print.muted, fontStyle: 'italic' }}>Add ingredients above…</span>
           : formatIngredients().map((r, i, arr) => (
             <React.Fragment key={i}>
               {r.allergen
@@ -256,12 +257,12 @@ function LabelContent({ item, venueName, madeOn, useBy, formatIngredients, forma
       )}
 
       {hasAllergens && (
-        <p style={{ fontSize: '9px', color: '#555', borderTop: '1px solid #ccc', paddingTop: '3px', marginTop: '4px' }}>
+        <p style={{ fontSize: '9px', color: colors.print.muted, borderTop: `1px solid ${colors.print.rule}`, paddingTop: '3px', marginTop: '4px' }}>
           Allergens shown in <strong><u>bold and underlined</u></strong>.
         </p>
       )}
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '8px', paddingTop: '5px', borderTop: '1px solid #000', fontSize: '11px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '8px', paddingTop: '5px', borderTop: `1px solid ${colors.print.ink}`, fontSize: '11px' }}>
         <span><strong>Made on:</strong> {madeOn ? formatDate(madeOn) : '— '}</span>
         <span><strong>Use by:</strong> {useBy ? formatDate(useBy) : '—'}</span>
       </div>

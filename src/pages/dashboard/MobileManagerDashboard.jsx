@@ -42,6 +42,7 @@ import {
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import Button from '../../components/ui/Button'
+import { colors, alpha, white } from '../../lib/tokens'
 
 // ── Live time (updates every minute) ──────────────────────────────────────
 function useLiveTime() {
@@ -358,8 +359,8 @@ function MobileClockCard({ staffId }) {
         ? `On shift${elapsed ? ' · ' + elapsed : ''}`
         : 'Not in'
 
-  const badgeBg  = isError ? 'rgba(220,38,38,0.25)' : onBreak ? 'rgba(168,93,18,0.25)' : onShift ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.10)'
-  const badgeDot = isError ? '#dc2626' : onBreak ? '#e8a34e' : onShift ? '#6fcfa0' : 'rgba(255,255,255,0.35)'
+  const badgeBg  = isError ? alpha(colors.bad, 0.25) : onBreak ? alpha(colors.warn, 0.25) : onShift ? white(0.15) : white(0.10)
+  const badgeDot = isError ? colors.badDark : onBreak ? colors.warnDark : onShift ? colors.goodDark : white(0.35)
 
   const stats = [
     { label: 'This week', value: weekHrs ? weekHrs.replace(/h (\d)m$/, 'h 0$1m') : '—' },
@@ -468,7 +469,7 @@ function MobileSortableCard({ id, editMode, half = false, children }) {
         transform:    CSS.Transform.toString(transform),
         transition,
         opacity:      isDragging ? 0.35 : 1,
-        outline:      editMode ? '1.5px dashed rgb(179 185 181)' : 'none',
+        outline:      editMode ? `1.5px dashed ${colors.ink4}` : 'none',
         outlineOffset: 2,
       }}
       className={`rounded-2xl relative min-w-0 ${half ? 'col-span-1' : 'col-span-2'}`}
@@ -586,7 +587,7 @@ function MobileDraggableWidgetGrid({
       </SortableContext>
       <DragOverlay>
         {activeContent && (
-          <div className="rounded-[14px] opacity-95 cursor-grabbing" style={{ boxShadow: '0 24px 48px rgba(9,18,13,0.25)', transform: 'scale(1.02)' }}>
+          <div className="rounded-[14px] opacity-95 cursor-grabbing" style={{ boxShadow: `0 24px 48px ${alpha(colors.ink, 0.25)}`, transform: 'scale(1.02)' }}>
             <Suspense fallback={null}>
               {activeContent}
             </Suspense>

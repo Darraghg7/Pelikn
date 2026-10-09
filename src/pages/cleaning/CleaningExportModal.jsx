@@ -5,7 +5,7 @@ import { capitalize } from '../../lib/utils'
 import { useVenue } from '../../contexts/VenueContext'
 import Modal from '../../components/ui/Modal'
 import { useToast } from '../../components/ui/Toast'
-import { buildPdfReport } from '../../lib/pdfUtils'
+import { buildPdfReport, PDF } from '../../lib/pdfUtils'
 import Button from '../../components/ui/Button'
 
 export default function CleaningExportModal({ open, onClose }) {
@@ -73,7 +73,7 @@ export default function CleaningExportModal({ open, onClose }) {
       rows,
       didParseCell(hookData) {
         if (hookData.section === 'body' && hookData.cell.raw === 'NOT COMPLETED') {
-          hookData.cell.styles.textColor = [180, 30, 30]
+          hookData.cell.styles.textColor = PDF.bad
           hookData.cell.styles.fontStyle = 'bold'
         }
       },

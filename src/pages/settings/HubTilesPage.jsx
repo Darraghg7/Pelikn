@@ -9,6 +9,7 @@ import { EXTRA_FEATURES, checkTileEnabled } from '../../lib/features'
 import NavOrderSection from './NavOrderSection'
 import VenueTypeIndicator from './VenueTypeIndicator'
 import SettingsSubHeader from '../../components/layout/SettingsSubHeader'
+import { black } from '../../lib/tokens'
 
 const CHECK_TILES = [
   { id: 'fitness',   label: 'Fitness to Work',  sub: 'Daily staff declarations' },
@@ -35,18 +36,21 @@ const TEAM_TILES = [
   { id: 'staff',     label: 'Staff',        sub: 'Add and manage people' },
 ]
 
+const TRACK_ON    = 'bg-good'
+const TRACK_OFF   = 'bg-line dark:bg-white/20'
+const KNOB_SHADOW = `0 1px 3px ${black(0.2)}`
+
 function Toggle({ on, onClick = undefined, disabled = false }) {
   return (
     <button
       onClick={onClick}
       disabled={disabled}
       aria-pressed={on}
-      className="relative w-10 h-6 rounded-full border-0 cursor-pointer disabled:cursor-default shrink-0 transition-colors duration-[180ms] p-0"
-      style={{ background: on ? '#1a7a4c' : '#e4e6e2' }}
+      className={`relative w-10 h-6 rounded-full border-0 cursor-pointer disabled:cursor-default shrink-0 transition-colors duration-[180ms] p-0 ${on ? TRACK_ON : TRACK_OFF}`}
     >
       <span
         className="absolute top-0.5 w-5 h-5 rounded-full bg-white dark:bg-paperDark transition-all duration-[180ms]"
-        style={{ left: on ? 18 : 2, boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }}
+        style={{ left: on ? 18 : 2, boxShadow: KNOB_SHADOW }}
       />
     </button>
   )
@@ -200,11 +204,10 @@ export default function HubTilesPage() {
                                 : [...new Set([...(featuresConfig.enabled ?? []), ...groupIds])]
                               saveFeatures({ enabled: next })
                             }}
-                            className="relative w-10 h-6 rounded-full border-0 cursor-pointer shrink-0 p-0 transition-colors duration-[180ms]"
-                            style={{ background: allOn ? '#1a7a4c' : '#e4e6e2' }}
+                            className={`relative w-10 h-6 rounded-full border-0 cursor-pointer shrink-0 p-0 transition-colors duration-[180ms] ${allOn ? TRACK_ON : TRACK_OFF}`}
                             aria-pressed={allOn}
                           >
-                            <span className="absolute top-0.5 w-5 h-5 rounded-full bg-white dark:bg-paperDark transition-all duration-[180ms]" style={{ left: allOn ? 18 : 2, boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} />
+                            <span className="absolute top-0.5 w-5 h-5 rounded-full bg-white dark:bg-paperDark transition-all duration-[180ms]" style={{ left: allOn ? 18 : 2, boxShadow: KNOB_SHADOW }} />
                           </button>
                         </div>
                         {group.features.map((feature, fi) => {
@@ -227,11 +230,11 @@ export default function HubTilesPage() {
                                   saveFeatures({ enabled: next })
                                 }}
                                 disabled={locked}
-                                className="relative w-10 h-6 rounded-full border-0 shrink-0 p-0 transition-colors duration-[180ms]"
-                                style={{ background: on ? '#1a7a4c' : '#e4e6e2', cursor: locked ? 'default' : 'pointer' }}
+                                className={`relative w-10 h-6 rounded-full border-0 shrink-0 p-0 transition-colors duration-[180ms] ${on ? TRACK_ON : TRACK_OFF}`}
+                                style={{ cursor: locked ? 'default' : 'pointer' }}
                                 aria-pressed={on}
                               >
-                                <span className="absolute top-0.5 w-5 h-5 rounded-full bg-white dark:bg-paperDark transition-all duration-[180ms]" style={{ left: on ? 18 : 2, boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} />
+                                <span className="absolute top-0.5 w-5 h-5 rounded-full bg-white dark:bg-paperDark transition-all duration-[180ms]" style={{ left: on ? 18 : 2, boxShadow: KNOB_SHADOW }} />
                               </button>
                             </div>
                           )

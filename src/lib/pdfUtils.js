@@ -1,4 +1,5 @@
 import { format } from 'date-fns'
+import { colors, rgb } from './tokens'
 
 /**
  * jsPDF + autotable are ~800 kB together and are only needed the moment
@@ -9,6 +10,22 @@ import { format } from 'date-fns'
  * Loading them on first use instead keeps those page chunks small. The promise
  * is memoised so a second export doesn't re-await the module registry.
  */
+/**
+ * PDF colours as [r, g, b] (what jsPDF wants), taken from src/lib/tokens.js
+ * so printed reports match the app. Reports are always light.
+ */
+export const PDF = {
+  ink:     rgb(colors.ink),
+  muted:   rgb(colors.ink3),
+  faint:   rgb(colors.ink4),
+  white:   rgb(colors.paper),
+  head:    rgb(colors.charcoal),   // table header band
+  rowAlt:  rgb(colors.surface),    // striped rows
+  good:    rgb(colors.good),
+  warn:    rgb(colors.warn),
+  bad:     rgb(colors.bad),
+}
+
 let _pdfLibs = null
 export function loadPdfLibs() {
   if (!_pdfLibs) {
@@ -45,22 +62,22 @@ export async function buildPdfReport({ title, subtitle, venueLabel, periodLabel,
 
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(10)
-  doc.setTextColor(100)
+  doc.setTextColor(...PDF.muted)
 
   let y = 25
   doc.text(subtitle, 14, y); y += 6
   if (venueLabel) { doc.text(venueLabel, 14, y); y += 6 }
   doc.text(`Period: ${periodLabel}`, 14, y); y += 6
-  doc.setTextColor(0)
+  doc.setTextColor(...PDF.ink)
 
   // ── Table ─────────────────────────────────────────────────────────────────
   autoTable(doc, {
     startY: y + 2,
     head: [columns],
     body: rows,
-    headStyles: { fillColor: [40, 40, 40], textColor: 255, fontSize: 9 },
-    bodyStyles: { fontSize: 8 },
-    alternateRowStyles: { fillColor: [248, 248, 248] },
+    headStyles: { fillColor: PDF.head, textColor: PDF.white, fontSize: 9 },
+    bodyStyles: { fontSize: 8, textColor: PDF.ink },
+    alternateRowStyles: { fillColor: PDF.rowAlt },
     ...(didParseCell ? { didParseCell } : {}),
   })
 
@@ -69,7 +86,7 @@ export async function buildPdfReport({ title, subtitle, venueLabel, periodLabel,
   for (let i = 1; i <= pageCount; i++) {
     doc.setPage(i)
     doc.setFontSize(7)
-    doc.setTextColor(150)
+    doc.setTextColor(...PDF.faint)
     doc.text(
       `Generated ${format(new Date(), 'dd/MM/yyyy HH:mm')} · Page ${i} of ${pageCount}`,
       pageW / 2,

@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react'
 import { useToast } from '../../components/ui/Toast'
+import { appIconColors } from '../../lib/tokens'
 
 const ICON_VARIANTS = [
-  { id: 'light', label: 'Light', bg: '#FFFFFF', fg: '#1E3A2F', iconName: null },
-  { id: 'dark',  label: 'Dark',  bg: '#1E3A2F', fg: '#FFFFFF', iconName: 'AppIconDark' },
-  { id: 'mint',  label: 'Mint',  bg: '#1A1A18', fg: '#5EEAAA', iconName: 'AppIconMint' },
+  { id: 'light', label: 'Light', bg: appIconColors.white, fg: appIconColors.green, iconName: null },
+  { id: 'dark',  label: 'Dark',  bg: appIconColors.green, fg: appIconColors.white, iconName: 'AppIconDark' },
+  { id: 'mint',  label: 'Mint',  bg: appIconColors.black, fg: appIconColors.mint, iconName: 'AppIconMint' },
 ]
 
 function MortarSVG({ fg }) {

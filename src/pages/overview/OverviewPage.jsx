@@ -6,6 +6,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { useAllVenueCompliance } from '../../hooks/useAllVenueCompliance'
 import { Navigate, useNavigate } from 'react-router-dom'
 import Button from '../../components/ui/Button'
+import { black } from '../../lib/tokens'
 
 /* ── Status helpers ──────────────────────────────────────────────────────────── */
 const STATUS = {
@@ -76,7 +77,7 @@ function VenueCard({ result, isHome, dimmed, onOpen }) {
         opacity: dimmed ? 0.20 : 1,
         pointerEvents: dimmed ? 'none' : 'auto',
         transform: hovered && !dimmed ? 'translateY(-2px)' : 'translateY(0)',
-        boxShadow: hovered && !dimmed ? '0 8px 24px rgba(0,0,0,0.10)' : 'none',
+        boxShadow: hovered && !dimmed ? `0 8px 24px ${black(0.10)}` : 'none',
         transition: 'transform 150ms, box-shadow 150ms, opacity 150ms',
       }}
     >

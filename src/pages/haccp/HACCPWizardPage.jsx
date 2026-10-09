@@ -8,6 +8,7 @@ import { PageSkeleton } from '../../components/ui/Skeleton'
 import { reportError } from '../../lib/reportError'
 import LoadError from '../../components/ui/LoadError'
 import Button from '../../components/ui/Button'
+import { colors } from '../../lib/tokens'
 
 // ── HACCP 7 Principles ────────────────────────────────────────────────────────
 
@@ -256,8 +257,8 @@ function PrintDoc({ venueName, managerName, reviewDate, answers }) {
           @page { margin: 20mm; }
         }
       `}</style>
-      <div id="haccp-print-doc" style={{ fontFamily: 'serif', fontSize: '11pt', color: '#000', lineHeight: '1.6' }}>
-        <div style={{ borderBottom: '2px solid #000', paddingBottom: '12px', marginBottom: '20px' }}>
+      <div id="haccp-print-doc" style={{ fontFamily: 'serif', fontSize: '11pt', color: colors.print.ink, lineHeight: '1.6' }}>
+        <div style={{ borderBottom: `2px solid ${colors.print.ink}`, paddingBottom: '12px', marginBottom: '20px' }}>
           <h1 style={{ fontSize: '18pt', fontWeight: 'bold', margin: 0 }}>HACCP Food Safety Management Plan</h1>
           <p style={{ margin: '4px 0 0' }}>{venueName}</p>
           <div style={{ marginTop: '8px', fontSize: '10pt', display: 'flex', gap: '24px' }}>
@@ -269,7 +270,7 @@ function PrintDoc({ venueName, managerName, reviewDate, answers }) {
 
         {STEPS.map((step, i) => (
           <div key={step.id} style={{ marginBottom: '24px', pageBreakInside: 'avoid' }}>
-            <h2 style={{ fontSize: '12pt', fontWeight: 'bold', margin: '0 0 4px', borderBottom: '1px solid #ccc', paddingBottom: '4px' }}>
+            <h2 style={{ fontSize: '12pt', fontWeight: 'bold', margin: '0 0 4px', borderBottom: `1px solid ${colors.print.rule}`, paddingBottom: '4px' }}>
               {step.principle}: {step.title}
             </h2>
             <pre style={{ fontFamily: 'inherit', whiteSpace: 'pre-wrap', margin: 0, fontSize: '10pt' }}>
@@ -278,7 +279,7 @@ function PrintDoc({ venueName, managerName, reviewDate, answers }) {
           </div>
         ))}
 
-        <div style={{ borderTop: '1px solid #000', paddingTop: '16px', marginTop: '24px' }}>
+        <div style={{ borderTop: `1px solid ${colors.print.ink}`, paddingTop: '16px', marginTop: '24px' }}>
           <p style={{ margin: '0 0 24px', fontSize: '10pt' }}>
             This HACCP plan has been prepared in accordance with Regulation (EC) No 852/2004 as retained in UK law. It is reviewed annually and whenever processes, menus, or equipment change.
           </p>

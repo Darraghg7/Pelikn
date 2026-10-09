@@ -9,6 +9,7 @@ import {
 import { STARTER_FEATURES, PRO_FEATURES, PLAN_ORDER, PLAN_DETAILS, STARTER_STAFF_LIMIT } from '../../lib/plans'
 import { PLANS } from '../../lib/constants'
 import DesktopDashboardMock, { BrowserFrame, ScaledCanvas } from './DesktopDashboardMock'
+import { colors, alpha, white, black } from '../../lib/tokens'
 
 /* ─── Keyframes ─────────────────────────────────────────────────────────── */
 function GlobalCSS() {
@@ -23,8 +24,8 @@ function GlobalCSS() {
         to   { opacity:1; transform:translateY(0) scale(1); }
       }
       @keyframes pkPulse {
-        0%,100% { opacity:1; box-shadow:0 0 0 0 rgba(26,122,76,0.5); }
-        60%      { opacity:0.55; box-shadow:0 0 0 5px rgba(26,122,76,0); }
+        0%,100% { opacity:1; box-shadow:0 0 0 0 ${alpha(colors.good, 0.5)}; }
+        60%      { opacity:0.55; box-shadow:0 0 0 5px ${alpha(colors.good, 0)}; }
       }
       /* Scrolling ticker — seamless loop */
       @keyframes pkTicker {
@@ -55,7 +56,7 @@ const REPLACED_TOOLS = ['Rota spreadsheets','WhatsApp groups','Paper temp logs',
 function ReplacesStrip() {
   return (
     <div className="bg-surface border-y border-charcoal/8 py-4 select-none flex items-center">
-      <span aria-hidden="true" className="pk-ticker-label relative z-10 shrink-0 pl-6 sm:pl-10 pr-4 sm:pr-6 font-mono text-[11px] tracking-[0.12em] uppercase font-semibold text-charcoal/55 bg-surface shadow-[12px_0_12px_#f0efec]">Replaces</span>
+      <span aria-hidden="true" className="pk-ticker-label relative z-10 shrink-0 pl-6 sm:pl-10 pr-4 sm:pr-6 font-mono text-[11px] tracking-[0.12em] uppercase font-semibold text-charcoal/55 bg-surface shadow-[12px_0_12px_theme(colors.surface)]">Replaces</span>
       <div className="overflow-hidden flex-1">
         <div className="flex pk-ticker-track whitespace-nowrap">
           {[0, 1].map(pass => (
@@ -83,17 +84,17 @@ function IPhoneFrame({ children }) {
     <div
       aria-hidden="true"
       className="relative shrink-0 transition-transform duration-500 ease-[cubic-bezier(.16,1,.3,1)] hover:-translate-y-2"
-      style={{ width:300, background:'#141414', borderRadius:52, padding:14, boxShadow:'0 40px 80px rgba(0,0,0,0.4), inset 0 0 0 1.5px rgba(255,255,255,0.13)' }}
+      style={{ width:300, background:colors.charcoal, borderRadius:52, padding:14, boxShadow:`0 40px 80px ${black(0.4)}, inset 0 0 0 1.5px ${white(0.13)}` }}
     >
       {/* Side buttons */}
-      <div style={{ position:'absolute', right:-3, top:100, width:3, height:34, background:'#2a2a2a', borderRadius:'0 3px 3px 0' }}/>
-      <div style={{ position:'absolute', left:-3, top:88,  width:3, height:26, background:'#2a2a2a', borderRadius:'3px 0 0 3px' }}/>
-      <div style={{ position:'absolute', left:-3, top:122, width:3, height:26, background:'#2a2a2a', borderRadius:'3px 0 0 3px' }}/>
-      <div style={{ position:'absolute', left:-3, top:156, width:3, height:52, background:'#2a2a2a', borderRadius:'3px 0 0 3px' }}/>
+      <div style={{ position:'absolute', right:-3, top:100, width:3, height:34, background:colors.ink2, borderRadius:'0 3px 3px 0' }}/>
+      <div style={{ position:'absolute', left:-3, top:88,  width:3, height:26, background:colors.ink2, borderRadius:'3px 0 0 3px' }}/>
+      <div style={{ position:'absolute', left:-3, top:122, width:3, height:26, background:colors.ink2, borderRadius:'3px 0 0 3px' }}/>
+      <div style={{ position:'absolute', left:-3, top:156, width:3, height:52, background:colors.ink2, borderRadius:'3px 0 0 3px' }}/>
       {/* Screen — fixed height for realistic iPhone 15 proportions */}
-      <div style={{ borderRadius:40, overflow:'hidden', background:'#f3f3ef', position:'relative', height:572 }}>
+      <div style={{ borderRadius:40, overflow:'hidden', background:colors.surface, position:'relative', height:572 }}>
         {/* Dynamic island */}
-        <div style={{ position:'absolute', top:12, left:'50%', transform:'translateX(-50%)', width:100, height:28, background:'#141414', borderRadius:14, zIndex:10 }}/>
+        <div style={{ position:'absolute', top:12, left:'50%', transform:'translateX(-50%)', width:100, height:28, background:colors.charcoal, borderRadius:14, zIndex:10 }}/>
         {children}
       </div>
     </div>
@@ -173,7 +174,7 @@ function MockDashboard() {
         ))}
       </div>
       {/* Sub-nav */}
-      <div className="flex flex-col pt-3 shrink-0" style={{ width: 145, background: 'rgba(19,54,42,0.96)' }}>
+      <div className="flex flex-col pt-3 shrink-0" style={{ width: 145, background: alpha(colors.brand.DEFAULT, 0.96) }}>
         <div className="px-3 mb-3">
           <p className="text-[7px] tracking-widest uppercase text-cream/25">THE FORGE</p>
           <p className="text-[8px] text-cream/50 mt-0.5">Today · 4 items</p>
@@ -244,7 +245,7 @@ function MockDashboard() {
           <div className="bg-white border border-charcoal/8 rounded-lg p-2">
             <div className="flex items-center justify-between mb-1"><div className="flex items-center gap-1"><div className="w-1 h-1 rounded-full bg-good"/><p className="text-[6px] tracking-widest uppercase text-charcoal/28">COMPLIANCE SCORE</p></div><span className="text-[6px] text-brand/40">VIEW ›</span></div>
             <p className="text-2xl font-bold text-good tabular-nums">100%</p>
-            <div className="flex items-center gap-1 mt-0.5"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#1a7a4c" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span className="text-[7px] text-good font-semibold">All checks on track</span></div>
+            <div className="flex items-center gap-1 mt-0.5"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke={colors.good} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span className="text-[7px] text-good font-semibold">All checks on track</span></div>
             <p className="text-[6px] text-charcoal/22 mt-1">30-DAY AVERAGE</p>
           </div>
           <div className="bg-white border border-charcoal/8 rounded-lg p-2">
@@ -472,7 +473,7 @@ function MockMobileHome() {
           <div className="flex items-center justify-between mb-1">
             <span className="text-[9px] tracking-widest uppercase text-cream/40">MY CLOCK</span>
             <div className="flex items-center gap-1">
-              <div className="w-1.5 h-1.5 rounded-full bg-goodDark" style={{ boxShadow:'0 0 5px #4ade80' }}/>
+              <div className="w-1.5 h-1.5 rounded-full bg-goodDark" style={{ boxShadow:`0 0 5px ${colors.goodDark}` }}/>
               <span className="text-[8px] text-cream/60 font-medium">CLOCKED IN</span>
             </div>
           </div>
@@ -496,13 +497,13 @@ function MockMobileHome() {
 /* Mobile team hub */
 function MockTeamHub() {
   const tiles = [
-    { iBg:'#fef0e8', iCol:'#c94f2a', icon:'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z',      label:'My Shifts',     sub:'3 SWAPS PENDING',        sCol:'#c94f2a',              badge:'3', bCol:'#c94f2a', check:false },
-    { iBg:'#fef0e8', iCol:'#c94f2a', icon:'M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14',                label:'Time Off',      sub:'1 PENDING',              sCol:'#c94f2a',              badge:'1', bCol:'#c94f2a', check:false },
-    { iBg:'#fef0e8', iCol:'#c94f2a', icon:'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z',      label:'Rota',          sub:'DRAFT · READY TO PUBLISH',sCol:'#c94f2a',             badge:null,bCol:null,    check:false },
-    { iBg:'#e8f5ee', iCol:'#1a7a4c', icon:'M12 14l9-5-9-5-9 5 9 5z M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z', label:'Training', sub:'ALL UP TO DATE', sCol:'#1a7a4c', badge:null, bCol:null, check:true },
-    { iBg:'#f0efec', iCol:'#9ca3af', icon:'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z',                                                   label:'Hours',         sub:'VIEW TIMESHEETS',        sCol:'rgba(26,26,24,0.35)',  badge:null,bCol:null,    check:false },
-    { iBg:'#f0efec', iCol:'#9ca3af', icon:'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z', label:'Staff Members', sub:'11 ACTIVE', sCol:'rgba(26,26,24,0.35)', badge:null, bCol:null, check:false },
-    { iBg:'#f0efec', iCol:'#9ca3af', icon:'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z',      label:'My Calendar',   sub:'NO UPCOMING EVENTS',     sCol:'rgba(26,26,24,0.35)',  badge:null,bCol:null,    check:false },
+    { iBg:colors.accentBg, iCol:colors.accent, icon:'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z',      label:'My Shifts',     sub:'3 SWAPS PENDING',        sCol:colors.accent,              badge:'3', bCol:colors.accent, check:false },
+    { iBg:colors.accentBg, iCol:colors.accent, icon:'M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14',                label:'Time Off',      sub:'1 PENDING',              sCol:colors.accent,              badge:'1', bCol:colors.accent, check:false },
+    { iBg:colors.accentBg, iCol:colors.accent, icon:'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z',      label:'Rota',          sub:'DRAFT · READY TO PUBLISH',sCol:colors.accent,             badge:null,bCol:null,    check:false },
+    { iBg:colors.goodBg, iCol:colors.good, icon:'M12 14l9-5-9-5-9 5 9 5z M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z', label:'Training', sub:'ALL UP TO DATE', sCol:colors.good, badge:null, bCol:null, check:true },
+    { iBg:colors.surface, iCol:colors.ink4, icon:'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z',                                                   label:'Hours',         sub:'VIEW TIMESHEETS',        sCol:alpha(colors.charcoal, 0.35),  badge:null,bCol:null,    check:false },
+    { iBg:colors.surface, iCol:colors.ink4, icon:'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z', label:'Staff Members', sub:'11 ACTIVE', sCol:alpha(colors.charcoal, 0.35), badge:null, bCol:null, check:false },
+    { iBg:colors.surface, iCol:colors.ink4, icon:'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z',      label:'My Calendar',   sub:'NO UPCOMING EVENTS',     sCol:alpha(colors.charcoal, 0.35),  badge:null,bCol:null,    check:false },
   ]
   return (
     <div className="bg-surface flex flex-col" style={{ width:272, height:572, overflow:'hidden' }}>
@@ -539,7 +540,7 @@ function MockTeamHub() {
                 <span className="absolute top-2.5 right-2.5 w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold text-white" style={{ background: bCol }}>{badge}</span>
               )}
               {check && !badge && (
-                <svg className="absolute top-3 right-3" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#1a7a4c" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                <svg className="absolute top-3 right-3" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={colors.good} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
               )}
               <div className="w-8 h-8 rounded-xl flex items-center justify-center mb-2" style={{ background: iBg }}>
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={iCol} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d={icon}/></svg>
@@ -568,10 +569,10 @@ function MockRota() {
     { d:'SUN', dt:'28 Jun' },
   ]
   const staff = [
-    { n:'Amy',    r:'KITCHEN', cost:'£397.50', shifts:[null, { t:'08:00–14:00', l:'Kitchen', c:'#2a7c56' }, null, { t:'06:00–14:00', l:'Kitchen', c:'#2a7c56' }, { t:'06:30–14:00', l:'Kitchen', c:'#2a7c56' }, { t:'07:30–14:00', l:'Kitchen', c:'#2a7c56' }, null] },
-    { n:'Beth',   r:'FOH',     cost:'£262.67', shifts:[null, null, null, { t:'06:55–15:00', l:'Barista', c:'#c94f2a' }, { t:'06:55–15:00', l:'Barista', c:'#c94f2a' }, { t:'TIME OFF', c:'off' }, { t:'08:30–14:00', l:'Barista', c:'#c94f2a' }] },
-    { n:'Claire', r:'FOH',     cost:'£126.58', shifts:[null, null, null, null, null, { t:'07:55–15:00', l:'FOH', c:'#1a7a4c' }, { t:'08:55–14:00', l:'Barista', c:'#c94f2a' }] },
-    { n:'Diana',  r:'FOH',     cost:'£326.00', shifts:[null, null, null, { t:'06:55–15:00', l:'Barista', c:'#c94f2a' }, { t:'06:55–15:00', l:'FOH', c:'#1a7a4c' }, { t:'07:00–14:00', l:'FOH', c:'#1a7a4c' }, { t:'08:30–14:00', l:'FOH', c:'#1a7a4c' }] },
+    { n:'Amy',    r:'KITCHEN', cost:'£397.50', shifts:[null, { t:'08:00–14:00', l:'Kitchen', c:colors.brand[500] }, null, { t:'06:00–14:00', l:'Kitchen', c:colors.brand[500] }, { t:'06:30–14:00', l:'Kitchen', c:colors.brand[500] }, { t:'07:30–14:00', l:'Kitchen', c:colors.brand[500] }, null] },
+    { n:'Beth',   r:'FOH',     cost:'£262.67', shifts:[null, null, null, { t:'06:55–15:00', l:'Barista', c:colors.accent }, { t:'06:55–15:00', l:'Barista', c:colors.accent }, { t:'TIME OFF', c:'off' }, { t:'08:30–14:00', l:'Barista', c:colors.accent }] },
+    { n:'Claire', r:'FOH',     cost:'£126.58', shifts:[null, null, null, null, null, { t:'07:55–15:00', l:'FOH', c:colors.good }, { t:'08:55–14:00', l:'Barista', c:colors.accent }] },
+    { n:'Diana',  r:'FOH',     cost:'£326.00', shifts:[null, null, null, { t:'06:55–15:00', l:'Barista', c:colors.accent }, { t:'06:55–15:00', l:'FOH', c:colors.good }, { t:'07:00–14:00', l:'FOH', c:colors.good }, { t:'08:30–14:00', l:'FOH', c:colors.good }] },
     { n:'Dan',    r:'FOH',     cost:'—',        shifts:[null, null, null, { t:'TIME OFF', c:'off' }, { t:'TIME OFF', c:'off' }, { t:'TIME OFF', c:'off' }, null] },
   ]
   return (
@@ -592,7 +593,7 @@ function MockRota() {
       </div>
       {/* Legend */}
       <div className="px-4 py-2 flex items-center gap-4 border-b border-charcoal/6">
-        {[['AVAILABLE','#1a7a4c'],['UNAVAILABLE','#9ca3af'],['TIME OFF','#a85d12'],['CLOSED','#d1d5db']].map(([l,c])=>(
+        {[['AVAILABLE',colors.good],['UNAVAILABLE',colors.ink4],['TIME OFF',colors.warn],['CLOSED',colors.line]].map(([l,c])=>(
           <div key={l} className="flex items-center gap-1"><div className="w-2 h-2 rounded-full" style={{ backgroundColor:c }}/><span className="text-[7px] text-charcoal/40 font-medium">{l}</span></div>
         ))}
       </div>
@@ -622,8 +623,8 @@ function MockRota() {
                 key={i}
                 className="rounded-md mx-0.5 flex flex-col items-center justify-center py-1.5 min-h-[34px]"
                 style={{
-                  backgroundColor: s ? (s.c==='off' ? 'rgba(168,93,18,0.12)' : s.c+'20') : 'transparent',
-                  border: s ? `1px solid ${s.c==='off'?'rgba(168,93,18,0.3)':s.c+'44'}` : '1px dashed rgba(26,26,24,0.06)',
+                  backgroundColor: s ? (s.c==='off' ? alpha(colors.warn, 0.12) : s.c+'20') : 'transparent',
+                  border: s ? `1px solid ${s.c==='off'?alpha(colors.warn, 0.3):s.c+'44'}` : `1px dashed ${alpha(colors.charcoal, 0.06)}`,
                 }}
               >
                 {s && s.c !== 'off' && <>
@@ -772,7 +773,7 @@ export default function MarketingPage() {
       <GlobalCSS />
 
       {/* ── Nav ─────────────────────────────────────────────────────────── */}
-      <header className="sticky top-0 z-50 transition-all duration-500" style={{ background: navScrolled ? 'rgba(255,255,255,0.95)' : 'rgba(19,54,42,0.76)', backdropFilter: 'blur(24px) saturate(200%)', borderBottom: navScrolled ? '1px solid rgba(26,26,24,0.07)' : '1px solid rgba(255,255,255,0.07)' }}>
+      <header className="sticky top-0 z-50 transition-all duration-500" style={{ background: navScrolled ? white(0.95) : alpha(colors.brand.DEFAULT, 0.76), backdropFilter: 'blur(24px) saturate(200%)', borderBottom: navScrolled ? `1px solid ${alpha(colors.charcoal, 0.07)}` : `1px solid ${white(0.07)}` }}>
         <div className="max-w-5xl mx-auto px-6 sm:px-10 h-14 flex items-center justify-between">
           <PeliknLogo light={!navScrolled} />
           <nav className="hidden sm:flex items-center gap-1">
@@ -792,19 +793,19 @@ export default function MarketingPage() {
       {/* ── Hero ─────────────────────────────────────────────────────────── */}
       <section className="bg-brand relative overflow-hidden">
         {/* Dot grid */}
-        <div className="absolute inset-0 pointer-events-none" aria-hidden style={{ backgroundImage:'radial-gradient(rgba(255,255,255,0.07) 1px, transparent 1px)', backgroundSize:'28px 28px' }} />
+        <div className="absolute inset-0 pointer-events-none" aria-hidden style={{ backgroundImage:`radial-gradient(${white(0.07)} 1px, transparent 1px)`, backgroundSize:'28px 28px' }} />
         {/* Glow */}
-        <div className="absolute top-0 right-0 w-[600px] h-[600px] pointer-events-none" aria-hidden style={{ background:'radial-gradient(ellipse at top right, rgba(201,79,42,0.12) 0%, transparent 60%)' }} />
+        <div className="absolute top-0 right-0 w-[600px] h-[600px] pointer-events-none" aria-hidden style={{ background:`radial-gradient(ellipse at top right, ${alpha(colors.accent, 0.12)} 0%, transparent 60%)` }} />
         {/* Logomark watermark */}
         <div className="absolute pointer-events-none select-none" aria-hidden style={{ right:'-6%', top:'50%', transform:'translateY(-50%)', width:600, opacity:0.06 }}>
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="35 45 159 130" width="600" height="491">
             <defs>
               <mask id="bowlCutHero">
-                <rect x="35" y="45" width="159" height="130" fill="#fff"/>
-                <path d="M115.885 112.528L117.692 112.43L117.82 113.122C108.293 130.003 99.3165 168.774 72.1173 158.689C69.2664 157.636 66.767 155.524 64.4598 153.57C56.1221 143.529 55.4785 134.779 55.0114 122.257C74.4165 118.926 96.4877 114.885 115.885 112.528Z" fill="#000"/>
+                <rect x="35" y="45" width="159" height="130" fill={white()}/>
+                <path d="M115.885 112.528L117.692 112.43L117.82 113.122C108.293 130.003 99.3165 168.774 72.1173 158.689C69.2664 157.636 66.767 155.524 64.4598 153.57C56.1221 143.529 55.4785 134.779 55.0114 122.257C74.4165 118.926 96.4877 114.885 115.885 112.528Z" fill={black()}/>
               </mask>
             </defs>
-            <g mask="url(#bowlCutHero)" fill="#ffffff">
+            <g mask="url(#bowlCutHero)" fill={white()}>
               <path d="M111.581 104.182C96.2532 104.543 80.9327 105.088 65.6202 105.829C60.5271 106.056 45.127 107.88 41.575 105.113C40.7355 102.743 40.8666 103.955 41.3785 101.335C43.6299 98.8182 47.2266 98.3284 50.4259 98.659C63.5708 100.006 131.793 91.8746 139.38 94.6178C143.225 99.2529 133.006 106.588 129.368 111.762C114.802 132.477 110.197 170.39 77.5307 168.731C49.3708 165.694 45.8813 136.75 46.7483 115.308C70.6601 112.405 93.878 108.474 117.612 105.315C116.161 104.28 113.504 104.335 111.581 104.182Z"/>
               <path d="M148.644 51.1993C183.239 49.7481 187.978 90.0071 164.264 109.344C142.392 127.174 130.764 152.291 163.008 168.658L160.027 168.645C139.961 168.474 133.495 157.422 134.31 138.44C137.83 118.498 152.458 110.25 164.662 95.8485C177.496 80.4735 167.956 55.9997 146.305 60.1389C135.522 62.1963 128.977 74.4423 123.111 82.935C119.461 82.935 115.959 83.1248 112.322 83.3085C122.658 68.6928 129.24 54.0955 148.644 51.1993Z"/>
             </g>
@@ -812,7 +813,7 @@ export default function MarketingPage() {
         </div>
 
         {/* Bottom gradient fade into next section */}
-        <div className="absolute bottom-0 left-0 right-0 h-40 pointer-events-none" aria-hidden style={{ background:'linear-gradient(to bottom, transparent, rgba(19,54,42,0.6))' }} />
+        <div className="absolute bottom-0 left-0 right-0 h-40 pointer-events-none" aria-hidden style={{ background:`linear-gradient(to bottom, transparent, ${alpha(colors.brand.DEFAULT, 0.6)})` }} />
 
         {/* Mobile/tablet: centred text with the phones below. Desktop (lg+):
             text on the left, lined up with the nav logo, and the product on
@@ -830,7 +831,7 @@ export default function MarketingPage() {
           {/* Headline */}
           <h1 className="text-[56px] sm:text-[80px] lg:text-[56px] xl:text-[64px] min-[1600px]:text-[76px] font-bold text-cream leading-[0.96] tracking-[-0.04em] mb-8 lg:mb-6" style={{ animation:'pkIn 0.75s 60ms cubic-bezier(.16,1,.3,1) both' }}>
             Ditch the<br />clipboard,<br />
-            <span style={{ backgroundImage:'linear-gradient(180deg,rgba(245,244,241,0.92) 0%,rgba(245,244,241,0.4) 100%)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text' }}>keep the compliance.</span>
+            <span style={{ backgroundImage:`linear-gradient(180deg,${alpha(colors.cream, 0.92)} 0%,${alpha(colors.cream, 0.4)} 100%)`, WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text' }}>keep the compliance.</span>
           </h1>
           {/* Subtitle */}
           <p className="text-cream/60 text-[17px] sm:text-[18px] max-w-[480px] mx-auto lg:mx-0 leading-[1.7] mb-10 lg:mb-8" style={{ animation:'pkIn 0.75s 140ms cubic-bezier(.16,1,.3,1) both' }}>
@@ -1095,9 +1096,9 @@ export default function MarketingPage() {
 
       {/* ── Final CTA ────────────────────────────────────────────────────── */}
       <section className="bg-brand relative overflow-hidden">
-        <div className="absolute inset-0 pointer-events-none" aria-hidden style={{ backgroundImage:'radial-gradient(rgba(255,255,255,0.06) 1px, transparent 1px)', backgroundSize:'28px 28px' }} />
-        <div className="absolute top-0 left-0 w-[600px] h-[600px] pointer-events-none" aria-hidden style={{ background:'radial-gradient(ellipse at top left, rgba(201,79,42,0.14) 0%, transparent 60%)' }} />
-        <div className="absolute bottom-0 right-0 w-[500px] h-[500px] pointer-events-none" aria-hidden style={{ background:'radial-gradient(ellipse at bottom right, rgba(19,54,42,0.8) 0%, transparent 70%)' }} />
+        <div className="absolute inset-0 pointer-events-none" aria-hidden style={{ backgroundImage:`radial-gradient(${white(0.06)} 1px, transparent 1px)`, backgroundSize:'28px 28px' }} />
+        <div className="absolute top-0 left-0 w-[600px] h-[600px] pointer-events-none" aria-hidden style={{ background:`radial-gradient(ellipse at top left, ${alpha(colors.accent, 0.14)} 0%, transparent 60%)` }} />
+        <div className="absolute bottom-0 right-0 w-[500px] h-[500px] pointer-events-none" aria-hidden style={{ background:`radial-gradient(ellipse at bottom right, ${alpha(colors.brand.DEFAULT, 0.8)} 0%, transparent 70%)` }} />
         <div className="max-w-5xl mx-auto px-6 sm:px-10 py-28 sm:py-40 relative">
           <FadeUp>
             <h2 className="text-[52px] sm:text-[68px] lg:text-[84px] font-bold text-cream tracking-[-0.035em] leading-[1.0] mb-6 max-w-2xl">

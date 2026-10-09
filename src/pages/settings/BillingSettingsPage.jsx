@@ -169,7 +169,7 @@ export default function BillingSettingsPage() {
           <div className="mt-[14px] flex flex-col gap-1.5">
             {features.map(f => (
               <div key={f} className="flex items-center gap-2 text-[13px] text-white/85">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="text-white/60" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
                 {f}
               </div>
             ))}

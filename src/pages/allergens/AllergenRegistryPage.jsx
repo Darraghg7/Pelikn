@@ -14,6 +14,7 @@ import ConfirmDialog from '../../components/ui/ConfirmDialog'
 import Toggle from '../../components/ui/Toggle'
 import LoadError from '../../components/ui/LoadError'
 import Button, { CloseButton } from '../../components/ui/Button'
+import { colors } from '../../lib/tokens'
 
 function SectionLabel({ children, action }) {
   return (
@@ -58,14 +59,14 @@ export default function AllergenRegistryPage() {
     win.document.write(`<!DOCTYPE html><html><head><title>Allergen QR</title>
       <style>
         *{box-sizing:border-box;margin:0;padding:0}
-        body{font-family:system-ui,sans-serif;background:#fff;display:flex;align-items:center;justify-content:center;min-height:100vh}
-        .card{text-align:center;padding:40px 36px;border:1px solid #e0ddd8;border-radius:16px;max-width:320px;width:100%}
-        .venue{font-size:1.1rem;font-weight:700;color:#1a2e2a;margin-bottom:4px}
-        .sub{font-size:.72rem;color:#888;letter-spacing:.08em;text-transform:uppercase;margin-bottom:24px}
+        body{font-family:system-ui,sans-serif;background:${colors.paper};display:flex;align-items:center;justify-content:center;min-height:100vh}
+        .card{text-align:center;padding:40px 36px;border:1px solid ${colors.print.rule};border-radius:16px;max-width:320px;width:100%}
+        .venue{font-size:1.1rem;font-weight:700;color:${colors.print.ink};margin-bottom:4px}
+        .sub{font-size:.72rem;color:${colors.print.muted};letter-spacing:.08em;text-transform:uppercase;margin-bottom:24px}
         .qr{margin:0 auto 20px}
-        .cta{font-size:.75rem;color:#555;line-height:1.6}
-        .cta strong{display:block;font-size:.85rem;color:#1a2e2a;margin-bottom:4px}
-        .badge{font-size:.6rem;color:#bbb;margin-top:20px;letter-spacing:.06em}
+        .cta{font-size:.75rem;color:${colors.print.muted};line-height:1.6}
+        .cta strong{display:block;font-size:.85rem;color:${colors.print.ink};margin-bottom:4px}
+        .badge{font-size:.6rem;color:${colors.print.rule};margin-top:20px;letter-spacing:.06em}
         @media print{body{min-height:auto}.card{border:none;padding:20px}}
       </style></head><body>
       <div class="card">

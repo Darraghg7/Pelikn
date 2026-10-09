@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { format, subDays } from 'date-fns'
-import { loadPdfLibs } from '../../lib/pdfUtils'
+import { loadPdfLibs, PDF } from '../../lib/pdfUtils'
 import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
 import { PEST_LOG_TYPES, PEST_TYPES } from '../../hooks/usePestControl'
@@ -45,10 +45,10 @@ export default function PestExportModal({ open, onClose }) {
     doc.text('Pelikn', 14, 18)
     doc.setFont('helvetica', 'normal')
     doc.setFontSize(10)
-    doc.setTextColor(100)
+    doc.setTextColor(...PDF.muted)
     doc.text('Pest Control Report', 14, 25)
     doc.text(`Period: ${dateFrom} – ${dateTo}`, 14, 31)
-    doc.setTextColor(0)
+    doc.setTextColor(...PDF.ink)
 
     autoTable(doc, {
       startY: 37,
@@ -68,22 +68,22 @@ export default function PestExportModal({ open, onClose }) {
           row.logged_by_name ?? '—',
         ]
       }),
-      headStyles: { fillColor: [40, 40, 40], textColor: 255, fontSize: 9 },
+      headStyles: { fillColor: PDF.head, textColor: PDF.white, fontSize: 9 },
       bodyStyles: { fontSize: 8 },
       columnStyles: { 8: { fontStyle: 'bold' } },
       didParseCell(hookData) {
         if (hookData.section === 'body' && hookData.column.index === 8 && hookData.cell.raw === 'OPEN') {
-          hookData.cell.styles.textColor = [180, 30, 30]
+          hookData.cell.styles.textColor = PDF.bad
         }
       },
-      alternateRowStyles: { fillColor: [248, 248, 248] },
+      alternateRowStyles: { fillColor: PDF.rowAlt },
     })
 
     const pageCount = doc.internal.getNumberOfPages()
     for (let i = 1; i <= pageCount; i++) {
       doc.setPage(i)
       doc.setFontSize(7)
-      doc.setTextColor(150)
+      doc.setTextColor(...PDF.faint)
       doc.text(
         `Generated ${format(new Date(), 'dd/MM/yyyy HH:mm')} · Page ${i} of ${pageCount}`,
         pageW / 2, doc.internal.pageSize.getHeight() - 8,

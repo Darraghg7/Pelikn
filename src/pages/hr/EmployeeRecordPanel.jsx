@@ -440,20 +440,20 @@ function DocumentsTab({ staffId, venueId }) {
 // ── Attendance summary stat card ─────────────────────────────────────────────
 function AttendanceStat({ label, total, active, dates, tone }) {
   const isWarn = tone === 'warn' && active > 0
-  const bg     = isWarn ? '#fff8f0' : '#f5f6f4'
-  const numClr = isWarn ? '#a85d12' : '#3d4a44'
-  const lblClr = isWarn ? '#a85d12' : '#76817b'
+  const bg     = isWarn ? 'bg-warnBg dark:bg-warn/20' : 'bg-surface dark:bg-white/5'
+  const numClr = isWarn ? 'text-warn dark:text-warnDark' : 'text-ink2 dark:text-white/80'
+  const lblClr = isWarn ? 'text-warn dark:text-warnDark' : 'text-ink3 dark:text-white/50'
 
   return (
-    <div style={{ background: bg, borderRadius: 12, padding: '14px 16px' }}>
-      <p className="font-mono text-[11px] uppercase tracking-[0.07em] font-semibold mb-1" style={{ color: lblClr }}>
+    <div className={bg} style={{ borderRadius: 12, padding: '14px 16px' }}>
+      <p className={`font-mono text-[11px] uppercase tracking-[0.07em] font-semibold mb-1 ${lblClr}`}>
         {label}
       </p>
       <div className="flex items-baseline gap-2">
-        <span className="font-mono text-[28px] font-bold leading-none" style={{ color: numClr }}>
+        <span className={`font-mono text-[28px] font-bold leading-none ${numClr}`}>
           {active}
         </span>
-        <span className="font-mono text-[11px]" style={{ color: lblClr }}>
+        <span className={`font-mono text-[11px] ${lblClr}`}>
           active
         </span>
         {total > active && (

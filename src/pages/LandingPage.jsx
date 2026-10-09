@@ -2,6 +2,7 @@ import React, { useState, useEffect, useLayoutEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { supabase } from '../lib/supabase'
+import { white } from '../lib/tokens'
 
 export const LAST_VENUE_KEY = 'pelikn_last_venue'
 
@@ -45,7 +46,7 @@ function VenuePicker({ venues, onSelect }) {
 }
 
 /** Pelikn logo icon — same paths as the splash screen, rendered as solid fill. */
-function AppIconSvg({ size = 36, iconColor = '#fff' }) {
+function AppIconSvg({ size = 36, iconColor = white() }) {
   return (
     <svg width={size} height={size} viewBox="0 0 218.749 224.045" fill="none">
       <path fill={iconColor} d="M111.581 104.182C96.2532 104.543 80.9327 105.088 65.6202 105.829C60.5271 106.056 45.127 107.88 41.575 105.113C40.7355 102.743 40.8666 103.955 41.3785 101.335C43.6299 98.8182 47.2266 98.3284 50.4259 98.659C63.5708 100.006 131.793 91.8746 139.38 94.6178C143.225 99.2529 133.006 106.588 129.368 111.762C114.802 132.477 110.197 170.39 77.5307 168.731C49.3708 165.694 45.8813 136.75 46.7483 115.308C70.6601 112.405 93.878 108.474 117.612 105.315C116.161 104.28 113.504 104.335 111.581 104.182Z"/>
@@ -54,7 +55,7 @@ function AppIconSvg({ size = 36, iconColor = '#fff' }) {
   )
 }
 
-function AppIcon({ size = 36, bgClass = 'bg-white/10 border border-white/15', iconColor = '#fff' }) {
+function AppIcon({ size = 36, bgClass = 'bg-white/10 border border-white/15', iconColor = white() }) {
   return (
     <div className={`rounded-3xl ${bgClass} flex items-center justify-center`}
          style={{ width: size * 1.6, height: size * 1.6 }}>
@@ -206,7 +207,7 @@ export default function LandingPage() {
 
           <div className="pelikn-ios-brand">
             <div className="pelikn-ios-mark" aria-hidden="true">
-              <AppIconSvg size={57} iconColor="rgba(255,255,255,0.95)" />
+              <AppIconSvg size={57} iconColor={white(0.95)} />
             </div>
           </div>
 
