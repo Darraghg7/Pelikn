@@ -8,6 +8,7 @@ import { VENUE_PRESETS, DEFAULT_STAFF_PERMISSIONS } from '../../lib/constants'
 import Toggle from '../../components/ui/Toggle'
 import { useToast } from '../../components/ui/Toast'
 import { reportError } from '../../lib/reportError'
+import Button, { CloseButton } from '../../components/ui/Button'
 
 /* ── Icons ───────────────────────────────────────────────────────────────────── */
 const VENUE_ICONS = {
@@ -139,15 +140,16 @@ function UpgradeModal({ featureLabel, onClose }) {
             {featureLabel}
           </div>
         )}
-        <button className="w-full py-3 rounded-xl border-none bg-accent text-white text-[13px] font-bold mb-2 hover:opacity-87 transition-opacity">
+        <Button variant="accent" fullWidth className="mb-2">
           Upgrade to Pro · £25/mo
-        </button>
-        <button
+        </Button>
+        <Button
+          variant="secondary"
+          fullWidth
           onClick={onClose}
-          className="w-full py-2.5 rounded-xl border border-charcoal/12 dark:border-white/15 text-charcoal/50 dark:text-white/40 text-[12.5px] font-semibold hover:border-charcoal/25 dark:hover:border-white/25 hover:text-charcoal dark:hover:text-white transition-all"
         >
           Maybe later
-        </button>
+        </Button>
       </div>
     </div>
   )
@@ -554,12 +556,13 @@ export default function OnboardingPage() {
                             <p className="text-[12px] font-bold text-charcoal dark:text-white">Available on Pro</p>
                             <p className="text-[11px] text-charcoal/40 dark:text-white/35 mt-0.5">Unlock {group.label} for £25/mo</p>
                           </div>
-                          <button
+                          <Button
+                            variant="accent"
+                            size="sm"
                             onClick={() => setUpgradeFeature(group.features[0].id)}
-                            className="text-[11px] font-bold text-white bg-accent px-3 py-1.5 rounded-lg shrink-0 hover:opacity-87 transition-opacity"
                           >
                             Upgrade
-                          </button>
+                          </Button>
                         </div>
                         {group.features.map(feature => (
                           <div key={feature.id} className="flex items-center justify-between px-4 py-3 border-b border-charcoal/5 dark:border-white/5 last:border-b-0 bg-charcoal/[0.018] opacity-70">
@@ -661,12 +664,14 @@ export default function OnboardingPage() {
                   </div>
                 ))}
               </div>
-              <button
+              <Button
+                variant="link"
+                size="sm"
                 onClick={applyFirstToAll}
-                className="mt-3 text-xs text-charcoal/40 dark:text-white/35 hover:text-brand transition-colors border-b border-charcoal/20 dark:border-white/20"
+                className="mt-3"
               >
                 Apply first open day's hours to all open days
-              </button>
+              </Button>
             </div>
           )}
 
@@ -708,22 +713,18 @@ export default function OnboardingPage() {
                         className="px-3 py-2.5 rounded-[9px] border border-charcoal/12 dark:border-white/15 bg-white dark:bg-paperDark text-[13px] text-charcoal dark:text-white placeholder:text-charcoal/35 dark:placeholder:text-white/25 focus:outline-none focus:border-brand focus:ring-[3px] focus:ring-brand/10 transition-all"
                       />
                     </div>
-                    <button
-                      onClick={() => removeStaffRow(idx)}
-                      className="p-2 rounded-lg text-charcoal/30 dark:text-white/30 hover:text-danger transition-colors text-[18px] leading-none mt-1 shrink-0"
-                      aria-label="Remove"
-                    >
-                      &times;
-                    </button>
+                    <CloseButton label="Remove staff member" className="mt-1" onClick={() => removeStaffRow(idx)} />
                   </div>
                 ))}
               </div>
-              <button
+              <Button
+                variant="secondary"
+                fullWidth
                 onClick={addStaffRow}
-                className="mt-3 text-[12.5px] text-brand border-[1.5px] border-dashed border-brand/25 bg-brand/[0.04] rounded-[10px] py-2.5 w-full font-semibold hover:bg-brand/8 hover:border-brand/40 transition-all"
+                className="mt-3"
               >
                 + Add another staff member
-              </button>
+              </Button>
             </div>
           )}
 
@@ -765,13 +766,13 @@ export default function OnboardingPage() {
                       placeholder="Add custom role…"
                       className="flex-1 px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-[12.5px] text-charcoal dark:text-white placeholder-charcoal/30 dark:placeholder-white/25 focus:outline-none focus:ring-2 focus:ring-brand/20"
                     />
-                    <button
+                    <Button
+                      variant="secondary"
                       onClick={addCustomRole}
                       disabled={!customRoleText.trim()}
-                      className="px-3 py-2 rounded-lg bg-charcoal/8 dark:bg-white/8 text-charcoal/60 dark:text-white/50 text-[12.5px] font-semibold hover:bg-charcoal/12 dark:hover:bg-white/15 transition-colors disabled:opacity-40"
                     >
                       Add
-                    </button>
+                    </Button>
                   </div>
                   {rolesInput.length > 0 && (
                     <div className="flex flex-wrap gap-1.5 mt-2">
@@ -902,12 +903,13 @@ export default function OnboardingPage() {
                     <p className="text-[12.5px] font-bold text-accent">Unlock Pro features</p>
                     <p className="text-[11px] text-charcoal/40 dark:text-white/35 mt-0.5">Rota, timesheets, training records, time off and more</p>
                   </div>
-                  <button
+                  <Button
+                    variant="accent"
+                    size="sm"
                     onClick={() => setUpgradeFeature('rota')}
-                    className="text-[11px] font-bold text-white bg-accent px-3 py-1.5 rounded-lg shrink-0 hover:opacity-87 transition-opacity"
                   >
                     Upgrade
-                  </button>
+                  </Button>
                 </div>
               )}
             </div>
@@ -920,25 +922,26 @@ export default function OnboardingPage() {
       <div className="sticky bottom-0 left-0 right-0 bg-surface/90 backdrop-blur-sm border-t border-charcoal/8 dark:border-white/8 p-3 z-10 shrink-0">
         <div className="flex gap-2 max-w-[540px] mx-auto">
           {step > 0 && step < STEPS.length - 1 && (
-            <button
+            <Button
+              variant="secondary"
               onClick={() => setStep(s => s - 1)}
-              className="px-4 py-3 rounded-xl border border-charcoal/12 dark:border-white/15 text-[13px] font-semibold text-charcoal/60 dark:text-white/50 hover:border-charcoal/25 dark:hover:border-white/25 hover:text-charcoal dark:hover:text-white transition-all whitespace-nowrap"
             >
               Back
-            </button>
+            </Button>
           )}
           {(step === 3 || (step === 4 && hasRotaStep)) && (
-            <button
+            <Button
+              variant="ghost"
               onClick={() => setStep(s => s + 1)}
-              className="px-4 py-3 rounded-xl text-[13px] font-medium text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white transition-colors whitespace-nowrap"
             >
               Skip
-            </button>
+            </Button>
           )}
-          <button
+          <Button
+            loading={saving}
             onClick={next}
             disabled={!canAdvance() || saving}
-            className="flex-1 py-3 rounded-xl border-none bg-brand text-white text-[13px] font-bold hover:opacity-88 disabled:opacity-35 transition-opacity"
+            className="flex-1"
           >
             {step === STEPS.length - 1
               ? (saving ? 'Setting up…' : 'Go to Dashboard')
@@ -946,16 +949,17 @@ export default function OnboardingPage() {
                 ? 'Finish setup'
                 : 'Continue'
             }
-          </button>
+          </Button>
         </div>
         {step < STEPS.length - 1 && (
           <div className="text-center mt-1.5">
-            <button
+            <Button
+              variant="link"
+              size="sm"
               onClick={skipSetup}
-              className="text-[11px] text-charcoal/35 dark:text-white/30 hover:text-charcoal/60 dark:hover:text-white/50 transition-colors underline underline-offset-2"
             >
               Already set up? Skip this →
-            </button>
+            </Button>
           </div>
         )}
       </div>

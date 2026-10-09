@@ -17,6 +17,7 @@ import { TRAINING_BUCKET, trainingFilePath, openTrainingFile } from '../../lib/t
 import { insertSignOff, insertTrainingRecord, deleteTrainingRecord } from '../../lib/api/training'
 import LoadError from '../../components/ui/LoadError'
 import Avatar from '../../components/ui/Avatar'
+import Button, { CloseButton } from '../../components/ui/Button'
 
 // ── SC6 topic list (standard food safety induction) ───────────────────────────
 const SC6_TOPICS = [
@@ -114,7 +115,7 @@ function CreateSignOffModal({ staff, venueId, managerName, managerStaffId, onSav
             <p className="font-semibold text-charcoal dark:text-white">New SC6 Training Record</p>
             <p className="text-xs text-charcoal/40 dark:text-white/35 mt-0.5">Induction &amp; on-the-job training sign-off</p>
           </div>
-          <button onClick={onClose} className="text-charcoal/30 dark:text-white/30 hover:text-charcoal dark:hover:text-white text-xl leading-none">×</button>
+          <CloseButton onClick={onClose} />
         </div>
 
         <div className="p-6 flex flex-col gap-5">
@@ -157,7 +158,7 @@ function CreateSignOffModal({ staff, venueId, managerName, managerStaffId, onSav
           <div>
             <div className="flex items-center justify-between mb-2">
               <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">Training Topics *</label>
-              <button onClick={allTopics} className="text-[11px] text-accent hover:text-accent/70 transition-colors">Select all</button>
+              <Button variant="link" size="sm" onClick={allTopics}>Select all</Button>
             </div>
             <div className="flex flex-col gap-2">
               {SC6_TOPICS.map(t => (
@@ -203,16 +204,17 @@ function CreateSignOffModal({ staff, venueId, managerName, managerStaffId, onSav
         </div>
 
         <div className="px-6 pb-6 flex gap-3">
-          <button
+          <Button
+            loading={saving}
             onClick={handleSave}
             disabled={saving}
-            className="flex-1 bg-charcoal text-cream py-2.5 rounded-lg text-sm font-medium disabled:opacity-40 hover:bg-charcoal/90 transition-colors"
+            className="flex-1"
           >
             {saving ? 'Saving…' : 'Send for Staff Signature →'}
-          </button>
-          <button onClick={onClose} className="px-4 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 text-sm text-charcoal/50 dark:text-white/40">
+          </Button>
+          <Button variant="secondary" onClick={onClose}>
             Cancel
-          </button>
+          </Button>
         </div>
       </div>
     </div>
@@ -250,7 +252,7 @@ function SignOffDetailModal({ record, venueId, onClose }) {
               {format(parseISO(record.training_date), 'd MMMM yyyy')} · Trainer: {record.trainer_name}
             </p>
           </div>
-          <button onClick={onClose} className="text-charcoal/30 dark:text-white/30 hover:text-charcoal dark:hover:text-white text-xl leading-none">×</button>
+          <CloseButton onClick={onClose} />
         </div>
 
         <div className="p-6 flex flex-col gap-5">
@@ -298,13 +300,15 @@ function SignOffDetailModal({ record, venueId, onClose }) {
                   {record.staff?.name} needs to sign this record from their account.
                 </p>
               </div>
-              <button
+              <Button
+                variant="warning"
+                size="sm"
+                loading={sending}
                 onClick={handleRemind}
                 disabled={sending || sent}
-                className="shrink-0 bg-warning text-white text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-warning/90 transition-colors disabled:opacity-50"
               >
                 {sent ? 'Reminder sent' : sending ? 'Sending…' : 'Send reminder'}
-              </button>
+              </Button>
             </div>
           )}
         </div>
@@ -316,7 +320,6 @@ function SignOffDetailModal({ record, venueId, onClose }) {
 // ── Shared bits ───────────────────────────────────────────────────────────────
 const FIELD_LABEL = 'block text-[12px] font-semibold tracking-[0.08em] uppercase text-ink3 dark:text-white/45 mb-2'
 const TEXT_FIELD  = 'w-full h-9 px-3.5 rounded-xl border border-line dark:border-white/10 bg-cream dark:bg-white/5 text-[13px] text-ink dark:text-white placeholder:text-ink4 dark:placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand/40 focus:bg-white dark:focus:bg-white/10 transition-colors'
-const PRIMARY_BTN = 'w-full h-10 rounded-2xl bg-brand text-white text-[14px] font-semibold transition-colors hover:bg-brand/90 disabled:bg-ink3/70 dark:disabled:bg-white/15 disabled:cursor-not-allowed'
 
 const PILL = {
   signed:    { label: 'Signed',    cls: TONE.ok },
@@ -405,13 +408,12 @@ function InductionTab({ venueId, isManager, session, showCreate, onCloseCreate }
                 : `${pending.length} records need your signature`}
             </p>
           </div>
-          <button
-            type="button"
+          <Button
+            size="sm"
             onClick={() => setAckRecord(pending[0])}
-            className="shrink-0 h-8 px-3.5 rounded-xl bg-brand text-white text-[13px] font-semibold hover:bg-brand/90"
           >
             Sign now
-          </button>
+          </Button>
         </div>
       )}
 
@@ -595,21 +597,20 @@ function CertificatesTab({ venueId, showCreate, onCloseCreate }) {
             </dl>
             {viewing.notes && <p className="text-[13px] text-ink2 dark:text-white/70">{viewing.notes}</p>}
             <div className="grid grid-cols-2 gap-2.5">
-              <button
-                type="button"
+              <Button
+                variant="danger-ghost"
+                size="sm"
                 onClick={() => setDeleteTarget(viewing)}
-                className="h-9 rounded-xl border border-line dark:border-white/15 bg-white dark:bg-paperDark text-[13px] font-semibold text-bad dark:text-[#f19a86] hover:border-bad/40"
               >
                 Delete
-              </button>
+              </Button>
               {(viewing.file_path || viewing.file_url) ? (
-                <button
-                  type="button"
+                <Button
+                  size="sm"
                   onClick={() => openTrainingFile(viewing, toast)}
-                  className="h-9 rounded-xl bg-brand text-white text-[13px] font-semibold hover:bg-brand/90"
                 >
                   View certificate
-                </button>
+                </Button>
               ) : (
                 <span className="h-9 rounded-xl bg-cream dark:bg-white/5 inline-flex items-center justify-center text-[13px] text-ink3 dark:text-white/45">No file attached</span>
               )}
@@ -650,9 +651,9 @@ function CertificatesTab({ venueId, showCreate, onCloseCreate }) {
             </label>
           </div>
           <FileField label="Certificate (optional)" accept="image/*,.pdf,.doc,.docx" onFile={setFile} />
-          <button type="button" onClick={handleAdd} disabled={saving || !form.staff_id || !form.title.trim()} className={PRIMARY_BTN}>
+          <Button fullWidth loading={saving} onClick={handleAdd} disabled={saving || !form.staff_id || !form.title.trim()}>
             {saving ? 'Saving…' : 'Save certificate'}
-          </button>
+          </Button>
         </div>
       </Modal>
     </div>
@@ -805,9 +806,9 @@ function AllergenComplianceTab({ venueId, showCreate, onCloseCreate }) {
             <span className={FIELD_LABEL}>Notes</span>
             <input value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} placeholder="e.g. Online course, in-house induction" className={TEXT_FIELD} />
           </label>
-          <button type="button" onClick={save} disabled={saving || !target} className={PRIMARY_BTN}>
+          <Button fullWidth loading={saving} onClick={save} disabled={saving || !target}>
             {saving ? 'Saving…' : 'Save training'}
-          </button>
+          </Button>
         </div>
       </Modal>
     </div>
@@ -849,13 +850,13 @@ export default function TrainingPage() {
             <p className="text-[13px] text-ink3 dark:text-white/45 mt-0.5">SC6 induction records &amp; certificates</p>
           </div>
           {canCreate && (
-            <button
-              type="button"
+            <Button
+              size="sm"
               onClick={() => setCreating(tab)}
-              className="shrink-0 mt-1 h-8 px-3.5 rounded-xl bg-brand text-white text-[13px] font-semibold hover:bg-brand/90 transition-colors"
+              className="mt-1"
             >
               New
-            </button>
+            </Button>
           )}
         </div>
       </div>

@@ -33,6 +33,7 @@ import {
   insertFormalAction, deleteFormalActionRow, dismissStrikeRow, dismissAllStrikesRows,
   revokeStaffSessionRpc,
 } from '../../lib/api/hr'
+import Button from '../../components/ui/Button'
 
 // ── Constants ────────────────────────────────────────────────────────────────
 export const TABS = ['Profile', 'Documents', 'Disciplinary', 'Leave', 'Training', 'Security']
@@ -163,36 +164,34 @@ function MiniStat({ k, v, tone }) {
 
 function BtnPrimary({ onClick, children, disabled }) {
   return (
-    <button
+    <Button
+      size="sm"
       onClick={onClick}
       disabled={disabled}
-      className="inline-flex items-center gap-[7px] px-3.5 py-[9px] rounded-[10px] cursor-pointer text-[12.5px] font-semibold border-0 whitespace-nowrap bg-brand text-white disabled:opacity-60 disabled:cursor-not-allowed"
     >
       {children}
-    </button>
+    </Button>
   )
 }
 
 function BtnDanger({ onClick, children, disabled }) {
   return (
-    <button
+    <Button
+      variant="danger-ghost"
+      size="sm"
       onClick={onClick}
       disabled={disabled}
-      className="inline-flex items-center gap-[7px] px-3.5 py-[9px] rounded-[10px] cursor-pointer text-[12.5px] font-semibold whitespace-nowrap bg-danger/10 text-danger border border-danger/10 disabled:opacity-60 disabled:cursor-not-allowed"
     >
       {children}
-    </button>
+    </Button>
   )
 }
 
 function BtnDefault({ onClick, children, className }) {
   return (
-    <button
-      onClick={onClick}
-      className={`inline-flex items-center gap-[7px] px-3.5 py-[9px] rounded-[10px] cursor-pointer text-[12.5px] font-semibold whitespace-nowrap bg-white dark:bg-paperDark text-charcoal/75 dark:text-white/60 border border-charcoal/10 dark:border-white/10 ${className ?? ''}`}
-    >
+    <Button variant="secondary" size="sm" onClick={onClick} className={className}>
       {children}
-    </button>
+    </Button>
   )
 }
 
@@ -370,18 +369,20 @@ function DocumentsTab({ staffId, venueId }) {
                   </div>
                 </div>
                 <div className="flex gap-[7px] shrink-0">
-                  <button
+                  <Button
+                    variant="secondary"
+                    size="sm"
                     onClick={() => openHrAttachment(doc, toast)}
-                    className="inline-flex items-center gap-[7px] px-3 py-1.5 rounded-[10px] text-[11px] font-semibold whitespace-nowrap bg-white dark:bg-paperDark text-charcoal/75 dark:text-white/60 border border-charcoal/10 dark:border-white/10"
                   >
                     View
-                  </button>
-                  <button
+                  </Button>
+                  <Button
+                    variant="danger-ghost"
+                    size="sm"
                     onClick={() => setDeleteTarget(doc)}
-                    className="inline-flex items-center gap-[7px] px-3 py-1.5 rounded-[10px] text-[11px] font-semibold whitespace-nowrap bg-danger/10 text-danger border border-danger/10"
                   >
                     Delete
-                  </button>
+                  </Button>
                 </div>
               </div>
             )
@@ -427,11 +428,9 @@ function DocumentsTab({ staffId, venueId }) {
             <label className="block font-mono text-[11px] uppercase tracking-[0.07em] text-charcoal/50 dark:text-white/40 mb-1.5">Notes (optional)</label>
             <textarea value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} rows={2} className="w-full px-3 py-2.5 rounded-[10px] border border-charcoal/10 dark:border-white/10 text-[13px] outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 focus:border-charcoal/20 dark:focus:border-white/20 resize-none box-border" />
           </div>
-          <button onClick={upload} disabled={saving}
-            className="bg-brand text-white border-0 rounded-xl py-[13px] cursor-pointer font-mono text-[13px] font-bold tracking-[0.02em] disabled:opacity-60 disabled:cursor-not-allowed"
-          >
+          <Button size="lg" loading={saving} onClick={upload} disabled={saving}>
             {saving ? 'Uploading…' : 'Upload Document'}
-          </button>
+          </Button>
         </div>
       </Modal>
     </div>
@@ -639,13 +638,15 @@ function DisciplinaryTab({ staffId, venueId }) {
         </span>
         <div className="flex gap-2">
           {activeStrikes.length > 0 && (
-            <button
+            <Button
+              variant="secondary"
+              size="sm"
+              loading={dismissing === 'all'}
               onClick={() => setConfirmClearAll(true)}
               disabled={dismissing === 'all'}
-              className="inline-flex items-center gap-[7px] px-3.5 py-[9px] rounded-[10px] cursor-pointer text-[12.5px] font-semibold whitespace-nowrap bg-warning/10 text-warning border border-warning/10 disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {dismissing === 'all' ? 'Clearing…' : 'Reset all strikes'}
-            </button>
+            </Button>
           )}
           <BtnDanger onClick={() => setShowModal(true)}>
             {Ico.plus} Add formal action
@@ -681,17 +682,15 @@ function DisciplinaryTab({ staffId, venueId }) {
                           <span className="font-mono text-[11px] text-charcoal/30 dark:text-white/30">Added by {item.added_by_staff.name}</span>
                         )}
                         {(item.file_path || item.file_url) && (
-                          <button onClick={() => openHrAttachment(item, toast)}
-                            className="font-mono text-[11px] text-brand font-bold">
+                          <Button variant="link" size="sm" onClick={() => openHrAttachment(item, toast)}>
                             📎 {item.file_name ?? 'Attachment'}
-                          </button>
+                          </Button>
                         )}
                       </div>
                     </div>
-                    <button onClick={() => setDeleteFormalTarget(item)} title="Delete"
-                      className="bg-transparent border-0 cursor-pointer p-1 text-charcoal/30 dark:text-white/30 shrink-0">
+                    <Button variant="ghost" size="sm" iconOnly aria-label="Delete formal action" onClick={() => setDeleteFormalTarget(item)} title="Delete">
                       {Ico.trash}
-                    </button>
+                    </Button>
                   </div>
                 </div>
               )
@@ -740,13 +739,15 @@ function DisciplinaryTab({ staffId, venueId }) {
                 </div>
                 <div className="flex items-center gap-2 shrink-0 mt-[3px]">
                   <span className="font-mono text-[11px] text-charcoal/30 dark:text-white/30 uppercase tracking-[0.05em]">Auto</span>
-                  <button
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    loading={dismissing === item.id}
                     onClick={() => dismissStrike(item.id)}
                     disabled={!!dismissing}
-                    className="px-2.5 py-1 rounded-[8px] border border-charcoal/10 dark:border-white/10 bg-transparent text-charcoal/40 dark:text-white/35 cursor-pointer font-mono text-[11px] font-semibold tracking-[0.03em] disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {dismissing === item.id ? '…' : 'Dismiss'}
-                  </button>
+                    Dismiss
+                  </Button>
                 </div>
               </div>
             )
@@ -778,11 +779,9 @@ function DisciplinaryTab({ staffId, venueId }) {
             <label className="block font-mono text-[11px] uppercase tracking-[0.07em] text-charcoal/50 dark:text-white/40 mb-1.5">Attachment (optional)</label>
             <input type="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" onChange={e => setFile(e.target.files?.[0] ?? null)} className="w-full text-[13px]" />
           </div>
-          <button onClick={addFormal} disabled={saving}
-            className="bg-danger text-white border-0 rounded-xl py-[13px] cursor-pointer font-mono text-[13px] font-bold tracking-[0.02em] disabled:opacity-60 disabled:cursor-not-allowed"
-          >
+          <Button variant="danger" size="lg" loading={saving} onClick={addFormal} disabled={saving}>
             {saving ? 'Saving…' : 'Record Action'}
-          </button>
+          </Button>
         </div>
       </Modal>
     </div>
@@ -852,12 +851,10 @@ function LeaveTab({ staffId, venueSlug, staff }) {
         </SectionCard>
       )}
 
-      <button onClick={() => navigate(`/v/${venueSlug}/time-off`)}
-        className="bg-transparent border border-charcoal/10 dark:border-white/10 rounded-xl px-4 py-[11px] cursor-pointer font-mono text-[11px] font-semibold tracking-[0.05em] text-charcoal/50 dark:text-white/40 text-center flex items-center justify-center gap-1.5"
-      >
+      <Button variant="secondary" onClick={() => navigate(`/v/${venueSlug}/time-off`)}>
         Manage in Time Off
         <svg width="5" height="9" viewBox="0 0 5 9" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M1 1l3 3.5L1 8"/></svg>
-      </button>
+      </Button>
     </div>
   )
 }
@@ -932,12 +929,10 @@ function TrainingTab({ staffId, venueSlug }) {
         </>
       )}
 
-      <button onClick={() => navigate(`/v/${venueSlug}/training`)}
-        className="bg-transparent border border-charcoal/10 dark:border-white/10 rounded-xl px-4 py-[11px] cursor-pointer font-mono text-[11px] font-semibold tracking-[0.05em] text-charcoal/50 dark:text-white/40 text-center flex items-center justify-center gap-1.5"
-      >
+      <Button variant="secondary" onClick={() => navigate(`/v/${venueSlug}/training`)}>
         Manage in Training
         <svg width="5" height="9" viewBox="0 0 5 9" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M1 1l3 3.5L1 8"/></svg>
-      </button>
+      </Button>
     </div>
   )
 }
@@ -994,13 +989,15 @@ function SecurityTab({ staffId }) {
                   Started {format(parseISO(s.created_at), 'd MMM yyyy, HH:mm')} · Expires {format(parseISO(s.expires_at), 'd MMM yyyy')}
                 </div>
               </div>
-              <button
+              <Button
+                variant="danger-ghost"
+                size="sm"
+                loading={revoking === s.token}
                 onClick={() => setRevokeTarget(s)}
                 disabled={revoking === s.token}
-                className="px-3 py-1.5 rounded-lg border border-danger bg-transparent text-danger cursor-pointer font-mono text-[11px] font-bold tracking-[0.04em] disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {revoking === s.token ? '…' : 'Revoke'}
-              </button>
+                Revoke
+              </Button>
             </div>
           ))}
         </SectionCard>
@@ -1031,9 +1028,9 @@ export default function EmployeeRecordPanel({ staffId, venueId, venueSlug, onBac
   return (
     <div className="flex flex-col gap-[14px] lg:block">
       {onBack && (
-        <button onClick={onBack} className="bg-transparent border-0 cursor-pointer lg:pb-3.5 flex items-center gap-[7px] font-mono text-[11px] font-semibold text-charcoal/50 dark:text-white/40 tracking-[0.04em] self-start">
+        <Button variant="ghost" size="sm" onClick={onBack} className="self-start -ml-3 lg:mb-3.5">
           {Ico.back} HR Records
-        </button>
+        </Button>
       )}
 
       {/* Identity row */}
@@ -1088,12 +1085,13 @@ export default function EmployeeRecordPanel({ staffId, venueId, venueSlug, onBac
         <BtnDefault onClick={() => navigate(`/v/${venueSlug}/staff?staff=${staffId}`)} className="flex-1 justify-center">
           {Ico.edit} Edit
         </BtnDefault>
-        <button
+        <Button
+          size="sm"
           onClick={() => setTab('Documents')}
-          className="flex-1 inline-flex items-center justify-center gap-[7px] px-3.5 py-[9px] rounded-[10px] cursor-pointer text-[12.5px] font-semibold border-0 whitespace-nowrap bg-brand text-white"
+          className="flex-1"
         >
           {Ico.doc} Upload doc
-        </button>
+        </Button>
       </div>
 
       {/* Tab bar */}

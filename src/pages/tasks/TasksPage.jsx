@@ -17,6 +17,7 @@ import EmptyState from '../../components/ui/EmptyState'
 import ConfirmDialog from '../../components/ui/ConfirmDialog'
 import { SkeletonList } from '../../components/ui/Skeleton'
 import DutiesSection from '../settings/DutiesSection'
+import Button, { CloseButton } from '../../components/ui/Button'
 
 function usePendingSignOffs(staffId, venueId) {
   const [count, setCount] = useState(0)
@@ -108,12 +109,7 @@ function ManagerTaskRow({ item, isTemplate, completions, onDelete, deleting }) {
           </div>
         </div>
       </div>
-      <button
-        onClick={() => onDelete(item.id)}
-        disabled={deleting === item.id}
-        className="text-sm text-charcoal/35 dark:text-white/30 hover:text-danger transition-colors shrink-0 px-2.5 py-1.5 rounded"
-        title="Remove task"
-      >{deleting === item.id ? '…' : '×'}</button>
+      <CloseButton label="Remove task" loading={deleting === item.id} onClick={() => onDelete(item.id)} title="Remove task" />
     </div>
   )
 }
@@ -294,25 +290,25 @@ function ManagerTasksView() {
 
       {/* ── Add forms ─────────────────────────────────────────────────────── */}
       <div className="flex gap-2">
-        <button
+        <Button
+          variant="label"
           onClick={() => {
             if (!showAddTemplate) setTForm(f => ({ ...f, department_id: defaultDepartmentId }))
             setShowAddTemplate(v => !v); setShowAddOneOff(false)
           }}
-          className="text-[11px] tracking-widest uppercase text-charcoal/50 dark:text-white/40 hover:text-charcoal dark:hover:text-white transition-colors border-b border-charcoal/20 dark:border-white/20"
         >
           + Recurring Task
-        </button>
+        </Button>
         <span className="text-charcoal/20 dark:text-white/20 text-xs self-end pb-0.5">·</span>
-        <button
+        <Button
+          variant="label"
           onClick={() => {
             if (!showAddOneOff) setOForm(f => ({ ...f, department_id: defaultDepartmentId }))
             setShowAddOneOff(v => !v); setShowAddTemplate(false)
           }}
-          className="text-[11px] tracking-widest uppercase text-charcoal/50 dark:text-white/40 hover:text-charcoal dark:hover:text-white transition-colors border-b border-charcoal/20 dark:border-white/20"
         >
           + One-Off Task
-        </button>
+        </Button>
       </div>
 
       {showAddTemplate && (
@@ -335,13 +331,13 @@ function ManagerTasksView() {
             ))}
           </div>
           <div className="flex gap-2">
-            <button onClick={saveTemplate} disabled={saving || !tForm.title.trim()}
-              className="flex-1 bg-charcoal text-cream py-2 rounded-lg text-sm font-medium disabled:opacity-40">
+            <Button loading={saving} onClick={saveTemplate} disabled={saving || !tForm.title.trim()}
+              className="flex-1">
               {saving ? 'Saving…' : 'Save Template →'}
-            </button>
-            <button onClick={() => setShowAddTemplate(false)} className="px-4 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 text-sm text-charcoal/50 dark:text-white/40">
+            </Button>
+            <Button variant="secondary" onClick={() => setShowAddTemplate(false)}>
               Cancel
-            </button>
+            </Button>
           </div>
         </div>
       )}
@@ -388,13 +384,13 @@ function ManagerTasksView() {
             </div>
           </div>
           <div className="flex gap-2">
-            <button onClick={saveOneOff} disabled={saving || !oForm.title.trim()}
-              className="flex-1 bg-charcoal text-cream py-2 rounded-lg text-sm font-medium disabled:opacity-40">
+            <Button loading={saving} onClick={saveOneOff} disabled={saving || !oForm.title.trim()}
+              className="flex-1">
               {saving ? 'Saving…' : 'Assign Task →'}
-            </button>
-            <button onClick={() => setShowAddOneOff(false)} className="px-4 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 text-sm text-charcoal/50 dark:text-white/40">
+            </Button>
+            <Button variant="secondary" onClick={() => setShowAddOneOff(false)}>
               Cancel
-            </button>
+            </Button>
           </div>
         </div>
       )}

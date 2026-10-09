@@ -22,6 +22,7 @@ import { offlineRpc } from '../../lib/offlineSupabase'
 import { reportError } from '../../lib/reportError'
 import { Link } from 'react-router-dom'
 import { CARD, TabBar } from '../../components/temperature/TempPageParts'
+import Button from '../../components/ui/Button'
 
 function useBodyScrollLock() {
   useEffect(() => {
@@ -284,14 +285,15 @@ function EditSessionSheet({ staffName, dayLabel, session, onSave, onClose }) {
           <span className={`text-[12.5px] ${valid ? 'text-charcoal/50 dark:text-white/40' : 'text-danger'}`}>· {valid ? minsStr(worked(clockIn, clockOut, brk)) : 'clock out must be after in'}</span>
         </div>
         <div className="flex gap-2 mt-4">
-          <button onClick={onClose} className="w-[90px] h-[50px] rounded-[13px] border border-charcoal/10 dark:border-white/10 bg-white dark:bg-paperDark text-charcoal/75 dark:text-white/60 cursor-pointer text-sm font-semibold">Cancel</button>
-          <button
+          <Button variant="secondary" size="lg" onClick={onClose} className="w-[90px]">Cancel</Button>
+          <Button
+            size="lg"
             disabled={!valid}
             onClick={() => { onSave({ clockIn, clockOut, brk }); onClose() }}
-            className={`flex-1 h-[50px] rounded-[13px] border-none text-[14px] font-bold ${valid ? 'bg-brand text-white cursor-pointer' : 'bg-charcoal/10 dark:bg-white/10 text-charcoal/30 dark:text-white/30 cursor-not-allowed'}`}
+            className="flex-1"
           >
             Save hours
-          </button>
+          </Button>
         </div>
       </div>
     </div>
@@ -359,12 +361,13 @@ function StaffHoursSheet({ t, person, periodDays, dailyGrid, periodLabel, onEdit
                     </div>
                   )}
                 </div>
-                <button
+                <Button
+                  variant="secondary"
+                  size="sm"
                   onClick={() => onAddDay(dateStr)}
-                  className="shrink-0 flex items-center gap-1 px-3 py-[7px] rounded-[9px] cursor-pointer text-xs font-semibold text-charcoal/75 dark:text-white/60 bg-surface border border-charcoal/10 dark:border-white/10"
                 >
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14"/></svg>Add
-                </button>
+                </Button>
               </div>
             )
           })}
@@ -385,12 +388,15 @@ function StaffHoursSheet({ t, person, periodDays, dailyGrid, periodLabel, onEdit
             <div className="font-mono text-xs font-semibold text-charcoal/50 dark:text-white/40 mt-[3px]">£{Number(t.hourlyRate).toFixed(2)}/hr</div>
           </div>
         </div>
-        <button
+        <Button
+          variant="secondary"
+          size="lg"
+          fullWidth
           onClick={onClose}
-          className="w-full h-[50px] mt-4 rounded-[13px] border border-charcoal/10 bg-white dark:bg-paperDark text-charcoal/75 cursor-pointer text-sm font-semibold"
+          className="mt-4"
         >
           Close
-        </button>
+        </Button>
       </div>
     </div>
   )
@@ -641,15 +647,15 @@ export default function TimesheetPage() {
           </div>
           <div className="shrink-0 flex gap-2 mt-1">
             {[['CSV', exportCsv], ['PDF', exportPdf]].map(([fmt, fn]) => (
-              <button
+              <Button
+                variant="secondary"
+                size="sm"
                 key={fmt}
-                type="button"
                 onClick={fn}
                 disabled={loading || (totalMins <= 0 && totalHolidayPay <= 0)}
-                className="h-8 px-3.5 rounded-xl bg-white dark:bg-paperDark border border-line dark:border-white/10 text-[13px] font-semibold text-ink2 dark:text-white/80 hover:border-ink4 transition-colors disabled:opacity-40"
               >
                 {fmt}
-              </button>
+              </Button>
             ))}
           </div>
         </div>
@@ -663,14 +669,15 @@ export default function TimesheetPage() {
         onChange={(id) => { setPeriod(id); setShowOther(false) }}
       />
       <div className="flex flex-col gap-2 -mt-1">
-        <button
-          type="button"
+        <Button
+          variant="ghost"
+          size="sm"
           aria-expanded={showOther || isOtherPeriod}
           onClick={() => setShowOther(v => !v)}
-          className="self-start px-1 text-[13px] font-semibold text-ink3 dark:text-white/50 hover:text-ink dark:hover:text-white"
+          className="self-start -ml-2"
         >
           {isOtherPeriod ? `Showing ${OTHER_PERIODS.find(p => p.key === period).label.toLowerCase()}` : 'Other dates'} ▾
-        </button>
+        </Button>
         {(showOther || isOtherPeriod) && (
           <div className="flex flex-wrap items-center gap-2">
             {OTHER_PERIODS.map(p => (
@@ -720,7 +727,7 @@ export default function TimesheetPage() {
               <p className="text-[13px] font-semibold text-bad dark:text-[#f19a86]">Couldn't load hours</p>
               <p className="text-[13px] text-ink2 dark:text-white/70 mt-0.5">The clock-in data failed to load — this can happen on an out-of-date app. Try again, or fully close and reopen the app.</p>
             </div>
-            <button type="button" onClick={reload} className="shrink-0 h-8 px-3.5 rounded-xl bg-white dark:bg-paperDark border border-line dark:border-white/10 text-[13px] font-semibold">Retry</button>
+            <Button variant="secondary" size="sm" onClick={reload}>Retry</Button>
           </div>
         ) : (
           <>

@@ -23,6 +23,7 @@ import {
 } from '../../lib/incidents'
 import { CARD, TONE, PageHeader, TabBar } from '../../components/temperature/TempPageParts'
 import LoadError from '../../components/ui/LoadError'
+import Button, { CloseButton } from '../../components/ui/Button'
 
 const LOCATION_SUGGESTIONS = ['Kitchen', 'Bar', 'Dining area', 'Storeroom', 'Toilets', 'Outside']
 
@@ -36,8 +37,6 @@ const PERSON_TYPES = [
 const FIELD_LABEL = 'block text-[12px] font-semibold tracking-[0.08em] uppercase text-ink3 dark:text-white/45 mb-2'
 const TEXT_FIELD  = 'w-full h-9 px-3.5 rounded-xl border border-line dark:border-white/10 bg-cream dark:bg-white/5 text-[13px] text-ink dark:text-white placeholder:text-ink4 dark:placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand/40 focus:bg-white dark:focus:bg-white/10 transition-colors'
 const TEXT_AREA   = 'w-full px-3.5 py-2.5 rounded-xl border border-line dark:border-white/10 bg-cream dark:bg-white/5 text-[13px] text-ink dark:text-white placeholder:text-ink4 dark:placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand/40 focus:bg-white dark:focus:bg-white/10 resize-none transition-colors'
-const PRIMARY_BTN = 'h-9 rounded-xl bg-brand text-white text-[13px] font-semibold transition-colors hover:bg-brand/90 disabled:bg-ink3/70 dark:disabled:bg-white/15 disabled:cursor-not-allowed'
-const OUTLINE_BTN = 'h-9 rounded-xl border border-line dark:border-white/15 bg-white dark:bg-paperDark text-[13px] font-semibold text-ink dark:text-white hover:border-ink4 transition-colors'
 
 // Severity colours: the card's left bar, the filter dot and the tag
 const SEVERITY_STYLE = {
@@ -239,7 +238,7 @@ function ReportIncidentModal({ open, onClose, onSaved }) {
         <div>
           <div className="flex items-center justify-between mb-2">
             <span className={`${FIELD_LABEL} mb-0`}>People involved</span>
-            <button type="button" onClick={() => setPeople(p => [...p, { name: '', type: 'staff' }])} className="text-[13px] font-semibold text-brand dark:text-white">+ Add person</button>
+            <Button variant="link" size="sm" onClick={() => setPeople(p => [...p, { name: '', type: 'staff' }])}>+ Add person</Button>
           </div>
           <div className="flex flex-col gap-2">
             {people.map((p, i) => (
@@ -257,7 +256,7 @@ function ReportIncidentModal({ open, onClose, onSaved }) {
                   {PERSON_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
                 </select>
                 {people.length > 1 && (
-                  <button type="button" aria-label="Remove person" onClick={() => setPeople(list => list.filter((_, j) => j !== i))} className="w-8 text-xl text-ink4 hover:text-bad">&times;</button>
+                  <CloseButton label="Remove person" onClick={() => setPeople(list => list.filter((_, j) => j !== i))} />
                 )}
               </div>
             ))}
@@ -272,15 +271,15 @@ function ReportIncidentModal({ open, onClose, onSaved }) {
             <label><span className={FIELD_LABEL}>Follow-up actions</span><textarea value={form.follow_up_actions} onChange={e => set('follow_up_actions', e.target.value)} rows={2} placeholder="What's being done so it doesn't happen again" className={TEXT_AREA} /></label>
           </>
         ) : (
-          <button type="button" onClick={() => setShowMore(true)} className="self-start inline-flex items-center gap-2 text-[13px] font-semibold text-ink2 dark:text-white/75 hover:text-ink dark:hover:text-white">
+          <Button variant="ghost" size="sm" onClick={() => setShowMore(true)} className="self-start -ml-3">
             <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
             Injury, first aid, witnesses
-          </button>
+          </Button>
         )}
 
-        <button type="button" onClick={save} disabled={!canSave} className={`w-full ${PRIMARY_BTN} h-10 rounded-2xl text-[14px]`}>
+        <Button fullWidth loading={saving} onClick={save} disabled={!canSave}>
           {saving ? 'Saving…' : 'Report incident'}
-        </button>
+        </Button>
       </div>
     </Modal>
   )
@@ -378,14 +377,13 @@ function IncidentDetailModal({ incident, onClose, onChanged }) {
                 </p>
                 {riddorCategory && <p className="text-[13px] text-ink2 dark:text-white/70 -mt-2">{riddorCategory}</p>}
                 <input type="text" value={reference} onChange={e => setReference(e.target.value)} placeholder="HSE reference number (optional)" className={TEXT_FIELD} />
-                <button
-                  type="button"
+                <Button
+                  size="sm"
                   disabled={busy}
                   onClick={() => change({ riddor_reported_at: new Date().toISOString(), riddor_reference: reference.trim() || null }, 'Marked as reported to the HSE')}
-                  className={PRIMARY_BTN}
                 >
                   Mark reported to HSE
-                </button>
+                </Button>
               </div>
             )}
           </div>
@@ -420,30 +418,29 @@ function IncidentDetailModal({ incident, onClose, onChanged }) {
               className={TEXT_AREA}
             />
             <div className="grid grid-cols-2 gap-2.5 mt-1">
-              <button type="button" onClick={exportPdf} className={OUTLINE_BTN}>Export PDF</button>
-              <button
-                type="button"
+              <Button variant="secondary" size="sm" onClick={exportPdf}>Export PDF</Button>
+              <Button
+                size="sm"
                 disabled={busy || !closureNote.trim()}
                 onClick={() => change({ status: 'closed', closed_at: new Date().toISOString(), closed_by: session?.staffId ?? null, closure_note: closureNote.trim() }, 'Incident closed')}
-                className={PRIMARY_BTN}
               >
                 Close incident
-              </button>
+              </Button>
             </div>
           </div>
         ) : (
           <div className="flex flex-col gap-2.5 border-t border-line dark:border-white/10 pt-2.5">
             <Field label={`Closed ${incident.closed_at ? format(new Date(incident.closed_at), 'd MMM yyyy') : ''}`} value={incident.closure_note} />
             <div className="grid grid-cols-2 gap-2.5">
-              <button type="button" onClick={exportPdf} className={OUTLINE_BTN}>Export PDF</button>
-              <button
-                type="button"
+              <Button variant="secondary" size="sm" onClick={exportPdf}>Export PDF</Button>
+              <Button
+                variant="secondary"
+                size="sm"
                 disabled={busy}
                 onClick={() => change({ status: 'open', closed_at: null, closed_by: null }, 'Incident reopened')}
-                className={OUTLINE_BTN}
               >
                 Reopen
-              </button>
+              </Button>
             </div>
           </div>
         )}
@@ -501,14 +498,13 @@ export default function IncidentsPage() {
         title="Incidents"
         backTo={`/v/${venueSlug}/checks`}
         action={(
-          <button
-            type="button"
+          <Button
+            size="sm"
             onClick={() => setShowReport(true)}
-            className="shrink-0 inline-flex items-center gap-2 h-8 px-3.5 sm:px-3.5 rounded-xl bg-brand text-white text-[13px] sm:text-[13px] font-semibold hover:bg-brand/90 transition-colors"
           >
             <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
             Report
-          </button>
+          </Button>
         )}
       />
 
