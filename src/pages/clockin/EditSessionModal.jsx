@@ -64,7 +64,7 @@ export default function EditSessionModal({ open, onClose, session, venueId, onSa
       <div className="flex flex-col gap-4">
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Clock In</label>
+            <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Clock In</label>
             <input
               type="time"
               value={form.clockIn}
@@ -73,7 +73,7 @@ export default function EditSessionModal({ open, onClose, session, venueId, onSa
             />
           </div>
           <div>
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Clock Out</label>
+            <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Clock Out</label>
             <input
               type="time"
               value={form.clockOut}
@@ -83,7 +83,7 @@ export default function EditSessionModal({ open, onClose, session, venueId, onSa
           </div>
         </div>
         <div>
-          <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Break</label>
+          <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Break</label>
           <select
             value={breakMin}
             onChange={e => setBreakMin(e.target.value)}

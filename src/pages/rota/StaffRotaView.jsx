@@ -187,8 +187,8 @@ export default function StaffRotaView({ shifts, staff, loading, weekStart, prevW
     <div className="flex flex-col gap-4">
       {/* Page header */}
       <div className="flex items-baseline justify-between px-1">
-        <span className="font-mono text-[10.5px] text-charcoal/50 dark:text-white/40 tracking-[0.08em] uppercase">My Shifts</span>
-        <span className="font-mono text-[10.5px] text-charcoal/50 dark:text-white/40">Week {weekNum} · {weekRange}</span>
+        <span className="font-mono text-micro text-charcoal/50 dark:text-white/40 tracking-[0.08em] uppercase">My Shifts</span>
+        <span className="font-mono text-micro text-charcoal/50 dark:text-white/40">Week {weekNum} · {weekRange}</span>
       </div>
 
       {/* Week strip */}
@@ -206,10 +206,10 @@ export default function StaffRotaView({ shifts, staff, loading, weekStart, prevW
             return (
               <button key={dateStr} onClick={() => setSelectedDate(day)}
                 className={`h-[60px] rounded-[9px] flex flex-col items-center justify-center gap-0.5 relative transition-colors ${isSel ? 'bg-charcoal border border-charcoal dark:border-white text-white' : 'bg-white dark:bg-paperDark border border-charcoal/15 dark:border-white/15 text-charcoal dark:text-white hover:border-charcoal/30 dark:hover:border-white/30'}`}>
-                <span className={`font-mono text-[9px] font-semibold tracking-[0.06em] ${isSel ? 'text-white/70' : 'text-charcoal/50 dark:text-white/40'}`}>
+                <span className={`font-mono text-micro font-semibold tracking-[0.06em] ${isSel ? 'text-white/70' : 'text-charcoal/50 dark:text-white/40'}`}>
                   {format(day, 'EEE').toUpperCase()}
                 </span>
-                <span className="font-mono text-[17px] font-semibold leading-none">{format(day, 'd')}</span>
+                <span className="font-mono text-title-sm font-semibold leading-none">{format(day, 'd')}</span>
                 {(hasMyShift || hasOtherShift) && (
                   <span className={`absolute bottom-1.5 w-1 h-1 rounded-full ${hasMyShift ? (isSel ? 'bg-white dark:bg-paperDark' : 'bg-brand') : (isSel ? 'bg-white/40' : 'bg-charcoal/25 dark:bg-white/25')}`} />
                 )}
@@ -231,9 +231,9 @@ export default function StaffRotaView({ shifts, staff, loading, weekStart, prevW
         <>
           {/* Day heading */}
           <div className="flex items-baseline gap-2 px-1">
-            <h1 className="text-[22px] font-semibold tracking-[-0.022em]">{format(selectedDate, 'EEEE, d MMMM')}</h1>
+            <h1 className="text-title font-semibold tracking-[-0.022em]">{format(selectedDate, 'EEEE, d MMMM')}</h1>
             {selectedDateStr === today && (
-              <span className="font-mono text-[11px] text-accent font-semibold tracking-[0.06em]">TODAY</span>
+              <span className="font-mono text-micro text-accent font-semibold tracking-[0.06em]">TODAY</span>
             )}
           </div>
 
@@ -241,8 +241,8 @@ export default function StaffRotaView({ shifts, staff, loading, weekStart, prevW
           {dayShifts.length > 0 && (
             <div>
               <div className="flex items-baseline justify-between px-1 mb-2">
-                <span className="font-mono text-[10.5px] text-charcoal/50 dark:text-white/40 tracking-[0.08em] uppercase font-semibold">Day at a glance</span>
-                <span className="font-mono text-[11px] text-charcoal/50 dark:text-white/40">{dayShifts.length} on shift</span>
+                <span className="font-mono text-micro text-charcoal/50 dark:text-white/40 tracking-[0.08em] uppercase font-semibold">Day at a glance</span>
+                <span className="font-mono text-micro text-charcoal/50 dark:text-white/40">{dayShifts.length} on shift</span>
               </div>
               <GanttChart shifts={dayShifts} staff={staff} currentStaffId={session?.staffId} nowMins={nowMins} showNow={selectedDateStr === today} />
             </div>
@@ -258,9 +258,9 @@ export default function StaffRotaView({ shifts, staff, loading, weekStart, prevW
           ) : selectedShift ? (
             <div className="rounded-2xl p-4 text-white bg-brand">
               <div className="flex items-center justify-between">
-                <span className="font-mono text-[10.5px] text-white/55 tracking-[0.1em] uppercase">Your shift</span>
+                <span className="font-mono text-micro text-white/55 tracking-[0.1em] uppercase">Your shift</span>
               </div>
-              <div className="font-mono text-[30px] font-medium tracking-[-0.025em] tabular-nums mt-1.5">
+              <div className="font-mono text-display font-medium tracking-[-0.025em] tabular-nums mt-1.5">
                 {selectedShift.start_time.slice(0, 5)} — {selectedShift.end_time.slice(0, 5)}
               </div>
               <div className="flex items-center gap-2.5 mt-1 text-white/70 text-sm">
@@ -294,21 +294,21 @@ export default function StaffRotaView({ shifts, staff, loading, weekStart, prevW
           {upcomingShifts.length > 0 ? (
             <div>
               <div className="flex items-baseline justify-between px-1 mb-2">
-                <span className="font-mono text-[10.5px] text-charcoal/50 dark:text-white/40 tracking-[0.08em] uppercase font-semibold">Your upcoming shifts</span>
-                <span className="font-mono text-[11px] text-charcoal/50 dark:text-white/40">{upcomingShifts.length} · next 2 wks</span>
+                <span className="font-mono text-micro text-charcoal/50 dark:text-white/40 tracking-[0.08em] uppercase font-semibold">Your upcoming shifts</span>
+                <span className="font-mono text-micro text-charcoal/50 dark:text-white/40">{upcomingShifts.length} · next 2 wks</span>
               </div>
               <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-2xl overflow-hidden">
                 {upcomingShifts.map((shift, i) => (
                   <div key={shift.id} className={`flex items-center gap-3 px-4 py-3 ${i > 0 ? 'border-t border-charcoal/8 dark:border-white/8' : ''}`}>
                     <div className="w-11 h-12 rounded-[9px] bg-charcoal/4 dark:bg-white/5 border border-charcoal/10 dark:border-white/10 shrink-0 flex flex-col items-center justify-center gap-0.5">
-                      <span className="font-mono text-[9px] text-charcoal/50 dark:text-white/40 tracking-[0.06em] font-semibold">{format(parseISO(shift.shift_date), 'EEE').toUpperCase()}</span>
-                      <span className="font-mono text-[17px] font-semibold text-charcoal dark:text-white leading-none">{format(parseISO(shift.shift_date), 'd')}</span>
+                      <span className="font-mono text-micro text-charcoal/50 dark:text-white/40 tracking-[0.06em] font-semibold">{format(parseISO(shift.shift_date), 'EEE').toUpperCase()}</span>
+                      <span className="font-mono text-title-sm font-semibold text-charcoal dark:text-white leading-none">{format(parseISO(shift.shift_date), 'd')}</span>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="font-mono text-[13.5px] font-semibold tabular-nums text-charcoal dark:text-white">
+                      <div className="font-mono text-body font-semibold tabular-nums text-charcoal dark:text-white">
                         {shift.start_time.slice(0, 5)}–{shift.end_time.slice(0, 5)}
                       </div>
-                      <div className="text-[11.5px] text-charcoal/50 dark:text-white/40 mt-0.5 flex items-center gap-1.5">
+                      <div className="text-caption text-charcoal/50 dark:text-white/40 mt-0.5 flex items-center gap-1.5">
                         <span>{durationLabel(shift.start_time, shift.end_time)}</span>
                         {shift.role_label && <><span className="text-charcoal/30 dark:text-white/30">·</span><span>{shift.role_label}</span></>}
                         <span className="text-charcoal/30 dark:text-white/30">·</span>
@@ -335,17 +335,17 @@ export default function StaffRotaView({ shifts, staff, loading, weekStart, prevW
                 <div className="flex items-center justify-between px-4 py-3 border-t border-charcoal/8 dark:border-white/8 bg-charcoal/3 dark:bg-white/5">
                   <div className="flex gap-4">
                     <div>
-                      <div className="font-mono text-[9.5px] text-charcoal/50 dark:text-white/40 tracking-[0.06em] uppercase">Shifts</div>
-                      <div className="font-mono text-[14px] font-semibold mt-0.5">{upcomingShifts.length}</div>
+                      <div className="font-mono text-micro text-charcoal/50 dark:text-white/40 tracking-[0.06em] uppercase">Shifts</div>
+                      <div className="font-mono text-body font-semibold mt-0.5">{upcomingShifts.length}</div>
                     </div>
                     <div>
-                      <div className="font-mono text-[9.5px] text-charcoal/50 dark:text-white/40 tracking-[0.06em] uppercase">Hours</div>
-                      <div className="font-mono text-[14px] font-semibold mt-0.5">{Math.round(upcomingHours)}h</div>
+                      <div className="font-mono text-micro text-charcoal/50 dark:text-white/40 tracking-[0.06em] uppercase">Hours</div>
+                      <div className="font-mono text-body font-semibold mt-0.5">{Math.round(upcomingHours)}h</div>
                     </div>
                     {upcomingPay != null && (
                       <div>
-                        <div className="font-mono text-[9.5px] text-charcoal/50 dark:text-white/40 tracking-[0.06em] uppercase">Est. Pay</div>
-                        <div className="font-mono text-[14px] font-semibold mt-0.5 text-success">£{upcomingPay.toFixed(2)}</div>
+                        <div className="font-mono text-micro text-charcoal/50 dark:text-white/40 tracking-[0.06em] uppercase">Est. Pay</div>
+                        <div className="font-mono text-body font-semibold mt-0.5 text-success">£{upcomingPay.toFixed(2)}</div>
                       </div>
                     )}
                   </div>
@@ -361,7 +361,7 @@ export default function StaffRotaView({ shifts, staff, loading, weekStart, prevW
           {/* My swap requests */}
           {mySwaps.length > 0 && (
             <div className={`rounded-2xl border px-5 py-4 ${myPending.length > 0 ? 'bg-warning/5 border-warning/20' : 'bg-charcoal/4 dark:bg-white/5 border-charcoal/10 dark:border-white/10'}`}>
-              <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-2">My Swap Requests</p>
+              <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-2">My Swap Requests</p>
               <div className="flex flex-col gap-2">
                 {mySwaps.slice(0, 3).map((swap) => (
                   <div key={swap.id} className="flex items-center justify-between text-sm">
@@ -369,7 +369,7 @@ export default function StaffRotaView({ shifts, staff, loading, weekStart, prevW
                       Swap with <span className="font-medium text-charcoal dark:text-white">{swap.target_staff_name}</span>
                       {swap.shift && <span className="text-xs text-charcoal/40 dark:text-white/35 ml-1">({swap.shift.shift_date})</span>}
                     </span>
-                    <span className={`text-[11px] tracking-widest uppercase px-2 py-0.5 rounded-full font-medium ${swap.status === 'pending' ? 'bg-warning/15 text-warning' : swap.status === 'approved' ? 'bg-success/10 text-success' : 'bg-danger/10 text-danger'}`}>
+                    <span className={`text-micro tracking-widest uppercase px-2 py-0.5 rounded-full font-medium ${swap.status === 'pending' ? 'bg-warning/15 text-warning' : swap.status === 'approved' ? 'bg-success/10 text-success' : 'bg-danger/10 text-danger'}`}>
                       {swap.status}
                     </span>
                   </div>

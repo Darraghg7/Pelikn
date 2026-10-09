@@ -213,7 +213,7 @@ function ShiftSheet({ shift, staffMember, day, venueId, roles, onClose, onSaved,
           <div className="flex items-center gap-3 mb-4">
             <Avatar name={staffMember?.name ?? 'Unassigned'} id={staffMember?.id} colour={staffMember?.colour} photoUrl={staffMember?.photo_url} tone={staffMember ? 'person' : 'neutral'} size="xl" decorative />
             <div className="flex-1 min-w-0">
-              <div className="text-[17px] font-semibold tracking-[-0.015em] text-charcoal dark:text-white">{staffMember?.name ?? 'Unassigned'}</div>
+              <div className="text-title-sm font-semibold tracking-[-0.015em] text-charcoal dark:text-white">{staffMember?.name ?? 'Unassigned'}</div>
               <div className="text-xs text-charcoal/50 dark:text-white/40 mt-px">{roleLabel || staffMember?.job_title || ''} · {format(day, 'EEE d MMM')}</div>
             </div>
             <CloseButton onClick={onClose} />
@@ -241,7 +241,7 @@ function ShiftSheet({ shift, staffMember, day, venueId, roles, onClose, onSaved,
                   className={`flex-1 cursor-pointer border-none rounded-[9px] py-[7px] ${on ? 'bg-paper dark:bg-white/15 shadow-[0_1px_3px_theme(colors.ink/10%)]' : 'bg-transparent'}`}
                 >
                   <div className="font-mono text-[9px] text-charcoal/50 dark:text-white/40 uppercase tracking-[0.06em] font-semibold">{lbl}</div>
-                  <div className={`font-mono text-[17px] font-semibold mt-0.5 tabular-nums ${on ? '' : 'text-ink3 dark:text-white/45'}`} style={{ color: on ? col : undefined }}>{val}</div>
+                  <div className={`font-mono text-title-sm font-semibold mt-0.5 tabular-nums ${on ? '' : 'text-ink3 dark:text-white/45'}`} style={{ color: on ? col : undefined }}>{val}</div>
                 </button>
               )
             })}
@@ -250,15 +250,15 @@ function ShiftSheet({ shift, staffMember, day, venueId, roles, onClose, onSaved,
           {/* Wheels */}
           <div className="flex items-center gap-1 mb-[6px]">
             <Wheel values={HOURS}   value={curH} onChange={(h) => setCur(h, curM)} accent={col} />
-            <span className="font-mono text-[22px] font-semibold text-charcoal/50 dark:text-white/40 pb-0.5">:</span>
+            <span className="font-mono text-title font-semibold text-charcoal/50 dark:text-white/40 pb-0.5">:</span>
             <Wheel values={MINUTES} value={curM} onChange={(m) => setCur(curH, m)} accent={col} />
           </div>
 
           {/* Summary */}
           <div className="px-[13px] py-[11px] rounded-[11px] flex items-center gap-2 justify-center flex-wrap mb-[14px]" style={{ background: col + '14' }}>
             <span className="font-mono text-sm font-semibold text-charcoal dark:text-white tabular-nums">{startTime}–{endTime}</span>
-            <span className={`text-[12.5px] ${hrs > 0 ? 'text-charcoal/50 dark:text-white/40' : 'text-danger'}`}>· {hrs > 0 ? durLabel(startTime, endTime) + (endTime < startTime ? ' · ends next day' : '') : 'start and end are the same'}</span>
-            {valid && cost != null && <span className="font-mono text-[12.5px] text-charcoal/50 dark:text-white/40">· ~£{cost}</span>}
+            <span className={`text-body-sm ${hrs > 0 ? 'text-charcoal/50 dark:text-white/40' : 'text-danger'}`}>· {hrs > 0 ? durLabel(startTime, endTime) + (endTime < startTime ? ' · ends next day' : '') : 'start and end are the same'}</span>
+            {valid && cost != null && <span className="font-mono text-body-sm text-charcoal/50 dark:text-white/40">· ~£{cost}</span>}
           </div>
 
           {/* Role chips */}
@@ -336,8 +336,8 @@ function SwapSheet({ swaps, onClose, onResolved }) {
       <div className="fixed bottom-0 left-0 right-0 z-[53] bg-surface dark:bg-paperDark rounded-t-[22px] max-h-[80%] flex flex-col [animation:sheetUp_.32s_cubic-bezier(0.16,1,0.3,1)_both] shadow-[0_-12px_40px_theme(colors.ink/22%)]">
         <div className="px-4 pt-[10px]">
           <div className="w-[38px] h-1 rounded-sm bg-charcoal/10 dark:bg-white/10 mx-auto mb-[14px]" />
-          <div className="text-[18px] font-semibold tracking-[-0.015em] text-charcoal dark:text-white">Swap requests</div>
-          <div className="text-[12.5px] text-charcoal/50 dark:text-white/40 mt-0.5 mb-[14px]">{pending.length ? `${pending.length} pending your approval` : 'All caught up'}</div>
+          <div className="text-title-sm font-semibold tracking-[-0.015em] text-charcoal dark:text-white">Swap requests</div>
+          <div className="text-body-sm text-charcoal/50 dark:text-white/40 mt-0.5 mb-[14px]">{pending.length ? `${pending.length} pending your approval` : 'All caught up'}</div>
         </div>
         <div className="overflow-y-auto flex-1 px-4" style={{ paddingBottom: 'max(2rem, env(safe-area-inset-bottom, 0px))' }}>
           {pending.length === 0 ? (
@@ -345,18 +345,18 @@ function SwapSheet({ swaps, onClose, onResolved }) {
               <div className="w-11 h-11 rounded-[13px] bg-success/10 text-success flex items-center justify-center mx-auto mb-3">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
               </div>
-              <div className="text-charcoal/50 dark:text-white/40 text-[13px]">No swaps waiting.</div>
+              <div className="text-charcoal/50 dark:text-white/40 text-body-sm">No swaps waiting.</div>
             </div>
           ) : pending.map(swap => (
             <div key={swap.id} className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[14px] px-[14px] py-[13px] mb-[10px]">
-              <div className="text-[13.5px] font-semibold text-charcoal dark:text-white">{swap.requester_name ?? 'Staff'} → {swap.target_staff_name ?? 'Staff'}</div>
+              <div className="text-body font-semibold text-charcoal dark:text-white">{swap.requester_name ?? 'Staff'} → {swap.target_staff_name ?? 'Staff'}</div>
               {swap.shift && (
                 <div className="font-mono text-[10px] text-charcoal/50 dark:text-white/40 uppercase tracking-[0.03em] mt-1">
                   {format(new Date(swap.shift.shift_date + 'T00:00:00'), 'EEE d MMM')} · {swap.shift.start_time?.slice(0, 5)}–{swap.shift.end_time?.slice(0, 5)}
                   {swap.shift.shift_date < format(new Date(), 'yyyy-MM-dd') && ' · shift has passed'}
                 </div>
               )}
-              {swap.message && <div className="text-[12.5px] text-charcoal/75 dark:text-white/60 italic mt-2">"{swap.message}"</div>}
+              {swap.message && <div className="text-body-sm text-charcoal/75 dark:text-white/60 italic mt-2">"{swap.message}"</div>}
               {/* A swap for a shift that has already happened can only be dismissed */}
               {swap.shift?.shift_date && swap.shift.shift_date < format(new Date(), 'yyyy-MM-dd') ? (
                 <div className="flex gap-2 mt-3">
@@ -419,20 +419,20 @@ function AutoFillSheet({ openShifts, staff, unavailability = {}, venueId, onClos
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><path d="M21 13V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8"/><path d="M3 10h18"/><path d="M16 19h6"/><path d="M19 16v6"/></svg>
           </span>
           <div className="flex-1 min-w-0">
-            <div className="text-[17px] font-semibold tracking-[-0.015em] text-charcoal dark:text-white">Auto-fill gaps</div>
+            <div className="text-title-sm font-semibold tracking-[-0.015em] text-charcoal dark:text-white">Auto-fill gaps</div>
             <div className="text-xs text-charcoal/50 dark:text-white/40 mt-px">Matches free staff to empty shifts by role</div>
           </div>
         </div>
         <div className="mt-[14px] font-mono text-[9.5px] text-charcoal/50 dark:text-white/40 uppercase tracking-[0.07em] font-semibold">{openShifts.length} gaps to cover</div>
         <div className="flex flex-col gap-2 mt-[9px]">
-          {openShifts.length === 0 && <div className="py-5 text-center text-charcoal/50 dark:text-white/40 text-[13px]">Week is fully covered.</div>}
+          {openShifts.length === 0 && <div className="py-5 text-center text-charcoal/50 dark:text-white/40 text-body-sm">Week is fully covered.</div>}
           {openShifts.map((o, idx) => {
             const col = STATION_COLOR[stationFromRole(o.role_label)] || colors.brand.DEFAULT
             return (
               <div key={o.id ?? idx} className="flex items-center gap-[11px] px-[13px] py-[11px] bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-xl">
                 <span className="w-[9px] h-8 rounded-[4px] shrink-0" style={{ background: col + '26', borderLeft: `3px solid ${col}` }} />
                 <div className="flex-1 min-w-0">
-                  <div className="text-[13px] font-semibold text-charcoal dark:text-white">{o.role_label} · {fmtRange(o.start_time.slice(0,5), o.end_time.slice(0,5))}</div>
+                  <div className="text-body-sm font-semibold text-charcoal dark:text-white">{o.role_label} · {fmtRange(o.start_time.slice(0,5), o.end_time.slice(0,5))}</div>
                   <div className="font-mono text-[10px] text-charcoal/50 dark:text-white/40 uppercase tracking-[0.03em] mt-px">{format(o._day, 'EEE d MMM')}</div>
                 </div>
               </div>
@@ -458,7 +458,7 @@ function AutoFillSheet({ openShifts, staff, unavailability = {}, venueId, onClos
 
 // ── Shared bits ───────────────────────────────────────────────────────────────
 const CARD = 'bg-white dark:bg-paperDark rounded-2xl border border-line dark:border-white/10'
-const SECTION = 'font-mono text-[12px] font-semibold tracking-[0.08em] uppercase text-ink3 dark:text-white/45 px-1'
+const SECTION = 'font-mono text-caption font-semibold tracking-[0.08em] uppercase text-ink3 dark:text-white/45 px-1'
 
 /** 16.1 → "16.1h", 16 → "16h" */
 function hrs(n) { return `${Math.round(n * 10) / 10}h` }
@@ -481,7 +481,7 @@ function Segmented({ options, value, onChange, label }) {
             role="radio"
             aria-checked={on}
             onClick={() => onChange(v)}
-            className={`h-7 px-3 rounded-[9px] text-[13px] font-semibold transition-colors ${on ? 'bg-brand text-white' : 'text-ink2 dark:text-white/65 hover:text-ink dark:hover:text-white'}`}
+            className={`h-7 px-3 rounded-[9px] text-body-sm font-semibold transition-colors ${on ? 'bg-brand text-white' : 'text-ink2 dark:text-white/65 hover:text-ink dark:hover:text-white'}`}
           >
             {text}
           </button>
@@ -525,8 +525,8 @@ function WeekCell({ shift, onLeave, onTap, label }) {
   return (
     <button type="button" onClick={onTap} aria-label={`${label}, ${start} to ${end}`} className="flex-1 min-w-0 p-[3px]">
       <span className="relative h-[46px] rounded-[10px] flex flex-col items-center justify-center leading-none" style={{ background: col + '1f', color: col }}>
-        <span className="font-mono text-[12px] font-bold tabular-nums tracking-[-0.03em]">{start}</span>
-        <span className="font-mono text-[11px] font-medium tabular-nums tracking-[-0.03em] opacity-75 mt-[3px]">{end}</span>
+        <span className="font-mono text-caption font-bold tabular-nums tracking-[-0.03em]">{start}</span>
+        <span className="font-mono text-micro font-medium tabular-nums tracking-[-0.03em] opacity-75 mt-[3px]">{end}</span>
         {shift._hasSwap && <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-warn" title="Swap requested" />}
       </span>
     </button>
@@ -545,7 +545,7 @@ function WeekGrid({ days, staff, shiftMap, unavailability, dayTotals, personTota
             <div key={i} className="flex-1 min-w-0 p-[3px]">
               <div className={`rounded-[10px] py-1.5 text-center ${today ? 'bg-line2 dark:bg-white/10' : ''}`}>
                 <div className="font-mono text-[10px] font-semibold tracking-[0.04em] uppercase text-ink3 dark:text-white/45">{format(day, 'EEE')}</div>
-                <div className={`text-[15px] font-bold leading-tight mt-0.5 ${today ? 'text-accent' : 'text-ink dark:text-white'}`}>{format(day, 'd')}</div>
+                <div className={`text-body-lg font-bold leading-tight mt-0.5 ${today ? 'text-accent' : 'text-ink dark:text-white'}`}>{format(day, 'd')}</div>
               </div>
             </div>
           )
@@ -555,8 +555,8 @@ function WeekGrid({ days, staff, shiftMap, unavailability, dayTotals, personTota
       {staff.map((member) => (
         <div key={member.id} className="flex items-center border-b border-line dark:border-white/10 px-1">
           <div className="w-[68px] shrink-0 pl-2 pr-1 min-w-0">
-            <div className="text-[13px] font-semibold text-ink dark:text-white truncate" title={member.name}>{shortName(member.name) || '—'}</div>
-            <div className="font-mono text-[11px] text-ink3 dark:text-white/45 mt-0.5">{showCost ? money(personTotal(member).cost) : hrs(personTotal(member).hours)}</div>
+            <div className="text-body-sm font-semibold text-ink dark:text-white truncate" title={member.name}>{shortName(member.name) || '—'}</div>
+            <div className="font-mono text-micro text-ink3 dark:text-white/45 mt-0.5">{showCost ? money(personTotal(member).cost) : hrs(personTotal(member).hours)}</div>
           </div>
           {days.map((day, di) => {
             const dateStr = format(day, 'yyyy-MM-dd')
@@ -574,10 +574,10 @@ function WeekGrid({ days, staff, shiftMap, unavailability, dayTotals, personTota
       ))}
 
       <div className="flex items-center bg-cream/60 dark:bg-white/5 px-1 py-2">
-        <div className="w-[68px] shrink-0 pl-2 font-mono text-[11px] font-semibold tracking-[0.06em] uppercase text-ink3 dark:text-white/45">{showCost ? 'Cost' : 'Hours'}</div>
+        <div className="w-[68px] shrink-0 pl-2 font-mono text-micro font-semibold tracking-[0.06em] uppercase text-ink3 dark:text-white/45">{showCost ? 'Cost' : 'Hours'}</div>
         {dayTotals.map((t, i) => (
           <div key={i} className="flex-1 min-w-0 text-center">
-            <div className="text-[13px] font-bold text-ink dark:text-white tabular-nums">{showCost ? money(t.cost) : `${t.hours}h`}</div>
+            <div className="text-body-sm font-bold text-ink dark:text-white tabular-nums">{showCost ? money(t.cost) : `${t.hours}h`}</div>
             <div className="font-mono text-[10px] uppercase text-ink3 dark:text-white/45 mt-0.5">{t.count} on</div>
           </div>
         ))}
@@ -615,7 +615,7 @@ function DayView({ days, dayIndex, setDayIndex, staff, shifts, unavailability, d
               className={`flex-1 min-w-0 rounded-xl border py-2 text-center transition-colors ${on ? 'bg-brand border-brand text-white' : 'bg-white dark:bg-paperDark border-line dark:border-white/10 text-ink dark:text-white'}`}
             >
               <div className={`font-mono text-[10px] font-semibold uppercase tracking-[0.04em] ${on ? 'text-white/70' : 'text-ink3 dark:text-white/45'}`}>{format(d, 'EEE')}</div>
-              <div className="text-[15px] font-bold leading-tight mt-0.5">{format(d, 'd')}</div>
+              <div className="text-body-lg font-bold leading-tight mt-0.5">{format(d, 'd')}</div>
               <div className={`font-mono text-[10px] mt-0.5 ${on ? 'text-white/70' : 'text-ink3 dark:text-white/45'}`}>{showCost ? money(dayTotals[i].cost) : `${dayTotals[i].hours}h`}</div>
             </button>
           )
@@ -623,12 +623,12 @@ function DayView({ days, dayIndex, setDayIndex, staff, shifts, unavailability, d
       </div>
 
       <div className="flex items-baseline justify-between px-1 pt-1">
-        <h2 className="text-[15px] font-bold text-ink dark:text-white">{format(day, 'EEEE d MMM')}</h2>
-        <span className="text-[12px] text-ink3 dark:text-white/45">{onShift.length} on · {showCost ? money(dayCost) : hrs(dayHours)}</span>
+        <h2 className="text-body-lg font-bold text-ink dark:text-white">{format(day, 'EEEE d MMM')}</h2>
+        <span className="text-caption text-ink3 dark:text-white/45">{onShift.length} on · {showCost ? money(dayCost) : hrs(dayHours)}</span>
       </div>
 
       {onShift.length === 0 ? (
-        <div className={`${CARD} px-4 py-5 text-center text-[13px] text-ink3 dark:text-white/45`}>Nobody on yet. Add a shift below.</div>
+        <div className={`${CARD} px-4 py-5 text-center text-body-sm text-ink3 dark:text-white/45`}>Nobody on yet. Add a shift below.</div>
       ) : (
         <div className={`${CARD} overflow-hidden divide-y divide-line dark:divide-white/10`}>
           {onShift.map(s => {
@@ -640,12 +640,12 @@ function DayView({ days, dayIndex, setDayIndex, staff, shifts, unavailability, d
               <button key={s.id} type="button" onClick={() => onTap(s, member, day)} className="w-full flex items-center gap-3 px-3.5 py-2 text-left hover:bg-cream/60 dark:hover:bg-white/5">
                 <span className="w-[3px] self-stretch rounded-full shrink-0" style={{ background: col }} />
                 <span className="flex-1 min-w-0">
-                  <span className="block text-[13px] font-semibold text-ink dark:text-white truncate">{member.name}</span>
-                  <span className="block text-[12px] text-ink3 dark:text-white/45 mt-0.5 truncate">{s.role_label || member.job_title || '—'}</span>
+                  <span className="block text-body-sm font-semibold text-ink dark:text-white truncate">{member.name}</span>
+                  <span className="block text-caption text-ink3 dark:text-white/45 mt-0.5 truncate">{s.role_label || member.job_title || '—'}</span>
                 </span>
                 <span className="shrink-0 rounded-[10px] px-2.5 py-1.5 text-right" style={{ background: col + '1f', color: col }}>
-                  <span className="block font-mono text-[13px] font-bold tabular-nums tracking-[-0.02em]">{start}–{end}</span>
-                  <span className="block font-mono text-[11px] opacity-75 mt-0.5">{showCost && member.hourly_rate ? money(paidShiftHours(s.start_time, s.end_time) * member.hourly_rate) : hrs(shiftDurationHours(s.start_time, s.end_time))}</span>
+                  <span className="block font-mono text-body-sm font-bold tabular-nums tracking-[-0.02em]">{start}–{end}</span>
+                  <span className="block font-mono text-micro opacity-75 mt-0.5">{showCost && member.hourly_rate ? money(paidShiftHours(s.start_time, s.end_time) * member.hourly_rate) : hrs(shiftDurationHours(s.start_time, s.end_time))}</span>
                 </span>
                 {s._hasSwap && <span className="w-1.5 h-1.5 rounded-full bg-warn shrink-0" title="Swap requested" />}
               </button>
@@ -660,8 +660,8 @@ function DayView({ days, dayIndex, setDayIndex, staff, shifts, unavailability, d
           <div className={`${CARD} overflow-hidden divide-y divide-line dark:divide-white/10`}>
             {onLeave.map(m => (
               <div key={m.id} className="flex items-center justify-between gap-3 px-3.5 py-2">
-                <span className="text-[13px] font-semibold text-ink dark:text-white truncate">{m.name}</span>
-                <span className="shrink-0 h-6 px-2.5 rounded-full bg-line2 dark:bg-white/10 inline-flex items-center text-[12px] font-semibold text-ink2 dark:text-white/65">Leave</span>
+                <span className="text-body-sm font-semibold text-ink dark:text-white truncate">{m.name}</span>
+                <span className="shrink-0 h-6 px-2.5 rounded-full bg-line2 dark:bg-white/10 inline-flex items-center text-caption font-semibold text-ink2 dark:text-white/65">Leave</span>
               </div>
             ))}
           </div>
@@ -676,8 +676,8 @@ function DayView({ days, dayIndex, setDayIndex, staff, shifts, unavailability, d
               <div key={m.id} className="flex items-center gap-3 px-3.5 py-2">
                 <Avatar name={m.name} id={m.id} colour={m.colour} photoUrl={m.photo_url} size="sm" decorative />
                 <span className="flex-1 min-w-0">
-                  <span className="block text-[13px] font-semibold text-ink dark:text-white truncate">{shortName(m.name) || '—'}</span>
-                  <span className="block text-[12px] text-ink3 dark:text-white/45 mt-0.5">{showCost ? `${money(personTotal(m).cost)} this week` : `${hrs(personTotal(m).hours)} this week`}</span>
+                  <span className="block text-body-sm font-semibold text-ink dark:text-white truncate">{shortName(m.name) || '—'}</span>
+                  <span className="block text-caption text-ink3 dark:text-white/45 mt-0.5">{showCost ? `${money(personTotal(m).cost)} this week` : `${hrs(personTotal(m).hours)} this week`}</span>
                 </span>
                 <Button
                   variant="secondary"
@@ -709,8 +709,8 @@ function OpenShifts({ openShifts, onFill }) {
             <div key={o.id ?? idx} className="flex items-center gap-3 px-3.5 py-2">
               <span className="w-[3px] self-stretch rounded-full shrink-0" style={{ background: col }} />
               <span className="flex-1 min-w-0">
-                <span className="block text-[13px] font-semibold text-ink dark:text-white truncate">{o.role_label || 'Shift'} · {fmtRange(o.start_time.slice(0, 5), o.end_time.slice(0, 5))}</span>
-                <span className="block text-[12px] text-ink3 dark:text-white/45 mt-0.5">{format(o._day, 'EEE d MMM')} · unassigned</span>
+                <span className="block text-body-sm font-semibold text-ink dark:text-white truncate">{o.role_label || 'Shift'} · {fmtRange(o.start_time.slice(0, 5), o.end_time.slice(0, 5))}</span>
+                <span className="block text-caption text-ink3 dark:text-white/45 mt-0.5">{format(o._day, 'EEE d MMM')} · unassigned</span>
               </span>
               <Button size="sm" onClick={() => onFill(o)}>Fill</Button>
             </div>
@@ -725,7 +725,7 @@ function StationLegend() {
   return (
     <div className="flex items-center gap-4 px-1 flex-wrap">
       {STATION_ORDER.map((s) => (
-        <span key={s} className="inline-flex items-center gap-1.5 text-[12px] text-ink3 dark:text-white/45">
+        <span key={s} className="inline-flex items-center gap-1.5 text-caption text-ink3 dark:text-white/45">
           <span className="w-2 h-2 rounded-full" style={{ background: STATION_COLOR[s] }} />{s}
         </span>
       ))}
@@ -880,7 +880,7 @@ export default function RotaMobileGrid() {
 
       {/* Header — Publish lives top right and only wakes up when there's something to send */}
       <div className="flex items-center justify-between gap-3">
-        <h1 className="text-[20px] sm:text-[22px] leading-tight font-bold tracking-tight text-ink dark:text-white">Rota</h1>
+        <h1 className="text-title leading-tight font-bold tracking-tight text-ink dark:text-white">Rota</h1>
         <div className="flex items-center gap-2">
           {pendingChanges > 0 && (
             <Button
@@ -901,7 +901,7 @@ export default function RotaMobileGrid() {
           >
             <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4z" /></svg>
             {publishLabel}
-            {pendingChanges > 0 && !publishing && <span className="min-w-[20px] h-5 px-1.5 rounded-full bg-white/20 inline-flex items-center justify-center text-[11px] font-bold">{pendingChanges}</span>}
+            {pendingChanges > 0 && !publishing && <span className="min-w-[20px] h-5 px-1.5 rounded-full bg-white/20 inline-flex items-center justify-center text-micro font-bold">{pendingChanges}</span>}
           </Button>
         </div>
       </div>
@@ -910,8 +910,8 @@ export default function RotaMobileGrid() {
       <div className="flex items-stretch gap-2">
         <button type="button" onClick={() => goWeek(-1)} aria-label="Previous week" className={`${CARD} w-11 shrink-0 flex items-center justify-center text-ink2 dark:text-white/70 hover:text-ink`}>{CHEVRON_L}</button>
         <div className={`${CARD} flex-1 min-w-0 py-2 text-center`}>
-          <div className="text-[15px] font-bold text-ink dark:text-white">{weekTitle}</div>
-          <div className="font-mono text-[11px] tracking-[0.06em] uppercase text-ink3 dark:text-white/45 mt-0.5">
+          <div className="text-body-lg font-bold text-ink dark:text-white">{weekTitle}</div>
+          <div className="font-mono text-micro tracking-[0.06em] uppercase text-ink3 dark:text-white/45 mt-0.5">
             {format(days[0], 'd MMM')} – {format(days[6], 'd MMM')} · {showCost ? money(weekCost) : `${weekHours}h`}
           </div>
         </div>
@@ -937,8 +937,8 @@ export default function RotaMobileGrid() {
       {pendingCount > 0 && (
         <button type="button" onClick={() => setShowSwaps(true)} className="w-full flex items-center gap-3 px-3.5 py-2 rounded-2xl bg-warnBg dark:bg-warn/15 text-left">
           <span className="w-2 h-2 rounded-full bg-warn shrink-0" />
-          <span className="flex-1 text-[13px] font-semibold text-warn">{pendingCount} swap {pendingCount === 1 ? 'request' : 'requests'} pending</span>
-          <span className="text-[13px] font-semibold text-warn inline-flex items-center gap-0.5">Review {CHEVRON_R}</span>
+          <span className="flex-1 text-body-sm font-semibold text-warn">{pendingCount} swap {pendingCount === 1 ? 'request' : 'requests'} pending</span>
+          <span className="text-body-sm font-semibold text-warn inline-flex items-center gap-0.5">Review {CHEVRON_R}</span>
         </button>
       )}
 

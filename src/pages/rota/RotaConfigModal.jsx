@@ -8,7 +8,7 @@ import { useToast } from '../../components/ui/Toast'
 import Button from '../../components/ui/Button'
 
 function SectionLabel({ children }) {
-  return <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-2">{children}</p>
+  return <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-2">{children}</p>
 }
 
 const EMPTY_SLOT = { role_id: '', role_name: '', staff_count: 1, start_time: '09:00', end_time: '17:00', label: '' }
@@ -52,7 +52,7 @@ function SlotRow({ slot, roles, onDelete, onSave, isNew = false }) {
         </select>
 
         <div className="flex items-center gap-1.5">
-          <span className="text-[11px] text-charcoal/40 dark:text-white/35 whitespace-nowrap">× staff</span>
+          <span className="text-micro text-charcoal/40 dark:text-white/35 whitespace-nowrap">× staff</span>
           <input
             type="number" min={1} max={20} value={form.staff_count}
             onChange={e => set('staff_count', Math.max(1, parseInt(e.target.value) || 1))}
@@ -174,7 +174,7 @@ export default function RotaConfigModal({ open, onClose, closedDayIndices = [] }
               : `${totalSlots} total staff slot${totalSlots !== 1 ? 's' : ''} across ${Object.values(byDay).filter(d => d.length > 0).length} days`}
           </p>
           {roles.length === 0 && (
-            <p className="text-[11px] text-warning font-medium">
+            <p className="text-caption text-warning font-medium">
               <span className="inline-flex items-center gap-1"><svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Add roles in Settings first</span>
             </p>
           )}
@@ -191,7 +191,7 @@ export default function RotaConfigModal({ open, onClose, closedDayIndices = [] }
                 onClick={() => !isClosed && setActiveDay(d)}
                 disabled={isClosed}
                 className={[
-                  'flex flex-col items-center px-3 py-1.5 rounded-lg border text-[11px] font-medium transition-all',
+                  'flex flex-col items-center px-3 py-1.5 rounded-lg border text-micro font-medium transition-all',
                   isClosed
                     ? 'bg-charcoal/4 dark:bg-white/5 border-charcoal/8 dark:border-white/8 text-charcoal/20 dark:text-white/20 cursor-not-allowed line-through'
                     : activeDay === d
@@ -203,11 +203,11 @@ export default function RotaConfigModal({ open, onClose, closedDayIndices = [] }
               >
                 <span className="tracking-widest uppercase">{DAY_SHORT[d - 1]}</span>
                 {!isClosed && slotCount > 0 && (
-                  <span className={`text-[9px] mt-0.5 ${activeDay === d ? 'text-cream/60' : 'text-brand/60'}`}>
+                  <span className={`text-micro mt-0.5 ${activeDay === d ? 'text-cream/60' : 'text-brand/60'}`}>
                     {slotCount} slot{slotCount !== 1 ? 's' : ''}
                   </span>
                 )}
-                {isClosed && <span className="text-[9px] mt-0.5">Closed</span>}
+                {isClosed && <span className="text-micro mt-0.5">Closed</span>}
               </button>
             )
           })}
@@ -217,7 +217,7 @@ export default function RotaConfigModal({ open, onClose, closedDayIndices = [] }
         <div className="flex-1 overflow-y-auto flex flex-col gap-3">
           <div className="flex items-center justify-between">
             <p className="font-medium text-charcoal dark:text-white text-sm">{DAY_NAMES[activeDay - 1]}</p>
-            <p className="text-[11px] text-charcoal/35 dark:text-white/30">
+            <p className="text-caption text-charcoal/35 dark:text-white/30">
               {byDay[activeDay]?.length > 0
                 ? `${byDay[activeDay].reduce((a, r) => a + r.staff_count, 0)} staff needed`
                 : 'No slots yet'}
@@ -264,7 +264,7 @@ export default function RotaConfigModal({ open, onClose, closedDayIndices = [] }
         </div>
 
         {/* Footer hint */}
-        <p className="text-[11px] text-charcoal/30 dark:text-white/30 text-center border-t border-charcoal/8 dark:border-white/8 pt-3">
+        <p className="text-caption text-charcoal/30 dark:text-white/30 text-center border-t border-charcoal/8 dark:border-white/8 pt-3">
           Changes save instantly. Once configured, use <strong>Auto-Fill</strong> on the rota to generate shifts.
         </p>
       </div>

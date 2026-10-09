@@ -163,16 +163,16 @@ export default function FixHoursSheet({ ctx, onClose, onSubmit }) {
         {/* header */}
         <div className="flex items-center gap-3">
           <div className="flex-1 min-w-0">
-            <div className="text-[17px] font-semibold tracking-[-0.015em]">Fix hours</div>
-            <div className="text-[12px] text-charcoal/50 dark:text-white/40 mt-0.5">{format(session.date, 'EEEE, d MMMM')}{role ? ` · ${role}` : ''}</div>
+            <div className="text-title-sm font-semibold tracking-[-0.015em]">Fix hours</div>
+            <div className="text-caption text-charcoal/50 dark:text-white/40 mt-0.5">{format(session.date, 'EEEE, d MMMM')}{role ? ` · ${role}` : ''}</div>
           </div>
-          <span className="font-mono text-[9.5px] font-bold text-warning bg-warning/10 px-2.5 py-1 rounded-full tracking-[0.05em] uppercase">Recorded</span>
+          <span className="font-mono text-micro font-bold text-warning bg-warning/10 px-2.5 py-1 rounded-full tracking-[0.05em] uppercase">Recorded</span>
         </div>
 
         {/* recorded reference strip */}
         <div className="mt-3 flex items-center justify-between bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[11px] px-3 py-2.5">
-          <span className="text-[11.5px] text-charcoal/50 dark:text-white/40">On the clock</span>
-          <span className="font-mono text-[12.5px] font-semibold tabular-nums text-charcoal/70 dark:text-white/60">
+          <span className="text-caption text-charcoal/50 dark:text-white/40">On the clock</span>
+          <span className="font-mono text-body-sm font-semibold tabular-nums text-charcoal/70 dark:text-white/60">
             {origStart}–{origEnd} · {ehDurLabel(recMins)}
           </span>
         </div>
@@ -184,8 +184,8 @@ export default function FixHoursSheet({ ctx, onClose, onSubmit }) {
             return (
               <button key={k} onClick={() => setEdge(k)} className={`flex-1 rounded-[9px] py-2 transition-all ${on ? SEG_ON : 'bg-transparent'}`}
                 style={{ border:'none', cursor:'pointer' }}>
-                <div className="font-mono text-[9px] text-charcoal/50 dark:text-white/40 uppercase tracking-[0.06em] font-semibold">{label}</div>
-                <div className={`font-mono text-[17px] font-semibold tabular-nums mt-0.5 ${on ? SEG_VAL_ON : SEG_VAL_OFF}`}>{val}</div>
+                <div className="font-mono text-micro text-charcoal/50 dark:text-white/40 uppercase tracking-[0.06em] font-semibold">{label}</div>
+                <div className={`font-mono text-title-sm font-semibold tabular-nums mt-0.5 ${on ? SEG_VAL_ON : SEG_VAL_OFF}`}>{val}</div>
               </button>
             )
           })}
@@ -195,7 +195,7 @@ export default function FixHoursSheet({ ctx, onClose, onSubmit }) {
         {(edge === 'start' || edge === 'end') && (
           <div className="flex items-center justify-center gap-1 mt-2.5">
             <EHWheel values={WHEEL_HOURS} value={ch} onChange={(h) => setCur(h, cm)} />
-            <span className="font-mono text-[21px] font-semibold text-charcoal/40 dark:text-white/35 pb-0.5">:</span>
+            <span className="font-mono text-title font-semibold text-charcoal/40 dark:text-white/35 pb-0.5">:</span>
             <EHWheel values={WHEEL_MINS} value={cm} onChange={(m) => setCur(ch, m)} />
           </div>
         )}
@@ -203,7 +203,7 @@ export default function FixHoursSheet({ ctx, onClose, onSubmit }) {
         {/* break section */}
         <div className="mt-3">
           <div className="flex items-center justify-between px-0.5 pb-2">
-            <div className="font-mono text-[9.5px] text-charcoal/50 dark:text-white/40 uppercase tracking-[0.06em] font-semibold">Unpaid break</div>
+            <div className="font-mono text-micro text-charcoal/50 dark:text-white/40 uppercase tracking-[0.06em] font-semibold">Unpaid break</div>
             <button
               onClick={() => {
                 if (hasBreak) {
@@ -224,7 +224,7 @@ export default function FixHoursSheet({ ctx, onClose, onSubmit }) {
                   setEdge('brkStart')
                 }
               }}
-              className={`font-mono text-[11px] font-semibold px-2.5 py-1 rounded-full border transition-colors ${hasBreak
+              className={`font-mono text-micro font-semibold px-2.5 py-1 rounded-full border transition-colors ${hasBreak
                 ? 'border-bad bg-badBg text-bad dark:border-badDark/40 dark:bg-bad/25 dark:text-badDark'
                 : 'border-line bg-paper text-ink3 dark:border-white/10 dark:bg-white/5 dark:text-white/50'}`}
               style={{ cursor: 'pointer' }}
@@ -240,8 +240,8 @@ export default function FixHoursSheet({ ctx, onClose, onSubmit }) {
                   return (
                     <button key={k} onClick={() => setEdge(k)} className={`flex-1 rounded-[9px] py-2 transition-all ${on ? SEG_ON : 'bg-transparent'}`}
                       style={{ border: 'none', cursor: 'pointer' }}>
-                      <div className="font-mono text-[9px] text-charcoal/50 dark:text-white/40 uppercase tracking-[0.06em] font-semibold">{label}</div>
-                      <div className={`font-mono text-[17px] font-semibold tabular-nums mt-0.5 ${on ? SEG_VAL_ON : SEG_VAL_OFF}`}>{val || '--:--'}</div>
+                      <div className="font-mono text-micro text-charcoal/50 dark:text-white/40 uppercase tracking-[0.06em] font-semibold">{label}</div>
+                      <div className={`font-mono text-title-sm font-semibold tabular-nums mt-0.5 ${on ? SEG_VAL_ON : SEG_VAL_OFF}`}>{val || '--:--'}</div>
                     </button>
                   )
                 })}
@@ -249,15 +249,15 @@ export default function FixHoursSheet({ ctx, onClose, onSubmit }) {
               {(edge === 'brkStart' || edge === 'brkEnd') && (
                 <div className="flex items-center justify-center gap-1 mt-2.5">
                   <EHWheel values={WHEEL_HOURS} value={ch} onChange={(h) => setCur(h, cm)} />
-                  <span className="font-mono text-[21px] font-semibold text-charcoal/40 dark:text-white/35 pb-0.5">:</span>
+                  <span className="font-mono text-title font-semibold text-charcoal/40 dark:text-white/35 pb-0.5">:</span>
                   <EHWheel values={WHEEL_MINS} value={cm} onChange={(m) => setCur(ch, m)} />
                 </div>
               )}
               {brk > 0 && (
-                <div className="mt-1.5 text-center font-mono text-[11.5px] text-charcoal/50 dark:text-white/40">{ehDurLabel(brk)} break</div>
+                <div className="mt-1.5 text-center font-mono text-caption text-charcoal/50 dark:text-white/40">{ehDurLabel(brk)} break</div>
               )}
               {brk <= 0 && brkStart && brkEnd && (
-                <div className="mt-1.5 text-center font-mono text-[11.5px] text-danger">Break end must be after break start</div>
+                <div className="mt-1.5 text-center font-mono text-caption text-danger">Break end must be after break start</div>
               )}
             </>
           )}
@@ -268,13 +268,13 @@ export default function FixHoursSheet({ ctx, onClose, onSubmit }) {
           ? 'bg-badBg border-bad/25 dark:bg-bad/25'
           : changed ? 'bg-brand-tint border-line dark:bg-white/10 dark:border-white/10' : 'bg-paper border-line dark:bg-white/5 dark:border-white/10'}`}>
           <div className="flex items-baseline gap-2">
-            <span className="font-mono text-[15px] font-bold tabular-nums text-charcoal dark:text-white">{start}–{end}</span>
-            <span className={`text-[12.5px] ${invalid ? 'text-bad dark:text-badDark' : 'text-ink3 dark:text-white/45'}`}>
+            <span className="font-mono text-body-lg font-bold tabular-nums text-charcoal dark:text-white">{start}–{end}</span>
+            <span className={`text-body-sm ${invalid ? 'text-bad dark:text-badDark' : 'text-ink3 dark:text-white/45'}`}>
               {invalid ? (newMins <= 0 ? 'clock-out must be after clock-in' : 'invalid break times') : ehDurLabel(newMins)}
             </span>
           </div>
           {!invalid && changed && (
-            <span className={`font-mono text-[12.5px] font-bold ${delta < 0 ? 'text-bad dark:text-badDark' : 'text-good dark:text-goodDark'}`}>
+            <span className={`font-mono text-body-sm font-bold ${delta < 0 ? 'text-bad dark:text-badDark' : 'text-good dark:text-goodDark'}`}>
               {ehSignedLabel(delta)}
             </span>
           )}
@@ -283,13 +283,13 @@ export default function FixHoursSheet({ ctx, onClose, onSubmit }) {
         {/* reason chips */}
         {needReason && (
           <div className="mt-3.5">
-            <div className="font-mono text-[9.5px] text-charcoal/50 dark:text-white/40 uppercase tracking-[0.06em] font-semibold px-0.5 pb-1.5">Reason for change</div>
+            <div className="font-mono text-micro text-charcoal/50 dark:text-white/40 uppercase tracking-[0.06em] font-semibold px-0.5 pb-1.5">Reason for change</div>
             <div className="flex flex-wrap gap-1.5">
               {EDIT_REASONS.map(r => {
                 const on = r === reason
                 return (
                   <button key={r} onClick={() => setReason(r)}
-                    className={`text-[12px] font-semibold px-3 py-1.5 rounded-full border transition-colors ${on
+                    className={`text-caption font-semibold px-3 py-1.5 rounded-full border transition-colors ${on
                       ? 'border-brand bg-brand-tint text-brand dark:border-white/40 dark:bg-white/15 dark:text-white'
                       : 'border-line bg-paper text-ink2 dark:border-white/10 dark:bg-white/5 dark:text-white/70'}`}
                     style={{ cursor:'pointer' }}>
@@ -301,7 +301,7 @@ export default function FixHoursSheet({ ctx, onClose, onSubmit }) {
             <input
               value={note} onChange={e => setNote(e.target.value)}
               placeholder="Add a note for your manager (optional)"
-              className="w-full mt-2.5 px-3 py-2.5 rounded-[10px] border border-charcoal/10 dark:border-white/10 bg-white dark:bg-paperDark text-[13px] text-charcoal dark:text-white outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 focus:border-charcoal/20 dark:focus:border-white/20"
+              className="w-full mt-2.5 px-3 py-2.5 rounded-[10px] border border-charcoal/10 dark:border-white/10 bg-white dark:bg-paperDark text-body-sm text-charcoal dark:text-white outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 focus:border-charcoal/20 dark:focus:border-white/20"
             />
           </div>
         )}
@@ -309,7 +309,7 @@ export default function FixHoursSheet({ ctx, onClose, onSubmit }) {
         {/* approval info */}
         <div className="mt-3 flex gap-2 items-start px-0.5">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mt-0.5 shrink-0 text-ink3 dark:text-white/40"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
-          <span className="text-[11.5px] text-charcoal/50 dark:text-white/40 leading-snug">
+          <span className="text-caption text-charcoal/50 dark:text-white/40 leading-snug">
             Your manager reviews this before it changes your pay. Recorded hours stay until approved.
           </span>
         </div>
@@ -337,8 +337,8 @@ export default function FixHoursSheet({ ctx, onClose, onSubmit }) {
               <div className="w-11 h-11 rounded-[13px] bg-warning/10 grid place-items-center mb-3.5">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="text-warn dark:text-warnDark" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
               </div>
-              <div className="text-[17px] font-bold tracking-[-0.015em]">Send to your manager</div>
-              <p className="text-[13.5px] text-charcoal/50 dark:text-white/40 leading-relaxed mt-2 mb-4">
+              <div className="text-title-sm font-bold tracking-[-0.015em]">Send to your manager</div>
+              <p className="text-body text-charcoal/50 dark:text-white/40 leading-relaxed mt-2 mb-4">
                 You're asking to change {format(session.date, 'EEEE')}'s hours from{' '}
                 <strong className="text-charcoal/70 dark:text-white/60">{ehDurLabel(recMins)}</strong> to{' '}
                 <strong className="text-charcoal/70 dark:text-white/60">{ehDurLabel(newMins)}</strong> ({ehSignedLabel(delta)}).

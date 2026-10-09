@@ -44,7 +44,7 @@ export default function GanttChart({ shifts, staff, currentStaffId, nowMins, sho
           const left = pct(sMin), right = pct(eMin), width = Math.max(right - left, 4)
           return (
             <div key={shift.id} className={`flex items-center gap-2.5 h-[38px] rounded-lg -mx-1.5 px-1.5 ${isMe ? 'bg-brand/8' : ''}`}>
-              <div className={`w-16 shrink-0 text-[13px] font-semibold truncate flex items-center gap-1 ${isMe ? 'text-brand' : 'text-charcoal/70 dark:text-white/60'}`}>
+              <div className={`w-16 shrink-0 text-body-sm font-semibold truncate flex items-center gap-1 ${isMe ? 'text-brand' : 'text-charcoal/70 dark:text-white/60'}`}>
                 <span className="truncate">{firstName(staffMember?.name) || 'Staff'}</span>
                 {isMe && <span className="font-mono text-[8px] text-accent font-bold tracking-[0.08em] bg-danger/8 px-1 py-0.5 rounded shrink-0">YOU</span>}
               </div>
@@ -59,7 +59,7 @@ export default function GanttChart({ shifts, staff, currentStaffId, nowMins, sho
                   style={{ left: `${left}%`, width: `${width}%` }} />
               </div>
               <div className="w-28 shrink-0 text-right">
-                <div className={`font-mono text-[12px] font-semibold tabular-nums ${isMe ? 'text-brand' : 'text-charcoal/60 dark:text-white/50'}`}>
+                <div className={`font-mono text-caption font-semibold tabular-nums ${isMe ? 'text-brand' : 'text-charcoal/60 dark:text-white/50'}`}>
                   {shift.start_time.slice(0, 5)}–{shift.end_time.slice(0, 5)}
                 </div>
                 {shift.role_label && (

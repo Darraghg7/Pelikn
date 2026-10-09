@@ -8,7 +8,7 @@ import { useToast } from '../../components/ui/Toast'
 import Button, { CloseButton } from '../../components/ui/Button'
 
 function SectionLabel({ children }) {
-  return <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-2">{children}</p>
+  return <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-2">{children}</p>
 }
 
 const STAGES = { CONFIRM: 'confirm', LOADING: 'loading', PREVIEW: 'preview' }
@@ -155,7 +155,7 @@ export default function RotaAutoFillModal({
                     ].join(' ')}
                   >
                     <p className="text-sm font-medium">{opt.label}</p>
-                    <p className={`text-[11px] mt-0.5 ${mode === opt.value ? 'text-cream/60' : 'text-charcoal/35 dark:text-white/30'}`}>
+                    <p className={`text-caption mt-0.5 ${mode === opt.value ? 'text-cream/60' : 'text-charcoal/35 dark:text-white/30'}`}>
                       {opt.desc}
                     </p>
                   </button>
@@ -199,7 +199,7 @@ export default function RotaAutoFillModal({
               ].map(s => (
                 <div key={s.label} className={`rounded-xl border p-3 text-center ${s.warn ? 'border-warning/30 bg-warning/6' : 'border-charcoal/10 dark:border-white/10 bg-charcoal/2 dark:bg-white/3'}`}>
                   <p className={`text-xl font-bold ${s.warn ? 'text-warning' : 'text-charcoal dark:text-white'}`}>{s.value}</p>
-                  <p className="text-[10px] tracking-wider uppercase text-charcoal/35 dark:text-white/30 mt-0.5">{s.label}</p>
+                  <p className="text-micro tracking-wider uppercase text-charcoal/35 dark:text-white/30 mt-0.5">{s.label}</p>
                 </div>
               ))}
             </div>
@@ -217,7 +217,7 @@ export default function RotaAutoFillModal({
                   </span>
                 </p>
                 {result.gaps.map((g, i) => (
-                  <p key={i} className="text-[11px] text-charcoal/60 dark:text-white/50">
+                  <p key={i} className="text-caption text-charcoal/60 dark:text-white/50">
                     <span className="font-medium">{g.day_name} {g.shift_date}</span> — {g.role_label} {g.start_time}–{g.end_time}: {g.reason}
                   </p>
                 ))}
@@ -235,7 +235,7 @@ export default function RotaAutoFillModal({
                     <div key={i} className="flex items-center justify-between px-3 py-2 rounded-lg bg-charcoal/3 dark:bg-white/5 border border-charcoal/6 dark:border-white/8">
                       <div>
                         <p className="text-xs font-medium text-charcoal dark:text-white">{sh.staff_name}</p>
-                        <p className="text-[11px] text-charcoal/45 dark:text-white/40">
+                        <p className="text-caption text-charcoal/45 dark:text-white/40">
                           {sh.shift_date} · {sh.start_time}–{sh.end_time} · {sh.role_label}
                         </p>
                       </div>

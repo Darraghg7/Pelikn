@@ -10,17 +10,17 @@ import Button from '../../components/ui/Button'
 /* status pill */
 function EHStatusPill({ status }) {
   if (status === 'pending') return (
-    <span className="inline-flex items-center gap-1 font-mono text-[9.5px] font-bold text-warning bg-warning/10 border border-warning/20 px-2 py-0.5 rounded-full tracking-[0.05em] uppercase">
+    <span className="inline-flex items-center gap-1 font-mono text-micro font-bold text-warning bg-warning/10 border border-warning/20 px-2 py-0.5 rounded-full tracking-[0.05em] uppercase">
       <span className="w-1.5 h-1.5 rounded-full bg-warning" />Pending approval
     </span>
   )
   if (status === 'approved') return (
-    <span className="inline-flex items-center gap-1 font-mono text-[9.5px] font-bold text-success bg-success/10 px-2 py-0.5 rounded-full tracking-[0.05em] uppercase">
+    <span className="inline-flex items-center gap-1 font-mono text-micro font-bold text-success bg-success/10 px-2 py-0.5 rounded-full tracking-[0.05em] uppercase">
       <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Adjusted
     </span>
   )
   if (status === 'denied') return (
-    <span className="inline-flex items-center gap-1 font-mono text-[9.5px] font-bold text-danger bg-danger/10 border border-danger/20 px-2 py-0.5 rounded-full tracking-[0.05em] uppercase">
+    <span className="inline-flex items-center gap-1 font-mono text-micro font-bold text-danger bg-danger/10 border border-danger/20 px-2 py-0.5 rounded-full tracking-[0.05em] uppercase">
       Not approved
     </span>
   )
@@ -37,16 +37,16 @@ export function DayWorkedCard({ session, role, req }) {
   return (
     <div className="bg-white dark:bg-paperDark rounded-2xl p-4 border border-ink/20 dark:border-white/10 shadow-[0_1px_3px_theme(colors.ink/5%)]">
       <div className="flex items-center justify-between">
-        <span className="font-mono text-[10.5px] text-charcoal/50 dark:text-white/40 tracking-[0.1em] uppercase">Hours worked</span>
+        <span className="font-mono text-micro text-charcoal/50 dark:text-white/40 tracking-[0.1em] uppercase">Hours worked</span>
         {status ? <EHStatusPill status={status} /> : (
-          <span className="font-mono text-[9.5px] font-bold text-charcoal/40 dark:text-white/35 bg-charcoal/8 dark:bg-white/8 px-2 py-0.5 rounded-full tracking-[0.05em] uppercase">Recorded</span>
+          <span className="font-mono text-micro font-bold text-charcoal/40 dark:text-white/35 bg-charcoal/8 dark:bg-white/8 px-2 py-0.5 rounded-full tracking-[0.05em] uppercase">Recorded</span>
         )}
       </div>
-      <div className="font-mono text-[30px] font-medium tracking-[-0.025em] tabular-nums mt-2"
+      <div className="font-mono text-display font-medium tracking-[-0.025em] tabular-nums mt-2"
         style={{ textDecoration: showReq ? 'line-through' : 'none', opacity: showReq ? 0.45 : 1 }}>
         {origStart} — {origEnd}
       </div>
-      <div className="flex items-center gap-2.5 text-[13px] text-charcoal/50 dark:text-white/40 mt-1">
+      <div className="flex items-center gap-2.5 text-body-sm text-charcoal/50 dark:text-white/40 mt-1">
         <span className="font-mono">{ehDurLabel(recMins)}</span>
         <span className="text-charcoal/25 dark:text-white/25">·</span>
         <span>{session.breakMinutes ?? 0}m break</span>
@@ -54,10 +54,10 @@ export function DayWorkedCard({ session, role, req }) {
       </div>
       {showReq && req?.start && (
         <div className={`mt-2.5 flex items-center justify-between px-3 py-2 rounded-[11px] ${status === 'approved' ? 'bg-goodBg text-good dark:bg-good/20 dark:text-goodDark' : 'bg-warnBg text-warn dark:bg-warn/20 dark:text-warnDark'}`}>
-          <span className="text-[11.5px] font-semibold">
+          <span className="text-caption font-semibold">
             {status === 'approved' ? 'Updated to' : 'Requested'}
           </span>
-          <span className="font-mono text-[12.5px] font-bold tabular-nums">
+          <span className="font-mono text-body-sm font-bold tabular-nums">
             {req.start}–{req.end} · {ehDurLabel(req.newMins ?? 0)}
           </span>
         </div>
@@ -80,8 +80,8 @@ export function WorkedSection({ rows, reqs, hourlyRate, onFix, isDateLocked }) {
   return (
     <div>
       <div className="flex items-baseline justify-between px-1 mb-2">
-        <span className="font-mono text-[10.5px] text-charcoal/50 dark:text-white/40 tracking-[0.08em] uppercase font-semibold">This week · worked</span>
-        <span className="font-mono text-[11px] text-charcoal/50 dark:text-white/40">{rows.length} logged · so far</span>
+        <span className="font-mono text-micro text-charcoal/50 dark:text-white/40 tracking-[0.08em] uppercase font-semibold">This week · worked</span>
+        <span className="font-mono text-micro text-charcoal/50 dark:text-white/40">{rows.length} logged · so far</span>
       </div>
       <div className="rounded-2xl overflow-hidden bg-white dark:bg-paperDark border border-ink/20 dark:border-white/10 shadow-[0_1px_3px_theme(colors.ink/5%)]">
         {rows.map((r, i) => {
@@ -93,16 +93,16 @@ export function WorkedSection({ rows, reqs, hourlyRate, onFix, isDateLocked }) {
               className={`flex items-center gap-3 px-3.5 py-3 ${i === 0 ? '' : 'border-t border-line2 dark:border-white/5'}`}>
               {/* date chip */}
               <div className="w-11 h-12 rounded-[9px] bg-charcoal/4 dark:bg-white/5 border border-charcoal/10 dark:border-white/10 shrink-0 flex flex-col items-center justify-center gap-0.5">
-                <span className="font-mono text-[9px] text-charcoal/50 dark:text-white/40 tracking-[0.06em] font-semibold">{r.dow}</span>
-                <span className="font-mono text-[17px] font-semibold text-charcoal dark:text-white leading-none">{r.dateNum}</span>
+                <span className="font-mono text-micro text-charcoal/50 dark:text-white/40 tracking-[0.06em] font-semibold">{r.dow}</span>
+                <span className="font-mono text-title-sm font-semibold text-charcoal dark:text-white leading-none">{r.dateNum}</span>
               </div>
               {/* middle */}
               <div className="flex-1 min-w-0">
-                <div className="font-mono text-[13.5px] font-semibold tabular-nums text-charcoal dark:text-white"
+                <div className="font-mono text-body font-semibold tabular-nums text-charcoal dark:text-white"
                   style={{ textDecoration: showReq ? 'line-through' : 'none', opacity: showReq ? 0.5 : 1 }}>
                   {r.startStr}–{r.endStr}
                 </div>
-                <div className="text-[11.5px] text-charcoal/50 dark:text-white/40 mt-0.5 flex items-center gap-1.5">
+                <div className="text-caption text-charcoal/50 dark:text-white/40 mt-0.5 flex items-center gap-1.5">
                   <span className="font-mono">{ehDurLabel(r.workedMins)}</span>
                   {r.role && <><span className="text-charcoal/25 dark:text-white/25">·</span><span>{r.role}</span></>}
                   {(r.session.breakMinutes ?? 0) > 0 && <><span className="text-charcoal/25 dark:text-white/25">·</span><span>{r.session.breakMinutes}m break</span></>}
@@ -111,11 +111,11 @@ export function WorkedSection({ rows, reqs, hourlyRate, onFix, isDateLocked }) {
               </div>
               {/* right */}
               {status === 'pending' ? (
-                <span className="font-mono text-[12.5px] font-bold text-warning tabular-nums shrink-0">
+                <span className="font-mono text-body-sm font-bold text-warning tabular-nums shrink-0">
                   {req.start}–{req.end}
                 </span>
               ) : isDateLocked?.(r.session.date) ? (
-                <span className="shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded-[9px] border border-charcoal/10 dark:border-white/10 text-charcoal/30 dark:text-white/30 text-[11.5px] font-semibold bg-charcoal/4 dark:bg-white/5" title="Locked for payroll">
+                <span className="shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded-[9px] border border-charcoal/10 dark:border-white/10 text-charcoal/30 dark:text-white/30 text-caption font-semibold bg-charcoal/4 dark:bg-white/5" title="Locked for payroll">
                   <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
                   Locked
                 </span>
@@ -131,17 +131,17 @@ export function WorkedSection({ rows, reqs, hourlyRate, onFix, isDateLocked }) {
         {/* footer */}
         <div className="flex items-center gap-4 px-3.5 py-3 bg-charcoal/3 dark:bg-white/5 border-t border-line2 dark:border-white/5">
           <div>
-            <div className="font-mono text-[9.5px] text-charcoal/50 dark:text-white/40 tracking-[0.06em] uppercase">Worked</div>
-            <div className="font-mono text-[14px] font-semibold mt-0.5">{ehDurLabel(total)}</div>
+            <div className="font-mono text-micro text-charcoal/50 dark:text-white/40 tracking-[0.06em] uppercase">Worked</div>
+            <div className="font-mono text-body font-semibold mt-0.5">{ehDurLabel(total)}</div>
           </div>
           {hourlyRate && (
             <div>
-              <div className="font-mono text-[9.5px] text-charcoal/50 dark:text-white/40 tracking-[0.06em] uppercase">Est. Pay</div>
-              <div className="font-mono text-[14px] font-semibold mt-0.5 text-success">£{(total / 60 * hourlyRate).toFixed(2)}</div>
+              <div className="font-mono text-micro text-charcoal/50 dark:text-white/40 tracking-[0.06em] uppercase">Est. Pay</div>
+              <div className="font-mono text-body font-semibold mt-0.5 text-success">£{(total / 60 * hourlyRate).toFixed(2)}</div>
             </div>
           )}
           {pendingCount > 0 && (
-            <div className="ml-auto font-mono text-[10.5px] font-semibold text-warning">
+            <div className="ml-auto font-mono text-micro font-semibold text-warning">
               {pendingCount} awaiting approval
             </div>
           )}

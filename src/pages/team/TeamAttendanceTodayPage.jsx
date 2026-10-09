@@ -23,17 +23,17 @@ function StaffRow({ person }) {
         <div className="flex items-center gap-1.5">
           <span className="text-sm font-semibold text-charcoal dark:text-white truncate">{person.name}</span>
           {person.isLate && (
-            <span className="inline-flex items-center gap-[4px] font-mono text-[10px] font-semibold text-danger uppercase tracking-[0.04em]">
+            <span className="inline-flex items-center gap-[4px] font-mono text-micro font-semibold text-danger uppercase tracking-[0.04em]">
               <span className="w-[5px] h-[5px] rounded-full bg-current" />
               Late
             </span>
           )}
         </div>
-        <div className="text-[11px] text-charcoal/45 dark:text-white/35 truncate">
+        <div className="text-micro text-charcoal/45 dark:text-white/35 truncate">
           {person.role ? `${person.role} · ` : ''}{person.startTime?.slice(0, 5)}–{person.endTime?.slice(0, 5)}
         </div>
       </div>
-      <span className={`shrink-0 font-mono text-[10.5px] font-semibold uppercase tracking-[0.04em] px-2 py-1 rounded-full ${tone.bg} ${tone.text}`}>
+      <span className={`shrink-0 font-mono text-micro font-semibold uppercase tracking-[0.04em] px-2 py-1 rounded-full ${tone.bg} ${tone.text}`}>
         {tone.label}
       </span>
     </div>
@@ -45,15 +45,15 @@ function LateRow({ entry, onAcknowledge, acknowledging }) {
     <div className="py-3 px-3.5 flex flex-col gap-2">
       <div className="flex items-center justify-between gap-2">
         <span className="text-sm font-semibold text-charcoal dark:text-white">{entry.name}</span>
-        <span className="font-mono text-[11px] font-semibold text-danger">
+        <span className="font-mono text-micro font-semibold text-danger">
           {entry.lateMins >= 1 ? `${entry.lateMins} min late` : '< 1 min late'}
         </span>
       </div>
-      <div className="font-mono text-[11px] text-charcoal/45 dark:text-white/35">
+      <div className="font-mono text-micro text-charcoal/45 dark:text-white/35">
         Scheduled {entry.scheduledTime} · Clocked in {entry.actualTime}
       </div>
       {entry.acknowledgedByName ? (
-        <div className="font-mono text-[11px] text-success">
+        <div className="font-mono text-micro text-success">
           Acknowledged by {entry.acknowledgedByName}
         </div>
       ) : (
@@ -102,14 +102,14 @@ export default function TeamAttendanceTodayPage() {
   return (
     <div className="pb-24">
       <div className="mb-4">
-        <span className="font-mono text-[11px] text-charcoal/50 dark:text-white/40 tracking-[0.08em] uppercase">
+        <span className="font-mono text-micro text-charcoal/50 dark:text-white/40 tracking-[0.08em] uppercase">
           Attendance
         </span>
-        <h1 className="text-[26px] font-semibold tracking-[-0.028em] leading-[1.12] mt-1 mb-0 text-charcoal dark:text-white">
+        <h1 className="text-display font-semibold tracking-[-0.028em] leading-[1.12] mt-1 mb-0 text-charcoal dark:text-white">
           {dayStr}
         </h1>
         {!loading && !error && (
-          <p className="text-[13px] text-charcoal/45 dark:text-white/35 mt-1">
+          <p className="text-body-sm text-charcoal/45 dark:text-white/35 mt-1">
             {roster.length === 0
               ? 'No one scheduled today'
               : `${roster.length} scheduled · ${onShiftCount} on shift now${late.length > 0 ? ` · ${late.length} late` : ''}`}
@@ -128,7 +128,7 @@ export default function TeamAttendanceTodayPage() {
       ) : (
         <>
           <div className="mb-5">
-            <h2 className="font-mono text-[11px] font-semibold text-charcoal/50 dark:text-white/40 tracking-[0.06em] uppercase mb-2">
+            <h2 className="font-mono text-micro font-semibold text-charcoal/50 dark:text-white/40 tracking-[0.06em] uppercase mb-2">
               Working today
             </h2>
             {ordered.length === 0 ? (
@@ -145,7 +145,7 @@ export default function TeamAttendanceTodayPage() {
           </div>
 
           <div>
-            <h2 className="font-mono text-[11px] font-semibold text-charcoal/50 dark:text-white/40 tracking-[0.06em] uppercase mb-2">
+            <h2 className="font-mono text-micro font-semibold text-charcoal/50 dark:text-white/40 tracking-[0.06em] uppercase mb-2">
               Late arrivals
             </h2>
             {late.length === 0 ? (

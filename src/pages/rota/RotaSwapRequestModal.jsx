@@ -27,7 +27,7 @@ export default function RotaSwapRequestModal({
       <div onClick={(e) => e.stopPropagation()} className="bg-white dark:bg-paperDark rounded-2xl w-full max-w-md p-6 flex flex-col gap-5 shadow-2xl max-h-[90dvh] overflow-y-auto" style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
 
         <div>
-          <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-1">Request Shift Swap</p>
+          <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-1">Request Shift Swap</p>
           <h3 className="font-semibold text-charcoal dark:text-white text-lg">
             {swapModal.shift.start_time?.slice(0,5) ?? ''} – {swapModal.shift.end_time?.slice(0,5) ?? ''}
           </h3>
@@ -37,7 +37,7 @@ export default function RotaSwapRequestModal({
         </div>
 
         <div>
-          <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">
+          <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">
             Swap with <span className="text-danger">*</span>
           </label>
           <div className="flex flex-wrap gap-2">
@@ -64,7 +64,7 @@ export default function RotaSwapRequestModal({
         </div>
 
         <div>
-          <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">
+          <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">
             Message (optional)
           </label>
           <textarea

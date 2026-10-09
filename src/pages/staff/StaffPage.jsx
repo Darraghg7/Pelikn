@@ -14,8 +14,8 @@ export default function StaffPage() {
       {!detailId && (
         <div className="flex items-center justify-between gap-2.5">
           <div>
-            <h1 className="text-[20px] min-[420px]:text-[22px] leading-tight font-bold tracking-tight text-ink dark:text-white">Staff</h1>
-            <p className="text-[13px] text-ink3 dark:text-white/45 mt-0.5">Manage team members</p>
+            <h1 className="text-title leading-tight font-bold tracking-tight text-ink dark:text-white">Staff</h1>
+            <p className="text-body-sm text-ink3 dark:text-white/45 mt-0.5">Manage team members</p>
           </div>
           <Button
             size="sm"

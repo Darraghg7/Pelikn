@@ -190,7 +190,7 @@ function AddTipSplitModal({ staff, venueId, managerId, onSaved, onClose }) {
                   <div key={s.id} className="flex items-center gap-3">
                     <div className="flex-1 min-w-0">
                       <p className="text-sm text-charcoal dark:text-white truncate">{s.name}</p>
-                      {labelFor(s.id) && <p className="text-[11px] text-charcoal/40 dark:text-white/35">{labelFor(s.id)}</p>}
+                      {labelFor(s.id) && <p className="text-caption text-charcoal/40 dark:text-white/35">{labelFor(s.id)}</p>}
                     </div>
                     <div className="relative w-24 shrink-0">
                       <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-charcoal/40 dark:text-white/35 text-xs">&pound;</span>
@@ -253,13 +253,13 @@ function TipSplitCard({ split }) {
           <p className="text-sm font-semibold text-charcoal dark:text-white">
             &pound;{parseFloat(split.total_amount).toFixed(2)}
           </p>
-          <p className="text-[11px] text-charcoal/40 dark:text-white/35 mt-0.5">
+          <p className="text-caption text-charcoal/40 dark:text-white/35 mt-0.5">
             {format(parseISO(split.split_date), 'EEE d MMM yyyy')} &middot; {createdBy}
             {split.notes && <> &middot; {split.notes}</>}
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-[11px] text-charcoal/35 dark:text-white/30">{allocations.length} staff</span>
+          <span className="text-micro text-charcoal/35 dark:text-white/30">{allocations.length} staff</span>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
             className={`text-charcoal/30 dark:text-white/30 transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`}
           >
