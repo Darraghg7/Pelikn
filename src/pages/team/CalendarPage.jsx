@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import useManagerCalendar from '../../hooks/useManagerCalendar'
 import { useToast } from '../../components/ui/Toast'
 import Avatar from '../../components/ui/Avatar'
+import Button from '../../components/ui/Button'
 
 const DAYS_SHORT = ['M', 'T', 'W', 'T', 'F', 'S', 'S']
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December']
@@ -192,22 +193,23 @@ function CalendarEventForm({ event, defaultDate, onSave, onDelete, onBack }) {
     <div className="flex flex-col gap-0">
       {/* Header */}
       <div className="flex items-center justify-between px-0.5 pb-[18px]">
-        <button
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={onBack}
-          className="flex items-center gap-1.5 bg-transparent border-none cursor-pointer text-charcoal/75 dark:text-white/60 text-sm font-medium p-0"
+          className="-ml-3"
         >
           <svg width="7" height="12" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M5 1L1 5l4 4"/></svg>
           Calendar
-        </button>
+        </Button>
         <span className="text-[16px] font-bold tracking-[-0.02em] text-charcoal dark:text-white">{isEdit ? 'Edit event' : 'New event'}</span>
-        <button
+        <Button
+          size="sm"
           onClick={handleSave}
           disabled={!canSave}
-          className="text-sm font-bold bg-transparent border-none"
-          style={{ color: canSave ? colObj.bg : undefined, cursor: canSave ? 'pointer' : 'default' }}
         >
-          <span className={canSave ? '' : 'text-charcoal/30 dark:text-white/30'}>Save</span>
-        </button>
+          Save
+        </Button>
       </div>
 
       {/* Colour accent */}
@@ -326,25 +328,28 @@ function CalendarEventForm({ event, defaultDate, onSave, onDelete, onBack }) {
 
         {/* Delete */}
         {isEdit && !showDelete && (
-          <button
+          <Button
+            variant="danger-ghost"
+            fullWidth
             onClick={() => setShowDelete(true)}
-            className="w-full h-[46px] rounded-xl border-none bg-danger/10 text-danger text-sm font-semibold cursor-pointer"
           >
             Delete event
-          </button>
+          </Button>
         )}
         {isEdit && showDelete && (
           <div className="bg-danger/10 border border-danger/20 rounded-[14px] px-4 py-[15px]">
             <div className="text-sm font-semibold text-danger mb-3">Delete this event?</div>
             <div className="flex gap-2">
-              <button
+              <Button
+                variant="danger"
                 onClick={() => onDelete(event.id)}
-                className="flex-1 h-11 rounded-[11px] border-none bg-danger text-white text-sm font-semibold cursor-pointer"
-              >Yes, delete</button>
-              <button
+                className="flex-1"
+              >Yes, delete</Button>
+              <Button
+                variant="secondary"
                 onClick={() => setShowDelete(false)}
-                className="flex-1 h-11 rounded-[11px] border border-charcoal/10 dark:border-white/10 bg-white dark:bg-paperDark text-charcoal/75 dark:text-white/60 text-sm font-semibold cursor-pointer"
-              >Cancel</button>
+                className="flex-1"
+              >Cancel</Button>
             </div>
           </div>
         )}
@@ -364,20 +369,22 @@ function CalendarDayView({ dateStr, dayMapItems, onBack, onAdd, onEdit }) {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between px-0.5">
-        <button
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={onBack}
-          className="flex items-center gap-1.5 bg-transparent border-none cursor-pointer text-charcoal/75 dark:text-white/60 text-sm font-medium p-0"
+          className="-ml-3"
         >
           <svg width="7" height="12" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M5 1L1 5l4 4"/></svg>
           Calendar
-        </button>
-        <button
+        </Button>
+        <Button
+          size="sm"
           onClick={() => onAdd(dateStr)}
-          className="h-[34px] px-[15px] rounded-full border-none bg-brand text-white text-[13px] font-semibold cursor-pointer flex items-center gap-[5px]"
         >
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
           Add
-        </button>
+        </Button>
       </div>
 
       <div className="px-0.5">
@@ -726,36 +733,42 @@ export default function CalendarPage() {
             <h1 className="text-2xl font-semibold tracking-[-0.025em] text-charcoal dark:text-white m-0">My Calendar</h1>
             <div className="text-[12.5px] text-charcoal/50 dark:text-white/40 mt-1">Events, closures &amp; staff leave</div>
           </div>
-          <button
+          <Button
+            size="sm"
             onClick={() => goAdd(todayStr())}
-            className="h-9 px-[15px] rounded-[10px] border-none bg-brand text-white text-[13px] font-semibold cursor-pointer flex items-center gap-1.5 shrink-0"
           >
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
             Add
-          </button>
+          </Button>
         </div>
 
         {/* Month navigator */}
         <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[14px] px-3 pt-3 pb-3">
           <div className="flex items-center justify-between mb-3">
-            <button
+            <Button
+              variant="secondary"
+              size="sm"
+              iconOnly
+              aria-label="Previous month"
               onClick={prevMonth}
-              className="w-[34px] h-[34px] rounded-[9px] border border-charcoal/10 dark:border-white/10 bg-transparent cursor-pointer flex items-center justify-center"
             >
               <svg width="7" height="12" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="text-charcoal/75 dark:text-white/60"><path d="M5 1L1 5l4 4"/></svg>
-            </button>
+            </Button>
             <button
               onClick={() => { setYear(now.getFullYear()); setMonth(now.getMonth()) }}
               className="text-[15px] font-bold tracking-[-0.015em] bg-transparent border-none cursor-pointer text-charcoal dark:text-white"
             >
               {MONTHS[month]} {year}
             </button>
-            <button
+            <Button
+              variant="secondary"
+              size="sm"
+              iconOnly
+              aria-label="Next month"
               onClick={nextMonth}
-              className="w-[34px] h-[34px] rounded-[9px] border border-charcoal/10 dark:border-white/10 bg-transparent cursor-pointer flex items-center justify-center"
             >
               <svg width="7" height="12" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="text-charcoal/75 dark:text-white/60"><path d="M1 1l4 4-4 4"/></svg>
-            </button>
+            </Button>
           </div>
           {isLoading
             ? <div className="h-40 flex items-center justify-center text-charcoal/30 dark:text-white/30 font-mono text-[11px]">Loading…</div>

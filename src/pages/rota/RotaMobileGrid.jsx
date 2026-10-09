@@ -15,6 +15,7 @@ import Toggle from '../../components/ui/Toggle'
 import LoadError from '../../components/ui/LoadError'
 import Avatar from '../../components/ui/Avatar'
 import { shortName } from '../../lib/names'
+import Button, { CloseButton } from '../../components/ui/Button'
 
 const STATION_COLOR = { Kitchen: '#b5701f', FOH: '#2d7d6e', Bar: '#7a5ea8', KP: '#4f6d8a' }
 const STATION_ORDER = ['Kitchen', 'FOH', 'Bar', 'KP']
@@ -209,9 +210,7 @@ function ShiftSheet({ shift, staffMember, day, venueId, roles, onClose, onSaved,
               <div className="text-[17px] font-semibold tracking-[-0.015em] text-charcoal dark:text-white">{staffMember?.name ?? 'Unassigned'}</div>
               <div className="text-xs text-charcoal/50 dark:text-white/40 mt-px">{roleLabel || staffMember?.job_title || ''} · {format(day, 'EEE d MMM')}</div>
             </div>
-            <button onClick={onClose} className="bg-charcoal/[0.06] border-none rounded-full w-8 h-8 flex items-center justify-center cursor-pointer shrink-0 text-charcoal/50 dark:text-white/40">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-            </button>
+            <CloseButton onClick={onClose} />
           </div>
 
           {/* Closing shift */}
@@ -276,17 +275,19 @@ function ShiftSheet({ shift, staffMember, day, venueId, roles, onClose, onSaved,
         <div className="px-4 border-t border-charcoal/[0.06] bg-surface shrink-0" style={{ paddingTop: 12, paddingBottom: 'max(24px, env(safe-area-inset-bottom))' }}>
           <div className="flex gap-2">
             {existing && (
-              <button onClick={del} disabled={deleting} className="w-[52px] h-[50px] rounded-[13px] border border-danger/25 bg-danger/10 text-danger cursor-pointer flex items-center justify-center shrink-0">
-                {deleting ? '…' : <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>}
-              </button>
+              <Button variant="danger-ghost" size="lg" iconOnly loading={deleting} aria-label="Delete shift" onClick={del} disabled={deleting}>
+                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+              </Button>
             )}
-            <button
+            <Button
+              size="lg"
+              loading={saving}
               onClick={save}
               disabled={saving || !valid}
-              className={`flex-1 h-[50px] rounded-[13px] border-none text-[15px] font-bold ${valid ? 'bg-brand text-white' : 'bg-charcoal/10 dark:bg-white/10 text-charcoal/30 dark:text-white/30'} ${(saving || !valid) ? 'cursor-default' : 'cursor-pointer'}`}
+              className="flex-1"
             >
-              {saving ? '…' : (existing ? 'Save changes' : 'Add to rota')}
-            </button>
+              {existing ? 'Save changes' : 'Add to rota'}
+            </Button>
           </div>
         </div>
       </div>
@@ -353,12 +354,12 @@ function SwapSheet({ swaps, onClose, onResolved }) {
               {/* A swap for a shift that has already happened can only be dismissed */}
               {swap.shift?.shift_date && swap.shift.shift_date < format(new Date(), 'yyyy-MM-dd') ? (
                 <div className="flex gap-2 mt-3">
-                  <button onClick={() => decline(swap)} disabled={resolving === swap.id} className="flex-1 h-10 rounded-[10px] border border-charcoal/10 dark:border-white/10 bg-white dark:bg-paperDark text-charcoal/75 dark:text-white/60 font-semibold text-[13px] cursor-pointer">{resolving === swap.id ? '…' : 'Dismiss'}</button>
+                  <Button variant="secondary" size="sm" onClick={() => decline(swap)} disabled={resolving === swap.id} className="flex-1">{resolving === swap.id ? '…' : 'Dismiss'}</Button>
                 </div>
               ) : (
                 <div className="flex gap-2 mt-3">
-                  <button onClick={() => decline(swap)} disabled={resolving === swap.id} className="flex-1 h-10 rounded-[10px] border border-charcoal/10 dark:border-white/10 bg-white dark:bg-paperDark text-charcoal/75 dark:text-white/60 font-semibold text-[13px] cursor-pointer">Decline</button>
-                  <button onClick={() => approve(swap)} disabled={resolving === swap.id} className="flex-[2] h-10 rounded-[10px] border-none bg-success text-white font-semibold text-[13px] cursor-pointer">{resolving === swap.id ? '…' : 'Approve'}</button>
+                  <Button variant="secondary" size="sm" onClick={() => decline(swap)} disabled={resolving === swap.id} className="flex-1">Decline</Button>
+                  <Button variant="success" size="sm" onClick={() => approve(swap)} disabled={resolving === swap.id} className="flex-[2]">{resolving === swap.id ? '…' : 'Approve'}</Button>
                 </div>
               )}
             </div>
@@ -432,15 +433,17 @@ function AutoFillSheet({ openShifts, staff, unavailability = {}, venueId, onClos
             )
           })}
         </div>
-        <button
+        <Button
+          variant="accent"
+          size="lg"
+          fullWidth
           onClick={fill}
           disabled={filling || openShifts.length === 0}
-          className="mt-4 w-full h-[50px] rounded-[13px] border-none flex items-center justify-center gap-2 text-[15px] font-bold"
-          style={{ cursor: openShifts.length ? 'pointer' : 'default', background: openShifts.length ? '#c94f2a' : '#e4e6e2', color: openShifts.length ? '#fff' : '#b3b9b5' }}
+          className="mt-4"
         >
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><path d="M21 13V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8"/><path d="M3 10h18"/><path d="M16 19h6"/><path d="M19 16v6"/></svg>
           {filling ? 'Filling…' : `Draft ${openShifts.length || ''} suggestions`}
-        </button>
+        </Button>
         <div className="font-mono text-[10px] text-charcoal/30 dark:text-white/30 text-center mt-[9px] tracking-[0.02em]">Added to draft — nothing sent until you publish</div>
       </div>
     </>
@@ -670,14 +673,14 @@ function DayView({ days, dayIndex, setDayIndex, staff, shifts, unavailability, d
                   <span className="block text-[13px] font-semibold text-ink dark:text-white truncate">{shortName(m.name) || '—'}</span>
                   <span className="block text-[12px] text-ink3 dark:text-white/45 mt-0.5">{showCost ? `${money(personTotal(m).cost)} this week` : `${hrs(personTotal(m).hours)} this week`}</span>
                 </span>
-                <button
-                  type="button"
+                <Button
+                  variant="secondary"
+                  size="sm"
                   onClick={() => onTap(null, m, day)}
                   aria-label={`Add shift for ${m.name}`}
-                  className="shrink-0 h-8 px-3 rounded-[10px] border border-dashed border-ink4/70 dark:border-white/25 inline-flex items-center gap-1.5 text-[13px] font-semibold text-ink dark:text-white hover:border-ink3"
                 >
                   {PLUS} Shift
-                </button>
+                </Button>
               </div>
             ))}
           </div>
@@ -703,7 +706,7 @@ function OpenShifts({ openShifts, onFill }) {
                 <span className="block text-[13px] font-semibold text-ink dark:text-white truncate">{o.role_label || 'Shift'} · {fmtRange(o.start_time.slice(0, 5), o.end_time.slice(0, 5))}</span>
                 <span className="block text-[12px] text-ink3 dark:text-white/45 mt-0.5">{format(o._day, 'EEE d MMM')} · unassigned</span>
               </span>
-              <button type="button" onClick={() => onFill(o)} className="shrink-0 h-8 px-3.5 rounded-[10px] bg-brand text-white text-[13px] font-semibold">Fill</button>
+              <Button size="sm" onClick={() => onFill(o)}>Fill</Button>
             </div>
           )
         })}
@@ -874,26 +877,26 @@ export default function RotaMobileGrid() {
         <h1 className="text-[20px] sm:text-[22px] leading-tight font-bold tracking-tight text-ink dark:text-white">Rota</h1>
         <div className="flex items-center gap-2">
           {pendingChanges > 0 && (
-            <button
-              type="button"
+            <Button
+              variant="ghost"
+              size="sm"
+              loading={reverting}
               onClick={discardChanges}
               disabled={publishing || reverting}
-              className="h-9 px-2.5 text-[13px] font-semibold text-ink3 dark:text-white/50 hover:text-ink dark:hover:text-white disabled:opacity-40"
             >
               {reverting ? 'Undoing…' : 'Discard'}
-            </button>
+            </Button>
           )}
-          <button
-            type="button"
+          <Button
+            size="sm"
             onClick={publish}
             disabled={!canPublish || publishing || reverting}
             title={canPublish ? (pendingChanges ? `${pendingChanges} unpublished ${pendingChanges === 1 ? 'change' : 'changes'}` : 'Staff can’t see this week yet') : undefined}
-            className={`h-9 px-3.5 rounded-xl inline-flex items-center gap-2 text-[13px] font-semibold transition-colors ${canPublish ? 'bg-brand text-white hover:bg-brand/90' : 'bg-white dark:bg-paperDark border border-line dark:border-white/10 text-ink4 dark:text-white/35 cursor-default'}`}
           >
             <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4z" /></svg>
             {publishLabel}
             {pendingChanges > 0 && !publishing && <span className="min-w-[20px] h-5 px-1.5 rounded-full bg-white/20 inline-flex items-center justify-center text-[11px] font-bold">{pendingChanges}</span>}
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -914,14 +917,14 @@ export default function RotaMobileGrid() {
         <Segmented label="View" options={[['week', 'Week'], ['day', 'Day']]} value={view} onChange={setView} />
         <div className="flex-1" />
         <Segmented label="Show" options={[[false, 'Hours'], [true, '£']]} value={showCost} onChange={setShowCost} />
-        <button
-          type="button"
+        <Button
+          variant="secondary"
+          size="sm"
           onClick={() => setShowAutoFill(true)}
-          className="h-[38px] px-3 rounded-xl bg-brand-tint dark:bg-white/10 inline-flex items-center gap-1.5 text-[13px] font-semibold text-brand dark:text-white shrink-0"
         >
           <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><path d="M21 13V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8"/><path d="M3 10h18"/><path d="M16 19h6"/><path d="M19 16v6" /></svg>
           Auto-fill
-        </button>
+        </Button>
       </div>
 
       {/* Swap requests */}
