@@ -4,6 +4,7 @@ import { useVenue } from '../../contexts/VenueContext'
 import { useSession } from '../../contexts/SessionContext'
 import { useAuth } from '../../contexts/AuthContext'
 import { useAppSettings } from '../../hooks/useSettings'
+import Avatar from '../../components/ui/Avatar'
 
 function GroupLabel({ label }) {
   return (
@@ -57,9 +58,8 @@ export default function SettingsHubPage() {
 
   const isOwner  = session?.staffRole === 'owner'
   const staffId  = session?.staffId
-  const staffName = session?.name ?? 'Manager'
+  const staffName = session?.staffName || 'Manager'
   const role = session?.staffRole === 'owner' ? 'Owner' : session?.staffRole === 'manager' ? 'General Manager' : 'Manager'
-  const initials = staffName.split(' ').map(w => w[0]).slice(0, 2).join('')
 
   const attendanceAttention = lateGraceMins > 0
 
@@ -77,9 +77,7 @@ export default function SettingsHubPage() {
         disabled={!staffId}
         className={`w-full text-left bg-brand text-white rounded-[14px] p-4 flex items-center gap-[13px] mb-1 transition-colors ${staffId ? 'hover:bg-brand/90 cursor-pointer' : 'cursor-default'}`}
       >
-        <span className="w-[50px] h-[50px] rounded-[13px] shrink-0 bg-white/[0.16] flex items-center justify-center font-mono text-base font-semibold">
-          {initials}
-        </span>
+        <Avatar name={staffName} id={staffId} tone="onDark" size="2xl" decorative />
         <div className="flex-1 min-w-0">
           <div className="text-[17px] font-semibold tracking-[-0.015em]">{staffName}</div>
           <div className="font-mono text-[11px] text-white/65 mt-0.5">

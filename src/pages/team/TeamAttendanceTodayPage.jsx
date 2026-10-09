@@ -4,6 +4,7 @@ import { useVenue } from '../../contexts/VenueContext'
 import { useAttendanceToday } from '../../hooks/useAttendanceToday'
 import { useToast } from '../../components/ui/Toast'
 import LoadError from '../../components/ui/LoadError'
+import Avatar from '../../components/ui/Avatar'
 
 const STATUS_TONE = {
   not_started: { bg: 'bg-surface dark:bg-white/8', text: 'text-charcoal/55 dark:text-white/40', label: 'Not started' },
@@ -14,12 +15,9 @@ const STATUS_TONE = {
 
 function StaffRow({ person }) {
   const tone = STATUS_TONE[person.status] ?? STATUS_TONE.not_started
-  const initials = person.name.split(' ').map(w => w[0]).slice(0, 2).join('')
   return (
     <div className="flex items-center gap-3 py-2.5 px-3.5">
-      <span className="w-9 h-9 rounded-lg shrink-0 flex items-center justify-center font-mono text-[11px] font-semibold text-charcoal dark:text-white bg-charcoal/6 dark:bg-white/10">
-        {initials}
-      </span>
+      <Avatar name={person.name} id={person.staffId} colour={person.colour} photoUrl={person.photoUrl} size="md" decorative />
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5">
           <span className="text-sm font-semibold text-charcoal dark:text-white truncate">{person.name}</span>

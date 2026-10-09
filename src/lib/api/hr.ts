@@ -9,6 +9,8 @@ export interface HRStaffRow {
   job_role: string | null
   employment_type: string | null
   start_date: string | null
+  colour: string | null
+  photo_url: string | null
 }
 
 export interface HRSummaryData {
@@ -23,7 +25,7 @@ export async function fetchHRSummary(venueId: string, since90: string, in30: str
   // 118 revoked it, so requesting it fails the whole query. Merged back below.
   const [staffRes, actRes, docsRes, priv] = await Promise.all([
     supabase.from('staff')
-      .select('id, name, job_role, employment_type')
+      .select('id, name, job_role, employment_type, colour, photo_url')
       .eq('venue_id', venueId)
       .eq('is_active', true)
       .order('name'),
@@ -63,7 +65,7 @@ export async function fetchStaffHeader(staffId: string): Promise<StaffHeaderData
   // than returning null. They are merged back from the RPCs below.
   const [staffRes, docsRes, strikesRes, rates, priv] = await Promise.all([
     supabase.from('staff')
-      .select('id, name, job_role, employment_type, working_days, is_under_18, holiday_pay_eligible')
+      .select('id, name, job_role, employment_type, working_days, is_under_18, holiday_pay_eligible, colour, photo_url')
       .eq('id', staffId)
       .maybeSingle(),
     supabase.from('staff_hr_documents').select('*', { count: 'exact', head: true }).eq('staff_id', staffId),

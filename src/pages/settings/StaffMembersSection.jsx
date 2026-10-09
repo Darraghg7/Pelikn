@@ -23,6 +23,7 @@ import { saveStaffPermissions } from '../../hooks/useStaffPermissions'
 import { CARD } from '../../components/temperature/TempPageParts'
 import { reportError } from '../../lib/reportError'
 import RestrictedFieldsNotice from '../../components/ui/RestrictedFieldsNotice'
+import Avatar from '../../components/ui/Avatar'
 
 const PERMISSION_ROLES  = ['staff', 'manager', 'owner']
 const PERMISSION_LABELS = { staff: 'Staff', manager: 'Manager', owner: 'Owner' }
@@ -430,7 +431,7 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
             onClick={() => onOpen?.(s.id)}
             className="flex-1 min-w-0 flex items-center gap-2.5 px-3.5 sm:px-3.5 py-2 text-left hover:bg-cream/60 dark:hover:bg-white/5 transition-colors"
           >
-            <StaffAvatar staff={s} size="md" />
+            <Avatar name={s.name} id={s.id} colour={s.colour} photoUrl={s.photo_url} size="lg" decorative />
             <span className="flex-1 min-w-0">
               <span className="flex items-center gap-2 min-w-0">
                 <span className="text-[14px] font-semibold text-ink dark:text-white truncate">{s.name}</span>
@@ -515,7 +516,17 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
       {/* Header */}
       <div className="flex items-center gap-2.5">
         <div className="relative shrink-0">
-          <StaffAvatar staff={{ ...(current ?? {}), name: staffForm.name || 'New', colour: staffForm.colour || current?.colour }} size="lg" />
+          {/* A new person has no id yet: stay grey until a colour is picked,
+              rather than changing colour with every letter typed */}
+          <Avatar
+            name={staffForm.name || 'New'}
+            id={current?.id}
+            colour={staffForm.colour || current?.colour}
+            photoUrl={current?.photo_url}
+            tone={!current?.id && !staffForm.colour ? 'neutral' : 'person'}
+            size="2xl"
+            decorative
+          />
           {!isNew && (
             <label className="absolute -bottom-1 -right-1 w-9 h-8 rounded-full bg-white dark:bg-paperDark border border-line dark:border-white/15 shadow-sm inline-flex items-center justify-center cursor-pointer text-ink2 dark:text-white/80" title="Change photo">
               {uploadingPhoto
@@ -949,18 +960,3 @@ function ActionRow({ title, hint, children }) {
   )
 }
 
-/** Photo, or initials on the person's rota colour (neutral when unset). */
-function StaffAvatar({ staff: s, size }) {
-  const dims = size === 'lg' ? 'w-14 h-14 text-[19px]' : 'w-10 h-10 text-[14px]'
-  if (s.photo_url) return <img src={s.photo_url} alt="" className={`${dims} rounded-full object-cover shrink-0`} loading="lazy" />
-  const parts = (s.name || '?').trim().split(/\s+/)
-  const letters = parts.length > 1 ? parts[0][0] + parts[parts.length - 1][0] : parts[0][0]
-  return (
-    <span
-      className={`${dims} rounded-full shrink-0 inline-flex items-center justify-center font-semibold ${s.colour ? 'text-white' : 'bg-line2 text-ink2 dark:bg-white/10 dark:text-white/80'}`}
-      style={s.colour ? { backgroundColor: s.colour } : undefined}
-    >
-      {(letters ?? '?').toUpperCase()}
-    </span>
-  )
-}

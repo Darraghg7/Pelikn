@@ -16,6 +16,7 @@ import { useSignOffs, useCertRecords, useActiveStaff, useAllergenCerts } from '.
 import { TRAINING_BUCKET, trainingFilePath, openTrainingFile } from '../../lib/trainingFiles'
 import { insertSignOff, insertTrainingRecord, deleteTrainingRecord } from '../../lib/api/training'
 import LoadError from '../../components/ui/LoadError'
+import Avatar from '../../components/ui/Avatar'
 
 // ── SC6 topic list (standard food safety induction) ───────────────────────────
 const SC6_TOPICS = [
@@ -332,21 +333,6 @@ function Pill({ kind }) {
   return <span className={`shrink-0 h-7 px-3.5 rounded-full inline-flex items-center text-[13px] font-semibold ${p.cls}`}>{p.label}</span>
 }
 
-// "Eve Turbitt" → "ET", "Sarah" → "S"
-function nameInitials(name = '') {
-  const parts = name.trim().split(/\s+/).filter(Boolean)
-  if (!parts.length) return '?'
-  return parts.length === 1 ? parts[0][0].toUpperCase() : (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
-}
-
-function Avatar({ name, photo, letters }) {
-  return (
-    <span className="shrink-0 w-10 h-10 rounded-full bg-line2 dark:bg-white/10 inline-flex items-center justify-center overflow-hidden text-[14px] font-semibold text-ink2 dark:text-white/80">
-      {photo ? <img src={photo} alt="" className="w-full h-full object-cover" loading="lazy" /> : (letters ?? nameInitials(name))}
-    </span>
-  )
-}
-
 function FilterPill({ active, label, count, onClick }) {
   return (
     <button
@@ -453,7 +439,7 @@ function InductionTab({ venueId, isManager, session, showCreate, onCloseCreate }
               onClick={() => isManager ? setViewRecord(r) : (r.staff_acknowledged ? setViewRecord(r) : setAckRecord(r))}
               className="w-full flex items-center gap-2.5 px-3.5 sm:px-3.5 py-2.5 text-left hover:bg-cream/60 dark:hover:bg-white/5 transition-colors"
             >
-              <Avatar name={r.staff?.name ?? ''} photo={r.staff?.photo_url} />
+              <Avatar name={r.staff?.name} id={r.staff?.id} colour={r.staff?.colour} photoUrl={r.staff?.photo_url} size="lg" decorative />
               <span className="flex-1 min-w-0">
                 <span className="block text-[15px] font-semibold text-ink dark:text-white truncate">{r.staff?.name ?? 'Unknown'}</span>
                 <span className="block text-[13px] text-ink3 dark:text-white/45 mt-0.5 truncate">
@@ -580,7 +566,7 @@ function CertificatesTab({ venueId, showCreate, onCloseCreate }) {
                 onClick={() => setViewing(r)}
                 className="w-full flex items-center gap-2.5 px-3.5 sm:px-3.5 py-2.5 text-left hover:bg-cream/60 dark:hover:bg-white/5 transition-colors"
               >
-                <Avatar name={name} photo={r.staff?.photo_url} letters={name.charAt(0).toUpperCase()} />
+                <Avatar name={r.staff?.name} id={r.staff?.id} colour={r.staff?.colour} photoUrl={r.staff?.photo_url} size="lg" decorative />
                 <span className="flex-1 min-w-0">
                   <span className="block text-[14px] min-[420px]:text-[15px] leading-snug font-semibold text-ink dark:text-white line-clamp-2 break-words">{r.title}</span>
                   <span className="block text-[13px] text-ink3 dark:text-white/45 mt-0.5">

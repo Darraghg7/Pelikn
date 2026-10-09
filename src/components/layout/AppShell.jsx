@@ -16,6 +16,7 @@ import Rail from './RailNav'
 import NavPanel from './NavPanel'
 import NavTopbar from './NavTopbar'
 import { routeToNav, buildManagerCats, buildStaffCats, IcoOverview, PanelIcons } from './navConfig'
+import { initials } from '../../lib/names'
 
 // Per-venue cache — busted automatically after TTL or on app restart
 const CACHE_TTL = 60_000 // 1 minute
@@ -432,7 +433,7 @@ export default function AppShell({ children }) {
   const { isEnabled, isPlanLocked } = useVenueFeatures()
 
   const name = session?.staffName ?? ''
-  const initials = name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
+  const nameInitials = name ? initials(name) : ''
 
   const vp = (p) => `/v/${venueSlug}${p}`
 
@@ -555,7 +556,7 @@ export default function AppShell({ children }) {
           onClickBrand={() => navigate(vp('/'))}
           onOpenSettings={() => navigate(vp('/settings/hub'))}
           venueName={venueName}
-          initials={initials}
+          initials={nameInitials}
           onSignOut={handleSignOut}
           isSettingsRoute={isSettingsRoute}
           notificationBell={<NotificationBell variant="light" />}

@@ -2,7 +2,8 @@ import React from 'react'
 import {
   format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, isSameDay, isBefore, startOfDay,
 } from 'date-fns'
-import { getRequestsForDay, initials } from './timeOffConstants'
+import { getRequestsForDay } from './timeOffConstants'
+import { initials } from '../../lib/names'
 
 const DAY_LETTERS = ['M', 'T', 'W', 'T', 'F', 'S', 'S']
 const DAY_NAMES   = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']

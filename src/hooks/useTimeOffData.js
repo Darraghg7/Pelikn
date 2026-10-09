@@ -26,7 +26,7 @@ export function useTimeOffRequests(venueId) {
     const [{ data, error: err }, priv] = await Promise.all([
       supabase
         .from('time_off_requests')
-        .select('id, staff_id, venue_id, start_date, end_date, status, leave_type, reviewed_by, reviewed_at, cancelled_at, cancelled_by, created_at, staff:staff_id(name, working_days), reviewer:reviewed_by(name)')
+        .select('id, staff_id, venue_id, start_date, end_date, status, leave_type, reviewed_by, reviewed_at, cancelled_at, cancelled_by, created_at, staff:staff_id(name, working_days, colour, photo_url), reviewer:reviewed_by(name)')
         .eq('venue_id', venueId)
         .order('start_date', { ascending: true }),
       fetchTimeOffPrivateFields(),

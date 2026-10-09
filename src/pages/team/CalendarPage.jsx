@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import useManagerCalendar from '../../hooks/useManagerCalendar'
 import { useToast } from '../../components/ui/Toast'
+import Avatar from '../../components/ui/Avatar'
 
 const DAYS_SHORT = ['M', 'T', 'W', 'T', 'F', 'S', 'S']
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December']
@@ -547,7 +548,7 @@ function StaffLeaveTypeGroup({ leaveType, entries }) {
   )
 }
 
-function StaffLeaveMemberGroup({ name, entries }) {
+function StaffLeaveMemberGroup({ person, name, entries }) {
   const [open, setOpen] = useState(false)
   const byType = {}
   for (const e of entries) {
@@ -563,9 +564,7 @@ function StaffLeaveMemberGroup({ name, entries }) {
         onClick={() => setOpen(v => !v)}
         className="w-full flex items-center gap-[10px] py-3 cursor-pointer bg-transparent border-none text-left"
       >
-        <span className="w-8 h-8 rounded-[9px] bg-charcoal/6 dark:bg-white/8 flex items-center justify-center font-mono text-[11px] font-bold text-charcoal/50 dark:text-white/40 shrink-0">
-          {name.split(' ').map(w => w[0]).slice(0, 2).join('')}
-        </span>
+        <Avatar name={name} id={person.staffId} colour={person.colour} photoUrl={person.photoUrl} size="sm" decorative />
         <div className="flex-1 min-w-0">
           <div className="text-[14px] font-semibold text-charcoal dark:text-white leading-tight">{name}</div>
           <div className="font-mono text-[11px] text-charcoal/40 dark:text-white/35 mt-0.5">{entries.length} upcoming {entries.length === 1 ? 'entry' : 'entries'}</div>
@@ -592,7 +591,7 @@ function StaffLeaveSection({ staffLeave }) {
   const byStaff = {}
   for (const sl of upcoming) {
     const key = sl.staffId || sl.name
-    if (!byStaff[key]) byStaff[key] = { name: sl.name, entries: [] }
+    if (!byStaff[key]) byStaff[key] = { person: sl, name: sl.name, entries: [] }
     byStaff[key].entries.push(sl)
   }
   const groups = Object.values(byStaff).sort((a, b) => a.name.localeCompare(b.name))
@@ -604,7 +603,7 @@ function StaffLeaveSection({ staffLeave }) {
       <div className="font-mono text-[11px] text-charcoal/30 dark:text-white/30 uppercase tracking-[0.08em] font-semibold mb-[9px]">Staff days off</div>
       <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[14px] px-4">
         {groups.map(g => (
-          <StaffLeaveMemberGroup key={g.name} name={g.name} entries={g.entries} />
+          <StaffLeaveMemberGroup key={g.person.staffId || g.name} person={g.person} name={g.name} entries={g.entries} />
         ))}
       </div>
     </div>

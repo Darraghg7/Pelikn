@@ -15,6 +15,7 @@ import { SkeletonList } from '../../components/ui/Skeleton'
 import AddSessionModal from './AddSessionModal'
 import ClockEditApprovalCard from '../../components/shifts/ClockEditApprovalCard'
 import RestrictedFieldsNotice from '../../components/ui/RestrictedFieldsNotice'
+import Avatar from '../../components/ui/Avatar'
 import { formatLondon, resolveShiftInstants } from '../../lib/time'
 import { buildTimesheets, buildDailyGrid, partitionDaySessions, breakMinutes, sessionMinutes } from '../../lib/timesheet'
 import { offlineRpc } from '../../lib/offlineSupabase'
@@ -28,13 +29,6 @@ function useBodyScrollLock() {
     document.body.style.overflow = 'hidden'
     return () => { document.body.style.overflow = prevOverflow }
   }, [])
-}
-
-const STATIONS = {
-  Kitchen: { bg: '#f0ebde', fg: '#6b5028' },
-  FOH:     { bg: '#e7eef3', fg: '#2a4a66' },
-  Bar:     { bg: '#eaeae6', fg: '#3a3a30' },
-  KP:      { bg: '#ecdfe1', fg: '#5a3036' },
 }
 
 // ── Wheel picker constants ─────────────────────────────────────────────────────
@@ -121,19 +115,6 @@ function periodToDates(period, customFrom, customTo) {
 }
 
 // ── UI atoms ───────────────────────────────────────────────────────────────────
-function Avatar({ name, station, size = 34 }) {
-  const initials = name.split(' ').map(w => w[0]).slice(0, 2).join('')
-  const st = STATIONS[station] || { bg: '#eef4f0', fg: '#13362a' }
-  return (
-    <span
-      className="shrink-0 flex items-center justify-center font-mono font-semibold"
-      style={{ width: size, height: size, borderRadius: Math.round(size * 0.265), background: st.bg, color: st.fg, fontSize: Math.round(size * 0.32), letterSpacing: '0.02em' }}
-    >
-      {initials}
-    </span>
-  )
-}
-
 function SumCell({ label, value }) {
   return (
     <div className="px-3.5 sm:px-3.5 py-2.5 min-w-0">
@@ -143,13 +124,7 @@ function SumCell({ label, value }) {
   )
 }
 
-function staffInitials(name) {
-  const parts = (name ?? '').trim().split(/\s+/).filter(Boolean)
-  if (parts.length === 0) return '?'
-  return parts.length === 1 ? parts[0][0].toUpperCase() : (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
-}
-
-function StaffRow({ t, onTap }) {
+function StaffRow({ t, person, onTap }) {
   const hasData = t.totalMinutes > 0
   const pay = (t.totalMinutes / 60) * t.hourlyRate
   return (
@@ -158,9 +133,7 @@ function StaffRow({ t, onTap }) {
       onClick={onTap}
       className="w-full flex items-center gap-2.5 px-3.5 sm:px-3.5 py-2.5 text-left hover:bg-cream/60 dark:hover:bg-white/5 transition-colors"
     >
-      <span className="shrink-0 w-10 h-10 rounded-2xl bg-brand-tint dark:bg-white/10 inline-flex items-center justify-center text-[14px] font-semibold text-ink dark:text-white">
-        {staffInitials(t.name)}
-      </span>
+      <Avatar name={t.name} id={t.staffId} colour={person?.colour} photoUrl={person?.photo_url} size="lg" decorative />
       <span className="flex-1 min-w-0">
         <span className="block text-[15px] font-semibold text-ink dark:text-white truncate">{t.name}</span>
         {t.hourlyRate > 0 && <span className="block font-mono text-[13px] text-ink3 dark:text-white/45 mt-0.5">£{Number(t.hourlyRate).toFixed(2)}/hr</span>}
@@ -326,7 +299,7 @@ function EditSessionSheet({ staffName, dayLabel, session, onSave, onClose }) {
 }
 
 // ── Staff hours bottom sheet ───────────────────────────────────────────────────
-function StaffHoursSheet({ t, station, periodDays, dailyGrid, periodLabel, onEditDay, onAddDay, onClose }) {
+function StaffHoursSheet({ t, person, periodDays, dailyGrid, periodLabel, onEditDay, onAddDay, onClose }) {
   const staffGrid = dailyGrid[t.staffId] || null
   const pay = (t.totalMinutes / 60) * t.hourlyRate
   useBodyScrollLock()
@@ -336,7 +309,7 @@ function StaffHoursSheet({ t, station, periodDays, dailyGrid, periodLabel, onEdi
       <div className="relative bg-surface rounded-t-[22px] px-3.5 pt-5 pb-[34px] max-h-[90%] overflow-y-auto [-webkit-overflow-scrolling:touch]" style={{ boxShadow: '0 -12px 40px rgba(9,18,13,0.24)' }}>
         <div className="w-[38px] h-1 rounded-sm bg-charcoal/10 dark:bg-white/10 mx-auto mb-4" />
         <div className="flex items-center gap-2.5 mb-[14px]">
-          <Avatar name={t.name} station={station} size={44} />
+          <Avatar name={t.name} id={t.staffId} colour={person?.colour} photoUrl={person?.photo_url} size="xl" decorative />
           <div className="flex-1 min-w-0">
             <div className="text-[17px] font-semibold tracking-[-0.015em]">{t.name}</div>
             <div className="text-xs text-charcoal/50 dark:text-white/40 mt-0.5">{periodLabel}</div>
@@ -485,11 +458,10 @@ export default function TimesheetPage() {
     return { totalMins: totalM, totalCost }
   }, [periodShifts, staffRates, staffList, breakDurationMins])
 
-  const stationMap = useMemo(() => {
-    const map = {}
-    for (const s of staffList ?? []) map[s.id] = s.station ?? ''
-    return map
-  }, [staffList])
+  const staffById = useMemo(
+    () => Object.fromEntries((staffList ?? []).map(s => [s.id, s])),
+    [staffList],
+  )
 
   const periodDays = useMemo(() => {
     if (!dateFrom || !dateTo) return []
@@ -786,7 +758,7 @@ export default function TimesheetPage() {
           ) : (
             <div className={`${CARD} divide-y divide-line dark:divide-white/10 overflow-hidden`}>
               {timesheets.map(t => (
-                <StaffRow key={t.staffId} t={t} onTap={() => setSelStaff(t)} />
+                <StaffRow key={t.staffId} t={t} person={staffById[t.staffId]} onTap={() => setSelStaff(t)} />
               ))}
             </div>
           )}
@@ -797,7 +769,7 @@ export default function TimesheetPage() {
       {selStaff && (
         <StaffHoursSheet
           t={selStaff}
-          station={stationMap[selStaff.staffId] ?? ''}
+          person={staffById[selStaff.staffId]}
           periodDays={periodDays}
           dailyGrid={dailyGrid}
           periodLabel={periodLabel}

@@ -1,4 +1,5 @@
 import React from 'react'
+import { firstName } from '../../lib/names'
 
 export default function GanttChart({ shifts, staff, currentStaffId, nowMins, showNow }) {
   const winStart = 6 * 60, winEnd = 24 * 60, winSpan = winEnd - winStart
@@ -44,7 +45,7 @@ export default function GanttChart({ shifts, staff, currentStaffId, nowMins, sho
           return (
             <div key={shift.id} className={`flex items-center gap-2.5 h-[38px] rounded-lg -mx-1.5 px-1.5 ${isMe ? 'bg-brand/8' : ''}`}>
               <div className={`w-16 shrink-0 text-[13px] font-semibold truncate flex items-center gap-1 ${isMe ? 'text-brand' : 'text-charcoal/70 dark:text-white/60'}`}>
-                <span className="truncate">{(staffMember?.name ?? 'Staff').split(' ')[0]}</span>
+                <span className="truncate">{firstName(staffMember?.name) || 'Staff'}</span>
                 {isMe && <span className="font-mono text-[8px] text-accent font-bold tracking-[0.08em] bg-danger/8 px-1 py-0.5 rounded shrink-0">YOU</span>}
               </div>
               <div className="flex-1 relative h-[22px]">
