@@ -9,7 +9,7 @@ import { useVenueFeatures } from '../../hooks/useVenueFeatures'
 const STATUS_TONE = {
   overdue: { statusBg: 'bg-danger/10',  statusText: 'text-danger',  statusFg: 'bg-danger',  rank: 0 },
   due:     { statusBg: 'bg-warning/10', statusText: 'text-warning', statusFg: 'bg-warning', rank: 1 },
-  draft:   { statusBg: 'bg-[#faeee9]',  statusText: 'text-accent', statusFg: 'bg-accent', rank: 2 },
+  draft:   { statusBg: 'bg-accentBg',  statusText: 'text-accent', statusFg: 'bg-accent', rank: 2 },
   done:    { statusBg: 'bg-success/10', statusText: 'text-success', statusFg: 'bg-success', rank: 3 },
   na:      { statusBg: 'bg-surface dark:bg-white/8', statusText: 'text-charcoal/55 dark:text-white/40', statusFg: 'bg-charcoal/50 dark:bg-white/50', rank: 4 },
   locked:  { statusBg: 'bg-surface dark:bg-white/8', statusText: 'text-charcoal/55 dark:text-white/40', statusFg: 'bg-charcoal/50 dark:bg-white/50', rank: 5 },
@@ -68,7 +68,7 @@ function AttendanceHero({ onShift, lateCount, loading, onClick }) {
         </div>
         {!loading && lateCount > 0 && (
           <div className="flex items-center gap-2 mt-[7px]">
-            <span className="inline-flex items-center gap-[5px] font-mono text-[11px] font-semibold text-[#ffb4a6]">
+            <span className="inline-flex items-center gap-[5px] font-mono text-[11px] font-semibold text-badDark">
               <span className="w-[5px] h-[5px] rounded-full bg-current" />
               {lateCount} late
             </span>

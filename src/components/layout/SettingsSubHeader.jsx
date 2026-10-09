@@ -3,7 +3,7 @@ import Button from '../ui/Button'
 
 export default function SettingsSubHeader({ title, onBack, backLabel = 'Settings' }) {
   return (
-    <div className="sticky top-0 z-10 bg-surface/90 dark:bg-[#111111]/90 backdrop-blur-xl backdrop-saturate-[180%] border-b border-charcoal/10 dark:border-white/10 flex items-center justify-between py-[10px]">
+    <div className="sticky top-0 z-10 bg-surface/90 dark:bg-bgDark/90 backdrop-blur-xl backdrop-saturate-[180%] border-b border-charcoal/10 dark:border-white/10 flex items-center justify-between py-[10px]">
       <Button
         variant="ghost"
         size="sm"

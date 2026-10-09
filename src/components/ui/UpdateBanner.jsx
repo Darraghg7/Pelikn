@@ -110,7 +110,7 @@ export default function UpdateBanner() {
   return (
     <div className="fixed bottom-20 lg:bottom-4 left-1/2 -translate-x-1/2 z-[9999] w-[calc(100%-2rem)] max-w-sm animate-slide-up">
       {/* charcoal is nearly the same value as the dark-mode page background
-          (paperDark #1e1e1e), so a plain bg-charcoal card would vanish into
+          (paperDark), so a plain bg-charcoal card would vanish into
           the page in dark mode — the ring gives it a visible edge there. */}
       <div className="bg-charcoal text-cream dark:ring-1 dark:ring-white/12 rounded-2xl shadow-2xl px-5 py-4 flex items-center gap-3">
         <div className="shrink-0 text-cream/60">

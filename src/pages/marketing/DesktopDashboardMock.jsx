@@ -39,7 +39,7 @@ export function ScaledCanvas({ width, height, className = '', label, clip = true
 /* Minimal browser chrome around a screen */
 export function BrowserFrame({ children, className = '' }) {
   return (
-    <div className={`rounded-xl overflow-hidden bg-white ring-1 ring-white/10 shadow-[0_40px_100px_rgba(0,0,0,0.45)] ${className}`}>
+    <div className={`rounded-xl overflow-hidden bg-white ring-1 ring-white/10 shadow-[0_40px_100px_theme(colors.black/45%)] ${className}`}>
       <div className="flex items-center gap-3 px-3.5 h-9 bg-line border-b border-charcoal/8">
         <div className="flex gap-1.5">
           <span className="w-2.5 h-2.5 rounded-full bg-charcoal/15" />

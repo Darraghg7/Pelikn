@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useState } from 'react'
 import Button from './Button'
+import { colors } from '../../lib/tokens'
 
 /**
  * Canvas-based signature pad.
@@ -42,7 +43,7 @@ export default function SignaturePad({ onChange, disabled = false, value = null 
     if (disabled) return
     e.preventDefault()
     const ctx = canvasRef.current.getContext('2d')
-    ctx.strokeStyle = '#1a1a18'
+    ctx.strokeStyle = colors.charcoal
     ctx.lineWidth   = 2
     ctx.lineCap     = 'round'
     ctx.lineJoin    = 'round'

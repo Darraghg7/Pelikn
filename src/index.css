@@ -14,12 +14,12 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html {
   font-size: 16px;
-  background: #f3f3ef;
+  background: theme(colors.surface);
   -webkit-text-size-adjust: 100%;
   /* Do NOT set overflow-x:hidden on <html> — it breaks vertical scroll on iOS Safari */
 }
 body {
-  background: #f3f3ef;
+  background: theme(colors.surface);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overscroll-behavior-y: none;
@@ -31,7 +31,7 @@ body {
 #root {
   min-height: 100vh;
   min-height: 100dvh;
-  background: #f3f3ef;
+  background: theme(colors.surface);
 }
 
 /* ── React-owned fake splash: shown after native launch, before login ───── */
@@ -39,7 +39,7 @@ body {
   position: fixed;
   inset: 0;
   z-index: 99999;
-  background: radial-gradient(120% 80% at 50% 35%, #2D4F45 0%, #2A4A40 100%);
+  background: radial-gradient(120% 80% at 50% 35%, theme(colors.pine.light) 0%, theme(colors.pine.DEFAULT) 100%);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -64,7 +64,7 @@ body {
   width: 260px;
   height: 260px;
   border-radius: 999px;
-  background: radial-gradient(circle, rgba(255,255,255,.22) 0%, rgba(255,255,255,.06) 40%, transparent 70%);
+  background: radial-gradient(circle, theme(colors.white/22%) 0%, theme(colors.white/6%) 40%, transparent 70%);
   transform: translate(-50%,-50%) scale(0.3);
   opacity: 0;
   will-change: transform, opacity;
@@ -95,7 +95,7 @@ body {
   margin-top: -100px;
   margin-left: -100px;
   border-radius: 999px;
-  background: radial-gradient(circle, rgba(120,210,150,.7) 0%, rgba(80,180,120,.2) 45%, transparent 70%);
+  background: radial-gradient(circle, theme(colors.goodDark/70%) 0%, theme(colors.goodDark/20%) 45%, transparent 70%);
   transform: scale3d(0.3,0.3,1);
   opacity: 0;
   will-change: transform, opacity;
@@ -112,7 +112,7 @@ body {
   font-size: 48px;
   line-height: 58px;
   letter-spacing: 0;
-  color: #fff;
+  color: theme(colors.white);
 }
 .pelikn-fake-splash-tag {
   position: relative;
@@ -121,7 +121,7 @@ body {
   font-weight: 500;
   letter-spacing: 0.28em;
   text-transform: uppercase;
-  color: #fff;
+  color: theme(colors.white);
   transform: translate3d(0,5px,0);
   opacity: 0;
   will-change: transform, opacity;
@@ -157,7 +157,7 @@ body {
 input, select, textarea, button { font-family: inherit; font-size: inherit; -webkit-appearance: none; }
 * { -webkit-tap-highlight-color: transparent; }
 ::-webkit-scrollbar { width: 3px; height: 3px; }
-::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.2); border-radius: 2px; }
+::-webkit-scrollbar-thumb { background: theme(colors.black/20%); border-radius: 2px; }
 ::-webkit-scrollbar-track { background: transparent; }
 table { border-spacing: 0; }
 .scrollbar-hide::-webkit-scrollbar { display: none; }
@@ -170,7 +170,7 @@ table { border-spacing: 0; }
   height: 100vh;
   height: 100dvh;
   background:
-    linear-gradient(135deg, #1a3d35 0%, #2d5449 50%, #1f4239 100%);
+    linear-gradient(135deg, theme(colors.pine.deep) 0%, theme(colors.pine.light) 50%, theme(colors.pine.deep) 100%);
   padding: 0;
   display: flex;
   align-items: center;
@@ -194,7 +194,7 @@ table { border-spacing: 0; }
     max(40px, env(safe-area-inset-top))
     24px
     max(28px, env(safe-area-inset-bottom));
-  color: #ffffff;
+  color: theme(colors.white);
   font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   background: transparent;
   box-shadow: none;
@@ -212,7 +212,7 @@ table { border-spacing: 0; }
   height: 19rem;
   border-radius: 999px;
   opacity: 0.18;
-  background: #3d6b5e;
+  background: theme(colors.pine.glow);
   filter: blur(4rem);
   animation: pelikn-figma-orb-one 8s ease-in-out infinite;
 }
@@ -231,7 +231,7 @@ table { border-spacing: 0; }
   width: 20rem;
   height: 20rem;
   opacity: 0.16;
-  background: #4a7d6e;
+  background: theme(colors.pine.glow);
   animation: pelikn-figma-orb-two 10s ease-in-out infinite;
 }
 .pelikn-ios-flow-two {
@@ -267,8 +267,8 @@ table { border-spacing: 0; }
   place-items: center;
   border-radius: 999px;
   margin-bottom: 24px;
-  background: rgba(255,255,255,0.1);
-  border: 1px solid rgba(255,255,255,0.15);
+  background: theme(colors.white/10%);
+  border: 1px solid theme(colors.white/15%);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   transform: scale3d(0.72, 0.72, 1);
@@ -283,7 +283,7 @@ table { border-spacing: 0; }
   position: absolute;
   inset: -4px;
   border-radius: 999px;
-  border: 1.5px solid rgba(255,255,255,0.2);
+  border: 1.5px solid theme(colors.white/20%);
   opacity: 0;
 }
 .landing-ready .pelikn-ios-mark::after {
@@ -294,7 +294,7 @@ table { border-spacing: 0; }
   position: absolute;
   inset: -12px;
   border-radius: 999px;
-  border: 1px solid rgba(255,255,255,0.08);
+  border: 1px solid theme(colors.white/8%);
   opacity: 0;
 }
 .landing-ready .pelikn-ios-mark::before {
@@ -310,7 +310,7 @@ table { border-spacing: 0; }
 
 .pelikn-ios-brand p {
   margin-top: 8px;
-  color: rgba(255,255,255,0.6);
+  color: theme(colors.white/60%);
   font-size: 12px;
   line-height: 1.2;
   text-transform: uppercase;
@@ -340,7 +340,7 @@ table { border-spacing: 0; }
 
 .pelikn-ios-field {
   position: relative;
-  color: rgba(255,255,255,0.43);
+  color: theme(colors.white/43%);
 }
 .pelikn-ios-field > svg {
   position: absolute;
@@ -357,9 +357,9 @@ table { border-spacing: 0; }
   height: 56px;
   min-height: 56px;
   border-radius: 14px;
-  border: 1px solid rgba(255,255,255,0.2);
-  background: rgba(255,255,255,0.1);
-  color: #ffffff;
+  border: 1px solid theme(colors.white/20%);
+  background: theme(colors.white/10%);
+  color: theme(colors.white);
   padding: 0 14px 0 42px;
   outline: none;
   font-size: 15px;
@@ -368,11 +368,11 @@ table { border-spacing: 0; }
   -webkit-backdrop-filter: blur(12px);
 }
 .pelikn-ios-input::placeholder {
-  color: rgba(255,255,255,0.43);
+  color: theme(colors.white/43%);
 }
 .pelikn-ios-input:focus {
-  border-color: rgba(255,255,255,0.5);
-  background: rgba(255,255,255,0.16);
+  border-color: theme(colors.white/50%);
+  background: theme(colors.white/16%);
 }
 .pelikn-ios-password {
   position: relative;
@@ -382,13 +382,13 @@ table { border-spacing: 0; }
   right: 6px;
   top: 50%;
   transform: translateY(-50%);
-  color: rgba(255,255,255,0.48);
+  color: theme(colors.white/48%);
   padding: 0.6rem;
 }
 .pelikn-ios-forgot {
   align-self: flex-end;
   margin-top: 0;
-  color: rgba(255,255,255,0.6);
+  color: theme(colors.white/60%);
   font-size: 13px;
   font-weight: 500;
 }
@@ -404,16 +404,16 @@ table { border-spacing: 0; }
 }
 .pelikn-ios-primary {
   margin-top: 8px;
-  color: #2d5449;
-  background: #ffffff;
+  color: theme(colors.pine.light);
+  background: theme(colors.white);
 }
 .landing-ready .pelikn-ios-primary:disabled {
   opacity: 0.62;
 }
 .pelikn-ios-secondary {
-  color: #ffffff;
-  background: rgba(255,255,255,0.02);
-  border: 1px solid rgba(255,255,255,0.3);
+  color: theme(colors.white);
+  background: theme(colors.white/2%);
+  border: 1px solid theme(colors.white/30%);
 }
 
 .pelikn-ios-divider {
@@ -421,7 +421,7 @@ table { border-spacing: 0; }
   align-items: center;
   gap: 12px;
   margin: 4px 0;
-  color: rgba(255,255,255,0.4);
+  color: theme(colors.white/40%);
   font-size: 13px;
   font-weight: 500;
 }
@@ -430,14 +430,14 @@ table { border-spacing: 0; }
   content: "";
   flex: 1;
   height: 1px;
-  background: rgba(255,255,255,0.27);
+  background: theme(colors.white/27%);
 }
 .pelikn-ios-signup {
   width: 100%;
   max-width: 340px;
   margin-top: 24px;
   padding-top: 0;
-  color: rgba(255,255,255,0.6);
+  color: theme(colors.white/60%);
   font-size: 13px;
   font-weight: 500;
   text-align: center;
@@ -448,7 +448,7 @@ table { border-spacing: 0; }
   animation: pelikn-figma-fade 0.4s 0.1s ease-out both;
 }
 .pelikn-ios-signup button {
-  color: #ffffff;
+  color: theme(colors.white);
 }
 .pelikn-ios-error,
 .pelikn-ios-notice {
@@ -457,13 +457,13 @@ table { border-spacing: 0; }
   font-weight: 800;
 }
 .pelikn-ios-error {
-  color: #fecaca;
+  color: theme(colors.badDark);
 }
 .pelikn-ios-notice {
-  color: #bbf7d0;
+  color: theme(colors.goodDark);
 }
 .pelikn-ios-panel-title {
-  color: #ffffff;
+  color: theme(colors.white);
   font-size: 1.4rem;
   font-weight: 800;
   text-align: center;
@@ -476,9 +476,9 @@ table { border-spacing: 0; }
 .pelikn-ios-venue-list button {
   min-height: 4.25rem;
   border-radius: 1.2rem;
-  border: 1px solid rgba(255,255,255,0.22);
-  background: rgba(255,255,255,0.12);
-  color: #ffffff;
+  border: 1px solid theme(colors.white/22%);
+  background: theme(colors.white/12%);
+  color: theme(colors.white);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -486,7 +486,7 @@ table { border-spacing: 0; }
   font-weight: 800;
 }
 .pelikn-ios-venue-list button span:last-child {
-  color: rgba(255,255,255,0.58);
+  color: theme(colors.white/58%);
   font-size: 0.85rem;
 }
 @keyframes pelikn-login-drift {
@@ -507,8 +507,8 @@ table { border-spacing: 0; }
   50% { opacity: 1; transform: translateX(-50%) scale(1.09); }
 }
 @keyframes pelikn-login-logo {
-  0%, 100% { box-shadow: 0 0 1.55rem rgba(255,255,255,0.14), 0 0 0 rgba(120, 216, 162, 0); transform: scale(1); }
-  50% { box-shadow: 0 0 2.8rem rgba(255,255,255,0.22), 0 0 3.4rem rgba(120, 216, 162, 0.35); transform: scale(1.035); }
+  0%, 100% { box-shadow: 0 0 1.55rem theme(colors.white/14%), 0 0 0 theme(colors.goodDark/0%); transform: scale(1); }
+  50% { box-shadow: 0 0 2.8rem theme(colors.white/22%), 0 0 3.4rem theme(colors.goodDark/35%); transform: scale(1.035); }
 }
 @keyframes pelikn-login-ring {
   0%, 100% { opacity: 0.36; transform: scale(0.92); }
@@ -554,8 +554,8 @@ table { border-spacing: 0; }
   50% { transform: translate3d(1.25rem, 2.5rem, 0) scale(1.2); }
 }
 @keyframes pelikn-figma-glow {
-  0%, 100% { box-shadow: 0 0 20px rgba(255,255,255,0.25), 0 0 0 rgba(120,216,162,0); }
-  50% { box-shadow: 0 0 35px rgba(255,255,255,0.5), 0 0 56px rgba(120,216,162,0.18); }
+  0%, 100% { box-shadow: 0 0 20px theme(colors.white/25%), 0 0 0 theme(colors.goodDark/0%); }
+  50% { box-shadow: 0 0 35px theme(colors.white/50%), 0 0 56px theme(colors.goodDark/18%); }
 }
 @keyframes pelikn-mark-ring-pulse {
   0%, 100% { opacity: 0.2; transform: scale(1); }
@@ -614,103 +614,99 @@ button, a, input, select, textarea, [role="button"] {
 /* (e.g. /35, /40) which is hard to read on mobile screens. These rules    */
 /* remap them to higher opacities globally, making labels and helper text   */
 /* noticeably easier to parse without touching every component.              */
-.text-charcoal\/20 { color: rgba(26, 26, 24, 0.38) !important; }
-.text-charcoal\/25 { color: rgba(26, 26, 24, 0.44) !important; }
-.text-charcoal\/30 { color: rgba(26, 26, 24, 0.50) !important; }
-.text-charcoal\/35 { color: rgba(26, 26, 24, 0.57) !important; }
-.text-charcoal\/40 { color: rgba(26, 26, 24, 0.63) !important; }
-.text-charcoal\/50 { color: rgba(26, 26, 24, 0.70) !important; }
-.text-charcoal\/60 { color: rgba(26, 26, 24, 0.76) !important; }
-.text-charcoal\/70 { color: rgba(26, 26, 24, 0.83) !important; }
+.text-charcoal\/20 { color: theme(colors.charcoal/38%) !important; }
+.text-charcoal\/25 { color: theme(colors.charcoal/44%) !important; }
+.text-charcoal\/30 { color: theme(colors.charcoal/50%) !important; }
+.text-charcoal\/35 { color: theme(colors.charcoal/57%) !important; }
+.text-charcoal\/40 { color: theme(colors.charcoal/63%) !important; }
+.text-charcoal\/50 { color: theme(colors.charcoal/70%) !important; }
+.text-charcoal\/60 { color: theme(colors.charcoal/76%) !important; }
+.text-charcoal\/70 { color: theme(colors.charcoal/83%) !important; }
 
 /* ── Dark mode global overrides ─────────────────────────────────────────── */
 html.dark body {
-  background: #111111;
+  background: theme(colors.bgDark);
 }
 
-/* Green sidebar always stays green — never get overridden by dark mode */
-html.dark aside.bg-brand {
-  background-color: #1a3c2e !important;
-}
 html.dark ::-webkit-scrollbar-thumb {
-  background: rgba(255,255,255,0.2);
+  background: theme(colors.white/20%);
 }
 
 /* Card / panel backgrounds */
 html.dark .bg-white {
-  background-color: #1e1e1e !important;
+  background-color: theme(colors.paperDark) !important;
 }
 html.dark .bg-cream {
-  background-color: #111111 !important;
+  background-color: theme(colors.bgDark) !important;
 }
 html.dark .bg-staffbg {
-  background-color: #111111 !important;
+  background-color: theme(colors.bgDark) !important;
 }
 html.dark .bg-parchment {
-  background-color: #161616 !important;
+  background-color: theme(colors.bgDark) !important;
 }
 
 /* Subtle cream tints → dark equivalents */
 html.dark .bg-cream\/30,
 html.dark .bg-cream\/40,
 html.dark .bg-cream\/50 {
-  background-color: rgba(255, 255, 255, 0.06) !important;
+  background-color: theme(colors.white/6%) !important;
 }
 
 /* Text: charcoal → light */
 html.dark .text-charcoal {
-  color: #e8e4dc !important;
+  color: theme(colors.inkDark) !important;
 }
 html.dark .text-charcoal\/80 {
-  color: rgba(232, 228, 220, 0.8) !important;
+  color: theme(colors.inkDark/80%) !important;
 }
 html.dark .text-charcoal\/75 {
-  color: rgba(232, 228, 220, 0.75) !important;
+  color: theme(colors.inkDark/75%) !important;
 }
 html.dark .text-charcoal\/70 {
-  color: rgba(232, 228, 220, 0.7) !important;
+  color: theme(colors.inkDark/70%) !important;
 }
 html.dark .text-charcoal\/65 {
-  color: rgba(232, 228, 220, 0.65) !important;
+  color: theme(colors.inkDark/65%) !important;
 }
 html.dark .text-charcoal\/60 {
-  color: rgba(232, 228, 220, 0.6) !important;
+  color: theme(colors.inkDark/60%) !important;
 }
 html.dark .text-charcoal\/55 {
-  color: rgba(232, 228, 220, 0.55) !important;
+  color: theme(colors.inkDark/55%) !important;
 }
 html.dark .text-charcoal\/50 {
-  color: rgba(232, 228, 220, 0.5) !important;
+  color: theme(colors.inkDark/50%) !important;
 }
 html.dark .text-charcoal\/45 {
-  color: rgba(232, 228, 220, 0.45) !important;
+  color: theme(colors.inkDark/45%) !important;
 }
 html.dark .text-charcoal\/40 {
-  color: rgba(232, 228, 220, 0.4) !important;
+  color: theme(colors.inkDark/40%) !important;
 }
 html.dark .text-charcoal\/35 {
-  color: rgba(232, 228, 220, 0.35) !important;
+  color: theme(colors.inkDark/35%) !important;
 }
 html.dark .text-charcoal\/30 {
-  color: rgba(232, 228, 220, 0.3) !important;
+  color: theme(colors.inkDark/30%) !important;
 }
 html.dark .text-charcoal\/28 {
-  color: rgba(232, 228, 220, 0.28) !important;
+  color: theme(colors.inkDark/28%) !important;
 }
 html.dark .text-charcoal\/25 {
-  color: rgba(232, 228, 220, 0.25) !important;
+  color: theme(colors.inkDark/25%) !important;
 }
 html.dark .text-charcoal\/22 {
-  color: rgba(232, 228, 220, 0.22) !important;
+  color: theme(colors.inkDark/22%) !important;
 }
 html.dark .text-charcoal\/20 {
-  color: rgba(232, 228, 220, 0.2) !important;
+  color: theme(colors.inkDark/20%) !important;
 }
 html.dark .text-charcoal\/16 {
-  color: rgba(232, 228, 220, 0.16) !important;
+  color: theme(colors.inkDark/16%) !important;
 }
 html.dark .text-charcoal\/15 {
-  color: rgba(232, 228, 220, 0.15) !important;
+  color: theme(colors.inkDark/15%) !important;
 }
 
 /* Borders */
@@ -728,7 +724,7 @@ html.dark .border-charcoal\/35,
 html.dark .border-charcoal\/40,
 html.dark .border-charcoal\/45,
 html.dark .border-charcoal\/50 {
-  border-color: rgba(255, 255, 255, 0.1) !important;
+  border-color: theme(colors.white/10%) !important;
 }
 
 /* Backgrounds with charcoal tints */
@@ -739,62 +735,62 @@ html.dark .bg-charcoal\/4,
 html.dark .bg-charcoal\/5,
 html.dark .bg-charcoal\/6,
 html.dark .bg-charcoal\/8 {
-  background-color: rgba(255, 255, 255, 0.05) !important;
+  background-color: theme(colors.white/5%) !important;
 }
 html.dark .bg-charcoal\/10,
 html.dark .bg-charcoal\/12,
 html.dark .bg-charcoal\/14,
 html.dark .bg-charcoal\/15 {
-  background-color: rgba(255, 255, 255, 0.08) !important;
+  background-color: theme(colors.white/8%) !important;
 }
 html.dark .bg-charcoal\/20,
 html.dark .bg-charcoal\/25,
 html.dark .bg-charcoal\/30 {
-  background-color: rgba(255, 255, 255, 0.14) !important;
+  background-color: theme(colors.white/14%) !important;
 }
 html.dark .bg-charcoal\/40,
 html.dark .bg-charcoal\/50 {
-  background-color: rgba(255, 255, 255, 0.2) !important;
+  background-color: theme(colors.white/20%) !important;
 }
 
 /* Hover states */
 html.dark .hover\:bg-charcoal\/5:hover,
 html.dark .hover\:bg-charcoal\/8:hover,
 html.dark .hover\:bg-charcoal\/10:hover {
-  background-color: rgba(255, 255, 255, 0.1) !important;
+  background-color: theme(colors.white/10%) !important;
 }
 
 /* Inputs: ensure readable in dark mode */
 html.dark input,
 html.dark select,
 html.dark textarea {
-  color: #e8e4dc;
+  color: theme(colors.inkDark);
 }
 html.dark input::placeholder,
 html.dark textarea::placeholder {
-  color: rgba(232, 228, 220, 0.3);
+  color: theme(colors.inkDark/30%);
 }
 
 /* Dividers */
 html.dark .divide-charcoal\/6 > :not([hidden]) ~ :not([hidden]) {
-  border-color: rgba(255, 255, 255, 0.08);
+  border-color: theme(colors.white/8%);
 }
 
 /* Ring colours in dark mode */
 html.dark .ring-charcoal\/10,
 html.dark .ring-charcoal\/20,
 html.dark .ring-charcoal\/30 {
-  --tw-ring-color: rgba(255, 255, 255, 0.15);
+  --tw-ring-color: theme(colors.white/15%);
 }
 
 /* Focus rings */
 html.dark .focus\:ring-charcoal\/20:focus {
-  --tw-ring-color: rgba(255, 255, 255, 0.2);
+  --tw-ring-color: theme(colors.white/20%);
 }
 
 /* Nav gradients */
 html.dark .from-white {
-  --tw-gradient-from: #1e1e1e !important;
+  --tw-gradient-from: theme(colors.paperDark) !important;
 }
 html.dark .to-transparent {
   --tw-gradient-to: transparent !important;
@@ -802,37 +798,37 @@ html.dark .to-transparent {
 
 /* Dropdown menus */
 html.dark .shadow-xl {
-  --tw-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+  --tw-shadow: 0 10px 25px theme(colors.black/50%);
 }
 
 /* Sticky table cells inherit dark bg */
 html.dark td.bg-white,
 html.dark th.bg-white,
 html.dark .sticky.bg-white {
-  background-color: #1e1e1e !important;
+  background-color: theme(colors.paperDark) !important;
 }
 
 /* Accent tints in dark mode — slightly brighter for readability */
 html.dark .bg-accent\/5,
 html.dark .bg-accent\/8 {
-  background-color: rgba(201, 79, 42, 0.12) !important;
+  background-color: theme(colors.accent/12%) !important;
 }
 
 /* Success / warning / danger tints */
 html.dark .bg-success\/8,
 html.dark .bg-success\/10 {
-  background-color: rgba(22, 163, 74, 0.15) !important;
+  background-color: theme(colors.good/20%) !important;
 }
 html.dark .bg-warning\/8 {
-  background-color: rgba(217, 119, 6, 0.15) !important;
+  background-color: theme(colors.warn/20%) !important;
 }
 html.dark .bg-danger\/8 {
-  background-color: rgba(220, 38, 38, 0.15) !important;
+  background-color: theme(colors.bad/20%) !important;
 }
 
 /* ── Focus-visible styles (a11y) ───────────────────────────────────────── */
 *:focus-visible {
-  outline: 2px solid #13362a;
+  outline: 2px solid theme(colors.brand.DEFAULT);
   outline-offset: 2px;
   border-radius: 4px;
 }

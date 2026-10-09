@@ -236,7 +236,7 @@ function SubNav({ items, currentPath }) {
   }, [currentPath])
 
   return (
-    <nav ref={scrollRef} className="lg:hidden relative flex gap-2 px-4 py-2.5 overflow-x-auto scrollbar-hide bg-white dark:bg-paperDark dark:bg-[#1a1a1a] border-b border-charcoal/8 dark:border-white/10" aria-label="Section navigation" style={{ maskImage: 'linear-gradient(90deg, black 90%, transparent)', WebkitMaskImage: 'linear-gradient(90deg, black 90%, transparent)' }}>
+    <nav ref={scrollRef} className="lg:hidden relative flex gap-2 px-4 py-2.5 overflow-x-auto scrollbar-hide bg-white dark:bg-paperDark border-b border-charcoal/8 dark:border-white/10" aria-label="Section navigation" style={{ maskImage: 'linear-gradient(90deg, black 90%, transparent)', WebkitMaskImage: 'linear-gradient(90deg, black 90%, transparent)' }}>
       {items.map(item => {
         const isActive = currentPath === item.to || currentPath.startsWith(item.to + '/')
         return (
@@ -437,7 +437,7 @@ export default function MobileNav() {
   return (
     <>
       {showBackRow && (
-        <div className="lg:hidden bg-white dark:bg-paperDark dark:bg-[#1a1a1a] border-b border-charcoal/8 dark:border-white/10" style={{
+        <div className="lg:hidden bg-white dark:bg-paperDark border-b border-charcoal/8 dark:border-white/10" style={{
           padding: '8px 16px',
         }}>
           <NavLink
@@ -455,7 +455,7 @@ export default function MobileNav() {
       {createPortal(
         <>
           <nav
-            className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-paperDark dark:bg-[#1a1a1a] border-t border-charcoal/8 dark:border-white/10 shadow-[0_-4px_20px_rgba(0,0,0,0.04)]"
+            className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-paperDark border-t border-charcoal/8 dark:border-white/10 shadow-[0_-4px_20px_theme(colors.black/4%)]"
             style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
             aria-label="Main navigation"
             role="tablist"

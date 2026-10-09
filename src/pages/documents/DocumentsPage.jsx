@@ -283,9 +283,9 @@ export default function DocumentsPage() {
           onClick={() => setAttention(v => !v)}
           className="w-full flex items-center gap-2.5 rounded-2xl bg-warnBg dark:bg-warn/20 px-3.5 sm:px-3.5 py-2 text-left"
         >
-          <svg className="shrink-0 w-5 h-5 text-warn dark:text-[#e8b06a]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="14" r="8" /><polyline points="12 10 12 14 14.5 15.5" /><line x1="10" y1="2" x2="14" y2="2" /></svg>
+          <svg className="shrink-0 w-5 h-5 text-warn dark:text-warnDark" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="14" r="8" /><polyline points="12 10 12 14 14.5 15.5" /><line x1="10" y1="2" x2="14" y2="2" /></svg>
           <span className="flex-1 min-w-0 text-[13px] min-[420px]:text-[14px] font-semibold text-ink dark:text-white">{bannerText}</span>
-          <span className="shrink-0 text-[13px] min-[420px]:text-[14px] font-semibold text-warn dark:text-[#e8b06a]">{attention ? 'Show all' : 'Review'}</span>
+          <span className="shrink-0 text-[13px] min-[420px]:text-[14px] font-semibold text-warn dark:text-warnDark">{attention ? 'Show all' : 'Review'}</span>
         </button>
       )}
 

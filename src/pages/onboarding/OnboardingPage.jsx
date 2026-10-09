@@ -437,7 +437,7 @@ export default function OnboardingPage() {
   const enabledCount = [...enabledFeatures].filter(id => !PRO_ONLY_FEATURE_IDS.includes(id) || isPro).length
 
   return (
-    <div className="min-h-dvh bg-surface dark:bg-[#111111] flex flex-col font-sans">
+    <div className="min-h-dvh bg-surface dark:bg-bgDark flex flex-col font-sans">
 
       {/* Upgrade modal */}
       {upgradeFeature && (
@@ -474,7 +474,7 @@ export default function OnboardingPage() {
                     className={[
                       'w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold font-mono border-none shrink-0 transition-all',
                       state === 'done' ? 'bg-brand text-white cursor-pointer' :
-                      state === 'cur'  ? 'bg-brand text-white shadow-[0_0_0_4px_rgba(45,79,69,0.15)]' :
+                      state === 'cur'  ? 'bg-brand text-white shadow-[0_0_0_4px_theme(colors.brand/15%)]' :
                                          'bg-charcoal/12 dark:bg-white/15 text-charcoal/40 dark:text-white/35 cursor-default',
                     ].join(' ')}
                   >
@@ -920,7 +920,7 @@ export default function OnboardingPage() {
 
       {/* Sticky footer nav — on phones it sits on top of the MobileNav bar
           (h-14 + iOS safe area), matching the Staff save bar */}
-      <div className="sticky bottom-[calc(56px+env(safe-area-inset-bottom,0px))] lg:bottom-0 left-0 right-0 bg-surface/90 dark:bg-[#111111]/90 backdrop-blur-sm border-t border-charcoal/8 dark:border-white/8 p-3 z-10 shrink-0">
+      <div className="sticky bottom-[calc(56px+env(safe-area-inset-bottom,0px))] lg:bottom-0 left-0 right-0 bg-surface/90 dark:bg-bgDark/90 backdrop-blur-sm border-t border-charcoal/8 dark:border-white/8 p-3 z-10 shrink-0">
         <div className="flex gap-2 max-w-[540px] mx-auto">
           {step > 0 && step < STEPS.length - 1 && (
             <Button

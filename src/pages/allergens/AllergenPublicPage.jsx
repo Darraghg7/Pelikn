@@ -86,19 +86,19 @@ export default function AllergenPublicPage() {
   }, [venueSlug])
 
   if (loading) return (
-    <div className="min-h-screen bg-[#f5f4f1] flex items-center justify-center">
+    <div className="min-h-screen bg-cream flex items-center justify-center">
       <p className="text-sm text-charcoal/40 dark:text-white/35">Loading allergen information…</p>
     </div>
   )
 
   if (error) return (
-    <div className="min-h-screen bg-[#f5f4f1] flex items-center justify-center">
+    <div className="min-h-screen bg-cream flex items-center justify-center">
       <p className="text-sm text-charcoal/40 dark:text-white/35">{error}</p>
     </div>
   )
 
   return (
-    <div className="min-h-screen bg-[#f5f4f1]">
+    <div className="min-h-screen bg-cream">
       <div className="max-w-4xl mx-auto px-4 py-8">
 
         {/* Header */}
@@ -112,7 +112,7 @@ export default function AllergenPublicPage() {
             />
           )}
           <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-1">Allergen Information</p>
-          <h1 className="text-3xl font-bold text-[#1a3c2e]">{venue?.name}</h1>
+          <h1 className="text-3xl font-bold text-brand">{venue?.name}</h1>
           <p className="text-sm text-charcoal/50 dark:text-white/40 mt-2">
             The 14 major allergens are listed below. <span className="font-semibold text-amber-700">If you have a severe allergy, please speak with a member of staff before ordering.</span>
           </p>
@@ -167,7 +167,7 @@ export default function AllergenPublicPage() {
               <div className="overflow-x-auto">
                 <table className="w-full text-xs">
                   <thead>
-                    <tr className="bg-[#1a3c2e] text-white">
+                    <tr className="bg-brand text-white">
                       <th className="text-left px-4 py-3 font-semibold min-w-[160px]">Item</th>
                       {ALL_ALLERGENS.map(a => (
                         <th key={a} className="px-2 py-3 font-semibold whitespace-nowrap" style={{ writingMode: 'vertical-lr', transform: 'rotate(180deg)', height: 90 }}>
@@ -181,7 +181,7 @@ export default function AllergenPublicPage() {
                       const allergenSet   = new Set((item.food_allergens ?? []).map(a => a.allergen))
                       const mayContainSet = new Set((item.may_contain_allergens ?? []))
                       return (
-                        <tr key={item.id} className={idx % 2 === 0 ? 'bg-white dark:bg-paperDark' : 'bg-[#f5f4f1]'}>
+                        <tr key={item.id} className={idx % 2 === 0 ? 'bg-white dark:bg-paperDark' : 'bg-cream'}>
                           <td className="px-4 py-2.5 font-medium text-charcoal dark:text-white">{item.name}</td>
                           {ALL_ALLERGENS.map(a => (
                             <td key={a} className="px-2 py-2.5 text-center">

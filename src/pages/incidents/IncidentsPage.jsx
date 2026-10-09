@@ -57,7 +57,7 @@ function metaLine(incident) {
 
 function RiddorTag({ reported }) {
   return (
-    <span className={`h-7 px-2.5 rounded-lg inline-flex items-center font-mono text-[13px] font-bold border-[1.5px] ${reported ? 'border-line text-ink3 dark:border-white/15 dark:text-white/45' : 'border-bad text-bad dark:border-[#f19a86] dark:text-[#f19a86]'}`}>
+    <span className={`h-7 px-2.5 rounded-lg inline-flex items-center font-mono text-[13px] font-bold border-[1.5px] ${reported ? 'border-line text-ink3 dark:border-white/15 dark:text-white/45' : 'border-bad text-bad dark:border-badDark dark:text-badDark'}`}>
       {reported ? 'RIDDOR ✓' : 'RIDDOR'}
     </span>
   )
@@ -219,7 +219,7 @@ function ReportIncidentModal({ open, onClose, onSaved }) {
             <div className="mt-2 flex flex-col gap-2">
               {RIDDOR_CATEGORIES.map(c => (
                 <label key={c.value} className="flex items-center gap-2.5 text-[13px] text-ink dark:text-white">
-                  <input type="radio" name="riddor_category" checked={form.riddor_category === c.value} onChange={() => set('riddor_category', c.value)} className="accent-[#b3331c] w-4 h-4" />
+                  <input type="radio" name="riddor_category" checked={form.riddor_category === c.value} onChange={() => set('riddor_category', c.value)} className="accent-bad w-4 h-4" />
                   {c.label}
                 </label>
               ))}
@@ -372,7 +372,7 @@ function IncidentDetailModal({ incident, onClose, onChanged }) {
               </p>
             ) : (
               <div className="flex flex-col gap-2.5">
-                <p className="text-[13px] font-semibold text-bad dark:text-[#f19a86]">
+                <p className="text-[13px] font-semibold text-bad dark:text-badDark">
                   Report to the HSE · {deadline ? dueText(deadline.daysLeft) : 'due'}{deadline && ` (${format(deadline.due, 'd MMM')})`}
                 </p>
                 {riddorCategory && <p className="text-[13px] text-ink2 dark:text-white/70 -mt-2">{riddorCategory}</p>}
@@ -547,9 +547,9 @@ export default function IncidentsPage() {
         >
           <span className="shrink-0 px-2.5 py-1 rounded-lg bg-bad text-white font-mono text-[13px] font-bold">RIDDOR</span>
           <span className="flex-1 min-w-0 text-[13px] min-[420px]:text-[14px] text-ink dark:text-white">
-            Report “{incidentTitle(incident).replace(/^./, c => c.toLowerCase())}” to HSE · <span className={deadline.daysLeft < 0 ? 'font-semibold text-bad dark:text-[#f19a86]' : ''}>{dueText(deadline.daysLeft)}</span>
+            Report “{incidentTitle(incident).replace(/^./, c => c.toLowerCase())}” to HSE · <span className={deadline.daysLeft < 0 ? 'font-semibold text-bad dark:text-badDark' : ''}>{dueText(deadline.daysLeft)}</span>
           </span>
-          <span className="shrink-0 text-[13px] min-[420px]:text-[14px] font-semibold text-bad dark:text-[#f19a86]">Open</span>
+          <span className="shrink-0 text-[13px] min-[420px]:text-[14px] font-semibold text-bad dark:text-badDark">Open</span>
         </button>
       ))}
 

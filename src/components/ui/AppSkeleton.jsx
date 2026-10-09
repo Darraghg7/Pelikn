@@ -9,7 +9,7 @@ import Skeleton from './Skeleton'
  */
 export default function AppSkeleton() {
   return (
-    <div className="min-h-dvh flex bg-surface dark:bg-[#111111]">
+    <div className="min-h-dvh flex bg-surface dark:bg-bgDark">
       <div className="hidden lg:block w-20 shrink-0 bg-brand" aria-hidden="true" />
       <div className="flex-1 flex flex-col min-h-dvh">
         <div className="lg:hidden h-14 bg-brand shrink-0" aria-hidden="true" />

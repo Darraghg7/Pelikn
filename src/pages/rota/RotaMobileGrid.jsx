@@ -236,7 +236,7 @@ function ShiftSheet({ shift, staffMember, day, venueId, roles, onClose, onSaved,
                 <button
                   key={k}
                   onClick={() => setEdge(k)}
-                  className={`flex-1 cursor-pointer border-none rounded-[9px] py-[7px] ${on ? 'bg-white dark:bg-paperDark shadow-[0_1px_3px_rgba(9,18,13,0.1)]' : 'bg-transparent'}`}
+                  className={`flex-1 cursor-pointer border-none rounded-[9px] py-[7px] ${on ? 'bg-white dark:bg-paperDark shadow-[0_1px_3px_theme(colors.ink/10%)]' : 'bg-transparent'}`}
                 >
                   <div className="font-mono text-[9px] text-charcoal/50 dark:text-white/40 uppercase tracking-[0.06em] font-semibold">{lbl}</div>
                   <div className="font-mono text-[17px] font-semibold mt-0.5 tabular-nums" style={{ color: on ? col : '#76817b' }}>{val}</div>

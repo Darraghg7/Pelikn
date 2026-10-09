@@ -782,7 +782,7 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
       {/* Account access */}
       {current && (
         <>
-          <p className="px-1 -mb-1 text-[12px] font-semibold tracking-[0.08em] uppercase text-bad dark:text-[#f19a86]">Account access</p>
+          <p className="px-1 -mb-1 text-[12px] font-semibold tracking-[0.08em] uppercase text-bad dark:text-badDark">Account access</p>
           <div className={`${CARD} overflow-hidden divide-y divide-line dark:divide-white/10`}>
             {isLocked && (
               <ActionRow title="PIN locked" hint="Too many wrong PIN attempts. Unlock so they can sign in again.">
@@ -829,7 +829,7 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
                   </Button>
                 </ActionRow>
                 <div className="px-3.5 sm:px-3.5 py-2.5 bg-badBg/70 dark:bg-bad/15">
-                  <p className="text-[14px] font-semibold text-bad dark:text-[#f19a86]">Delete staff member</p>
+                  <p className="text-[14px] font-semibold text-bad dark:text-badDark">Delete staff member</p>
                   <p className="text-[13px] text-ink2 dark:text-white/70 mt-0.5">Permanently wipe this person and their records from the venue.</p>
                   <Button
                     variant="danger"
@@ -848,7 +848,7 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
       )}
 
       {/* Save bar */}
-      <div className="fixed left-0 right-0 bottom-[calc(56px+env(safe-area-inset-bottom,0px))] lg:bottom-0 z-40 bg-surface/95 dark:bg-[#111111]/95 backdrop-blur border-t border-line dark:border-white/10">
+      <div className="fixed left-0 right-0 bottom-[calc(56px+env(safe-area-inset-bottom,0px))] lg:bottom-0 z-40 bg-surface/95 dark:bg-bgDark/95 backdrop-blur border-t border-line dark:border-white/10">
         <div className="max-w-[480px] md:max-w-2xl lg:max-w-3xl mx-auto px-3.5 py-2.5 flex gap-2 lg:pl-[340px] lg:max-w-none">
           <Button variant="secondary" size="sm" onClick={cancelEdit}>
             Cancel
@@ -894,9 +894,9 @@ function Field({ label, group = false, children }) {
 
 function Tag({ tone, big = false, children }) {
   const cls = {
-    good:  'bg-goodBg text-good dark:bg-good/20 dark:text-[#7fd1a4]',
-    warn:  'bg-warnBg text-warn dark:bg-warn/20 dark:text-[#e8b06a]',
-    bad:   'bg-badBg text-bad dark:bg-bad/25 dark:text-[#f19a86]',
+    good:  'bg-goodBg text-good dark:bg-good/20 dark:text-goodDark',
+    warn:  'bg-warnBg text-warn dark:bg-warn/20 dark:text-warnDark',
+    bad:   'bg-badBg text-bad dark:bg-bad/25 dark:text-badDark',
     muted: 'bg-line2 text-ink2 dark:bg-white/10 dark:text-white/70',
   }[tone]
   return <span className={`shrink-0 rounded-full inline-flex items-center font-semibold ${big ? 'h-7 px-3.5 text-[13px]' : 'h-6 px-2 text-xs'} ${cls}`}>{children}</span>
