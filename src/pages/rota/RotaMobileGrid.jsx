@@ -16,6 +16,7 @@ import LoadError from '../../components/ui/LoadError'
 import Avatar from '../../components/ui/Avatar'
 import { shortName } from '../../lib/names'
 import Button, { CloseButton } from '../../components/ui/Button'
+import { useTheme } from '../../contexts/ThemeContext'
 
 const STATION_COLOR = { Kitchen: '#b5701f', FOH: '#2d7d6e', Bar: '#7a5ea8', KP: '#4f6d8a' }
 const STATION_ORDER = ['Kitchen', 'FOH', 'Bar', 'KP']
@@ -95,8 +96,9 @@ function Wheel({ values, value, onChange, accent }) {
         })}
       </div>
       <div className="absolute left-0 right-0 pointer-events-none border-t border-b border-charcoal/10 dark:border-white/10" style={{ top: pad, height: IH, background: 'rgba(19,54,42,0.03)' }} />
-      <div className="absolute left-0 right-0 top-0 pointer-events-none" style={{ height: pad, background: 'linear-gradient(#f3f3ef, #f3f3ef00)' }} />
-      <div className="absolute left-0 right-0 bottom-0 pointer-events-none" style={{ height: pad, background: 'linear-gradient(#f3f3ef00, #f3f3ef)' }} />
+      {/* Fade to the sheet colour (surface, or paperDark in dark mode) */}
+      <div className="absolute left-0 right-0 top-0 pointer-events-none bg-gradient-to-b from-surface to-surface/0 dark:from-paperDark dark:to-paperDark/0" style={{ height: pad }} />
+      <div className="absolute left-0 right-0 bottom-0 pointer-events-none bg-gradient-to-t from-surface to-surface/0 dark:from-paperDark dark:to-paperDark/0" style={{ height: pad }} />
     </div>
   )
 }
@@ -124,7 +126,9 @@ function ShiftSheet({ shift, staffMember, day, venueId, roles, onClose, onSaved,
   const startTime = `${startH}:${startM}`
   const endTime   = `${endH}:${endM}`
   const station   = stationFromRole(roleLabel)
-  const col       = station ? STATION_COLOR[station] : '#13362a'
+  const { dark } = useTheme()
+  // No station: brand green, which is unreadable on the dark sheet, so white there
+  const col       = station ? STATION_COLOR[station] : (dark ? '#ffffff' : '#13362a')
   const hrs       = shiftDurationHours(startTime, endTime)
   const valid     = hrs > 0 && !!roleLabel
   const rate      = staffMember?.hourly_rate
@@ -197,7 +201,7 @@ function ShiftSheet({ shift, staffMember, day, venueId, roles, onClose, onSaved,
   return (
     <>
       <div onClick={onClose} className="fixed inset-0 z-[52] [animation:fadeIn_.2s_ease_both]" style={{ background: 'rgba(9,18,13,0.42)' }} />
-      <div className="fixed bottom-0 left-0 right-0 z-[53] bg-surface rounded-t-[22px] max-h-[90%] flex flex-col [animation:sheetUp_.32s_cubic-bezier(0.16,1,0.3,1)_both]" style={{ boxShadow: '0 -12px 40px rgba(9,18,13,0.22)' }}>
+      <div className="fixed bottom-0 left-0 right-0 z-[53] bg-surface dark:bg-paperDark rounded-t-[22px] max-h-[90%] flex flex-col [animation:sheetUp_.32s_cubic-bezier(0.16,1,0.3,1)_both]" style={{ boxShadow: '0 -12px 40px rgba(9,18,13,0.22)' }}>
 
         {/* Scrollable form body */}
         <div className="overflow-y-auto px-4 pt-[10px] pb-1 flex-1">
@@ -225,7 +229,7 @@ function ShiftSheet({ shift, staffMember, day, venueId, roles, onClose, onSaved,
           </div>
 
           {/* Start / End toggle */}
-          <div className="flex gap-2 bg-charcoal/[0.06] p-1 rounded-xl mb-3">
+          <div className="flex gap-2 bg-charcoal/[0.06] dark:bg-white/[0.06] p-1 rounded-xl mb-3">
             {[['start', 'Start', startTime], ['end', 'End', endTime]].map(([k, lbl, val]) => {
               const on = edge === k
               return (
@@ -272,7 +276,7 @@ function ShiftSheet({ shift, staffMember, day, venueId, roles, onClose, onSaved,
         </div>
 
         {/* Sticky footer — always visible regardless of form scroll position */}
-        <div className="px-4 border-t border-charcoal/[0.06] bg-surface shrink-0" style={{ paddingTop: 12, paddingBottom: 'max(24px, env(safe-area-inset-bottom))' }}>
+        <div className="px-4 border-t border-charcoal/[0.06] dark:border-white/10 bg-surface dark:bg-paperDark shrink-0" style={{ paddingTop: 12, paddingBottom: 'max(24px, env(safe-area-inset-bottom))' }}>
           <div className="flex gap-2">
             {existing && (
               <Button variant="danger-ghost" size="lg" iconOnly loading={deleting} aria-label="Delete shift" onClick={del} disabled={deleting}>
@@ -327,7 +331,7 @@ function SwapSheet({ swaps, onClose, onResolved }) {
   return (
     <>
       <div onClick={onClose} className="fixed inset-0 z-[52] [animation:fadeIn_.2s_ease_both]" style={{ background: 'rgba(9,18,13,0.42)' }} />
-      <div className="fixed bottom-0 left-0 right-0 z-[53] bg-surface rounded-t-[22px] max-h-[80%] flex flex-col [animation:sheetUp_.32s_cubic-bezier(0.16,1,0.3,1)_both]" style={{ boxShadow: '0 -12px 40px rgba(9,18,13,0.22)' }}>
+      <div className="fixed bottom-0 left-0 right-0 z-[53] bg-surface dark:bg-paperDark rounded-t-[22px] max-h-[80%] flex flex-col [animation:sheetUp_.32s_cubic-bezier(0.16,1,0.3,1)_both]" style={{ boxShadow: '0 -12px 40px rgba(9,18,13,0.22)' }}>
         <div className="px-4 pt-[10px]">
           <div className="w-[38px] h-1 rounded-sm bg-charcoal/10 dark:bg-white/10 mx-auto mb-[14px]" />
           <div className="text-[18px] font-semibold tracking-[-0.015em] text-charcoal dark:text-white">Swap requests</div>
@@ -406,7 +410,7 @@ function AutoFillSheet({ openShifts, staff, unavailability = {}, venueId, onClos
   return (
     <>
       <div onClick={onClose} className="fixed inset-0 z-[52] [animation:fadeIn_.2s_ease_both]" style={{ background: 'rgba(9,18,13,0.42)' }} />
-      <div className="fixed bottom-0 left-0 right-0 z-[53] bg-surface rounded-t-[22px] px-4 pb-8 pt-[10px] max-h-[90%] overflow-y-auto [animation:sheetUp_.32s_cubic-bezier(0.16,1,0.3,1)_both]" style={{ boxShadow: '0 -12px 40px rgba(9,18,13,0.22)' }}>
+      <div className="fixed bottom-0 left-0 right-0 z-[53] bg-surface dark:bg-paperDark rounded-t-[22px] px-4 pb-8 pt-[10px] max-h-[90%] overflow-y-auto [animation:sheetUp_.32s_cubic-bezier(0.16,1,0.3,1)_both]" style={{ boxShadow: '0 -12px 40px rgba(9,18,13,0.22)' }}>
         <div className="w-[38px] h-1 rounded-sm bg-charcoal/10 dark:bg-white/10 mx-auto mb-[14px]" />
         <div className="flex items-center gap-[11px]">
           <span className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'rgba(201,79,42,0.10)', color: '#c94f2a' }}>
