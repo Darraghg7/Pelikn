@@ -1,6 +1,7 @@
 import { chromium } from 'playwright'
 import fs from 'node:fs'
 import path from 'node:path'
+import { colors } from '../src/lib/tokens.js'
 
 const outDir = path.resolve('ios/App/App/Assets.xcassets/Splash.imageset')
 const outputFiles = [
@@ -27,12 +28,12 @@ const html = `<!doctype html>
         position: relative;
         width: 1290px;
         height: 2796px;
-        background: #2A4A40;
+        background: ${colors.pine.DEFAULT};
         display: flex;
         align-items: center;
         justify-content: center;
         font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-        color: #fff;
+        color: ${colors.paper};
       }
       .word {
         position: relative;

@@ -19,6 +19,7 @@
 import { readFileSync, writeFileSync, existsSync, readdirSync, statSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { syncOutsideColours } from './outside-colours.mjs'
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const baselinePath = path.join(root, 'hard-coded-colours-baseline.json')
@@ -94,6 +95,15 @@ if (better.length) {
   out('Lock the improvement in: npm run lint:colours -- --update, and commit hard-coded-colours-baseline.json.')
 }
 
-if (worse.length || better.length) process.exit(1)
+// Native settings, the PWA manifest and index.html can't import tokens.js;
+// check they still carry the token values (scripts/outside-colours.mjs).
+const drift = syncOutsideColours()
+if (drift.length) {
+  console.error('hard-coded-colours — colours outside src/ are out of step with src/lib/tokens.js:')
+  for (const d of drift) console.error(`  ${d}`)
+  console.error('Run: npm run colours:sync')
+}
+
+if (worse.length || better.length || drift.length) process.exit(1)
 
 console.log(`hard-coded-colours — passed (${total} left in ${Object.keys(sorted).length} files, none new).`)
