@@ -8,6 +8,7 @@ export interface StaffLite {
   name: string
   job_role?: string | null
   photo_url?: string | null
+  colour?: string | null
 }
 
 export interface SignOffRecord {
@@ -32,7 +33,7 @@ export interface CertRecord {
 export async function fetchSignOffs(venueId: string): Promise<SignOffRecord[]> {
   const { data, error } = await supabase
     .from('training_sign_offs')
-    .select('*, staff:staff_id(id, name, job_role, photo_url)')
+    .select('*, staff:staff_id(id, name, job_role, photo_url, colour)')
     .eq('venue_id', venueId)
     .order('created_at', { ascending: false })
   if (error) throw error
@@ -65,7 +66,7 @@ export const unsignedTrainingKey = (venueId: string | null | undefined) =>
 export async function fetchCertRecords(venueId: string): Promise<CertRecord[]> {
   const { data, error } = await supabase
     .from('staff_training')
-    .select('*, staff:staff_id(id, name, job_role, photo_url)')
+    .select('*, staff:staff_id(id, name, job_role, photo_url, colour)')
     .eq('venue_id', venueId)
     .order('expiry_date', { ascending: true, nullsFirst: false })
   if (error) throw error

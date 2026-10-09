@@ -9,7 +9,8 @@ import { useVenue } from '../../contexts/VenueContext'
 import { useHRSummary } from '../../hooks/useHRSummary'
 import { useStaffJobTitles } from '../../hooks/useVenueRoles'
 import { SkeletonList } from '../../components/ui/Skeleton'
-import EmployeeRecordPanel, { Avatar, nameInitials } from './EmployeeRecordPanel'
+import EmployeeRecordPanel from './EmployeeRecordPanel'
+import Avatar from '../../components/ui/Avatar'
 import LoadError from '../../components/ui/LoadError'
 
 // ── Stat tile ─────────────────────────────────────────────────────────────────
@@ -73,7 +74,7 @@ function MobileRow({ s, actionIds, expiringIds, onClick }) {
       onClick={onClick}
       className="flex items-center gap-[11px] w-full text-left cursor-pointer px-[14px] py-[10px] bg-transparent border-0 border-t border-charcoal/6 dark:border-white/8 first:border-t-0"
     >
-      <Avatar name={s.name} size={38} />
+      <Avatar name={s.name} id={s.id} colour={s.colour} photoUrl={s.photo_url} size="md" decorative />
       <div className="flex-1 min-w-0">
         <div className="text-[13.5px] font-medium text-charcoal dark:text-white overflow-hidden text-ellipsis whitespace-nowrap">{s.name}</div>
         <div className="font-mono text-[10px] text-charcoal/50 dark:text-white/40 uppercase tracking-[0.03em] mt-px overflow-hidden text-ellipsis whitespace-nowrap">{s.job_title || 'No job title'}</div>
@@ -107,7 +108,7 @@ function ListRow({ s, selected, actionIds, expiringIds, onClick }) {
         isSel ? 'bg-brand/8' : hovered ? 'bg-charcoal/6 dark:bg-white/8' : 'bg-transparent'
       }`}
     >
-      <Avatar name={s.name} size={36} />
+      <Avatar name={s.name} id={s.id} colour={s.colour} photoUrl={s.photo_url} size="md" decorative />
       <div className="flex-1 min-w-0">
         <div className={`text-[13.5px] text-charcoal dark:text-white overflow-hidden text-ellipsis whitespace-nowrap ${isSel ? 'font-bold' : 'font-medium'}`}>
           {s.name}

@@ -15,7 +15,7 @@ import { timeOffPermissions, isBlocking } from '../../lib/api/timeOff'
 import { useAppSettings } from '../../hooks/useSettings'
 import {
   LEAVE_TYPES,
-  leaveTypeLabel, getRequestsForDay, fmtDays, maxStaffOffInRange, initials, employmentLabel,
+  leaveTypeLabel, getRequestsForDay, fmtDays, maxStaffOffInRange, employmentLabel,
 } from './timeOffConstants'
 import {
   useTimeOffRequests, useActiveStaff, useOwnProfile, useTeamLeaveBalances,
@@ -25,6 +25,7 @@ import ManualLeaveModal from './ManualLeaveModal'
 import EditRequestModal from './EditRequestModal'
 import { CARD, TONE, PageHeader } from '../../components/temperature/TempPageParts'
 import LoadError from '../../components/ui/LoadError'
+import Avatar from '../../components/ui/Avatar'
 
 const FIELD_LABEL = 'block text-[13px] font-semibold tracking-[0.08em] uppercase text-ink3 dark:text-white/45 mb-2'
 const TEXT_FIELD  = 'w-full h-12 px-4 rounded-xl border border-line dark:border-white/10 bg-cream dark:bg-white/5 text-[15px] text-ink dark:text-white placeholder:text-ink4 dark:placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand/40 focus:bg-white dark:focus:bg-white/10 transition-colors'
@@ -327,9 +328,7 @@ export default function TimeOffPage() {
                     {...(actionable ? { type: 'button', onClick: () => setEditing(r) } : {})}
                     className={`w-full flex items-center gap-2.5 px-3.5 sm:px-3.5 py-2.5 text-left ${actionable ? 'hover:bg-cream/60 dark:hover:bg-white/5' : ''}`}
                   >
-                    <span className="shrink-0 w-9 h-8 rounded-full bg-brand-tint dark:bg-white/10 inline-flex items-center justify-center font-mono text-[13px] font-bold text-ink2 dark:text-white/80">
-                      {initials(r.staff?.name)}
-                    </span>
+                    <Avatar name={r.staff?.name} id={r.staff_id} colour={r.staff?.colour} photoUrl={r.staff?.photo_url} size="md" decorative />
                     <span className="flex-1 min-w-0 text-[14px] truncate">
                       <span className="font-semibold text-ink dark:text-white">{r.staff?.name ?? 'Someone'}</span>
                       <span className="text-ink3 dark:text-white/45"> · {leaveName(r.leave_type)}</span>

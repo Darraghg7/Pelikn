@@ -23,6 +23,7 @@ import Modal from '../../components/ui/Modal'
 import ConfirmDialog from '../../components/ui/ConfirmDialog'
 import { PageSkeleton, SkeletonList } from '../../components/ui/Skeleton'
 import { useStaffJobTitles } from '../../hooks/useVenueRoles'
+import Avatar from '../../components/ui/Avatar'
 import {
   useStaffHeader, useHRDocuments, useDisciplinaryRecord,
   useLeaveRequests, useStaffTrainingRecord, useStaffSessions,
@@ -77,10 +78,6 @@ export function tenure(isoDate) {
   return m === 0 ? `${y} yr` : `${y} yr ${m} mo`
 }
 
-export function nameInitials(name) {
-  return (name || '?').split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase()
-}
-
 function expiryStatus(dateStr) {
   if (!dateStr) return null
   const d = differenceInDays(parseISO(dateStr), new Date())
@@ -90,18 +87,6 @@ function expiryStatus(dateStr) {
 }
 
 // ── Shared atoms ─────────────────────────────────────────────────────────────
-export function Avatar({ name, size = 40, color }) {
-  const initials = nameInitials(name)
-  return (
-    <div
-      className="rounded-full flex items-center justify-center font-mono font-semibold text-white shrink-0"
-      style={{ width: size, height: size, fontSize: size * 0.36, background: color || '#2D4F45' }}
-    >
-      {initials}
-    </div>
-  )
-}
-
 function badgeClasses(tone) {
   switch (tone) {
     case 'brand':    return 'text-brand bg-brand/8'
@@ -1054,8 +1039,8 @@ export default function EmployeeRecordPanel({ staffId, venueId, venueSlug, onBac
       {/* Identity row */}
       <div className="flex items-center gap-[13px] lg:gap-[15px] lg:mb-[18px]">
         {loading
-          ? <div className="w-[52px] h-[52px] lg:w-14 lg:h-14 rounded-[15px] bg-charcoal/6 dark:bg-white/8 shrink-0" />
-          : <Avatar name={staff?.name ?? ''} size={52} />
+          ? <div className="w-14 h-14 rounded-full bg-charcoal/6 dark:bg-white/8 shrink-0" />
+          : <Avatar name={staff?.name} id={staff?.id ?? staffId} colour={staff?.colour} photoUrl={staff?.photo_url} size="2xl" decorative />
         }
         <div className="flex-1 min-w-0">
           <div data-testid="record-panel-name" className="text-[18px] lg:text-[23px] font-semibold lg:font-bold tracking-[-0.015em] lg:tracking-[-0.02em] text-charcoal dark:text-white leading-tight">

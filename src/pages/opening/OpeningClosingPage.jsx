@@ -17,16 +17,6 @@ import DepartmentFilter from '../../components/ui/DepartmentFilter'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-/** "John Smith" → "JS" */
-function initials(name = '') {
-  return name
-    .split(' ')
-    .filter(Boolean)
-    .slice(0, 2)
-    .map(w => w[0].toUpperCase())
-    .join('')
-}
-
 function todayStr() { return format(new Date(), 'yyyy-MM-dd') }
 
 // ── Hooks ─────────────────────────────────────────────────────────────────────

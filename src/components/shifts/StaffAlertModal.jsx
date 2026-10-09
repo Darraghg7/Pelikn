@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react'
+import Avatar from '../ui/Avatar'
 
 // ── Colour tokens (per spec — not in tailwind config) ────────────────────────
 const TONES = {
@@ -602,21 +603,13 @@ export default function StaffAlertModal({
                         borderTop: i > 0 ? `1px solid ${LINE2}` : 'none',
                       }}
                     >
-                      <div
-                        style={{
-                          width: 34, height: 34, borderRadius: '50%',
-                          background: selectedManager?.id === m.id ? '#1a6644' : LINE2,
-                          display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          fontSize: 13, fontWeight: 700, color: selectedManager?.id === m.id ? '#fff' : INK3,
-                          flexShrink: 0,
-                          overflow: 'hidden',
-                        }}
-                      >
-                        {m.photo_url
-                          ? <img src={m.photo_url} alt={m.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                          : m.name.charAt(0).toUpperCase()
-                        }
-                      </div>
+                      <Avatar
+                        name={m.name}
+                        id={m.id}
+                        photoUrl={m.photo_url}
+                        size="md"
+                        decorative
+                      />
                       <div className="flex-1 min-w-0">
                         <p className="text-[14px] font-semibold" style={{ color: INK, margin: 0 }}>{m.name}</p>
                         <p className="text-[11px] capitalize" style={{ color: INK3, margin: 0 }}>{m.role}</p>

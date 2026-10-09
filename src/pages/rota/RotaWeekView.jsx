@@ -1,6 +1,8 @@
 import React, { useMemo } from 'react'
 import { format, isToday } from 'date-fns'
 import { getWeekDays, staffColour } from '../../lib/utils'
+import Avatar from '../../components/ui/Avatar'
+import { firstName } from '../../lib/names'
 import { shiftDurationHours, paidShiftHours, unpaidBreakMins } from '../../hooks/useShifts'
 
 const DAY_LABELS = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN']
@@ -97,16 +99,11 @@ function MobileWeekGrid({ days, shifts, shiftIndex, staff, onCellClick, currentS
                 style={{ width: NAME_W, minWidth: NAME_W }}
               >
                 <div className="flex flex-col items-center gap-1 shrink-0">
-                  <span
-                    className="w-9 h-9 rounded-[9px] grid place-items-center font-semibold text-[12px]"
-                    style={{ background: accent + '20', color: accent }}
-                  >
-                    {s.name.split(' ').map(w => w[0]).slice(0, 2).join('')}
-                  </span>
+                  <Avatar name={s.name} id={s.id} colour={s.colour} photoUrl={s.photo_url} size="md" decorative />
                   <span className="w-1.5 h-1.5 rounded-full" style={{ background: accent }} />
                 </div>
                 <div className="min-w-0">
-                  <div className="text-[13px] font-semibold text-charcoal dark:text-white truncate">{s.name.split(' ')[0]}</div>
+                  <div className="text-[13px] font-semibold text-charcoal dark:text-white truncate">{firstName(s.name)}</div>
                 </div>
               </div>
 

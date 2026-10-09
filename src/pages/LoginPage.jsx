@@ -8,6 +8,7 @@ import { FullPageLoader } from '../components/ui/LoadingSpinner'
 import { DEVICE_VENUES_KEY } from '../lib/constants'
 import { captureSilent } from '../lib/reportError'
 import { staffListState } from '../lib/loginScreenState'
+import Avatar from '../components/ui/Avatar'
 
 // ── Device venue helpers ──────────────────────────────────────────────────────
 function readDeviceVenues() {
@@ -19,34 +20,6 @@ function readDeviceVenues() {
 
 function writeDeviceVenues(venues) {
   try { localStorage.setItem(DEVICE_VENUES_KEY, JSON.stringify(venues)) } catch { /* storage unavailable (private mode / quota) — preference just won't persist */ }
-}
-
-// ── Avatar colour palette (deterministic by staff id) ────────────────────────
-const AVATAR_PALETTE = [
-  { bg: '#e2f0e8', text: '#1f6b40' },
-  { bg: '#ede9f7', text: '#6b46c1' },
-  { bg: '#fde9e3', text: '#c94f2a' },
-  { bg: '#e4eef9', text: '#2563ab' },
-  { bg: '#fde8f2', text: '#b83280' },
-  { bg: '#e3f4f7', text: '#0e7490' },
-  { bg: '#fdf5e0', text: '#a16207' },
-  { bg: '#f0e8e5', text: '#9b3a23' },
-]
-
-function avatarColors(id) {
-  // IDs may be UUIDs (strings) or integers — hash to a consistent palette index
-  const str = String(id ?? '')
-  let hash = 0
-  for (let i = 0; i < str.length; i++) {
-    hash = (hash * 31 + str.charCodeAt(i)) >>> 0
-  }
-  return AVATAR_PALETTE[hash % AVATAR_PALETTE.length]
-}
-
-function initials(name) {
-  const parts = name.trim().split(/\s+/)
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase()
-  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
 }
 
 // ── VenuePicker (post-login, multi-linked-venue) ──────────────────────────────
@@ -784,7 +757,6 @@ export default function LoginPage() {
                 )}
                 {filteredStaff.map((s, i) => {
                   const isSel = selected?.id === s.id
-                  const av    = avatarColors(s.id)
                   return (
                     <button
                       key={s.id}
@@ -803,21 +775,7 @@ export default function LoginPage() {
                       )}
 
                       {/* Avatar */}
-                      {s.photo_url ? (
-                        <img
-                          src={s.photo_url}
-                          alt={s.name}
-                          className="w-9 h-9 rounded-full object-cover shrink-0 border border-charcoal/10 dark:border-white/10"
-                          loading="lazy"
-                        />
-                      ) : (
-                        <div
-                          className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 font-mono text-xs font-bold"
-                          style={{ background: av.bg, color: isSel ? '#c94f2a' : av.text }}
-                        >
-                          {initials(s.name)}
-                        </div>
-                      )}
+                      <Avatar name={s.name} id={s.id} photoUrl={s.photo_url} size="md" decorative />
 
                       <span className="flex-1 font-semibold text-charcoal dark:text-white text-sm">{s.name}</span>
                       <span className={`text-xs uppercase tracking-widest font-semibold font-mono ${isSel ? 'text-accent' : 'text-charcoal/35 dark:text-white/30'}`}>
@@ -837,21 +795,9 @@ export default function LoginPage() {
               >
                 {/* Who's signing in header */}
                 {(() => {
-                  const av = avatarColors(selected.id)
                   return (
                     <div className="flex items-center gap-2.5">
-                      {selected.photo_url ? (
-                        <img src={selected.photo_url} alt={selected.name}
-                          className="w-8 h-8 shrink-0 object-cover border border-charcoal/10 dark:border-white/10"
-                          style={{ borderRadius: 9 }} loading="lazy" />
-                      ) : (
-                        <div
-                          className="w-8 h-8 shrink-0 flex items-center justify-center font-mono text-xs font-bold"
-                          style={{ borderRadius: 9, background: av.bg, color: av.text }}
-                        >
-                          {initials(selected.name)}
-                        </div>
-                      )}
+                      <Avatar name={selected.name} id={selected.id} photoUrl={selected.photo_url} size="sm" decorative />
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-bold text-charcoal dark:text-white tracking-[-0.01em] truncate">{selected.name}</p>
                         <p className="text-xs uppercase tracking-[0.06em] font-mono text-charcoal/40 dark:text-white/35">{ROLE_LABEL[selected.role] ?? selected.role}</p>

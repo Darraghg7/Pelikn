@@ -51,25 +51,6 @@ function HrIcon() {
   return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-full h-full"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/></svg>
 }
 
-function AvatarChip({ name, status, index }) {
-  const initials = name.split(' ').map(w => w[0]).slice(0, 2).join('')
-  return (
-    <span
-      title={name}
-      className="w-[30px] h-[30px] rounded-lg shrink-0 flex items-center justify-center font-mono text-[11px] font-semibold text-white border-[1.5px] border-brand bg-white/16 relative"
-      style={{ marginLeft: index === 0 ? 0 : -6, zIndex: 6 - index }}
-    >
-      {initials}
-      {status === 'late' && (
-        <span className="absolute bottom-[-2px] right-[-2px] w-[9px] h-[9px] rounded-full bg-[#ff6b52] border-[1.5px] border-brand" />
-      )}
-      {status === 'break' && (
-        <span className="absolute bottom-[-2px] right-[-2px] w-[9px] h-[9px] rounded-full bg-[#f2c48f] border-[1.5px] border-brand" />
-      )}
-    </span>
-  )
-}
-
 function AttendanceHero({ onShift, lateCount, loading, onClick }) {
   return (
     <button

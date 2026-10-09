@@ -13,14 +13,10 @@ import { getWeekStart, getWeekDays } from '../../lib/utils'
 import { useToast } from '../../components/ui/Toast'
 import Toggle from '../../components/ui/Toggle'
 import LoadError from '../../components/ui/LoadError'
+import Avatar from '../../components/ui/Avatar'
+import { shortName } from '../../lib/names'
 
 const STATION_COLOR = { Kitchen: '#b5701f', FOH: '#2d7d6e', Bar: '#7a5ea8', KP: '#4f6d8a' }
-const STATION_AVATAR = {
-  Kitchen: { bg: '#f0ebde', fg: '#6b5028' },
-  FOH:     { bg: '#e7eef3', fg: '#2a4a66' },
-  Bar:     { bg: '#eaeae6', fg: '#3a3a30' },
-  KP:      { bg: '#ecdfe1', fg: '#5a3036' },
-}
 const STATION_ORDER = ['Kitchen', 'FOH', 'Bar', 'KP']
 
 function stationFromRole(role) {
@@ -31,14 +27,6 @@ function stationFromRole(role) {
   if (r.includes('bar') || r.includes('barista')) return 'Bar'
   if (r.includes('foh') || r.includes('front') || r.includes('floor') || r.includes('server') || r.includes('host') || r.includes('supervisor')) return 'FOH'
   return role.charAt(0).toUpperCase() + role.slice(1)
-}
-
-/** "Darragh Guy" → "Darragh G." — disambiguates staff who share a first name. */
-function shortName(name) {
-  if (!name) return '—'
-  const parts = name.trim().split(/\s+/)
-  if (parts.length < 2) return parts[0] ?? '—'
-  return `${parts[0]} ${parts[parts.length - 1][0]}.`
 }
 
 // ── Time helpers ──────────────────────────────────────────────────────────────
@@ -109,20 +97,6 @@ function Wheel({ values, value, onChange, accent }) {
       <div className="absolute left-0 right-0 top-0 pointer-events-none" style={{ height: pad, background: 'linear-gradient(#f3f3ef, #f3f3ef00)' }} />
       <div className="absolute left-0 right-0 bottom-0 pointer-events-none" style={{ height: pad, background: 'linear-gradient(#f3f3ef00, #f3f3ef)' }} />
     </div>
-  )
-}
-
-// ── Avatar ────────────────────────────────────────────────────────────────────
-function Avatar({ name, station, size = 28 }) {
-  const initials = (name ?? '?').split(' ').map(w => w[0]).slice(0, 2).join('')
-  const av = STATION_AVATAR[station] || { bg: '#eef4f0', fg: '#13362a' }
-  return (
-    <span
-      className="shrink-0 flex items-center justify-center font-mono font-semibold"
-      style={{ width: size, height: size, borderRadius: Math.round(size * 0.32), background: av.bg, color: av.fg, fontSize: size * 0.32 }}
-    >
-      {initials}
-    </span>
   )
 }
 
@@ -230,7 +204,7 @@ function ShiftSheet({ shift, staffMember, day, venueId, roles, onClose, onSaved,
 
           {/* Header */}
           <div className="flex items-center gap-3 mb-4">
-            <Avatar name={staffMember?.name} station={station} size={44} />
+            <Avatar name={staffMember?.name ?? 'Unassigned'} id={staffMember?.id} colour={staffMember?.colour} photoUrl={staffMember?.photo_url} tone={staffMember ? 'person' : 'neutral'} size="xl" decorative />
             <div className="flex-1 min-w-0">
               <div className="text-[17px] font-semibold tracking-[-0.015em] text-charcoal dark:text-white">{staffMember?.name ?? 'Unassigned'}</div>
               <div className="text-xs text-charcoal/50 dark:text-white/40 mt-px">{roleLabel || staffMember?.job_title || ''} · {format(day, 'EEE d MMM')}</div>
@@ -572,7 +546,7 @@ function WeekGrid({ days, staff, shiftMap, unavailability, dayTotals, personTota
       {staff.map((member) => (
         <div key={member.id} className="flex items-center border-b border-line dark:border-white/10 px-1">
           <div className="w-[68px] shrink-0 pl-2 pr-1 min-w-0">
-            <div className="text-[13px] font-semibold text-ink dark:text-white truncate" title={member.name}>{shortName(member.name)}</div>
+            <div className="text-[13px] font-semibold text-ink dark:text-white truncate" title={member.name}>{shortName(member.name) || '—'}</div>
             <div className="font-mono text-[11px] text-ink3 dark:text-white/45 mt-0.5">{showCost ? money(personTotal(member).cost) : hrs(personTotal(member).hours)}</div>
           </div>
           {days.map((day, di) => {
@@ -691,11 +665,9 @@ function DayView({ days, dayIndex, setDayIndex, staff, shifts, unavailability, d
           <div className={`${CARD} overflow-hidden divide-y divide-line dark:divide-white/10`}>
             {free.map(m => (
               <div key={m.id} className="flex items-center gap-3 px-3.5 py-2">
-                <span className="w-8 h-8 rounded-full bg-line2 dark:bg-white/10 inline-flex items-center justify-center text-[11px] font-bold text-ink2 dark:text-white/70 shrink-0">
-                  {(m.name ?? '?').split(/\s+/).map(w => w[0]).slice(0, 2).join('').toUpperCase()}
-                </span>
+                <Avatar name={m.name} id={m.id} colour={m.colour} photoUrl={m.photo_url} size="sm" decorative />
                 <span className="flex-1 min-w-0">
-                  <span className="block text-[13px] font-semibold text-ink dark:text-white truncate">{shortName(m.name)}</span>
+                  <span className="block text-[13px] font-semibold text-ink dark:text-white truncate">{shortName(m.name) || '—'}</span>
                   <span className="block text-[12px] text-ink3 dark:text-white/45 mt-0.5">{showCost ? `${money(personTotal(m).cost)} this week` : `${hrs(personTotal(m).hours)} this week`}</span>
                 </span>
                 <button

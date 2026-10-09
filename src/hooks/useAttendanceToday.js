@@ -30,7 +30,7 @@ export function useAttendanceToday(venueId) {
 
       const [shiftsRes, clockRes] = await Promise.all([
         supabase.from('shifts')
-          .select('id, staff_id, start_time, end_time, role_label, staff:staff_id(id, name)')
+          .select('id, staff_id, start_time, end_time, role_label, staff:staff_id(id, name, colour, photo_url)')
           .eq('venue_id', venueId)
           .eq('shift_date', todayStr)
           .order('start_time'),
@@ -88,6 +88,9 @@ export function useAttendanceToday(venueId) {
           shiftId: sh.id,
           staffId: sh.staff_id,
           name: sh.staff?.name ?? 'Unknown',
+          // Typed as an array by the client; a to-one embed is one object
+          colour: /** @type {any} */ (sh.staff)?.colour ?? null,
+          photoUrl: /** @type {any} */ (sh.staff)?.photo_url ?? null,
           role: sh.role_label || '',
           startTime: sh.start_time,
           endTime: sh.end_time,

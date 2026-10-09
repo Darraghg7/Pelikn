@@ -9,7 +9,7 @@ import type { Shift, Staff } from '../../types'
 // It is merged back in below from staff_pay_rates, so everything downstream
 // that reads `s.hourly_rate` / `shift.staff.hourly_rate` is unchanged.
 const SHIFT_SELECT = '*, staff(id, name, job_role, is_under_18)'
-const STAFF_SELECT = 'id, name, role, job_role, skills, is_under_18, colour'
+const STAFF_SELECT = 'id, name, role, job_role, skills, is_under_18, colour, photo_url'
 
 export async function fetchShifts(venueId: string, weekStart: Date, numWeeks = 1): Promise<Shift[]> {
   const weekStarts = Array.from({ length: Math.max(numWeeks, 1) }, (_, i) =>
@@ -43,7 +43,7 @@ export async function fetchStaffList(venueId: string): Promise<Staff[]> {
       .order('name'),
     supabase
       .from('staff_venue_links')
-      .select('staff_id, role, staff(id, name, job_role, skills, is_under_18, colour)')
+      .select('staff_id, role, staff(id, name, job_role, skills, is_under_18, colour, photo_url)')
       .eq('venue_id', venueId),
     fetchStaffPayRates(),
   ])

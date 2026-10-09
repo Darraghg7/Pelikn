@@ -26,6 +26,7 @@ import {
 } from '../../components/temperature/TempPageParts'
 import { HistoryRangePills, StatStrip, DayCard, formatPct, historyDateFrom, groupByDay } from '../../components/temperature/TempHistoryView'
 import LoadError from '../../components/ui/LoadError'
+import { shortName } from '../../lib/names'
 
 const CHECK_TYPES = [
   { value: 'cooking',   label: 'Cooking' },
@@ -36,13 +37,6 @@ const CHECK_LABEL = Object.fromEntries(CHECK_TYPES.map(t => [t.value, t.label]))
 const TEXT_AREA = 'w-full px-3.5 py-2.5 rounded-xl border border-line dark:border-white/10 bg-cream dark:bg-white/5 text-[13px] text-ink dark:text-white placeholder:text-ink4 dark:placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand/40 focus:bg-white dark:focus:bg-white/10 resize-none transition-colors'
 
 const failed = (log) => isCookingTempFail(log.temperature, log.target_temp ?? COOKING_TARGET_TEMP)
-
-// "Priya Shah" → "Priya S."
-function shortName(name) {
-  if (!name) return null
-  const [first, ...rest] = name.trim().split(/\s+/)
-  return rest.length ? `${first} ${rest[rest.length - 1][0]}.` : first
-}
 
 /* ── One logged reading ───────────────────────────────────────────────────── */
 function ReadingRow({ log, withStaff = false, compact = false }) {
