@@ -13,7 +13,7 @@ import Button, { CloseButton } from '../../components/ui/Button'
 /* ── Icons ───────────────────────────────────────────────────────────────────── */
 const VENUE_ICONS = {
   cafe: (
-    <div className="w-9 h-9 rounded-[9px] bg-brand/8 text-brand flex items-center justify-center shrink-0">
+    <div className="w-9 h-9 rounded-[9px] bg-brand/8 text-brand dark:bg-white/10 dark:text-white flex items-center justify-center shrink-0">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
         <path d="M18 8h1a4 4 0 010 8h-1"/><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/>
         <line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/>
@@ -21,14 +21,14 @@ const VENUE_ICONS = {
     </div>
   ),
   pub: (
-    <div className="w-9 h-9 rounded-[9px] bg-brand/8 text-brand flex items-center justify-center shrink-0">
+    <div className="w-9 h-9 rounded-[9px] bg-brand/8 text-brand dark:bg-white/10 dark:text-white flex items-center justify-center shrink-0">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
         <path d="M17 11h1a3 3 0 010 6h-1"/><path d="M3 11l1 9h12l1-9"/><path d="M3 11V7a2 2 0 012-2h12a2 2 0 012 2v4"/>
       </svg>
     </div>
   ),
   restaurant: (
-    <div className="w-9 h-9 rounded-[9px] bg-brand/8 text-brand flex items-center justify-center shrink-0">
+    <div className="w-9 h-9 rounded-[9px] bg-brand/8 text-brand dark:bg-white/10 dark:text-white flex items-center justify-center shrink-0">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
         <path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 002-2V2"/><path d="M7 2v20"/>
         <path d="M21 15V2a5 5 0 00-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"/>
@@ -36,14 +36,14 @@ const VENUE_ICONS = {
     </div>
   ),
   hotel: (
-    <div className="w-9 h-9 rounded-[9px] bg-brand/8 text-brand flex items-center justify-center shrink-0">
+    <div className="w-9 h-9 rounded-[9px] bg-brand/8 text-brand dark:bg-white/10 dark:text-white flex items-center justify-center shrink-0">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
         <path d="M3 22V8l9-6 9 6v14"/><path d="M6 22V12h4v10"/><path d="M14 22V12h4v10"/>
       </svg>
     </div>
   ),
   other: (
-    <div className="w-9 h-9 rounded-[9px] bg-brand/8 text-brand flex items-center justify-center shrink-0">
+    <div className="w-9 h-9 rounded-[9px] bg-brand/8 text-brand dark:bg-white/10 dark:text-white flex items-center justify-center shrink-0">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
         <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/>
         <line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/>
@@ -437,7 +437,7 @@ export default function OnboardingPage() {
   const enabledCount = [...enabledFeatures].filter(id => !PRO_ONLY_FEATURE_IDS.includes(id) || isPro).length
 
   return (
-    <div className="min-h-dvh bg-surface flex flex-col font-sans">
+    <div className="min-h-dvh bg-surface dark:bg-[#111111] flex flex-col font-sans">
 
       {/* Upgrade modal */}
       {upgradeFeature && (
@@ -449,9 +449,9 @@ export default function OnboardingPage() {
 
       {/* Topbar */}
       <div className="sticky top-0 z-10 bg-white dark:bg-paperDark border-b border-charcoal/8 dark:border-white/8 h-[52px] flex items-center justify-between px-5 shrink-0">
-        <span className="font-extrabold text-[16px] text-brand tracking-tight">Pelikn</span>
+        <span className="font-extrabold text-[16px] text-brand dark:text-white tracking-tight">Pelikn</span>
         <div className="flex items-center gap-2.5">
-          <span className={`text-[11px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-md ${isPro ? 'bg-accent/12 text-accent' : 'bg-brand/9 text-brand'}`}>
+          <span className={`text-[11px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-md ${isPro ? 'bg-accent/12 text-accent' : 'bg-brand/9 text-brand dark:bg-white/10 dark:text-white'}`}>
             {isPro ? 'Pro' : 'Starter'}
           </span>
           <div className="flex items-center gap-1 text-charcoal/30 dark:text-white/30 font-mono text-[11px]">
@@ -483,12 +483,12 @@ export default function OnboardingPage() {
                       : i + 1
                     }
                   </button>
-                  <span className={`text-[11px] font-semibold tracking-wider uppercase hidden sm:block whitespace-nowrap ${state === 'todo' ? 'text-charcoal/30 dark:text-white/30' : 'text-brand'}`}>
+                  <span className={`text-[11px] font-semibold tracking-wider uppercase hidden sm:block whitespace-nowrap ${state === 'todo' ? 'text-charcoal/30 dark:text-white/30' : 'text-brand dark:text-white/80'}`}>
                     {label}
                   </span>
                 </div>
                 {i < STEPS.length - 1 && (
-                  <div className={`flex-1 h-[1.5px] mx-1 mb-3.5 sm:mb-[14px] transition-colors ${state === 'done' ? 'bg-brand' : 'bg-charcoal/14 dark:bg-white/15'}`} />
+                  <div className={`flex-1 h-[1.5px] mx-1 mb-3.5 sm:mb-[14px] transition-colors ${state === 'done' ? 'bg-brand dark:bg-white/50' : 'bg-charcoal/14 dark:bg-white/15'}`} />
                 )}
               </div>
             )
@@ -515,7 +515,7 @@ export default function OnboardingPage() {
                     className={[
                       'p-4 rounded-[14px] border-2 text-left flex items-start gap-3 transition-all',
                       selectedPreset?.id === preset.id
-                        ? 'border-brand bg-brand/[0.04]'
+                        ? 'border-brand bg-brand/[0.04] dark:border-white/70 dark:bg-white/[0.06]'
                         : 'border-charcoal/12 dark:border-white/15 bg-white dark:bg-paperDark hover:border-charcoal/30 dark:hover:border-white/30',
                     ].join(' ')}
                   >
@@ -777,7 +777,7 @@ export default function OnboardingPage() {
                   {rolesInput.length > 0 && (
                     <div className="flex flex-wrap gap-1.5 mt-2">
                       {rolesInput.filter(r => !presetRoles.includes(r)).map(role => (
-                        <span key={role} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-brand/8 text-brand text-[11.5px] font-semibold">
+                        <span key={role} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-brand/8 text-brand dark:bg-white/10 dark:text-white text-[11.5px] font-semibold">
                           {role}
                           <button onClick={() => toggleRole(role)} className="ml-0.5 opacity-60 hover:opacity-100">×</button>
                         </span>
@@ -807,7 +807,7 @@ export default function OnboardingPage() {
                                     className={[
                                       'px-2.5 py-1 rounded-lg text-[11.5px] font-medium border transition-all',
                                       checked
-                                        ? 'bg-brand/10 text-brand border-brand/25'
+                                        ? 'bg-brand/10 text-brand border-brand/25 dark:bg-white/10 dark:text-white dark:border-white/30'
                                         : 'bg-charcoal/3 dark:bg-white/5 text-charcoal/45 dark:text-white/40 border-charcoal/10 dark:border-white/10 hover:border-charcoal/25 dark:hover:border-white/25',
                                     ].join(' ')}
                                   >
@@ -871,9 +871,9 @@ export default function OnboardingPage() {
                 Your venue is configured and ready to go. Everything can be adjusted in Settings at any time.
               </p>
               {selectedPreset && (
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-[10px] bg-brand/7 border border-brand/14 mb-1">
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-[10px] bg-brand/7 border border-brand/14 dark:bg-white/[0.06] dark:border-white/15 mb-1">
                   {VENUE_ICONS[selectedPreset.icon]}
-                  <span className="text-[13px] font-bold text-brand">{selectedPreset.label}</span>
+                  <span className="text-[13px] font-bold text-brand dark:text-white">{selectedPreset.label}</span>
                 </div>
               )}
               <div className="bg-white dark:bg-paperDark rounded-[14px] border border-charcoal/8 dark:border-white/8 p-[18px] mt-[18px] text-left">
@@ -919,7 +919,7 @@ export default function OnboardingPage() {
       </div>
 
       {/* Sticky footer nav */}
-      <div className="sticky bottom-0 left-0 right-0 bg-surface/90 backdrop-blur-sm border-t border-charcoal/8 dark:border-white/8 p-3 z-10 shrink-0">
+      <div className="sticky bottom-0 left-0 right-0 bg-surface/90 dark:bg-[#111111]/90 backdrop-blur-sm border-t border-charcoal/8 dark:border-white/8 p-3 z-10 shrink-0">
         <div className="flex gap-2 max-w-[540px] mx-auto">
           {step > 0 && step < STEPS.length - 1 && (
             <Button
