@@ -3,17 +3,20 @@ import useManagerCalendar from '../../hooks/useManagerCalendar'
 import { useToast } from '../../components/ui/Toast'
 import Avatar from '../../components/ui/Avatar'
 import Button from '../../components/ui/Button'
+import { colors, black, white } from '../../lib/tokens'
 
 const DAYS_SHORT = ['M', 'T', 'W', 'T', 'F', 'S', 'S']
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December']
 
+// The saved value is the id; colours come from the shared category tokens.
+// `soft` is the card tint behind an event, with a dark-mode partner.
 const CAL_COLOURS = [
-  { id: 'forest', bg: '#13362a', fg: '#ffffff', soft: '#e2ece7', label: 'Forest' },
-  { id: 'rust',   bg: '#c94f2a', fg: '#ffffff', soft: '#fbeae6', label: 'Rust'   },
-  { id: 'ocean',  bg: '#2c4577', fg: '#ffffff', soft: '#e7edf6', label: 'Ocean'  },
-  { id: 'amber',  bg: '#a85d12', fg: '#ffffff', soft: '#fbeedc', label: 'Amber'  },
-  { id: 'slate',  bg: '#4a5568', fg: '#ffffff', soft: '#edf0f4', label: 'Slate'  },
-  { id: 'plum',   bg: '#6b3d7a', fg: '#ffffff', soft: '#f0e8f5', label: 'Plum'   },
+  { id: 'forest', bg: colors.brand.DEFAULT,    soft: 'bg-brand-soft dark:bg-brand-400/25',             label: 'Forest' },
+  { id: 'rust',   bg: colors.accent,           soft: 'bg-badBg dark:bg-accent/25',                     label: 'Rust'   },
+  { id: 'ocean',  bg: colors.info,             soft: 'bg-infoBg dark:bg-info/50',                      label: 'Ocean'  },
+  { id: 'amber',  bg: colors.warn,             soft: 'bg-warnBg dark:bg-warn/30',                      label: 'Amber'  },
+  { id: 'slate',  bg: colors.category.slate,   soft: 'bg-category-slateBg dark:bg-category-slate/45',  label: 'Slate'  },
+  { id: 'plum',   bg: colors.category.plum,    soft: 'bg-category-plumBg dark:bg-category-plum/45',    label: 'Plum'   },
 ]
 
 const EVENT_TYPES = [
@@ -79,7 +82,7 @@ function CalToggle({ on, onClick }) {
         className={`block rounded-full bg-paper ${on ? '' : 'dark:bg-white/70'}`}
         style={{
           width: 22, height: 22,
-          boxShadow: '0 1px 4px rgba(0,0,0,0.22)',
+          boxShadow: `0 1px 4px ${black(0.22)}`,
           transform: on ? 'translateX(20px)' : 'translateX(0)',
           transition: 'transform 0.2s',
         }}
@@ -96,11 +99,8 @@ function ColourPicker({ value, onChange }) {
           key={c.id}
           onClick={() => onChange(c.id)}
           title={c.label}
-          className="flex-1 h-[34px] rounded-[9px] cursor-pointer transition-[border] duration-[120ms]"
-          style={{
-            background: c.bg,
-            border: value === c.id ? '3px solid #0d1a14' : '3px solid transparent',
-          }}
+          className={`flex-1 h-[34px] rounded-[9px] cursor-pointer transition-[border] duration-[120ms] border-[3px] ${value === c.id ? 'border-ink dark:border-white' : 'border-transparent'}`}
+          style={{ background: c.bg }}
         />
       ))}
     </div>
@@ -227,12 +227,9 @@ function CalendarEventForm({ event, defaultDate, onSave, onDelete, onBack }) {
               <button
                 key={et.id}
                 onClick={() => setType(et.id)}
-                className="h-9 px-[15px] rounded-full cursor-pointer text-[13px] font-semibold transition-all duration-150"
-                style={{
-                  background: type === et.id ? '#0d1a14' : '#ffffff',
-                  color: type === et.id ? '#fff' : undefined,
-                  border: `1.5px solid ${type === et.id ? '#0d1a14' : '#e4e6e2'}`,
-                }}
+                className={`h-9 px-[15px] rounded-full cursor-pointer text-[13px] font-semibold transition-all duration-150 border-[1.5px] ${type === et.id
+                  ? 'bg-ink border-ink text-white dark:bg-white dark:border-white dark:text-ink'
+                  : 'bg-paper border-line dark:bg-white/5 dark:border-white/10'}`}
               >
                 <span className={type !== et.id ? 'text-charcoal/50 dark:text-white/40' : ''}>{et.label}</span>
               </button>
@@ -283,7 +280,7 @@ function CalendarEventForm({ event, defaultDate, onSave, onDelete, onBack }) {
           <div className="px-4 py-[15px] border-b border-charcoal/6 dark:border-white/8">
             <div className="flex items-center gap-2.5 mb-[14px]">
               <span className="w-8 h-8 rounded-[9px] bg-brand/8 flex items-center justify-center shrink-0">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#13362a" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8a6 6 0 00-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="text-brand dark:text-white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8a6 6 0 00-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
               </span>
               <span className="text-[15px] font-semibold text-charcoal dark:text-white">Set reminder</span>
             </div>
@@ -398,8 +395,7 @@ function CalendarDayView({ dateStr, dayMapItems, onBack, onAdd, onEdit }) {
         if (ev._readonly) return (
           <div
             key={ev.id}
-            className="w-full px-[15px] py-[14px] rounded-[14px] flex items-center gap-3"
-            style={{ background: col.soft }}
+            className={`w-full px-[15px] py-[14px] rounded-[14px] flex items-center gap-3 ${col.soft}`}
           >
             <span className="w-[14px] h-[14px] rounded-[4px] shrink-0" style={{ background: col.bg }} />
             <div className="flex-1 min-w-0">
@@ -414,8 +410,7 @@ function CalendarDayView({ dateStr, dayMapItems, onBack, onAdd, onEdit }) {
           <button
             key={ev.id}
             onClick={() => onEdit(ev)}
-            className="w-full text-left px-[15px] py-[14px] rounded-[14px] border-none cursor-pointer flex items-center gap-3"
-            style={{ background: col.soft }}
+            className={`w-full text-left px-[15px] py-[14px] rounded-[14px] border-none cursor-pointer flex items-center gap-3 ${col.soft}`}
           >
             <span className="w-[14px] h-[14px] rounded-[4px] shrink-0" style={{ background: col.bg }} />
             <div className="flex-1 min-w-0">
@@ -458,7 +453,7 @@ function CellPips({ items, isSelected }) {
             className="h-1 rounded-[2px]"
             style={{
               width: show.length === 1 ? 16 : 7,
-              background: isSelected ? 'rgba(255,255,255,0.7)' : col.bg,
+              background: isSelected ? white(0.7) : col.bg,
             }}
           />
         )
@@ -499,17 +494,11 @@ function MonthGrid({ year, month, dayMap, selectedDate, onSelectDate }) {
             <button
               key={i}
               onClick={() => onSelectDate(dateStr)}
-              className="flex flex-col items-center py-[4px] rounded-[11px] border-none cursor-pointer transition-colors duration-[120ms]"
-              style={{
-                background: isSelected ? '#13362a' : isToday ? '#eef4f0' : 'transparent',
-              }}
+              className={`flex flex-col items-center py-[4px] rounded-[11px] border-none cursor-pointer transition-colors duration-[120ms] ${isSelected ? 'bg-brand dark:bg-brand-400' : isToday ? 'bg-brand-tint dark:bg-white/10' : 'bg-transparent'}`}
             >
               <span
-                className="font-mono text-sm tabular-nums leading-none"
-                style={{
-                  fontWeight: isToday || isSelected ? 700 : isWknd(i) ? 400 : 500,
-                  color: isSelected ? '#fff' : isToday ? '#13362a' : isWknd(i) ? '#76817b' : undefined,
-                }}
+                className={`font-mono text-sm tabular-nums leading-none ${isSelected ? 'text-white' : isToday ? 'text-brand dark:text-white' : isWknd(i) ? 'text-ink3 dark:text-white/45' : ''}`}
+                style={{ fontWeight: isToday || isSelected ? 700 : isWknd(i) ? 400 : 500 }}
               >
                 <span className={!isSelected && !isToday && !isWknd(i) ? 'text-charcoal dark:text-white' : ''}>{d}</span>
               </span>

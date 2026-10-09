@@ -148,7 +148,8 @@ export default function FixHoursSheet({ ctx, onClose, onSubmit }) {
   }
 
   return (
-    <div style={{ position:'fixed', inset:0, zIndex:50, display:'flex', flexDirection:'column', justifyContent:'flex-end' }}>
+    // z-[60]: MobileNav is portaled at z-50 and would swallow taps on a z-50 sheet
+    <div className="z-[60]" style={{ position:'fixed', inset:0, display:'flex', flexDirection:'column', justifyContent:'flex-end' }}>
       <div onClick={onClose} className="bg-ink/45" style={{ position:'absolute', inset:0 }} />
       <div className="bg-surface dark:bg-paperDark text-ink dark:text-white" style={{
         position:'relative', borderRadius:'22px 22px 0 0',

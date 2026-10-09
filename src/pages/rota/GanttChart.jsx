@@ -54,9 +54,9 @@ export default function GanttChart({ shifts, staff, currentStaffId, nowMins, sho
                   if (p <= 0.5 || p >= 99.5) return null
                   return <span key={ti} className="absolute top-[-8px] bottom-[-8px] w-px bg-charcoal/8 dark:bg-white/8 z-0" style={{ left: `${p}%` }} />
                 })}
-                {showNow && <span className="absolute top-[-8px] bottom-[-8px] z-10" style={{ left: `${nowPct}%`, width: '1.5px', background: '#c94f2a' }} />}
-                <div className="absolute top-0 h-[22px] rounded-full z-20"
-                  style={{ left: `${left}%`, width: `${width}%`, background: isMe ? '#13362a' : '#e4e6e2', boxShadow: isMe ? '0 1px 4px rgba(19,54,42,0.3)' : 'none' }} />
+                {showNow && <span className="absolute top-[-8px] bottom-[-8px] z-10 bg-accent" style={{ left: `${nowPct}%`, width: '1.5px' }} />}
+                <div className={`absolute top-0 h-[22px] rounded-full z-20 ${isMe ? 'bg-brand dark:bg-brand-400 shadow-[0_1px_4px_theme(colors.brand.DEFAULT/30%)]' : 'bg-line dark:bg-white/15'}`}
+                  style={{ left: `${left}%`, width: `${width}%` }} />
               </div>
               <div className="w-28 shrink-0 text-right">
                 <div className={`font-mono text-[12px] font-semibold tabular-nums ${isMe ? 'text-brand' : 'text-charcoal/60 dark:text-white/50'}`}>

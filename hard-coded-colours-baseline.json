@@ -1,8 +1,4 @@
 {
-  "src/components/shifts/ClockEditApprovalCard.jsx": 17,
-  "src/components/shifts/RecentShifts.jsx": 5,
-  "src/components/shifts/StaffAlertModal.jsx": 31,
-  "src/lib/rotaImageExport.js": 22,
   "src/pages/allergens/AllergenRegistryPage.jsx": 7,
   "src/pages/allergens/PPDSLabelPage.jsx": 18,
   "src/pages/dashboard/ManagerDashboardPage.jsx": 4,
@@ -14,16 +10,10 @@
   "src/pages/marketing/DesktopDashboardMock.jsx": 3,
   "src/pages/marketing/MarketingPage.jsx": 74,
   "src/pages/overview/OverviewPage.jsx": 1,
-  "src/pages/rota/GanttChart.jsx": 4,
-  "src/pages/rota/RotaToolbar.jsx": 1,
-  "src/pages/rota/RotaWeekView.jsx": 3,
-  "src/pages/rota/StaffRotaView.jsx": 1,
-  "src/pages/rota/WorkedHours.jsx": 13,
   "src/pages/settings/AppIconPicker.jsx": 6,
   "src/pages/settings/BillingSettingsPage.jsx": 1,
   "src/pages/settings/HubTilesPage.jsx": 9,
   "src/pages/settings/RolesSection.jsx": 1,
   "src/pages/settings/SettingsHubPage.jsx": 1,
-  "src/pages/signup/StepSuccess.jsx": 2,
-  "src/pages/team/CalendarPage.jsx": 32
+  "src/pages/signup/StepSuccess.jsx": 2
 }
