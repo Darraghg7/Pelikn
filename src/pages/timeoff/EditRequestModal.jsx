@@ -14,7 +14,10 @@ import Button from '../../components/ui/Button'
  * booked time off here; managers can manage anyone's. Withdrawing sets the
  * request to 'cancelled', which is what frees the staff member up on the rota.
  */
-export default function EditRequestModal({ request, isManager, actorId, actorName, venueId, closedDays, allowUnpaidLeave, checkBalance, onClose, onSaved }) {
+// hoursReady: migration 148 is applied, so annual leave carries its holiday hours.
+// dayHours: the person's usual day (zero-hours average shift), to re-suggest
+// hours when the dates change; null when unknown.
+export default function EditRequestModal({ request, isManager, actorId, actorName, venueId, closedDays, allowUnpaidLeave, checkBalance, hoursReady, dayHours, onClose, onSaved }) {
   const toast = useToast()
   const perms = timeOffPermissions(request, { staffId: actorId, isManager })
 
@@ -23,6 +26,7 @@ export default function EditRequestModal({ request, isManager, actorId, actorNam
     endDate:   request.end_date,
     leaveType: request.leave_type,
     reason:    request.reason ?? '',
+    hours:     request.hours != null ? String(Number(request.hours)) : '',
   })
   const [saving, setSaving]     = useState(false)
   const [confirming, setConfirm] = useState(false)
@@ -32,7 +36,8 @@ export default function EditRequestModal({ request, isManager, actorId, actorNam
     form.startDate !== request.start_date ||
     form.endDate   !== request.end_date   ||
     form.leaveType !== request.leave_type ||
-    form.reason    !== (request.reason ?? '')
+    form.reason    !== (request.reason ?? '') ||
+    form.hours     !== (request.hours != null ? String(Number(request.hours)) : '')
 
   const days = useMemo(
     () => (form.leaveType === 'annual' && form.startDate && form.endDate
@@ -41,9 +46,16 @@ export default function EditRequestModal({ request, isManager, actorId, actorNam
     [form.startDate, form.endDate, form.leaveType, request.staff?.working_days],
   )
 
+  // Holiday hours: what's typed, else working days × their usual day
+  const showHours      = hoursReady && form.leaveType === 'annual'
+  const suggestedHours = days != null && dayHours != null ? Math.round(days * dayHours * 10) / 10 : null
+  const typedHours     = form.hours === '' ? null : parseFloat(form.hours)
+  const hours          = typedHours ?? suggestedHours
+
   // The same rules as a new request — only checked once the dates change, so
   // an existing booking can still be withdrawn or have its reason edited.
-  const datesChanged = form.startDate !== request.start_date || form.endDate !== request.end_date || form.leaveType !== request.leave_type
+  const datesChanged = form.startDate !== request.start_date || form.endDate !== request.end_date || form.leaveType !== request.leave_type ||
+    form.hours !== (request.hours != null ? String(Number(request.hours)) : '')
   const problem = useMemo(() => {
     if (!datesChanged || !form.startDate || !form.endDate || form.endDate < form.startDate) return null
     if (isOnlyClosedDays(form.startDate, form.endDate, closedDays)) {
@@ -52,8 +64,9 @@ export default function EditRequestModal({ request, isManager, actorId, actorNam
     if (days === 0) {
       return "None of these days are working days, so they don't use holiday. If that's wrong, check the working days on their staff profile."
     }
-    return checkBalance?.(days) ?? null
-  }, [datesChanged, form.startDate, form.endDate, closedDays, days, checkBalance])
+    if (typedHours != null && !(typedHours > 0 && typedHours <= 1000)) return 'Enter the holiday hours for this booking.'
+    return checkBalance?.(days, hours) ?? null
+  }, [datesChanged, form.startDate, form.endDate, closedDays, days, typedHours, hours, checkBalance])
 
   // A staff member changing leave a manager already approved sends it back to pending.
   const willNeedReapproval = perms.needsReapproval && changed
@@ -95,11 +108,13 @@ export default function EditRequestModal({ request, isManager, actorId, actorNam
     if (form.endDate < form.startDate)    { toast('End date must be after start date', 'error'); return }
     if (problem)                          { toast(problem, 'error'); return }
 
+    /** @type {Record<string, any>} */
     const patch = {
       start_date: form.startDate,
       end_date:   form.endDate,
       leave_type: form.leaveType,
       reason:     form.reason.trim() || null,
+      ...(hoursReady ? { hours: form.leaveType === 'annual' ? hours ?? null : null } : {}),
     }
     if (willNeedReapproval) {
       patch.status       = 'pending'
@@ -192,6 +207,7 @@ export default function EditRequestModal({ request, isManager, actorId, actorNam
                       ...f,
                       startDate: e.target.value,
                       endDate: f.endDate < e.target.value ? e.target.value : f.endDate,
+                      hours: '',
                     }))}
                     className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
                   />
@@ -202,7 +218,7 @@ export default function EditRequestModal({ request, isManager, actorId, actorNam
                     type="date"
                     value={form.endDate}
                     min={form.startDate}
-                    onChange={e => setForm(f => ({ ...f, endDate: e.target.value }))}
+                    onChange={e => setForm(f => ({ ...f, endDate: e.target.value, hours: '' }))}
                     className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
                   />
                 </div>
@@ -212,6 +228,23 @@ export default function EditRequestModal({ request, isManager, actorId, actorNam
                 <p className="text-xs text-charcoal/50 dark:text-white/40 -mt-2">
                   Covers <span className="font-semibold text-charcoal dark:text-white">{fmtDays(days)}</span> of working days.
                 </p>
+              )}
+
+              {showHours && (
+                <label className="flex items-center gap-2.5">
+                  <span className="flex-1 text-sm text-charcoal dark:text-white">
+                    Holiday hours
+                    {hours == null && <span className="block text-xs text-charcoal/50 dark:text-white/40">Leave blank to use the usual hours</span>}
+                  </span>
+                  <input
+                    type="number" inputMode="decimal" min="0" step="0.25"
+                    value={form.hours === '' ? (suggestedHours ?? '') : form.hours}
+                    onChange={e => setForm(f => ({ ...f, hours: e.target.value }))}
+                    aria-label="Holiday hours"
+                    className="w-24 px-3 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-right"
+                  />
+                  <span className="text-xs text-charcoal/50 dark:text-white/40">h</span>
+                </label>
               )}
 
               {/* Reason */}

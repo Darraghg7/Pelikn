@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react'
+import React, { useState, useCallback, useMemo, useEffect } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { format, addMonths, subMonths, isBefore, parseISO, startOfDay, isSameMonth } from 'date-fns'
 import { supabase } from '../../lib/supabase'
@@ -14,8 +14,8 @@ import { invalidateSummaryCache } from '../../hooks/useTodaySummary'
 import { timeOffPermissions, isBlocking } from '../../lib/api/timeOff'
 import { useAppSettings } from '../../hooks/useSettings'
 import { leaveYearFor } from '../../lib/leaveYear'
-import { holidayHoursUsed, zeroHoursLeft } from '../../lib/api/holidayPay'
-import BalanceAdjustModal from './BalanceAdjustModal'
+import { hasHoursColumn, hoursInRange, requestHoursInRange, zeroHoursLeft } from '../../lib/api/holidayPay'
+import CarryOverModal from './CarryOverModal'
 import {
   requestableLeaveTypes,
   leaveTypeLabel, getRequestsForDay, fmtDays, maxStaffOffInRange, employmentLabel, isOnlyClosedDays,
@@ -34,6 +34,8 @@ import Button from '../../components/ui/Button'
 const FIELD_LABEL = 'block text-body-sm font-semibold tracking-[0.08em] uppercase text-ink3 dark:text-white/45 mb-2'
 const TEXT_FIELD  = 'w-full h-12 px-4 rounded-xl border border-line dark:border-white/10 bg-cream dark:bg-white/5 text-body-lg text-ink dark:text-white placeholder:text-ink4 dark:placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand/40 focus:bg-white dark:focus:bg-white/10 transition-colors'
 
+const EMPTY_FORM = { startDate: '', endDate: '', reason: '', leaveType: 'annual', hours: '' }
+
 /* ── Main page ─────────────────────────────────────────────────────────── */
 export default function TimeOffPage() {
   const { venueSlug } = useVenue()
@@ -48,7 +50,7 @@ export default function TimeOffPage() {
 
   // The venue's holiday year (calendar year unless set otherwise in settings)
   const leaveYear = useMemo(() => leaveYearFor(new Date(), leaveYearStartMonth), [leaveYearStartMonth])
-  const { balances: teamBalances, loading: balancesLoading, failed: balancesFailed, reloadBalances, adjustmentsAvailable } = useTeamLeaveBalances(
+  const { balances: teamBalances, loading: balancesLoading, failed: balancesFailed, reloadBalances } = useTeamLeaveBalances(
     isManager ? staff : [],
     leaveYear
   )
@@ -71,6 +73,10 @@ export default function TimeOffPage() {
   )
   const { map: zeroHoursMap } = useTeamZeroHoursAccruals(zeroHoursIds, leaveYear)
 
+  // Holiday is booked in hours once migration 148 has added the column
+  const [hoursReady, setHoursReady] = useState(false)
+  useEffect(() => { hasHoursColumn().then(setHoursReady) }, [])
+
   /**
    * Time off drives availability everywhere else in the app, so any write here
    * has to bust the caches those screens read from — otherwise a staff member
@@ -87,7 +93,7 @@ export default function TimeOffPage() {
 
   // Manual leave entry state
   const [manualEntry, setManualEntry] = useState(null) // null = closed; staff balance obj = open
-  // Carry-over / pay-out for one zero-hours person — their balance row
+  // Carry-over for one zero-hours person — their balance row
   const [adjusting, setAdjusting] = useState(null)
 
   // Request being edited / withdrawn — set from the calendar or "My Requests"
@@ -97,29 +103,31 @@ export default function TimeOffPage() {
   // than a full allowance with nothing used.
   const ownBalance = ownBalanceLoading || ownBalanceFailed ? null : (ownBalances[0] ?? null)
 
-  // For zero-hours: convert approved leave days → estimated hours used
-  const ownUsedHours = useMemo(() => {
-    if (!ownBalance?.isZeroHours) return null
-    return holidayHoursUsed(ownBalance.leaveDays, ownAvgDaily ?? 7.6)
-  }, [ownBalance, ownAvgDaily])
-  const ownRemainingHours = useMemo(() => {
-    if (ownAccrued == null || ownUsedHours == null) return ownAccrued ?? null
-    return Math.max(0, zeroHoursLeft({
-      accrued: ownAccrued, used: ownUsedHours,
-      carriedOver: ownBalance?.carriedOver, paidOut: ownBalance?.paidOut,
-    }))
-  }, [ownAccrued, ownUsedHours, ownBalance?.carriedOver, ownBalance?.paidOut])
+  // Zero-hours: a usual day is their average shift this holiday year
+  const ownDayHours = ownAvgDaily ?? 7.6
+  // Zero-hours balance in hours: earned + carried over − approved − awaiting
+  // approval. Pending counts straight away, so it moves the moment they book.
+  const ownHours = useMemo(() => {
+    if (!ownBalance?.isZeroHours || ownAccrued == null) return null
+    const wd       = ownProfile?.working_days
+    const approved = hoursInRange(ownBalance.approvedRequests, wd, ownDayHours, leaveYear.from, leaveYear.to)
+    const pending  = hoursInRange(ownBalance.pendingRequests, wd, ownDayHours, leaveYear.from, leaveYear.to)
+    const left     = zeroHoursLeft({ accrued: ownAccrued, carriedOver: ownBalance.carriedOver, approved, pending })
+    return { approved, pending, left }
+  }, [ownBalance, ownAccrued, ownProfile?.working_days, ownDayHours, leaveYear])
+  const ownRemainingHours = ownHours ? Math.max(0, ownHours.left) : (ownAccrued ?? null)
 
   const [month, setMonth]           = useState(new Date())
   const [showRequest, setShowRequest] = useState(false)
   const [selectedDay, setSelectedDay] = useState(() => startOfDay(new Date()))
-  const [form, setForm]             = useState({ startDate: '', endDate: '', reason: '', leaveType: 'annual' })
+  const [form, setForm]             = useState(EMPTY_FORM)
   const [saving, setSaving]         = useState(false)
   const [showTeamBalances, setShowTeamBalances] = useState(true)
 
   // Manager review state
   const [reviewing, setReviewing]   = useState(null)
   const [notes, setNotes]           = useState({})  // pending request id → manager note
+  const [approveHours, setApproveHours] = useState({}) // pending request id → hours typed by the manager
   const noteFor = (id) => (notes[id] ?? '').trim()
   const clearNote = (id) => setNotes(n => { const next = { ...n }; delete next[id]; return next })
 
@@ -135,18 +143,24 @@ export default function TimeOffPage() {
     return countWorkingDaysInRequest(form.startDate, form.endDate, ownProfile?.working_days)
   }, [form.startDate, form.endDate, form.leaveType, ownProfile?.working_days])
 
+  // Holiday hours for this request: what they typed, else their usual day ×
+  // working days (zero-hours). Blank for salaried staff = their usual hours.
+  const suggestedHours = previewDays != null && ownBalance?.isZeroHours
+    ? Math.round(previewDays * ownDayHours * 10) / 10
+    : null
+  const typedHours = form.hours === '' ? null : parseFloat(form.hours)
+  const formHours  = typedHours ?? suggestedHours
+
   // Zero-hours: hours this request would use, against what they have left
   const zeroHoursRequest = useMemo(() => {
-    if (!ownBalance?.isZeroHours || previewDays == null || ownAccrued == null) return null
-    const reqHours  = Math.round(previewDays * (ownAvgDaily ?? 7.6) * 10) / 10
-    const remaining = ownRemainingHours ?? ownAccrued
-    return { reqHours, remaining }
-  }, [ownBalance?.isZeroHours, previewDays, ownAccrued, ownAvgDaily, ownRemainingHours])
+    if (!ownBalance?.isZeroHours || formHours == null || ownHours == null) return null
+    return { reqHours: formHours, remaining: Math.max(0, ownHours.left) }
+  }, [ownBalance?.isZeroHours, formHours, ownHours])
 
-  // When the venue blocks over-balance holiday: why `days` of annual leave is
-  // too many for this staff member, or null. `credit` gives back the days and
-  // hours of an approved request being edited, which already count as used.
-  const overBalanceProblem = useCallback((days, credit = { days: 0, hours: 0 }) => {
+  // When the venue blocks over-balance holiday: why this much annual leave is
+  // too much for this staff member, or null. `credit` gives back the days and
+  // hours of a request being edited, which already count against the balance.
+  const overBalanceProblem = useCallback((days, hours, credit = { days: 0, hours: 0 }) => {
     // Managers can book over a balance — that's the override.
     if (!blockOverBalance || isManager || !ownBalance || days == null) return null
     const tail = 'Request unpaid leave for the rest, or ask your manager.'
@@ -155,11 +169,10 @@ export default function TimeOffPage() {
       const left = ownBalance.remaining + credit.days
       return days > left ? `You only have ${fmtDays(left)} of holiday left. ${tail}` : null
     }
-    if (ownAccrued == null) return null
-    const avg  = ownAvgDaily ?? 7.6
-    const left = Math.round(((ownRemainingHours ?? ownAccrued) + credit.hours) * 10) / 10
-    return Math.round(days * avg * 10) / 10 > left ? `You only have ${left} h of holiday left. ${tail}` : null
-  }, [blockOverBalance, isManager, ownBalance, ownAccrued, ownAvgDaily, ownRemainingHours])
+    if (ownHours == null || hours == null) return null
+    const left = Math.round((Math.max(0, ownHours.left) + credit.hours) * 10) / 10
+    return hours > left ? `You only have ${left} h of holiday left. ${tail}` : null
+  }, [blockOverBalance, isManager, ownBalance, ownHours])
 
   // Why this request can't be sent, if it can't. Checked as the form changes
   // so the reason shows before anyone presses submit.
@@ -172,20 +185,24 @@ export default function TimeOffPage() {
     if (previewDays === 0) {
       return "None of these days are your working days, so they don't use holiday. If that's wrong, ask your manager to check your working days."
     }
-    return overBalanceProblem(previewDays)
-  }, [form.startDate, form.endDate, form.leaveType, closedDays, previewDays, overBalanceProblem])
+    if (typedHours != null && !(typedHours > 0 && typedHours <= 1000)) return 'Enter the holiday hours for this booking.'
+    return overBalanceProblem(previewDays, formHours)
+  }, [form.startDate, form.endDate, form.leaveType, closedDays, previewDays, typedHours, formHours, overBalanceProblem])
 
   // Same balance check when someone moves their own booking to new dates
   const editBalanceCheck = useMemo(() => {
     if (!editing || editing.staff_id !== session?.staffId) return null
-    // Only approved annual leave counts as used — those are the days in leaveDays
-    const mine = (ownBalance?.leaveDays ?? []).filter(d => d.requestId === editing.id)
-    const credit = {
-      days:  mine.filter(d => d.isWorkingDay).length,
-      hours: holidayHoursUsed(mine, ownAvgDaily ?? 7.6),
-    }
-    return (days) => overBalanceProblem(days, credit)
-  }, [editing, session?.staffId, ownBalance, ownAvgDaily, overBalanceProblem])
+    // Its own hours are already counted (approved or pending), so give them back
+    const wd      = ownProfile?.working_days
+    const counted = editing.leave_type === 'annual' && ['approved', 'pending'].includes(editing.status)
+    const credit  = counted
+      ? {
+          days:  editing.status === 'approved' ? countWorkingDaysInRequest(editing.start_date, editing.end_date, wd) : 0,
+          hours: requestHoursInRange(editing, wd, ownDayHours, leaveYear.from, leaveYear.to),
+        }
+      : { days: 0, hours: 0 }
+    return (days, hours) => overBalanceProblem(days, hours, credit)
+  }, [editing, session?.staffId, ownProfile?.working_days, ownDayHours, leaveYear, overBalanceProblem])
 
   const submitRequest = async () => {
     if (!form.startDate || !form.endDate) { toast('Please select start and end dates', 'error'); return }
@@ -209,6 +226,7 @@ export default function TimeOffPage() {
       reason:     form.reason.trim() || null,
       leave_type: form.leaveType,
       venue_id:   venueId,
+      ...(hoursReady && form.leaveType === 'annual' ? { hours: formHours ?? null } : {}),
     })
     setSaving(false)
     if (err) { toast(err.message, 'error'); return }
@@ -221,12 +239,14 @@ export default function TimeOffPage() {
       url:   '/time-off',
       roles: ['manager', 'owner'],
     })
-    setForm({ startDate: '', endDate: '', reason: '', leaveType: 'annual' })
+    setForm(EMPTY_FORM)
     setShowRequest(false)
     refreshDependents()
   }
 
-  const approve = async (id) => {
+  // Approving is the decision to pay: the hours shown on the request (or
+  // changed by the manager) are what the timesheet pays and the balance loses.
+  const approve = async (id, hours) => {
     setReviewing(id)
     const req = requests.find(r => r.id === id)
     const { error: err } = await supabase.from('time_off_requests').update({
@@ -234,6 +254,7 @@ export default function TimeOffPage() {
       reviewed_by:  session?.staffId,
       reviewed_at:  new Date().toISOString(),
       manager_note: noteFor(id) || null,
+      ...(hoursReady && req?.leave_type === 'annual' && hours != null ? { hours } : {}),
     }).eq('id', id)
     setReviewing(null)
     if (err) { toast(err.message, 'error'); return }
@@ -277,6 +298,15 @@ export default function TimeOffPage() {
       })
     }
     refreshDependents()
+  }
+
+  // Hours to pay on a pending request: what was booked, else (zero-hours)
+  // their working days × average shift
+  const suggestedApprovalHours = (r) => {
+    if (r.hours != null) return Number(r.hours)
+    const accrual = zeroHoursMap[r.staff_id]
+    if (r.leave_type !== 'annual' || r.staff?.employment_type !== 'zero_hours' || !accrual) return null
+    return Math.round(countWorkingDaysInRequest(r.start_date, r.end_date, r.staff?.working_days) * accrual.avgDailyHours * 10) / 10
   }
 
   const myRequests      = useMemo(() => requests.filter(r => r.staff_id === session?.staffId), [requests, session?.staffId])
@@ -330,7 +360,7 @@ export default function TimeOffPage() {
           balance={ownBalance}
           year={leaveYear.label}
           accrued={ownAccrued}
-          remainingHours={ownRemainingHours}
+          hours={ownHours}
         />
       )}
 
@@ -348,8 +378,12 @@ export default function TimeOffPage() {
                 balance={teamBalances.find(b => b.id === r.staff_id)}
                 note={notes[r.id] ?? ''}
                 onNote={(value) => setNotes(n => ({ ...n, [r.id]: value }))}
+                hoursReady={hoursReady}
+                suggestedHours={suggestedApprovalHours(r)}
+                hoursText={approveHours[r.id]}
+                onHours={(value) => setApproveHours(h => ({ ...h, [r.id]: value }))}
                 busy={reviewing === r.id}
-                onApprove={() => approve(r.id)}
+                onApprove={(hours) => approve(r.id, hours)}
                 onReject={() => reject(r.id)}
               />
             ))}
@@ -409,7 +443,7 @@ export default function TimeOffPage() {
                 size="sm"
                 onClick={() => {
                   const dateStr = format(selectedDay, 'yyyy-MM-dd')
-                  setForm(f => ({ ...f, startDate: dateStr, endDate: dateStr }))
+                  setForm(f => ({ ...f, startDate: dateStr, endDate: dateStr, hours: '' }))
                   setShowRequest(true)
                 }}
               >
@@ -447,6 +481,7 @@ export default function TimeOffPage() {
                       key={b.id}
                       balance={b}
                       accrual={b.isZeroHours ? zeroHoursMap[b.id] : undefined}
+                      leaveYear={leaveYear}
                       onLogPast={() => setManualEntry(b)}
                       onAdjust={() => setAdjusting(b)}
                     />
@@ -531,8 +566,8 @@ export default function TimeOffPage() {
               <div>
                 <p className="text-body-sm font-semibold text-ink dark:text-white">{leaveYear.label} holiday accrual</p>
                 <p className="text-body-sm text-ink3 dark:text-white/45 mt-0.5">
-                  {ownUsedHours != null ? `~${ownUsedHours} h used · ` : ''}
-                  {ownAccrued != null ? `${ownAccrued} h accrued (12.07%)` : 'Calculating…'}
+                  {ownAccrued != null ? `${ownAccrued} h earned (12.07% of hours worked)` : 'Calculating…'}
+                  {ownHours && (ownHours.approved + ownHours.pending) > 0 ? ` · ${Math.round((ownHours.approved + ownHours.pending) * 10) / 10} h booked` : ''}
                 </p>
               </div>
               <p className={`font-mono text-body font-semibold ${ownRemainingHours === 0 ? 'text-bad' : ownRemainingHours != null && ownRemainingHours <= 4 ? 'text-warn' : 'text-good'}`}>
@@ -548,7 +583,7 @@ export default function TimeOffPage() {
                 type="date"
                 value={form.startDate}
                 min={isManager ? undefined : format(new Date(), 'yyyy-MM-dd')}
-                onChange={e => setForm(f => ({ ...f, startDate: e.target.value, endDate: f.endDate || e.target.value }))}
+                onChange={e => setForm(f => ({ ...f, startDate: e.target.value, endDate: f.endDate || e.target.value, hours: '' }))}
                 className={TEXT_FIELD}
               />
             </label>
@@ -558,7 +593,7 @@ export default function TimeOffPage() {
                 type="date"
                 value={form.endDate}
                 min={form.startDate}
-                onChange={e => setForm(f => ({ ...f, endDate: e.target.value }))}
+                onChange={e => setForm(f => ({ ...f, endDate: e.target.value, hours: '' }))}
                 className={TEXT_FIELD}
               />
             </label>
@@ -566,6 +601,28 @@ export default function TimeOffPage() {
 
           {form.startDate && form.endDate && form.endDate < form.startDate && (
             <p className="text-body-sm text-bad dark:text-badDark -mt-1">End date is before the start date.</p>
+          )}
+
+          {/* Holiday hours — what this booking uses and gets paid */}
+          {hoursReady && form.leaveType === 'annual' && previewDays > 0 && (
+            <label className="flex items-center gap-2.5">
+              <span className="flex-1">
+                <span className="block text-body-sm font-semibold text-ink dark:text-white">Holiday hours</span>
+                <span className="block text-body-sm text-ink3 dark:text-white/45">
+                  {suggestedHours != null
+                    ? `${fmtDays(previewDays)} × ${ownDayHours} h (your average shift) — change it if you need to`
+                    : 'Leave blank to use your usual hours'}
+                </span>
+              </span>
+              <input
+                type="number" inputMode="decimal" min="0" step="0.25"
+                value={form.hours === '' ? (suggestedHours ?? '') : form.hours}
+                onChange={e => setForm(f => ({ ...f, hours: e.target.value }))}
+                aria-label="Holiday hours"
+                className="w-24 h-12 px-3 rounded-xl border border-line dark:border-white/10 bg-cream dark:bg-white/5 text-body-lg text-right text-ink dark:text-white"
+              />
+              <span className="text-body-sm text-ink3 dark:text-white/45">h</span>
+            </label>
           )}
 
           {/* Staffing limit warning — informational only, submit is never blocked */}
@@ -599,14 +656,14 @@ export default function TimeOffPage() {
             return (
               <div className={`-mt-2 rounded-xl px-3.5 py-2.5 text-body-sm ${unpaidHours > 0 ? 'bg-warnBg dark:bg-warn/20' : 'bg-cream dark:bg-white/5'}`}>
                 <p className="text-ink2 dark:text-white/70">
-                  This request covers <span className="font-semibold text-ink dark:text-white">{fmtDays(previewDays)}</span> (~{reqHours} h based on your average shift length).
+                  This request covers <span className="font-semibold text-ink dark:text-white">{fmtDays(previewDays)}</span> and uses <span className="font-semibold text-ink dark:text-white">{reqHours} h</span> of holiday.
                 </p>
                 {unpaidHours > 0 ? (
                   <p className="mt-1 font-semibold text-warn dark:text-warnDark">
-                    ~{Math.round(paidHours * 10) / 10} h paid · ~{unpaidHours} h unpaid — you don't have enough accrued hours to cover this in full.
+                    {Math.round(paidHours * 10) / 10} h paid · {unpaidHours} h unpaid — you don't have enough holiday left to cover this in full.
                   </p>
                 ) : (
-                  <p className="mt-1 text-ink3 dark:text-white/50">You'll have ~{afterHours} h remaining after this.</p>
+                  <p className="mt-1 text-ink3 dark:text-white/50">You'll have {afterHours} h left after this.</p>
                 )}
               </div>
             )
@@ -644,6 +701,8 @@ export default function TimeOffPage() {
       {manualEntry && (
         <ManualLeaveModal
           staff={manualEntry}
+          hoursReady={hoursReady}
+          dayHours={zeroHoursMap[manualEntry.id]?.avgDailyHours ?? null}
           venueId={venueId}
           managerId={session?.staffId}
           onClose={() => setManualEntry(null)}
@@ -651,15 +710,13 @@ export default function TimeOffPage() {
         />
       )}
 
-      {/* Carry-over and pay-outs */}
+      {/* Carry-over */}
       {adjusting && (
-        <BalanceAdjustModal
-          balance={teamBalances.find(b => b.id === adjusting.id) ?? adjusting}
-          accrual={zeroHoursMap[adjusting.id]}
+        <CarryOverModal
+          balance={adjusting}
           leaveYear={leaveYear}
-          available={adjustmentsAvailable}
+          available={hoursReady}
           venueId={venueId}
-          managerId={session?.staffId}
           onClose={() => setAdjusting(null)}
           onSaved={refreshDependents}
         />
@@ -676,6 +733,10 @@ export default function TimeOffPage() {
           closedDays={closedDays}
           allowUnpaidLeave={allowUnpaidLeave}
           checkBalance={editBalanceCheck}
+          hoursReady={hoursReady}
+          dayHours={editing.staff_id === session?.staffId
+            ? (ownBalance?.isZeroHours ? ownDayHours : null)
+            : (zeroHoursMap[editing.staff_id]?.avgDailyHours ?? null)}
           onClose={() => setEditing(null)}
           onSaved={refreshDependents}
         />
@@ -711,22 +772,25 @@ function dateRange(r) {
   return `${format(start, 'd MMM')} – ${format(end, 'd MMM yyyy')}`
 }
 
-function OwnBalanceCard({ balance, year, accrued, remainingHours }) {
+// hours: { approved, pending, left } for zero-hours staff
+function OwnBalanceCard({ balance, year, accrued, hours }) {
   if (balance.isZeroHours) {
+    const left = hours ? Math.max(0, hours.left) : null
     return (
       <div className={`${CARD} px-3.5 sm:px-3.5 py-2.5`}>
         <div className="flex items-baseline justify-between gap-2.5 flex-wrap">
           <p className="flex items-baseline gap-2">
-            <span className="font-mono text-title leading-none font-semibold text-good dark:text-goodDark">{remainingHours ?? accrued ?? '—'}</span>
+            <span className={`font-mono text-title leading-none font-semibold ${left === 0 ? 'text-bad' : 'text-good dark:text-goodDark'}`}>{left ?? '—'}</span>
             <span className="text-body font-semibold text-ink dark:text-white">hrs left</span>
           </p>
-          <p className="text-body-sm text-ink3 dark:text-white/45">
-            {accrued != null ? `${accrued} hrs accrued` : 'Calculating…'}
-            {balance.carriedOver > 0 && ` · ${balance.carriedOver} carried over`}
-            {balance.paidOut > 0 && ` · ${balance.paidOut} paid out`}
-            {' · '}{year} holiday
-          </p>
+          <p className="text-body-sm text-ink3 dark:text-white/45">{year} holiday</p>
         </div>
+        <p className="text-body-sm text-ink3 dark:text-white/45 mt-1.5">
+          {accrued != null ? `${accrued} h earned` : 'Calculating…'}
+          {balance.carriedOver > 0 && ` + ${balance.carriedOver} h carried over`}
+          {hours?.approved > 0 && ` − ${hours.approved} h booked`}
+          {hours?.pending > 0 && ` − ${hours.pending} h awaiting approval`}
+        </p>
       </div>
     )
   }
@@ -749,7 +813,11 @@ function OwnBalanceCard({ balance, year, accrued, remainingHours }) {
   )
 }
 
-function PendingRequest({ request: r, balance, note, onNote, busy, onApprove, onReject }) {
+function PendingRequest({ request: r, balance, note, onNote, hoursReady, suggestedHours, hoursText, onHours, busy, onApprove, onReject }) {
+  // The hours approving will pay: the manager's edit, else what was booked
+  const showHours = hoursReady && r.leave_type === 'annual'
+  const hours = hoursText !== undefined && hoursText !== '' ? parseFloat(hoursText) : suggestedHours
+  const hoursInvalid = showHours && hoursText !== undefined && hoursText !== '' && !(hours > 0 && hours <= 1000)
   const daysRequested = r.leave_type === 'annual'
     ? countWorkingDaysInRequest(r.start_date, r.end_date, r.staff?.working_days)
     : null
@@ -792,6 +860,22 @@ function PendingRequest({ request: r, balance, note, onNote, busy, onApprove, on
         aria-label={`Note for ${r.staff?.name ?? 'this request'}`}
         className={TEXT_FIELD}
       />
+      {showHours && (
+        <label className="flex items-center gap-2.5">
+          <span className="flex-1 text-body-sm text-ink2 dark:text-white/70">
+            Holiday hours to pay
+            {suggestedHours == null && <span className="block text-ink3 dark:text-white/45">Leave blank to pay their usual hours</span>}
+          </span>
+          <input
+            type="number" inputMode="decimal" min="0" step="0.25"
+            value={hoursText ?? (suggestedHours ?? '')}
+            onChange={e => onHours(e.target.value)}
+            aria-label={`Holiday hours to pay ${r.staff?.name ?? ''}`}
+            className="w-24 h-10 px-3 rounded-xl border border-line dark:border-white/10 bg-cream dark:bg-white/5 text-body text-right text-ink dark:text-white"
+          />
+          <span className="text-body-sm text-ink3 dark:text-white/45">h</span>
+        </label>
+      )}
       <div className="grid grid-cols-2 gap-2.5">
         <Button
           variant="secondary"
@@ -803,23 +887,28 @@ function PendingRequest({ request: r, balance, note, onNote, busy, onApprove, on
         </Button>
         <Button
           size="sm"
-          onClick={onApprove}
-          disabled={busy}
+          onClick={() => onApprove(showHours ? hours ?? null : null)}
+          disabled={busy || hoursInvalid}
         >
-          Approve
+          {showHours && hours ? `Approve · pay ${hours} h` : 'Approve'}
         </Button>
       </div>
     </div>
   )
 }
 
-function TeamBalanceRow({ balance: b, accrual, onLogPast, onAdjust }) {
-  // Zero-hours: earned this holiday year plus carry-over, less allocated (or
-  // estimated) hours taken and any paid out
+function TeamBalanceRow({ balance: b, accrual, leaveYear, onLogPast, onAdjust }) {
+  // Zero-hours: earned this holiday year plus carry-over, less approved and
+  // awaiting-approval holiday hours
+  const pendingHours = b.isZeroHours && accrual
+    ? hoursInRange(b.pendingRequests, b.working_days, accrual.avgDailyHours, leaveYear.from, leaveYear.to)
+    : 0
   const hoursLeft = b.isZeroHours && accrual
     ? Math.max(0, zeroHoursLeft({
-        accrued: accrual.accrued, used: holidayHoursUsed(b.leaveDays, accrual.avgDailyHours),
-        carriedOver: b.carriedOver, paidOut: b.paidOut,
+        accrued:     accrual.accrued,
+        carriedOver: b.carriedOver,
+        approved:    hoursInRange(b.approvedRequests, b.working_days, accrual.avgDailyHours, leaveYear.from, leaveYear.to),
+        pending:     pendingHours,
       }))
     : null
   const kind = employmentLabel(b.employment_type)
@@ -827,7 +916,7 @@ function TeamBalanceRow({ balance: b, accrual, onLogPast, onAdjust }) {
     ? [
         kind ?? 'Zero hours', 'accrues hourly',
         b.carriedOver > 0 && `+${b.carriedOver} h carried over`,
-        b.paidOut > 0 && `${b.paidOut} h paid out`,
+        pendingHours > 0 && `${pendingHours} h awaiting approval`,
       ].filter(Boolean).join(' · ')
     : [kind, b.entitlement != null && `${b.entitlement} days`].filter(Boolean).join(' · ')
   const tone = b.remaining === 0 ? 'text-bad' : b.remaining != null && b.remaining <= 5 ? 'text-warn' : 'text-good dark:text-goodDark'
@@ -869,10 +958,10 @@ function TeamBalanceRow({ balance: b, accrual, onLogPast, onAdjust }) {
           variant="secondary"
           size="sm"
           onClick={onAdjust}
-          aria-label={`Carry over or pay out holiday for ${b.name}`}
+          aria-label={`Holiday carried over for ${b.name}`}
           className="shrink-0"
         >
-          Adjust
+          Carry over
         </Button>
       )}
     </div>

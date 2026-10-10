@@ -17,12 +17,11 @@
 --   missed_clock_outs     shifts with a clock-in but no clock-out — worth fixing
 --                         on the timesheet, as those hours earn no holiday
 --
--- This mirrors the app's calculation, so the numbers should match what Time off
--- shows. Holiday hours are estimated from the average shift because holiday pay
--- allocation (migration 148) isn't in use yet.
---
--- Carry-over and pay-outs (added with migration 148) aren't included here —
--- add them by hand: hours left = hours_left_now + carried over − paid out.
+-- This mirrors the app's calculation for holiday booked before migration 148:
+-- each approved day is estimated at the person's average shift. Once 148 is
+-- on, bookings carry their own hours, requests awaiting approval also count
+-- against the balance, and carry-over is added — the Time off screen shows
+-- that live figure; this report doesn't include them.
 --
 -- Change the two values in `params` if needed: your venue's slug (from the app's
 -- web address, /v/<slug>/…) and the first day of your holiday year.

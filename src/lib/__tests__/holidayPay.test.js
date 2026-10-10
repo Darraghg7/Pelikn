@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { leaveYearFor, leaveYearForDateStr } from '../leaveYear'
-import { leaveDaysInRange, holidayHoursUsed, adjustmentTotals, zeroHoursLeft } from '../api/holidayPay'
+import { requestHours, requestHoursInRange, hoursInRange, zeroHoursLeft } from '../api/holidayPay'
 
 describe('leaveYearFor', () => {
   it('is the calendar year by default', () => {
@@ -19,48 +19,47 @@ describe('leaveYearFor', () => {
   })
 })
 
-describe('leaveDaysInRange', () => {
-  // Thu 15 – Mon 19 Oct 2026, a Thu–Sun worker
-  const req = { id: 'r1', staff_id: 's1', start_date: '2026-10-15', end_date: '2026-10-19' }
-  const thuSun = [4, 5, 6, 7]
+const thuSun = [4, 5, 6, 7]
+// Thu 15 – Mon 19 Oct 2026: four working days for a Thu–Sun worker
+const req = (over) => ({ id: 'r1', staff_id: 's1', start_date: '2026-10-15', end_date: '2026-10-19', ...over })
 
-  it('marks which days are working days', () => {
-    const days = leaveDaysInRange([req], [], thuSun, '2026-01-01', '2026-12-31')
-    expect(days.map(d => [d.date, d.isWorkingDay])).toEqual([
-      ['2026-10-15', true], ['2026-10-16', true], ['2026-10-17', true], ['2026-10-18', true], ['2026-10-19', false],
-    ])
+describe('requestHours', () => {
+  it('uses the hours booked on the request', () => {
+    expect(requestHours(req({ hours: '30.00' }), thuSun, 7)).toBe(30)
   })
-  it('only keeps the days inside the range', () => {
-    const days = leaveDaysInRange([req], [], thuSun, '2026-10-12', '2026-10-17')
-    expect(days.map(d => d.date)).toEqual(['2026-10-15', '2026-10-16', '2026-10-17'])
+  it('estimates older requests from working days × usual day', () => {
+    expect(requestHours(req({ hours: null }), thuSun, 7.5)).toBe(30)
   })
-  it('attaches allocated hours to their day', () => {
-    const alloc = [{ id: 'a1', time_off_request_id: 'r1', leave_date: '2026-10-16', hours: '8.00' }]
-    const day = leaveDaysInRange([req], alloc, thuSun, '2026-10-16', '2026-10-16')[0]
-    expect(day).toMatchObject({ allocationId: 'a1', allocatedHours: 8 })
+  it('is unknown with no hours and no usual day', () => {
+    expect(requestHours(req({ hours: null }), thuSun, null)).toBeNull()
   })
 })
 
-describe('holidayHoursUsed', () => {
-  const day = (over) => ({ isWorkingDay: true, allocatedHours: null, ...over })
-  it('takes allocated hours exactly, and estimates the rest', () => {
-    // 20 h earned, one day paid at 8 h, one booked but not yet paid (6.5 h average)
-    expect(holidayHoursUsed([day({ allocatedHours: 8 }), day()], 6.5)).toBe(14.5)
+describe('requestHoursInRange', () => {
+  it('counts all of a request inside the range', () => {
+    expect(requestHoursInRange(req({ hours: 30 }), thuSun, 7, '2026-10-12', '2026-10-25')).toBe(30)
   })
-  it('ignores non-working days with nothing allocated', () => {
-    expect(holidayHoursUsed([day({ isWorkingDay: false })], 6.5)).toBe(0)
+  it('splits a request across pay weeks by working days', () => {
+    // Thu 15 – Sun 18 is one week, Mon 19 the next (not a working day)
+    expect(requestHoursInRange(req({ hours: 30 }), thuSun, 7, '2026-10-12', '2026-10-18')).toBe(30)
+    expect(requestHoursInRange(req({ hours: 30 }), thuSun, 7, '2026-10-19', '2026-10-25')).toBe(0)
+    // Two of the four working days fall in the range
+    expect(requestHoursInRange(req({ hours: 30 }), thuSun, 7, '2026-10-17', '2026-10-25')).toBe(15)
+  })
+  it('splits by calendar days when the leave covers no working days', () => {
+    // Holiday pay for Mon–Tue, when they only work Thu–Sun
+    const r = { id: 'r2', staff_id: 's1', start_date: '2026-10-19', end_date: '2026-10-20', hours: 8 }
+    expect(requestHoursInRange(r, thuSun, 7, '2026-10-19', '2026-10-19')).toBe(4)
+  })
+  it('sums a list', () => {
+    expect(hoursInRange([req({ hours: 30 }), req({ id: 'r3', hours: null })], thuSun, 7, '2026-01-01', '2026-12-31')).toBe(58)
   })
 })
 
-describe('carry-over and pay-outs', () => {
-  it('totals each kind', () => {
-    expect(adjustmentTotals([
-      { kind: 'carry_over', hours: '10.00' }, { kind: 'payout', hours: '4.5' }, { kind: 'payout', hours: 2 },
-    ])).toEqual({ carriedOver: 10, paidOut: 6.5 })
-  })
-  it('adds carry-over and takes off what was used and paid out', () => {
-    // 20 earned + 10 carried over − 8 taken − 6.5 paid out
-    expect(zeroHoursLeft({ accrued: 20, used: 8, carriedOver: 10, paidOut: 6.5 })).toBe(15.5)
-    expect(zeroHoursLeft({ accrued: 20, used: 8 })).toBe(12)
+describe('zeroHoursLeft', () => {
+  it('adds carry-over and takes off approved and awaiting-approval hours', () => {
+    // 20 earned + 10 carried over − 8 approved − 6.5 awaiting approval
+    expect(zeroHoursLeft({ accrued: 20, carriedOver: 10, approved: 8, pending: 6.5 })).toBe(15.5)
+    expect(zeroHoursLeft({ accrued: 20, approved: 8 })).toBe(12)
   })
 })

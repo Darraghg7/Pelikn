@@ -10,8 +10,8 @@ import { useState, useEffect, useCallback, useMemo } from 'react'
 import { supabase } from '../lib/supabase'
 import { reportError } from '../lib/reportError'
 import { fetchTimeOffPrivateFields, withTimeOffPrivate } from '../lib/api/timeOffPrivate'
-import { calculateEntitlementDays } from './useLeaveBalance'
-import { fetchHolidayAllocations, fetchBalanceAdjustments, adjustmentTotals, leaveDaysInRange } from '../lib/api/holidayPay'
+import { calculateEntitlementDays, countWorkingDaysInRequest } from './useLeaveBalance'
+import { hasHoursColumn } from '../lib/api/holidayPay'
 
 export function useTimeOffRequests(venueId) {
   const [requests, setRequests] = useState([])
@@ -24,16 +24,22 @@ export function useTimeOffRequests(venueId) {
     // Was select('*'). 119 withholds reason/manager_note, and a star select
     // asks for every column — so it fails the whole query rather than omitting
     // them. Columns are named explicitly and the two are merged back below.
+    // hours only once migration 148 has added it
+    const withHours = await hasHoursColumn()
+    /** @type {string} */
+    const columns = 'id, staff_id, venue_id, start_date, end_date, status, leave_type, reviewed_by, reviewed_at, cancelled_at, cancelled_by, created_at, ' +
+      (withHours ? 'hours, ' : '') +
+      'staff:staff_id(name, employment_type, working_days, colour, photo_url), reviewer:reviewed_by(name)'
     const [{ data, error: err }, priv] = await Promise.all([
       supabase
         .from('time_off_requests')
-        .select('id, staff_id, venue_id, start_date, end_date, status, leave_type, reviewed_by, reviewed_at, cancelled_at, cancelled_by, created_at, staff:staff_id(name, working_days, colour, photo_url), reviewer:reviewed_by(name)')
+        .select(columns)
         .eq('venue_id', venueId)
         .order('start_date', { ascending: true }),
       fetchTimeOffPrivateFields(),
     ])
     if (err) { setError(err.message); setLoading(false); return }
-    setRequests(withTimeOffPrivate(data ?? [], priv))
+    setRequests(withTimeOffPrivate(/** @type {any[]} */ (data ?? []), priv))
     setLoading(false)
   }, [venueId])
   useEffect(() => { load() }, [load])
@@ -76,17 +82,17 @@ export function useOwnProfile(staffId) {
 // Compute all staff leave balances in a single batch fetch.
 // leaveYear: { startYear, from, to } from lib/leaveYear. Leave that runs
 // across the start or end of the holiday year only counts the days inside it.
+//
+// Each balance carries its approved and pending annual leave requests (with
+// their booked hours, once migration 148 is applied) and any carry-over, so
+// zero-hours balances can be worked out in hours by the caller.
 export function useTeamLeaveBalances(staff, leaveYear) {
   const { startYear, from, to } = leaveYear
-  const [approvedReqs, setApprovedReqs] = useState([])
-  const [overrides, setOverrides]       = useState({})
-  const [allocations, setAllocations]   = useState([])
-  const [allocationsAvailable, setAllocationsAvailable] = useState(false)
-  const [adjustments, setAdjustments]   = useState([])
-  const [adjustmentsAvailable, setAdjustmentsAvailable] = useState(false)
-  const [loading, setLoading]           = useState(true)
-  const [failed, setFailed]             = useState(false)
-  const [tick, setTick]                 = useState(0)
+  const [annualReqs, setAnnualReqs] = useState([])
+  const [entitlements, setEntitlements] = useState({})
+  const [loading, setLoading]       = useState(true)
+  const [failed, setFailed]         = useState(false)
+  const [tick, setTick]             = useState(0)
 
   // Keyed on the ids themselves, not staff.length: a venue switch or a
   // leaver-plus-joiner keeps the count the same but needs a fresh fetch.
@@ -97,40 +103,29 @@ export function useTeamLeaveBalances(staff, leaveYear) {
   useEffect(() => {
     if (!ids.length) { setLoading(false); return }
     let cancelled = false
-    Promise.all([
+    hasHoursColumn().then((withHours) => Promise.all([
       supabase.from('time_off_requests')
-        .select('id, staff_id, start_date, end_date')
+        .select(withHours ? 'id, staff_id, start_date, end_date, status, hours' : 'id, staff_id, start_date, end_date, status')
         .in('staff_id', ids)
-        .eq('status', 'approved')
+        .in('status', ['approved', 'pending'])
         .eq('leave_type', 'annual')
         .lte('start_date', to)
         .gte('end_date', from),
       supabase.from('leave_entitlements')
-        .select('staff_id, override_days')
+        .select(withHours ? 'staff_id, override_days, carry_over_hours' : 'staff_id, override_days')
         .in('staff_id', ids)
         .eq('leave_year', startYear),
-      // Allocated hours only refine the zero-hours figure — if they can't be
-      // read (148 not applied yet) the balance estimates instead of failing.
-      fetchHolidayAllocations({ staffIds: ids, from, to })
-        .catch((e) => { reportError(e, 'useTeamLeaveBalances:allocations'); return { data: [], available: false } }),
-      // Carry-over and pay-outs — the same, they adjust the zero-hours figure
-      fetchBalanceAdjustments({ staffIds: ids, leaveYear: startYear })
-        .catch((e) => { reportError(e, 'useTeamLeaveBalances:adjustments'); return { data: [], available: false } }),
-    ]).then(([reqRes, ovRes, allocRes, adjRes]) => {
+    ])).then(([reqRes, entRes]) => {
       if (cancelled) return
       // Without both reads every balance would show as a full, untouched
       // allowance — so fail the list instead of showing wrong numbers.
-      const error = reqRes.error ?? ovRes.error
+      const error = reqRes.error ?? entRes.error
       setFailed(!!error)
       if (error) { reportError(error, 'useTeamLeaveBalances'); setLoading(false); return }
-      setApprovedReqs(reqRes.data ?? [])
+      setAnnualReqs(reqRes.data ?? [])
       const map = {}
-      for (const o of (ovRes.data ?? [])) map[o.staff_id] = o.override_days
-      setOverrides(map)
-      setAllocations(allocRes.data)
-      setAllocationsAvailable(allocRes.available)
-      setAdjustments(adjRes.data)
-      setAdjustmentsAvailable(adjRes.available)
+      for (const e of (entRes.data ?? [])) map[e.staff_id] = e
+      setEntitlements(map)
       setLoading(false)
     })
     return () => { cancelled = true }
@@ -141,18 +136,25 @@ export function useTeamLeaveBalances(staff, leaveYear) {
   const balances = useMemo(() => staff.map(s => {
     const eligible    = s.holiday_pay_eligible !== false
     const calculated  = eligible ? calculateEntitlementDays(s.employment_type, s.working_days) : null
-    const entitlement = eligible ? (overrides[s.id] ?? calculated) : null
-    const myReqs      = approvedReqs.filter(r => r.staff_id === s.id)
-    const leaveDays   = leaveDaysInRange(myReqs, allocations, s.working_days, from, to)
-    const used        = leaveDays.filter(d => d.isWorkingDay).length
+    const ent         = entitlements[s.id]
+    const entitlement = eligible ? (ent?.override_days ?? calculated) : null
+    const mine        = annualReqs.filter(r => r.staff_id === s.id)
+    const approved    = mine.filter(r => r.status === 'approved')
+    const pending     = mine.filter(r => r.status === 'pending')
+    // Days of approved leave inside the holiday year, on their working pattern
+    const used = approved.reduce((sum, r) => sum + countWorkingDaysInRequest(
+      r.start_date < from ? from : r.start_date,
+      r.end_date   > to   ? to   : r.end_date,
+      s.working_days,
+    ), 0)
     const remaining   = entitlement != null ? Math.max(0, entitlement - used) : null
-    const myAdjustments = adjustments.filter(a => a.staff_id === s.id)
     return {
-      ...s, entitlement, used, remaining, leaveDays,
-      adjustments: myAdjustments, ...adjustmentTotals(myAdjustments),
+      ...s, entitlement, used, remaining,
+      approvedRequests: approved, pendingRequests: pending,
+      carriedOver: Number(ent?.carry_over_hours ?? 0),
       isZeroHours: s.employment_type === 'zero_hours', isEligible: eligible,
     }
-  }), [staff, approvedReqs, overrides, allocations, adjustments, from, to])
+  }), [staff, annualReqs, entitlements, from, to])
 
-  return { balances, loading, failed, reloadBalances, allocationsAvailable, adjustmentsAvailable }
+  return { balances, loading, failed, reloadBalances }
 }

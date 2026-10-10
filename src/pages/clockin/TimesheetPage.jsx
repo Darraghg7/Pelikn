@@ -11,10 +11,10 @@ import { useAppSettings } from '../../hooks/useSettings'
 import { formatMinutes, getWeekStart, downloadCsv } from '../../lib/utils'
 import { buildPdfReport } from '../../lib/pdfUtils'
 import { countWorkingDaysInRequest } from '../../hooks/useLeaveBalance'
-import { fetchWorkedStatsByStaff, avgDailyHoursFor, accruedHoursFor } from '../../hooks/useZeroHoursAccrual'
-import { fetchHolidayAllocations, fetchHolidayHoursUsed, fetchBalanceAdjustments, fetchPayouts, adjustmentTotals, leaveDaysInRange } from '../../lib/api/holidayPay'
+import { fetchWorkedStatsByStaff, avgDailyHoursFor } from '../../hooks/useZeroHoursAccrual'
+import { hasHoursColumn, requestHoursInRange } from '../../lib/api/holidayPay'
 import { leaveYearForDateStr } from '../../lib/leaveYear'
-import HolidayPaySection, { AllocateHolidayModal } from './HolidayPaySection'
+import HolidayPaySection from './HolidayPaySection'
 import { SkeletonList } from '../../components/ui/Skeleton'
 import AddSessionModal from './AddSessionModal'
 import ClockEditApprovalCard from '../../components/shifts/ClockEditApprovalCard'
@@ -69,21 +69,12 @@ function minsStr(mins) {
   return m === 0 ? `${h}h` : `${h}h ${m}m`
 }
 
-function calcHolidayMins(leaveReqs, staffId, profile, periodFrom, periodTo) {
-  const reqs = leaveReqs.filter(r => r.staff_id === staffId)
-  if (!reqs.length) return 0
-  const { contractedHours, workingDays, isZeroHours, zeroHoursDayHours } = profile
-  // Zero-hours staff have no contracted hours: a day off is paid at their
-  // average shift length this year (the same figure the time-off screen uses).
-  const dailyHours = isZeroHours
-    ? zeroHoursDayHours
-    : contractedHours > 0 ? contractedHours / (workingDays?.length > 0 ? workingDays.length : 5) : null
-  if (!dailyHours) return 0
-  return reqs.reduce((sum, r) => {
-    const clippedStart = periodFrom && r.start_date < periodFrom ? periodFrom : r.start_date
-    const clippedEnd   = periodTo   && r.end_date   > periodTo   ? periodTo   : r.end_date
-    return sum + countWorkingDaysInRequest(clippedStart, clippedEnd, workingDays) * dailyHours * 60
-  }, 0)
+// A usual day's hours, for holiday booked before hours were recorded on the
+// request: a zero-hours person's average shift this holiday year, or
+// contracted hours ÷ working days. Null when neither is known.
+function usualDayHours({ contractedHours, workingDays, isZeroHours, zeroHoursDayHours }) {
+  if (isZeroHours) return zeroHoursDayHours ?? null
+  return contractedHours > 0 ? contractedHours / (workingDays?.length > 0 ? workingDays.length : 5) : null
 }
 
 const END_OF_DAY_MS = 86_399_999
@@ -417,19 +408,15 @@ export default function TimesheetPage() {
   const [staffRates,    setStaffRates]    = useState({})
   const [staffProfiles, setStaffProfiles] = useState({})
   const [periodLeave,   setPeriodLeave]   = useState([])
-  // Zero-hours staff: { accrued, avgDailyHours } over the holiday year the period is in
-  const [zeroHoursStats, setZeroHoursStats] = useState({})
+  // Zero-hours staff: average shift length over the holiday year the period is in
+  const [zeroHoursDayHours, setZeroHoursDayHours] = useState({})
   const profileFor = useCallback(
     (staffId) => ({
       ...(staffProfiles[staffId] ?? { contractedHours: null, workingDays: [] }),
-      zeroHoursDayHours: zeroHoursStats[staffId]?.avgDailyHours ?? null,
+      zeroHoursDayHours: zeroHoursDayHours[staffId] ?? null,
     }),
-    [staffProfiles, zeroHoursStats],
+    [staffProfiles, zeroHoursDayHours],
   )
-  const [allocations, setAllocations] = useState({ data: [], available: false })
-  const [payouts, setPayouts]         = useState({ data: [], available: false }) // holiday paid out in this period
-  const [allocTick, setAllocTick]     = useState(0)
-  const [allocating, setAllocating]   = useState(null) // staffId whose holiday pay is open
   const [periodShifts,  setPeriodShifts]  = useState([])
   const [payrollLocks,  setPayrollLocks]  = useState([])
   const [locksFailed,   setLocksFailed]   = useState(false)
@@ -478,69 +465,31 @@ export default function TimesheetPage() {
   const totalMins    = useMemo(() => timesheets.reduce((a, t) => a + t.totalMinutes, 0), [timesheets])
   const totalWage    = useMemo(() => timesheets.reduce((a, t) => a + (t.totalMinutes / 60) * t.hourlyRate, 0), [timesheets])
 
-  // Booked holiday per person in this period: working days, plus any day
-  // that already has hours allocated.
-  const holidayDays = useMemo(() => {
-    const byStaff = {}
-    for (const staffId of new Set(periodLeave.map(r => r.staff_id))) {
-      const reqs = periodLeave.filter(r => r.staff_id === staffId)
-      const days = leaveDaysInRange(reqs, allocations.data, staffProfiles[staffId]?.workingDays, holFrom, holTo)
-        .filter(d => d.isWorkingDay || d.allocatedHours != null)
-      if (days.length) byStaff[staffId] = days
-    }
-    return byStaff
-  }, [periodLeave, allocations.data, staffProfiles, holFrom, holTo])
+  // Approved holiday is paid in the week(s) it falls in: the hours booked on
+  // the request, or for older requests working days × their usual day.
+  // Approving the request is the decision to pay it — nothing else to do here.
+  const holidayHoursFor = useCallback((staffId) => {
+    const profile = profileFor(staffId)
+    const hours = periodLeave
+      .filter(r => r.staff_id === staffId)
+      .reduce((sum, r) => sum + requestHoursInRange(r, profile.workingDays, usualDayHours(profile), holFrom, holTo), 0)
+    return Math.round(hours * 100) / 100
+  }, [periodLeave, profileFor, holFrom, holTo])
+  const holidayMinsFor = useCallback((staffId) => holidayHoursFor(staffId) * 60, [holidayHoursFor])
 
-  // Hours of unused holiday paid out (as money) with a pay date in this period
-  const payoutHours = useMemo(() => {
-    const byStaff = {}
-    for (const p of payouts.data) byStaff[p.staff_id] = (byStaff[p.staff_id] ?? 0) + Number(p.hours)
-    return byStaff
-  }, [payouts.data])
-
-  // Holiday pay is what a manager has allocated, plus any pay-out. Until
-  // migration 148 is applied there's nothing to allocate into, so it stays
-  // estimated as before.
-  const holidayMinsFor = useCallback((staffId) => {
-    if (!allocations.available) return calcHolidayMins(periodLeave, staffId, profileFor(staffId), holFrom, holTo)
-    const allocated = (holidayDays[staffId] ?? []).reduce((sum, d) => sum + (d.allocatedHours ?? 0) * 60, 0)
-    return allocated + (payoutHours[staffId] ?? 0) * 60
-  }, [allocations.available, periodLeave, profileFor, holFrom, holTo, holidayDays, payoutHours])
-
-  const holidayRows = useMemo(
-    () => timesheets
-      .filter(t => holidayDays[t.staffId] || payoutHours[t.staffId])
-      .map(t => ({
-        staffId: t.staffId, name: t.name, hourlyRate: t.hourlyRate,
-        days: holidayDays[t.staffId] ?? [], payoutHours: payoutHours[t.staffId] ?? 0,
-      })),
-    [timesheets, holidayDays, payoutHours],
-  )
-
-  // Hours to pre-fill for a day off: a zero-hours person's average shift, or a
-  // contracted person's hours per working day.
-  const suggestedHolidayHours = useCallback((staffId) => {
-    const p = profileFor(staffId)
-    if (p.isZeroHours) return p.zeroHoursDayHours ?? 7.6
-    if (p.contractedHours > 0) return Math.round(p.contractedHours / (p.workingDays?.length > 0 ? p.workingDays.length : 5) * 100) / 100
-    return 7.6
-  }, [profileFor])
-
-  // Zero-hours balance for the allocate dialog: earned and used this holiday year
-  const loadHolidayBalance = useCallback(async () => {
-    const stats = zeroHoursStats[allocating]
-    if (!allocating || !stats || !periodLeaveYear) return null
-    const [used, adjustments] = await Promise.all([
-      fetchHolidayHoursUsed({
-        staffId:       allocating,
-        workingDays:   staffProfiles[allocating]?.workingDays,
-        leaveYear:     periodLeaveYear,
-        avgDailyHours: stats.avgDailyHours,
-      }),
-      fetchBalanceAdjustments({ staffIds: [allocating], leaveYear: periodLeaveYear.startYear }),
-    ])
-    return { accrued: stats.accrued, used, avgDailyHours: stats.avgDailyHours, ...adjustmentTotals(adjustments.data) }
-  }, [allocating, zeroHoursStats, staffProfiles, periodLeaveYear])
+  // Everyone with approved holiday in this period, for the Holiday pay card
+  const holidayRows = useMemo(() => timesheets
+    .filter(t => periodLeave.some(r => r.staff_id === t.staffId))
+    .map(t => ({
+      staffId: t.staffId, name: t.name, hourlyRate: t.hourlyRate,
+      hours: holidayHoursFor(t.staffId),
+      days: periodLeave.filter(r => r.staff_id === t.staffId).reduce((sum, r) => sum + countWorkingDaysInRequest(
+        r.start_date < holFrom ? holFrom : r.start_date,
+        r.end_date   > holTo   ? holTo   : r.end_date,
+        staffProfiles[t.staffId]?.workingDays,
+      ), 0),
+    })),
+  [timesheets, periodLeave, holidayHoursFor, staffProfiles, holFrom, holTo])
 
   const totalHolidayPay = useMemo(() => timesheets.reduce((a, t) => {
     return a + (holidayMinsFor(t.staffId) / 60) * t.hourlyRate
@@ -604,44 +553,38 @@ export default function TimesheetPage() {
     })
   }, [venueId])
 
-  // Earned holiday and average shift length for zero-hours staff, over that holiday year
+  // Average shift length for zero-hours staff, over that holiday year — the
+  // usual day for holiday booked before hours were recorded on requests
   useEffect(() => {
     const ids = Object.keys(staffProfiles).filter(id => staffProfiles[id].isZeroHours)
-    if (!ids.length || !periodLeaveYear) { setZeroHoursStats({}); return }
+    if (!ids.length || !periodLeaveYear) { setZeroHoursDayHours({}); return }
     let cancelled = false
     fetchWorkedStatsByStaff(ids, periodLeaveYear.from, periodLeaveYear.to)
       .then((byStaff) => {
         if (cancelled) return
         const map = {}
-        for (const id of ids) map[id] = { accrued: accruedHoursFor(byStaff[id].totalHours), avgDailyHours: avgDailyHoursFor(byStaff[id]) }
-        setZeroHoursStats(map)
+        for (const id of ids) map[id] = avgDailyHoursFor(byStaff[id])
+        setZeroHoursDayHours(map)
       })
-      .catch((e) => reportError(e, 'TimesheetPage:zero-hours-stats'))
+      .catch((e) => reportError(e, 'TimesheetPage:zero-hours-day-hours'))
     return () => { cancelled = true }
   }, [staffProfiles, periodLeaveYear])
 
   useEffect(() => {
     if (!venueId || !holFrom || !holTo) return
     let cancelled = false
-    fetchHolidayAllocations({ venueId, from: holFrom, to: holTo })
-      .then((res) => { if (!cancelled) setAllocations(res) })
-      .catch((e) => reportError(e, 'TimesheetPage:holiday-allocations'))
-    fetchPayouts({ venueId, from: holFrom, to: holTo })
-      .then((res) => { if (!cancelled) setPayouts(res) })
-      .catch((e) => reportError(e, 'TimesheetPage:holiday-payouts'))
-    return () => { cancelled = true }
-  }, [venueId, holFrom, holTo, allocTick])
-
-  useEffect(() => {
-    if (!venueId || !holFrom || !holTo) return
-    supabase.from('time_off_requests').select('id, staff_id, start_date, end_date')
-      .eq('venue_id', venueId).eq('status', 'approved').eq('leave_type', 'annual')
-      .lte('start_date', holTo).gte('end_date', holFrom)
+    hasHoursColumn()
+      .then(withHours => supabase.from('time_off_requests')
+        .select(withHours ? 'id, staff_id, start_date, end_date, hours' : 'id, staff_id, start_date, end_date')
+        .eq('venue_id', venueId).eq('status', 'approved').eq('leave_type', 'annual')
+        .lte('start_date', holTo).gte('end_date', holFrom))
       .then(({ data, error }) => {
+        if (cancelled) return
         if (error) { reportError(error, 'TimesheetPage:period-leave'); return }
         setPeriodLeave(data ?? [])
       })
-  }, [venueId, holFrom, holTo, allocTick])
+    return () => { cancelled = true }
+  }, [venueId, holFrom, holTo])
 
   useEffect(() => {
     if (!venueId || !holFrom || !holTo) return
@@ -872,15 +815,8 @@ export default function TimesheetPage() {
         )}
       </div>
 
-      {/* Holiday booked in this period, and allocating its pay */}
-      {isManager && !loading && !loadError && (
-        <HolidayPaySection
-          rows={holidayRows}
-          available={allocations.available}
-          locked={isPeriodLocked}
-          onAllocate={setAllocating}
-        />
-      )}
+      {/* Approved holiday paid in this period */}
+      {isManager && !loading && !loadError && <HolidayPaySection rows={holidayRows} />}
 
       {/* Staff list */}
       {!loading && !loadError && (
@@ -928,19 +864,6 @@ export default function TimesheetPage() {
           session={editCtx.session}
           onSave={times => saveEditedSession(editCtx, times)}
           onClose={() => setEditCtx(null)}
-        />
-      )}
-
-      {allocating && holidayRows.find(r => r.staffId === allocating) && (
-        <AllocateHolidayModal
-          row={holidayRows.find(r => r.staffId === allocating)}
-          venueId={venueId}
-          managerId={session?.staffId}
-          locked={isPeriodLocked}
-          suggestedHours={suggestedHolidayHours(allocating)}
-          loadBalance={loadHolidayBalance}
-          onClose={() => setAllocating(null)}
-          onSaved={() => setAllocTick(t => t + 1)}
         />
       )}
 

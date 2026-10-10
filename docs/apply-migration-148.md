@@ -1,48 +1,48 @@
-# Turning on holiday pay allocation, carry-over and pay-outs (migration 148)
+# Turning on holiday booked in hours (migration 148)
 
-**What this does:** adds two new tables:
-- `holiday_pay_allocations`: the hours a manager pays for each day of booked holiday, chosen from the timesheet. Those hours are what the timesheet pays and what comes off the person's holiday balance.
-- `holiday_balance_adjustments`: hours **carried over** from last holiday year, and unused hours **paid out** as money.
+**What this does:** adds two columns to existing tables. Nothing is deleted or moved.
+- `time_off_requests.hours`: the holiday hours a booking uses and pays.
+- `leave_entitlements.carry_over_hours`: unused hours carried into a holiday year.
 
-Nothing existing is changed or deleted. Only staff signed in to your venue (and the venue owner) can see or change the rows, the same rules as time-off requests.
+**How holiday works once it's on:**
+1. **Staff book holiday in hours.** The app fills in their average shift × working days, and they can change it. Their "hours left" drops straight away and shows "awaiting approval".
+2. **The manager approves it, and that's the "yes, pay them".** The hours are shown on the request and can be changed before approving.
+3. **The timesheet pays it automatically** in the week(s) the holiday falls in. It shows under **Holiday pay** and is included in the wage bill and the CSV/PDF exports.
+4. **Holiday pay for a week someone isn't working:** Time off → Team annual leave → **+** next to them → pick the week, enter the hours → **Add leave**. It's approved and paid in one go.
+5. **Carry-over:** the **Carry over** button next to someone sets the unused hours brought into this holiday year.
 
-**Order doesn't matter.** The app works with or without this table:
-- **Without it:** holiday pay is estimated automatically, as it is today. The timesheet shows a note that allocating needs a database update.
-- **With it:** holiday pay is only paid once a manager allocates it.
+**Order doesn't matter.** Until this is run, the app works as it does now: no hours boxes, and holiday is estimated from days × usual hours.
 
 ---
 
 ## Step 0: Take a backup
 
-GitHub → Actions → **Daily Database Backup** → **Run workflow**. Wait for the green tick before carrying on.
+GitHub → Actions → **Daily Database Backup** → **Run workflow**. Wait for the green tick.
 
 ## Step 1: Run the SQL
 
 1. Supabase Dashboard → your project → **SQL Editor** → **New query**.
-2. Open `supabase/migrations/148_holiday_pay_allocations.sql` in GitHub, copy **all** of it, and paste it in.
+2. Open `supabase/migrations/148_holiday_hours.sql` in GitHub, copy **all** of it, and paste it in.
 3. Press **Run**.
-4. The result panel should show one row, with `allocations_ready` and `adjustments_ready` both **true**.
+4. The result should show one row, with `hours_ready` and `carry_over_ready` both **true**.
 
 Running it a second time is harmless.
 
 ## Step 2: Check it in the app
 
-1. Sign in as a manager. Go to **Team → Timesheets** and pick a week where someone has approved holiday.
-2. A **Holiday pay** card should appear above the staff list, showing "X days not paid yet" and an **Allocate** button. If it still says "needs a database update", fully close and reopen the app.
-3. Press **Allocate**. Check the suggested hours, change them if needed, then press **Allocate**.
-4. The week's wage bill and the CSV/PDF export now include that holiday pay.
-5. On **Time off**, that person's hours left now go down by exactly the hours you allocated.
-6. On **Time off → Team annual leave**, press **Adjust** next to someone:
-   - **Carry over:** enter last year's unused hours. Their hours left go up.
-   - **Pay out:** enter hours (or press "Pay out all") and the date it's paid. Their hours left go down, and the money appears under **Holiday pay** on the timesheet for the week of that date.
+Fully close and reopen the app first so it picks up the change.
+
+1. As a staff member, open **Time off → Request**, pick annual leave and dates. A **Holiday hours** box appears, already filled in. Submit, and your "hours left" drops, showing "awaiting approval".
+2. As a manager, the request shows **Holiday hours to pay** and an **Approve · pay X h** button. Approve it.
+3. **Team → Timesheets**, the week of that holiday: the **Holiday pay** card lists them with the hours and £, and the wage bill includes it.
+4. **Time off → Team annual leave → Carry over** next to someone: enter hours, save, and their hours left go up.
 
 ## Good to know
 
-- **Holiday pay is no longer automatic** once this is on. A week with booked holiday shows £0 holiday pay until it's allocated. This includes past weeks you open again, so allocate before exporting payroll.
-- A week **locked for payroll** can't have holiday pay added or removed. Unlock it first.
-- To fix a mistake, open **Allocate** (or **View**), press **Remove** on the day, then allocate it again. Carry-overs and pay-outs have a **Remove** button in the Adjust window.
-- **Pay-outs and the law:** in the UK, statutory holiday usually can't be replaced by money while someone is still employed. It's normally only paid out when they leave. Check with your accountant before paying out hours for someone who is staying.
+- Holiday booked **before** this change has no hours stored. It's still paid and counted as before: working days × their average shift (or contracted hours per day).
+- To change the hours on an approved booking, open it (from the calendar or the request list) and edit **Holiday hours**.
+- A rejected or withdrawn request gives its hours straight back.
 
 ## Undo
 
-Paste and run `supabase/migrations/148_rollback.sql` in the SQL Editor. This **deletes every allocation, carry-over and pay-out** (take a backup first), and the app goes back to estimating holiday pay automatically.
+Paste and run `supabase/migrations/148_rollback.sql` in the SQL Editor. It removes both columns, **deleting the hours on every booking and all carry-overs** (take a backup first), and the app goes back to estimating holiday from days.

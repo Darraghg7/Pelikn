@@ -1,10 +1,9 @@
 -- ─────────────────────────────────────────────────────────────────────────────
 -- 148_rollback.sql
--- Reverses 148_holiday_pay_allocations.sql. Deletes every holiday pay
--- allocation, carry-over and pay-out — take a backup first if any have been
--- made. The app keeps working: holiday pay goes back to being estimated from
--- approved days, with no carry-over or pay-outs.
+-- Reverses 148_holiday_hours.sql. Deletes the hours on every time-off request
+-- and every carry-over — take a backup first if any have been entered. The
+-- app keeps working: holiday hours go back to being estimated from days.
 -- ─────────────────────────────────────────────────────────────────────────────
 
-DROP TABLE IF EXISTS holiday_balance_adjustments;
-DROP TABLE IF EXISTS holiday_pay_allocations;
+ALTER TABLE time_off_requests  DROP COLUMN IF EXISTS hours;
+ALTER TABLE leave_entitlements DROP COLUMN IF EXISTS carry_over_hours;
