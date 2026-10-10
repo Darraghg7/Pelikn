@@ -16,7 +16,7 @@ import { timeOffPermissions, isBlocking } from '../../lib/api/timeOff'
 import { useAppSettings } from '../../hooks/useSettings'
 import {
   LEAVE_TYPES,
-  leaveTypeLabel, getRequestsForDay, fmtDays, maxStaffOffInRange, employmentLabel,
+  leaveTypeLabel, getRequestsForDay, fmtDays, maxStaffOffInRange,
 } from './timeOffConstants'
 import {
   useTimeOffRequests, useActiveStaff, useOwnProfile, useTeamLeaveBalances,
@@ -651,8 +651,6 @@ function balanceTone(balance) {
   return 'text-good dark:text-goodDark'
 }
 
-const REGION_RULE = { gb: '12.07% of hours worked', ni: '5.6 × average week' }
-
 // "Unpaid Leave" → "Unpaid leave" for lists (push messages keep the stored label)
 function leaveName(type) {
   return leaveTypeLabel(type).replace(/ Leave$/, ' leave')
@@ -831,54 +829,35 @@ function PendingRequest({ request: r, balance, holiday, rotaHoursByDate, note, o
   )
 }
 
+// One line per person: their name and what they have left. The detail behind
+// the number (allowance, estimates, missing clock-outs) lives elsewhere — this
+// list is for "how much holiday has everyone got?" at a glance.
 function TeamBalanceRow({ balance: b, holiday, settingsPath, onLogPast }) {
-  const kind = employmentLabel(b.employment_type)
-  const subline = b.isZeroHours
-    ? [
-        kind ?? 'Zero hours',
-        holiday?.status === 'ok' && `${fmtHours(holiday.used)} used of ${fmtHours(holiday.allowance)}`,
-        holiday?.paidOutHours > 0 && `incl. ${fmtHours(holiday.paidOutHours)} already paid`,
-      ].filter(Boolean).join(' · ')
-    : [kind, b.entitlement != null && `${b.entitlement} days`, b.paidOutDays > 0 && `incl. ${fmtDays(b.paidOutDays)} already paid`].filter(Boolean).join(' · ')
   const tone = b.remaining === 0 ? 'text-bad' : b.remaining != null && b.remaining <= 5 ? 'text-warn' : 'text-good dark:text-goodDark'
 
+  let left
+  if (b.isZeroHours) {
+    if (holiday?.status === 'needs_region') {
+      left = <Button variant="link" size="sm" to={settingsPath}>Set up holiday</Button>
+    } else if (holiday?.status === 'self_employed') {
+      left = <span className="text-body-sm text-ink3 dark:text-white/45">Self-employed</span>
+    } else {
+      left = (
+        <span className={`font-mono text-body font-semibold ${holiday ? balanceTone(holiday.balance) : 'text-ink3'}`}>
+          {holiday ? `${fmtHours(holiday.balance)} left` : '…'}
+        </span>
+      )
+    }
+  } else if (b.entitlement != null) {
+    left = <span className={`font-mono text-body font-semibold ${tone}`}>{fmtDays(b.remaining)} left</span>
+  } else {
+    left = <span className="text-body-sm text-ink3 dark:text-white/45">No holiday</span>
+  }
+
   return (
-    <div className="flex items-center gap-2.5 px-3.5 sm:px-3.5 py-2">
-      <div className="flex-1 min-w-0">
-        <p className="text-body font-semibold text-ink dark:text-white truncate">{b.name}</p>
-        {subline && <p className="text-body-sm text-ink3 dark:text-white/45 mt-0.5">{subline}</p>}
-        {holiday?.status === 'ok' && holiday.usedIsEstimate && (
-          <p className="text-body-sm text-ink3 dark:text-white/45">Some leave has no hours recorded, so it's estimated</p>
-        )}
-        {holiday?.status === 'ok' && holiday.missingClockOuts > 0 && (
-          <p className="text-body-sm text-warn dark:text-warnDark">
-            {holiday.missingClockOuts} shift{holiday.missingClockOuts === 1 ? '' : 's'} missing a clock-out — not counted until fixed on the timesheet
-          </p>
-        )}
-      </div>
-      <div className="shrink-0 text-right">
-        {b.isZeroHours ? (
-          holiday?.status === 'needs_region' ? (
-            <Button variant="link" size="sm" to={settingsPath}>Set up holiday</Button>
-          ) : holiday?.status === 'self_employed' ? (
-            <p className="text-body-sm text-ink3 dark:text-white/45">Self-employed</p>
-          ) : (
-            <>
-              <p className={`font-mono text-body font-semibold ${holiday ? balanceTone(holiday.balance) : 'text-ink dark:text-white'}`}>
-                {holiday ? fmtHours(holiday.balance) : '…'}
-              </p>
-              <p className="text-body-sm text-ink3 dark:text-white/45">{holiday ? `left · ${REGION_RULE[holiday.region]}` : 'left'}</p>
-            </>
-          )
-        ) : b.entitlement != null ? (
-          <>
-            <p className={`font-mono text-body font-semibold ${tone}`}>{fmtDays(b.remaining)}</p>
-            <p className="text-body-sm text-ink3 dark:text-white/45">{b.used}/{b.entitlement} used</p>
-          </>
-        ) : (
-          <p className="text-body-sm text-ink3 dark:text-white/45">No entitlement</p>
-        )}
-      </div>
+    <div className="flex items-center gap-2.5 px-3.5 sm:px-3.5 py-2.5">
+      <p className="flex-1 min-w-0 text-body font-semibold text-ink dark:text-white truncate">{b.name}</p>
+      <div className="shrink-0 text-right">{left}</div>
       <Button
         variant="secondary"
         size="sm"

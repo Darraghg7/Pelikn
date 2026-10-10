@@ -84,9 +84,10 @@ describe('holidayAllowance', () => {
     shifts.push({ start: `${d}T10:00:00Z`, hours: 13.7 })
   }
 
-  it('NI: 5.6 × average week, regardless of how few weeks were worked', () => {
-    const a = holidayAllowance({ region: 'ni', shifts, year: 2026, today: '2026-10-10' })
-    expect(a.allowance).toBe(76.7)
+  it('NI: someone here before this year has the whole year from January (so they can book ahead)', () => {
+    const a = holidayAllowance({ region: 'ni', shifts, year: 2026, today: '2026-10-10', startDate: '2024-03-01' })
+    expect(a.allowance).toBe(76.7)                  // 5.6 × 13.7
+    expect(a.yearAllowance).toBe(76.7)
     expect(a.avgWeekHours).toBe(13.7)
   })
 
@@ -104,6 +105,28 @@ describe('holidayAllowance', () => {
     // By December the year share (Sep–Dec = 4/12) caps it
     const dec = holidayAllowance({ region: 'ni', shifts, year: 2026, today: '2026-12-31', startDate: '2026-09-15' })
     expect(dec.allowance).toBe(Math.round(5.6 * dec.avgWeekHours * (4 / 12) * 10) / 10)
+  })
+})
+
+describe('start date', () => {
+  // Joined 25 Sep, two weeks of about 9.3 h
+  const events = [
+    ...shift('2026-09-25', 9.3), ...shift('2026-10-02', 9.3),
+  ]
+  const base = { region: 'ni', events, requests: [], year: 2026, today: '2026-10-10', now: NOW }
+
+  it('uses the first clock-in when no start date is saved, so a new starter gets a month, not a year', () => {
+    const h = zeroHoursHoliday({ ...base, staff: { working_days: [] } })
+    expect(h.startDateGuessed).toBe(true)
+    expect(h.firstYear).toBe(true)
+    expect(h.allowance).toBe(4.3)                   // 5.6 × 9.3 × 1/12
+  })
+
+  it('a saved start date wins over the first clock-in', () => {
+    const h = zeroHoursHoliday({ ...base, staff: { working_days: [], start_date: '2024-03-01' } })
+    expect(h.startDateGuessed).toBe(false)
+    expect(h.firstYear).toBe(false)
+    expect(h.allowance).toBe(52.1)                  // 5.6 × 9.3, the whole year
   })
 })
 

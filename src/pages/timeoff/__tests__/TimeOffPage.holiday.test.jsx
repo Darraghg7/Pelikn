@@ -78,14 +78,16 @@ function renderPage() {
 describe('Time Off page — zero-hours holiday', () => {
   beforeEach(() => { update.mockClear(); eq.mockClear() })
 
-  it('shows hours left, not hours earned, and flags overdrawn, estimated and missing clock-outs', () => {
+  it('shows just the hours left for each person, negative when overdrawn', () => {
     renderPage()
-    expect(screen.getByText('63.2 h')).toBeTruthy()            // Sarah: left, after leave
-    expect(screen.getByText('13.7 h used of 76.9 h', { exact: false })).toBeTruthy()
-    expect(screen.getByText('−17.8 h')).toBeTruthy()           // Catherine overdrawn, shown negative
-    expect(screen.getByText(/estimated/)).toBeTruthy()
-    expect(screen.getByText(/2 shifts missing a clock-out/)).toBeTruthy()
+    expect(screen.getByText('63.2 h left')).toBeTruthy()       // Sarah: left, after leave
+    expect(screen.getByText('−17.8 h left')).toBeTruthy()      // Catherine overdrawn, shown negative
+    expect(screen.getByText('46.9 h left')).toBeTruthy()       // Eve
     expect(screen.getByText('Self-employed')).toBeTruthy()     // Blathnaid
+    // The working behind the number isn't on this list any more
+    expect(screen.queryByText(/used of/)).toBeNull()
+    expect(screen.queryByText(/5\.6 ×/)).toBeNull()
+    expect(screen.queryByText(/missing a clock-out/)).toBeNull()
   })
 
   it('asks the manager for the hours to pay and saves them on approval', async () => {

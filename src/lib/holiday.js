@@ -199,22 +199,24 @@ export function holidayAllowance({ region, shifts, year, today, startDate }) {
   if (avgWeekHours == null) {
     return { allowance: 0, hoursThisYear: null, avgWeekHours: null, weeksUsed: 0, firstYear: false }
   }
-  let allowance = HOLIDAY_WEEKS * avgWeekHours
-  let firstYear = false
-  if (startDate && startDate > yearStart && startDate <= today) {
-    // Joined this leave year: the year's share, built up a twelfth a month.
-    firstYear = true
-    const startMonth = Number(startDate.slice(5, 7))
-    const share   = (13 - startMonth) / 12
-    const accrued = Math.min(12, monthsStarted(startDate, today)) / 12
-    allowance = allowance * Math.min(share, accrued)
-  }
+  // Someone here before this year has the whole year's holiday from the start
+  // of it (NI: the twelfths rule is for the first year of employment only), so
+  // they can book ahead. Someone who joined this year gets their share of the
+  // year, built up a twelfth a month from their start date: on 10 Oct a 25 Sep
+  // starter has 1/12, capped at their share (Sep–Dec = 4/12).
+  // Not handled: a first employment year that began late last year and runs
+  // into this one — they are treated as here all year.
+  const yearAllowance = HOLIDAY_WEEKS * avgWeekHours
+  const joinedThisYear = !!startDate && startDate > yearStart && startDate <= today
+  const share   = joinedThisYear ? (13 - Number(startDate.slice(5, 7))) / 12 : 1
+  const accrued = joinedThisYear ? Math.min(12, monthsStarted(startDate, today)) / 12 : 1
   return {
-    allowance: round1(allowance),
+    allowance: round1(yearAllowance * Math.min(share, accrued)),
+    yearAllowance: round1(yearAllowance * share),
     hoursThisYear: null,
     avgWeekHours: round1(avgWeekHours),
     weeksUsed,
-    firstYear,
+    firstYear: joinedThisYear,
   }
 }
 
@@ -288,7 +290,12 @@ export function zeroHoursHoliday({ region, staff, events, requests, paidOut = []
   if (region !== 'gb' && region !== 'ni') return { status: 'needs_region' }
 
   const { shifts, missingClockOut } = workedShifts(events, now)
-  const a = holidayAllowance({ region, shifts, year, today, startDate: staff?.start_date ?? null })
+  // No start date saved: their first clock-in stands in, so a new starter
+  // can't show a whole year's holiday. (Events reach back over a year, so
+  // anyone here before this year has an earlier clock-in and isn't affected.)
+  const firstClockIn = shifts.length ? londonDateStr(shifts[0].start) : null
+  const startDate = staff?.start_date ?? firstClockIn
+  const a = holidayAllowance({ region, shifts, year, today, startDate })
   const { used, estimated } = holidayUsed(requests, {
     year,
     avgWeekHours: a.avgWeekHours,
@@ -309,6 +316,7 @@ export function zeroHoursHoliday({ region, staff, events, requests, paidOut = []
     weeksInAverage: a.weeksUsed,
     hoursThisYear: a.hoursThisYear,
     firstYear: a.firstYear,
+    startDateGuessed: !staff?.start_date && !!firstClockIn,
     missingClockOuts: missingClockOut.filter(s => londonDateStr(s).startsWith(String(year))).length,
   }
 }
