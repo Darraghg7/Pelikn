@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { calculateEntitlementDays, countWorkingDaysInRequest } from '../../../hooks/useLeaveBalance'
 import { accruedHoursFor, avgDailyHoursFor, workedStatsFromEvents } from '../../../hooks/useZeroHoursAccrual'
-import { isOnlyClosedDays } from '../timeOffConstants'
+import { isOnlyClosedDays, requestableLeaveTypes } from '../timeOffConstants'
 
 describe('calculateEntitlementDays', () => {
   it('gives 5.6 weeks of a Thu–Sun pattern, rounded up to the half day', () => {
@@ -59,5 +59,21 @@ describe('zero-hours accrual', () => {
   it('averages shift length once there are three shifts', () => {
     expect(avgDailyHoursFor({ totalHours: 16, distinctDays: 2 })).toBe(7.6)
     expect(avgDailyHoursFor({ totalHours: 24, distinctDays: 3 })).toBe(8)
+  })
+})
+
+describe('requestableLeaveTypes', () => {
+  const values = (opts) => requestableLeaveTypes(opts).map(t => t.value)
+  it('offers every type while unpaid leave is allowed', () => {
+    expect(values({ allowUnpaidLeave: true })).toContain('unpaid')
+  })
+  it('hides unpaid leave from staff when the venue switches it off', () => {
+    expect(values({ allowUnpaidLeave: false })).not.toContain('unpaid')
+  })
+  it('still lets managers pick it', () => {
+    expect(values({ allowUnpaidLeave: false, isManager: true })).toContain('unpaid')
+  })
+  it('keeps it on a request that is already unpaid', () => {
+    expect(values({ allowUnpaidLeave: false, current: 'unpaid' })).toContain('unpaid')
   })
 })

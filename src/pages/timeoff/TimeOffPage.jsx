@@ -14,7 +14,7 @@ import { invalidateSummaryCache } from '../../hooks/useTodaySummary'
 import { timeOffPermissions, isBlocking } from '../../lib/api/timeOff'
 import { useAppSettings } from '../../hooks/useSettings'
 import {
-  LEAVE_TYPES,
+  requestableLeaveTypes,
   leaveTypeLabel, getRequestsForDay, fmtDays, maxStaffOffInRange, employmentLabel, isOnlyClosedDays,
 } from './timeOffConstants'
 import {
@@ -38,7 +38,7 @@ export default function TimeOffPage() {
   const queryClient = useQueryClient()
   const { venueId }          = useVenue()
   const { session, isManager } = useSession()
-  const { maxStaffOffEnabled, maxStaffOffCount, blockOverBalance, closedDays } = useAppSettings()
+  const { maxStaffOffEnabled, maxStaffOffCount, blockOverBalance, allowUnpaidLeave, closedDays } = useAppSettings()
   const { requests, loading, error, reload } = useTimeOffRequests(venueId)
   const staff      = useActiveStaff(venueId)
   const ownProfile = useOwnProfile(session?.staffId)
@@ -179,6 +179,10 @@ export default function TimeOffPage() {
     if (!form.startDate || !form.endDate) { toast('Please select start and end dates', 'error'); return }
     if (form.endDate < form.startDate)    { toast('End date must be after start date', 'error'); return }
     if (requestProblem)                   { toast(requestProblem, 'error'); return }
+    if (!requestableLeaveTypes({ allowUnpaidLeave, isManager }).some(t => t.value === form.leaveType)) {
+      toast("Unpaid leave can't be requested here — ask your manager", 'error')
+      return
+    }
     // Staff request leave ahead; leave already taken is recorded by a manager
     // with "+ add leave" on the team list.
     if (!isManager && form.startDate < format(new Date(), 'yyyy-MM-dd')) {
@@ -478,7 +482,7 @@ export default function TimeOffPage() {
           <div>
             <span className={FIELD_LABEL}>Leave type</span>
             <div className="flex gap-2 flex-wrap">
-              {LEAVE_TYPES.map(t => (
+              {requestableLeaveTypes({ allowUnpaidLeave, isManager }).map(t => (
                 <button
                   key={t.value}
                   type="button"
@@ -643,6 +647,7 @@ export default function TimeOffPage() {
           actorName={session?.staffName}
           venueId={venueId}
           closedDays={closedDays}
+          allowUnpaidLeave={allowUnpaidLeave}
           checkBalance={editBalanceCheck}
           onClose={() => setEditing(null)}
           onSaved={refreshDependents}

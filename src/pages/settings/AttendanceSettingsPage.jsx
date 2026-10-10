@@ -61,10 +61,10 @@ export default function AttendanceSettingsPage() {
   const {
     lateGraceMins, breakDurationMins, breakOverrunGraceMins, cleanupMinutes,
     requireLateReason, requireManagerApprovalForLate, notifyManagerAtStrike, disciplinaryAtStrike,
-    countingWindowDays, pushToManager, maxStaffOffEnabled, maxStaffOffCount, blockOverBalance,
+    countingWindowDays, pushToManager, maxStaffOffEnabled, maxStaffOffCount, blockOverBalance, allowUnpaidLeave,
     saveLateGraceMins, saveBreakDuration, saveBreakOverrunGraceMins, saveCleanupMinutes,
     saveRequireLateReason, saveRequireManagerApprovalForLate, saveNotifyManagerAtStrike, saveDisciplinaryAtStrike,
-    saveCountingWindowDays, savePushToManager, saveMaxStaffOffEnabled, saveMaxStaffOffCount, saveBlockOverBalance,
+    saveCountingWindowDays, savePushToManager, saveMaxStaffOffEnabled, saveMaxStaffOffCount, saveBlockOverBalance, saveAllowUnpaidLeave,
   } = settings
 
   const vp = (path) => `/v/${venueSlug}${path}`
@@ -180,12 +180,21 @@ export default function AttendanceSettingsPage() {
             blockOverBalance
               ? 'Staff can\'t request more holiday than they have left. You can still add it for them from the team list.'
               : 'Staff going over their holiday balance see a warning, but can still submit.',
-          ].join(' ')}
+            allowUnpaidLeave
+              ? ''
+              : 'Staff can\'t request unpaid leave — you can still add it for them.',
+          ].filter(Boolean).join(' ')}
         >
           <Row
             label="Block holiday over balance"
             sub="Stop staff requesting more than they have left"
             control={<Toggle checked={blockOverBalance} onChange={saveBlockOverBalance} />}
+          />
+          <Row
+            label="Staff can request unpaid leave"
+            sub="Turn off to hide it from staff requests"
+            last={false}
+            control={<Toggle checked={allowUnpaidLeave} onChange={saveAllowUnpaidLeave} />}
           />
           <Row
             label="Limit staff off per day"

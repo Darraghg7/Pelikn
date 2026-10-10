@@ -6,7 +6,7 @@ import Modal from '../../components/ui/Modal'
 import ConfirmDialog from '../../components/ui/ConfirmDialog'
 import { countWorkingDaysInRequest } from '../../hooks/useLeaveBalance'
 import { cancelTimeOffRequest, updateTimeOffRequest, timeOffPermissions } from '../../lib/api/timeOff'
-import { LEAVE_TYPES, STATUS_COLOURS, leaveTypeLabel, fmtDays, isOnlyClosedDays } from './timeOffConstants'
+import { requestableLeaveTypes, STATUS_COLOURS, leaveTypeLabel, fmtDays, isOnlyClosedDays } from './timeOffConstants'
 import Button from '../../components/ui/Button'
 
 /**
@@ -14,7 +14,7 @@ import Button from '../../components/ui/Button'
  * booked time off here; managers can manage anyone's. Withdrawing sets the
  * request to 'cancelled', which is what frees the staff member up on the rota.
  */
-export default function EditRequestModal({ request, isManager, actorId, actorName, venueId, closedDays, checkBalance, onClose, onSaved }) {
+export default function EditRequestModal({ request, isManager, actorId, actorName, venueId, closedDays, allowUnpaidLeave, checkBalance, onClose, onSaved }) {
   const toast = useToast()
   const perms = timeOffPermissions(request, { staffId: actorId, isManager })
 
@@ -163,7 +163,7 @@ export default function EditRequestModal({ request, isManager, actorId, actorNam
               <div>
                 <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">Leave Type</label>
                 <div className="flex gap-2 flex-wrap">
-                  {LEAVE_TYPES.map(t => (
+                  {requestableLeaveTypes({ allowUnpaidLeave, isManager, current: request.leave_type }).map(t => (
                     <button
                       key={t.value}
                       type="button"

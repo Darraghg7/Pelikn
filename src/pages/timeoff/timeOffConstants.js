@@ -13,6 +13,14 @@ export const LEAVE_TYPES = [
   { value: 'other',   label: 'Other' },
 ]
 
+// The types someone may pick on a request. With unpaid leave switched off for
+// the venue, staff can't pick it (managers still can, as the override) — but a
+// request that is already unpaid keeps its type so it can still be edited.
+export function requestableLeaveTypes({ allowUnpaidLeave = true, isManager = false, current = undefined }) {
+  if (allowUnpaidLeave || isManager) return LEAVE_TYPES
+  return LEAVE_TYPES.filter(t => t.value !== 'unpaid' || t.value === current)
+}
+
 export const LEAVE_TYPE_COLOURS = {
   annual:  'bg-brand/10 text-brand',
   unpaid:  'bg-charcoal/8 dark:bg-white/8 text-charcoal/50 dark:text-white/40',
