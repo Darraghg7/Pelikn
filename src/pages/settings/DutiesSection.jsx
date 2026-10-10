@@ -54,7 +54,7 @@ function NewDutyForm({ onSave, onCancel }) {
   return (
     <div className="rounded-2xl border border-charcoal/12 dark:border-white/15 bg-charcoal/2 dark:bg-white/3 p-4 flex flex-col gap-3">
       <div>
-        <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1.5">Duty name</label>
+        <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1.5">Duty name</label>
         <input
           type="text"
           value={title}
@@ -67,7 +67,7 @@ function NewDutyForm({ onSave, onCancel }) {
       </div>
 
       <div>
-        <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">Tasks</label>
+        <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">Tasks</label>
         <div className="flex flex-col gap-2">
           {items.map((item, i) => (
             <ItemInput
@@ -121,7 +121,7 @@ function TemplateRow({ template, onDelete }) {
       >
         <div className="flex items-center gap-2.5 min-w-0">
           <span className="text-sm font-medium text-charcoal dark:text-white truncate">{template.title}</span>
-          <span className="text-[11px] text-charcoal/35 dark:text-white/30 shrink-0">{template.items.length} task{template.items.length !== 1 ? 's' : ''}</span>
+          <span className="text-micro text-charcoal/35 dark:text-white/30 shrink-0">{template.items.length} task{template.items.length !== 1 ? 's' : ''}</span>
         </div>
         <div className="flex items-center gap-1.5 shrink-0 ml-2">
           <Button
@@ -144,7 +144,7 @@ function TemplateRow({ template, onDelete }) {
         <div className="border-t border-charcoal/8 dark:border-white/8 px-3 py-2.5 flex flex-col gap-1.5">
           {template.items.map((item, i) => (
             <div key={item.id} className="flex items-center gap-2 text-sm text-charcoal/60 dark:text-white/50">
-              <span className="text-[11px] text-charcoal/25 dark:text-white/25 font-mono w-4 shrink-0">{i + 1}.</span>
+              <span className="text-micro text-charcoal/25 dark:text-white/25 font-mono w-4 shrink-0">{i + 1}.</span>
               {item.title}
             </div>
           ))}

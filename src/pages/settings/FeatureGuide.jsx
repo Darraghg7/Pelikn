@@ -84,17 +84,17 @@ function FeatureRow({ feature, venueSlug, locked, first }) {
         <div className="flex items-center gap-2 flex-wrap">
           <p className="text-sm font-medium text-charcoal dark:text-white">{feature.label}</p>
           {locked && (
-            <span className="font-mono text-[11px] font-bold uppercase tracking-[0.04em] bg-accent/10 text-accent px-1.5 py-0.5 rounded shrink-0">
+            <span className="font-mono text-micro font-bold uppercase tracking-[0.04em] bg-accent/10 text-accent px-1.5 py-0.5 rounded shrink-0">
               Pro
             </span>
           )}
         </div>
-        <p className="text-[11.5px] text-charcoal/50 dark:text-white/40 mt-0.5 leading-[1.4]">{feature.description}</p>
+        <p className="text-caption text-charcoal/50 dark:text-white/40 mt-0.5 leading-[1.4]">{feature.description}</p>
       </div>
       {!locked && route && (
         <Link
           to={`/v/${venueSlug}/${route}`}
-          className="text-[12px] font-semibold text-brand/70 hover:text-brand dark:text-white/60 dark:hover:text-white transition-colors shrink-0 mt-0.5"
+          className="text-caption font-semibold text-brand/70 hover:text-brand dark:text-white/60 dark:hover:text-white transition-colors shrink-0 mt-0.5"
         >
           Go →
         </Link>
@@ -117,11 +117,11 @@ function FeatureGroup({ group, venueSlug, venuePlan, first }) {
         className="w-full p-[14px] text-left flex items-center justify-between gap-3"
       >
         <span className="flex items-center gap-2">
-          <span className="text-[14.5px] font-medium text-charcoal dark:text-white leading-[1.3]">
+          <span className="text-body-lg font-medium text-charcoal dark:text-white leading-[1.3]">
             {GROUP_LABELS[group.id] ?? group.label}
           </span>
           {isStarter && proCount > 0 && (
-            <span className="font-mono text-[11px] font-bold uppercase tracking-[0.04em] bg-accent/10 text-accent px-1.5 py-0.5 rounded">
+            <span className="font-mono text-micro font-bold uppercase tracking-[0.04em] bg-accent/10 text-accent px-1.5 py-0.5 rounded">
               {proCount} Pro
             </span>
           )}
@@ -156,7 +156,7 @@ export default function FeatureGuide() {
 
   return (
     <>
-      <div className="font-mono text-[11px] font-semibold tracking-[0.08em] uppercase text-charcoal/50 dark:text-white/40 pt-[18px] pb-[7px] px-0.5">Feature guide</div>
+      <div className="font-mono text-micro font-semibold tracking-[0.08em] uppercase text-charcoal/50 dark:text-white/40 pt-[18px] pb-[7px] px-0.5">Feature guide</div>
       <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[14px] overflow-hidden">
         {[...FEATURE_GROUPS, EXTRAS_GROUP].map((group, i) => (
           <FeatureGroup key={group.id} group={group} venueSlug={venueSlug} venuePlan={venuePlan} first={i === 0} />

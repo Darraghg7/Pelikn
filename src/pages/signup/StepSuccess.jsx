@@ -56,7 +56,7 @@ export default function StepSuccess({ venueName, venueSlug, plan, allVenues = []
       {/* Venue URL(s) */}
       {allVenues.length > 1 ? (
         <div className="w-full bg-charcoal/4 dark:bg-white/5 rounded-xl px-4 py-3 flex flex-col gap-2">
-          <p className="text-[11px] text-charcoal/40 dark:text-white/35 tracking-widest uppercase mb-1">Your staff login URLs</p>
+          <p className="text-micro text-charcoal/40 dark:text-white/35 tracking-widest uppercase mb-1">Your staff login URLs</p>
           {allVenues.map(v => (
             <div key={v.slug} className="flex items-center justify-between gap-2">
               <p className="text-xs font-medium text-charcoal/70 dark:text-white/60 truncate">{v.name}</p>
@@ -66,7 +66,7 @@ export default function StepSuccess({ venueName, venueSlug, plan, allVenues = []
         </div>
       ) : (
         <div className="w-full bg-charcoal/4 dark:bg-white/5 rounded-xl px-4 py-3">
-          <p className="text-[11px] text-charcoal/40 dark:text-white/35 tracking-widest uppercase mb-1">Your staff login URL</p>
+          <p className="text-micro text-charcoal/40 dark:text-white/35 tracking-widest uppercase mb-1">Your staff login URL</p>
           <p className="text-xs font-mono text-charcoal/60 dark:text-white/50">get-pelikn.com/v/{venueSlug}</p>
         </div>
       )}
@@ -80,7 +80,7 @@ export default function StepSuccess({ venueName, venueSlug, plan, allVenues = []
           Go to your dashboard
           <IconArrow />
         </Button>
-        <p className="text-[11px] text-charcoal/35 dark:text-white/30">Redirecting automatically in a few seconds…</p>
+        <p className="text-caption text-charcoal/35 dark:text-white/30">Redirecting automatically in a few seconds…</p>
       </div>
     </div>
   )

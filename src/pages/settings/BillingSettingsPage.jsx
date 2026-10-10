@@ -43,7 +43,7 @@ function PlanOption({ plan, selected, onSelect, price, sfx }) {
       className={`flex-1 rounded-xl border-2 px-3 py-3 text-left transition-colors ${active ? 'border-brand bg-brand/5' : 'border-charcoal/10 dark:border-white/10 hover:border-charcoal/25 dark:hover:border-white/25'}`}
     >
       <div className="text-sm font-semibold text-charcoal dark:text-white">{PLAN_NAME[plan]}</div>
-      <div className="text-[13px] text-charcoal/55 dark:text-white/45">£{price}{sfx}</div>
+      <div className="text-body-sm text-charcoal/55 dark:text-white/45">£{price}{sfx}</div>
     </button>
   )
 }
@@ -155,20 +155,20 @@ export default function BillingSettingsPage() {
 
         {/* Current plan */}
         <div className="bg-brand rounded-[14px] p-[18px] pb-4 mb-[14px] text-white">
-          <div className="font-mono text-[11px] tracking-[0.1em] uppercase text-white/55 font-semibold">Current plan</div>
+          <div className="font-mono text-micro tracking-[0.1em] uppercase text-white/55 font-semibold">Current plan</div>
           <div className="flex items-baseline gap-[10px] mt-2">
-            <span className="text-[28px] font-bold tracking-[-0.02em]">{PLAN_NAME[plan] ?? 'Starter'}</span>
-            <span className="text-[13px] text-white/60">£{currentPrice}{currentSfx}</span>
+            <span className="text-display font-bold tracking-[-0.02em]">{PLAN_NAME[plan] ?? 'Starter'}</span>
+            <span className="text-body-sm text-white/60">£{currentPrice}{currentSfx}</span>
           </div>
-          {status && <div className="text-[13px] text-white/80 mt-1">{status}</div>}
+          {status && <div className="text-body-sm text-white/80 mt-1">{status}</div>}
           {managed && !isPro && (
-            <div className="text-[13px] text-white/80 mt-1">
+            <div className="text-body-sm text-white/80 mt-1">
               Staff: {billing.active_staff} of {STARTER_STAFF_LIMIT}
             </div>
           )}
           <div className="mt-[14px] flex flex-col gap-1.5">
             {features.map(f => (
-              <div key={f} className="flex items-center gap-2 text-[13px] text-white/85">
+              <div key={f} className="flex items-center gap-2 text-body-sm text-white/85">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="text-white/60" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
                 {f}
               </div>
@@ -178,18 +178,18 @@ export default function BillingSettingsPage() {
 
         {loading ? null : !managed ? (
           /* Venues from before self-serve billing are invoiced by hand. */
-          <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[14px] px-4 py-[14px] text-[13px] text-charcoal/60 dark:text-white/50 leading-[1.5]">
+          <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[14px] px-4 py-[14px] text-body-sm text-charcoal/60 dark:text-white/50 leading-[1.5]">
             Your account is billed directly by Pelikn. To change plan, add a venue or cancel, email{' '}
             <a href="mailto:hello@get-pelikn.com?subject=Plan change" className="text-brand dark:text-accent font-medium">hello@get-pelikn.com</a>.
           </div>
         ) : !canManage ? (
-          <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[14px] px-4 py-[14px] text-[13px] text-charcoal/60 dark:text-white/50 leading-[1.5]">
+          <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[14px] px-4 py-[14px] text-body-sm text-charcoal/60 dark:text-white/50 leading-[1.5]">
             Only the venue owner can change the plan or payment details. Sign in with the owner&apos;s email and password to manage billing.
           </div>
         ) : hasLiveSub ? (
           <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[14px] px-4 py-[14px]">
             {access.state === 'past_due' && (
-              <p className="text-[13px] text-danger font-medium mb-3">
+              <p className="text-body-sm text-danger font-medium mb-3">
                 Your last payment didn&apos;t go through. Stripe will try again, but updating your card now keeps things running.
               </p>
             )}
@@ -221,7 +221,7 @@ export default function BillingSettingsPage() {
         ) : (
           /* Trial, or lapsed: pick a plan and add a card. */
           <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[14px] px-4 py-[14px]">
-            <div className="font-mono text-[11px] text-charcoal/50 dark:text-white/40 tracking-[0.06em] uppercase font-semibold mb-3">
+            <div className="font-mono text-micro text-charcoal/50 dark:text-white/40 tracking-[0.06em] uppercase font-semibold mb-3">
               {access.state === 'trial' ? 'Keep Pelikn after your trial' : 'Choose a plan'}
             </div>
 
@@ -268,8 +268,8 @@ export default function BillingSettingsPage() {
 
         {managed && (
           <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[14px] px-4 py-[14px] mt-[14px]">
-            <div className="font-mono text-[11px] text-charcoal/50 dark:text-white/40 tracking-[0.06em] uppercase font-semibold mb-2">Add another venue</div>
-            <div className="text-[13px] text-charcoal/55 dark:text-white/45 leading-[1.5]">
+            <div className="font-mono text-micro text-charcoal/50 dark:text-white/40 tracking-[0.06em] uppercase font-semibold mb-2">Add another venue</div>
+            <div className="text-body-sm text-charcoal/55 dark:text-white/45 leading-[1.5]">
               {isPro
                 ? `Each extra venue is ${EXTRA_VENUE_PRICE}/mo on Pro. Add one from Settings → My Venues and your bill updates automatically.`
                 : 'Multiple venues come with Pro.'}

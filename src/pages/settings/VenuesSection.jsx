@@ -108,12 +108,12 @@ export default function VenuesSection() {
             <div className="min-w-0">
               <div className="flex items-center gap-1.5 flex-wrap">
                 <p className="text-sm font-semibold text-charcoal dark:text-white">{v.name}</p>
-                {v.plan && <span className="text-[11px] font-semibold tracking-wider uppercase px-1.5 py-0.5 rounded bg-brand/8 text-brand">{v.plan}</span>}
+                {v.plan && <span className="text-micro font-semibold tracking-wider uppercase px-1.5 py-0.5 rounded bg-brand/8 text-brand">{v.plan}</span>}
                 {i === 0 && (
-                  <span className="text-[11px] tracking-wider uppercase font-medium px-1.5 py-0.5 rounded bg-charcoal/[0.06] text-charcoal/55 dark:text-white/45">Primary</span>
+                  <span className="text-micro tracking-wider uppercase font-medium px-1.5 py-0.5 rounded bg-charcoal/[0.06] text-charcoal/55 dark:text-white/45">Primary</span>
                 )}
               </div>
-              <p className="text-[11px] text-charcoal/40 dark:text-white/35 mt-0.5 font-mono tracking-wide">get-pelikn.com/v/{v.slug}</p>
+              <p className="text-micro text-charcoal/40 dark:text-white/35 mt-0.5 font-mono tracking-wide">get-pelikn.com/v/{v.slug}</p>
             </div>
             <Button
               variant="secondary"
@@ -137,7 +137,7 @@ export default function VenuesSection() {
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div>
-              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1.5">Venue Name *</label>
+              <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1.5">Venue Name *</label>
               <input
                 value={form.name}
                 onChange={e => handleNameChange(e.target.value)}
@@ -146,7 +146,7 @@ export default function VenuesSection() {
               />
             </div>
             <div>
-              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1.5">URL Slug *</label>
+              <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1.5">URL Slug *</label>
               <div className="flex items-center rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark overflow-hidden focus-within:ring-2 focus-within:ring-charcoal/20 dark:focus-within:ring-white/20">
                 <span className="pl-3 text-xs text-charcoal/30 dark:text-white/30 whitespace-nowrap">/v/</span>
                 <input

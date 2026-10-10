@@ -33,7 +33,7 @@ export default function NotFoundPage() {
       </Link>
 
       <main className="w-full max-w-sm bg-white dark:bg-paperDark rounded-2xl border border-charcoal/8 dark:border-white/8 shadow-sm p-6 text-center">
-        <p className="font-mono text-[11px] font-semibold tracking-[0.08em] uppercase text-accent mb-2">
+        <p className="font-mono text-micro font-semibold tracking-[0.08em] uppercase text-accent mb-2">
           Error 404
         </p>
         <h1 className="text-xl font-semibold text-charcoal dark:text-white mb-2">

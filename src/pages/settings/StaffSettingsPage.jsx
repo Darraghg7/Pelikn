@@ -38,16 +38,16 @@ export default function StaffSettingsPage() {
       <div className="flex flex-col gap-1 pt-1">
         <Link
           to={`/v/${venueSlug}/settings/hub`}
-          className="self-start inline-flex items-center gap-1 text-[13px] font-semibold text-brand dark:text-white/80 hover:opacity-75"
+          className="self-start inline-flex items-center gap-1 text-body-sm font-semibold text-brand dark:text-white/80 hover:opacity-75"
         >
           <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6" /></svg>
           Settings
         </Link>
         <div className="flex items-center justify-between gap-2.5">
-          <h1 className="text-[20px] min-[420px]:text-[22px] leading-tight font-bold tracking-tight text-ink dark:text-white whitespace-nowrap">Team setup</h1>
+          <h1 className="text-title leading-tight font-bold tracking-tight text-ink dark:text-white whitespace-nowrap">Team setup</h1>
           <Link
             to={`/v/${venueSlug}/staff`}
-            className="shrink-0 inline-flex items-center gap-1 h-8 px-3.5 rounded-xl border border-line dark:border-white/15 bg-white dark:bg-paperDark text-[13px] font-semibold text-ink dark:text-white hover:border-ink4"
+            className="shrink-0 inline-flex items-center gap-1 h-8 px-3.5 rounded-xl border border-line dark:border-white/15 bg-white dark:bg-paperDark text-body-sm font-semibold text-ink dark:text-white hover:border-ink4"
           >
             Manage staff
             <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg>

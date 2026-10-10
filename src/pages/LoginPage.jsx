@@ -249,7 +249,7 @@ function SlidingVenueTabs({ venues, activeSlug, onSelect, onAdd }) {
               key={v.slug}
               ref={el => { btnRefs.current[v.slug] = el }}
               onClick={() => onSelect(v.slug)}
-              className={`relative flex-shrink-0 border-none whitespace-nowrap font-semibold transition-colors text-[12.5px] cursor-pointer bg-transparent ${isActive ? 'text-white' : 'text-brand/50 dark:text-white/45'}`}
+              className={`relative flex-shrink-0 border-none whitespace-nowrap font-semibold transition-colors text-body-sm cursor-pointer bg-transparent ${isActive ? 'text-white' : 'text-brand/50 dark:text-white/45'}`}
               style={{
                 zIndex: 1,
                 padding: '7px 14px',
@@ -359,7 +359,7 @@ function ListMessage({ title, body, action }) {
   return (
     <div className="px-4 py-5 text-center" role="status">
       <p className="text-sm font-semibold text-charcoal dark:text-white">{title}</p>
-      <p className="text-[12px] leading-relaxed text-charcoal/60 dark:text-white/55 mt-1 mb-4">{body}</p>
+      <p className="text-caption leading-relaxed text-charcoal/60 dark:text-white/55 mt-1 mb-4">{body}</p>
       {action}
     </div>
   )

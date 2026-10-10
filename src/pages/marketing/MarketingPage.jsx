@@ -56,7 +56,7 @@ const REPLACED_TOOLS = ['Rota spreadsheets','WhatsApp groups','Paper temp logs',
 function ReplacesStrip() {
   return (
     <div className="bg-surface border-y border-charcoal/8 py-4 select-none flex items-center">
-      <span aria-hidden="true" className="pk-ticker-label relative z-10 shrink-0 pl-6 sm:pl-10 pr-4 sm:pr-6 font-mono text-[11px] tracking-[0.12em] uppercase font-semibold text-charcoal/55 bg-surface shadow-[12px_0_12px_theme(colors.surface)]">Replaces</span>
+      <span aria-hidden="true" className="pk-ticker-label relative z-10 shrink-0 pl-6 sm:pl-10 pr-4 sm:pr-6 font-mono text-micro tracking-[0.12em] uppercase font-semibold text-charcoal/55 bg-surface shadow-[12px_0_12px_theme(colors.surface)]">Replaces</span>
       <div className="overflow-hidden flex-1">
         <div className="flex pk-ticker-track whitespace-nowrap">
           {[0, 1].map(pass => (
@@ -67,7 +67,7 @@ function ReplacesStrip() {
               aria-hidden={pass === 1 ? 'true' : undefined}
             >
               {REPLACED_TOOLS.map(item => (
-                <li key={item} className="mx-7 text-[14px] font-medium text-charcoal/45 line-through decoration-charcoal/30">{item}</li>
+                <li key={item} className="mx-7 text-body font-medium text-charcoal/45 line-through decoration-charcoal/30">{item}</li>
               ))}
             </ul>
           ))}
@@ -196,7 +196,7 @@ function MockDashboard() {
         <div className="flex items-start justify-between mb-2.5">
           <div>
             <p className="text-[7px] tracking-widest uppercase text-charcoal/30">WEDNESDAY, 24 JUNE</p>
-            <h3 className="text-[15px] font-bold text-charcoal mt-0.5">Good afternoon, Sarah</h3>
+            <h3 className="text-body-lg font-bold text-charcoal mt-0.5">Good afternoon, Sarah</h3>
             <div className="flex items-center gap-1.5 mt-0.5">
               <span className="text-[7px] text-charcoal/45">THE FORGE</span>
               <span className="text-[7px] font-bold bg-brand text-cream px-1.5 py-0.5 rounded tracking-wide">PRO</span>
@@ -280,7 +280,7 @@ function MockAppHeader() {
     <div className="bg-brand px-4 pt-14 pb-3 shrink-0">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className="text-[11px] font-bold text-cream tracking-widest">DEPOT</span>
+          <span className="text-micro font-bold text-cream tracking-widest">DEPOT</span>
           <div className="relative">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-cream/60"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
             <div className="absolute -top-1 -right-1.5 w-3.5 h-3.5 bg-accent rounded-full flex items-center justify-center">
@@ -345,13 +345,13 @@ function MockChecksHub() {
           <span className="font-mono text-[8px] tracking-[0.08em] uppercase text-charcoal/50">Checks</span>
           <span className="font-mono text-[8px] font-semibold text-charcoal/50">Edit</span>
         </div>
-        <p className="text-[19px] font-semibold tracking-[-0.028em] text-charcoal leading-tight mt-0.5 mb-2">Today's checks</p>
+        <p className="text-title-sm font-semibold tracking-[-0.028em] text-charcoal leading-tight mt-0.5 mb-2">Today's checks</p>
 
         {/* Today banner */}
         <div className="bg-brand rounded-xl px-3 py-2.5 mb-2.5 flex items-center gap-2">
           <div className="flex-1 min-w-0">
             <p className="font-mono text-[7px] tracking-[0.1em] uppercase text-white/55 font-semibold">Today</p>
-            <p className="text-[12px] font-semibold text-white tracking-[-0.015em] mt-0.5">6 checks need doing</p>
+            <p className="text-caption font-semibold text-white tracking-[-0.015em] mt-0.5">6 checks need doing</p>
             <div className="flex items-center gap-2 mt-1">
               <span className="inline-flex items-center gap-1 font-mono text-[7px] font-semibold text-badDark"><span className="w-1 h-1 rounded-full bg-current"/>2 overdue</span>
               <span className="inline-flex items-center gap-1 font-mono text-[7px] font-semibold text-warnDark"><span className="w-1 h-1 rounded-full bg-current"/>4 due now</span>
@@ -414,7 +414,7 @@ function MockMobileHome() {
         {/* Greeting */}
         <div className="px-4 pt-3 pb-2">
           <p className="text-[9px] tracking-widest uppercase text-charcoal/35 mb-0.5">SATURDAY, 28 JUNE · 09:14</p>
-          <p className="text-[18px] font-bold text-charcoal leading-tight">Good morning, James.</p>
+          <p className="text-title-sm font-bold text-charcoal leading-tight">Good morning, James.</p>
           <p className="text-[9px] text-charcoal/40 mt-0.5">DEPOT <span className="inline-flex items-center gap-0.5 bg-accent/15 text-accent px-1 py-px rounded text-[8px] font-semibold">PRO</span> · 9 of 22 daily checks complete</p>
         </div>
 
@@ -461,7 +461,7 @@ function MockMobileHome() {
             ].map(({ label, val, sub, col }) => (
               <div key={label} className="bg-white border border-charcoal/8 rounded-xl p-2">
                 <p className="text-[7px] tracking-wide uppercase text-charcoal/35 leading-tight mb-1">{label}</p>
-                <p className={`text-[16px] font-bold leading-none ${col}`}>{val}</p>
+                <p className={`text-title-sm font-bold leading-none ${col}`}>{val}</p>
                 <p className="text-[7px] text-charcoal/40 mt-0.5">{sub}</p>
               </div>
             ))}
@@ -477,7 +477,7 @@ function MockMobileHome() {
               <span className="text-[8px] text-cream/60 font-medium">CLOCKED IN</span>
             </div>
           </div>
-          <p className="text-[26px] font-bold text-cream leading-none tracking-tight mb-2">09:14</p>
+          <p className="text-display font-bold text-cream leading-none tracking-tight mb-2">09:14</p>
           <div className="flex items-center gap-4">
             {[['THIS WEEK','3h 12m'],['BREAK','–'],['LAST IN','Fri 14:00']].map(([k,v])=>(
               <div key={k}>
@@ -515,7 +515,7 @@ function MockTeamHub() {
         <div className="flex items-center justify-between mb-2.5">
           <div>
             <p className="text-[9px] tracking-widest uppercase text-charcoal/35">TEAM</p>
-            <p className="text-[17px] font-bold text-charcoal leading-tight">Your team</p>
+            <p className="text-title-sm font-bold text-charcoal leading-tight">Your team</p>
           </div>
           <span className="text-[10px] text-brand/50 font-medium">Edit</span>
         </div>
@@ -524,7 +524,7 @@ function MockTeamHub() {
         <div className="bg-brand rounded-2xl px-3.5 py-3 mb-3 flex items-center justify-between">
           <div>
             <p className="text-[8px] tracking-widest uppercase text-cream/40 mb-0.5">ON SHIFT NOW</p>
-            <p className="text-[12px] font-bold text-cream">5 staff clocked in</p>
+            <p className="text-caption font-bold text-cream">5 staff clocked in</p>
           </div>
           <div className="flex items-center gap-1 text-cream/50">
             <span className="text-[9px] font-semibold tracking-wide">ATTENDANCE</span>
@@ -545,7 +545,7 @@ function MockTeamHub() {
               <div className="w-8 h-8 rounded-xl flex items-center justify-center mb-2" style={{ background: iBg }}>
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={iCol} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d={icon}/></svg>
               </div>
-              <p className="text-[11px] font-bold text-charcoal leading-tight">{label}</p>
+              <p className="text-caption font-bold text-charcoal leading-tight">{label}</p>
               <p className="text-[8px] font-semibold mt-0.5 uppercase tracking-wide" style={{ color: sCol }}>{sub}</p>
             </div>
           ))}
@@ -582,7 +582,7 @@ function MockRota() {
         <div className="flex items-center gap-3">
           <div>
             <span className="text-[8px] text-charcoal/35 tracking-widest uppercase">TEAM / </span>
-            <span className="text-[14px] font-bold text-charcoal">Rota Manager</span>
+            <span className="text-body font-bold text-charcoal">Rota Manager</span>
           </div>
           <span className="text-[8px] font-semibold bg-accent/10 text-accent px-2 py-0.5 rounded-full">3 shift swap requests pending</span>
         </div>
@@ -825,7 +825,7 @@ export default function MarketingPage() {
           <div style={{ animation:'pkIn 0.55s cubic-bezier(.16,1,.3,1) both' }}>
             <div className="inline-flex items-center gap-2.5 bg-cream/6 border border-cream/10 rounded-full px-4 py-2 mb-10 lg:mb-7">
               <div className="w-1.5 h-1.5 rounded-full bg-goodDark" style={{ animation:'pkPulse 2.4s ease-in-out infinite' }} />
-              <span className="text-[12px] font-semibold text-cream/70 tracking-[0.12em] uppercase">Always inspection-ready</span>
+              <span className="text-caption font-semibold text-cream/70 tracking-[0.12em] uppercase">Always inspection-ready</span>
             </div>
           </div>
           {/* Headline */}
@@ -834,15 +834,15 @@ export default function MarketingPage() {
             <span style={{ backgroundImage:`linear-gradient(180deg,${alpha(colors.cream, 0.92)} 0%,${alpha(colors.cream, 0.4)} 100%)`, WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text' }}>keep the compliance.</span>
           </h1>
           {/* Subtitle */}
-          <p className="text-cream/60 text-[17px] sm:text-[18px] max-w-[480px] mx-auto lg:mx-0 leading-[1.7] mb-10 lg:mb-8" style={{ animation:'pkIn 0.75s 140ms cubic-bezier(.16,1,.3,1) both' }}>
+          <p className="text-cream/60 text-title-sm max-w-[480px] mx-auto lg:mx-0 leading-[1.7] mb-10 lg:mb-8" style={{ animation:'pkIn 0.75s 140ms cubic-bezier(.16,1,.3,1) both' }}>
             One app for food safety records, rotas, timesheets and team management. EHO-ready from day one, on any device, for the whole team.
           </p>
           {/* CTAs */}
           <div className="flex flex-wrap justify-center lg:justify-start items-center gap-4 mb-7 lg:mb-6" style={{ animation:'pkIn 0.65s 210ms cubic-bezier(.16,1,.3,1) both' }}>
-            <Link to="/signup" className="bg-accent text-cream px-8 py-4 rounded-xl text-[15px] font-semibold hover:brightness-95 hover:shadow-[0_10px_32px_theme(colors.accent/55%)] active:scale-[0.97] transition-all duration-200 cursor-pointer shadow-[0_4px_20px_theme(colors.accent/45%)]">
+            <Link to="/signup" className="bg-accent text-cream px-8 py-4 rounded-xl text-body-lg font-semibold hover:brightness-95 hover:shadow-[0_10px_32px_theme(colors.accent/55%)] active:scale-[0.97] transition-all duration-200 cursor-pointer shadow-[0_4px_20px_theme(colors.accent/45%)]">
               Start free for 7 days
             </Link>
-            <a href="#compliance" className="flex items-center gap-2 text-cream/45 text-[15px] hover:text-cream/70 transition-colors duration-200 cursor-pointer">
+            <a href="#compliance" className="flex items-center gap-2 text-cream/45 text-body-lg hover:text-cream/70 transition-colors duration-200 cursor-pointer">
               See how it works
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
             </a>
@@ -852,7 +852,7 @@ export default function MarketingPage() {
             {['No card required','Cancel any time','EU data hosting'].map(t=>(
               <div key={t} className="flex items-center gap-2">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-cream/35"><polyline points="20 6 9 17 4 12"/></svg>
-                <span className="text-[13px] text-cream/40">{t}</span>
+                <span className="text-body-sm text-cream/40">{t}</span>
               </div>
             ))}
           </div>
@@ -894,11 +894,11 @@ export default function MarketingPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-20 items-center">
             <div>
               <FadeUp>
-                <span className="inline-block text-[11px] tracking-[0.12em] uppercase text-brand font-semibold bg-brand/8 px-3.5 py-1.5 rounded-full mb-6">Food safety</span>
+                <span className="inline-block text-micro tracking-[0.12em] uppercase text-brand font-semibold bg-brand/8 px-3.5 py-1.5 rounded-full mb-6">Food safety</span>
                 <h2 className="text-[40px] sm:text-[52px] lg:text-[56px] font-bold text-charcoal tracking-[-0.025em] leading-[1.05] mb-6">
                   If the EHO walked<br />in today, would<br />you be ready?
                 </h2>
-                <p className="text-charcoal/55 text-[17px] leading-[1.75] mb-10 max-w-md">
+                <p className="text-charcoal/55 text-title-sm leading-[1.75] mb-10 max-w-md">
                   Every temp log, cleaning record, allergen check and delivery sign-off captured and stored. Export a full audit trail PDF in one tap, exactly how an inspector expects it.
                 </p>
               </FadeUp>
@@ -913,15 +913,15 @@ export default function MarketingPage() {
                     <div className="flex gap-4 group cursor-default">
                       <div className="w-0.5 rounded-full bg-brand/20 group-hover:bg-brand transition-colors duration-300 shrink-0 mt-1.5" style={{ minHeight:52 }}/>
                       <div className="transition-transform duration-300 group-hover:translate-x-0.5">
-                        <p className="text-[15px] font-semibold text-charcoal mb-1.5">{title}</p>
-                        <p className="text-[15px] text-charcoal/55 leading-[1.7]">{desc}</p>
+                        <p className="text-body-lg font-semibold text-charcoal mb-1.5">{title}</p>
+                        <p className="text-body-lg text-charcoal/55 leading-[1.7]">{desc}</p>
                       </div>
                     </div>
                   </FadeUp>
                 ))}
               </div>
               <FadeUp delay={250}>
-                <Link to="/signup" className="inline-flex items-center gap-2 bg-brand text-cream px-6 py-3.5 rounded-xl text-[15px] font-semibold hover:bg-brand/85 hover:shadow-[0_6px_20px_theme(colors.brand/25%)] hover:-translate-y-0.5 transition-all duration-200 mt-10 cursor-pointer">
+                <Link to="/signup" className="inline-flex items-center gap-2 bg-brand text-cream px-6 py-3.5 rounded-xl text-body-lg font-semibold hover:bg-brand/85 hover:shadow-[0_6px_20px_theme(colors.brand/25%)] hover:-translate-y-0.5 transition-all duration-200 mt-10 cursor-pointer">
                   Start free trial
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
                 </Link>
@@ -930,11 +930,11 @@ export default function MarketingPage() {
             <FadeUp dir="right" delay={80} className="flex justify-center lg:justify-end">
               <div className="flex flex-col items-center gap-10">
                 <div className="lg:hidden">
-                  <p className="text-[11px] tracking-[0.1em] uppercase text-charcoal/35 font-medium text-center mb-4">Staff view</p>
+                  <p className="text-micro tracking-[0.1em] uppercase text-charcoal/35 font-medium text-center mb-4">Staff view</p>
                   <IPhoneFrame><MockMobileHome /></IPhoneFrame>
                 </div>
                 <div>
-                  <p className="text-[11px] tracking-[0.1em] uppercase text-charcoal/35 font-medium text-center mb-4">Checks hub</p>
+                  <p className="text-micro tracking-[0.1em] uppercase text-charcoal/35 font-medium text-center mb-4">Checks hub</p>
                   <IPhoneFrame><MockChecksHub /></IPhoneFrame>
                 </div>
               </div>
@@ -948,11 +948,11 @@ export default function MarketingPage() {
         <div className="max-w-5xl mx-auto px-6 sm:px-10 pt-24 sm:pt-36 pb-24 sm:pb-36">
           {/* Heading */}
           <FadeUp className="max-w-3xl mb-12 sm:mb-16">
-            <span className="inline-block text-[11px] tracking-[0.12em] uppercase text-accent font-semibold bg-accent/12 px-3.5 py-1.5 rounded-full mb-6">Team &amp; scheduling · Pro</span>
+            <span className="inline-block text-micro tracking-[0.12em] uppercase text-accent font-semibold bg-accent/12 px-3.5 py-1.5 rounded-full mb-6">Team &amp; scheduling · Pro</span>
             <h2 className="text-[40px] sm:text-[52px] lg:text-[60px] font-bold text-cream tracking-[-0.025em] leading-[1.05] mb-6">
               Stop managing your<br />team over WhatsApp.
             </h2>
-            <p className="text-cream/55 text-[17px] leading-[1.75] max-w-xl">
+            <p className="text-cream/55 text-title-sm leading-[1.75] max-w-xl">
               Build the rota in minutes, publish it, done. Timesheets write themselves. Swaps and time-off come through the app. You stop being the middleman.
             </p>
           </FadeUp>
@@ -974,8 +974,8 @@ export default function MarketingPage() {
             ].map(({ n, d }, i) => (
               <FadeUp key={n} delay={i * 40}>
                 <div className="border border-cream/8 rounded-2xl p-5 hover:border-cream/18 hover:bg-cream/5 hover:-translate-y-0.5 transition-all duration-300 ease-[cubic-bezier(.16,1,.3,1)] cursor-default">
-                  <p className="text-[15px] font-semibold text-cream mb-1.5">{n}</p>
-                  <p className="text-[13px] text-cream/50 leading-[1.65]">{d}</p>
+                  <p className="text-body-lg font-semibold text-cream mb-1.5">{n}</p>
+                  <p className="text-body-sm text-cream/50 leading-[1.65]">{d}</p>
                 </div>
               </FadeUp>
             ))}
@@ -994,7 +994,7 @@ export default function MarketingPage() {
             ].map(({ value, sub, delay }) => (
               <FadeUp key={value} delay={delay} className="lg:px-8 first:pl-0 last:pr-0">
                 <p className="text-[44px] lg:text-[40px] font-bold text-cream mb-3 tracking-[-0.03em] leading-none whitespace-nowrap">{value}</p>
-                <p className="text-[15px] text-cream/55 leading-[1.6] max-w-xs">{sub}</p>
+                <p className="text-body-lg text-cream/55 leading-[1.6] max-w-xs">{sub}</p>
               </FadeUp>
             ))}
           </div>
@@ -1006,7 +1006,7 @@ export default function MarketingPage() {
         <div className="max-w-5xl mx-auto px-6 sm:px-10 py-24 sm:py-36">
           <FadeUp className="mb-14">
             <h2 className="text-[40px] sm:text-[52px] font-bold text-charcoal tracking-[-0.025em] leading-[1.05] mb-3">There's a lot more inside.</h2>
-            <p className="text-charcoal/50 text-[17px] leading-[1.7] max-w-sm">A glimpse at what's waiting once you're in.</p>
+            <p className="text-charcoal/50 text-title-sm leading-[1.7] max-w-sm">A glimpse at what's waiting once you're in.</p>
           </FadeUp>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
             {[
@@ -1022,8 +1022,8 @@ export default function MarketingPage() {
                   <div className="w-10 h-10 rounded-xl bg-brand/7 text-brand flex items-center justify-center mb-5 group-hover:bg-brand group-hover:text-cream transition-all duration-300">
                     <Ico d={icon} size={18} />
                   </div>
-                  <p className="text-[15px] font-semibold text-charcoal mb-2">{title}</p>
-                  <p className="text-[14px] text-charcoal/55 leading-[1.65]">{desc}</p>
+                  <p className="text-body-lg font-semibold text-charcoal mb-2">{title}</p>
+                  <p className="text-body text-charcoal/55 leading-[1.65]">{desc}</p>
                 </div>
               </FadeUp>
             ))}
@@ -1036,12 +1036,12 @@ export default function MarketingPage() {
         <div className="max-w-5xl mx-auto px-6 sm:px-10 py-24 sm:py-36">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-20 items-center">
             <FadeUp>
-              <span className="inline-block text-[11px] tracking-[0.12em] uppercase text-brand font-semibold bg-brand/8 px-3.5 py-1.5 rounded-full mb-6">Setup</span>
+              <span className="inline-block text-micro tracking-[0.12em] uppercase text-brand font-semibold bg-brand/8 px-3.5 py-1.5 rounded-full mb-6">Setup</span>
               <h2 className="text-[40px] sm:text-[52px] lg:text-[56px] font-bold text-charcoal tracking-[-0.025em] leading-[1.05] mb-6">Live this afternoon.</h2>
-              <p className="text-charcoal/55 text-[17px] leading-[1.75] mb-8 max-w-sm">
+              <p className="text-charcoal/55 text-title-sm leading-[1.75] mb-8 max-w-sm">
                 No IT department needed. Open Pelikn in your browser, add it to your home screen and it works like any other app. Offline included.
               </p>
-              <Link to="/signup" className="inline-flex items-center gap-2 bg-brand text-cream px-6 py-3.5 rounded-xl text-[15px] font-semibold hover:bg-brand/85 hover:shadow-[0_6px_20px_theme(colors.brand/25%)] hover:-translate-y-0.5 transition-all duration-200 cursor-pointer">
+              <Link to="/signup" className="inline-flex items-center gap-2 bg-brand text-cream px-6 py-3.5 rounded-xl text-body-lg font-semibold hover:bg-brand/85 hover:shadow-[0_6px_20px_theme(colors.brand/25%)] hover:-translate-y-0.5 transition-all duration-200 cursor-pointer">
                 Get started free
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
               </Link>
@@ -1056,11 +1056,11 @@ export default function MarketingPage() {
                   <div className="flex gap-5 items-start pb-9 last:pb-0 relative group cursor-default">
                     {i < 2 && <div className="absolute left-[20px] top-12 bottom-0 w-px bg-charcoal/8"/>}
                     <div className="w-11 h-11 rounded-full border-2 border-charcoal/10 bg-white flex items-center justify-center shrink-0 z-10 transition-all duration-300 group-hover:border-brand/30 group-hover:shadow-[0_4px_14px_theme(colors.brand/12%)]">
-                      <span className="text-[12px] font-bold text-charcoal/30 tabular-nums group-hover:text-brand/60 transition-colors duration-300">{n}</span>
+                      <span className="text-caption font-bold text-charcoal/30 tabular-nums group-hover:text-brand/60 transition-colors duration-300">{n}</span>
                     </div>
                     <div className="pt-2">
-                      <p className="text-[16px] font-semibold text-charcoal mb-2">{title}</p>
-                      <p className="text-[15px] text-charcoal/55 leading-[1.7]">{desc}</p>
+                      <p className="text-title-sm font-semibold text-charcoal mb-2">{title}</p>
+                      <p className="text-body-lg text-charcoal/55 leading-[1.7]">{desc}</p>
                     </div>
                   </div>
                 </FadeUp>
@@ -1104,14 +1104,14 @@ export default function MarketingPage() {
             <h2 className="text-[52px] sm:text-[68px] lg:text-[84px] font-bold text-cream tracking-[-0.035em] leading-[1.0] mb-6 max-w-2xl">
               Ditch the clipboard.<br />Keep the compliance.
             </h2>
-            <p className="text-cream/50 text-[17px] leading-[1.7] mb-10 max-w-xs">
+            <p className="text-cream/50 text-title-sm leading-[1.7] mb-10 max-w-xs">
               7 days free. No card. Set up in an afternoon.
             </p>
             <div className="flex flex-col sm:flex-row items-start gap-4">
-              <Link to="/signup" className="bg-accent text-cream px-8 py-4 rounded-xl text-[15px] font-semibold hover:brightness-95 hover:shadow-[0_10px_36px_theme(colors.accent/55%)] hover:-translate-y-0.5 active:scale-[0.97] transition-all duration-200 text-center cursor-pointer shadow-[0_4px_24px_theme(colors.accent/42%)]">
+              <Link to="/signup" className="bg-accent text-cream px-8 py-4 rounded-xl text-body-lg font-semibold hover:brightness-95 hover:shadow-[0_10px_36px_theme(colors.accent/55%)] hover:-translate-y-0.5 active:scale-[0.97] transition-all duration-200 text-center cursor-pointer shadow-[0_4px_24px_theme(colors.accent/42%)]">
                 Start free trial
               </Link>
-              <a href="mailto:hello@get-pelikn.com" className="border border-cream/14 text-cream/45 hover:text-cream/65 hover:border-cream/28 hover:-translate-y-0.5 px-8 py-4 rounded-xl text-[15px] font-medium transition-all duration-200 text-center cursor-pointer">
+              <a href="mailto:hello@get-pelikn.com" className="border border-cream/14 text-cream/45 hover:text-cream/65 hover:border-cream/28 hover:-translate-y-0.5 px-8 py-4 rounded-xl text-body-lg font-medium transition-all duration-200 text-center cursor-pointer">
                 Get in touch
               </a>
             </div>
@@ -1131,7 +1131,7 @@ export default function MarketingPage() {
           </div>
         </div>
         <div className="border-t border-charcoal/5 py-3 text-center">
-          <p className="text-[11px] text-charcoal/16">© {new Date().getFullYear()} <span className="font-semibold tracking-[0.18em] uppercase">Pelikn</span> · EU data hosting</p>
+          <p className="text-caption text-charcoal/16">© {new Date().getFullYear()} <span className="font-semibold tracking-[0.18em] uppercase">Pelikn</span> · EU data hosting</p>
         </div>
       </footer>
     </div>
