@@ -4,6 +4,8 @@ import { useVenue } from '../../contexts/VenueContext'
 import { useAppSettings } from '../../hooks/useSettings'
 import SettingsSubHeader from '../../components/layout/SettingsSubHeader'
 import Toggle from '../../components/ui/Toggle'
+import Button from '../../components/ui/Button'
+import { HOLIDAY_REGIONS } from '../../lib/holiday'
 
 function Stepper({ value, onChange, suffix, min = 0, max = 99, step = 1 }) {
   const btn = (label, fn, disabled) => (
@@ -61,10 +63,10 @@ export default function AttendanceSettingsPage() {
   const {
     lateGraceMins, breakDurationMins, breakOverrunGraceMins, cleanupMinutes,
     requireLateReason, requireManagerApprovalForLate, notifyManagerAtStrike, disciplinaryAtStrike,
-    countingWindowDays, pushToManager, maxStaffOffEnabled, maxStaffOffCount,
+    countingWindowDays, pushToManager, maxStaffOffEnabled, maxStaffOffCount, holidayRegion,
     saveLateGraceMins, saveBreakDuration, saveBreakOverrunGraceMins, saveCleanupMinutes,
     saveRequireLateReason, saveRequireManagerApprovalForLate, saveNotifyManagerAtStrike, saveDisciplinaryAtStrike,
-    saveCountingWindowDays, savePushToManager, saveMaxStaffOffEnabled, saveMaxStaffOffCount,
+    saveCountingWindowDays, savePushToManager, saveMaxStaffOffEnabled, saveMaxStaffOffCount, saveHolidayRegion,
   } = settings
 
   const vp = (path) => `/v/${venueSlug}${path}`
@@ -189,6 +191,33 @@ export default function AttendanceSettingsPage() {
               control={<Stepper value={maxStaffOffCount} onChange={saveMaxStaffOffCount} min={1} max={20} />}
             />
           )}
+        </Group>
+
+        <Group
+          label="Holiday rules"
+          foot={holidayRegion === 'ni'
+            ? 'Northern Ireland: zero-hours staff get 5.6 weeks a year, each week worth their average week over the last 12 weeks they worked.'
+            : holidayRegion === 'gb'
+              ? 'England, Scotland and Wales: zero-hours staff build up holiday at 12.07% of the hours they work.'
+              : 'Holiday for zero-hours staff is worked out differently in Northern Ireland. Choose where this venue is to see their balances.'}
+        >
+          <div className="px-[15px] py-[13px]">
+            <div className="text-sm font-medium text-charcoal dark:text-white tracking-[-0.005em]">Where is this venue?</div>
+            <div className="flex gap-2 flex-wrap mt-2.5" role="radiogroup" aria-label="Where is this venue?">
+              {HOLIDAY_REGIONS.map(r => (
+                <Button
+                  key={r.value}
+                  size="sm"
+                  variant={holidayRegion === r.value ? 'primary' : 'secondary'}
+                  role="radio"
+                  aria-checked={holidayRegion === r.value}
+                  onClick={() => saveHolidayRegion(r.value)}
+                >
+                  {r.label}
+                </Button>
+              ))}
+            </div>
+          </div>
         </Group>
 
       </div>

@@ -28,7 +28,6 @@
   "src/hooks/useClockAlerts.js": 4,
   "src/hooks/useTeamStatus.js": 5,
   "src/hooks/useTodaySummary.js": 2,
-  "src/hooks/useZeroHoursAccrual.js": 8,
   "src/lib/__tests__/compliance.test.js": 3,
   "src/lib/__tests__/deliveries.test.js": 1,
   "src/lib/__tests__/loginScreenState.test.js": 1,

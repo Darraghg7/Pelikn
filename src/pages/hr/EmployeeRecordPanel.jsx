@@ -12,10 +12,11 @@
  *   setTab     – setter for tab
  *   onUpload   – optional: called when header "Upload doc" button clicked (defaults to switching tab)
  */
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { format, parseISO, differenceInDays } from 'date-fns'
 import { calculateEntitlementDays, countWorkingDaysInRequest } from '../../hooks/useLeaveBalance'
+import { useHolidayBalances, usePaidOut } from '../../hooks/useHolidayBalances'
 import { HR_BUCKET, hrAttachmentPath, openHrAttachment } from '../../lib/hrDocuments'
 import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../../components/ui/Toast'
@@ -800,24 +801,46 @@ function LeaveTab({ staffId, venueSlug, staff }) {
     rejected:  'bad',
     cancelled: 'muted',
   }
-  const LEAVE_LABELS = { annual: 'Annual', unpaid: 'Unpaid', other: 'Other' }
+  const LEAVE_LABELS = { annual: 'Annual', unavailable: 'Not available', unpaid: 'Unpaid', other: 'Other' }
 
   const eligible   = staff?.holiday_pay_eligible !== false
   const isZeroHrs  = staff?.employment_type === 'zero_hours'
   const allowance  = eligible ? calculateEntitlementDays(staff?.employment_type, staff?.working_days) : null
+  // Days already paid outside dated bookings (150) count as taken for days-based staff
+  const paidOutDays = usePaidOut([staffId], currentYear)[staffId]?.days ?? 0
   const taken      = requests
     .filter(r => r.status === 'approved' && r.leave_type === 'annual' && r.start_date?.startsWith(String(currentYear)))
-    .reduce((sum, r) => sum + countWorkingDaysInRequest(r.start_date, r.end_date, staff?.working_days), 0)
+    .reduce((sum, r) => sum + countWorkingDaysInRequest(r.start_date, r.end_date, staff?.working_days), 0) +
+    (isZeroHrs ? 0 : paidOutDays)
   const remaining  = allowance != null ? Math.max(0, allowance - taken) : null
+
+  // Zero-hours holiday is in hours — same calculation as the Time Off page.
+  const holidayList = useMemo(() => (staff && staffId ? [{ ...staff, id: staffId }] : []), [staff, staffId])
+  const holiday = useHolidayBalances(holidayList, currentYear).byId[staffId]
+  const hrs = (n) => (n == null ? '—' : `${n < 0 ? '−' : ''}${Math.abs(Math.round(n * 10) / 10)} h`)
+
+  const tiles = !isZeroHrs
+    ? [
+        { k: 'Allowance', v: allowance != null ? `${allowance} days` : '—' },
+        { k: 'Taken',     v: `${taken} days` },
+        { k: 'Remaining', v: remaining != null ? `${remaining} days` : '—' },
+      ]
+    : holiday?.status === 'ok'
+      ? [
+          { k: 'Allowance', v: hrs(holiday.allowance) },
+          { k: 'Used',      v: hrs(holiday.used) },
+          { k: 'Remaining', v: hrs(holiday.balance) },
+        ]
+      : [
+          { k: 'Allowance', v: holiday?.status === 'self_employed' ? 'Self-employed' : holiday?.status === 'needs_region' ? 'Not set up' : '…' },
+          { k: 'Used',      v: '—' },
+          { k: 'Remaining', v: '—' },
+        ]
 
   return (
     <div className="flex flex-col gap-3.5">
       <div className="grid grid-cols-3 gap-[13px]">
-        {[
-          { k: 'Allowance', v: isZeroHrs ? 'Accrual' : allowance != null ? `${allowance} days` : '—' },
-          { k: 'Taken',     v: `${taken} days` },
-          { k: 'Remaining', v: remaining != null ? `${remaining} days` : '—' },
-        ].map(x => (
+        {tiles.map(x => (
           <div key={x.k} className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[14px] px-4 py-[13px]">
             <div className="font-mono text-micro uppercase tracking-[0.07em] text-charcoal/50 dark:text-white/40 font-semibold">{x.k}</div>
             <div className="text-xl font-semibold text-charcoal dark:text-white mt-[3px] font-mono tracking-[-0.02em]">{x.v}</div>

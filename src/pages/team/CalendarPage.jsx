@@ -513,10 +513,11 @@ function MonthGrid({ year, month, dayMap, selectedDate, onSelectDate }) {
 
 const LEAVE_TYPE_LABELS = {
   annual: 'Annual Leave',
+  unavailable: 'Not available',
   unpaid: 'Unpaid Leave',
   other:  'Other',
 }
-const LEAVE_TYPE_ORDER = ['annual', 'unpaid', 'other']
+const LEAVE_TYPE_ORDER = ['annual', 'unavailable', 'unpaid', 'other']
 
 function fmtLeaveDate(startDate, endDate) {
   const start = new Date(startDate + 'T00:00:00')

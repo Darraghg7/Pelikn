@@ -11,6 +11,11 @@ import { useAppSettings } from '../../hooks/useSettings'
 import { formatMinutes, getWeekStart, downloadCsv } from '../../lib/utils'
 import { buildPdfReport } from '../../lib/pdfUtils'
 import { countWorkingDaysInRequest } from '../../hooks/useLeaveBalance'
+import { withPaidHoursColumns } from '../../lib/api/holidayData'
+import { useHolidayBalances, useRotaHours, HOLIDAY_BALANCES_KEY } from '../../hooks/useHolidayBalances'
+import { suggestedPaidHours } from '../../lib/holiday'
+import { useQueryClient } from '@tanstack/react-query'
+import HolidayPayModal from './HolidayPayModal'
 import { SkeletonList } from '../../components/ui/Skeleton'
 import AddSessionModal from './AddSessionModal'
 import ClockEditApprovalCard from '../../components/shifts/ClockEditApprovalCard'
@@ -65,16 +70,24 @@ function minsStr(mins) {
   return m === 0 ? `${h}h` : `${h}h ${m}m`
 }
 
+const dayCount = (from, to) =>
+  Math.round((Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) / 86_400_000) + 1
+
 function calcHolidayMins(leaveReqs, staffId, profile, periodFrom, periodTo) {
   const reqs = leaveReqs.filter(r => r.staff_id === staffId)
   if (!reqs.length) return 0
   const { contractedHours, workingDays } = profile
-  if (!contractedHours || contractedHours <= 0) return 0
   const daysPerWeek = workingDays?.length > 0 ? workingDays.length : 5
-  const dailyHours  = contractedHours / daysPerWeek
+  const dailyHours  = contractedHours > 0 ? contractedHours / daysPerWeek : 0
   return reqs.reduce((sum, r) => {
     const clippedStart = periodFrom && r.start_date < periodFrom ? periodFrom : r.start_date
     const clippedEnd   = periodTo   && r.end_date   > periodTo   ? periodTo   : r.end_date
+    // Hours a manager recorded as paid (zero-hours staff, 149) win; they are
+    // spread evenly over the request's days so a period gets its share.
+    if (r.paid_hours != null) {
+      return sum + Number(r.paid_hours) * 60 * (dayCount(clippedStart, clippedEnd) / dayCount(r.start_date, r.end_date))
+    }
+    if (!dailyHours) return sum
     return sum + countWorkingDaysInRequest(clippedStart, clippedEnd, workingDays) * dailyHours * 60
   }, 0)
 }
@@ -125,9 +138,9 @@ function SumCell({ label, value }) {
   )
 }
 
-function StaffRow({ t, person, onTap }) {
-  const hasData = t.totalMinutes > 0
-  const pay = (t.totalMinutes / 60) * t.hourlyRate
+function StaffRow({ t, person, holidayMins = 0, onTap }) {
+  const hasData = t.totalMinutes > 0 || holidayMins > 0
+  const pay = ((t.totalMinutes + holidayMins) / 60) * t.hourlyRate
   return (
     <button
       type="button"
@@ -141,7 +154,8 @@ function StaffRow({ t, person, onTap }) {
       </span>
       {hasData ? (
         <span className="shrink-0 text-right">
-          <span className="block font-mono text-body-lg font-semibold text-ink dark:text-white tabular-nums">{hm(t.totalMinutes)}</span>
+          <span className="block font-mono text-body-lg font-semibold text-ink dark:text-white tabular-nums">{t.totalMinutes > 0 ? hm(t.totalMinutes) : '–'}</span>
+          {holidayMins > 0 && <span className="block font-mono text-body-sm text-ink3 dark:text-white/45 tabular-nums">+ {hm(holidayMins)} holiday</span>}
           {pay > 0 && <span className="block font-mono text-body-sm font-semibold text-good dark:text-goodDark mt-0.5 tabular-nums">{fmtGBP(pay)}</span>}
         </span>
       ) : (
@@ -417,6 +431,9 @@ export default function TimesheetPage() {
   const [selStaff,      setSelStaff]      = useState(null)
   const [editCtx,       setEditCtx]       = useState(null)
   const [addTarget,     setAddTarget]     = useState(null)
+  const [holidayPayFor, setHolidayPayFor] = useState(null)
+  const [leaveTick,     setLeaveTick]     = useState(0)
+  const queryClient = useQueryClient()
 
   const { venueId, venueSlug } = useVenue()
   const { isManager } = useSession()
@@ -481,6 +498,30 @@ export default function TimesheetPage() {
   const periodTo   = dateTo   ? dateTo.slice(0, 10)   : ''
   const isPeriodLocked = payrollLocks.some(l => l.from === periodFrom && l.to === periodTo)
 
+  // ── Zero-hours holiday pay for this period ──────────────────────────────
+  // Their holiday is paid in hours a manager confirms (time_off_requests.paid_hours,
+  // migration 149). Bookings in this period are listed with a suggestion; until
+  // confirmed they are not in the wage bill. Hidden before 149 (no paid_hours key).
+  const holidayItems = useMemo(
+    () => periodLeave.filter(r => 'paid_hours' in r && staffProfiles[r.staff_id]?.zeroHours && staffProfiles[r.staff_id]?.eligible),
+    [periodLeave, staffProfiles],
+  )
+  const holidayStaff = useMemo(() => {
+    const ids = [...new Set(holidayItems.map(r => r.staff_id))]
+    return ids.map(id => ({ id, employment_type: 'zero_hours', working_days: staffProfiles[id]?.workingDays ?? [], holiday_pay_eligible: true }))
+  }, [holidayItems, staffProfiles])
+  const holidayYear = periodFrom ? Number(periodFrom.slice(0, 4)) : new Date().getFullYear()
+  const { byId: holidayById } = useHolidayBalances(holidayStaff, holidayYear)
+  const rotaFrom = holidayItems.reduce((m, r) => (!m || r.start_date < m ? r.start_date : m), '')
+  const rotaTo   = holidayItems.reduce((m, r) => (!m || r.end_date > m ? r.end_date : m), '')
+  const rotaHours = useRotaHours(holidayStaff.map(s => s.id), rotaFrom, rotaTo)
+  const holidayToConfirm = holidayItems.filter(r => r.paid_hours == null).length
+
+  const holidaySaved = useCallback(() => {
+    setLeaveTick(n => n + 1)
+    queryClient.invalidateQueries({ queryKey: [HOLIDAY_BALANCES_KEY] })
+  }, [queryClient])
+
   useEffect(() => {
     if (!venueId) return
     // hourly_rate (117) and contracted_hours (118) are no longer selectable
@@ -489,7 +530,7 @@ export default function TimesheetPage() {
     // this is the full set. working_days stays on the table — it drives
     // availability and is not private.
     Promise.all([
-      supabase.from('staff').select('id, working_days').eq('venue_id', venueId),
+      supabase.from('staff').select('id, working_days, employment_type, holiday_pay_eligible').eq('venue_id', venueId),
       fetchStaffPayRates(),
       fetchStaffPrivateFields(),
     ]).then(([{ data, error }, payRates, priv]) => {
@@ -498,7 +539,12 @@ export default function TimesheetPage() {
       const rates = {}, profiles = {}
       for (const s of data) {
         rates[s.id] = payRates.get(s.id) ?? 0
-        profiles[s.id] = { contractedHours: priv.get(s.id)?.contracted_hours ?? null, workingDays: s.working_days ?? [] }
+        profiles[s.id] = {
+          contractedHours: priv.get(s.id)?.contracted_hours ?? null,
+          workingDays: s.working_days ?? [],
+          zeroHours: s.employment_type === 'zero_hours',
+          eligible: s.holiday_pay_eligible !== false,
+        }
       }
       setStaffRates(rates); setStaffProfiles(profiles)
     })
@@ -506,14 +552,16 @@ export default function TimesheetPage() {
 
   useEffect(() => {
     if (!venueId || !dateFrom || !dateTo) return
-    supabase.from('time_off_requests').select('staff_id, start_date, end_date')
-      .eq('venue_id', venueId).eq('status', 'approved').eq('leave_type', 'annual')
-      .lte('start_date', dateTo.slice(0, 10)).gte('end_date', dateFrom.slice(0, 10))
-      .then(({ data, error }) => {
-        if (error) { reportError(error, 'TimesheetPage:period-leave'); return }
-        setPeriodLeave(data ?? [])
-      })
-  }, [venueId, dateFrom, dateTo])
+    withPaidHoursColumns(async extra => {
+      const { data, error } = await supabase.from('time_off_requests').select(`id, staff_id, start_date, end_date${extra}`)
+        .eq('venue_id', venueId).eq('status', 'approved').eq('leave_type', 'annual')
+        .lte('start_date', dateTo.slice(0, 10)).gte('end_date', dateFrom.slice(0, 10))
+      if (error) throw error
+      return data ?? []
+    })
+      .then(setPeriodLeave)
+      .catch(error => reportError(error, 'TimesheetPage:period-leave'))
+  }, [venueId, dateFrom, dateTo, leaveTick])
 
   useEffect(() => {
     if (!venueId || !periodFrom || !periodTo) return
@@ -550,6 +598,12 @@ export default function TimesheetPage() {
   const togglePayrollLock = useCallback(async () => {
     if (!periodFrom || !periodTo || periodFrom > periodTo) return
     if (locksFailed) { toast("Couldn't load the existing payroll locks — reload the page and try again", 'error'); return }
+    // Unconfirmed zero-hours holiday isn't in the wage bill — locking now would
+    // send payroll a total without it.
+    if (!isPeriodLocked && holidayToConfirm > 0) {
+      toast(`Confirm the holiday pay for ${holidayToConfirm} booking${holidayToConfirm === 1 ? '' : 's'} before locking this period`, 'error')
+      return
+    }
     setLockSaving(true)
     if (isPeriodLocked) {
       const error = await saveLocks(payrollLocks.filter(l => !(l.from === periodFrom && l.to === periodTo)))
@@ -561,7 +615,7 @@ export default function TimesheetPage() {
       else toast('Period locked for payroll')
     }
     setLockSaving(false)
-  }, [isPeriodLocked, locksFailed, payrollLocks, periodFrom, periodTo, saveLocks, toast])
+  }, [isPeriodLocked, locksFailed, holidayToConfirm, payrollLocks, periodFrom, periodTo, saveLocks, toast])
 
   const saveEditedSession = useCallback(async ({ dateStr, session }, { clockIn, clockOut, brk }) => {
     // Interpret the edited times as UK wall-clock and store the resulting UTC
@@ -748,6 +802,63 @@ export default function TimesheetPage() {
         )}
       </div>
 
+      {/* Zero-hours holiday pay to confirm */}
+      {isManager && holidayItems.length > 0 && (
+        <div className={`${CARD} overflow-hidden`}>
+          <p className={`px-3.5 py-2.5 text-caption font-semibold tracking-[0.08em] uppercase ${holidayToConfirm ? 'bg-warnBg dark:bg-warn/20 text-warn dark:text-warnDark' : 'text-ink3 dark:text-white/45'}`}>
+            Holiday pay{holidayToConfirm ? ` · ${holidayToConfirm} to confirm` : ''}
+          </p>
+          <div className="divide-y divide-line dark:divide-white/10">
+            {holidayItems.map(r => {
+              const person = staffById[r.staff_id]
+              const name = person?.name ?? timesheets.find(t => t.staffId === r.staff_id)?.name ?? 'Staff'
+              const suggestion = suggestedPaidHours(r, holidayById[r.staff_id]?.avgWeekHours ?? null, staffProfiles[r.staff_id]?.workingDays, rotaHours[r.staff_id] ?? {})
+              const rate = staffRates[r.staff_id] ?? 0
+              return (
+                <div key={r.id} className="flex items-center gap-2.5 px-3.5 py-2.5">
+                  <Avatar name={name} id={r.staff_id} colour={person?.colour} photoUrl={person?.photo_url} size="md" decorative />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-body font-semibold text-ink dark:text-white truncate">{name}</p>
+                    <p className="text-body-sm text-ink3 dark:text-white/45">
+                      {format(parseISO(r.start_date), 'EEE d MMM')}{r.end_date !== r.start_date && ` – ${format(parseISO(r.end_date), 'EEE d MMM')}`}
+                      {' · '}
+                      {r.paid_hours != null
+                        ? <span className="font-mono text-ink2 dark:text-white/70">{Number(r.paid_hours)} h paid{rate > 0 && ` · ${fmtGBP(Number(r.paid_hours) * rate)}`}</span>
+                        : <span className="text-warn dark:text-warnDark">{suggestion != null ? `suggested ${suggestion} h` : 'hours needed'} — not in the wage bill yet</span>}
+                    </p>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant={r.paid_hours != null ? 'secondary' : 'primary'}
+                    onClick={() => setHolidayPayFor(r)}
+                    className="shrink-0"
+                  >
+                    {r.paid_hours != null ? 'Change' : 'Confirm'}
+                  </Button>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      {holidayPayFor && (
+        <HolidayPayModal
+          request={holidayPayFor}
+          staffName={staffById[holidayPayFor.staff_id]?.name ?? 'Staff'}
+          hourlyRate={staffRates[holidayPayFor.staff_id] ?? 0}
+          workingDays={staffProfiles[holidayPayFor.staff_id]?.workingDays ?? []}
+          avgWeekHours={holidayById[holidayPayFor.staff_id]?.avgWeekHours ?? null}
+          rotaHoursByDate={rotaHours[holidayPayFor.staff_id] ?? {}}
+          holidayLeft={holidayById[holidayPayFor.staff_id]?.status === 'ok' ? holidayById[holidayPayFor.staff_id].balance : null}
+          periodFrom={periodFrom}
+          periodTo={periodTo}
+          locked={isPeriodLocked}
+          onClose={() => setHolidayPayFor(null)}
+          onSaved={holidaySaved}
+        />
+      )}
+
       {/* Staff list */}
       {!loading && !loadError && (
         <>
@@ -765,7 +876,13 @@ export default function TimesheetPage() {
           ) : (
             <div className={`${CARD} divide-y divide-line dark:divide-white/10 overflow-hidden`}>
               {timesheets.map(t => (
-                <StaffRow key={t.staffId} t={t} person={staffById[t.staffId]} onTap={() => setSelStaff(t)} />
+                <StaffRow
+                  key={t.staffId}
+                  t={t}
+                  person={staffById[t.staffId]}
+                  holidayMins={calcHolidayMins(periodLeave, t.staffId, staffProfiles[t.staffId] ?? { contractedHours: null, workingDays: [] }, periodFrom, periodTo)}
+                  onTap={() => setSelStaff(t)}
+                />
               ))}
             </div>
           )}

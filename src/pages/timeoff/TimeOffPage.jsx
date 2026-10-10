@@ -9,7 +9,8 @@ import { useToast } from '../../components/ui/Toast'
 import { SkeletonList, PageSkeleton } from '../../components/ui/Skeleton'
 import Modal from '../../components/ui/Modal'
 import { calculateEntitlementDays, countWorkingDaysInRequest } from '../../hooks/useLeaveBalance'
-import { useZeroHoursAccrual, useTeamZeroHoursAccruals } from '../../hooks/useZeroHoursAccrual'
+import { useHolidayBalances, useRotaHours, usePaidOut, HOLIDAY_BALANCES_KEY } from '../../hooks/useHolidayBalances'
+import { suggestedPaidHours } from '../../lib/holiday'
 import { invalidateSummaryCache } from '../../hooks/useTodaySummary'
 import { timeOffPermissions, isBlocking } from '../../lib/api/timeOff'
 import { useAppSettings } from '../../hooks/useSettings'
@@ -28,6 +29,8 @@ import LoadError from '../../components/ui/LoadError'
 import Avatar from '../../components/ui/Avatar'
 import Button from '../../components/ui/Button'
 
+const NO_STAFF = []
+
 const FIELD_LABEL = 'block text-body-sm font-semibold tracking-[0.08em] uppercase text-ink3 dark:text-white/45 mb-2'
 const TEXT_FIELD  = 'w-full h-12 px-4 rounded-xl border border-line dark:border-white/10 bg-cream dark:bg-white/5 text-body-lg text-ink dark:text-white placeholder:text-ink4 dark:placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand/40 focus:bg-white dark:focus:bg-white/10 transition-colors'
 
@@ -44,23 +47,30 @@ export default function TimeOffPage() {
   const ownProfile = useOwnProfile(session?.staffId)
 
   const currentYear = new Date().getFullYear()
-  const { balances: teamBalances, loading: balancesLoading, failed: balancesFailed, reloadBalances } = useTeamLeaveBalances(
+  const { balances: teamBalancesRaw, loading: balancesLoading, failed: balancesFailed, reloadBalances } = useTeamLeaveBalances(
     isManager ? staff : [],
     currentYear
   )
 
-  // Zero-hours accrual — own (staff view)
-  const { accrued: ownAccrued, avgDailyHours: ownAvgDaily } = useZeroHoursAccrual(
-    ownProfile?.employment_type === 'zero_hours' ? session?.staffId : null,
-    currentYear
-  )
+  // Zero-hours holiday is in hours, not days — see lib/holiday.js.
+  const { byId: teamHoliday } = useHolidayBalances(isManager ? staff : NO_STAFF, currentYear)
+  const ownList = useMemo(() => (ownProfile ? [ownProfile] : NO_STAFF), [ownProfile])
+  const { byId: ownHolidayById } = useHolidayBalances(ownList, currentYear)
+  const ownHoliday = ownHolidayById[session?.staffId] ?? null
 
-  // Zero-hours accrual — team (manager view)
-  const zeroHoursIds = useMemo(
-    () => teamBalances.filter(b => b.isZeroHours).map(b => b.id),
-    [teamBalances]
+  // Holiday already paid outside a dated booking (migration 150). Zero-hours
+  // balances include it already; days-based ones take it off here.
+  const paidOutIds = useMemo(
+    () => [session?.staffId, ...(isManager ? staff.map(s => s.id) : [])],
+    [session?.staffId, isManager, staff],
   )
-  const { map: zeroHoursMap } = useTeamZeroHoursAccruals(zeroHoursIds, currentYear)
+  const paidOut = usePaidOut(paidOutIds, currentYear)
+  const teamBalances = useMemo(() => teamBalancesRaw.map(b => {
+    const days = paidOut[b.id]?.days ?? 0
+    if (b.isZeroHours || !days || b.entitlement == null) return { ...b, paidOutDays: days }
+    const used = b.used + days
+    return { ...b, used, paidOutDays: days, remaining: Math.max(0, b.entitlement - used) }
+  }), [teamBalancesRaw, paidOut])
 
   /**
    * Time off drives availability everywhere else in the app, so any write here
@@ -70,6 +80,7 @@ export default function TimeOffPage() {
   const refreshDependents = useCallback(() => {
     reload()
     reloadBalances()
+    queryClient.invalidateQueries({ queryKey: [HOLIDAY_BALANCES_KEY] })
     queryClient.invalidateQueries({ queryKey: ['availability'] })        // rota grid + AI/auto builder
     queryClient.invalidateQueries({ queryKey: ['calendar_staff_leave'] }) // manager calendar
     invalidateSummaryCache(venueId)                                       // dashboard pending-leave counts
@@ -85,30 +96,26 @@ export default function TimeOffPage() {
   const ownBalance = useMemo(() => {
     if (!ownProfile) return null
     const calculated  = calculateEntitlementDays(ownProfile.employment_type, ownProfile.working_days)
+    // This year's leave only — this used to count every approved request the
+    // person had ever made, so last year's holiday came off this year's balance.
     const myApproved  = requests.filter(r =>
-      r.staff_id === session?.staffId && r.status === 'approved' && r.leave_type === 'annual'
+      r.staff_id === session?.staffId && r.status === 'approved' && r.leave_type === 'annual' &&
+      r.start_date?.startsWith(String(currentYear))
     )
     const used = myApproved.reduce((sum, r) =>
-      sum + countWorkingDaysInRequest(r.start_date, r.end_date, ownProfile.working_days), 0)
+      sum + countWorkingDaysInRequest(r.start_date, r.end_date, ownProfile.working_days), 0) +
+      (ownProfile.employment_type === 'zero_hours' ? 0 : paidOut[session?.staffId]?.days ?? 0)
     const entitlement = calculated
     const remaining   = entitlement != null ? Math.max(0, entitlement - used) : null
     return { entitlement, used, remaining, isZeroHours: ownProfile.employment_type === 'zero_hours' }
-  }, [ownProfile, requests, session?.staffId])
-
-  // For zero-hours: convert approved leave days → estimated hours used
-  const ownUsedHours = useMemo(() => {
-    if (!ownBalance?.isZeroHours || ownBalance.used == null) return null
-    return Math.round(ownBalance.used * (ownAvgDaily ?? 7.6) * 10) / 10
-  }, [ownBalance, ownAvgDaily])
-  const ownRemainingHours = useMemo(() => {
-    if (ownAccrued == null || ownUsedHours == null) return ownAccrued ?? null
-    return Math.round(Math.max(0, ownAccrued - ownUsedHours) * 10) / 10
-  }, [ownAccrued, ownUsedHours])
+  }, [ownProfile, requests, session?.staffId, currentYear, paidOut])
 
   const [month, setMonth]           = useState(new Date())
   const [showRequest, setShowRequest] = useState(false)
   const [selectedDay, setSelectedDay] = useState(() => startOfDay(new Date()))
-  const [form, setForm]             = useState({ startDate: '', endDate: '', reason: '', leaveType: 'annual' })
+  // No leave type picked up front: defaulting to annual is how "can't work"
+  // ended up recorded as holiday.
+  const [form, setForm]             = useState({ startDate: '', endDate: '', reason: '', leaveType: '' })
   const [saving, setSaving]         = useState(false)
   const [showTeamBalances, setShowTeamBalances] = useState(true)
 
@@ -131,6 +138,7 @@ export default function TimeOffPage() {
   }, [form.startDate, form.endDate, form.leaveType, ownProfile?.working_days])
 
   const submitRequest = async () => {
+    if (!form.leaveType) { toast('Choose what kind of time off this is', 'error'); return }
     if (!form.startDate || !form.endDate) { toast('Please select start and end dates', 'error'); return }
     if (form.endDate < form.startDate)    { toast('End date must be after start date', 'error'); return }
     // Staff request leave ahead; leave already taken is recorded by a manager
@@ -159,20 +167,28 @@ export default function TimeOffPage() {
       url:   '/time-off',
       roles: ['manager', 'owner'],
     })
-    setForm({ startDate: '', endDate: '', reason: '', leaveType: 'annual' })
+    setForm({ startDate: '', endDate: '', reason: '', leaveType: '' })
     setShowRequest(false)
     refreshDependents()
   }
 
-  const approve = async (id) => {
+  const approve = async (id, paidHours = null) => {
     setReviewing(id)
     const req = requests.find(r => r.id === id)
-    const { error: err } = await supabase.from('time_off_requests').update({
+    const patch = {
       status:       'approved',
       reviewed_by:  session?.staffId,
       reviewed_at:  new Date().toISOString(),
       manager_note: noteFor(id) || null,
-    }).eq('id', id)
+    }
+    if (paidHours != null) patch.paid_hours = paidHours
+    let { error: err } = await supabase.from('time_off_requests').update(patch).eq('id', id)
+    // Before migration 149 there is no paid_hours column: approve without it
+    // rather than not at all. The balance then estimates, as it always did.
+    if (err && paidHours != null && (err.code === 'PGRST204' || err.code === '42703')) {
+      delete patch.paid_hours
+      ;({ error: err } = await supabase.from('time_off_requests').update(patch).eq('id', id))
+    }
     setReviewing(null)
     if (err) { toast(err.message, 'error'); return }
     clearNote(id)
@@ -219,6 +235,13 @@ export default function TimeOffPage() {
 
   const myRequests      = useMemo(() => requests.filter(r => r.staff_id === session?.staffId), [requests, session?.staffId])
   const pendingRequests = useMemo(() => requests.filter(r => r.status === 'pending'), [requests])
+  // Rota shifts on pending zero-hours holiday, so the hours to pay can start from the real shift.
+  const pendingHoliday = pendingRequests.filter(r => r.leave_type === 'annual' && r.staff?.employment_type === 'zero_hours')
+  const rotaHours = useRotaHours(
+    pendingHoliday.map(r => r.staff_id),
+    pendingHoliday.reduce((m, r) => (!m || r.start_date < m ? r.start_date : m), ''),
+    pendingHoliday.reduce((m, r) => (!m || r.end_date > m ? r.end_date : m), ''),
+  )
   // Withdrawn and rejected requests no longer hold anyone off the rota, so they
   // stay off the calendar — the staff member still sees them in "My Requests".
   const bookedRequests  = useMemo(() => requests.filter(r => isBlocking(r.status)), [requests])
@@ -267,8 +290,7 @@ export default function TimeOffPage() {
         <OwnBalanceCard
           balance={ownBalance}
           year={currentYear}
-          accrued={ownAccrued}
-          remainingHours={ownRemainingHours}
+          holiday={ownHoliday}
         />
       )}
 
@@ -287,7 +309,9 @@ export default function TimeOffPage() {
                 note={notes[r.id] ?? ''}
                 onNote={(value) => setNotes(n => ({ ...n, [r.id]: value }))}
                 busy={reviewing === r.id}
-                onApprove={() => approve(r.id)}
+                holiday={teamHoliday[r.staff_id]}
+                rotaHoursByDate={rotaHours[r.staff_id]}
+                onApprove={(paidHours) => approve(r.id, paidHours)}
                 onReject={() => reject(r.id)}
               />
             ))}
@@ -384,7 +408,8 @@ export default function TimeOffPage() {
                     <TeamBalanceRow
                       key={b.id}
                       balance={b}
-                      accrued={b.isZeroHours ? zeroHoursMap[b.id] : undefined}
+                      holiday={b.isZeroHours ? teamHoliday[b.id] : undefined}
+                      settingsPath={`/v/${venueSlug}/settings/attendance`}
                       onLogPast={() => setManualEntry(b)}
                     />
                   ))}
@@ -449,6 +474,16 @@ export default function TimeOffPage() {
                 </button>
               ))}
             </div>
+            {form.leaveType === 'unavailable' && (
+              <p className="text-body-sm text-ink3 dark:text-white/45 mt-2">
+                For days you can't work. You won't be put on the rota, it isn't paid, and it doesn't use your holiday.
+              </p>
+            )}
+            {form.leaveType === 'annual' && ownBalance?.isZeroHours && (
+              <p className="text-body-sm text-ink3 dark:text-white/45 mt-2">
+                Paid holiday. If you just can't work these days, choose Not available instead.
+              </p>
+            )}
           </div>
 
           {/* Balance for annual leave */}
@@ -463,17 +498,16 @@ export default function TimeOffPage() {
               </p>
             </div>
           )}
-          {form.leaveType === 'annual' && ownBalance?.isZeroHours && (
+          {form.leaveType === 'annual' && ownBalance?.isZeroHours && ownHoliday?.status === 'ok' && (
             <div className="rounded-xl bg-cream dark:bg-white/5 px-3.5 py-2.5 flex items-center justify-between">
               <div>
-                <p className="text-body-sm font-semibold text-ink dark:text-white">{currentYear} holiday accrual</p>
+                <p className="text-body-sm font-semibold text-ink dark:text-white">{currentYear} holiday</p>
                 <p className="text-body-sm text-ink3 dark:text-white/45 mt-0.5">
-                  {ownUsedHours != null ? `~${ownUsedHours} h used · ` : ''}
-                  {ownAccrued != null ? `${ownAccrued} h accrued (12.07%)` : 'Calculating…'}
+                  {fmtHours(ownHoliday.used)} used of {fmtHours(ownHoliday.allowance)}
                 </p>
               </div>
-              <p className={`font-mono text-body font-semibold ${ownRemainingHours === 0 ? 'text-bad' : ownRemainingHours != null && ownRemainingHours <= 4 ? 'text-warn' : 'text-good'}`}>
-                {ownRemainingHours != null ? `${ownRemainingHours} h` : '—'}
+              <p className={`font-mono text-body font-semibold ${balanceTone(ownHoliday.balance)}`}>
+                {fmtHours(ownHoliday.balance)}
               </p>
             </div>
           )}
@@ -528,24 +562,25 @@ export default function TimeOffPage() {
               )}
             </p>
           )}
-          {form.leaveType === 'annual' && previewDays != null && previewDays > 0 && ownBalance?.isZeroHours && ownAccrued != null && (() => {
-            const avgD = ownAvgDaily ?? 7.6
-            const reqHours = Math.round(previewDays * avgD * 10) / 10
-            const remaining = ownRemainingHours ?? ownAccrued
-            const paidHours = Math.min(reqHours, remaining)
-            const unpaidHours = Math.round(Math.max(0, reqHours - remaining) * 10) / 10
-            const afterHours = Math.round(Math.max(0, remaining - reqHours) * 10) / 10
+          {form.leaveType === 'annual' && form.startDate && form.endDate && form.endDate >= form.startDate && ownBalance?.isZeroHours && ownHoliday?.status === 'ok' && (() => {
+            const reqHours = suggestedPaidHours(
+              { start_date: form.startDate, end_date: form.endDate },
+              ownHoliday.avgWeekHours,
+              ownProfile?.working_days,
+            )
+            if (reqHours == null) return null
+            const after = Math.round((ownHoliday.balance - reqHours) * 10) / 10
             return (
-              <div className={`-mt-2 rounded-xl px-3.5 py-2.5 text-body-sm ${unpaidHours > 0 ? 'bg-warnBg dark:bg-warn/20' : 'bg-cream dark:bg-white/5'}`}>
+              <div className={`-mt-2 rounded-xl px-3.5 py-2.5 text-body-sm ${after < 0 ? 'bg-warnBg dark:bg-warn/20' : 'bg-cream dark:bg-white/5'}`}>
                 <p className="text-ink2 dark:text-white/70">
-                  This request covers <span className="font-semibold text-ink dark:text-white">{fmtDays(previewDays)}</span> (~{reqHours} h based on your average shift length).
+                  Worth about <span className="font-semibold text-ink dark:text-white">{fmtHours(reqHours)}</span> of holiday, based on your average week. Your manager confirms the hours when they approve it.
                 </p>
-                {unpaidHours > 0 ? (
+                {after < 0 ? (
                   <p className="mt-1 font-semibold text-warn dark:text-warnDark">
-                    ~{Math.round(paidHours * 10) / 10} h paid · ~{unpaidHours} h unpaid — you don't have enough accrued hours to cover this in full.
+                    That's {fmtHours(-after)} more than you have left — the rest would be unpaid.
                   </p>
                 ) : (
-                  <p className="mt-1 text-ink3 dark:text-white/50">You'll have ~{afterHours} h remaining after this.</p>
+                  <p className="mt-1 text-ink3 dark:text-white/50">You'd have about {fmtHours(after)} left after this.</p>
                 )}
               </div>
             )
@@ -566,7 +601,7 @@ export default function TimeOffPage() {
             fullWidth
             loading={saving}
             onClick={submitRequest}
-            disabled={saving || !form.startDate || !form.endDate}
+            disabled={saving || !form.leaveType || !form.startDate || !form.endDate}
           >
             {saving ? 'Submitting…' : 'Submit request'}
           </Button>
@@ -577,6 +612,9 @@ export default function TimeOffPage() {
       {manualEntry && (
         <ManualLeaveModal
           staff={manualEntry}
+          holiday={teamHoliday[manualEntry.id]}
+          paidOut={paidOut[manualEntry.id]?.rows ?? []}
+          year={currentYear}
           venueId={venueId}
           managerId={session?.staffId}
           onClose={() => setManualEntry(null)}
@@ -599,6 +637,21 @@ export default function TimeOffPage() {
     </div>
   )
 }
+
+// "12.5 h", "−4 h" — zero-hours holiday is counted in hours
+function fmtHours(n) {
+  if (n == null) return '—'
+  const v = Math.round(n * 10) / 10
+  return `${v < 0 ? '−' : ''}${Math.abs(v)} h`
+}
+
+function balanceTone(balance) {
+  if (balance < 0) return 'text-bad dark:text-badDark'
+  if (balance <= 4) return 'text-warn dark:text-warnDark'
+  return 'text-good dark:text-goodDark'
+}
+
+const REGION_RULE = { gb: '12.07% of hours worked', ni: '5.6 × average week' }
 
 // "Unpaid Leave" → "Unpaid leave" for lists (push messages keep the stored label)
 function leaveName(type) {
@@ -627,17 +680,32 @@ function dateRange(r) {
   return `${format(start, 'd MMM')} – ${format(end, 'd MMM yyyy')}`
 }
 
-function OwnBalanceCard({ balance, year, accrued, remainingHours }) {
+function OwnBalanceCard({ balance, year, holiday }) {
   if (balance.isZeroHours) {
+    if (holiday?.status === 'self_employed') return null
+    if (holiday?.status === 'needs_region') {
+      return (
+        <p className={`${CARD} px-3.5 sm:px-3.5 py-2.5 text-body-sm text-ink3 dark:text-white/45`}>
+          Your holiday balance isn't set up yet — your manager needs to finish setting up holiday in Settings.
+        </p>
+      )
+    }
     return (
       <div className={`${CARD} px-3.5 sm:px-3.5 py-2.5`}>
         <div className="flex items-baseline justify-between gap-2.5 flex-wrap">
           <p className="flex items-baseline gap-2">
-            <span className="font-mono text-title leading-none font-semibold text-good dark:text-goodDark">{remainingHours ?? accrued ?? '—'}</span>
-            <span className="text-body font-semibold text-ink dark:text-white">hrs left</span>
+            <span className={`font-mono text-title leading-none font-semibold ${holiday ? balanceTone(holiday.balance) : 'text-ink3'}`}>
+              {holiday ? fmtHours(holiday.balance) : '—'}
+            </span>
+            <span className="text-body font-semibold text-ink dark:text-white">holiday left</span>
           </p>
-          <p className="text-body-sm text-ink3 dark:text-white/45">{accrued != null ? `${accrued} hrs accrued` : 'Calculating…'} · {year} holiday</p>
+          <p className="text-body-sm text-ink3 dark:text-white/45">
+            {holiday ? `${fmtHours(holiday.used)} used of ${fmtHours(holiday.allowance)}` : 'Calculating…'} · {year}
+          </p>
         </div>
+        {holiday?.balance < 0 && (
+          <p className="text-body-sm text-bad dark:text-badDark mt-1.5">You've had more paid holiday than you've built up so far.</p>
+        )}
       </div>
     )
   }
@@ -660,8 +728,17 @@ function OwnBalanceCard({ balance, year, accrued, remainingHours }) {
   )
 }
 
-function PendingRequest({ request: r, balance, note, onNote, busy, onApprove, onReject }) {
-  const daysRequested = r.leave_type === 'annual'
+function PendingRequest({ request: r, balance, holiday, rotaHoursByDate, note, onNote, busy, onApprove, onReject }) {
+  // Zero-hours annual leave is paid in hours, so the manager confirms how many.
+  const asksForHours = r.leave_type === 'annual' && balance?.isZeroHours && holiday?.status === 'ok'
+  const suggested = asksForHours ? suggestedPaidHours(r, holiday.avgWeekHours, r.staff?.working_days, rotaHoursByDate) : null
+  // null until the manager types: shows the suggestion, which may load after this renders
+  const [typed, setHours] = useState(null)
+  const hours = typed ?? (suggested != null ? String(suggested) : '')
+  const paidHours = asksForHours && hours.trim() !== '' && Number(hours) >= 0 ? Math.round(Number(hours) * 100) / 100 : null
+  const hoursInvalid = asksForHours && hours.trim() !== '' && !(Number(hours) >= 0)
+
+  const daysRequested = r.leave_type === 'annual' && !balance?.isZeroHours
     ? countWorkingDaysInRequest(r.start_date, r.end_date, r.staff?.working_days)
     : null
   const afterApproval = r.leave_type === 'annual' && balance && !balance.isZeroHours && balance.entitlement != null && daysRequested != null
@@ -695,6 +772,36 @@ function PendingRequest({ request: r, balance, note, onNote, busy, onApprove, on
         </div>
         <StatusPill status="pending" />
       </div>
+      {asksForHours && (
+        <label className="flex items-center gap-2.5">
+          <span className="flex-1 min-w-0 text-body-sm text-ink2 dark:text-white/70">
+            Holiday hours to pay
+            <span className="block text-ink3 dark:text-white/45">
+              {fmtHours(holiday.balance)} left{suggested != null && ` · suggested ${fmtHours(suggested)} from their rota and average week`}
+            </span>
+          </span>
+          <span className="w-28 shrink-0">
+            <input
+              type="number"
+              inputMode="decimal"
+              min="0"
+              step="0.5"
+              value={hours}
+              onChange={e => setHours(e.target.value)}
+              aria-label={`Holiday hours to pay ${r.staff?.name ?? ''}`}
+              className={`${TEXT_FIELD} text-right font-mono`}
+            />
+          </span>
+        </label>
+      )}
+      {asksForHours && paidHours != null && holiday.balance - paidHours < 0 && (
+        <p className="text-body-sm font-semibold text-warn dark:text-warnDark -mt-1">
+          That's {fmtHours(paidHours - holiday.balance)} more than they've built up.
+        </p>
+      )}
+      {r.leave_type === 'unavailable' && (
+        <p className="text-body-sm text-ink3 dark:text-white/45 -mt-1">Not paid and doesn't use holiday — it keeps them off the rota on these days.</p>
+      )}
       <input
         type="text"
         value={note}
@@ -714,8 +821,8 @@ function PendingRequest({ request: r, balance, note, onNote, busy, onApprove, on
         </Button>
         <Button
           size="sm"
-          onClick={onApprove}
-          disabled={busy}
+          onClick={() => onApprove(asksForHours ? paidHours : null)}
+          disabled={busy || hoursInvalid}
         >
           Approve
         </Button>
@@ -724,11 +831,15 @@ function PendingRequest({ request: r, balance, note, onNote, busy, onApprove, on
   )
 }
 
-function TeamBalanceRow({ balance: b, accrued, onLogPast }) {
+function TeamBalanceRow({ balance: b, holiday, settingsPath, onLogPast }) {
   const kind = employmentLabel(b.employment_type)
   const subline = b.isZeroHours
-    ? [kind ?? 'Zero hours', 'accrues hourly'].join(' · ')
-    : [kind, b.entitlement != null && `${b.entitlement} days`].filter(Boolean).join(' · ')
+    ? [
+        kind ?? 'Zero hours',
+        holiday?.status === 'ok' && `${fmtHours(holiday.used)} used of ${fmtHours(holiday.allowance)}`,
+        holiday?.paidOutHours > 0 && `incl. ${fmtHours(holiday.paidOutHours)} already paid`,
+      ].filter(Boolean).join(' · ')
+    : [kind, b.entitlement != null && `${b.entitlement} days`, b.paidOutDays > 0 && `incl. ${fmtDays(b.paidOutDays)} already paid`].filter(Boolean).join(' · ')
   const tone = b.remaining === 0 ? 'text-bad' : b.remaining != null && b.remaining <= 5 ? 'text-warn' : 'text-good dark:text-goodDark'
 
   return (
@@ -736,13 +847,29 @@ function TeamBalanceRow({ balance: b, accrued, onLogPast }) {
       <div className="flex-1 min-w-0">
         <p className="text-body font-semibold text-ink dark:text-white truncate">{b.name}</p>
         {subline && <p className="text-body-sm text-ink3 dark:text-white/45 mt-0.5">{subline}</p>}
+        {holiday?.status === 'ok' && holiday.usedIsEstimate && (
+          <p className="text-body-sm text-ink3 dark:text-white/45">Some leave has no hours recorded, so it's estimated</p>
+        )}
+        {holiday?.status === 'ok' && holiday.missingClockOuts > 0 && (
+          <p className="text-body-sm text-warn dark:text-warnDark">
+            {holiday.missingClockOuts} shift{holiday.missingClockOuts === 1 ? '' : 's'} missing a clock-out — not counted until fixed on the timesheet
+          </p>
+        )}
       </div>
       <div className="shrink-0 text-right">
         {b.isZeroHours ? (
-          <>
-            <p className="font-mono text-body font-semibold text-ink dark:text-white">{accrued != null ? `${accrued} hrs` : '…'}</p>
-            <p className="text-body-sm text-ink3 dark:text-white/45">accrued</p>
-          </>
+          holiday?.status === 'needs_region' ? (
+            <Button variant="link" size="sm" to={settingsPath}>Set up holiday</Button>
+          ) : holiday?.status === 'self_employed' ? (
+            <p className="text-body-sm text-ink3 dark:text-white/45">Self-employed</p>
+          ) : (
+            <>
+              <p className={`font-mono text-body font-semibold ${holiday ? balanceTone(holiday.balance) : 'text-ink dark:text-white'}`}>
+                {holiday ? fmtHours(holiday.balance) : '…'}
+              </p>
+              <p className="text-body-sm text-ink3 dark:text-white/45">{holiday ? `left · ${REGION_RULE[holiday.region]}` : 'left'}</p>
+            </>
+          )
         ) : b.entitlement != null ? (
           <>
             <p className={`font-mono text-body font-semibold ${tone}`}>{fmtDays(b.remaining)}</p>
@@ -757,8 +884,8 @@ function TeamBalanceRow({ balance: b, accrued, onLogPast }) {
         size="sm"
         iconOnly
         onClick={onLogPast}
-        aria-label={`Log past leave for ${b.name}`}
-        title="Log past leave"
+        aria-label={`Log past leave or holiday already paid for ${b.name}`}
+        title="Log past leave or holiday already paid"
         className="shrink-0"
       >
         <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>

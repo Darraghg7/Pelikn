@@ -23,22 +23,30 @@ export default function EditRequestModal({ request, isManager, actorId, actorNam
     endDate:   request.end_date,
     leaveType: request.leave_type,
     reason:    request.reason ?? '',
+    paidHours: request.paid_hours != null ? String(request.paid_hours) : '',
   })
   const [saving, setSaving]     = useState(false)
   const [confirming, setConfirm] = useState(false)
 
   const isOwn   = request.staff_id === actorId
+  // paid_hours only exists once migration 149 is applied; until then the row has no such key.
+  const hasPaidHours = 'paid_hours' in request
+  const asksForHours = isManager && hasPaidHours && form.leaveType === 'annual' &&
+    request.staff?.employment_type === 'zero_hours'
+  const originalHours = request.paid_hours != null ? String(request.paid_hours) : ''
   const changed =
     form.startDate !== request.start_date ||
     form.endDate   !== request.end_date   ||
     form.leaveType !== request.leave_type ||
-    form.reason    !== (request.reason ?? '')
+    form.reason    !== (request.reason ?? '') ||
+    (asksForHours && form.paidHours !== originalHours)
 
   const days = useMemo(
-    () => (form.leaveType === 'annual' && form.startDate && form.endDate
+    // Zero-hours holiday is counted in hours, so a day count would mislead.
+    () => (form.leaveType === 'annual' && form.startDate && form.endDate && request.staff?.employment_type !== 'zero_hours'
       ? countWorkingDaysInRequest(form.startDate, form.endDate, request.staff?.working_days)
       : null),
-    [form.startDate, form.endDate, form.leaveType, request.staff?.working_days],
+    [form.startDate, form.endDate, form.leaveType, request.staff?.working_days, request.staff?.employment_type],
   )
 
   // A staff member changing leave a manager already approved sends it back to pending.
@@ -79,6 +87,9 @@ export default function EditRequestModal({ request, isManager, actorId, actorNam
   const save = async () => {
     if (!form.startDate || !form.endDate) { toast('Please select start and end dates', 'error'); return }
     if (form.endDate < form.startDate)    { toast('End date must be after start date', 'error'); return }
+    if (asksForHours && form.paidHours.trim() !== '' && !(Number(form.paidHours) >= 0)) {
+      toast('Enter the holiday hours paid as a number', 'error'); return
+    }
 
     const patch = {
       start_date: form.startDate,
@@ -86,11 +97,17 @@ export default function EditRequestModal({ request, isManager, actorId, actorNam
       leave_type: form.leaveType,
       reason:     form.reason.trim() || null,
     }
+    if (asksForHours) {
+      patch.paid_hours = form.paidHours.trim() === '' ? null : Math.round(Number(form.paidHours) * 100) / 100
+    } else if (hasPaidHours && form.leaveType !== 'annual') {
+      patch.paid_hours = null // no longer holiday
+    }
     if (willNeedReapproval) {
       patch.status       = 'pending'
       patch.reviewed_by  = null
       patch.reviewed_at  = null
       patch.manager_note = null
+      if (hasPaidHours) patch.paid_hours = null // the manager confirms the hours again
     }
 
     setSaving(true)
@@ -199,6 +216,23 @@ export default function EditRequestModal({ request, isManager, actorId, actorNam
                 </p>
               )}
 
+              {asksForHours && (
+                <div>
+                  <label htmlFor="edit-paid-hours" className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Holiday hours paid</label>
+                  <input
+                    id="edit-paid-hours"
+                    type="number"
+                    inputMode="decimal"
+                    min="0"
+                    step="0.5"
+                    value={form.paidHours}
+                    onChange={e => setForm(f => ({ ...f, paidHours: e.target.value }))}
+                    placeholder="Not recorded — estimated from their average week"
+                    className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
+                  />
+                </div>
+              )}
+
               {/* Reason */}
               <div>
                 <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Reason (optional)</label>
@@ -245,7 +279,7 @@ export default function EditRequestModal({ request, isManager, actorId, actorNam
         title={request.status === 'approved' ? 'Remove this time off?' : 'Withdraw this request?'}
         message={
           request.status === 'approved'
-            ? `${isOwn ? 'You' : request.staff?.name ?? 'This staff member'} will be available for shifts on these days again${request.leave_type === 'annual' ? ', and the days go back into the annual leave balance' : ''}.`
+            ? `${isOwn ? 'You' : request.staff?.name ?? 'This staff member'} will be available for shifts on these days again${request.leave_type === 'annual' ? ', and the holiday goes back into their balance' : ''}.`
             : 'The request will be removed from the calendar and your manager will no longer see it.'
         }
         confirmLabel={request.status === 'approved' ? 'Remove' : 'Withdraw'}
