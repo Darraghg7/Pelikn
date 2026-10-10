@@ -11,6 +11,7 @@ import { useAppSettings } from '../../hooks/useSettings'
 import { formatMinutes, getWeekStart, downloadCsv } from '../../lib/utils'
 import { buildPdfReport } from '../../lib/pdfUtils'
 import { countWorkingDaysInRequest } from '../../hooks/useLeaveBalance'
+import { fetchWorkedStatsByStaff, avgDailyHoursFor } from '../../hooks/useZeroHoursAccrual'
 import { SkeletonList } from '../../components/ui/Skeleton'
 import AddSessionModal from './AddSessionModal'
 import ClockEditApprovalCard from '../../components/shifts/ClockEditApprovalCard'
@@ -68,10 +69,13 @@ function minsStr(mins) {
 function calcHolidayMins(leaveReqs, staffId, profile, periodFrom, periodTo) {
   const reqs = leaveReqs.filter(r => r.staff_id === staffId)
   if (!reqs.length) return 0
-  const { contractedHours, workingDays } = profile
-  if (!contractedHours || contractedHours <= 0) return 0
-  const daysPerWeek = workingDays?.length > 0 ? workingDays.length : 5
-  const dailyHours  = contractedHours / daysPerWeek
+  const { contractedHours, workingDays, isZeroHours, zeroHoursDayHours } = profile
+  // Zero-hours staff have no contracted hours: a day off is paid at their
+  // average shift length this year (the same figure the time-off screen uses).
+  const dailyHours = isZeroHours
+    ? zeroHoursDayHours
+    : contractedHours > 0 ? contractedHours / (workingDays?.length > 0 ? workingDays.length : 5) : null
+  if (!dailyHours) return 0
   return reqs.reduce((sum, r) => {
     const clippedStart = periodFrom && r.start_date < periodFrom ? periodFrom : r.start_date
     const clippedEnd   = periodTo   && r.end_date   > periodTo   ? periodTo   : r.end_date
@@ -410,6 +414,14 @@ export default function TimesheetPage() {
   const [staffRates,    setStaffRates]    = useState({})
   const [staffProfiles, setStaffProfiles] = useState({})
   const [periodLeave,   setPeriodLeave]   = useState([])
+  const [zeroHoursDayHours, setZeroHoursDayHours] = useState({})
+  const profileFor = useCallback(
+    (staffId) => ({
+      ...(staffProfiles[staffId] ?? { contractedHours: null, workingDays: [] }),
+      zeroHoursDayHours: zeroHoursDayHours[staffId] ?? null,
+    }),
+    [staffProfiles, zeroHoursDayHours],
+  )
   const [periodShifts,  setPeriodShifts]  = useState([])
   const [payrollLocks,  setPayrollLocks]  = useState([])
   const [locksFailed,   setLocksFailed]   = useState(false)
@@ -446,9 +458,8 @@ export default function TimesheetPage() {
   const totalWage    = useMemo(() => timesheets.reduce((a, t) => a + (t.totalMinutes / 60) * t.hourlyRate, 0), [timesheets])
 
   const totalHolidayPay = useMemo(() => timesheets.reduce((a, t) => {
-    const profile = staffProfiles[t.staffId] ?? { contractedHours: null, workingDays: [] }
-    return a + (calcHolidayMins(periodLeave, t.staffId, profile, dateFrom.slice(0, 10), dateTo.slice(0, 10)) / 60) * t.hourlyRate
-  }, 0), [timesheets, periodLeave, staffProfiles, dateFrom, dateTo])
+    return a + (calcHolidayMins(periodLeave, t.staffId, profileFor(t.staffId), dateFrom.slice(0, 10), dateTo.slice(0, 10)) / 60) * t.hourlyRate
+  }, 0), [timesheets, periodLeave, profileFor, dateFrom, dateTo])
 
   const periodScheduled = useMemo(() => {
     // Paid hours, same as the rota's cost: the unpaid break is deducted
@@ -489,7 +500,7 @@ export default function TimesheetPage() {
     // this is the full set. working_days stays on the table — it drives
     // availability and is not private.
     Promise.all([
-      supabase.from('staff').select('id, working_days').eq('venue_id', venueId),
+      supabase.from('staff').select('id, working_days, employment_type').eq('venue_id', venueId),
       fetchStaffPayRates(),
       fetchStaffPrivateFields(),
     ]).then(([{ data, error }, payRates, priv]) => {
@@ -498,11 +509,31 @@ export default function TimesheetPage() {
       const rates = {}, profiles = {}
       for (const s of data) {
         rates[s.id] = payRates.get(s.id) ?? 0
-        profiles[s.id] = { contractedHours: priv.get(s.id)?.contracted_hours ?? null, workingDays: s.working_days ?? [] }
+        profiles[s.id] = {
+          contractedHours: priv.get(s.id)?.contracted_hours ?? null,
+          workingDays:     s.working_days ?? [],
+          isZeroHours:     s.employment_type === 'zero_hours',
+        }
       }
       setStaffRates(rates); setStaffProfiles(profiles)
     })
   }, [venueId])
+
+  // Average shift length for zero-hours staff, over the year the period is in
+  useEffect(() => {
+    const ids = Object.keys(staffProfiles).filter(id => staffProfiles[id].isZeroHours)
+    if (!ids.length || !periodFrom) { setZeroHoursDayHours({}); return }
+    let cancelled = false
+    fetchWorkedStatsByStaff(ids, Number(periodFrom.slice(0, 4)))
+      .then((byStaff) => {
+        if (cancelled) return
+        const map = {}
+        for (const id of ids) map[id] = avgDailyHoursFor(byStaff[id])
+        setZeroHoursDayHours(map)
+      })
+      .catch((e) => reportError(e, 'TimesheetPage:zero-hours-day-hours'))
+    return () => { cancelled = true }
+  }, [staffProfiles, periodFrom])
 
   useEffect(() => {
     if (!venueId || !dateFrom || !dateTo) return
@@ -595,8 +626,7 @@ export default function TimesheetPage() {
       const hrs    = (t.totalMinutes / 60).toFixed(2)
       const rate   = Number(t.hourlyRate).toFixed(2)
       const worked = ((t.totalMinutes / 60) * t.hourlyRate).toFixed(2)
-      const profile = staffProfiles[t.staffId] ?? { contractedHours: null, workingDays: [] }
-      const holPay  = ((calcHolidayMins(periodLeave, t.staffId, profile, pFrom, pTo) / 60) * t.hourlyRate).toFixed(2)
+      const holPay  = ((calcHolidayMins(periodLeave, t.staffId, profileFor(t.staffId), pFrom, pTo) / 60) * t.hourlyRate).toFixed(2)
       if (t.totalMinutes <= 0 && parseFloat(holPay) <= 0) return null  // nothing to pay
       return [t.name, `${hrs} hrs`, rate > 0 ? `£${rate}/hr` : '—', worked > 0 ? `£${worked}` : '—', holPay > 0 ? `£${holPay}` : '—', `£${(parseFloat(worked) + parseFloat(holPay)).toFixed(2)}`]
     }).filter(Boolean)
@@ -611,8 +641,7 @@ export default function TimesheetPage() {
     const dataRows = timesheets.map(t => {
       const hrs = (t.totalMinutes / 60).toFixed(2), rate = Number(t.hourlyRate).toFixed(2)
       const worked = ((t.totalMinutes / 60) * t.hourlyRate).toFixed(2)
-      const profile = staffProfiles[t.staffId] ?? { contractedHours: null, workingDays: [] }
-      const holPay  = ((calcHolidayMins(periodLeave, t.staffId, profile, pFrom, pTo) / 60) * t.hourlyRate).toFixed(2)
+      const holPay  = ((calcHolidayMins(periodLeave, t.staffId, profileFor(t.staffId), pFrom, pTo) / 60) * t.hourlyRate).toFixed(2)
       if (t.totalMinutes <= 0 && parseFloat(holPay) <= 0) return null  // nothing to pay
       return [t.name, hrs, rate, worked, holPay, (parseFloat(worked) + parseFloat(holPay)).toFixed(2)].map(esc).join(',')
     }).filter(Boolean)

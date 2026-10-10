@@ -43,7 +43,7 @@ export const BOOTSTRAP_SETTING_KEYS = [
   'late_grace_mins', 'break_overrun_grace_mins', 'require_late_reason',
   'require_manager_approval_for_late', 'notify_manager_at_strike', 'disciplinary_at_strike',
   'counting_window_days', 'push_to_manager', 'notify_break_overrun', 'hidden_check_tiles',
-  'hidden_team_tiles', 'max_staff_off_enabled', 'max_staff_off_count', 'enforce_closing_checklist',
+  'hidden_team_tiles', 'max_staff_off_enabled', 'max_staff_off_count', 'block_over_balance', 'enforce_closing_checklist',
   'cleaning_visible_to_all', 'features', 'venue_name', 'logo_url',
 ]
 

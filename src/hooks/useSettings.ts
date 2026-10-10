@@ -27,7 +27,7 @@ const COLOR_PALETTE = [
   'bg-stone-100 text-stone-800',
 ]
 
-export const SETTINGS_KEYS = ['custom_roles', 'closed_days', 'break_duration_mins', 'cleanup_minutes', 'fridge_check_time', 'open_time', 'close_time', 'day_hours', 'compliance_nav_order', 'action_schedules', 'late_grace_mins', 'break_overrun_grace_mins', 'require_late_reason', 'require_manager_approval_for_late', 'notify_manager_at_strike', 'disciplinary_at_strike', 'counting_window_days', 'push_to_manager', 'notify_break_overrun', 'hidden_check_tiles', 'hidden_team_tiles', 'max_staff_off_enabled', 'max_staff_off_count', 'enforce_closing_checklist', 'cleaning_visible_to_all']
+export const SETTINGS_KEYS = ['custom_roles', 'closed_days', 'break_duration_mins', 'cleanup_minutes', 'fridge_check_time', 'open_time', 'close_time', 'day_hours', 'compliance_nav_order', 'action_schedules', 'late_grace_mins', 'break_overrun_grace_mins', 'require_late_reason', 'require_manager_approval_for_late', 'notify_manager_at_strike', 'disciplinary_at_strike', 'counting_window_days', 'push_to_manager', 'notify_break_overrun', 'hidden_check_tiles', 'hidden_team_tiles', 'max_staff_off_enabled', 'max_staff_off_count', 'block_over_balance', 'enforce_closing_checklist', 'cleaning_visible_to_all']
 
 interface CustomRole {
   value: string
@@ -70,6 +70,7 @@ interface AppSettings {
   // Time-off staffing rule: max staff allowed off on the same day
   maxStaffOffEnabled: boolean
   maxStaffOffCount: number
+  blockOverBalance: boolean
   // Closing-checklist clock-out gate — opt-in per venue, see useClosingGate.ts
   enforceClosingChecklist: boolean
   // Staff see every cleaning task, not just their department's — see useCleaningTasks
@@ -112,6 +113,7 @@ const DEFAULTS: AppSettings = {
   hiddenTeamTiles: [],
   maxStaffOffEnabled: false,
   maxStaffOffCount: 1,
+  blockOverBalance: false,
   enforceClosingChecklist: false,
   cleaningVisibleToAll: false,
 }
@@ -214,6 +216,7 @@ async function fetchAppSettings(venueId: string): Promise<AppSettings> {
         if (row.key === 'hidden_team_tiles'  && Array.isArray(parsed)) result.hiddenTeamTiles = parsed
         if (row.key === 'max_staff_off_enabled' && typeof parsed === 'boolean') result.maxStaffOffEnabled = parsed
         if (row.key === 'max_staff_off_count'   && typeof parsed === 'number')  result.maxStaffOffCount = parsed
+        if (row.key === 'block_over_balance'    && typeof parsed === 'boolean') result.blockOverBalance = parsed
         if (row.key === 'enforce_closing_checklist' && typeof parsed === 'boolean') result.enforceClosingChecklist = parsed
         if (row.key === 'cleaning_visible_to_all'   && typeof parsed === 'boolean') result.cleaningVisibleToAll = parsed
       } catch { /* ignore corrupt JSON — leave defaults */ }
@@ -283,6 +286,7 @@ export function useAppSettings() {
       hidden_team_tiles: 'hiddenTeamTiles',
       max_staff_off_enabled: 'maxStaffOffEnabled',
       max_staff_off_count: 'maxStaffOffCount',
+      block_over_balance: 'blockOverBalance',
       enforce_closing_checklist: 'enforceClosingChecklist',
       cleaning_visible_to_all: 'cleaningVisibleToAll',
     }
@@ -327,6 +331,7 @@ export function useAppSettings() {
   const saveHiddenTeamTiles = useCallback((ids: string[]) => saveSetting('hidden_team_tiles', ids), [saveSetting])
   const saveMaxStaffOffEnabled = useCallback((v: boolean) => saveSetting('max_staff_off_enabled', v), [saveSetting])
   const saveMaxStaffOffCount = useCallback((n: number) => saveSetting('max_staff_off_count', n), [saveSetting])
+  const saveBlockOverBalance = useCallback((v: boolean) => saveSetting('block_over_balance', v), [saveSetting])
   const saveEnforceClosingChecklist = useCallback((v: boolean) => saveSetting('enforce_closing_checklist', v), [saveSetting])
   const saveCleaningVisibleToAll = useCallback((v: boolean) => saveSetting('cleaning_visible_to_all', v), [saveSetting])
 
@@ -369,6 +374,7 @@ export function useAppSettings() {
     hiddenTeamTiles: settings.hiddenTeamTiles,
     maxStaffOffEnabled: settings.maxStaffOffEnabled,
     maxStaffOffCount: settings.maxStaffOffCount,
+    blockOverBalance: settings.blockOverBalance,
     enforceClosingChecklist: settings.enforceClosingChecklist,
     cleaningVisibleToAll: settings.cleaningVisibleToAll,
     loading,
@@ -376,7 +382,7 @@ export function useAppSettings() {
     saveOpenTime, saveCloseTime, saveDayHours, saveComplianceNavOrder, saveActionSchedules,
     saveLateGraceMins, saveBreakOverrunGraceMins, saveRequireLateReason, saveRequireManagerApprovalForLate,
     saveNotifyManagerAtStrike, saveDisciplinaryAtStrike, saveCountingWindowDays, savePushToManager, saveNotifyBreakOverrun,
-    saveHiddenCheckTiles, saveHiddenTeamTiles, saveMaxStaffOffEnabled, saveMaxStaffOffCount, saveEnforceClosingChecklist,
+    saveHiddenCheckTiles, saveHiddenTeamTiles, saveMaxStaffOffEnabled, saveMaxStaffOffCount, saveBlockOverBalance, saveEnforceClosingChecklist,
     saveCleaningVisibleToAll,
     nextColor, reload,
   }

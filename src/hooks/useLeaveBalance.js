@@ -8,10 +8,17 @@ function roundHalf(n) {
   return Math.round(n * 2) / 2
 }
 
+// A staff member with no working days ticked is treated as Mon–Fri everywhere
+// leave is counted or paid (1 = Mon … 7 = Sun).
+export const DEFAULT_WORKING_DAYS = [1, 2, 3, 4, 5]
+
+// UK statutory minimum is 5.6 weeks, but never more than 28 days
+const STATUTORY_MAX_DAYS = 28
+
 // Count days in a leave request that fall on the staff member's contracted working pattern
 export function countWorkingDaysInRequest(startDate, endDate, workingDays) {
   // workingDays: array of 1-7 (Mon=1…Sun=7); empty means Mon–Fri
-  const pattern = workingDays?.length > 0 ? workingDays : [1, 2, 3, 4, 5]
+  const pattern = workingDays?.length > 0 ? workingDays : DEFAULT_WORKING_DAYS
   try {
     const days = eachDayOfInterval({ start: parseISO(startDate), end: parseISO(endDate) })
     return days.filter(d => {
@@ -24,12 +31,12 @@ export function countWorkingDaysInRequest(startDate, endDate, workingDays) {
   }
 }
 
-// Calculate statutory annual leave entitlement in days (UK: 5.6 weeks).
+// Calculate statutory annual leave entitlement in days (UK: 5.6 weeks, capped at 28).
 // Returns null for zero-hours workers (accrual-based, tracked separately).
 export function calculateEntitlementDays(employment_type, working_days) {
   if (employment_type === 'zero_hours') return null
   const daysPerWeek = working_days?.length > 0 ? Math.min(working_days.length, 7) : 5
-  return roundHalf(5.6 * daysPerWeek)
+  return Math.min(roundHalf(5.6 * daysPerWeek), STATUTORY_MAX_DAYS)
 }
 
 // Hook: computes leave balance for one staff member for a given calendar year.

@@ -8,14 +8,14 @@ import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../../components/ui/Toast'
 import { SkeletonList, PageSkeleton } from '../../components/ui/Skeleton'
 import Modal from '../../components/ui/Modal'
-import { calculateEntitlementDays, countWorkingDaysInRequest } from '../../hooks/useLeaveBalance'
+import { countWorkingDaysInRequest } from '../../hooks/useLeaveBalance'
 import { useZeroHoursAccrual, useTeamZeroHoursAccruals } from '../../hooks/useZeroHoursAccrual'
 import { invalidateSummaryCache } from '../../hooks/useTodaySummary'
 import { timeOffPermissions, isBlocking } from '../../lib/api/timeOff'
 import { useAppSettings } from '../../hooks/useSettings'
 import {
   LEAVE_TYPES,
-  leaveTypeLabel, getRequestsForDay, fmtDays, maxStaffOffInRange, employmentLabel,
+  leaveTypeLabel, getRequestsForDay, fmtDays, maxStaffOffInRange, employmentLabel, isOnlyClosedDays,
 } from './timeOffConstants'
 import {
   useTimeOffRequests, useActiveStaff, useOwnProfile, useTeamLeaveBalances,
@@ -38,7 +38,7 @@ export default function TimeOffPage() {
   const queryClient = useQueryClient()
   const { venueId }          = useVenue()
   const { session, isManager } = useSession()
-  const { maxStaffOffEnabled, maxStaffOffCount } = useAppSettings()
+  const { maxStaffOffEnabled, maxStaffOffCount, blockOverBalance, closedDays } = useAppSettings()
   const { requests, loading, error, reload } = useTimeOffRequests(venueId)
   const staff      = useActiveStaff(venueId)
   const ownProfile = useOwnProfile(session?.staffId)
@@ -48,6 +48,11 @@ export default function TimeOffPage() {
     isManager ? staff : [],
     currentYear
   )
+  // Own balance goes through the same calculation as the manager's team list,
+  // so both see this year's leave only and any custom allowance.
+  const ownStaffList = useMemo(() => (ownProfile ? [ownProfile] : []), [ownProfile])
+  const { balances: ownBalances, loading: ownBalanceLoading, failed: ownBalanceFailed, reloadBalances: reloadOwnBalance } =
+    useTeamLeaveBalances(ownStaffList, currentYear)
 
   // Zero-hours accrual — own (staff view)
   const { accrued: ownAccrued, avgDailyHours: ownAvgDaily } = useZeroHoursAccrual(
@@ -70,10 +75,11 @@ export default function TimeOffPage() {
   const refreshDependents = useCallback(() => {
     reload()
     reloadBalances()
+    reloadOwnBalance()
     queryClient.invalidateQueries({ queryKey: ['availability'] })        // rota grid + AI/auto builder
     queryClient.invalidateQueries({ queryKey: ['calendar_staff_leave'] }) // manager calendar
     invalidateSummaryCache(venueId)                                       // dashboard pending-leave counts
-  }, [reload, reloadBalances, queryClient, venueId])
+  }, [reload, reloadBalances, reloadOwnBalance, queryClient, venueId])
 
   // Manual leave entry state
   const [manualEntry, setManualEntry] = useState(null) // null = closed; staff balance obj = open
@@ -81,19 +87,9 @@ export default function TimeOffPage() {
   // Request being edited / withdrawn — set from the calendar or "My Requests"
   const [editing, setEditing] = useState(null)
 
-  // Own balance (staff view)
-  const ownBalance = useMemo(() => {
-    if (!ownProfile) return null
-    const calculated  = calculateEntitlementDays(ownProfile.employment_type, ownProfile.working_days)
-    const myApproved  = requests.filter(r =>
-      r.staff_id === session?.staffId && r.status === 'approved' && r.leave_type === 'annual'
-    )
-    const used = myApproved.reduce((sum, r) =>
-      sum + countWorkingDaysInRequest(r.start_date, r.end_date, ownProfile.working_days), 0)
-    const entitlement = calculated
-    const remaining   = entitlement != null ? Math.max(0, entitlement - used) : null
-    return { entitlement, used, remaining, isZeroHours: ownProfile.employment_type === 'zero_hours' }
-  }, [ownProfile, requests, session?.staffId])
+  // Own balance (staff view) — unknown while loading or if it failed, rather
+  // than a full allowance with nothing used.
+  const ownBalance = ownBalanceLoading || ownBalanceFailed ? null : (ownBalances[0] ?? null)
 
   // For zero-hours: convert approved leave days → estimated hours used
   const ownUsedHours = useMemo(() => {
@@ -130,11 +126,61 @@ export default function TimeOffPage() {
     return countWorkingDaysInRequest(form.startDate, form.endDate, ownProfile?.working_days)
   }, [form.startDate, form.endDate, form.leaveType, ownProfile?.working_days])
 
+  // Zero-hours: hours this request would use, against what they have left
+  const zeroHoursRequest = useMemo(() => {
+    if (!ownBalance?.isZeroHours || previewDays == null || ownAccrued == null) return null
+    const reqHours  = Math.round(previewDays * (ownAvgDaily ?? 7.6) * 10) / 10
+    const remaining = ownRemainingHours ?? ownAccrued
+    return { reqHours, remaining }
+  }, [ownBalance?.isZeroHours, previewDays, ownAccrued, ownAvgDaily, ownRemainingHours])
+
+  // When the venue blocks over-balance holiday: why `days` of annual leave is
+  // too many for this staff member, or null. `creditDays` gives back the days
+  // of an approved request being edited, which already count as used.
+  const overBalanceProblem = useCallback((days, creditDays = 0) => {
+    // Managers can book over a balance — that's the override.
+    if (!blockOverBalance || isManager || !ownBalance || days == null) return null
+    const tail = 'Request unpaid leave for the rest, or ask your manager.'
+    if (!ownBalance.isZeroHours) {
+      if (ownBalance.remaining == null) return null
+      const left = ownBalance.remaining + creditDays
+      return days > left ? `You only have ${fmtDays(left)} of holiday left. ${tail}` : null
+    }
+    if (ownAccrued == null) return null
+    const avg  = ownAvgDaily ?? 7.6
+    const left = Math.round(((ownRemainingHours ?? ownAccrued) + creditDays * avg) * 10) / 10
+    return Math.round(days * avg * 10) / 10 > left ? `You only have ${left} h of holiday left. ${tail}` : null
+  }, [blockOverBalance, isManager, ownBalance, ownAccrued, ownAvgDaily, ownRemainingHours])
+
+  // Why this request can't be sent, if it can't. Checked as the form changes
+  // so the reason shows before anyone presses submit.
+  const requestProblem = useMemo(() => {
+    if (!form.startDate || !form.endDate || form.endDate < form.startDate) return null
+    if (isOnlyClosedDays(form.startDate, form.endDate, closedDays)) {
+      return "We're closed on these days, so there's nothing to book off."
+    }
+    if (form.leaveType !== 'annual' || previewDays == null) return null
+    if (previewDays === 0) {
+      return "None of these days are your working days, so they don't use holiday. If that's wrong, ask your manager to check your working days."
+    }
+    return overBalanceProblem(previewDays)
+  }, [form.startDate, form.endDate, form.leaveType, closedDays, previewDays, overBalanceProblem])
+
+  // Same balance check when someone moves their own booking to new dates
+  const editBalanceCheck = useMemo(() => {
+    if (!editing || editing.staff_id !== session?.staffId) return null
+    const counted = editing.status === 'approved' && editing.leave_type === 'annual' &&
+      editing.start_date.startsWith(String(currentYear))
+    const credit = counted ? countWorkingDaysInRequest(editing.start_date, editing.end_date, ownProfile?.working_days) : 0
+    return (days) => overBalanceProblem(days, credit)
+  }, [editing, session?.staffId, currentYear, ownProfile?.working_days, overBalanceProblem])
+
   const submitRequest = async () => {
     if (!form.startDate || !form.endDate) { toast('Please select start and end dates', 'error'); return }
     if (form.endDate < form.startDate)    { toast('End date must be after start date', 'error'); return }
+    if (requestProblem)                   { toast(requestProblem, 'error'); return }
     // Staff request leave ahead; leave already taken is recorded by a manager
-    // with "+ log past leave" on the team list.
+    // with "+ add leave" on the team list.
     if (!isManager && form.startDate < format(new Date(), 'yyyy-MM-dd')) {
       toast('Leave can only be requested from today onwards — ask your manager to record past leave', 'error')
       return
@@ -528,10 +574,8 @@ export default function TimeOffPage() {
               )}
             </p>
           )}
-          {form.leaveType === 'annual' && previewDays != null && previewDays > 0 && ownBalance?.isZeroHours && ownAccrued != null && (() => {
-            const avgD = ownAvgDaily ?? 7.6
-            const reqHours = Math.round(previewDays * avgD * 10) / 10
-            const remaining = ownRemainingHours ?? ownAccrued
+          {form.leaveType === 'annual' && previewDays != null && previewDays > 0 && zeroHoursRequest && (() => {
+            const { reqHours, remaining } = zeroHoursRequest
             const paidHours = Math.min(reqHours, remaining)
             const unpaidHours = Math.round(Math.max(0, reqHours - remaining) * 10) / 10
             const afterHours = Math.round(Math.max(0, remaining - reqHours) * 10) / 10
@@ -562,11 +606,17 @@ export default function TimeOffPage() {
             />
           </label>
 
+          {requestProblem && (
+            <p role="alert" className="rounded-xl bg-badBg dark:bg-bad/20 px-3.5 py-2.5 text-body-sm font-semibold text-bad dark:text-badDark">
+              {requestProblem}
+            </p>
+          )}
+
           <Button
             fullWidth
             loading={saving}
             onClick={submitRequest}
-            disabled={saving || !form.startDate || !form.endDate}
+            disabled={saving || !form.startDate || !form.endDate || !!requestProblem}
           >
             {saving ? 'Submitting…' : 'Submit request'}
           </Button>
@@ -592,6 +642,8 @@ export default function TimeOffPage() {
           actorId={session?.staffId}
           actorName={session?.staffName}
           venueId={venueId}
+          closedDays={closedDays}
+          checkBalance={editBalanceCheck}
           onClose={() => setEditing(null)}
           onSaved={refreshDependents}
         />
@@ -757,8 +809,8 @@ function TeamBalanceRow({ balance: b, accrued, onLogPast }) {
         size="sm"
         iconOnly
         onClick={onLogPast}
-        aria-label={`Log past leave for ${b.name}`}
-        title="Log past leave"
+        aria-label={`Add leave for ${b.name}`}
+        title="Add leave"
         className="shrink-0"
       >
         <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>

@@ -2,17 +2,23 @@ import React, { useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../components/ui/Toast'
 import Modal from '../../components/ui/Modal'
-import { LEAVE_TYPES } from './timeOffConstants'
+import { LEAVE_TYPES, isOnlyClosedDays } from './timeOffConstants'
+import { useAppSettings } from '../../hooks/useSettings'
 import Button from '../../components/ui/Button'
 
 export default function ManualLeaveModal({ staff, venueId, managerId, onClose, onSaved }) {
   const toast = useToast()
   const [form, setForm]     = useState({ startDate: '', endDate: '', leaveType: 'annual', note: '' })
   const [saving, setSaving] = useState(false)
+  const { closedDays } = useAppSettings()
 
   const save = async () => {
     if (!form.startDate || !form.endDate) { toast('Please select start and end dates', 'error'); return }
     if (form.endDate < form.startDate)    { toast('End date must be after start date', 'error'); return }
+    if (isOnlyClosedDays(form.startDate, form.endDate, closedDays)) {
+      toast("You're closed on these days, so there's nothing to book off", 'error')
+      return
+    }
     setSaving(true)
     const { error: err } = await supabase.from('time_off_requests').insert({
       staff_id:    staff.id,
@@ -23,18 +29,18 @@ export default function ManualLeaveModal({ staff, venueId, managerId, onClose, o
       status:      'approved',
       reviewed_by: managerId,
       reviewed_at: new Date().toISOString(),
-      manager_note: form.note.trim() || 'Manually logged — pre-app record',
+      manager_note: form.note.trim() || 'Added by a manager',
       is_manual_entry: true,
     })
     setSaving(false)
     if (err) { toast(err.message, 'error'); return }
-    toast(`Past leave logged for ${staff.name}`)
+    toast(`Leave added for ${staff.name}`)
     onSaved()
     onClose()
   }
 
   return (
-    <Modal open onClose={onClose} title={`Log past leave — ${staff.name}`}>
+    <Modal open onClose={onClose} title={`Add leave — ${staff.name}`}>
       <div className="flex flex-col gap-4">
 
         {/* Leave type */}
@@ -95,7 +101,7 @@ export default function ManualLeaveModal({ staff, venueId, managerId, onClose, o
         </div>
 
         <p className="text-caption text-charcoal/35 dark:text-white/30 -mt-2">
-          This will be recorded as approved leave and counted against {staff.name}'s annual balance.
+          This is recorded as approved straight away and counted against {staff.name}'s annual balance — past leave, or holiday you've agreed beyond what they have left.
         </p>
 
         <Button
@@ -104,7 +110,7 @@ export default function ManualLeaveModal({ staff, venueId, managerId, onClose, o
           onClick={save}
           disabled={saving || !form.startDate || !form.endDate}
         >
-          {saving ? 'Saving…' : 'Log Leave'}
+          {saving ? 'Saving…' : 'Add leave'}
         </Button>
       </div>
     </Modal>

@@ -5,7 +5,7 @@
  * presentation concerns (Tailwind class maps, day-count labels) — the API
  * module stays free of UI.
  */
-import { eachDayOfInterval, isWithinInterval, parseISO } from 'date-fns'
+import { eachDayOfInterval, getDay, isWithinInterval, parseISO } from 'date-fns'
 
 export const LEAVE_TYPES = [
   { value: 'annual',  label: 'Annual Leave' },
@@ -44,6 +44,14 @@ export function maxStaffOffInRange(requests, startDateStr, endDateStr) {
   if (!startDateStr || !endDateStr) return 0
   const days = eachDayOfInterval({ start: parseISO(startDateStr), end: parseISO(endDateStr) })
   return days.reduce((max, day) => Math.max(max, getRequestsForDay(requests, day).length), 0)
+}
+
+// True when every day of the range is one the venue is closed on every week.
+// closedDays uses the settings index (Mon = 0 … Sun = 6).
+export function isOnlyClosedDays(startDateStr, endDateStr, closedDays) {
+  if (!startDateStr || !endDateStr || !closedDays?.length) return false
+  const days = eachDayOfInterval({ start: parseISO(startDateStr), end: parseISO(endDateStr) })
+  return days.every(day => closedDays.includes((getDay(day) + 6) % 7))
 }
 
 const EMPLOYMENT_LABELS = { full_time: 'Full time', part_time: 'Part time', zero_hours: 'Zero hours' }

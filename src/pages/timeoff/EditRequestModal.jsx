@@ -6,7 +6,7 @@ import Modal from '../../components/ui/Modal'
 import ConfirmDialog from '../../components/ui/ConfirmDialog'
 import { countWorkingDaysInRequest } from '../../hooks/useLeaveBalance'
 import { cancelTimeOffRequest, updateTimeOffRequest, timeOffPermissions } from '../../lib/api/timeOff'
-import { LEAVE_TYPES, STATUS_COLOURS, leaveTypeLabel, fmtDays } from './timeOffConstants'
+import { LEAVE_TYPES, STATUS_COLOURS, leaveTypeLabel, fmtDays, isOnlyClosedDays } from './timeOffConstants'
 import Button from '../../components/ui/Button'
 
 /**
@@ -14,7 +14,7 @@ import Button from '../../components/ui/Button'
  * booked time off here; managers can manage anyone's. Withdrawing sets the
  * request to 'cancelled', which is what frees the staff member up on the rota.
  */
-export default function EditRequestModal({ request, isManager, actorId, actorName, venueId, onClose, onSaved }) {
+export default function EditRequestModal({ request, isManager, actorId, actorName, venueId, closedDays, checkBalance, onClose, onSaved }) {
   const toast = useToast()
   const perms = timeOffPermissions(request, { staffId: actorId, isManager })
 
@@ -40,6 +40,20 @@ export default function EditRequestModal({ request, isManager, actorId, actorNam
       : null),
     [form.startDate, form.endDate, form.leaveType, request.staff?.working_days],
   )
+
+  // The same rules as a new request — only checked once the dates change, so
+  // an existing booking can still be withdrawn or have its reason edited.
+  const datesChanged = form.startDate !== request.start_date || form.endDate !== request.end_date || form.leaveType !== request.leave_type
+  const problem = useMemo(() => {
+    if (!datesChanged || !form.startDate || !form.endDate || form.endDate < form.startDate) return null
+    if (isOnlyClosedDays(form.startDate, form.endDate, closedDays)) {
+      return "We're closed on these days, so there's nothing to book off."
+    }
+    if (days === 0) {
+      return "None of these days are working days, so they don't use holiday. If that's wrong, check the working days on their staff profile."
+    }
+    return checkBalance?.(days) ?? null
+  }, [datesChanged, form.startDate, form.endDate, closedDays, days, checkBalance])
 
   // A staff member changing leave a manager already approved sends it back to pending.
   const willNeedReapproval = perms.needsReapproval && changed
@@ -79,6 +93,7 @@ export default function EditRequestModal({ request, isManager, actorId, actorNam
   const save = async () => {
     if (!form.startDate || !form.endDate) { toast('Please select start and end dates', 'error'); return }
     if (form.endDate < form.startDate)    { toast('End date must be after start date', 'error'); return }
+    if (problem)                          { toast(problem, 'error'); return }
 
     const patch = {
       start_date: form.startDate,
@@ -218,10 +233,16 @@ export default function EditRequestModal({ request, isManager, actorId, actorNam
                 </div>
               )}
 
+              {problem && (
+                <p role="alert" className="rounded-xl bg-badBg dark:bg-bad/20 px-4 py-2.5 text-caption font-semibold text-bad dark:text-badDark">
+                  {problem}
+                </p>
+              )}
+
               <Button
                 loading={saving}
                 onClick={save}
-                disabled={saving || !changed}
+                disabled={saving || !changed || !!problem}
               >
                 {saving ? 'Saving…' : 'Save changes'}
               </Button>

@@ -25,6 +25,7 @@ import { reportError } from '../../lib/reportError'
 import RestrictedFieldsNotice from '../../components/ui/RestrictedFieldsNotice'
 import Avatar from '../../components/ui/Avatar'
 import Button from '../../components/ui/Button'
+import { calculateEntitlementDays, DEFAULT_WORKING_DAYS } from '../../hooks/useLeaveBalance'
 
 const PERMISSION_ROLES  = ['staff', 'manager', 'owner']
 const PERMISSION_LABELS = { staff: 'Staff', manager: 'Manager', owner: 'Owner' }
@@ -499,8 +500,7 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
   const isNew    = !editingId
   const isLocked = current?.pin_locked_until && new Date(current.pin_locked_until) > new Date()
   const set = (key, value) => setStaffForm(f => ({ ...f, [key]: value }))
-  const daysPerWeek     = staffForm.working_days?.length > 0 ? Math.min(staffForm.working_days.length, 7) : 5
-  const entitlementDays = Math.round(5.6 * daysPerWeek * 2) / 2
+  const entitlementDays = calculateEntitlementDays(staffForm.employment_type, staffForm.working_days)
   const contractOptions = staffForm.employment_type === 'fixed_term'
     ? [...CONTRACT_BTNS, { value: 'fixed_term', label: 'Fixed term' }]
     : CONTRACT_BTNS
@@ -593,38 +593,41 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
           />
         </Field>
 
-        {/* Contracted hours and working pattern — not for zero-hours */}
+        {/* Contracted hours — not for zero-hours */}
         {staffForm.employment_type !== 'zero_hours' && (
-          <>
-            <Field label="Contracted hours / week">
-              <input type="number" step="0.5" min="0" value={staffForm.contracted_hours} onChange={e => set('contracted_hours', e.target.value)} placeholder="e.g. 37.5" className={INPUT} />
-            </Field>
-            <Field label="Regular working days" group>
-              <div className="flex gap-1.5 flex-wrap">
-                {DOW_LABELS.map((day, i) => {
-                  const dow    = i + 1
-                  const allOn  = staffForm.working_days.length === 0
-                  const on     = allOn || staffForm.working_days.includes(dow)
-                  return (
-                    <button
-                      key={dow}
-                      type="button"
-                      aria-pressed={on}
-                      onClick={() => {
-                        const cur  = staffForm.working_days.length === 0 ? [1, 2, 3, 4, 5, 6, 7] : [...staffForm.working_days]
-                        const next = cur.includes(dow) ? cur.filter(d => d !== dow) : [...cur, dow].sort((a, b) => a - b)
-                        set('working_days', next.length === 7 ? [] : next)
-                      }}
-                      className={`h-8 min-w-[48px] px-2 rounded-xl border text-body-sm font-semibold transition-colors ${on ? 'bg-brand border-brand text-white' : 'bg-cream dark:bg-white/5 border-line dark:border-white/10 text-ink3 dark:text-white/45'}`}
-                    >
-                      {day}
-                    </button>
-                  )
-                })}
-              </div>
-            </Field>
-          </>
+          <Field label="Contracted hours / week">
+            <input type="number" step="0.5" min="0" value={staffForm.contracted_hours} onChange={e => set('contracted_hours', e.target.value)} placeholder="e.g. 37.5" className={INPUT} />
+          </Field>
         )}
+
+        {/* Working pattern — zero-hours staff need it too: it decides which
+            days of a leave request use up their holiday. */}
+        <Field label="Regular working days" group>
+          <div className="flex gap-1.5 flex-wrap">
+            {DOW_LABELS.map((day, i) => {
+              const dow     = i + 1
+              const pattern = staffForm.working_days.length === 0 ? DEFAULT_WORKING_DAYS : staffForm.working_days
+              const on      = pattern.includes(dow)
+              return (
+                <button
+                  key={dow}
+                  type="button"
+                  aria-pressed={on}
+                  onClick={() => {
+                    const next = on ? pattern.filter(d => d !== dow) : [...pattern, dow].sort((a, b) => a - b)
+                    set('working_days', next)
+                  }}
+                  className={`h-8 min-w-[48px] px-2 rounded-xl border text-body-sm font-semibold transition-colors ${on ? 'bg-brand border-brand text-white' : 'bg-cream dark:bg-white/5 border-line dark:border-white/10 text-ink3 dark:text-white/45'}`}
+                >
+                  {day}
+                </button>
+              )
+            })}
+          </div>
+          {staffForm.working_days.length === 0 && (
+            <p className="text-body-sm text-warn dark:text-warnDark mt-1.5">Not set — holiday is counted as Mon–Fri until you pick their days.</p>
+          )}
+        </Field>
 
         <div className="grid grid-cols-1 min-[420px]:grid-cols-2 gap-2.5">
           <Field label="Start date">
@@ -641,7 +644,7 @@ export default function StaffMembersSection({ detailId = null, onOpen, onClose, 
         <div className="border-t border-line dark:border-white/10 -mx-4 sm:-mx-5 px-3.5 sm:px-3.5 pt-2.5 flex flex-col divide-y divide-line dark:divide-white/10">
           <ToggleRow
             title="Eligible for holiday pay"
-            hint={staffForm.employment_type === 'zero_hours' ? 'Leave accrues per hour worked' : `${entitlementDays} days a year (5.6 weeks)`}
+            hint={staffForm.employment_type === 'zero_hours' ? 'Leave accrues per hour worked' : `${entitlementDays} days a year (5.6 weeks, max 28)`}
             checked={staffForm.holiday_pay_eligible}
             onChange={v => set('holiday_pay_eligible', v)}
           />

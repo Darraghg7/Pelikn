@@ -5,7 +5,7 @@ import { useAppSettings } from '../../hooks/useSettings'
 import SettingsSubHeader from '../../components/layout/SettingsSubHeader'
 import Toggle from '../../components/ui/Toggle'
 
-function Stepper({ value, onChange, suffix, min = 0, max = 99, step = 1 }) {
+function Stepper({ value, onChange, suffix = undefined, min = 0, max = 99, step = 1 }) {
   const btn = (label, fn, disabled) => (
     <button
       onClick={fn}
@@ -22,7 +22,7 @@ function Stepper({ value, onChange, suffix, min = 0, max = 99, step = 1 }) {
   )
 }
 
-function Row({ label, sub, warnText, control, last }) {
+function Row({ label, sub = undefined, warnText = undefined, control, last = undefined }) {
   return (
     <div className={`flex items-center gap-3 px-[15px] py-[13px] ${last === false ? 'border-t border-charcoal/6 dark:border-white/8' : ''}`}>
       <div className="flex-1 min-w-0">
@@ -61,10 +61,10 @@ export default function AttendanceSettingsPage() {
   const {
     lateGraceMins, breakDurationMins, breakOverrunGraceMins, cleanupMinutes,
     requireLateReason, requireManagerApprovalForLate, notifyManagerAtStrike, disciplinaryAtStrike,
-    countingWindowDays, pushToManager, maxStaffOffEnabled, maxStaffOffCount,
+    countingWindowDays, pushToManager, maxStaffOffEnabled, maxStaffOffCount, blockOverBalance,
     saveLateGraceMins, saveBreakDuration, saveBreakOverrunGraceMins, saveCleanupMinutes,
     saveRequireLateReason, saveRequireManagerApprovalForLate, saveNotifyManagerAtStrike, saveDisciplinaryAtStrike,
-    saveCountingWindowDays, savePushToManager, saveMaxStaffOffEnabled, saveMaxStaffOffCount,
+    saveCountingWindowDays, savePushToManager, saveMaxStaffOffEnabled, saveMaxStaffOffCount, saveBlockOverBalance,
   } = settings
 
   const vp = (path) => `/v/${venueSlug}${path}`
@@ -173,10 +173,20 @@ export default function AttendanceSettingsPage() {
 
         <Group
           label="Time off"
-          foot={maxStaffOffEnabled
-            ? `Staff booking a day that already has ${maxStaffOffCount} off will see a warning, but can still submit — useful if it's been pre-cleared with you.`
-            : 'Off — staff can request any day off with no staffing-limit warning.'}
+          foot={[
+            maxStaffOffEnabled
+              ? `Staff booking a day that already has ${maxStaffOffCount} off will see a warning, but can still submit — useful if it's been pre-cleared with you.`
+              : 'Off — staff can request any day off with no staffing-limit warning.',
+            blockOverBalance
+              ? 'Staff can\'t request more holiday than they have left. You can still add it for them from the team list.'
+              : 'Staff going over their holiday balance see a warning, but can still submit.',
+          ].join(' ')}
         >
+          <Row
+            label="Block holiday over balance"
+            sub="Stop staff requesting more than they have left"
+            control={<Toggle checked={blockOverBalance} onChange={saveBlockOverBalance} />}
+          />
           <Row
             label="Limit staff off per day"
             sub="Warn when too many are off at once"
