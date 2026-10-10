@@ -214,7 +214,7 @@ function SideItem({ to, icon: Ico, label, badge, alert, isActive }) {
       onPointerEnter={() => preloadRoute(to)}
       onFocus={() => preloadRoute(to)}
       className={[
-        'relative flex items-center gap-3 px-3.5 py-2 mx-2 rounded-lg text-[13.5px] font-medium',
+        'relative flex items-center gap-3 px-3.5 py-2 mx-2 rounded-lg text-body font-medium',
         isActive
           ? 'bg-white/[0.14] text-white font-semibold'
           : alert
@@ -232,7 +232,7 @@ function SideItem({ to, icon: Ico, label, badge, alert, isActive }) {
       )}
       <span className="flex-1 truncate tracking-wide">{label}</span>
       {badge > 0 && (
-        <span className={`min-w-[18px] h-[18px] text-white text-[11px] font-bold rounded-full flex items-center justify-center px-1 shrink-0 ${alert ? 'bg-warning' : 'bg-accent'}`}>
+        <span className={`min-w-[18px] h-[18px] text-white text-micro font-bold rounded-full flex items-center justify-center px-1 shrink-0 ${alert ? 'bg-warning' : 'bg-accent'}`}>
           {badge}
         </span>
       )}
@@ -249,7 +249,7 @@ function SubItem({ to, icon: Ico, label, badge, alert, isActive }) {
       onPointerEnter={() => preloadRoute(to)}
       onFocus={() => preloadRoute(to)}
       className={[
-        'relative flex items-center gap-2.5 pl-5 pr-4 py-[7px] mx-2 rounded-lg text-[13px]',
+        'relative flex items-center gap-2.5 pl-5 pr-4 py-[7px] mx-2 rounded-lg text-body-sm',
         isActive
           ? 'text-white font-semibold bg-white/[0.1]'
           : alert
@@ -269,7 +269,7 @@ function SubItem({ to, icon: Ico, label, badge, alert, isActive }) {
       )}
       <span className="flex-1 truncate">{label}</span>
       {badge > 0 && (
-        <span className={`min-w-[16px] h-4 text-white text-[11px] font-bold rounded-full flex items-center justify-center px-1 shrink-0 ${alert ? 'bg-warning' : 'bg-accent'}`}>
+        <span className={`min-w-[16px] h-4 text-white text-micro font-bold rounded-full flex items-center justify-center px-1 shrink-0 ${alert ? 'bg-warning' : 'bg-accent'}`}>
           {badge}
         </span>
       )}
@@ -280,10 +280,10 @@ function SubItem({ to, icon: Ico, label, badge, alert, isActive }) {
 /* ── Pro-locked nav item (shown to starter users as an upsell hint) ─────────── */
 function LockedSubItem({ label }) {
   return (
-    <div className="flex items-center gap-2.5 pl-5 pr-4 py-[7px] mx-2 rounded-lg text-[13px] text-white/25 cursor-default select-none">
+    <div className="flex items-center gap-2.5 pl-5 pr-4 py-[7px] mx-2 rounded-lg text-body-sm text-white/25 cursor-default select-none">
       <span className="w-1 h-1 rounded-full shrink-0 bg-white/15" />
       <span className="flex-1 truncate">{label}</span>
-      <span className="text-[11px] tracking-widest uppercase font-bold text-accent bg-accent/10 px-1.5 py-0.5 rounded shrink-0">Pro</span>
+      <span className="text-micro tracking-widest uppercase font-bold text-accent bg-accent/10 px-1.5 py-0.5 rounded shrink-0">Pro</span>
     </div>
   )
 }
@@ -296,11 +296,11 @@ function CollapsibleSection({ label, badge, isOpen, onToggle, children }) {
         onClick={onToggle}
         className="w-full flex items-center gap-2 px-5 pt-3 pb-1.5 group"
       >
-        <span className="text-[11px] font-semibold tracking-[0.12em] uppercase text-white/25 group-hover:text-white/40 transition-colors flex-1 text-left select-none">
+        <span className="text-micro font-semibold tracking-[0.12em] uppercase text-white/25 group-hover:text-white/40 transition-colors flex-1 text-left select-none">
           {label}
         </span>
         {badge > 0 && (
-          <span className="min-w-[18px] h-[18px] text-[11px] font-bold rounded-full flex items-center justify-center px-1 shrink-0 bg-warning/15 text-warning">
+          <span className="min-w-[18px] h-[18px] text-micro font-bold rounded-full flex items-center justify-center px-1 shrink-0 bg-warning/15 text-warning">
             {badge}
           </span>
         )}
@@ -347,13 +347,13 @@ function VenueSwitcher({ venues, currentSlug, onSelect }) {
       </Button>
       {open && (
         <div className="absolute top-full left-0 mt-2 w-52 bg-brand-800 rounded-xl shadow-dropdown border border-white/10 overflow-hidden z-50 animate-fade-in">
-          <p className="px-3 pt-2.5 pb-1.5 text-[11px] tracking-[0.12em] uppercase text-white/30 font-semibold">Your venues</p>
+          <p className="px-3 pt-2.5 pb-1.5 text-micro tracking-[0.12em] uppercase text-white/30 font-semibold">Your venues</p>
           {venues.map(v => (
             <button
               key={v.id}
               onClick={() => { setOpen(false); onSelect(v.slug) }}
               className={[
-                'w-full text-left px-3 py-2.5 text-[13px] flex items-center justify-between',
+                'w-full text-left px-3 py-2.5 text-body-sm flex items-center justify-between',
                 v.slug === currentSlug
                   ? 'text-white bg-white/12'
                   : 'text-white/60 hover:text-white hover:bg-white/8',
@@ -619,7 +619,7 @@ export default function AppShell({ children }) {
         >
           <div className="px-4 h-14 flex items-center justify-between gap-2">
             <div className="flex items-center gap-2 min-w-0 flex-1">
-              <span className="font-bold text-white text-[15px] tracking-wider uppercase truncate max-w-[160px]">{venueName || 'Pelikn'}</span>
+              <span className="font-bold text-white text-body-lg tracking-wider uppercase truncate max-w-[160px]">{venueName || 'Pelikn'}</span>
               <NotificationBell />
               {allSwitchableVenues.length > 1 && (
                 <VenueSwitcher

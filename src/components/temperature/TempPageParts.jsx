@@ -28,7 +28,7 @@ export function PageHeader({ title, subtitle, backTo, backLabel = 'Checks', onEx
       {backTo && (
         <Link
           to={backTo}
-          className="hidden self-start lg:inline-flex items-center gap-1 text-[13px] font-semibold text-brand dark:text-white/80 hover:opacity-75 transition-opacity"
+          className="hidden self-start lg:inline-flex items-center gap-1 text-body-sm font-semibold text-brand dark:text-white/80 hover:opacity-75 transition-opacity"
         >
           <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6" /></svg>
           {backLabel}
@@ -36,8 +36,8 @@ export function PageHeader({ title, subtitle, backTo, backLabel = 'Checks', onEx
       )}
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0">
-          <h1 className={`${compact ? 'text-[20px] sm:text-[24px]' : 'text-2xl min-[420px]:text-[26px] sm:text-[32px]'} leading-tight font-bold tracking-tight text-ink dark:text-white whitespace-nowrap`}>{title}</h1>
-          {subtitle && <p className={`${compact ? 'text-[12px]' : 'text-[15px]'} text-ink3 dark:text-white/45 mt-0.5`}>{subtitle}</p>}
+          <h1 className={`${compact ? 'text-title' : 'text-2xl min-[420px]:text-display sm:text-stat'} leading-tight font-bold tracking-tight text-ink dark:text-white whitespace-nowrap`}>{title}</h1>
+          {subtitle && <p className={`${compact ? 'text-caption' : 'text-body-lg'} text-ink3 dark:text-white/45 mt-0.5`}>{subtitle}</p>}
         </div>
         {action}
         {!action && onExport && (
@@ -84,8 +84,8 @@ export function TabBar({ tabs, active, onChange, size = 'sm' }) {
             className={[
               // Grow from content width so a long label ("Today's check 3") never clips
               sm
-                ? 'flex-auto h-8 px-2.5 rounded-[10px] inline-flex items-center justify-center gap-1.5 text-[13px] font-semibold whitespace-nowrap transition-colors'
-                : 'flex-auto h-11 px-3 rounded-xl inline-flex items-center justify-center gap-2 text-sm min-[420px]:text-[15px] font-semibold whitespace-nowrap transition-colors',
+                ? 'flex-auto h-8 px-2.5 rounded-[10px] inline-flex items-center justify-center gap-1.5 text-body-sm font-semibold whitespace-nowrap transition-colors'
+                : 'flex-auto h-11 px-3 rounded-xl inline-flex items-center justify-center gap-2 text-sm min-[420px]:text-body-lg font-semibold whitespace-nowrap transition-colors',
               isActive ? 'bg-brand text-white' : 'text-ink2 dark:text-white/65 hover:text-ink dark:hover:text-white',
             ].join(' ')}
           >
@@ -103,7 +103,7 @@ export function AddDashedButton({ label, onClick }) {
     <button
       type="button"
       onClick={onClick}
-      className="w-full h-10 rounded-2xl border-[1.5px] border-dashed border-ink4/70 dark:border-white/20 text-[13px] font-semibold text-ink2 dark:text-white/70 inline-flex items-center justify-center gap-2 hover:border-ink3 hover:text-ink dark:hover:text-white transition-colors"
+      className="w-full h-10 rounded-2xl border-[1.5px] border-dashed border-ink4/70 dark:border-white/20 text-body-sm font-semibold text-ink2 dark:text-white/70 inline-flex items-center justify-center gap-2 hover:border-ink3 hover:text-ink dark:hover:text-white transition-colors"
     >
       <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
       {label}
@@ -115,7 +115,7 @@ export function AddDashedButton({ label, onClick }) {
 export function PeriodChip({ period, value, tone = 'ok' }) {
   const cls = value === null ? 'bg-cream text-ink4 dark:bg-white/5 dark:text-white/30' : TONE[tone]
   return (
-    <span className={`shrink-0 inline-flex items-center gap-1.5 h-7 px-3 rounded-full font-mono text-[12px] font-semibold ${cls}`}>
+    <span className={`shrink-0 inline-flex items-center gap-1.5 h-7 px-3 rounded-full font-mono text-caption font-semibold ${cls}`}>
       <span>{period.toUpperCase()}</span>
       <span>{value === null ? '–' : value}</span>
     </span>
@@ -127,8 +127,8 @@ export function ItemHeading({ name, range, schedule, note, chips }) {
   return (
     <div className="flex items-start justify-between gap-2.5">
       <div className="min-w-0">
-        <p className="text-[14px] font-semibold text-ink dark:text-white truncate">{name}</p>
-        <p className="text-[13px] text-ink3 dark:text-white/45 mt-0.5">
+        <p className="text-body font-semibold text-ink dark:text-white truncate">{name}</p>
+        <p className="text-body-sm text-ink3 dark:text-white/45 mt-0.5">
           <span className="font-mono text-ink2 dark:text-white/65">{range}</span>
           {' · '}{schedule}
           {note && ` · ${note}`}
@@ -195,7 +195,7 @@ export function ReadingInput({ value, onChange, onSubmit, placeholder, ariaLabel
             saving ? 'opacity-50' : '',
           ].join(' ')}
         />
-        <span className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 font-mono text-[13px] text-ink3 dark:text-white/40">°C</span>
+        <span className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 font-mono text-body-sm text-ink3 dark:text-white/40">°C</span>
       </div>
       <Button
         loading={saving}
@@ -223,8 +223,8 @@ export function ItemSettingsRow({ icon, name, subline, open, onToggle, formProps
           {icon}
         </span>
         <span className="flex-1 min-w-0">
-          <span className="block text-[14px] font-semibold text-ink dark:text-white truncate">{name}</span>
-          <span className="block text-[13px] text-ink3 dark:text-white/45 mt-0.5">{subline}</span>
+          <span className="block text-body font-semibold text-ink dark:text-white truncate">{name}</span>
+          <span className="block text-body-sm text-ink3 dark:text-white/45 mt-0.5">{subline}</span>
         </span>
         <svg className={`w-5 h-5 shrink-0 text-ink3 dark:text-white/40 transition-transform ${open ? 'rotate-180' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <polyline points="6 9 12 15 18 9" />
@@ -267,16 +267,16 @@ export const THERMOMETER_ICON = (
 )
 
 /* ── Form fields shared by the log-a-reading pages (cooking, cooling) ─────── */
-export const FIELD_LABEL  = 'block text-[12px] font-semibold tracking-[0.08em] uppercase text-ink3 dark:text-white/45 mb-2'
-export const TEXT_FIELD   = 'w-full h-9 px-3.5 rounded-xl border border-line dark:border-white/10 bg-cream dark:bg-white/5 text-[13px] text-ink dark:text-white placeholder:text-ink4 dark:placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand/40 focus:bg-white dark:focus:bg-white/10 transition-colors'
+export const FIELD_LABEL  = 'block text-caption font-semibold tracking-[0.08em] uppercase text-ink3 dark:text-white/45 mb-2'
+export const TEXT_FIELD   = 'w-full h-9 px-3.5 rounded-xl border border-line dark:border-white/10 bg-cream dark:bg-white/5 text-body-sm text-ink dark:text-white placeholder:text-ink4 dark:placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand/40 focus:bg-white dark:focus:bg-white/10 transition-colors'
 export const NUMBER_RESET = '[appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none'
 
 /** "COOLING NOW ········ Target ≤8°C within 90 min" */
 export function SectionHeading({ children, aside }) {
   return (
     <div className="flex items-baseline justify-between gap-2.5 px-1 -mb-1">
-      <p className="text-[12px] font-semibold tracking-[0.08em] uppercase text-ink3 dark:text-white/45">{children}</p>
-      {aside && <p className="text-[12px] text-ink3 dark:text-white/45 text-right">{aside}</p>}
+      <p className="text-caption font-semibold tracking-[0.08em] uppercase text-ink3 dark:text-white/45">{children}</p>
+      {aside && <p className="text-caption text-ink3 dark:text-white/45 text-right">{aside}</p>}
     </div>
   )
 }
@@ -292,7 +292,7 @@ export function QuickPicks({ options, value, onPick }) {
           type="button"
           onClick={() => onPick(name)}
           className={[
-            'h-8 px-3.5 rounded-full border text-[13px] transition-colors',
+            'h-8 px-3.5 rounded-full border text-body-sm transition-colors',
             value.trim().toLowerCase() === name.toLowerCase()
               ? 'bg-brand-tint border-brand/40 text-brand dark:bg-white/10 dark:text-white dark:border-white/30'
               : 'bg-white dark:bg-paperDark border-line dark:border-white/10 text-ink2 dark:text-white/75 hover:border-ink4',
@@ -319,7 +319,7 @@ export function TempField({ label, value, onChange, placeholder, warn, ariaLabel
           aria-label={ariaLabel ?? label}
           className={`${TEXT_FIELD} ${NUMBER_RESET} pr-11 font-mono text-lg ${warn ? '!border-bad/50 !bg-badBg/40 text-bad' : ''}`}
         />
-        <span className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 font-mono text-[13px] text-ink3 dark:text-white/40">°C</span>
+        <span className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 font-mono text-body-sm text-ink3 dark:text-white/40">°C</span>
       </span>
     </label>
   )
@@ -369,7 +369,7 @@ export function TimeOfDayField({ label, clock }) {
           aria-label={label}
           className={`${TEXT_FIELD} pr-4 font-mono text-lg font-semibold [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0 [&::-webkit-calendar-picker-indicator]:w-full`}
         />
-        <span className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 inline-flex items-center gap-1.5 text-[13px] text-ink3 dark:text-white/45">
+        <span className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 inline-flex items-center gap-1.5 text-body-sm text-ink3 dark:text-white/45">
           <svg className="w-4 h-4 text-ink2 dark:text-white/65" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9" /><polyline points="12 7 12 12 15 14" /></svg>
           <span className="hidden min-[400px]:inline">{clock.dayLabel}</span>
         </span>

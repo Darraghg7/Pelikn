@@ -40,7 +40,7 @@ function TodaysDeliveriesWidget() {
             {data.items.map(c => (
               <div key={c.id} className="flex items-center justify-between py-0.5">
                 <span className="text-xs text-charcoal/60 dark:text-white/50 truncate">{c.supplier_name}</span>
-                <span className={`text-[11px] font-medium ${c.overall_pass ? 'text-success' : 'text-danger'}`}>
+                <span className={`text-micro font-medium ${c.overall_pass ? 'text-success' : 'text-danger'}`}>
                   {c.overall_pass ? 'PASS' : 'FAIL'}
                 </span>
               </div>

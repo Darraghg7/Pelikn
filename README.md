@@ -51,7 +51,7 @@ Production env vars live in Vercel → Project → Settings → Environment Vari
 |---|---|
 | `npm run dev` | Vite dev server |
 | `npm run build` / `npm run preview` | Production build to `dist/` / serve it locally |
-| `npm run lint` | ESLint over `src/` (rules-of-hooks is an error), then `lint:buttons` (raw `<button>` ratchet) and `lint:colours` (hard-coded colour ratchet); see Conventions |
+| `npm run lint` | ESLint over `src/` (rules-of-hooks is an error), then `lint:buttons` (raw `<button>` ratchet), `lint:colours` (hard-coded colour ratchet) and `lint:type` (one-off text size ratchet); see Conventions |
 | `npm run typecheck` | Both type checks: `typecheck:ts` (strict, `.ts` files) and `typecheck:js` (`.js`/`.jsx` against a baseline; see Conventions) |
 | `npm run test:unit` | Vitest unit tests (`test:unit:watch`, `test:unit:coverage` also exist) |
 | `npm test` | Playwright end-to-end tests (`test:ui`, `test:headed`, `test:report`) |
@@ -187,9 +187,24 @@ ios/  android/          Capacitor native projects
 - **Select real columns**: PostgREST returns a 400 for an unknown column, and a page that ignores the error shows a misleading empty state. Handle `error` and check column names against the migrations.
 - **Type checking**: `.ts` files are checked strictly (`tsconfig.json`). The `.js`/`.jsx` files, which is most of the UI, are checked leniently by `npm run typecheck:js` (`tsconfig.checkjs.json` + `scripts/typecheck-js.mjs`) against `typecheck-js-baseline.json`, a per-file count of known errors. CI fails if a file gets *more* errors than its baseline, or if a file not in the baseline gets any. To fix a file: run `npx tsc --noEmit -p tsconfig.checkjs.json`, fix that file's errors (fix real bugs; for noise, a small JSDoc type or a type in `src/lib/api` or `src/types` is usually enough), then run `npm run typecheck:js -- --update` and commit the lowered baseline. The check also fails when counts drop until you do this, so the baseline only goes down. Never raise a count to get a PR through.
 - **Rules of Hooks**: call every hook unconditionally, before any early `return`. ESLint enforces `react-hooks/rules-of-hooks` as an error in CI (this crash reached production three times before it was gated). `exhaustive-deps` is a warning.
-- **Design**: follow `.impeccable.md`. Use the colour tokens in `tailwind.config.js`, never hardcoded hex. Type floor: 11px for mono uppercase micro-labels, 12px (`text-xs`) for body text. Dense grids (dashboard stat tiles, rota week grid) are an intentional exception.
+- **Design**: follow `.impeccable.md`. Use the colour tokens in `tailwind.config.js`, never hardcoded hex. Type floor: 11px for mono uppercase micro-labels, 12px for body text. Dense grids (dashboard stat tiles, rota week grid) are an intentional exception.
 - **Buttons**: draw buttons with `<Button>` from `src/components/ui/Button.jsx` (variants `primary`, `secondary`, `ghost`, `danger`, `danger-ghost`, `accent`, `link`; sizes `sm`/`md`/`lg`; `iconOnly` needs an `aria-label`; `loading` shows a spinner and blocks a second tap; `CloseButton` for ×). `type` defaults to `"button"`, so pass `type="submit"` for a form's submit button. Use `className` only for layout (`flex-1`, `mt-2`), never to restyle. `npm run lint:buttons` (part of `npm run lint`, so CI runs it) counts hand-written `<button>`s per file against `raw-buttons-baseline.json`: a file may not gain any, and when you remove some, run `npm run lint:buttons -- --update` and commit the lowered baseline. Whole-row tap targets, tabs, segmented controls, toggles and the number pad can stay raw.
 - **Colours**: every colour is defined once in `src/lib/tokens.js`, which `tailwind.config.js` reads. Use the token classes (`bg-brand`, `text-ink3`, `bg-warnBg text-warn`), and pair status text with its dark-mode partner: `text-good dark:text-goodDark` (also `warnDark`, `badDark`, `infoDark`). `bg-white` turns dark in dark mode (index.css), `bg-paper` stays white. When a colour must be a JS value (computed inline styles, canvas, jsPDF), import `colors`, `alpha()`, `white()` or `black()` from `src/lib/tokens.js`; in CSS and arbitrary classes use `theme(colors.ink/40%)`. Never type a hex or `rgba()` elsewhere: `npm run lint:colours` (part of `npm run lint`) counts them per file against `hard-coded-colours-baseline.json`. A file may not gain any, and when you remove some, run `npm run lint:colours -- --update` and commit the lowered baseline. Staff rota colours are saved per person, so the palette (`staffPalette`) must not change values. Colours outside `src/` (`capacitor.config.json`, `public/manifest.json`, the launch screen in `index.html`) are written from the tokens by `npm run colours:sync`, and `lint:colours` fails if they drift; `scripts/render-ios-splash.mjs` imports the tokens directly.
+- **Type**: text sizes come from the type scale in `src/lib/tokens.js`, which `tailwind.config.js` reads. Use the named classes, never a one-off size like `text-[13px]`:
+
+  | Class | Size / line height | For |
+  |---|---|---|
+  | `text-micro` | 11 / 16 | labels, eyebrows, counts, badges (labels add `uppercase tracking-widest`; Geist Mono labels use `tracking-[0.08em]`) |
+  | `text-caption` | 12 / 18 | helper text, timestamps, the meta line under a title |
+  | `text-body-sm` | 13 / 20 | secondary rows and descriptions |
+  | `text-body` | 14 / 20 | default reading text (same size as `text-sm`) |
+  | `text-body-lg` | 15 / 22 | list-row titles, large buttons |
+  | `text-title-sm` | 17 / 24 | sheet and card headings |
+  | `text-title` | 22 / 28 | section headings, mid-size figures |
+  | `text-display` | 28 / 34 | page titles, figures in stat cards |
+  | `text-stat` | 34 / 40 | the largest dashboard figures |
+
+  Typing boxes stay at 16px (`text-base`) or iPhones zoom in. Sizes under 11px are only for the dense views (rota week grid, mobile rota grid, Gantt chart) and the shrunken app pictures on the marketing page. `npm run lint:type` (part of `npm run lint`) counts one-off sizes per file against `one-off-text-sizes-baseline.json`, ignoring the under-11px sizes in those dense files: a file may not gain any, and when you remove some, run `npm run lint:type -- --update` and commit the lowered baseline. The marketing page's big headlines are the ones left.
 - **Dark mode**: Tailwind `darkMode: 'class'`, toggled by `ThemeContext`.
 - **Modals and sheets** use `z-[60]` or above. `MobileNav` is portaled at `z-50`, so a `z-50` sheet can lose taps to it.
 - **Mobile vs desktop**: some screens have separate mobile and desktop components (for example the rota and the manager dashboard). Check both when changing behaviour.

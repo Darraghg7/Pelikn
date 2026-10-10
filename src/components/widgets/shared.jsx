@@ -24,12 +24,12 @@ export function WidgetShell({ title, badge, to, linkLabel, aside, flush = false,
       <div className={`flex items-center justify-between gap-2.5 px-3.5 sm:px-3.5 pt-2.5 shrink-0 ${flush ? 'pb-2.5 border-b border-line dark:border-white/10' : 'pb-2'}`}>
         <div className="flex items-center gap-2 min-w-0">
           {status && !badge && <span className={`w-2 h-2 rounded-full shrink-0 ${statusDot[status] ?? 'bg-ink4'}`} />}
-          <p className="text-[12px] min-[420px]:text-[12px] font-semibold tracking-[0.06em] min-[420px]:tracking-[0.08em] uppercase text-ink3 dark:text-white/45 truncate">{title}</p>
+          <p className="text-caption font-semibold tracking-[0.06em] min-[420px]:tracking-[0.08em] uppercase text-ink3 dark:text-white/45 truncate">{title}</p>
           {badge}
         </div>
         {aside ?? (href && (
           linkLabel ? (
-            <Link to={href} className="shrink-0 text-[13px] font-semibold text-ink dark:text-white hover:opacity-70 transition-opacity">
+            <Link to={href} className="shrink-0 text-body-sm font-semibold text-ink dark:text-white hover:opacity-70 transition-opacity">
               {linkLabel}
             </Link>
           ) : (
@@ -49,14 +49,14 @@ export function TitleBadge({ tone = 'bad', children }) {
   const cls = tone === 'bad'
     ? 'bg-badBg text-bad dark:bg-bad/25 dark:text-badDark'
     : 'bg-warnBg text-warn dark:bg-warn/20 dark:text-warnDark'
-  return <span className={`shrink-0 h-7 px-2.5 rounded-full inline-flex items-center text-[13px] font-semibold normal-case tracking-normal ${cls}`}>{children}</span>
+  return <span className={`shrink-0 h-7 px-2.5 rounded-full inline-flex items-center text-body-sm font-semibold normal-case tracking-normal ${cls}`}>{children}</span>
 }
 
 export function BigNumber({ value, label, alert }) {
   return (
     <div className="py-1">
-      <p className={`font-mono text-[24px] leading-tight font-semibold ${alert ? 'text-bad dark:text-badDark' : 'text-ink dark:text-white'}`}>{value}</p>
-      {label && <p className="text-[13px] text-ink3 dark:text-white/45 mt-0.5">{label}</p>}
+      <p className={`font-mono text-title leading-tight font-semibold ${alert ? 'text-bad dark:text-badDark' : 'text-ink dark:text-white'}`}>{value}</p>
+      {label && <p className="text-body-sm text-ink3 dark:text-white/45 mt-0.5">{label}</p>}
     </div>
   )
 }
@@ -66,8 +66,8 @@ export function MiniRow({ label, value, warn, good }) {
   const tone = warn ? 'text-bad dark:text-badDark' : good ? 'text-good dark:text-goodDark' : 'text-ink dark:text-white'
   return (
     <div className="flex items-center justify-between gap-2.5 py-1.5">
-      <span className="text-[13px] text-ink2 dark:text-white/75">{label}</span>
-      <span className={`font-mono text-[13px] font-semibold ${tone}`}>{value}</span>
+      <span className="text-body-sm text-ink2 dark:text-white/75">{label}</span>
+      <span className={`font-mono text-body-sm font-semibold ${tone}`}>{value}</span>
     </div>
   )
 }

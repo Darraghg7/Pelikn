@@ -17,7 +17,7 @@ export default function SettingsSubHeader({ title, onBack, backLabel = 'Settings
       >
         {backLabel}
       </Button>
-      <span className="text-[17px] font-semibold tracking-[-0.02em] text-charcoal dark:text-white">{title}</span>
+      <span className="text-title-sm font-semibold tracking-[-0.02em] text-charcoal dark:text-white">{title}</span>
       <span className="w-[70px]" />
     </div>
   )

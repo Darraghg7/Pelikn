@@ -32,7 +32,7 @@ export default function NavTopbar({ venueName, catLabel, itemLabel }) {
       }}
     >
       {/* Breadcrumb */}
-      <div className="flex items-center gap-1.5 text-[12.5px] flex-1 min-w-0" style={{ color: dark ? DARK.ink3 : T.mainInk3 }}>
+      <div className="flex items-center gap-1.5 text-body-sm flex-1 min-w-0" style={{ color: dark ? DARK.ink3 : T.mainInk3 }}>
         <span className="whitespace-nowrap shrink-0">{venueName || 'Venue'}</span>
         {catLabel && (
           <>
@@ -52,7 +52,7 @@ export default function NavTopbar({ venueName, catLabel, itemLabel }) {
 
       {/* Export placeholder */}
       <button
-        className="font-sans inline-flex items-center gap-[7px] text-[12.5px] font-medium shrink-0 cursor-pointer rounded-lg"
+        className="font-sans inline-flex items-center gap-[7px] text-body-sm font-medium shrink-0 cursor-pointer rounded-lg"
         style={{
           padding: '6px 11px',
           background: dark ? DARK.paper : T.paperWhite,

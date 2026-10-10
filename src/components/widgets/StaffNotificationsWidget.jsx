@@ -92,20 +92,20 @@ function StaffNotificationsWidget() {
   }
 
   const total = data.leave.length + data.swaps.length + (data.trainCount > 0 ? 1 : 0)
-  const aside = total > 0 && <span className="shrink-0 font-mono text-[13px] text-ink3 dark:text-white/45">{total} new</span>
+  const aside = total > 0 && <span className="shrink-0 font-mono text-body-sm text-ink3 dark:text-white/45">{total} new</span>
 
   return (
     <WidgetShell title="Staff notifications" aside={aside} flush={total > 0}>
       {total === 0 ? (
-        <p className="text-[13px] text-ink3 dark:text-white/45 py-2">No pending notifications</p>
+        <p className="text-body-sm text-ink3 dark:text-white/45 py-2">No pending notifications</p>
       ) : (
         <div className="divide-y divide-line dark:divide-white/10">
           {data.leave.map(r => (
             <div key={r.id} className="flex items-center gap-2.5 px-3.5 py-2">
               <Dot tone="warn" />
               <Link to={`/v/${venueSlug}/time-off`} className="flex-1 min-w-0">
-                <p className="text-[13px] leading-snug font-semibold text-ink dark:text-white truncate">{r.staff?.name ?? 'Staff'}</p>
-                <p className="text-[12px] leading-snug text-ink3 dark:text-white/45 mt-0.5 line-clamp-2">
+                <p className="text-body-sm leading-snug font-semibold text-ink dark:text-white truncate">{r.staff?.name ?? 'Staff'}</p>
+                <p className="text-caption leading-snug text-ink3 dark:text-white/45 mt-0.5 line-clamp-2">
                   {LEAVE_NAMES[r.leave_type] ?? 'Leave'} · {leaveDates(r)}{r.reason ? ` · ${r.reason}` : ''}
                 </p>
               </Link>
@@ -133,8 +133,8 @@ function StaffNotificationsWidget() {
             <Link key={s.id} to={`/v/${venueSlug}/rota`} className="flex items-center gap-2.5 px-3.5 sm:px-3.5 py-2 hover:bg-cream/60 dark:hover:bg-white/5">
               <Dot tone="info" />
               <span className="flex-1 min-w-0">
-                <span className="block text-[13px] leading-snug font-semibold text-ink dark:text-white">{s.requester_name} wants to swap a shift</span>
-                <span className="block text-[13px] text-ink3 dark:text-white/45 mt-0.5">With {s.target_staff_name} · needs approval on the rota</span>
+                <span className="block text-body-sm leading-snug font-semibold text-ink dark:text-white">{s.requester_name} wants to swap a shift</span>
+                <span className="block text-body-sm text-ink3 dark:text-white/45 mt-0.5">With {s.target_staff_name} · needs approval on the rota</span>
               </span>
               <svg className="shrink-0 w-4 h-4 text-ink3 dark:text-white/45" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
             </Link>
@@ -143,10 +143,10 @@ function StaffNotificationsWidget() {
             <Link to={`/v/${venueSlug}/training`} className="flex items-center gap-2.5 px-3.5 sm:px-3.5 py-2 hover:bg-cream/60 dark:hover:bg-white/5">
               <Dot tone="muted" />
               <span className="flex-1 min-w-0">
-                <span className="block text-[13px] font-semibold text-ink dark:text-white">
+                <span className="block text-body-sm font-semibold text-ink dark:text-white">
                   {data.trainCount} training record{data.trainCount !== 1 ? 's' : ''} unsigned
                 </span>
-                <span className="block text-[13px] text-ink3 dark:text-white/45">Awaiting employee signature</span>
+                <span className="block text-body-sm text-ink3 dark:text-white/45">Awaiting employee signature</span>
               </span>
               <svg className="shrink-0 w-4 h-4 text-ink3 dark:text-white/45" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
             </Link>

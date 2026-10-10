@@ -135,7 +135,7 @@ export function TemperatureItemSettingsForm({
     <div className="flex flex-col gap-5">
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <label className="sm:col-span-3">
-          <span className="block text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-1.5">Name</span>
+          <span className="block text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-1.5">Name</span>
           <input
             value={form.name}
             onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
@@ -143,7 +143,7 @@ export function TemperatureItemSettingsForm({
           />
         </label>
         <label>
-          <span className="block text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-1.5">Safe min °C</span>
+          <span className="block text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-1.5">Safe min °C</span>
           <input
             type="number"
             step="0.1"
@@ -154,7 +154,7 @@ export function TemperatureItemSettingsForm({
           />
         </label>
         <label>
-          <span className="block text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-1.5">Safe max °C</span>
+          <span className="block text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-1.5">Safe max °C</span>
           <input
             type="number"
             step="0.1"
@@ -164,13 +164,13 @@ export function TemperatureItemSettingsForm({
             className="w-full px-3 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white placeholder-charcoal/25 dark:placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
           />
         </label>
-        <p className="sm:col-span-3 text-[11px] text-charcoal/35 dark:text-white/30 -mt-1">
+        <p className="sm:col-span-3 text-caption text-charcoal/35 dark:text-white/30 -mt-1">
           {suggestions.note}
         </p>
       </div>
 
       <div>
-        <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-2">Days to check</p>
+        <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-2">Days to check</p>
         <div className="grid grid-cols-2 sm:grid-cols-7 gap-2">
           {CHECK_DAYS.map(day => {
             const active = form.check_days.includes(day.value)
@@ -194,7 +194,7 @@ export function TemperatureItemSettingsForm({
       </div>
 
       <div>
-        <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-2">Required checks</p>
+        <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-2">Required checks</p>
         <div className="grid grid-cols-2 gap-2">
           {CHECK_PERIODS.map(period => {
             const active = form.required_periods.includes(period.value)

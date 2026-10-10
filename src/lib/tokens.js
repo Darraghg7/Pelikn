@@ -103,6 +103,36 @@ export const colors = {
   success:  { DEFAULT: '#1a7a4c', light: '#e3f0e7' },
 }
 
+// The type scale. tailwind.config.js reads this, so each step is a class:
+// `text-micro`, `text-caption`, `text-body-sm` and so on. Use these instead of
+// one-off sizes like text-body-sm — `npm run lint:type` counts those per file.
+// Line heights sit close to 1.5 so text keeps the spacing it had before.
+//
+//   micro     11px  labels, eyebrows, counts, badges (pair labels with
+//                   `uppercase tracking-widest`; Geist Mono labels use 0.08em)
+//   caption   12px  helper text, timestamps, meta lines under a title
+//   body-sm   13px  secondary rows and descriptions
+//   body      14px  default reading text (same size as Tailwind's text-sm)
+//   body-lg   15px  list-row titles, large buttons
+//   title-sm  17px  sheet and card headings
+//   title     22px  section headings, mid-size figures
+//   display   28px  page titles, figures in stat cards
+//   stat      34px  the largest dashboard figures
+//
+// Below 11px is only for the dense views (rota week grid, Gantt chart) and the
+// shrunken product pictures on the marketing page.
+export const fontSize = {
+  micro:      ['11px', { lineHeight: '16px' }],
+  caption:    ['12px', { lineHeight: '18px' }],
+  'body-sm':  ['13px', { lineHeight: '20px' }],
+  body:       ['14px', { lineHeight: '20px' }],
+  'body-lg':  ['15px', { lineHeight: '22px' }],
+  'title-sm': ['17px', { lineHeight: '24px' }],
+  title:      ['22px', { lineHeight: '28px' }],
+  display:    ['28px', { lineHeight: '34px' }],
+  stat:       ['34px', { lineHeight: '40px' }],
+}
+
 // The app icon choices mirror the real icon image files in ios/ and android/.
 export const appIconColors = {
   white: '#ffffff',

@@ -40,7 +40,7 @@ function ExpiringTrainingWidget() {
           {data.items.map(c => (
             <Link key={c.id} to={`/v/${venueSlug}/training`} className="flex items-center justify-between py-0.5 hover:text-charcoal dark:hover:text-white transition-colors group">
               <span className="text-xs text-charcoal/50 dark:text-white/40 truncate group-hover:text-charcoal dark:group-hover:text-white">{c.staff?.name} — {c.title}</span>
-              <span className={`text-[11px] font-semibold ml-2 shrink-0 ${new Date(c.expiry_date) < new Date() ? 'text-danger' : 'text-warning'}`}>
+              <span className={`text-micro font-semibold ml-2 shrink-0 ${new Date(c.expiry_date) < new Date() ? 'text-danger' : 'text-warning'}`}>
                 {format(new Date(c.expiry_date), 'd MMM yy')}
               </span>
             </Link>

@@ -82,7 +82,7 @@ function ConfirmDialog({ onConfirm, onCancel, saving }) {
           </svg>
         </div>
 
-        <h2 className="text-[17px] font-bold text-charcoal dark:text-white" style={{ margin: '0 0 8px' }}>
+        <h2 className="text-title-sm font-bold text-charcoal dark:text-white" style={{ margin: '0 0 8px' }}>
           Your manager will be notified
         </h2>
         <p className="text-sm text-charcoal/50 dark:text-white/40 leading-relaxed" style={{ margin: '0 0 24px' }}>
@@ -210,18 +210,18 @@ function EditSessionForm({ session, staffId, onSave, onCancel, isManagerEdit }) 
       <div className="mt-3 pt-3 border-t border-charcoal/8 dark:border-white/8 flex flex-col gap-3">
         <div className="grid grid-cols-2 gap-3">
           <div className="flex flex-col gap-1">
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">Clock In</label>
+            <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">Clock In</label>
             <input type="time" value={clockIn} onChange={(e) => setClockIn(e.target.value)}
               className="bg-charcoal/4 dark:bg-white/5 rounded-lg px-3 py-2 text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-brand/30" />
           </div>
           <div className="flex flex-col gap-1">
-            <label className="text-[11px] tracking-widests uppercase text-charcoal/40 dark:text-white/35">Clock Out</label>
+            <label className="text-micro tracking-widests uppercase text-charcoal/40 dark:text-white/35">Clock Out</label>
             <input type="time" value={clockOut} onChange={(e) => setClockOut(e.target.value)}
               className="bg-charcoal/4 dark:bg-white/5 rounded-lg px-3 py-2 text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-brand/30" />
           </div>
         </div>
         <div className="flex flex-col gap-1">
-          <label className="text-[11px] tracking-widests uppercase text-charcoal/40 dark:text-white/35">Break</label>
+          <label className="text-micro tracking-widests uppercase text-charcoal/40 dark:text-white/35">Break</label>
           <select value={breakMin} onChange={(e) => setBreakMin(e.target.value)}
             className="bg-charcoal/4 dark:bg-white/5 rounded-lg px-3 py-2 text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-brand/30">
             {BREAK_OPTIONS.map((m) => <option key={m} value={String(m)}>{m === 0 ? 'No break' : `${m} min`}</option>)}
@@ -230,7 +230,7 @@ function EditSessionForm({ session, staffId, onSave, onCancel, isManagerEdit }) 
         {/* Reason field — only for staff (helps manager review) */}
         {!isManagerEdit && (
           <div className="flex flex-col gap-1">
-            <label className="text-[11px] tracking-widests uppercase text-charcoal/40 dark:text-white/35">Reason <span className="normal-case">(optional)</span></label>
+            <label className="text-micro tracking-widests uppercase text-charcoal/40 dark:text-white/35">Reason <span className="normal-case">(optional)</span></label>
             <input
               type="text"
               value={reason}
@@ -292,13 +292,13 @@ function SessionRow({ session, staffId, onReload, isManagerEdit, pendingRequests
           </p>
           {/* Status badges */}
           {pending && (
-            <span className="inline-flex items-center gap-1 mt-1.5 text-[11px] font-semibold tracking-wide uppercase px-2 py-0.5 rounded-full bg-warning/10 text-warning border border-warning/20">
+            <span className="inline-flex items-center gap-1 mt-1.5 text-micro font-semibold tracking-wide uppercase px-2 py-0.5 rounded-full bg-warning/10 text-warning border border-warning/20">
               <span className="w-1.5 h-1.5 rounded-full bg-warning inline-block" />
               Pending approval
             </span>
           )}
           {denied && !pending && (
-            <span className="inline-flex items-center gap-1 mt-1.5 text-[11px] font-semibold tracking-wide uppercase px-2 py-0.5 rounded-full bg-danger/8 text-danger border border-danger/15">
+            <span className="inline-flex items-center gap-1 mt-1.5 text-micro font-semibold tracking-wide uppercase px-2 py-0.5 rounded-full bg-danger/8 text-danger border border-danger/15">
               Edit not approved
               {denied.manager_note && <span className="normal-case font-normal ml-1">· {denied.manager_note}</span>}
             </span>
@@ -432,7 +432,7 @@ function AddShiftForm({ staffId, onSave, onCancel, isManagerEdit = false }) {
     <>
       <div className="mt-3 pt-3 border-t border-charcoal/8 dark:border-white/8 flex flex-col gap-3">
         <div className="flex flex-col gap-1">
-          <label className="text-[11px] tracking-widests uppercase text-charcoal/40 dark:text-white/35">Date</label>
+          <label className="text-micro tracking-widests uppercase text-charcoal/40 dark:text-white/35">Date</label>
           <select value={date} onChange={(e) => setDate(e.target.value)}
             className="bg-charcoal/4 dark:bg-white/5 rounded-lg px-3 py-2 text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-brand/30">
             {dateOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
@@ -440,18 +440,18 @@ function AddShiftForm({ staffId, onSave, onCancel, isManagerEdit = false }) {
         </div>
         <div className="grid grid-cols-2 gap-3">
           <div className="flex flex-col gap-1">
-            <label className="text-[11px] tracking-widests uppercase text-charcoal/40 dark:text-white/35">Clock In</label>
+            <label className="text-micro tracking-widests uppercase text-charcoal/40 dark:text-white/35">Clock In</label>
             <input type="time" value={clockIn} onChange={(e) => setClockIn(e.target.value)}
               className="bg-charcoal/4 dark:bg-white/5 rounded-lg px-3 py-2 text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-brand/30" />
           </div>
           <div className="flex flex-col gap-1">
-            <label className="text-[11px] tracking-widests uppercase text-charcoal/40 dark:text-white/35">Clock Out</label>
+            <label className="text-micro tracking-widests uppercase text-charcoal/40 dark:text-white/35">Clock Out</label>
             <input type="time" value={clockOut} onChange={(e) => setClockOut(e.target.value)}
               className="bg-charcoal/4 dark:bg-white/5 rounded-lg px-3 py-2 text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-brand/30" />
           </div>
         </div>
         <div className="flex flex-col gap-1">
-          <label className="text-[11px] tracking-widests uppercase text-charcoal/40 dark:text-white/35">Break</label>
+          <label className="text-micro tracking-widests uppercase text-charcoal/40 dark:text-white/35">Break</label>
           <select value={breakMin} onChange={(e) => setBreakMin(e.target.value)}
             className="bg-charcoal/4 dark:bg-white/5 rounded-lg px-3 py-2 text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-brand/30">
             {BREAK_OPTIONS.map((m) => <option key={m} value={String(m)}>{m === 0 ? 'No break' : `${m} min`}</option>)}
@@ -459,7 +459,7 @@ function AddShiftForm({ staffId, onSave, onCancel, isManagerEdit = false }) {
         </div>
         {!isManagerEdit && (
           <div className="flex flex-col gap-1">
-            <label className="text-[11px] tracking-widests uppercase text-charcoal/40 dark:text-white/35">Reason <span className="normal-case">(optional)</span></label>
+            <label className="text-micro tracking-widests uppercase text-charcoal/40 dark:text-white/35">Reason <span className="normal-case">(optional)</span></label>
             <input
               type="text"
               value={reason}
@@ -520,7 +520,7 @@ export default function RecentShifts({ staffId, isManagerEdit = false, inline = 
   const body = (
     <>
       <div className="flex items-center justify-between mb-1">
-        {!inline && <p className="text-[11px] tracking-widests uppercase text-charcoal/40 dark:text-white/35">Recent Shifts</p>}
+        {!inline && <p className="text-micro tracking-widests uppercase text-charcoal/40 dark:text-white/35">Recent Shifts</p>}
         {!adding && (
           <Button
             variant="ghost"

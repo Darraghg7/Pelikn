@@ -46,7 +46,7 @@ export default function PlanGate({ feature, children }) {
         </svg>
       </div>
 
-      <span className="text-[11px] tracking-widest uppercase font-semibold text-accent bg-accent/10 px-2.5 py-0.5 rounded-full mb-3">
+      <span className="text-micro tracking-widest uppercase font-semibold text-accent bg-accent/10 px-2.5 py-0.5 rounded-full mb-3">
         Pro Plan
       </span>
 
@@ -76,7 +76,7 @@ export default function PlanGate({ feature, children }) {
         </Link>
       </div>
 
-      <p className="text-[11px] text-charcoal/30 dark:text-white/30 mt-5">
+      <p className="text-caption text-charcoal/30 dark:text-white/30 mt-5">
         Current plan: <strong className="text-brand dark:text-accent">Starter</strong> · {STARTER_PRICE}/month
       </p>
     </div>

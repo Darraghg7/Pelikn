@@ -75,8 +75,8 @@ function CleaningOverdueWidget() {
                   ? <span className="w-3.5 h-3.5 rounded-full border-2 border-good/25 border-t-good animate-spin" />
                   : <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>}
               </button>
-              <p className="flex-1 min-w-0 text-[13px] min-[420px]:text-[14px] leading-snug text-ink dark:text-white line-clamp-2 break-words">{t.title}</p>
-              <span className="shrink-0 font-mono text-[13px] font-semibold text-bad dark:text-badDark whitespace-nowrap">
+              <p className="flex-1 min-w-0 text-body-sm min-[420px]:text-body leading-snug text-ink dark:text-white line-clamp-2 break-words">{t.title}</p>
+              <span className="shrink-0 font-mono text-body-sm font-semibold text-bad dark:text-badDark whitespace-nowrap">
                 {/* Same wording as the Cleaning page — cleaningDueLabel() */}
                 {t.due?.text ?? 'Overdue'}
               </span>
@@ -96,7 +96,7 @@ function CleaningOverdueWidget() {
           >
             <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6" /></svg>
           </Button>
-          <span className="font-mono text-[13px] text-ink3 dark:text-white/45">{page + 1}/{totalPages}</span>
+          <span className="font-mono text-body-sm text-ink3 dark:text-white/45">{page + 1}/{totalPages}</span>
           <Button
             variant="secondary"
             size="sm"
