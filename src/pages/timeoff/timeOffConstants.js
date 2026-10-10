@@ -7,15 +7,19 @@
  */
 import { eachDayOfInterval, isWithinInterval, parseISO } from 'date-fns'
 
+// 'unavailable' is for "I can't work these days" — it needs approval and keeps
+// the person off the rota, but is never holiday and never touches a balance.
 export const LEAVE_TYPES = [
-  { value: 'annual',  label: 'Annual Leave' },
-  { value: 'unpaid',  label: 'Unpaid Leave' },
-  { value: 'other',   label: 'Other' },
+  { value: 'annual',      label: 'Annual Leave' },
+  { value: 'unavailable', label: 'Not available' },
+  { value: 'unpaid',      label: 'Unpaid Leave' },
+  { value: 'other',       label: 'Other' },
 ]
 
 export const LEAVE_TYPE_COLOURS = {
   annual:  'bg-brand/10 text-brand',
   unpaid:  'bg-charcoal/8 dark:bg-white/8 text-charcoal/50 dark:text-white/40',
+  unavailable: 'bg-charcoal/8 dark:bg-white/8 text-charcoal/50 dark:text-white/40',
   other:   'bg-charcoal/8 dark:bg-white/8 text-charcoal/50 dark:text-white/40',
 }
 

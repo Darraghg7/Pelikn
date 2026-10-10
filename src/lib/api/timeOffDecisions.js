@@ -6,7 +6,7 @@
 import { supabase } from '../supabase'
 import { sendPush } from '../sendPush'
 
-const LEAVE_LABELS = { annual: 'Annual Leave', unpaid: 'Unpaid Leave', other: 'Other' }
+const LEAVE_LABELS = { annual: 'Annual Leave', unavailable: 'Not available', unpaid: 'Unpaid Leave', other: 'Other' }
 
 export async function decideTimeOff({ request, decision, reviewerId, venueId, note = null }) {
   const approved = decision === 'approved'

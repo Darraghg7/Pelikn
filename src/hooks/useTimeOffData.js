@@ -10,6 +10,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react'
 import { supabase } from '../lib/supabase'
 import { reportError } from '../lib/reportError'
 import { fetchTimeOffPrivateFields, withTimeOffPrivate } from '../lib/api/timeOffPrivate'
+import { fetchAllPages, withPaidHoursColumns } from '../lib/api/holidayData'
 import { calculateEntitlementDays, countWorkingDaysInRequest } from './useLeaveBalance'
 
 export function useTimeOffRequests(venueId) {
@@ -23,16 +24,22 @@ export function useTimeOffRequests(venueId) {
     // Was select('*'). 119 withholds reason/manager_note, and a star select
     // asks for every column — so it fails the whole query rather than omitting
     // them. Columns are named explicitly and the two are merged back below.
-    const [{ data, error: err }, priv] = await Promise.all([
-      supabase
-        .from('time_off_requests')
-        .select('id, staff_id, venue_id, start_date, end_date, status, leave_type, reviewed_by, reviewed_at, cancelled_at, cancelled_by, created_at, staff:staff_id(name, working_days, colour, photo_url), reviewer:reviewed_by(name)')
-        .eq('venue_id', venueId)
-        .order('start_date', { ascending: true }),
-      fetchTimeOffPrivateFields(),
-    ])
-    if (err) { setError(err.message); setLoading(false); return }
-    setRequests(withTimeOffPrivate(data ?? [], priv))
+    // Paged: a venue's whole leave history can pass Supabase's 1,000-row cap,
+    // which drops the rest without an error.
+    try {
+      const [data, priv] = await Promise.all([
+        withPaidHoursColumns(extra => fetchAllPages(() => supabase
+          .from('time_off_requests')
+          .select(`id, staff_id, venue_id, start_date, end_date, status, leave_type, reviewed_by, reviewed_at, cancelled_at, cancelled_by, created_at${extra}, staff:staff_id(name, working_days, employment_type, colour, photo_url), reviewer:reviewed_by(name)`)
+          .eq('venue_id', venueId)
+          .order('start_date', { ascending: true })
+          .order('id', { ascending: true }))),
+        fetchTimeOffPrivateFields(),
+      ])
+      setRequests(withTimeOffPrivate(data, priv))
+    } catch (err) {
+      setError(err?.message ?? 'Could not load time off')
+    }
     setLoading(false)
   }, [venueId])
   useEffect(() => { load() }, [load])

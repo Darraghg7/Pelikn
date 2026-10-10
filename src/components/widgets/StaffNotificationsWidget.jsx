@@ -14,7 +14,7 @@ import { useWidgetQuery } from '../../hooks/useWidgetQuery'
 import { WidgetShell, WidgetPending } from './shared'
 import Button from '../ui/Button'
 
-const LEAVE_NAMES = { annual: 'Annual leave', unpaid: 'Unpaid leave', other: 'Other leave' }
+const LEAVE_NAMES = { annual: 'Annual leave', unavailable: 'Not available', unpaid: 'Unpaid leave', other: 'Other leave' }
 
 // "12 Dec 2026" for one day, "12–14 Dec 2026" within a month, else "30 Dec – 2 Jan 2027"
 function leaveDates(r) {
