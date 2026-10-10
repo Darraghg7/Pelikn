@@ -21,8 +21,9 @@ vi.mock('../../../lib/supabase', () => ({
 }))
 vi.mock('../../../lib/sendPush', () => ({ sendPush: vi.fn() }))
 vi.mock('../../../contexts/VenueContext', () => ({ useVenue: () => ({ venueId: 'v1', venueSlug: 'nomad' }) }))
+const who = { session: { staffId: 'mgr', staffName: 'Manager' }, isManager: true, own: null }
 vi.mock('../../../contexts/SessionContext', () => ({
-  useSession: () => ({ session: { staffId: 'mgr', staffName: 'Manager' }, isManager: true }),
+  useSession: () => ({ session: who.session, isManager: who.isManager }),
 }))
 vi.mock('../../../components/ui/Toast', () => ({ useToast: () => vi.fn() }))
 vi.mock('../../../hooks/useSettings', () => ({ useAppSettings: () => ({ maxStaffOffEnabled: false, maxStaffOffCount: 1 }) }))
@@ -41,7 +42,7 @@ const pending = {
 vi.mock('../../../hooks/useTimeOffData', () => ({
   useTimeOffRequests: () => ({ requests: [pending], loading: false, error: null, reload: vi.fn() }),
   useActiveStaff: () => [sarah, eve, cat, blath],
-  useOwnProfile: () => null,
+  useOwnProfile: () => who.own,
   useTeamLeaveBalances: (staff) => ({
     balances: staff.map(s => ({ ...s, isZeroHours: true, entitlement: null, used: 0, remaining: null })),
     loading: false, failed: false, reloadBalances: vi.fn(),
@@ -76,7 +77,18 @@ function renderPage() {
 }
 
 describe('Time Off page — zero-hours holiday', () => {
-  beforeEach(() => { update.mockClear(); eq.mockClear() })
+  beforeEach(() => {
+    update.mockClear(); eq.mockClear()
+    Object.assign(who, { session: { staffId: 'mgr', staffName: 'Manager' }, isManager: true, own: null })
+  })
+
+  it('a staff member sees just their holiday left', () => {
+    Object.assign(who, { session: { staffId: 'sarah', staffName: 'Sarah' }, isManager: false, own: sarah })
+    renderPage()
+    expect(screen.getByText('63.2 h')).toBeTruthy()
+    expect(screen.getByText('holiday left')).toBeTruthy()
+    expect(screen.queryByText(/used of/)).toBeNull()
+  })
 
   it('shows just the hours left for each person, negative when overdrawn', () => {
     renderPage()

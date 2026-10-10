@@ -500,12 +500,7 @@ export default function TimeOffPage() {
           )}
           {form.leaveType === 'annual' && ownBalance?.isZeroHours && ownHoliday?.status === 'ok' && (
             <div className="rounded-xl bg-cream dark:bg-white/5 px-3.5 py-2.5 flex items-center justify-between">
-              <div>
-                <p className="text-body-sm font-semibold text-ink dark:text-white">{currentYear} holiday</p>
-                <p className="text-body-sm text-ink3 dark:text-white/45 mt-0.5">
-                  {fmtHours(ownHoliday.used)} used of {fmtHours(ownHoliday.allowance)}
-                </p>
-              </div>
+              <p className="text-body-sm font-semibold text-ink dark:text-white">Holiday left</p>
               <p className={`font-mono text-body font-semibold ${balanceTone(ownHoliday.balance)}`}>
                 {fmtHours(ownHoliday.balance)}
               </p>
@@ -573,7 +568,7 @@ export default function TimeOffPage() {
             return (
               <div className={`-mt-2 rounded-xl px-3.5 py-2.5 text-body-sm ${after < 0 ? 'bg-warnBg dark:bg-warn/20' : 'bg-cream dark:bg-white/5'}`}>
                 <p className="text-ink2 dark:text-white/70">
-                  Worth about <span className="font-semibold text-ink dark:text-white">{fmtHours(reqHours)}</span> of holiday, based on your average week. Your manager confirms the hours when they approve it.
+                  About <span className="font-semibold text-ink dark:text-white">{fmtHours(reqHours)}</span> of holiday — your manager confirms the exact hours.
                 </p>
                 {after < 0 ? (
                   <p className="mt-1 font-semibold text-warn dark:text-warnDark">
@@ -696,9 +691,6 @@ function OwnBalanceCard({ balance, year, holiday }) {
               {holiday ? fmtHours(holiday.balance) : '—'}
             </span>
             <span className="text-body font-semibold text-ink dark:text-white">holiday left</span>
-          </p>
-          <p className="text-body-sm text-ink3 dark:text-white/45">
-            {holiday ? `${fmtHours(holiday.used)} used of ${fmtHours(holiday.allowance)}` : 'Calculating…'} · {year}
           </p>
         </div>
         {holiday?.balance < 0 && (
