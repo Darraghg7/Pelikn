@@ -179,14 +179,14 @@ export default function AllergenProcedurePage() {
 
       {/* Key contacts */}
       <div className="bg-white dark:bg-paperDark rounded-2xl border border-charcoal/10 dark:border-white/10 p-5">
-        <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-3">Key Contacts</p>
+        <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-3">Key Contacts</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {[
             { key: 'responsible_manager', label: 'Responsible manager', placeholder: 'Name of manager responsible for allergen compliance' },
             { key: 'eho_contact',         label: 'Local EHO contact',   placeholder: 'Name and phone of your local Environmental Health Officer' },
           ].map(f => (
             <div key={f.key} className="flex flex-col gap-1">
-              <label className="text-[11px] tracking-widest uppercase text-charcoal/30 dark:text-white/30">{f.label}</label>
+              <label className="text-micro tracking-widest uppercase text-charcoal/30 dark:text-white/30">{f.label}</label>
               <input
                 value={meta[f.key]}
                 onChange={e => setMeta(m => ({ ...m, [f.key]: e.target.value }))}
@@ -201,7 +201,7 @@ export default function AllergenProcedurePage() {
       {/* Procedure sections */}
       {PROC_SECTIONS.map(section => (
         <div key={section.key} className="bg-white dark:bg-paperDark rounded-2xl border border-charcoal/10 dark:border-white/10 p-5">
-          <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-0.5">{section.title}</p>
+          <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-0.5">{section.title}</p>
           <p className="text-xs text-charcoal/40 dark:text-white/35 mb-3">{section.desc}</p>
           <textarea
             value={sections[section.key] || ''}
@@ -214,7 +214,7 @@ export default function AllergenProcedurePage() {
 
       {/* Last saved */}
       {procedure?.updated_at && (
-        <p className="text-[11px] text-charcoal/30 dark:text-white/30 text-right -mt-2">
+        <p className="text-caption text-charcoal/30 dark:text-white/30 text-right -mt-2">
           Last saved {format(new Date(procedure.updated_at), 'd MMM yyyy, HH:mm')}
         </p>
       )}

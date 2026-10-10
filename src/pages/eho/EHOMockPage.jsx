@@ -223,7 +223,7 @@ export default function EHOMockPage() {
         {/* Official rating, for comparison against the mock score below */}
         <div className="no-print rounded-2xl border border-charcoal/10 dark:border-white/10 bg-white dark:bg-paperDark p-5 flex items-center justify-between gap-3">
           <div>
-            <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">Official FHRS Rating</p>
+            <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">Official FHRS Rating</p>
             <p className="text-sm text-charcoal dark:text-white mt-1">
               {venueSettings.fhrs_rating != null
                 ? <>Rated <span className="font-semibold">{venueSettings.fhrs_rating}/5</span>{venueSettings.fhrs_rated_at ? ` on ${format(new Date(venueSettings.fhrs_rated_at), 'd MMM yyyy')}` : ''}</>
@@ -242,7 +242,7 @@ export default function EHOMockPage() {
         {/* Live score bar */}
         <div className={`rounded-2xl border p-5 ${readOnly ? scoreBg(pct) : 'bg-white dark:bg-paperDark border-charcoal/10 dark:border-white/10'}`}>
           <div className="flex items-center justify-between mb-2">
-            <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">
+            <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">
               {readOnly
               ? `Final Score${naCount > 0 ? ` · ${naCount} N/A` : ''}`
               : `Progress · ${answeredCount}/${allQuestions.length} answered${naCount > 0 ? ` · ${naCount} N/A` : ''}`
@@ -267,7 +267,7 @@ export default function EHOMockPage() {
         {SECTIONS.map((section) => (
           <div key={section.id} className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 overflow-hidden">
             <div className="px-5 py-4 border-b border-charcoal/8 dark:border-white/8 bg-charcoal/2 dark:bg-white/3">
-              <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">{section.label}</p>
+              <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">{section.label}</p>
             </div>
             <div className="flex flex-col divide-y divide-charcoal/6 dark:divide-white/8">
               {section.questions.map((q) => {
@@ -315,7 +315,7 @@ export default function EHOMockPage() {
           <div className="flex flex-col gap-4">
             {/* Final result card */}
             <div className={`rounded-xl border p-6 text-center ${scoreBg(pct)}`}>
-              <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-2">Your Mock Inspection Score</p>
+              <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-2">Your Mock Inspection Score</p>
               <p className={`text-4xl font-bold font-semibold ${scoreColor}`}>{pct}<span className="text-2xl">/100</span></p>
               <p className={`text-base font-semibold mt-2 ${scoreColor}`}>{scoreLabel_}</p>
               <p className="text-xs text-charcoal/40 dark:text-white/35 mt-1">
@@ -329,7 +329,7 @@ export default function EHOMockPage() {
             {failedQuestions.length > 0 && (
               <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 overflow-hidden">
                 <div className="px-5 py-4 border-b border-charcoal/8 dark:border-white/8">
-                  <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">Areas to Improve</p>
+                  <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">Areas to Improve</p>
                 </div>
                 <div className="flex flex-col divide-y divide-charcoal/6 dark:divide-white/8">
                   {failedQuestions.map((q) => {
@@ -340,7 +340,7 @@ export default function EHOMockPage() {
                           {ans === 'partial' ? '~' : <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>}
                         </span>
                         <p className="text-sm text-charcoal/70 dark:text-white/60">{q.text}</p>
-                        <span className={`text-[11px] tracking-widest uppercase shrink-0 ${ans === 'partial' ? 'text-warning' : 'text-danger'}`}>
+                        <span className={`text-micro tracking-widest uppercase shrink-0 ${ans === 'partial' ? 'text-warning' : 'text-danger'}`}>
                           {ans === 'partial' ? 'Partial' : 'Fail'}
                         </span>
                       </div>
@@ -377,7 +377,7 @@ export default function EHOMockPage() {
         {/* History */}
         <div className="no-print bg-white dark:bg-paperDark rounded-2xl border border-charcoal/10 dark:border-white/10 overflow-hidden">
           <div className="px-5 py-4 border-b border-charcoal/8 dark:border-white/8">
-            <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">Previous inspections</p>
+            <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">Previous inspections</p>
           </div>
           {unavailable ? (
             <p className="px-5 py-4 text-sm text-danger">

@@ -76,7 +76,7 @@ function StatePill({ clockStatus, todayShift }) {
   }
 
   return (
-    <span className={`inline-flex items-center gap-[5px] px-[9px] py-[3px] rounded-full font-mono text-[11px] font-bold tracking-[0.06em] ${pillClass}`}>
+    <span className={`inline-flex items-center gap-[5px] px-[9px] py-[3px] rounded-full font-mono text-micro font-bold tracking-[0.06em] ${pillClass}`}>
       <span className="w-[5px] h-[5px] rounded-[3px] bg-current" />
       {label}
     </span>
@@ -103,16 +103,16 @@ function LiveTimer({ clockInAt, breakStartAt, totalBreakMs, status }) {
   return (
     <div className="mt-3.5 pt-3 border-t border-white/12">
       <div className="flex justify-between items-center">
-        <span className="font-mono text-[11px] text-white/45 tracking-[0.08em] uppercase font-semibold">
+        <span className="font-mono text-micro text-white/45 tracking-[0.08em] uppercase font-semibold">
           {status === 'on_break' ? 'Break elapsed' : 'Clocked in · elapsed'}
         </span>
-        <span className="font-mono text-[19px] font-semibold tabular-nums tracking-[-0.01em]">
+        <span className="font-mono text-title-sm font-semibold tabular-nums tracking-[-0.01em]">
           {status === 'on_break' && breakStartAt ? fmtElapsed(currentBreakMs) : fmtElapsed(workingMs)}
         </span>
       </div>
       {totalBreakMs > 0 && status !== 'on_break' && (
         <div className="flex justify-between mt-[5px]">
-          <span className="font-mono text-[11px] text-white/35 tracking-[0.08em] uppercase">
+          <span className="font-mono text-micro text-white/35 tracking-[0.08em] uppercase">
             Breaks used
           </span>
           <span className="font-mono text-xs text-white/65 tabular-nums">
@@ -136,24 +136,24 @@ function ShiftHeroCard({ todayShift, hourlyRate, staffId }) {
     <div className="bg-brand text-white rounded-[14px] overflow-hidden">
       <div className="p-[18px_18px_0]">
         <div className="flex justify-between items-center">
-          <span className="font-mono text-[11px] text-white/45 tracking-[0.1em] uppercase font-semibold">
+          <span className="font-mono text-micro text-white/45 tracking-[0.1em] uppercase font-semibold">
             Your shift
           </span>
           <StatePill clockStatus={status} todayShift={todayShift} />
         </div>
 
         {todayShift ? (
-          <div className="font-mono text-[30px] font-medium tracking-[-0.025em] mt-2 tabular-nums leading-[1.05]">
+          <div className="font-mono text-display font-medium tracking-[-0.025em] mt-2 tabular-nums leading-[1.05]">
             {todayShift.start_time.slice(0, 5)} — {todayShift.end_time.slice(0, 5)}
           </div>
         ) : (
-          <div className="text-[22px] font-medium mt-2 text-white/55">
+          <div className="text-title font-medium mt-2 text-white/55">
             No shift today
           </div>
         )}
 
         {todayShift && (
-          <div className="flex items-center gap-2.5 mt-1 text-white/55 text-[13px]">
+          <div className="flex items-center gap-2.5 mt-1 text-white/55 text-body-sm">
             {todayShift.role_label && <span>{todayShift.role_label}</span>}
             {todayShift.role_label && durationH && <span className="text-white/20">·</span>}
             {durationH && <span className="font-mono">{durationH}h</span>}
@@ -257,7 +257,7 @@ function QuickLogRow({ venueSlug, isEnabled, hasPermission }) {
 
   return (
     <div>
-      <p className="text-[11px] font-mono tracking-widest uppercase text-charcoal/40 dark:text-white/35 px-1 mb-2">Log quickly</p>
+      <p className="text-micro font-mono tracking-widest uppercase text-charcoal/40 dark:text-white/35 px-1 mb-2">Log quickly</p>
       <div className="grid grid-cols-3 gap-2">
         {buttons.map(b => (
           <Link
@@ -268,7 +268,7 @@ function QuickLogRow({ venueSlug, isEnabled, hasPermission }) {
             <span className="w-8 h-8 rounded-lg bg-brand/8 text-brand flex items-center justify-center">
               {b.icon}
             </span>
-            <span className="text-[12px] text-charcoal/70 dark:text-white/60 font-medium leading-tight">{b.label}</span>
+            <span className="text-caption text-charcoal/70 dark:text-white/60 font-medium leading-tight">{b.label}</span>
           </Link>
         ))}
       </div>
@@ -310,7 +310,7 @@ function DutyItemRow({ item, assignmentId, toggleItem }) {
           </svg>
         )}
       </span>
-      <span className={`text-[13.5px] leading-snug flex-1 ${item.completed ? 'line-through text-charcoal/35 dark:text-white/30' : 'text-charcoal dark:text-white font-medium'}`}>
+      <span className={`text-body leading-snug flex-1 ${item.completed ? 'line-through text-charcoal/35 dark:text-white/30' : 'text-charcoal dark:text-white font-medium'}`}>
         {item.title}
       </span>
       {!item.completed && (
@@ -333,11 +333,11 @@ function DutyCard({ duty, toggleItem }) {
       {/* Header */}
       <div className="flex items-center justify-between px-4 pt-3.5 pb-3 border-b border-charcoal/6 dark:border-white/8">
         <div className="flex items-center gap-2 min-w-0">
-          <span className="font-mono text-[11px] text-charcoal/40 dark:text-white/35 tracking-widest uppercase font-semibold shrink-0">Duty</span>
+          <span className="font-mono text-micro text-charcoal/40 dark:text-white/35 tracking-widest uppercase font-semibold shrink-0">Duty</span>
           <span className="text-charcoal/25 dark:text-white/25 text-xs">·</span>
-          <p className="text-[15px] font-semibold text-charcoal dark:text-white truncate">{duty.title}</p>
+          <p className="text-body-lg font-semibold text-charcoal dark:text-white truncate">{duty.title}</p>
         </div>
-        <span className={`text-[11px] font-mono font-semibold shrink-0 ml-2 ${allDone ? 'text-success' : 'text-charcoal/35 dark:text-white/30'}`}>
+        <span className={`text-micro font-mono font-semibold shrink-0 ml-2 ${allDone ? 'text-success' : 'text-charcoal/35 dark:text-white/30'}`}>
           {done}/{total}
         </span>
       </div>
@@ -437,7 +437,7 @@ function TodayDuties({ staffId }) {
   if (loading || !duties.length) return null
   return (
     <div className="flex flex-col gap-2.5">
-      <p className="text-[11px] font-mono tracking-widest uppercase text-charcoal/40 dark:text-white/35 px-1">Your duties today</p>
+      <p className="text-micro font-mono tracking-widest uppercase text-charcoal/40 dark:text-white/35 px-1">Your duties today</p>
       {duties.map(d => (
         <DutyCard key={d.assignmentId} duty={d} toggleItem={toggleItem} />
       ))}
@@ -459,10 +459,10 @@ function NotificationsCard({ staffId, venueId }) {
         </svg>
       </span>
       <div className="flex-1 min-w-0">
-        <p className="text-[13px] font-semibold text-charcoal dark:text-white">Notifications</p>
+        <p className="text-body-sm font-semibold text-charcoal dark:text-white">Notifications</p>
         {subscribed
-          ? <p className="text-[11px] text-success mt-0.5 font-medium">Push notifications enabled</p>
-          : <p className="text-[11px] text-charcoal/45 dark:text-white/40 mt-0.5">Get notified about rota changes and shift updates.</p>
+          ? <p className="text-caption text-success mt-0.5 font-medium">Push notifications enabled</p>
+          : <p className="text-caption text-charcoal/45 dark:text-white/40 mt-0.5">Get notified about rota changes and shift updates.</p>
         }
       </div>
       {subscribed ? (
@@ -587,11 +587,11 @@ function TodayChecks({ venueId, venueSlug, staffName }) {
         onClick={() => !allDone && setOpen(v => !v)}
         className={`flex items-center justify-between w-full px-0.5 py-1 ${allDone ? 'cursor-default' : 'group'}`}
       >
-        <span className="text-[11px] font-mono tracking-widest uppercase text-charcoal/40 dark:text-white/35 font-semibold">
+        <span className="text-micro font-mono tracking-widest uppercase text-charcoal/40 dark:text-white/35 font-semibold">
           {sessionType === 'opening' ? 'Opening Checks' : 'Closing Checks'}
         </span>
         <div className="flex items-center gap-2">
-          <span className={`text-[11px] font-mono ${allDone ? 'text-success font-semibold' : 'text-charcoal/35 dark:text-white/30'}`}>
+          <span className={`text-micro font-mono ${allDone ? 'text-success font-semibold' : 'text-charcoal/35 dark:text-white/30'}`}>
             {done}/{total}
           </span>
           {!allDone && (
@@ -617,10 +617,10 @@ function TodayChecks({ venueId, venueSlug, staffName }) {
       {/* All done — compact confirmation row */}
       {allDone && (
         <div className="bg-success/8 rounded-[14px] px-4 py-3 flex items-center gap-2">
-          <span className="text-success text-[13px] font-semibold">All checks completed</span>
+          <span className="text-success text-body-sm font-semibold">All checks completed</span>
           <a
             href={`/v/${venueSlug}/opening-closing`}
-            className="ml-auto text-[11px] font-semibold text-success/70 hover:text-success transition-colors"
+            className="ml-auto text-micro font-semibold text-success/70 hover:text-success transition-colors"
           >
             View →
           </a>
@@ -632,21 +632,21 @@ function TodayChecks({ venueId, venueSlug, staffName }) {
         <div className="bg-white dark:bg-paperDark rounded-[14px] border border-charcoal/8 dark:border-white/8 overflow-hidden">
           {pendingChecks.map((check, i) => (
             <div key={check.id} className={`px-4 py-3 flex items-center gap-3 ${i > 0 ? 'border-t border-charcoal/5 dark:border-white/5' : ''}`}>
-              <p className={`text-[13.5px] flex-1 font-medium ${tickedThisVisit.has(check.id) ? 'text-charcoal/40 dark:text-white/35 line-through' : 'text-charcoal dark:text-white'}`}>{check.title}</p>
+              <p className={`text-body flex-1 font-medium ${tickedThisVisit.has(check.id) ? 'text-charcoal/40 dark:text-white/35 line-through' : 'text-charcoal dark:text-white'}`}>{check.title}</p>
               {tickedThisVisit.has(check.id) ? (
-                <span className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-success/10 text-success shrink-0">✓ Done</span>
+                <span className="px-2.5 py-1 rounded-full text-micro font-semibold bg-success/10 text-success shrink-0">✓ Done</span>
               ) : (
               <div className="flex gap-1.5 shrink-0">
                 <button
                   onClick={() => markOk(check.id)}
                   disabled={!!saving}
-                  className="px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all bg-charcoal/6 dark:bg-white/8 text-charcoal/45 dark:text-white/40 hover:bg-success/10 hover:text-success disabled:opacity-40"
+                  className="px-2.5 py-1 rounded-full text-micro font-semibold transition-all bg-charcoal/6 dark:bg-white/8 text-charcoal/45 dark:text-white/40 hover:bg-success/10 hover:text-success disabled:opacity-40"
                 >
                   {saving === check.id ? '…' : '✓ OK'}
                 </button>
                 <a
                   href={`/v/${venueSlug}/opening-closing`}
-                  className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-charcoal/6 dark:bg-white/8 text-charcoal/45 dark:text-white/40 hover:bg-warning/10 hover:text-warning transition-all"
+                  className="px-2.5 py-1 rounded-full text-micro font-semibold bg-charcoal/6 dark:bg-white/8 text-charcoal/45 dark:text-white/40 hover:bg-warning/10 hover:text-warning transition-all"
                 >
                   ⚠ Issue
                 </a>
@@ -656,7 +656,7 @@ function TodayChecks({ venueId, venueSlug, staffName }) {
           ))}
           <a
             href={`/v/${venueSlug}/opening-closing`}
-            className="flex items-center justify-between px-4 py-3 border-t border-charcoal/5 dark:border-white/5 text-[12px] font-semibold text-brand hover:bg-brand/3 transition-colors"
+            className="flex items-center justify-between px-4 py-3 border-t border-charcoal/5 dark:border-white/5 text-caption font-semibold text-brand hover:bg-brand/3 transition-colors"
           >
             View full checks
             <svg width="6" height="10" viewBox="0 0 6 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -811,8 +811,8 @@ export default function StaffDashboardPage() {
 
       {/* Page header */}
       <div className="flex items-baseline justify-between px-0.5">
-        <span className="text-[11px] font-mono tracking-widest uppercase text-charcoal/40 dark:text-white/35 font-semibold">My Shift</span>
-        <span className="text-[11px] font-mono text-charcoal/35 dark:text-white/30">{dateLabel}</span>
+        <span className="text-micro font-mono tracking-widest uppercase text-charcoal/40 dark:text-white/35 font-semibold">My Shift</span>
+        <span className="text-micro font-mono text-charcoal/35 dark:text-white/30">{dateLabel}</span>
       </div>
 
       {/* Greeting */}
@@ -821,7 +821,7 @@ export default function StaffDashboardPage() {
         const salutation = h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening'
         const first = session.staffName?.split(' ')[0]
         return (
-          <h1 className="text-[26px] font-medium tracking-[-0.025em] text-charcoal dark:text-white leading-tight px-0.5">
+          <h1 className="text-display font-medium tracking-[-0.025em] text-charcoal dark:text-white leading-tight px-0.5">
             {salutation}{first ? `, ${first}` : ''}
           </h1>
         )
@@ -843,10 +843,10 @@ export default function StaffDashboardPage() {
       {/* If clock-in is locked, show shift info in a simpler card */}
       {isPlanLocked('clock-in') && todayShift && (
         <div className="bg-brand text-white rounded-[14px] p-5">
-          <span className="font-mono text-[11px] text-white/45 tracking-[0.1em] uppercase font-semibold">
+          <span className="font-mono text-micro text-white/45 tracking-[0.1em] uppercase font-semibold">
             Your shift today
           </span>
-          <div className="font-mono text-[28px] font-medium mt-2 tabular-nums">
+          <div className="font-mono text-display font-medium mt-2 tabular-nums">
             {todayShift.start_time.slice(0, 5)} — {todayShift.end_time.slice(0, 5)}
           </div>
           {todayShift.role_label && (

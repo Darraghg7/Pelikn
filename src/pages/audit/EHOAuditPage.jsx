@@ -22,7 +22,7 @@ function StatRow({ label, value, sub, warn }) {
       <span className="text-sm text-charcoal/70 dark:text-white/60">{label}</span>
       <div className="text-right">
         <span className={`text-sm font-semibold ${warn ? 'text-danger' : 'text-charcoal dark:text-white'}`}>{value}</span>
-        {sub && <p className="text-[11px] text-charcoal/35 dark:text-white/30">{sub}</p>}
+        {sub && <p className="text-caption text-charcoal/35 dark:text-white/30">{sub}</p>}
       </div>
     </div>
   )
@@ -37,7 +37,7 @@ function DrillTable({ headers, rows }) {
         <thead>
           <tr>
             {headers.map(h => (
-              <th key={h} className="text-left text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 font-medium pb-2 pr-3 border-b border-charcoal/8 dark:border-white/8">{h}</th>
+              <th key={h} className="text-left text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 font-medium pb-2 pr-3 border-b border-charcoal/8 dark:border-white/8">{h}</th>
             ))}
             {hasAction && <th className="border-b border-charcoal/8 dark:border-white/8 pb-2" />}
           </tr>
@@ -83,12 +83,12 @@ function SectionCard({ title, status, children, sectionId, openSection, onToggle
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <span className={`w-2 h-2 rounded-full shrink-0 ${dotColors[status] ?? dotColors.neutral}`} />
-            <h3 className="text-[11px] font-bold tracking-widest uppercase text-charcoal/50 dark:text-white/40">{title}</h3>
+            <h3 className="text-micro font-bold tracking-widest uppercase text-charcoal/50 dark:text-white/40">{title}</h3>
           </div>
           {failCount > 0 && sectionId && (
             <button
               onClick={() => onToggle(sectionId)}
-              className={`text-[11px] font-semibold px-2.5 py-1 rounded-full transition-colors ${
+              className={`text-micro font-semibold px-2.5 py-1 rounded-full transition-colors ${
                 isOpen
                   ? 'text-charcoal/50 dark:text-white/40 bg-charcoal/8 dark:bg-white/8'
                   : status === 'bad' ? 'text-danger bg-danger/10 hover:bg-danger/15'
@@ -223,13 +223,13 @@ export default function EHOAuditPage() {
               <p className={`font-bold text-sm ${overall === 'good' ? 'text-success' : overall === 'warning' ? 'text-warning' : 'text-danger'}`}>
                 {overall === 'good' ? 'Exemplary — ready for inspection' : overallLabels[overall]}
               </p>
-              <p className="text-[11px] text-charcoal/40 dark:text-white/35 mt-0.5">Score calculated at {format(new Date(), 'dd/MM/yy HH:mm')}</p>
+              <p className="text-caption text-charcoal/40 dark:text-white/35 mt-0.5">Score calculated at {format(new Date(), 'dd/MM/yy HH:mm')}</p>
             </div>
           </div>
 
           {/* Overall score card */}
           <div className="bg-white dark:bg-paperDark rounded-2xl p-5">
-            <p className="text-[11px] font-bold tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-3">Overall Score</p>
+            <p className="text-micro font-bold tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-3">Overall Score</p>
             <div className="flex items-baseline gap-2 mb-3">
               <span className="text-4xl font-bold text-midgreen">{overallScore}%</span>
               {overallScore >= 80 && (
@@ -244,15 +244,15 @@ export default function EHOAuditPage() {
             </div>
             <div className="grid grid-cols-3 gap-3 pt-3 border-t border-charcoal/6 dark:border-white/8">
               <div className="text-center">
-                <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-0.5">Points</p>
+                <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-0.5">Points</p>
                 <p className="font-bold text-charcoal dark:text-white text-base">{Math.round(scorePoints)}</p>
               </div>
               <div className="text-center">
-                <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-0.5">Max</p>
+                <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-0.5">Max</p>
                 <p className="font-bold text-charcoal dark:text-white text-base">{scoreMax}</p>
               </div>
               <div className="text-center">
-                <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-0.5">Rate</p>
+                <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-0.5">Rate</p>
                 <p className="font-bold text-midgreen text-base">{overallScore}%</p>
               </div>
             </div>
@@ -274,7 +274,7 @@ export default function EHOAuditPage() {
               <StatRow label="Failed readings" value={data.tempFails} warn={data.tempFails > 0} />
               {openSection === 'temps' && data.failedTemps.length > 0 && (
                 <div className="mt-3 pt-3 border-t border-charcoal/10 dark:border-white/10">
-                  <p className="text-[11px] text-charcoal/40 dark:text-white/35 mb-2">These readings are out of range with no accepted explanation. Mark as resolved once actioned.</p>
+                  <p className="text-caption text-charcoal/40 dark:text-white/35 mb-2">These readings are out of range with no accepted explanation. Mark as resolved once actioned.</p>
                   <DrillTable
                     headers={['Date', 'Time', 'Fridge', 'Temp', 'Reason', 'Recorded By']}
                     rows={data.failedTemps.map(t => ({
@@ -464,7 +464,7 @@ export default function EHOAuditPage() {
 
           {/* EHO Inspection Report */}
           <div className="bg-white dark:bg-paperDark rounded-2xl px-5 py-4">
-            <p className="text-[11px] font-bold tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-1">EHO Inspection Report</p>
+            <p className="text-micro font-bold tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-1">EHO Inspection Report</p>
             <p className="text-xs text-charcoal/45 dark:text-white/40 mb-3">One comprehensive PDF covering all compliance areas — ready to show an EHO inspector.</p>
             <Button
               fullWidth
@@ -476,7 +476,7 @@ export default function EHOAuditPage() {
 
           {/* Data Export */}
           <div className="bg-white dark:bg-paperDark rounded-2xl px-5 py-4">
-            <p className="text-[11px] font-bold tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-3">Export Records (PDF)</p>
+            <p className="text-micro font-bold tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-3">Export Records (PDF)</p>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               {[
                 { label: 'Temp Logs',  fn: () => exportTempLogs(venueId, range) },
@@ -499,7 +499,7 @@ export default function EHOAuditPage() {
 
           {/* Guidance note */}
           <div className="bg-white dark:bg-paperDark rounded-2xl px-5 py-4">
-            <p className="text-[11px] font-bold tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-2">EHO Inspection Tips</p>
+            <p className="text-micro font-bold tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-2">EHO Inspection Tips</p>
             <ul className="text-xs text-charcoal/50 dark:text-white/40 space-y-1.5 list-disc list-inside">
               <li>Ensure all fridge temps are logged at least twice daily (opening and closing)</li>
               <li>Every delivery should have a temperature check recorded</li>

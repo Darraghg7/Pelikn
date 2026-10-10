@@ -47,7 +47,7 @@ const APPROVAL_LABELS = {
 function CategoryBadge({ category }) {
   const cls = CATEGORY_STYLES[category] ?? CATEGORY_STYLES.other
   return (
-    <span className={`text-[11px] tracking-widest uppercase font-semibold px-2 py-0.5 rounded border ${cls}`}>
+    <span className={`text-micro tracking-widest uppercase font-semibold px-2 py-0.5 rounded border ${cls}`}>
       {CATEGORY_LABELS[category] ?? category}
     </span>
   )
@@ -57,7 +57,7 @@ function ApprovalBadge({ status }) {
   const s = status ?? 'pending'
   const cls = APPROVAL_STYLES[s] ?? APPROVAL_STYLES.pending
   return (
-    <span className={`text-[11px] tracking-widest uppercase font-semibold px-2 py-0.5 rounded border ${cls}`}>
+    <span className={`text-micro tracking-widest uppercase font-semibold px-2 py-0.5 rounded border ${cls}`}>
       {APPROVAL_LABELS[s] ?? s}
     </span>
   )
@@ -151,7 +151,7 @@ function SupplierModal({ supplier, venueId, onSaved, onClose }) {
         </div>
         <form onSubmit={submit} className="flex flex-col gap-4 p-6 overflow-y-auto">
           <div className="flex flex-col gap-1.5">
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">Name <span className="text-danger">*</span></label>
+            <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">Name <span className="text-danger">*</span></label>
             <input
               type="text"
               value={form.name}
@@ -162,7 +162,7 @@ function SupplierModal({ supplier, venueId, onSaved, onClose }) {
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">Category</label>
+            <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">Category</label>
             <div className="flex flex-wrap gap-2">
               {CATEGORIES.map((cat) => (
                 <button
@@ -184,7 +184,7 @@ function SupplierModal({ supplier, venueId, onSaved, onClose }) {
 
           {/* Approval status */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">Approval Status</label>
+            <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">Approval Status</label>
             <div className="flex gap-2">
               {['pending', 'approved', 'suspended'].map((s) => (
                 <button
@@ -207,7 +207,7 @@ function SupplierModal({ supplier, venueId, onSaved, onClose }) {
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">Contact Name</label>
+            <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">Contact Name</label>
             <input
               type="text"
               value={form.contact_name}
@@ -219,7 +219,7 @@ function SupplierModal({ supplier, venueId, onSaved, onClose }) {
 
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1.5">
-              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">Phone</label>
+              <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">Phone</label>
               <input
                 type="tel"
                 value={form.phone}
@@ -229,7 +229,7 @@ function SupplierModal({ supplier, venueId, onSaved, onClose }) {
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">Email</label>
+              <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">Email</label>
               <input
                 type="email"
                 value={form.email}
@@ -242,10 +242,10 @@ function SupplierModal({ supplier, venueId, onSaved, onClose }) {
 
           {/* Food safety certificate */}
           <div className="flex flex-col gap-2 p-4 bg-charcoal/3 dark:bg-white/5 rounded-xl border border-charcoal/8 dark:border-white/8">
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">Food Safety Certificate</label>
+            <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">Food Safety Certificate</label>
             <div className="grid grid-cols-2 gap-3">
               <div className="flex flex-col gap-1">
-                <label className="text-[11px] text-charcoal/35 dark:text-white/30 uppercase tracking-wider">Expiry Date</label>
+                <label className="text-micro text-charcoal/35 dark:text-white/30 uppercase tracking-wider">Expiry Date</label>
                 <input
                   type="date"
                   value={form.food_safety_cert_expiry}
@@ -254,7 +254,7 @@ function SupplierModal({ supplier, venueId, onSaved, onClose }) {
                 />
               </div>
               <div className="flex flex-col gap-1">
-                <label className="text-[11px] text-charcoal/35 dark:text-white/30 uppercase tracking-wider">Upload Certificate</label>
+                <label className="text-micro text-charcoal/35 dark:text-white/30 uppercase tracking-wider">Upload Certificate</label>
                 <input
                   type="file"
                   accept="image/*,.pdf,.doc,.docx"
@@ -271,7 +271,7 @@ function SupplierModal({ supplier, venueId, onSaved, onClose }) {
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">Notes</label>
+            <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">Notes</label>
             <textarea
               value={form.notes}
               onChange={(e) => set('notes', e.target.value)}

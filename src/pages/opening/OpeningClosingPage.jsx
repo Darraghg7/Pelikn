@@ -91,14 +91,14 @@ function IssueModal({ check, onConfirm, onCancel, saving }) {
         style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}
       >
         <div>
-          <p className="text-[11px] tracking-widest uppercase text-warning mb-1">Issue Flagged</p>
+          <p className="text-micro tracking-widest uppercase text-warning mb-1">Issue Flagged</p>
           <h3 className="font-semibold text-charcoal dark:text-white text-lg">{check.title}</h3>
           <p className="text-xs text-charcoal/40 dark:text-white/35 mt-1">
             Describe what corrective action was taken. This will appear in the audit log.
           </p>
         </div>
         <div>
-          <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">
+          <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">
             Corrective Action Taken <span className="text-danger">*</span>
           </label>
           <textarea
@@ -171,17 +171,17 @@ function CheckRow({ check, completion, onOK, onIssue, readOnly, isManager, onRem
 
       {/* Title + meta */}
       <div className="flex-1 min-w-0">
-        <p className={`text-[15px] font-medium tracking-[-0.01em] leading-snug break-words ${done ? 'text-charcoal/60 dark:text-white/50' : 'text-charcoal dark:text-white'}`}>
+        <p className={`text-body-lg font-medium tracking-[-0.01em] leading-snug break-words ${done ? 'text-charcoal/60 dark:text-white/50' : 'text-charcoal dark:text-white'}`}>
           {check.title}
         </p>
         {done && completion.staff_name && (
-          <p className="text-[11.5px] text-charcoal/35 dark:text-white/30 mt-0.5 break-words">
+          <p className="text-caption text-charcoal/35 dark:text-white/30 mt-0.5 break-words">
             {completion.staff_name} · {format(new Date(completion.completed_at), 'HH:mm')}
             {hasIssue && completion.corrective_action && <span className="text-warning/70 italic"> · "{completion.corrective_action}"</span>}
           </p>
         )}
         {!done && readOnly && (
-          <p className="text-[11.5px] text-charcoal/30 dark:text-white/30 italic mt-0.5">Not recorded</p>
+          <p className="text-caption text-charcoal/30 dark:text-white/30 italic mt-0.5">Not recorded</p>
         )}
       </div>
 
@@ -190,7 +190,7 @@ function CheckRow({ check, completion, onOK, onIssue, readOnly, isManager, onRem
         <button
           onClick={() => onIssue(check)}
           disabled={saving}
-          className="shrink-0 text-[11px] font-bold tracking-wide uppercase text-warning/70 hover:text-warning transition-colors disabled:opacity-50 px-1 mt-1"
+          className="shrink-0 text-micro font-bold tracking-wide uppercase text-warning/70 hover:text-warning transition-colors disabled:opacity-50 px-1 mt-1"
         >
           Issue
         </button>
@@ -239,9 +239,9 @@ function CheckSection({ type, label, departmentId, departmentName, checks, compl
       <div className="flex items-center justify-between px-5 pt-4 pb-3">
         <div>
           {departmentName && (
-            <p className="text-[10px] font-bold tracking-widest uppercase text-brand dark:text-accent mb-1">{departmentName}</p>
+            <p className="text-micro font-bold tracking-widest uppercase text-brand dark:text-accent mb-1">{departmentName}</p>
           )}
-          <p className="text-[11px] font-bold tracking-widest uppercase text-charcoal/50 dark:text-white/40">{label}</p>
+          <p className="text-micro font-bold tracking-widest uppercase text-charcoal/50 dark:text-white/40">{label}</p>
           <p className="text-xs text-charcoal/40 dark:text-white/35 mt-0.5">
             {doneCount}/{typeChecks.length} recorded
             {issueCount > 0 && (
@@ -251,12 +251,12 @@ function CheckSection({ type, label, departmentId, departmentName, checks, compl
         </div>
         <div className="flex items-center gap-2">
           {allDone && issueCount === 0 && (
-            <span className="text-[11px] font-bold tracking-widest uppercase text-success bg-success/10 px-2.5 py-1 rounded-full">
+            <span className="text-micro font-bold tracking-widest uppercase text-success bg-success/10 px-2.5 py-1 rounded-full">
               <span className="inline-flex items-center gap-1">All Clear <svg className="w-3 h-3" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg></span>
             </span>
           )}
           {allDone && issueCount > 0 && (
-            <span className="text-[11px] font-bold tracking-widest uppercase text-warning bg-warning/10 px-2.5 py-1 rounded-full">
+            <span className="text-micro font-bold tracking-widest uppercase text-warning bg-warning/10 px-2.5 py-1 rounded-full">
               <span className="inline-flex items-center gap-1">Complete <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
             </span>
           )}
@@ -366,7 +366,7 @@ function DateSelector({ value, onChange }) {
             onClick={() => onChange(d)}
             disabled={d > today}
             className={[
-              'flex-1 py-2 px-2 rounded-xl text-[12px] font-semibold transition-colors text-center truncate',
+              'flex-1 py-2 px-2 rounded-xl text-caption font-semibold transition-colors text-center truncate',
               d === value
                 ? 'bg-brand text-white'
                 : d > today
@@ -521,7 +521,7 @@ export default function OpeningClosingPage() {
       {/* Page header */}
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-[11px] font-medium tracking-widest uppercase text-charcoal/40 dark:text-white/35">{dateLabel}</p>
+          <p className="text-micro font-medium tracking-widest uppercase text-charcoal/40 dark:text-white/35">{dateLabel}</p>
           <h1 className="text-2xl font-bold text-charcoal dark:text-white mt-0.5">Opening &amp; Closing</h1>
         </div>
         {isManager && (
@@ -541,7 +541,7 @@ export default function OpeningClosingPage() {
       {/* The clock-out sign-off is set in Compliance settings; say here, where
           the checklist is built, whether it's switched on. */}
       {isManager && (
-        <p className="text-[12px] text-charcoal/50 dark:text-white/40 px-1">
+        <p className="text-caption text-charcoal/50 dark:text-white/40 px-1">
           Closers sign off before clocking out: <span className="font-semibold text-charcoal/70 dark:text-white/60">{enforceClosingChecklist ? 'On' : 'Off'}</span>
           {' · '}
           <Link to={`/v/${venueSlug}/settings/compliance#closing-checklist`} className="underline underline-offset-2 hover:text-charcoal dark:hover:text-white">Change</Link>
@@ -552,7 +552,7 @@ export default function OpeningClosingPage() {
       <div className="flex flex-col gap-2">
         <DateSelector value={selectedDate} onChange={setSelectedDate} />
         {isPast && (
-          <p className="text-[11px] text-charcoal/40 dark:text-white/35 italic px-1">
+          <p className="text-caption text-charcoal/40 dark:text-white/35 italic px-1">
             Retroactive entry — checks will be logged against {format(parseISO(selectedDate), 'd MMM yyyy')}.
           </p>
         )}

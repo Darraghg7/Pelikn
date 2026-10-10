@@ -22,8 +22,8 @@ import Button from '../../components/ui/Button'
 const CATEGORY_LABEL = Object.fromEntries(DOCUMENT_CATEGORIES.map(c => [c.value, c.label]))
 const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
 
-const FIELD_LABEL = 'block text-[12px] font-semibold tracking-[0.08em] uppercase text-ink3 dark:text-white/45 mb-2'
-const TEXT_FIELD  = 'w-full h-9 px-3.5 rounded-xl border border-line dark:border-white/10 bg-cream dark:bg-white/5 text-[13px] text-ink dark:text-white placeholder:text-ink4 dark:placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand/40 focus:bg-white dark:focus:bg-white/10 transition-colors'
+const FIELD_LABEL = 'block text-caption font-semibold tracking-[0.08em] uppercase text-ink3 dark:text-white/45 mb-2'
+const TEXT_FIELD  = 'w-full h-9 px-3.5 rounded-xl border border-line dark:border-white/10 bg-cream dark:bg-white/5 text-body-sm text-ink dark:text-white placeholder:text-ink4 dark:placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand/40 focus:bg-white dark:focus:bg-white/10 transition-colors'
 
 // Expired first, then expiring soonest-first, then the rest A–Z, undated last
 const STATUS_RANK = { expired: 0, expiring: 1, valid: 2, none: 3 }
@@ -41,7 +41,7 @@ function StatusPill({ status, daysLeft }) {
     none:     { label: 'No expiry', cls: 'bg-line2 text-ink3 dark:bg-white/10 dark:text-white/50' },
   }[status]
   return (
-    <span className={`shrink-0 h-7 px-3 min-[420px]:px-3.5 rounded-full inline-flex items-center text-[13px] font-semibold whitespace-nowrap ${pill.cls}`}>
+    <span className={`shrink-0 h-7 px-3 min-[420px]:px-3.5 rounded-full inline-flex items-center text-body-sm font-semibold whitespace-nowrap ${pill.cls}`}>
       {pill.label}
     </span>
   )
@@ -54,14 +54,14 @@ function FilterChip({ active, label, count, onClick }) {
       aria-pressed={active}
       onClick={onClick}
       className={[
-        'h-8 px-3.5 rounded-full border inline-flex items-center gap-2 text-[13px] font-semibold transition-colors',
+        'h-8 px-3.5 rounded-full border inline-flex items-center gap-2 text-body-sm font-semibold transition-colors',
         active
           ? 'bg-brand border-brand text-white'
           : 'bg-white dark:bg-paperDark border-line dark:border-white/10 text-ink2 dark:text-white/75 hover:border-ink4',
       ].join(' ')}
     >
       {label}
-      <span className={`font-mono text-[13px] ${active ? 'text-white/70' : 'text-ink4 dark:text-white/35'}`}>{count}</span>
+      <span className={`font-mono text-body-sm ${active ? 'text-white/70' : 'text-ink4 dark:text-white/35'}`}>{count}</span>
     </button>
   )
 }
@@ -135,13 +135,13 @@ function UploadDocumentModal({ open, onClose, onSaved }) {
           />
           {file ? (
             <>
-              <span className="text-[13px] font-semibold text-ink dark:text-white break-all">{file.name}</span>
-              <span className="text-[13px] text-ink3 dark:text-white/45">Tap to choose a different file</span>
+              <span className="text-body-sm font-semibold text-ink dark:text-white break-all">{file.name}</span>
+              <span className="text-body-sm text-ink3 dark:text-white/45">Tap to choose a different file</span>
             </>
           ) : (
             <>
-              <span className="text-[13px] font-semibold text-ink dark:text-white">Choose a file</span>
-              <span className="text-[13px] text-ink3 dark:text-white/45">PDF, photo or Word document · up to 10 MB</span>
+              <span className="text-body-sm font-semibold text-ink dark:text-white">Choose a file</span>
+              <span className="text-body-sm text-ink3 dark:text-white/45">PDF, photo or Word document · up to 10 MB</span>
             </>
           )}
         </label>
@@ -161,7 +161,7 @@ function UploadDocumentModal({ open, onClose, onSaved }) {
                 aria-pressed={category === c.value}
                 onClick={() => setCategory(c.value)}
                 className={[
-                  'h-8 px-3.5 rounded-full border text-[13px] transition-colors',
+                  'h-8 px-3.5 rounded-full border text-body-sm transition-colors',
                   category === c.value
                     ? 'bg-brand-tint border-brand/40 text-brand font-semibold dark:bg-white/10 dark:text-white dark:border-white/30'
                     : 'bg-white dark:bg-paperDark border-line dark:border-white/10 text-ink2 dark:text-white/75 hover:border-ink4',
@@ -264,7 +264,7 @@ export default function DocumentsPage() {
           onChange={e => setSearch(e.target.value)}
           placeholder="Search documents"
           aria-label="Search documents"
-          className="w-full h-10 pl-12 pr-4 rounded-2xl border border-line dark:border-white/10 bg-white dark:bg-paperDark text-[13px] text-ink dark:text-white placeholder:text-ink4 dark:placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand/40"
+          className="w-full h-10 pl-12 pr-4 rounded-2xl border border-line dark:border-white/10 bg-white dark:bg-paperDark text-body-sm text-ink dark:text-white placeholder:text-ink4 dark:placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand/40"
         />
       </div>
 
@@ -284,18 +284,18 @@ export default function DocumentsPage() {
           className="w-full flex items-center gap-2.5 rounded-2xl bg-warnBg dark:bg-warn/20 px-3.5 sm:px-3.5 py-2 text-left"
         >
           <svg className="shrink-0 w-5 h-5 text-warn dark:text-warnDark" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="14" r="8" /><polyline points="12 10 12 14 14.5 15.5" /><line x1="10" y1="2" x2="14" y2="2" /></svg>
-          <span className="flex-1 min-w-0 text-[13px] min-[420px]:text-[14px] font-semibold text-ink dark:text-white">{bannerText}</span>
-          <span className="shrink-0 text-[13px] min-[420px]:text-[14px] font-semibold text-warn dark:text-warnDark">{attention ? 'Show all' : 'Review'}</span>
+          <span className="flex-1 min-w-0 text-body-sm min-[420px]:text-body font-semibold text-ink dark:text-white">{bannerText}</span>
+          <span className="shrink-0 text-body-sm min-[420px]:text-body font-semibold text-warn dark:text-warnDark">{attention ? 'Show all' : 'Review'}</span>
         </button>
       )}
 
       {/* List */}
       {isError ? (<LoadError what="documents" onRetry={reload} />) : visible.length === 0 ? (
         <div className={`${CARD} px-3.5 py-10 text-center`}>
-          <p className="text-[14px] font-semibold text-ink dark:text-white">
+          <p className="text-body font-semibold text-ink dark:text-white">
             {docs.length === 0 ? 'No documents yet' : 'No matching documents'}
           </p>
-          <p className="text-[13px] text-ink3 dark:text-white/45 mt-1">
+          <p className="text-body-sm text-ink3 dark:text-white/45 mt-1">
             {docs.length === 0
               ? (isManager ? 'Upload your licences, insurance and safety records so they’re ready for an inspection.' : 'Nothing has been uploaded yet.')
               : 'Try a different search or category.'}
@@ -310,12 +310,12 @@ export default function DocumentsPage() {
               onClick={() => openVenueDocument(doc, toast)}
               className="w-full text-left flex items-center gap-2.5 min-[420px]:gap-2.5 px-3.5 sm:px-3.5 py-2.5 hover:bg-cream/60 dark:hover:bg-white/5 transition-colors"
             >
-              <span className="shrink-0 w-9 h-8 min-[420px]:w-9 min-[420px]:h-9 rounded-xl bg-cream dark:bg-white/10 border border-line dark:border-white/10 flex items-end justify-center pb-1.5 font-mono text-[11px] font-bold text-ink2 dark:text-white/70">
+              <span className="shrink-0 w-9 h-8 min-[420px]:w-9 min-[420px]:h-9 rounded-xl bg-cream dark:bg-white/10 border border-line dark:border-white/10 flex items-end justify-center pb-1.5 font-mono text-micro font-bold text-ink2 dark:text-white/70">
                 {fileExt(doc)}
               </span>
               <span className="flex-1 min-w-0">
-                <span className="block text-[13px] min-[420px]:text-[14px] leading-snug font-semibold text-ink dark:text-white line-clamp-2 break-words">{doc.title}</span>
-                <span className="block text-[13px] text-ink3 dark:text-white/45 mt-0.5">
+                <span className="block text-body-sm min-[420px]:text-body leading-snug font-semibold text-ink dark:text-white line-clamp-2 break-words">{doc.title}</span>
+                <span className="block text-body-sm text-ink3 dark:text-white/45 mt-0.5">
                   {CATEGORY_LABEL[doc.category] ?? doc.category} · {doc.expiry_date
                     ? `Expires ${format(parseISO(doc.expiry_date), 'd MMM yyyy')}`
                     : `Added ${format(new Date(doc.created_at), 'd MMM yyyy')}`}

@@ -83,15 +83,15 @@ export default function FridgeBackfillModal({ open, onClose, fridge, dateStr, pe
     <Modal open={open} onClose={onClose} title="Record missed reading">
       <div className="flex flex-col gap-4">
         <div className="rounded-2xl bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 px-4 py-3">
-          <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">{period.toUpperCase()} check</p>
+          <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">{period.toUpperCase()} check</p>
           <p className="text-sm font-semibold text-charcoal dark:text-white mt-0.5">{fridge.name}</p>
           <p className="text-xs text-charcoal/50 dark:text-white/40 mt-0.5">{headerDate}</p>
-          <p className="text-[11px] text-charcoal/40 dark:text-white/35 mt-0.5">Safe range: {fridge.min_temp}–{fridge.max_temp}°C</p>
+          <p className="text-caption text-charcoal/40 dark:text-white/35 mt-0.5">Safe range: {fridge.min_temp}–{fridge.max_temp}°C</p>
         </div>
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1.5">Temperature (°C)</label>
+            <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1.5">Temperature (°C)</label>
             <input
               type="number" step="0.1" min="-30" max="60"
               value={temp}
@@ -105,7 +105,7 @@ export default function FridgeBackfillModal({ open, onClose, fridge, dateStr, pe
             />
           </div>
           <div>
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1.5">Time taken</label>
+            <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1.5">Time taken</label>
             <input
               type="time"
               value={time}
@@ -142,7 +142,7 @@ export default function FridgeBackfillModal({ open, onClose, fridge, dateStr, pe
                   ].join(' ')}
                 >
                   <span>{r.label}</span>
-                  {r.explained && <span className="text-[11px] tracking-wide text-success font-semibold">No penalty</span>}
+                  {r.explained && <span className="text-micro tracking-wide text-success font-semibold">No penalty</span>}
                 </button>
               ))}
             </div>
@@ -175,7 +175,7 @@ export default function FridgeBackfillModal({ open, onClose, fridge, dateStr, pe
           </Button>
         </div>
 
-        <p className="text-[11px] text-charcoal/35 dark:text-white/30 leading-relaxed">
+        <p className="text-caption text-charcoal/35 dark:text-white/30 leading-relaxed">
           Backfilled readings are flagged in your audit log with the time you choose above and the staff member currently signed in.
         </p>
       </div>

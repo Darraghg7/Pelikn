@@ -20,7 +20,7 @@ const SERVICE_TYPE_LABELS = {
 }
 
 function SectionLabel({ children }) {
-  return <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-3">{children}</p>
+  return <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-3">{children}</p>
 }
 
 function groupByDate(logs) {
@@ -143,12 +143,12 @@ export default function EquipmentMaintenancePage() {
         <div className="flex flex-col gap-4">
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1.5">From</label>
+              <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1.5">From</label>
               <input type="date" value={exportFrom} onChange={e => setExportFrom(e.target.value)}
                 className="w-full px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20" />
             </div>
             <div>
-              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1.5">To</label>
+              <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1.5">To</label>
               <input type="date" value={exportTo} onChange={e => setExportTo(e.target.value)}
                 className="w-full px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20" />
             </div>
@@ -165,7 +165,7 @@ export default function EquipmentMaintenancePage() {
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
 
           <div>
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">Equipment Name</label>
+            <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">Equipment Name</label>
             <input
               value={form.equipment_name}
               onChange={e => setForm(f => ({ ...f, equipment_name: e.target.value }))}
@@ -175,7 +175,7 @@ export default function EquipmentMaintenancePage() {
           </div>
 
           <div>
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">Service Type</label>
+            <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">Service Type</label>
             <div className="flex flex-wrap gap-1.5">
               {SERVICE_TYPES.map(t => (
                 <button key={t} type="button"
@@ -194,7 +194,7 @@ export default function EquipmentMaintenancePage() {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">Service Date</label>
+              <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">Service Date</label>
               <input
                 type="date"
                 value={form.service_date}
@@ -203,7 +203,7 @@ export default function EquipmentMaintenancePage() {
               />
             </div>
             <div>
-              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">
+              <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">
                 Next Due <span className="normal-case text-charcoal/30 dark:text-white/30">(optional)</span>
               </label>
               <input
@@ -216,7 +216,7 @@ export default function EquipmentMaintenancePage() {
           </div>
 
           <div>
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">
+            <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">
               Engineer / Company <span className="normal-case text-charcoal/30 dark:text-white/30">(optional)</span>
             </label>
             <input
@@ -228,7 +228,7 @@ export default function EquipmentMaintenancePage() {
           </div>
 
           <div>
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">
+            <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">
               Notes <span className="normal-case text-charcoal/30 dark:text-white/30">(optional)</span>
             </label>
             <textarea
@@ -274,7 +274,7 @@ export default function EquipmentMaintenancePage() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
                           <p className="text-sm font-medium text-charcoal dark:text-white">{log.equipment_name}</p>
-                          <span className="px-2 py-0.5 rounded-full text-[11px] font-medium bg-charcoal/8 dark:bg-white/8 text-charcoal/60 dark:text-white/50 border border-charcoal/10 dark:border-white/10">
+                          <span className="px-2 py-0.5 rounded-full text-micro font-medium bg-charcoal/8 dark:bg-white/8 text-charcoal/60 dark:text-white/50 border border-charcoal/10 dark:border-white/10">
                             {SERVICE_TYPE_LABELS[log.service_type] ?? log.service_type}
                           </span>
                         </div>

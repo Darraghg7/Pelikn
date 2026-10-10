@@ -117,7 +117,7 @@ export default function PPDSItemFormPage() {
       {/* Basic info */}
       <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-5 flex flex-col gap-4">
         <div className="flex flex-col gap-1">
-          <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">Product name <span className="text-danger">*</span></label>
+          <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">Product name <span className="text-danger">*</span></label>
           <input
             value={name}
             onChange={e => setName(e.target.value)}
@@ -126,7 +126,7 @@ export default function PPDSItemFormPage() {
           />
         </div>
         <div className="flex flex-col gap-1">
-          <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">Description (optional)</label>
+          <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">Description (optional)</label>
           <input
             value={description}
             onChange={e => setDesc(e.target.value)}
@@ -140,7 +140,7 @@ export default function PPDSItemFormPage() {
       <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-5 flex flex-col gap-4">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">Ingredients</p>
+            <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">Ingredients</p>
             <p className="text-xs text-charcoal/35 dark:text-white/30 mt-0.5">In descending order by weight. Tick the allergen if one applies.</p>
           </div>
         </div>
@@ -211,7 +211,7 @@ export default function PPDSItemFormPage() {
         {/* Live preview */}
         {ingredients.some(r => r.name.trim()) && (
           <div className="bg-charcoal/3 dark:bg-white/5 rounded-lg px-4 py-3 border border-charcoal/8 dark:border-white/8">
-            <p className="text-[11px] tracking-widest uppercase text-charcoal/30 dark:text-white/30 mb-1">Label preview</p>
+            <p className="text-micro tracking-widest uppercase text-charcoal/30 dark:text-white/30 mb-1">Label preview</p>
             <p className="text-xs text-charcoal/70 dark:text-white/60 leading-relaxed font-sans">
               <span className="font-bold">INGREDIENTS: </span>
               {ingredients
@@ -234,7 +234,7 @@ export default function PPDSItemFormPage() {
       {/* May Contain */}
       <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-5 flex flex-col gap-3">
         <div>
-          <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">May Contain</p>
+          <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">May Contain</p>
           <p className="text-xs text-charcoal/35 dark:text-white/30 mt-0.5">Cross-contamination risks — select any that apply to your kitchen environment.</p>
         </div>
         <div className="flex flex-wrap gap-2">

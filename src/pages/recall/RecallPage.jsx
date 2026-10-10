@@ -112,7 +112,7 @@ const EMPTY_LOG = {
 function Field({ label, required, children }) {
   return (
     <div className="flex flex-col gap-1">
-      <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">
+      <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">
         {label}{required && <span className="text-danger ml-0.5">*</span>}
       </label>
       {children}
@@ -243,7 +243,7 @@ function LogCard({ log, onEdit }) {
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
               <p className="font-semibold text-charcoal dark:text-white text-sm">{log.product_name}</p>
-              <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${
+              <span className={`text-micro font-semibold px-2 py-0.5 rounded-full ${
                 resolved
                   ? 'bg-success/10 text-success'
                   : 'bg-danger/10 text-danger'
@@ -268,16 +268,16 @@ function LogCard({ log, onEdit }) {
 
         <div className="mt-3 flex flex-col gap-2">
           <div>
-            <p className="text-[11px] tracking-widest uppercase text-charcoal/30 dark:text-white/30 mb-0.5">Reason</p>
+            <p className="text-micro tracking-widest uppercase text-charcoal/30 dark:text-white/30 mb-0.5">Reason</p>
             <p className="text-xs text-charcoal/70 dark:text-white/60">{log.reason}</p>
           </div>
           <div>
-            <p className="text-[11px] tracking-widest uppercase text-charcoal/30 dark:text-white/30 mb-0.5">Action taken</p>
+            <p className="text-micro tracking-widest uppercase text-charcoal/30 dark:text-white/30 mb-0.5">Action taken</p>
             <p className="text-xs text-charcoal/70 dark:text-white/60">{log.action_taken}</p>
           </div>
           {log.who_notified && (
             <div>
-              <p className="text-[11px] tracking-widest uppercase text-charcoal/30 dark:text-white/30 mb-0.5">Notified</p>
+              <p className="text-micro tracking-widest uppercase text-charcoal/30 dark:text-white/30 mb-0.5">Notified</p>
               <p className="text-xs text-charcoal/70 dark:text-white/60">{log.who_notified}</p>
             </div>
           )}
@@ -345,7 +345,7 @@ function ProcedureTab({ venueId }) {
 
       {/* Key contacts */}
       <div className="bg-white dark:bg-paperDark rounded-2xl border border-charcoal/10 dark:border-white/10 p-5">
-        <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-3">Key Contacts</p>
+        <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-3">Key Contacts</p>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {[
             { key: 'responsible_person', label: 'Responsible person', placeholder: 'Name of manager responsible for recall decisions' },
@@ -353,7 +353,7 @@ function ProcedureTab({ venueId }) {
             { key: 'eho_contact',        label: 'Local EHO contact',   placeholder: 'Name and phone number of your local EHO' },
           ].map(f => (
             <div key={f.key} className="flex flex-col gap-1">
-              <label className="text-[11px] tracking-widest uppercase text-charcoal/30 dark:text-white/30">{f.label}</label>
+              <label className="text-micro tracking-widest uppercase text-charcoal/30 dark:text-white/30">{f.label}</label>
               <input
                 value={meta[f.key]}
                 onChange={e => setMeta(m => ({ ...m, [f.key]: e.target.value }))}
@@ -368,7 +368,7 @@ function ProcedureTab({ venueId }) {
       {/* Procedure sections */}
       {PROC_SECTIONS.map(section => (
         <div key={section.key} className="bg-white dark:bg-paperDark rounded-2xl border border-charcoal/10 dark:border-white/10 p-5">
-          <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-0.5">{section.title}</p>
+          <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-0.5">{section.title}</p>
           <p className="text-xs text-charcoal/40 dark:text-white/35 mb-3">{section.desc}</p>
           <textarea
             value={sections[section.key] || ''}

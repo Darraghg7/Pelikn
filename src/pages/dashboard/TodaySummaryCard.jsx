@@ -55,7 +55,7 @@ export default function TodaySummaryCard({ venueId, closedDays, itemIds, actionS
   return (
     <div className="bg-white dark:bg-paperDark rounded-2xl overflow-hidden">
       <div className="px-4 pt-4 pb-3">
-        <p className="font-mono text-[11px] tracking-[0.08em] uppercase text-charcoal/40 dark:text-white/35 mb-3">Today</p>
+        <p className="font-mono text-micro tracking-[0.08em] uppercase text-charcoal/40 dark:text-white/35 mb-3">Today</p>
         {loading || !summary ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
             {[1, 2, 3, 4, 5, 6].map((i) => (
@@ -88,9 +88,9 @@ export default function TodaySummaryCard({ venueId, closedDays, itemIds, actionS
                   <Tag key={item.id} {...tagProps} className="flex flex-col gap-2 border border-charcoal/10 dark:border-white/10 rounded-xl p-4 min-h-[100px] no-underline hover:bg-charcoal/3 dark:hover:bg-white/5 transition-colors">
                     <div className="flex items-center gap-1.5">
                       <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${isDanger ? 'bg-danger' : isGood ? 'bg-success' : 'bg-charcoal/20 dark:bg-white/20'}`} />
-                      <span className="font-mono text-[10px] text-charcoal/40 dark:text-white/35 uppercase tracking-[0.08em] leading-none">{item.metricLabel}</span>
+                      <span className="font-mono text-micro text-charcoal/40 dark:text-white/35 uppercase tracking-[0.08em] leading-none">{item.metricLabel}</span>
                     </div>
-                    <div className={`text-[34px] font-medium tracking-[-0.035em] leading-none tabular-nums ${isDanger ? 'text-danger' : 'text-charcoal dark:text-white'}`}>
+                    <div className={`text-stat font-medium tracking-[-0.035em] leading-none tabular-nums ${isDanger ? 'text-danger' : 'text-charcoal dark:text-white'}`}>
                       {value}
                     </div>
                   </Tag>

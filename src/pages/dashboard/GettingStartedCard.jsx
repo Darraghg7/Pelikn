@@ -118,7 +118,7 @@ export default function GettingStartedCard({ venueId, venueSlug }) {
       <div className="flex items-center justify-between mb-3">
         <div>
           <p className="text-sm font-bold text-charcoal dark:text-white">Getting Started</p>
-          <p className="text-[11px] text-charcoal/40 dark:text-white/35 mt-0.5">{completed} of {items.length} complete</p>
+          <p className="text-caption text-charcoal/40 dark:text-white/35 mt-0.5">{completed} of {items.length} complete</p>
         </div>
         <CloseButton label="Dismiss" onClick={dismiss} />
       </div>

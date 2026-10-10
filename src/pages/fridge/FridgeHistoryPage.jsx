@@ -12,7 +12,7 @@ import LoadError from '../../components/ui/LoadError'
 import Button from '../../components/ui/Button'
 
 function SectionLabel({ children }) {
-  return <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-3">{children}</p>
+  return <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-3">{children}</p>
 }
 
 const EXCEEDANCE_REASONS = [
@@ -109,7 +109,7 @@ export default function FridgeHistoryPage() {
         <div className="px-5 pt-5 flex items-center justify-between">
           <SectionLabel>Readings</SectionLabel>
           {isManager && (
-            <p className="text-[11px] text-charcoal/35 dark:text-white/30 mb-3">Tap a red reading to add a reason and fix the score</p>
+            <p className="text-caption text-charcoal/35 dark:text-white/30 mb-3">Tap a red reading to add a reason and fix the score</p>
           )}
         </div>
 
@@ -124,11 +124,11 @@ export default function FridgeHistoryPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-t border-charcoal/8 dark:border-white/8">
-                  <th className="text-left px-5 py-2.5 text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 font-medium">Fridge</th>
-                  <th className="text-left px-5 py-2.5 text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 font-medium">Temp</th>
-                  <th className="text-center px-3 py-2.5 text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 font-medium">AM/PM</th>
-                  <th className="text-left px-5 py-2.5 text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 font-medium hidden sm:table-cell">Logged by</th>
-                  <th className="text-left px-5 py-2.5 text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 font-medium">Date / Time</th>
+                  <th className="text-left px-5 py-2.5 text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 font-medium">Fridge</th>
+                  <th className="text-left px-5 py-2.5 text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 font-medium">Temp</th>
+                  <th className="text-center px-3 py-2.5 text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 font-medium">AM/PM</th>
+                  <th className="text-left px-5 py-2.5 text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 font-medium hidden sm:table-cell">Logged by</th>
+                  <th className="text-left px-5 py-2.5 text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 font-medium">Date / Time</th>
                 </tr>
               </thead>
               <tbody>
@@ -160,7 +160,7 @@ export default function FridgeHistoryPage() {
                               {formatTemp(log.temperature)}
                             </span>
                             {oor && (
-                              <span className={`text-[11px] font-semibold tracking-wide px-1.5 py-0.5 rounded-full ${
+                              <span className={`text-micro font-semibold tracking-wide px-1.5 py-0.5 rounded-full ${
                                 explained ? 'bg-warning/15 text-warning' : 'bg-danger/12 text-danger'
                               }`}>
                                 {log.exceedance_reason ? REASON_LABELS[log.exceedance_reason] : <span className="flex items-center gap-0.5"><svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> No reason</span>}
@@ -169,7 +169,7 @@ export default function FridgeHistoryPage() {
                             {isManager && oor && !isEditing && (
                               <button
                                 onClick={(e) => { e.stopPropagation(); setEditingId(log.id) }}
-                                className={`text-[11px] px-2 py-0.5 rounded-full border transition-colors ${
+                                className={`text-micro px-2 py-0.5 rounded-full border transition-colors ${
                                   explained
                                     ? 'border-charcoal/15 dark:border-white/15 text-charcoal/35 dark:text-white/30 hover:border-charcoal/30 dark:hover:border-white/30 hover:text-charcoal/60 dark:hover:text-white/50'
                                     : 'border-danger/25 text-danger/60 hover:border-danger/50 hover:text-danger'
@@ -180,11 +180,11 @@ export default function FridgeHistoryPage() {
                             )}
                           </div>
                           {log.notes && (
-                            <p className="text-[11px] text-charcoal/40 dark:text-white/35 mt-0.5 max-w-[220px] truncate">{log.notes}</p>
+                            <p className="text-caption text-charcoal/40 dark:text-white/35 mt-0.5 max-w-[220px] truncate">{log.notes}</p>
                           )}
                         </td>
                         <td className="text-center px-3 py-3">
-                          <span className="text-[11px] font-semibold tracking-wider uppercase text-charcoal/50 dark:text-white/40">
+                          <span className="text-micro font-semibold tracking-wider uppercase text-charcoal/50 dark:text-white/40">
                             {log.check_period?.toUpperCase() ?? '—'}
                           </span>
                         </td>
@@ -218,7 +218,7 @@ export default function FridgeHistoryPage() {
                                   >
                                     <span className="shrink-0 text-charcoal/50 dark:text-white/40">{EXCEEDANCE_ICONS[r.id]}</span>
                                     <span>{r.label}</span>
-                                    {r.explained && <span className="text-[11px] text-success font-bold">NO PENALTY</span>}
+                                    {r.explained && <span className="text-micro text-success font-bold">NO PENALTY</span>}
                                   </button>
                                 ))}
                                 <Button
@@ -229,7 +229,7 @@ export default function FridgeHistoryPage() {
                                   Cancel
                                 </Button>
                               </div>
-                              {isSaving && <p className="text-[11px] text-charcoal/40 dark:text-white/35 animate-pulse">Saving…</p>}
+                              {isSaving && <p className="text-caption text-charcoal/40 dark:text-white/35 animate-pulse">Saving…</p>}
                             </div>
                           </td>
                         </tr>

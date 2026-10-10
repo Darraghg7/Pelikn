@@ -77,11 +77,11 @@ function PeriodCard({ period, selected, done, total, currentPeriod, onSelect }) 
         <span className={`px-2 py-1 rounded-md font-mono text-xs font-bold ${selected ? 'bg-brand text-white' : 'bg-line2 text-ink2 dark:bg-white/10 dark:text-white/70'}`}>
           {period.toUpperCase()}
         </span>
-        <span className={`px-2.5 py-1 rounded-full text-xs sm:text-[12px] font-semibold whitespace-nowrap ${pill.cls}`}>{pill.label}</span>
+        <span className={`px-2.5 py-1 rounded-full text-xs sm:text-caption font-semibold whitespace-nowrap ${pill.cls}`}>{pill.label}</span>
       </div>
       <div className="mt-2 flex items-center justify-between gap-2">
-        <p className="text-[13px] min-[420px]:text-[13px] font-semibold text-ink dark:text-white truncate">{PERIOD_NAMES[period]}</p>
-        <span className="shrink-0 font-mono text-[13px] min-[420px]:text-[13px] font-semibold text-ink2 dark:text-white/70">{done}/{total}</span>
+        <p className="text-body-sm font-semibold text-ink dark:text-white truncate">{PERIOD_NAMES[period]}</p>
+        <span className="shrink-0 font-mono text-body-sm font-semibold text-ink2 dark:text-white/70">{done}/{total}</span>
       </div>
       <div className="mt-2 h-1.5 rounded-full bg-line2 dark:bg-white/10 overflow-hidden">
         <div className="h-full rounded-full bg-good transition-[width] duration-500" style={{ width: total ? `${Math.round((done / total) * 100)}%` : '0%' }} />
@@ -152,8 +152,8 @@ function HotHoldingRow({ item, period, log, otherLog, otherRequired, session, ve
 
       {!showForm ? (
         <div className={`flex items-center gap-2.5 rounded-xl px-3.5 sm:px-3.5 py-2 ${logFail ? TONE.bad : TONE.ok}`}>
-          <span className="font-mono text-[19px] leading-none font-semibold">{Number(log.temperature).toFixed(1)}°C</span>
-          <span className="flex-1 min-w-0 text-[13px] font-semibold truncate">
+          <span className="font-mono text-title-sm leading-none font-semibold">{Number(log.temperature).toFixed(1)}°C</span>
+          <span className="flex-1 min-w-0 text-body-sm font-semibold truncate">
             {logFail ? failLabel(log.temperature, item) : 'Safe'} · {format(new Date(log.logged_at), 'HH:mm')}
           </span>
           <Button
@@ -181,7 +181,7 @@ function HotHoldingRow({ item, period, log, otherLog, otherRequired, session, ve
           />
           {fail && (
             <div className="rounded-xl border border-bad/25 bg-badBg/60 dark:bg-bad/15 p-2.5 flex flex-col gap-2">
-              <p className="text-[13px] font-semibold text-bad dark:text-badDark">
+              <p className="text-body-sm font-semibold text-bad dark:text-badDark">
                 {failLabel(temp, item)} — outside the safe {rangeLabel(item)} range. What did you do?
               </p>
               <textarea
@@ -190,7 +190,7 @@ function HotHoldingRow({ item, period, log, otherLog, otherRequired, session, ve
                 onBlur={save}
                 rows={2}
                 placeholder="e.g. Reheated to 75°C and returned to hot hold"
-                className="w-full px-3 py-2 rounded-lg border border-bad/25 bg-white dark:bg-paperDark text-[13px] text-ink dark:text-white placeholder:text-ink4 focus:outline-none focus:ring-2 focus:ring-bad/20 resize-none"
+                className="w-full px-3 py-2 rounded-lg border border-bad/25 bg-white dark:bg-paperDark text-body-sm text-ink dark:text-white placeholder:text-ink4 focus:outline-none focus:ring-2 focus:ring-bad/20 resize-none"
               />
             </div>
           )}
@@ -355,7 +355,7 @@ export default function HotHoldingPage() {
       {tab === 'today' && (
         items.length === 0 ? (
           <div className={`${CARD} p-8 text-center flex flex-col items-center gap-2.5`}>
-            <p className="text-[13px] text-ink3 dark:text-white/45">
+            <p className="text-body-sm text-ink3 dark:text-white/45">
               {isManager ? 'No hot holding items yet.' : 'No hot holding items yet — ask your manager to add them.'}
             </p>
             {isManager && <AddDashedButton label="Add hot holding item" onClick={goAddItem} />}
@@ -377,7 +377,7 @@ export default function HotHoldingPage() {
             </div>
 
             {periodItems.length === 0 ? (
-              <p className={`${CARD} px-3.5 py-6 text-[13px] text-center text-ink3 dark:text-white/45`}>
+              <p className={`${CARD} px-3.5 py-6 text-body-sm text-center text-ink3 dark:text-white/45`}>
                 Nothing is scheduled for the {PERIOD_NAMES[period].toLowerCase()} today.
               </p>
             ) : (
@@ -418,7 +418,7 @@ export default function HotHoldingPage() {
               onKeyDown={e => e.key === 'Enter' && handleAddItem()}
               placeholder="Add item, e.g. Soup, Gravy"
               aria-label="New hot holding item"
-              className="flex-1 min-w-0 h-9 px-3.5 rounded-xl border border-line dark:border-white/10 bg-white dark:bg-paperDark text-[13px] text-ink dark:text-white placeholder:text-ink4 dark:placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand/40"
+              className="flex-1 min-w-0 h-9 px-3.5 rounded-xl border border-line dark:border-white/10 bg-white dark:bg-paperDark text-body-sm text-ink dark:text-white placeholder:text-ink4 dark:placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand/40"
             />
             <Button
               size="sm"

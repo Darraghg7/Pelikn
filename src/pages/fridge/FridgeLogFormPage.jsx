@@ -14,7 +14,7 @@ import NumPad from '../../components/ui/NumPad'
 import Button from '../../components/ui/Button'
 
 function SectionLabel({ children }) {
-  return <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-3">{children}</p>
+  return <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-3">{children}</p>
 }
 
 const EXCEEDANCE_REASONS = [
@@ -224,7 +224,7 @@ export default function FridgeLogFormPage() {
                   >
                     <span className="shrink-0 text-charcoal/50 dark:text-white/40">{EXCEEDANCE_ICONS[r.id]}</span>
                     <span className="flex-1">{r.label}</span>
-                    {r.explained && <span className="text-[11px] text-success font-bold tracking-wide">No penalty</span>}
+                    {r.explained && <span className="text-micro text-success font-bold tracking-wide">No penalty</span>}
                   </button>
                 ))}
               </div>
@@ -242,7 +242,7 @@ export default function FridgeLogFormPage() {
 
               {reason && needsNote && (
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">
+                  <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">
                     Corrective Action <span className="text-danger">*</span>
                   </label>
                   <textarea
