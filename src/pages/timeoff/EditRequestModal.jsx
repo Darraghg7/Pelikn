@@ -131,7 +131,7 @@ export default function EditRequestModal({ request, isManager, actorId, actorNam
             <span className="text-xs font-medium">
               {format(parseISO(request.start_date), 'd MMM')} — {format(parseISO(request.end_date), 'd MMM yyyy')}
             </span>
-            <span className="text-[11px] tracking-wider uppercase font-semibold">{request.status}</span>
+            <span className="text-micro tracking-wider uppercase font-semibold">{request.status}</span>
           </div>
 
           {perms.lockedReason && (
@@ -146,7 +146,7 @@ export default function EditRequestModal({ request, isManager, actorId, actorNam
             <>
               {/* Leave type */}
               <div>
-                <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">Leave Type</label>
+                <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">Leave Type</label>
                 <div className="flex gap-2 flex-wrap">
                   {LEAVE_TYPES.map(t => (
                     <button
@@ -169,7 +169,7 @@ export default function EditRequestModal({ request, isManager, actorId, actorNam
               {/* Dates */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Start date</label>
+                  <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Start date</label>
                   <input
                     type="date"
                     value={form.startDate}
@@ -182,7 +182,7 @@ export default function EditRequestModal({ request, isManager, actorId, actorNam
                   />
                 </div>
                 <div>
-                  <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">End date</label>
+                  <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">End date</label>
                   <input
                     type="date"
                     value={form.endDate}
@@ -201,7 +201,7 @@ export default function EditRequestModal({ request, isManager, actorId, actorNam
 
               {/* Reason */}
               <div>
-                <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Reason (optional)</label>
+                <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Reason (optional)</label>
                 <textarea
                   value={form.reason}
                   onChange={e => setForm(f => ({ ...f, reason: e.target.value }))}
@@ -212,7 +212,7 @@ export default function EditRequestModal({ request, isManager, actorId, actorNam
 
               {willNeedReapproval && (
                 <div className="rounded-xl bg-warning/8 border border-warning/20 px-4 py-2.5">
-                  <p className="text-[11px] text-warning font-medium">
+                  <p className="text-caption text-warning font-medium">
                     This leave is already approved — saving changes sends it back to your manager for approval.
                   </p>
                 </div>

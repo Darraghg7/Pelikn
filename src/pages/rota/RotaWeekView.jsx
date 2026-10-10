@@ -24,10 +24,10 @@ function MobileShiftCell({ shift, accent, onClick }) {
       className={`rounded-[10px] px-2 pt-[7px] pb-[6px] mb-1 last:mb-0${canClick ? ' cursor-pointer active:scale-[0.97] transition-transform' : ''}`}
       style={{ background: accent + '1C' }}
     >
-      <div className="font-semibold text-[13px] leading-none tabular-nums" style={{ color: accent }}>
+      <div className="font-semibold text-body-sm leading-none tabular-nums" style={{ color: accent }}>
         {startH}–{endH}
       </div>
-      <div className="text-[11px] leading-none mt-[5px] tabular-nums" style={{ color: accent, opacity: 0.65 }}>
+      <div className="text-micro leading-none mt-[5px] tabular-nums" style={{ color: accent, opacity: 0.65 }}>
         {hrsStr}
       </div>
     </div>
@@ -74,10 +74,10 @@ function MobileWeekGrid({ days, shifts, shiftIndex, staff, onCellClick, currentS
                 </div>
                 {today ? (
                   <div className="w-7 h-7 rounded-full mx-auto flex items-center justify-center bg-brand">
-                    <span className="text-[13px] font-bold text-white leading-none">{format(d, 'd')}</span>
+                    <span className="text-body-sm font-bold text-white leading-none">{format(d, 'd')}</span>
                   </div>
                 ) : (
-                  <div className={`text-[13px] font-semibold leading-none ${closed ? 'text-charcoal/25 dark:text-white/25' : 'text-charcoal/80 dark:text-white/68'}`}>
+                  <div className={`text-body-sm font-semibold leading-none ${closed ? 'text-charcoal/25 dark:text-white/25' : 'text-charcoal/80 dark:text-white/68'}`}>
                     {format(d, 'd')}
                   </div>
                 )}
@@ -103,7 +103,7 @@ function MobileWeekGrid({ days, shifts, shiftIndex, staff, onCellClick, currentS
                   <span className="w-1.5 h-1.5 rounded-full" style={{ background: accent }} />
                 </div>
                 <div className="min-w-0">
-                  <div className="text-[13px] font-semibold text-charcoal dark:text-white truncate">{firstName(s.name)}</div>
+                  <div className="text-body-sm font-semibold text-charcoal dark:text-white truncate">{firstName(s.name)}</div>
                 </div>
               </div>
 
@@ -162,7 +162,7 @@ function MobileWeekGrid({ days, shifts, shiftIndex, staff, onCellClick, currentS
               className={`shrink-0 py-3 px-1 text-center ${i < 6 ? 'border-r border-charcoal/6 dark:border-white/8' : ''}`}
               style={{ width: COL_W, minWidth: COL_W }}
             >
-              <div className="font-semibold text-[13px] text-charcoal/80 dark:text-white/68 tabular-nums">{t.hours > 0 ? `${t.hours}h` : '—'}</div>
+              <div className="font-semibold text-body-sm text-charcoal/80 dark:text-white/68 tabular-nums">{t.hours > 0 ? `${t.hours}h` : '—'}</div>
               {t.heads > 0 && (
                 <div className="font-mono text-[10px] text-charcoal/40 dark:text-white/35 mt-0.5 uppercase tracking-[0.04em]">{t.heads} on</div>
               )}
@@ -183,7 +183,7 @@ function DesktopWeekTable({ days, shifts, shiftIndex, staff, onCellClick, onTogg
       <table className="min-w-full text-sm border-separate border-spacing-0">
         <thead>
           <tr>
-            <th className="sticky left-0 bg-white dark:bg-paperDark w-36 text-left px-5 py-3 text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 font-medium border-b border-charcoal/8 dark:border-white/8 z-10">
+            <th className="sticky left-0 bg-white dark:bg-paperDark w-36 text-left px-5 py-3 text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 font-medium border-b border-charcoal/8 dark:border-white/8 z-10">
               Staff
             </th>
             {days.map((d, i) => {
@@ -202,7 +202,7 @@ function DesktopWeekTable({ days, shifts, shiftIndex, staff, onCellClick, onTogg
                     closureMode && isDbClosed ? 'bg-danger/8 ring-1 ring-danger/20' : '',
                   ].join(' ')}>
                   <p className={[
-                    'text-[11px] tracking-widest font-medium',
+                    'text-micro tracking-widest font-medium',
                     isClosed ? 'text-charcoal/25 dark:text-white/25' : today ? 'text-accent' : 'text-charcoal/35 dark:text-white/30',
                   ].join(' ')}>{DAY_LABELS[i]}</p>
                   <p className={[
@@ -221,7 +221,7 @@ function DesktopWeekTable({ days, shifts, shiftIndex, staff, onCellClick, onTogg
               )
             })}
             {isManager && (
-              <th className="px-4 py-3 border-b border-charcoal/8 dark:border-white/8 text-right text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 font-medium whitespace-nowrap min-w-[80px]">
+              <th className="px-4 py-3 border-b border-charcoal/8 dark:border-white/8 text-right text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 font-medium whitespace-nowrap min-w-[80px]">
                 Est. Cost
               </th>
             )}
@@ -255,7 +255,7 @@ function DesktopWeekTable({ days, shifts, shiftIndex, staff, onCellClick, onTogg
                     )}
                     <div>
                       <p className="font-medium text-charcoal dark:text-white text-sm">{s.name}</p>
-                      <p className="text-[11px] tracking-widest uppercase text-charcoal/30 dark:text-white/30">{s.job_title ?? s.role}</p>
+                      <p className="text-micro tracking-widest uppercase text-charcoal/30 dark:text-white/30">{s.job_title ?? s.role}</p>
                     </div>
                     {isOwnStaff && (
                       <span className="text-[9px] tracking-widest uppercase bg-accent/15 text-accent px-1.5 py-0.5 rounded-full font-medium">You</span>
@@ -325,7 +325,7 @@ function DesktopWeekTable({ days, shifts, shiftIndex, staff, onCellClick, onTogg
                             {isManager && (
                               <button
                                 onClick={() => onCellClick(s, d, dayShifts)}
-                                className="h-6 flex items-center justify-center text-[11px] rounded border border-dashed border-charcoal/12 dark:border-white/15 hover:border-charcoal/25 dark:hover:border-white/25 text-charcoal/20 dark:text-white/20 hover:text-charcoal/40 dark:hover:text-white/35 transition-colors cursor-pointer"
+                                className="h-6 flex items-center justify-center text-micro rounded border border-dashed border-charcoal/12 dark:border-white/15 hover:border-charcoal/25 dark:hover:border-white/25 text-charcoal/20 dark:text-white/20 hover:text-charcoal/40 dark:hover:text-white/35 transition-colors cursor-pointer"
                               >+</button>
                             )}
                           </div>
@@ -364,7 +364,7 @@ function DesktopWeekTable({ days, shifts, shiftIndex, staff, onCellClick, onTogg
                               style={{ backgroundColor: staffColour(s) }}
                             >
                               <p className="font-medium">{sh.start_time?.slice(0,5) ?? ''}&ndash;{sh.end_time?.slice(0,5) ?? ''}</p>
-                              <p className="opacity-60 truncate text-[11px]">{sh.role_label}</p>
+                              <p className="opacity-60 truncate text-caption">{sh.role_label}</p>
                               {isOwnStaff && !isManager && (
                                 <span className="absolute -top-1 -right-1 bg-accent text-white text-[8px] rounded-full w-3.5 h-3.5 flex items-center justify-center font-bold leading-none">↔</span>
                               )}
@@ -391,7 +391,7 @@ function DesktopWeekTable({ days, shifts, shiftIndex, staff, onCellClick, onTogg
                     {wageCost > 0 ? (
                       <div>
                         <p className="font-mono text-sm font-semibold text-charcoal dark:text-white">{fmtGBP(wageCost)}</p>
-                        <p className="text-[11px] text-charcoal/35 dark:text-white/30">{totalHrs.toFixed(1)}h paid</p>
+                        <p className="text-caption text-charcoal/35 dark:text-white/30">{totalHrs.toFixed(1)}h paid</p>
                         {breakCount > 0 && (
                           <p className="text-[9px] text-charcoal/25 dark:text-white/25">
                             {breakCount > 1
@@ -412,7 +412,7 @@ function DesktopWeekTable({ days, shifts, shiftIndex, staff, onCellClick, onTogg
         {isManager && weeklyTotal > 0 && (
           <tfoot>
             <tr>
-              <td colSpan={days.length + 1} className="px-5 py-3 text-right text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">
+              <td colSpan={days.length + 1} className="px-5 py-3 text-right text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">
                 Total weekly wage bill
               </td>
               <td className="px-4 py-3 text-right">

@@ -26,7 +26,7 @@ export default function RotaSwapPanel({
   return (
     <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 overflow-hidden">
       <div className="px-5 py-4 border-b border-charcoal/8 dark:border-white/8 flex items-center justify-between">
-        <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">Shift Swap Requests</p>
+        <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">Shift Swap Requests</p>
         <CloseButton label="Close swap requests" onClick={() => setShowSwaps(false)} />
       </div>
 
@@ -48,11 +48,11 @@ export default function RotaSwapPanel({
                     <span className="text-charcoal/30 dark:text-white/30 text-xs">→ swap with</span>
                     <span className="font-semibold text-charcoal dark:text-white text-sm">{swap.target_staff_name}</span>
                     {expired ? (
-                      <span className="text-[11px] tracking-widest uppercase px-2 py-0.5 rounded-full bg-charcoal/8 dark:bg-white/10 text-charcoal/50 dark:text-white/45 font-medium">
+                      <span className="text-micro tracking-widest uppercase px-2 py-0.5 rounded-full bg-charcoal/8 dark:bg-white/10 text-charcoal/50 dark:text-white/45 font-medium">
                         Expired
                       </span>
                     ) : (
-                      <span className="text-[11px] tracking-widest uppercase px-2 py-0.5 rounded-full bg-warning/15 text-warning font-medium">
+                      <span className="text-micro tracking-widest uppercase px-2 py-0.5 rounded-full bg-warning/15 text-warning font-medium">
                         Pending
                       </span>
                     )}
@@ -121,14 +121,14 @@ export default function RotaSwapPanel({
           {resolvedSwaps.length > 0 && (
             <>
               <div className="px-5 py-2 bg-charcoal/3 dark:bg-white/5">
-                <p className="text-[11px] tracking-widest uppercase text-charcoal/30 dark:text-white/30">Resolved</p>
+                <p className="text-micro tracking-widest uppercase text-charcoal/30 dark:text-white/30">Resolved</p>
               </div>
               {resolvedSwaps.map((swap) => (
                 <div key={swap.id} className="px-5 py-3 flex items-center justify-between gap-4">
                   <div>
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="text-sm text-charcoal/60 dark:text-white/50">{swap.requester_name} → {swap.target_staff_name}</span>
-                      <span className={`text-[11px] tracking-widest uppercase px-2 py-0.5 rounded-full font-medium ${
+                      <span className={`text-micro tracking-widest uppercase px-2 py-0.5 rounded-full font-medium ${
                         swap.status === 'approved'
                           ? 'bg-success/10 text-success'
                           : 'bg-danger/10 text-danger'

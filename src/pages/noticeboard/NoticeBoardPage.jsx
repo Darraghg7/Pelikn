@@ -73,10 +73,10 @@ function PostCard({ notice, isManager, onDelete }) {
 
       <div className="flex items-center gap-2 pt-1 border-t border-charcoal/6 dark:border-white/8">
         {notice.created_by_name && (
-          <span className="text-[11px] text-charcoal/35 dark:text-white/30">{notice.created_by_name}</span>
+          <span className="text-micro text-charcoal/35 dark:text-white/30">{notice.created_by_name}</span>
         )}
-        <span className="text-[11px] text-charcoal/25 dark:text-white/25">·</span>
-        <span className="text-[11px] text-charcoal/35 dark:text-white/30">
+        <span className="text-micro text-charcoal/25 dark:text-white/25">·</span>
+        <span className="text-micro text-charcoal/35 dark:text-white/30">
           {format(new Date(notice.created_at), 'd MMM yyyy, HH:mm')}
         </span>
       </div>
@@ -110,10 +110,10 @@ function NewPostForm({ venueId, staffName, onPosted, onCancel }) {
 
   return (
     <form onSubmit={submit} className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-5 flex flex-col gap-4">
-      <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">New Notice</p>
+      <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">New Notice</p>
 
       <div className="flex flex-col gap-1.5">
-        <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">Title <span className="text-danger">*</span></label>
+        <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">Title <span className="text-danger">*</span></label>
         <input
           type="text"
           value={form.title}
@@ -124,7 +124,7 @@ function NewPostForm({ venueId, staffName, onPosted, onCancel }) {
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">Message</label>
+        <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">Message</label>
         <textarea
           value={form.body}
           onChange={(e) => set('body', e.target.value)}

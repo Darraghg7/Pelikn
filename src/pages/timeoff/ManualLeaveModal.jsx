@@ -39,7 +39,7 @@ export default function ManualLeaveModal({ staff, venueId, managerId, onClose, o
 
         {/* Leave type */}
         <div>
-          <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">Leave Type</label>
+          <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">Leave Type</label>
           <div className="flex gap-2 flex-wrap">
             {LEAVE_TYPES.map(t => (
               <button
@@ -62,7 +62,7 @@ export default function ManualLeaveModal({ staff, venueId, managerId, onClose, o
         {/* Date range */}
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="text-[11px] tracking-widests uppercase text-charcoal/40 dark:text-white/35 block mb-1">Start date</label>
+            <label className="text-micro tracking-widests uppercase text-charcoal/40 dark:text-white/35 block mb-1">Start date</label>
             <input
               type="date"
               value={form.startDate}
@@ -71,7 +71,7 @@ export default function ManualLeaveModal({ staff, venueId, managerId, onClose, o
             />
           </div>
           <div>
-            <label className="text-[11px] tracking-widests uppercase text-charcoal/40 dark:text-white/35 block mb-1">End date</label>
+            <label className="text-micro tracking-widests uppercase text-charcoal/40 dark:text-white/35 block mb-1">End date</label>
             <input
               type="date"
               value={form.endDate}
@@ -84,7 +84,7 @@ export default function ManualLeaveModal({ staff, venueId, managerId, onClose, o
 
         {/* Optional note */}
         <div>
-          <label className="text-[11px] tracking-widests uppercase text-charcoal/40 dark:text-white/35 block mb-1">Note (optional)</label>
+          <label className="text-micro tracking-widests uppercase text-charcoal/40 dark:text-white/35 block mb-1">Note (optional)</label>
           <input
             type="text"
             value={form.note}
@@ -94,7 +94,7 @@ export default function ManualLeaveModal({ staff, venueId, managerId, onClose, o
           />
         </div>
 
-        <p className="text-[11px] text-charcoal/35 dark:text-white/30 -mt-2">
+        <p className="text-caption text-charcoal/35 dark:text-white/30 -mt-2">
           This will be recorded as approved leave and counted against {staff.name}'s annual balance.
         </p>
 

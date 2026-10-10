@@ -52,7 +52,7 @@ function StaffClockRow({ staffMember }) {
         <div>
           <p className="text-sm font-medium text-charcoal dark:text-white">{staffMember.name}</p>
           {staffMember.role && (
-            <p className="text-[11px] text-charcoal/35 dark:text-white/30 mt-0.5">{staffMember.role}</p>
+            <p className="text-caption text-charcoal/35 dark:text-white/30 mt-0.5">{staffMember.role}</p>
           )}
         </div>
       </div>
@@ -61,7 +61,7 @@ function StaffClockRow({ staffMember }) {
           <span className="text-xs text-charcoal/30 dark:text-white/30">…</span>
         ) : (
           <>
-            <span className={`text-[11px] tracking-widest uppercase font-medium ${cfg.text}`}>
+            <span className={`text-micro tracking-widest uppercase font-medium ${cfg.text}`}>
               {cfg.label}
             </span>
             {status !== 'clocked_out' && clockInAt && <LiveElapsed clockInAt={clockInAt} />}
@@ -106,7 +106,7 @@ function ManagerView({ venueId }) {
     <div className="flex flex-col gap-6">
       {/* Manager's own clock */}
       <div className="bg-white dark:bg-paperDark rounded-2xl p-5">
-        <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-3">My Clock</p>
+        <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-3">My Clock</p>
         <ManagerOwnClock venueId={venueId} />
       </div>
 
@@ -117,7 +117,7 @@ function ManagerView({ venueId }) {
 
       {/* Team status */}
       <div className="bg-white dark:bg-paperDark rounded-2xl p-5">
-        <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-3">Team Status</p>
+        <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-3">Team Status</p>
         {loading ? (
           <SkeletonList rows={3} />
         ) : failed && staff.length === 0 ? (
@@ -140,7 +140,7 @@ function StaffView({ staffId, staffName }) {
     <div className="flex flex-col gap-6">
       <div className="bg-white dark:bg-paperDark rounded-2xl p-6">
         {staffName && (
-          <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-1">
+          <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-1">
             Hi, {staffName}
           </p>
         )}

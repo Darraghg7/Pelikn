@@ -103,7 +103,7 @@ function badgeClasses(tone) {
 
 export function Badge({ tone, children, dot }) {
   return (
-    <span className={`inline-flex items-center gap-1.5 font-mono text-[11px] font-semibold tracking-[0.04em] uppercase rounded-full px-[9px] py-[3px] whitespace-nowrap ${badgeClasses(tone)}`}>
+    <span className={`inline-flex items-center gap-1.5 font-mono text-micro font-semibold tracking-[0.04em] uppercase rounded-full px-[9px] py-[3px] whitespace-nowrap ${badgeClasses(tone)}`}>
       {dot && <span className="w-[5px] h-[5px] rounded-full bg-current" />}
       {children}
     </span>
@@ -120,7 +120,7 @@ function SectionCard({ children, className }) {
 
 function CardHead({ children }) {
   return (
-    <div className="px-[18px] py-3 border-b border-charcoal/6 dark:border-white/8 font-mono text-[11px] uppercase tracking-[0.09em] text-charcoal/50 dark:text-white/40 font-semibold">
+    <div className="px-[18px] py-3 border-b border-charcoal/6 dark:border-white/8 font-mono text-micro uppercase tracking-[0.09em] text-charcoal/50 dark:text-white/40 font-semibold">
       {children}
     </div>
   )
@@ -130,10 +130,10 @@ function DataRow({ label, value }) {
   if (value === null || value === undefined || value === '') return null
   return (
     <div className="flex gap-3.5 px-[18px] py-[11px] border-b border-charcoal/6 dark:border-white/8">
-      <span className="font-mono text-[11px] uppercase tracking-[0.06em] text-charcoal/30 dark:text-white/30 min-w-[120px] pt-px">
+      <span className="font-mono text-micro uppercase tracking-[0.06em] text-charcoal/30 dark:text-white/30 min-w-[120px] pt-px">
         {label}
       </span>
-      <span className="text-[13.5px] text-charcoal dark:text-white flex-1">{value}</span>
+      <span className="text-body text-charcoal dark:text-white flex-1">{value}</span>
     </div>
   )
 }
@@ -142,7 +142,7 @@ function EmptyState({ icon, text }) {
   return (
     <div className="text-center px-5 py-10 text-charcoal/30 dark:text-white/30">
       <div className="mb-2.5 opacity-50 flex justify-center">{icon}</div>
-      <p className="text-[13px]">{text}</p>
+      <p className="text-body-sm">{text}</p>
     </div>
   )
 }
@@ -150,13 +150,13 @@ function EmptyState({ icon, text }) {
 function MiniStat({ k, v, tone }) {
   return (
     <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[13px] px-[11px] py-[10px] lg:px-3.5 lg:py-[11px] shadow-sm flex-1 min-w-0">
-      <div className="font-mono text-[9px] lg:text-[11px] uppercase tracking-[0.07em] text-charcoal/50 dark:text-white/40 font-semibold">
+      <div className="font-mono text-micro uppercase tracking-[0.07em] text-charcoal/50 dark:text-white/40 font-semibold">
         {k}
       </div>
       <div className="mt-[4px] flex items-center">
         {tone
           ? <Badge tone={tone}>{v}</Badge>
-          : <span className="text-[14.5px] lg:text-[16px] font-semibold text-charcoal dark:text-white tracking-[-0.01em]">{v}</span>}
+          : <span className="text-body-lg lg:text-title-sm font-semibold text-charcoal dark:text-white tracking-[-0.01em]">{v}</span>}
       </div>
     </div>
   )
@@ -257,7 +257,7 @@ function ProfileTab({ staff, jobTitle, docsCount, strikesCount, venueSlug }) {
             <DataRow label="Phone" value={staff.emergency_contact_phone} />
           </>
         ) : (
-          <p className="px-[18px] py-3.5 text-[13px] text-charcoal/30 dark:text-white/30 italic">
+          <p className="px-[18px] py-3.5 text-body-sm text-charcoal/30 dark:text-white/30 italic">
             No emergency contact on file
           </p>
         )}
@@ -332,7 +332,7 @@ function DocumentsTab({ staffId, venueId }) {
         onConfirm={() => { deleteDoc(deleteTarget); setDeleteTarget(null) }}
       />
       <div className="flex items-center justify-between">
-        <span className="font-mono text-[11px] uppercase tracking-[0.07em] text-charcoal/50 dark:text-white/40 font-semibold">
+        <span className="font-mono text-micro uppercase tracking-[0.07em] text-charcoal/50 dark:text-white/40 font-semibold">
           {loading ? '—' : docs.length} documents
         </span>
         <BtnPrimary onClick={() => setShowModal(true)}>
@@ -356,11 +356,11 @@ function DocumentsTab({ staffId, venueId }) {
                   {Ico.docSm}
                 </span>
                 <div className="flex-1 min-w-0">
-                  <div className="text-[13.5px] font-semibold text-charcoal dark:text-white">{doc.title}</div>
+                  <div className="text-body font-semibold text-charcoal dark:text-white">{doc.title}</div>
                   <div className="flex gap-2 items-center mt-[5px] flex-wrap">
                     <Badge tone={catTone}>{DOC_CAT_LABELS[doc.category] ?? doc.category}</Badge>
                     {exp && daysLeft != null && daysLeft <= 30 && <Badge tone={exp.tone}>{exp.label}</Badge>}
-                    <span className="font-mono text-[11px] text-charcoal/30 dark:text-white/30">
+                    <span className="font-mono text-micro text-charcoal/30 dark:text-white/30">
                       {format(parseISO(doc.created_at), 'd MMM yyyy')} · {(doc.file_size / 1024).toFixed(0)} KB
                       {doc.expiry_date && daysLeft != null && daysLeft > 30
                         ? ` · expires ${format(parseISO(doc.expiry_date), 'd MMM yyyy')}`
@@ -393,20 +393,20 @@ function DocumentsTab({ staffId, venueId }) {
       <Modal open={showModal} onClose={resetModal} title="Upload Document">
         <div className="flex flex-col gap-3.5">
           <div>
-            <label className="block font-mono text-[11px] uppercase tracking-[0.07em] text-charcoal/50 dark:text-white/40 mb-1.5">Title</label>
+            <label className="block font-mono text-micro uppercase tracking-[0.07em] text-charcoal/50 dark:text-white/40 mb-1.5">Title</label>
             <input
               value={form.title}
               onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
               placeholder="e.g. Employment Contract 2024"
-              className="w-full px-3 py-2.5 rounded-[10px] border border-charcoal/10 dark:border-white/10 text-[13px] outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 focus:border-charcoal/20 dark:focus:border-white/20 box-border"
+              className="w-full px-3 py-2.5 rounded-[10px] border border-charcoal/10 dark:border-white/10 text-body-sm outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 focus:border-charcoal/20 dark:focus:border-white/20 box-border"
             />
           </div>
           <div>
-            <label className="block font-mono text-[11px] uppercase tracking-[0.07em] text-charcoal/50 dark:text-white/40 mb-1.5">Category</label>
+            <label className="block font-mono text-micro uppercase tracking-[0.07em] text-charcoal/50 dark:text-white/40 mb-1.5">Category</label>
             <div className="flex gap-2">
               {Object.entries(DOC_CAT_LABELS).map(([k, v]) => (
                 <button key={k} type="button" onClick={() => setForm(f => ({ ...f, category: k }))}
-                  className={`flex-1 py-2 rounded-[9px] cursor-pointer font-mono text-[11px] font-bold tracking-[0.04em] border transition-colors ${
+                  className={`flex-1 py-2 rounded-[9px] cursor-pointer font-mono text-micro font-bold tracking-[0.04em] border transition-colors ${
                     form.category === k
                       ? 'bg-brand text-white border-brand'
                       : 'bg-transparent text-charcoal/50 dark:text-white/40 border-charcoal/10 dark:border-white/10'
@@ -416,17 +416,17 @@ function DocumentsTab({ staffId, venueId }) {
             </div>
           </div>
           <div>
-            <label className="block font-mono text-[11px] uppercase tracking-[0.07em] text-charcoal/50 dark:text-white/40 mb-1.5">File</label>
-            <input type="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" onChange={e => setFile(e.target.files?.[0] ?? null)} className="w-full text-[13px]" />
-            {file && <p className="font-mono text-[11px] text-charcoal/30 dark:text-white/30 mt-1">{file.name} · {(file.size / 1024).toFixed(0)} KB</p>}
+            <label className="block font-mono text-micro uppercase tracking-[0.07em] text-charcoal/50 dark:text-white/40 mb-1.5">File</label>
+            <input type="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" onChange={e => setFile(e.target.files?.[0] ?? null)} className="w-full text-body-sm" />
+            {file && <p className="font-mono text-micro text-charcoal/30 dark:text-white/30 mt-1">{file.name} · {(file.size / 1024).toFixed(0)} KB</p>}
           </div>
           <div>
-            <label className="block font-mono text-[11px] uppercase tracking-[0.07em] text-charcoal/50 dark:text-white/40 mb-1.5">Expiry date (optional)</label>
-            <input type="date" value={form.expiry_date} onChange={e => setForm(f => ({ ...f, expiry_date: e.target.value }))} className="w-full px-3 py-2.5 rounded-[10px] border border-charcoal/10 dark:border-white/10 text-[13px] outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 focus:border-charcoal/20 dark:focus:border-white/20 box-border" />
+            <label className="block font-mono text-micro uppercase tracking-[0.07em] text-charcoal/50 dark:text-white/40 mb-1.5">Expiry date (optional)</label>
+            <input type="date" value={form.expiry_date} onChange={e => setForm(f => ({ ...f, expiry_date: e.target.value }))} className="w-full px-3 py-2.5 rounded-[10px] border border-charcoal/10 dark:border-white/10 text-body-sm outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 focus:border-charcoal/20 dark:focus:border-white/20 box-border" />
           </div>
           <div>
-            <label className="block font-mono text-[11px] uppercase tracking-[0.07em] text-charcoal/50 dark:text-white/40 mb-1.5">Notes (optional)</label>
-            <textarea value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} rows={2} className="w-full px-3 py-2.5 rounded-[10px] border border-charcoal/10 dark:border-white/10 text-[13px] outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 focus:border-charcoal/20 dark:focus:border-white/20 resize-none box-border" />
+            <label className="block font-mono text-micro uppercase tracking-[0.07em] text-charcoal/50 dark:text-white/40 mb-1.5">Notes (optional)</label>
+            <textarea value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} rows={2} className="w-full px-3 py-2.5 rounded-[10px] border border-charcoal/10 dark:border-white/10 text-body-sm outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 focus:border-charcoal/20 dark:focus:border-white/20 resize-none box-border" />
           </div>
           <Button size="lg" loading={saving} onClick={upload} disabled={saving}>
             {saving ? 'Uploading…' : 'Upload Document'}
@@ -446,18 +446,18 @@ function AttendanceStat({ label, total, active, dates, tone }) {
 
   return (
     <div className={bg} style={{ borderRadius: 12, padding: '14px 16px' }}>
-      <p className={`font-mono text-[11px] uppercase tracking-[0.07em] font-semibold mb-1 ${lblClr}`}>
+      <p className={`font-mono text-micro uppercase tracking-[0.07em] font-semibold mb-1 ${lblClr}`}>
         {label}
       </p>
       <div className="flex items-baseline gap-2">
-        <span className={`font-mono text-[28px] font-bold leading-none ${numClr}`}>
+        <span className={`font-mono text-display font-bold leading-none ${numClr}`}>
           {active}
         </span>
-        <span className={`font-mono text-[11px] ${lblClr}`}>
+        <span className={`font-mono text-micro ${lblClr}`}>
           active
         </span>
         {total > active && (
-          <span className="font-mono text-[11px] text-charcoal/30 dark:text-white/30 ml-auto">
+          <span className="font-mono text-micro text-charcoal/30 dark:text-white/30 ml-auto">
             {total} total
           </span>
         )}
@@ -465,12 +465,12 @@ function AttendanceStat({ label, total, active, dates, tone }) {
       {dates.length > 0 && (
         <div className="flex flex-col gap-0.5 mt-2">
           {dates.slice(0, 3).map((d, i) => (
-            <span key={i} className="font-mono text-[11px]" style={{ color: lblClr }}>
+            <span key={i} className="font-mono text-micro" style={{ color: lblClr }}>
               {format(parseISO(d), 'd MMM, HH:mm')}
             </span>
           ))}
           {dates.length > 3 && (
-            <span className="font-mono text-[11px] text-charcoal/30 dark:text-white/30">
+            <span className="font-mono text-micro text-charcoal/30 dark:text-white/30">
               +{dates.length - 3} more
             </span>
           )}
@@ -606,23 +606,23 @@ function DisciplinaryTab({ staffId, venueId }) {
       {/* ── Late clock-in history (ground truth from clock_events + shifts) ── */}
       {!loading && lateHistory.length > 0 && (
         <>
-          <span className="font-mono text-[11px] uppercase tracking-[0.07em] text-charcoal/50 dark:text-white/40 font-semibold">
+          <span className="font-mono text-micro uppercase tracking-[0.07em] text-charcoal/50 dark:text-white/40 font-semibold">
             Late clock-ins ({lateHistory.length})
           </span>
           <SectionCard>
             {lateHistory.map((item, i) => (
               <div key={item.id} className={`flex items-center gap-3 px-[18px] py-[13px] ${i < lateHistory.length - 1 ? 'border-b border-charcoal/6 dark:border-white/8' : ''}`}>
-                <div className="w-7 h-7 rounded-lg bg-warning/10 flex items-center justify-center font-mono text-[11px] font-bold text-warning shrink-0">
+                <div className="w-7 h-7 rounded-lg bg-warning/10 flex items-center justify-center font-mono text-micro font-bold text-warning shrink-0">
                   {i + 1}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-[13px] font-semibold text-charcoal/75 dark:text-white/60">
+                  <div className="text-body-sm font-semibold text-charcoal/75 dark:text-white/60">
                     {item.minsLate >= 1 ? `${item.minsLate} min${item.minsLate !== 1 ? 's' : ''} late` : `${item.secsLate}s late`}
-                    <span className="font-mono text-[11px] font-normal text-charcoal/30 dark:text-white/30 ml-2">
+                    <span className="font-mono text-micro font-normal text-charcoal/30 dark:text-white/30 ml-2">
                       scheduled {item.scheduledTime.slice(0, 5)}
                     </span>
                   </div>
-                  <div className="font-mono text-[11px] text-charcoal/30 dark:text-white/30 mt-[3px]">
+                  <div className="font-mono text-micro text-charcoal/30 dark:text-white/30 mt-[3px]">
                     {format(parseISO(item.occurred_at), 'd MMM yyyy, HH:mm')}
                   </div>
                 </div>
@@ -633,7 +633,7 @@ function DisciplinaryTab({ staffId, venueId }) {
       )}
 
       <div className="flex items-center justify-between gap-2">
-        <span className="font-mono text-[11px] uppercase tracking-[0.07em] text-charcoal/50 dark:text-white/40 font-semibold">
+        <span className="font-mono text-micro uppercase tracking-[0.07em] text-charcoal/50 dark:text-white/40 font-semibold">
           Timeline
         </span>
         <div className="flex gap-2">
@@ -670,16 +670,16 @@ function DisciplinaryTab({ staffId, venueId }) {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-[9px] flex-wrap">
                         <Badge tone={tone}>{FORMAL_LABELS[item.action_type] ?? item.action_type}</Badge>
-                        <span className="font-mono text-[11px] text-charcoal/30 dark:text-white/30">
+                        <span className="font-mono text-micro text-charcoal/30 dark:text-white/30">
                           {format(parseISO(item.occurred_at), 'd MMM yyyy')}
                         </span>
                       </div>
                       {item.notes && (
-                        <p className="text-[13px] text-charcoal/75 dark:text-white/60 mt-2 leading-[1.5]">{item.notes}</p>
+                        <p className="text-body-sm text-charcoal/75 dark:text-white/60 mt-2 leading-[1.5]">{item.notes}</p>
                       )}
                       <div className="flex gap-3 mt-2 items-center flex-wrap">
                         {item.added_by_staff?.name && (
-                          <span className="font-mono text-[11px] text-charcoal/30 dark:text-white/30">Added by {item.added_by_staff.name}</span>
+                          <span className="font-mono text-micro text-charcoal/30 dark:text-white/30">Added by {item.added_by_staff.name}</span>
                         )}
                         {(item.file_path || item.file_url) && (
                           <Button variant="link" size="sm" onClick={() => openHrAttachment(item, toast)}>
@@ -698,47 +698,47 @@ function DisciplinaryTab({ staffId, venueId }) {
             if (item.dismissed_at) {
               return (
                 <div key={`s-${item.id}`} className={`flex items-start gap-3 px-[18px] py-[13px] opacity-40 ${isLast ? '' : 'border-b border-charcoal/6 dark:border-white/8'}`}>
-                  <div className="w-7 h-7 rounded-lg bg-charcoal/6 dark:bg-white/8 text-charcoal/40 dark:text-white/35 flex items-center justify-center font-mono text-[11px] font-bold shrink-0 line-through">
+                  <div className="w-7 h-7 rounded-lg bg-charcoal/6 dark:bg-white/8 text-charcoal/40 dark:text-white/35 flex items-center justify-center font-mono text-micro font-bold shrink-0 line-through">
                     {item.strike_number}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="text-[13px] font-semibold text-charcoal/50 dark:text-white/40 line-through">
+                    <div className="text-body-sm font-semibold text-charcoal/50 dark:text-white/40 line-through">
                       Strike {item.strike_number} — {OFFENCE_LABELS[item.offence_type] ?? item.offence_type}
                       {item.mins_over != null && (
-                        <span className="font-mono text-[11px] font-normal ml-1.5">{item.mins_over} min over</span>
+                        <span className="font-mono text-micro font-normal ml-1.5">{item.mins_over} min over</span>
                       )}
                     </div>
-                    <div className="font-mono text-[11px] text-charcoal/30 dark:text-white/30 mt-[3px]">
+                    <div className="font-mono text-micro text-charcoal/30 dark:text-white/30 mt-[3px]">
                       {format(parseISO(item.occurred_at), 'd MMM yyyy, HH:mm')}
                       {item.dismissed_by_staff?.name && (
                         <> · Dismissed by {item.dismissed_by_staff.name} on {format(parseISO(item.dismissed_at), 'd MMM')}</>
                       )}
                     </div>
                   </div>
-                  <span className="font-mono text-[11px] text-charcoal/30 dark:text-white/30 uppercase tracking-[0.05em] shrink-0 mt-[3px]">Dismissed</span>
+                  <span className="font-mono text-micro text-charcoal/30 dark:text-white/30 uppercase tracking-[0.05em] shrink-0 mt-[3px]">Dismissed</span>
                 </div>
               )
             }
             return (
               <div key={`s-${item.id}`} className={`flex items-start gap-3 px-[18px] py-[13px] ${isLast ? '' : 'border-b border-charcoal/6 dark:border-white/8'}`}>
-                <div className="w-7 h-7 rounded-lg bg-charcoal/6 dark:bg-white/8 text-charcoal/50 dark:text-white/40 flex items-center justify-center font-mono text-[11px] font-bold shrink-0">
+                <div className="w-7 h-7 rounded-lg bg-charcoal/6 dark:bg-white/8 text-charcoal/50 dark:text-white/40 flex items-center justify-center font-mono text-micro font-bold shrink-0">
                   {item.strike_number}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-[13px] font-semibold text-charcoal/75 dark:text-white/60">
+                  <div className="text-body-sm font-semibold text-charcoal/75 dark:text-white/60">
                     Strike {item.strike_number} — {OFFENCE_LABELS[item.offence_type] ?? item.offence_type}
                     {item.mins_over != null && (
-                      <span className="font-mono text-[11px] text-charcoal/30 dark:text-white/30 font-normal ml-1.5">
+                      <span className="font-mono text-micro text-charcoal/30 dark:text-white/30 font-normal ml-1.5">
                         {item.mins_over} min over
                       </span>
                     )}
                   </div>
-                  <div className="font-mono text-[11px] text-charcoal/30 dark:text-white/30 mt-[3px]">
+                  <div className="font-mono text-micro text-charcoal/30 dark:text-white/30 mt-[3px]">
                     {format(parseISO(item.occurred_at), 'd MMM yyyy, HH:mm')}
                   </div>
                 </div>
                 <div className="flex items-center gap-2 shrink-0 mt-[3px]">
-                  <span className="font-mono text-[11px] text-charcoal/30 dark:text-white/30 uppercase tracking-[0.05em]">Auto</span>
+                  <span className="font-mono text-micro text-charcoal/30 dark:text-white/30 uppercase tracking-[0.05em]">Auto</span>
                   <Button
                     variant="secondary"
                     size="sm"
@@ -758,26 +758,26 @@ function DisciplinaryTab({ staffId, venueId }) {
       <Modal open={showModal} onClose={() => { setShowModal(false); setFile(null) }} title="Add Formal Action">
         <div className="flex flex-col gap-3.5">
           <div>
-            <label className="block font-mono text-[11px] uppercase tracking-[0.07em] text-charcoal/50 dark:text-white/40 mb-1.5">Action type</label>
+            <label className="block font-mono text-micro uppercase tracking-[0.07em] text-charcoal/50 dark:text-white/40 mb-1.5">Action type</label>
             <select value={form.action_type} onChange={e => setForm(f => ({ ...f, action_type: e.target.value }))}
-              className="w-full px-3 py-2.5 rounded-[10px] border border-charcoal/10 dark:border-white/10 text-[13px] outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 focus:border-charcoal/20 dark:focus:border-white/20 bg-white dark:bg-paperDark box-border">
+              className="w-full px-3 py-2.5 rounded-[10px] border border-charcoal/10 dark:border-white/10 text-body-sm outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 focus:border-charcoal/20 dark:focus:border-white/20 bg-white dark:bg-paperDark box-border">
               {Object.entries(FORMAL_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
             </select>
           </div>
           <div>
-            <label className="block font-mono text-[11px] uppercase tracking-[0.07em] text-charcoal/50 dark:text-white/40 mb-1.5">Date</label>
+            <label className="block font-mono text-micro uppercase tracking-[0.07em] text-charcoal/50 dark:text-white/40 mb-1.5">Date</label>
             <input type="date" value={form.occurred_at} onChange={e => setForm(f => ({ ...f, occurred_at: e.target.value }))}
-              className="w-full px-3 py-2.5 rounded-[10px] border border-charcoal/10 dark:border-white/10 text-[13px] outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 focus:border-charcoal/20 dark:focus:border-white/20 box-border" />
+              className="w-full px-3 py-2.5 rounded-[10px] border border-charcoal/10 dark:border-white/10 text-body-sm outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 focus:border-charcoal/20 dark:focus:border-white/20 box-border" />
           </div>
           <div>
-            <label className="block font-mono text-[11px] uppercase tracking-[0.07em] text-charcoal/50 dark:text-white/40 mb-1.5">Notes</label>
+            <label className="block font-mono text-micro uppercase tracking-[0.07em] text-charcoal/50 dark:text-white/40 mb-1.5">Notes</label>
             <textarea value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} rows={3}
               placeholder="Details, outcome, follow-up actions…"
-              className="w-full px-3 py-2.5 rounded-[10px] border border-charcoal/10 dark:border-white/10 text-[13px] outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 focus:border-charcoal/20 dark:focus:border-white/20 resize-none box-border" />
+              className="w-full px-3 py-2.5 rounded-[10px] border border-charcoal/10 dark:border-white/10 text-body-sm outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 focus:border-charcoal/20 dark:focus:border-white/20 resize-none box-border" />
           </div>
           <div>
-            <label className="block font-mono text-[11px] uppercase tracking-[0.07em] text-charcoal/50 dark:text-white/40 mb-1.5">Attachment (optional)</label>
-            <input type="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" onChange={e => setFile(e.target.files?.[0] ?? null)} className="w-full text-[13px]" />
+            <label className="block font-mono text-micro uppercase tracking-[0.07em] text-charcoal/50 dark:text-white/40 mb-1.5">Attachment (optional)</label>
+            <input type="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" onChange={e => setFile(e.target.files?.[0] ?? null)} className="w-full text-body-sm" />
           </div>
           <Button variant="danger" size="lg" loading={saving} onClick={addFormal} disabled={saving}>
             {saving ? 'Saving…' : 'Record Action'}
@@ -819,7 +819,7 @@ function LeaveTab({ staffId, venueSlug, staff }) {
           { k: 'Remaining', v: remaining != null ? `${remaining} days` : '—' },
         ].map(x => (
           <div key={x.k} className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[14px] px-4 py-[13px]">
-            <div className="font-mono text-[11px] uppercase tracking-[0.07em] text-charcoal/50 dark:text-white/40 font-semibold">{x.k}</div>
+            <div className="font-mono text-micro uppercase tracking-[0.07em] text-charcoal/50 dark:text-white/40 font-semibold">{x.k}</div>
             <div className="text-xl font-semibold text-charcoal dark:text-white mt-[3px] font-mono tracking-[-0.02em]">{x.v}</div>
           </div>
         ))}
@@ -836,12 +836,12 @@ function LeaveTab({ staffId, venueSlug, staff }) {
             return (
               <div key={r.id} className={`flex items-center gap-3 px-[18px] py-[13px] ${i < requests.length - 1 ? 'border-b border-charcoal/6 dark:border-white/8' : ''}`}>
                 <div className="flex-1 min-w-0">
-                  <div className="text-[13.5px] font-semibold text-charcoal dark:text-white">
+                  <div className="text-body font-semibold text-charcoal dark:text-white">
                     {format(parseISO(r.start_date), 'd MMM')} – {format(parseISO(r.end_date), 'd MMM yyyy')}
                   </div>
                   <div className="flex gap-2 mt-1 items-center">
                     <Badge tone="muted">{LEAVE_LABELS[r.leave_type] ?? r.leave_type}</Badge>
-                    {r.reason && <span className="font-mono text-[11px] text-charcoal/30 dark:text-white/30">{r.reason}</span>}
+                    {r.reason && <span className="font-mono text-micro text-charcoal/30 dark:text-white/30">{r.reason}</span>}
                   </div>
                 </div>
                 <Badge tone={tone} dot>{r.status}</Badge>
@@ -878,7 +878,7 @@ function TrainingTab({ staffId, venueSlug }) {
         <SkeletonList rows={4} />
       ) : (
         <>
-          <span className="font-mono text-[11px] uppercase tracking-[0.07em] text-charcoal/50 dark:text-white/40 font-semibold">
+          <span className="font-mono text-micro uppercase tracking-[0.07em] text-charcoal/50 dark:text-white/40 font-semibold">
             Certificates · {certs.length}
           </span>
           {certs.length === 0
@@ -890,8 +890,8 @@ function TrainingTab({ staffId, venueSlug }) {
                   return (
                     <div key={c.id} className={`flex items-center gap-3 px-[18px] py-[13px] ${i < certs.length - 1 ? 'border-b border-charcoal/6 dark:border-white/8' : ''}`}>
                       <div className="flex-1 min-w-0">
-                        <div className="text-[13.5px] font-semibold text-charcoal dark:text-white">{c.title}</div>
-                        {c.category && <div className="font-mono text-[11px] text-charcoal/30 dark:text-white/30 mt-0.5 uppercase tracking-[0.03em]">{c.category}</div>}
+                        <div className="text-body font-semibold text-charcoal dark:text-white">{c.title}</div>
+                        {c.category && <div className="font-mono text-micro text-charcoal/30 dark:text-white/30 mt-0.5 uppercase tracking-[0.03em]">{c.category}</div>}
                       </div>
                       <Badge tone={st.tone}>{st.label}</Badge>
                     </div>
@@ -901,7 +901,7 @@ function TrainingTab({ staffId, venueSlug }) {
             )
           }
 
-          <span className="font-mono text-[11px] uppercase tracking-[0.07em] text-charcoal/50 dark:text-white/40 font-semibold mt-1">
+          <span className="font-mono text-micro uppercase tracking-[0.07em] text-charcoal/50 dark:text-white/40 font-semibold mt-1">
             Induction records · {inductions.length}
           </span>
           {inductions.length === 0
@@ -911,10 +911,10 @@ function TrainingTab({ staffId, venueSlug }) {
                 {inductions.map((ind, i) => (
                   <div key={ind.id} className={`flex items-center justify-between gap-2.5 px-[18px] py-[13px] ${i < inductions.length - 1 ? 'border-b border-charcoal/6 dark:border-white/8' : ''}`}>
                     <div className="flex-1 min-w-0">
-                      <div className="text-[13.5px] font-semibold text-charcoal dark:text-white">
+                      <div className="text-body font-semibold text-charcoal dark:text-white">
                         Induction — {ind.trainer_name ?? 'Unknown trainer'}
                       </div>
-                      <div className="font-mono text-[11px] text-charcoal/30 dark:text-white/30 mt-[3px]">
+                      <div className="font-mono text-micro text-charcoal/30 dark:text-white/30 mt-[3px]">
                         {format(parseISO(ind.training_date), 'd MMM yyyy')}
                       </div>
                     </div>
@@ -972,7 +972,7 @@ function SecurityTab({ staffId }) {
         onClose={() => setRevokeTarget(null)}
         onConfirm={() => { handleRevoke(revokeTarget.token); setRevokeTarget(null) }}
       />
-      <span className="font-mono text-[11px] uppercase tracking-[0.07em] text-charcoal/50 dark:text-white/40 font-semibold">
+      <span className="font-mono text-micro uppercase tracking-[0.07em] text-charcoal/50 dark:text-white/40 font-semibold">
         Active sessions · {loading ? '—' : sessions.length}
       </span>
       {loading ? (
@@ -984,8 +984,8 @@ function SecurityTab({ staffId }) {
           {sessions.map((s, i) => (
             <div key={s.token} className={`flex items-center gap-3 px-[18px] py-[13px] ${i < sessions.length - 1 ? 'border-b border-charcoal/6 dark:border-white/8' : ''}`}>
               <div className="flex-1 min-w-0">
-                <div className="text-[13.5px] font-semibold text-charcoal dark:text-white">{s.device_label ?? 'Unknown device'}</div>
-                <div className="font-mono text-[11px] text-charcoal/30 dark:text-white/30 mt-[3px]">
+                <div className="text-body font-semibold text-charcoal dark:text-white">{s.device_label ?? 'Unknown device'}</div>
+                <div className="font-mono text-micro text-charcoal/30 dark:text-white/30 mt-[3px]">
                   Started {format(parseISO(s.created_at), 'd MMM yyyy, HH:mm')} · Expires {format(parseISO(s.expires_at), 'd MMM yyyy')}
                 </div>
               </div>
@@ -1020,7 +1020,7 @@ export default function EmployeeRecordPanel({ staffId, venueId, venueSlug, onBac
           <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>
           <path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/>
         </svg>
-        <p className="text-[13px]">Select a staff member to view their record</p>
+        <p className="text-body-sm">Select a staff member to view their record</p>
       </div>
     )
   }
@@ -1040,13 +1040,13 @@ export default function EmployeeRecordPanel({ staffId, venueId, venueSlug, onBac
           : <Avatar name={staff?.name} id={staff?.id ?? staffId} colour={staff?.colour} photoUrl={staff?.photo_url} size="2xl" decorative />
         }
         <div className="flex-1 min-w-0">
-          <div data-testid="record-panel-name" className="text-[18px] lg:text-[23px] font-semibold lg:font-bold tracking-[-0.015em] lg:tracking-[-0.02em] text-charcoal dark:text-white leading-tight">
+          <div data-testid="record-panel-name" className="text-title-sm lg:text-title font-semibold lg:font-bold tracking-[-0.015em] lg:tracking-[-0.02em] text-charcoal dark:text-white leading-tight">
             {loading ? <span className="text-charcoal/30 dark:text-white/30">Loading…</span> : (staff?.name ?? '—')}
           </div>
           {!loading && staff && (
             <>
               {/* Mobile: compact single-line */}
-              <div className="lg:hidden text-[12.5px] text-charcoal/50 dark:text-white/40 mt-[2px] overflow-hidden text-ellipsis whitespace-nowrap">
+              <div className="lg:hidden text-body-sm text-charcoal/50 dark:text-white/40 mt-[2px] overflow-hidden text-ellipsis whitespace-nowrap">
                 {[
                   jobTitle.toUpperCase(),
                   staff.employment_type ? (EMPLOYMENT_LABELS[staff.employment_type] ?? staff.employment_type) : null,
@@ -1055,11 +1055,11 @@ export default function EmployeeRecordPanel({ staffId, venueId, venueSlug, onBac
               </div>
               {/* Desktop: multi-line */}
               <div className="hidden lg:flex items-center gap-[11px] mt-[5px] flex-wrap">
-                <span className="text-[13.5px] text-charcoal/50 dark:text-white/40">{jobTitle.toUpperCase()}</span>
+                <span className="text-body text-charcoal/50 dark:text-white/40">{jobTitle.toUpperCase()}</span>
                 {staff.employment_type && (
                   <>
                     <span className="w-px h-3 bg-charcoal/10 dark:bg-white/10" />
-                    <span className="font-mono text-[11px] text-charcoal/50 dark:text-white/40">
+                    <span className="font-mono text-micro text-charcoal/50 dark:text-white/40">
                       {EMPLOYMENT_LABELS[staff.employment_type] ?? staff.employment_type}
                       {staff.start_date && ` · ${tenure(staff.start_date)}`}
                     </span>
@@ -1098,7 +1098,7 @@ export default function EmployeeRecordPanel({ staffId, venueId, venueSlug, onBac
       <div className="flex gap-0.5 lg:mb-5 bg-charcoal/6 dark:bg-white/8 rounded-[11px] p-[3px]">
         {TABS.map(t => (
           <button key={t} data-testid={`record-tab-${t}`} onClick={() => setTab(t)}
-            className={`flex-1 py-[7px] lg:py-2 px-0 border-0 cursor-pointer rounded-[8px] font-mono text-[10px] lg:text-[11px] tracking-[0] transition-all duration-150 ${
+            className={`flex-1 py-[7px] lg:py-2 px-0 border-0 cursor-pointer rounded-[8px] font-mono text-micro tracking-[0] transition-all duration-150 ${
               tab === t
                 ? 'bg-white dark:bg-paperDark text-charcoal dark:text-white font-bold shadow-[0_1px_3px_theme(colors.ink/10%)]'
                 : 'bg-transparent text-charcoal/50 dark:text-white/40 font-semibold'
