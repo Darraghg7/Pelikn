@@ -36,18 +36,19 @@ export function workedStatsFromEvents(events) {
   return { totalHours: total, distinctDays: workedDays.size }
 }
 
-// staffId → { totalHours, distinctDays } for a calendar year. Pages through the
+// staffId → { totalHours, distinctDays } between two 'yyyy-MM-dd' dates
+// (inclusive) — normally the venue's holiday year. Pages through the
 // rows: the API returns at most 1000 per request, and a year of shifts for a
 // team goes well past that — a single request quietly under-counted.
-export async function fetchWorkedStatsByStaff(staffIds, year) {
+export async function fetchWorkedStatsByStaff(staffIds, from, to) {
   const events = []
   for (let from = 0; ; from += PAGE_SIZE) {
     const { data, error } = await supabase
       .from('clock_events')
       .select('id, staff_id, event_type, occurred_at')
       .in('staff_id', staffIds)
-      .gte('occurred_at', `${year}-01-01T00:00:00Z`)
-      .lt('occurred_at',  `${year + 1}-01-01T00:00:00Z`)
+      .gte('occurred_at', `${from}T00:00:00Z`)
+      .lte('occurred_at', `${to}T23:59:59.999Z`)
       .order('occurred_at', { ascending: true })
       .order('id', { ascending: true })
       .range(from, from + PAGE_SIZE - 1)
@@ -62,13 +63,14 @@ export async function fetchWorkedStatsByStaff(staffIds, year) {
   return result
 }
 
+// leaveYear: { from, to } from lib/leaveYear
 // Hook for a single zero-hours staff member.
 // Returns:
 //   accrued      — holiday hours earned (12.07% of worked hours, capped 224)
 //   workedHours  — raw total hours worked this year
 //   avgDailyHours — workedHours / distinctDaysWorked, or 7.6 (UK default) if <3 shifts
 export function useZeroHoursAccrual(staffId, leaveYear) {
-  const year = leaveYear ?? new Date().getFullYear()
+  const { from, to } = leaveYear
   const [accrued, setAccrued]           = useState(null)
   const [workedHours, setWorkedHours]   = useState(null)
   const [avgDailyHours, setAvgDaily]    = useState(DEFAULT_DAY_HOURS)
@@ -77,7 +79,7 @@ export function useZeroHoursAccrual(staffId, leaveYear) {
   useEffect(() => {
     if (!staffId) { setLoading(false); return }
     let cancelled = false
-    fetchWorkedStatsByStaff([staffId], year).then((byStaff) => {
+    fetchWorkedStatsByStaff([staffId], from, to).then((byStaff) => {
       if (cancelled) return
       const stats = byStaff[staffId]
       setAccrued(accruedHoursFor(stats.totalHours))
@@ -90,15 +92,15 @@ export function useZeroHoursAccrual(staffId, leaveYear) {
       if (!cancelled) setLoading(false)
     })
     return () => { cancelled = true }
-  }, [staffId, year])
+  }, [staffId, from, to])
 
   return { accrued, workedHours, avgDailyHours, loading }
 }
 
 // Batch version for the manager team view — one paged query for all zero-hours staff.
-// Returns a map of staffId → accrued hours.
+// Returns a map of staffId → { accrued, avgDailyHours }.
 export function useTeamZeroHoursAccruals(staffIds, leaveYear) {
-  const year = leaveYear ?? new Date().getFullYear()
+  const { from, to } = leaveYear
   // Callers pass a fresh array each render; key on its contents instead so the
   // effect only re-runs when the actual set of ids changes.
   const key  = staffIds.join(',')
@@ -109,10 +111,12 @@ export function useTeamZeroHoursAccruals(staffIds, leaveYear) {
   useEffect(() => {
     if (!ids.length) { setMap({}); setLoading(false); return }
     let cancelled = false
-    fetchWorkedStatsByStaff(ids, year).then((byStaff) => {
+    fetchWorkedStatsByStaff(ids, from, to).then((byStaff) => {
       if (cancelled) return
       const result = {}
-      for (const sid of ids) result[sid] = accruedHoursFor(byStaff[sid].totalHours)
+      for (const sid of ids) {
+        result[sid] = { accrued: accruedHoursFor(byStaff[sid].totalHours), avgDailyHours: avgDailyHoursFor(byStaff[sid]) }
+      }
       setMap(result)
       setLoading(false)
     }).catch((e) => {
@@ -121,7 +125,7 @@ export function useTeamZeroHoursAccruals(staffIds, leaveYear) {
       if (!cancelled) setLoading(false)
     })
     return () => { cancelled = true }
-  }, [ids, year])
+  }, [ids, from, to])
 
   return { map, loading }
 }

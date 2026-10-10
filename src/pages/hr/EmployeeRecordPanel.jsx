@@ -16,6 +16,8 @@ import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { format, parseISO, differenceInDays } from 'date-fns'
 import { calculateEntitlementDays, countWorkingDaysInRequest } from '../../hooks/useLeaveBalance'
+import { useAppSettings } from '../../hooks/useSettings'
+import { leaveYearFor } from '../../lib/leaveYear'
 import { HR_BUCKET, hrAttachmentPath, openHrAttachment } from '../../lib/hrDocuments'
 import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../../components/ui/Toast'
@@ -792,7 +794,8 @@ function DisciplinaryTab({ staffId, venueId }) {
 function LeaveTab({ staffId, venueSlug, staff }) {
   const navigate = useNavigate()
   const { requests, loading } = useLeaveRequests(staffId)
-  const currentYear = new Date().getFullYear()
+  const { leaveYearStartMonth } = useAppSettings()
+  const { from: yearFrom, to: yearTo } = leaveYearFor(new Date(), leaveYearStartMonth)
 
   const STATUS_TONE = {
     approved:  'good',
@@ -806,8 +809,13 @@ function LeaveTab({ staffId, venueSlug, staff }) {
   const isZeroHrs  = staff?.employment_type === 'zero_hours'
   const allowance  = eligible ? calculateEntitlementDays(staff?.employment_type, staff?.working_days) : null
   const taken      = requests
-    .filter(r => r.status === 'approved' && r.leave_type === 'annual' && r.start_date?.startsWith(String(currentYear)))
-    .reduce((sum, r) => sum + countWorkingDaysInRequest(r.start_date, r.end_date, staff?.working_days), 0)
+    // Only the days inside this holiday year
+    .filter(r => r.status === 'approved' && r.leave_type === 'annual' && r.start_date <= yearTo && r.end_date >= yearFrom)
+    .reduce((sum, r) => sum + countWorkingDaysInRequest(
+      r.start_date < yearFrom ? yearFrom : r.start_date,
+      r.end_date   > yearTo   ? yearTo   : r.end_date,
+      staff?.working_days,
+    ), 0)
   const remaining  = allowance != null ? Math.max(0, allowance - taken) : null
 
   return (

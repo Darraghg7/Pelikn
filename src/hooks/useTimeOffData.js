@@ -10,7 +10,8 @@ import { useState, useEffect, useCallback, useMemo } from 'react'
 import { supabase } from '../lib/supabase'
 import { reportError } from '../lib/reportError'
 import { fetchTimeOffPrivateFields, withTimeOffPrivate } from '../lib/api/timeOffPrivate'
-import { calculateEntitlementDays, countWorkingDaysInRequest } from './useLeaveBalance'
+import { calculateEntitlementDays } from './useLeaveBalance'
+import { fetchHolidayAllocations, leaveDaysInRange } from '../lib/api/holidayPay'
 
 export function useTimeOffRequests(venueId) {
   const [requests, setRequests] = useState([])
@@ -72,11 +73,15 @@ export function useOwnProfile(staffId) {
   return profile
 }
 
-// Compute all staff leave balances in a single batch fetch
+// Compute all staff leave balances in a single batch fetch.
+// leaveYear: { startYear, from, to } from lib/leaveYear. Leave that runs
+// across the start or end of the holiday year only counts the days inside it.
 export function useTeamLeaveBalances(staff, leaveYear) {
-  const year = leaveYear ?? new Date().getFullYear()
+  const { startYear, from, to } = leaveYear
   const [approvedReqs, setApprovedReqs] = useState([])
   const [overrides, setOverrides]       = useState({})
+  const [allocations, setAllocations]   = useState([])
+  const [allocationsAvailable, setAllocationsAvailable] = useState(false)
   const [loading, setLoading]           = useState(true)
   const [failed, setFailed]             = useState(false)
   const [tick, setTick]                 = useState(0)
@@ -92,17 +97,21 @@ export function useTeamLeaveBalances(staff, leaveYear) {
     let cancelled = false
     Promise.all([
       supabase.from('time_off_requests')
-        .select('staff_id, start_date, end_date')
+        .select('id, staff_id, start_date, end_date')
         .in('staff_id', ids)
         .eq('status', 'approved')
         .eq('leave_type', 'annual')
-        .gte('start_date', `${year}-01-01`)
-        .lte('start_date', `${year}-12-31`),
+        .lte('start_date', to)
+        .gte('end_date', from),
       supabase.from('leave_entitlements')
         .select('staff_id, override_days')
         .in('staff_id', ids)
-        .eq('leave_year', year),
-    ]).then(([reqRes, ovRes]) => {
+        .eq('leave_year', startYear),
+      // Allocated hours only refine the zero-hours figure — if they can't be
+      // read (148 not applied yet) the balance estimates instead of failing.
+      fetchHolidayAllocations({ staffIds: ids, from, to })
+        .catch((e) => { reportError(e, 'useTeamLeaveBalances:allocations'); return { data: [], available: false } }),
+    ]).then(([reqRes, ovRes, allocRes]) => {
       if (cancelled) return
       // Without both reads every balance would show as a full, untouched
       // allowance — so fail the list instead of showing wrong numbers.
@@ -113,10 +122,12 @@ export function useTeamLeaveBalances(staff, leaveYear) {
       const map = {}
       for (const o of (ovRes.data ?? [])) map[o.staff_id] = o.override_days
       setOverrides(map)
+      setAllocations(allocRes.data)
+      setAllocationsAvailable(allocRes.available)
       setLoading(false)
     })
     return () => { cancelled = true }
-  }, [ids, year, tick])
+  }, [ids, startYear, from, to, tick])
 
   const reloadBalances = useCallback(() => setTick(t => t + 1), [])
 
@@ -125,11 +136,14 @@ export function useTeamLeaveBalances(staff, leaveYear) {
     const calculated  = eligible ? calculateEntitlementDays(s.employment_type, s.working_days) : null
     const entitlement = eligible ? (overrides[s.id] ?? calculated) : null
     const myReqs      = approvedReqs.filter(r => r.staff_id === s.id)
-    const used        = myReqs.reduce((sum, r) =>
-      sum + countWorkingDaysInRequest(r.start_date, r.end_date, s.working_days), 0)
+    const leaveDays   = leaveDaysInRange(myReqs, allocations, s.working_days, from, to)
+    const used        = leaveDays.filter(d => d.isWorkingDay).length
     const remaining   = entitlement != null ? Math.max(0, entitlement - used) : null
-    return { ...s, entitlement, used, remaining, isZeroHours: s.employment_type === 'zero_hours', isEligible: eligible }
-  }), [staff, approvedReqs, overrides])
+    return {
+      ...s, entitlement, used, remaining, leaveDays,
+      isZeroHours: s.employment_type === 'zero_hours', isEligible: eligible,
+    }
+  }), [staff, approvedReqs, overrides, allocations, from, to])
 
-  return { balances, loading, failed, reloadBalances }
+  return { balances, loading, failed, reloadBalances, allocationsAvailable }
 }

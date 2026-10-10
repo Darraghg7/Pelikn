@@ -13,6 +13,8 @@ import { useZeroHoursAccrual, useTeamZeroHoursAccruals } from '../../hooks/useZe
 import { invalidateSummaryCache } from '../../hooks/useTodaySummary'
 import { timeOffPermissions, isBlocking } from '../../lib/api/timeOff'
 import { useAppSettings } from '../../hooks/useSettings'
+import { leaveYearFor } from '../../lib/leaveYear'
+import { holidayHoursUsed } from '../../lib/api/holidayPay'
 import {
   requestableLeaveTypes,
   leaveTypeLabel, getRequestsForDay, fmtDays, maxStaffOffInRange, employmentLabel, isOnlyClosedDays,
@@ -38,26 +40,27 @@ export default function TimeOffPage() {
   const queryClient = useQueryClient()
   const { venueId }          = useVenue()
   const { session, isManager } = useSession()
-  const { maxStaffOffEnabled, maxStaffOffCount, blockOverBalance, allowUnpaidLeave, closedDays } = useAppSettings()
+  const { maxStaffOffEnabled, maxStaffOffCount, blockOverBalance, allowUnpaidLeave, closedDays, leaveYearStartMonth } = useAppSettings()
   const { requests, loading, error, reload } = useTimeOffRequests(venueId)
   const staff      = useActiveStaff(venueId)
   const ownProfile = useOwnProfile(session?.staffId)
 
-  const currentYear = new Date().getFullYear()
+  // The venue's holiday year (calendar year unless set otherwise in settings)
+  const leaveYear = useMemo(() => leaveYearFor(new Date(), leaveYearStartMonth), [leaveYearStartMonth])
   const { balances: teamBalances, loading: balancesLoading, failed: balancesFailed, reloadBalances } = useTeamLeaveBalances(
     isManager ? staff : [],
-    currentYear
+    leaveYear
   )
   // Own balance goes through the same calculation as the manager's team list,
   // so both see this year's leave only and any custom allowance.
   const ownStaffList = useMemo(() => (ownProfile ? [ownProfile] : []), [ownProfile])
   const { balances: ownBalances, loading: ownBalanceLoading, failed: ownBalanceFailed, reloadBalances: reloadOwnBalance } =
-    useTeamLeaveBalances(ownStaffList, currentYear)
+    useTeamLeaveBalances(ownStaffList, leaveYear)
 
   // Zero-hours accrual — own (staff view)
   const { accrued: ownAccrued, avgDailyHours: ownAvgDaily } = useZeroHoursAccrual(
     ownProfile?.employment_type === 'zero_hours' ? session?.staffId : null,
-    currentYear
+    leaveYear
   )
 
   // Zero-hours accrual — team (manager view)
@@ -65,7 +68,7 @@ export default function TimeOffPage() {
     () => teamBalances.filter(b => b.isZeroHours).map(b => b.id),
     [teamBalances]
   )
-  const { map: zeroHoursMap } = useTeamZeroHoursAccruals(zeroHoursIds, currentYear)
+  const { map: zeroHoursMap } = useTeamZeroHoursAccruals(zeroHoursIds, leaveYear)
 
   /**
    * Time off drives availability everywhere else in the app, so any write here
@@ -93,8 +96,8 @@ export default function TimeOffPage() {
 
   // For zero-hours: convert approved leave days → estimated hours used
   const ownUsedHours = useMemo(() => {
-    if (!ownBalance?.isZeroHours || ownBalance.used == null) return null
-    return Math.round(ownBalance.used * (ownAvgDaily ?? 7.6) * 10) / 10
+    if (!ownBalance?.isZeroHours) return null
+    return holidayHoursUsed(ownBalance.leaveDays, ownAvgDaily ?? 7.6)
   }, [ownBalance, ownAvgDaily])
   const ownRemainingHours = useMemo(() => {
     if (ownAccrued == null || ownUsedHours == null) return ownAccrued ?? null
@@ -135,20 +138,20 @@ export default function TimeOffPage() {
   }, [ownBalance?.isZeroHours, previewDays, ownAccrued, ownAvgDaily, ownRemainingHours])
 
   // When the venue blocks over-balance holiday: why `days` of annual leave is
-  // too many for this staff member, or null. `creditDays` gives back the days
-  // of an approved request being edited, which already count as used.
-  const overBalanceProblem = useCallback((days, creditDays = 0) => {
+  // too many for this staff member, or null. `credit` gives back the days and
+  // hours of an approved request being edited, which already count as used.
+  const overBalanceProblem = useCallback((days, credit = { days: 0, hours: 0 }) => {
     // Managers can book over a balance — that's the override.
     if (!blockOverBalance || isManager || !ownBalance || days == null) return null
     const tail = 'Request unpaid leave for the rest, or ask your manager.'
     if (!ownBalance.isZeroHours) {
       if (ownBalance.remaining == null) return null
-      const left = ownBalance.remaining + creditDays
+      const left = ownBalance.remaining + credit.days
       return days > left ? `You only have ${fmtDays(left)} of holiday left. ${tail}` : null
     }
     if (ownAccrued == null) return null
     const avg  = ownAvgDaily ?? 7.6
-    const left = Math.round(((ownRemainingHours ?? ownAccrued) + creditDays * avg) * 10) / 10
+    const left = Math.round(((ownRemainingHours ?? ownAccrued) + credit.hours) * 10) / 10
     return Math.round(days * avg * 10) / 10 > left ? `You only have ${left} h of holiday left. ${tail}` : null
   }, [blockOverBalance, isManager, ownBalance, ownAccrued, ownAvgDaily, ownRemainingHours])
 
@@ -169,11 +172,14 @@ export default function TimeOffPage() {
   // Same balance check when someone moves their own booking to new dates
   const editBalanceCheck = useMemo(() => {
     if (!editing || editing.staff_id !== session?.staffId) return null
-    const counted = editing.status === 'approved' && editing.leave_type === 'annual' &&
-      editing.start_date.startsWith(String(currentYear))
-    const credit = counted ? countWorkingDaysInRequest(editing.start_date, editing.end_date, ownProfile?.working_days) : 0
+    // Only approved annual leave counts as used — those are the days in leaveDays
+    const mine = (ownBalance?.leaveDays ?? []).filter(d => d.requestId === editing.id)
+    const credit = {
+      days:  mine.filter(d => d.isWorkingDay).length,
+      hours: holidayHoursUsed(mine, ownAvgDaily ?? 7.6),
+    }
     return (days) => overBalanceProblem(days, credit)
-  }, [editing, session?.staffId, currentYear, ownProfile?.working_days, overBalanceProblem])
+  }, [editing, session?.staffId, ownBalance, ownAvgDaily, overBalanceProblem])
 
   const submitRequest = async () => {
     if (!form.startDate || !form.endDate) { toast('Please select start and end dates', 'error'); return }
@@ -316,7 +322,7 @@ export default function TimeOffPage() {
       {ownBalance && (
         <OwnBalanceCard
           balance={ownBalance}
-          year={currentYear}
+          year={leaveYear.label}
           accrued={ownAccrued}
           remainingHours={ownRemainingHours}
         />
@@ -417,7 +423,7 @@ export default function TimeOffPage() {
             aria-expanded={showTeamBalances}
             className="w-full flex items-center justify-between px-3.5 sm:px-3.5 py-2.5 text-left"
           >
-            <span className="text-caption font-semibold tracking-[0.08em] uppercase text-ink3 dark:text-white/45">Team annual leave · {currentYear}</span>
+            <span className="text-caption font-semibold tracking-[0.08em] uppercase text-ink3 dark:text-white/45">Team annual leave · {leaveYear.label}</span>
             <svg className={`w-5 h-5 text-ink3 dark:text-white/45 transition-transform ${showTeamBalances ? 'rotate-180' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
           </button>
           {showTeamBalances && (
@@ -434,7 +440,7 @@ export default function TimeOffPage() {
                     <TeamBalanceRow
                       key={b.id}
                       balance={b}
-                      accrued={b.isZeroHours ? zeroHoursMap[b.id] : undefined}
+                      accrual={b.isZeroHours ? zeroHoursMap[b.id] : undefined}
                       onLogPast={() => setManualEntry(b)}
                     />
                   ))}
@@ -505,7 +511,7 @@ export default function TimeOffPage() {
           {form.leaveType === 'annual' && ownBalance && !ownBalance.isZeroHours && ownBalance.entitlement != null && (
             <div className="rounded-xl bg-cream dark:bg-white/5 px-3.5 py-2.5 flex items-center justify-between">
               <div>
-                <p className="text-body-sm font-semibold text-ink dark:text-white">{currentYear} annual leave</p>
+                <p className="text-body-sm font-semibold text-ink dark:text-white">{leaveYear.label} annual leave</p>
                 <p className="text-body-sm text-ink3 dark:text-white/45 mt-0.5">{ownBalance.used} of {ownBalance.entitlement} days used</p>
               </div>
               <p className={`font-mono text-body font-semibold ${ownBalance.remaining === 0 ? 'text-bad' : ownBalance.remaining <= 5 ? 'text-warn' : 'text-good'}`}>
@@ -516,7 +522,7 @@ export default function TimeOffPage() {
           {form.leaveType === 'annual' && ownBalance?.isZeroHours && (
             <div className="rounded-xl bg-cream dark:bg-white/5 px-3.5 py-2.5 flex items-center justify-between">
               <div>
-                <p className="text-body-sm font-semibold text-ink dark:text-white">{currentYear} holiday accrual</p>
+                <p className="text-body-sm font-semibold text-ink dark:text-white">{leaveYear.label} holiday accrual</p>
                 <p className="text-body-sm text-ink3 dark:text-white/45 mt-0.5">
                   {ownUsedHours != null ? `~${ownUsedHours} h used · ` : ''}
                   {ownAccrued != null ? `${ownAccrued} h accrued (12.07%)` : 'Calculating…'}
@@ -781,7 +787,11 @@ function PendingRequest({ request: r, balance, note, onNote, busy, onApprove, on
   )
 }
 
-function TeamBalanceRow({ balance: b, accrued, onLogPast }) {
+function TeamBalanceRow({ balance: b, accrual, onLogPast }) {
+  // Zero-hours: earned this holiday year, less allocated (or estimated) hours taken
+  const hoursLeft = b.isZeroHours && accrual
+    ? Math.round(Math.max(0, accrual.accrued - holidayHoursUsed(b.leaveDays, accrual.avgDailyHours)) * 10) / 10
+    : null
   const kind = employmentLabel(b.employment_type)
   const subline = b.isZeroHours
     ? [kind ?? 'Zero hours', 'accrues hourly'].join(' · ')
@@ -797,8 +807,8 @@ function TeamBalanceRow({ balance: b, accrued, onLogPast }) {
       <div className="shrink-0 text-right">
         {b.isZeroHours ? (
           <>
-            <p className="font-mono text-body font-semibold text-ink dark:text-white">{accrued != null ? `${accrued} hrs` : '…'}</p>
-            <p className="text-body-sm text-ink3 dark:text-white/45">accrued</p>
+            <p className={`font-mono text-body font-semibold ${hoursLeft === 0 ? 'text-bad' : 'text-ink dark:text-white'}`}>{hoursLeft != null ? `${hoursLeft} hrs left` : '…'}</p>
+            <p className="text-body-sm text-ink3 dark:text-white/45">{accrual ? `of ${accrual.accrued} accrued` : 'accrued'}</p>
           </>
         ) : b.entitlement != null ? (
           <>

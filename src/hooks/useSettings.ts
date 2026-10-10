@@ -27,7 +27,7 @@ const COLOR_PALETTE = [
   'bg-stone-100 text-stone-800',
 ]
 
-export const SETTINGS_KEYS = ['custom_roles', 'closed_days', 'break_duration_mins', 'cleanup_minutes', 'fridge_check_time', 'open_time', 'close_time', 'day_hours', 'compliance_nav_order', 'action_schedules', 'late_grace_mins', 'break_overrun_grace_mins', 'require_late_reason', 'require_manager_approval_for_late', 'notify_manager_at_strike', 'disciplinary_at_strike', 'counting_window_days', 'push_to_manager', 'notify_break_overrun', 'hidden_check_tiles', 'hidden_team_tiles', 'max_staff_off_enabled', 'max_staff_off_count', 'block_over_balance', 'allow_unpaid_leave', 'enforce_closing_checklist', 'cleaning_visible_to_all']
+export const SETTINGS_KEYS = ['custom_roles', 'closed_days', 'break_duration_mins', 'cleanup_minutes', 'fridge_check_time', 'open_time', 'close_time', 'day_hours', 'compliance_nav_order', 'action_schedules', 'late_grace_mins', 'break_overrun_grace_mins', 'require_late_reason', 'require_manager_approval_for_late', 'notify_manager_at_strike', 'disciplinary_at_strike', 'counting_window_days', 'push_to_manager', 'notify_break_overrun', 'hidden_check_tiles', 'hidden_team_tiles', 'max_staff_off_enabled', 'max_staff_off_count', 'block_over_balance', 'allow_unpaid_leave', 'leave_year_start_month', 'enforce_closing_checklist', 'cleaning_visible_to_all']
 
 interface CustomRole {
   value: string
@@ -72,6 +72,7 @@ interface AppSettings {
   maxStaffOffCount: number
   blockOverBalance: boolean
   allowUnpaidLeave: boolean
+  leaveYearStartMonth: number
   // Closing-checklist clock-out gate — opt-in per venue, see useClosingGate.ts
   enforceClosingChecklist: boolean
   // Staff see every cleaning task, not just their department's — see useCleaningTasks
@@ -116,6 +117,7 @@ const DEFAULTS: AppSettings = {
   maxStaffOffCount: 1,
   blockOverBalance: false,
   allowUnpaidLeave: true,
+  leaveYearStartMonth: 1,
   enforceClosingChecklist: false,
   cleaningVisibleToAll: false,
 }
@@ -220,6 +222,7 @@ async function fetchAppSettings(venueId: string): Promise<AppSettings> {
         if (row.key === 'max_staff_off_count'   && typeof parsed === 'number')  result.maxStaffOffCount = parsed
         if (row.key === 'block_over_balance'    && typeof parsed === 'boolean') result.blockOverBalance = parsed
         if (row.key === 'allow_unpaid_leave'    && typeof parsed === 'boolean') result.allowUnpaidLeave = parsed
+        if (row.key === 'leave_year_start_month' && typeof parsed === 'number') result.leaveYearStartMonth = parsed
         if (row.key === 'enforce_closing_checklist' && typeof parsed === 'boolean') result.enforceClosingChecklist = parsed
         if (row.key === 'cleaning_visible_to_all'   && typeof parsed === 'boolean') result.cleaningVisibleToAll = parsed
       } catch { /* ignore corrupt JSON — leave defaults */ }
@@ -291,6 +294,7 @@ export function useAppSettings() {
       max_staff_off_count: 'maxStaffOffCount',
       block_over_balance: 'blockOverBalance',
       allow_unpaid_leave: 'allowUnpaidLeave',
+      leave_year_start_month: 'leaveYearStartMonth',
       enforce_closing_checklist: 'enforceClosingChecklist',
       cleaning_visible_to_all: 'cleaningVisibleToAll',
     }
@@ -337,6 +341,7 @@ export function useAppSettings() {
   const saveMaxStaffOffCount = useCallback((n: number) => saveSetting('max_staff_off_count', n), [saveSetting])
   const saveBlockOverBalance = useCallback((v: boolean) => saveSetting('block_over_balance', v), [saveSetting])
   const saveAllowUnpaidLeave = useCallback((v: boolean) => saveSetting('allow_unpaid_leave', v), [saveSetting])
+  const saveLeaveYearStartMonth = useCallback((n: number) => saveSetting('leave_year_start_month', n), [saveSetting])
   const saveEnforceClosingChecklist = useCallback((v: boolean) => saveSetting('enforce_closing_checklist', v), [saveSetting])
   const saveCleaningVisibleToAll = useCallback((v: boolean) => saveSetting('cleaning_visible_to_all', v), [saveSetting])
 
@@ -381,6 +386,7 @@ export function useAppSettings() {
     maxStaffOffCount: settings.maxStaffOffCount,
     blockOverBalance: settings.blockOverBalance,
     allowUnpaidLeave: settings.allowUnpaidLeave,
+    leaveYearStartMonth: settings.leaveYearStartMonth,
     enforceClosingChecklist: settings.enforceClosingChecklist,
     cleaningVisibleToAll: settings.cleaningVisibleToAll,
     loading,
@@ -388,7 +394,7 @@ export function useAppSettings() {
     saveOpenTime, saveCloseTime, saveDayHours, saveComplianceNavOrder, saveActionSchedules,
     saveLateGraceMins, saveBreakOverrunGraceMins, saveRequireLateReason, saveRequireManagerApprovalForLate,
     saveNotifyManagerAtStrike, saveDisciplinaryAtStrike, saveCountingWindowDays, savePushToManager, saveNotifyBreakOverrun,
-    saveHiddenCheckTiles, saveHiddenTeamTiles, saveMaxStaffOffEnabled, saveMaxStaffOffCount, saveBlockOverBalance, saveAllowUnpaidLeave, saveEnforceClosingChecklist,
+    saveHiddenCheckTiles, saveHiddenTeamTiles, saveMaxStaffOffEnabled, saveMaxStaffOffCount, saveBlockOverBalance, saveAllowUnpaidLeave, saveLeaveYearStartMonth, saveEnforceClosingChecklist,
     saveCleaningVisibleToAll,
     nextColor, reload,
   }

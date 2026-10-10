@@ -5,6 +5,8 @@ import { useAppSettings } from '../../hooks/useSettings'
 import SettingsSubHeader from '../../components/layout/SettingsSubHeader'
 import Toggle from '../../components/ui/Toggle'
 
+const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+
 function Stepper({ value, onChange, suffix = undefined, min = 0, max = 99, step = 1 }) {
   const btn = (label, fn, disabled) => (
     <button
@@ -61,10 +63,10 @@ export default function AttendanceSettingsPage() {
   const {
     lateGraceMins, breakDurationMins, breakOverrunGraceMins, cleanupMinutes,
     requireLateReason, requireManagerApprovalForLate, notifyManagerAtStrike, disciplinaryAtStrike,
-    countingWindowDays, pushToManager, maxStaffOffEnabled, maxStaffOffCount, blockOverBalance, allowUnpaidLeave,
+    countingWindowDays, pushToManager, maxStaffOffEnabled, maxStaffOffCount, blockOverBalance, allowUnpaidLeave, leaveYearStartMonth,
     saveLateGraceMins, saveBreakDuration, saveBreakOverrunGraceMins, saveCleanupMinutes,
     saveRequireLateReason, saveRequireManagerApprovalForLate, saveNotifyManagerAtStrike, saveDisciplinaryAtStrike,
-    saveCountingWindowDays, savePushToManager, saveMaxStaffOffEnabled, saveMaxStaffOffCount, saveBlockOverBalance, saveAllowUnpaidLeave,
+    saveCountingWindowDays, savePushToManager, saveMaxStaffOffEnabled, saveMaxStaffOffCount, saveBlockOverBalance, saveAllowUnpaidLeave, saveLeaveYearStartMonth,
   } = settings
 
   const vp = (path) => `/v/${venueSlug}${path}`
@@ -186,6 +188,21 @@ export default function AttendanceSettingsPage() {
           ].filter(Boolean).join(' ')}
         >
           <Row
+            label="Holiday year starts"
+            sub="When allowances reset — match your accountant"
+            control={(
+              <select
+                aria-label="Holiday year starts"
+                value={leaveYearStartMonth}
+                onChange={e => saveLeaveYearStartMonth(Number(e.target.value))}
+                className="shrink-0 h-[34px] px-2.5 rounded-[9px] border border-charcoal/10 dark:border-white/10 bg-white dark:bg-paperDark text-sm font-semibold text-charcoal dark:text-white"
+              >
+                {MONTHS.map((m, i) => <option key={m} value={i + 1}>1 {m}</option>)}
+              </select>
+            )}
+          />
+          <Row
+            last={false}
             label="Block holiday over balance"
             sub="Stop staff requesting more than they have left"
             control={<Toggle checked={blockOverBalance} onChange={saveBlockOverBalance} />}
