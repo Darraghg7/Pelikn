@@ -52,6 +52,30 @@ describe('zero-hours accrual', () => {
     ])
     expect(stats).toEqual({ totalHours: 8, distinctDays: 1 })
   })
+  it('counts the whole shift when a break is never ended, like the timesheet', () => {
+    const stats = workedStatsFromEvents([
+      ev('clock_in',    '2026-10-15T08:00:00Z'),
+      ev('break_start', '2026-10-15T12:00:00Z'),
+      ev('clock_out',   '2026-10-15T16:00:00Z'),
+    ])
+    expect(stats.totalHours).toBe(8)
+  })
+  it('ignores a break end with no break start', () => {
+    const stats = workedStatsFromEvents([
+      ev('clock_in',  '2026-10-15T08:00:00Z'),
+      ev('break_end', '2026-10-15T12:00:00Z'),
+      ev('clock_out', '2026-10-15T16:00:00Z'),
+    ])
+    expect(stats.totalHours).toBe(8)
+  })
+  it('loses nothing to a duplicate clock-in', () => {
+    const stats = workedStatsFromEvents([
+      ev('clock_in',  '2026-10-15T08:00:00Z'),
+      ev('clock_in',  '2026-10-15T08:00:05Z'),
+      ev('clock_out', '2026-10-15T16:00:05Z'),
+    ])
+    expect(stats).toEqual({ totalHours: 8, distinctDays: 1 })
+  })
   it('accrues 12.07% of hours, capped at 224', () => {
     expect(accruedHoursFor(100)).toBe(12.1)
     expect(accruedHoursFor(5000)).toBe(224)

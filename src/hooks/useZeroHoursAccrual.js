@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { reportError } from '../lib/reportError'
+import { buildDailyGrid } from '../lib/timesheet'
 
 // UK irregular-hours accrual: 12.07% of hours worked, capped at 5.6 weeks × 40h
 const ACCRUAL_RATE   = 0.1207
@@ -20,20 +21,18 @@ export function avgDailyHoursFor({ totalHours, distinctDays }) {
 }
 
 // Total worked hours and distinct worked days from one person's clock_events
-// (sorted oldest first). Pairs clock_in → clock_out, subtracts break time.
+// (sorted oldest first). Uses the timesheet's own session rules, so holiday
+// accrues on exactly the hours the timesheet pays — an unfinished break isn't
+// deducted, a stray break end is ignored, and days are UK dates.
 export function workedStatsFromEvents(events) {
-  let total = 0, clockIn = null
-  const workedDays = new Set()
-  for (const ev of events) {
-    const t = new Date(ev.occurred_at)
-    if (ev.event_type === 'clock_in')    { clockIn = t }
-    if (ev.event_type === 'break_start') { if (clockIn) { total += (t - clockIn) / 3600000; clockIn = null } }
-    if (ev.event_type === 'break_end')   { clockIn = t }
-    if (ev.event_type === 'clock_out')   {
-      if (clockIn) { total += (t - clockIn) / 3600000; clockIn = null; workedDays.add(t.toISOString().slice(0, 10)) }
+  let minutes = 0, distinctDays = 0
+  for (const person of Object.values(buildDailyGrid(events))) {
+    for (const day of Object.values(person.days)) {
+      minutes += day.minutes
+      if (day.minutes > 0) distinctDays++
     }
   }
-  return { totalHours: total, distinctDays: workedDays.size }
+  return { totalHours: minutes / 60, distinctDays }
 }
 
 // staffId → { totalHours, distinctDays } between two 'yyyy-MM-dd' dates
