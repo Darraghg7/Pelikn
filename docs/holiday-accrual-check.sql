@@ -21,6 +21,9 @@
 -- shows. Holiday hours are estimated from the average shift because holiday pay
 -- allocation (migration 148) isn't in use yet.
 --
+-- Carry-over and pay-outs (added with migration 148) aren't included here —
+-- add them by hand: hours left = hours_left_now + carried over − paid out.
+--
 -- Change the two values in `params` if needed: your venue's slug (from the app's
 -- web address, /v/<slug>/…) and the first day of your holiday year.
 -- ============================================================================

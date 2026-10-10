@@ -16,8 +16,9 @@ const dayLabel = (date) => format(parseISO(date), 'EEE d MMM')
  * pay" step. Nothing is paid for a day off until hours are allocated to it;
  * the allocated hours are what's paid and what comes off the person's balance.
  *
- * rows: [{ staffId, name, hourlyRate, days }] — days from leaveDaysInRange,
- * only those that are working days or already have hours allocated.
+ * rows: [{ staffId, name, hourlyRate, days, payoutHours }] — days from
+ * leaveDaysInRange, only those that are working days or already have hours
+ * allocated; payoutHours is unused holiday paid out in the period.
  */
 export default function HolidayPaySection({ rows, available, locked, onAllocate }) {
   if (!rows.length) return null
@@ -39,17 +40,24 @@ export default function HolidayPaySection({ rows, available, locked, onAllocate 
               <div key={r.staffId} className="flex items-center gap-2.5 px-3.5 py-2.5">
                 <div className="flex-1 min-w-0">
                   <p className="text-body font-semibold text-ink dark:text-white truncate">{r.name}</p>
-                  <p className="text-body-sm text-ink3 dark:text-white/45 mt-0.5">
-                    {r.days.length} day{r.days.length === 1 ? '' : 's'} off
-                    {available && hours > 0 && ` · ${hours} h paid${r.hourlyRate > 0 ? ` (${gbp(hours * r.hourlyRate)})` : ''}`}
-                  </p>
+                  {r.days.length > 0 && (
+                    <p className="text-body-sm text-ink3 dark:text-white/45 mt-0.5">
+                      {r.days.length} day{r.days.length === 1 ? '' : 's'} off
+                      {available && hours > 0 && ` · ${hours} h paid${r.hourlyRate > 0 ? ` (${gbp(hours * r.hourlyRate)})` : ''}`}
+                    </p>
+                  )}
+                  {r.payoutHours > 0 && (
+                    <p className="text-body-sm text-ink3 dark:text-white/45 mt-0.5">
+                      {round1(r.payoutHours)} h holiday paid out{r.hourlyRate > 0 ? ` (${gbp(r.payoutHours * r.hourlyRate)})` : ''}
+                    </p>
+                  )}
                   {available && waiting > 0 && (
                     <p className="text-body-sm font-semibold text-warn dark:text-warnDark mt-0.5">
                       {waiting} day{waiting === 1 ? '' : 's'} not paid yet
                     </p>
                   )}
                 </div>
-                {available && (
+                {available && r.days.length > 0 && (
                   <Button size="sm" variant={waiting > 0 ? 'primary' : 'secondary'} onClick={() => onAllocate(r.staffId)}>
                     {waiting > 0 ? 'Allocate' : 'View'}
                   </Button>
@@ -99,9 +107,11 @@ export function AllocateHolidayModal({ row, venueId, managerId, locked, suggeste
 
   // Unpaid days are already in `used` as an estimate (their average shift) —
   // swap that estimate for the hours being allocated now.
-  const leftNow   = balance ? round1(balance.accrued - balance.used) : null
+  const leftNow   = balance
+    ? round1(balance.accrued + (balance.carriedOver ?? 0) - (balance.paidOut ?? 0) - balance.used)
+    : null
   const estimated = balance ? round1(unpaid.length * balance.avgDailyHours) : 0
-  const leftAfter = balance ? round1(balance.accrued - balance.used + estimated - newHours) : null
+  const leftAfter = balance ? round1(leftNow + estimated - newHours) : null
 
   const save = async () => {
     const rows = unpaid.filter(d => valueFor(d) > 0).map(d => ({
@@ -142,7 +152,9 @@ export function AllocateHolidayModal({ row, venueId, managerId, locked, suggeste
             ) : (
               <>
                 <p className="text-ink2 dark:text-white/70">
-                  <span className="font-semibold text-ink dark:text-white">{leftNow} h</span> holiday left ({balance.accrued} h earned this holiday year)
+                  <span className="font-semibold text-ink dark:text-white">{leftNow} h</span> holiday left ({balance.accrued} h earned this holiday year
+                  {balance.carriedOver > 0 && `, ${balance.carriedOver} h carried over`}
+                  {balance.paidOut > 0 && `, ${balance.paidOut} h paid out`})
                 </p>
                 {unpaid.length > 0 && (
                   <p className={`mt-1 ${leftAfter < 0 ? 'font-semibold text-bad dark:text-badDark' : 'text-ink3 dark:text-white/45'}`}>

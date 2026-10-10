@@ -107,3 +107,65 @@ export async function fetchHolidayHoursUsed({ staffId, workingDays, leaveYear, a
   if (error) throw error
   return holidayHoursUsed(leaveDaysInRange(reqs ?? [], allocs.data, workingDays, from, to), avgDailyHours)
 }
+
+/*
+ * Carry-over and pay-outs (holiday_balance_adjustments, also migration 148).
+ * carry_over adds unused hours brought forward into a holiday year; payout
+ * takes hours off and pays them on the timesheet on pay_date.
+ */
+const ADJUSTMENT_COLUMNS = 'id, staff_id, leave_year, kind, hours, pay_date, note, created_at'
+
+// One holiday year's adjustments, by its start year. { data, available }
+export async function fetchBalanceAdjustments({ staffIds, leaveYear }) {
+  const { data, error } = await supabase
+    .from('holiday_balance_adjustments')
+    .select(ADJUSTMENT_COLUMNS)
+    .in('staff_id', staffIds)
+    .eq('leave_year', leaveYear)
+    .order('created_at', { ascending: true })
+  if (error) {
+    if (isMissingTable(error)) return { data: [], available: false }
+    throw error
+  }
+  return { data: data ?? [], available: true }
+}
+
+// Pay-outs paid between two dates — what the timesheet adds to holiday pay
+export async function fetchPayouts({ venueId, from, to }) {
+  const { data, error } = await supabase
+    .from('holiday_balance_adjustments')
+    .select(ADJUSTMENT_COLUMNS)
+    .eq('venue_id', venueId)
+    .eq('kind', 'payout')
+    .gte('pay_date', from)
+    .lte('pay_date', to)
+  if (error) {
+    if (isMissingTable(error)) return { data: [], available: false }
+    throw error
+  }
+  return { data: data ?? [], available: true }
+}
+
+// row: { venue_id, staff_id, leave_year, kind, hours, pay_date?, note?, created_by }
+export function addBalanceAdjustment(row) {
+  return supabase.from('holiday_balance_adjustments').insert(row)
+}
+
+export function removeBalanceAdjustment(id) {
+  return supabase.from('holiday_balance_adjustments').delete().eq('id', id)
+}
+
+// { carriedOver, paidOut } hours from a list of adjustments
+export function adjustmentTotals(adjustments) {
+  let carriedOver = 0, paidOut = 0
+  for (const a of adjustments ?? []) {
+    if (a.kind === 'carry_over') carriedOver += Number(a.hours)
+    if (a.kind === 'payout')     paidOut     += Number(a.hours)
+  }
+  return { carriedOver: Math.round(carriedOver * 100) / 100, paidOut: Math.round(paidOut * 100) / 100 }
+}
+
+// Zero-hours hours left: earned + carried over − used − paid out
+export function zeroHoursLeft({ accrued, used, carriedOver = 0, paidOut = 0 }) {
+  return Math.round((accrued + carriedOver - used - paidOut) * 10) / 10
+}

@@ -14,7 +14,8 @@ import { invalidateSummaryCache } from '../../hooks/useTodaySummary'
 import { timeOffPermissions, isBlocking } from '../../lib/api/timeOff'
 import { useAppSettings } from '../../hooks/useSettings'
 import { leaveYearFor } from '../../lib/leaveYear'
-import { holidayHoursUsed } from '../../lib/api/holidayPay'
+import { holidayHoursUsed, zeroHoursLeft } from '../../lib/api/holidayPay'
+import BalanceAdjustModal from './BalanceAdjustModal'
 import {
   requestableLeaveTypes,
   leaveTypeLabel, getRequestsForDay, fmtDays, maxStaffOffInRange, employmentLabel, isOnlyClosedDays,
@@ -47,7 +48,7 @@ export default function TimeOffPage() {
 
   // The venue's holiday year (calendar year unless set otherwise in settings)
   const leaveYear = useMemo(() => leaveYearFor(new Date(), leaveYearStartMonth), [leaveYearStartMonth])
-  const { balances: teamBalances, loading: balancesLoading, failed: balancesFailed, reloadBalances } = useTeamLeaveBalances(
+  const { balances: teamBalances, loading: balancesLoading, failed: balancesFailed, reloadBalances, adjustmentsAvailable } = useTeamLeaveBalances(
     isManager ? staff : [],
     leaveYear
   )
@@ -86,6 +87,8 @@ export default function TimeOffPage() {
 
   // Manual leave entry state
   const [manualEntry, setManualEntry] = useState(null) // null = closed; staff balance obj = open
+  // Carry-over / pay-out for one zero-hours person — their balance row
+  const [adjusting, setAdjusting] = useState(null)
 
   // Request being edited / withdrawn — set from the calendar or "My Requests"
   const [editing, setEditing] = useState(null)
@@ -101,8 +104,11 @@ export default function TimeOffPage() {
   }, [ownBalance, ownAvgDaily])
   const ownRemainingHours = useMemo(() => {
     if (ownAccrued == null || ownUsedHours == null) return ownAccrued ?? null
-    return Math.round(Math.max(0, ownAccrued - ownUsedHours) * 10) / 10
-  }, [ownAccrued, ownUsedHours])
+    return Math.max(0, zeroHoursLeft({
+      accrued: ownAccrued, used: ownUsedHours,
+      carriedOver: ownBalance?.carriedOver, paidOut: ownBalance?.paidOut,
+    }))
+  }, [ownAccrued, ownUsedHours, ownBalance?.carriedOver, ownBalance?.paidOut])
 
   const [month, setMonth]           = useState(new Date())
   const [showRequest, setShowRequest] = useState(false)
@@ -442,6 +448,7 @@ export default function TimeOffPage() {
                       balance={b}
                       accrual={b.isZeroHours ? zeroHoursMap[b.id] : undefined}
                       onLogPast={() => setManualEntry(b)}
+                      onAdjust={() => setAdjusting(b)}
                     />
                   ))}
                 </div>
@@ -644,6 +651,20 @@ export default function TimeOffPage() {
         />
       )}
 
+      {/* Carry-over and pay-outs */}
+      {adjusting && (
+        <BalanceAdjustModal
+          balance={teamBalances.find(b => b.id === adjusting.id) ?? adjusting}
+          accrual={zeroHoursMap[adjusting.id]}
+          leaveYear={leaveYear}
+          available={adjustmentsAvailable}
+          venueId={venueId}
+          managerId={session?.staffId}
+          onClose={() => setAdjusting(null)}
+          onSaved={refreshDependents}
+        />
+      )}
+
       {/* Edit / withdraw an existing request */}
       {editing && (
         <EditRequestModal
@@ -699,7 +720,12 @@ function OwnBalanceCard({ balance, year, accrued, remainingHours }) {
             <span className="font-mono text-title leading-none font-semibold text-good dark:text-goodDark">{remainingHours ?? accrued ?? '—'}</span>
             <span className="text-body font-semibold text-ink dark:text-white">hrs left</span>
           </p>
-          <p className="text-body-sm text-ink3 dark:text-white/45">{accrued != null ? `${accrued} hrs accrued` : 'Calculating…'} · {year} holiday</p>
+          <p className="text-body-sm text-ink3 dark:text-white/45">
+            {accrued != null ? `${accrued} hrs accrued` : 'Calculating…'}
+            {balance.carriedOver > 0 && ` · ${balance.carriedOver} carried over`}
+            {balance.paidOut > 0 && ` · ${balance.paidOut} paid out`}
+            {' · '}{year} holiday
+          </p>
         </div>
       </div>
     )
@@ -787,14 +813,22 @@ function PendingRequest({ request: r, balance, note, onNote, busy, onApprove, on
   )
 }
 
-function TeamBalanceRow({ balance: b, accrual, onLogPast }) {
-  // Zero-hours: earned this holiday year, less allocated (or estimated) hours taken
+function TeamBalanceRow({ balance: b, accrual, onLogPast, onAdjust }) {
+  // Zero-hours: earned this holiday year plus carry-over, less allocated (or
+  // estimated) hours taken and any paid out
   const hoursLeft = b.isZeroHours && accrual
-    ? Math.round(Math.max(0, accrual.accrued - holidayHoursUsed(b.leaveDays, accrual.avgDailyHours)) * 10) / 10
+    ? Math.max(0, zeroHoursLeft({
+        accrued: accrual.accrued, used: holidayHoursUsed(b.leaveDays, accrual.avgDailyHours),
+        carriedOver: b.carriedOver, paidOut: b.paidOut,
+      }))
     : null
   const kind = employmentLabel(b.employment_type)
   const subline = b.isZeroHours
-    ? [kind ?? 'Zero hours', 'accrues hourly'].join(' · ')
+    ? [
+        kind ?? 'Zero hours', 'accrues hourly',
+        b.carriedOver > 0 && `+${b.carriedOver} h carried over`,
+        b.paidOut > 0 && `${b.paidOut} h paid out`,
+      ].filter(Boolean).join(' · ')
     : [kind, b.entitlement != null && `${b.entitlement} days`].filter(Boolean).join(' · ')
   const tone = b.remaining === 0 ? 'text-bad' : b.remaining != null && b.remaining <= 5 ? 'text-warn' : 'text-good dark:text-goodDark'
 
@@ -830,6 +864,17 @@ function TeamBalanceRow({ balance: b, accrual, onLogPast }) {
       >
         <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
       </Button>
+      {b.isZeroHours && (
+        <Button
+          variant="secondary"
+          size="sm"
+          onClick={onAdjust}
+          aria-label={`Carry over or pay out holiday for ${b.name}`}
+          className="shrink-0"
+        >
+          Adjust
+        </Button>
+      )}
     </div>
   )
 }

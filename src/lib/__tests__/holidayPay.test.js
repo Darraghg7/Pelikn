@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { leaveYearFor, leaveYearForDateStr } from '../leaveYear'
-import { leaveDaysInRange, holidayHoursUsed } from '../api/holidayPay'
+import { leaveDaysInRange, holidayHoursUsed, adjustmentTotals, zeroHoursLeft } from '../api/holidayPay'
 
 describe('leaveYearFor', () => {
   it('is the calendar year by default', () => {
@@ -49,5 +49,18 @@ describe('holidayHoursUsed', () => {
   })
   it('ignores non-working days with nothing allocated', () => {
     expect(holidayHoursUsed([day({ isWorkingDay: false })], 6.5)).toBe(0)
+  })
+})
+
+describe('carry-over and pay-outs', () => {
+  it('totals each kind', () => {
+    expect(adjustmentTotals([
+      { kind: 'carry_over', hours: '10.00' }, { kind: 'payout', hours: '4.5' }, { kind: 'payout', hours: 2 },
+    ])).toEqual({ carriedOver: 10, paidOut: 6.5 })
+  })
+  it('adds carry-over and takes off what was used and paid out', () => {
+    // 20 earned + 10 carried over − 8 taken − 6.5 paid out
+    expect(zeroHoursLeft({ accrued: 20, used: 8, carriedOver: 10, paidOut: 6.5 })).toBe(15.5)
+    expect(zeroHoursLeft({ accrued: 20, used: 8 })).toBe(12)
   })
 })

@@ -11,7 +11,7 @@ import { supabase } from '../lib/supabase'
 import { reportError } from '../lib/reportError'
 import { fetchTimeOffPrivateFields, withTimeOffPrivate } from '../lib/api/timeOffPrivate'
 import { calculateEntitlementDays } from './useLeaveBalance'
-import { fetchHolidayAllocations, leaveDaysInRange } from '../lib/api/holidayPay'
+import { fetchHolidayAllocations, fetchBalanceAdjustments, adjustmentTotals, leaveDaysInRange } from '../lib/api/holidayPay'
 
 export function useTimeOffRequests(venueId) {
   const [requests, setRequests] = useState([])
@@ -82,6 +82,8 @@ export function useTeamLeaveBalances(staff, leaveYear) {
   const [overrides, setOverrides]       = useState({})
   const [allocations, setAllocations]   = useState([])
   const [allocationsAvailable, setAllocationsAvailable] = useState(false)
+  const [adjustments, setAdjustments]   = useState([])
+  const [adjustmentsAvailable, setAdjustmentsAvailable] = useState(false)
   const [loading, setLoading]           = useState(true)
   const [failed, setFailed]             = useState(false)
   const [tick, setTick]                 = useState(0)
@@ -111,7 +113,10 @@ export function useTeamLeaveBalances(staff, leaveYear) {
       // read (148 not applied yet) the balance estimates instead of failing.
       fetchHolidayAllocations({ staffIds: ids, from, to })
         .catch((e) => { reportError(e, 'useTeamLeaveBalances:allocations'); return { data: [], available: false } }),
-    ]).then(([reqRes, ovRes, allocRes]) => {
+      // Carry-over and pay-outs — the same, they adjust the zero-hours figure
+      fetchBalanceAdjustments({ staffIds: ids, leaveYear: startYear })
+        .catch((e) => { reportError(e, 'useTeamLeaveBalances:adjustments'); return { data: [], available: false } }),
+    ]).then(([reqRes, ovRes, allocRes, adjRes]) => {
       if (cancelled) return
       // Without both reads every balance would show as a full, untouched
       // allowance — so fail the list instead of showing wrong numbers.
@@ -124,6 +129,8 @@ export function useTeamLeaveBalances(staff, leaveYear) {
       setOverrides(map)
       setAllocations(allocRes.data)
       setAllocationsAvailable(allocRes.available)
+      setAdjustments(adjRes.data)
+      setAdjustmentsAvailable(adjRes.available)
       setLoading(false)
     })
     return () => { cancelled = true }
@@ -139,11 +146,13 @@ export function useTeamLeaveBalances(staff, leaveYear) {
     const leaveDays   = leaveDaysInRange(myReqs, allocations, s.working_days, from, to)
     const used        = leaveDays.filter(d => d.isWorkingDay).length
     const remaining   = entitlement != null ? Math.max(0, entitlement - used) : null
+    const myAdjustments = adjustments.filter(a => a.staff_id === s.id)
     return {
       ...s, entitlement, used, remaining, leaveDays,
+      adjustments: myAdjustments, ...adjustmentTotals(myAdjustments),
       isZeroHours: s.employment_type === 'zero_hours', isEligible: eligible,
     }
-  }), [staff, approvedReqs, overrides, allocations, from, to])
+  }), [staff, approvedReqs, overrides, allocations, adjustments, from, to])
 
-  return { balances, loading, failed, reloadBalances, allocationsAvailable }
+  return { balances, loading, failed, reloadBalances, allocationsAvailable, adjustmentsAvailable }
 }

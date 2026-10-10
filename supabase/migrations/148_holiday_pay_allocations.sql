@@ -1,5 +1,5 @@
 -- ============================================================================
--- 148: Holiday pay allocations — the hours a manager pays for each day off
+-- 148: Holiday pay allocations, carry-over and pay-outs
 --
 -- ╔══════════════════════════════════════════════════════════════════════════╗
 -- ║  APPLY MANUALLY IN SUPABASE SQL EDITOR. Idempotent (safe to run twice).  ║
@@ -20,6 +20,12 @@
 --
 -- One row per (request, day) rather than one per request, because a holiday
 -- can run across two pay periods and each period is paid separately.
+--
+-- holiday_balance_adjustments: hours added to or taken off a zero-hours
+-- person's holiday balance for one holiday year, outside of leave —
+--   carry_over  unused hours brought forward from the year before (+)
+--   payout      unused hours paid as money instead of time off (−), paid on
+--               the timesheet for the period containing pay_date
 --
 -- Access is the same as time_off_requests: anyone signed in to the venue
 -- (staff need to read their own hours for their balance). The allocate and
@@ -56,5 +62,36 @@ CREATE POLICY holiday_pay_allocations_venue_access ON holiday_pay_allocations
 GRANT SELECT, INSERT, UPDATE, DELETE ON holiday_pay_allocations TO authenticated;
 REVOKE ALL ON holiday_pay_allocations FROM anon;
 
--- Check: one row, table_ready = true
-SELECT to_regclass('public.holiday_pay_allocations') IS NOT NULL AS table_ready;
+CREATE TABLE IF NOT EXISTS holiday_balance_adjustments (
+  id          uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
+  venue_id    uuid        NOT NULL REFERENCES venues(id) ON DELETE CASCADE,
+  staff_id    uuid        NOT NULL REFERENCES staff(id) ON DELETE CASCADE,
+  leave_year  smallint    NOT NULL,           -- the holiday year's start year, as leave_entitlements
+  kind        text        NOT NULL CHECK (kind IN ('carry_over', 'payout')),
+  hours       numeric(6,2) NOT NULL CHECK (hours > 0 AND hours <= 1000),
+  pay_date    date,                            -- payouts: the day it's paid on
+  note        text,
+  created_by  uuid        REFERENCES staff(id) ON DELETE SET NULL,
+  created_at  timestamptz NOT NULL DEFAULT now(),
+  CHECK (kind <> 'payout' OR pay_date IS NOT NULL)
+);
+
+COMMENT ON TABLE holiday_balance_adjustments IS
+  'Hours carried over into (carry_over) or paid out of (payout) a staff member''s holiday balance for one holiday year.';
+
+CREATE INDEX IF NOT EXISTS holiday_balance_adjustments_staff_year_idx
+  ON holiday_balance_adjustments (staff_id, leave_year);
+CREATE INDEX IF NOT EXISTS holiday_balance_adjustments_venue_pay_date_idx
+  ON holiday_balance_adjustments (venue_id, pay_date);
+
+ALTER TABLE holiday_balance_adjustments ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS holiday_balance_adjustments_venue_access ON holiday_balance_adjustments;
+CREATE POLICY holiday_balance_adjustments_venue_access ON holiday_balance_adjustments
+  FOR ALL USING (has_venue_access(venue_id)) WITH CHECK (has_venue_access(venue_id));
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON holiday_balance_adjustments TO authenticated;
+REVOKE ALL ON holiday_balance_adjustments FROM anon;
+
+-- Check: one row, both true
+SELECT to_regclass('public.holiday_pay_allocations')     IS NOT NULL AS allocations_ready,
+       to_regclass('public.holiday_balance_adjustments') IS NOT NULL AS adjustments_ready;
