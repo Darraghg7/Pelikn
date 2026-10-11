@@ -1,7 +1,7 @@
 import React, { memo } from 'react'
 import { Link } from 'react-router-dom'
 import { format } from 'date-fns'
-import { supabase } from '../../lib/supabase'
+import { fetchExpiringTrainingWidget } from '../../lib/api/widgets'
 import { useVenue } from '../../contexts/VenueContext'
 import { useWidgetQuery } from '../../hooks/useWidgetQuery'
 import { WidgetShell, MiniRow, WidgetPending } from './shared'
@@ -9,23 +9,7 @@ import { WidgetShell, MiniRow, WidgetPending } from './shared'
 function ExpiringTrainingWidget() {
   const { venueId, venueSlug } = useVenue()
 
-  const { data, isError, refetch } = useWidgetQuery('expiring_training', [venueId], async () => {
-    const { data: certs, error } = await supabase.from('staff_training')
-      .select('id, title, expiry_date, staff:staff_id(name)')
-      .eq('venue_id', venueId)
-      .not('expiry_date', 'is', null)
-      .order('expiry_date')
-    if (error) throw error
-    const now = new Date()
-    const thirtyDays = new Date(now.getTime() + 30 * 86400000)
-    const items = certs ?? []
-    const expired = items.filter(c => new Date(c.expiry_date) < now)
-    const expiring = items.filter(c => {
-      const d = new Date(c.expiry_date)
-      return d >= now && d <= thirtyDays
-    })
-    return { expired: expired.length, expiring: expiring.length, items: [...expired, ...expiring].slice(0, 4) }
-  })
+  const { data, isError, refetch } = useWidgetQuery('expiring_training', [venueId], () => fetchExpiringTrainingWidget(venueId))
 
   if (!data) return <WidgetShell title="Training Expiry" to="/training"><WidgetPending isError={isError} onRetry={refetch} /></WidgetShell>
 

@@ -1,6 +1,6 @@
 import React, { memo } from 'react'
 import { format } from 'date-fns'
-import { supabase } from '../../lib/supabase'
+import { fetchStaffOnShiftWidget } from '../../lib/api/widgets'
 import { useVenue } from '../../contexts/VenueContext'
 import { useWidgetQuery } from '../../hooks/useWidgetQuery'
 import { WidgetShell, WidgetPending } from './shared'
@@ -11,15 +11,7 @@ function StaffOnShiftWidget() {
   const { venueId } = useVenue()
   const today = londonToday()
 
-  const { data, isError, refetch } = useWidgetQuery('staff_on_shift', [venueId, today], async () => {
-    const { data: rows, error } = await supabase.from('shifts')
-      .select('id, start_time, end_time, role_label, staff_id, staff:staff_id(name, colour, photo_url)')
-      .eq('venue_id', venueId)
-      .eq('shift_date', today)
-      .order('start_time')
-    if (error) throw error
-    return rows ?? []
-  })
+  const { data, isError, refetch } = useWidgetQuery('staff_on_shift', [venueId, today], () => fetchStaffOnShiftWidget(venueId, today))
 
   const shifts = data ?? []
   const loading = !data

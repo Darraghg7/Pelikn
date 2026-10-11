@@ -1,6 +1,6 @@
 import React, { memo } from 'react'
 import { format } from 'date-fns'
-import { supabase } from '../../lib/supabase'
+import { fetchTodaysDeliveriesWidget } from '../../lib/api/widgets'
 import { useVenue } from '../../contexts/VenueContext'
 import { useWidgetQuery } from '../../hooks/useWidgetQuery'
 import { WidgetShell, MiniRow, WidgetPending } from './shared'
@@ -9,20 +9,7 @@ function TodaysDeliveriesWidget() {
   const { venueId } = useVenue()
   const todayStr = format(new Date(), 'yyyy-MM-dd')
 
-  const { data, isError, refetch } = useWidgetQuery('todays_deliveries', [venueId, todayStr], async () => {
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-    const { data: checks, error } = await supabase.from('delivery_checks')
-      .select('id, supplier_name, overall_pass, checked_at')
-      .eq('venue_id', venueId)
-      .gte('checked_at', today.toISOString())
-      .order('checked_at', { ascending: false })
-      .limit(5)
-    if (error) throw error
-    const items = checks ?? []
-    const fails = items.filter(c => !c.overall_pass).length
-    return { total: items.length, fails, items }
-  })
+  const { data, isError, refetch } = useWidgetQuery('todays_deliveries', [venueId, todayStr], () => fetchTodaysDeliveriesWidget(venueId))
 
   if (!data) return <WidgetShell title="Today's Deliveries" to="/deliveries"><WidgetPending isError={isError} onRetry={refetch} /></WidgetShell>
 

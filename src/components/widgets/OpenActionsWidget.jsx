@@ -1,6 +1,6 @@
 import React, { memo } from 'react'
 import { Link } from 'react-router-dom'
-import { supabase } from '../../lib/supabase'
+import { fetchOpenActionsWidget } from '../../lib/api/widgets'
 import { useVenue } from '../../contexts/VenueContext'
 import { useWidgetQuery } from '../../hooks/useWidgetQuery'
 import { WidgetShell, BigNumber, WidgetPending } from './shared'
@@ -8,18 +8,7 @@ import { WidgetShell, BigNumber, WidgetPending } from './shared'
 function OpenActionsWidget() {
   const { venueId, venueSlug } = useVenue()
 
-  const { data, isError, refetch } = useWidgetQuery('open_actions', [venueId], async () => {
-    const { data: actions, error } = await supabase.from('corrective_actions')
-      .select('id, severity, status, title, reported_at')
-      .eq('venue_id', venueId)
-      .eq('status', 'open')
-      .order('severity')
-    if (error) throw error
-    const items = actions ?? []
-    const critical = items.filter(a => a.severity === 'critical').length
-    const major = items.filter(a => a.severity === 'major').length
-    return { total: items.length, critical, major, items }
-  })
+  const { data, isError, refetch } = useWidgetQuery('open_actions', [venueId], () => fetchOpenActionsWidget(venueId))
 
   if (!data) return <WidgetShell title="Open Actions" to="/corrective"><WidgetPending isError={isError} onRetry={refetch} /></WidgetShell>
 

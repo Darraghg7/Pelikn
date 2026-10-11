@@ -1,5 +1,5 @@
 import React, { memo } from 'react'
-import { supabase } from '../../lib/supabase'
+import { fetchPendingSwapsWidget } from '../../lib/api/widgets'
 import { useVenue } from '../../contexts/VenueContext'
 import { useWidgetQuery } from '../../hooks/useWidgetQuery'
 import { WidgetShell, BigNumber, WidgetPending } from './shared'
@@ -7,15 +7,7 @@ import { WidgetShell, BigNumber, WidgetPending } from './shared'
 function PendingSwapsWidget() {
   const { venueId } = useVenue()
 
-  const { data, isError, refetch } = useWidgetQuery('pending_swaps', [venueId], async () => {
-    const { data: swaps, error } = await supabase.from('shift_swaps')
-      .select('id, requester_name, target_staff_name, status')
-      .eq('venue_id', venueId)
-      .eq('status', 'pending')
-      .limit(5)
-    if (error) throw error
-    return { items: swaps ?? [], count: swaps?.length ?? 0 }
-  })
+  const { data, isError, refetch } = useWidgetQuery('pending_swaps', [venueId], () => fetchPendingSwapsWidget(venueId))
 
   if (!data) return <WidgetShell title="Swap Requests" to="/rota"><WidgetPending isError={isError} onRetry={refetch} /></WidgetShell>
 
