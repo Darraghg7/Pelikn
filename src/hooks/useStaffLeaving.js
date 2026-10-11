@@ -3,12 +3,13 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useVenue } from '../contexts/VenueContext'
 import { useSession } from '../contexts/SessionContext'
 import { useAppSettings } from './useSettings'
-import { fetchVenueLeavers, fetchEntitlementOverride } from '../lib/api/staffLeaving'
-import { fetchClockEvents, fetchAnnualLeave, fetchPaidOut } from '../lib/api/holidayData'
+import { fetchVenueLeavers } from '../lib/api/staffLeaving'
+import { fetchClockEvents, fetchAnnualLeave, fetchPaidOut, fetchCarryOver, fetchEntitlementOverride } from '../lib/api/holidayData'
 import { fetchStaffPayRates, fetchStaffPrivateFields } from '../lib/api/staffRestricted'
 import { leaverHolidayHours, leaverHolidayDays, leaverHolidayPay } from '../lib/leaving'
 import { calculateEntitlementDays } from './useLeaveBalance'
 import { NI_LOOKBACK_WEEKS } from '../lib/holiday'
+import { holidayYearContaining } from '../lib/holidayYear'
 import { londonToday } from '../lib/time'
 
 export const STAFF_LEAVING_KEY = 'staff-leaving'
@@ -46,58 +47,63 @@ function minusWeeks(dateStr, weeks) {
 }
 
 /**
- * Final holiday position for one leaver, plus what it is worth in pounds.
+ * Final holiday position for one leaver, plus what it is worth in pounds,
+ * for the venue's holiday year containing their last day.
  *
  * @param {{id: string, employment_type?: string, working_days?: number[], holiday_pay_eligible?: boolean}|null} staff
  * @param {string|null} lastDay  "yyyy-MM-dd"
  */
 export function useLeaverHoliday(staff, lastDay) {
   const { venueId } = useVenue()
-  const { holidayRegion } = useAppSettings()
+  const { holidayRegion, holidayYearStartMonth } = useAppSettings()
   const zeroHours = staff?.employment_type === 'zero_hours'
-  const year = lastDay ? Number(lastDay.slice(0, 4)) : null
+  const holidayYear = useMemo(
+    () => (lastDay ? holidayYearContaining(lastDay, holidayYearStartMonth) : null),
+    [lastDay, holidayYearStartMonth],
+  )
 
   const query = useQuery({
-    queryKey: [STAFF_LEAVING_KEY, 'holiday', venueId, staff?.id, lastDay, zeroHours],
+    queryKey: [STAFF_LEAVING_KEY, 'holiday', venueId, staff?.id, lastDay, holidayYear?.start, zeroHours],
     enabled: !!venueId && !!staff?.id && !!lastDay,
     staleTime: 60_000,
     queryFn: async () => {
       const ids = [staff.id]
-      const yearStart = `${year}-01-01`
+      const yearStart = holidayYear.start
       const lookback = minusWeeks(lastDay, NI_LOOKBACK_WEEKS + 1)
-      const [events, leave, paidOut, priv, rates, override] = await Promise.all([
+      const [events, leave, paidOut, carriedOver, priv, rates, override] = await Promise.all([
         zeroHours ? fetchClockEvents(ids, lookback < yearStart ? lookback : yearStart) : [],
-        fetchAnnualLeave(ids, year),
-        fetchPaidOut(ids, year),
+        fetchAnnualLeave(ids, holidayYear),
+        fetchPaidOut(ids, holidayYear.startYear),
+        fetchCarryOver(ids, holidayYear.startYear),
         fetchStaffPrivateFields(),
         fetchStaffPayRates(),
-        zeroHours ? null : fetchEntitlementOverride(staff.id, year),
+        zeroHours ? null : fetchEntitlementOverride(staff.id, holidayYear.startYear),
       ])
-      return { events, leave, paidOut, priv: priv.get(staff.id) ?? {}, rate: rates.get(staff.id) ?? null, override }
+      return { events, leave, paidOut, carriedOver, priv: priv.get(staff.id) ?? {}, rate: rates.get(staff.id) ?? null, override }
     },
   })
 
   const today = londonToday()
   const result = useMemo(() => {
     if (!query.data || !staff || !lastDay) return null
-    const { events, leave, paidOut, priv, rate, override } = query.data
+    const { events, leave, paidOut, carriedOver, priv, rate, override } = query.data
     const startDate = priv.start_date ?? null
     const workingDays = staff.working_days ?? []
     const position = zeroHours
       ? leaverHolidayHours({
           region: holidayRegion,
           staff: { ...staff, start_date: startDate },
-          events, requests: leave, paidOut, lastDay, today, now: new Date(),
+          events, requests: leave, paidOut, carriedOver, lastDay, today, holidayYear, now: new Date(),
         })
       : leaverHolidayDays({
           entitlementDays: staff.holiday_pay_eligible === false
             ? null
             : (override ?? calculateEntitlementDays(staff.employment_type, workingDays)),
-          requests: leave, paidOut, workingDays, startDate, lastDay,
+          requests: leave, paidOut, carriedOver, workingDays, startDate, lastDay, holidayYear,
         })
     const pay = leaverHolidayPay(position, { hourlyRate: rate, contractedHours: priv.contracted_hours, workingDays })
     return { position, pay, hourlyRate: rate }
-  }, [query.data, staff, lastDay, zeroHours, holidayRegion, today])
+  }, [query.data, staff, lastDay, zeroHours, holidayRegion, holidayYear, today])
 
   return { ...(result ?? {}), loading: query.isLoading, failed: query.isError }
 }

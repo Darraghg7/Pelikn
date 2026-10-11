@@ -243,7 +243,9 @@ function HolidayResult({ position, pay, hourlyRate, loading, failed, venueSlug, 
     )
   }
 
-  const { owed, earned, used, unit } = position
+  const { owed, earned, used, unit, carriedOver } = position
+  const carried = carriedOver ? ` + ${amount(carriedOver, unit)} carried over` : ''
+  const yearLabel = position.holidayYear?.startMonth > 1 ? ` (${position.holidayYear.label})` : ''
   const owesBack = owed < 0
   return (
     <div className="mt-1 flex flex-col gap-1.5">
@@ -257,8 +259,8 @@ function HolidayResult({ position, pay, hourlyRate, loading, failed, venueSlug, 
       </p>
       <p className="text-body-sm text-ink3 dark:text-white/45">
         {position.region === 'gb'
-          ? `Built up ${amount(earned, unit)} by their last day (12.07% of hours worked), ${amount(used, unit)} used.`
-          : `Earned ${amount(earned, unit)} by their last day, ${amount(used, unit)} used this year.`}
+          ? `Built up ${amount(earned, unit)} by their last day (12.07% of hours worked)${carried}, ${amount(used, unit)} used${yearLabel}.`
+          : `Earned ${amount(earned, unit)} by their last day${carried}, ${amount(used, unit)} used this holiday year${yearLabel}.`}
         {stillWorking && ' Updates as they work up to their last day.'}
       </p>
       {owesBack && (

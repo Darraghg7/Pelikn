@@ -4,10 +4,12 @@
  * The rule (NI Working Time Regulations reg 14, and the GB equivalent):
  *
  *   owed = (a full year's holiday × the share of the leave year they worked)
+ *          + holiday carried over into it
  *          − holiday already used this leave year
  *
- * The leave year is the calendar year, as everywhere else in Pelikn. The share
- * runs from 1 January (or their start date, if later) to their last day.
+ * The leave year is the venue's holiday year (lib/holidayYear) containing their
+ * last day. The share runs from its start (or their start date, if later) to
+ * their last day. Holiday carried over into that year (153) is added on top.
  *
  *   - Days-based staff: a full year is calculateEntitlementDays (or the
  *     manager's override); used is approved annual leave days + holiday
@@ -31,6 +33,7 @@ import {
   workedShifts, hoursByWeek, averageWeek, holidayUsed,
   HOLIDAY_WEEKS, GB_ACCRUAL_RATE, GB_CAP_HOURS,
 } from './holiday'
+import { holidayYearContaining, inHolidayYear } from './holidayYear'
 
 /** @type {{ value: string, label: string }[]} — must match 152's CHECK. */
 export const LEAVING_REASONS = [
@@ -70,16 +73,17 @@ function nextDay(s) {
 }
 
 /**
- * Share of the leave year (calendar year of `lastDay`) worked by their last
- * day: from 1 January or `startDate` if later, to `lastDay`, over the days in
- * the year.
+ * Share of the holiday year worked by their last day: from the start of the
+ * year (or `startDate` if later) to `lastDay`, over the days in the year.
+ *
+ * @param {string} lastDay
+ * @param {string|null} [startDate]
+ * @param {import('./holidayYear').HolidayYear} [holidayYear]  default: the January year containing lastDay
  */
-export function leaveYearShare(lastDay, startDate = null) {
-  const year = Number(lastDay.slice(0, 4))
-  const yearStart = `${year}-01-01`
-  const from = startDate && startDate > yearStart ? startDate : yearStart
+export function leaveYearShare(lastDay, startDate = null, holidayYear = holidayYearContaining(lastDay)) {
+  const from = startDate && startDate > holidayYear.start ? startDate : holidayYear.start
   if (from > lastDay) return 0
-  return daysInclusive(from, lastDay) / daysInclusive(yearStart, `${year}-12-31`)
+  return daysInclusive(from, lastDay) / daysInclusive(holidayYear.start, holidayYear.end)
 }
 
 /**
@@ -110,15 +114,16 @@ export function leaveUpTo(requests, lastDay) {
  * @param {{event_type: string, occurred_at: string}[]} p.events  clock events
  * @param {object[]} p.requests   approved annual leave
  * @param {{hours?: number|string|null}[]} [p.paidOut]  holiday already paid, for the leaving year
+ * @param {{hours?: number|string|null}[]} [p.carriedOver]  carried into the leaving year
  * @param {string} p.lastDay  "yyyy-MM-dd"
  * @param {string} p.today    "yyyy-MM-dd", London
+ * @param {import('./holidayYear').HolidayYear} [p.holidayYear]  the year containing lastDay
  * @param {Date}   [p.now]
  */
-export function leaverHolidayHours({ region, staff, events, requests, paidOut = [], lastDay, today, now }) {
+export function leaverHolidayHours({ region, staff, events, requests, paidOut = [], carriedOver = [], lastDay, today, holidayYear = holidayYearContaining(lastDay), now }) {
   if (staff?.holiday_pay_eligible === false) return { status: 'self_employed' }
   if (region !== 'gb' && region !== 'ni') return { status: 'needs_region' }
 
-  const year = Number(lastDay.slice(0, 4))
   const { shifts: all } = workedShifts(events, now)
   const shifts = all.filter(s => londonDateStr(s.start) <= lastDay)
   // Average up to their last week, or up to now while they're still working.
@@ -130,17 +135,18 @@ export function leaverHolidayHours({ region, staff, events, requests, paidOut = 
   let share = null
   if (region === 'gb') {
     const hours = shifts
-      .filter(s => londonDateStr(s.start).startsWith(String(year)))
+      .filter(s => inHolidayYear(londonDateStr(s.start), holidayYear))
       .reduce((sum, s) => sum + s.hours, 0)
     earned = Math.min(hours * GB_ACCRUAL_RATE, GB_CAP_HOURS)
   } else {
-    share = leaveYearShare(lastDay, staff?.start_date ?? null)
+    share = leaveYearShare(lastDay, staff?.start_date ?? null, holidayYear)
     fullYear = avgWeekHours == null ? 0 : HOLIDAY_WEEKS * avgWeekHours
     earned = fullYear * share
   }
 
+  const carried = carriedOver.reduce((sum, c) => sum + (Number(c.hours) || 0), 0)
   const { used, estimated } = holidayUsed(leaveUpTo(requests, lastDay), {
-    year,
+    holidayYear,
     avgWeekHours,
     workingDays: staff?.working_days ?? [],
   })
@@ -151,10 +157,11 @@ export function leaverHolidayHours({ region, staff, events, requests, paidOut = 
     status: 'ok',
     unit: 'hours',
     region,
-    year,
+    holidayYear,
     earned: round1(earned),
+    carriedOver: round1(carried),
     used: round1(usedTotal),
-    owed: round1(earned - usedTotal),
+    owed: round1(earned + carried - usedTotal),
     fullYear: fullYear == null ? null : round1(fullYear),
     share,
     avgWeekHours: avgWeekHours == null ? null : round1(avgWeekHours),
@@ -171,15 +178,16 @@ export function leaverHolidayHours({ region, staff, events, requests, paidOut = 
  * @param {number|null} p.entitlementDays  a full year's allowance (null when not eligible)
  * @param {{start_date: string, end_date: string, status?: string, leave_type?: string}[]} p.requests
  * @param {{days?: number|string|null}[]} [p.paidOut]
+ * @param {{days?: number|string|null}[]} [p.carriedOver]
  * @param {number[]} [p.workingDays]
  * @param {string|null} [p.startDate]
  * @param {string} p.lastDay
+ * @param {import('./holidayYear').HolidayYear} [p.holidayYear]  the year containing lastDay
  */
-export function leaverHolidayDays({ entitlementDays, requests, paidOut = [], workingDays = [], startDate = null, lastDay }) {
+export function leaverHolidayDays({ entitlementDays, requests, paidOut = [], carriedOver = [], workingDays = [], startDate = null, lastDay, holidayYear = holidayYearContaining(lastDay) }) {
   if (entitlementDays == null) return { status: 'self_employed' }
-  const year = Number(lastDay.slice(0, 4))
-  const yearStart = `${year}-01-01`
-  const share = leaveYearShare(lastDay, startDate)
+  const yearStart = holidayYear.start
+  const share = leaveYearShare(lastDay, startDate, holidayYear)
   const earned = entitlementDays * share
 
   let used = 0
@@ -190,14 +198,16 @@ export function leaverHolidayDays({ entitlementDays, requests, paidOut = [], wor
     used += workingDaysIn(from, r.end_date, workingDays)
   }
   used += paidOut.reduce((sum, p) => sum + (Number(p.days) || 0), 0)
+  const carried = carriedOver.reduce((sum, c) => sum + (Number(c.days) || 0), 0)
 
   return {
     status: 'ok',
     unit: 'days',
-    year,
+    holidayYear,
     earned: round1(earned),
+    carriedOver: round1(carried),
     used: round1(used),
-    owed: round1(earned - used),
+    owed: round1(earned + carried - used),
     fullYear: entitlementDays,
     share,
   }

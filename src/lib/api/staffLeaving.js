@@ -75,15 +75,3 @@ export async function cancelStaffLeaving(staffId) {
   if (!data?.length) return { error: { message: 'They have already left, so this can no longer be cancelled' } }
   return { error: null }
 }
-
-/** A full year's days allowance set by a manager, or null. */
-export async function fetchEntitlementOverride(staffId, year) {
-  const { data, error } = await supabase
-    .from('leave_entitlements')
-    .select('override_days')
-    .eq('staff_id', staffId)
-    .eq('leave_year', year)
-    .maybeSingle()
-  if (error) throw error
-  return data?.override_days ?? null
-}

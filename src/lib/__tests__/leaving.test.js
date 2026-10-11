@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { leaveYearShare, leaveUpTo, leaverHolidayHours, leaverHolidayDays, leaverHolidayPay } from '../leaving'
+import { holidayYearContaining } from '../holidayYear'
 
 const ev = (event_type, occurred_at) => ({ event_type, occurred_at })
 const NOW = new Date('2026-10-10T12:00:00Z')
@@ -36,6 +37,11 @@ describe('leaveYearShare', () => {
     expect(leaveYearShare('2026-09-30', '2019-04-01')).toBeCloseTo(273 / 365)
   })
 
+  it('follows the venue\'s holiday year: an April year leaver on 30 June has worked 91 of 365 days', () => {
+    const hy = holidayYearContaining('2026-06-30', 4)
+    expect(leaveYearShare('2026-06-30', null, hy)).toBeCloseTo(91 / 365)
+  })
+
   it('is nothing if they leave before they start', () => {
     expect(leaveYearShare('2026-03-01', '2026-04-01')).toBe(0)
   })
@@ -66,6 +72,20 @@ describe('leaverHolidayDays', () => {
       ],
     })
     expect(r).toMatchObject({ status: 'ok', unit: 'days', earned: 13.9, used: 7, owed: 6.9 })
+  })
+
+  it('adds holiday carried over into the year', () => {
+    const r = leaverHolidayDays({ ...base, requests: [], carriedOver: [{ days: 2 }] })
+    expect(r).toMatchObject({ earned: 13.9, carriedOver: 2, owed: 15.9 })
+  })
+
+  it('April holiday year: only counts leave since 1 April', () => {
+    const r = leaverHolidayDays({
+      ...base,
+      holidayYear: holidayYearContaining('2026-06-30', 4),
+      requests: [leave('2026-03-02', '2026-03-06'), leave('2026-04-06', '2026-04-10')],  // March is last year
+    })
+    expect(r).toMatchObject({ earned: 7, used: 5, owed: 2 })  // 28 × 91/365 = 6.98
   })
 
   it('first-year leavers earn from their start date', () => {
@@ -118,6 +138,22 @@ describe('leaverHolidayHours', () => {
       paidOut: [{ hours: 5 }],
     })
     expect(r).toMatchObject({ status: 'ok', unit: 'hours', avgWeekHours: 20, fullYear: 112, earned: 55.5, used: 37, owed: 18.5 })
+  })
+
+  it('carried-over hours are owed on top', () => {
+    const r = leaverHolidayHours({ ...base, region: 'gb', events: twelveWeeks(), requests: [], carriedOver: [{ hours: 6 }] })
+    expect(r).toMatchObject({ earned: 29, carriedOver: 6, owed: 35 })
+  })
+
+  it('GB with an April holiday year only counts hours worked since 1 April', () => {
+    const r = leaverHolidayHours({
+      ...base,
+      region: 'gb',
+      holidayYear: holidayYearContaining('2026-06-30', 4),
+      events: [...shift('2026-03-30', 10), ...shift('2026-04-06', 10)],
+      requests: [],
+    })
+    expect(r.earned).toBe(1.2)  // 10h × 12.07%
   })
 
   it('GB: 12.07% of hours worked up to the last day', () => {
