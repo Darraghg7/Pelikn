@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
 import { useVenue } from '../contexts/VenueContext'
 import { isNetworkError } from '../lib/offlineSupabase'
+import { isMissingColumn } from '../lib/attachments'
 import { getQueue } from '../lib/offlineQueue'
 import { takeBootstrap } from '../lib/api/bootstrap'
 
@@ -261,8 +262,12 @@ interface TimesheetRow {
   staff_id: string
   event_type: string
   occurred_at: string
+  /** Server arrival time (migration 144). Absent before 144; NULL on older rows. */
+  recorded_at?: string | null
   staff?: { name: string } | null
 }
+
+const TIMESHEET_COLUMNS = 'id, staff_id, event_type, occurred_at, staff:staff_id(name)'
 
 export function useTimesheetData(dateFrom: string, dateTo: string): {
   rows: TimesheetRow[]
@@ -275,17 +280,26 @@ export function useTimesheetData(dateFrom: string, dateTo: string): {
   const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ['timesheetData', venueId, dateFrom, dateTo],
     queryFn: async () => {
-      let q = supabase
-        .from('clock_events')
-        .select('id, staff_id, event_type, occurred_at, staff:staff_id(name)')
-        .gte('occurred_at', dateFrom)
-        .lte('occurred_at', dateTo)
-        .order('staff_id')
-        .order('occurred_at')
-        .limit(5000)
-      if (venueId) q = q.eq('venue_id', venueId)
+      const select = (columns: string) => {
+        let q = supabase
+          .from('clock_events')
+          .select(columns)
+          .gte('occurred_at', dateFrom)
+          .lte('occurred_at', dateTo)
+          .order('staff_id')
+          .order('occurred_at')
+          .limit(5000)
+        if (venueId) q = q.eq('venue_id', venueId)
+        return q
+      }
 
-      const { data, error } = await q
+      // recorded_at lets the Timesheet flag punches that arrived late (queued
+      // offline, or backdated). It only exists once migration 144 is applied,
+      // which is done by hand — until then, read without it rather than fail.
+      let { data, error } = await select(`${TIMESHEET_COLUMNS}, recorded_at`)
+      if (isMissingColumn(error, 'recorded_at')) {
+        ;({ data, error } = await select(TIMESHEET_COLUMNS))
+      }
       // Surface the failure instead of returning [] — a swallowed error is
       // indistinguishable from "no hours" and hides stale-build / RLS / network
       // problems from the user (they just see blank actual-hours tiles).

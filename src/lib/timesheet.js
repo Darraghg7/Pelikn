@@ -14,7 +14,7 @@ import { londonDateStr } from './time'
 
 /** Minutes between two ISO instants, never negative. */
 function minutesBetween(startIso, endIso) {
-  return (new Date(endIso) - new Date(startIso)) / 60000
+  return (new Date(endIso).getTime() - new Date(startIso).getTime()) / 60000
 }
 
 /** Total completed break minutes on a session. Open breaks count as zero. */
@@ -32,12 +32,39 @@ export function sessionMinutes(session) {
 }
 
 /**
+ * How long after the tap a punch can reach the server before the Timesheet
+ * calls it out. Ten minutes covers a weak signal or a phone locked mid-request;
+ * beyond that it was queued offline for a while — or someone sent a backdated
+ * punch, which record_clock_event has accepted (up to 7 days old) since 144.
+ */
+export const LATE_PUNCH_THRESHOLD_MS = 10 * 60 * 1000
+
+/**
+ * The punch, if it reached the server more than the threshold after its tap
+ * time; otherwise null. Rows from before migration 144 have no recorded_at and
+ * are never late.
+ */
+export function latePunch(e) {
+  if (!e?.recorded_at || !e?.occurred_at) return null
+  const gap = new Date(e.recorded_at).getTime() - new Date(e.occurred_at).getTime()
+  if (!(gap > LATE_PUNCH_THRESHOLD_MS)) return null
+  return { id: e.id, type: e.event_type, occurredAt: e.occurred_at, recordedAt: e.recorded_at }
+}
+
+/** Note a late punch on the session it belongs to. */
+function noteLate(session, e) {
+  const late = latePunch(e)
+  if (late) session.late.push(late)
+}
+
+/**
  * Attach a non-clock_in event to the session it belongs to — always the most
  * recent one opened for that staff member.
  */
 function applyEventToSessions(sessions, e) {
   if (!sessions.length) return
   const last = sessions[sessions.length - 1]
+  noteLate(last, e)
   if (e.event_type === 'clock_out') {
     last.out = e.occurred_at
     last.outId = e.id
@@ -65,7 +92,8 @@ export function buildTimesheets(events, staffRates) {
     }
     const r = results[sid]
     if (e.event_type === 'clock_in') {
-      r.sessions.push({ in: e.occurred_at, inId: e.id, out: null, outId: null, breaks: [] })
+      r.sessions.push({ in: e.occurred_at, inId: e.id, out: null, outId: null, breaks: [], late: [] })
+      noteLate(r.sessions[r.sessions.length - 1], e)
     } else {
       applyEventToSessions(r.sessions, e)
     }
@@ -90,12 +118,14 @@ export function buildDailyGrid(events) {
         out: null,
         outId: null,
         breaks: [],
+        late: [],
         // The London calendar date, not the UTC one. Slicing the ISO string
         // filed any shift starting between midnight and 01:00 BST onto the
         // previous day, because 00:30 London is 23:30 UTC the day before —
         // so an after-midnight start vanished from the day the manager looked at.
         date: londonDateStr(e.occurred_at),
       })
+      noteLate(r.sessions[r.sessions.length - 1], e)
     } else {
       applyEventToSessions(r.sessions, e)
     }
@@ -108,7 +138,7 @@ export function buildDailyGrid(events) {
       if (!s.in) continue
       if (!result[sid].days[s.date]) result[sid].days[s.date] = { minutes: 0, sessions: [] }
       const day = result[sid].days[s.date]
-      day.sessions.push({ in: s.in, inId: s.inId, out: s.out, outId: s.outId, breaks: s.breaks })
+      day.sessions.push({ in: s.in, inId: s.inId, out: s.out, outId: s.outId, breaks: s.breaks, late: s.late })
       day.minutes += sessionMinutes(s)
     }
   }
