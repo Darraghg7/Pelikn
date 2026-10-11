@@ -2,14 +2,16 @@ import React from 'react'
 import {
   format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, isSameDay, isBefore, startOfDay,
 } from 'date-fns'
-import { getRequestsForDay, initials } from './timeOffConstants'
+import { getRequestsForDay } from './timeOffConstants'
+import { initials } from '../../lib/names'
+import Button from '../../components/ui/Button'
 
 const DAY_LETTERS = ['M', 'T', 'W', 'T', 'F', 'S', 'S']
 const DAY_NAMES   = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 
 const CHIP = {
-  approved: 'bg-goodBg text-good dark:bg-good/20 dark:text-[#7fd1a4]',
-  pending:  'bg-warnBg text-warn dark:bg-warn/20 dark:text-[#e8b06a]',
+  approved: 'bg-goodBg text-good dark:bg-good/20 dark:text-goodDark',
+  pending:  'bg-warnBg text-warn dark:bg-warn/20 dark:text-warnDark',
 }
 
 /**
@@ -29,18 +31,18 @@ export default function CalendarView({ month, requests, selected, onSelect, onPr
   return (
     <div className="bg-white dark:bg-paperDark rounded-2xl border border-line dark:border-white/10 px-3 sm:px-3.5 pt-2.5 pb-2.5">
       <div className="flex items-center justify-between px-1 mb-2">
-        <button type="button" onClick={onPrev} aria-label="Previous month" className="w-9 h-8 rounded-full inline-flex items-center justify-center text-ink2 dark:text-white/70 hover:bg-cream dark:hover:bg-white/10">
+        <Button variant="secondary" size="sm" iconOnly onClick={onPrev} aria-label="Previous month">
           <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6" /></svg>
-        </button>
-        <p className="text-[15px] font-semibold text-ink dark:text-white">{format(month, 'MMMM yyyy')}</p>
-        <button type="button" onClick={onNext} aria-label="Next month" className="w-9 h-8 rounded-full inline-flex items-center justify-center text-ink2 dark:text-white/70 hover:bg-cream dark:hover:bg-white/10">
+        </Button>
+        <p className="text-body-lg font-semibold text-ink dark:text-white">{format(month, 'MMMM yyyy')}</p>
+        <Button variant="secondary" size="sm" iconOnly onClick={onNext} aria-label="Next month">
           <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
-        </button>
+        </Button>
       </div>
 
       <div className="grid grid-cols-7">
         {DAY_LETTERS.map((d, i) => (
-          <div key={i} aria-label={DAY_NAMES[i]} className="text-center font-mono text-[13px] font-semibold text-ink3 dark:text-white/45 pb-2">{d}</div>
+          <div key={i} aria-label={DAY_NAMES[i]} className="text-center font-mono text-body-sm font-semibold text-ink3 dark:text-white/45 pb-2">{d}</div>
         ))}
         {cells.map((day, i) => {
           if (!day) return <div key={`pad-${i}`} />
@@ -58,7 +60,7 @@ export default function CalendarView({ month, requests, selected, onSelect, onPr
               className={`min-h-[46px] rounded-xl flex flex-col items-center gap-1 pt-1.5 pb-1 transition-colors ${isSelected ? 'bg-brand-tint dark:bg-white/10 ring-1 ring-brand/30' : 'hover:bg-cream dark:hover:bg-white/5'}`}
             >
               <span className={[
-                'w-8 h-7 rounded-full inline-flex items-center justify-center text-[14px] font-medium',
+                'w-8 h-7 rounded-full inline-flex items-center justify-center text-body font-medium',
                 isToday ? 'bg-brand text-white font-semibold' : isPast ? 'text-ink4 dark:text-white/30' : 'text-ink dark:text-white',
               ].join(' ')}>
                 {format(day, 'd')}
@@ -68,12 +70,12 @@ export default function CalendarView({ month, requests, selected, onSelect, onPr
                   <span
                     key={r.id}
                     title={`${r.staff?.name ?? 'Someone'} · ${r.status}`}
-                    className={`min-w-[26px] h-[22px] px-1 rounded-full inline-flex items-center justify-center font-mono text-[11px] font-bold ${CHIP[r.status] ?? CHIP.approved}`}
+                    className={`min-w-[26px] h-[22px] px-1 rounded-full inline-flex items-center justify-center font-mono text-micro font-bold ${CHIP[r.status] ?? CHIP.approved}`}
                   >
                     {initials(r.staff?.name)}
                   </span>
                 ))}
-                {off.length > 2 && <span className="text-[11px] font-semibold text-ink3 dark:text-white/45">+{off.length - 2}</span>}
+                {off.length > 2 && <span className="text-micro font-semibold text-ink3 dark:text-white/45">+{off.length - 2}</span>}
               </span>
             </button>
           )

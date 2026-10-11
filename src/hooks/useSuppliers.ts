@@ -8,12 +8,12 @@ import { fetchSuppliers, type Supplier } from '../lib/api/suppliers'
  * Delivery Checks), replacing three separate useState/useEffect fetches of
  * the same table.
  */
-export function useSuppliers(): { suppliers: Supplier[]; loading: boolean; reload: () => void } {
+export function useSuppliers(): { suppliers: Supplier[]; loading: boolean; isError: boolean; reload: () => void } {
   const { venueId } = useVenue()
   const queryClient = useQueryClient()
   const queryKey = ['suppliers', venueId]
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError } = useQuery({
     queryKey,
     queryFn: () => fetchSuppliers(venueId!),
     enabled: !!venueId,
@@ -22,5 +22,5 @@ export function useSuppliers(): { suppliers: Supplier[]; loading: boolean; reloa
   })
 
   const reload = () => queryClient.invalidateQueries({ queryKey })
-  return { suppliers: data ?? [], loading: isLoading, reload }
+  return { suppliers: data ?? [], loading: isLoading, isError, reload }
 }

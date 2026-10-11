@@ -12,10 +12,11 @@
  *   setTab     – setter for tab
  *   onUpload   – optional: called when header "Upload doc" button clicked (defaults to switching tab)
  */
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { format, parseISO, differenceInDays } from 'date-fns'
-import { calculateEntitlementDays, countWorkingDaysInRequest } from '../../hooks/useLeaveBalance'
+import { calculateEntitlementDays, daysUsedInHolidayYear } from '../../hooks/useLeaveBalance'
+import { useHolidayBalances, useHolidayYear, usePaidOut, useCarryOver } from '../../hooks/useHolidayBalances'
 import { HR_BUCKET, hrAttachmentPath, openHrAttachment } from '../../lib/hrDocuments'
 import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../../components/ui/Toast'
@@ -23,6 +24,7 @@ import Modal from '../../components/ui/Modal'
 import ConfirmDialog from '../../components/ui/ConfirmDialog'
 import { PageSkeleton, SkeletonList } from '../../components/ui/Skeleton'
 import { useStaffJobTitles } from '../../hooks/useVenueRoles'
+import Avatar from '../../components/ui/Avatar'
 import {
   useStaffHeader, useHRDocuments, useDisciplinaryRecord,
   useLeaveRequests, useStaffTrainingRecord, useStaffSessions,
@@ -32,6 +34,7 @@ import {
   insertFormalAction, deleteFormalActionRow, dismissStrikeRow, dismissAllStrikesRows,
   revokeStaffSessionRpc,
 } from '../../lib/api/hr'
+import Button from '../../components/ui/Button'
 
 // ── Constants ────────────────────────────────────────────────────────────────
 export const TABS = ['Profile', 'Documents', 'Disciplinary', 'Leave', 'Training', 'Security']
@@ -77,10 +80,6 @@ export function tenure(isoDate) {
   return m === 0 ? `${y} yr` : `${y} yr ${m} mo`
 }
 
-export function nameInitials(name) {
-  return (name || '?').split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase()
-}
-
 function expiryStatus(dateStr) {
   if (!dateStr) return null
   const d = differenceInDays(parseISO(dateStr), new Date())
@@ -90,25 +89,13 @@ function expiryStatus(dateStr) {
 }
 
 // ── Shared atoms ─────────────────────────────────────────────────────────────
-export function Avatar({ name, size = 40, color }) {
-  const initials = nameInitials(name)
-  return (
-    <div
-      className="rounded-full flex items-center justify-center font-mono font-semibold text-white shrink-0"
-      style={{ width: size, height: size, fontSize: size * 0.36, background: color || '#2D4F45' }}
-    >
-      {initials}
-    </div>
-  )
-}
-
 function badgeClasses(tone) {
   switch (tone) {
     case 'brand':    return 'text-brand bg-brand/8'
     case 'good':     return 'text-success bg-success/10'
     case 'warn':     return 'text-warning bg-warning/10'
     case 'bad':      return 'text-danger bg-danger/10'
-    case 'dark-red': return 'text-[#7a1212] bg-danger/10'
+    case 'dark-red': return 'text-severe bg-danger/10'
     case 'inverse':  return 'text-white bg-charcoal'
     case 'muted':    return 'text-charcoal/50 dark:text-white/40 bg-charcoal/6 dark:bg-white/8'
     default:         return 'text-charcoal/50 dark:text-white/40 bg-charcoal/6 dark:bg-white/8'
@@ -117,7 +104,7 @@ function badgeClasses(tone) {
 
 export function Badge({ tone, children, dot }) {
   return (
-    <span className={`inline-flex items-center gap-1.5 font-mono text-[11px] font-semibold tracking-[0.04em] uppercase rounded-full px-[9px] py-[3px] whitespace-nowrap ${badgeClasses(tone)}`}>
+    <span className={`inline-flex items-center gap-1.5 font-mono text-micro font-semibold tracking-[0.04em] uppercase rounded-full px-[9px] py-[3px] whitespace-nowrap ${badgeClasses(tone)}`}>
       {dot && <span className="w-[5px] h-[5px] rounded-full bg-current" />}
       {children}
     </span>
@@ -134,7 +121,7 @@ function SectionCard({ children, className }) {
 
 function CardHead({ children }) {
   return (
-    <div className="px-[18px] py-3 border-b border-charcoal/6 dark:border-white/8 font-mono text-[11px] uppercase tracking-[0.09em] text-charcoal/50 dark:text-white/40 font-semibold">
+    <div className="px-[18px] py-3 border-b border-charcoal/6 dark:border-white/8 font-mono text-micro uppercase tracking-[0.09em] text-charcoal/50 dark:text-white/40 font-semibold">
       {children}
     </div>
   )
@@ -144,10 +131,10 @@ function DataRow({ label, value }) {
   if (value === null || value === undefined || value === '') return null
   return (
     <div className="flex gap-3.5 px-[18px] py-[11px] border-b border-charcoal/6 dark:border-white/8">
-      <span className="font-mono text-[11px] uppercase tracking-[0.06em] text-charcoal/30 dark:text-white/30 min-w-[120px] pt-px">
+      <span className="font-mono text-micro uppercase tracking-[0.06em] text-charcoal/30 dark:text-white/30 min-w-[120px] pt-px">
         {label}
       </span>
-      <span className="text-[13.5px] text-charcoal dark:text-white flex-1">{value}</span>
+      <span className="text-body text-charcoal dark:text-white flex-1">{value}</span>
     </div>
   )
 }
@@ -156,7 +143,7 @@ function EmptyState({ icon, text }) {
   return (
     <div className="text-center px-5 py-10 text-charcoal/30 dark:text-white/30">
       <div className="mb-2.5 opacity-50 flex justify-center">{icon}</div>
-      <p className="text-[13px]">{text}</p>
+      <p className="text-body-sm">{text}</p>
     </div>
   )
 }
@@ -164,13 +151,13 @@ function EmptyState({ icon, text }) {
 function MiniStat({ k, v, tone }) {
   return (
     <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[13px] px-[11px] py-[10px] lg:px-3.5 lg:py-[11px] shadow-sm flex-1 min-w-0">
-      <div className="font-mono text-[9px] lg:text-[11px] uppercase tracking-[0.07em] text-charcoal/50 dark:text-white/40 font-semibold">
+      <div className="font-mono text-micro uppercase tracking-[0.07em] text-charcoal/50 dark:text-white/40 font-semibold">
         {k}
       </div>
       <div className="mt-[4px] flex items-center">
         {tone
           ? <Badge tone={tone}>{v}</Badge>
-          : <span className="text-[14.5px] lg:text-[16px] font-semibold text-charcoal dark:text-white tracking-[-0.01em]">{v}</span>}
+          : <span className="text-body-lg lg:text-title-sm font-semibold text-charcoal dark:text-white tracking-[-0.01em]">{v}</span>}
       </div>
     </div>
   )
@@ -178,36 +165,34 @@ function MiniStat({ k, v, tone }) {
 
 function BtnPrimary({ onClick, children, disabled }) {
   return (
-    <button
+    <Button
+      size="sm"
       onClick={onClick}
       disabled={disabled}
-      className="inline-flex items-center gap-[7px] px-3.5 py-[9px] rounded-[10px] cursor-pointer text-[12.5px] font-semibold border-0 whitespace-nowrap bg-brand text-white disabled:opacity-60 disabled:cursor-not-allowed"
     >
       {children}
-    </button>
+    </Button>
   )
 }
 
 function BtnDanger({ onClick, children, disabled }) {
   return (
-    <button
+    <Button
+      variant="danger-ghost"
+      size="sm"
       onClick={onClick}
       disabled={disabled}
-      className="inline-flex items-center gap-[7px] px-3.5 py-[9px] rounded-[10px] cursor-pointer text-[12.5px] font-semibold whitespace-nowrap bg-danger/10 text-danger border border-danger/10 disabled:opacity-60 disabled:cursor-not-allowed"
     >
       {children}
-    </button>
+    </Button>
   )
 }
 
 function BtnDefault({ onClick, children, className }) {
   return (
-    <button
-      onClick={onClick}
-      className={`inline-flex items-center gap-[7px] px-3.5 py-[9px] rounded-[10px] cursor-pointer text-[12.5px] font-semibold whitespace-nowrap bg-white dark:bg-paperDark text-charcoal/75 dark:text-white/60 border border-charcoal/10 dark:border-white/10 ${className ?? ''}`}
-    >
+    <Button variant="secondary" size="sm" onClick={onClick} className={className}>
       {children}
-    </button>
+    </Button>
   )
 }
 
@@ -273,7 +258,7 @@ function ProfileTab({ staff, jobTitle, docsCount, strikesCount, venueSlug }) {
             <DataRow label="Phone" value={staff.emergency_contact_phone} />
           </>
         ) : (
-          <p className="px-[18px] py-3.5 text-[13px] text-charcoal/30 dark:text-white/30 italic">
+          <p className="px-[18px] py-3.5 text-body-sm text-charcoal/30 dark:text-white/30 italic">
             No emergency contact on file
           </p>
         )}
@@ -348,7 +333,7 @@ function DocumentsTab({ staffId, venueId }) {
         onConfirm={() => { deleteDoc(deleteTarget); setDeleteTarget(null) }}
       />
       <div className="flex items-center justify-between">
-        <span className="font-mono text-[11px] uppercase tracking-[0.07em] text-charcoal/50 dark:text-white/40 font-semibold">
+        <span className="font-mono text-micro uppercase tracking-[0.07em] text-charcoal/50 dark:text-white/40 font-semibold">
           {loading ? '—' : docs.length} documents
         </span>
         <BtnPrimary onClick={() => setShowModal(true)}>
@@ -372,11 +357,11 @@ function DocumentsTab({ staffId, venueId }) {
                   {Ico.docSm}
                 </span>
                 <div className="flex-1 min-w-0">
-                  <div className="text-[13.5px] font-semibold text-charcoal dark:text-white">{doc.title}</div>
+                  <div className="text-body font-semibold text-charcoal dark:text-white">{doc.title}</div>
                   <div className="flex gap-2 items-center mt-[5px] flex-wrap">
                     <Badge tone={catTone}>{DOC_CAT_LABELS[doc.category] ?? doc.category}</Badge>
                     {exp && daysLeft != null && daysLeft <= 30 && <Badge tone={exp.tone}>{exp.label}</Badge>}
-                    <span className="font-mono text-[11px] text-charcoal/30 dark:text-white/30">
+                    <span className="font-mono text-micro text-charcoal/30 dark:text-white/30">
                       {format(parseISO(doc.created_at), 'd MMM yyyy')} · {(doc.file_size / 1024).toFixed(0)} KB
                       {doc.expiry_date && daysLeft != null && daysLeft > 30
                         ? ` · expires ${format(parseISO(doc.expiry_date), 'd MMM yyyy')}`
@@ -385,18 +370,20 @@ function DocumentsTab({ staffId, venueId }) {
                   </div>
                 </div>
                 <div className="flex gap-[7px] shrink-0">
-                  <button
+                  <Button
+                    variant="secondary"
+                    size="sm"
                     onClick={() => openHrAttachment(doc, toast)}
-                    className="inline-flex items-center gap-[7px] px-3 py-1.5 rounded-[10px] text-[11px] font-semibold whitespace-nowrap bg-white dark:bg-paperDark text-charcoal/75 dark:text-white/60 border border-charcoal/10 dark:border-white/10"
                   >
                     View
-                  </button>
-                  <button
+                  </Button>
+                  <Button
+                    variant="danger-ghost"
+                    size="sm"
                     onClick={() => setDeleteTarget(doc)}
-                    className="inline-flex items-center gap-[7px] px-3 py-1.5 rounded-[10px] text-[11px] font-semibold whitespace-nowrap bg-danger/10 text-danger border border-danger/10"
                   >
                     Delete
-                  </button>
+                  </Button>
                 </div>
               </div>
             )
@@ -407,20 +394,20 @@ function DocumentsTab({ staffId, venueId }) {
       <Modal open={showModal} onClose={resetModal} title="Upload Document">
         <div className="flex flex-col gap-3.5">
           <div>
-            <label className="block font-mono text-[11px] uppercase tracking-[0.07em] text-charcoal/50 dark:text-white/40 mb-1.5">Title</label>
+            <label className="block font-mono text-micro uppercase tracking-[0.07em] text-charcoal/50 dark:text-white/40 mb-1.5">Title</label>
             <input
               value={form.title}
               onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
               placeholder="e.g. Employment Contract 2024"
-              className="w-full px-3 py-2.5 rounded-[10px] border border-charcoal/10 dark:border-white/10 text-[13px] outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 focus:border-charcoal/20 dark:focus:border-white/20 box-border"
+              className="w-full px-3 py-2.5 rounded-[10px] border border-charcoal/10 dark:border-white/10 text-body-sm outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 focus:border-charcoal/20 dark:focus:border-white/20 box-border"
             />
           </div>
           <div>
-            <label className="block font-mono text-[11px] uppercase tracking-[0.07em] text-charcoal/50 dark:text-white/40 mb-1.5">Category</label>
+            <label className="block font-mono text-micro uppercase tracking-[0.07em] text-charcoal/50 dark:text-white/40 mb-1.5">Category</label>
             <div className="flex gap-2">
               {Object.entries(DOC_CAT_LABELS).map(([k, v]) => (
                 <button key={k} type="button" onClick={() => setForm(f => ({ ...f, category: k }))}
-                  className={`flex-1 py-2 rounded-[9px] cursor-pointer font-mono text-[11px] font-bold tracking-[0.04em] border transition-colors ${
+                  className={`flex-1 py-2 rounded-[9px] cursor-pointer font-mono text-micro font-bold tracking-[0.04em] border transition-colors ${
                     form.category === k
                       ? 'bg-brand text-white border-brand'
                       : 'bg-transparent text-charcoal/50 dark:text-white/40 border-charcoal/10 dark:border-white/10'
@@ -430,23 +417,21 @@ function DocumentsTab({ staffId, venueId }) {
             </div>
           </div>
           <div>
-            <label className="block font-mono text-[11px] uppercase tracking-[0.07em] text-charcoal/50 dark:text-white/40 mb-1.5">File</label>
-            <input type="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" onChange={e => setFile(e.target.files?.[0] ?? null)} className="w-full text-[13px]" />
-            {file && <p className="font-mono text-[11px] text-charcoal/30 dark:text-white/30 mt-1">{file.name} · {(file.size / 1024).toFixed(0)} KB</p>}
+            <label className="block font-mono text-micro uppercase tracking-[0.07em] text-charcoal/50 dark:text-white/40 mb-1.5">File</label>
+            <input type="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" onChange={e => setFile(e.target.files?.[0] ?? null)} className="w-full text-body-sm" />
+            {file && <p className="font-mono text-micro text-charcoal/30 dark:text-white/30 mt-1">{file.name} · {(file.size / 1024).toFixed(0)} KB</p>}
           </div>
           <div>
-            <label className="block font-mono text-[11px] uppercase tracking-[0.07em] text-charcoal/50 dark:text-white/40 mb-1.5">Expiry date (optional)</label>
-            <input type="date" value={form.expiry_date} onChange={e => setForm(f => ({ ...f, expiry_date: e.target.value }))} className="w-full px-3 py-2.5 rounded-[10px] border border-charcoal/10 dark:border-white/10 text-[13px] outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 focus:border-charcoal/20 dark:focus:border-white/20 box-border" />
+            <label className="block font-mono text-micro uppercase tracking-[0.07em] text-charcoal/50 dark:text-white/40 mb-1.5">Expiry date (optional)</label>
+            <input type="date" value={form.expiry_date} onChange={e => setForm(f => ({ ...f, expiry_date: e.target.value }))} className="w-full px-3 py-2.5 rounded-[10px] border border-charcoal/10 dark:border-white/10 text-body-sm outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 focus:border-charcoal/20 dark:focus:border-white/20 box-border" />
           </div>
           <div>
-            <label className="block font-mono text-[11px] uppercase tracking-[0.07em] text-charcoal/50 dark:text-white/40 mb-1.5">Notes (optional)</label>
-            <textarea value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} rows={2} className="w-full px-3 py-2.5 rounded-[10px] border border-charcoal/10 dark:border-white/10 text-[13px] outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 focus:border-charcoal/20 dark:focus:border-white/20 resize-none box-border" />
+            <label className="block font-mono text-micro uppercase tracking-[0.07em] text-charcoal/50 dark:text-white/40 mb-1.5">Notes (optional)</label>
+            <textarea value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} rows={2} className="w-full px-3 py-2.5 rounded-[10px] border border-charcoal/10 dark:border-white/10 text-body-sm outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 focus:border-charcoal/20 dark:focus:border-white/20 resize-none box-border" />
           </div>
-          <button onClick={upload} disabled={saving}
-            className="bg-brand text-white border-0 rounded-xl py-[13px] cursor-pointer font-mono text-[13px] font-bold tracking-[0.02em] disabled:opacity-60 disabled:cursor-not-allowed"
-          >
+          <Button size="lg" loading={saving} onClick={upload} disabled={saving}>
             {saving ? 'Uploading…' : 'Upload Document'}
-          </button>
+          </Button>
         </div>
       </Modal>
     </div>
@@ -456,24 +441,24 @@ function DocumentsTab({ staffId, venueId }) {
 // ── Attendance summary stat card ─────────────────────────────────────────────
 function AttendanceStat({ label, total, active, dates, tone }) {
   const isWarn = tone === 'warn' && active > 0
-  const bg     = isWarn ? '#fff8f0' : '#f5f6f4'
-  const numClr = isWarn ? '#a85d12' : '#3d4a44'
-  const lblClr = isWarn ? '#a85d12' : '#76817b'
+  const bg     = isWarn ? 'bg-warnBg dark:bg-warn/20' : 'bg-surface dark:bg-white/5'
+  const numClr = isWarn ? 'text-warn dark:text-warnDark' : 'text-ink2 dark:text-white/80'
+  const lblClr = isWarn ? 'text-warn dark:text-warnDark' : 'text-ink3 dark:text-white/50'
 
   return (
-    <div style={{ background: bg, borderRadius: 12, padding: '14px 16px' }}>
-      <p className="font-mono text-[11px] uppercase tracking-[0.07em] font-semibold mb-1" style={{ color: lblClr }}>
+    <div className={bg} style={{ borderRadius: 12, padding: '14px 16px' }}>
+      <p className={`font-mono text-micro uppercase tracking-[0.07em] font-semibold mb-1 ${lblClr}`}>
         {label}
       </p>
       <div className="flex items-baseline gap-2">
-        <span className="font-mono text-[28px] font-bold leading-none" style={{ color: numClr }}>
+        <span className={`font-mono text-display font-bold leading-none ${numClr}`}>
           {active}
         </span>
-        <span className="font-mono text-[11px]" style={{ color: lblClr }}>
+        <span className={`font-mono text-micro ${lblClr}`}>
           active
         </span>
         {total > active && (
-          <span className="font-mono text-[11px] text-charcoal/30 dark:text-white/30 ml-auto">
+          <span className="font-mono text-micro text-charcoal/30 dark:text-white/30 ml-auto">
             {total} total
           </span>
         )}
@@ -481,12 +466,12 @@ function AttendanceStat({ label, total, active, dates, tone }) {
       {dates.length > 0 && (
         <div className="flex flex-col gap-0.5 mt-2">
           {dates.slice(0, 3).map((d, i) => (
-            <span key={i} className="font-mono text-[11px]" style={{ color: lblClr }}>
+            <span key={i} className="font-mono text-micro" style={{ color: lblClr }}>
               {format(parseISO(d), 'd MMM, HH:mm')}
             </span>
           ))}
           {dates.length > 3 && (
-            <span className="font-mono text-[11px] text-charcoal/30 dark:text-white/30">
+            <span className="font-mono text-micro text-charcoal/30 dark:text-white/30">
               +{dates.length - 3} more
             </span>
           )}
@@ -622,23 +607,23 @@ function DisciplinaryTab({ staffId, venueId }) {
       {/* ── Late clock-in history (ground truth from clock_events + shifts) ── */}
       {!loading && lateHistory.length > 0 && (
         <>
-          <span className="font-mono text-[11px] uppercase tracking-[0.07em] text-charcoal/50 dark:text-white/40 font-semibold">
+          <span className="font-mono text-micro uppercase tracking-[0.07em] text-charcoal/50 dark:text-white/40 font-semibold">
             Late clock-ins ({lateHistory.length})
           </span>
           <SectionCard>
             {lateHistory.map((item, i) => (
               <div key={item.id} className={`flex items-center gap-3 px-[18px] py-[13px] ${i < lateHistory.length - 1 ? 'border-b border-charcoal/6 dark:border-white/8' : ''}`}>
-                <div className="w-7 h-7 rounded-lg bg-warning/10 flex items-center justify-center font-mono text-[11px] font-bold text-warning shrink-0">
+                <div className="w-7 h-7 rounded-lg bg-warning/10 flex items-center justify-center font-mono text-micro font-bold text-warning shrink-0">
                   {i + 1}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-[13px] font-semibold text-charcoal/75 dark:text-white/60">
+                  <div className="text-body-sm font-semibold text-charcoal/75 dark:text-white/60">
                     {item.minsLate >= 1 ? `${item.minsLate} min${item.minsLate !== 1 ? 's' : ''} late` : `${item.secsLate}s late`}
-                    <span className="font-mono text-[11px] font-normal text-charcoal/30 dark:text-white/30 ml-2">
+                    <span className="font-mono text-micro font-normal text-charcoal/30 dark:text-white/30 ml-2">
                       scheduled {item.scheduledTime.slice(0, 5)}
                     </span>
                   </div>
-                  <div className="font-mono text-[11px] text-charcoal/30 dark:text-white/30 mt-[3px]">
+                  <div className="font-mono text-micro text-charcoal/30 dark:text-white/30 mt-[3px]">
                     {format(parseISO(item.occurred_at), 'd MMM yyyy, HH:mm')}
                   </div>
                 </div>
@@ -649,18 +634,20 @@ function DisciplinaryTab({ staffId, venueId }) {
       )}
 
       <div className="flex items-center justify-between gap-2">
-        <span className="font-mono text-[11px] uppercase tracking-[0.07em] text-charcoal/50 dark:text-white/40 font-semibold">
+        <span className="font-mono text-micro uppercase tracking-[0.07em] text-charcoal/50 dark:text-white/40 font-semibold">
           Timeline
         </span>
         <div className="flex gap-2">
           {activeStrikes.length > 0 && (
-            <button
+            <Button
+              variant="secondary"
+              size="sm"
+              loading={dismissing === 'all'}
               onClick={() => setConfirmClearAll(true)}
               disabled={dismissing === 'all'}
-              className="inline-flex items-center gap-[7px] px-3.5 py-[9px] rounded-[10px] cursor-pointer text-[12.5px] font-semibold whitespace-nowrap bg-warning/10 text-warning border border-warning/10 disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {dismissing === 'all' ? 'Clearing…' : 'Reset all strikes'}
-            </button>
+            </Button>
           )}
           <BtnDanger onClick={() => setShowModal(true)}>
             {Ico.plus} Add formal action
@@ -684,29 +671,27 @@ function DisciplinaryTab({ staffId, venueId }) {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-[9px] flex-wrap">
                         <Badge tone={tone}>{FORMAL_LABELS[item.action_type] ?? item.action_type}</Badge>
-                        <span className="font-mono text-[11px] text-charcoal/30 dark:text-white/30">
+                        <span className="font-mono text-micro text-charcoal/30 dark:text-white/30">
                           {format(parseISO(item.occurred_at), 'd MMM yyyy')}
                         </span>
                       </div>
                       {item.notes && (
-                        <p className="text-[13px] text-charcoal/75 dark:text-white/60 mt-2 leading-[1.5]">{item.notes}</p>
+                        <p className="text-body-sm text-charcoal/75 dark:text-white/60 mt-2 leading-[1.5]">{item.notes}</p>
                       )}
                       <div className="flex gap-3 mt-2 items-center flex-wrap">
                         {item.added_by_staff?.name && (
-                          <span className="font-mono text-[11px] text-charcoal/30 dark:text-white/30">Added by {item.added_by_staff.name}</span>
+                          <span className="font-mono text-micro text-charcoal/30 dark:text-white/30">Added by {item.added_by_staff.name}</span>
                         )}
                         {(item.file_path || item.file_url) && (
-                          <button onClick={() => openHrAttachment(item, toast)}
-                            className="font-mono text-[11px] text-brand font-bold">
+                          <Button variant="link" size="sm" onClick={() => openHrAttachment(item, toast)}>
                             📎 {item.file_name ?? 'Attachment'}
-                          </button>
+                          </Button>
                         )}
                       </div>
                     </div>
-                    <button onClick={() => setDeleteFormalTarget(item)} title="Delete"
-                      className="bg-transparent border-0 cursor-pointer p-1 text-charcoal/30 dark:text-white/30 shrink-0">
+                    <Button variant="ghost" size="sm" iconOnly aria-label="Delete formal action" onClick={() => setDeleteFormalTarget(item)} title="Delete">
                       {Ico.trash}
-                    </button>
+                    </Button>
                   </div>
                 </div>
               )
@@ -714,54 +699,56 @@ function DisciplinaryTab({ staffId, venueId }) {
             if (item.dismissed_at) {
               return (
                 <div key={`s-${item.id}`} className={`flex items-start gap-3 px-[18px] py-[13px] opacity-40 ${isLast ? '' : 'border-b border-charcoal/6 dark:border-white/8'}`}>
-                  <div className="w-7 h-7 rounded-lg bg-charcoal/6 dark:bg-white/8 text-charcoal/40 dark:text-white/35 flex items-center justify-center font-mono text-[11px] font-bold shrink-0 line-through">
+                  <div className="w-7 h-7 rounded-lg bg-charcoal/6 dark:bg-white/8 text-charcoal/40 dark:text-white/35 flex items-center justify-center font-mono text-micro font-bold shrink-0 line-through">
                     {item.strike_number}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="text-[13px] font-semibold text-charcoal/50 dark:text-white/40 line-through">
+                    <div className="text-body-sm font-semibold text-charcoal/50 dark:text-white/40 line-through">
                       Strike {item.strike_number} — {OFFENCE_LABELS[item.offence_type] ?? item.offence_type}
                       {item.mins_over != null && (
-                        <span className="font-mono text-[11px] font-normal ml-1.5">{item.mins_over} min over</span>
+                        <span className="font-mono text-micro font-normal ml-1.5">{item.mins_over} min over</span>
                       )}
                     </div>
-                    <div className="font-mono text-[11px] text-charcoal/30 dark:text-white/30 mt-[3px]">
+                    <div className="font-mono text-micro text-charcoal/30 dark:text-white/30 mt-[3px]">
                       {format(parseISO(item.occurred_at), 'd MMM yyyy, HH:mm')}
                       {item.dismissed_by_staff?.name && (
                         <> · Dismissed by {item.dismissed_by_staff.name} on {format(parseISO(item.dismissed_at), 'd MMM')}</>
                       )}
                     </div>
                   </div>
-                  <span className="font-mono text-[11px] text-charcoal/30 dark:text-white/30 uppercase tracking-[0.05em] shrink-0 mt-[3px]">Dismissed</span>
+                  <span className="font-mono text-micro text-charcoal/30 dark:text-white/30 uppercase tracking-[0.05em] shrink-0 mt-[3px]">Dismissed</span>
                 </div>
               )
             }
             return (
               <div key={`s-${item.id}`} className={`flex items-start gap-3 px-[18px] py-[13px] ${isLast ? '' : 'border-b border-charcoal/6 dark:border-white/8'}`}>
-                <div className="w-7 h-7 rounded-lg bg-charcoal/6 dark:bg-white/8 text-charcoal/50 dark:text-white/40 flex items-center justify-center font-mono text-[11px] font-bold shrink-0">
+                <div className="w-7 h-7 rounded-lg bg-charcoal/6 dark:bg-white/8 text-charcoal/50 dark:text-white/40 flex items-center justify-center font-mono text-micro font-bold shrink-0">
                   {item.strike_number}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-[13px] font-semibold text-charcoal/75 dark:text-white/60">
+                  <div className="text-body-sm font-semibold text-charcoal/75 dark:text-white/60">
                     Strike {item.strike_number} — {OFFENCE_LABELS[item.offence_type] ?? item.offence_type}
                     {item.mins_over != null && (
-                      <span className="font-mono text-[11px] text-charcoal/30 dark:text-white/30 font-normal ml-1.5">
+                      <span className="font-mono text-micro text-charcoal/30 dark:text-white/30 font-normal ml-1.5">
                         {item.mins_over} min over
                       </span>
                     )}
                   </div>
-                  <div className="font-mono text-[11px] text-charcoal/30 dark:text-white/30 mt-[3px]">
+                  <div className="font-mono text-micro text-charcoal/30 dark:text-white/30 mt-[3px]">
                     {format(parseISO(item.occurred_at), 'd MMM yyyy, HH:mm')}
                   </div>
                 </div>
                 <div className="flex items-center gap-2 shrink-0 mt-[3px]">
-                  <span className="font-mono text-[11px] text-charcoal/30 dark:text-white/30 uppercase tracking-[0.05em]">Auto</span>
-                  <button
+                  <span className="font-mono text-micro text-charcoal/30 dark:text-white/30 uppercase tracking-[0.05em]">Auto</span>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    loading={dismissing === item.id}
                     onClick={() => dismissStrike(item.id)}
                     disabled={!!dismissing}
-                    className="px-2.5 py-1 rounded-[8px] border border-charcoal/10 dark:border-white/10 bg-transparent text-charcoal/40 dark:text-white/35 cursor-pointer font-mono text-[11px] font-semibold tracking-[0.03em] disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {dismissing === item.id ? '…' : 'Dismiss'}
-                  </button>
+                    Dismiss
+                  </Button>
                 </div>
               </div>
             )
@@ -772,32 +759,30 @@ function DisciplinaryTab({ staffId, venueId }) {
       <Modal open={showModal} onClose={() => { setShowModal(false); setFile(null) }} title="Add Formal Action">
         <div className="flex flex-col gap-3.5">
           <div>
-            <label className="block font-mono text-[11px] uppercase tracking-[0.07em] text-charcoal/50 dark:text-white/40 mb-1.5">Action type</label>
+            <label className="block font-mono text-micro uppercase tracking-[0.07em] text-charcoal/50 dark:text-white/40 mb-1.5">Action type</label>
             <select value={form.action_type} onChange={e => setForm(f => ({ ...f, action_type: e.target.value }))}
-              className="w-full px-3 py-2.5 rounded-[10px] border border-charcoal/10 dark:border-white/10 text-[13px] outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 focus:border-charcoal/20 dark:focus:border-white/20 bg-white dark:bg-paperDark box-border">
+              className="w-full px-3 py-2.5 rounded-[10px] border border-charcoal/10 dark:border-white/10 text-body-sm outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 focus:border-charcoal/20 dark:focus:border-white/20 bg-white dark:bg-paperDark box-border">
               {Object.entries(FORMAL_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
             </select>
           </div>
           <div>
-            <label className="block font-mono text-[11px] uppercase tracking-[0.07em] text-charcoal/50 dark:text-white/40 mb-1.5">Date</label>
+            <label className="block font-mono text-micro uppercase tracking-[0.07em] text-charcoal/50 dark:text-white/40 mb-1.5">Date</label>
             <input type="date" value={form.occurred_at} onChange={e => setForm(f => ({ ...f, occurred_at: e.target.value }))}
-              className="w-full px-3 py-2.5 rounded-[10px] border border-charcoal/10 dark:border-white/10 text-[13px] outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 focus:border-charcoal/20 dark:focus:border-white/20 box-border" />
+              className="w-full px-3 py-2.5 rounded-[10px] border border-charcoal/10 dark:border-white/10 text-body-sm outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 focus:border-charcoal/20 dark:focus:border-white/20 box-border" />
           </div>
           <div>
-            <label className="block font-mono text-[11px] uppercase tracking-[0.07em] text-charcoal/50 dark:text-white/40 mb-1.5">Notes</label>
+            <label className="block font-mono text-micro uppercase tracking-[0.07em] text-charcoal/50 dark:text-white/40 mb-1.5">Notes</label>
             <textarea value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} rows={3}
               placeholder="Details, outcome, follow-up actions…"
-              className="w-full px-3 py-2.5 rounded-[10px] border border-charcoal/10 dark:border-white/10 text-[13px] outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 focus:border-charcoal/20 dark:focus:border-white/20 resize-none box-border" />
+              className="w-full px-3 py-2.5 rounded-[10px] border border-charcoal/10 dark:border-white/10 text-body-sm outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 focus:border-charcoal/20 dark:focus:border-white/20 resize-none box-border" />
           </div>
           <div>
-            <label className="block font-mono text-[11px] uppercase tracking-[0.07em] text-charcoal/50 dark:text-white/40 mb-1.5">Attachment (optional)</label>
-            <input type="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" onChange={e => setFile(e.target.files?.[0] ?? null)} className="w-full text-[13px]" />
+            <label className="block font-mono text-micro uppercase tracking-[0.07em] text-charcoal/50 dark:text-white/40 mb-1.5">Attachment (optional)</label>
+            <input type="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" onChange={e => setFile(e.target.files?.[0] ?? null)} className="w-full text-body-sm" />
           </div>
-          <button onClick={addFormal} disabled={saving}
-            className="bg-danger text-white border-0 rounded-xl py-[13px] cursor-pointer font-mono text-[13px] font-bold tracking-[0.02em] disabled:opacity-60 disabled:cursor-not-allowed"
-          >
+          <Button variant="danger" size="lg" loading={saving} onClick={addFormal} disabled={saving}>
             {saving ? 'Saving…' : 'Record Action'}
-          </button>
+          </Button>
         </div>
       </Modal>
     </div>
@@ -808,7 +793,7 @@ function DisciplinaryTab({ staffId, venueId }) {
 function LeaveTab({ staffId, venueSlug, staff }) {
   const navigate = useNavigate()
   const { requests, loading } = useLeaveRequests(staffId)
-  const currentYear = new Date().getFullYear()
+  const holidayYear = useHolidayYear()
 
   const STATUS_TONE = {
     approved:  'good',
@@ -816,30 +801,61 @@ function LeaveTab({ staffId, venueSlug, staff }) {
     rejected:  'bad',
     cancelled: 'muted',
   }
-  const LEAVE_LABELS = { annual: 'Annual', unpaid: 'Unpaid', other: 'Other' }
+  const LEAVE_LABELS = { annual: 'Annual', unavailable: 'Not available', unpaid: 'Unpaid', other: 'Other' }
 
   const eligible   = staff?.holiday_pay_eligible !== false
   const isZeroHrs  = staff?.employment_type === 'zero_hours'
-  const allowance  = eligible ? calculateEntitlementDays(staff?.employment_type, staff?.working_days) : null
-  const taken      = requests
-    .filter(r => r.status === 'approved' && r.leave_type === 'annual' && r.start_date?.startsWith(String(currentYear)))
-    .reduce((sum, r) => sum + countWorkingDaysInRequest(r.start_date, r.end_date, staff?.working_days), 0)
+  // Days already paid outside dated bookings (150) count as taken, and days
+  // carried over from last year (153) add to the allowance, for days-based staff
+  const paidOutDays = usePaidOut([staffId], holidayYear.startYear)[staffId]?.days ?? 0
+  const carriedDays = useCarryOver([staffId], holidayYear.startYear)[staffId]?.days ?? 0
+  const calculated = eligible ? calculateEntitlementDays(staff?.employment_type, staff?.working_days) : null
+  const allowance  = calculated != null ? calculated + carriedDays : null
+  const taken      = daysUsedInHolidayYear(requests, holidayYear, staff?.working_days) + (isZeroHrs ? 0 : paidOutDays)
   const remaining  = allowance != null ? Math.max(0, allowance - taken) : null
+
+  // Zero-hours holiday is in hours — same calculation as the Time Off page.
+  const holidayList = useMemo(() => (staff && staffId ? [{ ...staff, id: staffId }] : []), [staff, staffId])
+  const holiday = useHolidayBalances(holidayList, holidayYear).byId[staffId]
+  const hrs = (n) => (n == null ? '—' : `${n < 0 ? '−' : ''}${Math.abs(Math.round(n * 10) / 10)} h`)
+
+  const tiles = !isZeroHrs
+    ? [
+        { k: 'Allowance', v: allowance != null ? `${allowance} days` : '—' },
+        { k: 'Taken',     v: `${taken} days` },
+        { k: 'Remaining', v: remaining != null ? `${remaining} days` : '—' },
+      ]
+    : holiday?.status === 'ok'
+      ? [
+          { k: 'Allowance', v: hrs(holiday.allowance + holiday.carriedOverHours) },
+          { k: 'Used',      v: hrs(holiday.used) },
+          { k: 'Remaining', v: hrs(holiday.balance) },
+        ]
+      : [
+          { k: 'Allowance', v: holiday?.status === 'self_employed' ? 'Self-employed' : holiday?.status === 'needs_region' ? 'Not set up' : '…' },
+          { k: 'Used',      v: '—' },
+          { k: 'Remaining', v: '—' },
+        ]
 
   return (
     <div className="flex flex-col gap-3.5">
       <div className="grid grid-cols-3 gap-[13px]">
-        {[
-          { k: 'Allowance', v: isZeroHrs ? 'Accrual' : allowance != null ? `${allowance} days` : '—' },
-          { k: 'Taken',     v: `${taken} days` },
-          { k: 'Remaining', v: remaining != null ? `${remaining} days` : '—' },
-        ].map(x => (
+        {tiles.map(x => (
           <div key={x.k} className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[14px] px-4 py-[13px]">
-            <div className="font-mono text-[11px] uppercase tracking-[0.07em] text-charcoal/50 dark:text-white/40 font-semibold">{x.k}</div>
+            <div className="font-mono text-micro uppercase tracking-[0.07em] text-charcoal/50 dark:text-white/40 font-semibold">{x.k}</div>
             <div className="text-xl font-semibold text-charcoal dark:text-white mt-[3px] font-mono tracking-[-0.02em]">{x.v}</div>
           </div>
         ))}
       </div>
+
+      {isZeroHrs && holiday?.status === 'ok' && holiday.startDateMissing && (
+        <p className="text-body-sm text-ink3 dark:text-white/45">
+          {holiday.startDateGuessed
+            ? `No start date saved, so their first clock-in (${format(parseISO(holiday.guessedStartDate), 'd MMM yyyy')}) is used and their holiday is built up from then. `
+            : 'No start date saved, so they get the full holiday year. '}
+          Add their start date in Team → Staff to be sure.
+        </p>
+      )}
 
       {loading ? (
         <SkeletonList rows={4} />
@@ -852,12 +868,12 @@ function LeaveTab({ staffId, venueSlug, staff }) {
             return (
               <div key={r.id} className={`flex items-center gap-3 px-[18px] py-[13px] ${i < requests.length - 1 ? 'border-b border-charcoal/6 dark:border-white/8' : ''}`}>
                 <div className="flex-1 min-w-0">
-                  <div className="text-[13.5px] font-semibold text-charcoal dark:text-white">
+                  <div className="text-body font-semibold text-charcoal dark:text-white">
                     {format(parseISO(r.start_date), 'd MMM')} – {format(parseISO(r.end_date), 'd MMM yyyy')}
                   </div>
                   <div className="flex gap-2 mt-1 items-center">
                     <Badge tone="muted">{LEAVE_LABELS[r.leave_type] ?? r.leave_type}</Badge>
-                    {r.reason && <span className="font-mono text-[11px] text-charcoal/30 dark:text-white/30">{r.reason}</span>}
+                    {r.reason && <span className="font-mono text-micro text-charcoal/30 dark:text-white/30">{r.reason}</span>}
                   </div>
                 </div>
                 <Badge tone={tone} dot>{r.status}</Badge>
@@ -867,12 +883,10 @@ function LeaveTab({ staffId, venueSlug, staff }) {
         </SectionCard>
       )}
 
-      <button onClick={() => navigate(`/v/${venueSlug}/time-off`)}
-        className="bg-transparent border border-charcoal/10 dark:border-white/10 rounded-xl px-4 py-[11px] cursor-pointer font-mono text-[11px] font-semibold tracking-[0.05em] text-charcoal/50 dark:text-white/40 text-center flex items-center justify-center gap-1.5"
-      >
+      <Button variant="secondary" onClick={() => navigate(`/v/${venueSlug}/time-off`)}>
         Manage in Time Off
         <svg width="5" height="9" viewBox="0 0 5 9" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M1 1l3 3.5L1 8"/></svg>
-      </button>
+      </Button>
     </div>
   )
 }
@@ -896,7 +910,7 @@ function TrainingTab({ staffId, venueSlug }) {
         <SkeletonList rows={4} />
       ) : (
         <>
-          <span className="font-mono text-[11px] uppercase tracking-[0.07em] text-charcoal/50 dark:text-white/40 font-semibold">
+          <span className="font-mono text-micro uppercase tracking-[0.07em] text-charcoal/50 dark:text-white/40 font-semibold">
             Certificates · {certs.length}
           </span>
           {certs.length === 0
@@ -908,8 +922,8 @@ function TrainingTab({ staffId, venueSlug }) {
                   return (
                     <div key={c.id} className={`flex items-center gap-3 px-[18px] py-[13px] ${i < certs.length - 1 ? 'border-b border-charcoal/6 dark:border-white/8' : ''}`}>
                       <div className="flex-1 min-w-0">
-                        <div className="text-[13.5px] font-semibold text-charcoal dark:text-white">{c.title}</div>
-                        {c.category && <div className="font-mono text-[11px] text-charcoal/30 dark:text-white/30 mt-0.5 uppercase tracking-[0.03em]">{c.category}</div>}
+                        <div className="text-body font-semibold text-charcoal dark:text-white">{c.title}</div>
+                        {c.category && <div className="font-mono text-micro text-charcoal/30 dark:text-white/30 mt-0.5 uppercase tracking-[0.03em]">{c.category}</div>}
                       </div>
                       <Badge tone={st.tone}>{st.label}</Badge>
                     </div>
@@ -919,7 +933,7 @@ function TrainingTab({ staffId, venueSlug }) {
             )
           }
 
-          <span className="font-mono text-[11px] uppercase tracking-[0.07em] text-charcoal/50 dark:text-white/40 font-semibold mt-1">
+          <span className="font-mono text-micro uppercase tracking-[0.07em] text-charcoal/50 dark:text-white/40 font-semibold mt-1">
             Induction records · {inductions.length}
           </span>
           {inductions.length === 0
@@ -929,10 +943,10 @@ function TrainingTab({ staffId, venueSlug }) {
                 {inductions.map((ind, i) => (
                   <div key={ind.id} className={`flex items-center justify-between gap-2.5 px-[18px] py-[13px] ${i < inductions.length - 1 ? 'border-b border-charcoal/6 dark:border-white/8' : ''}`}>
                     <div className="flex-1 min-w-0">
-                      <div className="text-[13.5px] font-semibold text-charcoal dark:text-white">
+                      <div className="text-body font-semibold text-charcoal dark:text-white">
                         Induction — {ind.trainer_name ?? 'Unknown trainer'}
                       </div>
-                      <div className="font-mono text-[11px] text-charcoal/30 dark:text-white/30 mt-[3px]">
+                      <div className="font-mono text-micro text-charcoal/30 dark:text-white/30 mt-[3px]">
                         {format(parseISO(ind.training_date), 'd MMM yyyy')}
                       </div>
                     </div>
@@ -947,12 +961,10 @@ function TrainingTab({ staffId, venueSlug }) {
         </>
       )}
 
-      <button onClick={() => navigate(`/v/${venueSlug}/training`)}
-        className="bg-transparent border border-charcoal/10 dark:border-white/10 rounded-xl px-4 py-[11px] cursor-pointer font-mono text-[11px] font-semibold tracking-[0.05em] text-charcoal/50 dark:text-white/40 text-center flex items-center justify-center gap-1.5"
-      >
+      <Button variant="secondary" onClick={() => navigate(`/v/${venueSlug}/training`)}>
         Manage in Training
         <svg width="5" height="9" viewBox="0 0 5 9" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M1 1l3 3.5L1 8"/></svg>
-      </button>
+      </Button>
     </div>
   )
 }
@@ -992,7 +1004,7 @@ function SecurityTab({ staffId }) {
         onClose={() => setRevokeTarget(null)}
         onConfirm={() => { handleRevoke(revokeTarget.token); setRevokeTarget(null) }}
       />
-      <span className="font-mono text-[11px] uppercase tracking-[0.07em] text-charcoal/50 dark:text-white/40 font-semibold">
+      <span className="font-mono text-micro uppercase tracking-[0.07em] text-charcoal/50 dark:text-white/40 font-semibold">
         Active sessions · {loading ? '—' : sessions.length}
       </span>
       {loading ? (
@@ -1004,18 +1016,20 @@ function SecurityTab({ staffId }) {
           {sessions.map((s, i) => (
             <div key={s.token} className={`flex items-center gap-3 px-[18px] py-[13px] ${i < sessions.length - 1 ? 'border-b border-charcoal/6 dark:border-white/8' : ''}`}>
               <div className="flex-1 min-w-0">
-                <div className="text-[13.5px] font-semibold text-charcoal dark:text-white">{s.device_label ?? 'Unknown device'}</div>
-                <div className="font-mono text-[11px] text-charcoal/30 dark:text-white/30 mt-[3px]">
+                <div className="text-body font-semibold text-charcoal dark:text-white">{s.device_label ?? 'Unknown device'}</div>
+                <div className="font-mono text-micro text-charcoal/30 dark:text-white/30 mt-[3px]">
                   Started {format(parseISO(s.created_at), 'd MMM yyyy, HH:mm')} · Expires {format(parseISO(s.expires_at), 'd MMM yyyy')}
                 </div>
               </div>
-              <button
+              <Button
+                variant="danger-ghost"
+                size="sm"
+                loading={revoking === s.token}
                 onClick={() => setRevokeTarget(s)}
                 disabled={revoking === s.token}
-                className="px-3 py-1.5 rounded-lg border border-danger bg-transparent text-danger cursor-pointer font-mono text-[11px] font-bold tracking-[0.04em] disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {revoking === s.token ? '…' : 'Revoke'}
-              </button>
+                Revoke
+              </Button>
             </div>
           ))}
         </SectionCard>
@@ -1038,7 +1052,7 @@ export default function EmployeeRecordPanel({ staffId, venueId, venueSlug, onBac
           <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>
           <path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/>
         </svg>
-        <p className="text-[13px]">Select a staff member to view their record</p>
+        <p className="text-body-sm">Select a staff member to view their record</p>
       </div>
     )
   }
@@ -1046,25 +1060,25 @@ export default function EmployeeRecordPanel({ staffId, venueId, venueSlug, onBac
   return (
     <div className="flex flex-col gap-[14px] lg:block">
       {onBack && (
-        <button onClick={onBack} className="bg-transparent border-0 cursor-pointer lg:pb-3.5 flex items-center gap-[7px] font-mono text-[11px] font-semibold text-charcoal/50 dark:text-white/40 tracking-[0.04em] self-start">
+        <Button variant="ghost" size="sm" onClick={onBack} className="self-start -ml-3 lg:mb-3.5">
           {Ico.back} HR Records
-        </button>
+        </Button>
       )}
 
       {/* Identity row */}
       <div className="flex items-center gap-[13px] lg:gap-[15px] lg:mb-[18px]">
         {loading
-          ? <div className="w-[52px] h-[52px] lg:w-14 lg:h-14 rounded-[15px] bg-charcoal/6 dark:bg-white/8 shrink-0" />
-          : <Avatar name={staff?.name ?? ''} size={52} />
+          ? <div className="w-14 h-14 rounded-full bg-charcoal/6 dark:bg-white/8 shrink-0" />
+          : <Avatar name={staff?.name} id={staff?.id ?? staffId} colour={staff?.colour} photoUrl={staff?.photo_url} size="2xl" decorative />
         }
         <div className="flex-1 min-w-0">
-          <div data-testid="record-panel-name" className="text-[18px] lg:text-[23px] font-semibold lg:font-bold tracking-[-0.015em] lg:tracking-[-0.02em] text-charcoal dark:text-white leading-tight">
+          <div data-testid="record-panel-name" className="text-title-sm lg:text-title font-semibold lg:font-bold tracking-[-0.015em] lg:tracking-[-0.02em] text-charcoal dark:text-white leading-tight">
             {loading ? <span className="text-charcoal/30 dark:text-white/30">Loading…</span> : (staff?.name ?? '—')}
           </div>
           {!loading && staff && (
             <>
               {/* Mobile: compact single-line */}
-              <div className="lg:hidden text-[12.5px] text-charcoal/50 dark:text-white/40 mt-[2px] overflow-hidden text-ellipsis whitespace-nowrap">
+              <div className="lg:hidden text-body-sm text-charcoal/50 dark:text-white/40 mt-[2px] overflow-hidden text-ellipsis whitespace-nowrap">
                 {[
                   jobTitle.toUpperCase(),
                   staff.employment_type ? (EMPLOYMENT_LABELS[staff.employment_type] ?? staff.employment_type) : null,
@@ -1073,11 +1087,11 @@ export default function EmployeeRecordPanel({ staffId, venueId, venueSlug, onBac
               </div>
               {/* Desktop: multi-line */}
               <div className="hidden lg:flex items-center gap-[11px] mt-[5px] flex-wrap">
-                <span className="text-[13.5px] text-charcoal/50 dark:text-white/40">{jobTitle.toUpperCase()}</span>
+                <span className="text-body text-charcoal/50 dark:text-white/40">{jobTitle.toUpperCase()}</span>
                 {staff.employment_type && (
                   <>
                     <span className="w-px h-3 bg-charcoal/10 dark:bg-white/10" />
-                    <span className="font-mono text-[11px] text-charcoal/50 dark:text-white/40">
+                    <span className="font-mono text-micro text-charcoal/50 dark:text-white/40">
                       {EMPLOYMENT_LABELS[staff.employment_type] ?? staff.employment_type}
                       {staff.start_date && ` · ${tenure(staff.start_date)}`}
                     </span>
@@ -1103,21 +1117,22 @@ export default function EmployeeRecordPanel({ staffId, venueId, venueSlug, onBac
         <BtnDefault onClick={() => navigate(`/v/${venueSlug}/staff?staff=${staffId}`)} className="flex-1 justify-center">
           {Ico.edit} Edit
         </BtnDefault>
-        <button
+        <Button
+          size="sm"
           onClick={() => setTab('Documents')}
-          className="flex-1 inline-flex items-center justify-center gap-[7px] px-3.5 py-[9px] rounded-[10px] cursor-pointer text-[12.5px] font-semibold border-0 whitespace-nowrap bg-brand text-white"
+          className="flex-1"
         >
           {Ico.doc} Upload doc
-        </button>
+        </Button>
       </div>
 
       {/* Tab bar */}
       <div className="flex gap-0.5 lg:mb-5 bg-charcoal/6 dark:bg-white/8 rounded-[11px] p-[3px]">
         {TABS.map(t => (
           <button key={t} data-testid={`record-tab-${t}`} onClick={() => setTab(t)}
-            className={`flex-1 py-[7px] lg:py-2 px-0 border-0 cursor-pointer rounded-[8px] font-mono text-[10px] lg:text-[11px] tracking-[0] transition-all duration-150 ${
+            className={`flex-1 py-[7px] lg:py-2 px-0 border-0 cursor-pointer rounded-[8px] font-mono text-micro tracking-[0] transition-all duration-150 ${
               tab === t
-                ? 'bg-white dark:bg-paperDark text-charcoal dark:text-white font-bold shadow-[0_1px_3px_rgba(13,26,20,0.10)]'
+                ? 'bg-white dark:bg-paperDark text-charcoal dark:text-white font-bold shadow-[0_1px_3px_theme(colors.ink/10%)]'
                 : 'bg-transparent text-charcoal/50 dark:text-white/40 font-semibold'
             }`}
           >

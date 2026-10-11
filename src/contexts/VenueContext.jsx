@@ -7,6 +7,7 @@ import { useParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { FullPageLoader } from '../components/ui/LoadingSpinner'
 import { venueLookupFailure } from '../lib/loginScreenState'
+import Button from '../components/ui/Button'
 
 const VenueContext = createContext(null)
 
@@ -138,9 +139,9 @@ export function VenueProvider({ children }) {
 function VenueLookupProblem({ slug, kind, onRetry }) {
   const notFound = kind === 'not-found'
   return (
-    <div className="min-h-dvh bg-surface dark:bg-[#111111] flex flex-col items-center justify-center px-4 font-sans">
+    <div className="min-h-dvh bg-surface dark:bg-bgDark flex flex-col items-center justify-center px-4 font-sans">
       <div className="w-full max-w-sm bg-white dark:bg-paperDark rounded-2xl border border-charcoal/8 dark:border-white/8 shadow-sm p-6 text-center">
-        <p className="text-[11px] tracking-widest font-semibold uppercase text-charcoal/50 dark:text-white/45 mb-2">
+        <p className="text-micro tracking-widest font-semibold uppercase text-charcoal/50 dark:text-white/45 mb-2">
           {notFound ? 'Venue not found' : 'Can’t connect'}
         </p>
         <h1 className="text-xl font-semibold text-charcoal dark:text-white mb-2">
@@ -161,13 +162,12 @@ function VenueLookupProblem({ slug, kind, onRetry }) {
             Manager sign in
           </a>
         ) : (
-          <button
-            type="button"
+          <Button
+            fullWidth
             onClick={onRetry}
-            className="w-full bg-brand text-cream py-3 rounded-xl text-sm font-semibold hover:bg-brand/90 transition-colors"
           >
             Try again
-          </button>
+          </Button>
         )}
       </div>
       <a href="/" className="mt-6 text-xs text-charcoal/50 dark:text-white/45 hover:text-charcoal/70 dark:hover:text-white/65 transition-colors">

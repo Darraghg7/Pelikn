@@ -20,7 +20,8 @@ const LEGACY_COOLING_COLUMNS =
 async function selectWithFallback(build: (columns: string) => PromiseLike<{ data: unknown; error: unknown }>): Promise<CoolingLog[]> {
   const { data, error } = await build(COOLING_COLUMNS)
   if (!error) return (data ?? []) as CoolingLog[]
-  const { data: legacy } = await build(LEGACY_COOLING_COLUMNS)
+  const { data: legacy, error: legacyErr } = await build(LEGACY_COOLING_COLUMNS)
+  if (legacyErr) throw legacyErr
   return (legacy ?? []) as CoolingLog[]
 }
 
@@ -28,6 +29,7 @@ async function selectWithFallback(build: (columns: string) => PromiseLike<{ data
 export function useCoolingLogs(dateFrom: string | null, dateTo: string | null): {
   logs: CoolingLog[]
   loading: boolean
+  isError: boolean
   reload: () => void
 } {
   const { venueId } = useVenue()
@@ -35,7 +37,7 @@ export function useCoolingLogs(dateFrom: string | null, dateTo: string | null): 
 
   const queryKey = ['cooling_logs', venueId, dateFrom, dateTo]
 
-  const { data: logs = [], isLoading: loading } = useQuery({
+  const { data: logs = [], isLoading: loading, isError } = useQuery({
     queryKey,
     queryFn: () => selectWithFallback((columns) => {
       let q = supabase
@@ -55,7 +57,7 @@ export function useCoolingLogs(dateFrom: string | null, dateTo: string | null): 
 
   const reload = () => queryClient.invalidateQueries({ queryKey: ['cooling_logs', venueId] })
 
-  return { logs, loading, reload }
+  return { logs, loading, isError, reload }
 }
 
 /** Batches still cooling (no end temperature yet), oldest first. */
@@ -90,12 +92,13 @@ export function useFrequentCoolingItems(limit = 4): string[] {
     queryKey: ['cooling_frequent_items', venueId],
     queryFn: async () => {
       const since = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString()
-      const { data: rows } = await supabase
+      const { data: rows, error: rowsErr } = await supabase
         .from('cooling_logs')
         .select('food_item')
         .eq('venue_id', venueId)
         .gte('started_at', since)
         .limit(500)
+      if (rowsErr) throw rowsErr
       const counts = new Map<string, { name: string; n: number }>()
       for (const row of (rows ?? []) as { food_item: string }[]) {
         const name = row.food_item?.trim()

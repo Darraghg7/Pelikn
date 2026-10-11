@@ -8,8 +8,10 @@
  */
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { supabase } from '../lib/supabase'
+import { reportError } from '../lib/reportError'
 import { fetchTimeOffPrivateFields, withTimeOffPrivate } from '../lib/api/timeOffPrivate'
-import { calculateEntitlementDays, countWorkingDaysInRequest } from './useLeaveBalance'
+import { fetchAllPages, withPaidHoursColumns } from '../lib/api/holidayData'
+import { calculateEntitlementDays, daysUsedInHolidayYear } from './useLeaveBalance'
 
 export function useTimeOffRequests(venueId) {
   const [requests, setRequests] = useState([])
@@ -22,16 +24,22 @@ export function useTimeOffRequests(venueId) {
     // Was select('*'). 119 withholds reason/manager_note, and a star select
     // asks for every column — so it fails the whole query rather than omitting
     // them. Columns are named explicitly and the two are merged back below.
-    const [{ data, error: err }, priv] = await Promise.all([
-      supabase
-        .from('time_off_requests')
-        .select('id, staff_id, venue_id, start_date, end_date, status, leave_type, reviewed_by, reviewed_at, cancelled_at, cancelled_by, created_at, staff:staff_id(name, working_days), reviewer:reviewed_by(name)')
-        .eq('venue_id', venueId)
-        .order('start_date', { ascending: true }),
-      fetchTimeOffPrivateFields(),
-    ])
-    if (err) { setError(err.message); setLoading(false); return }
-    setRequests(withTimeOffPrivate(data ?? [], priv))
+    // Paged: a venue's whole leave history can pass Supabase's 1,000-row cap,
+    // which drops the rest without an error.
+    try {
+      const [data, priv] = await Promise.all([
+        withPaidHoursColumns(extra => fetchAllPages(() => supabase
+          .from('time_off_requests')
+          .select(`id, staff_id, venue_id, start_date, end_date, status, leave_type, reviewed_by, reviewed_at, cancelled_at, cancelled_by, created_at${extra}, staff:staff_id(name, working_days, employment_type, colour, photo_url), reviewer:reviewed_by(name)`)
+          .eq('venue_id', venueId)
+          .order('start_date', { ascending: true })
+          .order('id', { ascending: true }))),
+        fetchTimeOffPrivateFields(),
+      ])
+      setRequests(withTimeOffPrivate(data, priv))
+    } catch (err) {
+      setError(err?.message ?? 'Could not load time off')
+    }
     setLoading(false)
   }, [venueId])
   useEffect(() => { load() }, [load])
@@ -47,7 +55,10 @@ export function useActiveStaff(venueId) {
       .eq('venue_id', venueId)
       .eq('is_active', true)
       .order('name')
-      .then(({ data }) => setStaff(data ?? []))
+      .then(({ data, error }) => {
+        if (error) { reportError(error, 'useActiveStaff'); return }
+        setStaff(data ?? [])
+      })
   }, [venueId])
   return staff
 }
@@ -60,42 +71,63 @@ export function useOwnProfile(staffId) {
       .select('id, employment_type, working_days, holiday_pay_eligible')
       .eq('id', staffId)
       .maybeSingle()
-      .then(({ data }) => setProfile(data))
+      .then(({ data, error }) => {
+        if (error) { reportError(error, 'useOwnProfile'); return }
+        setProfile(data)
+      })
   }, [staffId])
   return profile
 }
 
-// Compute all staff leave balances in a single batch fetch
-export function useTeamLeaveBalances(staff, leaveYear) {
-  const year = leaveYear ?? new Date().getFullYear()
+/**
+ * Days-based leave balances for the whole team in one batch fetch, for a
+ * holiday year (lib/holidayYear). leave_entitlements.leave_year is the year
+ * the holiday year starts in.
+ */
+export function useTeamLeaveBalances(staff, holidayYear) {
+  const { start, end, startYear } = holidayYear
   const [approvedReqs, setApprovedReqs] = useState([])
   const [overrides, setOverrides]       = useState({})
   const [loading, setLoading]           = useState(true)
+  const [failed, setFailed]             = useState(false)
   const [tick, setTick]                 = useState(0)
 
+  // Keyed on the ids themselves, not staff.length: a venue switch or a
+  // leaver-plus-joiner keeps the count the same but needs a fresh fetch.
+  // (Callers also pass a new [] each render, so the array can't be the key.)
+  const idsKey = staff.map(s => s.id).join(',')
+  const ids    = useMemo(() => (idsKey ? idsKey.split(',') : []), [idsKey])
+
   useEffect(() => {
-    if (!staff.length) { setLoading(false); return }
-    const ids = staff.map(s => s.id)
+    if (!ids.length) { setLoading(false); return }
+    let cancelled = false
     Promise.all([
       supabase.from('time_off_requests')
         .select('staff_id, start_date, end_date')
         .in('staff_id', ids)
         .eq('status', 'approved')
         .eq('leave_type', 'annual')
-        .gte('start_date', `${year}-01-01`)
-        .lte('start_date', `${year}-12-31`),
+        .lte('start_date', end)
+        .gte('end_date', start),
       supabase.from('leave_entitlements')
         .select('staff_id, override_days')
         .in('staff_id', ids)
-        .eq('leave_year', year),
+        .eq('leave_year', startYear),
     ]).then(([reqRes, ovRes]) => {
+      if (cancelled) return
+      // Without both reads every balance would show as a full, untouched
+      // allowance — so fail the list instead of showing wrong numbers.
+      const error = reqRes.error ?? ovRes.error
+      setFailed(!!error)
+      if (error) { reportError(error, 'useTeamLeaveBalances'); setLoading(false); return }
       setApprovedReqs(reqRes.data ?? [])
       const map = {}
       for (const o of (ovRes.data ?? [])) map[o.staff_id] = o.override_days
       setOverrides(map)
       setLoading(false)
     })
-  }, [staff.length, year, tick]) // eslint-disable-line react-hooks/exhaustive-deps
+    return () => { cancelled = true }
+  }, [ids, start, end, startYear, tick])
 
   const reloadBalances = useCallback(() => setTick(t => t + 1), [])
 
@@ -104,11 +136,10 @@ export function useTeamLeaveBalances(staff, leaveYear) {
     const calculated  = eligible ? calculateEntitlementDays(s.employment_type, s.working_days) : null
     const entitlement = eligible ? (overrides[s.id] ?? calculated) : null
     const myReqs      = approvedReqs.filter(r => r.staff_id === s.id)
-    const used        = myReqs.reduce((sum, r) =>
-      sum + countWorkingDaysInRequest(r.start_date, r.end_date, s.working_days), 0)
+    const used        = daysUsedInHolidayYear(myReqs, { start, end }, s.working_days)
     const remaining   = entitlement != null ? Math.max(0, entitlement - used) : null
     return { ...s, entitlement, used, remaining, isZeroHours: s.employment_type === 'zero_hours', isEligible: eligible }
-  }), [staff, approvedReqs, overrides])
+  }), [staff, approvedReqs, overrides, start, end])
 
-  return { balances, loading, reloadBalances }
+  return { balances, loading, failed, reloadBalances }
 }

@@ -23,6 +23,7 @@ import { sendPush } from '../../lib/sendPush'
 import { captureSilent } from '../../lib/reportError'
 import { londonDateStr, formatLondon, resolveShiftInstants } from '../../lib/time'
 import { SkeletonList } from '../ui/Skeleton'
+import Button from '../ui/Button'
 
 /* ── Helpers ─────────────────────────────────────────────────────────── */
 function sessionDateLabel(date) {
@@ -45,42 +46,43 @@ const BREAK_OPTIONS = [0, 5, 10, 15, 20, 30, 45, 60, 90]
 function ConfirmDialog({ onConfirm, onCancel, saving }) {
   return (
     <div
+      className="bg-ink/45"
       style={{
         // height:100dvh as well as inset:0 — on iOS `inset:0` resolves against the
         // *layout* viewport, so with the keyboard up (the Reason field is focused
         // right before this opens) the bottom-aligned sheet lands behind the
         // keyboard and its buttons become untappable. dvh tracks the visible area.
         position: 'fixed', inset: 0, height: '100dvh', zIndex: 9999,
-        background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(2px)',
+        backdropFilter: 'blur(2px)',
         display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
         padding: '0 0 env(safe-area-inset-bottom)',
       }}
       onClick={onCancel}
     >
       <div
+        className="bg-paper dark:bg-paperDark shadow-[0_-8px_32px_theme(colors.black/15%)]"
         style={{
-          background: '#fff', borderRadius: '20px 20px 0 0',
+          borderRadius: '20px 20px 0 0',
           padding: '28px 24px 32px', width: '100%', maxWidth: 480,
           // Without these the sheet overflows off the *top* of the screen when it
           // is taller than the viewport, and nothing scrolls — the confirm button
           // is then unreachable.
           maxHeight: '92dvh', overflowY: 'auto',
-          boxShadow: '0 -8px 32px rgba(0,0,0,0.15)',
         }}
         onClick={e => e.stopPropagation()}
       >
         {/* Icon */}
-        <div style={{
+        <div className="bg-warnBg dark:bg-warn/25 text-warn dark:text-warnDark" style={{
           width: 48, height: 48, borderRadius: 14, marginBottom: 16,
-          background: '#fbeedc', display: 'flex', alignItems: 'center', justifyContent: 'center',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#a85d12" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/>
             <path d="M12 8v4M12 16h.01"/>
           </svg>
         </div>
 
-        <h2 className="text-[17px] font-bold text-charcoal dark:text-white" style={{ margin: '0 0 8px' }}>
+        <h2 className="text-title-sm font-bold text-charcoal dark:text-white" style={{ margin: '0 0 8px' }}>
           Your manager will be notified
         </h2>
         <p className="text-sm text-charcoal/50 dark:text-white/40 leading-relaxed" style={{ margin: '0 0 24px' }}>
@@ -88,21 +90,24 @@ function ConfirmDialog({ onConfirm, onCancel, saving }) {
           Your original hours will remain until then.
         </p>
 
-        <button
+        <Button
+          size="lg"
+          fullWidth
+          loading={saving}
           onClick={onConfirm}
           disabled={saving}
-          className="w-full text-[15px] font-semibold text-white bg-brand rounded-xl py-3.5 border-none disabled:opacity-60 disabled:cursor-not-allowed mb-2.5"
-          style={{ cursor: saving ? 'not-allowed' : 'pointer' }}
+          className="mb-2.5"
         >
           {saving ? 'Submitting…' : 'Submit for approval'}
-        </button>
-        <button
+        </Button>
+        <Button
+          variant="ghost"
+          fullWidth
           onClick={onCancel}
           disabled={saving}
-          className="w-full text-sm font-medium text-charcoal/50 dark:text-white/40 bg-transparent rounded-xl py-3 border-none cursor-pointer"
         >
           Go back
-        </button>
+        </Button>
       </div>
     </div>
   )
@@ -205,18 +210,18 @@ function EditSessionForm({ session, staffId, onSave, onCancel, isManagerEdit }) 
       <div className="mt-3 pt-3 border-t border-charcoal/8 dark:border-white/8 flex flex-col gap-3">
         <div className="grid grid-cols-2 gap-3">
           <div className="flex flex-col gap-1">
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">Clock In</label>
+            <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">Clock In</label>
             <input type="time" value={clockIn} onChange={(e) => setClockIn(e.target.value)}
               className="bg-charcoal/4 dark:bg-white/5 rounded-lg px-3 py-2 text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-brand/30" />
           </div>
           <div className="flex flex-col gap-1">
-            <label className="text-[11px] tracking-widests uppercase text-charcoal/40 dark:text-white/35">Clock Out</label>
+            <label className="text-micro tracking-widests uppercase text-charcoal/40 dark:text-white/35">Clock Out</label>
             <input type="time" value={clockOut} onChange={(e) => setClockOut(e.target.value)}
               className="bg-charcoal/4 dark:bg-white/5 rounded-lg px-3 py-2 text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-brand/30" />
           </div>
         </div>
         <div className="flex flex-col gap-1">
-          <label className="text-[11px] tracking-widests uppercase text-charcoal/40 dark:text-white/35">Break</label>
+          <label className="text-micro tracking-widests uppercase text-charcoal/40 dark:text-white/35">Break</label>
           <select value={breakMin} onChange={(e) => setBreakMin(e.target.value)}
             className="bg-charcoal/4 dark:bg-white/5 rounded-lg px-3 py-2 text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-brand/30">
             {BREAK_OPTIONS.map((m) => <option key={m} value={String(m)}>{m === 0 ? 'No break' : `${m} min`}</option>)}
@@ -225,7 +230,7 @@ function EditSessionForm({ session, staffId, onSave, onCancel, isManagerEdit }) 
         {/* Reason field — only for staff (helps manager review) */}
         {!isManagerEdit && (
           <div className="flex flex-col gap-1">
-            <label className="text-[11px] tracking-widests uppercase text-charcoal/40 dark:text-white/35">Reason <span className="normal-case">(optional)</span></label>
+            <label className="text-micro tracking-widests uppercase text-charcoal/40 dark:text-white/35">Reason <span className="normal-case">(optional)</span></label>
             <input
               type="text"
               value={reason}
@@ -236,14 +241,14 @@ function EditSessionForm({ session, staffId, onSave, onCancel, isManagerEdit }) 
           </div>
         )}
         <div className="flex gap-2 pt-1">
-          <button onClick={onCancel} disabled={saving}
-            className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-charcoal/60 dark:text-white/50 bg-charcoal/6 dark:bg-white/8 hover:bg-charcoal/10 dark:hover:bg-white/10 transition-colors disabled:opacity-40">
+          <Button variant="secondary" onClick={onCancel} disabled={saving}
+            className="flex-1">
             Cancel
-          </button>
-          <button onClick={handleSaveClick} disabled={saving}
-            className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white bg-brand hover:bg-brand/90 transition-colors disabled:opacity-40">
+          </Button>
+          <Button onClick={handleSaveClick} disabled={saving}
+            className="flex-1">
             {saving ? 'Saving…' : isManagerEdit ? 'Save' : 'Request change'}
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -287,13 +292,13 @@ function SessionRow({ session, staffId, onReload, isManagerEdit, pendingRequests
           </p>
           {/* Status badges */}
           {pending && (
-            <span className="inline-flex items-center gap-1 mt-1.5 text-[11px] font-semibold tracking-wide uppercase px-2 py-0.5 rounded-full bg-warning/10 text-warning border border-warning/20">
+            <span className="inline-flex items-center gap-1 mt-1.5 text-micro font-semibold tracking-wide uppercase px-2 py-0.5 rounded-full bg-warning/10 text-warning border border-warning/20">
               <span className="w-1.5 h-1.5 rounded-full bg-warning inline-block" />
               Pending approval
             </span>
           )}
           {denied && !pending && (
-            <span className="inline-flex items-center gap-1 mt-1.5 text-[11px] font-semibold tracking-wide uppercase px-2 py-0.5 rounded-full bg-danger/8 text-danger border border-danger/15">
+            <span className="inline-flex items-center gap-1 mt-1.5 text-micro font-semibold tracking-wide uppercase px-2 py-0.5 rounded-full bg-danger/8 text-danger border border-danger/15">
               Edit not approved
               {denied.manager_note && <span className="normal-case font-normal ml-1">· {denied.manager_note}</span>}
             </span>
@@ -307,12 +312,13 @@ function SessionRow({ session, staffId, onReload, isManagerEdit, pendingRequests
           )}
           {/* Don't allow another edit while one is pending */}
           {!pending && (
-            <button
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => setEditing((v) => !v)}
-              className="text-xs font-medium text-brand/70 hover:text-brand transition-colors px-2 py-1 rounded-lg hover:bg-brand/8"
             >
               {editing ? 'Close' : 'Edit'}
-            </button>
+            </Button>
           )}
         </div>
       </div>
@@ -426,7 +432,7 @@ function AddShiftForm({ staffId, onSave, onCancel, isManagerEdit = false }) {
     <>
       <div className="mt-3 pt-3 border-t border-charcoal/8 dark:border-white/8 flex flex-col gap-3">
         <div className="flex flex-col gap-1">
-          <label className="text-[11px] tracking-widests uppercase text-charcoal/40 dark:text-white/35">Date</label>
+          <label className="text-micro tracking-widests uppercase text-charcoal/40 dark:text-white/35">Date</label>
           <select value={date} onChange={(e) => setDate(e.target.value)}
             className="bg-charcoal/4 dark:bg-white/5 rounded-lg px-3 py-2 text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-brand/30">
             {dateOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
@@ -434,18 +440,18 @@ function AddShiftForm({ staffId, onSave, onCancel, isManagerEdit = false }) {
         </div>
         <div className="grid grid-cols-2 gap-3">
           <div className="flex flex-col gap-1">
-            <label className="text-[11px] tracking-widests uppercase text-charcoal/40 dark:text-white/35">Clock In</label>
+            <label className="text-micro tracking-widests uppercase text-charcoal/40 dark:text-white/35">Clock In</label>
             <input type="time" value={clockIn} onChange={(e) => setClockIn(e.target.value)}
               className="bg-charcoal/4 dark:bg-white/5 rounded-lg px-3 py-2 text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-brand/30" />
           </div>
           <div className="flex flex-col gap-1">
-            <label className="text-[11px] tracking-widests uppercase text-charcoal/40 dark:text-white/35">Clock Out</label>
+            <label className="text-micro tracking-widests uppercase text-charcoal/40 dark:text-white/35">Clock Out</label>
             <input type="time" value={clockOut} onChange={(e) => setClockOut(e.target.value)}
               className="bg-charcoal/4 dark:bg-white/5 rounded-lg px-3 py-2 text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-brand/30" />
           </div>
         </div>
         <div className="flex flex-col gap-1">
-          <label className="text-[11px] tracking-widests uppercase text-charcoal/40 dark:text-white/35">Break</label>
+          <label className="text-micro tracking-widests uppercase text-charcoal/40 dark:text-white/35">Break</label>
           <select value={breakMin} onChange={(e) => setBreakMin(e.target.value)}
             className="bg-charcoal/4 dark:bg-white/5 rounded-lg px-3 py-2 text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-brand/30">
             {BREAK_OPTIONS.map((m) => <option key={m} value={String(m)}>{m === 0 ? 'No break' : `${m} min`}</option>)}
@@ -453,7 +459,7 @@ function AddShiftForm({ staffId, onSave, onCancel, isManagerEdit = false }) {
         </div>
         {!isManagerEdit && (
           <div className="flex flex-col gap-1">
-            <label className="text-[11px] tracking-widests uppercase text-charcoal/40 dark:text-white/35">Reason <span className="normal-case">(optional)</span></label>
+            <label className="text-micro tracking-widests uppercase text-charcoal/40 dark:text-white/35">Reason <span className="normal-case">(optional)</span></label>
             <input
               type="text"
               value={reason}
@@ -464,14 +470,14 @@ function AddShiftForm({ staffId, onSave, onCancel, isManagerEdit = false }) {
           </div>
         )}
         <div className="flex gap-2 pt-1">
-          <button onClick={onCancel} disabled={saving}
-            className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-charcoal/60 dark:text-white/50 bg-charcoal/6 dark:bg-white/8 hover:bg-charcoal/10 dark:hover:bg-white/10 transition-colors disabled:opacity-40">
+          <Button variant="secondary" onClick={onCancel} disabled={saving}
+            className="flex-1">
             Cancel
-          </button>
-          <button onClick={handleAdd} disabled={saving}
-            className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white bg-brand hover:bg-brand/90 transition-colors disabled:opacity-40">
+          </Button>
+          <Button onClick={handleAdd} disabled={saving}
+            className="flex-1">
             {saving ? 'Saving…' : isManagerEdit ? 'Add Shift' : 'Request shift'}
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -503,20 +509,26 @@ export default function RecentShifts({ staffId, isManagerEdit = false, inline = 
       .eq('venue_id', venueId)
       .in('status', ['pending', 'denied'])
       .order('created_at', { ascending: false })
-      .then(({ data }) => setPending(data ?? []))
+      .then(({ data, error }) => {
+        // Only drives the "pending"/"denied" badges — the shifts list itself
+        // still shows, so report rather than block the screen.
+        if (error) { captureSilent(error, 'RecentShifts:edit-requests'); return }
+        setPending(data ?? [])
+      })
   }, [staffId, venueId, loading]) // re-fetch when sessions reload
 
   const body = (
     <>
       <div className="flex items-center justify-between mb-1">
-        {!inline && <p className="text-[11px] tracking-widests uppercase text-charcoal/40 dark:text-white/35">Recent Shifts</p>}
+        {!inline && <p className="text-micro tracking-widests uppercase text-charcoal/40 dark:text-white/35">Recent Shifts</p>}
         {!adding && (
-          <button
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => setAdding(true)}
-            className="text-xs font-medium text-brand/70 hover:text-brand transition-colors px-2 py-1 rounded-lg hover:bg-brand/8"
           >
             + Add shift
-          </button>
+          </Button>
         )}
       </div>
       <p className="text-xs text-charcoal/30 dark:text-white/30 mb-3">

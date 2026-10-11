@@ -5,6 +5,10 @@ import { useVenue } from '../../contexts/VenueContext'
 import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../../components/ui/Toast'
 import { PageSkeleton } from '../../components/ui/Skeleton'
+import { reportError } from '../../lib/reportError'
+import LoadError from '../../components/ui/LoadError'
+import Button from '../../components/ui/Button'
+import { colors } from '../../lib/tokens'
 
 // ── HACCP 7 Principles ────────────────────────────────────────────────────────
 
@@ -189,21 +193,24 @@ All records are available for inspection by an Environmental Health Officer on r
 function useHACCPPlan(venueId) {
   const [plan, setPlan]       = useState(null)
   const [loading, setLoading] = useState(true)
+  const [failed, setFailed]   = useState(false)
 
   const load = useCallback(async () => {
     if (!venueId) return
     setLoading(true)
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('haccp_plans')
       .select('*')
       .eq('venue_id', venueId)
       .maybeSingle()
-    setPlan(data)
+    if (error) reportError(error, 'HACCPWizardPage:load')
+    else setPlan(data)
+    setFailed(!!error)
     setLoading(false)
   }, [venueId])
 
   useEffect(() => { load() }, [load])
-  return { plan, loading, reload: load }
+  return { plan, loading, failed, reload: load }
 }
 
 // ── Step indicator ────────────────────────────────────────────────────────────
@@ -224,7 +231,7 @@ function StepIndicator({ current, total, steps }) {
                 ? <svg className="w-3.5 h-3.5" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="2,6 5,9 10,3"/></svg>
                 : i + 1}
             </div>
-            <p className={`text-[11px] font-medium mt-0.5 text-center w-12 leading-tight ${i === current ? 'text-charcoal dark:text-white' : 'text-charcoal/30 dark:text-white/30'}`}>
+            <p className={`text-caption font-medium mt-0.5 text-center w-12 leading-tight ${i === current ? 'text-charcoal dark:text-white' : 'text-charcoal/30 dark:text-white/30'}`}>
               P{i + 1}
             </p>
           </div>
@@ -250,8 +257,8 @@ function PrintDoc({ venueName, managerName, reviewDate, answers }) {
           @page { margin: 20mm; }
         }
       `}</style>
-      <div id="haccp-print-doc" style={{ fontFamily: 'serif', fontSize: '11pt', color: '#000', lineHeight: '1.6' }}>
-        <div style={{ borderBottom: '2px solid #000', paddingBottom: '12px', marginBottom: '20px' }}>
+      <div id="haccp-print-doc" style={{ fontFamily: 'serif', fontSize: '11pt', color: colors.print.ink, lineHeight: '1.6' }}>
+        <div style={{ borderBottom: `2px solid ${colors.print.ink}`, paddingBottom: '12px', marginBottom: '20px' }}>
           <h1 style={{ fontSize: '18pt', fontWeight: 'bold', margin: 0 }}>HACCP Food Safety Management Plan</h1>
           <p style={{ margin: '4px 0 0' }}>{venueName}</p>
           <div style={{ marginTop: '8px', fontSize: '10pt', display: 'flex', gap: '24px' }}>
@@ -263,7 +270,7 @@ function PrintDoc({ venueName, managerName, reviewDate, answers }) {
 
         {STEPS.map((step, i) => (
           <div key={step.id} style={{ marginBottom: '24px', pageBreakInside: 'avoid' }}>
-            <h2 style={{ fontSize: '12pt', fontWeight: 'bold', margin: '0 0 4px', borderBottom: '1px solid #ccc', paddingBottom: '4px' }}>
+            <h2 style={{ fontSize: '12pt', fontWeight: 'bold', margin: '0 0 4px', borderBottom: `1px solid ${colors.print.rule}`, paddingBottom: '4px' }}>
               {step.principle}: {step.title}
             </h2>
             <pre style={{ fontFamily: 'inherit', whiteSpace: 'pre-wrap', margin: 0, fontSize: '10pt' }}>
@@ -272,7 +279,7 @@ function PrintDoc({ venueName, managerName, reviewDate, answers }) {
           </div>
         ))}
 
-        <div style={{ borderTop: '1px solid #000', paddingTop: '16px', marginTop: '24px' }}>
+        <div style={{ borderTop: `1px solid ${colors.print.ink}`, paddingTop: '16px', marginTop: '24px' }}>
           <p style={{ margin: '0 0 24px', fontSize: '10pt' }}>
             This HACCP plan has been prepared in accordance with Regulation (EC) No 852/2004 as retained in UK law. It is reviewed annually and whenever processes, menus, or equipment change.
           </p>
@@ -294,7 +301,7 @@ export default function HACCPWizardPage() {
   const { venueId, venueName } = useVenue()
   const { session } = useSession()
   const toast = useToast()
-  const { plan, loading, reload } = useHACCPPlan(venueId)
+  const { plan, loading, failed, reload } = useHACCPPlan(venueId)
 
   const [step, setStep]         = useState(0)
   const [answers, setAnswers]   = useState({})
@@ -362,6 +369,8 @@ export default function HACCPWizardPage() {
   }
 
   if (loading) return <PageSkeleton />
+  // A blank wizard on a failed read could be saved over the real plan.
+  if (failed && !plan) return <LoadError what="your HACCP plan" onRetry={reload} />
 
   // ── Review / print screen
   if (reviewing) {
@@ -375,7 +384,7 @@ export default function HACCPWizardPage() {
         />
         <div className="flex flex-col gap-6 max-w-2xl">
           <div className="flex items-center gap-4">
-            <button onClick={() => setReviewing(false)} className="text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white transition-colors text-lg">←</button>
+            <Button variant="ghost" size="sm" iconOnly aria-label="Back to the steps" onClick={() => setReviewing(false)} className="-ml-2">←</Button>
             <div>
               <h1 className="text-2xl font-bold text-charcoal dark:text-white">HACCP Plan Review</h1>
               <p className="text-sm text-charcoal/40 dark:text-white/35 mt-0.5">Check all 7 principles, then print or save as PDF</p>
@@ -383,10 +392,10 @@ export default function HACCPWizardPage() {
           </div>
 
           <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-5 flex flex-col gap-4">
-            <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">Plan Details</p>
+            <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">Plan Details</p>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div className="flex flex-col gap-1">
-                <label className="text-[11px] tracking-widest uppercase text-charcoal/30 dark:text-white/30">Business Name</label>
+                <label className="text-micro tracking-widest uppercase text-charcoal/30 dark:text-white/30">Business Name</label>
                 <input
                   value={meta.business_name}
                   onChange={e => setMeta(m => ({ ...m, business_name: e.target.value }))}
@@ -395,7 +404,7 @@ export default function HACCPWizardPage() {
                 />
               </div>
               <div className="flex flex-col gap-1">
-                <label className="text-[11px] tracking-widest uppercase text-charcoal/30 dark:text-white/30">Responsible Manager</label>
+                <label className="text-micro tracking-widest uppercase text-charcoal/30 dark:text-white/30">Responsible Manager</label>
                 <input
                   value={meta.responsible_manager}
                   onChange={e => setMeta(m => ({ ...m, responsible_manager: e.target.value }))}
@@ -404,7 +413,7 @@ export default function HACCPWizardPage() {
                 />
               </div>
               <div className="flex flex-col gap-1">
-                <label className="text-[11px] tracking-widest uppercase text-charcoal/30 dark:text-white/30">Next Review Date</label>
+                <label className="text-micro tracking-widest uppercase text-charcoal/30 dark:text-white/30">Next Review Date</label>
                 <input
                   type="date"
                   value={meta.review_date}
@@ -419,15 +428,16 @@ export default function HACCPWizardPage() {
             <div key={s.id} className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 overflow-hidden">
               <div className="px-5 py-3 border-b border-charcoal/8 dark:border-white/8 flex items-center justify-between">
                 <div>
-                  <span className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">{s.principle}</span>
+                  <span className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">{s.principle}</span>
                   <p className="font-semibold text-charcoal dark:text-white text-sm">{s.title}</p>
                 </div>
-                <button
+                <Button
+                  variant="link"
+                  size="sm"
                   onClick={() => { setReviewing(false); setStep(i) }}
-                  className="text-xs text-accent hover:text-accent/70 transition-colors"
                 >
                   Edit
-                </button>
+                </Button>
               </div>
               <div className="px-5 py-4">
                 <pre className="text-xs text-charcoal/70 dark:text-white/60 whitespace-pre-wrap font-sans leading-relaxed">
@@ -438,13 +448,14 @@ export default function HACCPWizardPage() {
           ))}
 
           <div className="flex gap-3">
-            <button
+            <Button
+              loading={saving}
               onClick={handlePrint}
               disabled={saving}
-              className="flex-1 bg-charcoal text-cream py-3 rounded-xl text-sm font-semibold hover:bg-charcoal/90 transition-colors disabled:opacity-40"
+              className="flex-1"
             >
               {saving ? 'Saving…' : 'Save & Generate PDF →'}
-            </button>
+            </Button>
           </div>
         </div>
       </>
@@ -474,12 +485,14 @@ export default function HACCPWizardPage() {
             </p>
           </div>
           {completedCount > 0 && (
-            <button
+            <Button
+              variant="link"
+              size="sm"
               onClick={() => setReviewing(true)}
-              className="shrink-0 text-sm font-medium text-accent hover:text-accent/70 transition-colors"
+              className="shrink-0"
             >
               Review all →
-            </button>
+            </Button>
           )}
         </div>
 
@@ -487,7 +500,7 @@ export default function HACCPWizardPage() {
         <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 px-5 py-4">
           <StepIndicator current={step} total={STEPS.length} steps={STEPS} />
           <div className="mt-3">
-            <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">{currentStep.principle}</p>
+            <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">{currentStep.principle}</p>
             <p className="text-base font-semibold text-charcoal dark:text-white">{currentStep.title}</p>
           </div>
         </div>
@@ -500,15 +513,15 @@ export default function HACCPWizardPage() {
         {/* Textarea */}
         <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-5">
           <div className="flex items-center justify-between mb-2">
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">Your notes for this principle</label>
+            <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">Your notes for this principle</label>
             {!currentAnswer && (
-              <button
-                type="button"
+              <Button
+                variant="link"
+                size="sm"
                 onClick={() => setCurrentAnswer(currentStep.default)}
-                className="text-[11px] text-accent hover:text-accent/70 transition-colors"
               >
                 Use suggested text
-              </button>
+              </Button>
             )}
           </div>
           <textarea
@@ -520,7 +533,7 @@ export default function HACCPWizardPage() {
             className="w-full px-4 py-3 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-charcoal dark:text-white placeholder-charcoal/25 dark:placeholder-white/20 text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 resize-none font-mono leading-relaxed"
           />
           {!currentAnswer && (
-            <p className="text-[11px] text-charcoal/30 dark:text-white/30 mt-1.5">
+            <p className="text-caption text-charcoal/30 dark:text-white/30 mt-1.5">
               Click "Use suggested text" above to pre-fill with guidance for a typical hospitality business, then edit to match your operation.
             </p>
           )}
@@ -529,30 +542,33 @@ export default function HACCPWizardPage() {
         {/* Navigation */}
         <div className="flex gap-3">
           {step > 0 && (
-            <button
+            <Button
+              variant="secondary"
               onClick={handlePrev}
               disabled={saving}
-              className="px-5 py-3 rounded-xl border border-charcoal/15 dark:border-white/15 text-sm text-charcoal/50 dark:text-white/40 hover:border-charcoal/30 dark:hover:border-white/30 hover:text-charcoal dark:hover:text-white transition-colors disabled:opacity-40"
             >
-              {saving ? '…' : '← Previous'}
-            </button>
+              ← Previous
+            </Button>
           )}
           {step < STEPS.length - 1 ? (
-            <button
+            <Button
+              loading={saving}
               onClick={handleNext}
               disabled={saving}
-              className="flex-1 bg-charcoal text-cream py-3 rounded-xl text-sm font-semibold hover:bg-charcoal/90 transition-colors disabled:opacity-40"
+              className="flex-1"
             >
               {saving ? 'Saving…' : `Save & Continue → (${step + 2} of ${STEPS.length})`}
-            </button>
+            </Button>
           ) : (
-            <button
+            <Button
+              variant="success"
+              loading={saving}
               onClick={() => { save(false).then(() => setReviewing(true)) }}
               disabled={saving}
-              className="flex-1 bg-success text-white py-3 rounded-xl text-sm font-semibold hover:bg-success/90 transition-colors disabled:opacity-40"
+              className="flex-1"
             >
               {saving ? 'Saving…' : 'Complete & Review Plan →'}
-            </button>
+            </Button>
           )}
         </div>
 

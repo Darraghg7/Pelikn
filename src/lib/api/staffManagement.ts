@@ -30,12 +30,14 @@ export async function fetchStaffRoleAssignments(staffIds: string[]) {
 }
 
 export async function fetchStaffPermissionCounts(venueId: string, staffIds: string[]) {
-  const { data } = await supabase.from('staff_permissions').select('staff_id, permission').eq('venue_id', venueId).in('staff_id', staffIds)
+  const { data, error } = await supabase.from('staff_permissions').select('staff_id, permission').eq('venue_id', venueId).in('staff_id', staffIds)
+  if (error) throw error
   return data ?? []
 }
 
 export async function fetchStaffPermissionsFor(staffId: string, venueId: string) {
-  const { data } = await supabase.from('staff_permissions').select('permission').eq('staff_id', staffId).eq('venue_id', venueId)
+  const { data, error } = await supabase.from('staff_permissions').select('permission').eq('staff_id', staffId).eq('venue_id', venueId)
+  if (error) throw error
   return data ?? []
 }
 
@@ -86,7 +88,8 @@ export async function updateStaffFields(
   return { ...res, error: explainMissingRpc(res.error) }
 }
 export async function findNewestStaffByName(venueId: string, name: string) {
-  const { data } = await supabase.from('staff').select('id').eq('venue_id', venueId).eq('name', name).order('created_at', { ascending: false }).limit(1)
+  const { data, error } = await supabase.from('staff').select('id').eq('venue_id', venueId).eq('name', name).order('created_at', { ascending: false }).limit(1)
+  if (error) throw error
   return data?.[0]?.id as string | undefined
 }
 

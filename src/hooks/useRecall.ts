@@ -20,12 +20,12 @@ export function useRecallProcedure(): { procedure: RecallProcedure | null; loadi
   return { procedure: data ?? null, loading: isLoading, reload: () => queryClient.invalidateQueries({ queryKey }) }
 }
 
-export function useRecallLogs(): { logs: RecallLog[]; loading: boolean; reload: () => void } {
+export function useRecallLogs(): { logs: RecallLog[]; loading: boolean; isError: boolean; reload: () => void } {
   const { venueId } = useVenue()
   const queryClient = useQueryClient()
   const queryKey = ['recallLogs', venueId]
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError } = useQuery({
     queryKey,
     queryFn: () => fetchRecallLogs(venueId!),
     enabled: !!venueId,
@@ -33,5 +33,5 @@ export function useRecallLogs(): { logs: RecallLog[]; loading: boolean; reload: 
     placeholderData: [],
   })
 
-  return { logs: data ?? [], loading: isLoading, reload: () => queryClient.invalidateQueries({ queryKey }) }
+  return { logs: data ?? [], loading: isLoading, isError, reload: () => queryClient.invalidateQueries({ queryKey }) }
 }

@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import Button from '../components/ui/Button'
 
 export default function ResetPasswordPage() {
   const navigate = useNavigate()
@@ -53,13 +54,14 @@ export default function ResetPasswordPage() {
 
         {error && <p className="text-danger text-xs">{error}</p>}
 
-        <button
+        <Button
+          fullWidth
+          loading={loading}
           type="submit"
           disabled={loading}
-          className="w-full bg-charcoal text-cream py-3 rounded-xl text-sm font-semibold tracking-wide hover:bg-charcoal/85 transition-colors disabled:opacity-40"
         >
           {loading ? 'Updating…' : 'Update password'}
-        </button>
+        </Button>
       </form>
     </div>
   )

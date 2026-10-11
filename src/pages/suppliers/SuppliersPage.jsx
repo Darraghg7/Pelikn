@@ -7,10 +7,11 @@ import { insertSupplier, updateSupplier, deactivateSupplier } from '../../lib/ap
 import { useToast } from '../../components/ui/Toast'
 import { insertWithAttachment } from '../../lib/attachments'
 import { VENUE_DOCS_BUCKET, supplierCertPath, openSupplierCert, hasSupplierCert } from '../../lib/venueDocuments'
-import Button from '../../components/ui/Button'
+import Button, { CloseButton } from '../../components/ui/Button'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
 import EmptyState from '../../components/ui/EmptyState'
 import { SkeletonList } from '../../components/ui/Skeleton'
+import LoadError from '../../components/ui/LoadError'
 
 const CATEGORIES = ['meat', 'fish', 'dairy', 'produce', 'dry_goods', 'other']
 
@@ -46,7 +47,7 @@ const APPROVAL_LABELS = {
 function CategoryBadge({ category }) {
   const cls = CATEGORY_STYLES[category] ?? CATEGORY_STYLES.other
   return (
-    <span className={`text-[11px] tracking-widest uppercase font-semibold px-2 py-0.5 rounded border ${cls}`}>
+    <span className={`text-micro tracking-widest uppercase font-semibold px-2 py-0.5 rounded border ${cls}`}>
       {CATEGORY_LABELS[category] ?? category}
     </span>
   )
@@ -56,7 +57,7 @@ function ApprovalBadge({ status }) {
   const s = status ?? 'pending'
   const cls = APPROVAL_STYLES[s] ?? APPROVAL_STYLES.pending
   return (
-    <span className={`text-[11px] tracking-widest uppercase font-semibold px-2 py-0.5 rounded border ${cls}`}>
+    <span className={`text-micro tracking-widest uppercase font-semibold px-2 py-0.5 rounded border ${cls}`}>
       {APPROVAL_LABELS[s] ?? s}
     </span>
   )
@@ -146,11 +147,11 @@ function SupplierModal({ supplier, venueId, onSaved, onClose }) {
       <div onClick={(e) => e.stopPropagation()} className="bg-white dark:bg-paperDark rounded-2xl w-full max-w-md flex flex-col shadow-2xl" style={{ maxHeight: '90dvh', paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
         <div className="px-6 py-5 border-b border-charcoal/8 dark:border-white/8 flex items-center justify-between">
           <h2 className="font-semibold text-charcoal dark:text-white">{supplier ? 'Edit Supplier' : 'Add Supplier'}</h2>
-          <button onClick={onClose} className="text-charcoal/30 dark:text-white/30 hover:text-charcoal dark:hover:text-white transition-colors text-xl leading-none">×</button>
+          <CloseButton onClick={onClose} />
         </div>
         <form onSubmit={submit} className="flex flex-col gap-4 p-6 overflow-y-auto">
           <div className="flex flex-col gap-1.5">
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">Name <span className="text-danger">*</span></label>
+            <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">Name <span className="text-danger">*</span></label>
             <input
               type="text"
               value={form.name}
@@ -161,7 +162,7 @@ function SupplierModal({ supplier, venueId, onSaved, onClose }) {
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">Category</label>
+            <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">Category</label>
             <div className="flex flex-wrap gap-2">
               {CATEGORIES.map((cat) => (
                 <button
@@ -183,7 +184,7 @@ function SupplierModal({ supplier, venueId, onSaved, onClose }) {
 
           {/* Approval status */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">Approval Status</label>
+            <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">Approval Status</label>
             <div className="flex gap-2">
               {['pending', 'approved', 'suspended'].map((s) => (
                 <button
@@ -206,7 +207,7 @@ function SupplierModal({ supplier, venueId, onSaved, onClose }) {
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">Contact Name</label>
+            <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">Contact Name</label>
             <input
               type="text"
               value={form.contact_name}
@@ -218,7 +219,7 @@ function SupplierModal({ supplier, venueId, onSaved, onClose }) {
 
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1.5">
-              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">Phone</label>
+              <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">Phone</label>
               <input
                 type="tel"
                 value={form.phone}
@@ -228,7 +229,7 @@ function SupplierModal({ supplier, venueId, onSaved, onClose }) {
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">Email</label>
+              <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">Email</label>
               <input
                 type="email"
                 value={form.email}
@@ -241,10 +242,10 @@ function SupplierModal({ supplier, venueId, onSaved, onClose }) {
 
           {/* Food safety certificate */}
           <div className="flex flex-col gap-2 p-4 bg-charcoal/3 dark:bg-white/5 rounded-xl border border-charcoal/8 dark:border-white/8">
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">Food Safety Certificate</label>
+            <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">Food Safety Certificate</label>
             <div className="grid grid-cols-2 gap-3">
               <div className="flex flex-col gap-1">
-                <label className="text-[11px] text-charcoal/35 dark:text-white/30 uppercase tracking-wider">Expiry Date</label>
+                <label className="text-micro text-charcoal/35 dark:text-white/30 uppercase tracking-wider">Expiry Date</label>
                 <input
                   type="date"
                   value={form.food_safety_cert_expiry}
@@ -253,7 +254,7 @@ function SupplierModal({ supplier, venueId, onSaved, onClose }) {
                 />
               </div>
               <div className="flex flex-col gap-1">
-                <label className="text-[11px] text-charcoal/35 dark:text-white/30 uppercase tracking-wider">Upload Certificate</label>
+                <label className="text-micro text-charcoal/35 dark:text-white/30 uppercase tracking-wider">Upload Certificate</label>
                 <input
                   type="file"
                   accept="image/*,.pdf,.doc,.docx"
@@ -263,14 +264,14 @@ function SupplierModal({ supplier, venueId, onSaved, onClose }) {
               </div>
             </div>
             {hasExistingCert && (
-              <button type="button" onClick={() => openSupplierCert(supplier, toast)} className="self-start text-left text-xs text-accent underline underline-offset-2 hover:opacity-70 transition-opacity truncate max-w-full">
+              <Button variant="link" size="sm" onClick={() => openSupplierCert(supplier, toast)} className="self-start max-w-full truncate">
                 {supplier.food_safety_cert_name ?? 'View existing certificate'}
-              </button>
+              </Button>
             )}
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">Notes</label>
+            <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">Notes</label>
             <textarea
               value={form.notes}
               onChange={(e) => set('notes', e.target.value)}
@@ -308,35 +309,39 @@ function SupplierCard({ supplier, onEdit, onArchive }) {
           <ApprovalBadge status={supplier.approval_status} />
         </div>
         <div className="flex items-center gap-2 shrink-0">
-          <button
+          <Button
+            variant="link"
+            size="sm"
             onClick={() => onEdit(supplier)}
-            className="text-xs text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white transition-colors border-b border-charcoal/20 dark:border-white/20"
           >
             Edit
-          </button>
+          </Button>
           {confirming ? (
             <div className="flex items-center gap-1.5">
               <span className="text-xs text-charcoal/40 dark:text-white/35">Archive?</span>
-              <button
+              <Button
+                variant="danger-ghost"
+                size="sm"
                 onClick={() => { onArchive(supplier.id); setConfirming(false) }}
-                className="text-sm text-danger font-medium hover:text-danger/80 transition-colors px-3 py-1.5"
               >
                 Yes
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={() => setConfirming(false)}
-                className="text-sm text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white transition-colors px-3 py-1.5"
               >
                 No
-              </button>
+              </Button>
             </div>
           ) : (
-            <button
+            <Button
+              variant="danger-ghost"
+              size="sm"
               onClick={() => setConfirming(true)}
-              className="text-xs text-charcoal/30 dark:text-white/30 hover:text-danger transition-colors"
             >
               Archive
-            </button>
+            </Button>
           )}
         </div>
       </div>
@@ -374,10 +379,10 @@ function SupplierCard({ supplier, onEdit, onArchive }) {
             {cs === 'expiring' && ' — expiring soon'}
           </span>
           {hasSupplierCert(supplier) && (
-            <button type="button" onClick={() => openSupplierCert(supplier, toast)}
-              className="text-xs text-accent underline underline-offset-2 hover:opacity-70 transition-opacity ml-auto">
+            <Button variant="link" size="sm" onClick={() => openSupplierCert(supplier, toast)}
+              className="ml-auto">
               View
-            </button>
+            </Button>
           )}
         </div>
       )}
@@ -392,7 +397,7 @@ function SupplierCard({ supplier, onEdit, onArchive }) {
 export default function SuppliersPage() {
   const { venueId } = useVenue()
   const toast = useToast()
-  const { suppliers, loading, reload } = useSuppliers()
+  const { suppliers, loading, isError, reload } = useSuppliers()
   const [modalSupplier, setModalSupplier] = useState(undefined) // undefined = closed, null = new
   const [filterCat, setFilterCat]         = useState('all')
   const [filterApproval, setFilterApproval] = useState('all')
@@ -462,7 +467,7 @@ export default function SuppliersPage() {
 
       {loading ? (
         <SkeletonList rows={4} className="py-4" />
-      ) : grouped.length === 0 ? (
+      ) : isError ? (<LoadError what="suppliers" onRetry={reload} />) : grouped.length === 0 ? (
         <EmptyState
           icon="list"
           title={suppliers.length === 0 ? 'No suppliers yet' : 'No suppliers in this category'}

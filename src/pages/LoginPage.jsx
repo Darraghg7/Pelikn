@@ -8,6 +8,8 @@ import { FullPageLoader } from '../components/ui/LoadingSpinner'
 import { DEVICE_VENUES_KEY } from '../lib/constants'
 import { captureSilent } from '../lib/reportError'
 import { staffListState } from '../lib/loginScreenState'
+import Avatar from '../components/ui/Avatar'
+import Button, { CloseButton } from '../components/ui/Button'
 
 // ── Device venue helpers ──────────────────────────────────────────────────────
 function readDeviceVenues() {
@@ -19,34 +21,6 @@ function readDeviceVenues() {
 
 function writeDeviceVenues(venues) {
   try { localStorage.setItem(DEVICE_VENUES_KEY, JSON.stringify(venues)) } catch { /* storage unavailable (private mode / quota) — preference just won't persist */ }
-}
-
-// ── Avatar colour palette (deterministic by staff id) ────────────────────────
-const AVATAR_PALETTE = [
-  { bg: '#e2f0e8', text: '#1f6b40' },
-  { bg: '#ede9f7', text: '#6b46c1' },
-  { bg: '#fde9e3', text: '#c94f2a' },
-  { bg: '#e4eef9', text: '#2563ab' },
-  { bg: '#fde8f2', text: '#b83280' },
-  { bg: '#e3f4f7', text: '#0e7490' },
-  { bg: '#fdf5e0', text: '#a16207' },
-  { bg: '#f0e8e5', text: '#9b3a23' },
-]
-
-function avatarColors(id) {
-  // IDs may be UUIDs (strings) or integers — hash to a consistent palette index
-  const str = String(id ?? '')
-  let hash = 0
-  for (let i = 0; i < str.length; i++) {
-    hash = (hash * 31 + str.charCodeAt(i)) >>> 0
-  }
-  return AVATAR_PALETTE[hash % AVATAR_PALETTE.length]
-}
-
-function initials(name) {
-  const parts = name.trim().split(/\s+/)
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase()
-  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
 }
 
 // ── VenuePicker (post-login, multi-linked-venue) ──────────────────────────────
@@ -97,10 +71,18 @@ function AddVenueModal({ currentDeviceVenues, onAdd, onClose }) {
     setErrorMsg('')
     setFound([])
 
-    const { data: groupVenues } = await supabase
+    // A failed lookup isn't "no such venue" — don't tell staff their code is wrong.
+    const lookupFailed = (error) => {
+      captureSilent(error, 'LoginPage:venue-code-lookup')
+      setErrorMsg('We couldn’t reach Pelikn. Check your connection and try again.')
+      setStatus('error')
+    }
+
+    const { data: groupVenues, error: groupError } = await supabase
       .from('venues')
       .select('id, slug, name')
       .eq('group_code', trimmed)
+    if (groupError) { lookupFailed(groupError); return }
 
     if (groupVenues?.length) {
       setFound(groupVenues)
@@ -108,11 +90,12 @@ function AddVenueModal({ currentDeviceVenues, onAdd, onClose }) {
       return
     }
 
-    const { data: slugVenue } = await supabase
+    const { data: slugVenue, error: slugError } = await supabase
       .from('venues')
       .select('id, slug, name')
       .eq('slug', trimmed)
       .maybeSingle()
+    if (slugError) { lookupFailed(slugError); return }
 
     if (slugVenue) {
       setFound([slugVenue])
@@ -186,10 +169,10 @@ function AddVenueModal({ currentDeviceVenues, onAdd, onClose }) {
 
         <div className="flex gap-2">
           {status !== 'found' || newVenues.length === 0 ? (
-            <button
+            <Button
               onClick={lookup}
               disabled={!code.trim() || status === 'loading'}
-              className="flex-1 bg-brand text-white py-3 rounded-xl text-sm font-semibold hover:bg-brand/90 transition-colors disabled:opacity-40"
+              className="flex-1"
             >
               {status === 'loading' ? (
                 <span className="flex items-center justify-center gap-2">
@@ -197,21 +180,21 @@ function AddVenueModal({ currentDeviceVenues, onAdd, onClose }) {
                   Looking up…
                 </span>
               ) : 'Look up code'}
-            </button>
+            </Button>
           ) : (
-            <button
+            <Button
               onClick={() => onAdd(newVenues)}
-              className="flex-1 bg-brand text-white py-3 rounded-xl text-sm font-semibold hover:bg-brand/90 transition-colors"
+              className="flex-1"
             >
               Add {newVenues.length === 1 ? newVenues[0].name : `${newVenues.length} venues`} →
-            </button>
+            </Button>
           )}
-          <button
+          <Button
+            variant="secondary"
             onClick={onClose}
-            className="px-4 py-3 rounded-xl border border-charcoal/15 dark:border-white/15 text-sm text-charcoal/50 dark:text-white/40 hover:border-charcoal/30 dark:hover:border-white/30 transition-colors"
           >
             Cancel
-          </button>
+          </Button>
         </div>
       </div>
     </div>
@@ -242,11 +225,11 @@ function SlidingVenueTabs({ venues, activeSlug, onSelect, onAdd }) {
       {/* Scrollable track */}
       <div
         ref={trackRef}
-        className="flex-1 relative flex items-center rounded-xl p-[3px] overflow-x-auto scrollbar-hide"
-        style={{ background: 'rgba(28,47,42,0.05)' }}
+        className="flex-1 relative flex items-center rounded-xl p-[3px] overflow-x-auto scrollbar-hide bg-brand/5 dark:bg-white/5"
       >
         {/* Sliding pill */}
         <div
+          className="bg-brand dark:bg-brand-400 shadow-[0_1px_6px_theme(colors.brand.DEFAULT/20%)]"
           style={{
             position: 'absolute',
             top: 3,
@@ -254,8 +237,6 @@ function SlidingVenueTabs({ venues, activeSlug, onSelect, onAdd }) {
             left: pill.left,
             width: pill.width || 0,
             borderRadius: 9,
-            background: '#13362a',
-            boxShadow: '0 1px 6px rgba(19,54,42,0.2)',
             transition: 'left 0.22s cubic-bezier(0.34,1.4,0.64,1), width 0.15s ease',
             pointerEvents: 'none',
             zIndex: 0,
@@ -268,13 +249,11 @@ function SlidingVenueTabs({ venues, activeSlug, onSelect, onAdd }) {
               key={v.slug}
               ref={el => { btnRefs.current[v.slug] = el }}
               onClick={() => onSelect(v.slug)}
-              className="relative flex-shrink-0 border-none whitespace-nowrap font-semibold transition-colors text-[12.5px] cursor-pointer"
+              className={`relative flex-shrink-0 border-none whitespace-nowrap font-semibold transition-colors text-body-sm cursor-pointer bg-transparent ${isActive ? 'text-white' : 'text-brand/50 dark:text-white/45'}`}
               style={{
                 zIndex: 1,
                 padding: '7px 14px',
                 borderRadius: 9,
-                background: 'transparent',
-                color: isActive ? '#ffffff' : 'rgba(28,47,42,0.5)',
                 transition: 'color 0.18s',
               }}
             >
@@ -288,13 +267,10 @@ function SlidingVenueTabs({ venues, activeSlug, onSelect, onAdd }) {
       <button
         onClick={onAdd}
         title="Add another venue"
-        className="flex-shrink-0 flex items-center justify-center transition-all"
+        className="flex-shrink-0 flex items-center justify-center transition-all bg-transparent border border-brand/10 text-brand/30 dark:border-white/10 dark:text-white/35"
         style={{
           width: 32, height: 32,
           borderRadius: 9,
-          border: '1px solid rgba(28,47,42,0.10)',
-          background: 'transparent',
-          color: 'rgba(28,47,42,0.30)',
           cursor: 'pointer',
         }}
       >
@@ -315,11 +291,13 @@ function PINDots({ length, error }) {
         return (
           <div
             key={i}
+            className={`border-2 ${error
+              ? 'border-bad dark:border-badDark bg-transparent'
+              : filled
+                ? 'bg-brand border-brand dark:bg-white dark:border-white shadow-[0_0_6px_theme(colors.brand.DEFAULT/20%)]'
+                : 'bg-transparent border-brand/20 dark:border-white/25'}`}
             style={{
               width: 12, height: 12, borderRadius: 6,
-              background: filled && !error ? '#13362a' : 'transparent',
-              border: `2px solid ${error ? '#b3331c' : filled ? '#13362a' : 'rgba(28,47,42,0.18)'}`,
-              boxShadow: filled && !error ? '0 0 6px rgba(19,54,42,0.2)' : 'none',
               transition: 'all 0.12s',
               transform: filled ? 'scale(1.1)' : 'scale(1)',
             }}
@@ -381,7 +359,7 @@ function ListMessage({ title, body, action }) {
   return (
     <div className="px-4 py-5 text-center" role="status">
       <p className="text-sm font-semibold text-charcoal dark:text-white">{title}</p>
-      <p className="text-[12px] leading-relaxed text-charcoal/60 dark:text-white/55 mt-1 mb-4">{body}</p>
+      <p className="text-caption leading-relaxed text-charcoal/60 dark:text-white/55 mt-1 mb-4">{body}</p>
       {action}
     </div>
   )
@@ -398,8 +376,10 @@ const SIGN_IN_TIMEOUT_MS = 20_000
  * Staff picker list for the login screen, which runs with no session.
  *
  * Any device can load it: list_venue_staff_for_login() (113) is callable by
- * the anon key and returns only id, name, role and photo_url for one venue's
- * active staff. No manager sign-in is needed to set a device up first.
+ * the anon key and returns only id, name, role, photo_url and (from 147)
+ * rota colour for one venue's active staff. Before 147 is applied colour is
+ * missing and Avatar falls back to the default colour. No manager sign-in is
+ * needed to set a device up first.
  *
  * There used to be a fallback to a direct `staff` table read for while 113
  * was being rolled out. Since 113 and 116 are live, anon can't read that
@@ -435,7 +415,7 @@ export default function LoginPage() {
     // is exactly what happened on web where the splash never runs.
     const fallback = setTimeout(() => setReady(true), 800)
     return () => { window.removeEventListener('pk-splash-done', onDone); clearTimeout(fallback) }
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [ready])
 
   // ── Device venue list ──────────────────────────────────────────────────────
   const [deviceVenues, setDeviceVenues] = useState(() => readDeviceVenues())
@@ -596,6 +576,12 @@ export default function LoginPage() {
     navigate(`/v/${venue.slug}/dashboard`, { replace: true })
   }
 
+  // doSignIn is rebuilt every render; the numpad calls it through a ref so the
+  // 4th digit always signs in with the current person and venue, even though
+  // handleDigit itself stays stable.
+  const doSignInRef = useRef(doSignIn)
+  doSignInRef.current = doSignIn
+
   // Numpad handlers
   const handleDigit = useCallback((d) => {
     if (submitting) return
@@ -603,10 +589,10 @@ export default function LoginPage() {
     setPin(prev => {
       if (prev.length >= 4) return prev
       const next = prev + d
-      if (next.length === 4) setTimeout(() => doSignIn(next), 80)
+      if (next.length === 4) setTimeout(() => doSignInRef.current(next), 80)
       return next
     })
-  }, [submitting, selected]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [submitting])
 
   const handleDelete = useCallback(() => {
     setPin(prev => prev.slice(0, -1))
@@ -627,7 +613,7 @@ export default function LoginPage() {
 
   return (
     <div
-      className="min-h-dvh bg-surface flex flex-col items-center justify-start sm:justify-center px-4 py-6 sm:px-5 sm:py-10 font-sans overflow-y-auto"
+      className="min-h-dvh bg-surface dark:bg-bgDark flex flex-col items-center justify-start sm:justify-center px-4 py-6 sm:px-5 sm:py-10 font-sans overflow-y-auto"
       style={{
         paddingTop: 'max(1.5rem, env(safe-area-inset-top))',
         paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))',
@@ -655,7 +641,7 @@ export default function LoginPage() {
         className="mb-5 sm:mb-8 text-center shrink-0"
         style={ready ? { animation: 'login-logo-enter 0.45s cubic-bezier(.22,.9,.28,1) both', willChange: 'transform, opacity' } : { opacity: 0 }}
       >
-        <h1 className="font-bold text-brand text-4xl tracking-tight">Pelikn</h1>
+        <h1 className="font-bold text-brand dark:text-white text-4xl tracking-tight">Pelikn</h1>
         <p className="text-xs tracking-widest text-charcoal/40 dark:text-white/35 uppercase mt-1">Built for Hospitality</p>
       </div>
 
@@ -721,10 +707,10 @@ export default function LoginPage() {
                     className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-charcoal/10 dark:border-white/10 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white placeholder:text-charcoal/30 dark:placeholder:text-white/25 focus:outline-none focus:ring-2 focus:ring-brand/25 focus:border-brand/40 transition-all"
                   />
                   {staffQuery && (
-                    <button type="button" onClick={() => setStaffQuery('')}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-charcoal/30 dark:text-white/30 hover:text-charcoal/60 dark:hover:text-white/50 transition-colors">
+                    <Button variant="ghost" size="sm" iconOnly aria-label="Clear search" onClick={() => setStaffQuery('')}
+                      className="absolute right-1 top-1/2 -translate-y-1/2">
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                    </button>
+                    </Button>
                   )}
                 </div>
               )}
@@ -739,13 +725,12 @@ export default function LoginPage() {
                       ? 'This device is offline. Reconnect to the internet, then try again.'
                       : 'We couldn’t reach Pelikn. Check your connection and try again.'}
                     action={
-                      <button
-                        type="button"
+                      <Button
+                        fullWidth
                         onClick={() => setStaffAttempt(a => a + 1)}
-                        className="w-full bg-brand text-cream py-2.5 rounded-xl text-sm font-semibold hover:bg-brand/90 transition-colors"
                       >
                         Try again
-                      </button>
+                      </Button>
                     }
                   />
                 )}
@@ -754,13 +739,13 @@ export default function LoginPage() {
                     title="No team members yet"
                     body={`Nobody at ${venueName ?? 'this venue'} can sign in with a PIN yet. A manager needs to add the team in Pelikn first.`}
                     action={
-                      <button
-                        type="button"
+                      <Button
+                        variant="secondary"
+                        fullWidth
                         onClick={() => navigate('/login')}
-                        className="w-full py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 text-sm font-semibold text-charcoal dark:text-white hover:border-brand/40 hover:text-brand transition-colors"
                       >
                         Manager sign in
-                      </button>
+                      </Button>
                     }
                   />
                 )}
@@ -769,7 +754,6 @@ export default function LoginPage() {
                 )}
                 {filteredStaff.map((s, i) => {
                   const isSel = selected?.id === s.id
-                  const av    = avatarColors(s.id)
                   return (
                     <button
                       key={s.id}
@@ -788,21 +772,7 @@ export default function LoginPage() {
                       )}
 
                       {/* Avatar */}
-                      {s.photo_url ? (
-                        <img
-                          src={s.photo_url}
-                          alt={s.name}
-                          className="w-9 h-9 rounded-full object-cover shrink-0 border border-charcoal/10 dark:border-white/10"
-                          loading="lazy"
-                        />
-                      ) : (
-                        <div
-                          className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 font-mono text-xs font-bold"
-                          style={{ background: av.bg, color: isSel ? '#c94f2a' : av.text }}
-                        >
-                          {initials(s.name)}
-                        </div>
-                      )}
+                      <Avatar name={s.name} id={s.id} colour={s.colour} photoUrl={s.photo_url} size="md" decorative />
 
                       <span className="flex-1 font-semibold text-charcoal dark:text-white text-sm">{s.name}</span>
                       <span className={`text-xs uppercase tracking-widest font-semibold font-mono ${isSel ? 'text-accent' : 'text-charcoal/35 dark:text-white/30'}`}>
@@ -822,35 +792,14 @@ export default function LoginPage() {
               >
                 {/* Who's signing in header */}
                 {(() => {
-                  const av = avatarColors(selected.id)
                   return (
                     <div className="flex items-center gap-2.5">
-                      {selected.photo_url ? (
-                        <img src={selected.photo_url} alt={selected.name}
-                          className="w-8 h-8 shrink-0 object-cover border border-charcoal/10 dark:border-white/10"
-                          style={{ borderRadius: 9 }} loading="lazy" />
-                      ) : (
-                        <div
-                          className="w-8 h-8 shrink-0 flex items-center justify-center font-mono text-xs font-bold"
-                          style={{ borderRadius: 9, background: av.bg, color: av.text }}
-                        >
-                          {initials(selected.name)}
-                        </div>
-                      )}
+                      <Avatar name={selected.name} id={selected.id} colour={selected.colour} photoUrl={selected.photo_url} size="sm" decorative />
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-bold text-charcoal dark:text-white tracking-[-0.01em] truncate">{selected.name}</p>
                         <p className="text-xs uppercase tracking-[0.06em] font-mono text-charcoal/40 dark:text-white/35">{ROLE_LABEL[selected.role] ?? selected.role}</p>
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => { setSelected(null); setPin(''); setError('') }}
-                        className="flex items-center justify-center text-charcoal/30 dark:text-white/30 hover:text-charcoal/60 dark:hover:text-white/50 transition-colors"
-                        style={{ width: 26, height: 26, borderRadius: 6, border: '1px solid rgba(28,47,42,0.12)', flexShrink: 0 }}
-                      >
-                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-                        </svg>
-                      </button>
+                      <CloseButton label="Choose someone else" onClick={() => { setSelected(null); setPin(''); setError('') }} />
                     </div>
                   )
                 })()}
@@ -866,11 +815,11 @@ export default function LoginPage() {
                 <Numpad onDigit={handleDigit} onDelete={handleDelete} />
 
                 {/* Sign in button */}
-                <button
-                  type="button"
+                <Button
+                  size="lg"
+                  fullWidth
                   onClick={() => doSignIn(pin)}
                   disabled={pin.length < 4 || submitting}
-                  className="w-full bg-brand text-cream py-3.5 rounded-xl text-sm font-semibold tracking-wide hover:bg-brand/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   {submitting ? (
                     <span className="flex items-center justify-center gap-2">
@@ -878,22 +827,24 @@ export default function LoginPage() {
                       Signing in…
                     </span>
                   ) : 'Sign In'}
-                </button>
+                </Button>
               </div>
             )}
 
             {/* Add venue button — single-venue mode only */}
             {!showTabs && (
               <div className="px-5 pb-5">
-                <button
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  fullWidth
                   onClick={() => setShowAddModal(true)}
-                  className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-dashed border-charcoal/15 dark:border-white/15 text-[12px] font-semibold text-charcoal/35 dark:text-white/30 hover:text-brand hover:border-brand/30 hover:bg-brand/3 transition-all"
                 >
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
                   </svg>
                   Add another venue
-                </button>
+                </Button>
               </div>
             )}
           </>
@@ -902,17 +853,19 @@ export default function LoginPage() {
 
       {/* Sign out — only when a manager/owner is signed in on this device */}
       {showSignOut && (
-        <button
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={async () => {
             signOut()
             await signOutVenue()
             navigate('/login', { replace: true })
           }}
-          className="mt-6 text-xs text-charcoal/30 dark:text-white/30 hover:text-charcoal/60 dark:hover:text-white/50 transition-colors"
+          className="mt-6"
           style={ready ? { animation: 'login-fade-enter 0.4s 0.3s ease both' } : { opacity: 0 }}
         >
           Sign out of venue
-        </button>
+        </Button>
       )}
     </div>
   )

@@ -10,12 +10,13 @@ export interface CorrectiveAction {
 }
 
 export async function fetchCorrectiveActions(venueId: string): Promise<CorrectiveAction[]> {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('corrective_actions')
     .select('*, reporter:staff!reported_by(name), resolver:staff!resolved_by(name)')
     .eq('venue_id', venueId)
     .order('reported_at', { ascending: false })
     .limit(200)
+  if (error) throw error
   return (data ?? []) as unknown as CorrectiveAction[]
 }
 

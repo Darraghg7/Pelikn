@@ -7,15 +7,19 @@
  */
 import { eachDayOfInterval, isWithinInterval, parseISO } from 'date-fns'
 
+// 'unavailable' is for "I can't work these days" — it needs approval and keeps
+// the person off the rota, but is never holiday and never touches a balance.
 export const LEAVE_TYPES = [
-  { value: 'annual',  label: 'Annual Leave' },
-  { value: 'unpaid',  label: 'Unpaid Leave' },
-  { value: 'other',   label: 'Other' },
+  { value: 'annual',      label: 'Annual Leave' },
+  { value: 'unavailable', label: 'Not available' },
+  { value: 'unpaid',      label: 'Unpaid Leave' },
+  { value: 'other',       label: 'Other' },
 ]
 
 export const LEAVE_TYPE_COLOURS = {
   annual:  'bg-brand/10 text-brand',
   unpaid:  'bg-charcoal/8 dark:bg-white/8 text-charcoal/50 dark:text-white/40',
+  unavailable: 'bg-charcoal/8 dark:bg-white/8 text-charcoal/50 dark:text-white/40',
   other:   'bg-charcoal/8 dark:bg-white/8 text-charcoal/50 dark:text-white/40',
 }
 
@@ -24,6 +28,25 @@ export const STATUS_COLOURS = {
   approved:  'bg-success/10 text-success border-success/20',
   rejected:  'bg-danger/10 text-danger border-danger/20',
   cancelled: 'bg-charcoal/5 dark:bg-white/5 text-charcoal/45 dark:text-white/40 border-charcoal/10 dark:border-white/10',
+}
+
+/**
+ * The leave types to offer when booking or editing time off.
+ *
+ *   - Unpaid leave: only when the venue lets staff request it (Settings →
+ *     Attendance, 'allow_unpaid_leave'); managers can always choose it.
+ *     When it's off, staff book annual leave and the manager decides on the
+ *     timesheet whether it's paid as holiday or unpaid.
+ *   - Not available: no longer offered — unpaid leave covers it. Still shown
+ *     when editing a booking that already is one, so it can be kept or changed.
+ *
+ * @param {{ allowUnpaid?: boolean, isManager?: boolean, current?: string|null }} opts
+ */
+export function leaveTypeChoices({ allowUnpaid = false, isManager = false, current = null } = {}) {
+  return LEAVE_TYPES.filter(t =>
+    t.value === 'unavailable' ? current === 'unavailable'
+      : t.value === 'unpaid' ? allowUnpaid || isManager || current === 'unpaid'
+        : true)
 }
 
 export const leaveTypeLabel = (value) => LEAVE_TYPES.find(t => t.value === value)?.label ?? value
@@ -44,14 +67,6 @@ export function maxStaffOffInRange(requests, startDateStr, endDateStr) {
   if (!startDateStr || !endDateStr) return 0
   const days = eachDayOfInterval({ start: parseISO(startDateStr), end: parseISO(endDateStr) })
   return days.reduce((max, day) => Math.max(max, getRequestsForDay(requests, day).length), 0)
-}
-
-/** "Eve Turbitt" → "ET", "Sarah" → "SA" (two letters so single names stay distinct) */
-export function initials(name) {
-  const parts = (name ?? '').trim().split(/\s+/).filter(Boolean)
-  if (parts.length === 0) return '?'
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase()
-  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
 }
 
 const EMPLOYMENT_LABELS = { full_time: 'Full time', part_time: 'Part time', zero_hours: 'Zero hours' }

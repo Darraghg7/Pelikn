@@ -4,7 +4,11 @@ import { useVenue } from '../../contexts/VenueContext'
 import { useAppSettings } from '../../hooks/useSettings'
 import SettingsSubHeader from '../../components/layout/SettingsSubHeader'
 import Toggle from '../../components/ui/Toggle'
+import Button from '../../components/ui/Button'
+import { HOLIDAY_REGIONS } from '../../lib/holiday'
+import { MONTH_NAMES, currentHolidayYear } from '../../lib/holidayYear'
 
+/** @param {{ value: number, onChange: (n: number) => void, suffix?: string, min?: number, max?: number, step?: number }} props */
 function Stepper({ value, onChange, suffix, min = 0, max = 99, step = 1 }) {
   const btn = (label, fn, disabled) => (
     <button
@@ -22,14 +26,15 @@ function Stepper({ value, onChange, suffix, min = 0, max = 99, step = 1 }) {
   )
 }
 
+/** @param {{ label: string, sub?: string, warnText?: string, control: React.ReactNode, last?: boolean }} props */
 function Row({ label, sub, warnText, control, last }) {
   return (
     <div className={`flex items-center gap-3 px-[15px] py-[13px] ${last === false ? 'border-t border-charcoal/6 dark:border-white/8' : ''}`}>
       <div className="flex-1 min-w-0">
         <div className="text-sm font-medium text-charcoal dark:text-white tracking-[-0.005em]">{label}</div>
-        {sub && <div className="text-[11.5px] text-charcoal/50 dark:text-white/40 mt-0.5 leading-[1.4]">{sub}</div>}
+        {sub && <div className="text-caption text-charcoal/50 dark:text-white/40 mt-0.5 leading-[1.4]">{sub}</div>}
         {warnText && (
-          <div className="font-mono text-[11px] text-warning mt-1 uppercase tracking-[0.04em] font-semibold">{warnText}</div>
+          <div className="font-mono text-micro text-warning mt-1 uppercase tracking-[0.04em] font-semibold">{warnText}</div>
         )}
       </div>
       {control}
@@ -41,13 +46,13 @@ function Group({ label, children, foot }) {
   return (
     <div>
       {label && (
-        <div className="font-mono text-[11px] font-semibold tracking-[0.08em] uppercase text-charcoal/50 dark:text-white/40 px-0.5 pt-[18px] pb-1.5">{label}</div>
+        <div className="font-mono text-micro font-semibold tracking-[0.08em] uppercase text-charcoal/50 dark:text-white/40 px-0.5 pt-[18px] pb-1.5">{label}</div>
       )}
       <div className="bg-white dark:bg-paperDark border border-charcoal/10 dark:border-white/10 rounded-[14px] overflow-hidden">
         {children}
       </div>
       {foot && (
-        <div className="text-[11.5px] text-charcoal/50 dark:text-white/40 px-1 pt-2 leading-[1.45]">{foot}</div>
+        <div className="text-caption text-charcoal/50 dark:text-white/40 px-1 pt-2 leading-[1.45]">{foot}</div>
       )}
     </div>
   )
@@ -61,10 +66,10 @@ export default function AttendanceSettingsPage() {
   const {
     lateGraceMins, breakDurationMins, breakOverrunGraceMins, cleanupMinutes,
     requireLateReason, requireManagerApprovalForLate, notifyManagerAtStrike, disciplinaryAtStrike,
-    countingWindowDays, pushToManager, maxStaffOffEnabled, maxStaffOffCount,
+    countingWindowDays, pushToManager, maxStaffOffEnabled, maxStaffOffCount, holidayRegion, holidayYearStartMonth, allowUnpaidLeave,
     saveLateGraceMins, saveBreakDuration, saveBreakOverrunGraceMins, saveCleanupMinutes,
     saveRequireLateReason, saveRequireManagerApprovalForLate, saveNotifyManagerAtStrike, saveDisciplinaryAtStrike,
-    saveCountingWindowDays, savePushToManager, saveMaxStaffOffEnabled, saveMaxStaffOffCount,
+    saveCountingWindowDays, savePushToManager, saveMaxStaffOffEnabled, saveMaxStaffOffCount, saveHolidayRegion, saveHolidayYearStartMonth, saveAllowUnpaidLeave,
   } = settings
 
   const vp = (path) => `/v/${venueSlug}${path}`
@@ -172,6 +177,19 @@ export default function AttendanceSettingsPage() {
         </Group>
 
         <Group
+          label="Unpaid leave"
+          foot={allowUnpaidLeave
+            ? 'Staff choose annual leave or unpaid leave when they ask for time off. Unpaid leave never needs holiday pay.'
+            : 'Staff ask for time off as annual leave. On the timesheet you choose for each booking: pay it as holiday, or mark it unpaid.'}
+        >
+          <Row
+            label="Staff can request unpaid leave"
+            sub="Off: you decide on the timesheet"
+            control={<Toggle checked={allowUnpaidLeave} onChange={saveAllowUnpaidLeave} />}
+          />
+        </Group>
+
+        <Group
           label="Time off"
           foot={maxStaffOffEnabled
             ? `Staff booking a day that already has ${maxStaffOffCount} off will see a warning, but can still submit — useful if it's been pre-cleared with you.`
@@ -189,6 +207,48 @@ export default function AttendanceSettingsPage() {
               control={<Stepper value={maxStaffOffCount} onChange={saveMaxStaffOffCount} min={1} max={20} />}
             />
           )}
+        </Group>
+
+        <Group
+          label="Holiday rules"
+          foot={holidayRegion === 'ni'
+            ? 'Northern Ireland: zero-hours staff get 5.6 weeks a year, each week worth their average week over the last 12 weeks they worked.'
+            : holidayRegion === 'gb'
+              ? 'England, Scotland and Wales: zero-hours staff build up holiday at 12.07% of the hours they work.'
+              : 'Holiday for zero-hours staff is worked out differently in Northern Ireland. Choose where this venue is to see their balances.'}
+        >
+          <div className="px-[15px] py-[13px]">
+            <div className="text-sm font-medium text-charcoal dark:text-white tracking-[-0.005em]">Where is this venue?</div>
+            <div className="flex gap-2 flex-wrap mt-2.5" role="radiogroup" aria-label="Where is this venue?">
+              {HOLIDAY_REGIONS.map(r => (
+                <Button
+                  key={r.value}
+                  size="sm"
+                  variant={holidayRegion === r.value ? 'primary' : 'secondary'}
+                  role="radio"
+                  aria-checked={holidayRegion === r.value}
+                  onClick={() => saveHolidayRegion(r.value)}
+                >
+                  {r.label}
+                </Button>
+              ))}
+            </div>
+          </div>
+          <Row
+            label="Holiday year starts in"
+            sub={`This holiday year: ${currentHolidayYear(holidayYearStartMonth).label}`}
+            last={false}
+            control={(
+              <select
+                value={holidayYearStartMonth}
+                onChange={e => saveHolidayYearStartMonth(Number(e.target.value))}
+                aria-label="Holiday year starts in"
+                className="shrink-0 h-[34px] px-2.5 rounded-[9px] border border-charcoal/10 dark:border-white/10 bg-white dark:bg-paperDark text-sm font-medium text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
+              >
+                {MONTH_NAMES.map((name, i) => <option key={name} value={i + 1}>{name}</option>)}
+              </select>
+            )}
+          />
         </Group>
 
       </div>

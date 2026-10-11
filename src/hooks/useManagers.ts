@@ -28,13 +28,14 @@ export function useManagers(venueId: string | null | undefined): ManagerOption[]
       // First load comes from the startup bundle when it's available (126).
       const boot = await takeBootstrap(venueId, 'managers')
       if (boot) return boot.managers as ManagerOption[]
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('staff')
         .select('id, name, role, photo_url')
         .eq('venue_id', venueId!)
         .eq('is_active', true)
         .in('role', ['manager', 'owner'])
         .order('name')
+      if (error) throw error
       return (data ?? []) as ManagerOption[]
     },
     enabled: !!venueId,

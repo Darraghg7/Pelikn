@@ -1,35 +1,42 @@
 import React, { useEffect, useRef, useState } from 'react'
+import Avatar from '../ui/Avatar'
+import Button from '../ui/Button'
 
-// ── Colour tokens (per spec — not in tailwind config) ────────────────────────
+// ── Tones (token classes, light + dark) ───────────────────────────────────────
+// fg: text + icon colour · bg: icon tile · soft: tile ring + highlighted row ·
+// solid: pips, hairline and the icon tile's outline.
 const TONES = {
   warn: {
-    fg:       '#a85d12',
-    bg:       '#fbeedc',
-    soft:     '#fdf6ec',
-    pips:     '#a85d12',
-    hairline: '#a85d12',
+    fg:      'text-warn dark:text-warnDark',
+    bg:      'bg-warnBg dark:bg-warn/25',
+    soft:    'bg-warnBg/50 dark:bg-warn/15',
+    ring:    'border-warnBg/50 dark:border-warn/15',
+    solid:   'bg-warn border-warn dark:bg-warnDark dark:border-warnDark',
+    outline: 'outline-warn dark:outline-warnDark',
   },
   bad: {
-    fg:       '#b3331c',
-    bg:       '#fbeae6',
-    soft:     '#fdf3f0',
-    pips:     '#b3331c',
-    hairline: '#b3331c',
+    fg:      'text-bad dark:text-badDark',
+    bg:      'bg-badBg dark:bg-bad/25',
+    soft:    'bg-badBg/50 dark:bg-bad/15',
+    ring:    'border-badBg/50 dark:border-bad/15',
+    solid:   'bg-bad border-bad dark:bg-badDark dark:border-badDark',
+    outline: 'outline-bad dark:outline-badDark',
   },
   severe: {
-    fg:       '#7a1d0c',
-    bg:       '#f5dbd7',
-    soft:     '#fdf0ed',
-    pips:     '#7a1d0c',
-    hairline: '#7a1d0c',
+    fg:      'text-severe dark:text-badDark',
+    bg:      'bg-severeBg dark:bg-severe/50',
+    soft:    'bg-severeBg/40 dark:bg-severe/30',
+    ring:    'border-severeBg/40 dark:border-severe/30',
+    solid:   'bg-severe border-severe dark:bg-badDark dark:border-badDark',
+    outline: 'outline-severe dark:outline-badDark',
   },
 }
 
-const INK  = '#0d1a14'
-const INK2 = '#3d4a44'
-const INK3 = '#76817b'
-const LINE = '#e4e6e2'
-const LINE2 = '#eef0ec'
+const INK   = 'text-ink dark:text-white'
+const INK2  = 'text-ink2 dark:text-white/75'
+const INK3  = 'text-ink3 dark:text-white/50'
+const LINE  = 'border-line dark:border-white/10'
+const LINE2 = 'border-line2 dark:border-white/5'
 
 function getTone(strikeCount) {
   if (strikeCount >= 4) return TONES.severe
@@ -46,18 +53,18 @@ function CheckIcon() {
   )
 }
 
-function ClockIcon({ color }) {
+function ClockIcon() {
   return (
-    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="12" cy="12" r="10" />
       <polyline points="12 6 12 12 16 14" />
     </svg>
   )
 }
 
-function CoffeeIcon({ color }) {
+function CoffeeIcon() {
   return (
-    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M18 8h1a4 4 0 0 1 0 8h-1" />
       <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z" />
       <line x1="6" y1="1" x2="6" y2="4" />
@@ -74,13 +81,8 @@ function StrikePips({ count, tone }) {
       {[1, 2, 3, 4].map(n => (
         <div
           key={n}
-          style={{
-            width: 10,
-            height: 10,
-            borderRadius: '50%',
-            background: n <= count ? tone.pips : LINE2,
-            border: `1.5px solid ${n <= count ? tone.pips : LINE}`,
-          }}
+          className={`border-[1.5px] ${n <= count ? tone.solid : `bg-line2 dark:bg-white/5 ${LINE}`}`}
+          style={{ width: 10, height: 10, borderRadius: '50%' }}
         />
       ))}
     </div>
@@ -145,7 +147,7 @@ function ReasonChips({ type, selected, onSelect }) {
   const reasons = type === 'late_clock_in' ? LATE_REASONS : BREAK_REASONS
   return (
     <div className="flex flex-col gap-2">
-      <p className="text-[12px] font-medium" style={{ color: INK3 }}>
+      <p className={`text-caption font-medium ${INK3}`}>
         Select a reason
       </p>
       <div className="flex flex-wrap gap-2">
@@ -154,14 +156,10 @@ function ReasonChips({ type, selected, onSelect }) {
             key={r}
             type="button"
             onClick={() => onSelect(selected === r ? null : r)}
-            className="text-[13px] font-medium cursor-pointer transition-all duration-150"
-            style={{
-              border: `1.5px solid ${selected === r ? INK2 : LINE}`,
-              background: selected === r ? INK : 'transparent',
-              color: selected === r ? '#fff' : INK2,
-              borderRadius: 20,
-              padding: '6px 14px',
-            }}
+            className={`text-body-sm font-medium cursor-pointer transition-all duration-150 border-[1.5px] ${selected === r
+              ? 'border-ink2 bg-ink text-white dark:border-white dark:bg-white dark:text-ink'
+              : `${LINE} bg-transparent ${INK2}`}`}
+            style={{ borderRadius: 20, padding: '6px 14px' }}
           >
             {r}
           </button>
@@ -200,12 +198,8 @@ function PinDots({ length, shake }) {
       {[0, 1, 2, 3].map(i => (
         <div
           key={i}
-          style={{
-            width: 14, height: 14, borderRadius: '50%',
-            background: i < length ? INK : 'transparent',
-            border: `2px solid ${i < length ? INK : LINE}`,
-            transition: 'background 0.12s, border-color 0.12s',
-          }}
+          className={`border-2 ${i < length ? 'bg-ink border-ink dark:bg-white dark:border-white' : `bg-transparent ${LINE}`}`}
+          style={{ width: 14, height: 14, borderRadius: '50%', transition: 'background 0.12s, border-color 0.12s' }}
         />
       ))}
     </div>
@@ -218,14 +212,13 @@ function ManagerNumpad({ pin, onChange }) {
   }
   const del = () => onChange(pin.slice(0, -1))
 
+  const keyClass = `bg-surface dark:bg-white/8 ${INK}`
   const keyStyle = {
     width: '100%', aspectRatio: '1.3',
-    background: '#f5f6f4',
     border: 'none',
     borderRadius: 12,
     fontSize: 22,
     fontWeight: 600,
-    color: INK,
     cursor: 'pointer',
     display: 'flex', alignItems: 'center', justifyContent: 'center',
     transition: 'background 0.1s',
@@ -238,16 +231,17 @@ function ManagerNumpad({ pin, onChange }) {
       {rows.map(row => (
         <div key={row[0]} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
           {row.map(d => (
-            <button key={d} type="button" onPointerDown={() => handle(d)} style={keyStyle}>{d}</button>
+            <button key={d} type="button" onPointerDown={() => handle(d)} className={keyClass} style={keyStyle}>{d}</button>
           ))}
         </div>
       ))}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
         <div />
-        <button type="button" onPointerDown={() => handle('0')} style={keyStyle}>0</button>
+        <button type="button" onPointerDown={() => handle('0')} className={keyClass} style={keyStyle}>0</button>
         <button
           type="button"
           onPointerDown={del}
+          className={keyClass}
           style={{ ...keyStyle, fontSize: 18 }}
           aria-label="Delete"
         >⌫</button>
@@ -302,7 +296,7 @@ export default function StaffAlertModal({
       const t = setTimeout(() => setVisible(false), 250)
       return () => clearTimeout(t)
     }
-  }, [open]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [open]) // eslint-disable-line react-hooks/exhaustive-deps -- reset + alert tone must fire once per opening; `visible` is set here, so depending on it would replay the tone and cancel the exit timer
 
   const handleManagerApprove = async () => {
     if (!selectedManager || pin.length !== 4 || pinLoading) return
@@ -329,7 +323,7 @@ export default function StaffAlertModal({
     if (phase === 'manager_pin' && pin.length === 4) {
       handleManagerApprove()
     }
-  }, [pin]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [pin]) // eslint-disable-line react-hooks/exhaustive-deps -- submit once when the 4th digit lands; handleManagerApprove is rebuilt every render, so listing it would re-submit on every render
 
   // No Escape key close — intentionally non-dismissible
   if (!visible) return null
@@ -376,9 +370,9 @@ export default function StaffAlertModal({
       >
         {/* Scrim — no onClick, intentionally non-dismissible */}
         <div
+          className="bg-ink/55"
           style={{
             position: 'absolute', inset: 0,
-            background: 'rgba(9,18,13,0.55)',
             backdropFilter: 'blur(3px)',
             transition: 'opacity 0.25s',
             opacity: animating ? 1 : 0,
@@ -387,13 +381,12 @@ export default function StaffAlertModal({
 
         {/* Sheet */}
         <div
+          className="bg-paper dark:bg-paperDark shadow-[0_24px_60px_theme(colors.ink/40%)]"
           style={{
             position: 'relative',
             width: '100%',
             maxWidth: 480,
-            background: '#fff',
             borderRadius: '24px 24px 0 0',
-            boxShadow: '0 24px 60px rgba(9,18,13,0.4)',
             paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))',
             maxHeight: '92dvh',
             // Column layout so the CTA can live in a footer that never scrolls.
@@ -410,7 +403,7 @@ export default function StaffAlertModal({
           }}
         >
           {/* Top accent hairline */}
-          <div style={{ height: 4, background: tone.hairline, borderRadius: '24px 24px 0 0', flexShrink: 0 }} />
+          <div className={tone.solid} style={{ height: 4, borderRadius: '24px 24px 0 0', flexShrink: 0 }} />
 
           {phase === 'alert' ? (
             <>
@@ -419,50 +412,45 @@ export default function StaffAlertModal({
               {/* Icon + pips row */}
               <div className="flex items-start justify-between">
                 <div
+                  className={`border-[6px] outline outline-2 ${tone.bg} ${tone.ring} ${tone.outline} ${tone.fg}`}
                   style={{
                     width: 56, height: 56, borderRadius: 14,
-                    background: tone.bg,
-                    border: `6px solid ${tone.soft}`,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    outline: `2px solid ${tone.fg}`,
                     outlineOffset: 2,
                   }}
                 >
-                  {isLate
-                    ? <ClockIcon color={tone.fg} />
-                    : <CoffeeIcon color={tone.fg} />
-                  }
+                  {isLate ? <ClockIcon /> : <CoffeeIcon />}
                 </div>
                 <div className="flex flex-col items-end gap-1.5">
                   <StrikePips count={strikeCount} tone={tone} />
-                  <p className="font-mono text-[11px] tracking-widest uppercase" style={{ color: INK3 }}>
+                  <p className={`font-mono text-micro tracking-widest uppercase ${INK3}`}>
                     {ordinal(strikeCount)} in 30 days
                   </p>
                 </div>
               </div>
 
               {/* Eyebrow */}
-              <p className="font-mono text-[11px] tracking-[0.12em] uppercase font-medium" style={{ color: tone.fg }}>
+              <p className={`font-mono text-micro tracking-[0.12em] uppercase font-medium ${tone.fg}`}>
                 {eyebrow}
               </p>
 
               {/* H1 */}
-              <h1 className="text-[22px] font-semibold tracking-[-0.022em] leading-[1.2]" style={{ color: INK, margin: 0 }}>
+              <h1 className={`text-title font-semibold tracking-[-0.022em] leading-[1.2] ${INK}`} style={{ margin: 0 }}>
                 {heading}
               </h1>
 
               {/* Big mono number */}
               <div>
-                <span className="font-mono text-[34px] font-medium leading-none" style={{ color: tone.fg }}>
+                <span className={`font-mono text-stat font-medium leading-none ${tone.fg}`}>
                   {minsOver >= 1 ? `${minsOver} min` : '< 1 min'}
                 </span>
-                <span className="font-mono text-[13px] ml-2" style={{ color: INK3 }}>
+                <span className={`font-mono text-body-sm ml-2 ${INK3}`}>
                   {isLate ? 'after your start time' : 'over your allowance'}
                 </span>
               </div>
 
               {/* Comparison card */}
-              <div style={{ border: `1px solid ${LINE}`, borderRadius: 12, overflow: 'hidden' }}>
+              <div className={`border ${LINE}`} style={{ borderRadius: 12, overflow: 'hidden' }}>
                 {isLate ? (
                   <>
                     <CompRow label="SCHEDULED"  value={scheduledTime}  tinted={false} tone={tone} />
@@ -478,7 +466,7 @@ export default function StaffAlertModal({
               </div>
 
               {/* Body line */}
-              <p className="text-[13.5px] leading-relaxed" style={{ color: INK2, margin: 0 }}>
+              <p className={`text-body leading-relaxed ${INK2}`} style={{ margin: 0 }}>
                 {isLate
                   ? `Your shift starts at ${scheduledTime}. Any clock-in after your start time is logged as late.`
                   : `Your break allowance is ${breakAllowanceMins} minutes. Time over your allowance is logged on your timesheet.`
@@ -488,13 +476,8 @@ export default function StaffAlertModal({
               {/* Escalation banner */}
               {showBanner && (
                 <div
-                  className="text-[13px] font-semibold"
-                  style={{
-                    borderRadius: 10,
-                    padding: '10px 14px',
-                    background: bannerSevere ? '#7a1d0c' : TONES.bad.bg,
-                    color: bannerSevere ? '#fff' : TONES.bad.fg,
-                  }}
+                  className={`text-body-sm font-semibold ${bannerSevere ? 'bg-severe text-white' : `${TONES.bad.bg} ${TONES.bad.fg}`}`}
+                  style={{ borderRadius: 10, padding: '10px 14px' }}
                 >
                   {bannerSevere
                     ? 'Disciplinary review triggered'
@@ -516,20 +499,15 @@ export default function StaffAlertModal({
             {/* Action footer — outside the scroll area so the primary action is on
                 screen the moment the alert opens, whatever the phone's height. */}
             <div
-              className="px-5 pt-3 flex flex-col gap-3"
-              style={{ flexShrink: 0, borderTop: `1px solid ${LINE2}`, background: '#fff' }}
+              className={`px-5 pt-3 flex flex-col gap-3 border-t bg-paper dark:bg-paperDark ${LINE2}`}
+              style={{ flexShrink: 0 }}
             >
               {/* CTA button — locked until a reason is selected when reasons are required */}
-              <button
-                type="button"
+              <Button
+                size="lg"
+                fullWidth
                 onClick={handleSubmitClick}
                 disabled={reasonMissing}
-                className="w-full flex items-center justify-center gap-2 text-[15px] font-bold text-white bg-brand border-none cursor-pointer"
-                style={{
-                  height: 50, borderRadius: 13,
-                  opacity: reasonMissing ? 0.4 : 1,
-                  cursor: reasonMissing ? 'not-allowed' : 'pointer',
-                }}
               >
                 {requireManagerApproval ? (
                   <>
@@ -542,10 +520,10 @@ export default function StaffAlertModal({
                     {isLate ? 'I understand' : 'End break now'}
                   </>
                 )}
-              </button>
+              </Button>
 
               {/* Footnote */}
-              <p className="font-mono text-center text-[11px]" style={{ color: INK3, margin: 0 }}>
+              <p className={`font-mono text-center text-micro ${INK3}`} style={{ margin: 0 }}>
                 {requireManagerApproval
                   ? 'A manager on shift must approve this late clock-in.'
                   : 'Clock-in times are recorded on your timesheet.'
@@ -558,24 +536,24 @@ export default function StaffAlertModal({
             <div className="px-5 pt-4 pb-2 flex flex-col gap-4" style={{ overflowY: 'auto', flex: '1 1 auto', minHeight: 0 }}>
 
               {/* Back button */}
-              <button
-                type="button"
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={() => { setPhase('alert'); setPin(''); setPinError('') }}
-                className="flex items-center gap-1 text-[13px] font-medium border-none bg-transparent cursor-pointer self-start"
-                style={{ color: INK3, padding: 0 }}
+                className="self-start -ml-3"
               >
                 <BackIcon /> Back
-              </button>
+              </Button>
 
               {/* Header */}
               <div className="flex flex-col gap-1">
-                <p className="font-mono text-[11px] tracking-[0.12em] uppercase font-medium" style={{ color: tone.fg }}>
+                <p className={`font-mono text-micro tracking-[0.12em] uppercase font-medium ${tone.fg}`}>
                   MANAGER APPROVAL
                 </p>
-                <h1 className="text-[20px] font-semibold tracking-[-0.02em] leading-[1.2]" style={{ color: INK, margin: 0 }}>
+                <h1 className={`text-title font-semibold tracking-[-0.02em] leading-[1.2] ${INK}`} style={{ margin: 0 }}>
                   Hand to manager on shift
                 </h1>
-                <p className="text-[13px] leading-relaxed" style={{ color: INK2, marginTop: 2 }}>
+                <p className={`text-body-sm leading-relaxed ${INK2}`} style={{ marginTop: 2 }}>
                   The manager needs to select their name and enter their PIN to approve this late clock-in.
                 </p>
               </div>
@@ -583,46 +561,34 @@ export default function StaffAlertModal({
               {/* Manager list */}
               {managers.length === 0 ? (
                 <div
-                  className="text-[13px] text-center"
-                  style={{ color: INK3, padding: '14px', background: LINE2, borderRadius: 10 }}
+                  className={`text-body-sm text-center bg-line2 dark:bg-white/5 ${INK3}`}
+                  style={{ padding: '14px', borderRadius: 10 }}
                 >
                   No managers found for this venue.
                 </div>
               ) : (
-                <div className="flex flex-col" style={{ border: `1px solid ${LINE}`, borderRadius: 12, overflow: 'hidden' }}>
+                <div className={`flex flex-col border ${LINE}`} style={{ borderRadius: 12, overflow: 'hidden' }}>
                   {managers.map((m, i) => (
                     <button
                       key={m.id}
                       type="button"
                       onClick={() => { setSelectedManager(m); setPin(''); setPinError('') }}
-                      className="flex items-center gap-3 text-left border-none cursor-pointer transition-colors"
-                      style={{
-                        padding: '11px 14px',
-                        background: selectedManager?.id === m.id ? '#f0f7f3' : '#fff',
-                        borderTop: i > 0 ? `1px solid ${LINE2}` : 'none',
-                      }}
+                      className={`flex items-center gap-3 text-left border-x-0 border-b-0 cursor-pointer transition-colors ${LINE2} ${i > 0 ? 'border-t' : 'border-t-0'} ${selectedManager?.id === m.id ? 'bg-brand-tint dark:bg-white/10' : 'bg-paper dark:bg-transparent'}`}
+                      style={{ padding: '11px 14px' }}
                     >
-                      <div
-                        style={{
-                          width: 34, height: 34, borderRadius: '50%',
-                          background: selectedManager?.id === m.id ? '#1a6644' : LINE2,
-                          display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          fontSize: 13, fontWeight: 700, color: selectedManager?.id === m.id ? '#fff' : INK3,
-                          flexShrink: 0,
-                          overflow: 'hidden',
-                        }}
-                      >
-                        {m.photo_url
-                          ? <img src={m.photo_url} alt={m.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                          : m.name.charAt(0).toUpperCase()
-                        }
-                      </div>
+                      <Avatar
+                        name={m.name}
+                        id={m.id}
+                        photoUrl={m.photo_url}
+                        size="md"
+                        decorative
+                      />
                       <div className="flex-1 min-w-0">
-                        <p className="text-[14px] font-semibold" style={{ color: INK, margin: 0 }}>{m.name}</p>
-                        <p className="text-[11px] capitalize" style={{ color: INK3, margin: 0 }}>{m.role}</p>
+                        <p className={`text-body font-semibold ${INK}`} style={{ margin: 0 }}>{m.name}</p>
+                        <p className={`text-caption capitalize ${INK3}`} style={{ margin: 0 }}>{m.role}</p>
                       </div>
                       {selectedManager?.id === m.id && (
-                        <div style={{ color: '#1a6644' }}><CheckIcon /></div>
+                        <div className="text-good dark:text-goodDark"><CheckIcon /></div>
                       )}
                     </button>
                   ))}
@@ -632,34 +598,29 @@ export default function StaffAlertModal({
               {/* PIN entry — only shown once a manager is selected */}
               {selectedManager && (
                 <div className="flex flex-col gap-3">
-                  <p className="text-[12px] font-medium text-center" style={{ color: INK3 }}>
+                  <p className={`text-caption font-medium text-center ${INK3}`}>
                     {selectedManager.name} — enter your PIN
                   </p>
                   <PinDots length={pin.length} shake={shake} />
                   {pinError && (
-                    <p className="text-[12px] font-semibold text-center" style={{ color: TONES.bad.fg }}>
+                    <p className={`text-caption font-semibold text-center ${TONES.bad.fg}`}>
                       {pinError}
                     </p>
                   )}
                   <ManagerNumpad pin={pin} onChange={(p) => { setPinError(''); setPin(p) }} />
-                  <button
-                    type="button"
+                  <Button
+                    size="lg"
+                    fullWidth
+                    loading={pinLoading}
                     onClick={handleManagerApprove}
                     disabled={pin.length !== 4 || pinLoading}
-                    className="w-full flex items-center justify-center gap-2 text-[15px] font-bold text-white border-none cursor-pointer"
-                    style={{
-                      height: 50, borderRadius: 13,
-                      background: pin.length === 4 && !pinLoading ? '#1a6644' : LINE,
-                      color: pin.length === 4 && !pinLoading ? '#fff' : INK3,
-                      transition: 'background 0.15s',
-                    }}
                   >
                     {pinLoading ? 'Verifying…' : 'Approve'}
-                  </button>
+                  </Button>
                 </div>
               )}
 
-              <p className="font-mono text-center text-[11px]" style={{ color: INK3, margin: 0 }}>
+              <p className={`font-mono text-center text-micro ${INK3}`} style={{ margin: 0 }}>
                 Manager approval is logged against this late clock-in.
               </p>
             </div>
@@ -673,22 +634,13 @@ export default function StaffAlertModal({
 function CompRow({ label, value, tinted, tone }) {
   return (
     <div
-      style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: '10px 14px',
-        background: tinted ? tone.soft : 'transparent',
-        borderTop: `1px solid ${LINE2}`,
-      }}
+      className={`border-t first:border-t-0 ${LINE2} ${tinted ? tone.soft : 'bg-transparent'}`}
+      style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px' }}
     >
-      <span className="font-mono text-[11px] tracking-widest uppercase" style={{ color: INK3 }}>
+      <span className={`font-mono text-micro tracking-widest uppercase ${INK3}`}>
         {label}
       </span>
-      <span
-        className="font-mono text-[14px] font-medium tabular-nums"
-        style={{ color: tinted ? tone.fg : INK }}
-      >
+      <span className={`font-mono text-body font-medium tabular-nums ${tinted ? tone.fg : INK}`}>
         {value}
       </span>
     </div>

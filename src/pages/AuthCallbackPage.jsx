@@ -11,6 +11,7 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import Button from '../components/ui/Button'
 
 export default function AuthCallbackPage() {
   const navigate = useNavigate()
@@ -48,12 +49,13 @@ export default function AuthCallbackPage() {
         <div className="w-12 h-12 rounded-full border-2 border-brand/20 border-t-brand animate-spin mx-auto mb-4" />
         <p className="text-sm text-charcoal/60 dark:text-white/50">{status}</p>
         {status.includes('expired') && (
-          <button
+          <Button
+            variant="link"
             onClick={() => navigate('/')}
-            className="mt-4 text-sm font-semibold text-brand underline"
+            className="mt-4"
           >
             Back to sign in
-          </button>
+          </Button>
         )}
       </div>
     </div>

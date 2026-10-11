@@ -44,13 +44,14 @@ export function useRotaRequirements(): {
   const { data: requirements = [], isLoading: loading } = useQuery({
     queryKey,
     queryFn: async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('rota_requirements')
         .select('*, venue_roles(id, name, color)')
         .eq('venue_id', venueId)
         .order('day_of_week')
         .order('sort_order')
         .order('start_time')
+      if (error) throw error
       return (data ?? []) as RotaRequirement[]
     },
     enabled: !!venueId,

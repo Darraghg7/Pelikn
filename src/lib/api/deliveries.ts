@@ -18,12 +18,13 @@ export interface DeliveryCheck {
 }
 
 export async function fetchDeliveryChecks(venueId: string): Promise<DeliveryCheck[]> {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('delivery_checks')
     .select('*, checker:staff!checked_by(name), supplier:suppliers(name)')
     .eq('venue_id', venueId)
     .order('checked_at', { ascending: false })
     .limit(100)
+  if (error) throw error
   return (data ?? []) as DeliveryCheck[]
 }
 

@@ -2,22 +2,22 @@ import React, { memo } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
 import { useWidgetQuery } from '../../hooks/useWidgetQuery'
-import LoadingSpinner from '../ui/LoadingSpinner'
-import { WidgetShell, BigNumber } from './shared'
+import { WidgetShell, BigNumber, WidgetPending } from './shared'
 
 function PendingSwapsWidget() {
   const { venueId } = useVenue()
 
-  const { data } = useWidgetQuery('pending_swaps', [venueId], async () => {
-    const { data: swaps } = await supabase.from('shift_swaps')
+  const { data, isError, refetch } = useWidgetQuery('pending_swaps', [venueId], async () => {
+    const { data: swaps, error } = await supabase.from('shift_swaps')
       .select('id, requester_name, target_staff_name, status')
       .eq('venue_id', venueId)
       .eq('status', 'pending')
       .limit(5)
+    if (error) throw error
     return { items: swaps ?? [], count: swaps?.length ?? 0 }
   })
 
-  if (!data) return <WidgetShell title="Swap Requests" to="/rota"><div className="flex justify-center py-4"><LoadingSpinner /></div></WidgetShell>
+  if (!data) return <WidgetShell title="Swap Requests" to="/rota"><WidgetPending isError={isError} onRetry={refetch} /></WidgetShell>
 
   return (
     <WidgetShell title="Swap Requests" to="/rota" status={data.count > 0 ? 'warning' : undefined}>

@@ -1,4 +1,5 @@
 import type { StaffPermission, VenuePreset } from '../types'
+import { staffPalette } from './tokens'
 
 export const EU_ALLERGENS = [
   'Celery', 'Gluten', 'Crustaceans', 'Eggs', 'Fish', 'Lupin', 'Milk',
@@ -66,10 +67,7 @@ export const EXPLAINED_EXCEEDANCE_REASONS = ['delivery', 'defrost', 'service_acc
  * Rota colour palette — 10 distinct, accessible colours for staff shift pills.
  * Used by both StaffMembersSection (colour picker) and RotaWeekView (rendering).
  */
-export const STAFF_COLOUR_PALETTE = [
-  '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6',
-  '#06b6d4', '#f97316', '#84cc16', '#ec4899', '#14b8a6',
-] as const
+export const STAFF_COLOUR_PALETTE: readonly string[] = staffPalette
 
 // ── Granular staff permissions ──────────────────────────────────────────────
 

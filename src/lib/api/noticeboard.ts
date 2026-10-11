@@ -11,12 +11,13 @@ export interface Notice {
 }
 
 export async function fetchNotices(venueId: string): Promise<Notice[]> {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('noticeboard_posts')
     .select('id, title, body, pinned, created_at, created_by_name')
     .eq('venue_id', venueId)
     .order('pinned', { ascending: false })
     .order('created_at', { ascending: false })
+  if (error) throw error
   return (data ?? []) as unknown as Notice[]
 }
 

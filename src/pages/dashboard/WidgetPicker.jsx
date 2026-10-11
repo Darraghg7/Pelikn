@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { WIDGET_REGISTRY, ALL_WIDGET_IDS } from '../../components/widgets/WidgetRegistry'
 import Modal from '../../components/ui/Modal'
 import { TODAY_ITEM_REGISTRY, ALL_TODAY_ITEM_IDS } from './todayItemRegistry'
+import Button from '../../components/ui/Button'
 
 export default function WidgetPicker({ open, onClose, activeIds, todayIds, onSave, onSaveToday }) {
   const [selected, setSelected] = useState([])
@@ -79,7 +80,7 @@ export default function WidgetPicker({ open, onClose, activeIds, todayIds, onSav
         </p>
 
         <div>
-          <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-2">Today view</p>
+          <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-2">Today view</p>
           <div className="flex flex-col gap-1.5">
             {selectedToday.map((id, idx) => {
               const item = TODAY_ITEM_REGISTRY[id]
@@ -104,14 +105,15 @@ export default function WidgetPicker({ open, onClose, activeIds, todayIds, onSav
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-charcoal dark:text-white truncate">{item.label}</p>
-                    <p className="text-[11px] text-charcoal/40 dark:text-white/35 truncate">{item.description}</p>
+                    <p className="text-caption text-charcoal/40 dark:text-white/35 truncate">{item.description}</p>
                   </div>
-                  <button
+                  <Button
+                    variant="danger-ghost"
+                    size="sm"
                     onClick={() => toggleToday(id)}
-                    className="text-danger/50 hover:text-danger text-xs px-2 py-1 shrink-0"
                   >
                     Remove
-                  </button>
+                  </Button>
                 </div>
               )
             })}
@@ -129,7 +131,7 @@ export default function WidgetPicker({ open, onClose, activeIds, todayIds, onSav
                     <span className="text-charcoal/20 dark:text-white/20 text-lg shrink-0">+</span>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-charcoal/60 dark:text-white/50 truncate">{item.label}</p>
-                      <p className="text-[11px] text-charcoal/35 dark:text-white/30 truncate">{item.description}</p>
+                      <p className="text-caption text-charcoal/35 dark:text-white/30 truncate">{item.description}</p>
                     </div>
                   </button>
                 )
@@ -141,7 +143,7 @@ export default function WidgetPicker({ open, onClose, activeIds, todayIds, onSav
         {/* Active widgets — reorderable */}
         {selected.length > 0 && (
           <div>
-            <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-2">Your widgets</p>
+            <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-2">Your widgets</p>
             <div className="flex flex-col gap-1.5">
               {selected.map((id, idx) => {
                 const w = WIDGET_REGISTRY[id]
@@ -166,14 +168,15 @@ export default function WidgetPicker({ open, onClose, activeIds, todayIds, onSav
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-charcoal dark:text-white truncate">{w.label}</p>
-                      <p className="text-[11px] text-charcoal/40 dark:text-white/35 truncate">{w.description}</p>
+                      <p className="text-caption text-charcoal/40 dark:text-white/35 truncate">{w.description}</p>
                     </div>
-                    <button
+                    <Button
+                      variant="danger-ghost"
+                      size="sm"
                       onClick={() => toggleWidget(id)}
-                      className="text-danger/50 hover:text-danger text-xs px-2 py-1 shrink-0"
                     >
                       Remove
-                    </button>
+                    </Button>
                   </div>
                 )
               })}
@@ -187,7 +190,7 @@ export default function WidgetPicker({ open, onClose, activeIds, todayIds, onSav
           if (available.length === 0) return null
           return (
             <div>
-              <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-2">Available widgets</p>
+              <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-2">Available widgets</p>
               <div className="flex flex-col gap-1.5">
                 {available.map(id => {
                   const w = WIDGET_REGISTRY[id]
@@ -200,7 +203,7 @@ export default function WidgetPicker({ open, onClose, activeIds, todayIds, onSav
                       <span className="text-charcoal/20 dark:text-white/20 text-lg shrink-0">+</span>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-charcoal/60 dark:text-white/50 truncate">{w.label}</p>
-                        <p className="text-[11px] text-charcoal/35 dark:text-white/30 truncate">{w.description}</p>
+                        <p className="text-caption text-charcoal/35 dark:text-white/30 truncate">{w.description}</p>
                       </div>
                     </button>
                   )
@@ -212,18 +215,18 @@ export default function WidgetPicker({ open, onClose, activeIds, todayIds, onSav
 
         {/* Save */}
         <div className="flex gap-2 pt-2 border-t border-charcoal/8 dark:border-white/8">
-          <button
+          <Button
             onClick={() => { onSave(selected); onSaveToday(selectedToday); onClose() }}
-            className="flex-1 bg-charcoal text-cream py-2.5 rounded-xl text-sm font-medium hover:bg-charcoal/90 transition-colors"
+            className="flex-1"
           >
             Save Customisation
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="secondary"
             onClick={onClose}
-            className="px-4 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 text-sm text-charcoal/50 dark:text-white/40 hover:text-charcoal dark:hover:text-white transition-colors"
           >
             Cancel
-          </button>
+          </Button>
         </div>
       </div>
     </Modal>

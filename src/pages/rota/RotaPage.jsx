@@ -32,6 +32,8 @@ import { useDutyTemplates } from '../../hooks/useDuties'
 import useVenueClosures from '../../hooks/useVenueClosures'
 import { useQuery } from '@tanstack/react-query'
 import StaffRotaView from './StaffRotaView'
+import LoadError from '../../components/ui/LoadError'
+import Button from '../../components/ui/Button'
 
 const EMPTY_ROLES = {}
 
@@ -44,8 +46,8 @@ export default function RotaPage() {
 
   const [weekStart, setWeekStart] = useState(() => getWeekStart())
   const [numWeeks, setNumWeeks]   = useState(1)
-  const { shifts, loading, reload } = useShifts(weekStart, (isManager && !personalView) ? numWeeks : 2)
-  const { staff, loading: staffLoading } = useStaffList()
+  const { shifts, loading, isError: shiftsFailed, reload } = useShifts(weekStart, (isManager && !personalView) ? numWeeks : 2)
+  const { staff, loading: staffLoading, isError: staffFailed, reload: reloadStaff } = useStaffList()
   const crossShifts = useCrossVenueShifts(staff, weekStart, numWeeks, venueId)
   const { swaps, loading: swapsLoading, reload: reloadSwaps, pendingCount } = useShiftSwaps()
   const { unavailability, toggleAvailability } = useAvailability(weekStart, numWeeks)
@@ -184,11 +186,20 @@ export default function RotaPage() {
       roleLabel: sh.role_label,
       isClosing: sh.is_closing ?? false,
     })
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('duty_assignments')
       .select('duty_template_id')
       .eq('shift_id', sh.id)
       .maybeSingle()
+    // Saving rewrites the shift's duty from this form, so editing on a failed
+    // read would silently remove the duty — close the editor instead.
+    if (error) {
+      reportError(error, 'RotaPage:shift-duty')
+      toast("Couldn't load this shift — please try again", 'error')
+      setEditShift(null)
+      setModal(null)
+      return
+    }
     if (data) {
       setAssignDuty(true)
       setSelectedDutyId(data.duty_template_id)
@@ -500,19 +511,19 @@ export default function RotaPage() {
         <div className="hidden lg:flex items-center gap-4 flex-wrap px-1">
           <div className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded bg-success/30 border border-success/30" />
-            <span className="text-[11px] tracking-wider uppercase text-charcoal/30 dark:text-white/30">Available</span>
+            <span className="text-micro tracking-wider uppercase text-charcoal/30 dark:text-white/30">Available</span>
           </div>
           <div className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded bg-charcoal/15 dark:bg-white/15 border border-charcoal/20 dark:border-white/20" />
-            <span className="text-[11px] tracking-wider uppercase text-charcoal/30 dark:text-white/30">Unavailable</span>
+            <span className="text-micro tracking-wider uppercase text-charcoal/30 dark:text-white/30">Unavailable</span>
           </div>
           <div className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded bg-danger/20 border border-danger/25" />
-            <span className="text-[11px] tracking-wider uppercase text-charcoal/30 dark:text-white/30">Time Off</span>
+            <span className="text-micro tracking-wider uppercase text-charcoal/30 dark:text-white/30">Time Off</span>
           </div>
           <div className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded bg-charcoal/8 dark:bg-white/8 border border-charcoal/15 dark:border-white/15" />
-            <span className="text-[11px] tracking-wider uppercase text-charcoal/30 dark:text-white/30">Closed</span>
+            <span className="text-micro tracking-wider uppercase text-charcoal/30 dark:text-white/30">Closed</span>
           </div>
         </div>
       )}
@@ -557,7 +568,7 @@ export default function RotaPage() {
       {/* ── Week count selector ── */}
       {isManager && (
         <div className="hidden lg:flex flex-wrap items-center gap-2">
-          <span className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 font-medium">View</span>
+          <span className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 font-medium">View</span>
           {[1, 2, 3, 4].map((n) => (
             <button
               key={n}
@@ -585,23 +596,26 @@ export default function RotaPage() {
           <div key={format(thisWeekStart, 'yyyy-MM-dd')} className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 overflow-hidden">
             {wi === 0 && (
               <div className="flex items-center justify-between px-5 py-4 border-b border-charcoal/8 dark:border-white/8">
-                <button onClick={prevWeek} className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-charcoal/8 dark:hover:bg-white/8 text-charcoal/50 dark:text-white/40 hover:text-charcoal dark:hover:text-white transition-colors text-sm">‹</button>
+                <Button variant="secondary" size="sm" iconOnly aria-label="Previous week" onClick={prevWeek}>‹</Button>
                 <span className="text-sm font-medium text-charcoal dark:text-white">
                   {/* Last day shown is the Sunday before the next Monday */}
                   {format(weekStart, 'd MMM')} – {format(addDays(addWeeks(weekStart, numWeeks), -1), 'd MMM yyyy')}
                 </span>
-                <button onClick={nextWeek} className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-charcoal/8 dark:hover:bg-white/8 text-charcoal/50 dark:text-white/40 hover:text-charcoal dark:hover:text-white transition-colors text-sm">›</button>
+                <Button variant="secondary" size="sm" iconOnly aria-label="Next week" onClick={nextWeek}>›</Button>
               </div>
             )}
             {numWeeks > 1 && (
               <div className="px-5 py-2 bg-charcoal/4 dark:bg-white/5 border-b border-charcoal/8 dark:border-white/8">
-                <p className="text-[11px] tracking-widest uppercase text-charcoal/50 dark:text-white/40 font-medium">
+                <p className="text-micro tracking-widest uppercase text-charcoal/50 dark:text-white/40 font-medium">
                   Week {wi + 1} — {format(thisWeekStart, 'd MMM')} – {format(addWeeks(thisWeekStart, 1), 'd MMM')}
                 </p>
               </div>
             )}
             {loading || staffLoading ? (
               <SkeletonList rows={4} />
+            ) : shiftsFailed || staffFailed ? (
+              // An empty grid from a failed read looks like a week with no shifts.
+              <LoadError what="the rota" onRetry={() => { reload(); reloadStaff() }} />
             ) : (
               <RotaWeekView
                 weekStart={thisWeekStart}

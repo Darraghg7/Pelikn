@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { reportError } from '../../lib/reportError'
 import { useVenueFeatures } from '../../hooks/useVenueFeatures'
+import { CloseButton } from '../../components/ui/Button'
 
 const CheckIcon = () => (
   <svg className="w-3.5 h-3.5" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -47,7 +48,12 @@ export default function GettingStartedCard({ venueId, venueSlug }) {
       supabase.from('cleaning_tasks').select('id', { count: 'exact', head: true }).eq('venue_id', venueId),
       supabase.from('shifts').select('id', { count: 'exact', head: true }).eq('venue_id', venueId).gte('shift_date', weekStart),
       supabase.from('food_items').select('id', { count: 'exact', head: true }).eq('venue_id', venueId),
-    ]).then(([settingsRes, staffRes, fridgesRes, cleaningRes, shiftsRes, foodRes]) => {
+    ]).then((results) => {
+      // A failed count would read as "step not done" and re-show finished
+      // setup steps (or a dismissed card) — skip the card this time instead.
+      const failed = results.find(r => r.error)
+      if (failed) { reportError(failed.error, 'GettingStartedCard:progress'); return }
+      const [settingsRes, staffRes, fridgesRes, cleaningRes, shiftsRes, foodRes] = results
       const rows = settingsRes.data ?? []
       const dismissed = rows.find(r => r.key === 'setup_dismissed')?.value === 'true'
       const hasVenueType = !!rows.find(r => r.key === 'venue_type')?.value
@@ -112,9 +118,9 @@ export default function GettingStartedCard({ venueId, venueSlug }) {
       <div className="flex items-center justify-between mb-3">
         <div>
           <p className="text-sm font-bold text-charcoal dark:text-white">Getting Started</p>
-          <p className="text-[11px] text-charcoal/40 dark:text-white/35 mt-0.5">{completed} of {items.length} complete</p>
+          <p className="text-caption text-charcoal/40 dark:text-white/35 mt-0.5">{completed} of {items.length} complete</p>
         </div>
-        <button onClick={dismiss} className="text-charcoal/30 dark:text-white/30 hover:text-charcoal/60 dark:hover:text-white/50 transition-colors text-xl leading-none">&times;</button>
+        <CloseButton label="Dismiss" onClick={dismiss} />
       </div>
       <div className="h-1 bg-charcoal/8 dark:bg-white/8 rounded-full mb-4 overflow-hidden">
         <div className="h-full bg-brand rounded-full transition-all" style={{ width: `${(completed / items.length) * 100}%` }} />

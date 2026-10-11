@@ -7,27 +7,32 @@ import { useStaffJobTitles } from '../../hooks/useVenueRoles'
 import { useToast } from '../../components/ui/Toast'
 import { reportError } from '../../lib/reportError'
 import EmptyState from '../../components/ui/EmptyState'
+import LoadError from '../../components/ui/LoadError'
 import { SkeletonList } from '../../components/ui/Skeleton'
+import Button, { CloseButton } from '../../components/ui/Button'
 
 // ── Hooks ────────────────────────────────────────────────────────────────────
 
 function useTipSplits(venueId) {
   const [splits, setSplits] = useState([])
   const [loading, setLoading] = useState(true)
+  const [failed, setFailed] = useState(false)
 
   const load = useCallback(async () => {
     if (!venueId) return
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('tip_splits')
       .select('*, created_by_staff:created_by(id, name), tip_allocations(id, staff_id, amount, staff:staff_id(id, name))')
       .eq('venue_id', venueId)
       .order('split_date', { ascending: false })
-    setSplits(data ?? [])
+    if (error) reportError(error, 'TipsPage:splits')
+    else setSplits(data ?? [])
+    setFailed(!!error)
     setLoading(false)
   }, [venueId])
 
   useEffect(() => { load() }, [load])
-  return { splits, loading, reload: load }
+  return { splits, loading, failed, reload: load }
 }
 
 function useActiveStaff(venueId) {
@@ -41,7 +46,11 @@ function useActiveStaff(venueId) {
       .eq('venue_id', venueId)
       .eq('is_active', true)
       .order('name')
-      .then(({ data }) => setStaff(data ?? []))
+      .then(({ data, error }) => {
+        // Only fills the "Add tip split" picker; the page itself still loads.
+        if (error) { reportError(error, 'TipsPage:staff'); return }
+        setStaff(data ?? [])
+      })
   }, [venueId])
 
   return staff
@@ -129,7 +138,7 @@ function AddTipSplitModal({ staff, venueId, managerId, onSaved, onClose }) {
       <div className="bg-white dark:bg-paperDark rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto flex flex-col">
         <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-charcoal/8 dark:border-white/8">
           <h2 className="text-lg font-bold text-charcoal dark:text-white">Add Tip Split</h2>
-          <button onClick={onClose} className="text-charcoal/30 dark:text-white/30 hover:text-charcoal dark:hover:text-white text-xl leading-none">&times;</button>
+          <CloseButton onClick={onClose} />
         </div>
 
         <div className="px-5 py-4 flex flex-col gap-4">
@@ -171,9 +180,9 @@ function AddTipSplitModal({ staff, venueId, managerId, onSaved, onClose }) {
             <>
               <div className="flex items-center justify-between">
                 <p className="text-xs font-medium text-charcoal/50 dark:text-white/40">Assign to staff</p>
-                <button onClick={splitEvenly} className="text-xs text-brand font-medium hover:underline">
+                <Button variant="link" size="sm" onClick={splitEvenly}>
                   Split evenly
-                </button>
+                </Button>
               </div>
 
               <div className="flex flex-col gap-2 max-h-52 overflow-y-auto">
@@ -181,7 +190,7 @@ function AddTipSplitModal({ staff, venueId, managerId, onSaved, onClose }) {
                   <div key={s.id} className="flex items-center gap-3">
                     <div className="flex-1 min-w-0">
                       <p className="text-sm text-charcoal dark:text-white truncate">{s.name}</p>
-                      {labelFor(s.id) && <p className="text-[11px] text-charcoal/40 dark:text-white/35">{labelFor(s.id)}</p>}
+                      {labelFor(s.id) && <p className="text-caption text-charcoal/40 dark:text-white/35">{labelFor(s.id)}</p>}
                     </div>
                     <div className="relative w-24 shrink-0">
                       <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-charcoal/40 dark:text-white/35 text-xs">&pound;</span>
@@ -210,16 +219,17 @@ function AddTipSplitModal({ staff, venueId, managerId, onSaved, onClose }) {
         </div>
 
         <div className="px-5 pb-5 pt-2 flex gap-3">
-          <button onClick={onClose} className="flex-1 border border-charcoal/15 dark:border-white/15 text-charcoal/60 dark:text-white/50 py-2.5 rounded-xl text-sm font-medium hover:bg-charcoal/5 dark:hover:bg-white/5 transition-colors">
+          <Button variant="secondary" onClick={onClose} className="flex-1">
             Cancel
-          </button>
-          <button
+          </Button>
+          <Button
+            loading={saving}
             onClick={handleSave}
             disabled={!canSave || saving}
-            className="flex-1 bg-brand text-cream py-2.5 rounded-xl text-sm font-semibold hover:bg-brand/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            className="flex-1"
           >
             {saving ? 'Saving…' : 'Save'}
-          </button>
+          </Button>
         </div>
       </div>
     </div>
@@ -243,13 +253,13 @@ function TipSplitCard({ split }) {
           <p className="text-sm font-semibold text-charcoal dark:text-white">
             &pound;{parseFloat(split.total_amount).toFixed(2)}
           </p>
-          <p className="text-[11px] text-charcoal/40 dark:text-white/35 mt-0.5">
+          <p className="text-caption text-charcoal/40 dark:text-white/35 mt-0.5">
             {format(parseISO(split.split_date), 'EEE d MMM yyyy')} &middot; {createdBy}
             {split.notes && <> &middot; {split.notes}</>}
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-[11px] text-charcoal/35 dark:text-white/30">{allocations.length} staff</span>
+          <span className="text-micro text-charcoal/35 dark:text-white/30">{allocations.length} staff</span>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
             className={`text-charcoal/30 dark:text-white/30 transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`}
           >
@@ -280,7 +290,7 @@ function TipSplitCard({ split }) {
 export default function TipsPage() {
   const { venueId } = useVenue()
   const { session, isManager } = useSession()
-  const { splits, loading, reload } = useTipSplits(venueId)
+  const { splits, loading, failed, reload } = useTipSplits(venueId)
   const staff = useActiveStaff(venueId)
   const [showAdd, setShowAdd] = useState(false)
 
@@ -302,16 +312,17 @@ export default function TipsPage() {
           <h1 className="text-2xl font-bold text-charcoal dark:text-white">Tips</h1>
           <p className="text-sm text-charcoal/40 dark:text-white/35 mt-1">Distribute and track tips across your team</p>
         </div>
-        <button
+        <Button
           onClick={() => setShowAdd(true)}
-          className="bg-accent text-cream px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-accent/90 transition-colors"
         >
           + Add Tip Split
-        </button>
+        </Button>
       </div>
 
       {loading ? (
         <SkeletonList rows={3} />
+      ) : failed && splits.length === 0 ? (
+        <LoadError what="tip splits" onRetry={reload} />
       ) : splits.length === 0 ? (
         <EmptyState
           title="No tip splits yet"

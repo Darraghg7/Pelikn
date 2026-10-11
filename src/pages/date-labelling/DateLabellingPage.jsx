@@ -8,11 +8,12 @@ import { useToast } from '../../components/ui/Toast'
 import Modal from '../../components/ui/Modal'
 import { PageSkeleton } from '../../components/ui/Skeleton'
 import { buildPdfReport } from '../../lib/pdfUtils'
+import Button from '../../components/ui/Button'
 
 const STORAGE_LOCATIONS = ['Walk-in fridge', 'Reach-in fridge', 'Freezer', 'Dry store', 'Counter']
 
 function SectionLabel({ children }) {
-  return <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-3">{children}</p>
+  return <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-3">{children}</p>
 }
 
 function groupByDate(logs) {
@@ -114,12 +115,12 @@ export default function DateLabellingPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-charcoal dark:text-white">Date Labelling</h1>
         {isManager && (
-          <button
+          <Button
+            variant="label"
             onClick={() => setShowExport(true)}
-            className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white transition-colors border-b border-charcoal/20 dark:border-white/20"
           >
             Export PDF
-          </button>
+          </Button>
         )}
       </div>
 
@@ -128,20 +129,19 @@ export default function DateLabellingPage() {
         <div className="flex flex-col gap-4">
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1.5">From</label>
+              <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1.5">From</label>
               <input type="date" value={exportFrom} onChange={e => setExportFrom(e.target.value)}
                 className="w-full px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20" />
             </div>
             <div>
-              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1.5">To</label>
+              <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1.5">To</label>
               <input type="date" value={exportTo} onChange={e => setExportTo(e.target.value)}
                 className="w-full px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20" />
             </div>
           </div>
-          <button onClick={handleExportPdf} disabled={exporting}
-            className="w-full bg-charcoal text-cream py-2.5 rounded-lg text-sm font-medium hover:bg-charcoal/90 transition-colors disabled:opacity-40">
+          <Button fullWidth loading={exporting} onClick={handleExportPdf} disabled={exporting}>
             {exporting ? 'Generating…' : 'Export PDF →'}
-          </button>
+          </Button>
         </div>
       </Modal>
 
@@ -151,7 +151,7 @@ export default function DateLabellingPage() {
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
 
           <div>
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">Item Name</label>
+            <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">Item Name</label>
             <input
               value={form.item_name}
               onChange={e => setForm(f => ({ ...f, item_name: e.target.value }))}
@@ -162,7 +162,7 @@ export default function DateLabellingPage() {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">Opened Date</label>
+              <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">Opened Date</label>
               <input
                 type="date"
                 value={form.opened_date}
@@ -171,7 +171,7 @@ export default function DateLabellingPage() {
               />
             </div>
             <div>
-              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">Use By Date</label>
+              <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">Use By Date</label>
               <input
                 type="date"
                 value={form.use_by_date}
@@ -183,7 +183,7 @@ export default function DateLabellingPage() {
           </div>
 
           <div>
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">
+            <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">
               Storage Location <span className="normal-case text-charcoal/30 dark:text-white/30">(optional)</span>
             </label>
             <div className="flex flex-wrap gap-1.5">
@@ -219,7 +219,7 @@ export default function DateLabellingPage() {
           </div>
 
           <div>
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">
+            <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">
               Notes <span className="normal-case text-charcoal/30 dark:text-white/30">(optional)</span>
             </label>
             <textarea
@@ -231,13 +231,14 @@ export default function DateLabellingPage() {
             />
           </div>
 
-          <button
+          <Button
+            loading={submitting}
             type="submit"
             disabled={!canSubmit || submitting}
-            className="bg-charcoal text-cream px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-charcoal/90 transition-colors disabled:opacity-30 disabled:cursor-not-allowed self-start"
+            className="self-start"
           >
-            {submitting ? '…' : 'Log Item →'}
-          </button>
+            Log Item →
+          </Button>
         </form>
       </div>
 

@@ -8,12 +8,13 @@ export interface Complaint {
 }
 
 export async function fetchComplaints(venueId: string): Promise<Complaint[]> {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('food_complaints')
     .select('*')
     .eq('venue_id', venueId)
     .order('date_received', { ascending: false })
     .limit(200)
+  if (error) throw error
   return (data ?? []) as unknown as Complaint[]
 }
 

@@ -1,3 +1,4 @@
+import { colors } from './tokens'
 /**
  * compliance — the single source of truth for the venue compliance score.
  *
@@ -149,11 +150,12 @@ export function deriveComplianceIssues(m) {
  */
 export const COMPLIANCE_RANGE_DAYS = 90
 
+// `cls` is the text colour for each tier, light and dark (SVGs use currentColor).
 export const SCORE_TIERS = [
-  { min: 90, label: 'Excellent',         color: '#15803d', status: 'good'    },
-  { min: 75, label: 'Good',              color: '#16a34a', status: 'good'    },
-  { min: 60, label: 'Needs Improvement', color: '#d97706', status: 'warning' },
-  { min: 0,  label: 'Poor',              color: '#dc2626', status: 'bad'     },
+  { min: 90, label: 'Excellent',         color: colors.good, cls: 'text-good dark:text-goodDark', status: 'good'    },
+  { min: 75, label: 'Good',              color: colors.good, cls: 'text-good dark:text-goodDark', status: 'good'    },
+  { min: 60, label: 'Needs Improvement', color: colors.warn, cls: 'text-warn dark:text-warnDark', status: 'warning' },
+  { min: 0,  label: 'Poor',              color: colors.bad,  cls: 'text-bad dark:text-badDark',   status: 'bad'     },
 ]
 
 export function getScoreTier(score) {

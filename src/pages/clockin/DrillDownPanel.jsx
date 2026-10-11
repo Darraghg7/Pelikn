@@ -3,6 +3,7 @@ import { format } from 'date-fns'
 import { unpaidBreakMins, shiftDurationHours } from '../../hooks/useShifts'
 import { formatMinutes } from '../../lib/utils'
 import { formatLondon } from '../../lib/time'
+import Button from '../../components/ui/Button'
 
 function fmtTime(iso) {
   if (!iso) return '?'
@@ -49,12 +50,13 @@ const DrillDownPanel = memo(function DrillDownPanel({
       <div className="mx-4 mb-2 p-3 rounded-xl bg-charcoal/3 dark:bg-white/5 text-xs text-charcoal/35 dark:text-white/30 italic flex items-center justify-between">
         <span>No clock events or scheduled shifts this week.</span>
         {adminMode && (
-          <button
+          <Button
+            variant="link"
             onClick={() => onAddForPerson(person.staffId, '')}
-            className="text-[11px] text-brand/70 hover:text-brand transition-colors font-medium shrink-0"
+            className="shrink-0"
           >
             + Add Session
-          </button>
+          </Button>
         )}
       </div>
     )
@@ -77,7 +79,7 @@ const DrillDownPanel = memo(function DrillDownPanel({
         return (
           <div key={dateStr} className={['px-4 py-3', i > 0 ? 'border-t border-charcoal/6 dark:border-white/8' : ''].join(' ')}>
             {/* Day header */}
-            <p className="text-[11px] tracking-widest uppercase text-charcoal/45 dark:text-white/40 font-semibold mb-2">
+            <p className="text-micro tracking-widest uppercase text-charcoal/45 dark:text-white/40 font-semibold mb-2">
               {format(d, 'EEE d MMM')}
             </p>
 
@@ -135,14 +137,14 @@ const DrillDownPanel = memo(function DrillDownPanel({
                     <>
                       <button
                         onClick={() => onEditSession(s)}
-                        className="ml-1 text-charcoal/45 dark:text-white/40 hover:text-charcoal dark:hover:text-white text-[11px] border border-charcoal/15 dark:border-white/15 hover:border-charcoal/35 dark:hover:border-white/35 rounded px-1.5 py-0.5 transition-colors leading-none shrink-0"
+                        className="ml-1 text-charcoal/45 dark:text-white/40 hover:text-charcoal dark:hover:text-white text-micro border border-charcoal/15 dark:border-white/15 hover:border-charcoal/35 dark:hover:border-white/35 rounded px-1.5 py-0.5 transition-colors leading-none shrink-0"
                         title="Edit this session"
                       >
                         Edit
                       </button>
                       <button
                         onClick={() => onDeleteSession(eventIds)}
-                        className="ml-1 text-danger/50 hover:text-danger text-[11px] border border-danger/20 hover:border-danger/50 rounded px-1.5 py-0.5 transition-colors leading-none shrink-0"
+                        className="ml-1 text-danger/50 hover:text-danger text-micro border border-danger/20 hover:border-danger/50 rounded px-1.5 py-0.5 transition-colors leading-none shrink-0"
                         title="Remove this session"
                       >
                         Remove
@@ -170,12 +172,13 @@ const DrillDownPanel = memo(function DrillDownPanel({
 
             {/* Per-day add button (admin mode) */}
             {adminMode && (
-              <button
+              <Button
+                variant="link"
                 onClick={() => onAddForPerson(person.staffId, dateStr)}
-                className="mt-2 text-[11px] text-brand/60 hover:text-brand transition-colors"
+                className="mt-2"
               >
                 + Add session for this day
-              </button>
+              </Button>
             )}
           </div>
         )

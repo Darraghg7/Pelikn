@@ -1,11 +1,12 @@
 import React, { useState } from 'react'
 import { format, subDays } from 'date-fns'
-import { loadPdfLibs } from '../../lib/pdfUtils'
+import { loadPdfLibs, PDF } from '../../lib/pdfUtils'
 import { supabase } from '../../lib/supabase'
 import { useFridges } from '../../hooks/useFridgeLogs'
 import { useVenue } from '../../contexts/VenueContext'
 import Modal from '../../components/ui/Modal'
 import { useToast } from '../../components/ui/Toast'
+import Button from '../../components/ui/Button'
 
 export default function FridgeExportModal({ open, onClose }) {
   const { venueId } = useVenue()
@@ -44,14 +45,14 @@ export default function FridgeExportModal({ open, onClose }) {
     doc.text('Pelikn', 14, 18)
     doc.setFont('helvetica', 'normal')
     doc.setFontSize(10)
-    doc.setTextColor(100)
+    doc.setTextColor(...PDF.muted)
     doc.text('Temperature Log Report', 14, 25)
     doc.text(`Period: ${dateFrom} – ${dateTo}`, 14, 31)
     if (fridgeId) {
       const fridge = fridges.find(f => f.id === fridgeId)
       doc.text(`Fridge: ${fridge?.name ?? fridgeId}`, 14, 37)
     }
-    doc.setTextColor(0)
+    doc.setTextColor(...PDF.ink)
 
     // Table
     autoTable(doc, {
@@ -72,15 +73,15 @@ export default function FridgeExportModal({ open, onClose }) {
           row.notes ?? '',
         ]
       }),
-      headStyles: { fillColor: [40, 40, 40], textColor: 255, fontSize: 9 },
+      headStyles: { fillColor: PDF.head, textColor: PDF.white, fontSize: 9 },
       bodyStyles: { fontSize: 8 },
       columnStyles: { 5: { fontStyle: 'bold' } },
       didParseCell(hookData) {
         if (hookData.section === 'body' && hookData.column.index === 5 && hookData.cell.raw === 'OUT OF RANGE') {
-          hookData.cell.styles.textColor = [180, 30, 30]
+          hookData.cell.styles.textColor = PDF.bad
         }
       },
-      alternateRowStyles: { fillColor: [248, 248, 248] },
+      alternateRowStyles: { fillColor: PDF.rowAlt },
     })
 
     // Footer
@@ -88,7 +89,7 @@ export default function FridgeExportModal({ open, onClose }) {
     for (let i = 1; i <= pageCount; i++) {
       doc.setPage(i)
       doc.setFontSize(7)
-      doc.setTextColor(150)
+      doc.setTextColor(...PDF.faint)
       doc.text(
         `Generated ${format(new Date(), 'dd/MM/yyyy HH:mm')} · Page ${i} of ${pageCount}`,
         pageW / 2, doc.internal.pageSize.getHeight() - 8,
@@ -106,19 +107,19 @@ export default function FridgeExportModal({ open, onClose }) {
       <div className="flex flex-col gap-4">
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1.5">From</label>
+            <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1.5">From</label>
             <input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)}
               className="w-full px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20" />
           </div>
           <div>
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1.5">To</label>
+            <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1.5">To</label>
             <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)}
               className="w-full px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20" />
           </div>
         </div>
 
         <div>
-          <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1.5">Fridge</label>
+          <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1.5">Fridge</label>
           <select value={fridgeId} onChange={e => setFridgeId(e.target.value)}
             className="w-full px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20">
             <option value="">All fridges</option>
@@ -126,13 +127,14 @@ export default function FridgeExportModal({ open, onClose }) {
           </select>
         </div>
 
-        <button
+        <Button
+          fullWidth
+          loading={loading}
           onClick={handleExport}
           disabled={loading}
-          className="w-full bg-charcoal text-cream py-2.5 rounded-lg text-sm font-medium hover:bg-charcoal/90 transition-colors disabled:opacity-40"
         >
           {loading ? 'Generating…' : 'Export PDF →'}
-        </button>
+        </Button>
       </div>
     </Modal>
   )

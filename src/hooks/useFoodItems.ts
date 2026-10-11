@@ -22,6 +22,7 @@ interface UseFoodItemsOptions {
 export function useFoodItems(search = '', options: UseFoodItemsOptions = {}): {
   items: FoodItem[]
   loading: boolean
+  isError: boolean
   reload: () => void
 } {
   const { venueId } = useVenue()
@@ -30,7 +31,7 @@ export function useFoodItems(search = '', options: UseFoodItemsOptions = {}): {
 
   const queryKey = ['food_items', venueId, search, includeInactive]
 
-  const { data: items = [], isLoading: loading } = useQuery({
+  const { data: items = [], isLoading: loading, isError } = useQuery({
     queryKey,
     queryFn: async () => {
       let q = supabase
@@ -42,7 +43,8 @@ export function useFoodItems(search = '', options: UseFoodItemsOptions = {}): {
       if (!includeInactive) q = q.eq('is_active', true)
       if (search) q = q.ilike('name', `%${search}%`)
 
-      const { data } = await q
+      const { data, error } = await q
+      if (error) throw error
       return (data ?? []) as FoodItem[]
     },
     enabled: !!venueId,
@@ -50,7 +52,7 @@ export function useFoodItems(search = '', options: UseFoodItemsOptions = {}): {
 
   const reload = () => queryClient.invalidateQueries({ queryKey })
 
-  return { items, loading, reload }
+  return { items, loading, isError, reload }
 }
 
 export function useFoodItem(id: string): { item: FoodItem | null; loading: boolean } {
@@ -59,12 +61,13 @@ export function useFoodItem(id: string): { item: FoodItem | null; loading: boole
   const { data: item = null, isLoading: loading } = useQuery({
     queryKey: ['food_item', venueId, id],
     queryFn: async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('food_items')
         .select('*, food_allergens(allergen)')
         .eq('id', id)
         .eq('venue_id', venueId)
         .single()
+      if (error) throw error
       return (data ?? null) as FoodItem | null
     },
     enabled: !!id && !!venueId,

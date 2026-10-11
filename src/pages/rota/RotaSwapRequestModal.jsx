@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react'
 import { format } from 'date-fns'
+import Button from '../../components/ui/Button'
 
 export default function RotaSwapRequestModal({
   swapModal,
@@ -14,10 +15,10 @@ export default function RotaSwapRequestModal({
 
   useEffect(() => {
     if (!swapModal) return
-    const handler = (e) => { if (e.key === 'Escape') onClose() }
+    const handler = (e) => { if (e.key === 'Escape') setSwapModal(null) }
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
-  }, [swapModal]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [swapModal, setSwapModal])
 
   if (!swapModal) return null
 
@@ -26,7 +27,7 @@ export default function RotaSwapRequestModal({
       <div onClick={(e) => e.stopPropagation()} className="bg-white dark:bg-paperDark rounded-2xl w-full max-w-md p-6 flex flex-col gap-5 shadow-2xl max-h-[90dvh] overflow-y-auto" style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
 
         <div>
-          <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-1">Request Shift Swap</p>
+          <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-1">Request Shift Swap</p>
           <h3 className="font-semibold text-charcoal dark:text-white text-lg">
             {swapModal.shift.start_time?.slice(0,5) ?? ''} – {swapModal.shift.end_time?.slice(0,5) ?? ''}
           </h3>
@@ -36,7 +37,7 @@ export default function RotaSwapRequestModal({
         </div>
 
         <div>
-          <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">
+          <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">
             Swap with <span className="text-danger">*</span>
           </label>
           <div className="flex flex-wrap gap-2">
@@ -63,7 +64,7 @@ export default function RotaSwapRequestModal({
         </div>
 
         <div>
-          <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">
+          <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">
             Message (optional)
           </label>
           <textarea
@@ -76,19 +77,20 @@ export default function RotaSwapRequestModal({
         </div>
 
         <div className="flex gap-2">
-          <button
+          <Button
+            loading={swapSaving}
             onClick={submitSwapRequest}
             disabled={swapSaving || !swapForm.targetStaffId}
-            className="flex-1 bg-charcoal text-cream py-2.5 rounded-lg text-sm font-medium hover:bg-charcoal/90 transition-colors disabled:opacity-40"
+            className="flex-1"
           >
             {swapSaving ? 'Sending…' : 'Request Swap →'}
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="secondary"
             onClick={onClose}
-            className="px-4 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 text-sm text-charcoal/50 dark:text-white/40 hover:text-charcoal dark:hover:text-white transition-colors"
           >
             Cancel
-          </button>
+          </Button>
         </div>
       </div>
     </div>

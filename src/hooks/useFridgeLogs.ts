@@ -85,15 +85,16 @@ export function useFridgeMatrix(dateFrom: string, dateTo: string): {
 export function useFridgeHistory(fridgeId: string, dateFrom: string, dateTo: string): {
   logs: FridgeLog[]
   loading: boolean
+  isError: boolean
   reload: () => void
 } {
   const { venueId } = useVenue()
 
-  const { data, isLoading, refetch } = useQuery({
+  const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ['fridgeHistory', venueId, fridgeId, dateFrom, dateTo],
     queryFn: () => fetchFridgeHistory(venueId!, fridgeId, dateFrom, dateTo),
     enabled: !!venueId,
   })
 
-  return { logs: (data ?? []) as FridgeLog[], loading: isLoading, reload: refetch }
+  return { logs: (data ?? []) as FridgeLog[], loading: isLoading, isError, reload: refetch }
 }

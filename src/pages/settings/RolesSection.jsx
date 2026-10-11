@@ -3,6 +3,8 @@ import { useToast } from '../../components/ui/Toast'
 import { useVenueRoles, useStaffRoleAssignments } from '../../hooks/useVenueRoles'
 import { useDepartments, useStaffDepartments } from '../../hooks/useDepartments'
 import ConfirmDialog from '../../components/ui/ConfirmDialog'
+import Button from '../../components/ui/Button'
+import { colors } from '../../lib/tokens'
 
 /* ── Departments: where people work ─────────────────────────────────────────── */
 // People are ticked into departments on their staff page; cleaning tasks,
@@ -68,18 +70,18 @@ function DepartmentsSection() {
                     autoFocus
                   />
                   <div className="flex gap-1">
-                    <button onClick={() => handleRename(dept.id)} className="h-7 px-2.5 rounded-md bg-charcoal text-cream text-xs font-medium">Save</button>
-                    <button onClick={() => setEditingId(null)}     className="h-7 px-2.5 rounded-md text-xs text-charcoal/50 dark:text-white/40">Cancel</button>
+                    <Button size="sm" onClick={() => handleRename(dept.id)}>Save</Button>
+                    <Button variant="ghost" size="sm" onClick={() => setEditingId(null)}    >Cancel</Button>
                   </div>
                 </>
               ) : (
                 <>
                   <span className="text-sm font-medium text-charcoal dark:text-white truncate">{dept.name}</span>
                   <div className="flex gap-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
-                    <button onClick={() => { setEditingId(dept.id); setEditName(dept.name) }}
-                            className="h-7 px-2.5 rounded-md border border-charcoal/12 dark:border-white/15 text-xs font-medium text-charcoal/60 dark:text-white/50 hover:text-charcoal dark:hover:text-white hover:border-charcoal/30 dark:hover:border-white/30 transition-colors">Rename</button>
-                    <button onClick={() => setDeleteTarget({ id: dept.id, name: dept.name })}
-                            className="h-7 px-2.5 rounded-md border border-charcoal/12 dark:border-white/15 text-xs font-medium text-charcoal/60 dark:text-white/50 hover:text-danger hover:border-danger/30 transition-colors">Remove</button>
+                    <Button variant="secondary" size="sm" onClick={() => { setEditingId(dept.id); setEditName(dept.name) }}
+                           >Rename</Button>
+                    <Button variant="secondary" size="sm" onClick={() => setDeleteTarget({ id: dept.id, name: dept.name })}
+                           >Remove</Button>
                   </div>
                 </>
               )}
@@ -101,13 +103,13 @@ function DepartmentsSection() {
           placeholder="Department name (e.g. Kitchen)"
           className="flex-1 px-3 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white placeholder-charcoal/25 dark:placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
         />
-        <button
+        <Button
+          loading={saving}
           onClick={handleAdd}
           disabled={saving || !newName.trim()}
-          className="px-4 py-2.5 rounded-xl bg-charcoal text-cream text-sm font-medium hover:bg-charcoal/90 transition-colors disabled:opacity-40"
         >
-          {saving ? '…' : '+ Add'}
-        </button>
+          + Add
+        </Button>
       </div>
     </div>
   )
@@ -158,7 +160,7 @@ export default function RolesSection() {
         onConfirm={confirmDelete}
         onClose={() => setDeleteTarget(null)}
       />
-      <p className="text-[11px] font-bold tracking-widest uppercase text-charcoal/40 dark:text-white/35">Departments</p>
+      <p className="text-micro font-bold tracking-widest uppercase text-charcoal/40 dark:text-white/35">Departments</p>
       <p className="text-xs text-charcoal/45 dark:text-white/40 -mt-2">
         Where people work. Tick each person into their departments on their staff page. Cleaning, Tasks and Checks are
         assigned to a department, so people only see their own. Managers can switch between departments or view all.
@@ -166,7 +168,7 @@ export default function RolesSection() {
       </p>
       <DepartmentsSection />
 
-      <p className="text-[11px] font-bold tracking-widest uppercase text-charcoal/40 dark:text-white/35 mt-1">Job titles</p>
+      <p className="text-micro font-bold tracking-widest uppercase text-charcoal/40 dark:text-white/35 mt-1">Job titles</p>
       <p className="text-xs text-charcoal/45 dark:text-white/40 -mt-2">
         What people do (e.g. Barista, Chef). Used by the rota builder to fill shifts. Job titles don't change what anyone sees.
       </p>
@@ -188,21 +190,21 @@ export default function RolesSection() {
                     autoFocus
                   />
                   <div className="flex gap-1">
-                    <button onClick={() => handleRename(role.id)}  className="h-7 px-2.5 rounded-md bg-charcoal text-cream text-xs font-medium">Save</button>
-                    <button onClick={() => setEditingId(null)}      className="h-7 px-2.5 rounded-md text-xs text-charcoal/50 dark:text-white/40">Cancel</button>
+                    <Button size="sm" onClick={() => handleRename(role.id)} >Save</Button>
+                    <Button variant="ghost" size="sm" onClick={() => setEditingId(null)}     >Cancel</Button>
                   </div>
                 </>
               ) : (
                 <>
                   <span className="flex items-center gap-2 min-w-0">
-                    <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: role.color || '#1a3c2e' }} />
+                    <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: role.color || colors.brand.DEFAULT }} />
                     <span className="text-sm font-medium text-charcoal dark:text-white truncate">{role.name}</span>
                   </span>
                   <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button onClick={() => { setEditingId(role.id); setEditName(role.name) }}
-                            className="h-7 px-2.5 rounded-md border border-charcoal/12 dark:border-white/15 text-xs font-medium text-charcoal/60 dark:text-white/50 hover:text-charcoal dark:hover:text-white hover:border-charcoal/30 dark:hover:border-white/30 transition-colors">Rename</button>
-                    <button onClick={() => setDeleteTarget({ id: role.id, name: role.name })}
-                            className="h-7 px-2.5 rounded-md border border-charcoal/12 dark:border-white/15 text-xs font-medium text-charcoal/60 dark:text-white/50 hover:text-danger hover:border-danger/30 transition-colors">Remove</button>
+                    <Button variant="secondary" size="sm" onClick={() => { setEditingId(role.id); setEditName(role.name) }}
+                           >Rename</Button>
+                    <Button variant="secondary" size="sm" onClick={() => setDeleteTarget({ id: role.id, name: role.name })}
+                           >Remove</Button>
                   </div>
                 </>
               )}
@@ -226,13 +228,13 @@ export default function RolesSection() {
           placeholder="Job title (e.g. Barista)"
           className="flex-1 px-3 py-2.5 rounded-xl border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white placeholder-charcoal/25 dark:placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
         />
-        <button
+        <Button
+          loading={saving}
           onClick={handleAdd}
           disabled={saving || !newName.trim()}
-          className="px-4 py-2.5 rounded-xl bg-charcoal text-cream text-sm font-medium hover:bg-charcoal/90 transition-colors disabled:opacity-40"
         >
-          {saving ? '…' : '+ Add'}
-        </button>
+          + Add
+        </Button>
       </div>
     </div>
   )
@@ -251,7 +253,7 @@ export function StaffDepartmentsAssignment({ staffId }) {
 
   if (departments.length === 0) {
     return (
-      <p className="text-[13px] text-ink3 dark:text-white/45">
+      <p className="text-body-sm text-ink3 dark:text-white/45">
         No departments set up yet. Add them under the Departments tab first.
       </p>
     )
@@ -268,7 +270,7 @@ export function StaffDepartmentsAssignment({ staffId }) {
             onClick={() => onToggle(dept.id)}
             aria-pressed={active}
             className={[
-              'h-8 px-3.5 rounded-full border text-[13px] font-semibold transition-colors',
+              'h-8 px-3.5 rounded-full border text-body-sm font-semibold transition-colors',
               active
                 ? 'bg-brand border-brand text-white'
                 : 'bg-white dark:bg-paperDark border-line dark:border-white/10 text-ink2 dark:text-white/75 hover:border-ink4',
@@ -295,7 +297,7 @@ export function StaffRolesAssignment({ staffId }) {
 
   if (roles.length === 0) {
     return (
-      <p className="text-[13px] text-ink3 dark:text-white/45">
+      <p className="text-body-sm text-ink3 dark:text-white/45">
         No job titles set up yet. Add them under the Departments tab first.
       </p>
     )
@@ -312,7 +314,7 @@ export function StaffRolesAssignment({ staffId }) {
             onClick={() => onToggle(role.id)}
             aria-pressed={active}
             className={[
-              'h-8 px-3.5 rounded-full border text-[13px] font-semibold transition-colors',
+              'h-8 px-3.5 rounded-full border text-body-sm font-semibold transition-colors',
               active
                 ? 'bg-brand border-brand text-white'
                 : 'bg-white dark:bg-paperDark border-line dark:border-white/10 text-ink2 dark:text-white/75 hover:border-ink4',

@@ -123,7 +123,7 @@ export default function SignupFlowPage() {
           <Link to="/" className="font-bold text-brand text-lg tracking-tight hover:opacity-80 transition-opacity">
             Pelikn
           </Link>
-          <div className="flex items-center gap-1.5 text-[11px] text-charcoal/35 dark:text-white/30">
+          <div className="flex items-center gap-1.5 text-micro text-charcoal/35 dark:text-white/30">
             <IconLock />
             <span>Secure signup</span>
           </div>

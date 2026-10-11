@@ -5,6 +5,7 @@ import { useVenue } from '../../contexts/VenueContext'
 import { useToast } from '../../components/ui/Toast'
 import { PageSkeleton } from '../../components/ui/Skeleton'
 import { EU_ALLERGENS } from '../../lib/constants'
+import Button, { CloseButton } from '../../components/ui/Button'
 
 const EMPTY_INGREDIENT = { name: '', allergen: null }
 
@@ -38,7 +39,7 @@ export default function PPDSItemFormPage() {
         setMayContain(data.may_contain_allergens ?? [])
         setLoading(false)
       })
-  }, [id, venueId, isEdit]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [id, venueId, isEdit]) // eslint-disable-line react-hooks/exhaustive-deps -- load the saved item once per id/venue; toast/navigate/venueSlug are only used on the not-found path, and re-running would overwrite unsaved edits in the form
 
   // ── Ingredient list helpers ──────────────────────────────────────────────────
 
@@ -116,7 +117,7 @@ export default function PPDSItemFormPage() {
       {/* Basic info */}
       <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-5 flex flex-col gap-4">
         <div className="flex flex-col gap-1">
-          <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">Product name <span className="text-danger">*</span></label>
+          <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">Product name <span className="text-danger">*</span></label>
           <input
             value={name}
             onChange={e => setName(e.target.value)}
@@ -125,7 +126,7 @@ export default function PPDSItemFormPage() {
           />
         </div>
         <div className="flex flex-col gap-1">
-          <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">Description (optional)</label>
+          <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">Description (optional)</label>
           <input
             value={description}
             onChange={e => setDesc(e.target.value)}
@@ -139,7 +140,7 @@ export default function PPDSItemFormPage() {
       <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-5 flex flex-col gap-4">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">Ingredients</p>
+            <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">Ingredients</p>
             <p className="text-xs text-charcoal/35 dark:text-white/30 mt-0.5">In descending order by weight. Tick the allergen if one applies.</p>
           </div>
         </div>
@@ -193,30 +194,24 @@ export default function PPDSItemFormPage() {
               </select>
 
               {/* Remove */}
-              <button
-                type="button"
-                onClick={() => removeIngredient(idx)}
-                disabled={ingredients.length === 1}
-                className="mt-1 w-7 h-7 flex items-center justify-center text-charcoal/25 dark:text-white/25 hover:text-danger transition-colors disabled:opacity-20 shrink-0"
-              >
-                ×
-              </button>
+              <CloseButton label="Remove ingredient" className="shrink-0" onClick={() => removeIngredient(idx)} disabled={ingredients.length === 1} />
             </div>
           ))}
         </div>
 
-        <button
-          type="button"
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={addIngredient}
-          className="self-start text-xs text-accent hover:text-accent/70 transition-colors font-medium"
+          className="self-start -ml-3"
         >
           + Add ingredient
-        </button>
+        </Button>
 
         {/* Live preview */}
         {ingredients.some(r => r.name.trim()) && (
           <div className="bg-charcoal/3 dark:bg-white/5 rounded-lg px-4 py-3 border border-charcoal/8 dark:border-white/8">
-            <p className="text-[11px] tracking-widest uppercase text-charcoal/30 dark:text-white/30 mb-1">Label preview</p>
+            <p className="text-micro tracking-widest uppercase text-charcoal/30 dark:text-white/30 mb-1">Label preview</p>
             <p className="text-xs text-charcoal/70 dark:text-white/60 leading-relaxed font-sans">
               <span className="font-bold">INGREDIENTS: </span>
               {ingredients
@@ -239,7 +234,7 @@ export default function PPDSItemFormPage() {
       {/* May Contain */}
       <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-5 flex flex-col gap-3">
         <div>
-          <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">May Contain</p>
+          <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">May Contain</p>
           <p className="text-xs text-charcoal/35 dark:text-white/30 mt-0.5">Cross-contamination risks — select any that apply to your kitchen environment.</p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -271,13 +266,14 @@ export default function PPDSItemFormPage() {
         >
           Cancel
         </Link>
-        <button
+        <Button
+          loading={saving}
           onClick={save}
           disabled={saving}
-          className="flex-1 bg-charcoal text-cream py-3 rounded-xl text-sm font-semibold hover:bg-charcoal/90 transition-colors disabled:opacity-40"
+          className="flex-1"
         >
           {saving ? 'Saving…' : isEdit ? 'Save Changes' : 'Create PPDS Item'}
-        </button>
+        </Button>
       </div>
     </div>
   )

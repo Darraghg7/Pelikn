@@ -1,6 +1,6 @@
-// Lint config. Three rules here are load-bearing and must stay clean:
-// `react-hooks/rules-of-hooks`, `no-undef`, and the no-silent-catch pair
-// (see each for why).
+// Lint config. Four rules here are load-bearing and must stay clean:
+// `react-hooks/rules-of-hooks`, `react-hooks/exhaustive-deps`, `no-undef`, and
+// the no-silent-catch pair (see each for why).
 //
 // React error #310 ("Rendered more hooks than during the previous render") has
 // hit production three times, always the same shape: a hook sitting below an
@@ -8,9 +8,15 @@
 // the repo had `eslint-disable-line react-hooks/exhaustive-deps` comments but
 // no ESLint. rules-of-hooks is an error and must stay clean.
 //
-// exhaustive-deps is a warning on purpose: the codebase has a large existing
-// backlog of them, and turning it red would just get the whole lint step
-// ignored. Fix them as you touch the files.
+// exhaustive-deps is an error too. A hook missing a dependency keeps using the
+// values from an earlier render — the "only right after a reload" bugs
+// (permissions frozen at sign-in, closed days not noticed). The backlog was
+// cleared before it was made an error. When a hook really must ignore a
+// dependency, disable it on that line and say why:
+//   // eslint-disable-next-line react-hooks/exhaustive-deps -- <reason>
+// Adding a dependency that is a fresh object/array every render makes the
+// effect re-run every render — stabilise it (useMemo/useCallback, a module
+// constant, or depend on a primitive) rather than reaching for the disable.
 
 import reactHooks from 'eslint-plugin-react-hooks';
 import tsParser from '@typescript-eslint/parser';
@@ -53,7 +59,7 @@ export default [
     },
     rules: {
       'react-hooks/rules-of-hooks': 'error',
-      'react-hooks/exhaustive-deps': 'warn',
+      'react-hooks/exhaustive-deps': 'error',
       // No silently swallowed errors. A failed save that looks like it worked
       // is worse than a crash — it is how compliance records go missing
       // without anyone knowing. An empty catch must hold a comment saying why

@@ -8,11 +8,12 @@ import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { format, startOfWeek } from 'date-fns'
 import { supabase } from '../../lib/supabase'
+import { reportError } from '../../lib/reportError'
 import { isActionDueToday } from '../../hooks/useTodaySummary'
 import { TODAY_ITEM_REGISTRY } from './todayItemRegistry'
 import { WIDGET_REGISTRY } from '../../components/widgets/WidgetRegistry'
 import { FetchWhenNearViewport } from '../../hooks/useWidgetFetchGate'
-import { useClockStatus, nextClockStatus } from '../../hooks/useClockEvents'
+import { useClockStatus, nextClockStatus, useQueuedClockEvent } from '../../hooks/useClockEvents'
 import { useClockAlerts } from '../../hooks/useClockAlerts'
 import { offlineRpc } from '../../lib/offlineSupabase'
 import { fetchUnsignedTrainingCount, unsignedTrainingKey } from '../../lib/api/training'
@@ -40,6 +41,8 @@ import {
   arrayMove,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
+import Button from '../../components/ui/Button'
+import { colors, alpha, white } from '../../lib/tokens'
 
 // ── Live time (updates every minute) ──────────────────────────────────────
 function useLiveTime() {
@@ -89,15 +92,15 @@ function MobileStatTile({ item, summary, vp }) {
     <Tag {...tagProps} className="min-w-0 bg-white dark:bg-paperDark border border-line dark:border-white/10 rounded-2xl px-2.5 min-[420px]:px-3 pt-2.5 pb-2.5 flex flex-col gap-1.5 no-underline active:bg-cream dark:active:bg-white/5 transition-colors">
       <span className="flex items-start gap-1.5 min-w-0 min-h-[30px] min-[420px]:min-h-0">
         <span className={`w-2 h-2 mt-1 rounded-full shrink-0 ${isDanger ? 'bg-bad' : 'bg-good'}`} />
-        <span className="text-[12px] min-[420px]:text-[13px] text-ink2 dark:text-white/70 leading-tight break-words">
+        <span className="text-caption min-[420px]:text-body-sm text-ink2 dark:text-white/70 leading-tight break-words">
           {TILE_LABELS[item.id] ?? item.metricLabel}
         </span>
       </span>
-      <span className={`font-mono text-[20px] font-semibold leading-none ${isDanger ? 'text-bad dark:text-[#f19a86]' : 'text-ink dark:text-white'}`}>
+      <span className={`font-mono text-title font-semibold leading-none ${isDanger ? 'text-bad dark:text-badDark' : 'text-ink dark:text-white'}`}>
         {value}
       </span>
       {sub && (
-        <span className={`text-[12px] min-[420px]:text-[13px] leading-tight ${isDanger ? 'text-bad dark:text-[#f19a86]' : 'text-ink3 dark:text-white/45'}`}>
+        <span className={`text-caption min-[420px]:text-body-sm leading-tight ${isDanger ? 'text-bad dark:text-badDark' : 'text-ink3 dark:text-white/45'}`}>
           {sub}
         </span>
       )}
@@ -108,7 +111,7 @@ function MobileStatTile({ item, summary, vp }) {
 // ── Section label (floating, mono-uppercase) ───────────────────────────────
 function SectionLabel({ children }) {
   return (
-    <span className="text-[12px] font-semibold tracking-[0.08em] uppercase text-ink3 dark:text-white/45 block mb-2 px-1">
+    <span className="text-caption font-semibold tracking-[0.08em] uppercase text-ink3 dark:text-white/45 block mb-2 px-1">
       {children}
     </span>
   )
@@ -133,20 +136,20 @@ function AttentionCard({ actions, editMode }) {
       {isEmpty ? (
         <div className="flex items-center gap-3.5 px-3.5 sm:px-3.5 py-2.5">
           <div className="w-9 h-8 rounded-xl bg-goodBg dark:bg-good/20 flex items-center justify-center shrink-0">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-good dark:text-[#7fd1a4]">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-good dark:text-goodDark">
               <polyline points="20 6 9 17 4 12"/>
             </svg>
           </div>
           <div>
-            <div className="text-[14px] font-semibold text-ink dark:text-white">All clear</div>
-            <div className="text-[13px] text-ink3 dark:text-white/45 mt-0.5">Nothing needs your attention right now.</div>
+            <div className="text-body font-semibold text-ink dark:text-white">All clear</div>
+            <div className="text-body-sm text-ink3 dark:text-white/45 mt-0.5">Nothing needs your attention right now.</div>
           </div>
         </div>
       ) : (
         <div>
           <div className="flex items-center gap-2 px-3.5 sm:px-3.5 py-2">
-            <span className="text-[12px] font-semibold tracking-[0.08em] uppercase text-ink3 dark:text-white/45">Needs you</span>
-            <span className="min-w-[24px] h-6 px-1.5 rounded-full bg-bad text-white text-[12px] font-bold inline-flex items-center justify-center">
+            <span className="text-caption font-semibold tracking-[0.08em] uppercase text-ink3 dark:text-white/45">Needs you</span>
+            <span className="min-w-[24px] h-6 px-1.5 rounded-full bg-bad text-white text-caption font-bold inline-flex items-center justify-center">
               {actions.length}
             </span>
           </div>
@@ -162,8 +165,8 @@ function AttentionCard({ actions, editMode }) {
                 >
                   <span className={`shrink-0 w-2.5 h-2.5 rounded-full ${isOverdue ? 'bg-bad' : 'bg-warn'}`} />
                   <span className="flex-1 min-w-0">
-                    <span className="block text-[14px] font-semibold text-ink dark:text-white">{a.label}</span>
-                    {a.detail && <span className="block text-[13px] text-ink3 dark:text-white/45 mt-0.5">{a.detail}</span>}
+                    <span className="block text-body font-semibold text-ink dark:text-white">{a.label}</span>
+                    {a.detail && <span className="block text-body-sm text-ink3 dark:text-white/45 mt-0.5">{a.detail}</span>}
                   </span>
                   {a.to && (
                     <svg className="shrink-0 w-4 h-4 text-ink4 dark:text-white/35" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
@@ -187,10 +190,10 @@ function DisciplinaryStrip({ alerts, editMode, venueSlug }) {
       editMode ? 'opacity-45' : 'opacity-100',
     ].join(' ')}>
       <div className="flex items-center gap-1.5">
-        <span className="font-mono text-[11px] tracking-[0.1em] uppercase text-white/65 font-semibold">
+        <span className="font-mono text-micro tracking-[0.1em] uppercase text-white/65 font-semibold">
           Disciplinary Review
         </span>
-        <span className="min-w-[18px] h-[18px] rounded-full bg-white/20 text-white text-[11px] font-bold flex items-center justify-center px-[5px]">
+        <span className="min-w-[18px] h-[18px] rounded-full bg-white/20 text-white text-micro font-bold flex items-center justify-center px-[5px]">
           {alerts.length}
         </span>
       </div>
@@ -200,12 +203,12 @@ function DisciplinaryStrip({ alerts, editMode, venueSlug }) {
           to={`/v/${venueSlug}/timesheet`}
           className="flex items-center gap-2 bg-white/10 rounded-[10px] p-[9px_12px] no-underline"
         >
-          <span className="flex-1 text-[12px] text-white font-medium leading-[1.35]">
+          <span className="flex-1 text-caption text-white font-medium leading-[1.35]">
             {a.staff_name ?? 'Staff member'} —{' '}
             {a.offence_type === 'late_clock_in' ? 'late clock-in' : 'break overrun'},{' '}
             strike {a.strike_number}
           </span>
-          <span className="font-mono text-[12px] text-white/50">›</span>
+          <span className="font-mono text-caption text-white/50">›</span>
         </Link>
       ))}
     </div>
@@ -235,18 +238,21 @@ function useWeeklyHours(staffId, venueId) {
     if (!staffId || !venueId) return
     const since = startOfWeek(new Date(), { weekStartsOn: 1 }).toISOString()
     // First load comes from the startup bundle when it's available (126).
-    takeBootstrap(venueId, 'weeklyHours', staffId)
-      .then(boot => boot
-        ? { data: boot.week_clock }
-        : supabase
-          .from('clock_events')
-          .select('event_type, occurred_at')
-          .eq('staff_id', staffId)
-          .eq('venue_id', venueId)
-          .in('event_type', ['clock_in', 'clock_out'])
-          .gte('occurred_at', since)
-          .order('occurred_at', { ascending: true }))
-      .then(({ data }) => {
+    const load = async () => {
+      const boot = await takeBootstrap(venueId, 'weeklyHours', staffId)
+      if (boot) return { data: boot.week_clock, error: null }
+      return supabase
+        .from('clock_events')
+        .select('event_type, occurred_at')
+        .eq('staff_id', staffId)
+        .eq('venue_id', venueId)
+        .in('event_type', ['clock_in', 'clock_out'])
+        .gte('occurred_at', since)
+        .order('occurred_at', { ascending: true })
+    }
+    load()
+      .then(({ data, error }) => {
+        if (error) { reportError(error, 'MobileManagerDashboard:weekly-hours'); return }
         if (!data) return
         let total = 0, lastIn = null
         for (const ev of data) {
@@ -270,6 +276,7 @@ function MobileClockCard({ staffId }) {
   const { venueId } = useVenue()
   const toast = useToast()
   const { status, clockInAt, breakStartAt, totalBreakMs, loading, isError, reload, setStatus } = useClockStatus(staffId)
+  const notSent = useQueuedClockEvent(staffId)
   const inFlightRef = useRef(false)
   const elapsed  = useShiftElapsed(clockInAt, breakStartAt, totalBreakMs, status)
   const weekHrs  = useWeeklyHours(staffId, venueId)
@@ -306,9 +313,12 @@ function MobileClockCard({ staffId }) {
     let result
     try {
       result = await offlineRpc('record_clock_event', {
-        p_staff_id:   staffId,
-        p_event_type: eventType,
-        p_venue_id:   venueId,
+        p_staff_id:    staffId,
+        p_event_type:  eventType,
+        p_venue_id:    venueId,
+        // The tap time, so a punch held on the device (no signal) still lands
+        // at the moment it happened, not when it finally gets through (144).
+        p_occurred_at: at.toISOString(),
       })
     } catch (err) {
       result = { error: err }
@@ -349,8 +359,8 @@ function MobileClockCard({ staffId }) {
         ? `On shift${elapsed ? ' · ' + elapsed : ''}`
         : 'Not in'
 
-  const badgeBg  = isError ? 'rgba(220,38,38,0.25)' : onBreak ? 'rgba(168,93,18,0.25)' : onShift ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.10)'
-  const badgeDot = isError ? '#dc2626' : onBreak ? '#e8a34e' : onShift ? '#6fcfa0' : 'rgba(255,255,255,0.35)'
+  const badgeBg  = isError ? alpha(colors.bad, 0.25) : onBreak ? alpha(colors.warn, 0.25) : onShift ? white(0.15) : white(0.10)
+  const badgeDot = isError ? colors.badDark : onBreak ? colors.warnDark : onShift ? colors.goodDark : white(0.35)
 
   const stats = [
     { label: 'This week', value: weekHrs ? weekHrs.replace(/h (\d)m$/, 'h 0$1m') : '—' },
@@ -361,7 +371,7 @@ function MobileClockCard({ staffId }) {
           : '—' },
     { label: 'Last in', value: clockInAt ? format(clockInAt, 'EEE HH:mm') : '—' },
   ]
-  const primaryBtn = `w-full h-10 rounded-2xl bg-white text-brand text-[14px] font-semibold border-0 cursor-pointer`
+  const primaryBtn = `w-full h-10 rounded-2xl bg-white text-brand text-body font-semibold border-0 cursor-pointer`
 
   return (
     <div>
@@ -370,59 +380,66 @@ function MobileClockCard({ staffId }) {
       <div className="bg-brand rounded-2xl px-3.5 sm:px-3.5 pt-2.5 pb-3">
         <div className="flex items-center justify-between gap-2.5">
           <div className="flex items-baseline gap-2.5 min-w-0">
-            <span className="font-mono text-[26px] min-[420px]:text-[28px] font-semibold tracking-tight text-white leading-none">
+            <span className="font-mono text-display font-semibold tracking-tight text-white leading-none">
               {format(now, 'HH:mm')}
             </span>
-            <span className="text-[12px] min-[420px]:text-[12px] font-semibold tracking-[0.06em] uppercase text-white/60 whitespace-nowrap">My clock</span>
+            <span className="text-caption font-semibold tracking-[0.06em] uppercase text-white/60 whitespace-nowrap">My clock</span>
           </div>
           <span className="shrink-0 flex items-center gap-2 rounded-full h-8 px-3" style={{ background: badgeBg }}>
             <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: badgeDot }} />
-            <span className="text-[13px] font-semibold text-white whitespace-nowrap">{badgeLabel}</span>
+            <span className="text-body-sm font-semibold text-white whitespace-nowrap">{badgeLabel}</span>
           </span>
         </div>
         {(onShift || onBreak) && clockInAt && (
-          <p className="text-[13px] text-white/60 mt-1.5">Since {format(clockInAt, 'HH:mm')}</p>
+          <p className="text-body-sm text-white/60 mt-1.5">Since {format(clockInAt, 'HH:mm')}</p>
         )}
 
         <div className="grid grid-cols-3 gap-2.5 mt-4 mb-4">
           {stats.map(({ label, value }) => (
             <div key={label} className="min-w-0">
-              <div className="text-[13px] text-white/60 mb-1">{label}</div>
-              <div className="font-mono text-[14px] font-semibold text-white truncate">{value}</div>
+              <div className="text-body-sm text-white/60 mb-1">{label}</div>
+              <div className="font-mono text-body font-semibold text-white truncate">{value}</div>
             </div>
           ))}
         </div>
 
         {loading ? null : isError ? (
-          <button
+          <Button
+            variant="inverse-secondary"
+            fullWidth
             onClick={reload}
-            className="w-full h-10 rounded-2xl bg-bad/20 text-white text-[13px] font-semibold border border-bad/50 cursor-pointer"
           >
             Couldn't check status — retry
-          </button>
+          </Button>
         ) : status === 'clocked_out' ? (
-          <button onClick={() => record('clock_in')} className={primaryBtn}>
+          <Button variant="inverse" fullWidth onClick={() => record('clock_in')}>
             Clock in
-          </button>
+          </Button>
         ) : status === 'clocked_in' ? (
           <div className="flex gap-2">
-            <button
+            <Button
+              variant="inverse-secondary"
               onClick={() => record('break_start')}
              
-              className={`flex-1 h-10 rounded-2xl bg-white/12 text-white border border-white/25 text-[14px] font-semibold cursor-pointer`}
+              className="flex-1"
             >
               Break
-            </button>
-            <button onClick={closingGuard.guardClockOut} className={`${primaryBtn} flex-[2] flex items-center justify-center gap-2`}>
+            </Button>
+            <Button variant="inverse" onClick={closingGuard.guardClockOut} className="flex-[2]">
               <span className="inline-block w-2.5 h-2.5 bg-brand rounded-[2px]" />
               Clock out
-            </button>
+            </Button>
           </div>
         ) : status === 'on_break' ? (
-          <button onClick={() => record('break_end')} className={primaryBtn}>
+          <Button variant="inverse" fullWidth onClick={() => record('break_end')}>
             End break
-          </button>
+          </Button>
         ) : null}
+        {notSent && (
+          <p role="status" className="text-caption font-medium text-white/80 mt-2">
+            Not sent yet. This device will keep trying.
+          </p>
+        )}
       </div>
     </div>
   )
@@ -452,7 +469,7 @@ function MobileSortableCard({ id, editMode, half = false, children }) {
         transform:    CSS.Transform.toString(transform),
         transition,
         opacity:      isDragging ? 0.35 : 1,
-        outline:      editMode ? '1.5px dashed rgb(179 185 181)' : 'none',
+        outline:      editMode ? `1.5px dashed ${colors.ink4}` : 'none',
         outlineOffset: 2,
       }}
       className={`rounded-2xl relative min-w-0 ${half ? 'col-span-1' : 'col-span-2'}`}
@@ -570,7 +587,7 @@ function MobileDraggableWidgetGrid({
       </SortableContext>
       <DragOverlay>
         {activeContent && (
-          <div className="rounded-[14px] opacity-95 cursor-grabbing" style={{ boxShadow: '0 24px 48px rgba(9,18,13,0.25)', transform: 'scale(1.02)' }}>
+          <div className="rounded-[14px] opacity-95 cursor-grabbing" style={{ boxShadow: `0 24px 48px ${alpha(colors.ink, 0.25)}`, transform: 'scale(1.02)' }}>
             <Suspense fallback={null}>
               {activeContent}
             </Suspense>
@@ -607,17 +624,21 @@ export default function MobileManagerDashboard({
   useEffect(() => {
     if (!venueId) return
     // First load comes from the startup bundle when it's available (126).
-    takeBootstrap(venueId, 'disciplinary')
-      .then(boot => boot
-        ? { data: boot.disciplinary }
-        : supabase
-          .from('staff_disciplinary_log')
-          .select('id, offence_type, strike_number, occurred_at, staff:staff_id(name)')
-          .eq('venue_id', venueId)
-          .eq('strike_number', 4)
-          .gte('occurred_at', new Date(Date.now() - 7 * 86400000).toISOString())
-          .order('occurred_at', { ascending: false }))
-      .then(({ data }) => {
+    const load = async () => {
+      const boot = await takeBootstrap(venueId, 'disciplinary')
+      if (boot) return { data: boot.disciplinary, error: null }
+      return supabase
+        .from('staff_disciplinary_log')
+        .select('id, offence_type, strike_number, occurred_at, staff:staff_id(name)')
+        .eq('venue_id', venueId)
+        .eq('strike_number', 4)
+        .gte('occurred_at', new Date(Date.now() - 7 * 86400000).toISOString())
+        .order('occurred_at', { ascending: false })
+    }
+    load()
+      .then(({ data, error }) => {
+        // Feeds the Needs You list; a failed read keeps the alerts already shown.
+        if (error) { reportError(error, 'MobileManagerDashboard:disciplinary'); return }
         setDisciplinaryAlerts(
           (data ?? []).map(d => ({ ...d, staff_name: d.staff?.name ?? null }))
         )
@@ -667,16 +688,16 @@ export default function MobileManagerDashboard({
 
       <div>
         <div className="flex items-center justify-between gap-2.5">
-          <span className="min-w-0 font-mono text-[12px] min-[420px]:text-[13px] text-ink3 dark:text-white/45 whitespace-nowrap truncate">
+          <span className="min-w-0 font-mono text-caption min-[420px]:text-body-sm text-ink3 dark:text-white/45 whitespace-nowrap truncate">
             {format(now, 'EEEE, d MMMM')} · {format(now, 'HH:mm')}
           </span>
           <button
             type="button"
             onClick={() => setEditMode(v => !v)}
             className={[
-              'shrink-0 h-8 px-3.5 rounded-xl border text-[13px] font-semibold cursor-pointer transition-colors',
+              'shrink-0 h-8 px-3.5 rounded-xl border text-body-sm font-semibold cursor-pointer transition-colors',
               editMode
-                ? 'bg-goodBg text-good border-good/30 dark:bg-good/20 dark:text-[#7fd1a4]'
+                ? 'bg-goodBg text-good border-good/30 dark:bg-good/20 dark:text-goodDark'
                 : 'bg-white dark:bg-paperDark text-ink2 dark:text-white/80 border-line dark:border-white/10 hover:border-ink4',
             ].join(' ')}
           >
@@ -684,7 +705,7 @@ export default function MobileManagerDashboard({
           </button>
         </div>
 
-        <h1 className="text-[20px] sm:text-[22px] font-bold tracking-tight text-ink dark:text-white leading-tight mt-2">
+        <h1 className="text-title font-bold tracking-tight text-ink dark:text-white leading-tight mt-2">
           {greeting}{firstName ? `, ${firstName}` : ''}.
         </h1>
       </div>
@@ -695,16 +716,17 @@ export default function MobileManagerDashboard({
       <AttentionCard actions={actions} editMode={editMode} vp={vp} />
 
       {editMode && onOpenPicker && (
-        <button
-          type="button"
+        <Button
+          variant="secondary"
+          size="sm"
           onClick={onOpenPicker}
-          className="self-center h-8 px-3.5 rounded-xl border border-line dark:border-white/10 bg-white dark:bg-paperDark text-[13px] font-semibold text-ink2 dark:text-white/80 hover:border-ink4"
+          className="self-center"
         >
           Choose Needs you items
-        </button>
+        </Button>
       )}
       {editMode && (
-        <p className="text-center text-[13px] text-ink3 dark:text-white/45">
+        <p className="text-center text-body-sm text-ink3 dark:text-white/45">
           Drag cards to reorder · tap Done when finished
         </p>
       )}

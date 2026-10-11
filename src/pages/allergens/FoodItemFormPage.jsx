@@ -7,9 +7,10 @@ import { useFoodItem } from '../../hooks/useFoodItems'
 import { EU_ALLERGENS } from '../../lib/constants'
 import { useToast } from '../../components/ui/Toast'
 import { PageSkeleton } from '../../components/ui/Skeleton'
+import Button from '../../components/ui/Button'
 
 function SectionLabel({ children }) {
-  return <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-3">{children}</p>
+  return <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-3">{children}</p>
 }
 
 export default function FoodItemFormPage() {
@@ -123,7 +124,7 @@ export default function FoodItemFormPage() {
         <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-5 flex flex-col gap-4">
           <SectionLabel>Dish Details</SectionLabel>
           <div className="flex flex-col gap-1.5">
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">Name</label>
+            <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">Name</label>
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -133,7 +134,7 @@ export default function FoodItemFormPage() {
             />
           </div>
           <div className="flex flex-col gap-1.5">
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">Description (optional)</label>
+            <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">Description (optional)</label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
@@ -198,7 +199,7 @@ export default function FoodItemFormPage() {
             </div>
           </div>
           <div className="flex flex-col gap-1.5">
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">
+            <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">
               Verbal Guidance Note (optional)
             </label>
             <input
@@ -210,13 +211,14 @@ export default function FoodItemFormPage() {
           </div>
         </div>
 
-        <button
+        <Button
+          fullWidth
+          loading={submitting}
           type="submit"
           disabled={submitting || !name.trim()}
-          className="bg-charcoal text-cream py-3 rounded-xl text-sm font-semibold tracking-wide hover:bg-charcoal/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
         >
           {submitting ? 'Saving…' : isEdit ? 'Save Changes →' : 'Add Dish →'}
-        </button>
+        </Button>
       </form>
     </div>
   )

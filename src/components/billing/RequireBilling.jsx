@@ -10,6 +10,7 @@ import { Link, useLocation, useParams } from 'react-router-dom'
 import { useSession } from '../../contexts/SessionContext'
 import { useVenue } from '../../contexts/VenueContext'
 import useBilling from '../../hooks/useBilling'
+import Button from '../ui/Button'
 
 const COPY = {
   trial_ended: {
@@ -44,7 +45,7 @@ export default function RequireBilling({ children }) {
           <rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" />
         </svg>
       </div>
-      <p className="text-[11px] tracking-widest uppercase font-semibold text-charcoal/40 dark:text-white/40 mb-2">{venueName}</p>
+      <p className="text-micro tracking-widest uppercase font-semibold text-charcoal/40 dark:text-white/40 mb-2">{venueName}</p>
       <h1 className="text-xl font-bold text-charcoal dark:text-white mb-2">{copy.title}</h1>
       <p className="text-sm text-charcoal/55 dark:text-white/50 max-w-sm leading-relaxed mb-8">
         {isManager ? copy.body : 'Pelikn is paused for this venue until the owner chooses a plan. Let your manager know.'}
@@ -58,13 +59,13 @@ export default function RequireBilling({ children }) {
             {access.reason === 'payment_failed' ? 'Update payment' : 'Choose a plan'}
           </Link>
         )}
-        <button
-          type="button"
+        <Button
+          variant="secondary"
+          fullWidth
           onClick={signOut}
-          className="border border-charcoal/15 dark:border-white/15 text-charcoal/60 dark:text-white/50 py-3 rounded-xl text-sm font-medium hover:bg-charcoal/5 dark:hover:bg-white/8 transition-colors"
         >
           Sign out
-        </button>
+        </Button>
       </div>
       <p className="text-xs text-charcoal/35 dark:text-white/30 mt-6">
         Questions? <a href="mailto:hello@get-pelikn.com" className="text-brand dark:text-accent">hello@get-pelikn.com</a>

@@ -9,6 +9,8 @@ import { insertSupplier, deactivateSupplier } from '../../lib/api/suppliers'
 import { useToast } from '../../components/ui/Toast'
 import Modal from '../../components/ui/Modal'
 import { PageSkeleton } from '../../components/ui/Skeleton'
+import LoadError from '../../components/ui/LoadError'
+import Button, { CloseButton } from '../../components/ui/Button'
 
 const STATUS_CONFIG = {
   submitted: { label: 'Pending',  bg: 'bg-warning/10',  text: 'text-warning' },
@@ -22,14 +24,14 @@ const STATUS_ORDER = ['submitted', 'ordered', 'received', 'draft']
 function StatusChip({ status }) {
   const cfg = STATUS_CONFIG[status] ?? STATUS_CONFIG.draft
   return (
-    <span className={`text-[11px] tracking-widest uppercase font-medium px-2.5 py-1 rounded-full ${cfg.bg} ${cfg.text}`}>
+    <span className={`text-micro tracking-widest uppercase font-medium px-2.5 py-1 rounded-full ${cfg.bg} ${cfg.text}`}>
       {cfg.label}
     </span>
   )
 }
 
 function SectionLabel({ children }) {
-  return <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-3">{children}</p>
+  return <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-3">{children}</p>
 }
 
 export default function SupplierOrdersPage() {
@@ -37,7 +39,7 @@ export default function SupplierOrdersPage() {
   const { venueId } = useVenue()
   const { session, isManager } = useSession()
   const { suppliers, loading: suppLoading, reload: reloadSuppliers } = useSuppliers()
-  const { orders, loading: ordersLoading, reload: reloadOrders }     = useSupplierOrders()
+  const { orders, loading: ordersLoading, failed: ordersFailed, reload: reloadOrders } = useSupplierOrders()
 
   // Filter tab
   const [tab, setTab] = useState('all')
@@ -155,20 +157,19 @@ export default function SupplierOrdersPage() {
         <h1 className="text-2xl font-bold text-charcoal dark:text-white">Orders</h1>
         <div className="flex items-center gap-3">
           {isManager && (
-            <button
+            <Button
+              variant="label"
               onClick={() => setShowManage(v => !v)}
-              className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white transition-colors border-b border-charcoal/20 dark:border-white/20"
             >
               {showManage ? 'Done' : 'Manage Suppliers'}
-            </button>
+            </Button>
           )}
-          <button
+          <Button
             onClick={openNewOrder}
             disabled={!suppliers.length}
-            className="bg-charcoal text-cream px-4 py-2 rounded-lg text-sm font-medium hover:bg-charcoal/90 transition-colors disabled:opacity-40"
           >
             + New Order
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -186,10 +187,10 @@ export default function SupplierOrdersPage() {
               />
             ))}
           </div>
-          <button onClick={saveSupplier} disabled={savingSupplier}
-            className="self-start bg-charcoal text-cream px-4 py-2 rounded-lg text-sm font-medium hover:bg-charcoal/90 transition-colors disabled:opacity-40">
+          <Button loading={savingSupplier} onClick={saveSupplier} disabled={savingSupplier}
+            className="self-start">
             {savingSupplier ? 'Adding…' : '+ Add Supplier'}
-          </button>
+          </Button>
           {suppliers.length > 0 && (
             <div className="border-t border-charcoal/8 dark:border-white/8 pt-3 flex flex-col divide-y divide-charcoal/6 dark:divide-white/8">
               {suppliers.map(s => (
@@ -198,8 +199,8 @@ export default function SupplierOrdersPage() {
                     <p className="text-sm font-medium text-charcoal dark:text-white">{s.name}</p>
                     {s.contact_name && <p className="text-xs text-charcoal/40 dark:text-white/35">{s.contact_name}{s.email ? ` · ${s.email}` : ''}</p>}
                   </div>
-                  <button onClick={() => removeSupplier(s.id, s.name)}
-                    className="min-h-[40px] inline-flex items-center text-xs text-charcoal/25 dark:text-white/25 hover:text-danger transition-colors px-3">Remove</button>
+                  <Button variant="danger-ghost" size="sm" onClick={() => removeSupplier(s.id, s.name)}
+                   >Remove</Button>
                 </div>
               ))}
             </div>
@@ -211,10 +212,10 @@ export default function SupplierOrdersPage() {
         <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-8 text-center">
           <p className="text-charcoal/40 dark:text-white/35 text-sm">No suppliers set up yet.</p>
           {isManager && (
-            <button onClick={() => setShowManage(true)}
-              className="mt-3 text-xs text-charcoal/50 dark:text-white/40 hover:text-charcoal dark:hover:text-white underline underline-offset-2 transition-colors">
+            <Button variant="link" size="sm" onClick={() => setShowManage(true)}
+              className="mt-3">
               Add your first supplier →
-            </button>
+            </Button>
           )}
         </div>
       )}
@@ -269,19 +270,23 @@ export default function SupplierOrdersPage() {
               )}
 
               {isManager && order.status !== 'received' && (
-                <button
+                <Button
+                  variant="label"
                   onClick={() => advanceStatus(order)}
-                  className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white transition-colors border-b border-charcoal/20 dark:border-white/20"
                 >
                   {order.status === 'submitted' ? 'Mark Ordered →' : 'Mark Received →'}
-                </button>
+                </Button>
               )}
             </div>
           ))}
         </div>
       )}
 
-      {filteredOrders.length === 0 && suppliers.length > 0 && (
+      {ordersFailed && orders.length === 0 && (
+        <LoadError what="orders" onRetry={reloadOrders} />
+      )}
+
+      {!ordersFailed && filteredOrders.length === 0 && suppliers.length > 0 && (
         <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-8 text-center">
           <p className="text-charcoal/40 dark:text-white/35 text-sm">No {tab !== 'all' ? tab : ''} orders yet.</p>
         </div>
@@ -291,7 +296,7 @@ export default function SupplierOrdersPage() {
       <Modal open={showOrder} onClose={() => setShowOrder(false)} title="New Order">
         <div className="flex flex-col gap-4">
           <div>
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1.5">Supplier</label>
+            <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1.5">Supplier</label>
             <select
               value={orderForm.supplier_id}
               onChange={e => setOrderForm(f => ({ ...f, supplier_id: e.target.value }))}
@@ -303,11 +308,10 @@ export default function SupplierOrdersPage() {
 
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">Items</label>
-              <button type="button" onClick={addItem}
-                className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 hover:text-charcoal dark:hover:text-white transition-colors border-b border-charcoal/20 dark:border-white/20">
+              <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">Items</label>
+              <Button variant="label" onClick={addItem}>
                 + Add Item
-              </button>
+              </Button>
             </div>
             <div className="flex flex-col gap-2">
               {orderItems.map((item, i) => (
@@ -327,8 +331,7 @@ export default function SupplierOrdersPage() {
                       className="px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20" />
                   </div>
                   {orderItems.length > 1 && (
-                    <button type="button" onClick={() => removeItem(i)}
-                      className="text-charcoal/25 dark:text-white/25 hover:text-danger transition-colors text-lg leading-none mt-1.5">×</button>
+                    <CloseButton label="Remove item" onClick={() => removeItem(i)} />
                   )}
                 </div>
               ))}
@@ -336,17 +339,16 @@ export default function SupplierOrdersPage() {
           </div>
 
           <div>
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1.5">Order Notes <span className="normal-case text-charcoal/30 dark:text-white/30">(optional)</span></label>
+            <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1.5">Order Notes <span className="normal-case text-charcoal/30 dark:text-white/30">(optional)</span></label>
             <textarea value={orderForm.notes} onChange={e => setOrderForm(f => ({ ...f, notes: e.target.value }))}
               placeholder="Any special instructions or notes for this order"
               rows={2}
               className="w-full px-3 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm resize-none focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20" />
           </div>
 
-          <button onClick={submitOrder} disabled={submittingOrder}
-            className="w-full bg-charcoal text-cream py-2.5 rounded-lg text-sm font-medium hover:bg-charcoal/90 transition-colors disabled:opacity-40">
+          <Button fullWidth loading={submittingOrder} onClick={submitOrder} disabled={submittingOrder}>
             {submittingOrder ? 'Submitting…' : 'Submit Order →'}
-          </button>
+          </Button>
         </div>
       </Modal>
     </div>

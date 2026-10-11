@@ -25,6 +25,9 @@ import {
   FIELD_LABEL, TEXT_FIELD,
 } from '../../components/temperature/TempPageParts'
 import { HistoryRangePills, StatStrip, DayCard, formatPct, historyDateFrom, groupByDay } from '../../components/temperature/TempHistoryView'
+import LoadError from '../../components/ui/LoadError'
+import { shortName } from '../../lib/names'
+import Button from '../../components/ui/Button'
 
 const CHECK_TYPES = [
   { value: 'cooking',   label: 'Cooking' },
@@ -32,16 +35,9 @@ const CHECK_TYPES = [
 ]
 const CHECK_LABEL = Object.fromEntries(CHECK_TYPES.map(t => [t.value, t.label]))
 
-const TEXT_AREA = 'w-full px-3.5 py-2.5 rounded-xl border border-line dark:border-white/10 bg-cream dark:bg-white/5 text-[13px] text-ink dark:text-white placeholder:text-ink4 dark:placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand/40 focus:bg-white dark:focus:bg-white/10 resize-none transition-colors'
+const TEXT_AREA = 'w-full px-3.5 py-2.5 rounded-xl border border-line dark:border-white/10 bg-cream dark:bg-white/5 text-body-sm text-ink dark:text-white placeholder:text-ink4 dark:placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand/40 focus:bg-white dark:focus:bg-white/10 resize-none transition-colors'
 
 const failed = (log) => isCookingTempFail(log.temperature, log.target_temp ?? COOKING_TARGET_TEMP)
-
-// "Priya Shah" → "Priya S."
-function shortName(name) {
-  if (!name) return null
-  const [first, ...rest] = name.trim().split(/\s+/)
-  return rest.length ? `${first} ${rest[rest.length - 1][0]}.` : first
-}
 
 /* ── One logged reading ───────────────────────────────────────────────────── */
 function ReadingRow({ log, withStaff = false, compact = false }) {
@@ -53,16 +49,16 @@ function ReadingRow({ log, withStaff = false, compact = false }) {
     <div className="px-3.5 sm:px-3.5 py-2">
       <div className="flex items-center justify-between gap-2.5">
         <div className="min-w-0">
-          <p className="text-[14px] font-semibold text-ink dark:text-white truncate">{log.food_item}</p>
-          <p className="text-[13px] text-ink3 dark:text-white/45 mt-0.5 truncate">{meta}</p>
+          <p className="text-body font-semibold text-ink dark:text-white truncate">{log.food_item}</p>
+          <p className="text-body-sm text-ink3 dark:text-white/45 mt-0.5 truncate">{meta}</p>
         </div>
-        <span className={`shrink-0 h-8 px-3.5 rounded-lg inline-flex items-center font-mono text-[13px] font-semibold ${fail ? TONE.bad : TONE.ok}`}>
+        <span className={`shrink-0 h-8 px-3.5 rounded-lg inline-flex items-center font-mono text-body-sm font-semibold ${fail ? TONE.bad : TONE.ok}`}>
           {compact ? `${temp}°` : `${temp}°C`}
         </span>
       </div>
       {fail && log.notes && (
-        <p className="mt-2.5 px-3 py-2 rounded-lg bg-badBg dark:bg-bad/20 text-[13px] text-ink2 dark:text-white/75">
-          {compact && <><span className="font-semibold text-bad dark:text-[#f19a86]">Corrective action</span> · </>}
+        <p className="mt-2.5 px-3 py-2 rounded-lg bg-badBg dark:bg-bad/20 text-body-sm text-ink2 dark:text-white/75">
+          {compact && <><span className="font-semibold text-bad dark:text-badDark">Corrective action</span> · </>}
           {log.notes}
         </p>
       )}
@@ -126,7 +122,7 @@ function LogReadingForm({ onLogged }) {
             aria-pressed={checkType === t.value}
             onClick={() => setCheckType(t.value)}
             className={[
-              'h-10 rounded-2xl border-2 text-[14px] font-semibold transition-colors',
+              'h-10 rounded-2xl border-2 text-body font-semibold transition-colors',
               checkType === t.value
                 ? 'border-brand bg-brand-tint text-ink dark:bg-white/10 dark:border-white/70 dark:text-white'
                 : 'border-line dark:border-white/10 bg-white dark:bg-paperDark text-ink2 dark:text-white/75 hover:border-ink4/60',
@@ -158,7 +154,7 @@ function LogReadingForm({ onLogged }) {
 
       {isFail && (
         <div className="rounded-xl border border-bad/25 bg-badBg/60 dark:bg-bad/15 p-2.5 flex flex-col gap-2 -mt-1">
-          <p className="text-[13px] font-semibold text-bad dark:text-[#f19a86]">
+          <p className="text-body-sm font-semibold text-bad dark:text-badDark">
             Below {COOKING_TARGET_TEMP}°C. Keep cooking and re-probe, and say what you did.
           </p>
           <textarea
@@ -167,7 +163,7 @@ function LogReadingForm({ onLogged }) {
             rows={2}
             placeholder="e.g. Back on grill 2 min, re-probed at 77.6°C"
             aria-label="Corrective action"
-            className="w-full px-3 py-2 rounded-lg border border-bad/25 bg-white dark:bg-paperDark text-[13px] text-ink dark:text-white placeholder:text-ink4 focus:outline-none focus:ring-2 focus:ring-bad/20 resize-none"
+            className="w-full px-3 py-2 rounded-lg border border-bad/25 bg-white dark:bg-paperDark text-body-sm text-ink dark:text-white placeholder:text-ink4 focus:outline-none focus:ring-2 focus:ring-bad/20 resize-none"
           />
         </div>
       )}
@@ -186,22 +182,23 @@ function LogReadingForm({ onLogged }) {
 
       <div className="flex items-center gap-2.5">
         {!isFail && (
-          <button
-            type="button"
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => setShowNote(v => !v)}
-            className="shrink-0 px-3 h-9 text-[13px] font-semibold text-ink2 dark:text-white/75 hover:text-ink dark:hover:text-white"
+            className="shrink-0"
           >
             {showNote ? 'No note' : '+ Note'}
-          </button>
+          </Button>
         )}
-        <button
-          type="button"
+        <Button
+          loading={saving}
           onClick={save}
           disabled={!canLog}
-          className="flex-1 h-10 rounded-2xl bg-brand text-white text-[14px] font-semibold transition-colors hover:bg-brand/90 disabled:bg-ink3/70 dark:disabled:bg-white/15 disabled:cursor-not-allowed"
+          className="flex-1"
         >
           {saving ? 'Saving…' : 'Log temperature'}
-        </button>
+        </Button>
       </div>
     </div>
   )
@@ -210,7 +207,7 @@ function LogReadingForm({ onLogged }) {
 /* ── History tab ──────────────────────────────────────────────────────────── */
 function CookingHistory() {
   const [range, setRange] = useState(7)
-  const { logs, loading } = useCookingLogs(null, historyDateFrom(range), format(new Date(), 'yyyy-MM-dd'))
+  const { logs, loading, isError, reload } = useCookingLogs(null, historyDateFrom(range), format(new Date(), 'yyyy-MM-dd'))
 
   const passed   = logs.filter(log => !failed(log)).length
   const failures = logs.length - passed
@@ -225,6 +222,8 @@ function CookingHistory() {
         <div className="py-12 text-center">
           <div className="w-5 h-5 rounded-full border-2 border-charcoal/15 dark:border-white/15 border-t-charcoal animate-spin mx-auto" />
         </div>
+      ) : isError ? (
+        <LoadError what="cooking history" onRetry={reload} />
       ) : (
         <>
           <StatStrip stats={[
@@ -234,7 +233,7 @@ function CookingHistory() {
           ]} />
 
           {days.length === 0 ? (
-            <p className="text-[13px] text-ink3 dark:text-white/40 py-10 text-center">No readings in this period.</p>
+            <p className="text-body-sm text-ink3 dark:text-white/40 py-10 text-center">No readings in this period.</p>
           ) : days.map(([dateStr, dayLogs]) => (
             <DayCard key={dateStr} dateStr={dateStr} count={dayLogs.length} noun="reading">
               {dayLogs.map(log => <ReadingRow key={log.id} log={log} compact />)}
@@ -265,7 +264,7 @@ export default function CookingTempsPage() {
       <PageHeader
         title="Cooking temps"
         backTo={isManager ? `/v/${venueSlug}/checks` : null}
-        action={<span className="shrink-0 self-end pb-1 font-mono text-[13px] text-ink3 dark:text-white/45 whitespace-nowrap">UK min ≥{COOKING_TARGET_TEMP}°C</span>}
+        action={<span className="shrink-0 self-end pb-1 font-mono text-body-sm text-ink3 dark:text-white/45 whitespace-nowrap">UK min ≥{COOKING_TARGET_TEMP}°C</span>}
       />
 
       <TabBar

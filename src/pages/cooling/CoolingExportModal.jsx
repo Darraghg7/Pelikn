@@ -1,14 +1,15 @@
 import React, { useState } from 'react'
 import { format, subDays } from 'date-fns'
-import { loadPdfLibs } from '../../lib/pdfUtils'
+import { loadPdfLibs, PDF } from '../../lib/pdfUtils'
 import { supabase } from '../../lib/supabase'
 import { useVenue } from '../../contexts/VenueContext'
 import { coolingOutcome, coolingMethodLabel, formatCoolingMinutes } from '../../lib/cooling'
 import Modal from '../../components/ui/Modal'
 import { useToast } from '../../components/ui/Toast'
+import Button from '../../components/ui/Button'
 
 const FIELD = 'w-full px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20'
-const LABEL = 'text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1.5'
+const LABEL = 'text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1.5'
 
 export default function CoolingExportModal({ open, onClose }) {
   const { venueId } = useVenue()
@@ -44,10 +45,10 @@ export default function CoolingExportModal({ open, onClose }) {
     doc.text('Pelikn', 14, 18)
     doc.setFont('helvetica', 'normal')
     doc.setFontSize(10)
-    doc.setTextColor(100)
+    doc.setTextColor(...PDF.muted)
     doc.text('Cooling Log Report', 14, 25)
     doc.text(`Period: ${dateFrom} – ${dateTo}`, 14, 31)
-    doc.setTextColor(0)
+    doc.setTextColor(...PDF.ink)
 
     autoTable(doc, {
       startY: 37,
@@ -67,22 +68,22 @@ export default function CoolingExportModal({ open, onClose }) {
           fail ? (row.notes ?? '') : '',
         ]
       }),
-      headStyles: { fillColor: [40, 40, 40], textColor: 255, fontSize: 9 },
+      headStyles: { fillColor: PDF.head, textColor: PDF.white, fontSize: 9 },
       bodyStyles: { fontSize: 8 },
       columnStyles: { 7: { fontStyle: 'bold' } },
       didParseCell(hookData) {
         if (hookData.section === 'body' && hookData.column.index === 7 && hookData.cell.raw === 'FAIL') {
-          hookData.cell.styles.textColor = [180, 30, 30]
+          hookData.cell.styles.textColor = PDF.bad
         }
       },
-      alternateRowStyles: { fillColor: [248, 248, 248] },
+      alternateRowStyles: { fillColor: PDF.rowAlt },
     })
 
     const pageCount = doc.internal.getNumberOfPages()
     for (let i = 1; i <= pageCount; i++) {
       doc.setPage(i)
       doc.setFontSize(7)
-      doc.setTextColor(150)
+      doc.setTextColor(...PDF.faint)
       doc.text(
         `Generated ${format(new Date(), 'dd/MM/yyyy HH:mm')} · Page ${i} of ${pageCount}`,
         pageW / 2, doc.internal.pageSize.getHeight() - 8,
@@ -109,13 +110,14 @@ export default function CoolingExportModal({ open, onClose }) {
           </div>
         </div>
 
-        <button
+        <Button
+          fullWidth
+          loading={loading}
           onClick={handleExport}
           disabled={loading}
-          className="w-full bg-charcoal text-cream py-2.5 rounded-lg text-sm font-medium hover:bg-charcoal/90 transition-colors disabled:opacity-40"
         >
           {loading ? 'Generating…' : 'Export PDF →'}
-        </button>
+        </Button>
       </div>
     </Modal>
   )

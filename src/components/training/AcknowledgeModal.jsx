@@ -4,6 +4,7 @@ import { supabase } from '../../lib/supabase'
 import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../ui/Toast'
 import SignaturePad from '../ui/SignaturePad'
+import Button, { CloseButton } from '../ui/Button'
 
 export default function AcknowledgeModal({ record, staffName, onSaved, onClose }) {
   const toast = useToast()
@@ -35,12 +36,12 @@ export default function AcknowledgeModal({ record, staffName, onSaved, onClose }
               {format(parseISO(record.training_date), 'd MMMM yyyy')} · Trainer: {record.trainer_name}
             </p>
           </div>
-          <button onClick={onClose} className="text-charcoal/30 dark:text-white/30 hover:text-charcoal dark:hover:text-white text-xl leading-none">×</button>
+          <CloseButton onClick={onClose} />
         </div>
 
         <div className="p-6 flex flex-col gap-5">
           <div>
-            <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-3">Training Covered</p>
+            <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-3">Training Covered</p>
             <ul className="flex flex-col gap-1.5">
               {record.topics.map(t => (
                 <li key={t} className="flex items-start gap-2 text-sm text-charcoal dark:text-white">
@@ -57,14 +58,14 @@ export default function AcknowledgeModal({ record, staffName, onSaved, onClose }
 
           {record.notes && (
             <div className="bg-surface rounded-lg px-4 py-3">
-              <p className="text-[11px] text-charcoal/40 dark:text-white/35 uppercase tracking-widest mb-1">Notes</p>
+              <p className="text-micro text-charcoal/40 dark:text-white/35 uppercase tracking-widest mb-1">Notes</p>
               <p className="text-sm text-charcoal/70 dark:text-white/60 italic">{record.notes}</p>
             </div>
           )}
 
           {record.manager_signature && (
             <div>
-              <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-2">
+              <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-2">
                 Manager / Trainer Signature{record.manager_name ? ` (${record.manager_name})` : ''}
               </p>
               <SignaturePad value={record.manager_signature} disabled />
@@ -72,7 +73,7 @@ export default function AcknowledgeModal({ record, staffName, onSaved, onClose }
           )}
 
           <div>
-            <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-1">Your Signature — {staffName}</p>
+            <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-1">Your Signature — {staffName}</p>
             <p className="text-xs text-charcoal/40 dark:text-white/35 mb-2">
               By signing, you confirm you have received and understood the above training.
             </p>
@@ -81,13 +82,14 @@ export default function AcknowledgeModal({ record, staffName, onSaved, onClose }
         </div>
 
         <div className="px-6 pb-6">
-          <button
+          <Button
+            fullWidth
+            loading={saving}
             onClick={handleSubmit}
             disabled={saving || !staffSig}
-            className="w-full bg-charcoal text-cream py-2.5 rounded-lg text-sm font-medium disabled:opacity-40 hover:bg-charcoal/90 transition-colors"
           >
             {saving ? 'Saving…' : 'I confirm I have received this training →'}
-          </button>
+          </Button>
         </div>
       </div>
     </div>

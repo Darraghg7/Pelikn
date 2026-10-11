@@ -19,11 +19,12 @@ function isMissingColumn(error: { message?: string; code?: string } | null): boo
 }
 
 export async function fetchIncidents(venueId: string): Promise<Incident[]> {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('incidents')
     .select('*, reporter:reported_by(id, name)')
     .eq('venue_id', venueId)
     .order('incident_date', { ascending: false })
+  if (error) throw error
   return (data ?? []) as unknown as Incident[]
 }
 

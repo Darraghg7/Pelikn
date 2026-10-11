@@ -1,28 +1,31 @@
 import React from 'react'
+import { colors, alpha, white } from '../../lib/tokens'
 
 /* ── Design tokens ──────────────────────────────────────────────────────────── */
+// Desktop sidebar palette, built from src/lib/tokens.js. The rail and panel
+// stay the same dark green in both themes.
 export const T = {
-  bg:          '#1c2f2a',
-  bgPanel:     '#243a34',
-  bgHover:     'rgba(255,255,255,0.05)',
-  bgActive:    'rgba(255,255,255,0.10)',
-  ink:         'rgba(239,234,222,0.78)',
-  inkBright:   '#f3ede0',
-  inkMuted:    'rgba(239,234,222,0.50)',
-  inkFaint:    'rgba(239,234,222,0.30)',
-  divider:     'rgba(255,255,255,0.07)',
-  warn:        '#e08a4a',
-  warnBg:      'rgba(224,138,74,0.16)',
-  accent:      '#c46340',
-  alertRed:    '#d44d3a',
-  paper:       '#F0EFEB',
-  paperWhite:  '#FFFFFF',
-  mainInk:     '#0E1411',
-  mainInk2:    'rgba(14,20,17,0.62)',
-  mainInk3:    'rgba(14,20,17,0.42)',
-  mainInk4:    'rgba(14,20,17,0.22)',
-  mainLine:    'rgba(14,20,17,0.08)',
-  brand:       '#13362a',
+  bg:          colors.sidebar.rail,
+  bgPanel:     colors.sidebar.panel,
+  bgHover:     white(0.05),
+  bgActive:    white(0.10),
+  ink:         alpha(colors.cream, 0.78),
+  inkBright:   colors.cream,
+  inkMuted:    alpha(colors.cream, 0.50),
+  inkFaint:    alpha(colors.cream, 0.30),
+  divider:     white(0.07),
+  warn:        colors.warnDark,
+  warnBg:      alpha(colors.warnDark, 0.16),
+  accent:      colors.accent,
+  alertRed:    colors.bad,
+  paper:       colors.surface,
+  paperWhite:  colors.paper,
+  mainInk:     colors.ink,
+  mainInk2:    alpha(colors.ink, 0.62),
+  mainInk3:    alpha(colors.ink, 0.42),
+  mainInk4:    alpha(colors.ink, 0.22),
+  mainLine:    alpha(colors.ink, 0.08),
+  brand:       colors.brand.DEFAULT,
 }
 
 /* ── Rail category icons (18×18, stroke 1.7) ────────────────────────────────── */

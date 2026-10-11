@@ -35,12 +35,13 @@ export function useVenueRoles(): {
   const { data: roles = NO_ROLES, isLoading: loading, refetch } = useQuery({
     queryKey: ['venue_roles', venueId],
     queryFn: async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('venue_roles')
         .select('id, name, color, department_id, sort_order, venue_id')
         .eq('venue_id', venueId)
         .order('sort_order')
         .order('name')
+      if (error) throw error
       const roles = (data ?? []) as VenueRole[]
       writePersisted('venue_roles', venueId, roles)
       return roles
@@ -92,10 +93,11 @@ export function useStaffRoleAssignments(staffId: string): {
   const { data: roleIds = [], isLoading: loading, refetch } = useQuery({
     queryKey: ['staff_role_assignments', staffId],
     queryFn: async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('staff_role_assignments')
         .select('role_id')
         .eq('staff_id', staffId)
+      if (error) throw error
       return (data ?? []).map(r => (r as { role_id: string }).role_id)
     },
     enabled: !!staffId,
@@ -145,8 +147,9 @@ export async function loadAllStaffRolesForVenue(
   crossVenueStaffIds: string[] = [],
 ): Promise<Record<string, string[]>> {
   // 1. Home-venue staff roles
-  const { data: venueRoles } = await supabase
+  const { data: venueRoles, error: venueRolesErr } = await supabase
     .from('venue_roles').select('id, name').eq('venue_id', venueId)
+  if (venueRolesErr) throw venueRolesErr
 
   const roleMap: Record<string, string> = Object.fromEntries(
     (venueRoles ?? [] as { id: string; name: string }[]).map((r: { id: string; name: string }) => [r.id, r.name])
@@ -156,8 +159,9 @@ export async function loadAllStaffRolesForVenue(
   const result: Record<string, string[]> = {}
 
   if (roleIds.length) {
-    const { data: assignments } = await supabase
+    const { data: assignments, error: assignmentsErr } = await supabase
       .from('staff_role_assignments').select('staff_id, role_id').in('role_id', roleIds)
+    if (assignmentsErr) throw assignmentsErr
     for (const a of (assignments ?? []) as { staff_id: string; role_id: string }[]) {
       if (!result[a.staff_id]) result[a.staff_id] = []
       result[a.staff_id].push(roleMap[a.role_id])
@@ -166,15 +170,17 @@ export async function loadAllStaffRolesForVenue(
 
   // 2. Cross-venue (linked) staff — load their home-venue role assignments
   if (crossVenueStaffIds.length) {
-    const { data: crossAssignments } = await supabase
+    const { data: crossAssignments, error: crossAssignmentsErr } = await supabase
       .from('staff_role_assignments')
       .select('staff_id, role_id')
       .in('staff_id', crossVenueStaffIds)
+    if (crossAssignmentsErr) throw crossAssignmentsErr
 
     if ((crossAssignments ?? []).length) {
       const crossRoleIds = [...new Set((crossAssignments as { staff_id: string; role_id: string }[]).map(a => a.role_id))]
-      const { data: crossRoles } = await supabase
+      const { data: crossRoles, error: crossRolesErr } = await supabase
         .from('venue_roles').select('id, name').in('id', crossRoleIds)
+      if (crossRolesErr) throw crossRolesErr
       const crossRoleMap: Record<string, string> = Object.fromEntries(
         (crossRoles ?? [] as { id: string; name: string }[]).map((r: { id: string; name: string }) => [r.id, r.name])
       )

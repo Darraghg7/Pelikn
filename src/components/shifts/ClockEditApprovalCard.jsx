@@ -11,6 +11,9 @@ import { useVenue } from '../../contexts/VenueContext'
 import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../ui/Toast'
 import { formatLondon } from '../../lib/time'
+import { reportError } from '../../lib/reportError'
+import LoadError from '../ui/LoadError'
+import Button from '../ui/Button'
 
 function fmt(iso) {
   if (!iso) return '—'
@@ -26,22 +29,23 @@ function DenySheet({ onDeny, onCancel }) {
   const [saving, setSaving] = useState(false)
   return (
     <div
+      className="bg-ink/45"
       style={{
         position: 'fixed', inset: 0, zIndex: 9999,
-        background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(2px)',
+        backdropFilter: 'blur(2px)',
         display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
       }}
       onClick={onCancel}
     >
       <div
+        className="bg-paper dark:bg-paperDark shadow-[0_-8px_32px_theme(colors.black/15%)]"
         style={{
-          background: '#fff', borderRadius: '20px 20px 0 0',
+          borderRadius: '20px 20px 0 0',
           padding: '24px 20px 32px', width: '100%', maxWidth: 480,
-          boxShadow: '0 -8px 32px rgba(0,0,0,0.15)',
         }}
         onClick={e => e.stopPropagation()}
       >
-        <p className="text-[15px] font-bold text-charcoal dark:text-white" style={{ marginBottom: 12 }}>
+        <p className="text-body-lg font-bold text-charcoal dark:text-white" style={{ marginBottom: 12 }}>
           Deny this request
         </p>
         <textarea
@@ -49,35 +53,29 @@ function DenySheet({ onDeny, onCancel }) {
           onChange={e => setNote(e.target.value)}
           placeholder="Reason for denying (optional — staff will see this)"
           rows={3}
-          className="text-sm text-charcoal dark:text-white resize-none outline-none w-full"
+          className="text-sm text-charcoal dark:text-white bg-paper dark:bg-white/5 border border-line dark:border-white/10 resize-none outline-none w-full"
           style={{
-            borderRadius: 10, border: '1px solid #e4e6e2',
+            borderRadius: 10,
             padding: '10px 12px', boxSizing: 'border-box', marginBottom: 14,
           }}
         />
         <div style={{ display: 'flex', gap: 8 }}>
-          <button
+          <Button
+            variant="secondary"
             onClick={onCancel}
-            className="text-sm font-medium cursor-pointer border-none"
-            style={{
-              flex: 1, padding: '12px 0', borderRadius: 11,
-              background: '#f3f3ef', color: '#76817b',
-            }}
+            className="flex-1"
           >
             Cancel
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="danger"
+            loading={saving}
             disabled={saving}
             onClick={async () => { setSaving(true); await onDeny(note); setSaving(false) }}
-            className="text-sm font-semibold text-white border-none disabled:opacity-60"
-            style={{
-              flex: 1, padding: '12px 0', borderRadius: 11,
-              background: '#b3331c',
-              cursor: saving ? 'not-allowed' : 'pointer',
-            }}
+            className="flex-1"
           >
             {saving ? 'Denying…' : 'Deny'}
-          </button>
+          </Button>
         </div>
       </div>
     </div>
@@ -90,6 +88,7 @@ export default function ClockEditApprovalCard({ compact = false }) {
   const toast         = useToast()
   const [requests, setRequests] = useState([])
   const [loading, setLoading]   = useState(true)
+  const [loadFailed, setLoadFailed] = useState(false)
   const [denyTarget, setDenyTarget] = useState(null) // request id
 
   const load = useCallback(() => {
@@ -105,7 +104,14 @@ export default function ClockEditApprovalCard({ compact = false }) {
       .eq('venue_id', venueId)
       .eq('status', 'pending')
       .order('created_at', { ascending: false })
-      .then(({ data }) => { setRequests(data ?? []); setLoading(false) })
+      .then(({ data, error }) => {
+        // On failure keep whatever requests were already listed; the card
+        // shows a retry instead of quietly disappearing.
+        if (error) reportError(error, 'ClockEditApprovalCard:load')
+        else setRequests(data ?? [])
+        setLoadFailed(!!error)
+        setLoading(false)
+      })
   }, [venueId])
 
   useEffect(() => { load() }, [load])
@@ -132,27 +138,34 @@ export default function ClockEditApprovalCard({ compact = false }) {
     load()
   }
 
-  if (loading || requests.length === 0) return null
+  if (loading) return null
+  // The card normally hides when nothing is pending — but if the read failed
+  // we don't know that, and a hidden card means edits sit unapproved.
+  if (loadFailed && requests.length === 0) {
+    return (
+      <div className="bg-white dark:bg-paperDark rounded-[14px] border border-charcoal/10 dark:border-white/10">
+        <LoadError what="hour edit requests" onRetry={load} />
+      </div>
+    )
+  }
+  if (requests.length === 0) return null
 
   return (
     <>
-      <div style={{
-        background: '#fff',
-        border: '1px solid #e4e6e2',
+      <div className="bg-white dark:bg-paperDark border border-line dark:border-white/10" style={{
         borderRadius: 14,
         overflow: 'hidden',
       }}>
         {/* Header */}
-        <div style={{
+        <div className="border-b border-line2 dark:border-white/5" style={{
           display: 'flex', alignItems: 'center', gap: 8,
           padding: '12px 16px 8px',
-          borderBottom: '1px solid #eef0ec',
         }}>
-          <span className="font-mono text-[11px] tracking-[0.1em] uppercase font-semibold" style={{ color: '#76817b' }}>
+          <span className="font-mono text-micro tracking-[0.1em] uppercase font-semibold text-ink3 dark:text-white/50">
             Hour Edit Requests
           </span>
-          <span className="text-[11px] font-bold text-white flex items-center justify-center"
-            style={{ minWidth: 18, height: 18, borderRadius: 999, background: '#a85d12', padding: '0 5px' }}
+          <span className="text-micro font-bold text-white flex items-center justify-center bg-warn"
+            style={{ minWidth: 18, height: 18, borderRadius: 999, padding: '0 5px' }}
           >
             {requests.length}
           </span>
@@ -162,17 +175,15 @@ export default function ClockEditApprovalCard({ compact = false }) {
         {requests.map((r, i) => (
           <div
             key={r.id}
-            style={{
-              padding: '12px 16px',
-              borderBottom: i < requests.length - 1 ? '1px solid #eef0ec' : 'none',
-            }}
+            className={i < requests.length - 1 ? 'border-b border-line2 dark:border-white/5' : ''}
+            style={{ padding: '12px 16px' }}
           >
             {/* Staff name + date */}
             <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 6 }}>
               <span className="text-sm font-semibold text-charcoal dark:text-white">
                 {r.staff?.name ?? 'Staff member'}
               </span>
-              <span className="font-mono text-[11px] tracking-[0.05em]" style={{ color: '#b3b9b5' }}>
+              <span className="font-mono text-micro tracking-[0.05em] text-ink4 dark:text-white/35">
                 {fmtDate(r.requested_clock_in)}
               </span>
             </div>
@@ -181,22 +192,22 @@ export default function ClockEditApprovalCard({ compact = false }) {
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: r.reason ? 6 : 10, flexWrap: 'wrap' }}>
               {/* Original */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                <span className="text-[11px]" style={{ color: '#b3b9b5' }}>Was</span>
-                <span className="font-mono text-xs line-through" style={{ color: '#76817b' }}>
+                <span className="text-micro text-ink4 dark:text-white/35">Was</span>
+                <span className="font-mono text-xs line-through text-ink3 dark:text-white/50">
                   {fmt(r.original_clock_in)} → {fmt(r.original_clock_out)}
                 </span>
               </div>
               {/* Arrow */}
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#b3b9b5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="text-ink4 dark:text-white/35" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M5 12h14M12 5l7 7-7 7"/>
               </svg>
               {/* Requested */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                <span className="text-[11px]" style={{ color: '#76817b' }}>Wants</span>
+                <span className="text-micro text-ink3 dark:text-white/50">Wants</span>
                 <span className="font-mono text-xs font-semibold text-charcoal dark:text-white">
                   {fmt(r.requested_clock_in)} → {fmt(r.requested_clock_out)}
                   {r.break_minutes > 0 && (
-                    <span className="font-normal" style={{ color: '#76817b' }}> · {r.break_minutes}m break</span>
+                    <span className="font-normal text-ink3 dark:text-white/50"> · {r.break_minutes}m break</span>
                   )}
                 </span>
               </div>
@@ -204,34 +215,28 @@ export default function ClockEditApprovalCard({ compact = false }) {
 
             {/* Reason */}
             {r.reason && (
-              <p className="text-xs italic" style={{ color: '#76817b', marginBottom: 10, lineHeight: 1.4 }}>
+              <p className="text-xs italic text-ink3 dark:text-white/50" style={{ marginBottom: 10, lineHeight: 1.4 }}>
                 "{r.reason}"
               </p>
             )}
 
             {/* Action buttons */}
             <div style={{ display: 'flex', gap: 8 }}>
-              <button
+              <Button
+                variant="secondary"
+                size="sm"
                 onClick={() => setDenyTarget(r.id)}
-                className="text-[13px] font-medium cursor-pointer"
-                style={{
-                  flex: 1, padding: '9px 0', borderRadius: 9,
-                  border: '1px solid #e4e6e2', background: '#fff',
-                  color: '#76817b',
-                }}
+                className="flex-1"
               >
                 Deny
-              </button>
-              <button
+              </Button>
+              <Button
+                size="sm"
                 onClick={() => approve(r.id)}
-                className="text-[13px] font-semibold text-white cursor-pointer border-none"
-                style={{
-                  flex: 2, padding: '9px 0', borderRadius: 9,
-                  background: '#13362a',
-                }}
+                className="flex-[2]"
               >
                 Approve
-              </button>
+              </Button>
             </div>
           </div>
         ))}

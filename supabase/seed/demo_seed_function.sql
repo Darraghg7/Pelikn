@@ -1,3 +1,23 @@
+-- ############################################################################
+-- REFERENCE ONLY. DO NOT RUN THIS FILE AS-IS.
+--
+-- This is the body of the demo-account rebuild function as last written down
+-- (originally seed/051_fix_seed_demo_schema.sql). It rebuilds the two demo
+-- venues (brew-and-bloom, the-corner-cup) and is called by the seed-demo edge
+-- function.
+--
+-- In the live database this body now lives under the name
+-- _seed_demo_data_impl. Migration 056 renamed it and put a guard function
+-- called seed_demo_data in front that refuses to run for anyone but the demo
+-- account; migration 141 made both server-only.
+--
+-- Running this file would DROP that guard and recreate seed_demo_data with no
+-- demo-only check and default permissions. To change the demo data, copy the
+-- body into a new numbered migration that does
+--   CREATE OR REPLACE FUNCTION _seed_demo_data_impl(p_owner_id uuid) ...
+-- and keeps the REVOKE/GRANT lines from 141.
+-- ############################################################################
+
 -- ============================================================================
 -- 051: Fix seed_demo_data to match current venue_roles / staff_role_assignments
 --      / rota_requirements schemas introduced in migration 031.

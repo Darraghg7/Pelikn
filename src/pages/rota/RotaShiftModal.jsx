@@ -6,9 +6,10 @@ import Toggle from '../../components/ui/Toggle'
 import { SHIFT_PRESETS } from '../../lib/constants'
 import { format } from 'date-fns'
 import { shiftDurationHours, paidShiftHours, unpaidBreakMins, isOvernightShift } from '../../hooks/useShifts'
+import Button from '../../components/ui/Button'
 
 function SectionLabel({ children }) {
-  return <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-1">{children}</p>
+  return <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-1">{children}</p>
 }
 
 function fmtDuration(startTime, endTime) {
@@ -77,7 +78,7 @@ export default function RotaShiftModal({
           {/* Existing shifts for this day */}
           {modal.dayShifts?.length > 0 && (
             <div className="rounded-xl border border-warning/30 bg-warning/6 p-3 flex flex-col gap-2">
-              <p className="text-[11px] tracking-widest uppercase text-warning/80 font-semibold flex items-center gap-1.5">
+              <p className="text-micro tracking-widest uppercase text-warning/80 font-semibold flex items-center gap-1.5">
                 <span className="text-warning"><svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span> Already scheduled this day
               </p>
               {modal.dayShifts.map((sh) => (
@@ -92,13 +93,13 @@ export default function RotaShiftModal({
                     <p className="text-xs text-charcoal/50 dark:text-white/40 mt-0.5 flex items-center gap-1.5">
                       {sh.role_label}
                       {sh.is_closing && (
-                        <span className="text-[10px] font-bold tracking-wide uppercase text-brand dark:text-accent">· Closing</span>
+                        <span className="text-micro font-bold tracking-wide uppercase text-brand dark:text-accent">· Closing</span>
                       )}
                     </p>
                   </div>
                   <div className="flex gap-1.5">
-                    <button onClick={() => openEdit(sh)} className="text-xs px-2.5 py-1.5 rounded-lg border border-charcoal/15 dark:border-white/15 text-charcoal/60 dark:text-white/50 hover:text-charcoal dark:hover:text-white hover:border-charcoal/30 dark:hover:border-white/30 transition-colors">Edit</button>
-                    <button onClick={() => setConfirmDeleteId(sh.id)} className="text-xs px-2.5 py-1.5 rounded-lg border border-danger/20 text-danger/60 hover:text-danger hover:border-danger/40 transition-colors">Remove</button>
+                    <Button variant="secondary" size="sm" onClick={() => openEdit(sh)}>Edit</Button>
+                    <Button variant="danger-ghost" size="sm" onClick={() => setConfirmDeleteId(sh.id)}>Remove</Button>
                   </div>
                 </div>
               ))}
@@ -109,7 +110,7 @@ export default function RotaShiftModal({
 
           {/* Quick presets */}
           <div>
-            <p className="text-[11px] tracking-widest uppercase text-charcoal/30 dark:text-white/30 mb-2">Quick Presets</p>
+            <p className="text-micro tracking-widest uppercase text-charcoal/30 dark:text-white/30 mb-2">Quick Presets</p>
             <div className="grid grid-cols-2 gap-2">
               {SHIFT_PRESETS.map((p) => {
                 const active = form.startTime === p.start && form.endTime === p.end
@@ -126,7 +127,7 @@ export default function RotaShiftModal({
                     ].join(' ')}
                   >
                     <p className="font-semibold">{p.label}</p>
-                    <p className={`text-[11px] mt-0.5 ${active ? 'opacity-60' : 'text-charcoal/35 dark:text-white/30'}`}>
+                    <p className={`text-caption mt-0.5 ${active ? 'opacity-60' : 'text-charcoal/35 dark:text-white/30'}`}>
                       {p.start}–{p.end}
                     </p>
                   </button>
@@ -137,17 +138,17 @@ export default function RotaShiftModal({
 
           {/* Time pickers */}
           <div>
-            <p className="text-[11px] tracking-widest uppercase text-charcoal/30 dark:text-white/30 mb-2">Custom Times</p>
+            <p className="text-micro tracking-widest uppercase text-charcoal/30 dark:text-white/30 mb-2">Custom Times</p>
             <div className="grid grid-cols-2 gap-3">
               <div className="flex flex-col gap-1.5">
-                <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">Start</label>
+                <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">Start</label>
                 <TimeSelect
                   value={form.startTime}
                   onChange={(v) => setForm((f) => ({ ...f, startTime: v }))}
                 />
               </div>
               <div className="flex flex-col gap-1.5">
-                <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">End</label>
+                <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">End</label>
                 <TimeSelect
                   value={form.endTime}
                   onChange={(v) => setForm((f) => ({ ...f, endTime: v }))}
@@ -179,7 +180,7 @@ export default function RotaShiftModal({
                   )}
                 </div>
                 {breakMins > 0 && (
-                  <p className="text-[11px] text-charcoal/40 dark:text-white/35 border-t border-charcoal/8 dark:border-white/8 pt-2">
+                  <p className="text-caption text-charcoal/40 dark:text-white/35 border-t border-charcoal/8 dark:border-white/8 pt-2">
                     Includes {breakMins} min unpaid {isUnder18 ? 'break (under-18 rule)' : 'break'} — {paidHrs.toFixed(2)}h paid
                   </p>
                 )}
@@ -189,7 +190,7 @@ export default function RotaShiftModal({
 
           {/* Role selector */}
           <div>
-            <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-2">Role</p>
+            <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-2">Role</p>
             {venueRoles.length > 0 ? (
               <div className="flex flex-wrap gap-2">
                 {venueRoles.map((r) => (
@@ -217,7 +218,7 @@ export default function RotaShiftModal({
                   placeholder="e.g. Manager, Team Lead…"
                   className="w-full px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20"
                 />
-                <p className="text-[11px] text-charcoal/35 dark:text-white/30">Add roles in Settings → Rota Roles to get quick-select chips here.</p>
+                <p className="text-caption text-charcoal/35 dark:text-white/30">Add roles in Settings → Rota Roles to get quick-select chips here.</p>
               </div>
             )}
           </div>
@@ -226,7 +227,7 @@ export default function RotaShiftModal({
           <div className="border-t border-charcoal/8 dark:border-white/8 pt-4 flex items-start justify-between gap-3">
             <div>
               <p className="text-sm font-medium text-charcoal dark:text-white">Closing shift</p>
-              <p className="text-[11px] text-charcoal/40 dark:text-white/35 mt-0.5 max-w-[280px]">
+              <p className="text-caption text-charcoal/40 dark:text-white/35 mt-0.5 max-w-[280px]">
                 Accountable for their department's closing checklist today — the first person closing that department completes it, anyone closing after has to accept it before clocking out.
               </p>
             </div>
@@ -242,7 +243,7 @@ export default function RotaShiftModal({
               <div className="flex items-center justify-between mb-3">
                 <div>
                   <p className="text-sm font-medium text-charcoal dark:text-white">Assign duty?</p>
-                  <p className="text-[11px] text-charcoal/40 dark:text-white/35 mt-0.5">Optional task checklist for this shift</p>
+                  <p className="text-caption text-charcoal/40 dark:text-white/35 mt-0.5">Optional task checklist for this shift</p>
                 </div>
                 <Toggle
                   checked={assignDuty}
@@ -264,7 +265,7 @@ export default function RotaShiftModal({
                       ].join(' ')}
                     >
                       {t.title}
-                      <span className="text-[11px] text-charcoal/35 dark:text-white/30 font-normal ml-2">
+                      <span className="text-micro text-charcoal/35 dark:text-white/30 font-normal ml-2">
                         {t.items.length} task{t.items.length !== 1 ? 's' : ''}
                       </span>
                     </button>
@@ -284,18 +285,20 @@ export default function RotaShiftModal({
           {/* Action buttons */}
           <div className="flex items-center justify-between pt-1 border-t border-charcoal/8 dark:border-white/8">
             {editShift ? (
-              <button
+              <Button
+                variant="danger-ghost"
+                size="sm"
                 onClick={() => setConfirmDeleteId(editShift.id)}
-                className="text-xs text-danger/60 hover:text-danger transition-colors"
               >
                 Delete shift
-              </button>
+              </Button>
             ) : (
               <div />
             )}
             <div className="flex gap-2">
               {editShift && (
-                <button
+                <Button
+                  variant="secondary"
                   onClick={() => {
                     const lastRole = localStorage.getItem(`mise_last_role_${modal.staffMember.id}`) || venueRoles[0]?.name || ''
                     setEditShift(null)
@@ -303,18 +306,17 @@ export default function RotaShiftModal({
                     setAssignDuty(false)
                     setSelectedDutyId(null)
                   }}
-                  className="px-4 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 text-sm text-charcoal/60 dark:text-white/50 hover:text-charcoal dark:hover:text-white hover:border-charcoal/30 dark:hover:border-white/30 transition-colors"
                 >
                   Cancel Edit
-                </button>
+                </Button>
               )}
-              <button
+              <Button
+                loading={saving}
                 onClick={saveShift}
                 disabled={saving || !duration}
-                className="bg-charcoal text-cream px-6 py-2.5 rounded-lg text-sm font-medium hover:bg-charcoal/90 transition-colors disabled:opacity-40"
               >
                 {saving ? 'Saving…' : editShift ? 'Update Shift' : 'Add Shift →'}
-              </button>
+              </Button>
             </div>
           </div>
 

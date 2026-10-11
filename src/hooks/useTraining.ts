@@ -43,7 +43,8 @@ export function useStaffTraining(staffId: string): {
         .eq('staff_id', staffId)
         .order('created_at', { ascending: false })
       if (venueId) q = q.eq('venue_id', venueId)
-      const { data } = await q
+      const { data, error } = await q
+      if (error) throw error
       return (data ?? []) as TrainingRecord[]
     },
     enabled: !!staffId,
@@ -53,12 +54,12 @@ export function useStaffTraining(staffId: string): {
 }
 
 /** Venue-wide training sign-offs (React Query, 60s cache). */
-export function useSignOffs(): { records: SignOffRecord[]; loading: boolean; reload: () => void } {
+export function useSignOffs(): { records: SignOffRecord[]; loading: boolean; isError: boolean; reload: () => void } {
   const { venueId } = useVenue()
   const queryClient = useQueryClient()
   const queryKey = ['trainingSignOffs', venueId]
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError } = useQuery({
     queryKey,
     queryFn: () => fetchSignOffs(venueId!),
     enabled: !!venueId,
@@ -66,16 +67,16 @@ export function useSignOffs(): { records: SignOffRecord[]; loading: boolean; rel
     placeholderData: [],
   })
 
-  return { records: data ?? [], loading: isLoading, reload: () => queryClient.invalidateQueries({ queryKey }) }
+  return { records: data ?? [], loading: isLoading, isError, reload: () => queryClient.invalidateQueries({ queryKey }) }
 }
 
 /** Venue-wide certificate/training records (React Query, 60s cache). */
-export function useCertRecords(): { records: CertRecord[]; loading: boolean; reload: () => void } {
+export function useCertRecords(): { records: CertRecord[]; loading: boolean; isError: boolean; reload: () => void } {
   const { venueId } = useVenue()
   const queryClient = useQueryClient()
   const queryKey = ['trainingCertRecords', venueId]
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError } = useQuery({
     queryKey,
     queryFn: () => fetchCertRecords(venueId!),
     enabled: !!venueId,
@@ -83,7 +84,7 @@ export function useCertRecords(): { records: CertRecord[]; loading: boolean; rel
     placeholderData: [],
   })
 
-  return { records: data ?? [], loading: isLoading, reload: () => queryClient.invalidateQueries({ queryKey }) }
+  return { records: data ?? [], loading: isLoading, isError, reload: () => queryClient.invalidateQueries({ queryKey }) }
 }
 
 /** Venue-wide allergen-awareness training records (React Query, 60s cache). */

@@ -3,6 +3,7 @@ import { useCallback } from 'react'
 import { format, addWeeks, addDays, eachDayOfInterval, parseISO } from 'date-fns'
 import { supabase } from '../lib/supabase'
 import { fetchTimeOffPrivateFields } from '../lib/api/timeOffPrivate'
+import { throwIfError } from '../lib/queryErrors'
 import { useVenue } from '../contexts/VenueContext'
 
 interface AvailabilityEntry {
@@ -12,6 +13,10 @@ interface AvailabilityEntry {
 }
 
 type AvailabilityMap = Record<string, AvailabilityEntry>
+
+// One shared empty map, so `unavailability` keeps the same identity while the
+// query has no data and toggleAvailability isn't rebuilt every render.
+const EMPTY_MAP: AvailabilityMap = {}
 
 /**
  * Fetches manual unavailability + approved time-off for visible weeks.
@@ -58,6 +63,7 @@ export function useAvailability(weekStart: Date, numWeeks = 1): {
           .lte('start_date', endStr)
           .gte('end_date', startStr),
       ])
+      throwIfError(manualRes, timeOffRes)
       const timeOffPrivate = await fetchTimeOffPrivateFields()
 
       // Manual entries
@@ -86,7 +92,7 @@ export function useAvailability(weekStart: Date, numWeeks = 1): {
     enabled: !!venueId,
   })
 
-  const unavailability = data ?? {}
+  const unavailability = data ?? EMPTY_MAP
 
   /**
    * Three-state toggle cycle:

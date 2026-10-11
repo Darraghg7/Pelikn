@@ -12,13 +12,14 @@ const DEFAULT_BRANDING: VenueBranding = { venueName: '', logoUrl: '' }
 async function fetchBranding(venueId: string): Promise<VenueBranding> {
   // First load comes from the startup bundle when it's available (126).
   const boot = await takeBootstrapSettings(venueId, 'branding', ['venue_name', 'logo_url'])
-  const { data } = boot
-    ? { data: boot }
+  const { data, error } = boot
+    ? { data: boot, error: null }
     : await supabase
       .from('app_settings')
       .select('key, value')
       .eq('venue_id', venueId)
       .in('key', ['venue_name', 'logo_url'])
+  if (error) throw error
 
   if (!data) return DEFAULT_BRANDING
   const map = Object.fromEntries((data as { key: string; value: string }[]).map(r => [r.key, r.value]))

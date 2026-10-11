@@ -4,7 +4,7 @@
  */
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { offlineRpc } from '../../lib/offlineSupabase'
-import { useClockStatus, nextClockStatus } from '../../hooks/useClockEvents'
+import { useClockStatus, nextClockStatus, useQueuedClockEvent } from '../../hooks/useClockEvents'
 import { useVenue } from '../../contexts/VenueContext'
 import { useToast } from '../ui/Toast'
 import Skeleton from '../ui/Skeleton'
@@ -12,6 +12,7 @@ import StaffAlertModal from './StaffAlertModal'
 import { useClockAlerts } from '../../hooks/useClockAlerts'
 import { useClosingCheckoutGuard } from '../../hooks/useClosingCheckoutGuard'
 import ClosingChecklistGateModal from './ClosingChecklistGateModal'
+import Button from '../ui/Button'
 
 const STATUS_CONFIG = {
   clocked_out: { label: 'Not Clocked In', color: 'text-charcoal/50 dark:text-white/40', dot: 'bg-charcoal/25 dark:bg-white/25' },
@@ -48,17 +49,17 @@ function ElapsedTimer({ clockInAt, breakStartAt, totalBreakMs, status }) {
   return (
     <div className="flex items-baseline gap-3">
       <div>
-        <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">Shift</p>
+        <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">Shift</p>
         <p className="font-mono text-2xl text-charcoal dark:text-white tabular-nums">{formatElapsed(workingMs)}</p>
       </div>
       {status === 'on_break' && breakStartAt && (
         <div>
-          <p className="text-[11px] tracking-widest uppercase text-warning/60">Break</p>
+          <p className="text-micro tracking-widest uppercase text-warning/60">Break</p>
           <p className="font-mono text-lg text-warning tabular-nums">{formatElapsed(currentBreakMs)}</p>
         </div>
       )}
       {totalBreakMs > 0 && status !== 'on_break' && (
-        <p className="text-[11px] text-charcoal/30 dark:text-white/30">
+        <p className="text-caption text-charcoal/30 dark:text-white/30">
           {formatElapsed(totalBreakMs)} on breaks
         </p>
       )}
@@ -70,6 +71,7 @@ export default function ClockPanel({ staffId, compact = false }) {
   const { venueId } = useVenue()
   const toast = useToast()
   const { status, clockInAt, breakStartAt, totalBreakMs, loading, isError, reload, setStatus } = useClockStatus(staffId)
+  const notSent = useQueuedClockEvent(staffId)
   const inFlightRef = useRef(false)
 
   // Late clock-in / break-overrun alerts live in a shared hook so that every
@@ -104,9 +106,12 @@ export default function ClockPanel({ staffId, compact = false }) {
     let result
     try {
       result = await offlineRpc('record_clock_event', {
-        p_staff_id:   staffId,
-        p_event_type: eventType,
-        p_venue_id:   venueId,
+        p_staff_id:    staffId,
+        p_event_type:  eventType,
+        p_venue_id:    venueId,
+        // The tap time, so a punch held on the device (no signal) still lands
+        // at the moment it happened, not when it finally gets through (144).
+        p_occurred_at: at.toISOString(),
       })
     } catch (err) {
       result = { error: err }
@@ -150,12 +155,13 @@ export default function ClockPanel({ staffId, compact = false }) {
     return (
       <div className="flex flex-col gap-3">
         <p className="text-sm text-danger">Couldn't check your clock status.</p>
-        <button
+        <Button
+          variant="danger-ghost"
+          fullWidth
           onClick={reload}
-          className="w-full bg-danger/10 text-danger border border-danger/25 py-3 rounded-xl text-sm font-semibold hover:bg-danger/15 transition-colors"
         >
           Retry
-        </button>
+        </Button>
       </div>
     )
   }
@@ -186,46 +192,52 @@ export default function ClockPanel({ staffId, compact = false }) {
 
         {/* Action buttons — compact=true renders on-dark variants for the hero card */}
         {status === 'clocked_out' && (
-          <button
+          <Button
+            size="lg"
+            fullWidth
+            variant={compact ? 'inverse' : 'primary'}
             onClick={() => record('clock_in')}
-            className={compact
-              ? 'w-full bg-white dark:bg-paperDark text-brand py-3 rounded-xl text-sm font-bold hover:bg-white/90 transition-colors disabled:opacity-40'
-              : 'w-full bg-charcoal text-cream py-3 rounded-xl text-sm font-semibold hover:bg-charcoal/90 transition-colors disabled:opacity-40'}
           >
             Clock In
-          </button>
+          </Button>
         )}
 
         {status === 'clocked_in' && (
           <div className="flex gap-2">
-            <button
+            <Button
+              size="lg"
+              variant={compact ? 'inverse-secondary' : 'secondary'}
               onClick={() => record('break_start')}
-              className={compact
-                ? 'flex-1 bg-white/10 text-white border border-white/25 py-3 rounded-xl text-sm font-semibold hover:bg-white/15 transition-colors disabled:opacity-40'
-                : 'flex-1 bg-warning/15 text-warning py-3 rounded-xl text-sm font-semibold hover:bg-warning/25 transition-colors disabled:opacity-40'}
+              className="flex-1"
             >
               Start Break
-            </button>
-            <button
+            </Button>
+            <Button
+              size="lg"
+              variant={compact ? 'inverse' : 'primary'}
               onClick={closingGuard.guardClockOut}
-              className={compact
-                ? 'flex-[1.4] bg-white dark:bg-paperDark text-brand py-3 rounded-xl text-sm font-bold hover:bg-white/90 transition-colors disabled:opacity-40'
-                : 'flex-1 bg-charcoal text-cream py-3 rounded-xl text-sm font-semibold hover:bg-charcoal/90 transition-colors disabled:opacity-40'}
+              className={compact ? 'flex-[1.4]' : 'flex-1'}
             >
               Clock Out
-            </button>
+            </Button>
           </div>
         )}
 
         {status === 'on_break' && (
-          <button
+          <Button
+            size="lg"
+            fullWidth
+            variant={compact ? 'inverse' : 'primary'}
             onClick={() => record('break_end')}
-            className={compact
-              ? 'w-full bg-white dark:bg-paperDark text-brand py-3 rounded-xl text-sm font-bold hover:bg-white/90 transition-colors disabled:opacity-40'
-              : 'w-full bg-charcoal text-cream py-3 rounded-xl text-sm font-semibold hover:bg-charcoal/90 transition-colors disabled:opacity-40'}
           >
             End Break
-          </button>
+          </Button>
+        )}
+
+        {notSent && (
+          <p role="status" className={`text-caption font-medium ${compact ? 'text-white/80' : 'text-warning'}`}>
+            Not sent yet. This device will keep trying.
+          </p>
         )}
       </div>
     </>

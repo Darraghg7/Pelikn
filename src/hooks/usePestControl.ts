@@ -55,7 +55,8 @@ const PEST_COLUMNS = `${LEGACY_PEST_COLUMNS}, issue_id`
 async function selectWithFallback(build: (columns: string, linked: boolean) => PromiseLike<{ data: unknown; error: unknown }>): Promise<PestControlLog[]> {
   const { data, error } = await build(PEST_COLUMNS, true)
   if (!error) return (data ?? []) as PestControlLog[]
-  const { data: legacy } = await build(LEGACY_PEST_COLUMNS, false)
+  const { data: legacy, error: legacyErr } = await build(LEGACY_PEST_COLUMNS, false)
+  if (legacyErr) throw legacyErr
   return (legacy ?? []) as PestControlLog[]
 }
 
@@ -63,11 +64,12 @@ async function selectWithFallback(build: (columns: string, linked: boolean) => P
 export function usePestControlLogs(dateFrom: string | null, dateTo: string | null): {
   logs: PestControlLog[]
   loading: boolean
+  isError: boolean
   reload: () => void
 } {
   const { venueId } = useVenue()
 
-  const { data, isLoading, refetch } = useQuery({
+  const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ['pestControlLogs', venueId, dateFrom, dateTo],
     queryFn: () => selectWithFallback((columns) => {
       let q = supabase
@@ -85,7 +87,7 @@ export function usePestControlLogs(dateFrom: string | null, dateTo: string | nul
     enabled: !!venueId,
   })
 
-  return { logs: (data ?? []) as PestControlLog[], loading: isLoading, reload: refetch }
+  return { logs: (data ?? []) as PestControlLog[], loading: isLoading, isError, reload: refetch }
 }
 
 /**
@@ -112,11 +114,12 @@ export function useOpenPestIssues(): { issues: PestIssue[]; loading: boolean } {
       if (open.length === 0 || !('issue_id' in open[0])) {
         return open.map(issue => ({ ...issue, timeline: [] })) as PestIssue[]
       }
-      const { data: linked } = await supabase
+      const { data: linked, error: linkedErr } = await supabase
         .from('pest_control_logs')
         .select(PEST_COLUMNS)
         .in('issue_id', open.map(i => i.id))
         .order('logged_at', { ascending: true })
+      if (linkedErr) throw linkedErr
       const byIssue = new Map<string, PestControlLog[]>()
       for (const log of (linked ?? []) as PestControlLog[]) {
         const list = byIssue.get(log.issue_id!) ?? []
@@ -138,12 +141,13 @@ export function usePestLocations(limit = 5): string[] {
   const { data = [] } = useQuery({
     queryKey: ['pestLocations', venueId],
     queryFn: async () => {
-      const { data: rows } = await supabase
+      const { data: rows, error: rowsErr } = await supabase
         .from('pest_control_logs')
         .select('location')
         .eq('venue_id', venueId)
         .order('logged_at', { ascending: false })
         .limit(300)
+      if (rowsErr) throw rowsErr
       const counts = new Map<string, { name: string; n: number }>()
       for (const row of (rows ?? []) as { location: string }[]) {
         const name = row.location?.trim()

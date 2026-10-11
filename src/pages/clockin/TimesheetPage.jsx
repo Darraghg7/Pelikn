@@ -11,15 +11,26 @@ import { useAppSettings } from '../../hooks/useSettings'
 import { formatMinutes, getWeekStart, downloadCsv } from '../../lib/utils'
 import { buildPdfReport } from '../../lib/pdfUtils'
 import { countWorkingDaysInRequest } from '../../hooks/useLeaveBalance'
+import { withPaidHoursColumns } from '../../lib/api/holidayData'
+import { useHolidayBalances, useHolidayYear, useRotaHours, HOLIDAY_BALANCES_KEY } from '../../hooks/useHolidayBalances'
+import { suggestedPaidHours } from '../../lib/holiday'
+import { holidayYearContaining } from '../../lib/holidayYear'
+import { useQueryClient } from '@tanstack/react-query'
+import HolidayPayModal from './HolidayPayModal'
+import { markUnpaid } from '../../lib/api/timeOff'
+import { sendPush } from '../../lib/sendPush'
 import { SkeletonList } from '../../components/ui/Skeleton'
 import AddSessionModal from './AddSessionModal'
 import ClockEditApprovalCard from '../../components/shifts/ClockEditApprovalCard'
 import RestrictedFieldsNotice from '../../components/ui/RestrictedFieldsNotice'
+import Avatar from '../../components/ui/Avatar'
 import { formatLondon, resolveShiftInstants } from '../../lib/time'
 import { buildTimesheets, buildDailyGrid, partitionDaySessions, breakMinutes, sessionMinutes } from '../../lib/timesheet'
 import { offlineRpc } from '../../lib/offlineSupabase'
+import { reportError } from '../../lib/reportError'
 import { Link } from 'react-router-dom'
 import { CARD, TabBar } from '../../components/temperature/TempPageParts'
+import Button from '../../components/ui/Button'
 
 function useBodyScrollLock() {
   useEffect(() => {
@@ -27,13 +38,6 @@ function useBodyScrollLock() {
     document.body.style.overflow = 'hidden'
     return () => { document.body.style.overflow = prevOverflow }
   }, [])
-}
-
-const STATIONS = {
-  Kitchen: { bg: '#f0ebde', fg: '#6b5028' },
-  FOH:     { bg: '#e7eef3', fg: '#2a4a66' },
-  Bar:     { bg: '#eaeae6', fg: '#3a3a30' },
-  KP:      { bg: '#ecdfe1', fg: '#5a3036' },
 }
 
 // ── Wheel picker constants ─────────────────────────────────────────────────────
@@ -69,16 +73,24 @@ function minsStr(mins) {
   return m === 0 ? `${h}h` : `${h}h ${m}m`
 }
 
+const dayCount = (from, to) =>
+  Math.round((Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) / 86_400_000) + 1
+
 function calcHolidayMins(leaveReqs, staffId, profile, periodFrom, periodTo) {
   const reqs = leaveReqs.filter(r => r.staff_id === staffId)
   if (!reqs.length) return 0
   const { contractedHours, workingDays } = profile
-  if (!contractedHours || contractedHours <= 0) return 0
   const daysPerWeek = workingDays?.length > 0 ? workingDays.length : 5
-  const dailyHours  = contractedHours / daysPerWeek
+  const dailyHours  = contractedHours > 0 ? contractedHours / daysPerWeek : 0
   return reqs.reduce((sum, r) => {
     const clippedStart = periodFrom && r.start_date < periodFrom ? periodFrom : r.start_date
     const clippedEnd   = periodTo   && r.end_date   > periodTo   ? periodTo   : r.end_date
+    // Hours a manager recorded as paid (zero-hours staff, 149) win; they are
+    // spread evenly over the request's days so a period gets its share.
+    if (r.paid_hours != null) {
+      return sum + Number(r.paid_hours) * 60 * (dayCount(clippedStart, clippedEnd) / dayCount(r.start_date, r.end_date))
+    }
+    if (!dailyHours) return sum
     return sum + countWorkingDaysInRequest(clippedStart, clippedEnd, workingDays) * dailyHours * 60
   }, 0)
 }
@@ -120,57 +132,37 @@ function periodToDates(period, customFrom, customTo) {
 }
 
 // ── UI atoms ───────────────────────────────────────────────────────────────────
-function Avatar({ name, station, size = 34 }) {
-  const initials = name.split(' ').map(w => w[0]).slice(0, 2).join('')
-  const st = STATIONS[station] || { bg: '#eef4f0', fg: '#13362a' }
-  return (
-    <span
-      className="shrink-0 flex items-center justify-center font-mono font-semibold"
-      style={{ width: size, height: size, borderRadius: Math.round(size * 0.265), background: st.bg, color: st.fg, fontSize: Math.round(size * 0.32), letterSpacing: '0.02em' }}
-    >
-      {initials}
-    </span>
-  )
-}
-
 function SumCell({ label, value }) {
   return (
     <div className="px-3.5 sm:px-3.5 py-2.5 min-w-0">
-      <p className="text-[13px] text-ink3 dark:text-white/45">{label}</p>
-      <p className="font-mono text-[19px] min-[420px]:text-[20px] leading-tight font-semibold text-ink dark:text-white mt-1 truncate tabular-nums">{value}</p>
+      <p className="text-body-sm text-ink3 dark:text-white/45">{label}</p>
+      <p className="font-mono text-title-sm min-[420px]:text-title leading-tight font-semibold text-ink dark:text-white mt-1 truncate tabular-nums">{value}</p>
     </div>
   )
 }
 
-function staffInitials(name) {
-  const parts = (name ?? '').trim().split(/\s+/).filter(Boolean)
-  if (parts.length === 0) return '?'
-  return parts.length === 1 ? parts[0][0].toUpperCase() : (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
-}
-
-function StaffRow({ t, onTap }) {
-  const hasData = t.totalMinutes > 0
-  const pay = (t.totalMinutes / 60) * t.hourlyRate
+function StaffRow({ t, person, holidayMins = 0, onTap }) {
+  const hasData = t.totalMinutes > 0 || holidayMins > 0
+  const pay = ((t.totalMinutes + holidayMins) / 60) * t.hourlyRate
   return (
     <button
       type="button"
       onClick={onTap}
       className="w-full flex items-center gap-2.5 px-3.5 sm:px-3.5 py-2.5 text-left hover:bg-cream/60 dark:hover:bg-white/5 transition-colors"
     >
-      <span className="shrink-0 w-10 h-10 rounded-2xl bg-brand-tint dark:bg-white/10 inline-flex items-center justify-center text-[14px] font-semibold text-ink dark:text-white">
-        {staffInitials(t.name)}
-      </span>
+      <Avatar name={t.name} id={t.staffId} colour={person?.colour} photoUrl={person?.photo_url} size="lg" decorative />
       <span className="flex-1 min-w-0">
-        <span className="block text-[15px] font-semibold text-ink dark:text-white truncate">{t.name}</span>
-        {t.hourlyRate > 0 && <span className="block font-mono text-[13px] text-ink3 dark:text-white/45 mt-0.5">£{Number(t.hourlyRate).toFixed(2)}/hr</span>}
+        <span className="block text-body-lg font-semibold text-ink dark:text-white truncate">{t.name}</span>
+        {t.hourlyRate > 0 && <span className="block font-mono text-body-sm text-ink3 dark:text-white/45 mt-0.5">£{Number(t.hourlyRate).toFixed(2)}/hr</span>}
       </span>
       {hasData ? (
         <span className="shrink-0 text-right">
-          <span className="block font-mono text-[15px] font-semibold text-ink dark:text-white tabular-nums">{hm(t.totalMinutes)}</span>
-          {pay > 0 && <span className="block font-mono text-[13px] font-semibold text-good dark:text-[#7fd1a4] mt-0.5 tabular-nums">{fmtGBP(pay)}</span>}
+          <span className="block font-mono text-body-lg font-semibold text-ink dark:text-white tabular-nums">{t.totalMinutes > 0 ? hm(t.totalMinutes) : '–'}</span>
+          {holidayMins > 0 && <span className="block font-mono text-body-sm text-ink3 dark:text-white/45 tabular-nums">+ {hm(holidayMins)} holiday</span>}
+          {pay > 0 && <span className="block font-mono text-body-sm font-semibold text-good dark:text-goodDark mt-0.5 tabular-nums">{fmtGBP(pay)}</span>}
         </span>
       ) : (
-        <span className="shrink-0 font-mono text-[15px] text-ink4 dark:text-white/30" aria-label="No hours">–</span>
+        <span className="shrink-0 font-mono text-body-lg text-ink4 dark:text-white/30" aria-label="No hours">–</span>
       )}
     </button>
   )
@@ -187,9 +179,9 @@ function TsWheel({ values, value, onChange }) {
   const setNode = useCallback((node) => {
     ref.current = node
     if (node) node.scrollTop = idx * WH_IH
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps -- a callback ref must keep one identity or React detaches/reattaches it each change; it only sets the starting scroll, the effect below follows `idx`
 
-  useEffect(() => { const el = ref.current; if (el) el.scrollTop = idx * WH_IH }, [strVal]) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { const el = ref.current; if (el) el.scrollTop = idx * WH_IH }, [idx])
 
   const onScroll = useCallback(() => {
     clearTimeout(timer.current)
@@ -216,17 +208,17 @@ function TsWheel({ values, value, onChange }) {
             <div
               key={v}
               onClick={() => { ref.current?.scrollTo({ top: i * WH_IH, behavior: 'smooth' }); onChange(v) }}
-              className="flex items-center justify-center [scroll-snap-align:center] cursor-pointer font-mono tabular-nums transition-[font-size,color] duration-100"
-              style={{ height: WH_IH, fontSize: on ? 23 : 18, fontWeight: on ? 600 : 500, color: on ? '#0d1a14' : '#b3b9b5' }}
+              className={`flex items-center justify-center [scroll-snap-align:center] cursor-pointer font-mono tabular-nums transition-[font-size,color] duration-100 ${on ? 'text-ink dark:text-white' : 'text-ink4 dark:text-white/30'}`}
+              style={{ height: WH_IH, fontSize: on ? 23 : 18, fontWeight: on ? 600 : 500 }}
             >
               {v}
             </div>
           )
         })}
       </div>
-      <div className="absolute left-0 right-0 pointer-events-none border-t border-b border-charcoal/10 dark:border-white/10" style={{ top: pad, height: WH_IH, background: 'rgba(19,54,42,0.03)' }} />
-      <div className="absolute left-0 right-0 top-0 pointer-events-none" style={{ height: pad, background: 'linear-gradient(#f3f3ef, #f3f3ef00)' }} />
-      <div className="absolute left-0 right-0 bottom-0 pointer-events-none" style={{ height: pad, background: 'linear-gradient(#f3f3ef00, #f3f3ef)' }} />
+      <div className="absolute left-0 right-0 pointer-events-none border-t border-b border-charcoal/10 dark:border-white/10 bg-brand/3 dark:bg-white/5" style={{ top: pad, height: WH_IH }} />
+      <div className="absolute left-0 right-0 top-0 pointer-events-none bg-gradient-to-b from-surface to-surface/0 dark:from-paperDark dark:to-paperDark/0" style={{ height: pad }} />
+      <div className="absolute left-0 right-0 bottom-0 pointer-events-none bg-gradient-to-t from-surface to-surface/0 dark:from-paperDark dark:to-paperDark/0" style={{ height: pad }} />
     </div>
   )
 }
@@ -255,38 +247,38 @@ function EditSessionSheet({ staffName, dayLabel, session, onSave, onClose }) {
   useBodyScrollLock()
   return (
     <div className="fixed inset-0 z-[60] flex flex-col justify-end">
-      <div onClick={onClose} className="absolute inset-0" style={{ background: 'rgba(9,18,13,0.52)' }} />
-      <div className="relative bg-surface rounded-t-[22px] px-3.5 pb-[34px] pt-[10px] max-h-[90%] overflow-y-auto [-webkit-overflow-scrolling:touch]" style={{ boxShadow: '0 -12px 40px rgba(9,18,13,0.24)' }}>
+      <div onClick={onClose} className="absolute inset-0 bg-ink/45" />
+      <div className="relative bg-surface dark:bg-paperDark rounded-t-[22px] px-3.5 pb-[34px] pt-[10px] max-h-[90%] overflow-y-auto [-webkit-overflow-scrolling:touch] shadow-[0_-12px_40px_theme(colors.ink/24%)]">
         <div className="w-[38px] h-1 rounded-sm bg-charcoal/10 dark:bg-white/10 mx-auto mb-4" />
         <div className="flex items-start justify-between mb-4">
           <div>
-            <div className="text-[17px] font-semibold tracking-[-0.015em]">{dayLabel}</div>
+            <div className="text-title-sm font-semibold tracking-[-0.015em]">{dayLabel}</div>
             <div className="text-xs text-charcoal/50 dark:text-white/40 mt-0.5">{staffName}</div>
           </div>
-          {session?.in && <span className="font-mono text-[11px] font-bold text-warning bg-warning/10 uppercase tracking-[0.05em] px-[9px] py-1 rounded-full">Editing</span>}
+          {session?.in && <span className="font-mono text-micro font-bold text-warning bg-warning/10 uppercase tracking-[0.05em] px-[9px] py-1 rounded-full">Editing</span>}
         </div>
-        <div className="flex gap-2 bg-charcoal/[0.06] p-1 rounded-xl mb-2">
+        <div className="flex gap-2 bg-charcoal/[0.06] dark:bg-white/8 p-1 rounded-xl mb-2">
           {[['in', 'Clock in', clockIn], ['out', 'Clock out', clockOut]].map(([k, label, val]) => {
             const on = edge === k
             return (
               <button
                 key={k}
                 onClick={() => setEdge(k)}
-                className={`flex-1 cursor-pointer border-none rounded-[9px] py-2 ${on ? 'bg-white dark:bg-paperDark shadow-[0_1px_3px_rgba(9,18,13,0.1)]' : 'bg-transparent'}`}
+                className={`flex-1 cursor-pointer border-none rounded-[9px] py-2 ${on ? 'bg-paper dark:bg-white/15 shadow-[0_1px_3px_theme(colors.ink/10%)]' : 'bg-transparent'}`}
               >
-                <div className="font-mono text-[11px] text-charcoal/50 dark:text-white/40 uppercase tracking-[0.06em] font-semibold">{label}</div>
-                <div className={`font-mono text-[17px] font-semibold mt-0.5 tabular-nums ${on ? 'text-brand' : 'text-charcoal/50 dark:text-white/40'}`}>{val}</div>
+                <div className="font-mono text-micro text-charcoal/50 dark:text-white/40 uppercase tracking-[0.06em] font-semibold">{label}</div>
+                <div className={`font-mono text-title-sm font-semibold mt-0.5 tabular-nums ${on ? 'text-brand dark:text-white' : 'text-charcoal/50 dark:text-white/40'}`}>{val}</div>
               </button>
             )
           })}
         </div>
         <div className="flex items-center justify-center gap-1 mt-2">
           <TsWheel values={WH_HOURS} value={ch} onChange={(h) => setCur(h, cm)} />
-          <span className="font-mono text-[19px] font-semibold text-charcoal/50 dark:text-white/40 pb-0.5">:</span>
+          <span className="font-mono text-title-sm font-semibold text-charcoal/50 dark:text-white/40 pb-0.5">:</span>
           <TsWheel values={WH_MINS}  value={cm} onChange={(m) => setCur(ch, m)} />
         </div>
         <div className="mt-2">
-          <div className="font-mono text-[11px] text-charcoal/50 dark:text-white/40 tracking-[0.07em] uppercase font-semibold px-0.5 pb-[7px]">Unpaid break</div>
+          <div className="font-mono text-micro text-charcoal/50 dark:text-white/40 tracking-[0.07em] uppercase font-semibold px-0.5 pb-[7px]">Unpaid break</div>
           <div className="flex flex-wrap gap-[6px]">
             {/* The recorded break is rarely a round number, so offer it as its
                 own chip — otherwise a 37m break renders with nothing selected
@@ -297,7 +289,7 @@ function EditSessionSheet({ staffName, dayLabel, session, onSave, onClose }) {
                 <button
                   key={b}
                   onClick={() => setBrk(b)}
-                  className={`font-mono text-xs font-semibold cursor-pointer px-[11px] py-[6px] rounded-[9px] border ${on ? 'border-brand bg-brand text-white' : 'border-charcoal/10 dark:border-white/10 bg-white dark:bg-paperDark text-charcoal/75 dark:text-white/60'}`}
+                  className={`font-mono text-xs font-semibold cursor-pointer px-[11px] py-[6px] rounded-[9px] border ${on ? 'border-brand bg-brand text-white' : 'border-charcoal/10 dark:border-white/10 bg-paper dark:bg-white/5 text-charcoal/75 dark:text-white/60'}`}
                 >
                   {b === 0 ? 'None' : `${b}m`}
                 </button>
@@ -307,17 +299,18 @@ function EditSessionSheet({ staffName, dayLabel, session, onSave, onClose }) {
         </div>
         <div className={`mt-[10px] px-[13px] py-[10px] rounded-[11px] flex items-center gap-2 ${valid ? 'bg-brand/8' : 'bg-danger/10'}`}>
           <span className="font-mono text-sm font-semibold tabular-nums">{clockIn} – {clockOut}</span>
-          <span className={`text-[12.5px] ${valid ? 'text-charcoal/50 dark:text-white/40' : 'text-danger'}`}>· {valid ? minsStr(worked(clockIn, clockOut, brk)) : 'clock out must be after in'}</span>
+          <span className={`text-body-sm ${valid ? 'text-charcoal/50 dark:text-white/40' : 'text-danger'}`}>· {valid ? minsStr(worked(clockIn, clockOut, brk)) : 'clock out must be after in'}</span>
         </div>
         <div className="flex gap-2 mt-4">
-          <button onClick={onClose} className="w-[90px] h-[50px] rounded-[13px] border border-charcoal/10 dark:border-white/10 bg-white dark:bg-paperDark text-charcoal/75 dark:text-white/60 cursor-pointer text-sm font-semibold">Cancel</button>
-          <button
+          <Button variant="secondary" size="lg" onClick={onClose} className="w-[90px]">Cancel</Button>
+          <Button
+            size="lg"
             disabled={!valid}
             onClick={() => { onSave({ clockIn, clockOut, brk }); onClose() }}
-            className={`flex-1 h-[50px] rounded-[13px] border-none text-[14px] font-bold ${valid ? 'bg-brand text-white cursor-pointer' : 'bg-charcoal/10 dark:bg-white/10 text-charcoal/30 dark:text-white/30 cursor-not-allowed'}`}
+            className="flex-1"
           >
             Save hours
-          </button>
+          </Button>
         </div>
       </div>
     </div>
@@ -325,19 +318,19 @@ function EditSessionSheet({ staffName, dayLabel, session, onSave, onClose }) {
 }
 
 // ── Staff hours bottom sheet ───────────────────────────────────────────────────
-function StaffHoursSheet({ t, station, periodDays, dailyGrid, periodLabel, onEditDay, onAddDay, onClose }) {
+function StaffHoursSheet({ t, person, periodDays, dailyGrid, periodLabel, onEditDay, onAddDay, onClose }) {
   const staffGrid = dailyGrid[t.staffId] || null
   const pay = (t.totalMinutes / 60) * t.hourlyRate
   useBodyScrollLock()
   return (
     <div className="fixed inset-0 z-[55] flex flex-col justify-end">
-      <div onClick={onClose} className="absolute inset-0" style={{ background: 'rgba(9,18,13,0.52)' }} />
-      <div className="relative bg-surface rounded-t-[22px] px-3.5 pt-5 pb-[34px] max-h-[90%] overflow-y-auto [-webkit-overflow-scrolling:touch]" style={{ boxShadow: '0 -12px 40px rgba(9,18,13,0.24)' }}>
+      <div onClick={onClose} className="absolute inset-0 bg-ink/45" />
+      <div className="relative bg-surface dark:bg-paperDark rounded-t-[22px] px-3.5 pt-5 pb-[34px] max-h-[90%] overflow-y-auto [-webkit-overflow-scrolling:touch] shadow-[0_-12px_40px_theme(colors.ink/24%)]">
         <div className="w-[38px] h-1 rounded-sm bg-charcoal/10 dark:bg-white/10 mx-auto mb-4" />
         <div className="flex items-center gap-2.5 mb-[14px]">
-          <Avatar name={t.name} station={station} size={44} />
+          <Avatar name={t.name} id={t.staffId} colour={person?.colour} photoUrl={person?.photo_url} size="xl" decorative />
           <div className="flex-1 min-w-0">
-            <div className="text-[17px] font-semibold tracking-[-0.015em]">{t.name}</div>
+            <div className="text-title-sm font-semibold tracking-[-0.015em]">{t.name}</div>
             <div className="text-xs text-charcoal/50 dark:text-white/40 mt-0.5">{periodLabel}</div>
           </div>
         </div>
@@ -351,10 +344,10 @@ function StaffHoursSheet({ t, station, periodDays, dailyGrid, periodLabel, onEdi
             const { real, orphans } = partitionDaySessions(dayData?.sessions ?? [])
             const has = real.length > 0
             return (
-              <div key={i} className={`flex items-center gap-[10px] px-3 py-[10px] rounded-xl border ${has ? 'bg-white dark:bg-paperDark border-charcoal/10 dark:border-white/10' : 'bg-surface border-charcoal/[0.06]'}`}>
-                <div className={`w-[42px] h-[46px] rounded-[9px] border border-charcoal/10 dark:border-white/10 shrink-0 flex flex-col items-center justify-center gap-px ${has ? 'bg-surface' : 'bg-charcoal/[0.06]'}`}>
-                  <span className="font-mono text-[11px] text-charcoal/50 dark:text-white/40 font-semibold tracking-[0.06em]">{format(d, 'EEE').toUpperCase()}</span>
-                  <span className={`font-mono text-[14px] font-semibold leading-none ${has ? 'text-charcoal dark:text-white' : 'text-charcoal/30 dark:text-white/30'}`}>{format(d, 'd')}</span>
+              <div key={i} className={`flex items-center gap-[10px] px-3 py-[10px] rounded-xl border ${has ? 'bg-paper dark:bg-white/5 border-charcoal/10 dark:border-white/10' : 'bg-surface dark:bg-transparent border-charcoal/[0.06] dark:border-white/5'}`}>
+                <div className={`w-[42px] h-[46px] rounded-[9px] border border-charcoal/10 dark:border-white/10 shrink-0 flex flex-col items-center justify-center gap-px ${has ? 'bg-surface dark:bg-white/5' : 'bg-charcoal/[0.06] dark:bg-white/5'}`}>
+                  <span className="font-mono text-micro text-charcoal/50 dark:text-white/40 font-semibold tracking-[0.06em]">{format(d, 'EEE').toUpperCase()}</span>
+                  <span className={`font-mono text-body font-semibold leading-none ${has ? 'text-charcoal dark:text-white' : 'text-charcoal/30 dark:text-white/30'}`}>{format(d, 'd')}</span>
                 </div>
                 <div className="flex-1 min-w-0 flex flex-col gap-[3px]">
                   {has ? real.map((session, si) => {
@@ -367,56 +360,60 @@ function StaffHoursSheet({ t, station, periodDays, dailyGrid, periodLabel, onEdi
                         onClick={() => onEditDay({ dateStr, session })}
                         className="text-left bg-transparent border-none p-0 cursor-pointer"
                       >
-                        <div className="font-mono text-[13.5px] font-semibold tabular-nums">
+                        <div className="font-mono text-body font-semibold tabular-nums">
                           {formatLondon(session.in, 'HH:mm')} – {complete
                             ? formatLondon(session.out, 'HH:mm')
                             : <span className="text-warning">still in</span>}
                         </div>
                         <div className="flex items-center gap-[5px] mt-0.5">
-                          <span className="font-mono text-[11.5px] text-charcoal/50 dark:text-white/40">{complete ? minsStr(mins) : 'no clock out'}</span>
-                          {breakMins > 0 && <><span className="text-charcoal/30 dark:text-white/30">·</span><span className="text-[11.5px] text-charcoal/50 dark:text-white/40">{breakMins}m break</span></>}
+                          <span className="font-mono text-caption text-charcoal/50 dark:text-white/40">{complete ? minsStr(mins) : 'no clock out'}</span>
+                          {breakMins > 0 && <><span className="text-charcoal/30 dark:text-white/30">·</span><span className="text-caption text-charcoal/50 dark:text-white/40">{breakMins}m break</span></>}
                         </div>
                       </button>
                     )
-                  }) : <div className="text-[13px] text-charcoal/30 dark:text-white/30">Off</div>}
+                  }) : <div className="text-body-sm text-charcoal/30 dark:text-white/30">Off</div>}
                   {orphans.length > 0 && (
-                    <div className="font-mono text-[11px] text-charcoal/40 dark:text-white/35">
+                    <div className="font-mono text-micro text-charcoal/40 dark:text-white/35">
                       {orphans.length} duplicate punch{orphans.length > 1 ? 'es' : ''} ignored
                     </div>
                   )}
                 </div>
-                <button
+                <Button
+                  variant="secondary"
+                  size="sm"
                   onClick={() => onAddDay(dateStr)}
-                  className="shrink-0 flex items-center gap-1 px-3 py-[7px] rounded-[9px] cursor-pointer text-xs font-semibold text-charcoal/75 dark:text-white/60 bg-surface border border-charcoal/10 dark:border-white/10"
                 >
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14"/></svg>Add
-                </button>
+                </Button>
               </div>
             )
           })}
         </div>
         <div className="mt-[14px] px-[14px] py-[13px] bg-white dark:bg-paperDark rounded-xl border border-charcoal/10 dark:border-white/10 flex items-center gap-5">
           <div>
-            <div className="font-mono text-[11px] text-charcoal/50 dark:text-white/40 tracking-[0.1em] uppercase font-semibold">Total</div>
-            <div className="font-mono text-[17px] font-semibold text-charcoal dark:text-white mt-[3px] tabular-nums">{minsStr(t.totalMinutes)}</div>
+            <div className="font-mono text-micro text-charcoal/50 dark:text-white/40 tracking-[0.1em] uppercase font-semibold">Total</div>
+            <div className="font-mono text-title-sm font-semibold text-charcoal dark:text-white mt-[3px] tabular-nums">{minsStr(t.totalMinutes)}</div>
           </div>
           {t.hourlyRate > 0 && (
             <div>
-              <div className="font-mono text-[11px] text-charcoal/50 dark:text-white/40 tracking-[0.1em] uppercase font-semibold">Est. pay</div>
-              <div className={`font-mono text-[17px] font-semibold mt-[3px] tabular-nums ${pay > 0 ? 'text-success' : 'text-charcoal/30 dark:text-white/30'}`}>{pay > 0 ? `£${pay.toFixed(2)}` : '—'}</div>
+              <div className="font-mono text-micro text-charcoal/50 dark:text-white/40 tracking-[0.1em] uppercase font-semibold">Est. pay</div>
+              <div className={`font-mono text-title-sm font-semibold mt-[3px] tabular-nums ${pay > 0 ? 'text-success' : 'text-charcoal/30 dark:text-white/30'}`}>{pay > 0 ? `£${pay.toFixed(2)}` : '—'}</div>
             </div>
           )}
           <div className="ml-auto">
-            <div className="font-mono text-[11px] text-charcoal/50 dark:text-white/40 tracking-[0.1em] uppercase font-semibold">Rate</div>
+            <div className="font-mono text-micro text-charcoal/50 dark:text-white/40 tracking-[0.1em] uppercase font-semibold">Rate</div>
             <div className="font-mono text-xs font-semibold text-charcoal/50 dark:text-white/40 mt-[3px]">£{Number(t.hourlyRate).toFixed(2)}/hr</div>
           </div>
         </div>
-        <button
+        <Button
+          variant="secondary"
+          size="lg"
+          fullWidth
           onClick={onClose}
-          className="w-full h-[50px] mt-4 rounded-[13px] border border-charcoal/10 bg-white dark:bg-paperDark text-charcoal/75 cursor-pointer text-sm font-semibold"
+          className="mt-4"
         >
           Close
-        </button>
+        </Button>
       </div>
     </div>
   )
@@ -432,16 +429,21 @@ export default function TimesheetPage() {
   const [periodLeave,   setPeriodLeave]   = useState([])
   const [periodShifts,  setPeriodShifts]  = useState([])
   const [payrollLocks,  setPayrollLocks]  = useState([])
+  const [locksFailed,   setLocksFailed]   = useState(false)
   const [lockSaving,    setLockSaving]    = useState(false)
   const [selStaff,      setSelStaff]      = useState(null)
   const [editCtx,       setEditCtx]       = useState(null)
   const [addTarget,     setAddTarget]     = useState(null)
+  const [holidayPayFor, setHolidayPayFor] = useState(null)
+  const [markingUnpaid, setMarkingUnpaid] = useState(null)   // booking id being marked unpaid
+  const [leaveTick,     setLeaveTick]     = useState(0)
+  const queryClient = useQueryClient()
 
   const { venueId, venueSlug } = useVenue()
   const { isManager } = useSession()
   const toast         = useToast()
   const { staff: staffList } = useStaffList()
-  const { breakDurationMins } = useAppSettings()
+  const { breakDurationMins, holidayYearStartMonth } = useAppSettings()
 
   const { dateFrom, dateTo, label: periodLabel } = useMemo(
     () => periodToDates(period, customFrom, customTo),
@@ -483,11 +485,10 @@ export default function TimesheetPage() {
     return { totalMins: totalM, totalCost }
   }, [periodShifts, staffRates, staffList, breakDurationMins])
 
-  const stationMap = useMemo(() => {
-    const map = {}
-    for (const s of staffList ?? []) map[s.id] = s.station ?? ''
-    return map
-  }, [staffList])
+  const staffById = useMemo(
+    () => Object.fromEntries((staffList ?? []).map(s => [s.id, s])),
+    [staffList],
+  )
 
   const periodDays = useMemo(() => {
     if (!dateFrom || !dateTo) return []
@@ -501,6 +502,54 @@ export default function TimesheetPage() {
   const periodTo   = dateTo   ? dateTo.slice(0, 10)   : ''
   const isPeriodLocked = payrollLocks.some(l => l.from === periodFrom && l.to === periodTo)
 
+  // ── Zero-hours holiday pay for this period ──────────────────────────────
+  // Their holiday is paid in hours a manager confirms (time_off_requests.paid_hours,
+  // migration 149). Bookings in this period are listed with a suggestion; until
+  // confirmed they are not in the wage bill. Hidden before 149 (no paid_hours key).
+  const holidayItems = useMemo(
+    () => periodLeave.filter(r => 'paid_hours' in r && staffProfiles[r.staff_id]?.zeroHours && staffProfiles[r.staff_id]?.eligible),
+    [periodLeave, staffProfiles],
+  )
+  const holidayStaff = useMemo(() => {
+    const ids = [...new Set(holidayItems.map(r => r.staff_id))]
+    return ids.map(id => ({ id, employment_type: 'zero_hours', working_days: staffProfiles[id]?.workingDays ?? [], holiday_pay_eligible: true }))
+  }, [holidayItems, staffProfiles])
+  // The holiday year the pay period starts in (Settings → Attendance sets when it begins)
+  const currentHolidayYear = useHolidayYear()
+  const holidayYear = useMemo(
+    () => (periodFrom ? holidayYearContaining(periodFrom, holidayYearStartMonth) : currentHolidayYear),
+    [periodFrom, holidayYearStartMonth, currentHolidayYear],
+  )
+  const { byId: holidayById } = useHolidayBalances(holidayStaff, holidayYear)
+  const rotaFrom = holidayItems.reduce((m, r) => (!m || r.start_date < m ? r.start_date : m), '')
+  const rotaTo   = holidayItems.reduce((m, r) => (!m || r.end_date > m ? r.end_date : m), '')
+  const rotaHours = useRotaHours(holidayStaff.map(s => s.id), rotaFrom, rotaTo)
+  const holidayToConfirm = holidayItems.filter(r => r.paid_hours == null).length
+
+  const holidaySaved = useCallback(() => {
+    setLeaveTick(n => n + 1)
+    queryClient.invalidateQueries({ queryKey: [HOLIDAY_BALANCES_KEY] })
+  }, [queryClient])
+
+  // Booked as annual leave but not paid holiday: it becomes unpaid leave, so
+  // it drops out of holiday pay and the person's holiday balance.
+  const setUnpaid = async (r, name) => {
+    setMarkingUnpaid(r.id)
+    const { error } = await markUnpaid([r.id])
+    setMarkingUnpaid(null)
+    if (error) { toast(error.message, 'error'); return }
+    toast(`${name}'s ${format(parseISO(r.start_date), 'd MMM')} marked as unpaid leave`)
+    sendPush({
+      venueId,
+      notificationType: 'time_off_decision',
+      title: 'Time off changed',
+      body: `Your time off (${r.start_date} – ${r.end_date}) is unpaid leave. It doesn't use your holiday.`,
+      url: '/time-off',
+      staffIds: [r.staff_id],
+    })
+    holidaySaved()
+  }
+
   useEffect(() => {
     if (!venueId) return
     // hourly_rate (117) and contracted_hours (118) are no longer selectable
@@ -509,15 +558,21 @@ export default function TimesheetPage() {
     // this is the full set. working_days stays on the table — it drives
     // availability and is not private.
     Promise.all([
-      supabase.from('staff').select('id, working_days').eq('venue_id', venueId),
+      supabase.from('staff').select('id, working_days, employment_type, holiday_pay_eligible').eq('venue_id', venueId),
       fetchStaffPayRates(),
       fetchStaffPrivateFields(),
-    ]).then(([{ data }, payRates, priv]) => {
+    ]).then(([{ data, error }, payRates, priv]) => {
+      if (error) { reportError(error, 'TimesheetPage:staff-profiles'); return }
       if (!data) return
       const rates = {}, profiles = {}
       for (const s of data) {
         rates[s.id] = payRates.get(s.id) ?? 0
-        profiles[s.id] = { contractedHours: priv.get(s.id)?.contracted_hours ?? null, workingDays: s.working_days ?? [] }
+        profiles[s.id] = {
+          contractedHours: priv.get(s.id)?.contracted_hours ?? null,
+          workingDays: s.working_days ?? [],
+          zeroHours: s.employment_type === 'zero_hours',
+          eligible: s.holiday_pay_eligible !== false,
+        }
       }
       setStaffRates(rates); setStaffProfiles(profiles)
     })
@@ -525,23 +580,37 @@ export default function TimesheetPage() {
 
   useEffect(() => {
     if (!venueId || !dateFrom || !dateTo) return
-    supabase.from('time_off_requests').select('staff_id, start_date, end_date')
-      .eq('venue_id', venueId).eq('status', 'approved').eq('leave_type', 'annual')
-      .lte('start_date', dateTo.slice(0, 10)).gte('end_date', dateFrom.slice(0, 10))
-      .then(({ data }) => setPeriodLeave(data ?? []))
-  }, [venueId, dateFrom, dateTo])
+    withPaidHoursColumns(async extra => {
+      const { data, error } = await supabase.from('time_off_requests').select(`id, staff_id, start_date, end_date${extra}`)
+        .eq('venue_id', venueId).eq('status', 'approved').eq('leave_type', 'annual')
+        .lte('start_date', dateTo.slice(0, 10)).gte('end_date', dateFrom.slice(0, 10))
+      if (error) throw error
+      return data ?? []
+    })
+      .then(setPeriodLeave)
+      .catch(error => reportError(error, 'TimesheetPage:period-leave'))
+  }, [venueId, dateFrom, dateTo, leaveTick])
 
   useEffect(() => {
     if (!venueId || !periodFrom || !periodTo) return
     supabase.from('shifts').select('staff_id, start_time, end_time, shift_date')
       .eq('venue_id', venueId).gte('shift_date', periodFrom).lte('shift_date', periodTo)
-      .then(({ data }) => setPeriodShifts(data ?? []))
+      .then(({ data, error }) => {
+        if (error) { reportError(error, 'TimesheetPage:period-shifts'); return }
+        setPeriodShifts(data ?? [])
+      })
   }, [venueId, periodFrom, periodTo])
 
   useEffect(() => {
     if (!venueId) return
     supabase.from('app_settings').select('value').eq('venue_id', venueId).eq('key', 'payroll_locks').maybeSingle()
-      .then(({ data }) => { try { setPayrollLocks(JSON.parse(data?.value ?? '[]')) } catch { setPayrollLocks([]) } })
+      .then(({ data, error }) => {
+        // Locks are saved as a whole list, so locking a period after a failed
+        // read would wipe every other lock — togglePayrollLock refuses instead.
+        setLocksFailed(!!error)
+        if (error) { reportError(error, 'TimesheetPage:payroll-locks'); return }
+        try { setPayrollLocks(JSON.parse(data?.value ?? '[]')) } catch { setPayrollLocks([]) }
+      })
   }, [venueId])
 
   useEffect(() => { reload() }, [reload])
@@ -556,6 +625,13 @@ export default function TimesheetPage() {
 
   const togglePayrollLock = useCallback(async () => {
     if (!periodFrom || !periodTo || periodFrom > periodTo) return
+    if (locksFailed) { toast("Couldn't load the existing payroll locks — reload the page and try again", 'error'); return }
+    // Unconfirmed zero-hours holiday isn't in the wage bill — locking now would
+    // send payroll a total without it.
+    if (!isPeriodLocked && holidayToConfirm > 0) {
+      toast(`Choose holiday pay or unpaid for ${holidayToConfirm} booking${holidayToConfirm === 1 ? '' : 's'} before locking this period`, 'error')
+      return
+    }
     setLockSaving(true)
     if (isPeriodLocked) {
       const error = await saveLocks(payrollLocks.filter(l => !(l.from === periodFrom && l.to === periodTo)))
@@ -567,7 +643,7 @@ export default function TimesheetPage() {
       else toast('Period locked for payroll')
     }
     setLockSaving(false)
-  }, [isPeriodLocked, payrollLocks, periodFrom, periodTo, saveLocks, toast])
+  }, [isPeriodLocked, locksFailed, holidayToConfirm, payrollLocks, periodFrom, periodTo, saveLocks, toast])
 
   const saveEditedSession = useCallback(async ({ dateStr, session }, { clockIn, clockOut, brk }) => {
     // Interpret the edited times as UK wall-clock and store the resulting UTC
@@ -641,27 +717,27 @@ export default function TimesheetPage() {
         {/* On mobile the shell's back row already links to Team */}
         <Link
           to={`/v/${venueSlug}/team`}
-          className="hidden self-start lg:inline-flex items-center gap-1 text-[13px] font-semibold text-brand dark:text-white/80 hover:opacity-75 transition-opacity"
+          className="hidden self-start lg:inline-flex items-center gap-1 text-body-sm font-semibold text-brand dark:text-white/80 hover:opacity-75 transition-opacity"
         >
           <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6" /></svg>
           Team
         </Link>
         <div className="flex items-start justify-between gap-2.5">
           <div className="min-w-0">
-            <h1 className="text-[20px] sm:text-[22px] leading-tight font-bold tracking-tight">Timesheets</h1>
-            <p className="text-[13px] text-ink3 dark:text-white/45 mt-0.5">Hours worked and wage bill</p>
+            <h1 className="text-title leading-tight font-bold tracking-tight">Timesheets</h1>
+            <p className="text-body-sm text-ink3 dark:text-white/45 mt-0.5">Hours worked and wage bill</p>
           </div>
           <div className="shrink-0 flex gap-2 mt-1">
             {[['CSV', exportCsv], ['PDF', exportPdf]].map(([fmt, fn]) => (
-              <button
+              <Button
+                variant="secondary"
+                size="sm"
                 key={fmt}
-                type="button"
                 onClick={fn}
                 disabled={loading || (totalMins <= 0 && totalHolidayPay <= 0)}
-                className="h-8 px-3.5 rounded-xl bg-white dark:bg-paperDark border border-line dark:border-white/10 text-[13px] font-semibold text-ink2 dark:text-white/80 hover:border-ink4 transition-colors disabled:opacity-40"
               >
                 {fmt}
-              </button>
+              </Button>
             ))}
           </div>
         </div>
@@ -675,14 +751,15 @@ export default function TimesheetPage() {
         onChange={(id) => { setPeriod(id); setShowOther(false) }}
       />
       <div className="flex flex-col gap-2 -mt-1">
-        <button
-          type="button"
+        <Button
+          variant="ghost"
+          size="sm"
           aria-expanded={showOther || isOtherPeriod}
           onClick={() => setShowOther(v => !v)}
-          className="self-start px-1 text-[13px] font-semibold text-ink3 dark:text-white/50 hover:text-ink dark:hover:text-white"
+          className="self-start -ml-2"
         >
           {isOtherPeriod ? `Showing ${OTHER_PERIODS.find(p => p.key === period).label.toLowerCase()}` : 'Other dates'} ▾
-        </button>
+        </Button>
         {(showOther || isOtherPeriod) && (
           <div className="flex flex-wrap items-center gap-2">
             {OTHER_PERIODS.map(p => (
@@ -691,16 +768,16 @@ export default function TimesheetPage() {
                 type="button"
                 aria-pressed={period === p.key}
                 onClick={() => setPeriod(p.key)}
-                className={`h-8 px-3.5 rounded-full border text-[13px] font-semibold transition-colors ${period === p.key ? 'bg-brand border-brand text-white' : 'bg-white dark:bg-paperDark border-line dark:border-white/10 text-ink2 dark:text-white/75 hover:border-ink4'}`}
+                className={`h-8 px-3.5 rounded-full border text-body-sm font-semibold transition-colors ${period === p.key ? 'bg-brand border-brand text-white' : 'bg-white dark:bg-paperDark border-line dark:border-white/10 text-ink2 dark:text-white/75 hover:border-ink4'}`}
               >
                 {p.label}
               </button>
             ))}
             {period === 'custom' && (
               <span className="flex items-center gap-2 w-full sm:w-auto">
-                <input type="date" aria-label="From" value={customFrom} onChange={e => setCustomFrom(e.target.value)} className="flex-1 h-8 px-3 rounded-xl border border-line dark:border-white/10 bg-white dark:bg-paperDark text-[13px]" />
-                <span className="text-[13px] text-ink3">to</span>
-                <input type="date" aria-label="To" value={customTo} min={customFrom} onChange={e => setCustomTo(e.target.value)} className="flex-1 h-8 px-3 rounded-xl border border-line dark:border-white/10 bg-white dark:bg-paperDark text-[13px]" />
+                <input type="date" aria-label="From" value={customFrom} onChange={e => setCustomFrom(e.target.value)} className="flex-1 h-8 px-3 rounded-xl border border-line dark:border-white/10 bg-white dark:bg-paperDark text-body-sm" />
+                <span className="text-body-sm text-ink3">to</span>
+                <input type="date" aria-label="To" value={customTo} min={customFrom} onChange={e => setCustomTo(e.target.value)} className="flex-1 h-8 px-3 rounded-xl border border-line dark:border-white/10 bg-white dark:bg-paperDark text-body-sm" />
               </span>
             )}
           </div>
@@ -710,13 +787,13 @@ export default function TimesheetPage() {
       {/* Summary */}
       <div className={`${CARD} overflow-hidden`}>
         <div className="flex items-center justify-between gap-2.5 px-3.5 sm:px-3.5 py-2 border-b border-line dark:border-white/10">
-          <p className="font-mono text-[13px] min-[420px]:text-[14px] font-semibold text-ink dark:text-white whitespace-nowrap">{periodLabel}</p>
+          <p className="font-mono text-body-sm min-[420px]:text-body font-semibold text-ink dark:text-white whitespace-nowrap">{periodLabel}</p>
           {isManager && periodFrom && periodTo && (
             <button
               type="button"
               onClick={togglePayrollLock}
               disabled={lockSaving}
-              className={`shrink-0 inline-flex items-center gap-2 h-8 px-3 min-[420px]:px-3.5 rounded-xl border text-[13px] min-[420px]:text-[13px] font-semibold transition-colors disabled:opacity-40 ${isPeriodLocked ? 'border-good/40 bg-goodBg text-good dark:bg-good/20 dark:text-[#7fd1a4]' : 'border-line dark:border-white/10 bg-white dark:bg-paperDark text-ink2 dark:text-white/80 hover:border-ink4'}`}
+              className={`shrink-0 inline-flex items-center gap-2 h-8 px-3 min-[420px]:px-3.5 rounded-xl border text-body-sm font-semibold transition-colors disabled:opacity-40 ${isPeriodLocked ? 'border-good/40 bg-goodBg text-good dark:bg-good/20 dark:text-goodDark' : 'border-line dark:border-white/10 bg-white dark:bg-paperDark text-ink2 dark:text-white/80 hover:border-ink4'}`}
             >
               <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d={isPeriodLocked ? 'M7 11V7a5 5 0 0 1 10 0v4' : 'M7 11V7a5 5 0 0 1 9.9-1'}/></svg>
               {isPeriodLocked ? 'Locked for payroll' : lockSaving ? 'Locking…' : 'Lock for payroll'}
@@ -729,10 +806,10 @@ export default function TimesheetPage() {
         ) : loadError ? (
           <div className="flex items-center gap-2.5 bg-badBg dark:bg-bad/20 px-3.5 sm:px-3.5 py-2.5">
             <div className="flex-1 min-w-0">
-              <p className="text-[13px] font-semibold text-bad dark:text-[#f19a86]">Couldn't load hours</p>
-              <p className="text-[13px] text-ink2 dark:text-white/70 mt-0.5">The clock-in data failed to load — this can happen on an out-of-date app. Try again, or fully close and reopen the app.</p>
+              <p className="text-body-sm font-semibold text-bad dark:text-badDark">Couldn't load hours</p>
+              <p className="text-body-sm text-ink2 dark:text-white/70 mt-0.5">The clock-in data failed to load — this can happen on an out-of-date app. Try again, or fully close and reopen the app.</p>
             </div>
-            <button type="button" onClick={reload} className="shrink-0 h-8 px-3.5 rounded-xl bg-white dark:bg-paperDark border border-line dark:border-white/10 text-[13px] font-semibold">Retry</button>
+            <Button variant="secondary" size="sm" onClick={reload}>Retry</Button>
           </div>
         ) : (
           <>
@@ -745,7 +822,7 @@ export default function TimesheetPage() {
               <SumCell label="Scheduled cost" value={periodScheduled.totalCost > 0 ? money(periodScheduled.totalCost) : '–'} />
             </div>
             {variance !== null && Math.abs(variance) >= 0.01 && (
-              <p className={`px-3.5 sm:px-3.5 py-2.5 text-[13px] font-semibold ${variance > 0 ? 'bg-goodBg text-good dark:bg-good/20 dark:text-[#7fd1a4]' : 'bg-badBg text-bad dark:bg-bad/20 dark:text-[#f19a86]'}`}>
+              <p className={`px-3.5 sm:px-3.5 py-2.5 text-body-sm font-semibold ${variance > 0 ? 'bg-goodBg text-good dark:bg-good/20 dark:text-goodDark' : 'bg-badBg text-bad dark:bg-bad/20 dark:text-badDark'}`}>
                 {money(Math.abs(variance))} {variance > 0 ? 'under' : 'over'} scheduled cost
               </p>
             )}
@@ -753,24 +830,101 @@ export default function TimesheetPage() {
         )}
       </div>
 
+      {/* Zero-hours annual leave in this period: pay it as holiday, or mark it unpaid.
+          When the venue doesn't let staff request unpaid leave (Settings →
+          Attendance), this is where the manager decides. */}
+      {isManager && holidayItems.length > 0 && (
+        <div className={`${CARD} overflow-hidden`}>
+          <p className={`px-3.5 py-2.5 text-caption font-semibold tracking-[0.08em] uppercase ${holidayToConfirm ? 'bg-warnBg dark:bg-warn/20 text-warn dark:text-warnDark' : 'text-ink3 dark:text-white/45'}`}>
+            Holiday pay{holidayToConfirm ? ` · ${holidayToConfirm} to decide` : ''}
+          </p>
+          <div className="divide-y divide-line dark:divide-white/10">
+            {holidayItems.map(r => {
+              const person = staffById[r.staff_id]
+              const name = person?.name ?? timesheets.find(t => t.staffId === r.staff_id)?.name ?? 'Staff'
+              const suggestion = suggestedPaidHours(r, holidayById[r.staff_id]?.avgWeekHours ?? null, staffProfiles[r.staff_id]?.workingDays, rotaHours[r.staff_id] ?? {})
+              const rate = staffRates[r.staff_id] ?? 0
+              return (
+                <div key={r.id} className="flex items-center gap-2.5 px-3.5 py-2.5">
+                  <Avatar name={name} id={r.staff_id} colour={person?.colour} photoUrl={person?.photo_url} size="md" decorative />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-body font-semibold text-ink dark:text-white truncate">{name}</p>
+                    <p className="text-body-sm text-ink3 dark:text-white/45">
+                      {format(parseISO(r.start_date), 'EEE d MMM')}{r.end_date !== r.start_date && ` – ${format(parseISO(r.end_date), 'EEE d MMM')}`}
+                      {' · '}
+                      {r.paid_hours != null
+                        ? <span className="font-mono text-ink2 dark:text-white/70">{Number(r.paid_hours)} h paid{rate > 0 && ` · ${fmtGBP(Number(r.paid_hours) * rate)}`}</span>
+                        : <span className="text-warn dark:text-warnDark">holiday pay{suggestion != null ? ` (suggested ${suggestion} h)` : ''} or unpaid?</span>}
+                    </p>
+                  </div>
+                  {!isPeriodLocked && (
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      loading={markingUnpaid === r.id}
+                      disabled={!!markingUnpaid}
+                      onClick={() => setUnpaid(r, name)}
+                      className="shrink-0"
+                    >
+                      Unpaid
+                    </Button>
+                  )}
+                  <Button
+                    size="sm"
+                    variant={r.paid_hours != null ? 'secondary' : 'primary'}
+                    onClick={() => setHolidayPayFor(r)}
+                    className="shrink-0"
+                  >
+                    {r.paid_hours != null ? 'Change' : 'Holiday pay'}
+                  </Button>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      {holidayPayFor && (
+        <HolidayPayModal
+          request={holidayPayFor}
+          staffName={staffById[holidayPayFor.staff_id]?.name ?? 'Staff'}
+          hourlyRate={staffRates[holidayPayFor.staff_id] ?? 0}
+          workingDays={staffProfiles[holidayPayFor.staff_id]?.workingDays ?? []}
+          avgWeekHours={holidayById[holidayPayFor.staff_id]?.avgWeekHours ?? null}
+          rotaHoursByDate={rotaHours[holidayPayFor.staff_id] ?? {}}
+          holidayLeft={holidayById[holidayPayFor.staff_id]?.status === 'ok' ? holidayById[holidayPayFor.staff_id].balance : null}
+          periodFrom={periodFrom}
+          periodTo={periodTo}
+          locked={isPeriodLocked}
+          onClose={() => setHolidayPayFor(null)}
+          onSaved={holidaySaved}
+        />
+      )}
+
       {/* Staff list */}
       {!loading && !loadError && (
         <>
           <div className="flex items-baseline justify-between gap-2.5 px-1 -mb-1">
-            <p className="text-[12px] font-semibold tracking-[0.08em] uppercase text-ink3 dark:text-white/45">Staff</p>
-            <p className="font-mono text-[12px] text-ink3 dark:text-white/45">
+            <p className="text-caption font-semibold tracking-[0.08em] uppercase text-ink3 dark:text-white/45">Staff</p>
+            <p className="font-mono text-caption text-ink3 dark:text-white/45">
               {timesheets.length} staff{totalMins > 0 ? ` · ${hm(totalMins)}` : ''}
             </p>
           </div>
           {timesheets.length === 0 ? (
             <div className={`${CARD} px-3.5 py-8 text-center`}>
-              <p className="text-[14px] font-semibold text-ink dark:text-white">No hours recorded</p>
-              <p className="text-[13px] text-ink3 dark:text-white/45 mt-1">Nobody clocked in during this period.</p>
+              <p className="text-body font-semibold text-ink dark:text-white">No hours recorded</p>
+              <p className="text-body-sm text-ink3 dark:text-white/45 mt-1">Nobody clocked in during this period.</p>
             </div>
           ) : (
             <div className={`${CARD} divide-y divide-line dark:divide-white/10 overflow-hidden`}>
               {timesheets.map(t => (
-                <StaffRow key={t.staffId} t={t} onTap={() => setSelStaff(t)} />
+                <StaffRow
+                  key={t.staffId}
+                  t={t}
+                  person={staffById[t.staffId]}
+                  holidayMins={calcHolidayMins(periodLeave, t.staffId, staffProfiles[t.staffId] ?? { contractedHours: null, workingDays: [] }, periodFrom, periodTo)}
+                  onTap={() => setSelStaff(t)}
+                />
               ))}
             </div>
           )}
@@ -781,7 +935,7 @@ export default function TimesheetPage() {
       {selStaff && (
         <StaffHoursSheet
           t={selStaff}
-          station={stationMap[selStaff.staffId] ?? ''}
+          person={staffById[selStaff.staffId]}
           periodDays={periodDays}
           dailyGrid={dailyGrid}
           periodLabel={periodLabel}

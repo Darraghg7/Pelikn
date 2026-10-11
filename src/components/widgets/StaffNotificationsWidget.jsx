@@ -11,10 +11,10 @@ import { useVenue } from '../../contexts/VenueContext'
 import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../ui/Toast'
 import { useWidgetQuery } from '../../hooks/useWidgetQuery'
-import LoadingSpinner from '../ui/LoadingSpinner'
-import { WidgetShell } from './shared'
+import { WidgetShell, WidgetPending } from './shared'
+import Button from '../ui/Button'
 
-const LEAVE_NAMES = { annual: 'Annual leave', unpaid: 'Unpaid leave', other: 'Other leave' }
+const LEAVE_NAMES = { annual: 'Annual leave', unavailable: 'Not available', unpaid: 'Unpaid leave', other: 'Other leave' }
 
 // "12 Dec 2026" for one day, "12–14 Dec 2026" within a month, else "30 Dec – 2 Jan 2027"
 function leaveDates(r) {
@@ -36,8 +36,8 @@ function StaffNotificationsWidget() {
   const queryClient = useQueryClient()
   const [deciding, setDeciding] = useState(null)   // request id being saved
 
-  const { data } = useWidgetQuery('staff_notifications', [venueId], async () => {
-    const [{ data: leave }, { data: swaps }, trainCount] = await Promise.all([
+  const { data, isError, refetch } = useWidgetQuery('staff_notifications', [venueId], async () => {
+    const [{ data: leave, error: leaveError }, { data: swaps, error: swapsError }, trainCount] = await Promise.all([
       supabase
         .from('time_off_requests')
         .select('id, staff_id, start_date, end_date, leave_type, staff:staff_id(name)')
@@ -59,6 +59,7 @@ function StaffNotificationsWidget() {
         staleTime: 60_000,
       }),
     ])
+    if (leaveError || swapsError) throw leaveError ?? swapsError
     // 119 withholds `reason`; a manager gets the venue's, anyone else only
     // their own, so this widget still reads as it did for the people it is for.
     const leaveWithReasons = withTimeOffPrivate(leave ?? [], await fetchTimeOffPrivateFields())
@@ -85,46 +86,46 @@ function StaffNotificationsWidget() {
   if (!data) {
     return (
       <WidgetShell title="Staff notifications" to="/time-off">
-        <div className="flex justify-center py-2.5"><LoadingSpinner /></div>
+        <WidgetPending isError={isError} onRetry={refetch} className="py-2.5" />
       </WidgetShell>
     )
   }
 
   const total = data.leave.length + data.swaps.length + (data.trainCount > 0 ? 1 : 0)
-  const aside = total > 0 && <span className="shrink-0 font-mono text-[13px] text-ink3 dark:text-white/45">{total} new</span>
+  const aside = total > 0 && <span className="shrink-0 font-mono text-body-sm text-ink3 dark:text-white/45">{total} new</span>
 
   return (
     <WidgetShell title="Staff notifications" aside={aside} flush={total > 0}>
       {total === 0 ? (
-        <p className="text-[13px] text-ink3 dark:text-white/45 py-2">No pending notifications</p>
+        <p className="text-body-sm text-ink3 dark:text-white/45 py-2">No pending notifications</p>
       ) : (
         <div className="divide-y divide-line dark:divide-white/10">
           {data.leave.map(r => (
             <div key={r.id} className="flex items-center gap-2.5 px-3.5 py-2">
               <Dot tone="warn" />
               <Link to={`/v/${venueSlug}/time-off`} className="flex-1 min-w-0">
-                <p className="text-[13px] leading-snug font-semibold text-ink dark:text-white truncate">{r.staff?.name ?? 'Staff'}</p>
-                <p className="text-[12px] leading-snug text-ink3 dark:text-white/45 mt-0.5 line-clamp-2">
+                <p className="text-body-sm leading-snug font-semibold text-ink dark:text-white truncate">{r.staff?.name ?? 'Staff'}</p>
+                <p className="text-caption leading-snug text-ink3 dark:text-white/45 mt-0.5 line-clamp-2">
                   {LEAVE_NAMES[r.leave_type] ?? 'Leave'} · {leaveDates(r)}{r.reason ? ` · ${r.reason}` : ''}
                 </p>
               </Link>
               <div className="shrink-0 flex gap-1.5">
-                <button
-                  type="button"
+                <Button
+                  variant="secondary"
+                  size="sm"
                   onClick={() => decide(r, 'rejected')}
                   disabled={deciding === r.id}
-                  className="h-8 px-2.5 rounded-lg border border-line dark:border-white/15 bg-white dark:bg-paperDark text-[12px] font-semibold text-bad dark:text-[#f19a86] hover:border-bad/40 disabled:opacity-40"
                 >
                   Reject
-                </button>
-                <button
-                  type="button"
+                </Button>
+                <Button
+                  variant="success"
+                  size="sm"
                   onClick={() => decide(r, 'approved')}
                   disabled={deciding === r.id}
-                  className="h-8 px-2.5 rounded-lg bg-brand text-white text-[12px] font-semibold hover:bg-brand/90 disabled:opacity-40"
                 >
                   Approve
-                </button>
+                </Button>
               </div>
             </div>
           ))}
@@ -132,8 +133,8 @@ function StaffNotificationsWidget() {
             <Link key={s.id} to={`/v/${venueSlug}/rota`} className="flex items-center gap-2.5 px-3.5 sm:px-3.5 py-2 hover:bg-cream/60 dark:hover:bg-white/5">
               <Dot tone="info" />
               <span className="flex-1 min-w-0">
-                <span className="block text-[13px] leading-snug font-semibold text-ink dark:text-white">{s.requester_name} wants to swap a shift</span>
-                <span className="block text-[13px] text-ink3 dark:text-white/45 mt-0.5">With {s.target_staff_name} · needs approval on the rota</span>
+                <span className="block text-body-sm leading-snug font-semibold text-ink dark:text-white">{s.requester_name} wants to swap a shift</span>
+                <span className="block text-body-sm text-ink3 dark:text-white/45 mt-0.5">With {s.target_staff_name} · needs approval on the rota</span>
               </span>
               <svg className="shrink-0 w-4 h-4 text-ink3 dark:text-white/45" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
             </Link>
@@ -142,10 +143,10 @@ function StaffNotificationsWidget() {
             <Link to={`/v/${venueSlug}/training`} className="flex items-center gap-2.5 px-3.5 sm:px-3.5 py-2 hover:bg-cream/60 dark:hover:bg-white/5">
               <Dot tone="muted" />
               <span className="flex-1 min-w-0">
-                <span className="block text-[13px] font-semibold text-ink dark:text-white">
+                <span className="block text-body-sm font-semibold text-ink dark:text-white">
                   {data.trainCount} training record{data.trainCount !== 1 ? 's' : ''} unsigned
                 </span>
-                <span className="block text-[13px] text-ink3 dark:text-white/45">Awaiting employee signature</span>
+                <span className="block text-body-sm text-ink3 dark:text-white/45">Awaiting employee signature</span>
               </span>
               <svg className="shrink-0 w-4 h-4 text-ink3 dark:text-white/45" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
             </Link>

@@ -11,6 +11,8 @@ import LoadingSpinner from '../../components/ui/LoadingSpinner'
 import EmptyState from '../../components/ui/EmptyState'
 import { SkeletonList } from '../../components/ui/Skeleton'
 import Modal from '../../components/ui/Modal'
+import LoadError from '../../components/ui/LoadError'
+import Button from '../../components/ui/Button'
 
 
 const CATEGORIES = [
@@ -42,7 +44,7 @@ export default function CorrectiveActionsPage() {
   const toast = useToast()
   const { venueId } = useVenue()
   const { session, isManager } = useSession()
-  const { records, loading, reload } = useCorrectiveActions(venueId)
+  const { records, loading, isError, reload } = useCorrectiveActions(venueId)
   const queryClient = useQueryClient()
 
   const [showForm, setShowForm] = useState(false)
@@ -113,26 +115,26 @@ export default function CorrectiveActionsPage() {
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-2xl font-bold text-charcoal dark:text-white">Corrective Actions</h1>
-        <button
+        <Button
           onClick={() => setShowForm(true)}
-          className="bg-charcoal text-cream px-4 py-2 rounded-lg text-sm font-medium hover:bg-charcoal/90 transition-colors self-start sm:self-auto"
+          className="self-start sm:self-auto"
         >
           + Log Issue
-        </button>
+        </Button>
       </div>
 
       {/* Summary */}
       <div className="grid grid-cols-3 gap-3">
         <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-4 text-center">
-          <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">Open</p>
+          <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">Open</p>
           <p className={`text-2xl font-bold ${openCount > 0 ? 'text-warning' : 'text-charcoal dark:text-white'}`}>{openCount}</p>
         </div>
         <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-4 text-center">
-          <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">Critical</p>
+          <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">Critical</p>
           <p className={`text-2xl font-bold ${criticalOpen > 0 ? 'text-danger' : 'text-charcoal dark:text-white'}`}>{criticalOpen}</p>
         </div>
         <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-4 text-center">
-          <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">Total</p>
+          <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">Total</p>
           <p className="text-2xl font-bold text-charcoal dark:text-white">{records.length}</p>
         </div>
       </div>
@@ -165,7 +167,7 @@ export default function CorrectiveActionsPage() {
       {/* Records */}
       {loading ? (
         <SkeletonList rows={4} className="py-4" />
-      ) : filtered.length === 0 ? (
+      ) : isError ? (<LoadError what="corrective actions" onRetry={reload} />) : filtered.length === 0 ? (
         <EmptyState
           icon="clipboard"
           title="No corrective actions"
@@ -185,16 +187,16 @@ export default function CorrectiveActionsPage() {
                       <h3 className={`font-semibold text-sm ${r.status === 'resolved' ? 'text-charcoal/50 dark:text-white/40 line-through' : 'text-charcoal dark:text-white'}`}>
                         {r.title}
                       </h3>
-                      <span className={`text-[11px] tracking-wider uppercase font-medium px-2 py-0.5 rounded-full ${sev.color}`}>
+                      <span className={`text-micro tracking-wider uppercase font-medium px-2 py-0.5 rounded-full ${sev.color}`}>
                         {sev.label}
                       </span>
-                      <span className="text-[11px] tracking-wider uppercase font-medium px-2 py-0.5 rounded-full bg-charcoal/5 dark:bg-white/5 text-charcoal/40 dark:text-white/35">
+                      <span className="text-micro tracking-wider uppercase font-medium px-2 py-0.5 rounded-full bg-charcoal/5 dark:bg-white/5 text-charcoal/40 dark:text-white/35">
                         {catLabel(r.category)}
                       </span>
                     </div>
                     {r.description && <p className="text-sm text-charcoal/60 dark:text-white/50 mt-1">{r.description}</p>}
                     <div className="mt-2 rounded-lg bg-charcoal/4 dark:bg-white/5 px-3 py-2">
-                      <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-0.5">Action taken</p>
+                      <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-0.5">Action taken</p>
                       <p className="text-sm text-charcoal/70 dark:text-white/60">{r.action_taken}</p>
                     </div>
                     <div className="flex items-center gap-3 mt-2 text-xs text-charcoal/40 dark:text-white/35">
@@ -206,13 +208,16 @@ export default function CorrectiveActionsPage() {
                     </div>
                   </div>
                   {r.status === 'open' && isManager && (
-                    <button
+                    <Button
+                      variant="success"
+                      size="sm"
+                      loading={resolving === r.id}
                       onClick={() => resolve(r.id)}
                       disabled={resolving === r.id}
-                      className="shrink-0 px-3 py-1.5 rounded-lg bg-success text-white text-xs font-medium hover:bg-success/90 transition-colors disabled:opacity-40"
+                      className="shrink-0"
                     >
-                      {resolving === r.id ? '...' : 'Resolve'}
-                    </button>
+                      Resolve
+                    </Button>
                   )}
                 </div>
               </div>
@@ -225,7 +230,7 @@ export default function CorrectiveActionsPage() {
       <Modal open={showForm} onClose={() => setShowForm(false)} title="Log Corrective Action">
         <div className="flex flex-col gap-4">
           <div>
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">Category</label>
+            <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">Category</label>
             <div className="flex flex-wrap gap-2">
               {CATEGORIES.map(c => (
                 <button
@@ -245,7 +250,7 @@ export default function CorrectiveActionsPage() {
           </div>
 
           <div>
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">Severity</label>
+            <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">Severity</label>
             <div className="grid grid-cols-3 gap-2">
               {SEVERITIES.map(s => (
                 <button
@@ -265,7 +270,7 @@ export default function CorrectiveActionsPage() {
           </div>
 
           <div>
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">
+            <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">
               What happened? <span className="text-danger">*</span>
             </label>
             <input
@@ -278,7 +283,7 @@ export default function CorrectiveActionsPage() {
           </div>
 
           <div>
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Details</label>
+            <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Details</label>
             <textarea
               value={form.description}
               onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
@@ -289,7 +294,7 @@ export default function CorrectiveActionsPage() {
           </div>
 
           <div>
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">
+            <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">
               Action taken <span className="text-danger">*</span>
             </label>
             <textarea
@@ -301,13 +306,14 @@ export default function CorrectiveActionsPage() {
             />
           </div>
 
-          <button
+          <Button
+            fullWidth
+            loading={saving}
             onClick={save}
             disabled={saving || !form.title.trim() || !form.action_taken.trim()}
-            className="bg-charcoal text-cream py-3 rounded-xl text-sm font-medium hover:bg-charcoal/90 transition-colors disabled:opacity-40"
           >
             {saving ? 'Saving...' : 'Log Corrective Action'}
-          </button>
+          </Button>
         </div>
       </Modal>
     </div>

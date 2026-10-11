@@ -14,8 +14,11 @@ import {
 } from '../../lib/api/fitness'
 import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../../components/ui/Toast'
+import { reportError } from '../../lib/reportError'
 import { PageSkeleton, SkeletonList } from '../../components/ui/Skeleton'
 import EmptyState from '../../components/ui/EmptyState'
+import LoadError from '../../components/ui/LoadError'
+import Button from '../../components/ui/Button'
 
 // ── Hook: today's declarations ────────────────────────────────────────────────
 
@@ -76,7 +79,7 @@ function StaffDeclarationForm({ session, venueId, onSaved }) {
     <div className="bg-white dark:bg-paperDark rounded-2xl border border-charcoal/10 dark:border-white/10 overflow-hidden max-w-lg w-full mx-auto">
       {/* Header */}
       <div className="px-6 pt-6 pb-4 border-b border-charcoal/8 dark:border-white/8">
-        <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-1">SC7 — Shift Start</p>
+        <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-1">SC7 — Shift Start</p>
         <h2 className="text-xl font-bold text-charcoal dark:text-white">Fitness to Work</h2>
         <p className="text-sm text-charcoal/50 dark:text-white/40 mt-1">
           Complete before starting your shift. This declaration is recorded for food safety compliance.
@@ -86,7 +89,7 @@ function StaffDeclarationForm({ session, venueId, onSaved }) {
       <div className="p-6 flex flex-col gap-5">
         {/* Shift type */}
         <div>
-          <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-2">Shift type</p>
+          <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-2">Shift type</p>
           <div className="flex gap-2">
             {[['opening','Opening'],['general','General'],['closing','Closing']].map(([v, l]) => (
               <button
@@ -132,7 +135,7 @@ function StaffDeclarationForm({ session, venueId, onSaved }) {
                 Please inform your manager immediately. Do not handle food until cleared by a medical professional if you have D&amp;V symptoms.
               </p>
             </div>
-            <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">Please indicate your symptoms:</p>
+            <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">Please indicate your symptoms:</p>
 
             {[
               [hasDV, setHasDV, 'Diarrhoea and/or vomiting (D&V)', 'Including norovirus symptoms — must not handle food for 48 hrs after last symptom'],
@@ -154,7 +157,7 @@ function StaffDeclarationForm({ session, venueId, onSaved }) {
             ))}
 
             <div>
-              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">
+              <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-2">
                 Additional details (optional)
               </label>
               <textarea
@@ -167,19 +170,21 @@ function StaffDeclarationForm({ session, venueId, onSaved }) {
             </div>
 
             <div className="flex gap-2">
-              <button
+              <Button
+                variant="danger"
+                loading={saving}
                 onClick={submit}
                 disabled={saving || !canSubmitIllness}
-                className="flex-1 bg-danger text-white py-2.5 rounded-lg text-sm font-medium disabled:opacity-40 hover:bg-danger/90 transition-colors"
+                className="flex-1"
               >
                 {saving ? 'Saving…' : 'Submit Declaration →'}
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="secondary"
                 onClick={() => { setIsFit(null); setStep('fitness') }}
-                className="px-4 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 text-sm text-charcoal/50 dark:text-white/40"
               >
                 Back
-              </button>
+              </Button>
             </div>
           </div>
         )}
@@ -187,7 +192,7 @@ function StaffDeclarationForm({ session, venueId, onSaved }) {
         {/* Step: hygiene confirmations */}
         {step === 'hygiene' && (
           <div className="flex flex-col gap-4">
-            <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35">Before you start — please confirm:</p>
+            <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35">Before you start — please confirm:</p>
 
             {[
               [handwashing, setHandwashing, 'I have washed my hands thoroughly', 'Before entering the kitchen or food prep area'],
@@ -209,19 +214,21 @@ function StaffDeclarationForm({ session, venueId, onSaved }) {
             ))}
 
             <div className="flex gap-2">
-              <button
+              <Button
+                variant="success"
+                loading={saving}
                 onClick={submit}
                 disabled={saving || !canSubmitHygiene}
-                className="flex-1 bg-success text-white py-2.5 rounded-lg text-sm font-medium disabled:opacity-40 hover:bg-success/90 transition-colors"
+                className="flex-1"
               >
                 {saving ? 'Saving…' : 'Confirm & Start Shift →'}
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="secondary"
                 onClick={() => { setIsFit(null); setStep('fitness') }}
-                className="px-4 py-2.5 rounded-lg border border-charcoal/15 dark:border-white/15 text-sm text-charcoal/50 dark:text-white/40"
               >
                 Back
-              </button>
+              </Button>
             </div>
           </div>
         )}
@@ -281,7 +288,7 @@ function DeclarationSummary({ declaration }) {
 
 function ManagerDeclarationsView({ venueId }) {
   const [viewDate, setViewDate] = useState(format(new Date(), 'yyyy-MM-dd'))
-  const { declarations, loading, reload } = useDeclarations(viewDate)
+  const { declarations, loading, isError, reload } = useDeclarations(viewDate)
 
   const fitCount   = declarations.filter(d => d.is_fit).length
   const unfitCount = declarations.filter(d => !d.is_fit).length
@@ -318,15 +325,15 @@ function ManagerDeclarationsView({ venueId }) {
       <div className="grid grid-cols-3 gap-3">
         <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 p-4 text-center">
           <p className="text-xl font-bold text-charcoal dark:text-white">{declarations.length}</p>
-          <p className="text-[11px] text-charcoal/40 dark:text-white/35 mt-0.5">Declared</p>
+          <p className="text-caption text-charcoal/40 dark:text-white/35 mt-0.5">Declared</p>
         </div>
         <div className="bg-success/5 rounded-xl border border-success/15 p-4 text-center">
           <p className="text-xl font-bold text-success">{fitCount}</p>
-          <p className="text-[11px] text-success/60 mt-0.5">Fit to work</p>
+          <p className="text-caption text-success/60 mt-0.5">Fit to work</p>
         </div>
         <div className={`rounded-xl border p-4 text-center ${unfitCount > 0 ? 'bg-danger/8 border-danger/20' : 'bg-charcoal/4 dark:bg-white/5 border-charcoal/10 dark:border-white/10'}`}>
           <p className={`text-xl font-bold ${unfitCount > 0 ? 'text-danger' : 'text-charcoal/30 dark:text-white/30'}`}>{unfitCount}</p>
-          <p className={`text-[11px] mt-0.5 ${unfitCount > 0 ? 'text-danger/60' : 'text-charcoal/30 dark:text-white/30'}`}>Unfit</p>
+          <p className={`text-caption mt-0.5 ${unfitCount > 0 ? 'text-danger/60' : 'text-charcoal/30 dark:text-white/30'}`}>Unfit</p>
         </div>
       </div>
 
@@ -334,7 +341,7 @@ function ManagerDeclarationsView({ venueId }) {
       <div className="bg-white dark:bg-paperDark rounded-2xl border-charcoal/10 dark:border-white/10 overflow-hidden">
         {loading ? (
           <SkeletonList rows={4} />
-        ) : declarations.length === 0 ? (
+        ) : isError ? (<LoadError what="declarations" onRetry={reload} />) : declarations.length === 0 ? (
           <EmptyState icon="clipboard" title="No declarations" description="No declarations recorded for this date." />
         ) : (
           <div className="divide-y divide-charcoal/6 dark:divide-white/8">
@@ -349,10 +356,10 @@ function ManagerDeclarationsView({ venueId }) {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <p className="text-sm font-medium text-charcoal dark:text-white">{d.staff_name}</p>
-                    <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full ${d.is_fit ? 'bg-success/10 text-success' : 'bg-danger/10 text-danger'}`}>
+                    <span className={`text-micro font-medium px-2 py-0.5 rounded-full ${d.is_fit ? 'bg-success/10 text-success' : 'bg-danger/10 text-danger'}`}>
                       {d.is_fit ? 'Fit' : 'Unfit'}
                     </span>
-                    <span className="text-[11px] bg-charcoal/8 dark:bg-white/8 text-charcoal/50 dark:text-white/40 px-2 py-0.5 rounded-full capitalize">
+                    <span className="text-micro bg-charcoal/8 dark:bg-white/8 text-charcoal/50 dark:text-white/40 px-2 py-0.5 rounded-full capitalize">
                       {d.shift_type}
                     </span>
                   </div>
@@ -433,7 +440,7 @@ function IllnessPolicyTab({ venueId }) {
 
       {/* Contacts */}
       <div className="bg-white dark:bg-paperDark rounded-2xl border border-charcoal/10 dark:border-white/10 p-5">
-        <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-3">Policy Contacts</p>
+        <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-3">Policy Contacts</p>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {[
             { key: 'responsible_person', label: 'Responsible person', placeholder: 'Manager responsible for return-to-work decisions' },
@@ -441,7 +448,7 @@ function IllnessPolicyTab({ venueId }) {
             { key: 'eho_contact',        label: 'Local EHO contact', placeholder: 'Name and phone of your local EHO' },
           ].map(f => (
             <div key={f.key} className="flex flex-col gap-1">
-              <label className="text-[11px] tracking-widest uppercase text-charcoal/30 dark:text-white/30">{f.label}</label>
+              <label className="text-micro tracking-widest uppercase text-charcoal/30 dark:text-white/30">{f.label}</label>
               <input
                 value={meta[f.key]}
                 onChange={e => setMeta(m => ({ ...m, [f.key]: e.target.value }))}
@@ -487,26 +494,25 @@ function IllnessPolicyTab({ venueId }) {
         },
       ].map((section, i) => (
         <div key={i} className="bg-white dark:bg-paperDark rounded-2xl border border-charcoal/10 dark:border-white/10 p-5">
-          <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-2">{section.title}</p>
+          <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-2">{section.title}</p>
           <p className="text-sm text-charcoal/70 dark:text-white/60 leading-relaxed whitespace-pre-line">{section.body}</p>
         </div>
       ))}
 
       {policy?.updated_at && (
-        <p className="text-[11px] text-charcoal/30 dark:text-white/30 text-right -mt-2">
+        <p className="text-caption text-charcoal/30 dark:text-white/30 text-right -mt-2">
           Last saved {format(new Date(policy.updated_at), 'd MMM yyyy, HH:mm')}
         </p>
       )}
 
       <div className="flex gap-3">
-        <button onClick={save} disabled={saving}
-          className="flex-1 bg-charcoal text-cream py-3 rounded-xl text-sm font-semibold hover:bg-charcoal/90 transition-colors disabled:opacity-40">
+        <Button loading={saving} onClick={save} disabled={saving}
+          className="flex-1">
           {saving ? 'Saving…' : 'Save Policy'}
-        </button>
-        <button onClick={() => window.print()}
-          className="px-5 py-3 rounded-xl border border-charcoal/15 dark:border-white/15 text-sm text-charcoal/60 dark:text-white/50 hover:border-charcoal/30 dark:hover:border-white/30 hover:text-charcoal dark:hover:text-white transition-colors">
+        </Button>
+        <Button variant="secondary" onClick={() => window.print()}>
           Print
-        </button>
+        </Button>
       </div>
     </div>
   )
@@ -524,8 +530,13 @@ export default function FitnessPage() {
 
   const checkOwnDeclaration = useCallback(async () => {
     if (!venueId || !session?.staffId) { setCheckingOwn(false); return }
-    const data = await fetchOwnDeclaration(venueId, session.staffId, today)
-    setMyDeclaration(data ?? null)
+    try {
+      const data = await fetchOwnDeclaration(venueId, session.staffId, today)
+      setMyDeclaration(data ?? null)
+    } catch (err) {
+      // Falls through to the declaration form; declaring twice is harmless.
+      reportError(err, 'FitnessPage:own-declaration')
+    }
     setCheckingOwn(false)
   }, [venueId, session?.staffId, today])
 
@@ -547,7 +558,7 @@ export default function FitnessPage() {
           </p>
           <h1 className="text-2xl font-bold text-charcoal dark:text-white">Fitness to Work</h1>
         </div>
-        <span className="text-[11px] tracking-widest uppercase text-charcoal/30 dark:text-white/30 border border-charcoal/15 dark:border-white/15 rounded px-2 py-1">SC7</span>
+        <span className="text-micro tracking-widest uppercase text-charcoal/30 dark:text-white/30 border border-charcoal/15 dark:border-white/15 rounded px-2 py-1">SC7</span>
       </div>
 
       {/* Tabs — policy tab for managers only */}
@@ -587,14 +598,14 @@ export default function FitnessPage() {
           {isManager && (
             <>
               <div>
-                <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-3">Your declaration</p>
+                <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-3">Your declaration</p>
                 {myDeclaration
                   ? <DeclarationSummary declaration={myDeclaration} />
                   : <StaffDeclarationForm session={session} venueId={venueId} onSaved={() => checkOwnDeclaration()} />
                 }
               </div>
               <div>
-                <p className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-3">Team declarations</p>
+                <p className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 mb-3">Team declarations</p>
                 <ManagerDeclarationsView venueId={venueId} />
               </div>
             </>

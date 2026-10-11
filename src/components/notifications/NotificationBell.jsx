@@ -5,6 +5,7 @@ import { useNotifications } from '../../hooks/useNotifications'
 import { useStaffNotifications } from '../../hooks/useStaffNotifications'
 import { useSession } from '../../contexts/SessionContext'
 import { useVenue } from '../../contexts/VenueContext'
+import Button, { CloseButton } from '../ui/Button'
 
 const _IC = (d) => <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">{d}</svg>
 const TYPE_ICON = {
@@ -105,21 +106,14 @@ function SwipeableNotif({ n, venueSlug, onDismiss, onNavigate }) {
         <Link
           to={`/v/${venueSlug}${n.link}`}
           onClick={onNavigate}
-          className="flex items-start gap-3 px-4 py-3 hover:bg-charcoal/3 dark:hover:bg-white/5 transition-colors pr-8"
+          className="flex items-start gap-3 px-4 py-3 hover:bg-charcoal/3 dark:hover:bg-white/5 transition-colors pr-12"
         >
           <span className="mt-0.5 shrink-0 text-charcoal/50 dark:text-white/40">{TYPE_ICON[n.type]}</span>
           <p className="text-sm text-charcoal dark:text-white leading-snug">{n.message}</p>
         </Link>
-        {/* Desktop dismiss button — visible on hover */}
-        <button
-          onClick={(e) => { e.preventDefault(); animateOut() }}
-          className="absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center rounded-full text-charcoal/25 dark:text-white/25 hover:text-charcoal/60 dark:hover:text-white/50 hover:bg-charcoal/8 dark:hover:bg-white/8 transition-all opacity-0 group-hover:opacity-100"
-          aria-label="Dismiss notification"
-        >
-          <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-          </svg>
-        </button>
+        {/* Dismiss button — always shown on touch screens (no hover there),
+            revealed on hover with a mouse. pr-12 on the row keeps text clear of it. */}
+        <CloseButton label="Dismiss notification" className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 [@media(hover:none)]:opacity-100" onClick={(e) => { e.preventDefault(); animateOut() }} />
       </div>
     </li>
   )
@@ -190,7 +184,7 @@ export default function NotificationBell({ variant = 'light' }) {
           <path d="M13.73 21a2 2 0 0 1-3.46 0" />
         </svg>
         {count > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 min-w-[17px] h-[17px] bg-danger text-white text-[11px] font-bold rounded-full flex items-center justify-center px-0.5 shadow-sm ring-1 ring-white dark:ring-[#1a1a18]">
+          <span className="absolute -top-0.5 -right-0.5 min-w-[17px] h-[17px] bg-danger text-white text-micro font-bold rounded-full flex items-center justify-center px-0.5 shadow-sm ring-1 ring-white dark:ring-charcoal">
             {count > 9 ? '9+' : count}
           </span>
         )}
@@ -203,12 +197,12 @@ export default function NotificationBell({ variant = 'light' }) {
               Notifications
             </p>
             {count > 0 && (
-              <button
+              <Button
+                variant="label"
                 onClick={dismissAll}
-                className="text-[11px] tracking-widest uppercase text-charcoal/35 dark:text-white/30 hover:text-charcoal/60 dark:hover:text-white/50 transition-colors"
               >
                 Dismiss all
-              </button>
+              </Button>
             )}
           </div>
 
@@ -229,7 +223,7 @@ export default function NotificationBell({ variant = 'light' }) {
                   />
                 ))}
               </ul>
-              <p className="text-[11px] text-charcoal/25 dark:text-white/25 text-center py-2 border-t border-charcoal/6 dark:border-white/8">
+              <p className="text-caption text-charcoal/25 dark:text-white/25 text-center py-2 border-t border-charcoal/6 dark:border-white/8">
                 Swipe left to dismiss · Resets when new activity occurs
               </p>
             </>

@@ -8,6 +8,7 @@ import ConfirmDialog from '../../components/ui/ConfirmDialog'
 import { useStaffTraining } from '../../hooks/useTraining'
 import { TRAINING_BUCKET, trainingFilePath, openTrainingFile } from '../../lib/trainingFiles'
 import { insertTrainingRecord } from '../../lib/api/training'
+import Button, { CloseButton } from '../../components/ui/Button'
 
 const EMPTY_TRAINING = { title: '', issued_date: '', expiry_date: '', notes: '' }
 
@@ -83,57 +84,57 @@ export default function TrainingSection({ staffId }) {
         onConfirm={() => { handleDelete(deleteTarget.id); setDeleteTarget(null) }}
       />
       <div className="flex items-center justify-between px-1 -mb-1">
-        <p className="text-[12px] font-semibold tracking-[0.08em] uppercase text-ink3 dark:text-white/45">Training records</p>
-        <button
-          type="button"
+        <p className="text-caption font-semibold tracking-[0.08em] uppercase text-ink3 dark:text-white/45">Training records</p>
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={() => setShowForm(f => !f)}
-          className="text-[13px] font-semibold text-ink dark:text-white hover:opacity-70"
+          className="-mr-3"
         >
           {showForm ? 'Cancel' : '+ Add record'}
-        </button>
+        </Button>
       </div>
 
       {showForm && (
         <div className="bg-white dark:bg-paperDark rounded-2xl border border-line dark:border-white/10 p-3 sm:p-5 flex flex-col gap-2.5">
           <div>
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Title *</label>
+            <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Title *</label>
             <input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
               placeholder="e.g. Food Hygiene Level 2"
-              className="w-full px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-[13px] focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20" />
+              className="w-full px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-body-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20" />
           </div>
           <div className="grid grid-cols-2 gap-2.5">
             <div>
-              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Issued Date</label>
+              <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Issued Date</label>
               <input type="date" value={form.issued_date} onChange={e => setForm(f => ({ ...f, issued_date: e.target.value }))}
-                className="w-full px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-[13px] focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20" />
+                className="w-full px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-body-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20" />
             </div>
             <div>
-              <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Expiry Date</label>
+              <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Expiry Date</label>
               <input type="date" value={form.expiry_date} onChange={e => setForm(f => ({ ...f, expiry_date: e.target.value }))}
-                className="w-full px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-[13px] focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20" />
+                className="w-full px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-body-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20" />
             </div>
           </div>
           <div>
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Notes</label>
+            <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Notes</label>
             <textarea value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))}
               rows={2} placeholder="Optional notes"
-              className="w-full px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-[13px] focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 resize-none" />
+              className="w-full px-3 py-2 rounded-lg border border-charcoal/15 dark:border-white/15 bg-white dark:bg-paperDark text-body-sm focus:outline-none focus:ring-2 focus:ring-charcoal/20 dark:focus:ring-white/20 resize-none" />
           </div>
           <div>
-            <label className="text-[11px] tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Certificate / File</label>
+            <label className="text-micro tracking-widest uppercase text-charcoal/40 dark:text-white/35 block mb-1">Certificate / File</label>
             <input type="file" accept="image/*,.pdf"
               onChange={e => setFile(e.target.files[0] ?? null)}
-              className="w-full text-[13px] text-charcoal/60 dark:text-white/50 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border file:border-charcoal/15 dark:file:border-white/15 file:text-xs file:bg-white dark:file:bg-paperDark file:text-charcoal/60 dark:file:text-white/50 hover:file:bg-cream" />
+              className="w-full text-body-sm text-charcoal/60 dark:text-white/50 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border file:border-charcoal/15 dark:file:border-white/15 file:text-xs file:bg-white dark:file:bg-paperDark file:text-charcoal/60 dark:file:text-white/50 hover:file:bg-cream" />
           </div>
-          <button onClick={handleAdd} disabled={saving}
-            className="bg-charcoal text-cream py-2 rounded-lg text-[13px] font-medium disabled:opacity-40 hover:bg-charcoal/90 transition-colors">
+          <Button size="sm" loading={saving} onClick={handleAdd} disabled={saving}>
             {saving ? 'Saving…' : 'Save Record →'}
-          </button>
+          </Button>
         </div>
       )}
 
       {records.length === 0 && !showForm && (
-        <p className="bg-white dark:bg-paperDark rounded-2xl border border-line dark:border-white/10 px-3.5 sm:px-3.5 py-2.5 text-[13px] text-ink3 dark:text-white/45">No training records yet.</p>
+        <p className="bg-white dark:bg-paperDark rounded-2xl border border-line dark:border-white/10 px-3.5 sm:px-3.5 py-2.5 text-body-sm text-ink3 dark:text-white/45">No training records yet.</p>
       )}
 
       {records.length > 0 && (
@@ -144,9 +145,9 @@ export default function TrainingSection({ staffId }) {
               <li key={r.id} className="flex items-start justify-between gap-2.5 px-3.5 sm:px-3.5 py-2">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <p className="text-[13px] font-semibold text-ink dark:text-white">{r.title}</p>
+                    <p className="text-body-sm font-semibold text-ink dark:text-white">{r.title}</p>
                     {expired && (
-                      <span className="text-[11px] tracking-widest uppercase bg-danger/10 text-danger px-1.5 py-0.5 rounded font-medium">Expired</span>
+                      <span className="text-micro tracking-widest uppercase bg-danger/10 text-danger px-1.5 py-0.5 rounded font-medium">Expired</span>
                     )}
                   </div>
                   <div className="flex items-center gap-2.5 mt-0.5 flex-wrap">
@@ -157,16 +158,15 @@ export default function TrainingSection({ staffId }) {
                       </p>
                     )}
                     {(r.file_path || r.file_url) && (
-                      <button onClick={() => openTrainingFile(r, toast)}
-                        className="text-xs text-accent underline underline-offset-2 hover:opacity-70 transition-opacity truncate max-w-[200px] text-left">
-                        {r.file_name ?? 'View file'}
-                      </button>
+                      <Button variant="link" onClick={() => openTrainingFile(r, toast)}
+                        className="max-w-[200px]">
+                        <span className="truncate">{r.file_name ?? 'View file'}</span>
+                      </Button>
                     )}
                   </div>
                   {r.notes && <p className="text-xs text-charcoal/40 dark:text-white/35 mt-1 italic">{r.notes}</p>}
                 </div>
-                <button onClick={() => setDeleteTarget(r)}
-                  className="text-charcoal/25 dark:text-white/25 hover:text-danger transition-colors shrink-0 mt-0.5"><svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+                <CloseButton label="Delete training record" className="shrink-0 -mt-1.5 -mr-2" onClick={() => setDeleteTarget(r)} />
               </li>
             )
           })}
