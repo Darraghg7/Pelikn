@@ -2,7 +2,8 @@ import React, { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { format } from 'date-fns'
 import { useLiveDatetimeLocal } from '../../hooks/useLiveDatetimeLocal'
-import { supabase } from '../../lib/supabase'
+import { insertFridgeLog } from '../../lib/api/fridges'
+import { errorOf } from '../../lib/api/writes'
 import { sendPush } from '../../lib/sendPush'
 import { useVenue } from '../../contexts/VenueContext'
 import { useFridges } from '../../hooks/useFridgeLogs'
@@ -79,7 +80,7 @@ export default function FridgeLogFormPage() {
       ? new Date(ts.getTime() + 30 * 60 * 1000).toISOString()
       : null
 
-    const { error } = await supabase.from('fridge_temperature_logs').insert({
+    const error = await errorOf(insertFridgeLog({
       fridge_id:         fridgeId,
       fridge_name:       selectedFridge?.name ?? '',
       temperature:       parseFloat(temp),
@@ -91,7 +92,7 @@ export default function FridgeLogFormPage() {
       venue_id:          venueId,
       exceedance_reason: reason ?? null,
       follow_up_due_at:  followUpDueAt,
-    })
+    }))
 
     setSubmitting(false)
     if (error) { toast(error.message, 'error'); return }

@@ -1,12 +1,12 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState } from 'react'
 import { format } from 'date-fns'
-import { supabase } from '../../lib/supabase'
+import { useProbeCalibrations } from '../../hooks/useProbeCalibrations'
+import { insertProbeCalibration } from '../../lib/api/probe'
 import { useVenue } from '../../contexts/VenueContext'
 import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../../components/ui/Toast'
 import { SkeletonList } from '../../components/ui/Skeleton'
 import Modal from '../../components/ui/Modal'
-import { reportError } from '../../lib/reportError'
 import LoadError from '../../components/ui/LoadError'
 import Button from '../../components/ui/Button'
 
@@ -14,28 +14,6 @@ import Button from '../../components/ui/Button'
 // during BST the default read an hour behind and records were saved an hour early.
 function nowDatetimeLocal() {
   return format(new Date(), "yyyy-MM-dd'T'HH:mm")
-}
-
-function useCalibrations(venueId) {
-  const [records, setRecords] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [failed, setFailed]   = useState(false)
-  const load = useCallback(async () => {
-    if (!venueId) return
-    setLoading(true)
-    const { data, error } = await supabase
-      .from('probe_calibrations')
-      .select('*, calibrator:staff!calibrated_by(name)')
-      .eq('venue_id', venueId)
-      .order('calibrated_at', { ascending: false })
-      .limit(100)
-    if (error) reportError(error, 'ProbeCalibrationPage:load')
-    else setRecords(data ?? [])
-    setFailed(!!error)
-    setLoading(false)
-  }, [venueId])
-  useEffect(() => { load() }, [load])
-  return { records, loading, failed, reload: load }
 }
 
 const METHODS = [
@@ -56,7 +34,7 @@ export default function ProbeCalibrationPage() {
   const toast = useToast()
   const { venueId } = useVenue()
   const { session } = useSession()
-  const { records, loading, failed, reload } = useCalibrations(venueId)
+  const { records, loading, failed, reload } = useProbeCalibrations()
 
   const [showForm, setShowForm] = useState(false)
   const [form, setForm] = useState(() => ({ ...EMPTY_FORM, calibrated_at: nowDatetimeLocal() }))
@@ -72,7 +50,8 @@ export default function ProbeCalibrationPage() {
   const save = async () => {
     if (!hasReading) { toast('Enter a temperature reading', 'error'); return }
     setSaving(true)
-    const { error } = await supabase.from('probe_calibrations').insert({
+    try {
+      await insertProbeCalibration({
       probe_name: form.probe_name.trim() || 'Probe 1',
       method: form.method,
       expected_temp: expectedTemp,
@@ -82,9 +61,13 @@ export default function ProbeCalibrationPage() {
       notes: form.notes.trim() || null,
       calibrated_at: new Date(form.calibrated_at || Date.now()).toISOString(),
       venue_id: venueId,
-    })
+      })
+    } catch (error) {
+      setSaving(false)
+      toast(error.message, 'error')
+      return
+    }
     setSaving(false)
-    if (error) { toast(error.message, 'error'); return }
     toast(wouldPass ? 'Calibration recorded - PASS' : 'Calibration recorded - FAIL')
     setForm({ ...EMPTY_FORM, calibrated_at: nowDatetimeLocal() })
     setShowForm(false)

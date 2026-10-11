@@ -15,7 +15,8 @@
 import React, { useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { format, isToday, isYesterday, differenceInCalendarDays } from 'date-fns'
-import { supabase } from '../../lib/supabase'
+import { insertPestLog as insertPestLogRow, markPestIssueResolved } from '../../lib/api/pestControl'
+import { errorOf } from '../../lib/api/writes'
 import { useVenue } from '../../contexts/VenueContext'
 import { useSession } from '../../contexts/SessionContext'
 import { useToast } from '../../components/ui/Toast'
@@ -73,21 +74,9 @@ function shortDay(iso) {
   return format(d, 'd MMM')
 }
 
-/**
- * Insert a pest log. Before migration 121 there's no issue_id column, so an
- * entry about an existing issue falls back to naming the issue in its text.
- */
-async function insertPestLog(input, issue) {
-  // Only send issue_id when there is one, so unlinked entries never depend on 121
-  const { issue_id: issueId, ...legacy } = input
-  const row = issueId ? input : legacy
-  const { error } = await supabase.from('pest_control_logs').insert(row)
-  if (!error || !issueId || !/issue_id/.test(error.message ?? '')) return error
-  const { error: legacyError } = await supabase.from('pest_control_logs').insert({
-    ...legacy,
-    description: `Re: ${issueSummary(issue)} — ${legacy.description}`,
-  })
-  return legacyError
+/** Insert a pest log; returns the error, or null when it saved. */
+function insertPestLog(input, issue) {
+  return errorOf(insertPestLogRow(input, input.issue_id ? issueSummary(issue) : null))
 }
 
 /** Log a follow-up saying the issue is over, then close the issue. */
@@ -104,8 +93,7 @@ async function resolveIssue(issue, session, note = 'Resolved — no further acti
     logged_by_name: session?.staffName ?? null,
   }, issue)
   if (error) return error
-  const { error: updateError } = await supabase.from('pest_control_logs').update({ status: 'resolved' }).eq('id', issue.id)
-  return updateError
+  return errorOf(markPestIssueResolved(issue.venue_id, issue.id))
 }
 
 /* ── Small pieces ─────────────────────────────────────────────────────────── */
@@ -229,10 +217,7 @@ function LogEntryForm({ issues, followUpIssueId, onFollowUpIssue, onSaved }) {
 
     // Resolving from a linked entry closes the original issue too
     if (linkedIssue && resolved) {
-      const { error: resolveError } = await supabase
-        .from('pest_control_logs')
-        .update({ status: 'resolved' })
-        .eq('id', linkedIssue.id)
+      const resolveError = await errorOf(markPestIssueResolved(venueId, linkedIssue.id))
       if (resolveError) { setSaving(false); toast(resolveError.message, 'error'); onSaved(); return }
     }
 
