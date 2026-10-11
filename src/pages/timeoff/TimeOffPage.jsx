@@ -319,6 +319,7 @@ export default function TimeOffPage() {
                 rotaHoursByDate={rotaHours[r.staff_id]}
                 onApprove={(paidHours) => approve(r.id, paidHours)}
                 onApproveUnpaid={() => approve(r.id, null, { asUnpaid: true })}
+                decideOnTimesheet={!allowUnpaidLeave}
                 onReject={() => reject(r.id)}
               />
             ))}
@@ -768,9 +769,13 @@ function OwnBalanceCard({ balance, year, holiday }) {
   )
 }
 
-function PendingRequest({ request: r, balance, holiday, rotaHoursByDate, note, onNote, busy, onApprove, onApproveUnpaid, onReject }) {
-  // Zero-hours annual leave is paid in hours, so the manager confirms how many.
-  const asksForHours = r.leave_type === 'annual' && balance?.isZeroHours && holiday?.status === 'ok'
+function PendingRequest({ request: r, balance, holiday, rotaHoursByDate, note, onNote, busy, onApprove, onApproveUnpaid, onReject, decideOnTimesheet }) {
+  const zeroHoursAnnual = r.leave_type === 'annual' && balance?.isZeroHours
+  // Zero-hours annual leave is paid in hours, so the manager confirms how many —
+  // unless staff can't request unpaid leave (Settings → Attendance). Then
+  // annual leave may turn out to be unpaid, and the timesheet is where the
+  // manager chooses; filling in hours here would make that choice for them.
+  const asksForHours = zeroHoursAnnual && holiday?.status === 'ok' && !decideOnTimesheet
   const suggested = asksForHours ? suggestedPaidHours(r, holiday.avgWeekHours, r.staff?.working_days, rotaHoursByDate) : null
   // null until the manager types: shows the suggestion, which may load after this renders
   const [typed, setHours] = useState(null)
@@ -867,7 +872,10 @@ function PendingRequest({ request: r, balance, holiday, rotaHoursByDate, note, o
           Approve
         </Button>
       </div>
-      {r.leave_type === 'annual' && balance?.isZeroHours && (
+      {zeroHoursAnnual && decideOnTimesheet && (
+        <p className="text-body-sm text-ink3 dark:text-white/45 -mt-1">Approving keeps them off the rota. You’ll choose holiday pay or unpaid on the timesheet.</p>
+      )}
+      {zeroHoursAnnual && (
         <Button variant="link" size="sm" onClick={onApproveUnpaid} disabled={busy} className="self-center">
           Not paid holiday? Approve as unpaid leave
         </Button>
