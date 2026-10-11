@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { runExport } from '../../lib/exportData'
 import { format, subDays } from 'date-fns'
 import { loadPdfLibs, PDF } from '../../lib/pdfUtils'
 import { supabase } from '../../lib/supabase'
@@ -130,7 +131,7 @@ export default function FridgeExportModal({ open, onClose }) {
         <Button
           fullWidth
           loading={loading}
-          onClick={handleExport}
+          onClick={() => runExport(handleExport, toast)}
           disabled={loading}
         >
           {loading ? 'Generating…' : 'Export PDF →'}

@@ -7,6 +7,7 @@
  * with a note of what was done, reopened, or exported as a PDF.
  */
 import React, { useMemo, useState } from 'react'
+import { runExport } from '../../lib/exportData'
 import { useSearchParams } from 'react-router-dom'
 import { format, parseISO } from 'date-fns'
 import { useVenue } from '../../contexts/VenueContext'
@@ -321,7 +322,7 @@ function IncidentDetailModal({ incident, onClose, onChanged }) {
     onChanged()
   }
 
-  const exportPdf = () => {
+  const exportPdf = async () => {
     const rows = [
       ['Title', incidentTitle(incident)],
       ['Type', typeLabel(incident.incident_type) ?? '—'],
@@ -340,7 +341,7 @@ function IncidentDetailModal({ incident, onClose, onChanged }) {
     if (incident.follow_up_actions) rows.push(['Follow-up actions', incident.follow_up_actions])
     if (incident.closure_note) rows.push(['Closure note', incident.closure_note])
 
-    buildPdfReport({
+    await buildPdfReport({
       title: 'Pelikn',
       subtitle: 'Incident & Accident Report',
       venueLabel: venueName,
@@ -418,7 +419,7 @@ function IncidentDetailModal({ incident, onClose, onChanged }) {
               className={TEXT_AREA}
             />
             <div className="grid grid-cols-2 gap-2.5 mt-1">
-              <Button variant="secondary" size="sm" onClick={exportPdf}>Export PDF</Button>
+              <Button variant="secondary" size="sm" onClick={() => runExport(exportPdf, toast)}>Export PDF</Button>
               <Button
                 size="sm"
                 disabled={busy || !closureNote.trim()}
@@ -432,7 +433,7 @@ function IncidentDetailModal({ incident, onClose, onChanged }) {
           <div className="flex flex-col gap-2.5 border-t border-line dark:border-white/10 pt-2.5">
             <Field label={`Closed ${incident.closed_at ? format(new Date(incident.closed_at), 'd MMM yyyy') : ''}`} value={incident.closure_note} />
             <div className="grid grid-cols-2 gap-2.5">
-              <Button variant="secondary" size="sm" onClick={exportPdf}>Export PDF</Button>
+              <Button variant="secondary" size="sm" onClick={() => runExport(exportPdf, toast)}>Export PDF</Button>
               <Button
                 variant="secondary"
                 size="sm"
