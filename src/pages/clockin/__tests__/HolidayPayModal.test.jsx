@@ -55,6 +55,19 @@ describe('HolidayPayModal', () => {
     expect(base.onSaved).toHaveBeenCalled()
   })
 
+  it('pays a share of the suggested hours from the percentage buttons', async () => {
+    render(<HolidayPayModal {...base} />)
+    const box = /** @type {HTMLInputElement} */ (await screen.findByLabelText('Hours to pay'))
+    fireEvent.click(screen.getByRole('button', { name: '50%' }))
+    expect(box.value).toBe('5.7')                      // 11.4 × 50%
+    expect(screen.getByRole('button', { name: '50%' }).getAttribute('aria-pressed')).toBe('true')
+    expect(screen.getByText('50% of the suggested 11.4 h')).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: '25%' }))
+    expect(box.value).toBe('2.85')
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Save holiday pay' })) })
+    expect(update).toHaveBeenCalledWith({ paid_hours: 2.85 })
+  })
+
   it('opens on the hours already recorded, and can\'t be changed in a locked period', async () => {
     render(<HolidayPayModal {...base} request={{ ...base.request, paid_hours: 9 }} locked />)
     const box = /** @type {HTMLInputElement} */ (await screen.findByLabelText('Hours to pay'))

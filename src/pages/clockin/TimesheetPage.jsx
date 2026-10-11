@@ -11,12 +11,14 @@ import { useAppSettings } from '../../hooks/useSettings'
 import { formatMinutes, getWeekStart, downloadCsv } from '../../lib/utils'
 import { buildPdfReport } from '../../lib/pdfUtils'
 import { countWorkingDaysInRequest } from '../../hooks/useLeaveBalance'
-import { withPaidHoursColumns } from '../../lib/api/holidayData'
+import { withPaidHoursColumns, fetchTimesheetPayouts, removePaidOut } from '../../lib/api/holidayData'
 import { useHolidayBalances, useHolidayYear, useRotaHours, HOLIDAY_BALANCES_KEY } from '../../hooks/useHolidayBalances'
 import { suggestedPaidHours } from '../../lib/holiday'
 import { holidayYearContaining } from '../../lib/holidayYear'
 import { useQueryClient } from '@tanstack/react-query'
 import HolidayPayModal from './HolidayPayModal'
+import AddHolidayPayModal from './AddHolidayPayModal'
+import ConfirmDialog from '../../components/ui/ConfirmDialog'
 import { markUnpaid } from '../../lib/api/timeOff'
 import { sendPush } from '../../lib/sendPush'
 import { SkeletonList } from '../../components/ui/Skeleton'
@@ -24,7 +26,7 @@ import AddSessionModal from './AddSessionModal'
 import ClockEditApprovalCard from '../../components/shifts/ClockEditApprovalCard'
 import RestrictedFieldsNotice from '../../components/ui/RestrictedFieldsNotice'
 import Avatar from '../../components/ui/Avatar'
-import { formatLondon, resolveShiftInstants } from '../../lib/time'
+import { formatLondon, londonToday, resolveShiftInstants } from '../../lib/time'
 import { buildTimesheets, buildDailyGrid, partitionDaySessions, breakMinutes, sessionMinutes } from '../../lib/timesheet'
 import { offlineRpc } from '../../lib/offlineSupabase'
 import { reportError } from '../../lib/reportError'
@@ -354,7 +356,7 @@ function LateTag({ late }) {
 }
 
 // ── Staff hours bottom sheet ───────────────────────────────────────────────────
-function StaffHoursSheet({ t, person, periodDays, dailyGrid, periodLabel, onEditDay, onAddDay, onClose }) {
+function StaffHoursSheet({ t, person, periodDays, dailyGrid, periodLabel, canRemove, onEditDay, onRemoveDay, onAddDay, onClose }) {
   const staffGrid = dailyGrid[t.staffId] || null
   const pay = (t.totalMinutes / 60) * t.hourlyRate
   useBodyScrollLock()
@@ -392,6 +394,7 @@ function StaffHoursSheet({ t, person, periodDays, dailyGrid, periodLabel, onEdit
                     const mins = sessionMinutes(session)
                     return (
                       <div key={si}>
+                        <div className="flex items-start gap-2">
                         <button
                           onClick={() => onEditDay({ dateStr, session })}
                           className="text-left bg-transparent border-none p-0 cursor-pointer"
@@ -406,6 +409,18 @@ function StaffHoursSheet({ t, person, periodDays, dailyGrid, periodLabel, onEdit
                             {breakMins > 0 && <><span className="text-charcoal/30 dark:text-white/30">·</span><span className="text-caption text-charcoal/50 dark:text-white/40">{breakMins}m break</span></>}
                           </div>
                         </button>
+                        {canRemove && (
+                          <Button
+                            size="sm"
+                            variant="danger-ghost"
+                            onClick={() => onRemoveDay({ dateStr, session })}
+                            aria-label={`Remove the ${formatLondon(session.in, 'HH:mm')} shift on ${format(d, 'EEE d MMM')}`}
+                            className="ml-auto shrink-0"
+                          >
+                            Remove
+                          </Button>
+                        )}
+                        </div>
                         <LateTag late={session.late} />
                       </div>
                     )
@@ -475,10 +490,15 @@ export default function TimesheetPage() {
   const [holidayPayFor, setHolidayPayFor] = useState(null)
   const [markingUnpaid, setMarkingUnpaid] = useState(null)   // booking id being marked unpaid
   const [leaveTick,     setLeaveTick]     = useState(0)
+  const [payouts,       setPayouts]       = useState([])
+  const [addPayoutOpen, setAddPayoutOpen] = useState(false)
+  const [removingPayout, setRemovingPayout] = useState(null)   // payout id being removed
+  const [removeCtx,     setRemoveCtx]     = useState(null)    // { dateStr, session } awaiting confirm
+  const [removingShift, setRemovingShift] = useState(false)
   const queryClient = useQueryClient()
 
   const { venueId, venueSlug } = useVenue()
-  const { isManager } = useSession()
+  const { isManager, session } = useSession()
   const toast         = useToast()
   const { staff: staffList } = useStaffList()
   const { breakDurationMins, holidayYearStartMonth } = useAppSettings()
@@ -504,10 +524,24 @@ export default function TimesheetPage() {
   const totalMins    = useMemo(() => timesheets.reduce((a, t) => a + t.totalMinutes, 0), [timesheets])
   const totalWage    = useMemo(() => timesheets.reduce((a, t) => a + (t.totalMinutes / 60) * t.hourlyRate, 0), [timesheets])
 
-  const totalHolidayPay = useMemo(() => timesheets.reduce((a, t) => {
-    const profile = staffProfiles[t.staffId] ?? { contractedHours: null, workingDays: [] }
-    return a + (calcHolidayMins(periodLeave, t.staffId, profile, dateFrom.slice(0, 10), dateTo.slice(0, 10)) / 60) * t.hourlyRate
-  }, 0), [timesheets, periodLeave, staffProfiles, dateFrom, dateTo])
+  // Holiday paid out on a date in this period (the venue closed, say) is paid
+  // on top of any booked holiday.
+  const payoutHours = useMemo(() => {
+    const out = {}
+    for (const p of payouts) out[p.staff_id] = (out[p.staff_id] ?? 0) + (Number(p.hours) || 0)
+    return out
+  }, [payouts])
+
+  const holidayMinsFor = useCallback((staffId) => {
+    const profile = staffProfiles[staffId] ?? { contractedHours: null, workingDays: [] }
+    return calcHolidayMins(periodLeave, staffId, profile, dateFrom.slice(0, 10), dateTo.slice(0, 10))
+      + (payoutHours[staffId] ?? 0) * 60
+  }, [periodLeave, staffProfiles, dateFrom, dateTo, payoutHours])
+
+  const totalHolidayPay = useMemo(
+    () => timesheets.reduce((a, t) => a + (holidayMinsFor(t.staffId) / 60) * t.hourlyRate, 0),
+    [timesheets, holidayMinsFor],
+  )
 
   const periodScheduled = useMemo(() => {
     // Paid hours, same as the rota's cost: the unpaid break is deducted
@@ -562,6 +596,19 @@ export default function TimesheetPage() {
   const rotaFrom = holidayItems.reduce((m, r) => (!m || r.start_date < m ? r.start_date : m), '')
   const rotaTo   = holidayItems.reduce((m, r) => (!m || r.end_date > m ? r.end_date : m), '')
   const rotaHours = useRotaHours(holidayStaff.map(s => s.id), rotaFrom, rotaTo)
+  // Who can be paid holiday out: zero-hours staff on holiday pay — theirs is
+  // counted in hours, which is what a payout is.
+  const payoutPeople = useMemo(
+    () => (staffList ?? [])
+      .filter(s => s.is_active !== false && staffProfiles[s.id]?.zeroHours && staffProfiles[s.id]?.eligible)
+      .map(s => ({ id: s.id, name: s.name ?? 'Unknown', working_days: staffProfiles[s.id]?.workingDays ?? [], holiday_pay_eligible: true })),
+    [staffList, staffProfiles],
+  )
+  // Today if it falls in the period, else the period's last day
+  const defaultPayoutDate = useMemo(() => {
+    const today = londonToday()
+    return today < periodFrom ? periodFrom : today > periodTo ? periodTo : today
+  }, [periodFrom, periodTo])
   const holidayToConfirm = holidayItems.filter(r => r.paid_hours == null).length
 
   const holidaySaved = useCallback(() => {
@@ -631,6 +678,13 @@ export default function TimesheetPage() {
 
   useEffect(() => {
     if (!venueId || !periodFrom || !periodTo) return
+    fetchTimesheetPayouts(venueId, periodFrom, periodTo)
+      .then(setPayouts)
+      .catch(error => reportError(error, 'TimesheetPage:holiday-payouts'))
+  }, [venueId, periodFrom, periodTo, leaveTick])
+
+  useEffect(() => {
+    if (!venueId || !periodFrom || !periodTo) return
     supabase.from('shifts').select('staff_id, start_time, end_time, shift_date')
       .eq('venue_id', venueId).gte('shift_date', periodFrom).lte('shift_date', periodTo)
       .then(({ data, error }) => {
@@ -683,6 +737,32 @@ export default function TimesheetPage() {
     setLockSaving(false)
   }, [isPeriodLocked, locksFailed, holidayToConfirm, payrollLocks, periodFrom, periodTo, saveLocks, toast])
 
+  const removePayout = async (p, name) => {
+    setRemovingPayout(p.id)
+    const { error } = await removePaidOut(p.id)
+    setRemovingPayout(null)
+    if (error) { toast(error.message, 'error'); return }
+    toast(`Holiday pay removed for ${name}`)
+    holidaySaved()
+  }
+
+  // Deletes the whole session — clock in, clock out and its breaks.
+  const removeShift = async () => {
+    const target = removeCtx.session
+    const ids = [target.inId, target.outId, ...target.breaks.flatMap(b => [b.startId, b.endId])].filter(Boolean)
+    setRemovingShift(true)
+    const { error } = await supabase.rpc('delete_clock_session', { p_event_ids: ids })
+    setRemovingShift(false)
+    if (error) {
+      const missing = error.code === 'PGRST202' || error.code === '42883'
+      toast(missing ? 'Removing shifts needs the latest database update (migration 154) first' : error.message, 'error')
+      return
+    }
+    toast('Shift removed')
+    setRemoveCtx(null)
+    reload()
+  }
+
   const saveEditedSession = useCallback(async ({ dateStr, session }, { clockIn, clockOut, brk }) => {
     // Interpret the edited times as UK wall-clock and store the resulting UTC
     // instant (ISO with offset) — a bare string would be read as UTC by Postgres.
@@ -710,13 +790,11 @@ export default function TimesheetPage() {
   }, [reload, toast])
 
   const exportPdf = () => {
-    const pFrom = dateFrom.slice(0, 10), pTo = dateTo.slice(0, 10)
     const pdfRows = timesheets.map(t => {
       const hrs    = (t.totalMinutes / 60).toFixed(2)
       const rate   = Number(t.hourlyRate).toFixed(2)
       const worked = ((t.totalMinutes / 60) * t.hourlyRate).toFixed(2)
-      const profile = staffProfiles[t.staffId] ?? { contractedHours: null, workingDays: [] }
-      const holPay  = ((calcHolidayMins(periodLeave, t.staffId, profile, pFrom, pTo) / 60) * t.hourlyRate).toFixed(2)
+      const holPay  = ((holidayMinsFor(t.staffId) / 60) * t.hourlyRate).toFixed(2)
       if (t.totalMinutes <= 0 && parseFloat(holPay) <= 0) return null  // nothing to pay
       return [t.name, `${hrs} hrs`, rate > 0 ? `£${rate}/hr` : '—', worked > 0 ? `£${worked}` : '—', holPay > 0 ? `£${holPay}` : '—', `£${(parseFloat(worked) + parseFloat(holPay)).toFixed(2)}`]
     }).filter(Boolean)
@@ -726,13 +804,11 @@ export default function TimesheetPage() {
 
   const exportCsv = () => {
     const esc = v => `"${String(v).replace(/"/g, '""')}"`
-    const pFrom = dateFrom.slice(0, 10), pTo = dateTo.slice(0, 10)
     const header = ['Name', 'Hours Worked', 'Hourly Rate (£)', 'Worked Pay (£)', 'Holiday Pay (£)', 'Total Pay (£)'].map(esc).join(',')
     const dataRows = timesheets.map(t => {
       const hrs = (t.totalMinutes / 60).toFixed(2), rate = Number(t.hourlyRate).toFixed(2)
       const worked = ((t.totalMinutes / 60) * t.hourlyRate).toFixed(2)
-      const profile = staffProfiles[t.staffId] ?? { contractedHours: null, workingDays: [] }
-      const holPay  = ((calcHolidayMins(periodLeave, t.staffId, profile, pFrom, pTo) / 60) * t.hourlyRate).toFixed(2)
+      const holPay  = ((holidayMinsFor(t.staffId) / 60) * t.hourlyRate).toFixed(2)
       if (t.totalMinutes <= 0 && parseFloat(holPay) <= 0) return null  // nothing to pay
       return [t.name, hrs, rate, worked, holPay, (parseFloat(worked) + parseFloat(holPay)).toFixed(2)].map(esc).join(',')
     }).filter(Boolean)
@@ -922,6 +998,72 @@ export default function TimesheetPage() {
         </div>
       )}
 
+      {/* Holiday paid out on a date, not tied to a booking (the venue closes for Christmas) */}
+      {isManager && periodFrom && periodTo && (payouts.length > 0 || payoutPeople.length > 0) && (
+        <div className={`${CARD} overflow-hidden`}>
+          <div className="flex items-center justify-between gap-2.5 px-3.5 py-2.5">
+            <p className="text-caption font-semibold tracking-[0.08em] uppercase text-ink3 dark:text-white/45">Holiday paid out</p>
+            {!isPeriodLocked && (
+              <Button size="sm" variant="secondary" onClick={() => setAddPayoutOpen(true)}>Add holiday pay</Button>
+            )}
+          </div>
+          {payouts.length === 0 ? (
+            <p className="px-3.5 pb-3 text-body-sm text-ink3 dark:text-white/45">
+              Closing for a few days? Pay staff some of their holiday for it here.
+            </p>
+          ) : (
+            <div className="divide-y divide-line dark:divide-white/10 border-t border-line dark:border-white/10">
+              {payouts.map(p => {
+                const person = staffById[p.staff_id]
+                const name = person?.name ?? 'Staff'
+                const rate = staffRates[p.staff_id] ?? 0
+                return (
+                  <div key={p.id} className="flex items-center gap-2.5 px-3.5 py-2.5">
+                    <Avatar name={name} id={p.staff_id} colour={person?.colour} photoUrl={person?.photo_url} size="md" decorative />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-body font-semibold text-ink dark:text-white truncate">{name}</p>
+                      <p className="text-body-sm text-ink3 dark:text-white/45">
+                        {format(parseISO(p.paid_on), 'EEE d MMM')}
+                        {p.note && ` · ${p.note}`}
+                        {' · '}
+                        <span className="font-mono text-ink2 dark:text-white/70">{Number(p.hours)} h{rate > 0 && ` · ${fmtGBP(Number(p.hours) * rate)}`}</span>
+                      </p>
+                    </div>
+                    {!isPeriodLocked && (
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        loading={removingPayout === p.id}
+                        disabled={!!removingPayout}
+                        onClick={() => removePayout(p, name)}
+                        className="shrink-0"
+                      >
+                        Remove
+                      </Button>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {addPayoutOpen && (
+        <AddHolidayPayModal
+          people={payoutPeople}
+          rates={staffRates}
+          venueId={venueId}
+          managerId={session?.staffId}
+          periodFrom={periodFrom}
+          periodTo={periodTo}
+          defaultDate={defaultPayoutDate}
+          holidayYearStartMonth={holidayYearStartMonth}
+          onClose={() => setAddPayoutOpen(false)}
+          onSaved={holidaySaved}
+        />
+      )}
+
       {holidayPayFor && (
         <HolidayPayModal
           request={holidayPayFor}
@@ -960,7 +1102,7 @@ export default function TimesheetPage() {
                   key={t.staffId}
                   t={t}
                   person={staffById[t.staffId]}
-                  holidayMins={calcHolidayMins(periodLeave, t.staffId, staffProfiles[t.staffId] ?? { contractedHours: null, workingDays: [] }, periodFrom, periodTo)}
+                  holidayMins={holidayMinsFor(t.staffId)}
                   onTap={() => setSelStaff(t)}
                 />
               ))}
@@ -977,6 +1119,8 @@ export default function TimesheetPage() {
           periodDays={periodDays}
           dailyGrid={dailyGrid}
           periodLabel={periodLabel}
+          canRemove={isManager && !isPeriodLocked}
+          onRemoveDay={ctx => setRemoveCtx(ctx)}
           onEditDay={ctx => setEditCtx(ctx)}
           onAddDay={dateStr => setAddTarget({ staffId: selStaff.staffId, date: dateStr })}
           onClose={() => setSelStaff(null)}
@@ -993,6 +1137,19 @@ export default function TimesheetPage() {
           onClose={() => setEditCtx(null)}
         />
       )}
+
+      <ConfirmDialog
+        open={!!removeCtx}
+        title="Remove this shift?"
+        message={removeCtx && selStaff
+          ? `${selStaff.name}'s ${formatLondon(removeCtx.session.in, 'HH:mm')}${removeCtx.session.out ? `–${formatLondon(removeCtx.session.out, 'HH:mm')}` : ''} shift on ${format(parseISO(removeCtx.dateStr), 'EEE d MMM')} comes off the timesheet and their pay. This can't be undone.`
+          : ''}
+        confirmLabel="Remove shift"
+        danger
+        loading={removingShift}
+        onConfirm={removeShift}
+        onClose={() => !removingShift && setRemoveCtx(null)}
+      />
 
       {/* Add session modal */}
       <AddSessionModal
